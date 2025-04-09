@@ -1,7 +1,7 @@
 {
 	"name": "sgta-backend",
 	"scripts": {
-		"build": "./mvnw clean install",
-		"dev": "./mvnw spring-boot:run"
+		"build": "mvn clean install",
+		"dev": "mvn spring-boot:run"
 	}
 }
