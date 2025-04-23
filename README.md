@@ -1,8 +1,55 @@
-SGTA 
-Proyecto de implementación de software
+# Guía de Contribución
 
-Se usa turborepo para correr ambos proyectos(back y front)
+Esta guía explica el proceso para contribuir al monorepo basado en Turborepo, pnpm, Next.js y Spring Boot.
 
-pnpm dev iniciará los 2 proyectos
+## Configuración del entorno de desarrollo
 
-también puede inicar cada proyecto por separado desde su lugar de preferencia(intelij , vscode ,etc)
+### Requisitos previos
+
+- Node.js v22.14.0
+- pnpm v10.7
+- Java OpenJDK 17.0.12
+- Maven v3.9.9
+
+### Configuración inicial
+
+1. Clona el repositorio:
+   ```bash
+   git clone https://github.com/darkmoon09032/SGTA.git
+   cd SGTA
+   ```
+
+2. Instala las dependencias:
+   ```bash
+   pnpm install
+   ```
+
+## Estructura del proyecto
+
+```
+SGTA
+├── apps
+│   ├── sgta-frontend   // Next.js frontend (TypeScript)
+│   └── sgta-backend   // Spring Boot backend (Java)
+└── packages
+    └── config // Configuración compartida
+```
+
+## Comandos útiles
+
+### Ejecutar en modo desarrollo
+
+- Frontend (Next.js):
+  ```bash
+  pnpm dev --filter sgta-frontend
+  ```
+
+- Backend (Spring Boot):
+  ```bash
+  pnpm dev --filter sgta-backend
+  ```
+
+- Todo el monorepo:
+  ```bash
+  pnpm dev
+  ```
