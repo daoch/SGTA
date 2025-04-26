@@ -53,3 +53,29 @@ SGTA
   ```bash
   pnpm dev
   ```
+
+### Construir y ejecutar con Docker
+
+Para construir las imágenes Docker:
+
+```
+docker-compose build
+```
+
+Para iniciar los servicios:
+
+```
+docker-compose up
+```
+
+Para ejecutar en segundo plano:
+
+```
+docker-compose up -d
+```
+
+Para detener los servicios:
+
+```
+docker-compose down
+```
