@@ -1,0 +1,30 @@
+name: Lint SGTA Frontend
+
+on:
+  pull_request:
+    paths:
+      - 'apps/sgta-frontend/**'
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install dependencies (root)
+        run: pnpm install
+
+      - name: Run ESLint in apps/sgta-frontend
+        working-directory: apps/sgta-frontend
+        run: pnpm lint
