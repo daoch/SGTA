@@ -1,10 +1,16 @@
 import { Home, FileText, FolderOpen, ClipboardList, CheckSquare, Users, CalendarIcon, MessageSquare, Search, BarChart3, Calendar, FileSpreadsheet } from "lucide-react";
 
+export interface NavigationGroup {
+  label: string;
+  items: NavigationItem[];
+}
+
 export interface NavigationItem {
   name: string;
   href: string;
   icon: React.ElementType;
   children?: NavigationItem[];
+  isActive?: boolean;
 }
 
 export const navigationItems: Record<string, NavigationItem[]> = {
