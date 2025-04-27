@@ -13,12 +13,11 @@ const user = {
   roles: ['alumno','jurado'],
 };
 
-export function AppSidebar({ children }: { children: React.ReactNode }) {
+export function AppSidebar() {
   const pathname = usePathname();
   const groups = getNavigationGroups(user.roles);
 
   return (
-    <SidebarProvider>
       <Sidebar 
         className="bg-white border-r" 
         collapsible="icon"
@@ -78,7 +77,5 @@ export function AppSidebar({ children }: { children: React.ReactNode }) {
         </SidebarFooter>
 
       </Sidebar>
-      {children}
-    </SidebarProvider>
   );
 }
