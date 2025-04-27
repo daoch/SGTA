@@ -26,7 +26,9 @@ export default function RootLayout({
 }>) {
   return (
     <html>
-      <body>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
         <SidebarProvider>
           <AppSidebar />
           <main>
