@@ -3,5 +3,8 @@
 	"scripts": {
 		"build": "mvn clean install",
 		"dev": "mvn spring-boot:run"
+	},
+	"dependencies": {
+		"sgta-backend": "file:"
 	}
 }
