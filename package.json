@@ -7,7 +7,8 @@
 	"scripts": {
 		"build": "turbo run build",
 		"dev": "turbo run dev",
-		"check-types": "turbo run check-types"
+		"lint": "turbo run lint",
+		"format": "turbo run format"
 	},
 	"devDependencies": {
 		"turbo": "^2.5.0"
