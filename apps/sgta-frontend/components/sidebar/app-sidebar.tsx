@@ -25,7 +25,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="p-4 flex items-center justify-between">
+      <SidebarHeader>
         <NavUser user={user} />
       </SidebarHeader>
 
@@ -33,7 +33,7 @@ export function AppSidebar() {
         <NavMain groups={groups} pathname={pathname} />
       </SidebarContent>
 
-      <SidebarFooter className="p-4 flex justify-center">
+      <SidebarFooter>
         <SidebarTrigger />
       </SidebarFooter>
     </Sidebar>
