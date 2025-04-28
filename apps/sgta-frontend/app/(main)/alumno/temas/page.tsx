@@ -1,11 +1,9 @@
 "use client";
 
-import React from 'react'
+import React from "react";
 
-const page = () => {
-  return (
-    <div>temas alumno</div>
-  )
-}
+const Page: React.FC = () => {
+  return <div>page</div>;
+};
 
-export default page
+export default Page;

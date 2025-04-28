@@ -1,16 +1,22 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarTrigger } from "@/components/ui/sidebar";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
 import { getNavigationGroups } from "./navigation-groups";
 import { NavUser } from "./nav-user";
 import { NavMain } from "./nav-main";
 
 const user = {
-  name: 'Diego Ochoa',
-  email: 'daochoa@pucp.edu.pe',
-  avatar: 'https://github.com/daoch.png',
-  roles: ['alumno','jurado'],
+  name: "Diego Ochoa",
+  email: "daochoa@pucp.edu.pe",
+  avatar: "https://github.com/daoch.png",
+  roles: ["alumno", "jurado", "asesor", "revisor", "coordinador"],
 };
 
 export function AppSidebar() {
@@ -18,19 +24,18 @@ export function AppSidebar() {
   const groups = getNavigationGroups(user.roles);
 
   return (
-      <Sidebar collapsible="icon">
-        <SidebarHeader className="p-4 flex items-center justify-between">
-          <NavUser user={user} />
-        </SidebarHeader>
+    <Sidebar collapsible="icon">
+      <SidebarHeader className="p-4 flex items-center justify-between">
+        <NavUser user={user} />
+      </SidebarHeader>
 
-        <SidebarContent>
-          <NavMain groups={groups} pathname={pathname} />
-        </SidebarContent>
+      <SidebarContent>
+        <NavMain groups={groups} pathname={pathname} />
+      </SidebarContent>
 
-        <SidebarFooter className="p-4 flex justify-center">
-          <SidebarTrigger />
-        </SidebarFooter>
-
-      </Sidebar>
+      <SidebarFooter className="p-4 flex justify-center">
+        <SidebarTrigger />
+      </SidebarFooter>
+    </Sidebar>
   );
 }
