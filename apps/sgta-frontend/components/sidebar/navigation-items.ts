@@ -69,5 +69,9 @@ export const navigationItems: Record<string, NavigationItem[]> = {
     },
     { name: 'Jurados', href: '/coordinador/jurados', icon: Users },
     { name: 'Reportes', href: '/coordinador/reportes', icon: BarChart3 },
+  ],
+  revisor: [
+    { name: 'Revisión', href: '/revisor/revision', icon: Search },
+    { name: 'Reportes', href: '/revisor/reportes', icon: BarChart3 },
   ]
 };
