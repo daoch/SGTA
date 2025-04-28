@@ -11,17 +11,16 @@ import {
 import { getNavigationGroups } from "./navigation-groups";
 import { NavUser } from "./nav-user";
 import { NavMain } from "./nav-main";
-
-const user = {
-  name: "Diego Ochoa",
-  email: "daochoa@pucp.edu.pe",
-  avatar: "https://github.com/daoch.png",
-  roles: ["alumno", "jurado", "asesor", "revisor", "coordinador"],
-};
+import { useAuth } from "@/features/auth";
 
 export function AppSidebar() {
+  const { user } = useAuth();
   const pathname = usePathname();
-  const groups = getNavigationGroups(user.roles);
+  const groups = getNavigationGroups(user?.roles || []);
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <Sidebar collapsible="icon">

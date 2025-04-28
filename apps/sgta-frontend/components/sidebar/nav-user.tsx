@@ -19,18 +19,12 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Badge } from "../ui/badge";
+import { useAuth } from "@/features/auth/hooks/use-auth";
+import { User } from "@/features/auth";
 
-export function NavUser({
-  user,
-}: {
-  user: {
-    name: string;
-    email: string;
-    avatar: string;
-    roles: string[];
-  };
-}) {
+export function NavUser({ user }: { user: User }) {
   const { isMobile } = useSidebar();
+  const { logout, redirectToLogin } = useAuth();
 
   return (
     <SidebarMenu>
@@ -48,7 +42,7 @@ export function NavUser({
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">{user.name}</span>
                 <div className="flex flex-wrap gap-1">
-                  {user.roles.map((role, index) => (
+                  {user?.roles?.map((role, index) => (
                     <Badge key={index} variant="secondary" className="text-xs">
                       {role}
                     </Badge>
@@ -84,7 +78,12 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => {
+                logout();
+                redirectToLogin();
+              }}
+            >
               <LogOut />
               Cerrar Sesión
             </DropdownMenuItem>
