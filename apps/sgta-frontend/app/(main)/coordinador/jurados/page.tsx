@@ -1,4 +1,6 @@
-import React from 'react'
+"use client"
+
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -6,7 +8,7 @@ import TableJurados from './tableJurados'
 
 const page = () => {
 
-  const juradosData = [
+  const juradosOriginal = [
     {
       user: { name: 'Juan Pérez', avatar: 'https://github.com/daoch.png' },
       code: '12345',
@@ -28,25 +30,44 @@ const page = () => {
     // Agregar más jurados según sea necesario
   ]
 
+  const [searchTerm, setSearchTerm] = useState('');
+  const [juradosData, setJuradosData] = useState(juradosOriginal);
+
+  const handleSearch = () => {
+    const filtered = juradosOriginal.filter((jurado) =>
+      jurado.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      jurado.code.includes(searchTerm) ||
+      jurado.email.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setJuradosData(filtered);
+  };
 
   return (
 
-    <div className="p-4">
-
-      <h1 className="text-[24px] leading-[32px] font-semibold text-[#042354] tracking-[-0.144px] mb-4">
+    <div>
+      <div className="flex h-[60px] pt-[15px] pr-[20px] pb-[10px] pl-[20px] items-center gap-[10px] self-stretch">
+      <h1 className="text-[#042354] font-montserrat text-[24px] font-semibold leading-[32px] tracking-[-0.144px]">
         Miembros de Jurado
       </h1>
-
+      </div>
       <div className="flex flex-wrap gap-2 items-center">
         {/* Input de búsqueda */}
         <Input
           placeholder="Ingrese el nombre, código o correo electrónico del usuario"
           className="flex w-[447px] h-[44px] px-3 py-2 items-center gap-2 border border-[#E2E6F0] rounded-none bg-background resize-none"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              handleSearch()
+            }
+          }}
         />
 
 
         <Button
           className="inline-flex h-11 px-4 justify-center items-center gap-2 flex-shrink-0 rounded-md bg-[#042354] text-white"
+          onClick={handleSearch} // Llama a la función de búsqueda al hacer clic
         >
           Buscar
         </Button>

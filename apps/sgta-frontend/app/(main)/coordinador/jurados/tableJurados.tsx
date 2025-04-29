@@ -1,6 +1,7 @@
-"use client"
+'use client'
 
 import * as React from "react"
+import { useRouter } from 'next/navigation'
 import { FileSearch,Trash2 } from "lucide-react"
 import { Table, TableHeader, TableBody, TableRow, TableCell } from "@/components/ui/table" // Usamos los componentes de shadcn
 import { Button } from "@/components/ui/button" // Para los botones de editar y eliminar
@@ -22,7 +23,18 @@ interface TableJuradosProps {
   }[]
 }
 
+
+
+
+
+
 const TableJurados: React.FC<TableJuradosProps> = ({ juradosData }) => {
+  const router = useRouter()
+
+  const handleClick = (detalleJurado: string) => {
+    router.push(`/coordinador/jurados/${detalleJurado}`)
+  }
+
   return (
     <Table>
       <TableHeader>
@@ -69,7 +81,9 @@ const TableJurados: React.FC<TableJuradosProps> = ({ juradosData }) => {
               <Button 
                 variant="ghost"
                 size="icon"
-                className="relative">
+                className="relative"
+                onClick={() => handleClick(jurado.code)} // Cambia a la ruta de detalle del jurado
+               >
                 <FileSearch className="h-5 w-5" />
                 </Button>
                 <Button 
