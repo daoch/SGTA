@@ -5,7 +5,7 @@ import { ArrowLeft,Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-
+import { ListaTesisJuradoCard } from './listaTesisJuradoCard'
 
 export default function JuradoDetalle() {
     const params = useParams()
@@ -16,12 +16,21 @@ export default function JuradoDetalle() {
     const tesisData=[
         {
             titulo:'Aplicación de Deep Learning para la detección y clasificación automática de insectos agrícolas en trampas pegantes',
-            codigo:'(INF0501) ',
-            estudiante:'Angel Malpartia',
+            codigo:'INF0501',
+            estudiante:'Angel Malpartida',
             codEstudiante:'20201242',
             resumen:'El presente trabajo de investigación busca hacer una revisión sistemática sobre las técnicas actuales que se usan para solucionar problemas de identificación y clasificación de plagas de insectos, los cuales pueden ser para detectar uno o más tipos de insectos. Dentro de esta revisión, se encontró soluciones como algoritmos de segmentación con cambio de espacio de color, lo cual permite remover el fondo de una imagen y centrarse únicamente en el objeto de interés; también, el uso de modelos de detección, por ejemplo YOLO y Faster R-CNN, los cuales están conformados por redes neuronales convolucionales...',
-            especialidades:['Desarrollo Web', 'Backend']
-
+            especialidades:['Desarrollo Web', 'Backend'],
+            rol:'Jurado'
+        },
+        {
+            titulo:'Identificación del nivel de complejidad de texto para el entrenamiento de chatbots basado en Machine Learning',
+            codigo:'INF1643',
+            estudiante:'Marco Bossio',
+            codEstudiante:'20105420',
+            resumen:'El nivel de complejidad textual puede ser un inconveniente para algunas personas al momento de usar Chatbots, debido a que estos programas podrían dar respuestas cuyo nivel de complejidad no sea el que entienda el usuario. Entonces, aquellos Chatbots deberían ser entrenados con un conjunto de datos cuya complejidad textual sea la deseada, para evitar confusiones con los usuarios. Para ello, se define una revisión sistemática, en la cual se usan las bases de datos de Google Scholar, ACM Digital Library e IEEE Xplore, de las cuáles se obtiene la información necesaria empleando las palabras claves definidas por el...',
+            especialidades:['Ciencias de la Computación'],
+            rol:'Jurado'
         }
 
     ]
@@ -50,7 +59,7 @@ export default function JuradoDetalle() {
                     <Search className="absolute left-3 text-gray-400 w-5 h-5" />
                     <Input
                         placeholder="Ingrese el código, título del tema o nombre del estudiante"
-                        className="pl-20 w-full h-full px-3 py-2 items-center gap-2 bg-transparent resize-none focus:outline-none"
+                        className="pl-12 w-full h-full px-3 py-2 items-center gap-2 bg-transparent resize-none focus:outline-none"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         
@@ -73,7 +82,7 @@ export default function JuradoDetalle() {
                         <SelectContent>
                         <SelectItem value="Todos">Todos</SelectItem>
                         <SelectItem value="PFC1">Proyecto de Fin de Carrera 1</SelectItem>
-                        <SelectItem value="PFC2">Proyecto de Fin de Carrera 1</SelectItem>
+                        <SelectItem value="PFC2">Proyecto de Fin de Carrera 2</SelectItem>
                         
                         </SelectContent>
                     </Select>
@@ -101,6 +110,7 @@ export default function JuradoDetalle() {
                     + Asignar Tesis
                 </Button> 
             </div>
+            <ListaTesisJuradoCard data={tesisData} />
         </div>
     )
 }
