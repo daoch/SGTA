@@ -1,16 +1,10 @@
 "use client";
 
-import { LoginForm } from "@/features/auth/components/login-form";
+import LoginPage from "@/features/auth/views/login-page";
 import React from "react";
 
 const Page: React.FC = () => {
-  return (
-    <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
-      <div className="w-full max-w-sm">
-        <LoginForm />
-      </div>
-    </div>
-  );
+  return <LoginPage />;
 };
 
 export default Page;

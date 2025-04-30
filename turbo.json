@@ -3,15 +3,30 @@
 	"ui": "tui",
 	"tasks": {
 		"build": {
-			"dependsOn": ["^build"],
-			"inputs": ["$TURBO_DEFAULT$", ".env*"],
-			"outputs": [".next/**", "!.next/cache/**"]
+			"dependsOn": [
+				"^build"
+			],
+			"inputs": [
+				"$TURBO_DEFAULT$",
+				".env*"
+			],
+			"outputs": [
+				"apps/sgta-frontend/.next/**",
+				"apps/sgta-backend/target/*.jar"
+			],
+			"cache": false
 		},
 		"lint": {
-			"dependsOn": ["^lint"]
+			"dependsOn": [
+				"^lint"
+			],
+			"cache": false
 		},
-		"check-types": {
-			"dependsOn": ["^check-types"]
+		"format": {
+			"dependsOn": [
+				"^format"
+			],
+			"cache": false
 		},
 		"dev": {
 			"cache": false,
