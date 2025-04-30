@@ -98,6 +98,7 @@ CREATE TABLE tema (
     resumen                  TEXT,
     portafolio_url           VARCHAR(255),
     estado_tema_id           INTEGER      NOT NULL,
+    proyecto_id              INTEGER      NOT NULL,
     activo                   BOOLEAN           NOT NULL DEFAULT TRUE,
     fecha_creacion           TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion       TIMESTAMP WITH TIME ZONE,
@@ -106,6 +107,11 @@ CREATE TABLE tema (
 		FOREIGN KEY (estado_tema_id)
 		REFERENCES estado_tema (estado_tema_id)
 		ON DELETE RESTRICT
+    
+    CONSTRAINT fk_proyecto
+        FOREIGN KEY (proyecto_id)
+        REFERENCES proyecto (proyecto_id)
+        ON DELETE RESTRICT;
 );
 
 -- 2) HISTORIAL_TEMA (depende de tema)
