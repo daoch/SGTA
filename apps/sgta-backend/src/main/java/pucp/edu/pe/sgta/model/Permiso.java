@@ -1,10 +1,7 @@
 package pucp.edu.pe.sgta.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.OffsetDateTime;
 
@@ -13,30 +10,24 @@ import java.time.OffsetDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "historial_tema")
-public class HistorialTema {
+@Table(name = "permiso")
+public class Permiso {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "historial_tema_id")
+    @Column(name = "permiso_id")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "tema_id", nullable = false,
-                foreignKey = @ForeignKey(name = "fk_tema"))
-    private Tema tema;
+    @JoinColumn(name = "modulo_id", nullable = false,
+                foreignKey = @ForeignKey(name = "fk_modulo"))
+    private Modulo modulo;
 
-    @Column(length = 255, nullable = false)
-    private String titulo;
+    @Column(length = 100, nullable = false)
+    private String nombre;
 
     @Column(columnDefinition = "TEXT")
-    private String resumen;
-
-    @Column(name = "descripcion_cambio", columnDefinition = "TEXT")
-    private String descripcionCambio;
-
-    @Column(name = "estado_tema_id", nullable = false)
-    private Integer estadoTemaId;
+    private String descripcion;
 
     @Column(nullable = false)
     private boolean activo = true;
