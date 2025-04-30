@@ -90,6 +90,17 @@ CREATE TABLE estado_tema (
 );
 
 
+-- 1) Tabla proyecto
+CREATE TABLE proyecto (
+    proyecto_id           SERIAL PRIMARY KEY,
+    titulo                VARCHAR(255)          NOT NULL,
+    descripcion           TEXT,
+    estado                VARCHAR(50)           NOT NULL,
+    activo                BOOLEAN   NOT NULL DEFAULT TRUE,
+    fecha_creacion        TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion    TIMESTAMP WITH TIME ZONE
+);
+
 -- 1) TEMA
 CREATE TABLE tema (
     tema_id                  SERIAL PRIMARY KEY,
@@ -106,12 +117,12 @@ CREATE TABLE tema (
 	CONSTRAINT fk_estado_tema
 		FOREIGN KEY (estado_tema_id)
 		REFERENCES estado_tema (estado_tema_id)
-		ON DELETE RESTRICT
+		ON DELETE RESTRICT,
     
     CONSTRAINT fk_proyecto
         FOREIGN KEY (proyecto_id)
         REFERENCES proyecto (proyecto_id)
-        ON DELETE RESTRICT;
+        ON DELETE RESTRICT
 );
 
 -- 2) HISTORIAL_TEMA (depende de tema)
@@ -157,6 +168,7 @@ CREATE TABLE solicitud (
     solicitud_id             SERIAL PRIMARY KEY,
     descripcion              TEXT,
     tipo_solicitud_id        INTEGER           NOT NULL,
+    tema_id                  INTEGER           NOT NULL,
     activo                   BOOLEAN           NOT NULL DEFAULT TRUE,
     fecha_creacion           TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion       TIMESTAMP WITH TIME ZONE,
@@ -164,6 +176,10 @@ CREATE TABLE solicitud (
     CONSTRAINT fk_solicitud_tipo
         FOREIGN KEY (tipo_solicitud_id)
         REFERENCES tipo_solicitud (tipo_solicitud_id)
+        ON DELETE RESTRICT,
+    CONSTRAINT fk_s_tema
+        FOREIGN KEY (tema_id)
+        REFERENCES tema (tema_id)
         ON DELETE RESTRICT
 );
 
@@ -390,17 +406,6 @@ CREATE TABLE usuario_grupo_investigacion (
         FOREIGN KEY (grupo_investigacion_id)
         REFERENCES grupo_investigacion (grupo_investigacion_id)
         ON DELETE CASCADE
-);
-
--- 1) Tabla proyecto
-CREATE TABLE proyecto (
-    proyecto_id           SERIAL PRIMARY KEY,
-    titulo                VARCHAR(255)          NOT NULL,
-    descripcion           TEXT,
-    estado                VARCHAR(50)           NOT NULL,
-    activo                BOOLEAN   NOT NULL DEFAULT TRUE,
-    fecha_creacion        TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion    TIMESTAMP WITH TIME ZONE
 );
 
 -- 2) Tabla usuario_proyecto (relación M:N entre usuario y proyecto)
