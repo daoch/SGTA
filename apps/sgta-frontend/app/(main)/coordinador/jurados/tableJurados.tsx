@@ -25,9 +25,6 @@ interface TableJuradosProps {
 
 
 
-
-
-
 const TableJurados: React.FC<TableJuradosProps> = ({ juradosData }) => {
   const router = useRouter()
 

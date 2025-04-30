@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from 'react';
+import React, { useEffect,useState } from 'react';
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -32,15 +32,49 @@ const page = () => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [juradosData, setJuradosData] = useState(juradosOriginal);
+  const [dedication, setDedication] = useState<'Todos'|'Tiempo Completo'|'Medio Tiempo'>('Todos')
+  const [specialty, setSpecialty] = useState<'Todos'|'Desarrollo Web'|'Backend'|'Front-End'|'UI/UX'>('Todos')
+  const [status, setStatus] = useState<'Todos'|'Activo'|'Inactivo'>('Todos')
+  const [hasSearched, setHasSearched] = useState(false)
+
+   // 1) Filtrado automático al cambiar combobox
+   useEffect(() => {
+    setJuradosData(() => {
+      return juradosOriginal.filter((j) => {
+        const matchDedication =
+          dedication === 'Todos' ||
+          j.dedication === dedication
+        const matchSpecialty =
+          specialty === 'Todos' ||
+          j.specialties.includes(specialty)
+        const matchStatus =
+          status === 'Todos' ||
+          j.status === status
+        // Solo aplicamos búsqueda si ya se buscó alguna vez
+        const matchSearch =
+          !hasSearched ||
+          j.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          j.code.includes(searchTerm) ||
+          j.email.toLowerCase().includes(searchTerm.toLowerCase())
+
+        return matchDedication && matchSpecialty && matchStatus && matchSearch
+      })
+    })
+  }, [dedication, specialty, status, searchTerm])
+
 
   const handleSearch = () => {
-    const filtered = juradosOriginal.filter((jurado) =>
-      jurado.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      jurado.code.includes(searchTerm) ||
-      jurado.email.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setJuradosData(filtered);
-  };
+    setJuradosData(() => {
+      return juradosOriginal.filter((j) => {
+        const matchSearch =
+          j.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          j.code.includes(searchTerm) ||
+          j.email.toLowerCase().includes(searchTerm.toLowerCase())
+
+        return matchSearch
+      })
+    })
+  }
 
   return (
 
@@ -76,14 +110,14 @@ const page = () => {
       {/* ComboBox 1 - Tipo de Dedicación */}
         <div className="flex flex-col w-[130px] h-[80px] items-start gap-[6px] flex-shrink-0">
           <label className="text-sm font-medium">Tipo de Dedicación</label>
-          <Select>
+          <Select onValueChange={(val) => setDedication(val as any)}>
             <SelectTrigger className="h-[80px] w-full border border-[#E2E6F0] rounded-md !important">
               <SelectValue placeholder="Todos" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="todos">Todos</SelectItem>
-              <SelectItem value="tiempo-completo">Tiempo Completo</SelectItem>
-              <SelectItem value="medio-tiempo">Medio Tiempo</SelectItem>
+              <SelectItem value="Todos">Todos</SelectItem>
+              <SelectItem value="Tiempo Completo">Tiempo Completo</SelectItem>
+              <SelectItem value="Medio Tiempo">Medio Tiempo</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -91,14 +125,15 @@ const page = () => {
         {/* ComboBox 2 - Área de Especialidad */}
         <div className="flex flex-col w-[148px] h-[80px] items-start gap-[6px] flex-shrink-0">
           <label className="text-sm font-medium">Área de Especialidad</label>
-          <Select>
+          <Select onValueChange={(val) => setSpecialty(val as any)}>
             <SelectTrigger className="h-[68px] w-full">
               <SelectValue placeholder="Todos" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="todos">Todos</SelectItem>
-              <SelectItem value="ciencias-computacion">Ciencias de la Computacion</SelectItem>
-              <SelectItem value="desarrollo-software">Desarrollo de Software</SelectItem>
+              <SelectItem value="Todos">Todos</SelectItem>
+              <SelectItem value="Ciencias de la Computacion">Ciencias de la Computacion</SelectItem>
+              <SelectItem value="Desarrollo de Software">Desarrollo de Software</SelectItem>
+              <SelectItem value="Desarrollo Web">Desarrollo Web</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -106,13 +141,14 @@ const page = () => {
         {/* ComboBox 3 - Estado */}
         <div className="flex flex-col w-[107px] h-[80px] items-start gap-[6px] flex-shrink-0">
           <label className="text-sm font-medium">Estado</label>
-          <Select>
+          <Select onValueChange={(val) => setStatus(val as any)}>
             <SelectTrigger className="h-[68px] w-full">
               <SelectValue placeholder="Todos" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="activo">Activo</SelectItem>
-              <SelectItem value="inactivo">Inactivo</SelectItem>
+              <SelectItem value="Todos">Todos</SelectItem>
+              <SelectItem value="Activo">Activo</SelectItem>
+              <SelectItem value="Inactivo">Inactivo</SelectItem>
             </SelectContent>
           </Select>
         </div>
