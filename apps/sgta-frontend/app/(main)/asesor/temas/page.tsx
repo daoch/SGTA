@@ -1,9 +1,9 @@
-import React from 'react'
+"use client";
 
-const page = () => {
-  return (
-    <div>temas asesor</div>
-  )
-}
+import React from "react";
 
-export default page
+const Page: React.FC = () => {
+  return <div>page</div>;
+};
+
+export default Page;
