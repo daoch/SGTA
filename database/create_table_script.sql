@@ -475,3 +475,315 @@ CREATE TABLE carrera_parametro_configuracion (
         REFERENCES parametro_configuracion (parametro_configuracion_id)
         ON DELETE CASCADE
 );
+
+--- MODULO DE JURADOS
+
+--MAESTRAS O SIN REFERENCIAS
+
+CREATE TABLE IF NOT EXISTS ciclo (
+    ciclo_id 						    SERIAL PRIMARY KEY,
+    semestre 							VARCHAR(10) NOT NULL,
+    anio 								INTEGER NOT NULL,
+    fecha_inicio 						DATE NOT NULL,
+    fecha_fin 							DATE NOT NULL,
+    activo                              BOOLEAN   NOT NULL DEFAULT TRUE,
+    fecha_creacion                      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion                  TIMESTAMP WITH TIME ZONE
+);
+
+CREATE TABLE IF NOT EXISTS etapa_formativa (
+    etapa_formativa_id					SERIAL PRIMARY KEY,
+    nombre 								TEXT NOT NULL,
+    creditaje_por_tema 					NUMERIC(6, 2) NOT NULL,
+    duracion_exposicion 				INTERVAL,
+    activo                              BOOLEAN   NOT NULL DEFAULT TRUE,
+    fecha_creacion                      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion                  TIMESTAMP WITH TIME ZONE
+);
+
+CREATE TABLE IF NOT EXISTS estado_planificacion (
+    estado_planificacion_id				SERIAL PRIMARY KEY,
+    nombre 								TEXT NOT NULL,
+    activo                              BOOLEAN   NOT NULL DEFAULT TRUE,
+    fecha_creacion                      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion                  TIMESTAMP WITH TIME ZONE
+);
+
+CREATE TABLE IF NOT EXISTS tipo_exposicion (
+    tipo_exposicion_id					SERIAL PRIMARY KEY,
+    nombre 								TEXT NOT NULL,
+    activo                              BOOLEAN   NOT NULL DEFAULT TRUE,
+    fecha_creacion                      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion                  TIMESTAMP WITH TIME ZONE
+);
+
+CREATE TABLE IF NOT EXISTS sala_exposicion (
+    sala_exposicion_id					SERIAL PRIMARY KEY,
+    nombre 								TEXT NOT NULL,
+    activo                              BOOLEAN   NOT NULL DEFAULT TRUE,
+		tipo_sala_exposicion			enum_presentation_room_type NOT NULL DEFAULT 'presential',
+    fecha_creacion                      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion                  TIMESTAMP WITH TIME ZONE
+);
+
+-- Tablas para el módulo de exposiciones (corregidas)
+
+-- Tabla etapa_formativa_x_ciclo
+CREATE TABLE IF NOT EXISTS etapa_formativa_x_ciclo (
+    etapa_formativa_x_ciclo_id     SERIAL PRIMARY KEY,
+    etapa_formativa_id             INTEGER NOT NULL,
+    ciclo_id                       INTEGER NOT NULL,
+    activo                         BOOLEAN NOT NULL DEFAULT TRUE,
+    fecha_creacion                 TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion             TIMESTAMP WITH TIME ZONE,
+    
+    CONSTRAINT fk_efc_etapa_formativa
+        FOREIGN KEY (etapa_formativa_id)
+        REFERENCES etapa_formativa (etapa_formativa_id)
+        ON DELETE RESTRICT,
+    CONSTRAINT fk_efc_ciclo
+        FOREIGN KEY (ciclo_id)
+        REFERENCES ciclo (ciclo_id)
+        ON DELETE RESTRICT
+);
+
+-- Tabla tipo_exposicion_x_etapa_formativa_x_ciclo
+CREATE TABLE IF NOT EXISTS tipo_exposicion_x_ef_x_c (
+    tipo_exposicion_x_ef_x_c_id    SERIAL PRIMARY KEY,
+    etapa_formativa_x_ciclo_id     INTEGER NOT NULL,
+    tipo_exposicion_id             INTEGER NOT NULL,
+    activo                         BOOLEAN NOT NULL DEFAULT TRUE,
+    fecha_creacion                 TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion             TIMESTAMP WITH TIME ZONE,
+    
+    CONSTRAINT fk_texefc_ef_x_c
+        FOREIGN KEY (etapa_formativa_x_ciclo_id)
+        REFERENCES etapa_formativa_x_ciclo (etapa_formativa_x_ciclo_id)
+        ON DELETE RESTRICT,
+    CONSTRAINT fk_texefc_tipo_exposicion
+        FOREIGN KEY (tipo_exposicion_id)
+        REFERENCES tipo_exposicion (tipo_exposicion_id)
+        ON DELETE RESTRICT
+);
+
+-- Tabla exposicion
+CREATE TABLE IF NOT EXISTS exposicion (
+    exposicion_id                 SERIAL PRIMARY KEY,
+    tipo_exposicion_x_ef_x_c_id   INTEGER NOT NULL,
+    estado_planificacion_id       INTEGER NOT NULL,
+    activo                        BOOLEAN NOT NULL DEFAULT TRUE,
+    fecha_creacion                TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion            TIMESTAMP WITH TIME ZONE,
+    
+    CONSTRAINT fk_exp_tipo_exposicion_x_ef_x_c
+        FOREIGN KEY (tipo_exposicion_x_ef_x_c_id)
+        REFERENCES tipo_exposicion_x_ef_x_c (tipo_exposicion_x_ef_x_c_id)
+        ON DELETE RESTRICT,
+    CONSTRAINT fk_exp_estado_planificacion
+        FOREIGN KEY (estado_planificacion_id)
+        REFERENCES estado_planificacion (estado_planificacion_id)
+        ON DELETE RESTRICT
+);
+
+-- Tabla jornada_exposicion
+CREATE TABLE IF NOT EXISTS jornada_exposicion (
+    jornada_exposicion_id        SERIAL PRIMARY KEY,
+    exposicion_id                INTEGER NOT NULL,
+    datetime_inicio              TIMESTAMP WITH TIME ZONE NOT NULL,
+    datetime_fin                 TIMESTAMP WITH TIME ZONE NOT NULL,
+    activo                       BOOLEAN NOT NULL DEFAULT TRUE,
+    fecha_creacion               TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion           TIMESTAMP WITH TIME ZONE,
+    
+    CONSTRAINT fk_je_exposicion
+        FOREIGN KEY (exposicion_id)
+        REFERENCES exposicion (exposicion_id)
+        ON DELETE RESTRICT
+);
+
+-- Tabla jornada_exposicion_x_sala_exposicion
+CREATE TABLE IF NOT EXISTS jornada_exposicion_x_sala_exposicion (
+    jornada_exposicion_x_sala_id  SERIAL PRIMARY KEY,
+    jornada_exposicion_id         INTEGER NOT NULL,
+    sala_exposicion_id            INTEGER NOT NULL,
+    activo                        BOOLEAN NOT NULL DEFAULT TRUE,
+    fecha_creacion                TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion            TIMESTAMP WITH TIME ZONE,
+    
+    CONSTRAINT fk_jexs_jornada_exposicion
+        FOREIGN KEY (jornada_exposicion_id)
+        REFERENCES jornada_exposicion (jornada_exposicion_id)
+        ON DELETE RESTRICT,
+    CONSTRAINT fk_jexs_sala_exposicion
+        FOREIGN KEY (sala_exposicion_id)
+        REFERENCES sala_exposicion (sala_exposicion_id)
+        ON DELETE RESTRICT
+);
+
+-- Tabla bloque_horario_exposicion
+CREATE TABLE IF NOT EXISTS bloque_horario_exposicion (
+    bloque_horario_exposicion_id        SERIAL PRIMARY KEY,
+    jornada_exposicion_x_sala_id        INTEGER NOT NULL,
+    es_bloque_reservado                 BOOLEAN NOT NULL DEFAULT FALSE,
+    es_bloque_bloqueado                 BOOLEAN NOT NULL DEFAULT FALSE,
+    datetime_inicio                     TIMESTAMP WITH TIME ZONE NOT NULL,
+    datetime_fin                        TIMESTAMP WITH TIME ZONE NOT NULL,
+    activo                              BOOLEAN NOT NULL DEFAULT TRUE,
+    fecha_creacion                      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion                  TIMESTAMP WITH TIME ZONE,
+    
+    CONSTRAINT fk_bhe_jornada_exposicion_x_sala
+        FOREIGN KEY (jornada_exposicion_x_sala_id)
+        REFERENCES jornada_exposicion_x_sala_exposicion (jornada_exposicion_x_sala_id)
+        ON DELETE RESTRICT
+);
+
+-- Tabla exposicion_x_tema
+CREATE TABLE IF NOT EXISTS exposicion_x_tema (
+    exposicion_x_tema_id           SERIAL PRIMARY KEY,
+    exposicion_id                  INTEGER NOT NULL,
+    tema_id                        INTEGER NOT NULL,
+    bloque_horario_exposicion_id   INTEGER,
+    link_exposicion                TEXT,
+    link_grabacion                 TEXT,
+    estado_exposicion              enum_presentation_state,
+    nota_final                     NUMERIC(5,2),
+    activo                         BOOLEAN NOT NULL DEFAULT TRUE,
+    fecha_creacion                 TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion             TIMESTAMP WITH TIME ZONE,
+    
+    CONSTRAINT fk_ext_exposicion
+        FOREIGN KEY (exposicion_id)
+        REFERENCES exposicion (exposicion_id)
+        ON DELETE RESTRICT,
+    CONSTRAINT fk_ext_tema
+        FOREIGN KEY (tema_id)
+        REFERENCES tema (tema_id)
+        ON DELETE RESTRICT,
+    CONSTRAINT fk_ext_bloque_horario
+        FOREIGN KEY (bloque_horario_exposicion_id)
+        REFERENCES bloque_horario_exposicion (bloque_horario_exposicion_id)
+        ON DELETE RESTRICT
+);
+
+-- Tabla criterio_exposicion
+CREATE TABLE IF NOT EXISTS criterio_exposicion (
+    criterio_exposicion_id     SERIAL PRIMARY KEY,
+    exposicion_id              INTEGER NOT NULL,
+    nombre                     TEXT NOT NULL,
+    descripcion                TEXT,
+    nota_maxima                NUMERIC(5,2) NOT NULL,
+    activo                     BOOLEAN NOT NULL DEFAULT TRUE,
+    fecha_creacion             TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion         TIMESTAMP WITH TIME ZONE,
+    
+    CONSTRAINT fk_ce_exposicion
+        FOREIGN KEY (exposicion_id)
+        REFERENCES exposicion (exposicion_id)
+        ON DELETE RESTRICT
+);
+
+-- Tabla revision_criterio_x_exposicion
+CREATE TABLE IF NOT EXISTS revision_criterio_x_exposicion (
+    revision_criterio_x_exposicion_id   SERIAL PRIMARY KEY,
+    exposicion_x_tema_id                INTEGER NOT NULL,
+    criterio_exposicion_id              INTEGER NOT NULL,
+    usuario_id                          INTEGER NOT NULL,
+    nota                                NUMERIC(5,2),
+    observacion                         TEXT,
+    activo                              BOOLEAN NOT NULL DEFAULT TRUE,
+    fecha_creacion                      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion                  TIMESTAMP WITH TIME ZONE,
+    
+    CONSTRAINT fk_rcxe_exposicion_x_tema
+        FOREIGN KEY (exposicion_x_tema_id)
+        REFERENCES exposicion_x_tema (exposicion_x_tema_id)
+        ON DELETE RESTRICT,
+    CONSTRAINT fk_rcxe_criterio_exposicion
+        FOREIGN KEY (criterio_exposicion_id)
+        REFERENCES criterio_exposicion (criterio_exposicion_id)
+        ON DELETE RESTRICT,
+    CONSTRAINT fk_rcxe_usuario
+        FOREIGN KEY (usuario_id)
+        REFERENCES usuario (usuario_id)
+        ON DELETE RESTRICT
+);
+
+-- Tabla control_exposicion_usuario
+CREATE TABLE IF NOT EXISTS control_exposicion_usuario (
+    control_exposicion_usuario_id   SERIAL PRIMARY KEY,
+    exposicion_x_tema_id            INTEGER NOT NULL,
+    usuario_x_tema_id               INTEGER NOT NULL,
+    estado_exposicion_usuario       enum_presentation_user_state,
+    asistio                         BOOLEAN,
+    activo                          BOOLEAN NOT NULL DEFAULT TRUE,
+    fecha_creacion                  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion              TIMESTAMP WITH TIME ZONE,
+    
+    CONSTRAINT fk_ceu_exposicion_x_tema
+        FOREIGN KEY (exposicion_x_tema_id)
+        REFERENCES exposicion_x_tema (exposicion_x_tema_id)
+        ON DELETE RESTRICT,
+    CONSTRAINT fk_ceu_usuario_x_tema
+        FOREIGN KEY (usuario_x_tema_id)
+        REFERENCES usuario_tema (usuario_tema_id)
+        ON DELETE RESTRICT
+);
+
+-- Tabla etapa_formativa_x_sala_exposicion
+CREATE TABLE IF NOT EXISTS etapa_formativa_x_sala_exposicion (
+    etapa_formativa_x_sala_id    SERIAL PRIMARY KEY,
+    etapa_formativa_id           INTEGER NOT NULL,
+    sala_exposicion_id           INTEGER NOT NULL,
+    activo                       BOOLEAN NOT NULL DEFAULT TRUE,
+    fecha_creacion               TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion           TIMESTAMP WITH TIME ZONE,
+    
+    CONSTRAINT fk_efxs_etapa_formativa
+        FOREIGN KEY (etapa_formativa_id)
+        REFERENCES etapa_formativa (etapa_formativa_id)
+        ON DELETE RESTRICT,
+    CONSTRAINT fk_efxs_sala_exposicion
+        FOREIGN KEY (sala_exposicion_id)
+        REFERENCES sala_exposicion (sala_exposicion_id)
+        ON DELETE RESTRICT
+);
+
+-- Tabla restriccion_exposicion
+CREATE TABLE IF NOT EXISTS restriccion_exposicion (
+    restriccion_exposicion_id     SERIAL PRIMARY KEY,
+    exposicion_x_tema_id          INTEGER NOT NULL,
+    datetime_inicio               TIMESTAMP WITH TIME ZONE NOT NULL,
+    datetime_fin                  TIMESTAMP WITH TIME ZONE NOT NULL,
+    activo                        BOOLEAN NOT NULL DEFAULT TRUE,
+    fecha_creacion                TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion            TIMESTAMP WITH TIME ZONE,
+    
+    CONSTRAINT fk_re_exposicion_x_tema
+        FOREIGN KEY (exposicion_x_tema_id)
+        REFERENCES exposicion_x_tema (exposicion_x_tema_id)
+        ON DELETE RESTRICT
+);
+
+---enums
+
+create type if not exists enum_presentation_state as enum (
+    'unprogrammed',
+    'waiting_for_response',
+    'waiting_for_approval',
+    'scheduled',
+    'in_progress',
+    'completed',
+    'canceled'
+);
+
+create type if not exists enum_presentation_user_state as enum (
+    'waiting_for_response',
+    'accepted',
+    'rejected'
+);
+
+create type if not exists enum_presentation_room_type as enum (
+    'presential',
+    'virtual'
+);

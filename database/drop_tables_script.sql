@@ -32,3 +32,27 @@ DROP TABLE IF EXISTS  sub_area_conocimiento CASCADE;
 DROP TABLE IF EXISTS carrera_parametro_configuracion CASCADE;
 DROP TABLE IF EXISTS parametro_configuracion          CASCADE;
 -- NOTA: Si alguna tabla no existe, IF EXISTS evitará el error.
+
+-- Tablas relacionadas con exposiciones
+DROP TABLE IF EXISTS restriccion_exposicion CASCADE;
+DROP TABLE IF EXISTS etapa_formativa_x_sala_exposicion CASCADE;
+DROP TABLE IF EXISTS control_exposicion_usuario CASCADE;
+DROP TABLE IF EXISTS revision_criterio_x_exposicion CASCADE;
+DROP TABLE IF EXISTS criterio_exposicion CASCADE;
+DROP TABLE IF EXISTS exposicion_x_tema CASCADE;
+DROP TABLE IF EXISTS bloque_horario_exposicion CASCADE;
+DROP TABLE IF EXISTS jornada_exposicion_x_sala_exposicion CASCADE;
+DROP TABLE IF EXISTS jornada_exposicion CASCADE;
+DROP TABLE IF EXISTS exposicion CASCADE;
+DROP TABLE IF EXISTS tipo_exposicion_x_ef_x_c CASCADE;
+DROP TABLE IF EXISTS etapa_formativa_x_ciclo CASCADE;
+DROP TABLE IF EXISTS sala_exposicion CASCADE;
+DROP TABLE IF EXISTS tipo_exposicion CASCADE;
+DROP TABLE IF EXISTS estado_planificacion CASCADE;
+DROP TABLE IF EXISTS etapa_formativa CASCADE;
+DROP TABLE IF EXISTS ciclo CASCADE;
+
+-- Eliminar tipos enumerados
+DROP TYPE IF EXISTS enum_presentation_room_type CASCADE;
+DROP TYPE IF EXISTS enum_presentation_user_state CASCADE;
+DROP TYPE IF EXISTS enum_presentation_state CASCADE;
