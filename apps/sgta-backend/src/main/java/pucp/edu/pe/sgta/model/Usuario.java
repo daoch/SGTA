@@ -50,8 +50,8 @@ public class Usuario {
     @Column(columnDefinition = "TEXT")
     private String biografia;
 
-    @Lob
-    @Column(name = "foto_perfil", columnDefinition = "bytea")
+
+    @Column(name = "foto_perfil", columnDefinition = "bytea", nullable = true)
     private byte[] fotoPerfil;
 
     @Column(columnDefinition = "TEXT")

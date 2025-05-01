@@ -4,9 +4,10 @@ import pucp.edu.pe.sgta.dto.TemaDto;
 import java.util.List;
 
 public interface TemaService {
-    List<TemaDto> listarTodos();
-    TemaDto buscarPorId(Integer id);
-    TemaDto crear(TemaDto dto);
-    TemaDto actualizar(Integer id, TemaDto dto);
-    void eliminar(Integer id);
+    List<TemaDto> getAll();
+    TemaDto findById(Integer id);
+    List<TemaDto> findByUsuario(Integer idUsuario); //Works for asesor, alumno, coordinador and revisor
+    void createTema(TemaDto dto, Integer idUsuario);
+    void update(TemaDto dto);
+    void delete(Integer id);
 }
