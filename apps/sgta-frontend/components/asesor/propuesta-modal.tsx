@@ -4,7 +4,7 @@ import { DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFoot
 import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Eye, CheckCircle, X, Send } from "lucide-react"
+import { Eye, CheckCircle, X, Send } from "lucide-react";
 import { EnviarPropuestaCard } from "./enviar-propuesta-card";
 import { Button } from "@/components/ui/button";
 
@@ -20,31 +20,31 @@ export function PropuestasModal({ data, setSelectedPropuesta, setComentario }: P
 
     const handlePostularClick = () =>{
         setAceptarDialog(true);
-    }
+    };
 
     const handleRechazar = () => {
         // Aquí iría la lógica para rechazar la postulación
         setSelectedPropuesta?.(null);
         setComentario?.("");
-    }
+    };
 
     const handleAceptarClick = () => {
         setAceptarDialog(true);
-    }
+    };
 
     const handleSubmitPostulacion = () => {
         // Aquí iría la lógica para enviar la postulación
         setSelectedPropuesta?.(null);
         setComentario?.("");
         setPostularDialog(false);
-    }
+    };
     
     const handleSubmitAceptacion = () => {
         // Aquí iría la lógica para aceptar la propuesta
         setSelectedPropuesta?.(null);
         setComentario?.("");
         setAceptarDialog(false);
-    }
+    };
 
     return(
         <DialogContent className="max-w-3xl">

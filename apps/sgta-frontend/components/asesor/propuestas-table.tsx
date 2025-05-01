@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import { PropuestasModal } from "@/components/asesor/propuesta-modal";
 import { Eye, CheckCircle, X, Send } from "lucide-react";
 
@@ -53,7 +53,7 @@ const propuestasData = [
 ];
 
 // Obtener todas las áreas únicas para el filtro
-const areasUnicas = Array.from(new Set(propuestasData.map((propuesta) => propuesta.area)))
+const areasUnicas = Array.from(new Set(propuestasData.map((propuesta) => propuesta.area)));
 
 interface PropuestasTableProps {
     filter?: string
@@ -65,6 +65,7 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
     const [selectedPropuesta, setSelectedPropuesta] = useState< Proyecto | null>(null);
     const [comentario, setComentario] = useState("");
 
+    console.log({comentario});
     const propuestasFiltradas = propuestasData.filter((propuesta) => {
         // Filtrar por tipo
         if (filter && propuesta.tipo !== filter) {
@@ -88,7 +89,7 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
 
     const handleOpenDialog = (propuesta: Proyecto) => {
         setSelectedPropuesta(propuesta);
-    }
+    };
 
     return(
         <div>

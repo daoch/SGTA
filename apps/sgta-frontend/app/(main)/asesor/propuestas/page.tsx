@@ -39,8 +39,8 @@ const Page = () => {
         </TabsContent>
       </Tabs>
     </div>
-  )
-}
+  );
+};
 
 
 export default Page;
