@@ -8,10 +8,12 @@
 		"build": "turbo run build",
 		"dev": "turbo run dev",
 		"lint": "turbo run lint",
-		"format": "turbo run format"
+		"format": "turbo run format",
+		"prepare": "husky"
 	},
 	"devDependencies": {
-		"turbo": "^2.5.0"
+		"husky": "^9.1.7",
+		"turbo": "^2.5.2"
 	},
 	"packageManager": "pnpm@10.10.0",
 	"engines": {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../hooks/use-auth";
 import { UserRole } from "../types/auth.types";
@@ -18,11 +18,11 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const { isAuthenticated, isLoading, user, checkAuth } = useAuth();
   const [authChecked, setAuthChecked] = useState(false);
 
-  const hasRequiredRole = (): boolean => {
+  const hasRequiredRole = useCallback((): boolean => {
     if (!requiredRoles || requiredRoles.length === 0) return true;
     if (!user) return false;
     return user.roles.some((role) => requiredRoles.includes(role));
-  };
+  }, [user, requiredRoles]);
 
   useEffect(() => {
     const verifyAuth = async () => {
