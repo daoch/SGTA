@@ -1,21 +1,16 @@
 "use client";
 
+import { Proyecto } from "@/app/types/propuestas/entidades";
 import { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button"
-import { Eye, CheckCircle, X, Send } from "lucide-react"
+import { PropuestasModal } from "@/components/asesor/propuesta-modal";
+import { Eye, CheckCircle, X, Send } from "lucide-react";
+
 // Datos de ejemplo
 const propuestasData = [
     {
@@ -65,8 +60,10 @@ interface PropuestasTableProps {
 }
 
 export function PropuestasTable({ filter }: PropuestasTableProps) {
-    const [areaFilter, setAreaFilter] = useState<string | null>(null)
+    const [areaFilter, setAreaFilter] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState("");
+    const [selectedPropuesta, setSelectedPropuesta] = useState< Proyecto | null>(null);
+    const [comentario, setComentario] = useState("");
 
     const propuestasFiltradas = propuestasData.filter((propuesta) => {
         // Filtrar por tipo
@@ -88,6 +85,10 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
         }
         return true;
     });
+
+    const handleOpenDialog = (propuesta: Proyecto) => {
+        setSelectedPropuesta(propuesta);
+    }
 
     return(
         <div>
@@ -169,25 +170,30 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
                                         <div className="flex justify-end gap-2">
                                             <Dialog> 
                                                 <DialogTrigger asChild>
-                                                    <Button variant="ghost" size="icon">
+                                                    <Button variant="ghost" size="icon" onClick={() =>handleOpenDialog(propuesta)}>
                                                         <Eye className="h-4 w-4" />
                                                         <span className="sr-only">Ver detalles</span>
                                                     </Button>
                                                 </DialogTrigger>
+                                                { selectedPropuesta &&(
+                                                    <PropuestasModal 
+                                                    data={selectedPropuesta} setSelectedPropuesta={setSelectedPropuesta} setComentario={setComentario}
+                                                    ></PropuestasModal>
+                                                )}
                                             </Dialog>
                                             {propuesta.tipo === "general" && (
-                                                <Button variant="ghost" size="icon" className="text-pucp-blue">
+                                                <Button variant="ghost" size="icon" className="text-[#042354]">
                                                 <Send className="h-4 w-4" />
                                                 <span className="sr-only">Postular</span>
                                                 </Button>
                                             )}
                                             {propuesta.tipo === "directa" && (
                                                 <>
-                                                <Button variant="ghost" size="icon" className="text-red-500">
-                                                    <X className="h-4 w-4" />
+                                                <Button variant="ghost" size="icon" className="text-red-500"> 
+                                                    <X className="h-4 w-4" /> {/* Rechazar */}
                                                 </Button>
                                                 <Button variant="ghost" size="icon" className="text-green-500">
-                                                    <CheckCircle className="h-4 w-4" />
+                                                    <CheckCircle className="h-4 w-4" /> {/* Aceptar */}
                                                 </Button>
                                                 </>
                                             )}                              
