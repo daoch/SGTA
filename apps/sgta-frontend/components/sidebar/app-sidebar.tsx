@@ -10,7 +10,7 @@ const user = {
   name: 'Diego Ochoa',
   email: 'daochoa@pucp.edu.pe',
   avatar: 'https://github.com/daoch.png',
-  roles: ['alumno','jurado'],
+  roles: ['alumno','jurado','asesor'],
 };
 
 export function AppSidebar() {

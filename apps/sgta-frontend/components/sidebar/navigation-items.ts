@@ -20,7 +20,7 @@ export const navigationItems: Record<string, NavigationItem[]> = {
   alumno: [
     { name: 'Temas', href: '/alumno/temas', icon: FileText, children: [
       { name: 'Catálogo de temas libres', href: '/alumno/temas/catalogo-de-temas-libres', icon: FolderOpen },
-      { name: 'Mis temas', href: '/alumno/temas/mis-temas', icon: FileText },
+      { name: 'Mis temas', href: '/alumno/temas', icon: FileText },
       { name: 'Postulaciones de asesores', href: '/alumno/temas/postulaciones-de-asesores', icon: CheckSquare },
     ]},
     {
