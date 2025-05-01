@@ -12,7 +12,6 @@
 		"prepare": "husky"
 	},
 	"devDependencies": {
-		"husky": "^9.1.7",
 		"turbo": "^2.5.2"
 	},
 	"packageManager": "pnpm@10.10.0",
