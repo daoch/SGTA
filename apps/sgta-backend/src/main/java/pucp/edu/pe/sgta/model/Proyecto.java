@@ -13,35 +13,22 @@ import java.time.OffsetDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "tema")
-public class Tema {
+@Table(name = "proyecto")
+public class Proyecto {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "tema_id")
+    @Column(name = "proyecto_id")
     private Integer id;
-
-    @Column(unique = true, nullable = false)
-    private String codigo;
 
     @Column(length = 255, nullable = false)
     private String titulo;
 
     @Column(columnDefinition = "TEXT")
-    private String resumen;
+    private String descripcion;
 
-    @Column(name = "portafolio_url", length = 255)
-    private String portafolioUrl;
-
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "estado_tema_id", nullable = false,
-                foreignKey = @ForeignKey(name = "fk_estado_tema"))
-    private EstadoTema estadoTema;
-
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "proyecto_id", nullable = false,
-                foreignKey = @ForeignKey(name = "fk_proyecto"))
-    private Proyecto proyecto;
+    @Column(length = 50, nullable = false)
+    private String estado;
 
     @Column(nullable = false)
     private boolean activo = true;
@@ -54,3 +41,4 @@ public class Tema {
             columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaModificacion;
 }
+

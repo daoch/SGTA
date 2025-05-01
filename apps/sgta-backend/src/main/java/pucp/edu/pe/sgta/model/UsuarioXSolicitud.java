@@ -13,30 +13,35 @@ import java.time.OffsetDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "historial_tema")
-public class HistorialTema {
+@Table(name = "usuario_solicitud")
+public class UsuarioXSolicitud {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "historial_tema_id")
+    @Column(name = "usuario_solicitud_id")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "tema_id", nullable = false,
-                foreignKey = @ForeignKey(name = "fk_tema"))
-    private Tema tema;
+    @JoinColumn(name = "usuario_id", nullable = false,
+                foreignKey = @ForeignKey(name = "fk_usuario"))
+    private Usuario usuario;
 
-    @Column(length = 255, nullable = false)
-    private String titulo;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "solicitud_id", nullable = false,
+                foreignKey = @ForeignKey(name = "fk_solicitud"))
+    private Solicitud solicitud;
+
+    @Column(name = "solicitud_completada", nullable = false)
+    private boolean solicitudCompletada = false;
+
+    @Column(nullable = false)
+    private boolean aprovado = false;
 
     @Column(columnDefinition = "TEXT")
-    private String resumen;
+    private String comentario;
 
-    @Column(name = "descripcion_cambio", columnDefinition = "TEXT")
-    private String descripcionCambio;
-
-    @Column(name = "estado_tema_id", nullable = false)
-    private Integer estadoTemaId;
+    @Column(nullable = false)
+    private boolean destinatario = false;
 
     @Column(nullable = false)
     private boolean activo = true;

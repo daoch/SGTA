@@ -13,30 +13,16 @@ import java.time.OffsetDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "historial_tema")
-public class HistorialTema {
+@Table(name = "tipo_usuario")
+public class TipoUsuario {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "historial_tema_id")
+    @Column(name = "tipo_usuario_id")
     private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "tema_id", nullable = false,
-                foreignKey = @ForeignKey(name = "fk_tema"))
-    private Tema tema;
-
-    @Column(length = 255, nullable = false)
-    private String titulo;
-
-    @Column(columnDefinition = "TEXT")
-    private String resumen;
-
-    @Column(name = "descripcion_cambio", columnDefinition = "TEXT")
-    private String descripcionCambio;
-
-    @Column(name = "estado_tema_id", nullable = false)
-    private Integer estadoTemaId;
+    @Column(length = 100, nullable = false)
+    private String nombre;
 
     @Column(nullable = false)
     private boolean activo = true;

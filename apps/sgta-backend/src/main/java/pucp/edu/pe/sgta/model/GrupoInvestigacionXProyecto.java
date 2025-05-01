@@ -1,10 +1,7 @@
 package pucp.edu.pe.sgta.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.OffsetDateTime;
 
@@ -13,34 +10,22 @@ import java.time.OffsetDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "tema")
-public class Tema {
+@Table(name = "grupo_investigacion_proyecto")
+public class GrupoInvestigacionXProyecto {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "tema_id")
+    @Column(name = "grupo_investigacion_proyecto_id")
     private Integer id;
 
-    @Column(unique = true, nullable = false)
-    private String codigo;
-
-    @Column(length = 255, nullable = false)
-    private String titulo;
-
-    @Column(columnDefinition = "TEXT")
-    private String resumen;
-
-    @Column(name = "portafolio_url", length = 255)
-    private String portafolioUrl;
-
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "estado_tema_id", nullable = false,
-                foreignKey = @ForeignKey(name = "fk_estado_tema"))
-    private EstadoTema estadoTema;
+    @JoinColumn(name = "grupo_investigacion_id", nullable = false,
+                foreignKey = @ForeignKey(name = "fk_gip_grupo"))
+    private GrupoInvestigacion grupoInvestigacion;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "proyecto_id", nullable = false,
-                foreignKey = @ForeignKey(name = "fk_proyecto"))
+                foreignKey = @ForeignKey(name = "fk_gip_proyecto"))
     private Proyecto proyecto;
 
     @Column(nullable = false)
