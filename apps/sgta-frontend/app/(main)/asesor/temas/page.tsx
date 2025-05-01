@@ -11,7 +11,7 @@ export enum TabValues {
   INTERESADOS = "interesado",
 }
 
-const page = () => {
+const Page = () => {
   return (
     <div className="space-y-8 mt-4">
       <div>
