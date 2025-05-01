@@ -131,7 +131,7 @@ export function RevisionesTable({ filter, searchQuery = "", cursoFilter = "todos
               <TableHead>Estado</TableHead>
               <TableHead>Plagio</TableHead>
               <TableHead>Fecha Límite</TableHead>
-              <TableHead className="text-right">Acciones</TableHead>
+              <TableHead>Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -224,7 +224,7 @@ export function RevisionesTable({ filter, searchQuery = "", cursoFilter = "todos
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
+                    <div className="flex justify-start gap-2">
                       <Link href={`/revision/${revision.id}`}>
                         <Button variant="ghost" size="icon">
                           <Eye className="h-4 w-4" />
