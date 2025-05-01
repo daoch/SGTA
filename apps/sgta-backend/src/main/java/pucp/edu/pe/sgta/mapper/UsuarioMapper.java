@@ -14,7 +14,7 @@ public class UsuarioMapper {
         dto.setFechaModificacion(usuario.getFechaModificacion());
         dto.setBiografia(usuario.getBiografia());
         dto.setCodigoPucp(usuario.getCodigoPucp());
-        dto.setTipoUsuario(usuario.getTipoUsuario());
+        dto.setTipoUsuario(TipoUsuarioMapper.toDto(usuario.getTipoUsuario()));
         dto.setTipoDisponibilidad(usuario.getTipoDisponibilidad());
         dto.setNivelEstudios(usuario.getNivelEstudios());
 
@@ -31,7 +31,7 @@ public class UsuarioMapper {
         usuario.setFechaModificacion(dto.getFechaModificacion());
         usuario.setBiografia(dto.getBiografia());
         usuario.setCodigoPucp(dto.getCodigoPucp());
-        usuario.setTipoUsuario(dto.getTipoUsuario());
+        usuario.setTipoUsuario(TipoUsuarioMapper.toEntity(dto.getTipoUsuario()));
         usuario.setNivelEstudios(dto.getNivelEstudios());
         usuario.setCorreoElectronico(dto.getCorreoElectronico());
         usuario.setContrasena(dto.getContrasena());

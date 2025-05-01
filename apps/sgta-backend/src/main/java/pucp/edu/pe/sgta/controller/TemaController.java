@@ -20,9 +20,13 @@ public class TemaController {
         return temaService.findByUsuario(idUsuario);
     }
 
-    @PostMapping("/create") //creates a topic, the idUsuario belongs to the creator
-    public void createTema(@RequestBody TemaDto dto, @RequestParam(name = "idUsuario") Integer idUsuario) {
-        temaService.createTema(dto, idUsuario);
+    @PostMapping("/createPropuesta")
+    public void createTema(@RequestBody TemaDto dto,
+                           @RequestParam(name = "idUsuarioCreador") Integer idUsuarioCreador) {
+        temaService.createTemaPropuesta(dto, idUsuarioCreador);
     }
-
+    @GetMapping("/findById") //finds a topic by id
+    public TemaDto findById(@RequestParam(name = "idTema") Integer idTema) {
+        return temaService.findById(idTema);
+    }
 }

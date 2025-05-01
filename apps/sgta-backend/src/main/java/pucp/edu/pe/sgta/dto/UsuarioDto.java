@@ -15,7 +15,7 @@ public class UsuarioDto {
 
     private Integer id;
 
-    private TipoUsuario tipoUsuario;
+    private TipoUsuarioDto tipoUsuario;
 
     private String codigoPucp;
 

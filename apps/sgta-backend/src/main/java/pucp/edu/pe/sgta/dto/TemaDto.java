@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 
 /**
  * TemaDto es el objeto que exponemos en nuestra API
@@ -27,5 +28,7 @@ public class TemaDto {
     private boolean activo;
     private OffsetDateTime fechaCreacion;
     private OffsetDateTime fechaModificacion;
+    private List<Integer> idUsuarioInvolucradosList;
+    private List<Integer> idSubAreasConocimientoList;
 }
 
