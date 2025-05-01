@@ -1,23 +1,54 @@
+"use client";
+
 import Link from "next/link";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../ui/collapsible";
-import { SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuAction, SidebarMenuButton, SidebarMenuItem, SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem } from "../ui/sidebar";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "../ui/collapsible";
+import {
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuAction,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
+} from "../ui/sidebar";
 import { ChevronRight } from "lucide-react";
 import { NavigationGroup, NavigationItem } from "./navigation-items";
 
-export function NavMain({ groups, pathname }: { groups: NavigationGroup[], pathname: string }) {
+export function NavMain({
+  groups,
+  pathname,
+}: {
+  groups: NavigationGroup[];
+  pathname: string;
+}) {
   return (
     <>
       {groups.map((group) => (
         <SidebarGroup key={group.label}>
-          <SidebarGroupLabel>
-            {group.label}
-          </SidebarGroupLabel>
+          <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
 
           <SidebarMenu>
             {group.items.map((item: NavigationItem) => (
-              <Collapsible key={item.href} asChild defaultOpen={item.isActive || (item.children?.some(c => c.href === pathname))}>
+              <Collapsible
+                key={item.href}
+                asChild
+                defaultOpen={
+                  item.isActive ||
+                  item.children?.some((c) => c.href === pathname)
+                }
+              >
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip={item.name} isActive={pathname === item.href}>
+                  <SidebarMenuButton
+                    asChild
+                    tooltip={item.name}
+                    isActive={pathname === item.href}
+                  >
                     <Link href={item.href}>
                       <item.icon className="h-4 w-4" />
                       <span>{item.name}</span>
@@ -35,7 +66,10 @@ export function NavMain({ groups, pathname }: { groups: NavigationGroup[], pathn
                         <SidebarMenuSub>
                           {item.children.map((child) => (
                             <SidebarMenuSubItem key={child.href}>
-                              <SidebarMenuSubButton asChild isActive={pathname === child.href}>
+                              <SidebarMenuSubButton
+                                asChild
+                                isActive={pathname === child.href}
+                              >
                                 <Link href={child.href}>
                                   <child.icon className="h-3.5 w-3.5" />
                                   <span>{child.name}</span>

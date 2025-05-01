@@ -120,6 +120,7 @@
     @apply bg-background text-foreground;
   }
 }
+<<<<<<< HEAD
 
 ::-webkit-scrollbar {
   width: 6px; /* Ancho de la barra de desplazamiento */
@@ -131,3 +132,5 @@
   border-radius: 10px; /* Esquinas redondeadas para la barra */
 }
 
+=======
+>>>>>>> 66abddafe1dedacd4d8ffb470caa1c9c00ddf552
