@@ -48,10 +48,10 @@ public class Usuario {
     private String contrasena;
 
     @Column(columnDefinition = "TEXT")
-    private String bigrafia;
+    private String biografia;
 
     @Lob
-    @Column(name = "foto_perfil")
+    @Column(name = "foto_perfil", columnDefinition = "bytea")
     private byte[] fotoPerfil;
 
     @Column(columnDefinition = "TEXT")
