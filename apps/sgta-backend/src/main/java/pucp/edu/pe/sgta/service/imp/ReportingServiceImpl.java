@@ -2,28 +2,33 @@ package pucp.edu.pe.sgta.service.imp;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
 import pucp.edu.pe.sgta.dto.TeacherCountDTO;
 import pucp.edu.pe.sgta.dto.TopicAreaStatsDTO;
+import pucp.edu.pe.sgta.repository.TopicAreaStatsRepository;
 import pucp.edu.pe.sgta.service.inter.IReportService;
 
 @Service
 public class ReportingServiceImpl implements IReportService {
     
+    private final TopicAreaStatsRepository topicAreaStatsRepository;
+
+    public ReportingServiceImpl(TopicAreaStatsRepository topicAreaStatsRepository) {
+        this.topicAreaStatsRepository = topicAreaStatsRepository;
+    }
+
     @Override
-    public List<TopicAreaStatsDTO> getTopicAreaStatistics() {
-        // TODO: reemplazar este hard-code por llamada al repositorio real
-        return Arrays.asList(
-            new TopicAreaStatsDTO("Inteligencia Artificial", 15),
-            new TopicAreaStatsDTO("Desarrollo Web", 12),
-            new TopicAreaStatsDTO("Seguridad Informática", 8),
-            new TopicAreaStatsDTO("Bases de Datos", 7),
-            new TopicAreaStatsDTO("Redes", 5),
-            new TopicAreaStatsDTO("Computación Gráfica", 4),
-            new TopicAreaStatsDTO("Sistemas Embebidos", 3)
-        );
+    public List<TopicAreaStatsDTO> getTopicAreaStatistics(Integer usuarioId) {
+        List<Object[]> results = topicAreaStatsRepository.getTopicAreaStatsByUser(usuarioId);
+        return results.stream()
+            .map(result -> new TopicAreaStatsDTO(
+                (String) result[0],  // area_name
+                ((Number) result[1]).intValue()  // topic_count
+            ))
+            .collect(Collectors.toList());
     }
 
     @Override

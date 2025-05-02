@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import pucp.edu.pe.sgta.dto.TeacherCountDTO;
@@ -22,8 +23,8 @@ public class ReportsController {
 
     /** RF1: estadísticas y tendencias de temas y áreas */
     @GetMapping("/topics-areas")
-    public List<TopicAreaStatsDTO> fetchTopicAreaStats() {
-        return reportingService.getTopicAreaStatistics();
+    public List<TopicAreaStatsDTO> fetchTopicAreaStats(@RequestParam Integer usuarioId) {
+        return reportingService.getTopicAreaStatistics(usuarioId);
     }
 
     /** RF2a: distribución de asesores por docente */
