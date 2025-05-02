@@ -52,7 +52,24 @@ DROP TABLE IF EXISTS estado_planificacion CASCADE;
 DROP TABLE IF EXISTS etapa_formativa CASCADE;
 DROP TABLE IF EXISTS ciclo CASCADE;
 
+-- Drops para las tablas de revisión
+DROP TABLE IF EXISTS observacion CASCADE;
+DROP TABLE IF EXISTS tipo_observacion CASCADE;
+DROP TABLE IF EXISTS revision_criterio_entregable CASCADE;
+DROP TABLE IF EXISTS entregable_x_tema CASCADE;
+DROP TABLE IF EXISTS criterio_entregable CASCADE;
+DROP TABLE IF EXISTS usuario_documento CASCADE;
+DROP TABLE IF EXISTS version_documento CASCADE;
+DROP TABLE IF EXISTS revision_documento CASCADE;
+DROP TABLE IF EXISTS documento CASCADE;
+DROP TABLE IF EXISTS entregable CASCADE;
+
 -- Eliminar tipos enumerados
-DROP TYPE IF EXISTS enum_presentation_room_type CASCADE;
-DROP TYPE IF EXISTS enum_presentation_user_state CASCADE;
-DROP TYPE IF EXISTS enum_presentation_state CASCADE;
+DROP TYPE IF EXISTS enum_estado_exposicion CASCADE;
+DROP TYPE IF EXISTS enum_estado_usuario_exposicion CASCADE;
+DROP TYPE IF EXISTS enum_tipo_sala_exposicion CASCADE;
+DROP TYPE IF EXISTS enum_estado_entrega CASCADE;
+DROP TYPE IF EXISTS enum_estado_actividad CASCADE;
+DROP TYPE IF EXISTS enum_estado_revision CASCADE;
+
+-- NOTA: Si alguna tabla no existe, IF EXISTS evitará el error.
