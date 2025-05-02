@@ -10,4 +10,5 @@ public interface TemaService {
     void createTemaPropuesta(TemaDto dto, Integer idUsuarioCreador);
     void update(TemaDto dto);
     void delete(Integer id);
+    void createInscripcionTema(TemaDto dto, Integer idUsuarioCreador); //Works for asesor, alumno, coordinador and revisor
 }

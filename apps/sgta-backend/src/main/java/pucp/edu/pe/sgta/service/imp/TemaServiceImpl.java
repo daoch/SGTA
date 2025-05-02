@@ -206,4 +206,14 @@ public class TemaServiceImpl implements TemaService {
         return List.of(); // Return an empty list if no relations found
 
     }
+
+    @Override
+    public void createInscripcionTema(TemaDto dto, Integer idUsuarioCreador) {
+        dto.setId(null);
+        Tema tema = TemaMapper.toEntity(dto);
+        EstadoTema estadoTema = estadoTemaRepository.findByNombre(EstadoTemaEnum.INSCRITO.name()).orElse(null);
+        boolean foundSubArea = false;
+
+        throw new UnsupportedOperationException("Unimplemented method 'createInscripcionTema'");
+    }
 }
