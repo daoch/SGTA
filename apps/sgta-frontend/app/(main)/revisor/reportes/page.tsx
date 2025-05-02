@@ -1,9 +1,16 @@
-"use client";
+"use client"
+import { ReviewerReports } from "@/components/main/reports/reviewer-reports"
 
-import React from "react";
+export default function ReportsPage() {
 
-const Page: React.FC = () => {
-  return <div>page</div>;
-};
-
-export default Page;
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold text-[#002855]">Módulo de Reportes</h1>
+        <p className="text-gray-600 mt-1">Visualiza estadísticas y reportes sobre el progreso de las tesis</p>
+      </div>
+      <ReviewerReports />
+    
+    </div>
+  )
+}
