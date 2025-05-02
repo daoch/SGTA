@@ -127,7 +127,7 @@ CREATE TABLE IF NOT EXISTS tema (
         ON DELETE RESTRICT
 );
 
-CREATE TABLE recurso (
+CREATE TABLE IF NOT EXISTS recurso (
     recurso_id          SERIAL PRIMARY KEY,
     tema_id             INTEGER           NOT NULL,
     nombre              VARCHAR(255) NOT NULL,

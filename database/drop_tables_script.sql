@@ -29,7 +29,8 @@ DROP TABLE IF EXISTS grupo_investigacion CASCADE;
 DROP TABLE IF EXISTS grupo_investigacion_proyecto CASCADE;
 DROP TABLE IF EXISTS rol CASCADE;
 DROP TABLE IF EXISTS area_conocimiento CASCADE;
-DROP TABLE IF EXISTS  sub_area_conocimiento CASCADE;
+DROP TABLE IF EXISTS sub_area_conocimiento CASCADE;
+DROP TABLE IF EXISTS recurso CASCADE;
 DROP TABLE IF EXISTS carrera_parametro_configuracion CASCADE;
 DROP TABLE IF EXISTS parametro_configuracion          CASCADE;
 -- NOTA: Si alguna tabla no existe, IF EXISTS evitará el error.
