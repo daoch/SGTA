@@ -129,6 +129,7 @@ CREATE TABLE IF NOT EXISTS tema (
 
 CREATE TABLE recurso (
     recurso_id          SERIAL PRIMARY KEY,
+    tema_id             INTEGER           NOT NULL,
     nombre              VARCHAR(255) NOT NULL,
     documento_url                 VARCHAR(500),  -- URL al archivo o recurso
     estado              VARCHAR(100),  -- por ejemplo: 'PUBLICADO', 'PENDIENTE', etc.
