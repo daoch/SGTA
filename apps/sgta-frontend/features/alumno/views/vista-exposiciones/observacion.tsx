@@ -21,4 +21,3 @@ const ObservacionExposicion: React.FC<DetalleObservacionExposicionProps> = ({
   );
 };
 export default ObservacionExposicion;
-
