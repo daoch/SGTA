@@ -13,7 +13,7 @@ VALUES
   ('Jurado',    'Evalúa y califica exposiciones',       TRUE, NOW(), NOW()),
   ('Revisor',   '',                TRUE, NOW(), NOW()),
   ('Creador',   'Crea el registro de la propuesta o tema libre',   TRUE, NOW(), NOW()),
-  ('Tesista',   'Estudiante realizando tesis de grado o proyecto de fin de carrera',            TRUE, NOW(), NOW());
+  ('Tesista',   'Estudiante realizando tesis de grado o proyecto de fin de carrera',            TRUE, NOW(), NOW()),
   ('Coasesor',   'Cosesora a estudiantes en sus proyectos',            TRUE, NOW(), NOW());
 
 -- 3) Estado de tema
