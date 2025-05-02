@@ -84,11 +84,11 @@
 			<version>8.0.0.Final</version>
 		</dependency>
 
-		<!-- Dependencia para archivos .env -->
+		<!-- Dependencia para JUnit (pruebas unitarias) -->
 		<dependency>
-			<groupId>io.github.cdimascio</groupId>
-			<artifactId>dotenv-java</artifactId>
-			<version>3.0.0</version>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 
@@ -131,8 +131,9 @@
 				<version>4.9.3.0</version>
 				<configuration>
 					<effort>Max</effort>
-					<threshold>Medium</threshold>
-					<failOnError>false</failOnError>
+					<threshold>Low</threshold>
+					<failOnError>true</failOnError>
+					<xmlOutput>false</xmlOutput>
 				</configuration>
 				<executions>
 					<execution>
@@ -141,6 +142,11 @@
 						</goals>
 					</execution>
 				</executions>
+			</plugin>
+			<!-- Plugin para JUnit (pruebas unitarias) (opcional) -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
 			</plugin>
 		</plugins>
 	</build>
