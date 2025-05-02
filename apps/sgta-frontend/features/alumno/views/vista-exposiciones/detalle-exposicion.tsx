@@ -8,4 +8,3 @@ interface DetalleExposicionProps {
 export default function DetalleExposicion({ id }: DetalleExposicionProps) {
   return <div>Mostrando detalle para exposición ID: {id}</div>;
 }
-

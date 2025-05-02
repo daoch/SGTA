@@ -185,4 +185,3 @@ const Exposiciones: React.FC = () => {
 };
 
 export default Exposiciones;
-

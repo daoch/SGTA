@@ -139,4 +139,3 @@ export function ExposicionCard({ exposicion }: { exposicion: Exposicion }) {
     </div>
   );
 }
-
