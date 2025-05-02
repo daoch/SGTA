@@ -1,10 +1,16 @@
-'use client'
+"use client";
 
 import { TemasTable } from "@/components/asesor/temas-table";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-export enum TabValues {
+enum TabValues {
   TODOS = "todos",
   INSCRITOS = "inscrito",
   LIBRES = "libre",
@@ -16,7 +22,9 @@ const Page = () => {
     <div className="space-y-8 mt-4">
       <div>
         <h1 className="text-3xl font-bold text-[#042354]">Mis Temas</h1>
-        <p className="text-muted-foreground">Gestión de temas de tesis propuestos y asignados</p>
+        <p className="text-muted-foreground">
+          Gestión de temas de tesis propuestos y asignados
+        </p>
       </div>
 
       <Tabs defaultValue={TabValues.TODOS} className="w-full">
@@ -30,7 +38,9 @@ const Page = () => {
           <Card>
             <CardHeader>
               <CardTitle>Todos los temas</CardTitle>
-              <CardDescription>Lista de todos los temas de tesis</CardDescription>
+              <CardDescription>
+                Lista de todos los temas de tesis
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <TemasTable filter={TabValues.TODOS} />
@@ -41,7 +51,9 @@ const Page = () => {
           <Card>
             <CardHeader>
               <CardTitle>Temas inscritos</CardTitle>
-              <CardDescription>Temas de tesis en los que estás inscrito</CardDescription>
+              <CardDescription>
+                Temas de tesis en los que estás inscrito
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <TemasTable filter={TabValues.INSCRITOS} />
@@ -52,7 +64,9 @@ const Page = () => {
           <Card>
             <CardHeader>
               <CardTitle>Temas libres</CardTitle>
-              <CardDescription>Temas de tesis disponibles para postular</CardDescription>
+              <CardDescription>
+                Temas de tesis disponibles para postular
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <TemasTable filter={TabValues.LIBRES} />
@@ -63,7 +77,9 @@ const Page = () => {
           <Card>
             <CardHeader>
               <CardTitle>Temas de interés</CardTitle>
-              <CardDescription>Temas de tesis que has marcado como interesantes</CardDescription>
+              <CardDescription>
+                Temas de tesis que has marcado como interesantes
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <TemasTable filter={TabValues.INTERESADOS} />
@@ -72,7 +88,7 @@ const Page = () => {
         </TabsContent>
       </Tabs>
     </div>
-  )
-}
+  );
+};
 
 export default Page;

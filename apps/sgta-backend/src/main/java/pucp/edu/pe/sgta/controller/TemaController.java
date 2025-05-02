@@ -12,21 +12,23 @@ import java.util.List;
 @RequestMapping("/temas")
 public class TemaController {
 
-    @Autowired
-    TemaService temaService;
+	@Autowired
+	TemaService temaService;
 
-    @GetMapping("/findByUser") //finds topics by user
-    public List<TemaDto> findByUser(@RequestParam(name = "idUsuario") Integer idUsuario) {
-        return temaService.findByUsuario(idUsuario);
-    }
+	@GetMapping("/findByUser") // finds topics by user
+	public List<TemaDto> findByUser(@RequestParam(name = "idUsuario") Integer idUsuario) {
+		return temaService.findByUsuario(idUsuario);
+	}
 
-    @PostMapping("/createPropuesta")
-    public void createTema(@RequestBody TemaDto dto,
-                           @RequestParam(name = "idUsuarioCreador") Integer idUsuarioCreador) {
-        temaService.createTemaPropuesta(dto, idUsuarioCreador);
-    }
-    @GetMapping("/findById") //finds a topic by id
-    public TemaDto findById(@RequestParam(name = "idTema") Integer idTema) {
-        return temaService.findById(idTema);
-    }
+	@PostMapping("/createPropuesta")
+	public void createTema(@RequestBody TemaDto dto,
+			@RequestParam(name = "idUsuarioCreador") Integer idUsuarioCreador) {
+		temaService.createTemaPropuesta(dto, idUsuarioCreador);
+	}
+
+	@GetMapping("/findById") // finds a topic by id
+	public TemaDto findById(@RequestParam(name = "idTema") Integer idTema) {
+		return temaService.findById(idTema);
+	}
+
 }
