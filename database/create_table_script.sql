@@ -1,5 +1,5 @@
 -- Tabla unidad_academica
-CREATE TABLE unidad_academica (
+CREATE TABLE IF NOT EXISTS unidad_academica (
     unidad_academica_id    SERIAL PRIMARY KEY,
     nombre                 VARCHAR(100) NOT NULL,
     descripcion            TEXT,
@@ -9,7 +9,7 @@ CREATE TABLE unidad_academica (
 );
 
 -- Tabla carrera (depende de unidad_academica)
-CREATE TABLE carrera (
+CREATE TABLE IF NOT EXISTS carrera (
     carrera_id             SERIAL PRIMARY KEY,
     unidad_academica_id    INTEGER      NOT NULL,
 	codigo                 VARCHAR(20)  NOT NULL,
@@ -27,7 +27,7 @@ CREATE TABLE carrera (
 
 
 -- Tipo Usuario
-CREATE TABLE tipo_usuario (
+CREATE TABLE IF NOT EXISTS tipo_usuario (
     tipo_usuario_id        SERIAL PRIMARY KEY,
     nombre                 VARCHAR(100) NOT NULL,
     activo                 BOOLEAN NOT NULL DEFAULT TRUE,
@@ -35,7 +35,7 @@ CREATE TABLE tipo_usuario (
     fecha_modificacion     TIMESTAMP WITH TIME ZONE
 );
 -- 3. Tabla usuario
-CREATE TABLE usuario (
+CREATE TABLE IF NOT EXISTS usuario (
     usuario_id             SERIAL PRIMARY KEY,
 	tipo_usuario_id        INTEGER NOT NULL,
 	codigo_PUCP            VARCHAR(20),
@@ -61,7 +61,7 @@ CREATE TABLE usuario (
 );
 
 -- 4. Tabla usuario_carrera (M:N entre usuario y carrera)
-CREATE TABLE usuario_carrera (
+CREATE TABLE IF NOT EXISTS usuario_carrera (
     usuario_carrera_id     SERIAL PRIMARY KEY,
     usuario_id             INTEGER   NOT NULL,
     carrera_id             INTEGER   NOT NULL,
@@ -80,7 +80,7 @@ CREATE TABLE usuario_carrera (
         ON DELETE RESTRICT
 );
 
-CREATE TABLE estado_tema (
+CREATE TABLE IF NOT EXISTS estado_tema (
     estado_tema_id       SERIAL PRIMARY KEY,
     nombre               VARCHAR(100)             NOT NULL,
     descripcion          TEXT,
@@ -91,7 +91,7 @@ CREATE TABLE estado_tema (
 
 
 -- 1) Tabla proyecto
-CREATE TABLE proyecto (
+CREATE TABLE IF NOT EXISTS proyecto (
     proyecto_id           SERIAL PRIMARY KEY,
     titulo                VARCHAR(255)          NOT NULL,
     descripcion           TEXT,
@@ -102,7 +102,7 @@ CREATE TABLE proyecto (
 );
 
 -- 1) TEMA
-CREATE TABLE tema (
+CREATE TABLE IF NOT EXISTS tema (
     tema_id                  SERIAL PRIMARY KEY,
 	codigo                   VARCHAR UNIQUE    NOT NULL,
     titulo                   VARCHAR(255)      NOT NULL,
@@ -126,7 +126,7 @@ CREATE TABLE tema (
 );
 
 -- 2) HISTORIAL_TEMA (depende de tema)
-CREATE TABLE historial_tema (
+CREATE TABLE IF NOT EXISTS historial_tema (
     historial_tema_id        SERIAL PRIMARY KEY,
     tema_id                  INTEGER           NOT NULL,
     titulo                   VARCHAR(255)      NOT NULL,
@@ -144,7 +144,7 @@ CREATE TABLE historial_tema (
 );
 
 -- 3) ROL
-CREATE TABLE rol (
+CREATE TABLE IF NOT EXISTS rol (
     rol_id                   SERIAL PRIMARY KEY,
     nombre                   VARCHAR(100)      NOT NULL,
     descripcion              TEXT,
@@ -154,7 +154,7 @@ CREATE TABLE rol (
 );
 
 -- 4) TIPO_SOLICITUD
-CREATE TABLE tipo_solicitud (
+CREATE TABLE IF NOT EXISTS tipo_solicitud (
     tipo_solicitud_id        SERIAL PRIMARY KEY,
     nombre                   VARCHAR(100)      NOT NULL,
     descripcion              TEXT,
@@ -164,7 +164,7 @@ CREATE TABLE tipo_solicitud (
 );
 
 -- 5) SOLICITUD (depende de tipo_solicitud)
-CREATE TABLE solicitud (
+CREATE TABLE IF NOT EXISTS solicitud (
     solicitud_id             SERIAL PRIMARY KEY,
     descripcion              TEXT,
     tipo_solicitud_id        INTEGER           NOT NULL,
@@ -184,7 +184,7 @@ CREATE TABLE solicitud (
 );
 
 -- 6) USUARIO_SOLICITUD (M:N entre usuario y solicitud)
-CREATE TABLE usuario_solicitud (
+CREATE TABLE IF NOT EXISTS usuario_solicitud (
     usuario_solicitud_id     SERIAL PRIMARY KEY,
     usuario_id               INTEGER           NOT NULL,
     solicitud_id             INTEGER           NOT NULL,
@@ -207,7 +207,7 @@ CREATE TABLE usuario_solicitud (
 );
 
 -- 7) USUARIO_TEMA (M:N entre usuario, tema y rol)
-CREATE TABLE usuario_tema (
+CREATE TABLE IF NOT EXISTS usuario_tema (
     usuario_tema_id          SERIAL PRIMARY KEY,
     usuario_id               INTEGER           NOT NULL,
     tema_id                  INTEGER           NOT NULL,
@@ -233,7 +233,7 @@ CREATE TABLE usuario_tema (
 );
 
 -- 8) AREA_CONOCIMIENTO
-CREATE TABLE area_conocimiento (
+CREATE TABLE IF NOT EXISTS area_conocimiento (
     area_conocimiento_id     SERIAL PRIMARY KEY,
     nombre                   VARCHAR(100)      NOT NULL,
     descripcion              TEXT,
@@ -243,7 +243,7 @@ CREATE TABLE area_conocimiento (
 );
 
 -- 9) SUB_AREA_CONOCIMIENTO (depende de area_conocimiento)
-CREATE TABLE sub_area_conocimiento (
+CREATE TABLE IF NOT EXISTS sub_area_conocimiento (
     sub_area_conocimiento_id SERIAL PRIMARY KEY,
     area_conocimiento_id     INTEGER           NOT NULL,
     nombre                   VARCHAR(100)      NOT NULL,
@@ -259,7 +259,7 @@ CREATE TABLE sub_area_conocimiento (
 );
 
 -- 10) SUB_AREA_CONOCIMIENTO_TEMA (M:N entre sub_area_conocimiento y tema)
-CREATE TABLE sub_area_conocimiento_tema (
+CREATE TABLE IF NOT EXISTS sub_area_conocimiento_tema (
     sub_area_conocimiento_id INTEGER           NOT NULL,
     tema_id                  INTEGER           NOT NULL,
     activo                   BOOLEAN           NOT NULL DEFAULT TRUE,
@@ -279,7 +279,7 @@ CREATE TABLE sub_area_conocimiento_tema (
 );
 
 -- 11) USUARIO_SUB_AREA_CONOCIMIENTO (M:N entre usuario y sub_area_conocimiento)
-CREATE TABLE usuario_sub_area_conocimiento (
+CREATE TABLE IF NOT EXISTS usuario_sub_area_conocimiento (
     usuario_sub_area_conocimiento_id  SERIAL PRIMARY KEY,
     usuario_id                        INTEGER           NOT NULL,
     sub_area_conocimiento_id          INTEGER           NOT NULL,
@@ -297,7 +297,7 @@ CREATE TABLE usuario_sub_area_conocimiento (
         ON DELETE RESTRICT
 );
 -- 3) MODULO
-CREATE TABLE modulo (
+CREATE TABLE IF NOT EXISTS modulo (
     modulo_id             SERIAL PRIMARY KEY,
     nombre                VARCHAR(100)        NOT NULL,
     descripcion           TEXT,
@@ -307,7 +307,7 @@ CREATE TABLE modulo (
 );
 
 -- 1) PERMISO
-CREATE TABLE permiso (
+CREATE TABLE IF NOT EXISTS permiso (
     permiso_id            SERIAL PRIMARY KEY,
 	modulo_id             INTEGER NOT NULL,
     nombre                VARCHAR(100)             NOT NULL,
@@ -324,7 +324,7 @@ CREATE TABLE permiso (
 
 
 -- 4) TIPO_NOTIFICACION
-CREATE TABLE tipo_notificacion (
+CREATE TABLE IF NOT EXISTS tipo_notificacion (
     tipo_notificacion_id  SERIAL PRIMARY KEY,
     nombre                VARCHAR(100)        NOT NULL,
     descripcion           TEXT,
@@ -335,7 +335,7 @@ CREATE TABLE tipo_notificacion (
 );
 
 -- 5) TIPO_USUARIO_PERMISO (relación M:N entre tipo_usuario y permiso)
-CREATE TABLE tipo_usuario_permiso (
+CREATE TABLE IF NOT EXISTS tipo_usuario_permiso (
     tipo_usua_permiso_id  SERIAL    PRIMARY KEY,
     tipo_usuario_id       INTEGER   NOT NULL,
     permiso_id            INTEGER   NOT NULL,
@@ -354,7 +354,7 @@ CREATE TABLE tipo_usuario_permiso (
 );
 
 -- 6) NOTIFICACION
-CREATE TABLE notificacion (
+CREATE TABLE IF NOT EXISTS notificacion (
     notificacion_id       SERIAL PRIMARY KEY,
     mensaje               TEXT               NOT NULL,
     canal                 VARCHAR(50)        NOT NULL,
@@ -381,7 +381,7 @@ CREATE TABLE notificacion (
 );
 
 -- 1) Tabla grupo_investigacion
-CREATE TABLE grupo_investigacion (
+CREATE TABLE IF NOT EXISTS grupo_investigacion (
     grupo_investigacion_id   SERIAL PRIMARY KEY,
     nombre                   VARCHAR(100)             NOT NULL,
     descripcion              TEXT,
@@ -391,7 +391,7 @@ CREATE TABLE grupo_investigacion (
 );
 
 -- 2) Tabla usuario_grupo_investigacion (asigna usuarios a grupos)  
-CREATE TABLE usuario_grupo_investigacion (
+CREATE TABLE IF NOT EXISTS usuario_grupo_investigacion (
     usuario_grupo_investigacion_id  SERIAL PRIMARY KEY,
     usuario_id                      INTEGER           NOT NULL,
     grupo_investigacion_id          INTEGER           NOT NULL,
@@ -410,7 +410,7 @@ CREATE TABLE usuario_grupo_investigacion (
 );
 
 -- 2) Tabla usuario_proyecto (relación M:N entre usuario y proyecto)
-CREATE TABLE usuario_proyecto (
+CREATE TABLE IF NOT EXISTS usuario_proyecto (
     usuario_proyecto_id   SERIAL PRIMARY KEY,
     usuario_id            INTEGER              NOT NULL,
     proyecto_id           INTEGER              NOT NULL,
@@ -431,7 +431,7 @@ CREATE TABLE usuario_proyecto (
 
 
 -- 3) Tabla grupo_investigacion_proyecto (relaciona grupos con proyectos)  
-CREATE TABLE grupo_investigacion_proyecto (
+CREATE TABLE IF NOT EXISTS grupo_investigacion_proyecto (
     grupo_investigacion_proyecto_id SERIAL PRIMARY KEY,
     grupo_investigacion_id          INTEGER           NOT NULL,
     proyecto_id                     INTEGER           NOT NULL,
@@ -450,7 +450,7 @@ CREATE TABLE grupo_investigacion_proyecto (
 );
 
 -- 1) Tabla parametro_configuracion
-CREATE TABLE parametro_configuracion (
+CREATE TABLE IF NOT EXISTS parametro_configuracion (
     parametro_configuracion_id  SERIAL PRIMARY KEY,
     nombre                      VARCHAR(100)             NOT NULL,
     descripcion                 TEXT,
@@ -466,7 +466,7 @@ CREATE TABLE parametro_configuracion (
 );
 
 -- 2) Tabla carrera_parametro_configuracion (M:N entre carrera y parametro_configuracion)
-CREATE TABLE carrera_parametro_configuracion (
+CREATE TABLE IF NOT EXISTS carrera_parametro_configuracion (
     carrera_parametro_configuracion_id  SERIAL PRIMARY KEY,
     estado                              VARCHAR(50)             NOT NULL,
     cantidad                            INTEGER                 NOT NULL,
@@ -1089,24 +1089,28 @@ CREATE TABLE IF NOT EXISTS observacion
 
 --Para 1-1
 
+ALTER TABLE entregable_x_tema DROP CONSTRAINT IF EXISTS fk_entregable_x_tema_revision_criterio_entregable;
 ALTER TABLE entregable_x_tema
     ADD CONSTRAINT fk_entregable_x_tema_revision_criterio_entregable
         FOREIGN KEY (revision_criterio_entregable_id)
             REFERENCES revision_criterio_entregable (revision_criterio_entregable_id)
             ON DELETE SET NULL;
 
+ALTER TABLE version_documento DROP CONSTRAINT IF EXISTS fk_version_documento_revision_documento;
 ALTER TABLE version_documento
     ADD CONSTRAINT fk_version_documento_revision_documento
         FOREIGN KEY (revision_documento_id)
             REFERENCES revision_documento (revision_documento_id)
             ON DELETE CASCADE;
 
+ALTER TABLE bloque_horario_exposicion DROP CONSTRAINT IF EXISTS fk_bhe_exposicion_x_tema;
 ALTER TABLE bloque_horario_exposicion
     ADD CONSTRAINT fk_bhe_exposicion_x_tema
         FOREIGN KEY (exposicion_x_tema_id)
             REFERENCES exposicion_x_tema (exposicion_x_tema_id)
             ON DELETE SET NULL;
 
+ALTER TABLE exposicion_x_tema DROP CONSTRAINT IF EXISTS fk_ext_revision_criterio_x_exposicion;
 ALTER TABLE exposicion_x_tema
     ADD CONSTRAINT fk_ext_revision_criterio_x_exposicion
         FOREIGN KEY (revision_criterio_x_exposicion_id)
