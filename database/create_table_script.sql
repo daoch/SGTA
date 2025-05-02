@@ -107,6 +107,8 @@ CREATE TABLE tema (
 	codigo                   VARCHAR UNIQUE    NOT NULL,
     titulo                   VARCHAR(255)      NOT NULL,
     resumen                  TEXT,
+    metodologia              TEXT,
+    objetivo                 TEXT,
     portafolio_url           VARCHAR(255),
     estado_tema_id           INTEGER      NOT NULL,
     proyecto_id              INTEGER      NOT NULL,
