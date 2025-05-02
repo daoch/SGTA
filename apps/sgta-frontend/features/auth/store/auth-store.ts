@@ -18,6 +18,7 @@ export const useAuthStore = create<AuthStore>()(
         set({ isLoading: true, error: null });
         try {
           //FIXME: No olvidar de borrar
+          console.log("Login", { email, password });
           const mockUser: User = {
             id: "1",
             name: "Usuario de Prueba",
@@ -54,7 +55,7 @@ export const useAuthStore = create<AuthStore>()(
             isAuthenticated: true,
             isLoading: false,
           });
-        } catch (error) {
+        } catch {
           set({
             error: "Error al iniciar sesión. Comprueba tus credenciales.",
             isLoading: false,
@@ -77,7 +78,7 @@ export const useAuthStore = create<AuthStore>()(
             isLoading: false,
             isAuthenticated: !!user,
           });
-        } catch (error) {
+        } catch {
           set({
             error: "Error al verificar la autenticación",
             isLoading: false,

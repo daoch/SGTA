@@ -2,7 +2,6 @@
 
 import { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -16,32 +15,26 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-
-const loginSchema = z.object({
-  email: z
-    .string()
-    .email("El correo no es válido")
-    .min(1, "El correo es obligatorio"),
-  password: z
-    .string()
-    .min(6, "La contraseña debe tener al menos 6 caracteres")
-    .min(1, "La contraseña es obligatoria"),
-});
-
-type LoginFormInputs = z.infer<typeof loginSchema>;
+import { LoginFormInputs, loginSchema } from "../schemas/login-schema";
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
-  const { login, error, isLoading, isAuthenticated, redirectToDashboard } =
-    useAuth();
+  const {
+    login,
+    error,
+    isLoading,
+    isAuthenticated,
+    isCheckingAuth,
+    redirectToDashboard,
+  } = useAuth();
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (!isCheckingAuth && isAuthenticated) {
       redirectToDashboard();
     }
-  }, [isAuthenticated, redirectToDashboard]);
+  }, [isAuthenticated, isCheckingAuth, redirectToDashboard]);
 
   const {
     control,
@@ -50,6 +43,10 @@ export function LoginForm({
   } = useForm<LoginFormInputs>({
     resolver: zodResolver(loginSchema),
   });
+
+  if (isCheckingAuth || isAuthenticated) {
+    return <div>Cargando...</div>;
+  }
 
   const onSubmit = async (data: LoginFormInputs) => {
     await login(data.email, data.password);

@@ -107,9 +107,11 @@ CREATE TABLE IF NOT EXISTS tema (
 	codigo                   VARCHAR UNIQUE    NOT NULL,
     titulo                   VARCHAR(255)      NOT NULL,
     resumen                  TEXT,
+    metodologia              TEXT,
+    objetivo                 TEXT,
     portafolio_url           VARCHAR(255),
     estado_tema_id           INTEGER      NOT NULL,
-    proyecto_id              INTEGER      NOT NULL,
+    proyecto_id              INTEGER,
     activo                   BOOLEAN           NOT NULL DEFAULT TRUE,
     fecha_creacion           TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion       TIMESTAMP WITH TIME ZONE,
@@ -122,6 +124,21 @@ CREATE TABLE IF NOT EXISTS tema (
     CONSTRAINT fk_proyecto
         FOREIGN KEY (proyecto_id)
         REFERENCES proyecto (proyecto_id)
+        ON DELETE RESTRICT
+);
+
+CREATE TABLE recurso (
+    recurso_id          SERIAL PRIMARY KEY,
+    nombre              VARCHAR(255) NOT NULL,
+    documento_url                 VARCHAR(500),  -- URL al archivo o recurso
+    estado              VARCHAR(100),  -- por ejemplo: 'PUBLICADO', 'PENDIENTE', etc.
+    activo              BOOLEAN NOT NULL DEFAULT TRUE,
+    fecha_creacion      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion  TIMESTAMP WITH TIME ZONE,
+
+    CONSTRAINT fk_tema
+        FOREIGN KEY (tema_id)
+        REFERENCES tema (tema_id)
         ON DELETE RESTRICT
 );
 
