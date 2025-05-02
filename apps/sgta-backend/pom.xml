@@ -73,6 +73,13 @@
 			<scope>runtime</scope>
 		</dependency>
 
+		<!-- Dependencia para JUnit (pruebas unitarias) -->
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<scope>test</scope>
+		</dependency>		
+
 	</dependencies>
 
 	<build>
