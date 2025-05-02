@@ -808,6 +808,7 @@ CREATE TABLE IF NOT EXISTS control_exposicion_usuario
     exposicion_x_tema_id          INTEGER                  NOT NULL,
     usuario_x_tema_id             INTEGER                  NOT NULL,
     estado_exposicion_usuario     enum_estado_usuario_exposicion,
+    observaciones_finales_exposicion TEXT,
     asistio                       BOOLEAN,
     activo                        BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion                TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
