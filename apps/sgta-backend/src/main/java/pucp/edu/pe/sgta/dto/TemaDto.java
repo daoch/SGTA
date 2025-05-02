@@ -32,6 +32,8 @@ public class TemaDto {
     private OffsetDateTime fechaCreacion;
     private OffsetDateTime fechaModificacion;
     private List<Integer> idUsuarioInvolucradosList;
+    private List<Integer> idCoasesorInvolucradosList;
+    private List<Integer> idEstudianteInvolucradosList;
     private List<Integer> idSubAreasConocimientoList;
 }
 

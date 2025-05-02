@@ -29,4 +29,11 @@ public class TemaController {
     public TemaDto findById(@RequestParam(name = "idTema") Integer idTema) {
         return temaService.findById(idTema);
     }
+
+    @PostMapping("/createInscripcion") // Inscripcion de tema oficial por asesor
+    public void createInscripcion(
+            @RequestBody TemaDto dto,
+            @RequestParam(name = "idUsuarioCreador") Integer idUsuarioCreador) {
+        temaService.createInscripcionTema(dto, idUsuarioCreador);
+    }
 }
