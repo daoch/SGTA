@@ -24,6 +24,8 @@ public class TemaDto {
     private String codigo;
     private String titulo;
     private String resumen;
+    private String objetivos;
+    private String metodologia;
     private String portafolioUrl;
     private boolean activo;
     private OffsetDateTime fechaCreacion;

@@ -10,6 +10,8 @@ public class TemaMapper {
         dto.setTitulo(tema.getTitulo());
         dto.setCodigo(tema.getCodigo());
         dto.setResumen(tema.getResumen());
+        dto.setObjetivos(tema.getObjetivos());
+        dto.setMetodologia(tema.getMetodologia());
         dto.setFechaCreacion(tema.getFechaCreacion());
         dto.setFechaModificacion(tema.getFechaModificacion());
         dto.setPortafolioUrl(tema.getPortafolioUrl());
@@ -22,6 +24,8 @@ public class TemaMapper {
         tema.setTitulo(dto.getTitulo());
         tema.setCodigo(dto.getCodigo());
         tema.setResumen(dto.getResumen());
+        tema.setObjetivos(dto.getObjetivos());
+        tema.setMetodologia(dto.getMetodologia());
         tema.setFechaCreacion(dto.getFechaCreacion());
         tema.setFechaModificacion(dto.getFechaModificacion());
         tema.setPortafolioUrl(dto.getPortafolioUrl());

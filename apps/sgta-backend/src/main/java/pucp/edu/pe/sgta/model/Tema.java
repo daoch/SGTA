@@ -30,6 +30,12 @@ public class Tema {
     @Column(columnDefinition = "TEXT")
     private String resumen;
 
+    @Column(columnDefinition = "TEXT")
+    private String objetivos;
+
+    @Column(columnDefinition = "TEXT")
+    private String metodologia;
+
     @Column(name = "portafolio_url", length = 255)
     private String portafolioUrl;
 
