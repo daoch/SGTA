@@ -112,6 +112,7 @@ CREATE TABLE tema (
     portafolio_url           VARCHAR(255),
     estado_tema_id           INTEGER      NOT NULL,
     proyecto_id              INTEGER,
+    fecha_limite             TIMESTAMP WITH TIME ZONE,
     activo                   BOOLEAN           NOT NULL DEFAULT TRUE,
     fecha_creacion           TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion       TIMESTAMP WITH TIME ZONE,

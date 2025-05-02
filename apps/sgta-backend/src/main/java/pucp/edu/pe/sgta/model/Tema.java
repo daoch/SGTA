@@ -49,6 +49,10 @@ public class Tema {
                 foreignKey = @ForeignKey(name = "fk_proyecto")) //there could be no relation with proyecto
     private Proyecto proyecto;
 
+    @Column(name = "fecha_limite",
+        columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private OffsetDateTime fechaLimite;
+
     @Column(nullable = false)
     private boolean activo = true;
 
