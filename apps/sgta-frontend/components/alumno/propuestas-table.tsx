@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, CheckCircle, X, FileEdit, Trash2 } from "lucide-react";
+import { Eye, FileEdit, Trash2 } from "lucide-react";
 
 export interface Propuesta {
   id: string;
