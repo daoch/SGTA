@@ -264,6 +264,7 @@ CREATE TABLE sub_area_conocimiento_tema (
     tema_id                  INTEGER           NOT NULL,
     activo                   BOOLEAN           NOT NULL DEFAULT TRUE,
     fecha_creacion           TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion       TIMESTAMP WITH TIME ZONE,
 
     PRIMARY KEY (sub_area_conocimiento_id, tema_id),
 
@@ -531,8 +532,8 @@ CREATE TABLE IF NOT EXISTS tipo_exposicion (
 CREATE TABLE IF NOT EXISTS sala_exposicion (
     sala_exposicion_id					SERIAL PRIMARY KEY,
     nombre 								TEXT NOT NULL,
-    activo                              BOOLEAN   NOT NULL DEFAULT TRUE,
-		tipo_sala_exposicion			enum_presentation_room_type NOT NULL DEFAULT 'presential',
+	tipo_sala_exposicion	    		enum_tipo_sala_exposicion NOT NULL DEFAULT 'presencial',
+    activo                              BOOLEAN NOT NULL DEFAULT TRUE,
     fecha_creacion                      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion                  TIMESTAMP WITH TIME ZONE
 );
@@ -657,7 +658,7 @@ CREATE TABLE IF NOT EXISTS exposicion_x_tema (
     bloque_horario_exposicion_id   INTEGER,
     link_exposicion                TEXT,
     link_grabacion                 TEXT,
-    estado_exposicion              enum_presentation_state,
+    estado_exposicion              enum_estado_exposicion,
     nota_final                     NUMERIC(5,2),
     activo                         BOOLEAN NOT NULL DEFAULT TRUE,
     fecha_creacion                 TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -725,7 +726,7 @@ CREATE TABLE IF NOT EXISTS control_exposicion_usuario (
     control_exposicion_usuario_id   SERIAL PRIMARY KEY,
     exposicion_x_tema_id            INTEGER NOT NULL,
     usuario_x_tema_id               INTEGER NOT NULL,
-    estado_exposicion_usuario       enum_presentation_user_state,
+    estado_exposicion_usuario       enum_estado_usuario_exposicion,
     asistio                         BOOLEAN,
     activo                          BOOLEAN NOT NULL DEFAULT TRUE,
     fecha_creacion                  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -778,23 +779,23 @@ CREATE TABLE IF NOT EXISTS restriccion_exposicion (
 
 ---enums
 
-create type if not exists enum_presentation_state as enum (
-    'unprogrammed',
-    'waiting_for_response',
-    'waiting_for_approval',
-    'scheduled',
-    'in_progress',
-    'completed',
-    'canceled'
+create type if not exists enum_estado_exposicion as enum (
+    'sin_programar',
+    'esperando_respuesta',
+    'esperando_aprobacion',
+    'programada',
+    'en_progreso',
+    'completada',
+    'cancelada'
 );
 
-create type if not exists enum_presentation_user_state as enum (
-    'waiting_for_response',
-    'accepted',
-    'rejected'
+create type if not exists enum_estado_usuario_exposicion as enum (
+    'esperando_respuesta',
+    'aceptado',
+    'rechazado'
 );
 
-create type if not exists enum_presentation_room_type as enum (
-    'presential',
+create type if not exists enum_tipo_sala_exposicion as enum (
+    'presencial',
     'virtual'
 );
