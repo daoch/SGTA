@@ -127,6 +127,21 @@ CREATE TABLE tema (
         ON DELETE RESTRICT
 );
 
+CREATE TABLE recurso (
+    recurso_id          SERIAL PRIMARY KEY,
+    nombre              VARCHAR(255) NOT NULL,
+    documento_url                 VARCHAR(500),  -- URL al archivo o recurso
+    estado              VARCHAR(100),  -- por ejemplo: 'PUBLICADO', 'PENDIENTE', etc.
+    activo              BOOLEAN NOT NULL DEFAULT TRUE,
+    fecha_creacion      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion  TIMESTAMP WITH TIME ZONE,
+
+    CONSTRAINT fk_tema
+        FOREIGN KEY (tema_id)
+        REFERENCES tema (tema_id)
+        ON DELETE RESTRICT
+);
+
 -- 2) HISTORIAL_TEMA (depende de tema)
 CREATE TABLE historial_tema (
     historial_tema_id        SERIAL PRIMARY KEY,
