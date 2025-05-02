@@ -1,16 +1,16 @@
 import {
-  Home,
-  FileText,
-  FolderOpen,
-  ClipboardList,
-  CheckSquare,
-  Users,
-  CalendarIcon,
-  MessageSquare,
-  Search,
   BarChart3,
   Calendar,
+  CalendarIcon,
+  CheckSquare,
+  ClipboardList,
   FileSpreadsheet,
+  FileText,
+  FolderOpen,
+  Home,
+  MessageSquare,
+  Search,
+  Users,
 } from "lucide-react";
 
 export interface NavigationGroup {
@@ -29,24 +29,11 @@ export interface NavigationItem {
 export const navigationItems: Record<string, NavigationItem[]> = {
   common: [{ name: "Dashboard", href: "/dashboard", icon: Home }],
   alumno: [
-    {
-      name: "Temas",
-      href: "/alumno/temas",
-      icon: FileText,
-      children: [
-        {
-          name: "Catálogo de temas libres",
-          href: "/alumno/temas/catalogo-de-temas",
-          icon: FolderOpen,
-        },
-        { name: "Mis temas", href: "/alumno/temas/mis-temas", icon: FileText },
-        {
-          name: "Postulaciones de asesores",
-          href: "/alumno/temas/postulaciones-de-asesores",
-          icon: CheckSquare,
-        },
-      ],
-    },
+    { name: 'Temas', href: '/alumno/temas', icon: FileText, children: [
+      { name: 'Catálogo de temas libres', href: '/alumno/temas/catalogo-de-temas-libres', icon: FolderOpen },
+      { name: 'Mis temas', href: '/alumno/temas', icon: FileText },
+      { name: 'Postulaciones de asesores', href: '/alumno/temas/postulaciones-de-asesores', icon: CheckSquare },
+    ]},
     {
       name: "Mi proyecto",
       href: "/alumno/mi-proyecto",
