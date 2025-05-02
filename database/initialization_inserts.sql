@@ -18,12 +18,12 @@ VALUES
 -- 3) Estado de tema
 INSERT INTO estado_tema (nombre, descripcion, activo, fecha_creacion, fecha_modificacion)
 VALUES
-  ('Libre',     'Tema propuesto por asesor          ',                         TRUE, NOW(), NOW()),
-  ('Propuesto', 'Tema propuesto por estudiante o estudientes',                  TRUE, NOW(), NOW()),
-  ('Inscrito',  'Tema inscrito con asesor con detalles formalizados',   TRUE, NOW(), NOW()),
-  ('Rechazado', 'Tema propuesto por estudiante que ha sido rechazado',          TRUE, NOW(), NOW()),
-  ('Observado', 'Tema inscrito con observaciones pendientes del comité de tesis',      TRUE, NOW(), NOW()),
-  ('Vencido',   'Tema propuesto por asesor o estudiantes que pasó su fecha de vencimiento definida',                  TRUE, NOW(), NOW());
+  ('LIBRE',     'Tema propuesto por asesor          ',                         TRUE, NOW(), NOW()),
+  ('PROPUESTO', 'Tema propuesto por estudiante o estudientes',                  TRUE, NOW(), NOW()),
+  ('INSCRITO',  'Tema inscrito con asesor con detalles formalizados',   TRUE, NOW(), NOW()),
+  ('RECHAZADO', 'Tema propuesto por estudiante que ha sido rechazado',          TRUE, NOW(), NOW()),
+  ('OBSERVADO', 'Tema inscrito con observaciones pendientes del comité de tesis',      TRUE, NOW(), NOW()),
+  ('VENCIDO',   'Tema propuesto por asesor o estudiantes que pasó su fecha de vencimiento definida',                  TRUE, NOW(), NOW());
 
 -- 4) Unidad académica
 INSERT INTO unidad_academica (nombre, descripcion, activo, fecha_creacion, fecha_modificacion)
