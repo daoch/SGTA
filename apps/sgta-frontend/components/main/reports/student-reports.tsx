@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { AlertTriangle, Calendar } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Button } from "@/components/ui/button"
+import { useState } from "react";
+import { AlertTriangle, Calendar } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -13,15 +13,15 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { addDays, isBefore, parseISO } from "date-fns"
+} from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { addDays, isBefore, parseISO } from "date-fns";
 
 export function StudentReports() {
-  const [scheduleFrequency, setScheduleFrequency] = useState("weekly")
-  const [timeFilter, setTimeFilter] = useState("all")
-  const [statusFilter, setStatusFilter] = useState("all")
-  const [showStatusFilter, setShowStatusFilter] = useState(false)
+  const [scheduleFrequency, setScheduleFrequency] = useState("weekly");
+  const [timeFilter, setTimeFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [showStatusFilter, setShowStatusFilter] = useState(false);
 
   // Datos de entregas con estado de retraso
   const pendingDeliveries = [
@@ -31,10 +31,10 @@ export function StudentReports() {
       isLate: true,
       daysLate: 3,
     },
-  ]
+  ];
 
   // Fecha actual simulada para el ejemplo
-  const currentDate = new Date("2023-04-18")
+  const currentDate = new Date("2023-04-18");
 
   // Datos del estudiante
   const studentData = {
@@ -54,7 +54,7 @@ export function StudentReports() {
       name: "Mg. María Sánchez",
       department: "Departamento de Ingeniería de Software",
     },
-  }
+  };
 
   const timelineEvents = [
     { date: "15/01/2023", event: "Propuesta de proyecto aprobada", status: "Completado" },
@@ -73,10 +73,10 @@ export function StudentReports() {
     { date: "30/07/2023", event: "Defensa de proyecto", status: "Pendiente" },
   ].map((event) => {
     // Convertir fecha de string a objeto Date
-    const eventDate = parseISO(`${event.date.split("/").reverse().join("-")}T00:00:00`)
+    const eventDate = parseISO(`${event.date.split("/").reverse().join("-")}T00:00:00`);
 
     // Calcular días restantes
-    const daysRemaining = Math.ceil((eventDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24))
+    const daysRemaining = Math.ceil((eventDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24));
 
     // Determinar si está en riesgo (menos de 3 días para completar y no está completado ni en progreso)
     const isAtRisk =
@@ -84,56 +84,56 @@ export function StudentReports() {
       daysRemaining <= 3 &&
       event.status !== "Completado" &&
       event.status !== "En progreso" &&
-      !event.isLate
+      !event.isLate;
 
     return {
       ...event,
       daysRemaining,
       isAtRisk,
-    }
-  })
+    };
+  });
 
   // Filtrar eventos por tiempo
   const filteredByTime = timelineEvents.filter((event) => {
-    const eventDate = parseISO(`${event.date.split("/").reverse().join("-")}T00:00:00`)
+    const eventDate = parseISO(`${event.date.split("/").reverse().join("-")}T00:00:00`);
 
     switch (timeFilter) {
       case "past":
-        return isBefore(eventDate, currentDate)
+        return isBefore(eventDate, currentDate);
       case "upcoming30":
-        return !isBefore(eventDate, currentDate) && isBefore(eventDate, addDays(currentDate, 30))
+        return !isBefore(eventDate, currentDate) && isBefore(eventDate, addDays(currentDate, 30));
       case "upcoming90":
-        return !isBefore(eventDate, currentDate) && isBefore(eventDate, addDays(currentDate, 90))
+        return !isBefore(eventDate, currentDate) && isBefore(eventDate, addDays(currentDate, 90));
       case "all":
       default:
-        return true
+        return true;
     }
-  })
+  });
 
   // Filtrar eventos por estado
   const filteredEvents = filteredByTime.filter((event) => {
-    if (statusFilter === "all") return true
-    if (statusFilter === "completed" && event.status === "Completado") return true
-    if (statusFilter === "inProgress" && event.status === "En progreso") return true
-    if (statusFilter === "pending" && event.status === "Pendiente" && !event.isLate && !event.isAtRisk) return true
-    if (statusFilter === "late" && event.isLate) return true
-    if (statusFilter === "atRisk" && event.isAtRisk) return true
-    return false
-  })
+    if (statusFilter === "all") return true;
+    if (statusFilter === "completed" && event.status === "Completado") return true;
+    if (statusFilter === "inProgress" && event.status === "En progreso") return true;
+    if (statusFilter === "pending" && event.status === "Pendiente" && !event.isLate && !event.isAtRisk) return true;
+    if (statusFilter === "late" && event.isLate) return true;
+    if (statusFilter === "atRisk" && event.isAtRisk) return true;
+    return false;
+  });
 
   // Calcular progreso general
-  const completedEvents = timelineEvents.filter((event) => event.status === "Completado").length
-  const totalEvents = timelineEvents.length
-  const overallProgress = Math.round((completedEvents / totalEvents) * 100)
+  const completedEvents = timelineEvents.filter((event) => event.status === "Completado").length;
+  const totalEvents = timelineEvents.length;
+  const overallProgress = Math.round((completedEvents / totalEvents) * 100);
 
   // Verificar si hay entregas retrasadas
-  const lateDeliveries = pendingDeliveries.filter((delivery) => delivery.isLate)
-  const hasLateDeliveries = lateDeliveries.length > 0
+  const lateDeliveries = pendingDeliveries.filter((delivery) => delivery.isLate);
+  const hasLateDeliveries = lateDeliveries.length > 0;
 
   // Función para manejar el clic en el botón de filtro por estado
   const handleStatusFilterClick = () => {
-    setShowStatusFilter(!showStatusFilter)
-  }
+    setShowStatusFilter(!showStatusFilter);
+  };
 
   return (
     <div className="space-y-6">
@@ -143,7 +143,7 @@ export function StudentReports() {
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Entregas pendientes con retraso</AlertTitle>
           <AlertDescription>
-            Tienes {lateDeliveries.length} entrega(s) con retraso. La entrega de "{lateDeliveries[0].name}" debió
+            Tienes {lateDeliveries.length} entrega(s) con retraso. La entrega de <b>{lateDeliveries[0].name}</b> debió
             presentarse el {lateDeliveries[0].dueDate} ({lateDeliveries[0].daysLate} días de retraso). Por favor,
             contacta a tu asesor lo antes posible.
           </AlertDescription>
@@ -329,8 +329,8 @@ export function StudentReports() {
                         size="sm"
                         className="w-full justify-start"
                         onClick={() => {
-                          setStatusFilter("all")
-                          setShowStatusFilter(false)
+                          setStatusFilter("all");
+                          setShowStatusFilter(false);
                         }}
                       >
                         Todos
@@ -340,8 +340,8 @@ export function StudentReports() {
                         size="sm"
                         className="w-full justify-start"
                         onClick={() => {
-                          setStatusFilter("completed")
-                          setShowStatusFilter(false)
+                          setStatusFilter("completed");
+                          setShowStatusFilter(false);
                         }}
                       >
                         Completado
@@ -351,8 +351,8 @@ export function StudentReports() {
                         size="sm"
                         className="w-full justify-start"
                         onClick={() => {
-                          setStatusFilter("inProgress")
-                          setShowStatusFilter(false)
+                          setStatusFilter("inProgress");
+                          setShowStatusFilter(false);
                         }}
                       >
                         En progreso
@@ -362,8 +362,8 @@ export function StudentReports() {
                         size="sm"
                         className="w-full justify-start"
                         onClick={() => {
-                          setStatusFilter("pending")
-                          setShowStatusFilter(false)
+                          setStatusFilter("pending");
+                          setShowStatusFilter(false);
                         }}
                       >
                         Pendiente
@@ -373,8 +373,8 @@ export function StudentReports() {
                         size="sm"
                         className="w-full justify-start"
                         onClick={() => {
-                          setStatusFilter("late")
-                          setShowStatusFilter(false)
+                          setStatusFilter("late");
+                          setShowStatusFilter(false);
                         }}
                       >
                         Retrasado
@@ -384,8 +384,8 @@ export function StudentReports() {
                         size="sm"
                         className="w-full justify-start"
                         onClick={() => {
-                          setStatusFilter("atRisk")
-                          setShowStatusFilter(false)
+                          setStatusFilter("atRisk");
+                          setShowStatusFilter(false);
                         }}
                       >
                         En riesgo
@@ -455,5 +455,5 @@ export function StudentReports() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

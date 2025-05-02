@@ -1,6 +1,6 @@
-import * as React from "react"
+import * as React from "react";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
 const Progress = React.forwardRef<
   HTMLDivElement,
@@ -10,7 +10,7 @@ const Progress = React.forwardRef<
     indicatorClassName?: string
   }
 >(({ className, value, max = 100, indicatorClassName, ...props }, ref) => {
-  const percentage = value != null ? Math.min(Math.max(value, 0), max) : 0
+  const percentage = value != null ? Math.min(Math.max(value, 0), max) : 0;
 
   return (
     <div
@@ -23,8 +23,8 @@ const Progress = React.forwardRef<
         style={{ transform: `translateX(-${100 - percentage}%)` }}
       />
     </div>
-  )
-})
-Progress.displayName = "Progress"
+  );
+});
+Progress.displayName = "Progress";
 
-export { Progress }
+export { Progress };

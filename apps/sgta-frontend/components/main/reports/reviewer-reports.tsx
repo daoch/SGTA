@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Button } from "@/components/ui/button"
-import { Eye } from "lucide-react"
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Eye } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -13,10 +13,10 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 
 export function ReviewerReports() {
-  const [selectedStudent, setSelectedStudent] = useState("1")
+  const [selectedStudent, setSelectedStudent] = useState("1");
 
   const students = [
     {
@@ -186,9 +186,9 @@ export function ReviewerReports() {
         },
       ],
     },
-  ]
+  ];
 
-  const selectedStudentData = students.find((student) => student.id === selectedStudent)
+  const selectedStudentData = students.find((student) => student.id === selectedStudent);
 
   return (
     <div className="space-y-6">
@@ -386,5 +386,5 @@ export function ReviewerReports() {
         </Card>
       )}
     </div>
-  )
+  );
 }

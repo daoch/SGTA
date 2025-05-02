@@ -17,6 +17,10 @@ const eslintConfig = [
       quotes: ["error", "double"],
     },
   }),
+
+  {
+    ignores: ["**/node_modules/**", "**/.next/**", "**/dist/**", "**/build/**"],
+  },
 ];
 
 export default eslintConfig;

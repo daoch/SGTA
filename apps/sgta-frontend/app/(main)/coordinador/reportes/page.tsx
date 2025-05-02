@@ -1,7 +1,5 @@
-"use client"
-
-import { useState } from "react"
-import { CoordinatorReports } from "@/components/main/reports/coordinator-reports"
+"use client";
+import { CoordinatorReports } from "@/components/main/reports/coordinator-reports";
 
 export default function ReportsPage() {
 
@@ -14,5 +12,5 @@ export default function ReportsPage() {
       <CoordinatorReports />
     
     </div>
-  )
+  );
 }

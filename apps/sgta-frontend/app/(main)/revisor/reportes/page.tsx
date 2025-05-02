@@ -1,5 +1,5 @@
-"use client"
-import { ReviewerReports } from "@/components/main/reports/reviewer-reports"
+"use client";
+import { ReviewerReports } from "@/components/main/reports/reviewer-reports";
 
 export default function ReportsPage() {
 
@@ -12,5 +12,5 @@ export default function ReportsPage() {
       <ReviewerReports />
     
     </div>
-  )
+  );
 }

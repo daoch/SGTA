@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import { useParams } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Button } from "@/components/ui/button"
-import { ArrowLeft, Eye } from "lucide-react"
+import { useParams } from "next/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, Eye } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -12,12 +12,12 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import Link from "next/link"
+} from "@/components/ui/dialog";
+import Link from "next/link";
 
 export default function TesistaDetailPage() {
-  const params = useParams()
-  const studentId = params.id as string
+  const params = useParams();
+  const studentId = params.id as string;
 
   // Datos simulados del estudiante
   const student = {
@@ -72,7 +72,7 @@ export default function TesistaDetailPage() {
       { date: "01/04/2023", duration: "1 hora", notes: "Revisión de metodología y planificación de implementación" },
     ],
     nextMeeting: "25/04/2023",
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -381,5 +381,5 @@ export default function TesistaDetailPage() {
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }

@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useState } from "react"
+import { useState } from "react";
 import {
   BarChart,
   BarChart as RechartsBarChart,
@@ -16,9 +16,9 @@ import {
   Cell,
   ResponsiveContainer,
   Bar,
-} from "recharts"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Button } from "@/components/ui/button"
+} from "recharts";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -26,17 +26,17 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Calendar, Download, FileSpreadsheet, BarChartHorizontal, PieChart } from "lucide-react"
-import { Progress } from "@/components/ui/progress"
+} from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Calendar, Download, FileSpreadsheet, BarChartHorizontal, PieChart } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 
 export function CoordinatorReports() {
-  const [semesterFilter, setSemesterFilter] = useState("2025-1")
-  const [themeAreaChartType, setThemeAreaChartType] = useState("vertical-bar") // 'horizontal-bar', 'vertical-bar', 'pie'
-  const [scheduleFrequency, setScheduleFrequency] = useState("weekly")
+  const [semesterFilter, setSemesterFilter] = useState("2025-1");
+  const [themeAreaChartType, setThemeAreaChartType] = useState("vertical-bar"); // 'horizontal-bar', 'vertical-bar', 'pie'
+  const [scheduleFrequency, setScheduleFrequency] = useState("weekly");
 
   // Data for thesis topics by area
   const thesisTopicsByArea = [
@@ -47,16 +47,16 @@ export function CoordinatorReports() {
     { area: "Redes", count: 5 },
     { area: "Computación Gráfica", count: 4 },
     { area: "Sistemas Embebidos", count: 3 },
-  ]
+  ];
 
   // Data for thesis topics by year
-  const thesisTopicsByYear = [
-    { year: 2019, ai: 8, web: 10, security: 5, databases: 6, networks: 4, graphics: 3, embedded: 2 },
-    { year: 2020, ai: 10, web: 11, security: 6, databases: 7, networks: 5, graphics: 3, embedded: 2 },
-    { year: 2021, ai: 12, web: 12, security: 7, databases: 6, networks: 5, graphics: 4, embedded: 3 },
-    { year: 2022, ai: 14, web: 12, security: 8, databases: 7, networks: 5, graphics: 4, embedded: 3 },
-    { year: 2023, ai: 15, web: 12, security: 8, databases: 7, networks: 5, graphics: 4, embedded: 3 },
-  ]
+  // const thesisTopicsByYear = [
+  //   { year: 2019, ai: 8, web: 10, security: 5, databases: 6, networks: 4, graphics: 3, embedded: 2 },
+  //   { year: 2020, ai: 10, web: 11, security: 6, databases: 7, networks: 5, graphics: 3, embedded: 2 },
+  //   { year: 2021, ai: 12, web: 12, security: 7, databases: 6, networks: 5, graphics: 4, embedded: 3 },
+  //   { year: 2022, ai: 14, web: 12, security: 8, databases: 7, networks: 5, graphics: 4, embedded: 3 },
+  //   { year: 2023, ai: 15, web: 12, security: 8, databases: 7, networks: 5, graphics: 4, embedded: 3 },
+  // ];
 
   // Transformar datos para gráfico de líneas
   const lineChartData = [
@@ -110,7 +110,7 @@ export function CoordinatorReports() {
       Gráficos: 4,
       Embebidos: 3,
     },
-  ]
+  ];
 
   // Data for advisor distribution
   const advisorDistribution = [
@@ -121,7 +121,7 @@ export function CoordinatorReports() {
     { name: "Dra. Martínez", count: 4, department: "Bases de Datos" },
     { name: "Dr. Pérez", count: 3, department: "Redes y Comunicaciones" },
     { name: "Dra. Gómez", count: 2, department: "Computación Gráfica" },
-  ]
+  ];
 
   // Data for jury distribution
   const juryDistribution = [
@@ -132,7 +132,7 @@ export function CoordinatorReports() {
     { name: "Dra. Martínez", count: 7, department: "Bases de Datos" },
     { name: "Dr. Pérez", count: 6, department: "Redes y Comunicaciones" },
     { name: "Dra. Gómez", count: 5, department: "Computación Gráfica" },
-  ]
+  ];
 
   // Data for advisor performance
   const advisorPerformance = [
@@ -143,23 +143,23 @@ export function CoordinatorReports() {
     { name: "Dra. Martínez", department: "Bases de Datos", progress: 68, students: 4 },
     { name: "Dr. Pérez", department: "Redes y Comunicaciones", progress: 55, students: 3 },
     { name: "Dra. Gómez", department: "Computación Gráfica", progress: 82, students: 2 },
-  ]
+  ];
 
   // Colores para el gráfico de pastel
-  const COLORS = ["#002855", "#006699", "#0088cc", "#00aaff", "#33bbff", "#66ccff", "#99ddff"]
+  const COLORS = ["#002855", "#006699", "#0088cc", "#00aaff", "#33bbff", "#66ccff", "#99ddff"];
 
   // Función para exportar reporte
   const handleExport = (format) => {
     // Aquí iría la lógica para exportar el reporte
-    alert(`Exportando reporte en formato ${format}...`)
-  }
+    alert(`Exportando reporte en formato ${format}...`);
+  };
 
   // Modificar la estructura de las pestañas "topics" y "distribution" para incluir selectores de gráficos
   // En la pestaña "topics", reemplazar la estructura de grid por un selector y un solo gráfico a la vez
 
   // 1. Añadir nuevos estados para controlar qué gráfico se muestra
-  const [selectedTopicsChart, setSelectedTopicsChart] = useState("areas")
-  const [selectedDistributionChart, setSelectedDistributionChart] = useState("advisors")
+  const [selectedTopicsChart, setSelectedTopicsChart] = useState("areas");
+  const [selectedDistributionChart, setSelectedDistributionChart] = useState("advisors");
 
   return (
     <div className="space-y-4">
@@ -342,7 +342,7 @@ export function CoordinatorReports() {
                           cx="50%"
                           cy="50%"
                           labelLine={false}
-                          label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
+                          label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
                           outerRadius={120}
                           fill="#8884d8"
                           dataKey="count"
@@ -460,8 +460,8 @@ export function CoordinatorReports() {
                       </thead>
                       <tbody>
                         {advisorDistribution.map((advisor, index) => {
-                          const juryCount = juryDistribution.find((j) => j.name === advisor.name)?.count || 0
-                          const total = advisor.count + juryCount
+                          const juryCount = juryDistribution.find((j) => j.name === advisor.name)?.count || 0;
+                          const total = advisor.count + juryCount;
 
                           return (
                             <tr key={index} className="border-b">
@@ -471,7 +471,7 @@ export function CoordinatorReports() {
                               <td className="py-1.5 text-sm">{juryCount}</td>
                               <td className="py-1.5 text-sm font-medium">{total}</td>
                             </tr>
-                          )
+                          );
                         })}
                       </tbody>
                     </table>
@@ -554,5 +554,5 @@ export function CoordinatorReports() {
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }

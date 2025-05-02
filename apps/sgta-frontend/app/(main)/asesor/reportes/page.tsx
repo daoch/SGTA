@@ -1,15 +1,8 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { StudentReports } from "@/components/main/reports/student-reports"
-import { AdvisorReports } from "@/components/main/reports/advisor-reports"
-import { ReviewerReports } from "@/components/main/reports/reviewer-reports"
-import { CoordinatorReports } from "@/components/main/reports/coordinator-reports"
+import { AdvisorReports } from "@/components/main/reports/advisor-reports";
 
 export default function ReportsPage() {
-  const [activeTab, setActiveTab] = useState("estudiantes")
 
   return (
     <div className="space-y-6">
@@ -20,5 +13,5 @@ export default function ReportsPage() {
       <AdvisorReports />
     
     </div>
-  )
+  );
 }

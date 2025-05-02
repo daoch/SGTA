@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
-import { Button } from "@/components/ui/button"
-import { Calendar, ExternalLink } from "lucide-react"
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
+import { Calendar, ExternalLink } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -12,18 +12,18 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import Link from "next/link"
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import Link from "next/link";
 
 export function AdvisorReports() {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [progressFilter, setProgressFilter] = useState("all")
-  const [statusFilter, setStatusFilter] = useState("all")
-  const [scheduleFrequency, setScheduleFrequency] = useState("weekly")
-  const [showProgressFilter, setShowProgressFilter] = useState(false)
-  const [showStatusFilter, setShowStatusFilter] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("");
+  const [progressFilter, setProgressFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [scheduleFrequency, setScheduleFrequency] = useState("weekly");
+  const [showProgressFilter, setShowProgressFilter] = useState(false);
+  const [showStatusFilter, setShowStatusFilter] = useState(false);
 
   const students = [
     {
@@ -172,21 +172,21 @@ export function AdvisorReports() {
       ],
       daysToNextDelivery: 10,
     },
-  ]
+  ];
 
   // Filter students based on filters
   const filteredStudents = students.filter((student) => {
     // Filter by name/search
     const matchesSearch =
       student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      student.thesis.toLowerCase().includes(searchQuery.toLowerCase())
+      student.thesis.toLowerCase().includes(searchQuery.toLowerCase());
 
     // Filter by progress
     const matchesProgress =
       progressFilter === "all" ||
       (progressFilter === "low" && student.progress < 30) ||
       (progressFilter === "medium" && student.progress >= 30 && student.progress < 70) ||
-      (progressFilter === "high" && student.progress >= 70)
+      (progressFilter === "high" && student.progress >= 70);
 
     // Filter by status
     const matchesStatus =
@@ -196,34 +196,34 @@ export function AdvisorReports() {
         student.status === "En progreso" &&
         student.daysToNextDelivery < 3 &&
         student.daysToNextDelivery >= 0) ||
-      (statusFilter === "delayed" && (student.status === "Con retraso" || student.daysToNextDelivery < 0))
+      (statusFilter === "delayed" && (student.status === "Con retraso" || student.daysToNextDelivery < 0));
 
-    return matchesSearch && matchesProgress && matchesStatus
-  })
+    return matchesSearch && matchesProgress && matchesStatus;
+  });
 
   // Calcular estadísticas del asesor
-  const totalStudents = students.length
-  const studentsInProgress = students.filter((student) => student.status === "En progreso").length
+  const totalStudents = students.length;
+  // const studentsInProgress = students.filter((student) => student.status === "En progreso").length;
   const studentsWithDelay = students.filter(
     (student) => student.status === "Con retraso" || student.daysToNextDelivery < 0,
-  ).length
+  ).length;
   const studentsAtRisk = students.filter(
     (student) => student.status === "En progreso" && student.daysToNextDelivery < 3 && student.daysToNextDelivery >= 0,
-  ).length
-  const studentsCompleted = students.filter((student) => student.status === "Completado").length
-  const averageProgress = Math.round(students.reduce((sum, student) => sum + student.progress, 0) / totalStudents)
+  ).length;
+  // const studentsCompleted = students.filter((student) => student.status === "Completado").length;
+  const averageProgress = Math.round(students.reduce((sum, student) => sum + student.progress, 0) / totalStudents);
 
   // Función para manejar el clic en el botón de filtro por progreso
   const handleProgressFilterClick = () => {
-    setShowProgressFilter(!showProgressFilter)
-    setShowStatusFilter(false)
-  }
+    setShowProgressFilter(!showProgressFilter);
+    setShowStatusFilter(false);
+  };
 
   // Función para manejar el clic en el botón de filtro por estado
   const handleStatusFilterClick = () => {
-    setShowStatusFilter(!showStatusFilter)
-    setShowProgressFilter(false)
-  }
+    setShowStatusFilter(!showStatusFilter);
+    setShowProgressFilter(false);
+  };
 
   return (
     <div className="space-y-6">
@@ -340,8 +340,8 @@ export function AdvisorReports() {
                           size="sm"
                           className="w-full justify-start"
                           onClick={() => {
-                            setProgressFilter("all")
-                            setShowProgressFilter(false)
+                            setProgressFilter("all");
+                            setShowProgressFilter(false);
                           }}
                         >
                           Todos
@@ -351,8 +351,8 @@ export function AdvisorReports() {
                           size="sm"
                           className="w-full justify-start"
                           onClick={() => {
-                            setProgressFilter("low")
-                            setShowProgressFilter(false)
+                            setProgressFilter("low");
+                            setShowProgressFilter(false);
                           }}
                         >
                           Bajo (&lt;30%)
@@ -362,8 +362,8 @@ export function AdvisorReports() {
                           size="sm"
                           className="w-full justify-start"
                           onClick={() => {
-                            setProgressFilter("medium")
-                            setShowProgressFilter(false)
+                            setProgressFilter("medium");
+                            setShowProgressFilter(false);
                           }}
                         >
                           Medio (30-70%)
@@ -373,8 +373,8 @@ export function AdvisorReports() {
                           size="sm"
                           className="w-full justify-start"
                           onClick={() => {
-                            setProgressFilter("high")
-                            setShowProgressFilter(false)
+                            setProgressFilter("high");
+                            setShowProgressFilter(false);
                           }}
                         >
                           Alto (&gt;70%)
@@ -399,8 +399,8 @@ export function AdvisorReports() {
                           size="sm"
                           className="w-full justify-start"
                           onClick={() => {
-                            setStatusFilter("all")
-                            setShowStatusFilter(false)
+                            setStatusFilter("all");
+                            setShowStatusFilter(false);
                           }}
                         >
                           Todos
@@ -410,8 +410,8 @@ export function AdvisorReports() {
                           size="sm"
                           className="w-full justify-start"
                           onClick={() => {
-                            setStatusFilter("onTrack")
-                            setShowStatusFilter(false)
+                            setStatusFilter("onTrack");
+                            setShowStatusFilter(false);
                           }}
                         >
                           En progreso normal
@@ -421,8 +421,8 @@ export function AdvisorReports() {
                           size="sm"
                           className="w-full justify-start"
                           onClick={() => {
-                            setStatusFilter("atRisk")
-                            setShowStatusFilter(false)
+                            setStatusFilter("atRisk");
+                            setShowStatusFilter(false);
                           }}
                         >
                           En riesgo (&lt;3 días)
@@ -432,8 +432,8 @@ export function AdvisorReports() {
                           size="sm"
                           className="w-full justify-start"
                           onClick={() => {
-                            setStatusFilter("delayed")
-                            setShowStatusFilter(false)
+                            setStatusFilter("delayed");
+                            setShowStatusFilter(false);
                           }}
                         >
                           Con retraso
@@ -542,5 +542,5 @@ export function AdvisorReports() {
         </div>
       )}
     </div>
-  )
+  );
 }
