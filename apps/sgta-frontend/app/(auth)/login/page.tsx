@@ -1,9 +1,10 @@
-import React from 'react'
+"use client";
 
-const page = () => {
-  return (
-    <div>login page</div>
-  )
-}
+import LoginPage from "@/features/auth/views/login-page";
+import React from "react";
 
-export default page
+const Page: React.FC = () => {
+  return <LoginPage />;
+};
+
+export default Page;

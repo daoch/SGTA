@@ -1,7 +1,6 @@
-import React from "react";
+import MisTemasTabs from "@/components/alumno/mis-temas-tabs";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import MisTemasTabs from "@/components/alumno/mis-temas-tabs";
 
 const Page = () => {
   return (

@@ -1,18 +1,23 @@
 "use client";
 
-import React, { useState } from "react";
-import { X, CheckCircle } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PostulacionesTable } from "@/components/alumno/postulaciones-table";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription, AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import {
-  AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader,
-  AlertDialogTitle, AlertDialogDescription, AlertDialogFooter,
-  AlertDialogCancel, AlertDialogAction,
-} from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
-import { PostulacionesTable } from "@/components/alumno/postulaciones-table";
-import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CheckCircle, X } from "lucide-react";
+import { useState } from "react";
 
 interface Postulacion {
   id: string;
@@ -62,7 +67,8 @@ const PostulacionesRecibidas = () => {
         </TabsContent>
       </Tabs>
 
-      <Dialog open={!!selectedPostulacion} onOpenChange={(open) => !open && setSelectedPostulacion(null)}>
+      <Dialog open={!!selectedPostulacion} onOpenChange={(open: boolean) => !open && setSelectedPostulacion(null)}
+>
         <DialogContent className="w-[90vw] max-w-3xl sm:max-w-3xl">
           <DialogHeader>
             <DialogTitle>Detalles de la Postulación</DialogTitle>
