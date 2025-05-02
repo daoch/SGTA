@@ -60,18 +60,6 @@
 			<version>2.8.6</version>
 		</dependency>
 
-		<dependency>
-			<groupId>io.github.cdimascio</groupId>
-			<artifactId>dotenv-java</artifactId>
-			<version>3.0.0</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.h2database</groupId>
-			<artifactId>h2</artifactId>
-			<scope>test</scope>
-		</dependency>
-
 		<!-- Dependencia para SLF4J + Logback -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -83,11 +71,6 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-log4j2</artifactId>
 			<scope>runtime</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.hibernate.validator</groupId>
-			<artifactId>hibernate-validator</artifactId>
-			<version>8.0.0.Final</version>
 		</dependency>
 
 		<!-- Dependencia para JUnit (pruebas unitarias) -->
@@ -110,8 +93,6 @@
 							<artifactId>lombok</artifactId>
 						</path>
 					</annotationProcessorPaths>
-					<source>17</source>
-					<target>17</target>
 				</configuration>
 			</plugin>
 			<plugin>
