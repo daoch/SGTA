@@ -1,6 +1,6 @@
 "use client";
 
-import { usePing } from "../hooks/use-ping";
+import { usePing } from "../queries/use-ping";
 import { useState } from "react";
 
 export default function SimplePing() {

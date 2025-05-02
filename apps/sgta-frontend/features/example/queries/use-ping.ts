@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { pingServer } from "../services/ping.service";
+import { pingServer } from "../services/ping-service";
 
 /**
  * Hook simple para consultar el estado del servidor
