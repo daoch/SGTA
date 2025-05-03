@@ -35,4 +35,9 @@ public class TemaController {
 	public void update(@RequestBody TemaDto dto) {
 		temaService.update(dto);
 	}
+	@GetMapping("/listarTemasPropuestosAlAsesor/{asesorId}")
+	public List<TemaDto> listarTemasPropuestosAlAsesor(@PathVariable Integer asesorId) {
+		return temaService.listarTemasPropuestosAlAsesor(asesorId);
+	}
+
 }
