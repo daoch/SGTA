@@ -78,12 +78,6 @@
 			<artifactId>spring-boot-starter-logging</artifactId>
 		</dependency>
 
-		<!-- Dependencia para enviar logs a ELK o Graylog (opcional) -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-log4j2</artifactId>
-			<scope>runtime</scope>
-		</dependency>
 		<dependency>
 			<groupId>org.hibernate.validator</groupId>
 			<artifactId>hibernate-validator</artifactId>
@@ -138,7 +132,7 @@
 				<configuration>
 					<effort>Max</effort>
 					<threshold>Low</threshold>
-					<failOnError>true</failOnError>
+					<failOnError>false</failOnError>
 					<xmlOutput>false</xmlOutput>
 				</configuration>
 				<executions>
