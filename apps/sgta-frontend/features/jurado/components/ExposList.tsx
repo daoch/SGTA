@@ -7,6 +7,7 @@ import React, { useState } from "react";
 import CardTemaExposicion from "./CardTopicExpo";
 import Draggable from "./Draggable";
 import { AreaEspecialidad, Exposicion } from "@/features/jurado/types/jurado.types"
+import SearchFilter from "./SearchFilter";
 
 
 interface Props {
@@ -14,7 +15,7 @@ interface Props {
     topics : AreaEspecialidad[];
 }  
 const ExposList: React.FC<Props> = ({ freeExpos,topics }) => {
-    const [selectedEspecialidad, setSelectedEspecialidad] = useState('Todos');
+    
     return(
         <section className="w-full h-full flex flex-col  gap-4">
         
@@ -23,23 +24,7 @@ const ExposList: React.FC<Props> = ({ freeExpos,topics }) => {
             <p className="bg-white font-semibold text-left">Área de Especialidad</p>
           </div>
           <div className="flex flex-row gap-6 text-right">
-            <Input
-              type="nombre-docente"
-              placeholder="Ingrese el nombre del docente"
-              className="rounded-lg w-1/2 border-gray-300 border-2"
-            />
-            <DropdownMenu>
-              <DropdownMenuTrigger className="w-1/2 border-gray-300 border-2 rounded-lg text-left p-1">
-                {selectedEspecialidad}
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuGroup>
-                  {topics.map((top: AreaEspecialidad) => (
-                    <DropdownMenuItem key={top.name}>{top.name}</DropdownMenuItem>
-                  ))}
-                </DropdownMenuGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <SearchFilter topics={topics}></SearchFilter>          
           </div>
         </div>
   
