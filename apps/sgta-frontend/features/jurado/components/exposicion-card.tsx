@@ -7,10 +7,11 @@ import Link from "next/link";
 import { 
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
+  DialogClose,
 } from "@/components/ui/dialog";
 import ModalDetallesExposicion from "./modal-detalles-exposicion"; 
 
@@ -163,6 +164,13 @@ export function ExposicionCard({ exposicion }: { exposicion: Exposicion }) {
             <DialogTitle>Detalles de la Exposicion</DialogTitle>
             <ModalDetallesExposicion id_exposicion={exposicion.id_exposicion}/>
           </DialogHeader>
+          <DialogFooter className="sm:justify-end">
+            <DialogClose asChild>
+              <Button type="button" variant="secondary">
+                Cerrar
+              </Button>
+            </DialogClose>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

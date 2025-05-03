@@ -1,6 +1,8 @@
 "use client";
 
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { User } from "lucide-react";
 
 interface ModalDetallesExposicionProps {
     id_exposicion: number;
@@ -24,7 +26,7 @@ const exposicion = {
 const ModalDetallesExposicion: React.FC<ModalDetallesExposicionProps> = ({ id_exposicion }) => {
     return (
       <div className="pt-4">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4 pb-4">
             <div>
                 <label className="text-sm font-medium text-gray-500">
                     Nombre del tesista
@@ -36,6 +38,93 @@ const ModalDetallesExposicion: React.FC<ModalDetallesExposicionProps> = ({ id_ex
                     Código del tesista
                 </label>
                 <Input value={exposicion.codigo} disabled className="bg-gray-50" />
+            </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 pb-4">
+            <div>
+                <label className="text-sm font-medium text-gray-500">
+                    Correo electrónico del tesista
+                </label>
+                <Input value={exposicion.correo} disabled className="bg-gray-50" />
+            </div>
+            <div>
+                <label className="text-sm font-medium text-gray-500">
+                    Curso
+                </label>
+                <Input value={exposicion.curso} disabled className="bg-gray-50" />
+            </div>
+        </div>
+
+        <div className="gap-4 pb-4">
+            <div>
+                <label className="text-sm font-medium text-gray-500">
+                    Nombre del tema
+                </label>
+                <Textarea value={exposicion.tema} disabled className="bg-gray-50 resize-none" />
+            </div>
+        </div>
+
+        <div className="gap-4 pb-4">
+            <div>
+                <div className="flex items-center gap-2">
+                  <div className="bg-gray-100 p-1 rounded-full">
+                    <User className="h-6 w-6 text-gray-500" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium  text-gray-800">
+                      Asesor
+                    </div>
+                    <div className="text-sm">{exposicion.asesor}</div>
+                  </div>
+                </div>
+            </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 pb-4">
+          {exposicion.miembros.map((miembro, index) => (
+            <div key={index} className="gap-4 pb-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <div className="bg-gray-100 p-1 rounded-full">
+                    <User className="h-6 w-6 text-gray-500" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-gray-800">
+                      Miembro {index + 1}
+                    </div>
+                    <div className="text-sm">{miembro}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-4 gap-4 pb-4">
+            <div>
+                <label className="text-sm font-medium text-gray-500">
+                  Fecha
+                </label>
+                <Input value={exposicion.fecha} disabled className="bg-gray-50" />
+            </div>
+            <div>
+                <label className="text-sm font-medium text-gray-500">
+                    Hora de Inicio
+                </label>
+                <Input value={exposicion.horaInicio} disabled className="bg-gray-50" />
+            </div>
+            <div>
+                <label className="text-sm font-medium text-gray-500">
+                    Hora de Fin
+                </label>
+                <Input value={exposicion.horaFin} disabled className="bg-gray-50" />
+            </div>
+            <div>
+                <label className="text-sm font-medium text-gray-500">
+                    Sala
+                </label>
+                <Input value={exposicion.sala} disabled className="bg-gray-50" />
             </div>
         </div>
       </div>
