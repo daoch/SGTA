@@ -191,6 +191,7 @@ public class TemaServiceImpl implements TemaService {
 		}
 	}
 
+	@Transactional
 	@Override
 	public void update(TemaDto dto) {
 		Tema tema = TemaMapper.toEntity(dto);

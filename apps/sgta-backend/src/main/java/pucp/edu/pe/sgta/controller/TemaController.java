@@ -31,5 +31,8 @@ public class TemaController {
 		return temaService.findById(idTema);
 	}
 
-
+	@PutMapping("/update") // updates a topic
+	public void update(@RequestBody TemaDto dto) {
+		temaService.update(dto);
+	}
 }
