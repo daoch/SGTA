@@ -21,4 +21,7 @@ public interface TemaService {
 
 
 	List<TemaDto> listarTemasPropuestosAlAsesor(Integer asesorId);
+
+	List<TemaDto> listarTemasPropuestosPorSubAreaConocimiento(List<Integer> subareaIds);
+
 }

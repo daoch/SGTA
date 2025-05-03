@@ -36,4 +36,11 @@ public class TemaController {
 		return temaService.listarTemasPropuestosAlAsesor(asesorId);
 	}
 
+	@GetMapping("/listarTemasPropuestosPorSubAreaConocimiento")
+	public List<TemaDto> listarTemasPropuestosPorSubAreaConocimiento(@RequestParam List<Integer> subareaIds) {
+		return temaService.listarTemasPropuestosPorSubAreaConocimiento(subareaIds);
+	}
+
+
+
 }

@@ -270,6 +270,41 @@ public class TemaServiceImpl implements TemaService {
 		return lista;
 	}
 
+	@Override
+	public List<TemaDto> listarTemasPropuestosPorSubAreaConocimiento(List<Integer> subareaIds) {
+		String sql = "SELECT * FROM listar_temas_propuestos_por_subarea_conocimiento(:subareas)";
+
+		// Convertimos la lista a un arreglo para que se interprete como un único parámetro tipo ARRAY
+		Integer[] subareaArray = subareaIds.toArray(new Integer[0]);
+
+		List<Object[]> resultados = entityManager
+				.createNativeQuery(sql)
+				.setParameter("subareas", subareaArray)
+				.getResultList();
+
+		List<TemaDto> lista = new ArrayList<>();
+
+		for (Object[] fila : resultados) {
+			TemaDto dto = new TemaDto();
+			dto.setId((Integer) fila[0]);                        // tema_id
+			dto.setTitulo((String) fila[1]);                     // titulo
+			dto.setIdSubAreasConocimientoList(Arrays.asList((Integer[]) fila[2])); // subareas_id[]
+			dto.setIdEstudianteInvolucradosList(Arrays.asList((Integer[]) fila[3])); // alumnos_id[]
+			dto.setResumen((String) fila[4]);                    // descripcion
+			dto.setMetodologia((String) fila[5]);                // metodologia
+			dto.setObjetivos((String) fila[6]);                  // objetivo
+			dto.setPortafolioUrl((String) fila[7]);              // recurso
+			dto.setActivo((Boolean) fila[8]);                    // activo
+			dto.setFechaLimite(fila[9] != null ? ((Instant) fila[9]).atOffset(ZoneOffset.UTC) : null);
+			dto.setFechaCreacion(fila[10] != null ? ((Instant) fila[10]).atOffset(ZoneOffset.UTC) : null);
+			dto.setFechaModificacion(fila[11] != null ? ((Instant) fila[11]).atOffset(ZoneOffset.UTC) : null);
+			lista.add(dto);
+		}
+
+		return lista;
+	}
+
+
 
 
 
