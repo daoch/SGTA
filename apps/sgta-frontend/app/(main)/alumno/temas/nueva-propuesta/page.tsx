@@ -1,9 +1,8 @@
-import React from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import FormularioPropuesta from "@/features/temas/components/alumno/formulario-propuesta";
 import { ArrowLeft } from "lucide-react";
-import FormularioPropuesta from "@/components/alumno/formulario-propuesta";
+import Link from "next/link";
 
 const page = () => {
   return (

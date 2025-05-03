@@ -1,5 +1,5 @@
-import MisTemasTabs from "@/components/alumno/mis-temas-tabs";
 import { Button } from "@/components/ui/button";
+import MisTemasTabs from "@/features/temas/components/alumno/mis-temas-tabs";
 import Link from "next/link";
 
 const Page = () => {

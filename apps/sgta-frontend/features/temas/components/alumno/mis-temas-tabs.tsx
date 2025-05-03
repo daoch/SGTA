@@ -1,12 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger
-} from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -14,9 +9,6 @@ import {
   CardHeader,
   CardTitle
 } from "@/components/ui/card";
-import { PropuestasTable } from "@/components/alumno/propuestas-table";
-import { TemaCard } from "@/components/alumno/tema-inscrito-card";
-import { PendientesCotesistasCard } from "@/components/alumno/pendientes-cotesistas-card";
 import {
   Dialog,
   DialogContent,
@@ -25,10 +17,18 @@ import {
   DialogHeader,
   DialogTitle
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger
+} from "@/components/ui/tabs";
+import { PendientesCotesistasCard } from "@/features/temas/components/alumno/pendientes-cotesistas-card";
+import { PropuestasTable } from "@/features/temas/components/alumno/propuestas-table";
+import { TemaCard } from "@/features/temas/components/alumno/tema-inscrito-card";
+import { useState } from "react";
 
 export interface Propuesta {
   id: string;

@@ -1,11 +1,13 @@
 "use client";
 
+import { ChevronRight } from "lucide-react";
 import Link from "next/link";
+import { NavigationGroup, NavigationItem } from "../../../../components/sidebar/navigation-items";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "../ui/collapsible";
+} from "../../../../components/ui/collapsible";
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -16,9 +18,7 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
-} from "../ui/sidebar";
-import { ChevronRight } from "lucide-react";
-import { NavigationGroup, NavigationItem } from "./navigation-items";
+} from "../../../../components/ui/sidebar";
 
 export function NavMain({
   groups,
