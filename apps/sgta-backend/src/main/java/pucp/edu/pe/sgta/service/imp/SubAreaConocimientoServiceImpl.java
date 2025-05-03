@@ -14,38 +14,39 @@ import java.util.List;
 @Service
 public class SubAreaConocimientoServiceImpl implements SubAreaConocimientoService {
 
-    private final SubAreaConocimientoRepository subAreaConocimientoRepository;
+	private final SubAreaConocimientoRepository subAreaConocimientoRepository;
 
-    public SubAreaConocimientoServiceImpl(SubAreaConocimientoRepository subAreaConocimientoRepository) {
-        this.subAreaConocimientoRepository = subAreaConocimientoRepository;
-    }
+	public SubAreaConocimientoServiceImpl(SubAreaConocimientoRepository subAreaConocimientoRepository) {
+		this.subAreaConocimientoRepository = subAreaConocimientoRepository;
+	}
 
-    @Override
-    public List<SubAreaConocimientoDto> getAll() {
-        return List.of();
-    }
+	@Override
+	public List<SubAreaConocimientoDto> getAll() {
+		return List.of();
+	}
 
-    @Override
-    public SubAreaConocimientoDto findById(Integer id) {
-        SubAreaConocimiento subAreaConocimiento =  subAreaConocimientoRepository.findById(id).orElse(null);
-        if (subAreaConocimiento != null) {
-            return SubAreaConocimientoMapper.toDto(subAreaConocimiento);
-        }
-        return null;
-    }
+	@Override
+	public SubAreaConocimientoDto findById(Integer id) {
+		SubAreaConocimiento subAreaConocimiento = subAreaConocimientoRepository.findById(id).orElse(null);
+		if (subAreaConocimiento != null) {
+			return SubAreaConocimientoMapper.toDto(subAreaConocimiento);
+		}
+		return null;
+	}
 
-    @Override
-    public void create(SubAreaConocimientoDto dto) {
+	@Override
+	public void create(SubAreaConocimientoDto dto) {
 
-    }
+	}
 
-    @Override
-    public void update(SubAreaConocimientoDto dto) {
+	@Override
+	public void update(SubAreaConocimientoDto dto) {
 
-    }
+	}
 
-    @Override
-    public void delete(Integer id) {
+	@Override
+	public void delete(Integer id) {
 
-    }
+	}
+
 }

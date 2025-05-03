@@ -10,14 +10,14 @@ import java.time.OffsetDateTime;
 import java.util.List;
 
 /**
- * TemaDto es el objeto que exponemos en nuestra API
- * para no enviar directamente la entidad JPA (Tema).
+ * TemaDto es el objeto que exponemos en nuestra API para no enviar directamente la
+ * entidad JPA (Tema).
  */
-@Getter             
-@Setter             
-@NoArgsConstructor  
-@AllArgsConstructor 
-@Builder            
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class TemaDto {
 
     private Integer id;
@@ -36,4 +36,3 @@ public class TemaDto {
     private List<Integer> idEstudianteInvolucradosList;
     private List<Integer> idSubAreasConocimientoList;
 }
-

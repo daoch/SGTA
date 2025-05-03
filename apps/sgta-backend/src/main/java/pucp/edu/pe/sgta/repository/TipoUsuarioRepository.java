@@ -5,5 +5,6 @@ import org.springframework.stereotype.Repository;
 import pucp.edu.pe.sgta.model.TipoUsuario;
 
 @Repository
-public interface TipoUsuarioRepository extends JpaRepository<TipoUsuario,Integer> {
+public interface TipoUsuarioRepository extends JpaRepository<TipoUsuario, Integer> {
+
 }

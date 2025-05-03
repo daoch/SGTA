@@ -16,16 +16,16 @@ import java.time.OffsetDateTime;
 @Table(name = "tema")
 public class Tema {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "tema_id")
-    private Integer id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "tema_id")
+	private Integer id;
 
-    @Column(unique = true, nullable = false)
-    private String codigo;
+	@Column(unique = true, nullable = false)
+	private String codigo;
 
-    @Column(length = 255, nullable = false)
-    private String titulo;
+	@Column(length = 255, nullable = false)
+	private String titulo;
 
     @Column(columnDefinition = "TEXT")
     private String resumen;
@@ -36,13 +36,12 @@ public class Tema {
     @Column(columnDefinition = "TEXT")
     private String metodologia;
 
-    @Column(name = "portafolio_url", length = 255)
-    private String portafolioUrl;
+	@Column(name = "portafolio_url", length = 255)
+	private String portafolioUrl;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "estado_tema_id", nullable = false,
-                foreignKey = @ForeignKey(name = "fk_estado_tema"))
-    private EstadoTema estadoTema;
+	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@JoinColumn(name = "estado_tema_id", nullable = false, foreignKey = @ForeignKey(name = "fk_estado_tema"))
+	private EstadoTema estadoTema;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = true)
     @JoinColumn(name = "proyecto_id", nullable = true,
@@ -53,14 +52,13 @@ public class Tema {
         columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaLimite;
 
-    @Column(nullable = false)
-    private boolean activo = true;
+	@Column(nullable = false)
+	private boolean activo = true;
 
-    @Column(name = "fecha_creacion", nullable = false,
-            columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private OffsetDateTime fechaCreacion;
+	@Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+	private OffsetDateTime fechaCreacion;
 
-    @Column(name = "fecha_modificacion",
-            columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private OffsetDateTime fechaModificacion;
+	@Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+	private OffsetDateTime fechaModificacion;
+
 }

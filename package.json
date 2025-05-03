@@ -8,18 +8,13 @@
 		"build": "turbo run build",
 		"dev": "turbo run dev",
 		"lint": "turbo run lint",
-		"format": "turbo run format",
-		"prepare": "husky"
+		"format": "turbo run format"
 	},
 	"devDependencies": {
-		"husky": "^9.1.7",
 		"turbo": "^2.5.2"
 	},
 	"packageManager": "pnpm@10.10.0",
 	"engines": {
 		"node": ">=18"
-	},
-	"dependencies": {
-		"sgta": "file:"
 	}
 }

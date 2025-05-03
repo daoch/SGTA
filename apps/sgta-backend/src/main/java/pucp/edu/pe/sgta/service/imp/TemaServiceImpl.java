@@ -1,6 +1,5 @@
 package pucp.edu.pe.sgta.service.imp;
 
-
 import jakarta.transaction.Transactional;
 //import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,186 +24,198 @@ import java.util.stream.Collectors;
 @Service
 public class TemaServiceImpl implements TemaService {
 
-    private final TemaRepository temaRepository;
-    private final UsuarioService usuarioService;
-    private final SubAreaConocimientoService subAreaConocimientoService;
+	private final TemaRepository temaRepository;
 
-    private final UsuarioXTemaRepository usuarioXTemaRepository;
-    private final SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository;
-    private final RolRepository rolRepository;
+	private final UsuarioService usuarioService;
 
-    private final Logger logger = Logger.getLogger(TemaServiceImpl.class.getName());
-    private final EstadoTemaRepository estadoTemaRepository;
+	private final SubAreaConocimientoService subAreaConocimientoService;
 
-    public TemaServiceImpl(TemaRepository temaRepository, UsuarioXTemaRepository usuarioXTemaRepository,
-                           UsuarioService usuarioService, SubAreaConocimientoService subAreaConocimientoService,
-                           SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository, RolRepository rolRepository, EstadoTemaRepository estadoTemaRepository) {
-        this.temaRepository = temaRepository;
-        this.usuarioXTemaRepository = usuarioXTemaRepository;
-        this.subAreaConocimientoXTemaRepository = subAreaConocimientoXTemaRepository;
-        this.subAreaConocimientoService = subAreaConocimientoService;
-        this.usuarioService = usuarioService;
-        this.rolRepository = rolRepository;
-        this.estadoTemaRepository = estadoTemaRepository;
-    }
+	private final UsuarioXTemaRepository usuarioXTemaRepository;
 
-    @Override
-    public List<TemaDto> getAll() {
-        List<Tema> temas = temaRepository.findAll();
-        List<TemaDto> temasDto = temas.stream()
-                .map(TemaMapper::toDto)
-                .toList(); //we map to DTO
-        return temasDto;
-    }
+	private final SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository;
 
-    @Override
-    public TemaDto findById(Integer id) {
-        Tema tema = temaRepository.findById(id).orElse(null);
-        if (tema != null) {
-            return TemaMapper.toDto(tema);
-        }
-        return null;
-    }
+	private final RolRepository rolRepository;
 
-    @Transactional
-    @Override
-    public void createTemaPropuesta(TemaDto dto, Integer idUsuarioCreador) {
-        dto.setId(null);
-        Tema tema = TemaMapper.toEntity(dto);
-        EstadoTema estadoTema = estadoTemaRepository.findByNombre(EstadoTemaEnum.PROPUESTO.name()).orElse(null);
-        boolean foundSubArea = false;
+	private final Logger logger = Logger.getLogger(TemaServiceImpl.class.getName());
 
-        if(estadoTema == null){
-            logger.severe("Alerta: EstadoTema 'PROPUESTO' no encontrado en la base de datos.");
-            throw new RuntimeException("EstadoTema 'PROPUESTO' no encontrado en la base de datos.");
-        }
-        tema.setEstadoTema(estadoTema);
+	private final EstadoTemaRepository estadoTemaRepository;
 
-        //TO DO limit by number of cotesistas and asesores according to global config parameter
+	public TemaServiceImpl(TemaRepository temaRepository, UsuarioXTemaRepository usuarioXTemaRepository,
+			UsuarioService usuarioService, SubAreaConocimientoService subAreaConocimientoService,
+			SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository, RolRepository rolRepository,
+			EstadoTemaRepository estadoTemaRepository) {
+		this.temaRepository = temaRepository;
+		this.usuarioXTemaRepository = usuarioXTemaRepository;
+		this.subAreaConocimientoXTemaRepository = subAreaConocimientoXTemaRepository;
+		this.subAreaConocimientoService = subAreaConocimientoService;
+		this.usuarioService = usuarioService;
+		this.rolRepository = rolRepository;
+		this.estadoTemaRepository = estadoTemaRepository;
+	}
 
-        // Create and set up UsuarioXTema
+	@Override
+	public List<TemaDto> getAll() {
+		List<Tema> temas = temaRepository.findAll();
+		List<TemaDto> temasDto = temas.stream().map(TemaMapper::toDto).toList(); // we map
+																					// to
+																					// DTO
+		return temasDto;
+	}
 
-        UsuarioXTema usuarioXTema = new UsuarioXTema();
-        usuarioXTema.setId(null);
-        usuarioXTema.setTema(tema);
+	@Override
+	public TemaDto findById(Integer id) {
+		Tema tema = temaRepository.findById(id).orElse(null);
+		if (tema != null) {
+			return TemaMapper.toDto(tema);
+		}
+		return null;
+	}
 
-        UsuarioDto usuarioDto = usuarioService.findUsuarioById(idUsuarioCreador);
+	@Transactional
+	@Override
+	public void createTemaPropuesta(TemaDto dto, Integer idUsuarioCreador) {
+		dto.setId(null);
+		Tema tema = TemaMapper.toEntity(dto);
+		EstadoTema estadoTema = estadoTemaRepository.findByNombre(EstadoTemaEnum.PROPUESTO.name()).orElse(null);
+		boolean foundSubArea = false;
 
-        if (usuarioDto == null) {
-            throw new RuntimeException("Usuario no encontrado con ID: " + idUsuarioCreador);
-        }
+		if (estadoTema == null) {
+			logger.severe("Alerta: EstadoTema 'PROPUESTO' no encontrado en la base de datos.");
+			throw new RuntimeException("EstadoTema 'PROPUESTO' no encontrado en la base de datos.");
+		}
+		tema.setEstadoTema(estadoTema);
 
-        // Save the Tema first to generate its ID. We assume the tema has an areaEspecializacion
-        temaRepository.save(tema);
+		// TO DO limit by number of cotesistas and asesores according to global config
+		// parameter
 
-        // TO DO Start Historial Tema
+		// Create and set up UsuarioXTema
 
-        Rol rolaux = rolRepository.findByNombre("Creador").orElse(null);
-        if(rolaux == null){
-            logger.severe("Alerta: Rol 'Creador' no encontrado en la base de datos.");
-            throw new RuntimeException("Rol 'Creador' no encontrado en la base de datos.");
-        }
-        usuarioXTema.setUsuario(UsuarioMapper.toEntity(usuarioDto));
-        usuarioXTema.setAsignado(true);
-        usuarioXTema.setActivo(true);
-        usuarioXTema.setFechaCreacion(OffsetDateTime.now());
-        usuarioXTema.setRol(rolaux);
-        try {
-            usuarioXTemaRepository.save(usuarioXTema);
-        } catch (Exception ex) {
-            logger.severe("Error when attempting to save tema's creator: " + ex.getMessage());
-            // this RuntimeException will trigger a rollback of the entire transaction
-            throw new RuntimeException("UsuarioXTema register not created. Reverting transaction.", ex);
-        }
-        // Save the subareas of knowledge
-        if(dto.getIdSubAreasConocimientoList() == null || dto.getIdSubAreasConocimientoList().isEmpty()){
-            throw new RuntimeException("No subAreaConocimiento provided. Reverting transaction.");
-        }
+		UsuarioXTema usuarioXTema = new UsuarioXTema();
+		usuarioXTema.setId(null);
+		usuarioXTema.setTema(tema);
 
-        for(Integer idSubAreaConocimiento : dto.getIdSubAreasConocimientoList()){
-            SubAreaConocimientoXTema subAreaConocimientoXTema = new SubAreaConocimientoXTema();
-            subAreaConocimientoXTema.setTemaId(tema.getId());
-            SubAreaConocimientoDto subAreaConocimientoDto = subAreaConocimientoService.findById(idSubAreaConocimiento);
+		UsuarioDto usuarioDto = usuarioService.findUsuarioById(idUsuarioCreador);
 
-            if (subAreaConocimientoDto == null) {
-                logger.severe("Alert: SubAreaConocimiento not found with ID: " + idSubAreaConocimiento);
-                continue;
-            }
-            else{
-                foundSubArea = true;
-            }
-            subAreaConocimientoXTema.setSubAreaConocimientoId(idSubAreaConocimiento);
-            subAreaConocimientoXTema.setFechaCreacion(OffsetDateTime.now());
-            subAreaConocimientoXTemaRepository.save(subAreaConocimientoXTema);
-        }
+		if (usuarioDto == null) {
+			throw new RuntimeException("Usuario no encontrado con ID: " + idUsuarioCreador);
+		}
 
-        //validate if at least one subarea was found
-        if(!foundSubArea){
-            logger.severe("Alerta: No valid subareaconocimientos provided.");
-            throw new RuntimeException("No subAreaConocimiento provided. Reverting transaction.");
-        }
+		// Save the Tema first to generate its ID. We assume the tema has an
+		// areaEspecializacion
+		temaRepository.save(tema);
 
-        //Add the other users
-        for(Integer idUsuarioInvolucrado : dto.getIdUsuarioInvolucradosList()){
-            UsuarioXTema usuarioXTemaInvolucrado = new UsuarioXTema();
-            usuarioXTemaInvolucrado.setId(null);
-            usuarioXTemaInvolucrado.setTema(tema);
+		// TO DO Start Historial Tema
 
-            if(idUsuarioInvolucrado.equals(idUsuarioCreador)){ //In case the same idcreador is passed as involucrado
-                logger.warning("Alerta: Usuario involucrado no puede ser el creador del tema. ID: " + idUsuarioInvolucrado);
-                continue;
-            }
+		Rol rolaux = rolRepository.findByNombre("Creador").orElse(null);
+		if (rolaux == null) {
+			logger.severe("Alerta: Rol 'Creador' no encontrado en la base de datos.");
+			throw new RuntimeException("Rol 'Creador' no encontrado en la base de datos.");
+		}
+		usuarioXTema.setUsuario(UsuarioMapper.toEntity(usuarioDto));
+		usuarioXTema.setAsignado(true);
+		usuarioXTema.setActivo(true);
+		usuarioXTema.setFechaCreacion(OffsetDateTime.now());
+		usuarioXTema.setRol(rolaux);
+		try {
+			usuarioXTemaRepository.save(usuarioXTema);
+		}
+		catch (Exception ex) {
+			logger.severe("Error when attempting to save tema's creator: " + ex.getMessage());
+			// this RuntimeException will trigger a rollback of the entire transaction
+			throw new RuntimeException("UsuarioXTema register not created. Reverting transaction.", ex);
+		}
+		// Save the subareas of knowledge
+		if (dto.getIdSubAreasConocimientoList() == null || dto.getIdSubAreasConocimientoList().isEmpty()) {
+			throw new RuntimeException("No subAreaConocimiento provided. Reverting transaction.");
+		}
 
-            // add rol, FIRST fetch usuario
-            UsuarioDto usuarioInvolucradoDto = usuarioService.findUsuarioById(idUsuarioInvolucrado);
-            if (usuarioInvolucradoDto == null) {
-                logger.severe("Alerta: Usuario no encontrado con ID: " + idUsuarioInvolucrado);
-                continue;
-            }
+		for (Integer idSubAreaConocimiento : dto.getIdSubAreasConocimientoList()) {
+			SubAreaConocimientoXTema subAreaConocimientoXTema = new SubAreaConocimientoXTema();
+			subAreaConocimientoXTema.setTemaId(tema.getId());
+			SubAreaConocimientoDto subAreaConocimientoDto = subAreaConocimientoService.findById(idSubAreaConocimiento);
 
-            //TO DO  ver tipo de usuario
-            String nombreTipoUsuario = usuarioInvolucradoDto.getTipoUsuario().getNombre();
-            Rol rol = rolRepository.findByNombre(nombreTipoUsuario).orElse(null);
+			if (subAreaConocimientoDto == null) {
+				logger.severe("Alert: SubAreaConocimiento not found with ID: " + idSubAreaConocimiento);
+				continue;
+			}
+			else {
+				foundSubArea = true;
+			}
+			subAreaConocimientoXTema.setSubAreaConocimientoId(idSubAreaConocimiento);
+			subAreaConocimientoXTema.setFechaCreacion(OffsetDateTime.now());
+			subAreaConocimientoXTemaRepository.save(subAreaConocimientoXTema);
+		}
 
-            if(rol == null){
-                logger.severe("Alerta: Rol '" + nombreTipoUsuario + "' not found in database.");
-                continue;
-            }
+		// validate if at least one subarea was found
+		if (!foundSubArea) {
+			logger.severe("Alerta: No valid subareaconocimientos provided.");
+			throw new RuntimeException("No subAreaConocimiento provided. Reverting transaction.");
+		}
 
-            usuarioXTemaInvolucrado.setUsuario(UsuarioMapper.toEntity(usuarioInvolucradoDto));
-            usuarioXTemaInvolucrado.setAsignado(false); //Not assigned but part of the propuesta lest he doesn't accept it
-            usuarioXTemaInvolucrado.setActivo(true);
-            usuarioXTemaInvolucrado.setFechaCreacion(OffsetDateTime.now());
+		// Add the other users
+		for (Integer idUsuarioInvolucrado : dto.getIdUsuarioInvolucradosList()) {
+			UsuarioXTema usuarioXTemaInvolucrado = new UsuarioXTema();
+			usuarioXTemaInvolucrado.setId(null);
+			usuarioXTemaInvolucrado.setTema(tema);
 
-            usuarioXTemaRepository.save(usuarioXTemaInvolucrado);
-        }
-    }
+			if (idUsuarioInvolucrado.equals(idUsuarioCreador)) { // In case the same
+																	// idcreador is passed
+																	// as involucrado
+				logger.warning(
+						"Alerta: Usuario involucrado no puede ser el creador del tema. ID: " + idUsuarioInvolucrado);
+				continue;
+			}
 
-    @Override
-    public void update(TemaDto dto) {
-        Tema tema = TemaMapper.toEntity(dto);
-        temaRepository.save(tema);
-    }
+			// add rol, FIRST fetch usuario
+			UsuarioDto usuarioInvolucradoDto = usuarioService.findUsuarioById(idUsuarioInvolucrado);
+			if (usuarioInvolucradoDto == null) {
+				logger.severe("Alerta: Usuario no encontrado con ID: " + idUsuarioInvolucrado);
+				continue;
+			}
 
-    @Override
-    public void delete(Integer id) {
-        Tema tema = temaRepository.findById(id).orElse(null);
-        if (tema != null) {
-            tema.setActivo(false);
-            temaRepository.save(tema); // Set activo to false instead of deleting
-        }
-    }
+			// TO DO ver tipo de usuario
+			String nombreTipoUsuario = usuarioInvolucradoDto.getTipoUsuario().getNombre();
+			Rol rol = rolRepository.findByNombre(nombreTipoUsuario).orElse(null);
 
-    @Override
-    public List<TemaDto> findByUsuario(Integer idUsuario) {
-        List<UsuarioXTema> relations = usuarioXTemaRepository.findByUsuarioIdAndActivoTrue(idUsuario);
+			if (rol == null) {
+				logger.severe("Alerta: Rol '" + nombreTipoUsuario + "' not found in database.");
+				continue;
+			}
 
-        if (!relations.isEmpty()) {
-            return relations.stream()
-                    .map(ux -> TemaMapper.toDto(ux.getTema()))
-                    .collect(Collectors.toList());
-        }
-        return List.of(); // Return an empty list if no relations found
+			usuarioXTemaInvolucrado.setUsuario(UsuarioMapper.toEntity(usuarioInvolucradoDto));
+			usuarioXTemaInvolucrado.setAsignado(false); // Not assigned but part of the
+														// propuesta lest he doesn't
+														// accept it
+			usuarioXTemaInvolucrado.setActivo(true);
+			usuarioXTemaInvolucrado.setFechaCreacion(OffsetDateTime.now());
+
+			usuarioXTemaRepository.save(usuarioXTemaInvolucrado);
+		}
+	}
+
+	@Override
+	public void update(TemaDto dto) {
+		Tema tema = TemaMapper.toEntity(dto);
+		temaRepository.save(tema);
+	}
+
+	@Override
+	public void delete(Integer id) {
+		Tema tema = temaRepository.findById(id).orElse(null);
+		if (tema != null) {
+			tema.setActivo(false);
+			temaRepository.save(tema); // Set activo to false instead of deleting
+		}
+	}
+
+	@Override
+	public List<TemaDto> findByUsuario(Integer idUsuario) {
+		List<UsuarioXTema> relations = usuarioXTemaRepository.findByUsuarioIdAndActivoTrue(idUsuario);
+
+		if (!relations.isEmpty()) {
+			return relations.stream().map(ux -> TemaMapper.toDto(ux.getTema())).collect(Collectors.toList());
+		}
+		return List.of(); // Return an empty list if no relations found
 
     }
 
