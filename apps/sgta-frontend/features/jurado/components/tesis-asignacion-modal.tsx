@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Search } from 'lucide-react'
-import { ListaTesisJuradoCard } from './listaTesisJuradoCard'
-import {MultiSelectCheckbox} from './multi-select-Jurado'
+import { ListaTesisJuradoCard } from './tesis-card'
+import {MultiSelectCheckbox} from './especialiad-multi-select'
 
 interface Jurado {
     specialties: string[]

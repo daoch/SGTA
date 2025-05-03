@@ -4,7 +4,7 @@ import * as React from 'react'
 import * as Popover from '@radix-ui/react-popover'
 import { CheckIcon, ChevronDownIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Checkbox } from "./checkboxJurado"
+import { Checkbox } from "./especialidad-checkbox"
 
 interface Option {
   label: string
