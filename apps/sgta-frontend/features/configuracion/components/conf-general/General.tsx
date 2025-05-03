@@ -1,21 +1,20 @@
 
-import { useState } from "react"
+import { useState } from "react";
 import {
-    PresentationIcon as PresentationScreen,
-    X,
-} from "lucide-react"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+  X,
+} from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from "@/components/ui/dialog"
-import { Separator } from "@/components/ui/separator"
-import { ScrollArea } from "@/components/ui/scroll-area"
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Card,
   CardContent,
@@ -30,57 +29,57 @@ import { Button } from "@/components/ui/button";
 
 export default function GeneralConfCards() {
 
-    const [areasDialogOpen, setAreasDialogOpen] = useState(false)
-    const [areas, setAreas] = useState([
-        {
-            id: 1,
-            nombre: "Inteligencia Artificial",
-            subAreas: ["Machine Learning", "Visión Computacional", "Procesamiento de Lenguaje Natural"],
-        },
-        {
-            id: 2,
-            nombre: "Desarrollo de Software",
-            subAreas: ["Metodologías Ágiles", "Arquitectura de Software", "Pruebas de Software"],
-        },
-        {
-            id: 3,
-            nombre: "Redes y Seguridad",
-            subAreas: ["Ciberseguridad", "Redes Inalámbricas", "Seguridad de la Información"],
-        },
-    ])
-    const [newArea, setNewArea] = useState("")
-    const [newSubArea, setNewSubArea] = useState("")
-    const [selectedAreaId, setSelectedAreaId] = useState<number | null>(null)
+  const [areasDialogOpen, setAreasDialogOpen] = useState(false);
+  const [areas, setAreas] = useState([
+    {
+      id: 1,
+      nombre: "Inteligencia Artificial",
+      subAreas: ["Machine Learning", "Visión Computacional", "Procesamiento de Lenguaje Natural"],
+    },
+    {
+      id: 2,
+      nombre: "Desarrollo de Software",
+      subAreas: ["Metodologías Ágiles", "Arquitectura de Software", "Pruebas de Software"],
+    },
+    {
+      id: 3,
+      nombre: "Redes y Seguridad",
+      subAreas: ["Ciberseguridad", "Redes Inalámbricas", "Seguridad de la Información"],
+    },
+  ]);
+  const [newArea, setNewArea] = useState("");
+  const [newSubArea, setNewSubArea] = useState("");
+  const [selectedAreaId, setSelectedAreaId] = useState<number | null>(null);
 
-    const handleAddArea = () => {
-        if (newArea.trim()) {
-            setAreas([...areas, { id: Date.now(), nombre: newArea, subAreas: [] }])
-            setNewArea("")
-        }
+  const handleAddArea = () => {
+    if (newArea.trim()) {
+      setAreas([...areas, { id: Date.now(), nombre: newArea, subAreas: [] }]);
+      setNewArea("");
     }
+  };
 
-    const handleAddSubArea = () => {
-        if (newSubArea.trim() && selectedAreaId) {
-            setAreas(
-                areas.map((area) =>
-                    area.id === selectedAreaId ? { ...area, subAreas: [...area.subAreas, newSubArea] } : area,
-                ),
-            )
-            setNewSubArea("")
-        }
+  const handleAddSubArea = () => {
+    if (newSubArea.trim() && selectedAreaId) {
+      setAreas(
+        areas.map((area) =>
+          area.id === selectedAreaId ? { ...area, subAreas: [...area.subAreas, newSubArea] } : area,
+        ),
+      );
+      setNewSubArea("");
     }
+  };
 
-    const handleDeleteArea = (id: number) => {
-        setAreas(areas.filter((area) => area.id !== id))
-    }
+  const handleDeleteArea = (id: number) => {
+    setAreas(areas.filter((area) => area.id !== id));
+  };
 
-    const handleDeleteSubArea = (areaId: number, subAreaIndex: number) => {
-        setAreas(
-            areas.map((area) =>
-                area.id === areaId ? { ...area, subAreas: area.subAreas.filter((_, index) => index !== subAreaIndex) } : area,
-            ),
-        )
-    }
+  const handleDeleteSubArea = (areaId: number, subAreaIndex: number) => {
+    setAreas(
+      areas.map((area) =>
+        area.id === areaId ? { ...area, subAreas: area.subAreas.filter((_, index) => index !== subAreaIndex) } : area,
+      ),
+    );
+  };
 
   return (
     <>

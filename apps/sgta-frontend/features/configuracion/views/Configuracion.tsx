@@ -1,6 +1,6 @@
 "use client";
-import Link from "next/link"
-import { Settings, BookOpen } from "lucide-react"
+import Link from "next/link";
+import { Settings } from "lucide-react";
 //import { Badge } from "@/components/ui/badge"
 
 export default function Configuracion() {
@@ -63,5 +63,5 @@ export default function Configuracion() {
         */}
       </div>
     </div>
-  )
+  );
 }
