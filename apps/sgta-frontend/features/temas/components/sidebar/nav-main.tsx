@@ -2,7 +2,6 @@
 
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
-import { NavigationGroup, NavigationItem } from "../../../../components/sidebar/navigation-items";
 import {
   Collapsible,
   CollapsibleContent,
@@ -19,6 +18,7 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "../../../../components/ui/sidebar";
+import { NavigationGroup, NavigationItem } from "./navigation-items";
 
 export function NavMain({
   groups,

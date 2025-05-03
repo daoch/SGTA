@@ -1,4 +1,4 @@
-import { NavigationItem, navigationItems } from "../../../../components/sidebar/navigation-items";
+import { NavigationItem, navigationItems } from "./navigation-items";
 
 interface NavigationGroup {
   label: string;
