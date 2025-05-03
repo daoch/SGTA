@@ -4,6 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, User, Eye } from "lucide-react";
 import Link from "next/link";
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 interface Miembros {
   id_docente: number;
@@ -57,93 +65,108 @@ export function ExposicionCard({ exposicion }: { exposicion: Exposicion }) {
     exposicion.miembros.filter((m) => m.tipo === "estudiante");
 
   return (
-    <div className="bg-gray-50 rounded-lg shadow-sm border p-5 flex flex-col md:flex-row gap-10">
-      {/*HORA FECHA Y SALA*/}
-      <div className="flex flex-col items-center space-y-2 md:min-w-[150px] justify-center">
-        <div className="text-4xl font-semibold">
-          {formatearHora(exposicion.hora)}
-        </div>
-        <div className="flex items-center gap-1 mt-1">
-          <span className="text-base">{formatearFecha(exposicion.fecha)}</span>
-        </div>
-        <div className="flex items-center gap-1 mt-1">
-          <MapPin className="h-6 w-6" />
-          <span className="text-2xl font-semibold">{exposicion.sala}</span>
-        </div>
-      </div>
-
-      {/*TITULO Y JURADOS*/}
-      <div className="flex-1">
-        <div className="flex items-start justify-between">
-          <h3 className="text-xl font-semibold">{exposicion.titulo}</h3>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-          {getEstudiantes().map((estudiante, index) => (
-            <div
-              key={estudiante.id_docente}
-              className="flex items-center gap-2"
-            >
-              <div className="bg-gray-100 p-1 rounded-full">
-                <User className="h-6 w-6 text-gray-500" />
-              </div>
-              <div>
-                <div className="text-base font-medium  text-gray-800">
-                  Tesista
+    <div>
+      <Dialog>
+        <DialogTrigger asChild>
+            <div className="bg-gray-50 rounded-lg shadow-sm border p-5 flex flex-col md:flex-row gap-10">
+              {/*HORA FECHA Y SALA*/}
+              <div className="flex flex-col items-center space-y-2 md:min-w-[150px] justify-center">
+                <div className="text-4xl font-semibold">
+                  {formatearHora(exposicion.hora)}
                 </div>
-                <div className="text-base">{estudiante.nombre}</div>
+                <div className="flex items-center gap-1 mt-1">
+                  <span className="text-base">{formatearFecha(exposicion.fecha)}</span>
+                </div>
+                <div className="flex items-center gap-1 mt-1">
+                  <MapPin className="h-6 w-6" />
+                  <span className="text-2xl font-semibold">{exposicion.sala}</span>
+                </div>
+              </div>
+
+              {/*TITULO Y JURADOS*/}
+              <div className="flex-1">
+                <div className="flex items-start justify-between">
+                  <h3 className="text-xl font-semibold">{exposicion.titulo}</h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                  {getEstudiantes().map((estudiante, index) => (
+                    <div
+                      key={estudiante.id_docente}
+                      className="flex items-center gap-2"
+                    >
+                      <div className="bg-gray-100 p-1 rounded-full">
+                        <User className="h-6 w-6 text-gray-500" />
+                      </div>
+                      <div>
+                        <div className="text-base font-medium  text-gray-800">
+                          Tesista
+                        </div>
+                        <div className="text-base">{estudiante.nombre}</div>
+                      </div>
+                    </div>
+                  ))}
+
+                  {getAsesor().map((asesor, index) => (
+                    <div key={asesor.id_docente} className="flex items-center gap-2">
+                      <div className="bg-gray-100 p-1 rounded-full">
+                        <User className="h-6 w-6 text-gray-500" />
+                      </div>
+                      <div>
+                        <div className="text-base font-medium  text-gray-800">
+                          {index === 0 ? "Asesor" : "Coasesor"}
+                        </div>
+                        <div className="text-base">{asesor.nombre}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+            <div className="flex flex-col gap-3 md:items-end justify-between">
+              <Badge
+                variant="outline"
+                className={`
+                  ${exposicion.estado === "Pendiente" ? "bg-[#F9D534] text-white border-yellow-200" : ""}
+                  ${exposicion.estado === "Completado" ? "bg-[#00BF82] text-white border-green-200" : ""}
+                  ${exposicion.estado === "Cancelado" ? "bg-red-100 text-red-800 border-red-200" : ""}
+                  capitalize px-2 py-1 text-sm rounded-full
+                  `}
+              >
+                {exposicion.estado}
+              </Badge>
+
+              <div className="flex flex-row gap-2">
+                <Button
+                  asChild
+                  variant="outline"
+                  size="lg"
+                  className="text-base flex items-center gap-1"
+                >
+                  <Link href={``}>No Estoy Disponible</Link>
+                </Button>
+
+                <Button
+                  asChild
+                  size="lg"
+                  className="text-base flex items-center gap-1 bg-[#042354]"
+                >
+                  <Link href={``}>Confirmar Asistencia</Link>
+                </Button>
               </div>
             </div>
-          ))}
-
-          {getAsesor().map((asesor, index) => (
-            <div key={asesor.id_docente} className="flex items-center gap-2">
-              <div className="bg-gray-100 p-1 rounded-full">
-                <User className="h-6 w-6 text-gray-500" />
-              </div>
-              <div>
-                <div className="text-base font-medium  text-gray-800">
-                  {index === 0 ? "Asesor" : "Coasesor"}
-                </div>
-                <div className="text-base">{asesor.nombre}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-3 md:items-end justify-between">
-        <Badge
-          variant="outline"
-          className={`
-            ${exposicion.estado === "Pendiente" ? "bg-[#F9D534] text-white border-yellow-200" : ""}
-            ${exposicion.estado === "Completado" ? "bg-[#00BF82] text-white border-green-200" : ""}
-            ${exposicion.estado === "Cancelado" ? "bg-red-100 text-red-800 border-red-200" : ""}
-            capitalize px-2 py-1 text-sm rounded-full
-            `}
-        >
-          {exposicion.estado}
-        </Badge>
-
-        <div className="flex flex-row gap-2">
-          <Button
-            asChild
-            variant="outline"
-            size="lg"
-            className="text-base flex items-center gap-1"
-          >
-            <Link href={``}>No Estoy Disponible</Link>
-          </Button>
-
-          <Button
-            asChild
-            size="lg"
-            className="text-base flex items-center gap-1 bg-[#042354]"
-          >
-            <Link href={``}>Confirmar Asistencia</Link>
-          </Button>
-        </div>
-      </div>
+          </div>
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Are you absolutely sure?</DialogTitle>
+            <DialogDescription>
+              This action cannot be undone. This will permanently delete your account
+              and remove your data from our servers.
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
