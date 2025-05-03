@@ -1,8 +1,7 @@
 <configuration>
 
     <!-- Definir los patrones de formato de logs -->
-    <property name="LOG_PATTERN"
-              value="%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] --- %logger{36} : %msg%n" />
+    <property name="LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] --- %logger{36} : %msg%n" />
 
     <!-- Definir archivo de logs -->
     <appender name="FILE" class="ch.qos.logback.core.FileAppender">
