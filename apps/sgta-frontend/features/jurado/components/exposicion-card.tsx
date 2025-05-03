@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, User, Eye } from "lucide-react";
+import { MapPin, User } from "lucide-react";
 import Link from "next/link";
 import { 
   Dialog,
@@ -12,6 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import ModalDetallesExposicion from "./modal-detalles-exposicion"; 
 
 interface Miembros {
   id_docente: number;
@@ -159,11 +160,8 @@ export function ExposicionCard({ exposicion }: { exposicion: Exposicion }) {
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Are you absolutely sure?</DialogTitle>
-            <DialogDescription>
-              This action cannot be undone. This will permanently delete your account
-              and remove your data from our servers.
-            </DialogDescription>
+            <DialogTitle>Detalles de la Exposicion</DialogTitle>
+            <ModalDetallesExposicion id_exposicion={exposicion.id_exposicion}/>
           </DialogHeader>
         </DialogContent>
       </Dialog>
