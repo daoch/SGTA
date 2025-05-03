@@ -8,6 +8,7 @@ import java.util.List;
 
 @Repository
 public interface UsuarioXTemaRepository extends JpaRepository<UsuarioXTema, Integer> {
-    List<UsuarioXTema> findByUsuarioIdAndActivoTrue(Integer usuarioId);
+
+	List<UsuarioXTema> findByUsuarioIdAndActivoTrue(Integer usuarioId);
 
 }

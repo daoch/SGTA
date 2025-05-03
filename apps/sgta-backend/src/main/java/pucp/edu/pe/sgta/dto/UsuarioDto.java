@@ -1,8 +1,6 @@
 package pucp.edu.pe.sgta.dto;
 
-
 import lombok.*;
-import pucp.edu.pe.sgta.model.TipoUsuario;
 
 import java.time.OffsetDateTime;
 
@@ -13,39 +11,34 @@ import java.time.OffsetDateTime;
 @Builder
 public class UsuarioDto {
 
-    private Integer id;
+	private Integer id;
 
-    private TipoUsuarioDto tipoUsuario;
+	private TipoUsuarioDto tipoUsuario;
 
-    private String codigoPucp;
+	private String codigoPucp;
 
-    private String nombres;
+	private String nombres;
 
-    private String primerApellido;
+	private String primerApellido;
 
+	private String segundoApellido;
 
-    private String segundoApellido;
+	private String correoElectronico;
 
-    private String correoElectronico;
+	private String nivelEstudios;
 
+	private String contrasena;
 
-    private String nivelEstudios;
+	private String biografia;
 
+	private String disponibilidad;
 
-    private String contrasena;
+	private String tipoDisponibilidad;
 
-    private String biografia;
+	private boolean activo;
 
+	private OffsetDateTime fechaCreacion;
 
+	private OffsetDateTime fechaModificacion;
 
-    private String disponibilidad;
-
-
-    private String tipoDisponibilidad;
-
-    private boolean activo;
-
-    private OffsetDateTime fechaCreacion;
-
-    private OffsetDateTime fechaModificacion;
 }

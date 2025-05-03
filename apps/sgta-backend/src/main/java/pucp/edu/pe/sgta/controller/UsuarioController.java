@@ -8,18 +8,17 @@ import org.springframework.web.bind.annotation.RestController;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
 
-
 @RestController
 
 @RequestMapping("/usuario")
 public class UsuarioController {
 
-    @Autowired
-    private UsuarioService usuarioService;
+	@Autowired
+	private UsuarioService usuarioService;
 
+	@PostMapping("/create")
+	public void create(@RequestBody UsuarioDto dto) {
+		this.usuarioService.createUsuario(dto);
+	}
 
-    @PostMapping("/create")
-    public void  create(@RequestBody UsuarioDto dto){
-        this.usuarioService.createUsuario(dto);
-    }
 }
