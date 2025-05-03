@@ -31,5 +31,9 @@ public class TemaController {
 		return temaService.findById(idTema);
 	}
 
+	@GetMapping("/listarTemasPropuestosAlAsesor/{asesorId}")
+	public List<TemaDto> listarTemasPropuestosAlAsesor(@PathVariable Integer asesorId) {
+		return temaService.listarTemasPropuestosAlAsesor(asesorId);
+	}
 
 }

@@ -1,5 +1,7 @@
 package pucp.edu.pe.sgta.service.imp;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import pucp.edu.pe.sgta.dto.SubAreaConocimientoDto;
@@ -14,7 +16,11 @@ import pucp.edu.pe.sgta.service.inter.TemaService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
 import pucp.edu.pe.sgta.util.EstadoTemaEnum;
 
+import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -37,6 +43,9 @@ public class TemaServiceImpl implements TemaService {
 	private final Logger logger = Logger.getLogger(TemaServiceImpl.class.getName());
 
 	private final EstadoTemaRepository estadoTemaRepository;
+
+	@PersistenceContext
+	private EntityManager entityManager;
 
 	public TemaServiceImpl(TemaRepository temaRepository, UsuarioXTemaRepository usuarioXTemaRepository,
 			UsuarioService usuarioService, SubAreaConocimientoService subAreaConocimientoService,
@@ -216,5 +225,55 @@ public class TemaServiceImpl implements TemaService {
 		return List.of(); // Return an empty list if no relations found
 
 	}
+
+	@Override
+	public List<TemaDto> listarTemasPropuestosAlAsesor(Integer asesorId) {
+		String sql = "SELECT * FROM listar_temas_propuestos_al_asesor(:asesorId)";
+
+		List<Object[]> resultados = entityManager
+				.createNativeQuery(sql)
+				.setParameter("asesorId", asesorId)
+				.getResultList();
+
+		List<TemaDto> lista = new ArrayList<>();
+
+		for (Object[] fila : resultados) {
+			TemaDto dto = new TemaDto(); // Si fila[0] es un Integer
+			dto.setId((Integer) fila[0]);  // Si fila[0] es un Integer
+			// tema_id
+			dto.setTitulo((String) fila[1]);                 // titulo
+
+			// subarea_ids (arreglo de Integer[])
+			Integer[] subareaArray = (Integer[]) fila[3];  // fila[3] debe ser un Integer[]
+			List<Integer> subareaIds = Arrays.asList(subareaArray);  // Convertimos a lista
+			dto.setIdSubAreasConocimientoList(subareaIds);
+
+			// alumno (arreglo de Integer[])
+			Integer[] alumnoArray = (Integer[]) fila[5];  // fila[5] debe ser un Integer[]
+			List<Integer> alumnoIds = Arrays.asList(alumnoArray);  // Convertimos a lista
+			dto.setIdEstudianteInvolucradosList(alumnoIds);
+
+			dto.setResumen((String) fila[6]);  // descripcion
+			dto.setMetodologia((String) fila[7]);  // metodologia
+			dto.setObjetivos((String) fila[8]);  // objetivo
+			dto.setPortafolioUrl((String) fila[9]);  // recurso
+			dto.setActivo((Boolean) fila[10]);  // activo
+
+			// Manejar fechas
+			dto.setFechaLimite(fila[11] != null ? ((Instant) fila[11]).atOffset(ZoneOffset.UTC) : null);
+			dto.setFechaCreacion(fila[12] != null ? ((Instant) fila[12]).atOffset(ZoneOffset.UTC) : null);
+			dto.setFechaModificacion(fila[13] != null ? ((Instant) fila[13]).atOffset(ZoneOffset.UTC) : null);
+
+			lista.add(dto);
+		}
+
+		return lista;
+	}
+
+
+
+
+
+
 
 }
