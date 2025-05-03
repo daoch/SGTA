@@ -1,9 +1,9 @@
 "use client";
 
-import AppHeader from "@/components/header/app-header";
-import AppMain from "@/components/main/app-main";
-import { AppSidebar } from "@/components/sidebar/app-sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import AppHeader from "@/features/temas/components/header/app-header";
+import AppMain from "@/features/temas/components/main/app-main";
+import { AppSidebar } from "@/features/temas/components/sidebar/app-sidebar";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (

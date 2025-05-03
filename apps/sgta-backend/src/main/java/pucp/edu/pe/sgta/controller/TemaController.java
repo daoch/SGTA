@@ -36,4 +36,16 @@ public class TemaController {
             @RequestParam(name = "idUsuarioCreador") Integer idUsuarioCreador) {
         temaService.createInscripcionTema(dto, idUsuarioCreador);
     }
+	@GetMapping("/listarTemasPropuestosAlAsesor/{asesorId}")
+	public List<TemaDto> listarTemasPropuestosAlAsesor(@PathVariable Integer asesorId) {
+		return temaService.listarTemasPropuestosAlAsesor(asesorId);
+	}
+
+	@GetMapping("/listarTemasPropuestosPorSubAreaConocimiento")
+	public List<TemaDto> listarTemasPropuestosPorSubAreaConocimiento(@RequestParam List<Integer> subareaIds) {
+		return temaService.listarTemasPropuestosPorSubAreaConocimiento(subareaIds);
+	}
+
+
+
 }

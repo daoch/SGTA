@@ -1,4 +1,4 @@
-import PostulacionesRecibidas from "@/components/alumno/postulaciones-recibidas";
+import PostulacionesRecibidas from "@/features/temas/components/alumno/postulaciones-recibidas";
 
 const page = () => {
   return (

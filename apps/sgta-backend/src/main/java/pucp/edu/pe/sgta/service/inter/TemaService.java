@@ -1,6 +1,7 @@
 package pucp.edu.pe.sgta.service.inter;
 
 import pucp.edu.pe.sgta.dto.TemaDto;
+
 import java.util.List;
 
 public interface TemaService {
@@ -11,4 +12,9 @@ public interface TemaService {
     void update(TemaDto dto);
     void delete(Integer id);
     void createInscripcionTema(TemaDto dto, Integer idUsuarioCreador); //Works for asesor, alumno, coordinador and revisor
+
+	List<TemaDto> listarTemasPropuestosAlAsesor(Integer asesorId);
+
+	List<TemaDto> listarTemasPropuestosPorSubAreaConocimiento(List<Integer> subareaIds);
+
 }
