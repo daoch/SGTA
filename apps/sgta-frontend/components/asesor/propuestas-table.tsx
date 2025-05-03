@@ -1,13 +1,13 @@
 "use client";
 
-import { Proyecto } from "@/app/types/propuestas/entidades";
-import { PropuestasModal } from "@/components/asesor/propuesta-modal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { PropuestasModal } from "@/features/temas/components/asesor/propuesta-modal";
+import { Proyecto } from "@/features/temas/types/propuestas/entidades";
 import { CheckCircle, Eye, Send, X } from "lucide-react";
 import { useState } from "react";
 

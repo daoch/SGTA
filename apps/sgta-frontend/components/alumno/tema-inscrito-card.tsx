@@ -1,7 +1,5 @@
-import type React from "react"
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -9,9 +7,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Eye, Edit, Users, BookOpen } from "lucide-react"
-import Link from "next/link"
+} from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -20,11 +16,15 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { BookOpen, Edit, Eye, Users } from "lucide-react";
+import Link from "next/link";
+import type React from "react";
+import { useState } from "react";
 
 const tesisData = {
   id: "1",
@@ -43,7 +43,7 @@ const tesisData = {
   ciclo: "2023-2",
   asesor: "Dr. Roberto Sánchez",
   coasesores: ["Dra. Carmen Vega"],
-}
+};
 
 const areasData = [
   "Inteligencia Artificial",
@@ -56,7 +56,7 @@ const areasData = [
   "Redes y Comunicaciones",
   "Procesamiento de Lenguaje Natural",
   "Realidad Virtual y Aumentada",
-]
+];
 
 const profesoresData = [
   { id: "1", nombre: "Dr. Roberto Sánchez" },
@@ -64,58 +64,58 @@ const profesoresData = [
   { id: "3", nombre: "Dr. Miguel Torres" },
   { id: "4", nombre: "Dra. Laura Mendoza" },
   { id: "5", nombre: "Dr. Javier Pérez" },
-]
+];
 
 export function TemaCard() {
-  const [isEditing, setIsEditing] = useState(false)
+  const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     titulo: tesisData.titulo,
     area: tesisData.area,
     descripcion: tesisData.descripcion,
     asesor: tesisData.asesor,
     coasesores: tesisData.coasesores,
-  })
-  const [nuevoCoasesor, setNuevoCoasesor] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
+  });
+  const [nuevoCoasesor, setNuevoCoasesor] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleSelectChange = (name: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleAddCoasesor = () => {
     if (nuevoCoasesor && !formData.coasesores.includes(nuevoCoasesor)) {
       setFormData((prev) => ({
         ...prev,
         coasesores: [...prev.coasesores, nuevoCoasesor],
-      }))
-      setNuevoCoasesor("")
+      }));
+      setNuevoCoasesor("");
     }
-  }
+  };
 
   const handleRemoveCoasesor = (coasesor: string) => {
     setFormData((prev) => ({
       ...prev,
       coasesores: prev.coasesores.filter((c) => c !== coasesor),
-    }))
-  }
+    }));
+  };
 
   const handleSubmit = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      console.log("Tesis actualizada:", formData)
-      setIsEditing(false)
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      console.log("Tesis actualizada:", formData);
+      setIsEditing(false);
     } catch (error) {
-      console.error("Error al actualizar tesis:", error)
+      console.error("Error al actualizar tesis:", error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   if (!tesisData) {
     return (
@@ -132,7 +132,7 @@ export function TemaCard() {
           </Link>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -298,5 +298,5 @@ export function TemaCard() {
         </Dialog>
       </CardFooter>
     </Card>
-  )
+  );
 }
