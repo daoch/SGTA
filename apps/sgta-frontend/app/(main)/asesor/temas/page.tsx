@@ -1,7 +1,6 @@
 "use client";
 
-import React from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TemasTable } from "@/components/asesor/temas-table";
 import {
   Card,
   CardContent,
@@ -9,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { TemasTable } from "@/components/asesor/temas-table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 enum TabValues {
   TODOS = "todos",
