@@ -27,9 +27,8 @@ VALUES
   ('VENCIDO',   'Tema propuesto por asesor o estudiantes que pasó su fecha de vencimiento definida',                  TRUE, NOW(), NOW());
 
 -- 4) Unidad académica
-INSERT INTO unidad_academica (nombre, descripcion, activo, fecha_creacion, fecha_modificacion)
-VALUES
-  ('facultad de ciencias e ingeniería', 'Unidad encargada de carreras de ingeniería', TRUE, NOW(), NOW());
+INSERT INTO unidad_academica (nombre, descripcion)
+VALUES ('Facultad de Ciencias e Ingeniería', 'Unidad encargada de carreras de ingeniería');
 
 -- 5) Carrera  (unidad_academica_id = 1)
 INSERT INTO carrera
@@ -54,11 +53,12 @@ VALUES
   ('Revisión', 'Control y seguimiento de revisiones',           TRUE, NOW(), NOW()),
   ('Reportes', 'Generación de informes y estadísticas',         TRUE, NOW(), NOW());
 
--- 8) Área de conocimiento
-INSERT INTO area_conocimiento (nombre, descripcion, activo, fecha_creacion, fecha_modificacion)
+-- 8) Área de conocimiento (ahora incluye carrera_id)
+INSERT INTO area_conocimiento (carrera_id,nombre, descripcion, activo, fecha_creacion, fecha_modificacion)
 VALUES
-  ('ciencias de la computación', 'Disciplina de teorías y sistemas computacionales',   TRUE, NOW(), NOW()),
-  ('sistemas de información',    'Estudio de sistemas para gestión de información', TRUE, NOW(), NOW());
+  -- ambas áreas las atribuimos a la carrera INF (carrera_id = 1)
+  (1, 'ciencias de la computación', 'Disciplina de teorías y sistemas computacionales', TRUE, NOW(), NOW()),
+  (1, 'sistemas de información',    'Estudio de sistemas para gestión de información',       TRUE, NOW(), NOW());
 
 -- 9) Sub-área de conocimiento (área_conocimiento_id = 1)
 INSERT INTO sub_area_conocimiento

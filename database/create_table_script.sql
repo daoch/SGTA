@@ -280,7 +280,7 @@ CREATE TABLE IF NOT EXISTS area_conocimiento (
     descripcion              TEXT,
     activo                   BOOLEAN           NOT NULL DEFAULT TRUE,
     fecha_creacion           TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion       TIMESTAMP WITH TIME ZONE
+    fecha_modificacion       TIMESTAMP WITH TIME ZONE,
 
     CONSTRAINT fk_ac_carrera
         FOREIGN KEY (carrera_id)
