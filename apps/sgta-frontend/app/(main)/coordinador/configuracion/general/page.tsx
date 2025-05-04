@@ -4,7 +4,7 @@ import ConfiguracionSistema from "@/features/configuracion/views/ConfiguracionSi
 import React from "react";
 
 const Page: React.FC = () => {
-  return <ConfiguracionSistema/>;
+  return <ConfiguracionSistema />;
 };
 
 export default Page;

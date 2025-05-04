@@ -15,4 +15,5 @@ public class TestController {
 	public String ping() {
 		return "pong";
 	}
+
 }
