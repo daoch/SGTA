@@ -503,13 +503,14 @@ CREATE TABLE IF NOT EXISTS parametro_configuracion (
 -- 2) Tabla carrera_parametro_configuracion (M:N entre carrera y parametro_configuracion)
 CREATE TABLE IF NOT EXISTS carrera_parametro_configuracion (
     carrera_parametro_configuracion_id  SERIAL PRIMARY KEY,
-    valor                               TEXT      NOT NULL,
-    activo                              BOOLEAN   NOT NULL DEFAULT TRUE,
-    fecha_creacion                      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion                  TIMESTAMP WITH TIME ZONE,
-
-    carrera_id                          INTEGER   NOT NULL,
-    parametro_configuracion_id          INTEGER   NOT NULL,
+    valor                               TEXT     		NOT NULL,
+    activo                              BOOLEAN   		NOT NULL DEFAULT TRUE,
+    fecha_creacion                      TIMESTAMP 		WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion                  TIMESTAMP 		WITH TIME ZONE,
+	cantidad							INTEGER,
+	estado								VARCHAR(50)  	NOT NULL,
+    carrera_id                          INTEGER   		NOT NULL,
+    parametro_configuracion_id          INTEGER   		NOT NULL,
 	-- si agregan el fk de etapa_formativa, no le pongan NOT NULL
 
     CONSTRAINT fk_cpc_carrera
