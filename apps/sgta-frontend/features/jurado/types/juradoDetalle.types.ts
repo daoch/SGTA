@@ -90,8 +90,17 @@ export interface TesisAsignada extends Tesis {
   periodo: PeriodoAcademico | string;
 }
 
+export interface ModalAsignarTesisProps {
+  open: boolean;
+  onClose: () => void;
+  onAsignar: (tesisSeleccionada: Tesis) => void;
+  data: Tesis[];
+  jurado: Jurado;
+}
+
+
 // Props para la vista de detalle del jurado
 export interface JuradoDetalleViewProps {
-  modalAsignarTesisComponent: React.ComponentType<any>; // Puedes reemplazar 'any' con un tipo específico para las props del modal
+  modalAsignarTesisComponent: React.ComponentType<ModalAsignarTesisProps>; // Puedes reemplazar 'any' con un tipo específico para las props del modal
 }
 

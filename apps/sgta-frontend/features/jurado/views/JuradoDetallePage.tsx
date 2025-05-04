@@ -19,7 +19,7 @@ import {
   CursoType, 
   PeriodoAcademico,
   JuradoDetalleViewProps 
-} from '@/features/jurado/types/juradoDetalle.types';
+} from "@/features/jurado/types/juradoDetalle.types";
 
 export function JuradoDetalleView({
   modalAsignarTesisComponent: ModalAsignarTesis,

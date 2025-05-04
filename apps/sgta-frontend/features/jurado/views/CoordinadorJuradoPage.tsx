@@ -8,7 +8,7 @@ import {
   AreaEspecialidadFilter, 
   EstadoJurado, 
   JuradoViewModel 
-} from '@/features/jurado/types/juradoDetalle.types';
+} from "@/features/jurado/types/juradoDetalle.types";
 
 import {
   Select,
