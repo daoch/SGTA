@@ -2,11 +2,11 @@
 
 import { Label } from "@/components/ui/label";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 
 interface CursoSelectProps {
@@ -14,7 +14,10 @@ interface CursoSelectProps {
   setCurso: (value: string) => void;
 }
 
-export const CursoSelect: React.FC<CursoSelectProps> = ({ curso, setCurso }) => {
+export const CursoSelect: React.FC<CursoSelectProps> = ({
+  curso,
+  setCurso,
+}) => {
   return (
     <div className="flex flex-col space-y-1">
       <Label htmlFor="curso">Curso</Label>

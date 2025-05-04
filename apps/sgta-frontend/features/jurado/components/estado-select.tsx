@@ -1,10 +1,10 @@
 import { Label } from "@/components/ui/label";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 
 interface EstadoSelectProps {
@@ -12,7 +12,10 @@ interface EstadoSelectProps {
   setEstado: (value: string) => void;
 }
 
-export const EstadoSelect: React.FC<EstadoSelectProps> = ({ estado, setEstado }) => {
+export const EstadoSelect: React.FC<EstadoSelectProps> = ({
+  estado,
+  setEstado,
+}) => {
   return (
     <div className="flex flex-col space-y-1">
       <Label htmlFor="estado">Estado</Label>

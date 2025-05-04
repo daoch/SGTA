@@ -1,10 +1,10 @@
 import { Label } from "@/components/ui/label";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 
 interface PeriodoSelectProps {
@@ -12,7 +12,10 @@ interface PeriodoSelectProps {
   setPeriodo: (value: string) => void;
 }
 
-export const PeriodoSelect: React.FC<PeriodoSelectProps> = ({ periodo, setPeriodo }) => {
+export const PeriodoSelect: React.FC<PeriodoSelectProps> = ({
+  periodo,
+  setPeriodo,
+}) => {
   return (
     <div className="flex flex-col space-y-1">
       <Label htmlFor="periodo">Periodo</Label>
