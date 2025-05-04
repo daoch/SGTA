@@ -1,6 +1,6 @@
 "use client";
 
-import DetalleExposicion from "@/features/alumno/views/vista-exposiciones/detalle-exposicion";
+import DetalleExposicion from "@/features/jurado/views/vista-exposiciones/alumno-detalle-exposicion";
 import { useParams } from "next/navigation";
 import React from "react";
 
@@ -12,3 +12,4 @@ const Page: React.FC = () => {
 };
 
 export default Page;
+

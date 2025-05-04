@@ -1,6 +1,6 @@
 "use client";
 import type React from "react";
-import { CriterioObservacion } from "@/features/alumno/components/criterio-observacion";
+import { CriterioObservacion } from "@/features/jurado/components/alumno-criterio-observacion";
 import { Separator } from "@/components/ui/separator";
 
 interface DetalleObservacionExposicionProps {

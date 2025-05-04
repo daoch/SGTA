@@ -8,7 +8,7 @@ import {
   SelectGroup,
   SelectItem,
 } from "@/components/ui/select";
-import { ExposicionCard } from "@/features/alumno/components/exposicion-card";
+import { ExposicionCard } from "@/features/jurado/components/alumno-exposicion-card";
 import React from "react";
 import { useState } from "react";
 

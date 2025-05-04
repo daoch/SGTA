@@ -1,6 +1,6 @@
 "use client";
 
-import ObservacionExposicion from "@/features/alumno/views/vista-exposiciones/observacion";
+import ObservacionExposicion from "@/features/jurado/views/vista-exposiciones/alumno-observacion";
 import { useParams } from "next/navigation";
 import React from "react";
 

@@ -1,6 +1,6 @@
 "use client";
 
-import Exposiciones from "@/features/alumno/views/vista-exposiciones/exposiciones";
+import Exposiciones from "@/features/jurado/views/vista-exposiciones/alumno-exposiciones";
 import React from "react";
 
 const Page: React.FC = () => {
@@ -8,3 +8,4 @@ const Page: React.FC = () => {
 };
 
 export default Page;
+
