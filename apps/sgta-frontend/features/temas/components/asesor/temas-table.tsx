@@ -95,9 +95,18 @@ const temasData = [
 
 interface PropuestasTableProps {
   filter?: string;
+  showPostulaciones?: boolean;
+  showEstado?: boolean;
+  showTipo?: boolean;
+  showCiclo?: boolean;
 }
 
-export function TemasTable({ filter }: PropuestasTableProps) {
+export function TemasTable({ 
+  filter,
+  showPostulaciones = true,
+  showEstado = true,
+  showTipo = true,
+}: PropuestasTableProps) {
   const propuestasFiltradas = temasData.filter((tema) => {
     // Filtrar todo
     if (filter === null || filter === "todos") return true;
@@ -119,9 +128,9 @@ export function TemasTable({ filter }: PropuestasTableProps) {
               <TableHead>Área</TableHead>
               <TableHead>Asesor</TableHead>
               <TableHead>Estudiante(s)</TableHead>
-              <TableHead>Postulaciones</TableHead>
-              <TableHead>Estado</TableHead>
-              <TableHead>Tipo</TableHead>
+              {showPostulaciones && <TableHead>Postulaciones</TableHead>}
+              {showEstado && <TableHead>Estado</TableHead>}
+              {showTipo && <TableHead>Tipo</TableHead>}
               <TableHead>Ciclo</TableHead>
               <TableHead className="text-right">Acción</TableHead>
             </TableRow>
@@ -149,33 +158,39 @@ export function TemasTable({ filter }: PropuestasTableProps) {
                       ? "Sin asignar"
                       : tema.estudiantes.map((e) => e.nombre).join(", ")}
                   </TableCell>
-                  <TableCell>
-                    {!tema.postulaciones ? "-" : tema.postulaciones}
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={
-                        tema.tipo === "directa"
-                          ? "bg-purple-100 text-purple-800 hover:bg-purple-100"
-                          : "bg-green-100 text-green-800 hover:bg-green-100"
-                      }
-                    >
-                      {titleCase(tema.estado)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={
-                        tema.tipo === "directa"
-                          ? "bg-purple-100 text-purple-800 hover:bg-purple-100"
-                          : "bg-green-100 text-green-800 hover:bg-green-100"
-                      }
-                    >
-                      {titleCase(tema.tipo)}
-                    </Badge>
-                  </TableCell>
+                  {showPostulaciones && (
+                    <TableCell>
+                      {!tema.postulaciones ? "-" : tema.postulaciones}
+                    </TableCell>
+                  )}
+                  {showEstado && (
+                    <TableCell>
+                      <Badge
+                        variant="outline"
+                        className={
+                          tema.tipo === "directa"
+                            ? "bg-purple-100 text-purple-800 hover:bg-purple-100"
+                            : "bg-green-100 text-green-800 hover:bg-green-100"
+                        }
+                      >
+                        {titleCase(tema.estado)}
+                      </Badge>
+                    </TableCell>
+                  )}
+                  {showTipo && (
+                    <TableCell>
+                      <Badge
+                        variant="outline"
+                        className={
+                          tema.tipo === "directa"
+                            ? "bg-purple-100 text-purple-800 hover:bg-purple-100"
+                            : "bg-green-100 text-green-800 hover:bg-green-100"
+                        }
+                      >
+                        {titleCase(tema.tipo)}
+                      </Badge>
+                    </TableCell>
+                  )}
                   <TableCell>{tema.ciclo}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
