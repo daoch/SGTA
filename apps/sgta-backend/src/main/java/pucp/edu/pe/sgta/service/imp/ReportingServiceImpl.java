@@ -51,14 +51,14 @@ public class ReportingServiceImpl implements IReportService {
 
     @Override
     public List<TeacherCountDTO> getJurorDistribution() {
-        //Similar a lo de arriba solo que para jurados, con la diferencia de que se muestra la cantidad de jurados asignados
-        // TODO: reemplazar hard-code por lógica real
-        return Arrays.asList(
-            new TeacherCountDTO("Dr. Rodríguez", 5),
-            new TeacherCountDTO("Dra. Sánchez", 4),
-            new TeacherCountDTO("Dr. García", 4),
-            new TeacherCountDTO("Dra. Gómez", 3)
-        );
+        // Ahora se usa la función que filtra por usuario (coordinador) y ciclo
+        List<Object[]> results = advisorDistributionRepository.getJurorDistributionByCoordinatorAndCiclo(usuarioId, cicloNombre);
+        return results.stream()
+            .map(result -> new TeacherCountDTO(
+                (String) result[0],  // teacher_name
+                ((Number) result[1]).intValue()  // advisor_count
+            ))
+            .collect(Collectors.toList());
     }
     //TODO: Agregar metodos para comparativa de Asesor vs Jurado <-- Talves se pueda hacer con los datos mismos anteriores ya guardados.
 

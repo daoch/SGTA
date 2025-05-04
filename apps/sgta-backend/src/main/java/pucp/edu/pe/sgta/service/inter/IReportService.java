@@ -12,7 +12,7 @@ public interface IReportService {
     /** RF2a: distribución de asesores por docente */
     List<TeacherCountDTO> getAdvisorDistribution(Integer usuarioId, String cicloNombre);
     /** RF2b: distribución de jurados por docente */
-    List<TeacherCountDTO> getJurorDistribution();
+    List<TeacherCountDTO> getJurorDistribution(Integer usuarioId, String cicloNombre);
 
     List<AdvisorPerformanceDto> getAdvisorPerformance();
 }

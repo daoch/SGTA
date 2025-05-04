@@ -36,8 +36,8 @@ public class ReportsController {
 
     /** RF2b: distribución de jurados por docente */
     @GetMapping("/jurors-distribution")
-    public List<TeacherCountDTO> fetchJurorDistribution() {
-        return reportingService.getJurorDistribution();
+    public List<TeacherCountDTO> fetchJurorDistribution(@RequestParam Integer usuarioId,@RequestParam String ciclo) {
+        return reportingService.getJurorDistribution(usuarioId,ciclo);
     }
 
     /**
