@@ -1,9 +1,7 @@
-"use client";
+"use client"
 
-import React from "react";
+import  JuradosView  from "@/features/jurado/views/CoordinadorJuradoPage";
 
-const Page: React.FC = () => {
-  return <div>page</div>;
-};
-
-export default Page;
+export default function JuradosPage() {
+  return <JuradosView />;
+}
