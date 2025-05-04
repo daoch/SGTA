@@ -1,66 +1,88 @@
 'use client';
 
+import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { useAsesorHabilitation } from '@/features/asesores/hooks/useAsesorHabilitation';
-import AsesorFilters from '@/features/asesores/components/AsesorFilters';
-import AsesorTable from '@/features/asesores/components/AsesorTable';
-import MassActionsToolbar from '@/features/asesores/components/MassActionsToolbar';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { useDirectorioAsesores } from '@/features/asesores/hooks/useDirectorioAsesores';
+import DirectorioAsesoresTable from '@/features/asesores/components/DirectorioAsesoresTable';
 
 export default function DirectorioAsesoresPage() {
   const {
-    asesores,
-    isLoading,
-    searchTerm,
-    setSearchTerm,
-    toggleHabilitacion,
-    selectedKeys,
-    setSelectedKeys
-  } = useAsesorHabilitation();
-
-  const selectedAsesores = asesores.filter(a => selectedKeys.has(a.id));
-
-  const handleMassAction = (action: 'habilitar' | 'inhabilitar') => {
-    selectedAsesores.forEach(a => {
-      if ((action === 'habilitar' && !a.habilitado) || (action === 'inhabilitar' && a.habilitado)) {
-        toggleHabilitacion(a.id);
-      }
-    });
-    setSelectedKeys(new Set());
-  };
+    profesores,
+    search,
+    setSearch,
+    rolAsignado,
+    setRolAsignado,
+    estado,
+    setEstado,
+  } = useDirectorioAsesores();
 
   return (
     <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-foreground mb-1">
+        <h1 className="text-3xl font-bold tracking-tight mb-2">
           Directorio de Asesores
         </h1>
-        <p className="text-muted-foreground max-w-4xl">
-          Administra el estado de habilitación de los asesores académicos para dirigir tesis.
+        <p className="text-muted-foreground">
+          Visualiza los profesores habilitados como asesores y/o jurados.
         </p>
       </div>
 
-      <MassActionsToolbar
-        selectedCount={selectedKeys.size}
-        selectedAsesores={selectedAsesores}
-        onClearSelection={() => setSelectedKeys(new Set())}
-        onExecuteMassAction={handleMassAction}
-      />
+      <Card className="p-4">
+        <div className="flex flex-col gap-4 md:flex-row md:items-end md:gap-6">
+          <div className="flex flex-col gap-1 w-full md:max-w-sm">
+            <Label htmlFor="search">Buscar</Label>
+            <Input
+              id="search"
+              type="text"
+              placeholder="Buscar por nombre, correo o código"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
 
-      <Card className="p-4 border">
-        <AsesorFilters
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-        />
+          <div className="flex flex-col gap-1">
+            <Label htmlFor="rol">Rol Asignado</Label>
+            <Select value={rolAsignado} onValueChange={setRolAsignado}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Seleccionar rol" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos</SelectItem>
+                <SelectItem value="asesor">Asesor</SelectItem>
+                <SelectItem value="jurado">Jurado</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <Label htmlFor="estado">Estado</Label>
+            <Select value={estado} onValueChange={setEstado}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Seleccionar estado" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos</SelectItem>
+                <SelectItem value="activo">Activo</SelectItem>
+                <SelectItem value="inactivo">Inactivo</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
       </Card>
 
-      <Card className="p-0">
-        <AsesorTable
-          asesores={asesores}
-          selectedKeys={selectedKeys}
-          onSelectionChange={setSelectedKeys}
-          onToggleHabilitacion={toggleHabilitacion}
-        />
-      </Card>
+      <p className="text-sm text-muted-foreground">
+        Mostrando {profesores.length} resultado{profesores.length !== 1 && 's'} encontrados.
+      </p>
+
+      <DirectorioAsesoresTable profesores={profesores} />
     </div>
   );
 }

@@ -1,8 +1,16 @@
-export type Asesor = {
+export type Profesor = {
   id: string;
   nombre: string;
   correo: string;
-  especialidad: string;
+  codigo: string;
+  avatarUrl?: string;
+  rolesAsignados: ('asesor' | 'jurado')[];
   tesisActivas: number;
-  habilitado: boolean;
+  estado: 'activo' | 'inactivo';
+};
+
+export type FiltrosProfesores = {
+  search: string;
+  rolAsignado: 'todos' | 'asesor' | 'jurado';
+  estado: 'todos' | 'activo' | 'inactivo';
 };
