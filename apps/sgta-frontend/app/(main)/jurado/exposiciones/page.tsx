@@ -1,12 +1,9 @@
 "use client";
 
-import ExposicionesCoordinadorPage from "@/features/jurado/views/exposiciones-coordinador-page";
 import React from "react";
 
 const Page: React.FC = () => {
-  return <ExposicionesCoordinadorPage>
-
-  </ExposicionesCoordinadorPage>;
+  return <div>page</div>;
 };
 
 export default Page;
