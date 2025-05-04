@@ -24,14 +24,14 @@ public class ReportsController {
 
     /** RF1: estadísticas y tendencias de temas y áreas */
     @GetMapping("/topics-areas")
-    public List<TopicAreaStatsDTO> fetchTopicAreaStats(@RequestParam Integer usuarioId) {
-        return reportingService.getTopicAreaStatistics(usuarioId);
+    public List<TopicAreaStatsDTO> fetchTopicAreaStats(@RequestParam Integer usuarioId,@RequestParam String ciclo) {
+        return reportingService.getTopicAreaStatistics(usuarioId,ciclo);
     }
 
     /** RF2a: distribución de asesores por docente */
     @GetMapping("/advisors-distribution")
-    public List<TeacherCountDTO> fetchAdvisorDistribution() {
-        return reportingService.getAdvisorDistribution();
+    public List<TeacherCountDTO> fetchAdvisorDistribution(@RequestParam Integer usuarioId,@RequestParam String ciclo) {
+        return reportingService.getAdvisorDistribution(usuarioId,ciclo);
     }
 
     /** RF2b: distribución de jurados por docente */

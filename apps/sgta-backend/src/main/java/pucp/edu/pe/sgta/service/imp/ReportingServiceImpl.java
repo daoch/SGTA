@@ -26,9 +26,9 @@ public class ReportingServiceImpl implements IReportService {
     }
 
     @Override
-    public List<TopicAreaStatsDTO> getTopicAreaStatistics(Integer usuarioId) {
-        //Esto es para la pantalla de Coordinador -> Estadísticas de temas por área
-        List<Object[]> results = topicAreaStatsRepository.getTopicAreaStatsByUser(usuarioId);
+    public List<TopicAreaStatsDTO> getTopicAreaStatistics(Integer usuarioId, String cicloNombre) {
+        // Ahora se usa la función que filtra por usuario y ciclo
+        List<Object[]> results = topicAreaStatsRepository.getTopicAreaStatsByUserAndCiclo(usuarioId, cicloNombre);
         return results.stream()
             .map(result -> new TopicAreaStatsDTO(
                 (String) result[0],  // area_name
@@ -38,9 +38,9 @@ public class ReportingServiceImpl implements IReportService {
     }
 
     @Override
-    public List<TeacherCountDTO> getAdvisorDistribution() {
-        //Esto es para la pantalla de Coordinador -> Distribución de asesores y su carga (tesis asignadas)
-        List<Object[]> results = advisorDistributionRepository.getAdvisorDistribution();
+    public List<TeacherCountDTO> getAdvisorDistribution(Integer usuarioId, String cicloNombre) {
+        // Ahora se usa la función que filtra por usuario (coordinador) y ciclo
+        List<Object[]> results = advisorDistributionRepository.getAdvisorDistributionByCoordinatorAndCiclo(usuarioId, cicloNombre);
         return results.stream()
             .map(result -> new TeacherCountDTO(
                 (String) result[0],  // teacher_name

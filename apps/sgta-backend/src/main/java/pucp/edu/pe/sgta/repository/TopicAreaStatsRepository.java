@@ -11,19 +11,9 @@ import java.util.List;
 @Repository
 public interface TopicAreaStatsRepository extends JpaRepository<SubAreaConocimiento, Integer> {
     
-    @Query(value = """
-            SELECT ac.nombre as area_name, COUNT(DISTINCT t.tema_id) as topic_count
-            FROM area_conocimiento ac
-            INNER JOIN sub_area_conocimiento sac ON sac.area_conocimiento_id = ac.area_conocimiento_id
-            INNER JOIN sub_area_conocimiento_tema sat ON sat.sub_area_conocimiento_id = sac.sub_area_conocimiento_id
-            INNER JOIN tema t ON t.tema_id = sat.tema_id
-            INNER JOIN usuario_tema ut ON ut.tema_id = t.tema_id
-            WHERE ut.usuario_id = :usuarioId
-            AND t.activo = true
-            AND ac.activo = true
-            AND sac.activo = true
-            GROUP BY ac.nombre
-            ORDER BY topic_count DESC
-            """, nativeQuery = true)
+    @Query(value = "SELECT * FROM get_topic_area_stats_by_user(:usuarioId)", nativeQuery = true)
     List<Object[]> getTopicAreaStatsByUser(@Param("usuarioId") Integer usuarioId);
+
+    @Query(value = "SELECT * FROM get_topic_area_stats_by_user_and_ciclo(:usuarioId, :cicloNombre)", nativeQuery = true)
+    List<Object[]> getTopicAreaStatsByUserAndCiclo(@Param("usuarioId") Integer usuarioId, @Param("cicloNombre") String cicloNombre);
 } 

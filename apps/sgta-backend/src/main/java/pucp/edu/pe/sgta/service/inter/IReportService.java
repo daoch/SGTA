@@ -8,9 +8,9 @@ import pucp.edu.pe.sgta.dto.TopicAreaStatsDTO;
 
 public interface IReportService {
     /** RF1: estadísticas de temas por área */
-    List<TopicAreaStatsDTO> getTopicAreaStatistics(Integer usuarioId);
+    List<TopicAreaStatsDTO> getTopicAreaStatistics(Integer usuarioId, String cicloNombre);
     /** RF2a: distribución de asesores por docente */
-    List<TeacherCountDTO> getAdvisorDistribution();
+    List<TeacherCountDTO> getAdvisorDistribution(Integer usuarioId, String cicloNombre);
     /** RF2b: distribución de jurados por docente */
     List<TeacherCountDTO> getJurorDistribution();
 
