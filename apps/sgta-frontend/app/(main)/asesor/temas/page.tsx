@@ -1,9 +1,10 @@
 "use client";
 
+import TemasAsesorPage from "@/features/temas/views/temas-asesor-page";
 import React from "react";
 
 const Page: React.FC = () => {
-  return <div>page</div>;
+  return <TemasAsesorPage />;
 };
 
 export default Page;
