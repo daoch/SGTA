@@ -381,6 +381,106 @@ public class TemaServiceImpl implements TemaService {
 	}
 
 	@Override
+    public List<TemaDto> listarTemasPorUsuarioRolEstado(Integer usuarioId,
+                                                       String rolNombre,
+                                                       String estadoNombre) {
+        List<Object[]> rows = temaRepository.listarTemasPorUsuarioRolEstado(
+            usuarioId, rolNombre, estadoNombre
+        );
+        List<TemaDto> resultados = new ArrayList<>();
+        for (Object[] r : rows) {
+            TemaDto dto = TemaDto.builder()
+                .id((Integer) r[0])
+                .titulo((String) r[1])
+                .resumen((String) r[2])
+                .metodologia((String) r[3])
+                .objetivos((String) r[4])
+                .portafolioUrl((String) r[5])
+                .activo((Boolean) r[6])
+                .fechaLimite(
+                  r[7] != null
+                    ? ((Instant) r[7]).atOffset(ZoneOffset.UTC)
+                    : null
+                )
+                .fechaCreacion(
+                  r[8] != null
+                    ? ((Instant) r[8]).atOffset(ZoneOffset.UTC)
+                    : null
+                )
+                .fechaModificacion(
+                  r[9] != null
+                    ? ((Instant) r[9]).atOffset(ZoneOffset.UTC)
+                    : null
+                )
+                .build();
+            resultados.add(dto);
+        }
+        return resultados;
+    }
+
+    @Override
+    public List<UsuarioDto> listarUsuariosPorTemaYRol(Integer temaId, String rolNombre) {
+        List<Object[]> rows = temaRepository.listarUsuariosPorTemaYRol(temaId, rolNombre);
+        List<UsuarioDto> resultados = new ArrayList<>();
+        for (Object[] r : rows) {
+            UsuarioDto u = UsuarioDto.builder()
+                .id((Integer) r[0])
+                .nombres((String) r[1])
+                .primerApellido((String) r[2])
+                .segundoApellido((String) r[3])
+                .correoElectronico((String) r[4])
+                .activo((Boolean) r[5])
+                .fechaCreacion(
+                  r[6] != null
+                    ? ((Instant) r[6]).atOffset(ZoneOffset.UTC)
+                    : null
+                )
+                .build();
+            resultados.add(u);
+        }
+        return resultados;
+    }
+
+    @Override
+    public List<SubAreaConocimientoDto> listarSubAreasPorTema(Integer temaId) {
+        List<Object[]> rows = temaRepository.listarSubAreasPorTema(temaId);
+        List<SubAreaConocimientoDto> resultados = new ArrayList<>();
+        for (Object[] r : rows) {
+            SubAreaConocimientoDto sa = SubAreaConocimientoDto.builder()
+                .id((Integer) r[0])
+                .nombre((String) r[1])
+                .build();
+            resultados.add(sa);
+        }
+        return resultados;
+    }
+
+    @Override
+    public List<TemaDto> listarTemasPorUsuarioEstadoYRol(Integer asesorId, String rolNombre, String estadoNombre) {
+        // primero cargo los temas con estado INSCRITO y rol Asesor
+        List<TemaDto> temas = listarTemasPorUsuarioRolEstado(
+            asesorId, 
+            rolNombre, 
+            estadoNombre
+        );
+
+        // por cada tema cargo coasesores, tesistas y subáreas
+        for (TemaDto t : temas) {
+            t.setCoasesores(
+                listarUsuariosPorTemaYRol(t.getId(), RolEnum.Coasesor.name())
+            );
+            t.setTesistas(
+                listarUsuariosPorTemaYRol(t.getId(), RolEnum.Tesista.name())
+            );
+            t.setSubareas(
+                listarSubAreasPorTema(t.getId())
+            );
+        }
+
+        return temas;
+    }
+
+	@Override
 	public List<TemaDto> listarTemasPropuestosPorSubAreaConocimiento(List<Integer> subareaIds) {
 		String sql = "SELECT * FROM listar_temas_propuestos_por_subarea_conocimiento(:subareas)";
 
@@ -413,12 +513,5 @@ public class TemaServiceImpl implements TemaService {
 
 		return lista;
 	}
-
-
-
-
-
-
-
 
 }

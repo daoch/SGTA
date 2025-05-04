@@ -1,6 +1,8 @@
 package pucp.edu.pe.sgta.service.inter;
 
+import pucp.edu.pe.sgta.dto.SubAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.TemaDto;
+import pucp.edu.pe.sgta.dto.UsuarioDto;
 
 import java.util.List;
 
@@ -17,4 +19,14 @@ public interface TemaService {
 
 	List<TemaDto> listarTemasPropuestosPorSubAreaConocimiento(List<Integer> subareaIds);
 
+    List<TemaDto> listarTemasPorUsuarioRolEstado(Integer usuarioId,
+                                                 String rolNombre,
+                                                 String estadoNombre);
+
+    List<UsuarioDto> listarUsuariosPorTemaYRol(Integer temaId,
+                                               String rolNombre);
+
+    List<SubAreaConocimientoDto> listarSubAreasPorTema(Integer temaId);
+
+    List<TemaDto> listarTemasPorUsuarioEstadoYRol(Integer asesorId, String rolNombre, String estadoNombre);
 }

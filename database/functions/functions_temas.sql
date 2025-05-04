@@ -129,3 +129,108 @@ BEGIN
         u_alumno.nombres, u_alumno.primer_apellido, r.documento_url;
 END;
 $$ LANGUAGE plpgsql;
+
+-- 1) Función que lista temas de un usuario según rol y estado
+CREATE OR REPLACE FUNCTION listar_temas_por_usuario_rol_estado(
+  p_usuario_id    INT,
+  p_rol_nombre    TEXT,
+  p_estado_nombre TEXT
+)
+RETURNS TABLE (
+  tema_id            INT,
+  titulo             TEXT,
+  resumen            TEXT,
+  metodologia         TEXT,
+  objetivos          TEXT,
+  portafolio_url     TEXT,
+  activo             BOOLEAN,
+  fecha_limite       TIMESTAMPTZ,
+  fecha_creacion     TIMESTAMPTZ,
+  fecha_modificacion TIMESTAMPTZ
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    t.tema_id,
+    t.titulo::text,
+    t.resumen,
+    t.metodologia,
+    t.objetivos,
+    t.portafolio_url::text,
+    t.activo,
+    t.fecha_limite,
+    t.fecha_creacion,
+    t.fecha_modificacion
+  FROM tema t
+  JOIN usuario_tema ut
+    ON ut.tema_id = t.tema_id
+  JOIN rol r
+    ON ut.rol_id = r.rol_id
+  JOIN estado_tema et
+    ON t.estado_tema_id = et.estado_tema_id
+  WHERE
+    ut.usuario_id = p_usuario_id
+    AND r.nombre ILIKE p_rol_nombre
+    AND et.nombre ILIKE p_estado_nombre
+    AND t.activo = TRUE;
+END;
+$$ LANGUAGE plpgsql;
+
+
+-- 2) Función que lista usuarios vinculados a un tema según rol
+CREATE OR REPLACE FUNCTION listar_usuarios_por_tema_y_rol(
+    p_tema_id    INT,
+    p_rol_nombre TEXT
+)
+RETURNS TABLE (
+    usuario_id         INT,
+    nombres            TEXT,
+    primer_apellido    TEXT,
+    segundo_apellido   TEXT,
+    correo_electronico TEXT,
+    activo             BOOLEAN,
+    fecha_creacion     TIMESTAMPTZ
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+      u.usuario_id,
+      u.nombres::text,
+      u.primer_apellido::text,
+      u.segundo_apellido::text,
+      u.correo_electronico::text,
+      u.activo,
+      u.fecha_creacion
+    FROM usuario u
+    JOIN usuario_tema ut
+      ON ut.usuario_id = u.usuario_id
+    JOIN rol r
+      ON ut.rol_id = r.rol_id
+    WHERE
+      ut.tema_id = p_tema_id
+      AND r.nombre ILIKE p_rol_nombre
+      AND u.activo = TRUE;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION listar_subareas_por_tema(
+  p_tema_id INT
+)
+RETURNS TABLE (
+  sub_area_conocimiento_id INT,
+  nombre                   TEXT
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    sac.sub_area_conocimiento_id,
+    sac.nombre::text
+  FROM sub_area_conocimiento_tema sact
+  JOIN sub_area_conocimiento sac
+    ON sac.sub_area_conocimiento_id = sact.sub_area_conocimiento_id
+  WHERE
+    sact.tema_id = p_tema_id
+    AND sac.activo = TRUE;
+END;
+$$ LANGUAGE plpgsql;
+

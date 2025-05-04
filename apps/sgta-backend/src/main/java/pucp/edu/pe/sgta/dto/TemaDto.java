@@ -35,4 +35,8 @@ public class TemaDto {
     private List<Integer> idCoasesorInvolucradosList;
     private List<Integer> idEstudianteInvolucradosList;
     private List<Integer> idSubAreasConocimientoList;
+
+    private List<UsuarioDto> coasesores;
+    private List<UsuarioDto> tesistas;
+    private List<SubAreaConocimientoDto> subareas;
 }
