@@ -3,6 +3,8 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+// import { Input } from "@/components/ui/input";
+// import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -13,6 +15,7 @@ import {
 } from "@/components/ui/table";
 import { titleCase } from "@/lib/utils";
 import { CheckCircle, Eye, Send, X } from "lucide-react";
+// import { useState } from "react";
 // Datos de ejemplo
 const temasData = [
   {
@@ -89,9 +92,6 @@ const temasData = [
     recursos: [{ nombre: "", tipo: "", fecha: "" }],
   },
 ];
-
-// Obtener todas las áreas únicas para el filtro
-//const areasUnicas = Array.from(new Set(temasData.map((tema) => tema.area)));
 
 interface PropuestasTableProps {
   filter?: string;

@@ -18,9 +18,9 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { Badge } from "../ui/badge";
-import { useAuth } from "@/features/auth/hooks/use-auth";
 import { User } from "@/features/auth";
+import { useAuth } from "@/features/auth/hooks/use-auth";
+import { Badge } from "../../../../components/ui/badge";
 
 export function NavUser({ user }: { user: User }) {
   const { isMobile } = useSidebar();

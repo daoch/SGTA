@@ -1,9 +1,17 @@
-"use client";
+import PostulacionesRecibidas from "@/features/temas/components/alumno/postulaciones-recibidas";
 
-import React from "react";
-
-const Page: React.FC = () => {
-  return <div>page</div>;
+const page = () => {
+  return (
+    <div className="space-y-8 mt-4">
+      <div>
+        <h1 className="text-3xl font-bold text-[#042354]">Postulaciones Recibidas</h1>
+        <p className="text-muted-foreground">
+          Postulaciones de asesores interesados en tus propuestas de proyecto de fin de carrera
+        </p>
+      </div>
+      <PostulacionesRecibidas />
+    </div>
+  );
 };
 
-export default Page;
+export default page;
