@@ -92,8 +92,10 @@ export function ExposicionCard({ exposicion }: { exposicion: Exposicion }) {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                  {getEstudiantes().map((estudiante, index) => (
-                    <div
+               
+                  {getEstudiantes().map((estudiante) => (
+                    
+                    <div 
                       key={estudiante.id_docente}
                       className="flex items-center gap-2"
                     >
@@ -145,7 +147,7 @@ export function ExposicionCard({ exposicion }: { exposicion: Exposicion }) {
                   size="lg"
                   className="text-base flex items-center gap-1"
                 >
-                  <Link href={``}>No Estoy Disponible</Link>
+                  <Link href={""}>No Estoy Disponible</Link>
                 </Button>
 
                 <Button
@@ -153,7 +155,7 @@ export function ExposicionCard({ exposicion }: { exposicion: Exposicion }) {
                   size="lg"
                   className="text-base flex items-center gap-1 bg-[#042354]"
                 >
-                  <Link href={``}>Confirmar Asistencia</Link>
+                  <Link href={""}>Confirmar Asistencia</Link>
                 </Button>
               </div>
             </div>
@@ -162,7 +164,7 @@ export function ExposicionCard({ exposicion }: { exposicion: Exposicion }) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Detalles de la Exposicion</DialogTitle>
-            <ModalDetallesExposicion id_exposicion={exposicion.id_exposicion}/>
+            <ModalDetallesExposicion _idExposicion={exposicion.id_exposicion}/>
           </DialogHeader>
           <DialogFooter className="sm:justify-end">
             <DialogClose asChild>
