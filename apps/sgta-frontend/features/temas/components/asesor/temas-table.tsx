@@ -11,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { titleCase } from "@/lib/utils";
 import { CheckCircle, Eye, Send, X } from "lucide-react";
 // Datos de ejemplo
@@ -196,10 +197,19 @@ export function TemasTable({
                     <div className="flex justify-end gap-2">
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <Eye className="h-4 w-4" />
-                            <span className="sr-only">Ver detalles</span>
-                          </Button>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                  <Eye className="h-4 w-4" />
+                                  <span className="sr-only">Ver detalles</span>
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Ver detalles</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         </DialogTrigger>
                       </Dialog>
                       {tema.tipo === "general" && (
