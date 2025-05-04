@@ -50,6 +50,11 @@ public class Usuario {
     @Column(columnDefinition = "TEXT")
     private String biografia;
 
+    @Column(name = "enlace_repositorio")
+    private String enlaceRepositorio;
+
+    @Column(name = "enlace_lindekin")
+    private String enlaceLinkedin;
 
     @Column(name = "foto_perfil", columnDefinition = "bytea", nullable = true)
     private byte[] fotoPerfil;

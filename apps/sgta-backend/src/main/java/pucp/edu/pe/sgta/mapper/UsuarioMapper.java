@@ -17,7 +17,8 @@ public class UsuarioMapper {
         dto.setTipoUsuario(TipoUsuarioMapper.toDto(usuario.getTipoUsuario()));
         dto.setTipoDisponibilidad(usuario.getTipoDisponibilidad());
         dto.setNivelEstudios(usuario.getNivelEstudios());
-
+        dto.setEnlaceLinkedin(usuario.getEnlaceLinkedin());
+        dto.setEnlaceRepositorio(usuario.getEnlaceRepositorio());
         return dto;
     }
 
@@ -37,7 +38,8 @@ public class UsuarioMapper {
         usuario.setContrasena(dto.getContrasena());
         usuario.setDisponibilidad(dto.getDisponibilidad());
         usuario.setTipoDisponibilidad(dto.getTipoDisponibilidad());
-
+        usuario.setEnlaceLinkedin(dto.getEnlaceLinkedin());
+        usuario.setEnlaceRepositorio(dto.getEnlaceRepositorio());
         return usuario;
     }
 }

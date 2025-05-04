@@ -36,7 +36,9 @@ public class UsuarioDto {
 
     private String biografia;
 
+    private String enlaceRepositorio;
 
+    private String enlaceLinkedin;
 
     private String disponibilidad;
 
