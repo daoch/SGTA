@@ -1,5 +1,6 @@
 package pucp.edu.pe.sgta.service.imp;
 
+//import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pucp.edu.pe.sgta.dto.SubAreaConocimientoDto;
 import pucp.edu.pe.sgta.mapper.SubAreaConocimientoMapper;
@@ -8,6 +9,7 @@ import pucp.edu.pe.sgta.repository.SubAreaConocimientoRepository;
 import pucp.edu.pe.sgta.service.inter.SubAreaConocimientoService;
 
 import java.util.List;
+//import java.util.Optional;
 
 @Service
 public class SubAreaConocimientoServiceImpl implements SubAreaConocimientoService {

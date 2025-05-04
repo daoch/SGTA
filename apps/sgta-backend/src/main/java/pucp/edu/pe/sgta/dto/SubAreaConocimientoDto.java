@@ -1,6 +1,9 @@
 package pucp.edu.pe.sgta.dto;
 
+//import jakarta.persistence.*;
 import lombok.*;
+import pucp.edu.pe.sgta.model.AreaConocimiento;
+
 import java.time.OffsetDateTime;
 
 @Getter

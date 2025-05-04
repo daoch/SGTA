@@ -1,5 +1,6 @@
 package pucp.edu.pe.sgta.service.inter;
 
+//import org.springframework.stereotype.Service;
 import pucp.edu.pe.sgta.dto.SubAreaConocimientoDto;
 import java.util.List;
 

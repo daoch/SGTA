@@ -13,6 +13,7 @@ import pucp.edu.pe.sgta.service.inter.SubAreaConocimientoService;
 import pucp.edu.pe.sgta.service.inter.TemaService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
 import pucp.edu.pe.sgta.util.EstadoTemaEnum;
+import pucp.edu.pe.sgta.util.RolEnum;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -215,6 +216,115 @@ public class TemaServiceImpl implements TemaService {
 		}
 		return List.of(); // Return an empty list if no relations found
 
-	}
+    }
+
+    @Override
+    public void createInscripcionTema(TemaDto dto, Integer idUsuarioCreador) {
+        dto.setId(null);
+        // Prepara y guarda el tema con estado INSCRITO
+        Tema tema = prepareNewTema(dto, EstadoTemaEnum.INSCRITO);
+        temaRepository.save(tema);
+
+        // 1) Creador del tema (rol "Creador", asignado = true)
+        saveUsuarioXTema(tema, idUsuarioCreador, RolEnum.Creador.name(), true);
+        // 1) Asesor del tema (rol "Asesor", asignado = true)
+        saveUsuarioXTema(tema, idUsuarioCreador, RolEnum.Asesor.name(), true);
+
+        // 2) Subáreas de conocimiento
+        saveSubAreas(tema, dto.getIdSubAreasConocimientoList());
+
+        // 3) Coasesores
+        saveUsuariosInvolucrados(tema, idUsuarioCreador,
+            dto.getIdCoasesorInvolucradosList(), RolEnum.Coasesor.name(), true);
+
+        // 4) Estudiantes
+        saveUsuariosInvolucrados(tema, idUsuarioCreador,
+            dto.getIdEstudianteInvolucradosList(), RolEnum.Tesista.name(), true);
+    }
+
+    /**
+     * Crea y persiste un vínculo UsuarioXTema para el tema dado.
+     * @param tema Tema al que asociar el usuario
+     * @param idUsuario ID del usuario a asociar
+     * @param rolNombre Nombre del rol (ej. "Creador", "Asesor", etc.)
+     * @param asignado Flag si ya está asignado o pendiente
+     */
+    private void saveUsuarioXTema(Tema tema,
+                                  Integer idUsuario,
+                                  String rolNombre,
+                                  boolean asignado) {
+        UsuarioDto uDto = usuarioService.findUsuarioById(idUsuario);
+        if (uDto == null) {
+            throw new RuntimeException("Usuario no encontrado: " + idUsuario);
+        }
+
+        Rol rol = rolRepository.findByNombre(rolNombre)
+            .orElseThrow(() -> new RuntimeException("Rol '" + rolNombre + "' no encontrado"));
+
+        UsuarioXTema ux = new UsuarioXTema();
+        ux.setTema(tema);
+        ux.setUsuario(UsuarioMapper.toEntity(uDto));
+        ux.setRol(rol);
+        ux.setAsignado(asignado);
+        ux.setActivo(true);
+        ux.setFechaCreacion(OffsetDateTime.now());
+
+        usuarioXTemaRepository.save(ux);
+    }
+
+    // Prepara la entidad Tema a partir del DTO y asigna el estado dado.
+    private Tema prepareNewTema(TemaDto dto, EstadoTemaEnum estadoEnum) {
+        Tema tema = TemaMapper.toEntity(dto);
+        EstadoTema estado = estadoTemaRepository.findByNombre(estadoEnum.name())
+            .orElseThrow(() -> new RuntimeException("EstadoTema '" + estadoEnum.name() + "' no encontrado"));
+        tema.setEstadoTema(estado);
+        return tema;
+    }
+
+    /**
+     * Guarda las subáreas de conocimiento asociadas al tema.
+     */
+    private void saveSubAreas(Tema tema, List<Integer> subAreaIds) {
+        if (subAreaIds == null || subAreaIds.isEmpty()) {
+            throw new RuntimeException("No subAreaConocimiento proporcionadas");
+        }
+        boolean found = false;
+        for (Integer id : subAreaIds) {
+            SubAreaConocimientoDto saDto = subAreaConocimientoService.findById(id);
+            if (saDto == null) {
+                logger.warning("Subárea no encontrada: " + id);
+                continue;
+            }
+            found = true;
+            SubAreaConocimientoXTema sat = new SubAreaConocimientoXTema();
+            sat.setTemaId(tema.getId());
+            sat.setSubAreaConocimientoId(id);
+            sat.setFechaCreacion(OffsetDateTime.now());
+            subAreaConocimientoXTemaRepository.save(sat);
+        }
+        if (!found) {
+            throw new RuntimeException("Ninguna subárea válida encontrada");
+        }
+    }
+
+    private void saveUsuariosInvolucrados(Tema tema,
+                                          Integer idUsuarioCreador,
+                                          List<Integer> involucrados,
+                                          String rolNombre,
+                                          boolean asignado) {
+        if (involucrados == null) return;
+        for (Integer idInv : involucrados) {
+            if (idInv.equals(idUsuarioCreador)) {
+                logger.warning("Omitiendo creador en involucrados: " + idInv);
+                continue;
+            }
+            UsuarioDto invDto = usuarioService.findUsuarioById(idInv);
+            if (invDto == null) {
+                logger.warning("Usuario involucrado no encontrado: " + idInv);
+                continue;
+            }
+            saveUsuarioXTema(tema, idInv, rolNombre, asignado);
+        }
+    }
 
 }

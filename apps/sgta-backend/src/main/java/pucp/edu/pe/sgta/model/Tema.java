@@ -30,8 +30,14 @@ public class Tema {
 	@Column(columnDefinition = "TEXT")
 	private String resumen;
 
-	@Column(name = "portafolio_url", length = 255)
-	private String portafolioUrl;
+    @Column(columnDefinition = "TEXT")
+    private String objetivos;
+
+    @Column(columnDefinition = "TEXT")
+    private String metodologia;
+
+    @Column(name = "portafolio_url", length = 255)
+    private String portafolioUrl;
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "estado_tema_id", nullable = false, foreignKey = @ForeignKey(name = "fk_estado_tema"))
@@ -47,8 +53,12 @@ public class Tema {
 																										// proyecto
 	private Proyecto proyecto;
 
-	@Column(nullable = false)
-	private boolean activo = true;
+    @Column(name = "fecha_limite",
+        columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private OffsetDateTime fechaLimite;
+
+    @Column(nullable = false)
+    private boolean activo = true;
 
 	@Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
 	private OffsetDateTime fechaCreacion;

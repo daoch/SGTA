@@ -20,24 +20,20 @@ import java.util.List;
 @Builder
 public class TemaDto {
 
-	private Integer id;
-
-	private String codigo;
-
-	private String titulo;
-
-	private String resumen;
-
-	private String portafolioUrl;
-
-	private boolean activo;
-
-	private OffsetDateTime fechaCreacion;
-
-	private OffsetDateTime fechaModificacion;
-
-	private List<Integer> idUsuarioInvolucradosList;
-
-	private List<Integer> idSubAreasConocimientoList;
-
+    private Integer id;
+    private String codigo;
+    private String titulo;
+    private String resumen;
+    private String objetivos;
+    private String metodologia;
+    private String portafolioUrl;
+    private boolean activo;
+    private OffsetDateTime fechaLimite;
+    private OffsetDateTime fechaCreacion;
+    private OffsetDateTime fechaModificacion;
+    private List<Integer> idUsuarioInvolucradosList;
+    private List<Integer> idCoasesorInvolucradosList;
+    private List<Integer> idEstudianteInvolucradosList;
+    private List<Integer> idSubAreasConocimientoList;
 }
+
