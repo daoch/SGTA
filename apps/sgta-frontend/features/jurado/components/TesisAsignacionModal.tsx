@@ -13,13 +13,13 @@ import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { ListaTesisJuradoCard } from "./TesisCard";
 import { MultiSelectCheckbox } from "./EspecialiadMultiSelect";
-import { Jurado } from "@/features/jurado/types/juradoDetalle.types"; // Asegúrate de que la ruta sea correcta
+import { Jurado ,Tesis} from "@/features/jurado/types/juradoDetalle.types"; // Asegúrate de que la ruta sea correcta
 
 interface ModalAsignarTesisProps {
   open: boolean;
   onClose: () => void;
   onAsignar: (tesisSeleccionada: any) => void;
-  data: any[];
+  data: Tesis[];
   jurado: Jurado; // o el tipo completo si lo tienes
 }
 

@@ -100,7 +100,7 @@ export function JuradoDetalleView({
     "Todos",
   );
 
-  const handleAsignarTesis = async (nuevaTesis: any) => {
+  const handleAsignarTesis = async () => {
     try {
       //llamado a api de listar
       //   const resultado = await response.json();
@@ -113,12 +113,12 @@ export function JuradoDetalleView({
     }
   };
 
-  useEffect(() => {
-    setAsignadas(tesisData);
-  }, []);
+  //useEffect(() => {
+    //setAsignadas(tesisData);
+  //}, []);
 
   useEffect(() => {
-    setAsignadas((current) => {
+    setAsignadas(() => {
       return tesisData.filter((tesis) => {
         const matchCurso =
           selectedCurso === "Todos" || tesis.curso === selectedCurso;
