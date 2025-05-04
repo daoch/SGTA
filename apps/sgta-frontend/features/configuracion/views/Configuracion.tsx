@@ -4,13 +4,17 @@ import { Settings } from "lucide-react";
 //import { Badge } from "@/components/ui/badge"
 
 export default function Configuracion() {
-
   return (
     <div className="max-w-5xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold mt-5 mb-1 text-[#042354]">Configuración</h1>
+        <h1 className="text-2xl font-bold mt-5 mb-1 text-[#042354]">
+          Configuración
+        </h1>
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6">
-          <p className="text-gray-600">Configure los parámetros generales del sistema y las opciones de la facultad.</p>
+          <p className="text-gray-600">
+            Configure los parámetros generales del sistema y las opciones de la
+            facultad.
+          </p>
         </div>
       </div>
 
@@ -23,9 +27,12 @@ export default function Configuracion() {
             <Settings size={24} />
           </div>
           <div>
-            <h2 className="font-semibold text-lg mb-1">Configuración General</h2>
+            <h2 className="font-semibold text-lg mb-1">
+              Configuración General
+            </h2>
             <p className="text-gray-500 text-sm">
-              Gestioné configuraciones clave del proceso de tesis: áreas, temas, fechas, asesores, jurados y revisión.
+              Gestioné configuraciones clave del proceso de tesis: áreas, temas,
+              fechas, asesores, jurados y revisión.
             </p>
           </div>
         </Link>
