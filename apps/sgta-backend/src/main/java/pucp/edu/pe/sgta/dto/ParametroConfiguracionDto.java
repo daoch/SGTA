@@ -19,13 +19,9 @@ public class ParametroConfiguracionDto {
 
 	private String descripcion;
 
-	private Modulo modulo;
+	private Integer moduloId;
 
 	private boolean activo;
-
-	private OffsetDateTime fechaCreacion;
-
-	private OffsetDateTime fechaModificacion;
 
 	private TipoDatoEnum tipoDato;
 
