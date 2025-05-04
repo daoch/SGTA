@@ -1,9 +1,12 @@
-
 import { useState } from "react";
+import { X } from "lucide-react";
 import {
-  X,
-} from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -28,23 +31,34 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 
 export default function GeneralConfCards() {
-
   const [areasDialogOpen, setAreasDialogOpen] = useState(false);
   const [areas, setAreas] = useState([
     {
       id: 1,
       nombre: "Inteligencia Artificial",
-      subAreas: ["Machine Learning", "Visión Computacional", "Procesamiento de Lenguaje Natural"],
+      subAreas: [
+        "Machine Learning",
+        "Visión Computacional",
+        "Procesamiento de Lenguaje Natural",
+      ],
     },
     {
       id: 2,
       nombre: "Desarrollo de Software",
-      subAreas: ["Metodologías Ágiles", "Arquitectura de Software", "Pruebas de Software"],
+      subAreas: [
+        "Metodologías Ágiles",
+        "Arquitectura de Software",
+        "Pruebas de Software",
+      ],
     },
     {
       id: 3,
       nombre: "Redes y Seguridad",
-      subAreas: ["Ciberseguridad", "Redes Inalámbricas", "Seguridad de la Información"],
+      subAreas: [
+        "Ciberseguridad",
+        "Redes Inalámbricas",
+        "Seguridad de la Información",
+      ],
     },
   ]);
   const [newArea, setNewArea] = useState("");
@@ -62,7 +76,9 @@ export default function GeneralConfCards() {
     if (newSubArea.trim() && selectedAreaId) {
       setAreas(
         areas.map((area) =>
-          area.id === selectedAreaId ? { ...area, subAreas: [...area.subAreas, newSubArea] } : area,
+          area.id === selectedAreaId
+            ? { ...area, subAreas: [...area.subAreas, newSubArea] }
+            : area,
         ),
       );
       setNewSubArea("");
@@ -76,7 +92,14 @@ export default function GeneralConfCards() {
   const handleDeleteSubArea = (areaId: number, subAreaIndex: number) => {
     setAreas(
       areas.map((area) =>
-        area.id === areaId ? { ...area, subAreas: area.subAreas.filter((_, index) => index !== subAreaIndex) } : area,
+        area.id === areaId
+          ? {
+              ...area,
+              subAreas: area.subAreas.filter(
+                (_, index) => index !== subAreaIndex,
+              ),
+            }
+          : area,
       ),
     );
   };

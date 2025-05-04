@@ -1,24 +1,28 @@
-'use client'
+"use client";
 
-import * as React from "react"
-import { useRouter } from 'next/navigation'
-import { FileSearch,Trash2 } from "lucide-react"
-import { Table, TableHeader, TableBody, TableRow, TableCell } from "@/components/ui/table" // Usamos los componentes de shadcn
-import { Button } from "@/components/ui/button" // Para los botones de editar y eliminar
-import { JuradoUI } from '@/features/jurado/types/juradoDetalle.types' // Importamos la interfaz JuradoUI
+import * as React from "react";
+import { useRouter } from "next/navigation";
+import { FileSearch, Trash2 } from "lucide-react";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table"; // Usamos los componentes de shadcn
+import { Button } from "@/components/ui/button"; // Para los botones de editar y eliminar
+import { JuradoUI } from "@/features/jurado/types/juradoDetalle.types"; // Importamos la interfaz JuradoUI
 
 interface TableJuradosProps {
-  juradosData: JuradoUI[]
+  juradosData: JuradoUI[];
 }
 
-
-
 const TableJurados: React.FC<TableJuradosProps> = ({ juradosData }) => {
-  const router = useRouter()
+  const router = useRouter();
 
   const handleClick = (detalleJurado: string) => {
-    router.push(`/coordinador/jurados/${detalleJurado}`)
-  }
+    router.push(`/coordinador/jurados/${detalleJurado}`);
+  };
 
   return (
     <Table>
@@ -54,7 +58,10 @@ const TableJurados: React.FC<TableJuradosProps> = ({ juradosData }) => {
             <TableCell>
               <div className="flex gap-1.5 flex-wrap">
                 {jurado.specialties.map((specialty, idx) => (
-                  <span key={idx} className="bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-2.5 rounded-full">
+                  <span
+                    key={idx}
+                    className="bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-2.5 rounded-full"
+                  >
                     {specialty}
                   </span>
                 ))}
@@ -63,19 +70,16 @@ const TableJurados: React.FC<TableJuradosProps> = ({ juradosData }) => {
             <TableCell>{jurado.status}</TableCell>
             <TableCell>
               <div className="flex gap-2 items-center">
-              <Button 
-                variant="ghost"
-                size="icon"
-                className="relative"
-                onClick={() => handleClick(jurado.code)} // Cambia a la ruta de detalle del jurado
-               >
-                <FileSearch className="h-5 w-5" />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="relative"
+                  onClick={() => handleClick(jurado.code)} // Cambia a la ruta de detalle del jurado
+                >
+                  <FileSearch className="h-5 w-5" />
                 </Button>
-                <Button 
-                variant="ghost"
-                size="icon"
-                className="relative">
-                <Trash2 className="h-5 w-5 text-red-500" />
+                <Button variant="ghost" size="icon" className="relative">
+                  <Trash2 className="h-5 w-5 text-red-500" />
                 </Button>
               </div>
             </TableCell>
@@ -83,7 +87,7 @@ const TableJurados: React.FC<TableJuradosProps> = ({ juradosData }) => {
         ))}
       </TableBody>
     </Table>
-  )
-}
+  );
+};
 
-export default TableJurados
+export default TableJurados;

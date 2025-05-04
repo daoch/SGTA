@@ -1,116 +1,133 @@
-'use client'
-import { useParams, useRouter } from 'next/navigation'
-import React, { useEffect, useState } from 'react'
-import { ArrowLeft, Search } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { ListaTesisJuradoCard } from '../components/TesisCard'
+"use client";
+import { useParams, useRouter } from "next/navigation";
+import React, { useEffect, useState } from "react";
+import { ArrowLeft, Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ListaTesisJuradoCard } from "../components/TesisCard";
 
 interface JuradoDetalleViewProps {
   modalAsignarTesisComponent: React.ComponentType<any>;
 }
 
-export function JuradoDetalleView({ modalAsignarTesisComponent: ModalAsignarTesis }: JuradoDetalleViewProps) {
-  const params = useParams()
-  const router = useRouter()
-  const detalleJurado = params?.detalleJurado as string // Este es el dato que viene en la URL
-  const [searchTerm, setSearchTerm] = useState('');
+export function JuradoDetalleView({
+  modalAsignarTesisComponent: ModalAsignarTesis,
+}: JuradoDetalleViewProps) {
+  const params = useParams();
+  const router = useRouter();
+  const detalleJurado = params?.detalleJurado as string; // Este es el dato que viene en la URL
+  const [searchTerm, setSearchTerm] = useState("");
   //const [jurado, setJurado] = useState<Jurado | null>(null)
 
   interface Jurado {
-    user: { name: string; avatar: string }
-    code: string
-    email: string
-    dedication: string
-    assigned: string
-    specialties: string[]
-    status: string
+    user: { name: string; avatar: string };
+    code: string;
+    email: string;
+    dedication: string;
+    assigned: string;
+    specialties: string[];
+    status: string;
   }
 
   const tesisData = [
     {
-      titulo: 'Aplicación de Deep Learning para la detección y clasificación automática de insectos agrícolas en trampas pegantes',
-      codigo: 'INF0501',
-      estudiante: 'Angel Malpartida',
-      codEstudiante: '20201242',
-      resumen: 'El presente trabajo de investigación busca hacer una revisión sistemática sobre las técnicas actuales que se usan para solucionar problemas de identificación y clasificación de plagas de insectos, los cuales pueden ser para detectar uno o más tipos de insectos. Dentro de esta revisión, se encontró soluciones como algoritmos de segmentación con cambio de espacio de color, lo cual permite remover el fondo de una imagen y centrarse únicamente en el objeto de interés; también, el uso de modelos de detección, por ejemplo YOLO y Faster R-CNN, los cuales están conformados por redes neuronales convolucionales...',
-      especialidades: ['Desarrollo Web', 'Backend'],
-      curso: 'PFC1',
-      periodo: '2025-1',
-      rol: 'Jurado'
+      titulo:
+        "Aplicación de Deep Learning para la detección y clasificación automática de insectos agrícolas en trampas pegantes",
+      codigo: "INF0501",
+      estudiante: "Angel Malpartida",
+      codEstudiante: "20201242",
+      resumen:
+        "El presente trabajo de investigación busca hacer una revisión sistemática sobre las técnicas actuales que se usan para solucionar problemas de identificación y clasificación de plagas de insectos, los cuales pueden ser para detectar uno o más tipos de insectos. Dentro de esta revisión, se encontró soluciones como algoritmos de segmentación con cambio de espacio de color, lo cual permite remover el fondo de una imagen y centrarse únicamente en el objeto de interés; también, el uso de modelos de detección, por ejemplo YOLO y Faster R-CNN, los cuales están conformados por redes neuronales convolucionales...",
+      especialidades: ["Desarrollo Web", "Backend"],
+      curso: "PFC1",
+      periodo: "2025-1",
+      rol: "Jurado",
     },
     {
-      titulo: 'Identificación del nivel de complejidad de texto para el entrenamiento de chatbots basado en Machine Learning',
-      codigo: 'INF1643',
-      estudiante: 'Marco Bossio',
-      codEstudiante: '20105420',
-      resumen: 'El nivel de complejidad textual puede ser un inconveniente para algunas personas al momento de usar Chatbots, debido a que estos programas podrían dar respuestas cuyo nivel de complejidad no sea el que entienda el usuario. Entonces, aquellos Chatbots deberían ser entrenados con un conjunto de datos cuya complejidad textual sea la deseada, para evitar confusiones con los usuarios. Para ello, se define una revisión sistemática, en la cual se usan las bases de datos de Google Scholar, ACM Digital Library e IEEE Xplore, de las cuáles se obtiene la información necesaria empleando las palabras claves definidas por el...',
-      especialidades: ['Ciencias de la Computación'],
-      curso: 'PFC2',
-      periodo: '2025-1',
-      rol: 'Jurado'
-    }
-  ]
+      titulo:
+        "Identificación del nivel de complejidad de texto para el entrenamiento de chatbots basado en Machine Learning",
+      codigo: "INF1643",
+      estudiante: "Marco Bossio",
+      codEstudiante: "20105420",
+      resumen:
+        "El nivel de complejidad textual puede ser un inconveniente para algunas personas al momento de usar Chatbots, debido a que estos programas podrían dar respuestas cuyo nivel de complejidad no sea el que entienda el usuario. Entonces, aquellos Chatbots deberían ser entrenados con un conjunto de datos cuya complejidad textual sea la deseada, para evitar confusiones con los usuarios. Para ello, se define una revisión sistemática, en la cual se usan las bases de datos de Google Scholar, ACM Digital Library e IEEE Xplore, de las cuáles se obtiene la información necesaria empleando las palabras claves definidas por el...",
+      especialidades: ["Ciencias de la Computación"],
+      curso: "PFC2",
+      periodo: "2025-1",
+      rol: "Jurado",
+    },
+  ];
 
   const tesisDataSeleccion = [
     {
-      titulo: 'Aplicación de Deep Learning para la detección y clasificación automática de insectos agrícolas en trampas pegantes',
-      codigo: 'INF0501',
-      estudiante: 'Angel Malpartida',
-      codEstudiante: '20201242',
-      especialidades: ['Vision Computacional', 'Sistemas de Informacion'],
-      rol: 'Jurado'
+      titulo:
+        "Aplicación de Deep Learning para la detección y clasificación automática de insectos agrícolas en trampas pegantes",
+      codigo: "INF0501",
+      estudiante: "Angel Malpartida",
+      codEstudiante: "20201242",
+      especialidades: ["Vision Computacional", "Sistemas de Informacion"],
+      rol: "Jurado",
     },
     {
-      titulo: 'Identificación del nivel de complejidad de texto para el entrenamiento de chatbots basado en Machine Learning',
-      codigo: 'INF1643',
-      estudiante: 'Marco Bossio',
-      codEstudiante: '20105420',
-      especialidades: ['Ciencias de la Computación'],
-      rol: 'Jurado'
-    }
-  ]
+      titulo:
+        "Identificación del nivel de complejidad de texto para el entrenamiento de chatbots basado en Machine Learning",
+      codigo: "INF1643",
+      estudiante: "Marco Bossio",
+      codEstudiante: "20105420",
+      especialidades: ["Ciencias de la Computación"],
+      rol: "Jurado",
+    },
+  ];
 
   //Se buscan las especialidades del jurado usando su codigo(detalleJurado)
   const juradoEjemplo = {
-    specialties: ['Ingeniería de Software', 'Ciencias de la Computación']
-  }
+    specialties: ["Ingeniería de Software", "Ciencias de la Computación"],
+  };
 
   const [modalOpen, setModalOpen] = useState(false);
   const [asignadas, setAsignadas] = useState(tesisData);
-  const [selectedPeriodo, setSelectedPeriodo] = useState<'Todos' | '2025-1' | '2025-0' | '2024-2'>('Todos')
-  const [selectedCurso, setSelectedCurso] = useState<'Todos' | 'PFC1' | 'PFC2'>('Todos')
+  const [selectedPeriodo, setSelectedPeriodo] = useState<
+    "Todos" | "2025-1" | "2025-0" | "2024-2"
+  >("Todos");
+  const [selectedCurso, setSelectedCurso] = useState<"Todos" | "PFC1" | "PFC2">(
+    "Todos",
+  );
 
   const handleAsignarTesis = async (nuevaTesis: any) => {
     try {
       //llamado a api de listar
       //   const resultado = await response.json();
       // console.log('Tesis asignada correctamente:', resultado);
-
       // Actualiza el estado local con la nueva tesis asignada
       //setAsignadas(prev => [...prev, nuevaTesis]);
     } catch (error) {
-      console.error('Error en la asignación:', error);
+      console.error("Error en la asignación:", error);
       // Aquí podrías mostrar un toast o alerta al usuario
     }
-  }
+  };
 
   useEffect(() => {
-    setAsignadas(tesisData)
-  }, [])
+    setAsignadas(tesisData);
+  }, []);
 
   useEffect(() => {
     setAsignadas((current) => {
       return tesisData.filter((tesis) => {
         const matchCurso =
-          selectedCurso === 'Todos' || tesis.curso === selectedCurso
+          selectedCurso === "Todos" || tesis.curso === selectedCurso;
         const matchPeriodo =
-          selectedPeriodo === 'Todos' || tesis.periodo === selectedPeriodo
-        return matchCurso && matchPeriodo
-      })
-    })
-  }, [selectedCurso, selectedPeriodo, searchTerm])
+          selectedPeriodo === "Todos" || tesis.periodo === selectedPeriodo;
+        return matchCurso && matchPeriodo;
+      });
+    });
+  }, [selectedCurso, selectedPeriodo, searchTerm]);
 
   const handleSearch = () => {
     setAsignadas(
@@ -118,19 +135,19 @@ export function JuradoDetalleView({ modalAsignarTesisComponent: ModalAsignarTesi
         const matchText =
           tesis.codigo.toLowerCase().includes(searchTerm.toLowerCase()) ||
           tesis.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          tesis.estudiante.toLowerCase().includes(searchTerm.toLowerCase())
+          tesis.estudiante.toLowerCase().includes(searchTerm.toLowerCase());
         // Además respetamos filtros de curso/periodo activos
         const matchCurso =
-          selectedCurso === 'Todos' || tesis.curso === selectedCurso
+          selectedCurso === "Todos" || tesis.curso === selectedCurso;
         const matchPeriodo =
-          selectedPeriodo === 'Todos' || tesis.periodo === selectedPeriodo
-        return matchText && matchCurso && matchPeriodo
-      })
-    )
-  }
+          selectedPeriodo === "Todos" || tesis.periodo === selectedPeriodo;
+        return matchText && matchCurso && matchPeriodo;
+      }),
+    );
+  };
 
   if (!detalleJurado) {
-    return <p>Cargando...</p> // O un spinner de carga si quieres
+    return <p>Cargando...</p>; // O un spinner de carga si quieres
   }
 
   return (
@@ -155,7 +172,7 @@ export function JuradoDetalleView({ modalAsignarTesisComponent: ModalAsignarTesi
             className="pl-12 w-full h-full px-3 py-2 items-center gap-2 bg-transparent resize-none focus:outline-none"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
           />
         </div>
         <Button
@@ -214,7 +231,7 @@ export function JuradoDetalleView({ modalAsignarTesisComponent: ModalAsignarTesi
         jurado={juradoEjemplo}
       />
     </div>
-  )
+  );
 }
 
 export default JuradoDetalleView;
