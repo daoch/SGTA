@@ -18,7 +18,7 @@ import { Jurado ,Tesis} from "@/features/jurado/types/juradoDetalle.types"; // A
 interface ModalAsignarTesisProps {
   open: boolean;
   onClose: () => void;
-  onAsignar: (tesisSeleccionada: any) => void;
+  onAsignar: (tesisSeleccionada: Tesis) => void;
   data: Tesis[];
   jurado: Jurado; // o el tipo completo si lo tienes
 }
@@ -32,11 +32,11 @@ export const ModalAsignarTesis: React.FC<ModalAsignarTesisProps> = ({
 }) => {
   const [search, setSearch] = useState("");
   //const [especialidad, setEspecialidad] = useState('')
-  const [tesisSeleccionada, setTesisSeleccionada] = useState<any | null>(null);
+  const [tesisSeleccionada, setTesisSeleccionada] = useState<Tesis | null>(null);
   const [especialidadesSeleccionadas, setEspecialidadesSeleccionadas] =
     useState<string[]>(jurado.specialties || []);
 
-  const handleSelectCard = (tesis: any) => {
+  const handleSelectCard = (tesis: Tesis) => {
     setTesisSeleccionada(tesis);
   };
 

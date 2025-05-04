@@ -13,30 +13,24 @@ import {
 } from "@/components/ui/select";
 import { ListaTesisJuradoCard } from "../components/TesisCard";
 
-interface JuradoDetalleViewProps {
-  modalAsignarTesisComponent: React.ComponentType<any>;
-}
+import { 
+  Jurado, 
+  TesisAsignada, 
+  CursoType, 
+  PeriodoAcademico,
+  JuradoDetalleViewProps 
+} from '@/features/jurado/types/juradoDetalle.types';
 
 export function JuradoDetalleView({
   modalAsignarTesisComponent: ModalAsignarTesis,
 }: JuradoDetalleViewProps) {
   const params = useParams();
   const router = useRouter();
-  const detalleJurado = params?.detalleJurado as string; // Este es el dato que viene en la URL
+  const detalleJurado = params?.detalleJurado as string;
   const [searchTerm, setSearchTerm] = useState("");
-  //const [jurado, setJurado] = useState<Jurado | null>(null)
 
-  interface Jurado {
-    user: { name: string; avatar: string };
-    code: string;
-    email: string;
-    dedication: string;
-    assigned: string;
-    specialties: string[];
-    status: string;
-  }
-
-  const tesisData = [
+  // Define los datos con el tipo correcto
+  const tesisData: TesisAsignada[] = [
     {
       titulo:
         "Aplicación de Deep Learning para la detección y clasificación automática de insectos agrícolas en trampas pegantes",
@@ -44,10 +38,10 @@ export function JuradoDetalleView({
       estudiante: "Angel Malpartida",
       codEstudiante: "20201242",
       resumen:
-        "El presente trabajo de investigación busca hacer una revisión sistemática sobre las técnicas actuales que se usan para solucionar problemas de identificación y clasificación de plagas de insectos, los cuales pueden ser para detectar uno o más tipos de insectos. Dentro de esta revisión, se encontró soluciones como algoritmos de segmentación con cambio de espacio de color, lo cual permite remover el fondo de una imagen y centrarse únicamente en el objeto de interés; también, el uso de modelos de detección, por ejemplo YOLO y Faster R-CNN, los cuales están conformados por redes neuronales convolucionales...",
+        "El presente trabajo de investigación busca hacer una revisión sistemática sobre las técnicas actuales que se usan para solucionar problemas de identificación y clasificación de plagas de insectos...",
       especialidades: ["Desarrollo Web", "Backend"],
-      curso: "PFC1",
-      periodo: "2025-1",
+      curso: CursoType.PFC1,
+      periodo: PeriodoAcademico.PERIODO_2025_1,
       rol: "Jurado",
     },
     {
@@ -57,10 +51,10 @@ export function JuradoDetalleView({
       estudiante: "Marco Bossio",
       codEstudiante: "20105420",
       resumen:
-        "El nivel de complejidad textual puede ser un inconveniente para algunas personas al momento de usar Chatbots, debido a que estos programas podrían dar respuestas cuyo nivel de complejidad no sea el que entienda el usuario. Entonces, aquellos Chatbots deberían ser entrenados con un conjunto de datos cuya complejidad textual sea la deseada, para evitar confusiones con los usuarios. Para ello, se define una revisión sistemática, en la cual se usan las bases de datos de Google Scholar, ACM Digital Library e IEEE Xplore, de las cuáles se obtiene la información necesaria empleando las palabras claves definidas por el...",
+        "El nivel de complejidad textual puede ser un inconveniente para algunas personas al momento de usar Chatbots...",
       especialidades: ["Ciencias de la Computación"],
-      curso: "PFC2",
-      periodo: "2025-1",
+      curso: CursoType.PFC2,
+      periodo: PeriodoAcademico.PERIODO_2025_1,
       rol: "Jurado",
     },
   ];
@@ -74,6 +68,7 @@ export function JuradoDetalleView({
       codEstudiante: "20201242",
       especialidades: ["Vision Computacional", "Sistemas de Informacion"],
       rol: "Jurado",
+      resumen: "",
     },
     {
       titulo:
@@ -83,52 +78,43 @@ export function JuradoDetalleView({
       codEstudiante: "20105420",
       especialidades: ["Ciencias de la Computación"],
       rol: "Jurado",
+      resumen: "",
     },
   ];
 
-  //Se buscan las especialidades del jurado usando su codigo(detalleJurado)
-  const juradoEjemplo = {
+  const juradoEjemplo: Jurado = {
+    
     specialties: ["Ingeniería de Software", "Ciencias de la Computación"],
   };
 
   const [modalOpen, setModalOpen] = useState(false);
-  const [asignadas, setAsignadas] = useState(tesisData);
-  const [selectedPeriodo, setSelectedPeriodo] = useState<
-    "Todos" | "2025-1" | "2025-0" | "2024-2"
-  >("Todos");
-  const [selectedCurso, setSelectedCurso] = useState<"Todos" | "PFC1" | "PFC2">(
-    "Todos",
-  );
+  const [asignadas, setAsignadas] = useState<TesisAsignada[]>(tesisData);
+  const [selectedPeriodo, setSelectedPeriodo] = useState<PeriodoAcademico>(PeriodoAcademico.TODOS);
+  const [selectedCurso, setSelectedCurso] = useState<CursoType>(CursoType.TODOS);
 
   const handleAsignarTesis = async () => {
     try {
-      //llamado a api de listar
-      //   const resultado = await response.json();
-      // console.log('Tesis asignada correctamente:', resultado);
-      // Actualiza el estado local con la nueva tesis asignada
-      //setAsignadas(prev => [...prev, nuevaTesis]);
+      // implementación futura
     } catch (error) {
       console.error("Error en la asignación:", error);
-      // Aquí podrías mostrar un toast o alerta al usuario
     }
   };
 
-  //useEffect(() => {
-    //setAsignadas(tesisData);
-  //}, []);
-
+  // Modificación clave: eliminar searchTerm de las dependencias y 
+  // filtrar solo por curso y periodo en este useEffect
   useEffect(() => {
-    setAsignadas(() => {
-      return tesisData.filter((tesis) => {
+    setAsignadas(
+      tesisData.filter((tesis) => {
         const matchCurso =
-          selectedCurso === "Todos" || tesis.curso === selectedCurso;
+          selectedCurso === CursoType.TODOS || tesis.curso === selectedCurso;
         const matchPeriodo =
-          selectedPeriodo === "Todos" || tesis.periodo === selectedPeriodo;
+          selectedPeriodo === PeriodoAcademico.TODOS || tesis.periodo === selectedPeriodo;
         return matchCurso && matchPeriodo;
-      });
-    });
-  }, [selectedCurso, selectedPeriodo, searchTerm]);
+      })
+    );
+  }, [selectedCurso, selectedPeriodo]); // Quitar searchTerm de aquí
 
+  // Función de búsqueda que filtra por texto y respeta los filtros activos
   const handleSearch = () => {
     setAsignadas(
       tesisData.filter((tesis) => {
@@ -136,18 +122,19 @@ export function JuradoDetalleView({
           tesis.codigo.toLowerCase().includes(searchTerm.toLowerCase()) ||
           tesis.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
           tesis.estudiante.toLowerCase().includes(searchTerm.toLowerCase());
-        // Además respetamos filtros de curso/periodo activos
+        
         const matchCurso =
-          selectedCurso === "Todos" || tesis.curso === selectedCurso;
+          selectedCurso === CursoType.TODOS || tesis.curso === selectedCurso;
         const matchPeriodo =
-          selectedPeriodo === "Todos" || tesis.periodo === selectedPeriodo;
+          selectedPeriodo === PeriodoAcademico.TODOS || tesis.periodo === selectedPeriodo;
+        
         return matchText && matchCurso && matchPeriodo;
-      }),
+      })
     );
   };
 
   if (!detalleJurado) {
-    return <p>Cargando...</p>; // O un spinner de carga si quieres
+    return <p>Cargando...</p>;
   }
 
   return (
@@ -177,7 +164,7 @@ export function JuradoDetalleView({
         </div>
         <Button
           className="inline-flex h-11 px-4 justify-center items-center gap-2 flex-shrink-0 rounded-md bg-[#042354] text-white"
-          onClick={handleSearch} // Llama a la función de búsqueda al hacer clic
+          onClick={handleSearch}
         >
           Buscar
         </Button>
@@ -185,29 +172,36 @@ export function JuradoDetalleView({
         {/* ComboBox 1 - Curso */}
         <div className="flex flex-col w-[242px] h-[80px] items-start gap-[6px] flex-shrink-0">
           <label className="text-sm font-medium">Curso</label>
-          <Select onValueChange={(val) => setSelectedCurso(val as any)}>
+          <Select 
+            onValueChange={(val: string) => setSelectedCurso(val as CursoType)}
+            defaultValue={CursoType.TODOS}
+          >
             <SelectTrigger className="h-[80px] w-full border border-[#E2E6F0] rounded-md !important">
               <SelectValue placeholder="Todos" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="Todos">Todos</SelectItem>
-              <SelectItem value="PFC1">Proyecto de Fin de Carrera 1</SelectItem>
-              <SelectItem value="PFC2">Proyecto de Fin de Carrera 2</SelectItem>
+              <SelectItem value={CursoType.TODOS}>{CursoType.TODOS}</SelectItem>
+              <SelectItem value={CursoType.PFC1}>Proyecto de Fin de Carrera 1</SelectItem>
+              <SelectItem value={CursoType.PFC2}>Proyecto de Fin de Carrera 2</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
-        {/* ComboBox 2 - Perido */}
+        {/* ComboBox 2 - Periodo */}
         <div className="flex flex-col w-[104px] h-[80px] items-start gap-[6px] flex-shrink-0">
           <label className="text-sm font-medium">Periodo</label>
-          <Select onValueChange={(val) => setSelectedPeriodo(val as any)}>
+          <Select 
+            onValueChange={(val: string) => setSelectedPeriodo(val as PeriodoAcademico)}
+            defaultValue={PeriodoAcademico.TODOS}
+          >
             <SelectTrigger className="h-[68px] w-full">
-              <SelectValue placeholder="2025-1" />
+              <SelectValue placeholder="Todos" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="2025-1">2025-1</SelectItem>
-              <SelectItem value="2025-0">2025-0</SelectItem>
-              <SelectItem value="2024-2">2024-2</SelectItem>
+              <SelectItem value={PeriodoAcademico.TODOS}>{PeriodoAcademico.TODOS}</SelectItem>
+              <SelectItem value={PeriodoAcademico.PERIODO_2025_1}>2025-1</SelectItem>
+              <SelectItem value={PeriodoAcademico.PERIODO_2025_0}>2025-0</SelectItem>
+              <SelectItem value={PeriodoAcademico.PERIODO_2024_2}>2024-2</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -227,7 +221,7 @@ export function JuradoDetalleView({
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         onAsignar={handleAsignarTesis}
-        data={tesisDataSeleccion} // puede venir de un API más adelante
+        data={tesisDataSeleccion} 
         jurado={juradoEjemplo}
       />
     </div>

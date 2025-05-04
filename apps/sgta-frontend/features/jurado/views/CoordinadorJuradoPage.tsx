@@ -3,6 +3,13 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { 
+  TipoDedicacion, 
+  AreaEspecialidadFilter, 
+  EstadoJurado, 
+  JuradoViewModel 
+} from '@/features/jurado/types/juradoDetalle.types';
+
 import {
   Select,
   SelectContent,
@@ -36,16 +43,10 @@ const JuradosView = () => {
   ];
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [juradosData, setJuradosData] = useState(juradosOriginal);
-  const [dedication, setDedication] = useState<
-    "Todos" | "Tiempo Completo" | "Medio Tiempo"
-  >("Todos");
-  const [specialty, setSpecialty] = useState<
-    "Todos" | "Desarrollo Web" | "Backend" | "Front-End" | "UI/UX"
-  >("Todos");
-  const [status, setStatus] = useState<"Todos" | "Activo" | "Inactivo">(
-    "Todos",
-  );
+  const [juradosData, setJuradosData] = useState<JuradoViewModel[]>(juradosOriginal);
+  const [dedication, setDedication] = useState<TipoDedicacion>(TipoDedicacion.TODOS);
+  const [specialty, setSpecialty] = useState<AreaEspecialidadFilter>(AreaEspecialidadFilter.TODOS);
+  const [status, setStatus] = useState<EstadoJurado>(EstadoJurado.TODOS);
   const [hasSearched, setHasSearched] = useState(false);
 
   // 1) Filtrado automático al cambiar combobox
@@ -53,10 +54,10 @@ const JuradosView = () => {
     setJuradosData(() => {
       return juradosOriginal.filter((j) => {
         const matchDedication =
-          dedication === "Todos" || j.dedication === dedication;
+          dedication === TipoDedicacion.TODOS || j.dedication === dedication;
         const matchSpecialty =
-          specialty === "Todos" || j.specialties.includes(specialty);
-        const matchStatus = status === "Todos" || j.status === status;
+          specialty === AreaEspecialidadFilter.TODOS || j.specialties.includes(specialty);
+        const matchStatus = status === EstadoJurado.TODOS || j.status === status;
         // Solo aplicamos búsqueda si ya se buscó alguna vez
         const matchSearch =
           !hasSearched ||
@@ -67,7 +68,7 @@ const JuradosView = () => {
         return matchDedication && matchSpecialty && matchStatus && matchSearch;
       });
     });
-  }, [dedication, specialty, status, searchTerm]);
+  }, [dedication, specialty, status, searchTerm, hasSearched]);
 
   const handleSearch = () => {
     setJuradosData(() => {
@@ -113,7 +114,7 @@ const JuradosView = () => {
         {/* ComboBox 1 - Tipo de Dedicación */}
         <div className="flex flex-col w-[130px] h-[80px] items-start gap-[6px] flex-shrink-0">
           <label className="text-sm font-medium">Tipo de Dedicación</label>
-          <Select onValueChange={(val) => setDedication(val as any)}>
+          <Select onValueChange={(val) => setDedication(val as TipoDedicacion)}>
             <SelectTrigger className="h-[80px] w-full border border-[#E2E6F0] rounded-md !important">
               <SelectValue placeholder="Todos" />
             </SelectTrigger>
@@ -128,19 +129,15 @@ const JuradosView = () => {
         {/* ComboBox 2 - Área de Especialidad */}
         <div className="flex flex-col w-[148px] h-[80px] items-start gap-[6px] flex-shrink-0">
           <label className="text-sm font-medium">Área de Especialidad</label>
-          <Select onValueChange={(val) => setSpecialty(val as any)}>
+          <Select onValueChange={(val) => setSpecialty(val as AreaEspecialidadFilter)}>
             <SelectTrigger className="h-[68px] w-full">
               <SelectValue placeholder="Todos" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="Todos">Todos</SelectItem>
-              <SelectItem value="Ciencias de la Computacion">
-                Ciencias de la Computacion
-              </SelectItem>
-              <SelectItem value="Desarrollo de Software">
-                Desarrollo de Software
-              </SelectItem>
-              <SelectItem value="Desarrollo Web">Desarrollo Web</SelectItem>
+              <SelectItem value={AreaEspecialidadFilter.TODOS}>{AreaEspecialidadFilter.TODOS}</SelectItem>
+              <SelectItem value={AreaEspecialidadFilter.CIENCIAS_COMPUTACION}>{AreaEspecialidadFilter.CIENCIAS_COMPUTACION}</SelectItem>
+              <SelectItem value={AreaEspecialidadFilter.DESARROLLO_SOFTWARE}>{AreaEspecialidadFilter.DESARROLLO_SOFTWARE}</SelectItem>
+              <SelectItem value={AreaEspecialidadFilter.DESARROLLO_WEB}>{AreaEspecialidadFilter.DESARROLLO_WEB}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -148,7 +145,7 @@ const JuradosView = () => {
         {/* ComboBox 3 - Estado */}
         <div className="flex flex-col w-[107px] h-[80px] items-start gap-[6px] flex-shrink-0">
           <label className="text-sm font-medium">Estado</label>
-          <Select onValueChange={(val) => setStatus(val as any)}>
+          <Select onValueChange={(val) => setStatus(val as EstadoJurado)}>
             <SelectTrigger className="h-[68px] w-full">
               <SelectValue placeholder="Todos" />
             </SelectTrigger>
