@@ -1,12 +1,9 @@
 
-
-import PlanExpo from "@/features/jurado/views/PlanExpo";
+import Exposiciones from "@/features/jurado/views/vista-exposiciones/exposiciones";
 import React from "react";
 
 const Page: React.FC = () => {
-  return (
-    <PlanExpo></PlanExpo>
-  );
+  return <Exposiciones />;
 };
 
 export default Page;
