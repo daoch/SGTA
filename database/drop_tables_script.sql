@@ -74,4 +74,5 @@ DROP TYPE IF EXISTS enum_estado_entrega CASCADE;
 DROP TYPE IF EXISTS enum_estado_actividad CASCADE;
 DROP TYPE IF EXISTS enum_estado_revision CASCADE;
 
+
 -- NOTA: Si alguna tabla no existe, IF EXISTS evitará el error.

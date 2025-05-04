@@ -1,3 +1,16 @@
+DO
+$$
+    BEGIN
+        CREATE TYPE enum_tipo_dato AS ENUM (
+            'string',
+            'date',
+            'integer',
+            'boolean'
+            );
+    EXCEPTION
+        WHEN duplicate_object THEN NULL;
+    END
+$$;
 -- Tabla unidad_academica
 CREATE TABLE IF NOT EXISTS unidad_academica (
     unidad_academica_id    SERIAL PRIMARY KEY,
@@ -46,6 +59,8 @@ CREATE TABLE IF NOT EXISTS usuario (
 	nivel_estudios         VARCHAR(25), 
     contrasena             VARCHAR(255) NOT NULL,
 	biografia               TEXT,
+    enlace_linkedin        VARCHAR(255),
+    enlace_repositorio     VARCHAR(255),
 	foto_perfil            BYTEA,
 	disponibilidad         TEXT,
 	tipo_disponibilidad    TEXT,
@@ -559,20 +574,6 @@ $$
         CREATE TYPE enum_tipo_sala_exposicion AS ENUM (
             'presencial',
             'virtual'
-            );
-    EXCEPTION
-        WHEN duplicate_object THEN NULL;
-    END
-$$;
-
-DO
-$$
-    BEGIN
-        CREATE TYPE enum_tipo_dato AS ENUM (
-            'string',
-            'date',
-            'integer',
-            'boolean',
             );
     EXCEPTION
         WHEN duplicate_object THEN NULL;
