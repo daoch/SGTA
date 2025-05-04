@@ -11,6 +11,7 @@ import {
   MessageSquare,
   Search,
   Users,
+  Settings
 } from "lucide-react";
 
 export interface NavigationGroup {
