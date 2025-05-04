@@ -24,4 +24,6 @@ public interface TemaService {
 
 	List<TemaDto> listarTemasPropuestosPorSubAreaConocimiento(List<Integer> subareaIds);
 
+	void postularAsesorTemaPropuesto(Integer asesorId, Integer temaId);
+
 }

@@ -129,3 +129,34 @@ BEGIN
         u_alumno.nombres, u_alumno.primer_apellido, r.documento_url;
 END;
 $$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION public.postular_asesor_a_tema(
+	p_asesor_id integer,
+	p_tema_id integer)
+    RETURNS void
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+AS $BODY$
+BEGIN
+    INSERT INTO usuario_tema (
+        usuario_id,
+        tema_id,
+        rol_id,
+        asignado,
+        activo,
+        fecha_creacion,
+        fecha_modificacion
+    )
+    VALUES (
+        p_asesor_id,
+        p_tema_id,
+        (SELECT rol_id FROM rol WHERE nombre ILIKE 'Asesor' LIMIT 1),
+        false,
+        true,
+        now(),
+        now()
+    );
+END;
+$BODY$;
