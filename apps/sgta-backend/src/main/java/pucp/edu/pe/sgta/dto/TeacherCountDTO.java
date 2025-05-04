@@ -1,5 +1,6 @@
 package pucp.edu.pe.sgta.dto;
 
+//Se podria generalizar los datos, para mandar tanto asesor como jurado
 public class TeacherCountDTO {
     private String teacherName;
     private int count;

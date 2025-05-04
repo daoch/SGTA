@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import pucp.edu.pe.sgta.dto.AdvisorPerformanceDto;
 import pucp.edu.pe.sgta.dto.TeacherCountDTO;
 import pucp.edu.pe.sgta.dto.TopicAreaStatsDTO;
 import pucp.edu.pe.sgta.service.inter.IReportService;
@@ -38,4 +39,13 @@ public class ReportsController {
     public List<TeacherCountDTO> fetchJurorDistribution() {
         return reportingService.getJurorDistribution();
     }
+
+    /**
+     * RF2B: Endpoint para desempeño de asesores.
+     */
+    @GetMapping("/advisors/performance")
+    public List<AdvisorPerformanceDto> getAdvisorPerformance() {
+        return reportingService.getAdvisorPerformance();
+    }
+
 }

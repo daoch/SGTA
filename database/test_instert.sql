@@ -300,3 +300,54 @@ INSERT INTO carrera_parametro_configuracion (
 -- Para verificar
 SELECT * FROM parametro_configuracion;
 SELECT * FROM carrera_parametro_configuracion;
+
+-- PARA REPORTES
+-- (1)
+CREATE OR REPLACE FUNCTION get_topic_area_stats_by_user(p_usuario_id INTEGER)
+RETURNS TABLE (
+    area_name VARCHAR,
+    topic_count BIGINT
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        ac.nombre as area_name,
+        COUNT(DISTINCT t.tema_id) as topic_count
+    FROM area_conocimiento ac
+    INNER JOIN sub_area_conocimiento sac ON sac.area_conocimiento_id = ac.area_conocimiento_id
+    INNER JOIN sub_area_conocimiento_tema sat ON sat.sub_area_conocimiento_id = sac.sub_area_conocimiento_id
+    INNER JOIN tema t ON t.tema_id = sat.tema_id
+    INNER JOIN usuario_tema ut ON ut.tema_id = t.tema_id
+    WHERE ut.usuario_id = p_usuario_id
+    AND t.activo = true
+    AND ac.activo = true
+    AND sac.activo = true
+    GROUP BY ac.nombre
+    ORDER BY topic_count DESC;
+END;
+$$ LANGUAGE plpgsql; 
+
+-- (2)
+CREATE OR REPLACE FUNCTION get_advisor_distribution()
+RETURNS TABLE (
+    teacher_name VARCHAR(255),
+    advisor_count BIGINT
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        CAST(CONCAT(u.nombres, ' ', u.primer_apellido, ' ', COALESCE(u.segundo_apellido, '')) AS VARCHAR(255)) as teacher_name,
+        COUNT(DISTINCT t.tema_id) as advisor_count
+    FROM usuario u
+    INNER JOIN usuario_tema ut ON ut.usuario_id = u.usuario_id
+    INNER JOIN tema t ON t.tema_id = ut.tema_id
+    INNER JOIN rol r ON r.rol_id = ut.rol_id
+    WHERE r.nombre = 'Asesor'
+    AND u.activo = true
+    AND t.activo = true
+    AND ut.activo = true
+    AND ut.asignado = true
+    GROUP BY u.nombres, u.primer_apellido, u.segundo_apellido
+    ORDER BY advisor_count DESC;
+END;
+$$ LANGUAGE plpgsql; 
