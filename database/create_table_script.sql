@@ -112,6 +112,7 @@ CREATE TABLE IF NOT EXISTS tema (
     portafolio_url           VARCHAR(255),
     estado_tema_id           INTEGER      NOT NULL,
     proyecto_id              INTEGER,
+    carrera_id               INTEGER,
     fecha_limite             TIMESTAMP WITH TIME ZONE,
     activo                   BOOLEAN           NOT NULL DEFAULT TRUE,
     fecha_creacion           TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -125,6 +126,11 @@ CREATE TABLE IF NOT EXISTS tema (
     CONSTRAINT fk_proyecto
         FOREIGN KEY (proyecto_id)
         REFERENCES proyecto (proyecto_id)
+        ON DELETE RESTRICT,
+    
+    CONSTRAINT fk_t_carrera
+        FOREIGN KEY (carrera_id)
+        REFERENCES carrera (carrera_id)
         ON DELETE RESTRICT
 );
 
@@ -254,11 +260,17 @@ CREATE TABLE IF NOT EXISTS usuario_tema (
 -- 8) AREA_CONOCIMIENTO
 CREATE TABLE IF NOT EXISTS area_conocimiento (
     area_conocimiento_id     SERIAL PRIMARY KEY,
+    carrera_id               INTEGER           NOT NULL,
     nombre                   VARCHAR(100)      NOT NULL,
     descripcion              TEXT,
     activo                   BOOLEAN           NOT NULL DEFAULT TRUE,
     fecha_creacion           TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion       TIMESTAMP WITH TIME ZONE
+
+    CONSTRAINT fk_ac_carrera
+        FOREIGN KEY (carrera_id)
+        REFERENCES carrera (carrera_id)
+        ON DELETE RESTRICT
 );
 
 -- 9) SUB_AREA_CONOCIMIENTO (depende de area_conocimiento)
