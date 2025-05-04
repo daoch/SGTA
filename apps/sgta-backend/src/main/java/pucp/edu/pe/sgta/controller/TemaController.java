@@ -40,4 +40,18 @@ public class TemaController {
 		return temaService.listarTemasPropuestosAlAsesor(asesorId);
 	}
 
+	@GetMapping("/listarTemasPropuestosPorSubAreaConocimiento")
+	public List<TemaDto> listarTemasPropuestosPorSubAreaConocimiento(@RequestParam List<Integer> subareaIds) {
+		return temaService.listarTemasPropuestosPorSubAreaConocimiento(subareaIds);
+	}
+
+	@PostMapping("/postularAsesorTemaPropuesto")
+	public void postularAsesorTemaPropuesto(
+			@RequestParam(name = "idUsuario") Integer idUsuario,
+			@RequestParam(name = "idTema") Integer idTema) {
+
+		temaService.postularAsesorTemaPropuesto(idUsuario, idTema);
+	}
+
+
 }
