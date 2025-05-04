@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import React, { useState } from "react";
 import { AreaEspecialidad, Dispo, Exposicion } from "../types/jurado.types";
@@ -27,64 +27,64 @@ const PlanExpo: React.FC = () => {
             {code: "V204", busy :false}],
         },
       ];
-    
-      const [topics, setTopics] = useState<AreaEspecialidad[]>([
-        { name: 'Todos' },
-        { name: 'Inteligencia Artificial' },
-        { name: 'Sistemas de información' }
+      
+      const [topics, _] = useState<AreaEspecialidad[]>([
+        { name: "Todos" },
+        { name: "Inteligencia Artificial" },
+        { name: "Sistemas de información" }
       ]);
       const [freeExpos,setFreeExpos] = useState<Exposicion[]>(
         [ 
           { 
-            code: 'INF0501',
+            code:  "INF0501",
             name: "Aplicaion de Deep Learning para la detección y clasificación automática de insectos agrícolas en trampoas pegantes", 
             advisor: "Rony Cueva",
             jurys: [{code: "JUR00001",name : "Eder Quispe" },{code: "JUR00002",name:"Fredy Paz"}]
           },
           { 
-            code: 'INF0502', 
+            code: "INF0502", 
             name: "Generacion de imagenes de acciones especificas de una persona utilizando aprendizaje profundo", 
             advisor: "Ediwn Villegas", 
             jurys: [{code: "JUR0003" , name : "Carlos Cisneros" },{code : "JUR0004",name:"Roger  Quiroz"}]
           },
           { 
-            code: 'INF0503',
+            code: "INF0503",
             name: "Identificación del nivel de complejidad de texto para el entrenamiento de chatbots",
             advisor: "Marco Bossio",
             jurys: [{code: "JUR0001" ,name : "Eder Quispe" },{code:"JUR0002" ,name:"Fredy Paz"}]
            },
            { 
-            code: 'INF0504',
+            code:  "INF0504",
             name: "Aplicacion de móvil para gestionar carpool en universidades",
             advisor: "Marco Bossio",
             jurys: [{code: "JUR0001" ,name : "Eder Quispe" },{code:"JUR0002" ,name:"Fredy Paz"}]
            },
            { 
-            code: 'INF0505',
+            code: "INF0505",
             name: "Identificación del nivel de complejidad de texto para el entrenamiento de chatbots",
             advisor: "Marco Bossio",
             jurys: [{code: "JUR0001" ,name : "Eder Quispe" },{code:"JUR0002" ,name:"Fredy Paz"}]
            },
            { 
-            code: 'INF0506',
+            code: "INF0506",
             name: "Identificación del nivel de complejidad de texto para el entrenamiento de chatbots",
             advisor: "Marco Bossio",
             jurys: [{code: "JUR0001" ,name : "Eder Quispe" },{code:"JUR0002" ,name:"Fredy Paz"}]
            },
            { 
-            code: 'INF0507',
+            code: "INF0507",
             name: "Identificación del nivel de complejidad de texto para el entrenamiento de chatbots",
             advisor: "Marco Bossio",
             jurys: [{code: "JUR0001" ,name : "Eder Quispe" },{code:"JUR0002" ,name:"Fredy Paz"}]
            },
            { 
-            code: 'INF0508',
+            code: "INF0508",
             name: "Identificación del nivel de complejidad de texto para el entrenamiento de chatbots",
             advisor: "Marco Bossio",
             jurys: [{code: "JUR0001" ,name : "Eder Quispe" },{code:"JUR0002" ,name:"Fredy Paz"}]
            },
            { 
-            code: 'INF0509',
+            code: "INF0509",
             name: "Identificación del nivel de complejidad de texto para el entrenamiento de chatbots",
             advisor: "Marco Bossio",
              jurys: [{code: "JUR0001" ,name : "Eder Quispe" },{code:"JUR0002" ,name:"Fredy Paz"}]
@@ -93,12 +93,10 @@ const PlanExpo: React.FC = () => {
            
          
         ]
-      )
+      );
     
     
       const [assignedExpos,setAssignedExpos] = useState<Record<string,Exposicion>>({});
-    
-      const [selectedTopic, setSelectedTopic] = useState('Todos');
     
     
       /*Handles the drag and drop event for the expositions*/
@@ -116,11 +114,11 @@ const PlanExpo: React.FC = () => {
           /*If it's in the unassigned list, it's removed from there and added to the assigned list*/
           const newAssignment = {
             [spaceId] : chosenExpo
-          }
+          };
           setAssignedExpos((prevAssignment)=>({
             ...prevAssignment,
             ...newAssignment,
-          }))
+          }));
     
           setFreeExpos((prev) => prev.filter((e) => e.code !== expoId));
         }
@@ -131,7 +129,7 @@ const PlanExpo: React.FC = () => {
           if(chosenExpo){
             const newAssignment = {
               [spaceId] : chosenExpo
-            }
+            };
             const updatedAssignment = Object.keys(assignedExpos)
               .filter(key => assignedExpos[key].code!== chosenExpo.code)
               .reduce((acc: Record<string,Exposicion>,key) => {
@@ -139,7 +137,7 @@ const PlanExpo: React.FC = () => {
                 return acc;
               },{});
             
-            setAssignedExpos((prev) => ({
+            setAssignedExpos(() => ({
                 ...updatedAssignment,
                 ...newAssignment,
             }));
@@ -156,7 +154,7 @@ const PlanExpo: React.FC = () => {
           setFreeExpos((prev) => [
             ...prev,
             clickedExpo,
-          ])
+          ]);
           //and remove from assigned expos
           setAssignedExpos((prev) =>{
             const updatedAssignment = { ...prev };
@@ -169,13 +167,13 @@ const PlanExpo: React.FC = () => {
           });
         }
     
-      }
+      };
     
       const mouseSensor = useSensor(MouseSensor,{
         activationConstraint:{
           distance:20,
         }
-      })
+      });
     
       const sensors = useSensors(mouseSensor);
     

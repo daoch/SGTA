@@ -20,12 +20,12 @@ const ExpoSon: React.FC<Props> = ({ expoFind,removeExpo}: Props)=> {
     return(
         <div           
             style={{ 
-                backgroundColor: '#FFDFBD',
-                height:'60px',
-                border:'0px',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
+                backgroundColor: "#FFDFBD",
+                height: "60px",
+                border:"0px",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
              }}
              onClick={handleClick}  
         >
@@ -33,6 +33,6 @@ const ExpoSon: React.FC<Props> = ({ expoFind,removeExpo}: Props)=> {
         </div>
     );
 
-}
+};
 
 export default ExpoSon;

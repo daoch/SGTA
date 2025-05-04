@@ -1,9 +1,9 @@
-"use client"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+"use client";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
-import { useSearchParams, usePathname, useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { AreaEspecialidad } from '../types/jurado.types';
+import { useSearchParams, usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
+import { AreaEspecialidad } from "../types/jurado.types";
 
 interface Props {
     topics : AreaEspecialidad[];
@@ -15,14 +15,15 @@ const SearchFilter: React.FC<Props> = ({topics}) => {
     const searchParams = useSearchParams();
     const pathname = usePathname();
     const { replace } = useRouter();
-    const placeholder = "Inombre del docente o codigo de tesis"
-    const [selectedEspecialidad, setSelectedEspecialidad] = useState('Todos');
+    const placeholder = "Inombre del docente o codigo de tesis";
+
+    const [selectedEspecialidad, _] = useState("Todos");
     function handleSearch(term: string) {
         const params = new URLSearchParams(searchParams);
         if (term) {
-            params.set('query', term);
+            params.set("query", term);
         } else {
-            params.delete('query');
+            params.delete("query");
         }
         replace(`${pathname}?${params.toString()}`);
     }
@@ -38,7 +39,7 @@ const SearchFilter: React.FC<Props> = ({topics}) => {
           onChange={(e) => {
             handleSearch(e.target.value);
           }}
-          defaultValue={searchParams.get('query')?.toString()}
+          defaultValue={searchParams.get("query")?.toString()}
         />
         <DropdownMenu>
               <DropdownMenuTrigger className="w-1/2 border-gray-300 border-2 rounded-lg text-left p-1">

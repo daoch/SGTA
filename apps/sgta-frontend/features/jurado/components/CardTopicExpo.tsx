@@ -13,7 +13,7 @@ const CardTemaExposicion: React.FC<Props> = ({ exposicion }) => {
   
   
     return(
-        <Card className="border-2 border-gray-300 " style={{ backgroundColor: '#F9FAFB' }} >
+        <Card className="border-2 border-gray-300 " style={{ backgroundColor: "#F9FAFB" }} >
             <CardHeader className="">
                 <CardTitle>{exposicion.code} - {exposicion.name}</CardTitle>
                 <CardDescription className="text-black">

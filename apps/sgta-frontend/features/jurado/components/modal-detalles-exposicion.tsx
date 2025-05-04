@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { User } from "lucide-react";
 
 interface ModalDetallesExposicionProps {
-    id_exposicion: number;
+    _idExposicion: number;
 }
 
 const exposicion = {
@@ -21,9 +21,10 @@ const exposicion = {
     horaInicio: "15:00",
     horaFin: "15:20",
     sala: "V202",
-}
+};
 
-const ModalDetallesExposicion: React.FC<ModalDetallesExposicionProps> = ({ id_exposicion }) => {
+const ModalDetallesExposicion: React.FC<ModalDetallesExposicionProps> = ({ _idExposicion }) => {
+  console.log(_idExposicion);
     return (
       <div className="pt-4">
         <div className="grid grid-cols-2 gap-4 pb-4">

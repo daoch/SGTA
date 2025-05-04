@@ -27,7 +27,7 @@ const PlanificationPanel: React.FC<Props> = ({roomAvailList,assignedExpos,remove
    const expoDuration = 20;
    const timeSlots:TimeSlot[] = [];
 
-   const [selectedCode, setSelectedCode] = useState<number>(roomAvailList[0]?.code ?? 0)
+   const [selectedCode, setSelectedCode] = useState<number>(roomAvailList[0]?.code ?? 0);
   
 
     if(roomAvailList){
@@ -36,14 +36,14 @@ const PlanificationPanel: React.FC<Props> = ({roomAvailList,assignedExpos,remove
   
         rangos.forEach(range => {
             dispo.spaces.forEach(space => {
-              const key =   dispo.date.toISOString().split("T")[0] + "|" + range.split('-')[0].trim() + "|" + space.code;
+              const key =   dispo.date.toISOString().split("T")[0] + "|" + range.split("-")[0].trim() + "|" + space.code;
               timeSlots.push({
                 key : key,
                 range: range
-              })
-            })
-        })
-     })
+              });
+            });
+        });
+     });
   
     }
      
@@ -57,7 +57,7 @@ const PlanificationPanel: React.FC<Props> = ({roomAvailList,assignedExpos,remove
     
     while (horaActual < horaFinDate) {
       const horaFinal = new Date(horaActual.getTime() + duracion * 60000); // duracion en minutos
-      const rango = `${horaActual.getHours()}:${horaActual.getMinutes().toString().padStart(2, '0')} - ${horaFinal.getHours()}:${horaFinal.getMinutes().toString().padStart(2, '0')}`;
+      const rango = `${horaActual.getHours()}:${horaActual.getMinutes().toString().padStart(2, "0")} - ${horaFinal.getHours()}:${horaFinal.getMinutes().toString().padStart(2, "0")}`;
       rangos.push(rango);
       horaActual = horaFinal;
     }
@@ -115,7 +115,7 @@ const PlanificationPanel: React.FC<Props> = ({roomAvailList,assignedExpos,remove
      </section>
     );
 
-}
+};
 
 function TimeSlotCard({ time ,filteredRooms,assignedExpos, removeExpo}: { time: string, spaces ?: Espacio[], 
   filteredRooms :TimeSlot[] ,assignedExpos: Record<string,Exposicion>, removeExpo : (expo: Exposicion) => void}) {
@@ -140,7 +140,7 @@ function TimeSlotCard({ time ,filteredRooms,assignedExpos, removeExpo}: { time: 
         </div> 
         
       </div>
-    )
+    );
   }
 
 export default PlanificationPanel;

@@ -34,6 +34,6 @@ const BreadCrumbPlanificacion: React.FC = ({  }) => {
       </div>
     );
 
-}
+};
 
 export default BreadCrumbPlanificacion;

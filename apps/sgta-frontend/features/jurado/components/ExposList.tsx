@@ -1,12 +1,11 @@
 "use client";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
+
 import CardSugerenciaDistribucion from "@/features/jurado/components/CardSuggestAlgorithm";
-import React, { useState } from "react";
+
 
 import CardTemaExposicion from "./CardTopicExpo";
 import Draggable from "./Draggable";
-import { AreaEspecialidad, Exposicion } from "@/features/jurado/types/jurado.types"
+import { AreaEspecialidad, Exposicion } from "@/features/jurado/types/jurado.types";
 import SearchFilter from "./SearchFilter";
 
 
@@ -46,7 +45,7 @@ const ExposList: React.FC<Props> = ({ freeExpos,topics }) => {
       </section>
     );
 
-}
+};
 
 export default ExposList;
 

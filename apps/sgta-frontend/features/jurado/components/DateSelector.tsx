@@ -1,4 +1,4 @@
-import { Dispo } from "@/features/jurado/types/jurado.types"
+import { Dispo } from "@/features/jurado/types/jurado.types";
 
 interface Props {
   room : Dispo;
@@ -30,6 +30,6 @@ const SelectorFecha: React.FC<Props> = ({ room,isSelected,onSelect }) => {
         </div>
     );
 
-}
+};
 
 export default SelectorFecha;

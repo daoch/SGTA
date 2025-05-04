@@ -30,11 +30,11 @@ const RoomSlot: React.FC<Props> = ({ code , assignedExpos, room, removeExpo }: P
     };
   
     const centeredStyle: React.CSSProperties = {
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
     };
-  
+    
     return (
       <div 
         key={code}
@@ -51,7 +51,7 @@ const RoomSlot: React.FC<Props> = ({ code , assignedExpos, room, removeExpo }: P
             />
           </Draggable>
         ) : (
-          room?.key.split('|')[2]
+          room?.key.split("|")[2]
         )}
       </div>
     );
