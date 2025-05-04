@@ -1,35 +1,8 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import FormularioPropuesta from "@/features/temas/components/alumno/formulario-propuesta";
-import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
+import FormularioPropuestaPage from "@/features/temas/views/formulario-propuesta-alumno-page";
+import React from "react";
 
-const page = () => {
-  return (
-    <div className="space-y-8 mt-4">
-      <div className="flex items-center gap-2">
-        <Link href="/alumno/temas">
-          <Button variant="outline" size="icon">
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-        </Link>
-        <div>
-          <h1 className="text-3xl font-bold text-[#042354]">Nueva Propuesta</h1>
-          <p className="text-muted-foreground text-sm">Proponer un nuevo tema de tesis</p>
-        </div>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Formulario de Propuesta</CardTitle>
-          <CardDescription>Complete la información para registrar una nueva propuesta</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <FormularioPropuesta />
-        </CardContent>
-      </Card>
-    </div>
-  );
+const Page: React.FC = () => {
+  return <FormularioPropuestaPage />;
 };
 
-export default page;
+export default Page;
