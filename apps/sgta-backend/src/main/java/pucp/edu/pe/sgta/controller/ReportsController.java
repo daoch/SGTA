@@ -2,12 +2,14 @@ package pucp.edu.pe.sgta.controller;
 
 import java.util.List;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import pucp.edu.pe.sgta.dto.AdvisorPerformanceDto;
+import pucp.edu.pe.sgta.dto.AreaFinalDTO;
 import pucp.edu.pe.sgta.dto.TeacherCountDTO;
 import pucp.edu.pe.sgta.dto.TopicAreaStatsDTO;
 import pucp.edu.pe.sgta.service.inter.IReportService;
@@ -38,6 +40,11 @@ public class ReportsController {
     @GetMapping("/jurors-distribution")
     public List<TeacherCountDTO> fetchJurorDistribution(@RequestParam Integer usuarioId,@RequestParam String ciclo) {
         return reportingService.getJurorDistribution(usuarioId,ciclo);
+    }
+    
+    @GetMapping("/area-final")
+    public ResponseEntity<List<AreaFinalDTO>> getAreaFinal(@RequestParam Integer usuarioId, @RequestParam String ciclo) {
+        return ResponseEntity.ok(reportingService.getAreaFinal(usuarioId, ciclo));
     }
 
     /**

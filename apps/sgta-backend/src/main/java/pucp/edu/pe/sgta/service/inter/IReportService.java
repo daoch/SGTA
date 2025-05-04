@@ -3,6 +3,7 @@ package pucp.edu.pe.sgta.service.inter;
 import java.util.List;
 
 import pucp.edu.pe.sgta.dto.AdvisorPerformanceDto;
+import pucp.edu.pe.sgta.dto.AreaFinalDTO;
 import pucp.edu.pe.sgta.dto.TeacherCountDTO;
 import pucp.edu.pe.sgta.dto.TopicAreaStatsDTO;
 
@@ -13,6 +14,8 @@ public interface IReportService {
     List<TeacherCountDTO> getAdvisorDistribution(Integer usuarioId, String cicloNombre);
     /** RF2b: distribución de jurados por docente */
     List<TeacherCountDTO> getJurorDistribution(Integer usuarioId, String cicloNombre);
+    /** RF2c: rendimiento por área de conocimiento */
+    List<AreaFinalDTO> getAreaFinal(Integer usuarioId, String cicloNombre);
 
     List<AdvisorPerformanceDto> getAdvisorPerformance();
 }
