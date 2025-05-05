@@ -16,3 +16,31 @@ export type Proyecto = {
     fecha: string;
   }[];
 };
+
+export type Tema = {
+  id: number;
+  codigo: string | null;
+  titulo: string;
+  resumen: string;
+  objetivos: string;
+  metodologia: string;
+  portafolioUrl: string;
+  activo: boolean;
+  fechaLimite: string; // ISO 8601 string, puedes usar Date si lo conviertes en un objeto Date
+  fechaCreacion: string; // ISO 8601 string, también puedes convertirlo a Date
+  fechaModificacion: string; // ISO 8601 string, igual puedes convertirlo a Date
+  idUsuarioInvolucradosList: number[] | null;
+  idCoasesorInvolucradosList: number[] | null;
+  idEstudianteInvolucradosList: number[];
+  idSubAreasConocimientoList: number[];
+  estadoTema: EstadoTema;
+};
+
+export type EstadoTema = {
+  id: number;
+  nombre: string;
+  descripcion: string;
+  activo: boolean;
+  fechaCreacion: string; // ISO 8601 string, puedes usar Date si lo conviertes en un objeto Date
+  fechaModificacion: string; // ISO 8601 string, igual puedes convertirlo a Date
+}
