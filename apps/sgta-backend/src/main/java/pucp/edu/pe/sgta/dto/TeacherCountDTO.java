@@ -1,15 +1,14 @@
 package pucp.edu.pe.sgta.dto;
 
-//Se podria generalizar los datos, para mandar tanto asesor como jurado
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class TeacherCountDTO {
     private String teacherName;
-    private int count;
-    private String Area;
-
-    public TeacherCountDTO(String teacherName, int count) {
-        this.teacherName = teacherName;
-        this.count = count;
-    }
-    public String getTeacherName() { return teacherName; }
-    public int getCount() { return count; }
+    private String areaName;
+    private int    count;
 }
