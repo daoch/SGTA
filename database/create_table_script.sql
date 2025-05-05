@@ -119,7 +119,7 @@ CREATE TABLE IF NOT EXISTS proyecto (
 -- 1) TEMA
 CREATE TABLE IF NOT EXISTS tema (
     tema_id                  SERIAL PRIMARY KEY,
-	codigo                   VARCHAR(255) UNIQUE    NOT NULL,
+	codigo                   VARCHAR(255),
     titulo                   VARCHAR(255)      NOT NULL,
     resumen                  TEXT,
     metodologia              TEXT,

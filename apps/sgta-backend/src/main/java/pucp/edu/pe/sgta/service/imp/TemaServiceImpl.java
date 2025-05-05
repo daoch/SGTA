@@ -45,13 +45,18 @@ public class TemaServiceImpl implements TemaService {
 
 	private final EstadoTemaRepository estadoTemaRepository;
 
+	private final UsuarioXCarreraRepository usuarioCarreraRepository;
+
+	private final CarreraRepository carreraRepository;
+
 	@PersistenceContext
 	private EntityManager entityManager;
 
 	public TemaServiceImpl(TemaRepository temaRepository, UsuarioXTemaRepository usuarioXTemaRepository,
 			UsuarioService usuarioService, SubAreaConocimientoService subAreaConocimientoService,
 			SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository, RolRepository rolRepository,
-			EstadoTemaRepository estadoTemaRepository) {
+			EstadoTemaRepository estadoTemaRepository, UsuarioXCarreraRepository usuarioCarreraRepository,
+			CarreraRepository carreraRepository) {
 		this.temaRepository = temaRepository;
 		this.usuarioXTemaRepository = usuarioXTemaRepository;
 		this.subAreaConocimientoXTemaRepository = subAreaConocimientoXTemaRepository;
@@ -59,6 +64,8 @@ public class TemaServiceImpl implements TemaService {
 		this.usuarioService = usuarioService;
 		this.rolRepository = rolRepository;
 		this.estadoTemaRepository = estadoTemaRepository;
+		this.usuarioCarreraRepository = usuarioCarreraRepository;
+		this.carreraRepository = carreraRepository;
 	}
 
 	@Override
@@ -232,6 +239,18 @@ public class TemaServiceImpl implements TemaService {
         dto.setId(null);
         // Prepara y guarda el tema con estado INSCRITO
         Tema tema = prepareNewTema(dto, EstadoTemaEnum.INSCRITO);
+/////////////////////// se tiene que modificar si se puede elegir carrera, pararía como parámetro/////
+		var relaciones = usuarioCarreraRepository.findByUsuarioIdAndActivoTrue(idUsuarioCreador);
+		if(relaciones.isEmpty()) {
+			throw new RuntimeException("El usuario no tiene ninguna carrera activa.");
+		}
+		// tomamos la primera
+		Integer carreraId = relaciones.get(0).getCarrera().getId();
+		// opcionalmente cargamos la entidad completa
+		Carrera carrera = carreraRepository.findById(carreraId)
+			.orElseThrow(() -> new RuntimeException("Carrera no encontrada con id " + carreraId));
+		tema.setCarrera(carrera);
+/////////////////////////////////////////////////////////////////////////////////////////////////////
         temaRepository.save(tema);
 
         // 1) Creador del tema (rol "Creador", asignado = true)
