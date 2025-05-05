@@ -3,31 +3,32 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle
 } from "@/components/ui/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger
+    Tabs,
+    TabsContent,
+    TabsList,
+    TabsTrigger
 } from "@/components/ui/tabs";
 import { PendientesCotesistasCard } from "@/features/temas/components/alumno/pendientes-cotesistas-card";
 import { PropuestasTable } from "@/features/temas/components/alumno/propuestas-table";
 import { TemaCard } from "@/features/temas/components/alumno/tema-inscrito-card";
+import Link from "next/link";
 import { useState } from "react";
 
 export interface Propuesta {
@@ -110,14 +111,26 @@ const propuestas: Propuesta[] = [
   }
 ];
 
-const MisTemasTabs = () => {
+const MisTemasPage = () => {
   const [selectedPropuesta, setSelectedPropuesta] = useState<Propuesta | null>(null);
 
   const propuestasPendientes = propuestas.filter((p) => p.estado === "cotesista_pendiente");
   const propuestasConfirmadas = propuestas.filter((p) => p.estado === "propuesta");
 
   return (
-    <>
+    <div className="space-y-8 mt-4">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-[#042354]">Mis Temas</h1>
+          <p className="text-muted-foreground">
+            Gestión de tus temas de proyecto de fin de carrera, postulaciones y propuestas
+          </p>
+        </div>
+        <Link href="/alumno/temas/nueva-propuesta">
+          <Button className="bg-[#042354] hover:bg-[#0e2f7a] text-white">+ Nueva Propuesta</Button>
+        </Link>
+      </div>
+
       <Tabs defaultValue="inscrito" className="w-full">
         <TabsList>
           <TabsTrigger value="inscrito">Inscrito</TabsTrigger>
@@ -269,8 +282,8 @@ const MisTemasTabs = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 };
 
-export default MisTemasTabs;
+export default MisTemasPage;

@@ -1,14 +1,8 @@
 "use client";
 
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
+    AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+    AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -33,32 +27,44 @@ interface Postulacion {
   comentarioAsesor: string;
 }
 
-const PostulacionesRecibidas = () => {
+const PostulacionesRecibidasPage = () => {
   const [selectedPostulacion, setSelectedPostulacion] = useState<Postulacion | null>(null);
 
   return (
-    <>
+    <div className="space-y-8 mt-4">
+      <div>
+        <h1 className="text-3xl font-bold text-[#042354]">Postulaciones Recibidas</h1>
+        <p className="text-muted-foreground">
+          Postulaciones de asesores interesados en tus propuestas de proyecto de fin de carrera
+        </p>
+      </div>
       <Tabs defaultValue="directas" className="w-full">
         <TabsList>
           <TabsTrigger value="directas">Directas</TabsTrigger>
           <TabsTrigger value="generales">Generales</TabsTrigger>
         </TabsList>
+
         <TabsContent value="directas">
           <Card>
             <CardHeader>
               <CardTitle>Postulaciones Directas</CardTitle>
-              <CardDescription>Asesores interesados en tus propuestas dirigidas específicamente</CardDescription>
+              <CardDescription>
+                Asesores interesados en tus propuestas dirigidas específicamente
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <PostulacionesTable filter="directa" setSelectedPostulacion={setSelectedPostulacion} />
             </CardContent>
           </Card>
         </TabsContent>
+
         <TabsContent value="generales">
           <Card>
             <CardHeader>
               <CardTitle>Postulaciones Generales</CardTitle>
-              <CardDescription>Asesores interesados en tus propuestas generales</CardDescription>
+              <CardDescription>
+                Asesores interesados en tus propuestas generales
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <PostulacionesTable filter="general" setSelectedPostulacion={setSelectedPostulacion} />
@@ -67,8 +73,7 @@ const PostulacionesRecibidas = () => {
         </TabsContent>
       </Tabs>
 
-      <Dialog open={!!selectedPostulacion} onOpenChange={(open: boolean) => !open && setSelectedPostulacion(null)}
->
+      <Dialog open={!!selectedPostulacion} onOpenChange={(open) => !open && setSelectedPostulacion(null)}>
         <DialogContent className="w-[90vw] max-w-3xl sm:max-w-3xl">
           <DialogHeader>
             <DialogTitle>Detalles de la Postulación</DialogTitle>
@@ -193,8 +198,8 @@ const PostulacionesRecibidas = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 };
 
-export default PostulacionesRecibidas;
+export default PostulacionesRecibidasPage;

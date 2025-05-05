@@ -47,6 +47,13 @@ public class TemaController {
 		return temaService.listarTemasPropuestosPorSubAreaConocimiento(subareaIds);
 	}
 
+	@PostMapping("/postularAsesorTemaPropuesto")
+	public void postularAsesorTemaPropuesto(
+			@RequestParam(name = "idUsuario") Integer idUsuario,
+			@RequestParam(name = "idTema") Integer idTema) {
+
+		temaService.postularAsesorTemaPropuesto(idUsuario, idTema);
+	}
     @GetMapping("/listarTemasPorUsuarioRolEstado/{usuarioId}")
     public List<TemaDto> listarTemasPorUsuarioRolEstado(
             @PathVariable("usuarioId") Integer usuarioId,

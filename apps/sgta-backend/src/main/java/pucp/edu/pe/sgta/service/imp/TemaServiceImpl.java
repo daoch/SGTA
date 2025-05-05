@@ -514,4 +514,19 @@ public class TemaServiceImpl implements TemaService {
 		return lista;
 	}
 
+	@Transactional
+	public void postularAsesorTemaPropuesto(Integer asesorId, Integer temaId) {
+		entityManager
+				.createNativeQuery("SELECT public.postular_asesor_a_tema(:asesorId, :temaId)")
+				.setParameter("asesorId", asesorId)
+				.setParameter("temaId", temaId)
+				.getSingleResult();
+	}
+
+
+
+
+
+
+
 }
