@@ -263,3 +263,68 @@ BEGIN
     );
 END;
 $BODY$;
+
+CREATE OR REPLACE FUNCTION obtener_usuarios_por_tipo_y_carrera(
+    p_tipo_usuario_nombre VARCHAR,
+    p_carrera_id INTEGER
+)
+RETURNS TABLE (
+    usuario_id INTEGER,
+    tipo_usuario_id INTEGER,
+    codigo_PUCP VARCHAR,
+    nombres VARCHAR,
+    primer_apellido VARCHAR,
+    segundo_apellido VARCHAR,
+    correo_electronico VARCHAR,
+    nivel_estudios VARCHAR,
+    contrasena VARCHAR,
+    biografia TEXT,
+    enlace_linkedin VARCHAR,
+    enlace_repositorio VARCHAR,
+    foto_perfil BYTEA,
+    disponibilidad TEXT,
+    tipo_disponibilidad TEXT,
+    u_activo BOOLEAN,
+    u_fecha_creacion TIMESTAMPTZ,
+    u_fecha_modificacion TIMESTAMPTZ,
+    tipo_usuario_nombre VARCHAR,
+    carrera_id INTEGER,
+    carrera_nombre VARCHAR
+) AS
+$$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        u.usuario_id,
+        u.tipo_usuario_id,
+        u.codigo_PUCP,
+        u.nombres,
+        u.primer_apellido,
+        u.segundo_apellido,
+        u.correo_electronico,
+        u.nivel_estudios,
+        u.contrasena,
+        u.biografia,
+        u.enlace_linkedin,
+        u.enlace_repositorio,
+        u.foto_perfil,
+        u.disponibilidad,
+        u.tipo_disponibilidad,
+        u.activo,
+        u.fecha_creacion,
+        u.fecha_modificacion,
+        tu.nombre,
+        c.carrera_id,
+        c.nombre
+    FROM usuario u
+    INNER JOIN tipo_usuario tu ON tu.tipo_usuario_id = u.tipo_usuario_id
+    LEFT JOIN usuario_carrera uc ON uc.usuario_id = u.usuario_id
+    LEFT JOIN carrera c ON c.carrera_id = uc.carrera_id
+    WHERE tu.nombre = p_tipo_usuario_nombre
+      AND u.activo = TRUE
+      AND (p_carrera_id IS NULL OR c.carrera_id = p_carrera_id)
+	  AND uc.activo = TRUE
+	  AND tu.activo = TRUE
+	  AND c.activo = TRUE;
+END;
+$$ LANGUAGE plpgsql;
