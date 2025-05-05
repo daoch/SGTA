@@ -1,9 +1,10 @@
 -- Tablas de usuarios y roles (hijas primero)
-DROP TABLE IF EXISTS usuario_proyecto                CASCADE;
+DROP TABLE IF EXISTS usuario_proyecto                 CASCADE;
 DROP TABLE IF EXISTS grupo_investigacion_proyecto     CASCADE;
 DROP TABLE IF EXISTS usuario_grupo_investigacion      CASCADE;
 DROP TABLE IF EXISTS tipo_usuario_permiso             CASCADE;
 DROP TABLE IF EXISTS usuario_sub_area_conocimiento    CASCADE;
+DROP TABLE IF EXISTS usuario_area_conocimiento    	  CASCADE;
 DROP TABLE IF EXISTS sub_area_conocimiento_tema       CASCADE;
 DROP TABLE IF EXISTS usuario_tema                     CASCADE;
 DROP TABLE IF EXISTS usuario_solicitud                CASCADE;

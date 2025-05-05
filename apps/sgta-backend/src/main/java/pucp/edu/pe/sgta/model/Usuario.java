@@ -52,7 +52,7 @@ public class Usuario {
     @Column(name = "enlace_repositorio")
     private String enlaceRepositorio;
 
-    @Column(name = "enlace_lindekin", columnDefinition = "TEXT") 
+    @Column(name = "enlace_linkedin", columnDefinition = "TEXT")
     private String enlaceLinkedin;
 
 	@Column(name = "foto_perfil", columnDefinition = "bytea", nullable = true)

@@ -343,6 +343,24 @@ CREATE TABLE IF NOT EXISTS usuario_sub_area_conocimiento (
         REFERENCES sub_area_conocimiento (sub_area_conocimiento_id)
         ON DELETE RESTRICT
 );
+-- 12) USUARIO_AREA_CONOCIMIENTO (M:N entre usuario y area_conocimiento)
+CREATE TABLE IF NOT EXISTS usuario_area_conocimiento (
+    usuario_area_conocimiento_id      SERIAL 			PRIMARY KEY,
+    usuario_id                        INTEGER           NOT NULL,
+    area_conocimiento_id              INTEGER           NOT NULL,
+    activo                            BOOLEAN           NOT NULL DEFAULT TRUE,
+    fecha_creacion                    TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion                TIMESTAMP WITH TIME ZONE,
+
+    CONSTRAINT fk_uac_usuario
+        FOREIGN KEY (usuario_id)
+        REFERENCES usuario (usuario_id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_uac_ac
+        FOREIGN KEY (area_conocimiento_id)
+        REFERENCES area_conocimiento (area_conocimiento_id)
+        ON DELETE RESTRICT
+);
 -- 3) MODULO
 CREATE TABLE IF NOT EXISTS modulo (
     modulo_id             SERIAL PRIMARY KEY,
@@ -520,7 +538,8 @@ CREATE TABLE IF NOT EXISTS carrera_parametro_configuracion (
     activo                              BOOLEAN   NOT NULL DEFAULT TRUE,
     fecha_creacion                      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion                  TIMESTAMP WITH TIME ZONE,
-
+	cantidad							INTEGER	  NOT NULL,
+	estado								VARCHAR(50) NOT NULL,
     carrera_id                          INTEGER   NOT NULL,
     parametro_configuracion_id          INTEGER   NOT NULL,
 	-- si agregan el fk de etapa_formativa, no le pongan NOT NULL
