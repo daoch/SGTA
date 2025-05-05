@@ -6,6 +6,7 @@ import pucp.edu.pe.sgta.dto.TemaDto;
 import pucp.edu.pe.sgta.service.inter.TemaService;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 
@@ -47,12 +48,28 @@ public class TemaController {
 		return temaService.listarTemasPropuestosPorSubAreaConocimiento(subareaIds);
 	}
 
-	@PostMapping("/postularAsesorTemaPropuesto")
-	public void postularAsesorTemaPropuesto(
-			@RequestParam(name = "idUsuario") Integer idUsuario,
-			@RequestParam(name = "idTema") Integer idTema) {
+	@PostMapping("/postularAsesorTemaPropuestoGeneral")
+	public void postularAsesorTemaPropuestoGeneral(
+			@RequestParam(name = "idAlumno") Integer idAlumno,
+			@RequestParam(name = "idAsesor") Integer idAsesor,
+			@RequestParam(name = "idTema") Integer idTema,
+			@RequestParam(name = "comentario") String comentario) {
 
-		temaService.postularAsesorTemaPropuesto(idUsuario, idTema);
+		temaService.postularAsesorTemaPropuestoGeneral(idAlumno, idAsesor, idTema, comentario);
+
+
+	}
+
+	@PostMapping("/enlazarTesistasATemaPropuestDirecta")
+	public void enlazarTesistasATemaPropuestDirecta(@RequestBody Map<String, Object> body) {
+
+		List<Integer> usuariosIdList = (List<Integer>) body.get("usuariosId");
+		Integer[] usuariosId = usuariosIdList.toArray(new Integer[0]);
+		Integer temaId = (Integer) body.get("temaId");
+		Integer profesorId = (Integer) body.get("profesorId");
+		String comentario = (String) body.getOrDefault("comentario", ""); // por defecto vacío
+
+		temaService.enlazarTesistasATemaPropuestDirecta(usuariosId, temaId, profesorId, comentario);
 	}
     @GetMapping("/listarTemasPorUsuarioRolEstado/{usuarioId}")
     public List<TemaDto> listarTemasPorUsuarioRolEstado(

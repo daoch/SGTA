@@ -35,4 +35,10 @@ public class UsuarioController {
             tipoUsuarioNombre, carreraId, cadenaBusqueda
         );
     }
+	@GetMapping("/findById")
+	public UsuarioDto findById(@RequestParam("idUsuario") Integer idUsuario) {
+
+		return this.usuarioService.findUsuarioById(idUsuario);
+	}
+
 }

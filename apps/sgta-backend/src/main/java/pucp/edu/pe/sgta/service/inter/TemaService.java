@@ -19,7 +19,9 @@ public interface TemaService {
 
 	List<TemaDto> listarTemasPropuestosPorSubAreaConocimiento(List<Integer> subareaIds);
 
-	void postularAsesorTemaPropuesto(Integer asesorId, Integer temaId);
+	void postularAsesorTemaPropuestoGeneral(Integer alumnoId,Integer asesorId, Integer temaId,String comentario);
+
+	void enlazarTesistasATemaPropuestDirecta(Integer[] usuariosId, Integer temaId, Integer profesorId, String comentario);
 
     List<TemaDto> listarTemasPorUsuarioRolEstado(Integer usuarioId,
                                                  String rolNombre,
