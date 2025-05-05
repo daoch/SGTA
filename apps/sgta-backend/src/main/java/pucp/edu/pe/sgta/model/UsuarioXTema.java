@@ -36,7 +36,7 @@ public class UsuarioXTema {
 	@Column(nullable = false)
 	private boolean asignado = false;
 
-	@Column(nullable = true)
+	@Column(columnDefinition = "TEXT")
 	private String comentario ;
 
 	@Column
