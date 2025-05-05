@@ -37,4 +37,29 @@ public class TemaController {
             @RequestParam(name = "idUsuarioCreador") Integer idUsuarioCreador) {
         temaService.createInscripcionTema(dto, idUsuarioCreador);
     }
+
+	@GetMapping("/listarTemasPropuestosAlAsesor/{asesorId}")
+	public List<TemaDto> listarTemasPropuestosAlAsesor(@PathVariable Integer asesorId) {
+		return temaService.listarTemasPropuestosAlAsesor(asesorId);
+	}
+
+	@GetMapping("/listarTemasPropuestosPorSubAreaConocimiento")
+	public List<TemaDto> listarTemasPropuestosPorSubAreaConocimiento(@RequestParam List<Integer> subareaIds) {
+		return temaService.listarTemasPropuestosPorSubAreaConocimiento(subareaIds);
+	}
+
+	@PostMapping("/postularAsesorTemaPropuesto")
+	public void postularAsesorTemaPropuesto(
+			@RequestParam(name = "idUsuario") Integer idUsuario,
+			@RequestParam(name = "idTema") Integer idTema) {
+
+		temaService.postularAsesorTemaPropuesto(idUsuario, idTema);
+	}
+    @GetMapping("/listarTemasPorUsuarioRolEstado/{usuarioId}")
+    public List<TemaDto> listarTemasPorUsuarioRolEstado(
+            @PathVariable("usuarioId") Integer usuarioId,
+            @RequestParam("rolNombre")   String rolNombre,
+            @RequestParam("estadoNombre")String estadoNombre) {
+        return temaService.listarTemasPorUsuarioEstadoYRol(usuarioId, rolNombre, estadoNombre);
+    }
 }

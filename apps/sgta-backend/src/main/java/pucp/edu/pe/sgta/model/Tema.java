@@ -36,29 +36,29 @@ public class Tema {
     @Column(columnDefinition = "TEXT")
     private String metodologia;
 
-    @Column(name = "portafolio_url", length = 255)
-    private String portafolioUrl;
+	@Column(name = "portafolio_url", length = 255)
+	private String portafolioUrl;
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "estado_tema_id", nullable = false, foreignKey = @ForeignKey(name = "fk_estado_tema"))
 	private EstadoTema estadoTema;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "proyecto_id", nullable = true,
+                foreignKey = @ForeignKey(name = "fk_proyecto")) //there could be no relation with proyecto
+    private Proyecto proyecto;
+
 	@ManyToOne(fetch = FetchType.LAZY, optional = true)
-	@JoinColumn(name = "proyecto_id", nullable = true, foreignKey = @ForeignKey(name = "fk_proyecto")) // there
-																										// could
-																										// be
-																										// no
-																										// relation
-																										// with
-																										// proyecto
-	private Proyecto proyecto;
+    @JoinColumn(name = "carrera_id", nullable = true,
+                foreignKey = @ForeignKey(name = "fk_t_carrera")) //there could be no relation with proyecto
+    private Carrera carrera;
 
     @Column(name = "fecha_limite",
         columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaLimite;
 
-    @Column(nullable = false)
-    private boolean activo = true;
+	@Column(nullable = false)
+	private boolean activo = true;
 
 	@Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
 	private OffsetDateTime fechaCreacion;

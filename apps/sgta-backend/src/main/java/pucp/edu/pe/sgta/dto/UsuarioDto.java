@@ -30,7 +30,11 @@ public class UsuarioDto {
 
 	private String contrasena;
 
-	private String biografia;
+    private String biografia;
+
+    private String enlaceRepositorio;
+
+    private String enlaceLinkedin;
 
     private String enlaceRepositorio;
 

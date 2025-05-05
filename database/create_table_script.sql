@@ -127,6 +127,7 @@ CREATE TABLE IF NOT EXISTS tema (
     portafolio_url           VARCHAR(255),
     estado_tema_id           INTEGER      NOT NULL,
     proyecto_id              INTEGER,
+    carrera_id               INTEGER,
     fecha_limite             TIMESTAMP WITH TIME ZONE,
     activo                   BOOLEAN           NOT NULL DEFAULT TRUE,
     fecha_creacion           TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -140,6 +141,11 @@ CREATE TABLE IF NOT EXISTS tema (
     CONSTRAINT fk_proyecto
         FOREIGN KEY (proyecto_id)
         REFERENCES proyecto (proyecto_id)
+        ON DELETE RESTRICT,
+
+    CONSTRAINT fk_t_carrera
+        FOREIGN KEY (carrera_id)
+        REFERENCES carrera (carrera_id)
         ON DELETE RESTRICT
 );
 
@@ -248,6 +254,7 @@ CREATE TABLE IF NOT EXISTS usuario_tema (
     rol_id                   INTEGER           NOT NULL,    
     asignado                 BOOLEAN           NOT NULL DEFAULT FALSE,
     prioridad                INTEGER,
+    comentario               TEXT,
     activo                   BOOLEAN           NOT NULL DEFAULT TRUE,
     fecha_creacion           TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion       TIMESTAMP WITH TIME ZONE,
@@ -269,11 +276,17 @@ CREATE TABLE IF NOT EXISTS usuario_tema (
 -- 8) AREA_CONOCIMIENTO
 CREATE TABLE IF NOT EXISTS area_conocimiento (
     area_conocimiento_id     SERIAL PRIMARY KEY,
+    carrera_id               INTEGER           NOT NULL,
     nombre                   VARCHAR(100)      NOT NULL,
     descripcion              TEXT,
     activo                   BOOLEAN           NOT NULL DEFAULT TRUE,
     fecha_creacion           TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion       TIMESTAMP WITH TIME ZONE
+    fecha_modificacion       TIMESTAMP WITH TIME ZONE,
+
+    CONSTRAINT fk_ac_carrera
+        FOREIGN KEY (carrera_id)
+        REFERENCES carrera (carrera_id)
+        ON DELETE RESTRICT
 );
 
 -- 9) SUB_AREA_CONOCIMIENTO (depende de area_conocimiento)
@@ -328,6 +341,24 @@ CREATE TABLE IF NOT EXISTS usuario_sub_area_conocimiento (
     CONSTRAINT fk_usac_sac
         FOREIGN KEY (sub_area_conocimiento_id)
         REFERENCES sub_area_conocimiento (sub_area_conocimiento_id)
+        ON DELETE RESTRICT
+);
+-- 12) USUARIO_AREA_CONOCIMIENTO (M:N entre usuario y area_conocimiento)
+CREATE TABLE IF NOT EXISTS usuario_area_conocimiento (
+    usuario_area_conocimiento_id      SERIAL 			PRIMARY KEY,
+    usuario_id                        INTEGER           NOT NULL,
+    area_conocimiento_id              INTEGER           NOT NULL,
+    activo                            BOOLEAN           NOT NULL DEFAULT TRUE,
+    fecha_creacion                    TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion                TIMESTAMP WITH TIME ZONE,
+
+    CONSTRAINT fk_uac_usuario
+        FOREIGN KEY (usuario_id)
+        REFERENCES usuario (usuario_id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_uac_ac
+        FOREIGN KEY (area_conocimiento_id)
+        REFERENCES area_conocimiento (area_conocimiento_id)
         ON DELETE RESTRICT
 );
 -- 3) MODULO
@@ -503,14 +534,14 @@ CREATE TABLE IF NOT EXISTS parametro_configuracion (
 -- 2) Tabla carrera_parametro_configuracion (M:N entre carrera y parametro_configuracion)
 CREATE TABLE IF NOT EXISTS carrera_parametro_configuracion (
     carrera_parametro_configuracion_id  SERIAL PRIMARY KEY,
-    valor                               TEXT     		NOT NULL,
-    activo                              BOOLEAN   		NOT NULL DEFAULT TRUE,
-    fecha_creacion                      TIMESTAMP 		WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion                  TIMESTAMP 		WITH TIME ZONE,
-	cantidad							INTEGER,
-	estado								VARCHAR(50)  	NOT NULL,
-    carrera_id                          INTEGER   		NOT NULL,
-    parametro_configuracion_id          INTEGER   		NOT NULL,
+    valor                               TEXT      NOT NULL,
+    activo                              BOOLEAN   NOT NULL DEFAULT TRUE,
+    fecha_creacion                      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion                  TIMESTAMP WITH TIME ZONE,
+	cantidad							INTEGER	  NOT NULL,
+	estado								VARCHAR(50) NOT NULL,
+    carrera_id                          INTEGER   NOT NULL,
+    parametro_configuracion_id          INTEGER   NOT NULL,
 	-- si agregan el fk de etapa_formativa, no le pongan NOT NULL
 
     CONSTRAINT fk_cpc_carrera
