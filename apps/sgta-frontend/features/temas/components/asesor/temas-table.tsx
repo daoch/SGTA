@@ -14,6 +14,7 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { titleCase } from "@/lib/utils";
 import { CheckCircle, Eye, Send, X } from "lucide-react";
+import Link from "next/link";
 // Datos de ejemplo
 const temasData = [
   {
@@ -200,10 +201,12 @@ export function TemasTable({
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                  <Eye className="h-4 w-4" />
-                                  <span className="sr-only">Ver detalles</span>
-                                </Button>
+                                <Link href={`/coordinador/temas/${tema.id}`} passHref>
+                                  <Button variant="ghost" size="icon">
+                                    <Eye className="h-4 w-4" />
+                                    <span className="sr-only">Ver detalles</span>
+                                  </Button>
+                                </Link>
                               </TooltipTrigger>
                               <TooltipContent>
                                 <p>Ver detalles</p>
