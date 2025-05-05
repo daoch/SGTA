@@ -1,10 +1,8 @@
 package pucp.edu.pe.sgta.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import pucp.edu.pe.sgta.dto.PerfilAsesorDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
 
@@ -19,6 +17,11 @@ public class UsuarioController {
 	@PostMapping("/create")
 	public void create(@RequestBody UsuarioDto dto) {
 		this.usuarioService.createUsuario(dto);
+	}
+
+	@GetMapping("/getPerfilAsesor")
+	public PerfilAsesorDto getPerfilAsesor(@RequestParam Integer id) {
+		return this.usuarioService.getPerfilAsesor(id);
 	}
 
 }

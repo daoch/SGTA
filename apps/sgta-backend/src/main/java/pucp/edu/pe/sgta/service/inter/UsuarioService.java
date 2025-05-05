@@ -1,5 +1,6 @@
 package pucp.edu.pe.sgta.service.inter;
 
+import pucp.edu.pe.sgta.dto.PerfilAsesorDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
 import java.util.List;
 
@@ -16,5 +17,7 @@ public interface UsuarioService {
 	void updateUsuario(UsuarioDto usuarioDto);
 
 	void deleteUsuario(Integer id);
+
+	PerfilAsesorDto getPerfilAsesor(Integer id);
 
 }
