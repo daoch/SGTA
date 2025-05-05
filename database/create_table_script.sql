@@ -254,6 +254,7 @@ CREATE TABLE IF NOT EXISTS usuario_tema (
     rol_id                   INTEGER           NOT NULL,    
     asignado                 BOOLEAN           NOT NULL DEFAULT FALSE,
     prioridad                INTEGER,
+    comentario               TEXT,
     activo                   BOOLEAN           NOT NULL DEFAULT TRUE,
     fecha_creacion           TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion       TIMESTAMP WITH TIME ZONE,

@@ -36,6 +36,9 @@ public class UsuarioXTema {
 	@Column(nullable = false)
 	private boolean asignado = false;
 
+	@Column(nullable = true)
+	private String comentario ;
+
 	@Column
 	private Integer prioridad;
 
