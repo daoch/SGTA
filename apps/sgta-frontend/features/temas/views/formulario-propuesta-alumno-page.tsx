@@ -1,17 +1,31 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Plus, Save } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
+import { toast } from "sonner";
 
 interface Estudiante {
   codigo: string;
@@ -60,6 +74,7 @@ const FormularioPropuestaPage = () => {
   });
   const [codigoCotesista, setCodigoCotesista] = useState("");
   const [cotesistas, setCotesistas] = useState<Estudiante[]>([]);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -75,6 +90,48 @@ const FormularioPropuestaPage = () => {
     if (estudiante && !cotesistas.some((c) => c.codigo === estudiante.codigo)) {
       setCotesistas([...cotesistas, estudiante]);
       setCodigoCotesista("");
+    }
+  };
+
+  const handleSubmit = async () => {
+    setLoading(true);
+
+    const fechaActual = new Date().toISOString();
+    const idUsuarioCreador = 4;
+    const asesorSeleccionado = profesoresData.find(p => p.nombre === formData.asesor);
+
+    const idAsesor = formData.tipo === "directa" && asesorSeleccionado ? Number(asesorSeleccionado.id) : null;
+
+    const temaPayload = {
+      id: null,
+      codigo: "TEMA-" + Math.floor(Math.random() * 1000).toString().padStart(3, "0"),
+      titulo: formData.titulo,
+      resumen: formData.descripcion,
+      portafolioUrl: "https://miuniversidad.edu/repos/" + formData.titulo.toLowerCase().replace(/ /g, "-"),
+      activo: true,
+      fechaCreacion: fechaActual,
+      fechaModificacion: fechaActual,
+      idUsuarioInvolucradosList: idAsesor ? [idAsesor] : [],
+      idSubAreasConocimientoList: [1],
+      idEstadoTema: formData.tipo === "general" ? 8 : 7,
+    };
+
+    try {
+      const res = await fetch(`http://localhost:5000/temas/createPropuesta?idUsuarioCreador=${idUsuarioCreador}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(temaPayload),
+      });
+
+      if (!res.ok) throw new Error("Error en la API");
+
+      toast.success("Propuesta creada exitosamente");
+      router.push("/alumno/temas");
+    } catch (err) {
+      console.error(err);
+      toast.error("Ocurrió un error al crear la propuesta");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -132,7 +189,8 @@ const FormularioPropuestaPage = () => {
 
             <div className="space-y-2">
               <Label>Tipo de Propuesta</Label>
-              <RadioGroup value={formData.tipo} onValueChange={(value) => handleSelectChange("tipo", value as "general" | "directa")}>                <div className="flex items-center space-x-2">
+              <RadioGroup value={formData.tipo} onValueChange={(value) => handleSelectChange("tipo", value as "general" | "directa")}>
+                <div className="flex items-center space-x-2">
                   <RadioGroupItem value="general" id="general" />
                   <Label htmlFor="general">General</Label>
                 </div>
@@ -188,8 +246,9 @@ const FormularioPropuestaPage = () => {
           </CardContent>
           <CardFooter className="flex justify-between">
             <Button variant="outline" type="button" onClick={() => router.push("/alumno/temas")}>Cancelar</Button>
-            <Button className="bg-[#042354] hover:bg-[#0e2f7a] text-white">
-              <Save className="mr-2 h-4 w-4" /> Guardar Propuesta
+            <Button className="bg-[#042354] hover:bg-[#0e2f7a] text-white" onClick={handleSubmit} disabled={loading}>
+              <Save className="mr-2 h-4 w-4" />
+              {loading ? "Guardando..." : "Guardar Propuesta"}
             </Button>
           </CardFooter>
         </form>
