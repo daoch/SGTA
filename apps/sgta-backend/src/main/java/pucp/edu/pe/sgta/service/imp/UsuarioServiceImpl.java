@@ -64,16 +64,17 @@ public class UsuarioServiceImpl implements UsuarioService {
 	}
 
 	@Override
-	public List<UsuarioDto> findUsuariosByRolAndCarrera(String tipoUsuario, Integer carreraId) {
+	public List<UsuarioDto> findUsuariosByRolAndCarrera(String tipoUsuario, Integer carreraId, String cadenaBusqueda) {
 		String sql = """
 			SELECT *
-			FROM obtener_usuarios_por_tipo_y_carrera(:tipo, :carrera)
+			FROM obtener_usuarios_por_tipo_carrera_y_busqueda(:tipo, :carrera, :cadena)
 			""";
 
 		@SuppressWarnings("unchecked")
 		List<Object[]> rows = em.createNativeQuery(sql)
 			.setParameter("tipo", tipoUsuario)
 			.setParameter("carrera", carreraId)
+			.setParameter("cadena", cadenaBusqueda)
 			.getResultList();
 
 		List<UsuarioDto> lista = new ArrayList<>();

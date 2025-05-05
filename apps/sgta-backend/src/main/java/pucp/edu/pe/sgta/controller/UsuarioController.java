@@ -28,10 +28,11 @@ public class UsuarioController {
 	@GetMapping("findByTipoUsuarioAndCarrera")
     public List<UsuarioDto> getByTipoYCarrera(
             @RequestParam String tipoUsuarioNombre,
-            @RequestParam(required = false) Integer carreraId
+            @RequestParam(required = false) Integer carreraId,
+			@RequestParam(required = false) String cadenaBusqueda
     ) {
         return usuarioService.findUsuariosByRolAndCarrera(
-            tipoUsuarioNombre, carreraId
+            tipoUsuarioNombre, carreraId, cadenaBusqueda
         );
     }
 }
