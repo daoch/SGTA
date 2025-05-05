@@ -84,12 +84,12 @@ public class TemaServiceImpl implements TemaService {
 	public void createTemaPropuesta(TemaDto dto, Integer idUsuarioCreador) {
 		dto.setId(null);
 		Tema tema = TemaMapper.toEntity(dto);
-		EstadoTema estadoTema = estadoTemaRepository.findByNombre(EstadoTemaEnum.PROPUESTO.name()).orElse(null);
+		EstadoTema estadoTema = estadoTemaRepository.findByNombre(EstadoTemaEnum.PROPUESTO_GENERAL.name()).orElse(null);
 		boolean foundSubArea = false;
 
 		if (estadoTema == null) {
-			logger.severe("Alerta: EstadoTema 'PROPUESTO' no encontrado en la base de datos.");
-			throw new RuntimeException("EstadoTema 'PROPUESTO' no encontrado en la base de datos.");
+			logger.severe("Alerta: EstadoTema 'PROPUESTO_GENERAL' no encontrado en la base de datos.");
+			throw new RuntimeException("EstadoTema 'PROPUESTO_GENERAL' no encontrado en la base de datos.");
 		}
 		tema.setEstadoTema(estadoTema);
 
