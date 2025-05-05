@@ -47,7 +47,7 @@ BEGIN
         AND et.estado_tema_id = (
             SELECT estado_tema_id 
             FROM estado_tema 
-            WHERE nombre ILIKE 'Propuesto'
+            WHERE nombre ILIKE 'PROPUESTO'
             LIMIT 1
         )
         AND sact.sub_area_conocimiento_id = ANY(p_subareas_ids)
@@ -121,7 +121,7 @@ BEGIN
         AND et.estado_tema_id = (
             SELECT estado_tema_id 
             FROM estado_tema 
-            WHERE nombre ILIKE 'Propuesto'
+            WHERE nombre ILIKE 'PROPUESTO_DIRECTO'
             LIMIT 1
         )
     GROUP BY 
