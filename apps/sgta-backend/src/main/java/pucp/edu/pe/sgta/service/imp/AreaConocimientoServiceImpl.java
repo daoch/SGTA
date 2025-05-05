@@ -50,7 +50,8 @@ public class AreaConocimientoServiceImpl implements AreaConocimientoService {
             AreaConocimientoDto dto = new AreaConocimientoDto();
             dto.setId((Integer) fila[0]);          // area_id
             dto.setNombre((String) fila[1]);       // area_nombre
-            dto.setDescripcion((String) fila[2]);      // descripcion
+            dto.setDescripcion((String) fila[2]);
+            dto.setActivo(true);// descripcion
             lista.add(dto);
         }
 

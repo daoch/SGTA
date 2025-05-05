@@ -160,3 +160,14 @@ BEGIN
     );
 END;
 $BODY$;
+
+CREATE OR REPLACE FUNCTION listar_areas_conocimiento_por_usuario(p_usuario_id INT)
+RETURNS TABLE(area_id INT, area_nombre TEXT, descripcion TEXT)
+LANGUAGE SQL
+AS $$
+    SELECT DISTINCT  ac.area_conocimiento_id,ac.nombre,ac.descripcion
+    FROM usuario_sub_area_conocimiento usac
+    JOIN sub_area_conocimiento sac ON usac.sub_area_conocimiento_id = sac.sub_area_conocimiento_id
+    JOIN area_conocimiento ac ON sac.area_conocimiento_id = ac.area_conocimiento_id
+    WHERE usac.usuario_id = p_usuario_id;
+$$;
