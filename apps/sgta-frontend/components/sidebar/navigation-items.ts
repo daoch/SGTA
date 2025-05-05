@@ -144,7 +144,26 @@ export const navigationItems: Record<string, NavigationItem[]> = {
     {
       name: "Personal Académico",
       href: "/coordinador/asesores",
-      icon: Users
+      icon: Users,
+      children: [
+        {
+          name: "Directorio de asesores",
+          href: "/coordinador/asesores/directorio-de-asesores",
+          icon: CalendarIcon,
+        },
+        {
+          name: "Cese de asesoria",
+          href: "/coordinador/asesores/cese-de-asesoria",
+          icon: CalendarIcon,
+        },
+        {
+          name: "Areas tematicas",
+          href: "/coordinador/asesores/areas-tematicas",
+          icon: CalendarIcon,
+        },
+      ],
+
+
     },
     { name: "Reportes", href: "/coordinador/reportes", icon: BarChart3 },
     { name: "Configuración", href: "/coordinador/configuracion", icon: Settings },
