@@ -15,6 +15,7 @@ import pucp.edu.pe.sgta.service.inter.SubAreaConocimientoService;
 import pucp.edu.pe.sgta.service.inter.TemaService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
 import pucp.edu.pe.sgta.util.EstadoTemaEnum;
+import pucp.edu.pe.sgta.util.RolEnum;
 
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -83,12 +84,12 @@ public class TemaServiceImpl implements TemaService {
 	public void createTemaPropuesta(TemaDto dto, Integer idUsuarioCreador) {
 		dto.setId(null);
 		Tema tema = TemaMapper.toEntity(dto);
-		EstadoTema estadoTema = estadoTemaRepository.findByNombre(EstadoTemaEnum.PROPUESTO.name()).orElse(null);
+		EstadoTema estadoTema = estadoTemaRepository.findByNombre(EstadoTemaEnum.PROPUESTO_GENERAL.name()).orElse(null);
 		boolean foundSubArea = false;
 
 		if (estadoTema == null) {
-			logger.severe("Alerta: EstadoTema 'PROPUESTO' no encontrado en la base de datos.");
-			throw new RuntimeException("EstadoTema 'PROPUESTO' no encontrado en la base de datos.");
+			logger.severe("Alerta: EstadoTema 'PROPUESTO_GENERAL' no encontrado en la base de datos.");
+			throw new RuntimeException("EstadoTema 'PROPUESTO_GENERAL' no encontrado en la base de datos.");
 		}
 		tema.setEstadoTema(estadoTema);
 
@@ -224,7 +225,116 @@ public class TemaServiceImpl implements TemaService {
 		}
 		return List.of(); // Return an empty list if no relations found
 
-	}
+    }
+
+    @Override
+    public void createInscripcionTema(TemaDto dto, Integer idUsuarioCreador) {
+        dto.setId(null);
+        // Prepara y guarda el tema con estado INSCRITO
+        Tema tema = prepareNewTema(dto, EstadoTemaEnum.INSCRITO);
+        temaRepository.save(tema);
+
+        // 1) Creador del tema (rol "Creador", asignado = true)
+        saveUsuarioXTema(tema, idUsuarioCreador, RolEnum.Creador.name(), true);
+        // 1) Asesor del tema (rol "Asesor", asignado = true)
+        saveUsuarioXTema(tema, idUsuarioCreador, RolEnum.Asesor.name(), true);
+
+        // 2) Subáreas de conocimiento
+        saveSubAreas(tema, dto.getIdSubAreasConocimientoList());
+
+        // 3) Coasesores
+        saveUsuariosInvolucrados(tema, idUsuarioCreador,
+            dto.getIdCoasesorInvolucradosList(), RolEnum.Coasesor.name(), true);
+
+        // 4) Estudiantes
+        saveUsuariosInvolucrados(tema, idUsuarioCreador,
+            dto.getIdEstudianteInvolucradosList(), RolEnum.Tesista.name(), true);
+    }
+
+    /**
+     * Crea y persiste un vínculo UsuarioXTema para el tema dado.
+     * @param tema Tema al que asociar el usuario
+     * @param idUsuario ID del usuario a asociar
+     * @param rolNombre Nombre del rol (ej. "Creador", "Asesor", etc.)
+     * @param asignado Flag si ya está asignado o pendiente
+     */
+    private void saveUsuarioXTema(Tema tema,
+                                  Integer idUsuario,
+                                  String rolNombre,
+                                  boolean asignado) {
+        UsuarioDto uDto = usuarioService.findUsuarioById(idUsuario);
+        if (uDto == null) {
+            throw new RuntimeException("Usuario no encontrado: " + idUsuario);
+        }
+
+        Rol rol = rolRepository.findByNombre(rolNombre)
+            .orElseThrow(() -> new RuntimeException("Rol '" + rolNombre + "' no encontrado"));
+
+        UsuarioXTema ux = new UsuarioXTema();
+        ux.setTema(tema);
+        ux.setUsuario(UsuarioMapper.toEntity(uDto));
+        ux.setRol(rol);
+        ux.setAsignado(asignado);
+        ux.setActivo(true);
+        ux.setFechaCreacion(OffsetDateTime.now());
+
+        usuarioXTemaRepository.save(ux);
+    }
+
+    // Prepara la entidad Tema a partir del DTO y asigna el estado dado.
+    private Tema prepareNewTema(TemaDto dto, EstadoTemaEnum estadoEnum) {
+        Tema tema = TemaMapper.toEntity(dto);
+        EstadoTema estado = estadoTemaRepository.findByNombre(estadoEnum.name())
+            .orElseThrow(() -> new RuntimeException("EstadoTema '" + estadoEnum.name() + "' no encontrado"));
+        tema.setEstadoTema(estado);
+        return tema;
+    }
+
+    /**
+     * Guarda las subáreas de conocimiento asociadas al tema.
+     */
+    private void saveSubAreas(Tema tema, List<Integer> subAreaIds) {
+        if (subAreaIds == null || subAreaIds.isEmpty()) {
+            throw new RuntimeException("No subAreaConocimiento proporcionadas");
+        }
+        boolean found = false;
+        for (Integer id : subAreaIds) {
+            SubAreaConocimientoDto saDto = subAreaConocimientoService.findById(id);
+            if (saDto == null) {
+                logger.warning("Subárea no encontrada: " + id);
+                continue;
+            }
+            found = true;
+            SubAreaConocimientoXTema sat = new SubAreaConocimientoXTema();
+            sat.setTemaId(tema.getId());
+            sat.setSubAreaConocimientoId(id);
+            sat.setFechaCreacion(OffsetDateTime.now());
+            subAreaConocimientoXTemaRepository.save(sat);
+        }
+        if (!found) {
+            throw new RuntimeException("Ninguna subárea válida encontrada");
+        }
+    }
+
+    private void saveUsuariosInvolucrados(Tema tema,
+                                          Integer idUsuarioCreador,
+                                          List<Integer> involucrados,
+                                          String rolNombre,
+                                          boolean asignado) {
+        if (involucrados == null) return;
+        for (Integer idInv : involucrados) {
+            if (idInv.equals(idUsuarioCreador)) {
+                logger.warning("Omitiendo creador en involucrados: " + idInv);
+                continue;
+            }
+            UsuarioDto invDto = usuarioService.findUsuarioById(idInv);
+            if (invDto == null) {
+                logger.warning("Usuario involucrado no encontrado: " + idInv);
+                continue;
+            }
+            saveUsuarioXTema(tema, idInv, rolNombre, asignado);
+        }
+    }
 
 	@Override
 	public List<TemaDto> listarTemasPropuestosAlAsesor(Integer asesorId) {
@@ -269,6 +379,106 @@ public class TemaServiceImpl implements TemaService {
 
 		return lista;
 	}
+
+	@Override
+    public List<TemaDto> listarTemasPorUsuarioRolEstado(Integer usuarioId,
+                                                       String rolNombre,
+                                                       String estadoNombre) {
+        List<Object[]> rows = temaRepository.listarTemasPorUsuarioRolEstado(
+            usuarioId, rolNombre, estadoNombre
+        );
+        List<TemaDto> resultados = new ArrayList<>();
+        for (Object[] r : rows) {
+            TemaDto dto = TemaDto.builder()
+                .id((Integer) r[0])
+                .titulo((String) r[1])
+                .resumen((String) r[2])
+                .metodologia((String) r[3])
+                .objetivos((String) r[4])
+                .portafolioUrl((String) r[5])
+                .activo((Boolean) r[6])
+                .fechaLimite(
+                  r[7] != null
+                    ? ((Instant) r[7]).atOffset(ZoneOffset.UTC)
+                    : null
+                )
+                .fechaCreacion(
+                  r[8] != null
+                    ? ((Instant) r[8]).atOffset(ZoneOffset.UTC)
+                    : null
+                )
+                .fechaModificacion(
+                  r[9] != null
+                    ? ((Instant) r[9]).atOffset(ZoneOffset.UTC)
+                    : null
+                )
+                .build();
+            resultados.add(dto);
+        }
+        return resultados;
+    }
+
+    @Override
+    public List<UsuarioDto> listarUsuariosPorTemaYRol(Integer temaId, String rolNombre) {
+        List<Object[]> rows = temaRepository.listarUsuariosPorTemaYRol(temaId, rolNombre);
+        List<UsuarioDto> resultados = new ArrayList<>();
+        for (Object[] r : rows) {
+            UsuarioDto u = UsuarioDto.builder()
+                .id((Integer) r[0])
+                .nombres((String) r[1])
+                .primerApellido((String) r[2])
+                .segundoApellido((String) r[3])
+                .correoElectronico((String) r[4])
+                .activo((Boolean) r[5])
+                .fechaCreacion(
+                  r[6] != null
+                    ? ((Instant) r[6]).atOffset(ZoneOffset.UTC)
+                    : null
+                )
+                .build();
+            resultados.add(u);
+        }
+        return resultados;
+    }
+
+    @Override
+    public List<SubAreaConocimientoDto> listarSubAreasPorTema(Integer temaId) {
+        List<Object[]> rows = temaRepository.listarSubAreasPorTema(temaId);
+        List<SubAreaConocimientoDto> resultados = new ArrayList<>();
+        for (Object[] r : rows) {
+            SubAreaConocimientoDto sa = SubAreaConocimientoDto.builder()
+                .id((Integer) r[0])
+                .nombre((String) r[1])
+                .build();
+            resultados.add(sa);
+        }
+        return resultados;
+    }
+
+    @Override
+    public List<TemaDto> listarTemasPorUsuarioEstadoYRol(Integer asesorId, String rolNombre, String estadoNombre) {
+        // primero cargo los temas con estado INSCRITO y rol Asesor
+        List<TemaDto> temas = listarTemasPorUsuarioRolEstado(
+            asesorId, 
+            rolNombre, 
+            estadoNombre
+        );
+
+        // por cada tema cargo coasesores, tesistas y subáreas
+        for (TemaDto t : temas) {
+            t.setCoasesores(
+                listarUsuariosPorTemaYRol(t.getId(), RolEnum.Coasesor.name())
+            );
+            t.setTesistas(
+                listarUsuariosPorTemaYRol(t.getId(), RolEnum.Tesista.name())
+            );
+            t.setSubareas(
+                listarSubAreasPorTema(t.getId())
+            );
+        }
+
+        return temas;
+    }
 
 	@Override
 	public List<TemaDto> listarTemasPropuestosPorSubAreaConocimiento(List<Integer> subareaIds) {
