@@ -54,6 +54,23 @@ export enum AreaEspecialidadFilter {
   UI_UX = "UI/UX"
 }
 
+export enum Especialidades {
+  TODOS = "Todos",
+  INGENIERIA_SOFTWARE = "Ingeniería de Software",
+  CIENCIAS_COMPUTACION = "Ciencias de la Computación",
+  TECNOLOGIAS_INFORMACION = "Tecnologias de la informacion",
+  VISION_COMPUTACIONAL = "Vision Computacional",
+  SISTEMAS_INFORMACION = "Sistemas de Informacion",
+  DESARROLLO_WEB = "Desarrollo Web",
+  FRONTEND = "Front-End",
+  BACKEND = "Backend",
+  UI_UX = "UI/UX"
+}
+export interface EspecialidadOption {
+  label: string;
+  value: string;
+}
+
 export enum EstadoJurado {
   TODOS = "Todos",
   ACTIVO = "Activo",

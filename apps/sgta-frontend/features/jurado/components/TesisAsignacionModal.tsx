@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { ListaTesisJuradoCard } from "./TesisCard";
 import { MultiSelectCheckbox } from "./EspecialiadMultiSelect";
-import { Jurado ,Tesis} from "@/features/jurado/types/juradoDetalle.types"; // Asegúrate de que la ruta sea correcta
+import { Jurado ,Tesis ,Especialidades, EspecialidadOption} from "@/features/jurado/types/juradoDetalle.types"; // Asegúrate de que la ruta sea correcta
 
 interface ModalAsignarTesisProps {
   open: boolean;
@@ -22,6 +22,18 @@ interface ModalAsignarTesisProps {
   data: Tesis[];
   jurado: Jurado; // o el tipo completo si lo tienes
 }
+
+// Función auxiliar para convertir el enum a opciones para el MultiSelectCheckbox
+const getEspecialidadOptions = (): EspecialidadOption[] => {
+  // Filtrar "TODOS" para que no aparezca en las opciones de MultiSelect
+  return Object.values(Especialidades)
+    .filter(esp => esp !== Especialidades.TODOS)
+    .map(especialidad => ({
+      label: especialidad,
+      value: especialidad
+    }));
+};
+
 
 export const ModalAsignarTesis: React.FC<ModalAsignarTesisProps> = ({
   open,
@@ -59,6 +71,13 @@ export const ModalAsignarTesis: React.FC<ModalAsignarTesisProps> = ({
     setEspecialidadesSeleccionadas(jurado.specialties || []);
   }, [jurado]);
 
+  // Texto para mostrar en el MultiSelect
+  const getMultiSelectDisplayText = () => {
+    const count = especialidadesSeleccionadas.length;
+    if (count === 0) return "Seleccione áreas";
+    return `${count} área${count !== 1 ? 's' : ''} seleccionada${count !== 1 ? 's' : ''}`;
+  };
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="flex flex-col w-[811px] h-[496px] max-w-none !max-w-[100vw]">
@@ -67,38 +86,21 @@ export const ModalAsignarTesis: React.FC<ModalAsignarTesisProps> = ({
         </DialogHeader>
 
         <div className="flex gap-4 mb-4">
-          <div className="relative flex items-center w-full">
+          <div className="relative flex items-center w-[75%]">
             <Search className="absolute left-3 text-gray-400 w-5 h-5" />
             <Input
               placeholder="Ingrese el título del tema de proyecto o nombre del estudiante"
-              className="pl-10"
+              className="pl-10 w-full"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
 
           <MultiSelectCheckbox
-            options={[
-              {
-                label: "Ingeniería de Software",
-                value: "Ingeniería de Software",
-              },
-              {
-                label: "Ciencias de la Computación",
-                value: "Ciencias de la Computación",
-              },
-              {
-                label: "Tecnologias de la informacion",
-                value: "Tecnologias de la informacion",
-              },
-              { label: "Vision Computacional", value: "Vision Computacional" },
-              {
-                label: "Sistemas de Informacion",
-                value: "Sistemas de Informacion",
-              },
-            ]}
+            options={getEspecialidadOptions()}
             selected={especialidadesSeleccionadas}
             onChange={setEspecialidadesSeleccionadas}
+            displayText={getMultiSelectDisplayText()}
           />
         </div>
 
