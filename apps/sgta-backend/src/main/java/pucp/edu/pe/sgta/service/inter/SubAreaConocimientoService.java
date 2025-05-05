@@ -9,6 +9,8 @@ public interface SubAreaConocimientoService {
 
 	SubAreaConocimientoDto findById(Integer id);
 
+	List<SubAreaConocimientoDto> listarPorUsuario(Integer usuarioId);
+
 	void create(SubAreaConocimientoDto dto);
 
 	void update(SubAreaConocimientoDto dto);

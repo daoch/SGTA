@@ -1,6 +1,6 @@
 package pucp.edu.pe.sgta.service.imp;
 
-import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.*;
 import org.springframework.stereotype.Service;
 import pucp.edu.pe.sgta.dto.AreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.SubAreaConocimientoDto;
@@ -12,12 +12,15 @@ import pucp.edu.pe.sgta.repository.AreaConocimientoRepository;
 import pucp.edu.pe.sgta.repository.SubAreaConocimientoRepository;
 import pucp.edu.pe.sgta.service.inter.SubAreaConocimientoService;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class SubAreaConocimientoServiceImpl implements SubAreaConocimientoService {
 
+	@PersistenceContext
+	private EntityManager entityManager;
 	private final SubAreaConocimientoRepository subAreaConocimientoRepository;
 	private final AreaConocimientoRepository areaConocimientoRepository;
 
@@ -43,6 +46,40 @@ public class SubAreaConocimientoServiceImpl implements SubAreaConocimientoServic
 
 		return SubAreaConocimientoMapper.toDto(subArea, areaDto);
 	}
+
+	@Override
+	public List<SubAreaConocimientoDto> listarPorUsuario(Integer usuarioId) {
+		String sql = "SELECT * FROM sgta.obtener_sub_areas_por_usuario(:usuarioId)";
+
+		Query query = entityManager.createNativeQuery(sql);
+		query.setParameter("usuarioId", usuarioId);
+
+		List<Object[]> resultados = query.getResultList();
+
+		List<SubAreaConocimientoDto> dtos = new ArrayList<>();
+		for (Object[] row : resultados) {
+			// Crear entidad simulada de SubAreaConocimiento
+			SubAreaConocimiento sac = new SubAreaConocimiento();
+			sac.setId((Integer) row[0]);
+			//sac.setAreaConocimiento((Integer) row[1]); // si existe este campo en la entidad
+			sac.setNombre((String) row[2]);
+			sac.setDescripcion((String) row[3]);
+			sac.setActivo((Boolean) row[4]);
+
+			// Crear DTO de área (aunque sea solo con el ID)
+			AreaConocimiento area = areaConocimientoRepository.findById((Integer) row[1])
+					.orElseThrow(() -> new EntityNotFoundException("Área de conocimiento no encontrada con id: " + (Integer) row[1]));
+
+			AreaConocimientoDto areaDto = AreaConocimientoMapper.toDto(area);
+			// Mapear con el método toDto existente
+			SubAreaConocimientoDto dto = SubAreaConocimientoMapper.toDto(sac, areaDto);
+			dtos.add(dto);
+		}
+
+		return dtos;
+	}
+
+
 
 	@Override
 	public void create(SubAreaConocimientoDto dto) {

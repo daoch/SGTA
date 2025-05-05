@@ -24,4 +24,10 @@ public class SubAreaConocimientoController {
     public SubAreaConocimientoDto findById(@RequestParam(name = "idSubArea") Integer idSubArea) {
         return subAreaConocimientoService.findById(idSubArea);
     }
+
+    @GetMapping("/listarPorUsuario") // finds a topic by id
+    public List<SubAreaConocimientoDto> listarPorUsuario(@RequestParam(name = "usuarioId") Integer usuarioId) {
+        return subAreaConocimientoService.listarPorUsuario(usuarioId);
+    }
+
 }
