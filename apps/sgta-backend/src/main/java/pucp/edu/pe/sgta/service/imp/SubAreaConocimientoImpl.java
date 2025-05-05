@@ -10,17 +10,21 @@ import pucp.edu.pe.sgta.service.inter.SubAreaConocimientoService;
 import java.util.List;
 
 @Service
-public class SubAreaConocimientoServiceImpl implements SubAreaConocimientoService {
+public class SubAreaConocimientoImpl implements SubAreaConocimientoService {
 
 	private final SubAreaConocimientoRepository subAreaConocimientoRepository;
 
-	public SubAreaConocimientoServiceImpl(SubAreaConocimientoRepository subAreaConocimientoRepository) {
+	public SubAreaConocimientoImpl(SubAreaConocimientoRepository subAreaConocimientoRepository) {
 		this.subAreaConocimientoRepository = subAreaConocimientoRepository;
 	}
 
 	@Override
 	public List<SubAreaConocimientoDto> getAll() {
-		return List.of();
+		List<SubAreaConocimiento> subAreasConocimiento = subAreaConocimientoRepository.findAllByActivoTrue();
+		List<SubAreaConocimientoDto> dtos = subAreasConocimiento.stream()
+				.map(SubAreaConocimientoMapper::toDto)
+				.toList();
+		return dtos;
 	}
 
 	@Override
@@ -34,7 +38,8 @@ public class SubAreaConocimientoServiceImpl implements SubAreaConocimientoServic
 
 	@Override
 	public void create(SubAreaConocimientoDto dto) {
-
+		SubAreaConocimiento subAreaConocimiento = SubAreaConocimientoMapper.toEntity(dto);
+		subAreaConocimientoRepository.save(subAreaConocimiento);
 	}
 
 	@Override
@@ -44,7 +49,11 @@ public class SubAreaConocimientoServiceImpl implements SubAreaConocimientoServic
 
 	@Override
 	public void delete(Integer id) {
-
+		SubAreaConocimiento subAreaConocimiento = subAreaConocimientoRepository.findById(id).orElse(null);
+		if (subAreaConocimiento != null) {
+			subAreaConocimiento.setActivo(false);
+			subAreaConocimientoRepository.save(subAreaConocimiento);
+		}
 	}
 
 }
