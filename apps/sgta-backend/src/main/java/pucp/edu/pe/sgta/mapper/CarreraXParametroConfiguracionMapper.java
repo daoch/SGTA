@@ -5,6 +5,7 @@ import pucp.edu.pe.sgta.model.CarreraXParametroConfiguracion;
 import pucp.edu.pe.sgta.util.TipoDatoEnum;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import pucp.edu.pe.sgta.model.Carrera;
 
 
 public class CarreraXParametroConfiguracionMapper {
@@ -39,8 +40,8 @@ public class CarreraXParametroConfiguracionMapper {
 
         
 		dto.setActivo(carreraXParametroConfiguracion.isActivo());
-        dto.setCarrera(carreraXParametroConfiguracion.getCarrera());
-        dto.setParametroConfiguracion(carreraXParametroConfiguracion.getParametroConfiguracion());
+        dto.setCarreraId(carreraXParametroConfiguracion.getCarrera().getId());
+        dto.setParametroConfiguracion(ParametroConfiguracionMapper.toDto(carreraXParametroConfiguracion.getParametroConfiguracion()));
 
 		return dto;
 	}
@@ -50,8 +51,10 @@ public class CarreraXParametroConfiguracionMapper {
 		carreraXParametroConfiguracion.setId(dto.getId());
         carreraXParametroConfiguracion.setValor(dto.getValor().toString()); 
 		carreraXParametroConfiguracion.setActivo(dto.isActivo());
-        carreraXParametroConfiguracion.setCarrera(dto.getCarrera());
-        carreraXParametroConfiguracion.setParametroConfiguracion(dto.getParametroConfiguracion());
+        Carrera carrera = new Carrera(); 
+        carrera.setId(dto.getCarreraId());
+        carreraXParametroConfiguracion.setCarrera(carrera);
+        carreraXParametroConfiguracion.setParametroConfiguracion(ParametroConfiguracionMapper.toEntity(dto.getParametroConfiguracion()));
         return carreraXParametroConfiguracion;
 
 	}

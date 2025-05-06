@@ -40,8 +40,8 @@ public class CarreraXParametroConfiguracion {
 	private ParametroConfiguracion parametroConfiguracion;
 
 	// Si agregas una FK a etapa_formativa, podrías añadirla aquí como:
-	// @ManyToOne(fetch = FetchType.LAZY)
-	// @JoinColumn(name = "etapa_formativa_id")
-	// private EtapaFormativa etapaFormativa;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "etapa_formativa_id", foreignKey = @ForeignKey(name = "fk_cpc_grupo"))
+	private EtapaFormativa etapaFormativa;
 
 }
