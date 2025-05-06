@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/sidebar";
 import { User } from "@/features/auth";
 import { useAuth } from "@/features/auth/hooks/use-auth";
-import { Badge } from "../../../../components/ui/badge";
+import { Badge } from "@/components/ui/badge";
 
 export function NavUser({ user }: { user: User }) {
   const { isMobile } = useSidebar();
