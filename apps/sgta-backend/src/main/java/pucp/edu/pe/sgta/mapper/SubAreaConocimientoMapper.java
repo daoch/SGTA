@@ -12,7 +12,7 @@ public class SubAreaConocimientoMapper {
 		dto.setNombre(subAreaConocimiento.getNombre());
 		dto.setActivo(subAreaConocimiento.isActivo());
 		dto.setFechaCreacion(subAreaConocimiento.getFechaCreacion());
-		dto.setAreaConocimiento(AreaConocimientoMapper.toDto(subAreaConocimiento.getAreaConocimiento()));
+		//dto.setAreaConocimiento(AreaConocimientoMapper.toDto(subAreaConocimiento.getAreaConocimiento()));
 		// falta areaconocimiento, lo di todo
 		return dto;
 	}
@@ -24,7 +24,7 @@ public class SubAreaConocimientoMapper {
 		subAreaConocimiento.setNombre(dto.getNombre());
 		subAreaConocimiento.setActivo(dto.isActivo());
 		subAreaConocimiento.setFechaCreacion(dto.getFechaCreacion());
-		subAreaConocimiento.setAreaConocimiento(AreaConocimientoMapper.toEntity(dto.getAreaConocimiento()));
+		//subAreaConocimiento.setAreaConocimiento(AreaConocimientoMapper.toEntity(dto.getAreaConocimiento()));
 		return subAreaConocimiento;
 	}
 

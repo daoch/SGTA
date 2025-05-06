@@ -15,4 +15,6 @@ public interface SubAreaConocimientoService {
 
 	void delete(Integer id);
 
+	List<SubAreaConocimientoDto> getAllByArea(Integer idArea);
+
 }

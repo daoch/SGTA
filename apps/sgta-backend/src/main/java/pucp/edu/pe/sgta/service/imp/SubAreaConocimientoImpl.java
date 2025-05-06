@@ -56,4 +56,13 @@ public class SubAreaConocimientoImpl implements SubAreaConocimientoService {
 		}
 	}
 
+	@Override
+	public List<SubAreaConocimientoDto> getAllByArea(Integer idArea) {
+		List<SubAreaConocimiento> subAreasConocimiento = subAreaConocimientoRepository.findAllByAreaConocimientoIdAndActivoTrue(idArea);
+		List<SubAreaConocimientoDto> dtos = subAreasConocimiento.stream()
+				.map(SubAreaConocimientoMapper::toDto)
+				.toList();
+		return dtos;
+	}
+
 }

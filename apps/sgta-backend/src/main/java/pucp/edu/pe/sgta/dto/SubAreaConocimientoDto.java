@@ -12,8 +12,6 @@ public class SubAreaConocimientoDto {
 
 	private Integer id;
 
-	private AreaConocimientoDto areaConocimiento;
-
 	private String nombre;
 
 	private String descripcion;

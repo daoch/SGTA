@@ -30,5 +30,10 @@ public class SubAreaConocimientoController {
         subAreaConocimientoService.delete(id);
     }
     
+    //listar por area
+    @GetMapping("/list/{idArea}")
+    public List<SubAreaConocimientoDto> listSubAreaConocimientoByArea(@PathVariable Integer idArea) {
+        return subAreaConocimientoService.getAllByArea(idArea);
+    }
 
 }
