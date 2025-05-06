@@ -1,36 +1,35 @@
 package pucp.edu.pe.sgta.model;
 
+import java.time.OffsetDateTime;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.math.BigDecimal;
-import java.time.Duration;
-import java.time.OffsetDateTime;
-
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "etapa_formativa")
-public class EtapaFormativa {
+@Table(name = "restriccion_exposicion")
+public class RestriccionExposicion {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "etapa_formativa_id")
+    @Column(name = "restriccion_exposicion_id")
     private Integer id;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
-    private String nombre;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "exposicion_x_tema_id", foreignKey = @ForeignKey(name = "fk_bhe_exposicion_x_tema"))
+    private ExposicionXTema exposicionXTema;
 
-    @Column(name = "creditaje_por_tema", nullable = true, precision = 6, scale = 2)
-    private BigDecimal creditajePorTema;
+    @Column(name = "datetime_inicio", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private OffsetDateTime datetimeInicio;
 
-    @Column(name = "duracion_exposicion")
-    private Duration duracionExposicion;
+    @Column(name = "datetime_fin", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private OffsetDateTime datetimeFin;
 
     @Column(nullable = false)
     private boolean activo = true;

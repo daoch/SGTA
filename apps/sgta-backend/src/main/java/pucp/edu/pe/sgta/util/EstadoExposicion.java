@@ -5,7 +5,7 @@ public enum EstadoExposicion {
     ESPERANDO_RESPUESTA,
     ESPERANDO_APROBACION,
     PROGRAMADA,
-    EN_PROGRESO,
+    CALIFICADA,
     COMPLETADA,
     CANCELADA;
 }

@@ -1,4 +1,5 @@
 package pucp.edu.pe.sgta.model;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -7,6 +8,7 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+
 @Entity
 @Getter
 @Setter
@@ -35,6 +37,9 @@ public class RevisionCriterioExposicion {
     @Column(precision = 5, scale = 2)
     private BigDecimal nota;
 
+    @Column(nullable = false)
+    private boolean revisado = false;
+
     @Column(columnDefinition = "TEXT")
     private String observacion;
 
@@ -47,4 +52,3 @@ public class RevisionCriterioExposicion {
     @Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaModificacion;
 }
-
