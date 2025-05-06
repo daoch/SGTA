@@ -5,6 +5,7 @@ import org.springframework.stereotype.Repository;
 import pucp.edu.pe.sgta.model.SubAreaConocimientoXTema;
 
 @Repository
-public interface SubAreaConocimientoXTemaRepository extends JpaRepository<SubAreaConocimientoXTema, Integer> {
+public interface SubAreaConocimientoXTemaRepository
+                extends JpaRepository<SubAreaConocimientoXTema, SubAreaConocimientoXTema.SubAreaConocimientoXTemaId> {
 
 }
