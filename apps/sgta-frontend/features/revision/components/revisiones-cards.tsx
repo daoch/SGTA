@@ -2,16 +2,16 @@
 
 import { CheckCircle, Clock, Eye, FileText, Search } from "lucide-react";
 import Link from "next/link";
-import { Badge } from "../ui/badge";
-import { Button } from "../ui/button";
+import { Badge } from "../../../components/ui/badge";
+import { Button } from "../../../components/ui/button";
 import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
   CardTitle,
-} from "../ui/card";
-import { Progress } from "../ui/progress";
+} from "../../../components/ui/card";
+import { Progress } from "../../../components/ui/progress";
 
 const revisionesData = [
   {
