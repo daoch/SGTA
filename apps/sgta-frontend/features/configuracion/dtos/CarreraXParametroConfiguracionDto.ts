@@ -9,7 +9,7 @@ export interface ParametroConfiguracion {
 
 export interface CarreraXParametroConfiguracionDto {
     id: number;
-    valor: string;
+    valor: string | boolean | number | Date;
     carreraId: number;
     activo?: boolean;
     parametroConfiguracion: ParametroConfiguracion;

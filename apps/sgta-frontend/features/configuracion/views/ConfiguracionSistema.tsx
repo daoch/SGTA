@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import ModalidadRevisionCard from "../components/conf-general/ModalidadRevision";
 import JuradosCards from "../components/conf-general/Jurados";
 import AsesoresCards from "../components/conf-general/Asesores";
@@ -67,7 +67,7 @@ export default function ConfiguracionSistema() {
               <TabsTrigger value="revision">Revisión</TabsTrigger>
             </TabsList>
             <Button
-              className={`px-4 py-2 rounded text-white font-semibold transition disabled:bg-gray-300`}
+              className={"px-4 py-2 rounded text-white font-semibold transition disabled:bg-gray-300"}
               disabled={!hasChanges || cargando}
               onClick={handleGuardar}
             >

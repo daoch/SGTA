@@ -1,6 +1,22 @@
 import axiosInstance from "@/lib/axios/axios-instance";
 import { CarreraXParametroConfiguracionDto } from "../dtos/CarreraXParametroConfiguracionDto";
 
+interface AreaConocimientoDto {
+  id: number;
+  nombre: string;
+  descripcion: string;
+  idCarrera: number;
+  subAreas?: SubAreaConocimientoDto[];
+}
+
+interface SubAreaConocimientoDto {
+  id: number;
+  nombre: string;
+  areaConocimiento: {
+    id: number;
+  };
+}
+
 //Services para Parametros generales
 
 export const updateCarreraXParametroConfiguracion = async (
@@ -16,24 +32,24 @@ export const getAllByCarreraId = async (
         `/carreraXParametroConfiguracion/${carreraId}/parametros`,
     );
     return response.data;
-}
+};
 
 
 //Services para Áreas por carrera
 
-export const createArea = async (area: any): Promise<any> => {
-    const response = await axiosInstance.post<any>(
+export const createArea = async (area: Omit<AreaConocimientoDto, 'id'>): Promise<AreaConocimientoDto> => {
+    const response = await axiosInstance.post<AreaConocimientoDto>(
         "/areaConocimiento/create",
         area,
     );
     return response.data;
-}
+};
 
 
 export const getAllAreasByCarreraId = async (
     carreraId: number
-): Promise<any[]> => {
-    const response = await axiosInstance.get<any[]>(
+): Promise<AreaConocimientoDto[]> => {
+    const response = await axiosInstance.get<AreaConocimientoDto[]>(
         `/areaConocimiento/list/${carreraId}`,
     );
     
@@ -43,13 +59,13 @@ export const getAllAreasByCarreraId = async (
             const subareas = await getAllSubAreasByAreaId(area.id);
             return {
                 ...area,
-                subAreas: subareas.map(sub => sub.nombre)
+                subAreas: subareas
             };
         })
     );
     
     return areasWithSubareas;
-}
+};
 
 export const deleteAreaById = async (id: number): Promise<void> => {
     await axiosInstance.post(`/areaConocimiento/delete/${id}`);
@@ -57,7 +73,7 @@ export const deleteAreaById = async (id: number): Promise<void> => {
 
 //Services para Subareas
 
-export const createSubArea = async (subArea: { nombre: string, idAreaConocimiento: number }): Promise<any> => {
+export const createSubArea = async (subArea: { nombre: string, idAreaConocimiento: number }): Promise<SubAreaConocimientoDto> => {
     const dto = {
         nombre: subArea.nombre,
         areaConocimiento: {
@@ -65,22 +81,22 @@ export const createSubArea = async (subArea: { nombre: string, idAreaConocimient
         }
     };
     
-    const response = await axiosInstance.post<any>(
+    const response = await axiosInstance.post<SubAreaConocimientoDto>(
         "/subAreaConocimiento/create",
         dto,
     );
     return response.data;
-}
+};
 
 
 export const getAllSubAreasByAreaId = async (
     areaId: number
-): Promise<any[]> => {
-    const response = await axiosInstance.get<any[]>(
+): Promise<SubAreaConocimientoDto[]> => {
+    const response = await axiosInstance.get<SubAreaConocimientoDto[]>(
         `/subAreaConocimiento/list/${areaId}`,
     );
     return response.data;
-}
+};
 
 export const deleteSubAreaById = async (id: number): Promise<void> => {
     await axiosInstance.post(`/subAreaConocimiento/delete/${id}`);

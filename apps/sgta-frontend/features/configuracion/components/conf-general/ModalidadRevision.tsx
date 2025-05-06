@@ -12,11 +12,21 @@ import { Switch } from "@/components/ui/switch";
 import { useBackStore } from "../../store/configuracion-store";
 import { useEffect, useState } from "react";
 
+interface CarreraXParametroConfiguracionDto {
+  id: number;
+  valor: string | boolean | number | Date;
+  parametroConfiguracion: {
+    id: number;
+    nombre: string;
+    descripcion: string;
+    tipoDato: "BOOLEANO" | "TEXTO" | "NUMERO" | "FECHA" | "LISTA";
+  };
+}
+
 export default function ModalidadRevisionCard() {
   const { parametros, actualizarParametro, cargando } = useBackStore();
-  const [localParametros, setLocalParametros] = useState<any[]>([]);
+  const [localParametros, setLocalParametros] = useState<CarreraXParametroConfiguracionDto[]>([]);
 
-  // Inicializar los parámetros locales cuando cambian los parámetros del store
   useEffect(() => {
     setLocalParametros(parametros);
   }, [parametros]);
