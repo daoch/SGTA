@@ -7,15 +7,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import {
     Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button"
-import { Eye, CheckCircle, X, Send } from "lucide-react"
+import { Button } from "@/components/ui/button";
+import { Eye, CheckCircle, X, Send } from "lucide-react";
+
 // Datos de ejemplo
 const propuestasData = [
     {
@@ -58,14 +54,14 @@ const propuestasData = [
 ];
 
 // Obtener todas las áreas únicas para el filtro
-const areasUnicas = Array.from(new Set(propuestasData.map((propuesta) => propuesta.area)))
+const areasUnicas = Array.from(new Set(propuestasData.map((propuesta) => propuesta.area)));
 
 interface PropuestasTableProps {
     filter?: string
-}
+};
 
 export function PropuestasTable({ filter }: PropuestasTableProps) {
-    const [areaFilter, setAreaFilter] = useState<string | null>(null)
+    const [areaFilter, setAreaFilter] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState("");
 
     const propuestasFiltradas = propuestasData.filter((propuesta) => {
@@ -201,4 +197,4 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
             </div>
         </div>
     );
-}
+};

@@ -1,8 +1,9 @@
-import React from 'react';
+import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PropuestasTable } from "@/components/asesor/propuestas-table";
-const page = () => {
+
+const Page = () => {
   return (
     <div className="space-y-8 mt-4">
       <div>
@@ -39,7 +40,7 @@ const page = () => {
         </TabsContent>
       </Tabs>
     </div>
-  )
-}
+  );
+};
 
 export default Page;
