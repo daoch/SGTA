@@ -10,29 +10,35 @@ import {
 import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { useBackStore } from "../../store/configuracion-store";
+
 //import { updateCarreraXParametroConfiguracion } from "../../services/configuracion-service";
 
 export default function ModalidadRevisionCard() {
-  // const [turnitinEnabled, setTurnitinEnabled] = useState(true);
-  // const [antiplagioEnabled, setAntiplagioEnabled] = useState(true);
+  const { parametros, actualizarParametro, cargando } = useBackStore();
+   console.log("parametros", parametros);
+  // Buscar los parámetros por nombre
+  const turnitinParam = parametros.find(
+    (p) => p.parametroConfiguracion.nombre === "Turnitin"
+  );
+  const antiplagioParam = parametros.find(
+    (p) => p.parametroConfiguracion.nombre === "Modalidad de Revision"
+  );
 
-  // const handleToggle = async (parametro: string, value: boolean) => {
-  //   try {
-  //     await updateCarreraXParametroConfiguracion({
-  //       id: parametro === "turnitin" ? 1 : 2, 
-  //       valor: value.toString(),
-  //       carreraId: 1, 
-  //       parametroConfiguracionId: parametro === "turnitin" ? 1 : 2, 
-  //     });
-  //     if (parametro === "turnitin") {
-  //       setTurnitinEnabled(value);
-  //     } else {
-  //       setAntiplagioEnabled(value);
-  //     }
-  //   } catch (error) {
-  //     console.error("Error al actualizar el parámetro:", error);
-  //   }
-  // };
+  // Handlers para cambiar el valor
+  const handleTurnitinChange = async (checked: boolean) => {
+    if (turnitinParam) {
+      //await actualizarParametroBackend(turnitinParam.id, checked);
+      actualizarParametro(turnitinParam.id, checked);
+    }
+  };
+
+  const handleAntiplagioChange = async (checked: boolean) => {
+    if (antiplagioParam) {
+      //await actualizarParametroBackend(antiplagioParam.id, checked);
+      actualizarParametro(antiplagioParam.id, checked);
+    }
+  };
 
   return (
     <Card>
@@ -47,14 +53,23 @@ export default function ModalidadRevisionCard() {
           <Label htmlFor="habilitar-turnitin">
             Habilitar subida de informes Turnitin
           </Label>
-          <Switch id="habilitar-turnitin" />
+          <Switch
+            id="habilitar-turnitin"
+            checked={!!turnitinParam?.valor}
+            disabled={cargando}
+            onCheckedChange={handleTurnitinChange}
+          />
         </div>
 
         <div className="flex items-center justify-between space-x-2">
           <Label htmlFor="integracion-antiplagio">
             Activar integración con sistemas antiplagio
           </Label>
-          <Switch id="integracion-antiplagio"
+          <Switch
+            id="integracion-antiplagio"
+            checked={!!antiplagioParam?.valor}
+            disabled={cargando}
+            onCheckedChange={handleAntiplagioChange}
           />
         </div>
       </CardContent>
