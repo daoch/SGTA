@@ -5,5 +5,8 @@
 		"dev": "mvn spring-boot:run",
 		"lint": "mvn spotbugs:check -q",
 		"format": "mvn spring-javaformat:apply"
+	},
+	"dependencies": {
+		"sgta-backend": "file:"
 	}
 }
