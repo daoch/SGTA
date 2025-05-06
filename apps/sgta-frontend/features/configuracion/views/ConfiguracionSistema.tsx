@@ -17,23 +17,36 @@ export default function ConfiguracionSistema() {
     parametros,
     guardarParametros,
     cargando,
+
   } = useBackStore();
 
   // Estado local para guardar los parámetros originales
   const [originalParametros, setOriginalParametros] = useState<any[]>([]);
 
   useEffect(() => {
-    cargarParametros(1).then(() => {
-      // Guardar una copia profunda de los parámetros originales
-      setOriginalParametros(JSON.parse(JSON.stringify(parametros)));
-    });
+    const initializeData = async () => {
+      try {
+        // Cargar parámetros y áreas en paralelo
+        await Promise.all([
+          cargarParametros(1),
+        ]);
+        
+        // Guardar una copia profunda de los parámetros originales
+        setOriginalParametros(JSON.parse(JSON.stringify(parametros)));
+      } catch (error) {
+        console.error("Error al inicializar datos:", error);
+      }
+    };
+
+    initializeData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cargarParametros]);
 
   // Detectar si hay cambios
-  const hasChanges =
-    parametros.length !== originalParametros.length ||
-    parametros.some((param, idx) => param.valor !== originalParametros[idx]?.valor);
+  const hasChanges = parametros.some((param) => {
+    const originalParam = originalParametros.find(p => p.id === param.id);
+    return originalParam && originalParam.valor !== param.valor;
+  });
 
   // Handler para guardar
   const handleGuardar = async () => {
@@ -70,7 +83,7 @@ export default function ConfiguracionSistema() {
               disabled={!hasChanges || cargando}
               onClick={handleGuardar}
             >
-              Guardar
+              {cargando ? "Guardando..." : "Guardar"}
             </Button>
           </div>
 
