@@ -4,24 +4,7 @@ import {
     getAllByCarreraId,
     updateCarreraXParametroConfiguracion
 } from "../services/configuracion-service";
-import { CarreraXParametroConfiguracionDto } from "../dtos/CarreraXParametroConfiguracionDto";
-
-// Definimos la interfaz del store
-interface BackStore {
-    // Parámetros de back
-    parametros: CarreraXParametroConfiguracionDto[]
-    parametrosOriginales: CarreraXParametroConfiguracionDto[]
-    cargando: boolean
-    error: string | null
-
-    // Acciones
-    setParametros: (parametros: CarreraXParametroConfiguracionDto[]) => void
-    actualizarParametro: (id: number, valor: string | boolean | number | Date) => void
-
-    // Funciones para llamadas al backend
-    cargarParametros: (carreraId: number) => Promise<void>
-    guardarParametros: () => Promise<void>
-}
+import { BackStore } from "../types/configuracion.types";
 
 export const useBackStore = create<BackStore>()(
     persist(

@@ -1,21 +1,7 @@
 import axiosInstance from "@/lib/axios/axios-instance";
-import { CarreraXParametroConfiguracionDto } from "../dtos/CarreraXParametroConfiguracionDto";
+import { CarreraXParametroConfiguracionDto } from "../types/CarreraXParametroConfiguracion.type";
+import { AreaConocimientoDto, SubAreaConocimientoDto } from "../types/Area.type";
 
-interface AreaConocimientoDto {
-  id: number;
-  nombre: string;
-  descripcion: string;
-  idCarrera: number;
-  subAreas?: SubAreaConocimientoDto[];
-}
-
-interface SubAreaConocimientoDto {
-  id: number;
-  nombre: string;
-  areaConocimiento: {
-    id: number;
-  };
-}
 
 //Services para Parametros generales
 
