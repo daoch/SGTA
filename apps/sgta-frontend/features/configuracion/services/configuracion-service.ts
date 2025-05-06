@@ -57,10 +57,17 @@ export const deleteAreaById = async (id: number): Promise<void> => {
 
 //Services para Subareas
 
-export const createSubArea = async (subArea: any): Promise<any> => {
+export const createSubArea = async (subArea: { nombre: string, idAreaConocimiento: number }): Promise<any> => {
+    const dto = {
+        nombre: subArea.nombre,
+        areaConocimiento: {
+            id: subArea.idAreaConocimiento
+        }
+    };
+    
     const response = await axiosInstance.post<any>(
         "/subAreaConocimiento/create",
-        subArea,
+        dto,
     );
     return response.data;
 }

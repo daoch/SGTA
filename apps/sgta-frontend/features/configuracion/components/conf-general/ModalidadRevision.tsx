@@ -10,28 +10,52 @@ import {
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useBackStore } from "../../store/configuracion-store";
-
+import { useEffect, useState } from "react";
 
 export default function ModalidadRevisionCard() {
   const { parametros, actualizarParametro, cargando } = useBackStore();
-   console.log("parametros", parametros);
+  const [localParametros, setLocalParametros] = useState<any[]>([]);
+
+  // Inicializar los parámetros locales cuando cambian los parámetros del store
+  useEffect(() => {
+    setLocalParametros(parametros);
+  }, [parametros]);
+
   // Buscar los parámetros por nombre
-  const turnitinParam = parametros.find(
+  const turnitinParam = localParametros.find(
     (p) => p.parametroConfiguracion.nombre === "Turnitin"
   );
-  const antiplagioParam = parametros.find(
+  const antiplagioParam = localParametros.find(
     (p) => p.parametroConfiguracion.nombre === "Modalidad de Revision"
   );
 
   // Handlers para cambiar el valor
   const handleTurnitinChange = async (checked: boolean) => {
     if (turnitinParam) {
+      // Actualizar el parámetro local primero
+      setLocalParametros(prev => 
+        prev.map(p => 
+          p.id === turnitinParam.id 
+            ? { ...p, valor: checked }
+            : p
+        )
+      );
+      // Luego actualizar el store
       actualizarParametro(turnitinParam.id, checked);
     }
   };
 
   const handleAntiplagioChange = async (checked: boolean) => {
     if (antiplagioParam) {
+      // Actualizar el parámetro local primero
+      setLocalParametros(prev => 
+        prev.map(p => 
+          p.id === antiplagioParam.id 
+            ? { ...p, valor: checked }
+            : p
+        )
+      );
+      // Luego actualizar el store
       actualizarParametro(antiplagioParam.id, checked);
     }
   };

@@ -28,9 +28,9 @@ public class SubAreaConocimientoMapper {
 		subAreaConocimiento.setNombre(dto.getNombre());
 		subAreaConocimiento.setActivo(dto.isActivo());
 		subAreaConocimiento.setFechaCreacion(dto.getFechaCreacion());
-		AreaConocimiento areaConocimiento = new AreaConocimiento();
-		areaConocimiento.setId(dto.getIdAreaConocimiento());
-		subAreaConocimiento.setAreaConocimiento(areaConocimiento);
+		// AreaConocimiento areaConocimiento = new AreaConocimiento();
+		// areaConocimiento.setId(dto.getIdAreaConocimiento());
+		subAreaConocimiento.setAreaConocimiento(AreaConocimientoMapper.toEntity(dto.getAreaConocimiento()));
 		return subAreaConocimiento;
 	}
 

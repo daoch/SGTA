@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import ModalidadRevisionCard from "../components/conf-general/ModalidadRevision";
 import JuradosCards from "../components/conf-general/Jurados";
 import AsesoresCards from "../components/conf-general/Asesores";
@@ -15,44 +15,32 @@ export default function ConfiguracionSistema() {
   const {
     cargarParametros,
     parametros,
+    parametrosOriginales,
     guardarParametros,
     cargando,
-
   } = useBackStore();
-
-  // Estado local para guardar los parámetros originales
-  const [originalParametros, setOriginalParametros] = useState<any[]>([]);
 
   useEffect(() => {
     const initializeData = async () => {
       try {
-        // Cargar parámetros y áreas en paralelo
-        await Promise.all([
-          cargarParametros(1),
-        ]);
-        
-        // Guardar una copia profunda de los parámetros originales
-        setOriginalParametros(JSON.parse(JSON.stringify(parametros)));
+        await cargarParametros(1);
       } catch (error) {
         console.error("Error al inicializar datos:", error);
       }
     };
 
     initializeData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cargarParametros]);
 
-  // Detectar si hay cambios
+  // Detectar si hay cambios comparando con los valores originales
   const hasChanges = parametros.some((param) => {
-    const originalParam = originalParametros.find(p => p.id === param.id);
+    const originalParam = parametrosOriginales.find(p => p.id === param.id);
     return originalParam && originalParam.valor !== param.valor;
   });
 
   // Handler para guardar
   const handleGuardar = async () => {
     await guardarParametros();
-    // Actualizar los originales después de guardar
-    setOriginalParametros(JSON.parse(JSON.stringify(parametros)));
   };
 
   return (

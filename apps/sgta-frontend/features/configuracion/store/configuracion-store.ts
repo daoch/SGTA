@@ -1,7 +1,7 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
-import { 
-    getAllByCarreraId, 
+import {
+    getAllByCarreraId,
     updateCarreraXParametroConfiguracion
 } from "../services/configuracion-service"
 import { CarreraXParametroConfiguracionDto } from "../dtos/CarreraXParametroConfiguracionDto"
@@ -10,6 +10,7 @@ import { CarreraXParametroConfiguracionDto } from "../dtos/CarreraXParametroConf
 interface BackStore {
     // Parámetros de back
     parametros: CarreraXParametroConfiguracionDto[]
+    parametrosOriginales: CarreraXParametroConfiguracionDto[]
     cargando: boolean
     error: string | null
 
@@ -17,7 +18,7 @@ interface BackStore {
     setParametros: (parametros: CarreraXParametroConfiguracionDto[]) => void
     actualizarParametro: (id: number, valor: any) => void
     actualizarParametroBackend: (id: number, valor: any) => Promise<void>
-    
+
     // Funciones para llamadas al backend
     cargarParametros: (carreraId: number) => Promise<void>
     guardarParametros: () => Promise<void>
@@ -28,14 +29,21 @@ export const useBackStore = create<BackStore>()(
         (set, get) => ({
             // Estado inicial
             parametros: [],
+            parametrosOriginales: [],
             cargando: false,
             error: null,
 
             // Acciones para modificar el estado
-            setParametros: (parametros) => set({ parametros }),
+            setParametros: (parametros) => set({ 
+                parametros,
+                parametrosOriginales: JSON.parse(JSON.stringify(parametros)) // Guardamos una copia profunda
+            }),
+            
             actualizarParametro: (id, valor) =>
                 set((state) => ({
-                    parametros: state.parametros.map((param) => (param.id === id ? { ...param, valor } : param)),
+                    parametros: state.parametros.map((param) => 
+                        param.id === id ? { ...param, valor } : param
+                    ),
                 })),
 
             actualizarParametroBackend: async (id: number, valor: any) => {
@@ -80,7 +88,11 @@ export const useBackStore = create<BackStore>()(
                     if (!response) {
                         throw new Error("No se encontraron parámetros para esta carrera")
                     }
-                    set({ parametros: response, cargando: false })
+                    set({ 
+                        parametros: response,
+                        parametrosOriginales: JSON.parse(JSON.stringify(response)), // Guardamos una copia profunda
+                        cargando: false 
+                    })
                 } catch (error) {
                     set({ error: error instanceof Error ? error.message : "Error desconocido", cargando: false })
                     console.error("Error al cargar parámetros:", error)
@@ -92,7 +104,11 @@ export const useBackStore = create<BackStore>()(
                 try {
                     const parametros = get().parametros
                     await Promise.all(parametros.map(param => updateCarreraXParametroConfiguracion(param)));
-                    set({ cargando: false })
+                    // Actualizar los parámetros originales después de guardar
+                    set({ 
+                        parametrosOriginales: JSON.parse(JSON.stringify(parametros)),
+                        cargando: false 
+                    })
                 } catch (error) {
                     set({ error: error instanceof Error ? error.message : "Error desconocido", cargando: false })
                     console.error("Error al guardar parámetros:", error)
@@ -102,7 +118,8 @@ export const useBackStore = create<BackStore>()(
         {
             name: "sistema-tesis-storage",
             partialize: (state) => ({
-                parametros: state.parametros
+                parametros: state.parametros,
+                parametrosOriginales: state.parametrosOriginales
             }),
         }
     )

@@ -30,11 +30,11 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { 
-  getAllAreasByCarreraId, 
-  createArea, 
-  deleteAreaById, 
-  createSubArea, 
+import {
+  getAllAreasByCarreraId,
+  createArea,
+  deleteAreaById,
+  createSubArea,
   deleteSubAreaById,
   getAllSubAreasByAreaId
 } from "../../services/configuracion-service";
@@ -76,7 +76,7 @@ export default function GeneralConfCards() {
     try {
       setLoadingOperation({ type: 'save' });
       const areasData = await getAllAreasByCarreraId(1); // TODO: Reemplazar con el ID de carrera real
-      
+
       // Para cada área, cargar sus subáreas
       const areasWithSubareas = await Promise.all(
         areasData.map(async (area: any) => {
@@ -156,15 +156,15 @@ export default function GeneralConfCards() {
           idAreaConocimiento: areaId
         });
 
-        setAreas(prev => prev.map(area => 
+        setAreas(prev => prev.map(area =>
           area.id === areaId
             ? {
-                ...area,
-                subAreas: [...area.subAreas, {
-                  id: response.id,
-                  nombre: response.nombre
-                }]
-              }
+              ...area,
+              subAreas: [...area.subAreas, {
+                id: response.id,
+                nombre: response.nombre
+              }]
+            }
             : area
         ));
 
@@ -183,12 +183,12 @@ export default function GeneralConfCards() {
     try {
       setLoadingOperation({ type: 'deleteSubArea', id: areaId });
       await deleteSubAreaById(subAreaId);
-      setAreas(prev => prev.map(area => 
+      setAreas(prev => prev.map(area =>
         area.id === areaId
           ? {
-              ...area,
-              subAreas: area.subAreas.filter(sub => sub.id !== subAreaId)
-            }
+            ...area,
+            subAreas: area.subAreas.filter(sub => sub.id !== subAreaId)
+          }
           : area
       ));
     } catch (error) {
@@ -242,8 +242,8 @@ export default function GeneralConfCards() {
                         }
                       }}
                     />
-                    <Button 
-                      onClick={handleAddArea} 
+                    <Button
+                      onClick={handleAddArea}
                       disabled={loadingOperation.type === 'addArea' || !newArea.trim()}
                     >
                       {loadingOperation.type === 'addArea' ? "Agregando..." : "Agregar"}

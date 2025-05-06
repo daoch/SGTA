@@ -39,6 +39,7 @@ public class SubAreaConocimientoController {
     @GetMapping("/list/{idArea}")
     public List<SubAreaConocimientoDto> listSubAreaConocimientoByArea(@PathVariable Integer idArea) {
         return subAreaConocimientoService.getAllByArea(idArea);
+    }
 
     @GetMapping("/findById") // finds a topic by id
     public SubAreaConocimientoDto findById(@RequestParam(name = "idSubArea") Integer idSubArea) {
