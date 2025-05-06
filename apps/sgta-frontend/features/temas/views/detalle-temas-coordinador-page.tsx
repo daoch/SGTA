@@ -16,10 +16,9 @@ import React from "react";
 import { Input } from "@/components/ui/input";
 
 enum TabValues {
-  TODOS = "todos",
-  INSCRITOS = "inscrito",
-  LIBRES = "libre",
-  INTERESADOS = "interesado",
+  INFO = "informacion",
+  HISTORIAL = "libre",
+  DETALLE_EXPO = "interesado",
 }
 
 const DetalleTemasCoordinadorPage = () => {
@@ -31,46 +30,49 @@ const DetalleTemasCoordinadorPage = () => {
         <h1 className="text-3xl font-bold text-[#042354]">Detalles del tema</h1>
       </div>
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between gap-4">
-            <Input placeholder="Buscar por título, estudiante o asesor..."/>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline">Todos los ciclos</Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56">
-                <DropdownMenuLabel>Panel Position</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuRadioGroup value={position} onValueChange={setPosition}>
-                  <DropdownMenuRadioItem value="top">Top</DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="bottom">Bottom</DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="right">Right</DropdownMenuRadioItem>
-                </DropdownMenuRadioGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline">Todas las áreas</Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56">
-                <DropdownMenuLabel>Panel Position</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuRadioGroup value={position} onValueChange={setPosition}>
-                  <DropdownMenuRadioItem value="top">Top</DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="bottom">Bottom</DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="right">Right</DropdownMenuRadioItem>
-                </DropdownMenuRadioGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <TemasTable filter={TabValues.INSCRITOS} showPostulaciones = {false} showTipo = {false}/>
-        </CardContent>
-      </Card>
+      <Tabs defaultValue={TabValues.INFO} className="w-full">
+        <TabsList>
+          <TabsTrigger value={TabValues.INFO}>Información</TabsTrigger>
+          <TabsTrigger value={TabValues.HISTORIAL}>Historial de Cambios</TabsTrigger>
+          <TabsTrigger value={TabValues.DETALLE_EXPO}>Detalle de Exposiciones</TabsTrigger>
+        </TabsList>
+        <TabsContent value={TabValues.INFO}>
+          <Card>
+            <CardHeader>
+              <CardTitle>Todos los temas</CardTitle>
+              <CardDescription>
+                Lista de todos los temas de tesis
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value={TabValues.HISTORIAL}>
+          <Card>
+            <CardHeader>
+              <CardTitle>Temas inscritos</CardTitle>
+              <CardDescription>
+                Temas de tesis en los que estás inscrito
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value={TabValues.DETALLE_EXPO}>
+          <Card>
+            <CardHeader>
+              <CardTitle>Temas libres</CardTitle>
+              <CardDescription>
+                Temas de tesis disponibles para postular
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
