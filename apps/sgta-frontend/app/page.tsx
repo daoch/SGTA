@@ -7,8 +7,8 @@ export default function HomePage() {
   const router = useRouter();
 
   useEffect(() => {
-    router.push("/dashboard");
+    router.push("/login");
   }, [router]);
 
-  return <div>...</div>;
+  return <div>Cargando...</div>;
 }
