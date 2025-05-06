@@ -6,6 +6,7 @@ import pucp.edu.pe.sgta.dto.TemaDto;
 import pucp.edu.pe.sgta.service.inter.TemaService;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 
@@ -20,15 +21,75 @@ public class TemaController {
 		return temaService.findByUsuario(idUsuario);
 	}
 
-	@PostMapping("/createPropuesta")
-	public void createTema(@RequestBody TemaDto dto,
-			@RequestParam(name = "idUsuarioCreador") Integer idUsuarioCreador) {
-		temaService.createTemaPropuesta(dto, idUsuarioCreador);
+    @PostMapping("/createPropuesta")
+    public void createTema(@RequestBody TemaDto dto,
+                           @RequestParam(name = "idUsuarioCreador") Integer idUsuarioCreador) {
+        temaService.createTemaPropuesta(dto, idUsuarioCreador);
+    }
+    @GetMapping("/findById") //finds a topic by id
+    public TemaDto findById(@RequestParam(name = "idTema") Integer idTema) {
+        return temaService.findById(idTema);
+    }
+
+    @PostMapping("/createInscripcion") // Inscripcion de tema oficial por asesor
+    public void createInscripcion(
+            @RequestBody TemaDto dto,
+            @RequestParam(name = "idUsuarioCreador") Integer idUsuarioCreador) {
+        temaService.createInscripcionTema(dto, idUsuarioCreador);
+    }
+
+	@GetMapping("/listarTemasPropuestosAlAsesor/{asesorId}")
+	public List<TemaDto> listarTemasPropuestosAlAsesor(@PathVariable Integer asesorId) {
+		return temaService.listarTemasPropuestosAlAsesor(asesorId);
 	}
 
-	@GetMapping("/findById") // finds a topic by id
-	public TemaDto findById(@RequestParam(name = "idTema") Integer idTema) {
-		return temaService.findById(idTema);
+	@GetMapping("/listarTemasPropuestosPorSubAreaConocimiento")
+	public List<TemaDto> listarTemasPropuestosPorSubAreaConocimiento(@RequestParam List<Integer> subareaIds) {
+		return temaService.listarTemasPropuestosPorSubAreaConocimiento(subareaIds);
 	}
+
+	@PostMapping("/postularAsesorTemaPropuestoGeneral")
+	public void postularAsesorTemaPropuestoGeneral(
+			@RequestParam(name = "idAlumno") Integer idAlumno,
+			@RequestParam(name = "idAsesor") Integer idAsesor,
+			@RequestParam(name = "idTema") Integer idTema,
+			@RequestParam(name = "comentario") String comentario) {
+
+		temaService.postularAsesorTemaPropuestoGeneral(idAlumno, idAsesor, idTema, comentario);
+
+
+	}
+
+	@PostMapping("/enlazarTesistasATemaPropuestDirecta")
+	public void enlazarTesistasATemaPropuestDirecta(@RequestBody Map<String, Object> body) {
+
+		List<Integer> usuariosIdList = (List<Integer>) body.get("usuariosId");
+		Integer[] usuariosId = usuariosIdList.toArray(new Integer[0]);
+		Integer temaId = (Integer) body.get("temaId");
+		Integer profesorId = (Integer) body.get("profesorId");
+		String comentario = (String) body.getOrDefault("comentario", ""); // por defecto vacío
+
+		temaService.enlazarTesistasATemaPropuestDirecta(usuariosId, temaId, profesorId, comentario);
+	}
+    @GetMapping("/listarTemasPorUsuarioRolEstado/{usuarioId}")
+    public List<TemaDto> listarTemasPorUsuarioRolEstado(
+            @PathVariable("usuarioId") Integer usuarioId,
+            @RequestParam("rolNombre")   String rolNombre,
+            @RequestParam("estadoNombre")String estadoNombre) {
+        return temaService.listarTemasPorUsuarioEstadoYRol(usuarioId, rolNombre, estadoNombre);
+    }
+
+	@PostMapping("/rechazarTemaPropuestaDirecta")
+	public void rechazarTema(
+			@RequestParam("alumnoId") Integer alumnoId,
+			@RequestParam("comentario") String comentario,
+			@RequestParam("temaId") Integer temaId) {
+
+		temaService.rechazarTemaPropuestaDirecta(alumnoId, comentario, temaId);
+
+	}
+
 
 }
+
+

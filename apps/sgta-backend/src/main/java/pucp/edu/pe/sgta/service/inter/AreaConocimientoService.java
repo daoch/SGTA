@@ -14,5 +14,8 @@ public interface AreaConocimientoService {
 	List<AreaConocimientoDto> getAll();
 
 	List<AreaConocimientoDto> getAllByCarrera(Integer idCarrera);
+    AreaConocimientoDto findById(Integer id);
+
+    List<AreaConocimientoDto> listarPorUsuario(Integer usuarioId);
 
 }

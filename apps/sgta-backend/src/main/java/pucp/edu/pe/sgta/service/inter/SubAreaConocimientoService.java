@@ -11,6 +11,8 @@ public interface SubAreaConocimientoService {
 
 	SubAreaConocimientoDto create(SubAreaConocimientoDto dto);
 
+	List<SubAreaConocimientoDto> listarPorUsuario(Integer usuarioId);
+
 	void update(SubAreaConocimientoDto dto);
 
 	void delete(Integer id);

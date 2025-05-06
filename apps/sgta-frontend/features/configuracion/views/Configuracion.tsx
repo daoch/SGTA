@@ -1,6 +1,6 @@
 "use client";
-import Link from "next/link";
 import { Settings } from "lucide-react";
+import Link from "next/link";
 //import { Badge } from "@/components/ui/badge"
 
 export default function Configuracion() {
@@ -69,6 +69,27 @@ export default function Configuracion() {
         </Link>
         */}
       </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Link
+          href="configuracion/registro-usuarios"
+          className="bg-white rounded-lg shadow p-6 flex items-start gap-4 hover:shadow-md transition-shadow"
+        >
+          <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-[#0F1A3A]">
+            <Settings size={24} />
+          </div>
+          <div>
+            <h2 className="font-semibold text-lg mb-1">
+              Registro de Usuarios
+            </h2>
+            <p className="text-gray-500 text-sm">
+              Gestioné configuraciones clave del proceso de tesis: áreas, temas,
+              fechas, asesores, jurados y revisión.
+            </p>
+          </div>
+        </Link>
+      </div>
+      
     </div>
   );
 }

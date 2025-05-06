@@ -1,11 +1,16 @@
 package pucp.edu.pe.sgta.controller;
 
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import pucp.edu.pe.sgta.dto.SubAreaConocimientoDto;
+import pucp.edu.pe.sgta.dto.TemaDto;
+import pucp.edu.pe.sgta.model.SubAreaConocimiento;
 import pucp.edu.pe.sgta.service.inter.SubAreaConocimientoService;
+import pucp.edu.pe.sgta.service.inter.TemaService;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 
@@ -34,6 +39,15 @@ public class SubAreaConocimientoController {
     @GetMapping("/list/{idArea}")
     public List<SubAreaConocimientoDto> listSubAreaConocimientoByArea(@PathVariable Integer idArea) {
         return subAreaConocimientoService.getAllByArea(idArea);
+
+    @GetMapping("/findById") // finds a topic by id
+    public SubAreaConocimientoDto findById(@RequestParam(name = "idSubArea") Integer idSubArea) {
+        return subAreaConocimientoService.findById(idSubArea);
+    }
+
+    @GetMapping("/listarPorUsuario") // finds a topic by id
+    public List<SubAreaConocimientoDto> listarPorUsuario(@RequestParam(name = "usuarioId") Integer usuarioId) {
+        return subAreaConocimientoService.listarPorUsuario(usuarioId);
     }
 
 }
