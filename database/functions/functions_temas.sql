@@ -1,5 +1,6 @@
-CREATE OR REPLACE FUNCTION sgta.listar_temas_propuestos_por_subarea_conocimiento(
-	p_subareas_ids integer[])
+CREATE OR REPLACE FUNCTION listar_temas_propuestos_por_subarea_conocimiento(
+	p_subareas_ids integer[],
+	p_asesor_id integer)
     RETURNS TABLE(tema_id integer, titulo text, subareas_id integer[], alumnos_id integer[], descripcion text, metodologia text, objetivo text, recurso text, activo boolean, fecha_limite timestamp with time zone, fecha_creacion timestamp with time zone, fecha_modificacion timestamp with time zone) 
     LANGUAGE 'plpgsql'
     COST 100
@@ -20,9 +21,10 @@ BEGIN
         ARRAY( 
             SELECT ut2.usuario_id
             FROM usuario_tema ut2
-            WHERE ut2.tema_id = t.tema_id AND ut2.rol_id = (
-            	SELECT rol_id FROM rol WHERE nombre ILIKE 'Creador' LIMIT 1
-        	)
+            WHERE ut2.tema_id = t.tema_id 
+              AND ut2.rol_id = (
+                 SELECT rol_id FROM rol WHERE nombre ILIKE 'Creador' LIMIT 1
+              )
         ) AS alumnos_id,
         t.resumen::text,
         t.metodologia::text,
@@ -45,6 +47,12 @@ BEGIN
             LIMIT 1
         )
         AND sact.sub_area_conocimiento_id = ANY(p_subareas_ids)
+        AND NOT EXISTS (
+            SELECT 1 
+            FROM usuario_tema ut
+            WHERE ut.tema_id = t.tema_id
+              AND ut.usuario_id = p_asesor_id
+        )
     GROUP BY 
         t.tema_id, t.titulo, t.resumen, t.metodologia, t.objetivos, 
         r.documento_url, t.activo, t.fecha_limite, t.fecha_creacion, t.fecha_modificacion;
@@ -52,8 +60,7 @@ END;
 $BODY$;
 
 
-
-CREATE OR REPLACE FUNCTION sgta.listar_temas_propuestos_al_asesor(
+CREATE OR REPLACE FUNCTION listar_temas_propuestos_al_asesor(
 	p_asesor_id integer)
     RETURNS TABLE(tema_id integer, titulo text, subareas text, subarea_ids integer[], alumno text, usuario_id_alumno integer[], descripcion text, metodologia text, objetivo text, recurso text, activo boolean, fecha_limite timestamp with time zone, fecha_creacion timestamp with time zone, fecha_modificacion timestamp with time zone) 
     LANGUAGE 'plpgsql'
@@ -225,7 +232,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION public.postular_asesor_a_tema(
+CREATE OR REPLACE FUNCTION postular_asesor_a_tema(
 	p_asesor_id integer,
 	p_tema_id integer)
     RETURNS void
@@ -258,7 +265,7 @@ $BODY$;
 
 
 
-CREATE OR REPLACE FUNCTION sgta.enlazar_tesistas_tema_propuesta_directa(
+CREATE OR REPLACE FUNCTION enlazar_tesistas_tema_propuesta_directa(
 	p_usuarios_id integer[],
 	p_tema_id integer,
 	p_profesor_id integer,
@@ -301,7 +308,7 @@ $BODY$;
 
 
 
-CREATE OR REPLACE FUNCTION sgta.listar_areas_conocimiento_por_usuario(
+CREATE OR REPLACE FUNCTION listar_areas_conocimiento_por_usuario(
 	p_usuario_id integer)
     RETURNS TABLE(area_id integer, area_nombre text, descripcion text) 
     LANGUAGE 'sql'
@@ -319,7 +326,7 @@ $BODY$;
 
 
 
-CREATE OR REPLACE FUNCTION sgta.obtener_sub_areas_por_usuario(
+CREATE OR REPLACE FUNCTION obtener_sub_areas_por_usuario(
 	p_usuario_id integer)
     RETURNS TABLE(sub_area_conocimiento_id integer, area_conocimiento_id integer, nombre text, descripcion text, activo boolean) 
     LANGUAGE 'plpgsql'
@@ -342,7 +349,7 @@ $BODY$;
 
 
 
-CREATE OR REPLACE FUNCTION sgta.postular_asesor_a_tema(
+CREATE OR REPLACE FUNCTION postular_asesor_a_tema(
 	p_alumno_id integer,
 	p_asesor_id integer,
 	p_tema_id integer,
@@ -380,7 +387,7 @@ $BODY$;
 
 
 
-CREATE OR REPLACE FUNCTION sgta.rechazar_tema(
+CREATE OR REPLACE FUNCTION rechazar_tema(
     p_alumno_id INT,
     p_comentario TEXT,
     p_tema_id INT
