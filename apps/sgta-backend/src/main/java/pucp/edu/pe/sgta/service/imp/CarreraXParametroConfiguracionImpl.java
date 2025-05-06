@@ -3,6 +3,7 @@ import java.time.OffsetDateTime;
 import org.springframework.stereotype.Service;
 import pucp.edu.pe.sgta.dto.CarreraXParametroConfiguracionDto;
 import pucp.edu.pe.sgta.mapper.CarreraXParametroConfiguracionMapper;
+import pucp.edu.pe.sgta.mapper.ParametroConfiguracionMapper;
 import pucp.edu.pe.sgta.model.CarreraXParametroConfiguracion;
 import pucp.edu.pe.sgta.repository.CarreraXParametroConfiguracionRepository;
 import pucp.edu.pe.sgta.service.inter.CarreraXParametroConfiguracionService;
@@ -34,6 +35,15 @@ public class CarreraXParametroConfiguracionImpl implements CarreraXParametroConf
 
         carreraXParametroConfiguracionRepository.save(entity);
 	}
+
+    @Override
+    public List<CarreraXParametroConfiguracionDto> getParametrosPorCarrera(Long carreraId) {
+        List<CarreraXParametroConfiguracion> entidades = carreraXParametroConfiguracionRepository.findByCarreraId(carreraId);
+        List<CarreraXParametroConfiguracionDto> dtos = entidades.stream()
+                .map(CarreraXParametroConfiguracionMapper::toDto)
+                .toList();
+        return dtos;
+    }
 
 
 }

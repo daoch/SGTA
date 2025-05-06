@@ -5,6 +5,7 @@ import java.time.OffsetDateTime;
 
 import pucp.edu.pe.sgta.model.Carrera;
 import pucp.edu.pe.sgta.model.ParametroConfiguracion;
+import pucp.edu.pe.sgta.dto.ParametroConfiguracionDto;
 
 @Getter
 @Setter
@@ -19,8 +20,8 @@ public class CarreraXParametroConfiguracionDto {
 
 	private boolean activo;
 
-	private Carrera carrera;
+	private Integer carreraId;
 
-	private ParametroConfiguracion parametroConfiguracion;
+	private ParametroConfiguracionDto parametroConfiguracion;
 
 }
