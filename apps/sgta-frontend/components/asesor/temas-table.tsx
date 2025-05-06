@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/table";
 import { titleCase } from "@/lib/utils";
 import { CheckCircle, Eye, Send, X } from "lucide-react";
-import { temasDataMock } from "./temas.mock";
+import { temasDataMock } from "@/app/types/temas/data";
 
 interface Tema {
   id: number;
