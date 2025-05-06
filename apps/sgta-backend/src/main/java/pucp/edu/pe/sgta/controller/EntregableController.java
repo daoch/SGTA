@@ -1,34 +1,47 @@
 package pucp.edu.pe.sgta.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import pucp.edu.pe.sgta.dto.EntregableDto;
+import pucp.edu.pe.sgta.model.Entregable;
 import pucp.edu.pe.sgta.service.inter.EntregableService;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/entregables")
+@RequestMapping("/entregable")
 
 public class EntregableController {
     @Autowired
     EntregableService entregableService;
 
+    @GetMapping("/etapaFormativaXCiclo/{etapaFormativaXCicloId}")
+    public List<EntregableDto> listarEntregablesXEtapaFormativaXCiclo(@PathVariable Integer etapaFormativaXCicloId) {
+        return entregableService.listarEntregablesXEtapaFormativaXCiclo(etapaFormativaXCicloId);
+    }
 
-//    @GetMapping("/findByEtapaFormativa") // Obtiene la lista de entregables por EtapaFormativa
-//    public List<EntregableDto> findByEtapaFormativa(@RequestParam(name = "idEtapaFormativa") Integer idEtapaFormativa) {
-//        return entregableService.findByEtapaFormativa(idEtapaFormativa);
-//    }
-//
-//    @GetMapping("/findById") // Muestra el detalle de un entregable por su ID
-//    public EntregableDto findById(@RequestParam(name = "idEntregable") Integer idEntregable) {
-//        return entregableService.findById(idEntregable);
-//    }
+    @PostMapping("/etapaFormativaXCiclo/{etapaFormativaXCicloId}")
+    public int crearEntregable(@PathVariable Integer etapaFormativaXCicloId, @RequestBody EntregableDto entregableDto) {
+        return entregableService.crearEntregable(etapaFormativaXCicloId, entregableDto);
+    }
+
+    @PutMapping("/update")
+    public void update(@RequestBody EntregableDto entregableDto) {
+        entregableService.update(entregableDto);
+    }
+
+    @PutMapping("/delete")
+    public void delete(@RequestBody EntregableDto entregableDto) {
+        entregableService.delete(entregableDto);
+    }
+
     @GetMapping("/getAll") // Obtiene la lista de entregables
     public List<EntregableDto> getAll() {
         return entregableService.getAll();
+    }
+
+    @GetMapping("/{id}")
+    public Entregable findById(@PathVariable int id) {
+        return entregableService.findById(id);
     }
 }

@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 
 @Entity
@@ -14,26 +14,24 @@ import java.time.OffsetDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "criterio_entregable")
-
-public class CriterioEntregable {
+@Table(name = "ciclo")
+public class Ciclo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "criterio_entregable_id")
+    @Column(name = "ciclo_id")
     private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "entregable_id", nullable = false, foreignKey = @ForeignKey(name = "fk_criterio_entregable_entregable"))
-    private Entregable entregable;
+    @Column(length = 10, nullable = false)
+    private String semestre;
 
-    @Column(length = 100, nullable = false)
-    private String nombre;
+    @Column(nullable = false)
+    private Integer anio;
 
-    @Column(name = "nota_maxima", precision = 6, scale = 2)
-    private BigDecimal notaMaxima;
+    @Column(name = "fecha_inicio", nullable = false)
+    private LocalDate fechaInicio;
 
-    @Column(columnDefinition = "TEXT")
-    private String descripcion;
+    @Column(name = "fecha_fin", nullable = false)
+    private LocalDate fechaFin;
 
     @Column(nullable = false)
     private boolean activo = true;
@@ -43,4 +41,7 @@ public class CriterioEntregable {
 
     @Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaModificacion;
+
+
+
 }

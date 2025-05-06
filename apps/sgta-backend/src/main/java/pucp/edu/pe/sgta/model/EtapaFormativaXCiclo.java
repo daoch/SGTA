@@ -1,12 +1,9 @@
 package pucp.edu.pe.sgta.model;
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 
 @Entity
@@ -14,26 +11,21 @@ import java.time.OffsetDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "criterio_entregable")
+@Table(name = "etapa_formativa_x_ciclo")
+public class EtapaFormativaXCiclo {
 
-public class CriterioEntregable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "criterio_entregable_id")
+    @Column(name = "etapa_formativa_x_ciclo_id")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "entregable_id", nullable = false, foreignKey = @ForeignKey(name = "fk_criterio_entregable_entregable"))
-    private Entregable entregable;
+    @JoinColumn(name = "etapa_formativa_id", nullable = false, foreignKey = @ForeignKey(name = "fk_efc_etapa_formativa"))
+    private EtapaFormativa etapaFormativa;
 
-    @Column(length = 100, nullable = false)
-    private String nombre;
-
-    @Column(name = "nota_maxima", precision = 6, scale = 2)
-    private BigDecimal notaMaxima;
-
-    @Column(columnDefinition = "TEXT")
-    private String descripcion;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "ciclo_id", nullable = false, foreignKey = @ForeignKey(name = "fk_efc_ciclo"))
+    private Ciclo ciclo;
 
     @Column(nullable = false)
     private boolean activo = true;

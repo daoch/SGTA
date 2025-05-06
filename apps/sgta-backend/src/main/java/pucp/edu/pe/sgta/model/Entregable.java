@@ -13,13 +13,17 @@ import java.time.OffsetDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "etregable")
+@Table(name = "entregable")
 
 public class Entregable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "entregable_id")
     private Integer id;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "etapa_formativa_x_ciclo_id", nullable = false, foreignKey = @ForeignKey(name = "fk_entregable_ef_x_c"))
+    private EtapaFormativaXCiclo etapaFormativaXCiclo;
 
     @Column(length = 150)
     private String nombre;
@@ -36,4 +40,12 @@ public class Entregable {
     @Column(name = "es_evaluable", nullable = false)
     private boolean esEvaluable = true;
 
+    @Column(nullable = false)
+    private boolean activo = true;
+
+    @Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private OffsetDateTime fechaCreacion;
+
+    @Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private OffsetDateTime fechaModificacion;
 }
