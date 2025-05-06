@@ -18,11 +18,8 @@ public class CarreraXParametroConfiguracion {
 	@Column(name = "carrera_parametro_configuracion_id")
 	private Integer id;
 
-	@Column(length = 50, nullable = false)
-	private String estado;
-
-	@Column(nullable = false)
-	private Integer cantidad;
+	@Column(length = 100, nullable = false)
+	private String valor;
 
 	@Column(nullable = false)
 	private boolean activo = true;

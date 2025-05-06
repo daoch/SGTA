@@ -454,6 +454,7 @@ CREATE TABLE parametro_configuracion (
     nombre                      VARCHAR(100)             NOT NULL,
     descripcion                 TEXT,
     modulo_id                   INTEGER                  NOT NULL,
+    tipo                        enum_tipo_dato          NOT NULL,
     activo                      BOOLEAN   NOT NULL DEFAULT TRUE,
     fecha_creacion              TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion          TIMESTAMP WITH TIME ZONE,
@@ -467,12 +468,10 @@ CREATE TABLE parametro_configuracion (
 -- 2) Tabla carrera_parametro_configuracion (M:N entre carrera y parametro_configuracion)
 CREATE TABLE carrera_parametro_configuracion (
     carrera_parametro_configuracion_id  SERIAL PRIMARY KEY,
-    estado                              VARCHAR(50)             NOT NULL,
-    cantidad                            INTEGER                 NOT NULL,
+    valor                               TEXT                    NOT NULL,
     activo                              BOOLEAN   NOT NULL DEFAULT TRUE,
     fecha_creacion                      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion                  TIMESTAMP WITH TIME ZONE,
-
     carrera_id                          INTEGER   NOT NULL,
     parametro_configuracion_id          INTEGER   NOT NULL,
 	-- si agregan el fk de etapa_formativa, no le pongan NOT NULL
@@ -797,4 +796,11 @@ create type if not exists enum_presentation_user_state as enum (
 create type if not exists enum_presentation_room_type as enum (
     'presential',
     'virtual'
+);
+
+CREATE TYPE IF NOT EXISTS enum_tipo_valor AS ENUM (
+    'STRING',
+    'DATE',
+    'INTEGER',
+    'BOOLEANO'
 );

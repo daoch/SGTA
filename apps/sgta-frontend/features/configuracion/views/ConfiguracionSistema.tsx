@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import ModalidadRevisionCard from "../components/conf-general/ModalidadRevision";
 import JuradosCards from "../components/conf-general/Jurados";
@@ -53,5 +53,5 @@ export default function ConfiguracionSistema() {
             </div>
 
         </div>
-    )
+    );
 }
