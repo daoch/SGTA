@@ -377,3 +377,39 @@ BEGIN
 	where usuario_id = p_alumno_id and tema_id = p_tema_id;
 END;
 $BODY$;
+
+
+
+CREATE OR REPLACE FUNCTION sgta.rechazar_tema(
+    p_alumno_id INT,
+    p_comentario TEXT,
+    p_tema_id INT
+)
+RETURNS VOID AS
+$$
+BEGIN
+    -- Actualiza el estado del tema a "RECHAZADO"
+    UPDATE tema 
+    SET estado_tema_id = (
+        SELECT estado_tema_id 
+        FROM estado_tema 
+        WHERE nombre ILIKE 'RECHAZADO'
+        LIMIT 1
+    )
+    WHERE tema_id = p_tema_id;
+
+    -- Actualiza el comentario del alumno con rol "Creador"
+    UPDATE usuario_tema 
+    SET comentario = p_comentario 
+    WHERE usuario_id = p_alumno_id 
+      AND tema_id = p_tema_id 
+      AND rol_id = (
+        SELECT rol_id 
+        FROM rol 
+        WHERE nombre ILIKE 'Creador'
+        LIMIT 1
+    );
+END;
+$$ LANGUAGE plpgsql;
+
+

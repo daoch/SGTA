@@ -82,4 +82,18 @@ public class TemaController {
             @RequestParam("estadoNombre")String estadoNombre) {
         return temaService.listarTemasPorUsuarioEstadoYRol(usuarioId, rolNombre, estadoNombre);
     }
+
+	@PostMapping("/rechazarTemaPropuestaDirecta")
+	public void rechazarTema(
+			@RequestParam("alumnoId") Integer alumnoId,
+			@RequestParam("comentario") String comentario,
+			@RequestParam("temaId") Integer temaId) {
+
+		temaService.rechazarTemaPropuestaDirecta(alumnoId, comentario, temaId);
+
+	}
+
+
 }
+
+
