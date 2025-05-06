@@ -500,8 +500,8 @@ public class TemaServiceImpl implements TemaService {
     }
 
 	@Override
-	public List<TemaDto> listarTemasPropuestosPorSubAreaConocimiento(List<Integer> subareaIds) {
-		String sql = "SELECT * FROM listar_temas_propuestos_por_subarea_conocimiento(:subareas)";
+	public List<TemaDto> listarTemasPropuestosPorSubAreaConocimiento(List<Integer> subareaIds,Integer asesorId) {
+		String sql = "SELECT * FROM listar_temas_propuestos_por_subarea_conocimiento(:subareas,:asesorId)";
 
 		// Convertimos la lista a un arreglo para que se interprete como un único parámetro tipo ARRAY
 		Integer[] subareaArray = subareaIds.toArray(new Integer[0]);
@@ -509,6 +509,7 @@ public class TemaServiceImpl implements TemaService {
 		List<Object[]> resultados = entityManager
 				.createNativeQuery(sql)
 				.setParameter("subareas", subareaArray)
+				.setParameter("asesorId", asesorId)
 				.getResultList();
 
 		List<TemaDto> lista = new ArrayList<>();
