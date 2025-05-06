@@ -11,7 +11,6 @@ import {
   BarChart3,
   Calendar,
   FileSpreadsheet,
-  Settings,
 } from "lucide-react";
 
 export interface NavigationGroup {
@@ -165,11 +164,6 @@ export const navigationItems: Record<string, NavigationItem[]> = {
     },
     { name: "Jurados", href: "/coordinador/jurados", icon: Users },
     { name: "Reportes", href: "/coordinador/reportes", icon: BarChart3 },
-    {
-      name: "Configuración",
-      href: "/coordinador/configuracion",
-      icon: Settings,
-    },
   ],
   revisor: [
     { name: "Revisión", href: "/revisor/revision", icon: Search },
