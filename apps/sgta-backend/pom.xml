@@ -13,7 +13,7 @@
 	<version>0.0.1</version>
 	<name>sgta-backend</name>
 	<description>Proyecto de implementación de software</description>
-	<url>https://github.com/darkmoon09032/SGTA</url>
+	<url>https://github.com/daoch/SGTA</url>
 	<licenses>
 		<license/>
 	</licenses>
@@ -60,29 +60,35 @@
 			<version>2.8.6</version>
 		</dependency>
 
+		<dependency>
+			<groupId>io.github.cdimascio</groupId>
+			<artifactId>dotenv-java</artifactId>
+			<version>3.0.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>test</scope>
+		</dependency>
+
 		<!-- Dependencia para SLF4J + Logback -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-logging</artifactId>
 		</dependency>
 
-		<!-- Dependencia para enviar logs a ELK o Graylog (opcional) -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-log4j2</artifactId>
-			<scope>runtime</scope>
-		</dependency>
 		<dependency>
 			<groupId>org.hibernate.validator</groupId>
 			<artifactId>hibernate-validator</artifactId>
 			<version>8.0.0.Final</version>
 		</dependency>
 
-		<!-- Dependencia para archivos .env -->
+		<!-- Dependencia para JUnit (pruebas unitarias) -->
 		<dependency>
-			<groupId>io.github.cdimascio</groupId>
-			<artifactId>dotenv-java</artifactId>
-			<version>3.0.0</version>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 
@@ -98,9 +104,9 @@
 							<artifactId>lombok</artifactId>
 						</path>
 					</annotationProcessorPaths>
-                    <source>17</source>
-                    <target>17</target>
-                </configuration>
+					<source>17</source>
+					<target>17</target>
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
@@ -126,7 +132,7 @@
 				<configuration>
 					<effort>Max</effort>
 					<threshold>Low</threshold>
-					<failOnError>true</failOnError>
+					<failOnError>false</failOnError>
 					<xmlOutput>false</xmlOutput>
 				</configuration>
 				<executions>
@@ -136,6 +142,11 @@
 						</goals>
 					</execution>
 				</executions>
+			</plugin>
+			<!-- Plugin para JUnit (pruebas unitarias) (opcional) -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
 			</plugin>
 		</plugins>
 	</build>

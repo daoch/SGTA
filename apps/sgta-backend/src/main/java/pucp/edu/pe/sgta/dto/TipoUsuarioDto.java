@@ -11,13 +11,14 @@ import java.time.OffsetDateTime;
 @Builder
 public class TipoUsuarioDto {
 
-    private Integer id;
+	private Integer id;
 
-    private String nombre;
+	private String nombre;
 
-    private boolean activo;
+	private boolean activo;
 
-    private OffsetDateTime fechaCreacion;
+	private OffsetDateTime fechaCreacion;
 
-    private OffsetDateTime fechaModificacion;
+	private OffsetDateTime fechaModificacion;
+
 }

@@ -17,7 +17,7 @@ import Image from "next/image";
 
 const AppHeader = () => {
   return (
-    <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 border-b ">
+    <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 border-b bg-white">
       <div className="flex items-center justify-between gap-2 px-4 flex-1">
         <Image
           src="/logo.png"

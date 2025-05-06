@@ -12,42 +12,43 @@ import java.util.List;
 @Service
 public class UsuarioServiceImpl implements UsuarioService {
 
-    private final UsuarioRepository usuarioRepository;
+	private final UsuarioRepository usuarioRepository;
 
-    public UsuarioServiceImpl(UsuarioRepository usuarioRepository) {
-        this.usuarioRepository = usuarioRepository;
-    }
+	public UsuarioServiceImpl(UsuarioRepository usuarioRepository) {
+		this.usuarioRepository = usuarioRepository;
+	}
 
-        @Override
-        public void createUsuario(UsuarioDto usuarioDto) {
-            usuarioDto.setId(null);
+	@Override
+	public void createUsuario(UsuarioDto usuarioDto) {
+		usuarioDto.setId(null);
 
-            Usuario usuario = UsuarioMapper.toEntity(usuarioDto);
+		Usuario usuario = UsuarioMapper.toEntity(usuarioDto);
 
-            usuarioRepository.save(usuario);
-        }
+		usuarioRepository.save(usuario);
+	}
 
-    @Override
-    public UsuarioDto findUsuarioById(Integer id) {
-        Usuario usuario = usuarioRepository.findById(id).orElse(null);
-        if (usuario != null) {
-            return UsuarioMapper.toDto(usuario);
-        }
-        return null;
-    }
+	@Override
+	public UsuarioDto findUsuarioById(Integer id) {
+		Usuario usuario = usuarioRepository.findById(id).orElse(null);
+		if (usuario != null) {
+			return UsuarioMapper.toDto(usuario);
+		}
+		return null;
+	}
 
-    @Override
-    public List<UsuarioDto> findAllUsuarios() {
-        return List.of();
-    }
+	@Override
+	public List<UsuarioDto> findAllUsuarios() {
+		return List.of();
+	}
 
-    @Override
-    public void updateUsuario(UsuarioDto usuarioDto) {
+	@Override
+	public void updateUsuario(UsuarioDto usuarioDto) {
 
-    }
+	}
 
-    @Override
-    public void deleteUsuario(Integer id) {
+	@Override
+	public void deleteUsuario(Integer id) {
 
-    }
+	}
+
 }

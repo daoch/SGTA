@@ -15,38 +15,41 @@ import java.time.OffsetDateTime;
 @IdClass(SubAreaConocimientoXTema.SubAreaConocimientoXTemaId.class)
 public class SubAreaConocimientoXTema {
 
-    @Id
-    @Column(name = "sub_area_conocimiento_id")
-    private Integer subAreaConocimientoId;
+	@Id
+	@Column(name = "sub_area_conocimiento_id")
+	private Integer subAreaConocimientoId;
 
-    @Id
-    @Column(name = "tema_id")
-    private Integer temaId;
+	@Id
+	@Column(name = "tema_id")
+	private Integer temaId;
 
-    @Column(nullable = false)
-    private boolean activo = true;
+	@Column(nullable = false)
+	private boolean activo = true;
 
-    @Column(name = "fecha_creacion", nullable = false,
-            columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private OffsetDateTime fechaCreacion;
+	@Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+	private OffsetDateTime fechaCreacion;
 
-    // Puedes agregar relaciones si quieres (opcional)
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sub_area_conocimiento_id", insertable = false, updatable = false)
-    private SubAreaConocimiento subAreaConocimiento;
+	// Puedes agregar relaciones si quieres (opcional)
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "sub_area_conocimiento_id", insertable = false, updatable = false)
+	private SubAreaConocimiento subAreaConocimiento;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tema_id", insertable = false, updatable = false)
-    private Tema tema;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "tema_id", insertable = false, updatable = false)
+	private Tema tema;
 
-    // Clase estática interna que actúa como ID compuesto
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @EqualsAndHashCode
-    public static class SubAreaConocimientoXTemaId implements Serializable {
-        private Integer subAreaConocimientoId;
-        private Integer temaId;
-    }
+	// Clase estática interna que actúa como ID compuesto
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	@EqualsAndHashCode
+	public static class SubAreaConocimientoXTemaId implements Serializable {
+
+		private Integer subAreaConocimientoId;
+
+		private Integer temaId;
+
+	}
+
 }
