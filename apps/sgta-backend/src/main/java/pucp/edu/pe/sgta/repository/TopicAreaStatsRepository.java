@@ -16,4 +16,7 @@ public interface TopicAreaStatsRepository extends JpaRepository<SubAreaConocimie
 
     @Query(value = "SELECT * FROM get_topic_area_stats_by_user_and_ciclo(:usuarioId, :cicloNombre)", nativeQuery = true)
     List<Object[]> getTopicAreaStatsByUserAndCiclo(@Param("usuarioId") Integer usuarioId, @Param("cicloNombre") String cicloNombre);
+
+    @Query(value = "SELECT * FROM get_topic_area_trends_by_user(:usuarioId)", nativeQuery = true)
+    List<Object[]> getTopicTrendsByUser(@Param("usuarioId") Integer usuarioId);
 } 

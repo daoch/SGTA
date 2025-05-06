@@ -6,6 +6,7 @@ import pucp.edu.pe.sgta.dto.AdvisorPerformanceDto;
 import pucp.edu.pe.sgta.dto.AreaFinalDTO;
 import pucp.edu.pe.sgta.dto.TeacherCountDTO;
 import pucp.edu.pe.sgta.dto.TopicAreaStatsDTO;
+import pucp.edu.pe.sgta.dto.TopicTrendDTO;
 
 public interface IReportService {
     /** RF1: estadísticas de temas por área */
@@ -16,6 +17,8 @@ public interface IReportService {
     List<TeacherCountDTO> getJurorDistribution(Integer usuarioId, String cicloNombre);
     /** RF2c: rendimiento por área de conocimiento */
     List<AreaFinalDTO> getAreaFinal(Integer usuarioId, String cicloNombre);
+    /** RF1b: tendencias de temas por año */
+    List<TopicTrendDTO> getTopicTrendsByYear(Integer usuarioId);
 
     List<AdvisorPerformanceDto> getAdvisorPerformance();
 }

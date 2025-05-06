@@ -12,6 +12,7 @@ import pucp.edu.pe.sgta.dto.AdvisorPerformanceDto;
 import pucp.edu.pe.sgta.dto.AreaFinalDTO;
 import pucp.edu.pe.sgta.dto.TeacherCountDTO;
 import pucp.edu.pe.sgta.dto.TopicAreaStatsDTO;
+import pucp.edu.pe.sgta.dto.TopicTrendDTO;
 import pucp.edu.pe.sgta.service.inter.IReportService;
 
 @RestController
@@ -28,6 +29,12 @@ public class ReportsController {
     @GetMapping("/topics-areas")
     public List<TopicAreaStatsDTO> fetchTopicAreaStats(@RequestParam Integer usuarioId,@RequestParam String ciclo) {
         return reportingService.getTopicAreaStatistics(usuarioId,ciclo);
+    }
+
+    /** RF1b: tendencias de temas por año */
+    @GetMapping("/topics-trends")
+    public List<TopicTrendDTO> fetchTopicTrendsByYear(@RequestParam Integer usuarioId) {
+        return reportingService.getTopicTrendsByYear(usuarioId);
     }
 
     /** RF2a: distribución de asesores por docente */

@@ -13,6 +13,7 @@ import pucp.edu.pe.sgta.dto.AdvisorPerformanceDto;
 import pucp.edu.pe.sgta.dto.AreaFinalDTO;
 import pucp.edu.pe.sgta.dto.TeacherCountDTO;
 import pucp.edu.pe.sgta.dto.TopicAreaStatsDTO;
+import pucp.edu.pe.sgta.dto.TopicTrendDTO;
 import pucp.edu.pe.sgta.repository.AdvisorDistributionRepository;
 import pucp.edu.pe.sgta.repository.JurorDistributionRepository;
 import pucp.edu.pe.sgta.repository.TopicAreaStatsRepository;
@@ -160,6 +161,22 @@ public class ReportingServiceImpl implements IReportService {
                 new AdvisorPerformanceDto("Dra. Martínez", "Bases de Datos", 68.0, 4),
                 new AdvisorPerformanceDto("Dr. Pérez", "Redes y Comunicaciones", 55.0, 3),
                 new AdvisorPerformanceDto("Dra. Gómez", "Computación Gráfica", 82.0, 2));
+    }
+
+    @Override
+    public List<TopicTrendDTO> getTopicTrendsByYear(Integer usuarioId) {
+        if (usuarioId == null) {
+            throw new IllegalArgumentException("El ID de usuario es requerido");
+        }
+
+        List<Object[]> results = topicAreaStatsRepository.getTopicTrendsByUser(usuarioId);
+        return results.stream()
+                .map(result -> new TopicTrendDTO(
+                        (String) result[0],           // area_name
+                        ((Number) result[1]).intValue(), // year
+                        ((Number) result[2]).intValue()  // topic_count
+                ))
+                .collect(Collectors.toList());
     }
 
 }
