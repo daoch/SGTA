@@ -10,34 +10,11 @@ export interface AreaType {
     subAreas: string[]
 }
 
-
-
-// export interface CarreraParametro {
-//     id: number
-//     valor: any
-//     activo: boolean
-//     carreraId: number
-//     parametroConfiguracion: ParametroConfiguracion
-// }
-
-export interface ConfiguracionType {
-    modoDelimitacion: string
-    fechaLimiteCambioAsesor: string
-    limiteAsesores: number
-    limiteTesistasAsesor: number
-    tiempoRevisionAsesor: number
-    cantidadJurados: number
-    tiempoRevisionJurado: number
-    habilitarTurnitin: boolean
-    habilitarAntiplagio: boolean
-}
-
 // Definimos la interfaz del store
 interface BackStore {
     // Parámetros de back
     areas: AreaType[]
     parametros: CarreraXParametroConfiguracionDto[]
-    //configuracion: ConfiguracionType
     cargando: boolean
     error: string | null
 
@@ -46,7 +23,6 @@ interface BackStore {
     setParametros: (parametros: CarreraXParametroConfiguracionDto[]) => void
     actualizarParametro: (id: number, valor: any) => void
     actualizarParametroBackend: (id: number, valor: any) => Promise<void>
-    //setConfiguracion: (config: Partial<ConfiguracionType>) => void
     agregarArea: (area: AreaType) => void
     eliminarArea: (id: number) => void
     agregarSubArea: (areaId: number, subArea: string) => void
@@ -55,10 +31,8 @@ interface BackStore {
     // Funciones para llamadas al backend
     cargarAreas: () => Promise<void>
     cargarParametros: (carreraId: number) => Promise<void>
-    //cargarConfiguracion: () => Promise<void>
     guardarAreas: () => Promise<void>
     guardarParametros: () => Promise<void>
-    //guardarConfiguracion: () => Promise<void>
 }
 
 
@@ -68,7 +42,6 @@ export const useBackStore = create<BackStore>()(
             // Estado inicial
             areas: [],
             parametros: [],
-
             cargando: false,
             error: null,
 
@@ -79,10 +52,7 @@ export const useBackStore = create<BackStore>()(
                 set((state) => ({
                     parametros: state.parametros.map((param) => (param.id === id ? { ...param, valor } : param)),
                 })),
-            // setConfiguracion: (config) =>
-            //     set((state) => ({
-            //         configuracion: { ...state.configuracion, ...config },
-            //     })),
+
             actualizarParametroBackend: async (id: number, valor: any) => {
                 set({ cargando: true, error: null });
                 try {
@@ -166,16 +136,11 @@ export const useBackStore = create<BackStore>()(
             cargarParametros: async (carreraId) => {
                 set({ cargando: true, error: null })
                 try {
-                    console.log("Cargando parámetros para la carrera:", carreraId)
+                    //console.log("Cargando parámetros para la carrera:", carreraId)
                     const response = await getAllByCarreraId(carreraId)
                     if (!response) {
                         throw new Error("No se encontraron parámetros para esta carrera")
                     }
-                    console.log("Parametros desde el backend:", response)
-
-
-
-                    // Guardamos los parámetros de back en el store
                     set({ parametros: response, cargando: false })
 
                 } catch (error) {
@@ -215,21 +180,13 @@ export const useBackStore = create<BackStore>()(
                 set({ cargando: true, error: null })
                 try {
                     const parametros = get().parametros
-
-                    // Aquí implementaríamos la llamada real a la API para guardar los parámetros
-                    // Por ahora simulamos una respuesta exitosa
                     await Promise.all(parametros.map(param => updateCarreraXParametroConfiguracion(param)));
-
-
                     set({ cargando: false })
                 } catch (error) {
                     set({ error: error instanceof Error ? error.message : "Error desconocido", cargando: false })
                     console.error("Error al guardar parámetros:", error)
                 }
             },
-
-
-
         }
         ),
         {

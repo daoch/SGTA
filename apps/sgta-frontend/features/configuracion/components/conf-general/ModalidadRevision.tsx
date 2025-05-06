@@ -7,12 +7,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useBackStore } from "../../store/configuracion-store";
 
-//import { updateCarreraXParametroConfiguracion } from "../../services/configuracion-service";
 
 export default function ModalidadRevisionCard() {
   const { parametros, actualizarParametro, cargando } = useBackStore();
@@ -28,14 +26,12 @@ export default function ModalidadRevisionCard() {
   // Handlers para cambiar el valor
   const handleTurnitinChange = async (checked: boolean) => {
     if (turnitinParam) {
-      //await actualizarParametroBackend(turnitinParam.id, checked);
       actualizarParametro(turnitinParam.id, checked);
     }
   };
 
   const handleAntiplagioChange = async (checked: boolean) => {
     if (antiplagioParam) {
-      //await actualizarParametroBackend(antiplagioParam.id, checked);
       actualizarParametro(antiplagioParam.id, checked);
     }
   };
