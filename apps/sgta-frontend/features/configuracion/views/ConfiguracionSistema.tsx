@@ -9,6 +9,7 @@ import JuradosCards from "../components/conf-general/Jurados";
 import AsesoresCards from "../components/conf-general/Asesores";
 import GeneralConfCards from "../components/conf-general/General";
 import { useBackStore } from "../store/configuracion-store";
+import { Button } from "@/components/ui/button";
 
 export default function ConfiguracionSistema() {
   const {
@@ -64,13 +65,13 @@ export default function ConfiguracionSistema() {
               <TabsTrigger value="jurados">Jurados</TabsTrigger>
               <TabsTrigger value="revision">Revisión</TabsTrigger>
             </TabsList>
-            <button
-              className={`px-4 py-2 rounded bg-blue-600 text-white font-semibold transition disabled:bg-gray-300`}
+            <Button
+              className={`px-4 py-2 rounded text-white font-semibold transition disabled:bg-gray-300`}
               disabled={!hasChanges || cargando}
               onClick={handleGuardar}
             >
               Guardar
-            </button>
+            </Button>
           </div>
 
           <TabsContent value="general" className="space-y-4">
