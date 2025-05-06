@@ -190,7 +190,14 @@ public class TemaServiceImpl implements TemaService {
 
 			// TO DO ver tipo de usuario
 			String nombreTipoUsuario = usuarioInvolucradoDto.getTipoUsuario().getNombre();
-			Rol rol = rolRepository.findByNombre(nombreTipoUsuario).orElse(null);
+			Rol rol = null;
+
+			if(nombreTipoUsuario.equals("Profesor")) {
+				rol = rolRepository.findByNombre("Asesor").orElse(null);
+			}
+			else{
+				rol = rolRepository.findByNombre(nombreTipoUsuario).orElse(null);
+			}
 
 			if (rol == null) {
 				logger.severe("Alerta: Rol '" + nombreTipoUsuario + "' not found in database.");
