@@ -6,6 +6,7 @@ import pucp.edu.pe.sgta.mapper.SubAreaConocimientoMapper;
 import pucp.edu.pe.sgta.model.SubAreaConocimiento;
 import pucp.edu.pe.sgta.repository.SubAreaConocimientoRepository;
 import pucp.edu.pe.sgta.service.inter.SubAreaConocimientoService;
+import pucp.edu.pe.sgta.model.AreaConocimiento;
 
 import java.util.List;
 
@@ -37,9 +38,20 @@ public class SubAreaConocimientoImpl implements SubAreaConocimientoService {
 	}
 
 	@Override
-	public void create(SubAreaConocimientoDto dto) {
+	public SubAreaConocimientoDto create(SubAreaConocimientoDto dto) {
+		if (dto.getIdAreaConocimiento() == null) {
+			throw new IllegalArgumentException("El id de la area de conocimiento no puede ser nulo");
+		}
+		// fecha Creacion
+		dto.setFechaCreacion(java.time.OffsetDateTime.now());
+		AreaConocimiento areaConocimiento = new AreaConocimiento();
+		areaConocimiento.setId(dto.getIdAreaConocimiento());
+		// Seteamos el area de conocimiento en el dto
+
 		SubAreaConocimiento subAreaConocimiento = SubAreaConocimientoMapper.toEntity(dto);
-		subAreaConocimientoRepository.save(subAreaConocimiento);
+		subAreaConocimiento.setAreaConocimiento(areaConocimiento);
+		SubAreaConocimiento savedSubArea = subAreaConocimientoRepository.save(subAreaConocimiento);
+		return SubAreaConocimientoMapper.toDto(savedSubArea);
 	}
 
 	@Override

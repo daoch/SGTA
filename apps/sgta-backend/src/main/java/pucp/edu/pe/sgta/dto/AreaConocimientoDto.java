@@ -24,7 +24,7 @@ public class AreaConocimientoDto {
 
 	private String descripcion;
 
-	private boolean activo;
+	private boolean activo = true;
 
 	private OffsetDateTime fechaCreacion;
 

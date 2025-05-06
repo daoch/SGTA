@@ -16,8 +16,8 @@ public class AreaConocimientoController {
 	AreaConocimientoService areaConocimientoService;
 
 	@PostMapping("/create")
-	public void createAreaConocimiento(@RequestBody AreaConocimientoDto dto) {
-        areaConocimientoService.create(dto);
+	public AreaConocimientoDto createAreaConocimiento(@RequestBody AreaConocimientoDto dto) {
+        return areaConocimientoService.create(dto);
     }
 
     @GetMapping("/list")

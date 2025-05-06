@@ -16,8 +16,8 @@ public class SubAreaConocimientoController {
 	SubAreaConocimientoService subAreaConocimientoService;
 
 	@PostMapping("/create")
-	public void createSubAreaConocimiento(@RequestBody SubAreaConocimientoDto dto) {
-		subAreaConocimientoService.create(dto);
+	public SubAreaConocimientoDto createSubAreaConocimiento(@RequestBody SubAreaConocimientoDto dto) {
+		return subAreaConocimientoService.create(dto);
 	}
 
     @GetMapping("/list")

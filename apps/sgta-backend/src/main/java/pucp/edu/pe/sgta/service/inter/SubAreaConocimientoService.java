@@ -9,7 +9,7 @@ public interface SubAreaConocimientoService {
 
 	SubAreaConocimientoDto findById(Integer id);
 
-	void create(SubAreaConocimientoDto dto);
+	SubAreaConocimientoDto create(SubAreaConocimientoDto dto);
 
 	void update(SubAreaConocimientoDto dto);
 

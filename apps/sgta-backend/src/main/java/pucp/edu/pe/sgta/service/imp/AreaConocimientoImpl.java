@@ -20,15 +20,19 @@ public class AreaConocimientoImpl implements AreaConocimientoService {
 
 	//create
     @Override
-    public void create(AreaConocimientoDto dto) {
+    public AreaConocimientoDto create(AreaConocimientoDto dto) {
         if(dto.getIdCarrera() == null) {
             throw new IllegalArgumentException("El id de la carrera no puede ser nulo");
         }
+        //fecha Creacion
+        dto.setFechaCreacion(java.time.OffsetDateTime.now());
         Carrera carrera = new Carrera();
         carrera.setId(dto.getIdCarrera());
         AreaConocimiento areaConocimiento = AreaConocimientoMapper.toEntity(dto);
         areaConocimiento.setCarrera(carrera);
-        areaConocimientoRepository.save(areaConocimiento);
+        AreaConocimiento savedArea = areaConocimientoRepository.save(areaConocimiento);
+        
+        return AreaConocimientoMapper.toDto(savedArea);
     }
 
 
