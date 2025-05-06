@@ -536,7 +536,7 @@ public class TemaServiceImpl implements TemaService {
 	@Transactional
 	public void postularAsesorTemaPropuestoGeneral(Integer alumnoId,Integer asesorId, Integer temaId,String comentario) {
 		entityManager
-				.createNativeQuery("SELECT public.postular_asesor_a_tema(:alumnoId, :asesorId, :temaId, :comentario)")
+				.createNativeQuery("SELECT postular_asesor_a_tema(:alumnoId, :asesorId, :temaId, :comentario)")
 				.setParameter("alumnoId", alumnoId)
 				.setParameter("asesorId", asesorId)
 				.setParameter("temaId", temaId)
@@ -546,7 +546,7 @@ public class TemaServiceImpl implements TemaService {
 
 	@Transactional
 	public void enlazarTesistasATemaPropuestDirecta(Integer[] usuariosId, Integer temaId, Integer profesorId, String comentario) {
-		entityManager.createNativeQuery("SELECT  public.enlazar_tesistas_tema_propuesta_directa(:usuariosId, :temaId, :profesorId, :comentario)")
+		entityManager.createNativeQuery("SELECT  enlazar_tesistas_tema_propuesta_directa(:usuariosId, :temaId, :profesorId, :comentario)")
 				.setParameter("usuariosId", usuariosId)
 				.setParameter("temaId", temaId)
 				.setParameter("profesorId", profesorId)
