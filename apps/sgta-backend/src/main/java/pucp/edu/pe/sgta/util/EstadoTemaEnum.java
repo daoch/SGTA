@@ -1,0 +1,15 @@
+package pucp.edu.pe.sgta.util;
+
+public enum EstadoTemaEnum {
+
+	PROPUESTO_LIBRE, 
+	PROPUESTO_GENERAL, 
+	PROPUESTO_DIRECTO, 
+	PREINSCRITO, 
+	INSCRITO, 
+	REGISTRADO, 
+	RECHAZADO, 
+	OBSERVADO,
+	VENCIDO
+
+}
