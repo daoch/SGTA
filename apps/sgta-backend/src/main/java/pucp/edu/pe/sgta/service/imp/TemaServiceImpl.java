@@ -555,10 +555,21 @@ public class TemaServiceImpl implements TemaService {
 	}
 
 
+	public void rechazarTemaPropuestaDirecta(Integer alumnoId, String comentario, Integer temaId) {
+		entityManager
+				.createNativeQuery("SELECT rechazar_tema(:alumnoId, :comentario, :temaId)")
+				.setParameter("alumnoId", alumnoId)
+				.setParameter("comentario", comentario)
+				.setParameter("temaId", temaId)
+				.getSingleResult();
+	}
 
 
 
 
 
 
-}
+
+
+
+	}
