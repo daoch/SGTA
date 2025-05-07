@@ -177,7 +177,7 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
                                                     </Button>
                                                 </DialogTrigger>
                                                 { selectedPropuesta &&(
-                                                    <PropuestasModal 
+                                                    <PropuestasModal
                                                     data={selectedPropuesta} setSelectedPropuesta={setSelectedPropuesta} setComentario={setComentario}
                                                     ></PropuestasModal>
                                                 )}
@@ -190,7 +190,7 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
                                             )}
                                             {propuesta.tipo === "directa" && (
                                                 <>
-                                                <Button variant="ghost" size="icon" className="text-red-500"> 
+                                                <Button variant="ghost" size="icon" className="text-red-500">
                                                     <X className="h-4 w-4" /> {/* Rechazar */}
                                                 </Button>
                                                 <Button variant="ghost" size="icon" className="text-green-500">
@@ -208,4 +208,4 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
             </div>
         </div>
     );
-}
+};
