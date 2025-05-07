@@ -17,8 +17,29 @@ import java.util.Map;
 @RequestMapping("/subAreaConocimiento")
 public class SubAreaConocimientoController {
 
-    @Autowired
-    private SubAreaConocimientoService subAreaConocimientoService;
+	@Autowired
+	SubAreaConocimientoService subAreaConocimientoService;
+
+	@PostMapping("/create")
+	public SubAreaConocimientoDto createSubAreaConocimiento(@RequestBody SubAreaConocimientoDto dto) {
+		return subAreaConocimientoService.create(dto);
+	}
+
+    @GetMapping("/list")
+    public List<SubAreaConocimientoDto> listSubAreaConocimiento() {
+        return subAreaConocimientoService.getAll();
+    }
+
+    @PostMapping("/delete/{id}")
+    public void deleteSubAreaConocimiento(@PathVariable Integer id) {
+        subAreaConocimientoService.delete(id);
+    }
+    
+    //listar por area
+    @GetMapping("/list/{idArea}")
+    public List<SubAreaConocimientoDto> listSubAreaConocimientoByArea(@PathVariable Integer idArea) {
+        return subAreaConocimientoService.getAllByArea(idArea);
+    }
 
     @GetMapping("/findById") // finds a topic by id
     public SubAreaConocimientoDto findById(@RequestParam(name = "idSubArea") Integer idSubArea) {
