@@ -119,7 +119,7 @@ CREATE TABLE IF NOT EXISTS proyecto (
 -- 1) TEMA
 CREATE TABLE IF NOT EXISTS tema (
     tema_id                  SERIAL PRIMARY KEY,
-	codigo                   VARCHAR(255) UNIQUE    NOT NULL,
+	codigo                   VARCHAR(255),
     titulo                   VARCHAR(255)      NOT NULL,
     resumen                  TEXT,
     metodologia              TEXT,
@@ -129,6 +129,7 @@ CREATE TABLE IF NOT EXISTS tema (
     proyecto_id              INTEGER,
     carrera_id               INTEGER,
     fecha_limite             TIMESTAMP WITH TIME ZONE,
+    fecha_finalizacion       TIMESTAMP WITH TIME ZONE,
     activo                   BOOLEAN           NOT NULL DEFAULT TRUE,
     fecha_creacion           TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion       TIMESTAMP WITH TIME ZONE,
@@ -253,6 +254,7 @@ CREATE TABLE IF NOT EXISTS usuario_tema (
     tema_id                  INTEGER           NOT NULL,
     rol_id                   INTEGER           NOT NULL,    
     asignado                 BOOLEAN           NOT NULL DEFAULT FALSE,
+    rechazado                BOOLEAN           NOT NULL DEFAULT FALSE,
     prioridad                INTEGER,
     comentario               TEXT,
     activo                   BOOLEAN           NOT NULL DEFAULT TRUE,
@@ -534,12 +536,10 @@ CREATE TABLE IF NOT EXISTS parametro_configuracion (
 -- 2) Tabla carrera_parametro_configuracion (M:N entre carrera y parametro_configuracion)
 CREATE TABLE IF NOT EXISTS carrera_parametro_configuracion (
     carrera_parametro_configuracion_id  SERIAL PRIMARY KEY,
-    valor                               TEXT      NOT NULL,
+    valor                               TEXT                    NOT NULL,
     activo                              BOOLEAN   NOT NULL DEFAULT TRUE,
     fecha_creacion                      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion                  TIMESTAMP WITH TIME ZONE,
-	cantidad							INTEGER	  NOT NULL,
-	estado								VARCHAR(50) NOT NULL,
     carrera_id                          INTEGER   NOT NULL,
     parametro_configuracion_id          INTEGER   NOT NULL,
 	-- si agregan el fk de etapa_formativa, no le pongan NOT NULL
@@ -992,6 +992,17 @@ CREATE TABLE IF NOT EXISTS criterio_entregable
             ON DELETE CASCADE
 );
 
+create type if not exists enum_presentation_room_type as enum (
+    'presential',
+    'virtual'
+);
+
+CREATE TYPE IF NOT EXISTS enum_tipo_valor AS ENUM (
+    'STRING',
+    'DATE',
+    'INTEGER',
+    'BOOLEANO'
+);
 CREATE TABLE IF NOT EXISTS entregable_x_tema
 (
     entregable_x_tema_id            SERIAL PRIMARY KEY,

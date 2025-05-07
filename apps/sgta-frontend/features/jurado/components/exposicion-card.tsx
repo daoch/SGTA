@@ -1,180 +1,146 @@
 "use client";
 
+import { format, isBefore } from "date-fns";
+import { es } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { MapPin, User } from "lucide-react";
+import { MapPin } from "lucide-react";
 import Link from "next/link";
-import { 
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-  DialogClose,
-} from "@/components/ui/dialog";
-import ModalDetallesExposicion from "./modal-detalles-exposicion"; 
+import { Exposicion } from "../types/exposicion.types";
+import { EstadoBadge } from "./badge-estado-exposicion";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Label } from "@/components/ui/label";
+import { useRouter } from "next/navigation";
 
-interface Miembros {
-  id_docente: number;
-  nombre: string;
-  tipo: string;
+interface ExposicionCardProps {
+  exposicion: Exposicion;
+  onClick?: (exposicion: Exposicion) => void;
 }
 
-interface Exposicion {
-  id_exposicion: number;
-  hora: string;
-  fecha: string;
-  sala: string;
-  estado: string;
-  titulo: string;
-  miembros: Miembros[];
-}
+export function ExposicionCard({ exposicion, onClick }: ExposicionCardProps) {
+  const router = useRouter();
 
-export function ExposicionCard({ exposicion }: { exposicion: Exposicion }) {
-  //formatear la fecha para mostrarla con el formato 1 de enero del 2025
-  const formatearFecha = (fechaStr: string) => {
-    const fecha = new Date(fechaStr);
-    const dia = fecha.getDate();
-    const meses = [
-      "Enero",
-      "Febrero",
-      "Marzo",
-      "Abril",
-      "Mayo",
-      "Junio",
-      "Julio",
-      "Agosto",
-      "Septiembre",
-      "Octubre",
-      "Noviembre",
-      "Diciembre",
-    ];
-    const mes = meses[fecha.getMonth()];
-    const año = fecha.getFullYear();
-    return `${dia} de ${mes} del ${año}`;
-  };
-
-  //formatear la hora para mostrarla con hrs
-  const formatearHora = (hora: string) => {
-    return `${hora} hrs`;
-  };
-
-  //separamos los miembros del jurado en dos grupos: asesor y jurados
   const getAsesor = () =>
     exposicion.miembros.filter((m) => m.tipo === "asesor");
   const getEstudiantes = () =>
     exposicion.miembros.filter((m) => m.tipo === "estudiante");
 
+  const handleClick = () => {
+    if (onClick) {
+      onClick(exposicion);
+    }
+  };
+
   return (
-    <div>
-      <Dialog>
-        <DialogTrigger asChild>
-            <div className="bg-gray-50 rounded-lg shadow-sm border p-5 flex flex-col md:flex-row gap-10">
-              {/*HORA FECHA Y SALA*/}
-              <div className="flex flex-col items-center space-y-2 md:min-w-[150px] justify-center">
-                <div className="text-4xl font-semibold">
-                  {formatearHora(exposicion.hora)}
-                </div>
-                <div className="flex items-center gap-1 mt-1">
-                  <span className="text-base">{formatearFecha(exposicion.fecha)}</span>
-                </div>
-                <div className="flex items-center gap-1 mt-1">
-                  <MapPin className="h-6 w-6" />
-                  <span className="text-2xl font-semibold">{exposicion.sala}</span>
-                </div>
-              </div>
+    <div
+      className="bg-gray-50 rounded-lg shadow-sm border p-5 flex flex-col md:flex-row gap-10"
+      onClick={handleClick}
+    >
+      {/* HORA, FECHA Y SALA */}
+      <div className="flex flex-col items-center space-y-2 md:min-w-[180px] justify-center">
+        <div className="text-4xl font-semibold">
+          {format(exposicion.fechaHora, "HH:mm 'hrs'")}
+        </div>
+        <div className="flex items-center gap-1 mt-1">
+          <span>
+            {format(exposicion.fechaHora, "d 'de' MMMM 'del' yyyy", {
+              locale: es,
+            })}
+          </span>
+        </div>
+        <div className="flex items-center gap-1">
+          <MapPin className="h-6 w-6" />
+          <span className="text-2xl font-semibold">{exposicion.sala}</span>
+        </div>
+      </div>
 
-              {/*TITULO Y JURADOS*/}
-              <div className="flex-1">
-                <div className="flex items-start justify-between">
-                  <h3 className="text-xl font-semibold">{exposicion.titulo}</h3>
-                </div>
+      <div className="flex flex-col w-full gap-4 justify-between">
+        {/* TITULO Y ESTADO */}
+        <div className="flex gap-2 w-full">
+          <div className="flex items-start w-4/5">
+            <h3 className="text-xl font-semibold">{exposicion.titulo}</h3>
+          </div>
+          <div className="w-1/5 justify-end flex items-start">
+            <EstadoBadge estado={exposicion.estado} />
+          </div>
+        </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-               
-                  {getEstudiantes().map((estudiante) => (
-                    
-                    <div 
-                      key={estudiante.id_docente}
-                      className="flex items-center gap-2"
-                    >
-                      <div className="bg-gray-100 p-1 rounded-full">
-                        <User className="h-6 w-6 text-gray-500" />
-                      </div>
-                      <div>
-                        <div className="text-base font-medium  text-gray-800">
-                          Tesista
-                        </div>
-                        <div className="text-base">{estudiante.nombre}</div>
-                      </div>
-                    </div>
-                  ))}
-
-                  {getAsesor().map((asesor, index) => (
-                    <div key={asesor.id_docente} className="flex items-center gap-2">
-                      <div className="bg-gray-100 p-1 rounded-full">
-                        <User className="h-6 w-6 text-gray-500" />
-                      </div>
-                      <div>
-                        <div className="text-base font-medium  text-gray-800">
-                          {index === 0 ? "Asesor" : "Coasesor"}
-                        </div>
-                        <div className="text-base">{asesor.nombre}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-            <div className="flex flex-col gap-3 md:items-end justify-between">
-              <Badge
-                variant="outline"
-                className={`
-                  ${exposicion.estado === "Pendiente" ? "bg-[#F9D534] text-white border-yellow-200" : ""}
-                  ${exposicion.estado === "Completado" ? "bg-[#00BF82] text-white border-green-200" : ""}
-                  ${exposicion.estado === "Cancelado" ? "bg-red-100 text-red-800 border-red-200" : ""}
-                  capitalize px-2 py-1 text-sm rounded-full
-                  `}
+        {/* ESTADO Y ACCIONES */}
+        <div className="flex gap-3 flex-1 justify-between">
+          <div className="flex items-start gap-2 md:min-w-[500px]">
+            {getEstudiantes().map((estudiante) => (
+              <div
+                key={estudiante.id_persona}
+                className="flex flex-col items-start gap-2 flex-1"
               >
-                {exposicion.estado}
-              </Badge>
+                <Label>Tesista</Label>
+                <div className="flex items-center gap-2 flex-1 justify-start">
+                  <Avatar>
+                    <AvatarFallback>TS</AvatarFallback>
+                  </Avatar>
+                  <div className="text-base">{estudiante.nombre}</div>
+                </div>
+              </div>
+            ))}
 
-              <div className="flex flex-row gap-2">
+            {getAsesor().map((asesor, index) => (
+              <div
+                key={asesor.id_persona}
+                className="flex flex-col items-start gap-2 flex-1"
+              >
+                <Label>{index === 0 ? "Asesor" : "Coasesor"}</Label>
+                <div className="flex items-center gap-2 flex-1 justify-start">
+                  <Avatar>
+                    <AvatarFallback>AS</AvatarFallback>
+                  </Avatar>
+                  <div className="text-base">{asesor.nombre}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex flex-row gap-2 items-end">
+            {exposicion.estado === "esperando_respuesta" && (
+              <>
                 <Button
                   asChild
                   variant="outline"
-                  size="lg"
-                  className="text-base flex items-center gap-1"
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  <Link href={""}>No Estoy Disponible</Link>
+                  <Link href="">No Estoy Disponible</Link>
                 </Button>
 
+                <Button asChild onClick={(e) => e.stopPropagation()}>
+                  <Link href="">Confirmar Asistencia</Link>
+                </Button>
+              </>
+            )}
+            {exposicion.estado === "esperando_aprobacion" && (
+              <Button
+                variant="outline"
+                disabled
+                onClick={(e) => e.stopPropagation()}
+              >
+                Esperando confirmacion
+              </Button>
+            )}
+            {exposicion.estado === "programada" &&
+              isBefore(new Date(exposicion.fechaHora), new Date()) && (
                 <Button
                   asChild
-                  size="lg"
-                  className="text-base flex items-center gap-1 bg-[#042354]"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
                 >
-                  <Link href={""}>Confirmar Asistencia</Link>
+                  <Link
+                    href={`/jurado/exposiciones/calificar/${exposicion.id_exposicion}`}
+                  >
+                    Calificar
+                  </Link>
                 </Button>
-              </div>
-            </div>
+              )}
           </div>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Detalles de la Exposicion</DialogTitle>
-            <ModalDetallesExposicion _idExposicion={exposicion.id_exposicion}/>
-          </DialogHeader>
-          <DialogFooter className="sm:justify-end">
-            <DialogClose asChild>
-              <Button type="button" variant="secondary">
-                Cerrar
-              </Button>
-            </DialogClose>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </div>
+      </div>
     </div>
   );
 }

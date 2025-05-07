@@ -1,9 +1,10 @@
+"use client";
 
-import Exposiciones from "@/features/jurado/views/vista-exposiciones/exposiciones";
+import ExposicionesJuradoPage from "@/features/jurado/views/vista-exposiciones/exposiciones-jurado-page";
 import React from "react";
 
 const Page: React.FC = () => {
-  return <Exposiciones />;
+  return <ExposicionesJuradoPage />;
 };
 
 export default Page;

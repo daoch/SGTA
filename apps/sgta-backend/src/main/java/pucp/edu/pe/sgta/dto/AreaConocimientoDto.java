@@ -4,6 +4,9 @@ import lombok.*;
 
 import java.time.OffsetDateTime;
 
+
+
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -17,10 +20,13 @@ public class AreaConocimientoDto {
 
 	private String descripcion;
 
-	private boolean activo;
+	private Boolean activo;
 
 	private OffsetDateTime fechaCreacion;
 
 	private OffsetDateTime fechaModificacion;
+
+	private Integer idCarrera;
+
 
 }

@@ -18,7 +18,9 @@ public interface UsuarioService {
 
 	void deleteUsuario(Integer id);
 
-	PerfilAsesorDto getPerfilAsesor(Integer id);
+	List<UsuarioDto> findUsuariosByRolAndCarrera(String tipoUsuario, Integer idCarrera, String cadenaBusqueda);
+
+    PerfilAsesorDto getPerfilAsesor(Integer id);
 
 	void updatePerfilAsesor(PerfilAsesorDto perfilAsesorDto);
 
