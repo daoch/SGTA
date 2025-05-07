@@ -21,8 +21,8 @@ public class Exposicion {
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "tipo_exposicion_x_ef_x_c_id", nullable = false, foreignKey = @ForeignKey(name = "fk_exp_tipo_exposicion_x_ef_x_c"))
-    private TipoExposicionXEfXC tipoExposicionEfXC;
+    @JoinColumn(name = "etapa_formativa_x_ciclo_id", nullable = false, foreignKey = @ForeignKey(name = "fk_texefc_ef_x_c"))
+    private EtapaFormativaXCiclo etapaFormativaXCiclo;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "estado_planificacion_id", nullable = false, foreignKey = @ForeignKey(name = "fk_exp_estado_planificacion"))
@@ -30,6 +30,12 @@ public class Exposicion {
 
     @Column(nullable = false)
     private Boolean activo = true;
+
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String nombre;
+
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String descripcion;
 
     @Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaCreacion;

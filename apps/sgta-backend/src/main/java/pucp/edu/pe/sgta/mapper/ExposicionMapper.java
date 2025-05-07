@@ -3,7 +3,7 @@ package pucp.edu.pe.sgta.mapper;
 import pucp.edu.pe.sgta.dto.ExposicionDto;
 import pucp.edu.pe.sgta.model.Exposicion;
 import pucp.edu.pe.sgta.model.EstadoPlanificacion;
-import pucp.edu.pe.sgta.model.TipoExposicionXEfXC;
+import pucp.edu.pe.sgta.model.EtapaFormativaXCiclo;
 
 public class ExposicionMapper {
 
@@ -17,9 +17,12 @@ public class ExposicionMapper {
         dto.setActivo(exposicion.getActivo());
         dto.setFechaCreacion(exposicion.getFechaCreacion());
         dto.setFechaModificacion(exposicion.getFechaModificacion());
+        dto.setNombre(exposicion.getNombre());
+        dto.setDescripcion(exposicion.getDescripcion());
 
-        if (exposicion.getTipoExposicionEfXC() != null) {
-            dto.setTipoExposicionEfXCId(exposicion.getTipoExposicionEfXC().getId());
+        if (exposicion.getEtapaFormativaXCiclo() != null) {
+            dto.setEtapaFormativaXCicloId(exposicion.getEtapaFormativaXCiclo().getId());
+            ;
         }
 
         if (exposicion.getEstadoPlanificacion() != null) {
@@ -39,11 +42,13 @@ public class ExposicionMapper {
         entity.setActivo(dto.getActivo());
         entity.setFechaCreacion(dto.getFechaCreacion());
         entity.setFechaModificacion(dto.getFechaModificacion());
+        entity.setNombre(dto.getNombre());
+        entity.setDescripcion(dto.getDescripcion());
 
-        if (dto.getTipoExposicionEfXCId() != null) {
-            TipoExposicionXEfXC tipo = new TipoExposicionXEfXC();
-            tipo.setId(dto.getTipoExposicionEfXCId());
-            entity.setTipoExposicionEfXC(tipo);
+        if (dto.getEtapaFormativaXCicloId() != null) {
+            EtapaFormativaXCiclo tipo = new EtapaFormativaXCiclo();
+            tipo.setId(dto.getEtapaFormativaXCicloId());
+            entity.setEtapaFormativaXCiclo(tipo);
         }
 
         if (dto.getEstadoPlanificacionId() != null) {
