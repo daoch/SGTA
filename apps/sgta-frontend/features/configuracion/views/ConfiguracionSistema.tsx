@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import ModalidadRevisionCard from "../components/conf-general/ModalidadRevision";
 import JuradosCards from "../components/conf-general/Jurados";
 import AsesoresCards from "../components/conf-general/Asesores";
@@ -15,31 +15,32 @@ export default function ConfiguracionSistema() {
   const {
     cargarParametros,
     parametros,
+    parametrosOriginales,
     guardarParametros,
     cargando,
   } = useBackStore();
 
-  // Estado local para guardar los parámetros originales
-  const [originalParametros, setOriginalParametros] = useState<any[]>([]);
-
   useEffect(() => {
-    cargarParametros(1).then(() => {
-      // Guardar una copia profunda de los parámetros originales
-      setOriginalParametros(JSON.parse(JSON.stringify(parametros)));
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const initializeData = async () => {
+      try {
+        await cargarParametros(1);
+      } catch (error) {
+        console.error("Error al inicializar datos:", error);
+      }
+    };
+
+    initializeData();
   }, [cargarParametros]);
 
-  // Detectar si hay cambios
-  const hasChanges =
-    parametros.length !== originalParametros.length ||
-    parametros.some((param, idx) => param.valor !== originalParametros[idx]?.valor);
+  // Detectar si hay cambios comparando con los valores originales
+  const hasChanges = parametros.some((param) => {
+    const originalParam = parametrosOriginales.find(p => p.id === param.id);
+    return originalParam && originalParam.valor !== param.valor;
+  });
 
   // Handler para guardar
   const handleGuardar = async () => {
     await guardarParametros();
-    // Actualizar los originales después de guardar
-    setOriginalParametros(JSON.parse(JSON.stringify(parametros)));
   };
 
   return (
@@ -66,11 +67,11 @@ export default function ConfiguracionSistema() {
               <TabsTrigger value="revision">Revisión</TabsTrigger>
             </TabsList>
             <Button
-              className={`px-4 py-2 rounded text-white font-semibold transition disabled:bg-gray-300`}
+              className={"px-4 py-2 rounded text-white font-semibold transition disabled:bg-gray-300"}
               disabled={!hasChanges || cargando}
               onClick={handleGuardar}
             >
-              Guardar
+              {cargando ? "Guardando..." : "Guardar"}
             </Button>
           </div>
 

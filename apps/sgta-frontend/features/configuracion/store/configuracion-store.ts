@@ -1,245 +1,77 @@
-import { create } from "zustand"
-import { persist } from "zustand/middleware"
-import { getAllByCarreraId, updateCarreraXParametroConfiguracion } from "../services/configuracion-service"
-import { CarreraXParametroConfiguracionDto } from "../dtos/CarreraXParametroConfiguracionDto"
-
-// Definimos los tipos para nuestros parámetros de back
-export interface AreaType {
-    id: number
-    nombre: string
-    subAreas: string[]
-}
-
-
-
-// export interface CarreraParametro {
-//     id: number
-//     valor: any
-//     activo: boolean
-//     carreraId: number
-//     parametroConfiguracion: ParametroConfiguracion
-// }
-
-export interface ConfiguracionType {
-    modoDelimitacion: string
-    fechaLimiteCambioAsesor: string
-    limiteAsesores: number
-    limiteTesistasAsesor: number
-    tiempoRevisionAsesor: number
-    cantidadJurados: number
-    tiempoRevisionJurado: number
-    habilitarTurnitin: boolean
-    habilitarAntiplagio: boolean
-}
-
-// Definimos la interfaz del store
-interface BackStore {
-    // Parámetros de back
-    areas: AreaType[]
-    parametros: CarreraXParametroConfiguracionDto[]
-    //configuracion: ConfiguracionType
-    cargando: boolean
-    error: string | null
-
-    // Acciones
-    setAreas: (areas: AreaType[]) => void
-    setParametros: (parametros: CarreraXParametroConfiguracionDto[]) => void
-    actualizarParametro: (id: number, valor: any) => void
-    actualizarParametroBackend: (id: number, valor: any) => Promise<void>
-    //setConfiguracion: (config: Partial<ConfiguracionType>) => void
-    agregarArea: (area: AreaType) => void
-    eliminarArea: (id: number) => void
-    agregarSubArea: (areaId: number, subArea: string) => void
-    eliminarSubArea: (areaId: number, subAreaIndex: number) => void
-
-    // Funciones para llamadas al backend
-    cargarAreas: () => Promise<void>
-    cargarParametros: (carreraId: number) => Promise<void>
-    //cargarConfiguracion: () => Promise<void>
-    guardarAreas: () => Promise<void>
-    guardarParametros: () => Promise<void>
-    //guardarConfiguracion: () => Promise<void>
-}
-
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import {
+    getAllByCarreraId,
+    updateCarreraXParametroConfiguracion
+} from "../services/configuracion-service";
+import { BackStore } from "../types/configuracion.types";
 
 export const useBackStore = create<BackStore>()(
     persist(
         (set, get) => ({
             // Estado inicial
-            areas: [],
             parametros: [],
-
+            parametrosOriginales: [],
             cargando: false,
             error: null,
 
             // Acciones para modificar el estado
-            setAreas: (areas) => set({ areas }),
-            setParametros: (parametros) => set({ parametros }),
+            setParametros: (parametros) => set({
+                parametros,
+                parametrosOriginales: JSON.parse(JSON.stringify(parametros)) // Guardamos una copia profunda
+            }),
+
             actualizarParametro: (id, valor) =>
                 set((state) => ({
-                    parametros: state.parametros.map((param) => (param.id === id ? { ...param, valor } : param)),
-                })),
-            // setConfiguracion: (config) =>
-            //     set((state) => ({
-            //         configuracion: { ...state.configuracion, ...config },
-            //     })),
-            actualizarParametroBackend: async (id: number, valor: any) => {
-                set({ cargando: true, error: null });
-                try {
-                    // Obtener el parámetro actual del estado
-                    const parametro = get().parametros.find((p) => p.id === id);
-                    if (!parametro) {
-                        throw new Error("Parámetro no encontrado");
-                    }
-
-                    // Crear el DTO para enviar al backend
-                    const dto: CarreraXParametroConfiguracionDto = {
-                        ...parametro,
-                        valor, // Actualizamos el valor
-                    };
-
-                    // Llamar al servicio para actualizar el parámetro
-                    await updateCarreraXParametroConfiguracion(dto);
-
-                    // Actualizar el estado local
-                    set((state) => ({
-                        parametros: state.parametros.map((param) =>
-                            param.id === id ? { ...param, valor } : param
-                        ),
-                        cargando: false,
-                    }));
-                } catch (error) {
-                    set({
-                        error: error instanceof Error ? error.message : "Error desconocido",
-                        cargando: false,
-                    });
-                    console.error("Error al actualizar el parámetro:", error);
-                }
-            },
-
-            agregarArea: (area) =>
-                set((state) => ({
-                    areas: [...state.areas, area],
-                })),
-            eliminarArea: (id) =>
-                set((state) => ({
-                    areas: state.areas.filter((area) => area.id !== id),
-                })),
-            agregarSubArea: (areaId, subArea) =>
-                set((state) => ({
-                    areas: state.areas.map((area) =>
-                        area.id === areaId ? { ...area, subAreas: [...area.subAreas, subArea] } : area,
+                    parametros: state.parametros.map((param) =>
+                        param.id === id ? { ...param, valor } : param
                     ),
                 })),
-            eliminarSubArea: (areaId, subAreaIndex) =>
-                set((state) => ({
-                    areas: state.areas.map((area) =>
-                        area.id === areaId
-                            ? { ...area, subAreas: area.subAreas.filter((_, index) => index !== subAreaIndex) }
-                            : area,
-                    ),
-                })),
+
+
 
             // Funciones para llamadas al backend
-            cargarAreas: async () => {
-                set({ cargando: true, error: null })
-                try {
-                    // Simulamos una llamada al backend
-                    // En un caso real, aquí harías un fetch a tu API
-                    const response = await fetch("/api/areas")
-
-                    if (!response.ok) {
-                        throw new Error("Error al cargar áreas")
-                    }
-
-                    const data = await response.json()
-
-                    // Guardamos los parámetros de back en el store
-                    set({ areas: data, cargando: false })
-                    return data
-                } catch (error) {
-                    set({ error: error instanceof Error ? error.message : "Error desconocido", cargando: false })
-                    console.error("Error al cargar áreas:", error)
-                }
-            },
-
             cargarParametros: async (carreraId) => {
-                set({ cargando: true, error: null })
+                set({ cargando: true, error: null });
                 try {
-                    console.log("Cargando parámetros para la carrera:", carreraId)
-                    const response = await getAllByCarreraId(carreraId)
+                    const response = await getAllByCarreraId(carreraId);
                     if (!response) {
-                        throw new Error("No se encontraron parámetros para esta carrera")
+                        throw new Error("No se encontraron parámetros para esta carrera");
                     }
-                    console.log("Parametros desde el backend:", response)
-
-
-
-                    // Guardamos los parámetros de back en el store
-                    set({ parametros: response, cargando: false })
-
+                    set({
+                        parametros: response,
+                        parametrosOriginales: JSON.parse(JSON.stringify(response)), // Guardamos una copia profunda
+                        cargando: false
+                    });
                 } catch (error) {
-                    set({ error: error instanceof Error ? error.message : "Error desconocido", cargando: false })
-                    console.error("Error al cargar parámetros:", error)
-                }
-            },
-
-            guardarAreas: async () => {
-                set({ cargando: true, error: null })
-                try {
-                    const areas = get().areas
-
-                    // Simulamos una llamada al backend
-                    const response = await fetch("/api/areas", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify(areas),
-                    })
-
-                    if (!response.ok) {
-                        throw new Error("Error al guardar áreas")
-                    }
-
-                    set({ cargando: false })
-
-                } catch (error) {
-                    set({ error: error instanceof Error ? error.message : "Error desconocido", cargando: false })
-                    console.error("Error al guardar áreas:", error)
-
+                    set({ error: error instanceof Error ? error.message : "Error desconocido", cargando: false });
+                    console.error("Error al cargar parámetros:", error);
                 }
             },
 
             guardarParametros: async () => {
-                set({ cargando: true, error: null })
+                set({ cargando: true, error: null });
                 try {
-                    const parametros = get().parametros
-
-                    // Aquí implementaríamos la llamada real a la API para guardar los parámetros
-                    // Por ahora simulamos una respuesta exitosa
+                    const parametros = get().parametros;
                     await Promise.all(parametros.map(param => updateCarreraXParametroConfiguracion(param)));
-
-
-                    set({ cargando: false })
+                    // Actualizar los parámetros originales después de guardar
+                    set({
+                        parametrosOriginales: JSON.parse(JSON.stringify(parametros)),
+                        cargando: false
+                    });
                 } catch (error) {
-                    set({ error: error instanceof Error ? error.message : "Error desconocido", cargando: false })
-                    console.error("Error al guardar parámetros:", error)
+                    set({ error: error instanceof Error ? error.message : "Error desconocido", cargando: false });
+                    console.error("Error al guardar parámetros:", error);
                 }
             },
-
-
-
-        }
-        ),
+        }),
         {
-            name: "sistema-tesis-storage", // nombre para localStorage
+            name: "configuracion-store",
             partialize: (state) => ({
-                areas: state.areas,
                 parametros: state.parametros,
-
-            }), // solo persistimos estos datos
-        },
-
+                parametrosOriginales: state.parametrosOriginales
+            }),
+        }
     )
-)
+);
+

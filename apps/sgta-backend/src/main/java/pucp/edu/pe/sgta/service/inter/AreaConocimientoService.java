@@ -5,14 +5,17 @@ import java.util.List;
 
 public interface AreaConocimientoService {
 
-	List<AreaConocimientoDto> getAll();
-
-	void create(AreaConocimientoDto dto);
+	AreaConocimientoDto create(AreaConocimientoDto dto);
 
 	void update(AreaConocimientoDto dto);
 
 	void delete(Integer id);
 
-    List<AreaConocimientoDto> getAllByCarrera(Integer idCarrera);
+	List<AreaConocimientoDto> getAll();
+
+	List<AreaConocimientoDto> getAllByCarrera(Integer idCarrera);
+    AreaConocimientoDto findById(Integer id);
+
+    List<AreaConocimientoDto> listarPorUsuario(Integer usuarioId);
 
 }

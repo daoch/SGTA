@@ -1,6 +1,5 @@
 "use client";
 
-import { usePathname } from "next/navigation";
 import {
   Sidebar,
   SidebarContent,
@@ -8,10 +7,11 @@ import {
   SidebarHeader,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { getNavigationGroups } from "./navigation-groups";
-import { NavUser } from "./nav-user";
-import { NavMain } from "./nav-main";
 import { useAuth } from "@/features/auth";
+import { usePathname } from "next/navigation";
+import { NavMain } from "./nav-main";
+import { NavUser } from "./nav-user";
+import { getNavigationGroups } from "./navigation-groups";
 
 export function AppSidebar() {
   const { user } = useAuth();

@@ -1,14 +1,17 @@
-// export type Parametro = {
-//     id: string;
-//     nombre: string;
-//     valor: string;
-// };
+import { CarreraXParametroConfiguracionDto } from "./CarreraXParametroConfiguracion.type";
 
-// export type ParametrosState = {
-//     parametros: Parametro[];
-//     isLoading: boolean;
-//     error: string | null;
-//     fetchParametros: () => Promise<void>;
-//     updateParametro: (id: string, nuevoValor: string) => void; // Función para actualizar el valor del parámetro
-//     clearError: () => void;
-// };
+export interface BackStore {
+    // Parámetros de back
+    parametros: CarreraXParametroConfiguracionDto[]
+    parametrosOriginales: CarreraXParametroConfiguracionDto[]
+    cargando: boolean
+    error: string | null
+
+    // Acciones
+    setParametros: (parametros: CarreraXParametroConfiguracionDto[]) => void
+    actualizarParametro: (id: number, valor: string | boolean | number | Date) => void
+
+    // Funciones para llamadas al backend
+    cargarParametros: (carreraId: number) => Promise<void>
+    guardarParametros: () => Promise<void>
+}

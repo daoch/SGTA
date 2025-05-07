@@ -6,4 +6,5 @@ import pucp.edu.pe.sgta.model.SubAreaConocimiento;
 
 public interface SubAreaConocimientoRepository extends JpaRepository<SubAreaConocimiento, Integer> {
     List<SubAreaConocimiento> findAllByActivoTrue();
+    List<SubAreaConocimiento> findAllByAreaConocimientoIdAndActivoTrue(Integer idAreaConocimiento);
 }
