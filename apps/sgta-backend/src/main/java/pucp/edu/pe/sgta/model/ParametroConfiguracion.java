@@ -1,5 +1,5 @@
 package pucp.edu.pe.sgta.model;
-
+import pucp.edu.pe.sgta.util.TipoDatoEnum;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -36,5 +36,9 @@ public class ParametroConfiguracion {
 
 	@Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
 	private OffsetDateTime fechaModificacion;
+
+	@Enumerated(EnumType.STRING)
+    @Column(name = "tipo", nullable = false)
+	private TipoDatoEnum tipoDato;
 
 }

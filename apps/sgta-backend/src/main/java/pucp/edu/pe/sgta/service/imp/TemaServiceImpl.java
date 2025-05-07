@@ -4,6 +4,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+import pucp.edu.pe.sgta.dto.HistorialTemaDto;
 import pucp.edu.pe.sgta.dto.SubAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.TemaDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
@@ -11,6 +12,7 @@ import pucp.edu.pe.sgta.mapper.TemaMapper;
 import pucp.edu.pe.sgta.mapper.UsuarioMapper;
 import pucp.edu.pe.sgta.model.*;
 import pucp.edu.pe.sgta.repository.*;
+import pucp.edu.pe.sgta.service.inter.HistorialTemaService;
 import pucp.edu.pe.sgta.service.inter.SubAreaConocimientoService;
 import pucp.edu.pe.sgta.service.inter.TemaService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
@@ -49,6 +51,8 @@ public class TemaServiceImpl implements TemaService {
 
 	private final CarreraRepository carreraRepository;
 
+	private final HistorialTemaService historialTemaService;
+
 	@PersistenceContext
 	private EntityManager entityManager;
 
@@ -56,7 +60,7 @@ public class TemaServiceImpl implements TemaService {
 			UsuarioService usuarioService, SubAreaConocimientoService subAreaConocimientoService,
 			SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository, RolRepository rolRepository,
 			EstadoTemaRepository estadoTemaRepository, UsuarioXCarreraRepository usuarioCarreraRepository,
-			CarreraRepository carreraRepository) {
+			CarreraRepository carreraRepository, HistorialTemaService historialTemaService) {
 		this.temaRepository = temaRepository;
 		this.usuarioXTemaRepository = usuarioXTemaRepository;
 		this.subAreaConocimientoXTemaRepository = subAreaConocimientoXTemaRepository;
@@ -66,6 +70,7 @@ public class TemaServiceImpl implements TemaService {
 		this.estadoTemaRepository = estadoTemaRepository;
 		this.usuarioCarreraRepository = usuarioCarreraRepository;
 		this.carreraRepository = carreraRepository;
+		this.historialTemaService = historialTemaService;
 	}
 
 	@Override
@@ -86,22 +91,49 @@ public class TemaServiceImpl implements TemaService {
 		return null;
 	}
 
+	private void saveHistorialTemaChange(Tema tema,String titulo, String resumen, String description) {
+		HistorialTemaDto historialTemaDto = new HistorialTemaDto();
+		historialTemaDto.setId(null);
+		historialTemaDto.setTitulo(titulo);
+		historialTemaDto.setResumen(resumen);
+		historialTemaDto.setDescripcionCambio(description);
+		historialTemaDto.setEstadoTemaId(tema.getEstadoTema().getId());
+		if(tema.getId() == null){
+			throw new RuntimeException("El tema no tiene ID asignado para crear cambio en historial.");
+		}
+		historialTemaDto.setTema(TemaMapper.toDto(tema));
+		historialTemaDto.setFechaCreacion(OffsetDateTime.now());
+		historialTemaDto.setFechaModificacion(OffsetDateTime.now());
+		historialTemaDto.setActivo(true);
+		historialTemaService.save(historialTemaDto);
+	}
+
 	@Transactional
 	@Override
-	public void createTemaPropuesta(TemaDto dto, Integer idUsuarioCreador) {
+	public void createTemaPropuesta(TemaDto dto, Integer idUsuarioCreador, Integer tipoPropuesta) {
+
 		dto.setId(null);
-		Tema tema = TemaMapper.toEntity(dto);
-		EstadoTema estadoTema = estadoTemaRepository.findByNombre(EstadoTemaEnum.PROPUESTO_GENERAL.name()).orElse(null);
-		boolean foundSubArea = false;
 
-		if (estadoTema == null) {
-			logger.severe("Alerta: EstadoTema 'PROPUESTO_GENERAL' no encontrado en la base de datos.");
-			throw new RuntimeException("EstadoTema 'PROPUESTO_GENERAL' no encontrado en la base de datos.");
+		Tema tema = null;
+		if(tipoPropuesta == 1) {
+			tema = prepareNewTema(dto, EstadoTemaEnum.PROPUESTO_DIRECTO);
+		} else { //only works if tipoPropuesta == 0 always (default value)
+			tema = prepareNewTema(dto, EstadoTemaEnum.PROPUESTO_GENERAL);
 		}
-		tema.setEstadoTema(estadoTema);
 
-		// TO DO limit by number of cotesistas and asesores according to global config
-		// parameter
+		/////////////////////// se tiene que modificar si se puede elegir carrera, pararía como parámetro/////
+		var relaciones = usuarioCarreraRepository.findByUsuarioIdAndActivoTrue(idUsuarioCreador);
+		if(relaciones.isEmpty()) {
+			throw new RuntimeException("El usuario no tiene ninguna carrera activa.");
+		}
+		// tomamos la primera
+		Integer carreraId = relaciones.get(0).getCarrera().getId();
+		// opcionalmente cargamos la entidad completa
+		Carrera carrera = carreraRepository.findById(carreraId)
+				.orElseThrow(() -> new RuntimeException("Carrera no encontrada con id " + carreraId));
+		tema.setCarrera(carrera);
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 		// Create and set up UsuarioXTema
 
@@ -119,95 +151,26 @@ public class TemaServiceImpl implements TemaService {
 		// areaEspecializacion
 		temaRepository.save(tema);
 
-		// TO DO Start Historial Tema
+		// Start historial tema
+		saveHistorialTemaChange(tema, dto.getTitulo(), dto.getResumen(), "Creación de propuesta");
 
-		Rol rolaux = rolRepository.findByNombre("Creador").orElse(null);
-		if (rolaux == null) {
-			logger.severe("Alerta: Rol 'Creador' no encontrado en la base de datos.");
-			throw new RuntimeException("Rol 'Creador' no encontrado en la base de datos.");
-		}
-		usuarioXTema.setUsuario(UsuarioMapper.toEntity(usuarioDto));
-		usuarioXTema.setAsignado(true);
-		usuarioXTema.setActivo(true);
-		usuarioXTema.setFechaCreacion(OffsetDateTime.now());
-		usuarioXTema.setRol(rolaux);
-		try {
-			usuarioXTemaRepository.save(usuarioXTema);
-		}
-		catch (Exception ex) {
-			logger.severe("Error when attempting to save tema's creator: " + ex.getMessage());
-			// this RuntimeException will trigger a rollback of the entire transaction
-			throw new RuntimeException("UsuarioXTema register not created. Reverting transaction.", ex);
-		}
-		// Save the subareas of knowledge
-		if (dto.getIdSubAreasConocimientoList() == null || dto.getIdSubAreasConocimientoList().isEmpty()) {
-			throw new RuntimeException("No subAreaConocimiento provided. Reverting transaction.");
-		}
-
-		for (Integer idSubAreaConocimiento : dto.getIdSubAreasConocimientoList()) {
-			SubAreaConocimientoXTema subAreaConocimientoXTema = new SubAreaConocimientoXTema();
-			subAreaConocimientoXTema.setTemaId(tema.getId());
-			SubAreaConocimientoDto subAreaConocimientoDto = subAreaConocimientoService.findById(idSubAreaConocimiento);
-
-			if (subAreaConocimientoDto == null) {
-				logger.severe("Alert: SubAreaConocimiento not found with ID: " + idSubAreaConocimiento);
-				continue;
+		// 1) Subáreas de conocimiento
+		saveSubAreas(tema, dto.getSubareas());
+		//2) Save Creador
+		saveUsuarioXTema(tema, idUsuarioCreador, RolEnum.Creador.name(), true);
+		//3) Save Asesor (Propuesta Directa)
+		if (tipoPropuesta == 1) {
+			if(dto.getCoasesores() == null || dto.getCoasesores().isEmpty()) {
+				throw new RuntimeException("No se ha proporcionado un asesor para la propuesta directa.");
 			}
-			else {
-				foundSubArea = true;
-			}
-			subAreaConocimientoXTema.setSubAreaConocimientoId(idSubAreaConocimiento);
-			subAreaConocimientoXTema.setFechaCreacion(OffsetDateTime.now());
-			subAreaConocimientoXTemaRepository.save(subAreaConocimientoXTema);
+			saveUsuarioXTema(tema, dto.getCoasesores().get(0).getId(), RolEnum.Asesor.name(), false);
 		}
+		//4) Save cotesistas
+		saveUsuariosInvolucrados(tema, idUsuarioCreador, dto.getTesistas(), RolEnum.Tesista.name(), false); //Save cotesistas
 
-		// validate if at least one subarea was found
-		if (!foundSubArea) {
-			logger.severe("Alerta: No valid subareaconocimientos provided.");
-			throw new RuntimeException("No subAreaConocimiento provided. Reverting transaction.");
-		}
-
-		// Add the other users
-		for (Integer idUsuarioInvolucrado : dto.getIdUsuarioInvolucradosList()) {
-			UsuarioXTema usuarioXTemaInvolucrado = new UsuarioXTema();
-			usuarioXTemaInvolucrado.setId(null);
-			usuarioXTemaInvolucrado.setTema(tema);
-
-			if (idUsuarioInvolucrado.equals(idUsuarioCreador)) { // In case the same
-																	// idcreador is passed
-																	// as involucrado
-				logger.warning(
-						"Alerta: Usuario involucrado no puede ser el creador del tema. ID: " + idUsuarioInvolucrado);
-				continue;
-			}
-
-			// add rol, FIRST fetch usuario
-			UsuarioDto usuarioInvolucradoDto = usuarioService.findUsuarioById(idUsuarioInvolucrado);
-			if (usuarioInvolucradoDto == null) {
-				logger.severe("Alerta: Usuario no encontrado con ID: " + idUsuarioInvolucrado);
-				continue;
-			}
-
-			// TO DO ver tipo de usuario
-			String nombreTipoUsuario = usuarioInvolucradoDto.getTipoUsuario().getNombre();
-			Rol rol = rolRepository.findByNombre(nombreTipoUsuario).orElse(null);
-
-			if (rol == null) {
-				logger.severe("Alerta: Rol '" + nombreTipoUsuario + "' not found in database.");
-				continue;
-			}
-
-			usuarioXTemaInvolucrado.setUsuario(UsuarioMapper.toEntity(usuarioInvolucradoDto));
-			usuarioXTemaInvolucrado.setAsignado(false); // Not assigned but part of the
-														// propuesta lest he doesn't
-														// accept it
-			usuarioXTemaInvolucrado.setActivo(true);
-			usuarioXTemaInvolucrado.setFechaCreacion(OffsetDateTime.now());
-
-			usuarioXTemaRepository.save(usuarioXTemaInvolucrado);
-		}
 	}
 
+	@Transactional
 	@Override
 	public void update(TemaDto dto) {
 		Tema tema = TemaMapper.toEntity(dto);
@@ -253,21 +216,23 @@ public class TemaServiceImpl implements TemaService {
 /////////////////////////////////////////////////////////////////////////////////////////////////////
         temaRepository.save(tema);
 
-        // 1) Creador del tema (rol "Creador", asignado = true)
+		saveHistorialTemaChange(tema, dto.getTitulo(), dto.getResumen(), "Inscripción de tema");
+
+		// 1) Creador del tema (rol "Creador", asignado = true)
         saveUsuarioXTema(tema, idUsuarioCreador, RolEnum.Creador.name(), true);
         // 1) Asesor del tema (rol "Asesor", asignado = true)
         saveUsuarioXTema(tema, idUsuarioCreador, RolEnum.Asesor.name(), true);
 
         // 2) Subáreas de conocimiento
-        saveSubAreas(tema, dto.getIdSubAreasConocimientoList());
+        saveSubAreas(tema, dto.getSubareas());
 
         // 3) Coasesores
         saveUsuariosInvolucrados(tema, idUsuarioCreador,
-            dto.getIdCoasesorInvolucradosList(), RolEnum.Coasesor.name(), true);
+            dto.getCoasesores(), RolEnum.Coasesor.name(), true);
 
         // 4) Estudiantes
         saveUsuariosInvolucrados(tema, idUsuarioCreador,
-            dto.getIdEstudianteInvolucradosList(), RolEnum.Tesista.name(), true);
+            dto.getTesistas(), RolEnum.Tesista.name(), true);
     }
 
     /**
@@ -312,21 +277,21 @@ public class TemaServiceImpl implements TemaService {
     /**
      * Guarda las subáreas de conocimiento asociadas al tema.
      */
-    private void saveSubAreas(Tema tema, List<Integer> subAreaIds) {
-        if (subAreaIds == null || subAreaIds.isEmpty()) {
+    private void saveSubAreas(Tema tema, List<SubAreaConocimientoDto> subareas) {
+        if (subareas == null || subareas.isEmpty()) {
             throw new RuntimeException("No subAreaConocimiento proporcionadas");
         }
         boolean found = false;
-        for (Integer id : subAreaIds) {
-            SubAreaConocimientoDto saDto = subAreaConocimientoService.findById(id);
+        for (SubAreaConocimientoDto s : subareas) {
+            SubAreaConocimientoDto saDto = subAreaConocimientoService.findById(s.getId());
             if (saDto == null) {
-                logger.warning("Subárea no encontrada: " + id);
+                logger.warning("Subárea no encontrada: " + s.getId());
                 continue;
             }
             found = true;
             SubAreaConocimientoXTema sat = new SubAreaConocimientoXTema();
             sat.setTemaId(tema.getId());
-            sat.setSubAreaConocimientoId(id);
+            sat.setSubAreaConocimientoId(s.getId());
             sat.setFechaCreacion(OffsetDateTime.now());
             subAreaConocimientoXTemaRepository.save(sat);
         }
@@ -337,21 +302,21 @@ public class TemaServiceImpl implements TemaService {
 
     private void saveUsuariosInvolucrados(Tema tema,
                                           Integer idUsuarioCreador,
-                                          List<Integer> involucrados,
+                                          List<UsuarioDto> involucrados,
                                           String rolNombre,
                                           boolean asignado) {
         if (involucrados == null) return;
-        for (Integer idInv : involucrados) {
-            if (idInv.equals(idUsuarioCreador)) {
-                logger.warning("Omitiendo creador en involucrados: " + idInv);
+        for (UsuarioDto usuario : involucrados) {
+            if (usuario.getId().equals(idUsuarioCreador)) {
+                logger.warning("Omitiendo creador en involucrados: " + usuario.getId());
                 continue;
             }
-            UsuarioDto invDto = usuarioService.findUsuarioById(idInv);
+            UsuarioDto invDto = usuarioService.findUsuarioById(usuario.getId());
             if (invDto == null) {
-                logger.warning("Usuario involucrado no encontrado: " + idInv);
+                logger.warning("Usuario involucrado no encontrado: " + usuario.getId());
                 continue;
             }
-            saveUsuarioXTema(tema, idInv, rolNombre, asignado);
+            saveUsuarioXTema(tema, usuario.getId(), rolNombre, asignado);
         }
     }
 
@@ -374,13 +339,23 @@ public class TemaServiceImpl implements TemaService {
 
 			// subarea_ids (arreglo de Integer[])
 			Integer[] subareaArray = (Integer[]) fila[3];  // fila[3] debe ser un Integer[]
-			List<Integer> subareaIds = Arrays.asList(subareaArray);  // Convertimos a lista
-			dto.setIdSubAreasConocimientoList(subareaIds);
+			for (Integer subareaId : subareaArray) {
+				SubAreaConocimientoDto subarea = new SubAreaConocimientoDto();
+				subarea.setId(subareaId);
+				dto.getSubareas().add(subarea);  // subarea_id
+			}
+			//List<Integer> subareaIds = Arrays.asList(subareaArray);  // Convertimos a lista
+			//dto.setIdSubAreasConocimientoList(subareaIds);
 
 			// alumno (arreglo de Integer[])
 			Integer[] alumnoArray = (Integer[]) fila[5];  // fila[5] debe ser un Integer[]
-			List<Integer> alumnoIds = Arrays.asList(alumnoArray);  // Convertimos a lista
-			dto.setIdEstudianteInvolucradosList(alumnoIds);
+			for(Integer alumnoId : alumnoArray) {
+				UsuarioDto alumno = new UsuarioDto(); //notice the default constructor sets new ArrayList() for tesistas
+				alumno.setId(alumnoId);
+				dto.getTesistas().add(alumno); // alumnos_id[]
+			}
+			//List<Integer> alumnoIds = Arrays.asList(alumnoArray);  // Convertimos a lista
+			//dto.setIdEstudianteInvolucradosList(alumnoIds);
 
 			dto.setResumen((String) fila[6]);  // descripcion
 			dto.setMetodologia((String) fila[7]);  // metodologia
@@ -513,13 +488,27 @@ public class TemaServiceImpl implements TemaService {
 				.getResultList();
 
 		List<TemaDto> lista = new ArrayList<>();
-
+		SubAreaConocimientoDto subareaAux = null;
+		UsuarioDto usuarioAux = null;
 		for (Object[] fila : resultados) {
 			TemaDto dto = new TemaDto();
+			List<SubAreaConocimientoDto> subareasDto = new ArrayList<>();
+			List<UsuarioDto> alumnosDto = new ArrayList<>();
 			dto.setId((Integer) fila[0]);                        // tema_id
 			dto.setTitulo((String) fila[1]);                     // titulo
-			dto.setIdSubAreasConocimientoList(Arrays.asList((Integer[]) fila[2])); // subareas_id[]
-			dto.setIdEstudianteInvolucradosList(Arrays.asList((Integer[]) fila[3])); // alumnos_id[]
+
+			for (Integer subareaId : (Integer[]) fila[2]) {
+				subareaAux = new SubAreaConocimientoDto(); //subarea
+				subareaAux.setId(subareaId);
+				subareasDto.add(subareaAux);      // subarea_id
+			}
+			for(Integer alumnoId : (Integer[]) fila[3]) {
+				usuarioAux = new UsuarioDto(); //alumno
+				usuarioAux.setId(alumnoId);
+				alumnosDto.add(usuarioAux); // alumnos_id[]
+			}
+			dto.setSubareas(subareasDto); // subareas_id[]
+			dto.setTesistas(alumnosDto); // alumnos_id[]
 			dto.setResumen((String) fila[4]);                    // descripcion
 			dto.setMetodologia((String) fila[5]);                // metodologia
 			dto.setObjetivos((String) fila[6]);                  // objetivo
