@@ -144,7 +144,8 @@ RETURNS TABLE (
   activo             BOOLEAN,
   fecha_limite       TIMESTAMPTZ,
   fecha_creacion     TIMESTAMPTZ,
-  fecha_modificacion TIMESTAMPTZ
+  fecha_modificacion TIMESTAMPTZ,
+  codigo			  TEXT
 ) AS $$
 BEGIN
   RETURN QUERY
@@ -158,7 +159,8 @@ BEGIN
     t.activo,
     t.fecha_limite,
     t.fecha_creacion,
-    t.fecha_modificacion
+    t.fecha_modificacion,
+	t.codigo::text
   FROM tema t
   JOIN usuario_tema ut
     ON ut.tema_id = t.tema_id
