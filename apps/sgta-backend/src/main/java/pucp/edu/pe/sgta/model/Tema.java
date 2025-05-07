@@ -56,6 +56,10 @@ public class Tema {
     @Column(name = "fecha_limite",
         columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaLimite;
+	
+    @Column(name = "fecha_finalizacion",
+        columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private OffsetDateTime fechaFinalizacion;
 
 	@Column(nullable = false)
 	private boolean activo = true;

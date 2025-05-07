@@ -29,6 +29,7 @@ public class TemaDto {
     private String portafolioUrl;
     private boolean activo;
     private OffsetDateTime fechaLimite;
+    private OffsetDateTime fechaFinalizacion;
     private OffsetDateTime fechaCreacion;
     private OffsetDateTime fechaModificacion;
     private String estadoTemaNombre;
