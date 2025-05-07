@@ -566,7 +566,7 @@ $$
             'esperando_respuesta',
             'esperando_aprobacion',
             'programada',
-            'en_progreso',
+            'calificada',
             'completada',
             'cancelada'
             );
@@ -579,7 +579,7 @@ DO
 $$
     BEGIN
         CREATE TYPE enum_estado_usuario_exposicion AS ENUM (
-            'por_responder',
+            'esperando_respuesta',
             'aceptado',
             'rechazado'
             );
@@ -619,7 +619,7 @@ CREATE TABLE IF NOT EXISTS etapa_formativa
 (
     etapa_formativa_id  SERIAL PRIMARY KEY,
     nombre              TEXT                     NOT NULL,
-    creditaje_por_tema  NUMERIC(6, 2)            NOT NULL,
+    creditaje_por_tema  NUMERIC(6, 2),
     duracion_exposicion INTERVAL,
     activo              BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -829,6 +829,7 @@ CREATE TABLE IF NOT EXISTS revision_criterio_x_exposicion
     criterio_exposicion_id            INTEGER                  NOT NULL,
     usuario_id                        INTEGER                  NOT NULL,
     nota                              NUMERIC(5, 2),
+    revisado                          BOOLEAN                  NOT NULL DEFAULT FALSE,
     observacion                       TEXT,
     activo                            BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion                    TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -974,7 +975,7 @@ CREATE TABLE IF NOT EXISTS entregable
 
 CREATE TABLE IF NOT EXISTS criterio_entregable
 (
-    criterio_exposicion_id SERIAL PRIMARY KEY,
+    criterio_entregable_id SERIAL PRIMARY KEY,
     entregable_id          INTEGER                  NOT NULL,
     nombre                 VARCHAR(100)             NOT NULL,
     nota_maxima            DECIMAL(5, 2),
@@ -1019,7 +1020,7 @@ CREATE TABLE IF NOT EXISTS revision_criterio_entregable
 (
     revision_criterio_entregable_id   SERIAL PRIMARY KEY,
     entregable_x_tema_id              INTEGER,
-    criterio_exposicion_id            INTEGER,
+    criterio_entregable_id            INTEGER,
     usuario_id                        INTEGER,
     nota                              DECIMAL(5, 2),
     observacion                       TEXT,
@@ -1036,8 +1037,8 @@ CREATE TABLE IF NOT EXISTS revision_criterio_entregable
             REFERENCES entregable_x_tema (entregable_x_tema_id)
             ON DELETE CASCADE,
     CONSTRAINT fk_revision_criterio_criterio
-        FOREIGN KEY (criterio_exposicion_id)
-            REFERENCES criterio_entregable (criterio_exposicion_id)
+        FOREIGN KEY (criterio_entregable_id)
+            REFERENCES criterio_entregable (criterio_entregable_id)
             ON DELETE CASCADE,
     CONSTRAINT fk_revision_criterio_usuario
         FOREIGN KEY (usuario_id)
