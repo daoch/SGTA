@@ -3,6 +3,7 @@ package pucp.edu.pe.sgta.service.inter;
 import pucp.edu.pe.sgta.dto.SubAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.TemaDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
+import pucp.edu.pe.sgta.model.Tema;
 
 import java.util.List;
 
@@ -42,6 +43,6 @@ public interface TemaService {
 
 	void rechazarTemaPropuestaDirecta(Integer alumnoId, String comentario, Integer temaId);
 
-
+	List<Tema> listarTemasPorEtapaCicloActualYSubareaYDocente(String docente, Integer etapaFormativa, Integer subAreaConocimiento);
 
 }

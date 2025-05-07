@@ -22,6 +22,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -564,12 +565,12 @@ public class TemaServiceImpl implements TemaService {
 				.getSingleResult();
 	}
 
-
-
-
-
-
-
-
+	@Override
+	public List<Tema> listarTemasPorEtapaCicloActualYSubareaYDocente(String docente, Integer etapaFormativa, Integer subAreaConocimiento) {
+		List<Object[]> temas = temaRepository.listarTemasPorEtapaCicloActualYSubareaYDocente(docente,etapaFormativa,subAreaConocimiento);
+		return new LinkedList<Tema>();
 
 	}
+
+
+}

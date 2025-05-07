@@ -43,4 +43,15 @@ public interface TemaRepository extends JpaRepository<Tema, Integer> {
     List<Object[]> listarSubAreasPorTema(
         @Param("tid") Integer temaId
     );
+
+    //Funcion para filtrar areas por tema , etapa formativa,ciclo actual, sub area de conocimiento y asesores o jurado
+    @Query(value = """
+        SELECT * FROM listar_temas_por_etapa_formativa_ciclo_actual_subarea_nombre_docente(
+            :docente,
+            :etapaFormativa, 
+            :subAreaConocimiento)
+            """, nativeQuery = true)
+    List<Object[]> listarTemasPorEtapaCicloActualYSubareaYDocente(@Param("docente") String docente,
+                                                   @Param("etapaFormativa") Integer etapaFormativa,
+                                                   @Param("subAreaConocimiento") Integer subAreaConocimiento);
 }
