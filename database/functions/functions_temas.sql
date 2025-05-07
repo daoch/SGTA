@@ -225,65 +225,39 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION public.postular_asesor_a_tema(
-	p_asesor_id integer,
-	p_tema_id integer)
+
+CREATE OR REPLACE FUNCTION enlazar_tesistas_tema_propuesta_directa(
+    p_usuarios_id integer[],
+    p_tema_id integer,
+    p_profesor_id integer,
+    p_comentario text)
     RETURNS void
     LANGUAGE 'plpgsql'
     COST 100
     VOLATILE PARALLEL UNSAFE
 AS $BODY$
-BEGIN
-    INSERT INTO usuario_tema (
-        usuario_id,
-        tema_id,
-        rol_id,
-        asignado,
-        activo,
-        fecha_creacion,
-        fecha_modificacion
-    )
-    VALUES (
-        p_asesor_id,
-        p_tema_id,
-        (SELECT rol_id FROM rol WHERE nombre ILIKE 'Asesor' LIMIT 1),
-        false,
-        true,
-        now(),
-        now()
-    );
-END;
-$BODY$;
-
-
-
-
-CREATE OR REPLACE FUNCTION sgta.enlazar_tesistas_tema_propuesta_directa(
-	p_usuarios_id integer[],
-	p_tema_id integer,
-	p_profesor_id integer,
-	p_comentario text)
-    RETURNS void
-    LANGUAGE 'plpgsql'
-    COST 100
-    VOLATILE PARALLEL UNSAFE
-AS $BODY$
-DECLARE
-    i INT;
-    tesista_rol_id INT;
-    estado_preinscrito_id INT;
+DECLARE 
+    i INT; 
+    tesista_rol_id INT; 
+    estado_preinscrito_id INT; 
+    tema_titulo TEXT;
+    tema_resumen TEXT;
 BEGIN
     -- Obtener el rol_id del tesista
     SELECT rol_id INTO tesista_rol_id FROM rol WHERE nombre ILIKE 'Tesista' LIMIT 1;
 
     -- Obtener el estado ID del tema
     SELECT estado_tema_id INTO estado_preinscrito_id FROM estado_tema WHERE nombre ILIKE 'PREINSCRITO' LIMIT 1;
+    
+    -- Obtener el título y resumen del tema
+    SELECT titulo, resumen INTO tema_titulo, tema_resumen FROM tema WHERE tema_id = p_tema_id;
 
     -- Asignar a cada tesista
     FOR i IN 1 .. array_length(p_usuarios_id, 1) LOOP
         UPDATE usuario_tema 
-        SET asignado = true, rol_id = tesista_rol_id,
-		 comentario = p_comentario
+        SET asignado = true, 
+            rol_id = tesista_rol_id,
+            comentario = p_comentario
         WHERE usuario_id = p_usuarios_id[i] AND tema_id = p_tema_id;
     END LOOP;
 
@@ -296,8 +270,22 @@ BEGIN
     UPDATE tema 
     SET estado_tema_id = estado_preinscrito_id
     WHERE tema_id = p_tema_id;
+
+    -- Insertar en historial_tema con la descripción de la propuesta directa aceptada
+    INSERT INTO historial_tema (tema_id, titulo, resumen, descripcion_cambio, estado_tema_id, activo, fecha_creacion, fecha_modificacion)
+    VALUES (
+        p_tema_id,
+        tema_titulo,
+        tema_resumen,
+        CONCAT('El profesor ', p_profesor_id, ' aceptó propuesta Directa.'),
+        estado_preinscrito_id,
+        true, 
+        NOW(), 
+        NOW()
+);
 END;
 $BODY$;
+
 
 
 
@@ -342,17 +330,18 @@ $BODY$;
 
 
 
-CREATE OR REPLACE FUNCTION sgta.postular_asesor_a_tema(
-	p_alumno_id integer,
-	p_asesor_id integer,
-	p_tema_id integer,
-	p_comentario text)
+CREATE OR REPLACE FUNCTION postular_asesor_a_tema(
+    p_alumno_id integer,
+    p_asesor_id integer,
+    p_tema_id integer,
+    p_comentario text)
     RETURNS void
     LANGUAGE 'plpgsql'
     COST 100
     VOLATILE PARALLEL UNSAFE
 AS $BODY$
 BEGIN
+    -- Insertar el asesor en usuario_tema
     INSERT INTO usuario_tema (
         usuario_id,
         tema_id,
@@ -372,11 +361,35 @@ BEGIN
         now()
     );
 
-	update usuario_tema 
-	set comentario = p_comentario, fecha_modificacion = NOW() 
-	where usuario_id = p_alumno_id and tema_id = p_tema_id;
+    -- Actualizar el comentario del alumno
+    UPDATE usuario_tema 
+    SET comentario = p_comentario, fecha_modificacion = NOW() 
+    WHERE usuario_id = p_alumno_id AND tema_id = p_tema_id;
+
+    -- Insertar en historial_tema con la descripción "El asesor {asesorId} postuló al tema"
+    INSERT INTO historial_tema (
+        tema_id,
+        titulo,
+        resumen,
+        descripcion_cambio,
+        estado_tema_id,
+        activo,
+        fecha_creacion,
+        fecha_modificacion
+    )
+    VALUES (
+        p_tema_id,
+        (SELECT titulo FROM tema WHERE tema_id = p_tema_id),
+        (SELECT resumen FROM tema WHERE tema_id = p_tema_id),
+        CONCAT('El asesor ', p_asesor_id, ' postuló al tema'),
+        (SELECT estado_tema_id FROM rol WHERE nombre = 'PROPUESTO_GENERAL'),
+        true,
+        NOW(),
+        NOW());
 END;
 $BODY$;
+
+
 
 
 
