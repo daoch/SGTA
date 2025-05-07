@@ -40,6 +40,10 @@ import {
   getAllSubAreasByAreaId,
 } from "../../services/configuracion-service";
 
+//Nombres de los parámetros de configuración según la tabla parametro_configuracion en bdd
+const PARAM_MODALIDAD_DELIMITACION_TEMA = "modalidad_delimitacion_tema";
+const PARAM_FECHA_LIMITE_ASESOR = "fecha_limite_asesor";
+
 interface SubAreaType {
   id: number;
   nombre: string;
@@ -88,10 +92,10 @@ export default function GeneralConfCards() {
 
   // Buscar los parámetros por nombre
   const modalidadDelimitacionParam = parametros.find(
-    (p) => p.parametroConfiguracion.nombre === "Modalidad_delimitacion_tema",
+    (p) => p.parametroConfiguracion.nombre === PARAM_MODALIDAD_DELIMITACION_TEMA,
   );
   const fechaLimiteParam = parametros.find(
-    (p) => p.parametroConfiguracion.nombre === "Fecha_limite_asesor",
+    (p) => p.parametroConfiguracion.nombre === PARAM_FECHA_LIMITE_ASESOR,
   );
 
   // Actualizar el estado local cuando cambia el parámetro

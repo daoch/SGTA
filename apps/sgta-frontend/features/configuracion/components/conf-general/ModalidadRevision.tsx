@@ -12,6 +12,9 @@ import { Switch } from "@/components/ui/switch";
 import { useBackStore } from "../../store/configuracion-store";
 import { useEffect, useState } from "react";
 
+const PARAM_TURNITIN = "turnitin";
+const PARAM_ANTIPLAGIO = "antiplagio";
+
 interface CarreraXParametroConfiguracionDto {
   id: number;
   valor: string | boolean | number | Date;
@@ -33,10 +36,10 @@ export default function ModalidadRevisionCard() {
 
   // Buscar los parámetros por nombre
   const turnitinParam = localParametros.find(
-    (p) => p.parametroConfiguracion.nombre === "Turnitin"
+    (p) => p.parametroConfiguracion.nombre === PARAM_TURNITIN
   );
   const antiplagioParam = localParametros.find(
-    (p) => p.parametroConfiguracion.nombre === "Modalidad de Revision"
+    (p) => p.parametroConfiguracion.nombre === PARAM_ANTIPLAGIO
   );
 
   // Handlers para cambiar el valor
