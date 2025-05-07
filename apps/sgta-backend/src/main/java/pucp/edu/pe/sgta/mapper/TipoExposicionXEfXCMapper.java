@@ -12,7 +12,7 @@ public class TipoExposicionXEfXCMapper {
         dto.setId(tipoExposicionXEfXC.getId());
         dto.setEtapaFormativaXCicloId(tipoExposicionXEfXC.getEtapaFormativaXCiclo().getId());
         dto.setTipoExposicionId(tipoExposicionXEfXC.getTipoExposicion().getId());
-        dto.setActivo(tipoExposicionXEfXC.isActivo());
+        dto.setActivo(tipoExposicionXEfXC.getActivo());
         dto.setFechaCreacion(tipoExposicionXEfXC.getFechaCreacion());
         dto.setFechaModificacion(tipoExposicionXEfXC.getFechaModificacion());
         return dto;
@@ -24,7 +24,7 @@ public class TipoExposicionXEfXCMapper {
 
         TipoExposicionXEfXC entity = new TipoExposicionXEfXC();
         entity.setId(dto.getId());
-        entity.setActivo(dto.isActivo());
+        entity.setActivo(dto.getActivo());
         entity.setFechaCreacion(dto.getFechaCreacion());
         entity.setFechaModificacion(dto.getFechaModificacion());
 

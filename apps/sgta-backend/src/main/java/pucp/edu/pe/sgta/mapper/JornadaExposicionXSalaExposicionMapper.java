@@ -12,7 +12,7 @@ public class JornadaExposicionXSalaExposicionMapper {
         dto.setId(jornadaExposicionXSalaExposicion.getId());
         dto.setJornadaExposicionId(jornadaExposicionXSalaExposicion.getJornadaExposicion().getId());
         dto.setSalaExposicionId(jornadaExposicionXSalaExposicion.getSalaExposicion().getId());
-        dto.setActivo(jornadaExposicionXSalaExposicion.isActivo());
+        dto.setActivo(jornadaExposicionXSalaExposicion.getActivo());
         dto.setFechaCreacion(jornadaExposicionXSalaExposicion.getFechaCreacion());
         dto.setFechaModificacion(jornadaExposicionXSalaExposicion.getFechaModificacion());
         return dto;
@@ -31,7 +31,7 @@ public class JornadaExposicionXSalaExposicionMapper {
         salaExposicion.setId(dto.getSalaExposicionId());
         jornadaExposicionXSalaExposicion.setSalaExposicion(salaExposicion);
 
-        jornadaExposicionXSalaExposicion.setActivo(dto.isActivo());
+        jornadaExposicionXSalaExposicion.setActivo(dto.getActivo());
         jornadaExposicionXSalaExposicion.setFechaCreacion(dto.getFechaCreacion());
         jornadaExposicionXSalaExposicion.setFechaModificacion(dto.getFechaModificacion());
 

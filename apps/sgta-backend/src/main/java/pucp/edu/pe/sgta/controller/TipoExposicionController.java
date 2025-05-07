@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.RestController;
 import pucp.edu.pe.sgta.dto.TipoExposicionDto;
 import pucp.edu.pe.sgta.service.inter.TipoExposicionService;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/tipoExposicion")

@@ -16,7 +16,7 @@ public class CarreraMapper {
         dto.setCodigo(carrera.getCodigo());
         dto.setNombre(carrera.getNombre());
         dto.setDescripcion(carrera.getDescripcion());
-        dto.setActivo(carrera.isActivo());
+        dto.setActivo(carrera.getActivo());
         dto.setFechaCreacion(carrera.getFechaCreacion());
         dto.setFechaModificacion(carrera.getFechaModificacion());
         return dto;
@@ -34,7 +34,7 @@ public class CarreraMapper {
         carrera.setCodigo(dto.getCodigo());
         carrera.setNombre(dto.getNombre());
         carrera.setDescripcion(dto.getDescripcion());
-        carrera.setActivo(dto.isActivo());
+        carrera.setActivo(dto.getActivo());
         carrera.setFechaCreacion(dto.getFechaCreacion());
         carrera.setFechaModificacion(dto.getFechaModificacion());
         return carrera;

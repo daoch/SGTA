@@ -11,7 +11,7 @@ public class TipoExposicionMapper {
         dto.setNombre(tipoExposicion.getNombre());
         dto.setFechaCreacion(tipoExposicion.getFechaCreacion());
         dto.setFechaModificacion(tipoExposicion.getFechaModificacion());
-        dto.setActivo(tipoExposicion.isActivo());
+        dto.setActivo(tipoExposicion.getActivo());
         return dto;
     }
 
@@ -21,7 +21,7 @@ public class TipoExposicionMapper {
         tipoExposicion.setNombre(dto.getNombre());
         tipoExposicion.setFechaCreacion(dto.getFechaCreacion());
         tipoExposicion.setFechaModificacion(dto.getFechaModificacion());
-        tipoExposicion.setActivo(dto.isActivo());
+        tipoExposicion.setActivo(dto.getActivo());
         return tipoExposicion;
     }
 }

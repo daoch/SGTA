@@ -21,7 +21,7 @@ public class CicloDto {
 
     private LocalDate fechaFin;
 
-    private boolean activo;
+    private Boolean activo;
 
     private OffsetDateTime fechaCreacion;
 

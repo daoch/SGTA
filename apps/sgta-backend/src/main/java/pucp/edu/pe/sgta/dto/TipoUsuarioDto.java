@@ -15,7 +15,7 @@ public class TipoUsuarioDto {
 
 	private String nombre;
 
-	private boolean activo;
+	private Boolean activo;
 
 	private OffsetDateTime fechaCreacion;
 

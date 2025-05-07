@@ -23,7 +23,6 @@ import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -245,7 +244,7 @@ public class TemaServiceImpl implements TemaService {
     private void saveUsuarioXTema(Tema tema,
                                   Integer idUsuario,
                                   String rolNombre,
-                                  boolean asignado) {
+                                  Boolean asignado) {
         UsuarioDto uDto = usuarioService.findUsuarioById(idUsuario);
         if (uDto == null) {
             throw new RuntimeException("Usuario no encontrado: " + idUsuario);
@@ -281,7 +280,7 @@ public class TemaServiceImpl implements TemaService {
         if (subareas == null || subareas.isEmpty()) {
             throw new RuntimeException("No subAreaConocimiento proporcionadas");
         }
-        boolean found = false;
+        Boolean found = false;
         for (SubAreaConocimientoDto s : subareas) {
             SubAreaConocimientoDto saDto = subAreaConocimientoService.findById(s.getId());
             if (saDto == null) {
@@ -304,7 +303,7 @@ public class TemaServiceImpl implements TemaService {
                                           Integer idUsuarioCreador,
                                           List<UsuarioDto> involucrados,
                                           String rolNombre,
-                                          boolean asignado) {
+                                          Boolean asignado) {
         if (involucrados == null) return;
         for (UsuarioDto usuario : involucrados) {
             if (usuario.getId().equals(idUsuarioCreador)) {
@@ -406,6 +405,7 @@ public class TemaServiceImpl implements TemaService {
                     ? ((Instant) r[9]).atOffset(ZoneOffset.UTC)
                     : null
                 )
+				.codigo((String) r[10])
 				.estadoTemaNombre(estadoNombre)
                 .build();
             resultados.add(dto);
@@ -430,7 +430,7 @@ public class TemaServiceImpl implements TemaService {
                     ? ((Instant) r[6]).atOffset(ZoneOffset.UTC)
                     : null
                 )
-					.asignado((Boolean) r[7]) //we identify if the asesor is assigned or not
+				.asignado((Boolean) r[7]) //we identify if the asesor is assigned or not
                 .build();
             resultados.add(u);
         }

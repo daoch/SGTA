@@ -14,7 +14,7 @@ public class ExposicionMapper {
 
         ExposicionDto dto = new ExposicionDto();
         dto.setId(exposicion.getId());
-        dto.setActivo(exposicion.isActivo());
+        dto.setActivo(exposicion.getActivo());
         dto.setFechaCreacion(exposicion.getFechaCreacion());
         dto.setFechaModificacion(exposicion.getFechaModificacion());
 
@@ -36,7 +36,7 @@ public class ExposicionMapper {
 
         Exposicion entity = new Exposicion();
         entity.setId(dto.getId());
-        entity.setActivo(dto.isActivo());
+        entity.setActivo(dto.getActivo());
         entity.setFechaCreacion(dto.getFechaCreacion());
         entity.setFechaModificacion(dto.getFechaModificacion());
 

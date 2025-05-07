@@ -19,7 +19,7 @@ public class TipoExposicionXEfXCDto {
 
     private Integer tipoExposicionId;
 
-    private boolean activo;
+    private Boolean activo;
 
     private OffsetDateTime fechaCreacion;
 
