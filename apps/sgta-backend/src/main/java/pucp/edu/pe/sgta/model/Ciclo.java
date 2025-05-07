@@ -42,6 +42,4 @@ public class Ciclo {
     @Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaModificacion;
 
-
-
 }

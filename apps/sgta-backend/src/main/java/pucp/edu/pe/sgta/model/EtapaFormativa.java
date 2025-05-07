@@ -1,6 +1,7 @@
 package pucp.edu.pe.sgta.model;
+
 import jakarta.persistence.*;
-        import lombok.AllArgsConstructor;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -8,6 +9,7 @@ import lombok.Setter;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.OffsetDateTime;
+
 @Entity
 @Getter
 @Setter
@@ -24,7 +26,7 @@ public class EtapaFormativa {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String nombre;
 
-    @Column(name = "creditaje_por_tema", nullable = false, precision = 6, scale = 2)
+    @Column(name = "creditaje_por_tema", nullable = true, precision = 6, scale = 2)
     private BigDecimal creditajePorTema;
 
     @Column(name = "duracion_exposicion")

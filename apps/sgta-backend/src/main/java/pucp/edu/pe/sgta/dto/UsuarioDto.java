@@ -45,4 +45,5 @@ public class UsuarioDto {
 
 	private OffsetDateTime fechaModificacion;
 
+	private boolean asignado; //we need mapping on this for proposals and general tema management
 }
