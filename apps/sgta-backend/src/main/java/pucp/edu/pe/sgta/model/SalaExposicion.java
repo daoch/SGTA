@@ -1,12 +1,11 @@
 package pucp.edu.pe.sgta.model;
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import pucp.edu.pe.sgta.util.TipoSalaExposicion;
 
-import java.time.LocalDate;
 import java.time.OffsetDateTime;
 
 @Entity
@@ -14,32 +13,27 @@ import java.time.OffsetDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "ciclo")
-public class Ciclo {
+@Table(name = "sala_exposicion")
+public class SalaExposicion {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "ciclo_id")
+    @Column(name = "sala_exposicion_id")
     private Integer id;
 
-    @Column(length = 10, nullable = false)
-    private String semestre;
-
-    @Column(nullable = false)
-    private Integer anio;
-
-    @Column(name = "fecha_inicio", nullable = false)
-    private LocalDate fechaInicio;
-
-    @Column(name = "fecha_fin", nullable = false)
-    private LocalDate fechaFin;
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String nombre;
 
     @Column(nullable = false)
     private boolean activo = true;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_sala_exposicion", nullable = false)
+    private TipoSalaExposicion tipoSalaExposicion = TipoSalaExposicion.PRESENCIAL;
 
     @Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaCreacion;
 
     @Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaModificacion;
-
 }

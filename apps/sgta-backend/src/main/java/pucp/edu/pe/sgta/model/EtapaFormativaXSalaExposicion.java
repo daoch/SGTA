@@ -1,12 +1,9 @@
 package pucp.edu.pe.sgta.model;
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.time.LocalDate;
 import java.time.OffsetDateTime;
 
 @Entity
@@ -14,24 +11,21 @@ import java.time.OffsetDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "ciclo")
-public class Ciclo {
+@Table(name = "etapa_formativa_x_sala_exposicion")
+public class EtapaFormativaXSalaExposicion {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "ciclo_id")
+    @Column(name = "etapa_formativa_x_sala_id")
     private Integer id;
 
-    @Column(length = 10, nullable = false)
-    private String semestre;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "etapa_formativa_id", nullable = false, foreignKey = @ForeignKey(name = "fk_efxs_etapa_formativa"))
+    private EtapaFormativa etapaFormativa;
 
-    @Column(nullable = false)
-    private Integer anio;
-
-    @Column(name = "fecha_inicio", nullable = false)
-    private LocalDate fechaInicio;
-
-    @Column(name = "fecha_fin", nullable = false)
-    private LocalDate fechaFin;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "sala_exposicion_id", nullable = false, foreignKey = @ForeignKey(name = "fk_efxs_sala_exposicion"))
+    private SalaExposicion salaExposicion;
 
     @Column(nullable = false)
     private boolean activo = true;
@@ -41,5 +35,4 @@ public class Ciclo {
 
     @Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaModificacion;
-
 }

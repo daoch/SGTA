@@ -5,8 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.time.LocalDate;
 import java.time.OffsetDateTime;
 
 @Entity
@@ -14,24 +12,21 @@ import java.time.OffsetDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "ciclo")
-public class Ciclo {
+@Table(name = "exposicion")
+public class Exposicion {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "ciclo_id")
+    @Column(name = "exposicion_id")
     private Integer id;
 
-    @Column(length = 10, nullable = false)
-    private String semestre;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "tipo_exposicion_x_ef_x_c_id", nullable = false, foreignKey = @ForeignKey(name = "fk_exp_tipo_exposicion_x_ef_x_c"))
+    private TipoExposicionXEfXC tipoExposicionEfXC;
 
-    @Column(nullable = false)
-    private Integer anio;
-
-    @Column(name = "fecha_inicio", nullable = false)
-    private LocalDate fechaInicio;
-
-    @Column(name = "fecha_fin", nullable = false)
-    private LocalDate fechaFin;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "estado_planificacion_id", nullable = false, foreignKey = @ForeignKey(name = "fk_exp_estado_planificacion"))
+    private EstadoPlanificacion estadoPlanificacion;
 
     @Column(nullable = false)
     private boolean activo = true;
@@ -41,5 +36,4 @@ public class Ciclo {
 
     @Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaModificacion;
-
 }
