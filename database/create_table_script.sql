@@ -991,17 +991,25 @@ CREATE TABLE IF NOT EXISTS criterio_entregable
             ON DELETE CASCADE
 );
 
-create type if not exists enum_presentation_room_type as enum (
-    'presential',
-    'virtual'
-);
+-- create type if not exists enum_presentation_room_type as enum (
+--    'presential',
+--    'virtual'
+-- );
 
-CREATE TYPE IF NOT EXISTS enum_tipo_valor AS ENUM (
-    'STRING',
-    'DATE',
-    'INTEGER',
-    'BOOLEANO'
-);
+DO
+$$
+    BEGIN
+        CREATE TYPE enum_tipo_valor AS ENUM (
+            'STRING',
+            'DATA',
+            'INTEGER',
+            'BOOLEANO'
+            );
+    EXCEPTION
+        WHEN duplicate_object THEN NULL;
+    END
+$$;
+
 CREATE TABLE IF NOT EXISTS entregable_x_tema
 (
     entregable_x_tema_id            SERIAL PRIMARY KEY,
