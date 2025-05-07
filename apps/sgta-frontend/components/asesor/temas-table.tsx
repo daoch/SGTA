@@ -1,5 +1,11 @@
 "use client";
 
+import {
+  asesorData,
+  estadosValues,
+  TabValues,
+  temasDataMock,
+} from "@/app/types/temas/data";
 import { Tema, TemaUI } from "@/app/types/temas/entidades";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,16 +19,19 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { titleCase } from "@/lib/utils";
-import { CheckCircle, Eye, Send, X } from "lucide-react";
+import { CheckCircle, Eye, Send, X, FilePen, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface PropuestasTableProps {
   filter?: string;
 }
 
+const TEST = true;
+
 export function TemasTable({ filter }: PropuestasTableProps) {
-  const [temasData, setTemasData] = useState<TemaUI[]>([]);
-  // const [temasData, setTemasData] = useState<Tema[]>(temasDataMock);
+  const [temasData, setTemasData] = useState<TemaUI[]>(
+    TEST ? temasDataMock : [],
+  );
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,15 +41,17 @@ export function TemasTable({ filter }: PropuestasTableProps) {
         setIsLoading(true);
         setError(null);
 
-        const response = await fetch(
-          "http://localhost:5000/temas/listarTemasPorUsuarioRolEstado/1?rolNombre=Asesor&estadoNombre=INSCRITO",
-        );
-        if (!response.ok) {
-          throw new Error("Error al cargar los datos");
-        }
+        if (!TEST) {
+          const response = await fetch(
+            "http://localhost:5000/temas/listarTemasPorUsuarioRolEstado/1?rolNombre=Asesor&estadoNombre=INSCRITO",
+          );
+          if (!response.ok) {
+            throw new Error("Error al cargar los datos");
+          }
 
-        const data: Tema[] = await response.json();
-        setTemasData(data.map((tema) => ({ ...tema, tipo: "todo" })));
+          const data: Tema[] = await response.json();
+          setTemasData(data.map((tema) => ({ ...tema, tipo: "todo" })));
+        }
       } catch (err: any) {
         setError("Error desconocido: " + err.message);
       } finally {
@@ -99,7 +110,7 @@ export function TemasTable({ filter }: PropuestasTableProps) {
                   </TableCell>
                   {/* <TableCell>{tema.area}</TableCell> */}
                   <TableCell>{"Artificial Intelligence"}</TableCell>
-                  <TableCell>{"Willians"}</TableCell>
+                  <TableCell>{asesorData.name}</TableCell>
                   <TableCell>
                     {!tema.tesistas
                       ? "Sin asignar"
@@ -108,11 +119,12 @@ export function TemasTable({ filter }: PropuestasTableProps) {
                   <TableCell>
                     3{/* {!tema.postulaciones ? "-" : tema.postulaciones} */}
                   </TableCell>
+                  {/* Estado */}
                   <TableCell>
                     <Badge
                       variant="outline"
                       className={
-                        tema.tipo === "directa"
+                        tema.estadoTemaNombre === estadosValues.PROPUESTO_LIBRE
                           ? "bg-purple-100 text-purple-800 hover:bg-purple-100"
                           : "bg-green-100 text-green-800 hover:bg-green-100"
                       }
@@ -120,12 +132,13 @@ export function TemasTable({ filter }: PropuestasTableProps) {
                       {titleCase(tema?.estadoTemaNombre || "")}
                     </Badge>
                   </TableCell>
+                  {/* Tipo */}
                   <TableCell>
                     <Badge
                       variant="outline"
                       className={
-                        tema.tipo === "directa"
-                          ? "bg-purple-100 text-purple-800 hover:bg-purple-100"
+                        tema.tipo === TabValues.LIBRE
+                          ? "bg-blue-100 text-blue-800 hover:bg-blue-100"
                           : "bg-green-100 text-green-800 hover:bg-green-100"
                       }
                     >
@@ -135,6 +148,7 @@ export function TemasTable({ filter }: PropuestasTableProps) {
                   <TableCell>{"2025-1"}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
+                      {/* View Details */}
                       <Dialog>
                         <DialogTrigger asChild>
                           <Button variant="ghost" size="icon">
@@ -143,31 +157,30 @@ export function TemasTable({ filter }: PropuestasTableProps) {
                           </Button>
                         </DialogTrigger>
                       </Dialog>
-                      {tema.tipo === "general" && (
+                      {/* Edit Page */}
+                      {[TabValues.INSCRITO, TabValues.LIBRE].includes(
+                        tema.tipo as TabValues,
+                      ) && (
                         <Button
                           variant="ghost"
                           size="icon"
                           className="text-pucp-blue"
                         >
-                          <Send className="h-4 w-4" />
+                          <FilePen className="h-4 w-4" />
                           <span className="sr-only">Postular</span>
                         </Button>
                       )}
-                      {tema.tipo === "directa" && (
+                      {/* Delete */}
+                      {[TabValues.INSCRITO, TabValues.LIBRE].includes(
+                        tema.tipo as TabValues,
+                      ) && (
                         <>
                           <Button
                             variant="ghost"
                             size="icon"
                             className="text-red-500"
                           >
-                            <X className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-green-500"
-                          >
-                            <CheckCircle className="h-4 w-4" />
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </>
                       )}
