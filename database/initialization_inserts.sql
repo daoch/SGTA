@@ -153,3 +153,65 @@ select * from rol;
 select * from tipo_usuario;
 select * from estado_tema;
 select * from usuario;
+
+/* Parametros de configuración */
+
+WITH nuevo_parametro AS (
+  INSERT INTO parametro_configuracion (
+      nombre, descripcion, modulo_id, activo, fecha_creacion, fecha_modificacion, tipo
+  ) VALUES (
+      'antiplagio',
+      'Configure la opcion de revision antiplagio',
+      4, true, NOW(), NOW(), 'BOOLEANO'
+  ) RETURNING parametro_configuracion_id
+)
+INSERT INTO carrera_parametro_configuracion (
+    carrera_id, parametro_configuracion_id, valor, activo, fecha_creacion, fecha_modificacion, etapa_formativa_id
+)
+SELECT 1, parametro_configuracion_id, 'false', true, NOW(), NOW(), 1 FROM nuevo_parametro;
+
+
+WITH nuevo_parametro AS (
+  INSERT INTO parametro_configuracion (
+      nombre, descripcion, modulo_id, activo, fecha_creacion, fecha_modificacion, tipo
+  ) VALUES (
+      'turnitin',
+      'Configure la opcion de revision turnitin',
+      4, true, NOW(), NOW(), 'BOOLEANO'
+  ) RETURNING parametro_configuracion_id
+)
+INSERT INTO carrera_parametro_configuracion (
+    carrera_id, parametro_configuracion_id, valor, activo, fecha_creacion, fecha_modificacion, etapa_formativa_id
+)
+SELECT 1, parametro_configuracion_id, 'false', true, NOW(), NOW(), 1 FROM nuevo_parametro;
+
+
+WITH nuevo_parametro AS (
+  INSERT INTO parametro_configuracion (
+      nombre, descripcion, modulo_id, activo, fecha_creacion, fecha_modificacion, tipo
+  ) VALUES (
+      'modalidad_delimitacion_tema',
+      'Define delimitación de tema de tesis',
+      1, true, NOW(), NOW(), 'STRING'
+  ) RETURNING parametro_configuracion_id
+)
+INSERT INTO carrera_parametro_configuracion (
+    carrera_id, parametro_configuracion_id, valor, activo, fecha_creacion, fecha_modificacion, etapa_formativa_id
+)
+SELECT 1, parametro_configuracion_id, 'propuesta', true, NOW(), NOW(), 1 FROM nuevo_parametro;
+
+
+
+WITH nuevo_parametro AS (
+  INSERT INTO parametro_configuracion (
+      nombre, descripcion, modulo_id, activo, fecha_creacion, fecha_modificacion, tipo
+  ) VALUES (
+      'fecha_limite_asesor',
+      'Establece la fecha máxima para cambios de asesor',
+      2, true, NOW(), NOW(), 'DATE'
+  ) RETURNING parametro_configuracion_id
+)
+INSERT INTO carrera_parametro_configuracion (
+    carrera_id, parametro_configuracion_id, valor, activo, fecha_creacion, fecha_modificacion, etapa_formativa_id
+)
+SELECT 1, parametro_configuracion_id, '2025-06-30T00:00:00Z', true, NOW(), NOW(), 1 FROM nuevo_parametro;
