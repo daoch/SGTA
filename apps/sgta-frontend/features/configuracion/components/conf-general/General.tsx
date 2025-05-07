@@ -30,13 +30,14 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
+import { useBackStore } from "../../store/configuracion-store";
 import {
   getAllAreasByCarreraId,
   createArea,
   deleteAreaById,
   createSubArea,
   deleteSubAreaById,
-  getAllSubAreasByAreaId
+  getAllSubAreasByAreaId,
 } from "../../services/configuracion-service";
 
 interface SubAreaType {
@@ -60,16 +61,64 @@ interface AreaResponse {
 }
 
 export default function GeneralConfCards() {
+  const { parametros, actualizarParametro, cargando } = useBackStore();
+
+  // Debug: Ver todos los parámetros disponibles
+  useEffect(() => {
+    console.log("Todos los parámetros:", parametros);
+  }, [parametros]);
+
   const [areasDialogOpen, setAreasDialogOpen] = useState(false);
   const [newArea, setNewArea] = useState("");
   const [newAreaDescripcion, setNewAreaDescripcion] = useState("");
   const [newSubArea, setNewSubArea] = useState("");
   const [showSubAreaInput, setShowSubAreaInput] = useState<number | null>(null);
   const [areas, setAreas] = useState<AreaType[]>([]);
+  const [fechaLimite, setFechaLimite] = useState<string>("");
   const [loadingOperation, setLoadingOperation] = useState<{
-    type: "addArea" | "addSubArea" | "deleteArea" | "deleteSubArea" | "save" | null;
+    type:
+      | "addArea"
+      | "addSubArea"
+      | "deleteArea"
+      | "deleteSubArea"
+      | "save"
+      | null;
     id?: number;
   }>({ type: null });
+
+  // Buscar los parámetros por nombre
+  const modalidadDelimitacionParam = parametros.find(
+    (p) => p.parametroConfiguracion.nombre === "Modalidad_delimitacion_tema",
+  );
+  const fechaLimiteParam = parametros.find(
+    (p) => p.parametroConfiguracion.nombre === "Fecha_limite_asesor",
+  );
+
+  // Actualizar el estado local cuando cambia el parámetro
+  useEffect(() => {
+    if (fechaLimiteParam?.valor) {
+      const fechaFormateada = (fechaLimiteParam.valor as string).split("T")[0];
+      setFechaLimite(fechaFormateada);
+    }
+  }, [fechaLimiteParam]);
+
+  // Handler para cambiar la modalidad de delimitación
+  const handleModalidadDelimitacionChange = (value: string) => {
+    if (modalidadDelimitacionParam) {
+      actualizarParametro(modalidadDelimitacionParam.id, value);
+    }
+  };
+
+  // Handler para cambiar la fecha límite
+  const handleFechaLimiteChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newDate = e.target.value;
+    setFechaLimite(newDate); // Actualizar estado local
+
+    if (fechaLimiteParam) {
+      const formattedDate = `${newDate}T00:00:00Z`;
+      actualizarParametro(fechaLimiteParam.id, formattedDate);
+    }
+  };
 
   // Cargar áreas cuando se abre el modal
   useEffect(() => {
@@ -93,11 +142,11 @@ export default function GeneralConfCards() {
             descripcion: area.descripcion || "",
             subAreas: subareas.map((sub: SubAreaType) => ({
               id: sub.id,
-              nombre: sub.nombre
+              nombre: sub.nombre,
             })),
-            idCarrera: area.idCarrera
+            idCarrera: area.idCarrera,
           };
-        })
+        }),
       );
 
       setAreas(areasWithSubareas);
@@ -116,7 +165,7 @@ export default function GeneralConfCards() {
           nombre: newArea,
           descripcion: newAreaDescripcion,
           subAreas: [],
-          idCarrera: 1 // TODO: Reemplazar con el ID de carrera real
+          idCarrera: 1, // TODO: Reemplazar con el ID de carrera real
         });
 
         const newAreaWithSubareas = {
@@ -124,10 +173,10 @@ export default function GeneralConfCards() {
           nombre: response.nombre,
           descripcion: response.descripcion,
           subAreas: [],
-          idCarrera: response.idCarrera
+          idCarrera: response.idCarrera,
         };
 
-        setAreas(prev => [...prev, newAreaWithSubareas]);
+        setAreas((prev) => [...prev, newAreaWithSubareas]);
         setNewArea("");
         setNewAreaDescripcion("");
       } catch (error) {
@@ -142,7 +191,7 @@ export default function GeneralConfCards() {
     try {
       setLoadingOperation({ type: "deleteArea", id });
       await deleteAreaById(id);
-      setAreas(prev => prev.filter(area => area.id !== id));
+      setAreas((prev) => prev.filter((area) => area.id !== id));
     } catch (error) {
       console.error("Error al eliminar el área:", error);
     } finally {
@@ -156,20 +205,25 @@ export default function GeneralConfCards() {
         setLoadingOperation({ type: "addSubArea", id: areaId });
         const response = await createSubArea({
           nombre: newSubArea,
-          idAreaConocimiento: areaId
+          idAreaConocimiento: areaId,
         });
 
-        setAreas(prev => prev.map(area =>
-          area.id === areaId
-            ? {
-              ...area,
-              subAreas: [...area.subAreas, {
-                id: response.id,
-                nombre: response.nombre
-              }]
-            }
-            : area
-        ));
+        setAreas((prev) =>
+          prev.map((area) =>
+            area.id === areaId
+              ? {
+                  ...area,
+                  subAreas: [
+                    ...area.subAreas,
+                    {
+                      id: response.id,
+                      nombre: response.nombre,
+                    },
+                  ],
+                }
+              : area,
+          ),
+        );
 
         setNewSubArea("");
         setShowSubAreaInput(null);
@@ -185,14 +239,16 @@ export default function GeneralConfCards() {
     try {
       setLoadingOperation({ type: "deleteSubArea", id: areaId });
       await deleteSubAreaById(subAreaId);
-      setAreas(prev => prev.map(area =>
-        area.id === areaId
-          ? {
-            ...area,
-            subAreas: area.subAreas.filter(sub => sub.id !== subAreaId)
-          }
-          : area
-      ));
+      setAreas((prev) =>
+        prev.map((area) =>
+          area.id === areaId
+            ? {
+                ...area,
+                subAreas: area.subAreas.filter((sub) => sub.id !== subAreaId),
+              }
+            : area,
+        ),
+      );
     } catch (error) {
       console.error("Error al eliminar la subárea:", error);
     } finally {
@@ -211,12 +267,12 @@ export default function GeneralConfCards() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between space-x-2">
+          {/*<div className="flex items-center justify-between space-x-2">
             <Label htmlFor="habilitar-subareas">
               Habilitar definición de sub-áreas
             </Label>
             <Switch id="habilitar-subareas" />
-          </div>
+          </div>*/}
 
           <Dialog open={areasDialogOpen} onOpenChange={setAreasDialogOpen}>
             <DialogTrigger asChild>
@@ -245,9 +301,13 @@ export default function GeneralConfCards() {
                     />
                     <Button
                       onClick={handleAddArea}
-                      disabled={loadingOperation.type === "addArea" || !newArea.trim()}
+                      disabled={
+                        loadingOperation.type === "addArea" || !newArea.trim()
+                      }
                     >
-                      {loadingOperation.type === "addArea" ? "Agregando..." : "Agregar"}
+                      {loadingOperation.type === "addArea"
+                        ? "Agregando..."
+                        : "Agregar"}
                     </Button>
                   </div>
                   <div className="grid grid-cols-1 items-center gap-2">
@@ -274,7 +334,9 @@ export default function GeneralConfCards() {
                           <div>
                             <h4 className="font-medium">{area.nombre}</h4>
                             {area.descripcion && (
-                              <p className="text-sm text-gray-500">{area.descripcion}</p>
+                              <p className="text-sm text-gray-500">
+                                {area.descripcion}
+                              </p>
                             )}
                           </div>
                           <div className="flex items-center gap-2">
@@ -290,7 +352,10 @@ export default function GeneralConfCards() {
                               variant="ghost"
                               size="icon"
                               onClick={() => handleDeleteArea(area.id)}
-                              disabled={loadingOperation.type === "deleteArea" && loadingOperation.id === area.id}
+                              disabled={
+                                loadingOperation.type === "deleteArea" &&
+                                loadingOperation.id === area.id
+                              }
                             >
                               <X className="h-4 w-4" />
                             </Button>
@@ -313,9 +378,16 @@ export default function GeneralConfCards() {
                               <Button
                                 size="sm"
                                 onClick={() => handleAddSubArea(area.id)}
-                                disabled={loadingOperation.type === "addSubArea" && loadingOperation.id === area.id || !newSubArea.trim()}
+                                disabled={
+                                  (loadingOperation.type === "addSubArea" &&
+                                    loadingOperation.id === area.id) ||
+                                  !newSubArea.trim()
+                                }
                               >
-                                {loadingOperation.type === "addSubArea" && loadingOperation.id === area.id ? "Agregando..." : "Agregar"}
+                                {loadingOperation.type === "addSubArea" &&
+                                loadingOperation.id === area.id
+                                  ? "Agregando..."
+                                  : "Agregar"}
                               </Button>
                               <Button
                                 variant="ghost"
@@ -335,12 +407,19 @@ export default function GeneralConfCards() {
                                 key={`subarea-${area.id}-${subArea.id}`}
                                 className="flex items-center justify-between py-1"
                               >
-                                <span className="text-sm">{subArea.nombre}</span>
+                                <span className="text-sm">
+                                  {subArea.nombre}
+                                </span>
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  onClick={() => handleDeleteSubArea(area.id, subArea.id)}
-                                  disabled={loadingOperation.type === "deleteSubArea" && loadingOperation.id === area.id}
+                                  onClick={() =>
+                                    handleDeleteSubArea(area.id, subArea.id)
+                                  }
+                                  disabled={
+                                    loadingOperation.type === "deleteSubArea" &&
+                                    loadingOperation.id === area.id
+                                  }
                                 >
                                   <X className="h-4 w-4" />
                                 </Button>
@@ -365,7 +444,10 @@ export default function GeneralConfCards() {
               </div>
 
               <DialogFooter>
-                <Button variant="outline" onClick={() => setAreasDialogOpen(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setAreasDialogOpen(false)}
+                >
                   Cerrar
                 </Button>
               </DialogFooter>
@@ -382,7 +464,11 @@ export default function GeneralConfCards() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Select defaultValue="propuesta">
+          <Select
+            value={(modalidadDelimitacionParam?.valor as string) || "propuesta"}
+            onValueChange={handleModalidadDelimitacionChange}
+            disabled={cargando}
+          >
             <SelectTrigger>
               <SelectValue placeholder="Seleccione un modo" />
             </SelectTrigger>
@@ -407,7 +493,13 @@ export default function GeneralConfCards() {
         <CardContent>
           <div className="grid w-full max-w-sm items-center gap-1.5">
             <Label htmlFor="fecha-limite">Fecha límite</Label>
-            <Input type="date" id="fecha-limite" defaultValue="2024-06-30" />
+            <Input
+              type="date"
+              id="fecha-limite"
+              value={fechaLimite}
+              onChange={handleFechaLimiteChange}
+              disabled={cargando}
+            />
           </div>
         </CardContent>
       </Card>
