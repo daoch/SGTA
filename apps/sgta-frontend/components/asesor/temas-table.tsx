@@ -21,6 +21,8 @@ import {
 import { titleCase } from "@/lib/utils";
 import { CheckCircle, Eye, Send, X, FilePen, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import DeleteTemaPopUp from "./delete-tema-pop-up";
+import { TemaDetailsDialog } from "./tema-details-modal";
 
 interface PropuestasTableProps {
   filter?: string;
@@ -75,6 +77,11 @@ export function TemasTable({ filter }: PropuestasTableProps) {
     return <p className="text-center py-8 text-red-500">{error}</p>;
   }
 
+  const deleteTema = () => {
+    console.log("Tema eliminado");
+    // Aquí podrías llamar a tu API o actualizar el estado global
+  };
+
   return (
     <div>
       <div className="rounded-md border">
@@ -105,17 +112,21 @@ export function TemasTable({ filter }: PropuestasTableProps) {
             ) : (
               propuestasFiltradas.map((tema) => (
                 <TableRow key={tema.id}>
+                  {/* Title */}
                   <TableCell className="font-medium max-w-xs truncate">
                     {tema.titulo}
                   </TableCell>
+                  {/* Area */}
                   {/* <TableCell>{tema.area}</TableCell> */}
                   <TableCell>{"Artificial Intelligence"}</TableCell>
                   <TableCell>{asesorData.name}</TableCell>
+                  {/* Tesistas */}
                   <TableCell>
                     {!tema.tesistas
                       ? "Sin asignar"
                       : tema.tesistas.map((e) => e.nombres).join(", ")}
                   </TableCell>
+                  {/* Postulaciones */}
                   <TableCell>
                     3{/* {!tema.postulaciones ? "-" : tema.postulaciones} */}
                   </TableCell>
@@ -149,14 +160,7 @@ export function TemasTable({ filter }: PropuestasTableProps) {
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       {/* View Details */}
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <Eye className="h-4 w-4" />
-                            <span className="sr-only">Ver detalles</span>
-                          </Button>
-                        </DialogTrigger>
-                      </Dialog>
+                      <TemaDetailsDialog tema={tema} />
                       {/* Edit Page */}
                       {[TabValues.INSCRITO, TabValues.LIBRE].includes(
                         tema.tipo as TabValues,
@@ -174,15 +178,19 @@ export function TemasTable({ filter }: PropuestasTableProps) {
                       {[TabValues.INSCRITO, TabValues.LIBRE].includes(
                         tema.tipo as TabValues,
                       ) && (
-                        <>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-red-500"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </>
+                        <DeleteTemaPopUp
+                          temaName={tema.titulo}
+                          onConfirmar={deleteTema}
+                          trigger={
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-red-500"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          }
+                        />
                       )}
                     </div>
                   </TableCell>
