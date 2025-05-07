@@ -1,6 +1,6 @@
 "use client";
 
-import { emptyTemaForm } from "@/app/types/temas/data";
+import { emptyTemaForm, TabValues } from "@/app/types/temas/data";
 import NuevoTemaDialog from "@/components/asesor/tema-nuevo-modal";
 import { TemasTable } from "@/components/asesor/temas-table";
 import { Button } from "@/components/ui/button";
@@ -15,13 +15,6 @@ import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus } from "lucide-react";
 import { useState } from "react";
-
-enum TabValues {
-  TODOS = "todos",
-  INSCRITOS = "inscrito",
-  LIBRES = "libre",
-  INTERESADOS = "interesado",
-}
 
 const page = () => {
   const [isNuevoTemaDialogOpen, setIsNuevoTemaDialogOpen] = useState(false);
@@ -61,9 +54,9 @@ const page = () => {
       <Tabs defaultValue={TabValues.TODOS} className="w-full">
         <TabsList>
           <TabsTrigger value={TabValues.TODOS}>Todos</TabsTrigger>
-          <TabsTrigger value={TabValues.INSCRITOS}>Inscritos</TabsTrigger>
-          <TabsTrigger value={TabValues.LIBRES}>Libres</TabsTrigger>
-          <TabsTrigger value={TabValues.INTERESADOS}>Interesantes</TabsTrigger>
+          <TabsTrigger value={TabValues.INSCRITO}>Inscritos</TabsTrigger>
+          <TabsTrigger value={TabValues.LIBRE}>Libres</TabsTrigger>
+          <TabsTrigger value={TabValues.INTERESADO}>Interesantes</TabsTrigger>
         </TabsList>
         <TabsContent value={TabValues.TODOS}>
           <Card>
@@ -78,7 +71,7 @@ const page = () => {
             </CardContent>
           </Card>
         </TabsContent>
-        <TabsContent value={TabValues.INSCRITOS}>
+        <TabsContent value={TabValues.INSCRITO}>
           <Card>
             <CardHeader>
               <CardTitle>Temas inscritos</CardTitle>
@@ -87,11 +80,11 @@ const page = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <TemasTable filter={TabValues.INSCRITOS} />
+              <TemasTable filter={TabValues.INSCRITO} />
             </CardContent>
           </Card>
         </TabsContent>
-        <TabsContent value={TabValues.LIBRES}>
+        <TabsContent value={TabValues.LIBRE}>
           <Card>
             <CardHeader>
               <CardTitle>Temas libres</CardTitle>
@@ -100,11 +93,11 @@ const page = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <TemasTable filter={TabValues.LIBRES} />
+              <TemasTable filter={TabValues.LIBRE} />
             </CardContent>
           </Card>
         </TabsContent>
-        <TabsContent value={TabValues.INTERESADOS}>
+        <TabsContent value={TabValues.INTERESADO}>
           <Card>
             <CardHeader>
               <CardTitle>Temas de interés</CardTitle>
@@ -113,7 +106,7 @@ const page = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <TemasTable filter={TabValues.INTERESADOS} />
+              <TemasTable filter={TabValues.INTERESADO} />
             </CardContent>
           </Card>
         </TabsContent>
