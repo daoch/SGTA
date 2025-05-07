@@ -1,8 +1,7 @@
 package pucp.edu.pe.sgta.dto;
 
 import lombok.*;
-import java.time.OffsetDateTime;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -17,13 +16,13 @@ public class CicloDto {
 
     private Integer anio;
 
-    private LocalDate fechaInicio;
+    private LocalDateTime fechaInicio;
 
-    private LocalDate fechaFin;
+    private LocalDateTime fechaFin;
 
     private boolean activo;
 
-    private OffsetDateTime fechaCreacion;
+    private LocalDateTime fechaReg;
 
-    private OffsetDateTime fechaModificacion;
+    private LocalDateTime fechaMod;
 }

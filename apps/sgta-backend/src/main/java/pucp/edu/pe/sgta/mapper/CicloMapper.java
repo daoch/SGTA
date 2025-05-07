@@ -11,9 +11,9 @@ public class CicloMapper {
         dto.setAnio(ciclo.getAnio());
         dto.setFechaInicio(ciclo.getFechaInicio());
         dto.setFechaFin(ciclo.getFechaFin());
-        dto.setActivo(ciclo.isActivo());
-        dto.setFechaCreacion(ciclo.getFechaCreacion());
-        dto.setFechaModificacion(ciclo.getFechaModificacion());
+        dto.setActivo(ciclo.getActivo());
+        dto.setFechaReg(ciclo.getFechaReg());
+        dto.setFechaMod(ciclo.getFechaMod());
         return dto;
     }
 
@@ -25,8 +25,8 @@ public class CicloMapper {
         ciclo.setFechaInicio(dto.getFechaInicio());
         ciclo.setFechaFin(dto.getFechaFin());
         ciclo.setActivo(dto.isActivo());
-        ciclo.setFechaCreacion(dto.getFechaCreacion());
-        ciclo.setFechaModificacion(dto.getFechaModificacion());
+        ciclo.setFechaReg(dto.getFechaReg());
+        ciclo.setFechaMod(dto.getFechaMod());
         return ciclo;
     }
 }

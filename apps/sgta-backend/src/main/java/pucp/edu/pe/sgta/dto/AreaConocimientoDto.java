@@ -4,6 +4,13 @@ import lombok.*;
 
 import java.time.OffsetDateTime;
 
+import pucp.edu.pe.sgta.model.Carrera;
+import pucp.edu.pe.sgta.model.SubAreaConocimiento;
+
+import java.util.List;
+
+
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -17,10 +24,13 @@ public class AreaConocimientoDto {
 
 	private String descripcion;
 
-	private boolean activo;
+	private boolean activo = true;
 
 	private OffsetDateTime fechaCreacion;
 
 	private OffsetDateTime fechaModificacion;
+
+	private Integer idCarrera;
+
 
 }

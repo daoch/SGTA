@@ -5,9 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.math.BigDecimal;
-import java.time.Duration;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 
 @Entity
@@ -23,21 +21,26 @@ public class EtapaFormativa {
     @Column(name = "etapa_formativa_id")
     private Integer id;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(nullable = false, length = 100)
     private String nombre;
 
-    @Column(name = "creditaje_por_tema", nullable = true, precision = 6, scale = 2)
-    private BigDecimal creditajePorTema;
-
-    @Column(name = "duracion_exposicion")
-    private Duration duracionExposicion;
+    @Column(nullable = false)
+    private Integer creditajePorTema;
 
     @Column(nullable = false)
-    private boolean activo = true;
+    private Integer duracionExposicion;
 
     @Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private OffsetDateTime fechaCreacion;
+    private LocalDateTime fechaCreacion;
 
     @Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private OffsetDateTime fechaModificacion;
+    private LocalDateTime fechaModificacion;
+
+    @Column(nullable = false)
+    private Boolean activo;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "carrera_id", nullable = false, foreignKey = @ForeignKey(name = "fk_area_conocimiento_carrera"))
+    private Carrera carrera;
+
 }

@@ -1,4 +1,4 @@
-import { navigationItems, NavigationItem } from "./navigation-items";
+import { NavigationItem, navigationItems } from "./navigation-items";
 
 interface NavigationGroup {
   label: string;

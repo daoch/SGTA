@@ -3,13 +3,46 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
+import { useEffect } from "react";
 import ModalidadRevisionCard from "../components/conf-general/ModalidadRevision";
 import JuradosCards from "../components/conf-general/Jurados";
 import AsesoresCards from "../components/conf-general/Asesores";
 import GeneralConfCards from "../components/conf-general/General";
+import { useBackStore } from "../store/configuracion-store";
+import { Button } from "@/components/ui/button";
 
 export default function ConfiguracionSistema() {
+  const {
+    cargarParametros,
+    parametros,
+    parametrosOriginales,
+    guardarParametros,
+    cargando,
+  } = useBackStore();
+
+  useEffect(() => {
+    const initializeData = async () => {
+      try {
+        await cargarParametros(1);
+      } catch (error) {
+        console.error("Error al inicializar datos:", error);
+      }
+    };
+
+    initializeData();
+  }, [cargarParametros]);
+
+  // Detectar si hay cambios comparando con los valores originales
+  const hasChanges = parametros.some((param) => {
+    const originalParam = parametrosOriginales.find(p => p.id === param.id);
+    return originalParam && originalParam.valor !== param.valor;
+  });
+
+  // Handler para guardar
+  const handleGuardar = async () => {
+    await guardarParametros();
+  };
+
   return (
     <div className="max-w-5xl ">
       <div className="flex items-center gap-2 mt-5 mb-4">
@@ -26,12 +59,21 @@ export default function ConfiguracionSistema() {
 
       <div className="flex-1 overflow-auto ">
         <Tabs defaultValue="general">
-          <TabsList className="mb-4">
-            <TabsTrigger value="general">General</TabsTrigger>
-            <TabsTrigger value="asesores">Asesores</TabsTrigger>
-            <TabsTrigger value="jurados">Jurados</TabsTrigger>
-            <TabsTrigger value="revision">Revisión</TabsTrigger>
-          </TabsList>
+          <div className="flex items-center justify-between mb-4">
+            <TabsList>
+              <TabsTrigger value="general">General</TabsTrigger>
+              <TabsTrigger value="asesores">Asesores</TabsTrigger>
+              <TabsTrigger value="jurados">Jurados</TabsTrigger>
+              <TabsTrigger value="revision">Revisión</TabsTrigger>
+            </TabsList>
+            <Button
+              className={"px-4 py-2 rounded text-white font-semibold transition disabled:bg-gray-300"}
+              disabled={!hasChanges || cargando}
+              onClick={handleGuardar}
+            >
+              {cargando ? "Guardando..." : "Guardar"}
+            </Button>
+          </div>
 
           <TabsContent value="general" className="space-y-4">
             <GeneralConfCards />

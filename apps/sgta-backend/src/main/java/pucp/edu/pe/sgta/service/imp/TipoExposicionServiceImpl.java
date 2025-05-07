@@ -20,7 +20,10 @@ public class TipoExposicionServiceImpl implements TipoExposicionService {
 
     @Override
     public List<TipoExposicionDto> getAll() {
-        return List.of();
+        return tipoExposicionRepository.findAll()
+                .stream()
+                .map(TipoExposicionMapper::toDto)
+                .toList();
     }
 
     @Override

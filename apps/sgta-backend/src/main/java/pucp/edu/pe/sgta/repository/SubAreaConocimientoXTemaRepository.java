@@ -6,6 +6,5 @@ import pucp.edu.pe.sgta.model.SubAreaConocimientoXTema;
 
 @Repository
 public interface SubAreaConocimientoXTemaRepository
-                extends JpaRepository<SubAreaConocimientoXTema, SubAreaConocimientoXTema.SubAreaConocimientoXTemaId> {
-
+        extends JpaRepository<SubAreaConocimientoXTema, SubAreaConocimientoXTema.SubAreaConocimientoXTemaId> {
 }

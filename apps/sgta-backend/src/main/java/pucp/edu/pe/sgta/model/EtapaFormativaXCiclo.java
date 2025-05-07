@@ -1,9 +1,8 @@
 package pucp.edu.pe.sgta.model;
+
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 
 @Entity
@@ -11,12 +10,12 @@ import java.time.OffsetDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "etapa_formativa_x_ciclo")
+@Table(name = "etapa_formativa_ciclo")
 public class EtapaFormativaXCiclo {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "etapa_formativa_x_ciclo_id")
+    @Column(name = "etapa_formativa_ciclo_id")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -36,4 +35,3 @@ public class EtapaFormativaXCiclo {
     @Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaModificacion;
 }
-
