@@ -15,6 +15,7 @@ import pucp.edu.pe.sgta.dto.TeacherCountDTO;
 import pucp.edu.pe.sgta.dto.TopicAreaStatsDTO;
 import pucp.edu.pe.sgta.dto.TopicTrendDTO;
 import pucp.edu.pe.sgta.repository.AdvisorDistributionRepository;
+import pucp.edu.pe.sgta.repository.AdvisorPerformanceRepository;
 import pucp.edu.pe.sgta.repository.JurorDistributionRepository;
 import pucp.edu.pe.sgta.repository.TopicAreaStatsRepository;
 import pucp.edu.pe.sgta.service.inter.IReportService;
@@ -25,13 +26,17 @@ public class ReportingServiceImpl implements IReportService {
     private final TopicAreaStatsRepository topicAreaStatsRepository;
     private final AdvisorDistributionRepository advisorDistributionRepository;
     private final JurorDistributionRepository jurorDistributionRepository;
+    private final AdvisorPerformanceRepository advisorPerformanceRepository;
 
-    public ReportingServiceImpl(TopicAreaStatsRepository topicAreaStatsRepository,
+    public ReportingServiceImpl(
+            TopicAreaStatsRepository topicAreaStatsRepository,
             AdvisorDistributionRepository advisorDistributionRepository,
-            JurorDistributionRepository jurorDistributionRepository) {
+            JurorDistributionRepository jurorDistributionRepository,
+            AdvisorPerformanceRepository advisorPerformanceRepository) {
         this.topicAreaStatsRepository = topicAreaStatsRepository;
         this.advisorDistributionRepository = advisorDistributionRepository;
         this.jurorDistributionRepository = jurorDistributionRepository;
+        this.advisorPerformanceRepository = advisorPerformanceRepository;
     }
 
     @Override
@@ -151,16 +156,23 @@ public class ReportingServiceImpl implements IReportService {
     // TODO: Agregar desempeño de asesores por cantidad de tesis avanzadas (en
     // progreso) y comparativa con tesistas totales
     @Override
-    public List<AdvisorPerformanceDto> getAdvisorPerformance() {
-        // TODO: reemplazar con lógica real (cálculo de porcentaje y conteo)
-        return Arrays.asList(
-                new AdvisorPerformanceDto("Dr. Rodríguez", "Ciencias de la Computación", 78.0, 8),
-                new AdvisorPerformanceDto("Dra. Sánchez", "Inteligencia Artificial", 65.0, 6),
-                new AdvisorPerformanceDto("Dr. García", "Desarrollo de Software", 72.0, 5),
-                new AdvisorPerformanceDto("Dr. López", "Seguridad Informática", 45.0, 4),
-                new AdvisorPerformanceDto("Dra. Martínez", "Bases de Datos", 68.0, 4),
-                new AdvisorPerformanceDto("Dr. Pérez", "Redes y Comunicaciones", 55.0, 3),
-                new AdvisorPerformanceDto("Dra. Gómez", "Computación Gráfica", 82.0, 2));
+    public List<AdvisorPerformanceDto> getAdvisorPerformance(Integer usuarioId, String cicloNombre) {
+        if (usuarioId == null) {
+            throw new IllegalArgumentException("El ID de usuario es requerido");
+        }
+        if (cicloNombre == null || cicloNombre.trim().isEmpty()) {
+            throw new IllegalArgumentException("El ciclo es requerido");
+        }
+
+        List<Object[]> results = advisorPerformanceRepository.getAdvisorPerformanceByUser(usuarioId, cicloNombre);
+        return results.stream()
+                .map(result -> new AdvisorPerformanceDto(
+                        (String) result[0],           // advisor_name
+                        (String) result[1],           // area_name
+                        ((Number) result[2]).doubleValue(), // performance_percentage
+                        ((Number) result[3]).intValue()     // total_students
+                ))
+                .collect(Collectors.toList());
     }
 
     @Override

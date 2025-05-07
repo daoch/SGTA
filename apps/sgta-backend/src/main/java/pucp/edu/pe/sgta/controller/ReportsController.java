@@ -54,12 +54,9 @@ public class ReportsController {
         return ResponseEntity.ok(reportingService.getAreaFinal(usuarioId, ciclo));
     }
 
-    /**
-     * RF2B: Endpoint para desempeño de asesores.
-     */
+    /** RF3: Endpoint para desempeño de asesores */
     @GetMapping("/advisors/performance")
-    public List<AdvisorPerformanceDto> getAdvisorPerformance() {
-        return reportingService.getAdvisorPerformance();
+    public List<AdvisorPerformanceDto> getAdvisorPerformance(@RequestParam Integer usuarioId, @RequestParam String ciclo) {
+        return reportingService.getAdvisorPerformance(usuarioId, ciclo);
     }
-
 }

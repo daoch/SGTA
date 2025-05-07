@@ -19,6 +19,6 @@ public interface IReportService {
     List<AreaFinalDTO> getAreaFinal(Integer usuarioId, String cicloNombre);
     /** RF1b: tendencias de temas por año */
     List<TopicTrendDTO> getTopicTrendsByYear(Integer usuarioId);
-
-    List<AdvisorPerformanceDto> getAdvisorPerformance();
+    /** RF3: desempeño de asesores */
+    List<AdvisorPerformanceDto> getAdvisorPerformance(Integer usuarioId, String cicloNombre);
 }
