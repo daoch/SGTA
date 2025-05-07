@@ -11,6 +11,7 @@ $$
         WHEN duplicate_object THEN NULL;
     END
 $$;
+
 -- Tabla unidad_academica
 CREATE TABLE IF NOT EXISTS unidad_academica (
     unidad_academica_id    SERIAL PRIMARY KEY,
@@ -991,24 +992,6 @@ CREATE TABLE IF NOT EXISTS criterio_entregable
             ON DELETE CASCADE
 );
 
--- create type if not exists enum_presentation_room_type as enum (
---    'presential',
---    'virtual'
--- );
-
-DO
-$$
-    BEGIN
-        CREATE TYPE enum_tipo_valor AS ENUM (
-            'STRING',
-            'DATA',
-            'INTEGER',
-            'BOOLEANO'
-            );
-    EXCEPTION
-        WHEN duplicate_object THEN NULL;
-    END
-$$;
 
 CREATE TABLE IF NOT EXISTS entregable_x_tema
 (
