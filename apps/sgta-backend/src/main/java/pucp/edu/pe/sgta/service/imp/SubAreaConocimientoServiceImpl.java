@@ -1,7 +1,9 @@
 package pucp.edu.pe.sgta.service.imp;
 
 import org.springframework.stereotype.Service;
+import pucp.edu.pe.sgta.dto.InfoSubAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.SubAreaConocimientoDto;
+import pucp.edu.pe.sgta.mapper.InfoSubAreaConocimientoMapper;
 import pucp.edu.pe.sgta.mapper.SubAreaConocimientoMapper;
 import pucp.edu.pe.sgta.model.SubAreaConocimiento;
 import pucp.edu.pe.sgta.repository.SubAreaConocimientoRepository;
@@ -45,6 +47,14 @@ public class SubAreaConocimientoServiceImpl implements SubAreaConocimientoServic
 	@Override
 	public void delete(Integer id) {
 
+	}
+
+	@Override
+	public List<InfoSubAreaConocimientoDto> listarInfoPorNombre(String nombre) {
+		return subAreaConocimientoRepository.findByNombreContainingIgnoreCaseAndActivoIsTrue(nombre)
+				.stream()
+				.map(InfoSubAreaConocimientoMapper::toDto)
+				.toList();
 	}
 
 }

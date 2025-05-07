@@ -1,7 +1,7 @@
 package pucp.edu.pe.sgta.service.imp;
 
 import org.springframework.stereotype.Service;
-import pucp.edu.pe.sgta.dto.InfoAreaConocimiento;
+import pucp.edu.pe.sgta.dto.InfoAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.InfoSubAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.PerfilAsesorDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
@@ -9,19 +9,13 @@ import pucp.edu.pe.sgta.mapper.InfoAreaConocimientoMapper;
 import pucp.edu.pe.sgta.mapper.InfoSubAreaConocimientoMapper;
 import pucp.edu.pe.sgta.mapper.PerfilAsesorMapper;
 import pucp.edu.pe.sgta.mapper.UsuarioMapper;
-import pucp.edu.pe.sgta.model.AreaConocimiento;
-import pucp.edu.pe.sgta.model.Usuario;
-import pucp.edu.pe.sgta.model.UsuarioXSubAreaConocimiento;
-import pucp.edu.pe.sgta.repository.AreaConocimientoRespository;
-import pucp.edu.pe.sgta.repository.SubAreaConocimientoRepository;
-import pucp.edu.pe.sgta.repository.UsuarioRepository;
-import pucp.edu.pe.sgta.repository.UsuarioXSubAreaConocimientoRepository;
+import pucp.edu.pe.sgta.model.*;
+import pucp.edu.pe.sgta.repository.*;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
+import pucp.edu.pe.sgta.util.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 
 @Service
 public class UsuarioServiceImpl implements UsuarioService {
@@ -30,15 +24,20 @@ public class UsuarioServiceImpl implements UsuarioService {
 	private final UsuarioXSubAreaConocimientoRepository usuarioXSubAreaConocimientoRepository;
 	private final SubAreaConocimientoRepository subAreaConocimientoRepository;
 	private final AreaConocimientoRespository areaConocimientoRepository;
+	private final UsuarioXAreaConocimientoRepository usuarioXAreaConocimientoRepository;
+	private final CarreraRepository carreraRepository;
 
 	public UsuarioServiceImpl(UsuarioRepository usuarioRepository
-							,UsuarioXSubAreaConocimientoRepository usuarioXSubAreaConocimientoRepository
-							,SubAreaConocimientoRepository subAreaConocimientoRepository
-							,AreaConocimientoRespository areaConocimientoRepository) {
+							, UsuarioXSubAreaConocimientoRepository usuarioXSubAreaConocimientoRepository
+							, SubAreaConocimientoRepository subAreaConocimientoRepository
+							, AreaConocimientoRespository areaConocimientoRepository
+							, UsuarioXAreaConocimientoRepository usuarioXAreaConocimientoRepository, CarreraRepository carreraRepository) {
 		this.usuarioRepository = usuarioRepository;
 		this.usuarioXSubAreaConocimientoRepository = usuarioXSubAreaConocimientoRepository;
 		this.subAreaConocimientoRepository = subAreaConocimientoRepository;
 		this.areaConocimientoRepository = areaConocimientoRepository;
+		this.usuarioXAreaConocimientoRepository = usuarioXAreaConocimientoRepository;
+		this.carreraRepository = carreraRepository;
 	}
 
 	@Override
@@ -83,29 +82,91 @@ public class UsuarioServiceImpl implements UsuarioService {
 			throw new RuntimeException("Usuario no encontrado con ID: " + id);
 		}
 		tmp = PerfilAsesorMapper.toDto(usuario);
+		//Encontramos el nombre de la carrera del Asesor
+		List<String> carreras = new ArrayList<>();
+		List<Object[]> resultadoQuery = carreraRepository.listarCarrerasPorIdUsusario(id);
+		for (Object[] o : resultadoQuery) {
+			carreras.add((String) o[3]);
+		}
+		tmp.setEspecialidad(carreras);
+		//Luego la consulta de las áreas de conocimiento
+		List<InfoAreaConocimientoDto> areas;
+		List<Integer> idAreas = usuarioXAreaConocimientoRepository.findAllByUsuario_IdAndActivoIsTrue(id).
+				stream()
+				.map(UsuarioXAreaConocimiento::getAreaConocimiento)
+				.map(AreaConocimiento::getId)
+				.toList();
+		areas = areaConocimientoRepository.findAllByIdIn(idAreas)
+				.stream()
+				.map(InfoAreaConocimientoMapper::toDto)
+				.toList();
 		//Luego la consulta de las areas de conocimiento
 		List<InfoSubAreaConocimientoDto> subareas;
-		List<InfoAreaConocimiento> areas;
-		List<Integer> idSubareas = usuarioXSubAreaConocimientoRepository.findAllByUsuario_IdAndActivo(id).
+		List<Integer> idSubareas = usuarioXSubAreaConocimientoRepository.findAllByUsuario_IdAndActivoIsTrue(id).
 									stream()
-									.map(UsuarioXSubAreaConocimiento::getId)
+									.map(UsuarioXSubAreaConocimiento::getSubAreaConocimiento)
+									.map(SubAreaConocimiento::getId)
 									.toList();
 		subareas = subAreaConocimientoRepository.findAllByIdIn(idSubareas)
 				.stream()
 				.map(InfoSubAreaConocimientoMapper::toDto)
 				.toList();
-		//TODO: Si se llega a cambiar la relacion UsuarioXAreaConocimiento entonces cambiar aqui
-		List<Integer> idAreas = subareas
+
+		tmp.setAreasTematicas(areas);
+		tmp.setTemasIntereses(subareas);
+		//TODO: El numero máximo de estudiantes
+		//TODO: La cantidad de alumnos por asesor
+
+		return tmp;
+	}
+	@Override
+	public void updatePerfilAsesor(PerfilAsesorDto perfilAsesorDto){
+		Usuario user = usuarioRepository.findById(perfilAsesorDto.getId()).orElse(null);
+		if (user == null) {
+			throw new RuntimeException("Usuario no encontrado con ID: " + perfilAsesorDto.getId());
+		}
+		user.setEnlaceLinkedin(perfilAsesorDto.getLinkedin());
+		user.setEnlaceRepositorio(user.getEnlaceRepositorio());
+		user.setCorreoElectronico(perfilAsesorDto.getEmail());
+		user.setBiografia(perfilAsesorDto.getBiografia());
+
+		usuarioRepository.save(user);
+		//Revision areas temáticas
+		List<Integer> areasRegistradas = usuarioXAreaConocimientoRepository.findAllByUsuario_IdAndActivoIsTrue(user.getId())
 				.stream()
-				.map(InfoSubAreaConocimientoDto::getIdPadre)
-				.distinct()
+				.map(UsuarioXAreaConocimiento::getAreaConocimiento)
+				.map(AreaConocimiento::getId)
 				.toList();
-		areas = areaConocimientoRepository.findAllByIdIn(idAreas).
-				stream()
-				.map(InfoAreaConocimientoMapper::toDto)
+		List<Integer> areasActualizadas = perfilAsesorDto.getAreasTematicas()
+				.stream()
+				.map(InfoAreaConocimientoDto::getIdArea)
 				.toList();
-		tmp.setAreaConocimientos(areas);
-		tmp.setSubAreaConocimientos(subareas);
-		return null;
+			//Id's que no estan registrados (Todos los que entraron - los que ya estaban=
+		List<Integer> idNuevos = new ArrayList<>(areasActualizadas);
+		idNuevos.removeAll(areasRegistradas);
+		usuarioXAreaConocimientoRepository.asignarUsuarioAreas(user.getId(), Utils.convertIntegerListToString(idNuevos));
+			//Id's que ya no estan en registrados (Todos los que habian - los que entraron)
+		List<Integer> idEliminados = new ArrayList<>(areasRegistradas);
+		idEliminados.removeAll(areasActualizadas);
+		usuarioXAreaConocimientoRepository.desactivarUsuarioAreas(user.getId(), Utils.convertIntegerListToString(idEliminados));
+		
+		//Revision sub areas tematicas
+		List<Integer> subAreasRegistradas = usuarioXSubAreaConocimientoRepository.findAllByUsuario_IdAndActivoIsTrue(user.getId())
+				.stream()
+				.map(UsuarioXSubAreaConocimiento::getSubAreaConocimiento)
+				.map(SubAreaConocimiento::getId)
+				.toList();
+		List<Integer> subAreasActualizadas = perfilAsesorDto.getTemasIntereses()
+				.stream()
+				.map(InfoSubAreaConocimientoDto::getIdTema)
+				.toList();
+		//Id's que no estan registrados (Todos los que entraron - los que ya estaban=
+		idNuevos = new ArrayList<>(subAreasActualizadas);
+		idNuevos.removeAll(subAreasRegistradas);
+		usuarioXSubAreaConocimientoRepository.asignarUsuarioSubAreas(user.getId(), Utils.convertIntegerListToString(idNuevos));
+		//Id's que ya no estan en registrados (Todos los que habian - los que entraron)
+		idEliminados = new ArrayList<>(subAreasRegistradas);
+		idEliminados.removeAll(subAreasActualizadas);
+		usuarioXSubAreaConocimientoRepository.desactivarUsuarioSubAreas(user.getId(), Utils.convertIntegerListToString(idEliminados));
 	}
 }

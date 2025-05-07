@@ -20,8 +20,12 @@ public class UsuarioController {
 	}
 
 	@GetMapping("/getPerfilAsesor")
-	public PerfilAsesorDto getPerfilAsesor(@RequestParam Integer id) {
+	public PerfilAsesorDto getPerfilAsesor(@RequestParam(name = "id") Integer id) {
 		return this.usuarioService.getPerfilAsesor(id);
+	}
+	@PutMapping("/updatePerfilAsesor")
+	public void updatePerfilAsesor(@RequestBody PerfilAsesorDto dto) {
+		usuarioService.updatePerfilAsesor(dto);
 	}
 
 }

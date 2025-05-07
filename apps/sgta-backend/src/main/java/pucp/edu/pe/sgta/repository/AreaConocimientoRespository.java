@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface AreaConocimientoRespository extends JpaRepository<AreaConocimiento, Integer> {
     List<AreaConocimiento> findAllByIdIn(List<Integer> ids);
+    List<AreaConocimiento> findByNombreContainingIgnoreCaseAndActivoIsTrue(String nombre);
 }

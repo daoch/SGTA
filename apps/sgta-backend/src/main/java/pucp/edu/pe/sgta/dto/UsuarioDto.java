@@ -36,10 +36,6 @@ public class UsuarioDto {
 
     private String enlaceLinkedin;
 
-    private String enlaceRepositorio;
-
-    private String enlaceLinkedin;
-
     private String disponibilidad;
 
 	private String tipoDisponibilidad;

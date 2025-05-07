@@ -6,13 +6,13 @@ import pucp.edu.pe.sgta.model.Usuario;
 public class PerfilAsesorMapper {
     public static PerfilAsesorDto toDto(Usuario usuario) {
         PerfilAsesorDto dto = new PerfilAsesorDto();
-        dto.setNombres(usuario.getNombres());
-        dto.setApellido(usuario.getPrimerApellido());
+        dto.setId(usuario.getId());
+        dto.setNombre(usuario.getNombreDisplay());
+        dto.setEmail(usuario.getCorreoElectronico());
+        dto.setLinkedin(usuario.getEnlaceLinkedin());
+        dto.setRepositorio(usuario.getEnlaceRepositorio());
         dto.setBiografia(usuario.getBiografia());
-        dto.setCorreo(usuario.getCorreoElectronico());
-        dto.setEnlace_linkedin(usuario.getEnlaceLinkedin());
-        dto.setEnlace_repositorio(usuario.getEnlaceRepositorio());
-        dto.setNivelEstudios(usuario.getNivelEstudios());
+
         return dto;
     }
 }

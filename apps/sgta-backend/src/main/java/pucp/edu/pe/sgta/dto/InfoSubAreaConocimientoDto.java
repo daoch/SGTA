@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter @Setter
 public class InfoSubAreaConocimientoDto {
-    private Integer id;
+    private Integer idTema;
     private String nombre;
-    private Integer idPadre;
+    private InfoAreaConocimientoDto AreaTematica;
 }

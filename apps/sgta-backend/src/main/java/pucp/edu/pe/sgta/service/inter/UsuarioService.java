@@ -20,4 +20,6 @@ public interface UsuarioService {
 
 	PerfilAsesorDto getPerfilAsesor(Integer id);
 
+	void updatePerfilAsesor(PerfilAsesorDto perfilAsesorDto);
+
 }

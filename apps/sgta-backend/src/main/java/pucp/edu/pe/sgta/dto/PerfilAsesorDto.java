@@ -8,30 +8,24 @@ import java.util.List;
 @Getter
 @Setter
 public class PerfilAsesorDto {
-    private String nivelEstudios;
-    private String nombres;
-    private String apellido;
-    private String correo;
-    private String enlace_linkedin;
-    private String enlace_repositorio;
+    private Integer id;
+    private String nombre;//El primer nombre y apellido Paterno
+    private List<String> especialidad;//Obtener usuarioXCarrera
+    private String email;
+    private String linkedin;
+    private String repositorio;
     private String biografia;
-    //Se obtiene de otros querys
-    private Integer tesistasActuales;
-    private Integer tesistasMaximos;
-    private List<InfoAreaConocimiento> areaConocimientos;
-    private List<InfoSubAreaConocimientoDto> subAreaConocimientos;
+    private Boolean estado;//La clase lo calcula
+    private Integer limiteTesis;//Obtener de configuracion
+    private Integer tesistasActuales;//Consultar temas
+    private List<InfoAreaConocimientoDto> areasTematicas;//Hallar de las tablas correspondientes
+    private List<InfoSubAreaConocimientoDto> temasIntereses;//Hallar de las tablas correspondientes
     //Resultado de calculo
-    private String estado;
 
     public void actualizarEstado(){
-        if(tesistasActuales == null || tesistasMaximos == null){
+        if(tesistasActuales == null || limiteTesis == null){
             return;
         }
-        if(tesistasActuales >= tesistasMaximos){
-            estado = "No Disponible";
-        }
-        if(tesistasActuales < tesistasMaximos){
-            estado = "Disponible";
-        }
+        estado = (tesistasActuales < limiteTesis);
     }
 }

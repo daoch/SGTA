@@ -1,13 +1,13 @@
 package pucp.edu.pe.sgta.mapper;
 
-import pucp.edu.pe.sgta.dto.InfoAreaConocimiento;
-import pucp.edu.pe.sgta.dto.InfoSubAreaConocimientoDto;
+import pucp.edu.pe.sgta.dto.InfoAreaConocimientoDto;
+import pucp.edu.pe.sgta.model.AreaConocimiento;
 
 public class InfoAreaConocimientoMapper {
-    public static InfoSubAreaConocimientoDto toDto(InfoAreaConocimiento infoAreaConocimiento) {
-        InfoSubAreaConocimientoDto dto = new InfoSubAreaConocimientoDto();
-        dto.setId(infoAreaConocimiento.getId());
-        dto.setNombre(infoAreaConocimiento.getNombre());
+    public static InfoAreaConocimientoDto toDto(AreaConocimiento area) {
+        InfoAreaConocimientoDto dto = new InfoAreaConocimientoDto();
+        dto.setIdArea(area.getId());
+        dto.setNombre(area.getNombre());
         return dto;
     }
 }
