@@ -334,14 +334,19 @@ CREATE OR REPLACE FUNCTION postular_asesor_a_tema(
     p_alumno_id integer,
     p_asesor_id integer,
     p_tema_id integer,
-    p_comentario text)
-    RETURNS void
-    LANGUAGE 'plpgsql'
-    COST 100
-    VOLATILE PARALLEL UNSAFE
+    p_comentario text
+)
+RETURNS void
+LANGUAGE 'plpgsql'
+COST 100
+VOLATILE PARALLEL UNSAFE
 AS $BODY$
+DECLARE
+    estado_actual_id INTEGER;
+    titulo_tema TEXT;
+    resumen_tema TEXT;
 BEGIN
-    -- Insertar el asesor en usuario_tema
+    -- Insertar la relación del asesor con el tema
     INSERT INTO usuario_tema (
         usuario_id,
         tema_id,
@@ -361,12 +366,18 @@ BEGIN
         now()
     );
 
-    -- Actualizar el comentario del alumno
+    -- Actualiza comentario del alumno
     UPDATE usuario_tema 
     SET comentario = p_comentario, fecha_modificacion = NOW() 
     WHERE usuario_id = p_alumno_id AND tema_id = p_tema_id;
 
-    -- Insertar en historial_tema con la descripción "El asesor {asesorId} postuló al tema"
+    -- Obtener datos del tema para insertar en historial_tema
+    SELECT estado_tema_id, titulo, resumen
+    INTO estado_actual_id, titulo_tema, resumen_tema
+    FROM tema
+    WHERE tema_id = p_tema_id;
+
+    -- Insertar en historial_tema
     INSERT INTO historial_tema (
         tema_id,
         titulo,
@@ -379,13 +390,13 @@ BEGIN
     )
     VALUES (
         p_tema_id,
-        (SELECT titulo FROM tema WHERE tema_id = p_tema_id),
-        (SELECT resumen FROM tema WHERE tema_id = p_tema_id),
+        titulo_tema,
+        resumen_tema,
         CONCAT('El asesor ', p_asesor_id, ' postuló al tema'),
-        (SELECT estado_tema_id FROM rol WHERE nombre = 'PROPUESTO_GENERAL'),
+        estado_actual_id,
         true,
-        NOW(),
-        NOW());
+        now(),
+        now());
 END;
 $BODY$;
 
