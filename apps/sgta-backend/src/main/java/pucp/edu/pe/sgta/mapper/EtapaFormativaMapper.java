@@ -1,6 +1,7 @@
 package pucp.edu.pe.sgta.mapper;
 
 import pucp.edu.pe.sgta.dto.EtapaFormativaDTO;
+import pucp.edu.pe.sgta.model.Carrera;
 import pucp.edu.pe.sgta.model.EtapaFormativa;
 
 public class EtapaFormativaMapper {
@@ -14,6 +15,7 @@ public class EtapaFormativaMapper {
         dto.setActivo(etapaFormativa.isActivo());
         dto.setFechaCreacion(etapaFormativa.getFechaCreacion());
         dto.setFechaModificacion(etapaFormativa.getFechaModificacion());
+        dto.setCarreraId(etapaFormativa.getCarrera().getId());
         return dto;
     }
 
@@ -26,6 +28,9 @@ public class EtapaFormativaMapper {
         etapaFormativa.setActivo(dto.isActivo());
         etapaFormativa.setFechaCreacion(dto.getFechaCreacion());
         etapaFormativa.setFechaModificacion(dto.getFechaModificacion());
+        Carrera carrera = new Carrera();
+        carrera.setId(dto.getCarreraId());
+        etapaFormativa.setCarrera(carrera);
         return etapaFormativa;
     }
 }
