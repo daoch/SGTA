@@ -27,7 +27,10 @@ VALUES
   ('REGISTRADO',         'Tema inscrito aceptado por comité de tesis',                                                          TRUE, NOW(), NOW()),
   ('RECHAZADO',          'Tema propuesto por estudiante que ha sido rechazado',                                                      TRUE, NOW(), NOW()),
   ('OBSERVADO',          'Tema inscrito con observaciones pendientes del comité de tesis',                                           TRUE, NOW(), NOW()),
-  ('VENCIDO',            'Tema propuesto por asesor o estudiantes que pasó su fecha de vencimiento definida',                          TRUE, NOW(), NOW());
+  ('VENCIDO',            'Tema propuesto por asesor o estudiantes que pasó su fecha de vencimiento definida',                          TRUE, NOW(), NOW()),
+  ('EN_PROGRESO',        'Tema registrado en progreso',                          TRUE, NOW(), NOW()),
+  ('PAUSADO',            'Tema que ha sido registrado e iniciado, pero no está en progreso actualmente',                          TRUE, NOW(), NOW()),
+  ('FINALIZADO',         'Tema que ha sido registrado y ha finalizado su proceso de evaluación',                                   TRUE, NOW(), NOW());
 
 -- 4) Unidad académica
 INSERT INTO unidad_academica (nombre, descripcion)

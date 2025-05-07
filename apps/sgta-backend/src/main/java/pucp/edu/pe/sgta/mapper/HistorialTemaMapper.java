@@ -15,7 +15,7 @@ public class HistorialTemaMapper {
         dto.setResumen(historialTema.getResumen());
         dto.setDescripcionCambio(historialTema.getDescripcionCambio());
         dto.setEstadoTemaId(historialTema.getEstadoTemaId());
-        dto.setActivo(historialTema.isActivo());
+        dto.setActivo(historialTema.getActivo());
         dto.setFechaCreacion(historialTema.getFechaCreacion());
         TemaDto temaDto = TemaMapper.toDto(historialTema.getTema());
         dto.setTema(temaDto);
@@ -30,7 +30,7 @@ public class HistorialTemaMapper {
         historialTema.setResumen(dto.getResumen());
         historialTema.setDescripcionCambio(dto.getDescripcionCambio());
         historialTema.setEstadoTemaId(dto.getEstadoTemaId());
-        historialTema.setActivo(dto.isActivo());
+        historialTema.setActivo(dto.getActivo());
         historialTema.setFechaCreacion(dto.getFechaCreacion());
         Tema tema = TemaMapper.toEntity(dto.getTema());
         historialTema.setTema(tema);

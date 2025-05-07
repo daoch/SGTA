@@ -22,7 +22,7 @@ public class EtapaFormativaDTO {
 
     private Duration duracionExposicion;
 
-    private boolean activo;
+    private Boolean activo;
 
     private OffsetDateTime fechaCreacion;
 

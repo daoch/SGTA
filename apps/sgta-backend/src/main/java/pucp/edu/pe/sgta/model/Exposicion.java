@@ -29,7 +29,7 @@ public class Exposicion {
     private EstadoPlanificacion estadoPlanificacion;
 
     @Column(nullable = false)
-    private boolean activo = true;
+    private Boolean activo = true;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String nombre;

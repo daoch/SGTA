@@ -16,6 +16,7 @@ public class TemaMapper {
         dto.setMetodologia(tema.getMetodologia());
         dto.setFechaCreacion(tema.getFechaCreacion());
         dto.setFechaLimite(tema.getFechaLimite()); // Assuming fechaLimite is not set in the DTO
+        dto.setFechaFinalizacion(tema.getFechaFinalizacion()); // Assuming fechaFinalizacion is not set in the DTO
         dto.setFechaModificacion(tema.getFechaModificacion());
         dto.setPortafolioUrl(tema.getPortafolioUrl());
 
@@ -38,6 +39,7 @@ public class TemaMapper {
         tema.setMetodologia(dto.getMetodologia());
         tema.setFechaCreacion(dto.getFechaCreacion());
         tema.setFechaLimite(dto.getFechaLimite()); // Assuming fechaLimite is not set in the DTO
+        tema.setFechaFinalizacion(dto.getFechaFinalizacion()); // Assuming fechaFinalizacion is not set in the DTO
         tema.setFechaModificacion(dto.getFechaModificacion());
         tema.setPortafolioUrl(dto.getPortafolioUrl());
 

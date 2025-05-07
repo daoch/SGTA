@@ -16,7 +16,7 @@ public class JornadaExposicionXSalaExposicionDto {
     private Integer id;
     private Integer jornadaExposicionId;
     private Integer salaExposicionId;
-    private boolean activo;
+    private Boolean activo;
     private OffsetDateTime fechaCreacion;
     private OffsetDateTime fechaModificacion;
 }

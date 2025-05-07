@@ -17,9 +17,9 @@ public class RevisionCriterioExposicionDto {
     private Integer criterioExposicionId;
     private Integer usuarioId;
     private BigDecimal nota;
-    private boolean revisado;
+    private Boolean revisado;
     private String observacion;
-    private boolean activo;
+    private Boolean activo;
     private OffsetDateTime fechaCreacion;
     private OffsetDateTime fechaModificacion;
 }

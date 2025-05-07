@@ -21,7 +21,7 @@ public class EtapaFormativaXCicloDTO {
 
     private Integer cicloId;
 
-    private boolean activo;
+    private Boolean activo;
 
     private OffsetDateTime fechaCreacion;
 
