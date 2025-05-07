@@ -1155,6 +1155,44 @@ CREATE TABLE IF NOT EXISTS observacion
             ON DELETE RESTRICT
 );
 
+CREATE TABLE IF NOT EXISTS reunion
+(
+    reunion_id         SERIAL PRIMARY KEY,
+    titulo             TEXT,
+    fecha_hora_inicio  TIMESTAMP WITH TIME ZONE NOT NULL,
+    fecha_hora_fin     TIMESTAMP WITH TIME ZONE NOT NULL,
+    descripcion        TEXT,
+    disponible         INTEGER,
+    url                TEXT,
+    fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion TIMESTAMP WITH TIME ZONE,
+    activo             BOOLEAN                           DEFAULT TRUE
+
+);
+
+
+CREATE TABLE IF NOT EXISTS usuario_reunion
+(
+    usuario_reunion_id SERIAL PRIMARY KEY,
+    reunion_id         INTEGER                  NOT NULL,
+    usuario_id         INTEGER                  NOT NULL,
+    estado_asistencia  VARCHAR(50),
+    estado_detalle     VARCHAR(50),
+    fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion TIMESTAMP WITH TIME ZONE,
+    activo             BOOLEAN                           DEFAULT TRUE,
+
+    CONSTRAINT fk_ur_reunion
+        FOREIGN KEY (reunion_id)
+            REFERENCES reunion (reunion_id)
+            ON DELETE CASCADE,
+    CONSTRAINT fk_ur_usuario
+        FOREIGN KEY (usuario_id)
+            REFERENCES usuario (usuario_id)
+            ON DELETE CASCADE
+);
+
+
 --Para 1-1
 
 ALTER TABLE entregable_x_tema DROP CONSTRAINT IF EXISTS fk_entregable_x_tema_revision_criterio_entregable;

@@ -67,6 +67,8 @@ DROP TABLE IF EXISTS version_documento                    CASCADE;
 DROP TABLE IF EXISTS revision_documento                   CASCADE;
 DROP TABLE IF EXISTS documento                            CASCADE;
 DROP TABLE IF EXISTS entregable                           CASCADE;
+DROP TABLE IF EXISTS reunion                              CASCADE;
+DROP TABLE IF EXISTS usuario_reunion                      CASCADE;
 
 -- Finalmente, los ENUMs
 DROP TYPE IF EXISTS enum_estado_exposicion              CASCADE;
