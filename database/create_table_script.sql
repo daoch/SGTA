@@ -675,6 +675,26 @@ CREATE TABLE IF NOT EXISTS etapa_formativa_x_ciclo
             ON DELETE RESTRICT
 );
 
+CREATE TABLE IF NOT EXISTS etapa_formativa_x_ciclo_x_tema
+(
+    etapa_formativa_x_ciclo_x_tema_id SERIAL PRIMARY KEY,
+    etapa_formativa_x_ciclo_id         INTEGER                  NOT NULL,
+    tema_id                            INTEGER                  NOT NULL,
+    aprobado                           BOOLEAN,
+    activo                             BOOLEAN                  NOT NULL DEFAULT TRUE,
+    fecha_creacion                     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion                 TIMESTAMP WITH TIME ZONE,
+
+    CONSTRAINT fk_efcxt_efc
+        FOREIGN KEY (etapa_formativa_x_ciclo_id)
+            REFERENCES etapa_formativa_x_ciclo (etapa_formativa_x_ciclo_id)
+            ON DELETE RESTRICT,
+    CONSTRAINT fk_efcxt_tema
+        FOREIGN KEY (tema_id)
+            REFERENCES tema (tema_id)
+            ON DELETE RESTRICT
+);
+
 -- Tabla tipo_exposicion_x_etapa_formativa_x_ciclo
 CREATE TABLE IF NOT EXISTS tipo_exposicion_x_ef_x_c
 (

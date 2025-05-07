@@ -39,16 +39,17 @@ DROP TABLE IF EXISTS estado_tema                        CASCADE;
 
 -- Tablas de exposiciones
 DROP TABLE IF EXISTS restriccion_exposicion               CASCADE;
-DROP TABLE IF EXISTS etapa_formativa_x_sala_exposicion   CASCADE;
+DROP TABLE IF EXISTS etapa_formativa_x_sala_exposicion    CASCADE;
 DROP TABLE IF EXISTS control_exposicion_usuario           CASCADE;
 DROP TABLE IF EXISTS revision_criterio_x_exposicion       CASCADE;
 DROP TABLE IF EXISTS criterio_exposicion                  CASCADE;
 DROP TABLE IF EXISTS exposicion_x_tema                    CASCADE;
-DROP TABLE IF EXISTS bloque_horario_exposicion           CASCADE;
+DROP TABLE IF EXISTS bloque_horario_exposicion            CASCADE;
 DROP TABLE IF EXISTS jornada_exposicion_x_sala_exposicion CASCADE;
 DROP TABLE IF EXISTS jornada_exposicion                   CASCADE;
 DROP TABLE IF EXISTS exposicion                           CASCADE;
 DROP TABLE IF EXISTS tipo_exposicion_x_ef_x_c             CASCADE;
+DROP TABLE IF EXISTS etapa_formativa_x_ciclo_x_tema       CASCADE;
 DROP TABLE IF EXISTS etapa_formativa_x_ciclo              CASCADE;
 DROP TABLE IF EXISTS sala_exposicion                      CASCADE;
 DROP TABLE IF EXISTS tipo_exposicion                      CASCADE;
