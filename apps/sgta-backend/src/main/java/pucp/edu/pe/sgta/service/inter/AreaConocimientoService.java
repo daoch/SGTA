@@ -18,4 +18,7 @@ public interface AreaConocimientoService {
 
     List<AreaConocimientoDto> listarPorUsuario(Integer usuarioId);
 
+
+
+
 }
