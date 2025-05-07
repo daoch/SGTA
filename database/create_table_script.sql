@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS tipo_usuario (
     tipo_usuario_id        SERIAL PRIMARY KEY,
     nombre                 VARCHAR(100) NOT NULL,
     activo                 BOOLEAN NOT NULL DEFAULT TRUE,
+    tipo_dedicacion        VARCHAR(100),
     fecha_creacion         TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion     TIMESTAMP WITH TIME ZONE
 );
@@ -577,7 +578,7 @@ DO
 $$
     BEGIN
         CREATE TYPE enum_estado_usuario_exposicion AS ENUM (
-            'por_responder',
+            'esperando_respuesta',
             'aceptado',
             'rechazado'
             );
@@ -633,15 +634,6 @@ CREATE TABLE IF NOT EXISTS estado_planificacion
     fecha_modificacion      TIMESTAMP WITH TIME ZONE
 );
 
-CREATE TABLE IF NOT EXISTS tipo_exposicion
-(
-    tipo_exposicion_id SERIAL PRIMARY KEY,
-    nombre             TEXT                     NOT NULL,
-    activo             BOOLEAN                  NOT NULL DEFAULT TRUE,
-    fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion TIMESTAMP WITH TIME ZONE
-);
-
 CREATE TABLE IF NOT EXISTS sala_exposicion
 (
     sala_exposicion_id   SERIAL PRIMARY KEY,
@@ -674,39 +666,21 @@ CREATE TABLE IF NOT EXISTS etapa_formativa_x_ciclo
             ON DELETE RESTRICT
 );
 
--- Tabla tipo_exposicion_x_etapa_formativa_x_ciclo
-CREATE TABLE IF NOT EXISTS tipo_exposicion_x_ef_x_c
+-- Tabla exposicion
+CREATE TABLE IF NOT EXISTS exposicion
 (
-    tipo_exposicion_x_ef_x_c_id SERIAL PRIMARY KEY,
+    exposicion_id               SERIAL PRIMARY KEY,
     etapa_formativa_x_ciclo_id  INTEGER                  NOT NULL,
-    tipo_exposicion_id          INTEGER                  NOT NULL,
+    estado_planificacion_id     INTEGER                  NOT NULL,
     activo                      BOOLEAN                  NOT NULL DEFAULT TRUE,
+    nombre                      TEXT                     NOT NULL,
+    descripcion                 TEXT                     NOT NULL,
     fecha_creacion              TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion          TIMESTAMP WITH TIME ZONE,
 
     CONSTRAINT fk_texefc_ef_x_c
         FOREIGN KEY (etapa_formativa_x_ciclo_id)
             REFERENCES etapa_formativa_x_ciclo (etapa_formativa_x_ciclo_id)
-            ON DELETE RESTRICT,
-    CONSTRAINT fk_texefc_tipo_exposicion
-        FOREIGN KEY (tipo_exposicion_id)
-            REFERENCES tipo_exposicion (tipo_exposicion_id)
-            ON DELETE RESTRICT
-);
-
--- Tabla exposicion
-CREATE TABLE IF NOT EXISTS exposicion
-(
-    exposicion_id               SERIAL PRIMARY KEY,
-    tipo_exposicion_x_ef_x_c_id INTEGER                  NOT NULL,
-    estado_planificacion_id     INTEGER                  NOT NULL,
-    activo                      BOOLEAN                  NOT NULL DEFAULT TRUE,
-    fecha_creacion              TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion          TIMESTAMP WITH TIME ZONE,
-
-    CONSTRAINT fk_exp_tipo_exposicion_x_ef_x_c
-        FOREIGN KEY (tipo_exposicion_x_ef_x_c_id)
-            REFERENCES tipo_exposicion_x_ef_x_c (tipo_exposicion_x_ef_x_c_id)
             ON DELETE RESTRICT,
     CONSTRAINT fk_exp_estado_planificacion
         FOREIGN KEY (estado_planificacion_id)

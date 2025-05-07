@@ -21,4 +21,5 @@ public class TipoUsuarioDto {
 
 	private OffsetDateTime fechaModificacion;
 
+	private String tipoDedicacion;
 }
