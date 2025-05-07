@@ -31,6 +31,9 @@ public class TemaDto {
     private OffsetDateTime fechaLimite;
     private OffsetDateTime fechaCreacion;
     private OffsetDateTime fechaModificacion;
+    private String estadoTemaNombre;
+    private CarreraDto carrera;
+
     private List<Integer> idUsuarioInvolucradosList;
     private List<Integer> idCoasesorInvolucradosList;
     private List<Integer> idEstudianteInvolucradosList;

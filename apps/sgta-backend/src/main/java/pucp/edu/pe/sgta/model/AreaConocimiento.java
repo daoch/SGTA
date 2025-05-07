@@ -8,6 +8,7 @@ import lombok.Setter;
 
 import java.time.OffsetDateTime;
 
+
 @Entity
 @Getter
 @Setter
@@ -29,6 +30,10 @@ public class AreaConocimiento {
 
 	@Column(nullable = false)
 	private boolean activo = true;
+
+	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@JoinColumn(name = "carrera_id", nullable = false, foreignKey = @ForeignKey(name = "fk_area_conocimiento_carrera"))
+	private Carrera carrera;
 
 	@Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
 	private OffsetDateTime fechaCreacion;
