@@ -10,7 +10,7 @@ import java.util.List;
 public class PerfilAsesorDto {
     private Integer id;
     private String nombre;//El primer nombre y apellido Paterno
-    private List<String> especialidad;//Obtener usuarioXCarrera
+    private String especialidad;//Obtener usuarioXCarrera
     private String email;
     private String linkedin;
     private String repositorio;

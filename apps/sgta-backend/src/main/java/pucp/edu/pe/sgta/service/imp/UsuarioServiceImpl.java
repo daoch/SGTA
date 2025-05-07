@@ -88,7 +88,8 @@ public class UsuarioServiceImpl implements UsuarioService {
 		for (Object[] o : resultadoQuery) {
 			carreras.add((String) o[3]);
 		}
-		tmp.setEspecialidad(carreras);
+
+		tmp.setEspecialidad(String.join(" - ",carreras));
 		//Luego la consulta de las áreas de conocimiento
 		List<InfoAreaConocimientoDto> areas;
 		List<Integer> idAreas = usuarioXAreaConocimientoRepository.findAllByUsuario_IdAndActivoIsTrue(id).

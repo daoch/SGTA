@@ -12,7 +12,6 @@ public class PerfilAsesorMapper {
         dto.setLinkedin(usuario.getEnlaceLinkedin());
         dto.setRepositorio(usuario.getEnlaceRepositorio());
         dto.setBiografia(usuario.getBiografia());
-
         return dto;
     }
 }
