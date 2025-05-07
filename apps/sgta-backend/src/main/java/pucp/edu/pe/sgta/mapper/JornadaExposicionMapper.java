@@ -12,7 +12,7 @@ public class JornadaExposicionMapper {
         dto.setDatetimeFin(jornadaExposicion.getDatetimeFin());
         dto.setFechaCreacion(jornadaExposicion.getFechaCreacion());
         dto.setFechaModificacion(jornadaExposicion.getFechaModificacion());
-        dto.setActivo(jornadaExposicion.isActivo());
+        dto.setActivo(jornadaExposicion.getActivo());
         dto.setExposicionId(jornadaExposicion.getExposicion().getId());
         return dto;
     }
@@ -29,7 +29,7 @@ public class JornadaExposicionMapper {
         jornadaExposicion.setDatetimeFin(dto.getDatetimeFin());
         jornadaExposicion.setFechaCreacion(dto.getFechaCreacion());
         jornadaExposicion.setFechaModificacion(dto.getFechaModificacion());
-        jornadaExposicion.setActivo(dto.isActivo());
+        jornadaExposicion.setActivo(dto.getActivo());
         return jornadaExposicion;
     }
 }

@@ -22,7 +22,7 @@ public class HistorialTemaDto {
 
     private Integer estadoTemaId;
 
-    private boolean activo;
+    private Boolean activo;
 
     private OffsetDateTime fechaCreacion;
 

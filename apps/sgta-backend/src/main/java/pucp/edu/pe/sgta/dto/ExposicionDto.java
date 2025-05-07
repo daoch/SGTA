@@ -23,7 +23,7 @@ public class ExposicionDto {
 
     private Integer estadoPlanificacionId;
 
-    private boolean activo;
+    private Boolean activo;
 
     private OffsetDateTime fechaCreacion;
 

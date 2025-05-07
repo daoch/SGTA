@@ -10,7 +10,7 @@ public class SalaExposicionMapper {
         dto.setNombre(salaExposicion.getNombre());
         dto.setFechaCreacion(salaExposicion.getFechaCreacion());
         dto.setFechaModificacion(salaExposicion.getFechaModificacion());
-        dto.setActivo(salaExposicion.isActivo());
+        dto.setActivo(salaExposicion.getActivo());
         dto.setTipoSalaExposicion(salaExposicion.getTipoSalaExposicion());
         return dto;
     }
@@ -21,7 +21,7 @@ public class SalaExposicionMapper {
         salaExposicion.setNombre(dto.getNombre());
         salaExposicion.setFechaCreacion(dto.getFechaCreacion());
         salaExposicion.setFechaModificacion(dto.getFechaModificacion());
-        salaExposicion.setActivo(dto.isActivo());
+        salaExposicion.setActivo(dto.getActivo());
         salaExposicion.setTipoSalaExposicion(dto.getTipoSalaExposicion());
         return salaExposicion;
     }

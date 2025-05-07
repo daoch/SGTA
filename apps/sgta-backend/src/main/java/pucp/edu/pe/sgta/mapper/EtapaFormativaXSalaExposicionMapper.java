@@ -12,7 +12,7 @@ public class EtapaFormativaXSalaExposicionMapper {
         dto.setId(etapaFormativaXSalaExposicion.getId());
         dto.setEtapaFormativaId(etapaFormativaXSalaExposicion.getEtapaFormativa().getId());
         dto.setSalaExposicionId(etapaFormativaXSalaExposicion.getSalaExposicion().getId());
-        dto.setActivo(etapaFormativaXSalaExposicion.isActivo());
+        dto.setActivo(etapaFormativaXSalaExposicion.getActivo());
         dto.setFechaCreacion(etapaFormativaXSalaExposicion.getFechaCreacion());
         dto.setFechaModificacion(etapaFormativaXSalaExposicion.getFechaModificacion());
         return dto;
@@ -31,7 +31,7 @@ public class EtapaFormativaXSalaExposicionMapper {
         salaExposicion.setId(dto.getSalaExposicionId());
         etapaFormativaXSalaExposicion.setSalaExposicion(salaExposicion);
 
-        etapaFormativaXSalaExposicion.setActivo(dto.isActivo());
+        etapaFormativaXSalaExposicion.setActivo(dto.getActivo());
         etapaFormativaXSalaExposicion.setFechaCreacion(dto.getFechaCreacion());
         etapaFormativaXSalaExposicion.setFechaModificacion(dto.getFechaModificacion());
 

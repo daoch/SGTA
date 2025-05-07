@@ -38,13 +38,13 @@ public class RevisionCriterioExposicion {
     private BigDecimal nota;
 
     @Column(nullable = false)
-    private boolean revisado = false;
+    private Boolean revisado = false;
 
     @Column(columnDefinition = "TEXT")
     private String observacion;
 
     @Column(nullable = false)
-    private boolean activo = true;
+    private Boolean activo = true;
 
     @Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaCreacion;

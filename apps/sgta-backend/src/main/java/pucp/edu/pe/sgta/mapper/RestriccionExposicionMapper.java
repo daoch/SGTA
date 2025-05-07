@@ -15,7 +15,7 @@ public class RestriccionExposicionMapper {
         dto.setExposicionXTemaId(entity.getExposicionXTema() != null ? entity.getExposicionXTema().getId() : null);
         dto.setDatetimeInicio(entity.getDatetimeInicio());
         dto.setDatetimeFin(entity.getDatetimeFin());
-        dto.setActivo(entity.isActivo());
+        dto.setActivo(entity.getActivo());
         dto.setFechaCreacion(entity.getFechaCreacion());
         dto.setFechaModificacion(entity.getFechaModificacion());
         return dto;
@@ -29,7 +29,7 @@ public class RestriccionExposicionMapper {
         entity.setId(dto.getId());
         entity.setDatetimeInicio(dto.getDatetimeInicio());
         entity.setDatetimeFin(dto.getDatetimeFin());
-        entity.setActivo(dto.isActivo());
+        entity.setActivo(dto.getActivo());
         entity.setFechaCreacion(dto.getFechaCreacion());
         entity.setFechaModificacion(dto.getFechaModificacion());
 
