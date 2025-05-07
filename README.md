@@ -1,6 +1,6 @@
 # Guía de Contribución
 
-Esta guía explica el proceso para contribuir al monorepo basado en Turborepo, pnpm, Next.js y Spring Boot
+Esta guía explica el proceso para contribuir al monorepo basado en Turborepo, pnpm, Next.js y Spring Boot.
 
 ## Configuración del entorno de desarrollo
 
