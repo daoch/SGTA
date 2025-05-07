@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { Tema, TemaUI } from "@/app/types/temas/entidades";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
@@ -14,30 +14,15 @@ import {
 } from "@/components/ui/table";
 import { titleCase } from "@/lib/utils";
 import { CheckCircle, Eye, Send, X } from "lucide-react";
-import { temasDataMock } from "@/app/types/temas/data";
-
-interface Tema {
-  id: number;
-  titulo: string;
-  area: string;
-  asesor: string;
-  estudiantes: { nombre: string; codigo: string }[] | null;
-  postulaciones: number | null;
-  estado: string;
-  tipo: string;
-  ciclo: string;
-  descripcion: string;
-  coasesores: string[];
-  recursos: { nombre: string; tipo: string; fecha: string }[];
-}
+import { useEffect, useState } from "react";
 
 interface PropuestasTableProps {
   filter?: string;
 }
 
 export function TemasTable({ filter }: PropuestasTableProps) {
-  // const [temasData, setTemasData] = useState<Tema[]>([]);
-  const [temasData, setTemasData] = useState<Tema[]>(temasDataMock);
+  const [temasData, setTemasData] = useState<TemaUI[]>([]);
+  // const [temasData, setTemasData] = useState<Tema[]>(temasDataMock);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -47,14 +32,15 @@ export function TemasTable({ filter }: PropuestasTableProps) {
         setIsLoading(true);
         setError(null);
 
-        // Realiza la solicitud a la API
-        // const response = await fetch("/api/temas"); // Cambia la URL por la de tu API
-        // if (!response.ok) {
-        //   throw new Error("Error al cargar los datos");
-        // }
+        const response = await fetch(
+          "http://localhost:5000/temas/listarTemasPorUsuarioRolEstado/1?rolNombre=Asesor&estadoNombre=INSCRITO",
+        );
+        if (!response.ok) {
+          throw new Error("Error al cargar los datos");
+        }
 
-        // const data: Tema[] = await response.json();
-        // setTemasData(data);
+        const data: Tema[] = await response.json();
+        setTemasData(data.map((tema) => ({ ...tema, tipo: "todo" })));
       } catch (err: any) {
         setError("Error desconocido: " + err.message);
       } finally {
@@ -111,15 +97,16 @@ export function TemasTable({ filter }: PropuestasTableProps) {
                   <TableCell className="font-medium max-w-xs truncate">
                     {tema.titulo}
                   </TableCell>
-                  <TableCell>{tema.area}</TableCell>
-                  <TableCell>{tema.asesor}</TableCell>
+                  {/* <TableCell>{tema.area}</TableCell> */}
+                  <TableCell>{"Artificial Intelligence"}</TableCell>
+                  <TableCell>{"Willians"}</TableCell>
                   <TableCell>
-                    {!tema.estudiantes
+                    {!tema.tesistas
                       ? "Sin asignar"
-                      : tema.estudiantes.map((e) => e.nombre).join(", ")}
+                      : tema.tesistas.map((e) => e.nombres).join(", ")}
                   </TableCell>
                   <TableCell>
-                    {!tema.postulaciones ? "-" : tema.postulaciones}
+                    3{/* {!tema.postulaciones ? "-" : tema.postulaciones} */}
                   </TableCell>
                   <TableCell>
                     <Badge
@@ -130,7 +117,7 @@ export function TemasTable({ filter }: PropuestasTableProps) {
                           : "bg-green-100 text-green-800 hover:bg-green-100"
                       }
                     >
-                      {titleCase(tema.estado)}
+                      {titleCase(tema?.estadoTemaNombre || "")}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -145,7 +132,7 @@ export function TemasTable({ filter }: PropuestasTableProps) {
                       {titleCase(tema.tipo)}
                     </Badge>
                   </TableCell>
-                  <TableCell>{tema.ciclo}</TableCell>
+                  <TableCell>{"2025-1"}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Dialog>
