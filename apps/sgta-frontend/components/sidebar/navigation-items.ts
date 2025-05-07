@@ -10,6 +10,7 @@ import {
   Home,
   MessageSquare,
   Search,
+  Settings,
   Users,
 } from "lucide-react";
 
@@ -164,6 +165,11 @@ export const navigationItems: Record<string, NavigationItem[]> = {
     },
     { name: "Jurados", href: "/coordinador/jurados", icon: Users },
     { name: "Reportes", href: "/coordinador/reportes", icon: BarChart3 },
+    {
+      name: "Configuración",
+      href: "/coordinador/configuracion",
+      icon: Settings,
+    },
   ],
   revisor: [
     { name: "Revisión", href: "/revisor/revision", icon: Search },

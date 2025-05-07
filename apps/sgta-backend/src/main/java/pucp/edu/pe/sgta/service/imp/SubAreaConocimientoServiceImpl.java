@@ -31,7 +31,21 @@ public class SubAreaConocimientoServiceImpl implements SubAreaConocimientoServic
 
 	@Override
 	public List<SubAreaConocimientoDto> getAll() {
-		return List.of();
+		List<SubAreaConocimiento> subAreasConocimiento = subAreaConocimientoRepository.findAllByActivoTrue();
+		
+		//retornar la lista de subáreas de conocimiento como DTOs con el área de conocimiento
+		List<SubAreaConocimientoDto> dtos = new ArrayList<>();
+		for (SubAreaConocimiento subArea : subAreasConocimiento) {
+			AreaConocimiento area = areaConocimientoRepository.findById(subArea.getAreaConocimiento().getId())
+					.orElseThrow(() -> new EntityNotFoundException("Área de conocimiento no encontrada con id: " + subArea.getAreaConocimiento().getId()));
+
+			AreaConocimientoDto areaDto = AreaConocimientoMapper.toDto(area);
+			SubAreaConocimientoDto dto = SubAreaConocimientoMapper.toDto(subArea, areaDto);
+			dtos.add(dto);
+		}
+
+	
+		return dtos;
 	}
 
 	@Override
@@ -45,6 +59,30 @@ public class SubAreaConocimientoServiceImpl implements SubAreaConocimientoServic
 		AreaConocimientoDto areaDto = AreaConocimientoMapper.toDto(area);
 
 		return SubAreaConocimientoMapper.toDto(subArea, areaDto);
+	}
+
+	@Override
+	public SubAreaConocimientoDto create(SubAreaConocimientoDto dto) {
+		if (dto.getAreaConocimiento() == null || dto.getAreaConocimiento().getId() == null) {
+			throw new IllegalArgumentException("El área de conocimiento es requerida");
+		}
+
+		// fecha Creacion
+		dto.setFechaCreacion(java.time.OffsetDateTime.now());
+		AreaConocimiento areaConocimiento = new AreaConocimiento();
+		areaConocimiento.setId(dto.getAreaConocimiento().getId());
+
+		// Seteamos el area de conocimiento en el dto
+		SubAreaConocimiento subAreaConocimiento = SubAreaConocimientoMapper.toEntity(dto);
+		subAreaConocimiento.setAreaConocimiento(areaConocimiento);
+		SubAreaConocimiento savedSubArea = subAreaConocimientoRepository.save(subAreaConocimiento);
+		
+		// Obtenemos el área de conocimiento completa para el DTO
+		AreaConocimiento area = areaConocimientoRepository.findById(savedSubArea.getAreaConocimiento().getId())
+				.orElseThrow(() -> new EntityNotFoundException("Área de conocimiento no encontrada con id: " + savedSubArea.getAreaConocimiento().getId()));
+		AreaConocimientoDto areaDto = AreaConocimientoMapper.toDto(area);
+		
+		return SubAreaConocimientoMapper.toDto(savedSubArea, areaDto);
 	}
 
 	@Override
@@ -80,12 +118,6 @@ public class SubAreaConocimientoServiceImpl implements SubAreaConocimientoServic
 	}
 
 
-
-	@Override
-	public void create(SubAreaConocimientoDto dto) {
-
-	}
-
 	@Override
 	public void update(SubAreaConocimientoDto dto) {
 
@@ -93,7 +125,27 @@ public class SubAreaConocimientoServiceImpl implements SubAreaConocimientoServic
 
 	@Override
 	public void delete(Integer id) {
+		SubAreaConocimiento subAreaConocimiento = subAreaConocimientoRepository.findById(id).orElse(null);
+		if (subAreaConocimiento != null) {
+			subAreaConocimiento.setActivo(false);
+			subAreaConocimientoRepository.save(subAreaConocimiento);
+		}
+	}
 
+	@Override
+	public List<SubAreaConocimientoDto> getAllByArea(Integer idArea) {
+		List<SubAreaConocimiento> subAreasConocimiento = subAreaConocimientoRepository.findAllByAreaConocimientoIdAndActivoTrue(idArea);
+		
+		// Obtenemos el área de conocimiento una sola vez
+		AreaConocimiento area = areaConocimientoRepository.findById(idArea)
+				.orElseThrow(() -> new EntityNotFoundException("Área de conocimiento no encontrada con id: " + idArea));
+		AreaConocimientoDto areaDto = AreaConocimientoMapper.toDto(area);
+		
+		// Mapeamos cada subárea con el área de conocimiento
+		List<SubAreaConocimientoDto> dtos = subAreasConocimiento.stream()
+				.map(subArea -> SubAreaConocimientoMapper.toDto(subArea, areaDto))
+				.toList();
+		return dtos;
 	}
 
 }
