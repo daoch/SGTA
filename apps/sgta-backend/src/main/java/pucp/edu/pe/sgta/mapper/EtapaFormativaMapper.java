@@ -11,7 +11,7 @@ public class EtapaFormativaMapper {
         dto.setNombre(etapaFormativa.getNombre());
         dto.setCreditajePorTema(etapaFormativa.getCreditajePorTema());
         dto.setDuracionExposicion(etapaFormativa.getDuracionExposicion());
-        dto.setActivo(etapaFormativa.getActivo());
+        dto.setActivo(etapaFormativa.isActivo());
         dto.setFechaCreacion(etapaFormativa.getFechaCreacion());
         dto.setFechaModificacion(etapaFormativa.getFechaModificacion());
         return dto;

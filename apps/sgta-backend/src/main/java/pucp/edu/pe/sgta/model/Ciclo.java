@@ -5,7 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import java.time.LocalDateTime;
+
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 
 @Entity
@@ -20,25 +21,25 @@ public class Ciclo {
     @Column(name = "ciclo_id")
     private Integer id;
 
-    @Column(nullable = false, length = 10)
+    @Column(length = 10, nullable = false)
     private String semestre;
 
     @Column(nullable = false)
     private Integer anio;
 
-    @Column(nullable = false)
-    private Boolean activo;
-
     @Column(name = "fecha_inicio", nullable = false)
-    private LocalDateTime fechaInicio;
+    private LocalDate fechaInicio;
 
     @Column(name = "fecha_fin", nullable = false)
-    private LocalDateTime fechaFin;
+    private LocalDate fechaFin;
+
+    @Column(nullable = false)
+    private boolean activo = true;
 
     @Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private LocalDateTime fechaReg;
+    private OffsetDateTime fechaCreacion;
 
     @Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private LocalDateTime fechaMod;
+    private OffsetDateTime fechaModificacion;
 
 }

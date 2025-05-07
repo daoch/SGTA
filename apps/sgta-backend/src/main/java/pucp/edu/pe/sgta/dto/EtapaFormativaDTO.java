@@ -1,7 +1,10 @@
 package pucp.edu.pe.sgta.dto;
 
 import lombok.*;
-import java.time.LocalDateTime;
+
+import java.math.BigDecimal;
+import java.time.Duration;
+import java.time.OffsetDateTime;
 
 @Getter
 @Setter
@@ -15,13 +18,13 @@ public class EtapaFormativaDTO {
 
     private String nombre;
 
-    private Integer creditajePorTema;
+    private BigDecimal creditajePorTema;
 
-    private Integer duracionExposicion;
+    private Duration duracionExposicion;
 
     private boolean activo;
 
-    private LocalDateTime fechaCreacion;
+    private OffsetDateTime fechaCreacion;
 
-    private LocalDateTime fechaModificacion;
+    private OffsetDateTime fechaModificacion;
 }
