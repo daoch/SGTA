@@ -49,6 +49,6 @@ public interface TemaService {
 
 	void rechazarTemaPropuestaDirecta(Integer alumnoId, String comentario, Integer temaId);
 
-
+	List<TemaDto> listarPropuestasPorTesista(Integer tesistaId);
 
 }

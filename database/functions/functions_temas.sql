@@ -187,7 +187,8 @@ RETURNS TABLE (
     segundo_apellido   TEXT,
     correo_electronico TEXT,
     activo             BOOLEAN,
-    fecha_creacion     TIMESTAMPTZ
+    fecha_creacion     TIMESTAMPTZ,
+    asignado            BOOLEAN
 ) AS $$
 BEGIN
     RETURN QUERY
@@ -198,7 +199,8 @@ BEGIN
       u.segundo_apellido::text,
       u.correo_electronico::text,
       u.activo,
-      u.fecha_creacion
+      u.fecha_creacion,
+      ut.asignado
     FROM usuario u
     JOIN usuario_tema ut
       ON ut.usuario_id = u.usuario_id

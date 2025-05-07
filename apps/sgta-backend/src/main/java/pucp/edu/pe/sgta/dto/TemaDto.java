@@ -34,12 +34,11 @@ public class TemaDto {
     private OffsetDateTime fechaModificacion;
     private String estadoTemaNombre;
     private CarreraDto carrera;
-
 //    private List<Integer> idUsuarioInvolucradosList;
 //    private List<Integer> idCoasesorInvolucradosList;
 //    private List<Integer> idEstudianteInvolucradosList;
 //    private List<Integer> idSubAreasConocimientoList;
-
+    private  Integer cantPostulaciones; //only for general proposals
     private List<UsuarioDto> coasesores = new ArrayList<>();
     private List<UsuarioDto> tesistas = new ArrayList<>();
     private List<SubAreaConocimientoDto> subareas = new ArrayList<>();

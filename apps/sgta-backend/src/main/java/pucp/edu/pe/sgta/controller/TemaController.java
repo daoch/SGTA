@@ -95,6 +95,11 @@ public class TemaController {
 
 	}
 
+	@GetMapping("/listarPropuestasPorTesista/{tesistaId}")
+	public List<TemaDto> listarPropuestasPorTesista(@PathVariable("tesistaId") Integer tesistaId) {
+		return temaService.listarPropuestasPorTesista(tesistaId);
+	}
+
 
 }
 

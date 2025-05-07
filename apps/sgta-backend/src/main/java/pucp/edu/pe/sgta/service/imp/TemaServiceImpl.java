@@ -406,6 +406,7 @@ public class TemaServiceImpl implements TemaService {
                     ? ((Instant) r[9]).atOffset(ZoneOffset.UTC)
                     : null
                 )
+				.estadoTemaNombre(estadoNombre)
                 .build();
             resultados.add(dto);
         }
@@ -429,6 +430,7 @@ public class TemaServiceImpl implements TemaService {
                     ? ((Instant) r[6]).atOffset(ZoneOffset.UTC)
                     : null
                 )
+					.asignado((Boolean) r[7]) //we identify if the asesor is assigned or not
                 .build();
             resultados.add(u);
         }
@@ -554,12 +556,31 @@ public class TemaServiceImpl implements TemaService {
 				.getSingleResult();
 	}
 
+	@Override
+	public List<TemaDto> listarPropuestasPorTesista(Integer tesistaId) {
+		List<TemaDto> temas = new ArrayList<>();
+		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Creador.name(), EstadoTemaEnum.PROPUESTO_GENERAL.name()));
+		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Creador.name(), EstadoTemaEnum.PROPUESTO_DIRECTO.name()));
 
 
+		for (TemaDto t : temas) {
+			if(t.getEstadoTemaNombre().equals(EstadoTemaEnum.PROPUESTO_GENERAL.name())){
+				t.setCantPostulaciones(calculatePostulaciones(t.getId()));
+			}
 
+			t.setCoasesores(listarUsuariosPorTemaYRol(t.getId(), RolEnum.Asesor.name())); //we load the proposed asesor
+			t.setTesistas(
+					listarUsuariosPorTemaYRol(t.getId(), RolEnum.Tesista.name()) //get cotesistas
+			);
+			t.setSubareas(
+					listarSubAreasPorTema(t.getId())
+			);
+		}
 
-
-
-
-
+		return temas;
 	}
+
+	private Integer calculatePostulaciones(Integer temaId) {
+		return listarUsuariosPorTemaYRol(temaId, RolEnum.Asesor.name()).size(); //asesores with asignado false
+	}
+}
