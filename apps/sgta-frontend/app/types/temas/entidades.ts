@@ -12,16 +12,71 @@ export interface TemaForm {
 
 export interface Tema {
   id: number;
+  codigo: string | null;
   titulo: string;
-  area: string;
-  asesor: string;
-  estudiantes: { nombre: string; codigo: string }[] | null;
-  postulaciones: number | null;
-  estado: string;
-  tipo: string;
-  ciclo: string;
-  descripcion: string;
-  coasesores: string[];
-  recursos: { nombre: string; tipo: string; fecha: string }[];
+  resumen: string;
+  objetivos: string;
+  metodologia: string;
+  portafolioUrl: string;
+  activo: boolean;
+  fechaLimite: string;
+  fechaCreacion: string;
+  fechaModificacion: string | null;
+  estadoTemaNombre: string | null;
+  carrera: string | null;
+  idUsuarioInvolucradosList: number[] | null;
+  idCoasesorInvolucradosList: number[] | null;
+  idEstudianteInvolucradosList: number[] | null;
+  idSubAreasConocimientoList: number[] | null;
+  coasesores: {
+    id: number;
+    tipoUsuario: string | null;
+    codigoPucp: string | null;
+    nombres: string;
+    primerApellido: string;
+    segundoApellido: string;
+    correoElectronico: string;
+    nivelEstudios: string | null;
+    contrasena: string | null;
+    biografia: string | null;
+    enlaceRepositorio: string | null;
+    enlaceLinkedin: string | null;
+    disponibilidad: string | null;
+    tipoDisponibilidad: string | null;
+    activo: boolean;
+    fechaCreacion: string;
+    fechaModificacion: string | null;
+  }[];
+  tesistas: {
+    id: number;
+    tipoUsuario: string | null;
+    codigoPucp: string | null;
+    nombres: string;
+    primerApellido: string;
+    segundoApellido: string;
+    correoElectronico: string;
+    nivelEstudios: string | null;
+    contrasena: string | null;
+    biografia: string | null;
+    enlaceRepositorio: string | null;
+    enlaceLinkedin: string | null;
+    disponibilidad: string | null;
+    tipoDisponibilidad: string | null;
+    activo: boolean;
+    fechaCreacion: string;
+    fechaModificacion: string | null;
+  }[];
+  subareas: {
+    id: number;
+    areaConocimiento: string | null;
+    nombre: string;
+    descripcion: string | null;
+    activo: boolean;
+    fechaCreacion: string | null;
+    fechaModificacion: string | null;
+  }[];
 }
 
+export interface TemaUI extends Tema {
+  tipo: string;
+}
