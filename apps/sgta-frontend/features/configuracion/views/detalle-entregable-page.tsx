@@ -5,7 +5,7 @@ import { ArrowLeft, PenLine, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ContenidoEsperadoEntregableCard } from "../components/entregable/contenido-entregable-card";
 import { EntregableModal } from "../components/entregable/entregable-modal";
-import { Entregable } from "../types/entregable";
+import { Entregable } from "../dtos/entregable";
 import {
   ContenidoEntregableFormData,
   ContenidoEntregableModal,
@@ -28,15 +28,15 @@ const DetalleEntregablePage: React.FC<DetalleEntregablePageProps> = ({
     useState<ContenidoEntregableFormData | null>(null);
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
 
-  const [entregable, setEntregable] = useState({
+  const [entregable, setEntregable] = useState<Entregable>({
     id: entregableId,
-    titulo: "Propuesta de Proyecto",
-    etapa: "Proyecto de Fin de Carrera 1",
-    fecha: "15/05/2023",
-    hora: "23:59",
+    nombre: "Propuesta de Proyecto",
     descripcion:
       "Documento que describe el problema a resolver y la propuesta de solución.",
-  });
+    fechaInicio: "2023-05-15T23:59:00Z",
+    fechaFin: "2023-06-15T23:59:00Z",
+    esEvaluable: true,
+  })
 
   const [contenidosEsperados, setContenidosEsperados] = useState([
     {
@@ -132,9 +132,8 @@ const DetalleEntregablePage: React.FC<DetalleEntregablePageProps> = ({
     // Actualizar estado local
     setEntregable({
       ...entregable,
-      titulo: entregableData.titulo,
-      fecha: entregableData.fecha,
-      hora: entregableData.hora,
+      nombre: entregableData.nombre,
+      fechaInicio: entregableData.fechaInicio,
       descripcion: entregableData.descripcion,
     });
 
@@ -162,7 +161,7 @@ const DetalleEntregablePage: React.FC<DetalleEntregablePageProps> = ({
       <Card className="mb-6">
         <CardContent className="p-6">
           <div className="flex items-start justify-between mb-4">
-            <h2 className="text-xl font-semibold">{entregable.titulo}</h2>
+            <h2 className="text-xl font-semibold">{entregable.nombre}</h2>
             <Button
               id="btnEditEntregable"
               variant="outline"
@@ -180,13 +179,13 @@ const DetalleEntregablePage: React.FC<DetalleEntregablePageProps> = ({
               <h3 className="text-sm font-medium text-muted-foreground mb-1">
                 Etapa
               </h3>
-              <p>{entregable.etapa}</p>
+              <p>CAMBIAR ETAPA</p>
             </div>
             <div>
               <h3 className="text-sm font-medium text-muted-foreground mb-1">
                 Fecha y hora límite
               </h3>
-              <p>{`${entregable.fecha} ${entregable.hora}`}</p>
+              <p>{`${entregable.fechaInicio} HORA`}</p>
             </div>
           </div>
 

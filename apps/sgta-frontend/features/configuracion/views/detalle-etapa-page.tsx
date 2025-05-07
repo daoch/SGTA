@@ -1,4 +1,6 @@
-import { useState } from "react";
+"use client";
+
+import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,10 +8,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, PenLine, Plus } from "lucide-react";
 import { EntregableCard } from "../components/entregable/entregable-card";
 import { ExposicionCard } from "../components/exposicion/exposicion-card";
-import { Entregable } from "../types/entregable";
+import { Entregable } from "../dtos/entregable";
 import { Exposicion } from "../types/exposicion";
 import { EntregableModal } from "../components/entregable/entregable-modal";
 import { ExposicionModal } from "../components/exposicion/exposicion-modal";
+import axiosInstance from "@/lib/axios/axios-instance";
 
 interface DetalleEtapaPageProps {
   etapaId: string;
@@ -18,7 +21,7 @@ interface DetalleEtapaPageProps {
 const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
   const [isEntregableModalOpen, setIsEntregableModalOpen] = useState(false);
   const [isExposicionModalOpen, setIsExposicionModalOpen] = useState(false);
-
+  /*
   const [entregables, setEntregables] = useState<Entregable[]>([
     {
       id: "1",
@@ -45,6 +48,8 @@ const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
         "Documento final que integra todos los componentes del proyecto.",
     },
   ]);
+  */
+  const [entregables, setEntregables] = useState<Entregable[]>([]);
 
   const [exposiciones, setExposiciones] = useState<Exposicion[]>([
     {
@@ -82,24 +87,60 @@ const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
     },
   ]);
 
-  const handleCreateEntregable = async (nuevoEntregable: Entregable) => {
-    // TODO: Llamar a la API para crear el nuevo entregable
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    // Formatear fechas para mostrar
-    let fechaFormateada = `${format(new Date(nuevoEntregable.fecha), "dd/MM/yyyy")}`;
-
-    // Crear nuevo entregable con ID único
-    const nuevoEntregableConId: Entregable = {
-      ...nuevoEntregable,
-      id: "4",
+  useEffect(() => {
+    const fetchEntregables = async () => {
+      try {
+        const response = await axiosInstance.get(`/entregable/etapaFormativaXCiclo/${etapaId}`);
+        setEntregables(response.data);
+      } catch (error) {
+        console.error("Error al cargar los entregables:", error);
+      }
     };
 
-    // Actualizar estado local
-    setEntregables((prev) => [...prev, nuevoEntregableConId]);
+    fetchEntregables();
+  }, [etapaId]);
 
-    // Cerrar modal
-    setIsEntregableModalOpen(false);
+  const createEntregable = async (nuevoEntregable: Entregable) => {
+    try {
+      const response = await axiosInstance.post(`/entregable/etapaFormativaXCiclo/${etapaId}`, nuevoEntregable);
+      console.log("Entregable creado exitosamente:", response.data);
+      return response.data; // Devuelve el entregable creado si es necesario
+    } catch (error) {
+      console.error("Error al crear el entregable:", error);
+      throw error; // Lanza el error para manejarlo en el lugar donde se llame
+    }
+  };
+
+  const truncateMilliseconds = (dateString: string) => {
+    return dateString.split(".")[0] + "Z";
+  };
+
+
+  const handleCreateEntregable = async (nuevoEntregable: Entregable) => {
+    try {
+      const nuevoEntregableFormatoISO: Entregable = {
+        ...nuevoEntregable,
+        fechaInicio: new Date(nuevoEntregable.fechaInicio).toISOString(),
+        fechaFin: new Date(nuevoEntregable.fechaFin).toISOString(),
+      };
+
+      console.log("Datos enviados al backend:", nuevoEntregableFormatoISO);
+      
+      const idEntregable = await createEntregable(nuevoEntregable);
+  
+      const nuevoEntregableConId: Entregable = {
+        ...nuevoEntregable,
+        id: idEntregable, // Asignar el ID devuelto por la API
+      };
+
+      // Actualizar el estado local con el entregable creado
+      setEntregables((prev) => [...prev, nuevoEntregableConId]);
+  
+      // Cerrar el modal
+      setIsEntregableModalOpen(false);
+    } catch (error) {
+      console.error("Error al crear el entregable:", error);
+    }
   };
 
   const handleCreateExposicion = async (nuevaExposicion: Exposicion) => {
@@ -214,9 +255,11 @@ const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
               key={entregable.id}
               etapaId={etapaId}
               entregableId={entregable.id ?? ""}
-              titulo={entregable.titulo}
-              fecha={`${entregable.fecha} ${entregable.hora}`}
+              nombre={entregable.nombre}
               descripcion={entregable.descripcion}
+              fechaInicio={entregable.fechaInicio}
+              fechaFin={entregable.fechaFin}
+              esEvaluable={entregable.esEvaluable}
             />
           ))}
         </TabsContent>

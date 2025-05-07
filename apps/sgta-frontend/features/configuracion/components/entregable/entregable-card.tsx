@@ -6,17 +6,21 @@ import Link from "next/link";
 interface EntregableCardProps {
   etapaId: string;
   entregableId: string;
-  titulo: string;
-  fecha: string;
+  nombre: string;
   descripcion: string;
+  fechaInicio: string;
+  fechaFin: string;
+  esEvaluable: boolean;
 }
 
 export function EntregableCard({
   etapaId,
   entregableId,
-  titulo,
-  fecha,
+  nombre,
   descripcion,
+  fechaInicio,
+  fechaFin,
+  esEvaluable,
 }: EntregableCardProps) {
   return (
     <Card className="mb-4">
@@ -25,11 +29,17 @@ export function EntregableCard({
           <div className="flex items-start space-x-3">
             <FileText className="h-5 w-5 mt-1 text-muted-foreground" />
             <div>
-              <h3 className="font-medium">{titulo}</h3>
+              <h3 className="font-medium">{nombre}</h3>
               <p className="text-sm text-muted-foreground">
-                Fecha límite: {fecha}
+                Fechas: {fechaInicio} - {fechaFin}
               </p>
               <p className="text-sm mt-1">{descripcion}</p>
+              <div className="flex gap-2 mt-2">
+                {/* Evaluable */}
+                <span className="inline-flex items-center px-2 py-1 rounded-md text-xs bg-secondary text-secondary-foreground">
+                  {esEvaluable ? "Evaluable" : "No evaluable"}
+                </span>
+              </div>
             </div>
           </div>
           <Link

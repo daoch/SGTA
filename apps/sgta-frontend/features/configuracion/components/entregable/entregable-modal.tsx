@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Clock } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -15,7 +14,8 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Entregable } from "../../types/entregable";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Entregable } from "../../dtos/entregable";
 
 interface EntregableModalProps {
   isOpen: boolean;
@@ -35,11 +35,14 @@ export const EntregableModal: React.FC<EntregableModalProps> = ({
   const isEditMode = mode === "edit";
 
   const [formData, setFormData] = useState<Entregable>({
-    titulo: "",
-    fecha: "",
-    hora: "",
+    id: "",
+    nombre: "",
     descripcion: "",
+    fechaInicio: "",
+    fechaFin: "",
+    esEvaluable: false,
   });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Cargar datos del entregable cuando cambie (en modo edición)
@@ -47,18 +50,21 @@ export const EntregableModal: React.FC<EntregableModalProps> = ({
     if (isEditMode && entregable) {
       setFormData({
         id: entregable.id,
-        titulo: entregable.titulo,
-        fecha: entregable.fecha,
-        hora: entregable.hora,
+        nombre: entregable.nombre,
         descripcion: entregable.descripcion,
+        fechaInicio: entregable.fechaInicio,
+        fechaFin: entregable.fechaFin,
+        esEvaluable: entregable.esEvaluable,
       });
     } else {
       // Resetear el formulario en modo creación
       setFormData({
-        titulo: "",
-        fecha: "",
-        hora: "",
+        id: "",
+        nombre: "",
         descripcion: "",
+        fechaInicio: "",
+        fechaFin: "",
+        esEvaluable: false,
       });
     }
   }, [entregable, isEditMode, isOpen]);
@@ -70,6 +76,13 @@ export const EntregableModal: React.FC<EntregableModalProps> = ({
     setFormData((prev) => ({
       ...prev,
       [name]: value,
+    }));
+  };
+
+  const handleRadioChange = (value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      esEvaluable: value === "true",
     }));
   };
 
@@ -90,19 +103,6 @@ export const EntregableModal: React.FC<EntregableModalProps> = ({
     }
   };
 
-  // Formatear fecha para el input date (YYYY-MM-DD)
-  const formatDateForInput = (dateString: string) => {
-    if (!dateString) return "";
-
-    // Si la fecha está en formato DD/MM/YYYY
-    if (dateString.includes("/")) {
-      const [day, month, year] = dateString.split("/");
-      return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
-    }
-
-    return dateString;
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
@@ -119,39 +119,37 @@ export const EntregableModal: React.FC<EntregableModalProps> = ({
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="titulo">Nombre del Entregable</Label>
+              <Label htmlFor="nombre">Nombre del Entregable</Label>
               <Input
                 id="txtNombreEntregable"
-                name="titulo"
+                name="nombre"
                 placeholder="Ej: Propuesta de Proyecto"
-                value={formData.titulo}
+                value={formData.nombre}
                 onChange={handleInputChange}
                 required
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="fecha">Fecha límite</Label>
+              <Label htmlFor="fechaInicio">Fecha y Hora de Inicio</Label>
               <Input
-                id="txtFechaLimite"
-                name="fecha"
-                type="date"
-                value={formatDateForInput(formData.fecha)}
+                id="txtFechaInicio"
+                name="fechaInicio"
+                type="datetime-local"
+                value={formData.fechaInicio}
                 onChange={handleInputChange}
                 required
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="hora">Hora límite</Label>
-              <div className="flex items-center gap-2">
-                <Input
-                  id="txtHoraLimite"
-                  name="hora"
-                  type="time"
-                  value={formData.hora}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
+              <Label htmlFor="fechaFin">Fecha y Hora de Fin</Label>
+              <Input
+                id="txtFechaFin"
+                name="fechaFin"
+                type="datetime-local"
+                value={formData.fechaFin}
+                onChange={handleInputChange}
+                required
+              />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="descripcion">Descripción</Label>
@@ -163,6 +161,23 @@ export const EntregableModal: React.FC<EntregableModalProps> = ({
                 onChange={handleInputChange}
                 required
               />
+            </div>
+            <div className="grid gap-2">
+              <Label>¿Es evaluable?</Label>
+              <RadioGroup
+                id="radioEsEvaluable"
+                value={formData.esEvaluable.toString()}
+                onValueChange={handleRadioChange}
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="true" id="radioSi" />
+                  <Label htmlFor="radioSi">Sí</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="false" id="radioNo" />
+                  <Label htmlFor="radioNo">No</Label>
+                </div>
+              </RadioGroup>
             </div>
           </div>
           <DialogFooter>
@@ -186,8 +201,8 @@ export const EntregableModal: React.FC<EntregableModalProps> = ({
                   ? "Guardando..."
                   : "Creando..."
                 : isEditMode
-                  ? "Guardar Cambios"
-                  : "Crear Entregable"}
+                ? "Guardar Cambios"
+                : "Crear Entregable"}
             </Button>
           </DialogFooter>
         </form>
