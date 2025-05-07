@@ -23,7 +23,7 @@ export const getAllByCarreraId = async (
 
 //Services para Áreas por carrera
 
-export const createArea = async (area: Omit<AreaConocimientoDto, 'id'>): Promise<AreaConocimientoDto> => {
+export const createArea = async (area: Omit<AreaConocimientoDto, "id">): Promise<AreaConocimientoDto> => {
     const response = await axiosInstance.post<AreaConocimientoDto>(
         "/areaConocimiento/create",
         area,

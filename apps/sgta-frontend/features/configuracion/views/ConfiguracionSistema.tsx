@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import ModalidadRevisionCard from "../components/conf-general/ModalidadRevision";
 import JuradosCards from "../components/conf-general/Jurados";
 import AsesoresCards from "../components/conf-general/Asesores";

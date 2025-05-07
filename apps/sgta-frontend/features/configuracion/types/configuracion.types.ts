@@ -1,4 +1,4 @@
-import { CarreraXParametroConfiguracionDto } from "./CarreraXParametroConfiguracion.type"
+import { CarreraXParametroConfiguracionDto } from "./CarreraXParametroConfiguracion.type";
 
 export interface BackStore {
     // Parámetros de back
