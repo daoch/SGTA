@@ -48,6 +48,11 @@ public class Tema {
                 foreignKey = @ForeignKey(name = "fk_proyecto")) //there could be no relation with proyecto
     private Proyecto proyecto;
 
+	@ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "carrera_id", nullable = true,
+                foreignKey = @ForeignKey(name = "fk_t_carrera")) //there could be no relation with proyecto
+    private Carrera carrera;
+
     @Column(name = "fecha_limite",
         columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaLimite;

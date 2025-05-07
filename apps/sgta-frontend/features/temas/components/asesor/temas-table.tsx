@@ -103,7 +103,7 @@ interface PropuestasTableProps {
   showCiclo?: boolean;
 }
 
-export function TemasTable({ 
+export function TemasTable({
   filter,
   showPostulaciones = true,
   showEstado = true,

@@ -1,6 +1,5 @@
 package pucp.edu.pe.sgta.service.inter;
 
-//import org.springframework.stereotype.Service;
 import pucp.edu.pe.sgta.dto.SubAreaConocimientoDto;
 import java.util.List;
 
@@ -10,10 +9,16 @@ public interface SubAreaConocimientoService {
 
 	SubAreaConocimientoDto findById(Integer id);
 
-	void create(SubAreaConocimientoDto dto);
+	SubAreaConocimientoDto create(SubAreaConocimientoDto dto);
+
+	List<SubAreaConocimientoDto> listarPorUsuario(Integer usuarioId);
 
 	void update(SubAreaConocimientoDto dto);
 
 	void delete(Integer id);
+
+	List<SubAreaConocimientoDto> getAllByArea(Integer idArea);
+
+	
 
 }

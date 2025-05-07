@@ -119,7 +119,7 @@ CREATE TABLE IF NOT EXISTS proyecto (
 -- 1) TEMA
 CREATE TABLE IF NOT EXISTS tema (
     tema_id                  SERIAL PRIMARY KEY,
-	codigo                   VARCHAR(255) UNIQUE    NOT NULL,
+	codigo                   VARCHAR(255),
     titulo                   VARCHAR(255)      NOT NULL,
     resumen                  TEXT,
     metodologia              TEXT,
@@ -142,7 +142,7 @@ CREATE TABLE IF NOT EXISTS tema (
         FOREIGN KEY (proyecto_id)
         REFERENCES proyecto (proyecto_id)
         ON DELETE RESTRICT,
-    
+
     CONSTRAINT fk_t_carrera
         FOREIGN KEY (carrera_id)
         REFERENCES carrera (carrera_id)
@@ -254,6 +254,7 @@ CREATE TABLE IF NOT EXISTS usuario_tema (
     rol_id                   INTEGER           NOT NULL,    
     asignado                 BOOLEAN           NOT NULL DEFAULT FALSE,
     prioridad                INTEGER,
+    comentario               TEXT,
     activo                   BOOLEAN           NOT NULL DEFAULT TRUE,
     fecha_creacion           TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion       TIMESTAMP WITH TIME ZONE,
@@ -340,6 +341,24 @@ CREATE TABLE IF NOT EXISTS usuario_sub_area_conocimiento (
     CONSTRAINT fk_usac_sac
         FOREIGN KEY (sub_area_conocimiento_id)
         REFERENCES sub_area_conocimiento (sub_area_conocimiento_id)
+        ON DELETE RESTRICT
+);
+-- 12) USUARIO_AREA_CONOCIMIENTO (M:N entre usuario y area_conocimiento)
+CREATE TABLE IF NOT EXISTS usuario_area_conocimiento (
+    usuario_area_conocimiento_id      SERIAL 			PRIMARY KEY,
+    usuario_id                        INTEGER           NOT NULL,
+    area_conocimiento_id              INTEGER           NOT NULL,
+    activo                            BOOLEAN           NOT NULL DEFAULT TRUE,
+    fecha_creacion                    TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion                TIMESTAMP WITH TIME ZONE,
+
+    CONSTRAINT fk_uac_usuario
+        FOREIGN KEY (usuario_id)
+        REFERENCES usuario (usuario_id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_uac_ac
+        FOREIGN KEY (area_conocimiento_id)
+        REFERENCES area_conocimiento (area_conocimiento_id)
         ON DELETE RESTRICT
 );
 -- 3) MODULO
@@ -519,7 +538,6 @@ CREATE TABLE IF NOT EXISTS carrera_parametro_configuracion (
     activo                              BOOLEAN   NOT NULL DEFAULT TRUE,
     fecha_creacion                      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion                  TIMESTAMP WITH TIME ZONE,
-
     carrera_id                          INTEGER   NOT NULL,
     parametro_configuracion_id          INTEGER   NOT NULL,
 	-- si agregan el fk de etapa_formativa, no le pongan NOT NULL

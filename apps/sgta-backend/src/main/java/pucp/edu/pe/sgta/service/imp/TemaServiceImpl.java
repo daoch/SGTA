@@ -1,7 +1,8 @@
 package pucp.edu.pe.sgta.service.imp;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
-//import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pucp.edu.pe.sgta.dto.SubAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.TemaDto;
@@ -16,7 +17,11 @@ import pucp.edu.pe.sgta.service.inter.UsuarioService;
 import pucp.edu.pe.sgta.util.EstadoTemaEnum;
 import pucp.edu.pe.sgta.util.RolEnum;
 
+import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -40,10 +45,18 @@ public class TemaServiceImpl implements TemaService {
 
 	private final EstadoTemaRepository estadoTemaRepository;
 
+	private final UsuarioXCarreraRepository usuarioCarreraRepository;
+
+	private final CarreraRepository carreraRepository;
+
+	@PersistenceContext
+	private EntityManager entityManager;
+
 	public TemaServiceImpl(TemaRepository temaRepository, UsuarioXTemaRepository usuarioXTemaRepository,
 			UsuarioService usuarioService, SubAreaConocimientoService subAreaConocimientoService,
 			SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository, RolRepository rolRepository,
-			EstadoTemaRepository estadoTemaRepository) {
+			EstadoTemaRepository estadoTemaRepository, UsuarioXCarreraRepository usuarioCarreraRepository,
+			CarreraRepository carreraRepository) {
 		this.temaRepository = temaRepository;
 		this.usuarioXTemaRepository = usuarioXTemaRepository;
 		this.subAreaConocimientoXTemaRepository = subAreaConocimientoXTemaRepository;
@@ -51,6 +64,8 @@ public class TemaServiceImpl implements TemaService {
 		this.usuarioService = usuarioService;
 		this.rolRepository = rolRepository;
 		this.estadoTemaRepository = estadoTemaRepository;
+		this.usuarioCarreraRepository = usuarioCarreraRepository;
+		this.carreraRepository = carreraRepository;
 	}
 
 	@Override
@@ -76,12 +91,12 @@ public class TemaServiceImpl implements TemaService {
 	public void createTemaPropuesta(TemaDto dto, Integer idUsuarioCreador) {
 		dto.setId(null);
 		Tema tema = TemaMapper.toEntity(dto);
-		EstadoTema estadoTema = estadoTemaRepository.findByNombre(EstadoTemaEnum.PROPUESTO.name()).orElse(null);
+		EstadoTema estadoTema = estadoTemaRepository.findByNombre(EstadoTemaEnum.PROPUESTO_GENERAL.name()).orElse(null);
 		boolean foundSubArea = false;
 
 		if (estadoTema == null) {
-			logger.severe("Alerta: EstadoTema 'PROPUESTO' no encontrado en la base de datos.");
-			throw new RuntimeException("EstadoTema 'PROPUESTO' no encontrado en la base de datos.");
+			logger.severe("Alerta: EstadoTema 'PROPUESTO_GENERAL' no encontrado en la base de datos.");
+			throw new RuntimeException("EstadoTema 'PROPUESTO_GENERAL' no encontrado en la base de datos.");
 		}
 		tema.setEstadoTema(estadoTema);
 
@@ -224,6 +239,18 @@ public class TemaServiceImpl implements TemaService {
         dto.setId(null);
         // Prepara y guarda el tema con estado INSCRITO
         Tema tema = prepareNewTema(dto, EstadoTemaEnum.INSCRITO);
+/////////////////////// se tiene que modificar si se puede elegir carrera, pararía como parámetro/////
+		var relaciones = usuarioCarreraRepository.findByUsuarioIdAndActivoTrue(idUsuarioCreador);
+		if(relaciones.isEmpty()) {
+			throw new RuntimeException("El usuario no tiene ninguna carrera activa.");
+		}
+		// tomamos la primera
+		Integer carreraId = relaciones.get(0).getCarrera().getId();
+		// opcionalmente cargamos la entidad completa
+		Carrera carrera = carreraRepository.findById(carreraId)
+			.orElseThrow(() -> new RuntimeException("Carrera no encontrada con id " + carreraId));
+		tema.setCarrera(carrera);
+/////////////////////////////////////////////////////////////////////////////////////////////////////
         temaRepository.save(tema);
 
         // 1) Creador del tema (rol "Creador", asignado = true)
@@ -328,4 +355,221 @@ public class TemaServiceImpl implements TemaService {
         }
     }
 
-}
+	@Override
+	public List<TemaDto> listarTemasPropuestosAlAsesor(Integer asesorId) {
+		String sql = "SELECT * FROM listar_temas_propuestos_al_asesor(:asesorId)";
+
+		List<Object[]> resultados = entityManager
+				.createNativeQuery(sql)
+				.setParameter("asesorId", asesorId)
+				.getResultList();
+
+		List<TemaDto> lista = new ArrayList<>();
+
+		for (Object[] fila : resultados) {
+			TemaDto dto = new TemaDto(); // Si fila[0] es un Integer
+			dto.setId((Integer) fila[0]);  // Si fila[0] es un Integer
+			// tema_id
+			dto.setTitulo((String) fila[1]);                 // titulo
+
+			// subarea_ids (arreglo de Integer[])
+			Integer[] subareaArray = (Integer[]) fila[3];  // fila[3] debe ser un Integer[]
+			List<Integer> subareaIds = Arrays.asList(subareaArray);  // Convertimos a lista
+			dto.setIdSubAreasConocimientoList(subareaIds);
+
+			// alumno (arreglo de Integer[])
+			Integer[] alumnoArray = (Integer[]) fila[5];  // fila[5] debe ser un Integer[]
+			List<Integer> alumnoIds = Arrays.asList(alumnoArray);  // Convertimos a lista
+			dto.setIdEstudianteInvolucradosList(alumnoIds);
+
+			dto.setResumen((String) fila[6]);  // descripcion
+			dto.setMetodologia((String) fila[7]);  // metodologia
+			dto.setObjetivos((String) fila[8]);  // objetivo
+			dto.setPortafolioUrl((String) fila[9]);  // recurso
+			dto.setActivo((Boolean) fila[10]);  // activo
+
+			// Manejar fechas
+			dto.setFechaLimite(fila[11] != null ? ((Instant) fila[11]).atOffset(ZoneOffset.UTC) : null);
+			dto.setFechaCreacion(fila[12] != null ? ((Instant) fila[12]).atOffset(ZoneOffset.UTC) : null);
+			dto.setFechaModificacion(fila[13] != null ? ((Instant) fila[13]).atOffset(ZoneOffset.UTC) : null);
+
+			lista.add(dto);
+		}
+
+		return lista;
+	}
+
+	@Override
+    public List<TemaDto> listarTemasPorUsuarioRolEstado(Integer usuarioId,
+                                                       String rolNombre,
+                                                       String estadoNombre) {
+        List<Object[]> rows = temaRepository.listarTemasPorUsuarioRolEstado(
+            usuarioId, rolNombre, estadoNombre
+        );
+        List<TemaDto> resultados = new ArrayList<>();
+        for (Object[] r : rows) {
+            TemaDto dto = TemaDto.builder()
+                .id((Integer) r[0])
+                .titulo((String) r[1])
+                .resumen((String) r[2])
+                .metodologia((String) r[3])
+                .objetivos((String) r[4])
+                .portafolioUrl((String) r[5])
+                .activo((Boolean) r[6])
+                .fechaLimite(
+                  r[7] != null
+                    ? ((Instant) r[7]).atOffset(ZoneOffset.UTC)
+                    : null
+                )
+                .fechaCreacion(
+                  r[8] != null
+                    ? ((Instant) r[8]).atOffset(ZoneOffset.UTC)
+                    : null
+                )
+                .fechaModificacion(
+                  r[9] != null
+                    ? ((Instant) r[9]).atOffset(ZoneOffset.UTC)
+                    : null
+                )
+                .build();
+            resultados.add(dto);
+        }
+        return resultados;
+    }
+
+    @Override
+    public List<UsuarioDto> listarUsuariosPorTemaYRol(Integer temaId, String rolNombre) {
+        List<Object[]> rows = temaRepository.listarUsuariosPorTemaYRol(temaId, rolNombre);
+        List<UsuarioDto> resultados = new ArrayList<>();
+        for (Object[] r : rows) {
+            UsuarioDto u = UsuarioDto.builder()
+                .id((Integer) r[0])
+                .nombres((String) r[1])
+                .primerApellido((String) r[2])
+                .segundoApellido((String) r[3])
+                .correoElectronico((String) r[4])
+                .activo((Boolean) r[5])
+                .fechaCreacion(
+                  r[6] != null
+                    ? ((Instant) r[6]).atOffset(ZoneOffset.UTC)
+                    : null
+                )
+                .build();
+            resultados.add(u);
+        }
+        return resultados;
+    }
+
+    @Override
+    public List<SubAreaConocimientoDto> listarSubAreasPorTema(Integer temaId) {
+        List<Object[]> rows = temaRepository.listarSubAreasPorTema(temaId);
+        List<SubAreaConocimientoDto> resultados = new ArrayList<>();
+        for (Object[] r : rows) {
+            SubAreaConocimientoDto sa = SubAreaConocimientoDto.builder()
+                .id((Integer) r[0])
+                .nombre((String) r[1])
+                .build();
+            resultados.add(sa);
+        }
+        return resultados;
+    }
+
+    @Override
+    public List<TemaDto> listarTemasPorUsuarioEstadoYRol(Integer asesorId, String rolNombre, String estadoNombre) {
+        // primero cargo los temas con estado INSCRITO y rol Asesor
+        List<TemaDto> temas = listarTemasPorUsuarioRolEstado(
+            asesorId, 
+            rolNombre, 
+            estadoNombre
+        );
+
+        // por cada tema cargo coasesores, tesistas y subáreas
+        for (TemaDto t : temas) {
+            t.setCoasesores(
+                listarUsuariosPorTemaYRol(t.getId(), RolEnum.Coasesor.name())
+            );
+            t.setTesistas(
+                listarUsuariosPorTemaYRol(t.getId(), RolEnum.Tesista.name())
+            );
+            t.setSubareas(
+                listarSubAreasPorTema(t.getId())
+            );
+        }
+
+        return temas;
+    }
+
+	@Override
+	public List<TemaDto> listarTemasPropuestosPorSubAreaConocimiento(List<Integer> subareaIds) {
+		String sql = "SELECT * FROM listar_temas_propuestos_por_subarea_conocimiento(:subareas)";
+
+		// Convertimos la lista a un arreglo para que se interprete como un único parámetro tipo ARRAY
+		Integer[] subareaArray = subareaIds.toArray(new Integer[0]);
+
+		List<Object[]> resultados = entityManager
+				.createNativeQuery(sql)
+				.setParameter("subareas", subareaArray)
+				.getResultList();
+
+		List<TemaDto> lista = new ArrayList<>();
+
+		for (Object[] fila : resultados) {
+			TemaDto dto = new TemaDto();
+			dto.setId((Integer) fila[0]);                        // tema_id
+			dto.setTitulo((String) fila[1]);                     // titulo
+			dto.setIdSubAreasConocimientoList(Arrays.asList((Integer[]) fila[2])); // subareas_id[]
+			dto.setIdEstudianteInvolucradosList(Arrays.asList((Integer[]) fila[3])); // alumnos_id[]
+			dto.setResumen((String) fila[4]);                    // descripcion
+			dto.setMetodologia((String) fila[5]);                // metodologia
+			dto.setObjetivos((String) fila[6]);                  // objetivo
+			dto.setPortafolioUrl((String) fila[7]);              // recurso
+			dto.setActivo((Boolean) fila[8]);                    // activo
+			dto.setFechaLimite(fila[9] != null ? ((Instant) fila[9]).atOffset(ZoneOffset.UTC) : null);
+			dto.setFechaCreacion(fila[10] != null ? ((Instant) fila[10]).atOffset(ZoneOffset.UTC) : null);
+			dto.setFechaModificacion(fila[11] != null ? ((Instant) fila[11]).atOffset(ZoneOffset.UTC) : null);
+			lista.add(dto);
+		}
+
+		return lista;
+	}
+
+	@Transactional
+	public void postularAsesorTemaPropuestoGeneral(Integer alumnoId,Integer asesorId, Integer temaId,String comentario) {
+		entityManager
+				.createNativeQuery("SELECT public.postular_asesor_a_tema(:alumnoId, :asesorId, :temaId, :comentario)")
+				.setParameter("alumnoId", alumnoId)
+				.setParameter("asesorId", asesorId)
+				.setParameter("temaId", temaId)
+				.setParameter("comentario", comentario)
+				.getSingleResult();
+	}
+
+	@Transactional
+	public void enlazarTesistasATemaPropuestDirecta(Integer[] usuariosId, Integer temaId, Integer profesorId, String comentario) {
+		entityManager.createNativeQuery("SELECT  public.enlazar_tesistas_tema_propuesta_directa(:usuariosId, :temaId, :profesorId, :comentario)")
+				.setParameter("usuariosId", usuariosId)
+				.setParameter("temaId", temaId)
+				.setParameter("profesorId", profesorId)
+				.setParameter("comentario", comentario)
+				.getSingleResult();
+	}
+
+
+	public void rechazarTemaPropuestaDirecta(Integer alumnoId, String comentario, Integer temaId) {
+		entityManager
+				.createNativeQuery("SELECT rechazar_tema(:alumnoId, :comentario, :temaId)")
+				.setParameter("alumnoId", alumnoId)
+				.setParameter("comentario", comentario)
+				.setParameter("temaId", temaId)
+				.getSingleResult();
+	}
+
+
+
+
+
+
+
+
+
+	}

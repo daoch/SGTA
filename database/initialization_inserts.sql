@@ -19,12 +19,15 @@ VALUES
 -- 3) Estado de tema
 INSERT INTO estado_tema (nombre, descripcion, activo, fecha_creacion, fecha_modificacion)
 VALUES
-  ('LIBRE',     'Tema propuesto por asesor          ',                         TRUE, NOW(), NOW()),
-  ('PROPUESTO', 'Tema propuesto por estudiante o estudientes',                  TRUE, NOW(), NOW()),
-  ('INSCRITO',  'Tema inscrito con asesor con detalles formalizados',   TRUE, NOW(), NOW()),
-  ('RECHAZADO', 'Tema propuesto por estudiante que ha sido rechazado',          TRUE, NOW(), NOW()),
-  ('OBSERVADO', 'Tema inscrito con observaciones pendientes del comité de tesis',      TRUE, NOW(), NOW()),
-  ('VENCIDO',   'Tema propuesto por asesor o estudiantes que pasó su fecha de vencimiento definida',                  TRUE, NOW(), NOW());
+  ('PROPUESTO_LIBRE',    'Tema propuesto por asesor para que los alumnos postulen',                                                                 TRUE, NOW(), NOW()),
+  ('PROPUESTO_GENERAL',  'Tema propuesto por estudiante o estudiantes en general a una subárea de conocimiento',                           TRUE, NOW(), NOW()),
+  ('PROPUESTO_DIRECTO',  'Tema propuesto por estudiante directamente a un profesor (no visible a otros profesores)',                   TRUE, NOW(), NOW()),
+  ('PREINSCRITO',        'Tema propuesto por estudiante que cuenta con asesor aceptado',                                                TRUE, NOW(), NOW()),
+  ('INSCRITO',           'Tema inscrito con asesor con detalles formalizados',                                                      TRUE, NOW(), NOW()),
+  ('REGISTRADO',         'Tema inscrito aceptado por comité de tesis',                                                          TRUE, NOW(), NOW()),
+  ('RECHAZADO',          'Tema propuesto por estudiante que ha sido rechazado',                                                      TRUE, NOW(), NOW()),
+  ('OBSERVADO',          'Tema inscrito con observaciones pendientes del comité de tesis',                                           TRUE, NOW(), NOW()),
+  ('VENCIDO',            'Tema propuesto por asesor o estudiantes que pasó su fecha de vencimiento definida',                          TRUE, NOW(), NOW());
 
 -- 4) Unidad académica
 INSERT INTO unidad_academica (nombre, descripcion)
