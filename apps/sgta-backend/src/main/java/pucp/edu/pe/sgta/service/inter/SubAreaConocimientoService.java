@@ -9,12 +9,16 @@ public interface SubAreaConocimientoService {
 
 	SubAreaConocimientoDto findById(Integer id);
 
-	List<SubAreaConocimientoDto> listarPorUsuario(Integer usuarioId);
+	SubAreaConocimientoDto create(SubAreaConocimientoDto dto);
 
-	void create(SubAreaConocimientoDto dto);
+	List<SubAreaConocimientoDto> listarPorUsuario(Integer usuarioId);
 
 	void update(SubAreaConocimientoDto dto);
 
 	void delete(Integer id);
+
+	List<SubAreaConocimientoDto> getAllByArea(Integer idArea);
+
+	
 
 }
