@@ -1,7 +1,9 @@
 package pucp.edu.pe.sgta.mapper;
 
 import pucp.edu.pe.sgta.dto.HistorialTemaDto;
+import pucp.edu.pe.sgta.dto.TemaDto;
 import pucp.edu.pe.sgta.model.HistorialTema;
+import pucp.edu.pe.sgta.model.Tema;
 
 public class HistorialTemaMapper {
 
@@ -15,7 +17,8 @@ public class HistorialTemaMapper {
         dto.setEstadoTemaId(historialTema.getEstadoTemaId());
         dto.setActivo(historialTema.isActivo());
         dto.setFechaCreacion(historialTema.getFechaCreacion());
-
+        TemaDto temaDto = TemaMapper.toDto(historialTema.getTema());
+        dto.setTema(temaDto);
         return dto;
     }
 
@@ -29,7 +32,8 @@ public class HistorialTemaMapper {
         historialTema.setEstadoTemaId(dto.getEstadoTemaId());
         historialTema.setActivo(dto.isActivo());
         historialTema.setFechaCreacion(dto.getFechaCreacion());
-
+        Tema tema = TemaMapper.toEntity(dto.getTema());
+        historialTema.setTema(tema);
         return historialTema;
     }
 }

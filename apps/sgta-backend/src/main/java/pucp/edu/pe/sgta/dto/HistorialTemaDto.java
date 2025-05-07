@@ -1,8 +1,6 @@
 package pucp.edu.pe.sgta.dto;
 
-import jakarta.persistence.*;
 import lombok.*;
-import pucp.edu.pe.sgta.model.Tema;
 
 import java.time.OffsetDateTime;
 

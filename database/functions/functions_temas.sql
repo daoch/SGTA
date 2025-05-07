@@ -1,5 +1,6 @@
-CREATE OR REPLACE FUNCTION sgta.listar_temas_propuestos_por_subarea_conocimiento(
-	p_subareas_ids integer[])
+CREATE OR REPLACE FUNCTION listar_temas_propuestos_por_subarea_conocimiento(
+	p_subareas_ids integer[],
+	p_asesor_id integer)
     RETURNS TABLE(tema_id integer, titulo text, subareas_id integer[], alumnos_id integer[], descripcion text, metodologia text, objetivo text, recurso text, activo boolean, fecha_limite timestamp with time zone, fecha_creacion timestamp with time zone, fecha_modificacion timestamp with time zone) 
     LANGUAGE 'plpgsql'
     COST 100
@@ -45,7 +46,13 @@ BEGIN
             LIMIT 1
         )
         AND sact.sub_area_conocimiento_id = ANY(p_subareas_ids)
-    GROUP BY 
+        AND NOT EXISTS (
+            SELECT 1
+            FROM usuario_tema ut
+            WHERE ut.tema_id = t.tema_id
+              AND ut.usuario_id = p_asesor_id
+        )
+    GROUP BY
         t.tema_id, t.titulo, t.resumen, t.metodologia, t.objetivos, 
         r.documento_url, t.activo, t.fecha_limite, t.fecha_creacion, t.fecha_modificacion;
 END;
@@ -180,7 +187,8 @@ RETURNS TABLE (
     segundo_apellido   TEXT,
     correo_electronico TEXT,
     activo             BOOLEAN,
-    fecha_creacion     TIMESTAMPTZ
+    fecha_creacion     TIMESTAMPTZ,
+    asignado            BOOLEAN
 ) AS $$
 BEGIN
     RETURN QUERY
@@ -191,7 +199,8 @@ BEGIN
       u.segundo_apellido::text,
       u.correo_electronico::text,
       u.activo,
-      u.fecha_creacion
+      u.fecha_creacion,
+      ut.asignado
     FROM usuario u
     JOIN usuario_tema ut
       ON ut.usuario_id = u.usuario_id
@@ -236,10 +245,10 @@ CREATE OR REPLACE FUNCTION enlazar_tesistas_tema_propuesta_directa(
     COST 100
     VOLATILE PARALLEL UNSAFE
 AS $BODY$
-DECLARE 
-    i INT; 
-    tesista_rol_id INT; 
-    estado_preinscrito_id INT; 
+DECLARE
+    i INT;
+    tesista_rol_id INT;
+    estado_preinscrito_id INT;
     tema_titulo TEXT;
     tema_resumen TEXT;
 BEGIN
@@ -248,14 +257,14 @@ BEGIN
 
     -- Obtener el estado ID del tema
     SELECT estado_tema_id INTO estado_preinscrito_id FROM estado_tema WHERE nombre ILIKE 'PREINSCRITO' LIMIT 1;
-    
+
     -- Obtener el título y resumen del tema
     SELECT titulo, resumen INTO tema_titulo, tema_resumen FROM tema WHERE tema_id = p_tema_id;
 
     -- Asignar a cada tesista
     FOR i IN 1 .. array_length(p_usuarios_id, 1) LOOP
         UPDATE usuario_tema 
-        SET asignado = true, 
+        SET asignado = true,
             rol_id = tesista_rol_id,
             comentario = p_comentario
         WHERE usuario_id = p_usuarios_id[i] AND tema_id = p_tema_id;
@@ -279,8 +288,8 @@ BEGIN
         tema_resumen,
         CONCAT('El profesor ', p_profesor_id, ' aceptó propuesta Directa.'),
         estado_preinscrito_id,
-        true, 
-        NOW(), 
+        true,
+        NOW(),
         NOW()
 );
 END;
@@ -367,8 +376,8 @@ BEGIN
     );
 
     -- Actualiza comentario del alumno
-    UPDATE usuario_tema 
-    SET comentario = p_comentario, fecha_modificacion = NOW() 
+    UPDATE usuario_tema
+    SET comentario = p_comentario, fecha_modificacion = NOW()
     WHERE usuario_id = p_alumno_id AND tema_id = p_tema_id;
 
     -- Obtener datos del tema para insertar en historial_tema
@@ -405,6 +414,7 @@ $BODY$;
 
 
 CREATE OR REPLACE FUNCTION sgta.rechazar_tema(
+CREATE OR REPLACE FUNCTION rechazar_tema(
     p_alumno_id INT,
     p_comentario TEXT,
     p_tema_id INT
