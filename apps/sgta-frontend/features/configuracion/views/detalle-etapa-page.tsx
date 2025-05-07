@@ -111,22 +111,17 @@ const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
     }
   };
 
-  const truncateMilliseconds = (dateString: string) => {
-    return dateString.split(".")[0] + "Z";
-  };
-
-
   const handleCreateEntregable = async (nuevoEntregable: Entregable) => {
     try {
       const nuevoEntregableFormatoISO: Entregable = {
         ...nuevoEntregable,
-        fechaInicio: new Date(nuevoEntregable.fechaInicio).toISOString(),
-        fechaFin: new Date(nuevoEntregable.fechaFin).toISOString(),
+        fechaInicio: new Date(nuevoEntregable.fechaInicio).toISOString().split(".")[0] + "Z",
+        fechaFin: new Date(nuevoEntregable.fechaFin).toISOString().split(".")[0] + "Z",
       };
 
       console.log("Datos enviados al backend:", nuevoEntregableFormatoISO);
       
-      const idEntregable = await createEntregable(nuevoEntregable);
+      const idEntregable = await createEntregable(nuevoEntregableFormatoISO);
   
       const nuevoEntregableConId: Entregable = {
         ...nuevoEntregable,
