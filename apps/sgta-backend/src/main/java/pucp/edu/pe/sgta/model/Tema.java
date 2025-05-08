@@ -21,7 +21,7 @@ public class Tema {
 	@Column(name = "tema_id")
 	private Integer id;
 
-	@Column(unique = true, nullable = false)
+	@Column(name="codigo", length=255)
 	private String codigo;
 
 	@Column(length = 255, nullable = false)
@@ -56,9 +56,13 @@ public class Tema {
     @Column(name = "fecha_limite",
         columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaLimite;
+	
+    @Column(name = "fecha_finalizacion",
+        columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private OffsetDateTime fechaFinalizacion;
 
 	@Column(nullable = false)
-	private boolean activo = true;
+	private Boolean activo = true;
 
 	@Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
 	private OffsetDateTime fechaCreacion;

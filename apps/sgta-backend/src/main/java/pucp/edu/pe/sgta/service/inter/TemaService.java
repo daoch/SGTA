@@ -7,28 +7,48 @@ import pucp.edu.pe.sgta.dto.UsuarioDto;
 import java.util.List;
 
 public interface TemaService {
-    List<TemaDto> getAll();
-    TemaDto findById(Integer id);
-    List<TemaDto> findByUsuario(Integer idUsuario); //Works for asesor, alumno, coordinador and revisor
-    void createTemaPropuesta(TemaDto dto, Integer idUsuarioCreador);
-    void update(TemaDto dto);
-    void delete(Integer id);
-    void createInscripcionTema(TemaDto dto, Integer idUsuarioCreador); //Works for asesor, alumno, coordinador and revisor
+	List<TemaDto> getAll();
+
+	TemaDto findById(Integer id);
+
+	List<TemaDto> findByUsuario(Integer idUsuario); //Works for asesor, alumno, coordinador and revisor
+
+	/**
+	 *
+	 *
+	 * @param dto
+	 * @param idUsuarioCreador: tesista id
+	 * @param tipoPropuesta: 0 for general, 1 for direct
+	 */
+	void createTemaPropuesta(TemaDto dto, Integer idUsuarioCreador, Integer tipoPropuesta);
+
+	void update(TemaDto dto);
+
+	void delete(Integer id);
+
+	void createInscripcionTema(TemaDto dto, Integer idUsuarioCreador); //Works for asesor, alumno, coordinador and revisor
 
 	List<TemaDto> listarTemasPropuestosAlAsesor(Integer asesorId);
 
-	List<TemaDto> listarTemasPropuestosPorSubAreaConocimiento(List<Integer> subareaIds);
+	List<TemaDto> listarTemasPropuestosPorSubAreaConocimiento(List<Integer> subareaIds,Integer asesorId);
 
-	void postularAsesorTemaPropuesto(Integer asesorId, Integer temaId);
+	void postularAsesorTemaPropuestoGeneral(Integer alumnoId, Integer asesorId, Integer temaId, String comentario);
 
-    List<TemaDto> listarTemasPorUsuarioRolEstado(Integer usuarioId,
-                                                 String rolNombre,
-                                                 String estadoNombre);
+	void enlazarTesistasATemaPropuestDirecta(Integer[] usuariosId, Integer temaId, Integer profesorId, String comentario);
 
-    List<UsuarioDto> listarUsuariosPorTemaYRol(Integer temaId,
-                                               String rolNombre);
+	List<TemaDto> listarTemasPorUsuarioRolEstado(Integer usuarioId,
+												 String rolNombre,
+												 String estadoNombre);
 
-    List<SubAreaConocimientoDto> listarSubAreasPorTema(Integer temaId);
+	List<UsuarioDto> listarUsuariosPorTemaYRol(Integer temaId,
+											   String rolNombre);
 
-    List<TemaDto> listarTemasPorUsuarioEstadoYRol(Integer asesorId, String rolNombre, String estadoNombre);
+	List<SubAreaConocimientoDto> listarSubAreasPorTema(Integer temaId);
+
+	List<TemaDto> listarTemasPorUsuarioEstadoYRol(Integer asesorId, String rolNombre, String estadoNombre);
+
+	void rechazarTemaPropuestaDirecta(Integer alumnoId, String comentario, Integer temaId);
+
+	List<TemaDto> listarPropuestasPorTesista(Integer tesistaId);
+
 }
