@@ -2,17 +2,22 @@ package pucp.edu.pe.sgta.service.imp;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import pucp.edu.pe.sgta.dto.JornadaExposicionXSalaExposicionCreateDTO;
 import pucp.edu.pe.sgta.dto.JornadaExposicionXSalaExposicionDto;
+import pucp.edu.pe.sgta.mapper.JornadaExposicionMapper;
 import pucp.edu.pe.sgta.mapper.JornadaExposicionXSalaExposicionMapper;
+import pucp.edu.pe.sgta.model.JornadaExposicion;
 import pucp.edu.pe.sgta.model.JornadaExposicionXSalaExposicion;
 import pucp.edu.pe.sgta.repository.JornadaExposicionXSalaExposicionRepository;
 import pucp.edu.pe.sgta.service.inter.JornadaExposicionXSalaExposicionService;
 
 @Service
 public class JornadaExposicionXSalaExposicionServiceImpl implements JornadaExposicionXSalaExposicionService {
-    private final JornadaExposicionXSalaExposicionRepository jornadaExposicionXSalaExposicionRepository;
+    @Autowired
+    JornadaExposicionXSalaExposicionRepository jornadaExposicionXSalaExposicionRepository;
 
     public JornadaExposicionXSalaExposicionServiceImpl(
             JornadaExposicionXSalaExposicionRepository jornadaExposicionXSalaExposicionRepository) {
@@ -35,8 +40,9 @@ public class JornadaExposicionXSalaExposicionServiceImpl implements JornadaExpos
     }
 
     @Override
-    public void create(JornadaExposicionXSalaExposicionDto dto) {
-
+    public JornadaExposicionXSalaExposicionDto create(JornadaExposicionXSalaExposicionCreateDTO dto) {
+        JornadaExposicionXSalaExposicion jese = jornadaExposicionXSalaExposicionRepository.save(JornadaExposicionXSalaExposicionMapper.toEntity(dto));
+        return JornadaExposicionXSalaExposicionMapper.toDto(jese);
     }
 
     @Override
