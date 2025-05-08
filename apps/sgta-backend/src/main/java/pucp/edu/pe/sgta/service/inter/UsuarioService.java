@@ -3,6 +3,7 @@ package pucp.edu.pe.sgta.service.inter;
 import pucp.edu.pe.sgta.dto.PerfilAsesorDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 public interface UsuarioService {
 
@@ -24,4 +25,12 @@ public interface UsuarioService {
 
 	void updatePerfilAsesor(PerfilAsesorDto perfilAsesorDto);
 
+	/**
+	 * Asigna el rol de Asesor a un usuario que debe ser profesor
+	 * 
+	 * @param userId El ID del usuario al que se asignará el rol
+	 * @throws NoSuchElementException Si el usuario o el rol no existen
+	 * @throws IllegalArgumentException Si el usuario no es profesor
+	 */
+	void assignAdvisorRoleToUser(Integer userId);
 }
