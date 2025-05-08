@@ -3,6 +3,7 @@
 import { ChevronsUpDown, LogOut, UserRound } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,11 +21,12 @@ import {
 } from "@/components/ui/sidebar";
 import { User } from "@/features/auth";
 import { useAuth } from "@/features/auth/hooks/use-auth";
-import { Badge } from "@/components/ui/badge";
+import { useRouter } from "next/navigation";
 
 export function NavUser({ user }: { user: User }) {
   const { isMobile } = useSidebar();
   const { logout, redirectToLogin } = useAuth();
+  const router = useRouter();
 
   return (
     <SidebarMenu>
@@ -72,7 +74,11 @@ export function NavUser({ user }: { user: User }) {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  router.push("/perfil");
+                }}
+              >
                 <UserRound />
                 Perfil
               </DropdownMenuItem>
