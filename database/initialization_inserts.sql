@@ -169,11 +169,11 @@ INSERT INTO etapa_formativa (
   fecha_modificacion,
   carrera_id
 ) VALUES
-  ('Proyecto de fin de carrera 1',
-   4.5,
+  ('Proyecto de fin de carrera 1', 
+   4.5, 
    INTERVAL '20 minutes',
-   TRUE,
-   NOW(),
+   TRUE, 
+   NOW(), 
    NOW(),
    1
    );
@@ -187,11 +187,11 @@ INSERT INTO etapa_formativa (
   fecha_modificacion,
   carrera_id
 ) VALUES
-  ('Proyecto de fin de carrera 2',
-   4.0,
+  ('Proyecto de fin de carrera 2', 
+   4.0, 
    INTERVAL '20 minutes',
-   TRUE,
-   NOW(),
+   TRUE, 
+   NOW(), 
    NOW(),
    1
    );
@@ -434,8 +434,8 @@ INSERT INTO ciclo (
    2025,
    '2025-03-21',
    '2025-07-15',
-   TRUE,
-   NOW(),
+   TRUE, 
+   NOW(), 
    NOW());
 
 INSERT INTO etapa_formativa_x_ciclo (
@@ -447,8 +447,8 @@ INSERT INTO etapa_formativa_x_ciclo (
 ) VALUES
   (1,
    1,
-   TRUE,
-   NOW(),
+   TRUE, 
+   NOW(), 
    NOW());
 
 -- Entregables
@@ -470,8 +470,8 @@ INSERT INTO entregable (
    '2025-04-01',
    '2025-04-10',
    TRUE,
-   TRUE,
-   NOW(),
+   TRUE, 
+   NOW(), 
    NOW());
 
 INSERT INTO criterio_entregable (
@@ -487,8 +487,8 @@ INSERT INTO criterio_entregable (
    'Redaccion',
    5,
    'Redaccion del documento',
-   TRUE,
-   NOW(),
+   TRUE, 
+   NOW(), 
    NOW());
 
 -- Exposiciones
@@ -545,7 +545,7 @@ WITH nuevo_parametro AS (
   ) VALUES (
       'antiplagio',
       'Configure la opcion de revision antiplagio',
-      4, true, NOW(), NOW(), 'boolean'
+      4, true, NOW(), NOW(), 'BOOLEANO'
   ) RETURNING parametro_configuracion_id
 )
 INSERT INTO carrera_parametro_configuracion (
@@ -560,7 +560,7 @@ WITH nuevo_parametro AS (
   ) VALUES (
       'turnitin',
       'Configure la opcion de revision turnitin',
-      4, true, NOW(), NOW(), 'boolean'
+      4, true, NOW(), NOW(), 'BOOLEANO'
   ) RETURNING parametro_configuracion_id
 )
 INSERT INTO carrera_parametro_configuracion (
@@ -575,7 +575,7 @@ WITH nuevo_parametro AS (
   ) VALUES (
       'modalidad_delimitacion_tema',
       'Define delimitación de tema de tesis',
-      1, true, NOW(), NOW(), 'string'
+      1, true, NOW(), NOW(), 'STRING'
   ) RETURNING parametro_configuracion_id
 )
 INSERT INTO carrera_parametro_configuracion (
@@ -591,7 +591,7 @@ WITH nuevo_parametro AS (
   ) VALUES (
       'fecha_limite_asesor',
       'Establece la fecha máxima para cambios de asesor',
-      2, true, NOW(), NOW(), 'date'
+      2, true, NOW(), NOW(), 'DATE'
   ) RETURNING parametro_configuracion_id
 )
 INSERT INTO carrera_parametro_configuracion (

@@ -2,7 +2,6 @@ package pucp.edu.pe.sgta.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import pucp.edu.pe.sgta.dto.InfoTemaPerfilDto;
 import pucp.edu.pe.sgta.dto.TemaConAsesorJuradoDTO;
 import pucp.edu.pe.sgta.dto.TemaDto;
 import pucp.edu.pe.sgta.service.inter.TemaService;
@@ -23,16 +22,15 @@ public class TemaController {
 		return temaService.findByUsuario(idUsuario);
 	}
 
-	@GetMapping("/findById") // finds a topic by id
-	public TemaDto findById(@RequestParam(name = "idTema") Integer idTema) {
-		return temaService.findById(idTema);
-	}
-
     @PostMapping("/createPropuesta")
     public void createTema(@RequestBody TemaDto dto,
                            @RequestParam(name = "idUsuarioCreador") Integer idUsuarioCreador,
 						   @RequestParam(name = "tipoPropuesta", defaultValue = "0") Integer tipoPropuesta) {
         temaService.createTemaPropuesta(dto, idUsuarioCreador, tipoPropuesta);
+    }
+    @GetMapping("/findById") //finds a topic by id
+    public TemaDto findById(@RequestParam(name = "idTema") Integer idTema) {
+        return temaService.findById(idTema);
     }
 
     @PostMapping("/createInscripcion") // Inscripcion de tema oficial por asesor
@@ -109,12 +107,6 @@ public class TemaController {
 	}
 
 
-
-
-	@GetMapping("/listarTemasAsesorInvolucrado/{tesistaId}")
-	public List<InfoTemaPerfilDto> listarTemasAsesorInvolucrado(@PathVariable("tesistaId") Integer tesistaId) {
-		return temaService.listarTemasAsesorInvolucrado(tesistaId);
-	}
 }
 
 

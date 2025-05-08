@@ -9,8 +9,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.*;
-import pucp.edu.pe.sgta.dto.PerfilAsesorDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
 
@@ -41,15 +39,6 @@ public class UsuarioController {
 	public UsuarioDto findById(@RequestParam("idUsuario") Integer idUsuario) {
 
 		return this.usuarioService.findUsuarioById(idUsuario);
-	}
-
-	@GetMapping("/getPerfilAsesor")
-	public PerfilAsesorDto getPerfilAsesor(@RequestParam(name = "id") Integer id) {
-		return this.usuarioService.getPerfilAsesor(id);
-	}
-	@PutMapping("/updatePerfilAsesor")
-	public void updatePerfilAsesor(@RequestBody PerfilAsesorDto dto) {
-		usuarioService.updatePerfilAsesor(dto);
 	}
 
 }

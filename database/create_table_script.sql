@@ -1,4 +1,3 @@
-
 DO
 $$
     BEGIN
@@ -146,7 +145,7 @@ CREATE TABLE IF NOT EXISTS tema (
         FOREIGN KEY (proyecto_id)
         REFERENCES proyecto (proyecto_id)
         ON DELETE RESTRICT,
-
+    
     CONSTRAINT fk_t_carrera
         FOREIGN KEY (carrera_id)
         REFERENCES carrera (carrera_id)
@@ -519,21 +518,6 @@ CREATE TABLE IF NOT EXISTS grupo_investigacion_proyecto (
         ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS etapa_formativa
-(
-    etapa_formativa_id  SERIAL PRIMARY KEY,
-    nombre              TEXT                     NOT NULL,
-    creditaje_por_tema  NUMERIC(6, 2)            NOT NULL,
-    duracion_exposicion INTERVAL,
-    activo              BOOLEAN                  NOT NULL DEFAULT TRUE,
-    fecha_creacion      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion  TIMESTAMP WITH TIME ZONE,
-    carrera_id          INTEGER                  NOT NULL,
-    CONSTRAINT fk_area_conocimiento_carrera
-    FOREIGN KEY (carrera_id)
-    REFERENCES carrera(carrera_id)
-);
-
 -- 1) Tabla parametro_configuracion
 CREATE TABLE IF NOT EXISTS parametro_configuracion (
     parametro_configuracion_id  SERIAL PRIMARY KEY,
@@ -561,7 +545,6 @@ CREATE TABLE IF NOT EXISTS carrera_parametro_configuracion (
     carrera_id                          INTEGER   NOT NULL,
     parametro_configuracion_id          INTEGER   NOT NULL,
 	-- si agregan el fk de etapa_formativa, no le pongan NOT NULL
-	etapa_formativa_id					INTEGER,
 
     CONSTRAINT fk_cpc_carrera
         FOREIGN KEY (carrera_id)
@@ -570,11 +553,7 @@ CREATE TABLE IF NOT EXISTS carrera_parametro_configuracion (
     CONSTRAINT fk_cpc_parametro_configuracion
         FOREIGN KEY (parametro_configuracion_id)
         REFERENCES parametro_configuracion (parametro_configuracion_id)
-        ON DELETE CASCADE,
-	CONSTRAINT fk_cpc_grupo
-		FOREIGN KEY (etapa_formativa_id)
-		REFERENCES etapa_formativa (etapa_formativa_id)
-		ON DELETE CASCADE
+        ON DELETE CASCADE
 );
 
 --- MODULO DE JURADOS
@@ -649,8 +628,8 @@ CREATE TABLE IF NOT EXISTS etapa_formativa
     fecha_modificacion  TIMESTAMP WITH TIME ZONE,
 
     carrera_id          INTEGER                  NOT NULL,
-    CONSTRAINT fk_area_conocimiento_carrera
-        FOREIGN KEY (carrera_id)
+    CONSTRAINT fk_area_conocimiento_carrera 
+        FOREIGN KEY (carrera_id) 
         REFERENCES carrera(carrera_id)
 );
 
