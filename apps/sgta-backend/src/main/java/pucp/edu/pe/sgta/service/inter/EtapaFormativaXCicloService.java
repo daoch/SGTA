@@ -2,16 +2,16 @@ package pucp.edu.pe.sgta.service.inter;
 
 import java.util.List;
 
-import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloDTO;
+import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloDto;
 
 public interface EtapaFormativaXCicloService {
-    List<EtapaFormativaXCicloDTO> getAll();
+    List<EtapaFormativaXCicloDto> getAll();
 
-    EtapaFormativaXCicloDTO findById(Integer id);
+    EtapaFormativaXCicloDto findById(Integer id);
 
-    void create(EtapaFormativaXCicloDTO dto);
+    void create(EtapaFormativaXCicloDto dto);
 
-    void update(EtapaFormativaXCicloDTO dto);
+    void update(EtapaFormativaXCicloDto dto);
 
     void delete(Integer id);
 }

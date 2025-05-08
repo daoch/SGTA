@@ -3,11 +3,11 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { 
-  TipoDedicacion, 
-  AreaEspecialidadFilter, 
-  EstadoJurado, 
-  JuradoViewModel 
+import {
+  TipoDedicacion,
+  Especialidades,
+  EstadoJurado,
+  JuradoViewModel,
 } from "@/features/jurado/types/juradoDetalle.types";
 
 import {
@@ -18,6 +18,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import TableJurados from "../components/JuradosTable";
+
+// Función auxiliar para generar opciones del Select de especialidades
+const getSelectEspecialidadesItems = () => {
+  return Object.values(Especialidades).map((especialidad) => (
+    <SelectItem key={especialidad} value={especialidad}>
+      {especialidad}
+    </SelectItem>
+  ));
+};
 
 const JuradosView = () => {
   const juradosOriginal = [
@@ -43,9 +52,14 @@ const JuradosView = () => {
   ];
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [juradosData, setJuradosData] = useState<JuradoViewModel[]>(juradosOriginal);
-  const [dedication, setDedication] = useState<TipoDedicacion>(TipoDedicacion.TODOS);
-  const [specialty, setSpecialty] = useState<AreaEspecialidadFilter>(AreaEspecialidadFilter.TODOS);
+  const [juradosData, setJuradosData] =
+    useState<JuradoViewModel[]>(juradosOriginal);
+  const [dedication, setDedication] = useState<TipoDedicacion>(
+    TipoDedicacion.TODOS,
+  );
+  const [specialty, setSpecialty] = useState<Especialidades>(
+    Especialidades.TODOS,
+  );
   const [status, setStatus] = useState<EstadoJurado>(EstadoJurado.TODOS);
   const [hasSearched, setHasSearched] = useState(false);
 
@@ -56,8 +70,10 @@ const JuradosView = () => {
         const matchDedication =
           dedication === TipoDedicacion.TODOS || j.dedication === dedication;
         const matchSpecialty =
-          specialty === AreaEspecialidadFilter.TODOS || j.specialties.includes(specialty);
-        const matchStatus = status === EstadoJurado.TODOS || j.status === status;
+          specialty === Especialidades.TODOS ||
+          j.specialties.includes(specialty);
+        const matchStatus =
+          status === EstadoJurado.TODOS || j.status === status;
         // Solo aplicamos búsqueda si ya se buscó alguna vez
         const matchSearch =
           !hasSearched ||
@@ -129,15 +145,13 @@ const JuradosView = () => {
         {/* ComboBox 2 - Área de Especialidad */}
         <div className="flex flex-col w-[148px] h-[80px] items-start gap-[6px] flex-shrink-0">
           <label className="text-sm font-medium">Área de Especialidad</label>
-          <Select onValueChange={(val) => setSpecialty(val as AreaEspecialidadFilter)}>
+          <Select onValueChange={(val) => setSpecialty(val as Especialidades)}>
             <SelectTrigger className="h-[68px] w-full">
               <SelectValue placeholder="Todos" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={AreaEspecialidadFilter.TODOS}>{AreaEspecialidadFilter.TODOS}</SelectItem>
-              <SelectItem value={AreaEspecialidadFilter.CIENCIAS_COMPUTACION}>{AreaEspecialidadFilter.CIENCIAS_COMPUTACION}</SelectItem>
-              <SelectItem value={AreaEspecialidadFilter.DESARROLLO_SOFTWARE}>{AreaEspecialidadFilter.DESARROLLO_SOFTWARE}</SelectItem>
-              <SelectItem value={AreaEspecialidadFilter.DESARROLLO_WEB}>{AreaEspecialidadFilter.DESARROLLO_WEB}</SelectItem>
+              {/* Generacion dinamica segun el Types de especialidades */}
+              {getSelectEspecialidadesItems()}
             </SelectContent>
           </Select>
         </div>

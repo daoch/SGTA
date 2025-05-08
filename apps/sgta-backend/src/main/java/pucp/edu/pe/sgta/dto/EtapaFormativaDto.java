@@ -3,7 +3,6 @@ package pucp.edu.pe.sgta.dto;
 import lombok.*;
 
 import java.math.BigDecimal;
-import java.time.Duration;
 import java.time.OffsetDateTime;
 
 @Getter
@@ -12,7 +11,7 @@ import java.time.OffsetDateTime;
 @AllArgsConstructor
 @Builder
 
-public class EtapaFormativaDTO {
+public class EtapaFormativaDto {
 
     private Integer id;
 
@@ -20,7 +19,7 @@ public class EtapaFormativaDTO {
 
     private BigDecimal creditajePorTema;
 
-    private Duration duracionExposicion;
+    private String duracionExposicion;
 
     private Integer carreraId;
 
