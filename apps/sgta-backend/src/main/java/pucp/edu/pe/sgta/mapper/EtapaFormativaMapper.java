@@ -13,8 +13,8 @@ public class EtapaFormativaMapper {
         dto.setCreditajePorTema(etapaFormativa.getCreditajePorTema());
         dto.setDuracionExposicion(etapaFormativa.getDuracionExposicion());
         dto.setActivo(etapaFormativa.getActivo());
-        dto.setFechaCreacion(etapaFormativa.getFechaCreacion());
-        dto.setFechaModificacion(etapaFormativa.getFechaModificacion());
+        // dto.setFechaCreacion(etapaFormativa.getFechaCreacion());
+        // dto.setFechaModificacion(etapaFormativa.getFechaModificacion());
         dto.setCarreraId(etapaFormativa.getCarrera().getId());
         return dto;
     }
@@ -26,8 +26,8 @@ public class EtapaFormativaMapper {
         etapaFormativa.setCreditajePorTema(dto.getCreditajePorTema());
         etapaFormativa.setDuracionExposicion(dto.getDuracionExposicion());
         etapaFormativa.setActivo(dto.getActivo());
-        etapaFormativa.setFechaCreacion(dto.getFechaCreacion());
-        etapaFormativa.setFechaModificacion(dto.getFechaModificacion());
+        // etapaFormativa.setFechaCreacion(dto.getFechaCreacion());
+        // etapaFormativa.setFechaModificacion(dto.getFechaModificacion());
         Carrera carrera = new Carrera();
         carrera.setId(dto.getCarreraId());
         etapaFormativa.setCarrera(carrera);
