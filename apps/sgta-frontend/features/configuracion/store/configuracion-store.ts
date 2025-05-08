@@ -29,7 +29,6 @@ export const useBackStore = create<BackStore>()(
                 })),
 
 
-
             // Funciones para llamadas al backend
             cargarParametros: async (carreraId) => {
                 set({ cargando: true, error: null });
