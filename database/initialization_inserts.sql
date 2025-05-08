@@ -156,3 +156,159 @@ select * from rol;
 select * from tipo_usuario;
 select * from estado_tema;
 select * from usuario;
+
+
+
+-- Relacion Etapa formativa x ciclo
+
+INSERT INTO etapa_formativa (
+  nombre,
+  creditaje_por_tema,
+  duracion_exposicion,
+  activo,
+  fecha_creacion,
+  fecha_modificacion,
+  carrera_id
+) VALUES
+  ('Proyecto de fin de carrera 1', 
+   4.5, 
+   INTERVAL '20 minutes',
+   TRUE, 
+   NOW(), 
+   NOW(),
+   1
+   );
+
+INSERT INTO etapa_formativa (
+  nombre,
+  creditaje_por_tema,
+  duracion_exposicion,
+  activo,
+  fecha_creacion,
+  fecha_modificacion,
+  carrera_id
+) VALUES
+  ('Proyecto de fin de carrera 2', 
+   4.0, 
+   INTERVAL '20 minutes',
+   TRUE, 
+   NOW(), 
+   NOW(),
+   1
+   );
+
+INSERT INTO ciclo (
+  semestre,
+  anio,
+  fecha_inicio,
+  fecha_fin,
+  activo,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  ('1',
+   2025,
+   '2025-03-21',
+   '2025-07-15',
+   TRUE, 
+   NOW(), 
+   NOW());
+
+INSERT INTO etapa_formativa_x_ciclo (
+  etapa_formativa_id,
+  ciclo_id,
+  activo,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  (1,
+   1,
+   TRUE, 
+   NOW(), 
+   NOW());
+
+-- Entregables
+
+INSERT INTO entregable (
+  etapa_formativa_x_ciclo_id,
+  nombre,
+  descripcion,
+  fecha_inicio,
+  fecha_fin,
+  es_evaluable,
+  activo,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  (1,
+   'Estado del arte',
+   'Estado del arte del tema',
+   '2025-04-01',
+   '2025-04-10',
+   TRUE,
+   TRUE, 
+   NOW(), 
+   NOW());
+
+INSERT INTO criterio_entregable (
+  entregable_id,
+  nombre,
+  nota_maxima,
+  descripcion,
+  activo,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  (1,
+   'Redaccion',
+   5,
+   'Redaccion del documento',
+   TRUE, 
+   NOW(), 
+   NOW());
+
+-- Exposiciones
+
+INSERT INTO estado_planificacion (
+	nombre,
+	activo,
+	fecha_creacion,
+	fecha_modificacion
+)	VALUES(
+	'Planificacion inicial',
+	TRUE,
+	NOW(),
+	NOW()
+);
+
+INSERT INTO exposicion(
+	etapa_formativa_x_ciclo_id,
+	estado_planificacion_id,
+	activo,
+	nombre,
+	descripcion,
+	fecha_creacion
+) VALUES(
+	1,
+	1,
+	TRUE,
+	'Exposicion parcial',
+	'Exposicion parcial del proyecto',
+	NOW()
+);
+
+INSERT INTO criterio_exposicion(
+	exposicion_id,
+	nombre,
+	descripcion,
+	nota_maxima,
+	activo,
+	fecha_creacion
+) VALUES(
+	1,
+	'Entonacion',
+	'El alumno tiene una correcta entonacion durante toda la exposicion',
+	3.5,
+	TRUE,
+	NOW()
+);

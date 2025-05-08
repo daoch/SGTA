@@ -20,12 +20,12 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
     }
 
     @Override
-    public List<EtapaFormativaDTO> getAll() {
+    public List<EtapaFormativaDto> getAll() {
         return List.of();
     }
 
     @Override
-    public EtapaFormativaDTO findById(Integer id) {
+    public EtapaFormativaDto findById(Integer id) {
         EtapaFormativa etapaFormativa = etapaFormativaRepository.findById(id).orElse(null);
         if (etapaFormativa != null) {
             return EtapaFormativaMapper.toDto(etapaFormativa);
@@ -34,12 +34,12 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
     }
 
     @Override
-    public void create(EtapaFormativaDTO dto) {
+    public void create(EtapaFormativaDto dto) {
 
     }
 
     @Override
-    public void update(EtapaFormativaDTO dto) {
+    public void update(EtapaFormativaDto dto) {
 
     }
 
