@@ -46,7 +46,6 @@ public class ExposicionServiceImpl implements ExposicionService {
         return exposicionRepository.findById(id)
                 .map(ExposicionMapper::toDto)
                 .orElse(null);
-        //return exposicionRepository.findById(id).orElse(null);
     }
 
     @Transactional
