@@ -24,7 +24,7 @@ export default function PerfilAsesorCard({
     (t) => t.estado === "en_proceso",
   ).length;
 
-  const limite = asesor.limiteTesis ?? 0;
+  const limite = asesor.limiteTesis ?? 8;
 
   const porcentaje = limite === 0 ? 0 : tesisEnProceso / limite;
 
@@ -171,7 +171,7 @@ export default function PerfilAsesorCard({
         ></div>
       </div>
       <p className="text-sm text-gray-600 mt-1">
-        Tesistas asignados: {tesisEnProceso}/{asesor.limiteTesis}
+        Tesistas asignados: {tesisEnProceso}/{limite}
       </p>
     </div>
   );
