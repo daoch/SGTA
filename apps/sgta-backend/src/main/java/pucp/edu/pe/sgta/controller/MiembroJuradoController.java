@@ -25,7 +25,6 @@ public class MiembroJuradoController {
     public List<MiembroJuradoDto> obtenerUsuarioTemaInfo() {
         return autorService.obtenerUsuarioTemaInfo();
     }
-
     @GetMapping("/estado/{estado}")
     public List<MiembroJuradoDto> obtenerUsuariosPorEstado(@PathVariable Boolean estado) {
         return autorService.obtenerUsuariosPorEstado(estado);
