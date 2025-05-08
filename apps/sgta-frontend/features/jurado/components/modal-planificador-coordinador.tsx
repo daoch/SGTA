@@ -26,7 +26,7 @@ import {
   enviarPlanificacion,
   getEtapasFormativasByCoordinador,
   getExposicionPorEtapaFormativa,
-  getSalasDisponibles,
+  getSalasDisponiblesByEtapaFormativa,
 } from "../services/exposicion-service";
 import {
   EtapaFormativa,
@@ -74,7 +74,6 @@ export default function ModalPlanificadorCoordinador({
       });
 
       getEtapasFormativasByCoordinador(3).then(setCursos).catch(console.error);
-      getSalasDisponibles().then(setSalas).catch(console.error);
     }
   }, [open, reset]);
 
@@ -86,6 +85,9 @@ export default function ModalPlanificadorCoordinador({
           console.error("Error fetching tipos de exposición:", err);
           setTiposExposicion([]);
         });
+      getSalasDisponiblesByEtapaFormativa(etapaFormativaId)
+        .then(setSalas)
+        .catch(console.error);
     } else {
       setTiposExposicion([]);
     }
