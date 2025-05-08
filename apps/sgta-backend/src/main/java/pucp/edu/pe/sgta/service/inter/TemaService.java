@@ -4,6 +4,7 @@ import pucp.edu.pe.sgta.dto.SubAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.TemaDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
 
+import pucp.edu.pe.sgta.dto.TemaConAsesorJuradoDTO;
 import java.util.List;
 
 public interface TemaService {
@@ -48,6 +49,9 @@ public interface TemaService {
 	List<TemaDto> listarTemasPorUsuarioEstadoYRol(Integer asesorId, String rolNombre, String estadoNombre);
 
 	void rechazarTemaPropuestaDirecta(Integer alumnoId, String comentario, Integer temaId);
+
+
+	List<TemaConAsesorJuradoDTO> listarTemasCicloActualXEtapaFormativa(Integer etapaFormativaId);
 
 	List<TemaDto> listarPropuestasPorTesista(Integer tesistaId);
 
