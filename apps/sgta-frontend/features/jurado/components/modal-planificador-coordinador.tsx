@@ -43,6 +43,11 @@ interface CursoOption {
   nombre: string;
 }
 
+interface TipoExposicionOption {
+  id: number;
+  nombre: string;
+}
+
 interface ModalPlanificadorCoordinadorProps {
   open: boolean;
   onClose: () => void;
@@ -61,6 +66,13 @@ export default function ModalPlanificadorCoordinador({
   });
 
   const [cursos, setCursos] = useState<CursoOption[]>([]);
+  const [tiposExposicion, setTiposExposicion] = useState<
+    TipoExposicionOption[]
+  >([]);
+
+  const cursoSeleccionado = watch("curso");
+  const tipoSeleccionado = watch("tipoExposicion");
+  const fechas = watch("fechas");
 
   useEffect(() => {
     if (open) {
@@ -77,8 +89,23 @@ export default function ModalPlanificadorCoordinador({
     }
   }, [open, reset]);
 
-  const cursoSeleccionado = watch("curso");
-  const tipoSeleccionado = watch("tipoExposicion");
+  useEffect(() => {
+    if (cursoSeleccionado) {
+      axiosInstance
+        .get(
+          `/exposicion/listarExposicionXCicloActualEtapaFormativa?etapaFormativaId=${cursoSeleccionado}`,
+        )
+        .then((res) => {
+          setTiposExposicion(res.data);
+        })
+        .catch((err) => {
+          console.error("Error fetching tipos de exposicion:", err);
+          setTiposExposicion([]);
+        });
+    } else {
+      setTiposExposicion([]);
+    }
+  }, [cursoSeleccionado]);
 
   const { fields, append, remove } = useFieldArray({
     control,
@@ -89,6 +116,18 @@ export default function ModalPlanificadorCoordinador({
     console.log(data);
     onClose();
   };
+
+  const isTipoExposicionDisabled =
+    !cursoSeleccionado || tiposExposicion.length === 0;
+  const isFechasDisabled = !tipoSeleccionado || isTipoExposicionDisabled;
+
+  const canAddMoreFechas = fechas.every(
+    (f) =>
+      f.fecha.trim() !== "" &&
+      f.horaInicio.trim() !== "" &&
+      f.horaFin.trim() !== "" &&
+      f.salasSeleccionadas.trim() !== "",
+  );
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -139,14 +178,17 @@ export default function ModalPlanificadorCoordinador({
                 <Select
                   onValueChange={field.onChange}
                   value={field.value}
-                  disabled={!cursoSeleccionado}
+                  disabled={isTipoExposicionDisabled}
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Seleccionar tipo" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Final">Final</SelectItem>
-                    <SelectItem value="Parcial">Parcial</SelectItem>
+                    {tiposExposicion.map((tipo) => (
+                      <SelectItem key={tipo.id} value={tipo.nombre}>
+                        {tipo.nombre}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               )}
@@ -172,7 +214,7 @@ export default function ModalPlanificadorCoordinador({
                           {...field}
                           className="pl-10"
                           type="text"
-                          disabled={!tipoSeleccionado}
+                          disabled={isFechasDisabled}
                         />
                         <Calendar className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
                       </div>
@@ -191,7 +233,7 @@ export default function ModalPlanificadorCoordinador({
                           {...field}
                           className="pl-10"
                           type="text"
-                          disabled={!tipoSeleccionado}
+                          disabled={isFechasDisabled}
                         />
                         <Calendar className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
                       </div>
@@ -210,7 +252,7 @@ export default function ModalPlanificadorCoordinador({
                           {...field}
                           className="pl-10"
                           type="text"
-                          disabled={!tipoSeleccionado}
+                          disabled={isFechasDisabled}
                         />
                         <Calendar className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
                       </div>
@@ -229,7 +271,7 @@ export default function ModalPlanificadorCoordinador({
                       <Select
                         onValueChange={field.onChange}
                         value={field.value}
-                        disabled={!tipoSeleccionado}
+                        disabled={isFechasDisabled}
                       >
                         <SelectTrigger className="w-full">
                           <SelectValue />
@@ -276,7 +318,7 @@ export default function ModalPlanificadorCoordinador({
                 salasSeleccionadas: "2 salas seleccionadas",
               })
             }
-            disabled={!tipoSeleccionado}
+            disabled={isFechasDisabled || !canAddMoreFechas}
           >
             <PlusIcon /> Agregar Fecha de Exposición
           </Button>
