@@ -111,7 +111,11 @@ export function CoordinatorReports() {
       try {
         setLoadingAdvisorDistribution(true);
         const response = await axiosInstance.get(`/api/v1/reports/advisors-distribution?usuarioId=3&ciclo=${semesterFilter}`);
-        setAdvisorDistribution(response.data.map(item => ({
+        setAdvisorDistribution(response.data.map((item:{
+          teacherName: string;
+          count: number;
+          department: string;
+        }) => ({
           name: item.teacherName,
           count: item.count,
           department: item.department,
@@ -128,7 +132,11 @@ export function CoordinatorReports() {
       try {
         setLoadingJuryDistribution(true);
         const response = await axiosInstance.get(`/api/v1/reports/jurors-distribution?usuarioId=3&ciclo=${semesterFilter}`);
-        setJuryDistribution(response.data.map(item => ({
+        setJuryDistribution(response.data.map((item:{
+          teacherName: string;
+          count: number;
+          department: string;
+        }) => ({
           name: item.teacherName,
           count: item.count,
           department: item.department,
@@ -175,15 +183,15 @@ export function CoordinatorReports() {
       try {
         setLoadingJuryDistribution(true);
         const response = await axiosInstance.get("/api/v1/reports/topics-trends?usuarioId=3");
-        const years = Array.from(new Set(response.data.map(item => item.year))).sort();
-        const areas = Array.from(new Set(response.data.map(item => item.areaName)));
+        const years = Array.from(new Set<number>(response.data.map((item:{year: number; areaName: string; topicCount:number}) => item.year))).sort();
+        const areas = Array.from(new Set<string>(response.data.map((item:{year: number; areaName: string; topicCount:number}) => item.areaName)));
 
         // 2. Construir la estructura para recharts
-        const result = years.map(year => {
-          const entry = { name: year.toString() };
-          areas.forEach(area => {
+        const result = years.map((year : number) => {
+          const entry: { name: string; [key: string]: string | number } = { name: year.toString() };
+          areas.forEach((area:string) => {
             // Busca si hay un registro para este año y área
-            const found = response.data.find(item => item.year === year && item.areaName === area);
+            const found : {year: number; areaName: string; topicCount:number} =response.data.find((item:{year: number; areaName: string; topicCount:number})=> item.year === year && item.areaName === area);
             entry[area] = found ? found.topicCount : 0;
           });
           return entry;
@@ -206,8 +214,8 @@ export function CoordinatorReports() {
     : [];
   const areaColors = ["#002855", "#006699", "#0088cc", "#00aaff", "#33bbff", "#66ccff", "#99ddff"];
 
-  function toTitleCase(str: string) {
-    if (typeof str !== "string") str = String(str ?? "");
+  function toTitleCase(input: unknown):string {
+    const str = String(input ?? "");
     const lowerWords = ["de", "la", "del", "y", "en", "a", "el", "los", "las", "por", "con", "para"];
     return str
       .split(" ")
