@@ -16,10 +16,10 @@ const eslintConfig = [
       semi: ["error"],
       quotes: ["error", "double"],
       "@typescript-eslint/no-unused-vars": [
-        "warn", 
-        { 
-          varsIgnorePattern: "^_" // Esto ignorará las variables cuyo nombre empiece con un guion bajo
-        }
+        "warn",
+        {
+          varsIgnorePattern: "^_", // Esto ignorará las variables cuyo nombre empiece con un guion bajo
+        },
       ],
     },
   }),
