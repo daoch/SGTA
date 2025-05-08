@@ -8,4 +8,6 @@ public interface AreaConocimientoRepository extends JpaRepository<AreaConocimien
     
     List<AreaConocimiento> findAllByActivoTrue();
     List<AreaConocimiento> findAllByCarreraIdAndActivoTrue(Integer idCarrera);
+    List<AreaConocimiento> findAllByIdIn(List<Integer> ids);
+    List<AreaConocimiento> findByNombreContainingIgnoreCaseAndActivoIsTrue(String nombre);
 }

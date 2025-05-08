@@ -115,3 +115,99 @@ BEGIN
       AND area_conocimiento_id = ANY(p_lista_ids);
 END;
 $$ LANGUAGE plpgsql;
+
+--Obtener los temas en los que haya participado un asesor
+CREATE OR REPLACE FUNCTION obtener_temas_usuario_asesor(
+    p_usuario_id INTEGER
+)
+RETURNS TABLE (
+    tema_id INTEGER,
+    titulo VARCHAR,
+    estado_nombre VARCHAR,
+    fecha_finalizacion TIMESTAMP WITH TIME ZONE
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        t.tema_id,
+        t.titulo,
+        et.nombre AS estado_nombre,
+        t.fecha_finalizacion
+    FROM tema t
+    INNER JOIN usuario_tema ut_asesor ON ut_asesor.tema_id = t.tema_id
+    INNER JOIN rol r_asesor ON ut_asesor.rol_id = r_asesor.rol_id
+    INNER JOIN estado_tema et ON t.estado_tema_id = et.estado_tema_id
+    -- Confirmar que sea asesor o coasesor activo y asignado
+    WHERE ut_asesor.usuario_id = p_usuario_id
+      AND LOWER(r_asesor.nombre) IN ('asesor', 'coasesor')
+      AND ut_asesor.activo = TRUE
+	  AND ut_asesor.asignado = TRUE
+	-- Confirmar que el tema esté activo
+      AND t.activo = TRUE
+	--  AND t.terminado = TRUE
+      AND LOWER(et.nombre) in ('en_progreso', 'finalizado')
+	ORDER BY 
+		t.fecha_finalizacion DESC NULLS LAST;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Obtener # de alumnos
+CREATE OR REPLACE FUNCTION obtener_numero_tesistas_asesor(
+    p_usuario_id INTEGER
+)
+RETURNS TABLE (
+    total INTEGER
+) AS $$
+BEGIN
+    RETURN QUERY
+	SELECT
+		count(*)::Integer AS total
+	FROM
+		usuario_tema ut_tesista
+		inner join rol r_tesista on ut_tesista.rol_id = r_tesista.rol_id
+	WHERE
+		lower(r_tesista.nombre) = 'tesista'
+		and ut_tesista.activo = TRUE
+		and ut_tesista.asignado = TRUE
+		and ut_tesista.tema_id in (SELECT
+		        t.tema_id
+		    FROM tema t
+		    INNER JOIN usuario_tema ut_asesor ON ut_asesor.tema_id = t.tema_id
+		    INNER JOIN rol r_asesor ON ut_asesor.rol_id = r_asesor.rol_id
+		    INNER JOIN estado_tema et ON t.estado_tema_id = et.estado_tema_id
+		    -- Confirmar que sea asesor o coasesor activo y asignado
+		    WHERE ut_asesor.usuario_id = p_usuario_id
+		      AND LOWER(r_asesor.nombre) IN ('asesor', 'coasesor')
+		      AND ut_asesor.activo = TRUE
+			  AND ut_asesor.asignado = TRUE
+			-- Confirmar que el tema esté activo
+		      AND t.activo = TRUE
+			--  AND t.terminado = TRUE
+		      AND LOWER(et.nombre) = 'en_progreso');
+END;
+$$ LANGUAGE plpgsql;
+
+-- Obtener teistas
+CREATE OR REPLACE FUNCTION obtener_tesistas_tema(
+    p_tema_id INTEGER
+)
+RETURNS TABLE (
+    nombres TEXT,
+	primer_apellido TEXT
+) AS $$
+BEGIN
+    RETURN QUERY
+	SELECT
+		u.nombres,
+		u.primer_apellido
+	FROM
+		usuario_tema ut_tesista
+		inner join rol r_tesista on ut_tesista.rol_id = r_tesista.rol_id
+		inner join usuario u on ut_tesista.usuario_id = u.usuario_id
+	WHERE
+		lower(r_tesista.nombre) = 'tesista'
+		and ut_tesista.activo = TRUE
+		and ut_tesista.asignado = TRUE
+		and ut_tesista.tema_id = p_tema_id;
+END;
+$$ LANGUAGE plpgsql;

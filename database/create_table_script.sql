@@ -1,3 +1,4 @@
+
 DO
 $$
     BEGIN
@@ -11,6 +12,7 @@ $$
         WHEN duplicate_object THEN NULL;
     END
 $$;
+
 -- Tabla unidad_academica
 CREATE TABLE IF NOT EXISTS unidad_academica (
     unidad_academica_id    SERIAL PRIMARY KEY,
@@ -516,6 +518,17 @@ CREATE TABLE IF NOT EXISTS grupo_investigacion_proyecto (
         ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS etapa_formativa
+(
+    etapa_formativa_id  SERIAL PRIMARY KEY,
+    nombre              TEXT                     NOT NULL,
+    creditaje_por_tema  NUMERIC(6, 2)            NOT NULL,
+    duracion_exposicion INTERVAL,
+    activo              BOOLEAN                  NOT NULL DEFAULT TRUE,
+    fecha_creacion      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion  TIMESTAMP WITH TIME ZONE
+);
+
 -- 1) Tabla parametro_configuracion
 CREATE TABLE IF NOT EXISTS parametro_configuracion (
     parametro_configuracion_id  SERIAL PRIMARY KEY,
@@ -543,6 +556,7 @@ CREATE TABLE IF NOT EXISTS carrera_parametro_configuracion (
     carrera_id                          INTEGER   NOT NULL,
     parametro_configuracion_id          INTEGER   NOT NULL,
 	-- si agregan el fk de etapa_formativa, no le pongan NOT NULL
+	etapa_formativa_id					INTEGER,
 
     CONSTRAINT fk_cpc_carrera
         FOREIGN KEY (carrera_id)
@@ -551,7 +565,11 @@ CREATE TABLE IF NOT EXISTS carrera_parametro_configuracion (
     CONSTRAINT fk_cpc_parametro_configuracion
         FOREIGN KEY (parametro_configuracion_id)
         REFERENCES parametro_configuracion (parametro_configuracion_id)
-        ON DELETE CASCADE
+        ON DELETE CASCADE,
+	CONSTRAINT fk_cpc_grupo
+		FOREIGN KEY (etapa_formativa_id)
+		REFERENCES etapa_formativa (etapa_formativa_id)
+		ON DELETE CASCADE
 );
 
 --- MODULO DE JURADOS
@@ -615,16 +633,6 @@ CREATE TABLE IF NOT EXISTS ciclo
     fecha_modificacion TIMESTAMP WITH TIME ZONE
 );
 
-CREATE TABLE IF NOT EXISTS etapa_formativa
-(
-    etapa_formativa_id  SERIAL PRIMARY KEY,
-    nombre              TEXT                     NOT NULL,
-    creditaje_por_tema  NUMERIC(6, 2)            NOT NULL,
-    duracion_exposicion INTERVAL,
-    activo              BOOLEAN                  NOT NULL DEFAULT TRUE,
-    fecha_creacion      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion  TIMESTAMP WITH TIME ZONE
-);
 
 CREATE TABLE IF NOT EXISTS estado_planificacion
 (
@@ -853,7 +861,7 @@ CREATE TABLE IF NOT EXISTS control_exposicion_usuario
 (
     control_exposicion_usuario_id SERIAL PRIMARY KEY,
     exposicion_x_tema_id          INTEGER                  NOT NULL,
-    usuario_x_tema_id             INTEGER                  NOT NULL,
+    usuario_tema_id             INTEGER                  NOT NULL,
     estado_exposicion_usuario     enum_estado_usuario_exposicion,
     observaciones_finales_exposicion TEXT,
     asistio                       BOOLEAN,
@@ -866,7 +874,7 @@ CREATE TABLE IF NOT EXISTS control_exposicion_usuario
             REFERENCES exposicion_x_tema (exposicion_x_tema_id)
             ON DELETE RESTRICT,
     CONSTRAINT fk_ceu_usuario_x_tema
-        FOREIGN KEY (usuario_x_tema_id)
+        FOREIGN KEY (usuario_tema_id)
             REFERENCES usuario_tema (usuario_tema_id)
             ON DELETE RESTRICT
 );
@@ -992,17 +1000,32 @@ CREATE TABLE IF NOT EXISTS criterio_entregable
             ON DELETE CASCADE
 );
 
-create type if not exists enum_presentation_room_type as enum (
-    'presential',
-    'virtual'
-);
+DO
+$$
+    BEGIN
+		create type enum_presentation_room_type as enum (
+		    'presential',
+		    'virtual'
+		);
+	EXCEPTION
+        WHEN duplicate_object THEN NULL;
+    END
+$$;
 
-CREATE TYPE IF NOT EXISTS enum_tipo_valor AS ENUM (
-    'STRING',
-    'DATE',
-    'INTEGER',
-    'BOOLEANO'
-);
+DO
+$$
+    BEGIN
+		CREATE TYPE enum_tipo_valor AS ENUM (
+		    'STRING',
+		    'DATE',
+		    'INTEGER',
+		    'BOOLEANO'
+		);
+	EXCEPTION
+        WHEN duplicate_object THEN NULL;
+    END
+$$;	
+
 CREATE TABLE IF NOT EXISTS entregable_x_tema
 (
     entregable_x_tema_id            SERIAL PRIMARY KEY,

@@ -43,4 +43,12 @@ public interface TemaRepository extends JpaRepository<Tema, Integer> {
     List<Object[]> listarSubAreasPorTema(
         @Param("tid") Integer temaId
     );
+
+    @Query(value = """
+        SELECT *
+          FROM obtener_temas_usuario_asesor(:id)
+        """, nativeQuery = true)
+    List<Object[]> listarTemasAsesorInvolucrado(
+            @Param("id") Integer asesorId
+    );
 }

@@ -32,9 +32,10 @@ public class UsuarioServiceImpl implements UsuarioService {
 	private final UsuarioRepository usuarioRepository;
 	private final UsuarioXSubAreaConocimientoRepository usuarioXSubAreaConocimientoRepository;
 	private final SubAreaConocimientoRepository subAreaConocimientoRepository;
-	private final AreaConocimientoRespository areaConocimientoRepository;
+	private final AreaConocimientoRepository areaConocimientoRepository;
 	private final UsuarioXAreaConocimientoRepository usuarioXAreaConocimientoRepository;
 	private final CarreraRepository carreraRepository;
+	private final UsuarioXTemaRepository usuarioXTemaRepository;
 
 	@PersistenceContext
     private EntityManager em;
@@ -42,14 +43,16 @@ public class UsuarioServiceImpl implements UsuarioService {
 	public UsuarioServiceImpl(UsuarioRepository usuarioRepository
 							, UsuarioXSubAreaConocimientoRepository usuarioXSubAreaConocimientoRepository
 							, SubAreaConocimientoRepository subAreaConocimientoRepository
-							, AreaConocimientoRespository areaConocimientoRepository
-							, UsuarioXAreaConocimientoRepository usuarioXAreaConocimientoRepository, CarreraRepository carreraRepository) {
+							, AreaConocimientoRepository areaConocimientoRepository
+							, UsuarioXAreaConocimientoRepository usuarioXAreaConocimientoRepository, CarreraRepository carreraRepository
+							,UsuarioXTemaRepository usuarioXTemaRepository) {
 		this.usuarioRepository = usuarioRepository;
 		this.usuarioXSubAreaConocimientoRepository = usuarioXSubAreaConocimientoRepository;
 		this.subAreaConocimientoRepository = subAreaConocimientoRepository;
 		this.areaConocimientoRepository = areaConocimientoRepository;
 		this.usuarioXAreaConocimientoRepository = usuarioXAreaConocimientoRepository;
 		this.carreraRepository = carreraRepository;
+		this.usuarioXTemaRepository = usuarioXTemaRepository;
 	}
 
 	@Override
@@ -129,6 +132,10 @@ public class UsuarioServiceImpl implements UsuarioService {
 		tmp.setTemasIntereses(subareas);
 		//TODO: El numero máximo de estudiantes
 		//TODO: La cantidad de alumnos por asesor
+		Integer cantTesistas ;
+		List<Object[]> tesistas =usuarioXTemaRepository.listarNumeroTesistasAsesor(id);//ASEGURADO sale 1 sola fila
+		cantTesistas = (Integer) tesistas.get(0)[0];
+		tmp.setTesistasActuales(cantTesistas);
 
 		return tmp;
 	}

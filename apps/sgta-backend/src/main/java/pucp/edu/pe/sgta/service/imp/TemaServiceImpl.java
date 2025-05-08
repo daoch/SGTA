@@ -4,10 +4,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
-import pucp.edu.pe.sgta.dto.HistorialTemaDto;
-import pucp.edu.pe.sgta.dto.SubAreaConocimientoDto;
-import pucp.edu.pe.sgta.dto.TemaDto;
-import pucp.edu.pe.sgta.dto.UsuarioDto;
+import pucp.edu.pe.sgta.dto.*;
 import pucp.edu.pe.sgta.mapper.TemaMapper;
 import pucp.edu.pe.sgta.mapper.UsuarioMapper;
 import pucp.edu.pe.sgta.model.*;
@@ -582,5 +579,31 @@ public class TemaServiceImpl implements TemaService {
 
 	private Integer calculatePostulaciones(Integer temaId) {
 		return listarUsuariosPorTemaYRol(temaId, RolEnum.Asesor.name()).size(); //asesores with asignado false
+	}
+
+	@Override
+	public List<InfoTemaPerfilDto> listarTemasAsesorInvolucrado(Integer asesorId) {
+		List<InfoTemaPerfilDto> temas = new ArrayList<>();
+		List<Object[]> resultQuery = temaRepository.listarTemasAsesorInvolucrado(asesorId);
+
+		for (Object[] t : resultQuery) {
+			InfoTemaPerfilDto dto = new InfoTemaPerfilDto();
+			dto.setId((Integer) t[0]);
+			dto.setTitulo((String) t[1]);
+			dto.setEstado((String) t[2]);
+			dto.setAnio((String) t[3]);
+
+			//Agregar a los tesistas
+			List<Object[]> resultTesistasQuery = usuarioXTemaRepository.listarTesistasTema(dto.getId());
+			List<String> tesistas = new ArrayList<>();
+			for (Object[] tesista : resultTesistasQuery) {
+				String nombreTesista = (String) tesista[0] + " " + (String) tesista[1];
+				tesistas.add(nombreTesista);
+			}
+			dto.setEstudiante(String.join(", ", tesistas));
+			//Añadir el nivel
+			temas.add(dto);
+		}
+		return temas;
 	}
 }

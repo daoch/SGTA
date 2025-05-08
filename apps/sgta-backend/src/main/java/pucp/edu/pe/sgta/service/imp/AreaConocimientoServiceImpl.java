@@ -10,8 +10,6 @@ import pucp.edu.pe.sgta.model.AreaConocimiento;
 import pucp.edu.pe.sgta.repository.AreaConocimientoRepository;
 import pucp.edu.pe.sgta.dto.InfoAreaConocimientoDto;
 import pucp.edu.pe.sgta.mapper.InfoAreaConocimientoMapper;
-import pucp.edu.pe.sgta.mapper.InfoSubAreaConocimientoMapper;
-import pucp.edu.pe.sgta.repository.AreaConocimientoRespository;
 import pucp.edu.pe.sgta.service.inter.AreaConocimientoService;
 
 import pucp.edu.pe.sgta.model.Carrera;
@@ -22,13 +20,11 @@ import java.util.List;
 public class AreaConocimientoServiceImpl implements AreaConocimientoService {
 
     private final AreaConocimientoRepository areaConocimientoRepository;
-    private final AreaConocimientoRespository areaConocimientoRespository;
     @PersistenceContext
     private EntityManager entityManager;
 
-    public AreaConocimientoServiceImpl(AreaConocimientoRepository areaConocimientoRepository, AreaConocimientoRespository areaConocimientoRespository) {
+    public AreaConocimientoServiceImpl(AreaConocimientoRepository areaConocimientoRepository) {
         this.areaConocimientoRepository = areaConocimientoRepository;
-        this.areaConocimientoRespository = areaConocimientoRespository;
     }
 
     //create
@@ -83,7 +79,7 @@ public class AreaConocimientoServiceImpl implements AreaConocimientoService {
 
     @Override
     public List<InfoAreaConocimientoDto> listarInfoPorNombre(String nombre) {
-        return areaConocimientoRespository.findByNombreContainingIgnoreCaseAndActivoIsTrue(nombre)
+        return areaConocimientoRepository.findByNombreContainingIgnoreCaseAndActivoIsTrue(nombre)
                 .stream()
                 .map(InfoAreaConocimientoMapper::toDto).
                 toList();
