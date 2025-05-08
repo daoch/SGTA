@@ -1,13 +1,16 @@
 package pucp.edu.pe.sgta.service.imp;
 
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import pucp.edu.pe.sgta.dto.ExposicionDto;
 import pucp.edu.pe.sgta.mapper.ExposicionMapper;
+import pucp.edu.pe.sgta.model.EtapaFormativaXCiclo;
 import pucp.edu.pe.sgta.model.Exposicion;
 import pucp.edu.pe.sgta.repository.ExposicionRepository;
 import pucp.edu.pe.sgta.service.inter.ExposicionService;
-
+import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ExposicionServiceImpl implements ExposicionService {
@@ -18,32 +21,68 @@ public class ExposicionServiceImpl implements ExposicionService {
     }
 
     @Override
+    public List<ExposicionDto> listarExposicionesXEtapaFormativaXCiclo(Integer etapaFormativaXCicloId) {
+
+        List<Object[]> resultados = exposicionRepository.listarExposicionesXEtapaFormativaXCiclo(etapaFormativaXCicloId);
+        return resultados.stream()
+                .map(resultado -> new ExposicionDto(
+                        ((Number) resultado[0]).intValue(), //id
+                        ((Number) resultado[1]).intValue(), // id etapa formativa x ciclo
+                        (String) resultado[2], // nombre
+                        (String) resultado[3], // descripcion
+                        ((Number) resultado[4]).intValue() // id estado planificacion
+                ))
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public List<ExposicionDto> getAll() {
-        return List.of();
+        List<Exposicion> exposiciones = exposicionRepository.findAll();
+        return exposiciones.stream().map(ExposicionMapper::toDto).collect(Collectors.toList());
     }
 
     @Override
     public ExposicionDto findById(Integer id) {
-        Exposicion exposicion = exposicionRepository.findById(id).orElse(null);
-        if (exposicion != null) {
-            return ExposicionMapper.toDto(exposicion);
-        }
-        return null;
+        return exposicionRepository.findById(id)
+                .map(ExposicionMapper::toDto)
+                .orElse(null);
     }
 
+    @Transactional
     @Override
-    public void create(ExposicionDto dto) {
+    public Integer create(Integer etapaFormativaXCicloId, ExposicionDto dto) {
+        dto.setId(null);
+        Exposicion exposicion = ExposicionMapper.toEntity(dto);
+        EtapaFormativaXCiclo efc =  new EtapaFormativaXCiclo();
+        efc.setId(etapaFormativaXCicloId);
+        exposicion.setEtapaFormativaXCiclo(efc);
+        exposicion.setFechaCreacion(OffsetDateTime.now());
 
+        exposicionRepository.save(exposicion);
+        return exposicion.getId();
     }
 
+    @Transactional
     @Override
     public void update(ExposicionDto dto) {
+        Exposicion exposicionToUpdate = exposicionRepository.findById(dto.getId())
+                .orElseThrow(() -> new RuntimeException("Exposicion no encontrada con ID: " + dto.getId()));
+
+        exposicionToUpdate.setNombre(dto.getNombre());
+        exposicionToUpdate.setDescripcion(dto.getDescripcion());
+        exposicionToUpdate.setFechaModificacion(OffsetDateTime.now());
+        exposicionRepository.save(exposicionToUpdate);
 
     }
 
     @Override
     public void delete(Integer id) {
+        Exposicion exposicionToDelete = exposicionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Exposicion no encontrada con ID: " + id));
 
+        exposicionToDelete.setActivo(false);
+        exposicionToDelete.setFechaModificacion(OffsetDateTime.now());
+        exposicionRepository.save(exposicionToDelete);
     }
 
 }

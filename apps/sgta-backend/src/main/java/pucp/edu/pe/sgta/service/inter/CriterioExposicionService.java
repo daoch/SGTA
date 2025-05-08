@@ -7,9 +7,11 @@ import pucp.edu.pe.sgta.dto.CriterioExposicionDto;
 public interface CriterioExposicionService {
     List<CriterioExposicionDto> getAll();
 
+    List<CriterioExposicionDto> listarCriteriosExposicionXExposicion(Integer exposicionId);
+
     CriterioExposicionDto findById(Integer id);
 
-    void create(CriterioExposicionDto dto);
+    Integer create(Integer criterioExposicionId,CriterioExposicionDto dto);
 
     void update(CriterioExposicionDto dto);
 

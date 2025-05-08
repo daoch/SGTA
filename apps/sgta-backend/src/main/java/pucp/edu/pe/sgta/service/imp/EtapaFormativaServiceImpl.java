@@ -1,7 +1,7 @@
 package pucp.edu.pe.sgta.service.imp;
 
 import org.springframework.stereotype.Service;
-import pucp.edu.pe.sgta.dto.EtapaFormativaDTO;
+import pucp.edu.pe.sgta.dto.EtapaFormativaDto;
 import pucp.edu.pe.sgta.mapper.EtapaFormativaMapper;
 import pucp.edu.pe.sgta.model.EtapaFormativa;
 import pucp.edu.pe.sgta.repository.EtapaFormativaRepository;
@@ -19,12 +19,12 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
     }
 
     @Override
-    public List<EtapaFormativaDTO> getAll() {
+    public List<EtapaFormativaDto> getAll() {
         return List.of();
     }
 
     @Override
-    public EtapaFormativaDTO findById(Integer id) {
+    public EtapaFormativaDto findById(Integer id) {
         EtapaFormativa etapaFormativa = etapaFormativaRepository.findById(id).orElse(null);
         if (etapaFormativa != null) {
             return EtapaFormativaMapper.toDto(etapaFormativa);
@@ -33,12 +33,12 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
     }
 
     @Override
-    public void create(EtapaFormativaDTO dto) {
+    public void create(EtapaFormativaDto dto) {
 
     }
 
     @Override
-    public void update(EtapaFormativaDTO dto) {
+    public void update(EtapaFormativaDto dto) {
 
     }
 
