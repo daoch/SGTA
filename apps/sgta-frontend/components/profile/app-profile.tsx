@@ -8,9 +8,9 @@ export default function AppProfile() {
 
   const roles = user.roles || [];
 
-  //if (roles.includes("asesor")) {
-  return <PerfilAsesorEditable />;
-  //}
+  if (roles.includes("asesor")) {
+    return <PerfilAsesorEditable />;
+  }
 
   // Puedes cambiar esto por un componente de fallback, loading o mensaje personalizado
   return null;
