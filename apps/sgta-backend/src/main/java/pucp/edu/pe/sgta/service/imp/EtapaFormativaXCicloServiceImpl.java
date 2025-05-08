@@ -1,7 +1,7 @@
 package pucp.edu.pe.sgta.service.imp;
 
 import org.springframework.stereotype.Service;
-import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloDTO;
+import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloDto;
 import pucp.edu.pe.sgta.mapper.EtapaFormativaXCicloMapper;
 import pucp.edu.pe.sgta.model.EtapaFormativaXCiclo;
 import pucp.edu.pe.sgta.repository.EtapaFormativaXCicloRepository;
@@ -19,12 +19,12 @@ public class EtapaFormativaXCicloServiceImpl implements EtapaFormativaXCicloServ
     }
 
     @Override
-    public List<EtapaFormativaXCicloDTO> getAll() {
+    public List<EtapaFormativaXCicloDto> getAll() {
         return List.of();
     }
 
     @Override
-    public EtapaFormativaXCicloDTO findById(Integer id) {
+    public EtapaFormativaXCicloDto findById(Integer id) {
         EtapaFormativaXCiclo etapaFormativaXCiclo = etapaFormativaXCicloRepository.findById(id).orElse(null);
         if (etapaFormativaXCiclo != null) {
             return EtapaFormativaXCicloMapper.toDto(etapaFormativaXCiclo);
@@ -33,12 +33,12 @@ public class EtapaFormativaXCicloServiceImpl implements EtapaFormativaXCicloServ
     }
 
     @Override
-    public void create(EtapaFormativaXCicloDTO dto) {
+    public void create(EtapaFormativaXCicloDto dto) {
 
     }
 
     @Override
-    public void update(EtapaFormativaXCicloDTO dto) {
+    public void update(EtapaFormativaXCicloDto dto) {
 
     }
 
