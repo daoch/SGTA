@@ -32,6 +32,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Download, FileSpreadsheet, BarChartHorizontal, PieChart } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import axiosInstance from "@/lib/axios/axios-instance";
+
 
 type AdvisorPerformance = {
   name: string;
@@ -86,91 +88,118 @@ export function CoordinatorReports() {
   const [selectedDistributionChart, setSelectedDistributionChart] = useState("advisors");
 
   useEffect(() => {
-    setLoadingTopicsByArea(true);
-    fetch(`http://localhost:5001/api/v1/reports/topics-areas?usuarioId=3&ciclo=${semesterFilter}`)
-      .then(res => res.json())
-      .then(data => {
-        // Normaliza los datos aquí
-        const arr = Array.isArray(data) ? data : [];
+    const fetchTopicsAreas = async () => {
+      try {
+        setLoadingTopicsByArea(true);
+        const response = await axiosInstance.get(`/api/v1/reports/topics-areas?usuarioId=3&ciclo=${semesterFilter}`);
+        const arr = Array.isArray(response.data) ? response.data : [];
         const normalized = arr.map((item: { areaName: string; topicCount: number }) => ({
           area: item.areaName,
           count: item.topicCount,
         }));
         setThesisTopicsByArea(normalized);
-      })
-      .finally(() => setLoadingTopicsByArea(false));
-  }, [semesterFilter]);
+      } catch (error) {
+        console.log("Error al cargar los temas por area:", error);
+        setThesisTopicsByArea([]);
 
-  useEffect(() => {
-    setLoadingAdvisorDistribution(true);
-    fetch(`http://localhost:5001/api/v1/reports/advisors-distribution?usuarioId=3&ciclo=${semesterFilter}`)
-      .then(res => res.json())
-      .then((data: { teacherName: string; count: number; department: string }[]) => {
-        setAdvisorDistribution(data.map(item => ({
+      } finally {
+        setLoadingTopicsByArea(false);
+      }
+    };
+
+    const fetchAdvisorsDistribution = async () => {
+      try {
+        setLoadingAdvisorDistribution(true);
+        const response = await axiosInstance.get(`/api/v1/reports/advisors-distribution?usuarioId=3&ciclo=${semesterFilter}`);
+        setAdvisorDistribution(response.data.map(item => ({
           name: item.teacherName,
           count: item.count,
           department: item.department,
         })));
-      })
-      .finally(() => setLoadingAdvisorDistribution(false));
-  }, [semesterFilter]);
 
-  useEffect(() => {
-    setLoadingJuryDistribution(true);
-    fetch(`http://localhost:5001/api/v1/reports/jurors-distribution?usuarioId=3&ciclo=${semesterFilter}`)
-      .then(res => res.json())
-      .then((data: { teacherName: string; count: number; department: string }[]) => {
-        setJuryDistribution(data.map(item => ({
+      } catch (error) {
+        console.log("Error al cargar las distribuciones por asesor:", error);
+      } finally {
+        setLoadingAdvisorDistribution(false);
+      }
+    };
+
+    const fetchJurorsDistribution = async () => {
+      try {
+        setLoadingJuryDistribution(true);
+        const response = await axiosInstance.get(`/api/v1/reports/jurors-distribution?usuarioId=3&ciclo=${semesterFilter}`);
+        setJuryDistribution(response.data.map(item => ({
           name: item.teacherName,
           count: item.count,
           department: item.department,
         })));
-      })
-      .finally(() => setLoadingJuryDistribution(false));
+
+      } catch (error) {
+        console.log("Error al cargar las distribuciones por jurado:", error);
+      } finally {
+        setLoadingJuryDistribution(false);
+      }
+    };
+
+    const fetchAdvisorPerformance = async () => {
+      try {
+        setLoadingAdvisorPerformance(true);
+        const response = await axiosInstance.get(`/api/v1/reports/advisors/performance?usuarioId=3&ciclo=${semesterFilter}`);
+
+        const arr = Array.isArray(response.data) ? response.data : [];
+        setAdvisorPerformance(
+            arr.map((item) => ({
+              name: item.advisorName,
+              department: item.areaName,
+              progress: item.performancePercentage,
+              students: item.totalStudents,
+            }))
+        );
+
+      } catch (error) {
+        console.log("Error al cargar el desempeño:", error);
+        setAdvisorPerformance([]);
+      } finally {
+        setLoadingAdvisorPerformance(false);
+      }
+    };
+
+    fetchTopicsAreas();
+    fetchAdvisorsDistribution();
+    fetchJurorsDistribution();
+    fetchAdvisorPerformance();
   }, [semesterFilter]);
 
   useEffect(() => {
-    setLoadingLineChart(true);
-    fetch(`http://localhost:5001/api/v1/reports/topics-trends?usuarioId=3`)
-      .then(res => res.json())
-      .then((data: { areaName: string; year: number; topicCount: number }[]) => {
-        // 1. Obtener todos los años y áreas únicos
-        const years = Array.from(new Set(data.map(item => item.year))).sort();
-        const areas = Array.from(new Set(data.map(item => item.areaName)));
+    const fetchTopicTrends = async () => {
+      try {
+        setLoadingJuryDistribution(true);
+        const response = await axiosInstance.get("/api/v1/reports/topics-trends?usuarioId=3");
+        const years = Array.from(new Set(response.data.map(item => item.year))).sort();
+        const areas = Array.from(new Set(response.data.map(item => item.areaName)));
 
         // 2. Construir la estructura para recharts
         const result = years.map(year => {
-          const entry: any = { name: year.toString() };
+          const entry = { name: year.toString() };
           areas.forEach(area => {
             // Busca si hay un registro para este año y área
-            const found = data.find(item => item.year === year && item.areaName === area);
+            const found = response.data.find(item => item.year === year && item.areaName === area);
             entry[area] = found ? found.topicCount : 0;
           });
           return entry;
         });
 
         setLineChartData(result);
-      })
-      .finally(() => setLoadingLineChart(false));
+
+      } catch (error) {
+        console.error("Error al cargar los temas por area:", error);
+      } finally {
+        setLoadingLineChart(false);
+      }
+    };
+    fetchTopicTrends();
   }, []);
 
-  useEffect(() => {
-    setLoadingAdvisorPerformance(true);
-    fetch(`http://localhost:5001/api/v1/reports/advisors/performance?usuarioId=3&ciclo=${semesterFilter}`)
-      .then(res => res.json())
-      .then((data) => {
-        const arr = Array.isArray(data) ? data : [];
-        setAdvisorPerformance(
-          arr.map((item) => ({
-            name: item.advisorName,
-            department: item.areaName,
-            progress: item.performancePercentage,
-            students: item.totalStudents,
-          }))
-        );
-      })
-      .finally(() => setLoadingAdvisorPerformance(false));
-  }, [semesterFilter]);
 
   const areaNames = lineChartData.length > 0
     ? Object.keys(lineChartData[0]).filter(key => key !== "name")
@@ -408,7 +437,7 @@ export function CoordinatorReports() {
                                 value: `${toTitleCase(item.area)} (${item.count})`,
                                 color: COLORS[index % COLORS.length],
                               }))}
-                            />  
+                            />
                           </RechartsPieChart>
                         </ResponsiveContainer>
                       )}
@@ -590,28 +619,32 @@ export function CoordinatorReports() {
                 </div>
               )}
 
-              <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
-         
-                <div>
-                  <h3 className="text-sm font-medium mb-2">Comparativa de Eficiencia</h3>
-                  <ResponsiveContainer width="100%" height={150}>
-                    <RechartsBarChart data={advisorPerformance} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" tickFormatter={toTitleCase} />
-                      <YAxis yAxisId="left" orientation="left" stroke="#002855" tick={{ fontSize: 10 }} />
-                      <YAxis yAxisId="right" orientation="right" stroke="#006699" tick={{ fontSize: 10 }} />
-                      <Tooltip />
-                      <Legend wrapperStyle={{ fontSize: "10px" }} />
-                      <Bar yAxisId="left" dataKey="progress" name="Progreso (%)" fill="#002855" />
-                      <Bar yAxisId="right" dataKey="students" name="Tesistas" fill="#006699" />
-                    </RechartsBarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
+              {advisorPerformance.length > 0 && (
+                  <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div>
+                      <h3 className="text-sm font-medium mb-2">Comparativa de Eficiencia</h3>
+                      <ResponsiveContainer width="100%" height={150}>
+                        <RechartsBarChart data={advisorPerformance} margin={{top: 5, right: 30, left: 0, bottom: 5}}>
+                          <CartesianGrid strokeDasharray="3 3"/>
+                          <XAxis dataKey="name" tickFormatter={toTitleCase}/>
+                          <YAxis yAxisId="left" orientation="left" stroke="#002855" tick={{fontSize: 10}}/>
+                          <YAxis yAxisId="right" orientation="right" stroke="#006699" tick={{fontSize: 10}}/>
+                          <Tooltip/>
+                          <Legend wrapperStyle={{fontSize: "10px"}}/>
+                          <Bar yAxisId="left" dataKey="progress" name="Progreso (%)" fill="#002855"/>
+                          <Bar yAxisId="right" dataKey="students" name="Tesistas" fill="#006699"/>
+                        </RechartsBarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+              )}
+
+
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
     </div>
+
   );
 }
