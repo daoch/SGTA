@@ -27,8 +27,8 @@ public class Tema {
 	@Column(length = 255, nullable = false)
 	private String titulo;
 
-    @Column(columnDefinition = "TEXT")
-    private String resumen;
+	@Column(columnDefinition = "TEXT")
+	private String resumen;
 
     @Column(columnDefinition = "TEXT")
     private String objetivos;

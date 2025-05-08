@@ -1,5 +1,6 @@
 package pucp.edu.pe.sgta.service.inter;
 
+import pucp.edu.pe.sgta.dto.InfoTemaPerfilDto;
 import pucp.edu.pe.sgta.dto.SubAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.TemaDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
@@ -58,5 +59,6 @@ public interface TemaService {
 	List<TemaDto> listarPostulacionesDirectasAMisPropuestas(Integer tesistaId);
 
 	List<TemaDto> listarPostulacionesGeneralesAMisPropuestas(Integer tesistaId);
+	List<InfoTemaPerfilDto> listarTemasAsesorInvolucrado(Integer temaId);
 
 }
