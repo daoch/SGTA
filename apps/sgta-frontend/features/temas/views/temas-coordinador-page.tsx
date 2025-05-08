@@ -7,10 +7,19 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { DropdownMenu, DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+} from "@radix-ui/react-dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TemasTable } from "../components/asesor/temas-table";
-import { DropdownMenuContent, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import React from "react";
 import { Input } from "@/components/ui/input";
@@ -23,7 +32,7 @@ enum TabValues {
 }
 
 const TemasCoordinadorPage = () => {
-  const [position, setPosition] = React.useState("bottom")
+  const [position, setPosition] = React.useState("bottom");
 
   return (
     <div className="space-y-8 mt-4">
@@ -37,7 +46,7 @@ const TemasCoordinadorPage = () => {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between gap-4">
-            <Input placeholder="Buscar por título, estudiante o asesor..."/>
+            <Input placeholder="Buscar por título, estudiante o asesor..." />
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -46,10 +55,17 @@ const TemasCoordinadorPage = () => {
               <DropdownMenuContent className="w-56">
                 <DropdownMenuLabel>Panel Position</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuRadioGroup value={position} onValueChange={setPosition}>
+                <DropdownMenuRadioGroup
+                  value={position}
+                  onValueChange={setPosition}
+                >
                   <DropdownMenuRadioItem value="top">Top</DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="bottom">Bottom</DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="right">Right</DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="bottom">
+                    Bottom
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="right">
+                    Right
+                  </DropdownMenuRadioItem>
                 </DropdownMenuRadioGroup>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -61,17 +77,28 @@ const TemasCoordinadorPage = () => {
               <DropdownMenuContent className="w-56">
                 <DropdownMenuLabel>Panel Position</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuRadioGroup value={position} onValueChange={setPosition}>
+                <DropdownMenuRadioGroup
+                  value={position}
+                  onValueChange={setPosition}
+                >
                   <DropdownMenuRadioItem value="top">Top</DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="bottom">Bottom</DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="right">Right</DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="bottom">
+                    Bottom
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="right">
+                    Right
+                  </DropdownMenuRadioItem>
                 </DropdownMenuRadioGroup>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
         </CardHeader>
         <CardContent>
-          <TemasTable filter={TabValues.INSCRITOS} showPostulaciones = {false} showTipo = {false}/>
+          <TemasTable
+            filter={TabValues.INSCRITOS}
+            showPostulaciones={false}
+            showTipo={false}
+          />
         </CardContent>
       </Card>
     </div>
