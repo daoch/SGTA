@@ -83,7 +83,7 @@ export default function PerfilAsesorCard({
               <Linkedin className="h-4 w-4 mr-2 text-gray-500" />
               <Input
                 id="linkedin"
-                value={editedData.linkedin ?? "Sin registro"}
+                value={editedData.linkedin ?? ""}
                 onChange={(e) =>
                   setEditedData({ ...editedData, linkedin: e.target.value })
                 }
@@ -93,18 +93,14 @@ export default function PerfilAsesorCard({
           </div>
 
           <div>
-            <Label htmlFor="repositorio" className="mb-2 block">
-              Texto del repositorio
+            <Label htmlFor="linkedin" className="mb-2 block">
+              Enlace a repositorio
             </Label>
             <div className="flex items-center">
               <FileText className="h-4 w-4 mr-2 text-gray-500" />
               <Input
                 id="repositorio"
-                value={
-                  editedData.repositorio?.trim()
-                    ? editedData.repositorio
-                    : "Sin registro"
-                }
+                value={editedData.repositorio ?? ""}
                 onChange={(e) =>
                   setEditedData({ ...editedData, repositorio: e.target.value })
                 }

@@ -146,7 +146,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 			throw new RuntimeException("Usuario no encontrado con ID: " + perfilAsesorDto.getId());
 		}
 		user.setEnlaceLinkedin(perfilAsesorDto.getLinkedin());
-		user.setEnlaceRepositorio(user.getEnlaceRepositorio());
+		user.setEnlaceRepositorio(perfilAsesorDto.getRepositorio());
 		user.setCorreoElectronico(perfilAsesorDto.getEmail());
 		user.setBiografia(perfilAsesorDto.getBiografia());
 

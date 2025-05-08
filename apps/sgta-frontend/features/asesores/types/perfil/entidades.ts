@@ -14,7 +14,7 @@ export interface AreaTematica {
 export interface TemaInteres {
   idTema: number;
   nombre: string;
-  area: AreaTematica;
+  areaTematica: AreaTematica;
 }
 
 export interface Asesor {
@@ -32,15 +32,17 @@ export interface Asesor {
   estado?: number | null;
 }
 
-export interface AsesorEdited {
+export interface AsesorDTO {
+  idAsesor: number;
   nombre: string;
   especialidad: string;
   email: string;
   linkedin: string | null;
   repositorio: string | null;
   biografia: string | null;
-  disponible: boolean;
+  estado: boolean | null;
   limiteTesis: number | null;
+  tesistasActuales: number | null;
   areasTematicas: AreaTematica[];
   temasIntereses: TemaInteres[];
 }

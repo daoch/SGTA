@@ -5,6 +5,7 @@ import { toast } from "sonner";
 
 import EditarPerfilActions from "../components/acciones-editar-perfil";
 import AreasTematicasCard from "../components/areas-tematicas-card";
+import SaveConfirmationDialog from "../components/confirmation-dialog";
 import AlertaValidacionDialog from "../components/modal-alerta-validacion-areas";
 import EliminarAreaDialog from "../components/modal-eliminar-area-con-temas";
 import PerfilAsesorCard from "../components/perfil-asesor-card";
@@ -13,13 +14,18 @@ import TemasInteresCard from "../components/subareas-tematicas-card";
 import TesisDirigidasResumen from "../components/tesis-dirigidas-resumen";
 
 import {
-  getAreasDisponibles,
-  getTemasDisponibles,
-} from "../mocks/perfil/asesor-mock";
+  editarAsesor,
+  getPerfilAsesor,
+  listarAreasTematicas,
+  listarTemasInteres,
+} from "@/features/asesores/hooks/perfil/perfil-apis";
 
-import { getPerfilAsesor } from "@/features/asesores/hooks/perfil/perfil-apis";
-
-import { AreaTematica, Asesor, TemaInteres } from "../types/perfil/entidades";
+import {
+  AreaTematica,
+  Asesor,
+  AsesorDTO,
+  TemaInteres,
+} from "../types/perfil/entidades";
 
 import { useAuth } from "@/features/auth";
 
@@ -44,6 +50,8 @@ export default function PerfilAsesorEditable() {
     null,
   );
 
+  const [isLoading, setIsLoading] = useState(false);
+
   // Estado para el diálogo de confirmación de eliminación
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [areaToDelete, setAreaToDelete] = useState<AreaTematica | null>(null);
@@ -51,6 +59,9 @@ export default function PerfilAsesorEditable() {
 
   // Estado para el diálogo de alerta de validación
   const [isValidationAlertOpen, setIsValidationAlertOpen] = useState(false);
+
+  // Estado para el diálogo de confirmación de guardado
+  const [isSaveConfirmationOpen, setIsSaveConfirmationOpen] = useState(false);
 
   useEffect(() => {
     getPerfilAsesor(+user.id).then(setAsesor).catch(console.error);
@@ -62,17 +73,29 @@ export default function PerfilAsesorEditable() {
     }
   }, [asesor]);
 
-  console.log("asesor", asesor);
-  console.log("editedData", editedData);
+  //useEffect(() => {
+  // Cargar los datos mockeados una vez al iniciar
+  //const asesorData = getAsesorMock();
+  //setAsesor(asesorData);
+  //setEditedData(asesorData);
+  // Cargar áreas y temas disponibles
+  //setAreasDisponibles(getAreasDisponibles());
+  //setTemasDisponibles(getTemasDisponibles());
+  //}, []);
 
   useEffect(() => {
-    // Cargar los datos mockeados una vez al iniciar
-    //const asesorData = getAsesorMock();
-    //setAsesor(asesorData);
-    //setEditedData(asesorData);
-    // Cargar áreas y temas disponibles
-    setAreasDisponibles(getAreasDisponibles());
-    setTemasDisponibles(getTemasDisponibles());
+    (async () => {
+      try {
+        const [allAreas, allTemas] = await Promise.all([
+          listarAreasTematicas(+user.id),
+          listarTemasInteres(+user.id),
+        ]);
+        setAreasDisponibles(allAreas);
+        setTemasDisponibles(allTemas);
+      } catch (e) {
+        console.error("Error al cargar filtros:", e);
+      }
+    })();
   }, []);
 
   // Efecto para resaltar visualmente un área recién agregada
@@ -105,14 +128,48 @@ export default function PerfilAsesorEditable() {
       setIsValidationAlertOpen(true);
       return;
     }
-
-    // Aquí se implementaría la lógica para guardar los cambios en la base de datos
-    setIsEditing(false);
+    setIsSaveConfirmationOpen(true);
   };
 
   const handleCancel = () => {
     setEditedData(asesor);
     setIsEditing(false);
+  };
+
+  const confirmSave = async () => {
+    try {
+      setIsLoading(true);
+
+      const asesorDTO: AsesorDTO = {
+        id: +user.id,
+        nombre: editedData.nombre,
+        especialidad: editedData.especialidad,
+        email: editedData.email,
+        linkedin: editedData.linkedin,
+        repositorio: editedData.repositorio,
+        biografia: editedData.biografia,
+        estado: null,
+        limiteTesis: editedData.limiteTesis,
+        tesistasActuales: editedData.tesis?.length ?? 0,
+        areasTematicas: editedData.areasTematicas,
+        temasIntereses: editedData.temasIntereses,
+      };
+
+      await editarAsesor(asesorDTO);
+
+      toast.success("Cambios guardados con éxito", {
+        description: "Tu perfil ha sido actualizado.",
+      });
+
+      setIsEditing(false);
+      setIsSaveConfirmationOpen(false);
+    } catch (error) {
+      toast.error("Error al guardar", {
+        description: "Ocurrió un error al intentar guardar los cambios.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const addAreaTematica = (area: AreaTematica) => {
@@ -133,7 +190,7 @@ export default function PerfilAsesorEditable() {
   const initiateAreaDelete = (area: AreaTematica) => {
     // Encontrar temas de interés relacionados con esta área
     const temasRelacionados = editedData.temasIntereses.filter(
-      (tema) => tema.area.idArea === area.idArea,
+      (tema) => tema.areaTematica.idArea === area.idArea,
     );
 
     if (temasRelacionados.length > 0) {
@@ -166,7 +223,7 @@ export default function PerfilAsesorEditable() {
 
       // Eliminar los temas de interés relacionados
       const newTemas = editedData.temasIntereses.filter(
-        (tema) => tema.area.idArea !== areaToDelete.idArea,
+        (tema) => tema.areaTematica.idArea !== areaToDelete.idArea,
       );
 
       setEditedData({
@@ -205,12 +262,13 @@ export default function PerfilAsesorEditable() {
 
       if (
         !editedData.areasTematicas.some(
-          (a) => a.idArea === selectedTema.area.idArea,
+          (a) => a.idArea === selectedTema.areaTematica.idArea,
         )
       ) {
         // Agregar el área temática relacionada
-        newAreas = [...newAreas, selectedTema.area];
-        setRecentlyAddedArea(selectedTema.area.idArea);
+        newAreas = [...newAreas, selectedTema.areaTematica];
+        //console.log("newAreas", newAreas);
+        setRecentlyAddedArea(selectedTema.areaTematica.idArea);
         areaAdded = true;
       }
 
@@ -223,7 +281,7 @@ export default function PerfilAsesorEditable() {
 
       if (areaAdded) {
         toast.info("Área temática agregada automáticamente", {
-          description: `Se ha agregado "${selectedTema.area.nombre}" porque está relacionada con el tema "${selectedTema.nombre}".`,
+          description: `Se ha agregado "${selectedTema.areaTematica.nombre}" porque está relacionada con el tema "${selectedTema.nombre}".`,
         });
       }
 
@@ -262,6 +320,13 @@ export default function PerfilAsesorEditable() {
         temasToDelete={temasToDelete}
         onCancel={cancelAreaDelete}
         onConfirm={confirmAreaDelete}
+      />
+
+      {/* Diálogo de confirmación para guardar cambios */}
+      <SaveConfirmationDialog
+        open={isSaveConfirmationOpen}
+        onOpenChange={setIsSaveConfirmationOpen}
+        onConfirm={confirmSave}
       />
 
       {/* Diálogo de alerta para validación */}

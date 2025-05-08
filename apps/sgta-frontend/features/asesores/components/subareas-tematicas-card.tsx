@@ -88,15 +88,15 @@ export default function TemasInteresCard({
                       No se encontraron temas de interés.
                     </CommandEmpty>
                     <CommandGroup className="max-h-60 overflow-auto">
-                      {temasFiltered.map((tema) => {
-                        const areaYaSeleccionada = editedAreasTematicas.some(
-                          (a) => a.idArea === tema.area.idArea,
+                      {(temasFiltered ?? []).map((tema) => {
+                        const areaYaSeleccionada = editedAreasTematicas?.some(
+                          (a) => a.idArea === tema.areaTematica?.idArea,
                         );
 
                         return (
                           <CommandItem
-                            key={tema.idTema}
-                            value={tema.nombre}
+                            key={tema?.idTema}
+                            value={tema?.nombre}
                             onSelect={() => {
                               setSelectedTema(
                                 selectedTema?.idTema === tema.idTema
@@ -123,7 +123,7 @@ export default function TemasInteresCard({
                                 variant="outline"
                                 className="ml-2 bg-yellow-100 text-yellow-800 text-xs"
                               >
-                                + {tema.area.nombre}
+                                + {tema.areaTematica.nombre}
                               </Badge>
                             )}
                           </CommandItem>
