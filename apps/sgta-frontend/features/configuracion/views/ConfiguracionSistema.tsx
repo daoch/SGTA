@@ -23,7 +23,7 @@ export default function ConfiguracionSistema() {
   useEffect(() => {
     const initializeData = async () => {
       try {
-        await cargarParametros(7); // ID de carrera hardcodeado
+        await cargarParametros(1); // ID de carrera hardcodeado
       } catch (error) {
         console.error("Error al inicializar datos:", error);
       }
