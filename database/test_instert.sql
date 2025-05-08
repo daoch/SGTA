@@ -267,8 +267,6 @@ INSERT INTO grupo_investigacion_proyecto (
 ) VALUES
   (1, 1, TRUE, NOW(), NOW());
 
-
--- No corregido
 -- (2) Parametro de configuración
 INSERT INTO parametro_configuracion (
   nombre,

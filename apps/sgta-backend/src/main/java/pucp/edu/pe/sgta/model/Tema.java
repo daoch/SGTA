@@ -27,8 +27,8 @@ public class Tema {
 	@Column(length = 255, nullable = false)
 	private String titulo;
 
-    @Column(columnDefinition = "TEXT")
-    private String resumen;
+	@Column(columnDefinition = "TEXT")
+	private String resumen;
 
     @Column(columnDefinition = "TEXT")
     private String objetivos;
@@ -63,6 +63,8 @@ public class Tema {
 
 	@Column(nullable = false)
 	private Boolean activo = true;
+
+
 
 	@Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
 	private OffsetDateTime fechaCreacion;

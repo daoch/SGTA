@@ -169,11 +169,11 @@ INSERT INTO etapa_formativa (
   fecha_modificacion,
   carrera_id
 ) VALUES
-  ('Proyecto de fin de carrera 1', 
-   4.5, 
+  ('Proyecto de fin de carrera 1',
+   4.5,
    INTERVAL '20 minutes',
-   TRUE, 
-   NOW(), 
+   TRUE,
+   NOW(),
    NOW(),
    1
    );
@@ -187,14 +187,239 @@ INSERT INTO etapa_formativa (
   fecha_modificacion,
   carrera_id
 ) VALUES
-  ('Proyecto de fin de carrera 2', 
-   4.0, 
+  ('Proyecto de fin de carrera 2',
+   4.0,
    INTERVAL '20 minutes',
-   TRUE, 
-   NOW(), 
+   TRUE,
+   NOW(),
    NOW(),
    1
    );
+
+INSERT INTO sala_exposicion (
+  sala_exposicion_id,
+  nombre,
+  activo,
+  tipo_sala_exposicion,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  (1, 
+  'V201', 
+  TRUE, 
+  'presencial', 
+  NOW(), 
+  NOW());
+
+INSERT INTO sala_exposicion (
+  sala_exposicion_id,
+  nombre,
+  activo,
+  tipo_sala_exposicion,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  (2, 
+  'V202', 
+  TRUE, 
+  'presencial', 
+  NOW(), 
+  NOW());
+
+INSERT INTO sala_exposicion (
+  sala_exposicion_id,
+  nombre,
+  activo,
+  tipo_sala_exposicion,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  (3, 
+  'V203', 
+  TRUE, 
+  'presencial', 
+  NOW(), 
+  NOW());
+
+INSERT INTO sala_exposicion (
+  sala_exposicion_id,
+  nombre,
+  activo,
+  tipo_sala_exposicion,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  (4, 
+  'V204', 
+  TRUE, 
+  'presencial', 
+  NOW(), 
+  NOW());
+
+INSERT INTO sala_exposicion (
+  sala_exposicion_id,
+  nombre,
+  activo,
+  tipo_sala_exposicion,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  (5, 
+  'SALA VIRTUAL 001', 
+  TRUE, 
+  'virtual', 
+  NOW(), 
+  NOW());
+
+INSERT INTO sala_exposicion (
+  sala_exposicion_id,
+  nombre,
+  activo,
+  tipo_sala_exposicion,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  (6, 
+  'SALA VIRTUAL 002', 
+  TRUE, 
+  'virtual', 
+  NOW(), 
+  NOW());
+  
+INSERT INTO sala_exposicion (
+  sala_exposicion_id,
+  nombre,
+  activo,
+  tipo_sala_exposicion,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  (7, 
+  'SALA VIRTUAL 003', 
+  TRUE, 
+  'virtual', 
+  NOW(), 
+  NOW());
+
+INSERT INTO etapa_formativa_x_sala_exposicion (
+  etapa_formativa_x_sala_id,
+  etapa_formativa_id,
+  sala_exposicion_id,
+  activo,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  (1, 
+  1,
+  1, 
+  TRUE, 
+  NOW(), 
+  NOW());
+
+INSERT INTO etapa_formativa_x_sala_exposicion (
+  etapa_formativa_x_sala_id,
+  etapa_formativa_id,
+  sala_exposicion_id,
+  activo,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  (2, 
+  1,
+  2, 
+  TRUE, 
+  NOW(), 
+  NOW());
+
+INSERT INTO etapa_formativa_x_sala_exposicion (
+  etapa_formativa_x_sala_id,
+  etapa_formativa_id,
+  sala_exposicion_id,
+  activo,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  (3, 
+  1,
+  3, 
+  TRUE, 
+  NOW(), 
+  NOW());
+
+INSERT INTO etapa_formativa_x_sala_exposicion (
+  etapa_formativa_x_sala_id,
+  etapa_formativa_id,
+  sala_exposicion_id,
+  activo,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  (4, 
+  1,
+  5, 
+  TRUE, 
+  NOW(), 
+  NOW());
+
+INSERT INTO etapa_formativa_x_sala_exposicion (
+  etapa_formativa_x_sala_id,
+  etapa_formativa_id,
+  sala_exposicion_id,
+  activo,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  (5, 
+  2,
+  1, 
+  TRUE, 
+  NOW(), 
+  NOW());
+
+INSERT INTO etapa_formativa_x_sala_exposicion (
+  etapa_formativa_x_sala_id,
+  etapa_formativa_id,
+  sala_exposicion_id,
+  activo,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  (6, 
+  2,
+  2, 
+  TRUE, 
+  NOW(), 
+  NOW());
+
+INSERT INTO etapa_formativa_x_sala_exposicion (
+  etapa_formativa_x_sala_id,
+  etapa_formativa_id,
+  sala_exposicion_id,
+  activo,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  (7, 
+  2,
+  6, 
+  TRUE, 
+  NOW(), 
+  NOW());
+
+INSERT INTO etapa_formativa_x_sala_exposicion (
+  etapa_formativa_x_sala_id,
+  etapa_formativa_id,
+  sala_exposicion_id,
+  activo,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  (8, 
+  2,
+  7, 
+  TRUE, 
+  NOW(), 
+  NOW());
 
 INSERT INTO ciclo (
   semestre,
@@ -209,8 +434,8 @@ INSERT INTO ciclo (
    2025,
    '2025-03-21',
    '2025-07-15',
-   TRUE, 
-   NOW(), 
+   TRUE,
+   NOW(),
    NOW());
 
 INSERT INTO etapa_formativa_x_ciclo (
@@ -222,8 +447,8 @@ INSERT INTO etapa_formativa_x_ciclo (
 ) VALUES
   (1,
    1,
-   TRUE, 
-   NOW(), 
+   TRUE,
+   NOW(),
    NOW());
 
 -- Entregables
@@ -245,8 +470,8 @@ INSERT INTO entregable (
    '2025-04-01',
    '2025-04-10',
    TRUE,
-   TRUE, 
-   NOW(), 
+   TRUE,
+   NOW(),
    NOW());
 
 INSERT INTO criterio_entregable (
@@ -262,8 +487,8 @@ INSERT INTO criterio_entregable (
    'Redaccion',
    5,
    'Redaccion del documento',
-   TRUE, 
-   NOW(), 
+   TRUE,
+   NOW(),
    NOW());
 
 -- Exposiciones
@@ -320,7 +545,7 @@ WITH nuevo_parametro AS (
   ) VALUES (
       'antiplagio',
       'Configure la opcion de revision antiplagio',
-      4, true, NOW(), NOW(), 'BOOLEANO'
+      4, true, NOW(), NOW(), 'boolean'
   ) RETURNING parametro_configuracion_id
 )
 INSERT INTO carrera_parametro_configuracion (
@@ -335,7 +560,7 @@ WITH nuevo_parametro AS (
   ) VALUES (
       'turnitin',
       'Configure la opcion de revision turnitin',
-      4, true, NOW(), NOW(), 'BOOLEANO'
+      4, true, NOW(), NOW(), 'boolean'
   ) RETURNING parametro_configuracion_id
 )
 INSERT INTO carrera_parametro_configuracion (
@@ -350,7 +575,7 @@ WITH nuevo_parametro AS (
   ) VALUES (
       'modalidad_delimitacion_tema',
       'Define delimitación de tema de tesis',
-      1, true, NOW(), NOW(), 'STRING'
+      1, true, NOW(), NOW(), 'string'
   ) RETURNING parametro_configuracion_id
 )
 INSERT INTO carrera_parametro_configuracion (
@@ -366,7 +591,7 @@ WITH nuevo_parametro AS (
   ) VALUES (
       'fecha_limite_asesor',
       'Establece la fecha máxima para cambios de asesor',
-      2, true, NOW(), NOW(), 'DATE'
+      2, true, NOW(), NOW(), 'date'
   ) RETURNING parametro_configuracion_id
 )
 INSERT INTO carrera_parametro_configuracion (
