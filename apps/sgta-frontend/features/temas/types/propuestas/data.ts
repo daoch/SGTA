@@ -6,7 +6,7 @@ import {
   SubAreaConocimiento,
   Usuario,
 } from "@/features/temas/types/propuestas/entidades";
-const baseUrl = process.env.BASE_URL;
+const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
 export async function fetchTemasPropuestosAlAsesor(
   asesorId: number,
