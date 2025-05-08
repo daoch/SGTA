@@ -1,15 +1,22 @@
-// features/asesores/hooks/useDirectorioAsesores.ts
 import { useState, useMemo } from 'react';
 import { profesoresMock } from '../services/profesores';
-import { FiltrosProfesores } from '../types';
+import { FiltrosProfesores, Profesor } from '../types';
 
 export function useDirectorioAsesores() {
   const [search, setSearch] = useState('');
   const [rolAsignado, setRolAsignado] = useState<FiltrosProfesores['rolAsignado']>('todos');
-  const [estado, setEstado] = useState<FiltrosProfesores['estado']>('todos');
+  const [profesores, setProfesores] = useState<Profesor[]>(profesoresMock);
+
+  const updateRoles = (id: string, nuevosRoles: ('asesor' | 'jurado')[]) => {
+    setProfesores(prev =>
+      prev.map(p =>
+        p.id === id ? { ...p, rolesAsignados: nuevosRoles } : p
+      )
+    );
+  };
 
   const profesoresFiltrados = useMemo(() => {
-    return profesoresMock.filter((p) => {
+    return profesores.filter((p) => {
       const coincideBusqueda =
         p.nombre.toLowerCase().includes(search.toLowerCase()) ||
         p.correo.toLowerCase().includes(search.toLowerCase()) ||
@@ -18,12 +25,9 @@ export function useDirectorioAsesores() {
       const coincideRol =
         rolAsignado === 'todos' || p.rolesAsignados.includes(rolAsignado);
 
-      const coincideEstado =
-        estado === 'todos' || p.estado === estado;
-
-      return coincideBusqueda && coincideRol && coincideEstado;
+      return coincideBusqueda && coincideRol;
     });
-  }, [search, rolAsignado, estado]);
+  }, [search, rolAsignado, profesores]);
 
   return {
     profesores: profesoresFiltrados,
@@ -31,7 +35,6 @@ export function useDirectorioAsesores() {
     setSearch,
     rolAsignado,
     setRolAsignado,
-    estado,
-    setEstado,
+    updateRoles,
   };
 }

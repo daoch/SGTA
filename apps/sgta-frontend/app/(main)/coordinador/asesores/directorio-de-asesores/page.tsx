@@ -21,17 +21,18 @@ export default function DirectorioAsesoresPage() {
     setSearch,
     rolAsignado,
     setRolAsignado,
-    estado,
-    setEstado,
+    updateRoles
   } = useDirectorioAsesores();
 
   return (
     <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-6">
       <Breadcrumb
         items={[
-        { label: "Personal Académico", href: "/coordinador/asesores" },
-        { label: "Directorio de Asesores" }]}
-        />
+          { label: 'Personal Académico', href: '/coordinador/asesores' },
+          { label: 'Directorio de Asesores' },
+        ]}
+      />
+
       <div>
         <h1 className="text-3xl font-bold tracking-tight mb-2">
           Directorio de Asesores
@@ -67,20 +68,6 @@ export default function DirectorioAsesoresPage() {
               </SelectContent>
             </Select>
           </div>
-
-          <div className="flex flex-col gap-1">
-            <Label htmlFor="estado">Estado</Label>
-            <Select value={estado} onValueChange={setEstado}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Seleccionar estado" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todos</SelectItem>
-                <SelectItem value="activo">Activo</SelectItem>
-                <SelectItem value="inactivo">Inactivo</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
         </div>
       </Card>
 
@@ -88,7 +75,7 @@ export default function DirectorioAsesoresPage() {
         Mostrando {profesores.length} resultado{profesores.length !== 1 && 's'} encontrados.
       </p>
 
-      <DirectorioAsesoresTable profesores={profesores} />
+      <DirectorioAsesoresTable profesores={profesores} onUpdateRoles={updateRoles} />
     </div>
   );
 }
