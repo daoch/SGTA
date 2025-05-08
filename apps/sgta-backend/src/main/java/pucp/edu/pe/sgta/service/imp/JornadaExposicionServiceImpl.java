@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import pucp.edu.pe.sgta.dto.JornadaExposicionCreateDTO;
 import pucp.edu.pe.sgta.dto.JornadaExposicionDto;
 import pucp.edu.pe.sgta.mapper.JornadaExposicionMapper;
 import pucp.edu.pe.sgta.model.JornadaExposicion;
@@ -33,8 +34,9 @@ public class JornadaExposicionServiceImpl implements JornadaExposicionService {
     }
 
     @Override
-    public void create(JornadaExposicionDto dto) {
-
+    public JornadaExposicionDto create(JornadaExposicionCreateDTO dto) {
+        JornadaExposicion je = jornadaExposicionRepository.save(JornadaExposicionMapper.toEntity(dto));
+        return JornadaExposicionMapper.toDto(je);
     }
 
     @Override

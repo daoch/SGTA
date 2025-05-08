@@ -1,5 +1,6 @@
 package pucp.edu.pe.sgta.service.inter;
 
+import pucp.edu.pe.sgta.dto.PerfilAsesorDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
 import java.util.List;
 
@@ -19,5 +20,8 @@ public interface UsuarioService {
 
 	List<UsuarioDto> findUsuariosByRolAndCarrera(String tipoUsuario, Integer idCarrera, String cadenaBusqueda);
 
+    PerfilAsesorDto getPerfilAsesor(Integer id);
+
+	void updatePerfilAsesor(PerfilAsesorDto perfilAsesorDto);
 
 }
