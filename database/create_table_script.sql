@@ -626,6 +626,11 @@ CREATE TABLE IF NOT EXISTS etapa_formativa
     activo              BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion  TIMESTAMP WITH TIME ZONE
+
+    carrera_id          INTEGER                  NOT NULL,
+    CONSTRAINT fk_area_conocimiento_carrera 
+        FOREIGN KEY (carrera_id) 
+        REFERENCES carrera(carrera_id)
 );
 
 CREATE TABLE IF NOT EXISTS estado_planificacion
