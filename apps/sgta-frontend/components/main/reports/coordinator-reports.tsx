@@ -214,7 +214,7 @@ export function CoordinatorReports() {
     : [];
   const areaColors = ["#002855", "#006699", "#0088cc", "#00aaff", "#33bbff", "#66ccff", "#99ddff"];
 
-  function toTitleCase(input: unknown):string {
+  function toTitleCase(input:string) {
     const str = String(input ?? "");
     const lowerWords = ["de", "la", "del", "y", "en", "a", "el", "los", "las", "por", "con", "para"];
     return str
