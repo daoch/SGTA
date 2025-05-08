@@ -1,5 +1,3 @@
-"use client";
-
 import PropuestasAsesorPage from "@/features/temas/views/propuestas-asesor-page";
 import React from "react";
 
