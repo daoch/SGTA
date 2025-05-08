@@ -1,0 +1,24 @@
+/* Archivo temporal hasta que se cree tailwind.config.js */
+:root {
+	--pucp-blue: #042354;
+	--pucp-light: #006699;
+	--pucp-gray: #e6e6e6;
+	--primary: #002855;
+	--primary-foreground: #FFFFFF;
+	--secondary: #006699;
+	--secondary-foreground: #FFFFFF;
+  }
+  
+  /* Aplicando Tailwind con colores personalizados */
+  .bg-pucp-blue {
+	background-color: var(--pucp-blue);
+  }
+  
+  .text-primary {
+	color: var(--primary);
+  }
+  
+  .text-primary-foreground {
+	color: var(--primary-foreground);
+  }
+  
