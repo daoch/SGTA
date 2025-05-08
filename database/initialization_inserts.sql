@@ -196,6 +196,231 @@ INSERT INTO etapa_formativa (
    1
    );
 
+INSERT INTO sala_exposicion (
+  sala_exposicion_id,
+  nombre,
+  activo,
+  tipo_sala_exposicion,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  (1, 
+  'V201', 
+  TRUE, 
+  'presencial', 
+  NOW(), 
+  NOW());
+
+INSERT INTO sala_exposicion (
+  sala_exposicion_id,
+  nombre,
+  activo,
+  tipo_sala_exposicion,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  (2, 
+  'V202', 
+  TRUE, 
+  'presencial', 
+  NOW(), 
+  NOW());
+
+INSERT INTO sala_exposicion (
+  sala_exposicion_id,
+  nombre,
+  activo,
+  tipo_sala_exposicion,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  (3, 
+  'V203', 
+  TRUE, 
+  'presencial', 
+  NOW(), 
+  NOW());
+
+INSERT INTO sala_exposicion (
+  sala_exposicion_id,
+  nombre,
+  activo,
+  tipo_sala_exposicion,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  (4, 
+  'V204', 
+  TRUE, 
+  'presencial', 
+  NOW(), 
+  NOW());
+
+INSERT INTO sala_exposicion (
+  sala_exposicion_id,
+  nombre,
+  activo,
+  tipo_sala_exposicion,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  (5, 
+  'SALA VIRTUAL 001', 
+  TRUE, 
+  'virtual', 
+  NOW(), 
+  NOW());
+
+INSERT INTO sala_exposicion (
+  sala_exposicion_id,
+  nombre,
+  activo,
+  tipo_sala_exposicion,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  (6, 
+  'SALA VIRTUAL 002', 
+  TRUE, 
+  'virtual', 
+  NOW(), 
+  NOW());
+  
+INSERT INTO sala_exposicion (
+  sala_exposicion_id,
+  nombre,
+  activo,
+  tipo_sala_exposicion,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  (7, 
+  'SALA VIRTUAL 003', 
+  TRUE, 
+  'virtual', 
+  NOW(), 
+  NOW());
+
+INSERT INTO etapa_formativa_x_sala_exposicion (
+  etapa_formativa_x_sala_id,
+  etapa_formativa_id,
+  sala_exposicion_id,
+  activo,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  (1, 
+  1,
+  1, 
+  TRUE, 
+  NOW(), 
+  NOW());
+
+INSERT INTO etapa_formativa_x_sala_exposicion (
+  etapa_formativa_x_sala_id,
+  etapa_formativa_id,
+  sala_exposicion_id,
+  activo,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  (2, 
+  1,
+  2, 
+  TRUE, 
+  NOW(), 
+  NOW());
+
+INSERT INTO etapa_formativa_x_sala_exposicion (
+  etapa_formativa_x_sala_id,
+  etapa_formativa_id,
+  sala_exposicion_id,
+  activo,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  (3, 
+  1,
+  3, 
+  TRUE, 
+  NOW(), 
+  NOW());
+
+INSERT INTO etapa_formativa_x_sala_exposicion (
+  etapa_formativa_x_sala_id,
+  etapa_formativa_id,
+  sala_exposicion_id,
+  activo,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  (4, 
+  1,
+  5, 
+  TRUE, 
+  NOW(), 
+  NOW());
+
+INSERT INTO etapa_formativa_x_sala_exposicion (
+  etapa_formativa_x_sala_id,
+  etapa_formativa_id,
+  sala_exposicion_id,
+  activo,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  (5, 
+  2,
+  1, 
+  TRUE, 
+  NOW(), 
+  NOW());
+
+INSERT INTO etapa_formativa_x_sala_exposicion (
+  etapa_formativa_x_sala_id,
+  etapa_formativa_id,
+  sala_exposicion_id,
+  activo,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  (6, 
+  2,
+  2, 
+  TRUE, 
+  NOW(), 
+  NOW());
+
+INSERT INTO etapa_formativa_x_sala_exposicion (
+  etapa_formativa_x_sala_id,
+  etapa_formativa_id,
+  sala_exposicion_id,
+  activo,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  (7, 
+  2,
+  6, 
+  TRUE, 
+  NOW(), 
+  NOW());
+
+INSERT INTO etapa_formativa_x_sala_exposicion (
+  etapa_formativa_x_sala_id,
+  etapa_formativa_id,
+  sala_exposicion_id,
+  activo,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  (8, 
+  2,
+  7, 
+  TRUE, 
+  NOW(), 
+  NOW());
+
 INSERT INTO ciclo (
   semestre,
   anio,
