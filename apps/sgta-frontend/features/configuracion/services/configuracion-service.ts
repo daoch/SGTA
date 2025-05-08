@@ -62,6 +62,7 @@ export const deleteAreaById = async (id: number): Promise<void> => {
 export const createSubArea = async (subArea: { nombre: string, idAreaConocimiento: number }): Promise<SubAreaConocimientoDto> => {
     const dto = {
         nombre: subArea.nombre,
+        activo: true,
         areaConocimiento: {
             id: subArea.idAreaConocimiento
         }

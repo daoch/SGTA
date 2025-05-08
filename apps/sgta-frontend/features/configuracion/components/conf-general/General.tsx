@@ -161,6 +161,7 @@ export default function GeneralConfCards() {
         setLoadingOperation({ type: "addArea" });
         const response = await createArea({
           nombre: newArea,
+          activo: true,
           descripcion: newAreaDescripcion,
           subAreas: [],
           idCarrera: 1, // TODO: Reemplazar con el ID de carrera real
