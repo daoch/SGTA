@@ -1,14 +1,14 @@
 package pucp.edu.pe.sgta.mapper;
 
-import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloDTO;
+import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloDto;
 import pucp.edu.pe.sgta.model.Ciclo;
 import pucp.edu.pe.sgta.model.EtapaFormativa;
 import pucp.edu.pe.sgta.model.EtapaFormativaXCiclo;
 
 public class EtapaFormativaXCicloMapper {
 
-    public static EtapaFormativaXCicloDTO toDto(EtapaFormativaXCiclo etapaFormativaXCiclo) {
-        EtapaFormativaXCicloDTO dto = new EtapaFormativaXCicloDTO();
+    public static EtapaFormativaXCicloDto toDto(EtapaFormativaXCiclo etapaFormativaXCiclo) {
+        EtapaFormativaXCicloDto dto = new EtapaFormativaXCicloDto();
         dto.setId(etapaFormativaXCiclo.getId());
         if (etapaFormativaXCiclo.getEtapaFormativa() != null) {
             dto.setEtapaFormativaId(etapaFormativaXCiclo.getEtapaFormativa().getId());
@@ -22,7 +22,7 @@ public class EtapaFormativaXCicloMapper {
         return dto;
     }
 
-    public static EtapaFormativaXCiclo toEntity(EtapaFormativaXCicloDTO dto) {
+    public static EtapaFormativaXCiclo toEntity(EtapaFormativaXCicloDto dto) {
         if (dto == null)
             return null;
 

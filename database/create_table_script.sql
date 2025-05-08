@@ -626,6 +626,11 @@ CREATE TABLE IF NOT EXISTS etapa_formativa
     activo              BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion  TIMESTAMP WITH TIME ZONE
+
+    carrera_id          INTEGER                  NOT NULL,
+    CONSTRAINT fk_area_conocimiento_carrera 
+        FOREIGN KEY (carrera_id) 
+        REFERENCES carrera(carrera_id)
 );
 
 CREATE TABLE IF NOT EXISTS estado_planificacion
@@ -975,8 +980,6 @@ CREATE TABLE IF NOT EXISTS criterio_entregable
     nombre                 VARCHAR(100)             NOT NULL,
     nota_maxima            DECIMAL(5, 2),
     descripcion            TEXT,
-    fecha_reg              TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_mod              TIMESTAMP WITH TIME ZONE,
     activo                 BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion         TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion     TIMESTAMP WITH TIME ZONE,
@@ -1020,9 +1023,6 @@ CREATE TABLE IF NOT EXISTS revision_criterio_entregable
     usuario_id                        INTEGER,
     nota                              DECIMAL(5, 2),
     observacion                       TEXT,
-    fecha_reg                         TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_mod                         TIMESTAMP WITH TIME ZONE,
-
     activo                            BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion                    TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion                TIMESTAMP WITH TIME ZONE,
@@ -1218,3 +1218,8 @@ ALTER TABLE exposicion_x_tema
         FOREIGN KEY (revision_criterio_x_exposicion_id)
             REFERENCES revision_criterio_x_exposicion (revision_criterio_x_exposicion_id)
             ON DELETE SET NULL;
+
+
+-- NECESARIO PARA QUE NO EXISTAN PROBLEMAS CON LOS ENUMS
+-- AGREGAR EL CAST PARA LOS DEMAS ENUMS DE SER NECESARIO
+CREATE CAST (character varying AS enum_estado_actividad) WITH INOUT AS ASSIGNMENT;

@@ -14,34 +14,33 @@ import java.time.OffsetDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "etapa_formativa")
-public class EtapaFormativa {
+@Table(name = "criterio_entregable")
 
+public class CriterioEntregable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "etapa_formativa_id")
+    @Column(name = "criterio_entregable_id")
     private Integer id;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "entregable_id", nullable = false, foreignKey = @ForeignKey(name = "fk_criterio_entregable_entregable"))
+    private Entregable entregable;
+
+    @Column(length = 100, nullable = false)
     private String nombre;
 
-    @Column(name = "creditaje_por_tema", nullable = true, precision = 6, scale = 2)
-    private BigDecimal creditajePorTema;
+    @Column(name = "nota_maxima", precision = 6, scale = 2)
+    private BigDecimal notaMaxima;
 
-    @Column(name = "duracion_exposicion")
-    private String duracionExposicion;
+    @Column(columnDefinition = "TEXT")
+    private String descripcion;
 
     @Column(nullable = false)
-    private Boolean activo = true;
+    private boolean activo = true;
 
     @Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaCreacion;
 
     @Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaModificacion;
-
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "carrera_id", nullable = false, foreignKey = @ForeignKey(name = "fk_area_conocimiento_carrera"))
-    private Carrera carrera;
-
 }
