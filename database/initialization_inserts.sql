@@ -374,3 +374,80 @@ INSERT INTO carrera_parametro_configuracion (
 )
 SELECT 1, parametro_configuracion_id, '2025-06-30T00:00:00Z', true, NOW(), NOW(), 1 FROM nuevo_parametro;
 
+-------------------
+INSERT INTO parametro_configuracion (
+    nombre,
+    descripcion,
+    modulo_id,
+    activo,
+    fecha_creacion,
+    fecha_modificacion,
+    tipo
+) VALUES (
+    'Cantidad Jurados',
+    'cantidad maxima de tesis por jurado',
+    1,
+    true,
+    NOW(),       -- Fecha de creación actual
+    NOW(),        -- Fecha de modificación actual
+    'INTEGER'
+);
+
+
+INSERT INTO carrera_parametro_configuracion (
+    carrera_id,
+    parametro_configuracion_id,
+    valor,
+    activo,
+    fecha_creacion,
+    fecha_modificacion,
+    etapa_formativa_id
+) VALUES (
+    1,                            -- ID de la carrera asociada (ejemplo: 1)
+    6,                            -- ID del parametro_configuracion asociado (ejemplo: 1)
+    5,                            -- Valor de la configuración
+    true,                         -- Estado activo
+    NOW(),                        -- Fecha de creación actual
+    NOW(),                         -- Fecha de modificación actual
+    1
+);
+
+
+------------------------------------------------------------------------------------------------------
+
+
+INSERT INTO parametro_configuracion (
+    nombre,
+    descripcion,
+    modulo_id,
+    activo,
+    fecha_creacion,
+    fecha_modificacion,
+    tipo
+) VALUES (
+    'Tiempo Limite Jurado',
+    'Tiempo limite para que jurado revise entregables',
+    1,
+    true,
+    NOW(),       -- Fecha de creación actual
+    NOW(),        -- Fecha de modificación actual
+    'INTEGER'
+);
+
+INSERT INTO carrera_parametro_configuracion (
+    carrera_id,
+    parametro_configuracion_id,
+    valor,
+    activo,
+    fecha_creacion,
+    fecha_modificacion,
+    etapa_formativa_id
+) VALUES (
+    1,                            -- ID de la carrera asociada (ejemplo: 1)
+    7,                            -- ID del parametro_configuracion asociado (ejemplo: 1)
+    15,                            -- Valor de la configuración
+    true,                         -- Estado activo
+    NOW(),                        -- Fecha de creación actual
+    NOW(),                         -- Fecha de modificación actual
+    1
+);
