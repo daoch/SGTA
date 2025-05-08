@@ -1,12 +1,12 @@
 package pucp.edu.pe.sgta.mapper;
 
-import pucp.edu.pe.sgta.dto.EtapaFormativaDTO;
+import pucp.edu.pe.sgta.dto.EtapaFormativaDto;
 import pucp.edu.pe.sgta.model.EtapaFormativa;
 
 public class EtapaFormativaMapper {
 
-    public static EtapaFormativaDTO toDto(EtapaFormativa etapaFormativa) {
-        EtapaFormativaDTO dto = new EtapaFormativaDTO();
+    public static EtapaFormativaDto toDto(EtapaFormativa etapaFormativa) {
+        EtapaFormativaDto dto = new EtapaFormativaDto();
         dto.setId(etapaFormativa.getId());
         dto.setNombre(etapaFormativa.getNombre());
         dto.setCreditajePorTema(etapaFormativa.getCreditajePorTema());
@@ -17,7 +17,7 @@ public class EtapaFormativaMapper {
         return dto;
     }
 
-    public static EtapaFormativa toEntity(EtapaFormativaDTO dto) {
+    public static EtapaFormativa toEntity(EtapaFormativaDto dto) {
         EtapaFormativa etapaFormativa = new EtapaFormativa();
         etapaFormativa.setId(dto.getId());
         etapaFormativa.setNombre(dto.getNombre());

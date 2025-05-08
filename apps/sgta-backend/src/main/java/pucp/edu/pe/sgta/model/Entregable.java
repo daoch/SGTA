@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import pucp.edu.pe.sgta.util.EstadoActividad;
 
 import java.time.OffsetDateTime;
 
@@ -36,6 +37,10 @@ public class Entregable {
 
     @Column(name = "fecha_fin", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaFin;
+
+    @Column(name = "estado", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private EstadoActividad estado;
 
     @Column(name = "es_evaluable", nullable = false)
     private boolean esEvaluable = true;

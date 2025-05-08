@@ -5,8 +5,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.OffsetDateTime;
-
 @Getter
 @Setter
 @NoArgsConstructor
@@ -22,10 +20,4 @@ public class ExposicionDto {
     private String descripcion;
 
     private Integer estadoPlanificacionId;
-
-    private boolean activo;
-
-    private OffsetDateTime fechaCreacion;
-
-    private OffsetDateTime fechaModificacion;
 }

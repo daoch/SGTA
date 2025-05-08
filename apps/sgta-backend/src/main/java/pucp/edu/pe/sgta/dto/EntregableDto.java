@@ -1,7 +1,7 @@
 package pucp.edu.pe.sgta.dto;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
+import pucp.edu.pe.sgta.util.EstadoActividad;
 
 import java.time.OffsetDateTime;
 
@@ -13,10 +13,12 @@ import java.time.OffsetDateTime;
 public class EntregableDto {
 
     private Integer id;
+    private Integer etapaFormativaXCicloId;
     private String nombre;
     private String descripcion;
     private OffsetDateTime fechaInicio;
     private OffsetDateTime fechaFin;
+    private EstadoActividad estado;
     private boolean esEvaluable;
 
 }

@@ -1,11 +1,8 @@
 package pucp.edu.pe.sgta.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 
 @Getter
@@ -13,13 +10,16 @@ import java.time.OffsetDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class EtapaFormativaXCicloDTO {
+
+public class EtapaFormativaDto {
 
     private Integer id;
 
-    private Integer etapaFormativaId;
+    private String nombre;
 
-    private Integer cicloId;
+    private BigDecimal creditajePorTema;
+
+    private String duracionExposicion;
 
     private boolean activo;
 

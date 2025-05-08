@@ -3,7 +3,6 @@ package pucp.edu.pe.sgta.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import pucp.edu.pe.sgta.dto.EntregableDto;
-import pucp.edu.pe.sgta.model.Entregable;
 import pucp.edu.pe.sgta.service.inter.EntregableService;
 
 import java.util.List;
@@ -21,8 +20,8 @@ public class EntregableController {
     }
 
     @PostMapping("/etapaFormativaXCiclo/{etapaFormativaXCicloId}")
-    public int crearEntregable(@PathVariable Integer etapaFormativaXCicloId, @RequestBody EntregableDto entregableDto) {
-        return entregableService.crearEntregable(etapaFormativaXCicloId, entregableDto);
+    public Integer create(@PathVariable Integer etapaFormativaXCicloId, @RequestBody EntregableDto entregableDto) {
+        return entregableService.create(etapaFormativaXCicloId, entregableDto);
     }
 
     @PutMapping("/update")
@@ -31,8 +30,8 @@ public class EntregableController {
     }
 
     @PutMapping("/delete")
-    public void delete(@RequestBody EntregableDto entregableDto) {
-        entregableService.delete(entregableDto);
+    public void delete(@RequestBody Integer entregableId) {
+        entregableService.delete(entregableId);
     }
 
     @GetMapping("/getAll") // Obtiene la lista de entregables
@@ -41,7 +40,5 @@ public class EntregableController {
     }
 
     @GetMapping("/{id}")
-    public Entregable findById(@PathVariable int id) {
-        return entregableService.findById(id);
-    }
+    public EntregableDto findById(@PathVariable Integer id) { return entregableService.findById(id); }
 }

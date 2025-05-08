@@ -17,8 +17,8 @@ public class EtapaFormativaXCicloController {
     private EtapaFormativaXCicloService etapaFormativaXCicloService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<EtapaFormativaXCicloDto> obtenerPorId(@PathVariable Integer id) {
-        EtapaFormativaXCicloDto etapaFormativaXCiclo = etapaFormativaXCicloService.obtenerPorId(id);
+    public ResponseEntity<EtapaFormativaXCicloDto> findById(@PathVariable Integer id) {
+        EtapaFormativaXCicloDto etapaFormativaXCiclo = etapaFormativaXCicloService.findById(id);
         return ResponseEntity.ok(etapaFormativaXCiclo);
     }
 }
