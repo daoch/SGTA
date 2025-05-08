@@ -48,3 +48,26 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+
+CREATE OR REPLACE FUNCTION listar_temas_ciclo_actual_x_etapa_formativa(
+	etapa_id integer
+)
+RETURNS TABLE(
+	tema_id integer,
+    codigo  varchar,
+    titulo  varchar   
+) AS $$
+BEGIN
+    RETURN QUERY
+ 	SELECT 
+		t.tema_id,
+		t.codigo,
+		t.titulo    
+    FROM tema t
+    inner join etapa_formativa_x_ciclo_x_tema  efct on t.tema_id = efct.tema_id 
+	inner join etapa_formativa_x_ciclo efc on efc.etapa_formativa_x_ciclo_id = efct.etapa_formativa_x_ciclo_id
+	inner join etapa_formativa ef on ef.etapa_formativa_id = efc.etapa_formativa_id
+	inner join ciclo c on c.ciclo_id = efc.ciclo_id
+	where c.activo = true and  ef.etapa_formativa_id = etapa_id ;  
+END;
+$$ LANGUAGE plpgsql;
