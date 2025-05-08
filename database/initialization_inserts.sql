@@ -320,7 +320,7 @@ WITH nuevo_parametro AS (
   ) VALUES (
       'antiplagio',
       'Configure la opcion de revision antiplagio',
-      4, true, NOW(), NOW(), 'BOOLEANO'
+      4, true, NOW(), NOW(), 'boolean'
   ) RETURNING parametro_configuracion_id
 )
 INSERT INTO carrera_parametro_configuracion (
@@ -335,7 +335,7 @@ WITH nuevo_parametro AS (
   ) VALUES (
       'turnitin',
       'Configure la opcion de revision turnitin',
-      4, true, NOW(), NOW(), 'BOOLEANO'
+      4, true, NOW(), NOW(), 'boolean'
   ) RETURNING parametro_configuracion_id
 )
 INSERT INTO carrera_parametro_configuracion (
@@ -350,7 +350,7 @@ WITH nuevo_parametro AS (
   ) VALUES (
       'modalidad_delimitacion_tema',
       'Define delimitación de tema de tesis',
-      1, true, NOW(), NOW(), 'STRING'
+      1, true, NOW(), NOW(), 'string'
   ) RETURNING parametro_configuracion_id
 )
 INSERT INTO carrera_parametro_configuracion (
@@ -366,7 +366,7 @@ WITH nuevo_parametro AS (
   ) VALUES (
       'fecha_limite_asesor',
       'Establece la fecha máxima para cambios de asesor',
-      2, true, NOW(), NOW(), 'DATE'
+      2, true, NOW(), NOW(), 'date'
   ) RETURNING parametro_configuracion_id
 )
 INSERT INTO carrera_parametro_configuracion (
