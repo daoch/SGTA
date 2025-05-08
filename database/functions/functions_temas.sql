@@ -60,7 +60,7 @@ $BODY$;
 
 
 
-CREATE OR REPLACE FUNCTION sgta.listar_temas_propuestos_al_asesor(
+CREATE OR REPLACE FUNCTION listar_temas_propuestos_al_asesor(
 	p_asesor_id integer)
     RETURNS TABLE(tema_id integer, titulo text, subareas text, subarea_ids integer[], alumno text, usuario_id_alumno integer[], descripcion text, metodologia text, objetivo text, recurso text, activo boolean, fecha_limite timestamp with time zone, fecha_creacion timestamp with time zone, fecha_modificacion timestamp with time zone) 
     LANGUAGE 'plpgsql'
@@ -300,7 +300,7 @@ $BODY$;
 
 
 
-CREATE OR REPLACE FUNCTION sgta.listar_areas_conocimiento_por_usuario(
+CREATE OR REPLACE FUNCTION listar_areas_conocimiento_por_usuario(
 	p_usuario_id integer)
     RETURNS TABLE(area_id integer, area_nombre text, descripcion text) 
     LANGUAGE 'sql'
@@ -318,7 +318,7 @@ $BODY$;
 
 
 
-CREATE OR REPLACE FUNCTION sgta.obtener_sub_areas_por_usuario(
+CREATE OR REPLACE FUNCTION obtener_sub_areas_por_usuario(
 	p_usuario_id integer)
     RETURNS TABLE(sub_area_conocimiento_id integer, area_conocimiento_id integer, nombre text, descripcion text, activo boolean) 
     LANGUAGE 'plpgsql'
@@ -415,7 +415,6 @@ $BODY$;
 
 
 
-CREATE OR REPLACE FUNCTION sgta.rechazar_tema(
 CREATE OR REPLACE FUNCTION rechazar_tema(
     p_alumno_id INT,
     p_comentario TEXT,
