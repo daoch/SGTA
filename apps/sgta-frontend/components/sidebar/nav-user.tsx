@@ -18,9 +18,9 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { Badge } from "../ui/badge";
-import { useAuth } from "@/features/auth/hooks/use-auth";
 import { User } from "@/features/auth";
+import { useAuth } from "@/features/auth/hooks/use-auth";
+import { Badge } from "@/components/ui/badge";
 
 export function NavUser({ user }: { user: User }) {
   const { isMobile } = useSidebar();
@@ -41,9 +41,9 @@ export function NavUser({ user }: { user: User }) {
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">{user.name}</span>
-                <div className="flex flex-wrap gap-1">
+                <div className="flex overflow-x-scroll no-scrollbar gap-1">
                   {user?.roles?.map((role, index) => (
-                    <Badge key={index} variant="secondary" className="text-xs">
+                    <Badge key={index} variant="default" className="text-xs">
                       {role}
                     </Badge>
                   ))}

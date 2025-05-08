@@ -46,8 +46,14 @@ public class Usuario {
 	@Column(length = 255, nullable = false)
 	private String contrasena;
 
-	@Column(columnDefinition = "TEXT")
-	private String biografia;
+    @Column(columnDefinition = "TEXT")
+    private String biografia;
+
+    @Column(name = "enlace_repositorio")
+    private String enlaceRepositorio;
+
+    @Column(name = "enlace_linkedin", columnDefinition = "TEXT")
+    private String enlaceLinkedin;
 
 	@Column(name = "foto_perfil", columnDefinition = "bytea", nullable = true)
 	private byte[] fotoPerfil;
@@ -59,7 +65,7 @@ public class Usuario {
 	private String tipoDisponibilidad;
 
 	@Column(nullable = false)
-	private boolean activo = true;
+	private Boolean activo = true;
 
 	@Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
 	private OffsetDateTime fechaCreacion;
