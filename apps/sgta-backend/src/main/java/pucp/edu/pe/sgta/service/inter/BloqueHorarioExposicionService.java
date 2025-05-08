@@ -2,6 +2,7 @@ package pucp.edu.pe.sgta.service.inter;
 
 import java.util.List;
 
+import pucp.edu.pe.sgta.dto.BloqueHorarioExposicionCreateDTO;
 import pucp.edu.pe.sgta.dto.BloqueHorarioExposicionDto;
 
 public interface BloqueHorarioExposicionService {
@@ -9,7 +10,7 @@ public interface BloqueHorarioExposicionService {
 
     BloqueHorarioExposicionDto findById(Integer id);
 
-    void create(BloqueHorarioExposicionDto dto);
+    BloqueHorarioExposicionDto create(BloqueHorarioExposicionCreateDTO dto);
 
     void update(BloqueHorarioExposicionDto dto);
 
