@@ -29,8 +29,8 @@ import {
 } from "@/features/temas/types/propuestas/data";
 import { Area, Proyecto } from "@/features/temas/types/propuestas/entidades";
 import { CheckCircle, Eye, Send, X } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
-
 // Datos de ejemplo
 /*const propuestasData = [
   {
@@ -110,6 +110,8 @@ export function PropuestasTable({
   const [rechazarPropuesta, setRechazarPropuesta] = useState(false);
   const [propuestasData, setPropuestasData] = useState(propuestas);
 
+  const router = useRouter();
+
   const propuestasFiltradas = propuestasData?.filter((propuesta) => {
     // Filtrar por área si hay un filtro de área seleccionado
     if (
@@ -156,6 +158,7 @@ export function PropuestasTable({
         await fetchTemasPropuestosPorSubAreaConocimiento(idsSubAreas, 1);
       setPropuestasData(propuestasGenerales);
     }
+    router.refresh();
   };
 
   const submitAceptacion = async () => {
@@ -172,6 +175,7 @@ export function PropuestasTable({
     }
     const propuestasDirectas = await fetchTemasPropuestosAlAsesor(1);
     setPropuestasData(propuestasDirectas);
+    router.refresh();
   };
 
   const submitRechazo = async () => {
@@ -186,6 +190,7 @@ export function PropuestasTable({
     }
     const propuestasDirectas = await fetchTemasPropuestosAlAsesor(1);
     setPropuestasData(propuestasDirectas);
+    router.refresh();
   };
 
   const handlerAceptarPropuesta = (propuesta: Proyecto) => {
@@ -291,13 +296,13 @@ export function PropuestasTable({
                   <TableCell>
                     {" "}
                     {/*Se necesita ver la cantidad de asesores postulando (Pendiente)*/}
-                    {propuesta.idEstudianteInvolucradosList &&
-                    propuesta.idEstudianteInvolucradosList.length > 0 ? (
+                    {propuesta.cantPostulaciones &&
+                    propuesta.cantPostulaciones > 0 ? (
                       <Badge
                         variant="outline"
                         className="bg-blue-100 text-blue-800 hover:bg-blue-100"
                       >
-                        3
+                        {propuesta.cantPostulaciones}
                       </Badge>
                     ) : (
                       <span>-</span>
