@@ -2,7 +2,6 @@ package pucp.edu.pe.sgta.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 
 @Entity

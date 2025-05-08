@@ -13,7 +13,7 @@ import java.time.OffsetDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class EtapaFormativaXCicloDTO {
+public class EtapaFormativaXCicloDto {
 
     private Integer id;
 
