@@ -142,7 +142,7 @@ export const navigationItems: Record<string, NavigationItem[]> = {
     },
     { name: "Revisión", href: "/coordinador/revision", icon: Search },
     {
-      name: "Personal Académico",
+      name: "Asesores",
       href: "/coordinador/asesores",
       icon: Users,
       children: [
@@ -165,6 +165,7 @@ export const navigationItems: Record<string, NavigationItem[]> = {
 
 
     },
+    { name: "Jurados", href: "/coordinador/jurados", icon: Users },
     { name: "Reportes", href: "/coordinador/reportes", icon: BarChart3 },
     {
       name: "Configuración",
