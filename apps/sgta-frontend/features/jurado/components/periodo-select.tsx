@@ -29,7 +29,7 @@ export const PeriodoSelect: React.FC<PeriodoSelectProps> = ({
           {ciclos.map((ciclo) => (
             <SelectItem
               key={ciclo.id}
-              value={`${ciclo.anio}-${ciclo.semestre}`}
+              value={`${ciclo.anio} - ${ciclo.semestre}`}
             >
               {ciclo.anio} - {ciclo.semestre}
             </SelectItem>
