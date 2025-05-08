@@ -31,7 +31,7 @@ export const MultiSelectCheckbox: React.FC<MultiSelectCheckboxProps> = ({
   const getDisplayText = () => {
     const count = selected.length;
     if (count === 0) return displayText;
-    return `${count} área${count !== 1 ? 's' : ''} seleccionada${count !== 1 ? 's' : ''}`;
+    return `${count} área${count !== 1 ? "s" : ""} seleccionada${count !== 1 ? "s" : ""}`;
   };
 
   return (
@@ -43,9 +43,7 @@ export const MultiSelectCheckbox: React.FC<MultiSelectCheckboxProps> = ({
             "hover:border-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring",
           )}
         >
-          <span className="truncate">
-            {getDisplayText()}
-          </span>
+          <span className="truncate">{getDisplayText()}</span>
           <ChevronDownIcon className="ml-2 h-4 w-4 text-muted-foreground" />
         </button>
       </Popover.Trigger>

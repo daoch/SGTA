@@ -1,4 +1,3 @@
-
 import Exposiciones from "@/features/jurado/views/vista-exposiciones/exposiciones";
 import React from "react";
 

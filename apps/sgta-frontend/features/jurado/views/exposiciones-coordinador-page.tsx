@@ -332,7 +332,7 @@ const ExposicionesCoordinadorPage: React.FC = () => {
                 </Label>
                 <Input
                   type="time"
-                    value={f.horaFin}
+                  value={f.horaFin}
                   onChange={(e) =>
                     handleFechaChange(index, "horaFin", e.target.value)
                   }

@@ -13,7 +13,12 @@ import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { ListaTesisJuradoCard } from "./TesisCard";
 import { MultiSelectCheckbox } from "./EspecialiadMultiSelect";
-import { Jurado ,Tesis ,Especialidades, EspecialidadOption} from "@/features/jurado/types/juradoDetalle.types"; // Asegúrate de que la ruta sea correcta
+import {
+  Jurado,
+  Tesis,
+  Especialidades,
+  EspecialidadOption,
+} from "@/features/jurado/types/juradoDetalle.types"; // Asegúrate de que la ruta sea correcta
 
 interface ModalAsignarTesisProps {
   open: boolean;
@@ -27,13 +32,12 @@ interface ModalAsignarTesisProps {
 const getEspecialidadOptions = (): EspecialidadOption[] => {
   // Filtrar "TODOS" para que no aparezca en las opciones de MultiSelect
   return Object.values(Especialidades)
-    .filter(esp => esp !== Especialidades.TODOS)
-    .map(especialidad => ({
+    .filter((esp) => esp !== Especialidades.TODOS)
+    .map((especialidad) => ({
       label: especialidad,
-      value: especialidad
+      value: especialidad,
     }));
 };
-
 
 export const ModalAsignarTesis: React.FC<ModalAsignarTesisProps> = ({
   open,
@@ -44,7 +48,9 @@ export const ModalAsignarTesis: React.FC<ModalAsignarTesisProps> = ({
 }) => {
   const [search, setSearch] = useState("");
   //const [especialidad, setEspecialidad] = useState('')
-  const [tesisSeleccionada, setTesisSeleccionada] = useState<Tesis | null>(null);
+  const [tesisSeleccionada, setTesisSeleccionada] = useState<Tesis | null>(
+    null,
+  );
   const [especialidadesSeleccionadas, setEspecialidadesSeleccionadas] =
     useState<string[]>(jurado.specialties || []);
 
@@ -75,7 +81,7 @@ export const ModalAsignarTesis: React.FC<ModalAsignarTesisProps> = ({
   const getMultiSelectDisplayText = () => {
     const count = especialidadesSeleccionadas.length;
     if (count === 0) return "Seleccione áreas";
-    return `${count} área${count !== 1 ? 's' : ''} seleccionada${count !== 1 ? 's' : ''}`;
+    return `${count} área${count !== 1 ? "s" : ""} seleccionada${count !== 1 ? "s" : ""}`;
   };
 
   return (

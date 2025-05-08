@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, User } from "lucide-react";
 import Link from "next/link";
-import { 
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -13,7 +13,7 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
-import ModalDetallesExposicion from "./modal-detalles-exposicion"; 
+import ModalDetallesExposicion from "./modal-detalles-exposicion";
 
 interface Miembros {
   id_docente: number;
@@ -70,62 +70,67 @@ export function ExposicionCard({ exposicion }: { exposicion: Exposicion }) {
     <div>
       <Dialog>
         <DialogTrigger asChild>
-            <div className="bg-gray-50 rounded-lg shadow-sm border p-5 flex flex-col md:flex-row gap-10">
-              {/*HORA FECHA Y SALA*/}
-              <div className="flex flex-col items-center space-y-2 md:min-w-[150px] justify-center">
-                <div className="text-4xl font-semibold">
-                  {formatearHora(exposicion.hora)}
-                </div>
-                <div className="flex items-center gap-1 mt-1">
-                  <span className="text-base">{formatearFecha(exposicion.fecha)}</span>
-                </div>
-                <div className="flex items-center gap-1 mt-1">
-                  <MapPin className="h-6 w-6" />
-                  <span className="text-2xl font-semibold">{exposicion.sala}</span>
-                </div>
+          <div className="bg-gray-50 rounded-lg shadow-sm border p-5 flex flex-col md:flex-row gap-10">
+            {/*HORA FECHA Y SALA*/}
+            <div className="flex flex-col items-center space-y-2 md:min-w-[150px] justify-center">
+              <div className="text-4xl font-semibold">
+                {formatearHora(exposicion.hora)}
+              </div>
+              <div className="flex items-center gap-1 mt-1">
+                <span className="text-base">
+                  {formatearFecha(exposicion.fecha)}
+                </span>
+              </div>
+              <div className="flex items-center gap-1 mt-1">
+                <MapPin className="h-6 w-6" />
+                <span className="text-2xl font-semibold">
+                  {exposicion.sala}
+                </span>
+              </div>
+            </div>
+
+            {/*TITULO Y JURADOS*/}
+            <div className="flex-1">
+              <div className="flex items-start justify-between">
+                <h3 className="text-xl font-semibold">{exposicion.titulo}</h3>
               </div>
 
-              {/*TITULO Y JURADOS*/}
-              <div className="flex-1">
-                <div className="flex items-start justify-between">
-                  <h3 className="text-xl font-semibold">{exposicion.titulo}</h3>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-               
-                  {getEstudiantes().map((estudiante) => (
-                    
-                    <div 
-                      key={estudiante.id_docente}
-                      className="flex items-center gap-2"
-                    >
-                      <div className="bg-gray-100 p-1 rounded-full">
-                        <User className="h-6 w-6 text-gray-500" />
-                      </div>
-                      <div>
-                        <div className="text-base font-medium  text-gray-800">
-                          Tesista
-                        </div>
-                        <div className="text-base">{estudiante.nombre}</div>
-                      </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                {getEstudiantes().map((estudiante) => (
+                  <div
+                    key={estudiante.id_docente}
+                    className="flex items-center gap-2"
+                  >
+                    <div className="bg-gray-100 p-1 rounded-full">
+                      <User className="h-6 w-6 text-gray-500" />
                     </div>
-                  ))}
-
-                  {getAsesor().map((asesor, index) => (
-                    <div key={asesor.id_docente} className="flex items-center gap-2">
-                      <div className="bg-gray-100 p-1 rounded-full">
-                        <User className="h-6 w-6 text-gray-500" />
+                    <div>
+                      <div className="text-base font-medium  text-gray-800">
+                        Tesista
                       </div>
-                      <div>
-                        <div className="text-base font-medium  text-gray-800">
-                          {index === 0 ? "Asesor" : "Coasesor"}
-                        </div>
-                        <div className="text-base">{asesor.nombre}</div>
-                      </div>
+                      <div className="text-base">{estudiante.nombre}</div>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
+
+                {getAsesor().map((asesor, index) => (
+                  <div
+                    key={asesor.id_docente}
+                    className="flex items-center gap-2"
+                  >
+                    <div className="bg-gray-100 p-1 rounded-full">
+                      <User className="h-6 w-6 text-gray-500" />
+                    </div>
+                    <div>
+                      <div className="text-base font-medium  text-gray-800">
+                        {index === 0 ? "Asesor" : "Coasesor"}
+                      </div>
+                      <div className="text-base">{asesor.nombre}</div>
+                    </div>
+                  </div>
+                ))}
               </div>
+            </div>
 
             <div className="flex flex-col gap-3 md:items-end justify-between">
               <Badge
@@ -164,7 +169,7 @@ export function ExposicionCard({ exposicion }: { exposicion: Exposicion }) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Detalles de la Exposicion</DialogTitle>
-            <ModalDetallesExposicion _idExposicion={exposicion.id_exposicion}/>
+            <ModalDetallesExposicion _idExposicion={exposicion.id_exposicion} />
           </DialogHeader>
           <DialogFooter className="sm:justify-end">
             <DialogClose asChild>

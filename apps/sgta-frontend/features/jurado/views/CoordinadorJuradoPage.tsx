@@ -3,11 +3,11 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { 
-  TipoDedicacion, 
-  Especialidades, 
-  EstadoJurado, 
-  JuradoViewModel 
+import {
+  TipoDedicacion,
+  Especialidades,
+  EstadoJurado,
+  JuradoViewModel,
 } from "@/features/jurado/types/juradoDetalle.types";
 
 import {
@@ -19,14 +19,14 @@ import {
 } from "@/components/ui/select";
 import TableJurados from "../components/JuradosTable";
 
-
 // Función auxiliar para generar opciones del Select de especialidades
 const getSelectEspecialidadesItems = () => {
-  return Object.values(Especialidades).map(especialidad => (
-    <SelectItem key={especialidad} value={especialidad}>{especialidad}</SelectItem>
+  return Object.values(Especialidades).map((especialidad) => (
+    <SelectItem key={especialidad} value={especialidad}>
+      {especialidad}
+    </SelectItem>
   ));
 };
-
 
 const JuradosView = () => {
   const juradosOriginal = [
@@ -52,9 +52,14 @@ const JuradosView = () => {
   ];
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [juradosData, setJuradosData] = useState<JuradoViewModel[]>(juradosOriginal);
-  const [dedication, setDedication] = useState<TipoDedicacion>(TipoDedicacion.TODOS);
-  const [specialty, setSpecialty] = useState<Especialidades>(Especialidades.TODOS);
+  const [juradosData, setJuradosData] =
+    useState<JuradoViewModel[]>(juradosOriginal);
+  const [dedication, setDedication] = useState<TipoDedicacion>(
+    TipoDedicacion.TODOS,
+  );
+  const [specialty, setSpecialty] = useState<Especialidades>(
+    Especialidades.TODOS,
+  );
   const [status, setStatus] = useState<EstadoJurado>(EstadoJurado.TODOS);
   const [hasSearched, setHasSearched] = useState(false);
 
@@ -65,8 +70,10 @@ const JuradosView = () => {
         const matchDedication =
           dedication === TipoDedicacion.TODOS || j.dedication === dedication;
         const matchSpecialty =
-          specialty === Especialidades.TODOS || j.specialties.includes(specialty);
-        const matchStatus = status === EstadoJurado.TODOS || j.status === status;
+          specialty === Especialidades.TODOS ||
+          j.specialties.includes(specialty);
+        const matchStatus =
+          status === EstadoJurado.TODOS || j.status === status;
         // Solo aplicamos búsqueda si ya se buscó alguna vez
         const matchSearch =
           !hasSearched ||
@@ -143,7 +150,7 @@ const JuradosView = () => {
               <SelectValue placeholder="Todos" />
             </SelectTrigger>
             <SelectContent>
-                {/* Generacion dinamica segun el Types de especialidades */}
+              {/* Generacion dinamica segun el Types de especialidades */}
               {getSelectEspecialidadesItems()}
             </SelectContent>
           </Select>
