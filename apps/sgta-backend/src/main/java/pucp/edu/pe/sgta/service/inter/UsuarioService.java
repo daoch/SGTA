@@ -17,4 +17,7 @@ public interface UsuarioService {
 
 	void deleteUsuario(Integer id);
 
+	List<UsuarioDto> findUsuariosByRolAndCarrera(String tipoUsuario, Integer idCarrera, String cadenaBusqueda);
+
+
 }

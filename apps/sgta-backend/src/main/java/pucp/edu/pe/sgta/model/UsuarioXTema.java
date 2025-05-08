@@ -34,13 +34,19 @@ public class UsuarioXTema {
 	private Rol rol;
 
 	@Column(nullable = false)
-	private boolean asignado = false;
+	private Boolean asignado = false;
+
+	@Column(nullable = false)
+	private Boolean rechazado = false;
+
+	@Column(columnDefinition = "TEXT")
+	private String comentario ;
 
 	@Column
 	private Integer prioridad;
 
 	@Column(nullable = false)
-	private boolean activo = true;
+	private Boolean activo = true;
 
 	@Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
 	private OffsetDateTime fechaCreacion;
