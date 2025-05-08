@@ -39,30 +39,13 @@ import {
   deleteSubAreaById,
   getAllSubAreasByAreaId,
 } from "../../services/configuracion-service";
+import { AreaResponse, AreaType, SubAreaType } from "../../types/Area.type";
 
 //Nombres de los parámetros de configuración según la tabla parametro_configuracion en bdd
 const PARAM_MODALIDAD_DELIMITACION_TEMA = "modalidad_delimitacion_tema";
 const PARAM_FECHA_LIMITE_ASESOR = "fecha_limite_asesor";
 
-interface SubAreaType {
-  id: number;
-  nombre: string;
-}
 
-interface AreaType {
-  id: number;
-  nombre: string;
-  descripcion: string;
-  subAreas: SubAreaType[];
-  idCarrera?: number;
-}
-
-interface AreaResponse {
-  id: number;
-  nombre: string;
-  descripcion: string;
-  idCarrera: number;
-}
 
 export default function GeneralConfCards() {
   const { parametros, actualizarParametro, cargando } = useBackStore();

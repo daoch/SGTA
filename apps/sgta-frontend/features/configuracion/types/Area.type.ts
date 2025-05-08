@@ -15,3 +15,23 @@ export interface SubAreaConocimientoDto {
         id: number;
     };
 }
+
+export interface SubAreaType {
+  id: number;
+  nombre: string;
+}
+
+export interface AreaType {
+  id: number;
+  nombre: string;
+  descripcion: string;
+  subAreas: SubAreaType[];
+  idCarrera?: number;
+}
+
+export interface AreaResponse {
+  id: number;
+  nombre: string;
+  descripcion: string;
+  idCarrera: number;
+}
