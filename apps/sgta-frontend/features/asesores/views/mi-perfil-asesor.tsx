@@ -14,9 +14,11 @@ import TesisDirigidasResumen from "../components/tesis-dirigidas-resumen";
 
 import {
   getAreasDisponibles,
-  getAsesorMock,
   getTemasDisponibles,
 } from "../mocks/perfil/asesor-mock";
+
+import { getPerfilAsesor } from "@/features/asesores/hooks/perfil/perfil-apis";
+
 import { AreaTematica, Asesor, TemaInteres } from "../types/perfil/entidades";
 
 import { useAuth } from "@/features/auth";
@@ -24,6 +26,8 @@ import { useAuth } from "@/features/auth";
 export default function PerfilAsesorEditable() {
   const { user } = useAuth();
   if (!user) return null;
+
+  console.log("user", user);
 
   const [asesor, setAsesor] = useState<Asesor | null>(null);
   const [areasDisponibles, setAreasDisponibles] = useState<AreaTematica[]>([]);
@@ -49,10 +53,23 @@ export default function PerfilAsesorEditable() {
   const [isValidationAlertOpen, setIsValidationAlertOpen] = useState(false);
 
   useEffect(() => {
+    getPerfilAsesor(+user.id).then(setAsesor).catch(console.error);
+  }, [user.id]);
+
+  useEffect(() => {
+    if (asesor) {
+      setEditedData(asesor);
+    }
+  }, [asesor]);
+
+  console.log("asesor", asesor);
+  console.log("editedData", editedData);
+
+  useEffect(() => {
     // Cargar los datos mockeados una vez al iniciar
-    const asesorData = getAsesorMock();
-    setAsesor(asesorData);
-    setEditedData(asesorData);
+    //const asesorData = getAsesorMock();
+    //setAsesor(asesorData);
+    //setEditedData(asesorData);
     // Cargar áreas y temas disponibles
     setAreasDisponibles(getAreasDisponibles());
     setTemasDisponibles(getTemasDisponibles());

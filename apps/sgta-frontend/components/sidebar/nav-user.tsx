@@ -28,6 +28,8 @@ export function NavUser({ user }: { user: User }) {
   const { logout, redirectToLogin } = useAuth();
   const router = useRouter();
 
+  console.log("user", user);
+
   return (
     <SidebarMenu>
       <SidebarMenuItem>
