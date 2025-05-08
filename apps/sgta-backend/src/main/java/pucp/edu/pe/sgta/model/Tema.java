@@ -64,6 +64,8 @@ public class Tema {
 	@Column(nullable = false)
 	private Boolean activo = true;
 
+
+
 	@Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
 	private OffsetDateTime fechaCreacion;
 

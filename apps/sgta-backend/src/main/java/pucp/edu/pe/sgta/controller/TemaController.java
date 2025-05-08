@@ -100,7 +100,15 @@ public class TemaController {
 		return temaService.listarPropuestasPorTesista(tesistaId);
 	}
 
+	@GetMapping("/listarPostulacionesDirectasAMisPropuestas/{tesistaId}")
+	public List<TemaDto> listarPostulacionesDirectasAMisPropuestas(@PathVariable("tesistaId") Integer tesistaId) {
+		return temaService.listarPostulacionesDirectasAMisPropuestas(tesistaId);
+	}
 
+	@GetMapping("/listarPostulacionesGeneralesAMisPropuestas/{tesistaId}")
+	public List<TemaDto> listarPostulacionesGeneralesAMisPropuestas(@PathVariable("tesistaId") Integer tesistaId) {
+		return temaService.listarPostulacionesGeneralesAMisPropuestas(tesistaId);
+	}
 }
 
 

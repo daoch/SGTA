@@ -36,7 +36,7 @@ public class UsuarioXTema {
 	@Column(nullable = false)
 	private Boolean asignado = false;
 
-	@Column(nullable = false)
+	@Column(name = "rechazado", nullable = false)
 	private Boolean rechazado = false;
 
 	@Column(columnDefinition = "TEXT")
@@ -47,6 +47,7 @@ public class UsuarioXTema {
 
 	@Column(nullable = false)
 	private Boolean activo = true;
+
 
 	@Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
 	private OffsetDateTime fechaCreacion;
