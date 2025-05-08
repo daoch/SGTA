@@ -48,3 +48,28 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION listar_etapa_formativa_x_sala_exposicion(p_etapa_formativa_id integer)
+RETURNS TABLE(
+    etapa_formativa_x_sala_id integer,
+    etapa_formativa_id integer,
+    sala_exposicion_id integer,
+    nombre_sala_exposicion text,
+    nombre_etapa_formativa text
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        efxse.etapa_formativa_x_sala_id,
+        efxse.etapa_formativa_id,
+        efxse.sala_exposicion_id,
+        se.nombre AS nombre_sala_exposicion,
+        ef.nombre AS nombre_etapa_formativa
+    FROM etapa_formativa_x_sala_exposicion efxse
+    JOIN etapa_formativa ef ON ef.etapa_formativa_id = efxse.etapa_formativa_id
+    JOIN sala_exposicion se ON se.sala_exposicion_id = efxse.sala_exposicion_id
+    WHERE efxse.etapa_formativa_id = p_etapa_formativa_id 
+    AND efxse.activo = true
+    AND ef.activo = true
+    AND se.activo = true;
+END;
+$$ LANGUAGE plpgsql;
