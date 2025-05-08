@@ -1,9 +1,7 @@
-import {
-  useForm,
-  useFieldArray,
-  Controller,
-  SubmitHandler,
-} from "react-hook-form";
+"use client";
+
+import * as React from "react";
+import { useForm, useFieldArray, FormProvider } from "react-hook-form";
 import {
   Dialog,
   DialogContent,
@@ -19,29 +17,22 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { X, Calendar, PlusIcon } from "lucide-react";
+import { PlusIcon } from "lucide-react";
 import { Label } from "@/components/ui/label";
-import { useEffect, useState } from "react";
-import axiosInstance from "@/lib/axios/axios-instance";
-
-interface FechaExposicion {
-  fecha: string;
-  horaInicio: string;
-  horaFin: string;
-  salasSeleccionadas: string;
-}
-
-interface FormValues {
-  curso: string;
-  tipoExposicion: string;
-  fechas: FechaExposicion[];
-}
-
-interface CursoOption {
-  etapaFormativaId: string;
-  nombre: string;
-}
+import { zodResolver } from "@hookform/resolvers/zod";
+import { formSchema, FormValues } from "../schemas/exposicion-form-schema";
+import { ItemFechaExposicion } from "./item-fecha-exposicion";
+import {
+  enviarPlanificacion,
+  getEtapasFormativasByCoordinador,
+  getExposicionPorEtapaFormativa,
+  getSalasDisponibles,
+} from "../services/exposicion-service";
+import {
+  EtapaFormativa,
+  ExposicionNombre,
+  Sala,
+} from "../types/exposicion.types";
 
 interface ModalPlanificadorCoordinadorProps {
   open: boolean;
@@ -52,245 +43,208 @@ export default function ModalPlanificadorCoordinador({
   open,
   onClose,
 }: ModalPlanificadorCoordinadorProps) {
-  const { control, handleSubmit, watch, reset } = useForm<FormValues>({
+  const methods = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
-      curso: "",
-      tipoExposicion: "",
+      etapa_formativa_id: undefined,
+      exposicion_id: undefined,
       fechas: [],
     },
   });
 
-  const [cursos, setCursos] = useState<CursoOption[]>([]);
+  const { control, handleSubmit, watch, reset, setValue } = methods;
 
-  useEffect(() => {
+  const [cursos, setCursos] = React.useState<EtapaFormativa[]>([]);
+  const [tiposExposicion, setTiposExposicion] = React.useState<
+    ExposicionNombre[]
+  >([]);
+
+  const etapaFormativaId = watch("etapa_formativa_id");
+  const exposicionId = watch("exposicion_id");
+  const fechas = watch("fechas");
+
+  const [salas, setSalas] = React.useState<Sala[]>([]);
+
+  React.useEffect(() => {
     if (open) {
       reset({
-        curso: "",
-        tipoExposicion: "",
+        etapa_formativa_id: undefined,
+        exposicion_id: undefined,
         fechas: [],
       });
 
-      axiosInstance
-        .get("/etapas-formativas/coordinador/3")
-        .then((res) => setCursos(res.data))
-        .catch((err) => console.error("Error fetching cursos:", err));
+      getEtapasFormativasByCoordinador(3).then(setCursos).catch(console.error);
+      getSalasDisponibles().then(setSalas).catch(console.error);
     }
   }, [open, reset]);
 
-  const cursoSeleccionado = watch("curso");
-  const tipoSeleccionado = watch("tipoExposicion");
+  React.useEffect(() => {
+    if (etapaFormativaId !== undefined) {
+      getExposicionPorEtapaFormativa(etapaFormativaId)
+        .then(setTiposExposicion)
+        .catch((err) => {
+          console.error("Error fetching tipos de exposición:", err);
+          setTiposExposicion([]);
+        });
+    } else {
+      setTiposExposicion([]);
+    }
+  }, [etapaFormativaId]);
 
   const { fields, append, remove } = useFieldArray({
     control,
     name: "fechas",
   });
 
-  const onSubmit: SubmitHandler<FormValues> = (data) => {
-    console.log(data);
-    onClose();
+  const canAddMoreFechas = fechas.every(
+    (f) =>
+      f.fecha !== null &&
+      f.hora_inicio.trim() !== "" &&
+      f.hora_fin.trim() !== "" &&
+      f.hora_inicio < f.hora_fin &&
+      f.salas.length > 0,
+  );
+
+  const onSubmit = (data: FormValues) => {
+    console.log("Datos enviados:", data);
+
+    enviarPlanificacion(data)
+      .then((res) => {
+        console.log("Respuesta del servidor:", res);
+        onClose();
+      })
+      .catch((err) => {
+        console.error("Error al enviar datos:", err);
+      });
   };
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="md:min-w-[800px]">
-        <DialogHeader>
-          <DialogTitle className="text-lg font-bold">
-            Registro de Fecha y Rango de Horarios de Exposiciones
-          </DialogTitle>
-          <p className="text-sm text-gray-500 mt-2">
-            Al ser la primera vez que se está planificando el curso en el
-            periodo vigente, debe registrar las fechas y los rangos en que se
-            realizarán las exposiciones.
-          </p>
-        </DialogHeader>
-
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label>Curso</Label>
-            <Controller
-              name="curso"
-              control={control}
-              render={({ field }) => (
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Seleccionar curso" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {cursos.map((curso) => (
-                      <SelectItem
-                        key={curso.etapaFormativaId}
-                        value={curso.etapaFormativaId}
-                      >
-                        {curso.nombre}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Tipo de Exposición</Label>
-            <Controller
-              name="tipoExposicion"
-              control={control}
-              render={({ field }) => (
-                <Select
-                  onValueChange={field.onChange}
-                  value={field.value}
-                  disabled={!cursoSeleccionado}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Seleccionar tipo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Final">Final</SelectItem>
-                    <SelectItem value="Parcial">Parcial</SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
-            />
-          </div>
+    <FormProvider {...methods}>
+      <Dialog open={open} onOpenChange={onClose}>
+        <DialogContent className="md:min-w-[800px]">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold">
+              Registro de Fecha y Rango de Horarios de Exposiciones
+            </DialogTitle>
+            <p className="text-sm text-gray-500 mt-2">
+              Debe registrar las fechas, rangos horarios y salas habilitadas
+              para las exposiciones.
+            </p>
+          </DialogHeader>
 
           <div className="space-y-4">
-            {fields.map((field, index) => (
-              <div
-                key={field.id}
-                className="flex gap-2 justify-between items-end"
+            {/* Selección de Curso */}
+            <div className="space-y-2">
+              <Label>Curso</Label>
+              <Select
+                onValueChange={(val) =>
+                  setValue("etapa_formativa_id", Number(val))
+                }
+                value={
+                  etapaFormativaId !== undefined
+                    ? etapaFormativaId.toString()
+                    : ""
+                }
               >
-                <div className="min-w-[150px]">
-                  <Label className="text-xs font-medium">
-                    Fecha de Exposición
-                  </Label>
-                  <Controller
-                    name={`fechas.${index}.fecha`}
-                    control={control}
-                    render={({ field }) => (
-                      <div className="relative">
-                        <Input
-                          {...field}
-                          className="pl-10"
-                          type="text"
-                          disabled={!tipoSeleccionado}
-                        />
-                        <Calendar className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
-                      </div>
-                    )}
-                  />
-                </div>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Seleccionar curso" />
+                </SelectTrigger>
+                <SelectContent>
+                  {cursos.map((curso) => (
+                    <SelectItem
+                      key={curso.etapaFormativaId}
+                      value={curso.etapaFormativaId.toString()}
+                    >
+                      {curso.nombre}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-                <div className="w-[120px]">
-                  <Label className="text-xs font-medium">Hora Inicio</Label>
-                  <Controller
-                    name={`fechas.${index}.horaInicio`}
-                    control={control}
-                    render={({ field }) => (
-                      <div className="relative">
-                        <Input
-                          {...field}
-                          className="pl-10"
-                          type="text"
-                          disabled={!tipoSeleccionado}
-                        />
-                        <Calendar className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
-                      </div>
-                    )}
-                  />
-                </div>
+            {/* Selección de Tipo de Exposición */}
+            <div className="space-y-2">
+              <Label>Tipo de Exposición</Label>
+              <Select
+                onValueChange={(val) => setValue("exposicion_id", Number(val))}
+                value={
+                  exposicionId !== undefined ? exposicionId.toString() : ""
+                }
+                disabled={etapaFormativaId === undefined}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Seleccionar tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  {tiposExposicion.map((tipo) => (
+                    <SelectItem key={tipo.id} value={tipo.id.toString()}>
+                      {tipo.nombre}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-                <div className="w-[120px]">
-                  <Label className="text-xs font-medium">Hora Fin</Label>
-                  <Controller
-                    name={`fechas.${index}.horaFin`}
-                    control={control}
-                    render={({ field }) => (
-                      <div className="relative">
-                        <Input
-                          {...field}
-                          className="pl-10"
-                          type="text"
-                          disabled={!tipoSeleccionado}
-                        />
-                        <Calendar className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
-                      </div>
-                    )}
-                  />
-                </div>
+            {/* Lista de Fechas */}
+            <div className="space-y-4">
+              {fields.map((field, index) => (
+                <ItemFechaExposicion
+                  key={field.id}
+                  index={index}
+                  remove={remove}
+                  isFechasDisabled={exposicionId === undefined}
+                  salasDisponibles={salas}
+                />
+              ))}
+            </div>
 
-                <div>
-                  <Label className="text-xs font-medium">
-                    Salas Habilitadas
-                  </Label>
-                  <Controller
-                    name={`fechas.${index}.salasSeleccionadas`}
-                    control={control}
-                    render={({ field }) => (
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
-                        disabled={!tipoSeleccionado}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="1 sala seleccionada">
-                            1 sala seleccionada
-                          </SelectItem>
-                          <SelectItem value="2 salas seleccionadas">
-                            2 salas seleccionadas
-                          </SelectItem>
-                          <SelectItem value="3 salas seleccionadas">
-                            3 salas seleccionadas
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
-                </div>
-                <div>
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="sm"
-                    className="h-5 w-5 text-white"
-                    onClick={() => remove(index)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            ))}
+            {/* Botón Agregar Fecha */}
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() =>
+                append({
+                  fecha: null,
+                  hora_inicio: "17:00",
+                  hora_fin: "20:30",
+                  salas: [],
+                })
+              }
+              disabled={!canAddMoreFechas || exposicionId === undefined}
+            >
+              <PlusIcon /> Agregar Fecha de Exposición
+            </Button>
+
+            <DialogFooter className="flex justify-between sm:justify-between gap-2 pt-2">
+              <Button type="button" variant="outline" onClick={onClose}>
+                Cancelar
+              </Button>
+              <Button
+                type="button"
+                onClick={handleSubmit(onSubmit)}
+                disabled={
+                  !(
+                    etapaFormativaId !== undefined &&
+                    exposicionId !== undefined &&
+                    fechas.length > 0 &&
+                    fechas.every(
+                      (f) =>
+                        f.fecha !== null &&
+                        f.hora_inicio.trim() !== "" &&
+                        f.hora_fin.trim() !== "" &&
+                        f.hora_inicio < f.hora_fin &&
+                        f.salas.length > 0,
+                    )
+                  )
+                }
+              >
+                Continuar
+              </Button>
+            </DialogFooter>
           </div>
-
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            onClick={() =>
-              append({
-                fecha: "",
-                horaInicio: "17:00",
-                horaFin: "20:30",
-                salasSeleccionadas: "2 salas seleccionadas",
-              })
-            }
-            disabled={!tipoSeleccionado}
-          >
-            <PlusIcon /> Agregar Fecha de Exposición
-          </Button>
-
-          <DialogFooter className="flex justify-between sm:justify-between gap-2 pt-2">
-            <Button type="button" variant="outline" onClick={onClose}>
-              Cancelar
-            </Button>
-            <Button type="button" onClick={handleSubmit(onSubmit)}>
-              Continuar
-            </Button>
-          </DialogFooter>
-        </div>
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
+    </FormProvider>
   );
 }

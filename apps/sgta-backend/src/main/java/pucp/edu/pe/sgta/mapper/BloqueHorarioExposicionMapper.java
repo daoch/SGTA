@@ -1,5 +1,8 @@
 package pucp.edu.pe.sgta.mapper;
 
+import java.time.OffsetDateTime;
+
+import pucp.edu.pe.sgta.dto.BloqueHorarioExposicionCreateDTO;
 import pucp.edu.pe.sgta.dto.BloqueHorarioExposicionDto;
 import pucp.edu.pe.sgta.model.BloqueHorarioExposicion;
 import pucp.edu.pe.sgta.model.JornadaExposicionXSalaExposicion;
@@ -30,6 +33,24 @@ public class BloqueHorarioExposicionMapper {
         bloqueHorarioExposicion.setActivo(dto.isActivo());
         bloqueHorarioExposicion.setEsBloqueBloqueado(dto.isEsBloqueBloqueado());
         bloqueHorarioExposicion.setEsBloqueReservado(dto.isEsBloqueReservado());
+
+        JornadaExposicionXSalaExposicion jornadaExposicionXSalaExposicion = new JornadaExposicionXSalaExposicion();
+        jornadaExposicionXSalaExposicion.setId(dto.getJornadaExposicionXSalaId());
+        bloqueHorarioExposicion.setJornadaExposicionXSala(jornadaExposicionXSalaExposicion);
+
+        return bloqueHorarioExposicion;
+    }
+
+    public static BloqueHorarioExposicion toEntity(BloqueHorarioExposicionCreateDTO dto) {
+        BloqueHorarioExposicion bloqueHorarioExposicion = new BloqueHorarioExposicion();
+        bloqueHorarioExposicion.setId(dto.getId());
+        bloqueHorarioExposicion.setDatetimeInicio(dto.getDatetimeInicio());
+        bloqueHorarioExposicion.setDatetimeFin(dto.getDatetimeFin());
+        bloqueHorarioExposicion.setFechaCreacion(OffsetDateTime.now());
+        bloqueHorarioExposicion.setFechaModificacion(OffsetDateTime.now());
+        bloqueHorarioExposicion.setActivo(true);
+        bloqueHorarioExposicion.setEsBloqueBloqueado(false);
+        bloqueHorarioExposicion.setEsBloqueReservado(false);
 
         JornadaExposicionXSalaExposicion jornadaExposicionXSalaExposicion = new JornadaExposicionXSalaExposicion();
         jornadaExposicionXSalaExposicion.setId(dto.getJornadaExposicionXSalaId());
