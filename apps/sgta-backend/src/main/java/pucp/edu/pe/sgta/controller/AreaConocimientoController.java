@@ -3,13 +3,11 @@ package pucp.edu.pe.sgta.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import pucp.edu.pe.sgta.dto.AreaConocimientoDto;
-import pucp.edu.pe.sgta.dto.SubAreaConocimientoDto;
-import pucp.edu.pe.sgta.dto.TemaDto;
+import pucp.edu.pe.sgta.dto.InfoAreaConocimientoDto;
+import pucp.edu.pe.sgta.dto.InfoSubAreaConocimientoDto;
 import pucp.edu.pe.sgta.service.inter.AreaConocimientoService;
-import pucp.edu.pe.sgta.service.inter.TemaService;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 
@@ -39,10 +37,20 @@ public class AreaConocimientoController {
     public List<AreaConocimientoDto> listAreaConocimientoByCarrera(@PathVariable Integer idCarrera) {
         return areaConocimientoService.getAllByCarrera(idCarrera);
     }
-    
+
+    @GetMapping("/listarPorNombre")
+    public List<InfoAreaConocimientoDto> listarInfoPorNombre(@RequestParam(name = "nombre") String nombre) {
+        return areaConocimientoService.listarInfoPorNombre(nombre);
+    }
+
     @GetMapping("/listarPorUsuario") // finds a topic by id
     public List<AreaConocimientoDto> listarPorUsuario(@RequestParam(name = "usuarioId") Integer usuarioId) {
         return areaConocimientoService.listarPorUsuario(usuarioId);
+    }
+
+    @GetMapping("/listarTodasParaPerfilAsesor") // finds a topic by id
+    public List<InfoAreaConocimientoDto> listarPorCarrerasUsuarioParaPerfil(@RequestParam(name = "usuarioId") Integer usuarioId) {
+        return areaConocimientoService.listarPorCarrerasUsuarioParaPerfil(usuarioId);
     }
 
 }

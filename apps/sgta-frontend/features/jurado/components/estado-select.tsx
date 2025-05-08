@@ -24,11 +24,12 @@ export const EstadoSelect: React.FC<EstadoSelectProps> = ({
           <SelectValue placeholder="Selecciona un estado" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="Pendiente">Pendiente</SelectItem>
-          <SelectItem value="Aprobado">Aprobado</SelectItem>
-          <SelectItem value="Rechazado">Rechazado</SelectItem>
+          <SelectItem value="Programada">Pendiente</SelectItem>
+          <SelectItem value="Completada">Completada</SelectItem>
+          <SelectItem value="Calificada">Calificada</SelectItem>
         </SelectContent>
       </Select>
     </div>
   );
 };
+

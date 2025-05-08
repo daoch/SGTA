@@ -1,9 +1,11 @@
 package pucp.edu.pe.sgta.service.inter;
 
+import pucp.edu.pe.sgta.dto.InfoTemaPerfilDto;
 import pucp.edu.pe.sgta.dto.SubAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.TemaDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
 
+import pucp.edu.pe.sgta.dto.TemaConAsesorJuradoDTO;
 import java.util.List;
 
 public interface TemaService {
@@ -13,7 +15,14 @@ public interface TemaService {
 
 	List<TemaDto> findByUsuario(Integer idUsuario); //Works for asesor, alumno, coordinador and revisor
 
-	void createTemaPropuesta(TemaDto dto, Integer idUsuarioCreador);
+	/**
+	 *
+	 *
+	 * @param dto
+	 * @param idUsuarioCreador: tesista id
+	 * @param tipoPropuesta: 0 for general, 1 for direct
+	 */
+	void createTemaPropuesta(TemaDto dto, Integer idUsuarioCreador, Integer tipoPropuesta);
 
 	void update(TemaDto dto);
 
@@ -23,7 +32,7 @@ public interface TemaService {
 
 	List<TemaDto> listarTemasPropuestosAlAsesor(Integer asesorId);
 
-	List<TemaDto> listarTemasPropuestosPorSubAreaConocimiento(List<Integer> subareaIds);
+	List<TemaDto> listarTemasPropuestosPorSubAreaConocimiento(List<Integer> subareaIds,Integer asesorId);
 
 	void postularAsesorTemaPropuestoGeneral(Integer alumnoId, Integer asesorId, Integer temaId, String comentario);
 
@@ -43,5 +52,13 @@ public interface TemaService {
 	void rechazarTemaPropuestaDirecta(Integer alumnoId, String comentario, Integer temaId);
 
 
+	List<TemaConAsesorJuradoDTO> listarTemasCicloActualXEtapaFormativa(Integer etapaFormativaId);
+
+	List<TemaDto> listarPropuestasPorTesista(Integer tesistaId);
+
+	List<TemaDto> listarPostulacionesDirectasAMisPropuestas(Integer tesistaId);
+
+	List<TemaDto> listarPostulacionesGeneralesAMisPropuestas(Integer tesistaId);
+	List<InfoTemaPerfilDto> listarTemasAsesorInvolucrado(Integer temaId);
 
 }

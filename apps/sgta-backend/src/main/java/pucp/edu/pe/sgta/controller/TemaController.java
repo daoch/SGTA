@@ -2,6 +2,8 @@ package pucp.edu.pe.sgta.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import pucp.edu.pe.sgta.dto.InfoTemaPerfilDto;
+import pucp.edu.pe.sgta.dto.TemaConAsesorJuradoDTO;
 import pucp.edu.pe.sgta.dto.TemaDto;
 import pucp.edu.pe.sgta.service.inter.TemaService;
 
@@ -21,14 +23,16 @@ public class TemaController {
 		return temaService.findByUsuario(idUsuario);
 	}
 
+	@GetMapping("/findById") // finds a topic by id
+	public TemaDto findById(@RequestParam(name = "idTema") Integer idTema) {
+		return temaService.findById(idTema);
+	}
+
     @PostMapping("/createPropuesta")
     public void createTema(@RequestBody TemaDto dto,
-                           @RequestParam(name = "idUsuarioCreador") Integer idUsuarioCreador) {
-        temaService.createTemaPropuesta(dto, idUsuarioCreador);
-    }
-    @GetMapping("/findById") //finds a topic by id
-    public TemaDto findById(@RequestParam(name = "idTema") Integer idTema) {
-        return temaService.findById(idTema);
+                           @RequestParam(name = "idUsuarioCreador") Integer idUsuarioCreador,
+						   @RequestParam(name = "tipoPropuesta", defaultValue = "0") Integer tipoPropuesta) {
+        temaService.createTemaPropuesta(dto, idUsuarioCreador, tipoPropuesta);
     }
 
     @PostMapping("/createInscripcion") // Inscripcion de tema oficial por asesor
@@ -38,14 +42,19 @@ public class TemaController {
         temaService.createInscripcionTema(dto, idUsuarioCreador);
     }
 
+	@PutMapping("/update") // updates a topic
+	public void update(@RequestBody TemaDto dto) {
+		temaService.update(dto);
+	}
 	@GetMapping("/listarTemasPropuestosAlAsesor/{asesorId}")
 	public List<TemaDto> listarTemasPropuestosAlAsesor(@PathVariable Integer asesorId) {
 		return temaService.listarTemasPropuestosAlAsesor(asesorId);
 	}
 
 	@GetMapping("/listarTemasPropuestosPorSubAreaConocimiento")
-	public List<TemaDto> listarTemasPropuestosPorSubAreaConocimiento(@RequestParam List<Integer> subareaIds) {
-		return temaService.listarTemasPropuestosPorSubAreaConocimiento(subareaIds);
+	public List<TemaDto> listarTemasPropuestosPorSubAreaConocimiento(@RequestParam List<Integer> subareaIds,
+																	 @RequestParam(name = "asesorId") Integer asesorId) {
+		return temaService.listarTemasPropuestosPorSubAreaConocimiento(subareaIds,asesorId);
 	}
 
 	@PostMapping("/postularAsesorTemaPropuestoGeneral")
@@ -89,7 +98,31 @@ public class TemaController {
 
 	}
 
+	@GetMapping("/listarPropuestasPorTesista/{tesistaId}")
+	public List<TemaDto> listarPropuestasPorTesista(@PathVariable("tesistaId") Integer tesistaId) {
+		return temaService.listarPropuestasPorTesista(tesistaId);
+	}
 
+	@GetMapping("/listarTemasCicloActualXEtapaFormativa/{etapaFormativaId}")
+	public List<TemaConAsesorJuradoDTO>listarTemasCicloActualXEtapaFormativa(@PathVariable("etapaFormativaId") Integer etapaFormativaId) {
+		return temaService.listarTemasCicloActualXEtapaFormativa(etapaFormativaId);
+	}
+
+	@GetMapping("/listarPostulacionesDirectasAMisPropuestas/{tesistaId}")
+	public List<TemaDto> listarPostulacionesDirectasAMisPropuestas(@PathVariable("tesistaId") Integer tesistaId) {
+		return temaService.listarPostulacionesDirectasAMisPropuestas(tesistaId);
+	}
+
+
+
+	@GetMapping("/listarTemasAsesorInvolucrado/{tesistaId}")
+	public List<InfoTemaPerfilDto> listarTemasAsesorInvolucrado(@PathVariable("tesistaId") Integer tesistaId) {
+		return temaService.listarTemasAsesorInvolucrado(tesistaId);
+	}
+	@GetMapping("/listarPostulacionesGeneralesAMisPropuestas/{tesistaId}")
+	public List<TemaDto> listarPostulacionesGeneralesAMisPropuestas(@PathVariable("tesistaId") Integer tesistaId) {
+		return temaService.listarPostulacionesGeneralesAMisPropuestas(tesistaId);
+	}
 }
 
 

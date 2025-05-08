@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-SgtaApplication<sgta>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "pucp.edu.pe.sgta.SgtaApplication",
+            "projectName": "sgta",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

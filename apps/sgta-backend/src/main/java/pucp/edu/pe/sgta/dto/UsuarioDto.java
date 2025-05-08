@@ -1,6 +1,7 @@
 package pucp.edu.pe.sgta.dto;
 
 import lombok.*;
+import pucp.edu.pe.sgta.model.TipoUsuario;
 
 import java.time.OffsetDateTime;
 
@@ -35,14 +36,17 @@ public class UsuarioDto {
 
     private String enlaceLinkedin;
 
-	private String disponibilidad;
+    private String disponibilidad;
 
 	private String tipoDisponibilidad;
 
-	private boolean activo;
+	private Boolean activo;
+
+	private Boolean rechazado; //we reject the application or proposal
 
 	private OffsetDateTime fechaCreacion;
 
 	private OffsetDateTime fechaModificacion;
 
+	private Boolean asignado; //we need mapping on this for proposals and general tema management
 }

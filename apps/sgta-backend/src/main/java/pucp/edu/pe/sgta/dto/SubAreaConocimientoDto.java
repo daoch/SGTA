@@ -16,7 +16,7 @@ public class SubAreaConocimientoDto {
 
 	private String descripcion;
 
-	private boolean activo = true;
+	private Boolean activo;
 
 	private OffsetDateTime fechaCreacion;
 
