@@ -20,12 +20,13 @@ export default function PerfilAsesorCard({
   setEditedData,
   avatar,
 }: Props) {
-  const tesisEnProceso = asesor.tesis.filter(
+  const tesisEnProceso = (asesor.tesis ?? []).filter(
     (t) => t.estado === "en_proceso",
   ).length;
 
-  const porcentaje =
-    asesor.limiteTesis === 0 ? 0 : tesisEnProceso / asesor.limiteTesis;
+  const limite = asesor.limiteTesis ?? 0;
+
+  const porcentaje = limite === 0 ? 0 : tesisEnProceso / limite;
 
   const barraColor =
     porcentaje >= 1
@@ -82,7 +83,7 @@ export default function PerfilAsesorCard({
               <Linkedin className="h-4 w-4 mr-2 text-gray-500" />
               <Input
                 id="linkedin"
-                value={editedData.linkedin}
+                value={editedData.linkedin ?? "Sin registro"}
                 onChange={(e) =>
                   setEditedData({ ...editedData, linkedin: e.target.value })
                 }
@@ -99,7 +100,11 @@ export default function PerfilAsesorCard({
               <FileText className="h-4 w-4 mr-2 text-gray-500" />
               <Input
                 id="repositorio"
-                value={editedData.repositorio}
+                value={
+                  editedData.repositorio?.trim()
+                    ? editedData.repositorio
+                    : "Sin registro"
+                }
                 onChange={(e) =>
                   setEditedData({ ...editedData, repositorio: e.target.value })
                 }
@@ -120,24 +125,46 @@ export default function PerfilAsesorCard({
             </a>
           </div>
 
-          <div className="flex items-center">
-            <Linkedin className="h-4 w-4 mr-2 text-gray-500" />
-            <a
-              href={editedData.linkedin}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 hover:underline truncate"
-            >
-              {editedData.linkedin.replace("https://www.linkedin.com/in/", "")}
-            </a>
-          </div>
+          {editedData.linkedin ? (
+            <div className="flex items-center">
+              <Linkedin className="h-4 w-4 mr-2 text-gray-500" />
+              <a
+                href={editedData.linkedin}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline truncate"
+              >
+                {editedData.linkedin.replace(
+                  "https://www.linkedin.com/in/",
+                  "",
+                )}
+              </a>
+            </div>
+          ) : (
+            <div className="flex items-center text-gray-400">
+              <Linkedin className="h-4 w-4 mr-2" />
+              <span>No registrado</span>
+            </div>
+          )}
 
-          <div className="flex items-center">
-            <FileText className="h-4 w-4 mr-2 text-gray-500" />
-            <a href="#" className="text-blue-600 hover:underline">
-              {editedData.repositorio}
-            </a>
-          </div>
+          {editedData.repositorio?.trim() ? (
+            <div className="flex items-center">
+              <FileText className="h-4 w-4 mr-2 text-gray-500" />
+              <a
+                href={editedData.repositorio}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline truncate"
+              >
+                {editedData.repositorio.replace("https://", "")}
+              </a>
+            </div>
+          ) : (
+            <div className="flex items-center text-gray-400">
+              <FileText className="h-4 w-4 mr-2" />
+              <span>No registrado</span>
+            </div>
+          )}
         </div>
       )}
 

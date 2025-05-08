@@ -145,15 +145,19 @@ export default function AreasTematicasCard({
         </div>
       ) : (
         <div className="flex flex-wrap gap-2">
-          {editedAreas.map((area) => (
-            <Badge
-              key={area.idArea}
-              variant="outline"
-              className="bg-green-100 text-green-800 hover:bg-green-200 border-green-200 text-xs sm:text-sm"
-            >
-              {area.nombre}
-            </Badge>
-          ))}
+          {editedAreas?.length ? (
+            editedAreas.map((area) => (
+              <Badge
+                key={area.idArea}
+                variant="outline"
+                className="bg-green-100 text-green-800 hover:bg-green-200 border-green-200 text-xs sm:text-sm"
+              >
+                {area.nombre}
+              </Badge>
+            ))
+          ) : (
+            <span className="text-gray-500 text-sm">Sin áreas registradas</span>
+          )}
         </div>
       )}
     </div>

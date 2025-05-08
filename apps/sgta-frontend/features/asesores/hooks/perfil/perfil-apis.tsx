@@ -6,6 +6,8 @@ export async function getPerfilAsesor(id: number) {
     const response = await axiosInstance.get("/usuario/getPerfilAsesor", {
       params: { id },
     });
+
+    console.log("Respuesta de la API:", response.data); // Verifica la respuesta aquí
     return response.data as Asesor;
   } catch (error) {
     console.error("Error al obtener perfil del asesor:", error);

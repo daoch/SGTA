@@ -21,12 +21,26 @@ export interface Asesor {
   nombre: string;
   especialidad: string;
   email: string;
-  linkedin: string;
-  repositorio: string;
-  biografia: string;
+  linkedin: string | null;
+  repositorio: string | null;
+  biografia: string | null;
   disponible: boolean;
-  limiteTesis: number;
-  tesis: Tesis[];
+  limiteTesis: number | null;
+  tesis?: Tesis[];
   areasTematicas: AreaTematica[];
-  temasInteres: TemaInteres[];
+  temasIntereses: TemaInteres[];
+  estado?: number | null;
+}
+
+export interface AsesorEdited {
+  nombre: string;
+  especialidad: string;
+  email: string;
+  linkedin: string | null;
+  repositorio: string | null;
+  biografia: string | null;
+  disponible: boolean;
+  limiteTesis: number | null;
+  areasTematicas: AreaTematica[];
+  temasIntereses: TemaInteres[];
 }

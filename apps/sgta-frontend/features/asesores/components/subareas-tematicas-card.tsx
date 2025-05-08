@@ -152,15 +152,19 @@ export default function TemasInteresCard({
         </div>
       ) : (
         <div className="flex flex-wrap gap-2">
-          {temasInteres.map((tema) => (
-            <Badge
-              key={tema.idTema}
-              variant="outline"
-              className="bg-purple-100 text-purple-800 hover:bg-purple-200 border-purple-200"
-            >
-              {tema.nombre}
-            </Badge>
-          ))}
+          {temasInteres?.length ? (
+            temasInteres.map((tema) => (
+              <Badge
+                key={tema.idTema}
+                variant="outline"
+                className="bg-purple-100 text-purple-800 hover:bg-purple-200 border-purple-200"
+              >
+                {tema.nombre}
+              </Badge>
+            ))
+          ) : (
+            <span className="text-gray-500">Sin temas registrados</span>
+          )}
         </div>
       )}
     </div>

@@ -11,12 +11,21 @@ import { Info } from "lucide-react";
 import { Tesis } from "../types/perfil/entidades";
 
 interface Props {
-  tesis: Tesis[];
+  tesis: Tesis[] | undefined;
 }
 
 export default function TesisDirigidasResumen({ tesis }: Props) {
   const renderTesis = (estado: "en_proceso" | "terminada") => {
+    if (!tesis || tesis.length === 0) {
+      return (
+        <div className="text-center py-6 text-gray-500">
+          No hay tesis disponibles actualmente
+        </div>
+      );
+    }
+
     const filtradas = tesis.filter((t) => t.estado === estado);
+
     if (filtradas.length === 0) {
       return (
         <div className="text-center py-6 text-gray-500">

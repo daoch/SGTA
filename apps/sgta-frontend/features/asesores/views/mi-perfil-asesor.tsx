@@ -85,16 +85,18 @@ export default function PerfilAsesorEditable() {
     }
   }, [recentlyAddedArea]);
 
-  if (!asesor || !editedData) {
+  if (!asesor || !editedData || !areasDisponibles || !temasDisponibles) {
     return <div>Cargando perfil...</div>;
   }
 
   const areasFiltered = areasDisponibles.filter(
-    (area) => !editedData.areasTematicas.some((a) => a.idArea === area.idArea),
+    (area) =>
+      !(editedData.areasTematicas ?? []).some((a) => a.idArea === area.idArea),
   );
 
   const temasFiltered = temasDisponibles.filter(
-    (tema) => !editedData.temasInteres.some((t) => t.idTema === tema.idTema),
+    (tema) =>
+      !(editedData.temasIntereses ?? []).some((t) => t.idTema === tema.idTema),
   );
 
   const handleSave = () => {
@@ -130,7 +132,7 @@ export default function PerfilAsesorEditable() {
 
   const initiateAreaDelete = (area: AreaTematica) => {
     // Encontrar temas de interés relacionados con esta área
-    const temasRelacionados = editedData.temasInteres.filter(
+    const temasRelacionados = editedData.temasIntereses.filter(
       (tema) => tema.area.idArea === area.idArea,
     );
 
@@ -163,14 +165,14 @@ export default function PerfilAsesorEditable() {
       );
 
       // Eliminar los temas de interés relacionados
-      const newTemas = editedData.temasInteres.filter(
+      const newTemas = editedData.temasIntereses.filter(
         (tema) => tema.area.idArea !== areaToDelete.idArea,
       );
 
       setEditedData({
         ...editedData,
         areasTematicas: newAreas,
-        temasInteres: newTemas,
+        temasIntereses: newTemas,
       });
 
       // Mostrar notificación de éxito
@@ -195,7 +197,7 @@ export default function PerfilAsesorEditable() {
   const addTemaInteres = () => {
     if (
       selectedTema &&
-      !editedData.temasInteres.some((t) => t.idTema === selectedTema.idTema)
+      !editedData.temasIntereses.some((t) => t.idTema === selectedTema.idTema)
     ) {
       // Verificar si necesitamos agregar el área temática relacionada
       let newAreas = [...editedData.areasTematicas];
@@ -216,7 +218,7 @@ export default function PerfilAsesorEditable() {
       setEditedData({
         ...editedData,
         areasTematicas: newAreas,
-        temasInteres: [...editedData.temasInteres, selectedTema],
+        temasIntereses: [...editedData.temasIntereses, selectedTema],
       });
 
       if (areaAdded) {
@@ -232,7 +234,9 @@ export default function PerfilAsesorEditable() {
   const removeTemaInteres = (temaId: number) => {
     setEditedData({
       ...editedData,
-      temasInteres: editedData.temasInteres.filter((t) => t.idTema !== temaId),
+      temasIntereses: editedData.temasIntereses.filter(
+        (t) => t.idTema !== temaId,
+      ),
     });
   };
 
@@ -294,7 +298,7 @@ export default function PerfilAsesorEditable() {
           {/* Temas de Interés */}
           <TemasInteresCard
             isEditing={isEditing}
-            temasInteres={editedData.temasInteres}
+            temasInteres={editedData.temasIntereses}
             temasFiltered={temasFiltered}
             selectedTema={selectedTema}
             openTemaCombobox={openTemaCombobox}

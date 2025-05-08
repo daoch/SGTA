@@ -4,7 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 interface Props {
   isEditing: boolean;
-  biografia: string;
+  biografia: string | null;
   setBiografia: (value: string) => void;
 }
 
@@ -19,7 +19,7 @@ export default function PresentacionCard({
 
       {isEditing ? (
         <Textarea
-          value={biografia}
+          value={biografia ?? ""}
           onChange={(e) => setBiografia(e.target.value)}
           className="min-h-[150px] w-full"
         />
