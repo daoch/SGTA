@@ -13,6 +13,6 @@ public class TemaConAsesorJuradoDTO {
     private Integer id;
     private String codigo;
     private String titulo;
-    private List<UsuarioNombresDTO> usuariosNombre;
+
 
 }

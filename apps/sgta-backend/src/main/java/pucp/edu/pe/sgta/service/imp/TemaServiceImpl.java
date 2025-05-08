@@ -4,10 +4,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
-import pucp.edu.pe.sgta.dto.HistorialTemaDto;
-import pucp.edu.pe.sgta.dto.SubAreaConocimientoDto;
-import pucp.edu.pe.sgta.dto.TemaDto;
-import pucp.edu.pe.sgta.dto.UsuarioDto;
+import pucp.edu.pe.sgta.dto.*;
 import pucp.edu.pe.sgta.mapper.TemaMapper;
 import pucp.edu.pe.sgta.mapper.UsuarioMapper;
 import pucp.edu.pe.sgta.model.*;
@@ -24,8 +21,6 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 
-
-import java.util.LinkedList;
 
 import java.util.List;
 import java.util.logging.Logger;
@@ -561,13 +556,22 @@ public class TemaServiceImpl implements TemaService {
 	}
 
 	@Override
+	public List<TemaConAsesorJuradoDTO> listarTemasCicloActualXEtapaFormativa(Integer etapaFormativaId) {
 
-	public List<Tema> listarTemasPorEtapaCicloActualYSubareaYDocente(String docente, Integer etapaFormativa, Integer subAreaConocimiento) {
-		List<Object[]> temas = temaRepository.listarTemasPorEtapaCicloActualYSubareaYDocente(docente,etapaFormativa,subAreaConocimiento);
-		return new LinkedList<Tema>();
+		List<Object[]> temas  = temaRepository.listarTemasCicloActualXEtapaFormativa(etapaFormativaId);
+		List<TemaConAsesorJuradoDTO> temasDto = new ArrayList<>();
+
+		for(Object[] obj : temas) {
+			TemaConAsesorJuradoDTO dto = new TemaConAsesorJuradoDTO();
+			dto.setId((Integer) obj[0]);
+			dto.setCodigo((String) obj[1]);
+			dto.setTitulo((String) obj[2]);
+
+			temasDto.add(dto);
+		}
+		return temasDto;
 
 	}
-
 
 
 	public List<TemaDto> listarPropuestasPorTesista(Integer tesistaId) {
