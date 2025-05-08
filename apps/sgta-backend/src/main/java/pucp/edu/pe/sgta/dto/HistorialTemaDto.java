@@ -1,10 +1,7 @@
 package pucp.edu.pe.sgta.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+
 import java.time.OffsetDateTime;
 
 @Getter
@@ -12,10 +9,22 @@ import java.time.OffsetDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class TipoExposicionDto {
+public class HistorialTemaDto {
     private Integer id;
-    private String nombre;
-    private boolean activo;
+
+    private TemaDto tema;
+
+    private String titulo;
+
+    private String resumen;
+
+    private String descripcionCambio;
+
+    private Integer estadoTemaId;
+
+    private Boolean activo;
+
     private OffsetDateTime fechaCreacion;
+
     private OffsetDateTime fechaModificacion;
 }

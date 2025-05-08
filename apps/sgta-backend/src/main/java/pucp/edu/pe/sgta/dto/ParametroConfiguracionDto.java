@@ -21,7 +21,7 @@ public class ParametroConfiguracionDto {
 
 	private Integer moduloId;
 
-	private boolean activo;
+	private Boolean activo;
 
 	private TipoDatoEnum tipoDato;
 

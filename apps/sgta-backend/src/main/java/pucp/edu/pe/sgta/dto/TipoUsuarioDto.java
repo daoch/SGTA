@@ -15,10 +15,11 @@ public class TipoUsuarioDto {
 
 	private String nombre;
 
-	private boolean activo;
+	private Boolean activo;
 
 	private OffsetDateTime fechaCreacion;
 
 	private OffsetDateTime fechaModificacion;
 
+	private String tipoDedicacion;
 }

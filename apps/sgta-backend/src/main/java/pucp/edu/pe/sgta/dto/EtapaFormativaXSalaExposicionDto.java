@@ -16,7 +16,7 @@ public class EtapaFormativaXSalaExposicionDto {
     private Integer id;
     private Integer etapaFormativaId;
     private Integer salaExposicionId;
-    private boolean activo;
+    private Boolean activo;
     private OffsetDateTime fechaCreacion;
     private OffsetDateTime fechaModificacion;
 }

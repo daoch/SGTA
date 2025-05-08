@@ -19,7 +19,7 @@ public class ExposicionXTemaMapper {
         dto.setLinkGrabacion(entity.getLinkGrabacion());
         dto.setEstadoExposicion(entity.getEstadoExposicion());
         dto.setNotaFinal(entity.getNotaFinal());
-        dto.setActivo(entity.isActivo());
+        dto.setActivo(entity.getActivo());
         dto.setFechaCreacion(entity.getFechaCreacion());
         dto.setFechaModificacion(entity.getFechaModificacion());
         return dto;
@@ -35,7 +35,7 @@ public class ExposicionXTemaMapper {
         entity.setLinkGrabacion(dto.getLinkGrabacion());
         entity.setEstadoExposicion(dto.getEstadoExposicion());
         entity.setNotaFinal(dto.getNotaFinal());
-        entity.setActivo(dto.isActivo());
+        entity.setActivo(dto.getActivo());
         entity.setFechaCreacion(dto.getFechaCreacion());
         entity.setFechaModificacion(dto.getFechaModificacion());
 

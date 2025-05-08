@@ -9,7 +9,7 @@ public class RestriccionExposicionDto {
     private Integer exposicionXTemaId;
     private OffsetDateTime datetimeInicio;
     private OffsetDateTime datetimeFin;
-    private boolean activo;
+    private Boolean activo;
     private OffsetDateTime fechaCreacion;
     private OffsetDateTime fechaModificacion;
 }

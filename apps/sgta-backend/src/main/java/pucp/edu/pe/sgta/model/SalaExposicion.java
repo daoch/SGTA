@@ -25,7 +25,7 @@ public class SalaExposicion {
     private String nombre;
 
     @Column(nullable = false)
-    private boolean activo = true;
+    private Boolean activo = true;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo_sala_exposicion", nullable = false)

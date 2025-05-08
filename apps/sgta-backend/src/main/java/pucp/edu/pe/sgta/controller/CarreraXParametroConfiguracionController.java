@@ -9,7 +9,6 @@ import pucp.edu.pe.sgta.dto.CarreraXParametroConfiguracionDto;
 import pucp.edu.pe.sgta.service.inter.CarreraXParametroConfiguracionService;
 
 import java.util.List;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 

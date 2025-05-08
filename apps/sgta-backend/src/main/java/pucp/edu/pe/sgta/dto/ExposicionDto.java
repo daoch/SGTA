@@ -15,11 +15,15 @@ public class ExposicionDto {
 
     private Integer id;
 
-    private Integer tipoExposicionEfXCId;
+    private Integer etapaFormativaXCicloId;
+
+    private String nombre;
+
+    private String descripcion;
 
     private Integer estadoPlanificacionId;
 
-    private boolean activo;
+    private Boolean activo;
 
     private OffsetDateTime fechaCreacion;
 

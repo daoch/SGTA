@@ -13,7 +13,7 @@ public class BloqueHorarioExposicionMapper {
         dto.setDatetimeFin(bloqueHorarioExposicion.getDatetimeFin());
         dto.setFechaCreacion(bloqueHorarioExposicion.getFechaCreacion());
         dto.setFechaModificacion(bloqueHorarioExposicion.getFechaModificacion());
-        dto.setActivo(bloqueHorarioExposicion.isActivo());
+        dto.setActivo(bloqueHorarioExposicion.getActivo());
         dto.setEsBloqueBloqueado(bloqueHorarioExposicion.isEsBloqueBloqueado());
         dto.setEsBloqueReservado(bloqueHorarioExposicion.isEsBloqueReservado());
 

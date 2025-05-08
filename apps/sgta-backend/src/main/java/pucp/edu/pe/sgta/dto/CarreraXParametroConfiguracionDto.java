@@ -1,11 +1,7 @@
 package pucp.edu.pe.sgta.dto;
 
 import lombok.*;
-import java.time.OffsetDateTime;
 
-import pucp.edu.pe.sgta.model.Carrera;
-import pucp.edu.pe.sgta.model.ParametroConfiguracion;
-import pucp.edu.pe.sgta.dto.ParametroConfiguracionDto;
 
 @Getter
 @Setter

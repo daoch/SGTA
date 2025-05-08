@@ -11,7 +11,7 @@ public class AreaConocimientoMapper {
 		dto.setId(areaConocimiento.getId());
 		dto.setFechaModificacion(areaConocimiento.getFechaModificacion());
 		dto.setNombre(areaConocimiento.getNombre());
-		dto.setActivo(areaConocimiento.isActivo());
+		dto.setActivo(areaConocimiento.getActivo());
 		dto.setFechaCreacion(areaConocimiento.getFechaCreacion());
         dto.setDescripcion(areaConocimiento.getDescripcion());
         dto.setIdCarrera(areaConocimiento.getCarrera().getId());
@@ -24,7 +24,7 @@ public class AreaConocimientoMapper {
         areaConocimiento.setId(dto.getId());
         areaConocimiento.setFechaModificacion(dto.getFechaModificacion());
         areaConocimiento.setNombre(dto.getNombre());
-        areaConocimiento.setActivo(dto.isActivo());
+        areaConocimiento.setActivo(dto.getActivo());
         areaConocimiento.setFechaCreacion(dto.getFechaCreacion());
         areaConocimiento.setDescripcion(dto.getDescripcion());
 		Carrera carrera = new Carrera();
