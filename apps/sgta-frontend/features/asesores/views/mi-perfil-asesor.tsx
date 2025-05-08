@@ -33,8 +33,6 @@ export default function PerfilAsesorEditable() {
   const { user } = useAuth();
   if (!user) return null;
 
-  console.log("user", user);
-
   const [asesor, setAsesor] = useState<Asesor | null>(null);
   const [areasDisponibles, setAreasDisponibles] = useState<AreaTematica[]>([]);
   const [temasDisponibles, setTemasDisponibles] = useState<TemaInteres[]>([]);
@@ -267,7 +265,6 @@ export default function PerfilAsesorEditable() {
       ) {
         // Agregar el área temática relacionada
         newAreas = [...newAreas, selectedTema.areaTematica];
-        //console.log("newAreas", newAreas);
         setRecentlyAddedArea(selectedTema.areaTematica.idArea);
         areaAdded = true;
       }

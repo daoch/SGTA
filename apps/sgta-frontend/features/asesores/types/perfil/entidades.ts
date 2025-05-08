@@ -33,7 +33,7 @@ export interface Asesor {
 }
 
 export interface AsesorDTO {
-  idAsesor: number;
+  id: number;
   nombre: string;
   especialidad: string;
   email: string;
