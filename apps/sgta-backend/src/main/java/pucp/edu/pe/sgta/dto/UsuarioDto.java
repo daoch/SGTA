@@ -42,6 +42,8 @@ public class UsuarioDto {
 
 	private Boolean activo;
 
+	private Boolean rechazado; //we reject the application or proposal
+
 	private OffsetDateTime fechaCreacion;
 
 	private OffsetDateTime fechaModificacion;

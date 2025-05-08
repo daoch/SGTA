@@ -190,7 +190,9 @@ RETURNS TABLE (
     correo_electronico TEXT,
     activo             BOOLEAN,
     fecha_creacion     TIMESTAMPTZ,
-    asignado            BOOLEAN
+    asignado            BOOLEAN,
+    rechazado           BOOLEAN,
+    codigo_pucp TEXT,
 ) AS $$
 BEGIN
     RETURN QUERY
@@ -202,7 +204,9 @@ BEGIN
       u.correo_electronico::text,
       u.activo,
       u.fecha_creacion,
-      ut.asignado
+      ut.asignado,
+      ut.rechazado,
+      u.codigo_pucp::text
     FROM usuario u
     JOIN usuario_tema ut
       ON ut.usuario_id = u.usuario_id
