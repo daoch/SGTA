@@ -10,7 +10,6 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useBackStore } from "../../store/configuracion-store";
-import { useEffect, useState } from "react";
 
 export default function JuradosCards() {
   const { parametros, actualizarParametro, cargando } = useBackStore();
@@ -24,8 +23,6 @@ export default function JuradosCards() {
     p => p.parametroConfiguracion.nombre === "Tiempo Limite Jurado"
   );
 
-  console.log("AQUIIIIIIIII")
-  console.log(cantidadJuradosParam)
 
    // Handlers para cambios
    const handleCantidadChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
