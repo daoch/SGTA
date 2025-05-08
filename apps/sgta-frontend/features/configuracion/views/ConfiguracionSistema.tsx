@@ -23,7 +23,9 @@ export default function ConfiguracionSistema() {
   useEffect(() => {
     const initializeData = async () => {
       try {
-        await cargarParametros(1); // ID de carrera hardcodeado
+        console.log("📦 Parámetros cargados:", parametros);
+        console.log("📦 Parámetros originales:", parametrosOriginales);
+        await cargarParametros(7); // ID de carrera hardcodeado
       } catch (error) {
         console.error("Error al inicializar datos:", error);
       }
@@ -35,6 +37,14 @@ export default function ConfiguracionSistema() {
   // Detectar si hay cambios comparando con los valores originales
   const hasChanges = parametros.some((param) => {
     const originalParam = parametrosOriginales.find(p => p.id === param.id);
+
+    //rastrear cambios en el valor de los parámetros
+    const cambiado = originalParam && originalParam.valor !== param.valor;
+    if (cambiado) {
+      console.log(`⚠️ Cambio detectado en parámetro ID ${param.id}`);
+      console.log(`➡️ Original: ${originalParam.valor}, Actual: ${param.valor}`);
+    }
+
     return originalParam && originalParam.valor !== param.valor;
   });
 

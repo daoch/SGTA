@@ -1,15 +1,17 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, PenLine, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { ContenidoEsperadoEntregableCard } from "../components/entregable/contenido-entregable-card";
+import { CriterioEntregableCard } from "../components/entregable/criterio-entregable-card";
 import { EntregableModal } from "../components/entregable/entregable-modal";
 import { Entregable } from "../dtos/entregable";
 import {
-  ContenidoEntregableFormData,
-  ContenidoEntregableModal,
-} from "../components/entregable/contenido-entregable-modal";
+  CriterioEntregableFormData,
+  CriterioEntregableModal,
+} from "../components/entregable/criterio-entregable-modal";
+import axiosInstance from "@/lib/axios/axios-instance";
+import { CriterioEntregable } from "../dtos/criterio-entregable";
 
 interface DetalleEntregablePageProps {
   etapaId: string;
@@ -21,124 +23,156 @@ const DetalleEntregablePage: React.FC<DetalleEntregablePageProps> = ({
   entregableId,
 }) => {
   const router = useRouter();
-  // TODO: Cargar datos desde el backend
-  const [isContenidoModalOpen, setIsContenidoModalOpen] = useState(false);
+  const [isCriterioModalOpen, setIsCriterioModalOpen] = useState(false);
   const [isEntregableModalOpen, setIsEntregableModalOpen] = useState(false);
-  const [contenidoSeleccionado, setContenidoSeleccionado] =
-    useState<ContenidoEntregableFormData | null>(null);
+  const [criterioSeleccionado, setCriterioSeleccionado] =
+    useState<CriterioEntregableFormData | null>(null);
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
 
   const [entregable, setEntregable] = useState<Entregable>({
-    id: entregableId,
-    nombre: "Propuesta de Proyecto",
-    descripcion:
-      "Documento que describe el problema a resolver y la propuesta de solución.",
-    fechaInicio: "2023-05-15T23:59:00Z",
-    fechaFin: "2023-06-15T23:59:00Z",
-    esEvaluable: true,
+    id: "",
+    nombre: "",
+    fechaInicio: "",
+    fechaFin: "",
+    esEvaluable: false,
+    descripcion: "",
   });
 
-  const [contenidosEsperados, setContenidosEsperados] = useState([
-    {
-      id: "1",
-      titulo: "Introducción",
-      descripcion: "Presentación general del problema y contexto del proyecto.",
-    },
-    {
-      id: "2",
-      titulo: "Problemática",
-      descripcion:
-        "Descripción detallada del problema a resolver, incluyendo estadísticas y evidencias.",
-    },
-    {
-      id: "3",
-      titulo: "Objetivos",
-      descripcion: "Objetivo general y objetivos específicos del proyecto.",
-    },
-    {
-      id: "4",
-      titulo: "Propuesta de solución",
-      descripcion:
-        "Descripción general de la solución propuesta y su justificación.",
-    },
-    {
-      id: "5",
-      titulo: "Plan de trabajo",
-      descripcion:
-        "Cronograma de actividades y entregables para el desarrollo del proyecto.",
-    },
-  ]);
+  const [criterios, setCriterios] = useState<CriterioEntregable[]>([]);
 
-  const handleEditContenido = (id: string) => {
-    const contenido = contenidosEsperados.find((c) => c.id === id);
-    if (contenido) {
-      setContenidoSeleccionado(contenido);
-      setModalMode("edit");
-      setIsContenidoModalOpen(true);
+  useEffect(() => {
+    const fetchEntregable = async () => {
+      try {
+        const response = await axiosInstance.get(`/entregable/${entregableId}`);
+        setEntregable(response.data);
+      } catch (error) {
+        console.error("Error al cargar el entregable:", error);
+      }
+    };
+
+    fetchEntregable();
+  }, [entregableId]);
+
+  useEffect(() => {
+    const fetchCriterios = async () => {
+      try {
+        const response = await axiosInstance.get(`/criterio-entregable/entregable/${entregableId}`);
+        setCriterios(response.data);
+      } catch (error) {
+        console.error("Error al cargar los criterios:", error);
+      }
+    };
+
+    fetchCriterios();
+  }, [entregableId]);
+
+  const createCriterio = async (nuevoCriterio: CriterioEntregable) => {
+    try {
+      const response = await axiosInstance.post(`/criterio-entregable/entregable/${entregableId}`, nuevoCriterio);
+      console.log("Criterio creado exitosamente:", response.data);
+      return response.data; // Devuelve el criterio creado si es necesario
+    } catch (error) {
+      console.error("Error al crear el criterio:", error);
+      throw error; // Lanza el error para manejarlo en el lugar donde se llame
     }
   };
 
-  const handleDeleteContenido = (id: string) => {
-    console.log("Eliminar contenido:", id);
-    // Aquí iría la lógica para eliminar el contenido
-    setContenidosEsperados(
-      contenidosEsperados.filter((contenido) => contenido.id !== id),
-    );
-  };
-
-  const handleNuevoContenido = () => {
-    setContenidoSeleccionado(null);
-    setModalMode("create");
-    setIsContenidoModalOpen(true);
-  };
-
-  const handleSubmitContenido = async (
-    contenidoData: ContenidoEntregableFormData,
-  ) => {
-    // Simular llamada a la API
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    if (modalMode === "create") {
-      // Crear nuevo contenido con ID único
-      const nuevoContenido = {
-        ...contenidoData,
-        id: "6",
+  const handleCreateCriterio = async (nuevoCriterio: CriterioEntregable) => {
+    try {
+      const idCriterio = await createCriterio(nuevoCriterio);
+      const nuevoCriterioConId: CriterioEntregable = {
+        ...nuevoCriterio,
+        id: idCriterio, // Asignar el ID devuelto por la API
       };
+  
+        // Actualizar el estado local con el criterio creado
+      setCriterios((prev) => [...prev, nuevoCriterioConId]);
+   
+      // Cerrar el modal
+      setIsCriterioModalOpen(false);
+    } catch (error) {
+      console.error("Error al crear el criterio:", error);
+    }
+  };
 
-      // Actualizar estado local
-      setContenidosEsperados((prev) => [...prev, nuevoContenido]);
-    } else {
-      // Actualizar contenido existente
-      setContenidosEsperados((prev) =>
+  const handleNuevoCriterio = () => {
+    setCriterioSeleccionado(null);
+    setModalMode("create");
+    setIsCriterioModalOpen(true);
+  };
+
+  const updateCriterio = async (updatedCriterio: CriterioEntregable) => {
+    try {
+      const response = await axiosInstance.put(
+        "/criterio-entregable/update",
+        updatedCriterio,
+      );
+      console.log("Criterio actualizado exitosamente:", response.data);
+      return response.data; // Devuelve el criterio actualizado si es necesario
+    } catch (error) {
+      console.error("Error al actualizar el criterio:", error);
+      throw error; // Lanza el error para manejarlo en el lugar donde se llame
+    }
+  };
+
+  const handleUpdateCriterio = async (updatedCriterio: CriterioEntregable) => {
+    try {
+      await updateCriterio(updatedCriterio);
+      setCriterios((prev) =>
         prev.map((c) =>
-          c.id === contenidoData.id
+          c.id === updatedCriterio.id
             ? {
-                ...contenidoData,
-                id: contenidoData.id ?? Date.now().toString(),
+                ...updatedCriterio,
+                id: updatedCriterio.id,
               } // Asegurar que id sea un string
             : c,
         ),
       );
+   
+      // Cerrar el modal
+      setIsCriterioModalOpen(false);
+    } catch (error) {
+      console.error("Error al actualizar el criterio:", error);
     }
-
-    // Cerrar modal
-    setIsContenidoModalOpen(false);
   };
 
-  const handleUpdateEntregable = async (entregableData: Entregable) => {
-    // Simular llamada a la API
-    await new Promise((resolve) => setTimeout(resolve, 500));
 
-    // Actualizar estado local
-    setEntregable({
-      ...entregable,
-      nombre: entregableData.nombre,
-      fechaInicio: entregableData.fechaInicio,
-      descripcion: entregableData.descripcion,
-    });
+  const handleEditCriterio = (id: string) => {
+    const criterio = criterios.find((c) => c.id === id);
+    if (criterio) {
+      setCriterioSeleccionado(criterio);
+      setModalMode("edit");
+      setIsCriterioModalOpen(true);
+    }
+  };
 
-    // Cerrar modal
-    setIsEntregableModalOpen(false);
+  const handleDeleteCriterio = async (id: string) => {
+    //TO DO: Implementar la lógica para eliminar un criterio
+  };
+
+  const updateEntregable = async (updatedEntregable: Entregable) => {
+    try {
+      const response = await axiosInstance.put(
+        "/entregable/update",
+        updatedEntregable,
+      );
+      console.log("Entregable actualizado exitosamente:", response.data);
+      return response.data; // Devuelve el criterio actualizado si es necesario
+    } catch (error) {
+      console.error("Error al actualizar el Entregable:", error);
+      throw error; // Lanza el error para manejarlo en el lugar donde se llame
+    }
+  };
+
+  const handleUpdateEntregable = async (updatedEntregable: Entregable) => {
+    try {
+      await updateEntregable(updatedEntregable);
+      setEntregable(updatedEntregable);
+      // Cerrar el modal
+      setIsEntregableModalOpen(false);
+    } catch (error) {
+      console.error("Error al actualizar el Entregable:", error);
+    }
   };
 
   return (
@@ -175,25 +209,57 @@ const DetalleEntregablePage: React.FC<DetalleEntregablePageProps> = ({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <h3 className="text-sm font-medium text-muted-foreground mb-1">
+              Etapa
+            </h3>
+            <p>Proyecto de fin de carrera 1</p>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                Etapa
+                Fecha de apertura
               </h3>
-              <p>CAMBIAR ETAPA</p>
+              <p>
+                {new Date(entregable.fechaInicio).toLocaleString("es-ES", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </p>
             </div>
-            <div>
-              <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                Fecha y hora límite
-              </h3>
-              <p>{`${entregable.fechaInicio} HORA`}</p>
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                  Fecha de cierre
+                </h3>
+                <p>
+                  {new Date(entregable.fechaFin).toLocaleString("es-ES", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </p>
+              </div>
             </div>
           </div>
 
-          <div>
-            <h3 className="text-sm font-medium text-muted-foreground mb-1">
-              Descripción
-            </h3>
-            <p>{entregable.descripcion}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                Descripción
+              </h3>
+              <p>{entregable.descripcion}</p>
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                ¿Es evaluable?
+              </h3>
+              <p>{entregable.esEvaluable ? "Sí" : "No"}</p>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -201,36 +267,37 @@ const DetalleEntregablePage: React.FC<DetalleEntregablePageProps> = ({
       {/* Contenidos Esperados */}
 
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold">Contenidos Esperados</h2>
+        <h2 className="text-lg font-semibold">Criterios de calificación</h2>
         <Button
           id="btnNewContenido"
           className="bg-black hover:bg-gray-800"
-          onClick={handleNuevoContenido}
+          onClick={handleNuevoCriterio}
         >
           <Plus className="h-4 w-4 mr-1" />
-          Nuevo Contenido
+          Nuevo Criterio
         </Button>
       </div>
 
       <div className="space-y-4">
-        {contenidosEsperados.map((contenido) => (
-          <ContenidoEsperadoEntregableCard
-            key={contenido.id}
-            id={contenido.id}
-            titulo={contenido.titulo}
-            descripcion={contenido.descripcion}
-            onEdit={handleEditContenido}
-            onDelete={handleDeleteContenido}
+        {criterios.map((criterio) => (
+          <CriterioEntregableCard
+            key={criterio.id}
+            id={criterio.id ?? ""}
+            nombre={criterio.nombre}
+            descripcion={criterio.descripcion}
+            notaMaxima={criterio.notaMaxima}
+            onEdit={handleEditCriterio}
+            onDelete={handleDeleteCriterio}
           />
         ))}
       </div>
 
       {/* Modal para Nuevo Contenido */}
-      <ContenidoEntregableModal
-        isOpen={isContenidoModalOpen}
-        onClose={() => setIsContenidoModalOpen(false)}
-        onSubmit={handleSubmitContenido}
-        contenido={contenidoSeleccionado}
+      <CriterioEntregableModal
+        isOpen={isCriterioModalOpen}
+        onClose={() => setIsCriterioModalOpen(false)}
+        onSubmit={modalMode === "edit" ? handleUpdateCriterio : handleCreateCriterio}
+        criterio={criterioSeleccionado}
         mode={modalMode}
       />
 

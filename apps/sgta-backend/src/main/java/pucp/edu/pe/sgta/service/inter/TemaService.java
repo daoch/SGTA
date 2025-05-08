@@ -56,6 +56,9 @@ public interface TemaService {
 
 	List<TemaDto> listarPropuestasPorTesista(Integer tesistaId);
 
+	List<TemaDto> listarPostulacionesDirectasAMisPropuestas(Integer tesistaId);
+
+	List<TemaDto> listarPostulacionesGeneralesAMisPropuestas(Integer tesistaId);
 	List<InfoTemaPerfilDto> listarTemasAsesorInvolucrado(Integer temaId);
 
 }

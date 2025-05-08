@@ -1,5 +1,6 @@
 package pucp.edu.pe.sgta.service.imp;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pucp.edu.pe.sgta.dto.InfoAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.InfoSubAreaConocimientoDto;
@@ -16,6 +17,7 @@ import pucp.edu.pe.sgta.mapper.UsuarioMapper;
 import pucp.edu.pe.sgta.model.*;
 import pucp.edu.pe.sgta.repository.*;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
+import pucp.edu.pe.sgta.util.RolEnum;
 import pucp.edu.pe.sgta.util.Utils;
 
 import java.util.ArrayList;
@@ -23,8 +25,9 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
 import java.util.List;
+
+import java.util.NoSuchElementException;
 
 @Service
 public class UsuarioServiceImpl implements UsuarioService {
@@ -36,6 +39,9 @@ public class UsuarioServiceImpl implements UsuarioService {
 	private final UsuarioXAreaConocimientoRepository usuarioXAreaConocimientoRepository;
 	private final CarreraRepository carreraRepository;
 	private final UsuarioXTemaRepository usuarioXTemaRepository;
+
+	@Autowired
+    private RolRepository rolRepository;
 
 	@PersistenceContext
     private EntityManager em;
@@ -253,4 +259,65 @@ public class UsuarioServiceImpl implements UsuarioService {
 
 		return lista;
 	}
+
+	/**
+     * Asigna el rol de Asesor a un usuario que debe ser profesor
+     * 
+     * @param userId El ID del usuario al que se asignará el rol
+     * @throws NoSuchElementException Si el usuario o el rol no existen
+     * @throws IllegalArgumentException Si el usuario no es profesor
+     */
+    @Override
+    public void assignAdvisorRoleToUser(Integer userId) {
+        System.out.println("Intentando asignar rol de Asesor al usuario ID: " + userId);
+        
+        // 1. Buscar y validar que el usuario existe
+        Usuario user = usuarioRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado: " + userId));
+        
+        // 2. Validar que el usuario es de tipo Profesor
+        TipoUsuario tipoUsuario = user.getTipoUsuario();
+        if (tipoUsuario == null || !"Profesor".equalsIgnoreCase(tipoUsuario.getNombre())) {
+            System.out.println("El usuario ID: " + userId + " no es profesor, es: " + 
+                    (tipoUsuario != null ? tipoUsuario.getNombre() : "null"));
+            throw new IllegalArgumentException("Solo los usuarios de tipo Profesor pueden ser asignados como Asesores");
+        }
+        
+        // 3. Buscar el rol de Asesor usando el enum
+        String rolNombre = RolEnum.Asesor.name();
+        Rol advisorRole = rolRepository.findByNombre(rolNombre)
+                .orElseThrow(() -> new NoSuchElementException("Rol '" + rolNombre + "' no configurado en el sistema"));
+        
+        // 4. Verificar si ya tiene el rol (idempotencia)
+        // Aquí necesitamos verificar de alguna manera si el usuario ya tiene el rol
+        // Como no tenemos una entidad UsuarioRol ni un método específico,
+        // podemos ejecutar una consulta nativa o JPQL
+        
+        // Consulta JPQL para verificar si el usuario ya tiene el rol
+        String jpql = "SELECT COUNT(u) FROM Usuario u JOIN u.roles r WHERE u.id = :userId AND r.id = :rolId";
+        Long count = em.createQuery(jpql, Long.class)
+                .setParameter("userId", userId)
+                .setParameter("rolId", advisorRole.getId())
+                .getSingleResult();
+        
+        boolean alreadyExists = count > 0;
+        
+        if (!alreadyExists) {
+            // 5. Asignar el rol al usuario
+            // Como no tenemos acceso directo a la colección de roles,
+            // usamos una consulta nativa para insertar en la tabla de relación
+            
+            // Consulta nativa para insertar en la tabla de relación usuario_rol
+            // Asumiendo que la tabla se llama "usuario_rol" y tiene columnas "usuario_id" y "rol_id"
+            String sql = "INSERT INTO usuario_rol (usuario_id, rol_id, activo) VALUES (:usuarioId, :rolId, true)";
+            em.createNativeQuery(sql)
+                .setParameter("usuarioId", userId)
+                .setParameter("rolId", advisorRole.getId())
+                .executeUpdate();
+                
+            System.out.println("Rol de Asesor asignado exitosamente al usuario ID: " + userId);
+        } else {
+            System.out.println("El usuario ID: " + userId + " ya tiene el rol de Asesor. No se realizó ninguna acción.");
+        }
+    }
 }

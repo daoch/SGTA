@@ -430,7 +430,9 @@ public class TemaServiceImpl implements TemaService {
                     : null
                 )
 				.asignado((Boolean) r[7]) //we identify if the asesor is assigned or not
-                .build();
+					.rechazado((Boolean) r[8])
+					.codigoPucp((String) r[9])
+					.build();
             resultados.add(u);
         }
         return resultados;
@@ -596,6 +598,79 @@ public class TemaServiceImpl implements TemaService {
 
 		return temas;
 	}
+
+	@Override
+	public List<TemaDto> listarPostulacionesDirectasAMisPropuestas(Integer tesistaId) {
+		List<TemaDto> temas = new ArrayList<>();
+		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Tesista.name(), EstadoTemaEnum.PREINSCRITO.name()));
+		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Creador.name(), EstadoTemaEnum.PROPUESTO_DIRECTO.name()));
+		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Creador.name(), EstadoTemaEnum.RECHAZADO.name())); //The asesor rejected the propuesta
+		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Creador.name(), EstadoTemaEnum.VENCIDO.name())); //The asesor never answered the propuesta
+		Integer idPropuestoDirecto = null;
+
+		try{
+			 idPropuestoDirecto = estadoTemaRepository.findByNombre(EstadoTemaEnum.PROPUESTO_DIRECTO.name()).get().getId();
+		} catch (Exception e){
+			throw new RuntimeException("No se encuentra el estado de tema: " + EstadoTemaEnum.PROPUESTO_DIRECTO.name());
+		}
+
+		List<TemaDto> temasPropuestosDirectos = new ArrayList<>();
+		for(TemaDto t : temas){
+			if(t.getEstadoTemaNombre().equals(EstadoTemaEnum.PREINSCRITO.name()) ||
+					t.getEstadoTemaNombre().equals(EstadoTemaEnum.RECHAZADO.name())
+					|| t.getEstadoTemaNombre().equals(EstadoTemaEnum.VENCIDO.name())){
+				List<HistorialTemaDto> historialTemaDto = historialTemaService.findByTemaId(t.getId());
+				for (HistorialTemaDto h : historialTemaDto){
+					if(h.getEstadoTemaId().equals(idPropuestoDirecto)){
+						//t.setEstadoTemaNombre(EstadoTemaEnum.PROPUESTO_DIRECTO.name());
+						t.setFechaModificacion(h.getFechaCreacion());
+						break;
+					}
+				}
+			}
+			t.setCoasesores(listarUsuariosPorTemaYRol(t.getId(), RolEnum.Asesor.name())); //we load the proposed asesor, which comes with the rechazado
+			temasPropuestosDirectos.add(t);
+		}
+		//historialTemaService.findByTemaId(id);
+
+		return temasPropuestosDirectos;
+	}
+
+	@Override
+	public List<TemaDto> listarPostulacionesGeneralesAMisPropuestas(Integer tesistaId) {
+		List<TemaDto> temas = new ArrayList<>();
+		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Tesista.name(), EstadoTemaEnum.PREINSCRITO.name()));
+		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Creador.name(), EstadoTemaEnum.PROPUESTO_GENERAL.name()));
+		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Creador.name(), EstadoTemaEnum.VENCIDO.name())); //The asesor never answered the propuesta
+		Integer idPropuestoGeneral = null;
+
+		try{
+			idPropuestoGeneral = estadoTemaRepository.findByNombre(EstadoTemaEnum.PROPUESTO_GENERAL.name()).get().getId();
+		} catch (Exception e){
+			throw new RuntimeException("No se encuentra el estado de tema: " + EstadoTemaEnum.PROPUESTO_GENERAL.name());
+		}
+
+		List<TemaDto> temasPropuestosGeneral = new ArrayList<>();
+		for(TemaDto t : temas){
+			if(t.getEstadoTemaNombre().equals(EstadoTemaEnum.PREINSCRITO.name())
+					|| t.getEstadoTemaNombre().equals(EstadoTemaEnum.VENCIDO.name())){
+				List<HistorialTemaDto> historialTemaDto = historialTemaService.findByTemaId(t.getId());
+				for (HistorialTemaDto h : historialTemaDto){
+					if(h.getEstadoTemaId().equals(idPropuestoGeneral)){ //it was created as general
+						//t.setEstadoTemaNombre(EstadoTemaEnum.PROPUESTO_DIRECTO.name());
+						t.setFechaModificacion(h.getFechaCreacion());
+						break;
+					}
+				}
+			}
+			t.setCoasesores(listarUsuariosPorTemaYRol(t.getId(), RolEnum.Asesor.name())); //we load the proposed asesor, which comes with the rechazado
+			temasPropuestosGeneral.add(t);
+		}
+		//historialTemaService.findByTemaId(id);
+
+		return temasPropuestosGeneral;
+	}
+
 
 	private Integer calculatePostulaciones(Integer temaId) {
 		return listarUsuariosPorTemaYRol(temaId, RolEnum.Asesor.name()).size(); //asesores with asignado false

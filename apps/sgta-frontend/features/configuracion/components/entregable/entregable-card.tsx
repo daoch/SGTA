@@ -31,7 +31,19 @@ export function EntregableCard({
             <div>
               <h3 className="font-medium">{nombre}</h3>
               <p className="text-sm text-muted-foreground">
-                Fechas: {fechaInicio} - {fechaFin}
+                Fecha de apertura: {new Date(fechaInicio).toLocaleString("es-ES", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })} - Fecha de cierre: {new Date(fechaFin).toLocaleString("es-ES", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
               </p>
               <p className="text-sm mt-1">{descripcion}</p>
               <div className="flex gap-2 mt-2">
