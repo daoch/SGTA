@@ -12,9 +12,9 @@ public class RevisionCriterioExposicionMapper {
         RevisionCriterioExposicion entity = new RevisionCriterioExposicion();
         entity.setId(dto.getId());
         entity.setNota(dto.getNota());
-        entity.setRevisado(dto.isRevisado());
+        entity.setRevisado(dto.getRevisado());
         entity.setObservacion(dto.getObservacion());
-        entity.setActivo(dto.isActivo());
+        entity.setActivo(dto.getActivo());
         entity.setFechaCreacion(dto.getFechaCreacion());
         entity.setFechaModificacion(dto.getFechaModificacion());
 
@@ -46,9 +46,9 @@ public class RevisionCriterioExposicionMapper {
         RevisionCriterioExposicionDto dto = new RevisionCriterioExposicionDto();
         dto.setId(entity.getId());
         dto.setNota(entity.getNota());
-        dto.setRevisado(entity.isRevisado());
+        dto.setRevisado(entity.getRevisado());
         dto.setObservacion(entity.getObservacion());
-        dto.setActivo(entity.isActivo());
+        dto.setActivo(entity.getActivo());
         dto.setFechaCreacion(entity.getFechaCreacion());
         dto.setFechaModificacion(entity.getFechaModificacion());
 

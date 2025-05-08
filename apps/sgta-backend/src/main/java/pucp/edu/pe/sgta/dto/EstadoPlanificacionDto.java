@@ -15,7 +15,7 @@ import java.time.OffsetDateTime;
 public class EstadoPlanificacionDto {
     private Integer id;
     private String nombre;
-    private boolean activo;
+    private Boolean activo;
     private OffsetDateTime fechaCreacion;
     private OffsetDateTime fechaModificacion;
 }

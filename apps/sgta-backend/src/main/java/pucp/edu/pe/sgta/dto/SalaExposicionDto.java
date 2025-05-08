@@ -17,7 +17,7 @@ import pucp.edu.pe.sgta.util.TipoSalaExposicion;
 public class SalaExposicionDto {
     private Integer id;
     private String nombre;
-    private boolean activo;
+    private Boolean activo;
     private TipoSalaExposicion tipoSalaExposicion;
     private OffsetDateTime fechaCreacion;
     private OffsetDateTime fechaModificacion;

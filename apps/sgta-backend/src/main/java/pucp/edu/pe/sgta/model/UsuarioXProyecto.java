@@ -27,10 +27,10 @@ public class UsuarioXProyecto {
 	private Proyecto proyecto;
 
 	@Column(name = "lider_proyecto", nullable = false)
-	private boolean liderProyecto = false;
+	private Boolean liderProyecto = false;
 
 	@Column(nullable = false)
-	private boolean activo = true;
+	private Boolean activo = true;
 
 	@Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
 	private OffsetDateTime fechaCreacion;

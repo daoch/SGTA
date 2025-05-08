@@ -21,7 +21,9 @@ public class EtapaFormativaDto {
 
     private String duracionExposicion;
 
-    private boolean activo;
+    private Integer carreraId;
+
+    private Boolean activo;
 
     private OffsetDateTime fechaCreacion;
 

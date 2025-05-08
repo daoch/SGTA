@@ -16,7 +16,7 @@ public class EtapaFormativaXCicloMapper {
         if (etapaFormativaXCiclo.getCiclo() != null) {
             dto.setCicloId(etapaFormativaXCiclo.getCiclo().getId());
         }
-        dto.setActivo(etapaFormativaXCiclo.isActivo());
+        dto.setActivo(etapaFormativaXCiclo.getActivo());
         dto.setFechaCreacion(etapaFormativaXCiclo.getFechaCreacion());
         dto.setFechaModificacion(etapaFormativaXCiclo.getFechaModificacion());
         return dto;
@@ -28,7 +28,7 @@ public class EtapaFormativaXCicloMapper {
 
         EtapaFormativaXCiclo entity = new EtapaFormativaXCiclo();
         entity.setId(dto.getId());
-        entity.setActivo(dto.isActivo());
+        entity.setActivo(dto.getActivo());
         entity.setFechaCreacion(dto.getFechaCreacion());
         entity.setFechaModificacion(dto.getFechaModificacion());
 

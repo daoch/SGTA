@@ -11,7 +11,7 @@ public class ParametroConfiguracionMapper {
 		ParametroConfiguracionDto dto = new ParametroConfiguracionDto();
 		dto.setId(ParametroConfiguracion.getId());
         dto.setNombre(ParametroConfiguracion.getNombre());
-        dto.setActivo(ParametroConfiguracion.isActivo());
+        dto.setActivo(ParametroConfiguracion.getActivo());
         dto.setDescripcion(ParametroConfiguracion.getDescripcion());
         dto.setModuloId(ParametroConfiguracion.getModulo().getId());
         dto.setTipoDato(ParametroConfiguracion.getTipoDato());
@@ -23,7 +23,7 @@ public class ParametroConfiguracionMapper {
 		ParametroConfiguracion parametroConfiguracion = new ParametroConfiguracion();
 		parametroConfiguracion.setId(dto.getId());
         parametroConfiguracion.setNombre(dto.getNombre());
-        parametroConfiguracion.setActivo(dto.isActivo());
+        parametroConfiguracion.setActivo(dto.getActivo());
 		parametroConfiguracion.setDescripcion(dto.getDescripcion());
         Modulo modulo = new Modulo();
         modulo.setId(dto.getModuloId());

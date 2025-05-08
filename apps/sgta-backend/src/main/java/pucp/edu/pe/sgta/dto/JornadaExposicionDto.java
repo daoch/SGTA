@@ -22,7 +22,7 @@ public class JornadaExposicionDto {
 
     private OffsetDateTime datetimeFin;
 
-    private boolean activo;
+    private Boolean activo;
 
     private OffsetDateTime fechaCreacion;
 

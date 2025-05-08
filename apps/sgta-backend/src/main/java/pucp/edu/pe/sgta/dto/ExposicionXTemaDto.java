@@ -22,7 +22,7 @@ public class ExposicionXTemaDto {
     private String linkGrabacion;
     private EstadoExposicion estadoExposicion;
     private BigDecimal notaFinal;
-    private boolean activo;
+    private Boolean activo;
     private OffsetDateTime fechaCreacion;
     private OffsetDateTime fechaModificacion;
 }
