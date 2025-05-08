@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.OffsetDateTime;
 
 @Entity
@@ -28,8 +29,8 @@ public class EtapaFormativa {
     @Column(name = "creditaje_por_tema", nullable = true, precision = 6, scale = 2)
     private BigDecimal creditajePorTema;
 
-    @Column(name = "duracion_exposicion")
-    private String duracionExposicion;
+    @Column(name = "duracion_exposicion", columnDefinition = "interval")
+    private Duration duracionExposicion;
 
     @Column(nullable = false)
     private Boolean activo = true;

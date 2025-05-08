@@ -544,6 +544,7 @@ CREATE TABLE IF NOT EXISTS carrera_parametro_configuracion (
     fecha_modificacion                  TIMESTAMP WITH TIME ZONE,
     carrera_id                          INTEGER   NOT NULL,
     parametro_configuracion_id          INTEGER   NOT NULL,
+    etapa_formativa_id                  INTEGER,  -- opcional, puede ser NULL
 	-- si agregan el fk de etapa_formativa, no le pongan NOT NULL
 
     CONSTRAINT fk_cpc_carrera
@@ -958,8 +959,8 @@ CREATE TABLE IF NOT EXISTS entregable
     etapa_formativa_x_ciclo_id INTEGER                  NOT NULL,
     nombre                     VARCHAR(150)             NOT NULL,
     descripcion                TEXT,
-    fecha_inicio               DATE                     NOT NULL,
-    fecha_fin                  DATE                     NOT NULL,
+    fecha_inicio               TIMESTAMP WITH TIME ZONE NOT NULL,
+    fecha_fin                  TIMESTAMP WITH TIME ZONE NOT NULL,
     estado                     enum_estado_actividad    NOT NULL DEFAULT 'no_iniciado',
     es_evaluable               BOOLEAN                  NOT NULL DEFAULT FALSE,
     activo                     BOOLEAN                  NOT NULL DEFAULT TRUE,
@@ -1219,6 +1220,13 @@ ALTER TABLE exposicion_x_tema
             REFERENCES revision_criterio_x_exposicion (revision_criterio_x_exposicion_id)
             ON DELETE SET NULL;
 
+
+ALTER TABLE carrera_parametro_configuracion DROP CONSTRAINT IF EXISTS fk_cpc_grupo;
+ALTER TABLE carrera_parametro_configuracion
+    ADD CONSTRAINT fk_cpc_grupo
+        FOREIGN KEY (etapa_formativa_id)
+            REFERENCES etapa_formativa (etapa_formativa_id)
+            ON DELETE RESTRICT;
 
 -- NECESARIO PARA QUE NO EXISTAN PROBLEMAS CON LOS ENUMS
 -- AGREGAR EL CAST PARA LOS DEMAS ENUMS DE SER NECESARIO

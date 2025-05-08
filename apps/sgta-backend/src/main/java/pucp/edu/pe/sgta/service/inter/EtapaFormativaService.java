@@ -1,8 +1,9 @@
 package pucp.edu.pe.sgta.service.inter;
-
-import pucp.edu.pe.sgta.dto.EtapaFormativaDTO;
 import pucp.edu.pe.sgta.dto.EtapaFormativaNombreDTO;
+
 import java.util.List;
+
+import pucp.edu.pe.sgta.dto.EtapaFormativaDto;
 
 public interface EtapaFormativaService {
 

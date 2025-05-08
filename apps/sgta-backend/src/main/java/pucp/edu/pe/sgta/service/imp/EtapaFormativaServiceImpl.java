@@ -1,7 +1,7 @@
 package pucp.edu.pe.sgta.service.imp;
 
 import org.springframework.stereotype.Service;
-import pucp.edu.pe.sgta.dto.EtapaFormativaDTO;
+
 import pucp.edu.pe.sgta.dto.EtapaFormativaNombreDTO;
 import pucp.edu.pe.sgta.mapper.EtapaFormativaMapper;
 import pucp.edu.pe.sgta.model.EtapaFormativa;
@@ -9,6 +9,8 @@ import pucp.edu.pe.sgta.repository.EtapaFormativaRepository;
 import pucp.edu.pe.sgta.service.inter.EtapaFormativaService;
 
 import java.util.List;
+
+import pucp.edu.pe.sgta.dto.EtapaFormativaDto;
 
 @Service
 public class EtapaFormativaServiceImpl implements EtapaFormativaService {
