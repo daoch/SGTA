@@ -7,11 +7,13 @@ import "./globals.css";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  display: "swap",
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -25,10 +27,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" dir="ltr">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased tsqd-parent-container`}
-      >
+    <html
+      lang="es"
+      dir="ltr"
+      className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+    >
+      <body className={"tsqd-parent-container"}>
         <QueryClientProvider>
           <AuthProvider>{children}</AuthProvider>
         </QueryClientProvider>

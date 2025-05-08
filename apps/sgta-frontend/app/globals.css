@@ -121,10 +121,13 @@
   }
 }
 
+@utility no-scrollbar {
+  @apply [scrollbar-width:none];
+}
+
 ::-webkit-scrollbar {
   width: 6px; /* Ancho de la barra de desplazamiento */
 }
-
 
 ::-webkit-scrollbar-thumb {
   background-color: #bfbcbce1; /* Color de la barra de desplazamiento */
