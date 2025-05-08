@@ -87,14 +87,12 @@ import { useState } from "react";
 // Obtener todas las áreas únicas para el filtro
 
 interface PropuestasTableProps {
-  filter?: string;
   propuestas?: Proyecto[];
   areasData?: Area[];
   idsSubAreas?: number[];
 }
 
 export function PropuestasTable({
-  filter,
   propuestas,
   areasData,
   idsSubAreas,

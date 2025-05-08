@@ -29,12 +29,12 @@ export async function fetchTemasPropuestosAlAsesor(
     const data = await response.json();
 
     const updatedData = await Promise.all(
-      data.map(async (item: any) => {
+      data.map(async (item: Proyecto) => {
         // Crear un array para almacenar los estudiantes y areas
         const estudiantes = [];
         const subAreas = [];
 
-        for (const idEstudiante of item.tesistas.map(
+        for (const idEstudiante of item?.tesistas?.map(
           (item: Usuario) => item.id,
         ) || []) {
           const estudiante = await fetchUsuariosFindById(idEstudiante);
@@ -86,12 +86,12 @@ export async function fetchTemasPropuestosPorSubAreaConocimiento(
     const data = await response.json();
 
     const updatedData = await Promise.all(
-      data.map(async (item: any) => {
+      data.map(async (item: Proyecto) => {
         // Crear un array para almacenar los estudiantes y areas
         const estudiantes = [];
         const subAreas = [];
 
-        for (const idEstudiante of item.tesistas.map(
+        for (const idEstudiante of item?.tesistas?.map(
           (item: Usuario) => item.id,
         ) || []) {
           const estudiante = await fetchUsuariosFindById(idEstudiante);
