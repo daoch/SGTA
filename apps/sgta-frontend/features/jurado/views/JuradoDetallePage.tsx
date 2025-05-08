@@ -13,12 +13,12 @@ import {
 } from "@/components/ui/select";
 import { ListaTesisJuradoCard } from "../components/TesisCard";
 
-import { 
-  Jurado, 
-  TesisAsignada, 
-  CursoType, 
+import {
+  Jurado,
+  TesisAsignada,
+  CursoType,
   PeriodoAcademico,
-  JuradoDetalleViewProps 
+  JuradoDetalleViewProps,
 } from "@/features/jurado/types/juradoDetalle.types";
 
 export function JuradoDetalleView({
@@ -83,14 +83,17 @@ export function JuradoDetalleView({
   ];
 
   const juradoEjemplo: Jurado = {
-    
     specialties: ["Ingeniería de Software", "Ciencias de la Computación"],
   };
 
   const [modalOpen, setModalOpen] = useState(false);
   const [asignadas, setAsignadas] = useState<TesisAsignada[]>(tesisData);
-  const [selectedPeriodo, setSelectedPeriodo] = useState<PeriodoAcademico>(PeriodoAcademico.TODOS);
-  const [selectedCurso, setSelectedCurso] = useState<CursoType>(CursoType.TODOS);
+  const [selectedPeriodo, setSelectedPeriodo] = useState<PeriodoAcademico>(
+    PeriodoAcademico.TODOS,
+  );
+  const [selectedCurso, setSelectedCurso] = useState<CursoType>(
+    CursoType.TODOS,
+  );
 
   const handleAsignarTesis = async () => {
     try {
@@ -100,7 +103,12 @@ export function JuradoDetalleView({
     }
   };
 
-  // Modificación clave: eliminar searchTerm de las dependencias y 
+  const handleTesisCardClick = (codigoTesis: string) => {
+    // Navegación a la página de detalle de tesis
+    router.push(`/coordinador/jurados/${detalleJurado}/tesis/${codigoTesis}`);
+  };
+
+  // Modificación clave: eliminar searchTerm de las dependencias y
   // filtrar solo por curso y periodo en este useEffect
   useEffect(() => {
     setAsignadas(
@@ -108,9 +116,10 @@ export function JuradoDetalleView({
         const matchCurso =
           selectedCurso === CursoType.TODOS || tesis.curso === selectedCurso;
         const matchPeriodo =
-          selectedPeriodo === PeriodoAcademico.TODOS || tesis.periodo === selectedPeriodo;
+          selectedPeriodo === PeriodoAcademico.TODOS ||
+          tesis.periodo === selectedPeriodo;
         return matchCurso && matchPeriodo;
-      })
+      }),
     );
   }, [selectedCurso, selectedPeriodo]); // Quitar searchTerm de aquí
 
@@ -122,14 +131,15 @@ export function JuradoDetalleView({
           tesis.codigo.toLowerCase().includes(searchTerm.toLowerCase()) ||
           tesis.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
           tesis.estudiante.toLowerCase().includes(searchTerm.toLowerCase());
-        
+
         const matchCurso =
           selectedCurso === CursoType.TODOS || tesis.curso === selectedCurso;
         const matchPeriodo =
-          selectedPeriodo === PeriodoAcademico.TODOS || tesis.periodo === selectedPeriodo;
-        
+          selectedPeriodo === PeriodoAcademico.TODOS ||
+          tesis.periodo === selectedPeriodo;
+
         return matchText && matchCurso && matchPeriodo;
-      })
+      }),
     );
   };
 
@@ -153,7 +163,6 @@ export function JuradoDetalleView({
 
       <div className="flex flex-wrap gap-2 items-center">
         <div className="relative flex items-center w-[447px] h-[44px] border border-[#E2E6F0] bg-background">
-          <Search className="absolute left-3 text-gray-400 w-5 h-5" />
           <Input
             placeholder="Ingrese el código, título del tema o nombre del estudiante"
             className="pl-12 w-full h-full px-3 py-2 items-center gap-2 bg-transparent resize-none focus:outline-none"
@@ -172,7 +181,7 @@ export function JuradoDetalleView({
         {/* ComboBox 1 - Curso */}
         <div className="flex flex-col w-[242px] h-[80px] items-start gap-[6px] flex-shrink-0">
           <label className="text-sm font-medium">Curso</label>
-          <Select 
+          <Select
             onValueChange={(val: string) => setSelectedCurso(val as CursoType)}
             defaultValue={CursoType.TODOS}
           >
@@ -181,8 +190,12 @@ export function JuradoDetalleView({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value={CursoType.TODOS}>{CursoType.TODOS}</SelectItem>
-              <SelectItem value={CursoType.PFC1}>Proyecto de Fin de Carrera 1</SelectItem>
-              <SelectItem value={CursoType.PFC2}>Proyecto de Fin de Carrera 2</SelectItem>
+              <SelectItem value={CursoType.PFC1}>
+                Proyecto de Fin de Carrera 1
+              </SelectItem>
+              <SelectItem value={CursoType.PFC2}>
+                Proyecto de Fin de Carrera 2
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -190,18 +203,28 @@ export function JuradoDetalleView({
         {/* ComboBox 2 - Periodo */}
         <div className="flex flex-col w-[104px] h-[80px] items-start gap-[6px] flex-shrink-0">
           <label className="text-sm font-medium">Periodo</label>
-          <Select 
-            onValueChange={(val: string) => setSelectedPeriodo(val as PeriodoAcademico)}
+          <Select
+            onValueChange={(val: string) =>
+              setSelectedPeriodo(val as PeriodoAcademico)
+            }
             defaultValue={PeriodoAcademico.TODOS}
           >
             <SelectTrigger className="h-[68px] w-full">
               <SelectValue placeholder="Todos" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={PeriodoAcademico.TODOS}>{PeriodoAcademico.TODOS}</SelectItem>
-              <SelectItem value={PeriodoAcademico.PERIODO_2025_1}>2025-1</SelectItem>
-              <SelectItem value={PeriodoAcademico.PERIODO_2025_0}>2025-0</SelectItem>
-              <SelectItem value={PeriodoAcademico.PERIODO_2024_2}>2024-2</SelectItem>
+              <SelectItem value={PeriodoAcademico.TODOS}>
+                {PeriodoAcademico.TODOS}
+              </SelectItem>
+              <SelectItem value={PeriodoAcademico.PERIODO_2025_1}>
+                2025-1
+              </SelectItem>
+              <SelectItem value={PeriodoAcademico.PERIODO_2025_0}>
+                2025-0
+              </SelectItem>
+              <SelectItem value={PeriodoAcademico.PERIODO_2024_2}>
+                2024-2
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -214,14 +237,17 @@ export function JuradoDetalleView({
           + Asignar Tesis
         </Button>
       </div>
-      <ListaTesisJuradoCard data={asignadas} />
+      <ListaTesisJuradoCard
+        data={asignadas}
+        onCardClick={handleTesisCardClick}
+      />
 
       {/* Modal */}
       <ModalAsignarTesis
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         onAsignar={handleAsignarTesis}
-        data={tesisDataSeleccion} 
+        data={tesisDataSeleccion}
         jurado={juradoEjemplo}
       />
     </div>

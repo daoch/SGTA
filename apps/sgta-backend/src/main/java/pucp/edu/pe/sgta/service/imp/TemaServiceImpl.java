@@ -20,6 +20,8 @@ import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+
+
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -554,6 +556,24 @@ public class TemaServiceImpl implements TemaService {
 	}
 
 	@Override
+	public List<TemaConAsesorJuradoDTO> listarTemasCicloActualXEtapaFormativa(Integer etapaFormativaId) {
+
+		List<Object[]> temas  = temaRepository.listarTemasCicloActualXEtapaFormativa(etapaFormativaId);
+		List<TemaConAsesorJuradoDTO> temasDto = new ArrayList<>();
+
+		for(Object[] obj : temas) {
+			TemaConAsesorJuradoDTO dto = new TemaConAsesorJuradoDTO();
+			dto.setId((Integer) obj[0]);
+			dto.setCodigo((String) obj[1]);
+			dto.setTitulo((String) obj[2]);
+
+			temasDto.add(dto);
+		}
+		return temasDto;
+
+	}
+
+
 	public List<TemaDto> listarPropuestasPorTesista(Integer tesistaId) {
 		List<TemaDto> temas = new ArrayList<>();
 		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Creador.name(), EstadoTemaEnum.PROPUESTO_GENERAL.name()));
@@ -580,6 +600,7 @@ public class TemaServiceImpl implements TemaService {
 	private Integer calculatePostulaciones(Integer temaId) {
 		return listarUsuariosPorTemaYRol(temaId, RolEnum.Asesor.name()).size(); //asesores with asignado false
 	}
+
 
 	@Override
 	public List<InfoTemaPerfilDto> listarTemasAsesorInvolucrado(Integer asesorId) {

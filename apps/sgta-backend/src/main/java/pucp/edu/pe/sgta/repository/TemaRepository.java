@@ -51,4 +51,13 @@ public interface TemaRepository extends JpaRepository<Tema, Integer> {
     List<Object[]> listarTemasAsesorInvolucrado(
             @Param("id") Integer asesorId
     );
+
+    @Query(value = """
+        SELECT * FROM  listar_temas_ciclo_actual_x_etapa_formativa(:efid)
+      """,nativeQuery = true)
+    List<Object[]> listarTemasCicloActualXEtapaFormativa(
+            @Param("efid") Integer etapaFormativaId
+
+    );
+
 }
