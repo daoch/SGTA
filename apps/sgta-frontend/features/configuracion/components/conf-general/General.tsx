@@ -66,12 +66,6 @@ interface AreaResponse {
 
 export default function GeneralConfCards() {
   const { parametros, actualizarParametro, cargando } = useBackStore();
-
-  // Debug: Ver todos los parámetros disponibles
-  useEffect(() => {
-    console.log("Todos los parámetros:", parametros);
-  }, [parametros]);
-
   const [areasDialogOpen, setAreasDialogOpen] = useState(false);
   const [newArea, setNewArea] = useState("");
   const [newAreaDescripcion, setNewAreaDescripcion] = useState("");
