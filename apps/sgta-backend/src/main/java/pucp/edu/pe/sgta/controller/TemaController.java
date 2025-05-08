@@ -23,8 +23,9 @@ public class TemaController {
 
     @PostMapping("/createPropuesta")
     public void createTema(@RequestBody TemaDto dto,
-                           @RequestParam(name = "idUsuarioCreador") Integer idUsuarioCreador) {
-        temaService.createTemaPropuesta(dto, idUsuarioCreador);
+                           @RequestParam(name = "idUsuarioCreador") Integer idUsuarioCreador,
+						   @RequestParam(name = "tipoPropuesta", defaultValue = "0") Integer tipoPropuesta) {
+        temaService.createTemaPropuesta(dto, idUsuarioCreador, tipoPropuesta);
     }
     @GetMapping("/findById") //finds a topic by id
     public TemaDto findById(@RequestParam(name = "idTema") Integer idTema) {
@@ -38,6 +39,10 @@ public class TemaController {
         temaService.createInscripcionTema(dto, idUsuarioCreador);
     }
 
+	@PutMapping("/update") // updates a topic
+	public void update(@RequestBody TemaDto dto) {
+		temaService.update(dto);
+	}
 	@GetMapping("/listarTemasPropuestosAlAsesor/{asesorId}")
 	public List<TemaDto> listarTemasPropuestosAlAsesor(@PathVariable Integer asesorId) {
 		return temaService.listarTemasPropuestosAlAsesor(asesorId);
@@ -88,6 +93,11 @@ public class TemaController {
 
 		temaService.rechazarTemaPropuestaDirecta(alumnoId, comentario, temaId);
 
+	}
+
+	@GetMapping("/listarPropuestasPorTesista/{tesistaId}")
+	public List<TemaDto> listarPropuestasPorTesista(@PathVariable("tesistaId") Integer tesistaId) {
+		return temaService.listarPropuestasPorTesista(tesistaId);
 	}
 
 

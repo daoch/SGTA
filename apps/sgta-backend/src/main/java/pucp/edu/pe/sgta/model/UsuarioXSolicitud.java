@@ -30,19 +30,19 @@ public class UsuarioXSolicitud {
 	private Solicitud solicitud;
 
 	@Column(name = "solicitud_completada", nullable = false)
-	private boolean solicitudCompletada = false;
+	private Boolean solicitudCompletada = false;
 
 	@Column(nullable = false)
-	private boolean aprovado = false;
+	private Boolean aprovado = false;
 
 	@Column(columnDefinition = "TEXT")
 	private String comentario;
 
 	@Column(nullable = false)
-	private boolean destinatario = false;
+	private Boolean destinatario = false;
 
 	@Column(nullable = false)
-	private boolean activo = true;
+	private Boolean activo = true;
 
 	@Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
 	private OffsetDateTime fechaCreacion;

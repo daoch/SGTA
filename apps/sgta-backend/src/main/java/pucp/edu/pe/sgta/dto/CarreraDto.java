@@ -16,7 +16,7 @@ public class CarreraDto {
     private String codigo;
     private String nombre;
     private String descripcion;
-    private boolean activo;
+    private Boolean activo;
     private OffsetDateTime fechaCreacion;
     private OffsetDateTime fechaModificacion;
 }

@@ -21,10 +21,9 @@ BEGIN
         ARRAY( 
             SELECT ut2.usuario_id
             FROM usuario_tema ut2
-            WHERE ut2.tema_id = t.tema_id 
-              AND ut2.rol_id = (
-                 SELECT rol_id FROM rol WHERE nombre ILIKE 'Creador' LIMIT 1
-              )
+            WHERE ut2.tema_id = t.tema_id AND ut2.rol_id = (
+            	SELECT rol_id FROM rol WHERE nombre ILIKE 'Creador' LIMIT 1
+        	)
         ) AS alumnos_id,
         t.resumen::text,
         t.metodologia::text,
@@ -48,19 +47,20 @@ BEGIN
         )
         AND sact.sub_area_conocimiento_id = ANY(p_subareas_ids)
         AND NOT EXISTS (
-            SELECT 1 
+            SELECT 1
             FROM usuario_tema ut
             WHERE ut.tema_id = t.tema_id
               AND ut.usuario_id = p_asesor_id
         )
-    GROUP BY 
+    GROUP BY
         t.tema_id, t.titulo, t.resumen, t.metodologia, t.objetivos, 
         r.documento_url, t.activo, t.fecha_limite, t.fecha_creacion, t.fecha_modificacion;
 END;
 $BODY$;
 
 
-CREATE OR REPLACE FUNCTION listar_temas_propuestos_al_asesor(
+
+CREATE OR REPLACE FUNCTION sgta.listar_temas_propuestos_al_asesor(
 	p_asesor_id integer)
     RETURNS TABLE(tema_id integer, titulo text, subareas text, subarea_ids integer[], alumno text, usuario_id_alumno integer[], descripcion text, metodologia text, objetivo text, recurso text, activo boolean, fecha_limite timestamp with time zone, fecha_creacion timestamp with time zone, fecha_modificacion timestamp with time zone) 
     LANGUAGE 'plpgsql'
@@ -144,7 +144,8 @@ RETURNS TABLE (
   activo             BOOLEAN,
   fecha_limite       TIMESTAMPTZ,
   fecha_creacion     TIMESTAMPTZ,
-  fecha_modificacion TIMESTAMPTZ
+  fecha_modificacion TIMESTAMPTZ,
+  codigo			  TEXT
 ) AS $$
 BEGIN
   RETURN QUERY
@@ -158,7 +159,8 @@ BEGIN
     t.activo,
     t.fecha_limite,
     t.fecha_creacion,
-    t.fecha_modificacion
+    t.fecha_modificacion,
+	t.codigo::text
   FROM tema t
   JOIN usuario_tema ut
     ON ut.tema_id = t.tema_id
@@ -187,7 +189,8 @@ RETURNS TABLE (
     segundo_apellido   TEXT,
     correo_electronico TEXT,
     activo             BOOLEAN,
-    fecha_creacion     TIMESTAMPTZ
+    fecha_creacion     TIMESTAMPTZ,
+    asignado            BOOLEAN
 ) AS $$
 BEGIN
     RETURN QUERY
@@ -198,7 +201,8 @@ BEGIN
       u.segundo_apellido::text,
       u.correo_electronico::text,
       u.activo,
-      u.fecha_creacion
+      u.fecha_creacion,
+      ut.asignado
     FROM usuario u
     JOIN usuario_tema ut
       ON ut.usuario_id = u.usuario_id
@@ -232,44 +236,12 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION postular_asesor_a_tema(
-	p_asesor_id integer,
-	p_tema_id integer)
-    RETURNS void
-    LANGUAGE 'plpgsql'
-    COST 100
-    VOLATILE PARALLEL UNSAFE
-AS $BODY$
-BEGIN
-    INSERT INTO usuario_tema (
-        usuario_id,
-        tema_id,
-        rol_id,
-        asignado,
-        activo,
-        fecha_creacion,
-        fecha_modificacion
-    )
-    VALUES (
-        p_asesor_id,
-        p_tema_id,
-        (SELECT rol_id FROM rol WHERE nombre ILIKE 'Asesor' LIMIT 1),
-        false,
-        true,
-        now(),
-        now()
-    );
-END;
-$BODY$;
-
-
-
 
 CREATE OR REPLACE FUNCTION enlazar_tesistas_tema_propuesta_directa(
-	p_usuarios_id integer[],
-	p_tema_id integer,
-	p_profesor_id integer,
-	p_comentario text)
+    p_usuarios_id integer[],
+    p_tema_id integer,
+    p_profesor_id integer,
+    p_comentario text)
     RETURNS void
     LANGUAGE 'plpgsql'
     COST 100
@@ -279,6 +251,8 @@ DECLARE
     i INT;
     tesista_rol_id INT;
     estado_preinscrito_id INT;
+    tema_titulo TEXT;
+    tema_resumen TEXT;
 BEGIN
     -- Obtener el rol_id del tesista
     SELECT rol_id INTO tesista_rol_id FROM rol WHERE nombre ILIKE 'Tesista' LIMIT 1;
@@ -286,11 +260,15 @@ BEGIN
     -- Obtener el estado ID del tema
     SELECT estado_tema_id INTO estado_preinscrito_id FROM estado_tema WHERE nombre ILIKE 'PREINSCRITO' LIMIT 1;
 
+    -- Obtener el título y resumen del tema
+    SELECT titulo, resumen INTO tema_titulo, tema_resumen FROM tema WHERE tema_id = p_tema_id;
+
     -- Asignar a cada tesista
     FOR i IN 1 .. array_length(p_usuarios_id, 1) LOOP
         UPDATE usuario_tema 
-        SET asignado = true, rol_id = tesista_rol_id,
-		 comentario = p_comentario
+        SET asignado = true,
+            rol_id = tesista_rol_id,
+            comentario = p_comentario
         WHERE usuario_id = p_usuarios_id[i] AND tema_id = p_tema_id;
     END LOOP;
 
@@ -303,12 +281,26 @@ BEGIN
     UPDATE tema 
     SET estado_tema_id = estado_preinscrito_id
     WHERE tema_id = p_tema_id;
+
+    -- Insertar en historial_tema con la descripción de la propuesta directa aceptada
+    INSERT INTO historial_tema (tema_id, titulo, resumen, descripcion_cambio, estado_tema_id, activo, fecha_creacion, fecha_modificacion)
+    VALUES (
+        p_tema_id,
+        tema_titulo,
+        tema_resumen,
+        CONCAT('El profesor ', p_profesor_id, ' aceptó propuesta Directa.'),
+        estado_preinscrito_id,
+        true,
+        NOW(),
+        NOW()
+);
 END;
 $BODY$;
 
 
 
-CREATE OR REPLACE FUNCTION listar_areas_conocimiento_por_usuario(
+
+CREATE OR REPLACE FUNCTION sgta.listar_areas_conocimiento_por_usuario(
 	p_usuario_id integer)
     RETURNS TABLE(area_id integer, area_nombre text, descripcion text) 
     LANGUAGE 'sql'
@@ -326,7 +318,7 @@ $BODY$;
 
 
 
-CREATE OR REPLACE FUNCTION obtener_sub_areas_por_usuario(
+CREATE OR REPLACE FUNCTION sgta.obtener_sub_areas_por_usuario(
 	p_usuario_id integer)
     RETURNS TABLE(sub_area_conocimiento_id integer, area_conocimiento_id integer, nombre text, descripcion text, activo boolean) 
     LANGUAGE 'plpgsql'
@@ -350,16 +342,22 @@ $BODY$;
 
 
 CREATE OR REPLACE FUNCTION postular_asesor_a_tema(
-	p_alumno_id integer,
-	p_asesor_id integer,
-	p_tema_id integer,
-	p_comentario text)
-    RETURNS void
-    LANGUAGE 'plpgsql'
-    COST 100
-    VOLATILE PARALLEL UNSAFE
+    p_alumno_id integer,
+    p_asesor_id integer,
+    p_tema_id integer,
+    p_comentario text
+)
+RETURNS void
+LANGUAGE 'plpgsql'
+COST 100
+VOLATILE PARALLEL UNSAFE
 AS $BODY$
+DECLARE
+    estado_actual_id INTEGER;
+    titulo_tema TEXT;
+    resumen_tema TEXT;
 BEGIN
+    -- Insertar la relación del asesor con el tema
     INSERT INTO usuario_tema (
         usuario_id,
         tema_id,
@@ -379,14 +377,45 @@ BEGIN
         now()
     );
 
-	update usuario_tema 
-	set comentario = p_comentario, fecha_modificacion = NOW() 
-	where usuario_id = p_alumno_id and tema_id = p_tema_id;
+    -- Actualiza comentario del alumno
+    UPDATE usuario_tema
+    SET comentario = p_comentario, fecha_modificacion = NOW()
+    WHERE usuario_id = p_alumno_id AND tema_id = p_tema_id;
+
+    -- Obtener datos del tema para insertar en historial_tema
+    SELECT estado_tema_id, titulo, resumen
+    INTO estado_actual_id, titulo_tema, resumen_tema
+    FROM tema
+    WHERE tema_id = p_tema_id;
+
+    -- Insertar en historial_tema
+    INSERT INTO historial_tema (
+        tema_id,
+        titulo,
+        resumen,
+        descripcion_cambio,
+        estado_tema_id,
+        activo,
+        fecha_creacion,
+        fecha_modificacion
+    )
+    VALUES (
+        p_tema_id,
+        titulo_tema,
+        resumen_tema,
+        CONCAT('El asesor ', p_asesor_id, ' postuló al tema'),
+        estado_actual_id,
+        true,
+        now(),
+        now());
 END;
 $BODY$;
 
 
 
+
+
+CREATE OR REPLACE FUNCTION sgta.rechazar_tema(
 CREATE OR REPLACE FUNCTION rechazar_tema(
     p_alumno_id INT,
     p_comentario TEXT,

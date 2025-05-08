@@ -2,9 +2,7 @@ package pucp.edu.pe.sgta.mapper;
 
 import pucp.edu.pe.sgta.dto.AreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.SubAreaConocimientoDto;
-import pucp.edu.pe.sgta.model.AreaConocimiento;
 import pucp.edu.pe.sgta.model.SubAreaConocimiento;
-import pucp.edu.pe.sgta.service.inter.AreaConocimientoService;
 
 public class SubAreaConocimientoMapper {
 
@@ -13,7 +11,7 @@ public class SubAreaConocimientoMapper {
 		dto.setId(subAreaConocimiento.getId());
 		dto.setFechaModificacion(subAreaConocimiento.getFechaModificacion());
 		dto.setNombre(subAreaConocimiento.getNombre());
-		dto.setActivo(subAreaConocimiento.isActivo());
+		dto.setActivo(subAreaConocimiento.getActivo());
 		dto.setFechaCreacion(subAreaConocimiento.getFechaCreacion());
 		dto.setAreaConocimiento(areaDto);
 		return dto;
@@ -25,9 +23,11 @@ public class SubAreaConocimientoMapper {
 		subAreaConocimiento.setId(dto.getId());
 		subAreaConocimiento.setFechaModificacion(dto.getFechaModificacion());
 		subAreaConocimiento.setNombre(dto.getNombre());
-		subAreaConocimiento.setActivo(dto.isActivo());
+		subAreaConocimiento.setActivo(dto.getActivo());
 		subAreaConocimiento.setFechaCreacion(dto.getFechaCreacion());
-
+		// AreaConocimiento areaConocimiento = new AreaConocimiento();
+		// areaConocimiento.setId(dto.getIdAreaConocimiento());
+		subAreaConocimiento.setAreaConocimiento(AreaConocimientoMapper.toEntity(dto.getAreaConocimiento()));
 		return subAreaConocimiento;
 	}
 
