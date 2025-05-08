@@ -1,62 +1,124 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import {
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
-import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Eye, CheckCircle, X, Send } from "lucide-react";
-import { EnviarPropuestaCard } from "./enviar-propuesta-card";
-import { Button } from "@/components/ui/button";
+import { CheckCircle, Eye, Send, X } from "lucide-react";
+import { useState } from "react";
 import { Proyecto } from "../../types/propuestas/entidades";
+import { EnviarPropuestaCard } from "./enviar-propuesta-card";
+import { RechazarPropuestaCard } from "./rechazar-propuesta-card";
 
 interface PropuestasModalProps {
   data?: Proyecto;
   setSelectedPropuesta?: (selectedPropuesta: Proyecto | null) => void;
   setComentario?: (comentario: string) => void;
+  submitPostulacion?: () => void;
+  aceptarPropuesta?: boolean;
+  setAceptarPropuesta?: (estado: boolean) => void;
+  postularPropuesta?: boolean;
+  setPostularPropuesta?: (estado: boolean) => void;
+  rechazarPropuesta?: boolean;
+  setRechazarPropuesta?: (estado: boolean) => void;
 }
 
 export function PropuestasModal({
   data,
   setSelectedPropuesta,
   setComentario,
+  submitPostulacion,
+  aceptarPropuesta,
+  setAceptarPropuesta,
+  postularPropuesta,
+  setPostularPropuesta,
+  rechazarPropuesta,
+  setRechazarPropuesta,
 }: PropuestasModalProps) {
-  const [postularDialog, setPostularDialog] = useState(false);
-  const [aceptarDialog, setAceptarDialog] = useState(false);
+  const [postularDialog, setPostularDialog] = useState(postularPropuesta);
+  const [aceptarDialog, setAceptarDialog] = useState(aceptarPropuesta);
+  const [rechazarDialog, setRechazarDialog] = useState(rechazarPropuesta);
 
   const handlePostularClick = () => {
-    setAceptarDialog(true);
+    setPostularDialog(true);
+    setAceptarDialog(false);
+    setRechazarDialog(false);
+    setAceptarPropuesta?.(false);
+    setPostularPropuesta?.(false);
+    setRechazarPropuesta?.(false);
   };
 
-  const handleRechazar = () => {
+  const handleSubmitRechazo = () => {
     // Aquí iría la lógica para rechazar la postulación
+    console.log("Rechazando propuesta...");
     setSelectedPropuesta?.(null);
     setComentario?.("");
+    setRechazarDialog(false);
+    setAceptarPropuesta?.(false);
+    setPostularPropuesta?.(false);
+    setRechazarPropuesta?.(false);
+  };
+
+  const handleRechazarClick = () => {
+    setRechazarDialog(true);
+    setPostularDialog(false);
+    setAceptarDialog(false);
+    setAceptarPropuesta?.(false);
+    setPostularPropuesta?.(false);
+    setRechazarPropuesta?.(false);
   };
 
   const handleAceptarClick = () => {
     setAceptarDialog(true);
+    setPostularDialog(false);
+    setRechazarDialog(false);
+    setAceptarPropuesta?.(false);
+    setPostularPropuesta?.(false);
+    setRechazarPropuesta?.(false);
   };
 
   const handleSubmitPostulacion = () => {
-    // Aquí iría la lógica para enviar la postulación
+    //Lógica para enviar la postulación
+    console.log("Postulando propuesta general...");
+    submitPostulacion?.();
     setSelectedPropuesta?.(null);
     setComentario?.("");
     setPostularDialog(false);
+    setAceptarPropuesta?.(false);
+    setPostularPropuesta?.(false);
+    setRechazarPropuesta?.(false);
   };
 
   const handleSubmitAceptacion = () => {
-    // Aquí iría la lógica para aceptar la propuesta
+    // Lógica para aceptar la propuesta
+    console.log("Aceptando propuesta directa...");
+    submitPostulacion?.();
     setSelectedPropuesta?.(null);
     setComentario?.("");
     setAceptarDialog(false);
+    setAceptarPropuesta?.(false);
+    setPostularPropuesta?.(false);
+    setRechazarPropuesta?.(false);
   };
 
+  const handleCancelar = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    console.log("Entro al handleCancelar ...");
+    setSelectedPropuesta?.(null);
+    setAceptarDialog(false);
+    setPostularDialog(false);
+    setRechazarDialog(false);
+    setAceptarPropuesta?.(false);
+    setAceptarPropuesta?.(false);
+    setRechazarPropuesta?.(false);
+  };
+  console.log({ data });
   return (
     <DialogContent className="max-w-3xl">
       <DialogHeader>
@@ -66,7 +128,7 @@ export function PropuestasModal({
         </DialogDescription>
       </DialogHeader>
 
-      {data && !postularDialog && !aceptarDialog && (
+      {data && !postularDialog && !aceptarDialog && !rechazarDialog && (
         <div className="space-y-6 py-4">
           <div className="space-y-2">
             <Label>Título</Label>
@@ -78,7 +140,14 @@ export function PropuestasModal({
           <div className="space-y-2">
             <Label>Área</Label>
             <div className="p-3 bg-gray-50 rounded-md border">
-              <p>{data.area}</p>
+              <p>
+                {data.subAreas
+                  .map(
+                    (subareas) =>
+                      `${subareas.areaConocimiento.nombre} (${subareas.nombre})`,
+                  )
+                  .join(", ")}
+              </p>
             </div>
           </div>
 
@@ -92,9 +161,12 @@ export function PropuestasModal({
                       key={index}
                       className="flex items-center justify-between"
                     >
-                      <span>{estudiante}</span>
+                      <span>
+                        {`${estudiante.nombres} ${estudiante.primerApellido} 
+                        ${estudiante.segundoApellido}`}
+                      </span>
                       <span className="text-sm text-muted-foreground">
-                        {data.codigos[index]}
+                        {estudiante.codigoPucp}
                       </span>
                     </li>
                   ))}
@@ -115,7 +187,7 @@ export function PropuestasModal({
           <div className="space-y-2">
             <Label>Descripción</Label>
             <div className="p-3 bg-gray-50 rounded-md border">
-              <p>{data.descripcion}</p>
+              <p>{data.resumen}</p>
             </div>
           </div>
 
@@ -136,18 +208,11 @@ export function PropuestasModal({
           <div className="space-y-2">
             <Label>Recursos</Label>
             <div className="p-3 bg-gray-50 rounded-md border">
-              {data.recursos.length > 0 ? (
-                <ul className="space-y-1">
-                  {data.recursos.map((recurso, index) => (
-                    <li key={index} className="flex items-center gap-2">
-                      <Eye className="h-4 w-4 text-blue-500" />
-                      <span>{recurso.nombre}</span>
-                      <span className="text-xs text-muted-foreground">
-                        ({new Date(recurso.fecha).toLocaleDateString()})
-                      </span>
-                    </li>
-                  ))}
-                </ul>
+              {data.portafolioUrl && data.portafolioUrl.length > 0 ? (
+                <div className="flex items-center gap-2">
+                  <Eye className="h-4 w-4 text-blue-500" />
+                  <span>{data.portafolioUrl}</span>
+                </div>
               ) : (
                 <p className="text-muted-foreground">
                   No hay recursos disponibles
@@ -162,13 +227,14 @@ export function PropuestasModal({
         <EnviarPropuestaCard data={data} setComentario={setComentario} />
       )}
 
+      {data && rechazarDialog && (
+        <RechazarPropuestaCard data={data} setComentario={setComentario} />
+      )}
+
       <DialogFooter className="mt-6">
-        {!postularDialog && !aceptarDialog ? (
+        {!postularDialog && !aceptarDialog && !rechazarDialog ? (
           <>
-            <Button
-              variant="outline"
-              onClick={() => setSelectedPropuesta?.(null)}
-            >
+            <Button variant="outline" onClick={handleCancelar}>
               Cerrar
             </Button>
 
@@ -185,7 +251,7 @@ export function PropuestasModal({
             {data && data.tipo === "directa" && (
               <>
                 <Button
-                  onClick={handleRechazar}
+                  onClick={handleRechazarClick}
                   variant="destructive"
                   className="bg-red-600 hover:bg-red-700"
                 >
@@ -204,26 +270,28 @@ export function PropuestasModal({
           </>
         ) : postularDialog ? (
           <>
-            <Button variant="outline" onClick={() => setPostularDialog(false)}>
+            <Button variant="outline" onClick={handleCancelar}>
               Cancelar
             </Button>
             <Button
               onClick={handleSubmitPostulacion}
-              className="bg-pucp-blue hover:bg-pucp-light"
+              className="bg-green-600 hover:bg-green-700"
             >
-              Enviar Postulación
+              Confirmar
             </Button>
           </>
         ) : (
           <>
-            <Button variant="outline" onClick={() => setAceptarDialog(false)}>
+            <Button variant="outline" onClick={handleCancelar}>
               Cancelar
             </Button>
             <Button
-              onClick={handleSubmitAceptacion}
-              className="bg-green-600 hover:bg-green-700"
+              onClick={
+                rechazarDialog ? handleSubmitRechazo : handleSubmitAceptacion
+              }
+              className={`${rechazarDialog ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"}`}
             >
-              Confirmar
+              {rechazarDialog ? "Rechazar" : "Confirmar"}
             </Button>
           </>
         )}
