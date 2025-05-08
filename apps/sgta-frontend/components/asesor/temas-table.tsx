@@ -28,7 +28,7 @@ interface PropuestasTableProps {
   filter?: string;
 }
 
-const TEST = true;
+const TEST = false;
 
 export function TemasTable({ filter }: PropuestasTableProps) {
   const [temasData, setTemasData] = useState<TemaUI[]>(
