@@ -27,7 +27,10 @@ VALUES
   ('REGISTRADO',         'Tema inscrito aceptado por comité de tesis',                                                          TRUE, NOW(), NOW()),
   ('RECHAZADO',          'Tema propuesto por estudiante que ha sido rechazado',                                                      TRUE, NOW(), NOW()),
   ('OBSERVADO',          'Tema inscrito con observaciones pendientes del comité de tesis',                                           TRUE, NOW(), NOW()),
-  ('VENCIDO',            'Tema propuesto por asesor o estudiantes que pasó su fecha de vencimiento definida',                          TRUE, NOW(), NOW());
+  ('VENCIDO',            'Tema propuesto por asesor o estudiantes que pasó su fecha de vencimiento definida',                          TRUE, NOW(), NOW()),
+  ('EN_PROGRESO',        'Tema registrado en progreso',                          TRUE, NOW(), NOW()),
+  ('PAUSADO',            'Tema que ha sido registrado e iniciado, pero no está en progreso actualmente',                          TRUE, NOW(), NOW()),
+  ('FINALIZADO',         'Tema que ha sido registrado y ha finalizado su proceso de evaluación',                                   TRUE, NOW(), NOW());
 
 -- 4) Unidad académica
 INSERT INTO unidad_academica (nombre, descripcion)
@@ -153,3 +156,221 @@ select * from rol;
 select * from tipo_usuario;
 select * from estado_tema;
 select * from usuario;
+
+
+-- Relacion Etapa formativa x ciclo
+
+INSERT INTO etapa_formativa (
+  nombre,
+  creditaje_por_tema,
+  duracion_exposicion,
+  activo,
+  fecha_creacion,
+  fecha_modificacion,
+  carrera_id
+) VALUES
+  ('Proyecto de fin de carrera 1', 
+   4.5, 
+   INTERVAL '20 minutes',
+   TRUE, 
+   NOW(), 
+   NOW(),
+   1
+   );
+
+INSERT INTO etapa_formativa (
+  nombre,
+  creditaje_por_tema,
+  duracion_exposicion,
+  activo,
+  fecha_creacion,
+  fecha_modificacion,
+  carrera_id
+) VALUES
+  ('Proyecto de fin de carrera 2', 
+   4.0, 
+   INTERVAL '20 minutes',
+   TRUE, 
+   NOW(), 
+   NOW(),
+   1
+   );
+
+INSERT INTO ciclo (
+  semestre,
+  anio,
+  fecha_inicio,
+  fecha_fin,
+  activo,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  ('1',
+   2025,
+   '2025-03-21',
+   '2025-07-15',
+   TRUE, 
+   NOW(), 
+   NOW());
+
+INSERT INTO etapa_formativa_x_ciclo (
+  etapa_formativa_id,
+  ciclo_id,
+  activo,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  (1,
+   1,
+   TRUE, 
+   NOW(), 
+   NOW());
+
+-- Entregables
+
+INSERT INTO entregable (
+  etapa_formativa_x_ciclo_id,
+  nombre,
+  descripcion,
+  fecha_inicio,
+  fecha_fin,
+  es_evaluable,
+  activo,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  (1,
+   'Estado del arte',
+   'Estado del arte del tema',
+   '2025-04-01',
+   '2025-04-10',
+   TRUE,
+   TRUE, 
+   NOW(), 
+   NOW());
+
+INSERT INTO criterio_entregable (
+  entregable_id,
+  nombre,
+  nota_maxima,
+  descripcion,
+  activo,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  (1,
+   'Redaccion',
+   5,
+   'Redaccion del documento',
+   TRUE, 
+   NOW(), 
+   NOW());
+
+-- Exposiciones
+
+INSERT INTO estado_planificacion (
+	nombre,
+	activo,
+	fecha_creacion,
+	fecha_modificacion
+)	VALUES(
+	'Planificacion inicial',
+	TRUE,
+	NOW(),
+	NOW()
+);
+
+INSERT INTO exposicion(
+	etapa_formativa_x_ciclo_id,
+	estado_planificacion_id,
+	activo,
+	nombre,
+	descripcion,
+	fecha_creacion
+) VALUES(
+	1,
+	1,
+	TRUE,
+	'Exposicion parcial',
+	'Exposicion parcial del proyecto',
+	NOW()
+);
+
+INSERT INTO criterio_exposicion(
+	exposicion_id,
+	nombre,
+	descripcion,
+	nota_maxima,
+	activo,
+	fecha_creacion
+) VALUES(
+	1,
+	'Entonacion',
+	'El alumno tiene una correcta entonacion durante toda la exposicion',
+	3.5,
+	TRUE,
+	NOW()
+);
+
+/* Parametros de configuración */
+
+WITH nuevo_parametro AS (
+  INSERT INTO parametro_configuracion (
+      nombre, descripcion, modulo_id, activo, fecha_creacion, fecha_modificacion, tipo
+  ) VALUES (
+      'antiplagio',
+      'Configure la opcion de revision antiplagio',
+      4, true, NOW(), NOW(), 'BOOLEANO'
+  ) RETURNING parametro_configuracion_id
+)
+INSERT INTO carrera_parametro_configuracion (
+    carrera_id, parametro_configuracion_id, valor, activo, fecha_creacion, fecha_modificacion, etapa_formativa_id
+)
+SELECT 1, parametro_configuracion_id, 'false', true, NOW(), NOW(), 1 FROM nuevo_parametro;
+
+
+WITH nuevo_parametro AS (
+  INSERT INTO parametro_configuracion (
+      nombre, descripcion, modulo_id, activo, fecha_creacion, fecha_modificacion, tipo
+  ) VALUES (
+      'turnitin',
+      'Configure la opcion de revision turnitin',
+      4, true, NOW(), NOW(), 'BOOLEANO'
+  ) RETURNING parametro_configuracion_id
+)
+INSERT INTO carrera_parametro_configuracion (
+    carrera_id, parametro_configuracion_id, valor, activo, fecha_creacion, fecha_modificacion, etapa_formativa_id
+)
+SELECT 1, parametro_configuracion_id, 'false', true, NOW(), NOW(), 1 FROM nuevo_parametro;
+
+
+WITH nuevo_parametro AS (
+  INSERT INTO parametro_configuracion (
+      nombre, descripcion, modulo_id, activo, fecha_creacion, fecha_modificacion, tipo
+  ) VALUES (
+      'modalidad_delimitacion_tema',
+      'Define delimitación de tema de tesis',
+      1, true, NOW(), NOW(), 'STRING'
+  ) RETURNING parametro_configuracion_id
+)
+INSERT INTO carrera_parametro_configuracion (
+    carrera_id, parametro_configuracion_id, valor, activo, fecha_creacion, fecha_modificacion, etapa_formativa_id
+)
+SELECT 1, parametro_configuracion_id, 'propuesta', true, NOW(), NOW(), 1 FROM nuevo_parametro;
+
+
+
+WITH nuevo_parametro AS (
+  INSERT INTO parametro_configuracion (
+      nombre, descripcion, modulo_id, activo, fecha_creacion, fecha_modificacion, tipo
+  ) VALUES (
+      'fecha_limite_asesor',
+      'Establece la fecha máxima para cambios de asesor',
+      2, true, NOW(), NOW(), 'DATE'
+  ) RETURNING parametro_configuracion_id
+)
+INSERT INTO carrera_parametro_configuracion (
+    carrera_id, parametro_configuracion_id, valor, activo, fecha_creacion, fecha_modificacion, etapa_formativa_id
+)
+SELECT 1, parametro_configuracion_id, '2025-06-30T00:00:00Z', true, NOW(), NOW(), 1 FROM nuevo_parametro;
+

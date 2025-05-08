@@ -1,5 +1,6 @@
 package pucp.edu.pe.sgta.mapper;
 
+import pucp.edu.pe.sgta.dto.TemaConAsesorJuradoDTO;
 import pucp.edu.pe.sgta.dto.TemaDto;
 import pucp.edu.pe.sgta.model.Carrera;
 import pucp.edu.pe.sgta.model.EstadoTema;
@@ -16,6 +17,7 @@ public class TemaMapper {
         dto.setMetodologia(tema.getMetodologia());
         dto.setFechaCreacion(tema.getFechaCreacion());
         dto.setFechaLimite(tema.getFechaLimite()); // Assuming fechaLimite is not set in the DTO
+        dto.setFechaFinalizacion(tema.getFechaFinalizacion()); // Assuming fechaFinalizacion is not set in the DTO
         dto.setFechaModificacion(tema.getFechaModificacion());
         dto.setPortafolioUrl(tema.getPortafolioUrl());
 
@@ -38,6 +40,7 @@ public class TemaMapper {
         tema.setMetodologia(dto.getMetodologia());
         tema.setFechaCreacion(dto.getFechaCreacion());
         tema.setFechaLimite(dto.getFechaLimite()); // Assuming fechaLimite is not set in the DTO
+        tema.setFechaFinalizacion(dto.getFechaFinalizacion()); // Assuming fechaFinalizacion is not set in the DTO
         tema.setFechaModificacion(dto.getFechaModificacion());
         tema.setPortafolioUrl(dto.getPortafolioUrl());
 
@@ -53,5 +56,15 @@ public class TemaMapper {
             tema.setEstadoTema(et);
         }
         return tema;
+    }
+
+    public static TemaConAsesorJuradoDTO toDtoAsesorJurado(Tema tema){
+        TemaConAsesorJuradoDTO temaConAsesorJuradoDTO = new TemaConAsesorJuradoDTO();
+        temaConAsesorJuradoDTO.setId(tema.getId());
+        temaConAsesorJuradoDTO.setCodigo(tema.getCodigo());
+        temaConAsesorJuradoDTO.setTitulo(tema.getTitulo());
+        // en el servicio asignaremos los usuario relacionados a este tema
+
+        return temaConAsesorJuradoDTO;
     }
 }

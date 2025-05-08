@@ -39,10 +39,11 @@ public class UsuarioDto {
 
 	private String tipoDisponibilidad;
 
-	private boolean activo;
+	private Boolean activo;
 
 	private OffsetDateTime fechaCreacion;
 
 	private OffsetDateTime fechaModificacion;
 
+	private Boolean asignado; //we need mapping on this for proposals and general tema management
 }
