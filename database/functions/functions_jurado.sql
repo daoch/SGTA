@@ -73,3 +73,31 @@ BEGIN
     AND se.activo = true;
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION listarCiclosOrdenadosPorFecha()
+RETURNS TABLE(
+    ciclo_id integer,
+    semestre text,
+    anio integer,
+	fecha_inicio date,
+	fecha_fin date,
+	activo boolean,
+	fecha_creacion TIMESTAMP WITH TIME ZONE,
+	fecha_modificacion TIMESTAMP WITH TIME ZONE
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        c.ciclo_id,
+        c.semestre::TEXT,
+        c.anio,
+		c.fecha_inicio,
+		c.fecha_fin,
+		c.activo,
+		c.fecha_creacion,
+		c.fecha_modificacion
+    FROM ciclo c
+    WHERE c.activo = true
+    ORDER BY c.anio DESC, c.semestre DESC;
+END;
+$$ LANGUAGE plpgsql;

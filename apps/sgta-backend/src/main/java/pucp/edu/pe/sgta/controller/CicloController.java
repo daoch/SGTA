@@ -19,7 +19,7 @@ public class CicloController {
     @Autowired
     private CicloService cicloService;
 
-    @GetMapping("/listarCiclosOrdenados")
+    @GetMapping("/listarCiclos")
     public List<Ciclo> listarCiclosOrdenados() {
         return cicloService.listarCiclosOrdenados();
     }
