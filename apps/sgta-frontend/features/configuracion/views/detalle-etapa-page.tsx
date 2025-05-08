@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,7 +8,7 @@ import { ArrowLeft, PenLine, Plus } from "lucide-react";
 import { EntregableCard } from "../components/entregable/entregable-card";
 import { ExposicionCard } from "../components/exposicion/exposicion-card";
 import { Entregable } from "../dtos/entregable";
-import { Exposicion } from "../types/exposicion";
+import { Exposicion } from "../dtos/exposicion";
 import { EntregableModal } from "../components/entregable/entregable-modal";
 import { ExposicionModal } from "../components/exposicion/exposicion-modal";
 import axiosInstance from "@/lib/axios/axios-instance";
@@ -21,76 +20,13 @@ interface DetalleEtapaPageProps {
 const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
   const [isEntregableModalOpen, setIsEntregableModalOpen] = useState(false);
   const [isExposicionModalOpen, setIsExposicionModalOpen] = useState(false);
-  /*
-  const [entregables, setEntregables] = useState<Entregable[]>([
-    {
-      id: "1",
-      titulo: "Propuesta de Proyecto",
-      fecha: "15/05/2023",
-      hora: "23:59",
-      descripcion:
-        "Documento que describe el problema a resolver y la propuesta de solución.",
-    },
-    {
-      id: "2",
-      titulo: "Estado del Arte",
-      fecha: "30/06/2023",
-      hora: "23:59",
-      descripcion:
-        "Documento que presenta la revisión de literatura y soluciones existentes.",
-    },
-    {
-      id: "3",
-      titulo: "Informe Final",
-      fecha: "15/08/2023",
-      hora: "23:59",
-      descripcion:
-        "Documento final que integra todos los componentes del proyecto.",
-    },
-  ]);
-  */
   const [entregables, setEntregables] = useState<Entregable[]>([]);
-
-  const [exposiciones, setExposiciones] = useState<Exposicion[]>([
-    {
-      id: "1",
-      titulo: "Exposición de Avance 1",
-      fechaInicio: "20/05/2023",
-      fechaFin: "25/05/2023",
-      fechas: "20/05/2023 - 25/05/2023",
-      descripcion: "Primera presentación de avance del proyecto.",
-      duracion: "20 min",
-      modalidad: "Virtual",
-      jurados: "Sin jurados",
-    },
-    {
-      id: "2",
-      titulo: "Exposición de Avance 2",
-      fechaInicio: "10/07/2023",
-      fechaFin: "15/07/2023",
-      fechas: "10/07/2023 - 15/07/2023",
-      descripcion: "Segunda presentación de avance del proyecto.",
-      duracion: "20 min",
-      modalidad: "Virtual",
-      jurados: "Sin jurados",
-    },
-    {
-      id: "3",
-      titulo: "Exposición Parcial",
-      fechas: "15/08/2023",
-      fechaInicio: "15/08/2023",
-      fechaFin: "15/08/2023",
-      descripcion: "Presentación final del primer curso.",
-      duracion: "40 min",
-      modalidad: "Presencial",
-      jurados: "Con jurados",
-    },
-  ]);
+  const [exposiciones, setExposiciones] = useState<Exposicion[]>([]);
 
   useEffect(() => {
     const fetchEntregables = async () => {
       try {
-        const response = await axiosInstance.get(`/entregable/etapaFormativaXCiclo/${etapaId}`);
+        const response = await axiosInstance.get(`/entregable/etapa-formativa-x-ciclo/${etapaId}`);
         setEntregables(response.data);
       } catch (error) {
         console.error("Error al cargar los entregables:", error);
@@ -100,13 +36,37 @@ const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
     fetchEntregables();
   }, [etapaId]);
 
+  useEffect(() => {
+    const fetchExposiciones = async () => {
+      try {
+        const response = await axiosInstance.get(`/exposicion/etapa-formativa-x-ciclo/${etapaId}`);
+        setExposiciones(response.data);
+      } catch (error) {
+        console.error("Error al cargar las exposiciones:", error);
+      }
+    };
+
+    fetchExposiciones();
+  }, [etapaId]);
+
   const createEntregable = async (nuevoEntregable: Entregable) => {
     try {
-      const response = await axiosInstance.post(`/entregable/etapaFormativaXCiclo/${etapaId}`, nuevoEntregable);
+      const response = await axiosInstance.post(`/entregable/etapa-formativa-x-ciclo/${etapaId}`, nuevoEntregable);
       console.log("Entregable creado exitosamente:", response.data);
       return response.data; // Devuelve el entregable creado si es necesario
     } catch (error) {
       console.error("Error al crear el entregable:", error);
+      throw error; // Lanza el error para manejarlo en el lugar donde se llame
+    }
+  };
+
+  const createExposicion = async (nuevaExposicion: Exposicion) => {
+    try {
+      const response = await axiosInstance.post(`/exposicion/etapa-formativa-x-ciclo/${etapaId}`, nuevaExposicion);
+      console.log("Exposición creada exitosamente:", response.data);
+      return response.data; // Devuelve la exposición creada si es necesario
+    } catch (error) {
+      console.error("Error al crear la exposición:", error);
       throw error; // Lanza el error para manejarlo en el lugar donde se llame
     }
   };
@@ -139,44 +99,23 @@ const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
   };
 
   const handleCreateExposicion = async (nuevaExposicion: Exposicion) => {
-    // TODO: Llamar a la API para crear la nueva exposición
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    try {
+      
+      const idExposicion = await createExposicion(nuevaExposicion);
+  
+      const nuevaExposicionConId: Exposicion = {
+        ...nuevaExposicion,
+        id: idExposicion, // Asignar el ID devuelto por la API
+      };
 
-    // Formatear fechas para mostrar
-    let fechasFormateadas = "";
-
-    if (nuevaExposicion.fechaInicio === nuevaExposicion.fechaFin) {
-      // Si es un solo día
-      fechasFormateadas = format(
-        new Date(nuevaExposicion.fechaInicio),
-        "dd/MM/yyyy",
-      );
-    } else {
-      // Si es un rango de fechas
-      fechasFormateadas = `${format(new Date(nuevaExposicion.fechaInicio), "dd/MM/yyyy")} - ${format(
-        new Date(nuevaExposicion.fechaFin),
-        "dd/MM/yyyy",
-      )}`;
+      // Actualizar el estado local con el entregable creado
+      setExposiciones((prev) => [...prev, nuevaExposicionConId]);
+  
+      // Cerrar el modal
+      setIsExposicionModalOpen(false);
+    } catch (error) {
+      console.error("Error al crear la exposicion:", error);
     }
-
-    // Crear nueva exposición con ID único
-    const nuevaExposicionConId: Exposicion = {
-      id: "4",
-      titulo: nuevaExposicion.titulo,
-      fechaInicio: nuevaExposicion.fechaInicio,
-      fechaFin: nuevaExposicion.fechaFin,
-      fechas: fechasFormateadas,
-      descripcion: nuevaExposicion.descripcion,
-      duracion: nuevaExposicion.duracion,
-      modalidad: nuevaExposicion.modalidad,
-      jurados: nuevaExposicion.jurados,
-    };
-
-    // Actualizar estado local
-    setExposiciones((prev) => [...prev, nuevaExposicionConId]);
-
-    // Cerrar modal
-    setIsExposicionModalOpen(false);
   };
 
   return (
@@ -278,13 +217,8 @@ const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
               key={exposicion.id}
               etapaId={etapaId}
               exposicionId={exposicion.id ?? ""}
-              titulo={exposicion.titulo}
-              fechaInicio={exposicion.fechaInicio}
-              fechaFin={exposicion.fechaFin}
+              nombre={exposicion.nombre}
               descripcion={exposicion.descripcion}
-              duracion={exposicion.duracion}
-              modalidad={exposicion.modalidad}
-              jurados={exposicion.jurados}
             />
           ))}
         </TabsContent>

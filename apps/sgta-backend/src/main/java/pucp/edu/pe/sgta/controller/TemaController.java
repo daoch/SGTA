@@ -108,12 +108,20 @@ public class TemaController {
 		return temaService.listarTemasCicloActualXEtapaFormativa(etapaFormativaId);
 	}
 
+	@GetMapping("/listarPostulacionesDirectasAMisPropuestas/{tesistaId}")
+	public List<TemaDto> listarPostulacionesDirectasAMisPropuestas(@PathVariable("tesistaId") Integer tesistaId) {
+		return temaService.listarPostulacionesDirectasAMisPropuestas(tesistaId);
+	}
 
 
 
 	@GetMapping("/listarTemasAsesorInvolucrado/{tesistaId}")
 	public List<InfoTemaPerfilDto> listarTemasAsesorInvolucrado(@PathVariable("tesistaId") Integer tesistaId) {
 		return temaService.listarTemasAsesorInvolucrado(tesistaId);
+	}
+	@GetMapping("/listarPostulacionesGeneralesAMisPropuestas/{tesistaId}")
+	public List<TemaDto> listarPostulacionesGeneralesAMisPropuestas(@PathVariable("tesistaId") Integer tesistaId) {
+		return temaService.listarPostulacionesGeneralesAMisPropuestas(tesistaId);
 	}
 }
 

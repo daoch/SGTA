@@ -1,16 +1,19 @@
-import { useState } from "react";
+"use client";
+import { useEffect, useState } from "react";
 import type React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, PenLine, Plus, Monitor, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { ContenidoEsperadoExposicionCard } from "../components/exposicion/contenido-exposicion-card";
+import { CriterioExposicionCard } from "../components/exposicion/criterio-exposicion-card";
 import {
-  ContenidoExposicionFormData,
-  ContenidoExposicionModal,
-} from "../components/exposicion/contenido-exposicion-modal";
-import { Exposicion } from "../types/exposicion";
+  CriterioExposicionFormData,
+  CriterioExposicionModal,
+} from "../components/exposicion/criterio-exposicion-modal";
 import { ExposicionModal } from "../components/exposicion/exposicion-modal";
+import { Exposicion } from "../dtos/exposicion";
+import { CriterioExposicion } from "../dtos/criterio-exposicion";
+import axiosInstance from "@/lib/axios/axios-instance";
 
 interface DetalleExposicionPageProps {
   etapaId: string;
@@ -23,155 +26,155 @@ const DetalleExposicionPage: React.FC<DetalleExposicionPageProps> = ({
 }) => {
   const router = useRouter();
 
-  // TODO: Cargar datos desde el backend
-  const [isContenidoModalOpen, setIsContenidoModalOpen] = useState(false);
+  const [isCriterioModalOpen, setIsCriterioModalOpen] = useState(false);
   const [isExposicionModalOpen, setIsExposicionModalOpen] = useState(false);
-  const [contenidoSeleccionado, setContenidoSeleccionado] =
-    useState<ContenidoExposicionFormData | null>(null);
+  const [criterioSeleccionado, setCriterioSeleccionado] =
+    useState<CriterioExposicionFormData | null>(null);
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
 
   const [exposicion, setExposicion] = useState<Exposicion>({
-    id: exposicionId,
-    titulo: "Exposición Parcial",
-    etapa: "Proyecto de Fin de Carrera 1",
-    fechas: "20/08/2023 - 25/08/2023",
-    fechaInicio: "20/08/2023",
-    fechaFin: "25/08/2023",
-    descripcion: "Presentación final del primer curso.",
-    duracion: "20 min",
-    modalidad: "Presencial",
-    jurados: "Con jurados",
+    id: "",
+    nombre: "",
+    descripcion: "",
+    estadoPlanificacionId: 1,
   });
 
-  const [contenidosEsperados, setContenidosEsperados] = useState([
-    {
-      id: "1",
-      titulo: "Introducción y contexto",
-      descripcion: "Presentación del problema y contexto del proyecto.",
-      puntos: 3,
-    },
-    {
-      id: "2",
-      titulo: "Estado del arte",
-      descripcion: "Revisión de literatura y soluciones existentes.",
-      puntos: 4,
-    },
-    {
-      id: "3",
-      titulo: "Propuesta de solución",
-      descripcion: "Descripción detallada de la solución propuesta.",
-      puntos: 5,
-    },
-    {
-      id: "4",
-      titulo: "Avances de implementación",
-      descripcion: "Demostración de los avances en la implementación.",
-      puntos: 5,
-    },
-    {
-      id: "5",
-      titulo: "Conclusiones y trabajo futuro",
-      descripcion:
-        "Conclusiones preliminares y plan de trabajo para el siguiente curso.",
-      puntos: 3,
-    },
-  ]);
+  const [criterios, setCriterios] = useState<CriterioExposicion[]>([]);
 
-  const handleEditContenido = (id: string) => {
-    const contenido = contenidosEsperados.find((c) => c.id === id);
-    if (contenido) {
-      setContenidoSeleccionado(contenido);
-      setModalMode("edit");
-      setIsContenidoModalOpen(true);
+  useEffect(() => {
+    const fetchExposicion = async () => {
+      try {
+        const response = await axiosInstance.get(`/exposicion/${exposicionId}`);
+        setExposicion(response.data);
+      } catch (error) {
+        console.error("Error al cargar la exposicion:", error);
+      }
+    };
+
+    fetchExposicion();
+  }, [exposicionId]);
+
+  useEffect(() => {
+    const fetchCriterios = async () => {
+      try {
+        const response = await axiosInstance.get(`/criterio-exposicion/exposicion/${exposicionId}`);
+        setCriterios(response.data);
+      } catch (error) {
+        console.error("Error al cargar los criterios:", error);
+      }
+    };
+
+    fetchCriterios();
+  }, [exposicionId]);
+
+  const createCriterio = async (nuevoCriterio: CriterioExposicion) => {
+    try {
+      const response = await axiosInstance.post(`/criterio-exposicion/exposicion/${exposicionId}`, nuevoCriterio);
+      console.log("Criterio creado exitosamente:", response.data);
+      return response.data; // Devuelve el criterio creado si es necesario
+    } catch (error) {
+      console.error("Error al crear el criterio:", error);
+      throw error; // Lanza el error para manejarlo en el lugar donde se llame
     }
   };
 
-  const handleDeleteContenido = (id: string) => {
-    console.log("Eliminar contenido:", id);
-    // Aquí iría la lógica para eliminar el contenido
-    setContenidosEsperados(
-      contenidosEsperados.filter((contenido) => contenido.id !== id),
-    );
+  const handleCreateCriterio = async (nuevoCriterio: CriterioExposicion) => {
+      try {
+        const idCriterio = await createCriterio(nuevoCriterio);
+        const nuevoCriterioConId: CriterioExposicion = {
+          ...nuevoCriterio,
+          id: idCriterio, // Asignar el ID devuelto por la API
+        };
+    
+          // Actualizar el estado local con el criterio creado
+        setCriterios((prev) => [...prev, nuevoCriterioConId]);
+     
+        // Cerrar el modal
+        setIsCriterioModalOpen(false);
+      } catch (error) {
+        console.error("Error al crear el criterio:", error);
+      }
   };
 
-  const handleNuevoContenido = () => {
-    setContenidoSeleccionado(null);
+  const handleNuevoCriterio = () => {
+    setCriterioSeleccionado(null);
     setModalMode("create");
-    setIsContenidoModalOpen(true);
+    setIsCriterioModalOpen(true);
   };
 
-  const handleSubmitContenido = async (
-    contenidoData: ContenidoExposicionFormData,
-  ) => {
-    // Simular llamada a la API
-    await new Promise((resolve) => setTimeout(resolve, 500));
+  const updateCriterio = async (updatedCriterio: CriterioExposicion) => {
+    try {
+      const response = await axiosInstance.put(
+        "/criterio-exposicion/update",
+        updatedCriterio,
+      );
+      console.log("Criterio actualizado exitosamente:", response.data);
+      return response.data; // Devuelve el criterio actualizado si es necesario
+    } catch (error) {
+      console.error("Error al actualizar el criterio:", error);
+      throw error; // Lanza el error para manejarlo en el lugar donde se llame
+    }
+  };
 
-    if (modalMode === "create") {
-      // Crear nuevo contenido con ID único
-      const nuevoContenido = {
-        ...contenidoData,
-        id: "6",
+  const handleUpdateCriterio = async (updatedCriterio: CriterioExposicion) => {
+      try {
+        await updateCriterio(updatedCriterio);
+        setCriterios((prev) =>
+          prev.map((c) =>
+            c.id === updatedCriterio.id
+              ? {
+                  ...updatedCriterio,
+                  id: updatedCriterio.id,
+                } // Asegurar que id sea un string
+              : c,
+          ),
+        );
+     
+        // Cerrar el modal
+        setIsCriterioModalOpen(false);
+      } catch (error) {
+        console.error("Error al actualizar el criterio:", error);
+      }
+    };
+
+    const handleEditCriterio = (id: string) => {
+      const criterio = criterios.find((c) => c.id === id);
+      if (criterio) {
+        setCriterioSeleccionado(criterio);
+        setModalMode("edit");
+        setIsCriterioModalOpen(true);
+      }
+    };
+
+    const handleDeleteCriterio = (id: string) => {
+      // TO DO: Implementar la lógica para eliminar un criterio
+    };
+
+    const updateExposicion = async (updatedExposicion: Exposicion) => {
+      try {
+        const response = await axiosInstance.put(
+          "/exposicion/update",
+          updatedExposicion,
+        );
+        console.log("Exposicion actualizada exitosamente:", response.data);
+        return response.data; // Devuelve el criterio actualizado si es necesario
+      } catch (error) {
+        console.error("Error al actualizar la Exposicion:", error);
+        throw error; // Lanza el error para manejarlo en el lugar donde se llame
+      }
+    };
+
+    const handleUpdateExposicion = async (updatedExposicion: Exposicion) => {
+        try {
+          await updateExposicion(updatedExposicion);
+          setExposicion(updatedExposicion);
+          // Cerrar el modal
+          setIsExposicionModalOpen(false);
+        } catch (error) {
+          console.error("Error al actualizar la Exposicion:", error);
+        }
       };
 
-      // Actualizar estado local
-      setContenidosEsperados((prev) => [...prev, nuevoContenido]);
-    } else {
-      // Actualizar contenido existente
-      setContenidosEsperados((prev) =>
-        prev.map((c) =>
-          c.id === contenidoData.id
-            ? {
-                ...contenidoData,
-                id: contenidoData.id ?? Date.now().toString(),
-              } // Asegurar que id sea un string
-            : c,
-        ),
-      );
-    }
-
-    // Cerrar modal
-    setIsContenidoModalOpen(false);
-  };
-
-  const handleEditExposicion = () => {
-    setIsExposicionModalOpen(true);
-  };
-
-  const handleUpdateExposicion = async (exposicionData: Exposicion) => {
-    // Simular llamada a la API
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    // Formatear fechas para mostrar
-    let fechasFormateadas = "";
-
-    if (exposicionData.fechaInicio === exposicionData.fechaFin) {
-      // Si es un solo día
-      fechasFormateadas = format(
-        new Date(exposicionData.fechaInicio),
-        "dd/MM/yyyy",
-      );
-    } else {
-      // Si es un rango de fechas
-      fechasFormateadas = `${format(new Date(exposicionData.fechaInicio), "dd/MM/yyyy")} - ${format(
-        new Date(exposicionData.fechaFin),
-        "dd/MM/yyyy",
-      )}`;
-    }
-
-    // Actualizar estado local
-    setExposicion({
-      ...exposicion,
-      titulo: exposicionData.titulo,
-      fechas: fechasFormateadas,
-      descripcion: exposicionData.descripcion,
-      duracion: exposicionData.duracion,
-      modalidad: exposicionData.modalidad,
-      jurados: exposicionData.jurados,
-    });
-
-    // Cerrar modal
-    setIsExposicionModalOpen(false);
-  };
 
   return (
     <div className="w-full px-6 py-6">
@@ -193,13 +196,13 @@ const DetalleExposicionPage: React.FC<DetalleExposicionPageProps> = ({
       <Card className="mb-6">
         <CardContent className="p-6">
           <div className="flex items-start justify-between mb-4">
-            <h2 className="text-xl font-semibold">{exposicion.titulo}</h2>
+            <h2 className="text-xl font-semibold">{exposicion.nombre}</h2>
             <Button
               id="btnEditExposicion"
               variant="outline"
               size="sm"
               className="h-8"
-              onClick={handleEditExposicion}
+              onClick={() => setIsExposicionModalOpen(true)}
             >
               <PenLine className="h-4 w-4 mr-1" />
               Editar
@@ -211,13 +214,7 @@ const DetalleExposicionPage: React.FC<DetalleExposicionPageProps> = ({
               <h3 className="text-sm font-medium text-muted-foreground mb-1">
                 Etapa
               </h3>
-              <p>{exposicion.etapa}</p>
-            </div>
-            <div>
-              <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                Fechas
-              </h3>
-              <p>{exposicion.fechas}</p>
+              <p>Proyecto de fin de carrera 1</p>
             </div>
           </div>
 
@@ -227,62 +224,41 @@ const DetalleExposicionPage: React.FC<DetalleExposicionPageProps> = ({
             </h3>
             <p>{exposicion.descripcion}</p>
           </div>
-
-          <div className="mb-4">
-            <h3 className="text-sm font-medium text-muted-foreground mb-1">
-              Duración
-            </h3>
-            <p>{exposicion.duracion}</p>
-          </div>
-
-          <div className="flex gap-2">
-            <span className="inline-flex items-center px-2 py-1 rounded-md text-xs bg-secondary text-secondary-foreground">
-              {exposicion.modalidad === "Virtual" ? (
-                <Monitor className="h-3 w-3 mr-1" />
-              ) : (
-                <Users className="h-3 w-3 mr-1" />
-              )}
-              {exposicion.modalidad}
-            </span>
-            <span className="inline-flex items-center px-2 py-1 rounded-md text-xs bg-secondary text-secondary-foreground">
-              {exposicion.jurados}
-            </span>
-          </div>
         </CardContent>
       </Card>
 
-      {/* Contenidos Esperados */}
+      {/* Criterios Esperados */}
 
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold">Contenidos Esperados</h2>
+        <h2 className="text-lg font-semibold">Criterios Esperados</h2>
         <Button
-          id="btnNewContenido"
+          id="btnNewCriterio"
           className="bg-black hover:bg-gray-800"
-          onClick={handleNuevoContenido}
+          onClick={handleNuevoCriterio}
         >
           <Plus className="h-4 w-4 mr-1" />
-          Nuevo Contenido
+          Nuevo Criterio
         </Button>
       </div>
 
       <div className="space-y-4">
-        {contenidosEsperados.map((contenido) => (
-          <ContenidoEsperadoExposicionCard
-            key={contenido.id}
-            id={contenido.id}
-            titulo={contenido.titulo}
-            descripcion={contenido.descripcion}
-            puntos={contenido.puntos}
-            onEdit={handleEditContenido}
-            onDelete={handleDeleteContenido}
+        {criterios.map((criterio) => (
+          <CriterioExposicionCard
+            key={criterio.id}
+            id={criterio.id ?? ""}
+            nombre={criterio.nombre}
+            descripcion={criterio.descripcion}
+            notaMaxima={criterio.notaMaxima}
+            onEdit={handleEditCriterio}
+            onDelete={handleDeleteCriterio}
           />
         ))}
       </div>
-      <ContenidoExposicionModal
-        isOpen={isContenidoModalOpen}
-        onClose={() => setIsContenidoModalOpen(false)}
-        onSubmit={handleSubmitContenido}
-        contenido={contenidoSeleccionado}
+      <CriterioExposicionModal
+        isOpen={isCriterioModalOpen}
+        onClose={() => setIsCriterioModalOpen(false)}
+        onSubmit={modalMode === "edit" ? handleUpdateCriterio : handleCreateCriterio}
+        criterio={criterioSeleccionado}
         mode={modalMode}
       />
       {/* Modal para Editar Exposición */}
@@ -298,15 +274,3 @@ const DetalleExposicionPage: React.FC<DetalleExposicionPageProps> = ({
 };
 
 export default DetalleExposicionPage;
-
-function format(date: Date, formatString: string): string {
-  // Implementación simple de format para fechas
-  const day = date.getDate().toString().padStart(2, "0");
-  const month = (date.getMonth() + 1).toString().padStart(2, "0");
-  const year = date.getFullYear().toString();
-
-  return formatString
-    .replace("dd", day)
-    .replace("MM", month)
-    .replace("yyyy", year);
-}
