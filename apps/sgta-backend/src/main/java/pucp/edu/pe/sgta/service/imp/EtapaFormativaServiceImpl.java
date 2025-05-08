@@ -56,4 +56,8 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
                 .toList();
     }
 
+    @Override
+    public List<EtapaFormativaDto> findAllActivas() {
+        return etapaFormativaRepository.findAllActivas();
+    }
 }

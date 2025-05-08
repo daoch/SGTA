@@ -1,9 +1,12 @@
 package pucp.edu.pe.sgta.service.imp;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import pucp.edu.pe.sgta.dto.EtapaFormativaXSalaExposicionConEtapaFormativaDTO;
 import pucp.edu.pe.sgta.dto.EtapaFormativaXSalaExposicionDto;
 import pucp.edu.pe.sgta.mapper.EtapaFormativaXSalaExposicionMapper;
 import pucp.edu.pe.sgta.model.EtapaFormativaXSalaExposicion;
@@ -48,5 +51,24 @@ public class EtapaFormativaXSalaExposicionServiceImpl implements EtapaFormativaX
     @Override
     public void delete(Integer dto) {
 
+    }
+
+    @Override
+    public List<EtapaFormativaXSalaExposicionConEtapaFormativaDTO> listarEtapasFormativasXSalaExposicion(
+            Integer etapaFormativaId) {
+        List<Object[]> result = etapaFormativaXSalaExposicionRepository
+                .listarEtapasFormativasXSalaExposicion(etapaFormativaId);
+
+        List<EtapaFormativaXSalaExposicionConEtapaFormativaDTO> dtoList = new ArrayList<>();
+        for (Object[] row : result) {
+            EtapaFormativaXSalaExposicionConEtapaFormativaDTO dto = new EtapaFormativaXSalaExposicionConEtapaFormativaDTO();
+            dto.setEtapaFormativaXSalaExposicionId((Integer) row[0]);
+            dto.setEtapaFormativaId((Integer) row[1]);
+            dto.setSalaExposicionId((Integer) row[2]);
+            dto.setNombreSalaExposicion((String) row[3]);
+            dto.setNombreEtapaFormativa((String) row[4]);
+            dtoList.add(dto);
+        }
+        return dtoList;
     }
 }

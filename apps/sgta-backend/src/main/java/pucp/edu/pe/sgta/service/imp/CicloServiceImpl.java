@@ -47,4 +47,8 @@ public class CicloServiceImpl implements CicloService {
 
     }
 
+    @Override
+    public List<Ciclo> listarCiclosOrdenados() {
+        return cicloRepository.findAllOrderByActivoAndFechaInicioDesc();
+    }
 }
