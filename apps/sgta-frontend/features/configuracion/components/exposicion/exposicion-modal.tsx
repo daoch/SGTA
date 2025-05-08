@@ -16,7 +16,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Exposicion } from "../../types/exposicion";
+import { Exposicion } from "../../dtos/exposicion";
 
 interface ExposicionModalProps {
   isOpen: boolean;
@@ -36,60 +36,30 @@ export const ExposicionModal: React.FC<ExposicionModalProps> = ({
   const isEditMode = mode === "edit";
 
   const [formData, setFormData] = useState<Exposicion>({
-    titulo: "",
-    fechaInicio: "",
-    fechaFin: "",
-    fechas: "",
+    id: "",
+    estadoPlanificacionId: 1,
+    nombre: "",
     descripcion: "",
-    duracion: "",
-    modalidad: "Virtual",
-    jurados: "Sin jurados",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSingleDay, setIsSingleDay] = useState(false);
 
   // Cargar datos de la exposición cuando cambie (en modo edición)
   useEffect(() => {
     if (isEditMode && exposicion) {
-      // Parsear las fechas del formato "DD/MM/YYYY - DD/MM/YYYY" o "DD/MM/YYYY"
-      let fechaInicio = "";
-      let fechaFin = "";
-
-      if (exposicion.fechas.includes(" - ")) {
-        const [inicio, fin] = exposicion.fechas.split(" - ");
-        fechaInicio = formatDateForInput(inicio);
-        fechaFin = formatDateForInput(fin);
-        setIsSingleDay(false);
-      } else {
-        fechaInicio = formatDateForInput(exposicion.fechas);
-        fechaFin = formatDateForInput(exposicion.fechas);
-        setIsSingleDay(true);
-      }
-
       setFormData({
         id: exposicion.id,
-        titulo: exposicion.titulo,
-        fechaInicio,
-        fechaFin,
-        fechas: exposicion.fechas,
+        nombre: exposicion.nombre,
         descripcion: exposicion.descripcion,
-        duracion: exposicion.duracion,
-        modalidad: exposicion.modalidad,
-        jurados: exposicion.jurados,
+        estadoPlanificacionId: exposicion.estadoPlanificacionId,
       });
     } else {
       // Resetear el formulario en modo creación
       setFormData({
-        titulo: "",
-        fechaInicio: "",
-        fechaFin: "",
-        fechas: "",
+        id: "",
+        nombre: "",
         descripcion: "",
-        duracion: "",
-        modalidad: "Virtual",
-        jurados: "Sin jurados",
+        estadoPlanificacionId: 1,
       });
-      setIsSingleDay(false);
     }
   }, [exposicion, isEditMode, isOpen]);
 
@@ -110,25 +80,6 @@ export const ExposicionModal: React.FC<ExposicionModalProps> = ({
     }));
   };
 
-  const handleSingleDayChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setIsSingleDay(e.target.checked);
-    if (e.target.checked) {
-      setFormData((prev) => ({
-        ...prev,
-        fechaFin: prev.fechaInicio,
-      }));
-    }
-  };
-
-  const handleFechaInicioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const fechaInicio = e.target.value;
-    setFormData((prev) => ({
-      ...prev,
-      fechaInicio,
-      fechaFin: isSingleDay ? fechaInicio : prev.fechaFin,
-    }));
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -144,19 +95,6 @@ export const ExposicionModal: React.FC<ExposicionModalProps> = ({
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  // Formatear fecha para el input date (YYYY-MM-DD)
-  const formatDateForInput = (dateString: string) => {
-    if (!dateString) return "";
-
-    // Si la fecha está en formato DD/MM/YYYY
-    if (dateString.includes("/")) {
-      const [day, month, year] = dateString.split("/");
-      return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
-    }
-
-    return dateString;
   };
 
   return (
@@ -178,117 +116,12 @@ export const ExposicionModal: React.FC<ExposicionModalProps> = ({
               <Label htmlFor="titulo">Nombre de la Exposición</Label>
               <Input
                 id="txtNombreExposicion"
-                name="titulo"
+                name="nombre"
                 placeholder="Ej: Exposición de Avance"
-                value={formData.titulo}
+                value={formData.nombre}
                 onChange={handleInputChange}
                 required
               />
-            </div>
-
-            <div className="grid gap-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="fechaInicio">
-                  Fecha{!isSingleDay ? " de inicio" : ""}
-                </Label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="chkSingleDay"
-                    checked={isSingleDay}
-                    onChange={handleSingleDayChange}
-                    className="mr-1"
-                  />
-                  <Label
-                    htmlFor="singleDay"
-                    className="text-xs text-muted-foreground"
-                  >
-                    Un solo día
-                  </Label>
-                </div>
-              </div>
-              <Input
-                id="dateFechaInicio"
-                name="fechaInicio"
-                type="date"
-                value={formData.fechaInicio}
-                onChange={handleFechaInicioChange}
-                required
-              />
-            </div>
-
-            {!isSingleDay && (
-              <div className="grid gap-2">
-                <Label htmlFor="fechaFin">Fecha de fin</Label>
-                <Input
-                  id="dateFechaFin"
-                  name="fechaFin"
-                  type="date"
-                  value={formData.fechaFin}
-                  onChange={handleInputChange}
-                  required
-                  min={formData.fechaInicio}
-                />
-              </div>
-            )}
-
-            <div className="grid gap-2">
-              <Label htmlFor="duracion">Duración</Label>
-              <div className="flex items-center gap-2">
-                <Input
-                  id="txtDuracion"
-                  name="duracion"
-                  placeholder="Ej: 20 min"
-                  value={formData.duracion}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-2">
-              <Label>Modalidad</Label>
-              <RadioGroup
-                id="rdoModalidad"
-                value={formData.modalidad}
-                onValueChange={(value) => handleRadioChange("modalidad", value)}
-                className="flex gap-4"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem id="rdoVirtual" value="Virtual" />
-                  <Label htmlFor="virtual" className="flex items-center gap-1">
-                    <Monitor className="h-4 w-4" /> Virtual
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem id="rdoPresencial" value="Presencial" />
-                  <Label
-                    htmlFor="presencial"
-                    className="flex items-center gap-1"
-                  >
-                    <Users className="h-4 w-4" /> Presencial
-                  </Label>
-                </div>
-              </RadioGroup>
-            </div>
-
-            <div className="grid gap-2">
-              <Label>Jurados</Label>
-              <RadioGroup
-                id="rdoJurados"
-                value={formData.jurados}
-                onValueChange={(value) => handleRadioChange("jurados", value)}
-                className="flex gap-4"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem id="rdoConJurados" value="Con jurados" />
-                  <Label htmlFor="con-jurados">Con jurados</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem id="rdoSinJurados" value="Sin jurados" />
-                  <Label htmlFor="sin-jurados">Sin jurados</Label>
-                </div>
-              </RadioGroup>
             </div>
 
             <div className="grid gap-2">
