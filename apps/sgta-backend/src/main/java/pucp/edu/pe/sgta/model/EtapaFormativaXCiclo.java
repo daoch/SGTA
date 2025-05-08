@@ -10,12 +10,12 @@ import java.time.OffsetDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "etapa_formativa_ciclo")
+@Table(name = "etapa_formativa_x_ciclo")
 public class EtapaFormativaXCiclo {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "etapa_formativa_ciclo_id")
+    @Column(name = "etapa_formativa_x_ciclo_id")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

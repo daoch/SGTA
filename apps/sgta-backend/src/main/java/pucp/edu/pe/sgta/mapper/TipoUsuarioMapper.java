@@ -12,6 +12,7 @@ public class TipoUsuarioMapper {
 		dto.setNombre(tipoUsuario.getNombre());
 		dto.setActivo(tipoUsuario.getActivo());
 		dto.setFechaCreacion(tipoUsuario.getFechaCreacion());
+		dto.setTipoDedicacion(tipoUsuario.getTipoDedicacion());
 		return dto;
 	}
 
@@ -22,6 +23,7 @@ public class TipoUsuarioMapper {
 		tipoUsuario.setNombre(dto.getNombre());
 		tipoUsuario.setActivo(dto.getActivo());
 		tipoUsuario.setFechaCreacion(dto.getFechaCreacion());
+		tipoUsuario.setTipoDedicacion(dto.getTipoDedicacion());
 
 		return tipoUsuario;
 	}
