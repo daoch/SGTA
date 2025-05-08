@@ -47,7 +47,6 @@ const PropuestasAsesorPage = async () => {
             </CardHeader>
             <CardContent>
               <PropuestasTable
-                filter="directa"
                 propuestas={propuestasDirectaData}
                 areasData={areasData}
                 idsSubAreas={idsSubAreas}
@@ -65,7 +64,6 @@ const PropuestasAsesorPage = async () => {
             </CardHeader>
             <CardContent>
               <PropuestasTable
-                filter="general"
                 propuestas={propuestasGeneralData}
                 areasData={areasData}
                 idsSubAreas={idsSubAreas}
