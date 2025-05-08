@@ -7,7 +7,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import { useSearchParams, usePathname, useRouter } from "next/navigation";
+
 import { useState } from "react";
 import { AreaEspecialidad } from "../types/jurado.types";
 

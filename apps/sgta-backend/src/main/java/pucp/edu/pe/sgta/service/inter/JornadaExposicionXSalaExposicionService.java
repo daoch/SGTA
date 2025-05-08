@@ -4,6 +4,7 @@ import java.util.List;
 
 import pucp.edu.pe.sgta.dto.JornadaExposicionXSalaExposicionCreateDTO;
 import pucp.edu.pe.sgta.dto.JornadaExposicionXSalaExposicionDto;
+import pucp.edu.pe.sgta.dto.JornadaExposicionXSalaExposicionListadoDTO;
 
 public interface JornadaExposicionXSalaExposicionService {
     List<JornadaExposicionXSalaExposicionDto> getAll();
@@ -16,5 +17,5 @@ public interface JornadaExposicionXSalaExposicionService {
 
     void delete(Integer id);
 
-    List<JornadaExposicionXSalaExposicionListadoDTO> listarJornadasExposicionSalas(int etapaFormativaId);
+    List<JornadaExposicionXSalaExposicionListadoDTO> listarJornadasExposicionSalas(Integer etapaFormativaId);
 }

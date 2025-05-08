@@ -1,14 +1,15 @@
-'use client'
+"use client"
 import { DndContext, DragEndEvent, MouseSensor, useSensor, useSensors } from "@dnd-kit/core";
 import ExposList from "./ExposList";
 import PlanificationPanel from "./PlanificationPanel";
-import { AreaEspecialidad, Dispo, Tema } from "../types/jurado.types";
+import { AreaEspecialidad, Tema } from "../types/jurado.types";
 import { useState } from "react";
+import { JornadaExposicionDTO } from "@/features/jurado/dtos/JornadExposicionDTO";
 
 interface Props {
-  expos : Tema[]
-  topics :  AreaEspecialidad[]
-  roomAvailList :Dispo[]
+  expos : Tema[];
+  topics :  AreaEspecialidad[];
+  roomAvailList :JornadaExposicionDTO[];
 }
 
 const GeneralPlanificationExpo: React.FC<Props> = ({expos,topics,roomAvailList}:Props) => {
@@ -21,14 +22,16 @@ const GeneralPlanificationExpo: React.FC<Props> = ({expos,topics,roomAvailList}:
     
     /*Handles the drag and drop event for the expositions*/
   function handleDragEnd(event: DragEndEvent) {
+    console.log(freeExpos);
     const { active, over } = event;
+   
     /*validates that the drop occurs in a valid and different location from the original one.*/
     if (!over || active.id === over.id) return;
 
     const expoId = active.id ;
     const spaceId = over.id ;
     /*checks if the item being dragged is in the list of unassigned expositions.*/
-    const chosenExpo = freeExpos.find((e) => e.id === expoId);
+    const chosenExpo = freeExpos.find((e) => e.codigo === expoId);
 
     if (chosenExpo) {
       /*If it's in the unassigned list, it's removed from there and added to the assigned list*/
@@ -40,19 +43,19 @@ const GeneralPlanificationExpo: React.FC<Props> = ({expos,topics,roomAvailList}:
         ...newAssignment,
       }));
 
-      setFreeExpos((prev) => prev.filter((e) => e.id !== expoId));
+      setFreeExpos((prev) => prev.filter((e) => e.codigo !== expoId));
     } else {
       /*If it's not in the unassigned list, it means it was already assigned,
            so we remove it from its previous assignment and reassign it to the new location.*/
       const chosenExpo = Object.values(assignedExpos).find(
-        (a) => a.id=== expoId,
+        (a) => a.codigo=== expoId,
       );
       if (chosenExpo) {
         const newAssignment = {
           [spaceId]: chosenExpo,
         };
         const updatedAssignment = Object.keys(assignedExpos)
-          .filter((key) => assignedExpos[key].id !== chosenExpo.id)
+          .filter((key) => assignedExpos[key].codigo !== chosenExpo.codigo)
           .reduce((acc: Record<string, Tema>, key) => {
             acc[key] = assignedExpos[key];
             return acc;
@@ -115,6 +118,6 @@ const GeneralPlanificationExpo: React.FC<Props> = ({expos,topics,roomAvailList}:
       </DndContext>
     );
 
-}
+};
 
-export default GeneralPlanificationExpo
+export default GeneralPlanificationExpo;

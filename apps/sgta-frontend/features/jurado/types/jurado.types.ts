@@ -15,15 +15,15 @@ export interface AreaEspecialidad {
   name: string;
 }
 
-export interface Espacio {
-  code: string;
-  busy: boolean;
+export interface SalaExposicion {
+  id: number;
+  nombre: string;
+  buyse:false;
 }
 
-export interface Dispo {
-  code: number;
-  date: Date;
-  startTime: string;
-  endTime: string;
-  spaces: Espacio[];
+export interface JornadaExposicionSalas {
+  jornadaExposicionId: number;
+  datetimeInicio: Date;
+  datetimeFin: Date; 
+  salasExposicion: SalaExposicion[];
 }

@@ -20,7 +20,7 @@ const CardTemaExposicion: React.FC<Props> = ({ exposicion }) => {
     >
       <CardHeader className="">
         <CardTitle>
-          {exposicion.id} - {exposicion.titulo}
+          {exposicion.codigo} - {exposicion.titulo}
         </CardTitle>
         <CardDescription className="text-black">
           <span>

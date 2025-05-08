@@ -7,28 +7,30 @@ import BreadCrumbPlanificacion from "./BreadcrumbPlanification";
 import SelectorFecha from "./DateSelector";
 import Droppable from "./Droppable";
 import {
-  Dispo,
-  Espacio,
-  Exposicion,
+  SalaExposicion,
+  Tema,
 } from "@/features/jurado/types/jurado.types";
 import RoomSlot from "./RoomSlot";
+import { JornadaExposicionDTO } from "@/features/jurado/dtos/JornadExposicionDTO";
 
 interface TimeSlot {
   key: string;
   range: string;
-  expo?: Exposicion;
+  expo?: Tema;
 }
 
 interface Props {
-  roomAvailList: Dispo[];
-  assignedExpos: Record<string, Exposicion>;
-  removeExpo: (expo: Exposicion) => void;
+  roomAvailList: JornadaExposicionDTO[];
+  assignedExpos: Record<string, Tema>;
+  removeExpo: (expo: Tema) => void;
 }
 const PlanificationPanel: React.FC<Props> = ({
   roomAvailList,
   assignedExpos,
   removeExpo,
 }) => {
+
+
   const expoDuration = 20;
   const timeSlots: TimeSlot[] = [];
 
@@ -37,21 +39,22 @@ const PlanificationPanel: React.FC<Props> = ({
   );
 
   if (roomAvailList) {
-    roomAvailList.forEach((dispo) => {
+    roomAvailList.forEach((jornada) => {
       const rangos = generarRangos(
-        dispo.startTime,
-        dispo.endTime,
+        jornada.horaInicio,
+        jornada.horaFin,
         expoDuration,
-      );
-
+      )
+      
       rangos.forEach((range) => {
-        dispo.spaces.forEach((space) => {
+        jornada.salasExposicion.forEach((sala) => {
           const key =
-            dispo.date.toISOString().split("T")[0] +
+          jornada.fecha.toISOString().split("T")[0] +
             "|" +
             range.split("-")[0].trim() +
             "|" +
-            space.code;
+            sala.nombre;
+      
           timeSlots.push({
             key: key,
             range: range,
@@ -67,28 +70,30 @@ const PlanificationPanel: React.FC<Props> = ({
     duracion: number,
   ) {
     const rangos = [];
-    let horaActual = new Date(`2023-01-01T${horaInicio}:00`);
+    let horaActual = new Date(`2023-01-01T${horaInicio}`);
 
-    const horaFinDate = new Date(`2023-01-01T${horaFin}:00`);
-
+    const horaFinDate = new Date(`2023-01-01T${horaFin}`);
+   
     while (horaActual < horaFinDate) {
+ 
       const horaFinal = new Date(horaActual.getTime() + duracion * 60000); // duracion en minutos
       const rango = `${horaActual.getHours()}:${horaActual.getMinutes().toString().padStart(2, "0")} - ${horaFinal.getHours()}:${horaFinal.getMinutes().toString().padStart(2, "0")}`;
       rangos.push(rango);
       horaActual = horaFinal;
     }
-
+   
     return rangos;
   }
 
   const selectedRoom = roomAvailList.find((room) => room.code === selectedCode);
-  const selectedDateStr = selectedRoom?.date.toISOString().split("T")[0];
+  const selectedDateStr = selectedRoom?.fecha.toISOString().split("T")[0];
   const filteredTimeSlots = timeSlots.filter((slot) =>
     slot.key.startsWith(selectedDateStr + "|"),
   );
   const uniqueTimeSlots = Array.from(
     new Map(filteredTimeSlots.map((slot) => [slot.range, slot])).values(),
   );
+
 
   return (
     <section className="h-full w-full flex flex-col gap-6">
@@ -137,11 +142,14 @@ function TimeSlotCard({
   removeExpo,
 }: {
   time: string;
-  spaces?: Espacio[];
+  spaces?: SalaExposicion[];
   filteredRooms: TimeSlot[];
-  assignedExpos: Record<string, Exposicion>;
-  removeExpo: (expo: Exposicion) => void;
+  assignedExpos: Record<string, Tema>;
+  removeExpo: (expo: Tema) => void;
 }) {
+
+ 
+
   return (
     <div className="border rounded-lg p-4">
       <div className="flex items-center mb-4">

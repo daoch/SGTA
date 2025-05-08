@@ -35,7 +35,7 @@ const ExposList: React.FC<Props> = ({ freeExpos, topics }) => {
       <div className=" px-6 ">
         <div className="space-y-4 flex flex-col">
           {freeExpos.map((freeExpo: Tema) => (
-            <Draggable id={freeExpo.id.toString()} key={freeExpo.id}>
+            <Draggable id={freeExpo.codigo} key={freeExpo.codigo}>
               <CardTemaExposicion exposicion={freeExpo} />
             </Draggable>
           ))}

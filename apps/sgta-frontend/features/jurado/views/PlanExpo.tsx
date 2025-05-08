@@ -1,24 +1,18 @@
 
-import { AreaEspecialidad, Dispo, Tema } from "../types/jurado.types";
-import {
-  DndContext,
-  DragEndEvent,
-  MouseSensor,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import ExposList from "@/features/jurado/components/ExposList";
-import PlanificationPanel from "@/features/jurado/components/PlanificationPanel";
+import { AreaEspecialidad, JornadaExposicionSalas } from "../types/jurado.types";
+
 import GeneralPlanificationExpo from "@/features/jurado/components/GeneralPlanificationExpo";
-import { listarTemasCicloActulXEtapaFormativa } from "@/features/jurado/services/data";
+import { listarJornadasExposicionSalas, listarTemasCicloActulXEtapaFormativa } from "@/features/jurado/services/data";
+import { JornadaExposicionDTO } from "../dtos/JornadExposicionDTO";
 type Props = {
   etapaFormativaId : number
 };
  export default async function PlanExpo({ etapaFormativaId }: Props) {
   const expos = await listarTemasCicloActulXEtapaFormativa(etapaFormativaId);
-  const topics: AreaEspecialidad[] = [];
-  const roomAvailList: Dispo[] = [];
-  console.log({expos});
+  const jornadasSalas = await listarJornadasExposicionSalas(etapaFormativaId);
+  const topics: AreaEspecialidad[] = [];  
+  const roomAvailList: JornadaExposicionDTO[] = jornadasSalas.map(transformarJornada);
+
   /*const roomAvailList: Dispo[] = [
     {
       code: 1,
@@ -150,5 +144,19 @@ type Props = {
       <GeneralPlanificationExpo expos={expos} topics={topics} roomAvailList={roomAvailList}></GeneralPlanificationExpo>
     </main>
   );
+};
+
+const transformarJornada = (data: JornadaExposicionSalas): JornadaExposicionDTO => {
+  const fechaInicio = new Date(data.datetimeInicio);
+  const fechaFin = new Date(data.datetimeFin);
+
+  // De aquí puedes tomar cualquiera de las dos fechas, por ejemplo, `fechaInicio`
+  return {
+    code: data.jornadaExposicionId,  // O cualquier otro campo relevante
+    fecha: fechaInicio,  // Usamos `dateTimeInicio` como fecha
+    horaInicio: fechaInicio.toTimeString().split(" ")[0],  // Solo hora
+    horaFin: fechaFin.toTimeString().split(" ")[0],  // Solo hora
+    salasExposicion: data.salasExposicion,  
+  };
 };
 
