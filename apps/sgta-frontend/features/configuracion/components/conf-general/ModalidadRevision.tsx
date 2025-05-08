@@ -46,9 +46,9 @@ export default function ModalidadRevisionCard() {
   const handleTurnitinChange = async (checked: boolean) => {
     if (turnitinParam) {
       // Actualizar el parámetro local primero
-      setLocalParametros(prev => 
-        prev.map(p => 
-          p.id === turnitinParam.id 
+      setLocalParametros(prev =>
+        prev.map(p =>
+          p.id === turnitinParam.id
             ? { ...p, valor: checked }
             : p
         )
@@ -61,9 +61,9 @@ export default function ModalidadRevisionCard() {
   const handleAntiplagioChange = async (checked: boolean) => {
     if (antiplagioParam) {
       // Actualizar el parámetro local primero
-      setLocalParametros(prev => 
-        prev.map(p => 
-          p.id === antiplagioParam.id 
+      setLocalParametros(prev =>
+        prev.map(p =>
+          p.id === antiplagioParam.id
             ? { ...p, valor: checked }
             : p
         )

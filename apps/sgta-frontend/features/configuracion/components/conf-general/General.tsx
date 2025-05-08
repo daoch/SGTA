@@ -75,12 +75,12 @@ export default function GeneralConfCards() {
   const [fechaLimite, setFechaLimite] = useState<string>("");
   const [loadingOperation, setLoadingOperation] = useState<{
     type:
-      | "addArea"
-      | "addSubArea"
-      | "deleteArea"
-      | "deleteSubArea"
-      | "save"
-      | null;
+    | "addArea"
+    | "addSubArea"
+    | "deleteArea"
+    | "deleteSubArea"
+    | "save"
+    | null;
     id?: number;
   }>({ type: null });
 
@@ -211,15 +211,15 @@ export default function GeneralConfCards() {
           prev.map((area) =>
             area.id === areaId
               ? {
-                  ...area,
-                  subAreas: [
-                    ...area.subAreas,
-                    {
-                      id: response.id,
-                      nombre: response.nombre,
-                    },
-                  ],
-                }
+                ...area,
+                subAreas: [
+                  ...area.subAreas,
+                  {
+                    id: response.id,
+                    nombre: response.nombre,
+                  },
+                ],
+              }
               : area,
           ),
         );
@@ -242,9 +242,9 @@ export default function GeneralConfCards() {
         prev.map((area) =>
           area.id === areaId
             ? {
-                ...area,
-                subAreas: area.subAreas.filter((sub) => sub.id !== subAreaId),
-              }
+              ...area,
+              subAreas: area.subAreas.filter((sub) => sub.id !== subAreaId),
+            }
             : area,
         ),
       );
@@ -384,7 +384,7 @@ export default function GeneralConfCards() {
                                 }
                               >
                                 {loadingOperation.type === "addSubArea" &&
-                                loadingOperation.id === area.id
+                                  loadingOperation.id === area.id
                                   ? "Agregando..."
                                   : "Agregar"}
                               </Button>

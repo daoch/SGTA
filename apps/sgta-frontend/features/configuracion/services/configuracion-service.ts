@@ -38,7 +38,7 @@ export const getAllAreasByCarreraId = async (
     const response = await axiosInstance.get<AreaConocimientoDto[]>(
         `/areaConocimiento/list/${carreraId}`,
     );
-    
+
     // Para cada área, cargar sus subáreas
     const areasWithSubareas = await Promise.all(
         response.data.map(async (area) => {
@@ -49,7 +49,7 @@ export const getAllAreasByCarreraId = async (
             };
         })
     );
-    
+
     return areasWithSubareas;
 };
 
@@ -67,7 +67,7 @@ export const createSubArea = async (subArea: { nombre: string, idAreaConocimient
             id: subArea.idAreaConocimiento
         }
     };
-    
+
     const response = await axiosInstance.post<SubAreaConocimientoDto>(
         "/subAreaConocimiento/create",
         dto,
