@@ -44,7 +44,7 @@ const PlanificationPanel: React.FC<Props> = ({
         jornada.horaInicio,
         jornada.horaFin,
         expoDuration,
-      )
+      );
       
       rangos.forEach((range) => {
         jornada.salasExposicion.forEach((sala) => {

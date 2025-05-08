@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { DndContext, DragEndEvent, MouseSensor, useSensor, useSensors } from "@dnd-kit/core";
 import ExposList from "./ExposList";
 import PlanificationPanel from "./PlanificationPanel";
@@ -10,7 +10,7 @@ interface Props {
   expos : Tema[];
   topics :  AreaEspecialidad[];
   roomAvailList :JornadaExposicionDTO[];
-}
+};
 
 const GeneralPlanificationExpo: React.FC<Props> = ({expos,topics,roomAvailList}:Props) => {
     const [freeExpos, setFreeExpos] = useState<Tema[]>(

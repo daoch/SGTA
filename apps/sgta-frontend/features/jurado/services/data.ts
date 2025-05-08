@@ -7,7 +7,7 @@ export  async function listarTemasCicloActulXEtapaFormativa(etapaFormativaId : n
             method: "GET",
             headers: {
                 "Content-Type": "application/json"
-            }})
+            }});
     
             if (!response.ok) {
                 throw new Error("Network response was not ok");
@@ -29,7 +29,7 @@ export async function listarJornadasExposicionSalas(etapaFormativaId: number){
             method: "GET",
             headers: {
                 "Content-Type": "application/json"
-            }})
+            }});
     
             if (!response.ok) {
                 throw new Error("Network response was not ok");
