@@ -86,7 +86,6 @@ const ModalDetallesExposicion: React.FC<{
                     </div>
                     <div className="text-sm">{asesor.nombre}</div>
                   </div>
-                  <div className="text-sm">{miembro}</div>
                 </div>
               </div>
             )}
