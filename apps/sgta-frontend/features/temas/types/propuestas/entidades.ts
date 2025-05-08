@@ -8,15 +8,18 @@ export type Proyecto = {
   portafolioUrl: string;
   activo: boolean;
   fechaLimite: string;
+  fechaFinalizacion: string;
   fechaCreacion: string;
   fechaModificacion: string;
-  idUsuarioInvolucradosList: number[] | null;
-  idCoasesorInvolucradosList: number[] | null;
-  idEstudianteInvolucradosList: number[];
-  idSubAreasConocimientoList: number[];
-  tipo: string;
-  subAreas: SubAreaConocimiento[];
-  estudiantes: Usuario[];
+  estadoTemaNombre: string;
+  carrera: string;
+  cantPostulaciones: number;
+  coasesores: Usuario[] | null;
+  tesistas: Usuario[] | null;
+  subareas: SubAreaConocimiento[];
+  tipo: string; //agregado
+  subAreas: SubAreaConocimiento[]; //agregado
+  estudiantes: Usuario[]; //agregado
 };
 
 export type TipoUsuario = {
@@ -38,6 +41,7 @@ export type Usuario = {
   nivelEstudios: string;
   contrasena: string | null;
   biografia: string | null;
+  enlaceRepositorio: string | null;
   disponibilidad: string | null;
   tipoDisponibilidad: string;
   activo: boolean;

@@ -17,6 +17,7 @@ import { PropuestasTable } from "../components/asesor/propuestas-table";
 const PropuestasAsesorPage = async () => {
   const propuestasDirectaData = await fetchTemasPropuestosAlAsesor(1);
   const areasData = await fetchAreaConocimientoFindByUsuarioId(1);
+  console.log({ areasData });
   const subAreasData = await fetchSubAreaConocimientoFindByUsuarioId(1);
   const idsSubAreas = subAreasData.map((item) => item.id);
   const propuestasGeneralData =

@@ -34,12 +34,16 @@ export async function fetchTemasPropuestosAlAsesor(
         const estudiantes = [];
         const subAreas = [];
 
-        for (const idEstudiante of item.idEstudianteInvolucradosList || []) {
+        for (const idEstudiante of item.tesistas.map(
+          (item: Usuario) => item.id,
+        ) || []) {
           const estudiante = await fetchUsuariosFindById(idEstudiante);
           estudiantes.push(estudiante);
         }
 
-        for (const idSubArea of item.idSubAreasConocimientoList || []) {
+        for (const idSubArea of item.subareas.map(
+          (item: SubAreaConocimiento) => item.id,
+        ) || []) {
           const area = await fetchSubAreaConocimientoFindById(idSubArea);
           subAreas.push(area);
         }
@@ -87,12 +91,16 @@ export async function fetchTemasPropuestosPorSubAreaConocimiento(
         const estudiantes = [];
         const subAreas = [];
 
-        for (const idEstudiante of item.idEstudianteInvolucradosList || []) {
+        for (const idEstudiante of item.tesistas.map(
+          (item: Usuario) => item.id,
+        ) || []) {
           const estudiante = await fetchUsuariosFindById(idEstudiante);
           estudiantes.push(estudiante);
         }
 
-        for (const idSubArea of item.idSubAreasConocimientoList || []) {
+        for (const idSubArea of item.subareas.map(
+          (item: SubAreaConocimiento) => item.id,
+        ) || []) {
           const area = await fetchSubAreaConocimientoFindById(idSubArea);
           subAreas.push(area);
         }
