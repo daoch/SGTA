@@ -1,18 +1,18 @@
-'use client';
+"use client";
 
-import { Input } from '@/components/ui/input';
-import { Card } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { useDirectorioAsesores } from '@/features/asesores/hooks/useDirectorioAsesores';
-import DirectorioAsesoresTable from '@/features/asesores/components/DirectorioAsesoresTable';
-import Breadcrumb from '@/components/layout/breadcrumb';
+} from "@/components/ui/select";
+import { useDirectorioAsesores } from "@/features/asesores/hooks/useDirectorioAsesores";
+import DirectorioAsesoresTable from "@/features/asesores/components/DirectorioAsesoresTable";
+import Breadcrumb from "@/components/layout/breadcrumb";
 
 export default function DirectorioAsesoresPage() {
   const {
@@ -28,8 +28,8 @@ export default function DirectorioAsesoresPage() {
     <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-6">
       <Breadcrumb
         items={[
-          { label: 'Personal Académico', href: '/coordinador/asesores' },
-          { label: 'Directorio de Asesores' },
+          { label: "Personal Académico", href: "/coordinador/asesores" },
+          { label: "Directorio de Asesores" },
         ]}
       />
 
@@ -72,7 +72,7 @@ export default function DirectorioAsesoresPage() {
       </Card>
 
       <p className="text-sm text-muted-foreground">
-        Mostrando {profesores.length} resultado{profesores.length !== 1 && 's'} encontrados.
+        Mostrando {profesores.length} resultado{profesores.length !== 1 && "s"} encontrados.
       </p>
 
       <DirectorioAsesoresTable profesores={profesores} onUpdateRoles={updateRoles} />

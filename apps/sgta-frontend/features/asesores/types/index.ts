@@ -4,13 +4,13 @@ export type Profesor = {
   correo: string;
   codigo: string;
   avatarUrl?: string;
-  rolesAsignados: ('asesor' | 'jurado')[];
+  rolesAsignados: ("asesor" | "jurado")[];
   tesisActivas: number;
-  estado: 'activo' | 'inactivo';
+  estado: "activo" | "inactivo";
 };
 
 export type FiltrosProfesores = {
   search: string;
-  rolAsignado: 'todos' | 'asesor' | 'jurado';
-  estado: 'todos' | 'activo' | 'inactivo';
+  rolAsignado: "todos" | "asesor" | "jurado";
+  estado: "todos" | "activo" | "inactivo";
 };

@@ -1,34 +1,33 @@
-'use client';
+"use client";
 
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-  DialogClose,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Profesor } from '@/features/asesores/types';
-import { useEffect, useState } from 'react';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
+  DialogFooter
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Profesor } from "@/features/asesores/types";
+import { useEffect, useState } from "react";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 
 interface Props {
   profesor: Profesor | null;
   isOpen: boolean;
   onClose: () => void;
-  onSave: (id: string, newRoles: ('asesor' | 'jurado')[]) => void;
+  onSave: (id: string, newRoles: ("asesor" | "jurado")[]) => void;
 }
 
 export default function AdministrarRolesModal({ profesor, isOpen, onClose, onSave }: Props) {
-  const [roles, setRoles] = useState<('asesor' | 'jurado')[]>([]);
+  const [roles, setRoles] = useState<("asesor" | "jurado")[]>([]);
 
   useEffect(() => {
     if (profesor) setRoles(profesor.rolesAsignados);
   }, [profesor]);
 
-  const toggleRole = (rol: 'asesor' | 'jurado') => {
+  const toggleRole = (rol: "asesor" | "jurado") => {
     setRoles((prev) =>
       prev.includes(rol) ? prev.filter((r) => r !== rol) : [...prev, rol]
     );
@@ -37,9 +36,8 @@ export default function AdministrarRolesModal({ profesor, isOpen, onClose, onSav
   const handleSave = () => {
     if (!profesor) return;
 
-    // Simulación de petición al backend (reemplazar con llamada real)
     setTimeout(() => {
-      onSave(profesor.id, roles); // sincroniza con tabla
+      onSave(profesor.id, roles);
       onClose();
     }, 300);
   };
@@ -56,8 +54,8 @@ export default function AdministrarRolesModal({ profesor, isOpen, onClose, onSav
             <Label htmlFor="asesor">Asesor</Label>
             <Switch
               id="asesor"
-              checked={roles.includes('asesor')}
-              onCheckedChange={() => toggleRole('asesor')}
+              checked={roles.includes("asesor")}
+              onCheckedChange={() => toggleRole("asesor")}
             />
           </div>
 
@@ -65,8 +63,8 @@ export default function AdministrarRolesModal({ profesor, isOpen, onClose, onSav
             <Label htmlFor="jurado">Jurado</Label>
             <Switch
               id="jurado"
-              checked={roles.includes('jurado')}
-              onCheckedChange={() => toggleRole('jurado')}
+              checked={roles.includes("jurado")}
+              onCheckedChange={() => toggleRole("jurado")}
             />
           </div>
         </div>

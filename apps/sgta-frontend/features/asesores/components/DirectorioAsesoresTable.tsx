@@ -1,18 +1,18 @@
-'use client';
+"use client";
 
-import { Profesor } from '@/features/asesores/types';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Eye, Shield } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import AdministrarRolesModal from './AdministrarRolesModal';
-import { useState, useEffect } from 'react';
+import { Profesor } from "@/features/asesores/types";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Eye, Shield } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import AdministrarRolesModal from "./AdministrarRolesModal";
+import { useState, useEffect } from "react";
 
 type Props = {
   profesores: Profesor[];
-  onUpdateRoles: (id: string, newRoles: ('asesor' | 'jurado')[]) => void;  
+  onUpdateRoles: (id: string, newRoles: ("asesor" | "jurado")[]) => void;  
 };
 
 export default function DirectorioAsesoresTable({ profesores, onUpdateRoles }: Props) {
@@ -55,7 +55,7 @@ export default function DirectorioAsesoresTable({ profesores, onUpdateRoles }: P
     setIsModalOpen(true);
   };
 
-  const handleSaveRoles = (id: string, newRoles: ('asesor' | 'jurado')[]) => {
+  const handleSaveRoles = (id: string, newRoles: ("asesor" | "jurado")[]) => {
     onUpdateRoles(id, newRoles); // usa el hook compartido
   };
 
@@ -92,10 +92,10 @@ export default function DirectorioAsesoresTable({ profesores, onUpdateRoles }: P
                   <td className="p-4">{p.codigo}</td>
                   <td className="p-4 text-center">
                     <div className="flex justify-center gap-2">
-                      <Badge variant={p.rolesAsignados.includes('asesor') ? 'default' : 'outline'}>
+                      <Badge variant={p.rolesAsignados.includes("asesor") ? "default" : "outline"}>
                         Asesor
                       </Badge>
-                      <Badge variant={p.rolesAsignados.includes('jurado') ? 'default' : 'outline'}>
+                      <Badge variant={p.rolesAsignados.includes("jurado") ? "default" : "outline"}>
                         Jurado
                       </Badge>
                     </div>
@@ -149,7 +149,7 @@ export default function DirectorioAsesoresTable({ profesores, onUpdateRoles }: P
             {getPageNumbers().map((n) => (
               <Button
                 key={n}
-                variant={n === page ? 'default' : 'outline'}
+                variant={n === page ? "default" : "outline"}
                 size="sm"
                 onClick={() => setPage(n)}
               >

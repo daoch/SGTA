@@ -1,13 +1,13 @@
-import { useState, useMemo } from 'react';
-import { profesoresMock } from '../services/profesores';
-import { FiltrosProfesores, Profesor } from '../types';
+import { useState, useMemo } from "react";
+import { profesoresMock } from "../services/profesores";
+import { FiltrosProfesores, Profesor } from "../types";
 
 export function useDirectorioAsesores() {
-  const [search, setSearch] = useState('');
-  const [rolAsignado, setRolAsignado] = useState<FiltrosProfesores['rolAsignado']>('todos');
+  const [search, setSearch] = useState("");
+  const [rolAsignado, setRolAsignado] = useState<FiltrosProfesores["rolAsignado"]>("todos");
   const [profesores, setProfesores] = useState<Profesor[]>(profesoresMock);
 
-  const updateRoles = (id: string, nuevosRoles: ('asesor' | 'jurado')[]) => {
+  const updateRoles = (id: string, nuevosRoles: ("asesor" | "jurado")[]) => {
     setProfesores(prev =>
       prev.map(p =>
         p.id === id ? { ...p, rolesAsignados: nuevosRoles } : p
@@ -23,7 +23,7 @@ export function useDirectorioAsesores() {
         p.codigo.includes(search);
 
       const coincideRol =
-        rolAsignado === 'todos' || p.rolesAsignados.includes(rolAsignado);
+        rolAsignado === "todos" || p.rolesAsignados.includes(rolAsignado);
 
       return coincideBusqueda && coincideRol;
     });

@@ -1,32 +1,31 @@
-// app/(main)/coordinador/asesores/page.tsx
-'use client';
+"use client";
 
-import { Users, Check, BookOpen } from 'lucide-react';
-import Link from 'next/link';
+import { Users, Check, BookOpen } from "lucide-react";
+import Link from "next/link";
 import {
   Card,
   CardHeader,
   CardTitle,
   CardDescription,
-} from '@/components/ui/card';
+} from "@/components/ui/card";
 
 const cards = [
   {
-    title: 'Directorio de Asesores',
-    description: 'Gestiona la habilitación de profesores como asesores.',
-    href: '/coordinador/asesores/directorio-de-asesores',
+    title: "Directorio de Asesores",
+    description: "Gestiona la habilitación de profesores como asesores.",
+    href: "/coordinador/asesores/directorio-de-asesores",
     icon: Users,
   },
   {
-    title: 'Cese de Asesoría',
-    description: 'Administra solicitudes de cese de función de asesoría.',
-    href: '/coordinador/asesores/cese-de-asesoria',
+    title: "Cese de Asesoría",
+    description: "Administra solicitudes de cese de función de asesoría.",
+    href: "/coordinador/asesores/cese-de-asesoria",
     icon: Check,
   },
   {
-    title: 'Áreas Temáticas',
-    description: 'Configura las áreas temáticas disponibles para tesis.',
-    href: '/coordinador/asesores/areas-tematicas',
+    title: "Áreas Temáticas",
+    description: "Configura las áreas temáticas disponibles para tesis.",
+    href: "/coordinador/asesores/areas-tematicas",
     icon: BookOpen,
   },
 ];
