@@ -22,6 +22,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { X, Calendar, PlusIcon } from "lucide-react";
 import { Label } from "@/components/ui/label";
+import { useEffect, useState } from "react";
+import axiosInstance from "@/lib/axios/axios-instance";
 
 interface FechaExposicion {
   fecha: string;
@@ -36,6 +38,11 @@ interface FormValues {
   fechas: FechaExposicion[];
 }
 
+interface CursoOption {
+  etapaFormativaId: string;
+  nombre: string;
+}
+
 interface ModalPlanificadorCoordinadorProps {
   open: boolean;
   onClose: () => void;
@@ -45,26 +52,33 @@ export default function ModalPlanificadorCoordinador({
   open,
   onClose,
 }: ModalPlanificadorCoordinadorProps) {
-  const { control, handleSubmit } = useForm<FormValues>({
+  const { control, handleSubmit, watch, reset } = useForm<FormValues>({
     defaultValues: {
-      curso: "Proyecto de Fin de Carrera 1",
-      tipoExposicion: "Final",
-      fechas: [
-        {
-          fecha: "05/06/2025",
-          horaInicio: "17:00",
-          horaFin: "20:30",
-          salasSeleccionadas: "3 salas seleccionadas",
-        },
-        {
-          fecha: "12/06/2025",
-          horaInicio: "17:00",
-          horaFin: "20:30",
-          salasSeleccionadas: "2 salas seleccionadas",
-        },
-      ],
+      curso: "",
+      tipoExposicion: "",
+      fechas: [],
     },
   });
+
+  const [cursos, setCursos] = useState<CursoOption[]>([]);
+
+  useEffect(() => {
+    if (open) {
+      reset({
+        curso: "",
+        tipoExposicion: "",
+        fechas: [],
+      });
+
+      axiosInstance
+        .get("/etapas-formativas/coordinador/3")
+        .then((res) => setCursos(res.data))
+        .catch((err) => console.error("Error fetching cursos:", err));
+    }
+  }, [open, reset]);
+
+  const cursoSeleccionado = watch("curso");
+  const tipoSeleccionado = watch("tipoExposicion");
 
   const { fields, append, remove } = useFieldArray({
     control,
@@ -102,12 +116,14 @@ export default function ModalPlanificadorCoordinador({
                     <SelectValue placeholder="Seleccionar curso" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Proyecto de Fin de Carrera 1">
-                      Proyecto de Fin de Carrera 1
-                    </SelectItem>
-                    <SelectItem value="Proyecto de Fin de Carrera 2">
-                      Proyecto de Fin de Carrera 2
-                    </SelectItem>
+                    {cursos.map((curso) => (
+                      <SelectItem
+                        key={curso.etapaFormativaId}
+                        value={curso.etapaFormativaId}
+                      >
+                        {curso.nombre}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               )}
@@ -120,7 +136,11 @@ export default function ModalPlanificadorCoordinador({
               name="tipoExposicion"
               control={control}
               render={({ field }) => (
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value}
+                  disabled={!cursoSeleccionado}
+                >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Seleccionar tipo" />
                   </SelectTrigger>
@@ -148,7 +168,12 @@ export default function ModalPlanificadorCoordinador({
                     control={control}
                     render={({ field }) => (
                       <div className="relative">
-                        <Input {...field} className="pl-10" type="text" />
+                        <Input
+                          {...field}
+                          className="pl-10"
+                          type="text"
+                          disabled={!tipoSeleccionado}
+                        />
                         <Calendar className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
                       </div>
                     )}
@@ -162,7 +187,12 @@ export default function ModalPlanificadorCoordinador({
                     control={control}
                     render={({ field }) => (
                       <div className="relative">
-                        <Input {...field} className="pl-10" type="text" />
+                        <Input
+                          {...field}
+                          className="pl-10"
+                          type="text"
+                          disabled={!tipoSeleccionado}
+                        />
                         <Calendar className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
                       </div>
                     )}
@@ -176,7 +206,12 @@ export default function ModalPlanificadorCoordinador({
                     control={control}
                     render={({ field }) => (
                       <div className="relative">
-                        <Input {...field} className="pl-10" type="text" />
+                        <Input
+                          {...field}
+                          className="pl-10"
+                          type="text"
+                          disabled={!tipoSeleccionado}
+                        />
                         <Calendar className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
                       </div>
                     )}
@@ -194,6 +229,7 @@ export default function ModalPlanificadorCoordinador({
                       <Select
                         onValueChange={field.onChange}
                         value={field.value}
+                        disabled={!tipoSeleccionado}
                       >
                         <SelectTrigger className="w-full">
                           <SelectValue />
@@ -218,7 +254,7 @@ export default function ModalPlanificadorCoordinador({
                     type="button"
                     variant="destructive"
                     size="sm"
-                    className="h-5 w-5 text-white "
+                    className="h-5 w-5 text-white"
                     onClick={() => remove(index)}
                   >
                     <X className="h-4 w-4" />
@@ -240,6 +276,7 @@ export default function ModalPlanificadorCoordinador({
                 salasSeleccionadas: "2 salas seleccionadas",
               })
             }
+            disabled={!tipoSeleccionado}
           >
             <PlusIcon /> Agregar Fecha de Exposición
           </Button>
