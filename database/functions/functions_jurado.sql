@@ -24,3 +24,27 @@ BEGIN
     WHERE u.usuario_id = p_usuario_id;
 END;
 $$ LANGUAGE plpgsql STABLE;
+
+
+CREATE OR REPLACE FUNCTION listar_exposicion_x_ciclo_actual_etapa_formativa(
+	etapa_id integer
+)
+RETURNS TABLE(
+	exposicion_id integer,
+    nombre text 
+   
+) AS $$
+BEGIN
+    RETURN QUERY
+ 	SELECT 
+	e.exposicion_id,
+    e.nombre 
+    FROM exposicion e
+    inner JOIN etapa_formativa_x_ciclo efc on efc.etapa_formativa_x_ciclo_id = e.etapa_formativa_x_ciclo_id
+    inner JOIN ciclo c on efc.ciclo_id = c.ciclo_id
+    inner join etapa_formativa ef on ef.etapa_formativa_id = efc.etapa_formativa_id
+    where c.activo =  true and ef.etapa_formativa_id = etapa_id and e.activo =true;
+  
+END;
+$$ LANGUAGE plpgsql;
+
