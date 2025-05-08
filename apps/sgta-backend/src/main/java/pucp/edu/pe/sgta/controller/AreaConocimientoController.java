@@ -3,6 +3,7 @@ package pucp.edu.pe.sgta.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import pucp.edu.pe.sgta.dto.AreaConocimientoDto;
+import pucp.edu.pe.sgta.dto.InfoAreaConocimientoDto;
 import pucp.edu.pe.sgta.service.inter.AreaConocimientoService;
 
 import java.util.List;
@@ -34,6 +35,8 @@ public class AreaConocimientoController {
     @GetMapping("/list/{idCarrera}")
     public List<AreaConocimientoDto> listAreaConocimientoByCarrera(@PathVariable Integer idCarrera) {
         return areaConocimientoService.getAllByCarrera(idCarrera);
+    }
+
     @GetMapping("/listarPorNombre")
     public List<InfoAreaConocimientoDto> listarInfoPorNombre(@RequestParam(name = "nombre") String nombre) {
         return areaConocimientoService.listarInfoPorNombre(nombre);

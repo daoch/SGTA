@@ -1,6 +1,8 @@
 package pucp.edu.pe.sgta.service.inter;
 
 import pucp.edu.pe.sgta.dto.AreaConocimientoDto;
+import pucp.edu.pe.sgta.dto.InfoAreaConocimientoDto;
+
 import java.util.List;
 
 public interface AreaConocimientoService {

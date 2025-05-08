@@ -20,14 +20,15 @@ import java.util.List;
 
 @Service
 public class AreaConocimientoServiceImpl implements AreaConocimientoService {
-    private final AreaConocimientoRespository areaConocimientoRespository;
 
     private final AreaConocimientoRepository areaConocimientoRepository;
+    private final AreaConocimientoRespository areaConocimientoRespository;
     @PersistenceContext
     private EntityManager entityManager;
 
-    public AreaConocimientoServiceImpl(AreaConocimientoRepository areaConocimientoRepository) {
+    public AreaConocimientoServiceImpl(AreaConocimientoRepository areaConocimientoRepository, AreaConocimientoRespository areaConocimientoRespository) {
         this.areaConocimientoRepository = areaConocimientoRepository;
+        this.areaConocimientoRespository = areaConocimientoRespository;
     }
 
     //create
@@ -84,7 +85,8 @@ public class AreaConocimientoServiceImpl implements AreaConocimientoService {
     public List<InfoAreaConocimientoDto> listarInfoPorNombre(String nombre) {
         return areaConocimientoRespository.findByNombreContainingIgnoreCaseAndActivoIsTrue(nombre)
                 .stream()
-                .map(InfoAreaConocimientoMapper::toDto)
+                .map(InfoAreaConocimientoMapper::toDto).
+                toList();
     }
 
     public void delete(Integer id) {
