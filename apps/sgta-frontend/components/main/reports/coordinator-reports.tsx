@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   BarChart,
   BarChart as RechartsBarChart,
@@ -33,232 +33,261 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Download, FileSpreadsheet, BarChartHorizontal, PieChart } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
+type AdvisorPerformance = {
+  name: string;
+  department: string;
+  progress: number;
+  students: number;
+};
+
+type Distribution = { name: string; count: number; department: string };
+
+type LineChartDatum = { name: string; [key: string]: number | string };
+
+type TopicArea = { area: string; count: number };
+
 export function CoordinatorReports() {
   const [semesterFilter, setSemesterFilter] = useState("2025-1");
   const [themeAreaChartType, setThemeAreaChartType] = useState("vertical-bar"); // 'horizontal-bar', 'vertical-bar', 'pie'
   const [scheduleFrequency, setScheduleFrequency] = useState("weekly");
 
   // Data for thesis topics by area
-  const thesisTopicsByArea = [
-    { area: "Inteligencia Artificial", count: 15 },
-    { area: "Desarrollo Web", count: 12 },
-    { area: "Seguridad Informática", count: 8 },
-    { area: "Bases de Datos", count: 7 },
-    { area: "Redes", count: 5 },
-    { area: "Computación Gráfica", count: 4 },
-    { area: "Sistemas Embebidos", count: 3 },
-  ];
+  const [thesisTopicsByArea, setThesisTopicsByArea] = useState<TopicArea[]>([]);
+  const [loadingTopicsByArea, setLoadingTopicsByArea] = useState(false);
 
-  // Data for thesis topics by year
-  // const thesisTopicsByYear = [
-  //   { year: 2019, ai: 8, web: 10, security: 5, databases: 6, networks: 4, graphics: 3, embedded: 2 },
-  //   { year: 2020, ai: 10, web: 11, security: 6, databases: 7, networks: 5, graphics: 3, embedded: 2 },
-  //   { year: 2021, ai: 12, web: 12, security: 7, databases: 6, networks: 5, graphics: 4, embedded: 3 },
-  //   { year: 2022, ai: 14, web: 12, security: 8, databases: 7, networks: 5, graphics: 4, embedded: 3 },
-  //   { year: 2023, ai: 15, web: 12, security: 8, databases: 7, networks: 5, graphics: 4, embedded: 3 },
-  // ];
 
   // Transformar datos para gráfico de líneas
-  const lineChartData = [
-    {
-      name: "2019",
-      "Inteligencia Artificial": 8,
-      "Desarrollo Web": 10,
-      Seguridad: 5,
-      "Bases de Datos": 6,
-      Redes: 4,
-      Gráficos: 3,
-      Embebidos: 2,
-    },
-    {
-      name: "2020",
-      "Inteligencia Artificial": 10,
-      "Desarrollo Web": 11,
-      Seguridad: 6,
-      "Bases de Datos": 7,
-      Redes: 5,
-      Gráficos: 3,
-      Embebidos: 2,
-    },
-    {
-      name: "2021",
-      "Inteligencia Artificial": 12,
-      "Desarrollo Web": 12,
-      Seguridad: 7,
-      "Bases de Datos": 6,
-      Redes: 5,
-      Gráficos: 4,
-      Embebidos: 3,
-    },
-    {
-      name: "2022",
-      "Inteligencia Artificial": 14,
-      "Desarrollo Web": 12,
-      Seguridad: 8,
-      "Bases de Datos": 7,
-      Redes: 5,
-      Gráficos: 4,
-      Embebidos: 3,
-    },
-    {
-      name: "2023",
-      "Inteligencia Artificial": 15,
-      "Desarrollo Web": 12,
-      Seguridad: 8,
-      "Bases de Datos": 7,
-      Redes: 5,
-      Gráficos: 4,
-      Embebidos: 3,
-    },
-  ];
+  const [lineChartData, setLineChartData] = useState<LineChartDatum[]>([]);
+  const [loadingLineChart, setLoadingLineChart] = useState(false);
 
   // Data for advisor distribution
-  const advisorDistribution = [
-    { name: "Dr. Rodríguez", count: 8, department: "Ciencias de la Computación" },
-    { name: "Dra. Sánchez", count: 6, department: "Inteligencia Artificial" },
-    { name: "Dr. García", count: 5, department: "Desarrollo de Software" },
-    { name: "Dr. López", count: 4, department: "Seguridad Informática" },
-    { name: "Dra. Martínez", count: 4, department: "Bases de Datos" },
-    { name: "Dr. Pérez", count: 3, department: "Redes y Comunicaciones" },
-    { name: "Dra. Gómez", count: 2, department: "Computación Gráfica" },
-  ];
+  const [advisorDistribution, setAdvisorDistribution] = useState<Distribution[]>([]);
+  const [loadingAdvisorDistribution, setLoadingAdvisorDistribution] = useState(false);
 
   // Data for jury distribution
-  const juryDistribution = [
-    { name: "Dr. Rodríguez", count: 12, department: "Ciencias de la Computación" },
-    { name: "Dra. Sánchez", count: 10, department: "Inteligencia Artificial" },
-    { name: "Dr. García", count: 9, department: "Desarrollo de Software" },
-    { name: "Dr. López", count: 8, department: "Seguridad Informática" },
-    { name: "Dra. Martínez", count: 7, department: "Bases de Datos" },
-    { name: "Dr. Pérez", count: 6, department: "Redes y Comunicaciones" },
-    { name: "Dra. Gómez", count: 5, department: "Computación Gráfica" },
-  ];
+  const [juryDistribution, setJuryDistribution] = useState<Distribution[]>([]);
+  const [loadingJuryDistribution, setLoadingJuryDistribution] = useState(false);
 
   // Data for advisor performance
-  const advisorPerformance = [
-    { name: "Dr. Rodríguez", department: "Ciencias de la Computación", progress: 78, students: 8 },
-    { name: "Dra. Sánchez", department: "Inteligencia Artificial", progress: 65, students: 6 },
-    { name: "Dr. García", department: "Desarrollo de Software", progress: 72, students: 5 },
-    { name: "Dr. López", department: "Seguridad Informática", progress: 45, students: 4 },
-    { name: "Dra. Martínez", department: "Bases de Datos", progress: 68, students: 4 },
-    { name: "Dr. Pérez", department: "Redes y Comunicaciones", progress: 55, students: 3 },
-    { name: "Dra. Gómez", department: "Computación Gráfica", progress: 82, students: 2 },
-  ];
+  const [advisorPerformance, setAdvisorPerformance] = useState<AdvisorPerformance[]>([]);
+  const [loadingAdvisorPerformance, setLoadingAdvisorPerformance] = useState(false);
 
   // Colores para el gráfico de pastel
   const COLORS = ["#002855", "#006699", "#0088cc", "#00aaff", "#33bbff", "#66ccff", "#99ddff"];
 
   // Función para exportar reporte
-  const handleExport = (format) => {
+  const handleExport = (format: string) => {
     // Aquí iría la lógica para exportar el reporte
     alert(`Exportando reporte en formato ${format}...`);
   };
 
-  // Modificar la estructura de las pestañas "topics" y "distribution" para incluir selectores de gráficos
-  // En la pestaña "topics", reemplazar la estructura de grid por un selector y un solo gráfico a la vez
 
-  // 1. Añadir nuevos estados para controlar qué gráfico se muestra
   const [selectedTopicsChart, setSelectedTopicsChart] = useState("areas");
   const [selectedDistributionChart, setSelectedDistributionChart] = useState("advisors");
 
+  useEffect(() => {
+    setLoadingTopicsByArea(true);
+    fetch(`http://localhost:5001/api/v1/reports/topics-areas?usuarioId=3&ciclo=${semesterFilter}`)
+      .then(res => res.json())
+      .then(data => {
+        // Normaliza los datos aquí
+        const arr = Array.isArray(data) ? data : [];
+        const normalized = arr.map((item: { areaName: string; topicCount: number }) => ({
+          area: item.areaName,
+          count: item.topicCount,
+        }));
+        setThesisTopicsByArea(normalized);
+      })
+      .finally(() => setLoadingTopicsByArea(false));
+  }, [semesterFilter]);
+
+  useEffect(() => {
+    setLoadingAdvisorDistribution(true);
+    fetch(`http://localhost:5001/api/v1/reports/advisors-distribution?usuarioId=3&ciclo=${semesterFilter}`)
+      .then(res => res.json())
+      .then((data: { teacherName: string; count: number; department: string }[]) => {
+        setAdvisorDistribution(data.map(item => ({
+          name: item.teacherName,
+          count: item.count,
+          department: item.department,
+        })));
+      })
+      .finally(() => setLoadingAdvisorDistribution(false));
+  }, [semesterFilter]);
+
+  useEffect(() => {
+    setLoadingJuryDistribution(true);
+    fetch(`http://localhost:5001/api/v1/reports/jurors-distribution?usuarioId=3&ciclo=${semesterFilter}`)
+      .then(res => res.json())
+      .then((data: { teacherName: string; count: number; department: string }[]) => {
+        setJuryDistribution(data.map(item => ({
+          name: item.teacherName,
+          count: item.count,
+          department: item.department,
+        })));
+      })
+      .finally(() => setLoadingJuryDistribution(false));
+  }, [semesterFilter]);
+
+  useEffect(() => {
+    setLoadingLineChart(true);
+    fetch(`http://localhost:5001/api/v1/reports/topics-trends?usuarioId=3`)
+      .then(res => res.json())
+      .then((data: { areaName: string; year: number; topicCount: number }[]) => {
+        // 1. Obtener todos los años y áreas únicos
+        const years = Array.from(new Set(data.map(item => item.year))).sort();
+        const areas = Array.from(new Set(data.map(item => item.areaName)));
+
+        // 2. Construir la estructura para recharts
+        const result = years.map(year => {
+          const entry: any = { name: year.toString() };
+          areas.forEach(area => {
+            // Busca si hay un registro para este año y área
+            const found = data.find(item => item.year === year && item.areaName === area);
+            entry[area] = found ? found.topicCount : 0;
+          });
+          return entry;
+        });
+
+        setLineChartData(result);
+      })
+      .finally(() => setLoadingLineChart(false));
+  }, []);
+
+  useEffect(() => {
+    setLoadingAdvisorPerformance(true);
+    fetch(`http://localhost:5001/api/v1/reports/advisors/performance?usuarioId=3&ciclo=${semesterFilter}`)
+      .then(res => res.json())
+      .then((data) => {
+        const arr = Array.isArray(data) ? data : [];
+        setAdvisorPerformance(
+          arr.map((item) => ({
+            name: item.advisorName,
+            department: item.areaName,
+            progress: item.performancePercentage,
+            students: item.totalStudents,
+          }))
+        );
+      })
+      .finally(() => setLoadingAdvisorPerformance(false));
+  }, [semesterFilter]);
+
+  const areaNames = lineChartData.length > 0
+    ? Object.keys(lineChartData[0]).filter(key => key !== "name")
+    : [];
+  const areaColors = ["#002855", "#006699", "#0088cc", "#00aaff", "#33bbff", "#66ccff", "#99ddff"];
+
+  function toTitleCase(str: string) {
+    if (typeof str !== "string") str = String(str ?? "");
+    const lowerWords = ["de", "la", "del", "y", "en", "a", "el", "los", "las", "por", "con", "para"];
+    return str
+      .split(" ")
+      .map((word: string, idx: number) => {
+        if (idx !== 0 && lowerWords.includes(word.toLowerCase())) {
+          return word.toLowerCase();
+        }
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+      })
+      .join(" ");
+  }
+
   return (
     <div className="space-y-4">
-      <div className="flex justify-end gap-2">
-        <Select value={semesterFilter} onValueChange={setSemesterFilter}>
-          <SelectTrigger className="w-[150px]">
-            <SelectValue placeholder="Seleccionar ciclo" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="2025-1">2025-1</SelectItem>
-            <SelectItem value="2024-2">2024-2</SelectItem>
-            <SelectItem value="2024-1">2024-1</SelectItem>
-            <SelectItem value="2023-2">2023-2</SelectItem>
-            <SelectItem value="2023-1">2023-1</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button variant="outline" className="gap-2">
-              <Calendar className="h-4 w-4" />
-              Programar Reportes
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Programar Envío de Reportes</DialogTitle>
-              <DialogDescription>
-                Configura la frecuencia con la que deseas recibir reportes automáticos en tu correo.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Frecuencia de envío</label>
-                <Select value={scheduleFrequency} onValueChange={setScheduleFrequency}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecciona frecuencia" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="daily">Diario</SelectItem>
-                    <SelectItem value="weekly">Semanal</SelectItem>
-                    <SelectItem value="monthly">Mensual</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Formato de reporte</label>
-                <Select defaultValue="pdf">
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecciona formato" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pdf">PDF</SelectItem>
-                    <SelectItem value="excel">Excel</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Correo electrónico</label>
-                <input
-                  type="email"
-                  className="w-full px-3 py-2 border rounded-md"
-                  defaultValue="coordinador@pucp.edu.pe"
-                  readOnly
-                />
-              </div>
-              <Button className="w-full mt-4">Guardar configuración</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="gap-2">
-              <Download className="h-4 w-4" />
-              Exportar
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem onClick={() => handleExport("pdf")}>
-              <Download className="h-4 w-4 mr-2" />
-              Exportar como PDF
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleExport("excel")}>
-              <FileSpreadsheet className="h-4 w-4 mr-2" />
-              Exportar como Excel
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-
       <Tabs defaultValue="topics">
-        <TabsList className="mb-2">
-          <TabsTrigger value="topics">Temas y Áreas</TabsTrigger>
-          <TabsTrigger value="distribution">Distribución de Jurados y Asesores</TabsTrigger>
-          <TabsTrigger value="performance">Desempeño de Asesores</TabsTrigger>
-        </TabsList>
+        <div className="flex justify-between items-center mb-2">
+          <TabsList>
+            <TabsTrigger value="topics">Temas y Áreas</TabsTrigger>
+            <TabsTrigger value="distribution">Distribución de Jurados y Asesores</TabsTrigger>
+            <TabsTrigger value="performance">Desempeño de Asesores</TabsTrigger>
+          </TabsList>
+          <div className="flex gap-2 items-center">
+            <Select value={semesterFilter} onValueChange={setSemesterFilter}>
+              <SelectTrigger className="w-[150px]">
+                <SelectValue placeholder="Seleccionar ciclo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="2025-1">2025-1</SelectItem>
+                <SelectItem value="2024-2">2024-2</SelectItem>
+                <SelectItem value="2024-1">2024-1</SelectItem>
+                <SelectItem value="2023-2">2023-2</SelectItem>
+                <SelectItem value="2023-1">2023-1</SelectItem>
+              </SelectContent>
+            </Select>
 
-        {/* 2. Reemplazar el contenido de la pestaña "topics" con un selector y gráficos condicionales */}
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="gap-2">
+                  <Calendar className="h-4 w-4" />
+                  Programar Reportes
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Programar Envío de Reportes</DialogTitle>
+                  <DialogDescription>
+                    Configura la frecuencia con la que deseas recibir reportes automáticos en tu correo.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Frecuencia de envío</label>
+                    <Select value={scheduleFrequency} onValueChange={setScheduleFrequency}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecciona frecuencia" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="daily">Diario</SelectItem>
+                        <SelectItem value="weekly">Semanal</SelectItem>
+                        <SelectItem value="monthly">Mensual</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Formato de reporte</label>
+                    <Select defaultValue="pdf">
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecciona formato" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pdf">PDF</SelectItem>
+                        <SelectItem value="excel">Excel</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Correo electrónico</label>
+                    <input
+                      type="email"
+                      className="w-full px-3 py-2 border rounded-md"
+                      defaultValue="coordinador@pucp.edu.pe"
+                      readOnly
+                    />
+                  </div>
+                  <Button className="w-full mt-4">Guardar configuración</Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="gap-2">
+                  <Download className="h-4 w-4" />
+                  Exportar
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => handleExport("pdf")}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Exportar como PDF
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport("excel")}>
+                  <FileSpreadsheet className="h-4 w-4 mr-2" />
+                  Exportar como Excel
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
         <TabsContent value="topics" className="space-y-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between py-2">
@@ -306,97 +335,120 @@ export function CoordinatorReports() {
                     </Button>
                   </div>
 
-                  {themeAreaChartType === "horizontal-bar" && (
-                    <ResponsiveContainer width="100%" height={400}>
-                      <RechartsBarChart
-                        layout="vertical"
-                        data={thesisTopicsByArea}
-                        margin={{ top: 5, right: 30, left: 80, bottom: 5 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis type="number" />
-                        <YAxis type="category" dataKey="area" />
-                        <Tooltip />
-                        <Bar dataKey="count" fill="#006699" />
-                      </RechartsBarChart>
-                    </ResponsiveContainer>
-                  )}
+                  {loadingTopicsByArea ? (
+                    <div>Cargando...</div>
+                  ) : thesisTopicsByArea.length === 0 ? (
+                    <div className="text-center text-gray-500 py-8">No hay datos para este ciclo.</div>
+                  ) : (
+                    <>
+                      {themeAreaChartType === "horizontal-bar" && (
+                        <ResponsiveContainer width="100%" height={400}>
+                          <RechartsBarChart
+                            layout="vertical"
+                            data={thesisTopicsByArea}
+                            margin={{ top: 5, right: 30, left: 80, bottom: 5 }}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis type="number" />
+                            <YAxis type="category" dataKey="area" tickFormatter={toTitleCase} />
+                            <Tooltip />
+                            <Bar dataKey="count" fill="#006699" />
+                          </RechartsBarChart>
+                        </ResponsiveContainer>
+                      )}
 
-                  {themeAreaChartType === "vertical-bar" && (
-                    <ResponsiveContainer width="100%" height={400}>
-                      <RechartsBarChart data={thesisTopicsByArea} margin={{ top: 5, right: 30, left: 20, bottom: 50 }}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="area" angle={-45} textAnchor="end" height={70} />
-                        <YAxis />
-                        <Tooltip />
-                        <Bar dataKey="count" fill="#002855" />
-                      </RechartsBarChart>
-                    </ResponsiveContainer>
-                  )}
+                      {themeAreaChartType === "vertical-bar" && (
+                        <ResponsiveContainer width="100%" height={400}>
+                          <RechartsBarChart
+                            data={thesisTopicsByArea}
+                            margin={{ top: 20, right: 20, left: 20, bottom: 40 }}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis
+                              dataKey="area"
+                              tickFormatter={toTitleCase}
+                              angle={0}
+                              textAnchor="middle"
+                              height={40}
+                              interval={0}
+                              tick={{ fontSize: 14 }}
+                            />
+                            <YAxis />
+                            <Tooltip />
+                            <Bar dataKey="count" fill="#002855" />
+                          </RechartsBarChart>
+                        </ResponsiveContainer>
+                      )}
 
-                  {themeAreaChartType === "pie" && (
-                    <ResponsiveContainer width="100%" height={400}>
-                      <RechartsPieChart>
-                        <Pie
-                          data={thesisTopicsByArea}
-                          cx="50%"
-                          cy="50%"
-                          labelLine={false}
-                          label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
-                          outerRadius={120}
-                          fill="#8884d8"
-                          dataKey="count"
-                        >
-                          {thesisTopicsByArea.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip />
-                        <Legend
-                          layout="vertical"
-                          verticalAlign="middle"
-                          align="right"
-                          payload={thesisTopicsByArea.map((item, index) => ({
-                            id: item.area,
-                            type: "square",
-                            value: `${item.area} (${item.count})`,
-                            color: COLORS[index % COLORS.length],
-                          }))}
-                        />
-                      </RechartsPieChart>
-                    </ResponsiveContainer>
+                      {themeAreaChartType === "pie" && (
+                        <ResponsiveContainer width="100%" height={400}>
+                          <RechartsPieChart>
+                            <Pie
+                              data={thesisTopicsByArea}
+                              cx="50%"
+                              cy="50%"
+                              labelLine={false}
+                              label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                              outerRadius={120}
+                              fill="#8884d8"
+                              dataKey="count"
+                            >
+                              {thesisTopicsByArea.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                              ))}
+                            </Pie>
+                            <Tooltip />
+                            <Legend
+                              layout="vertical"
+                              verticalAlign="middle"
+                              align="right"
+                              payload={thesisTopicsByArea.map((item, index) => ({
+                                id: item.area,
+                                type: "square",
+                                value: `${toTitleCase(item.area)} (${item.count})`,
+                                color: COLORS[index % COLORS.length],
+                              }))}
+                            />  
+                          </RechartsPieChart>
+                        </ResponsiveContainer>
+                      )}
+                    </>
                   )}
                 </div>
               )}
 
               {selectedTopicsChart === "trends" && (
                 <div>
-                  <ResponsiveContainer width="100%" height={400}>
-                    <RechartsLineChart data={lineChartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Line type="monotone" dataKey="Inteligencia Artificial" stroke="#002855" activeDot={{ r: 8 }} />
-                      <Line type="monotone" dataKey="Desarrollo Web" stroke="#006699" />
-                      <Line type="monotone" dataKey="Seguridad" stroke="#0088cc" />
-                      <Line type="monotone" dataKey="Bases de Datos" stroke="#00aaff" />
-                      <Line type="monotone" dataKey="Redes" stroke="#33bbff" />
-                      <Line type="monotone" dataKey="Gráficos" stroke="#66ccff" />
-                      <Line type="monotone" dataKey="Embebidos" stroke="#99ddff" />
-                    </RechartsLineChart>
-                  </ResponsiveContainer>
-                  <div className="px-4 pb-2 text-xs text-gray-500">
-                    <p>Nota: Se observa un incremento constante en tesis relacionadas con IA desde 2019.</p>
-                  </div>
+                  {loadingLineChart ? (
+                    <div>Cargando...</div>
+                  ) : lineChartData.length === 0 ? (
+                    <div className="text-center text-gray-500 py-8">No hay datos para este ciclo.</div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height={400}>
+                      <RechartsLineChart data={lineChartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" tickFormatter={toTitleCase} />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        {areaNames.map((area, idx) => (
+                          <Line
+                            key={area}
+                            type="monotone"
+                            dataKey={area}
+                            stroke={areaColors[idx % areaColors.length]}
+                            activeDot={{ r: 8 }}
+                          />
+                        ))}
+                      </RechartsLineChart>
+                    </ResponsiveContainer>
+                  )}
                 </div>
               )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* 3. Reemplazar el contenido de la pestaña "distribution" con un selector y gráficos condicionales */}
         <TabsContent value="distribution" className="space-y-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between py-2">
@@ -414,68 +466,86 @@ export function CoordinatorReports() {
             </CardHeader>
             <CardContent className="p-0">
               {selectedDistributionChart === "advisors" && (
-                <ResponsiveContainer width="100%" height={400}>
-                  <RechartsBarChart
-                    layout="vertical"
-                    data={advisorDistribution}
-                    margin={{ top: 5, right: 30, left: 80, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" />
-                    <YAxis type="category" dataKey="name" />
-                    <Tooltip />
-                    <Bar dataKey="count" fill="#006699" />
-                  </RechartsBarChart>
-                </ResponsiveContainer>
+                loadingAdvisorDistribution ? (
+                  <div>Cargando...</div>
+                ) : advisorDistribution.length === 0 ? (
+                  <div className="text-center text-gray-500 py-8">No hay datos para este ciclo.</div>
+                ) : (
+                  <ResponsiveContainer width="100%" height={400}>
+                    <RechartsBarChart
+                      layout="vertical"
+                      data={advisorDistribution}
+                      margin={{ top: 5, right: 30, left: 80, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis type="number" tickFormatter={toTitleCase} />
+                      <YAxis type="category" dataKey="name" />
+                      <Tooltip />
+                      <Bar dataKey="count" fill="#006699" />
+                    </RechartsBarChart>
+                  </ResponsiveContainer>
+                )
               )}
 
               {selectedDistributionChart === "jury" && (
-                <ResponsiveContainer width="100%" height={400}>
-                  <RechartsBarChart
-                    layout="vertical"
-                    data={juryDistribution}
-                    margin={{ top: 5, right: 30, left: 80, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" />
-                    <YAxis type="category" dataKey="name" />
-                    <Tooltip />
-                    <Bar dataKey="count" fill="#002855" />
-                  </RechartsBarChart>
-                </ResponsiveContainer>
+                loadingJuryDistribution ? (
+                  <div>Cargando...</div>
+                ) : juryDistribution.length === 0 ? (
+                  <div className="text-center text-gray-500 py-8">No hay datos para este ciclo.</div>
+                ) : (
+                  <ResponsiveContainer width="100%" height={400}>
+                    <RechartsBarChart
+                      layout="vertical"
+                      data={juryDistribution}
+                      margin={{ top: 5, right: 30, left: 80, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis type="number" tickFormatter={toTitleCase} />
+                      <YAxis type="category" dataKey="name" />
+                      <Tooltip />
+                      <Bar dataKey="count" fill="#002855" />
+                    </RechartsBarChart>
+                  </ResponsiveContainer>
+                )
               )}
 
               {selectedDistributionChart === "comparison" && (
                 <div className="p-4">
-                  <div className="overflow-x-auto">
-                    <table className="w-full min-w-[600px] border-collapse">
-                      <thead>
-                        <tr className="border-b">
-                          <th className="py-2 text-left text-sm font-medium text-gray-500">Docente</th>
-                          <th className="py-2 text-left text-sm font-medium text-gray-500">Departamento</th>
-                          <th className="py-2 text-left text-sm font-medium text-gray-500">Asesorías</th>
-                          <th className="py-2 text-left text-sm font-medium text-gray-500">Jurado</th>
-                          <th className="py-2 text-left text-sm font-medium text-gray-500">Total</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {advisorDistribution.map((advisor, index) => {
-                          const juryCount = juryDistribution.find((j) => j.name === advisor.name)?.count || 0;
-                          const total = advisor.count + juryCount;
+                  {advisorDistribution.length === 0 && juryDistribution.length === 0 ? (
+                    <div className="text-center text-gray-500 py-8">
+                      No hay información de carga para este ciclo.
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full min-w-[600px] border-collapse">
+                        <thead>
+                          <tr className="border-b">
+                            <th className="py-2 text-left text-sm font-medium text-gray-500">Docente</th>
+                            <th className="py-2 text-left text-sm font-medium text-gray-500">Departamento</th>
+                            <th className="py-2 text-left text-sm font-medium text-gray-500">Asesorías</th>
+                            <th className="py-2 text-left text-sm font-medium text-gray-500">Jurado</th>
+                            <th className="py-2 text-left text-sm font-medium text-gray-500">Total</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {advisorDistribution.map((advisor, index) => {
+                            const juryCount = juryDistribution.find((j) => j.name === advisor.name)?.count || 0;
+                            const total = advisor.count + juryCount;
 
-                          return (
-                            <tr key={index} className="border-b">
-                              <td className="py-1.5 text-sm font-medium">{advisor.name}</td>
-                              <td className="py-1.5 text-sm">{advisor.department}</td>
-                              <td className="py-1.5 text-sm">{advisor.count}</td>
-                              <td className="py-1.5 text-sm">{juryCount}</td>
-                              <td className="py-1.5 text-sm font-medium">{total}</td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
+                            return (
+                              <tr key={index} className="border-b">
+                                <td className="py-1.5 text-sm font-medium">{toTitleCase(advisor.name)}</td>
+                                <td className="py-1.5 text-sm">{toTitleCase(advisor.department)}</td>
+                                <td className="py-1.5 text-sm">{advisor.count}</td>
+                                <td className="py-1.5 text-sm">{juryCount}</td>
+                                <td className="py-1.5 text-sm font-medium">{total}</td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
               )}
             </CardContent>
@@ -492,53 +562,42 @@ export function CoordinatorReports() {
               </p>
             </CardHeader>
             <CardContent className="p-4">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
-                {advisorPerformance.map((advisor, index) => (
-                  <div key={index} className="space-y-1">
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <h3 className="text-sm font-medium">{advisor.name}</h3>
-                        <p className="text-xs text-gray-500">{advisor.department}</p>
+              {loadingAdvisorPerformance ? (
+                <div>Cargando...</div>
+              ) : advisorPerformance.length === 0 ? (
+                <div className="text-center text-gray-500 py-8">No hay datos para este ciclo.</div>
+              ) : (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
+                  {advisorPerformance.map((advisor, index) => (
+                    <div key={index} className="space-y-1">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <h3 className="text-sm font-medium">{toTitleCase(advisor.name)}</h3>
+                          <p className="text-xs text-gray-500">{toTitleCase(advisor.department)}</p>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-base font-bold">{advisor.progress}%</span>
+                          <span className="text-xs text-gray-500 ml-1">({advisor.students} tesistas)</span>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <span className="text-base font-bold">{advisor.progress}%</span>
-                        <span className="text-xs text-gray-500 ml-1">({advisor.students} tesistas)</span>
-                      </div>
+                      <Progress
+                        value={advisor.progress}
+                        className="h-2.5 bg-gray-200"
+                        indicatorClassName="bg-[#002855]"
+                      />
                     </div>
-                    <Progress
-                      value={advisor.progress}
-                      className="h-2.5 bg-gray-200"
-                      indicatorClassName="bg-[#002855]"
-                    />
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
 
               <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <div>
-                  <h3 className="text-sm font-medium mb-2">Análisis de Desempeño</h3>
-                  <div className="space-y-1 text-xs text-gray-600">
-                    <p>
-                      <span className="font-medium">Mejor desempeño:</span> Dra. Gómez (82%) - Alta efectividad con
-                      pocos tesistas.
-                    </p>
-                    <p>
-                      <span className="font-medium">Desempeño destacado:</span> Dr. Rodríguez (78%) - Alto nivel con
-                      mayor número de tesistas.
-                    </p>
-                    <p>
-                      <span className="font-medium">Requiere atención:</span> Dr. López (45%) - Se recomienda revisar
-                      estrategias.
-                    </p>
-                  </div>
-                </div>
-
+         
                 <div>
                   <h3 className="text-sm font-medium mb-2">Comparativa de Eficiencia</h3>
                   <ResponsiveContainer width="100%" height={150}>
                     <RechartsBarChart data={advisorPerformance} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                      <XAxis dataKey="name" tickFormatter={toTitleCase} />
                       <YAxis yAxisId="left" orientation="left" stroke="#002855" tick={{ fontSize: 10 }} />
                       <YAxis yAxisId="right" orientation="right" stroke="#006699" tick={{ fontSize: 10 }} />
                       <Tooltip />
