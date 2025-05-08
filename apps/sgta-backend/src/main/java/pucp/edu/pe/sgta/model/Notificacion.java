@@ -31,7 +31,7 @@ public class Notificacion {
 	private OffsetDateTime fechaLectura;
 
 	@Column(nullable = false)
-	private boolean activo = true;
+	private Boolean activo = true;
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "modulo_id", nullable = false, foreignKey = @ForeignKey(name = "fk_not_modulo"))

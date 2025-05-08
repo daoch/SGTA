@@ -12,16 +12,17 @@ public class SubAreaConocimientoDto {
 
 	private Integer id;
 
-	private AreaConocimientoDto areaConocimiento;
-
 	private String nombre;
 
 	private String descripcion;
 
-	private boolean activo;
+	private Boolean activo;
 
 	private OffsetDateTime fechaCreacion;
 
 	private OffsetDateTime fechaModificacion;
 
+	//private Integer idAreaConocimiento;
+
+	AreaConocimientoDto areaConocimiento;
 }
