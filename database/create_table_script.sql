@@ -625,7 +625,7 @@ CREATE TABLE IF NOT EXISTS etapa_formativa
     duracion_exposicion INTERVAL,
     activo              BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion  TIMESTAMP WITH TIME ZONE
+    fecha_modificacion  TIMESTAMP WITH TIME ZONE,
 
     carrera_id          INTEGER                  NOT NULL,
     CONSTRAINT fk_area_conocimiento_carrera 
