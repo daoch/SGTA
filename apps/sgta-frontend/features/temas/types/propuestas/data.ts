@@ -62,10 +62,11 @@ export async function fetchTemasPropuestosAlAsesor(
 
 export async function fetchTemasPropuestosPorSubAreaConocimiento(
   areasId: number[],
+  asesorId: number,
 ): Promise<Proyecto[]> {
   try {
     const response = await fetch(
-      `${baseUrl}/temas/listarTemasPropuestosPorSubAreaConocimiento?subareaIds=${areasId.join("&subareaIds=")}`,
+      `${baseUrl}/temas/listarTemasPropuestosPorSubAreaConocimiento?subareaIds=${areasId.join("&subareaIds=")}&asesorId=${asesorId}`,
       {
         method: "GET",
         headers: {
@@ -217,5 +218,91 @@ export async function fetchSubAreaConocimientoFindById(
   } catch (error) {
     console.error("La página no responde.", error);
     throw error;
+  }
+}
+
+export async function postularTemaPropuestoGeneral(
+  idAlumno: number,
+  idAsesor: number,
+  idTema: number,
+  comentario: string,
+) {
+  try {
+    const response = await fetch(
+      `${baseUrl}/temas/postularAsesorTemaPropuestoGeneral?idAlumno=${idAlumno}&idAsesor=${idAsesor}&idTema=${idTema}&comentario=${encodeURIComponent(comentario)}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error("Error al postular al tema.");
+    }
+
+    console.log("Postulación general realizada con éxito.");
+  } catch (error) {
+    console.error("Error en la solicitud:", error);
+  }
+}
+
+export async function enlazarTesistasATemaPropuestoDirecta(
+  usuariosId: number[],
+  temaId: number,
+  profesorId: number,
+  comentario: string,
+) {
+  try {
+    const response = await fetch(
+      `${baseUrl}/temas/enlazarTesistasATemaPropuestDirecta`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          usuariosId,
+          temaId,
+          profesorId,
+          comentario,
+        }),
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error("Error al aceptar el tema.");
+    }
+
+    console.log("Aceptación realizada con éxito.");
+  } catch (error) {
+    console.error("Error en la solicitud:", error);
+  }
+}
+
+export async function rechazarTema(
+  alumnoId: number,
+  temaId: number,
+  comentario: string,
+) {
+  try {
+    const response = await fetch(
+      `${baseUrl}/temas/rechazarTemaPropuestaDirecta?alumnoId=${alumnoId}&comentario=${encodeURIComponent(comentario)}&temaId=${temaId}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error("Error al rechazar el tema.");
+    }
+
+    console.log("Rechazo realizado con éxito.");
+  } catch (error) {
+    console.error("Error en la solicitud:", error);
   }
 }
