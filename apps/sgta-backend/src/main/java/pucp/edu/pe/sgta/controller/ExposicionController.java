@@ -4,6 +4,7 @@ package pucp.edu.pe.sgta.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import pucp.edu.pe.sgta.dto.ExposicionDto;
+import pucp.edu.pe.sgta.dto.ExposicionNombreDTO;
 import pucp.edu.pe.sgta.service.inter.ExposicionService;
 
 import java.util.List;
@@ -42,5 +43,11 @@ public class ExposicionController {
     @GetMapping("/{id}")
     public ExposicionDto findById(@PathVariable Integer id) {
         return exposicionService.findById(id);
+    }
+
+
+     @GetMapping("/listarExposicionXCicloActualEtapaFormativa")
+    public List<ExposicionNombreDTO> listarExposicionXCicloActualEtapaFormativa(@RequestParam("etapaFormativaId") Integer etapaFormativaId){
+    return exposicionService.listarExposicionXCicloActualEtapaFormativa(etapaFormativaId);
     }
 }
