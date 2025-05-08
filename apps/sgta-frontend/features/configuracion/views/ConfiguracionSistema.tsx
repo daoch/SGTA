@@ -1,15 +1,15 @@
 "use client";
 
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
 import { useEffect } from "react";
-import ModalidadRevisionCard from "../components/conf-general/ModalidadRevision";
-import JuradosCards from "../components/conf-general/Jurados";
 import AsesoresCards from "../components/conf-general/Asesores";
 import GeneralConfCards from "../components/conf-general/General";
+import JuradosCards from "../components/conf-general/Jurados";
+import ModalidadRevisionCard from "../components/conf-general/ModalidadRevision";
 import { useBackStore } from "../store/configuracion-store";
-import { Button } from "@/components/ui/button";
 
 export default function ConfiguracionSistema() {
   const {
@@ -23,7 +23,7 @@ export default function ConfiguracionSistema() {
   useEffect(() => {
     const initializeData = async () => {
       try {
-        await cargarParametros(1);
+        await cargarParametros(7); // ID de carrera hardcodeado
       } catch (error) {
         console.error("Error al inicializar datos:", error);
       }
