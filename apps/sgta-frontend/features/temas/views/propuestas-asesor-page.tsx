@@ -20,7 +20,7 @@ const PropuestasAsesorPage = async () => {
   const subAreasData = await fetchSubAreaConocimientoFindByUsuarioId(1);
   const idsSubAreas = subAreasData.map((item) => item.id);
   const propuestasGeneralData =
-    await fetchTemasPropuestosPorSubAreaConocimiento(idsSubAreas);
+    await fetchTemasPropuestosPorSubAreaConocimiento(idsSubAreas, 1);
 
   return (
     <div className="space-y-8 mt-4">
@@ -47,8 +47,9 @@ const PropuestasAsesorPage = async () => {
             <CardContent>
               <PropuestasTable
                 filter="directa"
-                propuestasData={propuestasDirectaData}
+                propuestas={propuestasDirectaData}
                 areasData={areasData}
+                idsSubAreas={idsSubAreas}
               />
             </CardContent>
           </Card>
@@ -64,8 +65,9 @@ const PropuestasAsesorPage = async () => {
             <CardContent>
               <PropuestasTable
                 filter="general"
-                propuestasData={propuestasGeneralData}
+                propuestas={propuestasGeneralData}
                 areasData={areasData}
+                idsSubAreas={idsSubAreas}
               />
             </CardContent>
           </Card>

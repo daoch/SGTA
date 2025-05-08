@@ -20,6 +20,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { PropuestasModal } from "@/features/temas/components/asesor/propuesta-modal";
+import {
+  enlazarTesistasATemaPropuestoDirecta,
+  fetchTemasPropuestosAlAsesor,
+  fetchTemasPropuestosPorSubAreaConocimiento,
+  postularTemaPropuestoGeneral,
+  rechazarTema,
+} from "@/features/temas/types/propuestas/data";
 import { Area, Proyecto } from "@/features/temas/types/propuestas/entidades";
 import { CheckCircle, Eye, Send, X } from "lucide-react";
 import { useState } from "react";
@@ -81,14 +88,16 @@ import { useState } from "react";
 
 interface PropuestasTableProps {
   filter?: string;
-  propuestasData?: Proyecto[];
+  propuestas?: Proyecto[];
   areasData?: Area[];
+  idsSubAreas?: number[];
 }
 
 export function PropuestasTable({
   filter,
-  propuestasData,
+  propuestas,
   areasData,
+  idsSubAreas,
 }: PropuestasTableProps) {
   const [areaFilter, setAreaFilter] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -99,6 +108,7 @@ export function PropuestasTable({
   const [aceptarPropuesta, setAceptarPropuesta] = useState(false);
   const [postularPropuesta, setPostularPropuesta] = useState(false);
   const [rechazarPropuesta, setRechazarPropuesta] = useState(false);
+  const [propuestasData, setPropuestasData] = useState(propuestas);
 
   const propuestasFiltradas = propuestasData?.filter((propuesta) => {
     // Filtrar por área si hay un filtro de área seleccionado
@@ -130,11 +140,52 @@ export function PropuestasTable({
     setPostularPropuesta(false);
   };
 
-  const submitPostulacion = () => {
+  const submitPostulacion = async () => {
     console.log({ comentario });
     console.log({ selectedPropuesta });
-    setSelectedPropuesta?.(null);
-    setComentario?.("");
+    if (selectedPropuesta) {
+      postularTemaPropuestoGeneral(
+        selectedPropuesta?.estudiantes[0]?.id,
+        1,
+        selectedPropuesta?.id,
+        comentario,
+      );
+    }
+    if (idsSubAreas) {
+      const propuestasGenerales =
+        await fetchTemasPropuestosPorSubAreaConocimiento(idsSubAreas, 1);
+      setPropuestasData(propuestasGenerales);
+    }
+  };
+
+  const submitAceptacion = async () => {
+    console.log("Ingresando a aceptación...");
+    console.log({ comentario });
+    console.log({ selectedPropuesta });
+    if (selectedPropuesta) {
+      await enlazarTesistasATemaPropuestoDirecta(
+        selectedPropuesta?.estudiantes?.map((item) => item.id),
+        selectedPropuesta?.id,
+        1,
+        comentario,
+      );
+    }
+    const propuestasDirectas = await fetchTemasPropuestosAlAsesor(1);
+    setPropuestasData(propuestasDirectas);
+  };
+
+  const submitRechazo = async () => {
+    console.log({ comentario });
+    console.log({ selectedPropuesta });
+    if (selectedPropuesta) {
+      await rechazarTema(
+        selectedPropuesta?.estudiantes[0]?.id,
+        selectedPropuesta?.id,
+        comentario,
+      );
+    }
+    const propuestasDirectas = await fetchTemasPropuestosAlAsesor(1);
+    setPropuestasData(propuestasDirectas);
   };
 
   const handlerAceptarPropuesta = (propuesta: Proyecto) => {
@@ -157,7 +208,7 @@ export function PropuestasTable({
     setPostularPropuesta(false);
     setSelectedPropuesta(propuesta);
   };
-  console.log({ selectedPropuesta });
+
   return (
     <div>
       <div className="mb-6 flex flex-col md:flex-row gap-4">
@@ -289,6 +340,14 @@ export function PropuestasTable({
                               setSelectedPropuesta={setSelectedPropuesta}
                               setComentario={setComentario}
                               submitPostulacion={submitPostulacion}
+                              submitAceptacion={submitAceptacion}
+                              submitRechazo={submitRechazo}
+                              aceptarPropuesta={aceptarPropuesta}
+                              setAceptarPropuesta={setAceptarPropuesta}
+                              postularPropuesta={postularPropuesta}
+                              setPostularPropuesta={setPostularPropuesta}
+                              rechazarPropuesta={rechazarPropuesta}
+                              setRechazarPropuesta={setRechazarPropuesta}
                             ></PropuestasModal>
                           )}
                       </Dialog>
@@ -313,6 +372,8 @@ export function PropuestasTable({
                               setSelectedPropuesta={setSelectedPropuesta}
                               setComentario={setComentario}
                               submitPostulacion={submitPostulacion}
+                              submitAceptacion={submitAceptacion}
+                              submitRechazo={submitRechazo}
                               aceptarPropuesta={aceptarPropuesta}
                               setAceptarPropuesta={setAceptarPropuesta}
                               postularPropuesta={postularPropuesta}
@@ -344,6 +405,8 @@ export function PropuestasTable({
                                 setSelectedPropuesta={setSelectedPropuesta}
                                 setComentario={setComentario}
                                 submitPostulacion={submitPostulacion}
+                                submitAceptacion={submitAceptacion}
+                                submitRechazo={submitRechazo}
                                 aceptarPropuesta={aceptarPropuesta}
                                 setAceptarPropuesta={setAceptarPropuesta}
                                 postularPropuesta={postularPropuesta}
@@ -373,6 +436,8 @@ export function PropuestasTable({
                                 setSelectedPropuesta={setSelectedPropuesta}
                                 setComentario={setComentario}
                                 submitPostulacion={submitPostulacion}
+                                submitAceptacion={submitAceptacion}
+                                submitRechazo={submitRechazo}
                                 aceptarPropuesta={aceptarPropuesta}
                                 setAceptarPropuesta={setAceptarPropuesta}
                                 postularPropuesta={postularPropuesta}

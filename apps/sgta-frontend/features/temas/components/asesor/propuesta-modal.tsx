@@ -21,6 +21,8 @@ interface PropuestasModalProps {
   setSelectedPropuesta?: (selectedPropuesta: Proyecto | null) => void;
   setComentario?: (comentario: string) => void;
   submitPostulacion?: () => void;
+  submitAceptacion?: () => void;
+  submitRechazo?: () => void;
   aceptarPropuesta?: boolean;
   setAceptarPropuesta?: (estado: boolean) => void;
   postularPropuesta?: boolean;
@@ -34,6 +36,8 @@ export function PropuestasModal({
   setSelectedPropuesta,
   setComentario,
   submitPostulacion,
+  submitAceptacion,
+  submitRechazo,
   aceptarPropuesta,
   setAceptarPropuesta,
   postularPropuesta,
@@ -57,6 +61,7 @@ export function PropuestasModal({
   const handleSubmitRechazo = () => {
     // Aquí iría la lógica para rechazar la postulación
     console.log("Rechazando propuesta...");
+    submitRechazo?.();
     setSelectedPropuesta?.(null);
     setComentario?.("");
     setRechazarDialog(false);
@@ -98,7 +103,8 @@ export function PropuestasModal({
   const handleSubmitAceptacion = () => {
     // Lógica para aceptar la propuesta
     console.log("Aceptando propuesta directa...");
-    submitPostulacion?.();
+    submitAceptacion?.();
+    console.log("Ya entré y enlacé...");
     setSelectedPropuesta?.(null);
     setComentario?.("");
     setAceptarDialog(false);
@@ -118,7 +124,7 @@ export function PropuestasModal({
     setAceptarPropuesta?.(false);
     setRechazarPropuesta?.(false);
   };
-  console.log({ data });
+
   return (
     <DialogContent className="max-w-3xl">
       <DialogHeader>
@@ -280,18 +286,28 @@ export function PropuestasModal({
               Confirmar
             </Button>
           </>
+        ) : aceptarDialog ? (
+          <>
+            <Button variant="outline" onClick={handleCancelar}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleSubmitAceptacion}
+              className={"bg-green-600 hover:bg-green-700"}
+            >
+              Confirmar
+            </Button>
+          </>
         ) : (
           <>
             <Button variant="outline" onClick={handleCancelar}>
               Cancelar
             </Button>
             <Button
-              onClick={
-                rechazarDialog ? handleSubmitRechazo : handleSubmitAceptacion
-              }
-              className={`${rechazarDialog ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"}`}
+              onClick={handleSubmitRechazo}
+              className={"bg-red-600 hover:bg-red-700"}
             >
-              {rechazarDialog ? "Rechazar" : "Confirmar"}
+              Rechazar
             </Button>
           </>
         )}
