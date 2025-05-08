@@ -20,7 +20,7 @@ import { CursoSelect } from "@/features/jurado/components/curso-select";
 import { EstadoSelect } from "@/features/jurado/components/estado-select";
 import { PeriodoSelect } from "@/features/jurado/components/periodo-select";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 const ExposicionesCoordinadorPage: React.FC = () => {
   const [curso, setCurso] = useState("");
   const [tipoExposicion, setTipoExposicion] = useState("");
@@ -34,6 +34,26 @@ const ExposicionesCoordinadorPage: React.FC = () => {
     { fecha: "", horaInicio: "", horaFin: "", sala: "" },
   ]);
   const [isAdded, setIsAdded] = useState(false);
+
+  const [ciclos, setCiclos] = useState([]);
+  useEffect(() => {
+    const fetchCiclos = async () => {
+      try {
+        const response = await fetch(
+          "http://localhost:5000/ciclos/listarCiclosOrdenados",
+        );
+        if (!response.ok) {
+          throw new Error("Error al obtener ciclos");
+        }
+        const data = await response.json();
+        setCiclos(data);
+      } catch (error) {
+        console.error("Error al obtener ciclos:", error);
+      }
+    };
+
+    fetchCiclos();
+  }, []);
 
   // Estado para abrir los modales
   const [openStep1, setOpenStep1] = useState(false);
@@ -108,7 +128,11 @@ const ExposicionesCoordinadorPage: React.FC = () => {
             <CursoSelect curso={curso} setCurso={setCurso} />
           </div>
           <div className="flex flex-col">
-            <PeriodoSelect periodo={periodo} setPeriodo={setPeriodo} />
+            <PeriodoSelect
+              periodo={periodo}
+              ciclos={ciclos}
+              setPeriodo={setPeriodo}
+            />
           </div>
           <div className="flex flex-col">
             <EstadoSelect estado={estado} setEstado={setEstado} />
@@ -332,7 +356,7 @@ const ExposicionesCoordinadorPage: React.FC = () => {
                 </Label>
                 <Input
                   type="time"
-                    value={f.horaFin}
+                  value={f.horaFin}
                   onChange={(e) =>
                     handleFechaChange(index, "horaFin", e.target.value)
                   }
@@ -409,3 +433,4 @@ const ExposicionesCoordinadorPage: React.FC = () => {
 };
 
 export default ExposicionesCoordinadorPage;
+

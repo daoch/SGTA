@@ -10,11 +10,13 @@ import {
 interface PeriodoSelectProps {
   periodo: string;
   setPeriodo: (value: string) => void;
+  ciclos: { id: number; semestre: string; anio: number }[];
 }
 
 export const PeriodoSelect: React.FC<PeriodoSelectProps> = ({
   periodo,
   setPeriodo,
+  ciclos,
 }) => {
   return (
     <div className="flex flex-col space-y-1">
@@ -24,10 +26,17 @@ export const PeriodoSelect: React.FC<PeriodoSelectProps> = ({
           <SelectValue placeholder="Selecciona un periodo" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="2025-1">2025-1</SelectItem>
-          <SelectItem value="2025-2">2025-2</SelectItem>
+          {ciclos.map((ciclo) => (
+            <SelectItem
+              key={ciclo.id}
+              value={`${ciclo.anio}-${ciclo.semestre}`}
+            >
+              {ciclo.anio} - {ciclo.semestre}
+            </SelectItem>
+          ))}
         </SelectContent>
       </Select>
     </div>
   );
 };
+
