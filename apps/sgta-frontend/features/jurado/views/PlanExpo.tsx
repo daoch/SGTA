@@ -1,7 +1,5 @@
-"use client";
 
-import React, { useState } from "react";
-import { AreaEspecialidad, Dispo, Exposicion } from "../types/jurado.types";
+import { AreaEspecialidad, Dispo, Tema } from "../types/jurado.types";
 import {
   DndContext,
   DragEndEvent,
@@ -11,9 +9,17 @@ import {
 } from "@dnd-kit/core";
 import ExposList from "@/features/jurado/components/ExposList";
 import PlanificationPanel from "@/features/jurado/components/PlanificationPanel";
-
-const PlanExpo: React.FC = () => {
-  const roomAvailList: Dispo[] = [
+import GeneralPlanificationExpo from "@/features/jurado/components/GeneralPlanificationExpo";
+import { listarTemasCicloActulXEtapaFormativa } from "@/features/jurado/services/data";
+type Props = {
+  etapaFormativaId : number
+};
+ export default async function PlanExpo({ etapaFormativaId }: Props) {
+  const expos = await listarTemasCicloActulXEtapaFormativa(etapaFormativaId);
+  const topics: AreaEspecialidad[] = [];
+  const roomAvailList: Dispo[] = [];
+  console.log({expos});
+  /*const roomAvailList: Dispo[] = [
     {
       code: 1,
       date: new Date("2024-01-01"),
@@ -126,89 +132,11 @@ const PlanExpo: React.FC = () => {
         { code: "JUR0002", name: "Fredy Paz" },
       ],
     },
-  ]);
+  ]);*/
 
-  const [assignedExpos, setAssignedExpos] = useState<
-    Record<string, Exposicion>
-  >({});
 
-  /*Handles the drag and drop event for the expositions*/
-  function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
-    /*validates that the drop occurs in a valid and different location from the original one.*/
-    if (!over || active.id === over.id) return;
 
-    const expoId = active.id as string;
-    const spaceId = over.id as string;
-    /*checks if the item being dragged is in the list of unassigned expositions.*/
-    const chosenExpo = freeExpos.find((e) => e.code === expoId);
-
-    if (chosenExpo) {
-      /*If it's in the unassigned list, it's removed from there and added to the assigned list*/
-      const newAssignment = {
-        [spaceId]: chosenExpo,
-      };
-      setAssignedExpos((prevAssignment) => ({
-        ...prevAssignment,
-        ...newAssignment,
-      }));
-
-      setFreeExpos((prev) => prev.filter((e) => e.code !== expoId));
-    } else {
-      /*If it's not in the unassigned list, it means it was already assigned,
-           so we remove it from its previous assignment and reassign it to the new location.*/
-      const chosenExpo = Object.values(assignedExpos).find(
-        (a) => a.code === expoId,
-      );
-      if (chosenExpo) {
-        const newAssignment = {
-          [spaceId]: chosenExpo,
-        };
-        const updatedAssignment = Object.keys(assignedExpos)
-          .filter((key) => assignedExpos[key].code !== chosenExpo.code)
-          .reduce((acc: Record<string, Exposicion>, key) => {
-            acc[key] = assignedExpos[key];
-            return acc;
-          }, {});
-
-        setAssignedExpos(() => ({
-          ...updatedAssignment,
-          ...newAssignment,
-        }));
-      }
-    }
-  }
-
-  const removeExpo = (expo: Exposicion) => {
-    //find the click expo
-    const clickedExpo = Object.values(assignedExpos).find(
-      (a) => a.code === expo.code,
-    );
-
-    if (clickedExpo) {
-      //if we find it , add to free expos
-      setFreeExpos((prev) => [...prev, clickedExpo]);
-      //and remove from assigned expos
-      setAssignedExpos((prev) => {
-        const updatedAssignment = { ...prev };
-        Object.keys(updatedAssignment).forEach((key) => {
-          if (updatedAssignment[key].code === expo.code) {
-            delete updatedAssignment[key];
-          }
-        });
-        return updatedAssignment;
-      });
-    }
-  };
-
-  const mouseSensor = useSensor(MouseSensor, {
-    activationConstraint: {
-      distance: 20,
-    },
-  });
-
-  const sensors = useSensors(mouseSensor);
-
+ 
   return (
     <main className="h-screen flex flex-col">
       <div className="py-4">
@@ -219,24 +147,8 @@ const PlanExpo: React.FC = () => {
           Planificador de exposiciones
         </h1>
       </div>
-      <DndContext onDragEnd={handleDragEnd} sensors={sensors}>
-        <div className="flex flex-col md:flex-row gap-2  flex-1 min-h-0">
-          <div className="w-full md:w-1/4  h-full">
-            <ExposList freeExpos={freeExpos} topics={topics} />
-          </div>
-
-          <div className="bg-gray-300 w-full h-px md:w-px md:h-auto"></div>
-          <div className="flex flex-col w-full md:w-3/4 overflow-y-auto gap-4">
-            <PlanificationPanel
-              roomAvailList={roomAvailList}
-              assignedExpos={assignedExpos}
-              removeExpo={removeExpo}
-            />
-          </div>
-        </div>
-      </DndContext>
+      <GeneralPlanificationExpo expos={expos} topics={topics} roomAvailList={roomAvailList}></GeneralPlanificationExpo>
     </main>
   );
 };
 
-export default PlanExpo;

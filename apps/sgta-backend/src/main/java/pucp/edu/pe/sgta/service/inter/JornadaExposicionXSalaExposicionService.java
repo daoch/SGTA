@@ -15,4 +15,6 @@ public interface JornadaExposicionXSalaExposicionService {
     void update(JornadaExposicionXSalaExposicionDto dto);
 
     void delete(Integer id);
+
+    List<JornadaExposicionXSalaExposicionListadoDTO> listarJornadasExposicionSalas(int etapaFormativaId);
 }

@@ -6,12 +6,12 @@ import CardTemaExposicion from "./CardTopicExpo";
 import Draggable from "./Draggable";
 import {
   AreaEspecialidad,
-  Exposicion,
+  Tema,
 } from "@/features/jurado/types/jurado.types";
 import SearchFilter from "./SearchFilter";
 
 interface Props {
-  freeExpos: Exposicion[];
+  freeExpos: Tema[];
   topics: AreaEspecialidad[];
 }
 const ExposList: React.FC<Props> = ({ freeExpos, topics }) => {
@@ -34,8 +34,8 @@ const ExposList: React.FC<Props> = ({ freeExpos, topics }) => {
 
       <div className=" px-6 ">
         <div className="space-y-4 flex flex-col">
-          {freeExpos.map((freeExpo: Exposicion) => (
-            <Draggable id={freeExpo.code} key={freeExpo.code}>
+          {freeExpos.map((freeExpo: Tema) => (
+            <Draggable id={freeExpo.id.toString()} key={freeExpo.id}>
               <CardTemaExposicion exposicion={freeExpo} />
             </Draggable>
           ))}

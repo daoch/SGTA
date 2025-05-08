@@ -6,10 +6,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import React from "react";
-import { Exposicion, Jurado } from "@/features/jurado/types/jurado.types";
+import { Tema, Jurado } from "@/features/jurado/types/jurado.types";
 
 interface Props {
-  exposicion: Exposicion;
+  exposicion: Tema;
 }
 
 const CardTemaExposicion: React.FC<Props> = ({ exposicion }) => {
@@ -20,16 +20,16 @@ const CardTemaExposicion: React.FC<Props> = ({ exposicion }) => {
     >
       <CardHeader className="">
         <CardTitle>
-          {exposicion.code} - {exposicion.name}
+          {exposicion.id} - {exposicion.titulo}
         </CardTitle>
         <CardDescription className="text-black">
           <span>
             {" "}
-            <span className="font-semibold">Asesor: </span> {exposicion.advisor}
+            <span className="font-semibold">Asesor: </span> {exposicion?.asesor}
           </span>
           <br />
           <span className="font-semibold"> Jurados: </span>
-          {exposicion?.jurys.map((jurado: Jurado) => (
+          {exposicion?.jurados?.map((jurado: Jurado) => (
             <span key={jurado.code} className="mr-2">
               {jurado.name}
             </span>

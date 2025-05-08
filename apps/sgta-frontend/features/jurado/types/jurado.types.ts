@@ -3,11 +3,12 @@ export interface Jurado {
   name: string;
 }
 
-export interface Exposicion {
-  code: string;
-  name: string;
-  advisor: string;
-  jurys: Jurado[];
+export interface Tema {
+  id: number;
+  codigo : string;
+  titulo : string;
+  asesor: string;
+  jurados: Jurado[];
 }
 
 export interface AreaEspecialidad {
