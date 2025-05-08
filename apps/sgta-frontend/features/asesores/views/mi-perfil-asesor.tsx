@@ -31,7 +31,6 @@ import { useAuth } from "@/features/auth";
 
 export default function PerfilAsesorEditable() {
   const { user } = useAuth();
-  if (!user) return null;
 
   const [asesor, setAsesor] = useState<Asesor | null>(null);
   const [areasDisponibles, setAreasDisponibles] = useState<AreaTematica[]>([]);
@@ -61,9 +60,11 @@ export default function PerfilAsesorEditable() {
   // Estado para el diálogo de confirmación de guardado
   const [isSaveConfirmationOpen, setIsSaveConfirmationOpen] = useState(false);
 
+  const userId = +(user?.id ?? 0);
+
   useEffect(() => {
-    getPerfilAsesor(+user.id).then(setAsesor).catch(console.error);
-  }, [user.id]);
+    getPerfilAsesor(userId).then(setAsesor).catch(console.error);
+  }, [userId]);
 
   useEffect(() => {
     if (asesor) {
@@ -85,8 +86,8 @@ export default function PerfilAsesorEditable() {
     (async () => {
       try {
         const [allAreas, allTemas] = await Promise.all([
-          listarAreasTematicas(+user.id),
-          listarTemasInteres(+user.id),
+          listarAreasTematicas(userId),
+          listarTemasInteres(userId),
         ]);
         setAreasDisponibles(allAreas);
         setTemasDisponibles(allTemas);
@@ -106,7 +107,13 @@ export default function PerfilAsesorEditable() {
     }
   }, [recentlyAddedArea]);
 
-  if (!asesor || !editedData || !areasDisponibles || !temasDisponibles) {
+  if (
+    !user ||
+    !asesor ||
+    !editedData ||
+    !areasDisponibles ||
+    !temasDisponibles
+  ) {
     return <div>Cargando perfil...</div>;
   }
 
@@ -139,7 +146,7 @@ export default function PerfilAsesorEditable() {
       setIsLoading(true);
 
       const asesorDTO: AsesorDTO = {
-        id: +user.id,
+        id: userId,
         nombre: editedData.nombre,
         especialidad: editedData.especialidad,
         email: editedData.email,
@@ -340,7 +347,7 @@ export default function PerfilAsesorEditable() {
             editedData={editedData}
             isEditing={isEditing}
             setEditedData={setEditedData}
-            avatar={user.avatar}
+            avatar={user?.avatar}
           />
 
           {/* Áreas Temáticas */}
