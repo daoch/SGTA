@@ -24,7 +24,7 @@ public class EtapaFormativaDTO {
 
     private Integer carreraId;
 
-    private boolean activo;
+    private Boolean activo;
 
     private OffsetDateTime fechaCreacion;
 

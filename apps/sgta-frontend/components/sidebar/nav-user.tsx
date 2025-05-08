@@ -43,7 +43,7 @@ export function NavUser({ user }: { user: User }) {
                 <span className="truncate font-semibold">{user.name}</span>
                 <div className="flex overflow-x-scroll no-scrollbar gap-1">
                   {user?.roles?.map((role, index) => (
-                    <Badge key={index} variant="primary" className="text-xs">
+                    <Badge key={index} variant="default" className="text-xs">
                       {role}
                     </Badge>
                   ))}
