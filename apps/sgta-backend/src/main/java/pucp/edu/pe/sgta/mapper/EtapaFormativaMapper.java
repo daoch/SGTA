@@ -1,6 +1,6 @@
 package pucp.edu.pe.sgta.mapper;
 
-import pucp.edu.pe.sgta.dto.EtapaFormativaDTO;
+import pucp.edu.pe.sgta.dto.EtapaFormativaDto;
 import pucp.edu.pe.sgta.model.Carrera;
 import pucp.edu.pe.sgta.model.EtapaFormativa;
 

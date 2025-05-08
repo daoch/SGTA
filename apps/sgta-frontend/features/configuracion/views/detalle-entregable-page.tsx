@@ -36,7 +36,7 @@ const DetalleEntregablePage: React.FC<DetalleEntregablePageProps> = ({
     fechaInicio: "2023-05-15T23:59:00Z",
     fechaFin: "2023-06-15T23:59:00Z",
     esEvaluable: true,
-  })
+  });
 
   const [contenidosEsperados, setContenidosEsperados] = useState([
     {

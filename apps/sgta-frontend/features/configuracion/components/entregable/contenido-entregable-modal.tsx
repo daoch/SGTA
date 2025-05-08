@@ -95,8 +95,8 @@ export const ContenidoEntregableModal: React.FC<
           </DialogTitle>
           <DialogDescription>
             {isEditMode
-              ? `Modifique los datos del contenido esperado para el entregable.`
-              : `Agregue un nuevo contenido esperado para el entregable.`}
+              ? "Modifique los datos del contenido esperado para el entregable."
+              : "Agregue un nuevo contenido esperado para el entregable."}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
