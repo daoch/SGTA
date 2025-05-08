@@ -101,3 +101,26 @@ BEGIN
     ORDER BY c.anio DESC, c.semestre DESC;
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION listarEtapasFormativasActivas()
+RETURNS TABLE(
+    etapa_formativa_id INTEGER,
+    nombre TEXT,
+    creditage_por_tema NUMERIC(6,2),
+    duracion_exposicion TEXT,
+    activo BOOLEAN,
+	carrera_id INTEGER
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        ef.etapa_formativa_id,
+        ef.nombre,
+        ef.creditaje_por_tema,
+        ef.duracion_exposicion::TEXT,
+        ef.activo,
+		ef.carrera_id
+    FROM etapa_formativa ef
+    WHERE ef.activo = true;
+END;
+$$ LANGUAGE plpgsql;
