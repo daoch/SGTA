@@ -82,3 +82,12 @@ export const useAuth = (requiredRoles?: UserRole[]) => {
     loginWithProvider,
   };
 };
+
+/**
+ * Hook to access the authentication token
+ * @returns The current ID token or null if not authenticated
+ */
+export const useAuthToken = () => {
+  const { idToken } = useAuthStore();
+  return idToken;
+};

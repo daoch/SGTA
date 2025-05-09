@@ -23,10 +23,17 @@ function CallbackContent() {
             code,
             redirect_uri: process.env.NEXT_PUBLIC_COGNITO_REDIRECT_URI!,
           }),
-        });
-        const data = await res.json();
+        });        const data = await res.json();
         if (!res.ok) throw new Error(data.error_description);
-        localStorage.setItem("idToken", data.id_token);
+        
+        // Update the auth store with the token
+        const { setState } = useAuthStore;
+        setState({
+          idToken: data.id_token,
+          isAuthenticated: true,
+          isLoading: false
+        });
+        
         await checkAuth();
         router.push("/dashboard");
       } catch (err) {

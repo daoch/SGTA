@@ -12,6 +12,7 @@ import {
 
 const initialState: AuthState = {
   user: null,
+  idToken: null,
   isLoading: false,
   error: null,
   isAuthenticated: false,
@@ -44,8 +45,7 @@ export const useAuthStore = create<AuthStore>()(
                 ? rawGroups.filter((g): g is UserRole =>
                     ["alumno","jurado","asesor","coordinador","revisor"].includes(g)
                   )
-                : [];
-              const newUser: User = {
+                : [];              const newUser: User = {
                 id:      payload.sub!,
                 name:    (payload["name"] as string) || payload.email!,
                 email:   payload.email!,
@@ -54,6 +54,7 @@ export const useAuthStore = create<AuthStore>()(
               };
               set({
                 user: newUser,
+                idToken: session.getIdToken().getJwtToken(),
                 isAuthenticated: true,
                 isLoading: false,
               });
@@ -68,12 +69,11 @@ export const useAuthStore = create<AuthStore>()(
             },
           });
         });
-      },
-
-      logout: () => {
+      },      logout: () => {
         const current = userPool.getCurrentUser();             
         if (current) current.signOut();                       
         set({ ...initialState });
+        localStorage.removeItem("idToken"); // Clear any stored token
       },
 
       signUp: (email: string, password: string, name: string) => {
@@ -140,15 +140,15 @@ export const useAuthStore = create<AuthStore>()(
                 email: payload.email!,
                 avatar: "",
                 roles,
-              };
-              set({
+              };              set({
                 user: newUser,
+                idToken: session.getIdToken().getJwtToken(),
                 isAuthenticated: true,
                 isLoading: false,
               });
-            } else {
-              set({
+            } else {              set({
                 user: null,
+                idToken: null,
                 isAuthenticated: false,
                 isLoading: false,
               });
@@ -191,10 +191,9 @@ export const useAuthStore = create<AuthStore>()(
           });
         }
       },
-    }),
-    {
+    }),    {
       name: "auth-storage",
-      partialize: (state) => ({ user: state.user }),
+      partialize: (state) => ({ user: state.user, idToken: state.idToken }),
     },
   ),
 );
