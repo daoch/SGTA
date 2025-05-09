@@ -1,6 +1,14 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { AuthState, AuthStore, User } from "../types/auth.types";
+import { AuthState, AuthStore, User, UserRole } from "../types/auth.types";
+
+import { userPool } from "@/lib/cognito/cognito"; // Adjust the import path as needed
+import {
+  AuthenticationDetails,
+  CognitoUser,
+  CognitoUserAttribute,
+  CognitoUserSession
+} from "amazon-cognito-identity-js";
 
 const initialState: AuthState = {
   user: null,
@@ -14,82 +22,174 @@ export const useAuthStore = create<AuthStore>()(
     (set, get) => ({
       ...initialState,
 
-      login: async (email: string, password: string) => {
+      login: (email: string, password: string) => {
         set({ isLoading: true, error: null });
-        try {
-          //FIXME: No olvidar de borrar
-          console.log("Login", { email, password });
-          const mockUser: User = {
-            id: "1",
-            name: "Usuario de Prueba",
-            email,
-            avatar:
-              "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS-VfBVzrydylky0bi9OudhKyiGb320yT2y7w&s",
-            roles: (() => {
-              if (email.includes("alumno")) {
-                return ["alumno"];
-              }
-              if (email.includes("revisor-asesor-jurado-coordinador")) {
-                return ["jurado", "asesor", "revisor", "coordinador"];
-              }
-              if (email.includes("jurado-asesor-revisor")) {
-                return ["jurado", "asesor", "revisor"];
-              }
-              if (email.includes("asesor-revisor")) {
-                return ["asesor", "revisor"];
-              }
-              if (email.includes("jurado")) {
-                return ["jurado"];
-              }
-              if (email.includes("coordinador")) {
-                return ["coordinador"];
-              }
-              return ["alumno"];
-            })(),
-          };
 
-          await new Promise((resolve) => setTimeout(resolve, 500));
+        return new Promise<void>((resolve, reject) => {
+          const cognitoUser = new CognitoUser({
+            Username: email,
+            Pool: userPool,
+          });
+          const authDetails = new AuthenticationDetails({
+            Username: email,
+            Password: password,
+            
+          });
 
-          set({
-            user: mockUser,
-            isAuthenticated: true,
-            isLoading: false,
+          cognitoUser.authenticateUser(authDetails, {
+            onSuccess: (session) => {
+              const payload = session.getIdToken().payload;
+              const rawGroups = payload["cognito:groups"];
+              const roles: UserRole[] = Array.isArray(rawGroups)
+                ? rawGroups.filter((g): g is UserRole =>
+                    ["alumno","jurado","asesor","coordinador","revisor"].includes(g)
+                  )
+                : [];
+              const newUser: User = {
+                id:      payload.sub!,
+                name:    (payload["name"] as string) || payload.email!,
+                email:   payload.email!,
+                avatar:  "",                                    
+                roles,
+              };
+              set({
+                user: newUser,
+                isAuthenticated: true,
+                isLoading: false,
+              });
+              resolve();
+            },
+            onFailure: (err) => {
+              set({
+                error: err.message || JSON.stringify(err),
+                isLoading: false,
+              });
+              reject(err);
+            },
           });
-        } catch {
-          set({
-            error: "Error al iniciar sesión. Comprueba tus credenciales.",
-            isLoading: false,
-          });
-        }
+        });
       },
 
       logout: () => {
+        const current = userPool.getCurrentUser();             
+        if (current) current.signOut();                       
         set({ ...initialState });
       },
 
-      checkAuth: async () => {
+      signUp: (email: string, password: string, name: string) => {
+       set({ isLoading: true, error: null });
+       return new Promise<void>((resolve, reject) => {
+         const parts = name.trim().split(" ");
+         const givenName = parts.shift() || "";
+         const familyName = parts.join(" ") || "";
+         const attributes = [
+           new CognitoUserAttribute({ Name: "email",       Value: email      }),
+           new CognitoUserAttribute({ Name: "given_name",  Value: givenName }),
+           new CognitoUserAttribute({ Name: "family_name", Value: familyName }),
+         ];
+
+         userPool.signUp(email, password, attributes, [], (err, result) => {
+           set({ isLoading: false });
+           if (err) {
+             set({ error: err.message || JSON.stringify(err) });
+             return reject(err);
+           }
+           // result.userConfirmed will be false if user must confirm code
+           resolve();
+         });
+       });
+     },
+     
+     confirmSignUp: (email: string, code: string) => {
+       set({ isLoading: true, error: null });
+       return new Promise<void>((resolve, reject) => {
+         const user = new CognitoUser({ Username: email, Pool: userPool });
+         user.confirmRegistration(code, true, (err, success) => {
+           set({ isLoading: false });
+           if (err) {
+             set({ error: err.message || JSON.stringify(err) });
+             return reject(err);
+           }
+           resolve();
+         });
+       });
+     },
+
+      checkAuth: () => {
         set({ isLoading: true });
-        try {
-          const { user } = get();
-
-          await new Promise((resolve) => setTimeout(resolve, 500));
-
-          set({
-            isLoading: false,
-            isAuthenticated: !!user,
-          });
-        } catch {
-          set({
-            error: "Error al verificar la autenticación",
-            isLoading: false,
-            isAuthenticated: false,
-            user: null,
-          });
+        
+        const current = userPool.getCurrentUser();             
+        if (!current) {
+          set({ isLoading: false, isAuthenticated: false });
+          return Promise.resolve();
         }
+        return new Promise<void>((resolve) => {
+          current.getSession((err: Error | null, session: CognitoUserSession | null) => {
+            void err;
+            if (session && session?.isValid()) {
+              const payload = session.getIdToken().payload;
+              const rawGroups = payload["cognito:groups"];
+              const roles: UserRole[] = Array.isArray(rawGroups)
+                ? rawGroups.filter((g): g is UserRole =>
+                    ["alumno","jurado","asesor","coordinador","revisor"].includes(g)
+                  )
+                : [];
+                const newUser: User = {
+                id:    payload.sub!,
+                name:  (payload["name"] as string) || payload.email!,
+                email: payload.email!,
+                avatar: "",
+                roles,
+              };
+              set({
+                user: newUser,
+                isAuthenticated: true,
+                isLoading: false,
+              });
+            } else {
+              set({
+                user: null,
+                isAuthenticated: false,
+                isLoading: false,
+              });
+            }
+            resolve();
+          });
+        });
       },
 
       clearError: () => {
         set({ error: null });
+      },
+
+      loginWithProvider: (provider: "Google") => {
+        set({ isLoading: true, error: null });
+        try {
+          if (provider === "Google") {
+            // Redirect to the Cognito-hosted UI with Google selected as the identity provider
+            const domain    = process.env.NEXT_PUBLIC_COGNITO_DOMAIN!;
+            const clientId  = process.env.NEXT_PUBLIC_COGNITO_APP_CLIENT_ID!;
+            const redirect  = encodeURIComponent(process.env.NEXT_PUBLIC_COGNITO_REDIRECT_URI!);
+            const scope     = encodeURIComponent("openid email profile");
+            
+            const url = 
+              `${domain}/oauth2/authorize` +
+              `?identity_provider=${provider}` +                
+              `&redirect_uri=${redirect}` +               
+              "&response_type=code" +
+              `&client_id=${clientId}` +
+              `&scope=${scope}`;
+            
+            console.log("Redirecting to:", url);
+            window.location.href = url;
+          }
+        } catch (error: unknown) {
+          const message = error instanceof Error ? error.message : "Error initiating social login";
+          set({ 
+            error: message, 
+            isLoading: false 
+          });
+        }
       },
     }),
     {

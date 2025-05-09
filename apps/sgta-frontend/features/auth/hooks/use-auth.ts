@@ -11,8 +11,11 @@ export const useAuth = (requiredRoles?: UserRole[]) => {
     login,
     logout,
     checkAuth,
+    signUp,
+    confirmSignUp,
     error,
     clearError,
+    loginWithProvider,
   } = useAuthStore();
   const router = useRouter();
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
@@ -74,5 +77,8 @@ export const useAuth = (requiredRoles?: UserRole[]) => {
     hasRequiredRole,
     redirectToLogin,
     redirectToDashboard,
+    signUp,
+    confirmSignUp,
+    loginWithProvider,
   };
 };
