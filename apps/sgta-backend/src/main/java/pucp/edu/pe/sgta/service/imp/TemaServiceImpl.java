@@ -430,7 +430,9 @@ public class TemaServiceImpl implements TemaService {
                     : null
                 )
 				.asignado((Boolean) r[7]) //we identify if the asesor is assigned or not
-                .build();
+					.rechazado((Boolean) r[8])
+					.codigoPucp((String) r[9])
+					.build();
             resultados.add(u);
         }
         return resultados;
@@ -454,8 +456,8 @@ public class TemaServiceImpl implements TemaService {
     public List<TemaDto> listarTemasPorUsuarioEstadoYRol(Integer asesorId, String rolNombre, String estadoNombre) {
         // primero cargo los temas con estado INSCRITO y rol Asesor
         List<TemaDto> temas = listarTemasPorUsuarioRolEstado(
-            asesorId, 
-            rolNombre, 
+            asesorId,
+            rolNombre,
             estadoNombre
         );
 
@@ -597,8 +599,107 @@ public class TemaServiceImpl implements TemaService {
 		return temas;
 	}
 
+	@Override
+	public List<TemaDto> listarPostulacionesDirectasAMisPropuestas(Integer tesistaId) {
+		List<TemaDto> temas = new ArrayList<>();
+		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Tesista.name(), EstadoTemaEnum.PREINSCRITO.name()));
+		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Creador.name(), EstadoTemaEnum.PROPUESTO_DIRECTO.name()));
+		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Creador.name(), EstadoTemaEnum.RECHAZADO.name())); //The asesor rejected the propuesta
+		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Creador.name(), EstadoTemaEnum.VENCIDO.name())); //The asesor never answered the propuesta
+		Integer idPropuestoDirecto = null;
+
+		try{
+			 idPropuestoDirecto = estadoTemaRepository.findByNombre(EstadoTemaEnum.PROPUESTO_DIRECTO.name()).get().getId();
+		} catch (Exception e){
+			throw new RuntimeException("No se encuentra el estado de tema: " + EstadoTemaEnum.PROPUESTO_DIRECTO.name());
+		}
+
+		List<TemaDto> temasPropuestosDirectos = new ArrayList<>();
+		for(TemaDto t : temas){
+			if(t.getEstadoTemaNombre().equals(EstadoTemaEnum.PREINSCRITO.name()) ||
+					t.getEstadoTemaNombre().equals(EstadoTemaEnum.RECHAZADO.name())
+					|| t.getEstadoTemaNombre().equals(EstadoTemaEnum.VENCIDO.name())){
+				List<HistorialTemaDto> historialTemaDto = historialTemaService.findByTemaId(t.getId());
+				for (HistorialTemaDto h : historialTemaDto){
+					if(h.getEstadoTemaId().equals(idPropuestoDirecto)){
+						//t.setEstadoTemaNombre(EstadoTemaEnum.PROPUESTO_DIRECTO.name());
+						t.setFechaModificacion(h.getFechaCreacion());
+						break;
+					}
+				}
+			}
+			t.setCoasesores(listarUsuariosPorTemaYRol(t.getId(), RolEnum.Asesor.name())); //we load the proposed asesor, which comes with the rechazado
+			temasPropuestosDirectos.add(t);
+		}
+		//historialTemaService.findByTemaId(id);
+
+		return temasPropuestosDirectos;
+	}
+
+	@Override
+	public List<TemaDto> listarPostulacionesGeneralesAMisPropuestas(Integer tesistaId) {
+		List<TemaDto> temas = new ArrayList<>();
+		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Tesista.name(), EstadoTemaEnum.PREINSCRITO.name()));
+		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Creador.name(), EstadoTemaEnum.PROPUESTO_GENERAL.name()));
+		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Creador.name(), EstadoTemaEnum.VENCIDO.name())); //The asesor never answered the propuesta
+		Integer idPropuestoGeneral = null;
+
+		try{
+			idPropuestoGeneral = estadoTemaRepository.findByNombre(EstadoTemaEnum.PROPUESTO_GENERAL.name()).get().getId();
+		} catch (Exception e){
+			throw new RuntimeException("No se encuentra el estado de tema: " + EstadoTemaEnum.PROPUESTO_GENERAL.name());
+		}
+
+		List<TemaDto> temasPropuestosGeneral = new ArrayList<>();
+		for(TemaDto t : temas){
+			if(t.getEstadoTemaNombre().equals(EstadoTemaEnum.PREINSCRITO.name())
+					|| t.getEstadoTemaNombre().equals(EstadoTemaEnum.VENCIDO.name())){
+				List<HistorialTemaDto> historialTemaDto = historialTemaService.findByTemaId(t.getId());
+				for (HistorialTemaDto h : historialTemaDto){
+					if(h.getEstadoTemaId().equals(idPropuestoGeneral)){ //it was created as general
+						//t.setEstadoTemaNombre(EstadoTemaEnum.PROPUESTO_DIRECTO.name());
+						t.setFechaModificacion(h.getFechaCreacion());
+						break;
+					}
+				}
+			}
+			t.setCoasesores(listarUsuariosPorTemaYRol(t.getId(), RolEnum.Asesor.name())); //we load the proposed asesor, which comes with the rechazado
+			temasPropuestosGeneral.add(t);
+		}
+		//historialTemaService.findByTemaId(id);
+
+		return temasPropuestosGeneral;
+	}
+
+
 	private Integer calculatePostulaciones(Integer temaId) {
 		return listarUsuariosPorTemaYRol(temaId, RolEnum.Asesor.name()).size(); //asesores with asignado false
 	}
 
+
+	@Override
+	public List<InfoTemaPerfilDto> listarTemasAsesorInvolucrado(Integer asesorId) {
+		List<InfoTemaPerfilDto> temas = new ArrayList<>();
+		List<Object[]> resultQuery = temaRepository.listarTemasAsesorInvolucrado(asesorId);
+
+		for (Object[] t : resultQuery) {
+			InfoTemaPerfilDto dto = new InfoTemaPerfilDto();
+			dto.setId((Integer) t[0]);
+			dto.setTitulo((String) t[1]);
+			dto.setEstado((String) t[2]);
+			dto.setAnio((String) t[3]);
+
+			//Agregar a los tesistas
+			List<Object[]> resultTesistasQuery = usuarioXTemaRepository.listarTesistasTema(dto.getId());
+			List<String> tesistas = new ArrayList<>();
+			for (Object[] tesista : resultTesistasQuery) {
+				String nombreTesista = (String) tesista[0] + " " + (String) tesista[1];
+				tesistas.add(nombreTesista);
+			}
+			dto.setEstudiante(String.join(", ", tesistas));
+			//Añadir el nivel
+			temas.add(dto);
+		}
+		return temas;
+	}
 }

@@ -7,7 +7,7 @@ import DetalleExposicionPage from "@/features/configuracion/views/detalle-exposi
 const Page: React.FC = () => {
   const params = useParams();
   const etapaId = params?.etapaId as string;
-  const exposicionId = params?.entregableId as string;
+  const exposicionId = params?.exposicionId as string;
   return (
     <DetalleExposicionPage etapaId={etapaId} exposicionId={exposicionId} />
   );

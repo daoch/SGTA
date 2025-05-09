@@ -15,47 +15,54 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 
-export interface ContenidoEntregableFormData {
+export interface CriterioEntregableFormData {
   id?: string;
-  titulo: string;
+  nombre: string;
   descripcion: string;
+  notaMaxima: number;
 }
 
-interface ContenidoEntregableModalProps {
+interface CriterioEntregableModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (contenido: ContenidoEntregableFormData) => Promise<void>;
-  contenido?: ContenidoEntregableFormData | null;
+  onSubmit: (contenido: CriterioEntregableFormData) => Promise<void>;
+  criterio?: CriterioEntregableFormData | null;
   mode: "create" | "edit";
 }
 
-export const ContenidoEntregableModal: React.FC<
-  ContenidoEntregableModalProps
-> = ({ isOpen, onClose, onSubmit, contenido, mode }) => {
+export const CriterioEntregableModal: React.FC<
+CriterioEntregableModalProps
+> = ({ isOpen, onClose, onSubmit, criterio, mode }) => {
   const isEditMode = mode === "edit";
 
-  const [formData, setFormData] = useState<ContenidoEntregableFormData>({
-    titulo: "",
+  const [formData, setFormData] = useState<CriterioEntregableFormData>({
+    id: "",
+    nombre: "",
     descripcion: "",
+    notaMaxima: 0,
   });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Cargar datos del contenido cuando cambie (en modo edición)
   useEffect(() => {
-    if (isEditMode && contenido) {
+    if (isEditMode && criterio) {
       setFormData({
-        id: contenido.id,
-        titulo: contenido.titulo,
-        descripcion: contenido.descripcion,
+        id: criterio.id,
+        nombre: criterio.nombre,
+        descripcion: criterio.descripcion,
+        notaMaxima: criterio.notaMaxima,
       });
     } else {
       // Resetear el formulario en modo creación
       setFormData({
-        titulo: "",
+        id: "",
+        nombre: "",
         descripcion: "",
+        notaMaxima: 0,
       });
     }
-  }, [contenido, isEditMode, isOpen]);
+  }, [criterio, isEditMode, isOpen]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -105,9 +112,9 @@ export const ContenidoEntregableModal: React.FC<
               <Label htmlFor="titulo">Nombre del Contenido</Label>
               <Input
                 id="txtNombreContenido"
-                name="titulo"
+                name="nombre"
                 placeholder="Ej: Introducción"
-                value={formData.titulo}
+                value={formData.nombre}
                 onChange={handleInputChange}
                 required
               />
@@ -123,6 +130,23 @@ export const ContenidoEntregableModal: React.FC<
                 required
                 className="min-h-[120px]"
               />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="notaMaxima">Peso en la Calificación (puntos)</Label>
+              <Input
+                id="txtNotaMaximaContenido"
+                name="notaMaxima"
+                type="number"
+                min="1"
+                max="20"
+                placeholder="Ej: 5"
+                value={formData.notaMaxima || ""}
+                onChange={handleInputChange}
+                required
+              />
+              <p className="text-xs text-muted-foreground">
+                El total de puntos entre todos los contenidos debe sumar 20.
+              </p>
             </div>
           </div>
           <DialogFooter>

@@ -1,26 +1,11 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { CursoSelect } from "@/features/jurado/components/curso-select";
 import { EstadoSelect } from "@/features/jurado/components/estado-select";
 import { PeriodoSelect } from "@/features/jurado/components/periodo-select";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import ModalPlanificadorCoordinador from "../components/modal-planificador-coordinador";
 
 const ExposicionesCoordinadorPage: React.FC = () => {
@@ -30,8 +15,51 @@ const ExposicionesCoordinadorPage: React.FC = () => {
   const cerrarModal = () => setModalOpen(false);
 
   const [curso, setCurso] = useState("");
-  const [periodo, setPeriodo] = useState("2025-1");
-  const [estado, setEstado] = useState("Pendiente");
+  const [periodo, setPeriodo] = useState("");
+  const [estado, setEstado] = useState("Programada");
+
+  const [ciclos, setCiclos] = useState([]);
+  const [cursos, setCursos] = useState([]);
+  useEffect(() => {
+    const fetchCiclos = async () => {
+      try {
+        const response = await fetch(
+          "http://localhost:5000/ciclos/listarCiclos",
+        );
+        if (!response.ok) {
+          throw new Error("Error al obtener ciclos");
+        }
+        const data = await response.json();
+        setCiclos(data);
+        if (data.length > 0 && !periodo) {
+          setPeriodo(String(data[0].id));
+        }
+      } catch (error) {
+        console.error("Error al obtener ciclos:", error);
+      }
+    };
+
+    const fetchCursos = async () => {
+      try {
+        const response = await fetch(
+          "http://localhost:5000/etapas-formativas/listarActivas",
+        );
+        if (!response.ok) {
+          throw new Error("Error al obtener cursos");
+        }
+        const data = await response.json();
+        setCursos(data);
+        if (data.length > 0 && !curso) {
+          setCurso(String(data[0].id));
+        }
+      } catch (error) {
+        console.error("Error al obtener cursos:", error);
+      }
+    };
+
+    fetchCiclos();
+    fetchCursos();
+  }, []);
 
   return (
     <div className="flex flex-col p-6 w-full">
@@ -43,10 +71,14 @@ const ExposicionesCoordinadorPage: React.FC = () => {
         {/* Contenedor de los tres combo boxes y el botón "Exportar" */}
         <div className="flex gap-4 flex-1 items-end">
           <div className="flex flex-col">
-            <CursoSelect curso={curso} setCurso={setCurso} />
+            <CursoSelect curso={curso} setCurso={setCurso} cursos={cursos} />
           </div>
           <div className="flex flex-col">
-            <PeriodoSelect periodo={periodo} setPeriodo={setPeriodo} />
+            <PeriodoSelect
+              periodo={periodo}
+              setPeriodo={setPeriodo}
+              ciclos={ciclos}
+            />
           </div>
           <div className="flex flex-col">
             <EstadoSelect estado={estado} setEstado={setEstado} />
@@ -79,3 +111,4 @@ const ExposicionesCoordinadorPage: React.FC = () => {
 };
 
 export default ExposicionesCoordinadorPage;
+
