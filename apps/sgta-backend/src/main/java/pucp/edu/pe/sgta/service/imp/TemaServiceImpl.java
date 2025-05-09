@@ -319,12 +319,17 @@ public class TemaServiceImpl implements TemaService {
     }
 
 	@Override
-	public List<TemaDto> listarTemasPropuestosAlAsesor(Integer asesorId) {
-		String sql = "SELECT * FROM listar_temas_propuestos_al_asesor(:asesorId)";
+	public List<TemaDto> listarTemasPropuestosAlAsesor(Integer asesorId, String titulo, Integer limit, Integer offset) {
+		// Construir la consulta SQL con los parámetros proporcionados
+		String sql = "SELECT * FROM listar_temas_propuestos_al_asesor(:asesorId, :titulo, :limit, :offset)";
 
+		// Ejecuta la consulta y obtiene los resultados
 		List<Object[]> resultados = entityManager
 				.createNativeQuery(sql)
-				.setParameter("asesorId", asesorId)
+				.setParameter("asesorId", asesorId)  // ID del asesor
+				.setParameter("titulo", titulo != null ? titulo : "")  // Filtro por título (si es proporcionado)
+				.setParameter("limit", limit != null ? limit : 10)  // Establecer un límite por defecto si es nulo
+				.setParameter("offset", offset != null ? offset : 0)  // Establecer un offset por defecto si es nulo
 				.getResultList();
 
 		List<TemaDto> lista = new ArrayList<>();
@@ -478,16 +483,23 @@ public class TemaServiceImpl implements TemaService {
     }
 
 	@Override
-	public List<TemaDto> listarTemasPropuestosPorSubAreaConocimiento(List<Integer> subareaIds,Integer asesorId) {
-		String sql = "SELECT * FROM listar_temas_propuestos_por_subarea_conocimiento(:subareas,:asesorId)";
-
-		// Convertimos la lista a un arreglo para que se interprete como un único parámetro tipo ARRAY
+	public List<TemaDto> listarTemasPropuestosPorSubAreaConocimiento(
+			List<Integer> subareaIds,
+			Integer asesorId,
+			String titulo,
+			Integer limit,  // Agregar parámetro para el límite
+			Integer offset  // Agregar parámetro para el offset
+	) {
+		String sql = "SELECT * FROM listar_temas_propuestos_por_subarea_conocimiento(:subareas,:asesorId,:titulo,:limit,:offset)";
 		Integer[] subareaArray = subareaIds.toArray(new Integer[0]);
 
 		List<Object[]> resultados = entityManager
 				.createNativeQuery(sql)
 				.setParameter("subareas", subareaArray)
 				.setParameter("asesorId", asesorId)
+				.setParameter("titulo", titulo)
+				.setParameter("limit", limit)  // Establecer parámetro limit
+				.setParameter("offset", offset)  // Establecer parámetro offset
 				.getResultList();
 
 		List<TemaDto> lista = new ArrayList<>();
