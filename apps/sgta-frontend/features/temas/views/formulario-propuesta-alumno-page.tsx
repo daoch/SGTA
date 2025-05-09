@@ -95,13 +95,15 @@ const FormularioPropuestaPage = () => {
 
   const handleSubmit = async () => {
     setLoading(true);
-
+  
     const fechaActual = new Date().toISOString();
-    const idUsuarioCreador = 4;
-    const asesorSeleccionado = profesoresData.find(p => p.nombre === formData.asesor);
-
-    const idAsesor = formData.tipo === "directa" && asesorSeleccionado ? Number(asesorSeleccionado.id) : null;
-
+    const fechaLimiteFinal = formData.fechaLimite
+      ? new Date(formData.fechaLimite + "T10:00:00Z").toISOString()
+      : null;
+  
+    const idUsuarioCreador = 2;
+    const tipoPropuesta = formData.tipo === "general" ? 2 : 3;
+  
     const temaPayload = {
       id: null,
       codigo: "TEMA-" + Math.floor(Math.random() * 1000).toString().padStart(3, "0"),
@@ -111,20 +113,22 @@ const FormularioPropuestaPage = () => {
       activo: true,
       fechaCreacion: fechaActual,
       fechaModificacion: fechaActual,
-      idUsuarioInvolucradosList: idAsesor ? [idAsesor] : [],
-      idSubAreasConocimientoList: [1],
-      idEstadoTema: formData.tipo === "general" ? 8 : 7,
+      objetivos: formData.objetivos,
+      fechaLimite: fechaLimiteFinal,
+      subareas: [{ id: 1 }],
+      coasesores: [],
+      tesistas: [{ id: idUsuarioCreador }],
     };
-
+  
     try {
-      const res = await fetch(`http://localhost:5000/temas/createPropuesta?idUsuarioCreador=${idUsuarioCreador}`, {
+      const res = await fetch(`http://localhost:5000/temas/createPropuesta?idUsuarioCreador=${idUsuarioCreador}&tipoPropuesta=${tipoPropuesta}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(temaPayload),
       });
-
+  
       if (!res.ok) throw new Error("Error en la API");
-
+  
       toast.success("Propuesta creada exitosamente");
       router.push("/alumno/temas");
     } catch (err) {
@@ -133,7 +137,7 @@ const FormularioPropuestaPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  };  
 
   return (
     <div className="space-y-8 mt-4">

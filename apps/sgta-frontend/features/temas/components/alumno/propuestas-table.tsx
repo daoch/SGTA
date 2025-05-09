@@ -1,4 +1,26 @@
-import { useState } from "react";
+"use client";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import {
   Table,
   TableBody,
@@ -7,98 +29,115 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Eye, FileEdit, Trash2 } from "lucide-react";
+import { Proyecto } from "@/features/temas/types/propuestas/entidades";
+import { CheckCircle, Eye, Send, X } from "lucide-react";
+import { useEffect, useState } from "react";
 
-export interface Propuesta {
-  id: string;
+interface PropuestaAPI {
+  id: number;
   titulo: string;
-  area: string;
-  estudiantes: string[];
-  codigos: string[];
-  postulaciones: number;
+  resumen: string;
+  objetivos: string | null;
+  metodologia: string | null;
   fechaLimite: string;
-  tipo: "general" | "directa";
-  descripcion: string;
-  objetivos: string;
-  asesor?: string;
-  estado: "propuesta" | "cotesista_pendiente";
+  estadoTemaNombre: string;
+  cantPostulaciones: number;
+  subareas: { nombre: string }[];
+  tesistas: { nombre: string }[];
 }
 
 interface PropuestasTableProps {
-  filter?: "general" | "directa"; // Cambiado para reflejar los valores posibles
-  setSelectedPropuesta: (propuesta: Propuesta) => void;
-  propuestas: Propuesta[];
+  filter?: string;
 }
 
-export function PropuestasTable({
-  filter,
-  setSelectedPropuesta,
-  propuestas,
-}: PropuestasTableProps) {
+export function PropuestasTable({ filter }: PropuestasTableProps) {
+  const [propuestas, setPropuestas] = useState<Proyecto[]>([]);
   const [areaFilter, setAreaFilter] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedPropuesta, setSelectedPropuesta] = useState<Proyecto | null>(null);
+
+  useEffect(() => {
+    const fetchPropuestas = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/temas/listarPropuestasPorTesista/2");
+        const data: PropuestaAPI[] = await res.json();
+        const mapeado: Proyecto[] = data.map((item) => ({
+          id: String(item.id),
+          titulo: item.titulo,
+          area: item.subareas[0]?.nombre || "Sin área",
+          estudiantes: item.tesistas?.map((t) => t.nombre) || [],
+          codigos: [],
+          postulaciones: item.cantPostulaciones,
+          fechaLimite: item.fechaLimite,
+          tipo: item.estadoTemaNombre === "PROPUESTO_DIRECTO" ? "directa" : "general",
+          descripcion: item.resumen,
+          objetivos: item.objetivos || "",
+          metodologia: item.metodologia || "",
+          recursos: [],
+        }));
+        setPropuestas(mapeado);
+      } catch (err) {
+        console.error("Error cargando propuestas:", err);
+      }
+    };
+
+    fetchPropuestas();
+  }, []);
+
+  const propuestasFiltradas = propuestas.filter((propuesta) => {
+    if (filter && propuesta.tipo !== filter) return false;
+    if (areaFilter && propuesta.area !== areaFilter) return false;
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      return (
+        propuesta.titulo.toLowerCase().includes(term) ||
+        propuesta.estudiantes.some((e) => e.toLowerCase().includes(term))
+      );
+    }
+    return true;
+  });
 
   const areasUnicas = Array.from(new Set(propuestas.map((p) => p.area)));
 
-  const propuestasFiltradas = propuestas.filter((p) => {
-    if (filter && p.tipo !== filter) return false;
-    if (areaFilter && p.area !== areaFilter) return false;
-    const term = searchTerm.toLowerCase();
-    const tituloMatch = p.titulo.toLowerCase().includes(term);
-    const estudianteMatch = p.estudiantes.some((e) =>
-      e.toLowerCase().includes(term)
-    );
-    return tituloMatch || estudianteMatch;
-  });
-
   return (
-    <div>
+    <>
       <div className="mb-6 flex flex-col md:flex-row gap-4">
         <Input
           type="search"
           placeholder="Buscar por título o estudiante..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full md:w-1/2"
+          className="w-full"
         />
-        <Select
-          value={areaFilter || "todas"}
-          onValueChange={(v) => setAreaFilter(v === "todas" ? null : v)}
-        >
-          <SelectTrigger className="md:w-1/3">
-            <SelectValue placeholder="Filtrar por área" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="todas">Todas las áreas</SelectItem>
-            {areasUnicas.map((area) => (
-              <SelectItem key={area} value={area}>
-                {area}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="w-full md:w-64">
+          <Select
+            value={areaFilter || "all"}
+            onValueChange={(value) => setAreaFilter(value === "all" ? null : value)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Filtrar por área" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas las áreas</SelectItem>
+              {areasUnicas.map((area) => (
+                <SelectItem key={area} value={area}>
+                  {area}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
-      <div className="rounded-md border bg-white overflow-hidden shadow-sm">
+      <div className="rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Título</TableHead>
               <TableHead>Área</TableHead>
-              <TableHead>Cotesista</TableHead>
-              <TableHead>Asesor</TableHead>
+              <TableHead>Estudiante(s)</TableHead>
               <TableHead>Postulaciones</TableHead>
-              <TableHead>Fecha Límite</TableHead>
+              <TableHead>Fecha límite</TableHead>
               <TableHead>Tipo</TableHead>
               <TableHead className="text-right">Acción</TableHead>
             </TableRow>
@@ -106,86 +145,123 @@ export function PropuestasTable({
           <TableBody>
             {propuestasFiltradas.length === 0 ? (
               <TableRow>
-                <TableCell
-                  colSpan={8}
-                  className="text-center py-8 text-muted-foreground"
-                >
+                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                   No hay propuestas disponibles
                 </TableCell>
               </TableRow>
             ) : (
-              propuestasFiltradas.map((p) => (
-                <TableRow key={p.id}>
-                  <TableCell className="max-w-xs truncate font-medium">
-                    {p.titulo}
-                  </TableCell>
-                  <TableCell>{p.area}</TableCell>
+              propuestasFiltradas.map((propuesta) => (
+                <TableRow key={propuesta.id}>
+                  <TableCell className="font-medium max-w-xs truncate">{propuesta.titulo}</TableCell>
+                  <TableCell>{propuesta.area}</TableCell>
+                  <TableCell>{propuesta.estudiantes.join(", ")}</TableCell>
                   <TableCell>
-                    {p.estudiantes.length > 0 ? (
-                      p.estudiantes.join(", ")
+                    {propuesta.postulaciones > 0 ? (
+                      <Badge variant="outline" className="bg-blue-100 text-blue-800 hover:bg-blue-100">
+                        {propuesta.postulaciones}
+                      </Badge>
                     ) : (
-                      <span className="text-muted-foreground">-</span>
+                      <span>-</span>
                     )}
                   </TableCell>
-                  <TableCell>
-                    {p.tipo === "general"
-                      ? "No asignado"
-                      : p.asesor || "No asignado"}
-                  </TableCell>
-                  <TableCell>
-                    {p.postulaciones > 0 ? (
-                      <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-semibold bg-blue-100 text-blue-800 rounded-full">
-                        {p.postulaciones}
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground">-</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {new Date(p.fechaLimite).toLocaleDateString()}
-                  </TableCell>
+                  <TableCell>{new Date(propuesta.fechaLimite).toLocaleDateString()}</TableCell>
                   <TableCell>
                     <Badge
                       variant="outline"
                       className={
-                        p.tipo === "directa"
-                          ? "bg-purple-100 text-purple-800"
-                          : "bg-green-100 text-green-800"
+                        propuesta.tipo === "directa"
+                          ? "bg-purple-100 text-purple-800 hover:bg-purple-100"
+                          : "bg-green-100 text-green-800 hover:bg-green-100"
                       }
                     >
-                      {p.tipo === "directa" ? "Directa" : "General"}
+                      {propuesta.tipo === "directa" ? "Directa" : "General"}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() =>
-                          setSelectedPropuesta({
-                            ...p,
-                            estado: p.estado ?? "propuesta",
-                          })
-                        }
-                        className="text-gray-500"
-                      >
-                        <Eye className="h-4 w-4" />
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="ghost" size="icon" onClick={() => setSelectedPropuesta(propuesta)}>
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="w-[90vw] max-w-3xl">
+                        <DialogHeader>
+                          <DialogTitle>Detalles de la Propuesta</DialogTitle>
+                          <DialogDescription>Información completa sobre la propuesta seleccionada</DialogDescription>
+                        </DialogHeader>
+                        {selectedPropuesta && (
+                          <div className="space-y-6 py-4">
+                            <div>
+                              <h3 className="font-medium">Título</h3>
+                              <p>{selectedPropuesta.titulo}</p>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <h3 className="font-medium">Área</h3>
+                                <p>{selectedPropuesta.area}</p>
+                              </div>
+                              <div>
+                                <h3 className="font-medium">Fecha límite</h3>
+                                <p>{new Date(selectedPropuesta.fechaLimite).toLocaleDateString()}</p>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <h3 className="font-medium">Tipo</h3>
+                                <Badge
+                                  variant="outline"
+                                  className={
+                                    selectedPropuesta.tipo === "directa"
+                                      ? "bg-purple-100 text-purple-800"
+                                      : "bg-green-100 text-green-800"
+                                  }
+                                >
+                                  {selectedPropuesta.tipo === "directa" ? "Directa" : "General"}
+                                </Badge>
+                              </div>
+                              <div>
+                                <h3 className="font-medium">Postulaciones</h3>
+                                <p>{selectedPropuesta.postulaciones}</p>
+                              </div>
+                            </div>
+                            <div>
+                              <h3 className="font-medium">Estudiantes</h3>
+                              <p>{selectedPropuesta.estudiantes.join(", ") || "Ninguno"}</p>
+                            </div>
+                            <Separator />
+                            <div>
+                              <Label>Descripción</Label>
+                              <p className="p-2 bg-gray-50 rounded-md border">{selectedPropuesta.descripcion}</p>
+                            </div>
+                            <div>
+                              <Label>Objetivos</Label>
+                              <p className="p-2 bg-gray-50 rounded-md border">{selectedPropuesta.objetivos}</p>
+                            </div>
+                          </div>
+                        )}
+                        <DialogFooter>
+                          <Button variant="outline" onClick={() => setSelectedPropuesta(null)}>
+                            Cerrar
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                    {/* Otros botones */}
+                    {propuesta.tipo === "general" && (
+                      <Button variant="ghost" size="icon" className="text-[#042354]">
+                        <Send className="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-muted-foreground"
-                      >
-                        <FileEdit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-red-500"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    )}
+                    {propuesta.tipo === "directa" && (
+                      <>
+                        <Button variant="ghost" size="icon" className="text-red-500">
+                          <X className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="text-green-500">
+                          <CheckCircle className="h-4 w-4" />
+                        </Button>
+                      </>
+                    )}
                   </TableCell>
                 </TableRow>
               ))
@@ -193,6 +269,6 @@ export function PropuestasTable({
           </TableBody>
         </Table>
       </div>
-    </div>
+    </>
   );
 }
