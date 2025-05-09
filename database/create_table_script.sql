@@ -562,7 +562,6 @@ CREATE TABLE IF NOT EXISTS carrera_parametro_configuracion (
     parametro_configuracion_id          INTEGER   NOT NULL,
     etapa_formativa_id                  INTEGER,  -- opcional, puede ser NULL
 	-- si agregan el fk de etapa_formativa, no le pongan NOT NULL
-	etapa_formativa_id					INTEGER,
 
     CONSTRAINT fk_cpc_carrera
         FOREIGN KEY (carrera_id)
