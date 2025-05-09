@@ -29,8 +29,6 @@ export function LoginForm({
     isAuthenticated,
     isCheckingAuth,
     redirectToDashboard,
-    signUp,
-    confirmSignUp,
     clearError,
     loginWithProvider,
   } = useAuth();
@@ -132,7 +130,7 @@ export function LoginForm({
                   {errors.password.message}
                 </span>
               )}
-            </div>            <Button type="submit" className="w-full" disabled={isLoading}>
+            </div>            <Button type="submit" className="w-full" disabled={isLoading} >
               {isLoading ? "Cargando..." : "Iniciar sesión"}
             </Button>            <Button 
               variant="outline" 
@@ -166,19 +164,6 @@ export function LoginForm({
                 disabled={isLoading}
               >
                 Regístrate aquí
-              </Button>
-            </div>
-
-            {/* Cognito login button */}
-            <div className="flex flex-col gap-2">
-              <Button
-                variant="outline" 
-                className="w-full"
-                type="button"
-                onClick={handleSubmit(onSubmit)}
-                disabled={isLoading}
-              >
-                Iniciar sesión
               </Button>
             </div>
 

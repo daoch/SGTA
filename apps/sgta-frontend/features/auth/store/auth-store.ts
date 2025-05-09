@@ -20,7 +20,7 @@ const initialState: AuthState = {
 
 export const useAuthStore = create<AuthStore>()(
   persist(
-    (set, get) => ({
+    (set, _get) => ({
       ...initialState,
 
       login: (email: string, password: string) => {
@@ -45,7 +45,9 @@ export const useAuthStore = create<AuthStore>()(
                 ? rawGroups.filter((g): g is UserRole =>
                     ["alumno","jurado","asesor","coordinador","revisor"].includes(g)
                   )
-                : [];              const newUser: User = {
+                : [];              
+              
+                const newUser: User = {
                 id:      payload.sub!,
                 name:    (payload["name"] as string) || payload.email!,
                 email:   payload.email!,
@@ -58,6 +60,7 @@ export const useAuthStore = create<AuthStore>()(
                 isAuthenticated: true,
                 isLoading: false,
               });
+              console.log("✅ Normal login ID token payload:", payload);
               resolve();
             },
             onFailure: (err) => {
@@ -69,11 +72,21 @@ export const useAuthStore = create<AuthStore>()(
             },
           });
         });
-      },      logout: () => {
+      },          logout: () => {
+        // 1. Clear Cognito session
         const current = userPool.getCurrentUser();             
-        if (current) current.signOut();                       
+        if (current) current.signOut();
+        
+        // 2. Clear all local storage tokens and session state
+        localStorage.removeItem("idToken");
+        localStorage.removeItem("cognito_id_token");
+        localStorage.removeItem("auth-storage"); // Clear Zustand persisted state
+        sessionStorage.clear(); // Clear any session storage data
+        
+        // 3. Reset auth state in Zustand
         set({ ...initialState });
-        localStorage.removeItem("idToken"); // Clear any stored token
+        
+        console.log("✅ Logout completed: All tokens and session data cleared");
       },
 
       signUp: (email: string, password: string, name: string) => {
@@ -86,15 +99,13 @@ export const useAuthStore = create<AuthStore>()(
            new CognitoUserAttribute({ Name: "email",       Value: email      }),
            new CognitoUserAttribute({ Name: "given_name",  Value: givenName }),
            new CognitoUserAttribute({ Name: "family_name", Value: familyName }),
-         ];
-
-         userPool.signUp(email, password, attributes, [], (err, result) => {
+         ];         userPool.signUp(email, password, attributes, [], (err, _result) => {
            set({ isLoading: false });
            if (err) {
              set({ error: err.message || JSON.stringify(err) });
              return reject(err);
            }
-           // result.userConfirmed will be false if user must confirm code
+           // _result.userConfirmed will be false if user must confirm code
            resolve();
          });
        });
@@ -103,8 +114,7 @@ export const useAuthStore = create<AuthStore>()(
      confirmSignUp: (email: string, code: string) => {
        set({ isLoading: true, error: null });
        return new Promise<void>((resolve, reject) => {
-         const user = new CognitoUser({ Username: email, Pool: userPool });
-         user.confirmRegistration(code, true, (err, success) => {
+         const user = new CognitoUser({ Username: email, Pool: userPool });         user.confirmRegistration(code, true, (err, _success) => {
            set({ isLoading: false });
            if (err) {
              set({ error: err.message || JSON.stringify(err) });
@@ -113,46 +123,130 @@ export const useAuthStore = create<AuthStore>()(
            resolve();
          });
        });
-     },
-
-      checkAuth: () => {
+     },      checkAuth: () => {
         set({ isLoading: true });
+
         
-        const current = userPool.getCurrentUser();             
-        if (!current) {
-          set({ isLoading: false, isAuthenticated: false });
-          return Promise.resolve();
-        }
-        return new Promise<void>((resolve) => {
-          current.getSession((err: Error | null, session: CognitoUserSession | null) => {
-            void err;
-            if (session && session?.isValid()) {
-              const payload = session.getIdToken().payload;
+        // Try to get current user from Cognito
+        const current = userPool.getCurrentUser();
+        
+        // Check for backup tokens from various sources (localStorage, sessionStorage)
+        const hasBackupToken = localStorage.getItem("cognito_id_token") || 
+                              sessionStorage.getItem("cognito_session_active");
+        
+        // Attempt session restoration from backup token if Cognito session is missing
+        if ((!current) && hasBackupToken) {
+          try {            const backupToken = localStorage.getItem("cognito_id_token");
+            if (backupToken) {
+              // Parse the backup token to extract user info
+              const payload = JSON.parse(atob(backupToken.split(".")[1]));
+              
+              // Validate token expiration
+              const currentTime = Math.floor(Date.now() / 1000);
+              if (payload.exp && payload.exp < currentTime) {
+                console.log("⚠️ Backup token expired, removing it");
+                localStorage.removeItem("cognito_id_token");
+                sessionStorage.removeItem("cognito_session_active");
+                throw new Error("Token expired");
+              }
+              
               const rawGroups = payload["cognito:groups"];
               const roles: UserRole[] = Array.isArray(rawGroups)
                 ? rawGroups.filter((g): g is UserRole =>
                     ["alumno","jurado","asesor","coordinador","revisor"].includes(g)
                   )
                 : [];
-                const newUser: User = {
-                id:    payload.sub!,
-                name:  (payload["name"] as string) || payload.email!,
-                email: payload.email!,
+              
+              const newUser: User = {
+                id: payload.sub,
+                name: (payload["name"] as string) || payload.email,
+                email: payload.email,
                 avatar: "",
                 roles,
-              };              set({
+              };
+              
+              // Restore auth state from backup token
+              set({
                 user: newUser,
-                idToken: session.getIdToken().getJwtToken(),
+                idToken: backupToken,
                 isAuthenticated: true,
                 isLoading: false,
               });
-            } else {              set({
+                // Refresh the session markers
+              sessionStorage.setItem("cognito_session_active", "true");
+              
+              console.log("✅ Restored session from backup token");
+              return Promise.resolve();
+            }
+          } catch (e) {
+            console.error("Error restoring session from backup token:", e);
+            localStorage.removeItem("cognito_id_token");
+            sessionStorage.removeItem("cognito_session_active");
+          }
+        }
+          // If no Cognito user and no backup token was found
+        if (!current) {
+          set({ 
+            isLoading: false, 
+            isAuthenticated: false,
+            user: null,
+            idToken: null 
+          });
+          return Promise.resolve();
+        }
+        
+        return new Promise<void>((resolve) => {
+          current.getSession((err: Error | null, session: CognitoUserSession | null) => {
+            // If there's an error or no valid session
+            if (err || !session || !session.isValid()) {
+              console.log("⚠️ Cognito session invalid or expired", err);
+                // Try one more time with backup token
+              const backupToken = localStorage.getItem("cognito_id_token");
+              if (backupToken) {
+                // We already tried to restore from backup above, so if we're here,
+                // let's try one more cleanup and force user to re-authenticate
+                localStorage.removeItem("cognito_id_token");
+                sessionStorage.removeItem("cognito_session_active");
+              }
+              
+              set({
                 user: null,
                 idToken: null,
                 isAuthenticated: false,
                 isLoading: false,
               });
+              
+              return resolve();
             }
+              // We have a valid session
+            const payload = session.getIdToken().payload;
+            const rawGroups = payload["cognito:groups"];
+            const roles: UserRole[] = Array.isArray(rawGroups)
+              ? rawGroups.filter((g): g is UserRole =>
+                  ["alumno","jurado","asesor","coordinador","revisor"].includes(g)
+                )
+              : [];
+            const newUser: User = {
+              id:    payload.sub!,
+              name:  (payload["name"] as string) || payload.email!,
+              email: payload.email!,
+              avatar: "",
+              roles,
+            };
+            
+            // Get the fresh token and store it in all locations
+            const idToken = session.getIdToken().getJwtToken();
+            
+            // Update our Zustand state
+            set({
+              user: newUser,
+              idToken: idToken,
+              isAuthenticated: true,
+              isLoading: false,
+            });
+              // Also update backup storage locations for better reliability
+            localStorage.setItem("cognito_id_token", idToken);
+            sessionStorage.setItem("cognito_session_active", "true");
             resolve();
           });
         });
@@ -190,10 +284,25 @@ export const useAuthStore = create<AuthStore>()(
             isLoading: false 
           });
         }
-      },
-    }),    {
+      },    }),    {
       name: "auth-storage",
-      partialize: (state) => ({ user: state.user, idToken: state.idToken }),
+      partialize: (state) => ({ 
+        user: state.user, 
+        idToken: state.idToken,
+        isAuthenticated: state.isAuthenticated 
+      }),
+      // Force storage to update synchronously
+      version: 1,
+      storage: {
+        getItem: (name) => {
+          const value = localStorage.getItem(name);
+          return value ? JSON.parse(value) : null;
+        },
+        setItem: (name, value) => {
+          localStorage.setItem(name, JSON.stringify(value));
+        },
+        removeItem: (name) => localStorage.removeItem(name),
+      },
     },
   ),
 );
