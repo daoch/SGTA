@@ -1,8 +1,8 @@
-import { Exposicion } from "@/features/jurado/types/jurado.types";
+import { Tema } from "@/features/jurado/types/jurado.types";
 
 interface Props {
-  expoFind: Exposicion;
-  removeExpo: (expo: Exposicion) => void;
+  expoFind: Tema;
+  removeExpo: (expo: Tema) => void;
 }
 
 const ExpoSon: React.FC<Props> = ({ expoFind, removeExpo }: Props) => {
@@ -24,9 +24,10 @@ const ExpoSon: React.FC<Props> = ({ expoFind, removeExpo }: Props) => {
       }}
       onClick={handleClick}
     >
-      {expoFind.code}
+      {expoFind.codigo}
     </div>
   );
 };
 
 export default ExpoSon;
+

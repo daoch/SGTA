@@ -1,15 +1,16 @@
-import { Dispo } from "@/features/jurado/types/jurado.types";
+import { JornadaExposicionDTO } from "@/features/jurado/dtos/JornadExposicionDTO";
 
 interface Props {
-  room: Dispo;
+  room: JornadaExposicionDTO;
   isSelected: boolean;
   onSelect: () => void;
 }
 
 const SelectorFecha: React.FC<Props> = ({ room, isSelected, onSelect }) => {
-  const day = room.date.toLocaleDateString("es-ES", { weekday: "long" });
-  const dateNumber = room.date.getDate();
-  const availableBlocks = room.spaces.length;
+
+  const day = room.fecha?.toLocaleDateString("es-ES", { weekday: "long" });
+  const dateNumber = room.fecha?.getDate();
+  const availableBlocks = room.salasExposicion.length;
 
   return (
     <div
