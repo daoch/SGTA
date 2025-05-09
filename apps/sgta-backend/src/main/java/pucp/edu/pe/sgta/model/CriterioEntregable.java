@@ -1,6 +1,7 @@
 package pucp.edu.pe.sgta.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -8,6 +9,7 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.List;
 
 @Entity
 @Getter
@@ -15,7 +17,6 @@ import java.time.OffsetDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "criterio_entregable")
-
 public class CriterioEntregable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,21 +27,32 @@ public class CriterioEntregable {
     @JoinColumn(name = "entregable_id", nullable = false, foreignKey = @ForeignKey(name = "fk_criterio_entregable_entregable"))
     private Entregable entregable;
 
-    @Column(length = 100, nullable = false)
+    @NotBlank(message = "El nombre del criterio no puede estar vacío")
+    @Size(max = 100, message = "El nombre del criterio no puede exceder los 100 caracteres")
+    @Column(name = "nombre", length = 100, nullable = false)
     private String nombre;
 
-    @Column(name = "nota_maxima", precision = 6, scale = 2)
+    @DecimalMin(value = "0.01", message = "La nota máxima debe ser mayor a 0")
+    @Column(name = "nota_maxima", precision = 5, scale = 2)
     private BigDecimal notaMaxima;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "descripcion", columnDefinition = "TEXT")
     private String descripcion;
 
-    @Column(nullable = false)
-    private boolean activo = true;
+    @Column(name = "activo", nullable = false)
+    private Boolean activo = true;
 
-    @Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private OffsetDateTime fechaCreacion;
+    @Column(name = "fecha_creacion", nullable = false, updatable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private OffsetDateTime fechaCreacion = OffsetDateTime.now();
 
     @Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaModificacion;
+
+    @OneToMany(mappedBy = "criterioEntregable", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RevisionCriterioEntregable> revisionesCriterio;
+
+    @AssertTrue(message = "La nota máxima debe ser un valor positivo")
+    private boolean esNotaMaximaValida() {
+        return notaMaxima == null || notaMaxima.compareTo(BigDecimal.ZERO) > 0;
+    }
 }
