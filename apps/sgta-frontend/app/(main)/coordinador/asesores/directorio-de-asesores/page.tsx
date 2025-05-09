@@ -28,7 +28,7 @@ export default function DirectorioAsesoresPage() {
     <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-6">
       <Breadcrumb
         items={[
-          { label: "Personal Académico", href: "/coordinador/asesores" },
+          { label: "Asesores", href: "/coordinador/asesores" },
           { label: "Directorio de Asesores" },
         ]}
       />
