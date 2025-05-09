@@ -1,3 +1,4 @@
+import { getAuthToken, useAuthStore } from "@/features/auth";
 import axios from "axios";
 
 const axiosInstance = axios.create({
@@ -11,8 +12,9 @@ const axiosInstance = axios.create({
 // Interceptor para manejo global de peticiones
 axiosInstance.interceptors.request.use(
   (config) => {
-    // Aquí puedes agregar tokens de autenticación u otros headers
-    const token = localStorage.getItem("token");
+    // Get token from Zustand store instead of localStorage directly
+    const token = getAuthToken();
+    
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -28,12 +30,13 @@ axiosInstance.interceptors.response.use(
     // Manejo centralizado de errores
     if (error.response) {
       // Error de respuesta del servidor
-      const status = error.response.status;
-
-      if (status === 401) {
-        // Manejo de no autenticado
-        // localStorage.removeItem('token');
-        // window.location.href = '/auth/login';
+      const status = error.response.status;      if (status === 401) {
+        // Handle unauthorized - logout the user and redirect
+        const { logout } = useAuthStore.getState();
+        if (typeof logout === "function") {
+          logout(); // This will also clean up tokens
+        }
+        window.location.href = "/login";
       } else if (status === 403) {
         // Manejo de no autorizado
       } else if (status === 404) {
