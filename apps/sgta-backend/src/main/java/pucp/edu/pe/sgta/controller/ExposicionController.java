@@ -2,9 +2,11 @@ package pucp.edu.pe.sgta.controller;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.web.bind.annotation.*;
 import pucp.edu.pe.sgta.dto.ExposicionDto;
 import pucp.edu.pe.sgta.dto.ExposicionNombreDTO;
+import pucp.edu.pe.sgta.dto.ListExposicionXCoordinadorDTO;
 import pucp.edu.pe.sgta.service.inter.ExposicionService;
 
 import java.util.List;
@@ -45,9 +47,13 @@ public class ExposicionController {
         return exposicionService.findById(id);
     }
 
-
-     @GetMapping("/listarExposicionXCicloActualEtapaFormativa")
+    @GetMapping("/listarExposicionXCicloActualEtapaFormativa")
     public List<ExposicionNombreDTO> listarExposicionXCicloActualEtapaFormativa(@RequestParam("etapaFormativaId") Integer etapaFormativaId){
     return exposicionService.listarExposicionXCicloActualEtapaFormativa(etapaFormativaId);
+    }
+
+    @GetMapping("/listarExposicionesInicializadasXCoordinador/{coordinadorId}")
+    public List<ListExposicionXCoordinadorDTO> listarExposicionesInicializadasXCoordinador(@PathVariable Integer coordinadorId){
+        return exposicionService.listarExposicionesInicializadasXCoordinador(coordinadorId);
     }
 }
