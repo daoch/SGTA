@@ -28,14 +28,14 @@ const TableJurados: React.FC<TableJuradosProps> = ({ juradosData }) => {
     <Table>
       <TableHeader>
         <TableRow>
-          <TableCell>Usuario</TableCell>
-          <TableCell>Código</TableCell>
-          <TableCell>Correo Electrónico</TableCell>
-          <TableCell>Tipo de Dedicación</TableCell>
-          <TableCell>Asignados</TableCell>
-          <TableCell>Área de Especialidad</TableCell>
-          <TableCell>Estado</TableCell>
-          <TableCell>Acciones</TableCell>
+          <TableCell className="font-semibold">Usuario</TableCell>
+          <TableCell className="font-semibold">Código</TableCell>
+          <TableCell className="font-semibold">Correo Electrónico</TableCell>
+          <TableCell className="font-semibold">Tipo de Dedicación</TableCell>
+          <TableCell className="font-semibold">Asignados</TableCell>
+          <TableCell className="font-semibold">Área de Especialidad</TableCell>
+          <TableCell className="font-semibold">Estado</TableCell>
+          <TableCell className="font-semibold">Acciones</TableCell>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -91,3 +91,4 @@ const TableJurados: React.FC<TableJuradosProps> = ({ juradosData }) => {
 };
 
 export default TableJurados;
+

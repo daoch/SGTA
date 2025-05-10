@@ -54,8 +54,8 @@ export interface Tesis {
 
 export enum TipoDedicacion {
   TODOS = "Todos",
-  TIEMPO_COMPLETO = "Tiempo Completo",
-  MEDIO_TIEMPO = "Medio Tiempo",
+  TIEMPO_COMPLETO = "TC",
+  MEDIO_TIEMPO = "TPA",
 }
 
 export enum AreaEspecialidadFilter {
