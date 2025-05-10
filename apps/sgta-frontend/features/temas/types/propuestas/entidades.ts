@@ -1,25 +1,24 @@
 export type Proyecto = {
   id: number;
-  codigo: string | null;
+  codigo?: string | null;
   titulo: string;
-  resumen: string;
+  resumen?: string;
   objetivos: string;
   metodologia: string;
-  portafolioUrl: string;
-  activo: boolean;
+  portafolioUrl?: string;
+  activo?: boolean;
   fechaLimite: string;
-  fechaFinalizacion: string;
-  fechaCreacion: string;
-  fechaModificacion: string;
-  estadoTemaNombre: string;
-  carrera: string;
+  fechaFinalizacion?: string;
+  fechaCreacion?: string;
+  fechaModificacion?: string;
+  estadoTemaNombre?: string;
+  carrera?: string;
   cantPostulaciones: number;
-  coasesores: Usuario[] | null;
-  tesistas: Usuario[] | null;
+  coasesores: Usuario[];
+  tesistas: Usuario[];
   subareas: SubAreaConocimiento[];
   tipo: string; //agregado
-  subAreas: SubAreaConocimiento[]; //agregado
-  estudiantes: Usuario[]; //agregado
+  estudiantes?: Usuario[]; //agregado
 };
 
 export type TipoUsuario = {

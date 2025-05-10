@@ -29,33 +29,31 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Proyecto } from "@/features/temas/types/propuestas/entidades";
+import { Proyecto, SubAreaConocimiento, Usuario } from "@/features/temas/types/propuestas/entidades";
 import { CheckCircle, Eye, Send, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface PropuestaAPI {
   id: number;
-  titulo: string;
-  resumen: string;
-  objetivos: string | null;
-  metodologia: string | null;
-  fechaLimite: string;
-  estadoTemaNombre: string;
-  cantPostulaciones: number;
-  subareas: { nombre: string }[];
-  tesistas: {
-    id: number;
-    nombres: string;
-    primerApellido: string;
-    segundoApellido: string;
-    asignado: boolean;
-  }[];
-  coasesores: {
-    id: number;
-    nombres: string;
-    primerApellido: string;
-    segundoApellido: string;
-  }[];
+    codigo?: string | null;
+    titulo: string;
+    resumen?: string;
+    objetivos: string;
+    metodologia: string;
+    portafolioUrl?: string;
+    activo?: boolean;
+    fechaLimite: string;
+    fechaFinalizacion?: string;
+    fechaCreacion?: string;
+    fechaModificacion?: string;
+    estadoTemaNombre?: string;
+    carrera?: string;
+    cantPostulaciones: number;
+    coasesores: Usuario[];
+    tesistas: Usuario[];
+    subareas: SubAreaConocimiento[];
+    tipo: string; //agregado
+    estudiantes?: Usuario[];
 }
 
 
@@ -75,25 +73,19 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/temas/listarPropuestasPorTesista/2`);
         const data: PropuestaAPI[] = await res.json();
         const mapeado: Proyecto[] = data.map((item) => ({
-          id: String(item.id),
+          id: item.id,
           titulo: item.titulo,
-          area: item.subareas[0]?.nombre || "Sin área",
-          tesistas: item.tesistas.map(t => ({
-            nombre: `${t.nombres} ${t.primerApellido} ${t.segundoApellido}`.trim(),
-            asignado: t.asignado
-          })),
+          subareas: item.subareas,
+          tesistas: item.tesistas,
           codigos: item.tesistas.map((t) => String(t.id)),
-          postulaciones: item.cantPostulaciones || 0,
+          cantPostulaciones: item.cantPostulaciones || 0,
           fechaLimite: item.fechaLimite,
           tipo:
             item.estadoTemaNombre === "PROPUESTO_DIRECTO" ? "directa" : "general",
-          descripcion: item.resumen,
+          resumen: item.resumen,
           objetivos: item.objetivos || "",
           metodologia: item.metodologia || "",
-          coasesores: item.coasesores?.map(co => 
-            `${co.nombres} ${co.primerApellido} ${co.segundoApellido}`.trim()
-          ) || [],
-          recursos: [],
+          coasesores: item.coasesores,
         }));
         setPropuestas(mapeado);
       } catch (err) {
@@ -106,18 +98,18 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
 
   const propuestasFiltradas = propuestas.filter((propuesta) => {
     if (filter && propuesta.tipo !== filter) return false;
-    if (areaFilter && propuesta.area !== areaFilter) return false;
+    if (areaFilter && propuesta.subareas[0].nombre !== areaFilter) return false;
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       return (
         propuesta.titulo.toLowerCase().includes(term) ||
-        propuesta.tesistas.some((e) => e.nombre.toLowerCase().includes(term))
+        propuesta.tesistas.some((e) => (e.nombres+e.primerApellido+e.segundoApellido).toLowerCase().includes(term))
       );
     }
     return true;
   });
 
-  const areasUnicas = Array.from(new Set(propuestas.map((p) => p.area)));
+  const areasUnicas = Array.from(new Set(propuestas.map((p) => p.subareas[0])));
 
   return (
     <>
@@ -139,9 +131,9 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas las áreas</SelectItem>
-              {areasUnicas.map((area) => (
-                <SelectItem key={area} value={area}>
-                  {area}
+              {areasUnicas.map((subareas) => (
+                <SelectItem key={subareas.nombre} value={subareas.nombre}>
+                  {subareas.nombre}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -173,12 +165,12 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
               propuestasFiltradas.map((propuesta) => (
                 <TableRow key={propuesta.id}>
                   <TableCell className="font-medium max-w-xs truncate">{propuesta.titulo}</TableCell>
-                  <TableCell>{propuesta.area}</TableCell>
-                  <TableCell>{propuesta.tesistas.map((t) => t.nombre).join(", ")}</TableCell>
+                  <TableCell>{propuesta.subareas[0]?.nombre}</TableCell>
+                  <TableCell>{propuesta.tesistas.map((t) => (t.nombres + " " + t.primerApellido)).join(", ")}</TableCell>
                   <TableCell>
-                    {propuesta.postulaciones > 0 ? (
+                    {propuesta.cantPostulaciones > 0 ? (
                       <Badge variant="outline" className="bg-blue-100 text-blue-800 hover:bg-blue-100">
-                        {propuesta.postulaciones}
+                        {propuesta.cantPostulaciones}
                       </Badge>
                     ) : (
                       <span>-</span>
@@ -222,7 +214,7 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
                             <div className="grid grid-cols-2 gap-4">
                               <div className="space-y-1">
                                 <h3 className="font-medium">Área</h3>
-                                <p>{selectedPropuesta.area}</p>
+                                <p>{selectedPropuesta.subareas[0].nombre}</p>
                               </div>
                               {selectedPropuesta.fechaLimite && (
                                 <div className="space-y-1">
@@ -247,7 +239,7 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
                               </div>
                                 <div className="space-y-1">
                                   <h3 className="font-medium">Postulaciones</h3>
-                                  <p>{selectedPropuesta.postulaciones}</p>
+                                  <p>{selectedPropuesta.cantPostulaciones}</p>
                                 </div>
                             </div>
                             {selectedPropuesta.tesistas.length > 0 && (
@@ -258,7 +250,7 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
                                     key={i}
                                     className="p-3 bg-gray-50 rounded-md border flex justify-between items-center"
                                   >
-                                    <span>{tesistas.nombre}</span>
+                                    <span>{tesistas.nombres + " " + tesistas.primerApellido}</span>
                                     <Badge
                                       variant="outline"
                                       className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100"
@@ -274,8 +266,8 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
                               <div className="space-y-2">
                                 <Label>Asesor propuesto</Label>
                                 {selectedPropuesta.coasesores.length > 0
-                                  ? selectedPropuesta.coasesores.map((nombre) => (
-                                      <p key={nombre}>{nombre}</p>
+                                  ? selectedPropuesta.coasesores.map((coasesor) => (
+                                      <p key={coasesor.id}>{coasesor.nombres + " " + coasesor.primerApellido}</p>
                                     ))
                                   : <p className="text-muted-foreground">No asignado</p>
                                 }
@@ -285,7 +277,7 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
                             <div className="space-y-2">
                               <Label>Descripción</Label>
                               <div className="p-3 bg-gray-50 rounded-md border">
-                                <p>{selectedPropuesta.descripcion}</p>
+                                <p>{selectedPropuesta.resumen}</p>
                               </div>
                             </div>
                             <div className="space-y-2">
