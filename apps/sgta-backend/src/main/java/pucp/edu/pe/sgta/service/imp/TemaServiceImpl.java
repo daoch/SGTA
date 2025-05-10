@@ -380,6 +380,12 @@ public class TemaServiceImpl implements TemaService {
             usuarioId, rolNombre, estadoNombre
         );
         List<TemaDto> resultados = new ArrayList<>();
+
+		
+		for (Object[] r : rows) {
+    	System.out.println("cols="+r.length+" → "+java.util.Arrays.toString(r));
+    	// luego tu mapeo…
+}
         for (Object[] r : rows) {
             TemaDto dto = TemaDto.builder()
                 .id((Integer) r[0])

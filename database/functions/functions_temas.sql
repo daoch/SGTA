@@ -192,7 +192,7 @@ RETURNS TABLE (
     fecha_creacion     TIMESTAMPTZ,
     asignado            BOOLEAN,
     rechazado           BOOLEAN,
-    codigo_pucp TEXT,
+    codigo_pucp TEXT
 ) AS $$
 BEGIN
     RETURN QUERY
