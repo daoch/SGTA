@@ -155,16 +155,16 @@ public class TemaServiceImpl implements TemaService {
 		// 1) Subáreas de conocimiento
 		saveSubAreas(tema, dto.getSubareas());
 		//2) Save Creador
-		saveUsuarioXTema(tema, idUsuarioCreador, RolEnum.Tesista.name(), false);
+		saveUsuarioXTema(tema, idUsuarioCreador, RolEnum.Tesista.name(), false, true);
 		//3) Save Asesor (Propuesta Directa)
 		if (tipoPropuesta == 1) {
 			if(dto.getCoasesores() == null || dto.getCoasesores().isEmpty()) {
 				throw new RuntimeException("No se ha proporcionado un asesor para la propuesta directa.");
 			}
-			saveUsuarioXTema(tema, dto.getCoasesores().get(0).getId(), RolEnum.Asesor.name(), false);
+			saveUsuarioXTema(tema, dto.getCoasesores().get(0).getId(), RolEnum.Asesor.name(), false, false);
 		}
 		//4) Save cotesistas
-		saveUsuariosInvolucrados(tema, idUsuarioCreador, dto.getTesistas(), RolEnum.Tesista.name(), false); //Save cotesistas
+		saveUsuariosInvolucrados(tema, idUsuarioCreador, dto.getTesistas(), RolEnum.Tesista.name(), false,false); //Save cotesistas
 
 	}
 
@@ -215,22 +215,18 @@ public class TemaServiceImpl implements TemaService {
         temaRepository.save(tema);
 
 		saveHistorialTemaChange(tema, dto.getTitulo(), dto.getResumen(), "Inscripción de tema");
-
 		// 1) Creador del tema (rol "Creador", asignado = true)
-        saveUsuarioXTema(tema, idUsuarioCreador, RolEnum.Tesista.name(), true);
+        saveUsuarioXTema(tema, idUsuarioCreador, RolEnum.Tesista.name(), true, true);
         // 1) Asesor del tema (rol "Asesor", asignado = true)
-        saveUsuarioXTema(tema, idUsuarioCreador, RolEnum.Asesor.name(), true);
-
+        saveUsuarioXTema(tema, idUsuarioCreador, RolEnum.Asesor.name(), true, false);
         // 2) Subáreas de conocimiento
         saveSubAreas(tema, dto.getSubareas());
-
         // 3) Coasesores
         saveUsuariosInvolucrados(tema, idUsuarioCreador,
-            dto.getCoasesores(), RolEnum.Coasesor.name(), true);
-
+            dto.getCoasesores(), RolEnum.Coasesor.name(), true, false);
         // 4) Estudiantes
         saveUsuariosInvolucrados(tema, idUsuarioCreador,
-            dto.getTesistas(), RolEnum.Tesista.name(), true);
+            dto.getTesistas(), RolEnum.Tesista.name(), true, false);
     }
 
     /**
@@ -243,7 +239,8 @@ public class TemaServiceImpl implements TemaService {
     private void saveUsuarioXTema(Tema tema,
                                   Integer idUsuario,
                                   String rolNombre,
-                                  Boolean asignado) {
+                                  Boolean asignado,
+								  Boolean creador) {
         UsuarioDto uDto = usuarioService.findUsuarioById(idUsuario);
         if (uDto == null) {
             throw new RuntimeException("Usuario no encontrado: " + idUsuario);
@@ -257,6 +254,7 @@ public class TemaServiceImpl implements TemaService {
         ux.setUsuario(UsuarioMapper.toEntity(uDto));
         ux.setRol(rol);
         ux.setAsignado(asignado);
+		ux.setCreador(creador);
         ux.setActivo(true);
         ux.setFechaCreacion(OffsetDateTime.now());
 
@@ -302,7 +300,8 @@ public class TemaServiceImpl implements TemaService {
                                           Integer idUsuarioCreador,
                                           List<UsuarioDto> involucrados,
                                           String rolNombre,
-                                          Boolean asignado) {
+                                          Boolean asignado,
+										  Boolean creador) {
         if (involucrados == null) return;
         for (UsuarioDto usuario : involucrados) {
             if (usuario.getId().equals(idUsuarioCreador)) {
@@ -314,7 +313,7 @@ public class TemaServiceImpl implements TemaService {
                 logger.warning("Usuario involucrado no encontrado: " + usuario.getId());
                 continue;
             }
-            saveUsuarioXTema(tema, usuario.getId(), rolNombre, asignado);
+            saveUsuarioXTema(tema, usuario.getId(), rolNombre, asignado, creador);
         }
     }
 
