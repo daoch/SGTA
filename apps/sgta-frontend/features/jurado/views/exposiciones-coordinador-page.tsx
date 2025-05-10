@@ -24,7 +24,7 @@ const ExposicionesCoordinadorPage: React.FC = () => {
     const fetchCiclos = async () => {
       try {
         const response = await fetch(
-          "http://localhost:5000/ciclos/listarCiclos",
+          `${process.env.NEXT_PUBLIC_API_URL}/ciclos/listarCiclos`,
         );
         if (!response.ok) {
           throw new Error("Error al obtener ciclos");
@@ -42,7 +42,7 @@ const ExposicionesCoordinadorPage: React.FC = () => {
     const fetchCursos = async () => {
       try {
         const response = await fetch(
-          "http://localhost:5000/etapas-formativas/listarActivas",
+          `${process.env.NEXT_PUBLIC_API_URL}/etapas-formativas/listarActivas`,
         );
         if (!response.ok) {
           throw new Error("Error al obtener cursos");
