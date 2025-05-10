@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
-import java.time.OffsetDateTime;
 
 @Getter
 @Setter
@@ -24,10 +23,4 @@ public class CriterioExposicionDto {
     private String descripcion;
 
     private BigDecimal notaMaxima;
-
-    private boolean activo;
-
-    private OffsetDateTime fechaCreacion;
-
-    private OffsetDateTime fechaModificacion;
 }

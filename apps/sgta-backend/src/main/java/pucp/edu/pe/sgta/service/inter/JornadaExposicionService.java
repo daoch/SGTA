@@ -2,6 +2,7 @@ package pucp.edu.pe.sgta.service.inter;
 
 import java.util.List;
 
+import pucp.edu.pe.sgta.dto.JornadaExposicionCreateDTO;
 import pucp.edu.pe.sgta.dto.JornadaExposicionDto;
 
 public interface JornadaExposicionService {
@@ -9,7 +10,7 @@ public interface JornadaExposicionService {
 
     JornadaExposicionDto findById(Integer id);
 
-    void create(JornadaExposicionDto dto);
+    JornadaExposicionDto create(JornadaExposicionCreateDTO dto);
 
     void update(JornadaExposicionDto dto);
 

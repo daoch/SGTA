@@ -1,38 +1,33 @@
-import { Exposicion } from "@/features/jurado/types/jurado.types";
+import { Tema } from "@/features/jurado/types/jurado.types";
 
+interface Props {
+  expoFind: Tema;
+  removeExpo: (expo: Tema) => void;
+}
 
-interface Props{
-    expoFind : Exposicion;
-    removeExpo: (expo: Exposicion) => void; 
-};
+const ExpoSon: React.FC<Props> = ({ expoFind, removeExpo }: Props) => {
+  const handleClick = () => {
+    if (expoFind) {
+      removeExpo(expoFind);
+    }
+  };
 
-const ExpoSon: React.FC<Props> = ({ expoFind,removeExpo}: Props)=> {
-
-    const handleClick = () => {
-      
-        if(expoFind){
-          removeExpo(expoFind);
-        }
-       
-    
-      };
-
-    return(
-        <div           
-            style={{ 
-                backgroundColor: "#FFDFBD",
-                height: "60px",
-                border:"0px",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-             }}
-             onClick={handleClick}  
-        >
-        {expoFind.code}
-        </div>
-    );
-
+  return (
+    <div
+      style={{
+        backgroundColor: "#FFDFBD",
+        height: "60px",
+        border: "0px",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+      onClick={handleClick}
+    >
+      {expoFind.codigo}
+    </div>
+  );
 };
 
 export default ExpoSon;
+

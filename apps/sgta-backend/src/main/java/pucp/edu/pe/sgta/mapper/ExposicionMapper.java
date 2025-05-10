@@ -1,6 +1,7 @@
 package pucp.edu.pe.sgta.mapper;
 
 import pucp.edu.pe.sgta.dto.ExposicionDto;
+import pucp.edu.pe.sgta.dto.ExposicionNombreDTO;
 import pucp.edu.pe.sgta.model.Exposicion;
 import pucp.edu.pe.sgta.model.EstadoPlanificacion;
 import pucp.edu.pe.sgta.model.EtapaFormativaXCiclo;
@@ -14,9 +15,6 @@ public class ExposicionMapper {
 
         ExposicionDto dto = new ExposicionDto();
         dto.setId(exposicion.getId());
-        dto.setActivo(exposicion.getActivo());
-        dto.setFechaCreacion(exposicion.getFechaCreacion());
-        dto.setFechaModificacion(exposicion.getFechaModificacion());
         dto.setNombre(exposicion.getNombre());
         dto.setDescripcion(exposicion.getDescripcion());
 
@@ -39,9 +37,6 @@ public class ExposicionMapper {
 
         Exposicion entity = new Exposicion();
         entity.setId(dto.getId());
-        entity.setActivo(dto.getActivo());
-        entity.setFechaCreacion(dto.getFechaCreacion());
-        entity.setFechaModificacion(dto.getFechaModificacion());
         entity.setNombre(dto.getNombre());
         entity.setDescripcion(dto.getDescripcion());
 
@@ -59,4 +54,6 @@ public class ExposicionMapper {
 
         return entity;
     }
+
+
 }

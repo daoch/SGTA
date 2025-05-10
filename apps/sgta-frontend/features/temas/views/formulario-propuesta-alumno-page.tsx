@@ -117,7 +117,7 @@ const FormularioPropuestaPage = () => {
     };
 
     try {
-      const res = await fetch(`http://localhost:5000/temas/createPropuesta?idUsuarioCreador=${idUsuarioCreador}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/temas/createPropuesta?idUsuarioCreador=${idUsuarioCreador}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(temaPayload),
