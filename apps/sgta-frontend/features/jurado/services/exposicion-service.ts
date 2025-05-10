@@ -30,12 +30,6 @@ export const enviarPlanificacion = async (data: FormValues) => {
 export const getSalasDisponiblesByEtapaFormativa = async (
   etapaFormativaId: number,
 ) => {
-  // return Promise.resolve([
-  //   { id: 1, nombre: "A202" },
-  //   { id: 2, nombre: "V00" },
-  //   { id: 3, nombre: "A501" },
-  //   { id: 4, nombre: "M506" },
-  // ]);
   const response = await axiosInstance.get(
     `/etapaFormativaXSalaExposicion/listarEtapaFormativaXSalaExposicionByEtapaFormativa/${etapaFormativaId}`,
   );
@@ -48,4 +42,26 @@ export const getSalasDisponiblesByEtapaFormativa = async (
   );
 
   return salas;
+};
+
+export const getCiclos = async () => {
+  try {
+    const response = await axiosInstance.get("/ciclos/listarCiclos");
+    return response.data;
+  } catch (error) {
+    console.error("Error al obtener ciclos:", error);
+    throw new Error("Error al obtener ciclos");
+  }
+};
+
+export const getCursos = async () => {
+  try {
+    const response = await axiosInstance.get(
+      "/etapas-formativas/listarActivas",
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error al obtener cursos:", error);
+    throw new Error("Error al obtener cursos");
+  }
 };
