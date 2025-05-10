@@ -14,11 +14,11 @@ BEGIN
         ON uc.usuario_id = u.usuario_id
     INNER JOIN carrera c 
         ON c.carrera_id = uc.carrera_id
-    LEFT JOIN etapa_formativa ef 
+    INNER JOIN etapa_formativa ef 
         ON c.carrera_id = ef.carrera_id
-    LEFT JOIN etapa_formativa_x_ciclo efxc 
+    INNER JOIN etapa_formativa_x_ciclo efxc 
         ON efxc.etapa_formativa_id = ef.etapa_formativa_id
-    LEFT JOIN ciclo c2 
+    INNER JOIN ciclo c2 
         ON c2.ciclo_id = efxc.ciclo_id
         AND c2.activo = true
     WHERE u.usuario_id = p_usuario_id;
