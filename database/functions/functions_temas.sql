@@ -192,7 +192,8 @@ RETURNS TABLE (
     fecha_creacion     TIMESTAMPTZ,
     asignado            BOOLEAN,
     rechazado           BOOLEAN,
-    codigo_pucp TEXT
+    codigo_pucp TEXT,
+    creador BOOLEAN
 ) AS $$
 BEGIN
     RETURN QUERY
@@ -206,7 +207,8 @@ BEGIN
       u.fecha_creacion,
       ut.asignado,
       ut.rechazado,
-      u.codigo_pucp::text
+      u.codigo_pucp::text,
+      ut.creador
     FROM usuario u
     JOIN usuario_tema ut
       ON ut.usuario_id = u.usuario_id

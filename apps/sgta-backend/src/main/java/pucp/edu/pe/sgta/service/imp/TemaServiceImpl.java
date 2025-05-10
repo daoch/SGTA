@@ -133,12 +133,6 @@ public class TemaServiceImpl implements TemaService {
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-		// Create and set up UsuarioXTema
-
-		UsuarioXTema usuarioXTema = new UsuarioXTema();
-		usuarioXTema.setId(null);
-		usuarioXTema.setTema(tema);
-
 		UsuarioDto usuarioDto = usuarioService.findUsuarioById(idUsuarioCreador);
 
 		if (usuarioDto == null) {
@@ -155,13 +149,13 @@ public class TemaServiceImpl implements TemaService {
 		// 1) Subáreas de conocimiento
 		saveSubAreas(tema, dto.getSubareas());
 		//2) Save Creador
-		saveUsuarioXTema(tema, idUsuarioCreador, RolEnum.Tesista.name(), false);
+		saveUsuarioXTema(tema, idUsuarioCreador, RolEnum.Tesista.name(), false, true);
 		//3) Save Asesor (Propuesta Directa)
 		if (tipoPropuesta == 1) {
 			if(dto.getCoasesores() == null || dto.getCoasesores().isEmpty()) {
 				throw new RuntimeException("No se ha proporcionado un asesor para la propuesta directa.");
 			}
-			saveUsuarioXTema(tema, dto.getCoasesores().get(0).getId(), RolEnum.Asesor.name(), false);
+			saveUsuarioXTema(tema, dto.getCoasesores().get(0).getId(), RolEnum.Asesor.name(), false, false);
 		}
 		//4) Save cotesistas
 		saveUsuariosInvolucrados(tema, idUsuarioCreador, dto.getTesistas(), RolEnum.Tesista.name(), false); //Save cotesistas
@@ -217,9 +211,9 @@ public class TemaServiceImpl implements TemaService {
 		saveHistorialTemaChange(tema, dto.getTitulo(), dto.getResumen(), "Inscripción de tema");
 
 		// 1) Creador del tema (rol "Creador", asignado = true)
-        saveUsuarioXTema(tema, idUsuarioCreador, RolEnum.Tesista.name(), true);
-        // 1) Asesor del tema (rol "Asesor", asignado = true)
-        saveUsuarioXTema(tema, idUsuarioCreador, RolEnum.Asesor.name(), true);
+       // saveUsuarioXTema(tema, idUsuarioCreador, RolEnum.Tesista.name(), true, true);
+        // 1) Asesor del tema (rol "Asesor", asignado = true) y creador
+        saveUsuarioXTema(tema, idUsuarioCreador, RolEnum.Asesor.name(), true, true);
 
         // 2) Subáreas de conocimiento
         saveSubAreas(tema, dto.getSubareas());
@@ -243,7 +237,8 @@ public class TemaServiceImpl implements TemaService {
     private void saveUsuarioXTema(Tema tema,
                                   Integer idUsuario,
                                   String rolNombre,
-                                  Boolean asignado) {
+                                  Boolean asignado,
+								  Boolean creador) {
         UsuarioDto uDto = usuarioService.findUsuarioById(idUsuario);
         if (uDto == null) {
             throw new RuntimeException("Usuario no encontrado: " + idUsuario);
@@ -257,6 +252,7 @@ public class TemaServiceImpl implements TemaService {
         ux.setUsuario(UsuarioMapper.toEntity(uDto));
         ux.setRol(rol);
         ux.setAsignado(asignado);
+		ux.setCreador(creador);
         ux.setActivo(true);
         ux.setFechaCreacion(OffsetDateTime.now());
 
@@ -314,7 +310,7 @@ public class TemaServiceImpl implements TemaService {
                 logger.warning("Usuario involucrado no encontrado: " + usuario.getId());
                 continue;
             }
-            saveUsuarioXTema(tema, usuario.getId(), rolNombre, asignado);
+            saveUsuarioXTema(tema, usuario.getId(), rolNombre, asignado, false);
         }
     }
 
@@ -438,6 +434,7 @@ public class TemaServiceImpl implements TemaService {
 				.asignado((Boolean) r[7]) //we identify if the asesor is assigned or not
 					.rechazado((Boolean) r[8])
 					.codigoPucp((String) r[9])
+					.creador((Boolean) r[10])
 					.build();
             resultados.add(u);
         }
@@ -584,6 +581,7 @@ public class TemaServiceImpl implements TemaService {
 
 	public List<TemaDto> listarPropuestasPorTesista(Integer tesistaId) {
 		List<TemaDto> temas = new ArrayList<>();
+		//FIX: Crear otro procedure para temas solo donde creador: true
 		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Tesista.name(), EstadoTemaEnum.PROPUESTO_GENERAL.name()));
 		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Tesista.name(), EstadoTemaEnum.PROPUESTO_DIRECTO.name()));
 
@@ -608,6 +606,7 @@ public class TemaServiceImpl implements TemaService {
 	@Override
 	public List<TemaDto> listarPostulacionesDirectasAMisPropuestas(Integer tesistaId) {
 		List<TemaDto> temas = new ArrayList<>();
+		//FIX: Crear otro procedure para temas solo donde creador: true
 		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Tesista.name(), EstadoTemaEnum.PREINSCRITO.name()));
 		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Tesista.name(), EstadoTemaEnum.PROPUESTO_DIRECTO.name()));
 		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Tesista.name(), EstadoTemaEnum.RECHAZADO.name())); //The asesor rejected the propuesta
@@ -645,6 +644,7 @@ public class TemaServiceImpl implements TemaService {
 	@Override
 	public List<TemaDto> listarPostulacionesGeneralesAMisPropuestas(Integer tesistaId) {
 		List<TemaDto> temas = new ArrayList<>();
+		//FIX: Crear otro procedure para temas solo donde creador: true
 		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Tesista.name(), EstadoTemaEnum.PREINSCRITO.name()));
 		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Tesista.name(), EstadoTemaEnum.PROPUESTO_GENERAL.name()));
 		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Tesista.name(), EstadoTemaEnum.VENCIDO.name())); //The asesor never answered the propuesta
