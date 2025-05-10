@@ -7,6 +7,10 @@ import pucp.edu.pe.sgta.service.inter.AutorService;
 
 import java.time.Instant;
 import java.time.OffsetDateTime;
+<<<<<<< HEAD
+=======
+import java.time.ZoneOffset;
+>>>>>>> 1f49a275c3ebf30ea35c9243d5ca3edc8b0601c5
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;

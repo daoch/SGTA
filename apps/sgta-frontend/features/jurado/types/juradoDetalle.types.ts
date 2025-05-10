@@ -1,3 +1,18 @@
+export interface JuradoDTO {
+  id: number;
+  codigoPucp: string;
+  nombres: string;
+  primerApellido: string;
+  segundoApellido: string;
+  correoElectronico: string;
+  nivelEstudios: string;
+  asignados: number;
+  tipoDedicacion: string;
+  activo: boolean;
+  fechaAsignacion: string;
+  especialidades: string[];
+}
+
 export interface SelectOption {
   label: string;
   value: string;

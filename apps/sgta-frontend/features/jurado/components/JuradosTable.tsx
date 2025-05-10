@@ -1,17 +1,17 @@
 "use client";
 
-import * as React from "react";
-import { useRouter } from "next/navigation";
-import { FileSearch, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Table,
-  TableHeader,
   TableBody,
-  TableRow,
   TableCell,
-} from "@/components/ui/table"; // Usamos los componentes de shadcn
-import { Button } from "@/components/ui/button"; // Para los botones de editar y eliminar
-import { JuradoUI } from "@/features/jurado/types/juradoDetalle.types"; // Importamos la interfaz JuradoUI
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { JuradoUI } from "@/features/jurado/types/juradoDetalle.types";
+import { FileSearch, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import * as React from "react";
 
 interface TableJuradosProps {
   juradosData: JuradoUI[];

@@ -25,7 +25,11 @@ public class MiembroJuradoDto {
     private OffsetDateTime fechaAsignacion;
     private List<String> especialidades;
 
+<<<<<<< HEAD
     public MiembroJuradoDto(Integer id, String codigoPucp, String nombres, String primerApellido, String segundoApellido, String correoElectronico, String nivelEstudios, Integer asignados, String tipoDedicacion, boolean activo, OffsetDateTime fechaAsignacion, List<String> especialidades) {
+=======
+    public MiembroJuradoDto(Integer id, String codigoPucp, String nombres, String primerApellido, String segundoApellido, String correoElectronico, String nivelEstudios, Integer asignados, String tipoDedicacion, boolean activo, OffsetDateTime fechaAsignacion,List<String> especialidades) {
+>>>>>>> 1f49a275c3ebf30ea35c9243d5ca3edc8b0601c5
         this.id = id;
         this.codigoPucp = codigoPucp;
         this.nombres = nombres;
