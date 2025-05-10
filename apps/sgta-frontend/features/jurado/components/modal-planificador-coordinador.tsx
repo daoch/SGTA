@@ -8,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -128,10 +129,10 @@ export default function ModalPlanificadorCoordinador({
             <DialogTitle className="text-lg font-bold">
               Registro de Fecha y Rango de Horarios de Exposiciones
             </DialogTitle>
-            <p className="text-sm text-gray-500 mt-2">
+            <DialogDescription>
               Debe registrar las fechas, rangos horarios y salas habilitadas
               para las exposiciones.
-            </p>
+            </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">

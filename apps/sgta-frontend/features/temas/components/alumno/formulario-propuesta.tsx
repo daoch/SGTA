@@ -1,37 +1,43 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 import { Plus, Save } from "lucide-react";
+import { useRouter } from "next/navigation";
+import React, { useEffect, useState } from "react";
 
-interface Estudiante {
+export interface Estudiante {
+  id: string;
   codigo: string;
   nombre: string;
 }
 
-interface FormData {
+export interface FormData {
   titulo: string;
   descripcion: string;
-  area: string;
+  area: number;               // ahora es number (id de área)
   objetivos: string;
   tipo: "general" | "directa";
-  asesor: string;
+  asesor: string;             // guarda el id del asesor como string
   fechaLimite: string;
 }
 
-const areasData = [
-  "Inteligencia Artificial",
-  "Desarrollo Web",
-  "Ciencia de Datos",
-  "Internet de las Cosas",
+interface Props {
+  loading: boolean;
+  onSubmit: (data: FormData, cotesistas: Estudiante[]) => Promise<void>;
+}
+
+const areasData: { id: number; nombre: string }[] = [
+  { id: 1, nombre: "Inteligencia Artificial" },
+  { id: 2, nombre: "Desarrollo Web" },
+  { id: 3, nombre: "Ciencia de Datos" },
+  { id: 4, nombre: "Internet de las Cosas" },
 ];
 
 const profesoresData = [
@@ -41,189 +47,328 @@ const profesoresData = [
 ];
 
 const estudiantesData: Estudiante[] = [
-  { codigo: "20190123", nombre: "Carlos Mendoza" },
-  { codigo: "20190456", nombre: "Pedro López" },
-  { codigo: "20180789", nombre: "Ana García" },
+  { id: "34", codigo: "20190123", nombre: "Carlos Mendoza" },
+  { id: "31", codigo: "20190456", nombre: "Pedro López" },
+  { id: "22", codigo: "20180789", nombre: "Ana García" },
 ];
 
-const FormularioPropuesta = () => {
+export default function FormularioPropuesta({ loading, onSubmit }: Props) {
   const router = useRouter();
+  const today = new Date().toISOString().split("T")[0];
 
   const [formData, setFormData] = useState<FormData>({
     titulo: "",
     descripcion: "",
-    area: "",
+    area: 0,
     objetivos: "",
     tipo: "general",
     asesor: "",
     fechaLimite: "",
   });
-
-  const [codigoCotesista, setCodigoCotesista] = useState("");
   const [cotesistas, setCotesistas] = useState<Estudiante[]>([]);
+  const [codigoCotesista, setCodigoCotesista] = useState("");
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof FormData, string>>
+  >({});
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  // Si cambia el área, limpio asesor
+  useEffect(() => {
+    setFormData((f) => ({ ...f, asesor: "" }));
+    setErrors((e) => ({ ...e, asesor: undefined }));
+  }, [formData.area]);
+
+  const handleChange =
+    (field: keyof FormData) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setFormData((f) => ({ ...f, [field]: e.target.value }));
+      setErrors((e) => ({ ...e, [field]: undefined }));
+    };
+
+  const handleSelectNum =
+    (field: keyof FormData) =>
+    (value: string /* viene como string del Select */) => {
+      setFormData((f) => ({ ...f, [field]: Number(value) }));
+      setErrors((e) => ({ ...e, [field]: undefined }));
+    };
+
+  const handleSelectStr =
+    (field: keyof FormData) =>
+    (value: string) => {
+      setFormData((f) => ({ ...f, [field]: value }));
+      setErrors((e) => ({ ...e, [field]: undefined }));
+    };
+
+  const handleRemoveCotesista = (id: string) => {
+    setCotesistas((cs) => cs.filter((c) => c.id !== id));
   };
 
-  const handleSelectChange = (field: keyof FormData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
+  // 3) Al agregar, ya llevas el objeto completo (con su id)
   const handleAddCotesista = () => {
-    const estudiante = estudiantesData.find((e) => e.codigo === codigoCotesista);
-    if (estudiante && !cotesistas.some((c) => c.codigo === estudiante.codigo)) {
-      setCotesistas([...cotesistas, estudiante]);
+    const est = estudiantesData.find((e) => e.codigo === codigoCotesista);
+    if (est && !cotesistas.some((c) => c.id === est.id)) {
+      setCotesistas((cs) => [...cs, est]);
       setCodigoCotesista("");
     }
   };
 
+  const validate = (): boolean => {
+    const e: typeof errors = {};
+    if (!/[a-zA-Z]/.test(formData.titulo))
+      e.titulo = "Título obligatorio y debe contener letras.";
+    if (!/[a-zA-Z]/.test(formData.descripcion))
+      e.descripcion = "Descripción obligatoria y debe contener letras.";
+    if (!/[a-zA-Z]/.test(formData.objetivos))
+      e.objetivos = "Objetivos obligatorios y deben contener letras.";
+    if (!formData.area) e.area = "Debe seleccionar un área.";
+    if (formData.tipo === "directa" && !formData.asesor)
+      e.asesor = "Debe seleccionar un asesor.";
+    if (formData.titulo.length > 255) e.titulo = "Máximo 255 caracteres.";
+    if (formData.descripcion.length > 500)
+      e.descripcion = "Máximo 500 caracteres.";
+    if (formData.objetivos.length > 500)
+      e.objetivos = "Máximo 500 caracteres.";
+    if (formData.fechaLimite && formData.fechaLimite <= today)
+      e.fechaLimite = "Fecha límite debe ser futura.";
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const handleLocalSubmit = async () => {
+    if (!validate()) return;
+    await onSubmit(formData, cotesistas);
+  };
+
   return (
     <Card>
-      <form>
+      <form onSubmit={(e) => e.preventDefault()}>
         <CardHeader>
           <CardTitle>Información de la Propuesta</CardTitle>
-          <CardDescription>Complete la información requerida para proponer un nuevo tema de tesis</CardDescription>
+          <CardDescription>
+            Complete la información requerida para proponer un tema
+          </CardDescription>
         </CardHeader>
+
         <CardContent className="flex flex-col gap-6 px-6 py-6">
-          <div className="space-y-2">
-            <Label htmlFor="titulo">Título de la Propuesta</Label>
+          {/* TÍTULO */}
+          <div>
+            <Label htmlFor="titulo" className="mb-2">Título de la Propuesta </Label>
             <Input
               id="titulo"
-              name="titulo"
               value={formData.titulo}
-              onChange={handleChange}
-              placeholder="Ingrese el título de su propuesta de tesis"
-              required
+              onChange={handleChange("titulo")}
+              maxLength={255}
+              className={errors.titulo ? "border-red-500" : ""}
             />
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {formData.titulo.length}/255
+            </p>
+            {errors.titulo && (
+              <p className="text-sm text-red-500">{errors.titulo}</p>
+            )}
           </div>
 
-          <div className="space-y-0.5">
-            <Label>Área de Investigación</Label>
-            <Select value={formData.area} onValueChange={(value) => handleSelectChange("area", value)}>
-              <SelectTrigger>
+          {/* ÁREA */}
+          <div>
+            <Label className="mb-2">Área de Investigación</Label>
+            <Select
+              value={formData.area.toString()}
+              onValueChange={handleSelectNum("area")}
+            >
+              <SelectTrigger
+                className={errors.area ? "border-red-500" : ""}
+              >
                 <SelectValue placeholder="Seleccione un área" />
               </SelectTrigger>
               <SelectContent>
-                {areasData.map((area) => (
-                  <SelectItem key={area} value={area}>
-                    {area}
+                {areasData.map((a) => (
+                  <SelectItem key={a.id} value={a.id.toString()}>
+                    {a.nombre}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            {errors.area && (
+              <p className="text-sm text-red-500">{errors.area}</p>
+            )}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="descripcion">Descripción</Label>
+          {/* DESCRIPCIÓN */}
+          <div>
+            <Label htmlFor="descripción" className="mb-2">Descripción</Label>
             <Textarea
               id="descripcion"
-              name="descripcion"
               value={formData.descripcion}
-              onChange={handleChange}
-              placeholder="Describa su propuesta de tesis"
-              required
+              onChange={handleChange("descripcion")}
+              maxLength={500}
+              className={errors.descripcion ? "border-red-500" : ""}
             />
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {formData.descripcion.length}/500
+            </p>
+            {errors.descripcion && (
+              <p className="text-sm text-red-500">{errors.descripcion}</p>
+            )}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="objetivos">Objetivos</Label>
+          {/* OBJETIVOS */}
+          <div>
+            <Label htmlFor="objetivos" className="mb-2">Objetivos</Label>
             <Textarea
               id="objetivos"
-              name="objetivos"
               value={formData.objetivos}
-              onChange={handleChange}
-              placeholder="Detalle los objetivos generales y específicos de su propuesta"
-              required
+              onChange={handleChange("objetivos")}
+              maxLength={500}
+              className={errors.objetivos ? "border-red-500" : ""}
             />
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {formData.objetivos.length}/500
+            </p>
+            {errors.objetivos && (
+              <p className="text-sm text-red-500">{errors.objetivos}</p>
+            )}
           </div>
 
           <Separator />
 
-          <div className="space-y-2">
-            <Label>Tipo de Propuesta</Label>
-            <RadioGroup value={formData.tipo} onValueChange={(value) => handleSelectChange("tipo", value as "general" | "directa")}>
-              <div className="flex items-center space-x-2">
+          {/* TIPO */}
+          <div>
+            <Label className="mb-3">Tipo de Propuesta</Label>
+            <RadioGroup
+              value={formData.tipo}
+              onValueChange={(v: "general" | "directa") =>
+                handleSelectStr("tipo")(v)
+              }
+            >
+              <div className="flex items-center gap-2">
                 <RadioGroupItem value="general" id="general" />
-                <Label htmlFor="general">General (para cualquier asesor del área)</Label>
+                <Label htmlFor="general">General</Label>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center gap-2">
                 <RadioGroupItem value="directa" id="directa" />
-                <Label htmlFor="directa">Directa (para un asesor específico)</Label>
+                <Label htmlFor="directa">Directa</Label>
               </div>
             </RadioGroup>
           </div>
 
+          {/* ASESOR (solo si directa) */}
           {formData.tipo === "directa" && (
-            <div className="space-y-2">
-              <Label>Asesor</Label>
-              <Select value={formData.asesor} onValueChange={(value) => handleSelectChange("asesor", value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccione un asesor" />
+            <div>
+              <Label className="mb-2">Asesor</Label>
+              <Select
+                value={formData.asesor}
+                onValueChange={handleSelectStr("asesor")}
+                disabled={!formData.area}
+              >
+                <SelectTrigger
+                  className={
+                    !formData.area
+                      ? "opacity-50 cursor-not-allowed"
+                      : errors.asesor
+                      ? "border-red-500"
+                      : ""
+                  }
+                >
+                  <SelectValue
+                    placeholder={
+                      !formData.area
+                        ? "Elige un área primero"
+                        : "Seleccione un asesor"
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {profesoresData.map((p) => (
-                    <SelectItem key={p.id} value={p.nombre}>
+                    <SelectItem key={p.id} value={p.id}>
                       {p.nombre}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              {errors.asesor && (
+                <p className="text-sm text-red-500">{errors.asesor}</p>
+              )}
             </div>
           )}
 
-          <div className="space-y-2">
-            <Label htmlFor="fechaLimite">Fecha Límite (Opcional)</Label>
+          {/* FECHA LÍMITE */}
+          <div>
+            <Label htmlFor="fechaLimite" className="mb-2">Fecha Límite (Opcional)</Label>
             <Input
               id="fechaLimite"
-              name="fechaLimite"
               type="date"
+              min={today}
               value={formData.fechaLimite}
-              onChange={handleChange}
+              onChange={handleChange("fechaLimite")}
+              className={errors.fechaLimite ? "border-red-500" : ""}
             />
+            {errors.fechaLimite && (
+              <p className="text-sm text-red-500">{errors.fechaLimite}</p>
+            )}
           </div>
 
           <Separator />
 
-          <div className="space-y-2">
-            <Label>Cotesistas (Opcional)</Label>
+          {/* COTESISTAS */}
+          <div>
+            <Label className="mb-2">Cotesistas (Opcional)</Label>
             <div className="flex gap-2">
               <Input
-                placeholder="Ingrese código de estudiante"
+                placeholder="Ingrese el código del estudiante"
                 value={codigoCotesista}
                 onChange={(e) => setCodigoCotesista(e.target.value)}
               />
-              <Button type="button" onClick={handleAddCotesista} variant="outline">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleAddCotesista}
+              >
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Ingresa el código de los estudiantes que participarán contigo en esta tesis
-            </p>
             {cotesistas.length > 0 && (
               <ul className="mt-2 space-y-1 text-sm">
                 {cotesistas.map((c) => (
-                  <li key={c.codigo} className="border rounded-md p-2 flex justify-between">
-                    <span>{c.nombre}</span>
-                    <span className="text-muted-foreground">{c.codigo}</span>
+                  <li
+                    key={c.id}
+                    className="border rounded-md p-2 flex justify-between items-center"
+                  >
+                    <div>
+                      <span className="font-medium">{c.nombre}</span>
+                      <span className="ml-2 text-muted-foreground">
+                        ({c.codigo})
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveCotesista(c.id)}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      ×
+                    </button>
                   </li>
                 ))}
               </ul>
             )}
           </div>
         </CardContent>
-        <CardFooter className="flex justify-between">
-          <Button variant="outline" type="button" onClick={() => router.push("/alumno/temas")}>
-            Cancelar
-          </Button>
-          <Button className="bg-[#042354] hover:bg-[#0e2f7a] text-white">
-            <Save className="mr-2 h-4 w-4" /> Guardar Propuesta
-          </Button>
-        </CardFooter>
+
+        <CardFooter className="flex justify-between px-6 py-4">
+              <Button
+                variant="outline"
+                onClick={() => router.push("/alumno/temas")}
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleLocalSubmit}
+                className="bg-[#042354] text-white"
+                disabled={loading}
+              >
+                <Save className="mr-2 h-4 w-4" />{" "}
+                {loading ? "Guardando..." : "Guardar Propuesta"}
+              </Button>
+            </CardFooter>
       </form>
     </Card>
   );
-};
-
-export default FormularioPropuesta;
+}

@@ -44,6 +44,8 @@ public class UsuarioDto {
 
 	private Boolean rechazado; //we reject the application or proposal
 
+	private Boolean creador; //he created the tema
+
 	private OffsetDateTime fechaCreacion;
 
 	private OffsetDateTime fechaModificacion;

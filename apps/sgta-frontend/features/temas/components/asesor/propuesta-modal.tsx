@@ -147,7 +147,7 @@ export function PropuestasModal({
             <Label>Área</Label>
             <div className="p-3 bg-gray-50 rounded-md border">
               <p>
-                {data.subAreas
+                {data.subareas
                   .map(
                     (subareas) =>
                       `${subareas.areaConocimiento.nombre} (${subareas.nombre})`,
@@ -162,7 +162,7 @@ export function PropuestasModal({
               <Label>Estudiante(s)</Label>
               <div className="p-3 bg-gray-50 rounded-md border">
                 <ul className="space-y-1">
-                  {data.estudiantes.map((estudiante, index) => (
+                  {data.tesistas.map((estudiante, index) => (
                     <li
                       key={index}
                       className="flex items-center justify-between"

@@ -14,11 +14,11 @@ BEGIN
         ON uc.usuario_id = u.usuario_id
     INNER JOIN carrera c 
         ON c.carrera_id = uc.carrera_id
-    LEFT JOIN etapa_formativa ef 
+    INNER JOIN etapa_formativa ef 
         ON c.carrera_id = ef.carrera_id
-    LEFT JOIN etapa_formativa_x_ciclo efxc 
+    INNER JOIN etapa_formativa_x_ciclo efxc 
         ON efxc.etapa_formativa_id = ef.etapa_formativa_id
-    LEFT JOIN ciclo c2 
+    INNER JOIN ciclo c2 
         ON c2.ciclo_id = efxc.ciclo_id
         AND c2.activo = true
     WHERE u.usuario_id = p_usuario_id;
@@ -180,3 +180,51 @@ BEGIN
 	ORDER BY j.jornada_exposicion_id; 
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION listar_exposiciones_por_coordinador(p_coordinador_id INTEGER)
+RETURNS TABLE (
+	exposicion_id INTEGER,
+    nombre TEXT,
+    descripcion TEXT,
+    etapa_formativa_id INTEGER,
+    etapa_formativa_nombre TEXT,
+    ciclo_id INTEGER,
+    ciclo_nombre TEXT,
+    estado_planificacion_id INTEGER,
+    estado_planificacion_nombre TEXT
+)
+AS $$
+BEGIN
+return query
+select 
+    e.exposicion_id,
+    e.nombre::TEXT,
+    e.descripcion::TEXT,
+    ef.etapa_formativa_id,
+    ef.nombre::TEXT AS etapa_formativa_nombre,
+    efxc.ciclo_id,
+    c2.nombre::TEXT AS ciclo_nombre,
+    e.estado_planificacion_id,
+    ep.nombre::TEXT AS estado_planificacion_nombre
+from exposicion e
+inner join estado_planificacion ep 
+	on ep.estado_planificacion_id = e.estado_planificacion_id 
+	and ep.nombre <> 'Sin planificar'
+inner join etapa_formativa_x_ciclo efxc 
+	on efxc.etapa_formativa_x_ciclo_id = e.etapa_formativa_x_ciclo_id 
+inner join ciclo c2 
+	on c2.ciclo_id = efxc.ciclo_id 
+inner join etapa_formativa ef 
+	on ef.etapa_formativa_id = efxc.ciclo_id 
+inner join carrera c 
+	on c.carrera_id = ef.carrera_id 
+inner join usuario_carrera uc 
+	on uc.carrera_id = c.carrera_id 
+inner join usuario u
+	on u.usuario_id = uc.usuario_id 
+inner join tipo_usuario tu 
+	on tu.tipo_usuario_id = u.tipo_usuario_id 
+	and tu.nombre = 'coordinador'
+where u.usuario_id = p_coordinador_id;
+END;
+$$ LANGUAGE plpgsql STABLE;

@@ -1,4 +1,26 @@
-import { useState } from "react";
+"use client";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import {
   Table,
   TableBody,
@@ -7,98 +29,127 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Eye, FileEdit, Trash2 } from "lucide-react";
+import { Proyecto, SubAreaConocimiento, Usuario } from "@/features/temas/types/propuestas/entidades";
+import { CheckCircle, Eye, Send, X } from "lucide-react";
+import { useEffect, useState } from "react";
 
-export interface Propuesta {
-  id: string;
-  titulo: string;
-  area: string;
-  estudiantes: string[];
-  codigos: string[];
-  postulaciones: number;
-  fechaLimite: string;
-  tipo: "general" | "directa";
-  descripcion: string;
-  objetivos: string;
-  asesor?: string;
-  estado: "propuesta" | "cotesista_pendiente";
+interface PropuestaAPI {
+  id: number;
+    codigo?: string | null;
+    titulo: string;
+    resumen?: string;
+    objetivos: string;
+    metodologia: string;
+    portafolioUrl?: string;
+    activo?: boolean;
+    fechaLimite: string;
+    fechaFinalizacion?: string;
+    fechaCreacion?: string;
+    fechaModificacion?: string;
+    estadoTemaNombre?: string;
+    carrera?: string;
+    cantPostulaciones: number;
+    coasesores: Usuario[];
+    tesistas: Usuario[];
+    subareas: SubAreaConocimiento[];
+    tipo: string; //agregado
+    estudiantes?: Usuario[];
 }
+
 
 interface PropuestasTableProps {
-  filter?: "general" | "directa"; // Cambiado para reflejar los valores posibles
-  setSelectedPropuesta: (propuesta: Propuesta) => void;
-  propuestas: Propuesta[];
+  filter?: string;
 }
 
-export function PropuestasTable({
-  filter,
-  setSelectedPropuesta,
-  propuestas,
-}: PropuestasTableProps) {
+export function PropuestasTable({ filter }: PropuestasTableProps) {
+  const [propuestas, setPropuestas] = useState<Proyecto[]>([]);
   const [areaFilter, setAreaFilter] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedPropuesta, setSelectedPropuesta] = useState<Proyecto | null>(null);
 
-  const areasUnicas = Array.from(new Set(propuestas.map((p) => p.area)));
+  useEffect(() => {
+    const fetchPropuestas = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/temas/listarPropuestasPorTesista/2`);
+        const data: PropuestaAPI[] = await res.json();
+        const mapeado: Proyecto[] = data.map((item) => ({
+          id: item.id,
+          titulo: item.titulo,
+          subareas: item.subareas,
+          tesistas: item.tesistas,
+          codigos: item.tesistas.map((t) => String(t.id)),
+          cantPostulaciones: item.cantPostulaciones || 0,
+          fechaLimite: item.fechaLimite,
+          tipo:
+            item.estadoTemaNombre === "PROPUESTO_DIRECTO" ? "directa" : "general",
+          resumen: item.resumen,
+          objetivos: item.objetivos || "",
+          metodologia: item.metodologia || "",
+          coasesores: item.coasesores,
+        }));
+        setPropuestas(mapeado);
+      } catch (err) {
+        console.error("Error cargando propuestas:", err);
+      }
+    };
 
-  const propuestasFiltradas = propuestas.filter((p) => {
-    if (filter && p.tipo !== filter) return false;
-    if (areaFilter && p.area !== areaFilter) return false;
-    const term = searchTerm.toLowerCase();
-    const tituloMatch = p.titulo.toLowerCase().includes(term);
-    const estudianteMatch = p.estudiantes.some((e) =>
-      e.toLowerCase().includes(term)
-    );
-    return tituloMatch || estudianteMatch;
+    fetchPropuestas();
+  }, []);
+
+  const propuestasFiltradas = propuestas.filter((propuesta) => {
+    if (filter && propuesta.tipo !== filter) return false;
+    if (areaFilter && propuesta.subareas[0].nombre !== areaFilter) return false;
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      return (
+        propuesta.titulo.toLowerCase().includes(term) ||
+        propuesta.tesistas.some((e) => (e.nombres+e.primerApellido+e.segundoApellido).toLowerCase().includes(term))
+      );
+    }
+    return true;
   });
 
+  const areasUnicas = Array.from(new Set(propuestas.map((p) => p.subareas[0])));
+
   return (
-    <div>
+    <>
       <div className="mb-6 flex flex-col md:flex-row gap-4">
         <Input
           type="search"
           placeholder="Buscar por título o estudiante..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full md:w-1/2"
+          className="w-full"
         />
-        <Select
-          value={areaFilter || "todas"}
-          onValueChange={(v) => setAreaFilter(v === "todas" ? null : v)}
-        >
-          <SelectTrigger className="md:w-1/3">
-            <SelectValue placeholder="Filtrar por área" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="todas">Todas las áreas</SelectItem>
-            {areasUnicas.map((area) => (
-              <SelectItem key={area} value={area}>
-                {area}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="w-full md:w-64">
+          <Select
+            value={areaFilter || "all"}
+            onValueChange={(value) => setAreaFilter(value === "all" ? null : value)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Filtrar por área" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas las áreas</SelectItem>
+              {areasUnicas.map((subareas) => (
+                <SelectItem key={subareas.nombre} value={subareas.nombre}>
+                  {subareas.nombre}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
-      <div className="rounded-md border bg-white overflow-hidden shadow-sm">
+      <div className="rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Título</TableHead>
               <TableHead>Área</TableHead>
-              <TableHead>Cotesista</TableHead>
-              <TableHead>Asesor</TableHead>
+              <TableHead>Estudiante(s)</TableHead>
               <TableHead>Postulaciones</TableHead>
-              <TableHead>Fecha Límite</TableHead>
+              <TableHead>Fecha límite</TableHead>
               <TableHead>Tipo</TableHead>
               <TableHead className="text-right">Acción</TableHead>
             </TableRow>
@@ -106,86 +157,160 @@ export function PropuestasTable({
           <TableBody>
             {propuestasFiltradas.length === 0 ? (
               <TableRow>
-                <TableCell
-                  colSpan={8}
-                  className="text-center py-8 text-muted-foreground"
-                >
+                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                   No hay propuestas disponibles
                 </TableCell>
               </TableRow>
             ) : (
-              propuestasFiltradas.map((p) => (
-                <TableRow key={p.id}>
-                  <TableCell className="max-w-xs truncate font-medium">
-                    {p.titulo}
-                  </TableCell>
-                  <TableCell>{p.area}</TableCell>
+              propuestasFiltradas.map((propuesta) => (
+                <TableRow key={propuesta.id}>
+                  <TableCell className="font-medium max-w-xs truncate">{propuesta.titulo}</TableCell>
+                  <TableCell>{propuesta.subareas[0]?.nombre}</TableCell>
+                  <TableCell>{propuesta.tesistas.map((t) => (t.nombres + " " + t.primerApellido)).join(", ")}</TableCell>
                   <TableCell>
-                    {p.estudiantes.length > 0 ? (
-                      p.estudiantes.join(", ")
+                    {propuesta.cantPostulaciones > 0 ? (
+                      <Badge variant="outline" className="bg-blue-100 text-blue-800 hover:bg-blue-100">
+                        {propuesta.cantPostulaciones}
+                      </Badge>
                     ) : (
-                      <span className="text-muted-foreground">-</span>
+                      <span>-</span>
                     )}
                   </TableCell>
                   <TableCell>
-                    {p.tipo === "general"
-                      ? "No asignado"
-                      : p.asesor || "No asignado"}
-                  </TableCell>
-                  <TableCell>
-                    {p.postulaciones > 0 ? (
-                      <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-semibold bg-blue-100 text-blue-800 rounded-full">
-                        {p.postulaciones}
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground">-</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {new Date(p.fechaLimite).toLocaleDateString()}
+                    {propuesta.fechaLimite
+                      ? new Date(propuesta.fechaLimite).toLocaleDateString()
+                      : "-"}
                   </TableCell>
                   <TableCell>
                     <Badge
                       variant="outline"
                       className={
-                        p.tipo === "directa"
-                          ? "bg-purple-100 text-purple-800"
-                          : "bg-green-100 text-green-800"
+                        propuesta.tipo === "directa"
+                          ? "bg-purple-100 text-purple-800 hover:bg-purple-100"
+                          : "bg-green-100 text-green-800 hover:bg-green-100"
                       }
                     >
-                      {p.tipo === "directa" ? "Directa" : "General"}
+                      {propuesta.tipo === "directa" ? "Directa" : "General"}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() =>
-                          setSelectedPropuesta({
-                            ...p,
-                            estado: p.estado ?? "propuesta",
-                          })
-                        }
-                        className="text-gray-500"
-                      >
-                        <Eye className="h-4 w-4" />
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="ghost" size="icon" onClick={() => setSelectedPropuesta(propuesta)}>
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="w-[90vw] max-w-3xl sm:max-w-3xl">
+                        <DialogHeader>
+                          <DialogTitle>Detalles de la Propuesta</DialogTitle>
+                          <DialogDescription>Información completa sobre la propuesta seleccionada</DialogDescription>
+                        </DialogHeader>
+                        {selectedPropuesta && (
+                          <div className="space-y-6 py-4">
+                            <div className="space-y-1">
+                              <h3 className="font-medium">Título</h3>
+                              <p>{selectedPropuesta.titulo}</p>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="space-y-1">
+                                <h3 className="font-medium">Área</h3>
+                                <p>{selectedPropuesta.subareas[0].nombre}</p>
+                              </div>
+                              {selectedPropuesta.fechaLimite && (
+                                <div className="space-y-1">
+                                  <h3 className="font-medium">Fecha Límite</h3>
+                                  <p>{new Date(selectedPropuesta.fechaLimite).toLocaleDateString()}</p>
+                                </div>
+                              )}
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="space-y-1">
+                                <h3 className="font-medium">Tipo</h3>
+                                <Badge
+                                  variant="outline"
+                                  className={
+                                    selectedPropuesta.tipo === "directa"
+                                      ? "bg-purple-100 text-purple-800"
+                                      : "bg-green-100 text-green-800"
+                                  }
+                                >
+                                  {selectedPropuesta.tipo === "directa" ? "Directa" : "General"}
+                                </Badge>
+                              </div>
+                                <div className="space-y-1">
+                                  <h3 className="font-medium">Postulaciones</h3>
+                                  <p>{selectedPropuesta.cantPostulaciones}</p>
+                                </div>
+                            </div>
+                            {selectedPropuesta.tesistas.length > 0 && (
+                              <div className="space-y-2">
+                                <h3 className="font-medium">Cotesistas invitados</h3>
+                                {selectedPropuesta.tesistas.map((tesistas, i) => (
+                                  <div
+                                    key={i}
+                                    className="p-3 bg-gray-50 rounded-md border flex justify-between items-center"
+                                  >
+                                    <span>{tesistas.nombres + " " + tesistas.primerApellido}</span>
+                                    <Badge
+                                      variant="outline"
+                                      className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100"
+                                    >
+                                      Pendiente
+                                    </Badge>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            {selectedPropuesta.tipo === "directa" && (
+                              <div className="space-y-2">
+                                <Label>Asesor propuesto</Label>
+                                {selectedPropuesta.coasesores.length > 0
+                                  ? selectedPropuesta.coasesores.map((coasesor) => (
+                                      <p key={coasesor.id}>{coasesor.nombres + " " + coasesor.primerApellido}</p>
+                                    ))
+                                  : <p className="text-muted-foreground">No asignado</p>
+                                }
+                              </div>
+                            )}
+                            <Separator />
+                            <div className="space-y-2">
+                              <Label>Descripción</Label>
+                              <div className="p-3 bg-gray-50 rounded-md border">
+                                <p>{selectedPropuesta.resumen}</p>
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Objetivos</Label>
+                              <div className="p-3 bg-gray-50 rounded-md border">
+                                <p>{selectedPropuesta.objetivos}</p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        <DialogFooter>
+                          <Button variant="outline" onClick={() => setSelectedPropuesta(null)}>
+                            Cerrar
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                    {/* Otros botones */}
+                    {propuesta.tipo === "general" && (
+                      <Button variant="ghost" size="icon" className="text-[#042354]">
+                        <Send className="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-muted-foreground"
-                      >
-                        <FileEdit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-red-500"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    )}
+                    {propuesta.tipo === "directa" && (
+                      <>
+                        <Button variant="ghost" size="icon" className="text-red-500">
+                          <X className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="text-green-500">
+                          <CheckCircle className="h-4 w-4" />
+                        </Button>
+                      </>
+                    )}
                   </TableCell>
                 </TableRow>
               ))
@@ -193,6 +318,6 @@ export function PropuestasTable({
           </TableBody>
         </Table>
       </div>
-    </div>
+    </>
   );
 }

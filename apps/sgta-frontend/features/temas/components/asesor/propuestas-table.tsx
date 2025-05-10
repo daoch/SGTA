@@ -114,7 +114,7 @@ export function PropuestasTable({
     // Filtrar por área si hay un filtro de área seleccionado
     if (
       areaFilter &&
-      !propuesta.subAreas.some(
+      !propuesta.subareas.some(
         (subArea) => subArea.areaConocimiento.nombre === areaFilter,
       )
     ) {
@@ -145,7 +145,7 @@ export function PropuestasTable({
     console.log({ selectedPropuesta });
     if (selectedPropuesta) {
       postularTemaPropuestoGeneral(
-        selectedPropuesta?.estudiantes[0]?.id,
+        selectedPropuesta?.tesistas[0]?.id,
         1,
         selectedPropuesta?.id,
         comentario,
@@ -165,7 +165,7 @@ export function PropuestasTable({
     console.log({ selectedPropuesta });
     if (selectedPropuesta) {
       await enlazarTesistasATemaPropuestoDirecta(
-        selectedPropuesta?.estudiantes?.map((item) => item.id),
+        selectedPropuesta?.tesistas?.map((item) => item.id),
         selectedPropuesta?.id,
         1,
         comentario,
@@ -181,7 +181,7 @@ export function PropuestasTable({
     console.log({ selectedPropuesta });
     if (selectedPropuesta) {
       await rechazarTema(
-        selectedPropuesta?.estudiantes[0]?.id,
+        selectedPropuesta?.tesistas[0]?.id,
         selectedPropuesta?.id,
         comentario,
       );
@@ -277,14 +277,14 @@ export function PropuestasTable({
                   <TableCell>
                     {Array.from(
                       new Set(
-                        propuesta.subAreas.map(
-                          (subArea) => subArea.areaConocimiento.nombre,
+                        propuesta.tesistas.map(
+                          (subArea) => subArea.nombres,
                         ),
                       ),
                     ).join(", ")}
                   </TableCell>
                   <TableCell>
-                    {propuesta.estudiantes
+                    {propuesta.tesistas
                       .map(
                         (estudiante) =>
                           `${estudiante.nombres} ${estudiante.primerApellido} ${estudiante.segundoApellido}`,

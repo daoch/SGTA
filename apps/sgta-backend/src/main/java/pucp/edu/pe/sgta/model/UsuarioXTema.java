@@ -39,6 +39,9 @@ public class UsuarioXTema {
 	@Column(name = "rechazado", nullable = false)
 	private Boolean rechazado = false;
 
+	@Column(name = "creador", nullable = false)
+	private Boolean creador = false;
+
 	@Column(columnDefinition = "TEXT")
 	private String comentario ;
 

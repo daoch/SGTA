@@ -3,27 +3,27 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
 } from "@/components/ui/card";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import {
-    Tabs,
-    TabsContent,
-    TabsList,
-    TabsTrigger
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger
 } from "@/components/ui/tabs";
 import { PendientesCotesistasCard } from "@/features/temas/components/alumno/pendientes-cotesistas-card";
 import { PropuestasTable } from "@/features/temas/components/alumno/propuestas-table";
@@ -111,6 +111,18 @@ const propuestas: Propuesta[] = [
   }
 ];
 
+/*
+// src/pages/alumno/temas/index.tsx  (o donde esté tu MisTemasPage)
+const propuestasPendientes = propuestas.filter(p =>
+  // SI ALGÚN tesista NO está asignado → va a pendientes
+  p.tesistas.some(t => t.asignado === false)
+);
+const propuestasConfirmadas = propuestas.filter(p =>
+  // SI TODOS los tesistas están asignados → va a confirmadas
+  p.tesistas.every(t => t.asignado === true)
+);*/
+
+
 const MisTemasPage = () => {
   const [selectedPropuesta, setSelectedPropuesta] = useState<Propuesta | null>(null);
 
@@ -157,7 +169,7 @@ const MisTemasPage = () => {
               <CardDescription>Temas de proyectos a los que has postulado</CardDescription>
             </CardHeader>
             <CardContent>
-              <PropuestasTable propuestas={propuestasConfirmadas} setSelectedPropuesta={setSelectedPropuesta} />
+              <PropuestasTable/>
             </CardContent>
           </Card>
         </TabsContent>
@@ -178,7 +190,7 @@ const MisTemasPage = () => {
                 onDelete={() => {}}
               />
               <div className="mt-6" />
-              <PropuestasTable propuestas={propuestasConfirmadas} setSelectedPropuesta={setSelectedPropuesta} />
+              <PropuestasTable/>
             </CardContent>
           </Card>
         </TabsContent>
