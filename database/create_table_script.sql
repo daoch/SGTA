@@ -261,6 +261,7 @@ CREATE TABLE IF NOT EXISTS usuario_tema (
                                             rol_id                   INTEGER           NOT NULL,
                                             asignado                 BOOLEAN           NOT NULL DEFAULT FALSE,
                                             rechazado                BOOLEAN           NOT NULL DEFAULT FALSE,
+                                            creador                  BOOLEAN           NOT NULL DEFAULT FALSE,
                                             prioridad                INTEGER,
                                             comentario               TEXT,
                                             activo                   BOOLEAN           NOT NULL DEFAULT TRUE,
