@@ -4,6 +4,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import pucp.edu.pe.sgta.dto.ExposicionDto;
 import pucp.edu.pe.sgta.dto.ExposicionNombreDTO;
+import pucp.edu.pe.sgta.dto.ListExposicionXCoordinadorDTO;
 import pucp.edu.pe.sgta.mapper.ExposicionMapper;
 import pucp.edu.pe.sgta.model.EtapaFormativaXCiclo;
 import pucp.edu.pe.sgta.model.Exposicion;
@@ -107,4 +108,21 @@ public class ExposicionServiceImpl implements ExposicionService {
         return  expoList;
     }
 
+    @Override
+    public List<ListExposicionXCoordinadorDTO> listarExposicionesInicializadasXCoordinador(Integer coordinadorId) {
+        List<Object[]> resultados = exposicionRepository.listarExposicionesInicializadasXCoordinador(coordinadorId);
+        return resultados.stream()
+                .map(resultado -> new ListExposicionXCoordinadorDTO(
+                        ((Number) resultado[0]).intValue(), // exposicionId
+                        (String) resultado[1],              // nombre
+                        (String) resultado[2],              // descripcion
+                        ((Number) resultado[3]).intValue(), // etapaFormativaId
+                        (String) resultado[4],              // etapaFormativaNombre
+                        ((Number) resultado[5]).intValue(), // cicloId
+                        (String) resultado[6],              // cicloNombre
+                        ((Number) resultado[7]).intValue(), // estadoPlanificacionId
+                        (String) resultado[8]               // estadoPlanificacionNombre
+                ))
+                .collect(Collectors.toList());
+    }
 }
