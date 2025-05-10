@@ -3,7 +3,7 @@ package pucp.edu.pe.sgta.service.inter;
 import pucp.edu.pe.sgta.dto.ExposicionDto;
 
 import pucp.edu.pe.sgta.dto.ExposicionNombreDTO;
-
+import pucp.edu.pe.sgta.dto.ListExposicionXCoordinadorDTO;
 
 import java.util.List;
 
@@ -22,4 +22,5 @@ public interface ExposicionService {
 
     List<ExposicionNombreDTO>listarExposicionXCicloActualEtapaFormativa(Integer etapaFormativaId);
 
+    List<ListExposicionXCoordinadorDTO> listarExposicionesInicializadasXCoordinador(Integer coordinadorId);
 }

@@ -14,12 +14,12 @@ public class EntregableController {
     @Autowired
     EntregableService entregableService;
 
-    @GetMapping("/etapaFormativaXCiclo/{etapaFormativaXCicloId}")
+    @GetMapping("/etapa-formativa-x-ciclo/{etapaFormativaXCicloId}")
     public List<EntregableDto> listarEntregablesXEtapaFormativaXCiclo(@PathVariable Integer etapaFormativaXCicloId) {
         return entregableService.listarEntregablesXEtapaFormativaXCiclo(etapaFormativaXCicloId);
     }
 
-    @PostMapping("/etapaFormativaXCiclo/{etapaFormativaXCicloId}")
+    @PostMapping("/etapa-formativa-x-ciclo/{etapaFormativaXCicloId}")
     public Integer create(@PathVariable Integer etapaFormativaXCicloId, @RequestBody EntregableDto entregableDto) {
         return entregableService.create(etapaFormativaXCicloId, entregableDto);
     }

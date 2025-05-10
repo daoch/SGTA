@@ -52,8 +52,12 @@ export const EntregableModal: React.FC<EntregableModalProps> = ({
         id: entregable.id,
         nombre: entregable.nombre,
         descripcion: entregable.descripcion,
-        fechaInicio: entregable.fechaInicio,
-        fechaFin: entregable.fechaFin,
+        fechaInicio: entregable.fechaInicio
+          ? toLocalDatetime(entregable.fechaInicio) // Convertir a zona horaria local
+          : "",
+        fechaFin: entregable.fechaFin
+          ? toLocalDatetime(entregable.fechaFin) // Convertir a zona horaria local
+          : "",
         esEvaluable: entregable.esEvaluable,
       });
     } else {
@@ -89,18 +93,36 @@ export const EntregableModal: React.FC<EntregableModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-
+  
     try {
-      await onSubmit(formData);
-      // No limpiamos el formulario aquí, ya que useEffect se encargará de eso
+      // Convertir las fechas al formato ISO completo
+      const formattedData = {
+        ...formData,
+        fechaInicio: new Date(formData.fechaInicio).toISOString(),
+        fechaFin: new Date(formData.fechaFin).toISOString()
+      };
+  
+      await onSubmit(formattedData);
     } catch (error) {
       console.error(
         `Error al ${isEditMode ? "actualizar" : "crear"} el entregable:`,
-        error,
+        error
       );
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const toLocalDatetime = (isoDate: string): string => {
+    const date = new Date(isoDate); // Crear un objeto Date desde la fecha ISO
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0"); // Meses van de 0 a 11
+    const day = String(date.getDate()).padStart(2, "0");
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+  
+    // Formato compatible con datetime-local: "YYYY-MM-DDTHH:mm"
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
 
   return (
@@ -163,21 +185,24 @@ export const EntregableModal: React.FC<EntregableModalProps> = ({
               />
             </div>
             <div className="grid gap-2">
-              <Label>¿Es evaluable?</Label>
-              <RadioGroup
-                id="radioEsEvaluable"
-                value={formData.esEvaluable.toString()}
-                onValueChange={handleRadioChange}
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="true" id="radioSi" />
-                  <Label htmlFor="radioSi">Sí</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="false" id="radioNo" />
-                  <Label htmlFor="radioNo">No</Label>
-                </div>
-              </RadioGroup>
+              <div className="flex items-center space-x-4">
+                <Label>¿Es evaluable?</Label>
+                <RadioGroup
+                  id="radioEsEvaluable"
+                  value={formData.esEvaluable.toString()}
+                  onValueChange={handleRadioChange}
+                  className="flex space-x-4"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="true" id="radioSi" />
+                    <Label htmlFor="radioSi">Sí</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="false" id="radioNo" />
+                    <Label htmlFor="radioNo">No</Label>
+                  </div>
+                </RadioGroup>
+              </div>
             </div>
           </div>
           <DialogFooter>

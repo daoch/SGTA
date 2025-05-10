@@ -2,6 +2,7 @@ package pucp.edu.pe.sgta.service.inter;
 
 import java.util.List;
 
+import pucp.edu.pe.sgta.dto.EtapaFormativaXSalaExposicionConEtapaFormativaDTO;
 import pucp.edu.pe.sgta.dto.EtapaFormativaXSalaExposicionDto;
 
 public interface EtapaFormativaXSalaExposicionService {
@@ -14,4 +15,7 @@ public interface EtapaFormativaXSalaExposicionService {
     void update(EtapaFormativaXSalaExposicionDto dto);
 
     void delete(Integer id);
+
+    List<EtapaFormativaXSalaExposicionConEtapaFormativaDTO> listarEtapasFormativasXSalaExposicion(
+            Integer etapaFormativaId);
 }

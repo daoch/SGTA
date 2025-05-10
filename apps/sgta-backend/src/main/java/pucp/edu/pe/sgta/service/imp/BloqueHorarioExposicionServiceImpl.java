@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import pucp.edu.pe.sgta.dto.BloqueHorarioExposicionCreateDTO;
 import pucp.edu.pe.sgta.dto.BloqueHorarioExposicionDto;
 import pucp.edu.pe.sgta.mapper.BloqueHorarioExposicionMapper;
 import pucp.edu.pe.sgta.model.BloqueHorarioExposicion;
@@ -34,8 +35,9 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
     }
 
     @Override
-    public void create(BloqueHorarioExposicionDto dto) {
-
+    public BloqueHorarioExposicionDto create(BloqueHorarioExposicionCreateDTO dto) {
+        BloqueHorarioExposicion bloqueHorarioExposicion = BloqueHorarioExposicionMapper.toEntity(dto);
+        return BloqueHorarioExposicionMapper.toDTO(bloqueHorarioExposicion);
     }
 
     @Override

@@ -15,51 +15,52 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 
-export interface ContenidoExposicionFormData {
+export interface CriterioExposicionFormData {
   id?: string;
-  titulo: string;
+  nombre: string;
   descripcion: string;
-  puntos: number;
+  notaMaxima: number;
 }
 
-interface ContenidoExposicionModalProps {
+interface CriterioExposicionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (contenido: ContenidoExposicionFormData) => Promise<void>;
-  contenido?: ContenidoExposicionFormData | null;
+  onSubmit: (contenido: CriterioExposicionFormData) => Promise<void>;
+  criterio?: CriterioExposicionFormData | null;
   mode: "create" | "edit";
 }
 
-export const ContenidoExposicionModal: React.FC<
-  ContenidoExposicionModalProps
-> = ({ isOpen, onClose, onSubmit, contenido, mode }) => {
+export const CriterioExposicionModal: React.FC<
+CriterioExposicionModalProps
+> = ({ isOpen, onClose, onSubmit, criterio, mode }) => {
   const isEditMode = mode === "edit";
 
-  const [formData, setFormData] = useState<ContenidoExposicionFormData>({
-    titulo: "",
+  const [formData, setFormData] = useState<CriterioExposicionFormData>({
+    nombre: "",
     descripcion: "",
-    puntos: 0,
+    notaMaxima: 0,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Cargar datos del contenido cuando cambie (en modo edición)
   useEffect(() => {
-    if (isEditMode && contenido) {
+    if (isEditMode && criterio) {
       setFormData({
-        id: contenido.id,
-        titulo: contenido.titulo,
-        descripcion: contenido.descripcion,
-        puntos: contenido.puntos,
+        id: criterio.id,
+        nombre: criterio.nombre,
+        descripcion: criterio.descripcion,
+        notaMaxima: criterio.notaMaxima,
       });
     } else {
       // Resetear el formulario en modo creación
       setFormData({
-        titulo: "",
+        id: "",
+        nombre: "",
         descripcion: "",
-        puntos: 0,
+        notaMaxima: 0,
       });
     }
-  }, [contenido, isEditMode, isOpen]);
+  }, [criterio, isEditMode, isOpen]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -67,7 +68,7 @@ export const ContenidoExposicionModal: React.FC<
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: name === "puntos" ? Number.parseInt(value) || 0 : value,
+      [name]: name === "notaMaxima" ? Number.parseInt(value) || 0 : value,
     }));
   };
 
@@ -109,9 +110,9 @@ export const ContenidoExposicionModal: React.FC<
               <Label htmlFor="titulo">Nombre del Contenido</Label>
               <Input
                 id="txtNombreContenido"
-                name="titulo"
+                name="nombre"
                 placeholder="Ej: Introducción"
-                value={formData.titulo}
+                value={formData.nombre}
                 onChange={handleInputChange}
                 required
               />
@@ -132,12 +133,12 @@ export const ContenidoExposicionModal: React.FC<
               <Label htmlFor="puntos">Peso en la Calificación (puntos)</Label>
               <Input
                 id="txtPuntosContenido"
-                name="puntos"
+                name="notaMaxima"
                 type="number"
                 min="1"
                 max="20"
                 placeholder="Ej: 5"
-                value={formData.puntos || ""}
+                value={formData.notaMaxima || ""}
                 onChange={handleInputChange}
                 required
               />

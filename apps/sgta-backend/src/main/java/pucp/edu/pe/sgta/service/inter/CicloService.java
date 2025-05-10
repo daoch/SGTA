@@ -1,6 +1,8 @@
 package pucp.edu.pe.sgta.service.inter;
 
 import pucp.edu.pe.sgta.dto.CicloDto;
+import pucp.edu.pe.sgta.model.Ciclo;
+
 import java.util.List;
 
 public interface CicloService {
@@ -15,4 +17,5 @@ public interface CicloService {
 
     void delete(Integer id);
 
+    List<Ciclo> listarCiclosOrdenados();
 }

@@ -11,8 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * TemaDto es el objeto que exponemos en nuestra API
- * para no enviar directamente la entidad JPA (Tema).
+ * TemaDto es el objeto que exponemos en nuestra API para no enviar directamente la
+ * entidad JPA (Tema).
  */
 @Getter
 @Setter
@@ -29,6 +29,7 @@ public class TemaDto {
     private String metodologia;
     private String portafolioUrl;
     private Boolean activo;
+    private Boolean rechazado;
     private OffsetDateTime fechaLimite;
     private OffsetDateTime fechaFinalizacion;
     private OffsetDateTime fechaCreacion;
