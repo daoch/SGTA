@@ -1,6 +1,5 @@
 package pucp.edu.pe.sgta.service.imp;
 
-
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Service;
@@ -27,18 +26,18 @@ public class AreaConocimientoServiceImpl implements AreaConocimientoService {
     private EntityManager entityManager;
 
     public AreaConocimientoServiceImpl(AreaConocimientoRepository areaConocimientoRepository,
-                                       CarreraRepository carreraRepository) {
+            CarreraRepository carreraRepository) {
         this.areaConocimientoRepository = areaConocimientoRepository;
         this.carreraRepository = carreraRepository;
     }
 
-    //create
+    // create
     @Override
     public AreaConocimientoDto create(AreaConocimientoDto dto) {
-        if(dto.getIdCarrera() == null) {
+        if (dto.getIdCarrera() == null) {
             throw new IllegalArgumentException("El id de la carrera no puede ser nulo");
         }
-        //fecha Creacion
+        // fecha Creacion
         dto.setFechaCreacion(java.time.OffsetDateTime.now());
         Carrera carrera = new Carrera();
         carrera.setId(dto.getIdCarrera());
@@ -58,8 +57,6 @@ public class AreaConocimientoServiceImpl implements AreaConocimientoService {
         return null;
     }
 
-
-
     @Override
     public List<AreaConocimientoDto> listarPorUsuario(Integer usuarioId) {
         List<AreaConocimientoDto> lista = new ArrayList<>();
@@ -71,8 +68,8 @@ public class AreaConocimientoServiceImpl implements AreaConocimientoService {
 
         for (Object[] fila : resultados) {
             AreaConocimientoDto dto = new AreaConocimientoDto();
-            dto.setId((Integer) fila[0]);          // area_id
-            dto.setNombre((String) fila[1]);       // area_nombre
+            dto.setId((Integer) fila[0]); // area_id
+            dto.setNombre((String) fila[1]); // area_nombre
             dto.setDescripcion((String) fila[2]);
             dto.setActivo(true);// descripcion
             lista.add(dto);
@@ -86,8 +83,7 @@ public class AreaConocimientoServiceImpl implements AreaConocimientoService {
     public List<InfoAreaConocimientoDto> listarInfoPorNombre(String nombre) {
         return areaConocimientoRepository.findByNombreContainingIgnoreCaseAndActivoIsTrue(nombre)
                 .stream()
-                .map(InfoAreaConocimientoMapper::toDto).
-                toList();
+                .map(InfoAreaConocimientoMapper::toDto).toList();
     }
 
     public void delete(Integer id) {
@@ -109,7 +105,8 @@ public class AreaConocimientoServiceImpl implements AreaConocimientoService {
 
     @Override
     public List<AreaConocimientoDto> getAllByCarrera(Integer idCarrera) {
-        List<AreaConocimiento> areasConocimiento = areaConocimientoRepository.findAllByCarreraIdAndActivoTrue(idCarrera);
+        List<AreaConocimiento> areasConocimiento = areaConocimientoRepository
+                .findAllByCarreraIdAndActivoTrue(idCarrera);
         List<AreaConocimientoDto> dtos = areasConocimiento.stream()
                 .map(AreaConocimientoMapper::toDto)
                 .toList();
@@ -128,7 +125,7 @@ public class AreaConocimientoServiceImpl implements AreaConocimientoService {
         for (Object[] row : resultCarreras) {
             idCarrerasUsuario.add((Integer) row[0]);
         }
-        return  areaConocimientoRepository.findByCarreraIdInAndActivoTrue(idCarrerasUsuario)
+        return areaConocimientoRepository.findByCarreraIdInAndActivoTrue(idCarrerasUsuario)
                 .stream()
                 .map(InfoAreaConocimientoMapper::toDto)
                 .toList();
