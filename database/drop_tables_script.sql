@@ -15,6 +15,8 @@ DROP TABLE IF EXISTS permiso                          CASCADE;
 DROP TABLE IF EXISTS tipo_notificacion                CASCADE;
 DROP TABLE IF EXISTS modulo                           CASCADE;
 DROP TABLE IF EXISTS usuario_carrera                  CASCADE;
+DROP TABLE IF EXISTS usuario_reunion                  CASCADE;
+DROP TABLE IF EXISTS reunion                          CASCADE;
 
 -- Tablas académicas y de configuración
 DROP TABLE IF EXISTS carrera_parametro_configuracion   CASCADE;
@@ -50,6 +52,7 @@ DROP TABLE IF EXISTS jornada_exposicion                   CASCADE;
 DROP TABLE IF EXISTS exposicion                           CASCADE;
 DROP TABLE IF EXISTS tipo_exposicion_x_ef_x_c             CASCADE;
 DROP TABLE IF EXISTS etapa_formativa_x_ciclo              CASCADE;
+DROP TABLE IF EXISTS etapa_formativa_x_ciclo_x_tema       CASCADE;
 DROP TABLE IF EXISTS sala_exposicion                      CASCADE;
 DROP TABLE IF EXISTS tipo_exposicion                      CASCADE;
 DROP TABLE IF EXISTS estado_planificacion                 CASCADE;
