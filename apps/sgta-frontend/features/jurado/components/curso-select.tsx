@@ -1,4 +1,4 @@
-// src/components/curso-select.tsx o src/features/exposiciones/components/curso-select.tsx
+"use client";
 
 import { Label } from "@/components/ui/label";
 import {
@@ -8,9 +8,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import React from "react";
 
 interface CursoSelectProps {
-  curso: string;
+  curso: string | null;
   setCurso: (value: string) => void;
   cursos: { id: number; nombre: string }[];
 }
@@ -21,20 +22,25 @@ export const CursoSelect: React.FC<CursoSelectProps> = ({
   cursos,
 }) => {
   const handleChange = (value: string) => {
-    setCurso(value); // actualiza el estado con el ID
+    setCurso(value);
     console.log("ID del curso seleccionado:", value);
   };
+
   return (
     <div className="flex flex-col space-y-1">
       <Label htmlFor="curso">Curso</Label>
-      <Select value={curso} onValueChange={handleChange}>
+      <Select
+        value={curso ?? ""}
+        onValueChange={handleChange}
+        disabled={cursos.length === 0}
+      >
         <SelectTrigger id="curso" className="w-[250px]">
           <SelectValue placeholder="Selecciona un curso" />
         </SelectTrigger>
         <SelectContent>
-          {cursos.map((curso) => (
-            <SelectItem key={curso.id} value={String(curso.id)}>
-              {curso.nombre}
+          {cursos.map((cursoItem) => (
+            <SelectItem key={cursoItem.id} value={String(cursoItem.id)}>
+              {cursoItem.nombre}
             </SelectItem>
           ))}
         </SelectContent>
@@ -42,4 +48,3 @@ export const CursoSelect: React.FC<CursoSelectProps> = ({
     </div>
   );
 };
-
