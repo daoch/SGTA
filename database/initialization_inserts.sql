@@ -64,7 +64,9 @@ INSERT INTO area_conocimiento (carrera_id,nombre, descripcion, activo, fecha_cre
 VALUES
     -- ambas áreas las atribuimos a la carrera INF (carrera_id = 1)
     (1, 'ciencias de la computación', 'Disciplina de teorías y sistemas computacionales', TRUE, NOW(), NOW()),
-    (1, 'sistemas de información',    'Estudio de sistemas para gestión de información',       TRUE, NOW(), NOW());
+    (1, 'sistemas de información',    'Estudio de sistemas para gestión de información',       TRUE, NOW(), NOW()),
+    (1, 'ciberseguridad',         'Protección de activos digitales ante amenazas',            TRUE, NOW(), NOW());
+
 
 -- 9) Sub-área de conocimiento (área_conocimiento_id = 1)
 INSERT INTO sub_area_conocimiento
@@ -72,7 +74,19 @@ INSERT INTO sub_area_conocimiento
 VALUES
     (1, 'Procesamiento de lenguaje natural', 'Técnicas para análisis y generación de texto', TRUE, NOW(), NOW()),
     (1, 'Aprendizaje por reforzamiento',     'Métodos basados en recompensas y agentes',  TRUE, NOW(), NOW()),
-    (1, 'Procesamiento de imágenes',         'Algoritmos para interpretación de imágenes', TRUE, NOW(), NOW());
+    (1, 'Procesamiento de imágenes',         'Algoritmos para interpretación de imágenes', TRUE, NOW(), NOW()),
+    (1, 'Visión computacional',                'Análisis de imágenes y videos para tareas específicas', TRUE, NOW(), NOW()),
+    (1, 'Machine Learning',                 'Modelos computacionales de regresión y clasificación', TRUE, NOW(), NOW()),
+    (2, 'Sistemas de gestión de bases de datos', 'Diseño y administración de bases de datos', TRUE, NOW(), NOW()),
+    (2, 'Sistemas distribuidos',            'Arquitecturas y protocolos para sistemas distribuidos', TRUE, NOW(), NOW()),
+    (2, 'Redes de computadoras',            'Interconexión y comunicación entre computadoras', TRUE, NOW(), NOW()),
+    (2, 'Desarrollo de software',         'Metodologías y herramientas para desarrollo de software', TRUE, NOW(), NOW()),
+    (2, 'Ingeniería de requisitos',         'Recopilación y análisis de requisitos de software', TRUE, NOW(), NOW()),
+    (3, 'Seguridad en redes',               'Protección de redes y sistemas ante ataques', TRUE, NOW(), NOW()),
+    (3, 'Criptografía',                     'Técnicas para asegurar la información mediante cifrado', TRUE, NOW(), NOW()),
+    (3, 'Seguridad en aplicaciones web',     'Protección de aplicaciones web contra vulnerabilidades', TRUE, NOW(), NOW()),
+    (3, 'Seguridad en sistemas operativos',  'Protección de sistemas operativos ante amenazas', TRUE, NOW(), NOW()),
+    (3, 'Análisis forense digital',         'Investigación de incidentes de seguridad digital', TRUE, NOW(), NOW());
 
 -- 10) Tipo de solicitud
 INSERT INTO tipo_solicitud (nombre, descripcion, activo, fecha_creacion, fecha_modificacion)

@@ -21,7 +21,7 @@ BEGIN
     LEFT JOIN ciclo c2 
         ON c2.ciclo_id = efxc.ciclo_id
         AND c2.activo = true
-    WHERE u.usuario_id = p_usuario_id;
+    WHERE u.usuario_id = p_usuario_id and ef.etapa_formativa_id is not null;
 END;
 $$ LANGUAGE plpgsql STABLE;
 
