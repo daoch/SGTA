@@ -2,7 +2,7 @@ export type Proyecto = {
   id: string;
   titulo: string;
   area: string;
-  estudiantes: string[];
+  tesistas: { nombre: string; asignado: boolean }[];
   codigos: string[];
   postulaciones: number;
   fechaLimite: string;
@@ -15,4 +15,5 @@ export type Proyecto = {
     tipo: string;
     fecha: string;
   }[];
+  coasesores: string[];
 };

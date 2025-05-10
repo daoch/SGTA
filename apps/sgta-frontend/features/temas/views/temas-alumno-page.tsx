@@ -111,6 +111,18 @@ const propuestas: Propuesta[] = [
   }
 ];
 
+/*
+// src/pages/alumno/temas/index.tsx  (o donde esté tu MisTemasPage)
+const propuestasPendientes = propuestas.filter(p =>
+  // SI ALGÚN tesista NO está asignado → va a pendientes
+  p.tesistas.some(t => t.asignado === false)
+);
+const propuestasConfirmadas = propuestas.filter(p =>
+  // SI TODOS los tesistas están asignados → va a confirmadas
+  p.tesistas.every(t => t.asignado === true)
+);*/
+
+
 const MisTemasPage = () => {
   const [selectedPropuesta, setSelectedPropuesta] = useState<Propuesta | null>(null);
 

@@ -43,8 +43,21 @@ interface PropuestaAPI {
   estadoTemaNombre: string;
   cantPostulaciones: number;
   subareas: { nombre: string }[];
-  tesistas: { nombre: string }[];
+  tesistas: {
+    id: number;
+    nombres: string;
+    primerApellido: string;
+    segundoApellido: string;
+    asignado: boolean;
+  }[];
+  coasesores: {
+    id: number;
+    nombres: string;
+    primerApellido: string;
+    segundoApellido: string;
+  }[];
 }
+
 
 interface PropuestasTableProps {
   filter?: string;
@@ -59,20 +72,27 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
   useEffect(() => {
     const fetchPropuestas = async () => {
       try {
-        const res = await fetch("http://localhost:5000/temas/listarPropuestasPorTesista/2");
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/temas/listarPropuestasPorTesista/2`);
         const data: PropuestaAPI[] = await res.json();
         const mapeado: Proyecto[] = data.map((item) => ({
           id: String(item.id),
           titulo: item.titulo,
           area: item.subareas[0]?.nombre || "Sin área",
-          estudiantes: item.tesistas?.map((t) => t.nombre) || [],
-          codigos: [],
-          postulaciones: item.cantPostulaciones,
+          tesistas: item.tesistas.map(t => ({
+            nombre: `${t.nombres} ${t.primerApellido} ${t.segundoApellido}`.trim(),
+            asignado: t.asignado
+          })),
+          codigos: item.tesistas.map((t) => String(t.id)),
+          postulaciones: item.cantPostulaciones || 0,
           fechaLimite: item.fechaLimite,
-          tipo: item.estadoTemaNombre === "PROPUESTO_DIRECTO" ? "directa" : "general",
+          tipo:
+            item.estadoTemaNombre === "PROPUESTO_DIRECTO" ? "directa" : "general",
           descripcion: item.resumen,
           objetivos: item.objetivos || "",
           metodologia: item.metodologia || "",
+          coasesores: item.coasesores?.map(co => 
+            `${co.nombres} ${co.primerApellido} ${co.segundoApellido}`.trim()
+          ) || [],
           recursos: [],
         }));
         setPropuestas(mapeado);
@@ -91,7 +111,7 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
       const term = searchTerm.toLowerCase();
       return (
         propuesta.titulo.toLowerCase().includes(term) ||
-        propuesta.estudiantes.some((e) => e.toLowerCase().includes(term))
+        propuesta.tesistas.some((e) => e.nombre.toLowerCase().includes(term))
       );
     }
     return true;
@@ -154,7 +174,7 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
                 <TableRow key={propuesta.id}>
                   <TableCell className="font-medium max-w-xs truncate">{propuesta.titulo}</TableCell>
                   <TableCell>{propuesta.area}</TableCell>
-                  <TableCell>{propuesta.estudiantes.join(", ")}</TableCell>
+                  <TableCell>{propuesta.tesistas.map((t) => t.nombre).join(", ")}</TableCell>
                   <TableCell>
                     {propuesta.postulaciones > 0 ? (
                       <Badge variant="outline" className="bg-blue-100 text-blue-800 hover:bg-blue-100">
@@ -164,7 +184,11 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
                       <span>-</span>
                     )}
                   </TableCell>
-                  <TableCell>{new Date(propuesta.fechaLimite).toLocaleDateString()}</TableCell>
+                  <TableCell>
+                    {propuesta.fechaLimite
+                      ? new Date(propuesta.fechaLimite).toLocaleDateString()
+                      : "-"}
+                  </TableCell>
                   <TableCell>
                     <Badge
                       variant="outline"
@@ -184,29 +208,31 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
                           <Eye className="h-4 w-4" />
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="w-[90vw] max-w-3xl">
+                      <DialogContent className="w-[90vw] max-w-3xl sm:max-w-3xl">
                         <DialogHeader>
                           <DialogTitle>Detalles de la Propuesta</DialogTitle>
                           <DialogDescription>Información completa sobre la propuesta seleccionada</DialogDescription>
                         </DialogHeader>
                         {selectedPropuesta && (
                           <div className="space-y-6 py-4">
-                            <div>
+                            <div className="space-y-1">
                               <h3 className="font-medium">Título</h3>
                               <p>{selectedPropuesta.titulo}</p>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
-                              <div>
+                              <div className="space-y-1">
                                 <h3 className="font-medium">Área</h3>
                                 <p>{selectedPropuesta.area}</p>
                               </div>
-                              <div>
-                                <h3 className="font-medium">Fecha límite</h3>
-                                <p>{new Date(selectedPropuesta.fechaLimite).toLocaleDateString()}</p>
-                              </div>
+                              {selectedPropuesta.fechaLimite && (
+                                <div className="space-y-1">
+                                  <h3 className="font-medium">Fecha Límite</h3>
+                                  <p>{new Date(selectedPropuesta.fechaLimite).toLocaleDateString()}</p>
+                                </div>
+                              )}
                             </div>
                             <div className="grid grid-cols-2 gap-4">
-                              <div>
+                              <div className="space-y-1">
                                 <h3 className="font-medium">Tipo</h3>
                                 <Badge
                                   variant="outline"
@@ -219,23 +245,54 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
                                   {selectedPropuesta.tipo === "directa" ? "Directa" : "General"}
                                 </Badge>
                               </div>
-                              <div>
-                                <h3 className="font-medium">Postulaciones</h3>
-                                <p>{selectedPropuesta.postulaciones}</p>
+                                <div className="space-y-1">
+                                  <h3 className="font-medium">Postulaciones</h3>
+                                  <p>{selectedPropuesta.postulaciones}</p>
+                                </div>
+                            </div>
+                            {selectedPropuesta.tesistas.length > 0 && (
+                              <div className="space-y-2">
+                                <h3 className="font-medium">Cotesistas invitados</h3>
+                                {selectedPropuesta.tesistas.map((tesistas, i) => (
+                                  <div
+                                    key={i}
+                                    className="p-3 bg-gray-50 rounded-md border flex justify-between items-center"
+                                  >
+                                    <span>{tesistas.nombre}</span>
+                                    <Badge
+                                      variant="outline"
+                                      className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100"
+                                    >
+                                      Pendiente
+                                    </Badge>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            {selectedPropuesta.tipo === "directa" && (
+                              <div className="space-y-2">
+                                <Label>Asesor propuesto</Label>
+                                {selectedPropuesta.coasesores.length > 0
+                                  ? selectedPropuesta.coasesores.map((nombre) => (
+                                      <p key={nombre}>{nombre}</p>
+                                    ))
+                                  : <p className="text-muted-foreground">No asignado</p>
+                                }
+                              </div>
+                            )}
+                            <Separator />
+                            <div className="space-y-2">
+                              <Label>Descripción</Label>
+                              <div className="p-3 bg-gray-50 rounded-md border">
+                                <p>{selectedPropuesta.descripcion}</p>
                               </div>
                             </div>
-                            <div>
-                              <h3 className="font-medium">Estudiantes</h3>
-                              <p>{selectedPropuesta.estudiantes.join(", ") || "Ninguno"}</p>
-                            </div>
-                            <Separator />
-                            <div>
-                              <Label>Descripción</Label>
-                              <p className="p-2 bg-gray-50 rounded-md border">{selectedPropuesta.descripcion}</p>
-                            </div>
-                            <div>
+                            <div className="space-y-2">
                               <Label>Objetivos</Label>
-                              <p className="p-2 bg-gray-50 rounded-md border">{selectedPropuesta.objetivos}</p>
+                              <div className="p-3 bg-gray-50 rounded-md border">
+                                <p>{selectedPropuesta.objetivos}</p>
+                              </div>
                             </div>
                           </div>
                         )}
