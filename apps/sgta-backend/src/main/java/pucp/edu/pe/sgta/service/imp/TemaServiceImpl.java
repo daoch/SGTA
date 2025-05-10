@@ -132,7 +132,14 @@ public class TemaServiceImpl implements TemaService {
 		tema.setCarrera(carrera);
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
+		List<UsuarioXTema> temaRelations = usuarioXTemaRepository.findByUsuarioIdAndActivoTrue(idUsuarioCreador);
+		for(UsuarioXTema ux : temaRelations) {
+			Tema temaAux = temaRepository.findById(ux.getTema().getId())
+			        .orElseThrow(() -> new RuntimeException("Tema no encontrado con ID: " + ux.getTema().getId()));
+			if(temaAux.getEstadoTema().getNombre().equals(EstadoTemaEnum.INSCRITO.name())) {
+				throw new RuntimeException("El usuario ya tiene un tema inscrito.");
+			}
+		}
 		// Create and set up UsuarioXTema
 
 		UsuarioXTema usuarioXTema = new UsuarioXTema();

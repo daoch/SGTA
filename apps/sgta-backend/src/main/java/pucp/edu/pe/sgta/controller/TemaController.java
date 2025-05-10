@@ -46,6 +46,7 @@ public class TemaController {
 	public void update(@RequestBody TemaDto dto) {
 		temaService.update(dto);
 	}
+
 	@GetMapping("/listarTemasPropuestosAlAsesor/{asesorId}")
 	public List<TemaDto> listarTemasPropuestosAlAsesor(@PathVariable Integer asesorId) {
 		return temaService.listarTemasPropuestosAlAsesor(asesorId);
@@ -123,6 +124,12 @@ public class TemaController {
 	public List<TemaDto> listarPostulacionesGeneralesAMisPropuestas(@PathVariable("tesistaId") Integer tesistaId) {
 		return temaService.listarPostulacionesGeneralesAMisPropuestas(tesistaId);
 	}
+
+	@PostMapping("/deleteTema") // deletes a topic
+	public void deleteTema(@RequestBody Integer idTema) {
+		temaService.delete(idTema);
+	}
+
 }
 
 
