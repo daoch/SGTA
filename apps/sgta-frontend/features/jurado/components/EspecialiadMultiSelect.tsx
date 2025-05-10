@@ -11,14 +11,14 @@ interface MultiSelectCheckboxProps {
   options: SelectOption[];
   selected: string[];
   onChange: (selected: string[]) => void;
-  placeholder?: string;
+  displayText?: string;
 }
 
 export const MultiSelectCheckbox: React.FC<MultiSelectCheckboxProps> = ({
   options,
   selected,
   onChange,
-  placeholder = "Selecciona áreas",
+  displayText = "Selecciona áreas",
 }) => {
   const toggleValue = (value: string) => {
     if (selected.includes(value)) {
@@ -26,6 +26,12 @@ export const MultiSelectCheckbox: React.FC<MultiSelectCheckboxProps> = ({
     } else {
       onChange([...selected, value]);
     }
+  };
+
+  const getDisplayText = () => {
+    const count = selected.length;
+    if (count === 0) return displayText;
+    return `${count} área${count !== 1 ? "s" : ""} seleccionada${count !== 1 ? "s" : ""}`;
   };
 
   return (
@@ -37,14 +43,7 @@ export const MultiSelectCheckbox: React.FC<MultiSelectCheckboxProps> = ({
             "hover:border-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring",
           )}
         >
-          <span className="truncate">
-            {selected.length > 0
-              ? options
-                  .filter((opt) => selected.includes(opt.value))
-                  .map((opt) => opt.label)
-                  .join(", ")
-              : placeholder}
-          </span>
+          <span className="truncate">{getDisplayText()}</span>
           <ChevronDownIcon className="ml-2 h-4 w-4 text-muted-foreground" />
         </button>
       </Popover.Trigger>

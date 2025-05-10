@@ -11,21 +11,15 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useBackStore } from "../../store/configuracion-store";
 import { useEffect, useState } from "react";
+import { CarreraXParametroConfiguracion } from "../../types/CarreraXParametroConfiguracion.type";
 
-interface CarreraXParametroConfiguracionDto {
-  id: number;
-  valor: string | boolean | number | Date;
-  parametroConfiguracion: {
-    id: number;
-    nombre: string;
-    descripcion: string;
-    tipoDato: "BOOLEANO" | "TEXTO" | "NUMERO" | "FECHA" | "LISTA";
-  };
-}
+const PARAM_TURNITIN = "turnitin";
+const PARAM_ANTIPLAGIO = "antiplagio";
+
 
 export default function ModalidadRevisionCard() {
   const { parametros, actualizarParametro, cargando } = useBackStore();
-  const [localParametros, setLocalParametros] = useState<CarreraXParametroConfiguracionDto[]>([]);
+  const [localParametros, setLocalParametros] = useState<CarreraXParametroConfiguracion[]>([]);
 
   useEffect(() => {
     setLocalParametros(parametros);
@@ -33,19 +27,19 @@ export default function ModalidadRevisionCard() {
 
   // Buscar los parámetros por nombre
   const turnitinParam = localParametros.find(
-    (p) => p.parametroConfiguracion.nombre === "Turnitin"
+    (p) => p.parametroConfiguracion.nombre === PARAM_TURNITIN
   );
   const antiplagioParam = localParametros.find(
-    (p) => p.parametroConfiguracion.nombre === "Modalidad de Revision"
+    (p) => p.parametroConfiguracion.nombre === PARAM_ANTIPLAGIO
   );
 
   // Handlers para cambiar el valor
   const handleTurnitinChange = async (checked: boolean) => {
     if (turnitinParam) {
       // Actualizar el parámetro local primero
-      setLocalParametros(prev => 
-        prev.map(p => 
-          p.id === turnitinParam.id 
+      setLocalParametros(prev =>
+        prev.map(p =>
+          p.id === turnitinParam.id
             ? { ...p, valor: checked }
             : p
         )
@@ -58,9 +52,9 @@ export default function ModalidadRevisionCard() {
   const handleAntiplagioChange = async (checked: boolean) => {
     if (antiplagioParam) {
       // Actualizar el parámetro local primero
-      setLocalParametros(prev => 
-        prev.map(p => 
-          p.id === antiplagioParam.id 
+      setLocalParametros(prev =>
+        prev.map(p =>
+          p.id === antiplagioParam.id
             ? { ...p, valor: checked }
             : p
         )

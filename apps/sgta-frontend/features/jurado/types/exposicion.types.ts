@@ -23,3 +23,18 @@ export type Exposicion = {
   titulo: string;
   miembros: Miembro[];
 };
+
+export type EtapaFormativa = {
+  etapaFormativaId: number;
+  nombre: string;
+};
+
+export type ExposicionNombre = {
+  id: number;
+  nombre: string;
+};
+
+export type Sala = {
+  id: number;
+  nombre: string;
+};

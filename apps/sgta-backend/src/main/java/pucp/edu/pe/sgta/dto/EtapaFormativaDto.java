@@ -12,21 +12,14 @@ import java.time.OffsetDateTime;
 @AllArgsConstructor
 @Builder
 
-public class EtapaFormativaDTO {
+public class EtapaFormativaDto {
 
     private Integer id;
-
     private String nombre;
-
     private BigDecimal creditajePorTema;
-
-    private Duration duracionExposicion;
-
-    private Integer carreraId;
-
+    private String duracionExposicion;
     private Boolean activo;
-
-    private OffsetDateTime fechaCreacion;
-
-    private OffsetDateTime fechaModificacion;
+    // private OffsetDateTime fechaCreacion;
+    // private OffsetDateTime fechaModificacion;
+    private Integer carreraId;
 }

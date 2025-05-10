@@ -1,9 +1,11 @@
 package pucp.edu.pe.sgta.service.inter;
 
+import pucp.edu.pe.sgta.dto.InfoTemaPerfilDto;
 import pucp.edu.pe.sgta.dto.SubAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.TemaDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
 
+import pucp.edu.pe.sgta.dto.TemaConAsesorJuradoDTO;
 import java.util.List;
 
 public interface TemaService {
@@ -49,6 +51,14 @@ public interface TemaService {
 
 	void rechazarTemaPropuestaDirecta(Integer alumnoId, String comentario, Integer temaId);
 
+
+	List<TemaConAsesorJuradoDTO> listarTemasCicloActualXEtapaFormativa(Integer etapaFormativaId);
+
 	List<TemaDto> listarPropuestasPorTesista(Integer tesistaId);
+
+	List<TemaDto> listarPostulacionesDirectasAMisPropuestas(Integer tesistaId);
+
+	List<TemaDto> listarPostulacionesGeneralesAMisPropuestas(Integer tesistaId);
+	List<InfoTemaPerfilDto> listarTemasAsesorInvolucrado(Integer temaId);
 
 }

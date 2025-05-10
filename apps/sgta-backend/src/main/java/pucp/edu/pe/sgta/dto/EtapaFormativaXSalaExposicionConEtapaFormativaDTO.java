@@ -6,24 +6,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.OffsetDateTime;
-
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class EtapaFormativaXCicloDTO {
-
-    private Integer id;
-
+public class EtapaFormativaXSalaExposicionConEtapaFormativaDTO {
+    private Integer etapaFormativaXSalaExposicionId;
     private Integer etapaFormativaId;
-
-    private Integer cicloId;
-
-    private Boolean activo;
-
-    private OffsetDateTime fechaCreacion;
-
-    private OffsetDateTime fechaModificacion;
+    private Integer salaExposicionId;
+    private String nombreSalaExposicion;
+    private String nombreEtapaFormativa;
 }

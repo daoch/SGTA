@@ -6,9 +6,14 @@ import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Service;
 import pucp.edu.pe.sgta.dto.AreaConocimientoDto;
 import pucp.edu.pe.sgta.mapper.AreaConocimientoMapper;
+import pucp.edu.pe.sgta.mapper.InfoSubAreaConocimientoMapper;
 import pucp.edu.pe.sgta.model.AreaConocimiento;
 import pucp.edu.pe.sgta.repository.AreaConocimientoRepository;
+import pucp.edu.pe.sgta.dto.InfoAreaConocimientoDto;
+import pucp.edu.pe.sgta.mapper.InfoAreaConocimientoMapper;
+import pucp.edu.pe.sgta.repository.CarreraRepository;
 import pucp.edu.pe.sgta.service.inter.AreaConocimientoService;
+
 import pucp.edu.pe.sgta.model.Carrera;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,11 +22,14 @@ import java.util.List;
 public class AreaConocimientoServiceImpl implements AreaConocimientoService {
 
     private final AreaConocimientoRepository areaConocimientoRepository;
+    private final CarreraRepository carreraRepository;
     @PersistenceContext
     private EntityManager entityManager;
 
-    public AreaConocimientoServiceImpl(AreaConocimientoRepository areaConocimientoRepository) {
+    public AreaConocimientoServiceImpl(AreaConocimientoRepository areaConocimientoRepository,
+                                       CarreraRepository carreraRepository) {
         this.areaConocimientoRepository = areaConocimientoRepository;
+        this.carreraRepository = carreraRepository;
     }
 
     //create
@@ -37,7 +45,7 @@ public class AreaConocimientoServiceImpl implements AreaConocimientoService {
         AreaConocimiento areaConocimiento = AreaConocimientoMapper.toEntity(dto);
         areaConocimiento.setCarrera(carrera);
         AreaConocimiento savedArea = areaConocimientoRepository.save(areaConocimiento);
-        
+
         return AreaConocimientoMapper.toDto(savedArea);
     }
 
@@ -71,9 +79,17 @@ public class AreaConocimientoServiceImpl implements AreaConocimientoService {
         }
 
         return lista;
+
     }
 
     @Override
+    public List<InfoAreaConocimientoDto> listarInfoPorNombre(String nombre) {
+        return areaConocimientoRepository.findByNombreContainingIgnoreCaseAndActivoIsTrue(nombre)
+                .stream()
+                .map(InfoAreaConocimientoMapper::toDto).
+                toList();
+    }
+
     public void delete(Integer id) {
         AreaConocimiento areaConocimiento = areaConocimientoRepository.findById(id).orElse(null);
         if (areaConocimiento != null) {
@@ -102,8 +118,20 @@ public class AreaConocimientoServiceImpl implements AreaConocimientoService {
 
     @Override
     public void update(AreaConocimientoDto dto) {
-        
+
     }
 
+    @Override
+    public List<InfoAreaConocimientoDto> listarPorCarrerasUsuarioParaPerfil(Integer idUsuario) {
+        List<Integer> idCarrerasUsuario = new ArrayList<>();
+        List<Object[]> resultCarreras = carreraRepository.listarCarrerasPorIdUsusario(idUsuario);
+        for (Object[] row : resultCarreras) {
+            idCarrerasUsuario.add((Integer) row[0]);
+        }
+        return  areaConocimientoRepository.findByCarreraIdInAndActivoTrue(idCarrerasUsuario)
+                .stream()
+                .map(InfoAreaConocimientoMapper::toDto)
+                .toList();
+    }
 
 }
