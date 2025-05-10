@@ -635,6 +635,7 @@ CREATE TABLE IF NOT EXISTS ciclo
     ciclo_id           SERIAL PRIMARY KEY,
     semestre           VARCHAR(10)              NOT NULL,
     anio               INTEGER                  NOT NULL,
+    nombre             VARCHAR(255) GENERATED ALWAYS AS (anio::VARCHAR(255) || '-' || semestre) STORED,
     fecha_inicio       DATE                     NOT NULL,
     fecha_fin          DATE                     NOT NULL,
     activo             BOOLEAN                  NOT NULL DEFAULT TRUE,
