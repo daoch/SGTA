@@ -36,7 +36,7 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
 
     @Override
     public BloqueHorarioExposicionDto create(BloqueHorarioExposicionCreateDTO dto) {
-        BloqueHorarioExposicion bloqueHorarioExposicion = BloqueHorarioExposicionMapper.toEntity(dto);
+        BloqueHorarioExposicion bloqueHorarioExposicion = bloqueHorarioExposicionRepository.save(BloqueHorarioExposicionMapper.toEntity(dto));
         return BloqueHorarioExposicionMapper.toDTO(bloqueHorarioExposicion);
     }
 
