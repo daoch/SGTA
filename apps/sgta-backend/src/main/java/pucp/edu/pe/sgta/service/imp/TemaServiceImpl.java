@@ -265,10 +265,8 @@ public class TemaServiceImpl implements TemaService {
         }
     }
 
-    @Override
-    public void createInscripcionTema(TemaDto dto, Integer idUsuarioCreador) {
-
-	    validarUsuarioExiste(idUsuarioCreador); 
+	private void validacionesInscripcionTema(TemaDto dto, Integer idUsuarioCreador) {
+		validarUsuarioExiste(idUsuarioCreador); 
 		validarTipoUsurio(idUsuarioCreador, TipoUsuarioEnum.profesor.name());  // validar que la inscripción la haga un profesor
 		validarExistenciaTesistas(dto.getTesistas());                           // validar que hay al menos un tesista
 		validarUnicidadUsuarios(dto.getTesistas(), RolEnum.Tesista.name());    // validar que no se repiten los tesistas
@@ -282,6 +280,12 @@ public class TemaServiceImpl implements TemaService {
 			validarTipoUsurio(u.getId(), TipoUsuarioEnum.profesor.name());       // validar que los coasesores sean profesores
 		}
 		validarTesistasSinTemaAsignado(dto.getTesistas());              // validar que los tesistas no tengan tema asignado
+	}
+
+    @Override
+    public void createInscripcionTema(TemaDto dto, Integer idUsuarioCreador) {
+
+	    validacionesInscripcionTema(dto, idUsuarioCreador);
 
         dto.setId(null);
         // Prepara y guarda el tema con estado INSCRITO
