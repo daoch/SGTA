@@ -6,7 +6,12 @@ import { EstadoSelect } from "@/features/jurado/components/estado-select";
 import { PeriodoSelect } from "@/features/jurado/components/periodo-select";
 import React, { useEffect, useState } from "react";
 import ModalPlanificadorCoordinador from "../components/modal-planificador-coordinador";
-import { getCiclos, getCursos } from "../services/exposicion-service";
+import {
+  getCiclos,
+  getCursos,
+  getExposicionesInicializadasByCoordinador,
+} from "../services/exposicion-service";
+import { ListExposicionXCoordinadorDTO } from "../dtos/ListExposicionXCoordiandorDTO";
 
 const ExposicionesCoordinadorPage: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
@@ -17,17 +22,20 @@ const ExposicionesCoordinadorPage: React.FC = () => {
   const [cursos, setCursos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [exposiciones, setExposiciones] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [ciclosData, cursosData] = await Promise.all([
+        const [ciclosData, cursosData, exposicionesData] = await Promise.all([
           getCiclos(),
           getCursos(),
+          getExposicionesInicializadasByCoordinador(3),
         ]);
         setCiclos(ciclosData);
         setCursos(cursosData);
+        setExposiciones(exposicionesData);
         if (ciclosData.length > 0) setPeriodo(String(ciclosData[0].id));
         if (cursosData.length > 0) setCurso(String(cursosData[0].id));
         setError(null);
@@ -60,7 +68,7 @@ const ExposicionesCoordinadorPage: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col p-6 w-full">
+    <div className="flex flex-col pt-2 w-full">
       <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
         Exposiciones
       </h1>
@@ -100,6 +108,27 @@ const ExposicionesCoordinadorPage: React.FC = () => {
           </Button>
         </div>
       </div>
+
+      <div className="flex flex-col gap-4">
+        {exposiciones.length !== 0 &&
+          exposiciones.map((expo: ListExposicionXCoordinadorDTO) => (
+            <div
+              key={expo.exposicionId}
+              className="border rounded-lg p-4 shadow"
+            >
+              <h2 className="text-lg font-semibold mb-2">{expo.nombre}</h2>
+              {/* <p className="text-sm text-gray-700 mb-1">{expo.descripcion}</p> */}
+              <p className="text-sm text-gray-600">
+                Curso: {expo.etapaFormativaNombre}
+              </p>
+              <p className="text-sm text-gray-600">Ciclo: {expo.cicloNombre}</p>
+              <p className="text-sm text-gray-600">
+                Estado: {expo.estadoPlanificacionNombre}
+              </p>
+            </div>
+          ))}
+      </div>
+
       <ModalPlanificadorCoordinador
         open={modalOpen}
         onClose={() => setModalOpen(false)}

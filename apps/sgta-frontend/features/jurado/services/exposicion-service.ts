@@ -93,3 +93,22 @@ export const getCursos = async () => {
     throw new Error("Error al obtener cursos");
   }
 };
+
+export const getExposicionesInicializadasByCoordinador = async (
+  coordinadorId: number,
+) => {
+  try {
+    const response = await axiosInstance.get(
+      `/exposicion/listarExposicionesInicializadasXCoordinador/${coordinadorId}`,
+    );
+    return response.data;
+  } catch (error) {
+    console.error(
+      "Error al obtener exposiciones inicializadas por coordinador:",
+      error,
+    );
+    throw new Error(
+      "Error al obtener exposiciones inicializadas por coordinador",
+    );
+  }
+};
