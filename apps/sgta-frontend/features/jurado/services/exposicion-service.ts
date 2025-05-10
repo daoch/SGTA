@@ -22,9 +22,37 @@ export const getExposicionPorEtapaFormativa = async (
 };
 
 export const enviarPlanificacion = async (data: FormValues) => {
-  console.log("Datos enviados para la planificación:", data);
-  // const response = await axiosInstance.post("/tu/endpoint/api", data);
-  // return response.data;
+  const payload = {
+    etapaFormativaId: data.etapa_formativa_id,
+    exposicionId: data.exposicion_id,
+    fechas: data.fechas.map((fechaItem) => {
+      if (!fechaItem.fecha) {
+        throw new Error(
+          "La fecha no puede ser nula al enviar la planificación",
+        );
+      }
+
+      const fechaISO = fechaItem.fecha.toISOString().split("T")[0];
+      return {
+        fechaHoraInicio: new Date(
+          `${fechaISO}T${fechaItem.hora_inicio}`,
+        ).toISOString(),
+        fechaHoraFin: new Date(
+          `${fechaISO}T${fechaItem.hora_fin}`,
+        ).toISOString(),
+        salas: fechaItem.salas,
+      };
+    }),
+  };
+
+  console.log("Datos enviados para la planificación (mapeados):", payload);
+
+  const response = await axiosInstance.post(
+    "/jornada-exposicion/initialize",
+    payload,
+  );
+
+  return response.data;
 };
 
 export const getSalasDisponiblesByEtapaFormativa = async (
