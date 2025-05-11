@@ -55,7 +55,7 @@ public class JornadaExposicionOrchestratorServiceImpl implements JornadaExposici
                 salaExposicionCreateDTO.setSalaExposicionId(sala);
                 JornadaExposicionXSalaExposicionDto jornadaExposicionXSalaExposicionDto = jornadaExposicionXSalaExposicionService.create(salaExposicionCreateDTO);
 
-                Duration duracionBloque = Duration.between(LocalTime.MIN, LocalTime.parse(etapaFormativaDto.getDuracionExposicion()));
+                Duration duracionBloque = etapaFormativaDto.getDuracionExposicion();
 
                 OffsetDateTime actualInicio = createDTO.getDatetimeInicio();
                 OffsetDateTime finJornada = createDTO.getDatetimeFin();
