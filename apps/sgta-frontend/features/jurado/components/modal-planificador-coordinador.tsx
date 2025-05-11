@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import { useForm, useFieldArray, FormProvider } from "react-hook-form";
 import {
   Dialog,
@@ -18,22 +17,24 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { PlusIcon } from "lucide-react";
+import { Loader2, PlusIcon } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { formSchema, FormValues } from "../schemas/exposicion-form-schema";
 import { ItemFechaExposicion } from "./item-fecha-exposicion";
 import {
   enviarPlanificacion,
-  getEtapasFormativasByCoordinador,
-  getExposicionPorEtapaFormativa,
+  getEtapasFormativasPorInicializarByCoordinador,
+  getExposicionSinInicializarPorEtapaFormativa,
   getSalasDisponiblesByEtapaFormativa,
 } from "../services/exposicion-service";
 import {
   EtapaFormativa,
-  ExposicionNombre,
+  ExposicionSinInicializar,
   Sala,
 } from "../types/exposicion.types";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 interface ModalPlanificadorCoordinadorProps {
   open: boolean;
@@ -44,6 +45,10 @@ export default function ModalPlanificadorCoordinador({
   open,
   onClose,
 }: ModalPlanificadorCoordinadorProps) {
+  const router = useRouter();
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const methods = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -55,32 +60,35 @@ export default function ModalPlanificadorCoordinador({
 
   const { control, handleSubmit, watch, reset, setValue } = methods;
 
-  const [cursos, setCursos] = React.useState<EtapaFormativa[]>([]);
-  const [tiposExposicion, setTiposExposicion] = React.useState<
-    ExposicionNombre[]
+  const [cursos, setCursos] = useState<EtapaFormativa[]>([]);
+  const [tiposExposicion, setTiposExposicion] = useState<
+    ExposicionSinInicializar[]
   >([]);
 
   const etapaFormativaId = watch("etapa_formativa_id");
   const exposicionId = watch("exposicion_id");
   const fechas = watch("fechas");
 
-  const [salas, setSalas] = React.useState<Sala[]>([]);
+  const [salas, setSalas] = useState<Sala[]>([]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (open) {
+      setIsSubmitting(false);
       reset({
         etapa_formativa_id: undefined,
         exposicion_id: undefined,
         fechas: [],
       });
 
-      getEtapasFormativasByCoordinador(3).then(setCursos).catch(console.error);
+      getEtapasFormativasPorInicializarByCoordinador(3)
+        .then(setCursos)
+        .catch(console.error);
     }
   }, [open, reset]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (etapaFormativaId !== undefined) {
-      getExposicionPorEtapaFormativa(etapaFormativaId)
+      getExposicionSinInicializarPorEtapaFormativa(etapaFormativaId)
         .then(setTiposExposicion)
         .catch((err) => {
           console.error("Error fetching tipos de exposición:", err);
@@ -110,21 +118,42 @@ export default function ModalPlanificadorCoordinador({
 
   const onSubmit = (data: FormValues) => {
     console.log("Datos enviados:", data);
+    setIsSubmitting(true);
 
     enviarPlanificacion(data)
       .then((res) => {
         console.log("Respuesta del servidor:", res);
         onClose();
+        router.push(
+          `/coordinador/exposiciones/planificacion/${data.exposicion_id}`,
+        );
       })
       .catch((err) => {
         console.error("Error al enviar datos:", err);
+      })
+      .finally(() => {
+        setIsSubmitting(false);
       });
   };
 
   return (
     <FormProvider {...methods}>
-      <Dialog open={open} onOpenChange={onClose}>
-        <DialogContent className="md:min-w-[800px]">
+      <Dialog
+        open={open}
+        onOpenChange={(isOpen) => {
+          if (!isSubmitting && !isOpen) {
+            onClose();
+          }
+        }}
+      >
+        <DialogContent
+          className="md:min-w-[800px]"
+          onPointerDownOutside={(e) => {
+            if (isSubmitting) {
+              e.preventDefault();
+            }
+          }}
+        >
           <DialogHeader>
             <DialogTitle className="text-lg font-bold">
               Registro de Fecha y Rango de Horarios de Exposiciones
@@ -148,6 +177,7 @@ export default function ModalPlanificadorCoordinador({
                     ? etapaFormativaId.toString()
                     : ""
                 }
+                disabled={isSubmitting}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Seleccionar curso" />
@@ -173,14 +203,18 @@ export default function ModalPlanificadorCoordinador({
                 value={
                   exposicionId !== undefined ? exposicionId.toString() : ""
                 }
-                disabled={etapaFormativaId === undefined}
+                disabled={etapaFormativaId === undefined || isSubmitting}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Seleccionar tipo" />
                 </SelectTrigger>
                 <SelectContent>
                   {tiposExposicion.map((tipo) => (
-                    <SelectItem key={tipo.id} value={tipo.id.toString()}>
+                    <SelectItem
+                      key={tipo.exposicionId}
+                      value={tipo.exposicionId.toString()}
+                      disabled={tipo.inicializada}
+                    >
                       {tipo.nombre}
                     </SelectItem>
                   ))}
@@ -197,6 +231,7 @@ export default function ModalPlanificadorCoordinador({
                   remove={remove}
                   isFechasDisabled={exposicionId === undefined}
                   salasDisponibles={salas}
+                  isSubmitting={isSubmitting}
                 />
               ))}
             </div>
@@ -214,19 +249,27 @@ export default function ModalPlanificadorCoordinador({
                   salas: [],
                 })
               }
-              disabled={!canAddMoreFechas || exposicionId === undefined}
+              disabled={
+                !canAddMoreFechas || exposicionId === undefined || isSubmitting
+              }
             >
               <PlusIcon /> Agregar Fecha de Exposición
             </Button>
 
             <DialogFooter className="flex justify-between sm:justify-between gap-2 pt-2">
-              <Button type="button" variant="outline" onClick={onClose}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                disabled={isSubmitting}
+              >
                 Cancelar
               </Button>
               <Button
                 type="button"
                 onClick={handleSubmit(onSubmit)}
                 disabled={
+                  isSubmitting ||
                   !(
                     etapaFormativaId !== undefined &&
                     exposicionId !== undefined &&
@@ -242,7 +285,14 @@ export default function ModalPlanificadorCoordinador({
                   )
                 }
               >
-                Continuar
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Enviando...
+                  </>
+                ) : (
+                  "Continuar"
+                )}
               </Button>
             </DialogFooter>
           </div>

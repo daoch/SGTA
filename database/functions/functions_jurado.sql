@@ -228,3 +228,74 @@ inner join tipo_usuario tu
 where u.usuario_id = p_coordinador_id;
 END;
 $$ LANGUAGE plpgsql STABLE;
+
+CREATE OR REPLACE FUNCTION listar_exposiciones_sin_inicializar_cicloactual_por_etapa_formativa(
+	p_etapa_formativa_id integer
+)
+RETURNS TABLE(
+	exposicion_id integer,
+    nombre text,
+    inicializado boolean
+) AS $$
+BEGIN
+    RETURN QUERY
+SELECT 
+	e.exposicion_id,
+    e.nombre,
+    CASE 
+        WHEN ep.nombre <> 'Sin planificar' THEN true
+        ELSE false
+    END AS inicializado
+FROM exposicion e
+inner join estado_planificacion ep 
+	on ep.estado_planificacion_id = e.estado_planificacion_id 
+inner JOIN etapa_formativa_x_ciclo efc 
+	on efc.etapa_formativa_x_ciclo_id = e.etapa_formativa_x_ciclo_id
+inner JOIN ciclo c 
+	on efc.ciclo_id = c.ciclo_id
+inner join etapa_formativa ef 
+	on ef.etapa_formativa_id = efc.etapa_formativa_id
+where c.activo = true 
+	and e.activo = true
+	and ef.etapa_formativa_id = p_etapa_formativa_id;
+  
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION listar_bloques_horario_por_exposicion(p_exposicion_id INTEGER)
+RETURNS TABLE (
+	bloque_horario_exposicion_id INTEGER,
+	jornada_exposicion_x_sala_id INTEGER,
+	exposicion_x_tema_id INTEGER,
+	es_bloque_reservado BOOLEAN,
+	es_bloque_bloqueado BOOLEAN,
+	datetime_inicio TIMESTAMPTZ,
+	datetime_fin TIMESTAMPTZ,
+	sala_nombre TEXT
+)
+AS $$
+BEGIN
+RETURN QUERY
+SELECT 
+	bhe.bloque_horario_exposicion_id,
+	bhe.jornada_exposicion_x_sala_id,
+	bhe.exposicion_x_tema_id,
+	bhe.es_bloque_reservado,
+	bhe.es_bloque_bloqueado,
+	bhe.datetime_inicio,
+	bhe.datetime_fin,
+	se.nombre 
+FROM bloque_horario_exposicion bhe 
+INNER JOIN jornada_exposicion_x_sala_exposicion jexse 
+	ON jexse.jornada_exposicion_x_sala_id = bhe.jornada_exposicion_x_sala_id 
+INNER JOIN jornada_exposicion je 
+	ON je.jornada_exposicion_id = jexse.jornada_exposicion_id 
+INNER JOIN exposicion e 
+	ON e.exposicion_id = je.exposicion_id 
+INNER JOIN sala_exposicion se 
+	ON jexse.sala_exposicion_id = se.sala_exposicion_id 
+WHERE bhe.activo = true
+	AND je.exposicion_id = p_exposicion_id;
+END;
+$$ LANGUAGE plpgsql STABLE;

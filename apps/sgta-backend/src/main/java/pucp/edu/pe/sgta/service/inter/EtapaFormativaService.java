@@ -16,7 +16,7 @@ public interface EtapaFormativaService {
 
     void delete(Integer id);
 
-    List<EtapaFormativaNombreDTO> findByCoordinadorId(Integer id);
+    List<EtapaFormativaNombreDTO> findToInitializeByCoordinador(Integer id);
 
     List<EtapaFormativaDto> findAllActivas();
 }
