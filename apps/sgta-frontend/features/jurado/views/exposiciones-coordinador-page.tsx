@@ -117,7 +117,7 @@ const ExposicionesCoordinadorPage: React.FC = () => {
           exposiciones.map((expo: ListExposicionXCoordinadorDTO) => (
             <div
               key={expo.exposicionId}
-              className="border rounded-lg p-4 shadow"
+              className="border rounded-lg p-4 shadow hover:cursor-pointer hover:shadow-lg transition duration-200"
               onClick={() => {
                 router.push(
                   `/coordinador/exposiciones/planificacion/${expo.exposicionId}`,

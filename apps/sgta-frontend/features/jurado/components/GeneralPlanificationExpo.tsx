@@ -15,6 +15,7 @@ import PlanificationPanel from "./PlanificationPanel";
 interface TimeSlot {
   key: string;
   range: string; // 17:00  -  18:00
+  idBloque: number;
   expo?: Tema;
 }
 

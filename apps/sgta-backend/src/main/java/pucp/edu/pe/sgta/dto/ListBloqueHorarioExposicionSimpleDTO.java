@@ -12,4 +12,5 @@ import lombok.Setter;
 public class ListBloqueHorarioExposicionSimpleDTO {
     private String key;
     private String range;
+    private Integer idBloque;
 }
