@@ -19,11 +19,10 @@ export default async function PlanExpo({ etapaFormativaId }: Props) {
   const topics: AreaEspecialidad[] = [];
   const roomAvailList: JornadaExposicionDTO[] =
     jornadasSalas.map(transformarJornada);
-  const bloquesList = await listarBloquesHorariosExposicion();
+  const bloquesList = await listarBloquesHorariosExposicion(etapaFormativaId);
 
   console.log({ jornadasSalas });
   console.log({ roomAvailList });
-  
 
   return (
     <main className="h-screen flex flex-col">

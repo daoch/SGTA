@@ -261,3 +261,41 @@ where c.activo = true
   
 END;
 $$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION listar_bloques_horario_por_exposicion(p_exposicion_id INTEGER)
+RETURNS TABLE (
+	bloque_horario_exposicion_id INTEGER,
+	jornada_exposicion_x_sala_id INTEGER,
+	exposicion_x_tema_id INTEGER,
+	es_bloque_reservado BOOLEAN,
+	es_bloque_bloqueado BOOLEAN,
+	datetime_inicio TIMESTAMPTZ,
+	datetime_fin TIMESTAMPTZ,
+	sala_nombre TEXT
+)
+AS $$
+BEGIN
+RETURN QUERY
+SELECT 
+	bhe.bloque_horario_exposicion_id,
+	bhe.jornada_exposicion_x_sala_id,
+	bhe.exposicion_x_tema_id,
+	bhe.es_bloque_reservado,
+	bhe.es_bloque_bloqueado,
+	bhe.datetime_inicio,
+	bhe.datetime_fin,
+	se.nombre 
+FROM bloque_horario_exposicion bhe 
+INNER JOIN jornada_exposicion_x_sala_exposicion jexse 
+	ON jexse.jornada_exposicion_x_sala_id = bhe.jornada_exposicion_x_sala_id 
+INNER JOIN jornada_exposicion je 
+	ON je.jornada_exposicion_id = jexse.jornada_exposicion_id 
+INNER JOIN exposicion e 
+	ON e.exposicion_id = je.exposicion_id 
+INNER JOIN sala_exposicion se 
+	ON jexse.sala_exposicion_id = se.sala_exposicion_id 
+WHERE bhe.activo = true
+	AND je.exposicion_id = p_exposicion_id;
+END;
+$$ LANGUAGE plpgsql STABLE;
