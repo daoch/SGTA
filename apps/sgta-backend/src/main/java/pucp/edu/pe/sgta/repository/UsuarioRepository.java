@@ -5,8 +5,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import pucp.edu.pe.sgta.model.Usuario;
+import pucp.edu.pe.sgta.model.UsuarioXTema;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
@@ -24,4 +26,9 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
 
     @Query(value = "SELECT * FROM obtener_usuarios_por_area_conocimiento(:area_conocimiento_id)", nativeQuery = true)
     List<Object[]> obtenerUsuariosPorAreaConocimiento(@Param("area_conocimiento_id") Integer areaConocimientoId);
+
+    Optional<Usuario> findById(Integer id);
+
+    @Query(value = "SELECT * FROM obtener_area_conocimiento_jurado(:usuarioId)", nativeQuery = true)
+    List<Object[]> obtenerAreasConocimientoJurado(@Param("usuarioId") Integer usuarioId);
 }

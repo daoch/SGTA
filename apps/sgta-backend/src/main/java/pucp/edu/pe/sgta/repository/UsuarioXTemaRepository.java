@@ -10,5 +10,7 @@ import java.util.List;
 public interface UsuarioXTemaRepository extends JpaRepository<UsuarioXTema, Integer> {
 
 	List<UsuarioXTema> findByUsuarioIdAndActivoTrue(Integer usuarioId);
-
+	List<UsuarioXTema> findByUsuarioIdAndRolId(Integer usuarioId, Integer rolId);
+	List<UsuarioXTema> findByTemaIdAndActivoTrue(Integer temaId);
+	long countByTemaIdAndActivoTrue(Integer temaId);
 }
