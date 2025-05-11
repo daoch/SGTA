@@ -12,8 +12,11 @@ import {
   getExposicionesInicializadasByCoordinador,
 } from "../services/exposicion-service";
 import { ListExposicionXCoordinadorDTO } from "../dtos/ListExposicionXCoordiandorDTO";
+import { useRouter } from "next/navigation";
 
 const ExposicionesCoordinadorPage: React.FC = () => {
+  const router = useRouter();
+
   const [modalOpen, setModalOpen] = useState(false);
   const [curso, setCurso] = useState<string | null>(null);
   const [periodo, setPeriodo] = useState<string | null>(null);
@@ -114,7 +117,12 @@ const ExposicionesCoordinadorPage: React.FC = () => {
           exposiciones.map((expo: ListExposicionXCoordinadorDTO) => (
             <div
               key={expo.exposicionId}
-              className="border rounded-lg p-4 shadow"
+              className="border rounded-lg p-4 shadow hover:cursor-pointer hover:shadow-lg transition duration-200"
+              onClick={() => {
+                router.push(
+                  `/coordinador/exposiciones/planificacion/${expo.exposicionId}`,
+                );
+              }}
             >
               <h2 className="text-lg font-semibold mb-2">{expo.nombre}</h2>
               {/* <p className="text-sm text-gray-700 mb-1">{expo.descripcion}</p> */}
