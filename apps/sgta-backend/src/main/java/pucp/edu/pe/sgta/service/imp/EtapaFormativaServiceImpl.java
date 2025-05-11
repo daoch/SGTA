@@ -10,8 +10,6 @@ import pucp.edu.pe.sgta.service.inter.EtapaFormativaService;
 
 import java.util.List;
 
-import pucp.edu.pe.sgta.dto.EtapaFormativaDto;
-
 @Service
 public class EtapaFormativaServiceImpl implements EtapaFormativaService {
 
