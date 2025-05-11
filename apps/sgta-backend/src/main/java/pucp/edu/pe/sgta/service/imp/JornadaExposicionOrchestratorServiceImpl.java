@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import pucp.edu.pe.sgta.dto.BloqueHorarioExposicionCreateDTO;
 import pucp.edu.pe.sgta.dto.EtapaFormativaDto;
+import pucp.edu.pe.sgta.dto.ExposicionDto;
 import pucp.edu.pe.sgta.dto.IniatilizeJornadasExposicionCreateDTO;
 import pucp.edu.pe.sgta.dto.JornadaExposicionCreateDTO;
 import pucp.edu.pe.sgta.dto.JornadaExposicionDto;
@@ -17,6 +18,7 @@ import pucp.edu.pe.sgta.dto.JornadaExposicionXSalaExposicionCreateDTO;
 import pucp.edu.pe.sgta.dto.JornadaExposicionXSalaExposicionDto;
 import pucp.edu.pe.sgta.service.inter.BloqueHorarioExposicionService;
 import pucp.edu.pe.sgta.service.inter.EtapaFormativaService;
+import pucp.edu.pe.sgta.service.inter.ExposicionService;
 import pucp.edu.pe.sgta.service.inter.JornadaExposicionOrchestratorService;
 import pucp.edu.pe.sgta.service.inter.JornadaExposicionService;
 import pucp.edu.pe.sgta.service.inter.JornadaExposicionXSalaExposicionService;
@@ -31,6 +33,8 @@ public class JornadaExposicionOrchestratorServiceImpl implements JornadaExposici
     private EtapaFormativaService etapaFormativaService;
     @Autowired
     private BloqueHorarioExposicionService bloqueHorarioExposicionService;
+    @Autowired
+    private ExposicionService exposicionService;
 
     @Override
     @Transactional
@@ -69,5 +73,9 @@ public class JornadaExposicionOrchestratorServiceImpl implements JornadaExposici
                 }
             });
         });
+
+        ExposicionDto exposicionDto = exposicionService.findById(dto.getExposicionId());
+        exposicionDto.setEstadoPlanificacionId(2);
+        exposicionService.update(exposicionDto);
     }
 }

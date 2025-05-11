@@ -24,13 +24,13 @@ import { formSchema, FormValues } from "../schemas/exposicion-form-schema";
 import { ItemFechaExposicion } from "./item-fecha-exposicion";
 import {
   enviarPlanificacion,
-  getEtapasFormativasByCoordinador,
-  getExposicionPorEtapaFormativa,
+  getEtapasFormativasPorInicializarByCoordinador,
+  getExposicionSinInicializarPorEtapaFormativa,
   getSalasDisponiblesByEtapaFormativa,
 } from "../services/exposicion-service";
 import {
   EtapaFormativa,
-  ExposicionNombre,
+  ExposicionSinInicializar,
   Sala,
 } from "../types/exposicion.types";
 import { useEffect, useState } from "react";
@@ -61,9 +61,9 @@ export default function ModalPlanificadorCoordinador({
   const { control, handleSubmit, watch, reset, setValue } = methods;
 
   const [cursos, setCursos] = useState<EtapaFormativa[]>([]);
-  const [tiposExposicion, setTiposExposicion] = useState<ExposicionNombre[]>(
-    [],
-  );
+  const [tiposExposicion, setTiposExposicion] = useState<
+    ExposicionSinInicializar[]
+  >([]);
 
   const etapaFormativaId = watch("etapa_formativa_id");
   const exposicionId = watch("exposicion_id");
@@ -80,13 +80,15 @@ export default function ModalPlanificadorCoordinador({
         fechas: [],
       });
 
-      getEtapasFormativasByCoordinador(3).then(setCursos).catch(console.error);
+      getEtapasFormativasPorInicializarByCoordinador(3)
+        .then(setCursos)
+        .catch(console.error);
     }
   }, [open, reset]);
 
   useEffect(() => {
     if (etapaFormativaId !== undefined) {
-      getExposicionPorEtapaFormativa(etapaFormativaId)
+      getExposicionSinInicializarPorEtapaFormativa(etapaFormativaId)
         .then(setTiposExposicion)
         .catch((err) => {
           console.error("Error fetching tipos de exposición:", err);
@@ -208,7 +210,11 @@ export default function ModalPlanificadorCoordinador({
                 </SelectTrigger>
                 <SelectContent>
                   {tiposExposicion.map((tipo) => (
-                    <SelectItem key={tipo.id} value={tipo.id.toString()}>
+                    <SelectItem
+                      key={tipo.exposicionId}
+                      value={tipo.exposicionId.toString()}
+                      disabled={tipo.inicializada}
+                    >
                       {tipo.nombre}
                     </SelectItem>
                   ))}

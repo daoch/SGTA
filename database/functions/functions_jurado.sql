@@ -228,3 +228,36 @@ inner join tipo_usuario tu
 where u.usuario_id = p_coordinador_id;
 END;
 $$ LANGUAGE plpgsql STABLE;
+
+CREATE OR REPLACE FUNCTION listar_exposiciones_sin_inicializar_cicloactual_por_etapa_formativa(
+	p_etapa_formativa_id integer
+)
+RETURNS TABLE(
+	exposicion_id integer,
+    nombre text,
+    inicializado boolean
+) AS $$
+BEGIN
+    RETURN QUERY
+SELECT 
+	e.exposicion_id,
+    e.nombre,
+    CASE 
+        WHEN ep.nombre <> 'Sin planificar' THEN true
+        ELSE false
+    END AS inicializado
+FROM exposicion e
+inner join estado_planificacion ep 
+	on ep.estado_planificacion_id = e.estado_planificacion_id 
+inner JOIN etapa_formativa_x_ciclo efc 
+	on efc.etapa_formativa_x_ciclo_id = e.etapa_formativa_x_ciclo_id
+inner JOIN ciclo c 
+	on efc.ciclo_id = c.ciclo_id
+inner join etapa_formativa ef 
+	on ef.etapa_formativa_id = efc.etapa_formativa_id
+where c.activo = true 
+	and e.activo = true
+	and ef.etapa_formativa_id = p_etapa_formativa_id;
+  
+END;
+$$ LANGUAGE plpgsql;
