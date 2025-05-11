@@ -1,6 +1,4 @@
 "use client";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -100,82 +98,71 @@ const JuradosView = () => {
           Miembros de Jurado
         </h1>
       </div>
-      <div className="flex flex-wrap items-center justify-between">
-        <div className="flex flex-wrap gap-3 items-center">
-          <Input
-            placeholder="Ingrese el nombre, código o correo electrónico del usuario"
-            className="flex w-[447px] h-[44px] px-3 py-2 items-center gap-2 border border-[#E2E6F0] rounded-none bg-background resize-none"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                handleSearch();
-              }
-            }}
-          />
+      <div className="flex flex-wrap gap-3 items-center">
+        <Input
+          placeholder="Ingrese el nombre, código o correo electrónico del usuario"
+          className="flex w-[447px] h-[44px] px-3 py-2 items-center gap-2 border border-[#E2E6F0] rounded-none bg-background resize-none"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              handleSearch();
+            }
+          }}
+        />
 
-          <div className="flex flex-col w-[250px] h-[80px] items-start gap-[6px] flex-shrink-0">
-            <label className="text-sm font-medium">Tipo de Dedicación</label>
-            <Select
-              onValueChange={(val) => setDedication(val as TipoDedicacion)}
-            >
-              <SelectTrigger className="h-[80px] w-full border border-[#E2E6F0] rounded-md">
-                <SelectValue placeholder="Todos" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={TipoDedicacion.TODOS}>Todos</SelectItem>
-                <SelectItem value={TipoDedicacion.TIEMPO_COMPLETO}>
-                  Tiempo Completo
-                </SelectItem>
-                <SelectItem value={TipoDedicacion.MEDIO_TIEMPO}>
-                  Tiempo Parcial por Asignaturas
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex flex-col w-[250px] h-[80px] items-start gap-[6px] flex-shrink-0">
-            <label className="text-sm font-medium">Área de Especialidad</label>
-            <Select
-              onValueChange={(val) =>
-                setSpecialty(val as AreaEspecialidadFilter)
-              }
-            >
-              <SelectTrigger className="h-[68px] w-full">
-                <SelectValue placeholder="Todos" />
-              </SelectTrigger>
-              <SelectContent className="max-h-48 overflow-y-auto">
-                <SelectItem value={AreaEspecialidadFilter.TODOS}>
-                  {AreaEspecialidadFilter.TODOS}
-                </SelectItem>
-                {areasEspecialidad.map((area) => (
-                  <SelectItem key={area.name} value={area.name}>
-                    {area.name.charAt(0).toUpperCase() + area.name.slice(1)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex flex-col w-[107px] h-[80px] items-start gap-[6px] flex-shrink-0">
-            <label className="text-sm font-medium">Estado</label>
-            <Select onValueChange={(val) => setStatus(val as EstadoJurado)}>
-              <SelectTrigger className="h-[68px] w-full">
-                <SelectValue placeholder="Todos" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={EstadoJurado.TODOS}>Todos</SelectItem>
-                <SelectItem value={EstadoJurado.ACTIVO}>Activo</SelectItem>
-                <SelectItem value={EstadoJurado.INACTIVO}>Inactivo</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        <div className="flex flex-col w-[250px] h-[80px] items-start gap-[6px] flex-shrink-0">
+          <label className="text-sm font-medium">Tipo de Dedicación</label>
+          <Select onValueChange={(val) => setDedication(val as TipoDedicacion)}>
+            <SelectTrigger className="h-[80px] w-full border border-[#E2E6F0] rounded-md">
+              <SelectValue placeholder="Todos" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={TipoDedicacion.TODOS}>Todos</SelectItem>
+              <SelectItem value={TipoDedicacion.TIEMPO_COMPLETO}>
+                Tiempo Completo
+              </SelectItem>
+              <SelectItem value={TipoDedicacion.MEDIO_TIEMPO}>
+                Tiempo Parcial por Asignaturas
+              </SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
-        <Button className="inline-flex h-11 px-4 justify-center items-center gap-2 flex-shrink-0 rounded-md bg-[#042354] text-white cursor-pointer">
-          <Plus className="h-4 w-4" />
-          Nuevo Jurado
-        </Button>
+        <div className="flex flex-col w-[250px] h-[80px] items-start gap-[6px] flex-shrink-0">
+          <label className="text-sm font-medium">Área de Especialidad</label>
+          <Select
+            onValueChange={(val) => setSpecialty(val as AreaEspecialidadFilter)}
+          >
+            <SelectTrigger className="h-[68px] w-full">
+              <SelectValue placeholder="Todos" />
+            </SelectTrigger>
+            <SelectContent className="max-h-48 overflow-y-auto">
+              <SelectItem value={AreaEspecialidadFilter.TODOS}>
+                {AreaEspecialidadFilter.TODOS}
+              </SelectItem>
+              {areasEspecialidad.map((area) => (
+                <SelectItem key={area.name} value={area.name}>
+                  {area.name.charAt(0).toUpperCase() + area.name.slice(1)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex flex-col w-[107px] h-[80px] items-start gap-[6px] flex-shrink-0">
+          <label className="text-sm font-medium">Estado</label>
+          <Select onValueChange={(val) => setStatus(val as EstadoJurado)}>
+            <SelectTrigger className="h-[68px] w-full">
+              <SelectValue placeholder="Todos" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={EstadoJurado.TODOS}>Todos</SelectItem>
+              <SelectItem value={EstadoJurado.ACTIVO}>Activo</SelectItem>
+              <SelectItem value={EstadoJurado.INACTIVO}>Inactivo</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
       {juradosData.length === 0 ? (
         <div className="text-center text-gray-400 mt-5">
