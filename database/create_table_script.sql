@@ -368,6 +368,7 @@ CREATE TABLE IF NOT EXISTS usuario_sub_area_conocimiento
             REFERENCES sub_area_conocimiento (sub_area_conocimiento_id)
             ON DELETE RESTRICT
 );
+
 -- 12) USUARIO_AREA_CONOCIMIENTO (M:N entre usuario y area_conocimiento)
 CREATE TABLE IF NOT EXISTS usuario_area_conocimiento
 (
@@ -387,6 +388,8 @@ CREATE TABLE IF NOT EXISTS usuario_area_conocimiento
             REFERENCES area_conocimiento (area_conocimiento_id)
             ON DELETE RESTRICT
 );
+
+
 -- 3) MODULO
 CREATE TABLE IF NOT EXISTS modulo
 (
@@ -553,12 +556,13 @@ CREATE TABLE IF NOT EXISTS etapa_formativa
 (
     etapa_formativa_id  SERIAL PRIMARY KEY,
     nombre              TEXT                     NOT NULL,
-    creditaje_por_tema  NUMERIC(6, 2)            NOT NULL,
+    creditaje_por_tema  NUMERIC(6, 2),
     duracion_exposicion INTERVAL,
     activo              BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion  TIMESTAMP WITH TIME ZONE,
     carrera_id          INTEGER                  NOT NULL,
+
     CONSTRAINT fk_area_conocimiento_carrera
         FOREIGN KEY (carrera_id)
             REFERENCES carrera (carrera_id)
@@ -669,22 +673,6 @@ CREATE TABLE IF NOT EXISTS ciclo
     activo             BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP WITH TIME ZONE
-);
-
-CREATE TABLE IF NOT EXISTS etapa_formativa
-(
-    etapa_formativa_id  SERIAL PRIMARY KEY,
-    nombre              TEXT                     NOT NULL,
-    creditaje_por_tema  NUMERIC(6, 2),
-    duracion_exposicion INTERVAL,
-    activo              BOOLEAN                  NOT NULL DEFAULT TRUE,
-    fecha_creacion      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion  TIMESTAMP WITH TIME ZONE,
-
-    carrera_id          INTEGER                  NOT NULL,
-    CONSTRAINT fk_area_conocimiento_carrera
-        FOREIGN KEY (carrera_id)
-            REFERENCES carrera (carrera_id)
 );
 
 CREATE TABLE IF NOT EXISTS estado_planificacion
@@ -838,7 +826,7 @@ CREATE TABLE IF NOT EXISTS exposicion_x_tema
     link_exposicion                   TEXT,
     link_grabacion                    TEXT,
     estado_exposicion                 enum_estado_exposicion   NOT NULL DEFAULT 'sin_programar',
-    nota_final                        NUMERIC(5, 2),
+    nota_final                        NUMERIC(6, 2),
     activo                            BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion                    TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion                TIMESTAMP WITH TIME ZONE,
@@ -882,7 +870,7 @@ CREATE TABLE IF NOT EXISTS revision_criterio_x_exposicion
     exposicion_x_tema_id              INTEGER                  NOT NULL,
     criterio_exposicion_id            INTEGER                  NOT NULL,
     usuario_id                        INTEGER                  NOT NULL,
-    nota                              NUMERIC(5, 2),
+    nota                              NUMERIC(6, 2),
     revisado                          BOOLEAN                  NOT NULL DEFAULT FALSE,
     observacion                       TEXT,
     activo                            BOOLEAN                  NOT NULL DEFAULT TRUE,
@@ -1034,6 +1022,8 @@ CREATE TABLE IF NOT EXISTS criterio_entregable
     nombre                 VARCHAR(100)             NOT NULL,
     nota_maxima            DECIMAL(6, 2),
     descripcion            TEXT,
+    fecha_reg              TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP, -- COMBINADO
+    fecha_mod              TIMESTAMP WITH TIME ZONE, -- COMBINADO
     activo                 BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion         TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion     TIMESTAMP WITH TIME ZONE,
@@ -1044,7 +1034,6 @@ CREATE TABLE IF NOT EXISTS criterio_entregable
             REFERENCES entregable (entregable_id)
             ON DELETE CASCADE
 );
-
 
 CREATE TABLE IF NOT EXISTS entregable_x_tema
 (
@@ -1077,6 +1066,8 @@ CREATE TABLE IF NOT EXISTS revision_criterio_entregable
     usuario_id                      INTEGER,
     nota                            DECIMAL(6, 2),
     observacion                     TEXT,
+    fecha_reg                       TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP, -- COMBINADO
+    fecha_mod                       TIMESTAMP WITH TIME ZONE, -- COMBINADO
     activo                          BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion                  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion              TIMESTAMP WITH TIME ZONE,
@@ -1168,104 +1159,10 @@ CREATE TABLE IF NOT EXISTS revision_documento
             ON DELETE CASCADE
 );
 
--- 12) USUARIO_AREA_CONOCIMIENTO (M:N entre usuario y area_conocimiento)
-CREATE TABLE IF NOT EXISTS usuario_area_conocimiento
-(
-    usuario_area_conocimiento_id SERIAL PRIMARY KEY,
-    usuario_id                   INTEGER                  NOT NULL,
-    area_conocimiento_id         INTEGER                  NOT NULL,
-    activo                       BOOLEAN                  NOT NULL DEFAULT TRUE,
-    fecha_creacion               TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion           TIMESTAMP WITH TIME ZONE,
-
-    CONSTRAINT fk_uac_usuario
-        FOREIGN KEY (usuario_id)
-            REFERENCES usuario (usuario_id)
-            ON DELETE CASCADE,
-    CONSTRAINT fk_uac_ac
-        FOREIGN KEY (area_conocimiento_id)
-            REFERENCES area_conocimiento (area_conocimiento_id)
-            ON DELETE RESTRICT
-);
-
-
 CREATE TABLE IF NOT EXISTS tipo_observacion
 (
     tipo_observacion_id SERIAL PRIMARY KEY,
     nombre_tipo         VARCHAR(100) NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS criterio_entregable
-(
-    criterio_exposicion_id SERIAL PRIMARY KEY,
-    entregable_id          INTEGER                  NOT NULL,
-    nombre                 VARCHAR(100)             NOT NULL,
-    nota_maxima            DECIMAL(6, 2),
-    descripcion            TEXT,
-    fecha_reg              TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_mod              TIMESTAMP WITH TIME ZONE,
-    activo                 BOOLEAN                  NOT NULL DEFAULT TRUE,
-    fecha_creacion         TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion     TIMESTAMP WITH TIME ZONE,
-
-    CONSTRAINT check_nota_maxima CHECK (nota_maxima > 0),
-    CONSTRAINT fk_criterio_entregable_entregable
-        FOREIGN KEY (entregable_id)
-            REFERENCES entregable (entregable_id)
-            ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS entregable_x_tema
-(
-    entregable_x_tema_id            SERIAL PRIMARY KEY,
-    entregable_id                   INTEGER,
-    tema_id                         INTEGER,
-    revision_criterio_entregable_id INTEGER,
-    fecha_envio                     DATE,
-    comentario                      TEXT,
-    estado                          enum_estado_entrega      NOT NULL DEFAULT 'no_enviado',
-    activo                          BOOLEAN                  NOT NULL DEFAULT TRUE,
-    fecha_creacion                  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion              TIMESTAMP WITH TIME ZONE,
-
-    CONSTRAINT fk_entregable_x_tema_entregable
-        FOREIGN KEY (entregable_id)
-            REFERENCES entregable (entregable_id)
-            ON DELETE CASCADE,
-    CONSTRAINT fk_entregable_x_tema_tema
-        FOREIGN KEY (tema_id)
-            REFERENCES tema (tema_id)
-            ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS revision_criterio_entregable
-(
-    revision_criterio_entregable_id SERIAL PRIMARY KEY,
-    entregable_x_tema_id            INTEGER,
-    criterio_exposicion_id          INTEGER,
-    usuario_id                      INTEGER,
-    nota                            DECIMAL(5, 2),
-    observacion                     TEXT,
-    fecha_reg                       TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_mod                       TIMESTAMP WITH TIME ZONE,
-
-    activo                          BOOLEAN                  NOT NULL DEFAULT TRUE,
-    fecha_creacion                  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion              TIMESTAMP WITH TIME ZONE,
-
-    CONSTRAINT check_nota CHECK (nota >= 0),
-    CONSTRAINT fk_revision_criterio_entregable_x_tema
-        FOREIGN KEY (entregable_x_tema_id)
-            REFERENCES entregable_x_tema (entregable_x_tema_id)
-            ON DELETE CASCADE,
-    CONSTRAINT fk_revision_criterio_criterio
-        FOREIGN KEY (criterio_exposicion_id)
-            REFERENCES criterio_entregable (criterio_exposicion_id)
-            ON DELETE CASCADE,
-    CONSTRAINT fk_revision_criterio_usuario
-        FOREIGN KEY (usuario_id)
-            REFERENCES usuario (usuario_id)
-            ON DELETE RESTRICT
 );
 
 CREATE TABLE IF NOT EXISTS observacion
@@ -1312,7 +1209,6 @@ CREATE TABLE IF NOT EXISTS reunion
     activo             BOOLEAN                           DEFAULT TRUE
 
 );
-
 
 CREATE TABLE IF NOT EXISTS usuario_reunion
 (
