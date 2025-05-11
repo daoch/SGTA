@@ -27,3 +27,12 @@ export interface JornadaExposicionSalas {
   datetimeFin: Date; 
   salasExposicion: SalaExposicion[];
 }
+
+export interface TimeSlot {
+  key: string;
+  range: string; // 17:00  -  18:00
+  idBloque: number;
+  idJornadaExposicionSala: number;
+  expo?: Tema;
+  idExposicion?:number;
+}

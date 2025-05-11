@@ -6,24 +6,20 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import { useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { JornadaExposicionDTO } from "../dtos/JornadExposicionDTO";
-import { AreaEspecialidad, Tema } from "../types/jurado.types";
+import { AreaEspecialidad, Tema, TimeSlot } from "../types/jurado.types";
 import ExposList from "./ExposList";
 import PlanificationPanel from "./PlanificationPanel";
+import { updateBloquesListFirstTime } from "../actions/actions";
 
-interface TimeSlot {
-  key: string;
-  range: string; // 17:00  -  18:00
-  idBloque: number;
-  expo?: Tema;
-}
 
 interface Props {
   expos: Tema[];
   topics: AreaEspecialidad[];
   roomAvailList: JornadaExposicionDTO[];
   bloquesList: TimeSlot[];
+  exposicionId: number;
 }
 
 const GeneralPlanificationExpo: React.FC<Props> = ({
@@ -31,13 +27,35 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
   topics,
   bloquesList,
   roomAvailList,
+  exposicionId,
 }: Props) => {
   const [freeExpos, setFreeExpos] = useState<Tema[]>(expos);
   const [assignedExpos, setAssignedExpos] = useState<Record<string, Tema>>({});
+  const [isPending, startTransition] = useTransition();
 
+  useEffect(() => {
+    const assigned: Record<string, Tema> = {};
+    const assignedTemaIds = new Set<string>();
+  
+    for (const bloque of bloquesList) {
+      const temaAsignado = expos.find((tema) => tema.codigo === bloque.expo?.codigo); // O ajusta el campo según sea necesario
+      if (temaAsignado) {
+        assigned[bloque.key] = temaAsignado;
+        assignedTemaIds.add(temaAsignado.codigo);
+      }
+    }
+  
+    const free = expos.filter((tema) => !assignedTemaIds.has(tema.codigo));
+  
+    setAssignedExpos(assigned);
+    setFreeExpos(free);
+  }, [bloquesList, expos]);
+
+  console.log({assignedExpos});
+  console.log({freeExpos});
   /*Handles the drag and drop event for the expositions*/
   function handleDragEnd(event: DragEndEvent) {
-    console.log(freeExpos);
+
     const { active, over } = event;
 
     /*validates that the drop occurs in a valid and different location from the original one.*/
@@ -116,6 +134,37 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
     },
   });
 
+  const onSiguienteFaseClick = ()=>{
+
+    if(freeExpos.length > 0 ){
+      console.log("No puede dejar temas sin asignar");
+      return;
+    }
+
+    const bloquesListToInsert: TimeSlot[] = bloquesList.map((bloque) => {
+      const temaAsignado = assignedExpos[bloque.key];
+      return {
+        ...bloque,
+        expo: temaAsignado ? temaAsignado : undefined,
+        idExposicion: exposicionId,
+
+      };
+    });
+
+    startTransition(async () => {
+       await updateBloquesListFirstTime(bloquesListToInsert); 
+    });
+
+    
+    /*PARA EXPOSICION TEMA NECESITAMOS  EXPO ID , TEMA ID
+    /*PARA EL BLOQUE EXPOSICION SOLO NECESITAMOS EL ID Y SI TIENE UN ID ASIGNADO  EN TEMA*/
+
+    
+    console.log("Lista final de bloques con expos asignadas:", bloquesListToInsert);
+    
+
+  }
+
   const sensors = useSensors(mouseSensor);
 
   return (
@@ -131,6 +180,7 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
             roomAvailList={roomAvailList}
             assignedExpos={assignedExpos}
             removeExpo={removeExpo}
+            onSiguienteFaseClick ={onSiguienteFaseClick}
             bloquesList={bloquesList}
           />
         </div>

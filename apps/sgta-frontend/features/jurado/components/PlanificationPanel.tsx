@@ -4,28 +4,25 @@ import { Clock } from "lucide-react";
 import React, { useState } from "react";
 
 import { JornadaExposicionDTO } from "@/features/jurado/dtos/JornadExposicionDTO";
-import { SalaExposicion, Tema } from "@/features/jurado/types/jurado.types";
+import { SalaExposicion, Tema, TimeSlot } from "@/features/jurado/types/jurado.types";
 import BreadCrumbPlanificacion from "./BreadcrumbPlanification";
 import SelectorFecha from "./DateSelector";
 import Droppable from "./Droppable";
 import RoomSlot from "./RoomSlot";
 
-interface TimeSlot {
-  key: string;
-  range: string; // 17:00  -  18:00
-  expo?: Tema;
-}
 
 interface Props {
   roomAvailList: JornadaExposicionDTO[];
   assignedExpos: Record<string, Tema>;
   removeExpo: (expo: Tema) => void;
+  onSiguienteFaseClick: () => void;
   bloquesList: TimeSlot[];
 }
 const PlanificationPanel: React.FC<Props> = ({
   roomAvailList,
   assignedExpos,
   removeExpo,
+  onSiguienteFaseClick,
   bloquesList,
 }) => {
   const expoDuration = 20;
@@ -43,19 +40,17 @@ const PlanificationPanel: React.FC<Props> = ({
   const selectedDateStr = selectedDate
     ? `${selectedDate.getDate().toString().padStart(2, "0")}-${(selectedDate.getMonth() + 1).toString().padStart(2, "0")}-${selectedDate.getFullYear()}`
     : "";
-  console.log(bloquesList);
+  
   //BLOQUESSS
   const filteredTimeSlots = bloquesList.filter((slot) =>
     slot.key.startsWith(selectedDateStr + "|"),
-  );
-
-  console.log(filteredTimeSlots);
+  ); 
 
   const uniqueTimeSlots = Array.from(
     new Map(filteredTimeSlots.map((slot) => [slot.range, slot])).values(),
   );
-  console.log(uniqueTimeSlots);
-
+ 
+  
   return (
     <section className="h-full w-full flex flex-col gap-6">
       <BreadCrumbPlanificacion></BreadCrumbPlanificacion>
@@ -71,6 +66,7 @@ const PlanificationPanel: React.FC<Props> = ({
 
         <div className="ml-auto">
           <Button
+            onClick={() => onSiguienteFaseClick()}
             className="w-full xl:w-auto"
             style={{ background: "#042354" }}
           >
