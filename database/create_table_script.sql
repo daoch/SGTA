@@ -48,7 +48,6 @@ CREATE TABLE IF NOT EXISTS tipo_usuario
     tipo_usuario_id    SERIAL PRIMARY KEY,
     nombre             VARCHAR(100)             NOT NULL,
     activo             BOOLEAN                  NOT NULL DEFAULT TRUE,
-    tipo_dedicacion    VARCHAR(100),
     fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP WITH TIME ZONE
 );
@@ -70,6 +69,7 @@ CREATE TABLE IF NOT EXISTS usuario
     foto_perfil         bytea,
     disponibilidad      TEXT,
     tipo_disponibilidad TEXT,
+    tipo_dedicacion     VARCHAR(100),
     activo              BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion  TIMESTAMP WITH TIME ZONE,
