@@ -21,6 +21,7 @@ interface ItemFechaExposicionProps {
   remove: (index: number) => void;
   isFechasDisabled: boolean;
   salasDisponibles: { id: number; nombre: string }[];
+  isSubmitting?: boolean;
 }
 
 export function ItemFechaExposicion({
@@ -28,12 +29,15 @@ export function ItemFechaExposicion({
   remove,
   isFechasDisabled,
   salasDisponibles,
+  isSubmitting = false,
 }: ItemFechaExposicionProps) {
   const {
     control,
     setValue,
     formState: { errors },
   } = useFormContext();
+
+  const isDisabled = isFechasDisabled || isSubmitting;
 
   interface FechaError {
     fecha?: { message: string };
@@ -62,7 +66,7 @@ export function ItemFechaExposicion({
                     "w-full justify-start text-left font-normal",
                     !dateField.value && "text-muted-foreground",
                   )}
-                  disabled={isFechasDisabled}
+                  disabled={isDisabled}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {dateField.value ? (
@@ -97,7 +101,7 @@ export function ItemFechaExposicion({
           name={`fechas.${index}.hora_inicio`}
           control={control}
           render={({ field }) => (
-            <Input {...field} type="time" disabled={isFechasDisabled} />
+            <Input {...field} type="time" disabled={isDisabled} />
           )}
         />
         {fechaErrors?.hora_inicio && (
@@ -114,7 +118,7 @@ export function ItemFechaExposicion({
           name={`fechas.${index}.hora_fin`}
           control={control}
           render={({ field }) => (
-            <Input {...field} type="time" disabled={isFechasDisabled} />
+            <Input {...field} type="time" disabled={isDisabled} />
           )}
         />
         {fechaErrors?.hora_fin && (
@@ -130,7 +134,7 @@ export function ItemFechaExposicion({
           name={`fechas.${index}.salas`}
           control={control}
           render={({ field }) => (
-            <Select open={undefined} disabled={isFechasDisabled}>
+            <Select open={undefined} disabled={isDisabled}>
               <SelectTrigger>
                 {/* Render personalizado directamente */}
                 <div className="truncate">
@@ -151,8 +155,12 @@ export function ItemFechaExposicion({
                   return (
                     <div
                       key={sala.id}
-                      className="flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-accent rounded"
+                      className={cn(
+                        "flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-accent rounded",
+                        isDisabled && "pointer-events-none opacity-50",
+                      )}
                       onClick={(e) => {
+                        if (isDisabled) return;
                         e.preventDefault();
                         if (isChecked) {
                           field.onChange(
@@ -185,8 +193,15 @@ export function ItemFechaExposicion({
           type="button"
           variant="destructive"
           size="sm"
-          className="h-5 w-5 text-white"
-          onClick={() => remove(index)}
+          className={cn(
+            "h-5 w-5 text-white",
+            isSubmitting && "opacity-50 pointer-events-none",
+          )}
+          onClick={() => {
+            if (isSubmitting) return;
+            remove(index);
+          }}
+          disabled={isSubmitting}
         >
           <X className="h-4 w-4" />
         </Button>

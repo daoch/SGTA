@@ -3,39 +3,61 @@ import { Sala } from "../types/exposicion.types";
 import { FormValues } from "../schemas/exposicion-form-schema";
 import { EtapaFormativaXSalaExposicion } from "../dtos/EtapaFormativaXSalaExposicion";
 
-export const getEtapasFormativasByCoordinador = async (
+export const getEtapasFormativasPorInicializarByCoordinador = async (
   coordinador_id: number,
 ) => {
   const response = await axiosInstance.get(
-    `/etapas-formativas/coordinador/${coordinador_id}`,
+    `/etapas-formativas/listarPorInicializarByCoordinador/${coordinador_id}`,
   );
   return response.data;
 };
 
-export const getExposicionPorEtapaFormativa = async (
+export const getExposicionSinInicializarPorEtapaFormativa = async (
   etapaFormativaId: number,
 ) => {
   const response = await axiosInstance.get(
-    `/exposicion/listarExposicionXCicloActualEtapaFormativa?etapaFormativaId=${etapaFormativaId}`,
+    `/exposicion/listarExposicionesSinInicializarByEtapaFormativaEnCicloActual/${etapaFormativaId}`,
   );
   return response.data;
 };
 
 export const enviarPlanificacion = async (data: FormValues) => {
-  console.log("Datos enviados para la planificación:", data);
-  // const response = await axiosInstance.post("/tu/endpoint/api", data);
-  // return response.data;
+  const payload = {
+    etapaFormativaId: data.etapa_formativa_id,
+    exposicionId: data.exposicion_id,
+    fechas: data.fechas.map((fechaItem) => {
+      if (!fechaItem.fecha) {
+        throw new Error(
+          "La fecha no puede ser nula al enviar la planificación",
+        );
+      }
+
+      const fechaISO = fechaItem.fecha.toISOString().split("T")[0];
+      return {
+        fechaHoraInicio: new Date(
+          `${fechaISO}T${fechaItem.hora_inicio}`,
+        ).toISOString(),
+        fechaHoraFin: new Date(
+          `${fechaISO}T${fechaItem.hora_fin}`,
+        ).toISOString(),
+        salas: fechaItem.salas,
+      };
+    }),
+  };
+
+  console.log("Datos enviados para la planificación (mapeados):", payload);
+
+  const response = await axiosInstance.post(
+    "/jornada-exposicion/initialize",
+    payload,
+  );
+
+  return response.data;
 };
 
 export const getSalasDisponiblesByEtapaFormativa = async (
   etapaFormativaId: number,
 ) => {
-  // return Promise.resolve([
-  //   { id: 1, nombre: "A202" },
-  //   { id: 2, nombre: "V00" },
-  //   { id: 3, nombre: "A501" },
-  //   { id: 4, nombre: "M506" },
-  // ]);
   const response = await axiosInstance.get(
     `/etapaFormativaXSalaExposicion/listarEtapaFormativaXSalaExposicionByEtapaFormativa/${etapaFormativaId}`,
   );
@@ -48,4 +70,45 @@ export const getSalasDisponiblesByEtapaFormativa = async (
   );
 
   return salas;
+};
+
+export const getCiclos = async () => {
+  try {
+    const response = await axiosInstance.get("/ciclos/listarCiclos");
+    return response.data;
+  } catch (error) {
+    console.error("Error al obtener ciclos:", error);
+    throw new Error("Error al obtener ciclos");
+  }
+};
+
+export const getCursos = async () => {
+  try {
+    const response = await axiosInstance.get(
+      "/etapas-formativas/listarActivas",
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error al obtener cursos:", error);
+    throw new Error("Error al obtener cursos");
+  }
+};
+
+export const getExposicionesInicializadasByCoordinador = async (
+  coordinadorId: number,
+) => {
+  try {
+    const response = await axiosInstance.get(
+      `/exposicion/listarExposicionesInicializadasXCoordinador/${coordinadorId}`,
+    );
+    return response.data;
+  } catch (error) {
+    console.error(
+      "Error al obtener exposiciones inicializadas por coordinador:",
+      error,
+    );
+    throw new Error(
+      "Error al obtener exposiciones inicializadas por coordinador",
+    );
+  }
 };
