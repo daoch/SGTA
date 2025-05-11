@@ -1022,8 +1022,6 @@ CREATE TABLE IF NOT EXISTS criterio_entregable
     nombre                 VARCHAR(100)             NOT NULL,
     nota_maxima            DECIMAL(6, 2),
     descripcion            TEXT,
-    fecha_reg              TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP, -- COMBINADO
-    fecha_mod              TIMESTAMP WITH TIME ZONE, -- COMBINADO
     activo                 BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion         TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion     TIMESTAMP WITH TIME ZONE,
@@ -1066,8 +1064,6 @@ CREATE TABLE IF NOT EXISTS revision_criterio_entregable
     usuario_id                      INTEGER,
     nota                            DECIMAL(6, 2),
     observacion                     TEXT,
-    fecha_reg                       TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP, -- COMBINADO
-    fecha_mod                       TIMESTAMP WITH TIME ZONE, -- COMBINADO
     activo                          BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion                  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion              TIMESTAMP WITH TIME ZONE,
