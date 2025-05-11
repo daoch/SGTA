@@ -26,7 +26,7 @@ public class ControlExposicionUsuarioTema {
     private ExposicionXTema exposicionXTema;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "usuario_tema_id", nullable = false, foreignKey = @ForeignKey(name = "fk_ceut_usuario"))
+    @JoinColumn(name = "usuario_x_tema_id", nullable = false, foreignKey = @ForeignKey(name = "fk_ceut_usuario"))
     private UsuarioXTema usuario;
 
     @Column(nullable = false, columnDefinition = "TEXT")

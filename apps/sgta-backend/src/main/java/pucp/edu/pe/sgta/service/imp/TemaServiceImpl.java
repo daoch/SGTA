@@ -155,7 +155,7 @@ public class TemaServiceImpl implements TemaService {
 		// 1) Subáreas de conocimiento
 		saveSubAreas(tema, dto.getSubareas());
 		//2) Save Creador
-		saveUsuarioXTema(tema, idUsuarioCreador, RolEnum.Creador.name(), true);
+		saveUsuarioXTema(tema, idUsuarioCreador, RolEnum.Tesista.name(), false);
 		//3) Save Asesor (Propuesta Directa)
 		if (tipoPropuesta == 1) {
 			if(dto.getCoasesores() == null || dto.getCoasesores().isEmpty()) {
@@ -217,7 +217,7 @@ public class TemaServiceImpl implements TemaService {
 		saveHistorialTemaChange(tema, dto.getTitulo(), dto.getResumen(), "Inscripción de tema");
 
 		// 1) Creador del tema (rol "Creador", asignado = true)
-        saveUsuarioXTema(tema, idUsuarioCreador, RolEnum.Creador.name(), true);
+        saveUsuarioXTema(tema, idUsuarioCreador, RolEnum.Tesista.name(), true);
         // 1) Asesor del tema (rol "Asesor", asignado = true)
         saveUsuarioXTema(tema, idUsuarioCreador, RolEnum.Asesor.name(), true);
 
@@ -385,6 +385,12 @@ public class TemaServiceImpl implements TemaService {
             usuarioId, rolNombre, estadoNombre
         );
         List<TemaDto> resultados = new ArrayList<>();
+
+		
+		for (Object[] r : rows) {
+    	System.out.println("cols="+r.length+" → "+java.util.Arrays.toString(r));
+    	// luego tu mapeo…
+}
         for (Object[] r : rows) {
             TemaDto dto = TemaDto.builder()
                 .id((Integer) r[0])
@@ -590,8 +596,8 @@ public class TemaServiceImpl implements TemaService {
 
 	public List<TemaDto> listarPropuestasPorTesista(Integer tesistaId) {
 		List<TemaDto> temas = new ArrayList<>();
-		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Creador.name(), EstadoTemaEnum.PROPUESTO_GENERAL.name()));
-		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Creador.name(), EstadoTemaEnum.PROPUESTO_DIRECTO.name()));
+		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Tesista.name(), EstadoTemaEnum.PROPUESTO_GENERAL.name()));
+		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Tesista.name(), EstadoTemaEnum.PROPUESTO_DIRECTO.name()));
 
 
 		for (TemaDto t : temas) {
@@ -615,9 +621,9 @@ public class TemaServiceImpl implements TemaService {
 	public List<TemaDto> listarPostulacionesDirectasAMisPropuestas(Integer tesistaId) {
 		List<TemaDto> temas = new ArrayList<>();
 		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Tesista.name(), EstadoTemaEnum.PREINSCRITO.name()));
-		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Creador.name(), EstadoTemaEnum.PROPUESTO_DIRECTO.name()));
-		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Creador.name(), EstadoTemaEnum.RECHAZADO.name())); //The asesor rejected the propuesta
-		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Creador.name(), EstadoTemaEnum.VENCIDO.name())); //The asesor never answered the propuesta
+		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Tesista.name(), EstadoTemaEnum.PROPUESTO_DIRECTO.name()));
+		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Tesista.name(), EstadoTemaEnum.RECHAZADO.name())); //The asesor rejected the propuesta
+		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Tesista.name(), EstadoTemaEnum.VENCIDO.name())); //The asesor never answered the propuesta
 		Integer idPropuestoDirecto = null;
 
 		try{
@@ -652,8 +658,8 @@ public class TemaServiceImpl implements TemaService {
 	public List<TemaDto> listarPostulacionesGeneralesAMisPropuestas(Integer tesistaId) {
 		List<TemaDto> temas = new ArrayList<>();
 		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Tesista.name(), EstadoTemaEnum.PREINSCRITO.name()));
-		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Creador.name(), EstadoTemaEnum.PROPUESTO_GENERAL.name()));
-		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Creador.name(), EstadoTemaEnum.VENCIDO.name())); //The asesor never answered the propuesta
+		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Tesista.name(), EstadoTemaEnum.PROPUESTO_GENERAL.name()));
+		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Tesista.name(), EstadoTemaEnum.VENCIDO.name())); //The asesor never answered the propuesta
 		Integer idPropuestoGeneral = null;
 
 		try{

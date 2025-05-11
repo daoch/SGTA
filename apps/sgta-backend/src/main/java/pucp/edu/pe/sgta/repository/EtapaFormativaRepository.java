@@ -13,8 +13,8 @@ import pucp.edu.pe.sgta.model.EtapaFormativa;
 public interface EtapaFormativaRepository extends JpaRepository<EtapaFormativa, Integer> {
 
     @Query(value = "SELECT * FROM obtener_etapas_formativas_por_usuario(:usuarioId)", nativeQuery = true)
-    List<EtapaFormativaNombreDTO> findByCoordinadorId(@Param("usuarioId") Integer usuarioId);
+    List<EtapaFormativaNombreDTO> findToInitializeByCoordinador(@Param("usuarioId") Integer usuarioId);
 
-    @Query(value = "SELECT * FROM listarEtapasFormativasActivas()", nativeQuery = true)
+    @Query(value = "SELECT * FROM listaretapasformativasactivas()", nativeQuery = true)
     List<EtapaFormativaDto> findAllActivas();
 }

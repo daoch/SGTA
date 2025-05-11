@@ -109,7 +109,7 @@ public class SubAreaConocimientoServiceImpl implements SubAreaConocimientoServic
 			// Crear entidad simulada de SubAreaConocimiento
 			SubAreaConocimiento sac = new SubAreaConocimiento();
 			sac.setId((Integer) row[0]);
-			//sac.setAreaConocimiento((Integer) row[1]); // si existe este campo en la entidad
+			//sac.setAreaConocimiento((Integer) row[1]); // si existe deeste campo en la entidad
 			sac.setNombre((String) row[2]);
 			sac.setDescripcion((String) row[3]);
 			sac.setActivo((Boolean) row[4]);

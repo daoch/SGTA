@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import pucp.edu.pe.sgta.dto.EtapaFormativaDto;
@@ -19,9 +18,9 @@ public class EtapaFormativaController {
     @Autowired
     EtapaFormativaService etapaFormativaService;
 
-    @GetMapping("/coordinador/{id}")
-    public List<EtapaFormativaNombreDTO> obtenerPorUsuario(@PathVariable("id") Integer usuarioId) {
-        return etapaFormativaService.findByCoordinadorId(usuarioId);
+    @GetMapping("/listarPorInicializarByCoordinador/{corodinador_id}")
+    public List<EtapaFormativaNombreDTO> obtenerPorInicializarPorCoordinador(@PathVariable("corodinador_id") Integer usuarioId) {
+        return etapaFormativaService.findToInitializeByCoordinador(usuarioId);
     }
 
     @GetMapping("/listarActivas")
