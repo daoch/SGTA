@@ -320,62 +320,72 @@ public class TemaServiceImpl implements TemaService {
 
 	@Override
 	public List<TemaDto> listarTemasPropuestosAlAsesor(Integer asesorId, String titulo, Integer limit, Integer offset) {
-		// Construir la consulta SQL con los parámetros proporcionados
 		String sql = "SELECT * FROM listar_temas_propuestos_al_asesor(:asesorId, :titulo, :limit, :offset)";
 
-		// Ejecuta la consulta y obtiene los resultados
 		List<Object[]> resultados = entityManager
 				.createNativeQuery(sql)
-				.setParameter("asesorId", asesorId)  // ID del asesor
-				.setParameter("titulo", titulo != null ? titulo : "")  // Filtro por título (si es proporcionado)
-				.setParameter("limit", limit != null ? limit : 10)  // Establecer un límite por defecto si es nulo
-				.setParameter("offset", offset != null ? offset : 0)  // Establecer un offset por defecto si es nulo
+				.setParameter("asesorId", asesorId)
+				.setParameter("titulo", titulo != null ? titulo : "")
+				.setParameter("limit", limit != null ? limit : 10)
+				.setParameter("offset", offset != null ? offset : 0)
 				.getResultList();
-
 		List<TemaDto> lista = new ArrayList<>();
 
 		for (Object[] fila : resultados) {
-			TemaDto dto = new TemaDto(); // Si fila[0] es un Integer
-			dto.setId((Integer) fila[0]);  // Si fila[0] es un Integer
-			// tema_id
-			dto.setTitulo((String) fila[1]);                 // titulo
+			TemaDto dto = new TemaDto();
+			dto.setId((Integer) fila[0]);  // tema_id
+			dto.setTitulo((String) fila[1]); // titulo
 
-			// subarea_ids (arreglo de Integer[])
-			Integer[] subareaArray = (Integer[]) fila[3];  // fila[3] debe ser un Integer[]
-			for (Integer subareaId : subareaArray) {
-				SubAreaConocimientoDto subarea = new SubAreaConocimientoDto();
-				subarea.setId(subareaId);
-				dto.getSubareas().add(subarea);  // subarea_id
+			// Subáreas
+			Integer[] subareaArray = (Integer[]) fila[3];
+			if (subareaArray != null) {
+				for (Integer subareaId : subareaArray) {
+					SubAreaConocimientoDto subarea = new SubAreaConocimientoDto();
+					subarea.setId(subareaId);
+					dto.getSubareas().add(subarea);
+				}
 			}
-			//List<Integer> subareaIds = Arrays.asList(subareaArray);  // Convertimos a lista
-			//dto.setIdSubAreasConocimientoList(subareaIds);
 
-			// alumno (arreglo de Integer[])
-			Integer[] alumnoArray = (Integer[]) fila[5];  // fila[5] debe ser un Integer[]
-			for(Integer alumnoId : alumnoArray) {
-				UsuarioDto alumno = new UsuarioDto(); //notice the default constructor sets new ArrayList() for tesistas
-				alumno.setId(alumnoId);
-				dto.getTesistas().add(alumno); // alumnos_id[]
-			}
-			//List<Integer> alumnoIds = Arrays.asList(alumnoArray);  // Convertimos a lista
-			//dto.setIdEstudianteInvolucradosList(alumnoIds);
+			// Resumen, metodología, etc.
+			dto.setResumen((String) fila[6]);
+			dto.setMetodologia((String) fila[7]);
+			dto.setObjetivos((String) fila[8]);
+			dto.setPortafolioUrl((String) fila[9]);
+			dto.setActivo((Boolean) fila[10]);
 
-			dto.setResumen((String) fila[6]);  // descripcion
-			dto.setMetodologia((String) fila[7]);  // metodologia
-			dto.setObjetivos((String) fila[8]);  // objetivo
-			dto.setPortafolioUrl((String) fila[9]);  // recurso
-			dto.setActivo((Boolean) fila[10]);  // activo
-
-			// Manejar fechas
 			dto.setFechaLimite(fila[11] != null ? ((Instant) fila[11]).atOffset(ZoneOffset.UTC) : null);
 			dto.setFechaCreacion(fila[12] != null ? ((Instant) fila[12]).atOffset(ZoneOffset.UTC) : null);
 			dto.setFechaModificacion(fila[13] != null ? ((Instant) fila[13]).atOffset(ZoneOffset.UTC) : null);
+
+			// Tesista creador
+			Integer idCreador = (Integer) fila[14]; // id_creador
+			String nombreCreador = (String) fila[15]; // nombre_creador
+			if (idCreador != null) {
+				UsuarioDto tesistaCreador = new UsuarioDto();
+				tesistaCreador.setId(idCreador);
+				tesistaCreador.setNombres(nombreCreador);
+				dto.getTesistas().add(tesistaCreador); // Primer tesista: el creador
+			}
+
+			// Co-tesistas
+			Integer[] idCoTesistas = (Integer[]) fila[16]; // ids_cotesistas
+			String[] nombresCoTesistas = (String[]) fila[17]; // nombres_cotesistas
+
+			if (idCoTesistas != null && nombresCoTesistas != null) {
+				for (int i = 0; i < idCoTesistas.length; i++) {
+					UsuarioDto cotesista = new UsuarioDto();
+					cotesista.setId(idCoTesistas[i]);
+					cotesista.setNombres(nombresCoTesistas[i]);
+					dto.getTesistas().add(cotesista); // agregar co-tesistas
+				}
+			}
 
 			lista.add(dto);
 		}
 
 		return lista;
 	}
+
 
 	@Override
     public List<TemaDto> listarTemasPorUsuarioRolEstado(Integer usuarioId,
