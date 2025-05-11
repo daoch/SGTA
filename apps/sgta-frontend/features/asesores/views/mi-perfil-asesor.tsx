@@ -365,7 +365,6 @@ export default function PerfilAsesor({ userId, editable }: Props) {
         <div className="space-y-6">
           <PerfilAsesorCard
             asesor={asesor}
-            tesis={tesis}
             editedData={editedData}
             isEditing={isEditing}
             setEditedData={setEditedData}

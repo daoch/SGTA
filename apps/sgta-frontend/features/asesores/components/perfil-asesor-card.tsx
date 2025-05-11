@@ -4,12 +4,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ExternalLink, FileText, Linkedin, Mail } from "lucide-react";
-import type { Asesor, Tesis } from "../types/perfil/entidades";
+import type { Asesor } from "../types/perfil/entidades";
 import { ItemCopiable } from "./item-copia";
 
 interface Props {
   asesor: Asesor;
-  tesis: Tesis[];
   editedData: Asesor;
   isEditing: boolean;
   setEditedData: (data: Asesor) => void;
@@ -18,7 +17,6 @@ interface Props {
 
 export default function PerfilAsesorCard({
   asesor,
-  tesis,
   editedData,
   isEditing,
   setEditedData,
