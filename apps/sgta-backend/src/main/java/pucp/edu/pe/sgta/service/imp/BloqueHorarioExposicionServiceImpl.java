@@ -82,8 +82,9 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
 
             String key = inicio.format(fechaFormatter) + "|" + inicio.format(horaFormatter) + "|" + row[7];
             String range = inicio.format(horaFormatter) + " - " + fin.format(horaFormatter);
+            Integer idBloque = (Integer) row[0];
 
-            return new ListBloqueHorarioExposicionSimpleDTO(key, range);
+            return new ListBloqueHorarioExposicionSimpleDTO(key, range, idBloque);
         }).collect(Collectors.toList());
     }
 }
