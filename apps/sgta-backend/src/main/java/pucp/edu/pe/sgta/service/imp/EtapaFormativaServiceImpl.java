@@ -51,8 +51,8 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
     }
 
     @Override
-    public List<EtapaFormativaNombreDTO> findByCoordinadorId(Integer id) {
-        List<EtapaFormativaNombreDTO> etapasFormativas = etapaFormativaRepository.findByCoordinadorId(id);
+    public List<EtapaFormativaNombreDTO> findToInitializeByCoordinador(Integer coordiandorId) {
+        List<EtapaFormativaNombreDTO> etapasFormativas = etapaFormativaRepository.findToInitializeByCoordinador(coordiandorId);
         return etapasFormativas.stream()
                 .map(ef -> new EtapaFormativaNombreDTO(ef.getEtapaFormativaId(), ef.getNombre()))
                 .toList();

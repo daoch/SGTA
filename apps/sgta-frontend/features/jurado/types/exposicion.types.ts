@@ -29,9 +29,10 @@ export type EtapaFormativa = {
   nombre: string;
 };
 
-export type ExposicionNombre = {
-  id: number;
+export type ExposicionSinInicializar = {
+  exposicionId: number;
   nombre: string;
+  inicializada: boolean;
 };
 
 export type Sala = {

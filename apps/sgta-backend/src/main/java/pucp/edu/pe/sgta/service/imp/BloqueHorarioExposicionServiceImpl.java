@@ -1,11 +1,17 @@
 package pucp.edu.pe.sgta.service.imp;
 
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
 import pucp.edu.pe.sgta.dto.BloqueHorarioExposicionCreateDTO;
 import pucp.edu.pe.sgta.dto.BloqueHorarioExposicionDto;
+import pucp.edu.pe.sgta.dto.ListBloqueHorarioExposicionSimpleDTO;
 import pucp.edu.pe.sgta.mapper.BloqueHorarioExposicionMapper;
 import pucp.edu.pe.sgta.model.BloqueHorarioExposicion;
 import pucp.edu.pe.sgta.repository.BloqueHorarioExposicionRepository;
@@ -36,7 +42,7 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
 
     @Override
     public BloqueHorarioExposicionDto create(BloqueHorarioExposicionCreateDTO dto) {
-        BloqueHorarioExposicion bloqueHorarioExposicion = BloqueHorarioExposicionMapper.toEntity(dto);
+        BloqueHorarioExposicion bloqueHorarioExposicion = bloqueHorarioExposicionRepository.save(BloqueHorarioExposicionMapper.toEntity(dto));
         return BloqueHorarioExposicionMapper.toDTO(bloqueHorarioExposicion);
     }
 
@@ -48,5 +54,36 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
     @Override
     public void delete(Integer id) {
 
+    }
+
+    @Override
+    public List<ListBloqueHorarioExposicionSimpleDTO> listarBloquesHorarioPorExposicion(Integer exposicionId) {
+        List<Object[]> results = bloqueHorarioExposicionRepository.listarBloquesHorarioPorExposicion(exposicionId);
+        
+        //Asi deberia ser :V
+        // return results.stream().map(row -> new ListBloqueHorarioExposicionDTO(
+        //     (Integer) row[0],
+        //     (Integer) row[1],
+        //     (Integer) row[2],
+        //     (Boolean) row[3],
+        //     (Boolean) row[4],
+        //     OffsetDateTime.ofInstant((Instant) row[5], ZoneId.systemDefault()),
+        //     OffsetDateTime.ofInstant((Instant) row[6], ZoneId.systemDefault()),
+        //     (String) row[7]
+        // )).collect(Collectors.toList());
+
+        //solucion temporal
+        DateTimeFormatter fechaFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+        DateTimeFormatter horaFormatter = DateTimeFormatter.ofPattern("HH:mm");
+
+        return results.stream().map(row -> {
+            OffsetDateTime inicio = OffsetDateTime.ofInstant((Instant) row[5], ZoneId.systemDefault());
+            OffsetDateTime fin = OffsetDateTime.ofInstant((Instant) row[6], ZoneId.systemDefault());
+
+            String key = inicio.format(fechaFormatter) + "|" + inicio.format(horaFormatter) + "|" + row[7];
+            String range = inicio.format(horaFormatter) + " - " + fin.format(horaFormatter);
+
+            return new ListBloqueHorarioExposicionSimpleDTO(key, range);
+        }).collect(Collectors.toList());
     }
 }
