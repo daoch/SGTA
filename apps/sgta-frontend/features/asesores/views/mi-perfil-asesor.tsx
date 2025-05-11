@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -23,18 +24,31 @@ import {
 import {
   AreaTematica,
   Asesor,
-  AsesorDTO,
+  Proyecto,
   TemaInteres,
+  Tesis,
 } from "../types/perfil/entidades";
 
 import { useAuth } from "@/features/auth";
+import { useRouter } from "next/navigation";
+import IndicadoresAsesor from "../components/indicadores-asesor";
+import ProyectosAsesoradosResumen from "../components/proyectos-asesorados-resumen";
+import { getProyectosMock, getTesisMock } from "../mocks/perfil/asesor-mock";
 
-export default function PerfilAsesorEditable() {
+interface Props {
+  userId: number;
+  editable: boolean;
+}
+
+export default function PerfilAsesor({ userId, editable }: Props) {
   const { user } = useAuth();
+  const router = useRouter();
 
   const [asesor, setAsesor] = useState<Asesor | null>(null);
   const [areasDisponibles, setAreasDisponibles] = useState<AreaTematica[]>([]);
   const [temasDisponibles, setTemasDisponibles] = useState<TemaInteres[]>([]);
+  const [tesis, setTesis] = useState<Tesis[]>([]);
+  const [proyectos, setProyectos] = useState<Proyecto[]>([]);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedData, setEditedData] = useState<Asesor | null>(null);
@@ -60,7 +74,7 @@ export default function PerfilAsesorEditable() {
   // Estado para el diálogo de confirmación de guardado
   const [isSaveConfirmationOpen, setIsSaveConfirmationOpen] = useState(false);
 
-  const userId = +(user?.id ?? 0);
+  const myProfile = user && Number(user.id) === userId;
 
   useEffect(() => {
     getPerfilAsesor(userId).then(setAsesor).catch(console.error);
@@ -72,17 +86,20 @@ export default function PerfilAsesorEditable() {
     }
   }, [asesor]);
 
-  //useEffect(() => {
-  // Cargar los datos mockeados una vez al iniciar
-  //const asesorData = getAsesorMock();
-  //setAsesor(asesorData);
-  //setEditedData(asesorData);
-  // Cargar áreas y temas disponibles
-  //setAreasDisponibles(getAreasDisponibles());
-  //setTemasDisponibles(getTemasDisponibles());
-  //}, []);
+  useEffect(() => {
+    //Cargar los datos mockeados una vez al iniciar
+    //const asesorData = getAsesorMock();
+    //setAsesor(asesorData);
+    //setEditedData(asesorData);
+    // Cargar áreas y temas disponibles
+    //setAreasDisponibles(getAreasDisponibles());
+    //setTemasDisponibles(getTemasDisponibles());
+    setTesis(getTesisMock());
+    setProyectos(getProyectosMock());
+  }, []);
 
   useEffect(() => {
+    if (!userId) return;
     (async () => {
       try {
         const [allAreas, allTemas] = await Promise.all([
@@ -95,7 +112,7 @@ export default function PerfilAsesorEditable() {
         console.error("Error al cargar filtros:", e);
       }
     })();
-  }, []);
+  }, [userId]);
 
   // Efecto para resaltar visualmente un área recién agregada
   useEffect(() => {
@@ -108,13 +125,21 @@ export default function PerfilAsesorEditable() {
   }, [recentlyAddedArea]);
 
   if (
-    !user ||
     !asesor ||
+    !tesis ||
+    !proyectos ||
     !editedData ||
     !areasDisponibles ||
     !temasDisponibles
   ) {
-    return <div>Cargando perfil...</div>;
+    return (
+      <div className="flex items-center justify-center h-screen w-full flex-col gap-4">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <span className="text-muted-foreground text-lg">
+          Cargando perfil...
+        </span>
+      </div>
+    );
   }
 
   const areasFiltered = areasDisponibles.filter(
@@ -129,10 +154,10 @@ export default function PerfilAsesorEditable() {
 
   const handleSave = () => {
     // Verificar que haya al menos un área temática
-    if (editedData.areasTematicas.length === 0) {
-      setIsValidationAlertOpen(true);
-      return;
-    }
+    //if (editedData.areasTematicas.length === 0) {
+    //  setIsValidationAlertOpen(true);
+    //  return;
+    //}
     setIsSaveConfirmationOpen(true);
   };
 
@@ -145,22 +170,7 @@ export default function PerfilAsesorEditable() {
     try {
       setIsLoading(true);
 
-      const asesorDTO: AsesorDTO = {
-        id: userId,
-        nombre: editedData.nombre,
-        especialidad: editedData.especialidad,
-        email: editedData.email,
-        linkedin: editedData.linkedin,
-        repositorio: editedData.repositorio,
-        biografia: editedData.biografia,
-        estado: null,
-        limiteTesis: editedData.limiteTesis,
-        tesistasActuales: editedData.tesis?.length ?? 0,
-        areasTematicas: editedData.areasTematicas,
-        temasIntereses: editedData.temasIntereses,
-      };
-
-      await editarAsesor(asesorDTO);
+      await editarAsesor(editedData);
 
       toast.success("Cambios guardados con éxito", {
         description: "Tu perfil ha sido actualizado.",
@@ -305,16 +315,27 @@ export default function PerfilAsesorEditable() {
   return (
     <div className="px-4 sm:px-6 lg:px-8 pt-6 pb-12 w-full max-w-none">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div className="flex items-center">
-          <h1 className="text-xl sm:text-2xl font-bold">Mi perfil</h1>
+        <div className="flex items-center gap-2">
+          {!myProfile && (
+            <button
+              onClick={() => router.back()}
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+          )}
+          <h1 className="text-xl sm:text-2xl font-bold">
+            {myProfile ? "Mi perfil" : "Perfil del asesor"}
+          </h1>
         </div>
-        {/* Botones para edicion de perfil */}
-        <EditarPerfilActions
-          isEditing={isEditing}
-          onStartEdit={() => setIsEditing(true)}
-          onSave={handleSave}
-          onCancel={handleCancel}
-        />
+        {editable && (
+          <EditarPerfilActions
+            isEditing={isEditing}
+            onStartEdit={() => setIsEditing(true)}
+            onSave={handleSave}
+            onCancel={handleCancel}
+          />
+        )}
       </div>
       {/* Diálogo de confirmación para eliminar área temática */}
       <EliminarAreaDialog
@@ -344,6 +365,7 @@ export default function PerfilAsesorEditable() {
         <div className="space-y-6">
           <PerfilAsesorCard
             asesor={asesor}
+            tesis={tesis}
             editedData={editedData}
             isEditing={isEditing}
             setEditedData={setEditedData}
@@ -389,9 +411,14 @@ export default function PerfilAsesorEditable() {
               setEditedData({ ...editedData, biografia: value })
             }
           />
+          {/* Indicadores */}
+          <IndicadoresAsesor tesis={tesis} proyectos={proyectos} />
 
           {/* Tesis Dirigidas */}
-          <TesisDirigidasResumen tesis={asesor.tesis} />
+          <TesisDirigidasResumen tesis={tesis} />
+
+          {/* Proyectos */}
+          <ProyectosAsesoradosResumen proyectos={proyectos} />
         </div>
       </div>
     </div>
