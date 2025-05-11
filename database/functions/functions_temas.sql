@@ -416,9 +416,6 @@ END;
 $BODY$;
 
 
-
-
-
 CREATE OR REPLACE FUNCTION rechazar_tema(
     p_alumno_id INT,
     p_comentario TEXT,
@@ -452,3 +449,198 @@ END;
 $$ LANGUAGE plpgsql;
 
 
+
+CREATE FUNCTION obtener_usuarios_por_estado(activo_param BOOLEAN)
+    RETURNS TABLE
+            (
+                usuario_id               INTEGER,
+                codigo_pucp              CHARACTER VARYING,
+                nombres                  CHARACTER VARYING,
+                primer_apellido          CHARACTER VARYING,
+                segundo_apellido         CHARACTER VARYING,
+                correo_electronico       CHARACTER VARYING,
+                nivel_estudios           CHARACTER VARYING,
+                cantidad_temas_asignados INTEGER,
+                tema_activo              BOOLEAN,
+                fecha_asignacion         TIMESTAMP WITH TIME ZONE
+            )
+    LANGUAGE plpgsql
+AS
+$$
+BEGIN
+
+    RETURN QUERY
+        SELECT DISTINCT ON (u.usuario_id) u.usuario_id,
+                                          u.codigo_pucp,
+                                          u.nombres,
+                                          u.primer_apellido,
+                                          u.segundo_apellido,
+                                          u.correo_electronico,
+                                          u.nivel_estudios,
+                                          COUNT(ut.tema_id) OVER (PARTITION BY u.usuario_id)::INT AS cantidad_temas_asignados,
+                                          ut.activo                                               AS tema_activo,
+                                          ut.fecha_creacion                                       AS fecha_asignacion
+            FROM usuario u
+                     JOIN
+                 usuario_tema ut ON u.usuario_id = ut.usuario_id
+                     JOIN
+                 tema t ON ut.tema_id = t.tema_id
+            WHERE ut.rol_id = 2
+              AND u.activo = activo_param
+            ORDER BY u.usuario_id, ut.prioridad;
+END;
+$$;
+
+ALTER FUNCTION obtener_usuarios_por_estado(BOOLEAN) OWNER TO postgres;
+
+CREATE FUNCTION obtener_usuarios_por_area_conocimiento(area_conocimiento_id_param INTEGER)
+    RETURNS TABLE
+            (
+                id                       INTEGER,
+                codigo_pucp              CHARACTER VARYING,
+                nombres                  CHARACTER VARYING,
+                primer_apellido          CHARACTER VARYING,
+                segundo_apellido         CHARACTER VARYING,
+                correo_electronico       CHARACTER VARYING,
+                nivel_estudios           CHARACTER VARYING,
+                cantidad_temas_asignados INTEGER,
+                tema_activo              BOOLEAN,
+                fecha_asignacion         TIMESTAMP WITH TIME ZONE
+            )
+    LANGUAGE plpgsql
+AS
+$$
+BEGIN
+    RETURN QUERY
+        SELECT DISTINCT ON (u.usuario_id) u.usuario_id                                            AS id,
+                                          u.codigo_pucp,
+                                          u.nombres,
+                                          u.primer_apellido,
+                                          u.segundo_apellido,
+                                          u.correo_electronico,
+                                          u.nivel_estudios,
+                                          COUNT(ut.tema_id) OVER (PARTITION BY u.usuario_id)::INT AS cantidad_temas_asignados,
+                                          ut.activo                                               AS tema_activo,
+                                          ut.fecha_creacion                                       AS fecha_asignacion
+            FROM usuario u
+                     JOIN
+                 usuario_tema ut ON u.usuario_id = ut.usuario_id
+                     JOIN
+                 tema t ON ut.tema_id = t.tema_id
+                     JOIN
+                 usuario_area_conocimiento uac ON u.usuario_id = uac.usuario_id
+                     JOIN
+                 area_conocimiento ac ON uac.area_conocimiento_id = ac.area_conocimiento_id
+            WHERE ut.rol_id = 2 -- rol de jurado
+              AND ac.area_conocimiento_id = area_conocimiento_id_param
+            ORDER BY u.usuario_id, ut.prioridad;
+END;
+$$;
+
+ALTER FUNCTION obtener_usuarios_por_area_conocimiento(INTEGER) OWNER TO postgres;
+
+
+CREATE FUNCTION obtener_usuarios_con_temass()
+    RETURNS TABLE
+            (
+                usuario_id               INTEGER,
+                codigo_pucp              CHARACTER VARYING,
+                nombres                  CHARACTER VARYING,
+                primer_apellido          CHARACTER VARYING,
+                segundo_apellido         CHARACTER VARYING,
+                correo_electronico       CHARACTER VARYING,
+                nivel_estudios           CHARACTER VARYING,
+                cantidad_temas_asignados BIGINT,
+                tema_activo              BOOLEAN,
+                fecha_asignacion         TIMESTAMP WITH TIME ZONE
+            )
+    LANGUAGE plpgsql
+AS
+$$
+BEGIN
+    RETURN QUERY
+        SELECT DISTINCT ON (u.usuario_id) u.usuario_id,
+                                          u.codigo_pucp,
+                                          u.nombres,
+                                          u.primer_apellido,
+                                          u.segundo_apellido,
+                                          u.correo_electronico,
+                                          u.nivel_estudios,
+                                          COUNT(ut.tema_id) OVER (PARTITION BY u.usuario_id) AS cantidad_temas_asignados,
+                                          ut.activo                                          AS tema_activo,
+                                          ut.fecha_creacion                                  AS fecha_asignacion
+            FROM usuario u
+                     JOIN usuario_tema ut ON u.usuario_id = ut.usuario_id
+                     JOIN tema t ON ut.tema_id = t.tema_id
+            WHERE ut.rol_id = 2
+            ORDER BY u.usuario_id, ut.prioridad;
+END;
+$$;
+
+ALTER FUNCTION obtener_usuarios_con_temass() OWNER TO postgres;
+
+
+CREATE FUNCTION obtener_usuarios_con_temas()
+    RETURNS TABLE
+            (
+                usuario_id               INTEGER,
+                codigo_pucp              CHARACTER VARYING,
+                nombres                  CHARACTER VARYING,
+                primer_apellido          CHARACTER VARYING,
+                segundo_apellido         CHARACTER VARYING,
+                correo_electronico       CHARACTER VARYING,
+                nivel_estudios           CHARACTER VARYING,
+                cantidad_temas_asignados INTEGER,
+                tema_activo              BOOLEAN,
+                fecha_asignacion         TIMESTAMP WITHOUT TIME ZONE
+            )
+    LANGUAGE plpgsql
+AS
+$$
+BEGIN
+    RETURN QUERY
+        SELECT DISTINCT ON (u.usuario_id) u.usuario_id,
+                                          u.codigo_pucp,
+                                          u.nombres,
+                                          u.primer_apellido,
+                                          u.segundo_apellido,
+                                          u.correo_electronico,
+                                          u.nivel_estudios,
+                                          COUNT(ut.tema_id) OVER (PARTITION BY u.usuario_id) AS cantidad_temas_asignados,
+                                          ut.activo                                          AS tema_activo,
+                                          ut.fecha_creacion                                  AS fecha_asignacion
+            FROM usuario u
+                     JOIN usuario_tema ut ON u.usuario_id = ut.usuario_id
+                     JOIN tema t ON ut.tema_id = t.tema_id
+            WHERE ut.rol_id = 2
+            ORDER BY u.usuario_id, ut.prioridad;
+END;
+$$;
+
+ALTER FUNCTION obtener_usuarios_con_temas() OWNER TO postgres;
+
+
+CREATE FUNCTION obtener_area_conocimiento(usuario_id_param INTEGER)
+    RETURNS TABLE
+            (
+                usuario_id               INTEGER,
+                area_conocimiento_nombre CHARACTER VARYING
+            )
+    LANGUAGE plpgsql
+AS
+$$
+BEGIN
+    RETURN QUERY
+        SELECT u.usuario_id,
+               ac.nombre AS area_conocimiento_nombre
+            FROM usuario u
+                     JOIN
+                 usuario_area_conocimiento uac ON u.usuario_id = uac.usuario_id
+                     JOIN
+                 area_conocimiento ac ON uac.area_conocimiento_id = ac.area_conocimiento_id
+            WHERE u.usuario_id = usuario_id_param
+            ORDER BY ac.nombre;
+END;
+$$;
+
+ALTER FUNCTION obtener_area_conocimiento(INTEGER) OWNER TO postgres;
