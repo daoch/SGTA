@@ -299,3 +299,48 @@ WHERE bhe.activo = true
 	AND je.exposicion_id = p_exposicion_id;
 END;
 $$ LANGUAGE plpgsql STABLE;
+
+
+CREATE OR REPLACE FUNCTION actualizar_exposicon_tema_bloque_exposicion(bloques_json jsonb)
+RETURNS void AS $$
+DECLARE
+    bloque jsonb;
+    id_bloque INTEGER;
+    id_jornada_exposicion_sala INTEGER;
+    id_exposicion INTEGER;
+    id_tema INTEGER;
+    codigo_tema TEXT;
+    titulo_tema TEXT;
+  et_id INTEGER; 
+BEGIN
+    
+    FOR bloque IN SELECT * FROM jsonb_array_elements(bloques_json)
+    LOOP
+        
+        id_bloque := (bloque->>'idBloque')::INTEGER;
+        id_jornada_exposicion_sala := (bloque->>'idJornadaExposicionSala')::INTEGER;
+        id_exposicion := (bloque->>'idExposicion')::INTEGER;
+
+       
+        id_tema := (bloque->'expo'->>'id')::INTEGER;
+        codigo_tema := bloque->'expo'->>'codigo';
+        titulo_tema := bloque->'expo'->>'titulo';
+
+       	select exposicion_x_tema_id into et_id
+		from exposicion_x_tema et
+		where et.tema_id = id_tema and et.exposicion_id = id_exposicion;
+    
+        UPDATE bloque_horario_exposicion 
+        SET 
+            exposicion_x_tema_id = et_id,  
+            es_bloque_reservado = true,
+            fecha_modificacion = now()
+        WHERE bloque_horario_exposicion_id = id_bloque;
+
+    
+        UPDATE exposicion_x_tema et
+        SET estado_exposicion = 'esperando_respuesta'
+        WHERE et.tema_id = id_tema AND et.exposicion_id = id_exposicion;
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
