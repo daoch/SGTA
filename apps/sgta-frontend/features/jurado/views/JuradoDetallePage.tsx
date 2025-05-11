@@ -149,19 +149,19 @@ export function JuradoDetalleView({
 
   return (
     <div>
-      <div className="flex h-[60px] pt-[15px] pr-[20px] pb-[10px] pl-[20px] items-center gap-[10px] self-stretch">
+      <div className="flex h-[60px] pt-[15px] pr-[20px] pb-[10px] items-center gap-[10px] self-stretch">
         <button
           onClick={() => router.back()}
-          className="flex items-center text-black hover:underline"
+          className="flex items-center text-black hover:underline cursor-pointer"
         >
-          <ArrowLeft className="w-5 h-5 mr-2" />
+          <ArrowLeft className="w-5 h-5" />
         </button>
         <h1 className="text-[#042354] font-montserrat text-[24px] font-semibold leading-[32px] tracking-[-0.144px]">
           Temas como Miembro de Jurado
         </h1>
       </div>
 
-      <div className="flex flex-wrap gap-2 items-center">
+      <div className="flex flex-wrap gap-3 items-center">
         <div className="relative flex items-center w-[447px] h-[44px] border border-[#E2E6F0] bg-background">
           <Input
             placeholder="Ingrese el código, título del tema o nombre del estudiante"
@@ -255,3 +255,4 @@ export function JuradoDetalleView({
 }
 
 export default JuradoDetalleView;
+

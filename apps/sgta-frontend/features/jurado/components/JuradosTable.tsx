@@ -73,12 +73,16 @@ const TableJurados: React.FC<TableJuradosProps> = ({ juradosData }) => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="relative"
+                  className="relative cursor-pointer"
                   onClick={() => handleClick(jurado.code)} // Cambia a la ruta de detalle del jurado
                 >
                   <FileSearch className="h-5 w-5" />
                 </Button>
-                <Button variant="ghost" size="icon" className="relative">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="relative cursor-pointer"
+                >
                   <Trash2 className="h-5 w-5 text-red-500" />
                 </Button>
               </div>

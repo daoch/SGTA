@@ -1,5 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -171,8 +172,9 @@ const JuradosView = () => {
           </div>
         </div>
 
-        <Button className="inline-flex h-11 px-4 justify-center items-center gap-2 flex-shrink-0 rounded-md bg-[#042354] text-white">
-          + Nuevo Jurado
+        <Button className="inline-flex h-11 px-4 justify-center items-center gap-2 flex-shrink-0 rounded-md bg-[#042354] text-white cursor-pointer">
+          <Plus className="h-4 w-4" />
+          Nuevo Jurado
         </Button>
       </div>
       {juradosData.length === 0 ? (
