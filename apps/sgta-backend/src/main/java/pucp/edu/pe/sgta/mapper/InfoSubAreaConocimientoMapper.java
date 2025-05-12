@@ -1,6 +1,6 @@
 package pucp.edu.pe.sgta.mapper;
 
-import pucp.edu.pe.sgta.dto.InfoSubAreaConocimientoDto;
+import pucp.edu.pe.sgta.dto.asesores.InfoSubAreaConocimientoDto;
 import pucp.edu.pe.sgta.model.SubAreaConocimiento;
 
 public class InfoSubAreaConocimientoMapper {

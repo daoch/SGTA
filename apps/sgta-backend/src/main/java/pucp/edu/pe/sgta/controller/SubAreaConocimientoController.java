@@ -4,8 +4,7 @@ package pucp.edu.pe.sgta.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import pucp.edu.pe.sgta.dto.SubAreaConocimientoDto;
-import pucp.edu.pe.sgta.dto.InfoSubAreaConocimientoDto;
-import pucp.edu.pe.sgta.dto.InfoTemaPerfilDto;
+import pucp.edu.pe.sgta.dto.asesores.InfoSubAreaConocimientoDto;
 import pucp.edu.pe.sgta.service.inter.SubAreaConocimientoService;
 
 import java.util.List;
