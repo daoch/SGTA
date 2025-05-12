@@ -1,4 +1,4 @@
-import PerfilAsesorEditable from "@/features/asesores/views/mi-perfil-asesor";
+import PerfilAsesor from "@/features/asesores/views/mi-perfil-asesor";
 import { useAuth } from "@/features/auth";
 
 export default function AppProfile() {
@@ -9,9 +9,8 @@ export default function AppProfile() {
   const roles = user.roles || [];
 
   if (roles.includes("asesor")) {
-    return <PerfilAsesorEditable />;
+    return <PerfilAsesor userId={+user?.id} editable={true} />;
   }
 
-  // Puedes cambiar esto por un componente de fallback, loading o mensaje personalizado
   return null;
 }

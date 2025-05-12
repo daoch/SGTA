@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION public.get_advisor_distribution_by_coordinator_and_ciclo(
+CREATE OR REPLACE FUNCTION get_advisor_distribution_by_coordinator_and_ciclo(
     p_usuario_id    INTEGER,
     p_ciclo_nombre  VARCHAR
 )
@@ -80,11 +80,11 @@ BEGIN
 END;
 $BODY$;
 
-ALTER FUNCTION public.get_advisor_distribution_by_coordinator_and_ciclo(integer, varchar)
+ALTER FUNCTION get_advisor_distribution_by_coordinator_and_ciclo(integer, varchar)
   OWNER TO postgres;
 
 -------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION public.get_juror_distribution_by_coordinator_and_ciclo(
+CREATE OR REPLACE FUNCTION get_juror_distribution_by_coordinator_and_ciclo(
     p_usuario_id    INTEGER,
     p_ciclo_nombre  VARCHAR
 )
@@ -174,11 +174,11 @@ BEGIN
 END;
 $BODY$;
 
-ALTER FUNCTION public.get_juror_distribution_by_coordinator_and_ciclo(integer, varchar)
+ALTER FUNCTION get_juror_distribution_by_coordinator_and_ciclo(integer, varchar)
   OWNER TO postgres;
 
 -------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION public.get_advisor_performance_by_user(
+CREATE OR REPLACE FUNCTION get_advisor_performance_by_user(
     p_usuario_id     INTEGER,
     p_ciclo_nombre   VARCHAR
 )
@@ -279,12 +279,12 @@ BEGIN
 END;
 $BODY$;
 
-ALTER FUNCTION public.get_advisor_performance_by_user(integer, varchar)
+ALTER FUNCTION get_advisor_performance_by_user(integer, varchar)
   OWNER TO postgres;
 
 
 -------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION public.get_topic_area_stats_by_user_and_ciclo(
+CREATE OR REPLACE FUNCTION get_topic_area_stats_by_user_and_ciclo(
     p_usuario_id     INTEGER,
     p_ciclo_nombre   VARCHAR
 )
@@ -359,11 +359,11 @@ BEGIN
 END;
 $BODY$;
 
-ALTER FUNCTION public.get_topic_area_stats_by_user_and_ciclo(integer, varchar)
+ALTER FUNCTION get_topic_area_stats_by_user_and_ciclo(integer, varchar)
   OWNER TO postgres;
 
 -------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION public.get_topic_area_trends_by_user(
+CREATE OR REPLACE FUNCTION get_topic_area_trends_by_user(
     p_usuario_id  INTEGER
 )
   RETURNS TABLE(
@@ -428,6 +428,6 @@ BEGIN
 END;
 $BODY$;
 
-ALTER FUNCTION public.get_topic_area_trends_by_user(integer)
+ALTER FUNCTION get_topic_area_trends_by_user(integer)
   OWNER TO postgres;
 

@@ -1,40 +1,59 @@
 "use client";
-import { DndContext, DragEndEvent, MouseSensor, useSensor, useSensors } from "@dnd-kit/core";
+import {
+  DndContext,
+  DragEndEvent,
+  MouseSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import { useState } from "react";
+import { JornadaExposicionDTO } from "../dtos/JornadExposicionDTO";
+import { AreaEspecialidad, Tema } from "../types/jurado.types";
 import ExposList from "./ExposList";
 import PlanificationPanel from "./PlanificationPanel";
-import { AreaEspecialidad, Tema } from "../types/jurado.types";
-import { useState } from "react";
-import { JornadaExposicionDTO } from "@/features/jurado/dtos/JornadExposicionDTO";
+
+interface TimeSlot {
+  key: string;
+  range: string; // 17:00  -  18:00
+  idBloque: number;
+  expo?: Tema;
+}
 
 interface Props {
-  expos : Tema[];
-  topics :  AreaEspecialidad[];
-  roomAvailList :JornadaExposicionDTO[];
-};
+  expos: Tema[];
+  topics: AreaEspecialidad[];
+  roomAvailList: JornadaExposicionDTO[];
+  bloquesList: TimeSlot[];
+}
 
-const GeneralPlanificationExpo: React.FC<Props> = ({expos,topics,roomAvailList}:Props) => {
-    const [freeExpos, setFreeExpos] = useState<Tema[]>(
-        expos
-      );
-      const [assignedExpos, setAssignedExpos] = useState<
-          Record<string, Tema>
-        >({});
-    
-    /*Handles the drag and drop event for the expositions*/
+const GeneralPlanificationExpo: React.FC<Props> = ({
+  expos,
+  topics,
+  bloquesList,
+  roomAvailList,
+}: Props) => {
+  const [freeExpos, setFreeExpos] = useState<Tema[]>(expos);
+  const [assignedExpos, setAssignedExpos] = useState<Record<string, Tema>>({});
+
+  /*Handles the drag and drop event for the expositions*/
   function handleDragEnd(event: DragEndEvent) {
     console.log(freeExpos);
     const { active, over } = event;
-   
+
     /*validates that the drop occurs in a valid and different location from the original one.*/
     if (!over || active.id === over.id) return;
 
-    const expoId = active.id ;
-    const spaceId = over.id ;
+    const expoId = active.id;
+    const spaceId = over.id;
     /*checks if the item being dragged is in the list of unassigned expositions.*/
     const chosenExpo = freeExpos.find((e) => e.codigo === expoId);
 
     if (chosenExpo) {
       /*If it's in the unassigned list, it's removed from there and added to the assigned list*/
+      if (spaceId in assignedExpos) {
+        return;
+      }
+
       const newAssignment = {
         [spaceId]: chosenExpo,
       };
@@ -48,7 +67,7 @@ const GeneralPlanificationExpo: React.FC<Props> = ({expos,topics,roomAvailList}:
       /*If it's not in the unassigned list, it means it was already assigned,
            so we remove it from its previous assignment and reassign it to the new location.*/
       const chosenExpo = Object.values(assignedExpos).find(
-        (a) => a.codigo=== expoId,
+        (a) => a.codigo === expoId,
       );
       if (chosenExpo) {
         const newAssignment = {
@@ -99,25 +118,25 @@ const GeneralPlanificationExpo: React.FC<Props> = ({expos,topics,roomAvailList}:
 
   const sensors = useSensors(mouseSensor);
 
-    return (
-        <DndContext onDragEnd={handleDragEnd} sensors={sensors}>
-        <div className="flex flex-col md:flex-row gap-2  flex-1 min-h-0">
-          <div className="w-full md:w-1/4  h-full">
-            <ExposList freeExpos={freeExpos} topics={topics} />
-          </div>
-
-          <div className="bg-gray-300 w-full h-px md:w-px md:h-auto"></div>
-          <div className="flex flex-col w-full md:w-3/4 overflow-y-auto gap-4">
-            <PlanificationPanel
-              roomAvailList={roomAvailList}
-              assignedExpos={assignedExpos}
-              removeExpo={removeExpo}
-            />
-          </div>
+  return (
+    <DndContext onDragEnd={handleDragEnd} sensors={sensors}>
+      <div className="flex flex-col md:flex-row gap-2  flex-1 min-h-0">
+        <div className="w-full md:w-1/4  h-full">
+          <ExposList freeExpos={freeExpos} topics={topics} />
         </div>
-      </DndContext>
-    );
 
+        <div className="bg-gray-300 w-full h-px md:w-px md:h-auto"></div>
+        <div className="flex flex-col w-full md:w-3/4 overflow-y-auto gap-4">
+          <PlanificationPanel
+            roomAvailList={roomAvailList}
+            assignedExpos={assignedExpos}
+            removeExpo={removeExpo}
+            bloquesList={bloquesList}
+          />
+        </div>
+      </div>
+    </DndContext>
+  );
 };
 
 export default GeneralPlanificationExpo;

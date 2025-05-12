@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import pucp.edu.pe.sgta.dto.*;
+import pucp.edu.pe.sgta.dto.asesores.InfoTemaPerfilDto;
 import pucp.edu.pe.sgta.exception.CustomException;
 import pucp.edu.pe.sgta.mapper.TemaMapper;
 import pucp.edu.pe.sgta.mapper.UsuarioMapper;
@@ -799,19 +800,26 @@ public class TemaServiceImpl implements TemaService {
 
 		for (Object[] t : resultQuery) {
 			InfoTemaPerfilDto dto = new InfoTemaPerfilDto();
-			dto.setId((Integer) t[0]);
+			dto.setIdTesis((Integer) t[0]);
 			dto.setTitulo((String) t[1]);
-			dto.setEstado((String) t[2]);
+			String estado = (String) t[2];
+			switch (estado){
+				case "EN_PROGRESO": estado = "en_proceso"; break;
+				case "FINALIZADO": estado = "finalizada"; break;
+				default: estado = null; break;
+			}
+			dto.setEstado(estado);
 			dto.setAnio((String) t[3]);
 
 			//Agregar a los tesistas
-			List<Object[]> resultTesistasQuery = usuarioXTemaRepository.listarTesistasTema(dto.getId());
+			List<Object[]> resultTesistasQuery = usuarioXTemaRepository.listarTesistasTema(dto.getIdTesis());
 			List<String> tesistas = new ArrayList<>();
 			for (Object[] tesista : resultTesistasQuery) {
 				String nombreTesista = (String) tesista[0] + " " + (String) tesista[1];
 				tesistas.add(nombreTesista);
 			}
-			dto.setEstudiante(String.join(", ", tesistas));
+			dto.setEstudiantes(String.join(", ", tesistas));
+
 			//Añadir el nivel
 			temas.add(dto);
 		}
