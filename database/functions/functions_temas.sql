@@ -570,7 +570,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE FUNCTION obtener_usuarios_por_estado(activo_param BOOLEAN)
+CREATE OR REPLACE FUNCTION obtener_usuarios_por_estado(activo_param BOOLEAN)
     RETURNS TABLE
             (
                 usuario_id               INTEGER,
@@ -613,7 +613,7 @@ $$;
 
 ALTER FUNCTION obtener_usuarios_por_estado(BOOLEAN) OWNER TO postgres;
 
-CREATE FUNCTION obtener_usuarios_por_area_conocimiento(area_conocimiento_id_param INTEGER)
+CREATE OR REPLACE FUNCTION obtener_usuarios_por_area_conocimiento(area_conocimiento_id_param INTEGER)
     RETURNS TABLE
             (
                 id                       INTEGER,
@@ -660,7 +660,7 @@ $$;
 ALTER FUNCTION obtener_usuarios_por_area_conocimiento(INTEGER) OWNER TO postgres;
 
 
-CREATE FUNCTION obtener_usuarios_con_temass()
+CREATE OR REPLACE FUNCTION obtener_usuarios_con_temass()
     RETURNS TABLE
             (
                 usuario_id               INTEGER,
@@ -700,7 +700,7 @@ $$;
 ALTER FUNCTION obtener_usuarios_con_temass() OWNER TO postgres;
 
 
-CREATE FUNCTION obtener_usuarios_con_temas()
+CREATE OR REPLACE FUNCTION obtener_usuarios_con_temas()
     RETURNS TABLE
             (
                 usuario_id               INTEGER,
@@ -740,7 +740,7 @@ $$;
 ALTER FUNCTION obtener_usuarios_con_temas() OWNER TO postgres;
 
 
-CREATE FUNCTION obtener_area_conocimiento(usuario_id_param INTEGER)
+CREATE OR REPLACE FUNCTION obtener_area_conocimiento(usuario_id_param INTEGER)
     RETURNS TABLE
             (
                 usuario_id               INTEGER,
