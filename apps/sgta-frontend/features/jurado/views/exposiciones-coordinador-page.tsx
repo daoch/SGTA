@@ -76,7 +76,7 @@ const ExposicionesCoordinadorPage: React.FC = () => {
         Exposiciones
       </h1>
 
-      <div className="flex items-end flex-wrap gap-4">
+      <div className="flex items-end flex-wrap gap-4 pb-4">
         <div className="flex gap-4 flex-1 items-end">
           <div className="flex flex-col">
             <CursoSelect curso={curso} setCurso={setCurso} cursos={cursos} />
