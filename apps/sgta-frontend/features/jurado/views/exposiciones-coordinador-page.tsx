@@ -8,7 +8,7 @@ import React, { useEffect, useState } from "react";
 import ModalPlanificadorCoordinador from "../components/modal-planificador-coordinador";
 import {
   getCiclos,
-  getCursos,
+  getCursosByCoordinador,
   getExposicionesInicializadasByCoordinador,
 } from "../services/exposicion-service";
 import { ListExposicionXCoordinadorDTO } from "../dtos/ListExposicionXCoordiandorDTO";
@@ -33,7 +33,7 @@ const ExposicionesCoordinadorPage: React.FC = () => {
       try {
         const [ciclosData, cursosData, exposicionesData] = await Promise.all([
           getCiclos(),
-          getCursos(),
+          getCursosByCoordinador(3),
           getExposicionesInicializadasByCoordinador(3),
         ]);
         setCiclos(ciclosData);
@@ -71,12 +71,12 @@ const ExposicionesCoordinadorPage: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col pt-2 w-full">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+    <div className="flex flex-col w-full">
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
         Exposiciones
       </h1>
 
-      <div className="flex items-end flex-wrap gap-4 mb-6">
+      <div className="flex items-end flex-wrap gap-4">
         <div className="flex gap-4 flex-1 items-end">
           <div className="flex flex-col">
             <CursoSelect curso={curso} setCurso={setCurso} cursos={cursos} />
@@ -91,14 +91,6 @@ const ExposicionesCoordinadorPage: React.FC = () => {
           <div className="flex flex-col">
             <EstadoSelect estado={estado} setEstado={setEstado} />
           </div>
-
-          <Button
-            onClick={() => console.log("Exportar lista")}
-            variant="secondary"
-            className="text-indigo-700 bg-indigo-200 hover:bg-indigo-300 py-2 px-6"
-          >
-            Exportar Lista
-          </Button>
         </div>
 
         <div className="ml-auto flex items-end">
