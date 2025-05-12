@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  asesorData,
-  estadosValues,
-  TabValues,
-  temasDataMock,
-} from "@/app/types/temas/data";
+import { asesorData, temasDataMock } from "@/app/types/temas/data";
 import { Tema, TemaUI } from "@/app/types/temas/entidades";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,6 +18,7 @@ import { CheckCircle, Eye, Send, X, FilePen, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import DeleteTemaPopUp from "./delete-tema-pop-up";
 import { TemaDetailsDialog } from "./tema-details-modal";
+import { estadosValues, TabValues } from "@/app/types/temas/enums";
 
 interface PropuestasTableProps {
   filter?: string;
@@ -37,22 +33,43 @@ export function TemasTable({ filter }: PropuestasTableProps) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  const getUrlListTemas = (rol: string, estado: string) => {
+    const baseUrl =
+      "http://localhost:5000/temas/listarTemasPorUsuarioRolEstado/";
+    return `${baseUrl}${asesorData.id}?rolNombre=${rol}&estadoNombre=${estado}`;
+  };
+
   useEffect(() => {
     const fetchTemas = async () => {
       try {
         setIsLoading(true);
         setError(null);
-
         if (!TEST) {
-          const response = await fetch(
-            "http://localhost:5000/temas/listarTemasPorUsuarioRolEstado/1?rolNombre=Asesor&estadoNombre=INSCRITO",
-          );
+          // List temas de tipo INSCRITO
+          const response = await fetch(getUrlListTemas("Asesor", "INSCRITO"));
           if (!response.ok) {
             throw new Error("Error al cargar los datos");
           }
 
           const data: Tema[] = await response.json();
-          setTemasData(data.map((tema) => ({ ...tema, tipo: "todo" })));
+          const temasInscritos: TemaUI[] = data.map((t) => ({
+            ...t,
+            tipo: TabValues.INSCRITO,
+          }));
+          setTemasData((prev) => [...prev, ...temasInscritos]);
+
+          // List temas de tipo LIBRE
+          // const response = await fetch(getUrlListTemas("Asesor", "INSCRITO"));
+          // if (!response.ok) {
+          //   throw new Error("Error al cargar los datos");
+          // }
+
+          // const data: Tema[] = await response.json();
+          // const temasInscritos: TemaUI[] = data.map((t) => ({
+          //   ...t,
+          //   tipo: TabValues.INSCRITO,
+          // }));
+          // setTemasData((prev) => [...prev, ...temasInscritos]);
         }
       } catch (err: any) {
         setError("Error desconocido: " + err.message);

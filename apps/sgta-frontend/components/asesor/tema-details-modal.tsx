@@ -12,7 +12,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Eye, History } from "lucide-react";
 import { Tema, TemaUI } from "@/app/types/temas/entidades";
-import { asesorData, TabValues } from "@/app/types/temas/data";
+import { asesorData } from "@/app/types/temas/data";
+import { TabValues } from "@/app/types/temas/enums";
 
 interface TemaDetailsDialogProps {
   tema: TemaUI;
@@ -22,8 +23,10 @@ export const TemaDetailsDialog: React.FC<TemaDetailsDialogProps> = ({
   tema,
 }) => {
   const coasesores = tema.coasesores
-    .map((c) => `${c.nombres} ${c.primerApellido} ${c.segundoApellido}`)
-    .join(", ");
+    ? tema.coasesores
+        .map((c) => `${c.nombres} ${c.primerApellido} ${c.segundoApellido}`)
+        .join(", ")
+    : "";
   const subarea = tema.subareas?.[0]?.nombre || "No especificada";
 
   return (
@@ -82,7 +85,7 @@ export const TemaDetailsDialog: React.FC<TemaDetailsDialogProps> = ({
           </div>
 
           {/* Coasesores */}
-          {coasesores && (
+          {coasesores && coasesores.length && (
             <div>
               <p className="text-sm font-medium">Coasesores</p>
               <p className="bg-muted p-2 rounded-md">{coasesores}</p>

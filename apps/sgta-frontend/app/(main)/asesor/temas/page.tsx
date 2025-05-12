@@ -1,6 +1,7 @@
 "use client";
 
-import { emptyTemaForm, TabValues } from "@/app/types/temas/data";
+import { emptyTemaForm } from "@/app/types/temas/data";
+import { TabValues } from "@/app/types/temas/enums";
 import NuevoTemaDialog from "@/components/asesor/tema-nuevo-modal";
 import { TemasTable } from "@/components/asesor/temas-table";
 import { Button } from "@/components/ui/button";
@@ -18,7 +19,6 @@ import { useState } from "react";
 
 const page = () => {
   const [isNuevoTemaDialogOpen, setIsNuevoTemaDialogOpen] = useState(false);
-  const [temaForm, setTemaForm] = useState(emptyTemaForm); // Estado global para temaForm
 
   return (
     <div className="space-y-8 mt-4">
@@ -44,8 +44,6 @@ const page = () => {
           <NuevoTemaDialog
             isOpen={isNuevoTemaDialogOpen}
             setIsNuevoTemaDialogOpen={setIsNuevoTemaDialogOpen}
-            temaForm={temaForm} // Pasar el estado global temaForm
-            setTemaForm={setTemaForm} // Pasar la función para actualizar temaForm
           />
         </Dialog>
       </div>
