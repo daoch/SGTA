@@ -548,6 +548,7 @@ public class TemaServiceImpl implements TemaService {
 			dto.setFechaLimite(fila[9] != null ? ((Instant) fila[9]).atOffset(ZoneOffset.UTC) : null);
 			dto.setFechaCreacion(fila[10] != null ? ((Instant) fila[10]).atOffset(ZoneOffset.UTC) : null);
 			dto.setFechaModificacion(fila[11] != null ? ((Instant) fila[11]).atOffset(ZoneOffset.UTC) : null);
+			dto.setCantPostulaciones((Integer) fila[12]);
 			lista.add(dto);
 		}
 
