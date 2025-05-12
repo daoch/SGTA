@@ -6,7 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import pucp.edu.pe.sgta.dto.EtapaFormativaDto;
 import pucp.edu.pe.sgta.dto.EtapaFormativaNombreDTO;
 import pucp.edu.pe.sgta.model.EtapaFormativa;
 
@@ -16,5 +15,5 @@ public interface EtapaFormativaRepository extends JpaRepository<EtapaFormativa, 
     List<EtapaFormativaNombreDTO> findToInitializeByCoordinador(@Param("usuarioId") Integer usuarioId);
 
     @Query(value = "SELECT * FROM listaretapasformativasactivas()", nativeQuery = true)
-    List<EtapaFormativaDto> findAllActivas();
+    List<Object[]> findAllActivas();
 }
