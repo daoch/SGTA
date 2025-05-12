@@ -21,39 +21,38 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Trash2 } from "lucide-react";
-import { TemaForm } from "@/app/types/temas/entidades";
+import { Coasesor, Tema, TemaForm, Tesista } from "@/app/types/temas/entidades";
 import {
   coasesoresDisponibles,
   estudiantesDisponibles,
   areasDeInvestigacion,
+  temaVacio,
 } from "@/app/types/temas/data";
 
 interface NuevoTemaDialogProps {
   isOpen: boolean;
   setIsNuevoTemaDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  temaForm: TemaForm;
-  setTemaForm: React.Dispatch<React.SetStateAction<TemaForm>>;
+}
+
+enum TipoRegistro {
+  NONE = "",
+  LIBRE = "libre",
+  INSCRIPCION = "inscripcion",
 }
 
 const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
   isOpen,
   setIsNuevoTemaDialogOpen,
-  temaForm,
-  setTemaForm,
 }) => {
-  const [localTemaForm, setLocalTemaForm] = useState<TemaForm>(temaForm);
-  const [coasesorSeleccionado, setCoasesorSeleccionado] = useState<string>("");
+  const [temaData, setTemaData] = useState<Tema>(temaVacio);
+  const [tipoRegistro, setTipoRegistro] = useState(TipoRegistro.NONE);
+  const [coasesorSeleccionado, setCoasesorSeleccionado] =
+    useState<Coasesor | null>(null);
   const [estudianteSeleccionado, setEstudianteSeleccionado] =
-    useState<string>("");
+    useState<Tesista | null>(null);
 
-  useEffect(() => {
-    if (isOpen) {
-      setLocalTemaForm(temaForm);
-    }
-  }, [isOpen, temaForm]);
-
-  const handleChange = (field: keyof TemaForm, value: any) => {
-    setLocalTemaForm((prev) => ({
+  const handleChange = (field: keyof Tema, value: any) => {
+    setTemaData((prev) => ({
       ...prev,
       [field]: value,
     }));
@@ -62,50 +61,83 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
   const handleAgregarCoasesor = () => {
     if (
       coasesorSeleccionado &&
-      !localTemaForm.coasesores.includes(coasesorSeleccionado)
+      temaData.coasesores &&
+      !temaData.coasesores?.some(
+        (coasesor) => coasesor.codigoPucp === coasesorSeleccionado?.codigoPucp,
+      )
     ) {
-      setLocalTemaForm((prev) => ({
+      setTemaData((prev) => ({
         ...prev,
-        coasesores: [...prev.coasesores, coasesorSeleccionado],
+        coasesores: prev.coasesores
+          ? [...prev.coasesores, coasesorSeleccionado]
+          : null,
       }));
-      setCoasesorSeleccionado("");
+      setCoasesorSeleccionado(null);
     }
-  };
-
-  const handleEliminarCoasesor = (coasesor: string) => {
-    setLocalTemaForm((prev) => ({
-      ...prev,
-      coasesores: prev.coasesores.filter((item) => item !== coasesor),
-    }));
   };
 
   const handleAgregarEstudiante = () => {
     if (
       estudianteSeleccionado &&
-      !localTemaForm.estudiantes.includes(estudianteSeleccionado)
+      temaData.tesistas &&
+      !temaData.tesistas?.some(
+        (tesista) => tesista.codigoPucp === estudianteSeleccionado?.codigoPucp,
+      )
     ) {
-      setLocalTemaForm((prev) => ({
+      setTemaData((prev) => ({
         ...prev,
-        estudiantes: [...prev.estudiantes, estudianteSeleccionado],
+        tesistas: prev.tesistas
+          ? [...prev.tesistas, estudianteSeleccionado]
+          : null,
       }));
-      setEstudianteSeleccionado("");
+      setEstudianteSeleccionado(null);
     }
   };
 
-  const handleEliminarEstudiante = (estudiante: string) => {
-    setLocalTemaForm((prev) => ({
+  const handleEliminarCoasesor = (id: number) => {
+    setTemaData((prev) => ({
       ...prev,
-      estudiantes: prev.estudiantes.filter((item) => item !== estudiante),
+      coasesores: prev.coasesores
+        ? prev.coasesores.filter((c) => c.id !== id)
+        : null,
+    }));
+  };
+
+  const handleEliminarEstudiante = (id: number) => {
+    setTemaData((prev) => ({
+      ...prev,
+      tesistas: prev.tesistas ? prev.tesistas.filter((t) => t.id !== id) : null,
     }));
   };
 
   const handleGuardar = () => {
-    setTemaForm(localTemaForm); // Actualiza el estado global
+    // TODO: post tema
+    // TODO: Manejar mensaje de usuario en caso de error/success
     setIsNuevoTemaDialogOpen(false);
+    console.log("Tema creado");
   };
 
   const handleCancelar = () => {
+    setTemaData(temaVacio);
     setIsNuevoTemaDialogOpen(false);
+  };
+
+  const onSelectCoasesor = (nombres: string) => {
+    const selectedCoasesor = coasesoresDisponibles.find(
+      (coasesor) => coasesor.nombres === nombres,
+    );
+    setCoasesorSeleccionado(selectedCoasesor || null);
+  };
+
+  const onEstudianteSeleccionado = (nombres: string) => {
+    const selectedEstudiante = estudiantesDisponibles.find(
+      (estudiante) => estudiante.nombres === nombres,
+    );
+    setEstudianteSeleccionado(selectedEstudiante || null);
+  };
+
+  const existStudent = (student: Tesista, tesistas: Tesista[]) => {
+    return tesistas?.some((t) => t.codigoPucp === student.codigoPucp);
   };
 
   return (
@@ -123,15 +155,15 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
         <div className="space-y-2">
           <Label>Tipo de Registro</Label>
           <Select
-            value={localTemaForm.tipoRegistro}
-            onValueChange={(value) => handleChange("tipoRegistro", value)}
+            value={tipoRegistro}
+            onValueChange={(tipo) => setTipoRegistro(tipo as TipoRegistro)}
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Seleccione un tipo de registro" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="libre">Tema Libre</SelectItem>
-              <SelectItem value="inscripcion">
+              <SelectItem value={TipoRegistro.LIBRE}>Tema Libre</SelectItem>
+              <SelectItem value={TipoRegistro.INSCRIPCION}>
                 Inscripción (Tema Inscrito)
               </SelectItem>
             </SelectContent>
@@ -139,14 +171,14 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
         </div>
 
         {/* Renderizado condicional utilizando tipoRegistro */}
-        {localTemaForm.tipoRegistro !== "" && (
+        {tipoRegistro !== "" && (
           <>
             {/* Título del Tema */}
             <div className="space-y-2">
               <Label>Título del Tema</Label>
               <Input
                 placeholder="Ingrese el título del tema de tesis"
-                value={localTemaForm.titulo}
+                value={temaData.titulo}
                 onChange={(e) => handleChange("titulo", e.target.value)}
               />
             </div>
@@ -155,10 +187,10 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
             <div className="space-y-2">
               <Label>Área de Investigación</Label>
               <Select
-                value={localTemaForm.areaInvestigacion}
-                onValueChange={(value) =>
-                  handleChange("areaInvestigacion", value)
-                }
+              // value={temaData.areaInvestigacion}
+              // onValueChange={(value) =>
+              //   handleChange("areaInvestigacion", value)
+              // }
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Seleccione un área" />
@@ -178,8 +210,8 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
               <Label>Descripción</Label>
               <Textarea
                 placeholder="Describa el tema de tesis propuesto"
-                value={localTemaForm.descripcion}
-                onChange={(e) => handleChange("descripcion", e.target.value)}
+                value={temaData.resumen}
+                onChange={(e) => handleChange("resumen", e.target.value)}
               />
             </div>
 
@@ -188,8 +220,8 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
               <Label>Coasesores (Opcional)</Label>
               <div className="flex gap-2">
                 <Select
-                  value={coasesorSeleccionado}
-                  onValueChange={setCoasesorSeleccionado}
+                  value={coasesorSeleccionado?.nombres}
+                  onValueChange={onSelectCoasesor}
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Seleccione un coasesor" />
@@ -198,11 +230,13 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
                     {coasesoresDisponibles
                       .filter(
                         (coasesor) =>
-                          !localTemaForm.coasesores.includes(coasesor),
+                          !temaData.coasesores?.some(
+                            (c) => c.codigoPucp === coasesor.codigoPucp,
+                          ),
                       )
                       .map((coasesor) => (
-                        <SelectItem key={coasesor} value={coasesor}>
-                          {coasesor}
+                        <SelectItem key={coasesor.id} value={coasesor.nombres}>
+                          {coasesor.codigoPucp}: {coasesor.nombres}
                         </SelectItem>
                       ))}
                   </SelectContent>
@@ -214,15 +248,15 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
 
               {/* Lista de coasesores seleccionados */}
               <div className="flex flex-wrap gap-2 mt-2">
-                {localTemaForm.coasesores.map((coasesor, index) => (
+                {temaData.coasesores?.map((coasesor, index) => (
                   <div
                     key={index}
                     className="flex items-center bg-blue-500 text-white px-3 py-1 rounded-full"
                   >
-                    <span>{coasesor}</span>
+                    <span>{coasesor.nombres}</span>
                     <button
                       className="ml-2 text-white hover:text-gray-200"
-                      onClick={() => handleEliminarCoasesor(coasesor)}
+                      onClick={() => handleEliminarCoasesor(coasesor.id)}
                     >
                       ✕
                     </button>
@@ -234,12 +268,12 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
             <Separator />
 
             {/* Secciones adicionales según el tipoRegistro */}
-            {localTemaForm.tipoRegistro === "inscripcion" && (
+            {tipoRegistro === TipoRegistro.INSCRIPCION && (
               <>
                 {/* Asesor Principal */}
                 <div className="space-y-2">
                   <Label>Asesor Principal</Label>
-                  <Input value={localTemaForm.asesorPrincipal} disabled />
+                  {/* <Input value={temaData.asesorPrincipal} disabled /> */}
                 </div>
 
                 {/* Estudiantes */}
@@ -247,8 +281,8 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
                   <Label>Estudiantes</Label>
                   <div className="flex gap-2">
                     <Select
-                      value={estudianteSeleccionado}
-                      onValueChange={setEstudianteSeleccionado}
+                      value={estudianteSeleccionado?.nombres}
+                      onValueChange={onEstudianteSeleccionado}
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Seleccione un estudiante" />
@@ -257,11 +291,17 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
                         {estudiantesDisponibles
                           .filter(
                             (estudiante) =>
-                              !localTemaForm.estudiantes.includes(estudiante),
+                              !existStudent(
+                                estudiante,
+                                temaData.tesistas || [],
+                              ),
                           )
                           .map((estudiante) => (
-                            <SelectItem key={estudiante} value={estudiante}>
-                              {estudiante}
+                            <SelectItem
+                              key={estudiante.codigoPucp}
+                              value={estudiante.nombres}
+                            >
+                              {estudiante.codigoPucp}: {estudiante.nombres}
                             </SelectItem>
                           ))}
                       </SelectContent>
@@ -276,23 +316,25 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
 
                   {/* Lista de estudiantes seleccionados */}
                   <div className="space-y-2 mt-2">
-                    {localTemaForm.estudiantes.map((estudiante, index) => (
+                    {temaData.tesistas?.map((estudiante, index) => (
                       <div
                         key={index}
                         className="flex items-center justify-between bg-gray-100 px-4 py-2 rounded-md"
                       >
                         <div>
                           <p className="text-sm font-medium">
-                            {estudiante.split(" (")[0]}
+                            {estudiante.nombres}
                           </p>
                           <p className="text-xs text-gray-500">
-                            {estudiante.split(" (")[1]?.replace(")", "")}
+                            {estudiante.codigoPucp}
                           </p>
                         </div>
                         <Button
                           variant="outline"
                           size="icon"
-                          onClick={() => handleEliminarEstudiante(estudiante)}
+                          onClick={() =>
+                            handleEliminarEstudiante(estudiante.id)
+                          }
                           className="border-0 shadow-none bg-transparent hover:bg-gray-200"
                         >
                           <Trash2 className="h-4 w-4 text-red-500" />
@@ -308,17 +350,17 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
               </>
             )}
 
-            {localTemaForm.tipoRegistro === "libre" && (
+            {tipoRegistro === TipoRegistro.LIBRE && (
               <div className="space-y-4">
                 {/* Requisitos */}
-                <div className="space-y-2">
+                {/* <div className="space-y-2">
                   <Label>Requisitos (Opcional)</Label>
                   <Textarea
                     placeholder="Requisitos para los estudiantes interesados en este tema"
-                    defaultValue={localTemaForm.requisitos}
+                    defaultValue={temaData.requisitos}
                     onChange={(e) => handleChange("requisitos", e.target.value)}
                   />
-                </div>
+                </div> */}
 
                 {/* Fecha Límite */}
                 <div className="space-y-2">
@@ -326,7 +368,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
                   <Input
                     type="date"
                     placeholder="mm/dd/yyyy"
-                    defaultValue={localTemaForm.fechaLimite}
+                    defaultValue={temaData.fechaLimite}
                     onChange={(e) =>
                       handleChange("fechaLimite", e.target.value)
                     }
@@ -342,7 +384,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
         <Button variant="outline" onClick={handleCancelar}>
           Cancelar
         </Button>
-        {localTemaForm.tipoRegistro !== "" && (
+        {tipoRegistro !== TipoRegistro.NONE && (
           <Button onClick={handleGuardar}>Guardar</Button>
         )}
       </DialogFooter>
