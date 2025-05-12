@@ -270,10 +270,12 @@ public class TemaServiceImpl implements TemaService {
 		validarTipoUsurio(idUsuarioCreador, TipoUsuarioEnum.profesor.name());  // validar que la inscripción la haga un profesor
 		validarExistenciaTesistas(dto.getTesistas());                           // validar que hay al menos un tesista
 		validarUnicidadUsuarios(dto.getTesistas(), RolEnum.Tesista.name());    // validar que no se repiten los tesistas
+		
 		for (UsuarioDto u : dto.getTesistas()) {
 			validarUsuarioExiste(u.getId());
 			validarTipoUsurio(u.getId(), TipoUsuarioEnum.alumno.name());       // validar que los tesistas sean alumnos
 		}
+		
 		validarUnicidadUsuarios(dto.getCoasesores(), RolEnum.Coasesor.name()); // validar que no se repiten los coasesores
 		for (UsuarioDto u : dto.getCoasesores()) {
 			validarUsuarioExiste(u.getId());
@@ -282,6 +284,19 @@ public class TemaServiceImpl implements TemaService {
 		validarTesistasSinTemaAsignado(dto.getTesistas());              // validar que los tesistas no tengan tema asignado
 	}
 
+	@Override
+    @Transactional
+    public void eliminarPropuestasTesista(Integer idUsuario) {
+        // Asegura que cualquier insert/update previo esté flushed
+        entityManager.flush();
+        // Invoca la función en DB
+        entityManager.createNativeQuery(
+                "SELECT eliminar_propuestas_tesista(:uid)")
+            .setParameter("uid", idUsuario)
+            .getSingleResult();  // el valor de retorno es VOID, sólo dispara la función
+    }
+
+	@Transactional
     @Override
     public void createInscripcionTema(TemaDto dto, Integer idUsuarioCreador) {
 
@@ -305,8 +320,6 @@ public class TemaServiceImpl implements TemaService {
         temaRepository.save(tema);
 
 		saveHistorialTemaChange(tema, dto.getTitulo(), dto.getResumen(), "Inscripción de tema");
-		// 1) Creador del tema (rol "Creador", asignado = true)
-        saveUsuarioXTema(tema, idUsuarioCreador, RolEnum.Tesista.name(), true, true);
         // 1) Asesor del tema (rol "Asesor", asignado = true)
         saveUsuarioXTema(tema, idUsuarioCreador, RolEnum.Asesor.name(), true, false);
         // 2) Subáreas de conocimiento
@@ -317,6 +330,13 @@ public class TemaServiceImpl implements TemaService {
         // 4) Estudiantes
         saveUsuariosInvolucrados(tema, idUsuarioCreador,
             dto.getTesistas(), RolEnum.Tesista.name(), true, false);
+		// 5) Eliminar postulaciones anteriores del usuario
+		entityManager.flush();
+		for (UsuarioDto u : dto.getTesistas()) {
+			System.out.println("Eliminando postulaciones de usuario: " + u.getId());
+			eliminarPostulacionesTesista(u.getId());
+			eliminarPropuestasTesista(u.getId());
+		}
     }
 
     /**
@@ -796,5 +816,13 @@ public class TemaServiceImpl implements TemaService {
 			temas.add(dto);
 		}
 		return temas;
+	}
+
+	@Override
+	public void eliminarPostulacionesTesista(Integer idUsuario) {
+		entityManager
+				.createNativeQuery("SELECT eliminar_postulaciones_tesista(:uid)")
+				.setParameter("uid", idUsuario)
+				.getSingleResult();
 	}
 }

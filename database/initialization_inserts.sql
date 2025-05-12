@@ -113,8 +113,15 @@ VALUES
     -- Coordinador
     (3, 'C001', 'Luis',   'Ramírez', 'Díaz',     'luis.ramirez@pucp.edu.pe',     'Maestría',  'secret3', 'Coord. de tesis',        NULL, NULL,           NULL,         TRUE, NOW(), NOW()),
     -- Administrador
-    (4, 'AD01','Carla',  'Vega',    'Reyna',    'carla.vega@pucp.edu.pe',      'Administración','secret4','Admin. del sistema',   NULL, NULL,           NULL,         TRUE, NOW(), NOW())
-;
+    (4, 'AD01','Carla',  'Vega',    'Reyna',    'carla.vega@pucp.edu.pe',      'Administración','secret4','Admin. del sistema',   NULL, NULL,           NULL,         TRUE, NOW(), NOW()),
+    -- Nuevos profesores
+  (1, 'P002', 'Ana',      'Martínez', 'Rojas',    'ana.martinez@pucp.edu.pe',    'Doctorado',   'secret5', 'Profesora de Sistemas',          NULL, 'Mar-Vie 10-13',    'Presencial', TRUE, NOW(), NOW()),
+  (1, 'P003', 'Carlos',   'Sánchez',  'Mendoza',  'carlos.sanchez@pucp.edu.pe',  'Maestría',    'secret6', 'Profesor de Redes',              NULL, 'Lun-Mié 8-11',     'Presencial', TRUE, NOW(), NOW()),
+
+  -- Nuevos alumnos
+  (2, 'A002', 'Diego',    'Fernández','García',   'diego.fernandez@pucp.edu.pe', 'Pregrado',    'secret7', 'Estudiante de IA',               NULL, 'Lun-Vie 14-18',    'Híbrido',    TRUE, NOW(), NOW()),
+  (2, 'A003', 'Sofía',    'Lima',     'Huertas',  'sofia.lima@pucp.edu.pe',      'Pregrado',    'secret8', 'Estudiante de Data Science',     NULL, 'Mar-Jue 10-12',    'Remoto',     TRUE, NOW(), NOW());
+
 
 -- 2) Relación usuario_carrera (cada usuario con su carrera)
 INSERT INTO usuario_carrera (
@@ -132,7 +139,15 @@ VALUES
     -- Luis Ramírez coordina Ingeniería Civil (carrera_id = 2)
     (3, 2, TRUE, NOW(), NOW()),
     -- Carla Vega administra Ingeniería Industrial (carrera_id = 4)
-    (4, 4, TRUE, NOW(), NOW())
+    (4, 4, TRUE, NOW(), NOW()),
+        -- Ana Martínez enseña en Ingeniería Informática (carrera_id = 1)
+    (5, 1, TRUE, NOW(), NOW()),
+    -- Carlos Sánchez enseña en Ingeniería Informática (carrera_id = 1)
+    (6, 1, TRUE, NOW(), NOW()),
+    -- Diego Fernández estudia Ingeniería Informática (carrera_id = 1)
+    (7, 1, TRUE, NOW(), NOW()),
+    -- Sofía Lima estudia Ingeniería Informática (carrera_id = 1)
+    (8, 1, TRUE, NOW(), NOW())
 ;
 
 -- 3) Relación usuario_grupo_investigacion (asignar a todos al Grupo IA PUCP, id = 1)
