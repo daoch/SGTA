@@ -10,8 +10,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
+import pucp.edu.pe.sgta.dto.asesores.UsuarioFotoDto;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
 
 @RestController
@@ -50,6 +52,16 @@ public class UsuarioController {
 	@PutMapping("/updatePerfilAsesor")
 	public void updatePerfilAsesor(@RequestBody PerfilAsesorDto dto) {
 		usuarioService.updatePerfilAsesor(dto);
+	}
+
+	@PutMapping("/uploadFoto")
+	public void uploadFoto(@RequestParam("idUsuario") Integer idUsuario, @RequestParam("file") MultipartFile file) {
+		usuarioService.uploadFoto(idUsuario, file);
+	}
+
+	@GetMapping("/getFotoUsuario")
+	public UsuarioFotoDto getFotoUsuario(@RequestParam("idUsuario") Integer idUsuario) {
+		return usuarioService.getUsuarioFoto(idUsuario);
 	}
 
 }

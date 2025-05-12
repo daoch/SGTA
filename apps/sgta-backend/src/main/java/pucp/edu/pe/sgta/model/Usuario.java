@@ -55,7 +55,7 @@ public class Usuario {
     @Column(name = "enlace_linkedin", columnDefinition = "TEXT")
     private String enlaceLinkedin;
 
-	@Column(name = "foto_perfil", columnDefinition = "bytea", nullable = true)
+	@Column(name = "foto_perfil", columnDefinition = "bytea")
 	private byte[] fotoPerfil;
 
 	@Column(columnDefinition = "TEXT")

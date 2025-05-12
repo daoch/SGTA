@@ -1,7 +1,11 @@
 package pucp.edu.pe.sgta.service.inter;
 
+import org.springframework.web.multipart.MultipartFile;
 import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
+import pucp.edu.pe.sgta.dto.asesores.UsuarioFotoDto;
+
+import java.io.IOException;
 import java.util.List;
 
 public interface UsuarioService {
@@ -23,5 +27,9 @@ public interface UsuarioService {
     PerfilAsesorDto getPerfilAsesor(Integer id);
 
 	void updatePerfilAsesor(PerfilAsesorDto perfilAsesorDto);
+
+	void uploadFoto(Integer idUsuario, MultipartFile file);
+
+	UsuarioFotoDto getUsuarioFoto(Integer id);
 
 }
