@@ -30,11 +30,23 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
 
     @Override
     public EtapaFormativaDto findById(Integer id) {
-        EtapaFormativa etapaFormativa = etapaFormativaRepository.findById(id).orElse(null);
-        if (etapaFormativa != null) {
-            return EtapaFormativaMapper.toDto(etapaFormativa);
-        }
-        return null;
+        Object result = etapaFormativaRepository.getEtapaFormativaByIdFunction(id);
+        if (result == null) return null;
+
+        Object[] row = (Object[]) result; // 👈 aquí el casteo correcto
+        EtapaFormativaDto dto = new EtapaFormativaDto();
+
+        dto.setId((Integer) row[0]);
+        dto.setNombre((String) row[1]);
+        dto.setCreditajePorTema((BigDecimal) row[2]);
+        
+        PGInterval pgInterval = (PGInterval) row[3];
+        dto.setDuracionExposicion(convertPGIntervalToDuration(pgInterval));
+        
+        dto.setActivo((Boolean) row[4]);
+        dto.setCarreraId((Integer) row[5]);
+
+        return dto;
     }
 
     @Override
@@ -63,6 +75,27 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
     @Override
     public List<EtapaFormativaDto> findAllActivas() {
         List<Object[]> result = etapaFormativaRepository.findAllActivas();
+        List<EtapaFormativaDto> etapaFormativaDtos = new ArrayList<>();
+        for (Object[] row : result) {
+            EtapaFormativaDto dto = new EtapaFormativaDto();
+            dto.setId((Integer) row[0]);
+            dto.setNombre((String) row[1]);
+            dto.setCreditajePorTema((BigDecimal) row[2]);
+            
+            PGInterval pgInterval = (PGInterval) row[3];
+            dto.setDuracionExposicion(convertPGIntervalToDuration(pgInterval));
+            
+            dto.setActivo((Boolean) row[4]);
+            dto.setCarreraId((Integer) row[5]);
+
+            etapaFormativaDtos.add(dto);
+        }
+        return etapaFormativaDtos;
+    }
+
+    @Override
+    public List<EtapaFormativaDto> findAllActivasByCoordinador(Integer coordinadorId) {
+        List<Object[]> result = etapaFormativaRepository.findAllActivasByCoordinador(coordinadorId);
         List<EtapaFormativaDto> etapaFormativaDtos = new ArrayList<>();
         for (Object[] row : result) {
             EtapaFormativaDto dto = new EtapaFormativaDto();
