@@ -116,7 +116,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
---Obtener los temas en los que haya participado un asesor
+--Obtener los temas en los que haya participado un asesor se puede traer el último nivel siempre y cuando se complete la relacion tema_ciclo_etepa_formativa
 CREATE OR REPLACE FUNCTION obtener_temas_usuario_asesor(
     p_usuario_id INTEGER
 )
@@ -198,8 +198,8 @@ RETURNS TABLE (
 BEGIN
     RETURN QUERY
 	SELECT
-		u.nombres,
-		u.primer_apellido
+		u.nombres::text,
+		u.primer_apellido::text
 	FROM
 		usuario_tema ut_tesista
 		inner join rol r_tesista on ut_tesista.rol_id = r_tesista.rol_id
@@ -209,5 +209,42 @@ BEGIN
 		and ut_tesista.activo = TRUE
 		and ut_tesista.asignado = TRUE
 		and ut_tesista.tema_id = p_tema_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- listar proyectos usuario involucrado
+CREATE OR REPLACE FUNCTION obtener_proyectos_usuario_involucrado(
+    p_usuario_id INTEGER
+)
+RETURNS TABLE (
+    proyecto_id INTEGER,
+    titulo VARCHAR,
+    anio_inicio VARCHAR,
+	estado VARCHAR,
+    participantes INTEGER
+) AS $$
+BEGIN
+    RETURN QUERY
+	select
+		p.proyecto_id,
+		p.titulo,
+		extract(year from p.fecha_creacion)::bigint::varchar as anio_inicio,
+		p.estado,
+		count(case when up.activo then 1 end)::int as participantes
+	from
+		proyecto p
+		left join
+		usuario_proyecto up ON up.proyecto_id = p.proyecto_id
+	where
+		p.activo = true
+		and p.proyecto_id in (select
+									upi.proyecto_id
+								from
+									usuario_proyecto upi
+								where
+									upi.usuario_id = p_usuario_id
+									and upi.activo = true)
+	group by
+		p.proyecto_id, p.titulo, extract(year from p.fecha_creacion), p.estado;
 END;
 $$ LANGUAGE plpgsql;

@@ -1,8 +1,7 @@
 package pucp.edu.pe.sgta.service.inter;
 
 import pucp.edu.pe.sgta.dto.AreaConocimientoDto;
-import pucp.edu.pe.sgta.dto.InfoAreaConocimientoDto;
-import pucp.edu.pe.sgta.dto.InfoSubAreaConocimientoDto;
+import pucp.edu.pe.sgta.dto.asesores.InfoAreaConocimientoDto;
 
 import java.util.List;
 
