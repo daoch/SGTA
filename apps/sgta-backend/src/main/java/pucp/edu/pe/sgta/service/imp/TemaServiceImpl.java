@@ -322,7 +322,7 @@ public class TemaServiceImpl implements TemaService {
 
 		saveHistorialTemaChange(tema, dto.getTitulo(), dto.getResumen(), "Inscripción de tema");
         // 1) Asesor del tema (rol "Asesor", asignado = true)
-        saveUsuarioXTema(tema, idUsuarioCreador, RolEnum.Asesor.name(), true, false);
+        saveUsuarioXTema(tema, idUsuarioCreador, RolEnum.Asesor.name(), true, true);
         // 2) Subáreas de conocimiento
         saveSubAreas(tema, dto.getSubareas());
         // 3) Coasesores
