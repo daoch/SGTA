@@ -217,10 +217,10 @@ public class TemaServiceImpl implements TemaService {
         }
     }
 
-	private void validarExistenciaTesistas(List<?> tesistas) {
+	private void validarExistenciaListaUsuarios(List<?> tesistas) {
     	if (tesistas == null || tesistas.isEmpty()) {
         // Opción A: usar tu CustomException (se mapea a 400 Bad Request)
-        	throw new CustomException("Debe haber al menos un tesista.");
+        	throw new CustomException("Debe haber al menos un tesista y un asesor.");
     	}
 	}
 
@@ -258,6 +258,12 @@ public class TemaServiceImpl implements TemaService {
     }
 
 	private void validarUsuarioExiste(Integer usuarioId) {
+		if (usuarioId == null) {
+			throw new ResponseStatusException(
+				HttpStatus.BAD_REQUEST,
+				"El ID de usuario no puede ser nulo"
+			);
+   		}
         if (!usuarioRepository.existsByIdAndActivoTrue(usuarioId)) {
             throw new ResponseStatusException(
                 HttpStatus.NOT_FOUND,
@@ -266,18 +272,31 @@ public class TemaServiceImpl implements TemaService {
         }
     }
 
-	private void validacionesInscripcionTema(TemaDto dto, Integer idUsuarioCreador) {
+	private void validarDtoTemaNoNulo(TemaDto dto) {
+		if (dto == null) {
+			throw new ResponseStatusException(
+				HttpStatus.BAD_REQUEST,
+				"El DTO no puede ser nulo"
+			);
+		}
+	}
+
+	private void validacionesInscripcionTema(TemaDto dto) {
+
+		validarDtoTemaNoNulo(dto); 												// validar que el DTO no sea nulo
+		validarExistenciaListaUsuarios(dto.getTesistas());
+		validarExistenciaListaUsuarios(dto.getCoasesores());                           // validar que hay al menos un tesista
+		Integer idUsuarioCreador = dto.getCoasesores().get(0).getId();
 		validarUsuarioExiste(idUsuarioCreador); 
 		validarTipoUsurio(idUsuarioCreador, TipoUsuarioEnum.profesor.name());  // validar que la inscripción la haga un profesor
-		validarExistenciaTesistas(dto.getTesistas());                           // validar que hay al menos un tesista
-		validarUnicidadUsuarios(dto.getTesistas(), RolEnum.Tesista.name());    // validar que no se repiten los tesistas
+		//validarUnicidadUsuarios(dto.getTesistas(), RolEnum.Tesista.name());    // validar que no se repiten los tesistas
 		
 		for (UsuarioDto u : dto.getTesistas()) {
 			validarUsuarioExiste(u.getId());
 			validarTipoUsurio(u.getId(), TipoUsuarioEnum.alumno.name());       // validar que los tesistas sean alumnos
 		}
 		
-		validarUnicidadUsuarios(dto.getCoasesores(), RolEnum.Coasesor.name()); // validar que no se repiten los coasesores
+		//validarUnicidadUsuarios(dto.getCoasesores(), RolEnum.Coasesor.name()); // validar que no se repiten los coasesores
 		for (UsuarioDto u : dto.getCoasesores()) {
 			validarUsuarioExiste(u.getId());
 			validarTipoUsurio(u.getId(), TipoUsuarioEnum.profesor.name());       // validar que los coasesores sean profesores
@@ -299,10 +318,10 @@ public class TemaServiceImpl implements TemaService {
 
 	@Transactional
     @Override
-    public void createInscripcionTema(TemaDto dto, Integer idUsuarioCreador) {
+    public void createInscripcionTema(TemaDto dto) {
 
-	    validacionesInscripcionTema(dto, idUsuarioCreador);
-
+	    validacionesInscripcionTema(dto);
+		Integer idUsuarioCreador = dto.getCoasesores().get(0).getId();
         dto.setId(null);
         // Prepara y guarda el tema con estado INSCRITO
         Tema tema = prepareNewTema(dto, EstadoTemaEnum.INSCRITO);
@@ -414,6 +433,9 @@ public class TemaServiceImpl implements TemaService {
                                           Boolean asignado,
 										  Boolean creador) {
         if (involucrados == null) return;
+
+		Set<Integer> idsProcesados = new HashSet<>();
+
         for (UsuarioDto usuario : involucrados) {
             if (usuario.getId().equals(idUsuarioCreador)) {
                 logger.warning("Omitiendo creador en involucrados: " + usuario.getId());
@@ -424,7 +446,12 @@ public class TemaServiceImpl implements TemaService {
                 logger.warning("Usuario involucrado no encontrado: " + usuario.getId());
                 continue;
             }
+			if (idsProcesados.contains(usuario.getId())) {
+				logger.warning("Usuario duplicado en involucrados: " + usuario.getId());
+				continue;
+        	}
             saveUsuarioXTema(tema, usuario.getId(), rolNombre, asignado, creador);
+			idsProcesados.add(usuario.getId());
         }
     }
 
