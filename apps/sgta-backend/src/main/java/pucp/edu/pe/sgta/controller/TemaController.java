@@ -2,6 +2,8 @@ package pucp.edu.pe.sgta.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import jakarta.validation.Valid;
 import pucp.edu.pe.sgta.dto.asesores.InfoTemaPerfilDto;
 import pucp.edu.pe.sgta.dto.TemaConAsesorJuradoDTO;
 import pucp.edu.pe.sgta.dto.TemaDto;
@@ -37,7 +39,7 @@ public class TemaController {
 
     @PostMapping("/createInscripcion") // Inscripcion de tema oficial por asesor
     public void createInscripcion(
-            @RequestBody TemaDto dto,
+            @RequestBody @Valid TemaDto dto,
             @RequestParam(name = "idUsuarioCreador") Integer idUsuarioCreador) {
         temaService.createInscripcionTema(dto, idUsuarioCreador);
     }
