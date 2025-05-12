@@ -107,7 +107,7 @@ RETURNS TABLE(
     etapa_formativa_id INTEGER,
     nombre TEXT,
     creditage_por_tema NUMERIC(6,2),
-    duracion_exposicion TEXT,
+    duracion_exposicion INTERVAL,
     activo BOOLEAN,
 	carrera_id INTEGER
 ) AS $$
@@ -117,7 +117,7 @@ BEGIN
         ef.etapa_formativa_id,
         ef.nombre,
         ef.creditaje_por_tema,
-        ef.duracion_exposicion::TEXT,
+        ef.duracion_exposicion,
         ef.activo,
 		ef.carrera_id
     FROM etapa_formativa ef
