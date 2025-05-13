@@ -93,3 +93,12 @@ DROP FUNCTION IF EXISTS obtener_area_conocimiento_jurado(INTEGER) CASCADE;
 DROP TRIGGER IF EXISTS trigger_generar_codigo_tema ON tema;
 
 DROP FUNCTION IF EXISTS generar_codigo_tema();
+
+DROP FUNCTION IF EXISTS listar_etapas_formativas_activas_by_coordinador(INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS get_etapa_formativa_by_id(INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS eliminar_propuestas_tesista(INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS eliminar_postulaciones_tesista(INTEGER) CASCADE;
+
