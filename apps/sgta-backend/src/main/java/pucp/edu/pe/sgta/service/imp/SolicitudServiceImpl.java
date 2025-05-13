@@ -1,5 +1,6 @@
 package pucp.edu.pe.sgta.service.imp;
 
+import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -8,7 +9,10 @@ import org.springdoc.core.converters.models.Pageable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import pucp.edu.pe.sgta.dto.RechazoSolicitudResponseDto;
+import pucp.edu.pe.sgta.dto.RechazoSolicitudResponseDto.AsignacionDto;
 import pucp.edu.pe.sgta.dto.SolicitudCeseDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
 import pucp.edu.pe.sgta.mapper.TemaMapper;
@@ -88,5 +92,28 @@ public class SolicitudServiceImpl implements SolicitudService {
         }).toList();
         
         return new SolicitudCeseDto(requestList, totalPages);
+    }
+
+    @Override
+    public RechazoSolicitudResponseDto rechazarSolicitud(Integer solicitudId, String response) {
+        Solicitud solicitud = solicitudRepository.findById(solicitudId)
+                .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
+
+        solicitud.setEstado(2); // Rechazado
+        solicitud.setFechaModificacion(OffsetDateTime.now());
+        solicitudRepository.save(solicitud);
+
+        // Simular asignaciones
+        List<AsignacionDto> asignaciones = List.of(
+                new AsignacionDto(10, 2)
+        );
+
+        RechazoSolicitudResponseDto dto = new RechazoSolicitudResponseDto();
+        dto.setIdRequest(solicitud.getId());
+        dto.setStatus("rejected");
+        dto.setResponse(response); // se usa lo que viene del request
+        dto.setAssignations(asignaciones);
+
+        return dto;
     }
 }
