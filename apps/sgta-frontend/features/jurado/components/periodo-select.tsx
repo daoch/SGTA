@@ -1,3 +1,5 @@
+"use client";
+
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -6,9 +8,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import React from "react";
 
 interface PeriodoSelectProps {
-  periodo: string;
+  periodo: string | null;
   setPeriodo: (value: string) => void;
   ciclos: { id: number; semestre: string; anio: number }[];
 }
@@ -19,14 +22,19 @@ export const PeriodoSelect: React.FC<PeriodoSelectProps> = ({
   ciclos,
 }) => {
   const handleChange = (value: string) => {
-    setPeriodo(value); // actualiza el estado con el ID
+    setPeriodo(value);
     console.log("ID del ciclo seleccionado:", value);
   };
+
   return (
     <div className="flex flex-col space-y-1">
       <Label htmlFor="periodo">Periodo</Label>
-      <Select value={periodo} onValueChange={handleChange}>
-        <SelectTrigger id="periodo" className="w-[120px]">
+      <Select
+        value={periodo ?? ""}
+        onValueChange={handleChange}
+        disabled={ciclos.length === 0}
+      >
+        <SelectTrigger id="periodo" className="w-[150px]">
           <SelectValue placeholder="Selecciona un periodo" />
         </SelectTrigger>
         <SelectContent>
@@ -40,4 +48,3 @@ export const PeriodoSelect: React.FC<PeriodoSelectProps> = ({
     </div>
   );
 };
-

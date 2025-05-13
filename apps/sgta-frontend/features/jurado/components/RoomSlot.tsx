@@ -1,18 +1,18 @@
-import { Exposicion } from "@/features/jurado/types/jurado.types";
+import { Tema } from "@/features/jurado/types/jurado.types";
 import Draggable from "./Draggable";
 import ExpoSon from "./ExpoSon";
 
 interface TimeSlot {
   key: string;
   range: string;
-  expo?: Exposicion;
+  expo?: Tema;
 }
 
 interface Props {
   code: string;
-  assignedExpos: Record<string, Exposicion>;
+  assignedExpos: Record<string, Tema>;
   room: TimeSlot;
-  removeExpo: (expo: Exposicion) => void;
+  removeExpo: (expo: Tema) => void;
 }
 
 const RoomSlot: React.FC<Props> = ({
@@ -49,7 +49,7 @@ const RoomSlot: React.FC<Props> = ({
       }}
     >
       {expoFind ? (
-        <Draggable id={expoFind.code} key={expoFind.code}>
+        <Draggable id={expoFind.codigo} key={expoFind.codigo}>
           <ExpoSon expoFind={expoFind} removeExpo={removeExpo} />
         </Draggable>
       ) : (

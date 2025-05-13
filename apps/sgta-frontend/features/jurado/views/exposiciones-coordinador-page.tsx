@@ -4,71 +4,79 @@ import { Button } from "@/components/ui/button";
 import { CursoSelect } from "@/features/jurado/components/curso-select";
 import { EstadoSelect } from "@/features/jurado/components/estado-select";
 import { PeriodoSelect } from "@/features/jurado/components/periodo-select";
-
 import React, { useEffect, useState } from "react";
 import ModalPlanificadorCoordinador from "../components/modal-planificador-coordinador";
+import {
+  getCiclos,
+  getCursos,
+  getExposicionesInicializadasByCoordinador,
+} from "../services/exposicion-service";
+import { ListExposicionXCoordinadorDTO } from "../dtos/ListExposicionXCoordiandorDTO";
+import { useRouter } from "next/navigation";
 
 const ExposicionesCoordinadorPage: React.FC = () => {
+  const router = useRouter();
+
   const [modalOpen, setModalOpen] = useState(false);
-
-  const abrirModal = () => setModalOpen(true);
-  const cerrarModal = () => setModalOpen(false);
-
-  const [curso, setCurso] = useState("");
-  const [periodo, setPeriodo] = useState("");
+  const [curso, setCurso] = useState<string | null>(null);
+  const [periodo, setPeriodo] = useState<string | null>(null);
   const [estado, setEstado] = useState("Programada");
-
   const [ciclos, setCiclos] = useState([]);
   const [cursos, setCursos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [exposiciones, setExposiciones] = useState([]);
+
   useEffect(() => {
-    const fetchCiclos = async () => {
+    const fetchData = async () => {
+      setLoading(true);
       try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/ciclos/listarCiclos`,
+        const [ciclosData, cursosData, exposicionesData] = await Promise.all([
+          getCiclos(),
+          getCursos(),
+          getExposicionesInicializadasByCoordinador(3),
+        ]);
+        setCiclos(ciclosData);
+        setCursos(cursosData);
+        setExposiciones(exposicionesData);
+        if (ciclosData.length > 0) setPeriodo(String(ciclosData[0].id));
+        if (cursosData.length > 0) setCurso(String(cursosData[0].id));
+        setError(null);
+      } catch (err) {
+        console.error(err);
+        setError(
+          "Hubo un problema al cargar los datos. Por favor, intenta nuevamente.",
         );
-        if (!response.ok) {
-          throw new Error("Error al obtener ciclos");
-        }
-        const data = await response.json();
-        setCiclos(data);
-        if (data.length > 0 && !periodo) {
-          setPeriodo(String(data[0].id));
-        }
-      } catch (error) {
-        console.error("Error al obtener ciclos:", error);
+      } finally {
+        setLoading(false);
       }
     };
-
-    const fetchCursos = async () => {
-      try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/etapas-formativas/listarActivas`,
-        );
-        if (!response.ok) {
-          throw new Error("Error al obtener cursos");
-        }
-        const data = await response.json();
-        setCursos(data);
-        if (data.length > 0 && !curso) {
-          setCurso(String(data[0].id));
-        }
-      } catch (error) {
-        console.error("Error al obtener cursos:", error);
-      }
-    };
-
-    fetchCiclos();
-    fetchCursos();
+    fetchData();
   }, []);
 
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <p>Cargando datos...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <p className="text-red-600 font-semibold">{error}</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col p-6 w-full">
+    <div className="flex flex-col pt-2 w-full">
       <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
         Exposiciones
       </h1>
 
       <div className="flex items-end flex-wrap gap-4 mb-6">
-        {/* Contenedor de los tres combo boxes y el botón "Exportar" */}
         <div className="flex gap-4 flex-1 items-end">
           <div className="flex flex-col">
             <CursoSelect curso={curso} setCurso={setCurso} cursos={cursos} />
@@ -84,7 +92,6 @@ const ExposicionesCoordinadorPage: React.FC = () => {
             <EstadoSelect estado={estado} setEstado={setEstado} />
           </div>
 
-          {/* Botón Exportar Lista */}
           <Button
             onClick={() => console.log("Exportar lista")}
             variant="secondary"
@@ -94,10 +101,9 @@ const ExposicionesCoordinadorPage: React.FC = () => {
           </Button>
         </div>
 
-        {/* Botón Planificador de Exposiciones alineado a la derecha */}
         <div className="ml-auto flex items-end">
           <Button
-            onClick={abrirModal}
+            onClick={() => setModalOpen(true)}
             variant="default"
             className="text-white bg-blue-900 hover:bg-blue-800 py-2 px-6"
           >
@@ -105,10 +111,38 @@ const ExposicionesCoordinadorPage: React.FC = () => {
           </Button>
         </div>
       </div>
-      <ModalPlanificadorCoordinador open={modalOpen} onClose={cerrarModal} />
+
+      <div className="flex flex-col gap-4">
+        {exposiciones.length !== 0 &&
+          exposiciones.map((expo: ListExposicionXCoordinadorDTO) => (
+            <div
+              key={expo.exposicionId}
+              className="border rounded-lg p-4 shadow hover:cursor-pointer hover:shadow-lg transition duration-200"
+              onClick={() => {
+                router.push(
+                  `/coordinador/exposiciones/planificacion/${expo.exposicionId}`,
+                );
+              }}
+            >
+              <h2 className="text-lg font-semibold mb-2">{expo.nombre}</h2>
+              {/* <p className="text-sm text-gray-700 mb-1">{expo.descripcion}</p> */}
+              <p className="text-sm text-gray-600">
+                Curso: {expo.etapaFormativaNombre}
+              </p>
+              <p className="text-sm text-gray-600">Ciclo: {expo.cicloNombre}</p>
+              <p className="text-sm text-gray-600">
+                Estado: {expo.estadoPlanificacionNombre}
+              </p>
+            </div>
+          ))}
+      </div>
+
+      <ModalPlanificadorCoordinador
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+      />
     </div>
   );
 };
 
 export default ExposicionesCoordinadorPage;
-
