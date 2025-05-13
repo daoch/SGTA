@@ -52,34 +52,6 @@ export interface Tesis {
   rol: string;
 }
 
-export enum TipoDedicacion {
-  TODOS = "Todos",
-  TIEMPO_COMPLETO = "TC",
-  MEDIO_TIEMPO = "TPA",
-}
-
-export enum AreaEspecialidadFilter {
-  TODOS = "Todos",
-  CIENCIAS_COMPUTACION = "Ciencias de la Computacion",
-  DESARROLLO_SOFTWARE = "Desarrollo de Software",
-  DESARROLLO_WEB = "Desarrollo Web",
-  FRONTEND = "Front-End",
-  BACKEND = "Backend",
-  UI_UX = "UI/UX",
-}
-
-export enum Especialidades {
-  TODOS = "Todos",
-  INGENIERIA_SOFTWARE = "Ingeniería de Software",
-  CIENCIAS_COMPUTACION = "Ciencias de la Computación",
-  TECNOLOGIAS_INFORMACION = "Tecnologias de la informacion",
-  VISION_COMPUTACIONAL = "Vision Computacional",
-  SISTEMAS_INFORMACION = "Sistemas de Informacion",
-  DESARROLLO_WEB = "Desarrollo Web",
-  FRONTEND = "Front-End",
-  BACKEND = "Backend",
-  UI_UX = "UI/UX",
-}
 export interface EspecialidadOption {
   label: string;
   value: string;
