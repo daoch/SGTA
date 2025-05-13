@@ -52,4 +52,8 @@ public class UsuarioController {
 		usuarioService.updatePerfilAsesor(dto);
 	}
 
+	@GetMapping("/getAsesoresBySubArea")
+	public List<UsuarioDto> getAsesoresBySubArea(@RequestParam(name = "idSubArea") Integer idSubArea) {
+		return this.usuarioService.getAsesoresBySubArea(idSubArea);
+	}
 }

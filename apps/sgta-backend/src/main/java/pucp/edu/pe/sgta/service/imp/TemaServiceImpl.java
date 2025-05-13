@@ -871,7 +871,7 @@ public class TemaServiceImpl implements TemaService {
 	private Integer calculatePostulaciones(List<UsuarioDto> usuarios) {
 		int count = 0;
 		for (UsuarioDto u : usuarios) {
-			if (RolEnum.Tesista.name().equals(u.getRol()) && Boolean.FALSE.equals(u.getAsignado())) {
+			if (RolEnum.Asesor.name().equals(u.getRol()) && Boolean.FALSE.equals(u.getAsignado())) {
 				count++;
 			}
 		}

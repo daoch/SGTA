@@ -30,6 +30,8 @@ public class UsuarioDto {
 
 	private String contrasena;
 
+	private String comentario;
+
     private String biografia;
 
     private String enlaceRepositorio;

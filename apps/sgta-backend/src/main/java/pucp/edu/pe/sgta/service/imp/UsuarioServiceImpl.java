@@ -1,5 +1,6 @@
 package pucp.edu.pe.sgta.service.imp;
 
+import jakarta.persistence.Query;
 import org.springframework.stereotype.Service;
 import pucp.edu.pe.sgta.dto.asesores.InfoAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.asesores.InfoSubAreaConocimientoDto;
@@ -187,6 +188,34 @@ public class UsuarioServiceImpl implements UsuarioService {
 		idEliminados = new ArrayList<>(subAreasRegistradas);
 		idEliminados.removeAll(subAreasActualizadas);
 		usuarioXSubAreaConocimientoRepository.desactivarUsuarioSubAreas(user.getId(), Utils.convertIntegerListToString(idEliminados));
+	}
+
+	@Override
+	public List<UsuarioDto> getAsesoresBySubArea(Integer idSubArea) {
+		String sql =
+				"SELECT usuario_id, nombre_completo, correo_electronico " +
+						"  FROM sgtadb.listar_asesores_por_subarea_conocimiento(:p_subarea_id)";
+		Query query = em.createNativeQuery(sql)
+				.setParameter("p_subarea_id", idSubArea);
+
+		@SuppressWarnings("unchecked")
+		List<Object[]> rows = query.getResultList();
+		List<UsuarioDto> advisors = new ArrayList<>(rows.size());
+
+		for (Object[] row : rows) {
+			Integer userId       = ((Number) row[0]).intValue();
+			String fullName      = (String) row[1];
+			String email         = (String) row[2];
+
+			advisors.add(UsuarioDto.builder()
+					.id(userId)
+					.nombres(fullName.split(" ")[0])
+							.primerApellido(fullName.split(" ")[1])
+					.correoElectronico(email)
+					.build());
+		}
+
+		return advisors;
 	}
 
 	@Override

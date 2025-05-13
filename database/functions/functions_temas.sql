@@ -962,3 +962,68 @@ END;
 $$;
 
 ALTER FUNCTION listar_postulaciones_del_tesista_con_usuarios(INTEGER) OWNER TO postgres;
+
+CREATE OR REPLACE FUNCTION listar_asesores_por_subarea_conocimiento(
+    p_subarea_id INTEGER
+)
+RETURNS TABLE(
+    usuario_id        INTEGER,
+    nombre_completo   TEXT,
+    correo_electronico TEXT
+)
+LANGUAGE SQL
+AS $$
+SELECT DISTINCT
+    u.usuario_id,
+    u.nombres || ' ' || u.primer_apellido    AS nombre_completo,
+    u.correo_electronico
+FROM usuario_sub_area_conocimiento usac
+  JOIN usuario u
+    ON u.usuario_id = usac.usuario_id
+  JOIN tipo_usuario tu
+    ON tu.tipo_usuario_id = u.tipo_usuario_id
+  -- Ensure the user has the "Asesor" role on at least one tema
+  JOIN usuario_tema ut
+    ON ut.usuario_id = u.usuario_id
+   AND ut.rol_id = (
+         SELECT rol_id
+           FROM rol
+          WHERE nombre ILIKE 'Asesor'
+          LIMIT 1
+       )
+WHERE usac.sub_area_conocimiento_id = p_subarea_id
+  AND usac.activo = TRUE
+  AND tu.nombre ILIKE 'profesor'
+$$;
+
+ALTER FUNCTION listar_postulaciones_del_tesista_con_usuarios(INTEGER) OWNER TO postgres;
+
+CREATE OR REPLACE FUNCTION obtener_sub_areas_por_carrera_usuario(
+    p_usuario_id INTEGER
+)
+RETURNS TABLE(
+    sub_area_conocimiento_id INTEGER,
+    area_conocimiento_id     INTEGER,
+    nombre                   TEXT,
+    descripcion              TEXT,
+    activo                   BOOLEAN
+)
+LANGUAGE SQL
+AS $$
+SELECT
+  sac.sub_area_conocimiento_id,
+  sac.area_conocimiento_id,
+  sac.nombre::TEXT,
+  sac.descripcion::TEXT,
+  sac.activo
+FROM usuario_carrera usac
+JOIN area_conocimiento ac
+  ON ac.carrera_id = usac.carrera_id
+JOIN sub_area_conocimiento sac
+  ON sac.area_conocimiento_id = ac.area_conocimiento_id
+WHERE usac.usuario_id = p_usuario_id
+  AND usac.activo = TRUE
+  AND sac.activo = TRUE;
+$$;
+
+ALTER FUNCTION obtener_sub_areas_por_carrera_usuario(INTEGER) OWNER TO postgres;

@@ -167,6 +167,11 @@ public class SubAreaConocimientoServiceImpl implements SubAreaConocimientoServic
 	}
 
 	@Override
+	public List<SubAreaConocimientoDto> listarPorCarreraDeUsuario(Integer usuarioId) {
+		return List.of();
+	}
+
+	@Override
 	public List<InfoSubAreaConocimientoDto> listarPorCarrerasUsuarioParaPerfil(Integer idUsuario) {
 		List<Integer> idAreasUsuario = areaConocimientoServiceImpl.listarPorCarrerasUsuarioParaPerfil(idUsuario).
 				stream()
