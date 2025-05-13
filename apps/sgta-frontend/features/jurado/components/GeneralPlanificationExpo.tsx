@@ -172,14 +172,14 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
     }  
     
    console.log("Lista final de bloques con expos asignadas:", bloquesListToInsert);
-  }
+  };
   const onTerminarPlanificacionClick = () =>{
     if(freeExpos.length > 0 ){
       console.log("No puede dejar temas sin asignar");
       return;
     }
     setIsLoading(true);
-  }
+  };
 
   const sensors = useSensors(mouseSensor);
 

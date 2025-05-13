@@ -1,8 +1,8 @@
-'use server'
+"use server";
 
 const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
-import { TimeSlot } from '../types/jurado.types';
+import { TimeSlot } from "../types/jurado.types";
 
 export type State = {
     message: string | null;

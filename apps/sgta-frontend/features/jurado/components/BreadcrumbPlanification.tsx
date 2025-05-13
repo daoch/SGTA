@@ -5,7 +5,7 @@ interface Props {
   estadoPlan:EstadoPlanificacion;
 }
 const classActiveBC = "w-10 h-10 rounded-full text-white flex items-center justify-center font-semibold";
-const classNoActiveBC = "w-10 h-10 rounded-full bg-gray-300 text-gray-600 flex items-center justify-center font-semibold"
+const classNoActiveBC = "w-10 h-10 rounded-full bg-gray-300 text-gray-600 flex items-center justify-center font-semibold";
 const styleActive: React.CSSProperties = { background: "#042354" };
 const styleNoActive: React.CSSProperties = {}; 
 export default function BreadCrumbPlanificacion ({estadoPlan}:Props)  {
