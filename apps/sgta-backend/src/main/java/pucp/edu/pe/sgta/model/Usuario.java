@@ -64,6 +64,9 @@ public class Usuario {
 	@Column(name = "tipo_disponibilidad", columnDefinition = "TEXT")
 	private String tipoDisponibilidad;
 
+	@Column(length = 100, nullable = true)
+	private String tipoDedicacion;
+
 	@Column(nullable = false)
 	private Boolean activo = true;
 
