@@ -24,9 +24,6 @@ public class TipoUsuario {
 	@Column(length = 100, nullable = false)
 	private String nombre;
 
-	@Column(length = 100, nullable = true)
-	private String tipoDedicacion;
-
 	@Column(nullable = false)
 	private Boolean activo = true;
 

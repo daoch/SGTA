@@ -24,4 +24,12 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
 
     @Query(value = "SELECT * FROM obtener_usuarios_por_area_conocimiento(:area_conocimiento_id)", nativeQuery = true)
     List<Object[]> obtenerUsuariosPorAreaConocimiento(@Param("area_conocimiento_id") Integer areaConocimientoId);
+
+    // Comprueba si existe un usuario con ese id y cuyo tipoUsuario.nombre = el
+    // pasado.
+    Boolean existsByIdAndTipoUsuarioNombre(Integer usuarioId, String tipoNombre);
+
+    // verificar que usuario existe y activo
+    Boolean existsByIdAndActivoTrue(Integer usuarioId);
+
 }

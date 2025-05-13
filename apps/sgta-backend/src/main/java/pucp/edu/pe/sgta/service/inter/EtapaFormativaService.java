@@ -20,4 +20,6 @@ public interface EtapaFormativaService {
     List<EtapaFormativaNombreDTO> findToInitializeByCoordinador(Integer id);
 
     List<EtapaFormativaDto> findAllActivas();
+
+    List<EtapaFormativaDto> findAllActivasByCoordinador(Integer coordinadorId);
 }
