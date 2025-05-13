@@ -65,7 +65,7 @@ public class Usuario {
 	private String tipoDisponibilidad;
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = true)
-	@JoinColumn(name = "tipo_dedicacion_id", nullable = true, foreignKey = @ForeignKey(name = "fk_tipo_dedicacion"))
+	@JoinColumn(name = "tipo_dedicacion_id", nullable = false, foreignKey = @ForeignKey(name = "fk_tipo_dedicacion"))
 	private TipoDedicacion tipoDedicacion;
 
 	@Column(nullable = false)

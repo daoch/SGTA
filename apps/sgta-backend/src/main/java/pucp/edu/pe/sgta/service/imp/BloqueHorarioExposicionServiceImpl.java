@@ -7,11 +7,14 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 
 import pucp.edu.pe.sgta.dto.BloqueHorarioExposicionCreateDTO;
 import pucp.edu.pe.sgta.dto.BloqueHorarioExposicionDto;
 import pucp.edu.pe.sgta.dto.ListBloqueHorarioExposicionSimpleDTO;
+import pucp.edu.pe.sgta.dto.TemaConAsesorJuradoDTO;
 import pucp.edu.pe.sgta.mapper.BloqueHorarioExposicionMapper;
 import pucp.edu.pe.sgta.model.BloqueHorarioExposicion;
 import pucp.edu.pe.sgta.repository.BloqueHorarioExposicionRepository;
@@ -83,8 +86,35 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
             String key = inicio.format(fechaFormatter) + "|" + inicio.format(horaFormatter) + "|" + row[7];
             String range = inicio.format(horaFormatter) + " - " + fin.format(horaFormatter);
             Integer idBloque = (Integer) row[0];
+            Integer idJornadaExposicionSala = (Integer) row[1]; 
 
-            return new ListBloqueHorarioExposicionSimpleDTO(key, range, idBloque);
+            TemaConAsesorJuradoDTO temaConAsesorJuradoDTO = new TemaConAsesorJuradoDTO();
+            temaConAsesorJuradoDTO.setId((Integer) row[8]);
+            temaConAsesorJuradoDTO.setCodigo((String) row[9]);
+            temaConAsesorJuradoDTO.setTitulo((String) row[10]);
+
+            return new ListBloqueHorarioExposicionSimpleDTO(key, range, idBloque,idJornadaExposicionSala,exposicionId,temaConAsesorJuradoDTO);
         }).collect(Collectors.toList());
+    }
+
+    @Override
+    public boolean updateBloquesListFirstTime(List<ListBloqueHorarioExposicionSimpleDTO> bloquesList) {
+
+        try {
+            List<ListBloqueHorarioExposicionSimpleDTO> filtered = bloquesList.stream()
+                    .filter(b -> b.getExpo() != null)
+                    .collect(Collectors.toList());
+
+            ObjectMapper mapper = new ObjectMapper();
+            String jsonString = mapper.writeValueAsString(filtered);
+
+
+            bloqueHorarioExposicionRepository.actualizarMasivo(jsonString);
+
+            return true;
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }

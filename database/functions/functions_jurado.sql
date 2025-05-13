@@ -229,7 +229,7 @@ where u.usuario_id = p_coordinador_id;
 END;
 $$ LANGUAGE plpgsql STABLE;
 
-CREATE OR REPLACE FUNCTION listar_exposiciones_sin_inicializar_cicloactual_por_etapa_formativa(
+CREATE OR REPLACE FUNCTION listar_exposiciones_sin_inicializar_cicloactual_por_etapa_forma( --tiva. No debe pasar los 63 caracteres, por eso se corta.
 	p_etapa_formativa_id integer
 )
 RETURNS TABLE(
@@ -280,7 +280,7 @@ RETURNS TABLE (
 AS $$
 BEGIN
 RETURN QUERY
-SELECT 
+SELECT
 	bhe.bloque_horario_exposicion_id,
 	bhe.jornada_exposicion_x_sala_id,
 	bhe.exposicion_x_tema_id,
@@ -292,15 +292,15 @@ SELECT
 	t.tema_id,
 	t.codigo::TEXT,
 	t.titulo::TEXT
-FROM bloque_horario_exposicion bhe 
-INNER JOIN jornada_exposicion_x_sala_exposicion jexse 
-	ON jexse.jornada_exposicion_x_sala_id = bhe.jornada_exposicion_x_sala_id 
-INNER JOIN jornada_exposicion je 
-	ON je.jornada_exposicion_id = jexse.jornada_exposicion_id 
-INNER JOIN exposicion e 
-	ON e.exposicion_id = je.exposicion_id 
-INNER JOIN sala_exposicion se 
-	ON jexse.sala_exposicion_id = se.sala_exposicion_id 
+FROM bloque_horario_exposicion bhe
+INNER JOIN jornada_exposicion_x_sala_exposicion jexse
+	ON jexse.jornada_exposicion_x_sala_id = bhe.jornada_exposicion_x_sala_id
+INNER JOIN jornada_exposicion je
+	ON je.jornada_exposicion_id = jexse.jornada_exposicion_id
+INNER JOIN exposicion e
+	ON e.exposicion_id = je.exposicion_id
+INNER JOIN sala_exposicion se
+	ON jexse.sala_exposicion_id = se.sala_exposicion_id
 left join exposicion_x_tema et
 	on bhe.exposicion_x_tema_id = et.exposicion_x_tema_id
 left join tema t
@@ -309,6 +309,8 @@ WHERE bhe.activo = true
 	AND je.exposicion_id = p_exposicion_id;
 END;
 $$ LANGUAGE plpgsql STABLE;
+
+
 
 
 CREATE OR REPLACE FUNCTION actualizar_exposicon_tema_bloque_exposicion(bloques_json jsonb)

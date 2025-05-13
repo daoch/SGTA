@@ -58,7 +58,14 @@ export default function ModalPlanificadorCoordinador({
     },
   });
 
-  const { control, handleSubmit, watch, reset, setValue } = methods;
+  const {
+    control,
+    handleSubmit,
+    watch,
+    reset,
+    setValue,
+    formState: { errors },
+  } = methods;
 
   const [cursos, setCursos] = useState<EtapaFormativa[]>([]);
   const [tiposExposicion, setTiposExposicion] = useState<
