@@ -2,7 +2,9 @@ package pucp.edu.pe.sgta.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import pucp.edu.pe.sgta.dto.InfoTemaPerfilDto;
+
+import jakarta.validation.Valid;
+import pucp.edu.pe.sgta.dto.asesores.InfoTemaPerfilDto;
 import pucp.edu.pe.sgta.dto.TemaConAsesorJuradoDTO;
 import pucp.edu.pe.sgta.dto.TemaDto;
 import pucp.edu.pe.sgta.service.inter.TemaService;
@@ -37,9 +39,10 @@ public class TemaController {
 
     @PostMapping("/createInscripcion") // Inscripcion de tema oficial por asesor
     public void createInscripcion(
-            @RequestBody TemaDto dto,
-            @RequestParam(name = "idUsuarioCreador") Integer idUsuarioCreador) {
-        temaService.createInscripcionTema(dto, idUsuarioCreador);
+            @RequestBody @Valid TemaDto dto
+            //@RequestParam(name = "idUsuarioCreador") Integer idUsuarioCreador
+			) {
+        temaService.createInscripcionTema(dto);
     }
 
 	@PutMapping("/update") // updates a topic
@@ -131,9 +134,9 @@ public class TemaController {
 
 
 
-	@GetMapping("/listarTemasAsesorInvolucrado/{tesistaId}")
-	public List<InfoTemaPerfilDto> listarTemasAsesorInvolucrado(@PathVariable("tesistaId") Integer tesistaId) {
-		return temaService.listarTemasAsesorInvolucrado(tesistaId);
+	@GetMapping("/listarTemasAsesorInvolucrado/{asesorId}")
+	public List<InfoTemaPerfilDto> listarTemasAsesorInvolucrado(@PathVariable("asesorId") Integer asesorId) {
+		return temaService.listarTemasAsesorInvolucrado(asesorId);
 	}
 	@GetMapping("/listarPostulacionesGeneralesAMisPropuestas/{tesistaId}")
 	public List<TemaDto> listarPostulacionesGeneralesAMisPropuestas(@PathVariable("tesistaId") Integer tesistaId) {

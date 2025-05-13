@@ -34,7 +34,7 @@ public class RevisionCriterioExposicion {
     @JoinColumn(name = "usuario_id", nullable = false, foreignKey = @ForeignKey(name = "fk_rcxe_usuario"))
     private Usuario usuario;
 
-    @Column(precision = 5, scale = 2)
+    @Column(precision = 6, scale = 2)
     private BigDecimal nota;
 
     @Column(nullable = false)
@@ -46,9 +46,9 @@ public class RevisionCriterioExposicion {
     @Column(nullable = false)
     private Boolean activo = true;
 
-    @Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    @Column(name = "fecha_creacion", nullable = false, insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaCreacion;
 
-    @Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    @Column(name = "fecha_modificacion", insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaModificacion;
 }

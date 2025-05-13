@@ -4,31 +4,32 @@ import { Clock } from "lucide-react";
 import React, { useState } from "react";
 
 import { JornadaExposicionDTO } from "@/features/jurado/dtos/JornadExposicionDTO";
-import { SalaExposicion, Tema } from "@/features/jurado/types/jurado.types";
+import { EstadoPlanificacion, SalaExposicion, Tema, TimeSlot } from "@/features/jurado/types/jurado.types";
 import BreadCrumbPlanificacion from "./BreadcrumbPlanification";
 import SelectorFecha from "./DateSelector";
 import Droppable from "./Droppable";
 import RoomSlot from "./RoomSlot";
 
-interface TimeSlot {
-  key: string;
-  range: string; // 17:00  -  18:00
-  expo?: Tema;
-}
 
 interface Props {
   roomAvailList: JornadaExposicionDTO[];
   assignedExpos: Record<string, Tema>;
   removeExpo: (expo: Tema) => void;
+  onSiguienteFaseClick: () => void;
+  onTerminarPlanificacionClick:() => void;
   bloquesList: TimeSlot[];
+  estadoPlan:EstadoPlanificacion;
 }
 const PlanificationPanel: React.FC<Props> = ({
   roomAvailList,
   assignedExpos,
   removeExpo,
+  onSiguienteFaseClick,
+  onTerminarPlanificacionClick,
   bloquesList,
+  estadoPlan,
 }) => {
-  const expoDuration = 20;
+  
   //BLOQUES
 
   const [selectedCode, setSelectedCode] = useState<number>(
@@ -43,22 +44,21 @@ const PlanificationPanel: React.FC<Props> = ({
   const selectedDateStr = selectedDate
     ? `${selectedDate.getDate().toString().padStart(2, "0")}-${(selectedDate.getMonth() + 1).toString().padStart(2, "0")}-${selectedDate.getFullYear()}`
     : "";
-  console.log(bloquesList);
+  
   //BLOQUESSS
   const filteredTimeSlots = bloquesList.filter((slot) =>
     slot.key.startsWith(selectedDateStr + "|"),
-  );
-
-  console.log(filteredTimeSlots);
+  ); 
 
   const uniqueTimeSlots = Array.from(
     new Map(filteredTimeSlots.map((slot) => [slot.range, slot])).values(),
   );
-  console.log(uniqueTimeSlots);
+ 
+ 
 
   return (
     <section className="h-full w-full flex flex-col gap-6">
-      <BreadCrumbPlanificacion></BreadCrumbPlanificacion>
+      <BreadCrumbPlanificacion estadoPlan={estadoPlan}></BreadCrumbPlanificacion>
       <div className="flex flex-row gap-4">
         {roomAvailList.map((room) => (
           <SelectorFecha
@@ -69,13 +69,23 @@ const PlanificationPanel: React.FC<Props> = ({
           ></SelectorFecha>
         ))}
 
-        <div className="ml-auto">
+        <div className="ml-auto ">
           <Button
-            className="w-full xl:w-auto"
+            onClick={() => onSiguienteFaseClick()}
+            className="w-full xl:w-auto mr-2"
             style={{ background: "#042354" }}
           >
             Siguiente fase
           </Button>
+          {estadoPlan.nombre!=="Planificacion inicial" && 
+           <Button
+           onClick={() => onTerminarPlanificacionClick()}
+           className="w-full xl:w-auto ml-2"
+           style={{ background: "#042354" }}
+         >
+           Terminar Planificacion
+         </Button>
+          }
         </div>
       </div>
 

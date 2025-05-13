@@ -590,7 +590,127 @@ END;
 $BODY$;
 
 
-CREATE FUNCTION obtener_usuarios_por_estado(activo_param BOOLEAN)
+CREATE OR REPLACE FUNCTION eliminar_propuestas_tesista(p_usuario_id INTEGER)
+RETURNS VOID AS
+$$
+DECLARE
+  v_rol_tesista     INTEGER;
+  v_estado_directo  INTEGER;
+  v_estado_general  INTEGER;
+  rec               RECORD;
+  cnt_tesistas      INTEGER;
+BEGIN
+  -- 1) Obtiene el ID de rol Tesista y los IDs de estado PROPUESTO_DIRECTO y PROPUESTO_GENERAL
+  SELECT rol_id           INTO v_rol_tesista
+    FROM rol
+   WHERE nombre = 'Tesista';
+
+  SELECT estado_tema_id   INTO v_estado_directo
+    FROM estado_tema
+   WHERE nombre = 'PROPUESTO_DIRECTO';
+
+  SELECT estado_tema_id   INTO v_estado_general
+    FROM estado_tema
+   WHERE nombre = 'PROPUESTO_GENERAL';
+
+  -- 2) Recorre cada tema en PROPUESTO_DIRECTO o PROPUESTO_GENERAL
+  --    donde el usuario sea Tesista, no asignado y activo
+  FOR rec IN
+    SELECT ut.tema_id
+      FROM usuario_tema ut
+      JOIN tema t ON ut.tema_id = t.tema_id
+     WHERE ut.usuario_id    = p_usuario_id
+       AND ut.rol_id        = v_rol_tesista
+       AND ut.asignado      = FALSE
+       AND ut.activo        = TRUE
+       AND t.estado_tema_id IN (v_estado_directo, v_estado_general)
+  LOOP
+    -- 3) Cuenta cuántos tesistas activos y no asignados hay en ese tema
+    SELECT COUNT(*) 
+      INTO cnt_tesistas
+    FROM usuario_tema
+    WHERE tema_id   = rec.tema_id
+      AND rol_id    = v_rol_tesista
+      AND asignado  = FALSE
+      AND activo    = TRUE;
+
+    IF cnt_tesistas > 1 THEN
+      -- 4a) Si hay más de un tesista: desactiva solo este usuario_tema
+      UPDATE usuario_tema
+         SET activo = FALSE,
+             fecha_modificacion = CURRENT_TIMESTAMP
+       WHERE tema_id    = rec.tema_id
+         AND usuario_id = p_usuario_id
+         AND rol_id     = v_rol_tesista
+         AND asignado   = FALSE
+         AND activo     = TRUE;
+    ELSE
+      -- 4b) Si solo queda este tesista: desactiva todos los usuario_tema no asignados
+      UPDATE usuario_tema
+         SET activo = FALSE,
+             fecha_modificacion = CURRENT_TIMESTAMP
+       WHERE tema_id  = rec.tema_id
+         AND asignado = FALSE
+         AND activo   = TRUE;
+      --    y desactiva también el tema
+      UPDATE tema
+         SET activo = FALSE,
+             fecha_modificacion = CURRENT_TIMESTAMP
+       WHERE tema_id = rec.tema_id;
+    END IF;
+  END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+
+-- Función que elimina postulaciones de un tesista a temas en PROPUESTO_LIBRE
+
+CREATE OR REPLACE FUNCTION eliminar_postulaciones_tesista(p_usuario_id INTEGER)
+RETURNS void AS
+$$
+DECLARE
+  rec                      RECORD;
+  v_estado_tema_libre_id   INTEGER;
+  v_rol_id_tesista         INTEGER;
+BEGIN
+  -- 1) Obtener IDs
+  SELECT rol_id
+    INTO v_rol_id_tesista
+  FROM rol
+  WHERE nombre ILIKE 'Tesista'
+  LIMIT 1;
+
+  SELECT estado_tema_id
+    INTO v_estado_tema_libre_id
+  FROM estado_tema
+  WHERE nombre ILIKE 'PROPUESTO_LIBRE'
+  LIMIT 1;
+
+  -- 2) Recorrer los temas del usuario en PROPUESTO_LIBRE
+  FOR rec IN
+    SELECT ut.tema_id, ut.usuario_id
+      FROM usuario_tema ut
+      JOIN tema t ON ut.tema_id = t.tema_id
+     WHERE ut.usuario_id    = p_usuario_id
+       AND ut.rol_id        = v_rol_id_tesista
+       AND ut.asignado      = FALSE
+       AND ut.activo        = TRUE
+       AND t.estado_tema_id = v_estado_tema_libre_id
+  LOOP
+    -- 3) Desactivar el registro
+    UPDATE usuario_tema
+       SET activo            = FALSE,
+           fecha_modificacion = CURRENT_TIMESTAMP
+     WHERE usuario_id = rec.usuario_id
+       AND tema_id    = rec.tema_id
+       AND rol_id     = v_rol_id_tesista
+       AND asignado   = FALSE
+       AND activo     = TRUE;
+  END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION obtener_usuarios_por_estado(activo_param BOOLEAN)
     RETURNS TABLE
             (
                 usuario_id               INTEGER,
@@ -633,7 +753,7 @@ $$;
 
 ALTER FUNCTION obtener_usuarios_por_estado(BOOLEAN) OWNER TO postgres;
 
-CREATE FUNCTION obtener_usuarios_por_area_conocimiento(area_conocimiento_id_param INTEGER)
+CREATE OR REPLACE FUNCTION obtener_usuarios_por_area_conocimiento(area_conocimiento_id_param INTEGER)
     RETURNS TABLE
             (
                 id                       INTEGER,
@@ -680,7 +800,7 @@ $$;
 ALTER FUNCTION obtener_usuarios_por_area_conocimiento(INTEGER) OWNER TO postgres;
 
 
-CREATE FUNCTION obtener_usuarios_con_temass()
+CREATE OR REPLACE FUNCTION obtener_usuarios_con_temass()
     RETURNS TABLE
             (
                 usuario_id               INTEGER,
@@ -720,7 +840,7 @@ $$;
 ALTER FUNCTION obtener_usuarios_con_temass() OWNER TO postgres;
 
 
-CREATE FUNCTION obtener_usuarios_con_temas()
+CREATE OR REPLACE FUNCTION obtener_usuarios_con_temas()
     RETURNS TABLE
             (
                 usuario_id               INTEGER,
@@ -760,7 +880,7 @@ $$;
 ALTER FUNCTION obtener_usuarios_con_temas() OWNER TO postgres;
 
 
-CREATE FUNCTION obtener_area_conocimiento(usuario_id_param INTEGER)
+CREATE OR REPLACE FUNCTION obtener_area_conocimiento(usuario_id_param INTEGER)
     RETURNS TABLE
             (
                 usuario_id               INTEGER,
@@ -784,3 +904,30 @@ END;
 $$;
 
 ALTER FUNCTION obtener_area_conocimiento(INTEGER) OWNER TO postgres;
+
+
+CREATE OR REPLACE FUNCTION generar_codigo_tema()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_codigo_carrera TEXT;
+BEGIN
+    SELECT c.codigo INTO v_codigo_carrera
+    FROM carrera c
+    WHERE c.carrera_id = NEW.carrera_id;
+
+    -- Ahora que tema_id ya existe, podemos usarlo directamente
+    UPDATE tema
+    SET codigo = v_codigo_carrera || lpad(NEW.tema_id::TEXT, 6, '0')
+    WHERE tema_id = NEW.tema_id;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+
+DROP TRIGGER IF EXISTS trigger_generar_codigo_tema ON tema;
+
+CREATE TRIGGER trigger_generar_codigo_tema
+AFTER INSERT ON tema
+FOR EACH ROW
+EXECUTE FUNCTION generar_codigo_tema();

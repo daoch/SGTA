@@ -17,7 +17,6 @@ public class ExposicionXTemaDto {
     private Integer id;
     private Integer exposicionId;
     private Integer temaId;
-    private Integer bloqueHorarioExposicionId;
     private String linkExposicion;
     private String linkGrabacion;
     private EstadoExposicion estadoExposicion;

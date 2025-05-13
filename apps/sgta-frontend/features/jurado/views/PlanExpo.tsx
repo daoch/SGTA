@@ -6,25 +6,28 @@ import {
 import GeneralPlanificationExpo from "@/features/jurado/components/GeneralPlanificationExpo";
 import {
   listarBloquesHorariosExposicion,
+  listarEstadoPlanificacionPorExposicion,
   listarJornadasExposicionSalas,
   listarTemasCicloActulXEtapaFormativa,
 } from "@/features/jurado/services/data";
 import { JornadaExposicionDTO } from "../dtos/JornadExposicionDTO";
 type Props = {
-  etapaFormativaId: number;
+  exposicionId: number;
+ 
 };
-export default async function PlanExpo({ etapaFormativaId }: Props) {
-  const expos = await listarTemasCicloActulXEtapaFormativa(etapaFormativaId);
-  const jornadasSalas = await listarJornadasExposicionSalas(etapaFormativaId);
+export default async function PlanExpo({ exposicionId }: Props) {
+  const expos = await listarTemasCicloActulXEtapaFormativa(exposicionId);
+  const jornadasSalas = await listarJornadasExposicionSalas(exposicionId);
   const topics: AreaEspecialidad[] = [];
   const roomAvailList: JornadaExposicionDTO[] =
     jornadasSalas.map(transformarJornada);
-  const bloquesList = await listarBloquesHorariosExposicion(etapaFormativaId);
+  const bloquesList = await listarBloquesHorariosExposicion(exposicionId);
+  const estadoPlanificacion = await listarEstadoPlanificacionPorExposicion(exposicionId);
+ 
 
-  console.log({ jornadasSalas });
-  console.log({ roomAvailList });
 
-  return (
+
+  return (  
     <main className="h-screen flex flex-col">
       <div className="py-4">
         <h1
@@ -39,6 +42,8 @@ export default async function PlanExpo({ etapaFormativaId }: Props) {
         topics={topics}
         roomAvailList={roomAvailList}
         bloquesList={bloquesList}
+        exposicionId={exposicionId}
+        estadoPlanificacion={estadoPlanificacion}
       ></GeneralPlanificationExpo>
     </main>
   );

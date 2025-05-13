@@ -27,4 +27,9 @@ public class EtapaFormativaController {
     public List<EtapaFormativaDto> obtenerEtapasFormativasActivas() {
         return etapaFormativaService.findAllActivas();
     }
+
+    @GetMapping("/listarActivasPorCoordinador/{coordinador_id}")
+    public List<EtapaFormativaDto> obtenerEtapasFormativasActivasPorCoordinador(@PathVariable("coordinador_id") Integer coordinadorId) {
+        return etapaFormativaService.findAllActivasByCoordinador(coordinadorId);
+    }
 }
