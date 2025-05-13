@@ -18,8 +18,8 @@ export async function fetchTemasPropuestosAlAsesor(
     const params = new URLSearchParams();
 
     if (titulo) params.append("titulo", titulo);
-    params.append("limit", limit ? limit.toString() : "50");
-    params.append("offset", offset ? offset.toString() : "0");
+    params.append("limit", limit != null ? limit.toString() : "50");
+    params.append("offset", offset != null ? offset.toString() : "0");
     const response = await fetch(
       `${baseUrl}/temas/listarTemasPropuestosAlAsesor/${asesorId}?${params.toString()}`,
       {
@@ -173,6 +173,9 @@ export async function fetchAreaConocimientoFindByUsuarioId(
   usuarioId: number,
 ): Promise<Area[]> {
   try {
+    console.log(
+      `${baseUrl}/areaConocimiento/listarPorUsuario?usuarioId=${usuarioId}`,
+    );
     const response = await fetch(
       `${baseUrl}/areaConocimiento/listarPorUsuario?usuarioId=${usuarioId}`,
       {
