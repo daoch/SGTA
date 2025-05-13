@@ -3,20 +3,20 @@ import { Sala } from "../types/exposicion.types";
 import { FormValues } from "../schemas/exposicion-form-schema";
 import { EtapaFormativaXSalaExposicion } from "../dtos/EtapaFormativaXSalaExposicion";
 
-export const getEtapasFormativasByCoordinador = async (
+export const getEtapasFormativasPorInicializarByCoordinador = async (
   coordinador_id: number,
 ) => {
   const response = await axiosInstance.get(
-    `/etapas-formativas/coordinador/${coordinador_id}`,
+    `/etapas-formativas/listarPorInicializarByCoordinador/${coordinador_id}`,
   );
   return response.data;
 };
 
-export const getExposicionPorEtapaFormativa = async (
+export const getExposicionSinInicializarPorEtapaFormativa = async (
   etapaFormativaId: number,
 ) => {
   const response = await axiosInstance.get(
-    `/exposicion/listarExposicionXCicloActualEtapaFormativa?etapaFormativaId=${etapaFormativaId}`,
+    `/exposicion/listarExposicionesSinInicializarByEtapaFormativaEnCicloActual/${etapaFormativaId}`,
   );
   return response.data;
 };
@@ -91,6 +91,18 @@ export const getCursos = async () => {
   } catch (error) {
     console.error("Error al obtener cursos:", error);
     throw new Error("Error al obtener cursos");
+  }
+};
+
+export const getCursosByCoordinador = async (coordinadorId: number) => {
+  try {
+    const response = await axiosInstance.get(
+      `/etapas-formativas/listarActivasPorCoordinador/${coordinadorId}`,
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error al obtener cursos por coordinador:", error);
+    throw new Error("Error al obtener cursos por coordinador");
   }
 };
 

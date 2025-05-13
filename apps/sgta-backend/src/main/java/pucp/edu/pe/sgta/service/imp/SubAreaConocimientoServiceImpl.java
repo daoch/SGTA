@@ -2,8 +2,8 @@ package pucp.edu.pe.sgta.service.imp;
 
 import jakarta.persistence.*;
 import org.springframework.stereotype.Service;
-import pucp.edu.pe.sgta.dto.InfoAreaConocimientoDto;
-import pucp.edu.pe.sgta.dto.InfoSubAreaConocimientoDto;
+import pucp.edu.pe.sgta.dto.asesores.InfoAreaConocimientoDto;
+import pucp.edu.pe.sgta.dto.asesores.InfoSubAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.AreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.SubAreaConocimientoDto;
 import pucp.edu.pe.sgta.mapper.InfoSubAreaConocimientoMapper;

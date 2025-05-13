@@ -1,12 +1,14 @@
 package pucp.edu.pe.sgta.service.inter;
 
-import pucp.edu.pe.sgta.dto.InfoTemaPerfilDto;
+import pucp.edu.pe.sgta.dto.asesores.InfoTemaPerfilDto;
 import pucp.edu.pe.sgta.dto.SubAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.TemaDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
 
 import pucp.edu.pe.sgta.dto.TemaConAsesorJuradoDTO;
 import java.util.List;
+
+import jakarta.persistence.criteria.CriteriaBuilder.In;
 
 public interface TemaService {
 	List<TemaDto> getAll();
@@ -28,7 +30,7 @@ public interface TemaService {
 
 	void delete(Integer id);
 
-	void createInscripcionTema(TemaDto dto, Integer idUsuarioCreador); //Works for asesor, alumno, coordinador and revisor
+	void createInscripcionTema(TemaDto dto); //Works for asesor, alumno, coordinador and revisor
 
 	List<TemaDto> listarTemasPropuestosAlAsesor(Integer asesorId);
 
@@ -59,6 +61,12 @@ public interface TemaService {
 	List<TemaDto> listarPostulacionesDirectasAMisPropuestas(Integer tesistaId);
 
 	List<TemaDto> listarPostulacionesGeneralesAMisPropuestas(Integer tesistaId);
-	List<InfoTemaPerfilDto> listarTemasAsesorInvolucrado(Integer temaId);
+
+
+	List<InfoTemaPerfilDto> listarTemasAsesorInvolucrado(Integer idAsesor);
+
+	void eliminarPropuestasTesista(Integer idUsuario);
+
+	void eliminarPostulacionesTesista(Integer idUsuario);
 
 }

@@ -27,4 +27,11 @@ public interface UsuarioXTemaRepository extends JpaRepository<UsuarioXTema, Inte
             FROM obtener_tesistas_tema(:id)
     """, nativeQuery = true)
 	List<Object[]> listarTesistasTema(@Param("id") Integer idTema);
+
+
+    // Comprueba si el tesista está asignado a un tema
+    boolean existsByUsuarioIdAndRolNombreAndActivoTrueAndAsignadoTrue(
+        Integer usuarioId,
+        String rolNombre
+    );
 }
