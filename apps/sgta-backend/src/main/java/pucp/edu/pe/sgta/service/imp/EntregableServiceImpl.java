@@ -41,7 +41,10 @@ public class EntregableServiceImpl implements EntregableService {
                         ((Instant) resultado[4]).atOffset(ZoneOffset.UTC), // fecha inicio
                         ((Instant) resultado[5]).atOffset(ZoneOffset.UTC), // fecha fin
                         EstadoActividad.valueOf((String) resultado[6]), // estado
-                        (boolean) resultado[7] // es evaluable
+                        (boolean) resultado[7], // es evaluable
+                        ((Number) resultado[8]).intValue(), // maximo_documentos
+                        (String) resultado[9], // extensiones_permitidas
+                        ((Number) resultado[10]).intValue() // peso_maximo_documento
                 ))
                 .collect(Collectors.toList());
     }
@@ -74,6 +77,9 @@ public class EntregableServiceImpl implements EntregableService {
         entregableToUpdate.setFechaInicio(entregableDto.getFechaInicio());
         entregableToUpdate.setFechaFin(entregableDto.getFechaFin());
         entregableToUpdate.setEsEvaluable(entregableDto.isEsEvaluable());
+        entregableToUpdate.setMaximoDocumentos(entregableDto.getMaximoDocumentos());
+        entregableToUpdate.setExtensionesPermitidas(entregableDto.getExtensionesPermitidas());
+        entregableToUpdate.setPesoMaximoDocumento(entregableDto.getPesoMaximoDocumento());
         entregableToUpdate.setFechaModificacion(OffsetDateTime.now());
         entregableRepository.save(entregableToUpdate);
     }

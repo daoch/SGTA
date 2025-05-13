@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import type React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, PenLine, Plus, Monitor, Users } from "lucide-react";
+import { ArrowLeft, PenLine, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { CriterioExposicionCard } from "../components/exposicion/criterio-exposicion-card";
 import {
@@ -14,6 +14,8 @@ import { ExposicionModal } from "../components/exposicion/exposicion-modal";
 import { Exposicion } from "../dtos/exposicion";
 import { CriterioExposicion } from "../dtos/criterio-exposicion";
 import axiosInstance from "@/lib/axios/axios-instance";
+import { NuevoCriterioExposicionModal } from "../components/exposicion/nuevo-criterio-exposicion-modal";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface DetalleExposicionPageProps {
   etapaId: string;
@@ -27,10 +29,13 @@ const DetalleExposicionPage: React.FC<DetalleExposicionPageProps> = ({
   const router = useRouter();
 
   const [isCriterioModalOpen, setIsCriterioModalOpen] = useState(false);
+  const [isNuevoCriterioModalOpen, setIsNuevoCriterioModalOpen] = useState(false);
   const [isExposicionModalOpen, setIsExposicionModalOpen] = useState(false);
   const [criterioSeleccionado, setCriterioSeleccionado] =
     useState<CriterioExposicionFormData | null>(null);
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [criterioAEliminar, setCriterioAEliminar] = useState<CriterioExposicion | null>(null);
 
   const [exposicion, setExposicion] = useState<Exposicion>({
     id: "",
@@ -78,29 +83,24 @@ const DetalleExposicionPage: React.FC<DetalleExposicionPageProps> = ({
     }
   };
 
-  const handleCreateCriterio = async (nuevoCriterio: CriterioExposicion) => {
-      try {
-        const idCriterio = await createCriterio(nuevoCriterio);
-        const nuevoCriterioConId: CriterioExposicion = {
-          ...nuevoCriterio,
-          id: idCriterio, // Asignar el ID devuelto por la API
-        };
-    
-          // Actualizar el estado local con el criterio creado
-        setCriterios((prev) => [...prev, nuevoCriterioConId]);
-     
-        // Cerrar el modal
-        setIsCriterioModalOpen(false);
-      } catch (error) {
-        console.error("Error al crear el criterio:", error);
-      }
-  };
+  const handleCreateCriterios = async (nuevosCriterios: CriterioExposicion[]) => {
+  try {
+    const criteriosCreados = await Promise.all(
+      nuevosCriterios.map(async (criterio) => {
+        const idCriterio = await createCriterio(criterio);
+        return { ...criterio, id: idCriterio }; // Agregar el ID devuelto por la API
+      })
+    );
 
-  const handleNuevoCriterio = () => {
-    setCriterioSeleccionado(null);
-    setModalMode("create");
-    setIsCriterioModalOpen(true);
-  };
+    // Actualizar el estado local con los criterios creados
+    setCriterios((prev) => [...prev, ...criteriosCreados]);
+
+    // Cerrar el modal
+    setIsNuevoCriterioModalOpen(false);
+  } catch (error) {
+    console.error("Error al crear los criterios:", error);
+  }
+};
 
   const updateCriterio = async (updatedCriterio: CriterioExposicion) => {
     try {
@@ -147,7 +147,30 @@ const DetalleExposicionPage: React.FC<DetalleExposicionPageProps> = ({
     };
 
     const handleDeleteCriterio = (id: string) => {
-      // TO DO: Implementar la lógica para eliminar un criterio
+      const criterio = criterios.find((c) => c.id === id);
+      if (criterio) {
+        setCriterioAEliminar(criterio);
+        setIsDeleteModalOpen(true);
+      }
+    };
+
+    const deleteCriterio = async () => {
+      if (!criterioAEliminar) return;
+
+      try {
+        await axiosInstance.put("/criterio-exposicion/delete", criterioAEliminar.id);
+        setCriterios((prev) => prev.filter((c) => c.id !== criterioAEliminar.id));
+        setIsDeleteModalOpen(false);
+        setCriterioAEliminar(null);
+        console.log("Criterio eliminado exitosamente");
+      } catch (error) {
+        console.error("Error al eliminar el criterio:", error);
+      }
+    };
+
+    const cancelDeleteCriterio = () => {
+      setIsDeleteModalOpen(false);
+      setCriterioAEliminar(null);
     };
 
     const updateExposicion = async (updatedExposicion: Exposicion) => {
@@ -230,16 +253,28 @@ const DetalleExposicionPage: React.FC<DetalleExposicionPageProps> = ({
       {/* Criterios Esperados */}
 
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold">Criterios Esperados</h2>
+        <div className="flex items-center space-x-2">
+          <h2 className="text-lg font-semibold">Criterios de calificación</h2>
+        </div>
         <Button
           id="btnNewCriterio"
           className="bg-black hover:bg-gray-800"
-          onClick={handleNuevoCriterio}
+          onClick={() => setIsNuevoCriterioModalOpen(true)}
         >
           <Plus className="h-4 w-4 mr-1" />
           Nuevo Criterio
         </Button>
       </div>
+
+      <p className="text-sm text-muted-foreground">
+        Suma total de criterios: {criterios.reduce((acc, criterio) => acc + criterio.notaMaxima, 0)} puntos
+      </p>
+
+      {criterios.reduce((acc, criterio) => acc + criterio.notaMaxima, 0) < 20 && (
+            <p className="text-sm text-orange-500">
+              La suma de los criterios debe ser 20
+            </p>
+      )}
 
       <div className="space-y-4">
         {criterios.map((criterio) => (
@@ -257,9 +292,10 @@ const DetalleExposicionPage: React.FC<DetalleExposicionPageProps> = ({
       <CriterioExposicionModal
         isOpen={isCriterioModalOpen}
         onClose={() => setIsCriterioModalOpen(false)}
-        onSubmit={modalMode === "edit" ? handleUpdateCriterio : handleCreateCriterio}
+        onSubmit={handleUpdateCriterio}
         criterio={criterioSeleccionado}
         mode={modalMode}
+        criteriosExistentes={criterios}
       />
       {/* Modal para Editar Exposición */}
       <ExposicionModal
@@ -269,6 +305,33 @@ const DetalleExposicionPage: React.FC<DetalleExposicionPageProps> = ({
         exposicion={exposicion}
         mode="edit"
       />
+      <NuevoCriterioExposicionModal
+        isOpen={isNuevoCriterioModalOpen}
+        onClose={() => setIsNuevoCriterioModalOpen(false)} // Cerrar el modal
+        onSubmit={(criteriosSeleccionados) => {
+          handleCreateCriterios(criteriosSeleccionados); // Enviar los criterios seleccionados al backend
+        }}
+        criteriosExistentes={criterios}
+      />
+      <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Eliminar Criterio</DialogTitle>
+            <DialogDescription>
+              ¿Estás seguro de que deseas eliminar el criterio{" "}
+              <strong>{criterioAEliminar?.nombre}</strong>? Esta acción no se puede deshacer.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={cancelDeleteCriterio}>
+              No
+            </Button>
+            <Button variant="destructive" onClick={deleteCriterio}>
+              Sí, eliminar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

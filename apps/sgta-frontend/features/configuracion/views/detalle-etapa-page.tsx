@@ -188,12 +188,7 @@ const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
             <EntregableCard
               key={entregable.id}
               etapaId={etapaId}
-              entregableId={entregable.id ?? ""}
-              nombre={entregable.nombre}
-              descripcion={entregable.descripcion}
-              fechaInicio={entregable.fechaInicio}
-              fechaFin={entregable.fechaFin}
-              esEvaluable={entregable.esEvaluable}
+              entregable={entregable}
             />
           ))}
         </TabsContent>
