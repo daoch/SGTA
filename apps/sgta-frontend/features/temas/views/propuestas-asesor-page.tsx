@@ -26,7 +26,7 @@ const PropuestasAsesorPage = () => {
     [],
   );
   const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage] = useState(1);
   const limit = 10;
   //const limiteTotal = 50;
   const [areasData, setAreasData] = useState<Area[]>([]);
