@@ -311,6 +311,8 @@ END;
 $$ LANGUAGE plpgsql STABLE;
 
 
+
+
 CREATE OR REPLACE FUNCTION actualizar_exposicon_tema_bloque_exposicion(bloques_json jsonb)
 RETURNS void AS $$
 DECLARE
