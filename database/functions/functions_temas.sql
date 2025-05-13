@@ -783,6 +783,7 @@ RETURNS TABLE(
     fecha_limite       TIMESTAMPTZ,
     fecha_creacion     TIMESTAMPTZ,
     fecha_modificacion TIMESTAMPTZ,
+    estado_tema_nombre TEXT,
     usuarios           JSONB
 )
 LANGUAGE plpgsql
@@ -803,6 +804,7 @@ BEGIN
         t.fecha_limite,
         t.fecha_creacion,
         t.fecha_modificacion,
+        et.nombre::text,
         (
           SELECT jsonb_agg(jsonb_build_object(
             'usuario_id', u.usuario_id,
@@ -824,6 +826,7 @@ BEGIN
      AND ut_tesista.rol_id     = (
          SELECT rol_id FROM rol WHERE nombre ILIKE 'Tesista' LIMIT 1
      )
+     AND ut_tesista.creador = true
     LEFT JOIN estado_tema et
       ON et.estado_tema_id = t.estado_tema_id
     LEFT JOIN sub_area_conocimiento_tema sact
@@ -836,8 +839,126 @@ BEGIN
       AND et.nombre ILIKE ANY(ARRAY['PROPUESTO_GENERAL','PROPUESTO_DIRECTO','PREINSCRITO'])
     GROUP BY
       t.tema_id, t.titulo, t.resumen, t.metodologia, t.objetivos,
-      r.documento_url, t.activo, t.fecha_limite, t.fecha_creacion, t.fecha_modificacion;
+      r.documento_url, t.activo, t.fecha_limite, t.fecha_creacion, t.fecha_modificacion, et.nombre;
 END;
 $$;
 
 ALTER FUNCTION listar_propuestas_del_tesista_con_usuarios(INTEGER) OWNER TO postgres;
+
+CREATE OR REPLACE FUNCTION listar_postulaciones_del_tesista_con_usuarios(
+    p_tesista_id INTEGER,
+    p_tipo_post  INTEGER     -- 0 = GENERAL, 1 = DIRECTO
+)
+RETURNS TABLE(
+    tema_id            INTEGER,
+    titulo             TEXT,
+    subareas           TEXT,
+    subarea_ids        INTEGER[],
+    descripcion        TEXT,
+    metodologia         TEXT,
+    objetivo           TEXT,
+    recurso            TEXT,
+    activo             BOOLEAN,
+    fecha_limite       TIMESTAMPTZ,
+    fecha_creacion     TIMESTAMPTZ,
+    fecha_modificacion TIMESTAMPTZ,
+    estado_tema_nombre TEXT,    -- current state name
+    usuarios           JSONB
+)
+LANGUAGE plpgsql
+SET search_path = sgtadb, public
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        t.tema_id,
+        t.titulo::text                                        AS titulo,
+        string_agg(DISTINCT sac.nombre::text, ', ')           AS subareas,
+        array_agg(DISTINCT sac.sub_area_conocimiento_id)      AS subarea_ids,
+        t.resumen::text                                       AS descripcion,
+        t.metodologia::text,
+        t.objetivos::text,
+        r.documento_url::text                                 AS recurso,
+        t.activo,
+        t.fecha_limite,
+        t.fecha_creacion,
+        t.fecha_modificacion,
+        et_current.nombre::text                               AS estado_tema_nombre,
+        (
+          SELECT jsonb_agg(
+                   jsonb_build_object(
+                     'usuario_id',      u.usuario_id,
+                     'nombre_completo', u.nombres || ' ' || u.primer_apellido,
+                     'rol',             rl.nombre,
+                     'creador',         ut.creador,
+                     'asignado',        ut.asignado
+                   )
+                 )
+          FROM usuario_tema ut
+          JOIN usuario         u  ON u.usuario_id = ut.usuario_id
+          JOIN rol             rl ON rl.rol_id     = ut.rol_id
+          WHERE ut.tema_id = t.tema_id
+            AND rl.nombre ILIKE ANY(ARRAY['Tesista','Asesor','Coasesor'])
+        ) AS usuarios
+    FROM tema t
+
+    -- only those temas where this tesista was assigned as Tesista
+    JOIN usuario_tema ut_tesista
+      ON ut_tesista.tema_id    = t.tema_id
+     AND ut_tesista.usuario_id = p_tesista_id
+     AND ut_tesista.rol_id     = (
+         SELECT rol_id FROM rol 
+          WHERE nombre ILIKE 'Tesista'
+          LIMIT 1
+     )
+    AND ut_tesista.creador = true
+    -- current estado
+    LEFT JOIN estado_tema et_current
+      ON et_current.estado_tema_id = t.estado_tema_id
+
+    -- initial (creation) estado from historial_tema
+    LEFT JOIN LATERAL (
+      SELECT ht.estado_tema_id
+      FROM historial_tema ht
+      WHERE ht.tema_id = t.tema_id
+        AND ht.activo = true
+      ORDER BY ht.fecha_creacion ASC
+      LIMIT 1
+    ) init_ht ON TRUE
+
+    LEFT JOIN estado_tema et_init
+      ON et_init.estado_tema_id = init_ht.estado_tema_id
+
+    -- sub-areas
+    LEFT JOIN sub_area_conocimiento_tema sact
+      ON sact.tema_id = t.tema_id
+    LEFT JOIN sub_area_conocimiento sac
+      ON sac.sub_area_conocimiento_id = sact.sub_area_conocimiento_id
+
+    -- recurso (active only)
+    LEFT JOIN recurso r
+      ON r.tema_id = t.tema_id
+     AND r.activo = TRUE
+
+    WHERE t.activo = TRUE
+      AND (
+        (p_tipo_post = 0 AND et_init.nombre ILIKE 'PROPUESTO_GENERAL')
+     OR (p_tipo_post = 1 AND et_init.nombre ILIKE 'PROPUESTO_DIRECTO')
+      )
+
+    GROUP BY
+      t.tema_id,
+      t.titulo,
+      t.resumen,
+      t.metodologia,
+      t.objetivos,
+      r.documento_url,
+      t.activo,
+      t.fecha_limite,
+      t.fecha_creacion,
+      t.fecha_modificacion,
+      et_current.nombre;
+END;
+$$;
+
+ALTER FUNCTION listar_postulaciones_del_tesista_con_usuarios(INTEGER) OWNER TO postgres;

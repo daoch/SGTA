@@ -879,81 +879,59 @@ public class TemaServiceImpl implements TemaService {
 	}
 
 	@Override
-	public List<TemaDto> listarPostulacionesDirectasAMisPropuestas(Integer tesistaId) {
-		List<TemaDto> temas = new ArrayList<>();
-		//FIX: Crear otro procedure para temas solo donde creador: true
-		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Tesista.name(), EstadoTemaEnum.PREINSCRITO.name()));
-		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Tesista.name(), EstadoTemaEnum.PROPUESTO_DIRECTO.name()));
-		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Tesista.name(), EstadoTemaEnum.RECHAZADO.name())); //The asesor rejected the propuesta
-		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Tesista.name(), EstadoTemaEnum.VENCIDO.name())); //The asesor never answered the propuesta
-		Integer idPropuestoDirecto = null;
+	public List<TemaDto> listarPostulacionesAMisPropuestas(Integer tesistaId, Integer tipoPost) {
+		String sql =
+				"SELECT * " +
+						"  FROM sgtadb.listar_postulaciones_del_tesista_con_usuarios(:p_tesista_id, :p_tipo_post)";
+		Query query = entityManager.createNativeQuery(sql)
+				.setParameter("p_tesista_id", tesistaId)
+				.setParameter("p_tipo_post", tipoPost);
 
-		try{
-			 idPropuestoDirecto = estadoTemaRepository.findByNombre(EstadoTemaEnum.PROPUESTO_DIRECTO.name()).get().getId();
-		} catch (Exception e){
-			throw new RuntimeException("No se encuentra el estado de tema: " + EstadoTemaEnum.PROPUESTO_DIRECTO.name());
-		}
+		@SuppressWarnings("unchecked")
+		List<Object[]> rows = query.getResultList();
+		List<TemaDto> proposals = new ArrayList<>(rows.size());
 
-		List<TemaDto> temasPropuestosDirectos = new ArrayList<>();
-		for(TemaDto t : temas){
-			if(t.getEstadoTemaNombre().equals(EstadoTemaEnum.PREINSCRITO.name()) ||
-					t.getEstadoTemaNombre().equals(EstadoTemaEnum.RECHAZADO.name())
-					|| t.getEstadoTemaNombre().equals(EstadoTemaEnum.VENCIDO.name())){
-				List<HistorialTemaDto> historialTemaDto = historialTemaService.findByTemaId(t.getId());
-				for (HistorialTemaDto h : historialTemaDto){
-					if(h.getEstadoTemaId().equals(idPropuestoDirecto)){
-						//t.setEstadoTemaNombre(EstadoTemaEnum.PROPUESTO_DIRECTO.name());
-						t.setFechaModificacion(h.getFechaCreacion());
-						break;
-					}
-				}
+		for (Object[] row : rows) {
+			// --- map basic columns ---
+			TemaDto dto = TemaDto.builder()
+					.id(((Number) row[0]).intValue())      // tema_id
+					.titulo((String)    row[1])            // titulo
+					.resumen((String)   row[4])            // descripcion
+					.metodologia((String)row[5])           // metodologia
+					.objetivos((String) row[6])            // objetivo
+					.portafolioUrl((String)row[7])         // recurso / portafolioUrl
+					.activo((Boolean)   row[8])            // activo
+					.build();
+
+			// --- map timestamps (Instant → OffsetDateTime UTC) ---
+			dto.setFechaLimite(      toOffsetDateTime(row[9])  );
+			dto.setFechaCreacion(    toOffsetDateTime(row[10]) );
+			dto.setFechaModificacion(toOffsetDateTime(row[11]) );
+
+			// --- parse and set sub-areas ---
+			String subareasCsv = (String) row[2];
+			Integer[] subareaIds = extractSqlIntArray(row[3]);
+			dto.setSubareas(parseSubAreas(subareasCsv, subareaIds));
+
+			dto.setEstadoTemaNombre((String) row[12]); //we set the estado tema
+			// --- parse usuarios JSONB into UsuarioDto list ---
+			String usuariosJson = row[13] != null ? row[13].toString() : "[]";
+			List<UsuarioDto> allUsers = parseUsuariosJson(usuariosJson);
+
+			// split into tesistas vs. co-advisors
+			dto.setTesistas(   filterByRole(allUsers, RolEnum.Tesista.name()) );
+			dto.setCoasesores(filterByRoleExcept(allUsers, RolEnum.Tesista.name()));
+
+			if (EstadoTemaEnum.PROPUESTO_GENERAL.name()
+					.equals(dto.getEstadoTemaNombre())) {
+				dto.setCantPostulaciones(calculatePostulaciones(allUsers));
 			}
-			t.setCoasesores(listarUsuariosPorTemaYRol(t.getId(), RolEnum.Asesor.name())); //we load the proposed asesor, which comes with the rechazado
-			temasPropuestosDirectos.add(t);
-		}
-		//historialTemaService.findByTemaId(id);
 
-		return temasPropuestosDirectos;
+			proposals.add(dto);
+		}
+
+		return proposals;
 	}
-
-	@Override
-	public List<TemaDto> listarPostulacionesGeneralesAMisPropuestas(Integer tesistaId) {
-		List<TemaDto> temas = new ArrayList<>();
-		//FIX: Crear otro procedure para temas solo donde creador: true
-		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Tesista.name(), EstadoTemaEnum.PREINSCRITO.name()));
-		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Tesista.name(), EstadoTemaEnum.PROPUESTO_GENERAL.name()));
-		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Tesista.name(), EstadoTemaEnum.VENCIDO.name())); //The asesor never answered the propuesta
-		Integer idPropuestoGeneral = null;
-
-		try{
-			idPropuestoGeneral = estadoTemaRepository.findByNombre(EstadoTemaEnum.PROPUESTO_GENERAL.name()).get().getId();
-		} catch (Exception e){
-			throw new RuntimeException("No se encuentra el estado de tema: " + EstadoTemaEnum.PROPUESTO_GENERAL.name());
-		}
-
-		List<TemaDto> temasPropuestosGeneral = new ArrayList<>();
-		for(TemaDto t : temas){
-			if(t.getEstadoTemaNombre().equals(EstadoTemaEnum.PREINSCRITO.name())
-					|| t.getEstadoTemaNombre().equals(EstadoTemaEnum.VENCIDO.name())){
-				List<HistorialTemaDto> historialTemaDto = historialTemaService.findByTemaId(t.getId());
-				for (HistorialTemaDto h : historialTemaDto){
-					if(h.getEstadoTemaId().equals(idPropuestoGeneral)){ //it was created as general
-						//t.setEstadoTemaNombre(EstadoTemaEnum.PROPUESTO_DIRECTO.name());
-						t.setFechaModificacion(h.getFechaCreacion());
-						break;
-					}
-				}
-			}
-			t.setCoasesores(listarUsuariosPorTemaYRol(t.getId(), RolEnum.Asesor.name())); //we load the proposed asesor, which comes with the rechazado
-			temasPropuestosGeneral.add(t);
-		}
-		//historialTemaService.findByTemaId(id);
-
-		return temasPropuestosGeneral;
-	}
-
-
-
 
 
 	@Override

@@ -114,7 +114,7 @@ public class TemaController {
 
 	@GetMapping("/listarPostulacionesDirectasAMisPropuestas/{tesistaId}")
 	public List<TemaDto> listarPostulacionesDirectasAMisPropuestas(@PathVariable("tesistaId") Integer tesistaId) {
-		return temaService.listarPostulacionesDirectasAMisPropuestas(tesistaId);
+		return temaService.listarPostulacionesAMisPropuestas(tesistaId, 1);
 	}
 
 
@@ -125,7 +125,7 @@ public class TemaController {
 	}
 	@GetMapping("/listarPostulacionesGeneralesAMisPropuestas/{tesistaId}")
 	public List<TemaDto> listarPostulacionesGeneralesAMisPropuestas(@PathVariable("tesistaId") Integer tesistaId) {
-		return temaService.listarPostulacionesGeneralesAMisPropuestas(tesistaId);
+		return temaService.listarPostulacionesAMisPropuestas(tesistaId, 0);
 	}
 
 	@PostMapping("/deleteTema") // deletes a topic
