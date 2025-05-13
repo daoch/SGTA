@@ -1,7 +1,10 @@
 package pucp.edu.pe.sgta.service.imp;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
 import jakarta.transaction.Transactional;
 
 import org.springframework.http.HttpStatus;
@@ -23,13 +26,12 @@ import pucp.edu.pe.sgta.util.EstadoTemaEnum;
 import pucp.edu.pe.sgta.util.RolEnum;
 import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
 
+import java.io.IOException;
+import java.sql.Array;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -59,6 +61,8 @@ public class TemaServiceImpl implements TemaService {
 	private final HistorialTemaService historialTemaService;
 
 	private final UsuarioRepository usuarioRepository;
+
+	private final ObjectMapper objectMapper = new ObjectMapper(); // for JSON conversion
 
 	@PersistenceContext
 	private EntityManager entityManager;
@@ -724,27 +728,154 @@ public class TemaServiceImpl implements TemaService {
 
 
 	public List<TemaDto> listarPropuestasPorTesista(Integer tesistaId) {
-		List<TemaDto> temas = new ArrayList<>();
-		//FIX: Crear otro procedure para temas solo donde creador: true
-		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Tesista.name(), EstadoTemaEnum.PROPUESTO_GENERAL.name()));
-		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Tesista.name(), EstadoTemaEnum.PROPUESTO_DIRECTO.name()));
+		String sql =
+				"SELECT * " +
+						"  FROM sgtadb.listar_propuestas_del_tesista_con_usuarios(:p_tesista_id)";
+		Query query = entityManager.createNativeQuery(sql)
+				.setParameter("p_tesista_id", tesistaId);
 
+		@SuppressWarnings("unchecked")
+		List<Object[]> rows = query.getResultList();
+		List<TemaDto> proposals = new ArrayList<>(rows.size());
 
-		for (TemaDto t : temas) {
-			if(t.getEstadoTemaNombre().equals(EstadoTemaEnum.PROPUESTO_GENERAL.name())){
-				t.setCantPostulaciones(calculatePostulaciones(t.getId()));
+		for (Object[] row : rows) {
+			// --- map basic columns ---
+			TemaDto dto = TemaDto.builder()
+					.id(((Number) row[0]).intValue())      // tema_id
+					.titulo((String)    row[1])            // titulo
+					.resumen((String)   row[4])            // descripcion
+					.metodologia((String)row[5])           // metodologia
+					.objetivos((String) row[6])            // objetivo
+					.portafolioUrl((String)row[7])         // recurso / portafolioUrl
+					.activo((Boolean)   row[8])            // activo
+					.build();
+
+			// --- map timestamps (Instant → OffsetDateTime UTC) ---
+			dto.setFechaLimite(      toOffsetDateTime(row[9])  );
+			dto.setFechaCreacion(    toOffsetDateTime(row[10]) );
+			dto.setFechaModificacion(toOffsetDateTime(row[11]) );
+
+			// --- parse and set sub-areas ---
+			String subareasCsv = (String) row[2];
+			Integer[] subareaIds = extractSqlIntArray(row[3]);
+			dto.setSubareas(parseSubAreas(subareasCsv, subareaIds));
+
+			dto.setEstadoTemaNombre((String) row[12]); //we set the estado tema
+			// --- parse usuarios JSONB into UsuarioDto list ---
+			String usuariosJson = row[13] != null ? row[13].toString() : "[]";
+			List<UsuarioDto> allUsers = parseUsuariosJson(usuariosJson);
+
+			// split into tesistas vs. co-advisors
+			dto.setTesistas(   filterByRole(allUsers, RolEnum.Tesista.name()) );
+			dto.setCoasesores(filterByRoleExcept(allUsers, RolEnum.Tesista.name()));
+
+			// --- calculate postulaciones: count Tesista with asignado=false ---
+			if (EstadoTemaEnum.PROPUESTO_GENERAL.name()
+					.equals(dto.getEstadoTemaNombre())) {
+				dto.setCantPostulaciones(calculatePostulaciones(allUsers));
 			}
 
-			t.setCoasesores(listarUsuariosPorTemaYRol(t.getId(), RolEnum.Asesor.name())); //we load the proposed asesor
-			t.setTesistas(
-					listarUsuariosPorTemaYRol(t.getId(), RolEnum.Tesista.name()) //get cotesistas
-			);
-			t.setSubareas(
-					listarSubAreasPorTema(t.getId())
-			);
+			proposals.add(dto);
 		}
 
-		return temas;
+		return proposals;
+	}
+
+	private OffsetDateTime toOffsetDateTime(Object instantObj) {
+		if (instantObj == null) {
+			return null;
+		}
+		return ((Instant) instantObj).atOffset(ZoneOffset.UTC);
+	}
+
+	/** Extracts an Integer[] from a java.sql.Array, or returns empty array if null. */
+	private Integer[] extractSqlIntArray(Object sqlArrayObj) {
+		if (!(sqlArrayObj instanceof Array)) {
+			return new Integer[0];
+		}
+		try {
+			return (Integer[]) ((Array) sqlArrayObj).getArray();
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to extract integer array from SQL Array", e);
+		}
+	}
+
+	/**
+	 * Build a list of SubAreaConocimientoDto by zipping names and IDs.
+	 * Expects namesCsv like "Mining, Logistics" and a parallel array of IDs.
+	 */
+	private List<SubAreaConocimientoDto> parseSubAreas(String namesCsv, Integer[] ids) {
+		List<SubAreaConocimientoDto> list = new ArrayList<>();
+		if (namesCsv == null || ids.length == 0) {
+			return list;
+		}
+		String[] names = namesCsv.split("\\s*,\\s*");
+		for (int i = 0; i < Math.min(names.length, ids.length); i++) {
+			list.add(SubAreaConocimientoDto.builder()
+					.id(ids[i])
+					.nombre(names[i])
+					.build());
+		}
+		return list;
+	}
+
+	/**
+	 * Parse the 'usuarios' JSONB into a list of UsuarioDto.
+	 */
+	private List<UsuarioDto> parseUsuariosJson(String json) {
+		try {
+			List<Map<String,Object>> users = objectMapper.readValue(
+					json, new TypeReference<List<Map<String,Object>>>() {});
+			List<UsuarioDto> dtos = new ArrayList<>(users.size());
+			for (Map<String,Object> m : users) {
+				dtos.add(UsuarioDto.builder()
+						.id(((Number) m.get("usuario_id")).intValue())
+						.nombres(m.get("nombre_completo") != null ? ((String) m.get("nombre_completo")).split(" ")[0] : null)
+						.primerApellido(m.get("primer_apellido") != null ? ((String) m.get("nombre_completo")).split(" ")[1] : null)
+						.rol((String) m.get("rol"))
+						.creador((Boolean) m.get("creador"))
+						.asignado((Boolean) m.get("asignado"))
+						.build());
+			}
+			return dtos;
+		} catch (IOException e) {
+			throw new RuntimeException("Failed to parse usuarios JSON", e);
+		}
+	}
+
+	/** Returns only those users whose role equals the given roleName. */
+	private List<UsuarioDto> filterByRole(List<UsuarioDto> all, String roleName) {
+		List<UsuarioDto> filtered = new ArrayList<>();
+		for (UsuarioDto u : all) {
+			if (roleName.equals(u.getRol())) {
+				filtered.add(u);
+			}
+		}
+		return filtered;
+	}
+
+	/** Returns users whose role is _not_ the given roleName. */
+	private List<UsuarioDto> filterByRoleExcept(List<UsuarioDto> all, String excludedRole) {
+		List<UsuarioDto> filtered = new ArrayList<>();
+		for (UsuarioDto u : all) {
+			if (!excludedRole.equals(u.getRol())) {
+				filtered.add(u);
+			}
+		}
+		return filtered;
+	}
+
+	/**
+	 * Calculate postulations: number of users with role Tesista and asignado=false.
+	 */
+	private Integer calculatePostulaciones(List<UsuarioDto> usuarios) {
+		int count = 0;
+		for (UsuarioDto u : usuarios) {
+			if (RolEnum.Tesista.name().equals(u.getRol()) && Boolean.FALSE.equals(u.getAsignado())) {
+				count++;
+			}
+		}
+		return count;
 	}
 
 	@Override
@@ -822,9 +953,7 @@ public class TemaServiceImpl implements TemaService {
 	}
 
 
-	private Integer calculatePostulaciones(Integer temaId) {
-		return listarUsuariosPorTemaYRol(temaId, RolEnum.Asesor.name()).size(); //asesores with asignado false
-	}
+
 
 
 	@Override
