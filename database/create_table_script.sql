@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS unidad_academica
     descripcion         TEXT,
     activo              BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion  TIMESTAMP WITH TIME ZONE
+    fecha_modificacion  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Tabla carrera (depende de unidad_academica)
@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS carrera
     descripcion         TEXT,
     activo              BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion  TIMESTAMP WITH TIME ZONE,
+    fecha_modificacion  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_unidad_academica
         FOREIGN KEY (unidad_academica_id)
@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS tipo_usuario
     nombre             VARCHAR(100)             NOT NULL,
     activo             BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion TIMESTAMP WITH TIME ZONE
+    fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Tipo Dedicacion
@@ -86,7 +86,7 @@ CREATE TABLE IF NOT EXISTS usuario
     tipo_dedicacion     INTEGER,
     activo              BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion  TIMESTAMP WITH TIME ZONE,
+    fecha_modificacion  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
 
     CONSTRAINT fk_tipo_usuario
@@ -108,7 +108,7 @@ CREATE TABLE IF NOT EXISTS usuario_carrera
     carrera_id         INTEGER                  NOT NULL,
     activo             BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion TIMESTAMP WITH TIME ZONE,
+    fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_usuario
         FOREIGN KEY (usuario_id)
@@ -128,7 +128,7 @@ CREATE TABLE IF NOT EXISTS estado_tema
     descripcion        TEXT,
     activo             BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion TIMESTAMP WITH TIME ZONE
+    fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 
@@ -141,7 +141,7 @@ CREATE TABLE IF NOT EXISTS proyecto
     estado             VARCHAR(50)              NOT NULL,
     activo             BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion TIMESTAMP WITH TIME ZONE
+    fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 1) TEMA
@@ -161,7 +161,7 @@ CREATE TABLE IF NOT EXISTS tema
     fecha_finalizacion TIMESTAMP WITH TIME ZONE,
     activo             BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion TIMESTAMP WITH TIME ZONE,
+    fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_estado_tema
         FOREIGN KEY (estado_tema_id)
@@ -188,7 +188,7 @@ CREATE TABLE IF NOT EXISTS recurso
     estado             VARCHAR(100), -- por ejemplo: 'PUBLICADO', 'PENDIENTE', etc.
     activo             BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion TIMESTAMP WITH TIME ZONE,
+    fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_tema
         FOREIGN KEY (tema_id)
@@ -207,7 +207,7 @@ CREATE TABLE IF NOT EXISTS historial_tema
     estado_tema_id     INTEGER                  NOT NULL,
     activo             BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion TIMESTAMP WITH TIME ZONE,
+    fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_tema
         FOREIGN KEY (tema_id)
@@ -223,7 +223,7 @@ CREATE TABLE IF NOT EXISTS rol
     descripcion        TEXT,
     activo             BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion TIMESTAMP WITH TIME ZONE
+    fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 4) TIPO_SOLICITUD
@@ -234,7 +234,7 @@ CREATE TABLE IF NOT EXISTS tipo_solicitud
     descripcion        TEXT,
     activo             BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion TIMESTAMP WITH TIME ZONE
+    fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 5) SOLICITUD (depende de tipo_solicitud)
@@ -247,7 +247,7 @@ CREATE TABLE IF NOT EXISTS solicitud
     estado             INTEGER                  NOT NULL,
     activo             BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion TIMESTAMP WITH TIME ZONE,
+    fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_solicitud_tipo
         FOREIGN KEY (tipo_solicitud_id)
@@ -271,7 +271,7 @@ CREATE TABLE IF NOT EXISTS usuario_solicitud
     destinatario         BOOLEAN                  NOT NULL DEFAULT FALSE,
     activo               BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion       TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion   TIMESTAMP WITH TIME ZONE,
+    fecha_modificacion   TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_usuario
         FOREIGN KEY (usuario_id)
@@ -297,7 +297,7 @@ CREATE TABLE IF NOT EXISTS usuario_tema
     comentario         TEXT,
     activo             BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion TIMESTAMP WITH TIME ZONE,
+    fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_usuario
         FOREIGN KEY (usuario_id)
@@ -322,7 +322,7 @@ CREATE TABLE IF NOT EXISTS area_conocimiento
     descripcion          TEXT,
     activo               BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion       TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion   TIMESTAMP WITH TIME ZONE,
+    fecha_modificacion   TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_ac_carrera
         FOREIGN KEY (carrera_id)
@@ -339,7 +339,7 @@ CREATE TABLE IF NOT EXISTS sub_area_conocimiento
     descripcion              TEXT,
     activo                   BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion           TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion       TIMESTAMP WITH TIME ZONE,
+    fecha_modificacion       TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_area_conocimiento
         FOREIGN KEY (area_conocimiento_id)
@@ -354,7 +354,7 @@ CREATE TABLE IF NOT EXISTS sub_area_conocimiento_tema
     tema_id                  INTEGER                  NOT NULL,
     activo                   BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion           TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion       TIMESTAMP WITH TIME ZONE,
+    fecha_modificacion       TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     PRIMARY KEY (sub_area_conocimiento_id, tema_id),
 
@@ -376,7 +376,7 @@ CREATE TABLE IF NOT EXISTS usuario_sub_area_conocimiento
     sub_area_conocimiento_id         INTEGER                  NOT NULL,
     activo                           BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion                   TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion               TIMESTAMP WITH TIME ZONE,
+    fecha_modificacion               TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_usac_usuario
         FOREIGN KEY (usuario_id)
@@ -396,7 +396,7 @@ CREATE TABLE IF NOT EXISTS usuario_area_conocimiento
     area_conocimiento_id         INTEGER                  NOT NULL,
     activo                       BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion               TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion           TIMESTAMP WITH TIME ZONE,
+    fecha_modificacion           TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_uac_usuario
         FOREIGN KEY (usuario_id)
@@ -417,7 +417,7 @@ CREATE TABLE IF NOT EXISTS modulo
     descripcion        TEXT,
     activo             BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion TIMESTAMP WITH TIME ZONE
+    fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 1) PERMISO
@@ -429,7 +429,7 @@ CREATE TABLE IF NOT EXISTS permiso
     descripcion        TEXT,
     activo             BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion TIMESTAMP WITH TIME ZONE,
+    fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_modulo
         FOREIGN KEY (modulo_id)
@@ -447,7 +447,7 @@ CREATE TABLE IF NOT EXISTS tipo_notificacion
     prioridad            INTEGER                  NOT NULL DEFAULT 0,
     activo               BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion       TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion   TIMESTAMP WITH TIME ZONE
+    fecha_modificacion   TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 5) TIPO_USUARIO_PERMISO (relación M:N entre tipo_usuario y permiso)
@@ -458,7 +458,7 @@ CREATE TABLE IF NOT EXISTS tipo_usuario_permiso
     permiso_id           INTEGER                  NOT NULL,
     activo               BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion       TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion   TIMESTAMP WITH TIME ZONE,
+    fecha_modificacion   TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_tup_tipo_usuario
         FOREIGN KEY (tipo_usuario_id)
@@ -482,7 +482,7 @@ CREATE TABLE IF NOT EXISTS notificacion
     modulo_id            INTEGER                  NOT NULL,
     tipo_notificacion_id INTEGER                  NOT NULL,
     usuario_id           INTEGER                  NOT NULL, -- debe existir tabla usuario(usuario_id)
-    fecha_modificacion   TIMESTAMP WITH TIME ZONE,
+    fecha_modificacion   TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_not_modulo
         FOREIGN KEY (modulo_id)
@@ -506,7 +506,7 @@ CREATE TABLE IF NOT EXISTS grupo_investigacion
     descripcion            TEXT,
     activo                 BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion         TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion     TIMESTAMP WITH TIME ZONE
+    fecha_modificacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 2) Tabla usuario_grupo_investigacion (asigna usuarios a grupos)
@@ -517,7 +517,7 @@ CREATE TABLE IF NOT EXISTS usuario_grupo_investigacion
     grupo_investigacion_id         INTEGER                  NOT NULL,
     activo                         BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion                 TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion             TIMESTAMP WITH TIME ZONE,
+    fecha_modificacion             TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_ugi_usuario
         FOREIGN KEY (usuario_id)
@@ -538,7 +538,7 @@ CREATE TABLE IF NOT EXISTS usuario_proyecto
     lider_proyecto      BOOLEAN                  NOT NULL DEFAULT FALSE,
     activo              BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion  TIMESTAMP WITH TIME ZONE,
+    fecha_modificacion  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_up_usuario
         FOREIGN KEY (usuario_id)
@@ -559,7 +559,7 @@ CREATE TABLE IF NOT EXISTS grupo_investigacion_proyecto
     proyecto_id                     INTEGER                  NOT NULL,
     activo                          BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion                  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion              TIMESTAMP WITH TIME ZONE,
+    fecha_modificacion              TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_gip_grupo
         FOREIGN KEY (grupo_investigacion_id)
@@ -579,7 +579,7 @@ CREATE TABLE IF NOT EXISTS etapa_formativa
     duracion_exposicion INTERVAL,
     activo              BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion  TIMESTAMP WITH TIME ZONE,
+    fecha_modificacion  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     carrera_id          INTEGER                  NOT NULL,
 
     CONSTRAINT fk_area_conocimiento_carrera
@@ -597,7 +597,7 @@ CREATE TABLE IF NOT EXISTS parametro_configuracion
     tipo                       enum_tipo_dato           NOT NULL,
     activo                     BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion             TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion         TIMESTAMP WITH TIME ZONE,
+    fecha_modificacion         TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_pc_modulo
         FOREIGN KEY (modulo_id)
@@ -612,7 +612,7 @@ CREATE TABLE IF NOT EXISTS carrera_parametro_configuracion
     valor                              TEXT                     NOT NULL,
     activo                             BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion                     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion                 TIMESTAMP WITH TIME ZONE,
+    fecha_modificacion                 TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     carrera_id                         INTEGER                  NOT NULL,
     parametro_configuracion_id         INTEGER                  NOT NULL,
     etapa_formativa_id                 INTEGER, -- opcional, puede ser NULL
@@ -691,7 +691,7 @@ CREATE TABLE IF NOT EXISTS ciclo
     fecha_fin          DATE                     NOT NULL,
     activo             BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion TIMESTAMP WITH TIME ZONE
+    fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS estado_planificacion
@@ -700,7 +700,7 @@ CREATE TABLE IF NOT EXISTS estado_planificacion
     nombre                  TEXT                     NOT NULL,
     activo                  BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion          TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion      TIMESTAMP WITH TIME ZONE
+    fecha_modificacion      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS sala_exposicion
@@ -710,7 +710,7 @@ CREATE TABLE IF NOT EXISTS sala_exposicion
     activo               BOOLEAN                   NOT NULL DEFAULT TRUE,
     tipo_sala_exposicion enum_tipo_sala_exposicion NOT NULL DEFAULT 'presencial',
     fecha_creacion       TIMESTAMP WITH TIME ZONE  NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion   TIMESTAMP WITH TIME ZONE
+    fecha_modificacion   TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Tablas para el módulo de exposiciones (corregidas)
@@ -723,7 +723,7 @@ CREATE TABLE IF NOT EXISTS etapa_formativa_x_ciclo
     ciclo_id                   INTEGER                  NOT NULL,
     activo                     BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion             TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion         TIMESTAMP WITH TIME ZONE,
+    fecha_modificacion         TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_efc_etapa_formativa
         FOREIGN KEY (etapa_formativa_id)
@@ -743,7 +743,7 @@ CREATE TABLE IF NOT EXISTS etapa_formativa_x_ciclo_x_tema
     aprobado                          BOOLEAN,
     activo                            BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion                    TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion                TIMESTAMP WITH TIME ZONE,
+    fecha_modificacion                TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_efcxt_efc
         FOREIGN KEY (etapa_formativa_x_ciclo_id)
@@ -765,7 +765,7 @@ CREATE TABLE IF NOT EXISTS exposicion
     nombre                     TEXT                     NOT NULL,
     descripcion                TEXT                     NOT NULL,
     fecha_creacion             TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion         TIMESTAMP WITH TIME ZONE,
+    fecha_modificacion         TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_texefc_ef_x_c
         FOREIGN KEY (etapa_formativa_x_ciclo_id)
@@ -786,7 +786,7 @@ CREATE TABLE IF NOT EXISTS jornada_exposicion
     datetime_fin          TIMESTAMP WITH TIME ZONE NOT NULL,
     activo                BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion        TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion    TIMESTAMP WITH TIME ZONE,
+    fecha_modificacion    TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_je_exposicion
         FOREIGN KEY (exposicion_id)
@@ -802,7 +802,7 @@ CREATE TABLE IF NOT EXISTS jornada_exposicion_x_sala_exposicion
     sala_exposicion_id           INTEGER                  NOT NULL,
     activo                       BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion               TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion           TIMESTAMP WITH TIME ZONE,
+    fecha_modificacion           TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_jexs_jornada_exposicion
         FOREIGN KEY (jornada_exposicion_id)
@@ -826,7 +826,7 @@ CREATE TABLE IF NOT EXISTS bloque_horario_exposicion
     datetime_fin                 TIMESTAMP WITH TIME ZONE NOT NULL,
     activo                       BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion               TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion           TIMESTAMP WITH TIME ZONE,
+    fecha_modificacion           TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_bhe_jornada_exposicion_x_sala
         FOREIGN KEY (jornada_exposicion_x_sala_id)
@@ -848,7 +848,7 @@ CREATE TABLE IF NOT EXISTS exposicion_x_tema
     nota_final                        NUMERIC(6, 2),
     activo                            BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion                    TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion                TIMESTAMP WITH TIME ZONE,
+    fecha_modificacion                TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_ext_exposicion
         FOREIGN KEY (exposicion_id)
@@ -874,7 +874,7 @@ CREATE TABLE IF NOT EXISTS criterio_exposicion
     nota_maxima            NUMERIC(6, 2)            NOT NULL,
     activo                 BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion         TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion     TIMESTAMP WITH TIME ZONE,
+    fecha_modificacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_ce_exposicion
         FOREIGN KEY (exposicion_id)
@@ -894,7 +894,7 @@ CREATE TABLE IF NOT EXISTS revision_criterio_x_exposicion
     observacion                       TEXT,
     activo                            BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion                    TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion                TIMESTAMP WITH TIME ZONE,
+    fecha_modificacion                TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_rcxe_exposicion_x_tema
         FOREIGN KEY (exposicion_x_tema_id)
@@ -921,7 +921,7 @@ CREATE TABLE IF NOT EXISTS control_exposicion_usuario
     asistio                          BOOLEAN,
     activo                           BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion                   TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion               TIMESTAMP WITH TIME ZONE,
+    fecha_modificacion               TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_ceu_exposicion_x_tema
         FOREIGN KEY (exposicion_x_tema_id)
@@ -941,7 +941,7 @@ CREATE TABLE IF NOT EXISTS etapa_formativa_x_sala_exposicion
     sala_exposicion_id        INTEGER                  NOT NULL,
     activo                    BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion            TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion        TIMESTAMP WITH TIME ZONE,
+    fecha_modificacion        TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_efxs_etapa_formativa
         FOREIGN KEY (etapa_formativa_id)
@@ -962,7 +962,7 @@ CREATE TABLE IF NOT EXISTS restriccion_exposicion
     datetime_fin              TIMESTAMP WITH TIME ZONE NOT NULL,
     activo                    BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion            TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion        TIMESTAMP WITH TIME ZONE,
+    fecha_modificacion        TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_re_exposicion_x_tema
         FOREIGN KEY (exposicion_x_tema_id)
@@ -1025,7 +1025,7 @@ CREATE TABLE IF NOT EXISTS entregable
     es_evaluable               BOOLEAN                  NOT NULL DEFAULT FALSE,
     activo                     BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion             TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion         TIMESTAMP WITH TIME ZONE,
+    fecha_modificacion         TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT check_fechas_entregable CHECK (fecha_fin >= fecha_inicio),
     CONSTRAINT fk_entregable_ef_x_c
@@ -1043,7 +1043,7 @@ CREATE TABLE IF NOT EXISTS criterio_entregable
     descripcion            TEXT,
     activo                 BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion         TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion     TIMESTAMP WITH TIME ZONE,
+    fecha_modificacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT check_nota_maxima CHECK (nota_maxima > 0),
     CONSTRAINT fk_criterio_entregable_entregable
@@ -1063,7 +1063,7 @@ CREATE TABLE IF NOT EXISTS entregable_x_tema
     estado                          enum_estado_entrega      NOT NULL DEFAULT 'no_enviado',
     activo                          BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion                  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion              TIMESTAMP WITH TIME ZONE,
+    fecha_modificacion              TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_entregable_x_tema_entregable
         FOREIGN KEY (entregable_id)
@@ -1085,7 +1085,7 @@ CREATE TABLE IF NOT EXISTS revision_criterio_entregable
     observacion                     TEXT,
     activo                          BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion                  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion              TIMESTAMP WITH TIME ZONE,
+    fecha_modificacion              TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT check_nota CHECK (nota >= 0),
     CONSTRAINT fk_revision_criterio_entregable_x_tema
@@ -1110,7 +1110,7 @@ CREATE TABLE IF NOT EXISTS documento
     ultima_version     INTEGER                  NOT NULL DEFAULT 1,
     activo             BOOLEAN                           DEFAULT TRUE,
     fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion TIMESTAMP WITH TIME ZONE
+    fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS version_documento
@@ -1123,7 +1123,7 @@ CREATE TABLE IF NOT EXISTS version_documento
     link_archivo_subido   TEXT                     NOT NULL,
     activo                BOOLEAN                           DEFAULT TRUE,
     fecha_creacion        TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion    TIMESTAMP WITH TIME ZONE,
+    fecha_modificacion    TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_version_documento_documento
         FOREIGN KEY (documento_id)
@@ -1139,7 +1139,7 @@ CREATE TABLE IF NOT EXISTS usuario_documento
     permiso              VARCHAR(50)              NOT NULL,
     activo               BOOLEAN                           DEFAULT TRUE,
     fecha_creacion       TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion   TIMESTAMP WITH TIME ZONE,
+    fecha_modificacion   TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_usuario_documento_usuario
         FOREIGN KEY (usuario_id)
@@ -1162,7 +1162,7 @@ CREATE TABLE IF NOT EXISTS revision_documento
     link_archivo_revision TEXT,
     activo                BOOLEAN                           DEFAULT TRUE,
     fecha_creacion        TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion    TIMESTAMP WITH TIME ZONE,
+    fecha_modificacion    TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_revision_documento_usuario
         FOREIGN KEY (usuario_id)
@@ -1191,7 +1191,7 @@ CREATE TABLE IF NOT EXISTS observacion
     comentario           TEXT                     NOT NULL,
     es_automatico        BOOLEAN                  NOT NULL DEFAULT FALSE,
     fecha_creacion       TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion   TIMESTAMP WITH TIME ZONE,
+    fecha_modificacion   TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     activo               BOOLEAN                           DEFAULT TRUE,
 
     CONSTRAINT check_numero_pagina
@@ -1220,7 +1220,7 @@ CREATE TABLE IF NOT EXISTS reunion
     disponible         INTEGER,
     url                TEXT,
     fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion TIMESTAMP WITH TIME ZONE,
+    fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     activo             BOOLEAN                           DEFAULT TRUE
 
 );
@@ -1233,7 +1233,7 @@ CREATE TABLE IF NOT EXISTS usuario_reunion
     estado_asistencia  VARCHAR(50),
     estado_detalle     VARCHAR(50),
     fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion TIMESTAMP WITH TIME ZONE,
+    fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     activo             BOOLEAN                           DEFAULT TRUE,
 
     CONSTRAINT fk_ur_reunion

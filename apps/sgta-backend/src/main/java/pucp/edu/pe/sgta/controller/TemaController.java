@@ -39,9 +39,10 @@ public class TemaController {
 
     @PostMapping("/createInscripcion") // Inscripcion de tema oficial por asesor
     public void createInscripcion(
-            @RequestBody @Valid TemaDto dto,
-            @RequestParam(name = "idUsuarioCreador") Integer idUsuarioCreador) {
-        temaService.createInscripcionTema(dto, idUsuarioCreador);
+            @RequestBody @Valid TemaDto dto
+            //@RequestParam(name = "idUsuarioCreador") Integer idUsuarioCreador
+			) {
+        temaService.createInscripcionTema(dto);
     }
 
 	@PutMapping("/update") // updates a topic

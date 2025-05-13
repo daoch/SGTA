@@ -90,3 +90,6 @@ DROP FUNCTION IF EXISTS obtener_ciclo_etapa_por_tema(INTEGER) CASCADE;
 
 DROP FUNCTION IF EXISTS obtener_area_conocimiento_jurado(INTEGER) CASCADE;
 
+DROP TRIGGER IF EXISTS trigger_generar_codigo_tema ON tema;
+
+DROP FUNCTION IF EXISTS generar_codigo_tema();

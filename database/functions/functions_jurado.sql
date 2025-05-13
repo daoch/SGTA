@@ -311,6 +311,8 @@ END;
 $$ LANGUAGE plpgsql STABLE;
 
 
+
+
 CREATE OR REPLACE FUNCTION actualizar_exposicon_tema_bloque_exposicion(bloques_json jsonb)
 RETURNS void AS $$
 DECLARE
@@ -321,7 +323,8 @@ DECLARE
     id_tema INTEGER;
     codigo_tema TEXT;
     titulo_tema TEXT;
-  et_id INTEGER; 
+  	et_id INTEGER; 
+	ep_id integer;
 BEGIN
     
     FOR bloque IN SELECT * FROM jsonb_array_elements(bloques_json)
@@ -339,6 +342,10 @@ BEGIN
        	select exposicion_x_tema_id into et_id
 		from exposicion_x_tema et
 		where et.tema_id = id_tema and et.exposicion_id = id_exposicion;
+
+		select estado_planificacion_id  into ep_id
+		from estado_planificacion where
+		nombre = 'Fase 1';
     
         UPDATE bloque_horario_exposicion 
         SET 
@@ -351,6 +358,11 @@ BEGIN
         UPDATE exposicion_x_tema et
         SET estado_exposicion = 'esperando_respuesta'
         WHERE et.tema_id = id_tema AND et.exposicion_id = id_exposicion;
+
+		update exposicion 
+		set estado_planificacion_id = ep_id
+		where   exposicion_id  = id_exposicion;
+	
     END LOOP;
 END;
 $$ LANGUAGE plpgsql;
@@ -463,5 +475,25 @@ BEGIN
 	ef.carrera_id 
 from etapa_formativa ef 
 where ef.etapa_formativa_id = p_id_etapa_formativa;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION  get_estado_exposicion_by_id_exposicion(
+	id_exposicion integer
+)
+RETURNS TABLE(
+	id_estado_planificacion integer,
+    nombre  text,
+   	activo bool   	
+) AS $$
+BEGIN
+    RETURN QUERY
+ SELECT 
+		ep.estado_planificacion_id,
+		ep.nombre,
+		ep.activo
+    FROM estado_planificacion ep
+	inner join exposicion e on e.estado_planificacion_id = ep.estado_planificacion_id
+	where e.exposicion_id = id_exposicion;	   
 END;
 $$ LANGUAGE plpgsql;
