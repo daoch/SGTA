@@ -16,11 +16,12 @@ public interface AreaConocimientoService {
 	List<AreaConocimientoDto> getAll();
 
 	List<AreaConocimientoDto> getAllByCarrera(Integer idCarrera);
-    AreaConocimientoDto findById(Integer id);
 
-    List<AreaConocimientoDto> listarPorUsuario(Integer usuarioId);
+	AreaConocimientoDto findById(Integer id);
 
-    List<InfoAreaConocimientoDto> listarInfoPorNombre(String nombre);
+	List<AreaConocimientoDto> listarPorUsuario(Integer usuarioId);
+
+	List<InfoAreaConocimientoDto> listarInfoPorNombre(String nombre);
 
 	List<InfoAreaConocimientoDto> listarPorCarrerasUsuarioParaPerfil(Integer idUsuario);
 }
