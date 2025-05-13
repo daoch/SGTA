@@ -93,7 +93,7 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
             temaConAsesorJuradoDTO.setCodigo((String) row[9]);
             temaConAsesorJuradoDTO.setTitulo((String) row[10]);
 
-            return new ListBloqueHorarioExposicionSimpleDTO(key, range, idBloque,idJornadaExposicionSala,exposicionId,null);
+            return new ListBloqueHorarioExposicionSimpleDTO(key, range, idBloque,idJornadaExposicionSala,exposicionId,temaConAsesorJuradoDTO);
         }).collect(Collectors.toList());
     }
 

@@ -85,3 +85,33 @@ export async function listarBloquesHorariosExposicion(exposicionId: number) {
     return [];
   }
 }
+
+
+export async function listarEstadoPlanificacionPorExposicion(exposicionId: number) {
+
+  try {
+    const response = await fetch(
+      `${baseUrl}/estado-planificacion/getByIdExposicion/${exposicionId}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
+      
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+
+    const data = await response.json();
+
+    return data;
+  } catch (error) {
+    console.error(
+      "Error al obtener estado planificaion de la exposición:",
+      error,
+    );
+    return [];
+  }
+}

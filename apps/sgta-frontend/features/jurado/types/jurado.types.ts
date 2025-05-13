@@ -36,3 +36,10 @@ export interface TimeSlot {
   expo?: Tema;
   idExposicion?:number;
 }
+
+
+export interface EstadoPlanificacion{
+  id : number;
+  nombre :string;
+  activo : boolean;
+}

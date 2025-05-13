@@ -1,4 +1,5 @@
 "use client";
+import AppLoading from "@/components/loading/AppLoading";
 import {
   DndContext,
   DragEndEvent,
@@ -7,11 +8,12 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { useEffect, useState, useTransition } from "react";
+import { updateBloquesListFirstTime } from "../actions/actions";
 import { JornadaExposicionDTO } from "../dtos/JornadExposicionDTO";
-import { AreaEspecialidad, Tema, TimeSlot } from "../types/jurado.types";
+import { listarEstadoPlanificacionPorExposicion } from "../services/data";
+import { AreaEspecialidad, EstadoPlanificacion, Tema, TimeSlot } from "../types/jurado.types";
 import ExposList from "./ExposList";
 import PlanificationPanel from "./PlanificationPanel";
-import { updateBloquesListFirstTime } from "../actions/actions";
 
 
 interface Props {
@@ -20,6 +22,7 @@ interface Props {
   roomAvailList: JornadaExposicionDTO[];
   bloquesList: TimeSlot[];
   exposicionId: number;
+  estadoPlanificacion:EstadoPlanificacion;
 }
 
 const GeneralPlanificationExpo: React.FC<Props> = ({
@@ -28,10 +31,13 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
   bloquesList,
   roomAvailList,
   exposicionId,
+  estadoPlanificacion,
 }: Props) => {
   const [freeExpos, setFreeExpos] = useState<Tema[]>(expos);
   const [assignedExpos, setAssignedExpos] = useState<Record<string, Tema>>({});
   const [isPending, startTransition] = useTransition();
+  const [isLoading, setIsLoading] = useState(false);
+  const [estadoPlan, setEstadoPlan] = useState<EstadoPlanificacion>(estadoPlanificacion);
 
   useEffect(() => {
     const assigned: Record<string, Tema> = {};
@@ -135,12 +141,11 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
   });
 
   const onSiguienteFaseClick = ()=>{
-
     if(freeExpos.length > 0 ){
       console.log("No puede dejar temas sin asignar");
       return;
     }
-
+    setIsLoading(true);
     const bloquesListToInsert: TimeSlot[] = bloquesList.map((bloque) => {
       const temaAsignado = assignedExpos[bloque.key];
       return {
@@ -150,42 +155,58 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
 
       };
     });
-
-    startTransition(async () => {
-       await updateBloquesListFirstTime(bloquesListToInsert); 
-    });
-
+    if(estadoPlanificacion.nombre === "Planificacion inicial"){
+      try{
+        startTransition(async () => {
+          await updateBloquesListFirstTime(bloquesListToInsert); 
+          const newEstadoPlanificacion = await listarEstadoPlanificacionPorExposicion(exposicionId);
+          setEstadoPlan(newEstadoPlanificacion);
+       });
+      }
+      catch(err){
+        console.error("Error al actualizar los bloques:", err);
+      }
+      finally {
+        setIsLoading(false); // ✅ Siempre oculta el loading
+      }
+    }  
     
-    /*PARA EXPOSICION TEMA NECESITAMOS  EXPO ID , TEMA ID
-    /*PARA EL BLOQUE EXPOSICION SOLO NECESITAMOS EL ID Y SI TIENE UN ID ASIGNADO  EN TEMA*/
-
-    
-    console.log("Lista final de bloques con expos asignadas:", bloquesListToInsert);
-    
-
+   console.log("Lista final de bloques con expos asignadas:", bloquesListToInsert);
+  }
+  const onTerminarPlanificacionClick = () =>{
+    if(freeExpos.length > 0 ){
+      console.log("No puede dejar temas sin asignar");
+      return;
+    }
+    setIsLoading(true);
   }
 
   const sensors = useSensors(mouseSensor);
 
   return (
-    <DndContext onDragEnd={handleDragEnd} sensors={sensors}>
-      <div className="flex flex-col md:flex-row gap-2  flex-1 min-h-0">
-        <div className="w-full md:w-1/4  h-full">
-          <ExposList freeExpos={freeExpos} topics={topics} />
-        </div>
+    <>
+    {isPending && <AppLoading/>}
+      <DndContext onDragEnd={handleDragEnd} sensors={sensors}>
+        <div className="flex flex-col md:flex-row gap-2  flex-1 min-h-0">
+          <div className="w-full md:w-1/4  h-full">
+            <ExposList freeExpos={freeExpos} topics={topics} />
+          </div>
 
-        <div className="bg-gray-300 w-full h-px md:w-px md:h-auto"></div>
-        <div className="flex flex-col w-full md:w-3/4 overflow-y-auto gap-4">
-          <PlanificationPanel
-            roomAvailList={roomAvailList}
-            assignedExpos={assignedExpos}
-            removeExpo={removeExpo}
-            onSiguienteFaseClick ={onSiguienteFaseClick}
-            bloquesList={bloquesList}
-          />
+          <div className="bg-gray-300 w-full h-px md:w-px md:h-auto"></div>
+          <div className="flex flex-col w-full md:w-3/4 overflow-y-auto gap-4">
+            <PlanificationPanel
+              roomAvailList={roomAvailList}
+              assignedExpos={assignedExpos}
+              removeExpo={removeExpo}
+              onSiguienteFaseClick ={onSiguienteFaseClick}
+              onTerminarPlanificacionClick={onTerminarPlanificacionClick}
+              bloquesList={bloquesList}
+              estadoPlan = {estadoPlan}
+            />
+          </div>
         </div>
-      </div>
-    </DndContext>
+      </DndContext>
+    </>
   );
 };
 

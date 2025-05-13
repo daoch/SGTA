@@ -6,6 +6,7 @@ import {
 import GeneralPlanificationExpo from "@/features/jurado/components/GeneralPlanificationExpo";
 import {
   listarBloquesHorariosExposicion,
+  listarEstadoPlanificacionPorExposicion,
   listarJornadasExposicionSalas,
   listarTemasCicloActulXEtapaFormativa,
 } from "@/features/jurado/services/data";
@@ -21,7 +22,10 @@ export default async function PlanExpo({ exposicionId }: Props) {
   const roomAvailList: JornadaExposicionDTO[] =
     jornadasSalas.map(transformarJornada);
   const bloquesList = await listarBloquesHorariosExposicion(exposicionId);
+  const estadoPlanificacion = await listarEstadoPlanificacionPorExposicion(exposicionId);
  
+
+
 
   return (  
     <main className="h-screen flex flex-col">
@@ -39,6 +43,7 @@ export default async function PlanExpo({ exposicionId }: Props) {
         roomAvailList={roomAvailList}
         bloquesList={bloquesList}
         exposicionId={exposicionId}
+        estadoPlanificacion={estadoPlanificacion}
       ></GeneralPlanificationExpo>
     </main>
   );

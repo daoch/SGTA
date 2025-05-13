@@ -4,7 +4,7 @@ import { Clock } from "lucide-react";
 import React, { useState } from "react";
 
 import { JornadaExposicionDTO } from "@/features/jurado/dtos/JornadExposicionDTO";
-import { SalaExposicion, Tema, TimeSlot } from "@/features/jurado/types/jurado.types";
+import { EstadoPlanificacion, SalaExposicion, Tema, TimeSlot } from "@/features/jurado/types/jurado.types";
 import BreadCrumbPlanificacion from "./BreadcrumbPlanification";
 import SelectorFecha from "./DateSelector";
 import Droppable from "./Droppable";
@@ -16,16 +16,20 @@ interface Props {
   assignedExpos: Record<string, Tema>;
   removeExpo: (expo: Tema) => void;
   onSiguienteFaseClick: () => void;
+  onTerminarPlanificacionClick:() => void;
   bloquesList: TimeSlot[];
+  estadoPlan:EstadoPlanificacion;
 }
 const PlanificationPanel: React.FC<Props> = ({
   roomAvailList,
   assignedExpos,
   removeExpo,
   onSiguienteFaseClick,
+  onTerminarPlanificacionClick,
   bloquesList,
+  estadoPlan,
 }) => {
-  const expoDuration = 20;
+  
   //BLOQUES
 
   const [selectedCode, setSelectedCode] = useState<number>(
@@ -50,10 +54,11 @@ const PlanificationPanel: React.FC<Props> = ({
     new Map(filteredTimeSlots.map((slot) => [slot.range, slot])).values(),
   );
  
-  
+ 
+
   return (
     <section className="h-full w-full flex flex-col gap-6">
-      <BreadCrumbPlanificacion></BreadCrumbPlanificacion>
+      <BreadCrumbPlanificacion estadoPlan={estadoPlan}></BreadCrumbPlanificacion>
       <div className="flex flex-row gap-4">
         {roomAvailList.map((room) => (
           <SelectorFecha
@@ -64,14 +69,23 @@ const PlanificationPanel: React.FC<Props> = ({
           ></SelectorFecha>
         ))}
 
-        <div className="ml-auto">
+        <div className="ml-auto ">
           <Button
             onClick={() => onSiguienteFaseClick()}
-            className="w-full xl:w-auto"
+            className="w-full xl:w-auto mr-2"
             style={{ background: "#042354" }}
           >
             Siguiente fase
           </Button>
+          {estadoPlan.nombre!=="Planificacion inicial" && 
+           <Button
+           onClick={() => onTerminarPlanificacionClick()}
+           className="w-full xl:w-auto ml-2"
+           style={{ background: "#042354" }}
+         >
+           Terminar Planificacion
+         </Button>
+          }
         </div>
       </div>
 
