@@ -32,4 +32,7 @@ public interface ExposicionRepository extends JpaRepository<Exposicion, Integer>
             :coordinador_id)
         """, nativeQuery = true)
     List<Object[]> listarExposicionesInicializadasXCoordinador(@Param("coordinador_id") Integer coordinadorId);
+
+  @Query(value = "SELECT * FROM listar_exposiciones_sin_inicializar_cicloactual_por_etapa_formativa(:etapaFormativaId)", nativeQuery = true)
+    List<Object[]> listarExposicionesSinInicializarByEtapaFormativaEnCicloActual(@Param("etapaFormativaId") Integer etapaFormativaId);
 }

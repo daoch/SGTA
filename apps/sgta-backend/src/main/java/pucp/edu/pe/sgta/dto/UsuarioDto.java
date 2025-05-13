@@ -40,6 +40,8 @@ public class UsuarioDto {
 
 	private String tipoDisponibilidad;
 
+	private String rol;
+
 	private Boolean activo;
 
 	private Boolean rechazado; //we reject the application or proposal

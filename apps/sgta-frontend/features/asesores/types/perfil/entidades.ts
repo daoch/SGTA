@@ -1,9 +1,19 @@
 export interface Tesis {
+  idTesis: number;
   titulo: string;
-  estudiante: string;
+  estudiantes: string[];
   año: string;
   nivel: string;
-  estado: "en_proceso" | "terminada";
+  estado: "en_proceso" | "terminada" | null;
+}
+
+export interface Proyecto {
+  idProyecto: number;
+  nombre: string;
+  participantes: number;
+  añoInicio: string | null;
+  añoFin: string | null;
+  estado: "en_proceso" | "finalizado" | null;
 }
 
 export interface AreaTematica {
@@ -18,21 +28,6 @@ export interface TemaInteres {
 }
 
 export interface Asesor {
-  nombre: string;
-  especialidad: string;
-  email: string;
-  linkedin: string | null;
-  repositorio: string | null;
-  biografia: string | null;
-  disponible: boolean;
-  limiteTesis: number | null;
-  tesis?: Tesis[];
-  areasTematicas: AreaTematica[];
-  temasIntereses: TemaInteres[];
-  estado?: number | null;
-}
-
-export interface AsesorDTO {
   id: number;
   nombre: string;
   especialidad: string;
@@ -40,9 +35,9 @@ export interface AsesorDTO {
   linkedin: string | null;
   repositorio: string | null;
   biografia: string | null;
-  estado: boolean | null;
   limiteTesis: number | null;
   tesistasActuales: number | null;
   areasTematicas: AreaTematica[];
   temasIntereses: TemaInteres[];
+  estado: boolean | null;
 }
