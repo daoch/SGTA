@@ -107,7 +107,7 @@ RETURNS TABLE(
     etapa_formativa_id INTEGER,
     nombre TEXT,
     creditage_por_tema NUMERIC(6,2),
-    duracion_exposicion TEXT,
+    duracion_exposicion INTERVAL,
     activo BOOLEAN,
 	carrera_id INTEGER
 ) AS $$
@@ -117,7 +117,7 @@ BEGIN
         ef.etapa_formativa_id,
         ef.nombre,
         ef.creditaje_por_tema,
-        ef.duracion_exposicion::TEXT,
+        ef.duracion_exposicion,
         ef.activo,
 		ef.carrera_id
     FROM etapa_formativa ef
@@ -309,3 +309,108 @@ WHERE bhe.activo = true
 	AND je.exposicion_id = p_exposicion_id;
 END;
 $$ LANGUAGE plpgsql STABLE;
+
+
+
+
+CREATE OR REPLACE FUNCTION actualizar_exposicon_tema_bloque_exposicion(bloques_json jsonb)
+RETURNS void AS $$
+DECLARE
+    bloque jsonb;
+    id_bloque INTEGER;
+    id_jornada_exposicion_sala INTEGER;
+    id_exposicion INTEGER;
+    id_tema INTEGER;
+    codigo_tema TEXT;
+    titulo_tema TEXT;
+  et_id INTEGER; 
+BEGIN
+    
+    FOR bloque IN SELECT * FROM jsonb_array_elements(bloques_json)
+    LOOP
+        
+        id_bloque := (bloque->>'idBloque')::INTEGER;
+        id_jornada_exposicion_sala := (bloque->>'idJornadaExposicionSala')::INTEGER;
+        id_exposicion := (bloque->>'idExposicion')::INTEGER;
+
+       
+        id_tema := (bloque->'expo'->>'id')::INTEGER;
+        codigo_tema := bloque->'expo'->>'codigo';
+        titulo_tema := bloque->'expo'->>'titulo';
+
+       	select exposicion_x_tema_id into et_id
+		from exposicion_x_tema et
+		where et.tema_id = id_tema and et.exposicion_id = id_exposicion;
+    
+        UPDATE bloque_horario_exposicion 
+        SET 
+            exposicion_x_tema_id = et_id,  
+            es_bloque_reservado = true,
+            fecha_modificacion = now()
+        WHERE bloque_horario_exposicion_id = id_bloque;
+
+    
+        UPDATE exposicion_x_tema et
+        SET estado_exposicion = 'esperando_respuesta'
+        WHERE et.tema_id = id_tema AND et.exposicion_id = id_exposicion;
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION listar_etapas_formativas_activas_by_coordinador(p_coordinador_id INTEGER)
+RETURNS TABLE(
+    etapa_formativa_id INTEGER,
+    nombre TEXT,
+    creditage_por_tema NUMERIC(6,2),
+    duracion_exposicion INTERVAL,
+    activo BOOLEAN,
+	carrera_id INTEGER
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        ef.etapa_formativa_id,
+        ef.nombre,
+        ef.creditaje_por_tema,
+        ef.duracion_exposicion,
+        ef.activo,
+        ef.carrera_id
+    FROM etapa_formativa ef
+    inner join carrera c 
+        on c.carrera_id = ef.carrera_id 
+    inner join usuario_carrera uc 
+        on uc.carrera_id = c.carrera_id
+    inner join usuario u 
+        on u.usuario_id = uc.usuario_id 
+    inner join tipo_usuario tu 
+        on tu.tipo_usuario_id = u.tipo_usuario_id 
+        and tu.nombre = 'coordinador'
+    WHERE ef.activo = true
+        and u.usuario_id = p_coordinador_id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION get_etapa_formativa_by_id(p_id_etapa_formativa integer)
+RETURNS TABLE (
+    etapa_formativa_id integer,
+    nombre text,
+    creditaje_por_tema numeric,
+    duracion_exposicion interval,
+    activo bool,
+    carrera_id integer
+)
+AS $$
+BEGIN
+    RETURN QUERY
+    select 
+	ef.etapa_formativa_id ,
+	ef.nombre ,
+	ef.creditaje_por_tema ,
+	ef.duracion_exposicion ,
+	ef.activo ,
+	ef.carrera_id 
+from etapa_formativa ef 
+where ef.etapa_formativa_id = p_id_etapa_formativa;
+END;
+$$ LANGUAGE plpgsql;
+
