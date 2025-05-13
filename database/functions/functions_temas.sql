@@ -526,7 +526,6 @@ BEGIN
 END;
 $BODY$;
 
-
 CREATE OR REPLACE FUNCTION rechazar_tema(
 	p_alumno_id integer,
 	p_comentario text,
@@ -536,6 +535,10 @@ CREATE OR REPLACE FUNCTION rechazar_tema(
     COST 100
     VOLATILE PARALLEL UNSAFE
 AS $BODY$
+DECLARE
+    estado_actual_id INTEGER;
+    titulo_tema TEXT;
+    resumen_tema TEXT;
 BEGIN
     -- Actualiza el estado del tema a "RECHAZADO"
     UPDATE tema 
@@ -546,10 +549,9 @@ BEGIN
         LIMIT 1
     )
     WHERE tema_id = p_tema_id;
-
-    -- Actualiza el comentario del alumno con rol "Creador"
+    -- Actualiza el comentario del alumno con rol "Tesista"
     UPDATE usuario_tema 
-    SET comentario = p_comentario 
+    SET comentario = p_comentario , rechazado = true
     WHERE usuario_id = p_alumno_id 
       AND tema_id = p_tema_id 
       AND rol_id = (
@@ -558,9 +560,34 @@ BEGIN
         WHERE nombre ILIKE 'Tesista'
         LIMIT 1
     );
+
+	SELECT estado_tema_id, titulo, resumen
+    INTO estado_actual_id, titulo_tema, resumen_tema
+    FROM tema
+    WHERE tema_id = p_tema_id;
+
+	INSERT INTO historial_tema (
+        tema_id,
+        titulo,
+        resumen,
+        descripcion_cambio,
+        estado_tema_id,
+        activo,
+        fecha_creacion,
+        fecha_modificacion
+    )
+    VALUES (
+        p_tema_id,
+        titulo_tema,
+        resumen_tema,
+        CONCAT('Se rechazó el tema'),
+        estado_actual_id,
+        true,
+        now(),
+        now());
+
 END;
 $BODY$;
-
 
 
 CREATE FUNCTION obtener_usuarios_por_estado(activo_param BOOLEAN)
