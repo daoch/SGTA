@@ -48,7 +48,6 @@ CREATE TABLE IF NOT EXISTS tipo_usuario
     tipo_usuario_id    SERIAL PRIMARY KEY,
     nombre             VARCHAR(100)             NOT NULL,
     activo             BOOLEAN                  NOT NULL DEFAULT TRUE,
-    tipo_dedicacion    VARCHAR(100),
     fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP WITH TIME ZONE
 );
@@ -70,6 +69,7 @@ CREATE TABLE IF NOT EXISTS usuario
     foto_perfil         bytea,
     disponibilidad      TEXT,
     tipo_disponibilidad TEXT,
+    tipo_dedicacion     VARCHAR(100),
     activo              BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion  TIMESTAMP WITH TIME ZONE,
@@ -226,6 +226,7 @@ CREATE TABLE IF NOT EXISTS solicitud
     descripcion        TEXT,
     tipo_solicitud_id  INTEGER                  NOT NULL,
     tema_id            INTEGER                  NOT NULL,
+    estado             INTEGER                  NOT NULL,
     activo             BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP WITH TIME ZONE,
@@ -821,7 +822,7 @@ CREATE TABLE IF NOT EXISTS exposicion_x_tema
     exposicion_x_tema_id              SERIAL PRIMARY KEY,
     exposicion_id                     INTEGER                  NOT NULL,
     tema_id                           INTEGER                  NOT NULL,
-    bloque_horario_exposicion_id      INTEGER,
+    --bloque_horario_exposicion_id      INTEGER,
     revision_criterio_x_exposicion_id INTEGER,
     link_exposicion                   TEXT,
     link_grabacion                    TEXT,
@@ -838,11 +839,11 @@ CREATE TABLE IF NOT EXISTS exposicion_x_tema
     CONSTRAINT fk_ext_tema
         FOREIGN KEY (tema_id)
             REFERENCES tema (tema_id)
-            ON DELETE RESTRICT,
-    CONSTRAINT fk_ext_bloque_horario
-        FOREIGN KEY (bloque_horario_exposicion_id)
-            REFERENCES bloque_horario_exposicion (bloque_horario_exposicion_id)
             ON DELETE RESTRICT
+    --CONSTRAINT fk_ext_bloque_horario
+    --    FOREIGN KEY (bloque_horario_exposicion_id)
+    --        REFERENCES bloque_horario_exposicion (bloque_horario_exposicion_id)
+    --        ON DELETE RESTRICT
 );
 
 -- Tabla criterio_exposicion
