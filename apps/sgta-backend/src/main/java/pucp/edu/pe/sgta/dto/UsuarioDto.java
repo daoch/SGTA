@@ -39,7 +39,7 @@ public class UsuarioDto {
 
 	private String tipoDisponibilidad;
 
-	private TipoDedicacionDto tipoDedicacion;
+	private TipoDedicacionDTO tipoDedicacion;
 
 	private Boolean activo;
 
