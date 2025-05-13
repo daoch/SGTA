@@ -5,7 +5,7 @@ import { ListExposicionXCoordinadorDTO } from "../dtos/ListExposicionXCoordiando
 export const ExposicionList: FC<{ items: ListExposicionXCoordinadorDTO[] }> = ({
   items,
 }) => (
-  <div className="flex flex-col w-full">
+  <div className="flex flex-col w-full gap-4">
     {items.map((item) => (
       <ExposicionItem key={item.exposicionId} item={item} />
     ))}
