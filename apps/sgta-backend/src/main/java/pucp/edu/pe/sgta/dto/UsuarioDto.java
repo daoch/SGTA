@@ -1,8 +1,6 @@
 package pucp.edu.pe.sgta.dto;
 
 import lombok.*;
-import pucp.edu.pe.sgta.model.TipoDedicacion;
-import pucp.edu.pe.sgta.model.TipoUsuario;
 
 import java.time.OffsetDateTime;
 
@@ -41,7 +39,7 @@ public class UsuarioDto {
 
 	private String tipoDisponibilidad;
 
-	private TipoDedicacion tipoDedicacion;
+	private TipoDedicacionDTO tipoDedicacion;
 
 	private Boolean activo;
 
