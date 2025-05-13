@@ -83,7 +83,7 @@ CREATE TABLE IF NOT EXISTS usuario
     foto_perfil         bytea,
     disponibilidad      TEXT,
     tipo_disponibilidad TEXT,
-    tipo_dedicacion     INTEGER,
+    tipo_dedicacion_id     INTEGER,
     activo              BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -94,7 +94,7 @@ CREATE TABLE IF NOT EXISTS usuario
             REFERENCES tipo_usuario (tipo_usuario_id)
             ON DELETE RESTRICT,
     CONSTRAINT fk_tipo_dedicacion
-        FOREIGN KEY (tipo_dedicacion)
+        FOREIGN KEY (tipo_dedicacion_id)
             REFERENCES tipo_dedicacion (tipo_dedicacion_id)
             ON DELETE RESTRICT
 );

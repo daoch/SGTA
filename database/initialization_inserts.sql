@@ -1,4 +1,4 @@
--- 1) Tipo de usuario
+-- 1) Tipo de usuario y dedicacion
 INSERT INTO tipo_usuario (nombre,
                           activo,
                           fecha_creacion,
@@ -7,6 +7,12 @@ INSERT INTO tipo_usuario (nombre,
            ('alumno', TRUE, NOW(), NOW()),
            ('coordinador', TRUE, NOW(), NOW()),
            ('administrador', TRUE, NOW(), NOW());
+
+
+INSERT INTO sgta.tipo_dedicacion (iniciales, descripcion)
+    VALUES ('TC', 'Tiempo completo'),
+           ('TPC', 'Tiempo parcial convencional'),
+           ('TPA', 'Tiempo parcial por asignaturas');
 
 -- 2) Rol
 INSERT INTO rol (nombre,
