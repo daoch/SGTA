@@ -465,3 +465,23 @@ from etapa_formativa ef
 where ef.etapa_formativa_id = p_id_etapa_formativa;
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION  get_estado_exposicion_by_id_exposicion(
+	id_exposicion integer
+)
+RETURNS TABLE(
+	id_estado_planificacion integer,
+    nombre  text,
+   	activo bool   	
+) AS $$
+BEGIN
+    RETURN QUERY
+ SELECT 
+		ep.estado_planificacion_id,
+		ep.nombre,
+		ep.activo
+    FROM estado_planificacion ep
+	inner join exposicion e on e.estado_planificacion_id = ep.estado_planificacion_id
+	where e.exposicion_id = id_exposicion;	   
+END;
+$$ LANGUAGE plpgsql;
