@@ -9,7 +9,7 @@ INSERT INTO tipo_usuario (nombre,
            ('administrador', TRUE, NOW(), NOW());
 
 
-INSERT INTO sgta.tipo_dedicacion (iniciales, descripcion)
+INSERT INTO tipo_dedicacion (iniciales, descripcion)
     VALUES ('TC', 'Tiempo completo'),
            ('TPC', 'Tiempo parcial convencional'),
            ('TPA', 'Tiempo parcial por asignaturas');
