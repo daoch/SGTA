@@ -764,3 +764,30 @@ END;
 $$;
 
 ALTER FUNCTION obtener_area_conocimiento(INTEGER) OWNER TO postgres;
+
+
+CREATE OR REPLACE FUNCTION generar_codigo_tema()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_codigo_carrera TEXT;
+BEGIN
+    SELECT c.codigo INTO v_codigo_carrera
+    FROM carrera c
+    WHERE c.carrera_id = NEW.carrera_id;
+
+    -- Ahora que tema_id ya existe, podemos usarlo directamente
+    UPDATE tema
+    SET codigo = v_codigo_carrera || lpad(NEW.tema_id::TEXT, 6, '0')
+    WHERE tema_id = NEW.tema_id;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+
+DROP TRIGGER IF EXISTS trigger_generar_codigo_tema ON tema;
+
+CREATE TRIGGER trigger_generar_codigo_tema
+AFTER INSERT ON tema
+FOR EACH ROW
+EXECUTE FUNCTION generar_codigo_tema();

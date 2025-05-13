@@ -52,10 +52,10 @@ public class ControlExposicionUsuarioTema {
     @Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaCreacion;
 
-    @Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    @Column(name = "fecha_modificacion", insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaModificacion;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "estado_exposicion_usuario", nullable = false)
+    @Column(name = "estado_exposicion_usuario", nullable = false, insertable = false)
     private EstadoExposicionUsuario estadoExposicion = EstadoExposicionUsuario.ESPERANDO_RESPUESTA;
 }
