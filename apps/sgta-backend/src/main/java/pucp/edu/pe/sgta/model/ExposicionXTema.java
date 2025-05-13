@@ -31,9 +31,9 @@ public class ExposicionXTema {
         @JoinColumn(name = "tema_id", nullable = false, foreignKey = @ForeignKey(name = "fk_ext_tema"))
         private Tema tema;
 
-        @OneToOne(fetch = FetchType.LAZY)
-        @JoinColumn(name = "bloque_horario_exposicion_id", foreignKey = @ForeignKey(name = "fk_ext_bloque_horario"))
-        private BloqueHorarioExposicion bloqueHorarioExposicion;
+        //@OneToOne(fetch = FetchType.LAZY)
+        //@JoinColumn(name = "bloque_horario_exposicion_id", foreignKey = @ForeignKey(name = "fk_ext_bloque_horario"))
+        //private BloqueHorarioExposicion bloqueHorarioExposicion;
 
         @Column(name = "link_exposicion")
         private String linkExposicion;
@@ -45,15 +45,15 @@ public class ExposicionXTema {
         @Column(name = "estado_exposicion", nullable = false)
         private EstadoExposicion estadoExposicion = EstadoExposicion.SIN_PROGRAMAR;
 
-        @Column(name = "nota_final", precision = 5, scale = 2)
+        @Column(name = "nota_final", precision = 6, scale = 2)
         private BigDecimal notaFinal;
 
         @Column(nullable = false)
         private Boolean activo = true;
 
-        @Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+        @Column(name = "fecha_creacion", nullable = false, insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
         private OffsetDateTime fechaCreacion;
 
-        @Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+        @Column(name = "fecha_modificacion", insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
         private OffsetDateTime fechaModificacion;
 }

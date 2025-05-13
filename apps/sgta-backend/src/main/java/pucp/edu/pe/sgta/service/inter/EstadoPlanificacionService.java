@@ -14,4 +14,6 @@ public interface EstadoPlanificacionService {
     void update(EstadoPlanificacionDto dto);
 
     void delete(Integer id);
+
+    EstadoPlanificacionDto getByIdExposicion(Integer id);
 }

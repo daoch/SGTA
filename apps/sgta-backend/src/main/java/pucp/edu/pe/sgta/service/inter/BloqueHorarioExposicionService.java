@@ -18,4 +18,6 @@ public interface BloqueHorarioExposicionService {
     void delete(Integer id);
 
     List<ListBloqueHorarioExposicionSimpleDTO> listarBloquesHorarioPorExposicion(Integer exposicionId);
+
+    boolean updateBloquesListFirstTime(List<ListBloqueHorarioExposicionSimpleDTO> bloquesList);
 }

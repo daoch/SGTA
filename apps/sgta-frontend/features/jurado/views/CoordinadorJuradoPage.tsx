@@ -1,15 +1,5 @@
 "use client";
-
-import React, { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  TipoDedicacion,
-  Especialidades,
-  EstadoJurado,
-  JuradoViewModel,
-} from "@/features/jurado/types/juradoDetalle.types";
-
 import {
   Select,
   SelectContent,
@@ -17,97 +7,98 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  AreaEspecialidadFilter,
+  EstadoJurado,
+  JuradoViewModel,
+  TipoDedicacion,
+} from "@/features/jurado/types/juradoDetalle.types";
+import { useEffect, useState } from "react";
 import TableJurados from "../components/JuradosTable";
-
-// Función auxiliar para generar opciones del Select de especialidades
-const getSelectEspecialidadesItems = () => {
-  return Object.values(Especialidades).map((especialidad) => (
-    <SelectItem key={especialidad} value={especialidad}>
-      {especialidad}
-    </SelectItem>
-  ));
-};
+import {
+  getAllAreasEspecialidad,
+  getAllJurados,
+} from "../services/jurado-service";
+import { AreaEspecialidad } from "../types/jurado.types";
 
 const JuradosView = () => {
-  const juradosOriginal = [
-    {
-      user: { name: "Juan Pérez", avatar: "https://github.com/daoch.png" },
-      code: "12345",
-      email: "juan.perez@mail.com",
-      dedication: "Tiempo Completo",
-      assigned: "5",
-      specialties: ["Desarrollo Web", "Backend"],
-      status: "Activo",
-    },
-    {
-      user: { name: "Ana Gómez", avatar: "https://github.com/daoch.png" },
-      code: "67890",
-      email: "ana.gomez@mail.com",
-      dedication: "Medio Tiempo",
-      assigned: "3",
-      specialties: ["Front-End", "UI/UX"],
-      status: "Inactivo",
-    },
-    // Agregar más jurados según sea necesario
-  ];
-
   const [searchTerm, setSearchTerm] = useState("");
-  const [juradosData, setJuradosData] =
-    useState<JuradoViewModel[]>(juradosOriginal);
+  const [juradosData, setJuradosData] = useState<JuradoViewModel[]>([]);
   const [dedication, setDedication] = useState<TipoDedicacion>(
     TipoDedicacion.TODOS,
   );
-  const [specialty, setSpecialty] = useState<Especialidades>(
-    Especialidades.TODOS,
+  const [specialty, setSpecialty] = useState<AreaEspecialidadFilter>(
+    AreaEspecialidadFilter.TODOS,
   );
   const [status, setStatus] = useState<EstadoJurado>(EstadoJurado.TODOS);
   const [hasSearched, setHasSearched] = useState(false);
 
-  // 1) Filtrado automático al cambiar combobox
-  useEffect(() => {
-    setJuradosData(() => {
-      return juradosOriginal.filter((j) => {
-        const matchDedication =
-          dedication === TipoDedicacion.TODOS || j.dedication === dedication;
-        const matchSpecialty =
-          specialty === Especialidades.TODOS ||
-          j.specialties.includes(specialty);
-        const matchStatus =
-          status === EstadoJurado.TODOS || j.status === status;
-        // Solo aplicamos búsqueda si ya se buscó alguna vez
-        const matchSearch =
-          !hasSearched ||
-          j.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          j.code.includes(searchTerm) ||
-          j.email.toLowerCase().includes(searchTerm.toLowerCase());
+  const [allJuradosData, setAllJuradosData] = useState<JuradoViewModel[]>([]);
+  const [areasEspecialidad, setAreasEspecialidad] = useState<
+    AreaEspecialidad[]
+  >([]);
 
-        return matchDedication && matchSpecialty && matchStatus && matchSearch;
-      });
+  useEffect(() => {
+    const fetchAreas = async () => {
+      try {
+        const areas = await getAllAreasEspecialidad();
+        setAreasEspecialidad(areas);
+      } catch (error) {
+        console.error("Error fetching áreas de especialidad:", error);
+      }
+    };
+    fetchAreas();
+  }, []);
+
+  useEffect(() => {
+    const fetchJurados = async () => {
+      try {
+        const jurados = await getAllJurados();
+        const juradosViewModel = jurados.map((j) => ({
+          ...j,
+          email: j.email || "",
+        }));
+        setAllJuradosData(juradosViewModel);
+        setJuradosData(juradosViewModel);
+      } catch (error) {
+        console.error("Error fetching jurados data:", error);
+      }
+    };
+    fetchJurados();
+  }, []);
+
+  useEffect(() => {
+    const filtered = allJuradosData.filter((j) => {
+      const matchDedication =
+        dedication === TipoDedicacion.TODOS || j.dedication === dedication;
+      const matchSpecialty =
+        specialty === AreaEspecialidadFilter.TODOS ||
+        j.specialties.includes(specialty);
+      const matchStatus = status === EstadoJurado.TODOS || j.status === status;
+      const matchSearch =
+        !hasSearched ||
+        j.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        j.code.includes(searchTerm) ||
+        j.email.toLowerCase().includes(searchTerm.toLowerCase());
+
+      return matchDedication && matchSpecialty && matchStatus && matchSearch;
     });
-  }, [dedication, specialty, status, searchTerm, hasSearched]);
+
+    setJuradosData(filtered);
+  }, [dedication, specialty, status, searchTerm, hasSearched, allJuradosData]);
 
   const handleSearch = () => {
-    setJuradosData(() => {
-      return juradosOriginal.filter((j) => {
-        const matchSearch =
-          j.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          j.code.includes(searchTerm) ||
-          j.email.toLowerCase().includes(searchTerm.toLowerCase());
-
-        return matchSearch;
-      });
-    });
+    setHasSearched(true);
   };
 
   return (
     <div>
-      <div className="flex h-[60px] pt-[15px] pr-[20px] pb-[10px] pl-[20px] items-center gap-[10px] self-stretch">
+      <div className="flex h-[60px] pt-[15px] pr-[20px] pb-[10px] items-center gap-[10px] self-stretch">
         <h1 className="text-[#042354] font-montserrat text-[24px] font-semibold leading-[32px] tracking-[-0.144px]">
           Miembros de Jurado
         </h1>
       </div>
-      <div className="flex flex-wrap gap-2 items-center">
-        {/* Input de búsqueda */}
+      <div className="flex flex-wrap gap-3 items-center">
         <Input
           placeholder="Ingrese el nombre, código o correo electrónico del usuario"
           className="flex w-[447px] h-[44px] px-3 py-2 items-center gap-2 border border-[#E2E6F0] rounded-none bg-background resize-none"
@@ -120,43 +111,45 @@ const JuradosView = () => {
           }}
         />
 
-        <Button
-          className="inline-flex h-11 px-4 justify-center items-center gap-2 flex-shrink-0 rounded-md bg-[#042354] text-white"
-          onClick={handleSearch} // Llama a la función de búsqueda al hacer clic
-        >
-          Buscar
-        </Button>
-
-        {/* ComboBox 1 - Tipo de Dedicación */}
-        <div className="flex flex-col w-[130px] h-[80px] items-start gap-[6px] flex-shrink-0">
+        <div className="flex flex-col w-[250px] h-[80px] items-start gap-[6px] flex-shrink-0">
           <label className="text-sm font-medium">Tipo de Dedicación</label>
           <Select onValueChange={(val) => setDedication(val as TipoDedicacion)}>
-            <SelectTrigger className="h-[80px] w-full border border-[#E2E6F0] rounded-md !important">
+            <SelectTrigger className="h-[80px] w-full border border-[#E2E6F0] rounded-md">
               <SelectValue placeholder="Todos" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="Todos">Todos</SelectItem>
-              <SelectItem value="Tiempo Completo">Tiempo Completo</SelectItem>
-              <SelectItem value="Medio Tiempo">Medio Tiempo</SelectItem>
+              <SelectItem value={TipoDedicacion.TODOS}>Todos</SelectItem>
+              <SelectItem value={TipoDedicacion.TIEMPO_COMPLETO}>
+                Tiempo Completo
+              </SelectItem>
+              <SelectItem value={TipoDedicacion.MEDIO_TIEMPO}>
+                Tiempo Parcial por Asignaturas
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
 
-        {/* ComboBox 2 - Área de Especialidad */}
-        <div className="flex flex-col w-[148px] h-[80px] items-start gap-[6px] flex-shrink-0">
+        <div className="flex flex-col w-[250px] h-[80px] items-start gap-[6px] flex-shrink-0">
           <label className="text-sm font-medium">Área de Especialidad</label>
-          <Select onValueChange={(val) => setSpecialty(val as Especialidades)}>
+          <Select
+            onValueChange={(val) => setSpecialty(val as AreaEspecialidadFilter)}
+          >
             <SelectTrigger className="h-[68px] w-full">
               <SelectValue placeholder="Todos" />
             </SelectTrigger>
-            <SelectContent>
-              {/* Generacion dinamica segun el Types de especialidades */}
-              {getSelectEspecialidadesItems()}
+            <SelectContent className="max-h-48 overflow-y-auto">
+              <SelectItem value={AreaEspecialidadFilter.TODOS}>
+                {AreaEspecialidadFilter.TODOS}
+              </SelectItem>
+              {areasEspecialidad.map((area) => (
+                <SelectItem key={area.name} value={area.name}>
+                  {area.name.charAt(0).toUpperCase() + area.name.slice(1)}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
 
-        {/* ComboBox 3 - Estado */}
         <div className="flex flex-col w-[107px] h-[80px] items-start gap-[6px] flex-shrink-0">
           <label className="text-sm font-medium">Estado</label>
           <Select onValueChange={(val) => setStatus(val as EstadoJurado)}>
@@ -164,23 +157,26 @@ const JuradosView = () => {
               <SelectValue placeholder="Todos" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="Todos">Todos</SelectItem>
-              <SelectItem value="Activo">Activo</SelectItem>
-              <SelectItem value="Inactivo">Inactivo</SelectItem>
+              <SelectItem value={EstadoJurado.TODOS}>Todos</SelectItem>
+              <SelectItem value={EstadoJurado.ACTIVO}>Activo</SelectItem>
+              <SelectItem value={EstadoJurado.INACTIVO}>Inactivo</SelectItem>
             </SelectContent>
           </Select>
         </div>
-
-        {/* Botón de Crear Jurado */}
-        <Button className="inline-flex h-11 px-4 justify-center items-center gap-2 flex-shrink-0 rounded-md bg-[#042354] text-white">
-          + Nuevo Jurado
-        </Button>
       </div>
-
-      {/* Llamada al componente de Tabla */}
-      <TableJurados juradosData={juradosData} />
+      {juradosData.length === 0 ? (
+        <div className="text-center text-gray-400 mt-5">
+          <p>
+            No hay miembros de jurados disponibles que coincidan con los filtros
+            aplicados.
+          </p>
+        </div>
+      ) : (
+        <TableJurados juradosData={juradosData} />
+      )}
     </div>
   );
 };
 
 export default JuradosView;
+
