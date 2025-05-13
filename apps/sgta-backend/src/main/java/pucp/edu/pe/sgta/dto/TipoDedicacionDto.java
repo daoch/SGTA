@@ -13,7 +13,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class TipoDedicacionDTO {
+public class TipoDedicacionDto {
   private Integer id;
 
   private String iniciales;
