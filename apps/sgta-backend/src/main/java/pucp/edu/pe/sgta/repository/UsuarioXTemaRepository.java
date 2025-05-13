@@ -11,27 +11,28 @@ import java.util.List;
 @Repository
 public interface UsuarioXTemaRepository extends JpaRepository<UsuarioXTema, Integer> {
 
-	List<UsuarioXTema> findByUsuarioIdAndActivoTrue(Integer usuarioId);
-	@Query(value = """
-        SELECT *
-            FROM obtener_numero_tesistas_asesor(:id)
-    """, nativeQuery = true)
-	List<Object[]> listarNumeroTesistasAsesor(@Param("id")Integer idAsesor);
+    List<UsuarioXTema> findByUsuarioIdAndActivoTrue(Integer usuarioId);
 
+    @Query(value = """
+                SELECT *
+                    FROM obtener_numero_tesistas_asesor(:id)
+            """, nativeQuery = true)
+    List<Object[]> listarNumeroTesistasAsesor(@Param("id") Integer idAsesor);
 
-
-
-
-	@Query(value = """
-        SELECT *
-            FROM obtener_tesistas_tema(:id)
-    """, nativeQuery = true)
-	List<Object[]> listarTesistasTema(@Param("id") Integer idTema);
-
+    @Query(value = """
+                SELECT *
+                    FROM obtener_tesistas_tema(:id)
+            """, nativeQuery = true)
+    List<Object[]> listarTesistasTema(@Param("id") Integer idTema);
 
     // Comprueba si el tesista está asignado a un tema
     boolean existsByUsuarioIdAndRolNombreAndActivoTrueAndAsignadoTrue(
-        Integer usuarioId,
-        String rolNombre
-    );
+            Integer usuarioId,
+            String rolNombre);
+
+    List<UsuarioXTema> findByUsuarioIdAndRolId(Integer usuarioId, Integer rolId);
+
+    List<UsuarioXTema> findByTemaIdAndActivoTrue(Integer temaId);
+
+    long countByTemaIdAndActivoTrue(Integer temaId);
 }
