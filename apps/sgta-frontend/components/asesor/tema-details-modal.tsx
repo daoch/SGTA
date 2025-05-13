@@ -19,6 +19,11 @@ interface TemaDetailsDialogProps {
   tema: TemaUI;
 }
 
+/**
+ * Muestra en un Dialog el detalle de un tema.
+ * @param tema
+ * @returns TemaDetailsDialog
+ */
 export const TemaDetailsDialog: React.FC<TemaDetailsDialogProps> = ({
   tema,
 }) => {

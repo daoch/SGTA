@@ -26,6 +26,11 @@ interface PropuestasTableProps {
 
 const TEST = false;
 
+/**
+ * Muestra en una tabla la lista de temas dado un filtro inicial
+ * @param filter
+ * @returns TemasTable
+ */
 export function TemasTable({ filter }: PropuestasTableProps) {
   const [temasData, setTemasData] = useState<TemaUI[]>(
     TEST ? temasDataMock : [],
@@ -34,9 +39,9 @@ export function TemasTable({ filter }: PropuestasTableProps) {
   const [error, setError] = useState<string | null>(null);
 
   const getUrlListTemas = (rol: string, estado: string) => {
-    const baseUrl =
-      "http://localhost:5000/temas/listarTemasPorUsuarioRolEstado/";
-    return `${baseUrl}${asesorData.id}?rolNombre=${rol}&estadoNombre=${estado}`;
+    const baseUrl = "http://localhost:5000/";
+    const apiRoute = "temas/listarTemasPorUsuarioRolEstado/";
+    return `${baseUrl}${apiRoute}${asesorData.id}?rolNombre=${rol}&estadoNombre=${estado}`;
   };
 
   useEffect(() => {

@@ -1,4 +1,11 @@
-import { Coasesor, Tema, TemaForm, TemaUI, Tesista } from "./entidades";
+import {
+  AreaDeInvestigacion,
+  Coasesor,
+  Tema,
+  TemaForm,
+  TemaUI,
+  Tesista,
+} from "./entidades";
 import { TabValues } from "./enums";
 
 // tipo: Indica el origen del tema en relación con el asesor/coasesor
@@ -325,17 +332,98 @@ export const estudiantesDisponibles: Tesista[] = [
   },
 ];
 
-export const areasDeInvestigacion = [
-  { key: "ia", name: "Inteligencia Artificial" },
-  { key: "web", name: "Desarrollo Web" },
-  { key: "datos", name: "Ciencia de Datos" },
-  { key: "iot", name: "Internet de las Cosas" },
-  { key: "seguridad", name: "Seguridad Informática" },
-  { key: "bd", name: "Bases de Datos" },
-  { key: "grafica", name: "Computación Gráfica" },
-  { key: "redes", name: "Redes y Comunicaciones" },
-  { key: "pln", name: "Procesamiento de Lenguaje Natural" },
-  { key: "vr", name: "Realidad Virtual y Aumentada" },
+export const areasDeInvestigacion: AreaDeInvestigacion[] = [
+  {
+    id: 1,
+    nombre: "Inteligencia Artificial",
+    areaConocimiento: "Ciencias de la Computación",
+    descripcion: "Estudio de algoritmos y sistemas inteligentes.",
+    activo: true,
+    fechaCreacion: "2025-05-08T00:00:00Z",
+    fechaModificacion: "2025-05-10T00:00:00Z",
+  },
+  {
+    id: 2,
+    nombre: "Desarrollo Web",
+    areaConocimiento: "Tecnologías de la Información",
+    descripcion: "Estudio y desarrollo de aplicaciones web modernas.",
+    activo: true,
+    fechaCreacion: "2025-05-08T00:00:00Z",
+    fechaModificacion: null,
+  },
+  {
+    id: 3,
+    nombre: "Ciencia de Datos",
+    areaConocimiento: "Estadística y Computación",
+    descripcion: "Análisis y procesamiento de grandes volúmenes de datos.",
+    activo: true,
+    fechaCreacion: "2025-05-07T00:00:00Z",
+    fechaModificacion: null,
+  },
+  {
+    id: 4,
+    nombre: "Internet de las Cosas",
+    areaConocimiento: "Redes y Comunicaciones",
+    descripcion: "Conexión de dispositivos físicos a través de internet.",
+    activo: false,
+    fechaCreacion: "2025-05-06T00:00:00Z",
+    fechaModificacion: "2025-05-09T00:00:00Z",
+  },
+  {
+    id: 5,
+    nombre: "Seguridad Informática",
+    areaConocimiento: "Ciberseguridad",
+    descripcion: "Protección de sistemas y datos frente a ataques.",
+    activo: true,
+    fechaCreacion: "2025-05-05T00:00:00Z",
+    fechaModificacion: null,
+  },
+  {
+    id: 6,
+    nombre: "Bases de Datos",
+    areaConocimiento: "Sistemas de Información",
+    descripcion:
+      "Diseño y optimización de sistemas de almacenamiento de datos.",
+    activo: true,
+    fechaCreacion: "2025-05-04T00:00:00Z",
+    fechaModificacion: null,
+  },
+  {
+    id: 7,
+    nombre: "Computación Gráfica",
+    areaConocimiento: "Ciencias de la Computación",
+    descripcion: "Generación y manipulación de imágenes digitales.",
+    activo: true,
+    fechaCreacion: "2025-05-03T00:00:00Z",
+    fechaModificacion: null,
+  },
+  {
+    id: 8,
+    nombre: "Redes y Comunicaciones",
+    areaConocimiento: "Telecomunicaciones",
+    descripcion: "Diseño y gestión de redes de comunicación.",
+    activo: true,
+    fechaCreacion: "2025-05-02T00:00:00Z",
+    fechaModificacion: null,
+  },
+  {
+    id: 9,
+    nombre: "Procesamiento de Lenguaje Natural",
+    areaConocimiento: "Inteligencia Artificial",
+    descripcion: "Análisis y generación de lenguaje humano por máquinas.",
+    activo: true,
+    fechaCreacion: "2025-05-01T00:00:00Z",
+    fechaModificacion: null,
+  },
+  {
+    id: 10,
+    nombre: "Realidad Virtual y Aumentada",
+    areaConocimiento: "Ciencias de la Computación",
+    descripcion: "Creación de entornos inmersivos y experiencias interactivas.",
+    activo: false,
+    fechaCreacion: "2025-04-30T00:00:00Z",
+    fechaModificacion: "2025-05-05T00:00:00Z",
+  },
 ];
 
 export const temasDataMock: TemaUI[] = [

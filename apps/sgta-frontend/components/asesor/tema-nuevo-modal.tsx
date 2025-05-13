@@ -21,13 +21,21 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Trash2 } from "lucide-react";
-import { Coasesor, Tema, TemaForm, Tesista } from "@/app/types/temas/entidades";
+import {
+  AreaDeInvestigacion,
+  Coasesor,
+  Tema,
+  TemaForm,
+  Tesista,
+} from "@/app/types/temas/entidades";
 import {
   coasesoresDisponibles,
   estudiantesDisponibles,
   areasDeInvestigacion,
   temaVacio,
+  asesorData,
 } from "@/app/types/temas/data";
+import ItemSelector from "./item-selector";
 
 interface NuevoTemaDialogProps {
   isOpen: boolean;
@@ -40,6 +48,11 @@ enum TipoRegistro {
   INSCRIPCION = "inscripcion",
 }
 
+/**
+ * Muestra un Dialog donde se podrá inscribir un tema o proponer tema libre.
+ * @param setIsNuevoTemaDialogOpen
+ * @returns NuevoTemaDialog
+ */
 const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
   isOpen,
   setIsNuevoTemaDialogOpen,
@@ -48,6 +61,8 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
   const [tipoRegistro, setTipoRegistro] = useState(TipoRegistro.NONE);
   const [coasesorSeleccionado, setCoasesorSeleccionado] =
     useState<Coasesor | null>(null);
+  const [areaSeleccionada, setAreaSeleccionada] =
+    useState<AreaDeInvestigacion | null>(null);
   const [estudianteSeleccionado, setEstudianteSeleccionado] =
     useState<Tesista | null>(null);
 
@@ -63,7 +78,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
       coasesorSeleccionado &&
       temaData.coasesores &&
       !temaData.coasesores?.some(
-        (coasesor) => coasesor.codigoPucp === coasesorSeleccionado?.codigoPucp,
+        (c) => c.codigoPucp === coasesorSeleccionado?.codigoPucp,
       )
     ) {
       setTemaData((prev) => ({
@@ -73,6 +88,23 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
           : null,
       }));
       setCoasesorSeleccionado(null);
+    }
+  };
+
+  const handleAgregarSubarea = () => {
+    if (
+      areaSeleccionada &&
+      temaData.subareas &&
+      !temaData.subareas?.some((c) => c.id === areaSeleccionada?.id)
+    ) {
+      setTemaData((prev) => ({
+        ...prev,
+        subareas: prev.subareas
+          ? [...prev.subareas, areaSeleccionada]
+          : [areaSeleccionada],
+      }));
+
+      setAreaSeleccionada(null);
     }
   };
 
@@ -103,6 +135,13 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
     }));
   };
 
+  const handleEliminarSubarea = (id: number) => {
+    setTemaData((prev) => ({
+      ...prev,
+      subareas: prev.subareas ? prev.subareas.filter((a) => a.id !== id) : [],
+    }));
+  };
+
   const handleEliminarEstudiante = (id: number) => {
     setTemaData((prev) => ({
       ...prev,
@@ -110,11 +149,33 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
     }));
   };
 
-  const handleGuardar = () => {
-    // TODO: post tema
-    // TODO: Manejar mensaje de usuario en caso de error/success
-    setIsNuevoTemaDialogOpen(false);
-    console.log("Tema creado");
+  /**
+   * Crea un nuevo tema (Inscripción / Tema libre) y cierra el formulario.
+   */
+  const handleGuardar = async () => {
+    try {
+      const baseUrl = "http://localhost:5000/";
+      const response = await fetch(`${baseUrl}temas/createInscripcion`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(temaData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Error al guardar el tema");
+      }
+
+      const result = await response.json();
+      console.log("Tema guardado exitosamente:", result);
+
+      // Reinicia el formulario y cierra el modal
+      setTemaData(temaVacio);
+      setIsNuevoTemaDialogOpen(false);
+    } catch (error) {
+      console.error("Error al guardar el tema:", error);
+    }
   };
 
   const handleCancelar = () => {
@@ -124,9 +185,14 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
 
   const onSelectCoasesor = (nombres: string) => {
     const selectedCoasesor = coasesoresDisponibles.find(
-      (coasesor) => coasesor.nombres === nombres,
+      (c) => c.nombres === nombres,
     );
     setCoasesorSeleccionado(selectedCoasesor || null);
+  };
+
+  const onSelectSubarea = (nombre: string) => {
+    const selectedArea = areasDeInvestigacion.find((a) => a.nombre === nombre);
+    setAreaSeleccionada(selectedArea || null);
   };
 
   const onEstudianteSeleccionado = (nombres: string) => {
@@ -183,8 +249,21 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
               />
             </div>
 
+            {/* Subareas */}
+            <ItemSelector
+              label="Subáreas"
+              itemsDisponibles={areasDeInvestigacion}
+              itemsSeleccionados={temaData.subareas}
+              itemKey="id"
+              itemLabel="nombre"
+              selectedItem={areaSeleccionada}
+              onSelectItem={onSelectSubarea}
+              onAgregarItem={handleAgregarSubarea}
+              onEliminarItem={handleEliminarSubarea}
+            />
+
             {/* Área de Investigación */}
-            <div className="space-y-2">
+            {/* <div className="space-y-2">
               <Label>Área de Investigación</Label>
               <Select
               // value={temaData.areaInvestigacion}
@@ -203,7 +282,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
                   ))}
                 </SelectContent>
               </Select>
-            </div>
+            </div> */}
 
             {/* Descripción */}
             <div className="space-y-2">
@@ -215,55 +294,28 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
               />
             </div>
 
-            {/* Coasesores */}
+            {/* Objetivos */}
             <div className="space-y-2">
-              <Label>Coasesores (Opcional)</Label>
-              <div className="flex gap-2">
-                <Select
-                  value={coasesorSeleccionado?.nombres}
-                  onValueChange={onSelectCoasesor}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Seleccione un coasesor" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {coasesoresDisponibles
-                      .filter(
-                        (coasesor) =>
-                          !temaData.coasesores?.some(
-                            (c) => c.codigoPucp === coasesor.codigoPucp,
-                          ),
-                      )
-                      .map((coasesor) => (
-                        <SelectItem key={coasesor.id} value={coasesor.nombres}>
-                          {coasesor.codigoPucp}: {coasesor.nombres}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-                <Button variant={"outline"} onClick={handleAgregarCoasesor}>
-                  Agregar
-                </Button>
-              </div>
-
-              {/* Lista de coasesores seleccionados */}
-              <div className="flex flex-wrap gap-2 mt-2">
-                {temaData.coasesores?.map((coasesor, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center bg-blue-500 text-white px-3 py-1 rounded-full"
-                  >
-                    <span>{coasesor.nombres}</span>
-                    <button
-                      className="ml-2 text-white hover:text-gray-200"
-                      onClick={() => handleEliminarCoasesor(coasesor.id)}
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ))}
-              </div>
+              <Label>Objetivos</Label>
+              <Textarea
+                placeholder="Describa los objetivos del tema de tesis"
+                value={temaData.objetivos}
+                onChange={(e) => handleChange("objetivos", e.target.value)}
+              />
             </div>
+
+            {/* Coasesores */}
+            <ItemSelector
+              label="Coasesores (Opcional)"
+              itemsDisponibles={coasesoresDisponibles}
+              itemsSeleccionados={temaData.coasesores}
+              itemKey="codigoPucp"
+              itemLabel="nombres"
+              selectedItem={coasesorSeleccionado}
+              onSelectItem={onSelectCoasesor}
+              onAgregarItem={handleAgregarCoasesor}
+              onEliminarItem={handleEliminarCoasesor}
+            />
 
             <Separator />
 
@@ -273,7 +325,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
                 {/* Asesor Principal */}
                 <div className="space-y-2">
                   <Label>Asesor Principal</Label>
-                  {/* <Input value={temaData.asesorPrincipal} disabled /> */}
+                  <Input value={asesorData.name} disabled />
                 </div>
 
                 {/* Estudiantes */}
@@ -356,26 +408,24 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
                 {/* <div className="space-y-2">
                   <Label>Requisitos (Opcional)</Label>
                   <Textarea
-                    placeholder="Requisitos para los estudiantes interesados en este tema"
-                    defaultValue={temaData.requisitos}
-                    onChange={(e) => handleChange("requisitos", e.target.value)}
+                  placeholder="Requisitos para los estudiantes interesados en este tema"
+                  defaultValue={temaData.requisitos}
+                  onChange={(e) => handleChange("requisitos", e.target.value)}
                   />
-                </div> */}
-
-                {/* Fecha Límite */}
-                <div className="space-y-2">
-                  <Label>Fecha Límite (Opcional)</Label>
-                  <Input
-                    type="date"
-                    placeholder="mm/dd/yyyy"
-                    defaultValue={temaData.fechaLimite}
-                    onChange={(e) =>
-                      handleChange("fechaLimite", e.target.value)
-                    }
-                  />
-                </div>
+                  </div> */}
               </div>
             )}
+
+            {/* Fecha Límite */}
+            <div className="space-y-2">
+              <Label>Fecha Límite (Opcional)</Label>
+              <Input
+                type="date"
+                placeholder="mm/dd/yyyy"
+                defaultValue={temaData.fechaLimite}
+                onChange={(e) => handleChange("fechaLimite", e.target.value)}
+              />
+            </div>
           </>
         )}
       </div>

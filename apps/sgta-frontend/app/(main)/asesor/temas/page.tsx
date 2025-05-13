@@ -17,6 +17,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 
+/**
+ * Muestra la vista de temas, donde se puede inscribir temas, filtrar mis temas.
+ * @returns Vista Temas
+ */
 const page = () => {
   const [isNuevoTemaDialogOpen, setIsNuevoTemaDialogOpen] = useState(false);
 

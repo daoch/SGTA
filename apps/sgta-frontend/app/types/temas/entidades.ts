@@ -32,15 +32,7 @@ export interface Tema {
   idSubAreasConocimientoList: number[] | null;
   coasesores: Coasesor[] | null;
   tesistas: Tesista[] | null;
-  subareas: {
-    id: number;
-    areaConocimiento: string | null;
-    nombre: string;
-    descripcion: string | null;
-    activo: boolean;
-    fechaCreacion: string | null;
-    fechaModificacion: string | null;
-  }[];
+  subareas: AreaDeInvestigacion[];
 }
 
 export interface Tesista {
@@ -80,6 +72,16 @@ export interface Coasesor {
   tipoDisponibilidad: string | null;
   activo: boolean;
   fechaCreacion: string;
+  fechaModificacion: string | null;
+}
+
+export interface AreaDeInvestigacion {
+  id: number;
+  areaConocimiento: string | null;
+  nombre: string;
+  descripcion: string | null;
+  activo: boolean;
+  fechaCreacion: string | null;
   fechaModificacion: string | null;
 }
 
