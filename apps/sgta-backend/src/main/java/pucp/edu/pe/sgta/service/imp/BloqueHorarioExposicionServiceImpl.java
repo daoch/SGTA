@@ -87,13 +87,15 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
             String range = inicio.format(horaFormatter) + " - " + fin.format(horaFormatter);
             Integer idBloque = (Integer) row[0];
             Integer idJornadaExposicionSala = (Integer) row[1]; 
+            Boolean esBloqueReservado = (Boolean) row[3];
+            Boolean esBloqueBloqueado = (Boolean) row[4];
 
             TemaConAsesorJuradoDTO temaConAsesorJuradoDTO = new TemaConAsesorJuradoDTO();
             temaConAsesorJuradoDTO.setId((Integer) row[8]);
             temaConAsesorJuradoDTO.setCodigo((String) row[9]);
             temaConAsesorJuradoDTO.setTitulo((String) row[10]);
 
-            return new ListBloqueHorarioExposicionSimpleDTO(key, range, idBloque,idJornadaExposicionSala,exposicionId,temaConAsesorJuradoDTO);
+            return new ListBloqueHorarioExposicionSimpleDTO(key, range, idBloque,idJornadaExposicionSala,exposicionId,temaConAsesorJuradoDTO,esBloqueReservado,esBloqueBloqueado);
         }).collect(Collectors.toList());
     }
 
