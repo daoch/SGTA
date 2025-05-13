@@ -6,8 +6,10 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import pucp.edu.pe.sgta.dto.MiembroJuradoDto;
 import pucp.edu.pe.sgta.model.Usuario;
+import pucp.edu.pe.sgta.model.UsuarioXTema;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
@@ -32,4 +34,8 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
     // verificar que usuario existe y activo
     Boolean existsByIdAndActivoTrue(Integer usuarioId);
 
+    Optional<Usuario> findById(Integer id);
+
+    @Query(value = "SELECT * FROM obtener_area_conocimiento_jurado(:usuarioId)", nativeQuery = true)
+    List<Object[]> obtenerAreasConocimientoJurado(@Param("usuarioId") Integer usuarioId);
 }

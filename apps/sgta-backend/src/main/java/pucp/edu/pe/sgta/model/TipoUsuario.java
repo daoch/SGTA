@@ -24,6 +24,10 @@ public class TipoUsuario {
 	@Column(length = 100, nullable = false)
 	private String nombre;
 
+	@Transient
+	@Column(length = 100, nullable = true)
+	private String tipoDedicacion;
+
 	@Column(nullable = false)
 	private Boolean activo = true;
 
