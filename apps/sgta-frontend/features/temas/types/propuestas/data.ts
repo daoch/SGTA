@@ -10,10 +10,18 @@ const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
 export async function fetchTemasPropuestosAlAsesor(
   asesorId: number,
+  titulo?: string,
+  limit?: number,
+  offset?: number,
 ): Promise<Proyecto[]> {
   try {
+    const params = new URLSearchParams();
+
+    if (titulo) params.append("titulo", titulo);
+    params.append("limit", limit ? limit.toString() : "50");
+    params.append("offset", offset ? offset.toString() : "0");
     const response = await fetch(
-      `${baseUrl}/temas/listarTemasPropuestosAlAsesor/${asesorId}`,
+      `${baseUrl}/temas/listarTemasPropuestosAlAsesor/${asesorId}?${params.toString()}`,
       {
         method: "GET",
         headers: {
@@ -65,12 +73,25 @@ export async function fetchTemasPropuestosAlAsesor(
 }
 
 export async function fetchTemasPropuestosPorSubAreaConocimiento(
-  areasId: number[],
+  subAreas: SubAreaConocimiento[],
   asesorId: number,
+  titulo?: string,
+  limit?: number,
+  offset?: number,
 ): Promise<Proyecto[]> {
   try {
+    const params = new URLSearchParams();
+    const idsSubAreas = subAreas.map((item) => item.id);
+    // Agregar múltiples valores para el mismo parámetro
+    idsSubAreas.forEach((id) => params.append("subareaIds", id.toString()));
+
+    params.append("asesorId", asesorId.toString());
+    if (titulo) params.append("titulo", titulo);
+    params.append("limit", limit ? limit.toString() : "10");
+    params.append("offset", offset ? offset.toString() : "0");
+
     const response = await fetch(
-      `${baseUrl}/temas/listarTemasPropuestosPorSubAreaConocimiento?subareaIds=${areasId.join("&subareaIds=")}&asesorId=${asesorId}`,
+      `${baseUrl}/temas/listarTemasPropuestosPorSubAreaConocimiento??${params.toString()}`,
       {
         method: "GET",
         headers: {
