@@ -1,12 +1,12 @@
 package pucp.edu.pe.sgta.mapper;
 
-import pucp.edu.pe.sgta.dto.TipoDedicacionDto;
+import pucp.edu.pe.sgta.dto.TipoDedicacionDTO;
 import pucp.edu.pe.sgta.model.TipoDedicacion;
 
 public class TipoDedicacionMapper {
 
-    public static TipoDedicacionDto toDto(TipoDedicacion tipoDedicacion) {
-        TipoDedicacionDto dto = new TipoDedicacionDto();
+    public static TipoDedicacionDTO toDto(TipoDedicacion tipoDedicacion) {
+        TipoDedicacionDTO dto = new TipoDedicacionDTO();
         dto.setId(tipoDedicacion.getId());
         dto.setFechaModificacion(tipoDedicacion.getFechaModificacion());
         dto.setIniciales(tipoDedicacion.getIniciales());
@@ -16,7 +16,7 @@ public class TipoDedicacionMapper {
         return dto;
     }
 
-    public static TipoDedicacion toEntity(TipoDedicacionDto dto) {
+    public static TipoDedicacion toEntity(TipoDedicacionDTO dto) {
         TipoDedicacion tipoDedicacion = new TipoDedicacion();
         tipoDedicacion.setId(dto.getId());
         tipoDedicacion.setFechaModificacion(dto.getFechaModificacion());
