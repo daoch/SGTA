@@ -34,7 +34,7 @@ public class RevisionCriterioExposicion {
     @JoinColumn(name = "usuario_id", nullable = false, foreignKey = @ForeignKey(name = "fk_rcxe_usuario"))
     private Usuario usuario;
 
-    @Column(precision = 5, scale = 2)
+    @Column(precision = 6, scale = 2)
     private BigDecimal nota;
 
     @Column(nullable = false)

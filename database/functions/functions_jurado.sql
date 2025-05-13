@@ -357,6 +357,60 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+
+CREATE FUNCTION obtener_ciclo_etapa_por_tema(p_tema_id integer)
+    RETURNS TABLE(ciclo_id integer, ciclo_nombre text, etapa_formativa_id integer, etapa_formativa_nombre text)
+    LANGUAGE plpgsql
+AS
+$$
+BEGIN
+    RETURN QUERY
+    SELECT
+        c.ciclo_id,
+        CONCAT(c.anio, '-', c.semestre) AS ciclo_nombre,
+        ef.etapa_formativa_id,
+        efm.nombre AS etapa_formativa_nombre
+    FROM etapa_formativa_x_ciclo_x_tema efct
+    JOIN etapa_formativa_x_ciclo ef ON efct.etapa_formativa_x_ciclo_id = ef.etapa_formativa_x_ciclo_id
+    JOIN ciclo c ON ef.ciclo_id = c.ciclo_id
+    JOIN etapa_formativa efm ON ef.etapa_formativa_id = efm.etapa_formativa_id
+    WHERE efct.tema_id = p_tema_id
+      AND efct.activo = true
+      AND ef.activo = true
+      AND c.activo = true;
+END;
+$$;
+
+ALTER FUNCTION obtener_ciclo_etapa_por_tema(INTEGER) OWNER TO postgres;
+
+
+
+CREATE FUNCTION obtener_area_conocimiento_jurado(usuario_id_param integer)
+    RETURNS TABLE(usuario_id integer, area_conocimiento_id integer, area_conocimiento_nombre character varying)
+    LANGUAGE plpgsql
+AS
+$$
+BEGIN
+    RETURN QUERY
+    SELECT
+        u.usuario_id,
+		ac.area_conocimiento_id AS area_conocimiento_id,
+        ac.nombre AS area_conocimiento_nombre
+    FROM
+        usuario u
+    JOIN
+        usuario_area_conocimiento uac ON u.usuario_id = uac.usuario_id
+    JOIN
+        area_conocimiento ac ON uac.area_conocimiento_id = ac.area_conocimiento_id
+    WHERE
+        u.usuario_id = usuario_id_param
+    ORDER BY
+        ac.nombre;
+END;
+$$;
+
+ALTER FUNCTION obtener_area_conocimiento_jurado(INTEGER) OWNER TO postgres;
+
 CREATE OR REPLACE FUNCTION listar_etapas_formativas_activas_by_coordinador(p_coordinador_id INTEGER)
 RETURNS TABLE(
     etapa_formativa_id INTEGER,
