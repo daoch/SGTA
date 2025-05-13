@@ -31,7 +31,7 @@ public class CriterioExposicion {
     @Column(columnDefinition = "TEXT")
     private String descripcion;
 
-    @Column(name = "nota_maxima", nullable = false, precision = 5, scale = 2)
+    @Column(name = "nota_maxima", nullable = false, precision = 6, scale = 2)
     private BigDecimal notaMaxima;
 
     @Column(nullable = false)

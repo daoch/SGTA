@@ -822,7 +822,7 @@ CREATE TABLE IF NOT EXISTS exposicion_x_tema
     exposicion_x_tema_id              SERIAL PRIMARY KEY,
     exposicion_id                     INTEGER                  NOT NULL,
     tema_id                           INTEGER                  NOT NULL,
-    bloque_horario_exposicion_id      INTEGER,
+    --bloque_horario_exposicion_id      INTEGER,
     revision_criterio_x_exposicion_id INTEGER,
     link_exposicion                   TEXT,
     link_grabacion                    TEXT,
@@ -839,11 +839,11 @@ CREATE TABLE IF NOT EXISTS exposicion_x_tema
     CONSTRAINT fk_ext_tema
         FOREIGN KEY (tema_id)
             REFERENCES tema (tema_id)
-            ON DELETE RESTRICT,
-    CONSTRAINT fk_ext_bloque_horario
-        FOREIGN KEY (bloque_horario_exposicion_id)
-            REFERENCES bloque_horario_exposicion (bloque_horario_exposicion_id)
             ON DELETE RESTRICT
+    --CONSTRAINT fk_ext_bloque_horario
+    --    FOREIGN KEY (bloque_horario_exposicion_id)
+    --        REFERENCES bloque_horario_exposicion (bloque_horario_exposicion_id)
+    --        ON DELETE RESTRICT
 );
 
 -- Tabla criterio_exposicion
