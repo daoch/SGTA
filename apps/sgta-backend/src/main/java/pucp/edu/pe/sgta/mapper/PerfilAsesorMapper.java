@@ -1,6 +1,6 @@
 package pucp.edu.pe.sgta.mapper;
 
-import pucp.edu.pe.sgta.dto.PerfilAsesorDto;
+import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
 import pucp.edu.pe.sgta.model.Usuario;
 
 public class PerfilAsesorMapper {

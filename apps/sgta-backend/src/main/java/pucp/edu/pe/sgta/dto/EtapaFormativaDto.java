@@ -17,7 +17,7 @@ public class EtapaFormativaDto {
     private Integer id;
     private String nombre;
     private BigDecimal creditajePorTema;
-    private String duracionExposicion;
+    private Duration duracionExposicion;
     private Boolean activo;
     // private OffsetDateTime fechaCreacion;
     // private OffsetDateTime fechaModificacion;
