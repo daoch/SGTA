@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import pucp.edu.pe.sgta.dto.BloqueHorarioExposicionCreateDTO;
 import pucp.edu.pe.sgta.dto.BloqueHorarioExposicionDto;
 import pucp.edu.pe.sgta.dto.ListBloqueHorarioExposicionSimpleDTO;
+import pucp.edu.pe.sgta.dto.TemaConAsesorJuradoDTO;
 import pucp.edu.pe.sgta.mapper.BloqueHorarioExposicionMapper;
 import pucp.edu.pe.sgta.model.BloqueHorarioExposicion;
 import pucp.edu.pe.sgta.repository.BloqueHorarioExposicionRepository;
@@ -86,6 +87,11 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
             String range = inicio.format(horaFormatter) + " - " + fin.format(horaFormatter);
             Integer idBloque = (Integer) row[0];
             Integer idJornadaExposicionSala = (Integer) row[1]; 
+
+            TemaConAsesorJuradoDTO temaConAsesorJuradoDTO = new TemaConAsesorJuradoDTO();
+            temaConAsesorJuradoDTO.setId((Integer) row[8]);
+            temaConAsesorJuradoDTO.setCodigo((String) row[9]);
+            temaConAsesorJuradoDTO.setTitulo((String) row[10]);
 
             return new ListBloqueHorarioExposicionSimpleDTO(key, range, idBloque,idJornadaExposicionSala,exposicionId,null);
         }).collect(Collectors.toList());

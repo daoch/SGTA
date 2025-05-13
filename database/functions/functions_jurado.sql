@@ -272,7 +272,10 @@ RETURNS TABLE (
 	es_bloque_bloqueado BOOLEAN,
 	datetime_inicio TIMESTAMPTZ,
 	datetime_fin TIMESTAMPTZ,
-	sala_nombre TEXT
+	sala_nombre TEXT,
+	tema_id INTEGER,
+	codigo TEXT,
+	titulo TEXT
 )
 AS $$
 BEGIN
@@ -285,7 +288,10 @@ SELECT
 	bhe.es_bloque_bloqueado,
 	bhe.datetime_inicio,
 	bhe.datetime_fin,
-	se.nombre 
+	se.nombre ,
+	t.tema_id,
+	t.codigo::TEXT,
+	t.titulo::TEXT
 FROM bloque_horario_exposicion bhe 
 INNER JOIN jornada_exposicion_x_sala_exposicion jexse 
 	ON jexse.jornada_exposicion_x_sala_id = bhe.jornada_exposicion_x_sala_id 
@@ -295,6 +301,10 @@ INNER JOIN exposicion e
 	ON e.exposicion_id = je.exposicion_id 
 INNER JOIN sala_exposicion se 
 	ON jexse.sala_exposicion_id = se.sala_exposicion_id 
+left join exposicion_x_tema et
+	on bhe.exposicion_x_tema_id = et.exposicion_x_tema_id
+inner join tema t
+	on t.tema_id = et.tema_id
 WHERE bhe.activo = true
 	AND je.exposicion_id = p_exposicion_id;
 END;
