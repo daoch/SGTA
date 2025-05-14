@@ -1025,7 +1025,7 @@ $$;
 
 ALTER FUNCTION listar_postulaciones_del_tesista_con_usuarios(INTEGER) OWNER TO postgres;
 
-CREATE OR REPLACE FUNCTION obtener_sub_areas_por_carrera_usuario(
+CREATE OR REPLACE FUNCTION sgtadb.obtener_sub_areas_por_carrera_usuario(
     p_usuario_id INTEGER
 )
 RETURNS TABLE(
@@ -1037,20 +1037,22 @@ RETURNS TABLE(
 )
 LANGUAGE SQL
 AS $$
-SELECT
-  sac.sub_area_conocimiento_id,
-  sac.area_conocimiento_id,
-  sac.nombre::TEXT,
-  sac.descripcion::TEXT,
-  sac.activo
+SELECT DISTINCT
+    sac.sub_area_conocimiento_id,
+    sac.area_conocimiento_id,
+    sac.nombre::TEXT      AS nombre,
+    sac.descripcion::TEXT AS descripcion,
+    sac.activo
 FROM usuario_carrera usac
 JOIN area_conocimiento ac
   ON ac.carrera_id = usac.carrera_id
+ AND ac.activo = TRUE
 JOIN sub_area_conocimiento sac
   ON sac.area_conocimiento_id = ac.area_conocimiento_id
+ AND sac.activo = TRUE
 WHERE usac.usuario_id = p_usuario_id
   AND usac.activo = TRUE
-  AND sac.activo = TRUE;
+ORDER BY nombre;
 $$;
 
 ALTER FUNCTION obtener_sub_areas_por_carrera_usuario(INTEGER) OWNER TO postgres;

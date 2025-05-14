@@ -194,7 +194,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 	public List<UsuarioDto> getAsesoresBySubArea(Integer idSubArea) {
 		String sql =
 				"SELECT usuario_id, nombre_completo, correo_electronico " +
-						"  FROM sgtadb.listar_asesores_por_subarea_conocimiento(:p_subarea_id)";
+						"  FROM listar_asesores_por_subarea_conocimiento(:p_subarea_id)";
 		Query query = em.createNativeQuery(sql)
 				.setParameter("p_subarea_id", idSubArea);
 
