@@ -43,7 +43,9 @@ public class UsuarioMapper {
         usuario.setContrasena(dto.getContrasena());
         usuario.setDisponibilidad(dto.getDisponibilidad());
         usuario.setTipoDisponibilidad(dto.getTipoDisponibilidad());
-        usuario.setTipoDedicacion(TipoDedicacionMapper.toEntity(dto.getTipoDedicacion()));
+        if(usuario.getTipoDedicacion() != null) {
+            usuario.setTipoDedicacion(TipoDedicacionMapper.toEntity(dto.getTipoDedicacion()));
+        }
         usuario.setEnlaceLinkedin(dto.getEnlaceLinkedin());
         usuario.setEnlaceRepositorio(dto.getEnlaceRepositorio());
         return usuario;

@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { AuthState, AuthStore, User, UserRole } from "../types/auth.types";
 
-import { userPool } from "@/lib/cognito/cognito"; // Adjust the import path as needed
+import { userPool } from "@/lib/cognito/cognito";
 import {
   AuthenticationDetails,
   CognitoUser,
@@ -13,6 +13,7 @@ import {
 const initialState: AuthState = {
   user: null,
   idToken: null,
+  accessToken: null,
   isLoading: false,
   error: null,
   isAuthenticated: false,
@@ -20,7 +21,7 @@ const initialState: AuthState = {
 
 export const useAuthStore = create<AuthStore>()(
   persist(
-    (set, _get) => ({
+    (set) => ({
       ...initialState,
 
       login: (email: string, password: string) => {
@@ -62,6 +63,7 @@ export const useAuthStore = create<AuthStore>()(
               set({
                 user: newUser,
                 idToken: session.getIdToken().getJwtToken(),
+                accessToken: session.getAccessToken().getJwtToken(),
                 isAuthenticated: true,
                 isLoading: false,
               });
@@ -85,6 +87,7 @@ export const useAuthStore = create<AuthStore>()(
 
         // 2. Clear all local storage tokens and session state
         localStorage.removeItem("idToken");
+        localStorage.removeItem("accessToken");
         localStorage.removeItem("cognito_id_token");
         localStorage.removeItem("auth-storage"); // Clear Zustand persisted state
         sessionStorage.clear(); // Clear any session storage data
@@ -109,7 +112,7 @@ export const useAuthStore = create<AuthStore>()(
               Value: familyName,
             }),
           ];
-          userPool.signUp(email, password, attributes, [], (err, _result) => {
+          userPool.signUp(email, password, attributes, [], (err) => {
             set({ isLoading: false });
             if (err) {
               set({ error: err.message || JSON.stringify(err) });
@@ -125,7 +128,7 @@ export const useAuthStore = create<AuthStore>()(
         set({ isLoading: true, error: null });
         return new Promise<void>((resolve, reject) => {
           const user = new CognitoUser({ Username: email, Pool: userPool });
-          user.confirmRegistration(code, true, (err, _success) => {
+          user.confirmRegistration(code, true, (err) => {
             set({ isLoading: false });
             if (err) {
               set({ error: err.message || JSON.stringify(err) });
@@ -135,6 +138,7 @@ export const useAuthStore = create<AuthStore>()(
           });
         });
       },
+
       checkAuth: () => {
         set({ isLoading: true });
 
@@ -208,6 +212,7 @@ export const useAuthStore = create<AuthStore>()(
           set({
             isLoading: false,
             isAuthenticated: false,
+            accessToken: null,
             user: null,
             idToken: null,
           });
@@ -232,6 +237,7 @@ export const useAuthStore = create<AuthStore>()(
                 set({
                   user: null,
                   idToken: null,
+                  accessToken: null,
                   isAuthenticated: false,
                   isLoading: false,
                 });
@@ -262,11 +268,13 @@ export const useAuthStore = create<AuthStore>()(
 
               // Get the fresh token and store it in all locations
               const idToken = session.getIdToken().getJwtToken();
+              const accessToken = session.getAccessToken().getJwtToken();
 
               // Update our Zustand state
               set({
                 user: newUser,
                 idToken: idToken,
+                accessToken: accessToken,
                 isAuthenticated: true,
                 isLoading: false,
               });
@@ -323,6 +331,7 @@ export const useAuthStore = create<AuthStore>()(
       partialize: (state) => ({
         user: state.user,
         idToken: state.idToken,
+        accessToken: state.accessToken,
         isAuthenticated: state.isAuthenticated,
       }),
       // Force storage to update synchronously
