@@ -3,7 +3,7 @@
 import { Controller, useFormContext } from "react-hook-form";
 import { CalendarIcon, Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { format, startOfToday, startOfTomorrow } from "date-fns";
 import { Label } from "@/components/ui/label";
 import {
   Popover,
@@ -82,6 +82,7 @@ export function ItemFechaExposicion({
                   selected={dateField.value}
                   onSelect={(date) => setValue(`fechas.${index}.fecha`, date)}
                   initialFocus
+                  disabled={(date) => date < startOfTomorrow()}
                 />
               </PopoverContent>
             </Popover>
