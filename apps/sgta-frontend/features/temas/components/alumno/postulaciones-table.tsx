@@ -3,8 +3,21 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { CheckCircle, Eye, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -14,7 +27,6 @@ interface Postulacion {
   area: string;
   asesor: string;
   correoAsesor: string;
-  fechaPostulacion: string;
   fechaLimite: string;
   estado: "pendiente" | "rechazado" | "aceptado";
   tipo: "general" | "directa";
@@ -27,88 +39,144 @@ interface PostulacionesTableProps {
   setSelectedPostulacion: (p: Postulacion) => void;
 }
 
-export function PostulacionesTable({ filter, setSelectedPostulacion }: PostulacionesTableProps) {
+export function PostulacionesTable({
+  filter,
+  setSelectedPostulacion,
+}: PostulacionesTableProps) {
   const [postulaciones, setPostulaciones] = useState<Postulacion[]>([]);
   const [searchTitulo, setSearchTitulo] = useState("");
   const [searchAsesor, setSearchAsesor] = useState("");
   const [areaFilter, setAreaFilter] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchAll = async () => {
+    async function fetchAll() {
       try {
-        const [directRes, generalRes] = await Promise.all([
-          fetch(`http://localhost:5000/temas/listarPostulacionesDirectasAMisPropuestas/4`),
-          fetch(`http://localhost:5000/temas/listarPostulacionesGeneralesAMisPropuestas/4`),
+        const [dirRes, genRes] = await Promise.all([
+          fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPostulacionesDirectasAMisPropuestas/4`
+          ),
+          fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPostulacionesGeneralesAMisPropuestas/4`
+          ),
         ]);
-        const [directData, generalData] = await Promise.all([directRes.json(), generalRes.json()]);
+        const [dirData, genData] = await Promise.all([
+          dirRes.json(),
+          genRes.json(),
+        ]);
 
-        const mapItem = (item: any, tipo: "general" | "directa"): Postulacion => {
-          // asesor invitado (coasesor)
-          const co = item.coasesores?.[0];
-          const asesorNombre = co
-            ? `${co.nombres} ${co.primerApellido} ${co.segundoApellido}`.trim()
-            : "—";
-          const correo = co?.correoElectronico || "";
-          // estado: rechazado? item.rechazado===true → 'rechazado', false → 'aceptado', null → 'pendiente'
-          const estado: Postulacion["estado"] =
-            item.rechazado === true
-              ? "rechazado"
-              : item.rechazado === false
-              ? "aceptado"
-              : "pendiente";
+        const directMapped: Postulacion[] = [];
 
-          return {
-            id: String(item.id),
-            titulo: item.titulo,
-            area: item.subareas?.[0]?.nombre || "—",
-            asesor: asesorNombre,
-            correoAsesor: correo,
-            fechaPostulacion: new Date(item.fechaCreacion).toISOString().slice(0, 10),
-            fechaLimite: item.fechaLimite?.slice(0, 10) || "",
-            estado,
-            tipo,
-            descripcion: item.resumen,
-            comentarioAsesor: "", // si tu API no devuelve comentario, déjalo vacío
-          };
-        };
+        // —— Directas: sólo aceptadas o rechazadas ——
+        dirData.forEach((item: any) => {
+          // Primer, caso “aceptado”
+          const coAceptado = item.coasesores.find((co: any) => co.asignado === true);
+          if (coAceptado) {
+            directMapped.push({
+              id: `${item.id}-${coAceptado.id}`,
+              titulo: item.titulo,
+              area: item.subareas?.[0]?.nombre || "—",
+              asesor: `${coAceptado.nombres} ${coAceptado.primerApellido ?? ""}`.trim(),
+              correoAsesor: coAceptado.correoElectronico ?? "",
+              fechaLimite: item.fechaLimite?.slice(0, 10) || "",
+              estado: "aceptado",
+              tipo: "directa",
+              descripcion: item.resumen ?? "",
+              comentarioAsesor: "",
+            });
+            return;
+          }
+          // Segundo, caso “rechazado” en el tema
+          if (item.estadoTemaNombre === "RECHAZADO") {
+            item.coasesores.forEach((co: any) => {
+              directMapped.push({
+                id: `${item.id}-${co.id}`,
+                titulo: item.titulo,
+                area: item.subareas?.[0]?.nombre || "—",
+                asesor: `${co.nombres} ${co.primerApellido ?? ""}`.trim(),
+                correoAsesor: co.correoElectronico ?? "",
+                fechaLimite: item.fechaLimite?.slice(0, 10) || "",
+                estado: "rechazado",
+                tipo: "directa",
+                descripcion: item.resumen ?? "",
+                comentarioAsesor: "",
+              });
+            });
+          }
+          // Si está pendiente (asignado=false y no rechazado), no lo incluimos
+        });
 
-        const directMapped = directData.map((i: any) => mapItem(i, "directa"));
-        const generalMapped = generalData.map((i: any) => mapItem(i, "general"));
+        // —— Generales: una fila por cada coasesor ——
+        const generalMapped: Postulacion[] = genData.flatMap((item: any) => {
+          if (!item.coasesores?.length) return [];
+          return item.coasesores.map((co: any) => {
+            const estado: Postulacion["estado"] =
+              co.rechazado === true
+                ? "rechazado"
+                : co.rechazado === false
+                ? "aceptado"
+                : "pendiente";
+
+            return {
+              id: `${item.id}-${co.id}`,
+              titulo: item.titulo,
+              area: item.subareas?.[0]?.nombre || "—",
+              asesor: `${co.nombres} ${co.primerApellido ?? ""}`.trim(),
+              correoAsesor: co.correoElectronico ?? "",
+              fechaLimite: item.fechaLimite?.slice(0, 10) || "",
+              estado,
+              tipo: "general",
+              descripcion: item.resumen ?? "",
+              comentarioAsesor: "",
+            };
+          });
+        });
 
         setPostulaciones([...directMapped, ...generalMapped]);
       } catch (err) {
         console.error("Error cargando postulaciones:", err);
       }
-    };
+    }
 
     fetchAll();
   }, []);
 
-  // creamos lista de áreas únicas para el filtro
+  // Áreas únicas
   const areasUnicas = Array.from(new Set(postulaciones.map((p) => p.area)));
 
+  // Filtrar por texto, área y tipo
   const postulacionesFiltradas = postulaciones.filter((p) => {
-    const tituloMatch = p.titulo.toLowerCase().includes(searchTitulo.toLowerCase());
-    const asesorMatch = p.asesor.toLowerCase().includes(searchAsesor.toLowerCase());
-    const areaMatch = !areaFilter || p.area === areaFilter;
-    const tipoMatch = !filter || p.tipo === filter;
-    return tituloMatch && asesorMatch && areaMatch && tipoMatch;
+    const matchTitulo = p.titulo
+      .toLowerCase()
+      .includes(searchTitulo.toLowerCase());
+    const matchAsesor = p.asesor
+      .toLowerCase()
+      .includes(searchAsesor.toLowerCase());
+    const matchArea = !areaFilter || p.area === areaFilter;
+    const matchTipo = !filter || p.tipo === filter;
+    return matchTitulo && matchAsesor && matchArea && matchTipo;
   });
 
-  const renderEstado = (estado: Postulacion["estado"]) => {
-    switch (estado) {
+  // Badge de estado
+  const renderEstado = (e: Postulacion["estado"]) => {
+    switch (e) {
       case "pendiente":
-        return <Badge className="bg-yellow-100 text-yellow-800">Pendiente</Badge>;
+        return (
+          <Badge className="bg-yellow-100 text-yellow-800">Pendiente</Badge>
+        );
       case "rechazado":
-        return <Badge className="bg-red-100 text-red-800">Rechazado</Badge>;
+        return (
+          <Badge className="bg-red-100 text-red-800">Rechazado</Badge>
+        );
       case "aceptado":
-        return <Badge className="bg-green-100 text-green-800">Aceptado</Badge>;
+        return (
+          <Badge className="bg-green-100 text-green-800">Aceptado</Badge>
+        );
     }
   };
 
   return (
     <div>
-      {/* filtros */}
+      {/* —— FILTROS —— */}
       <div className="flex flex-col md:flex-row gap-4 mb-4">
         <Input
           placeholder="Buscar por título..."
@@ -131,16 +199,16 @@ export function PostulacionesTable({ filter, setSelectedPostulacion }: Postulaci
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="todas">Todas las áreas</SelectItem>
-            {areasUnicas.map((area) => (
-              <SelectItem key={area} value={area}>
-                {area}
+            {areasUnicas.map((a) => (
+              <SelectItem key={a} value={a}>
+                {a}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
 
-      {/* tabla */}
+      {/* —— TABLA (sin Fecha Postulación) —— */}
       <div className="rounded-md border bg-white">
         <Table>
           <TableHeader>
@@ -148,7 +216,6 @@ export function PostulacionesTable({ filter, setSelectedPostulacion }: Postulaci
               <TableHead>Tema</TableHead>
               <TableHead>Área</TableHead>
               <TableHead>Asesor</TableHead>
-              <TableHead>Fecha Postulación</TableHead>
               <TableHead>Estado</TableHead>
               <TableHead className="text-right">Acción</TableHead>
             </TableRow>
@@ -156,29 +223,45 @@ export function PostulacionesTable({ filter, setSelectedPostulacion }: Postulaci
           <TableBody>
             {postulacionesFiltradas.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-6 text-muted-foreground">
+                <TableCell
+                  colSpan={5}
+                  className="text-center py-6 text-muted-foreground"
+                >
                   No hay postulaciones
                 </TableCell>
               </TableRow>
             ) : (
               postulacionesFiltradas.map((p) => (
                 <TableRow key={p.id}>
-                  <TableCell className="max-w-xs truncate">{p.titulo}</TableCell>
+                  <TableCell className="max-w-xs truncate">
+                    {p.titulo}
+                  </TableCell>
                   <TableCell>{p.area}</TableCell>
                   <TableCell>{p.asesor}</TableCell>
-                  <TableCell>{p.fechaPostulacion}</TableCell>
                   <TableCell>{renderEstado(p.estado)}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Button variant="ghost" size="icon" onClick={() => setSelectedPostulacion(p)}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setSelectedPostulacion(p)}
+                      >
                         <Eye className="h-4 w-4" />
                       </Button>
                       {p.estado === "pendiente" && (
                         <>
-                          <Button variant="ghost" size="icon" className="text-red-500">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-red-500"
+                          >
                             <X className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" className="text-green-500">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-green-500"
+                          >
                             <CheckCircle className="h-4 w-4" />
                           </Button>
                         </>

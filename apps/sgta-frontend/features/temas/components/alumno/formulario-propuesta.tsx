@@ -21,10 +21,10 @@ export interface Estudiante {
 export interface FormData {
   titulo: string;
   descripcion: string;
-  area: number;               // ahora es number (id de área)
+  area: number;               
   objetivos: string;
   tipo: "general" | "directa";
-  asesor: string;             // guarda el id del asesor como string
+  asesor: string;             
   fechaLimite: string;
 }
 
