@@ -20,15 +20,15 @@ import {
   EspecialidadOption,
   ModalAsignarTesisProps,
   JuradoTemasDetalle,
+  SelectOption,
 } from "@/features/jurado/types/juradoDetalle.types"; // Asegúrate de que la ruta sea correcta
 
-//interface ModalAsignarTesisProps {
-  //open: boolean;
-  //onClose: () => void;
-  //onAsignar: (tesisSeleccionada: Tesis) => void;
-  //data: Tesis[];
-  //jurado: AreaConocimientoJurado[]; // o el tipo completo si lo tienes
-//}
+import { AreaEspecialidad } from "../types/jurado.types";
+
+import {
+  getAllAreasEspecialidad,
+} from "../services/jurado-service";
+
 
 // Función auxiliar para convertir el enum a opciones para el MultiSelectCheckbox
 const getEspecialidadOptions = (): EspecialidadOption[] => {
@@ -56,9 +56,9 @@ export const ModalAsignarTesis: React.FC<ModalAsignarTesisProps> = ({
   //const [especialidadesSeleccionadas, setEspecialidadesSeleccionadas] =
     //useState<string[]>(jurado.specialties || []);
 
-  const [especialidadesSeleccionadas, setEspecialidadesSeleccionadas] = useState<string[]>(
+  const [especialidadesSeleccionadas, setEspecialidadesSeleccionadas] = useState<number[]>(
   // Extraer los nombres de las áreas y usarlos como valores iniciales
-    jurado ? jurado.map(area => area.nombre) : []
+    jurado ? jurado.map(area => area.id) : []
   );
 
   const handleSelectCard = (tesis: JuradoTemasDetalle) => {
@@ -79,8 +79,8 @@ export const ModalAsignarTesis: React.FC<ModalAsignarTesisProps> = ({
     // Para filtrar por áreas de conocimiento
     const matchesEspecialidad =
       especialidadesSeleccionadas.length === 0 ||
-      t.sub_areas_conocimiento.some((area) =>
-        especialidadesSeleccionadas.includes(area.nombre)
+      t.sub_areas_conocimiento.some((subArea) =>
+        especialidadesSeleccionadas.includes(subArea.id_area_conocimiento)
       );
     
     // Combina todos los criterios de búsqueda
@@ -92,7 +92,7 @@ export const ModalAsignarTesis: React.FC<ModalAsignarTesisProps> = ({
 
   useEffect(() => {
   // Actualizar cuando cambie el prop jurado
-    setEspecialidadesSeleccionadas(jurado ? jurado.map(area => area.nombre) : []);
+    setEspecialidadesSeleccionadas(jurado ? jurado.map(area => area.id) : []);
   }, [jurado]);
 
   // Texto para mostrar en el MultiSelect
@@ -101,6 +101,35 @@ export const ModalAsignarTesis: React.FC<ModalAsignarTesisProps> = ({
     if (count === 0) return "Seleccione áreas";
     return `${count} área${count !== 1 ? "s" : ""} seleccionada${count !== 1 ? "s" : ""}`;
   };
+
+  const [areasEspecialidad, setAreasEspecialidad] = useState<
+      AreaEspecialidad[]
+    >([]);
+
+    useEffect(() => {
+      const fetchAreas = async () => {
+        try {
+          const areas = await getAllAreasEspecialidad();
+          setAreasEspecialidad(areas);
+        } catch (error) {
+          console.error("Error fetching áreas de especialidad:", error);
+        }
+      };
+      fetchAreas();
+    }, []);
+
+    // Convierte las áreas de especialidad a opciones para el MultiSelectCheckbox
+    const areaOptions: SelectOption[] = areasEspecialidad.map(area => ({
+      label: area.nombre,
+      value: area.id.toString()
+    }));
+
+    const handleAreaChange = (selectedValues: string[]) => {
+    // Convertir los valores string a números
+    const selectedIds = selectedValues.map(value => parseInt(value, 10));
+    setEspecialidadesSeleccionadas(selectedIds);
+  };
+
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -121,9 +150,9 @@ export const ModalAsignarTesis: React.FC<ModalAsignarTesisProps> = ({
           </div>
 
           <MultiSelectCheckbox
-            options={getEspecialidadOptions()}
-            selected={especialidadesSeleccionadas}
-            onChange={setEspecialidadesSeleccionadas}
+            options={areaOptions}
+            selected={especialidadesSeleccionadas.map(id => id.toString())}
+            onChange={handleAreaChange}
             displayText={getMultiSelectDisplayText()}
           />
         </div>
