@@ -1,6 +1,7 @@
 package pucp.edu.pe.sgta.model;
 
 import jakarta.persistence.*;
+import pucp.edu.pe.sgta.util.EstadoEtapa;
 import lombok.*;
 import java.time.OffsetDateTime;
 
@@ -33,4 +34,10 @@ public class EtapaFormativaXCiclo {
 
     @Column(name = "fecha_modificacion", insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaModificacion;
+
+    /* 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private EstadoEtapa estado = EstadoEtapa.EN_CURSO;
+    */
 }

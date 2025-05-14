@@ -12,6 +12,18 @@ import pucp.edu.pe.sgta.dto.EtapaFormativaDto;
 import pucp.edu.pe.sgta.dto.EtapaFormativaNombreDTO;
 import pucp.edu.pe.sgta.service.inter.EtapaFormativaService;
 
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloDto;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.RequestBody;
+
+
+
 @RestController
 @RequestMapping("/etapas-formativas")
 public class EtapaFormativaController {
@@ -32,4 +44,55 @@ public class EtapaFormativaController {
     public List<EtapaFormativaDto> obtenerEtapasFormativasActivasPorCoordinador(@PathVariable("coordinador_id") Integer coordinadorId) {
         return etapaFormativaService.findAllActivasByCoordinador(coordinadorId);
     }
+
+    /**
+     * Crea una nueva Etapa Formativa (solo ligada a Carrera).
+     */
+    @PostMapping ("/crear")
+    public ResponseEntity<EtapaFormativaDto> crearEtapa(
+        @RequestBody EtapaFormativaDto dto
+    ) {
+        EtapaFormativaDto created = etapaFormativaService.create(dto);
+        return ResponseEntity
+            .status(HttpStatus.CREATED)
+            .body(created);
+    }
+
+/* 
+    // Vincular etapa a un nuevo ciclo (crea EtapaFormativaXCiclo)
+    @PostMapping("/{id}/vincular")
+    public ResponseEntity<Void> vincularACiclo(
+        @PathVariable("id") Integer etapaId,
+        @RequestParam("cicloId") Integer cicloId
+    ) {
+        etapaFormativaService.vincularACiclo(etapaId, cicloId);
+        return ResponseEntity.ok().build();
+    }
+
+    // Finalizar la etapa en ese ciclo: estado → FINALIZADO
+    @PutMapping("/ciclo/{id}/finalizar")
+    public ResponseEntity<Void> finalizarEtapaXCiclo(
+        @PathVariable("id") Integer etapaXCicloId
+    ) {
+        etapaFormativaService.finalizar(etapaXCicloId);
+        return ResponseEntity.ok().build();
+    }
+
+    // Reactivar la etapa en ese ciclo: estado → EN_CURSO
+    @PutMapping("/ciclo/{id}/reactivar")
+    public ResponseEntity<Void> reactivarEtapaXCiclo(
+        @PathVariable("id") Integer etapaXCicloId
+    ) {
+        etapaFormativaService.reactivar(etapaXCicloId);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{id}/historial")
+    public ResponseEntity<List<EtapaFormativaXCicloDto>> historialPorEtapa(
+        @PathVariable("id") Integer etapaId
+    ) {
+        var lista = etapaFormativaService.findHistorialByEtapaId(etapaId);
+        return ResponseEntity.ok(lista);
+    }    
+*/
 }

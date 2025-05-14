@@ -1,21 +1,41 @@
 package pucp.edu.pe.sgta.service.imp;
 
 import org.postgresql.util.PGInterval;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pucp.edu.pe.sgta.dto.EtapaFormativaDto;
 import pucp.edu.pe.sgta.dto.EtapaFormativaNombreDTO;
+import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloDto;
 import pucp.edu.pe.sgta.mapper.EtapaFormativaMapper;
 import pucp.edu.pe.sgta.model.EtapaFormativa;
+import pucp.edu.pe.sgta.model.EtapaFormativaXCiclo;
+import pucp.edu.pe.sgta.util.EstadoEtapa;
+import pucp.edu.pe.sgta.repository.CarreraRepository;
+import pucp.edu.pe.sgta.repository.CicloRepository;
 import pucp.edu.pe.sgta.repository.EtapaFormativaRepository;
+import pucp.edu.pe.sgta.repository.EtapaFormativaXCicloRepository;
 import pucp.edu.pe.sgta.service.inter.EtapaFormativaService;
+
+import pucp.edu.pe.sgta.model.Carrera;
+
 
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
+
 @Service
 public class EtapaFormativaServiceImpl implements EtapaFormativaService {
+
+    @Autowired
+    private EtapaFormativaXCicloRepository etapaXCicloRepository;
+
+    @Autowired
+    private CicloRepository cicloRepository;
+
+    @Autowired
+    private CarreraRepository carreraRepository;
 
     private final EtapaFormativaRepository etapaFormativaRepository;
 
@@ -49,10 +69,7 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
         return dto;
     }
 
-    @Override
-    public void create(EtapaFormativaDto dto) {
-
-    }
+    
 
     @Override
     public void update(EtapaFormativaDto dto) {
@@ -131,4 +148,77 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
 
         return Duration.ofSeconds(totalSeconds);
     }
+/* 
+    @Override
+    public void vincularACiclo(Integer etapaId, Integer cicloId) {
+        var etapa = etapaFormativaRepository.findById(etapaId).orElseThrow();
+        var ciclo = cicloRepository.findById(cicloId).orElseThrow();
+        if (etapaXCicloRepository.existsByEtapaFormativaAndCiclo(etapa, ciclo)) return;
+        var efc = new EtapaFormativaXCiclo();
+        efc.setEtapaFormativa(etapa);
+        efc.setCiclo(ciclo);
+        efc.setEstado(EstadoEtapa.EN_CURSO);
+        etapaXCicloRepository.save(efc);
+    }
+
+    @Override
+    public void finalizar(Integer etapaXCicloId) {
+        var efc = etapaXCicloRepository.findById(etapaXCicloId)
+            .orElseThrow(() -> new RuntimeException("Vínculo no encontrado: " + etapaXCicloId));
+        efc.setEstado(EstadoEtapa.FINALIZADO);
+        etapaXCicloRepository.save(efc);
+    }
+
+    @Override
+    public void reactivar(Integer etapaXCicloId) {
+        var efc = etapaXCicloRepository.findById(etapaXCicloId)
+            .orElseThrow(() -> new RuntimeException("Vínculo no encontrado: " + etapaXCicloId));
+        efc.setEstado(EstadoEtapa.EN_CURSO);
+        etapaXCicloRepository.save(efc);
+    }
+
+    @Override
+    public List<EtapaFormativaXCicloDto> findHistorialByEtapaId(Integer etapaId) {
+        return etapaXCicloRepository.findAllByEtapaFormativaId(etapaId)
+            .stream()
+            .map(efc -> EtapaFormativaXCicloDto.builder()
+                .id(efc.getId())
+                .etapaFormativaId(efc.getEtapaFormativa().getId())
+                .cicloId(efc.getCiclo().getId())
+                .activo(efc.getActivo())
+                .fechaCreacion(efc.getFechaCreacion())
+                .fechaModificacion(efc.getFechaModificacion())
+                .build())
+            .toList();
+    }
+*/
+    @Override
+    public EtapaFormativaDto create(EtapaFormativaDto dto) {
+        // 1) Validar y cargar la Carrera
+        var carrera = carreraRepository.findById(dto.getCarreraId())
+            .orElseThrow(() -> new RuntimeException("Carrera no encontrada: " + dto.getCarreraId()));
+
+        // 2) Mapear DTO → Entidad
+        var etapa = new EtapaFormativa();
+        etapa.setNombre(dto.getNombre().toUpperCase());
+        etapa.setCreditajePorTema(dto.getCreditajePorTema());
+        etapa.setDuracionExposicion(dto.getDuracionExposicion());
+        etapa.setCarrera(carrera);
+
+        // 3) Guardar en BD
+        var saved = etapaFormativaRepository.save(etapa);
+
+        // 4) Mapear Entidad → DTO con el ID generado
+        return EtapaFormativaDto.builder()
+            .id(saved.getId())
+            .nombre(saved.getNombre())
+            .creditajePorTema(saved.getCreditajePorTema())
+            .duracionExposicion(saved.getDuracionExposicion())
+            .activo(saved.getActivo())
+            .carreraId(carrera.getId())
+            .build();
+    }
+
+
+
 }
