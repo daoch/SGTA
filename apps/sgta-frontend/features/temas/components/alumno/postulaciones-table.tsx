@@ -66,9 +66,8 @@ export function PostulacionesTable({
 
         const directMapped: Postulacion[] = [];
 
-        // —— Directas: sólo aceptadas o rechazadas ——
         dirData.forEach((item: any) => {
-          // Primer, caso “aceptado”
+
           const coAceptado = item.coasesores.find((co: any) => co.asignado === true);
           if (coAceptado) {
             directMapped.push({
@@ -85,7 +84,7 @@ export function PostulacionesTable({
             });
             return;
           }
-          // Segundo, caso “rechazado” en el tema
+
           if (item.estadoTemaNombre === "RECHAZADO") {
             item.coasesores.forEach((co: any) => {
               directMapped.push({
@@ -102,10 +101,8 @@ export function PostulacionesTable({
               });
             });
           }
-          // Si está pendiente (asignado=false y no rechazado), no lo incluimos
         });
 
-        // —— Generales: una fila por cada coasesor ——
         const generalMapped: Postulacion[] = genData.flatMap((item: any) => {
           if (!item.coasesores?.length) return [];
           return item.coasesores.map((co: any) => {
@@ -176,7 +173,6 @@ export function PostulacionesTable({
 
   return (
     <div>
-      {/* —— FILTROS —— */}
       <div className="flex flex-col md:flex-row gap-4 mb-4">
         <Input
           placeholder="Buscar por título..."
@@ -208,7 +204,6 @@ export function PostulacionesTable({
         </Select>
       </div>
 
-      {/* —— TABLA (sin Fecha Postulación) —— */}
       <div className="rounded-md border bg-white">
         <Table>
           <TableHeader>
