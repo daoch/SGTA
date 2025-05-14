@@ -917,6 +917,7 @@ BEGIN
                      'usuario_id',      u.usuario_id,
                      'nombre_completo', u.nombres || ' ' || u.primer_apellido,
                      'rol',             rl.nombre,
+                     'comentario', ut.comentario,
                      'creador',         ut.creador,
                      'asignado',        ut.asignado
                    )
