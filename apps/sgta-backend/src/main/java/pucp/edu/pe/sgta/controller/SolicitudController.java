@@ -8,6 +8,7 @@ import pucp.edu.pe.sgta.dto.AprobarSolicitudRequestDto;
 import pucp.edu.pe.sgta.dto.AprobarSolicitudResponseDto;
 import pucp.edu.pe.sgta.dto.RechazoSolicitudRequestDto;
 import pucp.edu.pe.sgta.dto.RechazoSolicitudResponseDto;
+import pucp.edu.pe.sgta.dto.SolicitudCambioAsesorDto;
 import pucp.edu.pe.sgta.dto.SolicitudCeseDto;
 import pucp.edu.pe.sgta.service.inter.SolicitudService;
 
@@ -43,4 +44,12 @@ public class SolicitudController {
         AprobarSolicitudResponseDto response = solicitudService.aprobarSolicitud(requestId, requestDto.getResponse());
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/advisor-change-requests")
+    public ResponseEntity<SolicitudCambioAsesorDto> getSolicitudesCambioAsesor(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(solicitudService.findAllSolicitudesCambioAsesor(page, size));
+    }
+
 }
