@@ -33,7 +33,7 @@ import {
   JuradoTemasDetalle,
   AreaConocimientoJurado,
 } from "@/features/jurado/types/juradoDetalle.types";
-import { getTemasJurado ,listarAreasConocimientoJurado,getTemasModalAsignar} from "../services/jurado-service";
+import { getTemasJurado ,listarAreasConocimientoJurado,getTemasModalAsignar,asignarTemaJurado} from "../services/jurado-service";
 
 export function JuradoDetalleView({
   modalAsignarTesisComponent: ModalAsignarTesis,
@@ -133,11 +133,33 @@ export function JuradoDetalleView({
     CursoType.TODOS,
   );
 
-  const handleAsignarTesis = async () => {
+  const handleAsignarTesis = async (tesis: JuradoTemasDetalle) => {
     try {
-      // implementación futura
+      // Llamar a la API con el ID del jurado actual y el ID de la tesis seleccionada
+      const result = await asignarTemaJurado(
+        Number(detalleJurado), // ID del jurado desde los parámetros de la URL
+        tesis.id // ID de la tesis seleccionada
+      );
+
+      if (result.success) {
+        // Mostrar mensaje de éxito
+        alert(result.message); // Puedes usar un componente de toast en lugar de alert
+        
+        // Actualizar la lista de tesis asignadas
+        const temas = await getTemasJurado(Number(detalleJurado));
+        setAllTemasJuradoData(temas);
+        setAsignadas(temas);
+        
+        // Actualizar la lista de tesis disponibles para asignar
+        const temasDisponibles = await getTemasModalAsignar(Number(detalleJurado));
+        setTesisDataSeleccion(temasDisponibles);
+      } else {
+        // Mostrar mensaje de error
+        alert(result.message); // Puedes usar un componente de toast en lugar de alert
+      }
     } catch (error) {
       console.error("Error en la asignación:", error);
+      alert("Ocurrió un error al intentar asignar la tesis.");
     }
   };
 

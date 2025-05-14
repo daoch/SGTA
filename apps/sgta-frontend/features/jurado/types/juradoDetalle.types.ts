@@ -131,7 +131,7 @@ export interface TesisAsignadaDetalle extends Tesis {
 export interface ModalAsignarTesisProps {
   open: boolean;
   onClose: () => void;
-  onAsignar: (tesisSeleccionada: Tesis) => void;
+  onAsignar: (tesisSeleccionada: JuradoTemasDetalle) => void;
   data: JuradoTemasDetalle[];
   jurado: AreaConocimientoJurado[];
 }

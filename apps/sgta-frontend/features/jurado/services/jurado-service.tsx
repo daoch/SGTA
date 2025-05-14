@@ -113,3 +113,30 @@ export const getTemasModalAsignar = async (
     })),
   }));
 };
+
+
+export const asignarTemaJurado = async (
+  usuarioId: number,
+  temaId: number
+): Promise<{ success: boolean; message: string }> => {
+  try {
+    const response = await axiosInstance.post('/jurado/asignar-tema', {
+      usuarioId,
+      temaId
+    });
+    
+    return {
+      success: true,
+      message: response.data.mensaje || "Tema asignado correctamente"
+    };
+  } catch (error: any) {
+    // Manejo de errores
+    const errorMessage = error.response?.data?.mensaje || "Error al asignar el tema al jurado";
+    console.error("Error al asignar tema:", errorMessage);
+    
+    return {
+      success: false,
+      message: errorMessage
+    };
+  }
+};
