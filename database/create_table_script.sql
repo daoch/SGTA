@@ -1023,6 +1023,9 @@ CREATE TABLE IF NOT EXISTS entregable
     fecha_fin                  TIMESTAMP WITH TIME ZONE NOT NULL,
     estado                     enum_estado_actividad    NOT NULL DEFAULT 'no_iniciado',
     es_evaluable               BOOLEAN                  NOT NULL DEFAULT FALSE,
+	maximo_documentos          INTEGER                  NOT NULL,
+	extensiones_permitidas     TEXT                     NOT NULL,
+	peso_maximo_documento      INTEGER                  NOT NULL,
     activo                     BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion             TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion         TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -1289,6 +1292,30 @@ ALTER TABLE carrera_parametro_configuracion
         FOREIGN KEY (etapa_formativa_id)
             REFERENCES etapa_formativa (etapa_formativa_id)
             ON DELETE RESTRICT; -->**REVISAR**<--
+
+-- TABLAS PARA CRITERIOS DE ENTREGABLES Y EXPOSICIONES PREDEFINIDOS
+
+CREATE TABLE IF NOT EXISTS criterio_entregable_preset
+(
+    criterio_entregable_preset_id SERIAL PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    nota_maxima DECIMAL(6,2),
+    descripcion TEXT,
+    activo BOOLEAN NOT NULL DEFAULT TRUE,
+    fecha_creacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS criterio_exposicion_preset
+(
+    criterio_exposicion_preset_id SERIAL PRIMARY KEY,
+    nombre TEXT NOT NULL,
+    descripcion TEXT,
+	nota_maxima NUMERIC(6, 2) NOT NULL,
+    activo BOOLEAN NOT NULL DEFAULT TRUE,
+    fecha_creacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
 
 -- NECESARIO PARA QUE NO EXISTAN PROBLEMAS CON LOS ENUMS
 -- AGREGAR EL CAST PARA LOS DEMAS ENUMS DE SER NECESARIO
