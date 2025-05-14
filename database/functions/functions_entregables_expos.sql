@@ -82,7 +82,7 @@ RETURNS TABLE (
     exposicion_id INTEGER,
     nombre TEXT,
 	descripcion TEXT,
-    nota_maxima NUMERIC(5, 2)    
+    nota_maxima NUMERIC(5, 2)
 ) AS $$
 BEGIN
     RETURN QUERY

@@ -102,3 +102,6 @@ DROP FUNCTION IF EXISTS eliminar_propuestas_tesista(INTEGER) CASCADE;
 
 DROP FUNCTION IF EXISTS eliminar_postulaciones_tesista(INTEGER) CASCADE;
 
+DROP FUNCTION IF EXISTS get_estado_exposicion_by_id_exposicion(INTEGER) CASCADE;
+
+
