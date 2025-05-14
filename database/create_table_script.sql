@@ -245,9 +245,11 @@ CREATE TABLE IF NOT EXISTS solicitud
     tipo_solicitud_id  INTEGER                  NOT NULL,
     tema_id            INTEGER                  NOT NULL,
     estado             INTEGER                  NOT NULL,
+    respuesta          TEXT,
     activo             BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
 
     CONSTRAINT fk_solicitud_tipo
         FOREIGN KEY (tipo_solicitud_id)
