@@ -19,6 +19,7 @@ import pucp.edu.pe.sgta.repository.SolicitudRepository;
 import pucp.edu.pe.sgta.repository.TemaRepository;
 import pucp.edu.pe.sgta.repository.UsuarioRepository;
 import pucp.edu.pe.sgta.repository.UsuarioXSolicitudRepository;
+import pucp.edu.pe.sgta.repository.UsuarioXTemaRepository;
 import pucp.edu.pe.sgta.service.imp.SolicitudServiceImpl;
 
 import java.time.OffsetDateTime;
@@ -47,6 +48,9 @@ public class SolicitudServiceImplTest {
 
     @Mock
     private UsuarioRepository usuarioRepository;
+
+    @Mock
+    private UsuarioXTemaRepository usuarioXTemaRepository;
 
     @Test
     public void testFindAllSolicitudesCese_ReturnsPagedResults() {
@@ -114,7 +118,9 @@ public class SolicitudServiceImplTest {
         solicitud.setDescripcion("Solicitud X");
         solicitud.setFechaCreacion(OffsetDateTime.now());
         solicitud.setTema(new Tema());
-        solicitud.setTipoSolicitud(new TipoSolicitud());
+        TipoSolicitud tipoSolicitud = new TipoSolicitud();
+        tipoSolicitud.setId(2);
+        solicitud.setTipoSolicitud(tipoSolicitud);
 
         when(solicitudRepository.findById(solicitudId)).thenReturn(Optional.of(solicitud));
         when(solicitudRepository.save(any(Solicitud.class))).thenAnswer(i -> i.getArgument(0));
@@ -127,4 +133,30 @@ public class SolicitudServiceImplTest {
         assertEquals("rejected", resultado.getStatus());
         assertEquals(customResponse, resultado.getResponse());
     }
+
+    @Test
+    void aprobarSolicitud_deberiaAprobarSolicitudSiEsValida() {
+        // Arrange
+        int solicitudId = 1;
+
+        TipoSolicitud tipoCese = new TipoSolicitud();
+        tipoCese.setId(2);
+        tipoCese.setNombre("Cese");
+
+        Solicitud solicitud = new Solicitud();
+        solicitud.setId(solicitudId);
+        solicitud.setEstado(1); // pendiente
+        solicitud.setTipoSolicitud(tipoCese);
+        solicitud.setTema(new Tema());
+
+        when(solicitudRepository.findById(solicitudId)).thenReturn(Optional.of(solicitud));
+
+        // Act
+        solicitudService.aprobarSolicitud(solicitudId, "response");
+
+        // Assert
+        assertEquals(0, solicitud.getEstado()); // aprobado
+        verify(solicitudRepository).save(solicitud);
+    }
+
 }
