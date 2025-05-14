@@ -16,4 +16,6 @@ public class ListBloqueHorarioExposicionSimpleDTO {
     private Integer idJornadaExposicionSala;
     private Integer idExposicion;
     private TemaConAsesorJuradoDTO expo;
+    private Boolean esBloqueReservado;
+    private Boolean esBloqueBloqueado;
 }

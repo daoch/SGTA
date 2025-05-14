@@ -9,7 +9,6 @@ import pucp.edu.pe.sgta.model.*;
 import pucp.edu.pe.sgta.repository.*;
 import pucp.edu.pe.sgta.service.inter.MiembroJuradoService;
 
-
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.*;
@@ -25,7 +24,9 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
     private final TemaRepository temaRepository;
     private final SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository;
 
-    public MiembroJuradoServiceImpl(UsuarioRepository usuarioRepository, UsuarioXTemaRepository usuarioXTemaRepository, EstadoTemaRepository estadoTemaRepository, RolRepository rolRepository, TemaRepository temaRepository, SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository) {
+    public MiembroJuradoServiceImpl(UsuarioRepository usuarioRepository, UsuarioXTemaRepository usuarioXTemaRepository,
+            EstadoTemaRepository estadoTemaRepository, RolRepository rolRepository, TemaRepository temaRepository,
+            SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository) {
         this.usuarioRepository = usuarioRepository;
         this.usuarioXTemaRepository = usuarioXTemaRepository;
         this.estadoTemaRepository = estadoTemaRepository;
@@ -33,7 +34,6 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
         this.temaRepository = temaRepository;
         this.subAreaConocimientoXTemaRepository = subAreaConocimientoXTemaRepository;
     }
-
 
     @Override
     public List<MiembroJuradoDto> obtenerUsuarioTemaInfo() {
@@ -51,21 +51,21 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
             Instant fechaAsignacionInstant = (Instant) row[9];
             OffsetDateTime fechaAsignacion = fechaAsignacionInstant.atOffset(OffsetDateTime.now().getOffset());
 
+            Usuario usuarioEncontrado = usuarioRepository.findById(((Number) row[0]).intValue()).orElse(null);
 
             MiembroJuradoDto dto = new MiembroJuradoDto(
-                    ((Number) row[0]).intValue(),   // usuario_id
-                    (String) row[1],    // codigo_pucp
-                    (String) row[2],    // nombres
-                    (String) row[3],    // primer_apellido
-                    (String) row[4],    // segundo_apellido
-                    (String) row[5],    // correo_electronico
-                    (String) row[6],    // nivel_estudios
-                    ((Number) row[7]).intValue(),      // cantidad_temas_asignados
-                    "TPA",                             // harcodeado
+                    ((Number) row[0]).intValue(), // usuario_id
+                    (String) row[1], // codigo_pucp
+                    (String) row[2], // nombres
+                    (String) row[3], // primer_apellido
+                    (String) row[4], // segundo_apellido
+                    (String) row[5], // correo_electronico
+                    (String) row[6], // nivel_estudios
+                    ((Number) row[7]).intValue(), // cantidad_temas_asignados
+                    usuarioEncontrado.getTipoDedicacion().getIniciales(),
                     (boolean) row[8],
-                    fechaAsignacion,    // fecha_asignacion convertida a OffsetDateTime
-                    especialidades
-            );
+                    fechaAsignacion, // fecha_asignacion convertida a OffsetDateTime
+                    especialidades);
             resultList.add(dto);
         }
 
@@ -92,21 +92,21 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
             Instant fechaAsignacionInstant = (Instant) row[9];
             OffsetDateTime fechaAsignacion = fechaAsignacionInstant.atOffset(OffsetDateTime.now().getOffset());
 
+            Usuario usuarioEncontrado = usuarioRepository.findById(((Number) row[0]).intValue()).orElse(null);
 
             MiembroJuradoDto dto = new MiembroJuradoDto(
-                    ((Number) row[0]).intValue(),   // usuario_id
-                    (String) row[1],    // codigo_pucp
-                    (String) row[2],    // nombres
-                    (String) row[3],    // primer_apellido
-                    (String) row[4],    // segundo_apellido
-                    (String) row[5],    // correo_electronico
-                    (String) row[6],    // nivel_estudios
-                    ((Number) row[7]).intValue(),      // cantidad_temas_asignados
-                    "TPA",                             // harcodeado
+                    ((Number) row[0]).intValue(), // usuario_id
+                    (String) row[1], // codigo_pucp
+                    (String) row[2], // nombres
+                    (String) row[3], // primer_apellido
+                    (String) row[4], // segundo_apellido
+                    (String) row[5], // correo_electronico
+                    (String) row[6], // nivel_estudios
+                    ((Number) row[7]).intValue(), // cantidad_temas_asignados
+                    usuarioEncontrado.getTipoDedicacion().getIniciales(),
                     (boolean) row[8],
-                    fechaAsignacion,    // fecha_asignacion convertida a OffsetDateTime
-                    especialidades
-            );
+                    fechaAsignacion, // fecha_asignacion convertida a OffsetDateTime
+                    especialidades);
             resultList.add(dto);
         }
 
@@ -128,27 +128,26 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
             Instant fechaAsignacionInstant = (Instant) row[9];
             OffsetDateTime fechaAsignacion = fechaAsignacionInstant.atOffset(OffsetDateTime.now().getOffset());
 
+            Usuario usuarioEncontrado = usuarioRepository.findById(((Number) row[0]).intValue()).orElse(null);
 
             MiembroJuradoDto dto = new MiembroJuradoDto(
-                    ((Number) row[0]).intValue(),   // usuario_id
-                    (String) row[1],    // codigo_pucp
-                    (String) row[2],    // nombres
-                    (String) row[3],    // primer_apellido
-                    (String) row[4],    // segundo_apellido
-                    (String) row[5],    // correo_electronico
-                    (String) row[6],    // nivel_estudios
-                    ((Number) row[7]).intValue(),      // cantidad_temas_asignados
-                    "TPA",                             // harcodeado
+                    ((Number) row[0]).intValue(), // usuario_id
+                    (String) row[1], // codigo_pucp
+                    (String) row[2], // nombres
+                    (String) row[3], // primer_apellido
+                    (String) row[4], // segundo_apellido
+                    (String) row[5], // correo_electronico
+                    (String) row[6], // nivel_estudios
+                    ((Number) row[7]).intValue(), // cantidad_temas_asignados
+                    usuarioEncontrado.getTipoDedicacion().getIniciales(),
                     (boolean) row[8],
-                    fechaAsignacion,    // fecha_asignacion convertida a OffsetDateTime
-                    especialidades
-            );
+                    fechaAsignacion, // fecha_asignacion convertida a OffsetDateTime
+                    especialidades);
             resultList.add(dto);
         }
 
         return resultList;
     }
-
 
     @Override
     @Transactional
@@ -257,17 +256,20 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                 .map(ut -> {
                     Tema tema = ut.getTema();
 
-                    List<EstudiantesDto> estudiantes = usuarioXTemaRepository.findByTemaIdAndActivoTrue(tema.getId()).stream()
+                    List<EstudiantesDto> estudiantes = usuarioXTemaRepository.findByTemaIdAndActivoTrue(tema.getId())
+                            .stream()
                             .filter(rel -> rel.getUsuario().getTipoUsuario().getId().equals(2))
                             .map(rel -> {
                                 Usuario u = rel.getUsuario();
                                 return EstudiantesDto.builder()
-                                        .nombre(u.getNombres() + " " + u.getPrimerApellido() + " " + u.getSegundoApellido())
+                                        .nombre(u.getNombres() + " " + u.getPrimerApellido() + " "
+                                                + u.getSegundoApellido())
                                         .codigo(u.getCodigoPucp())
                                         .build();
                             }).toList();
 
-                    List<SubAreasConocimientoDto> subAreas = subAreaConocimientoXTemaRepository.findByTemaIdAndActivoTrue(tema.getId()).stream()
+                    List<SubAreasConocimientoDto> subAreas = subAreaConocimientoXTemaRepository
+                            .findByTemaIdAndActivoTrue(tema.getId()).stream()
                             .map(sac -> {
                                 SubAreaConocimiento sub = sac.getSubAreaConocimiento();
                                 return SubAreasConocimientoDto.builder()
@@ -300,17 +302,20 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                 .map(ut -> {
                     Tema tema = ut.getTema();
 
-                    List<EstudiantesDto> estudiantes = usuarioXTemaRepository.findByTemaIdAndActivoTrue(tema.getId()).stream()
+                    List<EstudiantesDto> estudiantes = usuarioXTemaRepository.findByTemaIdAndActivoTrue(tema.getId())
+                            .stream()
                             .filter(rel -> rel.getUsuario().getTipoUsuario().getId().equals(2))
                             .map(rel -> {
                                 Usuario u = rel.getUsuario();
                                 return EstudiantesDto.builder()
-                                        .nombre(u.getNombres() + " " + u.getPrimerApellido() + " " + u.getSegundoApellido())
+                                        .nombre(u.getNombres() + " " + u.getPrimerApellido() + " "
+                                                + u.getSegundoApellido())
                                         .codigo(u.getCodigoPucp())
                                         .build();
                             }).toList();
 
-                    List<SubAreasConocimientoDto> subAreas = subAreaConocimientoXTemaRepository.findByTemaIdAndActivoTrue(tema.getId()).stream()
+                    List<SubAreasConocimientoDto> subAreas = subAreaConocimientoXTemaRepository
+                            .findByTemaIdAndActivoTrue(tema.getId()).stream()
                             .map(sac -> {
                                 SubAreaConocimiento sub = sac.getSubAreaConocimiento();
                                 return SubAreasConocimientoDto.builder()
@@ -324,8 +329,7 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                     // Rol del usuario
                     String rolNombre = ut.getRol().getNombre();
 
-
-                   List<Object[]> resultadoFuncion = temaRepository.obtenerCicloEtapaPorTema(tema.getId());
+                    List<Object[]> resultadoFuncion = temaRepository.obtenerCicloEtapaPorTema(tema.getId());
 
                     CicloTesisDto cicloDto = null;
                     EtapaFormativaTesisDto etapaDto = null;
@@ -343,7 +347,8 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
 
                     // Estado del tema
                     EstadoTema estado = tema.getEstadoTema();
-                    EstadoTemaDto estadoDto = estado != null ? new EstadoTemaDto(estado.getId(), estado.getNombre()) : null;
+                    EstadoTemaDto estadoDto = estado != null ? new EstadoTemaDto(estado.getId(), estado.getNombre())
+                            : null;
 
                     return new MiembroJuradoXTemaTesisDto(
                             tema.getId(),
@@ -355,20 +360,14 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                             subAreas,
                             etapaDto,
                             cicloDto,
-                            estadoDto
-                    );
+                            estadoDto);
                 })
                 .toList();
     }
-
-
 
     private boolean esEstadoTemaValido(EstadoTema estadoTema) {
         List<Integer> estadosInvalidos = List.of(7, 9, 12);
         return !estadosInvalidos.contains(estadoTema.getId());
     }
-
-
-
 
 }

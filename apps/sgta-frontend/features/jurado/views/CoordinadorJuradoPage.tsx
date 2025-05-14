@@ -8,28 +8,25 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  AreaEspecialidadFilter,
   EstadoJurado,
   JuradoViewModel,
-  TipoDedicacion,
 } from "@/features/jurado/types/juradoDetalle.types";
 import { useEffect, useState } from "react";
 import TableJurados from "../components/JuradosTable";
 import {
   getAllAreasEspecialidad,
   getAllJurados,
+  getAllTiposDedicacion,
 } from "../services/jurado-service";
-import { AreaEspecialidad } from "../types/jurado.types";
+import { AreaEspecialidad, TipoDedicacion } from "../types/jurado.types";
 
 const JuradosView = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [juradosData, setJuradosData] = useState<JuradoViewModel[]>([]);
-  const [dedication, setDedication] = useState<TipoDedicacion>(
-    TipoDedicacion.TODOS,
-  );
-  const [specialty, setSpecialty] = useState<AreaEspecialidadFilter>(
-    AreaEspecialidadFilter.TODOS,
-  );
+  const [dedication, setDedication] = useState<TipoDedicacion[]>([]);
+  const [selectedDedication, setSelectedDedication] = useState<string>("TODOS");
+
+  const [specialty, setSpecialty] = useState<string>("TODOS");
   const [status, setStatus] = useState<EstadoJurado>(EstadoJurado.TODOS);
   const [hasSearched, setHasSearched] = useState(false);
 
@@ -37,6 +34,8 @@ const JuradosView = () => {
   const [areasEspecialidad, setAreasEspecialidad] = useState<
     AreaEspecialidad[]
   >([]);
+
+  const [appliedSearchTerm, setAppliedSearchTerm] = useState("");
 
   useEffect(() => {
     const fetchAreas = async () => {
@@ -48,6 +47,18 @@ const JuradosView = () => {
       }
     };
     fetchAreas();
+  }, []);
+
+  useEffect(() => {
+    const fetchTiposDedicacion = async () => {
+      try {
+        const tiposDedicacion = await getAllTiposDedicacion();
+        setDedication(tiposDedicacion);
+      } catch (error) {
+        console.error("Error fetching tipos de dedicación:", error);
+      }
+    };
+    fetchTiposDedicacion();
   }, []);
 
   useEffect(() => {
@@ -68,28 +79,32 @@ const JuradosView = () => {
   }, []);
 
   useEffect(() => {
+    console.log("JuradosData", juradosData);
+    console.log("Dedicaion", selectedDedication);
     const filtered = allJuradosData.filter((j) => {
-      const matchDedication =
-        dedication === TipoDedicacion.TODOS || j.dedication === dedication;
-      const matchSpecialty =
-        specialty === AreaEspecialidadFilter.TODOS ||
-        j.specialties.includes(specialty);
       const matchStatus = status === EstadoJurado.TODOS || j.status === status;
       const matchSearch =
         !hasSearched ||
-        j.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        j.code.includes(searchTerm) ||
-        j.email.toLowerCase().includes(searchTerm.toLowerCase());
-
-      return matchDedication && matchSpecialty && matchStatus && matchSearch;
+        j.user.name.toLowerCase().includes(appliedSearchTerm.toLowerCase()) ||
+        j.code.includes(appliedSearchTerm) ||
+        j.email.toLowerCase().includes(appliedSearchTerm.toLowerCase());
+      const matchDedication =
+        selectedDedication === "TODOS" || j.dedication === selectedDedication;
+      const matchSpecialty =
+        specialty === "TODOS" ||
+        j.specialties.some((s) => s.toLowerCase() === specialty.toLowerCase());
+      return matchStatus && matchSearch && matchDedication && matchSpecialty;
     });
 
     setJuradosData(filtered);
-  }, [dedication, specialty, status, searchTerm, hasSearched, allJuradosData]);
-
-  const handleSearch = () => {
-    setHasSearched(true);
-  };
+  }, [
+    selectedDedication,
+    specialty,
+    status,
+    appliedSearchTerm,
+    hasSearched,
+    allJuradosData,
+  ]);
 
   return (
     <div>
@@ -106,44 +121,40 @@ const JuradosView = () => {
           onChange={(e) => setSearchTerm(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
-              handleSearch();
+              setAppliedSearchTerm(searchTerm);
+              setHasSearched(true);
             }
           }}
         />
 
         <div className="flex flex-col w-[250px] h-[80px] items-start gap-[6px] flex-shrink-0">
           <label className="text-sm font-medium">Tipo de Dedicación</label>
-          <Select onValueChange={(val) => setDedication(val as TipoDedicacion)}>
+          <Select onValueChange={(val) => setSelectedDedication(val)}>
             <SelectTrigger className="h-[80px] w-full border border-[#E2E6F0] rounded-md">
               <SelectValue placeholder="Todos" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={TipoDedicacion.TODOS}>Todos</SelectItem>
-              <SelectItem value={TipoDedicacion.TIEMPO_COMPLETO}>
-                Tiempo Completo
-              </SelectItem>
-              <SelectItem value={TipoDedicacion.MEDIO_TIEMPO}>
-                Tiempo Parcial por Asignaturas
-              </SelectItem>
+              <SelectItem value="TODOS">Todos</SelectItem>
+              {dedication.map((tipo) => (
+                <SelectItem key={tipo.id} value={tipo.iniciales}>
+                  {tipo.descripcion}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
 
         <div className="flex flex-col w-[250px] h-[80px] items-start gap-[6px] flex-shrink-0">
           <label className="text-sm font-medium">Área de Especialidad</label>
-          <Select
-            onValueChange={(val) => setSpecialty(val as AreaEspecialidadFilter)}
-          >
+          <Select onValueChange={(val) => setSpecialty(val)}>
             <SelectTrigger className="h-[68px] w-full">
               <SelectValue placeholder="Todos" />
             </SelectTrigger>
             <SelectContent className="max-h-48 overflow-y-auto">
-              <SelectItem value={AreaEspecialidadFilter.TODOS}>
-                {AreaEspecialidadFilter.TODOS}
-              </SelectItem>
+              <SelectItem value="TODOS">Todos</SelectItem>
               {areasEspecialidad.map((area) => (
-                <SelectItem key={area.name} value={area.name}>
-                  {area.name.charAt(0).toUpperCase() + area.name.slice(1)}
+                <SelectItem key={area.id} value={area.nombre}>
+                  {area.nombre.charAt(0).toUpperCase() + area.nombre.slice(1)}
                 </SelectItem>
               ))}
             </SelectContent>

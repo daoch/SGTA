@@ -497,3 +497,139 @@ BEGIN
 	where e.exposicion_id = id_exposicion;	   
 END;
 $$ LANGUAGE plpgsql;
+
+
+
+
+create or replace function actualizar_bloque_exposicion_siguientes_fases(bloques_json jsonb)
+returns void as $$
+declare
+    bloque jsonb;
+    id_bloque integer;
+    id_jornada_exposicion_sala integer;
+    id_exposicion integer;
+    id_tema integer;
+    codigo_tema text;
+    titulo_tema text;
+    bloque_reservado boolean;
+    bloque_bloqueado boolean;
+    et_id integer; 
+    ep_id integer;
+	nombre_estado_actual text;
+    nuevo_estado_id integer;
+begin    
+	select (bloques_json->0->>'idExposicion')::integer into id_exposicion;
+   update bloque_horario_exposicion
+	set exposicion_x_tema_id = null
+	where bloque_horario_exposicion_id in (
+	    select (bloque->>'idBloque')::integer
+	    from jsonb_array_elements(bloques_json) as bloque_json
+	);
+	
+	select ep.nombre into nombre_estado_actual
+    from exposicion e
+    inner join estado_planificacion ep on ep.estado_planificacion_id = e.estado_planificacion_id
+    where e.exposicion_id = id_exposicion;
+
+    -- Decidir el nuevo estado según el actual
+    if nombre_estado_actual = 'Sin planificar' then
+        select estado_planificacion_id into nuevo_estado_id
+        from estado_planificacion
+        where nombre = 'Planificacion inicial';
+
+    elsif nombre_estado_actual = 'Planificacion inicial' then
+        select estado_planificacion_id into nuevo_estado_id
+        from estado_planificacion
+        where nombre = 'Fase 1';
+
+    elsif nombre_estado_actual = 'Fase 1' then
+        select estado_planificacion_id into nuevo_estado_id
+        from estado_planificacion
+        where nombre = 'Fase 2';
+
+    elsif nombre_estado_actual = 'Fase 2' then
+        select estado_planificacion_id into nuevo_estado_id
+        from estado_planificacion
+        where nombre = 'Cierre de planificacion';
+
+   elsif nombre_estado_actual = 'Cierre de planificacion' then
+     select estado_planificacion_id into nuevo_estado_id
+        from estado_planificacion
+        where nombre = 'Cierre de planificacion';
+
+	else
+	    raise notice 'Estado desconocido: "%"', nombre_estado_actual;
+	    	return;
+	end if;
+
+    -- Actualizar el estado de planificación
+    update exposicion
+    set estado_planificacion_id = nuevo_estado_id
+    where exposicion_id = id_exposicion;
+
+    raise notice 'Estado de planificación actualizado a "%"', nombre_estado_actual;   
+
+    for bloque in select * from jsonb_array_elements(bloques_json)
+    loop
+      
+        id_bloque := (bloque->>'idBloque')::integer;
+        id_exposicion := (bloque->>'idExposicion')::integer;
+        bloque_bloqueado := (bloque->>'bloqueBloqueado')::boolean;
+
+       if bloque ? 'bloqueBloqueado' and bloque->>'bloqueBloqueado' is not null then
+	    	
+			bloque_bloqueado := (bloque->>'bloqueBloqueado')::boolean;
+	
+		    update bloque_horario_exposicion
+		    set es_bloque_bloqueado = bloque_bloqueado
+		    where bloque_horario_exposicion_id = id_bloque;
+
+		end if;
+
+        -- si no hay 'expo' o es null, quitar el tema 
+        if bloque->'expo' is null or bloque->'expo' = 'null'::jsonb then
+            update bloque_horario_exposicion
+            set
+                exposicion_x_tema_id = null,
+                es_bloque_reservado = false,
+                fecha_modificacion = now()
+            where bloque_horario_exposicion_id = id_bloque;
+
+            raise notice 'Bloque %: se quitó tema', id_bloque;
+            continue;
+        end if;
+
+        -- extraer id_tema del json
+        id_tema := (bloque->'expo'->>'id')::integer;
+        if id_tema is null then
+            raise notice 'Tema en expo es null para bloque %', id_bloque;
+            continue;
+        end if;
+
+        -- buscar exposicion_x_tema_id
+        begin
+            select exposicion_x_tema_id into et_id
+            from exposicion_x_tema
+            where tema_id = id_tema and exposicion_id = id_exposicion;
+        exception when no_data_found then
+            raise notice 'No se encontró exposicion_x_tema para tema % y exposicion %', id_tema, id_exposicion;
+            continue;
+        end;
+
+        -- actualizar el bloque con ese et_id
+        update bloque_horario_exposicion
+        set 
+            exposicion_x_tema_id = et_id,
+            es_bloque_reservado = true,
+            fecha_modificacion = now()
+        where bloque_horario_exposicion_id = id_bloque;
+
+        raise notice 'Bloque %: asignado tema %', id_bloque, id_tema;
+
+		update exposicion_x_tema 
+		set estado_exposicion = 'esperando_respuesta'
+		where exposicion_x_tema_id = et_id;
+
+    end loop;
+end;
+$$ language plpgsql;
