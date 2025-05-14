@@ -12,7 +12,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import pucp.edu.pe.sgta.dto.AprobarSolicitudCambioAsesorResponseDto;
+import pucp.edu.pe.sgta.dto.AprobarSolicitudCambioAsesorResponseDto.AprobarCambioAsesorAsignacionDto;
 import pucp.edu.pe.sgta.dto.AprobarSolicitudResponseDto;
+import pucp.edu.pe.sgta.dto.RechazoSolicitudCambioAsesorResponseDto;
+import pucp.edu.pe.sgta.dto.RechazoSolicitudCambioAsesorResponseDto.CambioAsignacionDto;
 import pucp.edu.pe.sgta.dto.AprobarSolicitudResponseDto.AprobarAsignacionDto;
 import pucp.edu.pe.sgta.dto.RechazoSolicitudResponseDto;
 import pucp.edu.pe.sgta.dto.SolicitudCambioAsesorDto;
@@ -266,5 +270,81 @@ public class SolicitudServiceImpl implements SolicitudService {
         }).toList();
         
         return new SolicitudCambioAsesorDto(requestList, totalPages);
+    }
+    
+    @Override
+    public RechazoSolicitudCambioAsesorResponseDto rechazarSolicitudCambioAsesor(Integer solicitudId, String response) {
+        Solicitud solicitud = solicitudRepository.findById(solicitudId)
+                .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
+
+        // Verificar que la solicitud esté en estado pendiente (1)
+        if (solicitud.getEstado() != 1) {
+            throw new RuntimeException("La solicitud no está en estado pendiente");
+        }
+
+        // Verificar que la solicitud sea de tipo cese (tipoSolicitud.nombre == Cambio Asesor)
+        if (solicitud.getTipoSolicitud() == null || solicitud.getTipoSolicitud().getNombre() != "Cambio Asesor") {
+            throw new RuntimeException("La solicitud no es de tipo cambio de asesor");
+        }
+
+        solicitud.setRespuesta(response);
+        solicitud.setEstado(0); // Rechazado
+        solicitud.setFechaModificacion(OffsetDateTime.now());
+        solicitudRepository.save(solicitud);
+
+        UsuarioXSolicitud asesor = usuarioXSolicitudRepository.findFirstBySolicitudAndDestinatarioTrue(solicitud);
+        UsuarioXSolicitud tesista = usuarioXSolicitudRepository.findFirstBySolicitudAndDestinatarioFalse(solicitud);
+
+        CambioAsignacionDto asignacion = new CambioAsignacionDto(
+                tesista.getUsuario().getId(),
+                asesor.getUsuario().getId()
+        );
+
+        
+        RechazoSolicitudCambioAsesorResponseDto dto = new RechazoSolicitudCambioAsesorResponseDto();
+        dto.setIdRequest(solicitud.getId());
+        dto.setStatus("rejected");
+        dto.setResponse(response); // se usa lo que viene del request
+        dto.setAssignation(asignacion);
+
+        return dto;
+    }
+
+    @Override
+    public AprobarSolicitudCambioAsesorResponseDto aprobarSolicitudCambioAsesor(Integer solicitudId, String response) {
+        Solicitud solicitud = solicitudRepository.findById(solicitudId)
+                .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
+
+        // Verificar que la solicitud esté en estado pendiente (1)
+        if (solicitud.getEstado() != 1) {
+            throw new RuntimeException("La solicitud no está en estado pendiente");
+        }
+
+        // Verificar que la solicitud sea de tipo cese (tipoSolicitud.nombre == Cambio Asesor)
+        if (solicitud.getTipoSolicitud() == null || solicitud.getTipoSolicitud().getNombre() != "Cambio Asesor") {
+            throw new RuntimeException("La solicitud no es de tipo cambio de asesor");
+        }
+
+        solicitud.setRespuesta(response);
+        solicitud.setEstado(2); // Aprobado
+        solicitud.setFechaModificacion(OffsetDateTime.now());
+        solicitudRepository.save(solicitud);
+
+        UsuarioXSolicitud asesor = usuarioXSolicitudRepository.findFirstBySolicitudAndDestinatarioTrue(solicitud);
+        UsuarioXSolicitud tesista = usuarioXSolicitudRepository.findFirstBySolicitudAndDestinatarioFalse(solicitud);
+
+        AprobarCambioAsesorAsignacionDto asignacion = new AprobarCambioAsesorAsignacionDto(
+                tesista.getUsuario().getId(),
+                asesor.getUsuario().getId()
+        );
+
+        
+        AprobarSolicitudCambioAsesorResponseDto dto = new AprobarSolicitudCambioAsesorResponseDto();
+        dto.setIdRequest(solicitud.getId());
+        dto.setStatus("approved");
+        dto.setResponse(response); // se usa lo que viene del request
+        dto.setAssignation(asignacion);
+
+        return dto;
     }
 }

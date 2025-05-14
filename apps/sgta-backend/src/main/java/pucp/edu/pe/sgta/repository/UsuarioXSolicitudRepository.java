@@ -12,4 +12,7 @@ import pucp.edu.pe.sgta.model.UsuarioXSolicitud;
 public interface UsuarioXSolicitudRepository extends JpaRepository<UsuarioXSolicitud, Integer>{
 
     List<UsuarioXSolicitud> findBySolicitud(Solicitud solicitud);
+    UsuarioXSolicitud findFirstBySolicitudAndDestinatarioTrue(Solicitud solicitud);
+    UsuarioXSolicitud findFirstBySolicitudAndDestinatarioFalse(Solicitud solicitud);
+
 }
