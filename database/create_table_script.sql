@@ -51,6 +51,20 @@ CREATE TABLE IF NOT EXISTS tipo_usuario
     fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Tipo Dedicacion
+
+CREATE TABLE IF NOT EXISTS tipo_dedicacion
+(
+    tipo_dedicacion_id SERIAL PRIMARY KEY,
+    iniciales          VARCHAR(10)              NOT NULL,
+    descripcion        VARCHAR(100)             NOT NULL,
+    activo             BOOLEAN                  NOT NULL DEFAULT TRUE,
+    fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion TIMESTAMP WITH TIME ZONE
+);
+
+
 -- 3. Tabla usuario
 CREATE TABLE IF NOT EXISTS usuario
 (
@@ -69,7 +83,7 @@ CREATE TABLE IF NOT EXISTS usuario
     foto_perfil         bytea,
     disponibilidad      TEXT,
     tipo_disponibilidad TEXT,
-    tipo_dedicacion     VARCHAR(100),
+    tipo_dedicacion_id     INTEGER,
     activo              BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -78,6 +92,10 @@ CREATE TABLE IF NOT EXISTS usuario
     CONSTRAINT fk_tipo_usuario
         FOREIGN KEY (tipo_usuario_id)
             REFERENCES tipo_usuario (tipo_usuario_id)
+            ON DELETE RESTRICT,
+    CONSTRAINT fk_tipo_dedicacion
+        FOREIGN KEY (tipo_dedicacion_id)
+            REFERENCES tipo_dedicacion (tipo_dedicacion_id)
             ON DELETE RESTRICT
 );
 
