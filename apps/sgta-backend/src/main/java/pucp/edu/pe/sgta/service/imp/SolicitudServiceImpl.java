@@ -15,16 +15,14 @@ import org.springframework.transaction.annotation.Transactional;
 import pucp.edu.pe.sgta.dto.AprobarSolicitudResponseDto;
 import pucp.edu.pe.sgta.dto.AprobarSolicitudResponseDto.AprobarAsignacionDto;
 import pucp.edu.pe.sgta.dto.RechazoSolicitudResponseDto;
+import pucp.edu.pe.sgta.dto.SolicitudCambioAsesorDto;
 import pucp.edu.pe.sgta.dto.RechazoSolicitudResponseDto.AsignacionDto;
 import pucp.edu.pe.sgta.dto.SolicitudCeseDto;
-import pucp.edu.pe.sgta.dto.UsuarioDto;
-import pucp.edu.pe.sgta.mapper.TemaMapper;
-import pucp.edu.pe.sgta.mapper.UsuarioMapper;
 import pucp.edu.pe.sgta.model.Solicitud;
-import pucp.edu.pe.sgta.model.Tema;
 import pucp.edu.pe.sgta.model.UsuarioXSolicitud;
 import pucp.edu.pe.sgta.model.UsuarioXTema;
 import pucp.edu.pe.sgta.repository.SolicitudRepository;
+import pucp.edu.pe.sgta.repository.SubAreaConocimientoXTemaRepository;
 import pucp.edu.pe.sgta.repository.UsuarioXSolicitudRepository;
 import pucp.edu.pe.sgta.repository.UsuarioXTemaRepository;
 import pucp.edu.pe.sgta.service.inter.SolicitudService;
@@ -37,9 +35,11 @@ public class SolicitudServiceImpl implements SolicitudService {
     private UsuarioXSolicitudRepository usuarioXSolicitudRepository;
     @Autowired
     private UsuarioXTemaRepository usuarioXTemaRepository;
+    @Autowired
+    private SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository;
 
     public SolicitudCeseDto findAllSolicitudesCese(int page, int size) {
-        List<Solicitud> allSolicitudes = solicitudRepository.findByTipoSolicitudId(2);
+        List<Solicitud> allSolicitudes = solicitudRepository.findByTipoSolicitudNombre("Cese Asesoria");
 
         int totalElements = allSolicitudes.size();
         int totalPages = (int) Math.ceil((double) totalElements / size);
@@ -112,8 +112,8 @@ public class SolicitudServiceImpl implements SolicitudService {
             throw new RuntimeException("La solicitud no está en estado pendiente");
         }
 
-        // Verificar que la solicitud sea de tipo cese (tipoSolicitud.id == 2)
-        if (solicitud.getTipoSolicitud() == null || solicitud.getTipoSolicitud().getId() != 2) {
+        // Verificar que la solicitud sea de tipo cese (tipoSolicitud.nombre == Cese Asesoria)
+        if (solicitud.getTipoSolicitud() == null || solicitud.getTipoSolicitud().getNombre() != "Cese Asesoria") {
             throw new RuntimeException("La solicitud no es de tipo cese");
         }
 
@@ -154,8 +154,8 @@ public class SolicitudServiceImpl implements SolicitudService {
             throw new RuntimeException("La solicitud no está en estado pendiente");
         }
 
-        // Verificar que la solicitud sea de tipo cese (tipoSolicitud.id == 2)
-        if (solicitud.getTipoSolicitud() == null || solicitud.getTipoSolicitud().getId() != 2) {
+        // Verificar que la solicitud sea de tipo cese (tipoSolicitud.nombre == Cese Asesoria)
+        if (solicitud.getTipoSolicitud() == null || solicitud.getTipoSolicitud().getNombre() != "Cese Asesoria") {
             throw new RuntimeException("La solicitud no es de tipo cese");
         }
 
@@ -195,5 +195,76 @@ public class SolicitudServiceImpl implements SolicitudService {
         dto.setAssignations(asignaciones);
 
         return dto;
+    }
+
+    public SolicitudCambioAsesorDto findAllSolicitudesCambioAsesor(int page, int size) {
+        List<Solicitud> allSolicitudes = solicitudRepository.findByTipoSolicitudNombre("Cambio Asesor");
+
+        int totalElements = allSolicitudes.size();
+        int totalPages = (int) Math.ceil((double) totalElements / size);
+
+        int fromIndex = page * size;
+        int toIndex = Math.min(fromIndex + size, totalElements);
+
+        if (fromIndex >= totalElements) {
+            return new SolicitudCambioAsesorDto(Collections.emptyList(), totalPages);
+        }
+
+        List<Solicitud> solicitudesPage = allSolicitudes.subList(fromIndex, toIndex);
+
+        List<SolicitudCambioAsesorDto.RequestChange> requestList = solicitudesPage.stream().map(solicitud -> {
+            List<UsuarioXSolicitud> relaciones = usuarioXSolicitudRepository.findBySolicitud(solicitud);
+
+            var asesor = relaciones.stream()
+                .filter(uxs -> Boolean.FALSE.equals(uxs.getDestinatario()))
+                .map(uxs -> uxs.getUsuario())
+                .map(u -> new SolicitudCambioAsesorDto.Assessor(
+                    u.getId(),
+                    u.getNombres(),
+                    u.getPrimerApellido(),
+                    u.getCorreoElectronico(),
+                    u.getFotoPerfil() // URL foto
+                ))
+                .toList();
+        
+            var students = relaciones.stream()
+                .filter(uxs -> Boolean.TRUE.equals(uxs.getDestinatario()))
+                .findFirst()
+                .map(uxs -> new SolicitudCambioAsesorDto.Estudiante(
+                    uxs.getUsuario().getId(),
+                    uxs.getUsuario().getNombres(),
+                    uxs.getUsuario().getPrimerApellido(),
+                    uxs.getUsuario().getCorreoElectronico(),
+                    uxs.getUsuario().getFotoPerfil(),
+                    new SolicitudCambioAsesorDto.Tema(
+                        solicitud.getTema().getId(),
+                        solicitud.getTema().getTitulo(),
+                        new SolicitudCambioAsesorDto.AreaConocimiento(
+                            subAreaConocimientoXTemaRepository.findFirstByTemaIdAndActivoTrue(solicitud.getTema().getId()).getSubAreaConocimiento().getId(),
+                            subAreaConocimientoXTemaRepository.findFirstByTemaIdAndActivoTrue(solicitud.getTema().getId()).getSubAreaConocimiento().getNombre()
+                        ))
+                ))
+                .orElse(null);
+        
+            String estado = switch (solicitud.getEstado()) {
+                case 0 -> "approved";
+                case 1 -> "pending";
+                case 2 -> "rejected";
+                default -> "unknown";
+            };
+        
+            return new SolicitudCambioAsesorDto.RequestChange(
+                solicitud.getId(),
+                solicitud.getFechaCreacion().toLocalDate(),
+                estado,
+                solicitud.getDescripcion(),
+                solicitud.getRespuesta(),
+                solicitud.getFechaModificacion() != null ? solicitud.getFechaModificacion().toLocalDate() : null,
+                asesor,
+                students
+            );
+        }).toList();
+        
+        return new SolicitudCambioAsesorDto(requestList, totalPages);
     }
 }
