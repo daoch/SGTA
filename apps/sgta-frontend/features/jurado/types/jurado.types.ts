@@ -49,6 +49,8 @@ export interface TimeSlot {
   idJornadaExposicionSala: number;
   expo?: Tema;
   idExposicion?:number;
+  esBloqueReservado?: boolean;
+  esBloqueBloqueado?:boolean;
 }
 
 export interface EstadoPlanificacion{
