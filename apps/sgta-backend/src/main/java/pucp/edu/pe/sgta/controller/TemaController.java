@@ -133,6 +133,20 @@ public class TemaController {
 		temaService.delete(idTema);
 	}
 
+	@PostMapping("/aprobarPostulacionAPropuestaDirecta")
+	public void aprobarPostulacionAPropuestaDirecta(@RequestParam("alumnoId") Integer alumnoId,
+													@RequestParam("asesorId") Integer asesorId,
+													@RequestParam("temaId") Integer temaId){
+		temaService.aprobarPostulacionAPropuestaGeneral(temaId, asesorId, alumnoId);
+	}
+
+	@PostMapping("/rechazarPostulacionAPropuestaDirecta")
+	public void rechazarPostulacionAPropuestaDirecta(@RequestParam("alumnoId") Integer alumnoId,
+													@RequestParam("asesorId") Integer asesorId,
+													@RequestParam("temaId") Integer temaId){
+		temaService.rechazarPostulacionAPropuestaGeneral(temaId, asesorId, alumnoId);
+	}
+
 }
 
 

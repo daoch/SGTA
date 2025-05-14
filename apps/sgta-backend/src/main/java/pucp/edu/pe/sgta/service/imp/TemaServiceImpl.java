@@ -999,4 +999,31 @@ public class TemaServiceImpl implements TemaService {
 				.setParameter("uid", idUsuario)
 				.getSingleResult();
 	}
+
+	@Transactional
+	@Override
+	public void rechazarPostulacionAPropuestaGeneral(Integer idTema, Integer idAsesor, Integer idTesista) {
+		String sql = "SELECT rechazar_postulacion_propuesta_general_tesista(:p_tema_id, :p_asesor_id, :p_tesista_id)";
+
+		entityManager.createNativeQuery(sql)
+				.setParameter("p_tema_id", idTema)
+				.setParameter("p_asesor_id", idAsesor)
+				.setParameter("p_tesista_id", idTesista)
+				.getSingleResult();
+
+	}
+
+	@Transactional
+	@Override
+	public void aprobarPostulacionAPropuestaGeneral(Integer idTema, Integer idAsesor, Integer idTesista) {
+		String sql = "SELECT aprobar_postulacion_propuesta_general_tesista(:p_tema_id, :p_asesor_id, :p_tesista_id)";
+
+		entityManager.createNativeQuery(sql)
+				.setParameter("p_tema_id", idTema)
+				.setParameter("p_asesor_id", idAsesor)
+				.setParameter("p_tesista_id", idTesista)
+				.getSingleResult();
+		
+		eliminarPostulacionesTesista(idTesista);
+	}
 }

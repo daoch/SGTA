@@ -68,4 +68,7 @@ public interface TemaService {
 
 	void eliminarPostulacionesTesista(Integer idUsuario);
 
+	void rechazarPostulacionAPropuestaGeneral(Integer idTema, Integer idAsesor, Integer idTesista);
+
+	void aprobarPostulacionAPropuestaGeneral(Integer idTema, Integer idAsesor, Integer idTesista);
 }

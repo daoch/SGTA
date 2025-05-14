@@ -1057,3 +1057,69 @@ ORDER BY nombre;
 $$;
 
 ALTER FUNCTION obtener_sub_areas_por_carrera_usuario(INTEGER) OWNER TO postgres;
+
+CREATE OR REPLACE FUNCTION aprobar_postulacion_propuesta_general_tesista(
+    p_tema_id    INT,
+    p_asesor_id  INT,
+    p_tesista_id INT
+)
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- Only proceed if the tesista is the creator of this topic
+    IF EXISTS (
+        SELECT 1
+        FROM usuario_tema ut
+        JOIN rol r ON r.rol_id = ut.rol_id
+        WHERE ut.tema_id = p_tema_id
+          AND ut.usuario_id = p_tesista_id
+          AND ut.creador = TRUE
+          AND r.nombre ILIKE 'Tesista'
+    ) THEN
+        -- Perform the update to mark the advisor as assigned
+        UPDATE usuario_tema ut
+        SET asignado = TRUE
+        FROM rol r
+        WHERE ut.tema_id = p_tema_id
+          AND ut.usuario_id = p_asesor_id
+          AND ut.rol_id = r.rol_id
+          AND r.nombre ILIKE 'Asesor';
+    END IF;
+END;
+$$;
+
+ALTER FUNCTION aprobar_postulacion_propuesta_general_tesista(INTEGER, INTEGER, INTEGER) OWNER TO postgres;
+
+CREATE OR REPLACE FUNCTION rechazar_postulacion_propuesta_general_tesista(
+    p_tema_id    INT,
+    p_asesor_id  INT,
+    p_tesista_id INT
+)
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- Only proceed if the tesista is the creator of this topic
+    IF EXISTS (
+        SELECT 1
+        FROM usuario_tema ut
+        JOIN rol r ON r.rol_id = ut.rol_id
+        WHERE ut.tema_id = p_tema_id
+          AND ut.usuario_id = p_tesista_id
+          AND ut.creador = TRUE
+          AND r.nombre ILIKE 'Tesista'
+    ) THEN
+        -- Perform the update to mark the advisor as rejected
+        UPDATE usuario_tema ut
+        SET rechazado = TRUE
+        FROM rol r
+        WHERE ut.tema_id = p_tema_id
+          AND ut.usuario_id = p_asesor_id
+          AND ut.rol_id = r.rol_id
+          AND r.nombre ILIKE 'Asesor';
+    END IF;
+END;
+$$;
+
+ALTER FUNCTION rechazar_postulacion_propuesta_general_tesista(INTEGER, INTEGER, INTEGER) OWNER TO postgres;
