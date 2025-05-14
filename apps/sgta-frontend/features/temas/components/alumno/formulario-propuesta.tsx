@@ -21,8 +21,10 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
+import { Usuario } from "@/features/temas/types/propuestas/entidades";
 import { Plus, Save } from "lucide-react";
 import { useRouter } from "next/navigation";
+
 import React, { useEffect, useState } from "react";
 
 export interface Estudiante {
@@ -46,12 +48,6 @@ interface Props {
   onSubmit: (data: FormData, cotesistas: Estudiante[]) => Promise<void>;
 }
 
-const estudiantesData: Estudiante[] = [
-  { id: "34", codigo: "20190123", nombre: "Carlos Mendoza" },
-  { id: "31", codigo: "20190456", nombre: "Pedro López" },
-  { id: "22", codigo: "20180789", nombre: "Ana García" },
-];
-
 export default function FormularioPropuesta({ loading, onSubmit }: Props) {
   const router = useRouter();
   const today = new Date().toISOString().split("T")[0];
@@ -74,7 +70,7 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
   // 1) Carga de áreas al montar
   useEffect(() => {
     fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/subAreaConocimiento/listarPorCarreraDeUsuario?usuarioId=4`
+      `${process.env.NEXT_PUBLIC_API_URL}/subAreaConocimiento/listarPorCarreraDeUsuario?usuarioId=35`
     )
       .then((res) => res.json())
       .then((data: Array<{ id: number; nombre: string }>) => {
@@ -94,11 +90,11 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
     )
       .then((res) => res.json())
       .then(
-        (data: Array<{ id: number; nombres: string; primerApellido: string | null }>) => {
+        (data: Array<{ id: number; nombres: string; primerApellido: string}>) => {
           setAsesores(
             data.map((u) => ({
               id: String(u.id),
-              nombre: `${u.nombres} ${u.primerApellido ?? ""}`.trim(),
+              nombre: `${u.nombres} ${u.primerApellido}`.trim(),
             }))
           );
         }
@@ -141,11 +137,30 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
     setCotesistas((cs) => cs.filter((c) => c.id !== id));
   };
 
-  const handleAddCotesista = () => {
-    const est = estudiantesData.find((e) => e.codigo === codigoCotesista);
-    if (est && !cotesistas.some((c) => c.id === est.id)) {
-      setCotesistas((cs) => [...cs, est]);
+  const handleAddCotesista = async () => {
+    if (!codigoCotesista.trim()) return;
+
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/usuario/findByCodigo?codigo=${codigoCotesista.trim()}`
+      );
+      if (!res.ok) {
+        throw new Error("Estudiante no encontrado");
+      }
+      const data: Usuario = await res.json();
+      const nuevo: Estudiante = {
+        id: String(data.id),
+        codigo: data.codigoPucp,
+        nombre: `${data.nombres} ${data.primerApellido}`.trim(),
+      };
+
+      if (cotesistas.some((c) => c.id === nuevo.id)) {
+        return;
+      }
+      setCotesistas((cs) => [...cs, nuevo]);
       setCodigoCotesista("");
+    } catch (err) {
+      console.error("Error buscando estudiante:", err);
     }
   };
 

@@ -22,7 +22,7 @@ export default function FormularioPropuestaPage() {
       ? new Date(data.fechaLimite + "T10:00:00Z").toISOString()
       : null;
 
-    const idUsuarioCreador = 4;
+    const idUsuarioCreador = 35;
     const tipoPropuesta = data.tipo === "general" ? 0 : 1;
 
     const subareas = [{ id: data.area }];

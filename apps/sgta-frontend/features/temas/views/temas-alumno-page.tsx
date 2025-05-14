@@ -25,7 +25,6 @@ import {
   TabsList,
   TabsTrigger
 } from "@/components/ui/tabs";
-import { PendientesCotesistasCard } from "@/features/temas/components/alumno/pendientes-cotesistas-card";
 import { PropuestasTable } from "@/features/temas/components/alumno/propuestas-table";
 import { TemaCard } from "@/features/temas/components/alumno/tema-inscrito-card";
 import Link from "next/link";
@@ -111,18 +110,6 @@ const propuestas: Propuesta[] = [
   }
 ];
 
-/*
-// src/pages/alumno/temas/index.tsx  (o donde esté tu MisTemasPage)
-const propuestasPendientes = propuestas.filter(p =>
-  // SI ALGÚN tesista NO está asignado → va a pendientes
-  p.tesistas.some(t => t.asignado === false)
-);
-const propuestasConfirmadas = propuestas.filter(p =>
-  // SI TODOS los tesistas están asignados → va a confirmadas
-  p.tesistas.every(t => t.asignado === true)
-);*/
-
-
 const MisTemasPage = () => {
   const [selectedPropuesta, setSelectedPropuesta] = useState<Propuesta | null>(null);
 
@@ -181,14 +168,14 @@ const MisTemasPage = () => {
               <CardDescription>Temas que has propuesto</CardDescription>
             </CardHeader>
             <CardContent>
-              <PendientesCotesistasCard
+              {/*<PendientesCotesistasCard
                 propuestasPendientes={propuestasPendientes}
                 onView={(id) => {
                   const found = propuestas.find((p) => p.id === id);
                   if (found) setSelectedPropuesta(found);
                 }}
                 onDelete={() => {}}
-              />
+              />*/}
               <div className="mt-6" />
               <PropuestasTable/>
             </CardContent>

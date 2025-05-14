@@ -67,3 +67,19 @@ export type SubAreaConocimiento = {
   fechaCreacion: string | null;
   fechaModificacion: string | null;
 };
+
+export interface Postulacion {
+  id: string;
+  titulo: string;
+  area: string;
+  asesor: string;
+  correoAsesor: string;
+  fechaLimite: string;
+  estado: "pendiente" | "rechazado" | "aceptado";
+  tipo: "general" | "directa";
+  descripcion: string;
+  comentarioAsesor: string;
+  temaId: number;
+  asesorId: number;
+  alumnoId: number;
+}

@@ -1,5 +1,16 @@
 "use client";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,21 +29,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Postulacion } from "@/features/temas/types/propuestas/entidades";
 import { CheckCircle, Eye, X } from "lucide-react";
 import { useEffect, useState } from "react";
-
-interface Postulacion {
-  id: string;
-  titulo: string;
-  area: string;
-  asesor: string;
-  correoAsesor: string;
-  fechaLimite: string;
-  estado: "pendiente" | "rechazado" | "aceptado";
-  tipo: "general" | "directa";
-  descripcion: string;
-  comentarioAsesor: string;
-}
 
 interface PostulacionesTableProps {
   filter?: "general" | "directa";
@@ -48,15 +47,48 @@ export function PostulacionesTable({
   const [searchAsesor, setSearchAsesor] = useState("");
   const [areaFilter, setAreaFilter] = useState<string | null>(null);
 
+  const handleDecision = async (
+    decision: "aceptar" | "rechazar",
+    temaId: number,
+    asesorId: number,
+    alumnoId: number
+  ) => {
+    try {
+      const endpoint =
+        decision === "aceptar"
+          ? "aprobarPostulacionAPropuesta"
+          : "rechazarPostulacionAPropuesta";
+
+      const res = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/temas/${endpoint}?alumnoId=${alumnoId}&asesorId=${asesorId}&temaId=${temaId}`,
+            {
+              method: "POST",
+            }
+          );
+
+          if (!res.ok) throw new Error("Error al procesar solicitud");
+
+          setPostulaciones((prev) =>
+            prev.map((p) =>
+              p.temaId === temaId && p.asesorId === asesorId
+                ? { ...p, estado: decision === "aceptar" ? "aceptado" : "rechazado" }
+                : p
+            )
+          );
+        } catch (err) {
+          console.error("Error en la API de decisión:", err);
+        }
+      };
+
   useEffect(() => {
     async function fetchAll() {
       try {
         const [dirRes, genRes] = await Promise.all([
           fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPostulacionesDirectasAMisPropuestas/4`
+            `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPostulacionesDirectasAMisPropuestas/35`
           ),
           fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPostulacionesGeneralesAMisPropuestas/4`
+            `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPostulacionesGeneralesAMisPropuestas/35`
           ),
         ]);
         const [dirData, genData] = await Promise.all([
@@ -80,7 +112,10 @@ export function PostulacionesTable({
               estado: "aceptado",
               tipo: "directa",
               descripcion: item.resumen ?? "",
-              comentarioAsesor: "",
+              comentarioAsesor: coAceptado.comentario ?? "",
+              temaId: item.id,
+              asesorId: coAceptado.id,
+              alumnoId: 0,
             });
             return;
           }
@@ -97,7 +132,10 @@ export function PostulacionesTable({
                 estado: "rechazado",
                 tipo: "directa",
                 descripcion: item.resumen ?? "",
-                comentarioAsesor: "",
+                comentarioAsesor: co.comentario ?? "",
+                temaId: item.id,
+                asesorId: co.id,
+                alumnoId: 0,
               });
             });
           }
@@ -112,6 +150,8 @@ export function PostulacionesTable({
                 : co.rechazado === false
                 ? "aceptado"
                 : "pendiente";
+                
+        const alumnoId = item.tesistas.find((t: any) => t.creador)?.id;
 
             return {
               id: `${item.id}-${co.id}`,
@@ -123,7 +163,10 @@ export function PostulacionesTable({
               estado,
               tipo: "general",
               descripcion: item.resumen ?? "",
-              comentarioAsesor: "",
+              comentarioAsesor: co.comentario ?? "",
+              temaId: item.id,
+              asesorId: co.id,
+              alumnoId: alumnoId,
             };
           });
         });
@@ -243,22 +286,68 @@ export function PostulacionesTable({
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
-                      {p.estado === "pendiente" && (
+                      {p.estado === "pendiente" && p.tipo === "general" && (
                         <>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-red-500"
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-green-500"
-                          >
-                            <CheckCircle className="h-4 w-4" />
-                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-red-500"
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Esta acción no se puede deshacer. Se rechazará al docente como asesor.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction
+                                  className="bg-red-600 hover:bg-red-700 text-white"
+                                  onClick={() =>
+                                    handleDecision("rechazar", p.temaId, p.asesorId, p.alumnoId)
+                                  }
+                                >
+                                  Rechazar
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-green-500"
+                              >
+                                <CheckCircle className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>¿Deseas aceptar esta propuesta?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  El asesor será informado y se procederá a registrar tu decisión.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction
+                                  className="bg-green-600 hover:bg-green-700 text-white"
+                                  onClick={() =>
+                                    handleDecision("aceptar", p.temaId, p.asesorId, p.alumnoId)
+                                  }
+                                >
+                                  Aceptar
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </>
                       )}
                     </div>

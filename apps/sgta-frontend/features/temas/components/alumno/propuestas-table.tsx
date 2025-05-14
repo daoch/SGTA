@@ -43,7 +43,7 @@ import {
 import { Proyecto, SubAreaConocimiento, Usuario } from "@/features/temas/types/propuestas/entidades";
 import { Eye, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
+import { Toaster, toast } from "sonner";
 
 interface PropuestaAPI {
   id: number;
@@ -75,7 +75,7 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
     async function fetchPropuestas() {
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPropuestasPorTesista/4`
+          `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPropuestasPorTesista/35`
         );
         const data: PropuestaAPI[] = await res.json();
 
@@ -121,27 +121,6 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
     }
     return true;
   });
-
-  const handleDelete = async (id: number) => {
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/temas/deleteTema`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(id),
-      });
-
-      if (!res.ok) throw new Error("Error al eliminar");
-
-      // Opcional: feedback visual
-      alert("Propuesta eliminada");
-
-      // Refresca las propuestas localmente
-      setPropuestas((prev) => prev.filter((p) => p.id !== id));
-    } catch (err) {
-      console.error("Error al eliminar la propuesta:", err);
-      alert("No se pudo eliminar la propuesta.");
-    }
-  };
 
   const areasUnicas = Array.from(
     new Set(propuestas.map((p) => p.subareas[0]?.nombre || "—"))
@@ -407,10 +386,17 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
 
                                 if (!res.ok) throw new Error("Error en la API");
 
-                                toast.success("Propuesta eliminada correctamente");
+                                toast.success("Propuesta eliminada", {
+                                  description: "Tu propuesta ha sido eliminada satisfactoriamente",
+                                  duration: 5000, // 5 segundos
+                                });
+
                                 setPropuestas((prev) => prev.filter((x) => x.id !== p.id));
                               } catch (err) {
-                                toast.error("No se pudo eliminar la propuesta");
+                                toast.error("Error", {
+                                  description: "No se pudo eliminar la propuesta",
+                                  duration: 5000,
+                                });
                                 console.error(err);
                               }
                             }}
@@ -428,6 +414,7 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
           </TableBody>
         </Table>
       </div>
+      <Toaster position="bottom-right" richColors />
     </>
   );
 }
