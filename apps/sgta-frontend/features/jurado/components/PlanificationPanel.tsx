@@ -15,8 +15,8 @@ interface Props {
   roomAvailList: JornadaExposicionDTO[];
   assignedExpos: Record<string, Tema>;
   removeExpo: (expo: Tema) => void;
-  onSiguienteFaseClick: () => void;
-  onTerminarPlanificacionClick:() => void;
+  
+  onAvanzarPlanificacionClick:() => void;
   bloquesList: TimeSlot[];
   estadoPlan:EstadoPlanificacion;
 }
@@ -24,8 +24,8 @@ const PlanificationPanel: React.FC<Props> = ({
   roomAvailList,
   assignedExpos,
   removeExpo,
-  onSiguienteFaseClick,
-  onTerminarPlanificacionClick,
+  
+  onAvanzarPlanificacionClick,
   bloquesList,
   estadoPlan,
 }) => {
@@ -70,16 +70,20 @@ const PlanificationPanel: React.FC<Props> = ({
         ))}
 
         <div className="ml-auto ">
-          <Button
-            onClick={() => onSiguienteFaseClick()}
+          {
+            estadoPlan.nombre != "Cierre de planificacion" &&
+            <Button
+            onClick={() => onAvanzarPlanificacionClick()}
             className="w-full xl:w-auto mr-2"
             style={{ background: "#042354" }}
           >
             Siguiente fase
           </Button>
+          }
+         
           {estadoPlan.nombre!=="Planificacion inicial" && 
            <Button
-           onClick={() => onTerminarPlanificacionClick()}
+           onClick={() => onAvanzarPlanificacionClick()}
            className="w-full xl:w-auto ml-2"
            style={{ background: "#042354" }}
          >

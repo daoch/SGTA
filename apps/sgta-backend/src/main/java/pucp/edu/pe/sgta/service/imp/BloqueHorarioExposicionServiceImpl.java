@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -118,5 +119,24 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
             e.printStackTrace();
             return false;
         }
+    }
+
+    @Override
+    public boolean updateBlouqesListNextPhase(List<ListBloqueHorarioExposicionSimpleDTO> bloquesList) {
+
+
+        try {
+
+            ObjectMapper mapper = new ObjectMapper();
+            String jsonString = mapper.writeValueAsString(bloquesList);
+
+            bloqueHorarioExposicionRepository.updateBloquesExposicionNextPhase(jsonString);
+
+            return true;
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return false;
+        }
+
     }
 }

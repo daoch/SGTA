@@ -15,4 +15,8 @@ public interface BloqueHorarioExposicionRepository extends JpaRepository<BloqueH
     @Query(value = "SELECT actualizar_exposicon_tema_bloque_exposicion(CAST(:bloques_json AS jsonb))", nativeQuery = true)
     void actualizarMasivo(@Param("bloques_json") String bloquesJson);
 
+
+    @Query(value = "SELECT actualizar_bloque_exposicion_siguientes_fases(CAST(:bloques_json AS jsonb))",nativeQuery = true)
+    void updateBloquesExposicionNextPhase(@Param("bloques_json") String bloquesJson);
+
 }

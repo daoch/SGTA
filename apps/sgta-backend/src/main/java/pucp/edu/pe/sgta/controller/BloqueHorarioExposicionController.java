@@ -42,4 +42,38 @@ public class BloqueHorarioExposicionController {
                     .body(new ResponseMessage(false, "Error inesperado al actualizar bloques"));
         }
     }
+
+    @PatchMapping ("/updateBloquesListNextPhase")
+    public ResponseEntity<ResponseMessage> updateBloquesNextPhase(@RequestBody List<ListBloqueHorarioExposicionSimpleDTO> bloquesList) {
+        try {
+            int cantExpos=0;
+            int cantReservados=0;
+            int cantLibres =0;
+            for(ListBloqueHorarioExposicionSimpleDTO bloque : bloquesList) {
+                if(bloque.getExpo() != null){
+                    cantExpos++;
+                }
+                if(bloque.getEsBloqueReservado()){
+                    cantReservados++;
+                }
+                else{
+                    cantLibres++;
+                }
+            }
+            boolean updateSuccessful = bloqueHorarioExposicionService.updateBlouqesListNextPhase(bloquesList);
+
+            if (updateSuccessful) {
+
+                return ResponseEntity.ok(new ResponseMessage(true, "Bloques actualizados correctamente"));
+            } else {
+
+                return ResponseEntity.status(HttpStatus.PARTIAL_CONTENT)
+                        .body(new ResponseMessage(false, "Actualización parcial o fallida"));
+            }
+        } catch (Exception e) {
+            // Si ocurre una excepción inesperada
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseMessage(false, "Error inesperado al actualizar bloques"));
+        }
+    }
 }
