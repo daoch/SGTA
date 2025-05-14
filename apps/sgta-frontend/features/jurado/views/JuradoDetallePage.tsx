@@ -31,9 +31,19 @@ import {
   PeriodoAcademico,
   JuradoDetalleViewProps,
   JuradoTemasDetalle,
+  EtapaFormativa,
   AreaConocimientoJurado,
+  Ciclo,
 } from "@/features/jurado/types/juradoDetalle.types";
-import { getTemasJurado ,listarAreasConocimientoJurado,getTemasModalAsignar,asignarTemaJurado} from "../services/jurado-service";
+//import { getTemasJurado ,listarAreasConocimientoJurado,getTemasModalAsignar,asignarTemaJurado} from "../services/jurado-service";
+import {
+  getCiclos,
+  getEtapasFormativasNombres,
+  asignarTemaJurado,
+  getTemasJurado,
+  listarAreasConocimientoJurado,
+  getTemasModalAsignar,
+} from "../services/jurado-service";
 
 export function JuradoDetalleView({
   modalAsignarTesisComponent: ModalAsignarTesis,
@@ -59,23 +69,68 @@ export function JuradoDetalleView({
     fetchTemas();
   }, []);
 
+  //JALAMOS LAS ETAPAS FORMATIVAS
+  const [etapasFormativas, setEtapasFormativas] = useState<EtapaFormativa[]>(
+    [],
+  );
+  const [selectedEtapaFormativa, setSelectedEtapaFormativa] =
+    useState<string>("TODOS");
+  useEffect(() => {
+    const fetchEtapasFormativas = async () => {
+      try {
+        const etapasFormativas = await getEtapasFormativasNombres();
+        setEtapasFormativas(etapasFormativas);
+      } catch (error) {
+        console.error("Error fetching etapas formativas:", error);
+      }
+    };
+    fetchEtapasFormativas();
+  }, []);
+
+  //JALAMOS LOS CICLOS
+  const [ciclos, setCiclos] = useState<Ciclo[]>([]);
+  const [selectedCiclo, setSelectedCiclo] = useState<string>("TODOS");
+  useEffect(() => {
+    const fetchCiclos = async () => {
+      try {
+        const ciclos = await getCiclos();
+        setCiclos(ciclos);
+        if (ciclos.length > 0) {
+          const primerValor = `${ciclos[0].anio}-${ciclos[0].semestre}`;
+          setSelectedCiclo(primerValor);
+        }
+      } catch (error) {
+        console.error("Error fetching ciclos:", error);
+      }
+    };
+    fetchCiclos();
+  }, []);
   // Luego, dentro del componente, añade el siguiente estado
-  const [juradoAreaConocimiento, setJuradoAreaConocimiento] = useState<AreaConocimientoJurado[]>([]);
+  const [juradoAreaConocimiento, setJuradoAreaConocimiento] = useState<
+    AreaConocimientoJurado[]
+  >([]);
 
   // Añade este useEffect después del useEffect existente para cargar los temas
   useEffect(() => {
     const fetchAreasConocimiento = async () => {
       try {
-        const areas = await listarAreasConocimientoJurado(Number(detalleJurado));
+        const areas = await listarAreasConocimientoJurado(
+          Number(detalleJurado),
+        );
         setJuradoAreaConocimiento(areas);
       } catch (error) {
-        console.error("Error fetching áreas de conocimiento del jurado:", error);
+        console.error(
+          "Error fetching áreas de conocimiento del jurado:",
+          error,
+        );
       }
     };
     fetchAreasConocimiento();
   }, [detalleJurado]);
 
-  const [tesisDataSeleccion, setTesisDataSeleccion] = useState<JuradoTemasDetalle[]>([]);
+  const [tesisDataSeleccion, setTesisDataSeleccion] = useState<
+    JuradoTemasDetalle[]
+  >([]);
 
   // Añade este useEffect después del useEffect para cargar áreas de conocimiento
   useEffect(() => {
@@ -126,12 +181,6 @@ export function JuradoDetalleView({
   }, [asignadas]);
 
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedPeriodo, setSelectedPeriodo] = useState<PeriodoAcademico>(
-    PeriodoAcademico.TODOS,
-  );
-  const [selectedCurso, setSelectedCurso] = useState<CursoType>(
-    CursoType.TODOS,
-  );
 
   const handleAsignarTesis = async (tesis: JuradoTemasDetalle) => {
     try {
@@ -173,16 +222,17 @@ export function JuradoDetalleView({
   useEffect(() => {
     setAsignadas(
       allTemasJuradoData.filter((tesis) => {
+        console.log("tesis", tesis);
         const matchCurso =
-          selectedCurso === CursoType.TODOS ||
-          tesis.etapaFormativaTesis.nombre === selectedCurso;
+          selectedEtapaFormativa === "TODOS" ||
+          tesis.etapaFormativaTesis.nombre === selectedEtapaFormativa;
         const matchPeriodo =
-          selectedPeriodo === PeriodoAcademico.TODOS ||
-          tesis.cicloTesis.nombre === selectedPeriodo;
+          selectedCiclo === "TODOS" ||
+          tesis.cicloTesis.nombre === selectedCiclo;
         return matchCurso && matchPeriodo;
       }),
     );
-  }, [selectedCurso, selectedPeriodo]); // Quitar searchTerm de aquí
+  }, [selectedEtapaFormativa, selectedCiclo]); // Quitar searchTerm de aquí
 
   // Función de búsqueda que filtra por texto y respeta los filtros activos
   const handleSearch = () => {
@@ -196,11 +246,11 @@ export function JuradoDetalleView({
           );
 
         const matchCurso =
-          selectedCurso === CursoType.TODOS ||
-          tesis.etapaFormativaTesis.nombre === selectedCurso;
+          selectedEtapaFormativa === "TODOS" ||
+          tesis.etapaFormativaTesis.nombre === selectedEtapaFormativa;
         const matchPeriodo =
-          selectedPeriodo === PeriodoAcademico.TODOS ||
-          tesis.cicloTesis.nombre === selectedPeriodo;
+          selectedCiclo === "TODOS" ||
+          tesis.cicloTesis.nombre === selectedCiclo;
 
         return matchText && matchCurso && matchPeriodo;
       }),
@@ -246,25 +296,17 @@ export function JuradoDetalleView({
           {/* ComboBox 1 - Curso */}
           <div className="flex flex-col w-[242px] h-[80px] items-start gap-[6px] flex-shrink-0">
             <label className="text-sm font-medium">Curso</label>
-            <Select
-              onValueChange={(val: string) =>
-                setSelectedCurso(val as CursoType)
-              }
-              defaultValue={CursoType.TODOS}
-            >
+            <Select onValueChange={(val) => setSelectedEtapaFormativa(val)}>
               <SelectTrigger className="h-[80px] w-full border border-[#E2E6F0] rounded-md !important">
                 <SelectValue placeholder="Todos" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={CursoType.TODOS}>
-                  {CursoType.TODOS}
-                </SelectItem>
-                <SelectItem value={CursoType.PFC1}>
-                  Proyecto de Fin de Carrera 1
-                </SelectItem>
-                <SelectItem value={CursoType.PFC2}>
-                  Proyecto de Fin de Carrera 2
-                </SelectItem>
+                <SelectItem value="TODOS">Todos</SelectItem>
+                {etapasFormativas.map((etapa) => (
+                  <SelectItem key={etapa.etapaFormativaId} value={etapa.nombre}>
+                    {etapa.nombre}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -273,27 +315,21 @@ export function JuradoDetalleView({
           <div className="flex flex-col w-[104px] h-[80px] items-start gap-[6px] flex-shrink-0">
             <label className="text-sm font-medium">Periodo</label>
             <Select
-              onValueChange={(val: string) =>
-                setSelectedPeriodo(val as PeriodoAcademico)
-              }
-              defaultValue={PeriodoAcademico.TODOS}
+              value={selectedCiclo}
+              onValueChange={(val) => setSelectedCiclo(val)}
             >
               <SelectTrigger className="h-[68px] w-full">
-                <SelectValue placeholder="Todos" />
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={PeriodoAcademico.TODOS}>
-                  {PeriodoAcademico.TODOS}
-                </SelectItem>
-                <SelectItem value={PeriodoAcademico.PERIODO_2025_1}>
-                  2025-1
-                </SelectItem>
-                <SelectItem value={PeriodoAcademico.PERIODO_2025_0}>
-                  2025-0
-                </SelectItem>
-                <SelectItem value={PeriodoAcademico.PERIODO_2024_2}>
-                  2024-2
-                </SelectItem>
+                {ciclos.map((ciclo) => {
+                  const value = `${ciclo.anio}-${ciclo.semestre}`;
+                  return (
+                    <SelectItem key={ciclo.id} value={value}>
+                      {value}
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
           </div>
@@ -309,118 +345,132 @@ export function JuradoDetalleView({
           </Button>
         </div>
       </div>
-      <ListaTesisJuradoCard
-        data={currentItems}
-        onCardClick={handleTesisCardClick}
-      />
 
-      {/* Modal */}
-       <ModalAsignarTesis
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onAsignar={handleAsignarTesis}
-        data={tesisDataSeleccion}
-        jurado={juradoAreaConocimiento}
-      /> 
-
-      <div className="flex items-center justify-between pt-4 border-t">
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-500">Mostrar</span>
-          <Select
-            value={itemsPerPage.toString()}
-            onValueChange={handleItemsPerPageChange}
-          >
-            <SelectTrigger className="w-[80px]">
-              <SelectValue placeholder={itemsPerPage.toString()} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="5">5</SelectItem>
-              <SelectItem value="10">10</SelectItem>
-              <SelectItem value="15">25</SelectItem>
-              <SelectItem value="20">20</SelectItem>
-            </SelectContent>
-          </Select>
-          <span className="text-sm text-gray-500">por página</span>
+      {asignadas.length === 0 ? (
+        <div className="text-center text-gray-400 mt-5">
+          <p>
+            No hay miembros de jurados disponibles que coincidan con los filtros
+            aplicados.
+          </p>
         </div>
+      ) : (
+        <div>
+          <ListaTesisJuradoCard
+            data={currentItems}
+            onCardClick={handleTesisCardClick}
+          />
 
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-500">
-            Mostrando {indexOfFirstItem + 1}-
-            {Math.min(indexOfLastItem, asignadas.length)} de {asignadas.length}{" "}
-            registros
-          </span>
-        </div>
+          {/* Modal */}
+          <ModalAsignarTesis
+            open={modalOpen}
+            onClose={() => setModalOpen(false)}
+            onAsignar={handleAsignarTesis}
+            data={tesisDataSeleccion}
+            jurado={juradoAreaConocimiento}
+          />
 
-        <Pagination>
-          <PaginationContent className="flex items-center gap-10">
-            <PaginationItem>
-              <PaginationLink
-                onClick={() =>
-                  currentPage > 1 && handlePageChange(currentPage - 1)
-                }
-                className={
-                  currentPage === 1
-                    ? "pointer-events-none opacity-50"
-                    : "cursor-pointer hover:bg-transparent"
-                }
+          <div className="flex items-center justify-between pt-4 border-t">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-500">Mostrar</span>
+              <Select
+                value={itemsPerPage.toString()}
+                onValueChange={handleItemsPerPageChange}
               >
-                <ChevronLeft className="h-4 w-4 mr-1" />
-                Anterior
-              </PaginationLink>
-            </PaginationItem>
-
-            <div className="flex items-center gap-1">
-              {pageNumbers.map((number) => {
-                if (
-                  number === 1 ||
-                  number === totalPages ||
-                  (number >= currentPage - 1 && number <= currentPage + 1)
-                ) {
-                  return (
-                    <PaginationItem key={number}>
-                      <PaginationLink
-                        onClick={() => handlePageChange(number)}
-                        isActive={currentPage === number}
-                      >
-                        {number}
-                      </PaginationLink>
-                    </PaginationItem>
-                  );
-                }
-
-                if (
-                  (number === 2 && currentPage > 3) ||
-                  (number === totalPages - 1 && currentPage < totalPages - 2)
-                ) {
-                  return (
-                    <PaginationItem key={number}>
-                      <PaginationEllipsis />
-                    </PaginationItem>
-                  );
-                }
-
-                return null;
-              })}
+                <SelectTrigger className="w-[80px]">
+                  <SelectValue placeholder={itemsPerPage.toString()} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="5">5</SelectItem>
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="15">25</SelectItem>
+                  <SelectItem value="20">20</SelectItem>
+                </SelectContent>
+              </Select>
+              <span className="text-sm text-gray-500">por página</span>
             </div>
 
-            <PaginationItem>
-              <PaginationLink
-                onClick={() =>
-                  currentPage < totalPages && handlePageChange(currentPage + 1)
-                }
-                className={
-                  currentPage === totalPages
-                    ? "pointer-events-none opacity-50"
-                    : "cursor-pointer hover:bg-transparent"
-                }
-              >
-                Siguiente
-                <ChevronRight className="h-4 w-4 ml-1" />
-              </PaginationLink>
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-500">
+                Mostrando {indexOfFirstItem + 1}-
+                {Math.min(indexOfLastItem, asignadas.length)} de{" "}
+                {asignadas.length} registros
+              </span>
+            </div>
+
+            <Pagination>
+              <PaginationContent className="flex items-center gap-10">
+                <PaginationItem>
+                  <PaginationLink
+                    onClick={() =>
+                      currentPage > 1 && handlePageChange(currentPage - 1)
+                    }
+                    className={
+                      currentPage === 1
+                        ? "pointer-events-none opacity-50"
+                        : "cursor-pointer hover:bg-transparent"
+                    }
+                  >
+                    <ChevronLeft className="h-4 w-4 mr-1" />
+                    Anterior
+                  </PaginationLink>
+                </PaginationItem>
+
+                <div className="flex items-center gap-1">
+                  {pageNumbers.map((number) => {
+                    if (
+                      number === 1 ||
+                      number === totalPages ||
+                      (number >= currentPage - 1 && number <= currentPage + 1)
+                    ) {
+                      return (
+                        <PaginationItem key={number}>
+                          <PaginationLink
+                            onClick={() => handlePageChange(number)}
+                            isActive={currentPage === number}
+                          >
+                            {number}
+                          </PaginationLink>
+                        </PaginationItem>
+                      );
+                    }
+
+                    if (
+                      (number === 2 && currentPage > 3) ||
+                      (number === totalPages - 1 &&
+                        currentPage < totalPages - 2)
+                    ) {
+                      return (
+                        <PaginationItem key={number}>
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      );
+                    }
+
+                    return null;
+                  })}
+                </div>
+
+                <PaginationItem>
+                  <PaginationLink
+                    onClick={() =>
+                      currentPage < totalPages &&
+                      handlePageChange(currentPage + 1)
+                    }
+                    className={
+                      currentPage === totalPages
+                        ? "pointer-events-none opacity-50"
+                        : "cursor-pointer hover:bg-transparent"
+                    }
+                  >
+                    Siguiente
+                    <ChevronRight className="h-4 w-4 ml-1" />
+                  </PaginationLink>
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

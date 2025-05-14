@@ -4,6 +4,8 @@ import {
   JuradoDTO,
   JuradoTemasDetalle,
   JuradoUI,
+  EtapaFormativa,
+  Ciclo,
   AreaConocimientoJurado,
 } from "../types/juradoDetalle.types";
 
@@ -71,18 +73,43 @@ export const getTemasJurado = async (
     rol: tema.rol,
     estudiantes: tema.estudiantes,
     sub_areas_conocimiento: tema.sub_areas_conocimiento,
-    etapa_formativa: tema.etapaFormativaTesis,
+    etapaFormativaTesis: tema.etapaFormativaTesis,
     cicloTesis: tema.cicloTesis,
     estadoTema: tema.estadoTema,
   }));
 };
 
+export const getEtapasFormativasNombres = async (): Promise<
+  EtapaFormativa[]
+> => {
+  const response = await axiosInstance.get(
+    "/etapas-formativas/listarActivasNombre",
+  );
+  const data = response.data;
 
+  return data.map((etapa: EtapaFormativa) => ({
+    etapaFormativaId: etapa.etapaFormativaId,
+    nombre: etapa.nombre,
+  }));
+};
+
+export const getCiclos = async (): Promise<Ciclo[]> => {
+  const response = await axiosInstance.get("/ciclos/listarCiclos");
+  const data = response.data;
+
+  return data.map((ciclo: Ciclo) => ({
+    id: ciclo.id,
+    semestre: ciclo.semestre,
+    anio: ciclo.anio,
+  }));
+};
 
 export const listarAreasConocimientoJurado = async (
   idJurado: number,
 ): Promise<AreaConocimientoJurado[]> => {
-  const response = await axiosInstance.get(`/jurado/${idJurado}/areas-conocimiento`);
+  const response = await axiosInstance.get(
+    `/jurado/${idJurado}/areas-conocimiento`,
+  );
   const data = response.data;
 
   return data.areas_conocimiento.map((area: AreaConocimientoJurado) => ({
@@ -91,11 +118,12 @@ export const listarAreasConocimientoJurado = async (
   }));
 };
 
-
 export const getTemasModalAsignar = async (
-  idJurado: number
+  idJurado: number,
 ): Promise<JuradoTemasDetalle[]> => {
-  const response = await axiosInstance.get(`/jurado/temas-otros-jurados/${idJurado}`);
+  const response = await axiosInstance.get(
+    `/jurado/temas-otros-jurados/${idJurado}`,
+  );
   const data = response.data;
 
   return data.map((tesis: JuradoTemasDetalle) => ({
