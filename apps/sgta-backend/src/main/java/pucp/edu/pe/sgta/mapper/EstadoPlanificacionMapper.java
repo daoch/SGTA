@@ -9,8 +9,7 @@ public class EstadoPlanificacionMapper {
         dto.setId(estadoPlanificacion.getId());
         dto.setNombre(estadoPlanificacion.getNombre());
         dto.setActivo(estadoPlanificacion.getActivo());
-        dto.setFechaCreacion(estadoPlanificacion.getFechaCreacion());
-        dto.setFechaModificacion(estadoPlanificacion.getFechaModificacion());
+
         return dto;
     }
 
@@ -19,8 +18,7 @@ public class EstadoPlanificacionMapper {
         estadoPlanificacion.setId(dto.getId());
         estadoPlanificacion.setNombre(dto.getNombre());
         estadoPlanificacion.setActivo(dto.getActivo());
-        estadoPlanificacion.setFechaCreacion(dto.getFechaCreacion());
-        estadoPlanificacion.setFechaModificacion(dto.getFechaModificacion());
+
         return estadoPlanificacion;
     }
 }

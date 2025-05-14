@@ -1,4 +1,4 @@
--- 1) Tipo de usuario
+-- 1) Tipo de usuario y dedicacion
 INSERT INTO tipo_usuario (nombre,
                           activo,
                           fecha_creacion,
@@ -7,6 +7,12 @@ INSERT INTO tipo_usuario (nombre,
            ('alumno', TRUE, NOW(), NOW()),
            ('coordinador', TRUE, NOW(), NOW()),
            ('administrador', TRUE, NOW(), NOW());
+
+
+INSERT INTO tipo_dedicacion (iniciales, descripcion)
+    VALUES ('TC', 'Tiempo completo'),
+           ('TPC', 'Tiempo parcial convencional'),
+           ('TPA', 'Tiempo parcial por asignaturas');
 
 -- 2) Rol
 INSERT INTO rol (nombre,
@@ -274,26 +280,58 @@ INSERT INTO etapa_formativa_x_ciclo (etapa_formativa_id,
 
 -- Entregables
 
-INSERT INTO entregable (etapa_formativa_x_ciclo_id,
-                        nombre,
-                        descripcion,
-                        fecha_inicio,
-                        fecha_fin,
-                        es_evaluable,
-                        activo,
-                        fecha_creacion,
-                        fecha_modificacion)
-    VALUES (1, 'Estado del arte', 'Estado del arte del tema', '2025-04-01', '2025-04-10', TRUE, TRUE, NOW(), NOW()),
-           (1, 'Entregable 1', 'Entregable 1 del tema', '2025-05-10', '2025-05-16', TRUE, TRUE, NOW(), NOW());
-
-INSERT INTO criterio_entregable (entregable_id,
-                                 nombre,
-                                 nota_maxima,
-                                 descripcion,
-                                 activo,
-                                 fecha_creacion,
-                                 fecha_modificacion)
-    VALUES (1, 'Redaccion', 5, 'Redaccion del documento', TRUE, NOW(), NOW());
+INSERT INTO entregable (
+    etapa_formativa_x_ciclo_id,
+    nombre,
+    descripcion,
+    fecha_inicio,
+    fecha_fin,
+    estado,
+    es_evaluable,
+    maximo_documentos,
+    extensiones_permitidas,
+    peso_maximo_documento,
+    activo
+) VALUES 
+(
+    1,
+    'Informe de avance 1',
+    'Primer entregable con criterios básicos.',
+    '2025-05-10 08:00:00+00',
+    '2025-05-20 23:59:00+00',
+    'no_iniciado',
+    TRUE,
+    3,
+    'pdf,docx',
+    10,
+    TRUE
+),
+(
+    1,
+    'Presentación final',
+    'Entrega de presentación en PowerPoint o PDF.',
+    '2025-06-01 08:00:00+00',
+    '2025-06-15 23:59:00+00',
+    'no_iniciado',
+    FALSE,
+    1,
+    'pdf,pptx',
+    15,
+    TRUE
+),
+(
+    1,
+    'Anexos del proyecto',
+    'Material adicional del proyecto: códigos, gráficos, etc.',
+    '2025-05-15 08:00:00+00',
+    '2025-05-30 23:59:00+00',
+    'no_iniciado',
+    TRUE,
+    5,
+    'pdf,zip,rar',
+    25,
+    TRUE
+);
 
 -- Exposiciones
 

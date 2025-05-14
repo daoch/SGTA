@@ -1,12 +1,8 @@
-import { Tema } from "@/features/jurado/types/jurado.types";
+import { Tema, TimeSlot } from "@/features/jurado/types/jurado.types";
 import Draggable from "./Draggable";
 import ExpoSon from "./ExpoSon";
 
-interface TimeSlot {
-  key: string;
-  range: string;
-  expo?: Tema;
-}
+
 
 interface Props {
   code: string;

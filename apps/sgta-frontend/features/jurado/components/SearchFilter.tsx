@@ -7,7 +7,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-
 import { useState } from "react";
 import { AreaEspecialidad } from "../types/jurado.types";
 
@@ -16,13 +15,10 @@ interface Props {
 }
 
 const SearchFilter: React.FC<Props> = ({ topics }) => {
-
   const placeholder = "Inombre del docente o codigo de tesis";
   const [selectedEspecialidad, _] = useState("Todos");
 
-  function handleSearch(term: string) {
-    
-  }
+  function handleSearch(term: string) {}
 
   return (
     <div className="relative flex flex-1 flex-shrink-0 gap-4">
@@ -35,7 +31,6 @@ const SearchFilter: React.FC<Props> = ({ topics }) => {
         onChange={(e) => {
           handleSearch(e.target.value);
         }}
-       
       />
       <DropdownMenu>
         <DropdownMenuTrigger className="w-1/2 border-gray-300 border-2 rounded-lg text-left p-1">
@@ -44,7 +39,7 @@ const SearchFilter: React.FC<Props> = ({ topics }) => {
         <DropdownMenuContent>
           <DropdownMenuGroup>
             {topics.map((top: AreaEspecialidad) => (
-              <DropdownMenuItem key={top.name}>{top.name}</DropdownMenuItem>
+              <DropdownMenuItem key={top.nombre}>{top.nombre}</DropdownMenuItem>
             ))}
           </DropdownMenuGroup>
         </DropdownMenuContent>
@@ -54,3 +49,4 @@ const SearchFilter: React.FC<Props> = ({ topics }) => {
 };
 
 export default SearchFilter;
+

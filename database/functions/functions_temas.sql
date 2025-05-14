@@ -570,7 +570,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE FUNCTION obtener_usuarios_por_estado(activo_param BOOLEAN)
+CREATE OR REPLACE FUNCTION obtener_usuarios_por_estado(activo_param BOOLEAN)
     RETURNS TABLE
             (
                 usuario_id               INTEGER,
@@ -613,7 +613,7 @@ $$;
 
 ALTER FUNCTION obtener_usuarios_por_estado(BOOLEAN) OWNER TO postgres;
 
-CREATE FUNCTION obtener_usuarios_por_area_conocimiento(area_conocimiento_id_param INTEGER)
+CREATE OR REPLACE FUNCTION obtener_usuarios_por_area_conocimiento(area_conocimiento_id_param INTEGER)
     RETURNS TABLE
             (
                 id                       INTEGER,
@@ -660,7 +660,7 @@ $$;
 ALTER FUNCTION obtener_usuarios_por_area_conocimiento(INTEGER) OWNER TO postgres;
 
 
-CREATE FUNCTION obtener_usuarios_con_temass()
+CREATE OR REPLACE FUNCTION obtener_usuarios_con_temass()
     RETURNS TABLE
             (
                 usuario_id               INTEGER,
@@ -700,7 +700,7 @@ $$;
 ALTER FUNCTION obtener_usuarios_con_temass() OWNER TO postgres;
 
 
-CREATE FUNCTION obtener_usuarios_con_temas()
+CREATE OR REPLACE FUNCTION obtener_usuarios_con_temas()
     RETURNS TABLE
             (
                 usuario_id               INTEGER,
@@ -740,7 +740,7 @@ $$;
 ALTER FUNCTION obtener_usuarios_con_temas() OWNER TO postgres;
 
 
-CREATE FUNCTION obtener_area_conocimiento(usuario_id_param INTEGER)
+CREATE OR REPLACE FUNCTION obtener_area_conocimiento(usuario_id_param INTEGER)
     RETURNS TABLE
             (
                 usuario_id               INTEGER,
@@ -764,3 +764,30 @@ END;
 $$;
 
 ALTER FUNCTION obtener_area_conocimiento(INTEGER) OWNER TO postgres;
+
+
+CREATE OR REPLACE FUNCTION generar_codigo_tema()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_codigo_carrera TEXT;
+BEGIN
+    SELECT c.codigo INTO v_codigo_carrera
+    FROM carrera c
+    WHERE c.carrera_id = NEW.carrera_id;
+
+    -- Ahora que tema_id ya existe, podemos usarlo directamente
+    UPDATE tema
+    SET codigo = v_codigo_carrera || lpad(NEW.tema_id::TEXT, 6, '0')
+    WHERE tema_id = NEW.tema_id;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+
+DROP TRIGGER IF EXISTS trigger_generar_codigo_tema ON tema;
+
+CREATE TRIGGER trigger_generar_codigo_tema
+AFTER INSERT ON tema
+FOR EACH ROW
+EXECUTE FUNCTION generar_codigo_tema();
