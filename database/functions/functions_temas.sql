@@ -572,7 +572,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE FUNCTION obtener_usuarios_por_estado(activo_param BOOLEAN)
+CREATE OR REPLACE FUNCTION obtener_usuarios_por_estado(activo_param BOOLEAN)
     RETURNS TABLE
             (
                 usuario_id               INTEGER,
@@ -615,7 +615,7 @@ $$;
 
 ALTER FUNCTION obtener_usuarios_por_estado(BOOLEAN) OWNER TO postgres;
 
-CREATE FUNCTION obtener_usuarios_por_area_conocimiento(area_conocimiento_id_param INTEGER)
+CREATE OR REPLACE FUNCTION obtener_usuarios_por_area_conocimiento(area_conocimiento_id_param INTEGER)
     RETURNS TABLE
             (
                 id                       INTEGER,
@@ -662,7 +662,7 @@ $$;
 ALTER FUNCTION obtener_usuarios_por_area_conocimiento(INTEGER) OWNER TO postgres;
 
 
-CREATE FUNCTION obtener_usuarios_con_temass()
+CREATE OR REPLACE FUNCTION obtener_usuarios_con_temass()
     RETURNS TABLE
             (
                 usuario_id               INTEGER,
@@ -702,7 +702,7 @@ $$;
 ALTER FUNCTION obtener_usuarios_con_temass() OWNER TO postgres;
 
 
-CREATE FUNCTION obtener_usuarios_con_temas()
+CREATE OR REPLACE FUNCTION obtener_usuarios_con_temas()
     RETURNS TABLE
             (
                 usuario_id               INTEGER,
@@ -742,7 +742,7 @@ $$;
 ALTER FUNCTION obtener_usuarios_con_temas() OWNER TO postgres;
 
 
-CREATE FUNCTION obtener_area_conocimiento(usuario_id_param INTEGER)
+CREATE OR REPLACE FUNCTION obtener_area_conocimiento(usuario_id_param INTEGER)
     RETURNS TABLE
             (
                 usuario_id               INTEGER,
@@ -766,6 +766,33 @@ END;
 $$;
 
 ALTER FUNCTION obtener_area_conocimiento(INTEGER) OWNER TO postgres;
+
+
+CREATE OR REPLACE FUNCTION generar_codigo_tema()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_codigo_carrera TEXT;
+BEGIN
+    SELECT c.codigo INTO v_codigo_carrera
+    FROM carrera c
+    WHERE c.carrera_id = NEW.carrera_id;
+
+    -- Ahora que tema_id ya existe, podemos usarlo directamente
+    UPDATE tema
+    SET codigo = v_codigo_carrera || lpad(NEW.tema_id::TEXT, 6, '0')
+    WHERE tema_id = NEW.tema_id;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+
+DROP TRIGGER IF EXISTS trigger_generar_codigo_tema ON tema;
+
+CREATE TRIGGER trigger_generar_codigo_tema
+AFTER INSERT ON tema
+FOR EACH ROW
+EXECUTE FUNCTION generar_codigo_tema();
 
 CREATE OR REPLACE FUNCTION listar_propuestas_del_tesista_con_usuarios(
     p_tesista_id INTEGER
@@ -907,7 +934,7 @@ BEGIN
       ON ut_tesista.tema_id    = t.tema_id
      AND ut_tesista.usuario_id = p_tesista_id
      AND ut_tesista.rol_id     = (
-         SELECT rol_id FROM rol 
+         SELECT rol_id FROM rol
           WHERE nombre ILIKE 'Tesista'
           LIMIT 1
      )
@@ -962,3 +989,70 @@ END;
 $$;
 
 ALTER FUNCTION listar_postulaciones_del_tesista_con_usuarios(INTEGER) OWNER TO postgres;
+
+CREATE OR REPLACE FUNCTION listar_asesores_por_subarea_conocimiento(
+    p_subarea_id INTEGER
+)
+RETURNS TABLE(
+    usuario_id        INTEGER,
+    nombre_completo   TEXT,
+    correo_electronico TEXT
+)
+LANGUAGE SQL
+AS $$
+SELECT DISTINCT
+    u.usuario_id,
+    u.nombres || ' ' || u.primer_apellido    AS nombre_completo,
+    u.correo_electronico
+FROM usuario_sub_area_conocimiento usac
+  JOIN usuario u
+    ON u.usuario_id = usac.usuario_id
+  JOIN tipo_usuario tu
+    ON tu.tipo_usuario_id = u.tipo_usuario_id
+  -- Ensure the user has the "Asesor" role on at least one tema
+  JOIN usuario_tema ut
+    ON ut.usuario_id = u.usuario_id
+   AND ut.rol_id = (
+         SELECT rol_id
+           FROM rol
+          WHERE nombre ILIKE 'Asesor'
+          LIMIT 1
+       )
+WHERE usac.sub_area_conocimiento_id = p_subarea_id
+  AND usac.activo = TRUE
+  AND tu.nombre ILIKE 'profesor'
+$$;
+
+ALTER FUNCTION listar_postulaciones_del_tesista_con_usuarios(INTEGER) OWNER TO postgres;
+
+CREATE OR REPLACE FUNCTION sgtadb.obtener_sub_areas_por_carrera_usuario(
+    p_usuario_id INTEGER
+)
+RETURNS TABLE(
+    sub_area_conocimiento_id INTEGER,
+    area_conocimiento_id     INTEGER,
+    nombre                   TEXT,
+    descripcion              TEXT,
+    activo                   BOOLEAN
+)
+LANGUAGE SQL
+AS $$
+SELECT DISTINCT
+    sac.sub_area_conocimiento_id,
+    sac.area_conocimiento_id,
+    sac.nombre::TEXT      AS nombre,
+    sac.descripcion::TEXT AS descripcion,
+    sac.activo
+FROM usuario_carrera usac
+JOIN area_conocimiento ac
+  ON ac.carrera_id = usac.carrera_id
+ AND ac.activo = TRUE
+JOIN sub_area_conocimiento sac
+  ON sac.area_conocimiento_id = ac.area_conocimiento_id
+ AND sac.activo = TRUE
+WHERE usac.usuario_id = p_usuario_id
+  AND usac.activo = TRUE
+ORDER BY nombre;
+$$;
+
+ALTER FUNCTION obtener_sub_areas_por_carrera_usuario(INTEGER) OWNER TO postgres;

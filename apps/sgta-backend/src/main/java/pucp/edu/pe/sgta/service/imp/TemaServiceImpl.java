@@ -730,7 +730,7 @@ public class TemaServiceImpl implements TemaService {
 	public List<TemaDto> listarPropuestasPorTesista(Integer tesistaId) {
 		String sql =
 				"SELECT * " +
-						"  FROM sgtadb.listar_propuestas_del_tesista_con_usuarios(:p_tesista_id)";
+						"  FROM listar_propuestas_del_tesista_con_usuarios(:p_tesista_id)";
 		Query query = entityManager.createNativeQuery(sql)
 				.setParameter("p_tesista_id", tesistaId);
 
@@ -871,7 +871,7 @@ public class TemaServiceImpl implements TemaService {
 	private Integer calculatePostulaciones(List<UsuarioDto> usuarios) {
 		int count = 0;
 		for (UsuarioDto u : usuarios) {
-			if (RolEnum.Tesista.name().equals(u.getRol()) && Boolean.FALSE.equals(u.getAsignado())) {
+			if (RolEnum.Asesor.name().equals(u.getRol()) && Boolean.FALSE.equals(u.getAsignado())) {
 				count++;
 			}
 		}
@@ -882,7 +882,7 @@ public class TemaServiceImpl implements TemaService {
 	public List<TemaDto> listarPostulacionesAMisPropuestas(Integer tesistaId, Integer tipoPost) {
 		String sql =
 				"SELECT * " +
-						"  FROM sgtadb.listar_postulaciones_del_tesista_con_usuarios(:p_tesista_id, :p_tipo_post)";
+						"  FROM listar_postulaciones_del_tesista_con_usuarios(:p_tesista_id, :p_tipo_post)";
 		Query query = entityManager.createNativeQuery(sql)
 				.setParameter("p_tesista_id", tesistaId)
 				.setParameter("p_tipo_post", tipoPost);

@@ -16,6 +16,7 @@ import pucp.edu.pe.sgta.repository.CarreraRepository;
 import pucp.edu.pe.sgta.repository.SubAreaConocimientoRepository;
 import pucp.edu.pe.sgta.service.inter.SubAreaConocimientoService;
 
+import java.awt.geom.Area;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -164,6 +165,34 @@ public class SubAreaConocimientoServiceImpl implements SubAreaConocimientoServic
 				.stream()
 				.map(InfoSubAreaConocimientoMapper::toDto)
 				.toList();
+	}
+
+	@Override
+	public List<SubAreaConocimientoDto> listarPorCarreraDeUsuario(Integer usuarioId) {
+		String sql =
+				"SELECT sub_area_conocimiento_id, area_conocimiento_id, nombre, descripcion, activo " +
+						"  FROM obtener_sub_areas_por_carrera_usuario(:p_usuario_id)";
+		Query query = entityManager.createNativeQuery(sql)
+				.setParameter("p_usuario_id", usuarioId);
+
+		@SuppressWarnings("unchecked")
+		List<Object[]> rows = query.getResultList();
+
+		List<SubAreaConocimientoDto> result = new ArrayList<>(rows.size());
+		for (Object[] row : rows) {
+			AreaConocimientoDto areaConocimiento = new AreaConocimientoDto();
+			areaConocimiento.setId(((Number) row[1]).intValue());
+			SubAreaConocimientoDto dto = SubAreaConocimientoDto.builder()
+					.id(((Number) row[0]).intValue())
+					.areaConocimiento(areaConocimiento)
+					.nombre((String)  row[2])
+					.descripcion((String) row[3])
+					.activo((Boolean) row[4])
+					.build();
+			result.add(dto);
+		}
+
+		return result;
 	}
 
 	@Override
