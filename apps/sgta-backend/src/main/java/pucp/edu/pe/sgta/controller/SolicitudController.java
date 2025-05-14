@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import pucp.edu.pe.sgta.dto.AprobarSolicitudRequestDto;
+import pucp.edu.pe.sgta.dto.AprobarSolicitudResponseDto;
 import pucp.edu.pe.sgta.dto.RechazoSolicitudRequestDto;
 import pucp.edu.pe.sgta.dto.RechazoSolicitudResponseDto;
 import pucp.edu.pe.sgta.dto.SolicitudCeseDto;
@@ -30,6 +32,15 @@ public class SolicitudController {
         @RequestBody RechazoSolicitudRequestDto requestDto) {
 
         RechazoSolicitudResponseDto response = solicitudService.rechazarSolicitud(requestId, requestDto.getResponse());
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/cessation-requests/{requestId}/approve")
+    public ResponseEntity<AprobarSolicitudResponseDto> aprobarSolicitud(
+        @PathVariable Integer requestId,
+        @RequestBody AprobarSolicitudRequestDto requestDto) {
+
+        AprobarSolicitudResponseDto response = solicitudService.aprobarSolicitud(requestId, requestDto.getResponse());
         return ResponseEntity.ok(response);
     }
 }
