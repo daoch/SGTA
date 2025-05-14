@@ -32,4 +32,22 @@ public interface EtapaFormativaRepository extends JpaRepository<EtapaFormativa, 
     @Transactional
     @Query(value = "UPDATE etapa_formativa SET duracion_exposicion = CAST(:duracion AS interval) WHERE etapa_formativa_id = :id", nativeQuery = true)
     void updateDuracionExposicion(@Param("id") Integer id, @Param("duracion") String duracion);
+    
+    /**
+     * Función SQL para obtener el listado simple de etapas formativas
+     */
+    @Query(value = "SELECT * FROM listar_etapas_formativas_simple()", nativeQuery = true)
+    List<Object[]> findAllForSimpleList();
+    
+    /**
+     * Función SQL para obtener el detalle completo de una etapa formativa
+     */
+    @Query(value = "SELECT * FROM obtener_detalle_etapa_formativa(:etapaId)", nativeQuery = true)
+    Object getEtapaFormativaDetalleFunction(@Param("etapaId") Integer etapaId);
+    
+    /**
+     * Función SQL para obtener el historial de ciclos de una etapa formativa
+     */
+    @Query(value = "SELECT * FROM obtener_historial_ciclos_etapa_formativa(:etapaId)", nativeQuery = true)
+    List<Object[]> getHistorialCiclosEtapaFormativa(@Param("etapaId") Integer etapaId);
 }

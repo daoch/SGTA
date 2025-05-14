@@ -3,6 +3,8 @@ package pucp.edu.pe.sgta.service.inter;
 import pucp.edu.pe.sgta.dto.EtapaFormativaDto;
 import pucp.edu.pe.sgta.dto.EtapaFormativaNombreDTO;
 import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloDto;
+import pucp.edu.pe.sgta.dto.EtapaFormativaListadoDto;
+import pucp.edu.pe.sgta.dto.EtapaFormativaDetalleDto;
 
 import java.util.List;
 
@@ -27,6 +29,19 @@ public interface EtapaFormativaService {
     List<EtapaFormativaDto> findAllActivas();
 
     List<EtapaFormativaDto> findAllActivasByCoordinador(Integer coordinadorId);
+    
+    /**
+     * Obtiene un listado simple de todas las etapas formativas
+     * @return Lista de etapas formativas con nombre, carrera y estado
+     */
+    List<EtapaFormativaListadoDto> getSimpleList();
+    
+    /**
+     * Obtiene el detalle completo de una etapa formativa incluyendo su historial de ciclos
+     * @param id ID de la etapa formativa
+     * @return Detalle completo de la etapa formativa
+     */
+    EtapaFormativaDetalleDto getDetalleById(Integer id);
 /* 
     // Crea el vínculo entre una etapa Formativa y un Ciclo nuevo 
     void vincularACiclo(Integer etapaFormativaId, Integer cicloId);

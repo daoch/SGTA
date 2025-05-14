@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 import pucp.edu.pe.sgta.dto.EtapaFormativaDto;
 import pucp.edu.pe.sgta.dto.EtapaFormativaNombreDTO;
 import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloDto;
+import pucp.edu.pe.sgta.dto.EtapaFormativaListadoDto;
+import pucp.edu.pe.sgta.dto.EtapaFormativaDetalleDto;
 import pucp.edu.pe.sgta.mapper.EtapaFormativaMapper;
 import pucp.edu.pe.sgta.model.EtapaFormativa;
 import pucp.edu.pe.sgta.model.EtapaFormativaXCiclo;
@@ -22,6 +24,7 @@ import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -288,6 +291,68 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
         return String.format("%d:%02d:%02d", hours, minutes, seconds);
     }
 
-
+    @Override
+    public List<EtapaFormativaListadoDto> getSimpleList() {
+        List<Object[]> result = etapaFormativaRepository.findAllForSimpleList();
+        List<EtapaFormativaListadoDto> listadoDtos = new ArrayList<>();
+        
+        for (Object[] row : result) {
+            EtapaFormativaListadoDto dto = EtapaFormativaListadoDto.builder()
+                .id((Integer) row[0])
+                .nombre((String) row[1])
+                .carreraNombre((String) row[2])
+                .estado((String) row[3])
+                .build();
+            
+            listadoDtos.add(dto);
+        }
+        
+        return listadoDtos;
+    }
+    
+    @Override
+    public EtapaFormativaDetalleDto getDetalleById(Integer id) {
+        // Obtener información principal
+        Object result = etapaFormativaRepository.getEtapaFormativaDetalleFunction(id);
+        if (result == null) return null;
+        
+        Object[] row = (Object[]) result;
+        
+        // Construir DTO con datos principales
+        EtapaFormativaDetalleDto dto = EtapaFormativaDetalleDto.builder()
+            .id((Integer) row[0])
+            .nombre((String) row[1])
+            .carreraNombre((String) row[2])
+            .carreraId((Integer) row[3])
+            .creditajePorTema((BigDecimal) row[4])
+            .activo((Boolean) row[5])
+            .cicloActual((String) row[6])
+            .estadoActual((String) row[7])
+            .build();
+        
+        // Convertir PGInterval a Duration
+        PGInterval pgInterval = (PGInterval) row[8];
+        if (pgInterval != null) {
+            dto.setDuracionExposicion(convertPGIntervalToDuration(pgInterval));
+        }
+        
+        // Obtener historial de ciclos
+        List<Object[]> historialResult = etapaFormativaRepository.getHistorialCiclosEtapaFormativa(id);
+        List<EtapaFormativaDetalleDto.CicloHistorialDto> historialCiclos = new ArrayList<>();
+        
+        for (Object[] historialRow : historialResult) {
+            EtapaFormativaDetalleDto.CicloHistorialDto cicloDto = EtapaFormativaDetalleDto.CicloHistorialDto.builder()
+                .id((Integer) historialRow[0])
+                .ciclo((String) historialRow[1])
+                .estado((String) historialRow[2])
+                .build();
+            
+            historialCiclos.add(cicloDto);
+        }
+        
+        dto.setHistorialCiclos(historialCiclos);
+        
+        return dto;
+    }
 
 }

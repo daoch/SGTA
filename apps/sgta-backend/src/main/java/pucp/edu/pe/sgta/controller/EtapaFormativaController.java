@@ -22,6 +22,8 @@ import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import pucp.edu.pe.sgta.dto.EtapaFormativaListadoDto;
+import pucp.edu.pe.sgta.dto.EtapaFormativaDetalleDto;
 
 @RestController
 @RequestMapping("/etapas-formativas")
@@ -42,6 +44,21 @@ public class EtapaFormativaController {
     @GetMapping("/listarActivasPorCoordinador/{coordinador_id}")
     public List<EtapaFormativaDto> obtenerEtapasFormativasActivasPorCoordinador(@PathVariable("coordinador_id") Integer coordinadorId) {
         return etapaFormativaService.findAllActivasByCoordinador(coordinadorId);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<EtapaFormativaListadoDto>> listarEtapasFormativas() {
+        List<EtapaFormativaListadoDto> etapas = etapaFormativaService.getSimpleList();
+        return ResponseEntity.ok(etapas);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<EtapaFormativaDetalleDto> obtenerDetalleEtapaFormativa(@PathVariable Integer id) {
+        EtapaFormativaDetalleDto etapa = etapaFormativaService.getDetalleById(id);
+        if (etapa == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(etapa);
     }
 
     /**
@@ -72,8 +89,6 @@ public class EtapaFormativaController {
             .status(HttpStatus.OK)
             .body(updated);
     }
-
-
 
 /* 
     // Vincular etapa a un nuevo ciclo (crea EtapaFormativaXCiclo)
