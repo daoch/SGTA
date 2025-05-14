@@ -22,4 +22,7 @@ public interface EtapaFormativaRepository extends JpaRepository<EtapaFormativa, 
 
     @Query(value = "SELECT * FROM listar_etapas_formativas_activas_by_coordinador(:coordinadorId)", nativeQuery = true)
     List<Object[]> findAllActivasByCoordinador(@Param("coordinadorId") Integer coordinadorId);
+
+    @Query(value = "SELECT * FROM listar_etapa_formativa_nombre()", nativeQuery = true)
+    List<EtapaFormativaNombreDTO> findAllActivasNombre();
 }

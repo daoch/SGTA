@@ -25,7 +25,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql STABLE;
 
-
 CREATE OR REPLACE FUNCTION listar_exposicion_x_ciclo_actual_etapa_formativa(
 	etapa_id integer
 )
@@ -148,7 +147,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-
 CREATE OR REPLACE FUNCTION listar_jornadas_exposicion_salas(
 	etapa_id integer
 )
@@ -262,7 +260,6 @@ where c.activo = true
 END;
 $$ LANGUAGE plpgsql;
 
-
 CREATE OR REPLACE FUNCTION listar_bloques_horario_por_exposicion(p_exposicion_id INTEGER)
 RETURNS TABLE (
 	bloque_horario_exposicion_id INTEGER,
@@ -309,9 +306,6 @@ WHERE bhe.activo = true
 	AND je.exposicion_id = p_exposicion_id;
 END;
 $$ LANGUAGE plpgsql STABLE;
-
-
-
 
 CREATE OR REPLACE FUNCTION actualizar_exposicon_tema_bloque_exposicion(bloques_json jsonb)
 RETURNS void AS $$
@@ -367,7 +361,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-
 CREATE FUNCTION obtener_ciclo_etapa_por_tema(p_tema_id integer)
     RETURNS TABLE(ciclo_id integer, ciclo_nombre text, etapa_formativa_id integer, etapa_formativa_nombre text)
     LANGUAGE plpgsql
@@ -392,8 +385,6 @@ END;
 $$;
 
 ALTER FUNCTION obtener_ciclo_etapa_por_tema(INTEGER) OWNER TO postgres;
-
-
 
 CREATE FUNCTION obtener_area_conocimiento_jurado(usuario_id_param integer)
     RETURNS TABLE(usuario_id integer, area_conocimiento_id integer, area_conocimiento_nombre character varying)
@@ -498,9 +489,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-
-
-
 create or replace function actualizar_bloque_exposicion_siguientes_fases(bloques_json jsonb)
 returns void as $$
 declare
@@ -579,3 +567,17 @@ begin
 end;
 $$ language plpgsql;
 
+CREATE OR REPLACE FUNCTION listar_etapa_formativa_nombre()
+RETURNS TABLE(
+    etapa_formativa_id INTEGER,
+    nombre TEXT
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        ef.etapa_formativa_id,
+        ef.nombre
+    FROM etapa_formativa ef
+    WHERE ef.activo = true;
+END;
+$$ LANGUAGE plpgsql;

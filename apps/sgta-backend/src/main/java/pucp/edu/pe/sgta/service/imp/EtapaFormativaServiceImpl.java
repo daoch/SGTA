@@ -134,13 +134,12 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
         return Duration.ofSeconds(totalSeconds);
     }
 
-    // @Override
-    // public List<EtapaFormativaNombreDTO> findAllActivasNombre() {
-    // List<EtapaFormativaNombreDTO> etapasFormativas =
-    // etapaFormativaRepository.findAllByActivoTrue();
-    // return etapasFormativas.stream()
-    // .map(ef -> new EtapaFormativaNombreDTO(ef.getEtapaFormativaId(),
-    // ef.getNombre()))
-    // .toList();
-    // }
+    @Override
+    public List<EtapaFormativaNombreDTO> findAllActivasNombre() {
+        List<EtapaFormativaNombreDTO> etapasFormativas = etapaFormativaRepository.findAllActivasNombre();
+        return etapasFormativas.stream()
+                .map(ef -> new EtapaFormativaNombreDTO(ef.getEtapaFormativaId(),
+                        ef.getNombre()))
+                .toList();
+    }
 }

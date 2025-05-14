@@ -196,3 +196,14 @@ export interface JuradoTemasDetalle {
     nombre: string;
   };
 }
+
+export interface EtapaFormativa {
+  etapaFormativaId: number;
+  nombre: string;
+}
+
+export interface Ciclo {
+ id: number;
+ semestre: string;
+ anio: number; 
+}

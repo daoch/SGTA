@@ -4,6 +4,8 @@ import {
   JuradoDTO,
   JuradoTemasDetalle,
   JuradoUI,
+  EtapaFormativa,
+  Ciclo,
 } from "../types/juradoDetalle.types";
 
 export const getAllJurados = async (): Promise<JuradoUI[]> => {
@@ -70,9 +72,34 @@ export const getTemasJurado = async (
     rol: tema.rol,
     estudiantes: tema.estudiantes,
     sub_areas_conocimiento: tema.sub_areas_conocimiento,
-    etapa_formativa: tema.etapaFormativaTesis,
+    etapaFormativaTesis: tema.etapaFormativaTesis,
     cicloTesis: tema.cicloTesis,
     estadoTema: tema.estadoTema,
+  }));
+};
+
+export const getEtapasFormativasNombres = async (): Promise<
+  EtapaFormativa[]
+> => {
+  const response = await axiosInstance.get(
+    "/etapas-formativas/listarActivasNombre",
+  );
+  const data = response.data;
+
+  return data.map((etapa: EtapaFormativa) => ({
+    etapaFormativaId: etapa.etapaFormativaId,
+    nombre: etapa.nombre,
+  }));
+};
+
+export const getCiclos = async (): Promise<Ciclo[]> => {
+  const response = await axiosInstance.get("/ciclos/listarCiclos");
+  const data = response.data;
+
+  return data.map((ciclo: Ciclo) => ({
+    id: ciclo.id,
+    semestre: ciclo.semestre,
+    anio: ciclo.anio,
   }));
 };
 

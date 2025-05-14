@@ -24,10 +24,10 @@ public class EtapaFormativaController {
         return etapaFormativaService.findToInitializeByCoordinador(usuarioId);
     }
 
-    // @GetMapping("/listarActivasNombre")
-    // public List<EtapaFormativaNombreDTO> obtenerEtapasFormativasActivasNombre() {
-    // return etapaFormativaService.findAllActivasNombre();
-    // }
+    @GetMapping("/listarActivasNombre")
+    public List<EtapaFormativaNombreDTO> obtenerEtapasFormativasActivasNombre() {
+        return etapaFormativaService.findAllActivasNombre();
+    }
 
     @GetMapping("/listarActivas")
     public List<EtapaFormativaDto> obtenerEtapasFormativasActivas() {
