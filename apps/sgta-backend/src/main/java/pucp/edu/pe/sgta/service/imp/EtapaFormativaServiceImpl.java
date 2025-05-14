@@ -53,15 +53,18 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
         Object result = etapaFormativaRepository.getEtapaFormativaByIdFunction(id);
         if (result == null) return null;
 
-        Object[] row = (Object[]) result; // 👈 aquí el casteo correcto
+        Object[] row = (Object[]) result;
         EtapaFormativaDto dto = new EtapaFormativaDto();
 
         dto.setId((Integer) row[0]);
         dto.setNombre((String) row[1]);
         dto.setCreditajePorTema((BigDecimal) row[2]);
         
+        // Convertir PGInterval a Duration
         PGInterval pgInterval = (PGInterval) row[3];
-        dto.setDuracionExposicion(convertPGIntervalToDuration(pgInterval));
+        if (pgInterval != null) {
+            dto.setDuracionExposicion(convertPGIntervalToDuration(pgInterval));
+        }
         
         dto.setActivo((Boolean) row[4]);
         dto.setCarreraId((Integer) row[5]);
@@ -99,8 +102,11 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
             dto.setNombre((String) row[1]);
             dto.setCreditajePorTema((BigDecimal) row[2]);
             
+            // Convertir PGInterval a Duration
             PGInterval pgInterval = (PGInterval) row[3];
-            dto.setDuracionExposicion(convertPGIntervalToDuration(pgInterval));
+            if (pgInterval != null) {
+                dto.setDuracionExposicion(convertPGIntervalToDuration(pgInterval));
+            }
             
             dto.setActivo((Boolean) row[4]);
             dto.setCarreraId((Integer) row[5]);
@@ -120,8 +126,11 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
             dto.setNombre((String) row[1]);
             dto.setCreditajePorTema((BigDecimal) row[2]);
             
+            // Convertir PGInterval a Duration
             PGInterval pgInterval = (PGInterval) row[3];
-            dto.setDuracionExposicion(convertPGIntervalToDuration(pgInterval));
+            if (pgInterval != null) {
+                dto.setDuracionExposicion(convertPGIntervalToDuration(pgInterval));
+            }
             
             dto.setActivo((Boolean) row[4]);
             dto.setCarreraId((Integer) row[5]);
@@ -194,29 +203,63 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
 */
     @Override
     public EtapaFormativaDto create(EtapaFormativaDto dto) {
-        // 1) Validar y cargar la Carrera
-        var carrera = carreraRepository.findById(dto.getCarreraId())
-            .orElseThrow(() -> new RuntimeException("Carrera no encontrada: " + dto.getCarreraId()));
+        try {
+            // 1) Validar y cargar la Carrera
+            var carrera = carreraRepository.findById(dto.getCarreraId())
+                .orElseThrow(() -> new RuntimeException("Carrera no encontrada: " + dto.getCarreraId()));
 
-        // 2) Mapear DTO → Entidad
-        var etapa = new EtapaFormativa();
-        etapa.setNombre(dto.getNombre().toUpperCase());
-        etapa.setCreditajePorTema(dto.getCreditajePorTema());
-        etapa.setDuracionExposicion(dto.getDuracionExposicion());
-        etapa.setCarrera(carrera);
+            // 2) Guardar Duration para uso posterior
+            Duration duration = dto.getDuracionExposicion();
+            
+            // 3) Crear entidad sin la duración (ahora es @Transient)
+            var etapa = new EtapaFormativa();
+            etapa.setNombre(dto.getNombre().toUpperCase());
+            etapa.setCreditajePorTema(dto.getCreditajePorTema());
+            etapa.setCarrera(carrera);
+            
+            // 4) Guardar para obtener el ID
+            var saved = etapaFormativaRepository.save(etapa);
+            
+            // 5) Actualizar duracionExposicion por separado con SQL nativo
+            if (duration != null) {
+                String durationStr = formatDuration(duration);
+                etapaFormativaRepository.updateDuracionExposicion(saved.getId(), durationStr);
+                
+                // Actualizamos el campo transitorio para el DTO de respuesta
+                saved.setDuracionExposicion(duration);
+            }
 
-        // 3) Guardar en BD
-        var saved = etapaFormativaRepository.save(etapa);
-
-        // 4) Mapear Entidad → DTO con el ID generado
-        return EtapaFormativaDto.builder()
-            .id(saved.getId())
-            .nombre(saved.getNombre())
-            .creditajePorTema(saved.getCreditajePorTema())
-            .duracionExposicion(saved.getDuracionExposicion())
-            .activo(saved.getActivo())
-            .carreraId(carrera.getId())
-            .build();
+            // 6) Construir DTO de respuesta
+            return EtapaFormativaDto.builder()
+                .id(saved.getId())
+                .nombre(saved.getNombre())
+                .creditajePorTema(saved.getCreditajePorTema())
+                .duracionExposicion(saved.getDuracionExposicion())
+                .activo(saved.getActivo())
+                .carreraId(carrera.getId())
+                .build();
+        } catch (Exception e) {
+            throw new RuntimeException("Error al crear etapa formativa: " + e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * Formatea un objeto Duration a un formato compatible con PostgreSQL Interval
+     */
+    private String formatDuration(Duration duration) {
+        if (duration == null) {
+            return null;
+        }
+        
+        long seconds = duration.getSeconds();
+        
+        long hours = seconds / 3600;
+        seconds %= 3600;
+        long minutes = seconds / 60;
+        seconds %= 60;
+        
+        // Formato compatible con PostgreSQL interval: HH:MM:SS
+        return String.format("%d:%02d:%02d", hours, minutes, seconds);
     }
 
 
