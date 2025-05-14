@@ -53,17 +53,22 @@ export function JuradoDetalleView({
   const detalleJurado = params?.detalleJurado as string;
   const [searchTerm, setSearchTerm] = useState("");
 
+  const [isLoadingTemas, setIsLoadingTemas] = useState(false);
+
   const [allTemasJuradoData, setAllTemasJuradoData] = useState<
     JuradoTemasDetalle[]
   >([]);
   useEffect(() => {
     const fetchTemas = async () => {
+      setIsLoadingTemas(true);
       try {
         const temas = await getTemasJurado(Number(detalleJurado));
         setAllTemasJuradoData(temas);
         setAsignadas(temas);
       } catch (error) {
         console.error("Error fetching temas de jurado:", error);
+      } finally {
+        setIsLoadingTemas(false);
       }
     };
     fetchTemas();
@@ -187,20 +192,22 @@ export function JuradoDetalleView({
       // Llamar a la API con el ID del jurado actual y el ID de la tesis seleccionada
       const result = await asignarTemaJurado(
         Number(detalleJurado), // ID del jurado desde los parámetros de la URL
-        tesis.id // ID de la tesis seleccionada
+        tesis.id, // ID de la tesis seleccionada
       );
 
       if (result.success) {
         // Mostrar mensaje de éxito
         alert(result.message); // Puedes usar un componente de toast en lugar de alert
-        
+
         // Actualizar la lista de tesis asignadas
         const temas = await getTemasJurado(Number(detalleJurado));
         setAllTemasJuradoData(temas);
         setAsignadas(temas);
-        
+
         // Actualizar la lista de tesis disponibles para asignar
-        const temasDisponibles = await getTemasModalAsignar(Number(detalleJurado));
+        const temasDisponibles = await getTemasModalAsignar(
+          Number(detalleJurado),
+        );
         setTesisDataSeleccion(temasDisponibles);
       } else {
         // Mostrar mensaje de error
@@ -346,7 +353,13 @@ export function JuradoDetalleView({
         </div>
       </div>
 
-      {asignadas.length === 0 ? (
+      {isLoadingTemas ? (
+        <div className="text-center text-gray-400 mt-5">
+          <p className="text-gray-500 animate-pulse">
+            Cargando temas disponibles...
+          </p>
+        </div>
+      ) : asignadas.length === 0 ? (
         <div className="text-center text-gray-400 mt-5">
           <p>
             No hay miembros de jurados disponibles que coincidan con los filtros

@@ -66,20 +66,26 @@ const JuradosView = () => {
     fetchTiposDedicacion();
   }, []);
 
+  const [loadingJurados, setLoadingJurados] = useState(false);
+
+  const fetchJurados = async () => {
+    setLoadingJurados(true);
+    try {
+      const jurados = await getAllJurados();
+      const juradosViewModel = jurados.map((j) => ({
+        ...j,
+        email: j.email || "",
+      }));
+      setAllJuradosData(juradosViewModel);
+      setJuradosData(juradosViewModel);
+    } catch (error) {
+      console.error("Error fetching jurados data:", error);
+    } finally {
+      setLoadingJurados(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchJurados = async () => {
-      try {
-        const jurados = await getAllJurados();
-        const juradosViewModel = jurados.map((j) => ({
-          ...j,
-          email: j.email || "",
-        }));
-        setAllJuradosData(juradosViewModel);
-        setJuradosData(juradosViewModel);
-      } catch (error) {
-        console.error("Error fetching jurados data:", error);
-      }
-    };
     fetchJurados();
   }, []);
 
@@ -178,7 +184,13 @@ const JuradosView = () => {
           </Select>
         </div>
       </div>
-      {juradosData.length === 0 ? (
+      {loadingJurados ? (
+        <div className="text-center mt-10">
+          <p className="text-gray-500 animate-pulse">
+            Cargando miembros de jurado...
+          </p>
+        </div>
+      ) : juradosData.length === 0 ? (
         <div className="text-center text-gray-400 mt-5">
           <p>
             No hay miembros de jurados disponibles que coincidan con los filtros
@@ -194,12 +206,12 @@ const JuradosView = () => {
           }}
         />
       )}
-
       <ModalEliminarMiembroJurado
         open={modalOpen}
         juradoId={selectedJuradoId!}
         onClose={() => setModalOpen(false)}
-        onSuccess={() => {
+        onSuccess={async () => {
+          await fetchJurados();
           setModalOpen(false);
         }}
       />
