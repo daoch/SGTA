@@ -100,7 +100,8 @@ const PropuestasAsesorPage = () => {
             </CardHeader>
             <CardContent>
               <PropuestasTable
-                propuestas={propuestasDirectas}
+                propuestasData={propuestasDirectas}
+                setPropuestasData={setPropuestasDirectas}
                 areasData={areasData}
                 searchTerm={searchTerm}
                 setSearchTerm={setSearchTerm}
@@ -120,7 +121,8 @@ const PropuestasAsesorPage = () => {
             </CardHeader>
             <CardContent>
               <PropuestasTable
-                propuestas={propuestasGenerales}
+                propuestasData={propuestasGenerales}
+                setPropuestasData={setPropuestasGenerales}
                 areasData={areasData}
                 searchTerm={searchTerm}
                 setSearchTerm={setSearchTerm}

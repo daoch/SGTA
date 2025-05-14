@@ -91,7 +91,7 @@ export async function fetchTemasPropuestosPorSubAreaConocimiento(
     params.append("offset", offset ? offset.toString() : "0");
 
     const response = await fetch(
-      `${baseUrl}/temas/listarTemasPropuestosPorSubAreaConocimiento??${params.toString()}`,
+      `${baseUrl}/temas/listarTemasPropuestosPorSubAreaConocimiento?${params.toString()}`,
       {
         method: "GET",
         headers: {
