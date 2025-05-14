@@ -30,9 +30,13 @@ import { useEffect } from "react";
 
 interface TableJuradosProps {
   juradosData: JuradoUI[];
+  onOpenModal: (id: string) => void;
 }
 
-const TableJurados: React.FC<TableJuradosProps> = ({ juradosData }) => {
+const TableJurados: React.FC<TableJuradosProps> = ({
+  juradosData,
+  onOpenModal,
+}) => {
   const router = useRouter();
 
   //PARA LA PAGINACION
@@ -133,6 +137,7 @@ const TableJurados: React.FC<TableJuradosProps> = ({ juradosData }) => {
                     variant="ghost"
                     size="icon"
                     className="relative cursor-pointer"
+                    onClick={() => onOpenModal(jurado.id!)}
                   >
                     <Trash2 className="h-5 w-5 text-red-500" />
                   </Button>

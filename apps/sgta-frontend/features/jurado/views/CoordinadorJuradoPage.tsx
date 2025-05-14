@@ -19,8 +19,13 @@ import {
   getAllTiposDedicacion,
 } from "../services/jurado-service";
 import { AreaEspecialidad, TipoDedicacion } from "../types/jurado.types";
+import ModalEliminarMiembroJurado from "../components/modal-eliminar-miembro-jurado";
+import { Toaster } from "sonner";
 
 const JuradosView = () => {
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedJuradoId, setSelectedJuradoId] = useState<string | null>(null);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [juradosData, setJuradosData] = useState<JuradoViewModel[]>([]);
   const [dedication, setDedication] = useState<TipoDedicacion[]>([]);
@@ -181,8 +186,25 @@ const JuradosView = () => {
           </p>
         </div>
       ) : (
-        <TableJurados juradosData={juradosData} />
+        <TableJurados
+          juradosData={juradosData}
+          onOpenModal={(id) => {
+            setSelectedJuradoId(id);
+            setModalOpen(true);
+          }}
+        />
       )}
+
+      <ModalEliminarMiembroJurado
+        open={modalOpen}
+        juradoId={selectedJuradoId!}
+        onClose={() => setModalOpen(false)}
+        onSuccess={() => {
+          setModalOpen(false);
+        }}
+      />
+
+      <Toaster position="bottom-right" richColors />
     </div>
   );
 };

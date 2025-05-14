@@ -108,6 +108,11 @@ public class MiembroJuradoController {
         return juradoService.desasignarJuradoDeTema(request);
     }
 
+    @PutMapping("/desasignar-jurado-tema-todos/{usuarioId}")
+    public ResponseEntity<?> desasignarJuradoDeTemaTodos(@PathVariable Integer usuarioId) {
+        return juradoService.desasignarJuradoDeTemaTodos(usuarioId);
+    }
+
     @GetMapping("/{idTema}/detalle")
     public ResponseEntity<DetalleTemaDto> obtenerDetalleTema(@PathVariable Integer idTema) {
         DetalleTemaDto detalle = juradoService.obtenerDetalleTema(idTema);

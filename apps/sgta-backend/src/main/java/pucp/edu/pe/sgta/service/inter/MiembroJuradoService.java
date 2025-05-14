@@ -12,7 +12,9 @@ import java.util.Optional;
 public interface MiembroJuradoService {
 
     public List<MiembroJuradoDto> obtenerUsuarioTemaInfo();
+
     public List<Object[]> findAreaConocimientoByUsuarioId(Integer usuarioId);
+
     public List<MiembroJuradoDto> obtenerUsuariosPorEstado(Boolean activoParam);
 
     public List<MiembroJuradoDto> obtenerUsuariosPorAreaConocimiento(Integer areaConocimientoId);
@@ -31,6 +33,8 @@ public interface MiembroJuradoService {
 
     ResponseEntity<?> desasignarJuradoDeTema(AsignarJuradoRequest request);
 
-    //Va para temas pero lo he colocado aquí
+    // Va para temas pero lo he colocado aquí
     public DetalleTemaDto obtenerDetalleTema(Integer temaId);
+
+    ResponseEntity<?> desasignarJuradoDeTemaTodos(Integer usuarioId);
 }

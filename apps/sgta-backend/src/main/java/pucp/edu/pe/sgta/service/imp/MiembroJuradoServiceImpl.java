@@ -32,8 +32,9 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
     private final EtapaFormativaRepository etapaFormativaRepository;
 
     public MiembroJuradoServiceImpl(UsuarioRepository usuarioRepository, UsuarioXTemaRepository usuarioXTemaRepository,
-                                    EstadoTemaRepository estadoTemaRepository, RolRepository rolRepository, TemaRepository temaRepository,
-                                    SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository, EtapaFormativaRepository etapaFormativaRepository) {
+            EstadoTemaRepository estadoTemaRepository, RolRepository rolRepository, TemaRepository temaRepository,
+            SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository,
+            EtapaFormativaRepository etapaFormativaRepository) {
         this.usuarioRepository = usuarioRepository;
         this.usuarioXTemaRepository = usuarioXTemaRepository;
         this.estadoTemaRepository = estadoTemaRepository;
@@ -452,7 +453,8 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
 
         for (UsuarioXTema ut : usuariosXTema) {
             Integer rolId = ut.getRol().getId();
-            String nombre = ut.getUsuario().getNombres() + " " + ut.getUsuario().getPrimerApellido() + " " + ut.getUsuario().getSegundoApellido();
+            String nombre = ut.getUsuario().getNombres() + " " + ut.getUsuario().getPrimerApellido() + " "
+                    + ut.getUsuario().getSegundoApellido();
             Integer id = ut.getUsuario().getId();
 
             if (rolId == 4) {
@@ -473,16 +475,13 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
             String nombreEtapa = (String) etapa[1];
 
             List<Object[]> exposicionesRaw = etapaFormativaRepository.obtenerExposicionesPorEtapaFormativa(etapaId);
-            List<ExposicionTemaDto> exposiciones = exposicionesRaw.stream().map(exp ->
-                    new ExposicionTemaDto(
-                            (Integer) exp[0],
-                            (String) exp[1],
-                            exp[2].toString(),
-                            ((Timestamp) exp[3]).toLocalDateTime().atOffset(ZoneOffset.UTC),
-                            ((Timestamp) exp[4]).toLocalDateTime().atOffset(ZoneOffset.UTC),
-                            (String) exp[5]
-                    )
-            ).collect(Collectors.toList());
+            List<ExposicionTemaDto> exposiciones = exposicionesRaw.stream().map(exp -> new ExposicionTemaDto(
+                    (Integer) exp[0],
+                    (String) exp[1],
+                    exp[2].toString(),
+                    ((Timestamp) exp[3]).toLocalDateTime().atOffset(ZoneOffset.UTC),
+                    ((Timestamp) exp[4]).toLocalDateTime().atOffset(ZoneOffset.UTC),
+                    (String) exp[5])).collect(Collectors.toList());
 
             etapas.add(new EtapaFormativaTemaDto(etapaId, nombreEtapa, exposiciones));
         }
@@ -494,4 +493,21 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
         return !estadosInvalidos.contains(estadoTema.getId());
     }
 
+    @Override
+    public ResponseEntity<?> desasignarJuradoDeTemaTodos(Integer usuarioId) {
+
+        List<UsuarioXTema> asignaciones = usuarioXTemaRepository.findByUsuarioIdAndRolId(usuarioId, 2);
+        if (asignaciones.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("mensaje", "No existen asignaciones activas para este miembro de jurado"));
+        }
+
+        for (UsuarioXTema asignacion : asignaciones) {
+            asignacion.setActivo(false);
+            asignacion.setFechaModificacion(OffsetDateTime.now());
+            usuarioXTemaRepository.save(asignacion);
+        }
+
+        return ResponseEntity.ok(Map.of("mensaje", "Todas las asignaciones del miembro de jurado han sido eliminadas"));
+    }
 }

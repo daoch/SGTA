@@ -142,29 +142,60 @@ export const getTemasModalAsignar = async (
   }));
 };
 
-
 export const asignarTemaJurado = async (
   usuarioId: number,
-  temaId: number
+  temaId: number,
 ): Promise<{ success: boolean; message: string }> => {
   try {
-    const response = await axiosInstance.post('/jurado/asignar-tema', {
+    const response = await axiosInstance.post("/jurado/asignar-tema", {
       usuarioId,
-      temaId
+      temaId,
     });
-    
+
     return {
       success: true,
-      message: response.data.mensaje || "Tema asignado correctamente"
+      message: response.data.mensaje || "Tema asignado correctamente",
     };
   } catch (error: any) {
     // Manejo de errores
-    const errorMessage = error.response?.data?.mensaje || "Error al asignar el tema al jurado";
+    const errorMessage =
+      error.response?.data?.mensaje || "Error al asignar el tema al jurado";
     console.error("Error al asignar tema:", errorMessage);
-    
+
     return {
       success: false,
-      message: errorMessage
+      message: errorMessage,
     };
   }
 };
+
+export const desasignarMiembroJuradoTemaTodos = async (
+  usuarioId: number,
+): Promise<{ success: boolean; message: string }> => {
+  try {
+    const response = await axiosInstance.put(
+      `/jurado/desasignar-jurado-tema-todos/${usuarioId}`,
+    );
+
+    return {
+      success: true,
+      message:
+        response.data.mensaje ||
+        "Todos los temas desasignados correctamente para el miembro de jurado",
+    };
+  } catch (error: any) {
+    const errorMessage =
+      error.response?.data?.mensaje ||
+      "Error al eliminar las asignaciones del miembro de jurado con sus temas";
+    console.error(
+      "Error al eliminar desasignar miembro de jurado a todos sus temas:",
+      errorMessage,
+    );
+
+    return {
+      success: false,
+      message: errorMessage,
+    };
+  }
+};
+
