@@ -3,6 +3,7 @@ package pucp.edu.pe.sgta.dto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import pucp.edu.pe.sgta.model.AreaConocimiento;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -10,22 +11,22 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SolicitudCeseDto {
-    private List<RequestTermination> requestTermmination;
+public class SolicitudCambioAsesorDto {
+    private List<RequestChange> assesorChangeRequests;
     private int totalPages;
 
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class RequestTermination {
+    public static class RequestChange {
         private int id;
         private LocalDate registerTime;
         private String status;
         private String reason;
         private String response;
         private LocalDate responseTime;
-        private Assessor assessor;
-        private List<Estudiante> students;
+        private List<Assessor> assessors;
+        private Estudiante student;
     }
 
     @Data
@@ -36,7 +37,6 @@ public class SolicitudCeseDto {
         private String name;
         private String lastName;
         private String email;
-        private int quantityCurrentProyects;
         private byte[] urlPhoto;
     }
 
@@ -47,6 +47,8 @@ public class SolicitudCeseDto {
         private int id;
         private String name;
         private String lastName;
+        private String email;
+        private byte[] urlPhoto;
         private Tema topic;
     }
 
@@ -54,6 +56,16 @@ public class SolicitudCeseDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class Tema {
+        private int id;
+        private String name;
+        private AreaConocimiento thematicArea;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AreaConocimiento {
+        private int id;
         private String name;
     }
 }
