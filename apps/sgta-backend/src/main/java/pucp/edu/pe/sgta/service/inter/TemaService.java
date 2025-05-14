@@ -30,7 +30,7 @@ public interface TemaService {
 
 	void delete(Integer id);
 
-	void createInscripcionTema(TemaDto dto, Integer idUsuarioCreador); //Works for asesor, alumno, coordinador and revisor
+	void createInscripcionTema(TemaDto dto); //Works for asesor, alumno, coordinador and revisor
 
 	List<TemaDto> listarTemasPropuestosAlAsesor(Integer asesorId);
 

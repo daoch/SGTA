@@ -33,3 +33,7 @@ DROP FUNCTION IF EXISTS eliminar_propuestas_tesista(INTEGER);
 
 -- Eliminar la función que maneja TEMA_LIBRE
 DROP FUNCTION IF EXISTS eliminar_postulaciones_tesista(INTEGER);
+
+DROP TRIGGER IF EXISTS trigger_generar_codigo_tema ON tema;
+
+DROP FUNCTION IF EXISTS generar_codigo_tema();
