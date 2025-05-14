@@ -361,12 +361,57 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                 .toList();
     }
 
+    @Override
+    public List<MiembroJuradoXTemaDto> findTemasDeOtrosJurados(Integer usuarioId) {
+        List<UsuarioXTema> relacionesJurado = usuarioXTemaRepository.findAll().stream()
+                .filter(ut -> ut.getActivo())
+                .filter(ut -> ut.getRol().getId().equals(2))
+                .filter(ut -> !ut.getUsuario().getId().equals(usuarioId))
+                .filter(ut -> esEstadoTemaValido(ut.getTema().getEstadoTema()))
+                .filter(ut -> usuarioXTemaRepository.countByTemaIdAndActivoTrue(ut.getTema().getId()) < 3)
+                .toList();
+
+        return relacionesJurado.stream()
+                .map(ut -> {
+                    Tema tema = ut.getTema();
+
+                    List<EstudiantesDto> estudiantes = usuarioXTemaRepository.findByTemaIdAndActivoTrue(tema.getId()).stream()
+                            .filter(rel -> rel.getUsuario().getTipoUsuario().getId().equals(2))
+                            .map(rel -> {
+                                Usuario u = rel.getUsuario();
+                                return EstudiantesDto.builder()
+                                        .nombre(u.getNombres() + " " + u.getPrimerApellido() + " " + u.getSegundoApellido())
+                                        .codigo(u.getCodigoPucp())
+                                        .build();
+                            }).toList();
+
+                    List<SubAreasConocimientoDto> subAreas = subAreaConocimientoXTemaRepository.findByTemaIdAndActivoTrue(tema.getId()).stream()
+                            .map(sac -> {
+                                SubAreaConocimiento sub = sac.getSubAreaConocimiento();
+                                return SubAreasConocimientoDto.builder()
+                                        .id(sub.getId())
+                                        .nombre(sub.getNombre())
+                                        .id_area_conocimiento(sub.getAreaConocimiento().getId())
+                                        .build();
+                            }).toList();
+
+                    return MiembroJuradoXTemaDto.builder()
+                            .id(tema.getId())
+                            .titulo(tema.getTitulo())
+                            .codigo(tema.getCodigo())
+                            .estudiantes(estudiantes)
+                            .sub_areas_conocimiento(subAreas)
+                            .build();
+                })
+                .toList();
+    }
 
 
     private boolean esEstadoTemaValido(EstadoTema estadoTema) {
         List<Integer> estadosInvalidos = List.of(7, 9, 12);
         return !estadosInvalidos.contains(estadoTema.getId());
     }
+
 
 
 
