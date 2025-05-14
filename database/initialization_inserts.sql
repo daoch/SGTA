@@ -202,6 +202,14 @@ VALUES
     (8, 1, TRUE, NOW(), NOW())
 ;
 
+UPDATE usuario
+SET tipo_dedicacion_id = 1
+    WHERE tipo_usuario_id = 1;
+
+UPDATE usuario
+SET tipo_dedicacion_id = 1
+    WHERE tipo_usuario_id = 3;
+
 -- 3) Relación usuario_grupo_investigacion (asignar a todos al Grupo IA PUCP, id = 1)
 INSERT INTO usuario_grupo_investigacion (usuario_id,
                                          grupo_investigacion_id,

@@ -34,16 +34,3 @@ VALUES
 (11, 10, 4),
 (12, 2, 4),
 (13, 2, 4);
-
-
-UPDATE sgta.usuario
-SET
-    tipo_dedicacion_id = 1
-WHERE
-    tipo_usuario_id = 1
-
-UPDATE sgta.usuario
-SET
-    tipo_dedicacion_id = 1
-WHERE
-    tipo_usuario_id = 3
