@@ -5,12 +5,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pucp.edu.pe.sgta.dto.*;
+import pucp.edu.pe.sgta.dto.temas.DetalleTemaDto;
+import pucp.edu.pe.sgta.dto.temas.EtapaFormativaTemaDto;
+import pucp.edu.pe.sgta.dto.temas.ExposicionTemaDto;
+import pucp.edu.pe.sgta.dto.temas.ParticipanteDto;
 import pucp.edu.pe.sgta.model.*;
 import pucp.edu.pe.sgta.repository.*;
 import pucp.edu.pe.sgta.service.inter.MiembroJuradoService;
 
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -23,16 +29,18 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
     private final RolRepository rolRepository;
     private final TemaRepository temaRepository;
     private final SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository;
+    private final EtapaFormativaRepository etapaFormativaRepository;
 
     public MiembroJuradoServiceImpl(UsuarioRepository usuarioRepository, UsuarioXTemaRepository usuarioXTemaRepository,
-            EstadoTemaRepository estadoTemaRepository, RolRepository rolRepository, TemaRepository temaRepository,
-            SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository) {
+                                    EstadoTemaRepository estadoTemaRepository, RolRepository rolRepository, TemaRepository temaRepository,
+                                    SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository, EtapaFormativaRepository etapaFormativaRepository) {
         this.usuarioRepository = usuarioRepository;
         this.usuarioXTemaRepository = usuarioXTemaRepository;
         this.estadoTemaRepository = estadoTemaRepository;
         this.rolRepository = rolRepository;
         this.temaRepository = temaRepository;
         this.subAreaConocimientoXTemaRepository = subAreaConocimientoXTemaRepository;
+        this.etapaFormativaRepository = etapaFormativaRepository;
     }
 
     @Override
@@ -411,6 +419,74 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                             .build();
                 })
                 .toList();
+    }
+
+    @Override
+    public ResponseEntity<?> desasignarJuradoDeTema(AsignarJuradoRequest request) {
+        Integer usuarioId = request.getUsuarioId();
+        Integer temaId = request.getTemaId();
+
+        Optional<UsuarioXTema> asignacionOpt = usuarioXTemaRepository
+                .findByUsuarioIdAndTemaIdAndRolIdAndActivoTrue(usuarioId, temaId, 2);
+
+        if (asignacionOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("mensaje", "No existe una asignación activa entre este jurado y el tema"));
+        }
+
+        UsuarioXTema asignacion = asignacionOpt.get();
+        asignacion.setActivo(false);
+        asignacion.setFechaModificacion(OffsetDateTime.now());
+
+        usuarioXTemaRepository.save(asignacion);
+
+        return ResponseEntity.ok(Map.of("mensaje", "Asignación eliminada correctamente"));
+    }
+
+    @Override
+    public DetalleTemaDto obtenerDetalleTema(Integer temaId) {
+        List<UsuarioXTema> usuariosXTema = usuarioXTemaRepository.findByTemaIdAndActivoTrue(temaId);
+        List<ParticipanteDto> estudiantes = new ArrayList<>();
+        List<ParticipanteDto> asesores = new ArrayList<>();
+        List<ParticipanteDto> jurados = new ArrayList<>();
+
+        for (UsuarioXTema ut : usuariosXTema) {
+            Integer rolId = ut.getRol().getId();
+            String nombre = ut.getUsuario().getNombres() + " " + ut.getUsuario().getPrimerApellido() + " " + ut.getUsuario().getSegundoApellido();
+            Integer id = ut.getUsuario().getId();
+
+            if (rolId == 4) {
+                estudiantes.add(new ParticipanteDto(id, nombre, "Estudiante"));
+            } else if (rolId == 1) {
+                asesores.add(new ParticipanteDto(id, nombre, "Asesor"));
+            } else if (rolId == 5) {
+                asesores.add(new ParticipanteDto(id, nombre, "Coasesor"));
+            } else if (rolId == 2) {
+                jurados.add(new ParticipanteDto(id, nombre, "Miembro de Jurado"));
+            }
+        }
+        List<Object[]> etapasRaw = etapaFormativaRepository.obtenerEtapasFormativasPorTemaSimple(temaId);
+        List<EtapaFormativaTemaDto> etapas = new ArrayList<>();
+
+        for (Object[] etapa : etapasRaw) {
+            Integer etapaId = (Integer) etapa[0];
+            String nombreEtapa = (String) etapa[1];
+
+            List<Object[]> exposicionesRaw = etapaFormativaRepository.obtenerExposicionesPorEtapaFormativa(etapaId);
+            List<ExposicionTemaDto> exposiciones = exposicionesRaw.stream().map(exp ->
+                    new ExposicionTemaDto(
+                            (Integer) exp[0],
+                            (String) exp[1],
+                            exp[2].toString(),
+                            ((Timestamp) exp[3]).toLocalDateTime().atOffset(ZoneOffset.UTC),
+                            ((Timestamp) exp[4]).toLocalDateTime().atOffset(ZoneOffset.UTC),
+                            (String) exp[5]
+                    )
+            ).collect(Collectors.toList());
+
+            etapas.add(new EtapaFormativaTemaDto(etapaId, nombreEtapa, exposiciones));
+        }
+        return new DetalleTemaDto(estudiantes, asesores, jurados, etapas);
     }
 
     private boolean esEstadoTemaValido(EstadoTema estadoTema) {

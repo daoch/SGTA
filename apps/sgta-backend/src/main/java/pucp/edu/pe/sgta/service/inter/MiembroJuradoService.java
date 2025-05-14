@@ -2,6 +2,7 @@ package pucp.edu.pe.sgta.service.inter;
 
 import org.springframework.http.ResponseEntity;
 import pucp.edu.pe.sgta.dto.*;
+import pucp.edu.pe.sgta.dto.temas.DetalleTemaDto;
 import pucp.edu.pe.sgta.model.UsuarioXTema;
 
 import java.util.List;
@@ -27,4 +28,9 @@ public interface MiembroJuradoService {
     List<MiembroJuradoXTemaTesisDto> findTemaTesisByUsuario(Integer usuarioId);
 
     List<MiembroJuradoXTemaDto> findTemasDeOtrosJurados(Integer usuarioId);
+
+    ResponseEntity<?> desasignarJuradoDeTema(AsignarJuradoRequest request);
+
+    //Va para temas pero lo he colocado aquí
+    public DetalleTemaDto obtenerDetalleTema(Integer temaId);
 }

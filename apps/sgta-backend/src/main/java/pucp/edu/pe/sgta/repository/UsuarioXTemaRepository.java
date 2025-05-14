@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 import pucp.edu.pe.sgta.model.UsuarioXTema;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface UsuarioXTemaRepository extends JpaRepository<UsuarioXTema, Integer> {
@@ -35,4 +36,8 @@ public interface UsuarioXTemaRepository extends JpaRepository<UsuarioXTema, Inte
     List<UsuarioXTema> findByTemaIdAndActivoTrue(Integer temaId);
 
     long countByTemaIdAndActivoTrue(Integer temaId);
+
+    Optional<UsuarioXTema> findByUsuarioIdAndTemaIdAndRolIdAndActivoTrue(Integer usuarioId, Integer temaId, Integer rolId);
+
+
 }
