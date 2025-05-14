@@ -8,7 +8,7 @@ import FormularioPropuesta, {
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { toast } from "sonner";
+import { toast, Toaster } from "sonner";
 
 export default function FormularioPropuestaPage() {
   const router = useRouter();
@@ -17,7 +17,6 @@ export default function FormularioPropuestaPage() {
   const handleSubmit = async (data: FormData, cotesistas: Estudiante[]) => {
     setLoading(true);
 
-    // Mapea tu FormData a la API
     const fechaActual = new Date().toISOString();
     const fechaLimiteFinal = data.fechaLimite
       ? new Date(data.fechaLimite + "T10:00:00Z").toISOString()
@@ -26,16 +25,15 @@ export default function FormularioPropuestaPage() {
     const idUsuarioCreador = 4;
     const tipoPropuesta = data.tipo === "general" ? 0 : 1;
 
-    // busca ids de subárea y asesor
     const subareas = [{ id: data.area }];
     const coasesores =
       data.tipo === "directa" && data.asesor
         ? [{ id: Number(data.asesor) }]
         : [];
     const tesistas = [
-    { id: idUsuarioCreador },
-    ...cotesistas.map((c) => ({ id: Number(c.id) }))
-  ];
+      { id: idUsuarioCreador },
+      ...cotesistas.map((c) => ({ id: Number(c.id) })),
+    ];
 
     const payload = {
       id: null,
@@ -69,29 +67,41 @@ export default function FormularioPropuestaPage() {
         }
       );
       if (!res.ok) throw new Error("API error");
-      toast.success("Propuesta creada exitosamente");
+
+      toast.success("Propuesta registrada", {
+        description: "Tu propuesta ha sido enviada satisfactoriamente",
+      });
+
       router.push("/alumno/temas");
     } catch (err) {
       console.error(err);
-      toast.error("Error al crear la propuesta");
+
+      toast.error("Error", {
+        description: "No se pudo registrar la propuesta",
+      });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="w-full pt-5">
-      <h1 className="text-3xl font-bold text-[#042354] mb-5">
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => router.push("/alumno/temas")}
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-         <span className="ml-3">Nueva Propuesta de Tema</span>
-      </h1>
-      <FormularioPropuesta loading={loading} onSubmit={handleSubmit} />
-    </div>
+    <>
+      <div className="w-full pt-5">
+        <h1 className="text-3xl font-bold text-[#042354] mb-5">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => router.push("/alumno/temas")}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <span className="ml-3">Nueva Propuesta de Tema</span>
+        </h1>
+        <FormularioPropuesta loading={loading} onSubmit={handleSubmit} />
+      </div>
+
+      {}
+      <Toaster position="bottom-right" richColors />
+    </>
   );
 }

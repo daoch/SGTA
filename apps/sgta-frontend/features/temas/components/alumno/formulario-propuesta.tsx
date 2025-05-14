@@ -1,11 +1,24 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Save } from "lucide-react";
@@ -21,10 +34,10 @@ export interface Estudiante {
 export interface FormData {
   titulo: string;
   descripcion: string;
-  area: number;               
+  area: number;
   objetivos: string;
   tipo: "general" | "directa";
-  asesor: string;             
+  asesor: string;
   fechaLimite: string;
 }
 
@@ -32,19 +45,6 @@ interface Props {
   loading: boolean;
   onSubmit: (data: FormData, cotesistas: Estudiante[]) => Promise<void>;
 }
-
-const areasData: { id: number; nombre: string }[] = [
-  { id: 1, nombre: "Inteligencia Artificial" },
-  { id: 2, nombre: "Desarrollo Web" },
-  { id: 3, nombre: "Ciencia de Datos" },
-  { id: 4, nombre: "Internet de las Cosas" },
-];
-
-const profesoresData = [
-  { id: "1", nombre: "Dr. Roberto Sánchez" },
-  { id: "2", nombre: "Dra. Carmen Vega" },
-  { id: "3", nombre: "Dr. Miguel Torres" },
-];
 
 const estudiantesData: Estudiante[] = [
   { id: "34", codigo: "20190123", nombre: "Carlos Mendoza" },
@@ -56,6 +56,8 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
   const router = useRouter();
   const today = new Date().toISOString().split("T")[0];
 
+  const [areas, setAreas] = useState<{ id: number; nombre: string }[]>([]);
+  const [asesores, setAsesores] = useState<{ id: string; nombre: string }[]>([]);
   const [formData, setFormData] = useState<FormData>({
     titulo: "",
     descripcion: "",
@@ -67,15 +69,52 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
   });
   const [cotesistas, setCotesistas] = useState<Estudiante[]>([]);
   const [codigoCotesista, setCodigoCotesista] = useState("");
-  const [errors, setErrors] = useState<
-    Partial<Record<keyof FormData, string>>
-  >({});
+  const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
 
-  // Si cambia el área, limpio asesor
+  // 1) Carga de áreas al montar
   useEffect(() => {
-    setFormData((f) => ({ ...f, asesor: "" }));
-    setErrors((e) => ({ ...e, asesor: undefined }));
-  }, [formData.area]);
+    fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/subAreaConocimiento/listarPorCarreraDeUsuario?usuarioId=4`
+    )
+      .then((res) => res.json())
+      .then((data: Array<{ id: number; nombre: string }>) => {
+        setAreas(data.map((a) => ({ id: a.id, nombre: a.nombre })));
+      })
+      .catch((err) => console.error("Error cargando áreas:", err));
+  }, []);
+
+  useEffect(() => {
+  const controller = new AbortController();
+  const { signal } = controller;
+
+  if (formData.area) {
+    fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/usuario/getAsesoresBySubArea?idSubArea=${formData.area}`,
+      { signal }
+    )
+      .then((res) => res.json())
+      .then(
+        (data: Array<{ id: number; nombres: string; primerApellido: string | null }>) => {
+          setAsesores(
+            data.map((u) => ({
+              id: String(u.id),
+              nombre: `${u.nombres} ${u.primerApellido ?? ""}`.trim(),
+            }))
+          );
+        }
+      )
+      .catch((err) => {
+        if (err.name !== "AbortError") {
+          console.error("Error cargando asesores:", err);
+        }
+      });
+  } else {
+    setAsesores([]);
+  }
+
+  // Limpia si cambia área antes de que termine
+  return () => controller.abort();
+}, [formData.area]);
 
   const handleChange =
     (field: keyof FormData) =>
@@ -86,7 +125,7 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
 
   const handleSelectNum =
     (field: keyof FormData) =>
-    (value: string /* viene como string del Select */) => {
+    (value: string) => {
       setFormData((f) => ({ ...f, [field]: Number(value) }));
       setErrors((e) => ({ ...e, [field]: undefined }));
     };
@@ -102,7 +141,6 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
     setCotesistas((cs) => cs.filter((c) => c.id !== id));
   };
 
-  // 3) Al agregar, ya llevas el objeto completo (con su id)
   const handleAddCotesista = () => {
     const est = estudiantesData.find((e) => e.codigo === codigoCotesista);
     if (est && !cotesistas.some((c) => c.id === est.id)) {
@@ -151,7 +189,9 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
         <CardContent className="flex flex-col gap-6 px-6 py-6">
           {/* TÍTULO */}
           <div>
-            <Label htmlFor="titulo" className="mb-2">Título de la Propuesta </Label>
+            <Label htmlFor="titulo" className="mb-2">
+              Título de la Propuesta
+            </Label>
             <Input
               id="titulo"
               value={formData.titulo}
@@ -171,7 +211,7 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
           <div>
             <Label className="mb-2">Área de Investigación</Label>
             <Select
-              value={formData.area.toString()}
+              value={String(formData.area)}
               onValueChange={handleSelectNum("area")}
             >
               <SelectTrigger
@@ -180,8 +220,8 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
                 <SelectValue placeholder="Seleccione un área" />
               </SelectTrigger>
               <SelectContent>
-                {areasData.map((a) => (
-                  <SelectItem key={a.id} value={a.id.toString()}>
+                {areas.map((a) => (
+                  <SelectItem key={a.id} value={String(a.id)}>
                     {a.nombre}
                   </SelectItem>
                 ))}
@@ -194,7 +234,9 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
 
           {/* DESCRIPCIÓN */}
           <div>
-            <Label htmlFor="descripción" className="mb-2">Descripción</Label>
+            <Label htmlFor="descripcion" className="mb-2">
+              Descripción
+            </Label>
             <Textarea
               id="descripcion"
               value={formData.descripcion}
@@ -212,7 +254,9 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
 
           {/* OBJETIVOS */}
           <div>
-            <Label htmlFor="objetivos" className="mb-2">Objetivos</Label>
+            <Label htmlFor="objetivos" className="mb-2">
+              Objetivos
+            </Label>
             <Textarea
               id="objetivos"
               value={formData.objetivos}
@@ -250,14 +294,14 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
             </RadioGroup>
           </div>
 
-          {/* ASESOR (solo si directa) */}
+          {/* ASESOR (solo directa) */}
           {formData.tipo === "directa" && (
             <div>
               <Label className="mb-2">Asesor</Label>
               <Select
                 value={formData.asesor}
                 onValueChange={handleSelectStr("asesor")}
-                disabled={!formData.area}
+                disabled={!formData.area || asesores.length === 0}
               >
                 <SelectTrigger
                   className={
@@ -277,7 +321,7 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
                   />
                 </SelectTrigger>
                 <SelectContent>
-                  {profesoresData.map((p) => (
+                  {asesores.map((p) => (
                     <SelectItem key={p.id} value={p.id}>
                       {p.nombre}
                     </SelectItem>
@@ -292,7 +336,9 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
 
           {/* FECHA LÍMITE */}
           <div>
-            <Label htmlFor="fechaLimite" className="mb-2">Fecha Límite (Opcional)</Label>
+            <Label htmlFor="fechaLimite" className="mb-2">
+              Fecha Límite (Opcional)
+            </Label>
             <Input
               id="fechaLimite"
               type="date"
@@ -353,21 +399,21 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
         </CardContent>
 
         <CardFooter className="flex justify-between px-6 py-4">
-              <Button
-                variant="outline"
-                onClick={() => router.push("/alumno/temas")}
-              >
-                Cancelar
-              </Button>
-              <Button
-                onClick={handleLocalSubmit}
-                className="bg-[#042354] text-white"
-                disabled={loading}
-              >
-                <Save className="mr-2 h-4 w-4" />{" "}
-                {loading ? "Guardando..." : "Guardar Propuesta"}
-              </Button>
-            </CardFooter>
+          <Button
+            variant="outline"
+            onClick={() => router.push("/alumno/temas")}
+          >
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleLocalSubmit}
+            className="bg-[#042354] text-white"
+            disabled={loading}
+          >
+            <Save className="mr-2 h-4 w-4" />{" "}
+            {loading ? "Guardando..." : "Guardar Propuesta"}
+          </Button>
+        </CardFooter>
       </form>
     </Card>
   );
