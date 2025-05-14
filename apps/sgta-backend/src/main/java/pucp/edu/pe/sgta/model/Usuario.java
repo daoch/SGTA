@@ -49,11 +49,11 @@ public class Usuario {
 	@Column(columnDefinition = "TEXT")
 	private String biografia;
 
-    @Column(name = "enlace_repositorio")
-    private String enlaceRepositorio;
+	@Column(name = "enlace_repositorio")
+	private String enlaceRepositorio;
 
-    @Column(name = "enlace_linkedin", columnDefinition = "TEXT")
-    private String enlaceLinkedin;
+	@Column(name = "enlace_linkedin", columnDefinition = "TEXT")
+	private String enlaceLinkedin;
 
 	@Column(name = "foto_perfil", columnDefinition = "bytea", nullable = true)
 	private byte[] fotoPerfil;
@@ -64,8 +64,9 @@ public class Usuario {
 	@Column(name = "tipo_disponibilidad", columnDefinition = "TEXT")
 	private String tipoDisponibilidad;
 
-	@Column(length = 100, nullable = true)
-	private String tipoDedicacion;
+	@ManyToOne(fetch = FetchType.LAZY, optional = true)
+	@JoinColumn(name = "tipo_dedicacion_id", nullable = true, foreignKey = @ForeignKey(name = "fk_tipo_dedicacion"))
+	private TipoDedicacion tipoDedicacion;
 
 	@Column(nullable = false)
 	private Boolean activo = true;
@@ -73,10 +74,10 @@ public class Usuario {
 	@Column(name = "fecha_creacion", nullable = false, insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
 	private OffsetDateTime fechaCreacion;
 
-	@Column(name = "fecha_modificacion", insertable = false,columnDefinition = "TIMESTAMP WITH TIME ZONE")
+	@Column(name = "fecha_modificacion", insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
 	private OffsetDateTime fechaModificacion;
 
-	public String getNombreDisplay(){
+	public String getNombreDisplay() {
 		String nombreDisplay = "";
 		nombreDisplay += nombres.split(" ")[0] + " ";
 		nombreDisplay += primerApellido;

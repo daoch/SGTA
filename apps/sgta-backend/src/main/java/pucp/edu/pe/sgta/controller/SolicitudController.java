@@ -4,8 +4,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import pucp.edu.pe.sgta.dto.AprobarSolicitudRequestDto;
+import pucp.edu.pe.sgta.dto.AprobarSolicitudResponseDto;
 import pucp.edu.pe.sgta.dto.RechazoSolicitudRequestDto;
 import pucp.edu.pe.sgta.dto.RechazoSolicitudResponseDto;
+import pucp.edu.pe.sgta.dto.SolicitudCambioAsesorDto;
 import pucp.edu.pe.sgta.dto.SolicitudCeseDto;
 import pucp.edu.pe.sgta.service.inter.SolicitudService;
 
@@ -32,4 +35,21 @@ public class SolicitudController {
         RechazoSolicitudResponseDto response = solicitudService.rechazarSolicitud(requestId, requestDto.getResponse());
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/cessation-requests/{requestId}/approve")
+    public ResponseEntity<AprobarSolicitudResponseDto> aprobarSolicitud(
+        @PathVariable Integer requestId,
+        @RequestBody AprobarSolicitudRequestDto requestDto) {
+
+        AprobarSolicitudResponseDto response = solicitudService.aprobarSolicitud(requestId, requestDto.getResponse());
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/advisor-change-requests")
+    public ResponseEntity<SolicitudCambioAsesorDto> getSolicitudesCambioAsesor(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(solicitudService.findAllSolicitudesCambioAsesor(page, size));
+    }
+
 }

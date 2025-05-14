@@ -1,5 +1,5 @@
 import axiosInstance from "@/lib/axios/axios-instance";
-import { AreaEspecialidad } from "../types/jurado.types";
+import { AreaEspecialidad, TipoDedicacion } from "../types/jurado.types";
 import { JuradoDTO, JuradoUI } from "../types/juradoDetalle.types";
 
 export const getAllJurados = async (): Promise<JuradoUI[]> => {
@@ -30,8 +30,24 @@ export const getAllAreasEspecialidad = async (): Promise<
   const response = await axiosInstance.get("/areaConocimiento/list");
   const data = response.data;
 
-  return data.map((nombre: string) => ({
-    name: nombre,
+  return data.map((area: AreaEspecialidad) => ({
+    id: area.id,
+    nombre: area.nombre,
+    descripcion: area.descripcion,
+    idCarrera: area.idCarrera,
   }));
 };
 
+export const getAllTiposDedicacion = async (): Promise<TipoDedicacion[]> => {
+  const response = await axiosInstance.get("/tipodedicacion");
+  const data = response.data;
+
+  return data.map((tipo: TipoDedicacion) => ({
+    id: tipo.id,
+    iniciales: tipo.iniciales,
+    descripcion: tipo.descripcion,
+    activo: tipo.activo,
+    fechaCreacion: tipo.fechaCreacion,
+    fechaModificacion: tipo.fechaModificacion,
+  }));
+};

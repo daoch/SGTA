@@ -53,11 +53,7 @@ export const ExposicionesCoordinadorPage: FC = () => {
           ciclos={options.ciclos}
           estados={options.estados}
         />
-        <Button
-          onClick={() => setModalOpen(true)}
-          variant="default"
-          className="text-white bg-blue-900 hover:bg-blue-800 py-2 px-6"
-        >
+        <Button onClick={() => setModalOpen(true)} variant="default">
           Planificador de Exposiciones
         </Button>
       </div>
