@@ -23,9 +23,9 @@ BEGIN
                          AND efc.activo = true
                    ) THEN 'EN_CURSO'::TEXT
                    ELSE 'FINALIZADO'::TEXT
-               END as estado
+                   END as estado
         FROM etapa_formativa ef
-        JOIN carrera c ON ef.carrera_id = c.carrera_id
+                 JOIN carrera c ON ef.carrera_id = c.carrera_id
         WHERE ef.activo = true
         ORDER BY ef.nombre;
 END;
@@ -56,9 +56,9 @@ BEGIN
                c.carrera_id,
                ef.creditaje_por_tema,
                ef.activo,
-               (SELECT ciclo.nombre::TEXT
+               (SELECT (ciclo.anio || ' ' || ciclo.semestre)::TEXT
                 FROM etapa_formativa_x_ciclo efc
-                JOIN ciclo ON efc.ciclo_id = ciclo.ciclo_id
+                         JOIN ciclo ON efc.ciclo_id = ciclo.ciclo_id
                 WHERE efc.etapa_formativa_id = ef.etapa_formativa_id
                   AND efc.activo = true
                 ORDER BY ciclo.anio DESC, ciclo.semestre DESC
@@ -71,10 +71,10 @@ BEGIN
                          AND efc.activo = true
                    ) THEN 'EN_CURSO'::TEXT
                    ELSE 'FINALIZADO'::TEXT
-               END as estado_actual,
+                   END as estado_actual,
                ef.duracion_exposicion
         FROM etapa_formativa ef
-        JOIN carrera c ON ef.carrera_id = c.carrera_id
+                 JOIN carrera c ON ef.carrera_id = c.carrera_id
         WHERE ef.etapa_formativa_id = p_etapa_id;
 END;
 $$;
@@ -93,14 +93,19 @@ $$
 BEGIN
     RETURN QUERY
         SELECT efc.etapa_formativa_x_ciclo_id,
-               ciclo.nombre::TEXT as ciclo,
+               (ciclo.anio || ' ' || ciclo.semestre)::TEXT as ciclo,
                CASE
                    WHEN efc.activo = true THEN 'EN_CURSO'::TEXT
                    ELSE 'FINALIZADO'::TEXT
-               END as estado
+                   END as estado
         FROM etapa_formativa_x_ciclo efc
-        JOIN ciclo ON efc.ciclo_id = ciclo.ciclo_id
+                 JOIN ciclo ON efc.ciclo_id = ciclo.ciclo_id
         WHERE efc.etapa_formativa_id = p_etapa_id
         ORDER BY ciclo.anio DESC, ciclo.semestre DESC;
 END;
-$$; 
+$$;
+
+
+drop function listar_etapas_formativas_simple;
+drop function obtener_detalle_etapa_formativa;
+drop function obtener_historial_ciclos_etapa_formativa;

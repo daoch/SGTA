@@ -19,12 +19,14 @@ import pucp.edu.pe.sgta.repository.EtapaFormativaXCicloRepository;
 import pucp.edu.pe.sgta.service.inter.EtapaFormativaService;
 
 import pucp.edu.pe.sgta.model.Carrera;
+import java.util.NoSuchElementException;
 
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.transaction.annotation.Transactional;
 
 
 @Service
@@ -107,11 +109,7 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
             .build();
     }
 
-
-    @Override
-    public void delete(Integer id) {
-
-    }
+   
 
     @Override
     public List<EtapaFormativaNombreDTO> findToInitializeByCoordinador(Integer coordiandorId) {
@@ -186,50 +184,7 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
 
         return Duration.ofSeconds(totalSeconds);
     }
-/* 
-    @Override
-    public void vincularACiclo(Integer etapaId, Integer cicloId) {
-        var etapa = etapaFormativaRepository.findById(etapaId).orElseThrow();
-        var ciclo = cicloRepository.findById(cicloId).orElseThrow();
-        if (etapaXCicloRepository.existsByEtapaFormativaAndCiclo(etapa, ciclo)) return;
-        var efc = new EtapaFormativaXCiclo();
-        efc.setEtapaFormativa(etapa);
-        efc.setCiclo(ciclo);
-        efc.setEstado(EstadoEtapa.EN_CURSO);
-        etapaXCicloRepository.save(efc);
-    }
 
-    @Override
-    public void finalizar(Integer etapaXCicloId) {
-        var efc = etapaXCicloRepository.findById(etapaXCicloId)
-            .orElseThrow(() -> new RuntimeException("Vínculo no encontrado: " + etapaXCicloId));
-        efc.setEstado(EstadoEtapa.FINALIZADO);
-        etapaXCicloRepository.save(efc);
-    }
-
-    @Override
-    public void reactivar(Integer etapaXCicloId) {
-        var efc = etapaXCicloRepository.findById(etapaXCicloId)
-            .orElseThrow(() -> new RuntimeException("Vínculo no encontrado: " + etapaXCicloId));
-        efc.setEstado(EstadoEtapa.EN_CURSO);
-        etapaXCicloRepository.save(efc);
-    }
-
-    @Override
-    public List<EtapaFormativaXCicloDto> findHistorialByEtapaId(Integer etapaId) {
-        return etapaXCicloRepository.findAllByEtapaFormativaId(etapaId)
-            .stream()
-            .map(efc -> EtapaFormativaXCicloDto.builder()
-                .id(efc.getId())
-                .etapaFormativaId(efc.getEtapaFormativa().getId())
-                .cicloId(efc.getCiclo().getId())
-                .activo(efc.getActivo())
-                .fechaCreacion(efc.getFechaCreacion())
-                .fechaModificacion(efc.getFechaModificacion())
-                .build())
-            .toList();
-    }
-*/
     @Override
     public EtapaFormativaDto create(EtapaFormativaDto dto) {
         try {
@@ -354,5 +309,15 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
         
         return dto;
     }
+
+    @Override
+    @Transactional
+    public void delete(Integer id) {
+        EtapaFormativa e = etapaFormativaRepository.findById(id)
+            .orElseThrow(() -> new NoSuchElementException("No existe etapa formativa: " + id));
+        e.setActivo(false);
+        etapaFormativaRepository.save(e);
+    }
+
 
 }
