@@ -44,6 +44,7 @@ const PropuestasAsesorPage = () => {
       setSubAreasData(subareas);
     };
     cargarAreasYSubareas();
+    console.log("Todos los basicos cargados");
   }, [usuarioId]);
 
   useEffect(() => {
