@@ -4,6 +4,7 @@ import {
   JuradoDTO,
   JuradoTemasDetalle,
   JuradoUI,
+  AreaConocimientoJurado,
 } from "../types/juradoDetalle.types";
 
 export const getAllJurados = async (): Promise<JuradoUI[]> => {
@@ -76,3 +77,39 @@ export const getTemasJurado = async (
   }));
 };
 
+
+
+export const listarAreasConocimientoJurado = async (
+  idJurado: number,
+): Promise<AreaConocimientoJurado[]> => {
+  const response = await axiosInstance.get(`/jurado/${idJurado}/areas-conocimiento`);
+  const data = response.data;
+
+  return data.areas_conocimiento.map((area: AreaConocimientoJurado) => ({
+    id: area.id,
+    nombre: area.nombre,
+  }));
+};
+
+
+export const getTemasModalAsignar = async (
+  idJurado: number
+): Promise<JuradoTemasDetalle[]> => {
+  const response = await axiosInstance.get(`/jurado/temas-otros-jurados/${idJurado}`);
+  const data = response.data;
+
+  return data.map((tesis: JuradoTemasDetalle) => ({
+    id: tesis.id,
+    titulo: tesis.titulo,
+    codigo: tesis.codigo,
+    estudiantes: tesis.estudiantes.map((estudiante) => ({
+      nombre: estudiante.nombre,
+      codigo: estudiante.codigo,
+    })),
+    sub_areas_conocimiento: tesis.sub_areas_conocimiento.map((area) => ({
+      id: area.id,
+      nombre: area.nombre,
+      id_area_conocimiento: area.id_area_conocimiento,
+    })),
+  }));
+};

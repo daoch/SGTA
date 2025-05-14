@@ -26,14 +26,14 @@ import {
   PaginationLink,
 } from "@/components/ui/pagination";
 import {
-  Jurado,
   TesisAsignada,
   CursoType,
   PeriodoAcademico,
   JuradoDetalleViewProps,
   JuradoTemasDetalle,
+  AreaConocimientoJurado,
 } from "@/features/jurado/types/juradoDetalle.types";
-import { getTemasJurado } from "../services/jurado-service";
+import { getTemasJurado ,listarAreasConocimientoJurado,getTemasModalAsignar} from "../services/jurado-service";
 
 export function JuradoDetalleView({
   modalAsignarTesisComponent: ModalAsignarTesis,
@@ -58,6 +58,37 @@ export function JuradoDetalleView({
     };
     fetchTemas();
   }, []);
+
+  // Luego, dentro del componente, añade el siguiente estado
+  const [juradoAreaConocimiento, setJuradoAreaConocimiento] = useState<AreaConocimientoJurado[]>([]);
+
+  // Añade este useEffect después del useEffect existente para cargar los temas
+  useEffect(() => {
+    const fetchAreasConocimiento = async () => {
+      try {
+        const areas = await listarAreasConocimientoJurado(Number(detalleJurado));
+        setJuradoAreaConocimiento(areas);
+      } catch (error) {
+        console.error("Error fetching áreas de conocimiento del jurado:", error);
+      }
+    };
+    fetchAreasConocimiento();
+  }, [detalleJurado]);
+
+  const [tesisDataSeleccion, setTesisDataSeleccion] = useState<JuradoTemasDetalle[]>([]);
+
+  // Añade este useEffect después del useEffect para cargar áreas de conocimiento
+  useEffect(() => {
+    const fetchTemasModalAsignar = async () => {
+      try {
+        const temas = await getTemasModalAsignar(Number(detalleJurado));
+        setTesisDataSeleccion(temas);
+      } catch (error) {
+        console.error("Error fetching temas para modal de asignación:", error);
+      }
+    };
+    fetchTemasModalAsignar();
+  }, [detalleJurado]);
 
   const [asignadas, setAsignadas] = useState<JuradoTemasDetalle[]>([]);
 
@@ -262,13 +293,13 @@ export function JuradoDetalleView({
       />
 
       {/* Modal */}
-      {/* <ModalAsignarTesis
+       <ModalAsignarTesis
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         onAsignar={handleAsignarTesis}
         data={tesisDataSeleccion}
-        jurado={juradoEjemplo}
-      /> */}
+        jurado={juradoAreaConocimiento}
+      /> 
 
       <div className="flex items-center justify-between pt-4 border-t">
         <div className="flex items-center gap-2">
