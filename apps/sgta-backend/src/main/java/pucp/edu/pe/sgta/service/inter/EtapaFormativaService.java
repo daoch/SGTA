@@ -11,14 +11,14 @@ public interface EtapaFormativaService {
     List<EtapaFormativaDto> getAll();
 
     EtapaFormativaDto findById(Integer id);
-/**
+/*
     * Crea una nueva Etapa Formativa ligada únicamente a una Carrera.
     * @param dto datos de la etapa (nombre, creditaje, duración, carreraId)
     * @return DTO con el ID generado y datos guardados
-    */
+ */
     EtapaFormativaDto create(EtapaFormativaDto dto);
 
-    void update(EtapaFormativaDto dto);
+    EtapaFormativaDto update(EtapaFormativaDto dto);
 
     void delete(Integer id);
 

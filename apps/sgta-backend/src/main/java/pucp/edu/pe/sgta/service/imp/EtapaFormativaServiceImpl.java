@@ -18,7 +18,6 @@ import pucp.edu.pe.sgta.service.inter.EtapaFormativaService;
 
 import pucp.edu.pe.sgta.model.Carrera;
 
-
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -73,11 +72,38 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
     }
 
     
-
     @Override
-    public void update(EtapaFormativaDto dto) {
+    public EtapaFormativaDto update(EtapaFormativaDto dto) {
+        // 1) Cargar la entidad existente
+        var etapa = etapaFormativaRepository.findById(dto.getId())
+            .orElseThrow(() -> new RuntimeException("Etapa no encontrada: " + dto.getId()));
 
+        // 2) Si cambió la carrera, validar y seteársela
+        if (!etapa.getCarrera().getId().equals(dto.getCarreraId())) {
+            var carrera = carreraRepository.findById(dto.getCarreraId())
+                .orElseThrow(() -> new RuntimeException("Carrera no encontrada: " + dto.getCarreraId()));
+            etapa.setCarrera(carrera);
+        }
+
+        // 3) Actualizar campos
+        etapa.setNombre(dto.getNombre().toUpperCase());
+        etapa.setCreditajePorTema(dto.getCreditajePorTema());
+        etapa.setDuracionExposicion(dto.getDuracionExposicion());
+
+        // 4) Persistir
+        var updated = etapaFormativaRepository.save(etapa);
+
+        // 5) Mapear Entidad → DTO
+        return EtapaFormativaDto.builder()
+            .id(updated.getId())
+            .nombre(updated.getNombre())
+            .creditajePorTema(updated.getCreditajePorTema())
+            .duracionExposicion(updated.getDuracionExposicion())
+            .activo(updated.getActivo())
+            .carreraId(updated.getCarrera().getId())
+            .build();
     }
+
 
     @Override
     public void delete(Integer id) {

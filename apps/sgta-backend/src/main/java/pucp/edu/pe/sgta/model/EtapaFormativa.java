@@ -13,6 +13,10 @@ import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 
+import org.hibernate.annotations.UpdateTimestamp;
+
+import org.hibernate.annotations.CreationTimestamp;
+
 @Entity
 @Getter
 @Setter
@@ -41,11 +45,24 @@ public class EtapaFormativa {
     @Column(nullable = false)
     private Boolean activo = true;
 
-    @Column(name = "fecha_creacion", nullable = false, insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    @CreationTimestamp
+    @Column(
+        name = "fecha_creacion",
+        nullable = false,
+        updatable = false,
+        columnDefinition = "TIMESTAMP WITH TIME ZONE"
+    )
     private OffsetDateTime fechaCreacion;
 
-    @Column(name = "fecha_modificacion", insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    @UpdateTimestamp
+    @Column(
+        name = "fecha_modificacion",
+        nullable = false,
+        insertable = false,
+        columnDefinition = "TIMESTAMP WITH TIME ZONE"
+    )
     private OffsetDateTime fechaModificacion;
+
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "carrera_id", nullable = false, foreignKey = @ForeignKey(name = "fk_area_conocimiento_carrera"))

@@ -23,7 +23,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestBody;
 
 
-
 @RestController
 @RequestMapping("/etapas-formativas")
 public class EtapaFormativaController {
@@ -57,6 +56,24 @@ public class EtapaFormativaController {
             .status(HttpStatus.CREATED)
             .body(created);
     }
+
+    /*
+     * Actualiza una etapa formativa existente.
+     */
+    @PutMapping("/actualizar/{id}")
+    public ResponseEntity<EtapaFormativaDto> actualizarEtapa(
+        @PathVariable("id") Integer id,
+        @RequestBody EtapaFormativaDto dto
+    ) {
+        // Asegura que el DTO traiga el mismo id de la ruta
+        dto.setId(id);
+        EtapaFormativaDto updated = etapaFormativaService.update(dto);
+        return ResponseEntity
+            .status(HttpStatus.OK)
+            .body(updated);
+    }
+
+
 
 /* 
     // Vincular etapa a un nuevo ciclo (crea EtapaFormativaXCiclo)
