@@ -141,9 +141,9 @@ export function PostulacionesTable({
           }
 
           if (item.estadoTemaNombre === "RECHAZADO") {
-            item.coasesores.forEach(co => {
+            item.coasesores.forEach((co, index) => {
               directMapped.push({
-                id: `${item.id}-${co.id}`,
+                id: `${item.id}-${co.id}-${index}`,
                 titulo: item.titulo,
                 area: item.subareas?.[0]?.nombre || "—",
                 asesor: `${co.nombres} ${co.primerApellido ?? ""}`.trim(),
@@ -163,7 +163,7 @@ export function PostulacionesTable({
 
         const generalMapped: Postulacion[] = genData.flatMap(item => {
           if (!item.coasesores?.length) return [];
-          return item.coasesores.map(co => {
+          return item.coasesores.map((co, index) => {
             const estado: Postulacion["estado"] =
               co.rechazado === true
                 ? "rechazado"
@@ -173,7 +173,7 @@ export function PostulacionesTable({
             const alumnoId = item.tesistas?.find(t => t.creador)?.id ?? 0;
 
             return {
-              id: `${item.id}-${co.id}`,
+              id: `${item.id}-${co.id}-${index}`, 
               titulo: item.titulo,
               area: item.subareas?.[0]?.nombre || "—",
               asesor: `${co.nombres} ${co.primerApellido ?? ""}`.trim(),
