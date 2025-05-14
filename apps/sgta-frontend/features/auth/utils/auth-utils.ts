@@ -5,7 +5,7 @@ import { useAuthStore } from "../store/auth-store";
  * @returns The ID token (JWT) or null if not authenticated
  */
 export function getAuthToken(): string | null {
-  return useAuthStore.getState().idToken;
+  return useAuthStore.getState().accessToken;
 }
 
 /**
@@ -47,10 +47,10 @@ export function parseJwt(token: string): JwtPayload | null {
 export function isTokenExpired(): boolean {
   const token = getAuthToken();
   if (!token) return true;
-  
+
   const decoded = parseJwt(token);
   if (!decoded) return true;
-  
+
   const currentTime = Math.floor(Date.now() / 1000);
   return decoded.exp < currentTime;
 }
