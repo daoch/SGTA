@@ -38,6 +38,28 @@ interface PostulacionesTableProps {
   setSelectedPostulacion: (p: Postulacion) => void;
 }
 
+interface RawCoAsesor {
+  id: number;
+  nombres: string;
+  primerApellido?: string;
+  correoElectronico?: string;
+  comentario?: string;
+  asignado?: boolean;   // directas
+  rechazado?: boolean;  // generales
+}
+
+interface RawPostulacionApi {
+  id: number;
+  titulo: string;
+  subareas?: { nombre: string }[];
+  resumen?: string;
+  fechaLimite?: string;
+  estadoTemaNombre?: string;          // directas
+  comentario?: string;               // directas
+  coasesores: RawCoAsesor[];
+  tesistas: { id: number; creador?: boolean; comentario?: string }[]; // generales
+}
+
 export function PostulacionesTable({
   filter,
   setSelectedPostulacion,
@@ -85,22 +107,20 @@ export function PostulacionesTable({
       try {
         const [dirRes, genRes] = await Promise.all([
           fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPostulacionesDirectasAMisPropuestas/35`
+            `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPostulacionesDirectasAMisPropuestas/38`
           ),
           fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPostulacionesGeneralesAMisPropuestas/35`
+            `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPostulacionesGeneralesAMisPropuestas/38`
           ),
         ]);
-        const [dirData, genData] = await Promise.all([
-          dirRes.json(),
-          genRes.json(),
-        ]);
 
+        const dirData = (await dirRes.json()) as RawPostulacionApi[];
+        const genData = (await genRes.json()) as RawPostulacionApi[];
         const directMapped: Postulacion[] = [];
 
-        dirData.forEach((item: any) => {
+        dirData.forEach((item) => {
 
-          const coAceptado = item.coasesores.find((co: any) => co.asignado === true);
+          const coAceptado = item.coasesores.find(co => co.asignado === true);
           if (coAceptado) {
             directMapped.push({
               id: `${item.id}-${coAceptado.id}`,
@@ -112,7 +132,7 @@ export function PostulacionesTable({
               estado: "aceptado",
               tipo: "directa",
               descripcion: item.resumen ?? "",
-              comentarioAsesor: coAceptado.comentario ?? "",
+              comentarioAsesor: item.tesistas.find(t => t.creador)?.comentario ?? "",
               temaId: item.id,
               asesorId: coAceptado.id,
               alumnoId: 0,
@@ -121,7 +141,7 @@ export function PostulacionesTable({
           }
 
           if (item.estadoTemaNombre === "RECHAZADO") {
-            item.coasesores.forEach((co: any) => {
+            item.coasesores.forEach(co => {
               directMapped.push({
                 id: `${item.id}-${co.id}`,
                 titulo: item.titulo,
@@ -132,7 +152,7 @@ export function PostulacionesTable({
                 estado: "rechazado",
                 tipo: "directa",
                 descripcion: item.resumen ?? "",
-                comentarioAsesor: co.comentario ?? "",
+                comentarioAsesor: item.tesistas.find(t => t.creador)?.comentario ?? "",
                 temaId: item.id,
                 asesorId: co.id,
                 alumnoId: 0,
@@ -141,17 +161,16 @@ export function PostulacionesTable({
           }
         });
 
-        const generalMapped: Postulacion[] = genData.flatMap((item: any) => {
+        const generalMapped: Postulacion[] = genData.flatMap(item => {
           if (!item.coasesores?.length) return [];
-          return item.coasesores.map((co: any) => {
+          return item.coasesores.map(co => {
             const estado: Postulacion["estado"] =
               co.rechazado === true
                 ? "rechazado"
                 : co.rechazado === false
                 ? "aceptado"
                 : "pendiente";
-                
-        const alumnoId = item.tesistas.find((t: any) => t.creador)?.id;
+            const alumnoId = item.tesistas?.find(t => t.creador)?.id ?? 0;
 
             return {
               id: `${item.id}-${co.id}`,
@@ -163,10 +182,10 @@ export function PostulacionesTable({
               estado,
               tipo: "general",
               descripcion: item.resumen ?? "",
-              comentarioAsesor: co.comentario ?? "",
+              comentarioAsesor: item.tesistas.find(t => t.creador)?.comentario ?? "",
               temaId: item.id,
               asesorId: co.id,
-              alumnoId: alumnoId,
+              alumnoId,
             };
           });
         });

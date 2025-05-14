@@ -75,7 +75,7 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
     async function fetchPropuestas() {
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPropuestasPorTesista/35`
+          `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPropuestasPorTesista/38`
         );
         const data: PropuestaAPI[] = await res.json();
 
@@ -90,7 +90,9 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
           tipo:
             item.estadoTemaNombre === "PROPUESTO_DIRECTO"
               ? "directa"
-              : "general",
+            : item.estadoTemaNombre === "PROPUESTO_GENERAL"
+              ? "general"
+            : "preinscrito",        
           resumen: item.resumen || "",
           objetivos: item.objetivos || "",
           metodologia: item.metodologia || "",
@@ -190,7 +192,7 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
                   {/* Cotesistas no asignados, excluyendo al propio usuario */}
                   <TableCell>
                     {p.tesistas
-                      .filter((t) => t.id !== MY_ID && !t.asignado)
+                      .filter((t) => !t.creador)
                       .map((t) => `${t.nombres} ${t.primerApellido}`.trim())
                       .join(", ") || "-"}
                   </TableCell>
@@ -226,10 +228,16 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
                       className={
                         p.tipo === "directa"
                           ? "bg-purple-100 text-purple-800"
-                          : "bg-green-100 text-green-800"
+                        : p.tipo === "general"
+                          ? "bg-green-100 text-green-800"
+                        : "bg-sky-100 text-sky-800"
                       }
                     >
-                      {p.tipo === "directa" ? "Directa" : "General"}
+                      {p.tipo === "directa"
+                          ? "Directa"
+                        : p.tipo === "general"
+                          ? "General"
+                          : "Preinscrito"}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
@@ -299,11 +307,11 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
                             </div>
 
                             {/* Cotesistas invitados pendientes */}
-                            {selectedPropuesta.tesistas.some((t) => !t.asignado) && (
+                            {selectedPropuesta.tesistas.some((t) => !t.creador) && (
                               <div className="space-y-2">
                                 <h3 className="font-medium">Cotesistas</h3>
                                 {selectedPropuesta.tesistas
-                                  .filter((t) => !t.asignado && t.id !== MY_ID)
+                                  .filter((t) => !t.creador)
                                   .map((t, i) => (
                                     <div
                                       key={i}
@@ -312,9 +320,11 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
                                       <span>
                                         {t.nombres} {t.primerApellido}
                                       </span>
-                                      <Badge className="bg-yellow-100 text-yellow-800">
-                                        Pendiente
-                                      </Badge>
+                                      {!t.asignado && (
+                                        <Badge className="bg-yellow-100 text-yellow-800">
+                                          Pendiente
+                                        </Badge>
+                                      )}
                                     </div>
                                   ))}
                               </div>

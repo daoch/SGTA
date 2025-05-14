@@ -17,8 +17,8 @@ export type Proyecto = {
   coasesores: Usuario[];
   tesistas: Usuario[];
   subareas: SubAreaConocimiento[];
-  tipo: string; //agregado
-  estudiantes?: Usuario[]; //agregado
+  tipo: string; 
+  estudiantes?: Usuario[]; 
 };
 
 export type TipoUsuario = {
@@ -44,6 +44,7 @@ export type Usuario = {
   disponibilidad: string | null;
   tipoDisponibilidad: string;
   asignado: string;
+  creador: boolean;
   activo: boolean;
   fechaCreacion: string;
   fechaModificacion: string;

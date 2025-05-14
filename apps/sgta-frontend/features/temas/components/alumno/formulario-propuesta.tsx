@@ -70,7 +70,7 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
   // 1) Carga de áreas al montar
   useEffect(() => {
     fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/subAreaConocimiento/listarPorCarreraDeUsuario?usuarioId=35`
+      `${process.env.NEXT_PUBLIC_API_URL}/subAreaConocimiento/listarPorCarreraDeUsuario?usuarioId=38`
     )
       .then((res) => res.json())
       .then((data: Array<{ id: number; nombre: string }>) => {
