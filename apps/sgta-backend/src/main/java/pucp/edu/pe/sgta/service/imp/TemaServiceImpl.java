@@ -470,6 +470,10 @@ public class TemaServiceImpl implements TemaService {
 
 		for (Object[] fila : resultados) {
 			TemaDto dto = new TemaDto();
+			dto.setSubareas(new ArrayList<>());
+			dto.setCoasesores(new ArrayList<>());
+			dto.setTesistas(new ArrayList<>());
+
 			dto.setId((Integer) fila[0]);  // tema_id
 			dto.setTitulo((String) fila[1]); // titulo
 
