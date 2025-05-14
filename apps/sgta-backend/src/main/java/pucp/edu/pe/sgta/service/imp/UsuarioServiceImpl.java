@@ -25,6 +25,7 @@ import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UsuarioServiceImpl implements UsuarioService {
@@ -219,6 +220,16 @@ public class UsuarioServiceImpl implements UsuarioService {
 	}
 
 	@Override
+	public UsuarioDto findUsuarioByCodigo(String codigoPucp) {
+		Optional<Usuario> usuario = usuarioRepository.findByCodigoPucp(codigoPucp);
+		if(usuario.isPresent()){
+			UsuarioDto usuarioDto = UsuarioMapper.toDto(usuario.get());
+			return usuarioDto;
+		}
+		return null;
+	}
+
+	@Override
 	public List<UsuarioDto> findUsuariosByRolAndCarrera(String tipoUsuario, Integer carreraId, String cadenaBusqueda) {
 		String sql = """
 			SELECT *
@@ -281,4 +292,6 @@ public class UsuarioServiceImpl implements UsuarioService {
 
 		return lista;
 	}
+
+
 }

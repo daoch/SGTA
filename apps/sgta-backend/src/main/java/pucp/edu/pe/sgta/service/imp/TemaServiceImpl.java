@@ -790,15 +790,39 @@ public class TemaServiceImpl implements TemaService {
 
 	/** Extracts an Integer[] from a java.sql.Array, or returns empty array if null. */
 	private Integer[] extractSqlIntArray(Object sqlArrayObj) {
-		if (!(sqlArrayObj instanceof Array)) {
+		if (sqlArrayObj == null) {
 			return new Integer[0];
 		}
-		try {
-			return (Integer[]) ((Array) sqlArrayObj).getArray();
-		} catch (Exception e) {
-			throw new RuntimeException("Failed to extract integer array from SQL Array", e);
+
+		// Case 1: Already an Integer[]
+		if (sqlArrayObj instanceof Integer[]) {
+			return (Integer[]) sqlArrayObj;
 		}
+
+		// Case 2: A JDBC java.sql.Array
+		if (sqlArrayObj instanceof java.sql.Array) {
+			try {
+				Object array = ((java.sql.Array) sqlArrayObj).getArray();
+				if (array instanceof Integer[]) {
+					return (Integer[]) array;
+				}
+				if (array instanceof Object[]) {
+					Object[] objs = (Object[]) array;
+					Integer[] result = new Integer[objs.length];
+					for (int i = 0; i < objs.length; i++) {
+						result[i] = objs[i] != null ? Integer.parseInt(objs[i].toString()) : null;
+					}
+					return result;
+				}
+			} catch (Exception e) {
+				throw new RuntimeException("Failed to extract Integer[] from SQL Array", e);
+			}
+		}
+
+		// Unsupported type
+		throw new IllegalArgumentException("Unsupported array type: " + sqlArrayObj.getClass());
 	}
+
 
 	/**
 	 * Build a list of SubAreaConocimientoDto by zipping names and IDs.
@@ -835,6 +859,7 @@ public class TemaServiceImpl implements TemaService {
 						.rol((String) m.get("rol"))
 						.creador((Boolean) m.get("creador"))
 						.asignado((Boolean) m.get("asignado"))
+						.comentario((String) m.get("comentario"))
 						.build());
 			}
 			return dtos;
