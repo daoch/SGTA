@@ -38,9 +38,9 @@ export interface ModalDetallesExposicionProps {
   id_exposicion: number;
 }
 
-export interface Jurado {
-  specialties: string[];
-}
+//export interface Jurado {
+  //specialties: string[];
+//}
 
 export interface Tesis {
   titulo: string;
@@ -57,6 +57,8 @@ export interface Tesis {
   }[];
   rol: string;
 }
+
+
 
 export interface EspecialidadOption {
   label: string;
@@ -130,13 +132,18 @@ export interface ModalAsignarTesisProps {
   open: boolean;
   onClose: () => void;
   onAsignar: (tesisSeleccionada: Tesis) => void;
-  data: Tesis[];
-  jurado: Jurado;
+  data: JuradoTemasDetalle[];
+  jurado: AreaConocimientoJurado[];
 }
 
 // Props para la vista de detalle del jurado
 export interface JuradoDetalleViewProps {
   modalAsignarTesisComponent: React.ComponentType<ModalAsignarTesisProps>; // Puedes reemplazar 'any' con un tipo específico para las props del modal
+}
+
+export interface AreaConocimientoJurado {
+  id: number;
+  nombre: string;
 }
 
 export enum TipoDedicacion {

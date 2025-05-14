@@ -14,19 +14,21 @@ import { Search } from "lucide-react";
 import { ListaTesisJuradoCard } from "./TesisCard";
 import { MultiSelectCheckbox } from "./EspecialiadMultiSelect";
 import {
-  Jurado,
+  AreaConocimientoJurado,
   Tesis,
   Especialidades,
   EspecialidadOption,
+  ModalAsignarTesisProps,
+  JuradoTemasDetalle,
 } from "@/features/jurado/types/juradoDetalle.types"; // Asegúrate de que la ruta sea correcta
 
-interface ModalAsignarTesisProps {
-  open: boolean;
-  onClose: () => void;
-  onAsignar: (tesisSeleccionada: Tesis) => void;
-  data: Tesis[];
-  jurado: Jurado; // o el tipo completo si lo tienes
-}
+//interface ModalAsignarTesisProps {
+  //open: boolean;
+  //onClose: () => void;
+  //onAsignar: (tesisSeleccionada: Tesis) => void;
+  //data: Tesis[];
+  //jurado: AreaConocimientoJurado[]; // o el tipo completo si lo tienes
+//}
 
 // Función auxiliar para convertir el enum a opciones para el MultiSelectCheckbox
 const getEspecialidadOptions = (): EspecialidadOption[] => {
@@ -48,33 +50,49 @@ export const ModalAsignarTesis: React.FC<ModalAsignarTesisProps> = ({
 }) => {
   const [search, setSearch] = useState("");
   //const [especialidad, setEspecialidad] = useState('')
-  const [tesisSeleccionada, setTesisSeleccionada] = useState<Tesis | null>(
+  const [tesisSeleccionada, setTesisSeleccionada] = useState<JuradoTemasDetalle | null>(
     null,
   );
-  const [especialidadesSeleccionadas, setEspecialidadesSeleccionadas] =
-    useState<string[]>(jurado.specialties || []);
+  //const [especialidadesSeleccionadas, setEspecialidadesSeleccionadas] =
+    //useState<string[]>(jurado.specialties || []);
 
-  const handleSelectCard = (tesis: Tesis) => {
+  const [especialidadesSeleccionadas, setEspecialidadesSeleccionadas] = useState<string[]>(
+  // Extraer los nombres de las áreas y usarlos como valores iniciales
+    jurado ? jurado.map(area => area.nombre) : []
+  );
+
+  const handleSelectCard = (tesis: JuradoTemasDetalle) => {
     setTesisSeleccionada(tesis);
   };
 
   const filteredData = data.filter((t) => {
-    const matchesSearch =
-      t.titulo.toLowerCase().includes(search.toLowerCase()) ||
-      t.estudiante.toLowerCase().includes(search.toLowerCase()) ||
-      t.codigo.toLowerCase().includes(search.toLowerCase());
-
+    // Para buscar en el título y código
+    const tituloMatch = t.titulo.toLowerCase().includes(search.toLowerCase());
+    const codigoMatch = t.codigo.toLowerCase().includes(search.toLowerCase());
+    
+    // Para buscar en los nombres de estudiantes (ahora es un array)
+    const estudiantesMatch = t.estudiantes.some(est => 
+      est.nombre.toLowerCase().includes(search.toLowerCase()) ||
+      est.codigo.toLowerCase().includes(search.toLowerCase())
+    );
+    
+    // Para filtrar por áreas de conocimiento
     const matchesEspecialidad =
       especialidadesSeleccionadas.length === 0 ||
-      t.especialidades?.some((esp: string) =>
-        especialidadesSeleccionadas.includes(esp),
+      t.sub_areas_conocimiento.some((area) =>
+        especialidadesSeleccionadas.includes(area.nombre)
       );
-
-    return matchesSearch && matchesEspecialidad;
+    
+    // Combina todos los criterios de búsqueda
+    return (tituloMatch || codigoMatch || estudiantesMatch) && matchesEspecialidad;
   });
+  //useEffect(() => {
+   // setEspecialidadesSeleccionadas(jurado.specialties || []);
+ // }, [jurado]);
 
   useEffect(() => {
-    setEspecialidadesSeleccionadas(jurado.specialties || []);
+  // Actualizar cuando cambie el prop jurado
+    setEspecialidadesSeleccionadas(jurado ? jurado.map(area => area.nombre) : []);
   }, [jurado]);
 
   // Texto para mostrar en el MultiSelect

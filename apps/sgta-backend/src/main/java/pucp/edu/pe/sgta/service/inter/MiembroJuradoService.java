@@ -25,4 +25,6 @@ public interface MiembroJuradoService {
     List<MiembroJuradoXTemaDto> findByUsuarioIdAndActivoTrueAndRolId(Integer usuarioId);
 
     List<MiembroJuradoXTemaTesisDto> findTemaTesisByUsuario(Integer usuarioId);
+
+    List<MiembroJuradoXTemaDto> findTemasDeOtrosJurados(Integer usuarioId);
 }

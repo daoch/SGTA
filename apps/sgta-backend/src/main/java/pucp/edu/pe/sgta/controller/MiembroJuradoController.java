@@ -96,4 +96,11 @@ public class MiembroJuradoController {
         return ResponseEntity.ok(temas);
     }
 
+    @GetMapping("/temas-otros-jurados/{usuarioId}")
+    public ResponseEntity<List<MiembroJuradoXTemaDto>> obtenerTemasDeOtrosJurados(@PathVariable Integer usuarioId) {
+        List<MiembroJuradoXTemaDto> temas = juradoService.findTemasDeOtrosJurados(usuarioId);
+        return ResponseEntity.ok(temas);
+    }
+
+
 }
