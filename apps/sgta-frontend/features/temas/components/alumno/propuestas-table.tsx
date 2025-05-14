@@ -1,5 +1,16 @@
 "use client";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,8 +41,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Proyecto, SubAreaConocimiento, Usuario } from "@/features/temas/types/propuestas/entidades";
-import { CheckCircle, Eye, Send, X } from "lucide-react";
+import { Eye, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 interface PropuestaAPI {
   id: number;
@@ -109,6 +121,27 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
     }
     return true;
   });
+
+  const handleDelete = async (id: number) => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/temas/deleteTema`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(id),
+      });
+
+      if (!res.ok) throw new Error("Error al eliminar");
+
+      // Opcional: feedback visual
+      alert("Propuesta eliminada");
+
+      // Refresca las propuestas localmente
+      setPropuestas((prev) => prev.filter((p) => p.id !== id));
+    } catch (err) {
+      console.error("Error al eliminar la propuesta:", err);
+      alert("No se pudo eliminar la propuesta.");
+    }
+  };
 
   const areasUnicas = Array.from(
     new Set(propuestas.map((p) => p.subareas[0]?.nombre || "—"))
@@ -231,7 +264,7 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
                           <Eye className="h-4 w-4" />
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="w-[90vw] max-w-3xl">
+                      <DialogContent className="w-[90vw] max-w-3xl sm:max-w-3xl">
                         <DialogHeader>
                           <DialogTitle>Detalles de la Propuesta</DialogTitle>
                           <DialogDescription>
@@ -347,20 +380,47 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
                     </Dialog>
 
                     {/* Botones de acción */}
-                    {p.tipo === "general" ? (
-                      <Button variant="ghost" size="icon" className="text-[#042354]">
-                        <Send className="h-4 w-4" />
-                      </Button>
-                    ) : (
-                      <>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
                         <Button variant="ghost" size="icon" className="text-red-500">
-                          <X className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="text-green-500">
-                          <CheckCircle className="h-4 w-4" />
-                        </Button>
-                      </>
-                    )}
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Esta acción eliminará la propuesta permanentemente. ¿Deseas continuar?
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction
+                            className="bg-red-600 text-white hover:bg-red-700"
+                            onClick={async () => {
+                              try {
+                                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/temas/deleteTema`, {
+                                  method: "POST",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify(p.id),
+                                });
+
+                                if (!res.ok) throw new Error("Error en la API");
+
+                                toast.success("Propuesta eliminada correctamente");
+                                setPropuestas((prev) => prev.filter((x) => x.id !== p.id));
+                              } catch (err) {
+                                toast.error("No se pudo eliminar la propuesta");
+                                console.error(err);
+                              }
+                            }}
+                          >
+                            Eliminar
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+
                   </TableCell>
                 </TableRow>
               ))

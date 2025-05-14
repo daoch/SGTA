@@ -70,17 +70,19 @@ export default function FormularioPropuestaPage() {
 
       toast.success("Propuesta registrada", {
         description: "Tu propuesta ha sido enviada satisfactoriamente",
+        duration: 3000,
       });
 
-      router.push("/alumno/temas");
+      setTimeout(() => {
+        router.push("/alumno/temas");
+      }, 1000); 
     } catch (err) {
       console.error(err);
 
       toast.error("Error", {
         description: "No se pudo registrar la propuesta",
+        duration: 3000,
       });
-    } finally {
-      setLoading(false);
     }
   };
 
