@@ -31,7 +31,8 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
     @Override
     public EtapaFormativaDto findById(Integer id) {
         Object result = etapaFormativaRepository.getEtapaFormativaByIdFunction(id);
-        if (result == null) return null;
+        if (result == null)
+            return null;
 
         Object[] row = (Object[]) result; // 👈 aquí el casteo correcto
         EtapaFormativaDto dto = new EtapaFormativaDto();
@@ -39,10 +40,10 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
         dto.setId((Integer) row[0]);
         dto.setNombre((String) row[1]);
         dto.setCreditajePorTema((BigDecimal) row[2]);
-        
+
         PGInterval pgInterval = (PGInterval) row[3];
         dto.setDuracionExposicion(convertPGIntervalToDuration(pgInterval));
-        
+
         dto.setActivo((Boolean) row[4]);
         dto.setCarreraId((Integer) row[5]);
 
@@ -66,7 +67,8 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
 
     @Override
     public List<EtapaFormativaNombreDTO> findToInitializeByCoordinador(Integer coordiandorId) {
-        List<EtapaFormativaNombreDTO> etapasFormativas = etapaFormativaRepository.findToInitializeByCoordinador(coordiandorId);
+        List<EtapaFormativaNombreDTO> etapasFormativas = etapaFormativaRepository
+                .findToInitializeByCoordinador(coordiandorId);
         return etapasFormativas.stream()
                 .map(ef -> new EtapaFormativaNombreDTO(ef.getEtapaFormativaId(), ef.getNombre()))
                 .toList();
@@ -81,10 +83,10 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
             dto.setId((Integer) row[0]);
             dto.setNombre((String) row[1]);
             dto.setCreditajePorTema((BigDecimal) row[2]);
-            
+
             PGInterval pgInterval = (PGInterval) row[3];
             dto.setDuracionExposicion(convertPGIntervalToDuration(pgInterval));
-            
+
             dto.setActivo((Boolean) row[4]);
             dto.setCarreraId((Integer) row[5]);
 
@@ -102,10 +104,10 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
             dto.setId((Integer) row[0]);
             dto.setNombre((String) row[1]);
             dto.setCreditajePorTema((BigDecimal) row[2]);
-            
+
             PGInterval pgInterval = (PGInterval) row[3];
             dto.setDuracionExposicion(convertPGIntervalToDuration(pgInterval));
-            
+
             dto.setActivo((Boolean) row[4]);
             dto.setCarreraId((Integer) row[5]);
 
@@ -116,7 +118,7 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
 
     private Duration convertPGIntervalToDuration(PGInterval pgInterval) {
         long totalSeconds = 0;
-        
+
         // Obtener los componentes del PGInterval
         long days = pgInterval.getDays();
         long hours = pgInterval.getHours();
@@ -124,11 +126,21 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
         long seconds = (long) pgInterval.getSeconds();
 
         // Convertir todo a segundos
-        totalSeconds += days * 86400;  // 1 día = 86400 segundos
-        totalSeconds += hours * 3600;  // 1 hora = 3600 segundos
-        totalSeconds += minutes * 60;  // 1 minuto = 60 segundos
-        totalSeconds += seconds;       // segundos
+        totalSeconds += days * 86400; // 1 día = 86400 segundos
+        totalSeconds += hours * 3600; // 1 hora = 3600 segundos
+        totalSeconds += minutes * 60; // 1 minuto = 60 segundos
+        totalSeconds += seconds; // segundos
 
         return Duration.ofSeconds(totalSeconds);
     }
+
+    // @Override
+    // public List<EtapaFormativaNombreDTO> findAllActivasNombre() {
+    // List<EtapaFormativaNombreDTO> etapasFormativas =
+    // etapaFormativaRepository.findAllByActivoTrue();
+    // return etapasFormativas.stream()
+    // .map(ef -> new EtapaFormativaNombreDTO(ef.getEtapaFormativaId(),
+    // ef.getNombre()))
+    // .toList();
+    // }
 }

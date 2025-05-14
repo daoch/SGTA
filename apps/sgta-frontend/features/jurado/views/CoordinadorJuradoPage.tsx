@@ -79,8 +79,6 @@ const JuradosView = () => {
   }, []);
 
   useEffect(() => {
-    console.log("JuradosData", juradosData);
-    console.log("Dedicaion", selectedDedication);
     const filtered = allJuradosData.filter((j) => {
       const matchStatus = status === EstadoJurado.TODOS || j.status === status;
       const matchSearch =

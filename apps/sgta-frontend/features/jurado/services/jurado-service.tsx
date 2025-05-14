@@ -1,6 +1,10 @@
 import axiosInstance from "@/lib/axios/axios-instance";
 import { AreaEspecialidad, TipoDedicacion } from "../types/jurado.types";
-import { JuradoDTO, JuradoUI } from "../types/juradoDetalle.types";
+import {
+  JuradoDTO,
+  JuradoTemasDetalle,
+  JuradoUI,
+} from "../types/juradoDetalle.types";
 
 export const getAllJurados = async (): Promise<JuradoUI[]> => {
   const response = await axiosInstance.get<JuradoDTO[]>("/jurado");
@@ -51,3 +55,24 @@ export const getAllTiposDedicacion = async (): Promise<TipoDedicacion[]> => {
     fechaModificacion: tipo.fechaModificacion,
   }));
 };
+
+export const getTemasJurado = async (
+  idJurado: number,
+): Promise<JuradoTemasDetalle[]> => {
+  const response = await axiosInstance.get(`/jurado/temas-tesis/${idJurado}`);
+  const data = response.data;
+
+  return data.map((tema: JuradoTemasDetalle) => ({
+    id: tema.id,
+    titulo: tema.titulo,
+    codigo: tema.codigo,
+    resumen: tema.resumen,
+    rol: tema.rol,
+    estudiantes: tema.estudiantes,
+    sub_areas_conocimiento: tema.sub_areas_conocimiento,
+    etapa_formativa: tema.etapaFormativaTesis,
+    cicloTesis: tema.cicloTesis,
+    estadoTema: tema.estadoTema,
+  }));
+};
+

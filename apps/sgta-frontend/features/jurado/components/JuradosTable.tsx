@@ -26,6 +26,7 @@ import { JuradoUI } from "@/features/jurado/types/juradoDetalle.types";
 import { ChevronLeft, ChevronRight, FileSearch, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import * as React from "react";
+import { useEffect } from "react";
 
 interface TableJuradosProps {
   juradosData: JuradoUI[];
@@ -62,6 +63,10 @@ const TableJurados: React.FC<TableJuradosProps> = ({ juradosData }) => {
     setItemsPerPage(Number(value));
     setCurrentPage(1);
   };
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [juradosData]);
 
   const handleClick = (detalleJurado: string) => {
     router.push(`/coordinador/jurados/${detalleJurado}`);
@@ -120,7 +125,7 @@ const TableJurados: React.FC<TableJuradosProps> = ({ juradosData }) => {
                     variant="ghost"
                     size="icon"
                     className="relative cursor-pointer"
-                    onClick={() => handleClick(jurado.code)} // Cambia a la ruta de detalle del jurado
+                    onClick={() => handleClick(jurado.id!)} // Cambia a la ruta de detalle del jurado
                   >
                     <FileSearch className="h-5 w-5" />
                   </Button>

@@ -19,9 +19,15 @@ public class EtapaFormativaController {
     EtapaFormativaService etapaFormativaService;
 
     @GetMapping("/listarPorInicializarByCoordinador/{corodinador_id}")
-    public List<EtapaFormativaNombreDTO> obtenerPorInicializarPorCoordinador(@PathVariable("corodinador_id") Integer usuarioId) {
+    public List<EtapaFormativaNombreDTO> obtenerPorInicializarPorCoordinador(
+            @PathVariable("corodinador_id") Integer usuarioId) {
         return etapaFormativaService.findToInitializeByCoordinador(usuarioId);
     }
+
+    // @GetMapping("/listarActivasNombre")
+    // public List<EtapaFormativaNombreDTO> obtenerEtapasFormativasActivasNombre() {
+    // return etapaFormativaService.findAllActivasNombre();
+    // }
 
     @GetMapping("/listarActivas")
     public List<EtapaFormativaDto> obtenerEtapasFormativasActivas() {
@@ -29,7 +35,8 @@ public class EtapaFormativaController {
     }
 
     @GetMapping("/listarActivasPorCoordinador/{coordinador_id}")
-    public List<EtapaFormativaDto> obtenerEtapasFormativasActivasPorCoordinador(@PathVariable("coordinador_id") Integer coordinadorId) {
+    public List<EtapaFormativaDto> obtenerEtapasFormativasActivasPorCoordinador(
+            @PathVariable("coordinador_id") Integer coordinadorId) {
         return etapaFormativaService.findAllActivasByCoordinador(coordinadorId);
     }
 }

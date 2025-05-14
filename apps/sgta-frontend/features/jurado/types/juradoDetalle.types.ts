@@ -45,10 +45,16 @@ export interface Jurado {
 export interface Tesis {
   titulo: string;
   codigo: string;
-  estudiante: string;
-  codEstudiante: string;
+  estudiantes: {
+    nombre: string;
+    codigo: string;
+  }[];
   resumen: string;
-  especialidades: string[];
+  sub_areas_conocimiento: {
+    id: number;
+    nombre: string;
+    id_area_conocimiento: number;
+  }[];
   rol: string;
 }
 
@@ -160,4 +166,33 @@ export enum Especialidades {
   FRONTEND = "Front-End",
   BACKEND = "Backend",
   UI_UX = "UI/UX",
+}
+
+export interface JuradoTemasDetalle {
+  id: number,
+  titulo: string;
+  codigo: string;
+  resumen: string;
+  rol: string;
+  estudiantes: {
+    nombre: string;
+    codigo: string;
+  }[];
+  sub_areas_conocimiento: {
+    id: number;
+    nombre: string;
+    id_area_conocimiento: number;
+  }[];
+  etapaFormativaTesis: {
+    id: number;
+    nombre: string;
+  };
+  cicloTesis: {
+    id: number;
+    nombre: string;
+  };
+  estadoTema: {
+    id: number;
+    nombre: string;
+  };
 }

@@ -1,7 +1,13 @@
 "use client";
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import { ArrowLeft, Plus, Search } from "lucide-react";
+import {
+  ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+  Search,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -12,14 +18,22 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ListaTesisJuradoCard } from "../components/TesisCard";
-
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+} from "@/components/ui/pagination";
 import {
   Jurado,
   TesisAsignada,
   CursoType,
   PeriodoAcademico,
   JuradoDetalleViewProps,
+  JuradoTemasDetalle,
 } from "@/features/jurado/types/juradoDetalle.types";
+import { getTemasJurado } from "../services/jurado-service";
 
 export function JuradoDetalleView({
   modalAsignarTesisComponent: ModalAsignarTesis,
@@ -29,65 +43,58 @@ export function JuradoDetalleView({
   const detalleJurado = params?.detalleJurado as string;
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Define los datos con el tipo correcto
-  const tesisData: TesisAsignada[] = [
-    {
-      titulo:
-        "Aplicación de Deep Learning para la detección y clasificación automática de insectos agrícolas en trampas pegantes",
-      codigo: "INF0501",
-      estudiante: "Angel Malpartida",
-      codEstudiante: "20201242",
-      resumen:
-        "El presente trabajo de investigación busca hacer una revisión sistemática sobre las técnicas actuales que se usan para solucionar problemas de identificación y clasificación de plagas de insectos...",
-      especialidades: ["Desarrollo Web", "Backend"],
-      curso: CursoType.PFC1,
-      periodo: PeriodoAcademico.PERIODO_2025_1,
-      rol: "Jurado",
-    },
-    {
-      titulo:
-        "Identificación del nivel de complejidad de texto para el entrenamiento de chatbots basado en Machine Learning",
-      codigo: "INF1643",
-      estudiante: "Marco Bossio",
-      codEstudiante: "20105420",
-      resumen:
-        "El nivel de complejidad textual puede ser un inconveniente para algunas personas al momento de usar Chatbots...",
-      especialidades: ["Ciencias de la Computación"],
-      curso: CursoType.PFC2,
-      periodo: PeriodoAcademico.PERIODO_2025_1,
-      rol: "Jurado",
-    },
-  ];
+  const [allTemasJuradoData, setAllTemasJuradoData] = useState<
+    JuradoTemasDetalle[]
+  >([]);
+  useEffect(() => {
+    const fetchTemas = async () => {
+      try {
+        const temas = await getTemasJurado(Number(detalleJurado));
+        setAllTemasJuradoData(temas);
+        setAsignadas(temas);
+      } catch (error) {
+        console.error("Error fetching temas de jurado:", error);
+      }
+    };
+    fetchTemas();
+  }, []);
 
-  const tesisDataSeleccion = [
-    {
-      titulo:
-        "Aplicación de Deep Learning para la detección y clasificación automática de insectos agrícolas en trampas pegantes",
-      codigo: "INF0501",
-      estudiante: "Angel Malpartida",
-      codEstudiante: "20201242",
-      especialidades: ["Vision Computacional", "Sistemas de Informacion"],
-      rol: "Jurado",
-      resumen: "",
-    },
-    {
-      titulo:
-        "Identificación del nivel de complejidad de texto para el entrenamiento de chatbots basado en Machine Learning",
-      codigo: "INF1643",
-      estudiante: "Marco Bossio",
-      codEstudiante: "20105420",
-      especialidades: ["Ciencias de la Computación"],
-      rol: "Jurado",
-      resumen: "",
-    },
-  ];
+  const [asignadas, setAsignadas] = useState<JuradoTemasDetalle[]>([]);
 
-  const juradoEjemplo: Jurado = {
-    specialties: ["Ingeniería de Software", "Ciencias de la Computación"],
+  //PARA LA PAGINACION
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const [itemsPerPage, setItemsPerPage] = React.useState(5);
+
+  //CALCULAR TOTAL DE PAGINAS
+  const totalPages = Math.ceil(asignadas.length / itemsPerPage);
+
+  //CALCULAR ITEMS A MOSTRAR EN LA PAGINA ACTUAL
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = asignadas.slice(indexOfFirstItem, indexOfLastItem);
+
+  //FUNCION PARA CAMBIAR DE PAGINA
+  const handlePageChange = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
   };
 
+  //GENERAR NUMEROS DE PAGINA
+  const pageNumbers = [];
+  for (let i = 1; i <= totalPages; i++) {
+    pageNumbers.push(i);
+  }
+
+  //FUNCION PARA CAMBIAR ITEMS POR PAGINA
+  const handleItemsPerPageChange = (value: string) => {
+    setItemsPerPage(Number(value));
+    setCurrentPage(1);
+  };
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [asignadas]);
+
   const [modalOpen, setModalOpen] = useState(false);
-  const [asignadas, setAsignadas] = useState<TesisAsignada[]>(tesisData);
   const [selectedPeriodo, setSelectedPeriodo] = useState<PeriodoAcademico>(
     PeriodoAcademico.TODOS,
   );
@@ -112,12 +119,13 @@ export function JuradoDetalleView({
   // filtrar solo por curso y periodo en este useEffect
   useEffect(() => {
     setAsignadas(
-      tesisData.filter((tesis) => {
+      allTemasJuradoData.filter((tesis) => {
         const matchCurso =
-          selectedCurso === CursoType.TODOS || tesis.curso === selectedCurso;
+          selectedCurso === CursoType.TODOS ||
+          tesis.etapaFormativaTesis.nombre === selectedCurso;
         const matchPeriodo =
           selectedPeriodo === PeriodoAcademico.TODOS ||
-          tesis.periodo === selectedPeriodo;
+          tesis.cicloTesis.nombre === selectedPeriodo;
         return matchCurso && matchPeriodo;
       }),
     );
@@ -126,17 +134,20 @@ export function JuradoDetalleView({
   // Función de búsqueda que filtra por texto y respeta los filtros activos
   const handleSearch = () => {
     setAsignadas(
-      tesisData.filter((tesis) => {
+      allTemasJuradoData.filter((tesis) => {
         const matchText =
           tesis.codigo.toLowerCase().includes(searchTerm.toLowerCase()) ||
           tesis.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          tesis.estudiante.toLowerCase().includes(searchTerm.toLowerCase());
+          tesis.estudiantes.some((estudiante) =>
+            estudiante.nombre.toLowerCase().includes(searchTerm.toLowerCase()),
+          );
 
         const matchCurso =
-          selectedCurso === CursoType.TODOS || tesis.curso === selectedCurso;
+          selectedCurso === CursoType.TODOS ||
+          tesis.etapaFormativaTesis.nombre === selectedCurso;
         const matchPeriodo =
           selectedPeriodo === PeriodoAcademico.TODOS ||
-          tesis.periodo === selectedPeriodo;
+          tesis.cicloTesis.nombre === selectedPeriodo;
 
         return matchText && matchCurso && matchPeriodo;
       }),
@@ -246,18 +257,117 @@ export function JuradoDetalleView({
         </div>
       </div>
       <ListaTesisJuradoCard
-        data={asignadas}
+        data={currentItems}
         onCardClick={handleTesisCardClick}
       />
 
       {/* Modal */}
-      <ModalAsignarTesis
+      {/* <ModalAsignarTesis
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         onAsignar={handleAsignarTesis}
         data={tesisDataSeleccion}
         jurado={juradoEjemplo}
-      />
+      /> */}
+
+      <div className="flex items-center justify-between pt-4 border-t">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-500">Mostrar</span>
+          <Select
+            value={itemsPerPage.toString()}
+            onValueChange={handleItemsPerPageChange}
+          >
+            <SelectTrigger className="w-[80px]">
+              <SelectValue placeholder={itemsPerPage.toString()} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="5">5</SelectItem>
+              <SelectItem value="10">10</SelectItem>
+              <SelectItem value="15">25</SelectItem>
+              <SelectItem value="20">20</SelectItem>
+            </SelectContent>
+          </Select>
+          <span className="text-sm text-gray-500">por página</span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-500">
+            Mostrando {indexOfFirstItem + 1}-
+            {Math.min(indexOfLastItem, asignadas.length)} de {asignadas.length}{" "}
+            registros
+          </span>
+        </div>
+
+        <Pagination>
+          <PaginationContent className="flex items-center gap-10">
+            <PaginationItem>
+              <PaginationLink
+                onClick={() =>
+                  currentPage > 1 && handlePageChange(currentPage - 1)
+                }
+                className={
+                  currentPage === 1
+                    ? "pointer-events-none opacity-50"
+                    : "cursor-pointer hover:bg-transparent"
+                }
+              >
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                Anterior
+              </PaginationLink>
+            </PaginationItem>
+
+            <div className="flex items-center gap-1">
+              {pageNumbers.map((number) => {
+                if (
+                  number === 1 ||
+                  number === totalPages ||
+                  (number >= currentPage - 1 && number <= currentPage + 1)
+                ) {
+                  return (
+                    <PaginationItem key={number}>
+                      <PaginationLink
+                        onClick={() => handlePageChange(number)}
+                        isActive={currentPage === number}
+                      >
+                        {number}
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                }
+
+                if (
+                  (number === 2 && currentPage > 3) ||
+                  (number === totalPages - 1 && currentPage < totalPages - 2)
+                ) {
+                  return (
+                    <PaginationItem key={number}>
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  );
+                }
+
+                return null;
+              })}
+            </div>
+
+            <PaginationItem>
+              <PaginationLink
+                onClick={() =>
+                  currentPage < totalPages && handlePageChange(currentPage + 1)
+                }
+                className={
+                  currentPage === totalPages
+                    ? "pointer-events-none opacity-50"
+                    : "cursor-pointer hover:bg-transparent"
+                }
+              >
+                Siguiente
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </PaginationLink>
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      </div>
     </div>
   );
 }
