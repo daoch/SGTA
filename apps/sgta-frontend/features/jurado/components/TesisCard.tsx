@@ -54,7 +54,7 @@ export const ListaTesisJuradoCard: React.FC<ListaTesisJuradoCardProps> = ({
                 </div>
               </div>
               <span
-                className={`text-sm font-medium px-3 py-1.5 rounded-full`}
+                className="text-sm font-medium px-3 py-1.5 rounded-full"
                 style={{
                   backgroundColor:
                     tesis.rol === "Asesor" ? "#F9D534" : "#d2a5fd",
