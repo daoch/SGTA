@@ -1,5 +1,13 @@
 import axiosInstance from "@/lib/axios/axios-instance";
-import { AreaEspecialidad, TipoDedicacion } from "../types/jurado.types";
+import {
+  AreaEspecialidad,
+  Asesor,
+  Estudiante,
+  EtapaFormativaExposiciones,
+  Exposicion,
+  MiembroJurado,
+  TipoDedicacion,
+} from "../types/jurado.types";
 import {
   JuradoDTO,
   JuradoTemasDetalle,
@@ -9,6 +17,7 @@ import {
   AreaConocimientoJurado,
   TesisDetalleExposicion,
 } from "../types/juradoDetalle.types";
+import axios from "axios";
 
 export const getAllJurados = async (): Promise<JuradoUI[]> => {
   const response = await axiosInstance.get<JuradoDTO[]>("/jurado");
@@ -157,10 +166,12 @@ export const asignarTemaJurado = async (
       success: true,
       message: response.data.mensaje || "Tema asignado correctamente",
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Manejo de errores
     const errorMessage =
-      error.response?.data?.mensaje || "Error al asignar el tema al jurado";
+      axios.isAxiosError(error) && error.response?.data?.mensaje
+        ? error.response.data.mensaje
+        : "Error al asignar el tema al jurado";
     console.error("Error al asignar tema:", errorMessage);
 
     return {
@@ -184,10 +195,12 @@ export const desasignarMiembroJuradoTemaTodos = async (
         response.data.mensaje ||
         "Todos los temas desasignados correctamente para el miembro de jurado",
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     const errorMessage =
-      error.response?.data?.mensaje ||
-      "Error al eliminar las asignaciones del miembro de jurado con sus temas";
+      axios.isAxiosError(error) && error.response?.data?.mensaje
+        ? error.response.data.mensaje
+        : "Error al eliminar las asignaciones del miembro de jurado con sus temas";
+
     console.error(
       "Error al eliminar desasignar miembro de jurado a todos sus temas:",
       errorMessage,
@@ -213,7 +226,7 @@ export const getExposicionesTema = async (
     // Mapear la respuesta al formato requerido
     return {
       // Mapear los estudiantes directamente
-      estudiantes: data.estudiantes.map((estudiante: any) => ({
+      estudiantes: data.estudiantes.map((estudiante: Estudiante) => ({
         id: estudiante.id,
         nombre: estudiante.nombre,
         tipo: estudiante.tipo,
@@ -221,35 +234,36 @@ export const getExposicionesTema = async (
 
       // Para el asesor, tomamos el primer elemento del array asesores
       // que tenga tipo "Asesor"
-      asesores: data.asesores.map((asesor: any) => ({
+      asesores: data.asesores.map((asesor: Asesor) => ({
         id: asesor.id,
         nombre: asesor.nombre,
         tipo: asesor.tipo,
       })),
 
       // Mapear los miembros del jurado
-      miembrosJurado: data.miembrosJurado.map((miembro: any) => ({
+      miembrosJurado: data.miembrosJurado.map((miembro: MiembroJurado) => ({
         id: miembro.id,
         nombre: miembro.nombre,
         tipo: miembro.tipo,
       })),
 
-      etapaFormativaTesis: data.etapasFormativas.map((etapa: any) => ({
-        id: etapa.id,
-        nombre: etapa.nombre,
-        exposiciones: etapa.exposiciones.map((expo: any) => ({
-          id: expo.id,
-          nombre: expo.nombre,
-          estadoExposicion: expo.estadoExposicion,
-          datetimeInicio: expo.datetimeInicio,
-          datetimeFin: expo.datetimeFin,
-          sala: expo.salaExposicion,
-        })),
-      })),
+      etapaFormativaTesis: data.etapasFormativas.map(
+        (etapa: EtapaFormativaExposiciones) => ({
+          id: etapa.id,
+          nombre: etapa.nombre,
+          exposiciones: etapa.exposiciones.map((expo: Exposicion) => ({
+            id: expo.id,
+            nombre: expo.nombre,
+            estadoExposicion: expo.estadoExposicion,
+            datetimeInicio: expo.datetimeInicio,
+            datetimeFin: expo.datetimeFin,
+            sala: expo.salaExposicion,
+          })),
+        }),
+      ),
     };
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error al obtener exposiciones del tema:", error);
-    // Devolver un objeto vacío con la estructura correcta en caso de error
     return {
       estudiantes: [],
       asesores: [],
@@ -273,10 +287,12 @@ export const desasignarJuradoTema = async (
       success: true,
       message: response.data.mensaje || "Asignación eliminada correctamente",
     };
-  } catch (error: any) {
-    // Manejo de errores
+  } catch (error: unknown) {
     const errorMessage =
-      error.response?.data?.mensaje || "Error al desasignar el jurado del tema";
+      axios.isAxiosError(error) && error.response?.data?.mensaje
+        ? error.response.data.mensaje
+        : "Error al desasignar el jurado del tema";
+
     console.error("Error al desasignar jurado:", errorMessage);
     return {
       success: false,
