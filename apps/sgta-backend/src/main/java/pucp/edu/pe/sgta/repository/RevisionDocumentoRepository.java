@@ -36,11 +36,16 @@ public interface RevisionDocumentoRepository extends JpaRepository<RevisionDocum
     @Query(value = """
         SELECT 
             rd.revision_documento_id,
-            rd.usuario_id,
-            u.nombres,
-            u.primer_apellido,
-            u.segundo_apellido,
-            u.codigo_pucp,
+            est.usuario_id as estudiante_id,
+            est.nombres as estudiante_nombres,
+            est.primer_apellido as estudiante_primer_apellido,
+            est.segundo_apellido as estudiante_segundo_apellido,
+            est.codigo_pucp as estudiante_codigo,
+            rev.usuario_id as revisor_id,
+            rev.nombres as revisor_nombres, 
+            rev.primer_apellido as revisor_primer_apellido,
+            rev.segundo_apellido as revisor_segundo_apellido,
+            rev.codigo_pucp as revisor_codigo,
             t.titulo,
             t.tema_id,
             vd.version_documento_id,
@@ -60,9 +65,11 @@ public interface RevisionDocumentoRepository extends JpaRepository<RevisionDocum
             revision_documento rd
             JOIN version_documento vd ON rd.version_documento_id = vd.version_documento_id
             JOIN documento d ON vd.documento_id = d.documento_id
-            JOIN usuario u ON rd.usuario_id = u.usuario_id
-            JOIN tipo_usuario tu ON u.tipo_usuario_id = tu.tipo_usuario_id
-            LEFT JOIN usuario_tema ut ON ut.usuario_id = rd.usuario_id
+            JOIN usuario rev ON rd.usuario_id = rev.usuario_id
+            JOIN usuario_documento ud ON ud.documento_id = d.documento_id
+            JOIN usuario est ON ud.usuario_id = est.usuario_id
+            JOIN tipo_usuario tu_est ON est.tipo_usuario_id = tu_est.tipo_usuario_id
+            LEFT JOIN usuario_tema ut ON ut.usuario_id = est.usuario_id
             LEFT JOIN tema t ON ut.tema_id = t.tema_id
             LEFT JOIN entregable_x_tema ext ON ext.tema_id = t.tema_id
             LEFT JOIN entregable e ON ext.entregable_id = e.entregable_id
@@ -70,6 +77,7 @@ public interface RevisionDocumentoRepository extends JpaRepository<RevisionDocum
             LEFT JOIN etapa_formativa ef ON efxc.etapa_formativa_id = ef.etapa_formativa_id
         WHERE
             rd.activo = true
+            AND (tu_est.nombre ILIKE '%estudiante%' OR tu_est.nombre ILIKE '%alumno%')
         ORDER BY
             rd.fecha_creacion DESC
     """, nativeQuery = true)

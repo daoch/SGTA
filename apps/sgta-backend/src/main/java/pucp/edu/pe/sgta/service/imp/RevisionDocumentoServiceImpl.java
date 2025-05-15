@@ -47,83 +47,91 @@ public class RevisionDocumentoServiceImpl implements RevisionDocumentoService {
         for (Object[] resultado : resultados) {
             RevisionDto dto = new RevisionDto();
             
-            // Mapeo de los campos desde el resultado de la consulta SQL
+            // ID de la revisión
             dto.setId(resultado[0] != null ? resultado[0].toString() : null);
-            dto.setTitulo(resultado[1] != null ? (String) resultado[1] : null);
             
-            // Concatenar nombres y apellidos para el campo estudiante
-            String nombres = resultado[2] != null ? (String) resultado[2] : "";
-            String primerApellido = resultado[3] != null ? (String) resultado[3] : "";
-            dto.setEstudiante(nombres + " " + primerApellido);
+            // Datos del estudiante
+            dto.setEstudianteId(resultado[1] != null ? ((Number) resultado[1]).intValue() : null);
             
-            // ID del estudiante
-            dto.setEstudianteId(resultado[5] != null ? ((Number) resultado[5]).intValue() : null);
+            // Nombre completo del estudiante
+            String nombresEstudiante = resultado[2] != null ? (String) resultado[2] : "";
+            String primerApellidoEstudiante = resultado[3] != null ? (String) resultado[3] : "";
+            dto.setEstudiante(nombresEstudiante + " " + primerApellidoEstudiante);
             
             // Código del estudiante
-            dto.setCodigo(resultado[6] != null ? (String) resultado[6] : null);
+            dto.setCodigo(resultado[5] != null ? (String) resultado[5] : null);
             
-            // Curso (nombre de etapa formativa)
-            dto.setCurso(resultado[7] != null ? (String) resultado[7] : null);
+            // Datos del revisor (para uso interno si se necesita)
+            Integer revisorId = resultado[6] != null ? ((Number) resultado[6]).intValue() : null;
+            String revisorNombre = resultado[7] != null ? (String) resultado[7] : "";
+            String revisorApellido = resultado[8] != null ? (String) resultado[8] : "";
             
-            // ID del curso (ID de etapa formativa)
-            dto.setCursoId(resultado[8] != null ? ((Number) resultado[8]).intValue() : null);
+            // Título y tema
+            dto.setTitulo(resultado[11] != null ? (String) resultado[11] : null);
             
-            // Convertir timestamp a LocalDate para fechaEntrega
-            if (resultado[9] != null) {
+            // Fechas
+            // Convertir timestamp a LocalDate para fechaEntrega (índice 16 es la fecha_ultima_subida)
+            if (resultado[16] != null) {
                 try {
-                    if (resultado[9] instanceof Timestamp) {
-                        Timestamp fechaEntrega = (Timestamp) resultado[9];
+                    if (resultado[16] instanceof Timestamp) {
+                        Timestamp fechaEntrega = (Timestamp) resultado[16];
                         dto.setFechaEntrega(fechaEntrega.toLocalDateTime().toLocalDate());
-                    } else if (resultado[9] instanceof java.sql.Date) {
-                        dto.setFechaEntrega(((java.sql.Date) resultado[9]).toLocalDate());
+                    } else if (resultado[16] instanceof java.sql.Date) {
+                        dto.setFechaEntrega(((java.sql.Date) resultado[16]).toLocalDate());
                     }
                 } catch (Exception e) {
-                    // En caso de error de conversión, omitir la asignación
                     System.err.println("Error al convertir fecha de entrega: " + e.getMessage());
                 }
             }
             
-            // Convertir fecha límite - podría ser Date o LocalDate
-            if (resultado[10] != null) {
+            // Fecha límite (índice 17 es fecha_limite_revision)
+            if (resultado[17] != null) {
                 try {
-                    if (resultado[10] instanceof java.sql.Date) {
-                        dto.setFechaLimite(((java.sql.Date) resultado[10]).toLocalDate());
-                    } else if (resultado[10] instanceof LocalDate) {
-                        dto.setFechaLimite((LocalDate) resultado[10]);
+                    if (resultado[17] instanceof java.sql.Date) {
+                        dto.setFechaLimite(((java.sql.Date) resultado[17]).toLocalDate());
+                    } else if (resultado[17] instanceof LocalDate) {
+                        dto.setFechaLimite((LocalDate) resultado[17]);
                     }
                 } catch (Exception e) {
-                    // En caso de error de conversión, omitir la asignación
                     System.err.println("Error al convertir fecha límite: " + e.getMessage());
                 }
             }
             
-            // Estado de revisión - ya viene como texto por el cast en la consulta
-            dto.setEstado(resultado[11] != null ? resultado[11].toString().toLowerCase() : null);
+            // Estado de revisión (índice 19 es estado_revision)
+            dto.setEstado(resultado[19] != null ? resultado[19].toString().toLowerCase() : null);
+            
+            // Curso (nombre de etapa formativa) (índice 23 es curso)
+            dto.setCurso(resultado[23] != null ? (String) resultado[23] : null);
+            
+            // ID del curso (ID de etapa formativa) (índice 24 es etapa_formativa_id)
+            dto.setCursoId(resultado[24] != null ? ((Number) resultado[24]).intValue() : null);
             
             // Calcular si la entrega fue a tiempo comparando fecha_envio con fecha_fin
             LocalDate fechaEnvio = null;
             LocalDate fechaFin = null;
             
-            if (resultado[12] != null) {
+            // Índice 21 es fecha_envio
+            if (resultado[21] != null) {
                 try {
-                    if (resultado[12] instanceof java.sql.Date) {
-                        fechaEnvio = ((java.sql.Date) resultado[12]).toLocalDate();
-                    } else if (resultado[12] instanceof LocalDate) {
-                        fechaEnvio = (LocalDate) resultado[12];
+                    if (resultado[21] instanceof java.sql.Date) {
+                        fechaEnvio = ((java.sql.Date) resultado[21]).toLocalDate();
+                    } else if (resultado[21] instanceof LocalDate) {
+                        fechaEnvio = (LocalDate) resultado[21];
                     }
                 } catch (Exception e) {
                     System.err.println("Error al convertir fecha de envío: " + e.getMessage());
                 }
             }
             
-            if (resultado[13] != null) {
+            // Índice 22 es fecha_fin
+            if (resultado[22] != null) {
                 try {
-                    if (resultado[13] instanceof Timestamp) {
-                        fechaFin = ((Timestamp) resultado[13]).toLocalDateTime().toLocalDate();
-                    } else if (resultado[13] instanceof java.sql.Date) {
-                        fechaFin = ((java.sql.Date) resultado[13]).toLocalDate();
-                    } else if (resultado[13] instanceof LocalDate) {
-                        fechaFin = (LocalDate) resultado[13];
+                    if (resultado[22] instanceof Timestamp) {
+                        fechaFin = ((Timestamp) resultado[22]).toLocalDateTime().toLocalDate();
+                    } else if (resultado[22] instanceof java.sql.Date) {
+                        fechaFin = ((java.sql.Date) resultado[22]).toLocalDate();
+                    } else if (resultado[22] instanceof LocalDate) {
+                        fechaFin = (LocalDate) resultado[22];
                     }
                 } catch (Exception e) {
                     System.err.println("Error al convertir fecha fin: " + e.getMessage());
@@ -141,9 +149,9 @@ public class RevisionDocumentoServiceImpl implements RevisionDocumentoService {
             dto.setFormatoValido(null);
             dto.setCitadoCorrecto(null);
             
-            // Número de observaciones
-            if (resultado[14] != null) {
-                dto.setObservaciones(((Number) resultado[14]).intValue());
+            // Número de observaciones (índice 25)
+            if (resultado[25] != null) {
+                dto.setObservaciones(((Number) resultado[25]).intValue());
             } else {
                 dto.setObservaciones(0);
             }
