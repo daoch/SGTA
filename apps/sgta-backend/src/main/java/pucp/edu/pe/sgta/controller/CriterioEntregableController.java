@@ -32,8 +32,8 @@ public class CriterioEntregableController {
     }
 
     @PutMapping("/delete")
-    public void delete(@RequestBody CriterioEntregableDto criterioEntregableDto) {
-        criterioEntregableService.delete(criterioEntregableDto);
+    public void delete(@RequestBody Integer criterioEntregableId) {
+        criterioEntregableService.delete(criterioEntregableId);
     }
 
     @GetMapping("/{id}")
