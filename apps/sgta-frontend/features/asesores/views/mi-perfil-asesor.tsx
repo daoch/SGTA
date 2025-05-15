@@ -16,6 +16,9 @@ import TesisDirigidasResumen from "../components/tesis-dirigidas-resumen";
 
 import {
   editarAsesor,
+  getFotoUsuario,
+  getListaProyectos,
+  getListaTesisPorAsesor,
   getPerfilAsesor,
   listarAreasTematicas,
   listarTemasInteres,
@@ -33,7 +36,6 @@ import { useAuth } from "@/features/auth";
 import { useRouter } from "next/navigation";
 import IndicadoresAsesor from "../components/indicadores-asesor";
 import ProyectosAsesoradosResumen from "../components/proyectos-asesorados-resumen";
-import { getProyectosMock, getTesisMock } from "../mocks/perfil/asesor-mock";
 
 interface Props {
   userId: number;
@@ -61,6 +63,8 @@ export default function PerfilAsesor({ userId, editable }: Props) {
     null,
   );
 
+  const [foto, setFoto] = useState<string | null>(null);
+
   const [isLoading, setIsLoading] = useState(false);
 
   // Estado para el diálogo de confirmación de eliminación
@@ -74,10 +78,16 @@ export default function PerfilAsesor({ userId, editable }: Props) {
   // Estado para el diálogo de confirmación de guardado
   const [isSaveConfirmationOpen, setIsSaveConfirmationOpen] = useState(false);
 
-  const myProfile = user && Number(user.id) === userId;
-
   useEffect(() => {
     getPerfilAsesor(userId).then(setAsesor).catch(console.error);
+  }, [userId]);
+
+  useEffect(() => {
+    getListaTesisPorAsesor(userId).then(setTesis).catch(console.error);
+  }, [userId]);
+
+  useEffect(() => {
+    getListaProyectos(userId).then(setProyectos).catch(console.error);
   }, [userId]);
 
   useEffect(() => {
@@ -87,16 +97,24 @@ export default function PerfilAsesor({ userId, editable }: Props) {
   }, [asesor]);
 
   useEffect(() => {
-    //Cargar los datos mockeados una vez al iniciar
-    //const asesorData = getAsesorMock();
-    //setAsesor(asesorData);
-    //setEditedData(asesorData);
-    // Cargar áreas y temas disponibles
-    //setAreasDisponibles(getAreasDisponibles());
-    //setTemasDisponibles(getTemasDisponibles());
-    setTesis(getTesisMock());
-    setProyectos(getProyectosMock());
-  }, []);
+    getFotoUsuario(userId)
+      .then((base64) => {
+        setFoto(`data:image/jpeg;base64,${base64}`);
+      })
+      .catch(console.error);
+  }, [userId]);
+
+  //useEffect(() => {
+  //Cargar los datos mockeados una vez al iniciar
+  //const asesorData = getAsesorMock();
+  //setAsesor(asesorData);
+  //setEditedData(asesorData);
+  // Cargar áreas y temas disponibles
+  //setAreasDisponibles(getAreasDisponibles());
+  //setTemasDisponibles(getTemasDisponibles());
+  //setTesis(getTesisMock());
+  //setProyectos(getProyectosMock());
+  //}, []);
 
   useEffect(() => {
     if (!userId) return;
@@ -316,7 +334,7 @@ export default function PerfilAsesor({ userId, editable }: Props) {
     <div className="px-4 sm:px-6 lg:px-8 pt-6 pb-12 w-full max-w-none">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div className="flex items-center gap-2">
-          {!myProfile && (
+          {!editable && (
             <button
               onClick={() => router.back()}
               className="text-muted-foreground hover:text-foreground transition-colors"
@@ -325,7 +343,7 @@ export default function PerfilAsesor({ userId, editable }: Props) {
             </button>
           )}
           <h1 className="text-xl sm:text-2xl font-bold">
-            {myProfile ? "Mi perfil" : "Perfil del asesor"}
+            {editable ? "Mi perfil" : "Perfil del asesor"}
           </h1>
         </div>
         {editable && (
@@ -368,7 +386,7 @@ export default function PerfilAsesor({ userId, editable }: Props) {
             editedData={editedData}
             isEditing={isEditing}
             setEditedData={setEditedData}
-            avatar={user?.avatar}
+            avatar={foto}
           />
 
           {/* Áreas Temáticas */}
