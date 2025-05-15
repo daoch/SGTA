@@ -14,6 +14,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
   requiredRoles,
 }) => {
+  
   const router = useRouter();
   const { isAuthenticated, isLoading, user, checkAuth } = useAuth();
   const [authChecked, setAuthChecked] = useState(false);
@@ -50,6 +51,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
     verifyAuth();
   }, [checkAuth]);
+
 
   useEffect(() => {
     if (authChecked && !isLoading) {
