@@ -49,16 +49,32 @@ public class TemaController {
 	public void update(@RequestBody TemaDto dto) {
 		temaService.update(dto);
 	}
+
 	@GetMapping("/listarTemasPropuestosAlAsesor/{asesorId}")
-	public List<TemaDto> listarTemasPropuestosAlAsesor(@PathVariable Integer asesorId) {
-		return temaService.listarTemasPropuestosAlAsesor(asesorId);
+	public List<TemaDto> listarTemasPropuestosAlAsesor(
+			@PathVariable Integer asesorId,
+			@RequestParam(required = false) String titulo, // Parámetro opcional de título
+			@RequestParam(defaultValue = "10") Integer limit, // Parámetro de límite, con valor por defecto de 10
+			@RequestParam(defaultValue = "0") Integer offset // Parámetro de desplazamiento, con valor por defecto de 0
+	) {
+
+		return temaService.listarTemasPropuestosAlAsesor(asesorId, titulo, limit, offset);
 	}
 
+
 	@GetMapping("/listarTemasPropuestosPorSubAreaConocimiento")
-	public List<TemaDto> listarTemasPropuestosPorSubAreaConocimiento(@RequestParam List<Integer> subareaIds,
-																	 @RequestParam(name = "asesorId") Integer asesorId) {
-		return temaService.listarTemasPropuestosPorSubAreaConocimiento(subareaIds,asesorId);
+	public List<TemaDto> listarTemasPropuestosPorSubAreaConocimiento(
+			@RequestParam List<Integer> subareaIds,
+			@RequestParam(name = "asesorId") Integer asesorId,
+			@RequestParam(name = "titulo", required = false) String titulo,
+			@RequestParam(value = "limit", defaultValue = "10") Integer limit,
+			@RequestParam(value = "offset", defaultValue = "0") Integer offset
+	) {
+
+		return temaService.listarTemasPropuestosPorSubAreaConocimiento(subareaIds, asesorId, titulo, limit, offset);
 	}
+
+
 
 	@PostMapping("/postularAsesorTemaPropuestoGeneral")
 	public void postularAsesorTemaPropuestoGeneral(

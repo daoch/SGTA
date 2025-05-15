@@ -37,7 +37,7 @@ public class SolicitudCeseDto {
         private String lastName;
         private String email;
         private int quantityCurrentProyects;
-        private String urlPhoto;
+        private byte[] urlPhoto;
     }
 
     @Data

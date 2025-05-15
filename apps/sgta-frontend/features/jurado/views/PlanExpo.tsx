@@ -24,7 +24,7 @@ export default async function PlanExpo({ exposicionId }: Props) {
   const bloquesList = await listarBloquesHorariosExposicion(exposicionId);
   const estadoPlanificacion = await listarEstadoPlanificacionPorExposicion(exposicionId);
  
-
+console.log(bloquesList);
 
 
   return (  

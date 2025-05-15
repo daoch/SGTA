@@ -3,6 +3,8 @@ package pucp.edu.pe.sgta.mapper;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
 import pucp.edu.pe.sgta.model.Usuario;
 
+import java.util.ArrayList;
+
 public class UsuarioMapper {
     public static UsuarioDto toDto(Usuario usuario) {
         UsuarioDto dto = new UsuarioDto();
@@ -16,7 +18,9 @@ public class UsuarioMapper {
         dto.setCodigoPucp(usuario.getCodigoPucp());
         dto.setTipoUsuario(TipoUsuarioMapper.toDto(usuario.getTipoUsuario()));
         dto.setTipoDisponibilidad(usuario.getTipoDisponibilidad());
-        dto.setTipoDedicacion(TipoDedicacionMapper.toDto(usuario.getTipoDedicacion()));
+        if(usuario.getTipoDedicacion() != null) {
+            dto.setTipoDedicacion(TipoDedicacionMapper.toDto(usuario.getTipoDedicacion()));
+        }
         dto.setNivelEstudios(usuario.getNivelEstudios());
         dto.setEnlaceLinkedin(usuario.getEnlaceLinkedin());
         dto.setEnlaceRepositorio(usuario.getEnlaceRepositorio());
@@ -39,7 +43,9 @@ public class UsuarioMapper {
         usuario.setContrasena(dto.getContrasena());
         usuario.setDisponibilidad(dto.getDisponibilidad());
         usuario.setTipoDisponibilidad(dto.getTipoDisponibilidad());
-        usuario.setTipoDedicacion(TipoDedicacionMapper.toEntity(dto.getTipoDedicacion()));
+        if(usuario.getTipoDedicacion() != null) {
+            usuario.setTipoDedicacion(TipoDedicacionMapper.toEntity(dto.getTipoDedicacion()));
+        }
         usuario.setEnlaceLinkedin(dto.getEnlaceLinkedin());
         usuario.setEnlaceRepositorio(dto.getEnlaceRepositorio());
         return usuario;

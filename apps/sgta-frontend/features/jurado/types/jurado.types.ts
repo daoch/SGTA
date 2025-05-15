@@ -49,6 +49,8 @@ export interface TimeSlot {
   idJornadaExposicionSala: number;
   expo?: Tema;
   idExposicion?:number;
+  esBloqueReservado?: boolean;
+  esBloqueBloqueado?:boolean;
 }
 
 export interface EstadoPlanificacion{
@@ -56,3 +58,5 @@ export interface EstadoPlanificacion{
   nombre :string;
   activo : boolean;
 }
+
+export type OrigenBoton = "siguiente" | "terminar";

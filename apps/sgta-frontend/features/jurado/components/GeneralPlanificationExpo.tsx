@@ -8,10 +8,10 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { useEffect, useState, useTransition } from "react";
-import { updateBloquesListFirstTime } from "../actions/actions";
+import { finishPlanning, updateBloquesListFirstTime, updateBloquesNextPhase } from "../actions/actions";
 import { JornadaExposicionDTO } from "../dtos/JornadExposicionDTO";
 import { listarEstadoPlanificacionPorExposicion } from "../services/data";
-import { AreaEspecialidad, EstadoPlanificacion, Tema, TimeSlot } from "../types/jurado.types";
+import { AreaEspecialidad, EstadoPlanificacion, OrigenBoton, Tema, TimeSlot } from "../types/jurado.types";
 import ExposList from "./ExposList";
 import PlanificationPanel from "./PlanificationPanel";
 
@@ -57,8 +57,7 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
     setFreeExpos(free);
   }, [bloquesList, expos]);
 
-  console.log({assignedExpos});
-  console.log({freeExpos});
+  
   /*Handles the drag and drop event for the expositions*/
   function handleDragEnd(event: DragEndEvent) {
 
@@ -140,7 +139,7 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
     },
   });
 
-  const onSiguienteFaseClick = ()=>{
+  const onPlanificacionInicialClick = ()=>{
     if(freeExpos.length > 0 ){
       console.log("No puede dejar temas sin asignar");
       return;
@@ -173,11 +172,43 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
     
    console.log("Lista final de bloques con expos asignadas:", bloquesListToInsert);
   };
-  const onTerminarPlanificacionClick = () =>{
-    if(freeExpos.length > 0 ){
-      console.log("No puede dejar temas sin asignar");
+  const onAvanzarPlanificacionClick = (origen: OrigenBoton) =>{
+   
+      if(freeExpos.length > 0 ){
+        console.log("No puede dejar temas sin asignar");
+        return;
+      }
+      setIsLoading(true);
+      const bloquesListToInsert: TimeSlot[] = bloquesList.map((bloque) => {
+        const temaAsignado = assignedExpos[bloque.key];
+        return {
+          ...bloque,
+          expo: temaAsignado ? temaAsignado : undefined,          
+          idExposicion: exposicionId,
+          esBloqueReservado: temaAsignado?true:false
+  
+        };
+      });
+     
+      try{
+        startTransition(async () => {
+
+          await updateBloquesNextPhase(bloquesListToInsert); 
+          if(origen === "terminar"){
+            await finishPlanning(exposicionId);
+          }   
+          const newEstadoPlanificacion = await listarEstadoPlanificacionPorExposicion(exposicionId);
+          setEstadoPlan(newEstadoPlanificacion);
+       });
+      }
+      catch(err){
+        console.error("Error al actualizar los bloques:", err);
+      }
+      finally {
+        setIsLoading(false); 
+      }
       return;
-    }
+    
     setIsLoading(true);
   };
 
@@ -197,9 +228,8 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
             <PlanificationPanel
               roomAvailList={roomAvailList}
               assignedExpos={assignedExpos}
-              removeExpo={removeExpo}
-              onSiguienteFaseClick ={onSiguienteFaseClick}
-              onTerminarPlanificacionClick={onTerminarPlanificacionClick}
+              removeExpo={removeExpo}              
+              onAvanzarPlanificacionClick={onAvanzarPlanificacionClick}
               bloquesList={bloquesList}
               estadoPlan = {estadoPlan}
             />
