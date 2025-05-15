@@ -5,7 +5,7 @@ $$
             'string',
             'date',
             'integer',
-            'boolean'
+            'booleano'
             );
     EXCEPTION
         WHEN duplicate_object THEN NULL;
