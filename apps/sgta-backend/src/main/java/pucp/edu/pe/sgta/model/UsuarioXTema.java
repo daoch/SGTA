@@ -39,6 +39,9 @@ public class UsuarioXTema {
 	@Column(name = "rechazado", nullable = false)
 	private Boolean rechazado = false;
 
+	@Column(name = "creador", nullable = false)
+	private Boolean creador = false;
+
 	@Column(columnDefinition = "TEXT")
 	private String comentario ;
 
@@ -49,10 +52,10 @@ public class UsuarioXTema {
 	private Boolean activo = true;
 
 
-	@Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+	@Column(name = "fecha_creacion", nullable = false, insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
 	private OffsetDateTime fechaCreacion;
 
-	@Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+	@Column(name = "fecha_modificacion", nullable = false, insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
 	private OffsetDateTime fechaModificacion;
 
 }

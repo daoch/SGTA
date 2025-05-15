@@ -3,26 +3,56 @@ export interface Jurado {
   name: string;
 }
 
-export interface Exposicion {
-  code: string;
-  name: string;
-  advisor: string;
-  jurys: Jurado[];
+export interface Tema {
+  id: number;
+  codigo : string;
+  titulo : string;
+  asesor: string;
+  jurados: Jurado[];
 }
 
 export interface AreaEspecialidad {
-  name: string;
+  id: number;
+  nombre: string;
+  descripcion: string;
+  activo: boolean;
+  fechaCreacion: Date;
+  fechaModificacion: Date | null;
+  idCarrera: number;
 }
 
-export interface Espacio {
-  code: string;
-  busy: boolean;
+export interface SalaExposicion {
+  id: number;
+  nombre: string;
+  buyse:false;
 }
 
-export interface Dispo {
-  code: number;
-  date: Date;
-  startTime: string;
-  endTime: string;
-  spaces: Espacio[];
+export interface JornadaExposicionSalas {
+  jornadaExposicionId: number;
+  datetimeInicio: Date;
+  datetimeFin: Date; 
+  salasExposicion: SalaExposicion[];
+}
+
+export interface TipoDedicacion {
+  id: number;
+  iniciales: string;
+  descripcion: string;
+  activo: boolean;
+  fechaCreacion: Date;
+  fechaModificacion: Date | null;
+}
+export interface TimeSlot {
+  key: string;
+  range: string; // 17:00  -  18:00
+  idBloque: number;
+  idJornadaExposicionSala: number;
+  expo?: Tema;
+  idExposicion?:number;
+}
+
+export interface EstadoPlanificacion{
+  id : number;
+  nombre :string;
+  activo : boolean;
 }

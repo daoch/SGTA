@@ -85,11 +85,16 @@ export function NavUser({ user }: { user: User }) {
                 Perfil
               </DropdownMenuItem>
             </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
+            <DropdownMenuSeparator />            <DropdownMenuItem
               onClick={() => {
+                // First logout to clear all tokens and state
                 logout();
-                redirectToLogin();
+                
+                // Then redirect to login page
+                setTimeout(() => {
+                  // Small timeout to ensure logout completes before redirect
+                  redirectToLogin();
+                }, 100);
               }}
             >
               <LogOut />

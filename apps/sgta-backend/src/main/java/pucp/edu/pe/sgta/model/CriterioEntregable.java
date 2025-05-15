@@ -42,10 +42,10 @@ public class CriterioEntregable {
     @Column(name = "activo", nullable = false)
     private Boolean activo = true;
 
-    @Column(name = "fecha_creacion", nullable = false, updatable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private OffsetDateTime fechaCreacion = OffsetDateTime.now();
+    @Column(name = "fecha_creacion", nullable = false,insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private OffsetDateTime fechaCreacion;
 
-    @Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    @Column(name = "fecha_modificacion", insertable = false,columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaModificacion;
 
     @OneToMany(mappedBy = "criterioEntregable", cascade = CascadeType.ALL, orphanRemoval = true)

@@ -1,4 +1,4 @@
-package pucp.edu.pe.sgta.dto;
+package pucp.edu.pe.sgta.dto.asesores;
 
 import lombok.Getter;
 import lombok.Setter;

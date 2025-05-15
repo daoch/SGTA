@@ -31,9 +31,9 @@ public class SalaExposicion {
     @Column(name = "tipo_sala_exposicion", nullable = false)
     private TipoSalaExposicion tipoSalaExposicion = TipoSalaExposicion.PRESENCIAL;
 
-    @Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    @Column(name = "fecha_creacion", nullable = false, insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaCreacion;
 
-    @Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    @Column(name = "fecha_modificacion", insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaModificacion;
 }

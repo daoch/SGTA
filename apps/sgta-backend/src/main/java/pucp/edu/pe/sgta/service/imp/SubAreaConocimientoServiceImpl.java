@@ -2,8 +2,8 @@ package pucp.edu.pe.sgta.service.imp;
 
 import jakarta.persistence.*;
 import org.springframework.stereotype.Service;
-import pucp.edu.pe.sgta.dto.InfoAreaConocimientoDto;
-import pucp.edu.pe.sgta.dto.InfoSubAreaConocimientoDto;
+import pucp.edu.pe.sgta.dto.asesores.InfoAreaConocimientoDto;
+import pucp.edu.pe.sgta.dto.asesores.InfoSubAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.AreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.SubAreaConocimientoDto;
 import pucp.edu.pe.sgta.mapper.InfoSubAreaConocimientoMapper;
@@ -109,7 +109,7 @@ public class SubAreaConocimientoServiceImpl implements SubAreaConocimientoServic
 			// Crear entidad simulada de SubAreaConocimiento
 			SubAreaConocimiento sac = new SubAreaConocimiento();
 			sac.setId((Integer) row[0]);
-			//sac.setAreaConocimiento((Integer) row[1]); // si existe este campo en la entidad
+			//sac.setAreaConocimiento((Integer) row[1]); // si existe deeste campo en la entidad
 			sac.setNombre((String) row[2]);
 			sac.setDescripcion((String) row[3]);
 			sac.setActivo((Boolean) row[4]);
