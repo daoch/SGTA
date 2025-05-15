@@ -22,6 +22,7 @@ import { useRouter } from "next/navigation";
 import { PDFDocument, rgb } from "pdf-lib";
 import { useCallback, useEffect, useState } from "react";
 import { IHighlight } from "react-pdf-highlighter/dist/types";
+import { analizarPlagioArchivoS3, descargarArchivoS3 } from "../servicios/revision-service";
 // ...otros imports...
 
 // Datos de ejemplo para una revisión específica
@@ -99,28 +100,101 @@ export default function RevisarDocumentoPage({ params }: { params: { id: string 
     const [activeHighlight, setActiveHighlight] = useState<IHighlight | undefined>(undefined);
 
     const [tab, setTab] = useState<"revisor" | "plagio">("revisor");
+    const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+    const [numPages, setNumPages] = useState<number | null>(null);
+    interface PlagioDetalle {
+        pagina: number; // Si tienes la página real, asígnala aquí
+        texto: string;
+        url?: string;
+        title?: string;
+        author?: string;
+        fragmento?: string;
+    }
+
+    interface PlagioData {
+        coincidencias: number;
+        detalles: PlagioDetalle[];
+    }
+
+    const [plagioData, setPlagioData] = useState<PlagioData | null>(null);
+    const [isAnalizandoPlagio, setIsAnalizandoPlagio] = useState(false);
+
+    const handleAnalizarPlagio = async () => {
+        setIsAnalizandoPlagio(true);
+        try {
+            const apiData = await analizarPlagioArchivoS3("E1.pdf");
+            const detalles: PlagioDetalle[] = [];
+            apiData.sources.forEach((src) => {
+                src.plagiarismFound.forEach((frag) => {
+                    detalles.push({
+                        pagina: 1, // Si tienes la página real, asígnala aquí
+                        texto: `Coincidencia del ${src.score}% con "${src.title}"${src.author ? ` (autor: ${src.author})` : ""}: "${frag.sequence}"`,
+                        url: src.url,
+                        title: src.title,
+                        author: src.author ?? "Desconocido",
+                        fragmento: frag.sequence,
+                    });
+                });
+            });
+            setPlagioData({
+                coincidencias: apiData.result.score,
+                detalles
+            });
+        } catch (e) {
+            setPlagioData(null);
+        } finally {
+            setIsAnalizandoPlagio(false);
+        }
+    };
     useEffect(() => {
-        // Solo para pruebas, convierte observaciones a highlights
-        const initialHighlights = revision.observaciones.map(obs => ({
-            id: obs.id,
-            content: { text: obs.texto },
-            position: {
-                pageNumber: obs.pagina,
-                boundingRect: {
-                    x1: 50,
-                    y1: 50,
-                    x2: 150,
-                    y2: 70,
-                    width: 100, // Calculated as x2 - x1
-                    height: 20  // Calculated as y2 - y1
-                }, // Usa valores reales si los tienes
-                rects: [],
-                usePdfCoordinates: false,
-            },
-            comment: { text: obs.texto, emoji: "" },
-        }));
+        async function fetchPdf() {
+            try {
+                const key = "E1.pdf";
+                const blob = await descargarArchivoS3(key);
+                const url = URL.createObjectURL(blob);
+                setPdfUrl(url);
+
+                // Obtener número de páginas usando pdf-lib
+                const arrayBuffer = await blob.arrayBuffer();
+                const pdfDoc = await PDFDocument.load(arrayBuffer);
+                setNumPages(pdfDoc.getPageCount());
+            } catch (e) {
+                setPdfUrl(null);
+                setNumPages(null);
+            }
+        }
+        fetchPdf();
+
+        return () => {
+            if (pdfUrl) URL.revokeObjectURL(pdfUrl);
+        };
+    }, [params.id]);
+
+    useEffect(() => {
+        if (numPages === null) return;
+        // Solo crea highlights en páginas válidas
+        const initialHighlights = revision.observaciones
+            .filter(obs => obs.pagina > 0 && obs.pagina <= numPages)
+            .map(obs => ({
+                id: obs.id,
+                content: { text: obs.texto },
+                position: {
+                    pageNumber: obs.pagina,
+                    boundingRect: {
+                        x1: 50,
+                        y1: 50,
+                        x2: 150,
+                        y2: 70,
+                        width: 100,
+                        height: 20
+                    },
+                    rects: [],
+                    usePdfCoordinates: false,
+                },
+                comment: { text: obs.texto, emoji: "" },
+            }));
         setHighlights(initialHighlights);
-    }, [revision]);
+    }, [revision, numPages]);
     const handleHighlightClick = useCallback((highlight: IHighlight) => {
         console.log("Click en highlight:", highlight.id);
         setActiveHighlight(undefined);
@@ -431,7 +505,7 @@ export default function RevisarDocumentoPage({ params }: { params: { id: string 
                         </CardHeader>
                         <CardContent className="relative h-[600px]" >
                             <HighlighterPdfViewer
-                                pdfUrl={"/silabo.pdf"}
+                                pdfUrl={pdfUrl ?? ""}
                                 onAddHighlight={handleNewHighlight}
                                 onDeleteHighlight={handleDeleteHighlight}
                                 onUpdateHighlight={handleUpdateHighlight}
@@ -445,6 +519,7 @@ export default function RevisarDocumentoPage({ params }: { params: { id: string 
 
                 <div className="space-y-6">
                     <Card>
+
                         <CardHeader>
                             <CardTitle>Observaciones</CardTitle>
                             <CardDescription>
@@ -502,14 +577,24 @@ export default function RevisarDocumentoPage({ params }: { params: { id: string 
                                 </TabsContent>
                                 <TabsContent value="plagio">
                                     <div className="space-y-4">
-                                        {observacionesPlagio.map((obs) => (
+                                        {plagioData?.detalles.map((obs, idx) => (
                                             <div
-                                                key={obs.id}
+                                                key={idx}
                                                 className="p-3 bg-red-50 rounded-lg border border-red-200"
                                             >
                                                 <div>
                                                     <p className="text-sm font-medium text-red-700">
                                                         {obs.texto}
+                                                        {obs.url && (
+                                                            <a
+                                                                href={obs.url}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="ml-2 underline text-blue-700"
+                                                            >
+                                                                Ver fuente
+                                                            </a>
+                                                        )}
                                                     </p>
                                                     <p className="text-xs text-gray-400 mt-1">
                                                         Página {obs.pagina}
@@ -517,7 +602,7 @@ export default function RevisarDocumentoPage({ params }: { params: { id: string 
                                                 </div>
                                             </div>
                                         ))}
-                                        {observacionesPlagio.length === 0 && (
+                                        {(!plagioData || plagioData.detalles.length === 0) && (
                                             <div className="text-center py-6 text-gray-500">
                                                 No hay observaciones de plagio
                                             </div>
@@ -528,6 +613,14 @@ export default function RevisarDocumentoPage({ params }: { params: { id: string 
                         </CardContent>
                     </Card>
                     <Button
+                        onClick={handleAnalizarPlagio}
+                        disabled={isAnalizandoPlagio}
+                        variant="outline"
+                        className="w-full mb-4"
+                    >
+                        {isAnalizandoPlagio ? "Analizando plagio..." : "Analizar plagio"}
+                    </Button>
+                    {/* <Button
                         onClick={handleSaveAnnotatedPDF}
                         disabled={isLoading}
                         variant="outline"
@@ -542,7 +635,7 @@ export default function RevisarDocumentoPage({ params }: { params: { id: string 
                                 <span>Guardar PDF con anotaciones</span>
                             </div>
                         )}
-                    </Button>
+                    </Button> */}
                     <Card>
                         <CardHeader>
                             <CardTitle>Resumen de Observaciones</CardTitle>
