@@ -31,6 +31,8 @@ import {
   getAllAreasEspecialidad,
 } from "../services/jurado-service";
 
+import { toast } from "sonner";
+
 
 export const ModalAsignarTesis: React.FC<ModalAsignarTesisProps> = ({
   open,
@@ -39,6 +41,8 @@ export const ModalAsignarTesis: React.FC<ModalAsignarTesisProps> = ({
   jurado,
   data,
 }) => {
+  
+
   const [search, setSearch] = useState("");
   const [tesisSeleccionada, setTesisSeleccionada] = useState<JuradoTemasDetalle | null>(
     null,
@@ -110,6 +114,11 @@ export const ModalAsignarTesis: React.FC<ModalAsignarTesisProps> = ({
 
   useEffect(() => {
     if (open) {
+      setIsLoading(true);
+        // Simular tiempo de carga
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 500);
       // Cuando el modal se abre, reinicia los valores a los originales del jurado
       setEspecialidadesSeleccionadas(jurado ? jurado.map(area => area.id) : []);
       // También limpia la búsqueda y la tesis seleccionada
@@ -152,12 +161,27 @@ export const ModalAsignarTesis: React.FC<ModalAsignarTesisProps> = ({
     const selectedIds = selectedValues.map(value => parseInt(value, 10));
     setEspecialidadesSeleccionadas(selectedIds);
   };
-      const handleAsignarClick = () => {
-      if (tesisSeleccionada) {
-        onAsignar(tesisSeleccionada); // Pasamos la tesis seleccionada
-        onClose();
-      }
-    };
+    const handleAsignarClick = async () => {
+  if (tesisSeleccionada) {
+    try {
+      // Llamar a la función onAsignar y esperar si es una función asíncrona
+      await onAsignar(tesisSeleccionada);
+      
+      // Mostrar mensaje de éxito
+      toast.success(
+        `El tema "${tesisSeleccionada.titulo}" ha sido asignado exitosamente al jurado.`
+      );
+      
+      // Cerrar el modal
+      onClose();
+    } catch (error) {
+      // Mostrar mensaje de error
+      toast.error("Hubo un error al asignar el tema al jurado");
+      console.error(error);
+    }
+  }
+};
+  const [isLoading, setIsLoading] = useState(false);
 
   const [searchResults, setSearchResults] = useState<JuradoTemasDetalle[]>(data);
   const handleSearch = () => {
@@ -214,6 +238,21 @@ export const ModalAsignarTesis: React.FC<ModalAsignarTesisProps> = ({
           />
         </div>
 
+        <div className="flex-1 overflow-auto">
+        {isLoading ? (
+          <div className="text-center text-gray-400 mt-5">
+            <p className="text-gray-500 animate-pulse">
+              Cargando temas disponibles...
+            </p>
+          </div>
+        ) : filteredData.length === 0 ? (
+          <div className="text-center text-gray-400 mt-5">
+            <p>
+              No hay temas disponibles que coincidan con los filtros aplicados.
+            </p>
+          </div>
+        ) : (
+
         <div className="max-h-[300px] overflow-y-auto">
           <ListaTesisJuradoCard
             data={filteredData}
@@ -221,8 +260,10 @@ export const ModalAsignarTesis: React.FC<ModalAsignarTesisProps> = ({
             selected={tesisSeleccionada}
           />
         </div>
-
-        
+              )}
+        </div>
+      
+      {!isLoading && filteredData.length > 0 && (
       <div className="flex items-center justify-between pt-4 border-t">
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-500">Mostrar</span>
@@ -321,6 +362,7 @@ export const ModalAsignarTesis: React.FC<ModalAsignarTesisProps> = ({
           </PaginationContent>
         </Pagination>
       </div>
+      )}
 
 
 
@@ -338,5 +380,6 @@ export const ModalAsignarTesis: React.FC<ModalAsignarTesisProps> = ({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    
   );
 };

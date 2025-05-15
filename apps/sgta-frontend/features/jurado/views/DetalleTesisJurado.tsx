@@ -29,6 +29,7 @@ export function DetalleTesisJuradoView() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+
   useEffect(() => {
     const fetchTesisData = async () => {
       try {
@@ -42,6 +43,7 @@ export function DetalleTesisJuradoView() {
         const data = await getExposicionesTema(idTema);
         setTesis(data);
         setError(null);
+        
       } catch (err) {
         console.error("Error al cargar datos de la tesis:", err);
         setError("No se pudo cargar la información del tema");

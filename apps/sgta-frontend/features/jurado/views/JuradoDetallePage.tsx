@@ -44,6 +44,7 @@ import {
   listarAreasConocimientoJurado,
   getTemasModalAsignar,
 } from "../services/jurado-service";
+import { toast,Toaster } from "sonner";
 
 export function JuradoDetalleView({
   modalAsignarTesisComponent: ModalAsignarTesis,
@@ -197,7 +198,7 @@ export function JuradoDetalleView({
 
       if (result.success) {
         // Mostrar mensaje de éxito
-        alert(result.message); // Puedes usar un componente de toast en lugar de alert
+        //toast.success(result.message); // Puedes usar un componente de toast en lugar de alert
 
         // Actualizar la lista de tesis asignadas
         const temas = await getTemasJurado(Number(detalleJurado));
@@ -211,11 +212,11 @@ export function JuradoDetalleView({
         setTesisDataSeleccion(temasDisponibles);
       } else {
         // Mostrar mensaje de error
-        alert(result.message); // Puedes usar un componente de toast en lugar de alert
+        //toast.error(result.message); // Puedes usar un componente de toast en lugar de alert
       }
     } catch (error) {
       console.error("Error en la asignación:", error);
-      alert("Ocurrió un error al intentar asignar la tesis.");
+     // toast.error("Ocurrió un error al intentar asignar la tesis.");
     }
   };
 
@@ -484,6 +485,7 @@ export function JuradoDetalleView({
           </div>
         </div>
       )}
+      <Toaster position="bottom-right" richColors />
     </div>
   );
 }
