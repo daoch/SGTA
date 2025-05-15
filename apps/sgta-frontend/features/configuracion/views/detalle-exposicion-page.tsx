@@ -83,6 +83,30 @@ const DetalleExposicionPage: React.FC<DetalleExposicionPageProps> = ({
     }
   };
 
+  const handleCreateCriterio = async (nuevoCriterio: CriterioExposicion) => {
+      try {
+        const idCriterio = await createCriterio(nuevoCriterio);
+        const nuevoCriterioConId: CriterioExposicion = {
+          ...nuevoCriterio,
+          id: idCriterio, // Asignar el ID devuelto por la API
+        };
+    
+          // Actualizar el estado local con el criterio creado
+        setCriterios((prev) => [...prev, nuevoCriterioConId]);
+     
+        // Cerrar el modal
+        setIsCriterioModalOpen(false);
+      } catch (error) {
+        console.error("Error al crear el criterio:", error);
+      }
+  };
+
+  const handleNuevoCriterio = () => {
+    setCriterioSeleccionado(null);
+    setModalMode("create");
+    setIsCriterioModalOpen(true);
+  };
+
   const handleCreateCriterios = async (nuevosCriterios: CriterioExposicion[]) => {
   try {
     const criteriosCreados = await Promise.all(
@@ -255,26 +279,38 @@ const DetalleExposicionPage: React.FC<DetalleExposicionPageProps> = ({
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-2">
           <h2 className="text-lg font-semibold">Criterios de calificación</h2>
+          {criterios.reduce((acc, criterio) => acc + criterio.notaMaxima, 0) < 20 && (
+            <p className="text-sm text-orange-500">
+              La suma de los criterios debe ser 20
+            </p>
+          )}
         </div>
-        <Button
-          id="btnNewCriterio"
-          className="bg-black hover:bg-gray-800"
-          onClick={() => setIsNuevoCriterioModalOpen(true)}
-        >
-          <Plus className="h-4 w-4 mr-1" />
-          Nuevo Criterio
-        </Button>
+        <div className="flex items-center space-x-2">
+          {/* Botón para abrir el modal de criterios predefinidos */}
+          <Button
+            id="btnPredefinedCriterios"
+            className="bg-gray-700 hover:bg-gray-800 text-white"
+            onClick={() => setIsNuevoCriterioModalOpen(true)} // Abrir el modal de criterios predefinidos
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Criterios predefinidos
+          </Button>
+
+          {/* Botón para abrir el modal de nuevo criterio */}
+          <Button
+            id="btnNewCriterio"
+            className="bg-black hover:bg-gray-800 text-white"
+            onClick={handleNuevoCriterio} // Abrir el modal de nuevo criterio
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Nuevo Criterio
+          </Button>
+        </div>
       </div>
 
       <p className="text-sm text-muted-foreground">
         Suma total de criterios: {criterios.reduce((acc, criterio) => acc + criterio.notaMaxima, 0)} puntos
       </p>
-
-      {criterios.reduce((acc, criterio) => acc + criterio.notaMaxima, 0) < 20 && (
-            <p className="text-sm text-orange-500">
-              La suma de los criterios debe ser 20
-            </p>
-      )}
 
       <div className="space-y-4">
         {criterios.map((criterio) => (

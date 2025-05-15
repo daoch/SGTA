@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { FileText } from "lucide-react";
+import { Eye, FileText, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { Entregable } from "../../dtos/entregable";
 
@@ -12,7 +12,8 @@ interface EntregableCardProps {
 export function EntregableCard({
   etapaId,
   entregable,
-}: EntregableCardProps) {
+  onDelete,
+}: EntregableCardProps & { onDelete: (id: string) => void }) {
   return (
     <Card className="mb-4">
       <CardContent className="p-4">
@@ -41,7 +42,7 @@ export function EntregableCard({
               </p>
               <p className="text-sm mt-1">{entregable.descripcion}</p>
 
-              {/* Nuevos atributos */}
+              {/* Nuevos atributos 
               <p className="text-sm text-muted-foreground mt-1">
                 <strong>Máximo de Documentos:</strong> {entregable.maximoDocumentos}
               </p>
@@ -51,7 +52,8 @@ export function EntregableCard({
               <p className="text-sm text-muted-foreground mt-1">
                 <strong>Peso Máximo por Documento:</strong> {entregable.pesoMaximoDocumento} MB
               </p>
-
+              */}
+              
               <div className="flex gap-2 mt-2">
                 {/* Evaluable */}
                 <span className="inline-flex items-center px-2 py-1 rounded-md text-xs bg-secondary text-secondary-foreground">
@@ -60,14 +62,28 @@ export function EntregableCard({
               </div>
             </div>
           </div>
-          <Link
-            id="linkDetalleEntregable"
-            href={`/coordinador/configuracion/proceso/etapa/${etapaId}/entregable/${entregable.id}`}
-          >
-            <Button id="btnDetalleEntregable" variant="outline" size="sm">
-              Ver detalles
+          {/* Contenedor para alinear los botones */}
+          <div className="flex items-center space-x-2">
+            <Link
+              id="linkDetalleEntregable"
+              href={`/coordinador/configuracion/proceso/etapa/${etapaId}/entregable/${entregable.id}`}
+            >
+              <Button id="btnDetalleEntregable" variant="ghost" size="sm">
+                <Eye className="h-4 w-4 mr-1" />
+                Detalles
+              </Button>
+            </Link>
+            <Button
+              id="btnDeleteEntregable"
+              variant="ghost"
+              size="sm"
+              className="text-red-500 hover:bg-red-50"
+              onClick={() => onDelete(entregable.id || "")}
+            >
+              <Trash2 className="h-4 w-4 mr-1" />
+              Eliminar
             </Button>
-          </Link>
+          </div>
         </div>
       </CardContent>
     </Card>

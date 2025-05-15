@@ -65,7 +65,8 @@ BEGIN
         e.estado_planificacion_id
     FROM exposicion e
     INNER JOIN etapa_formativa_x_ciclo efc ON e.etapa_formativa_x_ciclo_id = efc.etapa_formativa_x_ciclo_id
-    WHERE efc.etapa_formativa_x_ciclo_id = etapaFormativaXCicloId;
+    WHERE efc.etapa_formativa_x_ciclo_id = etapaFormativaXCicloId
+        AND e.activo = TRUE;
 END;
 $$ LANGUAGE plpgsql;
 

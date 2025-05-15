@@ -85,6 +85,30 @@ const DetalleEntregablePage: React.FC<DetalleEntregablePageProps> = ({
     }
   };
 
+  const handleCreateCriterio = async (nuevoCriterio: CriterioEntregable) => {
+    try {
+      const idCriterio = await createCriterio(nuevoCriterio);
+      const nuevoCriterioConId: CriterioEntregable = {
+        ...nuevoCriterio,
+        id: idCriterio, // Asignar el ID devuelto por la API
+      };
+  
+        // Actualizar el estado local con el criterio creado
+      setCriterios((prev) => [...prev, nuevoCriterioConId]);
+   
+      // Cerrar el modal
+      setIsCriterioModalOpen(false);
+    } catch (error) {
+      console.error("Error al crear el criterio:", error);
+    }
+  };
+
+  const handleNuevoCriterio = () => {
+    setCriterioSeleccionado(null);
+    setModalMode("create");
+    setIsCriterioModalOpen(true);
+  };
+
   const handleCreateCriterios = async (nuevosCriterios: CriterioEntregable[]) => {
     try {
       const criteriosCreados = await Promise.all(
@@ -323,14 +347,27 @@ const DetalleEntregablePage: React.FC<DetalleEntregablePageProps> = ({
             </p>
           )}
         </div>
-        <Button
-          id="btnNewCriterio"
-          className="bg-black hover:bg-gray-800"
-          onClick={() => setIsNuevoCriterioModalOpen(true)}
-        >
-          <Plus className="h-4 w-4 mr-1" />
-          Nuevo Criterio
-        </Button>
+        <div className="flex items-center space-x-2">
+          {/* Botón para abrir el modal de criterios predefinidos */}
+          <Button
+            id="btnPredefinedCriterios"
+            className="bg-gray-700 hover:bg-gray-800 text-white"
+            onClick={() => setIsNuevoCriterioModalOpen(true)} // Abrir el modal de criterios predefinidos
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Criterios predefinidos
+          </Button>
+
+          {/* Botón para abrir el modal de nuevo criterio */}
+          <Button
+            id="btnNewCriterio"
+            className="bg-black hover:bg-gray-800 text-white"
+            onClick={handleNuevoCriterio} // Abrir el modal de nuevo criterio
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Nuevo Criterio
+          </Button>
+        </div>
       </div>
 
       <p className="text-sm text-muted-foreground">
@@ -355,7 +392,7 @@ const DetalleEntregablePage: React.FC<DetalleEntregablePageProps> = ({
       <CriterioEntregableModal
         isOpen={isCriterioModalOpen}
         onClose={() => setIsCriterioModalOpen(false)}
-        onSubmit={handleUpdateCriterio}
+        onSubmit={modalMode === "edit" ? handleUpdateCriterio : handleCreateCriterio}
         criterio={criterioSeleccionado}
         mode={modalMode}
         criteriosExistentes={criterios}
