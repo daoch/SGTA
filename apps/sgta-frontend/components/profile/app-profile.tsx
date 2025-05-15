@@ -9,23 +9,15 @@ import { useEffect, useState } from "react";
 export default function AppProfile() {
   const { user } = useAuth();
   const [asesorId, setAsesorId] = useState<number | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [timeoutReached, setTimeoutReached] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (!user || !user.email) return;
+    if (!user) return;
 
     setIsLoading(true);
-    setTimeoutReached(false);
-
-    const timeout = setTimeout(() => {
-      setTimeoutReached(true);
-      setIsLoading(false);
-    }, 10000); // 10 segundos
 
     getIdByCorreo(user.email)
       .then((id) => {
-        clearTimeout(timeout);
         setAsesorId(id);
         console.log("ID del asesor obtenido:", id);
       })
@@ -33,12 +25,11 @@ export default function AppProfile() {
         console.error("Error al obtener el ID del asesor:", error);
       })
       .finally(() => {
-        clearTimeout(timeout);
         setIsLoading(false);
       });
 
-    return () => clearTimeout(timeout);
-  }, [user]);
+    return;
+  }, []);
 
   if (isLoading)
     return (
