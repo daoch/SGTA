@@ -201,11 +201,14 @@ export const desasignarMiembroJuradoTemaTodos = async (
 };
 
 export const getExposicionesTema = async (
-  temaId: number
+  temaId: number,
 ): Promise<TesisDetalleExposicion> => {
   try {
+    console.log("Data de exposiciones:");
     const response = await axiosInstance.get(`/jurado/${temaId}/detalle`);
     const data = response.data;
+
+    console.log("Data de exposiciones:", data);
 
     // Mapear la respuesta al formato requerido
     return {
@@ -215,7 +218,7 @@ export const getExposicionesTema = async (
         nombre: estudiante.nombre,
         tipo: estudiante.tipo,
       })),
-      
+
       // Para el asesor, tomamos el primer elemento del array asesores
       // que tenga tipo "Asesor"
       asesores: data.asesores.map((asesor: any) => ({
@@ -223,25 +226,24 @@ export const getExposicionesTema = async (
         nombre: asesor.nombre,
         tipo: asesor.tipo,
       })),
-      
+
       // Mapear los miembros del jurado
-      miembrosJurado: data.miembros_jurado.map((miembro: any) => ({
+      miembrosJurado: data.miembrosJurado.map((miembro: any) => ({
         id: miembro.id,
         nombre: miembro.nombre,
         tipo: miembro.tipo,
       })),
-      
-      // Para la etapa formativa, tomamos la primera (podría necesitar ajustes según tu lógica)
-      etapaFormativaTesis: data.etapas_formativas.map((etapa: any) => ({
+
+      etapaFormativaTesis: data.etapasFormativas.map((etapa: any) => ({
         id: etapa.id,
         nombre: etapa.nombre,
         exposiciones: etapa.exposiciones.map((expo: any) => ({
           id: expo.id,
           nombre: expo.nombre,
-          estado_exposición: expo.estado_exposición,
-          datetime_inicio: expo.datetime_inicio,
-          datetime_fin: expo.datetime_fin,
-          sala_exposicion: expo.sala_exposicion,
+          estadoExposicion: expo.estadoExposicion,
+          datetimeInicio: expo.datetimeInicio,
+          datetimeFin: expo.datetimeFin,
+          sala: expo.salaExposicion,
         })),
       })),
     };
@@ -255,31 +257,31 @@ export const getExposicionesTema = async (
       etapaFormativaTesis: [],
     };
   }
-}; 
-
+};
 
 export const desasignarJuradoTema = async (
   usuarioId: number,
-  temaId: number
+  temaId: number,
 ): Promise<{ success: boolean; message: string }> => {
   try {
-    const response = await axiosInstance.post("/jurado/desasignar-jurado", {
+    const response = await axiosInstance.put("/jurado/desasignar-jurado", {
       usuarioId,
-      temaId
+      temaId,
     });
 
     return {
       success: true,
-      message: response.data.mensaje || "Asignación eliminada correctamente"
+      message: response.data.mensaje || "Asignación eliminada correctamente",
     };
   } catch (error: any) {
     // Manejo de errores
-    const errorMessage = 
+    const errorMessage =
       error.response?.data?.mensaje || "Error al desasignar el jurado del tema";
     console.error("Error al desasignar jurado:", errorMessage);
     return {
       success: false,
-      message: errorMessage
+      message: errorMessage,
     };
   }
 };
+

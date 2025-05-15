@@ -29,7 +29,8 @@ public interface EtapaFormativaRepository extends JpaRepository<EtapaFormativa, 
     @Query(value = "SELECT * FROM obtener_etapas_formativas_por_tema_simple(:temaId)", nativeQuery = true)
     List<Object[]> obtenerEtapasFormativasPorTemaSimple(@Param("temaId") Integer temaId);
 
-    @Query(value = "SELECT * FROM obtener_exposiciones_por_etapa_formativa(:etapaFormativaId)", nativeQuery = true)
-    List<Object[]> obtenerExposicionesPorEtapaFormativa(@Param("etapaFormativaId") Integer etapaFormativaId);
+    @Query(value = "SELECT * FROM obtener_exposiciones_por_etapa_formativa_por_tema(:etapaFormativaId, :temaId)", nativeQuery = true)
+    List<Object[]> obtenerExposicionesPorEtapaFormativaPorTemaId(@Param("etapaFormativaId") Integer etapaFormativaId,
+            @Param("temaId") Integer temaId);
 
 }

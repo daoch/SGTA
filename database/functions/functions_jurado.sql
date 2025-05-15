@@ -620,3 +620,49 @@ BEGIN
     AND ut.tema_id = p_tema_id;
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION obtener_exposiciones_por_etapa_formativa_por_tema(
+    p_etapa_formativa_id integer,
+    p_tema_id integer
+)
+RETURNS TABLE(
+    exposicion_id integer,
+    nombre_exposicion text,
+    estado_exposicion character varying,
+    datetime_inicio timestamp with time zone,
+    datetime_fin timestamp with time zone,
+    nombre_sala_exposicion text
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        e.exposicion_id,
+        e.nombre AS nombre_exposicion,
+        ext.estado_exposicion::VARCHAR,
+        bhe.datetime_inicio,
+        bhe.datetime_fin,
+        se.nombre AS nombre_sala_exposicion
+    FROM exposicion e
+    JOIN etapa_formativa_x_ciclo efc 
+        ON efc.etapa_formativa_x_ciclo_id = e.etapa_formativa_x_ciclo_id
+    JOIN etapa_formativa ef
+        ON ef.etapa_formativa_id = efc.etapa_formativa_id
+    JOIN exposicion_x_tema ext 
+        ON ext.exposicion_id = e.exposicion_id
+    JOIN bloque_horario_exposicion bhe 
+        ON bhe.exposicion_x_tema_id = ext.exposicion_x_tema_id
+    JOIN jornada_exposicion_x_sala_exposicion jexs 
+        ON jexs.jornada_exposicion_x_sala_id = bhe.jornada_exposicion_x_sala_id
+    JOIN sala_exposicion se 
+        ON se.sala_exposicion_id = jexs.sala_exposicion_id
+    WHERE ef.etapa_formativa_id = p_etapa_formativa_id
+      AND ext.tema_id = p_tema_id
+      AND ext.estado_exposicion IN ('programada', 'calificada', 'completada') 
+      AND ef.activo = TRUE
+      AND e.activo = TRUE
+      AND ext.activo = TRUE
+      AND bhe.activo = TRUE
+      AND jexs.activo = TRUE
+      AND se.activo = TRUE;
+END;
+$$ LANGUAGE plpgsql;

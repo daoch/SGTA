@@ -150,9 +150,9 @@ export interface TesisDetalleExposicion {
     exposiciones: {
       id: number;
       nombre: string;
-      estado: string;
-      fechaInicio: string;
-      fechaFin: string;
+      estadoExposicion: string;
+      datetimeInicio: string;
+      datetimeFin: string;
       sala: string;
     }[];
   }[];

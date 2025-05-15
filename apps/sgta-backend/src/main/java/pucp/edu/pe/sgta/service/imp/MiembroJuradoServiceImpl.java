@@ -477,6 +477,7 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                 jurados.add(new ParticipanteDto(id, nombre, "Miembro de Jurado"));
             }
         }
+
         List<Object[]> etapasRaw = etapaFormativaRepository.obtenerEtapasFormativasPorTemaSimple(temaId);
         List<EtapaFormativaTemaDto> etapas = new ArrayList<>();
 
@@ -484,13 +485,14 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
             Integer etapaId = (Integer) etapa[0];
             String nombreEtapa = (String) etapa[1];
 
-            List<Object[]> exposicionesRaw = etapaFormativaRepository.obtenerExposicionesPorEtapaFormativa(etapaId);
+            List<Object[]> exposicionesRaw = etapaFormativaRepository
+                    .obtenerExposicionesPorEtapaFormativaPorTemaId(etapaId, temaId);
             List<ExposicionTemaDto> exposiciones = exposicionesRaw.stream().map(exp -> new ExposicionTemaDto(
                     (Integer) exp[0],
                     (String) exp[1],
                     exp[2].toString(),
-                    ((Timestamp) exp[3]).toLocalDateTime().atOffset(ZoneOffset.UTC),
-                    ((Timestamp) exp[4]).toLocalDateTime().atOffset(ZoneOffset.UTC),
+                    ((Instant) exp[3]).atOffset(ZoneOffset.UTC),
+                    ((Instant) exp[4]).atOffset(ZoneOffset.UTC),
                     (String) exp[5])).collect(Collectors.toList());
 
             etapas.add(new EtapaFormativaTemaDto(etapaId, nombreEtapa, exposiciones));
