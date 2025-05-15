@@ -1,14 +1,14 @@
 import {
-  AreaEspecialidad,
-  JornadaExposicionSalas,
+    AreaEspecialidad,
+    JornadaExposicionSalas,
 } from "../types/jurado.types";
 
-import GeneralPlanificationExpo from "@/features/jurado/components/GeneralPlanificationExpo";
+import GeneralPlanificationExpo from "@/features/jurado/components/PlanificationComponents/GeneralPlanificationExpo";
 import {
-  listarBloquesHorariosExposicion,
-  listarEstadoPlanificacionPorExposicion,
-  listarJornadasExposicionSalas,
-  listarTemasCicloActulXEtapaFormativa,
+    listarBloquesHorariosExposicion,
+    listarEstadoPlanificacionPorExposicion,
+    listarJornadasExposicionSalas,
+    listarTemasCicloActulXEtapaFormativa,
 } from "@/features/jurado/services/data";
 import { JornadaExposicionDTO } from "../dtos/JornadExposicionDTO";
 type Props = {

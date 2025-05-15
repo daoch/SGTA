@@ -1,4 +1,4 @@
-import { EstadoPlanificacion } from "../types/jurado.types";
+import { EstadoPlanificacion } from "../../types/jurado.types";
 
 interface Props {
  
