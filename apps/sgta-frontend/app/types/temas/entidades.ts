@@ -33,6 +33,18 @@ export interface Tema {
   subareas: AreaDeInvestigacion[];
 }
 
+export interface TemaCreateInscription {
+  titulo: string;
+  carrera: Identifiable;
+  resumen: string;
+  objetivos: string;
+  metodologia: string;
+  fechaLimite: string;
+  subareas: Identifiable[];
+  coasesores: Identifiable[];
+  tesistas: Identifiable[];
+}
+
 export interface Identifiable {
   id: number;
 }
@@ -83,11 +95,20 @@ export interface Coasesor {
 
 export interface AreaDeInvestigacion {
   id: number;
-  areaConocimiento: string | null;
   nombre: string;
   descripcion: string | null;
   activo: boolean;
   fechaCreacion: string | null;
   fechaModificacion: string | null;
+  areaConocimiento: AreaConocimiento | null;
 }
 
+export interface AreaConocimiento {
+  id: number;
+  nombre: string;
+  descripcion: string;
+  activo: boolean;
+  fechaCreacion: string;
+  fechaModificacion: string;
+  idCarrera: number;
+}

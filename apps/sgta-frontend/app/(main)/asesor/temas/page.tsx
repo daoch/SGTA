@@ -4,7 +4,6 @@ import {
   coasesoresData,
   emptyTemaForm,
   estudiantesData,
-  subareasData,
 } from "@/app/types/temas/data";
 import {
   AreaDeInvestigacion,
@@ -25,7 +24,7 @@ import {
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 /**
  * Rol: Asesor
@@ -34,9 +33,29 @@ import { useState } from "react";
  */
 const page = () => {
   const [isNuevoTemaDialogOpen, setIsNuevoTemaDialogOpen] = useState(false);
-  const [coasesoresDisponibles] = useState<Coasesor[]>(coasesoresData);
-  const [estudiantesDisponibles] = useState<Tesista[]>(estudiantesData);
-  const [subareasDisponibles] = useState<AreaDeInvestigacion[]>(subareasData);
+  const [coasesoresDisponibles, setCoasesoresDisponibles] =
+    useState<Coasesor[]>(coasesoresData);
+  const [estudiantesDisponibles, setEstudiantesDisponibles] =
+    useState<Tesista[]>(estudiantesData);
+  const [subareasDisponibles, setSubareasDisponibles] = useState<
+    AreaDeInvestigacion[]
+  >([]);
+
+  useEffect(() => {
+    const fetchSubareas = async () => {
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}subAreaConocimiento/list`,
+        );
+        if (!response.ok) throw new Error("Error al obtener subáreas");
+        const data = await response.json();
+        setSubareasDisponibles(data);
+      } catch (error) {
+        console.error("Error cargando subáreas:", error);
+      }
+    };
+    fetchSubareas();
+  }, []);
 
   return (
     <div className="space-y-8 mt-4">

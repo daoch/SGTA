@@ -25,6 +25,7 @@ import {
   AreaDeInvestigacion,
   Coasesor,
   Tema,
+  TemaCreateInscription,
   TemaForm,
   Tesista,
 } from "@/app/types/temas/entidades";
@@ -47,8 +48,8 @@ enum TipoRegistro {
 
 /**
  * Muestra un Dialog donde se podrá inscribir un tema o proponer tema libre.
- * @param setIsNuevoTemaDialogOpen
- * @returns NuevoTemaDialog
+ * @param setIsNuevoTemaDialogOpen Permite cerrar el dialog
+ * @returns Dialog
  */
 const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
   isOpen,
@@ -161,7 +162,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(temaData),
+          body: JSON.stringify(mapTemaCreateInscription(temaData)),
         },
       );
 
@@ -442,6 +443,23 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
       </DialogFooter>
     </DialogContent>
   );
+};
+
+const mapTemaCreateInscription = (tema: Tema) => {
+  return {
+    titulo: tema.titulo,
+    carrera: tema.carrera,
+    resumen: tema.resumen,
+    objetivos: tema.objetivos,
+    metodologia: tema.metodologia,
+    fechaLimite: new Date(tema.fechaLimite + "T10:00:00Z").toISOString(),
+    subareas: tema.subareas.map((a) => ({ id: a.id })),
+    coasesores: [
+      { id: asesorData.id },
+      ...(tema.coasesores ? tema.coasesores.map((c) => ({ id: c.id })) : []),
+    ],
+    tesistas: tema.tesistas ? tema.tesistas.map((t) => ({ id: t.id })) : [],
+  } as TemaCreateInscription;
 };
 
 export default NuevoTemaDialog;
