@@ -6,4 +6,6 @@ import pucp.edu.pe.sgta.model.Usuario;
 
 @Repository
 public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
+
+    Usuario findByCorreoElectronicoIsLikeIgnoreCase(String email);
 }

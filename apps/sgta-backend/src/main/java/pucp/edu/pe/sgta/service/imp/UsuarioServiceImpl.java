@@ -222,6 +222,15 @@ public class UsuarioServiceImpl implements UsuarioService {
 	}
 
 	@Override
+	public Integer getIdByCorreo(String correo) {
+		Usuario user = usuarioRepository.findByCorreoElectronicoIsLikeIgnoreCase(correo);
+		if (user == null) {
+			throw new RuntimeException("Usuario no encontrado con CORREO: " + correo);
+		}
+		return user.getId();
+	}
+
+	@Override
 	public List<UsuarioDto> findUsuariosByRolAndCarrera(String tipoUsuario, Integer carreraId, String cadenaBusqueda) {
 		String sql = """
 			SELECT *

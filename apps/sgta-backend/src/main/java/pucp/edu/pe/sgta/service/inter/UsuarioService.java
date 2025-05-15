@@ -32,4 +32,5 @@ public interface UsuarioService {
 
 	UsuarioFotoDto getUsuarioFoto(Integer id);
 
+	Integer getIdByCorreo(String correo);
 }

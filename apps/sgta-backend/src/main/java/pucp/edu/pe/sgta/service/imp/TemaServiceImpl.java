@@ -18,6 +18,7 @@ import pucp.edu.pe.sgta.util.EstadoTemaEnum;
 import pucp.edu.pe.sgta.util.RolEnum;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -709,9 +710,11 @@ public class TemaServiceImpl implements TemaService {
 				String nombreTesista = (String) tesista[0] + " " + (String) tesista[1];
 				tesistas.add(nombreTesista);
 			}
-			dto.setEstudiantes(String.join(", ", tesistas));
+			dto.setEstudiantes(tesistas);
 
 			//Añadir el nivel
+
+
 			temas.add(dto);
 		}
 		return temas;

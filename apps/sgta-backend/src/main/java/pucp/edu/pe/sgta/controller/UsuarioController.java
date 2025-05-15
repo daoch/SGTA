@@ -64,4 +64,8 @@ public class UsuarioController {
 		return usuarioService.getUsuarioFoto(idUsuario);
 	}
 
+	@GetMapping("/getIdByCorreo")
+	public Integer getIdByCorreo(@RequestParam("correoUsuario") String correo) {
+		return usuarioService.getIdByCorreo(correo);
+	}
 }
