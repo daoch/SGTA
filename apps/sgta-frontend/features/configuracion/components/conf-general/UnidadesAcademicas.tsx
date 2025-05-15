@@ -57,53 +57,53 @@ export default function UnidadesAcademicas() {
   const [unidadesAcademicas, setUnidadesAcademicas] = useState<UnidadAcademica[]>([
     {
       id: 1,
-      nombre: "Facultad de Ingeniería",
-      descripcion: "Facultad dedicada a las carreras de ingeniería y tecnología",
+      nombre: "Ciencias e Ingeniería",
+      descripcion: "Facultad dedicada a las diversas carrera de Ingeniería",
       carreras: [
         {
           id: 101,
-          nombre: "Ingeniería de Software",
-          codigo: "ISW",
-          correoEncargado: "director.isw@universidad.edu",
+          nombre: "Ingeniería Informática",
+          codigo: "INF",
+          correoEncargado: "lflores@pucp.edu.pe",
           activa: true,
         },
         {
           id: 102,
-          nombre: "Ingeniería Civil",
-          codigo: "ICV",
-          correoEncargado: "director.icv@universidad.edu",
+          nombre: "Ingeniería Mecatrónica",
+          codigo: "MEC",
+          correoEncargado: "evallota@pucp.edu.pe",
           activa: true,
         },
         {
           id: 103,
           nombre: "Ingeniería Industrial",
           codigo: "IND",
-          correoEncargado: "director.ind@universidad.edu",
+          correoEncargado: "a.berrospi@pucp.edu.pe",
           activa: false,
         },
       ],
-    },
-    {
-      id: 2,
-      nombre: "Facultad de Ciencias",
-      descripcion: "Facultad dedicada a las ciencias básicas y aplicadas",
-      carreras: [
-        {
-          id: 201,
-          nombre: "Licenciatura en Matemáticas",
-          codigo: "MAT",
-          correoEncargado: "director.mat@universidad.edu",
-          activa: true,
-        },
-        {
-          id: 202,
-          nombre: "Licenciatura en Física",
-          codigo: "FIS",
-          correoEncargado: "director.fis@universidad.edu",
-          activa: true,
-        },
-      ],
-    },
+    // },
+    // {
+    //   id: 2,
+    //   nombre: "Facultad de Psicología",
+    //   descripcion: "Facultad dedicada a las ciencias básicas y aplicadas",
+    //   carreras: [
+    //     {
+    //       id: 201,
+    //       nombre: "Licenciatura en Matemáticas",
+    //       codigo: "MAT",
+    //       correoEncargado: "director.mat@universidad.edu",
+    //       activa: true,
+    //     },
+    //     {
+    //       id: 202,
+    //       nombre: "Licenciatura en Física",
+    //       codigo: "FIS",
+    //       correoEncargado: "director.fis@universidad.edu",
+    //       activa: true,
+    //     },
+    //   ],
+     },
   ])
 
   // Estado para diálogos
