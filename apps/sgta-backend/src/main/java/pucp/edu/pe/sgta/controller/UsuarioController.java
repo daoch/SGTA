@@ -67,6 +67,7 @@ public class UsuarioController {
 	public Integer getIdByCorreo(@RequestParam("correoUsuario") String correo) {
 		return usuarioService.getIdByCorreo(correo);
 	}
+	
 	@GetMapping("/{id}/carreras")
     public ResponseEntity<List<CarreraDto>> listarCarreras(
             @PathVariable("id") Integer usuarioId) {
