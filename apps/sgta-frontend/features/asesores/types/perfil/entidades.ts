@@ -1,18 +1,18 @@
 export interface Tesis {
   idTesis: number;
   titulo: string;
-  estudiantes: string[];
-  año: string;
+  estudiantes: string;
+  anio: string;
   nivel: string;
-  estado: "en_proceso" | "terminada" | null;
+  estado: "en_proceso" | "finalizada" | null;
 }
 
 export interface Proyecto {
   idProyecto: number;
   nombre: string;
   participantes: number;
-  añoInicio: string | null;
-  añoFin: string | null;
+  anioInicio: string | null;
+  anioFin: string | null;
   estado: "en_proceso" | "finalizado" | null;
 }
 
@@ -32,6 +32,7 @@ export interface Asesor {
   nombre: string;
   especialidad: string;
   email: string;
+  fotoPerfil?: string | null;
   linkedin: string | null;
   repositorio: string | null;
   biografia: string | null;

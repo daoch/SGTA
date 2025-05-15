@@ -31,7 +31,7 @@ export default function TesisDirigidasResumen({ tesis }: Props) {
   const [pageTerminadas, setPageTerminadas] = useState(40);
 
   const renderTesis = (
-    estado: "en_proceso" | "terminada",
+    estado: "en_proceso" | "finalizada",
     currentPage: number,
     setPage: (page: number) => void,
   ) => {
@@ -40,7 +40,7 @@ export default function TesisDirigidasResumen({ tesis }: Props) {
     if (filtradas.length === 0) {
       return (
         <div className="text-center py-6 text-gray-500">
-          No hay tesis {estado === "en_proceso" ? "en proceso" : "terminadas"}{" "}
+          No hay tesis {estado === "en_proceso" ? "en proceso" : "finalizada"}{" "}
           actualmente
         </div>
       );
@@ -72,7 +72,7 @@ export default function TesisDirigidasResumen({ tesis }: Props) {
               </Badge>
             </div>
             <p className="text-gray-600 text-sm mt-1">
-              {t.estudiantes.join(", ")} · {t.año}
+              {t.estudiantes} · {t.anio}
             </p>
           </div>
         ))}
@@ -151,15 +151,15 @@ export default function TesisDirigidasResumen({ tesis }: Props) {
       <Tabs defaultValue="en_proceso" className="w-full">
         <TabsList className="grid grid-cols-2 mb-4">
           <TabsTrigger value="en_proceso">En proceso</TabsTrigger>
-          <TabsTrigger value="terminadas">Terminadas</TabsTrigger>
+          <TabsTrigger value="finalizada">Finalizada</TabsTrigger>
         </TabsList>
 
         <TabsContent value="en_proceso" className="space-y-4">
           {renderTesis("en_proceso", pageEnProceso, setPageEnProceso)}
         </TabsContent>
 
-        <TabsContent value="terminadas" className="space-y-4">
-          {renderTesis("terminada", pageTerminadas, setPageTerminadas)}
+        <TabsContent value="finalizada" className="space-y-4">
+          {renderTesis("finalizada", pageTerminadas, setPageTerminadas)}
         </TabsContent>
       </Tabs>
     </div>

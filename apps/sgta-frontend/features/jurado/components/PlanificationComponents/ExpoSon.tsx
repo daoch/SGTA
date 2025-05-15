@@ -46,7 +46,7 @@ const ExpoSon: React.FC<Props> = ({ expoFind, removeExpo,estadoPlan }: Props) =>
 
       {hovered && expoFind && !isDragging && (
         <div 
-        className="block text-left absolute left-full mb-2 transform -translate-x-1/2">
+        className="block text-left absolute left-full mb-2 transform -translate-x-1/2 z-1000">
           <ToolTipoBloque expoFind = {expoFind}/>
         </div>
       )}

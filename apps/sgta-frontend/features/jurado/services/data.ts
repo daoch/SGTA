@@ -29,10 +29,12 @@ export async function listarTemasCicloActulXEtapaFormativa(
   }
 }
 
-export async function listarJornadasExposicionSalas(etapaFormativaId: number) {
+export async function listarJornadasExposicionSalasByExposicion(
+  exposicionId: number,
+) {
   try {
     const response = await fetch(
-      `${baseUrl}/jornada-exposcion-salas/listar-jornadas-salas/${etapaFormativaId}`,
+      `${baseUrl}/jornada-exposcion-salas/listar-jornadas-salas/${exposicionId}`,
       {
         method: "GET",
         headers: {
@@ -46,7 +48,7 @@ export async function listarJornadasExposicionSalas(etapaFormativaId: number) {
     }
 
     const data = await response.json();
-    
+
     return data;
   } catch (error) {
     console.error(
@@ -58,7 +60,6 @@ export async function listarJornadasExposicionSalas(etapaFormativaId: number) {
 }
 
 export async function listarBloquesHorariosExposicion(exposicionId: number) {
-
   try {
     const response = await fetch(
       `${baseUrl}/bloqueHorarioExposicion/listarBloquesHorarioExposicionByExposicion/${exposicionId}`,
@@ -86,9 +87,9 @@ export async function listarBloquesHorariosExposicion(exposicionId: number) {
   }
 }
 
-
-export async function listarEstadoPlanificacionPorExposicion(exposicionId: number) {
-
+export async function listarEstadoPlanificacionPorExposicion(
+  exposicionId: number,
+) {
   try {
     const response = await fetch(
       `${baseUrl}/estado-planificacion/getByIdExposicion/${exposicionId}`,
@@ -99,7 +100,7 @@ export async function listarEstadoPlanificacionPorExposicion(exposicionId: numbe
         },
       },
     );
-      
+
     if (!response.ok) {
       throw new Error("Network response was not ok");
     }
@@ -113,5 +114,43 @@ export async function listarEstadoPlanificacionPorExposicion(exposicionId: numbe
       error,
     );
     return [];
+  }
+}
+
+/**
+ * Obtiene el ID de la EtapaFormativaXCiclo asociada
+ * a una Exposición dado su exposicionId.
+ */
+export async function getEtapaFormativaIdByExposicionId(
+  exposicionId: number,
+): Promise<number> {
+  try {
+    const response = await fetch(
+      `${baseUrl}/etapas-formativas/getEtapaFormativaIdByExposicionId/${exposicionId}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
+
+    if (!response.ok) {
+      // Para debugging, imprime status y texto
+      const text = await response.text();
+      console.error(
+        `Error al obtener etapa formativa (${response.status}):`,
+        text,
+      );
+      throw new Error("Network response was not ok");
+    }
+
+    // El back devuelve un número puro en el body: ej. 1
+    const data: number = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error : fetching EtapaFormativaId por exposicionId:", error);
+    // En caso de fallo, devolvemos 0 (o podrías devolver `null` si prefieres)
+    return 0;
   }
 }
