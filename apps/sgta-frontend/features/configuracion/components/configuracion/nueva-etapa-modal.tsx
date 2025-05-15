@@ -26,7 +26,11 @@ import { etapaFormativaCicloService, ciclosService } from "../../services/etapa-
 import { Ciclo } from "../../types/etapa-formativa-ciclo";
 import { toast } from "sonner";
 
-export function NuevaEtapaModal() {
+interface NuevaEtapaModalProps {
+  onSuccess?: () => void;
+}
+
+export function NuevaEtapaModal({ onSuccess }: NuevaEtapaModalProps) {
   const [open, setOpen] = useState(false);
   const [etapasFormativas, setEtapasFormativas] = useState<EtapaFormativaListItem[]>([]);
   const [ciclos, setCiclos] = useState<Ciclo[]>([]);
@@ -72,7 +76,7 @@ export function NuevaEtapaModal() {
       
       toast.success("Etapa creada exitosamente");
       setOpen(false);
-      // Aquí podrías agregar una función para refrescar la lista de etapas
+      onSuccess?.();
     } catch (error) {
       console.error("Error al crear la etapa:", error);
       toast.error("Error al crear la etapa");

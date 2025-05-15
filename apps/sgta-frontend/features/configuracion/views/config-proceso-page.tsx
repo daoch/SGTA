@@ -7,24 +7,55 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { etapaFormativaCicloService } from "@/features/configuracion/services/etapa-formativa-ciclo";
 import { EtapaFormativaCiclo } from "../types/etapa-formativa-ciclo";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function ConfiguracionProcesoPage() {
   const [etapas, setEtapas] = useState<EtapaFormativaCiclo[]>([]);
+  const [etapaToDelete, setEtapaToDelete] = useState<EtapaFormativaCiclo | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   
-  useEffect(() => {
-    const fetchEtapas = async () => {
-      try {
-        const response = await etapaFormativaCicloService.getAllByIdCarrera(1);
-        if (response) {
-          setEtapas(response);
-        }
-      } catch (error) {
-        console.error("Error al cargar las etapas:", error);
+  const fetchEtapas = async () => {
+    try {
+      const response = await etapaFormativaCicloService.getAllByIdCarrera(1);
+      if (response) {
+        setEtapas(response);
       }
-    };
+    } catch (error) {
+      console.error("Error al cargar las etapas:", error);
+      toast.error("Error al cargar las etapas");
+    }
+  };
 
+  useEffect(() => {
     fetchEtapas();
   }, []);
+
+  const handleDelete = async () => {
+    if (!etapaToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      await etapaFormativaCicloService.delete(etapaToDelete.id);
+      toast.success("Etapa eliminada exitosamente");
+      await fetchEtapas(); // Recargar la lista
+    } catch (error) {
+      console.error("Error al eliminar la etapa:", error);
+      toast.error("Error al eliminar la etapa");
+    } finally {
+      setIsDeleting(false);
+      setEtapaToDelete(null);
+    }
+  };
 
   return (
     <div className="max-w-5xl">
@@ -44,7 +75,7 @@ export default function ConfiguracionProcesoPage() {
         <div className="flex items-center gap-4">
           <h2 className="text-xl font-semibold">Etapas del Proyecto</h2>
         </div>
-        <NuevaEtapaModal />
+        <NuevaEtapaModal onSuccess={fetchEtapas} />
       </div>
 
       <div className="space-y-4">
@@ -68,7 +99,12 @@ export default function ConfiguracionProcesoPage() {
                     <Button variant="outline" size="icon">
                       <Edit size={16} />
                     </Button>
-                    <Button variant="outline" size="icon" className="text-red-500">
+                    <Button 
+                      variant="outline" 
+                      size="icon" 
+                      className="text-red-500"
+                      onClick={() => setEtapaToDelete(etapa)}
+                    >
                       <Trash2 size={16} />
                     </Button>
                   </div>
@@ -96,6 +132,27 @@ export default function ConfiguracionProcesoPage() {
           </Card>
         ))}
       </div>
+
+      <AlertDialog open={!!etapaToDelete} onOpenChange={() => setEtapaToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Está seguro?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción eliminará la etapa "{etapaToDelete?.nombreEtapaFormativa}" y no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="bg-red-500 hover:bg-red-600"
+            >
+              {isDeleting ? "Eliminando..." : "Eliminar"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

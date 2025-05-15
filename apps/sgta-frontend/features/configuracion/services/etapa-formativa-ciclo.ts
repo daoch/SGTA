@@ -12,6 +12,10 @@ export const etapaFormativaCicloService = {
         const response = await axiosInstance.post("/etapa-formativa-x-ciclo/create", etapaFormativaCiclo);
         return response.data;
     },
+
+    delete: async (id: number): Promise<void> => {
+        await axiosInstance.post(`/etapa-formativa-x-ciclo/delete/${id}`);
+    }
 }
 
 export const ciclosService = {
