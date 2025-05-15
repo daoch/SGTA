@@ -1,9 +1,9 @@
 "use client";
 import { useParams, useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 
 import { ArrowLeft, CircleUserRound } from "lucide-react";
-import { TesisAsignadaDetalle } from "@/features/jurado/types/juradoDetalle.types";
+import { TesisAsignadaDetalle ,TesisDetalleExposicion} from "@/features/jurado/types/juradoDetalle.types";
 import { cn } from "@/lib/utils";
 import {
   getExposicionesTema,
@@ -11,81 +11,6 @@ import {
 } from "../services/jurado-service";
 
 // Datos de ejemplo (en producción, estos vendrían de una API)
-const tesisData: Record<string, TesisAsignadaDetalle> = {
-  INF0501: {
-    titulo:
-      "Aplicación de Deep Learning para la detección y clasificación automática de insectos agrícolas en trampas pegantes",
-    codigo: "INF0501",
-    estudiante: "Angel Malpartida",
-    codEstudiante: "20201242",
-    resumen:
-      "El presente trabajo de investigación busca hacer una revisión sistemática sobre las técnicas actuales que se usan para solucionar problemas de identificación y clasificación de plagas de insectos...",
-    especialidades: ["Desarrollo Web", "Backend"],
-    curso: "Proyecto de Fin de Carrera 1",
-    periodo: "2025-1",
-    rol: "Jurado",
-    estado: "En Desarrollo",
-    area: "Ciencias de la Computación",
-    fechaCreacion: "19/10/2023",
-    fechaAprobacion: "24/10/2023",
-    asesor: "Edwin Villanueva",
-    coasesor: "Freddy Paz",
-    jurados: [
-      { nombre: "Fernando Contreras", id: "FC001" },
-      { nombre: "María Rodríguez", id: "MR002" },
-    ],
-    exposiciones: [
-      {
-        id: "EXP001",
-        titulo: "Exposición de Avance 1 de Proyecto de Fin de Carrera 1",
-        fecha: "19/03/2024",
-        hora: "10:00",
-        lugar: "Aula Virtual",
-        estado: "Completada",
-        curso: "Proyecto de Fin de Carrera 1",
-      },
-      {
-        id: "EXP002",
-        titulo: "Exposición de Avance 2 de Proyecto de Fin de Carrera 1",
-        fecha: "21/04/2024",
-        hora: "10:00",
-        lugar: "Aula Virtual",
-        estado: "Completada",
-        curso: "Proyecto de Fin de Carrera 1",
-      },
-      {
-        id: "EXP003",
-        titulo: "Exposición Parcial de Proyecto de Fin de Carrera 1",
-        fecha: "14/06/2024",
-        hora: "20:00",
-        lugar: "Aula Presencial V201",
-        estado: "Completada",
-        curso: "Proyecto de Fin de Carrera 1",
-      },
-    ],
-  },
-  INF1643: {
-    titulo:
-      "Identificación del nivel de complejidad de texto para el entrenamiento de chatbots basado en Machine Learning",
-    codigo: "INF1643",
-    estudiante: "José Morales Pariona",
-    codEstudiante: "20105420",
-    resumen:
-      "El nivel de complejidad textual puede ser un inconveniente para algunas personas al momento de usar Chatbots, debido a que estos programas podrían dar respuestas cuyo nivel de complejidad no sea el que entienda el usuario. Entonces, aquellos Chatbots deberían ser entrenados con un conjunto de datos cuya complejidad textual sea la deseada, para evitar confusiones con los usuarios. Para ello, se define una revisión sistemática, en la cual se usan las bases de datos de Google Scholar, ACM Digital Library e IEEE Xplore, de las cuáles se obtiene la información necesaria empleando las palabras claves definidas.",
-    especialidades: ["Ciencias de la Computación"],
-    curso: "Proyecto de Fin de Carrera 2",
-    periodo: "2025-1",
-    rol: "Jurado",
-    estado: "En Desarrollo",
-    area: "Ciencias de la Computación",
-    fechaCreacion: "19/10/2023",
-    fechaAprobacion: "24/10/2023",
-    asesor: "Edwin Villanueva",
-    coasesor: "Freddy Paz",
-    jurados: [{ nombre: "Fernando Contreras", id: "FC001" }],
-    exposiciones: [],
-  },
-};
 
 type TabType = "informacion" | "historial" | "exposiciones";
 
@@ -96,9 +21,57 @@ export function DetalleTesisJuradoView() {
   //const detalleJurado = params?.detalleJurado as string;
   const [activeTab, setActiveTab] = useState<TabType>("informacion");
   
-  const idNumerico = Number(params?.id);
+  const idTema = Number(params?.id);
   //llamar al listar usando el idNumerico
-  const tesis = tesisData[codigoTesis];
+  
+
+  const [tesis, setTesis] = useState<TesisDetalleExposicion | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchTesisData = async () => {
+      try {
+        setLoading(true);
+        // Verifica que el ID sea un número válido
+        if (isNaN(idTema)) {
+          throw new Error("ID de tema inválido");
+        }
+        
+        // Llamar a la función para obtener los datos
+        const data = await getExposicionesTema(idTema);
+        setTesis(data);
+        setError(null);
+      } catch (err) {
+        console.error("Error al cargar datos de la tesis:", err);
+        setError("No se pudo cargar la información del tema");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTesisData();
+  }, [idTema]); 
+
+  const handleDesasignarJurado = async (juradoId: number) => {
+    try {
+      const result = await desasignarJuradoTema(juradoId, idTema);
+      
+      if (result.success) {
+        // Actualizar datos después de desasignar
+        const updatedData = await getExposicionesTema(idTema);
+        setTesis(updatedData);
+        alert(result.message); // Puedes reemplazar con un toast
+      } else {
+        alert(result.message);
+      }
+    } catch (err) {
+      console.error("Error al desasignar jurado:", err);
+      alert("No se pudo desasignar al jurado");
+    }
+  };
+
+
 
   if (!tesis) {
     return <p>Tesis no encontrada</p>;
@@ -158,8 +131,9 @@ export function DetalleTesisJuradoView() {
 
       {/* Tab Content */}
       <div className="bg-white p-6 border border-gray-200 rounded-lg">
-        {activeTab === "informacion" && (
-          <div>
+         {/*{activeTab === "informacion" && ()
+           Tab Content 
+          div>
             <div className="grid grid-cols-12 gap-6 mb-6">
               <div className="col-span-3">
                 <p className="flex h-[16.89px] justify-center flex-col flex-shrink-0 text-black font-montserrat text-[14px] font-medium leading-[14px]">
@@ -272,7 +246,8 @@ export function DetalleTesisJuradoView() {
             </div>
           </div>
         )}
-
+             
+           }*/}
         {activeTab === "historial" && (
           <div className="p-4 bg-gray-50 rounded-md">
             <h3 className="text-lg font-semibold mb-4">Historial de Cambios</h3>
@@ -294,7 +269,7 @@ export function DetalleTesisJuradoView() {
                   <div className="h-6 w-6 rounded-full bg-gray-200 flex items-center justify-center mr-2 overflow-hidden">
                     <CircleUserRound className="h-4 w-4 text-gray-500" />
                   </div>
-                  <span>{tesis.asesor}</span>
+                  {tesis.asesores.find(a => a.tipo === "Asesor")?.nombre || "Sin asesor"}
                 </div>
               </div>
               <div className="col-span-3">
@@ -305,7 +280,7 @@ export function DetalleTesisJuradoView() {
                   <div className="h-6 w-6 rounded-full bg-gray-200 flex items-center justify-center mr-2 overflow-hidden">
                     <CircleUserRound className="h-4 w-4 text-gray-500" />
                   </div>
-                  <span>{tesis.coasesor}</span>
+                  {tesis.asesores.find(a => a.tipo === "Coasesor")?.nombre || "Sin coasesor"}
                 </div>
               </div>
 
@@ -317,7 +292,9 @@ export function DetalleTesisJuradoView() {
                   <div className="h-6 w-6 rounded-full bg-gray-200 flex items-center justify-center mr-2 overflow-hidden">
                     <CircleUserRound className="h-4 w-4 text-gray-500" />
                   </div>
-                  <span>{tesis.estudiante}</span>
+                  {tesis.estudiantes.length > 0 
+                  ? tesis.estudiantes[0].nombre 
+                  : "Sin estudiantes asignados"}
                 </div>
               </div>
             </div>
@@ -326,16 +303,21 @@ export function DetalleTesisJuradoView() {
               <p className="flex h-[16.89px] justify-center flex-col flex-shrink-0 text-black font-montserrat text-[14px] font-medium leading-[14px]">
                 Miembros de Jurado
               </p>
-              {tesis.jurados && tesis.jurados.length > 0 ? (
+              {tesis.miembrosJurado && tesis.miembrosJurado.length > 0 ? (
                 // Contenedor flex que coloca los jurados horizontalmente
                 <div className="flex flex-wrap gap-4 mt-2">
-                  {tesis.jurados.map((jurado) => (
+                  {tesis.miembrosJurado.map((jurado) => (
                     <div key={jurado.id} className="flex items-center  ">
                       <div className="h-6 w-6 rounded-full bg-gray-200 flex items-center justify-center mr-2 overflow-hidden">
                         <CircleUserRound className="h-4 w-4 text-gray-500" />
                       </div>
                       <span>{jurado.nombre}</span>
-                      <button className="text-red-500 text-xs ml-2">✕</button>
+                      <button 
+                        className="text-red-500 text-xs ml-2"
+                        onClick={() => handleDesasignarJurado(jurado.id)}
+                      >
+                        ✕
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -347,101 +329,57 @@ export function DetalleTesisJuradoView() {
               )}
             </div>
 
-            {/* Exposiciones PFC1 */}
-            <div className="mb-8">
-              <h3 className="text-base font-semibold mb-4">
-                Exposiciones de Proyecto de Fin de Carrera 1
-              </h3>
+      
 
-              {tesis.exposiciones &&
-              tesis.exposiciones.filter(
-                (exp) => exp.curso === "Proyecto de Fin de Carrera 1",
-              ).length > 0 ? (
-                tesis.exposiciones
-                  .filter((exp) => exp.curso === "Proyecto de Fin de Carrera 1")
-                  .map((exposicion) => (
-                    <div
-                      key={exposicion.id}
-                      className="border rounded-lg mb-4 overflow-hidden"
-                    >
-                      <div className="p-4">
-                        <div className="flex justify-between items-center">
-                          <h4 className="font-medium">{exposicion.titulo}</h4>
-                          <span
-                            className={`px-3 py-1 text-xs rounded-md ${
-                              exposicion.estado === "Completada"
-                                ? "bg-green-100 text-green-800"
-                                : exposicion.estado === "Pendiente"
-                                  ? "bg-yellow-100 text-yellow-800"
-                                  : "bg-red-100 text-red-800"
-                            }`}
-                          >
-                            {exposicion.estado}
-                          </span>
-                        </div>
-                        <div className="text-sm text-gray-500 mt-1">
-                          <p>
-                            {exposicion.fecha} - {exposicion.hora}
-                          </p>
-                          <p>{exposicion.lugar}</p>
+            {/* Exposiciones  */}
+            {tesis.etapaFormativaTesis && tesis.etapaFormativaTesis.map((etapaFormativa) => (
+                <div className="mb-8" key={etapaFormativa.id}>
+                  <h3 className="text-base font-semibold mb-4">
+                    Exposiciones de {etapaFormativa.nombre}
+                  </h3>
+
+                  {etapaFormativa.exposiciones && etapaFormativa.exposiciones.length > 0 ? (
+                    etapaFormativa.exposiciones.map((exposicion) => (
+                      <div
+                        key={exposicion.id}
+                        className="border rounded-lg mb-4 overflow-hidden"
+                      >
+                        <div className="p-4">
+                          <div className="flex justify-between items-center">
+                            <h4 className="font-medium">{exposicion.nombre}</h4>
+                            <span
+                              className={`px-3 py-1 text-xs rounded-md ${
+                                exposicion.estado === "Completada"
+                                  ? "bg-green-100 text-green-800"
+                                  : exposicion.estado === "Programada"
+                                    ? "bg-yellow-100 text-yellow-800"
+                                    : "bg-red-100 text-red-800"
+                              }`}
+                            >
+                              {exposicion.estado}
+                            </span>
+                          </div>
+                          <div className="text-sm text-gray-500 mt-1">
+                            <p>
+                              {new Date(exposicion.fechaInicio).toLocaleDateString()} - 
+                              {new Date(exposicion.fechaInicio).toLocaleTimeString()} a 
+                              {new Date(exposicion.fechaFin).toLocaleTimeString()}
+                            </p>
+                            <p>Sala: {exposicion.sala}</p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))
-              ) : (
-                <p className="text-gray-500">
-                  No se han registrado exposiciones para el curso.
-                </p>
-              )}
-            </div>
+                    ))
+                  ) : (
+                    <p className="text-gray-500">
+                      No se han registrado exposiciones para esta etapa.
+                    </p>
+                  )}
+                </div>
+              ))}
 
-            {/* Exposiciones PFC2 */}
-            <div>
-              <h3 className="text-base font-semibold mb-4">
-                Exposiciones de Proyecto de Fin de Carrera 2
-              </h3>
 
-              {tesis.exposiciones &&
-              tesis.exposiciones.filter(
-                (exp) => exp.curso === "Proyecto de Fin de Carrera 2",
-              ).length > 0 ? (
-                tesis.exposiciones
-                  .filter((exp) => exp.curso === "Proyecto de Fin de Carrera 2")
-                  .map((exposicion) => (
-                    <div
-                      key={exposicion.id}
-                      className="border rounded-lg mb-4 overflow-hidden"
-                    >
-                      <div className="p-4">
-                        <div className="flex justify-between items-center">
-                          <h4 className="font-medium">{exposicion.titulo}</h4>
-                          <span
-                            className={`px-3 py-1 text-xs rounded-md ${
-                              exposicion.estado === "Completada"
-                                ? "bg-green-100 text-green-800"
-                                : exposicion.estado === "Pendiente"
-                                  ? "bg-yellow-100 text-yellow-800"
-                                  : "bg-red-100 text-red-800"
-                            }`}
-                          >
-                            {exposicion.estado}
-                          </span>
-                        </div>
-                        <div className="text-sm text-gray-500 mt-1">
-                          <p>
-                            {exposicion.fecha} - {exposicion.hora}
-                          </p>
-                          <p>{exposicion.lugar}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))
-              ) : (
-                <p className="text-gray-500">
-                  No se han registrado exposiciones para el curso.
-                </p>
-              )}
-            </div>
+
           </div>
         )}
       </div>
