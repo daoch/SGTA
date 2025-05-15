@@ -1,14 +1,13 @@
 package pucp.edu.pe.sgta.service.imp;
 
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
-import pucp.edu.pe.sgta.dto.InfoAreaConocimientoDto;
-import pucp.edu.pe.sgta.dto.InfoSubAreaConocimientoDto;
-import pucp.edu.pe.sgta.dto.PerfilAsesorDto;
+import org.springframework.web.multipart.MultipartFile;
+import pucp.edu.pe.sgta.dto.*;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import pucp.edu.pe.sgta.dto.TipoUsuarioDto;
-import pucp.edu.pe.sgta.dto.UsuarioDto;
 import pucp.edu.pe.sgta.mapper.InfoAreaConocimientoMapper;
 import pucp.edu.pe.sgta.mapper.InfoSubAreaConocimientoMapper;
 import pucp.edu.pe.sgta.mapper.PerfilAsesorMapper;
@@ -18,6 +17,10 @@ import pucp.edu.pe.sgta.repository.*;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
 import pucp.edu.pe.sgta.util.Utils;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -25,6 +28,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UsuarioServiceImpl implements UsuarioService {
@@ -36,6 +40,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 	private final UsuarioXAreaConocimientoRepository usuarioXAreaConocimientoRepository;
 	private final CarreraRepository carreraRepository;
 	private final UsuarioXTemaRepository usuarioXTemaRepository;
+	private final TipoUsuarioRepository tipoUsuarioRepository;
 
 	@PersistenceContext
     private EntityManager em;
@@ -45,7 +50,8 @@ public class UsuarioServiceImpl implements UsuarioService {
 							, SubAreaConocimientoRepository subAreaConocimientoRepository
 							, AreaConocimientoRepository areaConocimientoRepository
 							, UsuarioXAreaConocimientoRepository usuarioXAreaConocimientoRepository, CarreraRepository carreraRepository
-							,UsuarioXTemaRepository usuarioXTemaRepository) {
+							,UsuarioXTemaRepository usuarioXTemaRepository
+							, TipoUsuarioRepository tipoUsuarioRepository) {
 		this.usuarioRepository = usuarioRepository;
 		this.usuarioXSubAreaConocimientoRepository = usuarioXSubAreaConocimientoRepository;
 		this.subAreaConocimientoRepository = subAreaConocimientoRepository;
@@ -53,6 +59,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 		this.usuarioXAreaConocimientoRepository = usuarioXAreaConocimientoRepository;
 		this.carreraRepository = carreraRepository;
 		this.usuarioXTemaRepository = usuarioXTemaRepository;
+		this.tipoUsuarioRepository = tipoUsuarioRepository;
 	}
 
 	@Override
@@ -252,5 +259,156 @@ public class UsuarioServiceImpl implements UsuarioService {
 		}
 
 		return lista;
+	}
+
+	@Override
+	public Optional<UserInfoDTO> obtenerInfoPorCorreo(String correo) {
+		return usuarioRepository.findByCorreoElectronicoAndActivoTrue(correo)
+				.map(usuario -> UserInfoDTO.builder()
+						.usuarioId(usuario.getId())
+						.correoElectronico(usuario.getCorreoElectronico())
+						.nombreCompleto(usuario.getNombres() + " " + usuario.getPrimerApellido() + " " + usuario.getSegundoApellido())
+						.tipoUsuario(usuario.getTipoUsuario().getNombre())
+						.build());
+	}
+
+	@Override
+	public void procesarArchivoUsuarios(MultipartFile archivo) throws Exception {
+		String nombre = archivo.getOriginalFilename();
+		if (nombre == null) throw new Exception("Archivo sin nombre");
+
+		if (nombre.endsWith(".csv")) {
+			procesarCSV(archivo);
+		} else if (nombre.endsWith(".xlsx")) {
+			procesarExcel(archivo);
+		} else {
+			throw new Exception("Formato de archivo no soportado. Solo se acepta .csv o .xlsx");
+		}
+	}
+
+	private void procesarCSV(MultipartFile archivo) {
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(archivo.getInputStream()))) {
+			String linea;
+			boolean primeraLinea = true;
+
+			while ((linea = reader.readLine()) != null) {
+				if (primeraLinea) {
+					primeraLinea = false;
+					continue; // saltar encabezado
+				}
+
+				String[] campos = linea.split(",");
+
+				if (campos.length < 8) continue;
+
+				// Mapear campos en el orden correcto del CSV
+				String nombres = campos[0].trim();
+				String primerApellido = campos[1].trim();
+				String segundoApellido = campos[2].trim();
+				String correo = campos[3].trim();
+				String codigoPUCP = campos[4].trim();
+				String nivelEstudios = campos[5].trim();
+				String contrasena = campos[6].trim();
+				String tipoUsuario = campos[7].trim(); // este es el rol
+
+				Optional<TipoUsuario> tipo = buscarTipoUsuarioPorNombre(tipoUsuario);
+				if (tipo.isEmpty()) {
+					System.out.println("Rol inválido para: " + correo);
+					continue;
+				}
+
+				Usuario nuevo = new Usuario();
+				nuevo.setNombres(nombres);
+				nuevo.setPrimerApellido(primerApellido);
+				nuevo.setSegundoApellido(segundoApellido);
+				nuevo.setCorreoElectronico(correo);
+				nuevo.setCodigoPucp(codigoPUCP);
+				nuevo.setNivelEstudios(nivelEstudios);
+				nuevo.setContrasena(contrasena);
+				nuevo.setTipoUsuario(tipo.get());
+				nuevo.setActivo(true);
+				nuevo.setFechaCreacion(OffsetDateTime.now());
+				nuevo.setFechaModificacion(OffsetDateTime.now());
+
+				usuarioRepository.save(nuevo);
+			}
+		} catch (IOException e) {
+			System.err.println("Error al leer el CSV: " + e.getMessage());
+		}
+	}
+
+	private void procesarExcel(MultipartFile archivo) throws Exception {
+		try (InputStream is = archivo.getInputStream()) {
+			Workbook workbook = new XSSFWorkbook(is);
+			Sheet hoja = workbook.getSheetAt(0);
+
+			// Suponiendo que la primera fila es cabecera
+			for (int filaIndex = 1; filaIndex <= hoja.getLastRowNum(); filaIndex++) {
+				Row fila = hoja.getRow(filaIndex);
+				if (fila == null) continue;
+
+				String nombres = getCellValue(fila.getCell(0));
+				String primerApellido = getCellValue(fila.getCell(1));
+				String segundoApellido = getCellValue(fila.getCell(2));
+				String correo = getCellValue(fila.getCell(3));
+				String codigoPUCP = getCellValue(fila.getCell(4));
+				String nivelEstudios = getCellValue(fila.getCell(5));
+				String contrasena = getCellValue(fila.getCell(6));
+				String tipoUsuario = getCellValue(fila.getCell(7));
+
+				Optional<TipoUsuario> tipo = buscarTipoUsuarioPorNombre(tipoUsuario);
+				if (tipo.isEmpty()) {
+					System.out.printf("Fila %d ignorada: Tipo usuario no encontrado: %s\n", filaIndex + 1, tipoUsuario);
+					continue;
+				}
+
+				Usuario nuevo = new Usuario();
+				nuevo.setNombres(nombres);
+				nuevo.setPrimerApellido(primerApellido);
+				nuevo.setSegundoApellido(segundoApellido);
+				nuevo.setCorreoElectronico(correo);
+				nuevo.setCodigoPucp(codigoPUCP);
+				nuevo.setNivelEstudios(nivelEstudios);
+				nuevo.setContrasena(contrasena);
+				nuevo.setTipoUsuario(tipo.get());
+				nuevo.setActivo(true);
+				nuevo.setFechaCreacion(OffsetDateTime.now());
+				nuevo.setFechaModificacion(OffsetDateTime.now());
+
+				usuarioRepository.save(nuevo);
+			}
+
+			workbook.close();
+		}
+	}
+
+	private String getCellValue(Cell celda) {
+		if (celda == null) return "";
+
+		switch (celda.getCellType()) {
+			case STRING:
+				return celda.getStringCellValue().trim();
+			case NUMERIC:
+				if (DateUtil.isCellDateFormatted(celda)) {
+					return celda.getDateCellValue().toString();
+				}
+				return String.valueOf((long) celda.getNumericCellValue()); // Si esperas solo enteros
+			case BOOLEAN:
+				return String.valueOf(celda.getBooleanCellValue());
+			case FORMULA:
+				return celda.getCellFormula();
+			case BLANK:
+			case _NONE:
+			case ERROR:
+			default:
+				return "";
+		}
+	}
+
+	private Optional<TipoUsuario> buscarTipoUsuarioPorNombre(String nombre) {
+		String nombreLimpio = nombre.trim().toLowerCase();
+		return tipoUsuarioRepository.findAll().stream()
+				.filter(tu -> tu.getNombre().equalsIgnoreCase(nombreLimpio))
+				.findFirst();
 	}
 }
