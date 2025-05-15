@@ -12,6 +12,7 @@ import { Exposicion } from "../dtos/exposicion";
 import { EntregableModal } from "../components/entregable/entregable-modal";
 import { ExposicionModal } from "../components/exposicion/exposicion-modal";
 import axiosInstance from "@/lib/axios/axios-instance";
+import Link from "next/link";
 
 interface DetalleEtapaPageProps {
   etapaId: string;
@@ -26,7 +27,9 @@ const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
   useEffect(() => {
     const fetchEntregables = async () => {
       try {
-        const response = await axiosInstance.get(`/entregable/etapa-formativa-x-ciclo/${etapaId}`);
+        const response = await axiosInstance.get(
+          `/entregable/etapa-formativa-x-ciclo/${etapaId}`,
+        );
         setEntregables(response.data);
       } catch (error) {
         console.error("Error al cargar los entregables:", error);
@@ -39,7 +42,9 @@ const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
   useEffect(() => {
     const fetchExposiciones = async () => {
       try {
-        const response = await axiosInstance.get(`/exposicion/etapa-formativa-x-ciclo/${etapaId}`);
+        const response = await axiosInstance.get(
+          `/exposicion/etapa-formativa-x-ciclo/${etapaId}`,
+        );
         setExposiciones(response.data);
       } catch (error) {
         console.error("Error al cargar las exposiciones:", error);
@@ -51,7 +56,10 @@ const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
 
   const createEntregable = async (nuevoEntregable: Entregable) => {
     try {
-      const response = await axiosInstance.post(`/entregable/etapa-formativa-x-ciclo/${etapaId}`, nuevoEntregable);
+      const response = await axiosInstance.post(
+        `/entregable/etapa-formativa-x-ciclo/${etapaId}`,
+        nuevoEntregable,
+      );
       console.log("Entregable creado exitosamente:", response.data);
       return response.data; // Devuelve el entregable creado si es necesario
     } catch (error) {
@@ -62,7 +70,10 @@ const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
 
   const createExposicion = async (nuevaExposicion: Exposicion) => {
     try {
-      const response = await axiosInstance.post(`/exposicion/etapa-formativa-x-ciclo/${etapaId}`, nuevaExposicion);
+      const response = await axiosInstance.post(
+        `/exposicion/etapa-formativa-x-ciclo/${etapaId}`,
+        nuevaExposicion,
+      );
       console.log("Exposición creada exitosamente:", response.data);
       return response.data; // Devuelve la exposición creada si es necesario
     } catch (error) {
@@ -75,14 +86,17 @@ const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
     try {
       const nuevoEntregableFormatoISO: Entregable = {
         ...nuevoEntregable,
-        fechaInicio: new Date(nuevoEntregable.fechaInicio).toISOString().split(".")[0] + "Z",
-        fechaFin: new Date(nuevoEntregable.fechaFin).toISOString().split(".")[0] + "Z",
+        fechaInicio:
+          new Date(nuevoEntregable.fechaInicio).toISOString().split(".")[0] +
+          "Z",
+        fechaFin:
+          new Date(nuevoEntregable.fechaFin).toISOString().split(".")[0] + "Z",
       };
 
       console.log("Datos enviados al backend:", nuevoEntregableFormatoISO);
-      
+
       const idEntregable = await createEntregable(nuevoEntregableFormatoISO);
-  
+
       const nuevoEntregableConId: Entregable = {
         ...nuevoEntregable,
         id: idEntregable, // Asignar el ID devuelto por la API
@@ -90,7 +104,7 @@ const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
 
       // Actualizar el estado local con el entregable creado
       setEntregables((prev) => [...prev, nuevoEntregableConId]);
-  
+
       // Cerrar el modal
       setIsEntregableModalOpen(false);
     } catch (error) {
@@ -100,9 +114,8 @@ const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
 
   const handleCreateExposicion = async (nuevaExposicion: Exposicion) => {
     try {
-      
       const idExposicion = await createExposicion(nuevaExposicion);
-  
+
       const nuevaExposicionConId: Exposicion = {
         ...nuevaExposicion,
         id: idExposicion, // Asignar el ID devuelto por la API
@@ -110,7 +123,7 @@ const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
 
       // Actualizar el estado local con el entregable creado
       setExposiciones((prev) => [...prev, nuevaExposicionConId]);
-  
+
       // Cerrar el modal
       setIsExposicionModalOpen(false);
     } catch (error) {
@@ -122,9 +135,12 @@ const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
     <div className="w-full px-6 py-6">
       {/* Header con botón de regreso */}
       <div className="flex items-center mb-6">
-        <Button id="btnBack" variant="ghost" size="icon" className="mr-2">
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
+        <Link
+          href="/coordinador/configuracion/proceso"
+          className="p-2 rounded-md border border-gray-300 hover:bg-gray-100 transition"
+        >
+          <ArrowLeft size={11} />
+        </Link>
         <h1 className="text-xl font-semibold">Detalles de la Etapa</h1>
       </div>
 
@@ -175,7 +191,7 @@ const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
           <div className="flex justify-end mb-4">
             <Button
               id="btnNewEntregable"
-              className="bg-black hover:bg-gray-800"
+              className="bg-primary hover:bg-gray-800"
               onClick={() => setIsEntregableModalOpen(true)}
             >
               <Plus className="h-4 w-4 mr-1" />
@@ -203,7 +219,7 @@ const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
           <div className="flex justify-end mb-4">
             <Button
               id="btnNewExposicion"
-              className="bg-black hover:bg-gray-800"
+              className="bg-primary hover:bg-gray-800"
               onClick={() => setIsExposicionModalOpen(true)}
             >
               <Plus className="h-4 w-4 mr-1" />
