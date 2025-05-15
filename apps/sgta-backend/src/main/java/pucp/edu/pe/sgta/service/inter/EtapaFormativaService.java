@@ -17,4 +17,6 @@ public interface EtapaFormativaService {
     void delete(Integer id);
 
     List<EtapaFormativaNombreDTO> findByCoordinadorId(Integer id);
+
+    void actualizarEtapa(EtapaFormativaDto etapaFormativaDto);
 }

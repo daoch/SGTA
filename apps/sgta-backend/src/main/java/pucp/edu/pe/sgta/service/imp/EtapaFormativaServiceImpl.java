@@ -8,6 +8,10 @@ import pucp.edu.pe.sgta.model.EtapaFormativa;
 import pucp.edu.pe.sgta.repository.EtapaFormativaRepository;
 import pucp.edu.pe.sgta.service.inter.EtapaFormativaService;
 
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.OffsetDateTime;
+
 import java.util.List;
 
 @Service
@@ -54,6 +58,21 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
         return etapasFormativas.stream()
                 .map(ef -> new EtapaFormativaNombreDTO(ef.getEtapaFormativaId(), ef.getNombre()))
                 .toList();
+    }
+
+    @Override
+    @Transactional
+    public void actualizarEtapa(EtapaFormativaDto dto) {
+        EtapaFormativa etapa = etapaFormativaRepository.findById(dto.getId())
+            .orElseThrow(() -> new RuntimeException("Etapa no encontrada"));
+        
+        // Solo estos campos se actualizan
+        etapa.setNombre(dto.getNombre());
+        etapa.setCreditajePorTema(dto.getCreditajePorTema());
+        etapa.setActivo(dto.getActivo());
+        etapa.setFechaModificacion(OffsetDateTime.now());
+        
+        etapaFormativaRepository.save(etapa); // La duración no se incluirá en el UPDATE
     }
 
 }

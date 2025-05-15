@@ -28,7 +28,7 @@ public class EtapaFormativa {
     @Column(name = "creditaje_por_tema", nullable = true, precision = 6, scale = 2)
     private BigDecimal creditajePorTema;
 
-    @Column(name = "duracion_exposicion")
+    @Column(name = "duracion_exposicion", updatable = false)
     private String duracionExposicion;
 
     @Column(nullable = false)
