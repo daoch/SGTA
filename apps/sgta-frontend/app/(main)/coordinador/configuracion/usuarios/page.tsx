@@ -3,5 +3,5 @@ import RegistroUsuarioWrapper from "@/features/configuracion/views/registro-usua
 export default function ConfiguracionPage() {
   return (
     <RegistroUsuarioWrapper/>
-  )
+  );
 }

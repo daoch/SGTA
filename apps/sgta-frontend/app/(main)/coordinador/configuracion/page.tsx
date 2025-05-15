@@ -1,6 +1,5 @@
 import Configuracion from "@/features/configuracion/views/Configuracion";
-import { BookOpen, Settings } from "lucide-react";
-import Link from "next/link";
+
 
 export default function ConfiguracionPage() {
   return (

@@ -138,7 +138,7 @@ export default function ConfiguracionProcesoPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>¿Está seguro?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción eliminará la etapa "{etapaToDelete?.nombreEtapaFormativa}" y no se puede deshacer.
+              Esta acción eliminará la etapa '{etapaToDelete?.nombreEtapaFormativa}' y no se puede deshacer.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
