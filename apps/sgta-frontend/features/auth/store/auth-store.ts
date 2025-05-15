@@ -43,13 +43,7 @@ export const useAuthStore = create<AuthStore>()(
               const rawGroups = payload["cognito:groups"];
               const roles: UserRole[] = Array.isArray(rawGroups)
                 ? rawGroups.filter((g): g is UserRole =>
-                    [
-                      "alumno",
-                      "jurado",
-                      "asesor",
-                      "coordinador",
-                      "revisor",
-                    ].includes(g),
+                    ["administrador", "alumno", "jurado", "asesor", "coordinador", "revisor"].includes(g)
                   )
                 : [];
 
@@ -170,13 +164,7 @@ export const useAuthStore = create<AuthStore>()(
               const rawGroups = payload["cognito:groups"];
               const roles: UserRole[] = Array.isArray(rawGroups)
                 ? rawGroups.filter((g): g is UserRole =>
-                    [
-                      "alumno",
-                      "jurado",
-                      "asesor",
-                      "coordinador",
-                      "revisor",
-                    ].includes(g),
+                    ["administrador", "alumno", "jurado", "asesor", "coordinador", "revisor"].includes(g)
                   )
                 : [];
 
@@ -249,7 +237,7 @@ export const useAuthStore = create<AuthStore>()(
               const rawGroups = payload["cognito:groups"];
               const roles: UserRole[] = Array.isArray(rawGroups)
                 ? rawGroups.filter((g): g is UserRole =>
-                    [
+                    ["administrador",
                       "alumno",
                       "jurado",
                       "asesor",

@@ -45,13 +45,13 @@ function CallbackContent() {
 
         // ✅ Decode the ID token and hydrate Zustand
         const tokenPayload = jwtDecode<IdTokenPayload>(data.id_token);
+        console.log("🔍 Token Payload:", tokenPayload);
         const rawGroups = tokenPayload["cognito:groups"];
+        console.log("👥 User Groups:", rawGroups);
 
         const roles: UserRole[] = Array.isArray(rawGroups)
           ? rawGroups.filter((g): g is UserRole =>
-              ["alumno", "jurado", "asesor", "coordinador", "revisor"].includes(
-                g,
-              ),
+              ["administrador", "alumno", "jurado", "asesor", "coordinador", "revisor"].includes(g)
             )
           : [];
 
