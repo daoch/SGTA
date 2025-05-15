@@ -148,9 +148,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-
 CREATE OR REPLACE FUNCTION listar_jornadas_exposicion_salas(
-	etapa_id integer
+	expo_id integer
 )
 RETURNS TABLE(
 	jornada_exposicion_id integer,
@@ -175,7 +174,8 @@ BEGIN
 	inner join ciclo  c  on  c.ciclo_id = efc.ciclo_id
 	LEFT JOIN jornada_exposicion_x_sala_exposicion js ON j.jornada_exposicion_id = js.jornada_exposicion_id
 	LEFT JOIN sala_exposicion s ON js.sala_exposicion_id = s.sala_exposicion_id
-	where c.activo = true  and ef.etapa_formativa_id = etapa_id
+	where  j.activo and s.activo and j.exposicion_id = expo_id
+	and c.activo = true  and e.exposicion_id =expo_id
 	and s.activo = true and j.activo = true and efc.activo = true and ef.activo = true
 	ORDER BY j.jornada_exposicion_id; 
 END;
