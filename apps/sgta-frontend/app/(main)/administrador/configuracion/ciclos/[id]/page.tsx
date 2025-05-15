@@ -72,7 +72,7 @@ const carreras = [
   { id: 3, nombre: "Administración" },
 ];
 
-export default function DetalleCicloPage({ }: { params: { id: string } }) {
+export default function DetalleCicloPage({ }: { params: Promise<{ id: string }> }) {
   const [carreraSeleccionada, setCarreraSeleccionada] = useState("");
   const [busqueda, setBusqueda] = useState("");
 

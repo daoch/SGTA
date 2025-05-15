@@ -59,7 +59,7 @@ const curso = {
   ],
 };
 
-export default function CursoDetailPage({ }: { params: { id: string } }) {
+export default function CursoDetailPage({ }: { params: Promise<{ id: string }> }) {
   return (
     <div className="py-6 px-2">
       <div className="flex items-center gap-4 mb-6">

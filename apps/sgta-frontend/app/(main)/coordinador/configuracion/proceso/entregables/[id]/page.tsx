@@ -46,7 +46,7 @@ const entregable = {
   ],
 };
 
-export default function EntregableDetailPage({ }: { params: { id: string } }) {
+export default function EntregableDetailPage({ }: { params: Promise<{ id: string }> }) {
   return (
     <div className="py-6 px-2">
       <div className="flex items-center gap-4 mb-6">

@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Edit, FileText, Presentation } from "lucide-react";
 import Link from "next/link";
+import { use } from "react";
 
 // Datos de ejemplo
 const etapa = {
@@ -61,7 +62,9 @@ const etapa = {
   ],
 };
 
-export default function EtapaDetailPage({ params }: { params: { id: string } }) {
+export default function EtapaDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
+
   return (
     <div className="py-6 px-2">
       <div className="flex items-center gap-4 mb-6">
@@ -101,7 +104,7 @@ export default function EtapaDetailPage({ params }: { params: { id: string } }) 
 
         <TabsContent value="entregables" className="space-y-4">
           <div className="flex justify-end mb-4">
-            <NuevoEntregableModal etapaId={params.id} />
+            <NuevoEntregableModal etapaId={id} />
           </div>
 
           <div className="grid gap-4">
@@ -137,7 +140,7 @@ export default function EtapaDetailPage({ params }: { params: { id: string } }) 
 
         <TabsContent value="exposiciones" className="space-y-4">
           <div className="flex justify-end mb-4">
-            <NuevaExposicionModal etapaId={params.id} />
+            <NuevaExposicionModal etapaId={id} />
           </div>
 
           <div className="grid gap-4">

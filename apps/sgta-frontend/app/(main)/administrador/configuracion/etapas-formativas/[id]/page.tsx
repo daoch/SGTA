@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { etapasFormativasService, type EtapaFormativaDetail } from "@/services/etapas-formativas";
 import { ArrowLeft, Edit } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 const getEstadoLabel = (estado: string) => {
@@ -17,17 +17,18 @@ const getEstadoLabel = (estado: string) => {
   return estados[estado as keyof typeof estados] || estado;
 };
 
-export default function DetalleEtapaFormativaPage({ params }: { params: { id: string } }) {
+export default function DetalleEtapaFormativaPage({ params }: { params: Promise<{ id: string }> }) {
   const [etapaFormativa, setEtapaFormativa] = useState<EtapaFormativaDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { id } = use(params);
 
   useEffect(() => {
     loadEtapaFormativa();
-  }, [params.id]);
+  }, [id]);
 
   const loadEtapaFormativa = async () => {
     try {
-      const data = await etapasFormativasService.getById(params.id);
+      const data = await etapasFormativasService.getById(id);
       setEtapaFormativa(data);
     } catch (error) {
       console.error("Error al cargar etapa formativa:", error);

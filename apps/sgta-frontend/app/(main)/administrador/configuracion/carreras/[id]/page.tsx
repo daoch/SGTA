@@ -27,7 +27,7 @@ const carrera = {
   ],
 };
 
-export default function DetalleCarreraPage({ }: { params: { id: string } }) {
+export default function DetalleCarreraPage({ }: { params: Promise<{ id: string }>}) {
   return (
     <div className="max-w-6xl mx-auto">
       <div className="flex items-center gap-4 mb-6">
