@@ -32,9 +32,15 @@ public interface TemaService {
 
 	void createInscripcionTema(TemaDto dto); //Works for asesor, alumno, coordinador and revisor
 
-	List<TemaDto> listarTemasPropuestosAlAsesor(Integer asesorId);
+	List<TemaDto> listarTemasPropuestosAlAsesor(Integer asesorId, String titulo, Integer limit, Integer offset);
 
-	List<TemaDto> listarTemasPropuestosPorSubAreaConocimiento(List<Integer> subareaIds,Integer asesorId);
+	List<TemaDto> listarTemasPropuestosPorSubAreaConocimiento(
+			List<Integer> subareaIds,
+			Integer asesorId,
+			String titulo,
+			Integer limit,
+			Integer offset
+	);
 
 	void postularAsesorTemaPropuestoGeneral(Integer alumnoId, Integer asesorId, Integer temaId, String comentario);
 
@@ -58,9 +64,8 @@ public interface TemaService {
 
 	List<TemaDto> listarPropuestasPorTesista(Integer tesistaId);
 
-	List<TemaDto> listarPostulacionesDirectasAMisPropuestas(Integer tesistaId);
+	List<TemaDto> listarPostulacionesAMisPropuestas(Integer tesistaId, Integer tipoPropuesta);
 
-	List<TemaDto> listarPostulacionesGeneralesAMisPropuestas(Integer tesistaId);
 
 
 	List<InfoTemaPerfilDto> listarTemasAsesorInvolucrado(Integer idAsesor);
@@ -69,4 +74,7 @@ public interface TemaService {
 
 	void eliminarPostulacionesTesista(Integer idUsuario);
 
+	void rechazarPostulacionAPropuestaGeneral(Integer idTema, Integer idAsesor, Integer idTesista);
+
+	void aprobarPostulacionAPropuestaGeneral(Integer idTema, Integer idAsesor, Integer idTesista);
 }

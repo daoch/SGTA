@@ -9,6 +9,6 @@ public interface CriterioEntregableService {
     List<CriterioEntregableDto> listarCriteriosEntregableXEntregable(Integer entregableId);
     int crearCriterioEntregable(Integer entregableId, CriterioEntregableDto criterioEntregableDto);
     void update(CriterioEntregableDto criterioEntregableDto);
-    void delete(CriterioEntregableDto criterioEntregableDto);
+    void delete(Integer criterioEntregableId);
     CriterioEntregable findById(int id);
 }

@@ -12,6 +12,8 @@ import {
 } from "../components/entregable/criterio-entregable-modal";
 import axiosInstance from "@/lib/axios/axios-instance";
 import { CriterioEntregable } from "../dtos/criterio-entregable";
+import { NuevoCriterioEntregableModal } from "../components/entregable/nuevo-criterio-entregable-modal";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface DetalleEntregablePageProps {
   etapaId: string;
@@ -24,10 +26,13 @@ const DetalleEntregablePage: React.FC<DetalleEntregablePageProps> = ({
 }) => {
   const router = useRouter();
   const [isCriterioModalOpen, setIsCriterioModalOpen] = useState(false);
+  const [isNuevoCriterioModalOpen, setIsNuevoCriterioModalOpen] = useState(false);
   const [isEntregableModalOpen, setIsEntregableModalOpen] = useState(false);
   const [criterioSeleccionado, setCriterioSeleccionado] =
     useState<CriterioEntregableFormData | null>(null);
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [criterioAEliminar, setCriterioAEliminar] = useState<CriterioEntregable | null>(null);
 
   const [entregable, setEntregable] = useState<Entregable>({
     id: "",
@@ -36,6 +41,9 @@ const DetalleEntregablePage: React.FC<DetalleEntregablePageProps> = ({
     fechaFin: "",
     esEvaluable: false,
     descripcion: "",
+    maximoDocumentos: 0,
+    extensionesPermitidas: "",
+    pesoMaximoDocumento: 0,
   });
 
   const [criterios, setCriterios] = useState<CriterioEntregable[]>([]);
@@ -101,6 +109,25 @@ const DetalleEntregablePage: React.FC<DetalleEntregablePageProps> = ({
     setIsCriterioModalOpen(true);
   };
 
+  const handleCreateCriterios = async (nuevosCriterios: CriterioEntregable[]) => {
+    try {
+      const criteriosCreados = await Promise.all(
+        nuevosCriterios.map(async (criterio) => {
+          const idCriterio = await createCriterio(criterio);
+          return { ...criterio, id: idCriterio }; // Agregar el ID devuelto por la API
+        })
+      );
+
+      // Actualizar el estado local con los criterios creados
+      setCriterios((prev) => [...prev, ...criteriosCreados]);
+
+      // Cerrar el modal
+      setIsNuevoCriterioModalOpen(false);
+    } catch (error) {
+      console.error("Error al crear los criterios:", error);
+    }
+  };
+
   const updateCriterio = async (updatedCriterio: CriterioEntregable) => {
     try {
       const response = await axiosInstance.put(
@@ -146,8 +173,31 @@ const DetalleEntregablePage: React.FC<DetalleEntregablePageProps> = ({
     }
   };
 
-  const handleDeleteCriterio = async (id: string) => {
-    //TO DO: Implementar la lógica para eliminar un criterio
+  const handleDeleteCriterio = (id: string) => {
+    const criterio = criterios.find((c) => c.id === id);
+    if (criterio) {
+      setCriterioAEliminar(criterio);
+      setIsDeleteModalOpen(true);
+    }
+  };
+
+  const deleteCriterio = async () => {
+    if (!criterioAEliminar) return;
+
+    try {
+      await axiosInstance.put("/criterio-entregable/delete", criterioAEliminar.id);
+      setCriterios((prev) => prev.filter((c) => c.id !== criterioAEliminar.id));
+      setIsDeleteModalOpen(false);
+      setCriterioAEliminar(null);
+      console.log("Criterio eliminado exitosamente");
+    } catch (error) {
+      console.error("Error al eliminar el criterio:", error);
+    }
+  };
+
+  const cancelDeleteCriterio = () => {
+    setIsDeleteModalOpen(false);
+    setCriterioAEliminar(null);
   };
 
   const updateEntregable = async (updatedEntregable: Entregable) => {
@@ -209,27 +259,27 @@ const DetalleEntregablePage: React.FC<DetalleEntregablePageProps> = ({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div>
-            <h3 className="text-sm font-medium text-muted-foreground mb-1">
-              Etapa
-            </h3>
-            <p>Proyecto de fin de carrera 1</p>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
             <div>
               <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                Fecha de apertura
+                Etapa
               </h3>
-              <p>
-                {new Date(entregable.fechaInicio).toLocaleString("es-ES", {
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </p>
+              <p>Proyecto de fin de carrera 1</p>
             </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                  Fecha de apertura
+                </h3>
+                <p>
+                  {new Date(entregable.fechaInicio).toLocaleString("es-ES", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </p>
+              </div>
               <div>
                 <h3 className="text-sm font-medium text-muted-foreground mb-1">
                   Fecha de cierre
@@ -254,11 +304,33 @@ const DetalleEntregablePage: React.FC<DetalleEntregablePageProps> = ({
               </h3>
               <p>{entregable.descripcion}</p>
             </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                  ¿Es evaluable?
+                </h3>
+                <p>{entregable.esEvaluable ? "Sí" : "No"}</p>
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                  Máximo de Documentos
+                </h3>
+                <p>{entregable.maximoDocumentos}</p>
+              </div>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
             <div>
               <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                ¿Es evaluable?
+                Extensiones Permitidas
               </h3>
-              <p>{entregable.esEvaluable ? "Sí" : "No"}</p>
+              <p>{entregable.extensionesPermitidas}</p>
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                Peso Máximo por Documento
+              </h3>
+              <p>{entregable.pesoMaximoDocumento} MB</p>
             </div>
           </div>
         </CardContent>
@@ -267,16 +339,40 @@ const DetalleEntregablePage: React.FC<DetalleEntregablePageProps> = ({
       {/* Contenidos Esperados */}
 
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold">Criterios de calificación</h2>
-        <Button
-          id="btnNewContenido"
-          className="bg-black hover:bg-gray-800"
-          onClick={handleNuevoCriterio}
-        >
-          <Plus className="h-4 w-4 mr-1" />
-          Nuevo Criterio
-        </Button>
+        <div className="flex items-center space-x-2">
+          <h2 className="text-lg font-semibold">Criterios de calificación</h2>
+          {criterios.reduce((acc, criterio) => acc + criterio.notaMaxima, 0) < 20 && (
+            <p className="text-sm text-orange-500">
+              La suma de los criterios debe ser 20
+            </p>
+          )}
+        </div>
+        <div className="flex items-center space-x-2">
+          {/* Botón para abrir el modal de criterios predefinidos */}
+          <Button
+            id="btnPredefinedCriterios"
+            className="bg-gray-700 hover:bg-gray-800 text-white"
+            onClick={() => setIsNuevoCriterioModalOpen(true)} // Abrir el modal de criterios predefinidos
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Criterios predefinidos
+          </Button>
+
+          {/* Botón para abrir el modal de nuevo criterio */}
+          <Button
+            id="btnNewCriterio"
+            className="bg-black hover:bg-gray-800 text-white"
+            onClick={handleNuevoCriterio} // Abrir el modal de nuevo criterio
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Nuevo Criterio
+          </Button>
+        </div>
       </div>
+
+      <p className="text-sm text-muted-foreground">
+        Suma total de criterios: {criterios.reduce((acc, criterio) => acc + criterio.notaMaxima, 0)} puntos
+      </p>
 
       <div className="space-y-4">
         {criterios.map((criterio) => (
@@ -299,6 +395,7 @@ const DetalleEntregablePage: React.FC<DetalleEntregablePageProps> = ({
         onSubmit={modalMode === "edit" ? handleUpdateCriterio : handleCreateCriterio}
         criterio={criterioSeleccionado}
         mode={modalMode}
+        criteriosExistentes={criterios}
       />
 
       {/* Modal para Editar Entregable */}
@@ -309,6 +406,35 @@ const DetalleEntregablePage: React.FC<DetalleEntregablePageProps> = ({
         entregable={entregable}
         mode="edit"
       />
+
+      <NuevoCriterioEntregableModal
+        isOpen={isNuevoCriterioModalOpen}
+        onClose={() => setIsNuevoCriterioModalOpen(false)} // Cerrar el modal
+        onSubmit={(criteriosSeleccionados) => {
+          handleCreateCriterios(criteriosSeleccionados); // Enviar los criterios seleccionados al backend
+        }}
+        criteriosExistentes={criterios} // Pasar los criterios ya agregados
+      />
+
+      <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Eliminar Criterio</DialogTitle>
+            <DialogDescription>
+              ¿Estás seguro de que deseas eliminar el criterio{" "}
+              <strong>{criterioAEliminar?.nombre}</strong>? Esta acción no se puede deshacer.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={cancelDeleteCriterio}>
+              No
+            </Button>
+            <Button variant="destructive" onClick={deleteCriterio}>
+              Sí, eliminar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

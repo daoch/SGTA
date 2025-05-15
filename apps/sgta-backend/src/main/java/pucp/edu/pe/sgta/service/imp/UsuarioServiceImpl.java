@@ -1,7 +1,10 @@
 package pucp.edu.pe.sgta.service.imp;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import org.springframework.transaction.annotation.Transactional;
 
 import pucp.edu.pe.sgta.dto.asesores.InfoAreaConocimientoDto;
@@ -21,6 +24,7 @@ import pucp.edu.pe.sgta.model.*;
 import pucp.edu.pe.sgta.repository.*;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
 import pucp.edu.pe.sgta.util.RolEnum;
+import pucp.edu.pe.sgta.util.RolEnum;
 import pucp.edu.pe.sgta.util.Utils;
 
 import java.util.ArrayList;
@@ -30,6 +34,9 @@ import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
+
+import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
@@ -44,6 +51,9 @@ public class UsuarioServiceImpl implements UsuarioService {
 	private final UsuarioXAreaConocimientoRepository usuarioXAreaConocimientoRepository;
 	private final CarreraRepository carreraRepository;
 	private final UsuarioXTemaRepository usuarioXTemaRepository;
+
+	@Autowired
+    private RolRepository rolRepository;
 
 	@Autowired
     private RolRepository rolRepository;

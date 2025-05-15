@@ -3,7 +3,8 @@ export type UserRole =
   | "jurado"
   | "asesor"
   | "coordinador"
-  | "revisor";
+  | "revisor"
+  | "administrador";
 
 export interface User {
   id: string;

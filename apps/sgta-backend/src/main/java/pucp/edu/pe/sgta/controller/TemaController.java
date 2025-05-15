@@ -49,16 +49,32 @@ public class TemaController {
 	public void update(@RequestBody TemaDto dto) {
 		temaService.update(dto);
 	}
+
 	@GetMapping("/listarTemasPropuestosAlAsesor/{asesorId}")
-	public List<TemaDto> listarTemasPropuestosAlAsesor(@PathVariable Integer asesorId) {
-		return temaService.listarTemasPropuestosAlAsesor(asesorId);
+	public List<TemaDto> listarTemasPropuestosAlAsesor(
+			@PathVariable Integer asesorId,
+			@RequestParam(required = false) String titulo, // Parámetro opcional de título
+			@RequestParam(defaultValue = "10") Integer limit, // Parámetro de límite, con valor por defecto de 10
+			@RequestParam(defaultValue = "0") Integer offset // Parámetro de desplazamiento, con valor por defecto de 0
+	) {
+
+		return temaService.listarTemasPropuestosAlAsesor(asesorId, titulo, limit, offset);
 	}
 
+
 	@GetMapping("/listarTemasPropuestosPorSubAreaConocimiento")
-	public List<TemaDto> listarTemasPropuestosPorSubAreaConocimiento(@RequestParam List<Integer> subareaIds,
-																	 @RequestParam(name = "asesorId") Integer asesorId) {
-		return temaService.listarTemasPropuestosPorSubAreaConocimiento(subareaIds,asesorId);
+	public List<TemaDto> listarTemasPropuestosPorSubAreaConocimiento(
+			@RequestParam List<Integer> subareaIds,
+			@RequestParam(name = "asesorId") Integer asesorId,
+			@RequestParam(name = "titulo", required = false) String titulo,
+			@RequestParam(value = "limit", defaultValue = "10") Integer limit,
+			@RequestParam(value = "offset", defaultValue = "0") Integer offset
+	) {
+
+		return temaService.listarTemasPropuestosPorSubAreaConocimiento(subareaIds, asesorId, titulo, limit, offset);
 	}
+
+
 
 	@PostMapping("/postularAsesorTemaPropuestoGeneral")
 	public void postularAsesorTemaPropuestoGeneral(
@@ -113,7 +129,7 @@ public class TemaController {
 
 	@GetMapping("/listarPostulacionesDirectasAMisPropuestas/{tesistaId}")
 	public List<TemaDto> listarPostulacionesDirectasAMisPropuestas(@PathVariable("tesistaId") Integer tesistaId) {
-		return temaService.listarPostulacionesDirectasAMisPropuestas(tesistaId);
+		return temaService.listarPostulacionesAMisPropuestas(tesistaId, 1);
 	}
 
 
@@ -124,8 +140,28 @@ public class TemaController {
 	}
 	@GetMapping("/listarPostulacionesGeneralesAMisPropuestas/{tesistaId}")
 	public List<TemaDto> listarPostulacionesGeneralesAMisPropuestas(@PathVariable("tesistaId") Integer tesistaId) {
-		return temaService.listarPostulacionesGeneralesAMisPropuestas(tesistaId);
+		return temaService.listarPostulacionesAMisPropuestas(tesistaId, 0);
 	}
+
+	@PostMapping("/deleteTema") // deletes a topic
+	public void deleteTema(@RequestBody Integer idTema) {
+		temaService.delete(idTema);
+	}
+
+	@PostMapping("/aprobarPostulacionAPropuesta")
+	public void aprobarPostulacionAPropuestaGeneral(@RequestParam("alumnoId") Integer alumnoId,
+													@RequestParam("asesorId") Integer asesorId,
+													@RequestParam("temaId") Integer temaId){
+		temaService.aprobarPostulacionAPropuestaGeneral(temaId, asesorId, alumnoId);
+	}
+
+	@PostMapping("/rechazarPostulacionAPropuesta")
+	public void rechazarPostulacionAPropuestaGeneral(@RequestParam("alumnoId") Integer alumnoId,
+													@RequestParam("asesorId") Integer asesorId,
+													@RequestParam("temaId") Integer temaId){
+		temaService.rechazarPostulacionAPropuestaGeneral(temaId, asesorId, alumnoId);
+	}
+
 }
 
 

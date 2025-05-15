@@ -9,6 +9,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import pucp.edu.pe.sgta.dto.SolicitudCeseDto;
+import pucp.edu.pe.sgta.dto.AprobarSolicitudCambioAsesorResponseDto;
+import pucp.edu.pe.sgta.dto.RechazoSolicitudCambioAsesorResponseDto;
 import pucp.edu.pe.sgta.dto.RechazoSolicitudResponseDto;
 import pucp.edu.pe.sgta.dto.SolicitudCambioAsesorDto;
 import pucp.edu.pe.sgta.model.Solicitud;
@@ -230,5 +232,97 @@ public class SolicitudServiceImplTest {
         assertNotNull(estudiante);
         assertEquals("Ana", estudiante.getName());
         assertEquals("Inteligencia Artificial", estudiante.getTopic().getThematicArea().getName());
+    }
+
+    @Test
+    void testRechazarSolicitudCambioAsesor_SuccessfulRejection() {
+        // Arrange
+        int solicitudId = 1;
+        String responseText = "Motivo de rechazo";
+
+        TipoSolicitud tipoCambioAsesor = new TipoSolicitud();
+        tipoCambioAsesor.setNombre("Cambio Asesor");
+
+        Usuario asesor = new Usuario();
+        asesor.setId(10);
+
+        Usuario tesista = new Usuario();
+        tesista.setId(20);
+
+        Solicitud solicitud = new Solicitud();
+        solicitud.setId(solicitudId);
+        solicitud.setEstado(1); // pendiente
+        solicitud.setTipoSolicitud(tipoCambioAsesor);
+
+        UsuarioXSolicitud relAsesor = new UsuarioXSolicitud();
+        relAsesor.setUsuario(asesor);
+
+        UsuarioXSolicitud relTesista = new UsuarioXSolicitud();
+        relTesista.setUsuario(tesista);
+
+        when(solicitudRepository.findById(solicitudId)).thenReturn(Optional.of(solicitud));
+        when(usuarioXSolicitudRepository.findFirstBySolicitudAndDestinatarioTrue(solicitud)).thenReturn(relAsesor);
+        when(usuarioXSolicitudRepository.findFirstBySolicitudAndDestinatarioFalse(solicitud)).thenReturn(relTesista);
+
+        // Act
+        RechazoSolicitudCambioAsesorResponseDto result =
+                solicitudService.rechazarSolicitudCambioAsesor(solicitudId, responseText);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(solicitudId, result.getIdRequest());
+        assertEquals("rejected", result.getStatus());
+        assertEquals(responseText, result.getResponse());
+        assertNotNull(result.getAssignation());
+        assertEquals(tesista.getId(), result.getAssignation().getIdStudent());
+        assertEquals(asesor.getId(), result.getAssignation().getIdAssessor());
+
+        verify(solicitudRepository).save(solicitud);
+    }
+
+    @Test
+    void testAprobarSolicitudCambioAsesor_SuccessfulApproval() {
+        // Arrange
+        Integer solicitudId = 1;
+        String responseText = "Aprobado por el coordinador";
+
+        TipoSolicitud tipoCambioAsesor = new TipoSolicitud();
+        tipoCambioAsesor.setNombre("Cambio Asesor");
+
+        Usuario asesor = new Usuario();
+        asesor.setId(10);
+
+        Usuario tesista = new Usuario();
+        tesista.setId(20);
+
+        Solicitud solicitud = new Solicitud();
+        solicitud.setId(solicitudId);
+        solicitud.setEstado(1); // Pendiente
+        solicitud.setTipoSolicitud(tipoCambioAsesor);
+
+        UsuarioXSolicitud relAsesor = new UsuarioXSolicitud();
+        relAsesor.setUsuario(asesor);
+
+        UsuarioXSolicitud relTesista = new UsuarioXSolicitud();
+        relTesista.setUsuario(tesista);
+
+        when(solicitudRepository.findById(solicitudId)).thenReturn(Optional.of(solicitud));
+        when(usuarioXSolicitudRepository.findFirstBySolicitudAndDestinatarioTrue(solicitud)).thenReturn(relAsesor);
+        when(usuarioXSolicitudRepository.findFirstBySolicitudAndDestinatarioFalse(solicitud)).thenReturn(relTesista);
+
+        // Act
+        AprobarSolicitudCambioAsesorResponseDto result =
+                solicitudService.aprobarSolicitudCambioAsesor(solicitudId, responseText);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(solicitudId, result.getIdRequest());
+        assertEquals("approved", result.getStatus());
+        assertEquals(responseText, result.getResponse());
+        assertNotNull(result.getAssignation());
+        assertEquals(tesista.getId(), result.getAssignation().getIdStudent());
+        assertEquals(asesor.getId(), result.getAssignation().getIdAssessor());
+
+        verify(solicitudRepository).save(solicitud);
     }
 }

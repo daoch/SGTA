@@ -20,22 +20,14 @@ interface Props {
 const ITEMS_POR_PAGINA = 5;
 
 export default function ProyectosAsesoradosResumen({ proyectos }: Props) {
-  const [pageEnProceso, setPageEnProceso] = useState(1);
-  const [pageFinalizado, setPageFinalizado] = useState(1);
+  const [pageEnProceso, setPageEnProceso] = useState(40);
+  const [pageFinalizado, setPageFinalizado] = useState(40);
 
   const renderProyecto = (
     estado: "en_proceso" | "finalizado",
     paginaActual: number,
     setPagina: (page: number) => void,
   ) => {
-    if (!proyectos || proyectos.length === 0) {
-      return (
-        <div className="text-center py-6 text-gray-500">
-          No hay proyectos registrados hasta la fecha
-        </div>
-      );
-    }
-
     const filtradas = proyectos.filter((t) => t.estado === estado);
 
     if (filtradas.length === 0) {
@@ -67,8 +59,8 @@ export default function ProyectosAsesoradosResumen({ proyectos }: Props) {
             </div>
             <p className="text-gray-600 text-sm mt-1">
               {estado === "en_proceso"
-                ? `Inicio: ${t.añoInicio}`
-                : `Finalizado: ${t.añoFin}`}
+                ? `Inicio: ${t.anioInicio}`
+                : `Finalizado: ${t.anioFin}`}
             </p>
           </div>
         ))}
@@ -138,12 +130,6 @@ export default function ProyectosAsesoradosResumen({ proyectos }: Props) {
           {renderProyecto("finalizado", pageFinalizado, setPageFinalizado)}
         </TabsContent>
       </Tabs>
-
-      {proyectos.length === 0 && (
-        <div className="text-center py-6 text-gray-500">
-          El asesor no cuenta con proyectos dirigidos
-        </div>
-      )}
     </div>
   );
 }
