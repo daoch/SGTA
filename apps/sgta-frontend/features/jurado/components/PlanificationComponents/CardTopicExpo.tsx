@@ -26,7 +26,7 @@ const CardTemaExposicion: React.FC<Props> = ({ exposicion }) => {
           <span>
             <strong>Asesor :</strong>
             {exposicion?.usuarios
-                        ?.filter(u => u.rol?.nombre === 'Asesor')
+                        ?.filter(u => u.rol?.nombre === "Asesor")
                         .map(a => (
                             <p className="ml-4" key={a.idUsario}>
                             {a.nombres} {a.apellidos}
@@ -36,7 +36,7 @@ const CardTemaExposicion: React.FC<Props> = ({ exposicion }) => {
           <br />
           <strong > Jurados: </strong>
           {exposicion?.usuarios
-                    ?.filter(u => u.rol?.nombre === 'Jurado')
+                    ?.filter(u => u.rol?.nombre === "Jurado")
                     .map(j => (
                         <li className="ml-4" key={j.idUsario}>
                          {j.nombres} {j.apellidos}
