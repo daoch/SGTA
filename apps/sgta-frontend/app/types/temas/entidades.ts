@@ -13,7 +13,7 @@ export interface TemaForm {
 export interface Tema {
   id: number;
   codigo: string | null;
-  carrera: Carrera;
+  carrera: Carrera | null;
   titulo: string;
   resumen: string;
   objetivos: string;
@@ -51,6 +51,13 @@ export interface Identifiable {
 
 export interface Carrera {
   id: number;
+  unidadAcademicaId: number | null;
+  codigo: string;
+  nombre: string;
+  descripcion: string;
+  activo: boolean | null;
+  fechaCreacion: string | null;
+  fechaModificacion: string | null;
 }
 
 export interface Tesista {
@@ -112,3 +119,4 @@ export interface AreaConocimiento {
   fechaModificacion: string;
   idCarrera: number;
 }
+

@@ -1,6 +1,6 @@
 "use client";
 
-import { asesorData, temasDataMock } from "@/app/types/temas/data";
+import { asesorData } from "@/app/types/temas/data";
 import { Tema, Tesista } from "@/app/types/temas/entidades";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,10 @@ import { estadosValues, Tipo } from "@/app/types/temas/enums";
 import axiosInstance from "@/lib/axios/axios-instance";
 
 interface PropuestasTableProps {
+  temasData: Tema[];
   filter?: string;
+  isLoading?: boolean;
+  error?: string | null;
 }
 
 /**
@@ -30,31 +33,12 @@ interface PropuestasTableProps {
  * @argument filter Permite filtrar los temas
  * @returns Tabla de temas filtrados
  */
-export function TemasTable({ filter }: PropuestasTableProps) {
-  const [temasData, setTemasData] = useState<Tema[]>(TEST ? temasDataMock : []);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchTemas = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        if (!TEST) {
-          const inscritosData = await fetchTemasAPI("Asesor", "INSCRITO");
-          const libresData = await fetchTemasAPI("Asesor", "PROPUESTO_LIBRE");
-          setTemasData([...inscritosData, ...libresData]);
-        }
-      } catch (err: any) {
-        setError("Error desconocido: " + err.message);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchTemas();
-  }, []);
-
+export function TemasTable({
+  temasData,
+  filter,
+  isLoading,
+  error,
+}: PropuestasTableProps) {
   const propuestasFiltradas = temasData.filter((tema) => {
     if (!filter || filter === Tipo.TODOS) return true;
     return tema.estadoTemaNombre === filter;
@@ -195,9 +179,3 @@ export function TemasTable({ filter }: PropuestasTableProps) {
   );
 }
 
-const TEST = false;
-const fetchTemasAPI = async (rol: string, estado: string) => {
-  const url = `temas/listarTemasPorUsuarioRolEstado/${asesorData.id}?rolNombre=${rol}&estadoNombre=${estado}`;
-  const response = await axiosInstance.get<Tema[]>(url);
-  return response.data;
-};

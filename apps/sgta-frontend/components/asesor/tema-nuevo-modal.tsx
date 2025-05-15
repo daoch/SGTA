@@ -23,6 +23,7 @@ import { Separator } from "@/components/ui/separator";
 import { Trash2 } from "lucide-react";
 import {
   AreaDeInvestigacion,
+  Carrera,
   Coasesor,
   Tema,
   TemaCreateInscription,
@@ -40,6 +41,8 @@ interface NuevoTemaDialogProps {
   coasesoresDisponibles: Coasesor[];
   estudiantesDisponibles: Tesista[];
   subareasDisponibles: AreaDeInvestigacion[];
+  carrera: Carrera | null;
+  onTemaGuardado: () => void;
 }
 
 enum TipoRegistro {
@@ -59,6 +62,8 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
   coasesoresDisponibles,
   estudiantesDisponibles,
   subareasDisponibles,
+  carrera,
+  onTemaGuardado,
 }) => {
   const [temaData, setTemaData] = useState<Tema>(temaVacio);
   const [tipoRegistro, setTipoRegistro] = useState(TipoRegistro.NONE);
@@ -157,19 +162,26 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
    */
   const handleGuardar = async () => {
     try {
-      const response = await axiosInstance.post(
-        "temas/createInscripcion",
-        mapTemaCreateInscription(temaData),
-      );
+      if (carrera) {
+        const response = await axiosInstance.post(
+          "temas/createInscripcion",
+          mapTemaCreateInscription(temaData, carrera),
+        );
 
-      toast.success("Tema guardado exitosamente");
-      console.log("Tema guardado exitosamente:", response.data);
+        toast.success("Tema guardado exitosamente");
+        console.log("Tema guardado exitosamente:", response.data);
+      } else {
+        throw new Error("Falta carrera");
+      }
 
       // Reinicia el formulario y cierra el modal
       setTemaData(temaVacio);
       setIsNuevoTemaDialogOpen(false);
+      onTemaGuardado();
     } catch (error) {
-      toast.error("Error al guardar el tema");
+      toast.error(
+        error instanceof Error ? error.message : "Error al guardar el tema",
+      );
       console.error("Error al guardar el tema:", error);
     }
   };
@@ -441,10 +453,10 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
   );
 };
 
-const mapTemaCreateInscription = (tema: Tema) => {
+const mapTemaCreateInscription = (tema: Tema, carrera: Carrera) => {
   return {
     titulo: tema.titulo,
-    carrera: tema.carrera,
+    carrera: { id: carrera.id },
     resumen: tema.resumen,
     objetivos: tema.objetivos,
     metodologia: tema.metodologia,

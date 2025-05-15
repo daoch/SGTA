@@ -1,13 +1,16 @@
 "use client";
 
 import {
+  asesorData,
   coasesoresData,
   emptyTemaForm,
   estudiantesData,
 } from "@/app/types/temas/data";
 import {
   AreaDeInvestigacion,
+  Carrera,
   Coasesor,
+  Tema,
   Tesista,
 } from "@/app/types/temas/entidades";
 import { Tipo } from "@/app/types/temas/enums";
@@ -25,7 +28,7 @@ import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import axiosInstance from "@/lib/axios/axios-instance";
 import { Plus } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 /**
  * Rol: Asesor
@@ -41,9 +44,37 @@ const page = () => {
   const [subareasDisponibles, setSubareasDisponibles] = useState<
     AreaDeInvestigacion[]
   >([]);
+  const [temasData, setTemasData] = useState<Tema[]>([]);
+  const [carrera] = useState<Carrera | null>({
+    id: 1,
+    unidadAcademicaId: null,
+    codigo: "INF",
+    nombre: "ingeniería informática",
+    descripcion: "Carrera de software y sistemas",
+    activo: null,
+    fechaCreacion: null,
+    fechaModificacion: null,
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Función para recargar los temas
+  const fetchTemas = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const inscritosData = await fetchTemasAPI("Asesor", "INSCRITO");
+      const libresData = await fetchTemasAPI("Asesor", "PROPUESTO_LIBRE");
+      setTemasData([...inscritosData, ...libresData]);
+    } catch (err: any) {
+      setError("Error al cargar los temas");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const fetchSubareas = async () => {
+    const fetchDialogData = async () => {
       try {
         const response = await axiosInstance.get("subAreaConocimiento/list");
         setSubareasDisponibles(response.data);
@@ -53,12 +84,25 @@ const page = () => {
 
         const coasesoresData = await fetchUsers(1, "profesor");
         setCoasesoresDisponibles(coasesoresData);
+
+        // const carreraRes = await axiosInstance.get(
+        //   `usuario/${asesorData.id}/carreras`,
+        // );
+        // setCarrera(carreraRes.data);
+
+        console.log({
+          coasesoresDisponibles,
+          estudiantesDisponibles,
+          subareasDisponibles,
+          carrera,
+        });
       } catch (error) {
         console.error("Error cargando subáreas:", error);
       }
     };
-    fetchSubareas();
-  }, []);
+    fetchDialogData();
+    fetchTemas();
+  }, [fetchTemas]);
 
   return (
     <div className="space-y-8 mt-4">
@@ -87,6 +131,8 @@ const page = () => {
             coasesoresDisponibles={coasesoresDisponibles}
             estudiantesDisponibles={estudiantesDisponibles}
             subareasDisponibles={subareasDisponibles}
+            carrera={carrera}
+            onTemaGuardado={fetchTemas}
           />
         </Dialog>
       </div>
@@ -108,7 +154,12 @@ const page = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <TemasTable filter={Tipo.TODOS} />
+              <TemasTable
+                temasData={temasData}
+                filter={Tipo.TODOS}
+                isLoading={isLoading}
+                error={error}
+              />
             </CardContent>
           </Card>
         </TabsContent>
@@ -121,7 +172,12 @@ const page = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <TemasTable filter={Tipo.INSCRITO} />
+              <TemasTable
+                temasData={temasData}
+                filter={Tipo.INSCRITO}
+                isLoading={isLoading}
+                error={error}
+              />
             </CardContent>
           </Card>
         </TabsContent>
@@ -134,7 +190,12 @@ const page = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <TemasTable filter={Tipo.LIBRE} />
+              <TemasTable
+                temasData={temasData}
+                filter={Tipo.LIBRE}
+                isLoading={isLoading}
+                error={error}
+              />
             </CardContent>
           </Card>
         </TabsContent>
@@ -147,7 +208,12 @@ const page = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <TemasTable filter={Tipo.INTERESADO} />
+              <TemasTable
+                temasData={temasData}
+                filter={Tipo.INTERESADO}
+                isLoading={isLoading}
+                error={error}
+              />
             </CardContent>
           </Card>
         </TabsContent>
@@ -161,8 +227,15 @@ export default page;
 export const fetchUsers = async (
   carreraId: number,
   tipoUsuarioNombre: string,
+  cadenaBusqueda: string = "",
 ) => {
-  const url = `/usuario/findByTipoUsuarioAndCarrera?carreraId=${carreraId}&tipoUsuarioNombre=${tipoUsuarioNombre}`;
+  const url = `/usuario/findByTipoUsuarioAndCarrera?carreraId=${carreraId}&tipoUsuarioNombre=${tipoUsuarioNombre}&cadenaBusqueda=${cadenaBusqueda}`;
   const response = await axiosInstance.get(url);
+  return response.data;
+};
+
+const fetchTemasAPI = async (rol: string, estado: string) => {
+  const url = `temas/listarTemasPorUsuarioRolEstado/${asesorData.id}?rolNombre=${rol}&estadoNombre=${estado}`;
+  const response = await axiosInstance.get<Tema[]>(url);
   return response.data;
 };
