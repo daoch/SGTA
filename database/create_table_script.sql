@@ -247,6 +247,7 @@ CREATE TABLE IF NOT EXISTS solicitud
     estado             INTEGER                  NOT NULL,
     respuesta          TEXT,
     activo             BOOLEAN                  NOT NULL DEFAULT TRUE,
+	respuesta		   TEXT,	
     fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -410,6 +411,25 @@ CREATE TABLE IF NOT EXISTS usuario_area_conocimiento
             ON DELETE RESTRICT
 );
 
+-- USUARIO_ROL
+CREATE TABLE IF NOT EXISTS usuario_rol
+(
+	usuario_rol_id 		SERIAL 		PRIMARY KEY,
+	usuario_id 			INTEGER		NOT NULL,
+	rol_id				INTEGER		NOT NULL,
+	activo				BOOLEAN 	NOT NULL,
+    fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+	CONSTRAINT fk_ur_usuario
+		FOREIGN KEY (usuario_id)
+		REFERENCES usuario (usuario_id)
+		ON DELETE CASCADE,
+	CONSTRAINT fk_ur_rol
+		FOREIGN KEY (rol_id)
+		REFERENCES rol (rol_id)
+		ON DELETE CASCADE
+);
 
 -- 3) MODULO
 CREATE TABLE IF NOT EXISTS modulo
