@@ -33,18 +33,41 @@ public class EtapaFormativaXCicloServiceImpl implements EtapaFormativaXCicloServ
     }
 
     @Override
-    public void create(EtapaFormativaXCicloDto dto) {
-
+    public EtapaFormativaXCicloDto create(EtapaFormativaXCicloDto dto) {
+        EtapaFormativaXCiclo etapaFormativaXCiclo = EtapaFormativaXCicloMapper.toEntity(dto);
+        EtapaFormativaXCiclo savedEtapaFormativaXCiclo = etapaFormativaXCicloRepository.save(etapaFormativaXCiclo);
+        return EtapaFormativaXCicloMapper.toDto(savedEtapaFormativaXCiclo);
     }
 
     @Override
     public void update(EtapaFormativaXCicloDto dto) {
-
+        
     }
 
     @Override
     public void delete(Integer id) {
 
+    }
+
+    //get all by carrera id, agregar que sea activo true
+    @Override
+    public List<EtapaFormativaXCicloDto> getAllByCarreraId(Integer id) {
+        
+        List<EtapaFormativaXCiclo> etapaFormativaXCiclos = etapaFormativaXCicloRepository.findAllByEtapaFormativa_Carrera_IdAndActivoTrue(id);
+        if (etapaFormativaXCiclos.isEmpty()) {
+            return List.of();
+        }
+        return etapaFormativaXCiclos.stream().map(EtapaFormativaXCicloMapper::toDto).toList();
+    }
+
+    //get all by carrera id and ciclo id
+    @Override
+    public List<EtapaFormativaXCicloDto> getAllByCarreraIdAndCicloId(Integer carreraId, Integer cicloId) {
+        List<EtapaFormativaXCiclo> etapaFormativaXCiclos = etapaFormativaXCicloRepository.findAllByEtapaFormativa_Carrera_IdAndCiclo_IdAndActivoTrue(carreraId, cicloId);
+        if (etapaFormativaXCiclos.isEmpty()) {
+            return List.of();
+        }
+        return etapaFormativaXCiclos.stream().map(EtapaFormativaXCicloMapper::toDto).toList();
     }
 
 }
