@@ -7,8 +7,7 @@ export interface Tema {
   id: number;
   codigo : string;
   titulo : string;
-  asesor: string;
-  jurados: Jurado[];
+  usuarios : Usuario[];
 }
 
 export interface AreaEspecialidad {
@@ -90,5 +89,17 @@ export interface EtapaFormativaExposiciones {
   id: number;
   nombre: string;
   exposiciones: Exposicion[];
+}
+
+export interface  Usuario{
+  idUsario: number;
+  nombres : string;
+  apellidos: string;
+  rol : Rol;
+}
+
+export interface Rol{
+  id: number;
+  nombre:string;
 }
 export type OrigenBoton = "siguiente" | "terminar";

@@ -28,8 +28,7 @@ export default async function PlanExpo({ exposicionId }: Props) {
   const estadoPlanificacion =
     await listarEstadoPlanificacionPorExposicion(exposicionId);
 
-  console.log(bloquesList);
-
+  
   return (
     <main className="h-screen flex flex-col">
       <div className="py-4">
