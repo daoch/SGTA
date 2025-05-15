@@ -8,7 +8,7 @@ interface ListaTesisJuradoCardProps {
   data: JuradoTemasDetalle[];
   onSelect?: (tesis: JuradoTemasDetalle) => void;
   selected?: JuradoTemasDetalle | null;
-  onCardClick?: (codigoTesis: string) => void;
+  onCardClick?: (id: number) => void;
 }
 
 export const ListaTesisJuradoCard: React.FC<ListaTesisJuradoCardProps> = ({
@@ -40,7 +40,7 @@ export const ListaTesisJuradoCard: React.FC<ListaTesisJuradoCardProps> = ({
                 onSelect(tesis);
               }
               if (onCardClick) {
-                onCardClick(tesis.codigo);
+                onCardClick(tesis.id);
               }
             }}
           >

@@ -128,6 +128,37 @@ export interface TesisAsignadaDetalle extends Tesis {
   exposiciones: ExposicionJurado[];
 }
 
+export interface TesisDetalleExposicion {
+  estudiantes: {
+    id: number;
+    nombre: string;
+    tipo: string;
+  }[];
+  asesores: {
+    id: number;
+    nombre: string;
+    tipo: string;
+  }[];
+  miembrosJurado: {
+    id: number;
+    nombre: string;
+    tipo: string;
+  }[];
+  etapaFormativaTesis: {
+    id: number;
+    nombre: string;
+    exposiciones: {
+      id: number;
+      nombre: string;
+      estado: string;
+      fechaInicio: string;
+      fechaFin: string;
+      sala: string;
+    }[];
+  };
+}
+
+
 export interface ModalAsignarTesisProps {
   open: boolean;
   onClose: () => void;

@@ -7,6 +7,7 @@ import {
   EtapaFormativa,
   Ciclo,
   AreaConocimientoJurado,
+  TesisDetalleExposicion,
 } from "../types/juradoDetalle.types";
 
 export const getAllJurados = async (): Promise<JuradoUI[]> => {
@@ -199,3 +200,63 @@ export const desasignarMiembroJuradoTemaTodos = async (
   }
 };
 
+export const getExposicionesTema = async (
+  temaId: number
+): Promise<TesisDetalleExposicion> => {
+  try {
+    const response = await axiosInstance.get(`/jurado/${temaId}/detalle`);
+    const data = response.data;
+
+    // Mapear la respuesta al formato requerido
+    return {
+      // Mapear los estudiantes directamente
+      estudiantes: data.estudiantes.map((estudiante: any) => ({
+        id: estudiante.id,
+        nombre: estudiante.nombre,
+        tipo: estudiante.tipo,
+      })),
+      
+      // Para el asesor, tomamos el primer elemento del array asesores
+      // que tenga tipo "Asesor"
+      asesores: data.asesores.map((asesor: any) => ({
+        id: asesor.id,
+        nombre: asesor.nombre,
+        tipo: asesor.tipo,
+      })),
+      
+      // Mapear los miembros del jurado
+      miembrosJurado: data.miembros_jurado.map((miembro: any) => ({
+        id: miembro.id,
+        nombre: miembro.nombre,
+        tipo: miembro.tipo,
+      })),
+      
+      // Para la etapa formativa, tomamos la primera (podría necesitar ajustes según tu lógica)
+      etapaFormativaTesis: {
+        id: data.etapas_formativas[0].id,
+        nombre: data.etapas_formativas[0].nombre,
+        exposiciones: data.etapas_formativas[0].exposiciones.map((expo: any) => ({
+          id: expo.id,
+          nombre: expo.nombre,
+          estado: expo.estado_exposición,
+          fechaInicio: expo.datetime_inicio,
+          fechaFin: expo.datetime_fin,
+          sala: expo.sala_exposicion,
+        })),
+      },
+    };
+  } catch (error) {
+    console.error("Error al obtener exposiciones del tema:", error);
+    // Devolver un objeto vacío con la estructura correcta en caso de error
+    return {
+      estudiantes: [],
+      asesores: [],
+      miembrosJurado: [],
+      etapaFormativaTesis: {
+        id: 0,
+        nombre: "",
+        exposiciones: [],
+      },
+    };
+  }
+}; 

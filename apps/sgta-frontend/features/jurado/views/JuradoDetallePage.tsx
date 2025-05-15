@@ -219,9 +219,9 @@ export function JuradoDetalleView({
     }
   };
 
-  const handleTesisCardClick = (codigoTesis: string) => {
+  const handleTesisCardClick = (id: number) => {
     // Navegación a la página de detalle de tesis
-    router.push(`/coordinador/jurados/${detalleJurado}/tesis/${codigoTesis}`);
+    router.push(`/coordinador/jurados/${detalleJurado}/tesis/${id}`);
   };
 
   // Modificación clave: eliminar searchTerm de las dependencias y

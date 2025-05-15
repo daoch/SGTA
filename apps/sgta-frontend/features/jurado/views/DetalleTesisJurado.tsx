@@ -88,10 +88,12 @@ type TabType = "informacion" | "historial" | "exposiciones";
 export function DetalleTesisJuradoView() {
   const params = useParams();
   const router = useRouter();
-  const codigoTesis = params?.codigoTesis as string;
-  const detalleJurado = params?.detalleJurado as string;
+  const codigoTesis = params?.id as string;
+  //const detalleJurado = params?.detalleJurado as string;
   const [activeTab, setActiveTab] = useState<TabType>("informacion");
-
+  
+  const idNumerico = Number(params?.id);
+  //llamar al listar usando el idNumerico
   const tesis = tesisData[codigoTesis];
 
   if (!tesis) {
