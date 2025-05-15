@@ -96,9 +96,9 @@ export default function ConfiguracionProcesoPage() {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="outline" size="icon">
+                    {/*<Button variant="outline" size="icon">
                       <Edit size={16} />
-                    </Button>
+                    </Button>*/}
                     <Button 
                       variant="outline" 
                       size="icon" 
