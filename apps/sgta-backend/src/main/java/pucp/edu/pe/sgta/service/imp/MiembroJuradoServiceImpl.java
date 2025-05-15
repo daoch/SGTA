@@ -376,15 +376,25 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
 
     @Override
     public List<MiembroJuradoXTemaDto> findTemasDeOtrosJurados(Integer usuarioId) {
-        List<UsuarioXTema> relacionesJurado = usuarioXTemaRepository.findAll().stream()
+        Set<Integer> temasDelUsuario = usuarioXTemaRepository.findAll().stream()
+                .filter(ut -> ut.getActivo())
+                .filter(ut -> ut.getUsuario().getId().equals(usuarioId))
+                .map(ut -> ut.getTema().getId())
+                .collect(Collectors.toSet());
+
+        Map<Integer, UsuarioXTema> relacionesJurado = usuarioXTemaRepository.findAll().stream()
                 .filter(ut -> ut.getActivo())
                 .filter(ut -> ut.getRol().getId().equals(4))
-                .filter(ut -> !ut.getUsuario().getId().equals(usuarioId))
+                // .filter(ut -> !ut.getUsuario().getId().equals(usuarioId))
+                .filter(ut -> !temasDelUsuario.contains(ut.getTema().getId()))
                 .filter(ut -> esEstadoTemaValido(ut.getTema().getEstadoTema()))
-                .filter(ut -> usuarioXTemaRepository.countByRolIdAndActivoTrue(ut.getTema().getId()) < 3)
-                .toList();
+                .filter(ut -> usuarioXTemaRepository.obtenerJuradosPorTema(ut.getTema().getId()) < 3)
+                .collect(Collectors.toMap(
+                        ut -> ut.getTema().getId(), // clave: ID del tema
+                        ut -> ut,
+                        (existing, replacement) -> existing));
 
-        return relacionesJurado.stream()
+        return relacionesJurado.values().stream()
                 .map(ut -> {
                     Tema tema = ut.getTema();
 

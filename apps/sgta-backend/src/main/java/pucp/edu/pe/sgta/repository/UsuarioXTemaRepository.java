@@ -42,4 +42,10 @@ public interface UsuarioXTemaRepository extends JpaRepository<UsuarioXTema, Inte
         Optional<UsuarioXTema> findByUsuarioIdAndTemaIdAndRolIdAndActivoTrue(Integer usuarioId, Integer temaId,
                         Integer rolId);
 
+        @Query(value = """
+                            SELECT *
+                                FROM obtener_jurados_por_tema(:id)
+                        """, nativeQuery = true)
+        Integer obtenerJuradosPorTema(@Param("id") Integer cantidadJurados);
+
 }
