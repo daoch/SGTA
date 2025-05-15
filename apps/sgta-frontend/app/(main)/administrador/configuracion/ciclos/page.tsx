@@ -1,10 +1,10 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+import { CicloEtapas, CrearCicloDto } from "@/features/administrador/types/ciclo.type"; // Asegúrate de importar el tipo correcto
+import { crearCiclo, listarCiclosConEtapas } from "@/features/administrador/types/services/cicloService";
 import { CiclosList } from "@/features/configuracion/components/configuracion/ciclos-list";
 import { NuevoCicloModal } from "@/features/configuracion/components/configuracion/nuevo-ciclo-modal";
-import { Button } from "@/components/ui/button";
-import { Ciclo, CicloEtapas } from "@/features/administrador/types/ciclo.type"; // Asegúrate de importar el tipo correcto
-import { crearCiclo, listarCiclosConEtapas } from "@/features/administrador/types/services/cicloService";
 import { ArrowLeft, Plus } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -31,15 +31,16 @@ export default function CiclosPage() {
   }, []);
 
 
-  // Función para manejar la creación de un nuevo ciclo
-  const handleRegistrar = async (formData: Ciclo) => {
+// Función para manejar la creación de un nuevo ciclo
+const handleRegistrar = async (formData: CrearCicloDto): Promise<CrearCicloDto> => {
   try {
-    await crearCiclo(formData);
+    const nuevoCiclo = await crearCiclo(formData);
     setIsModalOpen(false);
     await fetchCiclos(); // <-- Recarga la lista
-    return true;
+    return nuevoCiclo;
   } catch (error) {
     console.error(error);
+    throw error; // Propaga el error para que el modal pueda manejarlo si es necesario
   }
 };
 

@@ -7,6 +7,13 @@ export interface Ciclo {
   fechaFin: string;
 }
 
+export interface CrearCicloDto {
+  semestre: string;
+  anio: number;
+  fechaInicio: string;
+  fechaFin: string;
+}
+
 export interface CicloEtapas {
   id: number;
   semestre: string;

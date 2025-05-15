@@ -25,6 +25,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CrearCicloDto } from "@/features/administrador/types/ciclo.type";
 import { CheckCircle, XCircle } from "lucide-react";
 import { useState } from "react";
 
@@ -32,8 +33,8 @@ import { useState } from "react";
 interface NuevoCicloModalProps {
   isOpen: boolean
   onClose: () => void
-  onRegistrar: (formData: any) => void;
-}
+  onRegistrar: (formData: CrearCicloDto) => Promise<CrearCicloDto>;
+};
 
 export function NuevoCicloModal({ isOpen, onClose, onRegistrar }: NuevoCicloModalProps) {
   const [showConfirm, setShowConfirm] = useState(false);
@@ -43,7 +44,7 @@ export function NuevoCicloModal({ isOpen, onClose, onRegistrar }: NuevoCicloModa
     anio: new Date().getFullYear(),
     nombre: "",
     fechaInicio: "",
-    fechaFin: "",
+    fechaFin: ""
   });
 
   // Limpiar el formulario al cerrar el modal
@@ -108,10 +109,6 @@ export function NuevoCicloModal({ isOpen, onClose, onRegistrar }: NuevoCicloModa
       });
     }
   };
-
-  // Si el usuario cancela, solo cierra el diálogo de confirmación
-  const handleCancelConfirm = () => setShowConfirm(false);
-
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>

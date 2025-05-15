@@ -1,7 +1,8 @@
 import axiosInstance from "@/lib/axios/axios-instance";
+import { CrearCicloDto } from "../ciclo.type";
 
 
-export async function crearCiclo(data: any) {
+export async function crearCiclo(data: CrearCicloDto) {
     try {
         const response = await axiosInstance.post("/ciclos/create", data);
         return response.data;
