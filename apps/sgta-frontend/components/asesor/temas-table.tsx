@@ -2,9 +2,9 @@
 
 import { asesorData } from "@/app/types/temas/data";
 import { Tema, Tesista } from "@/app/types/temas/entidades";
+import { estadosValues, Tipo } from "@/app/types/temas/enums";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -14,12 +14,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { titleCase } from "@/lib/utils";
-import { CheckCircle, Eye, Send, X, FilePen, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { FilePen, Trash2 } from "lucide-react";
 import DeleteTemaPopUp from "./delete-tema-pop-up";
 import { TemaDetailsDialog } from "./tema-details-modal";
-import { estadosValues, Tipo } from "@/app/types/temas/enums";
-import axiosInstance from "@/lib/axios/axios-instance";
 
 interface PropuestasTableProps {
   temasData: Tema[];

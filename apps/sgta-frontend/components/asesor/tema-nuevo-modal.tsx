@@ -1,15 +1,24 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { asesorData, temaVacio } from "@/app/types/temas/data";
+import {
+  AreaDeInvestigacion,
+  Carrera,
+  Coasesor,
+  Tema,
+  TemaCreateInscription,
+  Tesista,
+} from "@/app/types/temas/entidades";
+import { Button } from "@/components/ui/button";
 import {
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -17,23 +26,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import { Trash2 } from "lucide-react";
-import {
-  AreaDeInvestigacion,
-  Carrera,
-  Coasesor,
-  Tema,
-  TemaCreateInscription,
-  TemaForm,
-  Tesista,
-} from "@/app/types/temas/entidades";
-import { asesorData, temaVacio } from "@/app/types/temas/data";
-import ItemSelector from "./item-selector";
+import { Textarea } from "@/components/ui/textarea";
 import axiosInstance from "@/lib/axios/axios-instance";
+import { Trash2 } from "lucide-react";
+import React, { useState } from "react";
 import { toast, Toaster } from "sonner";
+import ItemSelector from "./item-selector";
 
 interface NuevoTemaDialogProps {
   isOpen: boolean;
@@ -74,7 +73,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
   const [estudianteSeleccionado, setEstudianteSeleccionado] =
     useState<Tesista | null>(null);
 
-  const handleChange = (field: keyof Tema, value: any) => {
+  const handleChange = (field: keyof Tema, value: unknown) => {
     setTemaData((prev) => ({
       ...prev,
       [field]: value,

@@ -3,7 +3,6 @@
 import {
   asesorData,
   coasesoresData,
-  emptyTemaForm,
   estudiantesData,
 } from "@/app/types/temas/data";
 import {
@@ -35,7 +34,7 @@ import { useCallback, useEffect, useState } from "react";
  * Muestra lista de temas y permite inscribir nuevos temas.
  * @returns Vista Temas
  */
-const page = () => {
+const Page = () => {
   const [isNuevoTemaDialogOpen, setIsNuevoTemaDialogOpen] = useState(false);
   const [coasesoresDisponibles, setCoasesoresDisponibles] =
     useState<Coasesor[]>(coasesoresData);
@@ -66,7 +65,7 @@ const page = () => {
       const inscritosData = await fetchTemasAPI("Asesor", "INSCRITO");
       const libresData = await fetchTemasAPI("Asesor", "PROPUESTO_LIBRE");
       setTemasData([...inscritosData, ...libresData]);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError("Error al cargar los temas");
     } finally {
       setIsLoading(false);
@@ -222,9 +221,9 @@ const page = () => {
   );
 };
 
-export default page;
+export default Page;
 
-export const fetchUsers = async (
+const fetchUsers = async (
   carreraId: number,
   tipoUsuarioNombre: string,
   cadenaBusqueda: string = "",
