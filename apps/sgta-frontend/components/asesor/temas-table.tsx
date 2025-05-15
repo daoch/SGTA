@@ -19,6 +19,7 @@ import { useEffect, useState } from "react";
 import DeleteTemaPopUp from "./delete-tema-pop-up";
 import { TemaDetailsDialog } from "./tema-details-modal";
 import { estadosValues, Tipo } from "@/app/types/temas/enums";
+import axiosInstance from "@/lib/axios/axios-instance";
 
 interface PropuestasTableProps {
   filter?: string;
@@ -26,13 +27,9 @@ interface PropuestasTableProps {
 
 const TEST = false;
 const fetchTemasAPI = async (rol: string, estado: string) => {
-  const url = `${process.env.NEXT_PUBLIC_API_URL}temas/listarTemasPorUsuarioRolEstado/${asesorData.id}?rolNombre=${rol}&estadoNombre=${estado}`;
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error("Error al cargar los datos");
-  }
-  const data: Tema[] = await response.json();
-  return data;
+  const url = `temas/listarTemasPorUsuarioRolEstado/${asesorData.id}?rolNombre=${rol}&estadoNombre=${estado}`;
+  const response = await axiosInstance.get<Tema[]>(url);
+  return response.data;
 };
 
 /**
