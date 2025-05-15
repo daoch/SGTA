@@ -24,7 +24,7 @@ public class S3FileUtil {
     private final String bucketName;
 
     public S3FileUtil(AmazonS3 s3Client,
-                      @Value("${aws.s3.bucket}") String bucketName) {
+                      @Value("${AWS_S3_BUCKET}") String bucketName) {
         this.s3Client = s3Client;
         this.bucketName = bucketName;
     }

@@ -13,7 +13,6 @@ import pucp.edu.pe.sgta.repository.UsuarioRepository;
 import pucp.edu.pe.sgta.repository.UsuarioXDocumentoRepository;
 import pucp.edu.pe.sgta.service.inter.UsuarioXDocumentoService;
 
-import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
