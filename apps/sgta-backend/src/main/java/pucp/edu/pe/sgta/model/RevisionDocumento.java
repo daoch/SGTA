@@ -37,8 +37,10 @@ public class RevisionDocumento {
     private LocalDate fechaRevision;
 
     @Column(name = "estado_revision", nullable = false)
-    @Enumerated(EnumType.STRING)
-    private EstadoRevision estadoRevision = EstadoRevision.PENDIENTE;
+    private String estadoRevisionStr = "pendiente";
+
+    @Transient
+    private EstadoRevision estadoRevision;
 
     @Column(name = "link_archivo_revision")
     private String linkArchivoRevision;
@@ -51,4 +53,35 @@ public class RevisionDocumento {
 
     @Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaModificacion;
+    
+    @PostLoad
+    void fillTransient() {
+        if (estadoRevisionStr != null) {
+            try {
+                this.estadoRevision = EstadoRevision.valueOf(estadoRevisionStr.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                // Manejar el caso donde el valor en la base de datos no coincide con la enumeración
+                this.estadoRevision = EstadoRevision.PENDIENTE;
+            }
+        }
+    }
+    
+    @PrePersist
+    @PreUpdate
+    void fillPersistent() {
+        if (estadoRevision != null) {
+            this.estadoRevisionStr = estadoRevision.name().toLowerCase();
+        }
+    }
+    
+    public EstadoRevision getEstadoRevision() {
+        return this.estadoRevision;
+    }
+    
+    public void setEstadoRevision(EstadoRevision estadoRevision) {
+        this.estadoRevision = estadoRevision;
+        if (estadoRevision != null) {
+            this.estadoRevisionStr = estadoRevision.name().toLowerCase();
+        }
+    }
 } 

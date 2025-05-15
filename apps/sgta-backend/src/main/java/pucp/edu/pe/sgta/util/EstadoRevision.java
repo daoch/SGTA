@@ -4,4 +4,4 @@ public enum EstadoRevision {
     PENDIENTE,
     EN_PROCESO,
     COMPLETADA
-} 
+}

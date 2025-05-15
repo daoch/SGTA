@@ -38,9 +38,11 @@ public class EntregableXTema {
     @Column(name = "comentario", columnDefinition = "TEXT")
     private String comentario;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "estado", nullable = false)
-    private EstadoEntrega estado = EstadoEntrega.no_enviado;
+    private String estadoStr = "no_enviado";
+    
+    @Transient
+    private EstadoEntrega estado;
 
     @Column(name = "activo", nullable = false)
     private Boolean activo = true;
@@ -53,4 +55,35 @@ public class EntregableXTema {
     
     @OneToMany(mappedBy = "entregableXTema", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RevisionCriterioEntregable> revisionesCriterio;
+    
+    @PostLoad
+    void fillTransient() {
+        if (estadoStr != null) {
+            try {
+                this.estado = EstadoEntrega.valueOf(estadoStr);
+            } catch (IllegalArgumentException e) {
+                // Manejar el caso donde el valor en la base de datos no coincide con la enumeración
+                this.estado = EstadoEntrega.no_enviado;
+            }
+        }
+    }
+    
+    @PrePersist
+    @PreUpdate
+    void fillPersistent() {
+        if (estado != null) {
+            this.estadoStr = estado.name();
+        }
+    }
+    
+    public EstadoEntrega getEstado() {
+        return this.estado;
+    }
+    
+    public void setEstado(EstadoEntrega estado) {
+        this.estado = estado;
+        if (estado != null) {
+            this.estadoStr = estado.name();
+        }
+    }
 } 
