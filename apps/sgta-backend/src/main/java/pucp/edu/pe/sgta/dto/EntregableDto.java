@@ -20,5 +20,7 @@ public class EntregableDto {
     private OffsetDateTime fechaFin;
     private EstadoActividad estado;
     private boolean esEvaluable;
-
+    private Integer maximoDocumentos;
+    private String extensionesPermitidas;
+    private Integer pesoMaximoDocumento;
 }

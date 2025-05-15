@@ -9,14 +9,13 @@ import pucp.edu.pe.sgta.model.JornadaExposicionXSalaExposicion;
 import java.util.List;
 
 public interface JornadaExposicionXSalaExposicionRepository
-        extends JpaRepository<JornadaExposicionXSalaExposicion, Integer> {
+    extends JpaRepository<JornadaExposicionXSalaExposicion, Integer> {
 
-         @Query(value = """
-        SELECT *
-          FROM listar_jornadas_exposicion_salas(
-            :etapa_formativa_id)
-        """, nativeQuery = true)
-         List<Object[]> listarJornadasExposicionSalas(
-            @Param("etapa_formativa_id") Integer etapa_formativa_id
-    );
+  @Query(value = """
+      SELECT *
+        FROM listar_jornadas_exposicion_salas(
+          :exposicion_id)
+      """, nativeQuery = true)
+  List<Object[]> listarJornadasExposicionSalas(
+      @Param("exposicion_id") Integer exposicionId);
 }

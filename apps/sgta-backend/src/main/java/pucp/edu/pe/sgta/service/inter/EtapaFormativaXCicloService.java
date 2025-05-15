@@ -4,14 +4,19 @@ import java.util.List;
 
 import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloDto;
 
+
 public interface EtapaFormativaXCicloService {
     List<EtapaFormativaXCicloDto> getAll();
 
     EtapaFormativaXCicloDto findById(Integer id);
 
-    void create(EtapaFormativaXCicloDto dto);
+    EtapaFormativaXCicloDto create(EtapaFormativaXCicloDto dto);
 
     void update(EtapaFormativaXCicloDto dto);
 
     void delete(Integer id);
+
+    List<EtapaFormativaXCicloDto> getAllByCarreraId(Integer id);
+
+    List<EtapaFormativaXCicloDto> getAllByCarreraIdAndCicloId(Integer carreraId, Integer cicloId);
 }

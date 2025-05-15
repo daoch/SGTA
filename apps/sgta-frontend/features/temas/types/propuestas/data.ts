@@ -2,7 +2,7 @@
 
 import {
   Area,
-  Proyecto,
+  Proyecto_M,
   SubAreaConocimiento,
   Usuario,
 } from "@/features/temas/types/propuestas/entidades";
@@ -10,10 +10,18 @@ const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
 export async function fetchTemasPropuestosAlAsesor(
   asesorId: number,
-): Promise<Proyecto[]> {
+  titulo?: string,
+  limit?: number,
+  offset?: number,
+): Promise<Proyecto_M[]> {
   try {
+    const params = new URLSearchParams();
+
+    if (titulo) params.append("titulo", titulo);
+    params.append("limit", limit != null ? limit.toString() : "50");
+    params.append("offset", offset != null ? offset.toString() : "0");
     const response = await fetch(
-      `${baseUrl}/temas/listarTemasPropuestosAlAsesor/${asesorId}`,
+      `${baseUrl}/temas/listarTemasPropuestosAlAsesor/${asesorId}?${params.toString()}`,
       {
         method: "GET",
         headers: {
@@ -29,7 +37,7 @@ export async function fetchTemasPropuestosAlAsesor(
     const data = await response.json();
 
     const updatedData = await Promise.all(
-      data.map(async (item: Proyecto) => {
+      data.map(async (item: Proyecto_M) => {
         // Crear un array para almacenar los estudiantes y areas
         const estudiantes = [];
         const subAreas = [];
@@ -65,12 +73,25 @@ export async function fetchTemasPropuestosAlAsesor(
 }
 
 export async function fetchTemasPropuestosPorSubAreaConocimiento(
-  areasId: number[],
+  subAreas: SubAreaConocimiento[],
   asesorId: number,
-): Promise<Proyecto[]> {
+  titulo?: string,
+  limit?: number,
+  offset?: number,
+): Promise<Proyecto_M[]> {
   try {
+    const params = new URLSearchParams();
+    const idsSubAreas = subAreas.map((item) => item.id);
+    // Agregar múltiples valores para el mismo parámetro
+    idsSubAreas.forEach((id) => params.append("subareaIds", id.toString()));
+
+    params.append("asesorId", asesorId.toString());
+    if (titulo) params.append("titulo", titulo);
+    params.append("limit", limit ? limit.toString() : "10");
+    params.append("offset", offset ? offset.toString() : "0");
+
     const response = await fetch(
-      `${baseUrl}/temas/listarTemasPropuestosPorSubAreaConocimiento?subareaIds=${areasId.join("&subareaIds=")}&asesorId=${asesorId}`,
+      `${baseUrl}/temas/listarTemasPropuestosPorSubAreaConocimiento?${params.toString()}`,
       {
         method: "GET",
         headers: {
@@ -86,7 +107,7 @@ export async function fetchTemasPropuestosPorSubAreaConocimiento(
     const data = await response.json();
 
     const updatedData = await Promise.all(
-      data.map(async (item: Proyecto) => {
+      data.map(async (item: Proyecto_M) => {
         // Crear un array para almacenar los estudiantes y areas
         const estudiantes = [];
         const subAreas = [];
@@ -152,6 +173,9 @@ export async function fetchAreaConocimientoFindByUsuarioId(
   usuarioId: number,
 ): Promise<Area[]> {
   try {
+    console.log(
+      `${baseUrl}/areaConocimiento/listarPorUsuario?usuarioId=${usuarioId}`,
+    );
     const response = await fetch(
       `${baseUrl}/areaConocimiento/listarPorUsuario?usuarioId=${usuarioId}`,
       {
