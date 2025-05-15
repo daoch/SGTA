@@ -12,7 +12,13 @@ export interface Tema {
 }
 
 export interface AreaEspecialidad {
-  name: string;
+  id: number;
+  nombre: string;
+  descripcion: string;
+  activo: boolean;
+  fechaCreacion: Date;
+  fechaModificacion: Date | null;
+  idCarrera: number;
 }
 
 export interface SalaExposicion {
@@ -27,3 +33,30 @@ export interface JornadaExposicionSalas {
   datetimeFin: Date; 
   salasExposicion: SalaExposicion[];
 }
+
+export interface TipoDedicacion {
+  id: number;
+  iniciales: string;
+  descripcion: string;
+  activo: boolean;
+  fechaCreacion: Date;
+  fechaModificacion: Date | null;
+}
+export interface TimeSlot {
+  key: string;
+  range: string; // 17:00  -  18:00
+  idBloque: number;
+  idJornadaExposicionSala: number;
+  expo?: Tema;
+  idExposicion?:number;
+  esBloqueReservado?: boolean;
+  esBloqueBloqueado?:boolean;
+}
+
+export interface EstadoPlanificacion{
+  id : number;
+  nombre :string;
+  activo : boolean;
+}
+
+export type OrigenBoton = "siguiente" | "terminar";

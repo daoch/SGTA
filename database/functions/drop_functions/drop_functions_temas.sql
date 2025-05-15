@@ -27,3 +27,13 @@ DROP FUNCTION IF EXISTS postular_asesor_a_tema(integer, integer, integer, text);
 
 -- 10) Rechazar tema
 DROP FUNCTION IF EXISTS rechazar_tema(integer, text, integer);
+
+-- Eliminar la función que maneja PROPUESTO_DIRECTO y PROPUESTO_GENERAL
+DROP FUNCTION IF EXISTS eliminar_propuestas_tesista(INTEGER);
+
+-- Eliminar la función que maneja TEMA_LIBRE
+DROP FUNCTION IF EXISTS eliminar_postulaciones_tesista(INTEGER);
+
+DROP TRIGGER IF EXISTS trigger_generar_codigo_tema ON tema;
+
+DROP FUNCTION IF EXISTS generar_codigo_tema();

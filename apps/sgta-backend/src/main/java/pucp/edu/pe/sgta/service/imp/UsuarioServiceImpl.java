@@ -2,11 +2,9 @@ package pucp.edu.pe.sgta.service.imp;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import pucp.edu.pe.sgta.dto.InfoAreaConocimientoDto;
-import pucp.edu.pe.sgta.dto.InfoSubAreaConocimientoDto;
-import pucp.edu.pe.sgta.dto.PerfilAsesorDto;
+import pucp.edu.pe.sgta.dto.asesores.InfoAreaConocimientoDto;
+import pucp.edu.pe.sgta.dto.asesores.InfoSubAreaConocimientoDto;
+import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;

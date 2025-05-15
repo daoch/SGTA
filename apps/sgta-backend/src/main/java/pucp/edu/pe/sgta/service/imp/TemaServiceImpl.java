@@ -3,8 +3,14 @@ package pucp.edu.pe.sgta.service.imp;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
 import pucp.edu.pe.sgta.dto.*;
+import pucp.edu.pe.sgta.dto.asesores.InfoTemaPerfilDto;
+import pucp.edu.pe.sgta.exception.CustomException;
 import pucp.edu.pe.sgta.mapper.TemaMapper;
 import pucp.edu.pe.sgta.mapper.UsuarioMapper;
 import pucp.edu.pe.sgta.model.*;
@@ -15,14 +21,15 @@ import pucp.edu.pe.sgta.service.inter.TemaService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
 import pucp.edu.pe.sgta.util.EstadoTemaEnum;
 import pucp.edu.pe.sgta.util.RolEnum;
+import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
 
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
-
-
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -51,6 +58,8 @@ public class TemaServiceImpl implements TemaService {
 
 	private final HistorialTemaService historialTemaService;
 
+	private final UsuarioRepository usuarioRepository;
+
 	@PersistenceContext
 	private EntityManager entityManager;
 
@@ -58,7 +67,8 @@ public class TemaServiceImpl implements TemaService {
 			UsuarioService usuarioService, SubAreaConocimientoService subAreaConocimientoService,
 			SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository, RolRepository rolRepository,
 			EstadoTemaRepository estadoTemaRepository, UsuarioXCarreraRepository usuarioCarreraRepository,
-			CarreraRepository carreraRepository, HistorialTemaService historialTemaService) {
+			CarreraRepository carreraRepository, HistorialTemaService historialTemaService,
+			UsuarioRepository usuarioRepository) {
 		this.temaRepository = temaRepository;
 		this.usuarioXTemaRepository = usuarioXTemaRepository;
 		this.subAreaConocimientoXTemaRepository = subAreaConocimientoXTemaRepository;
@@ -69,6 +79,7 @@ public class TemaServiceImpl implements TemaService {
 		this.usuarioCarreraRepository = usuarioCarreraRepository;
 		this.carreraRepository = carreraRepository;
 		this.historialTemaService = historialTemaService;
+		this.usuarioRepository = usuarioRepository;
 	}
 
 	@Override
@@ -155,16 +166,16 @@ public class TemaServiceImpl implements TemaService {
 		// 1) Subáreas de conocimiento
 		saveSubAreas(tema, dto.getSubareas());
 		//2) Save Creador
-		saveUsuarioXTema(tema, idUsuarioCreador, RolEnum.Tesista.name(), false);
+		saveUsuarioXTema(tema, idUsuarioCreador, RolEnum.Tesista.name(), false, true);
 		//3) Save Asesor (Propuesta Directa)
 		if (tipoPropuesta == 1) {
 			if(dto.getCoasesores() == null || dto.getCoasesores().isEmpty()) {
 				throw new RuntimeException("No se ha proporcionado un asesor para la propuesta directa.");
 			}
-			saveUsuarioXTema(tema, dto.getCoasesores().get(0).getId(), RolEnum.Asesor.name(), false);
+			saveUsuarioXTema(tema, dto.getCoasesores().get(0).getId(), RolEnum.Asesor.name(), false, false);
 		}
 		//4) Save cotesistas
-		saveUsuariosInvolucrados(tema, idUsuarioCreador, dto.getTesistas(), RolEnum.Tesista.name(), false); //Save cotesistas
+		saveUsuariosInvolucrados(tema, idUsuarioCreador, dto.getTesistas(), RolEnum.Tesista.name(), false,false); //Save cotesistas
 
 	}
 
@@ -194,9 +205,123 @@ public class TemaServiceImpl implements TemaService {
 		return List.of(); // Return an empty list if no relations found
 
     }
+	
+    private void validarTipoUsurio(Integer usuarioId, String tipoUsuario) {
+        boolean ok = usuarioRepository
+            .existsByIdAndTipoUsuarioNombre(usuarioId, tipoUsuario);
+        if (!ok) {
+            throw new ResponseStatusException(
+                HttpStatus.FORBIDDEN,
+                "El usuario con id " + usuarioId + " no es un " + tipoUsuario
+            );
+        }
+    }
 
+	private void validarExistenciaListaUsuarios(List<?> tesistas) {
+    	if (tesistas == null || tesistas.isEmpty()) {
+        // Opción A: usar tu CustomException (se mapea a 400 Bad Request)
+        	throw new CustomException("Debe haber al menos un tesista y un asesor.");
+    	}
+	}
+
+	private void validarUnicidadUsuarios(List<UsuarioDto> usuarios, String rol) {
+		if (usuarios == null) return;
+		Set<Integer> vistos = new HashSet<>();
+		for (UsuarioDto u : usuarios) {
+			if (u.getId() == null) {
+				throw new CustomException("Id nulo en la lista de " + rol);
+			}
+			if (!vistos.add(u.getId())) {
+				throw new CustomException(
+					"El usuario con id " + u.getId() +
+					" está repetido en la lista de " + rol
+				);
+			}
+		}
+	}
+
+	private void validarTesistasSinTemaAsignado(List<UsuarioDto> tesistas) {
+		for (UsuarioDto t : tesistas) {
+			Integer tesistaId = t.getId();
+			boolean yaAsignado = usuarioXTemaRepository
+				.existsByUsuarioIdAndRolNombreAndActivoTrueAndAsignadoTrue(
+					tesistaId,
+					"Tesista"       // o el nombre exacto de tu rol
+				);
+			if (yaAsignado) {
+				throw new CustomException(
+					"El tesista con id " + tesistaId +
+					" ya tiene un tema asignado"
+				);
+			}
+		}
+    }
+
+	private void validarUsuarioExiste(Integer usuarioId) {
+		if (usuarioId == null) {
+			throw new ResponseStatusException(
+				HttpStatus.BAD_REQUEST,
+				"El ID de usuario no puede ser nulo"
+			);
+   		}
+        if (!usuarioRepository.existsByIdAndActivoTrue(usuarioId)) {
+            throw new ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "Usuario con id " + usuarioId + " no existe"
+            );
+        }
+    }
+
+	private void validarDtoTemaNoNulo(TemaDto dto) {
+		if (dto == null) {
+			throw new ResponseStatusException(
+				HttpStatus.BAD_REQUEST,
+				"El DTO no puede ser nulo"
+			);
+		}
+	}
+
+	private void validacionesInscripcionTema(TemaDto dto) {
+
+		validarDtoTemaNoNulo(dto); 												// validar que el DTO no sea nulo
+		validarExistenciaListaUsuarios(dto.getTesistas());
+		validarExistenciaListaUsuarios(dto.getCoasesores());                           // validar que hay al menos un tesista
+		Integer idUsuarioCreador = dto.getCoasesores().get(0).getId();
+		validarUsuarioExiste(idUsuarioCreador); 
+		validarTipoUsurio(idUsuarioCreador, TipoUsuarioEnum.profesor.name());  // validar que la inscripción la haga un profesor
+		//validarUnicidadUsuarios(dto.getTesistas(), RolEnum.Tesista.name());    // validar que no se repiten los tesistas
+		
+		for (UsuarioDto u : dto.getTesistas()) {
+			validarUsuarioExiste(u.getId());
+			validarTipoUsurio(u.getId(), TipoUsuarioEnum.alumno.name());       // validar que los tesistas sean alumnos
+		}
+		
+		//validarUnicidadUsuarios(dto.getCoasesores(), RolEnum.Coasesor.name()); // validar que no se repiten los coasesores
+		for (UsuarioDto u : dto.getCoasesores()) {
+			validarUsuarioExiste(u.getId());
+			validarTipoUsurio(u.getId(), TipoUsuarioEnum.profesor.name());       // validar que los coasesores sean profesores
+		}
+		validarTesistasSinTemaAsignado(dto.getTesistas());              // validar que los tesistas no tengan tema asignado
+	}
+
+	@Override
+    @Transactional
+    public void eliminarPropuestasTesista(Integer idUsuario) {
+        // Asegura que cualquier insert/update previo esté flushed
+        entityManager.flush();
+        // Invoca la función en DB
+        entityManager.createNativeQuery(
+                "SELECT eliminar_propuestas_tesista(:uid)")
+            .setParameter("uid", idUsuario)
+            .getSingleResult();  // el valor de retorno es VOID, sólo dispara la función
+    }
+
+	@Transactional
     @Override
-    public void createInscripcionTema(TemaDto dto, Integer idUsuarioCreador) {
+    public void createInscripcionTema(TemaDto dto) {
+
+	    validacionesInscripcionTema(dto);
+		Integer idUsuarioCreador = dto.getCoasesores().get(0).getId();
         dto.setId(null);
         // Prepara y guarda el tema con estado INSCRITO
         Tema tema = prepareNewTema(dto, EstadoTemaEnum.INSCRITO);
@@ -215,22 +340,23 @@ public class TemaServiceImpl implements TemaService {
         temaRepository.save(tema);
 
 		saveHistorialTemaChange(tema, dto.getTitulo(), dto.getResumen(), "Inscripción de tema");
-
-		// 1) Creador del tema (rol "Creador", asignado = true)
-        saveUsuarioXTema(tema, idUsuarioCreador, RolEnum.Tesista.name(), true);
         // 1) Asesor del tema (rol "Asesor", asignado = true)
-        saveUsuarioXTema(tema, idUsuarioCreador, RolEnum.Asesor.name(), true);
-
+        saveUsuarioXTema(tema, idUsuarioCreador, RolEnum.Asesor.name(), true, true);
         // 2) Subáreas de conocimiento
         saveSubAreas(tema, dto.getSubareas());
-
         // 3) Coasesores
         saveUsuariosInvolucrados(tema, idUsuarioCreador,
-            dto.getCoasesores(), RolEnum.Coasesor.name(), true);
-
+            dto.getCoasesores(), RolEnum.Coasesor.name(), true, false);
         // 4) Estudiantes
         saveUsuariosInvolucrados(tema, idUsuarioCreador,
-            dto.getTesistas(), RolEnum.Tesista.name(), true);
+            dto.getTesistas(), RolEnum.Tesista.name(), true, false);
+		// 5) Eliminar postulaciones anteriores del usuario
+		entityManager.flush();
+		for (UsuarioDto u : dto.getTesistas()) {
+			System.out.println("Eliminando postulaciones de usuario: " + u.getId());
+			eliminarPostulacionesTesista(u.getId());
+			eliminarPropuestasTesista(u.getId());
+		}
     }
 
     /**
@@ -243,7 +369,8 @@ public class TemaServiceImpl implements TemaService {
     private void saveUsuarioXTema(Tema tema,
                                   Integer idUsuario,
                                   String rolNombre,
-                                  Boolean asignado) {
+                                  Boolean asignado,
+								  Boolean creador) {
         UsuarioDto uDto = usuarioService.findUsuarioById(idUsuario);
         if (uDto == null) {
             throw new RuntimeException("Usuario no encontrado: " + idUsuario);
@@ -257,6 +384,7 @@ public class TemaServiceImpl implements TemaService {
         ux.setUsuario(UsuarioMapper.toEntity(uDto));
         ux.setRol(rol);
         ux.setAsignado(asignado);
+		ux.setCreador(creador);
         ux.setActivo(true);
         ux.setFechaCreacion(OffsetDateTime.now());
 
@@ -302,8 +430,12 @@ public class TemaServiceImpl implements TemaService {
                                           Integer idUsuarioCreador,
                                           List<UsuarioDto> involucrados,
                                           String rolNombre,
-                                          Boolean asignado) {
+                                          Boolean asignado,
+										  Boolean creador) {
         if (involucrados == null) return;
+
+		Set<Integer> idsProcesados = new HashSet<>();
+
         for (UsuarioDto usuario : involucrados) {
             if (usuario.getId().equals(idUsuarioCreador)) {
                 logger.warning("Omitiendo creador en involucrados: " + usuario.getId());
@@ -314,63 +446,87 @@ public class TemaServiceImpl implements TemaService {
                 logger.warning("Usuario involucrado no encontrado: " + usuario.getId());
                 continue;
             }
-            saveUsuarioXTema(tema, usuario.getId(), rolNombre, asignado);
+			if (idsProcesados.contains(usuario.getId())) {
+				logger.warning("Usuario duplicado en involucrados: " + usuario.getId());
+				continue;
+        	}
+            saveUsuarioXTema(tema, usuario.getId(), rolNombre, asignado, creador);
+			idsProcesados.add(usuario.getId());
         }
     }
 
 	@Override
-	public List<TemaDto> listarTemasPropuestosAlAsesor(Integer asesorId) {
-		String sql = "SELECT * FROM listar_temas_propuestos_al_asesor(:asesorId)";
+	public List<TemaDto> listarTemasPropuestosAlAsesor(Integer asesorId, String titulo, Integer limit, Integer offset) {
+		String sql = "SELECT * FROM listar_temas_propuestos_al_asesor(:asesorId, :titulo, :limit, :offset)";
 
 		List<Object[]> resultados = entityManager
 				.createNativeQuery(sql)
 				.setParameter("asesorId", asesorId)
+				.setParameter("titulo", titulo != null ? titulo : "")
+				.setParameter("limit", limit != null ? limit : 10)
+				.setParameter("offset", offset != null ? offset : 0)
 				.getResultList();
-
 		List<TemaDto> lista = new ArrayList<>();
 
 		for (Object[] fila : resultados) {
-			TemaDto dto = new TemaDto(); // Si fila[0] es un Integer
-			dto.setId((Integer) fila[0]);  // Si fila[0] es un Integer
-			// tema_id
-			dto.setTitulo((String) fila[1]);                 // titulo
+			TemaDto dto = new TemaDto();
+			dto.setSubareas(new ArrayList<>());
+			dto.setCoasesores(new ArrayList<>());
+			dto.setTesistas(new ArrayList<>());
 
-			// subarea_ids (arreglo de Integer[])
-			Integer[] subareaArray = (Integer[]) fila[3];  // fila[3] debe ser un Integer[]
-			for (Integer subareaId : subareaArray) {
-				SubAreaConocimientoDto subarea = new SubAreaConocimientoDto();
-				subarea.setId(subareaId);
-				dto.getSubareas().add(subarea);  // subarea_id
+			dto.setId((Integer) fila[0]);  // tema_id
+			dto.setTitulo((String) fila[1]); // titulo
+
+			// Subáreas
+			Integer[] subareaArray = (Integer[]) fila[3];
+			if (subareaArray != null) {
+				for (Integer subareaId : subareaArray) {
+					SubAreaConocimientoDto subarea = new SubAreaConocimientoDto();
+					subarea.setId(subareaId);
+					dto.getSubareas().add(subarea);
+				}
 			}
-			//List<Integer> subareaIds = Arrays.asList(subareaArray);  // Convertimos a lista
-			//dto.setIdSubAreasConocimientoList(subareaIds);
 
-			// alumno (arreglo de Integer[])
-			Integer[] alumnoArray = (Integer[]) fila[5];  // fila[5] debe ser un Integer[]
-			for(Integer alumnoId : alumnoArray) {
-				UsuarioDto alumno = new UsuarioDto(); //notice the default constructor sets new ArrayList() for tesistas
-				alumno.setId(alumnoId);
-				dto.getTesistas().add(alumno); // alumnos_id[]
-			}
-			//List<Integer> alumnoIds = Arrays.asList(alumnoArray);  // Convertimos a lista
-			//dto.setIdEstudianteInvolucradosList(alumnoIds);
+			// Resumen, metodología, etc.
+			dto.setResumen((String) fila[6]);
+			dto.setMetodologia((String) fila[7]);
+			dto.setObjetivos((String) fila[8]);
+			dto.setPortafolioUrl((String) fila[9]);
+			dto.setActivo((Boolean) fila[10]);
 
-			dto.setResumen((String) fila[6]);  // descripcion
-			dto.setMetodologia((String) fila[7]);  // metodologia
-			dto.setObjetivos((String) fila[8]);  // objetivo
-			dto.setPortafolioUrl((String) fila[9]);  // recurso
-			dto.setActivo((Boolean) fila[10]);  // activo
-
-			// Manejar fechas
 			dto.setFechaLimite(fila[11] != null ? ((Instant) fila[11]).atOffset(ZoneOffset.UTC) : null);
 			dto.setFechaCreacion(fila[12] != null ? ((Instant) fila[12]).atOffset(ZoneOffset.UTC) : null);
 			dto.setFechaModificacion(fila[13] != null ? ((Instant) fila[13]).atOffset(ZoneOffset.UTC) : null);
+
+			// Tesista creador
+			Integer idCreador = (Integer) fila[14]; // id_creador
+			String nombreCreador = (String) fila[15]; // nombre_creador
+			if (idCreador != null) {
+				UsuarioDto tesistaCreador = new UsuarioDto();
+				tesistaCreador.setId(idCreador);
+				tesistaCreador.setNombres(nombreCreador);
+				dto.getTesistas().add(tesistaCreador); // Primer tesista: el creador
+			}
+
+			// Co-tesistas
+			Integer[] idCoTesistas = (Integer[]) fila[16]; // ids_cotesistas
+			String[] nombresCoTesistas = (String[]) fila[17]; // nombres_cotesistas
+
+			if (idCoTesistas != null && nombresCoTesistas != null) {
+				for (int i = 0; i < idCoTesistas.length; i++) {
+					UsuarioDto cotesista = new UsuarioDto();
+					cotesista.setId(idCoTesistas[i]);
+					cotesista.setNombres(nombresCoTesistas[i]);
+					dto.getTesistas().add(cotesista); // agregar co-tesistas
+				}
+			}
 
 			lista.add(dto);
 		}
 
 		return lista;
 	}
+
 
 	@Override
     public List<TemaDto> listarTemasPorUsuarioRolEstado(Integer usuarioId,
@@ -484,16 +640,23 @@ public class TemaServiceImpl implements TemaService {
     }
 
 	@Override
-	public List<TemaDto> listarTemasPropuestosPorSubAreaConocimiento(List<Integer> subareaIds,Integer asesorId) {
-		String sql = "SELECT * FROM listar_temas_propuestos_por_subarea_conocimiento(:subareas,:asesorId)";
-
-		// Convertimos la lista a un arreglo para que se interprete como un único parámetro tipo ARRAY
+	public List<TemaDto> listarTemasPropuestosPorSubAreaConocimiento(
+			List<Integer> subareaIds,
+			Integer asesorId,
+			String titulo,
+			Integer limit,  // Agregar parámetro para el límite
+			Integer offset  // Agregar parámetro para el offset
+	) {
+		String sql = "SELECT * FROM listar_temas_propuestos_por_subarea_conocimiento(:subareas,:asesorId,:titulo,:limit,:offset)";
 		Integer[] subareaArray = subareaIds.toArray(new Integer[0]);
 
 		List<Object[]> resultados = entityManager
 				.createNativeQuery(sql)
 				.setParameter("subareas", subareaArray)
 				.setParameter("asesorId", asesorId)
+				.setParameter("titulo", titulo)
+				.setParameter("limit", limit)  // Establecer parámetro limit
+				.setParameter("offset", offset)  // Establecer parámetro offset
 				.getResultList();
 
 		List<TemaDto> lista = new ArrayList<>();
@@ -526,6 +689,7 @@ public class TemaServiceImpl implements TemaService {
 			dto.setFechaLimite(fila[9] != null ? ((Instant) fila[9]).atOffset(ZoneOffset.UTC) : null);
 			dto.setFechaCreacion(fila[10] != null ? ((Instant) fila[10]).atOffset(ZoneOffset.UTC) : null);
 			dto.setFechaModificacion(fila[11] != null ? ((Instant) fila[11]).atOffset(ZoneOffset.UTC) : null);
+			dto.setCantPostulaciones((Integer) fila[12]);
 			lista.add(dto);
 		}
 
@@ -690,22 +854,37 @@ public class TemaServiceImpl implements TemaService {
 
 		for (Object[] t : resultQuery) {
 			InfoTemaPerfilDto dto = new InfoTemaPerfilDto();
-			dto.setId((Integer) t[0]);
+			dto.setIdTesis((Integer) t[0]);
 			dto.setTitulo((String) t[1]);
-			dto.setEstado((String) t[2]);
+			String estado = (String) t[2];
+			switch (estado){
+				case "EN_PROGRESO": estado = "en_proceso"; break;
+				case "FINALIZADO": estado = "finalizada"; break;
+				default: estado = null; break;
+			}
+			dto.setEstado(estado);
 			dto.setAnio((String) t[3]);
 
 			//Agregar a los tesistas
-			List<Object[]> resultTesistasQuery = usuarioXTemaRepository.listarTesistasTema(dto.getId());
+			List<Object[]> resultTesistasQuery = usuarioXTemaRepository.listarTesistasTema(dto.getIdTesis());
 			List<String> tesistas = new ArrayList<>();
 			for (Object[] tesista : resultTesistasQuery) {
 				String nombreTesista = (String) tesista[0] + " " + (String) tesista[1];
 				tesistas.add(nombreTesista);
 			}
-			dto.setEstudiante(String.join(", ", tesistas));
+			dto.setEstudiantes(String.join(", ", tesistas));
+
 			//Añadir el nivel
 			temas.add(dto);
 		}
 		return temas;
+	}
+
+	@Override
+	public void eliminarPostulacionesTesista(Integer idUsuario) {
+		entityManager
+				.createNativeQuery("SELECT eliminar_postulaciones_tesista(:uid)")
+				.setParameter("uid", idUsuario)
+				.getSingleResult();
 	}
 }

@@ -107,7 +107,7 @@ RETURNS TABLE(
     etapa_formativa_id INTEGER,
     nombre TEXT,
     creditage_por_tema NUMERIC(6,2),
-    duracion_exposicion TEXT,
+    duracion_exposicion INTERVAL,
     activo BOOLEAN,
 	carrera_id INTEGER
 ) AS $$
@@ -117,7 +117,7 @@ BEGIN
         ef.etapa_formativa_id,
         ef.nombre,
         ef.creditaje_por_tema,
-        ef.duracion_exposicion::TEXT,
+        ef.duracion_exposicion,
         ef.activo,
 		ef.carrera_id
     FROM etapa_formativa ef
@@ -229,7 +229,7 @@ where u.usuario_id = p_coordinador_id;
 END;
 $$ LANGUAGE plpgsql STABLE;
 
-CREATE OR REPLACE FUNCTION listar_exposiciones_sin_inicializar_cicloactual_por_etapa_formativa(
+CREATE OR REPLACE FUNCTION listar_exposiciones_sin_inicializar_cicloactual_por_etapa_forma( --tiva. No debe pasar los 63 caracteres, por eso se corta.
 	p_etapa_formativa_id integer
 )
 RETURNS TABLE(
@@ -272,12 +272,15 @@ RETURNS TABLE (
 	es_bloque_bloqueado BOOLEAN,
 	datetime_inicio TIMESTAMPTZ,
 	datetime_fin TIMESTAMPTZ,
-	sala_nombre TEXT
+	sala_nombre TEXT,
+	tema_id INTEGER,
+	codigo TEXT,
+	titulo TEXT
 )
 AS $$
 BEGIN
 RETURN QUERY
-SELECT 
+SELECT
 	bhe.bloque_horario_exposicion_id,
 	bhe.jornada_exposicion_x_sala_id,
 	bhe.exposicion_x_tema_id,
@@ -285,17 +288,348 @@ SELECT
 	bhe.es_bloque_bloqueado,
 	bhe.datetime_inicio,
 	bhe.datetime_fin,
-	se.nombre 
-FROM bloque_horario_exposicion bhe 
-INNER JOIN jornada_exposicion_x_sala_exposicion jexse 
-	ON jexse.jornada_exposicion_x_sala_id = bhe.jornada_exposicion_x_sala_id 
-INNER JOIN jornada_exposicion je 
-	ON je.jornada_exposicion_id = jexse.jornada_exposicion_id 
-INNER JOIN exposicion e 
-	ON e.exposicion_id = je.exposicion_id 
-INNER JOIN sala_exposicion se 
-	ON jexse.sala_exposicion_id = se.sala_exposicion_id 
+	se.nombre ,
+	t.tema_id,
+	t.codigo::TEXT,
+	t.titulo::TEXT
+FROM bloque_horario_exposicion bhe
+INNER JOIN jornada_exposicion_x_sala_exposicion jexse
+	ON jexse.jornada_exposicion_x_sala_id = bhe.jornada_exposicion_x_sala_id
+INNER JOIN jornada_exposicion je
+	ON je.jornada_exposicion_id = jexse.jornada_exposicion_id
+INNER JOIN exposicion e
+	ON e.exposicion_id = je.exposicion_id
+INNER JOIN sala_exposicion se
+	ON jexse.sala_exposicion_id = se.sala_exposicion_id
+left join exposicion_x_tema et
+	on bhe.exposicion_x_tema_id = et.exposicion_x_tema_id
+left join tema t
+	on t.tema_id = et.tema_id
 WHERE bhe.activo = true
 	AND je.exposicion_id = p_exposicion_id;
 END;
 $$ LANGUAGE plpgsql STABLE;
+
+
+
+
+CREATE OR REPLACE FUNCTION actualizar_exposicon_tema_bloque_exposicion(bloques_json jsonb)
+RETURNS void AS $$
+DECLARE
+    bloque jsonb;
+    id_bloque INTEGER;
+    id_jornada_exposicion_sala INTEGER;
+    id_exposicion INTEGER;
+    id_tema INTEGER;
+    codigo_tema TEXT;
+    titulo_tema TEXT;
+  	et_id INTEGER; 
+	ep_id integer;
+BEGIN
+    
+    FOR bloque IN SELECT * FROM jsonb_array_elements(bloques_json)
+    LOOP
+        
+        id_bloque := (bloque->>'idBloque')::INTEGER;
+        id_jornada_exposicion_sala := (bloque->>'idJornadaExposicionSala')::INTEGER;
+        id_exposicion := (bloque->>'idExposicion')::INTEGER;
+
+       
+        id_tema := (bloque->'expo'->>'id')::INTEGER;
+        codigo_tema := bloque->'expo'->>'codigo';
+        titulo_tema := bloque->'expo'->>'titulo';
+
+       	select exposicion_x_tema_id into et_id
+		from exposicion_x_tema et
+		where et.tema_id = id_tema and et.exposicion_id = id_exposicion;
+
+		select estado_planificacion_id  into ep_id
+		from estado_planificacion where
+		nombre = 'Fase 1';
+    
+        UPDATE bloque_horario_exposicion 
+        SET 
+            exposicion_x_tema_id = et_id,  
+            es_bloque_reservado = true,
+            fecha_modificacion = now()
+        WHERE bloque_horario_exposicion_id = id_bloque;
+
+    
+        UPDATE exposicion_x_tema et
+        SET estado_exposicion = 'esperando_respuesta'
+        WHERE et.tema_id = id_tema AND et.exposicion_id = id_exposicion;
+
+		update exposicion 
+		set estado_planificacion_id = ep_id
+		where   exposicion_id  = id_exposicion;
+	
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE FUNCTION obtener_ciclo_etapa_por_tema(p_tema_id integer)
+    RETURNS TABLE(ciclo_id integer, ciclo_nombre text, etapa_formativa_id integer, etapa_formativa_nombre text)
+    LANGUAGE plpgsql
+AS
+$$
+BEGIN
+    RETURN QUERY
+    SELECT
+        c.ciclo_id,
+        CONCAT(c.anio, '-', c.semestre) AS ciclo_nombre,
+        ef.etapa_formativa_id,
+        efm.nombre AS etapa_formativa_nombre
+    FROM etapa_formativa_x_ciclo_x_tema efct
+    JOIN etapa_formativa_x_ciclo ef ON efct.etapa_formativa_x_ciclo_id = ef.etapa_formativa_x_ciclo_id
+    JOIN ciclo c ON ef.ciclo_id = c.ciclo_id
+    JOIN etapa_formativa efm ON ef.etapa_formativa_id = efm.etapa_formativa_id
+    WHERE efct.tema_id = p_tema_id
+      AND efct.activo = true
+      AND ef.activo = true
+      AND c.activo = true;
+END;
+$$;
+
+ALTER FUNCTION obtener_ciclo_etapa_por_tema(INTEGER) OWNER TO postgres;
+
+
+
+CREATE FUNCTION obtener_area_conocimiento_jurado(usuario_id_param integer)
+    RETURNS TABLE(usuario_id integer, area_conocimiento_id integer, area_conocimiento_nombre character varying)
+    LANGUAGE plpgsql
+AS
+$$
+BEGIN
+    RETURN QUERY
+    SELECT
+        u.usuario_id,
+		ac.area_conocimiento_id AS area_conocimiento_id,
+        ac.nombre AS area_conocimiento_nombre
+    FROM
+        usuario u
+    JOIN
+        usuario_area_conocimiento uac ON u.usuario_id = uac.usuario_id
+    JOIN
+        area_conocimiento ac ON uac.area_conocimiento_id = ac.area_conocimiento_id
+    WHERE
+        u.usuario_id = usuario_id_param
+    ORDER BY
+        ac.nombre;
+END;
+$$;
+
+ALTER FUNCTION obtener_area_conocimiento_jurado(INTEGER) OWNER TO postgres;
+
+CREATE OR REPLACE FUNCTION listar_etapas_formativas_activas_by_coordinador(p_coordinador_id INTEGER)
+RETURNS TABLE(
+    etapa_formativa_id INTEGER,
+    nombre TEXT,
+    creditage_por_tema NUMERIC(6,2),
+    duracion_exposicion INTERVAL,
+    activo BOOLEAN,
+	carrera_id INTEGER
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        ef.etapa_formativa_id,
+        ef.nombre,
+        ef.creditaje_por_tema,
+        ef.duracion_exposicion,
+        ef.activo,
+        ef.carrera_id
+    FROM etapa_formativa ef
+    inner join carrera c 
+        on c.carrera_id = ef.carrera_id 
+    inner join usuario_carrera uc 
+        on uc.carrera_id = c.carrera_id
+    inner join usuario u 
+        on u.usuario_id = uc.usuario_id 
+    inner join tipo_usuario tu 
+        on tu.tipo_usuario_id = u.tipo_usuario_id 
+        and tu.nombre = 'coordinador'
+    WHERE ef.activo = true
+        and u.usuario_id = p_coordinador_id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION get_etapa_formativa_by_id(p_id_etapa_formativa integer)
+RETURNS TABLE (
+    etapa_formativa_id integer,
+    nombre text,
+    creditaje_por_tema numeric,
+    duracion_exposicion interval,
+    activo bool,
+    carrera_id integer
+)
+AS $$
+BEGIN
+    RETURN QUERY
+    select 
+	ef.etapa_formativa_id ,
+	ef.nombre ,
+	ef.creditaje_por_tema ,
+	ef.duracion_exposicion ,
+	ef.activo ,
+	ef.carrera_id 
+from etapa_formativa ef 
+where ef.etapa_formativa_id = p_id_etapa_formativa;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION  get_estado_exposicion_by_id_exposicion(
+	id_exposicion integer
+)
+RETURNS TABLE(
+	id_estado_planificacion integer,
+    nombre  text,
+   	activo bool   	
+) AS $$
+BEGIN
+    RETURN QUERY
+ SELECT 
+		ep.estado_planificacion_id,
+		ep.nombre,
+		ep.activo
+    FROM estado_planificacion ep
+	inner join exposicion e on e.estado_planificacion_id = ep.estado_planificacion_id
+	where e.exposicion_id = id_exposicion;	   
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+
+create or replace function actualizar_bloque_exposicion_siguientes_fases(bloques_json jsonb)
+returns void as $$
+declare
+    bloque jsonb;
+    id_bloque integer;
+    id_jornada_exposicion_sala integer;
+    id_exposicion integer;
+    id_tema integer;
+    codigo_tema text;
+    titulo_tema text;
+    bloque_reservado boolean;
+    bloque_bloqueado boolean;
+    et_id integer; 
+    ep_id integer;
+	nombre_estado_actual text;
+    nuevo_estado_id integer;
+begin    
+	select (bloques_json->0->>'idExposicion')::integer into id_exposicion;
+   update bloque_horario_exposicion
+	set exposicion_x_tema_id = null
+	where bloque_horario_exposicion_id in (
+	    select (bloque->>'idBloque')::integer
+	    from jsonb_array_elements(bloques_json) as bloque_json
+	);
+	
+	select ep.nombre into nombre_estado_actual
+    from exposicion e
+    inner join estado_planificacion ep on ep.estado_planificacion_id = e.estado_planificacion_id
+    where e.exposicion_id = id_exposicion;
+
+    -- Decidir el nuevo estado según el actual
+    if nombre_estado_actual = 'Sin planificar' then
+        select estado_planificacion_id into nuevo_estado_id
+        from estado_planificacion
+        where nombre = 'Planificacion inicial';
+
+    elsif nombre_estado_actual = 'Planificacion inicial' then
+        select estado_planificacion_id into nuevo_estado_id
+        from estado_planificacion
+        where nombre = 'Fase 1';
+
+    elsif nombre_estado_actual = 'Fase 1' then
+        select estado_planificacion_id into nuevo_estado_id
+        from estado_planificacion
+        where nombre = 'Fase 2';
+
+    elsif nombre_estado_actual = 'Fase 2' then
+        select estado_planificacion_id into nuevo_estado_id
+        from estado_planificacion
+        where nombre = 'Cierre de planificacion';
+
+   elsif nombre_estado_actual = 'Cierre de planificacion' then
+     select estado_planificacion_id into nuevo_estado_id
+        from estado_planificacion
+        where nombre = 'Cierre de planificacion';
+
+	else
+	    raise notice 'Estado desconocido: "%"', nombre_estado_actual;
+	    	return;
+	end if;
+
+    -- Actualizar el estado de planificación
+    update exposicion
+    set estado_planificacion_id = nuevo_estado_id
+    where exposicion_id = id_exposicion;
+
+    raise notice 'Estado de planificación actualizado a "%"', nombre_estado_actual;   
+
+    for bloque in select * from jsonb_array_elements(bloques_json)
+    loop
+      
+        id_bloque := (bloque->>'idBloque')::integer;
+        id_exposicion := (bloque->>'idExposicion')::integer;
+        bloque_bloqueado := (bloque->>'bloqueBloqueado')::boolean;
+
+       if bloque ? 'bloqueBloqueado' and bloque->>'bloqueBloqueado' is not null then
+	    	
+			bloque_bloqueado := (bloque->>'bloqueBloqueado')::boolean;
+	
+		    update bloque_horario_exposicion
+		    set es_bloque_bloqueado = bloque_bloqueado
+		    where bloque_horario_exposicion_id = id_bloque;
+
+		end if;
+
+        -- si no hay 'expo' o es null, quitar el tema 
+        if bloque->'expo' is null or bloque->'expo' = 'null'::jsonb then
+            update bloque_horario_exposicion
+            set
+                exposicion_x_tema_id = null,
+                es_bloque_reservado = false,
+                fecha_modificacion = now()
+            where bloque_horario_exposicion_id = id_bloque;
+
+            raise notice 'Bloque %: se quitó tema', id_bloque;
+            continue;
+        end if;
+
+        -- extraer id_tema del json
+        id_tema := (bloque->'expo'->>'id')::integer;
+        if id_tema is null then
+            raise notice 'Tema en expo es null para bloque %', id_bloque;
+            continue;
+        end if;
+
+        -- buscar exposicion_x_tema_id
+        begin
+            select exposicion_x_tema_id into et_id
+            from exposicion_x_tema
+            where tema_id = id_tema and exposicion_id = id_exposicion;
+        exception when no_data_found then
+            raise notice 'No se encontró exposicion_x_tema para tema % y exposicion %', id_tema, id_exposicion;
+            continue;
+        end;
+
+        -- actualizar el bloque con ese et_id
+        update bloque_horario_exposicion
+        set 
+            exposicion_x_tema_id = et_id,
+            es_bloque_reservado = true,
+            fecha_modificacion = now()
+        where bloque_horario_exposicion_id = id_bloque;
+
+        raise notice 'Bloque %: asignado tema %', id_bloque, id_tema;
+
+		update exposicion_x_tema 
+		set estado_exposicion = 'esperando_respuesta'
+		where exposicion_x_tema_id = et_id;
+
+    end loop;
+end;
+$$ language plpgsql;

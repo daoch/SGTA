@@ -35,10 +35,15 @@ public class Solicitud {
 	@Column(nullable = false)
 	private Boolean activo = true;
 
-	@Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+	@Column(name = "estado", nullable = false)
+	private Integer estado = 1;  // 0: aprobado, 1: pendiente, 2: rechazado
+
+	@Column(name = "fecha_creacion", nullable = false, insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
 	private OffsetDateTime fechaCreacion;
 
-	@Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+	@Column(name = "fecha_modificacion", insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
 	private OffsetDateTime fechaModificacion;
 
+	@Column(name = "respuesta", columnDefinition = "TEXT", nullable = true)
+	private String respuesta;
 }

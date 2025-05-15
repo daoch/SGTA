@@ -1,7 +1,7 @@
 "use client";
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import { ArrowLeft, Search } from "lucide-react";
+import { ArrowLeft, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -149,93 +149,101 @@ export function JuradoDetalleView({
 
   return (
     <div>
-      <div className="flex h-[60px] pt-[15px] pr-[20px] pb-[10px] pl-[20px] items-center gap-[10px] self-stretch">
+      <div className="flex h-[60px] pt-[15px] pr-[20px] pb-[10px] items-center gap-[10px] self-stretch">
         <button
           onClick={() => router.back()}
-          className="flex items-center text-black hover:underline"
+          className="flex items-center text-black hover:underline cursor-pointer"
         >
-          <ArrowLeft className="w-5 h-5 mr-2" />
+          <ArrowLeft className="w-5 h-5" />
         </button>
         <h1 className="text-[#042354] font-montserrat text-[24px] font-semibold leading-[32px] tracking-[-0.144px]">
           Temas como Miembro de Jurado
         </h1>
       </div>
 
-      <div className="flex flex-wrap gap-2 items-center">
-        <div className="relative flex items-center w-[447px] h-[44px] border border-[#E2E6F0] bg-background">
-          <Input
-            placeholder="Ingrese el código, título del tema o nombre del estudiante"
-            className="pl-12 w-full h-full px-3 py-2 items-center gap-2 bg-transparent resize-none focus:outline-none"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-          />
-        </div>
-        <Button
-          className="inline-flex h-11 px-4 justify-center items-center gap-2 flex-shrink-0 rounded-md bg-[#042354] text-white"
-          onClick={handleSearch}
-        >
-          Buscar
-        </Button>
-
-        {/* ComboBox 1 - Curso */}
-        <div className="flex flex-col w-[242px] h-[80px] items-start gap-[6px] flex-shrink-0">
-          <label className="text-sm font-medium">Curso</label>
-          <Select
-            onValueChange={(val: string) => setSelectedCurso(val as CursoType)}
-            defaultValue={CursoType.TODOS}
+      <div className="flex flex-wrap justify-between items-center">
+        <div className="flex flex-wrap gap-3 items-center">
+          <div className="relative flex items-center w-[447px] h-[44px] border border-[#E2E6F0] bg-background">
+            <Input
+              placeholder="Ingrese el código, título del tema o nombre del estudiante"
+              className="pl-12 w-full h-full px-3 py-2 items-center gap-2 bg-transparent resize-none focus:outline-none"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+            />
+          </div>
+          <Button
+            className="inline-flex h-11 px-4 justify-center items-center gap-2 flex-shrink-0 rounded-md bg-[#042354] text-white"
+            onClick={handleSearch}
           >
-            <SelectTrigger className="h-[80px] w-full border border-[#E2E6F0] rounded-md !important">
-              <SelectValue placeholder="Todos" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={CursoType.TODOS}>{CursoType.TODOS}</SelectItem>
-              <SelectItem value={CursoType.PFC1}>
-                Proyecto de Fin de Carrera 1
-              </SelectItem>
-              <SelectItem value={CursoType.PFC2}>
-                Proyecto de Fin de Carrera 2
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+            Buscar
+          </Button>
 
-        {/* ComboBox 2 - Periodo */}
-        <div className="flex flex-col w-[104px] h-[80px] items-start gap-[6px] flex-shrink-0">
-          <label className="text-sm font-medium">Periodo</label>
-          <Select
-            onValueChange={(val: string) =>
-              setSelectedPeriodo(val as PeriodoAcademico)
-            }
-            defaultValue={PeriodoAcademico.TODOS}
+          {/* ComboBox 1 - Curso */}
+          <div className="flex flex-col w-[242px] h-[80px] items-start gap-[6px] flex-shrink-0">
+            <label className="text-sm font-medium">Curso</label>
+            <Select
+              onValueChange={(val: string) =>
+                setSelectedCurso(val as CursoType)
+              }
+              defaultValue={CursoType.TODOS}
+            >
+              <SelectTrigger className="h-[80px] w-full border border-[#E2E6F0] rounded-md !important">
+                <SelectValue placeholder="Todos" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={CursoType.TODOS}>
+                  {CursoType.TODOS}
+                </SelectItem>
+                <SelectItem value={CursoType.PFC1}>
+                  Proyecto de Fin de Carrera 1
+                </SelectItem>
+                <SelectItem value={CursoType.PFC2}>
+                  Proyecto de Fin de Carrera 2
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* ComboBox 2 - Periodo */}
+          <div className="flex flex-col w-[104px] h-[80px] items-start gap-[6px] flex-shrink-0">
+            <label className="text-sm font-medium">Periodo</label>
+            <Select
+              onValueChange={(val: string) =>
+                setSelectedPeriodo(val as PeriodoAcademico)
+              }
+              defaultValue={PeriodoAcademico.TODOS}
+            >
+              <SelectTrigger className="h-[68px] w-full">
+                <SelectValue placeholder="Todos" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={PeriodoAcademico.TODOS}>
+                  {PeriodoAcademico.TODOS}
+                </SelectItem>
+                <SelectItem value={PeriodoAcademico.PERIODO_2025_1}>
+                  2025-1
+                </SelectItem>
+                <SelectItem value={PeriodoAcademico.PERIODO_2025_0}>
+                  2025-0
+                </SelectItem>
+                <SelectItem value={PeriodoAcademico.PERIODO_2024_2}>
+                  2024-2
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <div>
+          {/* Botón de Asignar tesis */}
+          <Button
+            className="inline-flex h-11 px-4 justify-center items-center gap-2 flex-shrink-0 rounded-md bg-[#042354] text-white cursor-pointer"
+            onClick={() => setModalOpen(true)}
           >
-            <SelectTrigger className="h-[68px] w-full">
-              <SelectValue placeholder="Todos" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={PeriodoAcademico.TODOS}>
-                {PeriodoAcademico.TODOS}
-              </SelectItem>
-              <SelectItem value={PeriodoAcademico.PERIODO_2025_1}>
-                2025-1
-              </SelectItem>
-              <SelectItem value={PeriodoAcademico.PERIODO_2025_0}>
-                2025-0
-              </SelectItem>
-              <SelectItem value={PeriodoAcademico.PERIODO_2024_2}>
-                2024-2
-              </SelectItem>
-            </SelectContent>
-          </Select>
+            <Plus className="h-4 w-4" />
+            Asignar Tesis
+          </Button>
         </div>
-
-        {/* Botón de Asignar tesis */}
-        <Button
-          className="inline-flex h-[44px] px-[16px] py-0 justify-center items-center gap-2 flex-shrink-0 rounded-md bg-[#042354] text-white ml-auto"
-          onClick={() => setModalOpen(true)}
-        >
-          + Asignar Tesis
-        </Button>
       </div>
       <ListaTesisJuradoCard
         data={asignadas}
@@ -255,3 +263,4 @@ export function JuradoDetalleView({
 }
 
 export default JuradoDetalleView;
+
