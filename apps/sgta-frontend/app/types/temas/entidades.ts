@@ -1,5 +1,3 @@
-import { TabValues } from "./enums";
-
 export interface TemaForm {
   tipoRegistro: string;
   titulo: string;
@@ -15,6 +13,7 @@ export interface TemaForm {
 export interface Tema {
   id: number;
   codigo: string | null;
+  carrera: Carrera;
   titulo: string;
   resumen: string;
   objetivos: string;
@@ -25,7 +24,6 @@ export interface Tema {
   fechaCreacion: string;
   fechaModificacion: string | null;
   estadoTemaNombre: string | null;
-  carrera: string | null;
   idUsuarioInvolucradosList: number[] | null;
   idCoasesorInvolucradosList: number[] | null;
   idEstudianteInvolucradosList: number[] | null;
@@ -33,6 +31,14 @@ export interface Tema {
   coasesores: Coasesor[] | null;
   tesistas: Tesista[] | null;
   subareas: AreaDeInvestigacion[];
+}
+
+export interface Identifiable {
+  id: number;
+}
+
+export interface Carrera {
+  id: number;
 }
 
 export interface Tesista {
@@ -83,9 +89,5 @@ export interface AreaDeInvestigacion {
   activo: boolean;
   fechaCreacion: string | null;
   fechaModificacion: string | null;
-}
-
-export interface TemaUI extends Tema {
-  tipo: TabValues;
 }
 

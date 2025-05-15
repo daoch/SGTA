@@ -3,84 +3,8 @@ import {
   Coasesor,
   Tema,
   TemaForm,
-  TemaUI,
   Tesista,
 } from "./entidades";
-import { TabValues } from "./enums";
-
-// tipo: Indica el origen del tema en relación con el asesor/coasesor
-export const temaViewStates = [
-  {
-    id: 1,
-    estadoNombre: "PROPUESTO_LIBRE",
-    estado: "Disponible",
-    tipo: TabValues.LIBRE,
-    permisos: { edit: true, delete: true, viewDetails: true },
-  },
-  {
-    id: 2,
-    estadoNombre: "INSCRITO",
-    estado: "Inscrito",
-    tipo: TabValues.INSCRITO,
-    permisos: { edit: true, delete: true, viewDetails: true },
-  },
-  {
-    id: 3,
-    estadoNombre: "REGISTRADO",
-    estado: "Aprobado",
-    tipo: TabValues.INSCRITO,
-    permisos: { edit: true, delete: true, viewDetails: true },
-  },
-  {
-    id: 4,
-    estadoNombre: "RECHAZADO",
-    estado: "Rechazado",
-    tipo: TabValues.INSCRITO,
-    permisos: { edit: true, delete: true, viewDetails: true },
-  },
-  {
-    id: 5,
-    estadoNombre: "EN_PROGRESO",
-    estado: "En progreso",
-    tipo: TabValues.INSCRITO,
-    permisos: { edit: true, delete: true, viewDetails: true },
-  },
-  {
-    id: 6,
-    estadoNombre: "PAUSADO",
-    estado: "Pausado",
-    tipo: TabValues.INSCRITO,
-    permisos: { edit: true, delete: true, viewDetails: true },
-  },
-  {
-    id: 7,
-    estadoNombre: "FINALIZADO",
-    estado: "Finalizado",
-    tipo: TabValues.INSCRITO,
-    permisos: { edit: true, delete: true, viewDetails: true },
-  },
-  {
-    id: 8,
-    estadoNombre: "OBSERVADO",
-    estado: "Observado",
-    tipo: TabValues.INSCRITO,
-    permisos: { edit: true, delete: true, viewDetails: true },
-  },
-  {
-    id: 9,
-    estadoNombre: "VENCIDO",
-    estado: "Vencido",
-    tipo: TabValues.INSCRITO,
-    permisos: { edit: true, delete: true, viewDetails: true },
-  },
-  {
-    id: 10,
-    estadoNombre: "REGISTRADO",
-    estado: "Aprobado",
-    tipo: TabValues.INTERESADO,
-    permisos: { edit: false, delete: false, viewDetails: true },
-  },
-];
 
 export const emptyTemaForm: TemaForm = {
   tipoRegistro: "",
@@ -107,7 +31,7 @@ export const temaVacio: Tema = {
   fechaCreacion: "",
   fechaModificacion: null,
   estadoTemaNombre: null,
-  carrera: null,
+  carrera: { id: 1 },
   idUsuarioInvolucradosList: null,
   idCoasesorInvolucradosList: null,
   idEstudianteInvolucradosList: null,
@@ -117,7 +41,7 @@ export const temaVacio: Tema = {
   subareas: [],
 };
 
-export const coasesoresDisponibles: Coasesor[] = [
+export const coasesoresData: Coasesor[] = [
   {
     id: 1,
     tipoUsuario: "coasesor",
@@ -196,7 +120,7 @@ export const coasesoresDisponibles: Coasesor[] = [
   },
 ];
 
-export const estudiantesDisponibles: Tesista[] = [
+export const estudiantesData: Tesista[] = [
   {
     id: 1,
     tipoUsuario: "tesista",
@@ -332,7 +256,7 @@ export const estudiantesDisponibles: Tesista[] = [
   },
 ];
 
-export const areasDeInvestigacion: AreaDeInvestigacion[] = [
+export const subareasData: AreaDeInvestigacion[] = [
   {
     id: 1,
     nombre: "Inteligencia Artificial",
@@ -426,7 +350,7 @@ export const areasDeInvestigacion: AreaDeInvestigacion[] = [
   },
 ];
 
-export const temasDataMock: TemaUI[] = [
+export const temasDataMock: Tema[] = [
   {
     id: 1,
     codigo: null,
@@ -439,8 +363,8 @@ export const temasDataMock: TemaUI[] = [
     fechaLimite: "2025-06-01T12:00:00Z",
     fechaCreacion: "2025-05-01T12:00:00Z",
     fechaModificacion: null,
-    estadoTemaNombre: "aprobado",
-    carrera: null,
+    estadoTemaNombre: "INSCRITO",
+    carrera: { id: 1 },
     idUsuarioInvolucradosList: null,
     idCoasesorInvolucradosList: null,
     idEstudianteInvolucradosList: null,
@@ -508,7 +432,6 @@ export const temasDataMock: TemaUI[] = [
       },
     ],
     subareas: [],
-    tipo: TabValues.INSCRITO,
   },
   {
     id: 2,
@@ -522,8 +445,8 @@ export const temasDataMock: TemaUI[] = [
     fechaLimite: "2025-06-01T12:00:00Z",
     fechaCreacion: "2025-05-01T12:00:00Z",
     fechaModificacion: null,
-    estadoTemaNombre: "disponible",
-    carrera: null,
+    estadoTemaNombre: "PROPUESTO_LIBRE",
+    carrera: { id: 1 },
     idUsuarioInvolucradosList: null,
     idCoasesorInvolucradosList: null,
     idEstudianteInvolucradosList: null,
@@ -531,7 +454,6 @@ export const temasDataMock: TemaUI[] = [
     coasesores: [],
     tesistas: null,
     subareas: [],
-    tipo: TabValues.LIBRE,
   },
   {
     id: 3,
@@ -545,8 +467,8 @@ export const temasDataMock: TemaUI[] = [
     fechaLimite: "2025-06-01T12:00:00Z",
     fechaCreacion: "2025-05-01T12:00:00Z",
     fechaModificacion: null,
-    estadoTemaNombre: "aprobado",
-    carrera: null,
+    estadoTemaNombre: "REGISTRADO",
+    carrera: { id: 1 },
     idUsuarioInvolucradosList: null,
     idCoasesorInvolucradosList: null,
     idEstudianteInvolucradosList: null,
@@ -593,7 +515,6 @@ export const temasDataMock: TemaUI[] = [
       },
     ],
     subareas: [],
-    tipo: TabValues.INTERESADO,
   },
   {
     id: 4,
@@ -607,8 +528,8 @@ export const temasDataMock: TemaUI[] = [
     fechaLimite: "2025-06-01T12:00:00Z",
     fechaCreacion: "2025-05-01T12:00:00Z",
     fechaModificacion: null,
-    estadoTemaNombre: "aprobado",
-    carrera: null,
+    estadoTemaNombre: "INSCRITO",
+    carrera: { id: 1 },
     idUsuarioInvolucradosList: null,
     idCoasesorInvolucradosList: null,
     idEstudianteInvolucradosList: null,
@@ -636,7 +557,6 @@ export const temasDataMock: TemaUI[] = [
       },
     ],
     subareas: [],
-    tipo: TabValues.INSCRITO,
   },
   {
     id: 5,
@@ -650,8 +570,8 @@ export const temasDataMock: TemaUI[] = [
     fechaLimite: "2025-06-01T12:00:00Z",
     fechaCreacion: "2025-05-01T12:00:00Z",
     fechaModificacion: null,
-    estadoTemaNombre: "disponible",
-    carrera: null,
+    estadoTemaNombre: "PROPUESTO_LIBRE",
+    carrera: { id: 1 },
     idUsuarioInvolucradosList: null,
     idCoasesorInvolucradosList: null,
     idEstudianteInvolucradosList: null,
@@ -659,12 +579,11 @@ export const temasDataMock: TemaUI[] = [
     coasesores: [],
     tesistas: null,
     subareas: [],
-    tipo: TabValues.LIBRE,
   },
 ];
 
 export const asesorData = {
-  id: 1,
+  id: 5,
   name: "Willians Gomez",
 };
 

@@ -1,9 +1,10 @@
-// Se utilizan para diferenciar diferentes pestañas en la interfaz de Temas.
-export enum TabValues {
-  TODOS = "todos",
-  INSCRITO = "inscrito",
-  LIBRE = "libre",
-  INTERESADO = "interesado",
+// Enum para manejar Tipos en la interfaz de usuario
+// Tipos Generales vs Tema.estadoTemaNombre.
+export enum Tipo {
+  TODOS = "TODOS",
+  INSCRITO = "INSCRITO",
+  LIBRE = "PROPUESTO_LIBRE",
+  INTERESADO = "REGISTRADO",
 }
 
 // Estados
@@ -18,3 +19,4 @@ export enum estadosValues {
   OBSERVADO = "observado",
   VENCIDO = "vencido",
 }
+
