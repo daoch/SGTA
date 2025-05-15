@@ -24,4 +24,7 @@ public interface UsuarioService {
 
 	void updatePerfilAsesor(PerfilAsesorDto perfilAsesorDto);
 
+	List<UsuarioDto> getAsesoresBySubArea(Integer idSubArea);
+
+	UsuarioDto findUsuarioByCodigo(String codigoPucp);
 }
