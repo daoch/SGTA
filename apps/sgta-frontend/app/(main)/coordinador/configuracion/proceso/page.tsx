@@ -87,7 +87,7 @@ export default function ConfiguracionProcesoPage() {
                   </div>
                 </div>
 
-                <Link href={`/coordinador/configuracion/proceso/etapas/${etapa.id}`}>
+                <Link href={`/coordinador/configuracion/proceso/etapa/${etapa.id}`}>
                   <Button variant="ghost" size="sm" className="flex items-center gap-1">
                     <span>Ver detalles</span>
                     <ChevronRight size={16} />
