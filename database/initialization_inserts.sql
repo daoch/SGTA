@@ -140,67 +140,112 @@ INSERT INTO tipo_notificacion (nombre,
            ('error', 'Notificación de error crítico', 3, TRUE, NOW(), NOW());
 
 -- 1) Usuarios de ejemplo
-INSERT INTO usuario (
-    tipo_usuario_id,
-    codigo_pucp,
-    nombres,
-    primer_apellido,
-    segundo_apellido,
-    correo_electronico,
-    nivel_estudios,
-    contrasena,
-    biografia,
-    foto_perfil,
-    disponibilidad,
-    tipo_disponibilidad,
-    activo,
-    fecha_creacion,
-    fecha_modificacion
-)
-VALUES
-    -- Profesor
-    (1, 'P001', 'Juan',   'Pérez',   'Lopez',    'juan.perez@pucp.edu.pe',      'Doctorado', 'secret1', 'Profesor de IA', NULL, 'Lun-Vie 9-12', 'Presencial', TRUE, NOW(), NOW()),
-    -- Alumno
-    (2, 'A001', 'María',  'Gómez',   'Torres',   'maria.gomez@pucp.edu.pe',     'Pregrado',  'secret2', 'Estudiante de sistemas', NULL, 'Mar-Jue 14-18','Híbrido',     TRUE, NOW(), NOW()),
-    -- Coordinador
-    (3, 'C001', 'Luis',   'Ramírez', 'Díaz',     'luis.ramirez@pucp.edu.pe',     'Maestría',  'secret3', 'Coord. de tesis',        NULL, NULL,           NULL,         TRUE, NOW(), NOW()),
-    -- Administrador
-    (4, 'AD01','Carla',  'Vega',    'Reyna',    'carla.vega@pucp.edu.pe',      'Administración','secret4','Admin. del sistema',   NULL, NULL,           NULL,         TRUE, NOW(), NOW()),
-    -- Nuevos profesores
-  (1, 'P002', 'Ana',      'Martínez', 'Rojas',    'ana.martinez@pucp.edu.pe',    'Doctorado',   'secret5', 'Profesora de Sistemas',          NULL, 'Mar-Vie 10-13',    'Presencial', TRUE, NOW(), NOW()),
-  (1, 'P003', 'Carlos',   'Sánchez',  'Mendoza',  'carlos.sanchez@pucp.edu.pe',  'Maestría',    'secret6', 'Profesor de Redes',              NULL, 'Lun-Mié 8-11',     'Presencial', TRUE, NOW(), NOW()),
+INSERT INTO usuario (tipo_usuario_id,
+                     codigo_pucp,
+                     nombres,
+                     primer_apellido,
+                     segundo_apellido,
+                     correo_electronico,
+                     nivel_estudios,
+                     contrasena,
+                     biografia,
+                     foto_perfil,
+                     disponibilidad,
+                     tipo_disponibilidad,
+                     activo,
+                     fecha_creacion,
+                     fecha_modificacion)
+    VALUES
+        -- Profesor
+        (1, 'P001', 'Juan', 'Pérez', 'Lopez', 'juan.perez@pucp.edu.pe', 'Doctorado', 'secret1', 'Profesor de IA', NULL, 'Lun-Vie 9-12', 'Presencial', TRUE, NOW(), NOW()),
+        -- Alumno
+        (2, 'A001', 'María', 'Gómez', 'Torres', 'maria.gomez@pucp.edu.pe', 'Pregrado', 'secret2', 'Estudiante de sistemas', NULL, 'Mar-Jue 14-18', 'Híbrido', TRUE, NOW(), NOW()),
+        -- Coordinador
+        (3, 'C001', 'Luis', 'Ramírez', 'Díaz', 'luis.ramirez@pucp.edu.pe', 'Maestría', 'secret3', 'Coord. de tesis', NULL, NULL, NULL, TRUE, NOW(), NOW()),
+        -- Administrador
+        (4, 'AD01', 'Carla', 'Vega', 'Reyna', 'carla.vega@pucp.edu.pe', 'Administración', 'secret4', 'Admin. del sistema', NULL, NULL, NULL, TRUE, NOW(), NOW()),
+        -- Nuevos profesores
+        (1, 'P002', 'Ana', 'Martínez', 'Rojas', 'ana.martinez@pucp.edu.pe', 'Doctorado', 'secret5', 'Profesora de Sistemas', NULL, 'Mar-Vie 10-13', 'Presencial', TRUE, NOW(), NOW()),
+        (1, 'P003', 'Carlos', 'Sánchez', 'Mendoza', 'carlos.sanchez@pucp.edu.pe', 'Maestría', 'secret6', 'Profesor de Redes', NULL, 'Lun-Mié 8-11', 'Presencial', TRUE, NOW(), NOW()),
 
-  -- Nuevos alumnos
-  (2, 'A002', 'Diego',    'Fernández','García',   'diego.fernandez@pucp.edu.pe', 'Pregrado',    'secret7', 'Estudiante de IA',               NULL, 'Lun-Vie 14-18',    'Híbrido',    TRUE, NOW(), NOW()),
-  (2, 'A003', 'Sofía',    'Lima',     'Huertas',  'sofia.lima@pucp.edu.pe',      'Pregrado',    'secret8', 'Estudiante de Data Science',     NULL, 'Mar-Jue 10-12',    'Remoto',     TRUE, NOW(), NOW());
+        -- Nuevos alumnos
+        (2, 'A002', 'Diego', 'Fernández', 'García', 'diego.fernandez@pucp.edu.pe', 'Pregrado', 'secret7', 'Estudiante de IA', NULL, 'Lun-Vie 14-18', 'Híbrido', TRUE, NOW(), NOW()),
+        (2, 'A003', 'Sofía', 'Lima', 'Huertas', 'sofia.lima@pucp.edu.pe', 'Pregrado', 'secret8', 'Estudiante de Data Science', NULL, 'Mar-Jue 10-12', 'Remoto', TRUE, NOW(), NOW()),
+        (2, 'A004', 'Andrea', 'Muñoz', 'Castro', 'andrea.munoz@pucp.edu.pe', 'Pregrado', 'secret9', 'Estudiante de Ciencias de la Computación', NULL, 'Lun-Vie 9-13', 'Híbrido', TRUE, NOW(), NOW()),
+        (2, 'A005', 'Roberto', 'Vargas', 'Mendoza', 'roberto.vargas@pucp.edu.pe', 'Pregrado', 'secret10', 'Estudiante de Sistemas', NULL, 'Mar-Jue 14-18', 'Presencial', TRUE, NOW(), NOW()),
+        (2, 'A006', 'Carmen', 'Ruiz', 'Palacios', 'carmen.ruiz@pucp.edu.pe', 'Pregrado', 'secret11', 'Estudiante de Ciberseguridad', NULL, 'Mie-Vie 10-14', 'Remoto', TRUE, NOW(), NOW()),
+        (2, 'A007', 'Miguel', 'Torres', 'Silva', 'miguel.torres@pucp.edu.pe', 'Pregrado', 'secret12', 'Estudiante de Machine Learning', NULL, 'Lun-Mie 13-17', 'Híbrido', TRUE, NOW(), NOW()),
+        (2, 'A008', 'Patricia', 'Flores', 'Campos', 'patricia.flores@pucp.edu.pe', 'Pregrado', 'secret13', 'Estudiante de Redes', NULL, 'Mar-Jue 9-13', 'Presencial', TRUE, NOW(), NOW()),
+        (2, 'A009', 'Fernando', 'Luna', 'Ríos', 'fernando.luna@pucp.edu.pe', 'Pregrado', 'secret14', 'Estudiante de Software', NULL, 'Lun-Vie 14-18', 'Remoto', TRUE, NOW(), NOW()),
+        (2, 'A010', 'Valeria', 'Paz', 'Guerra', 'valeria.paz@pucp.edu.pe', 'Pregrado', 'secret15', 'Estudiante de Bases de Datos', NULL, 'Mie-Vie 9-13', 'Híbrido', TRUE, NOW(), NOW()),
+        (2, 'A011', 'Ricardo', 'Mora', 'Santos', 'ricardo.mora@pucp.edu.pe', 'Pregrado', 'secret16', 'Estudiante de IoT', NULL, 'Lun-Jue 10-14', 'Presencial', TRUE, NOW(), NOW()),
+        (2, 'A012', 'Laura', 'Vega', 'Luna', 'laura.vega@pucp.edu.pe', 'Pregrado', 'secret17', 'Estudiante de Desarrollo Web', NULL, 'Mar-Vie 13-17', 'Remoto', TRUE, NOW(), NOW()),
+        (2, 'A013', 'Gabriel', 'Rojas', 'Paredes', 'gabriel.rojas@pucp.edu.pe', 'Pregrado', 'secret18', 'Estudiante de Cloud Computing', NULL, 'Lun-Mie 9-13', 'Híbrido', TRUE, NOW(), NOW()),
+        (2, 'A014', 'Diana', 'Cruz', 'Medina', 'diana.cruz@pucp.edu.pe', 'Pregrado', 'secret19', 'Estudiante de DevOps', NULL, 'Mar-Jue 14-18', 'Presencial', TRUE, NOW(), NOW()),
+        (2, 'A015', 'Javier', 'Paredes', 'León', 'javier.paredes@pucp.edu.pe', 'Pregrado', 'secret20', 'Estudiante de IA', NULL, 'Mie-Vie 10-14', 'Remoto', TRUE, NOW(), NOW()),
+        (2, 'A016', 'Marcela', 'Santos', 'Vargas', 'marcela.santos@pucp.edu.pe', 'Pregrado', 'secret21', 'Estudiante de Blockchain', NULL, 'Lun-Jue 13-17', 'Híbrido', TRUE, NOW(), NOW()),
+        (2, 'A017', 'Hugo', 'Reyes', 'Mendoza', 'hugo.reyes@pucp.edu.pe', 'Pregrado', 'secret22', 'Estudiante de Data Science', NULL, 'Mar-Vie 9-13', 'Presencial', TRUE, NOW(), NOW()),
+        (2, 'A018', 'Carolina', 'Castro', 'Ruiz', 'carolina.castro@pucp.edu.pe', 'Pregrado', 'secret23', 'Estudiante de Sistemas Distribuidos', NULL, 'Lun-Mie 14-18', 'Remoto', TRUE, NOW(), NOW());
 
+-- Asignar todos los nuevos estudiantes a la carrera de Ingeniería Informática (carrera_id = 1)
+
+
+-- Profesores reales
+INSERT INTO usuario (tipo_usuario_id,
+                     codigo_pucp,
+                     nombres,
+                     primer_apellido,
+                     segundo_apellido,
+                     correo_electronico,
+                     nivel_estudios,
+                     contrasena,
+                     biografia,
+                     foto_perfil,
+                     disponibilidad,
+                     tipo_disponibilidad,
+                     tipo_dedicacion_id,
+                     activo,
+                     fecha_creacion,
+                     fecha_modificacion)
+    VALUES (1, 'P090', 'Edwin Rafael', 'Villanueva', 'Talavera', 'e.villanueva00@pucp.edu.pe', 'Doctorado', 'edwinpass', 'Profesor de Inteligencia Artificial', NULL, 'Mar-Vie 10-13', 'Presencial', 1, TRUE, NOW(), NOW()),
+           (1, 'P091', 'César Armando', 'Beltrán', 'Castañón', 'c.beltran00@pucp.edu.pe', 'Maestría', 'cesarpass', 'Profesor de Machine Learning', NULL, 'Lun-Mié 8-11', 'Presencial', 1, TRUE,  now(),  now());
 
 -- 2) Relación usuario_carrera (cada usuario con su carrera)
-INSERT INTO usuario_carrera (
-    usuario_id,
-    carrera_id,
-    activo,
-    fecha_creacion,
-    fecha_modificacion
-)
-VALUES
-    -- Juan Pérez enseña en Ingeniería Mecánica (carrera_id = 3)
-    (1, 3, TRUE, NOW(), NOW()),
-    -- María Gómez estudia Ingeniería Informática (carrera_id = 1)
-    (2, 1, TRUE, NOW(), NOW()),
-    -- Luis Ramírez coordina Ingeniería Civil (carrera_id = 2)
-    (3, 2, TRUE, NOW(), NOW()),
-    -- Carla Vega administra Ingeniería Industrial (carrera_id = 4)
-    (4, 4, TRUE, NOW(), NOW()),
+INSERT INTO usuario_carrera (usuario_id,
+                             carrera_id,
+                             activo,
+                             fecha_creacion,
+                             fecha_modificacion)
+    VALUES
+        -- Juan Pérez enseña en Ingeniería Mecánica (carrera_id = 3)
+        (1, 3, TRUE, NOW(), NOW()),
+        -- María Gómez estudia Ingeniería Informática (carrera_id = 1)
+        (2, 1, TRUE, NOW(), NOW()),
+        -- Luis Ramírez coordina Ingeniería Civil (carrera_id = 2)
+        (3, 2, TRUE, NOW(), NOW()),
+        -- Carla Vega administra Ingeniería Industrial (carrera_id = 4)
+        (4, 4, TRUE, NOW(), NOW()),
         -- Ana Martínez enseña en Ingeniería Informática (carrera_id = 1)
-    (5, 1, TRUE, NOW(), NOW()),
-    -- Carlos Sánchez enseña en Ingeniería Informática (carrera_id = 1)
-    (6, 1, TRUE, NOW(), NOW()),
-    -- Diego Fernández estudia Ingeniería Informática (carrera_id = 1)
-    (7, 1, TRUE, NOW(), NOW()),
-    -- Sofía Lima estudia Ingeniería Informática (carrera_id = 1)
-    (8, 1, TRUE, NOW(), NOW())
+        (5, 1, TRUE, NOW(), NOW()),
+        -- Carlos Sánchez enseña en Ingeniería Informática (carrera_id = 1)
+        (6, 1, TRUE, NOW(), NOW()),
+        -- Diego Fernández estudia Ingeniería Informática (carrera_id = 1)
+        (7, 1, TRUE, NOW(), NOW()),
+        -- Sofía Lima estudia Ingeniería Informática (carrera_id = 1)
+        (8, 1, TRUE, NOW(), NOW())
 ;
+
+INSERT INTO usuario_carrera (usuario_id,
+                             carrera_id,
+                             activo,
+                             fecha_creacion,
+                             fecha_modificacion)
+SELECT u.usuario_id, 1, TRUE, NOW(), NOW()
+    FROM usuario u
+    WHERE u.codigo_pucp IN ('A004', 'A005', 'A006', 'A007', 'A008', 'A009', 'A010',
+                            'A011', 'A012', 'A013', 'A014', 'A015', 'A016', 'A017', 'A018');
+
+
 
 UPDATE usuario
 SET tipo_dedicacion_id = 1
@@ -478,3 +523,17 @@ INSERT INTO etapa_formativa_x_ciclo_x_tema (etapa_formativa_x_ciclo_id, tema_id,
            (1, 3, TRUE, NOW()),
            (1, 4, TRUE, NOW());
 
+-- Asignar temas a los estudiantes A004-A008
+INSERT INTO usuario_tema (usuario_id, tema_id, rol_id)
+SELECT
+    u.usuario_id,
+    CASE u.codigo_pucp
+        WHEN 'A004' THEN 3  -- Tema: Machine Learning para Datos No Estructurados
+        WHEN 'A005' THEN 4  -- Tema: Redes Neuronales Profundas
+        WHEN 'A006' THEN 5  -- Tema: Big Data y Análisis Predictivo
+        WHEN 'A007' THEN 6  -- Tema: Automatización en la Industria 4.0
+        WHEN 'A008' THEN 7  -- Tema: Blockchain y su Aplicación en Logística
+    END as tema_id,
+    4 as rol_id -- Rol de Tesista
+FROM usuario u
+WHERE u.codigo_pucp IN ('A004', 'A005', 'A006', 'A007', 'A008');

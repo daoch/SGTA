@@ -245,7 +245,6 @@ CREATE TABLE IF NOT EXISTS solicitud
     tipo_solicitud_id  INTEGER                  NOT NULL,
     tema_id            INTEGER                  NOT NULL,
     estado             INTEGER                  NOT NULL,
-    respuesta          TEXT,
     activo             BOOLEAN                  NOT NULL DEFAULT TRUE,
 	respuesta		   TEXT,	
     fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
