@@ -38,19 +38,27 @@ export interface ModalDetallesExposicionProps {
   id_exposicion: number;
 }
 
-export interface Jurado {
-  specialties: string[];
-}
+//export interface Jurado {
+  //specialties: string[];
+//}
 
 export interface Tesis {
   titulo: string;
   codigo: string;
-  estudiante: string;
-  codEstudiante: string;
+  estudiantes: {
+    nombre: string;
+    codigo: string;
+  }[];
   resumen: string;
-  especialidades: string[];
+  sub_areas_conocimiento: {
+    id: number;
+    nombre: string;
+    id_area_conocimiento: number;
+  }[];
   rol: string;
 }
+
+
 
 export interface EspecialidadOption {
   label: string;
@@ -120,17 +128,53 @@ export interface TesisAsignadaDetalle extends Tesis {
   exposiciones: ExposicionJurado[];
 }
 
+export interface TesisDetalleExposicion {
+  estudiantes: {
+    id: number;
+    nombre: string;
+    tipo: string;
+  }[];
+  asesores: {
+    id: number;
+    nombre: string;
+    tipo: string;
+  }[];
+  miembrosJurado: {
+    id: number;
+    nombre: string;
+    tipo: string;
+  }[];
+  etapaFormativaTesis: {
+    id: number;
+    nombre: string;
+    exposiciones: {
+      id: number;
+      nombre: string;
+      estadoExposicion: string;
+      datetimeInicio: string;
+      datetimeFin: string;
+      sala: string;
+    }[];
+  }[];
+}
+
+
 export interface ModalAsignarTesisProps {
   open: boolean;
   onClose: () => void;
-  onAsignar: (tesisSeleccionada: Tesis) => void;
-  data: Tesis[];
-  jurado: Jurado;
+  onAsignar: (tesisSeleccionada: JuradoTemasDetalle) => void;
+  data: JuradoTemasDetalle[];
+  jurado: AreaConocimientoJurado[];
 }
 
 // Props para la vista de detalle del jurado
 export interface JuradoDetalleViewProps {
   modalAsignarTesisComponent: React.ComponentType<ModalAsignarTesisProps>; // Puedes reemplazar 'any' con un tipo específico para las props del modal
+}
+
+export interface AreaConocimientoJurado {
+  id: number;
+  nombre: string;
 }
 
 export enum TipoDedicacion {
@@ -160,4 +204,44 @@ export enum Especialidades {
   FRONTEND = "Front-End",
   BACKEND = "Backend",
   UI_UX = "UI/UX",
+}
+
+export interface JuradoTemasDetalle {
+  id: number,
+  titulo: string;
+  codigo: string;
+  resumen: string;
+  rol: string;
+  estudiantes: {
+    nombre: string;
+    codigo: string;
+  }[];
+  sub_areas_conocimiento: {
+    id: number;
+    nombre: string;
+    id_area_conocimiento: number;
+  }[];
+  etapaFormativaTesis: {
+    id: number;
+    nombre: string;
+  };
+  cicloTesis: {
+    id: number;
+    nombre: string;
+  };
+  estadoTema: {
+    id: number;
+    nombre: string;
+  };
+}
+
+export interface EtapaFormativa {
+  etapaFormativaId: number;
+  nombre: string;
+}
+
+export interface Ciclo {
+ id: number;
+ semestre: string;
+ anio: number; 
 }

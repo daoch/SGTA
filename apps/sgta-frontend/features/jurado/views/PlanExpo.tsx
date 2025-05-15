@@ -1,33 +1,36 @@
 import {
-    AreaEspecialidad,
-    JornadaExposicionSalas,
+  AreaEspecialidad,
+  JornadaExposicionSalas,
 } from "../types/jurado.types";
 
 import GeneralPlanificationExpo from "@/features/jurado/components/PlanificationComponents/GeneralPlanificationExpo";
 import {
-    listarBloquesHorariosExposicion,
-    listarEstadoPlanificacionPorExposicion,
-    listarJornadasExposicionSalas,
-    listarTemasCicloActulXEtapaFormativa,
+  getEtapaFormativaIdByExposicionId,
+  listarBloquesHorariosExposicion,
+  listarEstadoPlanificacionPorExposicion,
+  listarJornadasExposicionSalasByExposicion,
+  listarTemasCicloActulXEtapaFormativa,
 } from "@/features/jurado/services/data";
 import { JornadaExposicionDTO } from "../dtos/JornadExposicionDTO";
 type Props = {
   exposicionId: number;
- 
 };
 export default async function PlanExpo({ exposicionId }: Props) {
-  const expos = await listarTemasCicloActulXEtapaFormativa(exposicionId);
-  const jornadasSalas = await listarJornadasExposicionSalas(exposicionId);
+  const etapaFormativaId =
+    await getEtapaFormativaIdByExposicionId(exposicionId);
+  const expos = await listarTemasCicloActulXEtapaFormativa(etapaFormativaId);
+  const jornadasSalas =
+    await listarJornadasExposicionSalasByExposicion(exposicionId);
   const topics: AreaEspecialidad[] = [];
   const roomAvailList: JornadaExposicionDTO[] =
     jornadasSalas.map(transformarJornada);
   const bloquesList = await listarBloquesHorariosExposicion(exposicionId);
-  const estadoPlanificacion = await listarEstadoPlanificacionPorExposicion(exposicionId);
- 
-console.log(bloquesList);
+  const estadoPlanificacion =
+    await listarEstadoPlanificacionPorExposicion(exposicionId);
 
+  console.log(bloquesList);
 
-  return (  
+  return (
     <main className="h-screen flex flex-col">
       <div className="py-4">
         <h1

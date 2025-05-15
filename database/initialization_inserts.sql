@@ -227,20 +227,22 @@ INSERT INTO usuario (tipo_usuario_id,
            (1, 'P091', 'César Armando', 'Beltrán', 'Castañón', 'c.beltran00@pucp.edu.pe', 'Maestría', 'cesarpass', 'Profesor de Machine Learning', NULL, 'Lun-Mié 8-11', 'Presencial', 1, TRUE, NOW(), NOW());
 
 -- 2) Relación usuario_carrera (cada usuario con su carrera)
-INSERT INTO usuario_carrera (usuario_id,
-                             carrera_id,
-                             activo,
-                             fecha_creacion,
-                             fecha_modificacion)
-    VALUES
-        -- Juan Pérez enseña en Ingeniería Mecánica (carrera_id = 3)
-        (1, 1, TRUE, NOW(), NOW()),
-        -- María Gómez estudia Ingeniería Informática (carrera_id = 1)
-        (2, 1, TRUE, NOW(), NOW()),
-        -- Luis Ramírez coordina Ingeniería Civil (carrera_id = 2)
-        (3, 1, TRUE, NOW(), NOW()),
-        -- Carla Vega administra Ingeniería Industrial (carrera_id = 4)
-        (4, 1, TRUE, NOW(), NOW()),
+INSERT INTO usuario_carrera (
+    usuario_id,
+    carrera_id,
+    activo,
+    fecha_creacion,
+    fecha_modificacion
+)
+VALUES
+    -- Juan Pérez enseña en Ingeniería Mecánica (carrera_id = 3)
+    (1, 3, TRUE, NOW(), NOW()),
+    -- María Gómez estudia Ingeniería Informática (carrera_id = 1)
+    (2, 1, TRUE, NOW(), NOW()),
+    -- Luis Ramírez coordina Ingeniería Informática (carrera_id = 1)
+    (3, 1, TRUE, NOW(), NOW()),
+    -- Carla Vega administra Ingeniería Industrial (carrera_id = 4)
+    (4, 4, TRUE, NOW(), NOW()),
         -- Ana Martínez enseña en Ingeniería Informática (carrera_id = 1)
         (5, 1, TRUE, NOW(), NOW()),
         -- Carlos Sánchez enseña en Ingeniería Informática (carrera_id = 1)

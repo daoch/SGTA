@@ -1,7 +1,7 @@
 "use client";
 
-import { EtapasFormativasList } from "@/components/main/configuracion/etapas-formativas-list";
-import { NuevaEtapaFormativaModal } from "@/components/main/configuracion/nueva-etapa-formativa-modal";
+import { EtapasFormativasList } from "@/features/configuracion/components/configuracion/etapas-formativas-list";
+import { NuevaEtapaFormativaModal } from "@/features/configuracion/components/configuracion/nueva-etapa-formativa-modal";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Plus } from "lucide-react";
 import Link from "next/link";
