@@ -1,20 +1,21 @@
-"use client"
-import { useState } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { CheckCircle, Users, BookOpen, GraduationCap, Loader2 } from "lucide-react"
-import { z } from "zod"
-import { toast } from "sonner"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { differenceInDays, format } from "date-fns"
-import AssessorListAssessorChangeRequest from "@/features/asesores/components//assessor-change-request/list-available-assessors"
-import { IAssessorChangeAssignmentModalProps } from "@/features/asesores/types/assessor-change-request"
-import { useApproveAssesorChangeRequest, useRequestAssessorChangeDetail } from "../../queries/assessor-change-request"
+"use client";
+import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { CheckCircle, Users, BookOpen, GraduationCap, Loader2 } from "lucide-react";
+import { z } from "zod";
+import { toast } from "sonner";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { differenceInDays, format } from "date-fns";
+import AssessorListAssessorChangeRequest from "@/features/asesores/components//assessor-change-request/list-available-assessors";
+import { IAssessorChangeAssignmentModalProps } from "@/features/asesores/types/assessor-change-request";
+import { useApproveAssesorChangeRequest, useRequestAssessorChangeDetail } from "../../queries/assessor-change-request";
+import Image from "next/image";
 
 export function AssessorChangeAssignmentModal({ open, onOpenChange, idRequest, refetch }: Readonly<IAssessorChangeAssignmentModalProps>) {
-  const [ selectedAssessorId, setSelectedAssessorId] = useState<number | null>(null)
-  const { isLoading: loadingRequestDetail, data: dataRequestDetail} = useRequestAssessorChangeDetail(idRequest)
+  const [ selectedAssessorId, setSelectedAssessorId] = useState<number | null>(null);
+  const { isLoading: loadingRequestDetail, data: dataRequestDetail} = useRequestAssessorChangeDetail(idRequest);
   const approveMutation = useApproveAssesorChangeRequest();
   
   const isProcessing = approveMutation.status === "pending";
@@ -22,8 +23,8 @@ export function AssessorChangeAssignmentModal({ open, onOpenChange, idRequest, r
     try {
 
       if (!dataRequestDetail?.id){
-        console.error('No se obtuvo la informacion del detalle de la solicitud')
-        return
+        console.error("No se obtuvo la informacion del detalle de la solicitud");
+        return;
       }
       approveMutation.mutate(
         {
@@ -35,7 +36,7 @@ export function AssessorChangeAssignmentModal({ open, onOpenChange, idRequest, r
             toast.success("Asignación completada", {
               description: "El alumno ha sido asignado correctamente",
             });
-            refetch()
+            refetch();
             onOpenChange(false);
           },
           onError: (error) => {
@@ -46,7 +47,7 @@ export function AssessorChangeAssignmentModal({ open, onOpenChange, idRequest, r
           },
         }
       );
-      refetch()
+      refetch();
     } catch (error) {
       if (error instanceof z.ZodError) {
         toast.error("Error de validación", {
@@ -92,7 +93,7 @@ export function AssessorChangeAssignmentModal({ open, onOpenChange, idRequest, r
                       <div className="flex items-center gap-2">
                         <Avatar className="h-10 w-10">
                           {dataRequestDetail.student.urlPhoto ? (
-                            <img
+                            <Image
                               src={dataRequestDetail.student.urlPhoto}
                               alt={`User-photo-${dataRequestDetail.student.id}`}
                               className="rounded-full"
@@ -128,7 +129,7 @@ export function AssessorChangeAssignmentModal({ open, onOpenChange, idRequest, r
                         <span>Fecha de Solicitud</span>
                       </div>
                       <p className="text-sm font-medium">
-                        {`${format(dataRequestDetail.registerTime, 'dd/MM/yyyy')} - ${format(dataRequestDetail.registerTime, 'hh:mm a')}`}
+                        {`${format(dataRequestDetail.registerTime, "dd/MM/yyyy")} - ${format(dataRequestDetail.registerTime, "hh:mm a")}`}
                       </p>
                       <p className="text-xs text-gray-500 mt-1">{`Hace ${differenceInDays(new Date(), dataRequestDetail.registerTime)} días`}</p>
                     </div>
@@ -161,13 +162,13 @@ export function AssessorChangeAssignmentModal({ open, onOpenChange, idRequest, r
                     <AssessorListAssessorChangeRequest selectedAssessorId={selectedAssessorId} setSelectedAssessorId={setSelectedAssessorId} selectedIdThematicAreas={dataRequestDetail?.student?.topic?.thematicAreas?.map(area => area.id) ?? []}/>
                 </div>
               </>
-            )
+            );
         })()}
 
         <DialogFooter className="mt-4">
           <Button
           variant="outline"
-          onClick={() => {onOpenChange(false)}}>
+          onClick={() => {onOpenChange(false);}}>
             Cancelar
           </Button>
           {isProcessing?
@@ -178,11 +179,11 @@ export function AssessorChangeAssignmentModal({ open, onOpenChange, idRequest, r
           <Button onClick={handleSubmit} disabled={selectedAssessorId===null}>
             {selectedAssessorId!==null
               ? "Asignar asesor"
-              : `Faltan asignar un asesor`}
+              : "Faltan asignar un asesor"}
           </Button>
           }
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

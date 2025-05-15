@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { Card } from "@/components/ui/card"
-import { useAssessorChangeRequestSearchCriteriaStore } from "@/features/asesores/store/assessor-change-request-filters"
+import { Card } from "@/components/ui/card";
+import { useAssessorChangeRequestSearchCriteriaStore } from "@/features/asesores/store/assessor-change-request-filters";
 import RequestSearchFilters from "@/features/asesores/components/assessor-change-request/search-filters-request-list";
 import PendingAssessorChangeRequestsList from "@/features/asesores/components/assessor-change-request/list-pending-requests";
-import AssessorChangeRequestHistoryTable from "@/features/asesores/components/assessor-change-request/list-approved-rejected-requests"
+import AssessorChangeRequestHistoryTable from "@/features/asesores/components/assessor-change-request/list-approved-rejected-requests";
 import AssessorChangeRequestPagination from "@/features/asesores/components/assessor-change-request/pagination-assessor-change-request";
 import AssessorChangeRequestDetail from "@/features/asesores/components/assessor-change-request/modal-detail";
 import AssessorChangeRejectModal from "@/features/asesores/components/assessor-change-request/modal-reject";
@@ -21,36 +21,36 @@ interface IRequestOptions {
 
 
 const Page: React.FC = () => {
-    const {fullNameEmail, page, status, setPage, clear, setStatusTabFilter, setFullNameEmailPage, clearFullNameEmailPage} = useAssessorChangeRequestSearchCriteriaStore()
-    const initialStateOption = {id: null, option: null, openModal: false}
+    const {fullNameEmail, page, status, setPage, clear, setStatusTabFilter, setFullNameEmailPage, clearFullNameEmailPage} = useAssessorChangeRequestSearchCriteriaStore();
+    const initialStateOption = {id: null, option: null, openModal: false};
     const [ selectOption, setSelectOption ] = useState<IRequestOptions>(initialStateOption);
-    const [ data, setData ] = useState<IRequestAssessorChange | null>(null)
-    const [ isLoading, setIsLoading ] = useState<boolean>(true)
+    const [ data, setData ] = useState<IRequestAssessorChange | null>(null);
+    const [ isLoading, setIsLoading ] = useState<boolean>(true);
     
     const fetchRequests = async () => {
-        setIsLoading(true)
-        const data = await getAssessorChangeRequestList({"fullNameEmail": fullNameEmail, "status": status, "page": page})
+        setIsLoading(true);
+        const data = await getAssessorChangeRequestList({"fullNameEmail": fullNameEmail, "status": status, "page": page});
         if (data)
-            setData(data)
-        setIsLoading(false)
-    }
+            setData(data);
+        setIsLoading(false);
+    };
 
     const handlePageChange = (page: number) => {
         setPage(page);
     };
     
     useEffect(()=>{
-        clear()
-    }, [])
+        clear();
+    }, []);
 
 
     useEffect(()=>{
-        fetchRequests()
-    }, [fullNameEmail, page, status])
+        fetchRequests();
+    }, [fullNameEmail, page, status]);
     
     const handleRefetch = async () =>{
-        fetchRequests()
-    }
+        fetchRequests();
+    };
 
     return(
         <div>
@@ -90,34 +90,34 @@ const Page: React.FC = () => {
                                         Cargando solicitudes...
                                     </p>
                                 </div>
-                            )
+                            );
                         if (data?.assessorChangeRequests.length === 0)
                             return (
                                 <NotFoundChangeAssessorRequests type={status} appliedFilters={fullNameEmail !== ""}/>
-                            )
+                            );
                         return (
                             <div>
-                                {status === 'pending' ? (
+                                {status === "pending" ? (
                                 <PendingAssessorChangeRequestsList
                                     requests={data?.assessorChangeRequests ?? []}
                                     onApprove={
                                         (value)=>{
-                                            setSelectOption({id: value, option: "accept", openModal: true})
+                                            setSelectOption({id: value, option: "accept", openModal: true});
                                         }}
                                     onReject={
                                         (value)=>{
-                                            setSelectOption({id: value, option: "denny", openModal: true})
+                                            setSelectOption({id: value, option: "denny", openModal: true});
                                         }}
                                 />
                                 ) : (
                                     <AssessorChangeRequestHistoryTable
                                         requests={data?.assessorChangeRequests ?? []}
-                                        onViewDetails={(value)=>{setSelectOption({id: value, option: "detail", openModal: true})}}
+                                        onViewDetails={(value)=>{setSelectOption({id: value, option: "detail", openModal: true});}}
                                     />
                                     
                                 )}
                             </div>
-                        )
+                        );
                     })() }
                 </div>
                 
@@ -139,7 +139,7 @@ const Page: React.FC = () => {
                         open={selectOption?.option === "accept"}
                         onOpenChange={(isOpen) => {
                             if (!isOpen) {
-                                setSelectOption(initialStateOption)
+                                setSelectOption(initialStateOption);
                             }
                         }}
                         idRequest={selectOption.id}  
@@ -161,7 +161,7 @@ const Page: React.FC = () => {
                 
             </div>
         </div>
-    )
-}
+    );
+};
 
-export default Page
+export default Page;

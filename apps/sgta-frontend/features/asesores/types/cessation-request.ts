@@ -188,7 +188,7 @@ export interface ICessationRequestCardProps {
 
 export interface ICessationRequestHistoryTableProps {
   requests: Array<IRequestTerminationConsultancyRequestData>;
-  onViewDetails: (value: any) => void;
+  onViewDetails: (value: number) => void;
 }
 
 export interface ICessationRequestAdvisorListProps{

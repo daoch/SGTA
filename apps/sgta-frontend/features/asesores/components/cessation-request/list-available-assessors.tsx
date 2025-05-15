@@ -1,17 +1,18 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Loader2, User, UserMinus, UserPlus } from "lucide-react"
-import { useDebounce } from "@/features/asesores/hooks/use-debounce"
-import { ICessationRequestAdvisor, ICessationRequestAdvisorListProps, ICessationRequestSearchCriteriaAvailableAdvisorList, IRequestTerminationConsultancyStudentDetail } from "@/features/asesores/types/cessation-request"
-import { useRequestTerminationAdvisorPerThematicArea } from "@/features/asesores/queries/cessation-request"
-import CessationRequestPagination from "@/features/asesores/components/cessation-request/pagination-cessation-request"
-import { useCessationRequestAssignmentStore } from "@/features/asesores/store/assignment-cessation-request"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { useState, useEffect } from "react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Loader2, User, UserMinus, UserPlus } from "lucide-react";
+import { useDebounce } from "@/features/asesores/hooks/use-debounce";
+import { ICessationRequestAdvisor, ICessationRequestAdvisorListProps, ICessationRequestSearchCriteriaAvailableAdvisorList, IRequestTerminationConsultancyStudentDetail } from "@/features/asesores/types/cessation-request";
+import { useRequestTerminationAdvisorPerThematicArea } from "@/features/asesores/queries/cessation-request";
+import CessationRequestPagination from "@/features/asesores/components/cessation-request/pagination-cessation-request";
+import { useCessationRequestAssignmentStore } from "@/features/asesores/store/assignment-cessation-request";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import Image from "next/image";
 
 
 
@@ -24,19 +25,19 @@ export default function AvailableAssesorsList({selectedStudent}: Readonly<ICessa
     unassignAdvisor,
     addAssignedAdvisor,
     removeAssignedAdvisor,
-  } = useCessationRequestAssignmentStore()
+  } = useCessationRequestAssignmentStore();
 
-  const initialStateSearchCriteria: ICessationRequestSearchCriteriaAvailableAdvisorList = {idThematicAreas: [], fullNameEmailCode: "", page: 1}
+  const initialStateSearchCriteria: ICessationRequestSearchCriteriaAvailableAdvisorList = {idThematicAreas: [], fullNameEmailCode: "", page: 1};
 
-  const [ searchCriteria, setSearchCriteria ] = useState(initialStateSearchCriteria)
-  const { isLoading, data} = useRequestTerminationAdvisorPerThematicArea(searchCriteria)
-  const debouncedSearchTerm = useDebounce(searchCriteria.fullNameEmailCode, 1500)
+  const [ searchCriteria, setSearchCriteria ] = useState(initialStateSearchCriteria);
+  const { isLoading, data} = useRequestTerminationAdvisorPerThematicArea(searchCriteria);
+  const debouncedSearchTerm = useDebounce(searchCriteria.fullNameEmailCode, 1500);
   const [localTerm, setLocalTerm] = useState(searchCriteria.fullNameEmailCode);
 
   useEffect(()=>{
     if (data)
-      setAdvisors(data.assessors ?? [])
-  },[data])
+      setAdvisors(data.assessors ?? []);
+  },[data, setAdvisors]);
 
 
   useEffect(()=>{
@@ -46,7 +47,7 @@ export default function AvailableAssesorsList({selectedStudent}: Readonly<ICessa
         idThematicAreas: selectedStudent.thematicAreas.map(thematicArea => thematicArea.id), 
         page: prev.page,
       }));
-  },[selectedStudent])
+  },[selectedStudent]);
 
   const debouncedTerm = useDebounce(localTerm, 1500);
   useEffect(() => {
@@ -77,17 +78,17 @@ export default function AvailableAssesorsList({selectedStudent}: Readonly<ICessa
     setSearchCriteria((prev)=>({
       ...prev,
       page: page
-    }))
+    }));
   };
 
   const handleReAssignAssessor = (selectedStudent: IRequestTerminationConsultancyStudentDetail, advisor: ICessationRequestAdvisor) => {
     if(selectedStudent.advisorId && selectedStudent.advisorId !== advisor.id){
-      unassignAdvisor(selectedStudent.id)
-      removeAssignedAdvisor(selectedStudent.advisorId)
+      unassignAdvisor(selectedStudent.id);
+      removeAssignedAdvisor(selectedStudent.advisorId);
     }
-    assignAdvisor(selectedStudent.id, advisor.id)
-    addAssignedAdvisor(advisor)
-  }
+    assignAdvisor(selectedStudent.id, advisor.id);
+    addAssignedAdvisor(advisor);
+  };
 
   const getReassignClickHandler = (
     student: IRequestTerminationConsultancyStudentDetail,
@@ -99,12 +100,12 @@ export default function AvailableAssesorsList({selectedStudent}: Readonly<ICessa
 
   const handleUnAssignAssessor = (selectedStudent: IRequestTerminationConsultancyStudentDetail, advisor: ICessationRequestAdvisor) => {
     if(selectedStudent.advisorId && selectedStudent.advisorId !== advisor.id){
-      unassignAdvisor(selectedStudent.id)
-      removeAssignedAdvisor(selectedStudent.advisorId)
+      unassignAdvisor(selectedStudent.id);
+      removeAssignedAdvisor(selectedStudent.advisorId);
     }
-    unassignAdvisor(selectedStudent.id)
-    removeAssignedAdvisor(advisor.id)
-  }
+    unassignAdvisor(selectedStudent.id);
+    removeAssignedAdvisor(advisor.id);
+  };
 
   const getUnassignClickHandler = (
     student: IRequestTerminationConsultancyStudentDetail,
@@ -158,7 +159,7 @@ export default function AvailableAssesorsList({selectedStudent}: Readonly<ICessa
                       </div>
                     </TableCell>
                   </TableRow>
-                )
+                );
               if (advisors.length === 0)
                 return (
                   <TableRow>
@@ -166,20 +167,20 @@ export default function AvailableAssesorsList({selectedStudent}: Readonly<ICessa
                       No se encontraron asesores
                     </TableCell>
                 </TableRow>
-                )
+                );
               return (
                 advisors.map((advisor) => {
-                  const advisorAssignedCount = assignedAdvisors.find((assignedAdvisor)=>assignedAdvisor.id === advisor.id)?.assignedStudentsQuantity ?? advisor.assignedStudentsQuantity
-                  const isAtCapacity = advisorAssignedCount >= advisor.capacity
-                  const wasAssigned = advisor.id === selectedStudent.advisorId
-                  const assignedAndAtCapacity = wasAssigned || (isAtCapacity && wasAssigned)
+                  const advisorAssignedCount = assignedAdvisors.find((assignedAdvisor)=>assignedAdvisor.id === advisor.id)?.assignedStudentsQuantity ?? advisor.assignedStudentsQuantity;
+                  const isAtCapacity = advisorAssignedCount >= advisor.capacity;
+                  const wasAssigned = advisor.id === selectedStudent.advisorId;
+                  const assignedAndAtCapacity = wasAssigned || (isAtCapacity && wasAssigned);
                   return (
                     <TableRow key={advisor.id}>
                       <TableCell>
                         <div className="h-10 w-10 rounded-full overflow-hidden">
                           <Avatar className="h-8 w-8">
                             {advisor.urlPhoto ? (
-                                <img
+                                <Image
                                     src={advisor.urlPhoto}
                                     alt={`User-photo-${advisor.firstName}`}
                                     className='rounded-full'
@@ -228,7 +229,7 @@ export default function AvailableAssesorsList({selectedStudent}: Readonly<ICessa
                               >
                                 <UserMinus className="h-4 w-4" />
                               </Button>
-                            )
+                            );
                           if(!isAtCapacity)
                             return (
                               <Button
@@ -238,7 +239,7 @@ export default function AvailableAssesorsList({selectedStudent}: Readonly<ICessa
                               >
                                 <UserPlus className="h-4 w-4" />
                               </Button>
-                            )
+                            );
                           return (
                             <Button
                               size="sm"
@@ -247,13 +248,13 @@ export default function AvailableAssesorsList({selectedStudent}: Readonly<ICessa
                             >
                               <User className="h-4 w-4" />
                           </Button>
-                            )
+                            );
                         })()}
                         
                       </TableCell>
                     </TableRow>
-                  )
-              }))
+                  );
+              }));
               
               })()}
 
@@ -272,5 +273,5 @@ export default function AvailableAssesorsList({selectedStudent}: Readonly<ICessa
         </div>
       </div>
     </div>
-  )
+  );
 }

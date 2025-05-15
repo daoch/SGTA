@@ -1,11 +1,12 @@
-"use client"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
-import { Calendar, Check, X } from "lucide-react"
-import { AssessorChangeCardRequestProps, IRequestAssessorChangeRequestData } from "@/features/asesores/types/assessor-change-request"
-import { differenceInDays, format } from "date-fns"
+"use client";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Calendar, Check, X } from "lucide-react";
+import { AssessorChangeCardRequestProps, IRequestAssessorChangeRequestData } from "@/features/asesores/types/assessor-change-request";
+import { differenceInDays, format } from "date-fns";
+import Image from "next/image";
 
 
 const AssessorChangeRequestCard: React.FC<AssessorChangeCardRequestProps> = ({
@@ -13,7 +14,7 @@ const AssessorChangeRequestCard: React.FC<AssessorChangeCardRequestProps> = ({
     onApprove,
     onReject
 }) => {
-  const statusConfig: Record<IRequestAssessorChangeRequestData['status'], { color: string; text: string }> = {
+  const statusConfig: Record<IRequestAssessorChangeRequestData["status"], { color: string; text: string }> = {
       pending: { color: "bg-yellow-200 text-yellow-800", text: "Pendiente" },
       approved: { color: "bg-green-200 text-green-800", text: "Aprobada" },
       rejected: { color: "bg-red-200 text-red-800", text: "Rechazada" },
@@ -24,7 +25,7 @@ const AssessorChangeRequestCard: React.FC<AssessorChangeCardRequestProps> = ({
         <div className="flex items-center gap-2 p-2">
           <Avatar className="h-8 w-8">
             {request.student.urlPhoto ? (
-                <img
+                <Image
                     src={request.student.urlPhoto}
                     alt={`User-photo-${request.student.id}`}
                 />
@@ -46,7 +47,7 @@ const AssessorChangeRequestCard: React.FC<AssessorChangeCardRequestProps> = ({
             <Calendar className="h-3.5 w-3.5 mt-0.5 text-gray-400" />
             <div>
               <span className="text-gray-500 text-[11px]">Solicitud:</span>
-              <span className="font-medium text-gray-800 block">{`${format(request.registerTime, 'dd/MM/yyyy')} - ${format(request.registerTime, 'hh:mm a')}`}</span>
+              <span className="font-medium text-gray-800 block">{`${format(request.registerTime, "dd/MM/yyyy")} - ${format(request.registerTime, "hh:mm a")}`}</span>
               <span className="text-gray-500 block">{`Hace ${differenceInDays(new Date(), request.registerTime)} días`}</span>
             </div>
           </div>
@@ -78,7 +79,7 @@ const AssessorChangeRequestCard: React.FC<AssessorChangeCardRequestProps> = ({
                   <div className="flex items-center gap-2 p-2">
                     <Avatar className="h-8 w-8">
                       {advisor.urlPhoto ? (
-                          <img
+                          <Image
                               src={advisor.urlPhoto}
                               alt={`User-photo-${advisor.id}`}
                           />
@@ -98,7 +99,7 @@ const AssessorChangeRequestCard: React.FC<AssessorChangeCardRequestProps> = ({
         </div>
       </CardContent>
       <CardFooter className="px-6 py-4 flex justify-end gap-2 border-t">
-        {request.status === 'pending' ? (
+        {request.status === "pending" ? (
           <>
             <Button variant="outline" size="sm" onClick={() => onReject()}>
               <X size={14} className="mr-1" /> Rechazar
@@ -114,8 +115,8 @@ const AssessorChangeRequestCard: React.FC<AssessorChangeCardRequestProps> = ({
         )}
       </CardFooter>
     </Card>
-  )
-}
+  );
+};
 
 
-export default AssessorChangeRequestCard
+export default AssessorChangeRequestCard;

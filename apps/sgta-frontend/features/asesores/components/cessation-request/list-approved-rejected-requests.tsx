@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ICessationRequestHistoryTableProps, IRequestTerminationConsultancyRequestData } from "@/features/asesores/types/cessation-request";
 import { differenceInDays, format } from "date-fns";
+import Image from "next/image";
 
 const RequestHistoryTable: React.FC<ICessationRequestHistoryTableProps> = ({
   requests,
@@ -34,7 +35,7 @@ const RequestHistoryTable: React.FC<ICessationRequestHistoryTableProps> = ({
           <div className="flex items-center gap-2 ">
             <Avatar className="h-8 w-8">
                 {request.assessor.urlPhoto ? (
-                    <img
+                    <Image
                         src={request.assessor.urlPhoto}
                         alt={`User-photo-${request.assessor.id}`}
                     />
@@ -51,7 +52,7 @@ const RequestHistoryTable: React.FC<ICessationRequestHistoryTableProps> = ({
       case "requestDate":
         return (
           <div>
-            <span className="font-medium text-gray-800 block">{`${format(request.registerTime, 'dd/MM/yyyy')} - ${format(request.registerTime, 'hh:mm a')}`}</span>
+            <span className="font-medium text-gray-800 block">{`${format(request.registerTime, "dd/MM/yyyy")} - ${format(request.registerTime, "hh:mm a")}`}</span>
             <span className="text-gray-500 block">{`Hace ${differenceInDays(new Date(), request.registerTime)} días`}</span>
           </div>
         );
@@ -79,7 +80,7 @@ const RequestHistoryTable: React.FC<ICessationRequestHistoryTableProps> = ({
       case "answerDate":
         return (
           <div>
-            <span className="font-medium text-gray-800 block">{`${format(request.responseTime, 'dd/MM/yyyy')} - ${format(request.responseTime, 'hh:mm a')}`}</span>
+            <span className="font-medium text-gray-800 block">{`${format(request.responseTime, "dd/MM/yyyy")} - ${format(request.responseTime, "hh:mm a")}`}</span>
             <span className="text-gray-500 block">{`Hace ${differenceInDays(new Date(), request.responseTime)} días`}</span>
           </div>
         );

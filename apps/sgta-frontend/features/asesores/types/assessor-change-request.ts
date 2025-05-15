@@ -119,7 +119,7 @@ export interface AssessorChangeCardRequestProps {
 
 export interface IAssessorChangeHistoryRequestsTableProps {
   requests: Array<IRequestAssessorChangeRequestData>;
-  onViewDetails: (value: any) => void;
+  onViewDetails: (value: number) => void;
 }
 
 export interface IAssessorChangeAvailableAssessorsListProps{

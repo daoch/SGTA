@@ -1,20 +1,21 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { Loader2, Calendar } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import React from "react";
+import { Loader2, Calendar } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogFooter,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { IAssessorChangeApproveModalProps, IRequestAssessorChangeRequestData } from '@/features/asesores/types/assessor-change-request';
-import { Avatar, AvatarFallback } from '@radix-ui/react-avatar';
-import { differenceInDays, format } from 'date-fns';
-import { useRequestAssessorChangeDetail } from '../../queries/assessor-change-request';
+} from "@/components/ui/dialog";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { IAssessorChangeApproveModalProps, IRequestAssessorChangeRequestData } from "@/features/asesores/types/assessor-change-request";
+import { Avatar, AvatarFallback } from "@radix-ui/react-avatar";
+import { differenceInDays, format } from "date-fns";
+import { useRequestAssessorChangeDetail } from "../../queries/assessor-change-request";
+import Image from "next/image";
 
 
 const ApproveAssessorChangeModal: React.FC<IAssessorChangeApproveModalProps> = ({
@@ -23,8 +24,8 @@ const ApproveAssessorChangeModal: React.FC<IAssessorChangeApproveModalProps> = (
   idRequest
   
 }) => {
-    const { isLoading: loadingRequestDetail, data: dataRequestDetail} = useRequestAssessorChangeDetail(idRequest)
-    const statusConfig: Record<IRequestAssessorChangeRequestData['status'], { color: string; text: string }> = {
+    const { isLoading: loadingRequestDetail, data: dataRequestDetail} = useRequestAssessorChangeDetail(idRequest);
+    const statusConfig: Record<IRequestAssessorChangeRequestData["status"], { color: string; text: string }> = {
       pending: { color: "bg-yellow-200 text-yellow-800", text: "Pendiente" },
       approved: { color: "bg-green-200 text-green-800", text: "Aprobada" },
       rejected: { color: "bg-red-200 text-red-800", text: "Rechazada" },
@@ -45,7 +46,7 @@ const ApproveAssessorChangeModal: React.FC<IAssessorChangeApproveModalProps> = (
                             Cargando detalle de solicitud...
                         </p>
                     </div>
-                )
+                );
             if (dataRequestDetail)
                 return (
                     <Card className="mb-3 shadow-sm border">
@@ -53,7 +54,7 @@ const ApproveAssessorChangeModal: React.FC<IAssessorChangeApproveModalProps> = (
                             <div className="flex items-center gap-2 ">
                                 <Avatar className="h-8 w-8">
                                     {dataRequestDetail.student.urlPhoto ? (
-                                        <img
+                                        <Image
                                             src={dataRequestDetail.student.urlPhoto}
                                             alt={`User-photo-${dataRequestDetail.student.id}`}
                                             className='rounded-full'
@@ -78,7 +79,7 @@ const ApproveAssessorChangeModal: React.FC<IAssessorChangeApproveModalProps> = (
                                     <Calendar className="h-3.5 w-3.5 mt-0.5 text-gray-400" />
                                     <div>
                                         <span className="text-gray-500 text-[11px]">Solicitud:</span>
-                                        <span className="font-medium text-gray-800 block">{`${format(dataRequestDetail.registerTime, 'dd/MM/yyyy')} - ${format(dataRequestDetail.registerTime, 'hh:mm a')}`}</span>
+                                        <span className="font-medium text-gray-800 block">{`${format(dataRequestDetail.registerTime, "dd/MM/yyyy")} - ${format(dataRequestDetail.registerTime, "hh:mm a")}`}</span>
                                         <span className="text-gray-500 block">{`Hace ${differenceInDays(new Date(), dataRequestDetail.registerTime)} días`}</span>
                                     </div>
                                 </div>
@@ -87,7 +88,7 @@ const ApproveAssessorChangeModal: React.FC<IAssessorChangeApproveModalProps> = (
                                     <Calendar className="h-3.5 w-3.5 mt-0.5 text-gray-400" />
                                     <div>
                                         <span className="text-gray-500 text-[11px]">Fecha de respuesta:</span>
-                                        <span className="font-medium text-gray-800 block">{`${format(dataRequestDetail.responseTime, 'dd/MM/yyyy')} - ${format(dataRequestDetail.responseTime, 'hh:mm a')}`}</span>
+                                        <span className="font-medium text-gray-800 block">{`${format(dataRequestDetail.responseTime, "dd/MM/yyyy")} - ${format(dataRequestDetail.responseTime, "hh:mm a")}`}</span>
                                         <span className="text-gray-500 block">{`Hace ${differenceInDays(new Date(), dataRequestDetail.responseTime)} días`}</span>
                                     </div>
                                 </div>
@@ -107,7 +108,7 @@ const ApproveAssessorChangeModal: React.FC<IAssessorChangeApproveModalProps> = (
                                         <div className="flex items-center gap-2 p-2">
                                             <Avatar className="h-8 w-8">
                                             {advisor.urlPhoto ? (
-                                                <img
+                                                <Image
                                                     src={advisor.urlPhoto}
                                                     alt={`User-photo-${advisor.id}`}
                                                 />
@@ -125,7 +126,7 @@ const ApproveAssessorChangeModal: React.FC<IAssessorChangeApproveModalProps> = (
                                     ))}
                                 </div>
                             </div>
-                            {dataRequestDetail.status === 'rejected' && dataRequestDetail.response && (
+                            {dataRequestDetail.status === "rejected" && dataRequestDetail.response && (
                                 <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded">
                                     <p className="text-xs font-medium text-red-700 mb-0.5">Motivo del rechazo:</p>
                                     <p className="text-xs text-red-600 leading-snug line-clamp-2">{dataRequestDetail.response}</p>
@@ -136,12 +137,12 @@ const ApproveAssessorChangeModal: React.FC<IAssessorChangeApproveModalProps> = (
 
                         </CardContent>
                     </Card>
-                )
+                );
             
             
         return (
             <div>No se encontró informacion sobre esta solicitud de cambio de asesor</div>
-        )
+        );
         
         })()}
         <DialogFooter className="mt-4">

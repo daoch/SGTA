@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import React, { useEffect, useState } from "react";
 import { Search } from "lucide-react";
 import {
@@ -15,7 +15,6 @@ interface ISearchFilterParams{
     onSearchChange: (value: string) => void
     statusValue: IRequestTerminationConsultancyRequestStatus
     onStatusValueChange: (value: IRequestTerminationConsultancyRequestStatus) => void,
-    clearTerm: () => void
 }
 
 
@@ -24,8 +23,7 @@ const RequestSearchFilters: React.FC<ISearchFilterParams> = ({
   searchTerm,
   onSearchChange,
   statusValue,
-  onStatusValueChange,
-  clearTerm
+  onStatusValueChange
   
 }) => {
     const [localTerm, setLocalTerm] = useState(searchTerm);

@@ -1,26 +1,26 @@
-"use client"
+"use client";
 
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { CheckCircle, Users, BookOpen, GraduationCap, Loader2 } from "lucide-react"
-import { z } from "zod"
-import { toast } from "sonner"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { differenceInDays, format } from "date-fns"
-import { IAssessorChangeRequestAssignmentModalProps, IAssessorChangeSearchCriteriaAssessorListProps } from "../../types/assessor-change-request"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { CheckCircle, Users, BookOpen, GraduationCap, Loader2 } from "lucide-react";
+import { z } from "zod";
+import { toast } from "sonner";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { differenceInDays, format } from "date-fns";
+import { IAssessorChangeRequestAssignmentModalProps, IAssessorChangeSearchCriteriaAssessorListProps } from "../../types/assessor-change-request";
 
-import { useEffect, useState } from "react"
-import AssessorListAssessorChangeRequest from "./list-available-assessors"
-import { useApproveAssesorChangeRequest, useRequestAssessorChangeDetail } from "../../queries/assessor-change-request"
+import { useEffect, useState } from "react";
+import AssessorListAssessorChangeRequest from "./list-available-assessors";
+import { useApproveAssesorChangeRequest, useRequestAssessorChangeDetail } from "../../queries/assessor-change-request";
 //import { useDebounce } from "../../hooks/use-debounce"
 
 export function AssessorChangeAssignmentModal({ open, onOpenChange, idRequest, refetch }: Readonly<IAssessorChangeRequestAssignmentModalProps>) {
-  const initialSearchFilterAssessorsState: IAssessorChangeSearchCriteriaAssessorListProps = {"fullNameEmail": "", "page": 1}
+  const initialSearchFilterAssessorsState: IAssessorChangeSearchCriteriaAssessorListProps = {"fullNameEmail": "", "page": 1};
   const [searchCriteria, setSearchCriteria] = useState<IAssessorChangeSearchCriteriaAssessorListProps>(initialSearchFilterAssessorsState);
-  const [ selectedAssessorId, setSelectedAssessorId] = useState<number | null>(null)
-  const { isLoading: loadingRequestDetail, data: dataRequestDetail} = useRequestAssessorChangeDetail(idRequest)
+  const [ selectedAssessorId, setSelectedAssessorId] = useState<number | null>(null);
+  const { isLoading: loadingRequestDetail, data: dataRequestDetail} = useRequestAssessorChangeDetail(idRequest);
   const approveMutation = useApproveAssesorChangeRequest();
     useEffect(() => {
     setSearchCriteria((prev) => ({
@@ -34,8 +34,8 @@ export function AssessorChangeAssignmentModal({ open, onOpenChange, idRequest, r
   const handleSubmit = () => {
     try {
       if (!dataRequestDetail?.id){
-        console.error('No se obtuvo la informacion del detalle de la solicitud')
-        return
+        console.error("No se obtuvo la informacion del detalle de la solicitud");
+        return;
       }
       approveMutation.mutate(
         {
@@ -47,7 +47,7 @@ export function AssessorChangeAssignmentModal({ open, onOpenChange, idRequest, r
             toast.success("Asignación completada", {
               description: "Todos los alumnos han sido asignados correctamente",
             });
-            refetch()
+            refetch();
             onOpenChange(false);
           },
           onError: (error) => {
@@ -139,7 +139,7 @@ export function AssessorChangeAssignmentModal({ open, onOpenChange, idRequest, r
                         <span>Fecha de Solicitud</span>
                       </div>
                       <p className="text-sm font-medium">
-                        {`${format(dataRequestDetail.registerTime, 'dd/MM/yyyy')} - ${format(dataRequestDetail.registerTime, 'hh:mm a')}`}
+                        {`${format(dataRequestDetail.registerTime, "dd/MM/yyyy")} - ${format(dataRequestDetail.registerTime, "hh:mm a")}`}
                       </p>
                       <p className="text-xs text-gray-500 mt-1">{`Hace ${differenceInDays(new Date(), dataRequestDetail.registerTime)} días`}</p>
                     </div>
@@ -174,13 +174,13 @@ export function AssessorChangeAssignmentModal({ open, onOpenChange, idRequest, r
                     <AssessorListAssessorChangeRequest selectedAssessorId={selectedAssessorId} setSelectedAssessorId={setSelectedAssessorId} selectedIdThematicAreas={dataRequestDetail?.student?.topic?.thematicAreas.map((thematicArea)=>thematicArea.id) ?? []}/>
                 </div>
               </>
-            )
+            );
         })()}
         
         <DialogFooter className="mt-4">
           <Button
           variant="outline"
-          onClick={() => {onOpenChange(false)}}>
+          onClick={() => {onOpenChange(false);}}>
             Cancelar
           </Button>
           {isProcessing?
@@ -191,11 +191,11 @@ export function AssessorChangeAssignmentModal({ open, onOpenChange, idRequest, r
           <Button onClick={handleSubmit} disabled={selectedAssessorId===null}>
             {selectedAssessorId!==null
               ? "Guardar asignaciones"
-              : `Faltan asignar un asesor`}
+              : "Faltan asignar un asesor"}
           </Button>
           }
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

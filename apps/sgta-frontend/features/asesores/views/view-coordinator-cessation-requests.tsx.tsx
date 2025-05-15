@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { Card } from "@/components/ui/card"
-import { useCessationRequestSearchCriteriaStore } from "@/features/asesores/store/cessation-request-filters"
+import { Card } from "@/components/ui/card";
+import { useCessationRequestSearchCriteriaStore } from "@/features/asesores/store/cessation-request-filters";
 import RequestSearchFilters from "@/features/asesores/components/cessation-request/search-filters-request-list";
 import PendingAssessorChangeRequestsList from "@/features/asesores/components/cessation-request/list-pending-requests";
-import CessationRequestHistoryTable from "@/features/asesores/components/cessation-request/list-approved-rejected-requests"
+import CessationRequestHistoryTable from "@/features/asesores/components/cessation-request/list-approved-rejected-requests";
 import CessationRequestPagination from "@/features/asesores/components/cessation-request/pagination-cessation-request";
 import NotCessationRequestFound from "@/features/asesores/components/cessation-request/not-cessation-request-found";
 import CessationRequestDetail from "@/features/asesores/components/cessation-request/modal-detail";
@@ -16,37 +16,37 @@ import { ISelectRequestCessationOptions, ITerminationConsultancyRequest } from "
 
 
 const Page = () => {
-    const {fullNameEmail, page, status, setPage, clear, setStatusTabFilter, setFullNameEmailPage, clearFullNameEmailPage} = useCessationRequestSearchCriteriaStore()
-    const initialStateOption = {id: null, option: null, openModal: false}
+    const {fullNameEmail, page, status, setPage, clear, setStatusTabFilter, setFullNameEmailPage, clearFullNameEmailPage} = useCessationRequestSearchCriteriaStore();
+    const initialStateOption = {id: null, option: null, openModal: false};
     const [ selectOption, setSelectOption ] = useState<ISelectRequestCessationOptions>(initialStateOption);
-    const [ data, setData ] = useState<ITerminationConsultancyRequest | null>(null)
-    const [ isLoading, setIsLoading ] = useState<boolean>(true)
+    const [ data, setData ] = useState<ITerminationConsultancyRequest | null>(null);
+    const [ isLoading, setIsLoading ] = useState<boolean>(true);
     
     const fetchRequests = async () => {
-        setIsLoading(true)
-        const data = await getTerminationConsultancyList({"fullNameEmail": fullNameEmail, "status": status, "page": page})
+        setIsLoading(true);
+        const data = await getTerminationConsultancyList({"fullNameEmail": fullNameEmail, "status": status, "page": page});
         if (data)
-            setData(data)
-        setIsLoading(false)
-    }
+            setData(data);
+        setIsLoading(false);
+    };
 
     const handlePageChange = (page: number) => {
         setPage(page);
     };
 
     useEffect(()=>{
-        clear()
-    }, [])
+        clear();
+    }, []);
 
 
     useEffect(()=>{
-        fetchRequests()
-    }, [fullNameEmail, page, status])
+        fetchRequests();
+    }, [fullNameEmail, page, status]);
 
 
     const handleRefetch = async () =>{
-        fetchRequests()
-    }
+        fetchRequests();
+    };
 
     return(
         <div>
@@ -86,33 +86,33 @@ const Page = () => {
                                     Cargando solicitudes...
                                 </p>
                             </div>
-                        )
+                        );
                     if (data?.requestTermmination.length === 0)
                     return (
                         <NotCessationRequestFound type={status} appliedFilters={fullNameEmail !== ""}/>
-                    )
+                    );
                     return (
                         <div>
-                            {status === 'pending' ? (
+                            {status === "pending" ? (
                             <PendingAssessorChangeRequestsList
                                 requests={data?.requestTermmination ?? []}
                                 onApprove={
                                     (value)=>{
-                                        setSelectOption({id: value, option: "accept", openModal: true})
+                                        setSelectOption({id: value, option: "accept", openModal: true});
                                     }}
                                 onReject={
                                     (value)=>{
-                                        setSelectOption({id: value, option: "denny", openModal: true})
+                                        setSelectOption({id: value, option: "denny", openModal: true});
                                     }}
                             />
                             ) : (
                                 <CessationRequestHistoryTable
                                     requests={data?.requestTermmination ?? []}
-                                    onViewDetails={(value)=>{setSelectOption({id: value, option: "detail", openModal: true})}}
+                                    onViewDetails={(value)=>{setSelectOption({id: value, option: "detail", openModal: true});}}
                                 />
                             )}
                         </div>
-                    )
+                    );
                 })()}
                 
                 {/* Pagination */}
@@ -134,7 +134,7 @@ const Page = () => {
                             open={selectOption?.option === "accept"}
                             onOpenChange={(isOpen) => {
                                 if (!isOpen) {
-                                    setSelectOption(initialStateOption)
+                                    setSelectOption(initialStateOption);
                                 }
                             }}
                             idRequest={selectOption.id}  
@@ -158,7 +158,7 @@ const Page = () => {
 
             </div>
         </div>
-    )
-}
+    );
+};
 
-export default Page
+export default Page;

@@ -16,7 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { IAssessorChangeRejectModalProps } from "@/features/asesores/types/assessor-change-request";
 import { useRejectAssessorChangeRequest, useRequestAssessorChangeDetail } from "../../queries/assessor-change-request";
 
-const MAX_CHARACTERS_ALLOWED = 250
+const MAX_CHARACTERS_ALLOWED = 250;
 
 const motivoSchema = z
   .string()
@@ -33,7 +33,7 @@ export default function RejectAssessorChangeModal({
   const [motivo, setMotivo] = useState("");
   const [clientError, setClientError] = useState<string | null>(null);
   const [validText, setValidText] = useState(true);
-  const { isLoading: loadingRequestDetail, data: dataRequestDetail} = useRequestAssessorChangeDetail(idRequest)
+  const { isLoading: loadingRequestDetail, data: dataRequestDetail} = useRequestAssessorChangeDetail(idRequest);
   const rejectMutation = useRejectAssessorChangeRequest();
 
   const validateMutation = useMutation({
@@ -72,7 +72,7 @@ export default function RejectAssessorChangeModal({
         {
           onSuccess: () => {
             setMotivo("");
-            refetch()
+            refetch();
             onClose();
           },
           onError: (error) => {
@@ -119,7 +119,7 @@ export default function RejectAssessorChangeModal({
                 <Loader2 className="h-5 w-5 animate-spin" />
                 <p className="mt-4">Cargando detalle de solicitud...</p>
               </div>
-          )
+          );
           if (dataRequestDetail) 
             return (
           <div className="mt-4 max-w-[380px]">
@@ -142,11 +142,11 @@ export default function RejectAssessorChangeModal({
               </p>
             )}
           </div>
-          )
+          );
          
           return (
             <div>No se encontró información sobre esta solicitud de cese</div>
-          )
+          );
         })()}
 
         <DialogFooter className="mt-4">

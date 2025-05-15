@@ -35,7 +35,7 @@ export default function RejectCessationModal({
   const [clientError, setClientError] = useState<string | null>(null);
   const [validText, setValidText] = useState(true);
   const rejectMutation = useRejectTerminationRequest();
-  const { isLoading: loadingRequestDetail, data: dataRequestDetail} = useRequestTerminationDetail(idRequest)
+  const { isLoading: loadingRequestDetail, data: dataRequestDetail} = useRequestTerminationDetail(idRequest);
 
   const validateMutation = useMutation({
     mutationFn: async (text: string) => {
@@ -71,7 +71,7 @@ export default function RejectCessationModal({
         {
           onSuccess: () => {
             setMotivo("");
-            refetch()
+            refetch();
             onClose();
           },
           onError: (error) => {

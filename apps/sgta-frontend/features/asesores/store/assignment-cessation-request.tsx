@@ -60,7 +60,7 @@ export const useCessationRequestAssignmentStore = create<ICessationRequestAssign
   removeAssignedAdvisor: (advisorId) => {
     const { assignedAdvisors } = get();
     const { students } = get();
-    const quantityOfAdvisorReferencesStudents = students.filter(student => student.advisorId === advisorId).length
+    const quantityOfAdvisorReferencesStudents = students.filter(student => student.advisorId === advisorId).length;
     
     if (quantityOfAdvisorReferencesStudents === 0){
       const updatedAdvisors = assignedAdvisors.filter(a => a.id !== advisorId);
@@ -83,7 +83,7 @@ export const useCessationRequestAssignmentStore = create<ICessationRequestAssign
         ? { ...student, advisorId: advisorId }
         : student
     );
-    const updatedSelectedStudent = updatedStudents.find((student)=>student.id === selectedStudent?.id)
+    const updatedSelectedStudent = updatedStudents.find((student)=>student.id === selectedStudent?.id);
     // Update selected student status
     set({ selectedStudent: updatedSelectedStudent });
     // Update students status
@@ -98,7 +98,7 @@ export const useCessationRequestAssignmentStore = create<ICessationRequestAssign
         ? { ...student, advisorId: null }
         : student
     );
-    const updatedSelectedStudent = updatedStudents.find((student)=>student.id === selectedStudent?.id)
+    const updatedSelectedStudent = updatedStudents.find((student)=>student.id === selectedStudent?.id);
     // Update selected student status
     set({ selectedStudent: updatedSelectedStudent });
     // Update students status
@@ -106,41 +106,41 @@ export const useCessationRequestAssignmentStore = create<ICessationRequestAssign
   },
 
   isStudentAssigned: (studentId) => {
-    const { assignedStudents } = get()
-    return !!assignedStudents[studentId]
+    const { assignedStudents } = get();
+    return !!assignedStudents[studentId];
   },
 
   getAssignedAdvisor: (studentId) => {
-    const { assignedStudents, advisors } = get()
-    const advisorId = assignedStudents[studentId]
-    if (!advisorId) return null
+    const { assignedStudents, advisors } = get();
+    const advisorId = assignedStudents[studentId];
+    if (!advisorId) return null;
 
-    return advisors.find((advisor) => advisor.id === advisorId) || null
+    return advisors.find((advisor) => advisor.id === advisorId) || null;
   },
 
   getAdvisorAssignedCount: (advisorId) => {
-    const { assignedStudents } = get()
-    return Object.values(assignedStudents).filter((id) => id === advisorId).length
+    const { assignedStudents } = get();
+    return Object.values(assignedStudents).filter((id) => id === advisorId).length;
   },
 
   getUnassignedStudentsCount: () => {
-    const { students, assignedStudents } = get()
-    return students.length - Object.keys(assignedStudents).length
+    const { students, assignedStudents } = get();
+    return students.length - Object.keys(assignedStudents).length;
   },
 
 
   getAssignedAdvisors: () => {
-    const {assignedAdvisors} = get()
-    return assignedAdvisors
+    const {assignedAdvisors} = get();
+    return assignedAdvisors;
   },
 
   getStudentsByAdvisor: (advisorId) => {
-    const { students, assignedStudents } = get()
+    const { students, assignedStudents } = get();
     const studentIds = Object.entries(assignedStudents)
     .filter(([_, aId]) => aId === advisorId)
-    .map(([sId]) => Number(sId))
+    .map(([sId]) => Number(sId));
   
-    return students.filter((student) => studentIds.includes(student.id))
+    return students.filter((student) => studentIds.includes(student.id));
   },
 
 
@@ -151,4 +151,4 @@ export const useCessationRequestAssignmentStore = create<ICessationRequestAssign
     assignedStudents: {},
     assignedAdvisors: []
   }),
-}))
+}));

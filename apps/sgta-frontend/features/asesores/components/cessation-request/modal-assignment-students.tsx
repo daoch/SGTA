@@ -1,48 +1,49 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { CheckCircle, Loader2, Users } from "lucide-react"
-import { StudentList } from "@/features/asesores/components/cessation-request/student-list"
-import AdvisorList from "@/features/asesores/components/cessation-request/list-available-assessors"
-import { AssignedAdvisorsList } from "./assigned-advisor-list" 
-import { z } from "zod"
-import { toast } from "sonner"
-import { ICessationRequestAssignmentModalProps } from "@/features/asesores/types/cessation-request"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { differenceInDays, format } from "date-fns"
-import { useApproveTerminationRequest, useRequestTerminationDetail } from "@/features/asesores/queries/cessation-request"
-import { useCessationRequestAssignmentStore } from "../../store/assignment-cessation-request"
+import { useEffect, useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CheckCircle, Loader2, Users } from "lucide-react";
+import { StudentList } from "@/features/asesores/components/cessation-request/student-list";
+import AdvisorList from "@/features/asesores/components/cessation-request/list-available-assessors";
+import { AssignedAdvisorsList } from "./assigned-advisor-list"; 
+import { z } from "zod";
+import { toast } from "sonner";
+import { ICessationRequestAssignmentModalProps } from "@/features/asesores/types/cessation-request";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { differenceInDays, format } from "date-fns";
+import { useApproveTerminationRequest, useRequestTerminationDetail } from "@/features/asesores/queries/cessation-request";
+import { useCessationRequestAssignmentStore } from "../../store/assignment-cessation-request";
+import Image from "next/image";
 
 
 
 export function AssignmentModal({ open, onOpenChange, idRequest, refetch }: Readonly<ICessationRequestAssignmentModalProps>) {
-  const { students, setStudents, selectedStudent, assignedStudents, clear} = useCessationRequestAssignmentStore()
-  const [ activeTab, setActiveTab ] = useState("list")
-  const { isLoading: loadingRequestDetail, data: dataRequestDetail} = useRequestTerminationDetail(idRequest)
+  const { students, setStudents, selectedStudent, assignedStudents, clear} = useCessationRequestAssignmentStore();
+  const [ activeTab, setActiveTab ] = useState("list");
+  const { isLoading: loadingRequestDetail, data: dataRequestDetail} = useRequestTerminationDetail(idRequest);
   const approveMutation = useApproveTerminationRequest();
 
   // Clear data state from previous state 
   useEffect(()=>{
-    clear()
-  },[])
+    clear();
+  },[clear]);
   
   useEffect(()=>{
     if(dataRequestDetail)
-      setStudents(dataRequestDetail?.students ?? [])
-  }, [dataRequestDetail])
+      setStudents(dataRequestDetail?.students ?? []);
+  }, [dataRequestDetail, setStudents]);
   
   const isProcessing = approveMutation.status === "pending";
-  const countAssignedStudents = students.filter((student)=>student.advisorId!==null).length
-  const countUnassignedStudents = students.filter((student)=>student.advisorId===null).length
+  const countAssignedStudents = students.filter((student)=>student.advisorId!==null).length;
+  const countUnassignedStudents = students.filter((student)=>student.advisorId===null).length;
 
   const handleSubmit = () => {
     try {
       const assignmentSchema = z.object({
         assignedStudents: z.record(z.string()).refine(
-          (data) => countUnassignedStudents===0,
+          () => countUnassignedStudents===0,
           {
             message: "Todos los alumnos deben tener un asesor asignado",
           }
@@ -54,8 +55,8 @@ export function AssignmentModal({ open, onOpenChange, idRequest, refetch }: Read
       assignmentSchema.parse({ assignedStudents });
 
       if (!dataRequestDetail?.id){
-        console.error('No se obtuvo la informacion del detalle de la solicitud')
-        return
+        console.error("No se obtuvo la informacion del detalle de la solicitud");
+        return;
       }
       approveMutation.mutate(
         {
@@ -67,7 +68,7 @@ export function AssignmentModal({ open, onOpenChange, idRequest, refetch }: Read
             toast.success("Asignación completada", {
               description: "Todos los alumnos han sido asignados correctamente",
             });
-            refetch()
+            refetch();
             onOpenChange(false);
           },
           onError: (error) => {
@@ -78,7 +79,7 @@ export function AssignmentModal({ open, onOpenChange, idRequest, refetch }: Read
           },
         }
       );
-      refetch()
+      refetch();
     } catch (error) {
       if (error instanceof z.ZodError) {
         toast.error("Error de validación", {
@@ -120,7 +121,7 @@ export function AssignmentModal({ open, onOpenChange, idRequest, refetch }: Read
                   <div className="flex items-center gap-2 min-w-[200px]">
                     <Avatar className="h-10 w-10">
                       {dataRequestDetail.assessor.urlPhoto ? (
-                        <img
+                        <Image
                           src={dataRequestDetail.assessor.urlPhoto}
                           alt={`User-photo-${dataRequestDetail.assessor.id}`}
                           className="rounded-full"
@@ -139,7 +140,7 @@ export function AssignmentModal({ open, onOpenChange, idRequest, refetch }: Read
                   <div className="min-w-[200px]">
                     <p className="text-[11px] text-gray-500">Fecha de Solicitud:</p>
                     <p className="font-medium text-gray-800">
-                      {`${format(dataRequestDetail.registerTime, 'dd/MM/yyyy')} - ${format(dataRequestDetail.registerTime, 'hh:mm a')}`}
+                      {`${format(dataRequestDetail.registerTime, "dd/MM/yyyy")} - ${format(dataRequestDetail.registerTime, "hh:mm a")}`}
                     </p>
                     <p className="text-gray-500">{`Hace ${differenceInDays(new Date(), dataRequestDetail.registerTime)} días`}</p>
                   </div>
@@ -207,7 +208,7 @@ export function AssignmentModal({ open, onOpenChange, idRequest, refetch }: Read
         <DialogFooter className="mt-4">
           <Button
           variant="outline"
-          onClick={() => {onOpenChange(false)}}>
+          onClick={() => {onOpenChange(false);}}>
             Cancelar
           </Button>
           {isProcessing?
@@ -224,5 +225,5 @@ export function AssignmentModal({ open, onOpenChange, idRequest, refetch }: Read
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

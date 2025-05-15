@@ -5,15 +5,15 @@ export async function getAssessorChangeRequestList(
     searchCriteria: IChangeAssessorRequestSearchFields
 ): Promise<IRequestAssessorChange | null> {
   
-  const BASE_URL = process.env.BASE_URL??"http://localhost:5000/"
-    const ELEMENTS_PER_PAGE = 10
-    const urlFetch = `${BASE_URL}coordinators/advisor-change-requests?page=${searchCriteria.page}&size=${ELEMENTS_PER_PAGE}`
+  const BASE_URL = process.env.BASE_URL??"http://localhost:5000/";
+    const ELEMENTS_PER_PAGE = 10;
+    const urlFetch = `${BASE_URL}coordinators/advisor-change-requests?page=${searchCriteria.page}&size=${ELEMENTS_PER_PAGE}`;
     try {
         const response = await fetch(urlFetch, {
-            method: 'GET',
-            mode: 'cors',
+            method: "GET",
+            mode: "cors",
             headers: {
-                'Content-Type': 'application/json',
+                "Content-Type": "application/json",
             },
         });
 
@@ -32,13 +32,13 @@ export async function getAssessorChangeRequestList(
         return {
             "assessorChangeRequests": assessorChangeRequestsTransformedDates,
             "totalPages": data.totalPages
-        }
+        };
     } catch (error) {
         console.error(`Error al hacer fetch en ${urlFetch}:`, error);
         return {
             "assessorChangeRequests": 	[],
             "totalPages": 0
-        }
+        };
     }  
 }
 
@@ -47,14 +47,14 @@ export async function getAssessorChangeRequestList(
 export async function getAssessorChangeRequestDetail(
     idRequest: number | null
 ): Promise<IRequestAssessorChangeRequestDataDetail | null> {
-    const BASE_URL = process.env.BASE_URL??"http://localhost:5000/"
-    const urlFetch = `${BASE_URL}coordinators/advisor-change-requests/${idRequest}`
+    const BASE_URL = process.env.BASE_URL??"http://localhost:5000/";
+    const urlFetch = `${BASE_URL}coordinators/advisor-change-requests/${idRequest}`;
     try {
         const response = await fetch(urlFetch, {
-            method: 'GET',
-            mode: 'cors',
+            method: "GET",
+            mode: "cors",
             headers: {
-                'Content-Type': 'application/json',
+                "Content-Type": "application/json",
             },
         });
 
@@ -68,10 +68,10 @@ export async function getAssessorChangeRequestDetail(
             registerTime: new Date(data.registerTime),
             responseTime: new Date(data.responseTime)
         };
-        return termminationRequestsTransformedDates
+        return termminationRequestsTransformedDates;
     } catch (error) {
         console.error(`Error al hacer fetch en ${urlFetch}:`, error);
-        return null
+        return null;
     }
 }
 
@@ -80,15 +80,15 @@ export async function rejectAssessorChangeRequest(
   requestId: number,
   responseText: string
 ): Promise<void> {
-    const BASE_URL = process.env.BASE_URL??"http://localhost:5000/"
+    const BASE_URL = process.env.BASE_URL??"http://localhost:5000/";
     const url = `${BASE_URL}coordinators/advisor-change-requests/${requestId}/reject`;
 
   try {
     const res = await fetch(url, {
-      method: 'POST',
-      mode: 'cors',
+      method: "POST",
+      mode: "cors",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         response: responseText,
@@ -112,15 +112,15 @@ export async function approveAssessorChangeRequest(
   requestId: number,
   responseText: string
 ): Promise<void> {
-  const BASE_URL = process.env.BASE_URL??"http://localhost:5000/"
+  const BASE_URL = process.env.BASE_URL??"http://localhost:5000/";
   const url = `${BASE_URL}coordinators/advisor-change-requests/${requestId}/approve`;
   
   try {
     const res = await fetch(url, {
-      method: 'POST',
-      mode: 'cors',
+      method: "POST",
+      mode: "cors",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         response: responseText,

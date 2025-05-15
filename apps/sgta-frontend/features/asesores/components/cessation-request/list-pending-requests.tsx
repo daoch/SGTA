@@ -1,7 +1,7 @@
 // src/features/academic-staff-management/components/PendingRequestsList.tsx
-import React from 'react';
-import { IRequestTerminationConsultancyRequestData } from '@/features/asesores/types/cessation-request';
-import CessationRequestCard from '@/features/asesores/components/cessation-request/card-request';
+import React from "react";
+import { IRequestTerminationConsultancyRequestData } from "@/features/asesores/types/cessation-request";
+import CessationRequestCard from "@/features/asesores/components/cessation-request/card-request";
 
 interface PendingRequestsListProps {
   requests: Array<IRequestTerminationConsultancyRequestData>;
@@ -17,8 +17,8 @@ const PendingCessationRequestsList: React.FC<PendingRequestsListProps> = ({ requ
             <CessationRequestCard 
                 key={`request-${request.id}`}
                 request={request}
-                onApprove={()=>{onApprove(request.id)}}
-                onReject={()=>{onReject(request.id)}}
+                onApprove={()=>{onApprove(request.id);}}
+                onReject={()=>{onReject(request.id);}}
             />
         ))
         }

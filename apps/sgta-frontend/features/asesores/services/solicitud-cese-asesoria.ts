@@ -1,4 +1,4 @@
-import { ITerminationConsultancyRequest, IRequestTerminationConsultancySearchFields, IListAvailableAdvisorList, ICessationRequestSearchCriteriaAvailableAdvisorList, ITerminationConsultancyRequestFetched, IRequestTerminationConsultancyRequestDataViewDetail, IRequestTerminationConsultancyRequestDataViewDetailFetched } from "@/features/asesores/types/cessation-request"
+import { ITerminationConsultancyRequest, IRequestTerminationConsultancySearchFields, IListAvailableAdvisorList, ICessationRequestSearchCriteriaAvailableAdvisorList, ITerminationConsultancyRequestFetched, IRequestTerminationConsultancyRequestDataViewDetail, IRequestTerminationConsultancyRequestDataViewDetailFetched } from "@/features/asesores/types/cessation-request";
 
 
 
@@ -7,16 +7,16 @@ import { ITerminationConsultancyRequest, IRequestTerminationConsultancySearchFie
 export async function getTerminationConsultancyList(
     searchCriteria: IRequestTerminationConsultancySearchFields
 ): Promise<ITerminationConsultancyRequest> {
-    const BASE_URL = process.env.BASE_URL??"http://localhost:5000/"
-    const ELEMENTS_PER_PAGE = 10
-    const urlFetch = `${BASE_URL}coordinators/cessation-requests?page=${searchCriteria.page}&size=${ELEMENTS_PER_PAGE}`
+    const BASE_URL = process.env.BASE_URL??"http://localhost:5000/";
+    const ELEMENTS_PER_PAGE = 10;
+    const urlFetch = `${BASE_URL}coordinators/cessation-requests?page=${searchCriteria.page}&size=${ELEMENTS_PER_PAGE}`;
     
     try {
         const response = await fetch(urlFetch, {
-            method: 'GET',
-            mode: 'cors',
+            method: "GET",
+            mode: "cors",
             headers: {
-                'Content-Type': 'application/json',
+                "Content-Type": "application/json",
             },
         });
 
@@ -35,13 +35,13 @@ export async function getTerminationConsultancyList(
         return {
             "requestTermmination": 	termminationRequestsTransformedDates,
 	        "totalPages": data.totalPages
-        }
+        };
     } catch (error) {
         console.error(`Error al hacer fetch en ${urlFetch}:`, error);
         return {
             "requestTermmination": 	[],
 	        "totalPages": 0
-        }
+        };
     }    
 }
   
@@ -50,15 +50,15 @@ export async function rejectTerminationConsultancyRequest(
   requestId: number,
   responseText: string
 ): Promise<void> {
-    const BASE_URL = process.env.BASE_URL??"http://localhost:5000/"
+    const BASE_URL = process.env.BASE_URL??"http://localhost:5000/";
     const url = `${BASE_URL}coordinators/cessation-requests/${requestId}/reject`;
 
   try {
     const res = await fetch(url, {
-      method: 'POST',
-      mode: 'cors',
+      method: "POST",
+      mode: "cors",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         response: responseText,
@@ -81,14 +81,14 @@ export async function approveTerminationConsultancyRequest(
   requestId: number,
   responseText: string
 ): Promise<void> {
-  const BASE_URL = process.env.BASE_URL??"http://localhost:5000/"
+  const BASE_URL = process.env.BASE_URL??"http://localhost:5000/";
   const url = `${BASE_URL}coordinators/cessation-requests/${requestId}/approve`;
   try {
     const res = await fetch(url, {
-      method: 'POST',
-      mode: 'cors',
+      method: "POST",
+      mode: "cors",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         response: responseText,
@@ -111,15 +111,15 @@ export async function approveTerminationConsultancyRequest(
 export async function getTerminationConsultancyRequest(
     idRequest: number | null
 ): Promise<IRequestTerminationConsultancyRequestDataViewDetail | null> {
-    const BASE_URL = process.env.BASE_URL??"http://localhost:5000/"
+    const BASE_URL = process.env.BASE_URL??"http://localhost:5000/";
     const url = `${BASE_URL}coordinators/coordinators/cessation-requests/viewDetail`;
     
     try {
         const res = await fetch(url, {
-        method: 'POST',
-        mode: 'cors',
+        method: "POST",
+        mode: "cors",
         headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
         },
         body: JSON.stringify({
             id: idRequest,
@@ -128,7 +128,7 @@ export async function getTerminationConsultancyRequest(
 
         if (!res.ok) {
             console.error(`Error al obtener solicitud: ${res.status}`);
-            return null
+            return null;
         }
         console.log(`Solicitud ${idRequest} obtenida con éxito`);
         const data: IRequestTerminationConsultancyRequestDataViewDetailFetched = await res.json();
@@ -141,11 +141,11 @@ export async function getTerminationConsultancyRequest(
             : data.students
         };
 
-        return termminationRequestsTransformedDates
+        return termminationRequestsTransformedDates;
 
     } catch (error) {
         console.error(`Error al hacer POST en ${url}:`, error);
-        return null
+        return null;
     }
 }
 
@@ -156,14 +156,14 @@ export async function getTerminationRequestAssessorList(
     searchCriteriaAvailableAdvisorList: ICessationRequestSearchCriteriaAvailableAdvisorList
 ): Promise<IListAvailableAdvisorList | null> {
     const ELEMENTS_PER_PAGE = 10;
-    const BASE_URL = process.env.BASE_URL??"http://localhost:5000/"
+    const BASE_URL = process.env.BASE_URL??"http://localhost:5000/";
     const url = `${BASE_URL}coordinators/cessation-requests/assessors/list`;
     try {
         const res = await fetch(url, {
-        method: 'POST',
-        mode: 'cors',
+        method: "POST",
+        mode: "cors",
         headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
         },
         body: JSON.stringify({
             "idThematicAreas": searchCriteriaAvailableAdvisorList.idThematicAreas,
@@ -176,12 +176,12 @@ export async function getTerminationRequestAssessorList(
         if (!res.ok) {
         throw new Error(`Error al rechazar solicitud: ${res.status}`);
         }
-        const data = await res.json()
-        return data
+        const data = await res.json();
+        return data;
         
     } catch (error) {
         console.error(`Error al hacer POST en ${url}:`, error);
-        return null
+        return null;
     }
     
 }

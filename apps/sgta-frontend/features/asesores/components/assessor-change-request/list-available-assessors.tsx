@@ -1,26 +1,27 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Loader2, User, UserMinus, UserPlus } from "lucide-react"
-import { useDebounce } from "@/features/asesores/hooks/use-debounce"
-import { IAssessorChangeAvailableAssessorsListProps, IAssessorChangeRequestSearchCriteriaAvailableAdvisorList } from "@/features/asesores/types/assessor-change-request"
+import { useState, useEffect } from "react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Loader2, User, UserMinus, UserPlus } from "lucide-react";
+import { useDebounce } from "@/features/asesores/hooks/use-debounce";
+import { IAssessorChangeAvailableAssessorsListProps, IAssessorChangeRequestSearchCriteriaAvailableAdvisorList } from "@/features/asesores/types/assessor-change-request";
 
-import AssessorChangeRequestPagination from "@/features/asesores/components/assessor-change-request/pagination-assessor-change-request"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { useAssessorChangeRequestAdvisorPerThematicArea } from "../../queries/assessor-change-request"
+import AssessorChangeRequestPagination from "@/features/asesores/components/assessor-change-request/pagination-assessor-change-request";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useAssessorChangeRequestAdvisorPerThematicArea } from "../../queries/assessor-change-request";
+import Image from "next/image";
 
 
 
 export default function AssessorListAssessorChangeRequest({selectedAssessorId, setSelectedAssessorId, selectedIdThematicAreas}: Readonly<IAssessorChangeAvailableAssessorsListProps>) {
-  const initialStateSearchCriteria: IAssessorChangeRequestSearchCriteriaAvailableAdvisorList = {idThematicAreas: selectedIdThematicAreas, fullNameEmailCode: "", page: 1}
-  const [ searchCriteria, setSearchCriteria ] = useState(initialStateSearchCriteria)
-  const debouncedSearchTerm = useDebounce(searchCriteria.fullNameEmailCode, 2000)
+  const initialStateSearchCriteria: IAssessorChangeRequestSearchCriteriaAvailableAdvisorList = {idThematicAreas: selectedIdThematicAreas, fullNameEmailCode: "", page: 1};
+  const [ searchCriteria, setSearchCriteria ] = useState(initialStateSearchCriteria);
+  const debouncedSearchTerm = useDebounce(searchCriteria.fullNameEmailCode, 2000);
   const [localTerm, setLocalTerm] = useState(searchCriteria.fullNameEmailCode);
-  const { isLoading, data } = useAssessorChangeRequestAdvisorPerThematicArea(searchCriteria)
+  const { isLoading, data } = useAssessorChangeRequestAdvisorPerThematicArea(searchCriteria);
 
   const debouncedTerm = useDebounce(localTerm, 1500);
   useEffect(() => {
@@ -51,12 +52,12 @@ export default function AssessorListAssessorChangeRequest({selectedAssessorId, s
     setSearchCriteria((prev)=>({
       ...prev,
       page: page
-    }))
+    }));
   };
 
   const handleUnselectAssessor = () => {
-    setSelectedAssessorId(null)
-  }
+    setSelectedAssessorId(null);
+  };
 
   const handleSelectAssessor = (id: number) => {
   return () => {
@@ -132,7 +133,7 @@ export default function AssessorListAssessorChangeRequest({selectedAssessorId, s
                         <div className="h-10 w-10 rounded-full overflow-hidden">
                           <Avatar className="h-8 w-8">
                             {advisor.urlPhoto ? (
-                                <img
+                                <Image
                                     src={advisor.urlPhoto}
                                     alt={`User-photo-${advisor.firstName}`}
                                     className='rounded-full'
@@ -181,7 +182,7 @@ export default function AssessorListAssessorChangeRequest({selectedAssessorId, s
                               >
                                 <UserMinus className="h-4 w-4" />
                               </Button>
-                          )
+                          );
                           if (!isAtCapacity)
                             return (
                               <Button
@@ -191,12 +192,12 @@ export default function AssessorListAssessorChangeRequest({selectedAssessorId, s
                               >
                                 <UserPlus className="h-4 w-4" />
                               </Button>
-                            )
+                            );
                           return (
                             <Button size="sm" variant="outline" disabled>
                               <User className="h-4 w-4" />
                             </Button>
-                          )
+                          );
                         })()}
                       </TableCell>
                     </TableRow>
@@ -219,5 +220,5 @@ export default function AssessorListAssessorChangeRequest({selectedAssessorId, s
         </div>
       </div>
     </div>
-  )
+  );
 }

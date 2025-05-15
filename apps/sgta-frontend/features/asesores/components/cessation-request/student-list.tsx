@@ -1,29 +1,30 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useCessationRequestAssignmentStore } from "@/features/asesores/store/assignment-cessation-request" 
-import { Checkbox } from "@/components/ui/checkbox"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { CheckCircle } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { useState } from "react";
+import { useCessationRequestAssignmentStore } from "@/features/asesores/store/assignment-cessation-request"; 
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { CheckCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 export function StudentList() {
-  const { students, selectedStudent, selectStudent } = useCessationRequestAssignmentStore()
-  const [searchTerm, setSearchTerm] = useState("")
+  const { students, selectedStudent, selectStudent } = useCessationRequestAssignmentStore();
+  const [searchTerm, setSearchTerm] = useState("");
 
   const filteredStudents = students.filter((student) => {
     
 
-    const fullName = `${student.name} ${student.lastName}`.toLowerCase()
-    const searchLower = searchTerm.toLowerCase()
+    const fullName = `${student.name} ${student.lastName}`.toLowerCase();
+    const searchLower = searchTerm.toLowerCase();
 
     return (
       fullName.includes(searchLower) ||
       student.code.toLowerCase().includes(searchLower) ||
       student.email.toLowerCase().includes(searchLower)
-    )
-  })
+    );
+  });
 
   return (
     <div className="h-full flex flex-col">
@@ -36,8 +37,8 @@ export function StudentList() {
 
       <div className="space-y-2 overflow-y-auto pr-1 flex-1">
         {filteredStudents.map((student) => {
-          const isAssigned = student.advisorId !== null
-          const isSelected = selectedStudent?.id === student.id
+          const isAssigned = student.advisorId !== null;
+          const isSelected = selectedStudent?.id === student.id;
 
           return (
             <div
@@ -55,7 +56,7 @@ export function StudentList() {
               />
 
               <div className="relative h-10 w-10 rounded-full overflow-hidden">
-                <img
+                <Image
                   src={student.urlPhoto ?? "/placeholder.svg"}
                   alt={`${student.name} ${student.lastName}`}
                   className="object-cover h-full w-full"
@@ -83,7 +84,7 @@ export function StudentList() {
                 </div>
               </div>
             </div>
-          )
+          );
         })}
 
         {filteredStudents.length === 0 && (
@@ -91,5 +92,5 @@ export function StudentList() {
         )}
       </div>
     </div>
-  )
+  );
 }

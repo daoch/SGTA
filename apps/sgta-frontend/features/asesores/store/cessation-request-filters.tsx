@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { create } from "zustand";
 import { IRequestTerminationConsultancyRequestStatus, ICessationRequestSearchFieldsStore } from "@/features/asesores/types/cessation-request";

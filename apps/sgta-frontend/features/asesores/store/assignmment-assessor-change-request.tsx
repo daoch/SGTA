@@ -1,5 +1,5 @@
-import { create } from "zustand"
-import { IAssessorChangeRequestAdvisorAssign, IAssessorChangeRequestStudentAssign } from "../types/assessor-change-request"
+import { create } from "zustand";
+import { IAssessorChangeRequestAdvisorAssign, IAssessorChangeRequestStudentAssign } from "../types/assessor-change-request";
 
 interface IAssessorChangeRequestAssignmentState {
   students: IAssessorChangeRequestStudentAssign[]
@@ -59,8 +59,8 @@ export const useAssessorChangeAssignmentStore = create<IAssessorChangeRequestAss
   removeAssignedAdvisor: (advisorId) => {
     const { assignedAdvisors } = get();
     const { students } = get();
-    const quantityOfAdvisorReferencesStudents = students.filter(student => student.advisorId === advisorId).length
-    console.log(students)
+    const quantityOfAdvisorReferencesStudents = students.filter(student => student.advisorId === advisorId).length;
+    console.log(students);
     if (quantityOfAdvisorReferencesStudents === 0){
       const updatedAdvisors = assignedAdvisors.filter(a => a.id !== advisorId);
       set({ assignedAdvisors: updatedAdvisors });
@@ -82,7 +82,7 @@ export const useAssessorChangeAssignmentStore = create<IAssessorChangeRequestAss
         ? { ...student, advisorId: advisorId }
         : student
     );
-    const updatedSelectedStudent = updatedStudents.find((student)=>student.id === selectedStudent?.id)
+    const updatedSelectedStudent = updatedStudents.find((student)=>student.id === selectedStudent?.id);
     // Update selected student status
     set({ selectedStudent: updatedSelectedStudent });
     // Update students status
@@ -97,7 +97,7 @@ export const useAssessorChangeAssignmentStore = create<IAssessorChangeRequestAss
         ? { ...student, advisorId: null }
         : student
     );
-    const updatedSelectedStudent = updatedStudents.find((student)=>student.id === selectedStudent?.id)
+    const updatedSelectedStudent = updatedStudents.find((student)=>student.id === selectedStudent?.id);
     // Update selected student status
     set({ selectedStudent: updatedSelectedStudent });
     // Update students status
@@ -105,42 +105,42 @@ export const useAssessorChangeAssignmentStore = create<IAssessorChangeRequestAss
   },
 
   isStudentAssigned: (studentId) => {
-    const { assignedStudents } = get()
-    return !!assignedStudents[studentId]
+    const { assignedStudents } = get();
+    return !!assignedStudents[studentId];
   },
 
   getAssignedAdvisor: (studentId) => {
-    const { assignedStudents, advisors } = get()
-    const advisorId = assignedStudents[studentId]
-    if (!advisorId) return null
+    const { assignedStudents, advisors } = get();
+    const advisorId = assignedStudents[studentId];
+    if (!advisorId) return null;
 
-    return advisors.find((advisor) => advisor.id === advisorId) || null
+    return advisors.find((advisor) => advisor.id === advisorId) || null;
   },
 
   getAdvisorAssignedCount: (advisorId) => {
-    const { assignedStudents } = get()
-    return Object.values(assignedStudents).filter((id) => id === advisorId).length
+    const { assignedStudents } = get();
+    return Object.values(assignedStudents).filter((id) => id === advisorId).length;
   },
 
   getUnassignedStudentsCount: () => {
-    const { students, assignedStudents } = get()
-    return students.length - Object.keys(assignedStudents).length
+    const { students, assignedStudents } = get();
+    return students.length - Object.keys(assignedStudents).length;
   },
 
 
 
   getAssignedAdvisors: () => {
-    const {assignedAdvisors} = get()
-    return assignedAdvisors
+    const {assignedAdvisors} = get();
+    return assignedAdvisors;
   },
 
   getStudentsByAdvisor: (advisorId) => {
-    const { students, assignedStudents } = get()
+    const { students, assignedStudents } = get();
     const studentIds = Object.entries(assignedStudents)
     .filter(([_, aId]) => aId === advisorId)
-    .map(([sId]) => Number(sId))
+    .map(([sId]) => Number(sId));
   
-    return students.filter((student) => studentIds.includes(student.id))
+    return students.filter((student) => studentIds.includes(student.id));
   },
 
 
@@ -151,4 +151,4 @@ export const useAssessorChangeAssignmentStore = create<IAssessorChangeRequestAss
     assignedStudents: {},
     assignedAdvisors: []
   }),
-}))
+}));

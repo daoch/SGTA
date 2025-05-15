@@ -1,21 +1,22 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { Loader2, Calendar, Users, User } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import React from "react";
+import { Loader2, Calendar, Users, User } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogFooter,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { IRequestTerminationConsultancyRequestData } from '@/features/asesores/types/cessation-request';
-import { Avatar, AvatarFallback } from '@radix-ui/react-avatar';
-import { differenceInDays, format } from 'date-fns';
-import { useRequestTerminationDetail } from '../../queries/cessation-request';
+} from "@/components/ui/dialog";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { IRequestTerminationConsultancyRequestData } from "@/features/asesores/types/cessation-request";
+import { Avatar, AvatarFallback } from "@radix-ui/react-avatar";
+import { differenceInDays, format } from "date-fns";
+import { useRequestTerminationDetail } from "../../queries/cessation-request";
+import Image from "next/image";
 
 interface ApproveCessationModalProps {
   isOpen: boolean;
@@ -30,10 +31,10 @@ const ApproveCessationModal: React.FC<ApproveCessationModalProps> = ({
   idRequest
   
 }) => {
-  const { isLoading: loadingRequestDetail, data: dataRequestDetail} = useRequestTerminationDetail(idRequest)
+  const { isLoading: loadingRequestDetail, data: dataRequestDetail} = useRequestTerminationDetail(idRequest);
   
 
-  const statusConfig: Record<IRequestTerminationConsultancyRequestData['status'], { color: string; text: string }> = {
+  const statusConfig: Record<IRequestTerminationConsultancyRequestData["status"], { color: string; text: string }> = {
       pending: { color: "bg-yellow-200 text-yellow-800", text: "Pendiente" },
       approved: { color: "bg-green-200 text-green-800", text: "Aprobada" },
       rejected: { color: "bg-red-200 text-red-800", text: "Rechazada" },
@@ -54,7 +55,7 @@ const ApproveCessationModal: React.FC<ApproveCessationModalProps> = ({
                             Cargando detalle de solicitud...
                         </p>
                     </div>
-                )
+                );
             if (dataRequestDetail)
                 return (
                     <Card className="mb-3 shadow-sm border">
@@ -62,7 +63,7 @@ const ApproveCessationModal: React.FC<ApproveCessationModalProps> = ({
                             <div className="flex items-center gap-2 ">
                                 <Avatar className="h-8 w-8">
                                     {dataRequestDetail.assessor.urlPhoto ? (
-                                        <img
+                                        <Image
                                             src={dataRequestDetail.assessor.urlPhoto}
                                             alt={`User-photo-${dataRequestDetail.assessor.id}`}
                                             className='rounded-full'
@@ -87,7 +88,7 @@ const ApproveCessationModal: React.FC<ApproveCessationModalProps> = ({
                                     <Calendar className="h-3.5 w-3.5 mt-0.5 text-gray-400" />
                                     <div>
                                         <span className="text-gray-500 text-[11px]">Solicitud:</span>
-                                        <span className="font-medium text-gray-800 block">{`${format(dataRequestDetail.registerTime, 'dd/MM/yyyy')} - ${format(dataRequestDetail.registerTime, 'hh:mm a')}`}</span>
+                                        <span className="font-medium text-gray-800 block">{`${format(dataRequestDetail.registerTime, "dd/MM/yyyy")} - ${format(dataRequestDetail.registerTime, "hh:mm a")}`}</span>
                                         <span className="text-gray-500 block">{`Hace ${differenceInDays(new Date(), dataRequestDetail.registerTime)} días`}</span>
                                     </div>
                                 </div>
@@ -96,7 +97,7 @@ const ApproveCessationModal: React.FC<ApproveCessationModalProps> = ({
                                     <Calendar className="h-3.5 w-3.5 mt-0.5 text-gray-400" />
                                     <div>
                                         <span className="text-gray-500 text-[11px]">Fecha de respuesta:</span>
-                                        <span className="font-medium text-gray-800 block">{`${format(dataRequestDetail.responseTime, 'dd/MM/yyyy')} - ${format(dataRequestDetail.responseTime, 'hh:mm a')}`}</span>
+                                        <span className="font-medium text-gray-800 block">{`${format(dataRequestDetail.responseTime, "dd/MM/yyyy")} - ${format(dataRequestDetail.responseTime, "hh:mm a")}`}</span>
                                         <span className="text-gray-500 block">{`Hace ${differenceInDays(new Date(), dataRequestDetail.responseTime)} días`}</span>
                                     </div>
                                 </div>
@@ -135,7 +136,7 @@ const ApproveCessationModal: React.FC<ApproveCessationModalProps> = ({
                                 </div>
                             )}
 
-                            {dataRequestDetail.status === 'rejected' && dataRequestDetail.response && (
+                            {dataRequestDetail.status === "rejected" && dataRequestDetail.response && (
                                 <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded">
                                     <p className="text-xs font-medium text-red-700 mb-0.5">Motivo del rechazo:</p>
                                     <p className="text-xs text-red-600 leading-snug line-clamp-2">{dataRequestDetail.response}</p>
@@ -144,10 +145,10 @@ const ApproveCessationModal: React.FC<ApproveCessationModalProps> = ({
 
                         </CardContent>
                     </Card>
-                )
+                );
             return (
                 <div>No se encontró informacion sobre esta solicitud de cese</div>
-            )
+            );
         })()}
         <DialogFooter className="mt-4">
             <Button variant="outline" onClick={onClose} >

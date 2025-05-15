@@ -1,19 +1,20 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { UserMinus } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { useCessationRequestAssignmentStore } from "@/features/asesores/store/assignment-cessation-request"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { UserMinus } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useCessationRequestAssignmentStore } from "@/features/asesores/store/assignment-cessation-request";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import Image from "next/image";
 
 export function AssignedAdvisorsList() {
   const { students, assignedAdvisors, unassignAdvisor, removeAssignedAdvisor, selectedStudent } =
-    useCessationRequestAssignmentStore()
+    useCessationRequestAssignmentStore();
 
   if (assignedAdvisors.length === 0) {
-    return <div className="text-center py-8 text-muted-foreground">No hay asesores asignados todavía</div>
+    return <div className="text-center py-8 text-muted-foreground">No hay asesores asignados todavía</div>;
   }
 
   return (
@@ -30,7 +31,7 @@ export function AssignedAdvisorsList() {
           </TableHeader>
           <TableBody>
             {assignedAdvisors.map((advisor) => {
-              const isSelectedStudentAdvisor = selectedStudent?.advisorId === advisor.id
+              const isSelectedStudentAdvisor = selectedStudent?.advisorId === advisor.id;
               
               return (
                 <TableRow key={advisor.id} className={cn(isSelectedStudentAdvisor && "bg-primary/10")}>
@@ -38,7 +39,7 @@ export function AssignedAdvisorsList() {
                     <div className="h-10 w-10 rounded-full overflow-hidden">
                       <Avatar className="h-8 w-8">
                         {advisor.urlPhoto ? (
-                            <img
+                            <Image
                                 src={advisor.urlPhoto}
                                 alt={`User-photo-${advisor.firstName}`}
                                 className='rounded-full'
@@ -47,7 +48,7 @@ export function AssignedAdvisorsList() {
                             <AvatarFallback className="bg-gray-400" />
                         )}
                         </Avatar>
-                      <img
+                      <Image
                         src={advisor.urlPhoto || "/placeholder.svg"}
                         alt={`${advisor.firstName} ${advisor.lastName}`}
                         className="object-cover h-full w-full"
@@ -92,8 +93,8 @@ export function AssignedAdvisorsList() {
                             size="icon"
                             className="h-7 w-7 bg-amber-700"
                             onClick={() => {
-                                unassignAdvisor(student.id)
-                                removeAssignedAdvisor(advisor.id)
+                                unassignAdvisor(student.id);
+                                removeAssignedAdvisor(advisor.id);
                               }}
                           >
                             <UserMinus className="h-4 w-4" />
@@ -104,11 +105,11 @@ export function AssignedAdvisorsList() {
                     </div>
                   </TableCell>
                 </TableRow>
-              )
+              );
             })}
           </TableBody>
         </Table>
       </div>
     </div>
-  )
+  );
 }
