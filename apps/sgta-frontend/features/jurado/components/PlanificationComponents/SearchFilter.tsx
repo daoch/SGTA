@@ -8,7 +8,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { useState } from "react";
-import { AreaEspecialidad } from "../types/jurado.types";
+import { AreaEspecialidad } from "../../types/jurado.types";
+
 
 interface Props {
   topics: AreaEspecialidad[];

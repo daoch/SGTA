@@ -5,8 +5,8 @@ import React, { useState } from "react";
 
 import { JornadaExposicionDTO } from "@/features/jurado/dtos/JornadExposicionDTO";
 import { EstadoPlanificacion, OrigenBoton, SalaExposicion, Tema, TimeSlot } from "@/features/jurado/types/jurado.types";
+import SelectorFecha from "../DateSelector";
 import BreadCrumbPlanificacion from "./BreadcrumbPlanification";
-import SelectorFecha from "./DateSelector";
 import Droppable from "./Droppable";
 import RoomSlot from "./RoomSlot";
 
@@ -103,6 +103,7 @@ const PlanificationPanel: React.FC<Props> = ({
             )}
             assignedExpos={assignedExpos}
             removeExpo={removeExpo}
+            estadoPlan={estadoPlan}
           />
         ))}
       </div>
@@ -115,12 +116,14 @@ function TimeSlotCard({
   filteredRooms,
   assignedExpos,
   removeExpo,
+  estadoPlan
 }: {
   time: string;
   spaces?: SalaExposicion[];
   filteredRooms: TimeSlot[];
   assignedExpos: Record<string, Tema>;
   removeExpo: (expo: Tema) => void;
+  estadoPlan : EstadoPlanificacion;
 }) {
   return (
     <div className="border rounded-lg p-4">
@@ -137,6 +140,7 @@ function TimeSlotCard({
               assignedExpos={assignedExpos}
               room={room}
               removeExpo={removeExpo}
+              estadoPlanificacion = {estadoPlan}
             />
           </Droppable>
         ))}

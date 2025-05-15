@@ -8,10 +8,10 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { useEffect, useState, useTransition } from "react";
-import { finishPlanning, updateBloquesListFirstTime, updateBloquesNextPhase } from "../actions/actions";
-import { JornadaExposicionDTO } from "../dtos/JornadExposicionDTO";
-import { listarEstadoPlanificacionPorExposicion } from "../services/data";
-import { AreaEspecialidad, EstadoPlanificacion, OrigenBoton, Tema, TimeSlot } from "../types/jurado.types";
+import { finishPlanning, updateBloquesListFirstTime, updateBloquesNextPhase } from "../../actions/actions";
+import { JornadaExposicionDTO } from "../../dtos/JornadExposicionDTO";
+import { listarEstadoPlanificacionPorExposicion } from "../../services/data";
+import { AreaEspecialidad, EstadoPlanificacion, OrigenBoton, Tema, TimeSlot } from "../../types/jurado.types";
 import ExposList from "./ExposList";
 import PlanificationPanel from "./PlanificationPanel";
 
@@ -112,6 +112,8 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
   }
 
   const removeExpo = (expo: Tema) => {
+    if(estadoPlan.nombre === "Cierre de planificacion")
+      return;
     //find the click expo
     const clickedExpo = Object.values(assignedExpos).find(
       (a) => a.id === expo.id,
