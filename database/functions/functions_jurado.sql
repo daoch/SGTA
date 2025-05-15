@@ -130,22 +130,38 @@ CREATE OR REPLACE FUNCTION listar_temas_ciclo_actual_x_etapa_formativa(
 RETURNS TABLE(
 	tema_id integer,
     codigo  varchar,
-    titulo  varchar   
+    titulo  varchar,
+    usuario_id integer,
+     nombres varchar,
+  apellidos varchar,
+  rol_id integer,
+  rol_nombre varchar
+    
 ) AS $$
 BEGIN
     RETURN QUERY
  	SELECT 
 		t.tema_id,
 		t.codigo,
-		t.titulo    
+		t.titulo ,
+		u.usuario_id,
+		u.nombres,
+		u.primer_apellido,
+		r.rol_id,
+		r.nombre
     FROM tema t
     inner join etapa_formativa_x_ciclo_x_tema  efct on t.tema_id = efct.tema_id 
 	inner join etapa_formativa_x_ciclo efc on efc.etapa_formativa_x_ciclo_id = efct.etapa_formativa_x_ciclo_id
 	inner join etapa_formativa ef on ef.etapa_formativa_id = efc.etapa_formativa_id
 	inner join ciclo c on c.ciclo_id = efc.ciclo_id
-	where c.activo = true and  ef.etapa_formativa_id = etapa_id ;  
+	inner join usuario_tema ut on ut.tema_id = t.tema_id
+	inner join usuario u on  u.usuario_id = ut.usuario_id
+	inner join rol r on r.rol_id = ut.rol_id
+	where c.activo = true and  ef.etapa_formativa_id = etapa_id 
+	order by t.tema_id;  
 END;
 $$ LANGUAGE plpgsql;
+
 
 CREATE OR REPLACE FUNCTION listar_jornadas_exposicion_salas(
 	expo_id integer
