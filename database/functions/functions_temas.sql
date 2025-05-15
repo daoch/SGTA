@@ -1228,11 +1228,11 @@ BEGIN
           AND r.nombre ILIKE 'Asesor';
     END IF;
 
-    -- Get the estado_tema_id for the tema 
+    -- Get the estado_tema_id for the tema
     SELECT estado_tema_id INTO estado_preinscrito_id FROM estado_tema WHERE nombre ILIKE 'PREINSCRITO' LIMIT 1;
 
 	  -- Update estado_tema_id
-    UPDATE tema 
+    UPDATE tema
     SET estado_tema_id = estado_preinscrito_id
     WHERE tema_id = p_tema_id;
 END;
@@ -1275,7 +1275,7 @@ ALTER FUNCTION rechazar_postulacion_propuesta_general_tesista(INTEGER, INTEGER, 
 
 CREATE OR REPLACE FUNCTION listar_asesores_por_subarea_conocimiento_v2(
 	p_subarea_id integer)
-    RETURNS TABLE(usuario_id integer, nombre_completo text, correo_electronico text) 
+    RETURNS TABLE(usuario_id integer, nombre_completo text, correo_electronico text)
     LANGUAGE 'sql'
     COST 100
     VOLATILE PARALLEL UNSAFE
@@ -1298,3 +1298,90 @@ $BODY$;
 
 ALTER FUNCTION listar_asesores_por_subarea_conocimiento_v2(integer)
     OWNER TO postgres;
+
+
+CREATE OR REPLACE FUNCTION obtener_usuarios_por_tipo_carrera_y_busqueda(
+    p_tipo_usuario     TEXT,
+    p_carrera_id       INT,
+    p_cadena_busqueda  TEXT
+)
+RETURNS TABLE(
+    usuario_id            INT,
+    tipo_usuario_id       INT,
+    codigo_pucp           VARCHAR,
+    nombres               VARCHAR,
+    primer_apellido       VARCHAR,
+    segundo_apellido      VARCHAR,
+    correo_electronico    VARCHAR,
+    nivel_estudios        VARCHAR,
+    contrasena            VARCHAR,
+    biografia             TEXT,
+    enlace_linkedin       VARCHAR,
+    enlace_repositorio    VARCHAR,
+    disponibilidad        TEXT,
+    tipo_disponibilidad   TEXT,
+    tipo_dedicacion_id    INT,
+    activo                BOOLEAN,
+    fecha_creacion        TIMESTAMPTZ,
+    fecha_modificacion    TIMESTAMPTZ,
+    tipo_usuario_nombre   VARCHAR
+)
+LANGUAGE SQL
+STABLE
+AS $$
+    SELECT
+      u.usuario_id,
+      u.tipo_usuario_id,
+      u.codigo_pucp,
+      u.nombres,
+      u.primer_apellido,
+      u.segundo_apellido,
+      u.correo_electronico,
+      u.nivel_estudios,
+      u.contrasena,
+      u.biografia,
+      u.enlace_linkedin,
+      u.enlace_repositorio,
+      u.disponibilidad,
+      u.tipo_disponibilidad,
+      u.tipo_dedicacion_id,
+      u.activo,
+      u.fecha_creacion,
+      u.fecha_modificacion,
+      tu.nombre
+    FROM usuario u
+    JOIN usuario_carrera uc
+      ON u.usuario_id = uc.usuario_id
+     AND uc.activo
+    JOIN tipo_usuario tu
+      ON u.tipo_usuario_id = tu.tipo_usuario_id
+    WHERE u.activo
+      AND tu.nombre ILIKE p_tipo_usuario
+      AND uc.carrera_id = p_carrera_id
+      AND (
+           u.nombres             ILIKE '%' || p_cadena_busqueda || '%'
+        OR u.primer_apellido     ILIKE '%' || p_cadena_busqueda || '%'
+        OR u.segundo_apellido    ILIKE '%' || p_cadena_busqueda || '%'
+        OR u.codigo_pucp         ILIKE '%' || p_cadena_busqueda || '%'
+        OR u.correo_electronico  ILIKE '%' || p_cadena_busqueda || '%'
+      );
+$$;
+
+
+
+CREATE OR REPLACE FUNCTION obtener_carreras_por_usuario(
+    p_usuario_id INT
+)
+RETURNS SETOF carrera
+LANGUAGE SQL
+STABLE
+AS $$
+    SELECT c.*
+      FROM carrera c
+      JOIN usuario_carrera uc
+        ON c.carrera_id = uc.carrera_id
+     WHERE uc.usuario_id = p_usuario_id
+       AND uc.activo
+       AND c.activo
+    ORDER BY c.nombre;
+$$;

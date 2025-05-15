@@ -1,4 +1,4 @@
-import { Tema, TimeSlot } from "@/features/jurado/types/jurado.types";
+import { EstadoPlanificacion, Tema, TimeSlot } from "@/features/jurado/types/jurado.types";
 import Draggable from "./Draggable";
 import ExpoSon from "./ExpoSon";
 
@@ -9,16 +9,13 @@ interface Props {
   assignedExpos: Record<string, Tema>;
   room: TimeSlot;
   removeExpo: (expo: Tema) => void;
+  estadoPlanificacion:EstadoPlanificacion;
 }
 
-const RoomSlot: React.FC<Props> = ({
-  code,
-  assignedExpos,
-  room,
-  removeExpo,
-}: Props) => {
-  const expoFind =
-    room.key in assignedExpos ? assignedExpos[room.key] : undefined;
+const RoomSlot: React.FC<Props> = ({ code,  assignedExpos,  room,  removeExpo,  estadoPlanificacion,}: Props) => {
+  
+  const isDraggeable = estadoPlanificacion.nombre==="Cierre de planificacion"? false: true;
+  const expoFind =  room.key in assignedExpos ? assignedExpos[room.key] : undefined;
 
   const baseStyle: React.CSSProperties = {
     border: "2px dashed #868A8F",
@@ -45,8 +42,8 @@ const RoomSlot: React.FC<Props> = ({
       }}
     >
       {expoFind ? (
-        <Draggable id={expoFind.codigo} key={expoFind.codigo}>
-          <ExpoSon expoFind={expoFind} removeExpo={removeExpo} />
+        <Draggable id={expoFind.codigo} key={expoFind.codigo} isDraggeable={isDraggeable}>
+          <ExpoSon expoFind={expoFind} removeExpo={removeExpo} estadoPlan={estadoPlanificacion} />
         </Draggable>
       ) : (
         room?.key.split("|")[2]
