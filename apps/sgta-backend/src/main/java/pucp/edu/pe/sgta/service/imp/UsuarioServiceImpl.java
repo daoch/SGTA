@@ -2,6 +2,7 @@ package pucp.edu.pe.sgta.service.imp;
 
 import jakarta.persistence.Query;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import pucp.edu.pe.sgta.dto.asesores.InfoAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.asesores.InfoSubAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
@@ -10,6 +11,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import pucp.edu.pe.sgta.dto.TipoUsuarioDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
+import pucp.edu.pe.sgta.dto.asesores.UsuarioFotoDto;
 import pucp.edu.pe.sgta.mapper.InfoAreaConocimientoMapper;
 import pucp.edu.pe.sgta.mapper.InfoSubAreaConocimientoMapper;
 import pucp.edu.pe.sgta.mapper.PerfilAsesorMapper;
@@ -19,11 +21,13 @@ import pucp.edu.pe.sgta.repository.*;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
 import pucp.edu.pe.sgta.util.Utils;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 
@@ -189,6 +193,43 @@ public class UsuarioServiceImpl implements UsuarioService {
 		idEliminados = new ArrayList<>(subAreasRegistradas);
 		idEliminados.removeAll(subAreasActualizadas);
 		usuarioXSubAreaConocimientoRepository.desactivarUsuarioSubAreas(user.getId(), Utils.convertIntegerListToString(idEliminados));
+	}
+
+	@Override
+	public void uploadFoto(Integer idUsuario, MultipartFile file) {
+		Usuario user = usuarioRepository.findById(idUsuario).orElse(null);
+		if (user == null) {
+			throw new RuntimeException("Usuario no encontrado con ID: " + idUsuario);
+		}
+        try {
+            user.setFotoPerfil(file.getBytes());
+			usuarioRepository.save(user);
+        } catch (IOException e) {
+            throw new RuntimeException("No se pudo subir foto del usuario: " + idUsuario);
+        }
+    }
+
+	@Override
+	public UsuarioFotoDto getUsuarioFoto(Integer id) {
+		Usuario user = usuarioRepository.findById(id).orElse(null);
+		if (user == null) {
+			throw new RuntimeException("Usuario no encontrado con ID: " + id);
+		}
+		UsuarioFotoDto usuarioFotoDto = new UsuarioFotoDto();
+		usuarioFotoDto.setIdUsuario(id);
+
+		String fotoBase64 = user.getFotoPerfil() != null? Base64.getEncoder().encodeToString(user.getFotoPerfil()) : null;
+		usuarioFotoDto.setFoto(fotoBase64);
+		return usuarioFotoDto;
+	}
+
+	@Override
+	public Integer getIdByCorreo(String correo) {
+		Usuario user = usuarioRepository.findByCorreoElectronicoIsLikeIgnoreCase(correo);
+		if (user == null) {
+			throw new RuntimeException("Usuario no encontrado con CORREO: " + correo);
+		}
+		return user.getId();
 	}
 
 	@Override

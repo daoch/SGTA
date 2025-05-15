@@ -10,7 +10,7 @@ export default function IndicadoresAsesor({
   tesis,
   proyectos,
 }: IndicadoresAsesorProps) {
-  const tesisCulminadas = tesis.filter((t) => t.estado === "terminada").length;
+  const tesisCulminadas = tesis.filter((t) => t.estado === "finalizada").length;
   const tesisEnProceso = tesis.filter((t) => t.estado === "en_proceso").length;
   const totalProyectos = proyectos.length;
 
