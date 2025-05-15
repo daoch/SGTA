@@ -21,6 +21,20 @@ export async function getPerfilAsesor(id: number) {
   }
 }
 
+export async function getIdByCorreo(correoUsuario: string): Promise<number> {
+  try {
+    const response = await axiosInstance.get("/usuario/getIdByCorreo", {
+      params: { correoUsuario },
+    });
+
+    console.log("ID obtenido por correo:", response.data);
+    return response.data as number;
+  } catch (error) {
+    console.error("Error al obtener ID por correo:", error);
+    throw error;
+  }
+}
+
 export async function getFotoUsuario(idUsuario: number): Promise<string> {
   try {
     const response = await axiosInstance.get("/usuario/getFotoUsuario", {
