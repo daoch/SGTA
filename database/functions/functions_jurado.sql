@@ -362,7 +362,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE FUNCTION obtener_ciclo_etapa_por_tema(p_tema_id integer)
+CREATE OR REPLACE FUNCTION obtener_ciclo_etapa_por_tema(p_tema_id integer)
     RETURNS TABLE(ciclo_id integer, ciclo_nombre text, etapa_formativa_id integer, etapa_formativa_nombre text)
     LANGUAGE plpgsql
 AS
@@ -385,9 +385,8 @@ BEGIN
 END;
 $$;
 
-ALTER FUNCTION obtener_ciclo_etapa_por_tema(INTEGER) OWNER TO postgres;
 
-CREATE FUNCTION obtener_area_conocimiento_jurado(usuario_id_param integer)
+CREATE OR REPLACE FUNCTION obtener_area_conocimiento_jurado(usuario_id_param integer)
     RETURNS TABLE(usuario_id integer, area_conocimiento_id integer, area_conocimiento_nombre character varying)
     LANGUAGE plpgsql
 AS
@@ -410,8 +409,6 @@ BEGIN
         ac.nombre;
 END;
 $$;
-
-ALTER FUNCTION obtener_area_conocimiento_jurado(INTEGER) OWNER TO postgres;
 
 CREATE OR REPLACE FUNCTION listar_etapas_formativas_activas_by_coordinador(p_coordinador_id INTEGER)
 RETURNS TABLE(
@@ -490,7 +487,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-create or replace function actualizar_bloque_exposicion_siguientes_fases(bloques_json jsonb)
+CREATE OR REPLACE FUNCTION actualizar_bloque_exposicion_siguientes_fases(bloques_json jsonb)
 returns void as $$
 declare
     bloque jsonb;
@@ -661,7 +658,7 @@ BEGIN
     WHERE ut.rol_id = 2 AND ut.activo = true
     ORDER BY u.usuario_id, ut.prioridad;
 END;
-$function$
+$function$;
 
 CREATE OR REPLACE FUNCTION obtener_jurados_por_tema(p_tema_id integer)
 RETURNS TABLE(
@@ -723,7 +720,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE FUNCTION terminar_planificacion(idExposicion integer) returns BOOLEAN
+CREATE OR REPLACE FUNCTION terminar_planificacion(idExposicion integer) returns BOOLEAN
 LANGUAGE plpgsql
 AS $$
 DECLARE
