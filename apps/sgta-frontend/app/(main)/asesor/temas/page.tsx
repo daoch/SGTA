@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/card";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import axiosInstance from "@/lib/axios/axios-instance";
 import { Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -44,12 +45,14 @@ const page = () => {
   useEffect(() => {
     const fetchSubareas = async () => {
       try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}subAreaConocimiento/list`,
-        );
-        if (!response.ok) throw new Error("Error al obtener subáreas");
-        const data = await response.json();
-        setSubareasDisponibles(data);
+        const response = await axiosInstance.get("subAreaConocimiento/list");
+        setSubareasDisponibles(response.data);
+
+        const tesistasData = await fetchUsers(1, "alumno");
+        setEstudiantesDisponibles(tesistasData);
+
+        const coasesoresData = await fetchUsers(1, "profesor");
+        setCoasesoresDisponibles(coasesoresData);
       } catch (error) {
         console.error("Error cargando subáreas:", error);
       }
@@ -154,3 +157,12 @@ const page = () => {
 };
 
 export default page;
+
+export const fetchUsers = async (
+  carreraId: number,
+  tipoUsuarioNombre: string,
+) => {
+  const url = `/usuario/findByTipoUsuarioAndCarrera?carreraId=${carreraId}&tipoUsuarioNombre=${tipoUsuarioNombre}`;
+  const response = await axiosInstance.get(url);
+  return response.data;
+};

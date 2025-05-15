@@ -25,13 +25,6 @@ interface PropuestasTableProps {
   filter?: string;
 }
 
-const TEST = false;
-const fetchTemasAPI = async (rol: string, estado: string) => {
-  const url = `temas/listarTemasPorUsuarioRolEstado/${asesorData.id}?rolNombre=${rol}&estadoNombre=${estado}`;
-  const response = await axiosInstance.get<Tema[]>(url);
-  return response.data;
-};
-
 /**
  * Muestra en una tabla la lista de temas dado un filtro inicial
  * @argument filter Permite filtrar los temas
@@ -202,3 +195,9 @@ export function TemasTable({ filter }: PropuestasTableProps) {
   );
 }
 
+const TEST = false;
+const fetchTemasAPI = async (rol: string, estado: string) => {
+  const url = `temas/listarTemasPorUsuarioRolEstado/${asesorData.id}?rolNombre=${rol}&estadoNombre=${estado}`;
+  const response = await axiosInstance.get<Tema[]>(url);
+  return response.data;
+};
