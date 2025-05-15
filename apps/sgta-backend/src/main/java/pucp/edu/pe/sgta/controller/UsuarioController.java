@@ -91,13 +91,6 @@ public class UsuarioController {
 		return this.usuarioService.findUsuarioByCodigo(codigo);
 	}
 
-	@GetMapping("/session")
-	public ResponseEntity<UserInfoDTO> obtenerInfoUsuarioSesion(@RequestParam String correo) {
-		return usuarioService.obtenerInfoPorCorreo(correo)
-				.map(ResponseEntity::ok)
-				.orElse(ResponseEntity.notFound().build());
-	}
-
 	@PostMapping("/carga-masiva")
 	public ResponseEntity<String> cargarUsuarios(@RequestParam("archivo") MultipartFile archivo) {
 		try {
