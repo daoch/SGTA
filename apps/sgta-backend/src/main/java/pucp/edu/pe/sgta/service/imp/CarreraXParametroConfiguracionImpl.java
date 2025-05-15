@@ -27,7 +27,7 @@ public class CarreraXParametroConfiguracionImpl implements CarreraXParametroConf
                 .orElseThrow(() -> new RuntimeException("No se encontró la configuración con ID " + carreraXParametroConfiguracionDto.getId()));
 
         //Update solo del campo valor y fechaModificacion
-        if (carreraXParametroConfiguracionDto.getValor() != null && entity.isActivo()) {
+        if (carreraXParametroConfiguracionDto.getValor() != null && entity.getActivo()) {
             entity.setValor(carreraXParametroConfiguracionDto.getValor().toString());
         }
 

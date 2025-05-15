@@ -3,10 +3,10 @@
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
-import { Proyecto } from "../../types/propuestas/entidades";
+import { Proyecto_M } from "../../types/propuestas/entidades";
 
 interface EnviarPropuestaCardProps {
-  data?: Proyecto;
+  data?: Proyecto_M;
   setComentario?: (comentario: string) => void;
 }
 export function EnviarPropuestaCard({

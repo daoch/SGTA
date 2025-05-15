@@ -37,23 +37,27 @@ export function NavUser({ user }: { user: User }) {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground h-auto min-h-[3rem] items-start py-2"
             >
-              <Avatar className="h-8 w-8 rounded-lg">
+              <Avatar className="h-8 w-8 rounded-lg flex-shrink-0">
                 <AvatarImage src={user.avatar} alt={user.name} />
                 <AvatarFallback className="rounded-lg">CN</AvatarFallback>
               </Avatar>
-              <div className="grid flex-1 text-left text-sm leading-tight">
+              <div className="grid flex-1 text-left text-sm leading-tight gap-1">
                 <span className="truncate font-semibold">{user.name}</span>
-                <div className="flex overflow-x-scroll no-scrollbar gap-1">
+                <div className="flex flex-wrap gap-1 w-full">
                   {user?.roles?.map((role, index) => (
-                    <Badge key={index} variant="default" className="text-xs">
+                    <Badge 
+                      key={index} 
+                      variant="default" 
+                      className="text-xs inline-flex"
+                    >
                       {role}
                     </Badge>
                   ))}
                 </div>
               </div>
-              <ChevronsUpDown className="ml-auto size-4" />
+              <ChevronsUpDown className="ml-auto size-4 flex-shrink-0 mt-1" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent

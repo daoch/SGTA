@@ -2,6 +2,7 @@ package pucp.edu.pe.sgta.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import pucp.edu.pe.sgta.model.Carrera;
 
@@ -15,4 +16,10 @@ public interface CarreraRepository extends JpaRepository<Carrera, Integer>{
             )
             """,nativeQuery = true)
     List<Object[]> listarCarrerasPorIdUsusario(Integer idAsesor);
+
+    @Query(
+      value  = "SELECT * FROM obtener_carreras_por_usuario(:usuarioId)",
+      nativeQuery = true
+    )
+    List<Carrera> findByUsuarioId(@Param("usuarioId") Integer usuarioId);
 }

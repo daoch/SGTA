@@ -20,8 +20,8 @@ interface Props {
 const ITEMS_POR_PAGINA = 5;
 
 export default function ProyectosAsesoradosResumen({ proyectos }: Props) {
-  const [pageEnProceso, setPageEnProceso] = useState(1);
-  const [pageFinalizado, setPageFinalizado] = useState(1);
+  const [pageEnProceso, setPageEnProceso] = useState(40);
+  const [pageFinalizado, setPageFinalizado] = useState(40);
 
   const renderProyecto = (
     estado: "en_proceso" | "finalizado",

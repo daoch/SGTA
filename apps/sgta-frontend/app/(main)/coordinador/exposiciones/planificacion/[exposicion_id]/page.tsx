@@ -9,5 +9,5 @@ export default async function Page({
 
   const exposicionId = parseInt(resolvedParams.exposicion_id, 10);
 
-  return <PlanExpo etapaFormativaId={exposicionId} />;
+  return <PlanExpo exposicionId={exposicionId} />;
 }

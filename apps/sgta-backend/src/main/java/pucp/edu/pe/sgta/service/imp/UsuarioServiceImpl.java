@@ -1,5 +1,6 @@
 package pucp.edu.pe.sgta.service.imp;
 
+import jakarta.persistence.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import pucp.edu.pe.sgta.dto.asesores.InfoAreaConocimientoDto;
@@ -28,6 +29,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UsuarioServiceImpl implements UsuarioService {
@@ -231,6 +233,44 @@ public class UsuarioServiceImpl implements UsuarioService {
 	}
 
 	@Override
+	public List<UsuarioDto> getAsesoresBySubArea(Integer idSubArea) {
+		String sql =
+				"SELECT usuario_id, nombre_completo, correo_electronico " +
+						"  FROM listar_asesores_por_subarea_conocimiento_v2(:p_subarea_id)";
+		Query query = em.createNativeQuery(sql)
+				.setParameter("p_subarea_id", idSubArea);
+
+		@SuppressWarnings("unchecked")
+		List<Object[]> rows = query.getResultList();
+		List<UsuarioDto> advisors = new ArrayList<>(rows.size());
+
+		for (Object[] row : rows) {
+			Integer userId       = ((Number) row[0]).intValue();
+			String fullName      = (String) row[1];
+			String email         = (String) row[2];
+
+			advisors.add(UsuarioDto.builder()
+					.id(userId)
+					.nombres(fullName.split(" ")[0])
+							.primerApellido(fullName.split(" ")[1])
+					.correoElectronico(email)
+					.build());
+		}
+
+		return advisors;
+	}
+
+	@Override
+	public UsuarioDto findUsuarioByCodigo(String codigoPucp) {
+		Optional<Usuario> usuario = usuarioRepository.findByCodigoPucp(codigoPucp);
+		if(usuario.isPresent()){
+			UsuarioDto usuarioDto = UsuarioMapper.toDto(usuario.get());
+			return usuarioDto;
+		}
+		return null;
+	}
+
+	@Override
 	public List<UsuarioDto> findUsuariosByRolAndCarrera(String tipoUsuario, Integer carreraId, String cadenaBusqueda) {
 		String sql = """
 			SELECT *
@@ -281,8 +321,8 @@ public class UsuarioServiceImpl implements UsuarioService {
 				.biografia((String) r[9])
 				.enlaceLinkedin((String) r[10])
 				.enlaceRepositorio((String) r[11])
-				.disponibilidad((String) r[13])
-				.tipoDisponibilidad((String) r[14])
+				.disponibilidad((String) r[12])
+				.tipoDisponibilidad((String) r[13])
 				.activo((Boolean) r[15])
 				.fechaCreacion(fechaCreacion)
 				.fechaModificacion(fechaModificacion)
@@ -293,4 +333,6 @@ public class UsuarioServiceImpl implements UsuarioService {
 
 		return lista;
 	}
+
+
 }

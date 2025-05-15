@@ -28,7 +28,11 @@ public interface UsuarioService {
 
 	void updatePerfilAsesor(PerfilAsesorDto perfilAsesorDto);
 
-	void uploadFoto(Integer idUsuario, MultipartFile file);
+	List<UsuarioDto> getAsesoresBySubArea(Integer idSubArea);
+
+	UsuarioDto findUsuarioByCodigo(String codigoPucp);
+
+    void uploadFoto(Integer idUsuario, MultipartFile file);
 
 	UsuarioFotoDto getUsuarioFoto(Integer id);
 

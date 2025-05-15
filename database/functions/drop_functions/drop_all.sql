@@ -78,3 +78,27 @@ DROP FUNCTION IF EXISTS obtener_usuarios_con_temas() CASCADE;
 
 DROP FUNCTION IF EXISTS obtener_area_conocimiento(INTEGER) CASCADE;
 
+DROP FUNCTION IF EXISTS obtener_proyectos_usuario_involucrado(INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS listar_exposiciones_sin_inicializar_cicloactual_por_etapa_forma(INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS listar_bloques_horario_por_exposicion(INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS actualizar_exposicon_tema_bloque_exposicion(jsonb) CASCADE;
+
+DROP FUNCTION IF EXISTS obtener_ciclo_etapa_por_tema(INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS obtener_area_conocimiento_jurado(INTEGER) CASCADE;
+
+DROP TRIGGER IF EXISTS trigger_generar_codigo_tema ON tema;
+
+DROP FUNCTION IF EXISTS generar_codigo_tema();
+
+DROP FUNCTION IF EXISTS listar_etapas_formativas_activas_by_coordinador(INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS get_etapa_formativa_by_id(INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS eliminar_propuestas_tesista(INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS eliminar_postulaciones_tesista(INTEGER) CASCADE;
+
