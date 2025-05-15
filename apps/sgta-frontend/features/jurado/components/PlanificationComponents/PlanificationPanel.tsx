@@ -10,7 +10,7 @@ import BreadCrumbPlanificacion from "./BreadcrumbPlanification";
 import Droppable from "./Droppable";
 import RoomSlot from "./RoomSlot";
 
-
+ // id 3
 interface Props {
   roomAvailList: JornadaExposicionDTO[];
   assignedExpos: Record<string, Tema>;
@@ -58,6 +58,7 @@ const PlanificationPanel: React.FC<Props> = ({
 
   return (
     <section className="h-full w-full flex flex-col gap-6">
+      
       <BreadCrumbPlanificacion estadoPlan={estadoPlan}></BreadCrumbPlanificacion>
       <div className="flex flex-row gap-4">
         {roomAvailList.map((room) => (
@@ -81,7 +82,7 @@ const PlanificationPanel: React.FC<Props> = ({
           </Button>
           }
          
-          {estadoPlan.nombre!=="Planificacion inicial" && 
+          {estadoPlan.nombre!=="Planificacion inicial" && estadoPlan.nombre!=="Cierre de planificacion" &&
            <Button
            onClick={() => onAvanzarPlanificacionClick("terminar")}
            className="w-full xl:w-auto ml-2"
