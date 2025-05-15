@@ -12,13 +12,13 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { CheckCircle, Eye, Send, X } from "lucide-react";
 import { useState } from "react";
-import { Proyecto } from "../../types/propuestas/entidades";
+import { Proyecto_M } from "../../types/propuestas/entidades";
 import { EnviarPropuestaCard } from "./enviar-propuesta-card";
 import { RechazarPropuestaCard } from "./rechazar-propuesta-card";
 
 interface PropuestasModalProps {
-  data?: Proyecto;
-  setSelectedPropuesta?: (selectedPropuesta: Proyecto | null) => void;
+  data?: Proyecto_M;
+  setSelectedPropuesta?: (selectedPropuesta: Proyecto_M | null) => void;
   setComentario?: (comentario: string) => void;
   submitPostulacion?: () => void;
   submitAceptacion?: () => void;
@@ -150,7 +150,7 @@ export function PropuestasModal({
                 {data.subareas
                   .map(
                     (subareas) =>
-                      `${subareas.areaConocimiento.nombre} (${subareas.nombre})`,
+                      `(${subareas.nombre})`,
                   )
                   .join(", ")}
               </p>
@@ -162,7 +162,7 @@ export function PropuestasModal({
               <Label>Estudiante(s)</Label>
               <div className="p-3 bg-gray-50 rounded-md border">
                 <ul className="space-y-1">
-                  {data.tesistas.map((estudiante, index) => (
+                  {data.estudiantes.map((estudiante, index) => (
                     <li
                       key={index}
                       className="flex items-center justify-between"

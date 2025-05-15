@@ -14,7 +14,7 @@ axiosInstance.interceptors.request.use(
   (config) => {
     // Get token from Zustand store instead of localStorage directly
     const token = getAuthToken();
-    
+
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -30,7 +30,8 @@ axiosInstance.interceptors.response.use(
     // Manejo centralizado de errores
     if (error.response) {
       // Error de respuesta del servidor
-      const status = error.response.status;      if (status === 401) {
+      const status = error.response.status;
+      if (status === 401) {
         // Handle unauthorized - logout the user and redirect
         const { logout } = useAuthStore.getState();
         if (typeof logout === "function") {

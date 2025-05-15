@@ -85,3 +85,27 @@ export interface Postulacion {
   asesorId: number;
   alumnoId: number;
 }
+
+export type Proyecto_M = {
+  id: number;
+  codigo: string | null;
+  titulo: string;
+  resumen: string;
+  objetivos: string;
+  metodologia: string;
+  portafolioUrl: string;
+  activo: boolean;
+  fechaLimite: string;
+  fechaFinalizacion: string;
+  fechaCreacion: string;
+  fechaModificacion: string;
+  estadoTemaNombre: string;
+  carrera: string;
+  cantPostulaciones: number;
+  coasesores: Usuario[] | null;
+  tesistas: Usuario[] | null;
+  subareas: SubAreaConocimiento[];
+  tipo: string; //agregado
+  subAreas: SubAreaConocimiento[]; //agregado
+  estudiantes: Usuario[]; //agregado
+};

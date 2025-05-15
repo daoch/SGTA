@@ -1,131 +1,242 @@
 CREATE OR REPLACE FUNCTION listar_temas_propuestos_por_subarea_conocimiento(
 	p_subareas_ids integer[],
-	p_asesor_id integer)
-    RETURNS TABLE(tema_id integer, titulo text, subareas_id integer[], alumnos_id integer[], descripcion text, metodologia text, objetivo text, recurso text, activo boolean, fecha_limite timestamp with time zone, fecha_creacion timestamp with time zone, fecha_modificacion timestamp with time zone) 
-    LANGUAGE 'plpgsql'
-    COST 100
-    VOLATILE PARALLEL UNSAFE
-    ROWS 1000
-
+	p_asesor_id integer,
+	p_titulo text DEFAULT ''::text,
+	p_limit integer DEFAULT 10,
+	p_offset integer DEFAULT 0)
+RETURNS TABLE(
+	tema_id integer,
+	titulo text,
+	subareas_id integer[],
+	alumnos_id integer[],
+	descripcion text,
+	metodologia text,
+	objetivo text,
+	recurso text,
+	activo boolean,
+	fecha_limite timestamp with time zone,
+	fecha_creacion timestamp with time zone,
+	fecha_modificacion timestamp with time zone,
+	postulaciones_count integer  
+)
+LANGUAGE 'plpgsql'
+COST 100
+VOLATILE PARALLEL UNSAFE
+ROWS 1000
 AS $BODY$
 BEGIN
-    RETURN QUERY
-    SELECT 
-        t.tema_id,
-        t.titulo::text, 
-        ARRAY(
-            SELECT DISTINCT sact2.sub_area_conocimiento_id
-            FROM sub_area_conocimiento_tema sact2
-            WHERE sact2.tema_id = t.tema_id
-        ) AS subareas_id,
-        ARRAY( 
-            SELECT ut2.usuario_id
-            FROM usuario_tema ut2
-            WHERE ut2.tema_id = t.tema_id AND ut2.rol_id = (
-            	SELECT rol_id FROM rol WHERE nombre ILIKE 'Creador' LIMIT 1
-        	)
-        ) AS alumnos_id,
-        t.resumen::text,
-        t.metodologia::text,
-        t.objetivos::text,
-        r.documento_url::text,
-        t.activo,
-        t.fecha_limite,
-        t.fecha_creacion,
-        t.fecha_modificacion
-    FROM tema t
-    LEFT JOIN estado_tema et ON t.estado_tema_id = et.estado_tema_id
-    LEFT JOIN sub_area_conocimiento_tema sact ON sact.tema_id = t.tema_id
-    LEFT JOIN recurso r ON r.tema_id = t.tema_id AND r.activo = true
-    WHERE 
-        t.activo = true
-        AND et.estado_tema_id = (
-            SELECT estado_tema_id 
-            FROM estado_tema 
-            WHERE nombre ILIKE 'PROPUESTO_GENERAL'
-            LIMIT 1
-        )
-        AND sact.sub_area_conocimiento_id = ANY(p_subareas_ids)
-        AND NOT EXISTS (
-            SELECT 1
-            FROM usuario_tema ut
-            WHERE ut.tema_id = t.tema_id
-              AND ut.usuario_id = p_asesor_id
-        )
-    GROUP BY
-        t.tema_id, t.titulo, t.resumen, t.metodologia, t.objetivos, 
-        r.documento_url, t.activo, t.fecha_limite, t.fecha_creacion, t.fecha_modificacion;
+	RETURN QUERY
+	SELECT 
+		t.tema_id,
+		t.titulo::text, 
+		ARRAY(
+			SELECT DISTINCT sact2.sub_area_conocimiento_id
+			FROM sub_area_conocimiento_tema sact2
+			WHERE sact2.tema_id = t.tema_id
+		) AS subareas_id,
+		ARRAY( 
+			SELECT ut2.usuario_id
+			FROM usuario_tema ut2
+			WHERE ut2.tema_id = t.tema_id AND ut2.rol_id = (
+				SELECT rol_id FROM rol WHERE nombre ILIKE 'Tesista' LIMIT 1
+			)
+		) AS alumnos_id,
+		t.resumen::text,
+		t.metodologia::text,
+		t.objetivos::text,
+		r.documento_url::text,
+		t.activo,
+		t.fecha_limite,
+		t.fecha_creacion,
+		t.fecha_modificacion,
+		(
+			SELECT COUNT(1)::INTEGER  
+			FROM usuario_tema ut3
+			WHERE ut3.tema_id = t.tema_id
+			AND ut3.rol_id = (
+				SELECT rol_id FROM rol WHERE nombre ILIKE 'Asesor' LIMIT 1
+			)
+			and asignado = false
+		) AS postulaciones_count
+	FROM tema t
+	LEFT JOIN estado_tema et ON t.estado_tema_id = et.estado_tema_id
+	LEFT JOIN sub_area_conocimiento_tema sact ON sact.tema_id = t.tema_id
+	LEFT JOIN recurso r ON r.tema_id = t.tema_id AND r.activo = true
+	WHERE 
+		t.activo = true
+		AND et.estado_tema_id = (
+			SELECT estado_tema_id 
+			FROM estado_tema 
+			WHERE nombre ILIKE 'PROPUESTO_GENERAL'
+			LIMIT 1
+		)
+		AND sact.sub_area_conocimiento_id = ANY(p_subareas_ids)
+		AND NOT EXISTS (
+			SELECT 1
+			FROM usuario_tema ut
+			WHERE ut.tema_id = t.tema_id
+			AND ut.usuario_id = p_asesor_id
+		)
+		AND (
+			p_titulo IS NULL OR p_titulo = ''
+			OR t.titulo ILIKE '%' || p_titulo || '%'
+		)
+	GROUP BY
+		t.tema_id, t.titulo, t.resumen, t.metodologia, t.objetivos, 
+		r.documento_url, t.activo, t.fecha_limite, t.fecha_creacion, t.fecha_modificacion
+	ORDER BY t.fecha_creacion DESC
+	LIMIT p_limit OFFSET p_offset;  
 END;
 $BODY$;
+
 
 
 
 CREATE OR REPLACE FUNCTION listar_temas_propuestos_al_asesor(
-	p_asesor_id integer)
-    RETURNS TABLE(tema_id integer, titulo text, subareas text, subarea_ids integer[], alumno text, usuario_id_alumno integer[], descripcion text, metodologia text, objetivo text, recurso text, activo boolean, fecha_limite timestamp with time zone, fecha_creacion timestamp with time zone, fecha_modificacion timestamp with time zone) 
-    LANGUAGE 'plpgsql'
-    COST 100
-    VOLATILE PARALLEL UNSAFE
-    ROWS 1000
-
+	p_asesor_id integer,
+	p_titulo text DEFAULT NULL::text,
+	p_limit integer DEFAULT 10,
+	p_offset integer DEFAULT 0)
+RETURNS TABLE(
+	tema_id integer,
+	titulo text,
+	subareas text,
+	subarea_ids integer[],
+	alumno text,
+	usuario_id_alumno integer[],
+	descripcion text,
+	metodologia text,
+	objetivo text,
+	recurso text,
+	activo boolean,
+	fecha_limite timestamp with time zone,
+	fecha_creacion timestamp with time zone,
+	fecha_modificacion timestamp with time zone,
+	id_creador integer,
+	nombre_creador text,
+	ids_cotesistas integer[],
+	nombres_cotesistas text[]
+) 
+LANGUAGE 'plpgsql'
+COST 100
+VOLATILE PARALLEL UNSAFE
+ROWS 1000
 AS $BODY$
 BEGIN
-    RETURN QUERY
-    SELECT 
-        t.tema_id,
-        t.titulo::TEXT,
-        string_agg(DISTINCT sac.nombre, ', ') AS subareas,
-        array_agg(DISTINCT sac.sub_area_conocimiento_id) AS subarea_ids,
-        (u_alumno.nombres || ' ' || u_alumno.primer_apellido) AS alumno,
-        array_agg(DISTINCT u_alumno.usuario_id) AS usuario_id_alumno,
-        t.resumen::TEXT,
-        t.metodologia::TEXT,
-        t.objetivos::TEXT,
-        r.documento_url::TEXT,
-        t.activo,
-        t.fecha_limite,
-        t.fecha_creacion,
-        t.fecha_modificacion
-    FROM tema t
-    INNER JOIN usuario_tema ut_asesor 
-        ON ut_asesor.tema_id = t.tema_id 
-        AND ut_asesor.rol_id = (
-            SELECT rol_id FROM rol WHERE nombre ILIKE 'Asesor' LIMIT 1
-        )
-        AND ut_asesor.usuario_id = p_asesor_id
-        AND ut_asesor.asignado = false
-    INNER JOIN usuario u_asesor 
-        ON u_asesor.usuario_id = ut_asesor.usuario_id
-    INNER JOIN usuario_tema ut_alumno 
-        ON ut_alumno.tema_id = t.tema_id 
-        AND ut_alumno.rol_id = (
-            SELECT rol_id FROM rol WHERE nombre ILIKE 'Creador' LIMIT 1
-        )
-    INNER JOIN usuario u_alumno 
-        ON u_alumno.usuario_id = ut_alumno.usuario_id
-    LEFT JOIN estado_tema et 
-        ON t.estado_tema_id = et.estado_tema_id
-    LEFT JOIN sub_area_conocimiento_tema sact 
-        ON sact.tema_id = t.tema_id
-    LEFT JOIN sub_area_conocimiento sac 
-        ON sac.sub_area_conocimiento_id = sact.sub_area_conocimiento_id
-    LEFT JOIN recurso r 
-        ON r.tema_id = t.tema_id AND r.activo = true
-    WHERE 
-        t.activo = true
-        AND et.estado_tema_id = (
-            SELECT estado_tema_id 
-            FROM estado_tema 
-            WHERE nombre ILIKE 'PROPUESTO_DIRECTO'
-            LIMIT 1
-        )
-    GROUP BY 
-        t.tema_id, t.titulo, t.resumen, t.metodologia, t.objetivos, 
-        u_alumno.nombres, u_alumno.primer_apellido, r.documento_url;
+	RETURN QUERY
+	WITH temas_filtrados AS (
+		SELECT 
+			t.tema_id,
+			t.titulo::text,
+			t.resumen::text,
+			t.metodologia::text,
+			t.objetivos::text,
+			t.activo,
+			t.fecha_limite,
+			t.fecha_creacion,
+			t.fecha_modificacion,
+			(u_alumno.nombres || ' ' || u_alumno.primer_apellido) AS alumno,
+			u_alumno.usuario_id AS usuario_id_alumno,
+			r.documento_url::text,
+			t.tema_id AS id_unico
+		FROM tema t
+		INNER JOIN usuario_tema ut_asesor 
+			ON ut_asesor.tema_id = t.tema_id 
+			AND ut_asesor.rol_id = (
+				SELECT rol_id FROM rol WHERE nombre ILIKE 'Asesor' LIMIT 1
+			)
+			AND ut_asesor.usuario_id = p_asesor_id
+			AND ut_asesor.asignado = false
+		INNER JOIN usuario_tema ut_alumno 
+			ON ut_alumno.tema_id = t.tema_id 
+			AND ut_alumno.rol_id = (
+				SELECT rol_id FROM rol WHERE nombre ILIKE 'Tesista' LIMIT 1
+			)
+			AND ut_alumno.creador = true
+		INNER JOIN usuario u_alumno 
+			ON u_alumno.usuario_id = ut_alumno.usuario_id
+		LEFT JOIN estado_tema et 
+			ON t.estado_tema_id = et.estado_tema_id
+		LEFT JOIN recurso r 
+			ON r.tema_id = t.tema_id AND r.activo = true
+		WHERE 
+			t.activo = true
+			AND et.estado_tema_id = (
+				SELECT estado_tema_id 
+				FROM estado_tema 
+				WHERE nombre ILIKE 'PROPUESTO_DIRECTO'
+				LIMIT 1
+			)
+			AND (p_titulo IS NULL OR p_titulo = '' OR t.titulo ILIKE '%' || p_titulo || '%')
+		ORDER BY t.fecha_creacion DESC
+		LIMIT p_limit OFFSET p_offset
+	)
+	SELECT 
+		tf.tema_id,
+		tf.titulo,
+		string_agg(DISTINCT sac.nombre, ', ') AS subareas,
+		array_agg(DISTINCT sac.sub_area_conocimiento_id) AS subarea_ids,
+		tf.alumno,
+		array_agg(DISTINCT tf.usuario_id_alumno) AS usuario_id_alumno,
+		tf.resumen,
+		tf.metodologia,
+		tf.objetivos,
+		tf.documento_url,
+		tf.activo,
+		tf.fecha_limite,
+		tf.fecha_creacion,
+		tf.fecha_modificacion,
+
+		-- ID del creador
+		(
+			SELECT ut.usuario_id
+			FROM usuario_tema ut
+			WHERE ut.tema_id = tf.tema_id
+				AND ut.creador = true
+				AND ut.rol_id = (SELECT rol_id FROM rol WHERE nombre ILIKE 'Tesista' LIMIT 1)
+			LIMIT 1
+		) AS id_creador,
+
+		-- Nombre del creador
+		(
+			SELECT u.nombres || ' ' || u.primer_apellido
+			FROM usuario_tema ut
+			JOIN usuario u ON u.usuario_id = ut.usuario_id
+			WHERE ut.tema_id = tf.tema_id
+				AND ut.creador = true
+				AND ut.rol_id = (SELECT rol_id FROM rol WHERE nombre ILIKE 'Tesista' LIMIT 1)
+			LIMIT 1
+		) AS nombre_creador,
+
+		-- IDs de cotesistas
+		(
+			SELECT array_agg(ut.usuario_id)
+			FROM usuario_tema ut
+			WHERE ut.tema_id = tf.tema_id
+				AND ut.creador = false
+				AND ut.rol_id = (SELECT rol_id FROM rol WHERE nombre ILIKE 'Tesista' LIMIT 1)
+		) AS ids_cotesistas,
+
+		-- Nombres de cotesistas
+		(
+			SELECT array_agg(u.nombres || ' ' || u.primer_apellido)
+			FROM usuario_tema ut
+			JOIN usuario u ON u.usuario_id = ut.usuario_id
+			WHERE ut.tema_id = tf.tema_id
+				AND ut.creador = false
+				AND ut.rol_id = (SELECT rol_id FROM rol WHERE nombre ILIKE 'Tesista' LIMIT 1)
+		) AS nombres_cotesistas
+
+	FROM temas_filtrados tf
+	LEFT JOIN sub_area_conocimiento_tema sact 
+		ON sact.tema_id = tf.id_unico
+	LEFT JOIN sub_area_conocimiento sac 
+		ON sac.sub_area_conocimiento_id = sact.sub_area_conocimiento_id
+	GROUP BY 
+		tf.tema_id, tf.titulo, tf.resumen, tf.metodologia, tf.objetivos, 
+		tf.alumno, tf.documento_url, tf.activo, tf.fecha_limite, tf.fecha_creacion, tf.fecha_modificacion;
 END;
 $BODY$;
-
-
 
 
 -- 1) Función que lista temas de un usuario según rol y estado
@@ -417,14 +528,19 @@ BEGIN
 END;
 $BODY$;
 
-
 CREATE OR REPLACE FUNCTION rechazar_tema(
-    p_alumno_id INT,
-    p_comentario TEXT,
-    p_tema_id INT
-)
-RETURNS VOID AS
-$$
+	p_alumno_id integer,
+	p_comentario text,
+	p_tema_id integer)
+    RETURNS void
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+AS $BODY$
+DECLARE
+    estado_actual_id INTEGER;
+    titulo_tema TEXT;
+    resumen_tema TEXT;
 BEGIN
     -- Actualiza el estado del tema a "RECHAZADO"
     UPDATE tema 
@@ -435,21 +551,45 @@ BEGIN
         LIMIT 1
     )
     WHERE tema_id = p_tema_id;
-
-    -- Actualiza el comentario del alumno con rol "Creador"
+    -- Actualiza el comentario del alumno con rol "Tesista"
     UPDATE usuario_tema 
-    SET comentario = p_comentario 
+    SET comentario = p_comentario , rechazado = true
     WHERE usuario_id = p_alumno_id 
       AND tema_id = p_tema_id 
       AND rol_id = (
         SELECT rol_id 
         FROM rol 
-        WHERE nombre ILIKE 'Creador'
+        WHERE nombre ILIKE 'Tesista'
         LIMIT 1
     );
-END;
-$$ LANGUAGE plpgsql;
 
+	SELECT estado_tema_id, titulo, resumen
+    INTO estado_actual_id, titulo_tema, resumen_tema
+    FROM tema
+    WHERE tema_id = p_tema_id;
+
+	INSERT INTO historial_tema (
+        tema_id,
+        titulo,
+        resumen,
+        descripcion_cambio,
+        estado_tema_id,
+        activo,
+        fecha_creacion,
+        fecha_modificacion
+    )
+    VALUES (
+        p_tema_id,
+        titulo_tema,
+        resumen_tema,
+        CONCAT('Se rechazó el tema'),
+        estado_actual_id,
+        true,
+        now(),
+        now());
+
+END;
+$BODY$;
 
 
 CREATE OR REPLACE FUNCTION eliminar_propuestas_tesista(p_usuario_id INTEGER)

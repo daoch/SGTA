@@ -280,26 +280,58 @@ INSERT INTO etapa_formativa_x_ciclo (etapa_formativa_id,
 
 -- Entregables
 
-INSERT INTO entregable (etapa_formativa_x_ciclo_id,
-                        nombre,
-                        descripcion,
-                        fecha_inicio,
-                        fecha_fin,
-                        es_evaluable,
-                        activo,
-                        fecha_creacion,
-                        fecha_modificacion)
-    VALUES (1, 'Estado del arte', 'Estado del arte del tema', '2025-04-01', '2025-04-10', TRUE, TRUE, NOW(), NOW()),
-           (1, 'Entregable 1', 'Entregable 1 del tema', '2025-05-10', '2025-05-16', TRUE, TRUE, NOW(), NOW());
-
-INSERT INTO criterio_entregable (entregable_id,
-                                 nombre,
-                                 nota_maxima,
-                                 descripcion,
-                                 activo,
-                                 fecha_creacion,
-                                 fecha_modificacion)
-    VALUES (1, 'Redaccion', 5, 'Redaccion del documento', TRUE, NOW(), NOW());
+INSERT INTO entregable (
+    etapa_formativa_x_ciclo_id,
+    nombre,
+    descripcion,
+    fecha_inicio,
+    fecha_fin,
+    estado,
+    es_evaluable,
+    maximo_documentos,
+    extensiones_permitidas,
+    peso_maximo_documento,
+    activo
+) VALUES 
+(
+    1,
+    'Informe de avance 1',
+    'Primer entregable con criterios básicos.',
+    '2025-05-10 08:00:00+00',
+    '2025-05-20 23:59:00+00',
+    'no_iniciado',
+    TRUE,
+    3,
+    'pdf,docx',
+    10,
+    TRUE
+),
+(
+    1,
+    'Presentación final',
+    'Entrega de presentación en PowerPoint o PDF.',
+    '2025-06-01 08:00:00+00',
+    '2025-06-15 23:59:00+00',
+    'no_iniciado',
+    FALSE,
+    1,
+    'pdf,pptx',
+    15,
+    TRUE
+),
+(
+    1,
+    'Anexos del proyecto',
+    'Material adicional del proyecto: códigos, gráficos, etc.',
+    '2025-05-15 08:00:00+00',
+    '2025-05-30 23:59:00+00',
+    'no_iniciado',
+    TRUE,
+    5,
+    'pdf,zip,rar',
+    25,
+    TRUE
+);
 
 -- Exposiciones
 
@@ -350,7 +382,7 @@ INSERT INTO jornada_exposicion_x_sala_exposicion (jornada_exposicion_id,
            (1, 4, TRUE, NOW(), NOW());
 
 
-/* Parametros de configuración */
+-- Parametros de configuración 
 
 WITH nuevo_parametro AS (
     INSERT INTO parametro_configuracion (
@@ -358,7 +390,7 @@ WITH nuevo_parametro AS (
                                          tipo
         ) VALUES ('antiplagio',
                   'Configure la opcion de revision antiplagio',
-                  4, TRUE, NOW(), NOW(), 'boolean') RETURNING parametro_configuracion_id)
+                  4, TRUE, NOW(), NOW(), 'booleano') RETURNING parametro_configuracion_id)
 INSERT
     INTO carrera_parametro_configuracion (carrera_id, parametro_configuracion_id, valor, activo, fecha_creacion, fecha_modificacion, etapa_formativa_id)
 SELECT 1, parametro_configuracion_id, 'false', TRUE, NOW(), NOW(), 1
@@ -371,7 +403,7 @@ WITH nuevo_parametro AS (
                                          tipo
         ) VALUES ('turnitin',
                   'Configure la opcion de revision turnitin',
-                  4, TRUE, NOW(), NOW(), 'boolean') RETURNING parametro_configuracion_id)
+                  4, TRUE, NOW(), NOW(), 'booleano') RETURNING parametro_configuracion_id)
 INSERT
     INTO carrera_parametro_configuracion (carrera_id, parametro_configuracion_id, valor, activo, fecha_creacion, fecha_modificacion, etapa_formativa_id)
 SELECT 1, parametro_configuracion_id, 'false', TRUE, NOW(), NOW(), 1
