@@ -43,8 +43,9 @@ export type Usuario = {
   enlaceRepositorio: string | null;
   disponibilidad: string | null;
   tipoDisponibilidad: string;
-  asignado: string;
+  asignado: boolean;
   creador: boolean;
+  rechazado: boolean;
   activo: boolean;
   fechaCreacion: string;
   fechaModificacion: string;

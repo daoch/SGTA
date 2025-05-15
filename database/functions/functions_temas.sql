@@ -919,6 +919,7 @@ BEGIN
                      'rol',             rl.nombre,
                      'comentario', ut.comentario,
                      'creador',         ut.creador,
+                     'rechazado',         ut.rechazado,
                      'asignado',        ut.asignado
                    )
                  )
@@ -1086,6 +1087,14 @@ BEGIN
           AND ut.rol_id = r.rol_id
           AND r.nombre ILIKE 'Asesor';
     END IF;
+
+    -- Get the estado_tema_id for the tema 
+    SELECT estado_tema_id INTO estado_preinscrito_id FROM estado_tema WHERE nombre ILIKE 'PREINSCRITO' LIMIT 1;
+
+	  -- Update estado_tema_id
+    UPDATE tema 
+    SET estado_tema_id = estado_preinscrito_id
+    WHERE tema_id = p_tema_id;
 END;
 $$;
 
@@ -1123,3 +1132,29 @@ END;
 $$;
 
 ALTER FUNCTION rechazar_postulacion_propuesta_general_tesista(INTEGER, INTEGER, INTEGER) OWNER TO postgres;
+
+CREATE OR REPLACE FUNCTION listar_asesores_por_subarea_conocimiento_v2(
+	p_subarea_id integer)
+    RETURNS TABLE(usuario_id integer, nombre_completo text, correo_electronico text) 
+    LANGUAGE 'sql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+    ROWS 1000
+
+AS $BODY$
+SELECT DISTINCT
+    u.usuario_id,
+    u.nombres || ' ' || u.primer_apellido    AS nombre_completo,
+    u.correo_electronico
+FROM usuario_sub_area_conocimiento usac
+  JOIN usuario u
+    ON u.usuario_id = usac.usuario_id
+  JOIN tipo_usuario tu
+    ON tu.tipo_usuario_id = u.tipo_usuario_id
+WHERE usac.sub_area_conocimiento_id = p_subarea_id
+  AND usac.activo = TRUE
+  AND tu.nombre ILIKE 'profesor'
+$BODY$;
+
+ALTER FUNCTION listar_asesores_por_subarea_conocimiento_v2(integer)
+    OWNER TO postgres;

@@ -75,7 +75,7 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
     async function fetchPropuestas() {
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPropuestasPorTesista/38`
+          `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPropuestasPorTesista/41`
         );
         const data: PropuestaAPI[] = await res.json();
 
@@ -192,20 +192,21 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
                   {/* Cotesistas no asignados, excluyendo al propio usuario */}
                   <TableCell>
                     {p.tesistas
-                      .filter((t) => !t.creador)
+                      .filter((t) => !t.creador && t.rechazado !== true)
                       .map((t) => `${t.nombres} ${t.primerApellido}`.trim())
                       .join(", ") || "-"}
                   </TableCell>
 
                   {/* Asesores propuestos */}
                   <TableCell>
-                    {p.coasesores.length > 0
-                      ? p.coasesores
-                          .map((c) =>
-                            `${c.nombres} ${c.primerApellido}`.trim()
-                          )
-                          .join(", ")
-                      : "-"}
+                    {(() => {
+                      const visibles = p.tipo === "preinscrito"
+                        ? p.coasesores.filter(c => c.asignado === true)
+                        : p.coasesores.filter(c => c.rechazado !== true);
+                      return visibles.length > 0
+                        ? visibles.map(c => `${c.nombres} ${c.primerApellido}`.trim()).join(", ")
+                        : "-";
+                    })()}
                   </TableCell>
 
                   <TableCell>
@@ -307,11 +308,11 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
                             </div>
 
                             {/* Cotesistas invitados pendientes */}
-                            {selectedPropuesta.tesistas.some((t) => !t.creador) && (
+                            {selectedPropuesta.tesistas.filter((t) => !t.creador && t.rechazado !== true).length > 0 && (
                               <div className="space-y-2">
                                 <h3 className="font-medium">Cotesistas</h3>
                                 {selectedPropuesta.tesistas
-                                  .filter((t) => !t.creador)
+                                  .filter((t) => !t.creador && t.rechazado !== true)
                                   .map((t, i) => (
                                     <div
                                       key={i}
@@ -331,16 +332,22 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
                             )}
 
                             {/* Coasesores (asesores propuestos) */}
-                            {selectedPropuesta.coasesores.length > 0 && (
-                              <div className="space-y-2">
-                                <Label>Asesor(es) Propuesto(s)</Label>
-                                {selectedPropuesta.coasesores.map((c) => (
-                                  <p key={c.id}>
-                                    {c.nombres} {c.primerApellido}
-                                  </p>
-                                ))}
-                              </div>
-                            )}
+                            {(() => {
+                              const cp = selectedPropuesta!;
+                              const visibles = cp.tipo === "preinscrito"
+                                ? cp.coasesores.filter(c => c.asignado === true)
+                                : cp.coasesores.filter(c => c.rechazado !== true);
+                              return visibles.length > 0 ? (
+                                <div className="space-y-2">
+                                  <Label>Asesor(es) Propuesto(s)</Label>
+                                  {visibles.map(c => (
+                                    <p key={c.id}>
+                                      {c.nombres} {c.primerApellido}
+                                    </p>
+                                  ))}
+                                </div>
+                              ) : null;
+                            })()}
 
                             <Separator />
 

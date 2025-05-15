@@ -24,6 +24,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Usuario } from "@/features/temas/types/propuestas/entidades";
 import { Plus, Save } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 import React, { useEffect, useState } from "react";
 
@@ -70,7 +71,7 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
   // 1) Carga de áreas al montar
   useEffect(() => {
     fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/subAreaConocimiento/listarPorCarreraDeUsuario?usuarioId=38`
+      `${process.env.NEXT_PUBLIC_API_URL}/subAreaConocimiento/listarPorCarreraDeUsuario?usuarioId=41`
     )
       .then((res) => res.json())
       .then((data: Array<{ id: number; nombre: string }>) => {
@@ -145,7 +146,9 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
         `${process.env.NEXT_PUBLIC_API_URL}/usuario/findByCodigo?codigo=${codigoCotesista.trim()}`
       );
       if (!res.ok) {
-        throw new Error("Estudiante no encontrado");
+        toast.error("Error", { description: "No se encontró al estudiante",
+                                  duration: 5000,
+                                });
       }
       const data: Usuario = await res.json();
       const nuevo: Estudiante = {
@@ -155,12 +158,15 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
       };
 
       if (cotesistas.some((c) => c.id === nuevo.id)) {
+        toast.error("Ya agregaste a este estudiante");
         return;
       }
       setCotesistas((cs) => [...cs, nuevo]);
       setCodigoCotesista("");
     } catch (err) {
-      console.error("Error buscando estudiante:", err);
+      // capturamos cualquier otro error de red
+      toast.error("Error al buscar el estudiante");
+      console.error(err);
     }
   };
 
@@ -432,4 +438,5 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
       </form>
     </Card>
   );
+  
 }

@@ -107,10 +107,10 @@ export function PostulacionesTable({
       try {
         const [dirRes, genRes] = await Promise.all([
           fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPostulacionesDirectasAMisPropuestas/38`
+            `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPostulacionesDirectasAMisPropuestas/41`
           ),
           fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPostulacionesGeneralesAMisPropuestas/38`
+            `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPostulacionesGeneralesAMisPropuestas/41`
           ),
         ]);
 
@@ -167,7 +167,7 @@ export function PostulacionesTable({
             const estado: Postulacion["estado"] =
               co.rechazado === true
                 ? "rechazado"
-                : co.rechazado === false
+                : co.asignado === true
                 ? "aceptado"
                 : "pendiente";
             const alumnoId = item.tesistas?.find(t => t.creador)?.id ?? 0;
