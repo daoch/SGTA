@@ -633,3 +633,26 @@ begin
     end loop;
 end;
 $$ language plpgsql;
+
+
+
+CREATE FUNCTION terminar_planificacion(idExposicion integer) returns BOOLEAN
+LANGUAGE plpgsql
+AS $$
+DECLARE
+   id_cierre_planificacion integer;
+BEGIN
+	select estado_planificacion_id into id_cierre_planificacion
+	from estado_planificacion where nombre = 'Cierre de planificacion';
+
+ 	update exposicion set estado_planificacion_id = id_cierre_planificacion
+	where exposicion_id = idExposicion;
+
+	update exposicion_x_tema set estado_exposicion = 'programada' 
+	where exposicion_id = idExposicion;
+
+	
+	RETURN TRUE;
+END;
+$$;
+
