@@ -1,4 +1,3 @@
-// src/features/academic-staff-management/components/CessationRequestCard.tsx
 'use client'
 
 import React, { useState } from 'react';
@@ -17,16 +16,11 @@ import { Avatar, AvatarFallback  } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
-import { IRequestTerminationConsultancyRequestData } from '@/features/asesores/types/solicitud-cese-asesoria';
+import { ICessationRequestCardProps, IRequestTerminationConsultancyRequestData } from '@/features/asesores/types/cessation-request';
 
-// --- Props ---
-interface CessationRequestCardProps {
-    request: IRequestTerminationConsultancyRequestData;
-    onApprove: () => void;
-    onReject: () => void;
-}
 
-const CessationRequestCard: React.FC<CessationRequestCardProps> = ({
+
+const CessationRequestCard: React.FC<ICessationRequestCardProps> = ({
     request,
     onApprove,
     onReject

@@ -1,7 +1,7 @@
 // src/features/academic-staff-management/components/PendingRequestsList.tsx
 import React from 'react';
-import { IRequestTerminationConsultancyRequestData } from '@/features/asesores/types/solicitud-cese-asesoria';
-import CessationRequestCard from '@/features/asesores/components/card-solicitud-cese-asesoria';
+import { IRequestTerminationConsultancyRequestData } from '@/features/asesores/types/cessation-request';
+import CessationRequestCard from '@/features/asesores/components/cessation-request/card-request';
 
 interface PendingRequestsListProps {
   requests: Array<IRequestTerminationConsultancyRequestData>;

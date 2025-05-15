@@ -1,4 +1,3 @@
-// src/features/academic-staff-management/components/RejectCessationModal.tsx
 import React, { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { z } from "zod";
@@ -14,14 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import type { IRequestTerminationConsultancyRequestData } from "@/features/asesores/types/solicitud-cese-asesoria";
-
-interface RejectCessationModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  request: IRequestTerminationConsultancyRequestData | null;
-  loading: boolean;
-}
+import { IAssessorChangeRejectModalProps } from "@/features/asesores/types/assessor-change-request";
 
 const MAX_CHARACTERS_ALLOWED = 250
 
@@ -29,14 +21,14 @@ const motivoSchema = z
   .string()
   .min(1, "El motivo es requerido")
   .max(MAX_CHARACTERS_ALLOWED,`Máximo ${MAX_CHARACTERS_ALLOWED} caracteres`)
-  .regex(/^[A-Za-zÑñ.,;\-_\u00bf\?!¡ ]*$/, "Caracteres inválidos");
+  .regex(/^[A-Za-zÑñ.,;\-_\u00bf?!¡ ]*$/, "Caracteres inválidos");
 
-export default function RejectCessationModal({
+export default function RejectAssessorChangeModal({
   isOpen,
   onClose,
   request,
   loading,
-}: RejectCessationModalProps) {
+}: Readonly<IAssessorChangeRejectModalProps>) {
   const [motivo, setMotivo] = useState("");
   const [clientError, setClientError] = useState<string | null>(null);
   const [validText, setValidText] = useState(true);
@@ -67,7 +59,7 @@ export default function RejectCessationModal({
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const filtered = e.target.value.replace(/[^A-Za-zÑñ.,;:\-_\u00bf\?!¡ ]/g, "");
+    const filtered = e.target.value.replace(/[^A-Za-zÑñ.,;:\-_\u00bf?!¡ ]/g, "");
     setMotivo(filtered);
     setValidText(motivoSchema.safeParse(filtered).success);
     validateMutation.mutate(filtered);
@@ -102,20 +94,21 @@ export default function RejectCessationModal({
             Rechazar Solicitud de Cese
           </DialogTitle>
           <DialogDescription className="text-gray-600">
-            Está a punto de rechazar la solicitud de cese para el profesor {" "}
-            <span className="font-semibold">
-              {`${request?.assessor.name} ${request?.assessor.lastName}`}
-            </span>
-            .
+            Está a punto de rechazar la solicitud de cese para el alumno {" "}
+            <span className="font-semibold">{`${request?.student.name} ${request?.student.lastName}`}</span>
           </DialogDescription>
         </DialogHeader>
 
-        {loading ? (
-          <div className="p-12 text-center flex flex-col items-center justify-center text-muted-foreground">
-            <Loader2 className="h-5 w-5 animate-spin" />
-            <p className="mt-4">Cargando detalle de solicitud...</p>
-          </div>
-        ) : request ? (
+        {(()=>{
+          if (loading)
+            return (
+              <div className="p-12 text-center flex flex-col items-center justify-center text-muted-foreground">
+                <Loader2 className="h-5 w-5 animate-spin" />
+                <p className="mt-4">Cargando detalle de solicitud...</p>
+              </div>
+          )
+          if (request) 
+            return (
           <div className="mt-4 max-w-[380px]">
             <Textarea
               placeholder="Explique el motivo por el cual se rechaza esta solicitud..."
@@ -136,9 +129,12 @@ export default function RejectCessationModal({
               </p>
             )}
           </div>
-        ) : (
-          <div>No se encontró información sobre esta solicitud de cese</div>
-        )}
+          )
+         
+          return (
+            <div>No se encontró información sobre esta solicitud de cese</div>
+          )
+        })()}
 
         <DialogFooter className="mt-4">
           <Button variant="outline" onClick={onClose} disabled={isProcessing}>

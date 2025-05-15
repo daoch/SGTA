@@ -1,31 +1,27 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useAssignmentStore } from "@/features/asesores/store/solicitud-cese-asesoria" 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CheckCircle, Users } from "lucide-react"
-import { StudentList } from "@/features/asesores/components/student-list"
-import { AdvisorList } from "@/features/asesores/components/advisor-list"
+import { StudentList } from "@/features/asesores/components/cessation-request/student-list"
+import AdvisorList from "@/features/asesores/components/cessation-request/list-available-assessors"
 import { AssignedAdvisorsList } from "./assigned-advisor-list" 
 import { z } from "zod"
 import { toast } from "sonner"
-import { IRequestTerminationConsultancyRequestData } from "@/features/asesores/types/solicitud-cese-asesoria"
+import { ICessationRequestAssignmentModalProps } from "@/features/asesores/types/cessation-request"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { differenceInDays, format } from "date-fns"
-import { useRequestTerminationFullStudentList } from "../queries/solicitud-cese-asesoria"
+import { useRequestTerminationFullStudentList } from "@/features/asesores/queries/cessation-request"
+import { useCessationRequestAssignmentStore } from "../../store/assignment-cessation-request"
 
-interface AssignmentModalProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  request: IRequestTerminationConsultancyRequestData
-}
 
-export function AssignmentModal({ open, onOpenChange, request }: AssignmentModalProps) {
-  const { assignedAdvisors, students, setStudents, selectedStudent, assignedStudents, getUnassignedStudentsCount, clear} = useAssignmentStore()
+
+export function AssignmentModal({ open, onOpenChange, request }: Readonly<ICessationRequestAssignmentModalProps>) {
+  const { students, setStudents, selectedStudent, assignedStudents, clear} = useCessationRequestAssignmentStore()
   const [ activeTab, setActiveTab ] = useState("list")
-  const { isLoading, data, isError, error, refetch } = useRequestTerminationFullStudentList(request.id)
+  const { data } = useRequestTerminationFullStudentList(request.id)
 
   // Clear data state from previous state 
   useEffect(()=>{
@@ -141,7 +137,7 @@ export function AssignmentModal({ open, onOpenChange, request }: AssignmentModal
           <div className="lg:col-span-4 border rounded-lg p-4">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold">Asesores</h2>
+                <h2 className="text-xl font-semibold">Asesores disponibles</h2>
                 <TabsList>
                   <TabsTrigger value="list">Lista</TabsTrigger>
                   <TabsTrigger value="assigned">Asignado</TabsTrigger>

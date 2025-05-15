@@ -1,16 +1,15 @@
 "use client"
 
-import { useAssignmentStore } from "@/features/asesores/store/solicitud-cese-asesoria" 
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { UserMinus } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { toast } from "sonner"
+import { useCessationRequestAssignmentStore } from "@/features/asesores/store/assignment-cessation-request"
 
 export function AssignedAdvisorsList() {
   const { students, assignedAdvisors, unassignAdvisor, removeAssignedAdvisor, selectedStudent } =
-    useAssignmentStore()
+    useCessationRequestAssignmentStore()
 
   if (assignedAdvisors.length === 0) {
     return <div className="text-center py-8 text-muted-foreground">No hay asesores asignados todavía</div>

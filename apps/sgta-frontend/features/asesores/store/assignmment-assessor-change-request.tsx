@@ -1,38 +1,36 @@
-"use client"
+import { create } from "zustand"
+import { IAssessorChangeRequestAdvisorAssign, IAssessorChangeRequestStudentAssign, IAssessorChangeRequestThematicArea } from "../types/assessor-change-request"
 
-import { create } from "zustand";
-import { IRequestTerminationConsultancyRequestStatus, IRequestTerminationConsultancySearchFieldsStore } from "@/features/asesores/types/solicitud-cese-asesoria";
-import type { IStudentCessationRequest, IAdvisorCessationRequest, IThematicAreaCessationRequest } from "@/features/asesores/types/solicitud-cese-asesoria"
-
-interface AssignmentState {
-  students: IStudentCessationRequest[]
-  advisors: IAdvisorCessationRequest[]
-  selectedStudent: IStudentCessationRequest | null
+interface IAssessorChangeRequestAssignmentState {
+  students: IAssessorChangeRequestStudentAssign[]
+  advisors: IAssessorChangeRequestAdvisorAssign[]
+  selectedStudent: IAssessorChangeRequestStudentAssign | null
   assignedStudents: Record<number, number> // studentId -> advisorId
-  assignedAdvisors: IAdvisorCessationRequest[],
+  assignedAdvisors: IAssessorChangeRequestAdvisorAssign[],
 
   // Actions
-  setStudents: (students: IStudentCessationRequest[]) => void
-  setAdvisors: (advisors: IAdvisorCessationRequest[]) => void
-  selectStudent: (student: IStudentCessationRequest) => void
+  setStudents: (students: IAssessorChangeRequestStudentAssign[]) => void
+  setAdvisors: (advisors: IAssessorChangeRequestAdvisorAssign[]) => void
+  selectStudent: (student: IAssessorChangeRequestStudentAssign) => void
   assignAdvisor: (studentId: number, advisorId: number) => void
   unassignAdvisor: (studentId: number) => void
-  addAssignedAdvisor: (advisor: IAdvisorCessationRequest) => void
+  addAssignedAdvisor: (advisor: IAssessorChangeRequestAdvisorAssign) => void
   removeAssignedAdvisor: (advisorId: number) => void
 
   // Selectors
   isStudentAssigned: (studentId: number) => boolean
-  getAssignedAdvisor: (studentId: number) => IAdvisorCessationRequest | null
+  getAssignedAdvisor: (studentId: number) => IAssessorChangeRequestAdvisorAssign | null
   getAdvisorAssignedCount: (advisorId: number) => number
   getUnassignedStudentsCount: () => number
-  getUniqueThematicAreas: () => IThematicAreaCessationRequest[]
-  getAssignedAdvisors: () => IAdvisorCessationRequest[]
-  getStudentsByAdvisor: (advisorId: number) => IStudentCessationRequest[]
+  getUniqueThematicAreas: () => IAssessorChangeRequestThematicArea[]
+  getAssignedAdvisors: () => IAssessorChangeRequestAdvisorAssign[]
+  getStudentsByAdvisor: (advisorId: number) => IAssessorChangeRequestStudentAssign[]
   canAssignAdvisorToStudent: (advisorId: number, studentId: number) => boolean
   clear: () => void
 }
 
-export const useAssignmentStore = create<AssignmentState>((set, get) => ({
+
+export const useAssessorChangeAssignmentStore = create<IAssessorChangeRequestAssignmentState>((set, get) => ({
   students: [],
   advisors: [],
   selectedStudent: null,
@@ -133,7 +131,7 @@ export const useAssignmentStore = create<AssignmentState>((set, get) => ({
 
   getUniqueThematicAreas: () => {
     const { students, advisors } = get()
-    const areas = new Set<IThematicAreaCessationRequest>()
+    const areas = new Set<IAssessorChangeRequestThematicArea>()
 
     students.forEach((student) => areas.add(student.thematicArea))
     advisors.forEach((advisor) => advisor.thematicAreas.forEach((area) => areas.add(area)))
@@ -179,18 +177,3 @@ export const useAssignmentStore = create<AssignmentState>((set, get) => ({
     assignedAdvisors: []
   }),
 }))
-
-
-export const useRequestTerminationConsultancyStoreSearchCriteria = create<IRequestTerminationConsultancySearchFieldsStore>((set) => ({
-    "fullNameEmail": "",
-    "status": "pending" as IRequestTerminationConsultancyRequestStatus,
-    "page": 1,
-    setFullNameEmail: (value: string) => set((state) => ({ fullNameEmail: value })),
-    setPage: (value: number) => set((state) => ({ page: value })),
-    setStatus: (value: IRequestTerminationConsultancyRequestStatus) => set((state) => ({ status: value })),
-    setStatusTabFilter: (value: IRequestTerminationConsultancyRequestStatus) => set((state) => ({ page: 1, status: value })),
-    setFullNameEmailPage: (value: string) => set((state) => ({ page: 1, fullNameEmail: value })),
-    clear: () => set((state => ({ page: 1, fullNameEmail: "", "status": "pending" as IRequestTerminationConsultancyRequestStatus}))),
-    clearFullNameEmailPage: () => set((state => ({ page: 1, fullNameEmail: ""}))),
-}));
-

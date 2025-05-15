@@ -1,7 +1,7 @@
 import { useQuery} from "@tanstack/react-query";
 
 import { getTerminationConsultancyList, getTerminationConsultancyRequest, getTerminationRequestAssessorList, getTerminationRequestStudentList } from "../services/solicitud-cese-asesoria";
-import { ISearchCriteriaAvailableAdvisorList, IRequestTerminationConsultancySearchFields } from "../types/solicitud-cese-asesoria";
+import { ICessationRequestSearchCriteriaAvailableAdvisorList, IRequestTerminationConsultancySearchFields } from "../types/cessation-request";
 
 
 const useRequestTerminationList = (searchCriteriaStore: IRequestTerminationConsultancySearchFields) => {
@@ -11,9 +11,9 @@ const useRequestTerminationList = (searchCriteriaStore: IRequestTerminationConsu
         queryFn: () =>
             getTerminationConsultancyList(searchCriteriaStore).then((res) => res),
         
-    })
+    });
 
-    return queryRequestTerminationList
+    return queryRequestTerminationList;
 }
 
 
@@ -43,7 +43,7 @@ const useRequestTerminationFullStudentList = (idRequest: number) => {
 }
 
 
-const useRequestTerminationAdvisorPerThematicArea = (searchCriteria: ISearchCriteriaAvailableAdvisorList) => {
+const useRequestTerminationAdvisorPerThematicArea = (searchCriteria: ICessationRequestSearchCriteriaAvailableAdvisorList) => {
     const queryRequestStudentList = useQuery({
         queryKey: ['request-termination-assessor-list-per-thematic-area', searchCriteria.idThematicArea, searchCriteria.fullNameEmailCode, searchCriteria.page],
         queryFn: () =>
@@ -53,6 +53,8 @@ const useRequestTerminationAdvisorPerThematicArea = (searchCriteria: ISearchCrit
 
     return queryRequestStudentList
 }
+
+
 
 
 

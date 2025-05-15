@@ -8,14 +8,11 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { IAssessorChangeRequestPaginationProps } from "@/features/asesores/types/assessor-change-request";
 
-interface ICessationRequestPaginationProps {
-  currentPage: number;
-  totalPages: number;
-  onPageChange: (page: number) => void;
-}
 
-const CessationRequestPagination: React.FC<ICessationRequestPaginationProps> = ({
+
+const AssessorChangeRequestPagination: React.FC<IAssessorChangeRequestPaginationProps> = ({
   currentPage,
   totalPages,
   onPageChange
@@ -104,7 +101,9 @@ const CessationRequestPagination: React.FC<ICessationRequestPaginationProps> = (
           <PaginationItem>
             <PaginationNext
               onClick={() => {
-                currentPage < totalPages ? onPageChange(currentPage + 1) : null
+                if (currentPage < totalPages) {
+                  onPageChange(currentPage + 1);
+                }
               }}
               className={currentPage >= totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
               aria-disabled={currentPage >= totalPages}
@@ -116,4 +115,4 @@ const CessationRequestPagination: React.FC<ICessationRequestPaginationProps> = (
   );
 };
 
-export default CessationRequestPagination;
+export default AssessorChangeRequestPagination;

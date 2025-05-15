@@ -10,15 +10,10 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { IRequestTerminationConsultancyRequestData } from "@/features/asesores/types/solicitud-cese-asesoria";
+import { ICessationRequestHistoryTableProps, IRequestTerminationConsultancyRequestData } from "@/features/asesores/types/cessation-request";
 import { differenceInDays, format } from "date-fns";
 
-interface RequestHistoryTableProps {
-  requests: Array<IRequestTerminationConsultancyRequestData>;
-  onViewDetails: (value: any) => void;
-}
-
-const RequestHistoryTable: React.FC<RequestHistoryTableProps> = ({
+const RequestHistoryTable: React.FC<ICessationRequestHistoryTableProps> = ({
   requests,
   onViewDetails,
 }) => {

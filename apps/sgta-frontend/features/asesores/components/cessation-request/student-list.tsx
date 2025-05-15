@@ -1,22 +1,19 @@
 "use client"
 
 import { useState } from "react"
-import { useAssignmentStore } from "@/features/asesores/store/solicitud-cese-asesoria" 
+import { useCessationRequestAssignmentStore } from "@/features/asesores/store/assignment-cessation-request" 
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { CheckCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { useDebounce } from "../hooks/use-debounce"
 
 export function StudentList() {
-  const { students, selectedStudent, selectStudent, isStudentAssigned } = useAssignmentStore()
-
+  const { students, selectedStudent, selectStudent } = useCessationRequestAssignmentStore()
   const [searchTerm, setSearchTerm] = useState("")
-  //const debouncedSearchTerm = useDebounce(searchTerm, 2000)
 
   const filteredStudents = students.filter((student) => {
-    //if (!debouncedSearchTerm) return true
+    
 
     const fullName = `${student.firstName} ${student.lastName}`.toLowerCase()
     const searchLower = searchTerm.toLowerCase()
@@ -59,7 +56,7 @@ export function StudentList() {
 
               <div className="relative h-10 w-10 rounded-full overflow-hidden">
                 <img
-                  src={student.profilePicture || "/placeholder.svg"}
+                  src={student.profilePicture ?? "/placeholder.svg"}
                   alt={`${student.firstName} ${student.lastName}`}
                   className="object-cover h-full w-full"
                 />

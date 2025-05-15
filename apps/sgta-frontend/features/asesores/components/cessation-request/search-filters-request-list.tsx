@@ -7,8 +7,8 @@ import {
   TabsTrigger
 } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { IRequestTerminationConsultancyRequestStatus } from "@/features/asesores/types/solicitud-cese-asesoria";
-import { useDebounce } from "../hooks/use-debounce";
+import { IRequestTerminationConsultancyRequestStatus } from "@/features/asesores/types/cessation-request";
+import { useDebounce } from "@/features/asesores/hooks/use-debounce";
 
 interface ISearchFilterParams{
     searchTerm: string
