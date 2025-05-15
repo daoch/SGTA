@@ -94,6 +94,18 @@ export const getCursos = async () => {
   }
 };
 
+export const getCursosByCoordinador = async (coordinadorId: number) => {
+  try {
+    const response = await axiosInstance.get(
+      `/etapas-formativas/listarActivasPorCoordinador/${coordinadorId}`,
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error al obtener cursos por coordinador:", error);
+    throw new Error("Error al obtener cursos por coordinador");
+  }
+};
+
 export const getExposicionesInicializadasByCoordinador = async (
   coordinadorId: number,
 ) => {

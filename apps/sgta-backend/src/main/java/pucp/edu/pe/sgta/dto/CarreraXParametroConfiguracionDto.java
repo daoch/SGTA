@@ -14,7 +14,7 @@ public class CarreraXParametroConfiguracionDto {
 
 	private Object valor;
 
-	private boolean activo;
+	private Boolean activo;
 
 	private Integer carreraId;
 

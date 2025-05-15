@@ -4,8 +4,10 @@ import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import pucp.edu.pe.sgta.dto.ExposicionDto;
 import pucp.edu.pe.sgta.dto.ExposicionNombreDTO;
+import pucp.edu.pe.sgta.dto.ExposicionSinInicializarDTO;
 import pucp.edu.pe.sgta.dto.ListExposicionXCoordinadorDTO;
 import pucp.edu.pe.sgta.mapper.ExposicionMapper;
+import pucp.edu.pe.sgta.model.EstadoPlanificacion;
 import pucp.edu.pe.sgta.model.EtapaFormativaXCiclo;
 import pucp.edu.pe.sgta.model.Exposicion;
 import pucp.edu.pe.sgta.repository.ExposicionRepository;
@@ -76,10 +78,14 @@ public class ExposicionServiceImpl implements ExposicionService {
                 .orElseThrow(() -> new RuntimeException("Exposicion no encontrada con ID: " + dto.getId()));
 
         exposicionToUpdate.setNombre(dto.getNombre());
+        
+        EstadoPlanificacion estadoPlanificacion = new EstadoPlanificacion();
+        estadoPlanificacion.setId(dto.getEstadoPlanificacionId());
+        exposicionToUpdate.setEstadoPlanificacion(estadoPlanificacion);
+        
         exposicionToUpdate.setDescripcion(dto.getDescripcion());
         exposicionToUpdate.setFechaModificacion(OffsetDateTime.now());
         exposicionRepository.save(exposicionToUpdate);
-
     }
 
     @Override
@@ -124,5 +130,22 @@ public class ExposicionServiceImpl implements ExposicionService {
                         (String) resultado[8]               // estadoPlanificacionNombre
                 ))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ExposicionSinInicializarDTO> listarExposicionesSinInicializarByEtapaFormativaEnCicloActual(Integer etapaFormativaId) {
+        List<Object[]> expos = exposicionRepository.listarExposicionesSinInicializarByEtapaFormativaEnCicloActual(etapaFormativaId);
+
+        List<ExposicionSinInicializarDTO> expoList = new ArrayList<>();
+
+        for(Object[] obj : expos) {
+            ExposicionSinInicializarDTO dto = new ExposicionSinInicializarDTO();
+            dto.setExposicionId((Integer)obj[0]);
+            dto.setNombre((String)obj[1]);
+            dto.setInicializada((Boolean)obj[2]);
+            expoList.add(dto);
+        }
+
+        return expoList;
     }
 }

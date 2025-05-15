@@ -3,26 +3,32 @@ import {
   JornadaExposicionSalas,
 } from "../types/jurado.types";
 
-import GeneralPlanificationExpo from "@/features/jurado/components/GeneralPlanificationExpo";
+import GeneralPlanificationExpo from "@/features/jurado/components/PlanificationComponents/GeneralPlanificationExpo";
 import {
+  getEtapaFormativaIdByExposicionId,
   listarBloquesHorariosExposicion,
-  listarJornadasExposicionSalas,
+  listarEstadoPlanificacionPorExposicion,
+  listarJornadasExposicionSalasByExposicion,
   listarTemasCicloActulXEtapaFormativa,
 } from "@/features/jurado/services/data";
 import { JornadaExposicionDTO } from "../dtos/JornadExposicionDTO";
 type Props = {
-  etapaFormativaId: number;
+  exposicionId: number;
 };
-export default async function PlanExpo({ etapaFormativaId }: Props) {
+export default async function PlanExpo({ exposicionId }: Props) {
+  const etapaFormativaId =
+    await getEtapaFormativaIdByExposicionId(exposicionId);
   const expos = await listarTemasCicloActulXEtapaFormativa(etapaFormativaId);
-  const jornadasSalas = await listarJornadasExposicionSalas(etapaFormativaId);
+  const jornadasSalas =
+    await listarJornadasExposicionSalasByExposicion(exposicionId);
   const topics: AreaEspecialidad[] = [];
   const roomAvailList: JornadaExposicionDTO[] =
     jornadasSalas.map(transformarJornada);
-  const bloquesList = await listarBloquesHorariosExposicion(etapaFormativaId);
+  const bloquesList = await listarBloquesHorariosExposicion(exposicionId);
+  const estadoPlanificacion =
+    await listarEstadoPlanificacionPorExposicion(exposicionId);
 
-  console.log({ jornadasSalas });
-  console.log({ roomAvailList });
+  console.log(bloquesList);
 
   return (
     <main className="h-screen flex flex-col">
@@ -39,6 +45,8 @@ export default async function PlanExpo({ etapaFormativaId }: Props) {
         topics={topics}
         roomAvailList={roomAvailList}
         bloquesList={bloquesList}
+        exposicionId={exposicionId}
+        estadoPlanificacion={estadoPlanificacion}
       ></GeneralPlanificationExpo>
     </main>
   );

@@ -31,16 +31,16 @@ public class CriterioExposicion {
     @Column(columnDefinition = "TEXT")
     private String descripcion;
 
-    @Column(name = "nota_maxima", nullable = false, precision = 5, scale = 2)
+    @Column(name = "nota_maxima", nullable = false, precision = 6, scale = 2)
     private BigDecimal notaMaxima;
 
     @Column(nullable = false)
     private boolean activo = true;
 
-    @Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    @Column(name = "fecha_creacion", nullable = false,insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaCreacion;
 
-    @Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    @Column(name = "fecha_modificacion", insertable = false,columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaModificacion;
 }
 

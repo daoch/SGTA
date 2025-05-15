@@ -39,18 +39,60 @@ public class Entregable {
     private OffsetDateTime fechaFin;
 
     @Column(name = "estado", nullable = false)
-    @Enumerated(EnumType.STRING)
+    private String estadoStr = "no_iniciado";
+    
+    @Transient
     private EstadoActividad estado;
 
     @Column(name = "es_evaluable", nullable = false)
     private boolean esEvaluable = true;
 
+    @Column(name = "maximo_documentos", nullable = false)
+    private Integer maximoDocumentos;
+
+    @Column(name = "extensiones_permitidas", columnDefinition = "TEXT")
+    private String extensionesPermitidas;
+
+    @Column(name = "peso_maximo_documento", nullable = false)
+    private Integer pesoMaximoDocumento;
+
     @Column(nullable = false)
     private boolean activo = true;
 
-    @Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    @Column(name = "fecha_creacion", nullable = false,insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaCreacion;
 
-    @Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    @Column(name = "fecha_modificacion", insertable = false,columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaModificacion;
+    
+    @PostLoad
+    void fillTransient() {
+        if (estadoStr != null) {
+            try {
+                this.estado = EstadoActividad.valueOf(estadoStr);
+            } catch (IllegalArgumentException e) {
+                // Manejar el caso donde el valor en la base de datos no coincide con la enumeración
+                this.estado = EstadoActividad.no_iniciado;
+            }
+        }
+    }
+    
+    @PrePersist
+    @PreUpdate
+    void fillPersistent() {
+        if (estado != null) {
+            this.estadoStr = estado.name();
+        }
+    }
+    
+    public EstadoActividad getEstado() {
+        return this.estado;
+    }
+    
+    public void setEstado(EstadoActividad estado) {
+        this.estado = estado;
+        if (estado != null) {
+            this.estadoStr = estado.name();
+        }
+    }
 }

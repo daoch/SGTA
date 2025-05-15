@@ -1,6 +1,6 @@
 package pucp.edu.pe.sgta.service.inter;
 
-import pucp.edu.pe.sgta.dto.InfoSubAreaConocimientoDto;
+import pucp.edu.pe.sgta.dto.asesores.InfoSubAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.SubAreaConocimientoDto;
 import java.util.List;
 
@@ -21,6 +21,8 @@ public interface SubAreaConocimientoService {
 	List<SubAreaConocimientoDto> getAllByArea(Integer idArea);
 
 	List<InfoSubAreaConocimientoDto> listarInfoPorNombre(String nombre);
+
+	List<SubAreaConocimientoDto> listarPorCarreraDeUsuario(Integer usuarioId);
 
 	List<InfoSubAreaConocimientoDto> listarPorCarrerasUsuarioParaPerfil(Integer idUsuario);
 

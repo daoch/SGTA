@@ -1,8 +1,7 @@
 package pucp.edu.pe.sgta.service.inter;
 
 import pucp.edu.pe.sgta.dto.AreaConocimientoDto;
-import pucp.edu.pe.sgta.dto.InfoAreaConocimientoDto;
-import pucp.edu.pe.sgta.dto.InfoSubAreaConocimientoDto;
+import pucp.edu.pe.sgta.dto.asesores.InfoAreaConocimientoDto;
 
 import java.util.List;
 
@@ -17,11 +16,12 @@ public interface AreaConocimientoService {
 	List<AreaConocimientoDto> getAll();
 
 	List<AreaConocimientoDto> getAllByCarrera(Integer idCarrera);
-    AreaConocimientoDto findById(Integer id);
 
-    List<AreaConocimientoDto> listarPorUsuario(Integer usuarioId);
+	AreaConocimientoDto findById(Integer id);
 
-    List<InfoAreaConocimientoDto> listarInfoPorNombre(String nombre);
+	List<AreaConocimientoDto> listarPorUsuario(Integer usuarioId);
+
+	List<InfoAreaConocimientoDto> listarInfoPorNombre(String nombre);
 
 	List<InfoAreaConocimientoDto> listarPorCarrerasUsuarioParaPerfil(Integer idUsuario);
 }

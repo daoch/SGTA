@@ -64,9 +64,9 @@ public class CriterioEntregableServiceImpl implements CriterioEntregableService 
 
     @Transactional
     @Override
-    public void delete(CriterioEntregableDto criterioEntregableDto) {
-        CriterioEntregable criterioEntregableToDelete = criterioEntregableRepository.findById(criterioEntregableDto.getId())
-                .orElseThrow(() -> new RuntimeException("CriterioEntregable no encontrado con ID: " + criterioEntregableDto.getId()));
+    public void delete(Integer id) {
+        CriterioEntregable criterioEntregableToDelete = criterioEntregableRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("CriterioEntregable no encontrado con ID: " + id));
 
         criterioEntregableToDelete.setActivo(false);
         criterioEntregableToDelete.setFechaModificacion(OffsetDateTime.now());

@@ -1,12 +1,9 @@
 package pucp.edu.pe.sgta.dto;
 
 import java.sql.Timestamp;
-import java.time.OffsetDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -17,7 +14,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class JornadaExposicionXSalaExposicionListadoDTO {
-  private Integer jornadaExposicionId;
+    private Integer jornadaExposicionId;
     private Timestamp datetimeInicio;
     private Timestamp datetimeFin;
     private List<SalaExposicionJornadaDTO> salasExposicion ;

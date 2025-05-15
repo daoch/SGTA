@@ -11,4 +11,5 @@ public interface EstadoTemaRepository extends JpaRepository<EstadoTema, Integer>
 	// Por ejemplo, para buscar por nombre o estado específico
 	Optional<EstadoTema> findByNombre(String nombre);
 
+	Optional<EstadoTema> findById(Integer estadoTemaId);
 }

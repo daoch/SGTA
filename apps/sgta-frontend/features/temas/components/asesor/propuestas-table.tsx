@@ -27,10 +27,15 @@ import {
   postularTemaPropuestoGeneral,
   rechazarTema,
 } from "@/features/temas/types/propuestas/data";
-import { Area, Proyecto } from "@/features/temas/types/propuestas/entidades";
+import {
+  Area,
+  Proyecto_M,
+  SubAreaConocimiento,
+} from "@/features/temas/types/propuestas/entidades";
 import { CheckCircle, Eye, Send, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast, Toaster } from "sonner";
 // Datos de ejemplo
 /*const propuestasData = [
   {
@@ -87,26 +92,32 @@ import { useState } from "react";
 // Obtener todas las áreas únicas para el filtro
 
 interface PropuestasTableProps {
-  propuestas?: Proyecto[];
+  propuestasData?: Proyecto_M[];
+  setPropuestasData?: (propuestasData: Proyecto_M[]) => void;
   areasData?: Area[];
-  idsSubAreas?: number[];
+  searchTerm?: string;
+  setSearchTerm?: (searchTerm: string) => void;
+  subAreasData?: SubAreaConocimiento[];
+  isLoading?: boolean;
 }
 
 export function PropuestasTable({
-  propuestas,
+  propuestasData,
+  setPropuestasData,
   areasData,
-  idsSubAreas,
+  searchTerm,
+  setSearchTerm,
+  subAreasData,
+  isLoading,
 }: PropuestasTableProps) {
   const [areaFilter, setAreaFilter] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedPropuesta, setSelectedPropuesta] = useState<Proyecto | null>(
+  const [selectedPropuesta, setSelectedPropuesta] = useState<Proyecto_M | null>(
     null,
   );
   const [comentario, setComentario] = useState("");
   const [aceptarPropuesta, setAceptarPropuesta] = useState(false);
   const [postularPropuesta, setPostularPropuesta] = useState(false);
   const [rechazarPropuesta, setRechazarPropuesta] = useState(false);
-  const [propuestasData, setPropuestasData] = useState(propuestas);
 
   const router = useRouter();
 
@@ -114,24 +125,16 @@ export function PropuestasTable({
     // Filtrar por área si hay un filtro de área seleccionado
     if (
       areaFilter &&
-      !propuesta.subAreas.some(
+      !propuesta.subareas.some(
         (subArea) => subArea.areaConocimiento.nombre === areaFilter,
       )
     ) {
       return false;
     }
-    // Filtrar por término de búsqueda (título)
-    if (searchTerm) {
-      const searchTermLower = searchTerm.toLowerCase();
-      const tituloMatch = propuesta.titulo
-        .toLowerCase()
-        .includes(searchTermLower);
-      return tituloMatch;
-    }
     return true;
   });
 
-  const handleOpenDialog = (propuesta: Proyecto) => {
+  const handleOpenDialog = (propuesta: Proyecto_M) => {
     console.log("abriendo detalle ...");
     console.log({ propuesta });
     setSelectedPropuesta(propuesta);
@@ -144,17 +147,24 @@ export function PropuestasTable({
     console.log({ comentario });
     console.log({ selectedPropuesta });
     if (selectedPropuesta) {
-      postularTemaPropuestoGeneral(
-        selectedPropuesta?.estudiantes[0]?.id,
-        1,
-        selectedPropuesta?.id,
-        comentario,
-      );
+      try {
+        await postularTemaPropuestoGeneral(
+          selectedPropuesta?.estudiantes[0]?.id,
+          40,
+          selectedPropuesta?.id,
+          comentario,
+        );
+
+        toast.success("¡La postulación al tema se registró correctamente!");
+      } catch (error) {
+        console.error("Error al postular el tema:", error);
+        toast.error("Hubo un error al postular al tema. Intentelo de nuevo.");
+      }
     }
-    if (idsSubAreas) {
+    if (subAreasData) {
       const propuestasGenerales =
-        await fetchTemasPropuestosPorSubAreaConocimiento(idsSubAreas, 1);
-      setPropuestasData(propuestasGenerales);
+        await fetchTemasPropuestosPorSubAreaConocimiento(subAreasData, 1);
+      setPropuestasData?.(propuestasGenerales);
     }
     router.refresh();
   };
@@ -164,15 +174,24 @@ export function PropuestasTable({
     console.log({ comentario });
     console.log({ selectedPropuesta });
     if (selectedPropuesta) {
-      await enlazarTesistasATemaPropuestoDirecta(
-        selectedPropuesta?.estudiantes?.map((item) => item.id),
-        selectedPropuesta?.id,
-        1,
-        comentario,
-      );
+      try {
+        await enlazarTesistasATemaPropuestoDirecta(
+          selectedPropuesta?.estudiantes?.map((item) => item.id),
+          selectedPropuesta?.id,
+          40,
+          comentario,
+        );
+
+        toast.success("¡La inscripción al tema se registró correctamente!");
+      } catch (error) {
+        console.error("Error al inscribirse el tema:", error);
+        toast.error(
+          "Hubo un error al inscribirse al tema. Intentelo de nuevo.",
+        );
+      }
     }
     const propuestasDirectas = await fetchTemasPropuestosAlAsesor(1);
-    setPropuestasData(propuestasDirectas);
+    setPropuestasData?.(propuestasDirectas);
     router.refresh();
   };
 
@@ -180,32 +199,42 @@ export function PropuestasTable({
     console.log({ comentario });
     console.log({ selectedPropuesta });
     if (selectedPropuesta) {
-      await rechazarTema(
-        selectedPropuesta?.estudiantes[0]?.id,
-        selectedPropuesta?.id,
-        comentario,
-      );
+      try {
+        if (selectedPropuesta) {
+          await rechazarTema(
+            selectedPropuesta?.estudiantes[0]?.id,
+            selectedPropuesta?.id,
+            comentario,
+          );
+        }
+
+        toast.success("¡El rechazo al tema se registró correctamente!");
+      } catch (error) {
+        console.error("Error al rechazar el tema:", error);
+        toast.error("Hubo un error al rechazar al tema. Intentelo de nuevo.");
+      }
     }
+
     const propuestasDirectas = await fetchTemasPropuestosAlAsesor(1);
-    setPropuestasData(propuestasDirectas);
+    setPropuestasData?.(propuestasDirectas);
     router.refresh();
   };
 
-  const handlerAceptarPropuesta = (propuesta: Proyecto) => {
+  const handlerAceptarPropuesta = (propuesta: Proyecto_M) => {
     setPostularPropuesta(false);
     setRechazarPropuesta(false);
     setAceptarPropuesta(true);
     setSelectedPropuesta(propuesta);
   };
 
-  const handlerPostularPropuesta = (propuesta: Proyecto) => {
+  const handlerPostularPropuesta = (propuesta: Proyecto_M) => {
     setAceptarPropuesta(false);
     setRechazarPropuesta(false);
     setPostularPropuesta(true);
     setSelectedPropuesta(propuesta);
   };
 
-  const handlerRechazarPropuesta = (propuesta: Proyecto) => {
+  const handlerRechazarPropuesta = (propuesta: Proyecto_M) => {
     setAceptarPropuesta(false);
     setRechazarPropuesta(true);
     setPostularPropuesta(false);
@@ -213,253 +242,262 @@ export function PropuestasTable({
   };
 
   return (
-    <div>
-      <div className="mb-6 flex flex-col md:flex-row gap-4">
-        <div className="relative flex-1">
-          <Input
-            type="search"
-            placeholder="Buscar por título o estudiante..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full"
-          />
+    <>
+      <Toaster position="bottom-right" richColors />
+      <div>
+        <div className="mb-6 flex flex-col md:flex-row gap-4">
+          <div className="relative flex-1">
+            <Input
+              type="search"
+              placeholder="Buscar por título o estudiante..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm?.(e.target.value)}
+              className="w-full"
+            />
+          </div>
+          <div className="w-full md:w-64">
+            <Select
+              value={areaFilter || "all"}
+              onValueChange={(value) =>
+                setAreaFilter(value === "all" ? null : value)
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Filtrar por área" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas las áreas</SelectItem>
+                {areasData?.map((area) => (
+                  <SelectItem key={area.id} value={area.nombre}>
+                    {area.nombre}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-        <div className="w-full md:w-64">
-          <Select
-            value={areaFilter || "all"}
-            onValueChange={(value) =>
-              setAreaFilter(value === "all" ? null : value)
-            }
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Filtrar por área" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas las áreas</SelectItem>
-              {areasData?.map((area) => (
-                <SelectItem key={area.id} value={area.nombre}>
-                  {area.nombre}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Título</TableHead>
-              <TableHead>Área</TableHead>
-              <TableHead>Estudiante(s)</TableHead>
-              <TableHead>Postulaciones</TableHead>
-              <TableHead>Fecha límite</TableHead>
-              <TableHead>Tipo</TableHead>
-              <TableHead className="text-right">Acción</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {propuestasFiltradas?.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={7}
-                  className="text-center py-8 text-muted-foreground"
-                >
-                  No hay propuestas disponibles
-                </TableCell>
-              </TableRow>
-            ) : (
-              propuestasFiltradas?.map((propuesta) => (
-                <TableRow key={propuesta.id}>
-                  <TableCell className="font-medium max-w-xs truncate">
-                    {propuesta.titulo}
-                  </TableCell>
-                  <TableCell>
-                    {Array.from(
-                      new Set(
-                        propuesta.subAreas.map(
-                          (subArea) => subArea.areaConocimiento.nombre,
-                        ),
-                      ),
-                    ).join(", ")}
-                  </TableCell>
-                  <TableCell>
-                    {propuesta.estudiantes
-                      .map(
-                        (estudiante) =>
-                          `${estudiante.nombres} ${estudiante.primerApellido} ${estudiante.segundoApellido}`,
-                      )
-                      .join(", ")}
-                  </TableCell>
-                  <TableCell>
-                    {" "}
-                    {/*Se necesita ver la cantidad de asesores postulando (Pendiente)*/}
-                    {propuesta.cantPostulaciones &&
-                    propuesta.cantPostulaciones > 0 ? (
-                      <Badge
-                        variant="outline"
-                        className="bg-blue-100 text-blue-800 hover:bg-blue-100"
-                      >
-                        {propuesta.cantPostulaciones}
-                      </Badge>
-                    ) : (
-                      <span>-</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {new Date(propuesta.fechaLimite).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={
-                        propuesta.tipo === "directa"
-                          ? "bg-purple-100 text-purple-800 hover:bg-purple-100"
-                          : "bg-green-100 text-green-800 hover:bg-green-100"
-                      }
-                    >
-                      {propuesta.tipo === "directa" ? "Directa" : "General"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleOpenDialog(propuesta)}
-                          >
-                            <Eye className="h-4 w-4" />
-                            <span className="sr-only">Ver detalles</span>
-                          </Button>
-                        </DialogTrigger>
-                        {selectedPropuesta &&
-                          !aceptarPropuesta &&
-                          !postularPropuesta &&
-                          !rechazarPropuesta && (
-                            <PropuestasModal
-                              data={selectedPropuesta}
-                              setSelectedPropuesta={setSelectedPropuesta}
-                              setComentario={setComentario}
-                              submitPostulacion={submitPostulacion}
-                              submitAceptacion={submitAceptacion}
-                              submitRechazo={submitRechazo}
-                              aceptarPropuesta={aceptarPropuesta}
-                              setAceptarPropuesta={setAceptarPropuesta}
-                              postularPropuesta={postularPropuesta}
-                              setPostularPropuesta={setPostularPropuesta}
-                              rechazarPropuesta={rechazarPropuesta}
-                              setRechazarPropuesta={setRechazarPropuesta}
-                            ></PropuestasModal>
-                          )}
-                      </Dialog>
-                      {propuesta.tipo === "general" && (
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="text-[#042354]"
-                              onClick={() =>
-                                handlerPostularPropuesta(propuesta)
-                              }
-                            >
-                              <Send className="h-4 w-4" />
-                              <span className="sr-only">Postular</span>
-                            </Button>
-                          </DialogTrigger>
-                          {selectedPropuesta && postularPropuesta && (
-                            <PropuestasModal
-                              data={selectedPropuesta}
-                              setSelectedPropuesta={setSelectedPropuesta}
-                              setComentario={setComentario}
-                              submitPostulacion={submitPostulacion}
-                              submitAceptacion={submitAceptacion}
-                              submitRechazo={submitRechazo}
-                              aceptarPropuesta={aceptarPropuesta}
-                              setAceptarPropuesta={setAceptarPropuesta}
-                              postularPropuesta={postularPropuesta}
-                              setPostularPropuesta={setPostularPropuesta}
-                              rechazarPropuesta={rechazarPropuesta}
-                              setRechazarPropuesta={setRechazarPropuesta}
-                            ></PropuestasModal>
-                          )}
-                        </Dialog>
-                      )}
-                      {propuesta.tipo === "directa" && (
-                        <>
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="text-red-500"
-                                onClick={() =>
-                                  handlerRechazarPropuesta(propuesta)
-                                }
-                              >
-                                <X className="h-4 w-4" /> {/* Rechazar */}
-                              </Button>
-                            </DialogTrigger>
-                            {selectedPropuesta && rechazarPropuesta && (
-                              <PropuestasModal
-                                data={selectedPropuesta}
-                                setSelectedPropuesta={setSelectedPropuesta}
-                                setComentario={setComentario}
-                                submitPostulacion={submitPostulacion}
-                                submitAceptacion={submitAceptacion}
-                                submitRechazo={submitRechazo}
-                                aceptarPropuesta={aceptarPropuesta}
-                                setAceptarPropuesta={setAceptarPropuesta}
-                                postularPropuesta={postularPropuesta}
-                                setPostularPropuesta={setPostularPropuesta}
-                                rechazarPropuesta={rechazarPropuesta}
-                                setRechazarPropuesta={setRechazarPropuesta}
-                              ></PropuestasModal>
-                            )}
-                          </Dialog>
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="text-green-500"
-                                onClick={() =>
-                                  handlerAceptarPropuesta(propuesta)
-                                }
-                              >
-                                <CheckCircle className="h-4 w-4" />{" "}
-                                {/* Aceptar */}
-                              </Button>
-                            </DialogTrigger>
-                            {selectedPropuesta && aceptarPropuesta && (
-                              <PropuestasModal
-                                data={selectedPropuesta}
-                                setSelectedPropuesta={setSelectedPropuesta}
-                                setComentario={setComentario}
-                                submitPostulacion={submitPostulacion}
-                                submitAceptacion={submitAceptacion}
-                                submitRechazo={submitRechazo}
-                                aceptarPropuesta={aceptarPropuesta}
-                                setAceptarPropuesta={setAceptarPropuesta}
-                                postularPropuesta={postularPropuesta}
-                                setPostularPropuesta={setPostularPropuesta}
-                                rechazarPropuesta={rechazarPropuesta}
-                                setRechazarPropuesta={setRechazarPropuesta}
-                              ></PropuestasModal>
-                            )}
-                          </Dialog>
-                        </>
-                      )}
-                    </div>
-                  </TableCell>
+        {isLoading && propuestasData ? (
+          <p className="text-sm text-muted-foreground">
+            Cargando propuestas...
+          </p>
+        ) : (
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Título</TableHead>
+                  <TableHead>Área</TableHead>
+                  <TableHead>Estudiante(s)</TableHead>
+                  <TableHead>Postulaciones</TableHead>
+                  <TableHead>Fecha límite</TableHead>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead className="text-right">Acción</TableHead>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+              </TableHeader>
+              <TableBody>
+                {propuestasFiltradas?.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={7}
+                      className="text-center py-8 text-muted-foreground"
+                    >
+                      No hay propuestas disponibles
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  propuestasFiltradas?.map((propuesta) => (
+                    <TableRow key={propuesta.id}>
+                      <TableCell className="font-medium max-w-xs truncate">
+                        {propuesta.titulo}
+                      </TableCell>
+                      <TableCell>
+                        {Array.from(
+                          new Set(
+                            propuesta.subAreas.map(
+                              (subArea) => subArea.areaConocimiento.nombre,
+                            ),
+                          ),
+                        ).join(", ")}
+                      </TableCell>
+                      <TableCell>
+                        {propuesta.estudiantes
+                          .map(
+                            (estudiante) =>
+                              `${estudiante.nombres} ${estudiante.primerApellido} ${estudiante.segundoApellido}`,
+                          )
+                          .join(", ")}
+                      </TableCell>
+                      <TableCell>
+                        {" "}
+                        {/*Se necesita ver la cantidad de asesores postulando (Pendiente)*/}
+                        {propuesta.cantPostulaciones &&
+                        propuesta.cantPostulaciones > 0 ? (
+                          <Badge
+                            variant="outline"
+                            className="bg-blue-100 text-blue-800 hover:bg-blue-100"
+                          >
+                            {propuesta.cantPostulaciones}
+                          </Badge>
+                        ) : (
+                          <span>-</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {new Date(propuesta.fechaLimite).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className={
+                            propuesta.tipo === "directa"
+                              ? "bg-purple-100 text-purple-800 hover:bg-purple-100"
+                              : "bg-green-100 text-green-800 hover:bg-green-100"
+                          }
+                        >
+                          {propuesta.tipo === "directa" ? "Directa" : "General"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleOpenDialog(propuesta)}
+                              >
+                                <Eye className="h-4 w-4" />
+                                <span className="sr-only">Ver detalles</span>
+                              </Button>
+                            </DialogTrigger>
+                            {selectedPropuesta &&
+                              !aceptarPropuesta &&
+                              !postularPropuesta &&
+                              !rechazarPropuesta && (
+                                <PropuestasModal
+                                  data={selectedPropuesta}
+                                  setSelectedPropuesta={setSelectedPropuesta}
+                                  setComentario={setComentario}
+                                  submitPostulacion={submitPostulacion}
+                                  submitAceptacion={submitAceptacion}
+                                  submitRechazo={submitRechazo}
+                                  aceptarPropuesta={aceptarPropuesta}
+                                  setAceptarPropuesta={setAceptarPropuesta}
+                                  postularPropuesta={postularPropuesta}
+                                  setPostularPropuesta={setPostularPropuesta}
+                                  rechazarPropuesta={rechazarPropuesta}
+                                  setRechazarPropuesta={setRechazarPropuesta}
+                                ></PropuestasModal>
+                              )}
+                          </Dialog>
+                          {propuesta.tipo === "general" && (
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="text-[#042354]"
+                                  onClick={() =>
+                                    handlerPostularPropuesta(propuesta)
+                                  }
+                                >
+                                  <Send className="h-4 w-4" />
+                                  <span className="sr-only">Postular</span>
+                                </Button>
+                              </DialogTrigger>
+                              {selectedPropuesta && postularPropuesta && (
+                                <PropuestasModal
+                                  data={selectedPropuesta}
+                                  setSelectedPropuesta={setSelectedPropuesta}
+                                  setComentario={setComentario}
+                                  submitPostulacion={submitPostulacion}
+                                  submitAceptacion={submitAceptacion}
+                                  submitRechazo={submitRechazo}
+                                  aceptarPropuesta={aceptarPropuesta}
+                                  setAceptarPropuesta={setAceptarPropuesta}
+                                  postularPropuesta={postularPropuesta}
+                                  setPostularPropuesta={setPostularPropuesta}
+                                  rechazarPropuesta={rechazarPropuesta}
+                                  setRechazarPropuesta={setRechazarPropuesta}
+                                ></PropuestasModal>
+                              )}
+                            </Dialog>
+                          )}
+                          {propuesta.tipo === "directa" && (
+                            <>
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="text-red-500"
+                                    onClick={() =>
+                                      handlerRechazarPropuesta(propuesta)
+                                    }
+                                  >
+                                    <X className="h-4 w-4" /> {/* Rechazar */}
+                                  </Button>
+                                </DialogTrigger>
+                                {selectedPropuesta && rechazarPropuesta && (
+                                  <PropuestasModal
+                                    data={selectedPropuesta}
+                                    setSelectedPropuesta={setSelectedPropuesta}
+                                    setComentario={setComentario}
+                                    submitPostulacion={submitPostulacion}
+                                    submitAceptacion={submitAceptacion}
+                                    submitRechazo={submitRechazo}
+                                    aceptarPropuesta={aceptarPropuesta}
+                                    setAceptarPropuesta={setAceptarPropuesta}
+                                    postularPropuesta={postularPropuesta}
+                                    setPostularPropuesta={setPostularPropuesta}
+                                    rechazarPropuesta={rechazarPropuesta}
+                                    setRechazarPropuesta={setRechazarPropuesta}
+                                  ></PropuestasModal>
+                                )}
+                              </Dialog>
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="text-green-500"
+                                    onClick={() =>
+                                      handlerAceptarPropuesta(propuesta)
+                                    }
+                                  >
+                                    <CheckCircle className="h-4 w-4" />{" "}
+                                    {/* Aceptar */}
+                                  </Button>
+                                </DialogTrigger>
+                                {selectedPropuesta && aceptarPropuesta && (
+                                  <PropuestasModal
+                                    data={selectedPropuesta}
+                                    setSelectedPropuesta={setSelectedPropuesta}
+                                    setComentario={setComentario}
+                                    submitPostulacion={submitPostulacion}
+                                    submitAceptacion={submitAceptacion}
+                                    submitRechazo={submitRechazo}
+                                    aceptarPropuesta={aceptarPropuesta}
+                                    setAceptarPropuesta={setAceptarPropuesta}
+                                    postularPropuesta={postularPropuesta}
+                                    setPostularPropuesta={setPostularPropuesta}
+                                    rechazarPropuesta={rechazarPropuesta}
+                                    setRechazarPropuesta={setRechazarPropuesta}
+                                  ></PropuestasModal>
+                                )}
+                              </Dialog>
+                            </>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        )}
       </div>
-    </div>
+    </>
   );
 }
