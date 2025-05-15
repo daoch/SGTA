@@ -3,6 +3,8 @@ package pucp.edu.pe.sgta.mapper;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
 import pucp.edu.pe.sgta.model.Usuario;
 
+import java.util.ArrayList;
+
 public class UsuarioMapper {
     public static UsuarioDto toDto(Usuario usuario) {
         UsuarioDto dto = new UsuarioDto();

@@ -32,9 +32,15 @@ public interface TemaService {
 
 	void createInscripcionTema(TemaDto dto); //Works for asesor, alumno, coordinador and revisor
 
-	List<TemaDto> listarTemasPropuestosAlAsesor(Integer asesorId);
+	List<TemaDto> listarTemasPropuestosAlAsesor(Integer asesorId, String titulo, Integer limit, Integer offset);
 
-	List<TemaDto> listarTemasPropuestosPorSubAreaConocimiento(List<Integer> subareaIds,Integer asesorId);
+	List<TemaDto> listarTemasPropuestosPorSubAreaConocimiento(
+			List<Integer> subareaIds,
+			Integer asesorId,
+			String titulo,
+			Integer limit,
+			Integer offset
+	);
 
 	void postularAsesorTemaPropuestoGeneral(Integer alumnoId, Integer asesorId, Integer temaId, String comentario);
 
