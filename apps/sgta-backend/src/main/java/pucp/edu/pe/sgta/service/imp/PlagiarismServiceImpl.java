@@ -25,7 +25,7 @@ public class PlagiarismServiceImpl {
     private String bucketName;
 
     private static final String API_URL = "https://api.gowinston.ai/v2/plagiarism";
-    private static final String API_TOKEN = "i3iHDJ4GvECNO1rjeNNmdbiA3hPHRfR6LjJgrQmjb07f8b87"; // Reemplaza con tu token real
+    private static final String API_TOKEN = "QCjk3OIgrXwcJXJuTkR9OgoeSWT6hpAa7GMfWdy40d96f018"; // Reemplaza con tu token real
 
     public PlagiarismServiceImpl(S3Client s3Client) {
         this.s3Client = s3Client;
