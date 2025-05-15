@@ -1,31 +1,13 @@
 "use client";
 
-import {
-    AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-    AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger
-} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PostulacionesTable } from "@/features/temas/components/alumno/postulaciones-table";
-import { CheckCircle, X } from "lucide-react";
+import { Postulacion } from "@/features/temas/types/propuestas/entidades";
 import { useState } from "react";
-
-interface Postulacion {
-  id: string;
-  titulo: string;
-  area: string;
-  asesor: string;
-  correoAsesor: string;
-  fechaPostulacion: string;
-  fechaLimite: string;
-  estado: string;
-  tipo: "general" | "directa";
-  descripcion: string;
-  comentarioAsesor: string;
-}
 
 const PostulacionesRecibidasPage = () => {
   const [selectedPostulacion, setSelectedPostulacion] = useState<Postulacion | null>(null);
@@ -136,65 +118,7 @@ const PostulacionesRecibidasPage = () => {
           )}
 
           <DialogFooter className="flex justify-between">
-            <Button variant="outline" onClick={() => setSelectedPostulacion(null)}>Cancelar</Button>
-
-            {selectedPostulacion?.estado === "pendiente" && (
-              <div className="flex gap-2">
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="destructive">
-                      <X className="h-4 w-4 mr-1 text-white" />
-                      Rechazar
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                      <AlertDialogDescription>¿Deseas rechazar a este asesor para tu tema de tesis?</AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                      <AlertDialogAction
-                        className="bg-red-600 hover:bg-red-700 text-white"
-                        onClick={() => {
-                          console.log("Asesor rechazado");
-                          setSelectedPostulacion(null);
-                        }}
-                      >
-                        Rechazar
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button className="bg-green-600 hover:bg-green-700 text-white">
-                      <CheckCircle className="h-4 w-4 mr-1 text-white" />
-                      Aceptar
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                      <AlertDialogDescription>¿Deseas aceptar a este asesor para tu tema de tesis?</AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                      <AlertDialogAction
-                        className="bg-green-600 hover:bg-green-700 text-white"
-                        onClick={() => {
-                          console.log("Asesor aceptado");
-                          setSelectedPostulacion(null);
-                        }}
-                      >
-                        Aceptar
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
-            )}
+            <Button variant="outline" onClick={() => setSelectedPostulacion(null)}>Cerrar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

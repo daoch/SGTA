@@ -3,29 +3,28 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
 } from "@/components/ui/card";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import {
-    Tabs,
-    TabsContent,
-    TabsList,
-    TabsTrigger
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger
 } from "@/components/ui/tabs";
-import { PendientesCotesistasCard } from "@/features/temas/components/alumno/pendientes-cotesistas-card";
 import { PropuestasTable } from "@/features/temas/components/alumno/propuestas-table";
 import { TemaCard } from "@/features/temas/components/alumno/tema-inscrito-card";
 import Link from "next/link";
@@ -157,7 +156,7 @@ const MisTemasPage = () => {
               <CardDescription>Temas de proyectos a los que has postulado</CardDescription>
             </CardHeader>
             <CardContent>
-              <PropuestasTable propuestas={propuestasConfirmadas} setSelectedPropuesta={setSelectedPropuesta} />
+              <PropuestasTable/>
             </CardContent>
           </Card>
         </TabsContent>
@@ -169,16 +168,16 @@ const MisTemasPage = () => {
               <CardDescription>Temas que has propuesto</CardDescription>
             </CardHeader>
             <CardContent>
-              <PendientesCotesistasCard
+              {/*<PendientesCotesistasCard
                 propuestasPendientes={propuestasPendientes}
                 onView={(id) => {
                   const found = propuestas.find((p) => p.id === id);
                   if (found) setSelectedPropuesta(found);
                 }}
                 onDelete={() => {}}
-              />
+              />*/}
               <div className="mt-6" />
-              <PropuestasTable propuestas={propuestasConfirmadas} setSelectedPropuesta={setSelectedPropuesta} />
+              <PropuestasTable/>
             </CardContent>
           </Card>
         </TabsContent>

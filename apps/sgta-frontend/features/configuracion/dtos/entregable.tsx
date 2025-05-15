@@ -5,4 +5,7 @@ export interface Entregable {
   fechaInicio: string; //ISO 8601 string
   fechaFin: string;    //ISO 8601 string
   esEvaluable: boolean;
+  maximoDocumentos: number;
+  extensionesPermitidas: string;
+  pesoMaximoDocumento: number;
 };

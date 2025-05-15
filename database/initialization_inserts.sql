@@ -188,8 +188,8 @@ VALUES
     (1, 3, TRUE, NOW(), NOW()),
     -- María Gómez estudia Ingeniería Informática (carrera_id = 1)
     (2, 1, TRUE, NOW(), NOW()),
-    -- Luis Ramírez coordina Ingeniería Civil (carrera_id = 2)
-    (3, 2, TRUE, NOW(), NOW()),
+    -- Luis Ramírez coordina Ingeniería Informática (carrera_id = 1)
+    (3, 1, TRUE, NOW(), NOW()),
     -- Carla Vega administra Ingeniería Industrial (carrera_id = 4)
     (4, 4, TRUE, NOW(), NOW()),
         -- Ana Martínez enseña en Ingeniería Informática (carrera_id = 1)
