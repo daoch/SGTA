@@ -999,3 +999,22 @@ AS $$
         OR u.correo_electronico  ILIKE '%' || p_cadena_busqueda || '%'
       );
 $$;
+
+
+
+CREATE OR REPLACE FUNCTION obtener_carreras_por_usuario(
+    p_usuario_id INT
+)
+RETURNS SETOF carrera
+LANGUAGE SQL
+STABLE
+AS $$
+    SELECT c.*
+      FROM carrera c
+      JOIN usuario_carrera uc
+        ON c.carrera_id = uc.carrera_id
+     WHERE uc.usuario_id = p_usuario_id
+       AND uc.activo
+       AND c.activo
+    ORDER BY c.nombre;
+$$;
