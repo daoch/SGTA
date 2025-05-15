@@ -3,34 +3,30 @@
 import { CiclosList } from "@/components/main/configuracion/ciclos-list";
 import { NuevoCicloModal } from "@/components/main/configuracion/nuevo-ciclo-modal";
 import { Button } from "@/components/ui/button";
-import { Ciclo } from "@/features/administrador/types/ciclo.type"; // Asegúrate de importar el tipo correcto
-import { crearCiclo } from "@/features/administrador/types/services/cicloService";
-import { getCiclos } from "@/features/jurado/services/exposicion-service"; //Para los
+import { Ciclo, CicloEtapas } from "@/features/administrador/types/ciclo.type"; // Asegúrate de importar el tipo correcto
+import { crearCiclo, listarCiclosConEtapas } from "@/features/administrador/types/services/cicloService";
 import { ArrowLeft, Plus } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
 export default function CiclosPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [ciclosActivos, setCiclosActivos] = useState<Ciclo[]>([]);
+  const [ciclosActivos, setCiclosActivos] = useState<CicloEtapas[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchCiclos = async () => {
-      try {
-        const allCiclos = await getCiclos();
-        const ciclosTodos = allCiclos.map((ciclo: Ciclo) => ({
-        ...ciclo,
-        estadoDescripcion: ciclo.estado ? "En curso" : "Finalizado",
-      }));
-        setCiclosActivos(ciclosTodos);
-      } catch (error) {
-        console.error("Error al cargar ciclos activos", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  // Mueve fetchCiclos al scope del componente para que esté disponible en handleRegistrar
+  const fetchCiclos = async () => {
+    try {
+      const ciclos: CicloEtapas[] = await listarCiclosConEtapas();
+      setCiclosActivos(ciclos);
+    } catch (error) {
+      console.error("Error al cargar ciclos con etapas", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchCiclos();
   }, []);
 
@@ -39,10 +35,10 @@ export default function CiclosPage() {
   const handleRegistrar = async (formData: Ciclo) => {
   try {
     await crearCiclo(formData);
-    setIsModalOpen(false); // Cierra el modal
-    // Opcional: notifica éxito o recarga la lista de ciclos
+    setIsModalOpen(false);
+    await fetchCiclos(); // <-- Recarga la lista
+    return true;
   } catch (error) {
-    // Maneja el error (mostrar mensaje, etc.)
     console.error(error);
   }
 };

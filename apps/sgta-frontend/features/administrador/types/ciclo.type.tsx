@@ -6,3 +6,16 @@ export interface Ciclo {
   fechaInicio: string;
   fechaFin: string;
 }
+
+export interface CicloEtapas {
+  id: number;
+  semestre: string;
+  anio: number;
+  fechaInicio: string;
+  fechaFin: string;
+  activo: boolean;
+  fechaCreacion: string;
+  fechaModificacion: string;
+  etapasFormativas: string[];
+  cantidadEtapas: number;
+}

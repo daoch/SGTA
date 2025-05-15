@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { Ciclo } from "@/features/administrador/types/ciclo.type";
+import { CicloEtapas } from "@/features/administrador/types/ciclo.type";
 
 // Datos de ejemplo
 const ciclos = [
@@ -46,7 +46,7 @@ const ciclos = [
 ];
 
 interface CiclosListProps {
-  ciclos: Ciclo[];
+  ciclos: CicloEtapas[];
 }
 
 // export function CiclosList({ ciclos }: CiclosListProps) {
@@ -92,12 +92,14 @@ export function CiclosList({ ciclos }: CiclosListProps) {
         <tbody className="divide-y">
             {ciclos.map((ciclo) => (
           <tr key={ciclo.id}>
-            <td className="px-4 py-3 text-sm font-medium">{ciclo.nombre}</td>
+            <td className="px-4 py-3 text-sm font-medium">{`${ciclo.anio}-${ciclo.semestre}`}</td>
             <td className="px-4 py-3 text-sm">{ciclo.fechaInicio}</td>
             <td className="px-4 py-3 text-sm">{ciclo.fechaFin}</td>
             <td className="px-4 py-3 text-sm">
-                <Badge variant={ciclo.estado === "En curso" ? "default" : "secondary"}>{ciclo.estado}</Badge>
+                <Badge variant={ciclo.activo ? "default" : "secondary"}>{ciclo.activo ? "Activo" : "Inactivo"}</Badge>
             </td>
+            <td className="px-4 py-3 text-sm">{ciclo.cantidadEtapas}</td>
+            
           </tr>
         ))}
            {/* {ciclos.map((ciclo) => ( */}
