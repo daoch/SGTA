@@ -5,6 +5,10 @@ import React, { useState } from "react";
 import { ArrowLeft, CircleUserRound } from "lucide-react";
 import { TesisAsignadaDetalle } from "@/features/jurado/types/juradoDetalle.types";
 import { cn } from "@/lib/utils";
+import {
+  getExposicionesTema,
+  desasignarJuradoTema,
+} from "../services/jurado-service";
 
 // Datos de ejemplo (en producción, estos vendrían de una API)
 const tesisData: Record<string, TesisAsignadaDetalle> = {

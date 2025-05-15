@@ -260,3 +260,30 @@ export const getExposicionesTema = async (
     };
   }
 }; 
+
+
+export const desasignarJuradoTema = async (
+  usuarioId: number,
+  temaId: number
+): Promise<{ success: boolean; message: string }> => {
+  try {
+    const response = await axiosInstance.post("/jurado/desasignar-jurado", {
+      usuarioId,
+      temaId
+    });
+
+    return {
+      success: true,
+      message: response.data.mensaje || "Asignación eliminada correctamente"
+    };
+  } catch (error: any) {
+    // Manejo de errores
+    const errorMessage = 
+      error.response?.data?.mensaje || "Error al desasignar el jurado del tema";
+    console.error("Error al desasignar jurado:", errorMessage);
+    return {
+      success: false,
+      message: errorMessage
+    };
+  }
+};
