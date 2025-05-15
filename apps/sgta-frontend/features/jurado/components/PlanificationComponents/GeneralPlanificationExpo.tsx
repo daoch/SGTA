@@ -5,13 +5,15 @@ import {
   DragEndEvent,
   MouseSensor,
   useSensor,
-  useSensors,
+  useSensors
 } from "@dnd-kit/core";
 import { useEffect, useState, useTransition } from "react";
 import { finishPlanning, updateBloquesListFirstTime, updateBloquesNextPhase } from "../../actions/actions";
 import { JornadaExposicionDTO } from "../../dtos/JornadExposicionDTO";
 import { listarEstadoPlanificacionPorExposicion } from "../../services/data";
 import { AreaEspecialidad, EstadoPlanificacion, OrigenBoton, Tema, TimeSlot } from "../../types/jurado.types";
+import { DragContext } from "./DragContext";
+import { DragMonitor } from "./DragMonitor";
 import ExposList from "./ExposList";
 import PlanificationPanel from "./PlanificationPanel";
 
@@ -38,6 +40,7 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
   const [isPending, startTransition] = useTransition();
   const [isLoading, setIsLoading] = useState(false);
   const [estadoPlan, setEstadoPlan] = useState<EstadoPlanificacion>(estadoPlanificacion);
+
 
   useEffect(() => {
     const assigned: Record<string, Tema> = {};
@@ -215,29 +218,32 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
   };
 
   const sensors = useSensors(mouseSensor);
-
+  const [isDragging, setIsDragging] = useState(false);
   return (
     <>
     {isPending && <AppLoading/>}
-      <DndContext onDragEnd={handleDragEnd} sensors={sensors}>
-        <div className="flex flex-col md:flex-row gap-2  flex-1 min-h-0">
-          <div className="w-full md:w-1/4  h-full">
-            <ExposList freeExpos={freeExpos} topics={topics} />
-          </div>
+    <DragContext.Provider value={isDragging}>
+        <DndContext onDragEnd={handleDragEnd} sensors={sensors}>
+        <DragMonitor setIsDragging={setIsDragging} />
+          <div className="flex flex-col md:flex-row gap-2  flex-1 min-h-0">
+            <div className="w-full md:w-1/4  h-full">
+              <ExposList freeExpos={freeExpos} topics={topics} />
+            </div>
 
-          <div className="bg-gray-300 w-full h-px md:w-px md:h-auto"></div>
-          <div className="flex flex-col w-full md:w-3/4 overflow-y-auto gap-4">
-            <PlanificationPanel
-              roomAvailList={roomAvailList}
-              assignedExpos={assignedExpos}
-              removeExpo={removeExpo}              
-              onAvanzarPlanificacionClick={onAvanzarPlanificacionClick}
-              bloquesList={bloquesList}
-              estadoPlan = {estadoPlan}
-            />
+            <div className="bg-gray-300 w-full h-px md:w-px md:h-auto"></div>
+            <div className="flex flex-col w-full md:w-3/4 overflow-y-auto gap-4">
+              <PlanificationPanel
+                roomAvailList={roomAvailList}
+                assignedExpos={assignedExpos}
+                removeExpo={removeExpo}              
+                onAvanzarPlanificacionClick={onAvanzarPlanificacionClick}
+                bloquesList={bloquesList}
+                estadoPlan = {estadoPlan}
+              />
+            </div>
           </div>
-        </div>
-      </DndContext>
+        </DndContext>
+      </DragContext.Provider>
     </>
   );
 };
