@@ -176,6 +176,14 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
     }
 
     @Override
+    public List<EtapaFormativaNombreDTO> findAllActivasNombre() {
+        List<EtapaFormativaNombreDTO> etapasFormativas = etapaFormativaRepository.findAllActivasNombre();
+        return etapasFormativas.stream()
+                .map(ef -> new EtapaFormativaNombreDTO(ef.getEtapaFormativaId(),
+                        ef.getNombre()))
+                .toList();
+    }
+
     public EtapaFormativaDto create(EtapaFormativaDto dto) {
         try {
             // 1) Validar y cargar la Carrera

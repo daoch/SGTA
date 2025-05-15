@@ -19,8 +19,13 @@ import {
   getAllTiposDedicacion,
 } from "../services/jurado-service";
 import { AreaEspecialidad, TipoDedicacion } from "../types/jurado.types";
+import ModalEliminarMiembroJurado from "../components/modal-eliminar-miembro-jurado";
+import { Toaster } from "sonner";
 
 const JuradosView = () => {
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedJuradoId, setSelectedJuradoId] = useState<string | null>(null);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [juradosData, setJuradosData] = useState<JuradoViewModel[]>([]);
   const [dedication, setDedication] = useState<TipoDedicacion[]>([]);
@@ -61,26 +66,30 @@ const JuradosView = () => {
     fetchTiposDedicacion();
   }, []);
 
+  const [loadingJurados, setLoadingJurados] = useState(false);
+
+  const fetchJurados = async () => {
+    setLoadingJurados(true);
+    try {
+      const jurados = await getAllJurados();
+      const juradosViewModel = jurados.map((j) => ({
+        ...j,
+        email: j.email || "",
+      }));
+      setAllJuradosData(juradosViewModel);
+      setJuradosData(juradosViewModel);
+    } catch (error) {
+      console.error("Error fetching jurados data:", error);
+    } finally {
+      setLoadingJurados(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchJurados = async () => {
-      try {
-        const jurados = await getAllJurados();
-        const juradosViewModel = jurados.map((j) => ({
-          ...j,
-          email: j.email || "",
-        }));
-        setAllJuradosData(juradosViewModel);
-        setJuradosData(juradosViewModel);
-      } catch (error) {
-        console.error("Error fetching jurados data:", error);
-      }
-    };
     fetchJurados();
   }, []);
 
   useEffect(() => {
-    console.log("JuradosData", juradosData);
-    console.log("Dedicaion", selectedDedication);
     const filtered = allJuradosData.filter((j) => {
       const matchStatus = status === EstadoJurado.TODOS || j.status === status;
       const matchSearch =
@@ -175,7 +184,13 @@ const JuradosView = () => {
           </Select>
         </div>
       </div>
-      {juradosData.length === 0 ? (
+      {loadingJurados ? (
+        <div className="text-center mt-10">
+          <p className="text-gray-500 animate-pulse">
+            Cargando miembros de jurado...
+          </p>
+        </div>
+      ) : juradosData.length === 0 ? (
         <div className="text-center text-gray-400 mt-5">
           <p>
             No hay miembros de jurados disponibles que coincidan con los filtros
@@ -183,8 +198,25 @@ const JuradosView = () => {
           </p>
         </div>
       ) : (
-        <TableJurados juradosData={juradosData} />
+        <TableJurados
+          juradosData={juradosData}
+          onOpenModal={(id) => {
+            setSelectedJuradoId(id);
+            setModalOpen(true);
+          }}
+        />
       )}
+      <ModalEliminarMiembroJurado
+        open={modalOpen}
+        juradoId={selectedJuradoId!}
+        onClose={() => setModalOpen(false)}
+        onSuccess={async () => {
+          await fetchJurados();
+          setModalOpen(false);
+        }}
+      />
+
+      <Toaster position="bottom-right" richColors />
     </div>
   );
 };

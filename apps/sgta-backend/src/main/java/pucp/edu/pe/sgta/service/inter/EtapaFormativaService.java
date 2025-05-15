@@ -32,6 +32,8 @@ public interface EtapaFormativaService {
 
     List<EtapaFormativaDto> findAllActivasByCoordinador(Integer coordinadorId);
 
+    List<EtapaFormativaNombreDTO> findAllActivasNombre();
+
     /**
      * Obtiene un listado simple de todas las etapas formativas
      * 

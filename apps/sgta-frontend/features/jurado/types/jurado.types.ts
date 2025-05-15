@@ -59,4 +59,36 @@ export interface EstadoPlanificacion{
   activo : boolean;
 }
 
+export interface Estudiante {
+  id: number;
+  nombre: string;
+  tipo: string;
+}
+
+export interface Asesor {
+  id: number;
+  nombre: string;
+  tipo: string;
+}
+
+export interface MiembroJurado {
+  id: number;
+  nombre: string;
+  tipo: string;
+}
+
+export interface Exposicion {
+  id: number;
+  nombre: string;
+  estadoExposicion: string;
+  datetimeInicio: string;
+  datetimeFin: string;
+  salaExposicion: string;
+}
+
+export interface EtapaFormativaExposiciones {
+  id: number;
+  nombre: string;
+  exposiciones: Exposicion[];
+}
 export type OrigenBoton = "siguiente" | "terminar";

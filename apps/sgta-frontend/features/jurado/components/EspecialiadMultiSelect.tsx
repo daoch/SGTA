@@ -49,7 +49,7 @@ export const MultiSelectCheckbox: React.FC<MultiSelectCheckboxProps> = ({
       </Popover.Trigger>
 
       <Popover.Content
-        className="bg-white border rounded-md shadow-md p-2 w-[200px]"
+        className="bg-white border rounded-md shadow-md p-2 w-[200px] max-h-48 overflow-y-auto"
         align="start"
         sideOffset={4}
       >
