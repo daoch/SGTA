@@ -10,4 +10,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface SolicitudRepository extends JpaRepository<Solicitud, Integer>{
     List<Solicitud> findByTipoSolicitudId(Integer tipoSolicitudId);
+    List<Solicitud> findByTipoSolicitudNombre(String tipoSolicitudNombre);
 }

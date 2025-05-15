@@ -2,7 +2,7 @@
 	"name": "sgta-backend",
 	"scripts": {
 		"build": "mvn clean package",
-		"dev": "mvnw spring-boot:run",
+		"dev": "mvn spring-boot:run",
 		"lint": "mvn spotbugs:check -q",
 		"format": "mvn spring-javaformat:apply"
 	}
