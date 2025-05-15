@@ -1,7 +1,7 @@
 "use client";
 
-import { CarrerasList } from "@/components/main/configuracion/carreras-list";
-import { NuevaCarreraModal } from "@/components/main/configuracion/nueva-carrera-modal";
+import { CarrerasList } from "@/features/configuracion/components/configuracion/carreras-list";
+import { NuevaCarreraModal } from "@/features/configuracion/components/configuracion/nueva-carrera-modal";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Plus } from "lucide-react";
 import Link from "next/link";

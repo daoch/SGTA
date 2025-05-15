@@ -10,5 +10,8 @@ public interface EtapaFormativaXCicloRepository extends JpaRepository<EtapaForma
 
     List<EtapaFormativaXCiclo> findAllByEtapaFormativa_Carrera_IdAndActivoTrue(Integer id);
 
-    List<EtapaFormativaXCiclo> findAllByEtapaFormativa_Carrera_IdAndCiclo_IdAndActivoTrue(Integer carreraId, Integer cicloId);
+    List<EtapaFormativaXCiclo> findAllByEtapaFormativa_Carrera_IdAndCiclo_IdAndActivoTrue(Integer id, Integer cicloId);
+
+    // Método para obtener todas las etapas formativas por carrera
+    //List<EtapaFormativaXCiclo> findAllBy_Carrera_IdAndActivoTrue(Integer id);
 }
