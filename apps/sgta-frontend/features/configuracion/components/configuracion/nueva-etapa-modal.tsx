@@ -23,12 +23,9 @@ import { Label } from "@/components/ui/label";
 import { Plus } from "lucide-react";
 import { etapasFormativasService, type EtapaFormativaListItem } from "../../services/etapas-formativas";
 import { ciclosService } from "../../services/etapa-formativa-ciclo";
+import { Ciclo } from "../../types/etapa-formativa-ciclo";
 
-interface Ciclo {
-  id: number;
-  anio: number;
-  semestre: string;
-}
+
 
 export function NuevaEtapaModal() {
   const [open, setOpen] = useState(false);

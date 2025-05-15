@@ -5,7 +5,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, BookOpen, ChevronRight, Edit, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { etapaFormativaCicloService, type EtapaFormativaCiclo } from "@/features/configuracion/services/etapa-formativa-ciclo";
+import { etapaFormativaCicloService } from "@/features/configuracion/services/etapa-formativa-ciclo";
+import { EtapaFormativaCiclo } from "../types/etapa-formativa-ciclo";
 
 export default function ConfiguracionProcesoPage() {
   const [etapas, setEtapas] = useState<EtapaFormativaCiclo[]>([]);
