@@ -50,7 +50,11 @@ public class EtapaFormativaXCicloServiceImpl implements EtapaFormativaXCicloServ
 
     @Override
     public void delete(Integer id) {
-
+        EtapaFormativaXCiclo etapaFormativaXCiclo = etapaFormativaXCicloRepository.findById(id).orElse(null);
+        if (etapaFormativaXCiclo != null) {
+            etapaFormativaXCiclo.setActivo(false);
+            etapaFormativaXCicloRepository.save(etapaFormativaXCiclo);
+        }
     }
 
     //get all by carrera id, agregar que sea activo true
@@ -83,5 +87,7 @@ public class EtapaFormativaXCicloServiceImpl implements EtapaFormativaXCicloServ
     private EtapaFormativaXCicloDto mapToDto(EtapaFormativaXCiclo etapaFormativaXCiclo) {
         return EtapaFormativaXCicloMapper.toDto(etapaFormativaXCiclo);
     }
+
+    
 
 }
