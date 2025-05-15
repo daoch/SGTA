@@ -1,4 +1,4 @@
-package pucp.edu.pe.sgta.service;
+package pucp.edu.pe.sgta.service.imp;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -9,18 +9,23 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import pucp.edu.pe.sgta.dto.SolicitudCeseDto;
+import pucp.edu.pe.sgta.dto.AprobarSolicitudCambioAsesorResponseDto;
+import pucp.edu.pe.sgta.dto.RechazoSolicitudCambioAsesorResponseDto;
 import pucp.edu.pe.sgta.dto.RechazoSolicitudResponseDto;
+import pucp.edu.pe.sgta.dto.SolicitudCambioAsesorDto;
 import pucp.edu.pe.sgta.model.Solicitud;
+import pucp.edu.pe.sgta.model.SubAreaConocimiento;
+import pucp.edu.pe.sgta.model.SubAreaConocimientoXTema;
 import pucp.edu.pe.sgta.model.Tema;
 import pucp.edu.pe.sgta.model.TipoSolicitud;
 import pucp.edu.pe.sgta.model.Usuario;
 import pucp.edu.pe.sgta.model.UsuarioXSolicitud;
 import pucp.edu.pe.sgta.repository.SolicitudRepository;
+import pucp.edu.pe.sgta.repository.SubAreaConocimientoXTemaRepository;
 import pucp.edu.pe.sgta.repository.TemaRepository;
 import pucp.edu.pe.sgta.repository.UsuarioRepository;
 import pucp.edu.pe.sgta.repository.UsuarioXSolicitudRepository;
 import pucp.edu.pe.sgta.repository.UsuarioXTemaRepository;
-import pucp.edu.pe.sgta.service.imp.SolicitudServiceImpl;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -51,6 +56,9 @@ public class SolicitudServiceImplTest {
 
     @Mock
     private UsuarioXTemaRepository usuarioXTemaRepository;
+
+    @Mock
+    private SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository;
 
     @Test
     public void testFindAllSolicitudesCese_ReturnsPagedResults() {
@@ -86,7 +94,7 @@ public class SolicitudServiceImplTest {
         relEstudiante.setUsuario(estudiante);
         relEstudiante.setDestinatario(true);
 
-        when(solicitudRepository.findByTipoSolicitudId(2)).thenReturn(List.of(solicitud));
+        when(solicitudRepository.findByTipoSolicitudNombre("Cese Asesoria")).thenReturn(List.of(solicitud));
         when(usuarioXSolicitudRepository.findBySolicitud(solicitud)).thenReturn(List.of(relAsesor, relEstudiante));
 
         // Ejecutar
@@ -119,7 +127,7 @@ public class SolicitudServiceImplTest {
         solicitud.setFechaCreacion(OffsetDateTime.now());
         solicitud.setTema(new Tema());
         TipoSolicitud tipoSolicitud = new TipoSolicitud();
-        tipoSolicitud.setId(2);
+        tipoSolicitud.setNombre("Cese Asesoria");
         solicitud.setTipoSolicitud(tipoSolicitud);
 
         when(solicitudRepository.findById(solicitudId)).thenReturn(Optional.of(solicitud));
@@ -141,7 +149,7 @@ public class SolicitudServiceImplTest {
 
         TipoSolicitud tipoCese = new TipoSolicitud();
         tipoCese.setId(2);
-        tipoCese.setNombre("Cese");
+        tipoCese.setNombre("Cese Asesoria");
 
         Solicitud solicitud = new Solicitud();
         solicitud.setId(solicitudId);
@@ -159,4 +167,162 @@ public class SolicitudServiceImplTest {
         verify(solicitudRepository).save(solicitud);
     }
 
+    @Test
+    void testFindAllSolicitudesCambioAsesor_ReturnsPaginatedResults() {
+        // Datos de prueba
+        Solicitud solicitud = new Solicitud();
+        solicitud.setId(1);
+        solicitud.setDescripcion("Cambio de asesor");
+        solicitud.setEstado(1); // pending
+        solicitud.setFechaCreacion(OffsetDateTime.now());
+        solicitud.setFechaModificacion(OffsetDateTime.now());
+
+        Tema tema = new Tema();
+        tema.setId(1);
+        tema.setTitulo("Tema de tesis");
+        solicitud.setTema(tema);
+
+        Usuario asesorUsuario = new Usuario();
+        asesorUsuario.setId(10);
+        asesorUsuario.setNombres("Juan");
+        asesorUsuario.setPrimerApellido("Pérez");
+        asesorUsuario.setCorreoElectronico("juan@pucp.edu.pe");
+
+        Usuario estudianteUsuario = new Usuario();
+        estudianteUsuario.setId(20);
+        estudianteUsuario.setNombres("Ana");
+        estudianteUsuario.setPrimerApellido("López");
+        estudianteUsuario.setCorreoElectronico("ana@pucp.edu.pe");
+
+        UsuarioXSolicitud relAsesor = new UsuarioXSolicitud();
+        relAsesor.setUsuario(asesorUsuario);
+        relAsesor.setDestinatario(false);
+
+        UsuarioXSolicitud relEstudiante = new UsuarioXSolicitud();
+        relEstudiante.setUsuario(estudianteUsuario);
+        relEstudiante.setDestinatario(true);
+
+        SubAreaConocimiento subArea = new SubAreaConocimiento();
+        subArea.setId(100);
+        subArea.setNombre("Inteligencia Artificial");
+
+        SubAreaConocimientoXTema subAreaXTema = new SubAreaConocimientoXTema();
+        subAreaXTema.setSubAreaConocimiento(subArea);
+
+        // Mocks
+        when(solicitudRepository.findByTipoSolicitudNombre("Cambio Asesor"))
+            .thenReturn(List.of(solicitud));
+
+        when(usuarioXSolicitudRepository.findBySolicitud(solicitud))
+            .thenReturn(List.of(relAsesor, relEstudiante));
+
+        when(subAreaConocimientoXTemaRepository.findFirstByTemaIdAndActivoTrue(1))
+            .thenReturn(subAreaXTema);
+
+        // Método a probar
+        SolicitudCambioAsesorDto result = solicitudService.findAllSolicitudesCambioAsesor(0, 10);
+
+        // Verificaciones
+        assertNotNull(result);
+        assertEquals(1, result.getAssesorChangeRequests().size());
+        assertEquals(1, result.getTotalPages());
+        assertEquals("pending", result.getAssesorChangeRequests().get(0).getStatus());
+
+        var estudiante = result.getAssesorChangeRequests().get(0).getStudent();
+        assertNotNull(estudiante);
+        assertEquals("Ana", estudiante.getName());
+        assertEquals("Inteligencia Artificial", estudiante.getTopic().getThematicArea().getName());
+    }
+
+    @Test
+    void testRechazarSolicitudCambioAsesor_SuccessfulRejection() {
+        // Arrange
+        int solicitudId = 1;
+        String responseText = "Motivo de rechazo";
+
+        TipoSolicitud tipoCambioAsesor = new TipoSolicitud();
+        tipoCambioAsesor.setNombre("Cambio Asesor");
+
+        Usuario asesor = new Usuario();
+        asesor.setId(10);
+
+        Usuario tesista = new Usuario();
+        tesista.setId(20);
+
+        Solicitud solicitud = new Solicitud();
+        solicitud.setId(solicitudId);
+        solicitud.setEstado(1); // pendiente
+        solicitud.setTipoSolicitud(tipoCambioAsesor);
+
+        UsuarioXSolicitud relAsesor = new UsuarioXSolicitud();
+        relAsesor.setUsuario(asesor);
+
+        UsuarioXSolicitud relTesista = new UsuarioXSolicitud();
+        relTesista.setUsuario(tesista);
+
+        when(solicitudRepository.findById(solicitudId)).thenReturn(Optional.of(solicitud));
+        when(usuarioXSolicitudRepository.findFirstBySolicitudAndDestinatarioTrue(solicitud)).thenReturn(relAsesor);
+        when(usuarioXSolicitudRepository.findFirstBySolicitudAndDestinatarioFalse(solicitud)).thenReturn(relTesista);
+
+        // Act
+        RechazoSolicitudCambioAsesorResponseDto result =
+                solicitudService.rechazarSolicitudCambioAsesor(solicitudId, responseText);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(solicitudId, result.getIdRequest());
+        assertEquals("rejected", result.getStatus());
+        assertEquals(responseText, result.getResponse());
+        assertNotNull(result.getAssignation());
+        assertEquals(tesista.getId(), result.getAssignation().getIdStudent());
+        assertEquals(asesor.getId(), result.getAssignation().getIdAssessor());
+
+        verify(solicitudRepository).save(solicitud);
+    }
+
+    @Test
+    void testAprobarSolicitudCambioAsesor_SuccessfulApproval() {
+        // Arrange
+        Integer solicitudId = 1;
+        String responseText = "Aprobado por el coordinador";
+
+        TipoSolicitud tipoCambioAsesor = new TipoSolicitud();
+        tipoCambioAsesor.setNombre("Cambio Asesor");
+
+        Usuario asesor = new Usuario();
+        asesor.setId(10);
+
+        Usuario tesista = new Usuario();
+        tesista.setId(20);
+
+        Solicitud solicitud = new Solicitud();
+        solicitud.setId(solicitudId);
+        solicitud.setEstado(1); // Pendiente
+        solicitud.setTipoSolicitud(tipoCambioAsesor);
+
+        UsuarioXSolicitud relAsesor = new UsuarioXSolicitud();
+        relAsesor.setUsuario(asesor);
+
+        UsuarioXSolicitud relTesista = new UsuarioXSolicitud();
+        relTesista.setUsuario(tesista);
+
+        when(solicitudRepository.findById(solicitudId)).thenReturn(Optional.of(solicitud));
+        when(usuarioXSolicitudRepository.findFirstBySolicitudAndDestinatarioTrue(solicitud)).thenReturn(relAsesor);
+        when(usuarioXSolicitudRepository.findFirstBySolicitudAndDestinatarioFalse(solicitud)).thenReturn(relTesista);
+
+        // Act
+        AprobarSolicitudCambioAsesorResponseDto result =
+                solicitudService.aprobarSolicitudCambioAsesor(solicitudId, responseText);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(solicitudId, result.getIdRequest());
+        assertEquals("approved", result.getStatus());
+        assertEquals(responseText, result.getResponse());
+        assertNotNull(result.getAssignation());
+        assertEquals(tesista.getId(), result.getAssignation().getIdStudent());
+        assertEquals(asesor.getId(), result.getAssignation().getIdAssessor());
+
+        verify(solicitudRepository).save(solicitud);
+    }
 }
