@@ -29,7 +29,7 @@ import {
 } from "@/features/temas/types/propuestas/data";
 import {
   Area,
-  Proyecto,
+  Proyecto_M,
   SubAreaConocimiento,
 } from "@/features/temas/types/propuestas/entidades";
 import { CheckCircle, Eye, Send, X } from "lucide-react";
@@ -92,8 +92,8 @@ import { toast, Toaster } from "sonner";
 // Obtener todas las áreas únicas para el filtro
 
 interface PropuestasTableProps {
-  propuestasData?: Proyecto[];
-  setPropuestasData?: (propuestasData: Proyecto[]) => void;
+  propuestasData?: Proyecto_M[];
+  setPropuestasData?: (propuestasData: Proyecto_M[]) => void;
   areasData?: Area[];
   searchTerm?: string;
   setSearchTerm?: (searchTerm: string) => void;
@@ -111,7 +111,7 @@ export function PropuestasTable({
   isLoading,
 }: PropuestasTableProps) {
   const [areaFilter, setAreaFilter] = useState<string | null>(null);
-  const [selectedPropuesta, setSelectedPropuesta] = useState<Proyecto | null>(
+  const [selectedPropuesta, setSelectedPropuesta] = useState<Proyecto_M | null>(
     null,
   );
   const [comentario, setComentario] = useState("");
@@ -125,7 +125,7 @@ export function PropuestasTable({
     // Filtrar por área si hay un filtro de área seleccionado
     if (
       areaFilter &&
-      !propuesta.subAreas.some(
+      !propuesta.subareas.some(
         (subArea) => subArea.areaConocimiento.nombre === areaFilter,
       )
     ) {
@@ -134,7 +134,7 @@ export function PropuestasTable({
     return true;
   });
 
-  const handleOpenDialog = (propuesta: Proyecto) => {
+  const handleOpenDialog = (propuesta: Proyecto_M) => {
     console.log("abriendo detalle ...");
     console.log({ propuesta });
     setSelectedPropuesta(propuesta);
@@ -150,7 +150,7 @@ export function PropuestasTable({
       try {
         await postularTemaPropuestoGeneral(
           selectedPropuesta?.estudiantes[0]?.id,
-          1,
+          40,
           selectedPropuesta?.id,
           comentario,
         );
@@ -178,7 +178,7 @@ export function PropuestasTable({
         await enlazarTesistasATemaPropuestoDirecta(
           selectedPropuesta?.estudiantes?.map((item) => item.id),
           selectedPropuesta?.id,
-          1,
+          40,
           comentario,
         );
 
@@ -220,21 +220,21 @@ export function PropuestasTable({
     router.refresh();
   };
 
-  const handlerAceptarPropuesta = (propuesta: Proyecto) => {
+  const handlerAceptarPropuesta = (propuesta: Proyecto_M) => {
     setPostularPropuesta(false);
     setRechazarPropuesta(false);
     setAceptarPropuesta(true);
     setSelectedPropuesta(propuesta);
   };
 
-  const handlerPostularPropuesta = (propuesta: Proyecto) => {
+  const handlerPostularPropuesta = (propuesta: Proyecto_M) => {
     setAceptarPropuesta(false);
     setRechazarPropuesta(false);
     setPostularPropuesta(true);
     setSelectedPropuesta(propuesta);
   };
 
-  const handlerRechazarPropuesta = (propuesta: Proyecto) => {
+  const handlerRechazarPropuesta = (propuesta: Proyecto_M) => {
     setAceptarPropuesta(false);
     setRechazarPropuesta(true);
     setPostularPropuesta(false);

@@ -129,7 +129,7 @@ public class TemaController {
 
 	@GetMapping("/listarPostulacionesDirectasAMisPropuestas/{tesistaId}")
 	public List<TemaDto> listarPostulacionesDirectasAMisPropuestas(@PathVariable("tesistaId") Integer tesistaId) {
-		return temaService.listarPostulacionesDirectasAMisPropuestas(tesistaId);
+		return temaService.listarPostulacionesAMisPropuestas(tesistaId, 1);
 	}
 
 
@@ -140,8 +140,28 @@ public class TemaController {
 	}
 	@GetMapping("/listarPostulacionesGeneralesAMisPropuestas/{tesistaId}")
 	public List<TemaDto> listarPostulacionesGeneralesAMisPropuestas(@PathVariable("tesistaId") Integer tesistaId) {
-		return temaService.listarPostulacionesGeneralesAMisPropuestas(tesistaId);
+		return temaService.listarPostulacionesAMisPropuestas(tesistaId, 0);
 	}
+
+	@PostMapping("/deleteTema") // deletes a topic
+	public void deleteTema(@RequestBody Integer idTema) {
+		temaService.delete(idTema);
+	}
+
+	@PostMapping("/aprobarPostulacionAPropuesta")
+	public void aprobarPostulacionAPropuestaGeneral(@RequestParam("alumnoId") Integer alumnoId,
+													@RequestParam("asesorId") Integer asesorId,
+													@RequestParam("temaId") Integer temaId){
+		temaService.aprobarPostulacionAPropuestaGeneral(temaId, asesorId, alumnoId);
+	}
+
+	@PostMapping("/rechazarPostulacionAPropuesta")
+	public void rechazarPostulacionAPropuestaGeneral(@RequestParam("alumnoId") Integer alumnoId,
+													@RequestParam("asesorId") Integer asesorId,
+													@RequestParam("temaId") Integer temaId){
+		temaService.rechazarPostulacionAPropuestaGeneral(temaId, asesorId, alumnoId);
+	}
+
 }
 
 

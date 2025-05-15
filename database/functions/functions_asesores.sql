@@ -124,7 +124,7 @@ RETURNS TABLE (
     tema_id INTEGER,
     titulo VARCHAR,
     estado_nombre VARCHAR,
-    fecha_finalizacion TIMESTAMP WITH TIME ZONE
+    anio TEXT
 ) AS $$
 BEGIN
     RETURN QUERY
@@ -132,7 +132,7 @@ BEGIN
         t.tema_id,
         t.titulo,
         et.nombre AS estado_nombre,
-        t.fecha_finalizacion
+        extract(year from fecha_finalizacion)::bigint::text as anio
     FROM tema t
     INNER JOIN usuario_tema ut_asesor ON ut_asesor.tema_id = t.tema_id
     INNER JOIN rol r_asesor ON ut_asesor.rol_id = r_asesor.rol_id
@@ -146,6 +146,8 @@ BEGIN
       AND t.activo = TRUE
 	--  AND t.terminado = TRUE
       AND LOWER(et.nombre) in ('en_progreso', 'finalizado')
+	GROUP BY
+		t.tema_id, t.titulo, et.nombre, t.fecha_finalizacion
 	ORDER BY 
 		t.fecha_finalizacion DESC NULLS LAST;
 END;

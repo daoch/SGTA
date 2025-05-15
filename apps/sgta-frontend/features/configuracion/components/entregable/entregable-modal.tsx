@@ -41,6 +41,9 @@ export const EntregableModal: React.FC<EntregableModalProps> = ({
     fechaInicio: "",
     fechaFin: "",
     esEvaluable: false,
+    maximoDocumentos: 0,
+    extensionesPermitidas: "",
+    pesoMaximoDocumento: 0,
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -59,6 +62,9 @@ export const EntregableModal: React.FC<EntregableModalProps> = ({
           ? toLocalDatetime(entregable.fechaFin) // Convertir a zona horaria local
           : "",
         esEvaluable: entregable.esEvaluable,
+        maximoDocumentos: entregable.maximoDocumentos,
+        extensionesPermitidas: entregable.extensionesPermitidas,
+        pesoMaximoDocumento: entregable.pesoMaximoDocumento,
       });
     } else {
       // Resetear el formulario en modo creación
@@ -69,17 +75,22 @@ export const EntregableModal: React.FC<EntregableModalProps> = ({
         fechaInicio: "",
         fechaFin: "",
         esEvaluable: false,
+        maximoDocumentos: 0,
+        extensionesPermitidas: "",
+        pesoMaximoDocumento: 0,
       });
     }
   }, [entregable, isEditMode, isOpen]);
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: name === "maximoDocumentos" || name === "pesoMaximoDocumento"
+        ? parseInt(value, 10) || 0 // Convertir a entero
+        : value, // Mantener como string para otros campos
     }));
   };
 
@@ -180,6 +191,47 @@ export const EntregableModal: React.FC<EntregableModalProps> = ({
                 name="descripcion"
                 placeholder="Descripción general del entregable"
                 value={formData.descripcion}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="maximoDocumentos">Máximo de Documentos</Label>
+              <Input
+                id="maximoDocumentos"
+                name="maximoDocumentos"
+                type="number"
+                min="1"
+                placeholder="Ej: 5"
+                value={formData.maximoDocumentos || ""}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="extensionesPermitidas">Extensiones Permitidas</Label>
+              <Input
+                id="extensionesPermitidas"
+                name="extensionesPermitidas"
+                type="text"
+                placeholder="Ej: pdf,docx"
+                value={formData.extensionesPermitidas || ""}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="pesoMaximoDocumento">Peso Máximo por Documento (MB)</Label>
+              <Input
+                id="pesoMaximoDocumento"
+                name="pesoMaximoDocumento"
+                type="number"
+                min="1"
+                step="1"
+                placeholder="Ej: 10"
+                value={formData.pesoMaximoDocumento || ""}
                 onChange={handleInputChange}
                 required
               />

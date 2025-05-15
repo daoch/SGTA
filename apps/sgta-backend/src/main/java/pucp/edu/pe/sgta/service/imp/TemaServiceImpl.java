@@ -1,7 +1,10 @@
 package pucp.edu.pe.sgta.service.imp;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
 import jakarta.transaction.Transactional;
 
 import org.springframework.http.HttpStatus;
@@ -23,13 +26,13 @@ import pucp.edu.pe.sgta.util.EstadoTemaEnum;
 import pucp.edu.pe.sgta.util.RolEnum;
 import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
 
+import java.io.IOException;
+import java.sql.Array;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -59,6 +62,8 @@ public class TemaServiceImpl implements TemaService {
 	private final HistorialTemaService historialTemaService;
 
 	private final UsuarioRepository usuarioRepository;
+
+	private final ObjectMapper objectMapper = new ObjectMapper(); // for JSON conversion
 
 	@PersistenceContext
 	private EntityManager entityManager;
@@ -143,12 +148,15 @@ public class TemaServiceImpl implements TemaService {
 		tema.setCarrera(carrera);
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
+		List<UsuarioXTema> temaRelations = usuarioXTemaRepository.findByUsuarioIdAndActivoTrue(idUsuarioCreador);
+		for(UsuarioXTema ux : temaRelations) {
+			Tema temaAux = temaRepository.findById(ux.getTema().getId())
+			        .orElseThrow(() -> new RuntimeException("Tema no encontrado con ID: " + ux.getTema().getId()));
+			if(temaAux.getEstadoTema().getNombre().equals(EstadoTemaEnum.INSCRITO.name())) {
+				throw new RuntimeException("El usuario ya tiene un tema inscrito.");
+			}
+		}
 
-		// Create and set up UsuarioXTema
-
-		UsuarioXTema usuarioXTema = new UsuarioXTema();
-		usuarioXTema.setId(null);
-		usuarioXTema.setTema(tema);
 
 		UsuarioDto usuarioDto = usuarioService.findUsuarioById(idUsuarioCreador);
 
@@ -205,7 +213,7 @@ public class TemaServiceImpl implements TemaService {
 		return List.of(); // Return an empty list if no relations found
 
     }
-	
+
     private void validarTipoUsurio(Integer usuarioId, String tipoUsuario) {
         boolean ok = usuarioRepository
             .existsByIdAndTipoUsuarioNombre(usuarioId, tipoUsuario);
@@ -287,15 +295,15 @@ public class TemaServiceImpl implements TemaService {
 		validarExistenciaListaUsuarios(dto.getTesistas());
 		validarExistenciaListaUsuarios(dto.getCoasesores());                           // validar que hay al menos un tesista
 		Integer idUsuarioCreador = dto.getCoasesores().get(0).getId();
-		validarUsuarioExiste(idUsuarioCreador); 
+		validarUsuarioExiste(idUsuarioCreador);
 		validarTipoUsurio(idUsuarioCreador, TipoUsuarioEnum.profesor.name());  // validar que la inscripción la haga un profesor
 		//validarUnicidadUsuarios(dto.getTesistas(), RolEnum.Tesista.name());    // validar que no se repiten los tesistas
-		
+
 		for (UsuarioDto u : dto.getTesistas()) {
 			validarUsuarioExiste(u.getId());
 			validarTipoUsurio(u.getId(), TipoUsuarioEnum.alumno.name());       // validar que los tesistas sean alumnos
 		}
-		
+
 		//validarUnicidadUsuarios(dto.getCoasesores(), RolEnum.Coasesor.name()); // validar que no se repiten los coasesores
 		for (UsuarioDto u : dto.getCoasesores()) {
 			validarUsuarioExiste(u.getId());
@@ -344,6 +352,7 @@ public class TemaServiceImpl implements TemaService {
         saveUsuarioXTema(tema, idUsuarioCreador, RolEnum.Asesor.name(), true, true);
         // 2) Subáreas de conocimiento
         saveSubAreas(tema, dto.getSubareas());
+
         // 3) Coasesores
         saveUsuariosInvolucrados(tema, idUsuarioCreador,
             dto.getCoasesores(), RolEnum.Coasesor.name(), true, false);
@@ -747,103 +756,235 @@ public class TemaServiceImpl implements TemaService {
 
 
 	public List<TemaDto> listarPropuestasPorTesista(Integer tesistaId) {
-		List<TemaDto> temas = new ArrayList<>();
-		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Tesista.name(), EstadoTemaEnum.PROPUESTO_GENERAL.name()));
-		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Tesista.name(), EstadoTemaEnum.PROPUESTO_DIRECTO.name()));
+		String sql =
+				"SELECT * " +
+						"  FROM listar_propuestas_del_tesista_con_usuarios(:p_tesista_id)";
+		Query query = entityManager.createNativeQuery(sql)
+				.setParameter("p_tesista_id", tesistaId);
 
+		@SuppressWarnings("unchecked")
+		List<Object[]> rows = query.getResultList();
+		List<TemaDto> proposals = new ArrayList<>(rows.size());
 
-		for (TemaDto t : temas) {
-			if(t.getEstadoTemaNombre().equals(EstadoTemaEnum.PROPUESTO_GENERAL.name())){
-				t.setCantPostulaciones(calculatePostulaciones(t.getId()));
+		for (Object[] row : rows) {
+			// --- map basic columns ---
+			TemaDto dto = TemaDto.builder()
+					.id(((Number) row[0]).intValue())      // tema_id
+					.titulo((String)    row[1])            // titulo
+					.resumen((String)   row[4])            // descripcion
+					.metodologia((String)row[5])           // metodologia
+					.objetivos((String) row[6])            // objetivo
+					.portafolioUrl((String)row[7])         // recurso / portafolioUrl
+					.activo((Boolean)   row[8])            // activo
+					.build();
+
+			// --- map timestamps (Instant → OffsetDateTime UTC) ---
+			dto.setFechaLimite(      toOffsetDateTime(row[9])  );
+			dto.setFechaCreacion(    toOffsetDateTime(row[10]) );
+			dto.setFechaModificacion(toOffsetDateTime(row[11]) );
+
+			// --- parse and set sub-areas ---
+			String subareasCsv = (String) row[2];
+			Integer[] subareaIds = extractSqlIntArray(row[3]);
+			dto.setSubareas(parseSubAreas(subareasCsv, subareaIds));
+
+			dto.setEstadoTemaNombre((String) row[12]); //we set the estado tema
+			// --- parse usuarios JSONB into UsuarioDto list ---
+			String usuariosJson = row[13] != null ? row[13].toString() : "[]";
+			List<UsuarioDto> allUsers = parseUsuariosJson(usuariosJson);
+
+			// split into tesistas vs. co-advisors
+			dto.setTesistas(   filterByRole(allUsers, RolEnum.Tesista.name()) );
+			dto.setCoasesores(filterByRoleExcept(allUsers, RolEnum.Tesista.name()));
+
+			// --- calculate postulaciones: count Tesista with asignado=false ---
+			if (EstadoTemaEnum.PROPUESTO_GENERAL.name()
+					.equals(dto.getEstadoTemaNombre())) {
+				dto.setCantPostulaciones(calculatePostulaciones(allUsers));
 			}
 
-			t.setCoasesores(listarUsuariosPorTemaYRol(t.getId(), RolEnum.Asesor.name())); //we load the proposed asesor
-			t.setTesistas(
-					listarUsuariosPorTemaYRol(t.getId(), RolEnum.Tesista.name()) //get cotesistas
-			);
-			t.setSubareas(
-					listarSubAreasPorTema(t.getId())
-			);
+			proposals.add(dto);
 		}
 
-		return temas;
+		return proposals;
+	}
+
+	private OffsetDateTime toOffsetDateTime(Object instantObj) {
+		if (instantObj == null) {
+			return null;
+		}
+		return ((Instant) instantObj).atOffset(ZoneOffset.UTC);
+	}
+
+	/** Extracts an Integer[] from a java.sql.Array, or returns empty array if null. */
+	private Integer[] extractSqlIntArray(Object sqlArrayObj) {
+		if (sqlArrayObj == null) {
+			return new Integer[0];
+		}
+
+		// Case 1: Already an Integer[]
+		if (sqlArrayObj instanceof Integer[]) {
+			return (Integer[]) sqlArrayObj;
+		}
+
+		// Case 2: A JDBC java.sql.Array
+		if (sqlArrayObj instanceof java.sql.Array) {
+			try {
+				Object array = ((java.sql.Array) sqlArrayObj).getArray();
+				if (array instanceof Integer[]) {
+					return (Integer[]) array;
+				}
+				if (array instanceof Object[]) {
+					Object[] objs = (Object[]) array;
+					Integer[] result = new Integer[objs.length];
+					for (int i = 0; i < objs.length; i++) {
+						result[i] = objs[i] != null ? Integer.parseInt(objs[i].toString()) : null;
+					}
+					return result;
+				}
+			} catch (Exception e) {
+				throw new RuntimeException("Failed to extract Integer[] from SQL Array", e);
+			}
+		}
+
+		// Unsupported type
+		throw new IllegalArgumentException("Unsupported array type: " + sqlArrayObj.getClass());
+	}
+
+
+	/**
+	 * Build a list of SubAreaConocimientoDto by zipping names and IDs.
+	 * Expects namesCsv like "Mining, Logistics" and a parallel array of IDs.
+	 */
+	private List<SubAreaConocimientoDto> parseSubAreas(String namesCsv, Integer[] ids) {
+		List<SubAreaConocimientoDto> list = new ArrayList<>();
+		if (namesCsv == null || ids.length == 0) {
+			return list;
+		}
+		String[] names = namesCsv.split("\\s*,\\s*");
+		for (int i = 0; i < Math.min(names.length, ids.length); i++) {
+			list.add(SubAreaConocimientoDto.builder()
+					.id(ids[i])
+					.nombre(names[i])
+					.build());
+		}
+		return list;
+	}
+
+	/**
+	 * Parse the 'usuarios' JSONB into a list of UsuarioDto.
+	 */
+	private List<UsuarioDto> parseUsuariosJson(String json) {
+		try {
+			List<Map<String,Object>> users = objectMapper.readValue(
+					json, new TypeReference<List<Map<String,Object>>>() {});
+			List<UsuarioDto> dtos = new ArrayList<>(users.size());
+			for (Map<String,Object> m : users) {
+				dtos.add(UsuarioDto.builder()
+						.id(((Number) m.get("usuario_id")).intValue())
+						.nombres(m.get("nombre_completo") != null ? ((String) m.get("nombre_completo")).split(" ")[0] : null)
+						.primerApellido(m.get("primer_apellido") != null ? ((String) m.get("nombre_completo")).split(" ")[1] : null)
+						.rol((String) m.get("rol"))
+						.rechazado((Boolean) m.get("rechazado"))
+						.creador((Boolean) m.get("creador"))
+						.asignado((Boolean) m.get("asignado"))
+						.comentario((String) m.get("comentario"))
+						.build());
+			}
+			return dtos;
+		} catch (IOException e) {
+			throw new RuntimeException("Failed to parse usuarios JSON", e);
+		}
+	}
+
+	/** Returns only those users whose role equals the given roleName. */
+	private List<UsuarioDto> filterByRole(List<UsuarioDto> all, String roleName) {
+		List<UsuarioDto> filtered = new ArrayList<>();
+		for (UsuarioDto u : all) {
+			if (roleName.equals(u.getRol())) {
+				filtered.add(u);
+			}
+		}
+		return filtered;
+	}
+
+	/** Returns users whose role is _not_ the given roleName. */
+	private List<UsuarioDto> filterByRoleExcept(List<UsuarioDto> all, String excludedRole) {
+		List<UsuarioDto> filtered = new ArrayList<>();
+		for (UsuarioDto u : all) {
+			if (!excludedRole.equals(u.getRol())) {
+				filtered.add(u);
+			}
+		}
+		return filtered;
+	}
+
+	/**
+	 * Calculate postulations: number of users with role Tesista and asignado=false.
+	 */
+	private Integer calculatePostulaciones(List<UsuarioDto> usuarios) {
+		int count = 0;
+		for (UsuarioDto u : usuarios) {
+			if (RolEnum.Asesor.name().equals(u.getRol()) && Boolean.FALSE.equals(u.getAsignado())) {
+				count++;
+			}
+		}
+		return count;
 	}
 
 	@Override
-	public List<TemaDto> listarPostulacionesDirectasAMisPropuestas(Integer tesistaId) {
-		List<TemaDto> temas = new ArrayList<>();
-		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Tesista.name(), EstadoTemaEnum.PREINSCRITO.name()));
-		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Tesista.name(), EstadoTemaEnum.PROPUESTO_DIRECTO.name()));
-		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Tesista.name(), EstadoTemaEnum.RECHAZADO.name())); //The asesor rejected the propuesta
-		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Tesista.name(), EstadoTemaEnum.VENCIDO.name())); //The asesor never answered the propuesta
-		Integer idPropuestoDirecto = null;
+	public List<TemaDto> listarPostulacionesAMisPropuestas(Integer tesistaId, Integer tipoPost) {
+		String sql =
+				"SELECT * " +
+						"  FROM listar_postulaciones_del_tesista_con_usuarios(:p_tesista_id, :p_tipo_post)";
+		Query query = entityManager.createNativeQuery(sql)
+				.setParameter("p_tesista_id", tesistaId)
+				.setParameter("p_tipo_post", tipoPost);
 
-		try{
-			 idPropuestoDirecto = estadoTemaRepository.findByNombre(EstadoTemaEnum.PROPUESTO_DIRECTO.name()).get().getId();
-		} catch (Exception e){
-			throw new RuntimeException("No se encuentra el estado de tema: " + EstadoTemaEnum.PROPUESTO_DIRECTO.name());
-		}
+		@SuppressWarnings("unchecked")
+		List<Object[]> rows = query.getResultList();
+		List<TemaDto> proposals = new ArrayList<>(rows.size());
 
-		List<TemaDto> temasPropuestosDirectos = new ArrayList<>();
-		for(TemaDto t : temas){
-			if(t.getEstadoTemaNombre().equals(EstadoTemaEnum.PREINSCRITO.name()) ||
-					t.getEstadoTemaNombre().equals(EstadoTemaEnum.RECHAZADO.name())
-					|| t.getEstadoTemaNombre().equals(EstadoTemaEnum.VENCIDO.name())){
-				List<HistorialTemaDto> historialTemaDto = historialTemaService.findByTemaId(t.getId());
-				for (HistorialTemaDto h : historialTemaDto){
-					if(h.getEstadoTemaId().equals(idPropuestoDirecto)){
-						//t.setEstadoTemaNombre(EstadoTemaEnum.PROPUESTO_DIRECTO.name());
-						t.setFechaModificacion(h.getFechaCreacion());
-						break;
-					}
-				}
+		for (Object[] row : rows) {
+			// --- map basic columns ---
+			TemaDto dto = TemaDto.builder()
+					.id(((Number) row[0]).intValue())      // tema_id
+					.titulo((String)    row[1])            // titulo
+					.resumen((String)   row[4])            // descripcion
+					.metodologia((String)row[5])           // metodologia
+					.objetivos((String) row[6])            // objetivo
+					.portafolioUrl((String)row[7])         // recurso / portafolioUrl
+					.activo((Boolean)   row[8])            // activo
+					.build();
+
+			// --- map timestamps (Instant → OffsetDateTime UTC) ---
+			dto.setFechaLimite(      toOffsetDateTime(row[9])  );
+			dto.setFechaCreacion(    toOffsetDateTime(row[10]) );
+			dto.setFechaModificacion(toOffsetDateTime(row[11]) );
+
+			// --- parse and set sub-areas ---
+			String subareasCsv = (String) row[2];
+			Integer[] subareaIds = extractSqlIntArray(row[3]);
+			dto.setSubareas(parseSubAreas(subareasCsv, subareaIds));
+
+			dto.setEstadoTemaNombre((String) row[12]); //we set the estado tema
+			// --- parse usuarios JSONB into UsuarioDto list ---
+			String usuariosJson = row[13] != null ? row[13].toString() : "[]";
+			List<UsuarioDto> allUsers = parseUsuariosJson(usuariosJson);
+
+			// split into tesistas vs. co-advisors
+			dto.setTesistas(   filterByRole(allUsers, RolEnum.Tesista.name()) );
+			dto.setCoasesores(filterByRoleExcept(allUsers, RolEnum.Tesista.name()));
+
+			if (EstadoTemaEnum.PROPUESTO_GENERAL.name()
+					.equals(dto.getEstadoTemaNombre())) {
+				dto.setCantPostulaciones(calculatePostulaciones(allUsers));
 			}
-			t.setCoasesores(listarUsuariosPorTemaYRol(t.getId(), RolEnum.Asesor.name())); //we load the proposed asesor, which comes with the rechazado
-			temasPropuestosDirectos.add(t);
-		}
-		//historialTemaService.findByTemaId(id);
 
-		return temasPropuestosDirectos;
-	}
-
-	@Override
-	public List<TemaDto> listarPostulacionesGeneralesAMisPropuestas(Integer tesistaId) {
-		List<TemaDto> temas = new ArrayList<>();
-		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Tesista.name(), EstadoTemaEnum.PREINSCRITO.name()));
-		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Tesista.name(), EstadoTemaEnum.PROPUESTO_GENERAL.name()));
-		temas.addAll(listarTemasPorUsuarioEstadoYRol(tesistaId, RolEnum.Tesista.name(), EstadoTemaEnum.VENCIDO.name())); //The asesor never answered the propuesta
-		Integer idPropuestoGeneral = null;
-
-		try{
-			idPropuestoGeneral = estadoTemaRepository.findByNombre(EstadoTemaEnum.PROPUESTO_GENERAL.name()).get().getId();
-		} catch (Exception e){
-			throw new RuntimeException("No se encuentra el estado de tema: " + EstadoTemaEnum.PROPUESTO_GENERAL.name());
+			proposals.add(dto);
 		}
 
-		List<TemaDto> temasPropuestosGeneral = new ArrayList<>();
-		for(TemaDto t : temas){
-			if(t.getEstadoTemaNombre().equals(EstadoTemaEnum.PREINSCRITO.name())
-					|| t.getEstadoTemaNombre().equals(EstadoTemaEnum.VENCIDO.name())){
-				List<HistorialTemaDto> historialTemaDto = historialTemaService.findByTemaId(t.getId());
-				for (HistorialTemaDto h : historialTemaDto){
-					if(h.getEstadoTemaId().equals(idPropuestoGeneral)){ //it was created as general
-						//t.setEstadoTemaNombre(EstadoTemaEnum.PROPUESTO_DIRECTO.name());
-						t.setFechaModificacion(h.getFechaCreacion());
-						break;
-					}
-				}
-			}
-			t.setCoasesores(listarUsuariosPorTemaYRol(t.getId(), RolEnum.Asesor.name())); //we load the proposed asesor, which comes with the rechazado
-			temasPropuestosGeneral.add(t);
-		}
-		//historialTemaService.findByTemaId(id);
-
-		return temasPropuestosGeneral;
-	}
-
-
-	private Integer calculatePostulaciones(Integer temaId) {
-		return listarUsuariosPorTemaYRol(temaId, RolEnum.Asesor.name()).size(); //asesores with asignado false
+		return proposals;
 	}
 
 
@@ -872,9 +1013,11 @@ public class TemaServiceImpl implements TemaService {
 				String nombreTesista = (String) tesista[0] + " " + (String) tesista[1];
 				tesistas.add(nombreTesista);
 			}
-			dto.setEstudiantes(String.join(", ", tesistas));
+			dto.setEstudiantes(tesistas);
 
 			//Añadir el nivel
+
+
 			temas.add(dto);
 		}
 		return temas;
@@ -886,5 +1029,32 @@ public class TemaServiceImpl implements TemaService {
 				.createNativeQuery("SELECT eliminar_postulaciones_tesista(:uid)")
 				.setParameter("uid", idUsuario)
 				.getSingleResult();
+	}
+
+	@Transactional
+	@Override
+	public void rechazarPostulacionAPropuestaGeneral(Integer idTema, Integer idAsesor, Integer idTesista) {
+		String sql = "SELECT rechazar_postulacion_propuesta_general_tesista(:p_tema_id, :p_asesor_id, :p_tesista_id)";
+
+		entityManager.createNativeQuery(sql)
+				.setParameter("p_tema_id", idTema)
+				.setParameter("p_asesor_id", idAsesor)
+				.setParameter("p_tesista_id", idTesista)
+				.getSingleResult();
+
+	}
+
+	@Transactional
+	@Override
+	public void aprobarPostulacionAPropuestaGeneral(Integer idTema, Integer idAsesor, Integer idTesista) {
+		String sql = "SELECT aprobar_postulacion_propuesta_general_tesista(:p_tema_id, :p_asesor_id, :p_tesista_id)";
+
+		entityManager.createNativeQuery(sql)
+				.setParameter("p_tema_id", idTema)
+				.setParameter("p_asesor_id", idAsesor)
+				.setParameter("p_tesista_id", idTesista)
+				.getSingleResult();
+		
+		eliminarPostulacionesTesista(idTesista);
 	}
 }

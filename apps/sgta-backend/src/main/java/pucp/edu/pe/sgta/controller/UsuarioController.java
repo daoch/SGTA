@@ -5,9 +5,11 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
 import pucp.edu.pe.sgta.dto.CarreraDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
+import pucp.edu.pe.sgta.dto.asesores.UsuarioFotoDto;
 import pucp.edu.pe.sgta.service.inter.CarreraService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
 
@@ -51,6 +53,21 @@ public class UsuarioController {
 		usuarioService.updatePerfilAsesor(dto);
 	}
 
+	@PutMapping("/uploadFoto")
+	public void uploadFoto(@RequestParam("idUsuario") Integer idUsuario, @RequestParam("file") MultipartFile file) {
+		usuarioService.uploadFoto(idUsuario, file);
+	}
+
+	@GetMapping("/getFotoUsuario")
+	public UsuarioFotoDto getFotoUsuario(@RequestParam("idUsuario") Integer idUsuario) {
+		return usuarioService.getUsuarioFoto(idUsuario);
+	}
+
+	@GetMapping("/getIdByCorreo")
+	public Integer getIdByCorreo(@RequestParam("correoUsuario") String correo) {
+		return usuarioService.getIdByCorreo(correo);
+	}
+	
 	@GetMapping("/{id}/carreras")
     public ResponseEntity<List<CarreraDto>> listarCarreras(
             @PathVariable("id") Integer usuarioId) {
@@ -62,4 +79,14 @@ public class UsuarioController {
         }
         return ResponseEntity.ok(carreras);
     }
+	@GetMapping("/getAsesoresBySubArea")
+	public List<UsuarioDto> getAsesoresBySubArea(@RequestParam(name = "idSubArea") Integer idSubArea) {
+		return this.usuarioService.getAsesoresBySubArea(idSubArea);
+	}
+
+	@GetMapping("/findByCodigo")
+	public UsuarioDto findByCodigo(@RequestParam("codigo") String codigo) {
+		return this.usuarioService.findUsuarioByCodigo(codigo);
+	}
+
 }

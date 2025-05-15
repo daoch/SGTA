@@ -51,11 +51,11 @@ VALUES
     (1, 2, 1, TRUE, TRUE),   -- asesor
     (10, 2, 4, TRUE, TRUE);  -- alumno
 
--- Tema 3: Asesor (3), Coasesor (3), Alumno (11)
+-- Tema 3: Asesor (3), Coasesor (4), Alumno (11)
 INSERT INTO usuario_tema (usuario_id, tema_id, rol_id, asignado, creador)
 VALUES
     (3, 3, 1, TRUE, TRUE),   -- asesor
-    (3, 3, 5, TRUE, FALSE),  -- coasesor
+    (4, 3, 5, TRUE, FALSE),  -- coasesor
     (11, 3, 4, TRUE, TRUE);  -- alumno
 
 -- Tema 4: Asesor (4), Alumno (12)
@@ -115,3 +115,5 @@ INSERT INTO usuario_tema (usuario_id, tema_id, rol_id, asignado, creador)
 VALUES
     (1, 12, 1, TRUE, TRUE),
     (14, 12, 4, TRUE, TRUE);
+update tema set estado_tema_id = 10 where tema_id%2=0;
+update tema set estado_tema_id = 12 where tema_id%2=1;

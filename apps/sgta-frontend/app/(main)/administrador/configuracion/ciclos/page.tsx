@@ -1,7 +1,7 @@
 "use client";
 
-import { CiclosList } from "@/components/main/configuracion/ciclos-list";
-import { NuevoCicloModal } from "@/components/main/configuracion/nuevo-ciclo-modal";
+import { CiclosList } from "@/features/configuracion/components/configuracion/ciclos-list";
+import { NuevoCicloModal } from "@/features/configuracion/components/configuracion/nuevo-ciclo-modal";
 import { Button } from "@/components/ui/button";
 import { Ciclo, CicloEtapas } from "@/features/administrador/types/ciclo.type"; // Asegúrate de importar el tipo correcto
 import { crearCiclo, listarCiclosConEtapas } from "@/features/administrador/types/services/cicloService";

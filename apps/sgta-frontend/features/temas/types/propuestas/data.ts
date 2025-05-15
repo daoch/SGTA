@@ -2,7 +2,7 @@
 
 import {
   Area,
-  Proyecto,
+  Proyecto_M,
   SubAreaConocimiento,
   Usuario,
 } from "@/features/temas/types/propuestas/entidades";
@@ -13,7 +13,7 @@ export async function fetchTemasPropuestosAlAsesor(
   titulo?: string,
   limit?: number,
   offset?: number,
-): Promise<Proyecto[]> {
+): Promise<Proyecto_M[]> {
   try {
     const params = new URLSearchParams();
 
@@ -37,7 +37,7 @@ export async function fetchTemasPropuestosAlAsesor(
     const data = await response.json();
 
     const updatedData = await Promise.all(
-      data.map(async (item: Proyecto) => {
+      data.map(async (item: Proyecto_M) => {
         // Crear un array para almacenar los estudiantes y areas
         const estudiantes = [];
         const subAreas = [];
@@ -78,7 +78,7 @@ export async function fetchTemasPropuestosPorSubAreaConocimiento(
   titulo?: string,
   limit?: number,
   offset?: number,
-): Promise<Proyecto[]> {
+): Promise<Proyecto_M[]> {
   try {
     const params = new URLSearchParams();
     const idsSubAreas = subAreas.map((item) => item.id);
@@ -107,7 +107,7 @@ export async function fetchTemasPropuestosPorSubAreaConocimiento(
     const data = await response.json();
 
     const updatedData = await Promise.all(
-      data.map(async (item: Proyecto) => {
+      data.map(async (item: Proyecto_M) => {
         // Crear un array para almacenar los estudiantes y areas
         const estudiantes = [];
         const subAreas = [];
