@@ -32,5 +32,4 @@ public class CarreraXParametroConfiguracionController {
     public List<CarreraXParametroConfiguracionDto> getParametros(@PathVariable Long carreraId) {
         return this.carreraXParametroConfiguracionService.getParametrosPorCarrera(carreraId);
     }
-
 }

@@ -7,11 +7,12 @@ import {
   FileSpreadsheet,
   FileText,
   FolderOpen,
+  GraduationCap,
   Home,
   MessageSquare,
   Search,
   Settings,
-  Users,
+  Users
 } from "lucide-react";
 
 export interface NavigationGroup {
@@ -170,6 +171,7 @@ export const navigationItems: Record<string, NavigationItem[]> = {
       href: "/coordinador/configuracion",
       icon: Settings,
     },
+    { name: "Unid. Académicas", href: "/coordinador/unidades", icon: GraduationCap },
   ],
   revisor: [
     { name: "Revisión", href: "/revisor/revision", icon: Search },
