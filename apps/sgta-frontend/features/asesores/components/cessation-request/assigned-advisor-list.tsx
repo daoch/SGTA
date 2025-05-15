@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { UserMinus } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useCessationRequestAssignmentStore } from "@/features/asesores/store/assignment-cessation-request"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
 export function AssignedAdvisorsList() {
   const { students, assignedAdvisors, unassignAdvisor, removeAssignedAdvisor, selectedStudent } =
@@ -35,8 +36,19 @@ export function AssignedAdvisorsList() {
                 <TableRow key={advisor.id} className={cn(isSelectedStudentAdvisor && "bg-primary/10")}>
                   <TableCell>
                     <div className="h-10 w-10 rounded-full overflow-hidden">
+                      <Avatar className="h-8 w-8">
+                        {advisor.urlPhoto ? (
+                            <img
+                                src={advisor.urlPhoto}
+                                alt={`User-photo-${advisor.firstName}`}
+                                className='rounded-full'
+                            />
+                        ) : (
+                            <AvatarFallback className="bg-gray-400" />
+                        )}
+                        </Avatar>
                       <img
-                        src={advisor.profilePicture || "/placeholder.svg"}
+                        src={advisor.urlPhoto || "/placeholder.svg"}
                         alt={`${advisor.firstName} ${advisor.lastName}`}
                         className="object-cover h-full w-full"
                       />
@@ -54,7 +66,6 @@ export function AssignedAdvisorsList() {
                         <Badge
                           key={area.description}
                           variant="outline"
-                          className={selectedStudent?.thematicArea === area ? "bg-primary/10" : ""}
                         >
                           {area.description}
                         </Badge>
@@ -73,7 +84,7 @@ export function AssignedAdvisorsList() {
                         >
                           <div>
                             <div className="font-medium">
-                              {student.firstName} {student.lastName}
+                              {student.name} {student.lastName}
                             </div>
                             <div className="text-xs text-muted-foreground">{student.code}</div>
                           </div>

@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card"
-import { useRequestTerminationDetail, useRequestTerminationList } from "@/features/asesores/queries/cessation-request";
 import { useCessationRequestSearchCriteriaStore } from "@/features/asesores/store/cessation-request-filters"
 import RequestSearchFilters from "@/features/asesores/components/cessation-request/search-filters-request-list";
 import PendingAssessorChangeRequestsList from "@/features/asesores/components/cessation-request/list-pending-requests";
@@ -11,35 +10,43 @@ import CessationRequestDetail from "@/features/asesores/components/cessation-req
 import RejectCessationModal from "@/features/asesores/components/cessation-request/reject-cessation-modal";
 import { AssignmentModal } from "@/features/asesores/components/cessation-request/modal-assignment-students";
 import { Loader2 } from "lucide-react";
-import { ISelectRequestCessationOptions } from "@/features/asesores/types/cessation-request";
+import { getTerminationConsultancyList } from "../services/solicitud-cese-asesoria";
+import { ISelectRequestCessationOptions, ITerminationConsultancyRequest } from "../types/cessation-request";
+
 
 
 const Page = () => {
-    const searchCriteriaStore = useCessationRequestSearchCriteriaStore()
+    const {fullNameEmail, page, status, setPage, clear, setStatusTabFilter, setFullNameEmailPage, clearFullNameEmailPage} = useCessationRequestSearchCriteriaStore()
     const initialStateOption = {id: null, option: null, openModal: false}
     const [ selectOption, setSelectOption ] = useState<ISelectRequestCessationOptions>(initialStateOption);
-    const { isLoading, data, refetch } = useRequestTerminationList(searchCriteriaStore)
-    const { isLoading: loadingRequestDetail, data: dataRequestDetail} = useRequestTerminationDetail(selectOption?.id ?? null)
+    const [ data, setData ] = useState<ITerminationConsultancyRequest | null>(null)
+    const [ isLoading, setIsLoading ] = useState<boolean>(true)
     
+    const fetchRequests = async () => {
+        setIsLoading(true)
+        const data = await getTerminationConsultancyList({"fullNameEmail": fullNameEmail, "status": status, "page": page})
+        if (data)
+            setData(data)
+        setIsLoading(false)
+    }
+
+    const handlePageChange = (page: number) => {
+        setPage(page);
+    };
 
     useEffect(()=>{
-        searchCriteriaStore.clear()
+        clear()
     }, [])
 
 
     useEffect(()=>{
-        refetch()
-    }, [
-        searchCriteriaStore.page,
-        searchCriteriaStore.fullNameEmail,
-        searchCriteriaStore.status
-    ])
-    
-    
-    
-    const handlePageChange = (page: number) => {
-        searchCriteriaStore.setPage(page);
-    };
+        fetchRequests()
+    }, [fullNameEmail, page, status])
+
+
+    const handleRefetch = async () =>{
+        fetchRequests()
+    }
 
     return(
         <div>
@@ -59,11 +66,11 @@ const Page = () => {
                 <Card className="p-4 shadow-sm">
                     {
                     <RequestSearchFilters
-                        searchTerm={searchCriteriaStore.fullNameEmail}
-                        onSearchChange={searchCriteriaStore.setFullNameEmailPage}
-                        statusValue={searchCriteriaStore.status}
-                        onStatusValueChange={searchCriteriaStore.setStatusTabFilter}
-                        clearTerm={searchCriteriaStore.clearFullNameEmailPage}
+                        searchTerm={fullNameEmail}
+                        onSearchChange={setFullNameEmailPage}
+                        statusValue={status}
+                        onStatusValueChange={setStatusTabFilter}
+                        clearTerm={clearFullNameEmailPage}
                     />
                     }
                 </Card>
@@ -82,11 +89,11 @@ const Page = () => {
                         )
                     if (data?.requestTermmination.length === 0)
                     return (
-                        <NotCessationRequestFound type={searchCriteriaStore.status} appliedFilters={searchCriteriaStore.fullNameEmail !== ""}/>
+                        <NotCessationRequestFound type={status} appliedFilters={fullNameEmail !== ""}/>
                     )
                     return (
                         <div>
-                            {searchCriteriaStore.status === 'pending' ? (
+                            {status === 'pending' ? (
                             <PendingAssessorChangeRequestsList
                                 requests={data?.requestTermmination ?? []}
                                 onApprove={
@@ -112,7 +119,7 @@ const Page = () => {
                 <br />
                 {!isLoading  && (
                     <CessationRequestPagination
-                        currentPage={searchCriteriaStore.page}
+                        currentPage={page}
                         totalPages={data?.totalPages ?? 1}
                         onPageChange={handlePageChange}
                         
@@ -121,32 +128,34 @@ const Page = () => {
 
                 {/* Modals */}
                 
-                {dataRequestDetail&&
-                    <AssignmentModal
-                        open={selectOption?.option === "accept"}
-                        onOpenChange={(isOpen) => {
-                            if (!isOpen) {
-                                setSelectOption(initialStateOption)
-                            }
-                        }}
-                        request={dataRequestDetail}  
-                    />
+                {selectOption?.id &&
+                    <>
+                        <AssignmentModal
+                            open={selectOption?.option === "accept"}
+                            onOpenChange={(isOpen) => {
+                                if (!isOpen) {
+                                    setSelectOption(initialStateOption)
+                                }
+                            }}
+                            idRequest={selectOption.id}  
+                            refetch={handleRefetch}
+                        />
+                        <RejectCessationModal
+                            isOpen={selectOption?.option === "denny"}
+                            onClose={() => setSelectOption(initialStateOption)}
+                            idRequest={selectOption.id}
+                            refetch={handleRefetch}
+                        />
+                    
+                        <CessationRequestDetail
+                            isOpen={selectOption?.option === "detail"}
+                            onClose={() => setSelectOption(initialStateOption)}
+                            idRequest={selectOption.id}
+                        />
+                    </>
                 }
 
-                <RejectCessationModal
-                    isOpen={selectOption?.option === "denny"}
-                    onClose={() => setSelectOption(initialStateOption)}
-                    request={dataRequestDetail ?? null}
-                    loading={loadingRequestDetail}
-                />
-                
-                <CessationRequestDetail
-                    isOpen={selectOption?.option === "detail"}
-                    onClose={() => setSelectOption(initialStateOption)}
-                    request={dataRequestDetail ?? null}
-                    loading={loadingRequestDetail}
-                    
-                />
+
             </div>
         </div>
     )

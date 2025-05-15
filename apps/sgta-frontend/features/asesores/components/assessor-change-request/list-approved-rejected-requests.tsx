@@ -67,9 +67,13 @@ const RequestHistoryTable: React.FC<IAssessorChangeHistoryRequestsTableProps> = 
       case "thematicArea":
         return (
           <div className="w-full text-left">
-            <Badge variant="secondary" className="text-xs">
-              {request.student.topic.thematicArea.name}
-            </Badge>
+            {request.student.topic.thematicAreas.map((thematicArea)=>(
+              <Badge variant="secondary" className="text-xs" key={thematicArea.id}>
+                {thematicArea.description}
+              </Badge>
+            ))
+            
+            }
           </div>
         );
       case "status":

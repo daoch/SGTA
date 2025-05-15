@@ -13,6 +13,11 @@ export interface IRequestAssessorChange {
     "totalPages": number
 }
 
+export interface IRequestAssessorChangeFetched {
+    "assessorChangeRequests": Array<IRequestAssessorChangeRequestDataFetched>	
+    "totalPages": number
+}
+
 
 interface IAssessorChangeRequestAssessor{
 	"id": number
@@ -26,16 +31,13 @@ interface IAssessorChangeRequestStudent{
 	"id": number
 	"name": string
 	"lastName": string
-    "email": string
-    "urlPhoto": string
-    "topic": {
-		"id": number
-        "name": string
-        "thematicArea": {
-            "id": number
-            "name": string
-        }
-	}
+  "email": string
+  "urlPhoto": string
+  "topic": {
+    "id": number
+    "name": string
+    "thematicAreas": Array<IAssessorChangeRequestThematicArea>
+  }
 }
 
 export interface IRequestAssessorChangeRequestData{
@@ -48,6 +50,42 @@ export interface IRequestAssessorChangeRequestData{
     "student": IAssessorChangeRequestStudent
     "assessors": Array<IAssessorChangeRequestAssessor>
 }
+
+export interface IRequestAssessorChangeRequestDataFetched{
+    "id": number
+    "registerTime": string
+    "status": IAssessorChangeRequestStatus
+    "reason": string
+    "response": string
+    "responseTime": string
+    "student": IAssessorChangeRequestStudent
+    "assessors": Array<IAssessorChangeRequestAssessor>
+}
+
+export interface IRequestAssessorChangeRequestDataDetail{
+    "id": number
+    "registerTime": Date
+    "status": IAssessorChangeRequestStatus
+    "reason": string
+    "response": string
+    "responseTime": Date
+    "student": IAssessorChangeRequestStudent
+    "newAssessor": Array<IAssessorChangeRequestAssessor>
+    "previousAssessors": Array<IAssessorChangeRequestAssessor>
+}
+
+export interface IRequestAssessorChangeRequestDataDetailFetched{
+    "id": number
+    "registerTime": Date
+    "status": IAssessorChangeRequestStatus
+    "reason": string
+    "response": string
+    "responseTime": Date
+    "student": IAssessorChangeRequestStudent
+    "newAssessor": Array<IAssessorChangeRequestAssessor>
+    "previousAssessors": Array<IAssessorChangeRequestAssessor>
+}
+
 
 export interface IAssessorChangeRequestSearchFields{
 	"fullNameEmail": string
@@ -86,7 +124,7 @@ export interface IAssessorChangeHistoryRequestsTableProps {
 
 export interface IAssessorChangeAvailableAssessorsListProps{
   selectedAssessorId: number | null,
-  selectedIdThematicArea: number | null
+  selectedIdThematicAreas: Array<number>
   setSelectedAssessorId: (value: number | null)=>void,
 }
 
@@ -99,23 +137,23 @@ export interface IAssessorChangePendingRequestsListProps {
 
 export interface IAssessorChangeAssignmentModalProps {
   open: boolean
-  request: IRequestAssessorChangeRequestData
+  idRequest: number
   onOpenChange: (open: boolean) => void
+  refetch: () => Promise<void>
 }
 
 
 export interface IAssessorChangeApproveModalProps {
   isOpen: boolean;
-  request: IRequestAssessorChangeRequestData | null;
-  loading: boolean;
+  idRequest: number
   onClose: () => void;
 }
 
 export interface IAssessorChangeRejectModalProps {
   isOpen: boolean;
   onClose: () => void;
-  request: IRequestAssessorChangeRequestData | null;
-  loading: boolean;
+  idRequest: number
+  refetch: () => Promise<void>
 }
 
 export interface INotAssessorChangeRequestFoundProps {
@@ -160,15 +198,17 @@ export interface IAssessorChangeRequestStudentAssign {
   lastName: string
   email: string
   code: string
-  thematicArea: IAssessorChangeRequestThematicArea
-  profilePicture: string
+  thematicAreas: Array<IAssessorChangeRequestThematicArea>
+  urlPhoto: string
   advisorId: number | null
 }
 
 export interface IAssessorChangeRequestAssignmentModalProps {
   open: boolean
   request: IRequestAssessorChangeRequestData
+  idRequest: number
   onOpenChange: (open: boolean) => void
+  refetch: ()=>Promise<void>
 }
 
 export interface IAssessorChangeSearchCriteriaAssessorListProps
@@ -178,7 +218,13 @@ export interface IAssessorChangeSearchCriteriaAssessorListProps
 }
 
 export interface IAssessorChangeRequestSearchCriteriaAvailableAdvisorList {
-  idThematicArea: number | null
+  idThematicAreas: Array<number>
+  fullNameEmailCode: string
+  page: number
+}
+
+export interface IAssessorChangeRequestSearchCriteriaAvailableAdvisorList {
+  idThematicAreas: Array<number>
   fullNameEmailCode: string
   page: number
 }

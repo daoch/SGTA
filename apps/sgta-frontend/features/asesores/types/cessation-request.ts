@@ -3,6 +3,11 @@ export interface ITerminationConsultancyRequest {
 	"totalPages": number
 }
 
+export interface ITerminationConsultancyRequestFetched {
+	"requestTermmination": Array<IRequestTerminationConsultancyRequestDataFetched>	
+	"totalPages": number
+}
+
 
 export interface IRequestTerminationConsultancyRequestData{
 	"id": number
@@ -15,6 +20,45 @@ export interface IRequestTerminationConsultancyRequestData{
 	"students": Array<IRequestTerminationConsultancyStudent>
 }
 
+export interface IRequestTerminationConsultancyRequestDataViewDetail{
+	"id": number
+	"registerTime": Date
+	"status": IRequestTerminationConsultancyRequestStatus
+	"reason": string
+	"response": string
+	"responseTime": Date
+	"assessor": IRequestTerminationConsultancyAssessor
+	"students": Array<IRequestTerminationConsultancyStudentDetail>
+}
+
+export interface IRequestTerminationConsultancyRequestDataViewDetailFetched{
+	"id": number
+	"registerTime": string
+	"status": IRequestTerminationConsultancyRequestStatus
+	"reason": string
+	"response": string
+	"responseTime": string
+	"assessor": IRequestTerminationConsultancyAssessor
+	"students": Array<IRequestTerminationConsultancyStudentDetail>
+}
+
+export interface IRequestTerminationConsultancySearchFields{
+	"fullNameEmail": string
+	"status": IRequestTerminationConsultancyRequestStatusFilter
+	"page": number
+}
+
+
+export interface IRequestTerminationConsultancyRequestDataFetched{
+	"id": number
+	"registerTime": string
+	"status": IRequestTerminationConsultancyRequestStatus
+	"reason": string
+	"response": string
+	"responseTime": string
+	"assessor": IRequestTerminationConsultancyAssessor
+	"students": Array<IRequestTerminationConsultancyStudent>
+}
 
 export interface IRequestTerminationConsultancySearchFields{
 	"fullNameEmail": string
@@ -55,6 +99,14 @@ export interface IRequestTerminationConsultancyStudent{
 	}
 }
 
+export interface IRequestTerminationConsultancyStudentDetail extends IRequestTerminationConsultancyStudent {
+	"code": string
+	"email": string
+	"urlPhoto": string
+	"thematicAreas": Array<ICessationRequestThematicArea>
+  "advisorId": number | null
+}
+
 export type IRequestTerminationConsultancyRequestStatus = "pending" | "approved" | "rejected";
 
 export type IRequestTerminationConsultancyRequestStatusFilter = IRequestTerminationConsultancyRequestStatus | "answered";
@@ -72,7 +124,7 @@ export interface ICessationRequestStudent {
   code: string
   thematicArea: ICessationRequestThematicArea
   profilePicture: string
-  advisorId: number | null
+  
 }
   
 
@@ -86,12 +138,12 @@ export interface ICessationRequestAdvisor {
   thematicAreas: ICessationRequestThematicArea[]
   assignedStudentsQuantity: number
   capacity: number
-  profilePicture: string
+  urlPhoto: string
 }
   
 
 export interface ICessationRequestSearchCriteriaAvailableAdvisorList {
-  idThematicArea: number | null
+  idThematicAreas: Array<number>
   fullNameEmailCode: string
   page: number
 }
@@ -103,7 +155,7 @@ export interface ICessationSearchCriteriaAssessorListProps
 }
 
 export interface IListAvailableAdvisorList{
-  advisors: Array<ICessationRequestAdvisor>
+  assessors: Array<ICessationRequestAdvisor>
   totalPages: number
 }
 
@@ -115,8 +167,9 @@ export interface ISelectRequestCessationOptions {
 
 export interface ICessationRequestAssignmentModalProps {
   open: boolean
-  request: IRequestTerminationConsultancyRequestData
+  idRequest: number
   onOpenChange: (open: boolean) => void
+  refetch: () => Promise<void>
 }
 
 
@@ -139,7 +192,7 @@ export interface ICessationRequestHistoryTableProps {
 }
 
 export interface ICessationRequestAdvisorListProps{
-  readonly selectedStudent: ICessationRequestStudent
+  readonly selectedStudent: IRequestTerminationConsultancyStudentDetail
 }
 
 export interface INotCessationRequestFoundProps {
@@ -149,7 +202,7 @@ export interface INotCessationRequestFoundProps {
 
 export interface IRejectCessationRequestModalProps {
   isOpen: boolean;
-  request: IRequestTerminationConsultancyRequestData | null;
-  loading: boolean;
+  idRequest: number;
   onClose: () => void;
+  refetch: () => Promise<void>
 }

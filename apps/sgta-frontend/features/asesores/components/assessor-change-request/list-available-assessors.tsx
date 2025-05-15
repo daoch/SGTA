@@ -8,26 +8,19 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Loader2, User, UserMinus, UserPlus } from "lucide-react"
 import { useDebounce } from "@/features/asesores/hooks/use-debounce"
 import { IAssessorChangeAvailableAssessorsListProps, IAssessorChangeRequestSearchCriteriaAvailableAdvisorList } from "@/features/asesores/types/assessor-change-request"
-import { useRequestAssessorChangeAdvisorPerThematicArea } from "@/features/asesores/queries/assessor-change-request"
+
 import AssessorChangeRequestPagination from "@/features/asesores/components/assessor-change-request/pagination-assessor-change-request"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { useAssessorChangeRequestAdvisorPerThematicArea } from "../../queries/assessor-change-request"
 
 
 
-export default function AssessorListAssessorChangeRequest({selectedAssessorId, setSelectedAssessorId, selectedIdThematicArea}: Readonly<IAssessorChangeAvailableAssessorsListProps>) {
-  const initialStateSearchCriteria: IAssessorChangeRequestSearchCriteriaAvailableAdvisorList = {idThematicArea: selectedIdThematicArea, fullNameEmailCode: "", page: 1}
+export default function AssessorListAssessorChangeRequest({selectedAssessorId, setSelectedAssessorId, selectedIdThematicAreas}: Readonly<IAssessorChangeAvailableAssessorsListProps>) {
+  const initialStateSearchCriteria: IAssessorChangeRequestSearchCriteriaAvailableAdvisorList = {idThematicAreas: selectedIdThematicAreas, fullNameEmailCode: "", page: 1}
   const [ searchCriteria, setSearchCriteria ] = useState(initialStateSearchCriteria)
-  const { isLoading, data } = useRequestAssessorChangeAdvisorPerThematicArea(searchCriteria)
   const debouncedSearchTerm = useDebounce(searchCriteria.fullNameEmailCode, 2000)
   const [localTerm, setLocalTerm] = useState(searchCriteria.fullNameEmailCode);
-  
-
-  useEffect(()=>{
-    setSearchCriteria((prev) => ({
-      ...prev,
-      idThematicArea: prev.idThematicArea,
-      page: 1,
-    }));
-  },[selectedIdThematicArea])
+  const { isLoading, data } = useAssessorChangeRequestAdvisorPerThematicArea(searchCriteria)
 
   const debouncedTerm = useDebounce(localTerm, 1500);
   useEffect(() => {
@@ -117,7 +110,7 @@ export default function AssessorListAssessorChangeRequest({selectedAssessorId, s
                   );
                 }
 
-                if (!data?.advisors?.length) {
+                if (!data?.assessors?.length) {
                   return (
                     <TableRow>
                       <TableCell colSpan={5} className="text-center py-6 text-muted-foreground">
@@ -127,7 +120,7 @@ export default function AssessorListAssessorChangeRequest({selectedAssessorId, s
                   );
                 }
 
-                return data.advisors.map((advisor) => {
+                return data.assessors.map((advisor) => {
                   const advisorAssignedCount = advisor.assignedStudentsQuantity + (advisor.id === selectedAssessorId ? 1 : 0);
                   const isAtCapacity = advisorAssignedCount >= advisor.capacity;
                   const wasAssigned = advisor.id === selectedAssessorId;
@@ -137,11 +130,17 @@ export default function AssessorListAssessorChangeRequest({selectedAssessorId, s
                     <TableRow key={advisor.id}>
                       <TableCell>
                         <div className="h-10 w-10 rounded-full overflow-hidden">
-                          <img
-                            src={advisor.profilePicture || "/placeholder.svg"}
-                            alt={`${advisor.firstName} ${advisor.lastName}`}
-                            className="object-cover h-full w-full"
-                          />
+                          <Avatar className="h-8 w-8">
+                            {advisor.urlPhoto ? (
+                                <img
+                                    src={advisor.urlPhoto}
+                                    alt={`User-photo-${advisor.firstName}`}
+                                    className='rounded-full'
+                                />
+                            ) : (
+                                <AvatarFallback className="bg-gray-400" />
+                            )}
+                            </Avatar>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -159,7 +158,6 @@ export default function AssessorListAssessorChangeRequest({selectedAssessorId, s
                             <Badge
                               key={area.id}
                               variant="outline"
-                              className={selectedIdThematicArea === area.id ? "bg-primary/10" : ""}
                             >
                               {area.description}
                             </Badge>

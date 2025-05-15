@@ -1,5 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
-import { getAssessorChangeRequestDetail, getAssessorChangeRequestList } from "../services/solicitud-cambio-asesor";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { approveAssessorChangeRequest, getAssessorChangeRequestDetail, getAssessorChangeRequestList, rejectAssessorChangeRequest } from "../services/solicitud-cambio-asesor";
 import { getTerminationRequestAssessorList } from "../services/solicitud-cese-asesoria";
 import { IAssessorChangeRequestSearchCriteriaAvailableAdvisorList } from "../types/assessor-change-request";
 
@@ -28,15 +28,38 @@ const useRequestAssessorChangeDetail = (idRequest: number | null) => {
     return queryAssessorChangeRequestDetail;
 }
 
-const useRequestAssessorChangeAdvisorPerThematicArea = (searchCriteria: IAssessorChangeRequestSearchCriteriaAvailableAdvisorList) => {
+export function useRejectAssessorChangeRequest() {
+  return useMutation({
+    mutationFn: ({
+      requestId,
+      responseText,
+    }: {
+      requestId: number;
+      responseText: string;
+    }) => rejectAssessorChangeRequest(requestId, responseText),
+  });
+}
+
+export function useApproveAssesorChangeRequest() {
+  return useMutation({
+    mutationFn: ({
+      requestId,
+      responseText,
+    }: {
+      requestId: number;
+      responseText: string;
+    }) => approveAssessorChangeRequest(requestId, responseText),
+  });
+}
+
+
+const useAssessorChangeRequestAdvisorPerThematicArea = (searchCriteria: IAssessorChangeRequestSearchCriteriaAvailableAdvisorList) => {
     const queryRequestStudentList = useQuery({
-        queryKey: ['request-termination-assessor-list-per-thematic-area', searchCriteria.idThematicArea, searchCriteria.fullNameEmailCode, searchCriteria.page],
+        queryKey: ['assessor-change-request-detail-assessor-list-per-thematic-area', searchCriteria.idThematicAreas, searchCriteria.fullNameEmailCode, searchCriteria.page],
         queryFn: () =>
             getTerminationRequestAssessorList(searchCriteria).then((res) => res),
-        
     })
-
     return queryRequestStudentList
 }
 
-export { useRequestAssessorChangeList, useRequestAssessorChangeDetail, useRequestAssessorChangeAdvisorPerThematicArea };
+export { useRequestAssessorChangeList, useRequestAssessorChangeDetail, useAssessorChangeRequestAdvisorPerThematicArea};

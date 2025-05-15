@@ -15,7 +15,7 @@ export function StudentList() {
   const filteredStudents = students.filter((student) => {
     
 
-    const fullName = `${student.firstName} ${student.lastName}`.toLowerCase()
+    const fullName = `${student.name} ${student.lastName}`.toLowerCase()
     const searchLower = searchTerm.toLowerCase()
 
     return (
@@ -56,8 +56,8 @@ export function StudentList() {
 
               <div className="relative h-10 w-10 rounded-full overflow-hidden">
                 <img
-                  src={student.profilePicture ?? "/placeholder.svg"}
-                  alt={`${student.firstName} ${student.lastName}`}
+                  src={student.urlPhoto ?? "/placeholder.svg"}
+                  alt={`${student.name} ${student.lastName}`}
                   className="object-cover h-full w-full"
                 />
                 {isAssigned && (
@@ -69,14 +69,17 @@ export function StudentList() {
 
               <div className="flex-1 min-w-0">
                 <label htmlFor={`student-${student.id}`} className="font-medium cursor-pointer">
-                  {student.firstName} {student.lastName}
+                  {student.name} {student.lastName}
                 </label>
                 <div className="text-sm text-muted-foreground truncate">{student.email}</div>
                 <div className="flex items-center gap-2 mt-1">
                   <span className="text-xs text-muted-foreground">{student.code}</span>
-                  <Badge variant="outline" className="text-xs">
-                    {student.thematicArea.description}
-                  </Badge>
+                  {student.thematicAreas.map((thematicArea)=>(
+                    <Badge variant="outline" className="text-xs" key={thematicArea.id}>
+                      {thematicArea.description}
+                    </Badge>
+                  ))
+                  }
                 </div>
               </div>
             </div>

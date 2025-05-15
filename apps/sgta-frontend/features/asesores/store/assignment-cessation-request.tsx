@@ -1,18 +1,18 @@
 import { create } from "zustand";
-import { ICessationRequestAdvisor,ICessationRequestStudent, ICessationRequestThematicArea } from "../types/cessation-request";
+import { ICessationRequestAdvisor, IRequestTerminationConsultancyStudentDetail } from "../types/cessation-request";
 
 
 interface ICessationRequestAssignmentState {
-  students: ICessationRequestStudent[]
+  students: IRequestTerminationConsultancyStudentDetail[]
   advisors: ICessationRequestAdvisor[]
-  selectedStudent: ICessationRequestStudent | null
+  selectedStudent: IRequestTerminationConsultancyStudentDetail | null
   assignedStudents: Record<number, number> // studentId -> advisorId
   assignedAdvisors: ICessationRequestAdvisor[],
 
   // Actions
-  setStudents: (students: ICessationRequestStudent[]) => void
+  setStudents: (students: IRequestTerminationConsultancyStudentDetail[]) => void
   setAdvisors: (advisors: ICessationRequestAdvisor[]) => void
-  selectStudent: (student: ICessationRequestStudent) => void
+  selectStudent: (student: IRequestTerminationConsultancyStudentDetail) => void
   assignAdvisor: (studentId: number, advisorId: number) => void
   unassignAdvisor: (studentId: number) => void
   addAssignedAdvisor: (advisor: ICessationRequestAdvisor) => void
@@ -23,10 +23,8 @@ interface ICessationRequestAssignmentState {
   getAssignedAdvisor: (studentId: number) => ICessationRequestAdvisor | null
   getAdvisorAssignedCount: (advisorId: number) => number
   getUnassignedStudentsCount: () => number
-  getUniqueThematicAreas: () => ICessationRequestThematicArea[]
   getAssignedAdvisors: () => ICessationRequestAdvisor[]
-  getStudentsByAdvisor: (advisorId: number) => ICessationRequestStudent[]
-  canAssignAdvisorToStudent: (advisorId: number, studentId: number) => boolean
+  getStudentsByAdvisor: (advisorId: number) => IRequestTerminationConsultancyStudentDetail[]
   clear: () => void
 }
 
@@ -63,7 +61,7 @@ export const useCessationRequestAssignmentStore = create<ICessationRequestAssign
     const { assignedAdvisors } = get();
     const { students } = get();
     const quantityOfAdvisorReferencesStudents = students.filter(student => student.advisorId === advisorId).length
-    console.log(students)
+    
     if (quantityOfAdvisorReferencesStudents === 0){
       const updatedAdvisors = assignedAdvisors.filter(a => a.id !== advisorId);
       set({ assignedAdvisors: updatedAdvisors });
@@ -130,15 +128,6 @@ export const useCessationRequestAssignmentStore = create<ICessationRequestAssign
     return students.length - Object.keys(assignedStudents).length
   },
 
-  getUniqueThematicAreas: () => {
-    const { students, advisors } = get()
-    const areas = new Set<ICessationRequestThematicArea>()
-
-    students.forEach((student) => areas.add(student.thematicArea))
-    advisors.forEach((advisor) => advisor.thematicAreas.forEach((area) => areas.add(area)))
-
-    return Array.from(areas)
-  },
 
   getAssignedAdvisors: () => {
     const {assignedAdvisors} = get()
@@ -154,21 +143,6 @@ export const useCessationRequestAssignmentStore = create<ICessationRequestAssign
     return students.filter((student) => studentIds.includes(student.id))
   },
 
-  canAssignAdvisorToStudent: (advisorId, studentId) => {
-    const { advisors, students, getAdvisorAssignedCount } = get()
-
-    const advisor = advisors.find((a) => a.id === advisorId)
-    const student = students.find((s) => s.id === studentId)
-
-    if (!advisor || !student) return false
-
-    // Verificar si el asesor tiene capacidad
-    const assignedCount = getAdvisorAssignedCount(advisorId)
-    if (assignedCount >= advisor.capacity) return false
-
-    // Verificar si las áreas temáticas coinciden
-    return advisor.thematicAreas.includes(student.thematicArea)
-  },
 
   clear: () => set({
     students: [],

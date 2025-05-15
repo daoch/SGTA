@@ -1,26 +1,46 @@
-import { useQuery} from "@tanstack/react-query";
+import { useMutation, useQuery} from "@tanstack/react-query";
 
-import { getTerminationConsultancyList, getTerminationConsultancyRequest, getTerminationRequestAssessorList, getTerminationRequestStudentList } from "../services/solicitud-cese-asesoria";
+import { approveTerminationConsultancyRequest, getTerminationConsultancyList, getTerminationConsultancyRequest, getTerminationRequestAssessorList, rejectTerminationConsultancyRequest } from "../services/solicitud-cese-asesoria";
 import { ICessationRequestSearchCriteriaAvailableAdvisorList, IRequestTerminationConsultancySearchFields } from "../types/cessation-request";
 
 
 const useRequestTerminationList = (searchCriteriaStore: IRequestTerminationConsultancySearchFields) => {
-
-    const queryRequestTerminationList = useQuery({
-        queryKey: ['consultancy-list', searchCriteriaStore.fullNameEmail, searchCriteriaStore.status, searchCriteriaStore.page],
+  const queryKey = ['cessation-request-list', searchCriteriaStore.fullNameEmail, searchCriteriaStore.status, searchCriteriaStore.page];
+  const queryRequestTerminationList = useQuery({
+        queryKey,
         queryFn: () =>
-            getTerminationConsultancyList(searchCriteriaStore).then((res) => res),
-        
+            getTerminationConsultancyList(searchCriteriaStore).then((res) => res) 
     });
-
-    return queryRequestTerminationList;
+    return queryRequestTerminationList
 }
 
+export function useRejectTerminationRequest() {
+  return useMutation({
+    mutationFn: ({
+      requestId,
+      responseText,
+    }: {
+      requestId: number;
+      responseText: string;
+    }) => rejectTerminationConsultancyRequest(requestId, responseText),
+  });
+}
+
+export function useApproveTerminationRequest() {
+  return useMutation({
+    mutationFn: ({
+      requestId,
+      responseText,
+    }: {
+      requestId: number;
+      responseText: string;
+    }) => approveTerminationConsultancyRequest(requestId, responseText),
+  });
+}
 
 const useRequestTerminationDetail = (idRequest: number | null) => {
-
     const queryCessationRequestDetail = useQuery({
-        queryKey: ['consultancy-request', idRequest],
+        queryKey: ['cessation-request-detail', idRequest],
         queryFn: () =>
             getTerminationConsultancyRequest(idRequest).then((res) => res),
         
@@ -30,22 +50,9 @@ const useRequestTerminationDetail = (idRequest: number | null) => {
 }
 
 
-const useRequestTerminationFullStudentList = (idRequest: number) => {
-
-    const queryRequestStudentList = useQuery({
-        queryKey: ['request-termination-student-list', idRequest],
-        queryFn: () =>
-            getTerminationRequestStudentList(idRequest).then((res) => res),
-        
-    })
-
-    return queryRequestStudentList
-}
-
-
 const useRequestTerminationAdvisorPerThematicArea = (searchCriteria: ICessationRequestSearchCriteriaAvailableAdvisorList) => {
     const queryRequestStudentList = useQuery({
-        queryKey: ['request-termination-assessor-list-per-thematic-area', searchCriteria.idThematicArea, searchCriteria.fullNameEmailCode, searchCriteria.page],
+        queryKey: ['cessation-request-detail-assessor-list-per-thematic-area', searchCriteria.idThematicAreas, searchCriteria.fullNameEmailCode, searchCriteria.page],
         queryFn: () =>
             getTerminationRequestAssessorList(searchCriteria).then((res) => res),
         
@@ -58,4 +65,4 @@ const useRequestTerminationAdvisorPerThematicArea = (searchCriteria: ICessationR
 
 
 
-export { useRequestTerminationList, useRequestTerminationDetail, useRequestTerminationFullStudentList, useRequestTerminationAdvisorPerThematicArea }
+export { useRequestTerminationList, useRequestTerminationDetail, useRequestTerminationAdvisorPerThematicArea }

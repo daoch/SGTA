@@ -1,5 +1,5 @@
 import { create } from "zustand"
-import { IAssessorChangeRequestAdvisorAssign, IAssessorChangeRequestStudentAssign, IAssessorChangeRequestThematicArea } from "../types/assessor-change-request"
+import { IAssessorChangeRequestAdvisorAssign, IAssessorChangeRequestStudentAssign } from "../types/assessor-change-request"
 
 interface IAssessorChangeRequestAssignmentState {
   students: IAssessorChangeRequestStudentAssign[]
@@ -22,10 +22,8 @@ interface IAssessorChangeRequestAssignmentState {
   getAssignedAdvisor: (studentId: number) => IAssessorChangeRequestAdvisorAssign | null
   getAdvisorAssignedCount: (advisorId: number) => number
   getUnassignedStudentsCount: () => number
-  getUniqueThematicAreas: () => IAssessorChangeRequestThematicArea[]
   getAssignedAdvisors: () => IAssessorChangeRequestAdvisorAssign[]
   getStudentsByAdvisor: (advisorId: number) => IAssessorChangeRequestStudentAssign[]
-  canAssignAdvisorToStudent: (advisorId: number, studentId: number) => boolean
   clear: () => void
 }
 
@@ -129,15 +127,7 @@ export const useAssessorChangeAssignmentStore = create<IAssessorChangeRequestAss
     return students.length - Object.keys(assignedStudents).length
   },
 
-  getUniqueThematicAreas: () => {
-    const { students, advisors } = get()
-    const areas = new Set<IAssessorChangeRequestThematicArea>()
 
-    students.forEach((student) => areas.add(student.thematicArea))
-    advisors.forEach((advisor) => advisor.thematicAreas.forEach((area) => areas.add(area)))
-
-    return Array.from(areas)
-  },
 
   getAssignedAdvisors: () => {
     const {assignedAdvisors} = get()
@@ -153,21 +143,6 @@ export const useAssessorChangeAssignmentStore = create<IAssessorChangeRequestAss
     return students.filter((student) => studentIds.includes(student.id))
   },
 
-  canAssignAdvisorToStudent: (advisorId, studentId) => {
-    const { advisors, students, getAdvisorAssignedCount } = get()
-
-    const advisor = advisors.find((a) => a.id === advisorId)
-    const student = students.find((s) => s.id === studentId)
-
-    if (!advisor || !student) return false
-
-    // Verificar si el asesor tiene capacidad
-    const assignedCount = getAdvisorAssignedCount(advisorId)
-    if (assignedCount >= advisor.capacity) return false
-
-    // Verificar si las áreas temáticas coinciden
-    return advisor.thematicAreas.includes(student.thematicArea)
-  },
 
   clear: () => set({
     students: [],

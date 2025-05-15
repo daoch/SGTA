@@ -7,10 +7,11 @@ import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Loader2, User, UserMinus, UserPlus } from "lucide-react"
 import { useDebounce } from "@/features/asesores/hooks/use-debounce"
-import { ICessationRequestAdvisor, ICessationRequestAdvisorListProps, ICessationRequestSearchCriteriaAvailableAdvisorList, ICessationRequestStudent } from "@/features/asesores/types/cessation-request"
+import { ICessationRequestAdvisor, ICessationRequestAdvisorListProps, ICessationRequestSearchCriteriaAvailableAdvisorList, IRequestTerminationConsultancyStudentDetail } from "@/features/asesores/types/cessation-request"
 import { useRequestTerminationAdvisorPerThematicArea } from "@/features/asesores/queries/cessation-request"
 import CessationRequestPagination from "@/features/asesores/components/cessation-request/pagination-cessation-request"
 import { useCessationRequestAssignmentStore } from "@/features/asesores/store/assignment-cessation-request"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
 
 
@@ -25,23 +26,26 @@ export default function AvailableAssesorsList({selectedStudent}: Readonly<ICessa
     removeAssignedAdvisor,
   } = useCessationRequestAssignmentStore()
 
-  const initialStateSearchCriteria: ICessationRequestSearchCriteriaAvailableAdvisorList = {idThematicArea: null, fullNameEmailCode: "", page: 1}
+  const initialStateSearchCriteria: ICessationRequestSearchCriteriaAvailableAdvisorList = {idThematicAreas: [], fullNameEmailCode: "", page: 1}
 
   const [ searchCriteria, setSearchCriteria ] = useState(initialStateSearchCriteria)
   const { isLoading, data} = useRequestTerminationAdvisorPerThematicArea(searchCriteria)
-  const debouncedSearchTerm = useDebounce(searchCriteria.fullNameEmailCode, 2000)
+  const debouncedSearchTerm = useDebounce(searchCriteria.fullNameEmailCode, 1500)
   const [localTerm, setLocalTerm] = useState(searchCriteria.fullNameEmailCode);
+
   useEffect(()=>{
-    setAdvisors(data?.advisors ?? [])
+    if (data)
+      setAdvisors(data.assessors ?? [])
   },[data])
 
 
   useEffect(()=>{
-    setSearchCriteria((prev) => ({
-      ...prev,
-      idThematicArea: selectedStudent.thematicArea.id, 
-      page: 1,
-    }));
+    if (selectedStudent.thematicAreas)
+      setSearchCriteria((prev) => ({
+        ...prev,
+        idThematicAreas: selectedStudent.thematicAreas.map(thematicArea => thematicArea.id), 
+        page: prev.page,
+      }));
   },[selectedStudent])
 
   const debouncedTerm = useDebounce(localTerm, 1500);
@@ -76,7 +80,7 @@ export default function AvailableAssesorsList({selectedStudent}: Readonly<ICessa
     }))
   };
 
-  const handleReAssignAssessor = (selectedStudent: ICessationRequestStudent, advisor: ICessationRequestAdvisor) => {
+  const handleReAssignAssessor = (selectedStudent: IRequestTerminationConsultancyStudentDetail, advisor: ICessationRequestAdvisor) => {
     if(selectedStudent.advisorId && selectedStudent.advisorId !== advisor.id){
       unassignAdvisor(selectedStudent.id)
       removeAssignedAdvisor(selectedStudent.advisorId)
@@ -86,14 +90,14 @@ export default function AvailableAssesorsList({selectedStudent}: Readonly<ICessa
   }
 
   const getReassignClickHandler = (
-    student: ICessationRequestStudent,
+    student: IRequestTerminationConsultancyStudentDetail,
     advisor: ICessationRequestAdvisor
   ) => () => {
     handleReAssignAssessor(student, advisor);
   };
 
 
-  const handleUnAssignAssessor = (selectedStudent: ICessationRequestStudent, advisor: ICessationRequestAdvisor) => {
+  const handleUnAssignAssessor = (selectedStudent: IRequestTerminationConsultancyStudentDetail, advisor: ICessationRequestAdvisor) => {
     if(selectedStudent.advisorId && selectedStudent.advisorId !== advisor.id){
       unassignAdvisor(selectedStudent.id)
       removeAssignedAdvisor(selectedStudent.advisorId)
@@ -103,7 +107,7 @@ export default function AvailableAssesorsList({selectedStudent}: Readonly<ICessa
   }
 
   const getUnassignClickHandler = (
-    student: ICessationRequestStudent,
+    student: IRequestTerminationConsultancyStudentDetail,
     advisor: ICessationRequestAdvisor
   ) => () => {
     handleUnAssignAssessor(student, advisor);
@@ -164,7 +168,6 @@ export default function AvailableAssesorsList({selectedStudent}: Readonly<ICessa
                 </TableRow>
                 )
               return (
-                
                 advisors.map((advisor) => {
                   const advisorAssignedCount = assignedAdvisors.find((assignedAdvisor)=>assignedAdvisor.id === advisor.id)?.assignedStudentsQuantity ?? advisor.assignedStudentsQuantity
                   const isAtCapacity = advisorAssignedCount >= advisor.capacity
@@ -174,11 +177,17 @@ export default function AvailableAssesorsList({selectedStudent}: Readonly<ICessa
                     <TableRow key={advisor.id}>
                       <TableCell>
                         <div className="h-10 w-10 rounded-full overflow-hidden">
-                          <img
-                            src={advisor.profilePicture || "/placeholder.svg"}
-                            alt={`${advisor.firstName} ${advisor.lastName}`}
-                            className="object-cover h-full w-full"
-                          />
+                          <Avatar className="h-8 w-8">
+                            {advisor.urlPhoto ? (
+                                <img
+                                    src={advisor.urlPhoto}
+                                    alt={`User-photo-${advisor.firstName}`}
+                                    className='rounded-full'
+                                />
+                            ) : (
+                                <AvatarFallback className="bg-gray-400" />
+                            )}
+                            </Avatar>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -196,7 +205,6 @@ export default function AvailableAssesorsList({selectedStudent}: Readonly<ICessa
                             <Badge
                               key={area.id}
                               variant="outline"
-                              className={selectedStudent.thematicArea.id === area.id ? "bg-primary/10" : ""}
                             >
                               {area.description}
                             </Badge>

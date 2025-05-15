@@ -58,11 +58,14 @@ const AssessorChangeRequestCard: React.FC<AssessorChangeCardRequestProps> = ({
 
         <div>
           <p className="text-sm font-medium mb-2">Tema de tesis:</p>
-          <div className="bg-muted p-3 rounded-md">
+          <div className="py-2 rounded-md">
             <p className="text-sm">{request.student.topic.name}</p>
-            <Badge variant="outline" className="mt-2">
-              {request.student.topic.thematicArea.name}
-            </Badge>
+            {request.student.topic.thematicAreas.map((thematicArea)=>(
+              <Badge variant="outline" className="mt-2" key={thematicArea.id}>
+                {thematicArea.description}
+              </Badge>
+            ))}
+            
           </div>
         </div>
 

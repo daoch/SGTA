@@ -14,16 +14,16 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { IAssessorChangeApproveModalProps, IRequestAssessorChangeRequestData } from '@/features/asesores/types/assessor-change-request';
 import { Avatar, AvatarFallback } from '@radix-ui/react-avatar';
 import { differenceInDays, format } from 'date-fns';
+import { useRequestAssessorChangeDetail } from '../../queries/assessor-change-request';
 
 
 const ApproveAssessorChangeModal: React.FC<IAssessorChangeApproveModalProps> = ({
   isOpen,
   onClose,
-  request,
-  loading
+  idRequest
   
 }) => {
-  
+    const { isLoading: loadingRequestDetail, data: dataRequestDetail} = useRequestAssessorChangeDetail(idRequest)
     const statusConfig: Record<IRequestAssessorChangeRequestData['status'], { color: string; text: string }> = {
       pending: { color: "bg-yellow-200 text-yellow-800", text: "Pendiente" },
       approved: { color: "bg-green-200 text-green-800", text: "Aprobada" },
@@ -37,7 +37,7 @@ const ApproveAssessorChangeModal: React.FC<IAssessorChangeApproveModalProps> = (
             <DialogTitle>Detalle de Solicitud de Cese</DialogTitle>
         </DialogHeader>
         {(()=>{
-            if (loading)
+            if (loadingRequestDetail)
                 return (
                     <div className="p-12 text-center flex flex-col items-center justify-center text-muted-foreground">
                         <Loader2 className="h-5 w-5 animate-spin" />
@@ -46,16 +46,16 @@ const ApproveAssessorChangeModal: React.FC<IAssessorChangeApproveModalProps> = (
                         </p>
                     </div>
                 )
-            if (request)
+            if (dataRequestDetail)
                 return (
                     <Card className="mb-3 shadow-sm border">
                         <CardHeader className="py-4 px-4 bg-gray-50 flex flex-row justify-between items-center">
                             <div className="flex items-center gap-2 ">
                                 <Avatar className="h-8 w-8">
-                                    {request.student.urlPhoto ? (
+                                    {dataRequestDetail.student.urlPhoto ? (
                                         <img
-                                            src={request.student.urlPhoto}
-                                            alt={`User-photo-${request.student.id}`}
+                                            src={dataRequestDetail.student.urlPhoto}
+                                            alt={`User-photo-${dataRequestDetail.student.id}`}
                                             className='rounded-full'
                                         />
                                     ) : (
@@ -63,12 +63,12 @@ const ApproveAssessorChangeModal: React.FC<IAssessorChangeApproveModalProps> = (
                                     )}
                                 </Avatar>
                                 <div>
-                                <p className="text-sm font-medium">{`${request.student.name} ${request.student.lastName}`}</p>
-                                <p className="text-xs text-muted-foreground">{request.student.email}</p>
+                                <p className="text-sm font-medium">{`${dataRequestDetail.student.name} ${dataRequestDetail.student.lastName}`}</p>
+                                <p className="text-xs text-muted-foreground">{dataRequestDetail.student.email}</p>
                                 </div>
                             </div>
-                            <span className={`text-xs font-medium px-2 py-0.5 rounded ${statusConfig[request.status]?.color}`}>
-                                {statusConfig[request.status]?.text}
+                            <span className={`text-xs font-medium px-2 py-0.5 rounded ${statusConfig[dataRequestDetail.status]?.color}`}>
+                                {statusConfig[dataRequestDetail.status]?.text}
                             </span>
                         </CardHeader>
 
@@ -78,8 +78,8 @@ const ApproveAssessorChangeModal: React.FC<IAssessorChangeApproveModalProps> = (
                                     <Calendar className="h-3.5 w-3.5 mt-0.5 text-gray-400" />
                                     <div>
                                         <span className="text-gray-500 text-[11px]">Solicitud:</span>
-                                        <span className="font-medium text-gray-800 block">{`${format(request.registerTime, 'dd/MM/yyyy')} - ${format(request.registerTime, 'hh:mm a')}`}</span>
-                                        <span className="text-gray-500 block">{`Hace ${differenceInDays(new Date(), request.registerTime)} días`}</span>
+                                        <span className="font-medium text-gray-800 block">{`${format(dataRequestDetail.registerTime, 'dd/MM/yyyy')} - ${format(dataRequestDetail.registerTime, 'hh:mm a')}`}</span>
+                                        <span className="text-gray-500 block">{`Hace ${differenceInDays(new Date(), dataRequestDetail.registerTime)} días`}</span>
                                     </div>
                                 </div>
 
@@ -87,8 +87,8 @@ const ApproveAssessorChangeModal: React.FC<IAssessorChangeApproveModalProps> = (
                                     <Calendar className="h-3.5 w-3.5 mt-0.5 text-gray-400" />
                                     <div>
                                         <span className="text-gray-500 text-[11px]">Fecha de respuesta:</span>
-                                        <span className="font-medium text-gray-800 block">{`${format(request.responseTime, 'dd/MM/yyyy')} - ${format(request.responseTime, 'hh:mm a')}`}</span>
-                                        <span className="text-gray-500 block">{`Hace ${differenceInDays(new Date(), request.responseTime)} días`}</span>
+                                        <span className="font-medium text-gray-800 block">{`${format(dataRequestDetail.responseTime, 'dd/MM/yyyy')} - ${format(dataRequestDetail.responseTime, 'hh:mm a')}`}</span>
+                                        <span className="text-gray-500 block">{`Hace ${differenceInDays(new Date(), dataRequestDetail.responseTime)} días`}</span>
                                     </div>
                                 </div>
 
@@ -96,12 +96,12 @@ const ApproveAssessorChangeModal: React.FC<IAssessorChangeApproveModalProps> = (
 
                             <div className="mb-2 p-2">
                                 <p className="text-[11px] text-gray-500 font-medium mb-0.5">Motivo:</p>
-                                <p className="text-xs text-gray-700 leading-snug line-clamp-2">{request.reason}</p>
+                                <p className="text-xs text-gray-700 leading-snug line-clamp-2">{dataRequestDetail.reason}</p>
                             </div>
                             <div>
                                 <p className="text-sm font-medium mb-2">Asesores asociados:</p>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                    {request.assessors.map((advisor) => (
+                                    {dataRequestDetail.previousAssessors.map((advisor) => (
                                     <Card key={advisor.id} className="border shadow-none bg-muted/50">
                                         <CardContent className="p-1">
                                         <div className="flex items-center gap-2 p-2">
@@ -125,10 +125,10 @@ const ApproveAssessorChangeModal: React.FC<IAssessorChangeApproveModalProps> = (
                                     ))}
                                 </div>
                             </div>
-                            {request.status === 'rejected' && request.response && (
+                            {dataRequestDetail.status === 'rejected' && dataRequestDetail.response && (
                                 <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded">
                                     <p className="text-xs font-medium text-red-700 mb-0.5">Motivo del rechazo:</p>
-                                    <p className="text-xs text-red-600 leading-snug line-clamp-2">{request.response}</p>
+                                    <p className="text-xs text-red-600 leading-snug line-clamp-2">{dataRequestDetail.response}</p>
                                 </div>
                             )}
 

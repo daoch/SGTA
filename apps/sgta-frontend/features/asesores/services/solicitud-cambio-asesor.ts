@@ -1,44 +1,137 @@
-import { IChangeAssessorRequestSearchFields, IRequestAssessorChange, IRequestAssessorChangeRequestData } from "@/features/asesores/types/assessor-change-request";
-import { mockRequestsAssessorChangeRequest } from "../mocks/solicitud-cambio-asesor/mock-solicitud-cambio-asesor";
+import { IChangeAssessorRequestSearchFields, IRequestAssessorChange, IRequestAssessorChangeFetched, IRequestAssessorChangeRequestDataDetail, IRequestAssessorChangeRequestDataDetailFetched } from "@/features/asesores/types/assessor-change-request";
 
 // Service to get all request for consultancy termination
 export async function getAssessorChangeRequestList(
     searchCriteria: IChangeAssessorRequestSearchFields
 ): Promise<IRequestAssessorChange> {
+    const BASE_URL = process.env.BASE_URL??"http://localhost:5000/"
     const ELEMENTS_PER_PAGE = 10
-    //const totalPages = mockSolicitudesCeseAsesoria.totalPages
-    const assessorChangeRequests = mockRequestsAssessorChangeRequest.assessorChangeRequests
-    const filteredTerminationRequestsInput = assessorChangeRequests.filter(assessorChangeRequest => {
-        const fullName = `${assessorChangeRequest.student.name} ${assessorChangeRequest.student.lastName}`;
-        return fullName.toLowerCase().includes(searchCriteria.fullNameEmail.toLowerCase()) || assessorChangeRequest.student.email.toLowerCase().includes(searchCriteria.fullNameEmail.toLowerCase());
-    });
-    const filteredTerminationRequestsStatus = filteredTerminationRequestsInput.filter(terminationRequest=>{
-        return  (searchCriteria.status === "answered" ? (terminationRequest.status === "approved" || terminationRequest.status === "rejected") : (terminationRequest.status === searchCriteria.status))
-    })
-    const filteredTerminationRequestsPagination = filteredTerminationRequestsStatus.slice(ELEMENTS_PER_PAGE * (searchCriteria.page - 1) , ELEMENTS_PER_PAGE * searchCriteria.page)
-    if (filteredTerminationRequestsPagination.length > 0)
-        filteredTerminationRequestsPagination[0].responseTime = new Date()
+    const urlFetch = `${BASE_URL}coordinators/advisor-change-requests?fullNameEmail=${searchCriteria.fullNameEmail}&status=${searchCriteria.status}&page=1&elementsPerPage=${ELEMENTS_PER_PAGE}`
+    try {
+        const response = await fetch(urlFetch, {
+            method: 'GET',
+            mode: 'cors',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
 
-    await new Promise(resolve => setTimeout(resolve, 500));
+        if (!response.ok) {
+            throw new Error(`Error en la solicitud: ${response.status}`);
+        }
+        
+        const data: IRequestAssessorChangeFetched = await response.json();
+        const assessorChangeRequestsTransformedDates = data.assessorChangeRequests.map(item => (
+            {
+                ...item,
+                registerTime: new Date(item.registerTime),
+                responseTime: new Date(item.responseTime)
+            }));
 
-    return {
-        "assessorChangeRequests": 	filteredTerminationRequestsPagination,
-        "totalPages": Math.ceil(filteredTerminationRequestsStatus.length / ELEMENTS_PER_PAGE)
-    }
+        return {
+            "assessorChangeRequests": assessorChangeRequestsTransformedDates,
+            "totalPages": data.totalPages
+        }
+    } catch (error) {
+        console.error(`Error al hacer fetch en ${urlFetch}:`, error);
+        return {
+            "assessorChangeRequests": 	[],
+            "totalPages": 0
+        }
+    }  
 }
 
 
 // Service to get an spceficis assessor change request
 export async function getAssessorChangeRequestDetail(
     idRequest: number | null
-): Promise<IRequestAssessorChangeRequestData | null> {
-    if (idRequest === null)
+): Promise<IRequestAssessorChangeRequestDataDetail | null> {
+    const BASE_URL = process.env.BASE_URL??"http://localhost:5000/"
+    const urlFetch = `${BASE_URL}coordinators/advisor-change-requests/${idRequest}`
+    try {
+        const response = await fetch(urlFetch, {
+            method: 'GET',
+            mode: 'cors',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error en la solicitud: ${response.status}`);
+        }
+        
+        const data: IRequestAssessorChangeRequestDataDetailFetched = await response.json();
+        const termminationRequestsTransformedDates: IRequestAssessorChangeRequestDataDetail = {
+            ...data,
+            registerTime: new Date(data.registerTime),
+            responseTime: new Date(data.responseTime)
+        };
+        return termminationRequestsTransformedDates
+    } catch (error) {
+        console.error(`Error al hacer fetch en ${urlFetch}:`, error);
         return null
+    }
+}
+
+// Service to reject a consultancy termination request
+export async function rejectAssessorChangeRequest(
+  requestId: number,
+  responseText: string
+): Promise<void> {
+    const BASE_URL = process.env.BASE_URL??"http://localhost:5000/"
+    const url = `${BASE_URL}coordinators/advisor-change-requests/${requestId}/reject`;
+
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      mode: 'cors',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        response: responseText,
+      }),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Error al rechazar solicitud: ${res.status}`);
+    }
     
-    const terminationRequests = mockRequestsAssessorChangeRequest.assessorChangeRequests
-    const selectedTerminationRequest = terminationRequests.filter(assessorChangeRequest=>{
-        return  assessorChangeRequest.id === idRequest
-    })
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return selectedTerminationRequest[0] ?? null
+    console.log(`URL ${url} ejecutada`);
+    console.log(`Solicitud ${requestId} rechazada con éxito`);
+  } catch (error) {
+    console.error(`Error al hacer POST en ${url}:`, error);
+    throw error;
+  }
+}
+
+// Service to approve a consultancy termination request
+export async function approveAssessorChangeRequest(
+  requestId: number,
+  responseText: string
+): Promise<void> {
+  const BASE_URL = process.env.BASE_URL??"http://localhost:5000/"
+  const url = `${BASE_URL}coordinators/advisor-change-requests/${requestId}/approve`;
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      mode: 'cors',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        response: responseText,
+      }),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Error al aprobar solicitud: ${res.status}`);
+    }
+    console.log(`URL ${url} ejecutada`);
+    console.log(`Solicitud ${requestId} aprobada con éxito`);
+  } catch (error) {
+    console.error(`Error al hacer POST en ${url}:`, error);
+    throw error;
+  }
 }

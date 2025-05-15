@@ -9,8 +9,9 @@ import AssessorChangeRequestDetail from "@/features/asesores/components/assessor
 import AssessorChangeRejectModal from "@/features/asesores/components/assessor-change-request/modal-reject";
 import { AssessorChangeAssignmentModal } from "@/features/asesores/components/assessor-change-request/modal-assignment-students";
 import { Loader2 } from "lucide-react";
-import { useRequestAssessorChangeDetail, useRequestAssessorChangeList } from "@/features/asesores/queries/assessor-change-request";
 import NotFoundChangeAssessorRequests from "@/features/asesores/components/assessor-change-request/not-assessor-change-request-found";
+import { getAssessorChangeRequestList } from "../services/solicitud-cambio-asesor";
+import { IRequestAssessorChange } from "../types/assessor-change-request";
 
 interface IRequestOptions {
     id: number | null;
@@ -20,31 +21,36 @@ interface IRequestOptions {
 
 
 const Page: React.FC = () => {
-    const searchCriteriaStore = useAssessorChangeRequestSearchCriteriaStore()
+    const {fullNameEmail, page, status, setPage, clear, setStatusTabFilter, setFullNameEmailPage, clearFullNameEmailPage} = useAssessorChangeRequestSearchCriteriaStore()
     const initialStateOption = {id: null, option: null, openModal: false}
     const [ selectOption, setSelectOption ] = useState<IRequestOptions>(initialStateOption);
-    const { isLoading, data, refetch } = useRequestAssessorChangeList(searchCriteriaStore)
-    const { isLoading: loadingRequestDetail, data: dataRequestDetail} = useRequestAssessorChangeDetail(selectOption?.id ?? null)
+    const [ data, setData ] = useState<IRequestAssessorChange | null>(null)
+    const [ isLoading, setIsLoading ] = useState<boolean>(true)
+    
+    const fetchRequests = async () => {
+        setIsLoading(true)
+        const data = await getAssessorChangeRequestList({"fullNameEmail": fullNameEmail, "status": status, "page": page})
+        if (data)
+            setData(data)
+        setIsLoading(false)
+    }
+
+    const handlePageChange = (page: number) => {
+        setPage(page);
+    };
     
     useEffect(()=>{
-        searchCriteriaStore.clear()
+        clear()
     }, [])
 
 
     useEffect(()=>{
-        refetch()
-    }, [
-        searchCriteriaStore.page,
-        searchCriteriaStore.fullNameEmail,
-        searchCriteriaStore.status
-    ])
+        fetchRequests()
+    }, [fullNameEmail, page, status])
     
-    
-    
-    const handlePageChange = (page: number) => {
-        searchCriteriaStore.setPage(page);
-    };
-
+    const handleRefetch = async () =>{
+        fetchRequests()
+    }
 
     return(
         <div>
@@ -64,11 +70,11 @@ const Page: React.FC = () => {
                 <Card className="p-4 shadow-sm">
                     {
                     <RequestSearchFilters
-                        searchTerm={searchCriteriaStore.fullNameEmail}
-                        onSearchChange={searchCriteriaStore.setFullNameEmailPage}
-                        statusValue={searchCriteriaStore.status}
-                        onStatusValueChange={searchCriteriaStore.setStatusTabFilter}
-                        clearTerm={searchCriteriaStore.clearFullNameEmailPage}
+                        searchTerm={fullNameEmail}
+                        onSearchChange={setFullNameEmailPage}
+                        statusValue={status}
+                        onStatusValueChange={setStatusTabFilter}
+                        clearTerm={clearFullNameEmailPage}
                     />
                     }
                 </Card>
@@ -87,11 +93,11 @@ const Page: React.FC = () => {
                             )
                         if (data?.assessorChangeRequests.length === 0)
                             return (
-                                <NotFoundChangeAssessorRequests type={searchCriteriaStore.status} appliedFilters={searchCriteriaStore.fullNameEmail !== ""}/>
+                                <NotFoundChangeAssessorRequests type={status} appliedFilters={fullNameEmail !== ""}/>
                             )
                         return (
                             <div>
-                                {searchCriteriaStore.status === 'pending' ? (
+                                {status === 'pending' ? (
                                 <PendingAssessorChangeRequestsList
                                     requests={data?.assessorChangeRequests ?? []}
                                     onApprove={
@@ -119,7 +125,7 @@ const Page: React.FC = () => {
                 <br />
                 {!isLoading  && (
                     <AssessorChangeRequestPagination
-                        currentPage={searchCriteriaStore.page}
+                        currentPage={page}
                         totalPages={data?.totalPages ?? 1}
                         onPageChange={handlePageChange}
                     />
@@ -127,7 +133,8 @@ const Page: React.FC = () => {
 
                 {/* Modals */}
                 
-                {dataRequestDetail&&
+                {selectOption?.id &&
+                <>
                     <AssessorChangeAssignmentModal
                         open={selectOption?.option === "accept"}
                         onOpenChange={(isOpen) => {
@@ -135,27 +142,22 @@ const Page: React.FC = () => {
                                 setSelectOption(initialStateOption)
                             }
                         }}
-                        request={dataRequestDetail}  
+                        idRequest={selectOption.id}  
+                        refetch={handleRefetch}
                     />
-                    
+                    <AssessorChangeRejectModal
+                        isOpen={selectOption?.option === "denny"}
+                        onClose={() => setSelectOption(initialStateOption)}
+                        idRequest={selectOption.id}
+                        refetch={handleRefetch}
+                    />   
+                    <AssessorChangeRequestDetail
+                        isOpen={selectOption?.option === "detail"}
+                        onClose={() => setSelectOption(initialStateOption)}
+                        idRequest={selectOption.id}
+                    />
+                </>
                 }
-                
-                {
-                <AssessorChangeRejectModal
-                    isOpen={selectOption?.option === "denny"}
-                    onClose={() => setSelectOption(initialStateOption)}
-                    request={dataRequestDetail ?? null}
-                    loading={loadingRequestDetail}
-                />
-                }
-                
-                <AssessorChangeRequestDetail
-                    isOpen={selectOption?.option === "detail"}
-                    onClose={() => setSelectOption(initialStateOption)}
-                    request={dataRequestDetail ?? null}
-                    loading={loadingRequestDetail}
-                    
-                />
                 
             </div>
         </div>

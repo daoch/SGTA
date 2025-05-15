@@ -15,28 +15,30 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import type { IRejectCessationRequestModalProps } from "@/features/asesores/types/cessation-request";
+import { useRejectTerminationRequest, useRequestTerminationDetail } from "../../queries/cessation-request";
 
-const MAX_CHARACTERS_ALLOWED = 250
+const MAX_CHARACTERS_ALLOWED = 250;
 
 const motivoSchema = z
   .string()
   .min(1, "El motivo es requerido")
-  .max(MAX_CHARACTERS_ALLOWED,`Máximo ${MAX_CHARACTERS_ALLOWED} caracteres`)
+  .max(MAX_CHARACTERS_ALLOWED, `Máximo ${MAX_CHARACTERS_ALLOWED} caracteres`)
   .regex(/^[A-Za-zÑñ.,;\-_\u00bf?!¡ ]*$/, "Caracteres inválidos");
 
 export default function RejectCessationModal({
   isOpen,
   onClose,
-  request,
-  loading,
+  idRequest,
+  refetch
 }: Readonly<IRejectCessationRequestModalProps>) {
   const [motivo, setMotivo] = useState("");
   const [clientError, setClientError] = useState<string | null>(null);
   const [validText, setValidText] = useState(true);
+  const rejectMutation = useRejectTerminationRequest();
+  const { isLoading: loadingRequestDetail, data: dataRequestDetail} = useRequestTerminationDetail(idRequest)
 
   const validateMutation = useMutation({
     mutationFn: async (text: string) => {
-      await new Promise((resolve) => setTimeout(resolve, 300));
       if (text.length > MAX_CHARACTERS_ALLOWED) {
         throw new Error(`Máximo ${MAX_CHARACTERS_ALLOWED} caracteres`);
       }
@@ -49,16 +51,6 @@ export default function RejectCessationModal({
     },
   });
 
-  const submitMutation = useMutation({
-    mutationFn: async (text: string) => {
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-    },
-    onSuccess: () => {
-      setMotivo("");
-      onClose();
-    },
-  });
-
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const filtered = e.target.value.replace(/[^A-Za-zÑñ.,;:\-_\u00bf?!¡ ]/g, "");
     setMotivo(filtered);
@@ -66,10 +58,29 @@ export default function RejectCessationModal({
     validateMutation.mutate(filtered);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     try {
       motivoSchema.parse(motivo);
-      submitMutation.mutate(motivo);
+      if (!dataRequestDetail?.id) return;
+      
+      rejectMutation.mutate(
+        {
+          requestId: dataRequestDetail.id,
+          responseText: motivo.trim(),
+        },
+        {
+          onSuccess: () => {
+            setMotivo("");
+            refetch()
+            onClose();
+          },
+          onError: (error) => {
+            setClientError(error instanceof Error ? error.message : "Error desconocido");
+          },
+        }
+      );
+      
+      
     } catch (err) {
       if (err instanceof z.ZodError) {
         setClientError(err.issues[0].message);
@@ -85,7 +96,7 @@ export default function RejectCessationModal({
   }, [isOpen]);
 
   const hasError = !!clientError;
-  const isProcessing = submitMutation.status === "pending";
+  const isProcessing = rejectMutation.status === "pending";
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -95,48 +106,45 @@ export default function RejectCessationModal({
             Rechazar Solicitud de Cese
           </DialogTitle>
           <DialogDescription className="text-gray-600">
-            Está a punto de rechazar la solicitud de cese para el profesor {" "}
+            Está a punto de rechazar la solicitud de cese para el profesor{" "}
             <span className="font-semibold">
-              {`${request?.assessor.name} ${request?.assessor.lastName}`}
+              {`${dataRequestDetail?.assessor.name} ${dataRequestDetail?.assessor.lastName}`}
             </span>
-            
           </DialogDescription>
         </DialogHeader>
 
-        {(()=>{
-          if (loading)
+        {(() => {
+          if (loadingRequestDetail)
             return (
               <div className="p-12 text-center flex flex-col items-center justify-center text-muted-foreground">
                 <Loader2 className="h-5 w-5 animate-spin" />
                 <p className="mt-4">Cargando detalle de solicitud...</p>
               </div>
-            )
-          if (request)
-          return (
-            <div className="mt-4 max-w-[380px]">
-              <Textarea
-                placeholder="Explique el motivo por el cual se rechaza esta solicitud..."
-                value={motivo}
-                onChange={handleChange}
-                required
-                minLength={3}
-                className={`w-full min-h-[145px] break-words whitespace-pre-wrap ${hasError ? "border-red-500" : ""}`}
-                style={{ resize: "none" }}
-                maxLength={MAX_CHARACTERS_ALLOWED}
-              />
-              {hasError && (
-                <p className="text-xs text-red-600 mt-1">{clientError}</p>
-              )}
-              {!hasError && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  Este motivo será enviado al profesor solicitante.
-                </p>
-              )}
-          </div>
-          )
-          return (
-            <div>No se encontró información sobre esta solicitud de cese</div>
-          )
+            );
+          if (dataRequestDetail)
+            return (
+              <div className="mt-4 max-w-[380px]">
+                <Textarea
+                  placeholder="Explique el motivo por el cual se rechaza esta solicitud..."
+                  value={motivo}
+                  onChange={handleChange}
+                  required
+                  minLength={3}
+                  className={`w-full min-h-[145px] break-words whitespace-pre-wrap ${hasError ? "border-red-500" : ""}`}
+                  style={{ resize: "none" }}
+                  maxLength={MAX_CHARACTERS_ALLOWED}
+                />
+                {hasError && (
+                  <p className="text-xs text-red-600 mt-1">{clientError}</p>
+                )}
+                {!hasError && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Este motivo será enviado al profesor solicitante.
+                  </p>
+                )}
+              </div>
+            );
+          return <div>No se encontró información sobre esta solicitud de cese</div>;
         })()}
 
         <DialogFooter className="mt-4">
