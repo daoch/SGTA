@@ -267,36 +267,57 @@ INSERT INTO grupo_investigacion_proyecto (
 ) VALUES
   (1, 1, TRUE, NOW(), NOW());
 
--- (2) Parametro de configuración
-INSERT INTO parametro_configuracion (
-  nombre,
-  descripcion,
-  modulo_id,
-  activo,
-  fecha_creacion,
-  fecha_modificacion
-) VALUES (
-  'Parámetro Test',
-  'Descripción de prueba',
-  1,
-  TRUE, NOW(), NOW()
-);
+WITH nuevo_parametro AS (
+    INSERT INTO parametro_configuracion (
+                                         nombre, descripcion, modulo_id, activo, fecha_creacion, fecha_modificacion,
+                                         tipo
+        ) VALUES ('antiplagio',
+                  'Configure la opcion de revision antiplagio',
+                  4, TRUE, NOW(), NOW(), 'booleano') RETURNING parametro_configuracion_id)
+INSERT
+    INTO carrera_parametro_configuracion (carrera_id, parametro_configuracion_id, valor, activo, fecha_creacion, fecha_modificacion, etapa_formativa_id)
+SELECT 1, parametro_configuracion_id, 'false', TRUE, NOW(), NOW(), 1
+    FROM nuevo_parametro;
 
--- (3) Carrera–Parametro Configuración
-INSERT INTO carrera_parametro_configuracion (
-  valor,
-  activo,
-  fecha_creacion,
-  fecha_modificacion,
-  carrera_id,
-  parametro_configuracion_id
-) VALUES (
-  'activo',
-  TRUE, NOW(), NOW(),
-  1,
-  1
-);
 
+WITH nuevo_parametro AS (
+    INSERT INTO parametro_configuracion (
+                                         nombre, descripcion, modulo_id, activo, fecha_creacion, fecha_modificacion,
+                                         tipo
+        ) VALUES ('turnitin',
+                  'Configure la opcion de revision turnitin',
+                  4, TRUE, NOW(), NOW(), 'booleano') RETURNING parametro_configuracion_id)
+INSERT
+    INTO carrera_parametro_configuracion (carrera_id, parametro_configuracion_id, valor, activo, fecha_creacion, fecha_modificacion, etapa_formativa_id)
+SELECT 1, parametro_configuracion_id, 'false', TRUE, NOW(), NOW(), 1
+    FROM nuevo_parametro;
+
+
+WITH nuevo_parametro AS (
+    INSERT INTO parametro_configuracion (
+                                         nombre, descripcion, modulo_id, activo, fecha_creacion, fecha_modificacion,
+                                         tipo
+        ) VALUES ('modalidad_delimitacion_tema',
+                  'Define delimitación de tema de tesis',
+                  1, TRUE, NOW(), NOW(), 'string') RETURNING parametro_configuracion_id)
+INSERT
+    INTO carrera_parametro_configuracion (carrera_id, parametro_configuracion_id, valor, activo, fecha_creacion, fecha_modificacion, etapa_formativa_id)
+SELECT 1, parametro_configuracion_id, 'propuesta', TRUE, NOW(), NOW(), 1
+    FROM nuevo_parametro;
+
+
+
+WITH nuevo_parametro AS (
+    INSERT INTO parametro_configuracion (
+                                         nombre, descripcion, modulo_id, activo, fecha_creacion, fecha_modificacion,
+                                         tipo
+        ) VALUES ('fecha_limite_asesor',
+                  'Establece la fecha máxima para cambios de asesor',
+                  2, TRUE, NOW(), NOW(), 'date') RETURNING parametro_configuracion_id)
+INSERT
+    INTO carrera_parametro_configuracion (carrera_id, parametro_configuracion_id, valor, activo, fecha_creacion, fecha_modificacion, etapa_formativa_id)
+SELECT 1, parametro_configuracion_id, '2025-06-30T00:00:00Z', TRUE, NOW(), NOW(), 1
+    FROM nuevo_parametro;
 -- Para verificar
 SELECT * FROM parametro_configuracion;
 SELECT * FROM carrera_parametro_configuracion;

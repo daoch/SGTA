@@ -44,5 +44,4 @@ public class EtapaFormativa {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "carrera_id", nullable = false, foreignKey = @ForeignKey(name = "fk_area_conocimiento_carrera"))
     private Carrera carrera;
-
 }
