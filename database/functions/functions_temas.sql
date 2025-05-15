@@ -931,3 +931,90 @@ CREATE TRIGGER trigger_generar_codigo_tema
 AFTER INSERT ON tema
 FOR EACH ROW
 EXECUTE FUNCTION generar_codigo_tema();
+
+
+CREATE OR REPLACE FUNCTION obtener_usuarios_por_tipo_carrera_y_busqueda(
+    p_tipo_usuario     TEXT,
+    p_carrera_id       INT,
+    p_cadena_busqueda  TEXT
+)
+RETURNS TABLE(
+    usuario_id            INT,
+    tipo_usuario_id       INT,
+    codigo_pucp           VARCHAR,
+    nombres               VARCHAR,
+    primer_apellido       VARCHAR,
+    segundo_apellido      VARCHAR,
+    correo_electronico    VARCHAR,
+    nivel_estudios        VARCHAR,
+    contrasena            VARCHAR,
+    biografia             TEXT,
+    enlace_linkedin       VARCHAR,
+    enlace_repositorio    VARCHAR,
+    disponibilidad        TEXT,
+    tipo_disponibilidad   TEXT,
+    tipo_dedicacion_id    INT,
+    activo                BOOLEAN,
+    fecha_creacion        TIMESTAMPTZ,
+    fecha_modificacion    TIMESTAMPTZ,
+    tipo_usuario_nombre   VARCHAR
+)
+LANGUAGE SQL
+STABLE
+AS $$
+    SELECT 
+      u.usuario_id,
+      u.tipo_usuario_id,
+      u.codigo_pucp,
+      u.nombres,
+      u.primer_apellido,
+      u.segundo_apellido,
+      u.correo_electronico,
+      u.nivel_estudios,
+      u.contrasena,
+      u.biografia,
+      u.enlace_linkedin,
+      u.enlace_repositorio,
+      u.disponibilidad,
+      u.tipo_disponibilidad,
+      u.tipo_dedicacion_id,
+      u.activo,
+      u.fecha_creacion,
+      u.fecha_modificacion,
+      tu.nombre
+    FROM usuario u
+    JOIN usuario_carrera uc
+      ON u.usuario_id = uc.usuario_id
+     AND uc.activo
+    JOIN tipo_usuario tu
+      ON u.tipo_usuario_id = tu.tipo_usuario_id
+    WHERE u.activo
+      AND tu.nombre ILIKE p_tipo_usuario
+      AND uc.carrera_id = p_carrera_id
+      AND (
+           u.nombres             ILIKE '%' || p_cadena_busqueda || '%'
+        OR u.primer_apellido     ILIKE '%' || p_cadena_busqueda || '%'
+        OR u.segundo_apellido    ILIKE '%' || p_cadena_busqueda || '%'
+        OR u.codigo_pucp         ILIKE '%' || p_cadena_busqueda || '%'
+        OR u.correo_electronico  ILIKE '%' || p_cadena_busqueda || '%'
+      );
+$$;
+
+
+
+CREATE OR REPLACE FUNCTION obtener_carreras_por_usuario(
+    p_usuario_id INT
+)
+RETURNS SETOF carrera
+LANGUAGE SQL
+STABLE
+AS $$
+    SELECT c.*
+      FROM carrera c
+      JOIN usuario_carrera uc
+        ON c.carrera_id = uc.carrera_id
+     WHERE uc.usuario_id = p_usuario_id
+       AND uc.activo
+       AND c.activo
+    ORDER BY c.nombre;
+$$;

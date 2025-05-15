@@ -3,15 +3,12 @@ package pucp.edu.pe.sgta.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
+import pucp.edu.pe.sgta.dto.CarreraDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
+import pucp.edu.pe.sgta.service.inter.CarreraService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
 
 @RestController
@@ -21,6 +18,8 @@ public class UsuarioController {
 
 	@Autowired
 	private UsuarioService usuarioService;
+	@Autowired
+	private CarreraService carreraService;
 
 	@PostMapping("/create")
 	public void create(@RequestBody UsuarioDto dto) {
@@ -52,4 +51,15 @@ public class UsuarioController {
 		usuarioService.updatePerfilAsesor(dto);
 	}
 
+	@GetMapping("/{id}/carreras")
+    public ResponseEntity<List<CarreraDto>> listarCarreras(
+            @PathVariable("id") Integer usuarioId) {
+
+        List<CarreraDto> carreras = carreraService.listarCarrerasPorUsuario(usuarioId);
+
+        if (carreras.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(carreras);
+    }
 }
