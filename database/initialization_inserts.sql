@@ -166,8 +166,24 @@ INSERT INTO usuario (tipo_usuario_id,
         (4, 'AD01', 'Carla', 'Vega', 'Reyna', 'carla.vega@pucp.edu.pe', 'Administración', 'secret4', 'Admin. del sistema', NULL, NULL, NULL, TRUE, NOW(), NOW()),
         -- Nuevos profesores
         (1, 'P002', 'Ana', 'Martínez', 'Rojas', 'ana.martinez@pucp.edu.pe', 'Doctorado', 'secret5', 'Profesora de Sistemas', NULL, 'Mar-Vie 10-13', 'Presencial', TRUE, NOW(), NOW()),
-        (1, 'P003', 'Carlos', 'Sánchez', 'Mendoza', 'carlos.sanchez@pucp.edu.pe', 'Maestría', 'secret6', 'Profesor de Redes', NULL, 'Lun-Mié 8-11', 'Presencial', TRUE, NOW(), NOW()),
+        (1, 'P003', 'Carlos', 'Sánchez', 'Mendoza', 'carlos.sanchez@pucp.edu.pe', 'Maestría', 'secret6', 'Profesor de Redes', NULL, 'Lun-Mié 8-11', 'Presencial', TRUE, NOW(), NOW());
 
+INSERT INTO usuario (tipo_usuario_id,
+                     codigo_pucp,
+                     nombres,
+                     primer_apellido,
+                     segundo_apellido,
+                     correo_electronico,
+                     nivel_estudios,
+                     contrasena,
+                     biografia,
+                     foto_perfil,
+                     disponibilidad,
+                     tipo_disponibilidad,
+                     activo,
+                     fecha_creacion,
+                     fecha_modificacion)
+    VALUES
         -- Nuevos alumnos
         (2, 'A002', 'Diego', 'Fernández', 'García', 'diego.fernandez@pucp.edu.pe', 'Pregrado', 'secret7', 'Estudiante de IA', NULL, 'Lun-Vie 14-18', 'Híbrido', TRUE, NOW(), NOW()),
         (2, 'A003', 'Sofía', 'Lima', 'Huertas', 'sofia.lima@pucp.edu.pe', 'Pregrado', 'secret8', 'Estudiante de Data Science', NULL, 'Mar-Jue 10-12', 'Remoto', TRUE, NOW(), NOW()),
@@ -218,13 +234,13 @@ INSERT INTO usuario_carrera (usuario_id,
                              fecha_modificacion)
     VALUES
         -- Juan Pérez enseña en Ingeniería Mecánica (carrera_id = 3)
-        (1, 3, TRUE, NOW(), NOW()),
+        (1, 1, TRUE, NOW(), NOW()),
         -- María Gómez estudia Ingeniería Informática (carrera_id = 1)
         (2, 1, TRUE, NOW(), NOW()),
         -- Luis Ramírez coordina Ingeniería Civil (carrera_id = 2)
-        (3, 2, TRUE, NOW(), NOW()),
+        (3, 1, TRUE, NOW(), NOW()),
         -- Carla Vega administra Ingeniería Industrial (carrera_id = 4)
-        (4, 4, TRUE, NOW(), NOW()),
+        (4, 1, TRUE, NOW(), NOW()),
         -- Ana Martínez enseña en Ingeniería Informática (carrera_id = 1)
         (5, 1, TRUE, NOW(), NOW()),
         -- Carlos Sánchez enseña en Ingeniería Informática (carrera_id = 1)
