@@ -7,7 +7,7 @@ import pucp.edu.pe.sgta.dto.BloqueHorarioExposicionDto;
 import pucp.edu.pe.sgta.dto.ListBloqueHorarioExposicionSimpleDTO;
 
 public interface BloqueHorarioExposicionService {
-    List<BloqueHorarioExposicionDto> getAll();
+     List<BloqueHorarioExposicionDto> getAll();
 
     BloqueHorarioExposicionDto findById(Integer id);
 
@@ -20,4 +20,8 @@ public interface BloqueHorarioExposicionService {
     List<ListBloqueHorarioExposicionSimpleDTO> listarBloquesHorarioPorExposicion(Integer exposicionId);
 
     boolean updateBloquesListFirstTime(List<ListBloqueHorarioExposicionSimpleDTO> bloquesList);
+
+    boolean updateBlouqesListNextPhase(List<ListBloqueHorarioExposicionSimpleDTO> bloquesList);
+
+    boolean finishPlanning(Integer exposicionId);
 }

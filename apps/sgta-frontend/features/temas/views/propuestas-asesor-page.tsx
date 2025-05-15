@@ -7,22 +7,74 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useEffect, useState } from "react";
+import { PropuestasTable } from "../components/asesor/propuestas-table";
 import {
   fetchAreaConocimientoFindByUsuarioId,
   fetchSubAreaConocimientoFindByUsuarioId,
   fetchTemasPropuestosAlAsesor,
   fetchTemasPropuestosPorSubAreaConocimiento,
-} from "@/features/temas/types/propuestas/data";
-import { PropuestasTable } from "../components/asesor/propuestas-table";
+} from "../types/propuestas/data";
+import {
+  Area,
+  Proyecto,
+  SubAreaConocimiento,
+} from "../types/propuestas/entidades";
+const PropuestasAsesorPage = () => {
+  const [propuestasDirectas, setPropuestasDirectas] = useState<Proyecto[]>([]);
+  const [propuestasGenerales, setPropuestasGenerales] = useState<Proyecto[]>(
+    [],
+  );
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage] = useState(1);
+  const limit = 10;
+  //const limiteTotal = 50;
+  const [areasData, setAreasData] = useState<Area[]>([]);
+  const [subAreasData, setSubAreasData] = useState<SubAreaConocimiento[]>([]);
+  //const [totalPropuestasGenerales, setTotalPropuestasGenerales] = useState(0);
+  //const [totalPropuestasDirectas, setTotalPropuestasDirectas] = useState(0);
+  const [usuarioId] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
 
-const PropuestasAsesorPage = async () => {
-  const propuestasDirectaData = await fetchTemasPropuestosAlAsesor(1);
-  const areasData = await fetchAreaConocimientoFindByUsuarioId(1);
-  console.log({ areasData });
-  const subAreasData = await fetchSubAreaConocimientoFindByUsuarioId(1);
-  const idsSubAreas = subAreasData.map((item) => item.id);
-  const propuestasGeneralData =
-    await fetchTemasPropuestosPorSubAreaConocimiento(idsSubAreas, 1);
+  useEffect(() => {
+    const cargarAreasYSubareas = async () => {
+      const areas = await fetchAreaConocimientoFindByUsuarioId(usuarioId);
+      const subareas = await fetchSubAreaConocimientoFindByUsuarioId(usuarioId);
+      setAreasData(areas);
+      setSubAreasData(subareas);
+    };
+    cargarAreasYSubareas();
+    console.log("Todos los basicos cargados");
+  }, [usuarioId]);
+
+  useEffect(() => {
+    if (subAreasData.length === 0) return;
+
+    const cargarPropuestas = async () => {
+      setIsLoading(true);
+      const offset = (currentPage - 1) * limit;
+
+      const dataDirecta = await fetchTemasPropuestosAlAsesor(
+        usuarioId,
+        searchTerm,
+        limit,
+        offset,
+      );
+      setPropuestasDirectas(dataDirecta);
+
+      const dataGeneral = await fetchTemasPropuestosPorSubAreaConocimiento(
+        subAreasData,
+        usuarioId,
+        searchTerm,
+        limit,
+        0,
+      );
+      setPropuestasGenerales(dataGeneral);
+      setIsLoading(false);
+    };
+
+    cargarPropuestas();
+  }, [currentPage, searchTerm, usuarioId, subAreasData]);
 
   return (
     <div className="space-y-8 mt-4">
@@ -48,9 +100,13 @@ const PropuestasAsesorPage = async () => {
             </CardHeader>
             <CardContent>
               <PropuestasTable
-                propuestas={propuestasDirectaData}
+                propuestasData={propuestasDirectas}
+                setPropuestasData={setPropuestasDirectas}
                 areasData={areasData}
-                idsSubAreas={idsSubAreas}
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                subAreasData={subAreasData}
+                isLoading={isLoading}
               />
             </CardContent>
           </Card>
@@ -65,9 +121,13 @@ const PropuestasAsesorPage = async () => {
             </CardHeader>
             <CardContent>
               <PropuestasTable
-                propuestas={propuestasGeneralData}
+                propuestasData={propuestasGenerales}
+                setPropuestasData={setPropuestasGenerales}
                 areasData={areasData}
-                idsSubAreas={idsSubAreas}
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                subAreasData={subAreasData}
+                isLoading={isLoading}
               />
             </CardContent>
           </Card>

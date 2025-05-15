@@ -1,5 +1,7 @@
 package pucp.edu.pe.sgta.repository;
 
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,6 +15,8 @@ import java.util.Optional;
 
 @Repository
 public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
+
+    Optional<Usuario> findByCodigoPucp(String codigoPucp);
 
     @Query(value = "SELECT * FROM obtener_usuarios_con_temass()", nativeQuery = true)
     List<Object[]> findUsuarioTemaInfo();
@@ -38,4 +42,5 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
 
     @Query(value = "SELECT * FROM obtener_area_conocimiento_jurado(:usuarioId)", nativeQuery = true)
     List<Object[]> obtenerAreasConocimientoJurado(@Param("usuarioId") Integer usuarioId);
+
 }
