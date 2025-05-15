@@ -19,6 +19,9 @@ public class EntregableMapper {
         dto.setFechaFin(entregable.getFechaFin());
         dto.setEsEvaluable(entregable.isEsEvaluable());
         dto.setEstado(entregable.getEstado());
+        dto.setMaximoDocumentos(entregable.getMaximoDocumentos());
+        dto.setExtensionesPermitidas(entregable.getExtensionesPermitidas());
+        dto.setPesoMaximoDocumento(entregable.getPesoMaximoDocumento());
 
         if(entregable.getEtapaFormativaXCiclo() != null) {
             dto.setEtapaFormativaXCicloId(entregable.getEtapaFormativaXCiclo().getId());
@@ -40,6 +43,9 @@ public class EntregableMapper {
         entregable.setFechaFin(dto.getFechaFin());
         entregable.setEsEvaluable(dto.isEsEvaluable());
         entregable.setEstado(dto.getEstado());
+        entregable.setMaximoDocumentos(dto.getMaximoDocumentos());
+        entregable.setExtensionesPermitidas(dto.getExtensionesPermitidas());
+        entregable.setPesoMaximoDocumento(dto.getPesoMaximoDocumento());
 
         if(dto.getEtapaFormativaXCicloId() != null) {
             EtapaFormativaXCiclo efc = new EtapaFormativaXCiclo();

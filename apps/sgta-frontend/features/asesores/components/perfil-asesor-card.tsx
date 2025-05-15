@@ -1,16 +1,18 @@
-// components/PerfilAsesorCard.tsx
+"use client";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FileText, Linkedin, Mail } from "lucide-react";
+import { ExternalLink, FileText, Linkedin, Mail } from "lucide-react";
 import type { Asesor } from "../types/perfil/entidades";
+import { ItemCopiable } from "./item-copia";
 
 interface Props {
   asesor: Asesor;
   editedData: Asesor;
   isEditing: boolean;
   setEditedData: (data: Asesor) => void;
-  avatar?: string;
+  avatar?: string | null;
 }
 
 export default function PerfilAsesorCard({
@@ -20,11 +22,9 @@ export default function PerfilAsesorCard({
   setEditedData,
   avatar,
 }: Props) {
-  const tesisEnProceso = (asesor.tesis ?? []).filter(
-    (t) => t.estado === "en_proceso",
-  ).length;
+  const tesisEnProceso = asesor.tesistasActuales ?? 3;
 
-  const limite = asesor.limiteTesis ?? 8;
+  const limite = asesor.limiteTesis ?? 0;
 
   const porcentaje = limite === 0 ? 0 : tesisEnProceso / limite;
 
@@ -38,22 +38,30 @@ export default function PerfilAsesorCard({
   return (
     <div className="bg-white rounded-lg shadow p-4 sm:p-6 flex flex-col items-center space-y-4">
       <Avatar className="w-32 h-32 rounded-lg mb-2">
-        <AvatarImage src={avatar} alt={asesor.nombre} />
+        <AvatarImage
+          src={avatar || undefined}
+          alt={asesor?.nombre || "Usuario"}
+        />
         <AvatarFallback className="rounded-lg">
-          {asesor.nombre
-            .split(" ")
-            .map((n) => n[0])
-            .join("")
-            .slice(0, 2)
-            .toUpperCase()}
+          {asesor?.nombre
+            ? asesor.nombre
+                .split(" ")
+                .map((n) => n[0])
+                .join("")
+                .slice(0, 2)
+                .toUpperCase()
+            : "US"}
         </AvatarFallback>
       </Avatar>
 
       <h2 className="text-xl font-bold">{asesor?.nombre}</h2>
       <p className="text-gray-600">{asesor?.especialidad}</p>
 
-      <div className="mt-2 bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">
-        {asesor.disponible ? "Disponible" : "No disponible"}
+      <div
+        className={`mt-2 px-3 py-1 rounded-full text-sm
+        ${asesor.estado ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}
+      >
+        {asesor.estado ? "Disponible" : "No disponible"}
       </div>
 
       {isEditing ? (
@@ -91,7 +99,6 @@ export default function PerfilAsesorCard({
               />
             </div>
           </div>
-
           <div>
             <Label htmlFor="linkedin" className="mb-2 block">
               Enlace a repositorio
@@ -111,19 +118,17 @@ export default function PerfilAsesorCard({
         </div>
       ) : (
         <div className="w-full space-y-2 mt-4">
-          <div className="flex items-center">
-            <Mail className="h-4 w-4 mr-2 text-gray-500" />
-            <a
-              href={`mailto:${editedData.email}`}
-              className="text-blue-600 hover:underline truncate"
-            >
-              {editedData.email}
-            </a>
+          <div className="flex items-center gap-x-2">
+            <Mail className="h-4 w-4 text-gray-500" />
+            <ItemCopiable
+              valor={editedData.email}
+              nombre="correo electrónico"
+            />
           </div>
 
-          {editedData.linkedin ? (
-            <div className="flex items-center">
-              <Linkedin className="h-4 w-4 mr-2 text-gray-500" />
+          <div className="flex items-center gap-x-2">
+            <Linkedin className="h-4 w-4 text-gray-500" />
+            {editedData.linkedin ? (
               <a
                 href={editedData.linkedin}
                 target="_blank"
@@ -135,32 +140,27 @@ export default function PerfilAsesorCard({
                   "",
                 )}
               </a>
-            </div>
-          ) : (
-            <div className="flex items-center text-gray-400">
-              <Linkedin className="h-4 w-4 mr-2" />
-              <span>No registrado</span>
-            </div>
-          )}
+            ) : (
+              <span className="text-gray-400">No registrado</span>
+            )}
+          </div>
 
-          {editedData.repositorio?.trim() ? (
-            <div className="flex items-center">
-              <FileText className="h-4 w-4 mr-2 text-gray-500" />
+          <div className="flex items-center gap-x-2 mt-3">
+            <FileText className="h-4 w-4 text-gray-500" />
+            {editedData.repositorio?.trim() ? (
               <a
                 href={editedData.repositorio}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-600 hover:underline truncate"
+                className="text-blue-600 hover:underline truncate inline-flex items-center"
               >
-                {editedData.repositorio.replace("https://", "")}
+                Ver repositorio externo
+                <ExternalLink className="h-4 w-4 ml-1" />
               </a>
-            </div>
-          ) : (
-            <div className="flex items-center text-gray-400">
-              <FileText className="h-4 w-4 mr-2" />
-              <span>No registrado</span>
-            </div>
-          )}
+            ) : (
+              <span className="text-gray-400">No registrado</span>
+            )}
+          </div>
         </div>
       )}
 
@@ -170,7 +170,7 @@ export default function PerfilAsesorCard({
           style={{ width: `${porcentaje * 100}%` }}
         ></div>
       </div>
-      <p className="text-sm text-gray-600 mt-1">
+      <p className="text-sm text-gray-800 mt-1 font-semibold">
         Tesistas asignados: {tesisEnProceso}/{limite}
       </p>
     </div>

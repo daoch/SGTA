@@ -7,7 +7,10 @@ RETURNS TABLE (
     fecha_inicio TIMESTAMP WITH TIME ZONE,
     fecha_fin TIMESTAMP WITH TIME ZONE,
     estado enum_estado_actividad,
-    es_evaluable BOOLEAN
+    es_evaluable BOOLEAN,
+    maximo_documentos INTEGER,
+    extensiones_permitidas TEXT,
+    peso_maximo_documento INTEGER
 ) AS $$
 BEGIN
     RETURN QUERY
@@ -18,10 +21,14 @@ BEGIN
         e.descripcion,
         e.fecha_inicio,
         e.fecha_fin,
-        e.estado AS estado,
-        e.es_evaluable
+        e.estado,
+        e.es_evaluable,
+        e.maximo_documentos,
+        e.extensiones_permitidas,
+        e.peso_maximo_documento
     FROM entregable e
-    INNER JOIN etapa_formativa_x_ciclo efc ON e.etapa_formativa_x_ciclo_id = efc.etapa_formativa_x_ciclo_id
+    INNER JOIN etapa_formativa_x_ciclo efc 
+        ON e.etapa_formativa_x_ciclo_id = efc.etapa_formativa_x_ciclo_id
     WHERE efc.etapa_formativa_x_ciclo_id = etapaFormativaXCicloId
       AND e.activo = TRUE;
 END;
@@ -65,7 +72,8 @@ BEGIN
         e.estado_planificacion_id
     FROM exposicion e
     INNER JOIN etapa_formativa_x_ciclo efc ON e.etapa_formativa_x_ciclo_id = efc.etapa_formativa_x_ciclo_id
-    WHERE efc.etapa_formativa_x_ciclo_id = etapaFormativaXCicloId;
+    WHERE efc.etapa_formativa_x_ciclo_id = etapaFormativaXCicloId
+        AND e.activo = TRUE;
 END;
 $$ LANGUAGE plpgsql;
 

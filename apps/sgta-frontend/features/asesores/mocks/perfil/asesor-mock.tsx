@@ -1,7 +1,9 @@
 import type {
   AreaTematica,
   Asesor,
+  Proyecto,
   TemaInteres,
+  Tesis,
 } from "@/features/asesores/types/perfil/entidades"; // ajusta según tu estructura
 
 export const getAreasDisponibles = (): AreaTematica[] => [
@@ -61,6 +63,7 @@ export const getAsesorMock = (): Asesor => {
   const areas = getAreasDisponibles();
   const temas = getTemasDisponibles();
   return {
+    id: 1,
     nombre: "Dr. Roberto Sánchez",
     especialidad: "Ingeniería Informático",
     email: "roberto.sanchez@pucp.edu.pe",
@@ -68,48 +71,8 @@ export const getAsesorMock = (): Asesor => {
     repositorio: "Ver repositorio completo",
     biografia:
       "Doctor en Ciencias de la Computación con especialización en Inteligencia Artificial...",
-    disponible: true,
+    tesistasActuales: 6,
     limiteTesis: 8,
-    tesis: [
-      {
-        titulo:
-          "Sistema de detección de objetos en tiempo real para vehículos autónomos",
-        estudiante: "Carlos Mendoza",
-        año: "2023",
-        nivel: "Finalizada",
-        estado: "terminada",
-      },
-      {
-        titulo: "Reconocimiento facial en entornos no controlados",
-        estudiante: "Ana García",
-        año: "2022",
-        nivel: "Finalizada",
-        estado: "terminada",
-      },
-      {
-        titulo:
-          "Clasificación de imágenes médicas mediante redes neuronales convolucionales",
-        estudiante: "Pedro López",
-        año: "2021",
-        nivel: "Finalizada",
-        estado: "terminada",
-      },
-      {
-        titulo:
-          "Análisis de sentimientos en redes sociales usando transformers",
-        estudiante: "María Rodríguez",
-        año: "2024",
-        nivel: "Tesis 1",
-        estado: "en_proceso",
-      },
-      {
-        titulo: "Desarrollo de un asistente virtual para atención médica",
-        estudiante: "Juan Pérez",
-        año: "2024",
-        nivel: "Tesis 2",
-        estado: "en_proceso",
-      },
-    ],
     areasTematicas: [
       areas.find((a) => a.nombre === "Inteligencia Artificial")!,
       areas.find((a) => a.nombre === "Ciencia de Datos")!,
@@ -119,5 +82,82 @@ export const getAsesorMock = (): Asesor => {
       temas.find((t) => t.nombre === "Visión por Computadora")!,
       temas.find((t) => t.nombre === "Procesamiento de Lenguaje Natural")!,
     ],
+    estado: true,
   };
+};
+
+export const getTesisMock = (): Tesis[] => {
+  return [
+    {
+      idTesis: 1,
+      titulo:
+        "Sistema de detección de objetos en tiempo real para vehículos autónomos",
+      estudiantes: "Carlos Mendoza",
+      anio: "2023",
+      nivel: "Finalizada",
+      estado: "finalizada",
+    },
+    {
+      idTesis: 2,
+      titulo: "Reconocimiento facial en entornos no controlados",
+      estudiantes: "Ana García",
+      anio: "2022",
+      nivel: "Finalizada",
+      estado: "finalizada",
+    },
+    {
+      idTesis: 3,
+      titulo:
+        "Clasificación de imágenes médicas mediante redes neuronales convolucionales",
+      estudiantes: "Pedro López",
+      anio: "2021",
+      nivel: "Finalizada",
+      estado: "finalizada",
+    },
+    {
+      idTesis: 4,
+      titulo: "Análisis de sentimientos en redes sociales usando transformers",
+      estudiantes: "María Rodríguez",
+      anio: "2024",
+      nivel: "Tesis 1",
+      estado: "en_proceso",
+    },
+    {
+      idTesis: 5,
+      titulo: "Desarrollo de un asistente virtual para atención médica",
+      estudiantes: "Juan Pérez, Lucía Fernández",
+      anio: "2024",
+      nivel: "Tesis 2",
+      estado: "en_proceso",
+    },
+  ];
+};
+
+export const getProyectosMock = (): Proyecto[] => {
+  return [
+    {
+      idProyecto: 1,
+      nombre: "Sistema de gestión de tesis",
+      participantes: 5,
+      anioInicio: "2022",
+      anioFin: "2023",
+      estado: "finalizado",
+    },
+    {
+      idProyecto: 2,
+      nombre: "Desarrollo de una plataforma de aprendizaje en línea",
+      participantes: 8,
+      anioInicio: "2023",
+      anioFin: null,
+      estado: "en_proceso",
+    },
+    {
+      idProyecto: 3,
+      nombre: "Implementación de un sistema de recomendación para libros",
+      participantes: 4,
+      anioInicio: "2023",
+      anioFin: null,
+      estado: "en_proceso",
+    },
+  ];
 };
