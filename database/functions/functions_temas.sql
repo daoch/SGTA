@@ -303,7 +303,8 @@ RETURNS TABLE (
     fecha_creacion     TIMESTAMPTZ,
     asignado            BOOLEAN,
     rechazado           BOOLEAN,
-    codigo_pucp TEXT
+    codigo_pucp TEXT,
+    creador BOOLEAN
 ) AS $$
 BEGIN
     RETURN QUERY
@@ -317,7 +318,8 @@ BEGIN
       u.fecha_creacion,
       ut.asignado,
       ut.rechazado,
-      u.codigo_pucp::text
+      u.codigo_pucp::text,
+      ut.creador
     FROM usuario u
     JOIN usuario_tema ut
       ON ut.usuario_id = u.usuario_id
@@ -932,6 +934,371 @@ AFTER INSERT ON tema
 FOR EACH ROW
 EXECUTE FUNCTION generar_codigo_tema();
 
+CREATE OR REPLACE FUNCTION listar_propuestas_del_tesista_con_usuarios(
+    p_tesista_id INTEGER
+)
+RETURNS TABLE(
+    tema_id            INTEGER,
+    titulo             TEXT,
+    subareas           TEXT,
+    subarea_ids        INTEGER[],
+    descripcion        TEXT,
+    metodologia         TEXT,
+    objetivo           TEXT,
+    recurso            TEXT,
+    activo             BOOLEAN,
+    fecha_limite       TIMESTAMPTZ,
+    fecha_creacion     TIMESTAMPTZ,
+    fecha_modificacion TIMESTAMPTZ,
+    estado_tema_nombre TEXT,
+    usuarios           JSONB
+)
+LANGUAGE plpgsql
+SET search_path = sgtadb, public
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        t.tema_id,
+        t.titulo::text,
+        string_agg(DISTINCT sac.nombre::text, ', ')           AS subareas,
+        array_agg(DISTINCT sac.sub_area_conocimiento_id)      AS subarea_ids,
+        t.resumen::text                                      AS descripcion,
+        t.metodologia::text,
+        t.objetivos::text,
+        r.documento_url::text                                AS recurso,
+        t.activo,
+        t.fecha_limite,
+        t.fecha_creacion,
+        t.fecha_modificacion,
+        et.nombre::text,
+        (
+          SELECT jsonb_agg(jsonb_build_object(
+            'usuario_id', u.usuario_id,
+            'nombre_completo', u.nombres || ' ' || u.primer_apellido,
+            'rol',            rl.nombre,
+            'creador',        ut.creador,
+            'asignado',       ut.asignado
+          ))
+          FROM usuario_tema ut
+          JOIN usuario         u  ON u.usuario_id = ut.usuario_id
+          JOIN rol             rl ON rl.rol_id     = ut.rol_id
+          WHERE ut.tema_id = t.tema_id
+            AND rl.nombre ILIKE ANY(ARRAY['Tesista','Asesor','Coasesor'])
+        ) AS usuarios
+    FROM tema t
+    JOIN usuario_tema ut_tesista
+      ON ut_tesista.tema_id    = t.tema_id
+     AND ut_tesista.usuario_id = p_tesista_id
+     AND ut_tesista.rol_id     = (
+         SELECT rol_id FROM rol WHERE nombre ILIKE 'Tesista' LIMIT 1
+     )
+     AND ut_tesista.creador = true
+    LEFT JOIN estado_tema et
+      ON et.estado_tema_id = t.estado_tema_id
+    LEFT JOIN sub_area_conocimiento_tema sact
+      ON sact.tema_id = t.tema_id
+    LEFT JOIN sub_area_conocimiento sac
+      ON sac.sub_area_conocimiento_id = sact.sub_area_conocimiento_id
+    LEFT JOIN recurso r
+      ON r.tema_id = t.tema_id AND r.activo = TRUE
+    WHERE t.activo = TRUE
+      AND et.nombre ILIKE ANY(ARRAY['PROPUESTO_GENERAL','PROPUESTO_DIRECTO','PREINSCRITO'])
+    GROUP BY
+      t.tema_id, t.titulo, t.resumen, t.metodologia, t.objetivos,
+      r.documento_url, t.activo, t.fecha_limite, t.fecha_creacion, t.fecha_modificacion, et.nombre;
+END;
+$$;
+
+ALTER FUNCTION listar_propuestas_del_tesista_con_usuarios(INTEGER) OWNER TO postgres;
+
+CREATE OR REPLACE FUNCTION listar_postulaciones_del_tesista_con_usuarios(
+    p_tesista_id INTEGER,
+    p_tipo_post  INTEGER     -- 0 = GENERAL, 1 = DIRECTO
+)
+RETURNS TABLE(
+    tema_id            INTEGER,
+    titulo             TEXT,
+    subareas           TEXT,
+    subarea_ids        INTEGER[],
+    descripcion        TEXT,
+    metodologia         TEXT,
+    objetivo           TEXT,
+    recurso            TEXT,
+    activo             BOOLEAN,
+    fecha_limite       TIMESTAMPTZ,
+    fecha_creacion     TIMESTAMPTZ,
+    fecha_modificacion TIMESTAMPTZ,
+    estado_tema_nombre TEXT,    -- current state name
+    usuarios           JSONB
+)
+LANGUAGE plpgsql
+SET search_path = sgtadb, public
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        t.tema_id,
+        t.titulo::text                                        AS titulo,
+        string_agg(DISTINCT sac.nombre::text, ', ')           AS subareas,
+        array_agg(DISTINCT sac.sub_area_conocimiento_id)      AS subarea_ids,
+        t.resumen::text                                       AS descripcion,
+        t.metodologia::text,
+        t.objetivos::text,
+        r.documento_url::text                                 AS recurso,
+        t.activo,
+        t.fecha_limite,
+        t.fecha_creacion,
+        t.fecha_modificacion,
+        et_current.nombre::text                               AS estado_tema_nombre,
+        (
+          SELECT jsonb_agg(
+                   jsonb_build_object(
+                     'usuario_id',      u.usuario_id,
+                     'nombre_completo', u.nombres || ' ' || u.primer_apellido,
+                     'rol',             rl.nombre,
+                     'comentario', ut.comentario,
+                     'creador',         ut.creador,
+                     'rechazado',         ut.rechazado,
+                     'asignado',        ut.asignado
+                   )
+                 )
+          FROM usuario_tema ut
+          JOIN usuario         u  ON u.usuario_id = ut.usuario_id
+          JOIN rol             rl ON rl.rol_id     = ut.rol_id
+          WHERE ut.tema_id = t.tema_id
+            AND rl.nombre ILIKE ANY(ARRAY['Tesista','Asesor','Coasesor'])
+        ) AS usuarios
+    FROM tema t
+
+    -- only those temas where this tesista was assigned as Tesista
+    JOIN usuario_tema ut_tesista
+      ON ut_tesista.tema_id    = t.tema_id
+     AND ut_tesista.usuario_id = p_tesista_id
+     AND ut_tesista.rol_id     = (
+         SELECT rol_id FROM rol
+          WHERE nombre ILIKE 'Tesista'
+          LIMIT 1
+     )
+    AND ut_tesista.creador = true
+    -- current estado
+    LEFT JOIN estado_tema et_current
+      ON et_current.estado_tema_id = t.estado_tema_id
+
+    -- initial (creation) estado from historial_tema
+    LEFT JOIN LATERAL (
+      SELECT ht.estado_tema_id
+      FROM historial_tema ht
+      WHERE ht.tema_id = t.tema_id
+        AND ht.activo = true
+      ORDER BY ht.fecha_creacion ASC
+      LIMIT 1
+    ) init_ht ON TRUE
+
+    LEFT JOIN estado_tema et_init
+      ON et_init.estado_tema_id = init_ht.estado_tema_id
+
+    -- sub-areas
+    LEFT JOIN sub_area_conocimiento_tema sact
+      ON sact.tema_id = t.tema_id
+    LEFT JOIN sub_area_conocimiento sac
+      ON sac.sub_area_conocimiento_id = sact.sub_area_conocimiento_id
+
+    -- recurso (active only)
+    LEFT JOIN recurso r
+      ON r.tema_id = t.tema_id
+     AND r.activo = TRUE
+
+    WHERE t.activo = TRUE
+      AND (
+        (p_tipo_post = 0 AND et_init.nombre ILIKE 'PROPUESTO_GENERAL')
+     OR (p_tipo_post = 1 AND et_init.nombre ILIKE 'PROPUESTO_DIRECTO')
+      )
+
+    GROUP BY
+      t.tema_id,
+      t.titulo,
+      t.resumen,
+      t.metodologia,
+      t.objetivos,
+      r.documento_url,
+      t.activo,
+      t.fecha_limite,
+      t.fecha_creacion,
+      t.fecha_modificacion,
+      et_current.nombre;
+END;
+$$;
+
+ALTER FUNCTION listar_postulaciones_del_tesista_con_usuarios(INTEGER) OWNER TO postgres;
+
+CREATE OR REPLACE FUNCTION listar_asesores_por_subarea_conocimiento(
+    p_subarea_id INTEGER
+)
+RETURNS TABLE(
+    usuario_id        INTEGER,
+    nombre_completo   TEXT,
+    correo_electronico TEXT
+)
+LANGUAGE SQL
+AS $$
+SELECT DISTINCT
+    u.usuario_id,
+    u.nombres || ' ' || u.primer_apellido    AS nombre_completo,
+    u.correo_electronico
+FROM usuario_sub_area_conocimiento usac
+  JOIN usuario u
+    ON u.usuario_id = usac.usuario_id
+  JOIN tipo_usuario tu
+    ON tu.tipo_usuario_id = u.tipo_usuario_id
+  -- Ensure the user has the "Asesor" role on at least one tema
+  JOIN usuario_tema ut
+    ON ut.usuario_id = u.usuario_id
+   AND ut.rol_id = (
+         SELECT rol_id
+           FROM rol
+          WHERE nombre ILIKE 'Asesor'
+          LIMIT 1
+       )
+WHERE usac.sub_area_conocimiento_id = p_subarea_id
+  AND usac.activo = TRUE
+  AND tu.nombre ILIKE 'profesor'
+$$;
+
+ALTER FUNCTION listar_postulaciones_del_tesista_con_usuarios(INTEGER) OWNER TO postgres;
+
+CREATE OR REPLACE FUNCTION sgtadb.obtener_sub_areas_por_carrera_usuario(
+    p_usuario_id INTEGER
+)
+RETURNS TABLE(
+    sub_area_conocimiento_id INTEGER,
+    area_conocimiento_id     INTEGER,
+    nombre                   TEXT,
+    descripcion              TEXT,
+    activo                   BOOLEAN
+)
+LANGUAGE SQL
+AS $$
+SELECT DISTINCT
+    sac.sub_area_conocimiento_id,
+    sac.area_conocimiento_id,
+    sac.nombre::TEXT      AS nombre,
+    sac.descripcion::TEXT AS descripcion,
+    sac.activo
+FROM usuario_carrera usac
+JOIN area_conocimiento ac
+  ON ac.carrera_id = usac.carrera_id
+ AND ac.activo = TRUE
+JOIN sub_area_conocimiento sac
+  ON sac.area_conocimiento_id = ac.area_conocimiento_id
+ AND sac.activo = TRUE
+WHERE usac.usuario_id = p_usuario_id
+  AND usac.activo = TRUE
+ORDER BY nombre;
+$$;
+
+ALTER FUNCTION obtener_sub_areas_por_carrera_usuario(INTEGER) OWNER TO postgres;
+
+CREATE OR REPLACE FUNCTION aprobar_postulacion_propuesta_general_tesista(
+    p_tema_id    INT,
+    p_asesor_id  INT,
+    p_tesista_id INT
+)
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- Only proceed if the tesista is the creator of this topic
+    IF EXISTS (
+        SELECT 1
+        FROM usuario_tema ut
+        JOIN rol r ON r.rol_id = ut.rol_id
+        WHERE ut.tema_id = p_tema_id
+          AND ut.usuario_id = p_tesista_id
+          AND ut.creador = TRUE
+          AND r.nombre ILIKE 'Tesista'
+    ) THEN
+        -- Perform the update to mark the advisor as assigned
+        UPDATE usuario_tema ut
+        SET asignado = TRUE
+        FROM rol r
+        WHERE ut.tema_id = p_tema_id
+          AND ut.usuario_id = p_asesor_id
+          AND ut.rol_id = r.rol_id
+          AND r.nombre ILIKE 'Asesor';
+    END IF;
+
+    -- Get the estado_tema_id for the tema
+    SELECT estado_tema_id INTO estado_preinscrito_id FROM estado_tema WHERE nombre ILIKE 'PREINSCRITO' LIMIT 1;
+
+	  -- Update estado_tema_id
+    UPDATE tema
+    SET estado_tema_id = estado_preinscrito_id
+    WHERE tema_id = p_tema_id;
+END;
+$$;
+
+ALTER FUNCTION aprobar_postulacion_propuesta_general_tesista(INTEGER, INTEGER, INTEGER) OWNER TO postgres;
+
+CREATE OR REPLACE FUNCTION rechazar_postulacion_propuesta_general_tesista(
+    p_tema_id    INT,
+    p_asesor_id  INT,
+    p_tesista_id INT
+)
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- Only proceed if the tesista is the creator of this topic
+    IF EXISTS (
+        SELECT 1
+        FROM usuario_tema ut
+        JOIN rol r ON r.rol_id = ut.rol_id
+        WHERE ut.tema_id = p_tema_id
+          AND ut.usuario_id = p_tesista_id
+          AND ut.creador = TRUE
+          AND r.nombre ILIKE 'Tesista'
+    ) THEN
+        -- Perform the update to mark the advisor as rejected
+        UPDATE usuario_tema ut
+        SET rechazado = TRUE
+        FROM rol r
+        WHERE ut.tema_id = p_tema_id
+          AND ut.usuario_id = p_asesor_id
+          AND ut.rol_id = r.rol_id
+          AND r.nombre ILIKE 'Asesor';
+    END IF;
+END;
+$$;
+
+ALTER FUNCTION rechazar_postulacion_propuesta_general_tesista(INTEGER, INTEGER, INTEGER) OWNER TO postgres;
+
+CREATE OR REPLACE FUNCTION listar_asesores_por_subarea_conocimiento_v2(
+	p_subarea_id integer)
+    RETURNS TABLE(usuario_id integer, nombre_completo text, correo_electronico text)
+    LANGUAGE 'sql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+    ROWS 1000
+
+AS $BODY$
+SELECT DISTINCT
+    u.usuario_id,
+    u.nombres || ' ' || u.primer_apellido    AS nombre_completo,
+    u.correo_electronico
+FROM usuario_sub_area_conocimiento usac
+  JOIN usuario u
+    ON u.usuario_id = usac.usuario_id
+  JOIN tipo_usuario tu
+    ON tu.tipo_usuario_id = u.tipo_usuario_id
+WHERE usac.sub_area_conocimiento_id = p_subarea_id
+  AND usac.activo = TRUE
+  AND tu.nombre ILIKE 'profesor'
+$BODY$;
+
+ALTER FUNCTION listar_asesores_por_subarea_conocimiento_v2(integer)
+    OWNER TO postgres;
+
 
 CREATE OR REPLACE FUNCTION obtener_usuarios_por_tipo_carrera_y_busqueda(
     p_tipo_usuario     TEXT,
@@ -962,7 +1329,7 @@ RETURNS TABLE(
 LANGUAGE SQL
 STABLE
 AS $$
-    SELECT 
+    SELECT
       u.usuario_id,
       u.tipo_usuario_id,
       u.codigo_pucp,

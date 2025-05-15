@@ -27,8 +27,8 @@ interface Props {
 const ITEMS_PER_PAGE = 5;
 
 export default function TesisDirigidasResumen({ tesis }: Props) {
-  const [pageEnProceso, setPageEnProceso] = useState(1);
-  const [pageTerminadas, setPageTerminadas] = useState(1);
+  const [pageEnProceso, setPageEnProceso] = useState(40);
+  const [pageTerminadas, setPageTerminadas] = useState(40);
 
   const renderTesis = (
     estado: "en_proceso" | "terminada",

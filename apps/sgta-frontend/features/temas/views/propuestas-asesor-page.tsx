@@ -17,12 +17,12 @@ import {
 } from "../types/propuestas/data";
 import {
   Area,
-  Proyecto,
+  Proyecto_M,
   SubAreaConocimiento,
 } from "../types/propuestas/entidades";
 const PropuestasAsesorPage = () => {
-  const [propuestasDirectas, setPropuestasDirectas] = useState<Proyecto[]>([]);
-  const [propuestasGenerales, setPropuestasGenerales] = useState<Proyecto[]>(
+  const [propuestasDirectas, setPropuestasDirectas] = useState<Proyecto_M[]>([]);
+  const [propuestasGenerales, setPropuestasGenerales] = useState<Proyecto_M[]>(
     [],
   );
   const [searchTerm, setSearchTerm] = useState("");
@@ -33,7 +33,7 @@ const PropuestasAsesorPage = () => {
   const [subAreasData, setSubAreasData] = useState<SubAreaConocimiento[]>([]);
   //const [totalPropuestasGenerales, setTotalPropuestasGenerales] = useState(0);
   //const [totalPropuestasDirectas, setTotalPropuestasDirectas] = useState(0);
-  const [usuarioId] = useState(1);
+  const [usuarioId] = useState(40);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {

@@ -42,5 +42,4 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
 
     @Query(value = "SELECT * FROM obtener_area_conocimiento_jurado(:usuarioId)", nativeQuery = true)
     List<Object[]> obtenerAreasConocimientoJurado(@Param("usuarioId") Integer usuarioId);
-
 }
