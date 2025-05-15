@@ -1,5 +1,5 @@
-import { ITerminationConsultancyRequest, IRequestTerminationConsultancySearchFields, IListAvailableAdvisorList, ICessationRequestStudent, ICessationRequestSearchCriteriaAvailableAdvisorList, ITerminationConsultancyRequestFetched, IRequestTerminationConsultancyRequestDataViewDetail, IRequestTerminationConsultancyRequestDataViewDetailFetched } from "@/features/asesores/types/cessation-request"
-import { mockAssessorListCessationRequest, mockStudentListCessationRequest } from "@/features/asesores/mocks/solicitud-cese-asesoria/mock-solicitud-cese-asesoria";
+import { ITerminationConsultancyRequest, IRequestTerminationConsultancySearchFields, IListAvailableAdvisorList, ICessationRequestSearchCriteriaAvailableAdvisorList, ITerminationConsultancyRequestFetched, IRequestTerminationConsultancyRequestDataViewDetail, IRequestTerminationConsultancyRequestDataViewDetailFetched } from "@/features/asesores/types/cessation-request"
+
 
 
 
@@ -9,7 +9,8 @@ export async function getTerminationConsultancyList(
 ): Promise<ITerminationConsultancyRequest> {
     const BASE_URL = process.env.BASE_URL??"http://localhost:5000/"
     const ELEMENTS_PER_PAGE = 10
-    const urlFetch = `${BASE_URL}coordinators/coordinators/cessation-requests?page=${searchCriteria.page}&size=${ELEMENTS_PER_PAGE}`
+    const urlFetch = `${BASE_URL}coordinators/cessation-requests?page=${searchCriteria.page}&size=${ELEMENTS_PER_PAGE}`
+    
     try {
         const response = await fetch(urlFetch, {
             method: 'GET',
@@ -50,7 +51,7 @@ export async function rejectTerminationConsultancyRequest(
   responseText: string
 ): Promise<void> {
     const BASE_URL = process.env.BASE_URL??"http://localhost:5000/"
-    const url = `${BASE_URL}coordinators/coordinators/cessation-requests/${requestId}/reject`;
+    const url = `${BASE_URL}coordinators/cessation-requests/${requestId}/reject`;
 
   try {
     const res = await fetch(url, {
@@ -81,7 +82,7 @@ export async function approveTerminationConsultancyRequest(
   responseText: string
 ): Promise<void> {
   const BASE_URL = process.env.BASE_URL??"http://localhost:5000/"
-  const url = `${BASE_URL}coordinators/coordinators/cessation-requests/${requestId}/approve`;
+  const url = `${BASE_URL}coordinators/cessation-requests/${requestId}/approve`;
   try {
     const res = await fetch(url, {
       method: 'POST',

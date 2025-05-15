@@ -3,10 +3,11 @@ import { IChangeAssessorRequestSearchFields, IRequestAssessorChange, IRequestAss
 // Service to get all request for consultancy termination
 export async function getAssessorChangeRequestList(
     searchCriteria: IChangeAssessorRequestSearchFields
-): Promise<IRequestAssessorChange> {
-    const BASE_URL = process.env.BASE_URL??"http://localhost:5000/"
+): Promise<IRequestAssessorChange | null> {
+  
+  const BASE_URL = process.env.BASE_URL??"http://localhost:5000/"
     const ELEMENTS_PER_PAGE = 10
-    const urlFetch = `${BASE_URL}coordinators/advisor-change-requests?fullNameEmail=${searchCriteria.fullNameEmail}&status=${searchCriteria.status}&page=1&elementsPerPage=${ELEMENTS_PER_PAGE}`
+    const urlFetch = `${BASE_URL}coordinators/advisor-change-requests?page=${searchCriteria.page}&size=${ELEMENTS_PER_PAGE}`
     try {
         const response = await fetch(urlFetch, {
             method: 'GET',
@@ -21,12 +22,12 @@ export async function getAssessorChangeRequestList(
         }
         
         const data: IRequestAssessorChangeFetched = await response.json();
-        const assessorChangeRequestsTransformedDates = data.assessorChangeRequests.map(item => (
+        const assessorChangeRequestsTransformedDates = data.assessorChangeRequests ? data.assessorChangeRequests.map(item => (
             {
                 ...item,
                 registerTime: new Date(item.registerTime),
                 responseTime: new Date(item.responseTime)
-            }));
+            })) : [];
 
         return {
             "assessorChangeRequests": assessorChangeRequestsTransformedDates,
@@ -113,6 +114,7 @@ export async function approveAssessorChangeRequest(
 ): Promise<void> {
   const BASE_URL = process.env.BASE_URL??"http://localhost:5000/"
   const url = `${BASE_URL}coordinators/advisor-change-requests/${requestId}/approve`;
+  
   try {
     const res = await fetch(url, {
       method: 'POST',
