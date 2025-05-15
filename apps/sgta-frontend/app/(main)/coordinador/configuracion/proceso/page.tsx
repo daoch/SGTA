@@ -1,4 +1,4 @@
-import { NuevaEtapaModal } from "@/components/main/configuracion/nueva-etapa-modal";
+import { NuevaEtapaModal } from "@/features/configuracion/components/configuracion/nueva-etapa-modal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, BookOpen, ChevronRight, Edit, Trash2 } from "lucide-react";
@@ -28,19 +28,22 @@ const etapas = [
 
 export default function ConfiguracionProcesoPage() {
   return (
-    <div className="py-6 px-2">
+    <div className="max-w-5xl">
      
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Configuración de Proceso</h1>
+      <div className="flex items-center gap-2 mt-5 mb-4">
+        <Link
+          href="/coordinador/configuracion"
+          className="p-2 rounded-md border border-gray-300 hover:bg-gray-100 transition"
+        >
+          <ArrowLeft size={11} />
+        </Link>
+        <h1 className="text-2xl font-bold text-[#042354]">
+          Configuración de Proceso
+        </h1>
       </div>
 
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
-          <Link href="/coordinador/configuracion">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft size={20} />
-            </Button>
-          </Link>
           <h2 className="text-xl font-semibold">Etapas del Proyecto</h2>
         </div>
         <NuevaEtapaModal />
