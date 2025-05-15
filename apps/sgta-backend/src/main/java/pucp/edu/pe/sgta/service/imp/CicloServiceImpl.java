@@ -3,6 +3,7 @@ package pucp.edu.pe.sgta.service.imp;
 import org.springframework.stereotype.Service;
 
 import pucp.edu.pe.sgta.dto.CicloConEtapasDTO;
+import pucp.edu.pe.sgta.dto.CicloConEtapasProjection;
 import pucp.edu.pe.sgta.dto.CicloDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
 import pucp.edu.pe.sgta.mapper.CicloMapper;
@@ -13,6 +14,7 @@ import pucp.edu.pe.sgta.repository.CicloRepository;
 import pucp.edu.pe.sgta.service.inter.CicloService;
 
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 @Service
@@ -84,6 +86,20 @@ public class CicloServiceImpl implements CicloService {
 
     @Override
     public List<CicloConEtapasDTO> listarCiclosYetapasFormativas() {
-        return cicloRepository.findAllCiclesAndEtapaFormativas();
+        List<CicloConEtapasProjection> proyecciones = cicloRepository.findAllCiclesAndEtapaFormativas();
+        return proyecciones.stream().map(p -> {
+            CicloConEtapasDTO dto = new CicloConEtapasDTO();
+            dto.setId(p.getCiclo_id());
+            dto.setSemestre(p.getSemestre());
+            dto.setAnio(p.getAnio());
+            dto.setFechaInicio(p.getFecha_inicio());
+            dto.setFechaFin(p.getFecha_fin());
+            dto.setActivo(p.getActivo());
+            dto.setFechaCreacion(p.getFecha_creacion() != null ? OffsetDateTime.ofInstant(p.getFecha_creacion(), ZoneOffset.UTC) : null);
+            dto.setFechaModificacion(p.getFecha_modificacion() != null ? OffsetDateTime.ofInstant(p.getFecha_modificacion(), ZoneOffset.UTC) : null);
+            dto.setEtapasFormativas(p.getEtapas_formativas());
+            dto.setCantidadEtapas(p.getCantidad_etapas());
+            return dto;
+        }).toList();
     }
 }
