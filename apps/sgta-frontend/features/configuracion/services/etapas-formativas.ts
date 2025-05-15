@@ -29,7 +29,7 @@ export interface EtapaFormativaDetail {
 export const etapasFormativasService = {
   // Obtener todas las etapas formativas
   getAll: async (): Promise<EtapaFormativaListItem[]> => {
-    const response = await axiosInstance.get("/etapas-formativas/listarActivas");
+    const response = await axiosInstance.get("/etapas-formativas");
     return response.data;
   },
 
