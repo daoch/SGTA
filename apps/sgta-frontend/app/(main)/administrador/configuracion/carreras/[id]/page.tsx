@@ -31,7 +31,7 @@ export default function DetalleCarreraPage({ }: { params: { id: string } }) {
   return (
     <div className="max-w-6xl mx-auto">
       <div className="flex items-center gap-4 mb-6">
-        <Link href="/admin/configuracion/carreras">
+        <Link href="/administrador/configuracion/carreras">
           <Button variant="ghost" size="icon">
             <ArrowLeft size={20} />
           </Button>
@@ -45,7 +45,7 @@ export default function DetalleCarreraPage({ }: { params: { id: string } }) {
             <CardTitle>{carrera.nombre}</CardTitle>
             <Badge variant={carrera.estado === "Activo" ? "default" : "secondary"}>{carrera.estado}</Badge>
           </div>
-          <Link href={`/admin/configuracion/carreras/${carrera.id}/editar`}>
+          <Link href={`/administrador/configuracion/carreras/${carrera.id}/editar`}>
             <Button variant="outline" size="sm" className="flex items-center gap-1">
               <Edit size={16} />
               <span>Editar</span>

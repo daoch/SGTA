@@ -1,40 +1,54 @@
+"use client";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { etapasFormativasService, type EtapaFormativaDetail } from "@/services/etapas-formativas";
 import { ArrowLeft, Edit } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
-// Datos de ejemplo
-const etapaFormativa = {
-  id: 1,
-  nombre: "Proyecto de Tesis 1",
-  carrera: "Ingeniería de Sistemas",
-  creditos: 4.0,
-  duracionExposicion: "00:20:00",
-  cicloActual: {
-    id: 3,
-    nombre: "2024-I",
-    estado: "En curso",
-  },
-  ciclosAnteriores: [
-    {
-      id: 2,
-      nombre: "2023-II",
-      estado: "Finalizado",
-    },
-    {
-      id: 1,
-      nombre: "2023-I",
-      estado: "Finalizado",
-    },
-  ],
+const getEstadoLabel = (estado: string) => {
+  const estados = {
+    "EN_CURSO": "En curso",
+    "FINALIZADO": "Finalizado"
+  };
+  return estados[estado as keyof typeof estados] || estado;
 };
 
-export default function DetalleEtapaFormativaPage({ }: { params: { id: string } }) {
+export default function DetalleEtapaFormativaPage({ params }: { params: { id: string } }) {
+  const [etapaFormativa, setEtapaFormativa] = useState<EtapaFormativaDetail | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    loadEtapaFormativa();
+  }, [params.id]);
+
+  const loadEtapaFormativa = async () => {
+    try {
+      const data = await etapasFormativasService.getById(params.id);
+      setEtapaFormativa(data);
+    } catch (error) {
+      console.error("Error al cargar etapa formativa:", error);
+      toast.error("Error al cargar la etapa formativa");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isLoading) {
+    return <div className="py-6 px-2">Cargando etapa formativa...</div>;
+  }
+
+  if (!etapaFormativa) {
+    return <div className="py-6 px-2">No se encontró la etapa formativa</div>;
+  }
+
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="py-6 px-2">
       <div className="flex items-center gap-4 mb-6">
-        <Link href="/admin/configuracion/etapas-formativas">
+        <Link href="/administrador/configuracion/etapas-formativas">
           <Button variant="ghost" size="icon">
             <ArrowLeft size={20} />
           </Button>
@@ -46,9 +60,11 @@ export default function DetalleEtapaFormativaPage({ }: { params: { id: string } 
         <CardHeader className="flex flex-row items-center justify-between">
           <div className="flex items-center gap-3">
             <CardTitle>{etapaFormativa.nombre}</CardTitle>
-            <Badge variant="default">{etapaFormativa.cicloActual.estado}</Badge>
+            <Badge variant={etapaFormativa.estadoActual === "EN_CURSO" ? "default" : "secondary"}>
+              {getEstadoLabel(etapaFormativa.estadoActual)}
+            </Badge>
           </div>
-          <Link href={`/admin/configuracion/etapas-formativas/${etapaFormativa.id}/editar`}>
+          <Link href={`/administrador/configuracion/etapas-formativas/${etapaFormativa.id}/editar`}>
             <Button variant="outline" size="sm" className="flex items-center gap-1">
               <Edit size={16} />
               <span>Editar</span>
@@ -59,11 +75,11 @@ export default function DetalleEtapaFormativaPage({ }: { params: { id: string } 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <h3 className="text-sm font-medium text-gray-500 mb-1">Carrera</h3>
-              <p>{etapaFormativa.carrera}</p>
+              <p>{etapaFormativa.carreraNombre}</p>
             </div>
             <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-1">Créditos</h3>
-              <p>{etapaFormativa.creditos}</p>
+              <h3 className="text-sm font-medium text-gray-500 mb-1">Créditos por Tema</h3>
+              <p>{etapaFormativa.creditajePorTema}</p>
             </div>
           </div>
 
@@ -74,39 +90,37 @@ export default function DetalleEtapaFormativaPage({ }: { params: { id: string } 
             </div>
             <div>
               <h3 className="text-sm font-medium text-gray-500 mb-1">Ciclo Actual</h3>
-              <p>{etapaFormativa.cicloActual.nombre}</p>
+              <p>{etapaFormativa.cicloActual}</p>
             </div>
           </div>
 
-          <div>
-            <h3 className="text-sm font-medium text-gray-500 mb-2">Historial de Ciclos</h3>
-            <div className="bg-gray-50 p-4 rounded-md">
-              <table className="w-full">
-                <thead>
-                  <tr className="text-left">
-                    <th className="pb-2 text-sm font-medium text-gray-500">Ciclo</th>
-                    <th className="pb-2 text-sm font-medium text-gray-500">Estado</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  <tr>
-                    <td className="py-2 text-sm">{etapaFormativa.cicloActual.nombre}</td>
-                    <td className="py-2 text-sm">
-                      <Badge variant="default">{etapaFormativa.cicloActual.estado}</Badge>
-                    </td>
-                  </tr>
-                  {etapaFormativa.ciclosAnteriores.map((ciclo) => (
-                    <tr key={ciclo.id}>
-                      <td className="py-2 text-sm">{ciclo.nombre}</td>
-                      <td className="py-2 text-sm">
-                        <Badge variant="secondary">{ciclo.estado}</Badge>
-                      </td>
+          {etapaFormativa.historialCiclos && etapaFormativa.historialCiclos.length > 0 && (
+            <div>
+              <h3 className="text-sm font-medium text-gray-500 mb-2">Historial de Ciclos</h3>
+              <div className="bg-gray-50 p-4 rounded-md">
+                <table className="w-full">
+                  <thead>
+                    <tr className="text-left">
+                      <th className="pb-2 text-sm font-medium text-gray-500">Ciclo</th>
+                      <th className="pb-2 text-sm font-medium text-gray-500">Estado</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {etapaFormativa.historialCiclos.map((ciclo) => (
+                      <tr key={ciclo.id}>
+                        <td className="py-2 text-sm">{ciclo.ciclo}</td>
+                        <td className="py-2 text-sm">
+                          <Badge variant={ciclo.estado === "EN_CURSO" ? "default" : "secondary"}>
+                            {getEstadoLabel(ciclo.estado)}
+                          </Badge>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
+          )}
         </CardContent>
       </Card>
     </div>

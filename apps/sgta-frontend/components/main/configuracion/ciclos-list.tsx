@@ -73,12 +73,12 @@ export function CiclosList() {
               <td className="px-4 py-3 text-sm">{ciclo.etapasFormativas}</td>
               <td className="px-4 py-3 text-sm">
                 <div className="flex gap-2">
-                  <Link href={`/admin/configuracion/ciclos/${ciclo.id}`}>
+                  <Link href={`/administrador/configuracion/ciclos/${ciclo.id}`}>
                     <Button variant="ghost" size="icon" className="h-8 w-8">
                       <Eye size={16} />
                     </Button>
                   </Link>
-                  <Link href={`/admin/configuracion/ciclos/${ciclo.id}/editar`}>
+                  <Link href={`/administrador/configuracion/ciclos/${ciclo.id}/editar`}>
                     <Button variant="ghost" size="icon" className="h-8 w-8">
                       <Edit size={16} />
                     </Button>

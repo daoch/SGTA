@@ -98,7 +98,7 @@ export function EtapaFormativaForm({ etapaFormativa = null }: { etapaFormativa?:
       </div>
 
       <div className="flex justify-end gap-3 pt-4">
-        <Link href="/admin/configuracion/etapas-formativas">
+        <Link href="/administrador/configuracion/etapas-formativas">
           <Button variant="outline">Cancelar</Button>
         </Link>
         <Button>{etapaFormativa ? "Guardar Cambios" : "Registrar Etapa Formativa"}</Button>

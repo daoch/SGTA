@@ -1,77 +1,83 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Trash2, Eye, Search } from "lucide-react";
-import Link from "next/link";
-import { useState } from "react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { etapasFormativasService, type EtapaFormativaListItem } from "@/services/etapas-formativas";
+import { Edit, Eye, Search, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 
-// Datos de ejemplo
-const etapasFormativas = [
-  {
-    id: 1,
-    nombre: "Proyecto de Tesis 1",
-    carrera: "Ingeniería de Sistemas",
-    estado: "En curso",
-  },
-  {
-    id: 2,
-    nombre: "Proyecto de Tesis 2",
-    carrera: "Ingeniería de Sistemas",
-    estado: "En curso",
-  },
-  {
-    id: 3,
-    nombre: "Tesis 1",
-    carrera: "Ingeniería Industrial",
-    estado: "En curso",
-  },
-  {
-    id: 4,
-    nombre: "Tesis 2",
-    carrera: "Ingeniería Industrial",
-    estado: "En curso",
-  },
-  {
-    id: 5,
-    nombre: "Proyecto de Tesis 1",
-    carrera: "Ingeniería de Sistemas",
-    estado: "Finalizado",
-  },
-  {
-    id: 6,
-    nombre: "Proyecto de Tesis 2",
-    carrera: "Ingeniería de Sistemas",
-    estado: "Finalizado",
-  },
-];
-
-// Datos para filtros
-const carreras = [
-  { id: 1, nombre: "Ingeniería de Sistemas" },
-  { id: 2, nombre: "Ingeniería Industrial" },
-  { id: 3, nombre: "Administración" },
-];
+const TODAS_CARRERAS = "TODAS";
+const TODOS_ESTADOS = "TODOS";
 
 const estados = [
-  { id: 1, nombre: "En curso" },
-  { id: 2, nombre: "Finalizado" },
+  { id: 1, nombre: "EN_CURSO", label: "En curso" },
+  { id: 2, nombre: "FINALIZADO", label: "Finalizado" },
 ];
 
 export function EtapasFormativasList() {
-  const [carreraSeleccionada, setCarreraSeleccionada] = useState("");
-  const [estadoSeleccionado, setEstadoSeleccionado] = useState("");
-  const [busqueda, setBusqueda] = useState("");
+  const [carreraSeleccionada, setCarreraSeleccionada] = useState<string>(TODAS_CARRERAS);
+  const [estadoSeleccionado, setEstadoSeleccionado] = useState<string>(TODOS_ESTADOS);
+  const [busqueda, setBusqueda] = useState<string>("");
+  const [etapasFormativas, setEtapasFormativas] = useState<EtapaFormativaListItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    loadEtapasFormativas();
+  }, []);
+
+  const loadEtapasFormativas = async () => {
+    try {
+      const data = await etapasFormativasService.getAll();
+      setEtapasFormativas(data);
+    } catch (error) {
+      console.error("Error al cargar etapas formativas:", error);
+      toast.error("Error al cargar las etapas formativas");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Obtener carreras únicas del listado de etapas formativas
+  const carreras = useMemo(() => {
+    const carrerasUnicas = [...new Set(etapasFormativas.map(etapa => etapa.carreraNombre))];
+    return carrerasUnicas.map((nombre, index) => ({
+      id: index + 1,
+      nombre: nombre
+    }));
+  }, [etapasFormativas]);
+
+  const handleDelete = async (id: number) => {
+    if (!confirm("¿Está seguro de eliminar esta etapa formativa?")) return;
+
+    try {
+      await etapasFormativasService.delete(id);
+      toast.success("Etapa formativa eliminada con éxito");
+      loadEtapasFormativas();
+    } catch (error) {
+      console.error("Error al eliminar etapa formativa:", error);
+      toast.error("Error al eliminar la etapa formativa");
+    }
+  };
+
+  const getEstadoLabel = (estado: string) => {
+    return estados.find(e => e.nombre === estado)?.label || estado;
+  };
 
   // Filtrar etapas formativas
   const etapasFiltradas = etapasFormativas.filter((etapa) => {
-    const coincideCarrera = carreraSeleccionada ? etapa.carrera === carreraSeleccionada : true;
-    const coincideEstado = estadoSeleccionado ? etapa.estado === estadoSeleccionado : true;
-    const coincideBusqueda = etapa.nombre.toLowerCase().includes(busqueda.toLowerCase());
+    const coincideCarrera = carreraSeleccionada === TODAS_CARRERAS || etapa.carreraNombre === carreraSeleccionada;
+    const coincideEstado = estadoSeleccionado === TODOS_ESTADOS || etapa.estado === estadoSeleccionado;
+    const coincideBusqueda = !busqueda || etapa.nombre.toLowerCase().includes(busqueda.toLowerCase());
     return coincideCarrera && coincideEstado && coincideBusqueda;
   });
+
+  if (isLoading) {
+    return <div className="text-center py-4">Cargando etapas formativas...</div>;
+  }
 
   return (
     <div>
@@ -94,7 +100,7 @@ export function EtapasFormativasList() {
               <SelectValue placeholder="Filtrar por carrera" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todas las carreras</SelectItem>
+              <SelectItem value={TODAS_CARRERAS}>Todas las carreras</SelectItem>
               {carreras.map((carrera) => (
                 <SelectItem key={carrera.id} value={carrera.nombre}>
                   {carrera.nombre}
@@ -109,10 +115,10 @@ export function EtapasFormativasList() {
               <SelectValue placeholder="Filtrar por estado" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todos los estados</SelectItem>
+              <SelectItem value={TODOS_ESTADOS}>Todos los estados</SelectItem>
               {estados.map((estado) => (
                 <SelectItem key={estado.id} value={estado.nombre}>
-                  {estado.nombre}
+                  {estado.label}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -135,23 +141,30 @@ export function EtapasFormativasList() {
               etapasFiltradas.map((etapa) => (
                 <tr key={etapa.id} className="hover:bg-gray-50">
                   <td className="px-4 py-3 text-sm font-medium">{etapa.nombre}</td>
-                  <td className="px-4 py-3 text-sm">{etapa.carrera}</td>
+                  <td className="px-4 py-3 text-sm">{etapa.carreraNombre}</td>
                   <td className="px-4 py-3 text-sm">
-                    <Badge variant={etapa.estado === "En curso" ? "default" : "secondary"}>{etapa.estado}</Badge>
+                    <Badge variant={etapa.estado === "EN_CURSO" ? "default" : "secondary"}>
+                      {getEstadoLabel(etapa.estado)}
+                    </Badge>
                   </td>
                   <td className="px-4 py-3 text-sm">
                     <div className="flex gap-2">
-                      <Link href={`/admin/configuracion/etapas-formativas/${etapa.id}`}>
+                      <Link href={`/administrador/configuracion/etapas-formativas/${etapa.id}`}>
                         <Button variant="ghost" size="icon" className="h-8 w-8">
                           <Eye size={16} />
                         </Button>
                       </Link>
-                      <Link href={`/admin/configuracion/etapas-formativas/${etapa.id}/editar`}>
+                      <Link href={`/administrador/configuracion/etapas-formativas/${etapa.id}/editar`}>
                         <Button variant="ghost" size="icon" className="h-8 w-8">
                           <Edit size={16} />
                         </Button>
                       </Link>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-red-500"
+                        onClick={() => handleDelete(etapa.id)}
+                      >
                         <Trash2 size={16} />
                       </Button>
                     </div>

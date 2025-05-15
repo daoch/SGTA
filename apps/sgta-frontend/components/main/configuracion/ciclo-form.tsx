@@ -65,7 +65,7 @@ export function CicloForm({ ciclo = null }: { ciclo?: Ciclo | null }) {
       </div>
 
       <div className="flex justify-end gap-3 pt-4">
-        <Link href="/admin/configuracion/ciclos">
+        <Link href="/administrador/configuracion/ciclos">
           <Button variant="outline">Cancelar</Button>
         </Link>
         <Button>{ciclo ? "Guardar Cambios" : "Registrar Ciclo"}</Button>

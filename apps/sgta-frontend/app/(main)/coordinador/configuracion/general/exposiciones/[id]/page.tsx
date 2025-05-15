@@ -48,7 +48,7 @@ const exposicion = {
   ],
 };
 
-export default function ExposicionDetailPage({ params }: { params: { id: string } }) {
+export default function ExposicionDetailPage({ }: { params: { id: string } }) {
   return (
     <div className="py-6 px-2">
       <div className="flex items-center gap-4 mb-6">
