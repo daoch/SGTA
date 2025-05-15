@@ -113,3 +113,5 @@ DROP FUNCTION IF EXISTS eliminar_propuestas_tesista (INTEGER) CASCADE;
 DROP FUNCTION IF EXISTS eliminar_postulaciones_tesista (INTEGER) CASCADE;
 
 DROP FUNCTION IF EXISTS listar_etapa_formativa_nombre ();
+
+DROP FUNCTION IF EXISTS obtener_jurados_por_tema (INTEGER) CASCADE;
