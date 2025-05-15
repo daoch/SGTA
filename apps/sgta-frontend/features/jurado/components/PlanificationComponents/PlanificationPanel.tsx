@@ -4,9 +4,9 @@ import { Clock } from "lucide-react";
 import React, { useState } from "react";
 
 import { JornadaExposicionDTO } from "@/features/jurado/dtos/JornadExposicionDTO";
-import { EstadoPlanificacion, SalaExposicion, Tema, TimeSlot } from "@/features/jurado/types/jurado.types";
+import { EstadoPlanificacion, OrigenBoton, SalaExposicion, Tema, TimeSlot } from "@/features/jurado/types/jurado.types";
+import SelectorFecha from "../DateSelector";
 import BreadCrumbPlanificacion from "./BreadcrumbPlanification";
-import SelectorFecha from "./DateSelector";
 import Droppable from "./Droppable";
 import RoomSlot from "./RoomSlot";
 
@@ -15,8 +15,8 @@ interface Props {
   roomAvailList: JornadaExposicionDTO[];
   assignedExpos: Record<string, Tema>;
   removeExpo: (expo: Tema) => void;
-  onSiguienteFaseClick: () => void;
-  onTerminarPlanificacionClick:() => void;
+  
+  onAvanzarPlanificacionClick:(origen:OrigenBoton) => void;
   bloquesList: TimeSlot[];
   estadoPlan:EstadoPlanificacion;
 }
@@ -24,8 +24,8 @@ const PlanificationPanel: React.FC<Props> = ({
   roomAvailList,
   assignedExpos,
   removeExpo,
-  onSiguienteFaseClick,
-  onTerminarPlanificacionClick,
+  
+  onAvanzarPlanificacionClick,
   bloquesList,
   estadoPlan,
 }) => {
@@ -70,16 +70,20 @@ const PlanificationPanel: React.FC<Props> = ({
         ))}
 
         <div className="ml-auto ">
-          <Button
-            onClick={() => onSiguienteFaseClick()}
+          {
+            estadoPlan.nombre != "Fase 2" && estadoPlan.nombre != "Cierre de planificacion" &&
+            <Button
+            onClick={() => onAvanzarPlanificacionClick("siguiente")}
             className="w-full xl:w-auto mr-2"
             style={{ background: "#042354" }}
           >
             Siguiente fase
           </Button>
+          }
+         
           {estadoPlan.nombre!=="Planificacion inicial" && 
            <Button
-           onClick={() => onTerminarPlanificacionClick()}
+           onClick={() => onAvanzarPlanificacionClick("terminar")}
            className="w-full xl:w-auto ml-2"
            style={{ background: "#042354" }}
          >
@@ -99,6 +103,7 @@ const PlanificationPanel: React.FC<Props> = ({
             )}
             assignedExpos={assignedExpos}
             removeExpo={removeExpo}
+            estadoPlan={estadoPlan}
           />
         ))}
       </div>
@@ -111,12 +116,14 @@ function TimeSlotCard({
   filteredRooms,
   assignedExpos,
   removeExpo,
+  estadoPlan
 }: {
   time: string;
   spaces?: SalaExposicion[];
   filteredRooms: TimeSlot[];
   assignedExpos: Record<string, Tema>;
   removeExpo: (expo: Tema) => void;
+  estadoPlan : EstadoPlanificacion;
 }) {
   return (
     <div className="border rounded-lg p-4">
@@ -133,6 +140,7 @@ function TimeSlotCard({
               assignedExpos={assignedExpos}
               room={room}
               removeExpo={removeExpo}
+              estadoPlanificacion = {estadoPlan}
             />
           </Droppable>
         ))}

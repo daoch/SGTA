@@ -435,7 +435,7 @@ INSERT INTO jornada_exposicion_x_sala_exposicion (jornada_exposicion_id,
            (1, 4, TRUE, NOW(), NOW());
 
 
-/* Parametros de configuración */
+-- Parametros de configuración 
 
 WITH nuevo_parametro AS (
     INSERT INTO parametro_configuracion (
@@ -443,7 +443,7 @@ WITH nuevo_parametro AS (
                                          tipo
         ) VALUES ('antiplagio',
                   'Configure la opcion de revision antiplagio',
-                  4, TRUE, NOW(), NOW(), 'boolean') RETURNING parametro_configuracion_id)
+                  4, TRUE, NOW(), NOW(), 'booleano') RETURNING parametro_configuracion_id)
 INSERT
     INTO carrera_parametro_configuracion (carrera_id, parametro_configuracion_id, valor, activo, fecha_creacion, fecha_modificacion, etapa_formativa_id)
 SELECT 1, parametro_configuracion_id, 'false', TRUE, NOW(), NOW(), 1
@@ -456,7 +456,7 @@ WITH nuevo_parametro AS (
                                          tipo
         ) VALUES ('turnitin',
                   'Configure la opcion de revision turnitin',
-                  4, TRUE, NOW(), NOW(), 'boolean') RETURNING parametro_configuracion_id)
+                  4, TRUE, NOW(), NOW(), 'booleano') RETURNING parametro_configuracion_id)
 INSERT
     INTO carrera_parametro_configuracion (carrera_id, parametro_configuracion_id, valor, activo, fecha_creacion, fecha_modificacion, etapa_formativa_id)
 SELECT 1, parametro_configuracion_id, 'false', TRUE, NOW(), NOW(), 1

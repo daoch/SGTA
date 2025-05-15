@@ -1,13 +1,16 @@
 "use client";
 
-import CardSugerenciaDistribucion from "@/features/jurado/components/CardSuggestAlgorithm";
 
-import CardTemaExposicion from "./CardTopicExpo";
-import Draggable from "./Draggable";
+
 import {
   AreaEspecialidad,
   Tema,
 } from "@/features/jurado/types/jurado.types";
+
+
+import CardSugerenciaDistribucion from "./CardSuggestAlgorithm";
+import CardTemaExposicion from "./CardTopicExpo";
+import Draggable from "./Draggable";
 import SearchFilter from "./SearchFilter";
 
 interface Props {
@@ -35,7 +38,7 @@ const ExposList: React.FC<Props> = ({ freeExpos, topics }) => {
       <div className=" px-6 ">
         <div className="space-y-4 flex flex-col">
           {freeExpos.map((freeExpo: Tema) => (
-            <Draggable id={freeExpo.codigo} key={freeExpo.codigo}>
+            <Draggable id={freeExpo.codigo} key={freeExpo.codigo} isDraggeable={true}>
               <CardTemaExposicion exposicion={freeExpo} />
             </Draggable>
           ))}
