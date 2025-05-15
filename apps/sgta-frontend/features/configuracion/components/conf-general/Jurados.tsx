@@ -58,7 +58,7 @@ export default function JuradosCards() {
               type="number"
               id="cantidad-jurados"
               placeholder="Ej: 3"
-              defaultValue="3"
+              //defaultValue="3"
               //cantidadJuradosParam?.valor: Accede al valor del parámetro del store
               //|| "3": Fallback seguro si el valor es null/undefined
               value={cantidadJuradosParam?.valor.toString() || "3"}
@@ -90,7 +90,7 @@ export default function JuradosCards() {
               type="number"
               id="tiempo-jurado"
               placeholder="Ej: 10"
-              defaultValue="10"
+              //defaultValue="10"
               value={tiempoLimiteParam?.valor.toString() || "10"}
               onChange={handleTiempoChange}
               disabled={cargando}

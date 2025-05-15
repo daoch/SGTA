@@ -4,11 +4,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { etapasFormativasService, type EtapaFormativaListItem } from "@/services/etapas-formativas";
+import { etapasFormativasService, type EtapaFormativaDetail, type EtapaFormativaListItem } from "@/features/configuracion/services/etapas-formativas";
 import { Edit, Eye, Search, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { ConfirmarEliminarModal } from "./confirmar-eliminar-modal";
+import { EditarEtapaFormativaModal } from "./editar-etapa-formativa-modal";
 
 const TODAS_CARRERAS = "TODAS";
 const TODOS_ESTADOS = "TODOS";
@@ -18,12 +20,27 @@ const estados = [
   { id: 2, nombre: "FINALIZADO", label: "Finalizado" },
 ];
 
-export function EtapasFormativasList() {
+export type EtapasFormativasListRef = {
+  loadEtapasFormativas: () => Promise<void>;
+};
+
+export const EtapasFormativasList = forwardRef<EtapasFormativasListRef>((props, ref) => {
   const [carreraSeleccionada, setCarreraSeleccionada] = useState<string>(TODAS_CARRERAS);
   const [estadoSeleccionado, setEstadoSeleccionado] = useState<string>(TODOS_ESTADOS);
   const [busqueda, setBusqueda] = useState<string>("");
   const [etapasFormativas, setEtapasFormativas] = useState<EtapaFormativaListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [etapaToDelete, setEtapaToDelete] = useState<EtapaFormativaListItem | null>(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [etapaToEdit, setEtapaToEdit] = useState<EtapaFormativaDetail | null>(null);
+  const [editLoading, setEditLoading] = useState(false);
+
+  // Exponer la función de carga al componente padre
+  useImperativeHandle(ref, () => ({
+    loadEtapasFormativas
+  }));
 
   useEffect(() => {
     loadEtapasFormativas();
@@ -31,6 +48,7 @@ export function EtapasFormativasList() {
 
   const loadEtapasFormativas = async () => {
     try {
+      setIsLoading(true);
       const data = await etapasFormativasService.getAll();
       setEtapasFormativas(data);
     } catch (error) {
@@ -39,6 +57,30 @@ export function EtapasFormativasList() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const openEditModal = async (id: number) => {
+    try {
+      setEditLoading(true);
+      const etapa = await etapasFormativasService.getById(id.toString());
+      setEtapaToEdit(etapa);
+      setEditModalOpen(true);
+    } catch (error) {
+      console.error("Error al cargar etapa formativa:", error);
+      toast.error("Error al cargar la etapa formativa");
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  const closeEditModal = () => {
+    setEditModalOpen(false);
+    setEtapaToEdit(null);
+  };
+
+  const handleEditSuccess = () => {
+    loadEtapasFormativas();
+    closeEditModal();
   };
 
   // Obtener carreras únicas del listado de etapas formativas
@@ -50,16 +92,30 @@ export function EtapasFormativasList() {
     }));
   }, [etapasFormativas]);
 
-  const handleDelete = async (id: number) => {
-    if (!confirm("¿Está seguro de eliminar esta etapa formativa?")) return;
+  const openDeleteModal = (etapa: EtapaFormativaListItem) => {
+    setEtapaToDelete(etapa);
+    setDeleteModalOpen(true);
+  };
+
+  const closeDeleteModal = () => {
+    setDeleteModalOpen(false);
+    setEtapaToDelete(null);
+  };
+
+  const handleDelete = async () => {
+    if (!etapaToDelete) return;
 
     try {
-      await etapasFormativasService.delete(id);
+      setDeleteLoading(true);
+      await etapasFormativasService.delete(etapaToDelete.id);
       toast.success("Etapa formativa eliminada con éxito");
       loadEtapasFormativas();
     } catch (error) {
       console.error("Error al eliminar etapa formativa:", error);
       toast.error("Error al eliminar la etapa formativa");
+    } finally {
+      setDeleteLoading(false);
+      closeDeleteModal();
     }
   };
 
@@ -154,16 +210,20 @@ export function EtapasFormativasList() {
                           <Eye size={16} />
                         </Button>
                       </Link>
-                      <Link href={`/administrador/configuracion/etapas-formativas/${etapa.id}/editar`}>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <Edit size={16} />
-                        </Button>
-                      </Link>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => openEditModal(etapa.id)}
+                        disabled={editLoading}
+                      >
+                        <Edit size={16} />
+                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 text-red-500"
-                        onClick={() => handleDelete(etapa.id)}
+                        onClick={() => openDeleteModal(etapa)}
                       >
                         <Trash2 size={16} />
                       </Button>
@@ -181,6 +241,28 @@ export function EtapasFormativasList() {
           </tbody>
         </table>
       </div>
+
+      {/* Modal de confirmación para eliminar */}
+      <ConfirmarEliminarModal
+        isOpen={deleteModalOpen}
+        onClose={closeDeleteModal}
+        onConfirm={handleDelete}
+        title="Eliminar Etapa Formativa"
+        description={`¿Está seguro que desea eliminar la etapa formativa "${etapaToDelete?.nombre}"? Esta acción no se puede deshacer.`}
+        isLoading={deleteLoading}
+      />
+
+      {/* Modal para editar etapa formativa */}
+      {etapaToEdit && (
+        <EditarEtapaFormativaModal
+          isOpen={editModalOpen}
+          onClose={closeEditModal}
+          onSuccess={handleEditSuccess}
+          etapaFormativa={etapaToEdit}
+        />
+      )}
     </div>
   );
-}
+});
+
+EtapasFormativasList.displayName = "EtapasFormativasList";
