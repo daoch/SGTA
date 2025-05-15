@@ -63,4 +63,19 @@ public class CarreraServiceImpl implements CarreraService {
         
         return carrerasList;
     }
+
+    @Override
+    public List<CarreraDto> listarCarrerasPorUsuario(Integer usuarioId) {
+        return carreraRepository.findByUsuarioId(usuarioId).stream()
+            // explícitamente indicamos que 'c' es una Carrera
+            .map((Carrera c) -> CarreraDto.builder()
+                .id(c.getId())
+                .codigo(c.getCodigo())
+                .nombre(c.getNombre())
+                .descripcion(c.getDescripcion())
+                .build()
+            )
+            .collect(Collectors.toList());
+    
+    }
 } 
