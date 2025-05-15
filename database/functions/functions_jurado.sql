@@ -606,3 +606,18 @@ BEGIN
     ORDER BY u.usuario_id, ut.prioridad;
 END;
 $function$
+
+CREATE OR REPLACE FUNCTION obtener_jurados_por_tema(p_tema_id integer)
+RETURNS TABLE(
+    conteo integer
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        COUNT(*) as conteo
+    FROM usuario_tema ut
+    WHERE rol_id IN (1, 2, 5)
+    AND ut.activo = true
+    AND ut.tema_id = p_tema_id;
+END;
+$$ LANGUAGE plpgsql;
