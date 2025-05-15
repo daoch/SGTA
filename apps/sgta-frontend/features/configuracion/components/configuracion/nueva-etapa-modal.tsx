@@ -22,10 +22,9 @@ import {
 import { Label } from "@/components/ui/label";
 import { Plus } from "lucide-react";
 import { etapasFormativasService, type EtapaFormativaListItem } from "../../services/etapas-formativas";
-import { ciclosService } from "../../services/etapa-formativa-ciclo";
+import { etapaFormativaCicloService, ciclosService } from "../../services/etapa-formativa-ciclo";
 import { Ciclo } from "../../types/etapa-formativa-ciclo";
-
-
+import { toast } from "sonner";
 
 export function NuevaEtapaModal() {
   const [open, setOpen] = useState(false);
@@ -33,6 +32,7 @@ export function NuevaEtapaModal() {
   const [ciclos, setCiclos] = useState<Ciclo[]>([]);
   const [selectedEtapa, setSelectedEtapa] = useState<string>("");
   const [selectedCiclo, setSelectedCiclo] = useState<string>("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -45,6 +45,7 @@ export function NuevaEtapaModal() {
         setCiclos(ciclosResponse);
       } catch (error) {
         console.error("Error al cargar los datos:", error);
+        toast.error("Error al cargar los datos");
       }
     };
 
@@ -53,14 +54,31 @@ export function NuevaEtapaModal() {
     }
   }, [open]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Aquí iría la lógica para guardar la nueva etapa
-    console.log({
-      etapaFormativaId: selectedEtapa,
-      cicloId: selectedCiclo
-    });
-    setOpen(false);
+    
+    if (!selectedEtapa || !selectedCiclo) {
+      toast.error("Por favor seleccione una etapa formativa y un ciclo");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await etapaFormativaCicloService.create({
+        etapaFormativaId: parseInt(selectedEtapa),
+        cicloId: parseInt(selectedCiclo),
+        activo: true
+      });
+      
+      toast.success("Etapa creada exitosamente");
+      setOpen(false);
+      // Aquí podrías agregar una función para refrescar la lista de etapas
+    } catch (error) {
+      console.error("Error al crear la etapa:", error);
+      toast.error("Error al crear la etapa");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -116,7 +134,9 @@ export function NuevaEtapaModal() {
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancelar
             </Button>
-            <Button type="submit">Crear Etapa</Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Creando..." : "Crear Etapa"}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

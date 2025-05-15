@@ -18,3 +18,9 @@ export interface EtapaFormativaCiclo {
     entregables?: number;
     exposiciones?: number;
 }
+
+export interface EtapaFormativaCicloCreate {
+    etapaFormativaId: number;
+    cicloId: number;
+    activo: boolean;
+}
