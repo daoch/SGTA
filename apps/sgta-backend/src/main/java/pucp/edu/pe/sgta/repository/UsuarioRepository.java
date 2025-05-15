@@ -16,6 +16,7 @@ import java.util.Optional;
 @Repository
 public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
 
+    Usuario findByCorreoElectronicoIsLikeIgnoreCase(String email);
     Optional<Usuario> findByCodigoPucp(String codigoPucp);
 
     @Query(value = "SELECT * FROM obtener_usuarios_con_temass()", nativeQuery = true)
@@ -42,5 +43,4 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
 
     @Query(value = "SELECT * FROM obtener_area_conocimiento_jurado(:usuarioId)", nativeQuery = true)
     List<Object[]> obtenerAreasConocimientoJurado(@Param("usuarioId") Integer usuarioId);
-
 }

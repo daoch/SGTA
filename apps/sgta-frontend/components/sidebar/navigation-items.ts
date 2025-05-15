@@ -29,6 +29,13 @@ export interface NavigationItem {
 
 export const navigationItems: Record<string, NavigationItem[]> = {
   common: [{ name: "Dashboard", href: "/dashboard", icon: Home }],
+  administrador: [
+    {
+      name: "Configuración",
+      href: "/administrador/configuracion",
+      icon: Settings,
+    },
+  ],
   alumno: [
     {
       name: "Temas",

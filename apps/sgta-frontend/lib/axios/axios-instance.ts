@@ -2,7 +2,7 @@ import { getAuthToken, useAuthStore } from "@/features/auth";
 import axios from "axios";
 
 const axiosInstance = axios.create({
-  baseURL: "http://localhost:5000",
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
   headers: {
     "Content-Type": "application/json",
   },
@@ -58,3 +58,4 @@ axiosInstance.interceptors.response.use(
 );
 
 export default axiosInstance;
+

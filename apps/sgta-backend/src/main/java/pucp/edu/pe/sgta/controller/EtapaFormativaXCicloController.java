@@ -44,4 +44,10 @@ public class EtapaFormativaXCicloController {
         return ResponseEntity.ok(etapaFormativaXCiclos);
     }
 
+    @PostMapping("/delete/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Integer id) {
+        etapaFormativaXCicloService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
 }

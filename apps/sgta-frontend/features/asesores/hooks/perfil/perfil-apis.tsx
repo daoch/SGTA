@@ -21,11 +21,39 @@ export async function getPerfilAsesor(id: number) {
   }
 }
 
+export async function getIdByCorreo(correoUsuario: string): Promise<number> {
+  try {
+    const response = await axiosInstance.get("/usuario/getIdByCorreo", {
+      params: { correoUsuario },
+    });
+
+    console.log("ID obtenido por correo:", response.data);
+    return response.data as number;
+  } catch (error) {
+    console.error("Error al obtener ID por correo:", error);
+    throw error;
+  }
+}
+
+export async function getFotoUsuario(idUsuario: number): Promise<string> {
+  try {
+    const response = await axiosInstance.get("/usuario/getFotoUsuario", {
+      params: { idUsuario },
+    });
+
+    console.log("Foto recibida:", response.data);
+    return response.data.foto as string; // base64 string
+  } catch (error) {
+    console.error("Error al obtener la foto del usuario:", error);
+    throw error;
+  }
+}
+
 export async function getListaProyectos(idAsesor: number) {
   try {
-    const response = await axiosInstance.get("/proyectos/listarPorAsesor", {
-      params: { idAsesor },
-    });
+    const response = await axiosInstance.get(
+      `/proyectos/listarProyectosUsuarioInvolucrado/${idAsesor}`,
+    );
     console.log("Proyectos recibidos:", response.data);
     return (response.data as Proyecto[]) ?? [];
   } catch (error) {
@@ -36,9 +64,9 @@ export async function getListaProyectos(idAsesor: number) {
 
 export async function getListaTesisPorAsesor(idAsesor: number) {
   try {
-    const response = await axiosInstance.get("/tesis/listarPorAsesor", {
-      params: { idAsesor },
-    });
+    const response = await axiosInstance.get(
+      `/temas/listarTemasAsesorInvolucrado/${idAsesor}`,
+    );
     console.log("Tesis recibidas:", response.data);
     return (response.data as Tesis[]) ?? [];
   } catch (error) {

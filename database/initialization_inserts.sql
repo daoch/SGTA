@@ -188,8 +188,8 @@ VALUES
     (1, 3, TRUE, NOW(), NOW()),
     -- María Gómez estudia Ingeniería Informática (carrera_id = 1)
     (2, 1, TRUE, NOW(), NOW()),
-    -- Luis Ramírez coordina Ingeniería Civil (carrera_id = 2)
-    (3, 2, TRUE, NOW(), NOW()),
+    -- Luis Ramírez coordina Ingeniería Informática (carrera_id = 1)
+    (3, 1, TRUE, NOW(), NOW()),
     -- Carla Vega administra Ingeniería Industrial (carrera_id = 4)
     (4, 4, TRUE, NOW(), NOW()),
         -- Ana Martínez enseña en Ingeniería Informática (carrera_id = 1)
@@ -393,7 +393,7 @@ WITH nuevo_parametro AS (
                   4, TRUE, NOW(), NOW(), 'booleano') RETURNING parametro_configuracion_id)
 INSERT
     INTO carrera_parametro_configuracion (carrera_id, parametro_configuracion_id, valor, activo, fecha_creacion, fecha_modificacion, etapa_formativa_id)
-SELECT 1, parametro_configuracion_id, 'false', TRUE, NOW(), NOW(), 3
+SELECT 1, parametro_configuracion_id, 'false', TRUE, NOW(), NOW(), 1
     FROM nuevo_parametro;
 
 
@@ -406,7 +406,7 @@ WITH nuevo_parametro AS (
                   4, TRUE, NOW(), NOW(), 'booleano') RETURNING parametro_configuracion_id)
 INSERT
     INTO carrera_parametro_configuracion (carrera_id, parametro_configuracion_id, valor, activo, fecha_creacion, fecha_modificacion, etapa_formativa_id)
-SELECT 1, parametro_configuracion_id, 'false', TRUE, NOW(), NOW(), 3
+SELECT 1, parametro_configuracion_id, 'false', TRUE, NOW(), NOW(), 1
     FROM nuevo_parametro;
 
 
@@ -419,7 +419,7 @@ WITH nuevo_parametro AS (
                   1, TRUE, NOW(), NOW(), 'string') RETURNING parametro_configuracion_id)
 INSERT
     INTO carrera_parametro_configuracion (carrera_id, parametro_configuracion_id, valor, activo, fecha_creacion, fecha_modificacion, etapa_formativa_id)
-SELECT 1, parametro_configuracion_id, 'propuesta', TRUE, NOW(), NOW(), 3
+SELECT 1, parametro_configuracion_id, 'propuesta', TRUE, NOW(), NOW(), 1
     FROM nuevo_parametro;
 
 
@@ -433,7 +433,7 @@ WITH nuevo_parametro AS (
                   2, TRUE, NOW(), NOW(), 'date') RETURNING parametro_configuracion_id)
 INSERT
     INTO carrera_parametro_configuracion (carrera_id, parametro_configuracion_id, valor, activo, fecha_creacion, fecha_modificacion, etapa_formativa_id)
-SELECT 1, parametro_configuracion_id, '2025-06-30T00:00:00Z', TRUE, NOW(), NOW(), 3
+SELECT 1, parametro_configuracion_id, '2025-06-30T00:00:00Z', TRUE, NOW(), NOW(), 1
     FROM nuevo_parametro;
 
 /* NUEVOS */

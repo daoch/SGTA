@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pucp.edu.pe.sgta.dto.*;
+import pucp.edu.pe.sgta.dto.temas.DetalleTemaDto;
 import pucp.edu.pe.sgta.model.UsuarioXTema;
 import pucp.edu.pe.sgta.service.inter.MiembroJuradoService;
 
@@ -96,4 +97,25 @@ public class MiembroJuradoController {
         return ResponseEntity.ok(temas);
     }
 
+    @GetMapping("/temas-otros-jurados/{usuarioId}")
+    public ResponseEntity<List<MiembroJuradoXTemaDto>> obtenerTemasDeOtrosJurados(@PathVariable Integer usuarioId) {
+        List<MiembroJuradoXTemaDto> temas = juradoService.findTemasDeOtrosJurados(usuarioId);
+        return ResponseEntity.ok(temas);
+    }
+
+    @PutMapping("/desasignar-jurado")
+    public ResponseEntity<?> desasignarJuradoDeTema(@RequestBody AsignarJuradoRequest request) {
+        return juradoService.desasignarJuradoDeTema(request);
+    }
+
+    @PutMapping("/desasignar-jurado-tema-todos/{usuarioId}")
+    public ResponseEntity<?> desasignarJuradoDeTemaTodos(@PathVariable Integer usuarioId) {
+        return juradoService.desasignarJuradoDeTemaTodos(usuarioId);
+    }
+
+    @GetMapping("/{idTema}/detalle")
+    public ResponseEntity<DetalleTemaDto> obtenerDetalleTema(@PathVariable Integer idTema) {
+        DetalleTemaDto detalle = juradoService.obtenerDetalleTema(idTema);
+        return ResponseEntity.ok(detalle);
+    }
 }
