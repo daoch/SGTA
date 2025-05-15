@@ -4,7 +4,7 @@ import { Clock } from "lucide-react";
 import React, { useState } from "react";
 
 import { JornadaExposicionDTO } from "@/features/jurado/dtos/JornadExposicionDTO";
-import { EstadoPlanificacion, SalaExposicion, Tema, TimeSlot } from "@/features/jurado/types/jurado.types";
+import { EstadoPlanificacion, OrigenBoton, SalaExposicion, Tema, TimeSlot } from "@/features/jurado/types/jurado.types";
 import BreadCrumbPlanificacion from "./BreadcrumbPlanification";
 import SelectorFecha from "./DateSelector";
 import Droppable from "./Droppable";
@@ -16,7 +16,7 @@ interface Props {
   assignedExpos: Record<string, Tema>;
   removeExpo: (expo: Tema) => void;
   
-  onAvanzarPlanificacionClick:() => void;
+  onAvanzarPlanificacionClick:(origen:OrigenBoton) => void;
   bloquesList: TimeSlot[];
   estadoPlan:EstadoPlanificacion;
 }
@@ -71,9 +71,9 @@ const PlanificationPanel: React.FC<Props> = ({
 
         <div className="ml-auto ">
           {
-            estadoPlan.nombre != "Cierre de planificacion" &&
+            estadoPlan.nombre != "Fase 2" && estadoPlan.nombre != "Cierre de planificacion" &&
             <Button
-            onClick={() => onAvanzarPlanificacionClick()}
+            onClick={() => onAvanzarPlanificacionClick("siguiente")}
             className="w-full xl:w-auto mr-2"
             style={{ background: "#042354" }}
           >
@@ -83,7 +83,7 @@ const PlanificationPanel: React.FC<Props> = ({
          
           {estadoPlan.nombre!=="Planificacion inicial" && 
            <Button
-           onClick={() => onAvanzarPlanificacionClick()}
+           onClick={() => onAvanzarPlanificacionClick("terminar")}
            className="w-full xl:w-auto ml-2"
            style={{ background: "#042354" }}
          >

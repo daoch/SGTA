@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import pucp.edu.pe.sgta.dto.BloqueHorarioExposicionCreateDTO;
@@ -99,7 +100,7 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
             return new ListBloqueHorarioExposicionSimpleDTO(key, range, idBloque,idJornadaExposicionSala,exposicionId,temaConAsesorJuradoDTO,esBloqueReservado,esBloqueBloqueado);
         }).collect(Collectors.toList());
     }
-
+    @Transactional
     @Override
     public boolean updateBloquesListFirstTime(List<ListBloqueHorarioExposicionSimpleDTO> bloquesList) {
 
@@ -120,7 +121,7 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
             return false;
         }
     }
-
+    @Transactional
     @Override
     public boolean updateBlouqesListNextPhase(List<ListBloqueHorarioExposicionSimpleDTO> bloquesList) {
 
@@ -138,5 +139,17 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
             return false;
         }
 
+    }
+    @Transactional
+    @Override
+    public boolean finishPlanning(Integer exposicionId) {
+
+        try {
+            Boolean result = bloqueHorarioExposicionRepository.finishPlanning(exposicionId);
+            return Boolean.TRUE.equals(result);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }

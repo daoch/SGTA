@@ -8,10 +8,10 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { useEffect, useState, useTransition } from "react";
-import { updateBloquesListFirstTime, updateBloquesNextPhase } from "../actions/actions";
+import { finishPlanning, updateBloquesListFirstTime, updateBloquesNextPhase } from "../actions/actions";
 import { JornadaExposicionDTO } from "../dtos/JornadExposicionDTO";
 import { listarEstadoPlanificacionPorExposicion } from "../services/data";
-import { AreaEspecialidad, EstadoPlanificacion, Tema, TimeSlot } from "../types/jurado.types";
+import { AreaEspecialidad, EstadoPlanificacion, OrigenBoton, Tema, TimeSlot } from "../types/jurado.types";
 import ExposList from "./ExposList";
 import PlanificationPanel from "./PlanificationPanel";
 
@@ -172,7 +172,7 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
     
    console.log("Lista final de bloques con expos asignadas:", bloquesListToInsert);
   };
-  const onAvanzarPlanificacionClick = () =>{
+  const onAvanzarPlanificacionClick = (origen: OrigenBoton) =>{
    
       if(freeExpos.length > 0 ){
         console.log("No puede dejar temas sin asignar");
@@ -194,9 +194,9 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
         startTransition(async () => {
 
           await updateBloquesNextPhase(bloquesListToInsert); 
-          /*if(estadoPlan.nombre==="Cierre de planificacion"){
-            await finishPlanning();
-          } */       
+          if(origen === "terminar"){
+            await finishPlanning(exposicionId);
+          }   
           const newEstadoPlanificacion = await listarEstadoPlanificacionPorExposicion(exposicionId);
           setEstadoPlan(newEstadoPlanificacion);
        });

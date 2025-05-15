@@ -87,15 +87,16 @@ export async function updateBloquesListFirstTime(bloquesList:TimeSlot[]) {
     }
   }
 
-  export async function finishPlanning(){
+  export async function finishPlanning(idExposicon:number){
     try {
       const response = await fetch(
-        `${baseUrl}/bloqueHorarioExposicion/finishPlanning`,
+        `${baseUrl}/bloqueHorarioExposicion/finishPlanning/${idExposicon}`,
         {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
-          },         
+          }, 
+        
         },
       );     
       if (!response.ok) {

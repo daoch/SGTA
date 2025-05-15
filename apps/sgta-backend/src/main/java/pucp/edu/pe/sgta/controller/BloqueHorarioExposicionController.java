@@ -46,20 +46,7 @@ public class BloqueHorarioExposicionController {
     @PatchMapping ("/updateBloquesListNextPhase")
     public ResponseEntity<ResponseMessage> updateBloquesNextPhase(@RequestBody List<ListBloqueHorarioExposicionSimpleDTO> bloquesList) {
         try {
-            int cantExpos=0;
-            int cantReservados=0;
-            int cantLibres =0;
-            for(ListBloqueHorarioExposicionSimpleDTO bloque : bloquesList) {
-                if(bloque.getExpo() != null){
-                    cantExpos++;
-                }
-                if(bloque.getEsBloqueReservado()){
-                    cantReservados++;
-                }
-                else{
-                    cantLibres++;
-                }
-            }
+
             boolean updateSuccessful = bloqueHorarioExposicionService.updateBlouqesListNextPhase(bloquesList);
 
             if (updateSuccessful) {
@@ -74,6 +61,27 @@ public class BloqueHorarioExposicionController {
             // Si ocurre una excepción inesperada
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ResponseMessage(false, "Error inesperado al actualizar bloques"));
+        }
+    }
+
+    @PatchMapping("/finishPlanning/{idExposicion}")
+    public ResponseEntity<ResponseMessage> finishPlanning(@PathVariable("idExposicion")  Integer idExposicion) {
+        try {
+
+            boolean updateSuccessful = bloqueHorarioExposicionService.finishPlanning(idExposicion);
+
+            if (updateSuccessful) {
+
+                return ResponseEntity.ok(new ResponseMessage(true, "Planificacion terminada"));
+            } else {
+
+                return ResponseEntity.status(HttpStatus.PARTIAL_CONTENT)
+                        .body(new ResponseMessage(false, "No se pudo terminar la planifcacion"));
+            }
+        } catch (Exception e) {
+            // Si ocurre una excepción inesperada
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseMessage(false, "Error al terminar la planificacion"));
         }
     }
 }

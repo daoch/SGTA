@@ -58,3 +58,5 @@ export interface EstadoPlanificacion{
   nombre :string;
   activo : boolean;
 }
+
+export type OrigenBoton = "siguiente" | "terminar";
