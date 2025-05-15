@@ -3,15 +3,13 @@
 import {
   AlertTriangle,
   CheckCircle,
-  Clock,
   Eye,
   FileText,
-  Search,
+  Search
 } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "../../../components/ui/badge";
 import { Button } from "../../../components/ui/button";
-import { Progress } from "../../../components/ui/progress";
 import {
   Table,
   TableBody,
@@ -32,14 +30,13 @@ const revisionesData = [
     curso: "1INF42",
     fechaEntrega: "2023-10-15",
     fechaLimite: "2023-10-20",
-    estado: "completada",
+    estado: "aprobado",
     porcentajePlagio: 5,
     formatoValido: true,
     entregaATiempo: true,
     citadoCorrecto: true,
     observaciones: 3,
     ultimoCiclo: "2025-1",
-    documento: "Revisado",
   },
   {
     id: "2",
@@ -51,14 +48,13 @@ const revisionesData = [
     curso: "1INF46",
     fechaEntrega: "2023-11-02",
     fechaLimite: "2023-11-05",
-    estado: "en-proceso",
+    estado: "por-aprobar",
     porcentajePlagio: 12,
     formatoValido: false,
     entregaATiempo: true,
     citadoCorrecto: false,
     observaciones: 7,
     ultimoCiclo: "2025-1",
-    documento: "Por Aprobar",
   },
   {
     id: "3",
@@ -70,14 +66,13 @@ const revisionesData = [
     curso: "tesis2",
     fechaEntrega: "2023-09-28",
     fechaLimite: "2023-10-01",
-    estado: "completada",
+    estado: "aprobado",
     porcentajePlagio: 8,
     formatoValido: true,
     entregaATiempo: true,
     citadoCorrecto: true,
     observaciones: 2,
     ultimoCiclo: "2025-1",
-    documento: "Aprobado",
   },
   {
     id: "4",
@@ -89,14 +84,13 @@ const revisionesData = [
     curso: "1INF42",
     fechaEntrega: null,
     fechaLimite: "2023-11-25",
-    estado: "pendiente",
+    estado: "revisado",
     porcentajePlagio: null,
     formatoValido: null,
     entregaATiempo: null,
     citadoCorrecto: null,
     observaciones: 0,
     ultimoCiclo: "2024-2",
-    documento: "Por Aprobar",
   },
   {
     id: "5",
@@ -108,35 +102,34 @@ const revisionesData = [
     curso: "tesis1",
     fechaEntrega: "2023-11-10",
     fechaLimite: "2023-11-08",
-    estado: "completada",
+    estado: "revisado",
     porcentajePlagio: 15,
     formatoValido: true,
     entregaATiempo: false,
     citadoCorrecto: true,
     observaciones: 5,
     ultimoCiclo: "2023-2",
-    documento: "Aprobado",
   },
 ];
 
-interface RevisionesTableProps {
+interface RevisionesTableAsesorProps {
   filter?: string;
   searchQuery?: string;
   cursoFilter?: string;
 }
 
-export function RevisionesTable({
+export function RevisionesTableAsesor({
   filter,
   searchQuery = "",
   cursoFilter = "todos",
-}: RevisionesTableProps) {
+}: RevisionesTableAsesorProps) {
   // Filtrar las revisiones según los criterios
   let revisionesFiltradas = revisionesData;
 
   // Filtrar por estado
   if (filter) {
     revisionesFiltradas = revisionesFiltradas.filter(
-      (revision) => revision.documento === filter,
+      (revision) => revision.estado === filter,
     );
   }
 
@@ -163,14 +156,15 @@ export function RevisionesTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Documento</TableHead>
+              <TableHead>
+                <span className="ml-2">Documento</span>
+              </TableHead>
               <TableHead>Entregable</TableHead>
               <TableHead>Estudiante</TableHead>
               <TableHead>Curso</TableHead>
-              <TableHead>Estado</TableHead>
-              <TableHead>Plagio</TableHead>
+              <TableHead>Plagio (%)</TableHead>
+              <TableHead>Gen. IA (%)</TableHead>
               <TableHead>F. de Carga</TableHead>
-              <TableHead>Documento</TableHead>
               <TableHead>Ultimo Ciclo</TableHead>
               <TableHead>Acciones</TableHead>
             </TableRow>
@@ -213,36 +207,8 @@ export function RevisionesTable({
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={
-                        revision.estado === "completada"
-                          ? "bg-green-100 text-green-800 hover:bg-green-100"
-                          : revision.estado === "en-proceso"
-                            ? "bg-blue-100 text-blue-800 hover:bg-blue-100"
-                            : "bg-yellow-100 text-yellow-800 hover:bg-yellow-100"
-                      }
-                    >
-                      {revision.estado === "completada"
-                        ? "Completada"
-                        : revision.estado === "en-proceso"
-                          ? "En Proceso"
-                          : "Pendiente"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
                     {revision.porcentajePlagio !== null ? (
                       <div className="flex items-center gap-2">
-                        <Progress
-                          value={revision.porcentajePlagio}
-                          max={30}
-                          className={`h-2 w-16 ${revision.porcentajePlagio > 20
-                            ? "bg-red-200"
-                            : revision.porcentajePlagio > 10
-                              ? "bg-yellow-200"
-                              : "bg-green-200"
-                            }`}
-                        />
                         <span
                           className={
                             revision.porcentajePlagio > 20
@@ -259,7 +225,25 @@ export function RevisionesTable({
                       <span className="text-muted-foreground">-</span>
                     )}
                   </TableCell>
-
+                  <TableCell>
+                    {revision.porcentajePlagio !== null ? (
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={
+                            revision.porcentajePlagio > 20
+                              ? "text-red-600"
+                              : revision.porcentajePlagio > 10
+                                ? "text-yellow-600"
+                                : "text-green-600"
+                          }
+                        >
+                          {revision.porcentajePlagio}%
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground">-</span>
+                    )}
+                  </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       {revision.fechaLimite && (
@@ -272,14 +256,10 @@ export function RevisionesTable({
                       )}
                     </div>
                   </TableCell>
-
-                  <TableCell className="text-center ">
-                    {revision.documento}
-                  </TableCell>
-                  <TableCell className="text-center ">
+                  <TableCell className="text-start">
                     <div>{revision.ultimoCiclo}</div>
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-center">
                     <div className="flex items-center gap-0.5">
                       <Link href={`/revision/${revision.id}`}>
                         <Button variant="ghost" size="icon">
@@ -292,27 +272,27 @@ export function RevisionesTable({
                           variant="ghost"
                           size="sm"
                           className={
-                            revision.estado === "completada"
+                            revision.estado === "revisado"
                               ? "text-green-600"
-                              : revision.estado === "en-proceso"
+                              : revision.estado === "aprobado"
                                 ? "text-blue-600"
                                 : "text-yellow-600"
                           }
                         >
-                          {revision.estado === "completada" ? (
+                          {revision.estado === "revisado" ? (
                             <>
                               <CheckCircle className="mr-1 h-4 w-4" />
                               Revisado
                             </>
-                          ) : revision.estado === "en-proceso" ? (
+                          ) : revision.estado === "aprobado" ? (
                             <>
-                              <Clock className="mr-1 h-4 w-4" />
-                              Continuar
+                              <CheckCircle className="mr-1 h-4 w-4" />
+                              Aprobado
                             </>
                           ) : (
                             <>
                               <Search className="mr-1 h-4 w-4" />
-                              Revisar
+                              Por Aprobar
                             </>
                           )}
                         </Button>
