@@ -11,12 +11,12 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Eye, History } from "lucide-react";
-import { Tema, TemaUI } from "@/app/types/temas/entidades";
+import { Tema } from "@/app/types/temas/entidades";
 import { asesorData } from "@/app/types/temas/data";
-import { TabValues } from "@/app/types/temas/enums";
+import { Tipo } from "@/app/types/temas/enums";
 
 interface TemaDetailsDialogProps {
-  tema: TemaUI;
+  tema: Tema;
 }
 
 /**
@@ -154,7 +154,7 @@ export const TemaDetailsDialog: React.FC<TemaDetailsDialogProps> = ({
             Ver historial de cambios
           </Button>
           <Button variant="outline">Cerrar</Button>
-          {tema.tipo === TabValues.LIBRE && (
+          {tema.estadoTemaNombre === Tipo.LIBRE && (
             <Button variant="default">Inscribir Tema</Button>
           )}{" "}
         </DialogFooter>

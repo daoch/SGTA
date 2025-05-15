@@ -28,18 +28,15 @@ import {
   TemaForm,
   Tesista,
 } from "@/app/types/temas/entidades";
-import {
-  coasesoresDisponibles,
-  estudiantesDisponibles,
-  areasDeInvestigacion,
-  temaVacio,
-  asesorData,
-} from "@/app/types/temas/data";
+import { asesorData, temaVacio } from "@/app/types/temas/data";
 import ItemSelector from "./item-selector";
 
 interface NuevoTemaDialogProps {
   isOpen: boolean;
   setIsNuevoTemaDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  coasesoresDisponibles: Coasesor[];
+  estudiantesDisponibles: Tesista[];
+  subareasDisponibles: AreaDeInvestigacion[];
 }
 
 enum TipoRegistro {
@@ -56,6 +53,9 @@ enum TipoRegistro {
 const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
   isOpen,
   setIsNuevoTemaDialogOpen,
+  coasesoresDisponibles,
+  estudiantesDisponibles,
+  subareasDisponibles,
 }) => {
   const [temaData, setTemaData] = useState<Tema>(temaVacio);
   const [tipoRegistro, setTipoRegistro] = useState(TipoRegistro.NONE);
@@ -154,14 +154,16 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
    */
   const handleGuardar = async () => {
     try {
-      const baseUrl = "http://localhost:5000/";
-      const response = await fetch(`${baseUrl}temas/createInscripcion`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}temas/createInscripcion`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(temaData),
         },
-        body: JSON.stringify(temaData),
-      });
+      );
 
       if (!response.ok) {
         throw new Error("Error al guardar el tema");
@@ -191,13 +193,13 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
   };
 
   const onSelectSubarea = (nombre: string) => {
-    const selectedArea = areasDeInvestigacion.find((a) => a.nombre === nombre);
+    const selectedArea = subareasDisponibles.find((a) => a.nombre === nombre);
     setAreaSeleccionada(selectedArea || null);
   };
 
   const onEstudianteSeleccionado = (nombres: string) => {
     const selectedEstudiante = estudiantesDisponibles.find(
-      (estudiante) => estudiante.nombres === nombres,
+      (e) => e.nombres === nombres,
     );
     setEstudianteSeleccionado(selectedEstudiante || null);
   };
@@ -252,7 +254,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
             {/* Subareas */}
             <ItemSelector
               label="Subáreas"
-              itemsDisponibles={areasDeInvestigacion}
+              itemsDisponibles={subareasDisponibles}
               itemsSeleccionados={temaData.subareas}
               itemKey="id"
               itemLabel="nombre"
@@ -275,7 +277,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
                   <SelectValue placeholder="Seleccione un área" />
                 </SelectTrigger>
                 <SelectContent>
-                  {areasDeInvestigacion.map((area) => (
+                  {subareasDisponibles.map((area) => (
                     <SelectItem key={area.key} value={area.key}>
                       {area.name}
                     </SelectItem>

@@ -1,7 +1,7 @@
 "use client";
 
 import { asesorData, temasDataMock } from "@/app/types/temas/data";
-import { Tema, TemaUI } from "@/app/types/temas/entidades";
+import { Tema, Tesista } from "@/app/types/temas/entidades";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
@@ -18,31 +18,32 @@ import { CheckCircle, Eye, Send, X, FilePen, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import DeleteTemaPopUp from "./delete-tema-pop-up";
 import { TemaDetailsDialog } from "./tema-details-modal";
-import { estadosValues, TabValues } from "@/app/types/temas/enums";
+import { estadosValues, Tipo } from "@/app/types/temas/enums";
 
 interface PropuestasTableProps {
   filter?: string;
 }
 
 const TEST = false;
+const fetchTemasAPI = async (rol: string, estado: string) => {
+  const url = `${process.env.NEXT_PUBLIC_API_URL}temas/listarTemasPorUsuarioRolEstado/${asesorData.id}?rolNombre=${rol}&estadoNombre=${estado}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error("Error al cargar los datos");
+  }
+  const data: Tema[] = await response.json();
+  return data;
+};
 
 /**
  * Muestra en una tabla la lista de temas dado un filtro inicial
- * @param filter
- * @returns TemasTable
+ * @argument filter Permite filtrar los temas
+ * @returns Tabla de temas filtrados
  */
 export function TemasTable({ filter }: PropuestasTableProps) {
-  const [temasData, setTemasData] = useState<TemaUI[]>(
-    TEST ? temasDataMock : [],
-  );
+  const [temasData, setTemasData] = useState<Tema[]>(TEST ? temasDataMock : []);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-
-  const getUrlListTemas = (rol: string, estado: string) => {
-    const baseUrl = "http://localhost:5000/";
-    const apiRoute = "temas/listarTemasPorUsuarioRolEstado/";
-    return `${baseUrl}${apiRoute}${asesorData.id}?rolNombre=${rol}&estadoNombre=${estado}`;
-  };
 
   useEffect(() => {
     const fetchTemas = async () => {
@@ -50,31 +51,9 @@ export function TemasTable({ filter }: PropuestasTableProps) {
         setIsLoading(true);
         setError(null);
         if (!TEST) {
-          // List temas de tipo INSCRITO
-          const response = await fetch(getUrlListTemas("Asesor", "INSCRITO"));
-          if (!response.ok) {
-            throw new Error("Error al cargar los datos");
-          }
-
-          const data: Tema[] = await response.json();
-          const temasInscritos: TemaUI[] = data.map((t) => ({
-            ...t,
-            tipo: TabValues.INSCRITO,
-          }));
-          setTemasData((prev) => [...prev, ...temasInscritos]);
-
-          // List temas de tipo LIBRE
-          // const response = await fetch(getUrlListTemas("Asesor", "INSCRITO"));
-          // if (!response.ok) {
-          //   throw new Error("Error al cargar los datos");
-          // }
-
-          // const data: Tema[] = await response.json();
-          // const temasInscritos: TemaUI[] = data.map((t) => ({
-          //   ...t,
-          //   tipo: TabValues.INSCRITO,
-          // }));
-          // setTemasData((prev) => [...prev, ...temasInscritos]);
+          const inscritosData = await fetchTemasAPI("Asesor", "INSCRITO");
+          const libresData = await fetchTemasAPI("Asesor", "PROPUESTO_LIBRE");
+          setTemasData([...inscritosData, ...libresData]);
         }
       } catch (err: any) {
         setError("Error desconocido: " + err.message);
@@ -87,8 +66,8 @@ export function TemasTable({ filter }: PropuestasTableProps) {
   }, []);
 
   const propuestasFiltradas = temasData.filter((tema) => {
-    if (!filter || filter === "todos") return true;
-    return tema.tipo === filter;
+    if (!filter || filter === Tipo.TODOS) return true;
+    return tema.estadoTemaNombre === filter;
   });
 
   if (isLoading) {
@@ -146,7 +125,7 @@ export function TemasTable({ filter }: PropuestasTableProps) {
                   <TableCell>
                     {!tema.tesistas
                       ? "Sin asignar"
-                      : tema.tesistas.map((e) => e.nombres).join(", ")}
+                      : tema.tesistas.map((e: Tesista) => e.nombres).join(", ")}
                   </TableCell>
                   {/* Postulaciones */}
                   <TableCell>
@@ -170,12 +149,12 @@ export function TemasTable({ filter }: PropuestasTableProps) {
                     <Badge
                       variant="outline"
                       className={
-                        tema.tipo === TabValues.LIBRE
+                        tema.estadoTemaNombre === Tipo.LIBRE
                           ? "bg-blue-100 text-blue-800 hover:bg-blue-100"
                           : "bg-green-100 text-green-800 hover:bg-green-100"
                       }
                     >
-                      {titleCase(tema.tipo)}
+                      Libre
                     </Badge>
                   </TableCell>
                   <TableCell>{"2025-1"}</TableCell>
@@ -184,8 +163,8 @@ export function TemasTable({ filter }: PropuestasTableProps) {
                       {/* View Details */}
                       <TemaDetailsDialog tema={tema} />
                       {/* Edit Page */}
-                      {[TabValues.INSCRITO, TabValues.LIBRE].includes(
-                        tema.tipo as TabValues,
+                      {[Tipo.INSCRITO, Tipo.LIBRE].includes(
+                        tema.estadoTemaNombre as Tipo,
                       ) && (
                         <Button
                           variant="ghost"
@@ -197,8 +176,8 @@ export function TemasTable({ filter }: PropuestasTableProps) {
                         </Button>
                       )}
                       {/* Delete */}
-                      {[TabValues.INSCRITO, TabValues.LIBRE].includes(
-                        tema.tipo as TabValues,
+                      {[Tipo.INSCRITO, Tipo.LIBRE].includes(
+                        tema.estadoTemaNombre as Tipo,
                       ) && (
                         <DeleteTemaPopUp
                           temaName={tema.titulo}
