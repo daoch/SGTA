@@ -208,7 +208,7 @@ INSERT INTO usuario (tipo_usuario_id,
                      fecha_creacion,
                      fecha_modificacion)
     VALUES (1, 'P090', 'Edwin Rafael', 'Villanueva', 'Talavera', 'e.villanueva00@pucp.edu.pe', 'Doctorado', 'edwinpass', 'Profesor de Inteligencia Artificial', NULL, 'Mar-Vie 10-13', 'Presencial', 1, TRUE, NOW(), NOW()),
-           (1, 'P091', 'César Armando', 'Beltrán', 'Castañón', 'c.beltran00@pucp.edu.pe', 'Maestría', 'cesarpass', 'Profesor de Machine Learning', NULL, 'Lun-Mié 8-11', 'Presencial', 1, TRUE,  now(),  now());
+           (1, 'P091', 'César Armando', 'Beltrán', 'Castañón', 'c.beltran00@pucp.edu.pe', 'Maestría', 'cesarpass', 'Profesor de Machine Learning', NULL, 'Lun-Mié 8-11', 'Presencial', 1, TRUE, NOW(), NOW());
 
 -- 2) Relación usuario_carrera (cada usuario con su carrera)
 INSERT INTO usuario_carrera (usuario_id,
