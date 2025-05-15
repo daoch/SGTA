@@ -155,7 +155,7 @@ export interface TesisDetalleExposicion {
       fechaFin: string;
       sala: string;
     }[];
-  };
+  }[];
 }
 
 

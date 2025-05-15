@@ -378,10 +378,10 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
     public List<MiembroJuradoXTemaDto> findTemasDeOtrosJurados(Integer usuarioId) {
         List<UsuarioXTema> relacionesJurado = usuarioXTemaRepository.findAll().stream()
                 .filter(ut -> ut.getActivo())
-                .filter(ut -> ut.getRol().getId().equals(2))
+                .filter(ut -> ut.getRol().getId().equals(4))
                 .filter(ut -> !ut.getUsuario().getId().equals(usuarioId))
                 .filter(ut -> esEstadoTemaValido(ut.getTema().getEstadoTema()))
-                .filter(ut -> usuarioXTemaRepository.countByTemaIdAndActivoTrue(ut.getTema().getId()) < 3)
+                .filter(ut -> usuarioXTemaRepository.countByRolIdAndActivoTrue(ut.getTema().getId()) < 3)
                 .toList();
 
         return relacionesJurado.stream()

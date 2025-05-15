@@ -232,18 +232,18 @@ export const getExposicionesTema = async (
       })),
       
       // Para la etapa formativa, tomamos la primera (podría necesitar ajustes según tu lógica)
-      etapaFormativaTesis: {
-        id: data.etapas_formativas[0].id,
-        nombre: data.etapas_formativas[0].nombre,
-        exposiciones: data.etapas_formativas[0].exposiciones.map((expo: any) => ({
+      etapaFormativaTesis: data.etapas_formativas.map((etapa: any) => ({
+        id: etapa.id,
+        nombre: etapa.nombre,
+        exposiciones: etapa.exposiciones.map((expo: any) => ({
           id: expo.id,
           nombre: expo.nombre,
-          estado: expo.estado_exposición,
-          fechaInicio: expo.datetime_inicio,
-          fechaFin: expo.datetime_fin,
-          sala: expo.sala_exposicion,
+          estado_exposición: expo.estado_exposición,
+          datetime_inicio: expo.datetime_inicio,
+          datetime_fin: expo.datetime_fin,
+          sala_exposicion: expo.sala_exposicion,
         })),
-      },
+      })),
     };
   } catch (error) {
     console.error("Error al obtener exposiciones del tema:", error);
@@ -252,11 +252,7 @@ export const getExposicionesTema = async (
       estudiantes: [],
       asesores: [],
       miembrosJurado: [],
-      etapaFormativaTesis: {
-        id: 0,
-        nombre: "",
-        exposiciones: [],
-      },
+      etapaFormativaTesis: [],
     };
   }
 }; 
