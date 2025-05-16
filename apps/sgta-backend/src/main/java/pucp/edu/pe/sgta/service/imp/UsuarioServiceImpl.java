@@ -55,9 +55,6 @@ public class UsuarioServiceImpl implements UsuarioService {
 	@Autowired
     private RolRepository rolRepository;
 
-	@Autowired
-    private RolRepository rolRepository;
-
 	@PersistenceContext
     private EntityManager em;
 
