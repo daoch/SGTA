@@ -23,7 +23,7 @@ export default function Draggable(props: DraggableProps) {
   // Estilo del contenedor raíz: movimiento y cursor
   const rootStyle = {
     transform: translate,
-    zIndex: isDragging ? 999 : undefined,
+    //zIndex: isDragging ? 900 : undefined,
     cursor: props.isDraggeable ? (isDragging ? "grabbing" : "grab") : "default",
   } as React.CSSProperties;
 

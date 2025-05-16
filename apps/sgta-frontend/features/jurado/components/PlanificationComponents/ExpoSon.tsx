@@ -25,7 +25,7 @@ const ExpoSon: React.FC<Props> = ({ expoFind, removeExpo,estadoPlan }: Props) =>
   //B0EBD8
   return (
     <div      
-      className="relative group"
+      className="relative group z-10"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}>
         
@@ -38,6 +38,7 @@ const ExpoSon: React.FC<Props> = ({ expoFind, removeExpo,estadoPlan }: Props) =>
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
+        
           }}
         onClick={handleClick}
       >
@@ -46,7 +47,11 @@ const ExpoSon: React.FC<Props> = ({ expoFind, removeExpo,estadoPlan }: Props) =>
 
       {hovered && expoFind && !isDragging && (
         <div 
-        className="block text-left absolute left-full mb-2 transform -translate-x-1/2 z-1000">
+        className="block text-left absolute top-full mb-2 transform -translate-x-1/2 z-[999]"
+        style={{
+          top: 0, // asegurarte que no se solape verticalmente
+        }}
+        >
           <ToolTipoBloque expoFind = {expoFind}/>
         </div>
       )}

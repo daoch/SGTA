@@ -8,17 +8,11 @@ interface Props {
 export default function ToolTipoBloque({expoFind}:Props){
 
   
-
-    const asesor = {
-        nombre : "Edwin Villanueva"
-    };
-
- 
-
-
-    
+    console.log(expoFind);    
+     const roles = expoFind?.usuarios?.filter(u => u.rol?.nombre === "Jurado");
+     console.log({roles});    
     return(
-        <div className="bg-gray-200 w-72 p-6 text-black  rounded-2xl border-gray-400 border-2 leading-7"  >
+        <div className="z-40 bg-gray-200 w-72 p-6 text-black  rounded-2xl border-gray-400 border-2 leading-7"  >
 
             <div>
                 <section>
@@ -44,13 +38,23 @@ export default function ToolTipoBloque({expoFind}:Props){
                        <strong>Jurados</strong>
                    
                     <ul>
-                        {expoFind?.jurados?.map(j=>(
-                            <li className="ml-4" key={j?.name}>• {j?.name}</li>
+                    {expoFind?.usuarios
+                    ?.filter(u => u.rol?.nombre === "Jurado")
+                    .map(j => (
+                        <li className="ml-4" key={j.idUsario}>
+                         {j.nombres} {j.apellidos}
+                        </li>
                         ))}
                     </ul>                    
                     <div className="flex flex-col">
                         <strong>Asesor</strong>
-                        <p className="ml-4">{asesor.nombre}</p>
+                        {expoFind?.usuarios
+                        ?.filter(u => u.rol?.nombre === "Asesor")
+                        .map(a => (
+                            <p className="ml-4" key={a.idUsario}>
+                            {a.nombres} {a.apellidos}
+                            </p>
+                        ))}
                     </div>
                 </div>
             </div>
