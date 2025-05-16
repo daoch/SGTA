@@ -9,10 +9,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset>
+      <div className="h-screen w-full flex flex-1 flex-col">
         <AppHeader />
-        <AppMain>{children}</AppMain>
-      </SidebarInset>
+        <SidebarInset className="flex-1 overflow-hidden">
+          <AppMain>{children}</AppMain>
+        </SidebarInset>
+      </div>
     </SidebarProvider>
   );
 }

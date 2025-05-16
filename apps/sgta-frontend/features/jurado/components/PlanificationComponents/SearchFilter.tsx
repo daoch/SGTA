@@ -9,7 +9,8 @@ import {
 
 import { useState } from "react";
 import { AreaEspecialidad } from "../../types/jurado.types";
-
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
 interface Props {
   topics: AreaEspecialidad[];
@@ -22,21 +23,21 @@ const SearchFilter: React.FC<Props> = ({ topics }) => {
   function handleSearch(term: string) {}
 
   return (
-    <div className="relative flex flex-1 flex-shrink-0 gap-4">
-      <label htmlFor="search" className="sr-only">
-        Search
-      </label>
-      <input
-        className="peer block w-full rounded-md border border-gray-200 py-[9px] pl-2 text-sm outline-2 placeholder:text-gray-500"
-        placeholder={placeholder}
-        onChange={(e) => {
-          handleSearch(e.target.value);
-        }}
-      />
+    <div className="flex gap-4">
+      <div>
+        <Label>Buscar</Label>
+        <Input
+          placeholder={placeholder}
+          onChange={(e) => {
+            handleSearch(e.target.value);
+          }}
+        />
+      </div>
+      <div>
+        <Label>Filtros</Label>
+      </div>
       <DropdownMenu>
-        <DropdownMenuTrigger className="w-1/2 border-gray-300 border-2 rounded-lg text-left p-1">
-          {selectedEspecialidad}
-        </DropdownMenuTrigger>
+        <DropdownMenuTrigger>{selectedEspecialidad}</DropdownMenuTrigger>
         <DropdownMenuContent>
           <DropdownMenuGroup>
             {topics.map((top: AreaEspecialidad) => (
@@ -50,4 +51,3 @@ const SearchFilter: React.FC<Props> = ({ topics }) => {
 };
 
 export default SearchFilter;
-

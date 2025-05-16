@@ -5,10 +5,9 @@ export interface Jurado {
 
 export interface Tema {
   id: number;
-  codigo : string;
-  titulo : string;
-  asesor: string;
-  jurados: Jurado[];
+  codigo: string;
+  titulo: string;
+  usuarios: Usuario[];
 }
 
 export interface AreaEspecialidad {
@@ -24,13 +23,13 @@ export interface AreaEspecialidad {
 export interface SalaExposicion {
   id: number;
   nombre: string;
-  buyse:false;
+  buyse: false;
 }
 
 export interface JornadaExposicionSalas {
   jornadaExposicionId: number;
   datetimeInicio: Date;
-  datetimeFin: Date; 
+  datetimeFin: Date;
   salasExposicion: SalaExposicion[];
 }
 
@@ -48,15 +47,15 @@ export interface TimeSlot {
   idBloque: number;
   idJornadaExposicionSala: number;
   expo?: Tema;
-  idExposicion?:number;
+  idExposicion?: number;
   esBloqueReservado?: boolean;
-  esBloqueBloqueado?:boolean;
+  esBloqueBloqueado?: boolean;
 }
 
-export interface EstadoPlanificacion{
-  id : number;
-  nombre :string;
-  activo : boolean;
+export interface EstadoPlanificacion {
+  id: number;
+  nombre: string;
+  activo: boolean;
 }
 
 export interface Estudiante {
@@ -91,4 +90,17 @@ export interface EtapaFormativaExposiciones {
   nombre: string;
   exposiciones: Exposicion[];
 }
+
+export interface Usuario {
+  idUsario: number;
+  nombres: string;
+  apellidos: string;
+  rol: Rol;
+}
+
+export interface Rol {
+  id: number;
+  nombre: string;
+}
+
 export type OrigenBoton = "siguiente" | "terminar";

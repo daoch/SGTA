@@ -6,24 +6,23 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Bot } from "lucide-react";
 import React from "react";
 const CardSugerenciaDistribucion: React.FC = () => {
   return (
-    <Card className="border-2 border-gray-300">
+    <Card className="py-5">
       <CardHeader>
         <CardTitle>
           ¿Deseas automatizar la distribución de exposiciones?
         </CardTitle>
-        <div className="flex flex-col xl:flex-row justify-between">
-          <CardDescription className="w-full xl:w-2/3 ">
-            Esta planificación toma en cuenta diversos factores como el tipo de
-            dedicación del miembro de docente, área de especialidad, entre otros
-            factores.
-          </CardDescription>
-          <Button
-            className="w-full xl:w-auto"
-            style={{ background: "#042354" }}
-          >
+        <CardDescription>
+          Esta planificación toma en cuenta diversos factores como el tipo de
+          dedicación del miembro de docente, área de especialidad, entre otros
+          factores.
+        </CardDescription>
+        <div className="flex justify-end">
+          <Button className="w-fit">
+            <Bot />
             Generar Distribución
           </Button>
         </div>

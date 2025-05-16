@@ -14,26 +14,29 @@ interface Props {
 
 const CardTemaExposicion: React.FC<Props> = ({ exposicion }) => {
   return (
-    <Card
-      className="border-2 border-gray-300 "
-      style={{ backgroundColor: "#F9FAFB" }}
-    >
+    <Card>
       <CardHeader className="">
         <CardTitle>
           {exposicion.codigo} - {exposicion.titulo}
         </CardTitle>
-        <CardDescription className="text-black">
-          <span>
-            {" "}
-            <span className="font-semibold">Asesor: </span> {exposicion?.asesor}
-          </span>
+        <CardDescription>
+          <strong>Asesor :</strong>
+          {exposicion?.usuarios
+            ?.filter((u) => u.rol?.nombre === "Asesor")
+            .map((a) => (
+              <p className="ml-4" key={a.idUsario}>
+                {a.nombres} {a.apellidos}
+              </p>
+            ))}
           <br />
           <span className="font-semibold"> Jurados: </span>
-          {exposicion?.jurados?.map((jurado: Jurado) => (
-            <span key={jurado.code} className="mr-2">
-              {jurado.name}
-            </span>
-          ))}
+          {exposicion?.usuarios
+            ?.filter((u) => u.rol?.nombre === "Jurado")
+            .map((j) => (
+              <li className="ml-4" key={j.idUsario}>
+                {j.nombres} {j.apellidos}
+              </li>
+            ))}
         </CardDescription>
       </CardHeader>
     </Card>
