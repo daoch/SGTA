@@ -12,7 +12,8 @@ import { useRequestTerminationAdvisorPerThematicArea } from "@/features/asesores
 import CessationRequestPagination from "@/features/asesores/components/cessation-request/pagination-cessation-request";
 import { useCessationRequestAssignmentStore } from "@/features/asesores/store/assignment-cessation-request";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import Image from "next/image";
+import { Image } from "@radix-ui/react-avatar";
+
 
 
 

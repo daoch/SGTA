@@ -15,7 +15,8 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { differenceInDays, format } from "date-fns";
 import { useApproveTerminationRequest, useRequestTerminationDetail } from "@/features/asesores/queries/cessation-request";
 import { useCessationRequestAssignmentStore } from "../../store/assignment-cessation-request";
-import Image from "next/image";
+import { Image } from "@radix-ui/react-avatar";
+
 
 
 

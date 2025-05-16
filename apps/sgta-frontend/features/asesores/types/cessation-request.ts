@@ -104,7 +104,7 @@ export interface IRequestTerminationConsultancyStudentDetail extends IRequestTer
 	"email": string
 	"urlPhoto": string
 	"thematicAreas": Array<ICessationRequestThematicArea>
-  "advisorId": number | null
+  	"advisorId": number | null
 }
 
 export type IRequestTerminationConsultancyRequestStatus = "pending" | "approved" | "rejected";

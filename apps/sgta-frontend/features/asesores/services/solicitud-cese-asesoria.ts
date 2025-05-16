@@ -1,4 +1,6 @@
-import { ITerminationConsultancyRequest, IRequestTerminationConsultancySearchFields, IListAvailableAdvisorList, ICessationRequestSearchCriteriaAvailableAdvisorList, ITerminationConsultancyRequestFetched, IRequestTerminationConsultancyRequestDataViewDetail, IRequestTerminationConsultancyRequestDataViewDetailFetched } from "@/features/asesores/types/cessation-request";
+import { ITerminationConsultancyRequest, IRequestTerminationConsultancySearchFields, IListAvailableAdvisorList, ICessationRequestSearchCriteriaAvailableAdvisorList, ITerminationConsultancyRequestFetched, IRequestTerminationConsultancyRequestDataViewDetail, IRequestTerminationConsultancyRequestDataViewDetailFetched, IRequestTerminationConsultancyRequestData, IRequestTerminationConsultancyRequestDataFetched } from "@/features/asesores/types/cessation-request";
+import { mockCessationRequests } from "../mocks/requests/cessation-request";
+import { mockAssessors } from "../mocks/requests/assessor";
 
 
 
@@ -7,8 +9,8 @@ import { ITerminationConsultancyRequest, IRequestTerminationConsultancySearchFie
 export async function getTerminationConsultancyList(
     searchCriteria: IRequestTerminationConsultancySearchFields
 ): Promise<ITerminationConsultancyRequest> {
-    const BASE_URL = process.env.BASE_URL??"http://localhost:5000/";
     const ELEMENTS_PER_PAGE = 10;
+    const BASE_URL = process.env.BASE_URL??"http://localhost:5000/";
     const urlFetch = `${BASE_URL}coordinators/cessation-requests?page=${searchCriteria.page}&size=${ELEMENTS_PER_PAGE}`;
     
     try {
@@ -42,7 +44,9 @@ export async function getTerminationConsultancyList(
             "requestTermmination": 	[],
 	        "totalPages": 0
         };
-    }    
+    }
+    
+
 }
   
 // Service to reject a consultancy termination request
@@ -74,6 +78,8 @@ export async function rejectTerminationConsultancyRequest(
     console.error(`Error al hacer POST en ${url}:`, error);
     throw error;
   }
+  
+  
 }
 
 // Service to approve a consultancy termination request
@@ -111,6 +117,7 @@ export async function approveTerminationConsultancyRequest(
 export async function getTerminationConsultancyRequest(
     idRequest: number | null
 ): Promise<IRequestTerminationConsultancyRequestDataViewDetail | null> {
+    
     const BASE_URL = process.env.BASE_URL??"http://localhost:5000/";
     const url = `${BASE_URL}coordinators/coordinators/cessation-requests/viewDetail`;
     
@@ -147,6 +154,7 @@ export async function getTerminationConsultancyRequest(
         console.error(`Error al hacer POST en ${url}:`, error);
         return null;
     }
+
 }
 
 
@@ -155,7 +163,8 @@ export async function getTerminationConsultancyRequest(
 export async function getTerminationRequestAssessorList(
     searchCriteriaAvailableAdvisorList: ICessationRequestSearchCriteriaAvailableAdvisorList
 ): Promise<IListAvailableAdvisorList | null> {
-    const ELEMENTS_PER_PAGE = 10;
+    const ELEMENTS_PER_PAGE = 10;  
+  
     const BASE_URL = process.env.BASE_URL??"http://localhost:5000/";
     const url = `${BASE_URL}coordinators/cessation-requests/assessors/list`;
     try {
@@ -183,5 +192,6 @@ export async function getTerminationRequestAssessorList(
         console.error(`Error al hacer POST en ${url}:`, error);
         return null;
     }
+    
     
 }

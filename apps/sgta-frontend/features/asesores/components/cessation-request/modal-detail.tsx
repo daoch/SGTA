@@ -13,10 +13,10 @@ import {
 } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { IRequestTerminationConsultancyRequestData } from "@/features/asesores/types/cessation-request";
-import { Avatar, AvatarFallback } from "@radix-ui/react-avatar";
+import { Avatar, AvatarFallback, Image } from "@radix-ui/react-avatar";
 import { differenceInDays, format } from "date-fns";
 import { useRequestTerminationDetail } from "../../queries/cessation-request";
-import Image from "next/image";
+
 
 interface ApproveCessationModalProps {
   isOpen: boolean;

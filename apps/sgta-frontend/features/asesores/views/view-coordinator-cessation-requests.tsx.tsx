@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { useCessationRequestSearchCriteriaStore } from "@/features/asesores/store/cessation-request-filters";
 import RequestSearchFilters from "@/features/asesores/components/cessation-request/search-filters-request-list";
@@ -16,19 +16,24 @@ import { ISelectRequestCessationOptions, ITerminationConsultancyRequest } from "
 
 
 const Page = () => {
-    const {fullNameEmail, page, status, setPage, clear, setStatusTabFilter, setFullNameEmailPage, clearFullNameEmailPage} = useCessationRequestSearchCriteriaStore();
+    const {fullNameEmail, page, status, setPage, clear, setStatusTabFilter, setFullNameEmailPage} = useCessationRequestSearchCriteriaStore();
     const initialStateOption = {id: null, option: null, openModal: false};
     const [ selectOption, setSelectOption ] = useState<ISelectRequestCessationOptions>(initialStateOption);
     const [ data, setData ] = useState<ITerminationConsultancyRequest | null>(null);
     const [ isLoading, setIsLoading ] = useState<boolean>(true);
     
-    const fetchRequests = async () => {
+    const fetchRequests = useCallback(async () => {
+    
         setIsLoading(true);
-        const data = await getTerminationConsultancyList({"fullNameEmail": fullNameEmail, "status": status, "page": page});
-        if (data)
-            setData(data);
+        const data = await getTerminationConsultancyList({
+            fullNameEmail,
+            status,
+            page,
+        });
+        if (data) setData(data);
         setIsLoading(false);
-    };
+        
+    }, [fullNameEmail, status, page]);
 
     const handlePageChange = (page: number) => {
         setPage(page);
@@ -36,12 +41,12 @@ const Page = () => {
 
     useEffect(()=>{
         clear();
-    }, []);
+    }, [clear]);
 
 
     useEffect(()=>{
         fetchRequests();
-    }, [fullNameEmail, page, status]);
+    }, [fullNameEmail, page, status, fetchRequests]);
 
 
     const handleRefetch = async () =>{
@@ -70,7 +75,6 @@ const Page = () => {
                         onSearchChange={setFullNameEmailPage}
                         statusValue={status}
                         onStatusValueChange={setStatusTabFilter}
-                        clearTerm={clearFullNameEmailPage}
                     />
                     }
                 </Card>

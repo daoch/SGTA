@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import Image from "next/image";
+import { Avatar, AvatarFallback, Image } from "@radix-ui/react-avatar";
+
 
 export function StudentList() {
   const { students, selectedStudent, selectStudent } = useCessationRequestAssignmentStore();
@@ -56,11 +57,17 @@ export function StudentList() {
               />
 
               <div className="relative h-10 w-10 rounded-full overflow-hidden">
+                <Avatar>
+                {student.urlPhoto?
                 <Image
                   src={student.urlPhoto ?? "/placeholder.svg"}
                   alt={`${student.name} ${student.lastName}`}
                   className="object-cover h-full w-full"
                 />
+                :
+                <AvatarFallback/>
+                }
+                </Avatar>
                 {isAssigned && (
                   <div className="absolute -bottom-1 -right-1 bg-white dark:bg-background rounded-full">
                     <CheckCircle className="h-4 w-4 text-green-500" />

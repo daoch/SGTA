@@ -12,7 +12,8 @@ import { IAssessorChangeAvailableAssessorsListProps, IAssessorChangeRequestSearc
 import AssessorChangeRequestPagination from "@/features/asesores/components/assessor-change-request/pagination-assessor-change-request";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAssessorChangeRequestAdvisorPerThematicArea } from "../../queries/assessor-change-request";
-import Image from "next/image";
+import { Image } from "@radix-ui/react-avatar";
+
 
 
 

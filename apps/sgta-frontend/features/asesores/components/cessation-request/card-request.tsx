@@ -17,7 +17,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
 import { ICessationRequestCardProps, IRequestTerminationConsultancyRequestData } from "@/features/asesores/types/cessation-request";
-import Image from "next/image";
+import { Image } from "@radix-ui/react-avatar";
+
 
 
 

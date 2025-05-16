@@ -12,7 +12,8 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ICessationRequestHistoryTableProps, IRequestTerminationConsultancyRequestData } from "@/features/asesores/types/cessation-request";
 import { differenceInDays, format } from "date-fns";
-import Image from "next/image";
+import { Image } from "@radix-ui/react-avatar";
+
 
 const RequestHistoryTable: React.FC<ICessationRequestHistoryTableProps> = ({
   requests,
