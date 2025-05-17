@@ -14,34 +14,29 @@ interface Props {
 
 const CardTemaExposicion: React.FC<Props> = ({ exposicion }) => {
   return (
-    <Card
-      className="border-2 border-gray-300 "
-      style={{ backgroundColor: "#F9FAFB" }}
-    >
-      <CardHeader className="">
+    <Card>
+      <CardHeader className="select-none">
         <CardTitle>
           {exposicion.codigo} - {exposicion.titulo}
         </CardTitle>
-        <CardDescription className="text-black">
-          <span>
-            <strong>Asesor :</strong>
-            {exposicion?.usuarios
-                        ?.filter(u => u.rol?.nombre === "Asesor")
-                        .map(a => (
-                            <p className="ml-4" key={a.idUsario}>
-                            {a.nombres} {a.apellidos}
-                            </p>
-                        ))}
-          </span>
-          <br />
-          <strong > Jurados: </strong>
+        <CardDescription>
+          <strong>Asesor :</strong>
           {exposicion?.usuarios
-                    ?.filter(u => u.rol?.nombre === "Jurado")
-                    .map(j => (
-                        <li className="ml-4" key={j.idUsario}>
-                         {j.nombres} {j.apellidos}
-                        </li>
-                        ))}
+            ?.filter((u) => u.rol?.nombre === "Asesor")
+            .map((a) => (
+              <p className="ml-4" key={a.idUsario}>
+                {a.nombres} {a.apellidos}
+              </p>
+            ))}
+          <br />
+          <span className="font-semibold"> Jurados: </span>
+          {exposicion?.usuarios
+            ?.filter((u) => u.rol?.nombre === "Jurado")
+            .map((j) => (
+              <li className="ml-4" key={j.idUsario}>
+                {j.nombres} {j.apellidos}
+              </li>
+            ))}
         </CardDescription>
       </CardHeader>
     </Card>
