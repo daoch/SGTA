@@ -20,6 +20,7 @@ export type Exposicion = {
   fechaHora: Date;
   sala: string;
   estado: ExposicionEstado;
+  id_etapa_formativa: number;
   titulo: string;
   miembros: Miembro[];
 };

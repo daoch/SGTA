@@ -6,6 +6,11 @@ import { ExposicionCard } from "@/features/jurado/components/exposicion-card";
 import ModalDetallesExposicion from "../../components/modal-detalles-exposicion";
 import { Exposicion } from "../../types/exposicion.types";
 import { FilterExposicionJurado } from "../../components/filters-exposicion-jurado";
+import { getEtapasFormativasNombres, getCiclos } from "../../services/jurado-service";
+import {
+  EtapaFormativa,
+  Ciclo,
+} from "@/features/jurado/types/juradoDetalle.types";
 
 const periodos = [
   { value: "2025-1", label: "2025-1" },
@@ -34,6 +39,7 @@ const exposiciones: Exposicion[] = [
     fechaHora: new Date("2025-10-15T09:00:00"),
     sala: "A501", // Sala diferente
     estado: "esperando_respuesta",
+    id_etapa_formativa: 1, // ID de etapa formativa diferente
     titulo:
       "Desarrollo de un Sistema de Recomendación Musical Basado en Redes Neuronales Convolucionales", // Título diferente
     miembros: [
@@ -45,9 +51,10 @@ const exposiciones: Exposicion[] = [
   },
   {
     id_exposicion: 2,
-    fechaHora: new Date("2025-10-15T10:00:00"),
+    fechaHora: new Date("2025-05-04T10:00:00"),
     sala: "B210", // Sala diferente
     estado: "esperando_respuesta",
+    id_etapa_formativa: 1,
     titulo:
       "Optimización de Rutas de Entrega Urbana Utilizando Algoritmos Genéticos y Datos de Tráfico en Tiempo Real", // Título diferente
     miembros: [
@@ -59,9 +66,10 @@ const exposiciones: Exposicion[] = [
   },
   {
     id_exposicion: 3,
-    fechaHora: new Date("2025-12-15T11:00:00"),
+    fechaHora: new Date("2025-05-04T11:00:00"),
     sala: "A101", // Sala diferente
     estado: "programada",
+    id_etapa_formativa: 2,
     titulo:
       "Análisis Comparativo de Técnicas de Procesamiento de Lenguaje Natural para la Detección de Sentimientos en Redes Sociales", // Título diferente
     miembros: [
@@ -73,9 +81,10 @@ const exposiciones: Exposicion[] = [
   },
   {
     id_exposicion: 4,
-    fechaHora: new Date("2025-10-15T12:00:00"),
+    fechaHora: new Date("2025-05-04T12:00:00"),
     sala: "A101", // Sala diferente
     estado: "esperando_aprobacion",
+    id_etapa_formativa: 2,
     titulo:
       "Análisis Comparativo de Técnicas de Procesamiento de Lenguaje Natural para la Detección de Sentimientos en Redes Sociales", // Título diferente
     miembros: [
@@ -90,6 +99,7 @@ const exposiciones: Exposicion[] = [
     fechaHora: new Date("2025-05-04T12:00:00"),
     sala: "A101", // Sala diferente
     estado: "programada",
+    id_etapa_formativa: 2,
     titulo:
       "Análisis Comparativo de Técnicas de Procesamiento de Lenguaje Natural para la Detección de Sentimientos en Redes Sociales", // Título diferente
     miembros: [
@@ -102,11 +112,39 @@ const exposiciones: Exposicion[] = [
 ];
 
 const ExposicionesJuradoPage: React.FC = () => {
+
+  const [etapasFormativas, setEtapasFormativas] = useState<EtapaFormativa[]>([]);
+  const [ciclos, setCiclos] = useState<Ciclo[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      setIsLoading(true);
+      try {
+        // Cargar etapas formativas y ciclos
+        const [etapasData, ciclosData] = await Promise.all([
+          getEtapasFormativasNombres(),
+          getCiclos()
+        ]);
+        
+        setEtapasFormativas(etapasData);
+        setCiclos(ciclosData);
+      } catch (error) {
+        console.error("Error al cargar datos iniciales:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchInitialData();
+  }, []);
+
+
   const { control, watch,getValues } = useForm({
     defaultValues: {
       buscador: "",
-      curso: "Todos",
-      periodo: periodos[0].value,
+      curso: "TODOS",
+      periodo: ciclos?.length > 0 ? `${ciclos[0].anio}-${ciclos[0].semestre}` : "",
       estado: estados[0].value,
     },
   });
@@ -121,6 +159,9 @@ const ExposicionesJuradoPage: React.FC = () => {
   const estadoSeleccionado = watch("estado");
   const cursoSeleccionado = watch("curso");
   const periodoSeleccionado = watch("periodo");
+
+
+  
 
     // Actualiza los filtros de select automáticamente
   useEffect(() => {
@@ -144,10 +185,23 @@ const ExposicionesJuradoPage: React.FC = () => {
       estadoSeleccionado === "todos" ||
       exposicion.estado.toLowerCase() === estadoSeleccionado.toLowerCase();
     // Filtro por curso (añadir lógica según tus datos)
-    const matchesCurso = true; 
+    const matchesCurso = cursoSeleccionado === "TODOS" || 
+      etapasFormativas.some(etapa => 
+        etapa.nombre === cursoSeleccionado && 
+        exposicion.id_etapa_formativa === etapa.etapaFormativaId
+      );
 
     // Filtro por periodo (añadir lógica según tus datos)
-    const matchesPeriodo = true;
+    const fechaExposicion = exposicion.fechaHora;
+    // Extraer año y semestre de la fecha de exposición
+    const anioExposicion = fechaExposicion.getFullYear();
+    // Determinar semestre (1 o 2) según el mes
+    const semestreExposicion = fechaExposicion.getMonth() < 6 ? 1 : 2;
+    const periodoExposicion = `${anioExposicion}-${semestreExposicion}`;
+    
+    const matchesPeriodo = 
+      periodoSeleccionado === "" || // Si no hay selección
+      periodoExposicion === periodoSeleccionado;
 
     const titulo = exposicion.titulo.toLowerCase();
     const nombresEstudiantes = exposicion.miembros
