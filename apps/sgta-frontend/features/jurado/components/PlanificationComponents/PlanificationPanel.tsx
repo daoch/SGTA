@@ -57,7 +57,12 @@ const PlanificationPanel: React.FC<Props> = ({
   );
 
   return (
-    <div className="h-full w-full flex flex-col gap-4">
+    <div
+      className="h-full w-full flex flex-col gap-4"
+      onContextMenu={(e) => {
+        e.preventDefault();
+      }}
+    >
       <div className="flex flex-row justify-between items-center">
         <PlanificacionEstadoStepper estadoPlan={estadoPlan} />
         <div className="flex flex-row gap-2">
@@ -74,17 +79,14 @@ const PlanificationPanel: React.FC<Props> = ({
 
           {estadoPlan.nombre !== "Planificacion inicial" &&
             estadoPlan.nombre !== "Cierre de planificacion" && (
-              <Button
-                onClick={() => onAvanzarPlanificacionClick("terminar")}
-                className="w-full xl:w-auto ml-2"
-                style={{ background: "#042354" }}
-              >
+              <Button onClick={() => onAvanzarPlanificacionClick("terminar")}>
                 Terminar Planificacion
               </Button>
             )}
         </div>
       </div>
-      <div className="flex flex-row gap-4">
+
+      <div className="w-full flex flex-row gap-4 overflow-x-scroll">
         {roomAvailList.map((room) => (
           <SelectorFecha
             key={room.code}

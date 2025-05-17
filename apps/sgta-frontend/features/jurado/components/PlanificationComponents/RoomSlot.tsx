@@ -7,6 +7,13 @@ import {
 } from "@/features/jurado/types/jurado.types";
 import Draggable from "./Draggable";
 import ExpoSon from "./ExpoSon";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import ToolTipoBloque from "./ToolTipoBloque";
 
 interface Props {
   code: string;
@@ -58,11 +65,20 @@ const RoomSlot: React.FC<Props> = ({
           key={expoFind.codigo}
           isDraggeable={isDraggeable}
         >
-          <ExpoSon
-            expoFind={expoFind}
-            removeExpo={removeExpo}
-            estadoPlan={estadoPlanificacion}
-          />
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger className="w-full">
+                <ExpoSon
+                  expoFind={expoFind}
+                  removeExpo={removeExpo}
+                  estadoPlan={estadoPlanificacion}
+                />
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <ToolTipoBloque expoFind={expoFind} />
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </Draggable>
       ) : (
         <span className="text-lg">{room?.key.split("|")[2]}</span>

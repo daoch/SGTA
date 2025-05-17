@@ -229,7 +229,7 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
       <DragContext.Provider value={isDragging}>
         <DndContext onDragEnd={handleDragEnd} sensors={sensors}>
           <DragMonitor setIsDragging={setIsDragging} />
-          <div className="flex flex-col md:flex-row h-full gap-4">
+          <div className="flex flex-col md:flex-row w-full h-full gap-4">
             <div className="w-full md:w-1/4 h-full">
               <ExposList freeExpos={freeExpos} topics={topics} />
             </div>
