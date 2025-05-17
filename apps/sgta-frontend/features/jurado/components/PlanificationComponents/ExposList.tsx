@@ -1,7 +1,6 @@
 "use client";
 
 import { AreaEspecialidad, Tema } from "@/features/jurado/types/jurado.types";
-
 import CardSugerenciaDistribucion from "./CardSuggestAlgorithm";
 import CardTemaExposicion from "./CardTopicExpo";
 import Draggable from "./Draggable";
@@ -11,6 +10,7 @@ interface Props {
   freeExpos: Tema[];
   topics: AreaEspecialidad[];
 }
+
 const ExposList: React.FC<Props> = ({ freeExpos, topics }) => {
   return (
     <section className="w-full h-full flex flex-col gap-4">

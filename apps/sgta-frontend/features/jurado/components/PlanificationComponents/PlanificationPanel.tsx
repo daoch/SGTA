@@ -1,4 +1,5 @@
 "use client";
+
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import React, { useState } from "react";
@@ -19,11 +20,11 @@ interface Props {
   roomAvailList: JornadaExposicionDTO[];
   assignedExpos: Record<string, Tema>;
   removeExpo: (expo: Tema) => void;
-
   onAvanzarPlanificacionClick: (origen: OrigenBoton) => void;
   bloquesList: TimeSlot[];
   estadoPlan: EstadoPlanificacion;
 }
+
 const PlanificationPanel: React.FC<Props> = ({
   roomAvailList,
   assignedExpos,
@@ -59,10 +60,13 @@ const PlanificationPanel: React.FC<Props> = ({
     <div className="h-full w-full flex flex-col gap-4">
       <div className="flex flex-row justify-between items-center">
         <PlanificacionEstadoStepper estadoPlan={estadoPlan} />
-        <div>
+        <div className="flex flex-row gap-2">
           {estadoPlan.nombre != "Fase 2" &&
             estadoPlan.nombre != "Cierre de planificacion" && (
-              <Button onClick={() => onAvanzarPlanificacionClick("siguiente")}>
+              <Button
+                onClick={() => onAvanzarPlanificacionClick("siguiente")}
+                variant={"outline"}
+              >
                 Siguiente fase
                 <ArrowRight />
               </Button>

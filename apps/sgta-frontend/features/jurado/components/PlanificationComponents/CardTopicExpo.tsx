@@ -15,7 +15,7 @@ interface Props {
 const CardTemaExposicion: React.FC<Props> = ({ exposicion }) => {
   return (
     <Card>
-      <CardHeader className="">
+      <CardHeader className="select-none">
         <CardTitle>
           {exposicion.codigo} - {exposicion.titulo}
         </CardTitle>

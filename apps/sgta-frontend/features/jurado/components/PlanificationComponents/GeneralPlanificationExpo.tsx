@@ -1,5 +1,5 @@
 "use client";
-import AppLoading from "@/components/loading/AppLoading";
+
 import {
   DndContext,
   DragEndEvent,
@@ -26,6 +26,7 @@ import { DragContext } from "./DragContext";
 import { DragMonitor } from "./DragMonitor";
 import ExposList from "./ExposList";
 import PlanificationPanel from "./PlanificationPanel";
+import AppLoading from "@/components/loading/app-loading";
 
 interface Props {
   expos: Tema[];

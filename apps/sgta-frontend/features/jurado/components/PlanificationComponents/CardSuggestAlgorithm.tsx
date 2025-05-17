@@ -1,4 +1,5 @@
 "use client";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,16 +13,16 @@ const CardSugerenciaDistribucion: React.FC = () => {
   return (
     <Card className="py-5">
       <CardHeader>
-        <CardTitle>
+        <CardTitle className="text-xs">
           ¿Deseas automatizar la distribución de exposiciones?
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="text-xs text-muted-foreground">
           Esta planificación toma en cuenta diversos factores como el tipo de
           dedicación del miembro de docente, área de especialidad, entre otros
           factores.
         </CardDescription>
         <div className="flex justify-end">
-          <Button className="w-fit">
+          <Button className="w-fit" disabled={true}>
             <Bot />
             Generar Distribución
           </Button>
