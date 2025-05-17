@@ -91,16 +91,16 @@ export interface EtapaFormativaExposiciones {
   exposiciones: Exposicion[];
 }
 
-export interface Usuario {
+export interface  Usuario{
   idUsario: number;
-  nombres: string;
+  nombres : string;
   apellidos: string;
-  rol: Rol;
+  rol : Rol;
 }
 
-export interface Rol {
+export interface Rol{
   id: number;
-  nombre: string;
+  nombre:string;
 }
 
 export type OrigenBoton = "siguiente" | "terminar";

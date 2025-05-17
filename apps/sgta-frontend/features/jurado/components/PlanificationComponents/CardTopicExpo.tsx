@@ -5,7 +5,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Jurado, Tema } from "@/features/jurado/types/jurado.types";
+import { Tema } from "@/features/jurado/types/jurado.types";
 import React from "react";
 
 interface Props {
