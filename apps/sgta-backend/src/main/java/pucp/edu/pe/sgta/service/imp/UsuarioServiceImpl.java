@@ -6,10 +6,11 @@ import org.springframework.web.multipart.MultipartFile;
 import pucp.edu.pe.sgta.dto.asesores.InfoAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.asesores.InfoSubAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
-
+import org.springframework.beans.factory.annotation.Autowired;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
+import org.springframework.transaction.annotation.Transactional;
 import pucp.edu.pe.sgta.dto.TipoUsuarioDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
 import pucp.edu.pe.sgta.dto.asesores.UsuarioFotoDto;
