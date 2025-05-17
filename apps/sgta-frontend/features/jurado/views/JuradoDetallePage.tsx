@@ -367,7 +367,7 @@ export function JuradoDetalleView({
             aplicados.
           </p>
         </div>
-      ) : (
+      ):(
         <div>
           <ListaTesisJuradoCard
             data={currentItems}

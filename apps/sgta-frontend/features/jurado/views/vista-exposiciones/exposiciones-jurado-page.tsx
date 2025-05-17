@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { ExposicionCard } from "@/features/jurado/components/exposicion-card";
 import ModalDetallesExposicion from "../../components/modal-detalles-exposicion";
@@ -102,22 +102,52 @@ const exposiciones: Exposicion[] = [
 ];
 
 const ExposicionesJuradoPage: React.FC = () => {
-  const { control, watch } = useForm({
+  const { control, watch,getValues } = useForm({
     defaultValues: {
       buscador: "",
-      curso: cursos[0].value,
+      curso: "Todos",
       periodo: periodos[0].value,
       estado: estados[0].value,
     },
   });
 
+  const [searchTerm, setSearchTerm] = useState("");
+  const [activeFilters, setActiveFilters] = useState({
+    estado: estados[0].value,
+    curso: cursos[0].value,
+    periodo: periodos[0].value,
+  });
+
   const estadoSeleccionado = watch("estado");
-  const buscadorFiltrado = watch("buscador").toLowerCase();
+  const cursoSeleccionado = watch("curso");
+  const periodoSeleccionado = watch("periodo");
+
+    // Actualiza los filtros de select automáticamente
+  useEffect(() => {
+    setActiveFilters(prev => ({
+      ...prev,
+      estado: estadoSeleccionado,
+      curso: cursoSeleccionado,
+      periodo: periodoSeleccionado
+    }));
+  }, [estadoSeleccionado, cursoSeleccionado, periodoSeleccionado]);
+
+  const handleSearch = () => {
+    // Obtiene el valor actual del campo buscador
+    const searchValue = getValues("buscador").toLowerCase();
+    // Actualiza el término de búsqueda
+    setSearchTerm(searchValue);
+  };
 
   const filteredExposiciones = exposiciones.filter((exposicion) => {
     const matchesEstado =
       estadoSeleccionado === "todos" ||
       exposicion.estado.toLowerCase() === estadoSeleccionado.toLowerCase();
+    // Filtro por curso (añadir lógica según tus datos)
+    const matchesCurso = true; 
+
+    // Filtro por periodo (añadir lógica según tus datos)
+    const matchesPeriodo = true;
 
     const titulo = exposicion.titulo.toLowerCase();
     const nombresEstudiantes = exposicion.miembros
@@ -126,10 +156,10 @@ const ExposicionesJuradoPage: React.FC = () => {
       .join(" ");
 
     const matchesBuscador =
-      titulo.includes(buscadorFiltrado) ||
-      nombresEstudiantes.includes(buscadorFiltrado);
+      titulo.includes(searchTerm) ||
+      nombresEstudiantes.includes(searchTerm);
 
-    return matchesEstado && matchesBuscador;
+    return matchesEstado  && matchesCurso && matchesPeriodo && matchesBuscador;
   });
 
   const [selectedExposicion, setSelectedExposicion] =
@@ -143,7 +173,20 @@ const ExposicionesJuradoPage: React.FC = () => {
 
   return (
     <div>
-      <FilterExposicionJurado control={control} />
+      <div className="flex h-[60px] pt-[15px] pr-[20px] pb-[10px] items-center gap-[10px] self-stretch">
+        <h1 className="text-[#042354] font-montserrat text-[24px] font-semibold leading-[32px] tracking-[-0.144px]">
+          Mis Exposiciones
+        </h1>
+      </div>
+
+      <FilterExposicionJurado control={control} onSearch={handleSearch} />
+
+      {/* Opcionalmente, añade un mensaje cuando no hay resultados */}
+      {filteredExposiciones.length === 0 && (
+        <div className="text-center py-8 text-gray-500">
+          No se encontraron exposiciones que coincidan con los criterios de búsqueda.
+        </div>
+      )}
 
       <div className="space-y-4">
         {filteredExposiciones.map((exposicion) => (
