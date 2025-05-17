@@ -8,14 +8,14 @@ interface Props {
 
 const SelectorFecha: React.FC<Props> = ({ room, isSelected, onSelect }) => {
   const day = room.fecha?.toLocaleDateString("es-ES", { weekday: "long" });
-  const dateNumber = room.fecha?.getDate();
+  const dateNumber = room.fecha?.getDate().toString().padStart(2, "0");
   const month = room.fecha?.toLocaleDateString("es-ES", { month: "long" });
   const availableBlocks = room.salasExposicion.length;
 
   return (
     <div
       onClick={onSelect}
-      className={`border select-none rounded-lg p-4 text-center w-41 cursor-pointer transition-all duration-100 border-gray-300
+      className={`border select-none rounded-lg p-4 text-center min-w-41 max-w-41 cursor-pointer transition-all duration-100 border-gray-300
           ${isSelected ? "bg-blue-100 text-black" : "bg-white"}`}
     >
       <div className="font-medium">{day.toUpperCase()}</div>

@@ -1,10 +1,10 @@
+"use client";
+
 import {
   EstadoPlanificacion,
   Tema,
 } from "@/features/jurado/types/jurado.types";
-import { useState } from "react";
 import { useIsDragging } from "./DragContext";
-import ToolTipoBloque from "./ToolTipoBloque";
 
 interface Props {
   expoFind: Tema;
@@ -22,43 +22,22 @@ const ExpoSon: React.FC<Props> = ({
       removeExpo(expoFind);
     }
   };
-  const [hovered, setHovered] = useState(false);
   const isDragging = useIsDragging();
 
-  const colorBg =
-    estadoPlan.nombre === "Cierre de planificacion" ? "#B0EBD8" : "#FFDFBD";
-
-  //B0EBD8
   return (
-    <div      
-      className="relative group z-10"
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+    <div
+      className={`relative group z-10 cursor-grab ${isDragging && "cursor-grabbing"}`}
     >
       <div
-        style={{
-          backgroundColor: colorBg,
-          height: "60px",
-          border: "0px",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
+        className={`h-[60px] flex justify-center items-center ${
+          estadoPlan.nombre === "Cierre de planificacion"
+            ? "bg-[#B0EBD8]"
+            : "bg-[#FFDFBD]"
+        }`}
         onClick={handleClick}
       >
         <span className="text-lg">{expoFind.codigo}</span>
       </div>
-
-      {hovered && expoFind && !isDragging && (
-        <div 
-        className="block text-left absolute top-full mb-2 transform -translate-x-1/2 z-[999]"
-        style={{
-          top: 0, // asegurarte que no se solape verticalmente
-        }}
-        >
-          <ToolTipoBloque expoFind = {expoFind}/>
-        </div>
-      )}
     </div>
   );
 };
