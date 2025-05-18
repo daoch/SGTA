@@ -468,33 +468,35 @@ public class UsuarioServiceImpl implements UsuarioService {
         StringBuilder sql = new StringBuilder();
         sql.append("""
             SELECT 
-                u.usuario_id, 
-                u.nombres, 
-                u.primer_apellido, 
-                u.segundo_apellido, 
-                u.correo_electronico, 
-                u.codigo_pucp, 
-                string_agg(r.nombre, ',') as roles_names,
-                COUNT(DISTINCT t.tema_id) as tesis_count,
-                tu.tipo_usuario_id,
-                tu.nombre as tipo_usuario_nombre
-            FROM 
-                usuario u
-            JOIN 
-                tipo_usuario tu ON u.tipo_usuario_id = tu.tipo_usuario_id
-            JOIN 
-                usuario_rol ur ON u.usuario_id = ur.usuario_id
-            JOIN 
-                rol r ON ur.rol_id = r.rol_id
-            LEFT JOIN 
-                usuario_x_tema ut ON u.usuario_id = ut.usuario_id AND ut.rol_asesor = TRUE
-            LEFT JOIN 
-                tema t ON ut.tema_id = t.tema_id
-            WHERE 
-                u.activo = true
-                AND ur.activo = true
-                AND r.activo = true
-                AND tu.nombre = 'Profesor'
+				u.usuario_id, 
+				u.nombres, 
+				u.primer_apellido, 
+				u.segundo_apellido, 
+				u.correo_electronico, 
+				u.codigo_pucp, 
+				string_agg(r.nombre, ',') as roles_names,
+				COUNT(DISTINCT t.tema_id) as tesis_count,
+				tu.tipo_usuario_id,
+				tu.nombre as tipo_usuario_nombre
+			FROM 
+				usuario u
+			JOIN 
+				tipo_usuario tu ON u.tipo_usuario_id = tu.tipo_usuario_id
+			JOIN 
+				usuario_rol ur ON u.usuario_id = ur.usuario_id
+			JOIN 
+				rol r ON ur.rol_id = r.rol_id
+			LEFT JOIN 
+				usuario_tema ut ON u.usuario_id = ut.usuario_id
+			LEFT JOIN 
+				rol rol_tema ON ut.rol_id = rol_tema.rol_id AND LOWER(rol_tema.nombre) IN ('asesor', 'coasesor')
+			LEFT JOIN 
+				tema t ON ut.tema_id = t.tema_id AND t.activo = true
+			WHERE 
+				u.activo = true
+				AND ur.activo = true
+				AND r.activo = true
+				AND tu.nombre = 'Profesor'
             """);
 
         // Agregar filtro de rol si no es "Todos"
