@@ -44,7 +44,7 @@ export const ExposicionesCoordinadorPage: FC = () => {
   if (errorExp) return <p>Error exposiciones: {errorExp}</p>;
 
   return (
-    <div className="flex flex-col w-full h-full pt-4 gap-4">
+    <div className="flex flex-col w-full h-full gap-4">
       <h1 className="text-2xl font-bold">Exposiciones</h1>
       <div className="flex items-end">
         <ExposicionesFilterForm
