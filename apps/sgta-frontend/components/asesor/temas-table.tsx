@@ -35,7 +35,7 @@ export function TemasTable({
   filter,
   isLoading,
   error,
-}: PropuestasTableProps) {
+}: Readonly<PropuestasTableProps>) {
   const propuestasFiltradas = temasData.filter((tema) => {
     if (!filter || filter === Tipo.TODOS) return true;
     return tema.estadoTemaNombre === filter;
@@ -65,9 +65,8 @@ export function TemasTable({
               <TableHead>Asesor</TableHead>
               <TableHead>Estudiante(s)</TableHead>
               <TableHead>Postulaciones</TableHead>
-              <TableHead>Estado</TableHead>
               <TableHead>Tipo</TableHead>
-              <TableHead>Ciclo</TableHead>
+              <TableHead>Estado</TableHead>
               <TableHead className="text-right">Acción</TableHead>
             </TableRow>
           </TableHeader>
@@ -89,8 +88,8 @@ export function TemasTable({
                     {tema.titulo}
                   </TableCell>
                   {/* Area */}
-                  {/* <TableCell>{tema.area}</TableCell> */}
-                  <TableCell>{"Artificial Intelligence"}</TableCell>
+                  <TableCell>{tema.subareas[0].nombre}</TableCell>
+                  {/* Asesor */}
                   <TableCell>{asesorData.name}</TableCell>
                   {/* Tesistas */}
                   <TableCell>
@@ -99,10 +98,15 @@ export function TemasTable({
                       : tema.tesistas.map((e: Tesista) => e.nombres).join(", ")}
                   </TableCell>
                   {/* Postulaciones */}
-                  <TableCell>
-                    3{/* {!tema.postulaciones ? "-" : tema.postulaciones} */}
-                  </TableCell>
-                  {/* Estado */}
+                  {tema.estadoTemaNombre === Tipo.LIBRE ? (
+                    <TableCell>
+                      {/* {!tema.postulaciones ? "-" : tema.postulaciones} */}
+                    </TableCell>
+                  ) : (
+                    <TableCell>-</TableCell>
+                  )}
+
+                  {/* Tipo */}
                   <TableCell>
                     <Badge
                       variant="outline"
@@ -112,23 +116,22 @@ export function TemasTable({
                           : "bg-green-100 text-green-800 hover:bg-green-100"
                       }
                     >
-                      {titleCase(tema?.estadoTemaNombre || "")}
+                      {titleCase(tema?.estadoTemaNombre ?? "")}
                     </Badge>
                   </TableCell>
-                  {/* Tipo */}
+                  {/* Estado */}
                   <TableCell>
                     <Badge
                       variant="outline"
                       className={
-                        tema.estadoTemaNombre === Tipo.LIBRE
-                          ? "bg-blue-100 text-blue-800 hover:bg-blue-100"
-                          : "bg-green-100 text-green-800 hover:bg-green-100"
+                        tema.activo
+                          ? "bg-green-100 text-green-800 hover:bg-green-100"
+                          : "bg-purple-100 text-purple-800 hover:bg-purple-100"
                       }
                     >
-                      Libre
+                      {titleCase(tema.activo ? "Activo" : "Inactivo")}
                     </Badge>
                   </TableCell>
-                  <TableCell>{"2025-1"}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       {/* View Details */}

@@ -1,19 +1,18 @@
+import { asesorData } from "@/app/types/temas/data";
+import { Tema } from "@/app/types/temas/entidades";
+import { Tipo } from "@/app/types/temas/enums";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
-  DialogTrigger,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
 import { Eye, History } from "lucide-react";
-import { Tema } from "@/app/types/temas/entidades";
-import { asesorData } from "@/app/types/temas/data";
-import { Tipo } from "@/app/types/temas/enums";
 
 interface TemaDetailsDialogProps {
   tema: Tema;
@@ -90,7 +89,7 @@ export const TemaDetailsDialog: React.FC<TemaDetailsDialogProps> = ({
           </div>
 
           {/* Coasesores */}
-          {coasesores && coasesores.length && (
+          {!!coasesores?.length && (
             <div>
               <p className="text-sm font-medium">Coasesores</p>
               <p className="bg-muted p-2 rounded-md">{coasesores}</p>
@@ -138,7 +137,7 @@ export const TemaDetailsDialog: React.FC<TemaDetailsDialogProps> = ({
           )}
 
           {/* Fecha límite */}
-          {tema.fechaLimite && (
+          {tema.estadoTemaNombre === Tipo.LIBRE && (
             <div>
               <p className="text-sm font-medium">Fecha Límite</p>
               <p className="bg-muted p-2 rounded-md">
