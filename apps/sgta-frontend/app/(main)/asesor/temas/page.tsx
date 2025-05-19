@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  asesorData,
-  coasesoresData,
-  estudiantesData,
-} from "@/app/types/temas/data";
+import { asesorData } from "@/app/types/temas/data";
 import {
   AreaDeInvestigacion,
   Carrera,
@@ -36,10 +32,12 @@ import { useCallback, useEffect, useState } from "react";
  */
 const Page = () => {
   const [isNuevoTemaDialogOpen, setIsNuevoTemaDialogOpen] = useState(false);
-  const [coasesoresDisponibles, setCoasesoresDisponibles] =
-    useState<Coasesor[]>(coasesoresData);
-  const [estudiantesDisponibles, setEstudiantesDisponibles] =
-    useState<Tesista[]>(estudiantesData);
+  const [coasesoresDisponibles, setCoasesoresDisponibles] = useState<
+    Coasesor[]
+  >([]);
+  const [estudiantesDisponibles, setEstudiantesDisponibles] = useState<
+    Tesista[]
+  >([]);
   const [subareasDisponibles, setSubareasDisponibles] = useState<
     AreaDeInvestigacion[]
   >([]);

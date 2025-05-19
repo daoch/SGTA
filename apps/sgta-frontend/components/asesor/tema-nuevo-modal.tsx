@@ -216,7 +216,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
   return (
     <>
       <Toaster richColors position="top-right" />
-      <DialogContent className="w-2xl">
+      <DialogContent className="w-3xl">
         <DialogHeader>
           <DialogTitle>Nuevo Tema de Tesis</DialogTitle>
           <DialogDescription>
@@ -426,15 +426,19 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
               )}
 
               {/* Fecha Límite */}
-              <div className="space-y-2">
-                <Label>Fecha Límite (Opcional)</Label>
-                <Input
-                  type="date"
-                  placeholder="mm/dd/yyyy"
-                  defaultValue={temaData.fechaLimite}
-                  onChange={(e) => handleChange("fechaLimite", e.target.value)}
-                />
-              </div>
+              {tipoRegistro === TipoRegistro.LIBRE && (
+                <div className="space-y-2">
+                  <Label>Fecha Límite (Opcional)</Label>
+                  <Input
+                    type="date"
+                    placeholder="mm/dd/yyyy"
+                    defaultValue={temaData.fechaLimite}
+                    onChange={(e) =>
+                      handleChange("fechaLimite", e.target.value)
+                    }
+                  />
+                </div>
+              )}
             </>
           )}
         </div>
