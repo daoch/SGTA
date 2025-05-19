@@ -379,7 +379,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
                     <div className="space-y-2 mt-2">
                       {temaData.tesistas?.map((estudiante, index) => (
                         <div
-                          key={index}
+                          key={estudiante.id}
                           className="flex items-center justify-between bg-gray-100 px-4 py-2 rounded-md"
                         >
                           <div>
