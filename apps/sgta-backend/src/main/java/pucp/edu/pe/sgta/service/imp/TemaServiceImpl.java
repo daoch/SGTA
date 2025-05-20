@@ -770,7 +770,7 @@ public class TemaServiceImpl implements TemaService {
 			usuarioDto.setNombres(nombres);
 			usuarioDto.setApellidos(apellidos);
 
-			RolDTO rolDto = new RolDTO();
+			RolDto rolDto = new RolDto();
 			rolDto.setId(rolId);
 			rolDto.setNombre(rolNombre);
 

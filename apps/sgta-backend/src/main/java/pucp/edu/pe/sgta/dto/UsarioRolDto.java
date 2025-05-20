@@ -14,5 +14,5 @@ public class UsarioRolDto {
     private int idUsario;
     private String nombres;
     private String apellidos;
-    private RolDTO rol;
+    private RolDto rol;
 }
