@@ -33,6 +33,7 @@ import { Trash2 } from "lucide-react";
 import React, { useState } from "react";
 import { toast, Toaster } from "sonner";
 import ItemSelector from "./item-selector";
+import { Tipo } from "@/app/types/temas/enums";
 
 interface NuevoTemaDialogProps {
   isOpen: boolean;
@@ -426,7 +427,8 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
               )}
 
               {/* Fecha Límite */}
-              {tipoRegistro === TipoRegistro.LIBRE && (
+              {/* {tipoRegistro === TipoRegistro.LIBRE && ( */}
+              {
                 <div className="space-y-2">
                   <Label>Fecha Límite (Opcional)</Label>
                   <Input
@@ -438,7 +440,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
                     }
                   />
                 </div>
-              )}
+              }
             </>
           )}
         </div>
