@@ -12,7 +12,7 @@ interface Props {
   editedData: Asesor;
   isEditing: boolean;
   setEditedData: (data: Asesor) => void;
-  avatar?: string;
+  avatar?: string | null;
 }
 
 export default function PerfilAsesorCard({
@@ -24,7 +24,7 @@ export default function PerfilAsesorCard({
 }: Props) {
   const tesisEnProceso = asesor.tesistasActuales ?? 3;
 
-  const limite = asesor.limiteTesis ?? 0;
+  const limite = asesor.limiteTesis ?? 8;
 
   const porcentaje = limite === 0 ? 0 : tesisEnProceso / limite;
 
@@ -38,14 +38,19 @@ export default function PerfilAsesorCard({
   return (
     <div className="bg-white rounded-lg shadow p-4 sm:p-6 flex flex-col items-center space-y-4">
       <Avatar className="w-32 h-32 rounded-lg mb-2">
-        <AvatarImage src={avatar} alt={asesor.nombre} />
+        <AvatarImage
+          src={avatar || undefined}
+          alt={asesor?.nombre || "Usuario"}
+        />
         <AvatarFallback className="rounded-lg">
-          {asesor.nombre
-            .split(" ")
-            .map((n) => n[0])
-            .join("")
-            .slice(0, 2)
-            .toUpperCase()}
+          {asesor?.nombre
+            ? asesor.nombre
+                .split(" ")
+                .map((n) => n[0])
+                .join("")
+                .slice(0, 2)
+                .toUpperCase()
+            : "US"}
         </AvatarFallback>
       </Avatar>
 

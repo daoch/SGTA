@@ -1,7 +1,9 @@
 packages:
   - apps/*
   - packages/*
-
+ignoredBuiltDependencies:
+  - '@tailwindcss/oxide'
+  - canvas
 onlyBuiltDependencies:
   - sharp
   - unrs-resolver

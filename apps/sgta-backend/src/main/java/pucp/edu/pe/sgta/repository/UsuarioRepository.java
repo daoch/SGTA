@@ -16,6 +16,7 @@ import java.util.Optional;
 @Repository
 public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
 
+    Usuario findByCorreoElectronicoIsLikeIgnoreCase(String email);
     Optional<Usuario> findByCodigoPucp(String codigoPucp);
 
     @Query(value = "SELECT * FROM obtener_usuarios_con_temass()", nativeQuery = true)

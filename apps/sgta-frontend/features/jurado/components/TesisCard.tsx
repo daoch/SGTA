@@ -1,14 +1,14 @@
 "use client";
 
 import React from "react";
-import { Tesis } from "@/features/jurado/types/juradoDetalle.types";
-import { cn } from "@/lib/utils"; // Asegúrate de que esta importación es correcta
+import { JuradoTemasDetalle } from "@/features/jurado/types/juradoDetalle.types";
+import { cn } from "@/lib/utils";
 
 interface ListaTesisJuradoCardProps {
-  data: Tesis[];
-  onSelect?: (tesis: Tesis) => void; // Callback para manejar la selección de una tesis(para asignacion)
-  selected?: Tesis | null;
-  onCardClick?: (codigoTesis: string) => void; // Callback para manejar el clic en un card(para revision del detalle)
+  data: JuradoTemasDetalle[];
+  onSelect?: (tesis: JuradoTemasDetalle) => void;
+  selected?: JuradoTemasDetalle | null;
+  onCardClick?: (id: number) => void;
 }
 
 export const ListaTesisJuradoCard: React.FC<ListaTesisJuradoCardProps> = ({
@@ -17,12 +17,12 @@ export const ListaTesisJuradoCard: React.FC<ListaTesisJuradoCardProps> = ({
   selected,
   onCardClick,
 }) => {
-  const isSelected = (tesis: Tesis) => {
+  const isSelected = (tesis: JuradoTemasDetalle) => {
     return selected?.codigo === tesis.codigo;
   };
 
   return (
-    <div className="grid grid-cols-1 gap-4 mt-4">
+    <div className="grid grid-cols-1 gap-4">
       {data.map((tesis) => {
         const isCardSelected = isSelected(tesis);
 
@@ -40,43 +40,40 @@ export const ListaTesisJuradoCard: React.FC<ListaTesisJuradoCardProps> = ({
                 onSelect(tesis);
               }
               if (onCardClick) {
-                onCardClick(tesis.codigo);
+                onCardClick(tesis.id);
               }
             }}
           >
             <div className="flex justify-between items-start">
               <div>
                 <h2 className="font-bold text-sm">
-                  ({tesis.codigo}) {tesis.titulo}
+                  {tesis.codigo} - {tesis.titulo}
                 </h2>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {tesis.codEstudiante} - {tesis.estudiante}
-                </p>
+                <div className="text-sm text-muted-foreground mt-1 pt-1">
+                  {tesis.estudiantes.map((est) => est.nombre).join(", ")}
+                </div>
               </div>
               <span
-                className={`text-xs px-3 py-1 rounded-full ${
-                  isCardSelected
-                    ? "bg-white text-[#042354]"
-                    : "bg-[#001F66] text-white"
-                }`}
+                className="text-sm font-medium px-3 py-1.5 rounded-full"
+                style={{
+                  backgroundColor:
+                    tesis.rol === "Asesor" ? "#F9D534" : "#d2a5fd",
+                  color: tesis.rol === "Asesor" ? "#000000" : "#ffffff",
+                }}
               >
                 {tesis.rol}
               </span>
             </div>
 
-            <p className="text-sm text-justify">{tesis.resumen}</p>
+            <p className="text-sm text-justify pt-2">{tesis.resumen}</p>
 
-            <div className="flex gap-2 flex-wrap mt-2">
-              {tesis.especialidades.map((esp, idx) => (
+            <div className="flex gap-2 flex-wrap mt-2 pt-2">
+              {tesis.sub_areas_conocimiento.map((esp, idx) => (
                 <span
                   key={idx}
-                  className={`text-xs font-medium px-3 py-1 rounded-full ${
-                    isCardSelected
-                      ? "bg-white text-[#042354]"
-                      : "bg-[#E5F0FF] text-[#042354]"
-                  }`}
+                  className="bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-2.5 rounded-full"
                 >
-                  {esp}
+                  {esp.nombre}
                 </span>
               ))}
             </div>
@@ -86,3 +83,4 @@ export const ListaTesisJuradoCard: React.FC<ListaTesisJuradoCardProps> = ({
     </div>
   );
 };
+

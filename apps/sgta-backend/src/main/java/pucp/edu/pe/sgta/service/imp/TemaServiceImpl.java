@@ -29,6 +29,7 @@ import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
 import java.io.IOException;
 import java.sql.Array;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
@@ -739,18 +740,48 @@ public class TemaServiceImpl implements TemaService {
 	public List<TemaConAsesorJuradoDTO> listarTemasCicloActualXEtapaFormativa(Integer etapaFormativaId) {
 
 		List<Object[]> temas  = temaRepository.listarTemasCicloActualXEtapaFormativa(etapaFormativaId);
-		List<TemaConAsesorJuradoDTO> temasDto = new ArrayList<>();
+		Map<Integer, TemaConAsesorJuradoDTO> mapaTemas = new LinkedHashMap<>();
 
-		for(Object[] obj : temas) {
-			TemaConAsesorJuradoDTO dto = new TemaConAsesorJuradoDTO();
-			dto.setId((Integer) obj[0]);
-			dto.setCodigo((String) obj[1]);
-			dto.setTitulo((String) obj[2]);
+		for (Object[] fila : temas) {
+			Integer temaId = (Integer) fila[0];
+			String codigo = (String) fila[1];
+			String titulo = (String) fila[2];
 
-			temasDto.add(dto);
+			Integer usuarioId = (Integer) fila[3];
+			String nombres = (String) fila[4];
+			String apellidos = (String) fila[5];
+			Integer rolId = (Integer) fila[6];
+			String rolNombre = (String) fila[7];
+
+			// Si el tema no ha sido creado aún en el mapa, se crea
+			TemaConAsesorJuradoDTO dto = mapaTemas.get(temaId);
+			if (dto == null) {
+				dto = new TemaConAsesorJuradoDTO();
+				dto.setId(temaId);
+				dto.setCodigo(codigo);
+				dto.setTitulo(titulo);
+				dto.setUsuarios(new ArrayList<>());
+				mapaTemas.put(temaId, dto);
+			}
+
+			// Crear el usuario y agregarlo a la lista
+			UsarioRolDto usuarioDto = new UsarioRolDto();
+			usuarioDto.setIdUsario(usuarioId);
+			usuarioDto.setNombres(nombres);
+			usuarioDto.setApellidos(apellidos);
+
+			RolDTO rolDto = new RolDTO();
+			rolDto.setId(rolId);
+			rolDto.setNombre(rolNombre);
+
+			usuarioDto.setRol(rolDto);
+
+			dto.getUsuarios().add(usuarioDto);
 		}
-		return temasDto;
 
+// Convertir el mapa a lista
+		List<TemaConAsesorJuradoDTO> resultado = new ArrayList<>(mapaTemas.values());
+		return resultado;
 	}
 
 
@@ -1012,9 +1043,11 @@ public class TemaServiceImpl implements TemaService {
 				String nombreTesista = (String) tesista[0] + " " + (String) tesista[1];
 				tesistas.add(nombreTesista);
 			}
-			dto.setEstudiantes(String.join(", ", tesistas));
+			dto.setEstudiantes(tesistas);
 
 			//Añadir el nivel
+
+
 			temas.add(dto);
 		}
 		return temas;
