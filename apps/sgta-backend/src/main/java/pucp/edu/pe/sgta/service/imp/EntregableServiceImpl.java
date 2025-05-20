@@ -1,7 +1,9 @@
 package pucp.edu.pe.sgta.service.imp;
 
 import jakarta.transaction.Transactional;
+
 import org.springframework.stereotype.Service;
+
 import pucp.edu.pe.sgta.dto.EntregableDto;
 import pucp.edu.pe.sgta.mapper.EntregableMapper;
 import pucp.edu.pe.sgta.model.Entregable;
@@ -17,6 +19,8 @@ import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import pucp.edu.pe.sgta.dto.EntregableXTemaDto;
+
 @Service
 public class EntregableServiceImpl implements EntregableService {
 
@@ -30,8 +34,9 @@ public class EntregableServiceImpl implements EntregableService {
 
     @Override
     public List<EntregableDto> listarEntregablesXEtapaFormativaXCiclo(Integer etapaFormativaXCicloId) {
-
+        System.out.println("listarEntregablesXEtapaFormativaXCiclo");
         List<Object[]> resultados = entregableRepository.listarEntregablesXEtapaFormativaXCiclo(etapaFormativaXCicloId);
+        try {
         return resultados.stream()
                 .map(resultado -> new EntregableDto(
                         ((Number) resultado[0]).intValue(), //id
@@ -47,7 +52,33 @@ public class EntregableServiceImpl implements EntregableService {
                         ((Number) resultado[10]).intValue() // peso_maximo_documento
                 ))
                 .collect(Collectors.toList());
+        } catch (Exception e) {
+            e.printStackTrace(); // ← Te mostrará en consola exactamente qué falló
+            throw new RuntimeException("Error al mapear entregables", e);
+        }
     }
+
+    public List<EntregableXTemaDto> listarEntregablesConEnvioXEtapaFormativaXCiclo(Integer etapaId, Integer temaId) {
+
+        List<Object[]> resultados = entregableRepository.listarEntregablesConEnvioXEtapaFormativaXCiclo(etapaId, temaId);
+        return resultados.stream()
+                .map(resultado -> new EntregableXTemaDto(
+                        ((Number) resultado[0]).intValue(), // id
+                        ((Number) resultado[1]).intValue(), // etapa_formativa_x_ciclo_id
+                        (String) resultado[2], // nombre
+                        (String) resultado[3], // descripcion
+                        ((Instant) resultado[4]).atOffset(ZoneOffset.UTC), // fecha_inicio
+                        ((Instant) resultado[5]).atOffset(ZoneOffset.UTC), // fecha_fin
+                        EstadoActividad.valueOf((String) resultado[6]), // estado
+                        (boolean) resultado[7], // es_evaluable
+                        ((Number) resultado[8]).intValue(), // maximo_documentos
+                        (String) resultado[9], // extensiones_permitidas
+                        ((Number) resultado[10]).intValue(), // peso_maximo_documento
+                        resultado[11] != null ? ((Instant) resultado[11]).atOffset(ZoneOffset.UTC) : null // fecha_envio
+                ))
+                .collect(Collectors.toList());
+    }
+
 
     @Transactional
     @Override

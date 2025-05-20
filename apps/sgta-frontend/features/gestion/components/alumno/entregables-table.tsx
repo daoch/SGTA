@@ -10,22 +10,22 @@ import { Entregable } from "../../types/entregables/entidades";
 import { EntregablesModal } from "./subida-entregable-modal";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { EntregableDto } from "../../dtos/EntregableDto";
 
 interface EntregablesTableProps {
     filter?: string,
-    entregablesData?: Entregable[],
+    entregablesData?: EntregableDto[],
 }
 
 export function EntregablesTable({ filter, entregablesData }: EntregablesTableProps) {
     const [estadoFilter, setEstadoFilter] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState("");
-    const [selectedEntregable, setSelectedEntregable] = useState< Entregable | null>(null);
+    const [selectedEntregable, setSelectedEntregable] = useState< EntregableDto | null>(null);
     const [comentario, setComentario] = useState("");
     const router = useRouter();
 
-    console.log({comentario});
     
-        const entregablesFiltradas = (entregablesData ?? []).filter((entregable: Entregable) => {
+        const entregablesFiltradas = (entregablesData ?? []).filter((entregable: EntregableDto) => {
             // Filtrar por tipo
             if (filter && filter != "Todos" && entregable.estado.toLowerCase() !== filter.toLowerCase()) {
                 return false;
@@ -39,7 +39,7 @@ export function EntregablesTable({ filter, entregablesData }: EntregablesTablePr
         });
     
 
-    const handleOpenDialog = (entregable: Entregable) => {
+    const handleOpenDialog = (entregable: EntregableDto) => {
         setSelectedEntregable(entregable);
     };
 
@@ -69,13 +69,13 @@ export function EntregablesTable({ filter, entregablesData }: EntregablesTablePr
                                 <TableRow key={entregable.id}>
                                     <TableCell>{entregable.id}</TableCell>
                                     <TableCell className="font-medium max-w-xs truncate">{entregable.nombre}</TableCell>
-                                    <TableCell>{entregable.fechaLimite}</TableCell>
-                                    <TableCell>{entregable.fechaEntrega}</TableCell>
+                                    <TableCell>{entregable.fechaFin ? new Date(entregable.fechaFin).toLocaleDateString("es-PE") : "-"}</TableCell>
+                                    <TableCell>{entregable.fechaEnvio ? new Date(entregable.fechaEnvio).toLocaleDateString("es-PE") : "-"}</TableCell>
                                     <TableCell>
                                         <Badge
                                         variant="outline"
                                         className={
-                                            entregable.estado === "Pendiente"
+                                            entregable.estado === "no_iniciado"
                                                 ? "bg-gray-100 text-gray-800 hover:bg-gray-100"
                                                 : entregable.estado === "Revisado"
                                                 ? "bg-green-100 text-green-800 hover:bg-green-100"
@@ -84,12 +84,14 @@ export function EntregablesTable({ filter, entregablesData }: EntregablesTablePr
                                                 : "bg-purple-100 text-purple-800 hover:bg-purple-100" 
                                         }
                                         >
-                                        {entregable.estado}
+                                        {entregable.estado === "no_iniciado"
+                                        ? "Pendiente"
+                                        : entregable.estado}
                                         </Badge>
                                     </TableCell>
                                     <TableCell className="text-center">
                                         <div className="flex justify-end gap-2">
-                                            {entregable.fechaEntrega != "No entregado" && (
+                                            {entregable.estado != "no_iniciado" && (
                                                 <Dialog> 
                                                     <Link href={`/alumno/mi-proyecto/entregables/${entregable.id}`} passHref>
                                                         <Button variant="ghost" size="icon">
@@ -99,7 +101,7 @@ export function EntregablesTable({ filter, entregablesData }: EntregablesTablePr
                                                     </Link>
                                                 </Dialog>
                                             )}
-                                            {entregable.fechaEntrega === "No entregado" && (
+                                            {entregable.estado === "no_iniciado" && (
                                                 <Dialog> 
                                                     <DialogTrigger asChild>
                                                         <Button variant="ghost" size="icon" onClick={() =>handleOpenDialog(entregable)}>

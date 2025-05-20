@@ -11,10 +11,11 @@ import {
   import { Entregable } from "../../types/entregables/entidades";
   import { Calendar, Clock } from "lucide-react";
   import { Textarea } from "@/components/ui/textarea";
+import { EntregableDto } from "../../dtos/EntregableDto";
   
   interface EntregablesModalProps {
-    data?: Entregable;
-    setSelectedEntregable?: (selectedEntregable: Entregable | null) => void;
+    data?: EntregableDto;
+    setSelectedEntregable?: (selectedEntregable: EntregableDto | null) => void;
     setComentario?: (comentario: string) => void;
   }
 
@@ -54,14 +55,14 @@ import {
                     <Calendar className="w-4 h-4 mt-1 text-gray-500" />
                     <p>
                     <strong>Apertura:</strong>{" "}
-                    lunes, 14 de abril de 2025, 14:43 
+                      {formatFecha(data?.fechaInicio)}
                     </p>
                 </div>
                 <div className="flex items-start gap-2">
                     <Clock className="w-4 h-4 mt-1 text-gray-500" />
                     <p>
                     <strong>Fecha límite:</strong>{" "}
-                    {formatFecha(data?.fechaLimite)}
+                    {formatFecha(data?.fechaFin)}
                     </p>
                 </div>
             </div>
@@ -71,7 +72,9 @@ import {
                 <div className="rounded-md border overflow-hidden text-sm">
                     <div className="grid grid-cols-2 border-b">
                         <div className="bg-gray-100 px-4 py-3 font-medium text-gray-800">Estado de la entrega</div>
-                        <div className="px-4 py-3 text-gray-700">{data?.estado || "Sin entregar"}</div>
+                        <div className="px-4 py-3 text-gray-700">
+                          {data?.estado === "no_iniciado" ? "Pendiente" : data?.estado}
+                        </div>
                     </div>
                     <div className="grid grid-cols-2 border-b">
                         <div className="bg-gray-100 px-4 py-3 font-medium text-gray-800">Estado de la calificación</div>
@@ -119,7 +122,9 @@ import {
                 <Label className="text-m">Añadir nuevo archivo</Label>
                 <Input type="file" accept=".pdf,.doc,.docx" />
                 <p className="text-xs text-muted-foreground">
-                    Formatos aceptados: PDF, DOC, DOCX. Tamaño máximo: 10MB
+                    Máximo de archivos: {data?.maximoDocumentos} <br />
+                    Tamaño máximo: {data?.pesoMaximoDocumento} MB <br />
+                    Formatos aceptados: {data?.extensionesPermitidas} <br />                    
                 </p>
             </div>
         </div>

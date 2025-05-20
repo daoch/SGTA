@@ -8,11 +8,13 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EntregablesTable } from "../components/alumno/entregables-table";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { getEntregablesConEnvioXEtapaFormativaXCiclo } from "../services/entregable-service";
+import { EntregableDto } from "../dtos/EntregableDto";
 
 // Datos de ejemplo
-const entregablesData = [
+const entregablesData2 = [
     {
       id: "E0",
       nombre: "Cronograma",
@@ -63,6 +65,15 @@ const EntregablesAlumnoPage = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const [estadoFilter, setEstadoFilter] = useState<string | null>(null);
     const [cicloSeleccionado, setCicloSeleccionado] = useState("2025-1");
+    const [entregablesData, setEntregablesData] = useState<EntregableDto[]>([]);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const data = await getEntregablesConEnvioXEtapaFormativaXCiclo(1, 2);
+            setEntregablesData(data);
+        };
+        fetchData();
+    }, []);
 
     const entregablesDataFiltradas = entregablesData.filter((entregable) => {
         if (searchTerm) {
@@ -72,6 +83,7 @@ const EntregablesAlumnoPage = () => {
         }
         return true;
     });
+
 
     return (
         <div className="space-y-8 mt-4">
@@ -106,15 +118,15 @@ const EntregablesAlumnoPage = () => {
                 />
             </div>
 
-        <Tabs defaultValue="pendientes" className="w-full">
+        <Tabs defaultValue="no_iniciado" className="w-full">
             <TabsList>
-            <TabsTrigger value="pendientes">Pendientes</TabsTrigger>
+            <TabsTrigger value="no_iniciado">Pendientes</TabsTrigger>
             <TabsTrigger value="entregados">Entregados</TabsTrigger>
             <TabsTrigger value="revision">En Revisión</TabsTrigger>
             <TabsTrigger value="revisados">Revisados</TabsTrigger>
             <TabsTrigger value="todos">Todos</TabsTrigger>
             </TabsList>
-            <TabsContent value="pendientes">
+            <TabsContent value="no_iniciado">
             <Card>
                 <CardHeader>
                 <CardTitle>Pendientes</CardTitle>
@@ -124,7 +136,7 @@ const EntregablesAlumnoPage = () => {
                 </CardHeader>
                 <CardContent>
                 <EntregablesTable 
-                    filter="Pendiente" 
+                    filter="no_iniciado" 
                     entregablesData ={entregablesDataFiltradas} 
                 />
                 </CardContent>

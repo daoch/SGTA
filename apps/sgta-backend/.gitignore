@@ -215,6 +215,10 @@ build/
 *.node
 *.wasm
 
+# Archivos de entorno
+.env
+.env.*
+
 # --- VS Code extensiones y archivos innecesarios ---
 .vscode/extensions/
 .vscode-test/
