@@ -73,7 +73,7 @@ export default function ConfiguracionProcesoPage() {
 
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
-          <h2 className="text-xl font-semibold">Etapas del Proyecto</h2>
+          <h2 className="text-xl font-semibold">Etapas del Proceso</h2>
         </div>
         <NuevaEtapaModal onSuccess={fetchEtapas} />
       </div>

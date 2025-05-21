@@ -207,10 +207,10 @@ const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
           <CardTitle className="text-xl">
             Proyecto de Fin de Carrera 1
           </CardTitle>
-          <Button id="btnEditEtapa" variant="outline" size="sm" className="h-8">
+          {/*<Button id="btnEditEtapa" variant="outline" size="sm" className="h-8">
             <PenLine className="h-4 w-4 mr-1" />
             Editar
-          </Button>
+          </Button>*/}
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
