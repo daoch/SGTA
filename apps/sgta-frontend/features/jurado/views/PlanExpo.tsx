@@ -1,7 +1,4 @@
-import {
-  AreaEspecialidad,
-  JornadaExposicionSalas,
-} from "../types/jurado.types";
+import { AreaEspecialidad } from "../types/jurado.types";
 
 import GeneralPlanificationExpo from "@/features/jurado/components/PlanificationComponents/GeneralPlanificationExpo";
 import {
@@ -12,9 +9,14 @@ import {
   listarTemasCicloActulXEtapaFormativa,
 } from "@/features/jurado/services/data";
 import { JornadaExposicionDTO } from "../dtos/JornadExposicionDTO";
+import { transformarJornada } from "../utils/transformar-jornada";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
+
 type Props = {
   exposicionId: number;
 };
+
 export default async function PlanExpo({ exposicionId }: Props) {
   const etapaFormativaId =
     await getEtapaFormativaIdByExposicionId(exposicionId);
@@ -28,18 +30,18 @@ export default async function PlanExpo({ exposicionId }: Props) {
   const estadoPlanificacion =
     await listarEstadoPlanificacionPorExposicion(exposicionId);
 
-  console.log(bloquesList);
-
   return (
-    <main className="h-screen flex flex-col">
-      <div className="py-4">
-        <h1
-          className="text-blue-900 font-bold text-2xl"
-          style={{ color: "#042354" }}
+    <div className="h-fit w-full flex flex-col gap-4">
+      <h1 className="text-3xl font-bold text-primary">
+        <Button
+          variant="outline"
+          size="icon"
+          // onClick={() => router.push("coordinador/exposiciones")}
         >
-          Planificador de exposiciones
-        </h1>
-      </div>
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <span className="ml-3">Planificador de exposiciones</span>
+      </h1>
       <GeneralPlanificationExpo
         expos={expos}
         topics={topics}
@@ -47,23 +49,7 @@ export default async function PlanExpo({ exposicionId }: Props) {
         bloquesList={bloquesList}
         exposicionId={exposicionId}
         estadoPlanificacion={estadoPlanificacion}
-      ></GeneralPlanificationExpo>
-    </main>
+      />
+    </div>
   );
 }
-
-const transformarJornada = (
-  data: JornadaExposicionSalas,
-): JornadaExposicionDTO => {
-  const fechaInicio = new Date(data.datetimeInicio);
-  const fechaFin = new Date(data.datetimeFin);
-
-  // De aquí puedes tomar cualquiera de las dos fechas, por ejemplo, `fechaInicio`
-  return {
-    code: data.jornadaExposicionId, // O cualquier otro campo relevante
-    fecha: fechaInicio, // Usamos `dateTimeInicio` como fecha
-    horaInicio: fechaInicio.toTimeString().split(" ")[0], // Solo hora
-    horaFin: fechaFin.toTimeString().split(" ")[0], // Solo hora
-    salasExposicion: data.salasExposicion,
-  };
-};
