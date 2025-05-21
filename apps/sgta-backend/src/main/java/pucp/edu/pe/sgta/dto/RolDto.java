@@ -22,4 +22,5 @@ public class RolDto {
     private Boolean activo;
     private OffsetDateTime fechaCreacion;
     private OffsetDateTime fechaModificacion;
+    
 }
