@@ -927,7 +927,6 @@ END;
 $$ LANGUAGE plpgsql;
 
 
-DROP TRIGGER IF EXISTS trigger_generar_codigo_tema ON tema;
 
 CREATE TRIGGER trigger_generar_codigo_tema
 AFTER INSERT ON tema
