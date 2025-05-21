@@ -857,3 +857,10 @@ BEGIN
 	RETURN TRUE;
 END;
 $$;
+
+
+-- Para volver a estados
+
+update exposicion set estado_planificacion_id = 2 where exposicion_id = 1 or exposicion_id =2;
+update bloque_horario_exposicion set exposicion_x_tema_id = null,es_bloque_reservado = false,fecha_modificacion=null  where bloque_horario_exposicion_id >= 1;
+update exposicion_x_tema set estado_exposicion = 'sin_programar';

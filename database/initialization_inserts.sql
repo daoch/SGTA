@@ -206,6 +206,8 @@ INSERT INTO usuario (tipo_usuario_id,
 -- Asignar todos los nuevos estudiantes a la carrera de Ingeniería Informática (carrera_id = 1)
 
 
+
+
 -- Profesores reales
 INSERT INTO usuario (tipo_usuario_id,
                      codigo_pucp,
@@ -225,6 +227,33 @@ INSERT INTO usuario (tipo_usuario_id,
                      fecha_modificacion)
     VALUES (1, 'P090', 'Edwin Rafael', 'Villanueva', 'Talavera', 'e.villanueva00@pucp.edu.pe', 'Doctorado', 'edwinpass', 'Profesor de Inteligencia Artificial', NULL, 'Mar-Vie 10-13', 'Presencial', 1, TRUE, NOW(), NOW()),
            (1, 'P091', 'César Armando', 'Beltrán', 'Castañón', 'c.beltran00@pucp.edu.pe', 'Maestría', 'cesarpass', 'Profesor de Machine Learning', NULL, 'Lun-Mié 8-11', 'Presencial', 1, TRUE, NOW(), NOW());
+
+
+INSERT INTO usuario (tipo_usuario_id,
+                     codigo_pucp,
+                     nombres,
+                     primer_apellido,
+                     segundo_apellido,
+                     correo_electronico,
+                     nivel_estudios,
+                     contrasena,
+                     biografia,
+                     foto_perfil,
+                     disponibilidad,
+                     tipo_disponibilidad,
+                     tipo_dedicacion_id,
+                     activo,
+                     fecha_creacion,
+                     fecha_modificacion)
+    VALUES
+           (1, 'P092', 'Luis Fernando', 'Muroya', 'Tokushima', 'l.muroya00@pucp.edu.pe', 'Doctorado', 'luispass', 'Profesor de Procesamiento de Lenguaje Natural', NULL, 'Mar-Vie 10-13', 'Presencial', 1, TRUE, NOW(), NOW()),
+           (1, 'P093', 'Héctor Erasmo', 'Gómez', 'Montoya', 'h.gomez00@pucp.edu.pe', 'Maestría', 'hectorpass', 'Profesor de Procesamiento de Lenguaje Natural', NULL, 'Lun-Mié 8-11', 'Presencial', 1, TRUE, NOW(), NOW()),
+           (1, 'P094', 'Manuel Francisco', 'Tupia', 'Anticona', 'm.tupia00@pucp.edu.pe', 'Doctorado', 'manuelpass', 'Profesor de Gobierno y gestión de TI', NULL, 'Mar-Vie 10-13', 'Presencial', 1, TRUE, NOW(), NOW()),
+           (1, 'P095', 'Eder Ramiro', 'Quispe', 'Vilchez', 'e.quispe00@pucp.edu.pe', 'Maestría', 'ederpass', 'Profesor de Experiencia de Usuario', NULL, 'Lun-Mié 8-11', 'Presencial', 1, TRUE, NOW(), NOW()),
+           (1, 'P096', 'Layla', 'Hirsh', 'Martinez', 'l.hirsh00@pucp.edu.pe', 'Doctorado', 'laylapass', 'Profesora de Inteligencia Artificial', NULL, 'Mar-Vie 10-13', 'Presencial', 1, TRUE, NOW(), NOW()),
+           (1, 'P097', 'Rony', 'Cueva', 'Moscoso', 'r.cueva00@pucp.edu.pe', 'Maestría', 'ronypass', 'Profesor de Algoritmia', NULL, 'Lun-Mié 8-11', 'Presencial', 1, TRUE, NOW(), NOW());
+
+
 
 -- 2) Relación usuario_carrera (cada usuario con su carrera)
 INSERT INTO usuario_carrera (
@@ -260,8 +289,7 @@ INSERT INTO usuario_carrera (usuario_id,
                              fecha_modificacion)
 SELECT u.usuario_id, 1, TRUE, NOW(), NOW()
     FROM usuario u
-    WHERE u.codigo_pucp IN ('A004', 'A005', 'A006', 'A007', 'A008', 'A009', 'A010',
-                            'A011', 'A012', 'A013', 'A014', 'A015', 'A016', 'A017', 'A018');
+    WHERE u.codigo_pucp IN ('P092', 'P093', 'P094', 'P095', 'P096', 'P097');
 
 
 
