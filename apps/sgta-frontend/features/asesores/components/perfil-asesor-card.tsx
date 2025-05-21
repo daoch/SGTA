@@ -24,7 +24,7 @@ export default function PerfilAsesorCard({
 }: Props) {
   const tesisEnProceso = asesor.tesistasActuales ?? 3;
 
-  const limite = asesor.limiteTesis ?? 0;
+  const limite = asesor.limiteTesis ?? 8;
 
   const porcentaje = limite === 0 ? 0 : tesisEnProceso / limite;
 

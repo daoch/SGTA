@@ -2,9 +2,18 @@
 
 import type React from "react";
 
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -13,33 +22,47 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CrearCicloDto } from "@/features/administrador/types/ciclo.type";
+import { CheckCircle, XCircle } from "lucide-react";
 import { useState } from "react";
+
 
 interface NuevoCicloModalProps {
   isOpen: boolean
   onClose: () => void
-}
+  onRegistrar: (formData: CrearCicloDto) => Promise<CrearCicloDto>;
+};
 
-export function NuevoCicloModal({ isOpen, onClose }: NuevoCicloModalProps) {
+export function NuevoCicloModal({ isOpen, onClose, onRegistrar }: NuevoCicloModalProps) {
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [alert, setAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [formData, setFormData] = useState({
     semestre: "",
-    año: new Date().getFullYear(),
+    anio: new Date().getFullYear(),
     nombre: "",
     fechaInicio: "",
-    fechaFin: "",
+    fechaFin: ""
   });
+
+  // Limpiar el formulario al cerrar el modal
+  const handleClose = () => {
+    setFormData(formData);
+    setShowConfirm(false);
+    setAlert(null);
+    onClose();
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
 
-    // Si el campo es año, asegurarse de que sea un número
-    if (name === "año") {
+    if (name === "anio") {
       const numValue = Number.parseInt(value);
       if (!isNaN(numValue)) {
         setFormData((prev) => {
           const newData = { ...prev, [name]: numValue };
-          // Actualizar el nombre cuando cambia el año
           newData.nombre = `${numValue}-${prev.semestre}`;
           return newData;
         });
@@ -52,26 +75,59 @@ export function NuevoCicloModal({ isOpen, onClose }: NuevoCicloModalProps) {
   const handleSemestreChange = (value: string) => {
     setFormData((prev) => {
       const newData = { ...prev, semestre: value };
-      // Actualizar el nombre cuando cambia el semestre
-      newData.nombre = `${prev.año}-${value}`;
+      newData.nombre = `${prev.anio}-${value}`;
       return newData;
     });
   };
 
+  // Mostrar confirmación personalizada
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Datos del formulario:", formData);
-    // Aquí iría la lógica para guardar el ciclo
-    onClose();
+    setShowConfirm(true);
+  };
+
+  // Si el usuario confirma, guardar
+  const handleConfirmSave = async () => {
+    setShowConfirm(false);
+    try {
+      await onRegistrar(formData);
+      setAlert({
+        type: "success",
+        message: "El ciclo se guardó correctamente.",
+      });
+      setFormData({
+        semestre: "",
+        anio: new Date().getFullYear(),
+        nombre: "",
+        fechaInicio: "",
+        fechaFin: "",
+      });
+    } catch {
+      setAlert({
+        type: "error",
+        message: "No se pudo guardar el ciclo.",
+      });
+    }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Registrar Nuevo Ciclo</DialogTitle>
           <DialogDescription>Complete los campos para registrar un nuevo ciclo académico.</DialogDescription>
         </DialogHeader>
+        {alert && (
+          <Alert variant={alert.type === "success" ? "default" : "destructive"} className="mb-4">
+            {alert.type === "success" ? (
+              <CheckCircle className="h-5 w-5 text-green-600" />
+            ) : (
+              <XCircle className="h-5 w-5 text-red-600" />
+            )}
+            <AlertTitle>{alert.type === "success" ? "¡Éxito!" : "Error"}</AlertTitle>
+            <AlertDescription>{alert.message}</AlertDescription>
+          </Alert>
+        )}
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-2 gap-4">
@@ -89,8 +145,8 @@ export function NuevoCicloModal({ isOpen, onClose }: NuevoCicloModalProps) {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="año">Año</Label>
-                <Input id="año" name="año" type="number" value={formData.año} onChange={handleChange} required />
+                <Label htmlFor="anio">Año</Label>
+                <Input id="anio" name="anio" type="number" value={formData.anio} onChange={handleChange} required />
               </div>
             </div>
             <div className="space-y-2">
@@ -131,12 +187,27 @@ export function NuevoCicloModal({ isOpen, onClose }: NuevoCicloModalProps) {
             </div>
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={handleClose}>
               Cancelar
             </Button>
             <Button type="submit">Guardar</Button>
           </DialogFooter>
         </form>
+        {/* Confirmación personalizada */}
+        <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirmar registro</AlertDialogTitle>
+              <AlertDialogDescription>
+                ¿Desea guardar los datos registrados?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handleConfirmSave}>Guardar</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </DialogContent>
     </Dialog>
   );
