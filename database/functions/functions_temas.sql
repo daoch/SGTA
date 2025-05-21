@@ -1322,7 +1322,8 @@ RETURNS TABLE(
     activo                BOOLEAN,
     fecha_creacion        TIMESTAMPTZ,
     fecha_modificacion    TIMESTAMPTZ,
-    tipo_usuario_nombre   VARCHAR
+    tipo_usuario_nombre   VARCHAR,
+    asignado              BOOLEAN
 )
 LANGUAGE SQL
 STABLE
@@ -1346,7 +1347,14 @@ AS $$
       u.activo,
       u.fecha_creacion,
       u.fecha_modificacion,
-      tu.nombre
+      tu.nombre,
+      EXISTS (
+          SELECT 1
+          FROM usuario_tema ut
+          WHERE ut.usuario_id = u.usuario_id
+            AND ut.activo = TRUE
+            AND ut.asignado = TRUE
+      ) AS asignado
     FROM usuario u
     JOIN usuario_carrera uc
       ON u.usuario_id = uc.usuario_id
