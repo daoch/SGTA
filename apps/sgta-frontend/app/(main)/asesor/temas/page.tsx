@@ -129,22 +129,30 @@ const Page = () => {
           onOpenChange={setIsNuevoTemaDialogOpen}
         >
           <DialogTrigger asChild>
-            <Button>
+            <Button disabled={!asesorData}>
               <Plus></Plus>Nuevo Tema
             </Button>
           </DialogTrigger>
-          <NuevoTemaDialog
-            isOpen={isNuevoTemaDialogOpen}
-            setIsNuevoTemaDialogOpen={setIsNuevoTemaDialogOpen}
-            coasesoresDisponibles={coasesoresDisponibles}
-            estudiantesDisponibles={estudiantesDisponibles}
-            subareasDisponibles={subareasDisponibles}
-            carrera={carrera}
-            onTemaGuardado={fetchTemas}
-            asesor={asesorData}
-          />
+          {asesorData && (
+            <NuevoTemaDialog
+              isOpen={isNuevoTemaDialogOpen}
+              setIsNuevoTemaDialogOpen={setIsNuevoTemaDialogOpen}
+              coasesoresDisponibles={coasesoresDisponibles}
+              estudiantesDisponibles={estudiantesDisponibles}
+              subareasDisponibles={subareasDisponibles}
+              carrera={carrera}
+              onTemaGuardado={fetchTemas}
+              asesor={asesorData}
+            />
+          )}
         </Dialog>
       </div>
+
+      {!asesorData && (
+        <p className="text-red-500 font-semibold mt-2">
+          Error al cargar datos del asesor
+        </p>
+      )}
 
       {/* Tabs */}
       <Tabs defaultValue={Tipo.TODOS} className="w-full">

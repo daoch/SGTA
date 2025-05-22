@@ -30,10 +30,9 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import axiosInstance from "@/lib/axios/axios-instance";
 import { Trash2 } from "lucide-react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { toast, Toaster } from "sonner";
 import ItemSelector from "./item-selector";
-import { Tipo } from "@/app/types/temas/enums";
 
 interface NuevoTemaDialogProps {
   isOpen: boolean;
@@ -75,6 +74,19 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
     useState<AreaDeInvestigacion | null>(null);
   const [estudianteSeleccionado, setEstudianteSeleccionado] =
     useState<Tesista | null>(null);
+  const [errores, setErrores] = useState<{
+    titulo?: string;
+    resumen?: string;
+    objetivos?: string;
+    subareas?: string;
+    tesistas?: string;
+    fechaLimite?: string;
+  }>({});
+
+  useEffect(() => {
+    validarCampos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [temaData]);
 
   const handleChange = (field: keyof Tema, value: unknown) => {
     setTemaData((prev) => ({
@@ -163,6 +175,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
    * Crea un nuevo tema (Inscripción / Tema libre) y cierra el formulario.
    */
   const handleGuardar = async () => {
+    if (!validarCampos()) return;
     try {
       if (carrera) {
         const response = await axiosInstance.post(
@@ -216,6 +229,35 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
     return tesistas?.some((t) => t.codigoPucp === student.codigoPucp);
   };
 
+  const validarCampos = () => {
+    const nuevosErrores: typeof errores = {};
+    if (!temaData.titulo || temaData.titulo.trim() === "") {
+      nuevosErrores.titulo = "Debe ingresar el título del tema.";
+    }
+    if (!temaData.resumen || temaData.resumen.trim() === "") {
+      nuevosErrores.resumen = "Debe ingresar la descripción del tema.";
+    }
+    if (!temaData.objetivos || temaData.objetivos.trim() === "") {
+      nuevosErrores.objetivos = "Debe ingresar los objetivos del tema.";
+    }
+    if (!temaData.subareas || temaData.subareas.length === 0) {
+      nuevosErrores.subareas = "Debe seleccionar al menos una subárea.";
+    }
+    // Solo para inscripción, validar tesistas
+    if (
+      tipoRegistro === TipoRegistro.INSCRIPCION &&
+      (!temaData.tesistas || temaData.tesistas.length === 0)
+    ) {
+      nuevosErrores.tesistas =
+        "Debe agregar al menos un estudiante para temas de tipo inscripción.";
+    }
+    if (!temaData.fechaLimite || temaData.fechaLimite.trim() === "") {
+      nuevosErrores.fechaLimite = "Debe ingresar fecha límite del tema.";
+    }
+    setErrores(nuevosErrores);
+    return Object.keys(nuevosErrores).length === 0;
+  };
+
   return (
     <>
       <Toaster richColors position="top-right" />
@@ -259,20 +301,30 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
                   value={temaData.titulo}
                   onChange={(e) => handleChange("titulo", e.target.value)}
                 />
+                {errores.titulo && (
+                  <p className="text-red-500 text-xs mt-1">{errores.titulo}</p>
+                )}
               </div>
 
               {/* Subareas */}
-              <ItemSelector
-                label="Subáreas"
-                itemsDisponibles={subareasDisponibles}
-                itemsSeleccionados={temaData.subareas}
-                itemKey="id"
-                itemLabel="nombre"
-                selectedItem={areaSeleccionada}
-                onSelectItem={onSelectSubarea}
-                onAgregarItem={handleAgregarSubarea}
-                onEliminarItem={handleEliminarSubarea}
-              />
+              <div>
+                <ItemSelector
+                  label="Subáreas"
+                  itemsDisponibles={subareasDisponibles}
+                  itemsSeleccionados={temaData.subareas}
+                  itemKey="id"
+                  itemLabel="nombre"
+                  selectedItem={areaSeleccionada}
+                  onSelectItem={onSelectSubarea}
+                  onAgregarItem={handleAgregarSubarea}
+                  onEliminarItem={handleEliminarSubarea}
+                />
+                {errores.subareas && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errores.subareas}
+                  </p>
+                )}
+              </div>
 
               {/* Área de Investigación */}
               {/* <div className="space-y-2">
@@ -304,6 +356,9 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
                   value={temaData.resumen}
                   onChange={(e) => handleChange("resumen", e.target.value)}
                 />
+                {errores.resumen && (
+                  <p className="text-red-500 text-xs mt-1">{errores.resumen}</p>
+                )}
               </div>
 
               {/* Objetivos */}
@@ -314,6 +369,11 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
                   value={temaData.objetivos}
                   onChange={(e) => handleChange("objetivos", e.target.value)}
                 />
+                {errores.objetivos && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errores.objetivos}
+                  </p>
+                )}
               </div>
 
               {/* Coasesores */}
@@ -406,10 +466,11 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
                         </div>
                       ))}
                     </div>
-                    <p className="text-sm text-muted-foreground mt-2">
-                      Debe agregar al menos un estudiante para temas de tipo
-                      inscripción.
-                    </p>
+                    {errores.tesistas && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errores.tesistas}
+                      </p>
+                    )}
                   </div>
                 </>
               )}
@@ -441,6 +502,11 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
                       handleChange("fechaLimite", e.target.value)
                     }
                   />
+                  {errores.fechaLimite && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {errores.fechaLimite}
+                    </p>
+                  )}
                 </div>
               }
             </>
@@ -452,7 +518,12 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
             Cancelar
           </Button>
           {tipoRegistro !== TipoRegistro.NONE && (
-            <Button onClick={handleGuardar}>Guardar</Button>
+            <Button
+              onClick={handleGuardar}
+              disabled={Object.keys(errores).length > 0}
+            >
+              Guardar
+            </Button>
           )}
         </DialogFooter>
       </DialogContent>
