@@ -1,3 +1,7 @@
+DROP FUNCTION IF EXISTS listar_etapas_formativas_simple CASCADE;
+DROP FUNCTION IF EXISTS obtener_detalle_etapa_formativa CASCADE;
+DROP FUNCTION IF EXISTS obtener_historial_ciclos_etapa_formativa CASCADE;
+
 -- Función para obtener listado simple de etapas formativas
 CREATE OR REPLACE FUNCTION listar_etapas_formativas_simple()
     RETURNS TABLE
@@ -28,7 +32,7 @@ BEGIN
                           AND efc.activo = true
                         ORDER BY efc.etapa_formativa_x_ciclo_id DESC
                         LIMIT 1)
-                   ELSE 'POR_ASIGNAR'::TEXT
+                   ELSE 'Por Asignar'::TEXT
                    END as estado
         FROM etapa_formativa ef
                  JOIN carrera c ON ef.carrera_id = c.carrera_id
@@ -82,7 +86,7 @@ BEGIN
                           AND efc.activo = true
                         ORDER BY efc.etapa_formativa_x_ciclo_id DESC
                         LIMIT 1)
-                   ELSE 'POR_ASIGNAR'::TEXT
+                   ELSE 'Por Asignar'::TEXT
                    END as estado_actual,
                ef.duracion_exposicion
         FROM etapa_formativa ef
@@ -115,6 +119,3 @@ END;
 $$;
 
 
-drop function listar_etapas_formativas_simple;
-drop function obtener_detalle_etapa_formativa;
-drop function obtener_historial_ciclos_etapa_formativa;
