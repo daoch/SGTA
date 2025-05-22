@@ -117,3 +117,21 @@ DROP FUNCTION IF EXISTS listar_etapa_formativa_nombre ();
 DROP FUNCTION IF EXISTS obtener_jurados_por_tema (INTEGER) CASCADE;
 
 DROP FUNCTION IF EXISTS obtener_exposiciones_por_etapa_formativa_por_tema (INTEGER, INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS listar_propuestas_del_tesista_con_usuarios CASCADE;
+
+DROP FUNCTION IF EXISTS listar_postulaciones_del_tesista_con_usuarios CASCADE;
+
+DROP FUNCTION IF EXISTS listar_asesores_por_subarea_conocimiento CASCADE;
+
+DROP FUNCTION IF EXISTS obtener_sub_areas_por_carrera_usuario CASCADE;
+
+DROP FUNCTION IF EXISTS aprobar_postulacion_propuesta_general_tesista CASCADE;
+
+DROP FUNCTION IF EXISTS rechazar_postulacion_propuesta_general_tesista CASCADE;
+
+DROP FUNCTION IF EXISTS listar_asesores_por_subarea_conocimiento_v2 CASCADE;
+
+DROP FUNCTION IF EXISTS obtener_usuarios_por_tipo_carrera_y_busqueda CASCADE;
+
+DROP FUNCTION IF EXISTS obtener_carreras_por_usuario CASCADE;
