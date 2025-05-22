@@ -1,7 +1,6 @@
 "use client";
 
-import { asesorData } from "@/app/types/temas/data";
-import { Tema, Tesista } from "@/app/types/temas/entidades";
+import { Coasesor, Tema, Tesista } from "@/app/types/temas/entidades";
 import { estadosValues, Tipo } from "@/app/types/temas/enums";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,6 +22,7 @@ interface PropuestasTableProps {
   filter?: string;
   isLoading?: boolean;
   error?: string | null;
+  asesor?: Coasesor;
 }
 
 /**
@@ -35,6 +35,7 @@ export function TemasTable({
   filter,
   isLoading,
   error,
+  asesor,
 }: Readonly<PropuestasTableProps>) {
   const propuestasFiltradas = temasData.filter((tema) => {
     if (!filter || filter === Tipo.TODOS) return true;
@@ -90,7 +91,7 @@ export function TemasTable({
                   {/* Area */}
                   <TableCell>{tema.subareas[0].nombre}</TableCell>
                   {/* Asesor */}
-                  <TableCell>{asesorData.name}</TableCell>
+                  <TableCell>{asesor ? asesor.nombres : ""}</TableCell>
                   {/* Tesistas */}
                   <TableCell>
                     {!tema.tesistas

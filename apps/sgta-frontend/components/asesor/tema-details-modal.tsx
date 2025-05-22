@@ -1,5 +1,4 @@
-import { asesorData } from "@/app/types/temas/data";
-import { Tema } from "@/app/types/temas/entidades";
+import { Coasesor, Tema } from "@/app/types/temas/entidades";
 import { Tipo } from "@/app/types/temas/enums";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,6 +15,7 @@ import { Eye, History } from "lucide-react";
 
 interface TemaDetailsDialogProps {
   tema: Tema;
+  asesor?: Coasesor;
 }
 
 /**
@@ -25,6 +25,7 @@ interface TemaDetailsDialogProps {
  */
 export const TemaDetailsDialog: React.FC<TemaDetailsDialogProps> = ({
   tema,
+  asesor,
 }) => {
   const coasesores = tema.coasesores
     ? tema.coasesores
@@ -74,7 +75,7 @@ export const TemaDetailsDialog: React.FC<TemaDetailsDialogProps> = ({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <p className="text-sm font-medium">Asesor</p>
-              <p className="bg-muted p-2 rounded-md">{asesorData.name}</p>
+              <p className="bg-muted p-2 rounded-md">{asesor?.nombres}</p>
             </div>
 
             {/* Estado */}

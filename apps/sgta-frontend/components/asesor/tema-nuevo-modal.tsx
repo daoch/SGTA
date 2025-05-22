@@ -1,6 +1,6 @@
 "use client";
 
-import { asesorData, temaVacio } from "@/app/types/temas/data";
+import { temaVacio } from "@/app/types/temas/data";
 import {
   AreaDeInvestigacion,
   Carrera,
@@ -43,6 +43,7 @@ interface NuevoTemaDialogProps {
   subareasDisponibles: AreaDeInvestigacion[];
   carrera: Carrera | null;
   onTemaGuardado: () => void;
+  asesor: Coasesor;
 }
 
 enum TipoRegistro {
@@ -64,6 +65,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
   subareasDisponibles,
   carrera,
   onTemaGuardado,
+  asesor,
 }) => {
   const [temaData, setTemaData] = useState<Tema>(temaVacio);
   const [tipoRegistro, setTipoRegistro] = useState(TipoRegistro.NONE);
@@ -165,7 +167,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
       if (carrera) {
         const response = await axiosInstance.post(
           "temas/createInscripcion",
-          mapTemaCreateInscription(temaData, carrera),
+          mapTemaCreateInscription(temaData, carrera, asesor),
         );
 
         toast.success("Tema guardado exitosamente");
@@ -335,7 +337,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
                   {/* Asesor Principal */}
                   <div className="space-y-2">
                     <Label>Asesor Principal</Label>
-                    <Input value={asesorData.name} disabled />
+                    <Input value={asesor.nombres} disabled />
                   </div>
 
                   {/* Estudiantes */}
@@ -458,7 +460,11 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
   );
 };
 
-const mapTemaCreateInscription = (tema: Tema, carrera: Carrera) => {
+const mapTemaCreateInscription = (
+  tema: Tema,
+  carrera: Carrera,
+  asesor: Coasesor,
+) => {
   return {
     titulo: tema.titulo,
     carrera: { id: carrera.id },
@@ -468,7 +474,7 @@ const mapTemaCreateInscription = (tema: Tema, carrera: Carrera) => {
     fechaLimite: new Date(tema.fechaLimite + "T10:00:00Z").toISOString(),
     subareas: tema.subareas.map((a) => ({ id: a.id })),
     coasesores: [
-      { id: asesorData.id },
+      { id: asesor.id },
       ...(tema.coasesores ? tema.coasesores.map((c) => ({ id: c.id })) : []),
     ],
     tesistas: tema.tesistas ? tema.tesistas.map((t) => ({ id: t.id })) : [],
