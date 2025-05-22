@@ -21,8 +21,14 @@ BEGIN
                        FROM etapa_formativa_x_ciclo efc
                        WHERE efc.etapa_formativa_id = ef.etapa_formativa_id
                          AND efc.activo = true
-                   ) THEN 'EN_CURSO'::TEXT
-                   ELSE 'FINALIZADO'::TEXT
+                   ) THEN 
+                       (SELECT efc.estado::TEXT
+                        FROM etapa_formativa_x_ciclo efc
+                        WHERE efc.etapa_formativa_id = ef.etapa_formativa_id
+                          AND efc.activo = true
+                        ORDER BY efc.etapa_formativa_x_ciclo_id DESC
+                        LIMIT 1)
+                   ELSE 'POR_ASIGNAR'::TEXT
                    END as estado
         FROM etapa_formativa ef
                  JOIN carrera c ON ef.carrera_id = c.carrera_id
@@ -69,8 +75,14 @@ BEGIN
                        FROM etapa_formativa_x_ciclo efc
                        WHERE efc.etapa_formativa_id = ef.etapa_formativa_id
                          AND efc.activo = true
-                   ) THEN 'EN_CURSO'::TEXT
-                   ELSE 'FINALIZADO'::TEXT
+                   ) THEN 
+                       (SELECT efc.estado::TEXT
+                        FROM etapa_formativa_x_ciclo efc
+                        WHERE efc.etapa_formativa_id = ef.etapa_formativa_id
+                          AND efc.activo = true
+                        ORDER BY efc.etapa_formativa_x_ciclo_id DESC
+                        LIMIT 1)
+                   ELSE 'POR_ASIGNAR'::TEXT
                    END as estado_actual,
                ef.duracion_exposicion
         FROM etapa_formativa ef
@@ -94,10 +106,7 @@ BEGIN
     RETURN QUERY
         SELECT efc.etapa_formativa_x_ciclo_id,
                (ciclo.anio || ' ' || ciclo.semestre)::TEXT as ciclo,
-               CASE
-                   WHEN efc.activo = true THEN 'EN_CURSO'::TEXT
-                   ELSE 'FINALIZADO'::TEXT
-                   END as estado
+               efc.estado::TEXT
         FROM etapa_formativa_x_ciclo efc
                  JOIN ciclo ON efc.ciclo_id = ciclo.ciclo_id
         WHERE efc.etapa_formativa_id = p_etapa_id
