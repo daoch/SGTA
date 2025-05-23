@@ -6,8 +6,8 @@ import {
   Coasesor,
   Tema,
   Tesista,
-} from "@/app/types/temas/entidades";
-import { Tipo } from "@/app/types/temas/enums";
+} from "@/features/temas/types/inscripcion/entities";
+import { Tipo } from "@/features/temas/types/inscripcion/enums";
 import NuevoTemaDialog from "@/components/asesor/tema-nuevo-modal";
 import { TemasTable } from "@/components/asesor/temas-table";
 import { Button } from "@/components/ui/button";
@@ -80,7 +80,7 @@ const Page = () => {
   }, []);
 
   useEffect(() => {
-    const fetchDialogData = async () => {
+    const fetchData = async () => {
       try {
         const response = await axiosInstance.get("subAreaConocimiento/list");
         setSubareasDisponibles(response.data);
@@ -92,24 +92,12 @@ const Page = () => {
         setCoasesoresDisponibles(coasesoresData);
 
         setAsesorData(coasesoresData[0]); // TODO El asesor logeado debe traerse globalmente
-
-        // const carreraRes = await axiosInstance.get(
-        //   `usuario/${asesorData.id}/carreras`,
-        // );
-        // setCarrera(carreraRes.data);
-
-        console.log({
-          coasesoresDisponibles,
-          estudiantesDisponibles,
-          subareasDisponibles,
-          carrera,
-        });
       } catch (error) {
         console.error("Error cargando subáreas:", error);
       }
     };
-    fetchDialogData();
-    fetchTemas();
+
+    fetchData().then(() => fetchTemas());
   }, [fetchTemas]);
 
   return (

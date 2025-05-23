@@ -1,7 +1,11 @@
 "use client";
 
-import { Coasesor, Tema, Tesista } from "@/app/types/temas/entidades";
-import { estadosValues, Tipo } from "@/app/types/temas/enums";
+import {
+  Coasesor,
+  Tema,
+  Tesista,
+} from "@/features/temas/types/inscripcion/entities";
+import { estadosValues, Tipo } from "@/features/temas/types/inscripcion/enums";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -136,7 +140,7 @@ export function TemasTable({
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       {/* View Details */}
-                      <TemaDetailsDialog tema={tema} />
+                      <TemaDetailsDialog tema={tema} asesor={asesor} />
                       {/* Edit Page */}
                       {[Tipo.INSCRITO, Tipo.LIBRE].includes(
                         tema.estadoTemaNombre as Tipo,

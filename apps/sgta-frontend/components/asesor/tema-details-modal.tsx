@@ -1,5 +1,4 @@
-import { Coasesor, Tema } from "@/app/types/temas/entidades";
-import { Tipo } from "@/app/types/temas/enums";
+import { Tipo } from "@/features/temas/types/inscripcion/enums";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +11,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Eye, History } from "lucide-react";
+import { Coasesor, Tema } from "@/features/temas/types/inscripcion/entities";
 
 interface TemaDetailsDialogProps {
   tema: Tema;

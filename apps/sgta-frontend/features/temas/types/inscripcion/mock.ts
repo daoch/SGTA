@@ -1,4 +1,4 @@
-import { Coasesor, Tema, TemaForm } from "./entidades";
+import { Coasesor, Tema, TemaForm } from "./entities";
 
 export const emptyTemaForm: TemaForm = {
   tipoRegistro: "",

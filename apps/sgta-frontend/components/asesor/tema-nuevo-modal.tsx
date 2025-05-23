@@ -1,6 +1,5 @@
 "use client";
 
-import { temaVacio } from "@/app/types/temas/data";
 import {
   AreaDeInvestigacion,
   Carrera,
@@ -8,7 +7,7 @@ import {
   Tema,
   TemaCreateInscription,
   Tesista,
-} from "@/app/types/temas/entidades";
+} from "@/features/temas/types/inscripcion/entities";
 import { Button } from "@/components/ui/button";
 import {
   DialogContent,
@@ -33,6 +32,7 @@ import { Trash2 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { toast, Toaster } from "sonner";
 import ItemSelector from "./item-selector";
+import { temaVacio } from "@/features/temas/types/inscripcion/mock";
 
 interface NuevoTemaDialogProps {
   isOpen: boolean;
