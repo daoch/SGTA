@@ -81,7 +81,7 @@ END;
 $BODY$;
 
 ALTER FUNCTION get_advisor_distribution_by_coordinator_and_ciclo(integer, varchar)
-  OWNER TO postgres;
+  OWNER TO sgtauser;
 
 -------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION get_juror_distribution_by_coordinator_and_ciclo(
@@ -175,7 +175,7 @@ END;
 $BODY$;
 
 ALTER FUNCTION get_juror_distribution_by_coordinator_and_ciclo(integer, varchar)
-  OWNER TO postgres;
+  OWNER TO sgtauser;
 
 -------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION get_advisor_performance_by_user(
@@ -280,7 +280,7 @@ END;
 $BODY$;
 
 ALTER FUNCTION get_advisor_performance_by_user(integer, varchar)
-  OWNER TO postgres;
+  OWNER TO sgtauser;
 
 
 -------------------------------------------------------------------------------------------------------------
@@ -360,7 +360,7 @@ END;
 $BODY$;
 
 ALTER FUNCTION get_topic_area_stats_by_user_and_ciclo(integer, varchar)
-  OWNER TO postgres;
+  OWNER TO sgtauser;
 
 -------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION get_topic_area_trends_by_user(
@@ -429,5 +429,41 @@ END;
 $BODY$;
 
 ALTER FUNCTION get_topic_area_trends_by_user(integer)
-  OWNER TO postgres;
+  OWNER TO sgtauser;
 
+--------
+DROP FUNCTION  listar_tesistas_por_asesor(p_asesor_id INT);
+CREATE OR REPLACE FUNCTION listar_tesistas_por_asesor(p_asesor_id INT)
+    RETURNS TABLE(
+                     tema_id            INT,
+                     tesista_id         INT,
+                     nombres            VARCHAR(100),
+                     primer_apellido    VARCHAR(100),
+                     segundo_apellido   VARCHAR(100),
+                     correo_electronico VARCHAR(255)
+                 ) AS $$
+BEGIN
+    RETURN QUERY
+        SELECT
+            ut.tema_id,
+            ut.usuario_id       AS tesista_id,
+            u.nombres,
+            u.primer_apellido,
+            u.segundo_apellido,
+            u.correo_electronico
+        FROM usuario_tema ut
+                 JOIN rol r1 ON ut.rol_id = r1.rol_id AND r1.nombre = 'Tesista'
+                 JOIN usuario u ON u.usuario_id = ut.usuario_id
+        WHERE ut.tema_id IN (
+            -- traerme los temas donde p_asesor_id es Asesor
+            SELECT ut2.tema_id
+            FROM usuario_tema ut2
+                     JOIN rol r2 ON ut2.rol_id = r2.rol_id AND r2.nombre = 'Asesor'
+            WHERE ut2.usuario_id = p_asesor_id
+        );
+END;
+$$ LANGUAGE plpgsql;
+
+
+SELECT *
+FROM listar_tesistas_por_asesor(1);
