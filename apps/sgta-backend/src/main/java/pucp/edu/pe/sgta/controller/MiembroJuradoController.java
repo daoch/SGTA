@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pucp.edu.pe.sgta.dto.*;
+import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
 import pucp.edu.pe.sgta.dto.temas.DetalleTemaDto;
 import pucp.edu.pe.sgta.model.UsuarioXTema;
 import pucp.edu.pe.sgta.service.inter.MiembroJuradoService;
@@ -118,4 +119,12 @@ public class MiembroJuradoController {
         DetalleTemaDto detalle = juradoService.obtenerDetalleTema(idTema);
         return ResponseEntity.ok(detalle);
     }
+
+    @GetMapping("/{usuarioId}/exposiciones")
+    public ResponseEntity<List<ExposicionTemaMiembrosDto>> listarExposicionesPorJurado(@PathVariable Integer usuarioId) {
+        List<ExposicionTemaMiembrosDto> exposiciones = juradoService.listarExposicionXJuradoId(usuarioId);
+        return ResponseEntity.ok(exposiciones);
+    }
+
+
 }

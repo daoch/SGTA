@@ -5,6 +5,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pucp.edu.pe.sgta.dto.*;
+import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
+import pucp.edu.pe.sgta.dto.exposiciones.MiembroExposicionDto;
 import pucp.edu.pe.sgta.dto.temas.DetalleTemaDto;
 import pucp.edu.pe.sgta.dto.temas.EtapaFormativaTemaDto;
 import pucp.edu.pe.sgta.dto.temas.ExposicionTemaDto;
@@ -30,11 +32,13 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
     private final TemaRepository temaRepository;
     private final SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository;
     private final EtapaFormativaRepository etapaFormativaRepository;
+    private final ExposicionXTemaRepository exposicionXTemaRepository;
+    private final BloqueHorarioExposicionRepository bloqueHorarioExposicionRepository;
 
     public MiembroJuradoServiceImpl(UsuarioRepository usuarioRepository, UsuarioXTemaRepository usuarioXTemaRepository,
-            EstadoTemaRepository estadoTemaRepository, RolRepository rolRepository, TemaRepository temaRepository,
-            SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository,
-            EtapaFormativaRepository etapaFormativaRepository) {
+                                    EstadoTemaRepository estadoTemaRepository, RolRepository rolRepository, TemaRepository temaRepository,
+                                    SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository,
+                                    EtapaFormativaRepository etapaFormativaRepository, ExposicionXTemaRepository exposicionXTemaRepository, BloqueHorarioExposicionRepository bloqueHorarioExposicionRepository) {
         this.usuarioRepository = usuarioRepository;
         this.usuarioXTemaRepository = usuarioXTemaRepository;
         this.estadoTemaRepository = estadoTemaRepository;
@@ -42,6 +46,8 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
         this.temaRepository = temaRepository;
         this.subAreaConocimientoXTemaRepository = subAreaConocimientoXTemaRepository;
         this.etapaFormativaRepository = etapaFormativaRepository;
+        this.exposicionXTemaRepository = exposicionXTemaRepository;
+        this.bloqueHorarioExposicionRepository = bloqueHorarioExposicionRepository;
     }
 
     @Override
@@ -507,13 +513,26 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
 
     @Override
     public ResponseEntity<?> desasignarJuradoDeTemaTodos(Integer usuarioId) {
-
         List<UsuarioXTema> asignaciones = usuarioXTemaRepository.findByUsuarioIdAndRolId(usuarioId, 2);
+
         if (asignaciones.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Map.of("mensaje", "No existen asignaciones activas para este miembro de jurado"));
         }
 
+        // Verificar si alguno de los temas tiene estado 7 o 12
+        boolean tieneTemasPendientes = asignaciones.stream()
+                .anyMatch(asignacion -> {
+                    Integer estadoId = asignacion.getTema().getEstadoTema().getId();
+                    return estadoId == 7 || estadoId == 12;
+                });
+
+        if (tieneTemasPendientes) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("mensaje", "No se puede eliminar porque el jurado tiene temas pendientes o en evaluación"));
+        }
+
+        // Se desactiva todas las asignaciones si todos los estados son válidos
         for (UsuarioXTema asignacion : asignaciones) {
             asignacion.setActivo(false);
             asignacion.setFechaModificacion(OffsetDateTime.now());
@@ -522,4 +541,72 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
 
         return ResponseEntity.ok(Map.of("mensaje", "Todas las asignaciones del miembro de jurado han sido eliminadas"));
     }
+
+    @Override
+    public List<ExposicionTemaMiembrosDto> listarExposicionXJuradoId(Integer juradoId) {
+        Set<Integer> temasDelJurado = usuarioXTemaRepository.findAll().stream()
+                .filter(ut -> ut.getActivo())
+                .filter(ut -> ut.getUsuario().getId().equals(juradoId))
+                .map(ut -> ut.getTema().getId())
+                .collect(Collectors.toSet());
+        List<Tema> temas = temaRepository.findAllById(temasDelJurado);
+        List<ExposicionTemaMiembrosDto> result = new ArrayList<>();
+
+        for (Tema tema : temas){
+            List<ExposicionXTema> exposiciones = exposicionXTemaRepository.findByTemaIdAndActivoTrue(tema.getId());
+            for (ExposicionXTema exposicionXTema : exposiciones){
+                List<BloqueHorarioExposicion> bloques = bloqueHorarioExposicionRepository.findByExposicionXTemaIdAndActivoTrue(exposicionXTema.getId());
+                for (BloqueHorarioExposicion bloque : bloques) {
+                    OffsetDateTime datetimeInicio = bloque.getDatetimeInicio();
+
+                    // Obtener sala desde el bloque -> jornadaExposicionXSala -> sala
+                    String salaNombre = "";
+                    if (bloque.getJornadaExposicionXSala() != null &&
+                            bloque.getJornadaExposicionXSala().getSalaExposicion() != null) {
+                        salaNombre = bloque.getJornadaExposicionXSala().getSalaExposicion().getNombre();
+                    }
+
+                    Exposicion exposicion = exposicionXTema.getExposicion();
+
+                    // Estado planificación
+                    String estado = exposicion.getEstadoPlanificacion().getNombre();
+
+                    // Etapa formativa
+                    EtapaFormativa etapa = exposicion.getEtapaFormativaXCiclo().getEtapaFormativa();
+                    Integer idEtapaFormativa = etapa.getId();
+                    String nombreEtapaFormativa = etapa.getNombre();
+                    Integer idCiclo = exposicion.getEtapaFormativaXCiclo().getCiclo().getId();
+
+
+                    // Miembros
+                    List<UsuarioXTema> usuarioTemas = usuarioXTemaRepository.findByTemaIdAndActivoTrue(tema.getId());
+                    List<MiembroExposicionDto> miembros = usuarioTemas.stream().map(ut -> {
+                        MiembroExposicionDto miembro = new MiembroExposicionDto();
+                        miembro.setId_persona(ut.getUsuario().getId());
+                        miembro.setNombre(ut.getUsuario().getNombres());
+                        miembro.setTipo(ut.getRol().getNombre());
+                        return miembro;
+                    }).toList();
+
+                    // Crear DTO
+                    ExposicionTemaMiembrosDto dto = new ExposicionTemaMiembrosDto();
+                    dto.setId_exposicion(exposicion.getId());
+                    dto.setFechahora(datetimeInicio);
+                    dto.setSala(salaNombre);
+                    dto.setEstado(estado);
+                    dto.setId_etapa_formativa(idEtapaFormativa);
+                    dto.setNombre_etapa_formativa(nombreEtapaFormativa);
+                    dto.setTitulo(tema.getTitulo());
+                    dto.setCiclo_id(idCiclo);
+                    dto.setMiembros(miembros);
+
+                    result.add(dto);
+                }
+
+            }
+
+        }
+        return result;
+    }
+
 }
