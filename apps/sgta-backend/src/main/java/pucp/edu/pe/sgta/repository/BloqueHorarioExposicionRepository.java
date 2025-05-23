@@ -22,5 +22,6 @@ public interface BloqueHorarioExposicionRepository extends JpaRepository<BloqueH
     @Query(value = "SELECT terminar_planificacion(:idExposicion)", nativeQuery = true)
     Boolean finishPlanning(@Param("idExposicion") Integer exposicionId);
 
+    List<BloqueHorarioExposicion> findByExposicionXTemaIdAndActivoTrue(Integer exposicionXTemaId);
 
 }

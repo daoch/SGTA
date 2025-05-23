@@ -13,15 +13,14 @@ import org.springframework.web.server.ResponseStatusException;
 
 import pucp.edu.pe.sgta.dto.*;
 import pucp.edu.pe.sgta.dto.asesores.InfoTemaPerfilDto;
+import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
+import pucp.edu.pe.sgta.dto.exposiciones.MiembroExposicionDto;
 import pucp.edu.pe.sgta.exception.CustomException;
 import pucp.edu.pe.sgta.mapper.TemaMapper;
 import pucp.edu.pe.sgta.mapper.UsuarioMapper;
 import pucp.edu.pe.sgta.model.*;
 import pucp.edu.pe.sgta.repository.*;
-import pucp.edu.pe.sgta.service.inter.HistorialTemaService;
-import pucp.edu.pe.sgta.service.inter.SubAreaConocimientoService;
-import pucp.edu.pe.sgta.service.inter.TemaService;
-import pucp.edu.pe.sgta.service.inter.UsuarioService;
+import pucp.edu.pe.sgta.service.inter.*;
 import pucp.edu.pe.sgta.util.EstadoTemaEnum;
 import pucp.edu.pe.sgta.util.RolEnum;
 import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
@@ -63,17 +62,29 @@ public class TemaServiceImpl implements TemaService {
 
 	private final UsuarioRepository usuarioRepository;
 
+	private final ExposicionService exposicionService;
+
+	private final ExposicionXTemaRepository exposicionXTemaRepository;
+
+	private final JornadaExposicionRepository jornadaExposicionRepository;
+
+	private final ExposicionRepository exposicionRepository;
+
+	private final JornadaExposicionXSalaExposicionRepository jornadaExposicionXSalaExposicionRepository;
+
+	private final UsuarioXTemaRepository usuarioTemaRepository;
+
 	private final ObjectMapper objectMapper = new ObjectMapper(); // for JSON conversion
 
 	@PersistenceContext
 	private EntityManager entityManager;
 
 	public TemaServiceImpl(TemaRepository temaRepository, UsuarioXTemaRepository usuarioXTemaRepository,
-			UsuarioService usuarioService, SubAreaConocimientoService subAreaConocimientoService,
-			SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository, RolRepository rolRepository,
-			EstadoTemaRepository estadoTemaRepository, UsuarioXCarreraRepository usuarioCarreraRepository,
-			CarreraRepository carreraRepository, HistorialTemaService historialTemaService,
-			UsuarioRepository usuarioRepository) {
+                           UsuarioService usuarioService, SubAreaConocimientoService subAreaConocimientoService,
+                           SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository, RolRepository rolRepository,
+                           EstadoTemaRepository estadoTemaRepository, UsuarioXCarreraRepository usuarioCarreraRepository,
+                           CarreraRepository carreraRepository, HistorialTemaService historialTemaService,
+                           UsuarioRepository usuarioRepository, ExposicionService exposicionService, ExposicionXTemaRepository exposicionXTemaRepository, JornadaExposicionRepository jornadaExposicionRepository, ExposicionRepository exposicionRepository, JornadaExposicionXSalaExposicionRepository jornadaExposicionXSalaExposicionRepository, UsuarioXTemaRepository usuarioTemaRepository) {
 		this.temaRepository = temaRepository;
 		this.usuarioXTemaRepository = usuarioXTemaRepository;
 		this.subAreaConocimientoXTemaRepository = subAreaConocimientoXTemaRepository;
@@ -85,7 +96,13 @@ public class TemaServiceImpl implements TemaService {
 		this.carreraRepository = carreraRepository;
 		this.historialTemaService = historialTemaService;
 		this.usuarioRepository = usuarioRepository;
-	}
+        this.exposicionService = exposicionService;
+        this.exposicionXTemaRepository = exposicionXTemaRepository;
+        this.jornadaExposicionRepository = jornadaExposicionRepository;
+        this.exposicionRepository = exposicionRepository;
+        this.jornadaExposicionXSalaExposicionRepository = jornadaExposicionXSalaExposicionRepository;
+        this.usuarioTemaRepository = usuarioTemaRepository;
+    }
 
 	@Override
 	public List<TemaDto> getAll() {
@@ -770,7 +787,7 @@ public class TemaServiceImpl implements TemaService {
 			usuarioDto.setNombres(nombres);
 			usuarioDto.setApellidos(apellidos);
 
-			RolDTO rolDto = new RolDTO();
+			RolDto rolDto = new RolDto();
 			rolDto.setId(rolId);
 			rolDto.setNombre(rolNombre);
 
@@ -1087,4 +1104,64 @@ public class TemaServiceImpl implements TemaService {
 		
 		eliminarPostulacionesTesista(idTesista);
 	}
+
+	@Override
+	public List<ExposicionTemaMiembrosDto> listarExposicionXTemaId(Integer temaId) {
+		List<ExposicionTemaMiembrosDto> resultado = new ArrayList<>();
+		List<ExposicionXTema> exposicionXTemas = exposicionXTemaRepository.findByTemaIdAndActivoTrue(temaId);
+
+		for (ExposicionXTema exposicionXTema : exposicionXTemas) {
+			Exposicion exposicion = exposicionXTema.getExposicion();
+
+			// Obtener TODAS las jornadas activas para esta exposición
+			List<JornadaExposicion> jornadas = jornadaExposicionRepository.findByExposicionIdAndActivoTrue(exposicion.getId());
+
+			for (JornadaExposicion jornada : jornadas) {
+				OffsetDateTime datetimeInicio = jornada.getDatetimeInicio();
+
+				// Obtener la sala de la jornada
+				List<JornadaExposicionXSalaExposicion> jornadaXSalaList =
+						jornadaExposicionXSalaExposicionRepository.findByJornadaExposicionIdAndActivoTrue(jornada.getId());
+
+				String salaNombre = jornadaXSalaList.stream()
+						.map(j -> j.getSalaExposicion().getNombre())
+						.collect(Collectors.joining(", ")); // o usar solo la primera si quieres
+
+
+				// Estado planificación
+				String estado = exposicion.getEstadoPlanificacion().getNombre();
+
+				// Etapa formativa
+				EtapaFormativa etapa = exposicion.getEtapaFormativaXCiclo().getEtapaFormativa();
+				Integer idEtapaFormativa = etapa.getId();
+				String nombreEtapaFormativa = etapa.getNombre();
+
+				// Miembros del tema
+				List<UsuarioXTema> usuarioTemas = usuarioTemaRepository.findByTemaIdAndActivoTrue(temaId);
+				List<MiembroExposicionDto> miembros = usuarioTemas.stream().map(ut -> {
+					MiembroExposicionDto miembro = new MiembroExposicionDto();
+					miembro.setId_persona(ut.getUsuario().getId());
+					miembro.setNombre(ut.getUsuario().getNombres());
+					miembro.setTipo(ut.getRol().getNombre());
+					return miembro;
+				}).toList();
+
+				// Crear DTO
+				ExposicionTemaMiembrosDto dto = new ExposicionTemaMiembrosDto();
+				dto.setId_exposicion(exposicion.getId());
+				dto.setFechahora(datetimeInicio);
+				dto.setSala(salaNombre);
+				dto.setEstado(estado);
+				dto.setId_etapa_formativa(idEtapaFormativa);
+				dto.setNombre_etapa_formativa(nombreEtapaFormativa);
+				dto.setTitulo(""); // Puedes completar esto si tienes el título
+				dto.setMiembros(miembros);
+
+				resultado.add(dto);
+			}
+		}
+
+		return resultado;
+	}
+
 }

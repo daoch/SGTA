@@ -25,6 +25,10 @@ public class BloqueHorarioExposicion {
         @JoinColumn(name = "jornada_exposicion_x_sala_id", nullable = false, foreignKey = @ForeignKey(name = "fk_bhe_jornada_exposicion_x_sala"))
         private JornadaExposicionXSalaExposicion jornadaExposicionXSala;
 
+        @ManyToOne(fetch = FetchType.LAZY,optional = false)
+        @JoinColumn(name = "exposicion_x_tema_id",nullable = false,foreignKey = @ForeignKey(name = "fk_bhe_exposicion_x_tema"))
+        private ExposicionXTema exposicionXTema;
+
         @Column(name = "es_bloque_reservado", nullable = false)
         private boolean esBloqueReservado = false;
 
