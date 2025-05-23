@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { Check, ChevronsUpDown, Plus, X } from "lucide-react";
-import type { AreaTematica } from "../types/perfil/entidades";
+import type { AreaTematica } from "../../types/perfil/entidades";
 
 interface Props {
   isEditing: boolean;

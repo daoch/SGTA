@@ -4,13 +4,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.transaction.annotation.Transactional;
 
 import pucp.edu.pe.sgta.dto.asesores.InfoAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.asesores.InfoSubAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
-
+import pucp.edu.pe.sgta.dto.asesores.UsuarioFotoDto;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
@@ -29,6 +29,8 @@ import pucp.edu.pe.sgta.util.Utils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -36,6 +38,7 @@ import java.time.ZoneOffset;
 import java.util.List;
 
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import java.util.NoSuchElementException;
@@ -581,4 +584,81 @@ public class UsuarioServiceImpl implements UsuarioService {
             })
             .collect(Collectors.toList());
     }
+
+    @Override
+	public void uploadFoto(Integer idUsuario, MultipartFile file) {
+		Usuario user = usuarioRepository.findById(idUsuario).orElse(null);
+		if (user == null) {
+			throw new RuntimeException("Usuario no encontrado con ID: " + idUsuario);
+		}
+        try {
+            user.setFotoPerfil(file.getBytes());
+			usuarioRepository.save(user);
+        } catch (IOException e) {
+            throw new RuntimeException("No se pudo subir foto del usuario: " + idUsuario);
+        }
+    }
+
+	@Override
+	public UsuarioFotoDto getUsuarioFoto(Integer id) {
+		Usuario user = usuarioRepository.findById(id).orElse(null);
+		if (user == null) {
+			throw new RuntimeException("Usuario no encontrado con ID: " + id);
+		}
+		UsuarioFotoDto usuarioFotoDto = new UsuarioFotoDto();
+		usuarioFotoDto.setIdUsuario(id);
+
+		String fotoBase64 = user.getFotoPerfil() != null? Base64.getEncoder().encodeToString(user.getFotoPerfil()) : null;
+		usuarioFotoDto.setFoto(fotoBase64);
+		return usuarioFotoDto;
+	}
+
+	@Override
+	public Integer getIdByCorreo(String correo) {
+		Usuario user = usuarioRepository.findByCorreoElectronicoIsLikeIgnoreCase(correo);
+		if (user == null) {
+			throw new RuntimeException("Usuario no encontrado con CORREO: " + correo);
+		}
+		return user.getId();
+	}
+
+	@Override
+	public List<UsuarioDto> getAsesoresBySubArea(Integer idSubArea) {
+		String sql =
+				"SELECT usuario_id, nombre_completo, correo_electronico " +
+						"  FROM listar_asesores_por_subarea_conocimiento_v2(:p_subarea_id)";
+		Query query = em.createNativeQuery(sql)
+				.setParameter("p_subarea_id", idSubArea);
+
+		@SuppressWarnings("unchecked")
+		List<Object[]> rows = query.getResultList();
+		List<UsuarioDto> advisors = new ArrayList<>(rows.size());
+
+		for (Object[] row : rows) {
+			Integer userId       = ((Number) row[0]).intValue();
+			String fullName      = (String) row[1];
+			String email         = (String) row[2];
+
+			advisors.add(UsuarioDto.builder()
+					.id(userId)
+					.nombres(fullName.split(" ")[0])
+							.primerApellido(fullName.split(" ")[1])
+					.correoElectronico(email)
+					.build());
+		}
+
+		return advisors;
+	}
+
+	@Override
+	public UsuarioDto findUsuarioByCodigo(String codigoPucp) {
+		Optional<Usuario> usuario = usuarioRepository.findByCodigoPucp(codigoPucp);
+		if(usuario.isPresent()){
+			UsuarioDto usuarioDto = UsuarioMapper.toDto(usuario.get());
+			return usuarioDto;
+		}
+		return null;
+	}
+
+
 }
