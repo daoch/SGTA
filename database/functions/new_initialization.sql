@@ -558,7 +558,30 @@ INSERT INTO etapa_formativa_x_ciclo_x_tema (etapa_formativa_x_ciclo_id, tema_id,
            (1, 10, TRUE, NOW()),
            (1, 11, TRUE, NOW());
 
-INSERT INTO exposicion_x_tema ()
+INSERT INTO exposicion_x_tema (exposicion_id,
+                               tema_id)
+    VALUES (1, 1),
+           (1, 2),
+           (1, 3),
+           (1, 4),
+           (1, 5),
+           (1, 6),
+           (1, 7),
+           (1, 8),
+           (1, 9),
+           (1, 10),
+           (1, 11),
+           (2, 1),
+           (2, 2),
+           (2, 3),
+           (2, 4),
+           (2, 5),
+           (2, 6),
+           (2, 7),
+           (2, 8),
+           (2, 9),
+           (2, 10),
+           (2, 11);
 
 -----------------------------------
 --| PARÁMETROS DE CONFIGURACIÓN |--
