@@ -162,6 +162,12 @@ public class TemaController {
 		temaService.rechazarPostulacionAPropuestaGeneral(temaId, asesorId, alumnoId);
 	}
 
+	@GetMapping("/listarTemasPorCarrera/{carreraId}/{estado}")
+	public List<TemaDto> buscarPorEstadoYCarrera(
+			@PathVariable("estado") String estado,
+			@PathVariable("carreraId") Integer carreraId) {
+		return temaService.listarTemasPorEstadoYCarrera(estado, carreraId);
+	}	
 }
 
 

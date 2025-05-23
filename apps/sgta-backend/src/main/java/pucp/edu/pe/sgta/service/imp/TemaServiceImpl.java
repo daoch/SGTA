@@ -1087,4 +1087,37 @@ public class TemaServiceImpl implements TemaService {
 		
 		eliminarPostulacionesTesista(idTesista);
 	}
+
+
+	@Override
+	@Transactional
+	public List<TemaDto> listarTemasPorEstadoYCarrera(String estadoNombre, Integer carreraId) {
+		String sql = "SELECT * FROM listar_temas_por_estado_y_carrera(:estado, :carreraId)";
+		@SuppressWarnings("unchecked")
+		List<Object[]> rows = entityManager.createNativeQuery(sql)
+			.setParameter("estado", estadoNombre)
+			.setParameter("carreraId", carreraId)
+			.getResultList();
+
+		List<TemaDto> resultados = new ArrayList<>(rows.size());
+		for (Object[] r : rows) {
+			TemaDto dto = TemaDto.builder()
+				.id( ((Number) r[0]).intValue() )        // tema_id
+				.codigo(       (String)   r[1] )          // codigo
+				.titulo(       (String)   r[2] )          // titulo
+				.resumen(      (String)   r[3] )          // resumen
+				.metodologia(  (String)   r[4] )          // metodologia
+				.objetivos(    (String)   r[5] )          // objetivos
+				.estadoTemaNombre((String) r[6] )         // estado_nombre
+				.fechaLimite(      toOffsetDateTime(r[7]) )   // fecha_limite
+				.fechaCreacion(    toOffsetDateTime(r[8]) )   // fecha_creacion
+				.fechaModificacion(toOffsetDateTime(r[9]) )   // fecha_modificacion
+				.build();
+			resultados.add(dto);
+		}
+		return resultados;
+	}
+
+	
+
 }
