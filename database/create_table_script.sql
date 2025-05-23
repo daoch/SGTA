@@ -741,6 +741,7 @@ CREATE TABLE IF NOT EXISTS etapa_formativa_x_ciclo
     etapa_formativa_x_ciclo_id SERIAL PRIMARY KEY,
     etapa_formativa_id         INTEGER                  NOT NULL,
     ciclo_id                   INTEGER                  NOT NULL,
+    estado                     TEXT                     NOT NULL,
     activo                     BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion             TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion         TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
