@@ -9,7 +9,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
+import pucp.edu.pe.sgta.model.Carrera;
+import pucp.edu.pe.sgta.dto.CarreraDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
+import pucp.edu.pe.sgta.service.inter.CarreraService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
 
 @RestController
@@ -19,6 +22,9 @@ public class UsuarioController {
 
 	@Autowired
 	private UsuarioService usuarioService;
+
+    @Autowired
+    private CarreraService carreraService;
 
 	@PostMapping("/create")
 	public void create(@RequestBody UsuarioDto dto) {
@@ -152,5 +158,12 @@ public class UsuarioController {
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    @GetMapping("/{id}/carreras")
+    public ResponseEntity<List<CarreraDto>> obtenerCarrerasPorUsuario(@PathVariable Integer id) {
+        // Lógica de negocio que obtiene carreras del usuario
+        List<CarreraDto> carreras = carreraService.listarCarrerasPorUsuario(id);
+        return ResponseEntity.ok(carreras);
     }
 }

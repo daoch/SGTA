@@ -1,18 +1,13 @@
 "use client";
 
 import {
-  asesorData,
-  coasesoresData,
-  estudiantesData,
-} from "@/app/types/temas/data";
-import {
   AreaDeInvestigacion,
   Carrera,
   Coasesor,
   Tema,
   Tesista,
-} from "@/app/types/temas/entidades";
-import { Tipo } from "@/app/types/temas/enums";
+} from "@/features/temas/types/inscripcion/entities";
+import { Tipo } from "@/features/temas/types/inscripcion/enums";
 import NuevoTemaDialog from "@/components/asesor/tema-nuevo-modal";
 import { TemasTable } from "@/components/asesor/temas-table";
 import { Button } from "@/components/ui/button";
@@ -36,10 +31,13 @@ import { useCallback, useEffect, useState } from "react";
  */
 const Page = () => {
   const [isNuevoTemaDialogOpen, setIsNuevoTemaDialogOpen] = useState(false);
-  const [coasesoresDisponibles, setCoasesoresDisponibles] =
-    useState<Coasesor[]>(coasesoresData);
-  const [estudiantesDisponibles, setEstudiantesDisponibles] =
-    useState<Tesista[]>(estudiantesData);
+  const [coasesoresDisponibles, setCoasesoresDisponibles] = useState<
+    Coasesor[]
+  >([]);
+  const [asesorData, setAsesorData] = useState<Coasesor>();
+  const [estudiantesDisponibles, setEstudiantesDisponibles] = useState<
+    Tesista[]
+  >([]);
   const [subareasDisponibles, setSubareasDisponibles] = useState<
     AreaDeInvestigacion[]
   >([]);
@@ -57,13 +55,22 @@ const Page = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchTemasAPI = async (rol: string, estado: string) => {
+    if (asesorData) {
+      const url = `temas/listarTemasPorUsuarioRolEstado/${asesorData.id}?rolNombre=${rol}&estadoNombre=${estado}`;
+      const response = await axiosInstance.get<Tema[]>(url);
+      return response.data;
+    }
+  };
+
   // Función para recargar los temas
   const fetchTemas = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
-      const inscritosData = await fetchTemasAPI("Asesor", "INSCRITO");
-      const libresData = await fetchTemasAPI("Asesor", "PROPUESTO_LIBRE");
+      const inscritosData = (await fetchTemasAPI("Asesor", "INSCRITO")) || [];
+      const libresData =
+        (await fetchTemasAPI("Asesor", "PROPUESTO_LIBRE")) || [];
       setTemasData([...inscritosData, ...libresData]);
     } catch (err: unknown) {
       setError("Error al cargar los temas");
@@ -73,34 +80,24 @@ const Page = () => {
   }, []);
 
   useEffect(() => {
-    const fetchDialogData = async () => {
+    const fetchData = async () => {
       try {
         const response = await axiosInstance.get("subAreaConocimiento/list");
         setSubareasDisponibles(response.data);
 
-        const tesistasData = await fetchUsers(1, "alumno");
-        setEstudiantesDisponibles(tesistasData);
+        const tesistasData: Tesista[] = await fetchUsers(1, "alumno");
+        setEstudiantesDisponibles(tesistasData.filter((t) => !t.asignado)); // No deben estar asignados
 
-        const coasesoresData = await fetchUsers(1, "profesor");
+        const coasesoresData: Coasesor[] = await fetchUsers(1, "profesor");
         setCoasesoresDisponibles(coasesoresData);
 
-        // const carreraRes = await axiosInstance.get(
-        //   `usuario/${asesorData.id}/carreras`,
-        // );
-        // setCarrera(carreraRes.data);
-
-        console.log({
-          coasesoresDisponibles,
-          estudiantesDisponibles,
-          subareasDisponibles,
-          carrera,
-        });
+        setAsesorData(coasesoresData[0]); // TODO El asesor logeado debe traerse globalmente
       } catch (error) {
         console.error("Error cargando subáreas:", error);
       }
     };
-    fetchDialogData();
-    fetchTemas();
+
+    fetchData().then(() => fetchTemas());
   }, [fetchTemas]);
 
   return (
@@ -120,21 +117,30 @@ const Page = () => {
           onOpenChange={setIsNuevoTemaDialogOpen}
         >
           <DialogTrigger asChild>
-            <Button>
+            <Button disabled={!asesorData}>
               <Plus></Plus>Nuevo Tema
             </Button>
           </DialogTrigger>
-          <NuevoTemaDialog
-            isOpen={isNuevoTemaDialogOpen}
-            setIsNuevoTemaDialogOpen={setIsNuevoTemaDialogOpen}
-            coasesoresDisponibles={coasesoresDisponibles}
-            estudiantesDisponibles={estudiantesDisponibles}
-            subareasDisponibles={subareasDisponibles}
-            carrera={carrera}
-            onTemaGuardado={fetchTemas}
-          />
+          {asesorData && (
+            <NuevoTemaDialog
+              isOpen={isNuevoTemaDialogOpen}
+              setIsNuevoTemaDialogOpen={setIsNuevoTemaDialogOpen}
+              coasesoresDisponibles={coasesoresDisponibles}
+              estudiantesDisponibles={estudiantesDisponibles}
+              subareasDisponibles={subareasDisponibles}
+              carrera={carrera}
+              onTemaGuardado={fetchTemas}
+              asesor={asesorData}
+            />
+          )}
         </Dialog>
       </div>
+
+      {!asesorData && (
+        <p className="text-red-500 font-semibold mt-2">
+          Error al cargar datos del asesor
+        </p>
+      )}
 
       {/* Tabs */}
       <Tabs defaultValue={Tipo.TODOS} className="w-full">
@@ -158,6 +164,7 @@ const Page = () => {
                 filter={Tipo.TODOS}
                 isLoading={isLoading}
                 error={error}
+                asesor={asesorData}
               />
             </CardContent>
           </Card>
@@ -176,6 +183,7 @@ const Page = () => {
                 filter={Tipo.INSCRITO}
                 isLoading={isLoading}
                 error={error}
+                asesor={asesorData}
               />
             </CardContent>
           </Card>
@@ -194,6 +202,7 @@ const Page = () => {
                 filter={Tipo.LIBRE}
                 isLoading={isLoading}
                 error={error}
+                asesor={asesorData}
               />
             </CardContent>
           </Card>
@@ -212,6 +221,7 @@ const Page = () => {
                 filter={Tipo.INTERESADO}
                 isLoading={isLoading}
                 error={error}
+                asesor={asesorData}
               />
             </CardContent>
           </Card>
@@ -230,11 +240,5 @@ const fetchUsers = async (
 ) => {
   const url = `/usuario/findByTipoUsuarioAndCarrera?carreraId=${carreraId}&tipoUsuarioNombre=${tipoUsuarioNombre}&cadenaBusqueda=${cadenaBusqueda}`;
   const response = await axiosInstance.get(url);
-  return response.data;
-};
-
-const fetchTemasAPI = async (rol: string, estado: string) => {
-  const url = `temas/listarTemasPorUsuarioRolEstado/${asesorData.id}?rolNombre=${rol}&estadoNombre=${estado}`;
-  const response = await axiosInstance.get<Tema[]>(url);
   return response.data;
 };
