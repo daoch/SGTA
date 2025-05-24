@@ -6,7 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import pucp.edu.pe.sgta.dto.asesores.InfoAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.asesores.InfoSubAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
-
+import pucp.edu.pe.sgta.dto.asesores.UsuarioConRolDto;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
@@ -458,50 +458,41 @@ public class UsuarioServiceImpl implements UsuarioService {
      */
     @Override
     @Transactional(readOnly = true)
-    public List<UsuarioDto> getProfessorsWithRoles(String rolNombre, String terminoBusqueda) {
-        // Construir la consulta SQL
+    public List<UsuarioConRolDto> getProfessorsWithRoles(String rolNombre, String terminoBusqueda) {
         StringBuilder sql = new StringBuilder();
         sql.append("""
             SELECT 
-				u.usuario_id, 
-				u.nombres, 
-				u.primer_apellido, 
-				u.segundo_apellido, 
-				u.correo_electronico, 
-				u.codigo_pucp, 
-				string_agg(r.nombre, ',') as roles_names,
-				COUNT(DISTINCT t.tema_id) as tesis_count,
-				tu.tipo_usuario_id,
-				tu.nombre as tipo_usuario_nombre
-			FROM 
-				usuario u
-			JOIN 
-				tipo_usuario tu ON u.tipo_usuario_id = tu.tipo_usuario_id
-			JOIN 
-				usuario_rol ur ON u.usuario_id = ur.usuario_id
-			JOIN 
-				rol r ON ur.rol_id = r.rol_id
-			LEFT JOIN 
-				usuario_tema ut ON u.usuario_id = ut.usuario_id
-			LEFT JOIN 
-				rol rol_tema ON ut.rol_id = rol_tema.rol_id AND LOWER(rol_tema.nombre) IN ('asesor', 'coasesor')
-			LEFT JOIN 
-				tema t ON ut.tema_id = t.tema_id AND t.activo = true
-			WHERE 
-				u.activo = true
-				AND ur.activo = true
-				AND r.activo = true
-				AND tu.nombre = 'Profesor'
-            """);
+                u.usuario_id, 
+                u.nombres, 
+                u.primer_apellido, 
+                u.segundo_apellido, 
+                u.correo_electronico, 
+                u.codigo_pucp, 
+                string_agg(DISTINCT r.nombre, ',') AS roles_names,
+                COUNT(DISTINCT CASE WHEN r.nombre ILIKE 'asesor' OR r.nombre ILIKE 'coasesor' THEN t.tema_id END) AS tesis_count,
+                tu.tipo_usuario_id,
+                tu.nombre AS tipo_usuario_nombre
+            FROM 
+                usuario u
+            JOIN 
+                tipo_usuario tu ON u.tipo_usuario_id = tu.tipo_usuario_id
+            LEFT JOIN 
+                usuario_tema ut ON u.usuario_id = ut.usuario_id
+            LEFT JOIN 
+                rol r ON ut.rol_id = r.rol_id
+            LEFT JOIN 
+                tema t ON ut.tema_id = t.tema_id AND t.activo = true
+            WHERE 
+                u.activo = true
+                AND LOWER(tu.nombre) = 'profesor'
+        """);
 
-        // Agregar filtro de rol si no es "Todos"
         List<String> params = new ArrayList<>();
         if (rolNombre != null && !rolNombre.equalsIgnoreCase("Todos")) {
             sql.append(" AND r.nombre = ?").append(params.size() + 1);
             params.add(rolNombre);
         }
 
-        // Agregar filtro de búsqueda
         if (terminoBusqueda != null && !terminoBusqueda.trim().isEmpty()) {
             sql.append("""
                 AND (
@@ -518,52 +509,39 @@ public class UsuarioServiceImpl implements UsuarioService {
                 params.size() + 4,
                 params.size() + 5
             ));
-            
+
             String searchTerm = "%" + terminoBusqueda.trim() + "%";
             for (int i = 0; i < 5; i++) {
                 params.add(searchTerm);
             }
         }
 
-        // Agrupar y ordenar
         sql.append("""
             GROUP BY 
                 u.usuario_id, u.nombres, u.primer_apellido, u.segundo_apellido, 
                 u.correo_electronico, u.codigo_pucp, tu.tipo_usuario_id, tu.nombre
             ORDER BY 
                 u.primer_apellido, u.segundo_apellido, u.nombres
-            """);
+        """);
 
-        // Crear y ejecutar la consulta
         Query query = em.createNativeQuery(sql.toString());
-        
-        // Establecer parámetros
+
         for (int i = 0; i < params.size(); i++) {
             query.setParameter(i + 1, params.get(i));
         }
 
-        // Ejecutar la consulta
         @SuppressWarnings("unchecked")
         List<Object[]> results = query.getResultList();
 
-        // Transformar resultados a UsuarioDto
         return results.stream()
             .map(row -> {
-                // Crear el TipoUsuarioDto
                 TipoUsuarioDto tipoUsuarioDto = TipoUsuarioDto.builder()
                     .id((Integer) row[8])
                     .nombre((String) row[9])
                     .activo(true)
                     .build();
-                
-                // Parsear los roles desde el string_agg (para agregar como información adicional)
-                String rolesStr = (String) row[6];
-                List<String> roles = rolesStr != null 
-                    ? Arrays.asList(rolesStr.split(",")) 
-                    : new ArrayList<>();
-                
-                // Crear el UsuarioDto
-                return UsuarioDto.builder()
+
+                UsuarioDto usuarioBase = UsuarioDto.builder()
                     .id((Integer) row[0])
                     .nombres((String) row[1])
                     .primerApellido((String) row[2])
@@ -572,6 +550,12 @@ public class UsuarioServiceImpl implements UsuarioService {
                     .codigoPucp((String) row[5])
                     .tipoUsuario(tipoUsuarioDto)
                     .activo(true)
+                    .build();
+
+                return UsuarioConRolDto.builder()
+                    .usuario(usuarioBase)
+                    .rolesConcat((String) row[6])
+                    .tesisCount(((Number) row[7]).intValue())
                     .build();
             })
             .collect(Collectors.toList());
