@@ -26,9 +26,9 @@ export function ExposicionCard({ exposicion, onClick }: ExposicionCardProps) {
   const router = useRouter();
 
   const getAsesor = () =>
-    exposicion.miembros.filter((m) => m.tipo === "asesor");
+    exposicion.miembros.filter((m) => m.tipo === "Asesor");
   const getEstudiantes = () =>
-    exposicion.miembros.filter((m) => m.tipo === "estudiante");
+    exposicion.miembros.filter((m) => m.tipo === "Tesista");
 
   const handleClick = () => {
     if (onClick) {
