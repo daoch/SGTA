@@ -4,7 +4,6 @@ import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.NoSuchElementException;
 
 public interface UsuarioService {
 

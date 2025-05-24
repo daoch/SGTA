@@ -17,7 +17,7 @@ interface Props {
   profesor: Profesor | null;
   isOpen: boolean;
   onClose: () => void;
-  onSave: (id: string, newRoles: ("asesor" | "jurado")[]) => void;
+  onSave: (id: number, newRoles: ("asesor" | "jurado")[]) => void;
 }
 
 export default function AdministrarRolesModal({ profesor, isOpen, onClose, onSave }: Props) {
@@ -35,7 +35,6 @@ export default function AdministrarRolesModal({ profesor, isOpen, onClose, onSav
 
   const handleSave = () => {
     if (!profesor) return;
-
     setTimeout(() => {
       onSave(profesor.id, roles);
       onClose();

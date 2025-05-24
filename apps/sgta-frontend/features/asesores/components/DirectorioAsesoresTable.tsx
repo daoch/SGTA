@@ -1,7 +1,7 @@
 "use client";
 
 import { Profesor } from "@/features/asesores/types";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -12,7 +12,7 @@ import { useState, useEffect } from "react";
 
 type Props = {
   profesores: Profesor[];
-  onUpdateRoles: (id: string, newRoles: ("asesor" | "jurado")[]) => void;  
+  onUpdateRoles: (id: number, newRoles: ("asesor" | "jurado")[]) => void;
 };
 
 export default function DirectorioAsesoresTable({ profesores, onUpdateRoles }: Props) {
@@ -55,10 +55,9 @@ export default function DirectorioAsesoresTable({ profesores, onUpdateRoles }: P
     setIsModalOpen(true);
   };
 
-  const handleSaveRoles = (id: string, newRoles: ("asesor" | "jurado")[]) => {
-    onUpdateRoles(id, newRoles); // usa el hook compartido
+  const handleSaveRoles = (id: number, newRoles: ("asesor" | "jurado")[]) => {
+    onUpdateRoles(id, newRoles);
   };
-
 
   return (
     <>
@@ -80,11 +79,15 @@ export default function DirectorioAsesoresTable({ profesores, onUpdateRoles }: P
                   <td className="p-4 whitespace-nowrap">
                     <div className="flex items-center gap-3">
                       <Avatar className="h-9 w-9">
-                        <AvatarImage src={p.avatarUrl} alt={p.nombre} />
-                        <AvatarFallback>{p.nombre[0]}</AvatarFallback>
+                        <AvatarFallback>
+                          {p.nombres[0]}
+                          {p.primerApellido[0]}
+                        </AvatarFallback>
                       </Avatar>
                       <div>
-                        <div className="font-medium text-foreground">{p.nombre}</div>
+                        <div className="font-medium text-foreground">
+                          {[p.nombres, p.primerApellido, p.segundoApellido].filter(Boolean).join(" ")}
+                        </div>
                         <div className="text-xs text-muted-foreground">{p.correo}</div>
                       </div>
                     </div>

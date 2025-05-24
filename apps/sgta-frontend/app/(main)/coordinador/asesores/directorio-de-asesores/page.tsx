@@ -57,7 +57,7 @@ export default function DirectorioAsesoresPage() {
 
           <div className="flex flex-col gap-1">
             <Label htmlFor="rol">Rol Asignado</Label>
-            <Select value={rolAsignado} onValueChange={setRolAsignado}>
+              <Select value={rolAsignado} onValueChange={v => setRolAsignado(v as "todos" | "asesor" | "jurado")}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Seleccionar rol" />
               </SelectTrigger>
@@ -72,7 +72,7 @@ export default function DirectorioAsesoresPage() {
       </Card>
 
       <p className="text-sm text-muted-foreground">
-        Mostrando {profesores.length} resultado{profesores.length !== 1 && "s"} encontrados.
+        Mostrando {profesores.length} resultado{profesores.length !== 1 && "s"} encontrado{profesores.length !== 1 && "s"}.
       </p>
 
       <DirectorioAsesoresTable profesores={profesores} onUpdateRoles={updateRoles} />
