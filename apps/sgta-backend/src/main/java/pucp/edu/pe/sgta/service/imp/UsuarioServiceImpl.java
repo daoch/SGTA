@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import pucp.edu.pe.sgta.dto.asesores.InfoAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.asesores.InfoSubAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
-
+import pucp.edu.pe.sgta.dto.asesores.UsuarioConRolDto;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
@@ -463,7 +463,7 @@ public class UsuarioServiceImpl implements UsuarioService {
      */
     @Override
     @Transactional(readOnly = true)
-    public List<UsuarioDto> getProfessorsWithRoles(String rolNombre, String terminoBusqueda) {
+    public List<UsuarioConRolDto> getProfessorsWithRoles(String rolNombre, String terminoBusqueda) {
         StringBuilder sql = new StringBuilder();
         sql.append("""
             SELECT 
@@ -538,19 +538,15 @@ public class UsuarioServiceImpl implements UsuarioService {
         @SuppressWarnings("unchecked")
         List<Object[]> results = query.getResultList();
 
-        return results.stream().map(row -> {
+        return results.stream()
+            .map(row -> {
                 TipoUsuarioDto tipoUsuarioDto = TipoUsuarioDto.builder()
                     .id((Integer) row[8])
                     .nombre((String) row[9])
                     .activo(true)
                     .build();
 
-                String rolesStr = (String) row[6];
-                List<String> roles = rolesStr != null 
-                    ? Arrays.asList(rolesStr.split(",")) 
-                    : new ArrayList<>();
-
-                return UsuarioDto.builder()
+                UsuarioDto usuarioBase = UsuarioDto.builder()
                     .id((Integer) row[0])
                     .nombres((String) row[1])
                     .primerApellido((String) row[2])
@@ -558,9 +554,13 @@ public class UsuarioServiceImpl implements UsuarioService {
                     .correoElectronico((String) row[4])
                     .codigoPucp((String) row[5])
                     .tipoUsuario(tipoUsuarioDto)
-                    .roles(roles)
-                    .tesisCount(((Number) row[7]).intValue())
                     .activo(true)
+                    .build();
+
+                return UsuarioConRolDto.builder()
+                    .usuario(usuarioBase)
+                    .rolesConcat((String) row[6])
+                    .tesisCount(((Number) row[7]).intValue())
                     .build();
             })
             .collect(Collectors.toList());
