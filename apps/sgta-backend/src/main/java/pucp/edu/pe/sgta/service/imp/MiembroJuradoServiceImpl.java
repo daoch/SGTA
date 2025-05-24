@@ -569,7 +569,7 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                     Exposicion exposicion = exposicionXTema.getExposicion();
 
                     // Estado planificación
-                    String estado = exposicion.getEstadoPlanificacion().getNombre();
+                    String estado = exposicionXTema.getEstadoExposicion().toString();
 
                     // Etapa formativa
                     EtapaFormativa etapa = exposicion.getEtapaFormativaXCiclo().getEtapaFormativa();
@@ -583,14 +583,14 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                     List<MiembroExposicionDto> miembros = usuarioTemas.stream().map(ut -> {
                         MiembroExposicionDto miembro = new MiembroExposicionDto();
                         miembro.setId_persona(ut.getUsuario().getId());
-                        miembro.setNombre(ut.getUsuario().getNombres());
+                        miembro.setNombre(ut.getUsuario().getNombres() + " " + ut.getUsuario().getPrimerApellido() + " " + ut.getUsuario().getSegundoApellido());
                         miembro.setTipo(ut.getRol().getNombre());
                         return miembro;
                     }).toList();
 
                     // Crear DTO
                     ExposicionTemaMiembrosDto dto = new ExposicionTemaMiembrosDto();
-                    dto.setId_exposicion(exposicion.getId());
+                    dto.setId_exposicion(exposicionXTema.getId());
                     dto.setFechahora(datetimeInicio);
                     dto.setSala(salaNombre);
                     dto.setEstado(estado);
