@@ -576,7 +576,8 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                     Integer idEtapaFormativa = etapa.getId();
                     String nombreEtapaFormativa = etapa.getNombre();
                     Integer idCiclo = exposicion.getEtapaFormativaXCiclo().getCiclo().getId();
-
+                    Integer anioCiclo = exposicion.getEtapaFormativaXCiclo().getCiclo().getAnio();
+                    String semestreCiclo = exposicion.getEtapaFormativaXCiclo().getCiclo().getSemestre();
 
                     // Miembros
                     List<UsuarioXTema> usuarioTemas = usuarioXTemaRepository.findByTemaIdAndActivoTrue(tema.getId());
@@ -598,6 +599,8 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                     dto.setNombre_etapa_formativa(nombreEtapaFormativa);
                     dto.setTitulo(tema.getTitulo());
                     dto.setCiclo_id(idCiclo);
+                    dto.setCiclo_anio(anioCiclo);
+                    dto.setCiclo_semestre(semestreCiclo);
                     dto.setMiembros(miembros);
 
                     result.add(dto);

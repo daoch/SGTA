@@ -19,5 +19,7 @@ public class ExposicionTemaMiembrosDto {
     private String nombre_etapa_formativa;
     private String titulo;
     private Integer ciclo_id;
+    private Integer ciclo_anio;
+    private String ciclo_semestre;
     private List<MiembroExposicionDto> miembros;
 }
