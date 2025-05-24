@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pucp.edu.pe.sgta.dto.*;
+import pucp.edu.pe.sgta.dto.exposiciones.EstadoExposicionJuradoRequest;
 import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
 import pucp.edu.pe.sgta.dto.exposiciones.MiembroExposicionDto;
 import pucp.edu.pe.sgta.dto.temas.DetalleTemaDto;
@@ -610,6 +611,33 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
 
         }
         return result;
+    }
+
+    @Override
+    public ResponseEntity<?> actualizarEstadoExposicionJurado(EstadoExposicionJuradoRequest request) {
+        Map<String, Object> response = new HashMap<>();
+
+        Optional<ExposicionXTema> optionalExposicionXTema = exposicionXTemaRepository.findById(request.getExposicionTemaId());
+
+        if (optionalExposicionXTema.isEmpty()) {
+            response.put("mensaje", "No se encontró la relacion exposición_x_tema con el ID: " + request.getExposicionTemaId());
+            response.put("exito", false);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+
+        if(!optionalExposicionXTema.get().getActivo()){
+            response.put("mensaje", "La relacion exposición_x_tema con el ID: " + request.getExposicionTemaId() + " no esta habilitado");
+            response.put("exito", false);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+
+        ExposicionXTema exposicionXTema = optionalExposicionXTema.get();
+        exposicionXTema.setEstadoExposicion(request.getEstadoExposicion());
+        exposicionXTemaRepository.save(exposicionXTema);
+
+        response.put("mensaje", "Se actualizó correctamente al estado: " + request.getEstadoExposicion());
+        response.put("exito", true);
+        return ResponseEntity.ok(response);
     }
 
 }

@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pucp.edu.pe.sgta.dto.*;
+import pucp.edu.pe.sgta.dto.exposiciones.EstadoExposicionJuradoRequest;
 import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
 import pucp.edu.pe.sgta.dto.temas.DetalleTemaDto;
 import pucp.edu.pe.sgta.model.UsuarioXTema;
@@ -126,5 +127,8 @@ public class MiembroJuradoController {
         return ResponseEntity.ok(exposiciones);
     }
 
-
+    @PutMapping("/conformidad")
+    public ResponseEntity<?> actualizarEstadoExposicion(@RequestBody EstadoExposicionJuradoRequest request) {
+        return juradoService.actualizarEstadoExposicionJurado(request);
+    }
 }
