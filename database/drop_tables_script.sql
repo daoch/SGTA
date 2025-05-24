@@ -40,6 +40,8 @@ DROP TABLE IF EXISTS recurso                            CASCADE;
 DROP TABLE IF EXISTS tema                               CASCADE;
 DROP TABLE IF EXISTS historial_tema                     CASCADE;
 DROP TABLE IF EXISTS estado_tema                        CASCADE;
+DROP TABLE IF EXISTS tipo_rechazo_tema CASCADE;
+
 
 -- Tablas de exposiciones
 DROP TABLE IF EXISTS restriccion_exposicion               CASCADE;

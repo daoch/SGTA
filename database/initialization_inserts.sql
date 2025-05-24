@@ -24,7 +24,8 @@ INSERT INTO rol (nombre,
            ('Jurado', 'Evalúa y califica exposiciones', TRUE, NOW(), NOW()),
            ('Revisor', '', TRUE, NOW(), NOW()),
            ('Tesista', 'Estudiante realizando tesis de grado o proyecto de fin de carrera', TRUE, NOW(), NOW()),
-           ('Coasesor', 'Cosesora a estudiantes en sus proyectos', TRUE, NOW(), NOW());
+           ('Coasesor', 'Cosesora a estudiantes en sus proyectos', TRUE, NOW(), NOW()),
+           ('Alumno', 'Alumono de la universidad', TRUE, NOW(), NOW());
 
 -- 3) Estado de tema
 INSERT INTO estado_tema (nombre,
@@ -537,32 +538,44 @@ SELECT 1, parametro_configuracion_id, '2025-06-30T00:00:00Z', TRUE, NOW(), NOW()
 
 /* NUEVOS */
 
-INSERT INTO tema (tema_id,
-                  codigo,
-                  titulo,
-                  resumen,
-                  metodologia,
-                  objetivos,
-                  portafolio_url,
-                  estado_tema_id,
-                  proyecto_id,
-                  carrera_id,
-                  fecha_limite,
-                  fecha_finalizacion,
-                  activo,
-                  fecha_creacion,
-                  fecha_modificacion)
-    VALUES (2, 'TEMA-002', 'Inteligencia Artificial Aplicada', 'Exploración de aplicaciones de IA en distintos campos como la medicina y la logística.', 'Investigación de campo y análisis de caso.', 'Estudiar aplicaciones de IA en entornos reales y su impacto.', 'https://www.example.com/ai-aplicada', 3, NULL, 1, '2024-12-01 00:00:00.000000 +00:00', NULL, TRUE, '2025-05-08 21:24:41.930919 +00:00', '2025-05-08 21:24:41.930919 +00:00'),
-           (3, 'TEMA-003', 'Machine Learning para Datos No Estructurados', 'Uso de algoritmos de ML para datos no estructurados como imágenes y texto.', 'Clustering y análisis de patrones.', 'Aplicar técnicas de aprendizaje automático a datos no estructurados.', 'https://www.example.com/ml-no-estructurados', 3, NULL, 1, '2024-12-15 00:00:00.000000 +00:00', NULL, TRUE, '2025-05-08 21:24:41.930919 +00:00', '2025-05-08 21:24:41.930919 +00:00'),
-           (4, 'TEMA-004', 'Redes Neuronales Profundas', 'Estudio de redes neuronales profundas y su uso en la clasificación de datos complejos.', 'Capacitación en redes neuronales y aprendizaje profundo.', 'Explorar arquitecturas avanzadas de redes neuronales para clasificación de datos.', 'https://www.example.com/redes-neuronales', 3, NULL, 1, '2024-12-10 00:00:00.000000 +00:00', NULL, TRUE, '2025-05-08 21:24:41.930919 +00:00', '2025-05-08 21:24:41.930919 +00:00'),
-           (5, 'TEMA-005', 'Big Data y Análisis Predictivo', 'Aplicación de técnicas de big data para realizar predicciones de comportamiento en grandes volúmenes de datos.', 'Análisis exploratorio y técnicas predictivas.', 'Utilizar Big Data para predecir tendencias en diversos sectores.', 'https://www.example.com/bigdata-predictivo', 3, NULL, 1, '2024-12-20 00:00:00.000000 +00:00', NULL, TRUE, '2025-05-08 21:24:41.930919 +00:00', '2025-05-08 21:24:41.930919 +00:00'),
-           (6, 'TEMA-006', 'Automatización en la Industria 4.0', 'Exploración de sistemas automatizados y su integración en la industria moderna.', 'Simulación y análisis de sistemas automatizados.', 'Implementar soluciones de automatización en procesos industriales.', 'https://www.example.com/industria-4-0', 3, NULL, 1, '2024-12-05 00:00:00.000000 +00:00', NULL, TRUE, '2025-05-08 21:24:41.930919 +00:00', '2025-05-08 21:24:41.930919 +00:00'),
-           (7, 'TEMA-007', 'Blockchain y su Aplicación en Logística', 'Estudio del uso de blockchain para mejorar la trazabilidad en cadenas de suministro.', 'Investigación y análisis de caso de blockchain.', 'Explorar cómo blockchain puede mejorar la seguridad y transparencia en la logística.', 'https://www.example.com/blockchain-logistica', 3, NULL, 1, '2024-12-12 00:00:00.000000 +00:00', NULL, TRUE, '2025-05-08 21:24:41.930919 +00:00', '2025-05-08 21:24:41.930919 +00:00'),
-           (8, 'TEMA-008', 'Ciberseguridad en la Era Digital', 'Estudio de las amenazas digitales actuales y las mejores prácticas de ciberseguridad.', 'Estudio de vulnerabilidades y técnicas de defensa.', 'Mejorar las habilidades de ciberseguridad en un entorno digital cambiante.', 'https://www.example.com/ciberseguridad-digital', 3, NULL, 1, '2024-12-18 00:00:00.000000 +00:00', NULL, TRUE, '2025-05-08 21:24:41.930919 +00:00', '2025-05-08 21:24:41.930919 +00:00'),
-           (9, 'TEMA-009', 'Desarrollo de Software Ágil', 'Implementación de metodologías ágiles en el desarrollo de software.', 'Técnicas de desarrollo ágil y Scrum.', 'Optimizar el ciclo de desarrollo de software mediante metodologías ágiles.', 'https://www.example.com/software-agil', 3, NULL, 1, '2024-12-25 00:00:00.000000 +00:00', NULL, TRUE, '2025-05-08 21:24:41.930919 +00:00', '2025-05-08 21:24:41.930919 +00:00'),
-           (10, 'TEMA-010', 'Internet de las Cosas (IoT)', 'Exploración de dispositivos conectados y su impacto en la vida cotidiana.', 'Análisis de datos y conectividad.', 'Investigar cómo IoT transforma industrias y hogares.', 'https://www.example.com/iot', 3, NULL, 1, '2024-12-30 00:00:00.000000 +00:00', NULL, TRUE, '2025-05-08 21:24:41.930919 +00:00', '2025-05-08 21:24:41.930919 +00:00'),
-           (11, 'TEMA-011', 'Tecnologías Emergentes en Medicina', 'Exploración de nuevas tecnologías como la IA y la robótica en el ámbito médico.', 'Investigación sobre aplicaciones tecnológicas en el sector salud.', 'Estudiar cómo las tecnologías emergentes pueden transformar el sector médico.', 'https://www.example.com/tecnologias-medicina', 3, NULL, 1, '2025-01-05 00:00:00.000000 +00:00', NULL, TRUE, '2025-05-08 21:24:41.930919 +00:00', '2025-05-08 21:24:41.930919 +00:00'),
-           (12, 'TEMA-012', 'Detección de depresión en estudiantes de Ingeniería Electrónica: Un caso de estudio', 'Este tema propone aplicar técnicas de visión por computadora para detectar informáticos deprimidos.', '', '', 'https://miuniversidad.edu/repos/tema003', 3, NULL, 1, '2025-05-10 10:00:00.000000 +00:00', NULL, TRUE, '2025-05-01 10:00:00.000000 +00:00', '2025-05-01 10:00:00.000000 +00:00');
+INSERT INTO tema (
+    titulo,
+    resumen,
+    metodologia,
+    objetivos,
+    portafolio_url,
+    estado_tema_id,
+    proyecto_id,
+    carrera_id,
+    fecha_limite,
+    fecha_finalizacion,
+    activo,
+    fecha_creacion,
+    fecha_modificacion
+)
+VALUES 
+('Inteligencia Artificial Aplicada', 'Exploración de aplicaciones de IA en distintos campos como la medicina y la logística.', 'Investigación de campo y análisis de caso.', 'Estudiar aplicaciones de IA en entornos reales y su impacto.', 'https://www.example.com/ai-aplicada', 3, NULL, 1, '2024-12-01 00:00:00+00', NULL, TRUE, '2025-05-08 21:24:41+00', '2025-05-08 21:24:41+00'),
+
+('Machine Learning para Datos No Estructurados', 'Uso de algoritmos de ML para datos no estructurados como imágenes y texto.', 'Clustering y análisis de patrones.', 'Aplicar técnicas de aprendizaje automático a datos no estructurados.', 'https://www.example.com/ml-no-estructurados', 3, NULL, 1, '2024-12-15 00:00:00+00', NULL, TRUE, '2025-05-08 21:24:41+00', '2025-05-08 21:24:41+00'),
+
+('Redes Neuronales Profundas', 'Estudio de redes neuronales profundas y su uso en la clasificación de datos complejos.', 'Capacitación en redes neuronales y aprendizaje profundo.', 'Explorar arquitecturas avanzadas de redes neuronales para clasificación de datos.', 'https://www.example.com/redes-neuronales', 3, NULL, 1, '2024-12-10 00:00:00+00', NULL, TRUE, '2025-05-08 21:24:41+00', '2025-05-08 21:24:41+00'),
+
+('Big Data y Análisis Predictivo', 'Aplicación de técnicas de big data para realizar predicciones de comportamiento en grandes volúmenes de datos.', 'Análisis exploratorio y técnicas predictivas.', 'Utilizar Big Data para predecir tendencias en diversos sectores.', 'https://www.example.com/bigdata-predictivo', 3, NULL, 1, '2024-12-20 00:00:00+00', NULL, TRUE, '2025-05-08 21:24:41+00', '2025-05-08 21:24:41+00'),
+
+('Automatización en la Industria 4.0', 'Exploración de sistemas automatizados y su integración en la industria moderna.', 'Simulación y análisis de sistemas automatizados.', 'Implementar soluciones de automatización en procesos industriales.', 'https://www.example.com/industria-4-0', 3, NULL, 1, '2024-12-05 00:00:00+00', NULL, TRUE, '2025-05-08 21:24:41+00', '2025-05-08 21:24:41+00'),
+
+('Blockchain y su Aplicación en Logística', 'Estudio del uso de blockchain para mejorar la trazabilidad en cadenas de suministro.', 'Investigación y análisis de caso de blockchain.', 'Explorar cómo blockchain puede mejorar la seguridad y transparencia en la logística.', 'https://www.example.com/blockchain-logistica', 3, NULL, 1, '2024-12-12 00:00:00+00', NULL, TRUE, '2025-05-08 21:24:41+00', '2025-05-08 21:24:41+00'),
+
+('Ciberseguridad en la Era Digital', 'Estudio de las amenazas digitales actuales y las mejores prácticas de ciberseguridad.', 'Estudio de vulnerabilidades y técnicas de defensa.', 'Mejorar las habilidades de ciberseguridad en un entorno digital cambiante.', 'https://www.example.com/ciberseguridad-digital', 3, NULL, 1, '2024-12-18 00:00:00+00', NULL, TRUE, '2025-05-08 21:24:41+00', '2025-05-08 21:24:41+00'),
+
+('Desarrollo de Software Ágil', 'Implementación de metodologías ágiles en el desarrollo de software.', 'Técnicas de desarrollo ágil y Scrum.', 'Optimizar el ciclo de desarrollo de software mediante metodologías ágiles.', 'https://www.example.com/software-agil', 3, NULL, 1, '2024-12-25 00:00:00+00', NULL, TRUE, '2025-05-08 21:24:41+00', '2025-05-08 21:24:41+00'),
+
+('Internet de las Cosas (IoT)', 'Exploración de dispositivos conectados y su impacto en la vida cotidiana.', 'Análisis de datos y conectividad.', 'Investigar cómo IoT transforma industrias y hogares.', 'https://www.example.com/iot', 3, NULL, 1, '2024-12-30 00:00:00+00', NULL, TRUE, '2025-05-08 21:24:41+00', '2025-05-08 21:24:41+00'),
+
+('Tecnologías Emergentes en Medicina', 'Exploración de nuevas tecnologías como la IA y la robótica en el ámbito médico.', 'Investigación sobre aplicaciones tecnológicas en el sector salud.', 'Estudiar cómo las tecnologías emergentes pueden transformar el sector médico.', 'https://www.example.com/tecnologias-medicina', 3, NULL, 1, '2025-01-05 00:00:00+00', NULL, TRUE, '2025-05-08 21:24:41+00', '2025-05-08 21:24:41+00'),
+
+('Detección de depresión en estudiantes de Ingeniería Electrónica: Un caso de estudio', 'Este tema propone aplicar técnicas de visión por computadora para detectar informáticos deprimidos.', NULL, NULL, 'https://miuniversidad.edu/repos/tema003', 3, NULL, 1, '2025-05-10 10:00:00+00', NULL, TRUE, '2025-05-01 10:00:00+00', '2025-05-01 10:00:00+00');
+
 
 INSERT INTO etapa_formativa_x_ciclo_x_tema (etapa_formativa_x_ciclo_id, tema_id, aprobado, fecha_modificacion)
     VALUES (1, 2, TRUE, NOW()),
@@ -583,3 +596,14 @@ SELECT
     4 as rol_id -- Rol de Tesista
 FROM usuario u
 WHERE u.codigo_pucp IN ('A004', 'A005', 'A006', 'A007', 'A008');
+
+
+INSERT INTO tipo_rechazo_tema (nombre, descripcion)
+VALUES 
+  ('Inconsistencia en objetivos', 'Los objetivos planteados no guardan coherencia con la metodología propuesta.'),
+  ('Falta de viabilidad técnica', 'El proyecto propuesto no puede ser llevado a cabo con los recursos o conocimientos disponibles.'),
+  ('Duplicación de tema', 'El tema ya ha sido aprobado previamente por otro estudiante.'),
+  ('Contenido insuficiente', 'El planteamiento del problema o la justificación no es suficientemente sólido.'),
+  ('Fuera del alcance académico', 'El tema no se ajusta al perfil de la carrera o a los objetivos del curso.'),
+  ('Propuesta incompleta', 'El formulario fue entregado sin todos los campos requeridos.'),
+  ('Problemas éticos o legales', 'La propuesta presenta conflictos éticos o legales que impiden su aprobación.');
