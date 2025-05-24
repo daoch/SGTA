@@ -569,28 +569,29 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                     Exposicion exposicion = exposicionXTema.getExposicion();
 
                     // Estado planificación
-                    String estado = exposicion.getEstadoPlanificacion().getNombre();
+                    String estado = exposicionXTema.getEstadoExposicion().toString();
 
                     // Etapa formativa
                     EtapaFormativa etapa = exposicion.getEtapaFormativaXCiclo().getEtapaFormativa();
                     Integer idEtapaFormativa = etapa.getId();
                     String nombreEtapaFormativa = etapa.getNombre();
                     Integer idCiclo = exposicion.getEtapaFormativaXCiclo().getCiclo().getId();
-
+                    Integer anioCiclo = exposicion.getEtapaFormativaXCiclo().getCiclo().getAnio();
+                    String semestreCiclo = exposicion.getEtapaFormativaXCiclo().getCiclo().getSemestre();
 
                     // Miembros
                     List<UsuarioXTema> usuarioTemas = usuarioXTemaRepository.findByTemaIdAndActivoTrue(tema.getId());
                     List<MiembroExposicionDto> miembros = usuarioTemas.stream().map(ut -> {
                         MiembroExposicionDto miembro = new MiembroExposicionDto();
                         miembro.setId_persona(ut.getUsuario().getId());
-                        miembro.setNombre(ut.getUsuario().getNombres());
+                        miembro.setNombre(ut.getUsuario().getNombres() + " " + ut.getUsuario().getPrimerApellido() + " " + ut.getUsuario().getSegundoApellido());
                         miembro.setTipo(ut.getRol().getNombre());
                         return miembro;
                     }).toList();
 
                     // Crear DTO
                     ExposicionTemaMiembrosDto dto = new ExposicionTemaMiembrosDto();
-                    dto.setId_exposicion(exposicion.getId());
+                    dto.setId_exposicion(exposicionXTema.getId());
                     dto.setFechahora(datetimeInicio);
                     dto.setSala(salaNombre);
                     dto.setEstado(estado);
@@ -598,6 +599,8 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                     dto.setNombre_etapa_formativa(nombreEtapaFormativa);
                     dto.setTitulo(tema.getTitulo());
                     dto.setCiclo_id(idCiclo);
+                    dto.setCiclo_anio(anioCiclo);
+                    dto.setCiclo_semestre(semestreCiclo);
                     dto.setMiembros(miembros);
 
                     result.add(dto);
