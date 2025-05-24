@@ -4,9 +4,12 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
+import jakarta.transaction.Transactional;
 import pucp.edu.pe.sgta.model.Tema;
 
 @Repository
@@ -60,4 +63,15 @@ public interface TemaRepository extends JpaRepository<Tema, Integer> {
 
   @Query(value = "SELECT * FROM obtener_ciclo_etapa_por_tema(:temaId)", nativeQuery = true)
   List<Object[]> obtenerCicloEtapaPorTema(@Param("temaId") Integer temaId);
+
+  @Modifying
+  @Transactional
+  @Query(
+    value = "CALL actualizar_estado_tema(:temaId, :nuevoEstado)",
+    nativeQuery = true
+  )
+  void actualizarEstadoTema(
+      @Param("temaId") Integer temaId,
+      @Param("nuevoEstado") String nuevoEstado
+  );
 }
