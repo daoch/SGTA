@@ -78,4 +78,6 @@ public interface TemaService {
 	void aprobarPostulacionAPropuestaGeneral(Integer idTema, Integer idAsesor, Integer idTesista);
 
 	List<TemaDto> listarTemasPorEstadoYCarrera(String estadoNombre, Integer carreraId);
+
+	void cambiarEstadoTema(Integer temaId, String nuevoEstadoNombre);
 }

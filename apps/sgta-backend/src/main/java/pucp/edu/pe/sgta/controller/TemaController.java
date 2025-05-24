@@ -1,7 +1,10 @@
 package pucp.edu.pe.sgta.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.validation.Valid;
 import pucp.edu.pe.sgta.dto.asesores.InfoTemaPerfilDto;
@@ -11,6 +14,7 @@ import pucp.edu.pe.sgta.service.inter.TemaService;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 
@@ -168,6 +172,18 @@ public class TemaController {
 			@PathVariable("carreraId") Integer carreraId) {
 		return temaService.listarTemasPorEstadoYCarrera(estado, carreraId);
 	}	
+
+	@PatchMapping("/estado")
+    public ResponseEntity<Void> actualizarEstadoTema(
+             @RequestBody TemaDto temaDto // <- sin @Valid
+    ) {
+        // delega al servicio: toma id + estado
+        temaService.cambiarEstadoTema(
+            temaDto.getId(),
+            temaDto.getEstadoTemaNombre()
+        );
+        return ResponseEntity.noContent().build();
+    }
 }
 
 

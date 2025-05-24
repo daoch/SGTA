@@ -1432,3 +1432,21 @@ BEGIN
     ORDER BY t.fecha_creacion DESC;
 END;
 $$;
+
+CREATE PROCEDURE actualizar_estado_tema(
+  p_tema_id           INTEGER,
+  p_nuevo_estado_nombre TEXT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  UPDATE tema
+  SET estado_tema_id = (
+    SELECT estado_tema_id
+    FROM estado_tema
+    WHERE nombre ILIKE p_nuevo_estado_nombre
+    LIMIT 1
+  )
+  WHERE tema_id = p_tema_id;
+END;
+$$;

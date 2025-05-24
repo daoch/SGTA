@@ -1118,6 +1118,18 @@ public class TemaServiceImpl implements TemaService {
 		return resultados;
 	}
 
-	
+	@Override
+	@Transactional
+	public void cambiarEstadoTema(Integer temaId, String nuevoEstadoNombre) {
+	// valida existencia del estado
+	estadoTemaRepository.findByNombre(nuevoEstadoNombre)
+		.orElseThrow(() -> new ResponseStatusException(
+			HttpStatus.NOT_FOUND,
+			"EstadoTema '" + nuevoEstadoNombre + "' no existe"
+		));
+	// update masivo
+	temaRepository.actualizarEstadoTema(temaId, nuevoEstadoNombre);
+	}
+    
 
 }
