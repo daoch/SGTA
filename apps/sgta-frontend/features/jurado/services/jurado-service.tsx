@@ -349,3 +349,19 @@ export const getExposicionesJurado= async (
 };
 
 
+// En jurado-service.tsx
+export const actualizarEstadoExposicion = async (
+  exposicionId: number,
+  nuevoEstado: string
+): Promise<boolean> => {
+  try {
+    const response = await axiosInstance.put(`/jurado/exposiciones/${exposicionId}/estado`, {
+      estado: nuevoEstado
+    });
+    
+    return response.status === 200;
+  } catch (error) {
+    console.error("Error al actualizar el estado de la exposición:", error);
+    throw error;
+  }
+};

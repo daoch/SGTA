@@ -10,12 +10,15 @@ import { EstadoBadge } from "./badge-estado-exposicion";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
 import {
   ExposicionJurado,
   MiembroJuradoExpo,
 } from "@/features/jurado/types/jurado.types";
 
 import { ExposicionEstado } from "../types/exposicion.types"; 
+import { actualizarEstadoExposicion } from "../services/jurado-service";
 
 interface ExposicionCardProps {
   exposicion: ExposicionJurado;
@@ -25,10 +28,16 @@ interface ExposicionCardProps {
 export function ExposicionCard({ exposicion, onClick }: ExposicionCardProps) {
   const router = useRouter();
 
+  // Estado local para manejar actualizaciones sin recargar la página
+  const [estadoActual, setEstadoActual] = useState(exposicion.estado);
+  // Estado para manejar la carga mientras se envía la solicitud
+  const [isLoading, setIsLoading] = useState(false);
+
   const getAsesor = () =>
     exposicion.miembros.filter((m) => m.tipo === "Asesor");
   const getEstudiantes = () =>
     exposicion.miembros.filter((m) => m.tipo === "Tesista");
+  const [isReprogramacionSolicitada, setIsReprogramacionSolicitada] = useState(false);
 
   const handleClick = () => {
     if (onClick) {
@@ -61,9 +70,78 @@ export function ExposicionCard({ exposicion, onClick }: ExposicionCardProps) {
     return "sin_programar";
   };
 
+  const handleConfirmarAsistencia = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsLoading(true);
+    
+    try {
+      // Llamar al endpoint para actualizar el estado
+      await actualizarEstadoExposicion(exposicion.id_exposicion, "esperando_aprobacion");
+      
+      // Actualizar el estado local para reflejar el cambio inmediatamente
+      setEstadoActual("esperando_aprobacion");
+      
+      // Mostrar mensaje de éxito
+      toast.success("Se ha confirmado tu asistencia. Esperando aprobación oficial.");
+    } catch (error) {
+      console.error("Error al confirmar asistencia:", error);
+      toast.error("No se pudo confirmar la asistencia. Inténtalo de nuevo.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Función para solicitar reprogramación
+  const handleSolicitarReprogramacion =async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsLoading(true);
+  
+    try {
+      // Cambiar el estado para mostrar "Reprogramación Solicitada"
+      await actualizarEstadoExposicion(exposicion.id_exposicion, "esperando_aprobacion");
+      setIsReprogramacionSolicitada(true);
+      setEstadoActual("esperando_aprobacion");
+      // Mostrar mensaje de éxito
+      toast.success("Se ha solicitado la reprogramación de la exposición.");
+    } catch (error) {
+      console.error("Error al solicitar reprogramación:", error);
+      toast.error("No se pudo solicitar la reprogramación. Inténtalo de nuevo.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleNoDisponible = async (e: React.MouseEvent) => {
+  e.stopPropagation();
+  setIsLoading(true);
+  
+  try {
+    // Puedes agregar aquí una llamada API específica para registrar la no disponibilidad
+    await actualizarEstadoExposicion(exposicion.id_exposicion, "esperando_aprobacion");
+
+    // Activar el estado de reprogramación solicitada
+    setIsReprogramacionSolicitada(true);
+    // Actualizar el estado actual a "esperando_aprobacion" (opcional, dependiendo de tu lógica de negocio)
+    setEstadoActual("esperando_aprobacion");
+    
+    // Mostrar mensaje de éxito
+    toast.success("Has indicado que no estás disponible para esta exposición.");
+  } catch (error) {
+    console.error("Error al indicar no disponibilidad:", error);
+    toast.error("No se pudo registrar tu indisponibilidad. Inténtalo de nuevo.");
+  } finally {
+    setIsLoading(false);
+  }
+};
+
   return (
     <div
-      className="bg-gray-50 rounded-lg shadow-sm border p-5 flex flex-col md:flex-row gap-10"
+      className={`bg-gray-50 rounded-lg shadow-sm border p-5 flex flex-col md:flex-row gap-10
+        ${
+        isReprogramacionSolicitada 
+          ? "bg-red-50 border-red-200" 
+          : "bg-gray-50"
+        }`}
       onClick={handleClick}
     >
       {/* HORA, FECHA Y SALA */}
@@ -130,31 +208,53 @@ export function ExposicionCard({ exposicion, onClick }: ExposicionCardProps) {
           </div>
 
           <div className="flex flex-row gap-2 items-end">
-            {mapEstadoToExposicionEstado(exposicion.estado) === "esperando_respuesta" && (
+            {mapEstadoToExposicionEstado(exposicion.estado) === "esperando_respuesta" && !isReprogramacionSolicitada &&(
               <>
                 <Button
-                  asChild
                   variant="outline"
-                  onClick={(e) => e.stopPropagation()}
+                  onClick={handleNoDisponible}
+                  disabled={isLoading}
                 >
-                  <Link href="">No Estoy Disponible</Link>
+                  {isLoading ? "Procesando..." : "No Estoy Disponible"}
                 </Button>
 
-                <Button asChild onClick={(e) => e.stopPropagation()}>
-                  <Link href="">Confirmar Asistencia</Link>
+                <Button 
+                  onClick={handleConfirmarAsistencia}
+                  disabled={isLoading}
+                >
+                  {/*<Link href="">Confirmar Asistencia</Link>*/}
+                 {isLoading ? "Procesando..." : "Confirmar Asistencia"}
                 </Button>
               </>
             )}
-            {exposicion.estado === "esperando_aprobacion" && (
+            {mapEstadoToExposicionEstado(exposicion.estado)  === "esperando_aprobacion" && !isReprogramacionSolicitada && (
+              <>
+              <Button
+                  variant="outline"
+                  onClick={handleSolicitarReprogramacion}
+                >
+                  Solicitar Reprogramación
+                </Button>
+
+              <Button
+               // variant="outline"
+                disabled
+              >
+                Esperando confirmacion Oficial
+              </Button>
+              </>
+            )}
+
+            {mapEstadoToExposicionEstado(estadoActual) === "esperando_aprobacion" && isReprogramacionSolicitada && (
               <Button
                 variant="outline"
                 disabled
-                onClick={(e) => e.stopPropagation()}
               >
-                Esperando confirmacion
+                Reprogramación Solicitada
               </Button>
             )}
-            {exposicion.estado === "programada" &&
+            
+            {mapEstadoToExposicionEstado(exposicion.estado)  === "programada" &&
               isBefore(new Date(exposicion.fechahora), new Date()) && (
                 <Button
                   asChild
