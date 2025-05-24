@@ -1,16 +1,27 @@
 "use client";
 
-import React, { useState,useEffect } from "react";
+import React, { useState,useEffect, use } from "react";
 import { useForm } from "react-hook-form";
 import { ExposicionCard } from "@/features/jurado/components/exposicion-card";
 import ModalDetallesExposicion from "../../components/modal-detalles-exposicion";
 import { Exposicion } from "../../types/exposicion.types";
 import { FilterExposicionJurado } from "../../components/filters-exposicion-jurado";
-import { getEtapasFormativasNombres, getCiclos } from "../../services/jurado-service";
+import { 
+  getEtapasFormativasNombres, 
+  getCiclos,
+  getExposicionesJurado
+
+ } from "../../services/jurado-service";
 import {
   EtapaFormativa,
   Ciclo,
 } from "@/features/jurado/types/juradoDetalle.types";
+
+import {
+  ExposicionJurado,
+  MiembroJuradoExpo,
+} from "@/features/jurado/types/jurado.types";
+
 
 const periodos = [
   { value: "2025-1", label: "2025-1" },
@@ -33,6 +44,7 @@ const estados = [
   { value: "finalizada", label: "Finalizada" },
 ];
 
+{/*
 const exposiciones: Exposicion[] = [
   {
     id_exposicion: 1,
@@ -110,7 +122,7 @@ const exposiciones: Exposicion[] = [
     ],
   },
 ];
-
+*/}
 const ExposicionesJuradoPage: React.FC = () => {
 
   const [etapasFormativas, setEtapasFormativas] = useState<EtapaFormativa[]>([]);
@@ -137,6 +149,24 @@ const ExposicionesJuradoPage: React.FC = () => {
     };
     
     fetchInitialData();
+  }, []);
+
+  const [exposiciones, setExposiciones] = useState<ExposicionJurado[]>([]);
+  useEffect(() => {
+    const fetchExposiciones = async () => {
+      setIsLoading(true);
+      try {
+        //se debe reemplazar el 6 por el id del jurado logueado
+        const exposicionesData = await getExposicionesJurado(6);
+        setExposiciones(exposicionesData);
+      } catch (error) {
+        console.error("Error al cargar exposiciones:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchExposiciones();
   }, []);
 
 
@@ -192,7 +222,7 @@ const ExposicionesJuradoPage: React.FC = () => {
       );
 
     // Filtro por periodo (añadir lógica según tus datos)
-    const fechaExposicion = exposicion.fechaHora;
+    const fechaExposicion = exposicion.fechahora;
     // Extraer año y semestre de la fecha de exposición
     const anioExposicion = fechaExposicion.getFullYear();
     // Determinar semestre (1 o 2) según el mes
@@ -217,10 +247,10 @@ const ExposicionesJuradoPage: React.FC = () => {
   });
 
   const [selectedExposicion, setSelectedExposicion] =
-    useState<Exposicion | null>(null);
+    useState<ExposicionJurado | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
 
-  const handleOpenModal = (exposicion: Exposicion) => {
+  const handleOpenModal = (exposicion: ExposicionJurado) => {
     setSelectedExposicion(exposicion);
     setModalOpen(true);
   };

@@ -10,10 +10,16 @@ import { EstadoBadge } from "./badge-estado-exposicion";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
+import {
+  ExposicionJurado,
+  MiembroJuradoExpo,
+} from "@/features/jurado/types/jurado.types";
+
+import { ExposicionEstado } from "../types/exposicion.types"; 
 
 interface ExposicionCardProps {
-  exposicion: Exposicion;
-  onClick?: (exposicion: Exposicion) => void;
+  exposicion: ExposicionJurado;
+  onClick?: (exposicion: ExposicionJurado) => void;
 }
 
 export function ExposicionCard({ exposicion, onClick }: ExposicionCardProps) {
@@ -30,6 +36,31 @@ export function ExposicionCard({ exposicion, onClick }: ExposicionCardProps) {
     }
   };
 
+  const mapEstadoToExposicionEstado = (estadoApi: string): ExposicionEstado => {
+    // Normalizar el estado (quitar mayúsculas, espacios extras)
+    const estadoNormalizado = estadoApi.toLowerCase().trim().replace(/\s+/g, "_");
+    
+    // Comprobar si el estado ya coincide exactamente con alguno de los valores esperados
+    if (estadoNormalizado === "sin_programar" || 
+        estadoNormalizado === "esperando_respuesta" || 
+        estadoNormalizado === "esperando_aprobacion" || 
+        estadoNormalizado === "programada" || 
+        estadoNormalizado === "completada" || 
+        estadoNormalizado === "finalizada") {
+      return estadoNormalizado as ExposicionEstado;
+    }
+    
+    // Si no hay coincidencia exacta, buscar la mejor coincidencia
+    if (estadoNormalizado.includes("planificacion")) return "programada";
+    if (estadoNormalizado.includes("esperando") && estadoNormalizado.includes("respuesta")) return "esperando_respuesta";
+    if (estadoNormalizado.includes("esperando") && estadoNormalizado.includes("aprobacion")) return "esperando_aprobacion";
+    if (estadoNormalizado.includes("completa")) return "completada";
+    if (estadoNormalizado.includes("finaliza")) return "finalizada";
+    
+    // Si no se encuentra ninguna coincidencia, devolver un valor por defecto
+    return "sin_programar";
+  };
+
   return (
     <div
       className="bg-gray-50 rounded-lg shadow-sm border p-5 flex flex-col md:flex-row gap-10"
@@ -38,11 +69,11 @@ export function ExposicionCard({ exposicion, onClick }: ExposicionCardProps) {
       {/* HORA, FECHA Y SALA */}
       <div className="flex flex-col items-center space-y-2 md:min-w-[180px] justify-center">
         <div className="text-4xl font-semibold">
-          {format(exposicion.fechaHora, "HH:mm 'hrs'")}
+          {format(exposicion.fechahora, "HH:mm 'hrs'")}
         </div>
         <div className="flex items-center gap-1 mt-1">
           <span>
-            {format(exposicion.fechaHora, "d 'de' MMMM 'del' yyyy", {
+            {format(exposicion.fechahora, "d 'de' MMMM 'del' yyyy", {
               locale: es,
             })}
           </span>
@@ -60,7 +91,7 @@ export function ExposicionCard({ exposicion, onClick }: ExposicionCardProps) {
             <h3 className="text-xl font-semibold">{exposicion.titulo}</h3>
           </div>
           <div className="w-1/5 justify-end flex items-start">
-            <EstadoBadge estado={exposicion.estado} />
+            <EstadoBadge estado={mapEstadoToExposicionEstado(exposicion.estado)} />
           </div>
         </div>
 
@@ -99,7 +130,7 @@ export function ExposicionCard({ exposicion, onClick }: ExposicionCardProps) {
           </div>
 
           <div className="flex flex-row gap-2 items-end">
-            {exposicion.estado === "esperando_respuesta" && (
+            {mapEstadoToExposicionEstado(exposicion.estado) === "esperando_respuesta" && (
               <>
                 <Button
                   asChild
@@ -124,7 +155,7 @@ export function ExposicionCard({ exposicion, onClick }: ExposicionCardProps) {
               </Button>
             )}
             {exposicion.estado === "programada" &&
-              isBefore(new Date(exposicion.fechaHora), new Date()) && (
+              isBefore(new Date(exposicion.fechahora), new Date()) && (
                 <Button
                   asChild
                   onClick={(e) => {
