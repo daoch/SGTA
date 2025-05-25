@@ -1,0 +1,1251 @@
+{
+    "bloques": [
+      {
+        "key": "2024-11-25|17:00|V201",
+        "range": "17:00-17:30",
+        "idBloque": 1,
+        "esBloqueReservado": false,
+        "esBloqueBloqueado": false
+      },
+      {
+        "key": "2024-11-25|17:00|V202",
+        "range": "17:00-17:30",
+        "idBloque": 2,
+        "esBloqueReservado": false,
+        "esBloqueBloqueado": false
+      },
+      {
+        "key": "2024-11-25|17:00|V203",
+        "range": "17:00-17:30",
+        "idBloque": 3,
+        "esBloqueReservado": false,
+        "esBloqueBloqueado": false
+      },
+    
+      {
+        "key": "2024-11-25|17:30|V201",
+        "range": "17:30-18:00",
+        "idBloque": 4,
+        "esBloqueReservado": false,
+        "esBloqueBloqueado": false
+      },
+      {
+        "key": "2024-11-25|17:30|V202",
+        "range": "17:30-18:00",
+        "idBloque": 5,
+        "esBloqueReservado": false,
+        "esBloqueBloqueado": false
+      },
+      {
+        "key": "2024-11-25|17:30|V203",
+        "range": "17:30-18:00",
+        "idBloque": 6,
+        "esBloqueReservado": false,
+        "esBloqueBloqueado": false
+      },
+    
+      {
+        "key": "2024-11-25|18:00|V201",
+        "range": "18:00-18:30",
+        "idBloque": 7,
+        "esBloqueReservado": false,
+        "esBloqueBloqueado": false
+      },
+      {
+        "key": "2024-11-25|18:00|V202",
+        "range": "18:00-18:30",
+        "idBloque": 8,
+        "esBloqueReservado": false,
+        "esBloqueBloqueado": false
+      },
+      {
+        "key": "2024-11-25|18:00|V203",
+        "range": "18:00-18:30",
+        "idBloque": 9,
+        "esBloqueReservado": false,
+        "esBloqueBloqueado": false
+      },
+    
+      {
+        "key": "2024-11-25|18:30|V201",
+        "range": "18:30-19:00",
+        "idBloque": 10,
+        "esBloqueReservado": false,
+        "esBloqueBloqueado": false
+      },
+      {
+        "key": "2024-11-25|18:30|V202",
+        "range": "18:30-19:00",
+        "idBloque": 11,
+        "esBloqueReservado": false,
+        "esBloqueBloqueado": false
+      },
+      {
+        "key": "2024-11-25|18:30|V203",
+        "range": "18:30-19:00",
+        "idBloque": 12,
+        "esBloqueReservado": false,
+        "esBloqueBloqueado": false
+      },
+    
+      {
+        "key": "2024-11-25|19:00|V201",
+        "range": "19:00-19:30",
+        "idBloque": 13,
+        "esBloqueReservado": false,
+        "esBloqueBloqueado": false
+      },
+      {
+        "key": "2024-11-25|19:00|V202",
+        "range": "19:00-19:30",
+        "idBloque": 14,
+        "esBloqueReservado": false,
+        "esBloqueBloqueado": false
+      },
+      {
+        "key": "2024-11-25|19:00|V203",
+        "range": "19:00-19:30",
+        "idBloque": 15,
+        "esBloqueReservado": false,
+        "esBloqueBloqueado": false
+      },
+    
+      {
+        "key": "2024-11-25|19:30|V201",
+        "range": "19:30-20:00",
+        "idBloque": 16,
+        "esBloqueReservado": false,
+        "esBloqueBloqueado": false
+      },
+      {
+        "key": "2024-11-25|19:30|V202",
+        "range": "19:30-20:00",
+        "idBloque": 17,
+        "esBloqueReservado": false,
+        "esBloqueBloqueado": false
+      },
+      {
+        "key": "2024-11-25|19:30|V203",
+        "range": "19:30-20:00",
+        "idBloque": 18,
+        "esBloqueReservado": false,
+        "esBloqueBloqueado": false
+      },
+    
+      {
+        "key": "2024-11-25|20:00|V201",
+        "range": "20:00-20:30",
+        "idBloque": 19,
+        "esBloqueReservado": false,
+        "esBloqueBloqueado": false
+      },
+      {
+        "key": "2024-11-25|20:00|V202",
+        "range": "20:00-20:30",
+        "idBloque": 20,
+        "esBloqueReservado": false,
+        "esBloqueBloqueado": false
+      },
+      {
+        "key": "2024-11-25|20:00|V203",
+        "range": "20:00-20:30",
+        "idBloque": 21,
+        "esBloqueReservado": false,
+        "esBloqueBloqueado": false
+      },
+    
+      {
+        "key": "2024-11-25|20:30|V201",
+        "range": "20:30-21:00",
+        "idBloque": 22,
+        "esBloqueReservado": false,
+        "esBloqueBloqueado": false
+      },
+      {
+        "key": "2024-11-25|20:30|V202",
+        "range": "20:30-21:00",
+        "idBloque": 23,
+        "esBloqueReservado": false,
+        "esBloqueBloqueado": false
+      },
+      {
+        "key": "2024-11-25|20:30|V203",
+        "range": "20:30-21:00",
+        "idBloque": 24,
+        "esBloqueReservado": false,
+        "esBloqueBloqueado": false
+      },
+    
+      {
+        "key": "2024-11-25|21:00|V201",
+        "range": "21:00-21:30",
+        "idBloque": 25,
+        "esBloqueReservado": false,
+        "esBloqueBloqueado": false
+      },
+      {
+        "key": "2024-11-25|21:00|V202",
+        "range": "21:00-21:30",
+        "idBloque": 26,
+        "esBloqueReservado": false,
+        "esBloqueBloqueado": false
+      },
+      {
+        "key": "2024-11-25|21:00|V203",
+        "range": "21:00-21:30",
+        "idBloque": 27,
+        "esBloqueReservado": false,
+        "esBloqueBloqueado": false
+      },
+    
+      {
+        "key": "2024-11-25|21:30|V201",
+        "range": "21:30-22:00",
+        "idBloque": 28,
+        "esBloqueReservado": false,
+        "esBloqueBloqueado": false
+      },
+      {
+        "key": "2024-11-25|21:30|V202",
+        "range": "21:30-22:00",
+        "idBloque": 29,
+        "esBloqueReservado": false,
+        "esBloqueBloqueado": false
+      },
+      {
+        "key": "2024-11-25|21:30|V203",
+        "range": "21:30-22:00",
+        "idBloque": 30,
+        "esBloqueReservado": false,
+        "esBloqueBloqueado": false
+      },
+      {
+      "key": "2024-12-03|17:00|V201",
+      "range": "17:00-17:30",
+      "idBloque": 31,
+      "esBloqueReservado": false,
+      "esBloqueBloqueado": false
+    },
+    {
+      "key": "2024-12-03|17:30|V201",
+      "range": "17:30-18:00",
+      "idBloque": 32,
+      "esBloqueReservado": false,
+      "esBloqueBloqueado": false
+    },
+    {
+      "key": "2024-12-03|18:00|V201",
+      "range": "18:00-18:30",
+      "idBloque": 33,
+      "esBloqueReservado": false,
+      "esBloqueBloqueado": false
+    },
+    {
+      "key": "2024-12-03|18:30|V201",
+      "range": "18:30-19:00",
+      "idBloque": 34,
+      "esBloqueReservado": false,
+      "esBloqueBloqueado": false
+    },
+    {
+      "key": "2024-12-03|19:00|V201",
+      "range": "19:00-19:30",
+      "idBloque": 35,
+      "esBloqueReservado": false,
+      "esBloqueBloqueado": false
+    },
+    {
+      "key": "2024-12-03|19:30|V201",
+      "range": "19:30-20:00",
+      "idBloque": 36,
+      "esBloqueReservado": false,
+      "esBloqueBloqueado": false
+    },
+    {
+      "key": "2024-12-03|20:00|V201",
+      "range": "20:00-20:30",
+      "idBloque": 37,
+      "esBloqueReservado": false,
+      "esBloqueBloqueado": false
+    },
+    {
+      "key": "2024-12-03|20:30|V201",
+      "range": "20:30-21:00",
+      "idBloque": 38,
+      "esBloqueReservado": false,
+      "esBloqueBloqueado": false
+    },
+    {
+      "key": "2024-12-03|21:00|V201",
+      "range": "21:00-21:30",
+      "idBloque": 39,
+      "esBloqueReservado": false,
+      "esBloqueBloqueado": false
+    },
+    {
+      "key": "2024-12-03|21:30|V201",
+      "range": "21:30-22:00",
+      "idBloque": 40,
+      "esBloqueReservado": false,
+      "esBloqueBloqueado": false
+    },
+    {
+      "key": "2024-12-03|17:00|V202",
+      "range": "17:00-17:30",
+      "idBloque": 41,
+      "esBloqueReservado": false,
+      "esBloqueBloqueado": false
+    },
+    {
+      "key": "2024-12-03|17:30|V202",
+      "range": "17:30-18:00",
+      "idBloque": 42,
+      "esBloqueReservado": false,
+      "esBloqueBloqueado": false
+    },
+    {
+      "key": "2024-12-03|18:00|V202",
+      "range": "18:00-18:30",
+      "idBloque": 43,
+      "esBloqueReservado": false,
+      "esBloqueBloqueado": false
+    },
+    {
+      "key": "2024-12-03|18:30|V202",
+      "range": "18:30-19:00",
+      "idBloque": 44,
+      "esBloqueReservado": false,
+      "esBloqueBloqueado": false
+    },
+    {
+      "key": "2024-12-03|19:00|V202",
+      "range": "19:00-19:30",
+      "idBloque": 45,
+      "esBloqueReservado": false,
+      "esBloqueBloqueado": false
+    },
+    {
+      "key": "2024-12-03|19:30|V202",
+      "range": "19:30-20:00",
+      "idBloque": 46,
+      "esBloqueReservado": false,
+      "esBloqueBloqueado": false
+    },
+    {
+      "key": "2024-12-03|20:00|V202",
+      "range": "20:00-20:30",
+      "idBloque": 47,
+      "esBloqueReservado": false,
+      "esBloqueBloqueado": false
+    },
+    {
+      "key": "2024-12-03|20:30|V202",
+      "range": "20:30-21:00",
+      "idBloque": 48,
+      "esBloqueReservado": false,
+      "esBloqueBloqueado": false
+    },
+    {
+      "key": "2024-12-03|21:00|V202",
+      "range": "21:00-21:30",
+      "idBloque": 49,
+      "esBloqueReservado": false,
+      "esBloqueBloqueado": false
+    },
+    {
+      "key": "2024-12-03|21:30|V202",
+      "range": "21:30-22:00",
+      "idBloque": 50,
+      "esBloqueReservado": false,
+      "esBloqueBloqueado": false
+    },
+    {
+      "key": "2024-12-03|17:00|V203",
+      "range": "17:00-17:30",
+      "idBloque": 51,
+      "esBloqueReservado": false,
+      "esBloqueBloqueado": false
+    },
+    {
+      "key": "2024-12-03|17:30|V203",
+      "range": "17:30-18:00",
+      "idBloque": 52,
+      "esBloqueReservado": false,
+      "esBloqueBloqueado": false
+    },
+    {
+      "key": "2024-12-03|18:00|V203",
+      "range": "18:00-18:30",
+      "idBloque": 53,
+      "esBloqueReservado": false,
+      "esBloqueBloqueado": false
+    },
+    {
+      "key": "2024-12-03|18:30|V203",
+      "range": "18:30-19:00",
+      "idBloque": 54,
+      "esBloqueReservado": false,
+      "esBloqueBloqueado": false
+    },
+    {
+      "key": "2024-12-03|19:00|V203",
+      "range": "19:00-19:30",
+      "idBloque": 55,
+      "esBloqueReservado": false,
+      "esBloqueBloqueado": false
+    },
+    {
+      "key": "2024-12-03|19:30|V203",
+      "range": "19:30-20:00",
+      "idBloque": 56,
+      "esBloqueReservado": false,
+      "esBloqueBloqueado": false
+    },
+    {
+      "key": "2024-12-03|20:00|V203",
+      "range": "20:00-20:30",
+      "idBloque": 57,
+      "esBloqueReservado": false,
+      "esBloqueBloqueado": false
+    },
+    {
+      "key": "2024-12-03|20:30|V203",
+      "range": "20:30-21:00",
+      "idBloque": 58,
+      "esBloqueReservado": false,
+      "esBloqueBloqueado": false
+    },
+    {
+      "key": "2024-12-03|21:00|V203",
+      "range": "21:00-21:30",
+      "idBloque": 59,
+      "esBloqueReservado": false,
+      "esBloqueBloqueado": false
+    },
+    {
+      "key": "2024-12-03|21:30|V203",
+      "range": "21:30-22:00",
+      "idBloque": 60,
+      "esBloqueReservado": false,
+      "esBloqueBloqueado": false
+    }
+    ],
+    "temas": [
+        {
+      "id": 1,
+      "codigo": "T001",
+      "titulo": "Desarrollo de un aplicativo móvil con motor de inferencia basado en reglas para la recomendación personalizada de destinos gastronómicos en Arequipa-Perú",
+      "usuarios": [
+        {
+          "idUsario": 7,
+          "nombres": "MARIUXI ALEXANDRA",
+          "apellidos": "BRUZZA MONCAYO"
+        },
+        {
+          "idUsario": 8,
+          "nombres": "CARLOS ALBERTO",
+          "apellidos": "CISNEROS BRAVO"
+        },
+        {
+          "idUsario": 19,
+          "nombres": "ANGEL GABRIEL",
+          "apellidos": "LENA VALEGA"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "codigo": "T002",
+      "titulo": "Diseñar un Sistema de Gestión de Continuidad de Negocios (SGCN) para un organismo estatal municipal distrital bajo la norma ISO/ IEC 22301.",
+      "usuarios": [
+        {
+          "idUsario": 35,
+          "nombres": "MOISES ANTONIO",
+          "apellidos": "VILLENA AGUILAR"
+        },
+        {
+          "idUsario": 37,
+          "nombres": "CLAUDIA MARÍA DEL PILAR",
+          "apellidos": "ZAPATA DEL RÍO"
+        },
+        {
+          "idUsario": 25,
+          "nombres": "ROY",
+          "apellidos": "PEREZ PICHIS"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "codigo": "T004",
+      "titulo": "Desarrollo de una herramienta de apoyo al Metodo de Inspeccion Semiotica para la evaluacion de usabilidad de productos de software",
+      "usuarios": [
+        {
+          "idUsario": 21,
+          "nombres": "MIGUEL ARTURO",
+          "apellidos": "MOQUILLAZA VIZARRETA"
+        },
+        {
+          "idUsario": 16,
+          "nombres": "JUAN MIGUEL ANGEL",
+          "apellidos": "GUANIRA ERAZO"
+        },
+        {
+          "idUsario": 30,
+          "nombres": "JUAN CARLOS EDUARDO",
+          "apellidos": "ROMAINA ACEVEDO"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "codigo": "T005",
+      "titulo": "Desarrollo de un videojuego que aborde los temas de uso apropiado de herramientas de inteligencia artificial generativa dirigido a estudiantes de educación secundaria del Perú",
+      "usuarios": [
+        {
+          "idUsario": 4,
+          "nombres": "JOHAN PAUL",
+          "apellidos": "BALDEÓN MEDRANO"
+        },
+        {
+          "idUsario": 16,
+          "nombres": "JUAN MIGUEL ANGEL",
+          "apellidos": "GUANIRA ERAZO"
+        },
+        {
+          "idUsario": 14,
+          "nombres": "LUIS ALBERTO",
+          "apellidos": "FLORES GARCÍA"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "codigo": "T006",
+      "titulo": "Implementación de un Sistema de Autoservicio para la Gestión Humana en una Empresa Financiera Especializada en Leasing",
+      "usuarios": [
+        {
+          "idUsario": 3,
+          "nombres": "JESUS ANTONIO",
+          "apellidos": "AQUINO ARBI"
+        },
+        {
+          "idUsario": 9,
+          "nombres": "FERNANDO",
+          "apellidos": "CONTRERAS VELASQUEZ"
+        },
+        {
+          "idUsario": 1,
+          "nombres": "CÉSAR AUGUSTO",
+          "apellidos": "AGUILERA SERPA"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "codigo": "T007",
+      "titulo": "Diseño de un Sistema de Gestión de Seguridad de la Información (SGSI) para una empresa distribuidora de material eléctrico.",
+      "usuarios": [
+        {
+          "idUsario": 35,
+          "nombres": "MOISES ANTONIO",
+          "apellidos": "VILLENA AGUILAR"
+        },
+        {
+          "idUsario": 25,
+          "nombres": "ROY",
+          "apellidos": "PEREZ PICHIS"
+        },
+        {
+          "idUsario": 18,
+          "nombres": "FERNANDO MIGUEL",
+          "apellidos": "HUAMÁN MONZÓN"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "codigo": "T008",
+      "titulo": "Implementación de un sistema de información para el apoyo a la gestión logística de ingreso para una micro y pequeña empresa de producción de paletas de helado",
+      "usuarios": [
+        {
+          "idUsario": 10,
+          "nombres": "RONY",
+          "apellidos": "CUEVA MOSCOSO"
+        },
+        {
+          "idUsario": 7,
+          "nombres": "MARIUXI ALEXANDRA",
+          "apellidos": "BRUZZA MONCAYO"
+        },
+        {
+          "idUsario": 24,
+          "nombres": "FREDDY ALBERTO",
+          "apellidos": "PAZ ESPINOZA"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "codigo": "T009",
+      "titulo": "Sistema de Gestión de Residuos Sólidos Urbanos para la municipalidad de La Victoria",
+      "usuarios": [
+        {
+          "idUsario": 9,
+          "nombres": "FERNANDO",
+          "apellidos": "CONTRERAS VELASQUEZ"
+        },
+        {
+          "idUsario": 13,
+          "nombres": "CHRISTIAN EDUARDO",
+          "apellidos": "FALCON PUCHURI"
+        },
+        {
+          "idUsario": 12,
+          "nombres": "ABRAHAM ELISEO",
+          "apellidos": "DÁVILA RAMÓN"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "codigo": "T010",
+      "titulo": "Sistema para el pronóstico de compras de repuestos en una empresa especializada en la comercialización de maquinaria pesada",
+      "usuarios": [
+        {
+          "idUsario": 32,
+          "nombres": "MANUEL FRANCISCO",
+          "apellidos": "TUPIA ANTICONA"
+        },
+        {
+          "idUsario": 6,
+          "nombres": "JORGE ALBERTO",
+          "apellidos": "BERROCAL PEREZ ALBELA"
+        },
+        {
+          "idUsario": 3,
+          "nombres": "JESUS ANTONIO",
+          "apellidos": "AQUINO ARBI"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "codigo": "T011",
+      "titulo": "Implementación de un sistema de información para la gestión de procesos educativos en una institución educativa básico regular",
+      "usuarios": [
+        {
+          "idUsario": 14,
+          "nombres": "LUIS ALBERTO",
+          "apellidos": "FLORES GARCÍA"
+        },
+        {
+          "idUsario": 3,
+          "nombres": "JESUS ANTONIO",
+          "apellidos": "AQUINO ARBI"
+        },
+        {
+          "idUsario": 6,
+          "nombres": "JORGE ALBERTO",
+          "apellidos": "BERROCAL PEREZ ALBELA"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "codigo": "T012",
+      "titulo": "Desarrollo de una herramienta de código libre para responder a ataques DDOS",
+      "usuarios": [
+        {
+          "idUsario": 18,
+          "nombres": "FERNANDO MIGUEL",
+          "apellidos": "HUAMÁN MONZÓN"
+        },
+        {
+          "idUsario": 35,
+          "nombres": "MOISES ANTONIO",
+          "apellidos": "VILLENA AGUILAR"
+        },
+        {
+          "idUsario": 20,
+          "nombres": "HECTOR ANDRES",
+          "apellidos": "MELGAR SASIETA"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "codigo": "T013",
+      "titulo": "Desarrollo de un marco de trabajo para la Gestión de Ciberseguridad Costo-Eficiente para PYMES de E-commerce en Perú",
+      "usuarios": [
+        {
+          "idUsario": 18,
+          "nombres": "FERNANDO MIGUEL",
+          "apellidos": "HUAMÁN MONZÓN"
+        },
+        {
+          "idUsario": 14,
+          "nombres": "LUIS ALBERTO",
+          "apellidos": "FLORES GARCÍA"
+        },
+        {
+          "idUsario": 20,
+          "nombres": "HECTOR ANDRES",
+          "apellidos": "MELGAR SASIETA"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "codigo": "T014",
+      "titulo": "Desarrollo y Evaluación de Modelo Predictivo de Probabilidad de Fuga de Clientes Para Su Retención en Empresa del Sector Retail ",
+      "usuarios": [
+        {
+          "idUsario": 34,
+          "nombres": "EDWIN RAFAEL",
+          "apellidos": "VILLANUEVA TALAVERA"
+        },
+        {
+          "idUsario": 22,
+          "nombres": "LUIS FERNANDO",
+          "apellidos": "MUROYA TOKUSHIMA"
+        },
+        {
+          "idUsario": 5,
+          "nombres": "CÉSAR ARMANDO",
+          "apellidos": "BELTRÁN CASTAÑÓN"
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "codigo": "T015",
+      "titulo": "Desarrollo de un asistente para la atención de consultas estudiantiles de una universidad privada peruana utilizando tecnología LLM",
+      "usuarios": [
+        {
+          "idUsario": 27,
+          "nombres": "ROGER ALCIDES",
+          "apellidos": "QUIROZ TORRES"
+        },
+        {
+          "idUsario": 9,
+          "nombres": "FERNANDO",
+          "apellidos": "CONTRERAS VELASQUEZ"
+        },
+        {
+          "idUsario": 13,
+          "nombres": "CHRISTIAN EDUARDO",
+          "apellidos": "FALCON PUCHURI"
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "codigo": "T017",
+      "titulo": "Aplicación de herramientas de inteligencia artificial generativa y UX sintético como apoyo al proceso de diseño centrado en el usuario aplicado al desarrollo de interfaces gráficas: Un caso de estudio",
+      "usuarios": [
+        {
+          "idUsario": 21,
+          "nombres": "MIGUEL ARTURO",
+          "apellidos": "MOQUILLAZA VIZARRETA"
+        },
+        {
+          "idUsario": 28,
+          "nombres": "EDER RAMIRO",
+          "apellidos": "QUISPE VILCHEZ"
+        },
+        {
+          "idUsario": 11,
+          "nombres": "JORGE EDUARDO",
+          "apellidos": "DIAZ SUAREZ"
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "codigo": "T018",
+      "titulo": "Desarrollo de un sistema web gamificado para la gestión y recomendación de recursos educativos, enfocado en la creación de pruebas prácticas adaptativas y personalizadas para estudiantes universitarios de Estudios Generales Ciencias de la PUCP",
+      "usuarios": [
+        {
+          "idUsario": 4,
+          "nombres": "JOHAN PAUL",
+          "apellidos": "BALDEÓN MEDRANO"
+        },
+        {
+          "idUsario": 33,
+          "nombres": "SILVIA",
+          "apellidos": "VARGAS CACERES"
+        },
+        {
+          "idUsario": 17,
+          "nombres": "LAYLA",
+          "apellidos": "HIRSH MARTINEZ"
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "codigo": "T020",
+      "titulo": "Desarrollo de un algoritmo generador de rutinas de ejercicios físicos para reducir el sedentarismo en la población peruana",
+      "usuarios": [
+        {
+          "idUsario": 20,
+          "nombres": "HECTOR ANDRES",
+          "apellidos": "MELGAR SASIETA"
+        },
+        {
+          "idUsario": 24,
+          "nombres": "FREDDY ALBERTO",
+          "apellidos": "PAZ ESPINOZA"
+        },
+        {
+          "idUsario": 4,
+          "nombres": "JOHAN PAUL",
+          "apellidos": "BALDEÓN MEDRANO"
+        }
+      ]
+    },
+    {
+      "id": 21,
+      "codigo": "T021",
+      "titulo": "Sistema Web para la Evaluación y Revisión Automática de Código en Cursos de Programación",
+      "usuarios": [
+        {
+          "idUsario": 4,
+          "nombres": "JOHAN PAUL",
+          "apellidos": "BALDEÓN MEDRANO"
+        },
+        {
+          "idUsario": 14,
+          "nombres": "LUIS ALBERTO",
+          "apellidos": "FLORES GARCÍA"
+        },
+        {
+          "idUsario": 10,
+          "nombres": "RONY",
+          "apellidos": "CUEVA MOSCOSO"
+        }
+      ]
+    },
+    {
+      "id": 22,
+      "codigo": "T022",
+      "titulo": "Videojuego educativo con elementos configurables para reforzar la motivación de los estudiantes de 2do se secundaria para el componente de Historia Universal del área de Ciencias Sociales",
+      "usuarios": [
+        {
+          "idUsario": 37,
+          "nombres": "CLAUDIA MARÍA DEL PILAR",
+          "apellidos": "ZAPATA DEL RÍO"
+        },
+        {
+          "idUsario": 4,
+          "nombres": "JOHAN PAUL",
+          "apellidos": "BALDEÓN MEDRANO"
+        },
+        {
+          "idUsario": 10,
+          "nombres": "RONY",
+          "apellidos": "CUEVA MOSCOSO"
+        }
+      ]
+    },
+    {
+      "id": 23,
+      "codigo": "T023",
+      "titulo": "DESARROLLO DE UN MODELO DE DEEP LEARNING PARA DETECCIÓN DE CONDICIÓN EN VÍAS MINERAS PARA SOPORTE DE MANTENIMIENTO",
+      "usuarios": [
+        {
+          "idUsario": 5,
+          "nombres": "CÉSAR ARMANDO",
+          "apellidos": "BELTRÁN CASTAÑÓN"
+        },
+        {
+          "idUsario": 1,
+          "nombres": "CÉSAR AUGUSTO",
+          "apellidos": "AGUILERA SERPA"
+        },
+        {
+          "idUsario": 15,
+          "nombres": "HECTOR ERASMO",
+          "apellidos": "GOMEZ MONTOYA"
+        }
+      ]
+    },
+    {
+      "id": 24,
+      "codigo": "T024",
+      "titulo": "Desarrollo de un sistema de información para la gestión de fuentes de información asociadas al riesgo de caída de huaicos en comunidades",
+      "usuarios": [
+        {
+          "idUsario": 34,
+          "nombres": "EDWIN RAFAEL",
+          "apellidos": "VILLANUEVA TALAVERA"
+        },
+        {
+          "idUsario": 29,
+          "nombres": "LUIS ESTEBAN",
+          "apellidos": "RIOS ALEJOS"
+        },
+        {
+          "idUsario": 26,
+          "nombres": "FERDINAND EDGARDO",
+          "apellidos": "PINEDA ANCCO"
+        }
+      ]
+    },
+    {
+      "id": 25,
+      "codigo": "T025",
+      "titulo": "Uso de Tecnología Blockchain para Mejorar la Autenticación y Trazabilidad de medicamentos en el Sector Farmacéutico",
+      "usuarios": [
+        {
+          "idUsario": 25,
+          "nombres": "ROY",
+          "apellidos": "PEREZ PICHIS"
+        },
+        {
+          "idUsario": 28,
+          "nombres": "EDER RAMIRO",
+          "apellidos": "QUISPE VILCHEZ"
+        },
+        {
+          "idUsario": 19,
+          "nombres": "ANGEL GABRIEL",
+          "apellidos": "LENA VALEGA"
+        }
+      ]
+    },
+    {
+      "id": 26,
+      "codigo": "T026",
+      "titulo": "Diseño de un SGSI para el Hospital III Angamos Suárez de EsSalud en el contexto de la norma 27001:2022",
+      "usuarios": [
+        {
+          "idUsario": 35,
+          "nombres": "MOISES ANTONIO",
+          "apellidos": "VILLENA AGUILAR"
+        },
+        {
+          "idUsario": 37,
+          "nombres": "CLAUDIA MARÍA DEL PILAR",
+          "apellidos": "ZAPATA DEL RÍO"
+        },
+        {
+          "idUsario": 25,
+          "nombres": "ROY",
+          "apellidos": "PEREZ PICHIS"
+        }
+      ]
+    },
+    {
+      "id": 27,
+      "codigo": "T027",
+      "titulo": "Desarrollo de un Aplicativo Móvil para la Mejora de la Seguridad en el Transporte Público mediante Localización en Tiempo Real y Alertas de Zonas Peligrosas",
+      "usuarios": [
+        {
+          "idUsario": 37,
+          "nombres": "CLAUDIA MARÍA DEL PILAR",
+          "apellidos": "ZAPATA DEL RÍO"
+        },
+        {
+          "idUsario": 30,
+          "nombres": "JUAN CARLOS EDUARDO",
+          "apellidos": "ROMAINA ACEVEDO"
+        },
+        {
+          "idUsario": 2,
+          "nombres": "DAVID ENRIQUE",
+          "apellidos": "ALLASI BARDALES"
+        }
+      ]
+    },
+    {
+      "id": 28,
+      "codigo": "T028",
+      "titulo": "Desarrollo de una Aplicación Web Gamificada para la Preparación Integral del TOEFL iBT para hablantes de español: Integrando Simulaciones Ilimitadas, Minijuegos Interactivos y Retroalimentación Personalizada",
+      "usuarios": [
+        {
+          "idUsario": 4,
+          "nombres": "JOHAN PAUL",
+          "apellidos": "BALDEÓN MEDRANO"
+        },
+        {
+          "idUsario": 10,
+          "nombres": "RONY",
+          "apellidos": "CUEVA MOSCOSO"
+        },
+        {
+          "idUsario": 20,
+          "nombres": "HECTOR ANDRES",
+          "apellidos": "MELGAR SASIETA"
+        }
+      ]
+    },
+    {
+      "id": 29,
+      "codigo": "T029",
+      "titulo": "Optimización de la Detección de Fraude en Transacciones Financieras Mediante Modelos de Metraaprendizaje",
+      "usuarios": [
+        {
+          "idUsario": 34,
+          "nombres": "EDWIN RAFAEL",
+          "apellidos": "VILLANUEVA TALAVERA"
+        },
+        {
+          "idUsario": 2,
+          "nombres": "DAVID ENRIQUE",
+          "apellidos": "ALLASI BARDALES"
+        },
+        {
+          "idUsario": 23,
+          "nombres": "FELIX ARTURO",
+          "apellidos": "ONCEVAY MARCOS"
+        }
+      ]
+    },
+    {
+      "id": 30,
+      "codigo": "T030",
+      "titulo": "IMPLEMENTACIÓN DE UN MODELO DE IA PARA LA GESTIÓN DE RIESGOS EN LA CADENA DE SUMINISTRO DE UNA PYME DEL SECTOR DE HIDROCARBUROS",
+      "usuarios": [
+        {
+          "idUsario": 35,
+          "nombres": "MOISES ANTONIO",
+          "apellidos": "VILLENA AGUILAR"
+        },
+        {
+          "idUsario": 37,
+          "nombres": "CLAUDIA MARÍA DEL PILAR",
+          "apellidos": "ZAPATA DEL RÍO"
+        },
+        {
+          "idUsario": 18,
+          "nombres": "FERNANDO MIGUEL",
+          "apellidos": "HUAMÁN MONZÓN"
+        }
+      ]
+    },
+    {
+      "id": 31,
+      "codigo": "T031",
+      "titulo": "Rediseño de las interfaces gráficas involucradas en el proceso de despacho de ventas en el ERP SAP mediante el uso del marco de trabajo de Diseño Centrado en el Usuario",
+      "usuarios": [
+        {
+          "idUsario": 24,
+          "nombres": "FREDDY ALBERTO",
+          "apellidos": "PAZ ESPINOZA"
+        },
+        {
+          "idUsario": 21,
+          "nombres": "MIGUEL ARTURO",
+          "apellidos": "MOQUILLAZA VIZARRETA"
+        },
+        {
+          "idUsario": 33,
+          "nombres": "SILVIA",
+          "apellidos": "VARGAS CACERES"
+        }
+      ]
+    },
+    {
+      "id": 32,
+      "codigo": "T032",
+      "titulo": "Desarrollo e implantación de un sistema de información hospitalario para el Hospital Santa Clotilde. Componente: Historia Clínica Electrónica - Datos Generales del Paciente",
+      "usuarios": [
+        {
+          "idUsario": 12,
+          "nombres": "ABRAHAM ELISEO",
+          "apellidos": "DÁVILA RAMÓN"
+        },
+        {
+          "idUsario": 29,
+          "nombres": "LUIS ESTEBAN",
+          "apellidos": "RIOS ALEJOS"
+        },
+        {
+          "idUsario": 27,
+          "nombres": "ROGER ALCIDES",
+          "apellidos": "QUIROZ TORRES"
+        }
+      ]
+    },
+    {
+      "id": 33,
+      "codigo": "T033",
+      "titulo": "Remasterización de material visual histórico en tomas con movimiento reducido previo a la irrupción de la alta definición mediante un modelo de aprendizaje supervisado",
+      "usuarios": [
+        {
+          "idUsario": 34,
+          "nombres": "EDWIN RAFAEL",
+          "apellidos": "VILLANUEVA TALAVERA"
+        },
+        {
+          "idUsario": 26,
+          "nombres": "FERDINAND EDGARDO",
+          "apellidos": "PINEDA ANCCO"
+        },
+        {
+          "idUsario": 22,
+          "nombres": "LUIS FERNANDO",
+          "apellidos": "MUROYA TOKUSHIMA"
+        }
+      ]
+    },
+    {
+      "id": 34,
+      "codigo": "T034",
+      "titulo": "Desarrollo de un algoritmo híbrido para la optimización de carga de camiones y elección de rutas para envíos en una empresa de cerámicos peruana",
+      "usuarios": [
+        {
+          "idUsario": 32,
+          "nombres": "MANUEL FRANCISCO",
+          "apellidos": "TUPIA ANTICONA"
+        },
+        {
+          "idUsario": 27,
+          "nombres": "ROGER ALCIDES",
+          "apellidos": "QUIROZ TORRES"
+        },
+        {
+          "idUsario": 8,
+          "nombres": "CARLOS ALBERTO",
+          "apellidos": "CISNEROS BRAVO"
+        }
+      ]
+    },
+    {
+      "id": 35,
+      "codigo": "T035",
+      "titulo": "Desarrollo de un Modelo de Detección y Clasificación Automática de Melanoma y Carcinomas cutáneos en Imágenes Dermatoscópicas Utilizando Redes Neuronales Convolucionales (CNN) en Pacientes del Perú",
+      "usuarios": [
+        {
+          "idUsario": 5,
+          "nombres": "CÉSAR ARMANDO",
+          "apellidos": "BELTRÁN CASTAÑÓN"
+        },
+        {
+          "idUsario": 17,
+          "nombres": "LAYLA",
+          "apellidos": "HIRSH MARTINEZ"
+        },
+        {
+          "idUsario": 31,
+          "nombres": "STEFANO ENRIQUE",
+          "apellidos": "ROMERO GUTIERREZ"
+        }
+      ]
+    },
+    {
+      "id": 36,
+      "codigo": "T036",
+      "titulo": "Detección temprana de signos de depresión en redes sociales mediante técnicas de procesamiento de lenguaje natural y deep learning ",
+      "usuarios": [
+        {
+          "idUsario": 5,
+          "nombres": "CÉSAR ARMANDO",
+          "apellidos": "BELTRÁN CASTAÑÓN"
+        },
+        {
+          "idUsario": 23,
+          "nombres": "FELIX ARTURO",
+          "apellidos": "ONCEVAY MARCOS"
+        },
+        {
+          "idUsario": 34,
+          "nombres": "EDWIN RAFAEL",
+          "apellidos": "VILLANUEVA TALAVERA"
+        }
+      ]
+    },
+    {
+      "id": 37,
+      "codigo": "T037",
+      "titulo": "Desarrollo de una Plataforma Educativa de Gestión y Planificación Personalizada para la Práctica Pianística, con Enfoque en Organización, Seguimiento y Comunicación del Progreso Musical",
+      "usuarios": [
+        {
+          "idUsario": 4,
+          "nombres": "JOHAN PAUL",
+          "apellidos": "BALDEÓN MEDRANO"
+        },
+        {
+          "idUsario": 11,
+          "nombres": "JORGE EDUARDO",
+          "apellidos": "DIAZ SUAREZ"
+        },
+        {
+          "idUsario": 37,
+          "nombres": "CLAUDIA MARÍA DEL PILAR",
+          "apellidos": "ZAPATA DEL RÍO"
+        }
+      ]
+    },
+    {
+      "id": 38,
+      "codigo": "T038",
+      "titulo": "Diseño de un modelo de Ciberseguridad para la implementación de una Moneda Digital en el Perú",
+      "usuarios": [
+        {
+          "idUsario": 35,
+          "nombres": "MOISES ANTONIO",
+          "apellidos": "VILLENA AGUILAR"
+        },
+        {
+          "idUsario": 37,
+          "nombres": "CLAUDIA MARÍA DEL PILAR",
+          "apellidos": "ZAPATA DEL RÍO"
+        },
+        {
+          "idUsario": 18,
+          "nombres": "FERNANDO MIGUEL",
+          "apellidos": "HUAMÁN MONZÓN"
+        }
+      ]
+    },
+    {
+      "id": 39,
+      "codigo": "T039",
+      "titulo": "DESARROLLO DE UN MODELO DE APRENDIZAJE PROFUNDO PARA LA DETECCIÓN DE PULMONES SANOS Y ENFERMOS EN ZONAS RURALES MEDIANTE IMÁGENES DE ULTRASONIDO",
+      "usuarios": [
+        {
+          "idUsario": 31,
+          "nombres": "STEFANO ENRIQUE",
+          "apellidos": "ROMERO GUTIERREZ"
+        },
+        {
+          "idUsario": 17,
+          "nombres": "LAYLA",
+          "apellidos": "HIRSH MARTINEZ"
+        },
+        {
+          "idUsario": 1,
+          "nombres": "CÉSAR AUGUSTO",
+          "apellidos": "AGUILERA SERPA"
+        }
+      ]
+    },
+    {
+      "id": 40,
+      "codigo": "T040",
+      "titulo": "DESARROLLO DE UN SISTEMA INTELIGENTE PARA ACOMPAÑAMIENTO Y TUTORÍA A ESTUDIANTES EN CURSOS UNIVERSITARIOS USANDO TÉCNICAS DE INTELIGENCIA ARTIFICIAL",
+      "usuarios": [
+        {
+          "idUsario": 34,
+          "nombres": "EDWIN RAFAEL",
+          "apellidos": "VILLANUEVA TALAVERA"
+        },
+        {
+          "idUsario": 36,
+          "nombres": "JOSE ISAAC",
+          "apellidos": "YRIGOYEN MONTESTRUQUE"
+        },
+        {
+          "idUsario": 4,
+          "nombres": "JOHAN PAUL",
+          "apellidos": "BALDEÓN MEDRANO"
+        }
+      ]
+    }
+    ]
+      
+  }
+  
