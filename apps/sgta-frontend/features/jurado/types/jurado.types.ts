@@ -121,4 +121,21 @@ export interface MiembroJuradoExpo{
   tipo: string;
 }
 
+export interface EvaluacionExposicionJurado{
+  id_exposicion: number;
+  titulo: string;
+  estudiantes: Estudiante[];
+  criterios: CriterioEvaluacion[];
+  observaciones_finales: string;
+}
+
+export interface CriterioEvaluacion{
+  id: number;
+  titulo: string;
+  descripcion: string;
+  calificacion: number;
+  nota_maxima: number;
+  observaciones: string;
+}
+
 export type OrigenBoton = "siguiente" | "terminar";

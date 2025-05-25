@@ -123,7 +123,7 @@ export function ExposicionCard({ exposicion, onClick,onStatusChange }: Exposicio
     await actualizarEstadoExposicion(exposicion.id_exposicion, "ESPERANDO_APROBACION");
     if (onStatusChange) {
         await onStatusChange();
-      }
+    }
     // Activar el estado de reprogramación solicitada
     setIsReprogramacionSolicitada(true);
     // Actualizar el estado actual a "esperando_aprobacion" (opcional, dependiendo de tu lógica de negocio)
