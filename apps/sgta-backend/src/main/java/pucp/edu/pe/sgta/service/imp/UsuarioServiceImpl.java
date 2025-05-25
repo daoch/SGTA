@@ -91,6 +91,15 @@ public class UsuarioServiceImpl implements UsuarioService {
 		return null;
 	}
 
+    @Override
+    public Integer getIdByCorreo(String correoUsuario) {
+        Usuario usuario = usuarioRepository.findByCorreoElectronico(correoUsuario).orElse(null);
+        if (usuario != null) {
+            return usuario.getId();
+        }
+        throw new NoSuchElementException("Usuario no encontrado con correo: " + correoUsuario);
+    }
+
 	@Override
 	public List<UsuarioDto> findAllUsuarios() {
 		return List.of();
