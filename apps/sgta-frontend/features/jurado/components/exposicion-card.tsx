@@ -18,7 +18,7 @@ import {
 } from "@/features/jurado/types/jurado.types";
 
 import { ExposicionEstado } from "../types/exposicion.types"; 
-import { actualizarEstadoExposicion } from "../services/jurado-service";
+import { actualizarEstadoExposicion,actualizarEstadoControlExposicion } from "../services/jurado-service";
 
 interface ExposicionCardProps {
   exposicion: ExposicionJurado;
@@ -33,12 +33,16 @@ export function ExposicionCard({ exposicion, onClick,onStatusChange }: Exposicio
   const [estadoActual, setEstadoActual] = useState(exposicion.estado);
   // Estado para manejar la carga mientras se envía la solicitud
   const [isLoading, setIsLoading] = useState(false);
+  // Estado para manejar el control de estado
+  const [estadoControlActual, setEstadoControlActual] = useState(exposicion.estado_control);
+  
+  const [isReprogramacionSolicitada, setIsReprogramacionSolicitada] = useState(exposicion.estado_control === "RECHAZADO");
 
   const getAsesor = () =>
     exposicion.miembros.filter((m) => m.tipo === "Asesor");
   const getEstudiantes = () =>
     exposicion.miembros.filter((m) => m.tipo === "Tesista");
-  const [isReprogramacionSolicitada, setIsReprogramacionSolicitada] = useState(false);
+  
 
   const handleClick = () => {
     if (onClick) {
@@ -76,13 +80,19 @@ export function ExposicionCard({ exposicion, onClick,onStatusChange }: Exposicio
     setIsLoading(true);
     
     try {
+      const idJurado=6; 
       // Llamar al endpoint para actualizar el estado
-      await actualizarEstadoExposicion(exposicion.id_exposicion, "ESPERANDO_APROBACION");
+      await actualizarEstadoControlExposicion(
+        exposicion.id_exposicion, 
+        idJurado, 
+        "ACEPTADO"
+      );
+
       if (onStatusChange) {
         await onStatusChange();
       }
       // Actualizar el estado local para reflejar el cambio inmediatamente
-      setEstadoActual("esperando_aprobacion");
+      setEstadoControlActual("ACEPTADO");
       
       // Mostrar mensaje de éxito
       toast.success("Se ha confirmado tu asistencia. Esperando aprobación oficial.");
@@ -101,9 +111,21 @@ export function ExposicionCard({ exposicion, onClick,onStatusChange }: Exposicio
   
     try {
       // Cambiar el estado para mostrar "Reprogramación Solicitada"
-      //await actualizarEstadoExposicion(exposicion.id_exposicion, "ESPERANDO_APROBACION");
+      
+      const idJurado = 6;
+
+      await actualizarEstadoControlExposicion(
+        exposicion.id_exposicion, 
+        idJurado, 
+        "RECHAZADO"
+      );
+      if (onStatusChange) {
+        await onStatusChange();
+      }
+
       setIsReprogramacionSolicitada(true);
-      setEstadoActual("esperando_aprobacion");
+
+      setEstadoControlActual("RECHAZADO");
       // Mostrar mensaje de éxito
       toast.success("Se ha solicitado la reprogramación de la exposición.");
     } catch (error) {
@@ -120,14 +142,22 @@ export function ExposicionCard({ exposicion, onClick,onStatusChange }: Exposicio
   
   try {
     // Puedes agregar aquí una llamada API específica para registrar la no disponibilidad
-    await actualizarEstadoExposicion(exposicion.id_exposicion, "ESPERANDO_APROBACION");
+    const idJurado = 6;
+
+    
+    await actualizarEstadoControlExposicion(
+      exposicion.id_exposicion, 
+      idJurado, 
+      "RECHAZADO"
+    );
+
     if (onStatusChange) {
         await onStatusChange();
     }
     // Activar el estado de reprogramación solicitada
     setIsReprogramacionSolicitada(true);
     // Actualizar el estado actual a "esperando_aprobacion" (opcional, dependiendo de tu lógica de negocio)
-    setEstadoActual("esperando_aprobacion");
+    setEstadoControlActual("RECHAZADO");
     
     // Mostrar mensaje de éxito
     toast.success("Has indicado que no estás disponible para esta exposición.");
@@ -139,11 +169,47 @@ export function ExposicionCard({ exposicion, onClick,onStatusChange }: Exposicio
   }
 };
 
+
+  const mostrarEsperandoRespuesta = () => {
+    const estado = mapEstadoToExposicionEstado(estadoActual);
+    return estado === "esperando_respuesta" && 
+           estadoControlActual !== "ACEPTADO" && 
+           estadoControlActual !== "RECHAZADO" && 
+           !isReprogramacionSolicitada;
+  };
+
+  const mostrarEsperandoAprobacion = () => {
+    const estado = mapEstadoToExposicionEstado(estadoActual);
+    return ((estado === "esperando_aprobacion" && estadoControlActual !== "RECHAZADO") || 
+         (estado === "esperando_respuesta" && estadoControlActual === "ACEPTADO")) && 
+         !isReprogramacionSolicitada;
+  };
+
+  const mostrarReprogramacionSolicitada = () => {
+    return isReprogramacionSolicitada || estadoControlActual === "RECHAZADO";
+  };
+
+  const determinarEstadoMostrado = (): ExposicionEstado => {
+  // Obtener el estado base normalizado
+  const estadoBase = mapEstadoToExposicionEstado(exposicion.estado);
+  
+  // Si el estado base es "esperando_respuesta" pero el estado_control es "ACEPTADO" o "RECHAZADO",
+  // mostrar como "esperando_aprobacion"
+  if (estadoBase === "esperando_respuesta" && 
+      (estadoControlActual === "ACEPTADO" || estadoControlActual === "RECHAZADO")) {
+    return "esperando_aprobacion";
+  }
+  
+  // En cualquier otro caso, mostrar el estado base
+  return estadoBase;
+};
+
+
   return (
     <div
       className={`bg-gray-50 rounded-lg shadow-sm border p-5 flex flex-col md:flex-row gap-10
         ${
-        isReprogramacionSolicitada 
+        mostrarReprogramacionSolicitada() 
           ? "bg-red-50 border-red-200" 
           : "bg-gray-50"
         }`}
@@ -174,7 +240,7 @@ export function ExposicionCard({ exposicion, onClick,onStatusChange }: Exposicio
             <h3 className="text-xl font-semibold">{exposicion.titulo}</h3>
           </div>
           <div className="w-1/5 justify-end flex items-start">
-            <EstadoBadge estado={mapEstadoToExposicionEstado(exposicion.estado)} />
+            <EstadoBadge estado={determinarEstadoMostrado()} />
           </div>
         </div>
 
@@ -213,7 +279,7 @@ export function ExposicionCard({ exposicion, onClick,onStatusChange }: Exposicio
           </div>
 
           <div className="flex flex-row gap-2 items-end">
-            {mapEstadoToExposicionEstado(exposicion.estado) === "esperando_respuesta" && !isReprogramacionSolicitada &&(
+            {mostrarEsperandoRespuesta() &&(
               <>
                 <Button
                   variant="outline"
@@ -232,7 +298,7 @@ export function ExposicionCard({ exposicion, onClick,onStatusChange }: Exposicio
                 </Button>
               </>
             )}
-            {mapEstadoToExposicionEstado(exposicion.estado)  === "esperando_aprobacion" && !isReprogramacionSolicitada && (
+            {mostrarEsperandoAprobacion() && (
               <>
               <Button
                   variant="outline"
@@ -250,7 +316,7 @@ export function ExposicionCard({ exposicion, onClick,onStatusChange }: Exposicio
               </>
             )}
 
-            {mapEstadoToExposicionEstado(estadoActual) === "esperando_aprobacion" && isReprogramacionSolicitada && (
+            {mostrarReprogramacionSolicitada()  && (
               <Button
                 variant="outline"
                 disabled

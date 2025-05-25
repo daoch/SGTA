@@ -108,6 +108,7 @@ export interface ExposicionJurado{
   fechahora: Date;
   sala: string;
   estado: string;
+  estado_control: string;
   id_etapa_formativa: number;
   nombre_etapa_formativa: string;
   titulo: string;

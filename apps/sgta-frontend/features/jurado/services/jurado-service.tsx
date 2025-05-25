@@ -333,6 +333,7 @@ export const getExposicionesJurado= async (
         fechahora: new Date(expo.fechahora),
         sala: expo.sala,
         estado: expo.estado,
+        estado_control:expo.estado_control,
         id_etapa_formativa: expo.id_etapa_formativa,
         nombre_etapa_formativa: expo.nombre_etapa_formativa,
         titulo: expo.titulo,
@@ -349,7 +350,6 @@ export const getExposicionesJurado= async (
 };
 
 
-// En jurado-service.tsx
 export const actualizarEstadoExposicion = async (
   exposicionId: number,
   nuevoEstado: string
@@ -358,6 +358,25 @@ export const actualizarEstadoExposicion = async (
     const response = await axiosInstance.put(`/jurado/conformidad`, {
       exposicionTemaId: exposicionId,
       estadoExposicion: nuevoEstado
+    });
+    
+    return response.status === 200;
+  } catch (error) {
+    console.error("Error al actualizar el estado de la exposición:", error);
+    throw error;
+  }
+};
+
+export const actualizarEstadoControlExposicion = async (
+  exposicionId: number,
+  juradoId: number,
+  nuevoEstado: string
+): Promise<boolean> => {
+  try {
+    const response = await axiosInstance.put(`/jurado/control`, {
+      exposicionTemaId: exposicionId,
+      juradoId: juradoId,
+      estadoExposicionUsuario: nuevoEstado
     });
     
     return response.status === 200;
