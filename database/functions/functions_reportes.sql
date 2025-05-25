@@ -171,9 +171,6 @@ BEGIN
 END;
 $BODY$;
 
-ALTER FUNCTION get_juror_distribution_by_coordinator_and_ciclo(integer, varchar)
-  OWNER TO sgtauser;
-
 -------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION get_advisor_performance_by_user(
     p_usuario_id     INTEGER,
@@ -275,11 +272,6 @@ BEGIN
     ORDER BY performance_percentage DESC, total_students DESC;
 END;
 $BODY$;
-
-ALTER FUNCTION get_advisor_performance_by_user(integer, varchar)
-  OWNER TO sgtauser;
-
-
 -------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION get_topic_area_stats_by_user_and_ciclo(
     p_usuario_id     INTEGER,
@@ -355,10 +347,6 @@ BEGIN
     ORDER BY topic_count DESC;
 END;
 $BODY$;
-
-ALTER FUNCTION get_topic_area_stats_by_user_and_ciclo(integer, varchar)
-  OWNER TO sgtauser;
-
 -------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION get_topic_area_trends_by_user(
     p_usuario_id  INTEGER
@@ -425,11 +413,7 @@ BEGIN
 END;
 $BODY$;
 
-ALTER FUNCTION get_topic_area_trends_by_user(integer)
-  OWNER TO sgtauser;
-
 --------
-DROP FUNCTION  listar_tesistas_por_asesor(p_asesor_id INT);
 CREATE OR REPLACE FUNCTION listar_tesistas_por_asesor(p_asesor_id INT)
     RETURNS TABLE(
                      tema_id            INT,
@@ -461,6 +445,3 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-
-SELECT *
-FROM listar_tesistas_por_asesor(1);
