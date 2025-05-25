@@ -16,8 +16,8 @@ public class ControlExposicionUsuarioTemaMapper {
         dto.setExposicionXTemaId(entity.getExposicionXTema() != null ? entity.getExposicionXTema().getId() : null);
         dto.setUsuarioId(entity.getUsuario() != null ? entity.getUsuario().getId() : null);
         dto.setObservacionesFinalesExposicion(entity.getObservacionesFinalesExposicion());
-        dto.setAsistio(entity.isAsistio());
-        dto.setActivo(entity.isActivo());
+        dto.setAsistio(entity.getAsistio());
+        dto.setActivo(entity.getActivo());
         dto.setFechaCreacion(entity.getFechaCreacion());
         dto.setFechaModificacion(entity.getFechaModificacion());
         dto.setEstadoExposicion(entity.getEstadoExposicion());

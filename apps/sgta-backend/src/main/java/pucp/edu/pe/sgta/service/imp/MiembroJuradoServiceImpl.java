@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pucp.edu.pe.sgta.dto.*;
+import pucp.edu.pe.sgta.dto.exposiciones.EstadoControlExposicionRequest;
 import pucp.edu.pe.sgta.dto.exposiciones.EstadoExposicionJuradoRequest;
 import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
 import pucp.edu.pe.sgta.dto.exposiciones.MiembroExposicionDto;
@@ -35,11 +36,12 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
     private final EtapaFormativaRepository etapaFormativaRepository;
     private final ExposicionXTemaRepository exposicionXTemaRepository;
     private final BloqueHorarioExposicionRepository bloqueHorarioExposicionRepository;
+    private final ControlExposicionUsuarioTemaRepository controlExposicionUsuarioTemaRepository;
 
     public MiembroJuradoServiceImpl(UsuarioRepository usuarioRepository, UsuarioXTemaRepository usuarioXTemaRepository,
                                     EstadoTemaRepository estadoTemaRepository, RolRepository rolRepository, TemaRepository temaRepository,
                                     SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository,
-                                    EtapaFormativaRepository etapaFormativaRepository, ExposicionXTemaRepository exposicionXTemaRepository, BloqueHorarioExposicionRepository bloqueHorarioExposicionRepository) {
+                                    EtapaFormativaRepository etapaFormativaRepository, ExposicionXTemaRepository exposicionXTemaRepository, BloqueHorarioExposicionRepository bloqueHorarioExposicionRepository, ControlExposicionUsuarioTemaRepository controlExposicionUsuarioTemaRepository) {
         this.usuarioRepository = usuarioRepository;
         this.usuarioXTemaRepository = usuarioXTemaRepository;
         this.estadoTemaRepository = estadoTemaRepository;
@@ -49,6 +51,7 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
         this.etapaFormativaRepository = etapaFormativaRepository;
         this.exposicionXTemaRepository = exposicionXTemaRepository;
         this.bloqueHorarioExposicionRepository = bloqueHorarioExposicionRepository;
+        this.controlExposicionUsuarioTemaRepository = controlExposicionUsuarioTemaRepository;
     }
 
     @Override
@@ -639,5 +642,58 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
         response.put("exito", true);
         return ResponseEntity.ok(response);
     }
+
+    @Override
+    public ResponseEntity<?> actualizarEstadoControlExposicion(EstadoControlExposicionRequest request) {
+        Map<String, Object> response = new HashMap<>();
+
+        // Buscar la relación Exposición x Tema
+        Optional<ExposicionXTema> optionalExposicionXTema = exposicionXTemaRepository.findById(request.getExposicionTemaId());
+        if (optionalExposicionXTema.isEmpty()) {
+            response.put("mensaje", "No se encontró la relación exposición_x_tema con el ID: " + request.getExposicionTemaId());
+            response.put("exito", false);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+
+        // Obtener el tema ID desde la relación
+        ExposicionXTema exposicionXTema = optionalExposicionXTema.get();
+        Integer temaId = exposicionXTema.getTema().getId();
+        Integer usuarioId = request.getJuradoId();
+
+        // Buscar el usuario x tema
+        Optional<UsuarioXTema> usuarioXTemaOptional = usuarioXTemaRepository.findByUsuarioIdAndActivoTrue(usuarioId)
+                .stream()
+                .filter(u -> u.getTema().getId().equals(temaId))
+                .findFirst();
+
+        if (usuarioXTemaOptional.isEmpty()) {
+            response.put("mensaje", "No se encontró un usuario_x_tema activo con el usuario ID: " + usuarioId + " y tema ID: " + temaId);
+            response.put("exito", false);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+
+        Integer usuarioXTemaId = usuarioXTemaOptional.get().getId();
+
+        // Buscar control_exposicion_usuario_tema
+        Optional<ControlExposicionUsuarioTema> controlOptional =
+                controlExposicionUsuarioTemaRepository.findByExposicionXTema_IdAndUsuario_Id(request.getExposicionTemaId(), usuarioXTemaId);
+
+        if (controlOptional.isEmpty()) {
+            response.put("mensaje", "No se encontró control_exposicion_usuario_tema con exposición ID: " + request.getExposicionTemaId()
+                    + " y usuario_x_tema ID: " + usuarioXTemaId);
+            response.put("exito", false);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+
+        // Actualizar estado
+        ControlExposicionUsuarioTema control = controlOptional.get();
+        control.setEstadoExposicion(request.getEstadoExposicionUsuario());
+        controlExposicionUsuarioTemaRepository.save(control);
+
+        response.put("mensaje", "Se actualizó correctamente al estado: " + request.getEstadoExposicionUsuario());
+        response.put("exito", true);
+        return ResponseEntity.ok(response);
+    }
+
 
 }
