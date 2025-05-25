@@ -486,5 +486,245 @@ $$ LANGUAGE plpgsql;
 
 ---------------------------------------------------------------------------------------------------------------------
 
+CREATE OR REPLACE FUNCTION obtener_detalle_tesista(p_tesista_id INT)
+RETURNS TABLE (
+    -- Datos del tesista
+    tesista_id INT,
+    nombres VARCHAR,
+    primer_apellido VARCHAR,
+    segundo_apellido VARCHAR,
+    correo_electronico VARCHAR,
+    nivel_estudios VARCHAR,
+    codigo_pucp VARCHAR,
+    -- Datos del tema/proyecto
+    tema_id INT,
+    titulo_tema VARCHAR,
+    resumen_tema TEXT,
+    metodologia TEXT,
+    objetivos TEXT,
+    -- Datos del área de conocimiento
+    area_conocimiento VARCHAR,
+    sub_area_conocimiento VARCHAR,
+    -- Datos del asesor
+    asesor_nombre TEXT,  -- TEXT para string_agg
+    asesor_correo TEXT,  -- TEXT para string_agg
+    -- Datos del coasesor (nuevas columnas)
+    coasesor_nombre TEXT,  -- TEXT para string_agg
+    coasesor_correo TEXT,  -- TEXT para string_agg
+    -- Datos del ciclo académico
+    ciclo_id INT,
+    ciclo_nombre TEXT,  -- TEXT para CONCAT
+    fecha_inicio_ciclo DATE,  -- Cambiado a DATE para coincidir con la tabla ciclo
+    fecha_fin_ciclo DATE,     -- Cambiado a DATE para coincidir con la tabla ciclo
+    -- Datos de la etapa formativa
+    etapa_formativa_id INT,
+    etapa_formativa_nombre TEXT,  -- TEXT para coincidir con el campo nombre en etapa_formativa
+    -- Fase actual
+    fase_actual VARCHAR
+) AS $$
+DECLARE
+    v_current_date TIMESTAMP WITH TIME ZONE := NOW();
+    v_tema_id INT;
+    v_current_entregable_id INT;
+    v_current_entregable_nombre VARCHAR;
+    v_fecha_fin_entregable TIMESTAMP WITH TIME ZONE;
+    v_ciclo_actual_id INT;
+    v_fase_actual VARCHAR;
+    v_next_entregable_nombre VARCHAR;
+BEGIN
+    -- Obtenemos el tema del tesista
+    SELECT ut.tema_id INTO v_tema_id
+    FROM usuario_tema ut
+    JOIN rol r ON r.rol_id = ut.rol_id AND r.nombre = 'Tesista'
+    WHERE ut.usuario_id = p_tesista_id AND ut.activo = TRUE
+    LIMIT 1;
 
+    IF v_tema_id IS NULL THEN
+        RAISE EXCEPTION 'El usuario con ID % no es tesista de ningún tema activo', p_tesista_id;
+    END IF;
+
+    -- Obtenemos el ciclo actual del tesista
+    SELECT efc.ciclo_id INTO v_ciclo_actual_id
+    FROM etapa_formativa_x_ciclo efc
+    JOIN exposicion e ON e.etapa_formativa_x_ciclo_id = efc.etapa_formativa_x_ciclo_id
+    JOIN exposicion_x_tema ext ON ext.exposicion_id = e.exposicion_id
+    WHERE ext.tema_id = v_tema_id
+      AND efc.activo = TRUE
+      AND e.activo = TRUE
+      AND ext.activo = TRUE
+    ORDER BY efc.fecha_creacion DESC
+    LIMIT 1;
+
+    -- Determinamos la fase actual basada en el cronograma de entregables
+    SELECT
+        e.entregable_id,
+        e.nombre,
+        e.fecha_fin
+    INTO
+        v_current_entregable_id,
+        v_current_entregable_nombre,
+        v_fecha_fin_entregable
+    FROM entregable e
+    JOIN entregable_x_tema et ON et.entregable_id = e.entregable_id
+    JOIN etapa_formativa_x_ciclo efc ON efc.etapa_formativa_x_ciclo_id = e.etapa_formativa_x_ciclo_id
+    WHERE et.tema_id = v_tema_id
+      AND e.fecha_inicio <= v_current_date
+      AND e.fecha_fin >= v_current_date
+      AND e.activo = TRUE
+      AND et.activo = TRUE
+      AND efc.activo = TRUE
+    ORDER BY e.fecha_fin ASC
+    LIMIT 1;
+
+    -- Determinamos la fase actual
+    IF v_current_entregable_id IS NOT NULL THEN
+        v_fase_actual := 'ENTREGABLE: ' || v_current_entregable_nombre;
+    ELSE
+        -- Verificar si está fuera del cronograma (después del último entregable)
+        SELECT
+            e.entregable_id,
+            e.nombre,
+            e.fecha_fin
+        INTO
+            v_current_entregable_id,
+            v_current_entregable_nombre,
+            v_fecha_fin_entregable
+        FROM entregable e
+        JOIN entregable_x_tema et ON et.entregable_id = e.entregable_id
+        JOIN etapa_formativa_x_ciclo efc ON efc.etapa_formativa_x_ciclo_id = e.etapa_formativa_x_ciclo_id
+        WHERE et.tema_id = v_tema_id
+          AND e.activo = TRUE
+          AND et.activo = TRUE
+          AND efc.activo = TRUE
+        ORDER BY e.fecha_fin DESC
+        LIMIT 1;
+
+        IF v_current_entregable_id IS NOT NULL AND v_fecha_fin_entregable < v_current_date THEN
+            v_fase_actual := 'FINALIZADO - FUERA DE CRONOGRAMA';
+        ELSE
+            -- Buscamos el próximo entregable programado
+            SELECT e.nombre INTO v_next_entregable_nombre
+            FROM entregable e
+            JOIN entregable_x_tema et ON et.entregable_id = e.entregable_id
+            JOIN etapa_formativa_x_ciclo efc ON efc.etapa_formativa_x_ciclo_id = e.etapa_formativa_x_ciclo_id
+            WHERE et.tema_id = v_tema_id
+              AND e.fecha_inicio > v_current_date
+              AND e.activo = TRUE
+              AND et.activo = TRUE
+              AND efc.activo = TRUE
+            ORDER BY e.fecha_inicio ASC
+            LIMIT 1;
+
+            IF v_next_entregable_nombre IS NOT NULL THEN
+                v_fase_actual := v_next_entregable_nombre;
+            ELSE
+                v_fase_actual := 'SIN ENTREGABLES PROGRAMADOS';
+            END IF;
+        END IF;
+    END IF;
+
+    -- Consulta principal que retorna todos los datos
+    RETURN QUERY
+    SELECT
+        -- Datos del tesista
+        u.usuario_id AS tesista_id,
+        u.nombres,
+        u.primer_apellido,
+        u.segundo_apellido,
+        u.correo_electronico,
+        u.nivel_estudios,
+        u.codigo_pucp,
+        -- Datos del tema/proyecto
+        t.tema_id,
+        t.titulo AS titulo_tema,
+        t.resumen AS resumen_tema,
+        t.metodologia,
+        t.objetivos,
+        -- Datos del área de conocimiento
+        ac.nombre AS area_conocimiento,
+        sac.nombre AS sub_area_conocimiento,
+        -- Datos del asesor (solo rol "Asesor")
+        (SELECT string_agg(DISTINCT CONCAT(ua_asesor.nombres, ' ', ua_asesor.primer_apellido, ' ', COALESCE(ua_asesor.segundo_apellido, '')), ', ')
+         FROM usuario_tema ut_asesor
+         JOIN rol r_asesor ON r_asesor.rol_id = ut_asesor.rol_id AND r_asesor.nombre = 'Asesor'
+         JOIN usuario ua_asesor ON ua_asesor.usuario_id = ut_asesor.usuario_id AND ua_asesor.activo = TRUE
+         WHERE ut_asesor.tema_id = t.tema_id
+           AND ut_asesor.activo = TRUE
+           AND ut_asesor.usuario_id != p_tesista_id) AS asesor_nombre,
+
+        (SELECT string_agg(DISTINCT ua_asesor.correo_electronico, ', ')
+         FROM usuario_tema ut_asesor
+         JOIN rol r_asesor ON r_asesor.rol_id = ut_asesor.rol_id AND r_asesor.nombre = 'Asesor'
+         JOIN usuario ua_asesor ON ua_asesor.usuario_id = ut_asesor.usuario_id AND ua_asesor.activo = TRUE
+         WHERE ut_asesor.tema_id = t.tema_id
+           AND ut_asesor.activo = TRUE
+           AND ut_asesor.usuario_id != p_tesista_id) AS asesor_correo,
+
+        -- Datos del coasesor (solo rol "Coasesor")
+        (SELECT string_agg(DISTINCT CONCAT(ua_coasesor.nombres, ' ', ua_coasesor.primer_apellido, ' ', COALESCE(ua_coasesor.segundo_apellido, '')), ', ')
+         FROM usuario_tema ut_coasesor
+         JOIN rol r_coasesor ON r_coasesor.rol_id = ut_coasesor.rol_id AND r_coasesor.nombre = 'Coasesor'
+         JOIN usuario ua_coasesor ON ua_coasesor.usuario_id = ut_coasesor.usuario_id AND ua_coasesor.activo = TRUE
+         WHERE ut_coasesor.tema_id = t.tema_id
+           AND ut_coasesor.activo = TRUE
+           AND ut_coasesor.usuario_id != p_tesista_id) AS coasesor_nombre,
+
+        (SELECT string_agg(DISTINCT ua_coasesor.correo_electronico, ', ')
+         FROM usuario_tema ut_coasesor
+         JOIN rol r_coasesor ON r_coasesor.rol_id = ut_coasesor.rol_id AND r_coasesor.nombre = 'Coasesor'
+         JOIN usuario ua_coasesor ON ua_coasesor.usuario_id = ut_coasesor.usuario_id AND ua_coasesor.activo = TRUE
+         WHERE ut_coasesor.tema_id = t.tema_id
+           AND ut_coasesor.activo = TRUE
+           AND ut_coasesor.usuario_id != p_tesista_id) AS coasesor_correo,
+
+        -- Datos del ciclo académico
+        c.ciclo_id,
+        CONCAT(c.anio, '-', c.semestre) AS ciclo_nombre,
+        c.fecha_inicio AS fecha_inicio_ciclo,
+        c.fecha_fin AS fecha_fin_ciclo,
+        -- Datos de la etapa formativa
+        ef.etapa_formativa_id,
+        ef.nombre AS etapa_formativa_nombre,
+        -- Fase actual
+        v_fase_actual AS fase_actual
+    FROM usuario u
+    JOIN usuario_tema ut ON ut.usuario_id = u.usuario_id AND ut.activo = TRUE
+    JOIN rol r_tesista ON r_tesista.rol_id = ut.rol_id AND r_tesista.nombre = 'Tesista'
+    JOIN tema t ON t.tema_id = ut.tema_id AND t.activo = TRUE
+    -- Unión con áreas de conocimiento
+    LEFT JOIN sub_area_conocimiento_tema sact ON sact.tema_id = t.tema_id AND sact.activo = TRUE
+    LEFT JOIN sub_area_conocimiento sac ON sac.sub_area_conocimiento_id = sact.sub_area_conocimiento_id AND sac.activo = TRUE
+    LEFT JOIN area_conocimiento ac ON ac.area_conocimiento_id = sac.area_conocimiento_id AND ac.activo = TRUE
+    -- Unión con ciclo y etapa formativa
+    LEFT JOIN exposicion_x_tema ext ON ext.tema_id = t.tema_id AND ext.activo = TRUE
+    LEFT JOIN exposicion e ON e.exposicion_id = ext.exposicion_id AND e.activo = TRUE
+    LEFT JOIN etapa_formativa_x_ciclo efc ON efc.etapa_formativa_x_ciclo_id = e.etapa_formativa_x_ciclo_id AND efc.activo = TRUE
+    LEFT JOIN ciclo c ON c.ciclo_id = efc.ciclo_id AND c.activo = TRUE
+    LEFT JOIN etapa_formativa ef ON ef.etapa_formativa_id = efc.etapa_formativa_id AND ef.activo = TRUE
+    WHERE u.usuario_id = p_tesista_id
+      AND t.tema_id = v_tema_id
+    GROUP BY
+        u.usuario_id,
+        u.nombres,
+        u.primer_apellido,
+        u.segundo_apellido,
+        u.correo_electronico,
+        u.nivel_estudios,
+        u.codigo_pucp,
+        t.tema_id,
+        t.titulo,
+        t.resumen,
+        t.metodologia,
+        t.objetivos,
+        ac.nombre,
+        sac.nombre,
+        c.ciclo_id,
+        c.anio,
+        c.semestre,
+        c.fecha_inicio,
+        c.fecha_fin,
+        ef.etapa_formativa_id,
+        ef.nombre;
+END;
+$$ LANGUAGE plpgsql;
 
