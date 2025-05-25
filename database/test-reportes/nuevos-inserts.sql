@@ -35,11 +35,14 @@ VALUES(1, 2, 'sin_programar', TRUE, NOW());
 -- Supongamos exposicion_x_tema_id = 1
 
 -- 6. Finalmente, control_exposicion_usuario
+-- Verificar qué ID tiene la relación para el tema 2 en exposicion_x_tema
 INSERT INTO control_exposicion_usuario(exposicion_x_tema_id, usuario_x_tema_id, estado_exposicion_usuario, asistio, fecha_creacion)
 VALUES
     (
-        1,                                        -- exposicion_x_tema_id
-        (SELECT usuario_tema_id                    -- usuario_x_tema_id
+        (SELECT exposicion_x_tema_id
+         FROM exposicion_x_tema
+         WHERE tema_id = 2 AND exposicion_id = 1),  -- Buscar el ID correcto
+        (SELECT usuario_tema_id
          FROM usuario_tema
          WHERE usuario_id = 2 AND tema_id = 2),
         'esperando_respuesta', TRUE, NOW()
