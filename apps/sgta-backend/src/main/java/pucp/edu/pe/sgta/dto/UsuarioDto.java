@@ -32,7 +32,7 @@ public class UsuarioDto {
 
 	private String comentario;
 
-    private String biografia;
+	private String biografia;
 
 	private String enlaceRepositorio;
 
@@ -50,11 +50,13 @@ public class UsuarioDto {
 
 	private Boolean rechazado; // we reject the application or proposal
 
-	private Boolean creador; //he created the tema
+	private Boolean creador; // he created the tema
 
 	private OffsetDateTime fechaCreacion;
 
 	private OffsetDateTime fechaModificacion;
 
-	private Boolean asignado; // we need mapping on this for proposals and general tema management
+	private Boolean asignado; // we need mapping on this for proposals and general tema
+								// management
+
 }

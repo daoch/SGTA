@@ -8,5 +8,7 @@ import java.util.List;
 
 @Repository
 public interface CriterioExposicionPresetRepository extends JpaRepository<CriterioExposicionPreset, Integer> {
-    List<CriterioExposicionPreset> findByActivoTrue();
+
+	List<CriterioExposicionPreset> findByActivoTrue();
+
 }

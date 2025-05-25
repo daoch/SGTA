@@ -6,13 +6,14 @@ import java.util.List;
 
 public interface CarreraService {
 
-    CarreraDto findById(Integer id);
-    
-    List<CarreraDto> getAll();
-    
-    List<CarreraDto> getAllActive();
-    
-    List<CarreraDto> getCarrerasByUsuario(Integer usuarioId);
+	CarreraDto findById(Integer id);
 
-    List<CarreraDto> listarCarrerasPorUsuario(Integer usuarioId);
-} 
+	List<CarreraDto> getAll();
+
+	List<CarreraDto> getAllActive();
+
+	List<CarreraDto> getCarrerasByUsuario(Integer usuarioId);
+
+	List<CarreraDto> listarCarrerasPorUsuario(Integer usuarioId);
+
+}

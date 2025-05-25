@@ -1,5 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,7 +25,11 @@ export function CursoForm({ curso = null }: { curso?: Curso | null }) {
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="nombre">Nombre del Curso</Label>
-          <Input id="nombre" placeholder="Ej: Proyecto de Fin de Carrera 1" defaultValue={curso?.nombre || ""} />
+          <Input
+            id="nombre"
+            placeholder="Ej: Proyecto de Fin de Carrera 1"
+            defaultValue={curso?.nombre || ""}
+          />
         </div>
 
         <div className="space-y-2">
@@ -34,7 +44,12 @@ export function CursoForm({ curso = null }: { curso?: Curso | null }) {
 
         <div className="space-y-2">
           <Label htmlFor="objetivos">Objetivos</Label>
-          <Textarea id="objetivos" placeholder="Objetivos del curso" rows={4} defaultValue={curso?.objetivos || ""} />
+          <Textarea
+            id="objetivos"
+            placeholder="Objetivos del curso"
+            rows={4}
+            defaultValue={curso?.objetivos || ""}
+          />
         </div>
       </CardContent>
       <CardFooter className="flex justify-end gap-3">

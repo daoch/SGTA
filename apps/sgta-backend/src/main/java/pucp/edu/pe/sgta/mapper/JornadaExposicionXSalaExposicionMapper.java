@@ -9,54 +9,56 @@ import pucp.edu.pe.sgta.model.JornadaExposicionXSalaExposicion;
 import pucp.edu.pe.sgta.model.SalaExposicion;
 
 public class JornadaExposicionXSalaExposicionMapper {
-    public static JornadaExposicionXSalaExposicionDto toDto(
-            JornadaExposicionXSalaExposicion jornadaExposicionXSalaExposicion) {
-        JornadaExposicionXSalaExposicionDto dto = new JornadaExposicionXSalaExposicionDto();
-        dto.setId(jornadaExposicionXSalaExposicion.getId());
-        dto.setJornadaExposicionId(jornadaExposicionXSalaExposicion.getJornadaExposicion().getId());
-        dto.setSalaExposicionId(jornadaExposicionXSalaExposicion.getSalaExposicion().getId());
-        dto.setActivo(jornadaExposicionXSalaExposicion.getActivo());
-        dto.setFechaCreacion(jornadaExposicionXSalaExposicion.getFechaCreacion());
-        dto.setFechaModificacion(jornadaExposicionXSalaExposicion.getFechaModificacion());
-        return dto;
-    }
 
-    public static JornadaExposicionXSalaExposicion toEntity(JornadaExposicionXSalaExposicionDto dto) {
-        JornadaExposicionXSalaExposicion jornadaExposicionXSalaExposicion = new JornadaExposicionXSalaExposicion();
+	public static JornadaExposicionXSalaExposicionDto toDto(
+			JornadaExposicionXSalaExposicion jornadaExposicionXSalaExposicion) {
+		JornadaExposicionXSalaExposicionDto dto = new JornadaExposicionXSalaExposicionDto();
+		dto.setId(jornadaExposicionXSalaExposicion.getId());
+		dto.setJornadaExposicionId(jornadaExposicionXSalaExposicion.getJornadaExposicion().getId());
+		dto.setSalaExposicionId(jornadaExposicionXSalaExposicion.getSalaExposicion().getId());
+		dto.setActivo(jornadaExposicionXSalaExposicion.getActivo());
+		dto.setFechaCreacion(jornadaExposicionXSalaExposicion.getFechaCreacion());
+		dto.setFechaModificacion(jornadaExposicionXSalaExposicion.getFechaModificacion());
+		return dto;
+	}
 
-        jornadaExposicionXSalaExposicion.setId(dto.getId());
+	public static JornadaExposicionXSalaExposicion toEntity(JornadaExposicionXSalaExposicionDto dto) {
+		JornadaExposicionXSalaExposicion jornadaExposicionXSalaExposicion = new JornadaExposicionXSalaExposicion();
 
-        JornadaExposicion jornadaExposicion = new JornadaExposicion();
-        jornadaExposicion.setId(dto.getJornadaExposicionId());
-        jornadaExposicionXSalaExposicion.setJornadaExposicion(jornadaExposicion);
+		jornadaExposicionXSalaExposicion.setId(dto.getId());
 
-        SalaExposicion salaExposicion = new SalaExposicion();
-        salaExposicion.setId(dto.getSalaExposicionId());
-        jornadaExposicionXSalaExposicion.setSalaExposicion(salaExposicion);
+		JornadaExposicion jornadaExposicion = new JornadaExposicion();
+		jornadaExposicion.setId(dto.getJornadaExposicionId());
+		jornadaExposicionXSalaExposicion.setJornadaExposicion(jornadaExposicion);
 
-        jornadaExposicionXSalaExposicion.setActivo(dto.getActivo());
-        jornadaExposicionXSalaExposicion.setFechaCreacion(dto.getFechaCreacion());
-        jornadaExposicionXSalaExposicion.setFechaModificacion(dto.getFechaModificacion());
+		SalaExposicion salaExposicion = new SalaExposicion();
+		salaExposicion.setId(dto.getSalaExposicionId());
+		jornadaExposicionXSalaExposicion.setSalaExposicion(salaExposicion);
 
-        return jornadaExposicionXSalaExposicion;
-    }
+		jornadaExposicionXSalaExposicion.setActivo(dto.getActivo());
+		jornadaExposicionXSalaExposicion.setFechaCreacion(dto.getFechaCreacion());
+		jornadaExposicionXSalaExposicion.setFechaModificacion(dto.getFechaModificacion());
 
-    public static JornadaExposicionXSalaExposicion toEntity(JornadaExposicionXSalaExposicionCreateDTO dto) {
-        JornadaExposicionXSalaExposicion jornadaExposicionXSalaExposicion = new JornadaExposicionXSalaExposicion();
-        jornadaExposicionXSalaExposicion.setId(dto.getId());
+		return jornadaExposicionXSalaExposicion;
+	}
 
-        JornadaExposicion jornadaExposicion = new JornadaExposicion();
-        jornadaExposicion.setId(dto.getJornadaExposicionId());
-        jornadaExposicionXSalaExposicion.setJornadaExposicion(jornadaExposicion);
+	public static JornadaExposicionXSalaExposicion toEntity(JornadaExposicionXSalaExposicionCreateDTO dto) {
+		JornadaExposicionXSalaExposicion jornadaExposicionXSalaExposicion = new JornadaExposicionXSalaExposicion();
+		jornadaExposicionXSalaExposicion.setId(dto.getId());
 
-        SalaExposicion salaExposicion = new SalaExposicion();
-        salaExposicion.setId(dto.getSalaExposicionId());
-        jornadaExposicionXSalaExposicion.setSalaExposicion(salaExposicion);
+		JornadaExposicion jornadaExposicion = new JornadaExposicion();
+		jornadaExposicion.setId(dto.getJornadaExposicionId());
+		jornadaExposicionXSalaExposicion.setJornadaExposicion(jornadaExposicion);
 
-        jornadaExposicionXSalaExposicion.setActivo(true);
-        jornadaExposicionXSalaExposicion.setFechaCreacion(OffsetDateTime.now());
-        jornadaExposicionXSalaExposicion.setFechaModificacion(OffsetDateTime.now());
+		SalaExposicion salaExposicion = new SalaExposicion();
+		salaExposicion.setId(dto.getSalaExposicionId());
+		jornadaExposicionXSalaExposicion.setSalaExposicion(salaExposicion);
 
-        return jornadaExposicionXSalaExposicion;
-    }
+		jornadaExposicionXSalaExposicion.setActivo(true);
+		jornadaExposicionXSalaExposicion.setFechaCreacion(OffsetDateTime.now());
+		jornadaExposicionXSalaExposicion.setFechaModificacion(OffsetDateTime.now());
+
+		return jornadaExposicionXSalaExposicion;
+	}
+
 }

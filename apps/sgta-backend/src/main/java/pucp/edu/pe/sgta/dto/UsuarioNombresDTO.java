@@ -8,10 +8,13 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class UsuarioNombresDTO {
-    private Integer id;
-    private String nombres;
 
-    private String primerApellido;
+	private Integer id;
 
-    private String segundoApellido;
+	private String nombres;
+
+	private String primerApellido;
+
+	private String segundoApellido;
+
 }

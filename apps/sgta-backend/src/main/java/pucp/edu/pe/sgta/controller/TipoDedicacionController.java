@@ -13,11 +13,13 @@ import pucp.edu.pe.sgta.service.inter.TipoDedicacionService;
 @RestController
 @RequestMapping("/tipodedicacion")
 public class TipoDedicacionController {
-    @Autowired
-    private TipoDedicacionService tipoDedicacionService;
 
-    @GetMapping()
-    public List<TipoDedicacion> findAllTipoDedicacion() {
-        return tipoDedicacionService.findAllTipoDedicacion();
-    }
+	@Autowired
+	private TipoDedicacionService tipoDedicacionService;
+
+	@GetMapping()
+	public List<TipoDedicacion> findAllTipoDedicacion() {
+		return tipoDedicacionService.findAllTipoDedicacion();
+	}
+
 }

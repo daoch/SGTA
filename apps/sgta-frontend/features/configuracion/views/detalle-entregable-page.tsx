@@ -13,7 +13,14 @@ import {
 import axiosInstance from "@/lib/axios/axios-instance";
 import { CriterioEntregable } from "../dtos/criterio-entregable";
 import { NuevoCriterioEntregableModal } from "../components/entregable/nuevo-criterio-entregable-modal";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface DetalleEntregablePageProps {
   etapaId: string;
@@ -26,13 +33,15 @@ const DetalleEntregablePage: React.FC<DetalleEntregablePageProps> = ({
 }) => {
   const router = useRouter();
   const [isCriterioModalOpen, setIsCriterioModalOpen] = useState(false);
-  const [isNuevoCriterioModalOpen, setIsNuevoCriterioModalOpen] = useState(false);
+  const [isNuevoCriterioModalOpen, setIsNuevoCriterioModalOpen] =
+    useState(false);
   const [isEntregableModalOpen, setIsEntregableModalOpen] = useState(false);
   const [criterioSeleccionado, setCriterioSeleccionado] =
     useState<CriterioEntregableFormData | null>(null);
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [criterioAEliminar, setCriterioAEliminar] = useState<CriterioEntregable | null>(null);
+  const [criterioAEliminar, setCriterioAEliminar] =
+    useState<CriterioEntregable | null>(null);
 
   const [entregable, setEntregable] = useState<Entregable>({
     id: "",
@@ -64,7 +73,9 @@ const DetalleEntregablePage: React.FC<DetalleEntregablePageProps> = ({
   useEffect(() => {
     const fetchCriterios = async () => {
       try {
-        const response = await axiosInstance.get(`/criterio-entregable/entregable/${entregableId}`);
+        const response = await axiosInstance.get(
+          `/criterio-entregable/entregable/${entregableId}`,
+        );
         setCriterios(response.data);
       } catch (error) {
         console.error("Error al cargar los criterios:", error);
@@ -76,7 +87,10 @@ const DetalleEntregablePage: React.FC<DetalleEntregablePageProps> = ({
 
   const createCriterio = async (nuevoCriterio: CriterioEntregable) => {
     try {
-      const response = await axiosInstance.post(`/criterio-entregable/entregable/${entregableId}`, nuevoCriterio);
+      const response = await axiosInstance.post(
+        `/criterio-entregable/entregable/${entregableId}`,
+        nuevoCriterio,
+      );
       console.log("Criterio creado exitosamente:", response.data);
       return response.data; // Devuelve el criterio creado si es necesario
     } catch (error) {
@@ -92,10 +106,10 @@ const DetalleEntregablePage: React.FC<DetalleEntregablePageProps> = ({
         ...nuevoCriterio,
         id: idCriterio, // Asignar el ID devuelto por la API
       };
-  
-        // Actualizar el estado local con el criterio creado
+
+      // Actualizar el estado local con el criterio creado
       setCriterios((prev) => [...prev, nuevoCriterioConId]);
-   
+
       // Cerrar el modal
       setIsCriterioModalOpen(false);
     } catch (error) {
@@ -109,13 +123,15 @@ const DetalleEntregablePage: React.FC<DetalleEntregablePageProps> = ({
     setIsCriterioModalOpen(true);
   };
 
-  const handleCreateCriterios = async (nuevosCriterios: CriterioEntregable[]) => {
+  const handleCreateCriterios = async (
+    nuevosCriterios: CriterioEntregable[],
+  ) => {
     try {
       const criteriosCreados = await Promise.all(
         nuevosCriterios.map(async (criterio) => {
           const idCriterio = await createCriterio(criterio);
           return { ...criterio, id: idCriterio }; // Agregar el ID devuelto por la API
-        })
+        }),
       );
 
       // Actualizar el estado local con los criterios creados
@@ -155,14 +171,13 @@ const DetalleEntregablePage: React.FC<DetalleEntregablePageProps> = ({
             : c,
         ),
       );
-   
+
       // Cerrar el modal
       setIsCriterioModalOpen(false);
     } catch (error) {
       console.error("Error al actualizar el criterio:", error);
     }
   };
-
 
   const handleEditCriterio = (id: string) => {
     const criterio = criterios.find((c) => c.id === id);
@@ -185,7 +200,10 @@ const DetalleEntregablePage: React.FC<DetalleEntregablePageProps> = ({
     if (!criterioAEliminar) return;
 
     try {
-      await axiosInstance.put("/criterio-entregable/delete", criterioAEliminar.id);
+      await axiosInstance.put(
+        "/criterio-entregable/delete",
+        criterioAEliminar.id,
+      );
       setCriterios((prev) => prev.filter((c) => c.id !== criterioAEliminar.id));
       setIsDeleteModalOpen(false);
       setCriterioAEliminar(null);
@@ -341,7 +359,8 @@ const DetalleEntregablePage: React.FC<DetalleEntregablePageProps> = ({
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-2">
           <h2 className="text-lg font-semibold">Criterios de calificación</h2>
-          {criterios.reduce((acc, criterio) => acc + criterio.notaMaxima, 0) < 20 && (
+          {criterios.reduce((acc, criterio) => acc + criterio.notaMaxima, 0) <
+            20 && (
             <p className="text-sm text-orange-500">
               La suma de los criterios debe ser 20
             </p>
@@ -371,7 +390,9 @@ const DetalleEntregablePage: React.FC<DetalleEntregablePageProps> = ({
       </div>
 
       <p className="text-sm text-muted-foreground">
-        Suma total de criterios: {criterios.reduce((acc, criterio) => acc + criterio.notaMaxima, 0)} puntos
+        Suma total de criterios:{" "}
+        {criterios.reduce((acc, criterio) => acc + criterio.notaMaxima, 0)}{" "}
+        puntos
       </p>
 
       <div className="space-y-4">
@@ -392,7 +413,9 @@ const DetalleEntregablePage: React.FC<DetalleEntregablePageProps> = ({
       <CriterioEntregableModal
         isOpen={isCriterioModalOpen}
         onClose={() => setIsCriterioModalOpen(false)}
-        onSubmit={modalMode === "edit" ? handleUpdateCriterio : handleCreateCriterio}
+        onSubmit={
+          modalMode === "edit" ? handleUpdateCriterio : handleCreateCriterio
+        }
         criterio={criterioSeleccionado}
         mode={modalMode}
         criteriosExistentes={criterios}
@@ -422,7 +445,8 @@ const DetalleEntregablePage: React.FC<DetalleEntregablePageProps> = ({
             <DialogTitle>Eliminar Criterio</DialogTitle>
             <DialogDescription>
               ¿Estás seguro de que deseas eliminar el criterio{" "}
-              <strong>{criterioAEliminar?.nombre}</strong>? Esta acción no se puede deshacer.
+              <strong>{criterioAEliminar?.nombre}</strong>? Esta acción no se
+              puede deshacer.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

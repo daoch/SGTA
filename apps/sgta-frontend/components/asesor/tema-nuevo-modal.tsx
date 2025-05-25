@@ -470,4 +470,3 @@ const mapTemaCreateInscription = (tema: Tema, carrera: Carrera) => {
 };
 
 export default NuevoTemaDialog;
-

@@ -16,26 +16,28 @@ import java.time.OffsetDateTime;
 @AllArgsConstructor
 @Table(name = "criterio_entregable_preset")
 public class CriterioEntregablePreset {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "criterio_entregable_preset_id")
-    private Integer id;
 
-    @Column(length = 100, nullable = false)
-    private String nombre;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "criterio_entregable_preset_id")
+	private Integer id;
 
-    @Column(name = "nota_maxima", precision = 6, scale = 2)
-    private BigDecimal notaMaxima;
+	@Column(length = 100, nullable = false)
+	private String nombre;
 
-    @Column(columnDefinition = "TEXT")
-    private String descripcion;
+	@Column(name = "nota_maxima", precision = 6, scale = 2)
+	private BigDecimal notaMaxima;
 
-    @Column(nullable = false)
-    private boolean activo = true;
+	@Column(columnDefinition = "TEXT")
+	private String descripcion;
 
-    @Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private OffsetDateTime fechaCreacion;
+	@Column(nullable = false)
+	private boolean activo = true;
 
-    @Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private OffsetDateTime fechaModificacion;
+	@Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+	private OffsetDateTime fechaCreacion;
+
+	@Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+	private OffsetDateTime fechaModificacion;
+
 }

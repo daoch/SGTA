@@ -16,38 +16,41 @@ import java.util.List;
 @RequestMapping("/etapa-formativa-x-ciclo")
 public class EtapaFormativaXCicloController {
 
-    @Autowired
-    private EtapaFormativaXCicloService etapaFormativaXCicloService;
+	@Autowired
+	private EtapaFormativaXCicloService etapaFormativaXCicloService;
 
-    @GetMapping("/{id}")
-    public ResponseEntity<EtapaFormativaXCicloDto> findById(@PathVariable Integer id) {
-        EtapaFormativaXCicloDto etapaFormativaXCiclo = etapaFormativaXCicloService.findById(id);
-        return ResponseEntity.ok(etapaFormativaXCiclo);
-    }
+	@GetMapping("/{id}")
+	public ResponseEntity<EtapaFormativaXCicloDto> findById(@PathVariable Integer id) {
+		EtapaFormativaXCicloDto etapaFormativaXCiclo = etapaFormativaXCicloService.findById(id);
+		return ResponseEntity.ok(etapaFormativaXCiclo);
+	}
 
-    
-    @PostMapping("/create")
-    public ResponseEntity<EtapaFormativaXCicloDto> create(@RequestBody EtapaFormativaXCicloDto etapaFormativaXCicloDto) {
-        EtapaFormativaXCicloDto createdEtapaFormativaXCiclo = etapaFormativaXCicloService.create(etapaFormativaXCicloDto);
-        return ResponseEntity.ok(createdEtapaFormativaXCiclo);
-    }
+	@PostMapping("/create")
+	public ResponseEntity<EtapaFormativaXCicloDto> create(
+			@RequestBody EtapaFormativaXCicloDto etapaFormativaXCicloDto) {
+		EtapaFormativaXCicloDto createdEtapaFormativaXCiclo = etapaFormativaXCicloService
+			.create(etapaFormativaXCicloDto);
+		return ResponseEntity.ok(createdEtapaFormativaXCiclo);
+	}
 
-    @GetMapping("/carrera/{id}")
-    public ResponseEntity<List<EtapaFormativaXCicloDto>> getAllByCarreraId(@PathVariable Integer id) {
-        List<EtapaFormativaXCicloDto> etapaFormativaXCiclos = etapaFormativaXCicloService.getAllByCarreraId(id);
-        return ResponseEntity.ok(etapaFormativaXCiclos);
-    }
+	@GetMapping("/carrera/{id}")
+	public ResponseEntity<List<EtapaFormativaXCicloDto>> getAllByCarreraId(@PathVariable Integer id) {
+		List<EtapaFormativaXCicloDto> etapaFormativaXCiclos = etapaFormativaXCicloService.getAllByCarreraId(id);
+		return ResponseEntity.ok(etapaFormativaXCiclos);
+	}
 
-    @GetMapping("/carrera/{carreraId}/ciclo/{cicloId}")
-    public ResponseEntity<List<EtapaFormativaXCicloDto>> getAllByCarreraIdAndCicloId(@PathVariable Integer carreraId, @PathVariable Integer cicloId) {
-        List<EtapaFormativaXCicloDto> etapaFormativaXCiclos = etapaFormativaXCicloService.getAllByCarreraIdAndCicloId(carreraId, cicloId);
-        return ResponseEntity.ok(etapaFormativaXCiclos);
-    }
+	@GetMapping("/carrera/{carreraId}/ciclo/{cicloId}")
+	public ResponseEntity<List<EtapaFormativaXCicloDto>> getAllByCarreraIdAndCicloId(@PathVariable Integer carreraId,
+			@PathVariable Integer cicloId) {
+		List<EtapaFormativaXCicloDto> etapaFormativaXCiclos = etapaFormativaXCicloService
+			.getAllByCarreraIdAndCicloId(carreraId, cicloId);
+		return ResponseEntity.ok(etapaFormativaXCiclos);
+	}
 
-    @PostMapping("/delete/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Integer id) {
-        etapaFormativaXCicloService.delete(id);
-        return ResponseEntity.noContent().build();
-    }
+	@PostMapping("/delete/{id}")
+	public ResponseEntity<Void> delete(@PathVariable Integer id) {
+		etapaFormativaXCicloService.delete(id);
+		return ResponseEntity.noContent().build();
+	}
 
 }

@@ -13,8 +13,11 @@ import java.time.OffsetDateTime;
 @AllArgsConstructor
 @Builder
 public class EstadoPlanificacionDto {
-    private Integer id;
-    private String nombre;
-    private Boolean activo;
+
+	private Integer id;
+
+	private String nombre;
+
+	private Boolean activo;
 
 }

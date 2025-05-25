@@ -12,11 +12,12 @@ import pucp.edu.pe.sgta.service.inter.TipoDedicacionService;
 @Service
 public class TipoDedicacionImpl implements TipoDedicacionService {
 
-    @Autowired
-    private TipoDedicacionRepository tipoDedicacionRepository;
+	@Autowired
+	private TipoDedicacionRepository tipoDedicacionRepository;
 
-    @Override
-    public List<TipoDedicacion> findAllTipoDedicacion() {
-        return tipoDedicacionRepository.findAll();
-    }
+	@Override
+	public List<TipoDedicacion> findAllTipoDedicacion() {
+		return tipoDedicacionRepository.findAll();
+	}
+
 }

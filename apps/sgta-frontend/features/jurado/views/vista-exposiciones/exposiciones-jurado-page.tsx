@@ -1,17 +1,16 @@
 "use client";
 
-import React, { useState,useEffect, use } from "react";
+import React, { useState, useEffect, use } from "react";
 import { useForm } from "react-hook-form";
 import { ExposicionCard } from "@/features/jurado/components/exposicion-card";
 import ModalDetallesExposicion from "../../components/modal-detalles-exposicion";
 import { Exposicion } from "../../types/exposicion.types";
 import { FilterExposicionJurado } from "../../components/filters-exposicion-jurado";
-import { 
-  getEtapasFormativasNombres, 
+import {
+  getEtapasFormativasNombres,
   getCiclos,
-  getExposicionesJurado
-
- } from "../../services/jurado-service";
+  getExposicionesJurado,
+} from "../../services/jurado-service";
 import {
   EtapaFormativa,
   Ciclo,
@@ -21,7 +20,6 @@ import {
   ExposicionJurado,
   MiembroJuradoExpo,
 } from "@/features/jurado/types/jurado.types";
-
 
 const periodos = [
   { value: "2025-1", label: "2025-1" },
@@ -44,7 +42,8 @@ const estados = [
   { value: "finalizada", label: "Finalizada" },
 ];
 
-{/*
+{
+  /*
 const exposiciones: Exposicion[] = [
   {
     id_exposicion: 1,
@@ -122,10 +121,12 @@ const exposiciones: Exposicion[] = [
     ],
   },
 ];
-*/}
+*/
+}
 const ExposicionesJuradoPage: React.FC = () => {
-
-  const [etapasFormativas, setEtapasFormativas] = useState<EtapaFormativa[]>([]);
+  const [etapasFormativas, setEtapasFormativas] = useState<EtapaFormativa[]>(
+    [],
+  );
   const [ciclos, setCiclos] = useState<Ciclo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -136,9 +137,9 @@ const ExposicionesJuradoPage: React.FC = () => {
         // Cargar etapas formativas y ciclos
         const [etapasData, ciclosData] = await Promise.all([
           getEtapasFormativasNombres(),
-          getCiclos()
+          getCiclos(),
         ]);
-        
+
         setEtapasFormativas(etapasData);
         setCiclos(ciclosData);
       } catch (error) {
@@ -147,35 +148,35 @@ const ExposicionesJuradoPage: React.FC = () => {
         setIsLoading(false);
       }
     };
-    
+
     fetchInitialData();
   }, []);
 
   const [exposiciones, setExposiciones] = useState<ExposicionJurado[]>([]);
 
   const fetchExposiciones = async () => {
-      setIsLoading(true);
-      try {
-        //se debe reemplazar el 6 por el id del jurado logueado
-        const exposicionesData = await getExposicionesJurado(6);
-        setExposiciones(exposicionesData);
-      } catch (error) {
-        console.error("Error al cargar exposiciones:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    setIsLoading(true);
+    try {
+      //se debe reemplazar el 6 por el id del jurado logueado
+      const exposicionesData = await getExposicionesJurado(6);
+      setExposiciones(exposicionesData);
+    } catch (error) {
+      console.error("Error al cargar exposiciones:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchExposiciones();
   }, []);
 
-
-  const { control, watch,getValues } = useForm({
+  const { control, watch, getValues } = useForm({
     defaultValues: {
       buscador: "",
       curso: "TODOS",
-      periodo: ciclos?.length > 0 ? `${ciclos[0].anio}-${ciclos[0].semestre}` : "",
+      periodo:
+        ciclos?.length > 0 ? `${ciclos[0].anio}-${ciclos[0].semestre}` : "",
       estado: estados[0].value,
     },
   });
@@ -191,16 +192,13 @@ const ExposicionesJuradoPage: React.FC = () => {
   const cursoSeleccionado = watch("curso");
   const periodoSeleccionado = watch("periodo");
 
-
-  
-
-    // Actualiza los filtros de select automáticamente
+  // Actualiza los filtros de select automáticamente
   useEffect(() => {
-    setActiveFilters(prev => ({
+    setActiveFilters((prev) => ({
       ...prev,
       estado: estadoSeleccionado,
       curso: cursoSeleccionado,
-      periodo: periodoSeleccionado
+      periodo: periodoSeleccionado,
     }));
   }, [estadoSeleccionado, cursoSeleccionado, periodoSeleccionado]);
 
@@ -216,10 +214,12 @@ const ExposicionesJuradoPage: React.FC = () => {
       estadoSeleccionado === "todos" ||
       exposicion.estado.toLowerCase() === estadoSeleccionado.toLowerCase();
     // Filtro por curso (añadir lógica según tus datos)
-    const matchesCurso = cursoSeleccionado === "TODOS" || 
-      etapasFormativas.some(etapa => 
-        etapa.nombre === cursoSeleccionado && 
-        exposicion.id_etapa_formativa === etapa.etapaFormativaId
+    const matchesCurso =
+      cursoSeleccionado === "TODOS" ||
+      etapasFormativas.some(
+        (etapa) =>
+          etapa.nombre === cursoSeleccionado &&
+          exposicion.id_etapa_formativa === etapa.etapaFormativaId,
       );
 
     // Filtro por periodo (añadir lógica según tus datos)
@@ -229,8 +229,8 @@ const ExposicionesJuradoPage: React.FC = () => {
     // Determinar semestre (1 o 2) según el mes
     const semestreExposicion = fechaExposicion.getMonth() < 6 ? 1 : 2;
     const periodoExposicion = `${anioExposicion}-${semestreExposicion}`;
-    
-    const matchesPeriodo = 
+
+    const matchesPeriodo =
       periodoSeleccionado === "" || // Si no hay selección
       periodoExposicion === periodoSeleccionado;
 
@@ -241,10 +241,9 @@ const ExposicionesJuradoPage: React.FC = () => {
       .join(" ");
 
     const matchesBuscador =
-      titulo.includes(searchTerm) ||
-      nombresEstudiantes.includes(searchTerm);
+      titulo.includes(searchTerm) || nombresEstudiantes.includes(searchTerm);
 
-    return matchesEstado  && matchesCurso && matchesPeriodo && matchesBuscador;
+    return matchesEstado && matchesCurso && matchesPeriodo && matchesBuscador;
   });
 
   const [selectedExposicion, setSelectedExposicion] =
@@ -269,7 +268,8 @@ const ExposicionesJuradoPage: React.FC = () => {
       {/* Opcionalmente, añade un mensaje cuando no hay resultados */}
       {filteredExposiciones.length === 0 && (
         <div className="text-center py-8 text-gray-500">
-          No se encontraron exposiciones que coincidan con los criterios de búsqueda.
+          No se encontraron exposiciones que coincidan con los criterios de
+          búsqueda.
         </div>
       )}
 
@@ -288,7 +288,6 @@ const ExposicionesJuradoPage: React.FC = () => {
         open={modalOpen}
         onOpenChange={setModalOpen}
         exposicion={selectedExposicion}
-        
       />
     </div>
   );

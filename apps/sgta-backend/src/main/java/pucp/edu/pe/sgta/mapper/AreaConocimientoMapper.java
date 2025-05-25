@@ -13,20 +13,20 @@ public class AreaConocimientoMapper {
 		dto.setNombre(areaConocimiento.getNombre());
 		dto.setActivo(areaConocimiento.getActivo());
 		dto.setFechaCreacion(areaConocimiento.getFechaCreacion());
-        dto.setDescripcion(areaConocimiento.getDescripcion());
-        dto.setIdCarrera(areaConocimiento.getCarrera().getId());
+		dto.setDescripcion(areaConocimiento.getDescripcion());
+		dto.setIdCarrera(areaConocimiento.getCarrera().getId());
 
 		return dto;
 	}
 
 	public static AreaConocimiento toEntity(AreaConocimientoDto dto) {
-        AreaConocimiento areaConocimiento = new AreaConocimiento();
-        areaConocimiento.setId(dto.getId());
-        areaConocimiento.setFechaModificacion(dto.getFechaModificacion());
-        areaConocimiento.setNombre(dto.getNombre());
-        areaConocimiento.setActivo(dto.getActivo());
-        areaConocimiento.setFechaCreacion(dto.getFechaCreacion());
-        areaConocimiento.setDescripcion(dto.getDescripcion());
+		AreaConocimiento areaConocimiento = new AreaConocimiento();
+		areaConocimiento.setId(dto.getId());
+		areaConocimiento.setFechaModificacion(dto.getFechaModificacion());
+		areaConocimiento.setNombre(dto.getNombre());
+		areaConocimiento.setActivo(dto.getActivo());
+		areaConocimiento.setFechaCreacion(dto.getFechaCreacion());
+		areaConocimiento.setDescripcion(dto.getDescripcion());
 		Carrera carrera = new Carrera();
 		carrera.setId(dto.getIdCarrera());
 		areaConocimiento.setCarrera(carrera);

@@ -23,4 +23,5 @@ public class SubAreaConocimientoDto {
 	private OffsetDateTime fechaModificacion;
 
 	AreaConocimientoDto areaConocimiento;
+
 }

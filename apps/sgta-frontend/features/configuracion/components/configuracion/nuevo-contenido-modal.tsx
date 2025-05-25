@@ -22,8 +22,8 @@ export function NuevoContenidoModal({
   tipo = "entregable",
   conPeso = false,
 }: {
-  tipo?: "entregable" | "exposicion"
-  conPeso?: boolean
+  tipo?: "entregable" | "exposicion";
+  conPeso?: boolean;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -45,7 +45,8 @@ export function NuevoContenidoModal({
         <DialogHeader>
           <DialogTitle>Nuevo Contenido Esperado</DialogTitle>
           <DialogDescription>
-            Agregue un nuevo contenido esperado para {tipo === "entregable" ? "el entregable" : "la exposición"}.
+            Agregue un nuevo contenido esperado para{" "}
+            {tipo === "entregable" ? "el entregable" : "la exposición"}.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
@@ -56,18 +57,36 @@ export function NuevoContenidoModal({
             </div>
             <div className="grid gap-2">
               <Label htmlFor="descripcion">Descripción Detallada</Label>
-              <Textarea id="descripcion" placeholder="Descripción detallada del contenido esperado" rows={4} required />
+              <Textarea
+                id="descripcion"
+                placeholder="Descripción detallada del contenido esperado"
+                rows={4}
+                required
+              />
             </div>
             {conPeso && (
               <div className="grid gap-2">
                 <Label htmlFor="peso">Peso en la Calificación (puntos)</Label>
-                <Input id="peso" type="number" min="0" max="20" placeholder="Ej: 5" required />
-                <p className="text-xs text-gray-500">El total de puntos entre todos los contenidos debe sumar 20.</p>
+                <Input
+                  id="peso"
+                  type="number"
+                  min="0"
+                  max="20"
+                  placeholder="Ej: 5"
+                  required
+                />
+                <p className="text-xs text-gray-500">
+                  El total de puntos entre todos los contenidos debe sumar 20.
+                </p>
               </div>
             )}
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+            >
               Cancelar
             </Button>
             <Button type="submit">Crear Contenido</Button>

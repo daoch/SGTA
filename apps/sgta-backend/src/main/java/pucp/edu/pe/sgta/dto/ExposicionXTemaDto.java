@@ -14,14 +14,25 @@ import java.time.OffsetDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ExposicionXTemaDto {
-    private Integer id;
-    private Integer exposicionId;
-    private Integer temaId;
-    private String linkExposicion;
-    private String linkGrabacion;
-    private EstadoExposicion estadoExposicion;
-    private BigDecimal notaFinal;
-    private Boolean activo;
-    private OffsetDateTime fechaCreacion;
-    private OffsetDateTime fechaModificacion;
+
+	private Integer id;
+
+	private Integer exposicionId;
+
+	private Integer temaId;
+
+	private String linkExposicion;
+
+	private String linkGrabacion;
+
+	private EstadoExposicion estadoExposicion;
+
+	private BigDecimal notaFinal;
+
+	private Boolean activo;
+
+	private OffsetDateTime fechaCreacion;
+
+	private OffsetDateTime fechaModificacion;
+
 }

@@ -8,6 +8,9 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 public class JuradoAreaDto {
-    private Integer id;
-    private String nombre;
+
+	private Integer id;
+
+	private String nombre;
+
 }

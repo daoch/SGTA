@@ -10,32 +10,38 @@ import java.util.List;
 @RestController
 @RequestMapping("/criterio-exposicion")
 public class CriterioExposicionController {
-    @Autowired
-    private CriterioExposicionService criterioExposicionService;
 
-    @GetMapping("/exposicion/{exposicionId}")
-    public List<CriterioExposicionDto> listarCriteriosExposicionXExposicion(@PathVariable Integer exposicionId) {
-        return criterioExposicionService.listarCriteriosExposicionXExposicion(exposicionId);
-    }
+	@Autowired
+	private CriterioExposicionService criterioExposicionService;
 
-    @PostMapping("exposicion/{exposicionId}")
-    public Integer create(@PathVariable Integer exposicionId, @RequestBody CriterioExposicionDto dto) {
-        return criterioExposicionService.create(exposicionId, dto);
-    }
+	@GetMapping("/exposicion/{exposicionId}")
+	public List<CriterioExposicionDto> listarCriteriosExposicionXExposicion(@PathVariable Integer exposicionId) {
+		return criterioExposicionService.listarCriteriosExposicionXExposicion(exposicionId);
+	}
 
-    @PutMapping("/update")
-    public void update(@RequestBody CriterioExposicionDto dto) { criterioExposicionService.update(dto); }
+	@PostMapping("exposicion/{exposicionId}")
+	public Integer create(@PathVariable Integer exposicionId, @RequestBody CriterioExposicionDto dto) {
+		return criterioExposicionService.create(exposicionId, dto);
+	}
 
-    @PutMapping("/delete")
-    public void delete(@RequestBody Integer criterioExposicionId) { criterioExposicionService.delete(criterioExposicionId); }
+	@PutMapping("/update")
+	public void update(@RequestBody CriterioExposicionDto dto) {
+		criterioExposicionService.update(dto);
+	}
 
-    @GetMapping("/getAll")
-    public List<CriterioExposicionDto> getAll() {
-        return criterioExposicionService.getAll();
-    }
+	@PutMapping("/delete")
+	public void delete(@RequestBody Integer criterioExposicionId) {
+		criterioExposicionService.delete(criterioExposicionId);
+	}
 
-    @GetMapping("/{id}")
-    public CriterioExposicionDto findById(@PathVariable Integer id) {
-        return criterioExposicionService.findById(id);
-    }
+	@GetMapping("/getAll")
+	public List<CriterioExposicionDto> getAll() {
+		return criterioExposicionService.getAll();
+	}
+
+	@GetMapping("/{id}")
+	public CriterioExposicionDto findById(@PathVariable Integer id) {
+		return criterioExposicionService.findById(id);
+	}
+
 }

@@ -14,12 +14,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useState } from "react";
 
 interface NuevaCarreraModalProps {
-  isOpen: boolean
-  onClose: () => void
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 // Unidades académicas disponibles
@@ -36,7 +42,9 @@ export function NuevaCarreraModal({ isOpen, onClose }: NuevaCarreraModalProps) {
     unidadAcademica: "",
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
@@ -57,7 +65,9 @@ export function NuevaCarreraModal({ isOpen, onClose }: NuevaCarreraModalProps) {
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Registrar Nueva Carrera</DialogTitle>
-          <DialogDescription>Complete los campos para registrar una nueva carrera.</DialogDescription>
+          <DialogDescription>
+            Complete los campos para registrar una nueva carrera.
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
@@ -76,7 +86,9 @@ export function NuevaCarreraModal({ isOpen, onClose }: NuevaCarreraModalProps) {
               <Label htmlFor="unidadAcademica">Unidad Académica</Label>
               <Select
                 value={formData.unidadAcademica}
-                onValueChange={(value) => handleSelectChange("unidadAcademica", value)}
+                onValueChange={(value) =>
+                  handleSelectChange("unidadAcademica", value)
+                }
               >
                 <SelectTrigger id="unidadAcademica">
                   <SelectValue placeholder="Seleccionar" />

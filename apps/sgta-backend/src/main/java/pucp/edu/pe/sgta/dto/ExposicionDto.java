@@ -11,13 +11,14 @@ import lombok.Setter;
 @AllArgsConstructor
 public class ExposicionDto {
 
-    private Integer id;
+	private Integer id;
 
-    private Integer etapaFormativaXCicloId;
+	private Integer etapaFormativaXCicloId;
 
-    private String nombre;
+	private String nombre;
 
-    private String descripcion;
+	private String descripcion;
 
-    private Integer estadoPlanificacionId;
+	private Integer estadoPlanificacionId;
+
 }

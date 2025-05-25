@@ -23,49 +23,54 @@ import java.util.List;
 @Builder
 public class TemaDto {
 
-    private Integer id;
+	private Integer id;
 
-    //@NotBlank(message = "El código es obligatorio")
-    private String codigo;
+	// @NotBlank(message = "El código es obligatorio")
+	private String codigo;
 
-    @NotBlank(message = "El título es obligatorio")
-    @Size(max = 255, message = "El título no puede tener más de 255 caracteres")
-    private String titulo;
+	@NotBlank(message = "El título es obligatorio")
+	@Size(max = 255, message = "El título no puede tener más de 255 caracteres")
+	private String titulo;
 
-    @NotBlank(message = "El resumen es obligatorio")
-    private String resumen;
+	@NotBlank(message = "El resumen es obligatorio")
+	private String resumen;
 
-    private String objetivos;
+	private String objetivos;
 
-    private String metodologia;
+	private String metodologia;
 
-    private String portafolioUrl;
+	private String portafolioUrl;
 
-    private Boolean activo;
-    private Boolean rechazado;
+	private Boolean activo;
 
-    //@NotNull(message = "La fecha límite es obligatoria")
-    //@FutureOrPresent(message = "La fecha límite debe ser hoy o en el futuro")
-    private OffsetDateTime fechaLimite;
+	private Boolean rechazado;
 
-    private OffsetDateTime fechaFinalizacion;
-    private OffsetDateTime fechaCreacion;
-    private OffsetDateTime fechaModificacion;
-    private String estadoTemaNombre;
+	// @NotNull(message = "La fecha límite es obligatoria")
+	// @FutureOrPresent(message = "La fecha límite debe ser hoy o en el futuro")
+	private OffsetDateTime fechaLimite;
 
-    //@NotNull(message = "La carrera es obligatoria")
-    private CarreraDto carrera;
+	private OffsetDateTime fechaFinalizacion;
 
-    private Integer cantPostulaciones; // only for general proposals
+	private OffsetDateTime fechaCreacion;
 
-    //@NotEmpty(message = "Debe haber al menos una área")
-    private List<@NotNull(message = "Area inválida") AreaConocimientoDto> area;
+	private OffsetDateTime fechaModificacion;
 
-    //@NotEmpty(message = "Debe haber al menos una subárea")
-    private List<@NotNull(message = "Subárea inválida") SubAreaConocimientoDto> subareas;
+	private String estadoTemaNombre;
 
-    @NotEmpty(message = "Debe haber al menos un tesista")
-    private List<UsuarioDto> tesistas ;
+	// @NotNull(message = "La carrera es obligatoria")
+	private CarreraDto carrera;
 
-    private List< UsuarioDto> coasesores ;
+	private Integer cantPostulaciones; // only for general proposals
+
+	// @NotEmpty(message = "Debe haber al menos una área")
+	private List<@NotNull(message = "Area inválida") AreaConocimientoDto> area;
+
+	// @NotEmpty(message = "Debe haber al menos una subárea")
+	private List<@NotNull(message = "Subárea inválida") SubAreaConocimientoDto> subareas;
+
+	@NotEmpty(message = "Debe haber al menos un tesista")
+	private List<UsuarioDto> tesistas;
+
+	private List<UsuarioDto> coasesores;
+
 }

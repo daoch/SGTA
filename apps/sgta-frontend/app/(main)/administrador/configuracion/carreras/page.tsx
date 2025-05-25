@@ -22,7 +22,10 @@ export default function CarrerasPage() {
       </div>
 
       <div className="flex justify-end mb-4">
-        <Button className="flex items-center gap-2" onClick={() => setIsModalOpen(true)}>
+        <Button
+          className="flex items-center gap-2"
+          onClick={() => setIsModalOpen(true)}
+        >
           <Plus size={16} />
           <span>Nueva Carrera</span>
         </Button>
@@ -31,15 +34,18 @@ export default function CarrerasPage() {
       <div className="bg-white rounded-lg shadow p-6">
         <div className="mb-4">
           <p className="text-gray-500">
-            Administre las carreras disponibles en el sistema. Cada carrera puede tener diferentes configuraciones de
-            etapas formativas.
+            Administre las carreras disponibles en el sistema. Cada carrera
+            puede tener diferentes configuraciones de etapas formativas.
           </p>
         </div>
 
         <CarrerasList />
       </div>
 
-      <NuevaCarreraModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <NuevaCarreraModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </div>
   );
 }

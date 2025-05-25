@@ -21,9 +21,10 @@ import {
 
 export default function ConfiguracionProcesoPage() {
   const [etapas, setEtapas] = useState<EtapaFormativaCiclo[]>([]);
-  const [etapaToDelete, setEtapaToDelete] = useState<EtapaFormativaCiclo | null>(null);
+  const [etapaToDelete, setEtapaToDelete] =
+    useState<EtapaFormativaCiclo | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  
+
   const fetchEtapas = async () => {
     try {
       const response = await etapaFormativaCicloService.getAllByIdCarrera(1);
@@ -89,9 +90,12 @@ export default function ConfiguracionProcesoPage() {
                       <BookOpen size={20} />
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold mb-2">{etapa.nombreEtapaFormativa}</h3>
+                      <h3 className="text-lg font-semibold mb-2">
+                        {etapa.nombreEtapaFormativa}
+                      </h3>
                       <div className="text-sm">
-                        <strong>Creditaje por tema:</strong> {etapa.creditajePorTema}
+                        <strong>Creditaje por tema:</strong>{" "}
+                        {etapa.creditajePorTema}
                       </div>
                     </div>
                   </div>
@@ -99,9 +103,9 @@ export default function ConfiguracionProcesoPage() {
                     {/*<Button variant="outline" size="icon">
                       <Edit size={16} />
                     </Button>*/}
-                    <Button 
-                      variant="outline" 
-                      size="icon" 
+                    <Button
+                      variant="outline"
+                      size="icon"
                       className="text-red-500"
                       onClick={() => setEtapaToDelete(etapa)}
                     >
@@ -114,15 +118,23 @@ export default function ConfiguracionProcesoPage() {
               <div className="bg-gray-50 p-4 border-t flex items-center justify-between">
                 <div className="flex gap-6">
                   <div className="text-sm">
-                    <span className="text-gray-500">Entregables:</span> {etapa.entregables}
+                    <span className="text-gray-500">Entregables:</span>{" "}
+                    {etapa.entregables}
                   </div>
                   <div className="text-sm">
-                    <span className="text-gray-500">Exposiciones:</span> {etapa.exposiciones}
+                    <span className="text-gray-500">Exposiciones:</span>{" "}
+                    {etapa.exposiciones}
                   </div>
                 </div>
 
-                <Link href={`/coordinador/configuracion/proceso/etapa/${etapa.etapaFormativaId}`}>
-                  <Button variant="ghost" size="sm" className="flex items-center gap-1">
+                <Link
+                  href={`/coordinador/configuracion/proceso/etapa/${etapa.etapaFormativaId}`}
+                >
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="flex items-center gap-1"
+                  >
                     <span>Ver detalles</span>
                     <ChevronRight size={16} />
                   </Button>
@@ -133,17 +145,23 @@ export default function ConfiguracionProcesoPage() {
         ))}
       </div>
 
-      <AlertDialog open={!!etapaToDelete} onOpenChange={() => setEtapaToDelete(null)}>
+      <AlertDialog
+        open={!!etapaToDelete}
+        onOpenChange={() => setEtapaToDelete(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>¿Está seguro?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción eliminará la etapa {etapaToDelete?.nombreEtapaFormativa} y no se puede deshacer.
+              Esta acción eliminará la etapa{" "}
+              {etapaToDelete?.nombreEtapaFormativa} y no se puede deshacer.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogCancel disabled={isDeleting}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
               onClick={handleDelete}
               disabled={isDeleting}
               className="bg-red-500 hover:bg-red-600"

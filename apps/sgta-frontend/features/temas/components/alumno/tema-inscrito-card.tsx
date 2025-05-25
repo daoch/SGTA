@@ -19,7 +19,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { BookOpen, Edit, Eye, Users } from "lucide-react";
 import Link from "next/link";
@@ -28,7 +34,8 @@ import { useState } from "react";
 
 const tesisData = {
   id: "1",
-  titulo: "Implementación de algoritmos de aprendizaje profundo para detección de objetos en tiempo real",
+  titulo:
+    "Implementación de algoritmos de aprendizaje profundo para detección de objetos en tiempo real",
   descripcion:
     "Este proyecto busca desarrollar un sistema de detección de objetos en tiempo real utilizando técnicas de aprendizaje profundo, específicamente redes neuronales convolucionales. Se implementarán algoritmos como YOLO y SSD para comparar su rendimiento en diferentes escenarios.",
   estudiantes: [
@@ -78,7 +85,9 @@ export function TemaCard() {
   const [nuevoCoasesor, setNuevoCoasesor] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -121,14 +130,20 @@ export function TemaCard() {
     return (
       <div className="text-center py-12">
         <BookOpen className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-        <h3 className="text-lg font-medium mb-2">No tienes una tesis inscrita</h3>
-        <p className="text-muted-foreground mb-6">Puedes postular a temas libres o proponer un nuevo tema de tesis</p>
+        <h3 className="text-lg font-medium mb-2">
+          No tienes una tesis inscrita
+        </h3>
+        <p className="text-muted-foreground mb-6">
+          Puedes postular a temas libres o proponer un nuevo tema de tesis
+        </p>
         <div className="flex justify-center gap-4">
           <Link href="/temas-libres">
             <Button variant="outline">Ver temas libres</Button>
           </Link>
           <Link href="/temas/nueva-propuesta">
-            <Button className="bg-pucp-blue hover:bg-pucp-light">Proponer tema</Button>
+            <Button className="bg-pucp-blue hover:bg-pucp-light">
+              Proponer tema
+            </Button>
           </Link>
         </div>
       </div>
@@ -140,10 +155,15 @@ export function TemaCard() {
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
           <div>
-            <CardTitle className="text-xl text-pucp-blue">{tesisData.titulo}</CardTitle>
+            <CardTitle className="text-xl text-pucp-blue">
+              {tesisData.titulo}
+            </CardTitle>
             <CardDescription className="mt-1">{tesisData.area}</CardDescription>
           </div>
-          <Badge variant="outline" className="bg-green-100 text-green-800 hover:bg-green-100">
+          <Badge
+            variant="outline"
+            className="bg-green-100 text-green-800 hover:bg-green-100"
+          >
             En desarrollo
           </Badge>
         </div>
@@ -151,7 +171,9 @@ export function TemaCard() {
       <CardContent className="space-y-6">
         <div className="space-y-2">
           <h3 className="text-sm font-medium">Descripción</h3>
-          <p className="text-sm text-muted-foreground">{tesisData.descripcion}</p>
+          <p className="text-sm text-muted-foreground">
+            {tesisData.descripcion}
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -174,9 +196,14 @@ export function TemaCard() {
             </h3>
             <ul className="space-y-1">
               {tesisData.estudiantes.map((estudiante) => (
-                <li key={estudiante.codigo} className="text-sm flex justify-between">
+                <li
+                  key={estudiante.codigo}
+                  className="text-sm flex justify-between"
+                >
                   <span>{estudiante.nombre}</span>
-                  <span className="text-muted-foreground">{estudiante.codigo}</span>
+                  <span className="text-muted-foreground">
+                    {estudiante.codigo}
+                  </span>
                 </li>
               ))}
             </ul>
@@ -199,18 +226,30 @@ export function TemaCard() {
           <DialogContent className="max-w-3xl">
             <DialogHeader>
               <DialogTitle>Editar Tesis</DialogTitle>
-              <DialogDescription>Modifica la información de tu tesis</DialogDescription>
+              <DialogDescription>
+                Modifica la información de tu tesis
+              </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-6 py-4">
               <div className="space-y-2">
                 <Label htmlFor="titulo">Título del Tema</Label>
-                <Input id="titulo" name="titulo" value={formData.titulo} onChange={handleChange} required />
+                <Input
+                  id="titulo"
+                  name="titulo"
+                  value={formData.titulo}
+                  onChange={handleChange}
+                  required
+                />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="area">Área de Investigación</Label>
-                <Select value={formData.area} onValueChange={(value) => handleSelectChange("area", value)} required>
+                <Select
+                  value={formData.area}
+                  onValueChange={(value) => handleSelectChange("area", value)}
+                  required
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Seleccione un área" />
                   </SelectTrigger>
@@ -226,12 +265,23 @@ export function TemaCard() {
 
               <div className="space-y-2">
                 <Label htmlFor="descripcion">Descripción</Label>
-                <Textarea id="descripcion" name="descripcion" value={formData.descripcion} onChange={handleChange} rows={4} required />
+                <Textarea
+                  id="descripcion"
+                  name="descripcion"
+                  value={formData.descripcion}
+                  onChange={handleChange}
+                  rows={4}
+                  required
+                />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="asesor">Asesor Principal</Label>
-                <Select value={formData.asesor} onValueChange={(value) => handleSelectChange("asesor", value)} required>
+                <Select
+                  value={formData.asesor}
+                  onValueChange={(value) => handleSelectChange("asesor", value)}
+                  required
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Seleccione un asesor" />
                   </SelectTrigger>
@@ -248,13 +298,20 @@ export function TemaCard() {
               <div className="space-y-2">
                 <Label>Coasesores (Opcional)</Label>
                 <div className="flex gap-2">
-                  <Select onValueChange={setNuevoCoasesor} value={nuevoCoasesor}>
+                  <Select
+                    onValueChange={setNuevoCoasesor}
+                    value={nuevoCoasesor}
+                  >
                     <SelectTrigger className="flex-1">
                       <SelectValue placeholder="Seleccione un coasesor" />
                     </SelectTrigger>
                     <SelectContent>
                       {profesoresData
-                        .filter((p) => p.nombre !== formData.asesor && !formData.coasesores.includes(p.nombre))
+                        .filter(
+                          (p) =>
+                            p.nombre !== formData.asesor &&
+                            !formData.coasesores.includes(p.nombre),
+                        )
                         .map((profesor) => (
                           <SelectItem key={profesor.id} value={profesor.nombre}>
                             {profesor.nombre}
@@ -262,7 +319,11 @@ export function TemaCard() {
                         ))}
                     </SelectContent>
                   </Select>
-                  <Button type="button" onClick={handleAddCoasesor} variant="outline">
+                  <Button
+                    type="button"
+                    onClick={handleAddCoasesor}
+                    variant="outline"
+                  >
                     Agregar
                   </Button>
                 </div>
@@ -270,7 +331,11 @@ export function TemaCard() {
                 {formData.coasesores.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-2">
                     {formData.coasesores.map((coasesor) => (
-                      <Badge key={coasesor} variant="secondary" className="flex items-center gap-1">
+                      <Badge
+                        key={coasesor}
+                        variant="secondary"
+                        className="flex items-center gap-1"
+                      >
                         {coasesor}
                         <button
                           type="button"
@@ -290,7 +355,11 @@ export function TemaCard() {
               <Button variant="outline" onClick={() => setIsEditing(false)}>
                 Cancelar
               </Button>
-              <Button onClick={handleSubmit} className="bg-pucp-blue hover:bg-pucp-light" disabled={isLoading}>
+              <Button
+                onClick={handleSubmit}
+                className="bg-pucp-blue hover:bg-pucp-light"
+                disabled={isLoading}
+              >
                 {isLoading ? "Guardando..." : "Guardar Cambios"}
               </Button>
             </DialogFooter>

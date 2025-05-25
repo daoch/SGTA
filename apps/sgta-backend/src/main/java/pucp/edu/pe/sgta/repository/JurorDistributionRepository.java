@@ -11,7 +11,10 @@ import java.util.List;
 
 @Repository
 public interface JurorDistributionRepository extends JpaRepository<Usuario, Long> {
-    
-    @Query(value = "SELECT * FROM get_juror_distribution_by_coordinator_and_ciclo(:usuarioId, :cicloNombre)", nativeQuery = true)
-    List<Object[]> getJurorDistributionByCoordinatorAndCiclo(@Param("usuarioId") Integer usuarioId, @Param("cicloNombre") String cicloNombre);
-} 
+
+	@Query(value = "SELECT * FROM get_juror_distribution_by_coordinator_and_ciclo(:usuarioId, :cicloNombre)",
+			nativeQuery = true)
+	List<Object[]> getJurorDistributionByCoordinatorAndCiclo(@Param("usuarioId") Integer usuarioId,
+			@Param("cicloNombre") String cicloNombre);
+
+}

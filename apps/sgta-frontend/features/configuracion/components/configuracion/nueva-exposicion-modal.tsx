@@ -41,15 +41,19 @@ export function NuevaExposicionModal({ etapaId }: { etapaId: string }) {
         <DialogHeader>
           <DialogTitle>Nueva Exposición</DialogTitle>
           <DialogDescription>
-            Agregue una nueva exposición a la etapa. Las exposiciones son presentaciones que los estudiantes deben
-            realizar.
+            Agregue una nueva exposición a la etapa. Las exposiciones son
+            presentaciones que los estudiantes deben realizar.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="nombre">Nombre de la Exposición</Label>
-              <Input id="nombre" placeholder="Ej: Exposición de Avance 1" required />
+              <Input
+                id="nombre"
+                placeholder="Ej: Exposición de Avance 1"
+                required
+              />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
@@ -63,7 +67,12 @@ export function NuevaExposicionModal({ etapaId }: { etapaId: string }) {
             </div>
             <div className="grid gap-2">
               <Label htmlFor="descripcion">Descripción</Label>
-              <Textarea id="descripcion" placeholder="Descripción general de la exposición" rows={3} required />
+              <Textarea
+                id="descripcion"
+                placeholder="Descripción general de la exposición"
+                rows={3}
+                required
+              />
             </div>
             <div className="flex items-center justify-between">
               <Label htmlFor="presencial" className="cursor-pointer">
@@ -75,11 +84,19 @@ export function NuevaExposicionModal({ etapaId }: { etapaId: string }) {
               <Label htmlFor="jurados" className="cursor-pointer">
                 Con Jurados
               </Label>
-              <Switch id="jurados" checked={conJurados} onCheckedChange={setConJurados} />
+              <Switch
+                id="jurados"
+                checked={conJurados}
+                onCheckedChange={setConJurados}
+              />
             </div>
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+            >
               Cancelar
             </Button>
             <Button type="submit">Crear Exposición</Button>

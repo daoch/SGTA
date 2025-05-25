@@ -148,10 +148,7 @@ export function PropuestasModal({
             <div className="p-3 bg-gray-50 rounded-md border">
               <p>
                 {data.subareas
-                  .map(
-                    (subareas) =>
-                      `(${subareas.nombre})`,
-                  )
+                  .map((subareas) => `(${subareas.nombre})`)
                   .join(", ")}
               </p>
             </div>

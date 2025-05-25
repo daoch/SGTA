@@ -2,22 +2,39 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PostulacionesTable } from "@/features/temas/components/alumno/postulaciones-table";
 import { Postulacion } from "@/features/temas/types/propuestas/entidades";
 import { useState } from "react";
 
 const PostulacionesRecibidasPage = () => {
-  const [selectedPostulacion, setSelectedPostulacion] = useState<Postulacion | null>(null);
+  const [selectedPostulacion, setSelectedPostulacion] =
+    useState<Postulacion | null>(null);
 
   return (
     <div className="space-y-8 mt-4">
       <div>
-        <h1 className="text-3xl font-bold text-[#042354]">Postulaciones Recibidas</h1>
+        <h1 className="text-3xl font-bold text-[#042354]">
+          Postulaciones Recibidas
+        </h1>
         <p className="text-muted-foreground">
-          Postulaciones de asesores interesados en tus propuestas de proyecto de fin de carrera
+          Postulaciones de asesores interesados en tus propuestas de proyecto de
+          fin de carrera
         </p>
       </div>
       <Tabs defaultValue="directas" className="w-full">
@@ -35,7 +52,10 @@ const PostulacionesRecibidasPage = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <PostulacionesTable filter="directa" setSelectedPostulacion={setSelectedPostulacion} />
+              <PostulacionesTable
+                filter="directa"
+                setSelectedPostulacion={setSelectedPostulacion}
+              />
             </CardContent>
           </Card>
         </TabsContent>
@@ -49,17 +69,25 @@ const PostulacionesRecibidasPage = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <PostulacionesTable filter="general" setSelectedPostulacion={setSelectedPostulacion} />
+              <PostulacionesTable
+                filter="general"
+                setSelectedPostulacion={setSelectedPostulacion}
+              />
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
 
-      <Dialog open={!!selectedPostulacion} onOpenChange={(open) => !open && setSelectedPostulacion(null)}>
+      <Dialog
+        open={!!selectedPostulacion}
+        onOpenChange={(open) => !open && setSelectedPostulacion(null)}
+      >
         <DialogContent className="w-[90vw] max-w-3xl sm:max-w-3xl">
           <DialogHeader>
             <DialogTitle>Detalles de la Postulación</DialogTitle>
-            <DialogDescription>Información sobre la postulación del asesor</DialogDescription>
+            <DialogDescription>
+              Información sobre la postulación del asesor
+            </DialogDescription>
           </DialogHeader>
 
           {selectedPostulacion && (
@@ -74,11 +102,12 @@ const PostulacionesRecibidasPage = () => {
                     selectedPostulacion.estado === "pendiente"
                       ? "bg-yellow-100 text-yellow-800"
                       : selectedPostulacion.estado === "rechazado"
-                      ? "bg-red-100 text-red-800"
-                      : "bg-green-100 text-green-800"
+                        ? "bg-red-100 text-red-800"
+                        : "bg-green-100 text-green-800"
                   }
                 >
-                  {selectedPostulacion.estado.charAt(0).toUpperCase() + selectedPostulacion.estado.slice(1)}
+                  {selectedPostulacion.estado.charAt(0).toUpperCase() +
+                    selectedPostulacion.estado.slice(1)}
                 </Badge>
               </div>
 
@@ -104,7 +133,9 @@ const PostulacionesRecibidasPage = () => {
                 <p className="font-medium">Información del Asesor</p>
                 <div className="p-3 bg-gray-50 rounded-md border text-sm text-gray-700">
                   <p>{selectedPostulacion.asesor}</p>
-                  <p className="text-muted-foreground">{selectedPostulacion.correoAsesor}</p>
+                  <p className="text-muted-foreground">
+                    {selectedPostulacion.correoAsesor}
+                  </p>
                 </div>
               </div>
 
@@ -118,7 +149,12 @@ const PostulacionesRecibidasPage = () => {
           )}
 
           <DialogFooter className="flex justify-between">
-            <Button variant="outline" onClick={() => setSelectedPostulacion(null)}>Cerrar</Button>
+            <Button
+              variant="outline"
+              onClick={() => setSelectedPostulacion(null)}
+            >
+              Cerrar
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

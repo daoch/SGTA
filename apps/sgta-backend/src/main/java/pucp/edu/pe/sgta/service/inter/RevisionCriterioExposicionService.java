@@ -5,14 +5,14 @@ import java.util.List;
 
 public interface RevisionCriterioExposicionService {
 
-    List<RevisionCriterioExposicionDto> getAll();
+	List<RevisionCriterioExposicionDto> getAll();
 
-    RevisionCriterioExposicionDto findById(Integer id);
+	RevisionCriterioExposicionDto findById(Integer id);
 
-    void create(RevisionCriterioExposicionDto dto);
+	void create(RevisionCriterioExposicionDto dto);
 
-    void update(RevisionCriterioExposicionDto dto);
+	void update(RevisionCriterioExposicionDto dto);
 
-    void delete(Integer id);
+	void delete(Integer id);
 
 }

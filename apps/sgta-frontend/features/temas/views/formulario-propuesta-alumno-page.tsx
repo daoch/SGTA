@@ -64,7 +64,7 @@ export default function FormularioPropuestaPage() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
-        }
+        },
       );
       if (!res.ok) throw new Error("API error");
 
@@ -75,7 +75,7 @@ export default function FormularioPropuestaPage() {
 
       setTimeout(() => {
         router.push("/alumno/temas");
-      }, 1000); 
+      }, 1000);
     } catch (err) {
       console.error(err);
 

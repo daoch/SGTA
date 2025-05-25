@@ -16,10 +16,16 @@ import lombok.Setter;
 @Builder
 public class RolDto {
 
-    private Integer id;
-    private String nombre;
-    private String descripcion;
-    private Boolean activo;
-    private OffsetDateTime fechaCreacion;
-    private OffsetDateTime fechaModificacion;
+	private Integer id;
+
+	private String nombre;
+
+	private String descripcion;
+
+	private Boolean activo;
+
+	private OffsetDateTime fechaCreacion;
+
+	private OffsetDateTime fechaModificacion;
+
 }

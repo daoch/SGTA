@@ -14,13 +14,15 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @Builder
 public class CriterioExposicionDto {
-    private Integer id;
 
-    private Integer exposicionId;
+	private Integer id;
 
-    private String nombre;
+	private Integer exposicionId;
 
-    private String descripcion;
+	private String nombre;
 
-    private BigDecimal notaMaxima;
+	private String descripcion;
+
+	private BigDecimal notaMaxima;
+
 }

@@ -24,27 +24,39 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { CrearCicloDto } from "@/features/administrador/types/ciclo.type";
 import { CheckCircle, XCircle } from "lucide-react";
 import { useState } from "react";
 
-
 interface NuevoCicloModalProps {
-  isOpen: boolean
-  onClose: () => void
+  isOpen: boolean;
+  onClose: () => void;
   onRegistrar: (formData: CrearCicloDto) => Promise<CrearCicloDto>;
-};
+}
 
-export function NuevoCicloModal({ isOpen, onClose, onRegistrar }: NuevoCicloModalProps) {
+export function NuevoCicloModal({
+  isOpen,
+  onClose,
+  onRegistrar,
+}: NuevoCicloModalProps) {
   const [showConfirm, setShowConfirm] = useState(false);
-  const [alert, setAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [alert, setAlert] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
   const [formData, setFormData] = useState({
     semestre: "",
     anio: new Date().getFullYear(),
     nombre: "",
     fechaInicio: "",
-    fechaFin: ""
+    fechaFin: "",
   });
 
   // Limpiar el formulario al cerrar el modal
@@ -115,16 +127,23 @@ export function NuevoCicloModal({ isOpen, onClose, onRegistrar }: NuevoCicloModa
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Registrar Nuevo Ciclo</DialogTitle>
-          <DialogDescription>Complete los campos para registrar un nuevo ciclo académico.</DialogDescription>
+          <DialogDescription>
+            Complete los campos para registrar un nuevo ciclo académico.
+          </DialogDescription>
         </DialogHeader>
         {alert && (
-          <Alert variant={alert.type === "success" ? "default" : "destructive"} className="mb-4">
+          <Alert
+            variant={alert.type === "success" ? "default" : "destructive"}
+            className="mb-4"
+          >
             {alert.type === "success" ? (
               <CheckCircle className="h-5 w-5 text-green-600" />
             ) : (
               <XCircle className="h-5 w-5 text-red-600" />
             )}
-            <AlertTitle>{alert.type === "success" ? "¡Éxito!" : "Error"}</AlertTitle>
+            <AlertTitle>
+              {alert.type === "success" ? "¡Éxito!" : "Error"}
+            </AlertTitle>
             <AlertDescription>{alert.message}</AlertDescription>
           </Alert>
         )}
@@ -133,7 +152,10 @@ export function NuevoCicloModal({ isOpen, onClose, onRegistrar }: NuevoCicloModa
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="semestre">Semestre</Label>
-                <Select value={formData.semestre} onValueChange={handleSemestreChange}>
+                <Select
+                  value={formData.semestre}
+                  onValueChange={handleSemestreChange}
+                >
                   <SelectTrigger id="semestre">
                     <SelectValue placeholder="Seleccionar" />
                   </SelectTrigger>
@@ -146,7 +168,14 @@ export function NuevoCicloModal({ isOpen, onClose, onRegistrar }: NuevoCicloModa
               </div>
               <div className="space-y-2">
                 <Label htmlFor="anio">Año</Label>
-                <Input id="anio" name="anio" type="number" value={formData.anio} onChange={handleChange} required />
+                <Input
+                  id="anio"
+                  name="anio"
+                  type="number"
+                  value={formData.anio}
+                  onChange={handleChange}
+                  required
+                />
               </div>
             </div>
             <div className="space-y-2">
@@ -159,7 +188,9 @@ export function NuevoCicloModal({ isOpen, onClose, onRegistrar }: NuevoCicloModa
                 disabled
                 className="bg-gray-50"
               />
-              <p className="text-xs text-gray-500">El nombre se genera automáticamente a partir del año y semestre.</p>
+              <p className="text-xs text-gray-500">
+                El nombre se genera automáticamente a partir del año y semestre.
+              </p>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -204,7 +235,9 @@ export function NuevoCicloModal({ isOpen, onClose, onRegistrar }: NuevoCicloModa
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction onClick={handleConfirmSave}>Guardar</AlertDialogAction>
+              <AlertDialogAction onClick={handleConfirmSave}>
+                Guardar
+              </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>

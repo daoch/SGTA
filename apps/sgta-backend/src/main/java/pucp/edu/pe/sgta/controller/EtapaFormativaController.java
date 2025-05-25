@@ -26,87 +26,82 @@ import pucp.edu.pe.sgta.dto.EtapaFormativaDetalleDto;
 @RestController
 @RequestMapping("/etapas-formativas")
 public class EtapaFormativaController {
-    @Autowired
-    EtapaFormativaService etapaFormativaService;
 
-    @GetMapping("/listarPorInicializarByCoordinador/{corodinador_id}")
-    public List<EtapaFormativaNombreDTO> obtenerPorInicializarPorCoordinador(
-            @PathVariable("corodinador_id") Integer usuarioId) {
-        return etapaFormativaService.findToInitializeByCoordinador(usuarioId);
-    }
+	@Autowired
+	EtapaFormativaService etapaFormativaService;
 
-    @GetMapping("/listarActivasNombre")
-    public List<EtapaFormativaNombreDTO> obtenerEtapasFormativasActivasNombre() {
-        return etapaFormativaService.findAllActivasNombre();
-    }
+	@GetMapping("/listarPorInicializarByCoordinador/{corodinador_id}")
+	public List<EtapaFormativaNombreDTO> obtenerPorInicializarPorCoordinador(
+			@PathVariable("corodinador_id") Integer usuarioId) {
+		return etapaFormativaService.findToInitializeByCoordinador(usuarioId);
+	}
 
-    @GetMapping("/listarActivas")
-    public List<EtapaFormativaDto> obtenerEtapasFormativasActivas() {
-        return etapaFormativaService.findAllActivas();
-    }
+	@GetMapping("/listarActivasNombre")
+	public List<EtapaFormativaNombreDTO> obtenerEtapasFormativasActivasNombre() {
+		return etapaFormativaService.findAllActivasNombre();
+	}
 
-    @GetMapping("/listarActivasPorCoordinador/{coordinador_id}")
-    public List<EtapaFormativaDto> obtenerEtapasFormativasActivasPorCoordinador(
-            @PathVariable("coordinador_id") Integer coordinadorId) {
-        return etapaFormativaService.findAllActivasByCoordinador(coordinadorId);
-    }
+	@GetMapping("/listarActivas")
+	public List<EtapaFormativaDto> obtenerEtapasFormativasActivas() {
+		return etapaFormativaService.findAllActivas();
+	}
 
-    @GetMapping("/getEtapaFormativaIdByExposicionId/{exposicion_id}")
-    public ResponseEntity<Integer> obtenerEtapaFormativaIdPorExposicionId(
-            @PathVariable("exposicion_id") Integer exposicionId) {
-        Integer etapaFormativaId = etapaFormativaService.getEtapaFormativaIdByExposicionId(exposicionId);
-        if (etapaFormativaId == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(etapaFormativaId);
-    }
+	@GetMapping("/listarActivasPorCoordinador/{coordinador_id}")
+	public List<EtapaFormativaDto> obtenerEtapasFormativasActivasPorCoordinador(
+			@PathVariable("coordinador_id") Integer coordinadorId) {
+		return etapaFormativaService.findAllActivasByCoordinador(coordinadorId);
+	}
 
-    @GetMapping
-    public ResponseEntity<List<EtapaFormativaListadoDto>> listarEtapasFormativas() {
-        List<EtapaFormativaListadoDto> etapas = etapaFormativaService.getSimpleList();
-        return ResponseEntity.ok(etapas);
-    }
+	@GetMapping("/getEtapaFormativaIdByExposicionId/{exposicion_id}")
+	public ResponseEntity<Integer> obtenerEtapaFormativaIdPorExposicionId(
+			@PathVariable("exposicion_id") Integer exposicionId) {
+		Integer etapaFormativaId = etapaFormativaService.getEtapaFormativaIdByExposicionId(exposicionId);
+		if (etapaFormativaId == null) {
+			return ResponseEntity.notFound().build();
+		}
+		return ResponseEntity.ok(etapaFormativaId);
+	}
 
-    @GetMapping("/{id}")
-    public ResponseEntity<EtapaFormativaDetalleDto> obtenerDetalleEtapaFormativa(@PathVariable Integer id) {
-        EtapaFormativaDetalleDto etapa = etapaFormativaService.getDetalleById(id);
-        if (etapa == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(etapa);
-    }
+	@GetMapping
+	public ResponseEntity<List<EtapaFormativaListadoDto>> listarEtapasFormativas() {
+		List<EtapaFormativaListadoDto> etapas = etapaFormativaService.getSimpleList();
+		return ResponseEntity.ok(etapas);
+	}
 
-    /**
-     * Crea una nueva Etapa Formativa (solo ligada a Carrera).
-     */
-    @PostMapping("/crear")
-    public ResponseEntity<EtapaFormativaDto> crearEtapa(
-            @RequestBody EtapaFormativaDto dto) {
-        EtapaFormativaDto created = etapaFormativaService.create(dto);
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(created);
-    }
+	@GetMapping("/{id}")
+	public ResponseEntity<EtapaFormativaDetalleDto> obtenerDetalleEtapaFormativa(@PathVariable Integer id) {
+		EtapaFormativaDetalleDto etapa = etapaFormativaService.getDetalleById(id);
+		if (etapa == null) {
+			return ResponseEntity.notFound().build();
+		}
+		return ResponseEntity.ok(etapa);
+	}
 
-    /*
-     * Actualiza una etapa formativa existente.
-     */
-    @PutMapping("/actualizar/{id}")
-    public ResponseEntity<EtapaFormativaDto> actualizarEtapa(
-            @PathVariable("id") Integer id,
-            @RequestBody EtapaFormativaDto dto) {
-        // Asegura que el DTO traiga el mismo id de la ruta
-        dto.setId(id);
-        EtapaFormativaDto updated = etapaFormativaService.update(dto);
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(updated);
-    }
+	/**
+	 * Crea una nueva Etapa Formativa (solo ligada a Carrera).
+	 */
+	@PostMapping("/crear")
+	public ResponseEntity<EtapaFormativaDto> crearEtapa(@RequestBody EtapaFormativaDto dto) {
+		EtapaFormativaDto created = etapaFormativaService.create(dto);
+		return ResponseEntity.status(HttpStatus.CREATED).body(created);
+	}
 
-    @DeleteMapping("/eliminar/{id}")
-    public ResponseEntity<Void> eliminarEtapa(@PathVariable Integer id) {
-        etapaFormativaService.delete(id);
-        return ResponseEntity.noContent().build();
-    }
+	/*
+	 * Actualiza una etapa formativa existente.
+	 */
+	@PutMapping("/actualizar/{id}")
+	public ResponseEntity<EtapaFormativaDto> actualizarEtapa(@PathVariable("id") Integer id,
+			@RequestBody EtapaFormativaDto dto) {
+		// Asegura que el DTO traiga el mismo id de la ruta
+		dto.setId(id);
+		EtapaFormativaDto updated = etapaFormativaService.update(dto);
+		return ResponseEntity.status(HttpStatus.OK).body(updated);
+	}
+
+	@DeleteMapping("/eliminar/{id}")
+	public ResponseEntity<Void> eliminarEtapa(@PathVariable Integer id) {
+		etapaFormativaService.delete(id);
+		return ResponseEntity.noContent().build();
+	}
 
 }

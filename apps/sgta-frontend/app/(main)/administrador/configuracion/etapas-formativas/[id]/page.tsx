@@ -3,7 +3,10 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { etapasFormativasService, type EtapaFormativaDetail } from "@/features/configuracion/services/etapas-formativas";
+import {
+  etapasFormativasService,
+  type EtapaFormativaDetail,
+} from "@/features/configuracion/services/etapas-formativas";
 import { ArrowLeft, Edit } from "lucide-react";
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
@@ -11,14 +14,19 @@ import { toast } from "sonner";
 
 const getEstadoLabel = (estado: string) => {
   const estados = {
-    "EN_CURSO": "En curso",
-    "FINALIZADO": "Finalizado"
+    EN_CURSO: "En curso",
+    FINALIZADO: "Finalizado",
   };
   return estados[estado as keyof typeof estados] || estado;
 };
 
-export default function DetalleEtapaFormativaPage({ params }: { params: Promise<{ id: string }> }) {
-  const [etapaFormativa, setEtapaFormativa] = useState<EtapaFormativaDetail | null>(null);
+export default function DetalleEtapaFormativaPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const [etapaFormativa, setEtapaFormativa] =
+    useState<EtapaFormativaDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { id } = use(params);
 
@@ -61,12 +69,24 @@ export default function DetalleEtapaFormativaPage({ params }: { params: Promise<
         <CardHeader className="flex flex-row items-center justify-between">
           <div className="flex items-center gap-3">
             <CardTitle>{etapaFormativa.nombre}</CardTitle>
-            <Badge variant={etapaFormativa.estadoActual === "EN_CURSO" ? "default" : "secondary"}>
+            <Badge
+              variant={
+                etapaFormativa.estadoActual === "EN_CURSO"
+                  ? "default"
+                  : "secondary"
+              }
+            >
               {getEstadoLabel(etapaFormativa.estadoActual)}
             </Badge>
           </div>
-          <Link href={`/administrador/configuracion/etapas-formativas/${etapaFormativa.id}/editar`}>
-            <Button variant="outline" size="sm" className="flex items-center gap-1">
+          <Link
+            href={`/administrador/configuracion/etapas-formativas/${etapaFormativa.id}/editar`}
+          >
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-1"
+            >
               <Edit size={16} />
               <span>Editar</span>
             </Button>
@@ -75,53 +95,74 @@ export default function DetalleEtapaFormativaPage({ params }: { params: Promise<
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-1">Carrera</h3>
+              <h3 className="text-sm font-medium text-gray-500 mb-1">
+                Carrera
+              </h3>
               <p>{etapaFormativa.carreraNombre}</p>
             </div>
             <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-1">Créditos por Tema</h3>
+              <h3 className="text-sm font-medium text-gray-500 mb-1">
+                Créditos por Tema
+              </h3>
               <p>{etapaFormativa.creditajePorTema}</p>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-1">Duración de Exposición</h3>
+              <h3 className="text-sm font-medium text-gray-500 mb-1">
+                Duración de Exposición
+              </h3>
               <p>{etapaFormativa.duracionExposicion}</p>
             </div>
             <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-1">Ciclo Actual</h3>
+              <h3 className="text-sm font-medium text-gray-500 mb-1">
+                Ciclo Actual
+              </h3>
               <p>{etapaFormativa.cicloActual}</p>
             </div>
           </div>
 
-          {etapaFormativa.historialCiclos && etapaFormativa.historialCiclos.length > 0 && (
-            <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-2">Historial de Ciclos</h3>
-              <div className="bg-gray-50 p-4 rounded-md">
-                <table className="w-full">
-                  <thead>
-                    <tr className="text-left">
-                      <th className="pb-2 text-sm font-medium text-gray-500">Ciclo</th>
-                      <th className="pb-2 text-sm font-medium text-gray-500">Estado</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {etapaFormativa.historialCiclos.map((ciclo) => (
-                      <tr key={ciclo.id}>
-                        <td className="py-2 text-sm">{ciclo.ciclo}</td>
-                        <td className="py-2 text-sm">
-                          <Badge variant={ciclo.estado === "EN_CURSO" ? "default" : "secondary"}>
-                            {getEstadoLabel(ciclo.estado)}
-                          </Badge>
-                        </td>
+          {etapaFormativa.historialCiclos &&
+            etapaFormativa.historialCiclos.length > 0 && (
+              <div>
+                <h3 className="text-sm font-medium text-gray-500 mb-2">
+                  Historial de Ciclos
+                </h3>
+                <div className="bg-gray-50 p-4 rounded-md">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="text-left">
+                        <th className="pb-2 text-sm font-medium text-gray-500">
+                          Ciclo
+                        </th>
+                        <th className="pb-2 text-sm font-medium text-gray-500">
+                          Estado
+                        </th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {etapaFormativa.historialCiclos.map((ciclo) => (
+                        <tr key={ciclo.id}>
+                          <td className="py-2 text-sm">{ciclo.ciclo}</td>
+                          <td className="py-2 text-sm">
+                            <Badge
+                              variant={
+                                ciclo.estado === "EN_CURSO"
+                                  ? "default"
+                                  : "secondary"
+                              }
+                            >
+                              {getEstadoLabel(ciclo.estado)}
+                            </Badge>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </div>
-          )}
+            )}
         </CardContent>
       </Card>
     </div>

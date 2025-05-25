@@ -9,6 +9,8 @@ import lombok.*;
 @Builder
 public class SalaExposicionJornadaDTO {
 
-    private Integer id;
-    private String  nombre;
+	private Integer id;
+
+	private String nombre;
+
 }

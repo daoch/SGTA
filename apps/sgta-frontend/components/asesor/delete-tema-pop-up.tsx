@@ -47,4 +47,3 @@ const DeleteTemaPopUp: React.FC<DeleteTemaPopUpProps> = ({
 };
 
 export default DeleteTemaPopUp;
-

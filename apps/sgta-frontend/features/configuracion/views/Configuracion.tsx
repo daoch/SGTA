@@ -45,9 +45,12 @@ export default function Configuracion() {
             <BookOpen size={24} />
           </div>
           <div>
-            <h2 className="font-semibold text-lg mb-1">Configuración de Proceso</h2>
+            <h2 className="font-semibold text-lg mb-1">
+              Configuración de Proceso
+            </h2>
             <p className="text-gray-500 text-sm">
-              Configure las fases, cursos, entregables y exposiciones del proyecto de fin de carrera.
+              Configure las fases, cursos, entregables y exposiciones del
+              proyecto de fin de carrera.
             </p>
           </div>
         </Link>
@@ -60,9 +63,7 @@ export default function Configuracion() {
             <Settings size={24} />
           </div>
           <div>
-            <h2 className="font-semibold text-lg mb-1">
-              Registro de Usuarios
-            </h2>
+            <h2 className="font-semibold text-lg mb-1">Registro de Usuarios</h2>
             <p className="text-gray-500 text-sm">
               Gestioné configuraciones clave del proceso de tesis: áreas, temas,
               fechas, asesores, jurados y revisión.
@@ -70,7 +71,6 @@ export default function Configuracion() {
           </div>
         </Link>
       </div>
-
     </div>
   );
 }

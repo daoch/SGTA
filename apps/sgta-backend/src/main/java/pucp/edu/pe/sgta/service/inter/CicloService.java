@@ -8,17 +8,18 @@ import java.util.List;
 
 public interface CicloService {
 
-    List<CicloDto> getAll();
+	List<CicloDto> getAll();
 
-    CicloDto findById(Integer id);
+	CicloDto findById(Integer id);
 
-    void create(CicloDto dto);
+	void create(CicloDto dto);
 
-    void update(CicloDto dto);
+	void update(CicloDto dto);
 
-    void delete(Integer id);
+	void delete(Integer id);
 
-    List<Ciclo> listarCiclosOrdenados();
+	List<Ciclo> listarCiclosOrdenados();
 
-    List<CicloConEtapasDTO> listarCiclosYetapasFormativas();
+	List<CicloConEtapasDTO> listarCiclosYetapasFormativas();
+
 }

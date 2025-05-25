@@ -14,19 +14,23 @@ import java.time.OffsetDateTime;
 @AllArgsConstructor
 @Builder
 public class BloqueHorarioExposicionDto {
-    private Integer id;
 
-    private Integer jornadaExposicionXSalaId;
+	private Integer id;
 
-    private OffsetDateTime datetimeInicio;
+	private Integer jornadaExposicionXSalaId;
 
-    private OffsetDateTime datetimeFin;
+	private OffsetDateTime datetimeInicio;
 
-    private boolean activo;
+	private OffsetDateTime datetimeFin;
 
-    private OffsetDateTime fechaCreacion;
+	private boolean activo;
 
-    private OffsetDateTime fechaModificacion;
-    private boolean esBloqueReservado;
-    private boolean esBloqueBloqueado;
+	private OffsetDateTime fechaCreacion;
+
+	private OffsetDateTime fechaModificacion;
+
+	private boolean esBloqueReservado;
+
+	private boolean esBloqueBloqueado;
+
 }

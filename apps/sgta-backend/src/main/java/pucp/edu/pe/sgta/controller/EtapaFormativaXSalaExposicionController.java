@@ -15,13 +15,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 @RequestMapping("/etapaFormativaXSalaExposicion")
 public class EtapaFormativaXSalaExposicionController {
-    @Autowired
-    EtapaFormativaXSalaExposicionService etapaFormativaXSalaExposicionService;
 
-    @GetMapping("/listarEtapaFormativaXSalaExposicionByEtapaFormativa/{etapaFormativaId}")
-    public List<EtapaFormativaXSalaExposicionConEtapaFormativaDTO> listarEtapasFormativasXSalaExposicion(
-            @PathVariable Integer etapaFormativaId) {
-        return etapaFormativaXSalaExposicionService.listarEtapasFormativasXSalaExposicion(etapaFormativaId);
-    }
+	@Autowired
+	EtapaFormativaXSalaExposicionService etapaFormativaXSalaExposicionService;
+
+	@GetMapping("/listarEtapaFormativaXSalaExposicionByEtapaFormativa/{etapaFormativaId}")
+	public List<EtapaFormativaXSalaExposicionConEtapaFormativaDTO> listarEtapasFormativasXSalaExposicion(
+			@PathVariable Integer etapaFormativaId) {
+		return etapaFormativaXSalaExposicionService.listarEtapasFormativasXSalaExposicion(etapaFormativaId);
+	}
 
 }

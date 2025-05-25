@@ -31,7 +31,9 @@ interface CriterioExposicionModalProps {
   criteriosExistentes: CriterioExposicionFormData[]; // Criterios ya agregados
 }
 
-export const CriterioExposicionModal: React.FC<CriterioExposicionModalProps> = ({
+export const CriterioExposicionModal: React.FC<
+  CriterioExposicionModalProps
+> = ({
   isOpen,
   onClose,
   onSubmit,
@@ -69,7 +71,7 @@ export const CriterioExposicionModal: React.FC<CriterioExposicionModalProps> = (
   }, [criterio, isEditMode, isOpen]);
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -87,7 +89,7 @@ export const CriterioExposicionModal: React.FC<CriterioExposicionModalProps> = (
     } catch (error) {
       console.error(
         `Error al ${isEditMode ? "actualizar" : "crear"} el contenido:`,
-        error
+        error,
       );
     } finally {
       setIsSubmitting(false);
@@ -96,14 +98,14 @@ export const CriterioExposicionModal: React.FC<CriterioExposicionModalProps> = (
 
   // Filtrar el criterio que está siendo editado
   const criteriosFiltrados = criteriosExistentes.filter(
-    (c) => c.id !== criterio?.id
+    (c) => c.id !== criterio?.id,
   );
 
   // Calcular la suma total de los puntajes
   const sumaTotalNotas =
     criteriosFiltrados.reduce(
       (acc, criterioExistente) => acc + criterioExistente.notaMaxima,
-      0
+      0,
     ) + formData.notaMaxima;
 
   return (
@@ -194,8 +196,8 @@ export const CriterioExposicionModal: React.FC<CriterioExposicionModalProps> = (
                   ? "Guardando..."
                   : "Creando..."
                 : isEditMode
-                ? "Guardar Cambios"
-                : "Crear Criterio"}
+                  ? "Guardar Cambios"
+                  : "Crear Criterio"}
             </Button>
           </DialogFooter>
         </form>

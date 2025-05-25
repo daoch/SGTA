@@ -12,9 +12,15 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 public class EtapaFormativaXSalaExposicionConEtapaFormativaDTO {
-    private Integer etapaFormativaXSalaExposicionId;
-    private Integer etapaFormativaId;
-    private Integer salaExposicionId;
-    private String nombreSalaExposicion;
-    private String nombreEtapaFormativa;
+
+	private Integer etapaFormativaXSalaExposicionId;
+
+	private Integer etapaFormativaId;
+
+	private Integer salaExposicionId;
+
+	private String nombreSalaExposicion;
+
+	private String nombreEtapaFormativa;
+
 }

@@ -250,4 +250,3 @@ const TableJurados: React.FC<TableJuradosProps> = ({
 };
 
 export default TableJurados;
-

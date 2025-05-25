@@ -13,14 +13,25 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RevisionDocumentoDto {
-    private Integer id;
-    private Integer usuarioId;
-    private Integer versionDocumentoId;
-    private LocalDate fechaLimiteRevision;
-    private LocalDate fechaRevision;
-    private String estadoRevision;
-    private String linkArchivoRevision;
-    private boolean activo;
-    private OffsetDateTime fechaCreacion;
-    private OffsetDateTime fechaModificacion;
+
+	private Integer id;
+
+	private Integer usuarioId;
+
+	private Integer versionDocumentoId;
+
+	private LocalDate fechaLimiteRevision;
+
+	private LocalDate fechaRevision;
+
+	private String estadoRevision;
+
+	private String linkArchivoRevision;
+
+	private boolean activo;
+
+	private OffsetDateTime fechaCreacion;
+
+	private OffsetDateTime fechaModificacion;
+
 }

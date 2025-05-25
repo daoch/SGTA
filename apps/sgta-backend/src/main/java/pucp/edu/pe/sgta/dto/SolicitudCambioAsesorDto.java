@@ -12,60 +12,92 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SolicitudCambioAsesorDto {
-    private List<RequestChange> assesorChangeRequests;
-    private int totalPages;
 
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class RequestChange {
-        private int id;
-        private LocalDate registerTime;
-        private String status;
-        private String reason;
-        private String response;
-        private LocalDate responseTime;
-        private List<Assessor> assessors;
-        private Estudiante student;
-    }
+	private List<RequestChange> assesorChangeRequests;
 
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class Assessor {
-        private int id;
-        private String name;
-        private String lastName;
-        private String email;
-        private byte[] urlPhoto;
-    }
+	private int totalPages;
 
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class Estudiante {
-        private int id;
-        private String name;
-        private String lastName;
-        private String email;
-        private byte[] urlPhoto;
-        private Tema topic;
-    }
+	@Data
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class RequestChange {
 
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class Tema {
-        private int id;
-        private String name;
-        private AreaConocimiento thematicArea;
-    }
+		private int id;
 
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class AreaConocimiento {
-        private int id;
-        private String name;
-    }
+		private LocalDate registerTime;
+
+		private String status;
+
+		private String reason;
+
+		private String response;
+
+		private LocalDate responseTime;
+
+		private List<Assessor> assessors;
+
+		private Estudiante student;
+
+	}
+
+	@Data
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class Assessor {
+
+		private int id;
+
+		private String name;
+
+		private String lastName;
+
+		private String email;
+
+		private byte[] urlPhoto;
+
+	}
+
+	@Data
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class Estudiante {
+
+		private int id;
+
+		private String name;
+
+		private String lastName;
+
+		private String email;
+
+		private byte[] urlPhoto;
+
+		private Tema topic;
+
+	}
+
+	@Data
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class Tema {
+
+		private int id;
+
+		private String name;
+
+		private AreaConocimiento thematicArea;
+
+	}
+
+	@Data
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class AreaConocimiento {
+
+		private int id;
+
+		private String name;
+
+	}
+
 }

@@ -3,4 +3,4 @@ export interface CriterioExposicion {
   nombre: string;
   descripcion: string;
   notaMaxima: number;
-};
+}

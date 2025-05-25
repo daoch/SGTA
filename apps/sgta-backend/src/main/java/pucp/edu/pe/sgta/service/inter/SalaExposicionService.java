@@ -5,14 +5,15 @@ import pucp.edu.pe.sgta.dto.SalaExposicionDto;
 import java.util.List;
 
 public interface SalaExposicionService {
-    List<SalaExposicionDto> getAll();
 
-    SalaExposicionDto findById(Integer id);
+	List<SalaExposicionDto> getAll();
 
-    void create(SalaExposicionDto dto);
+	SalaExposicionDto findById(Integer id);
 
-    void update(SalaExposicionDto dto);
+	void create(SalaExposicionDto dto);
 
-    void delete(Integer id);
+	void update(SalaExposicionDto dto);
+
+	void delete(Integer id);
 
 }

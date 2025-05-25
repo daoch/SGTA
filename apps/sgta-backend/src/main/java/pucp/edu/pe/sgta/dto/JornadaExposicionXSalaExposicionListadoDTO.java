@@ -8,14 +8,18 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class JornadaExposicionXSalaExposicionListadoDTO {
-    private Integer jornadaExposicionId;
-    private Timestamp datetimeInicio;
-    private Timestamp datetimeFin;
-    private List<SalaExposicionJornadaDTO> salasExposicion ;
+
+	private Integer jornadaExposicionId;
+
+	private Timestamp datetimeInicio;
+
+	private Timestamp datetimeFin;
+
+	private List<SalaExposicionJornadaDTO> salasExposicion;
+
 }

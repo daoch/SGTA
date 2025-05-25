@@ -5,15 +5,17 @@ import java.util.List;
 import pucp.edu.pe.sgta.dto.CriterioExposicionDto;
 
 public interface CriterioExposicionService {
-    List<CriterioExposicionDto> getAll();
 
-    List<CriterioExposicionDto> listarCriteriosExposicionXExposicion(Integer exposicionId);
+	List<CriterioExposicionDto> getAll();
 
-    CriterioExposicionDto findById(Integer id);
+	List<CriterioExposicionDto> listarCriteriosExposicionXExposicion(Integer exposicionId);
 
-    Integer create(Integer criterioExposicionId,CriterioExposicionDto dto);
+	CriterioExposicionDto findById(Integer id);
 
-    void update(CriterioExposicionDto dto);
+	Integer create(Integer criterioExposicionId, CriterioExposicionDto dto);
 
-    void delete(Integer id);
+	void update(CriterioExposicionDto dto);
+
+	void delete(Integer id);
+
 }

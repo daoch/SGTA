@@ -6,6 +6,9 @@ import lombok.Setter;
 @Getter
 @Setter
 public class UsuarioFotoDto {
-    private Integer idUsuario;
-    private String foto;
+
+	private Integer idUsuario;
+
+	private String foto;
+
 }

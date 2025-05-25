@@ -12,15 +12,26 @@ import java.time.OffsetDateTime;
 @Builder
 public class EntregableDto {
 
-    private Integer id;
-    private Integer etapaFormativaXCicloId;
-    private String nombre;
-    private String descripcion;
-    private OffsetDateTime fechaInicio;
-    private OffsetDateTime fechaFin;
-    private EstadoActividad estado;
-    private boolean esEvaluable;
-    private Integer maximoDocumentos;
-    private String extensionesPermitidas;
-    private Integer pesoMaximoDocumento;
+	private Integer id;
+
+	private Integer etapaFormativaXCicloId;
+
+	private String nombre;
+
+	private String descripcion;
+
+	private OffsetDateTime fechaInicio;
+
+	private OffsetDateTime fechaFin;
+
+	private EstadoActividad estado;
+
+	private boolean esEvaluable;
+
+	private Integer maximoDocumentos;
+
+	private String extensionesPermitidas;
+
+	private Integer pesoMaximoDocumento;
+
 }

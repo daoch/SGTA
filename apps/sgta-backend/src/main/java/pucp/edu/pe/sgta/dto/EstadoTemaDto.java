@@ -10,6 +10,9 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class EstadoTemaDto {
-    private Integer id;
-    private String nombre;
+
+	private Integer id;
+
+	private String nombre;
+
 }

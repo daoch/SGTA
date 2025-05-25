@@ -16,16 +16,17 @@ export default function JuradosCards() {
 
   // Buscar los parámetros por nombre
   const cantidadJuradosParam = parametros.find(
-    p => p.parametroConfiguracion.nombre === "Cantidad Jurados"
+    (p) => p.parametroConfiguracion.nombre === "Cantidad Jurados",
   );
 
   const tiempoLimiteParam = parametros.find(
-    p => p.parametroConfiguracion.nombre === "Tiempo Limite Jurado"
+    (p) => p.parametroConfiguracion.nombre === "Tiempo Limite Jurado",
   );
 
-
-   // Handlers para cambios
-   const handleCantidadChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handlers para cambios
+  const handleCantidadChange = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     //Convierte valor ingresado a numero
     const value = parseInt(e.target.value);
     //valida que tengamos valor obtenido en la busqueda del parametro cantidad juraods

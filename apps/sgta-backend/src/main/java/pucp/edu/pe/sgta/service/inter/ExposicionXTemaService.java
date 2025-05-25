@@ -5,14 +5,14 @@ import java.util.List;
 
 public interface ExposicionXTemaService {
 
-    List<ExposicionXTemaDto> getAll();
+	List<ExposicionXTemaDto> getAll();
 
-    ExposicionXTemaDto findById(Integer id);
+	ExposicionXTemaDto findById(Integer id);
 
-    void create(ExposicionXTemaDto dto);
+	void create(ExposicionXTemaDto dto);
 
-    void update(ExposicionXTemaDto dto);
+	void update(ExposicionXTemaDto dto);
 
-    void delete(Integer id);
+	void delete(Integer id);
 
 }

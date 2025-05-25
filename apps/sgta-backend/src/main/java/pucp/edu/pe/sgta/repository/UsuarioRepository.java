@@ -16,31 +16,33 @@ import java.util.Optional;
 @Repository
 public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
 
-    Usuario findByCorreoElectronicoIsLikeIgnoreCase(String email);
-    Optional<Usuario> findByCodigoPucp(String codigoPucp);
+	Usuario findByCorreoElectronicoIsLikeIgnoreCase(String email);
 
-    @Query(value = "SELECT * FROM obtener_usuarios_con_temass()", nativeQuery = true)
-    List<Object[]> findUsuarioTemaInfo();
+	Optional<Usuario> findByCodigoPucp(String codigoPucp);
 
-    // SOLO PARA JURADOS
-    @Query(value = "SELECT * FROM obtener_area_conocimiento(:usuario_id)", nativeQuery = true)
-    List<Object[]> findAreaConocimientoByUsuarioId(@Param("usuario_id") Integer usuarioId);
+	@Query(value = "SELECT * FROM obtener_usuarios_con_temass()", nativeQuery = true)
+	List<Object[]> findUsuarioTemaInfo();
 
-    @Query(value = "SELECT * FROM obtener_usuarios_por_estado(:activo_param)", nativeQuery = true)
-    List<Object[]> obtenerUsuariosPorEstado(@Param("activo_param") Boolean activoParam);
+	// SOLO PARA JURADOS
+	@Query(value = "SELECT * FROM obtener_area_conocimiento(:usuario_id)", nativeQuery = true)
+	List<Object[]> findAreaConocimientoByUsuarioId(@Param("usuario_id") Integer usuarioId);
 
-    @Query(value = "SELECT * FROM obtener_usuarios_por_area_conocimiento(:area_conocimiento_id)", nativeQuery = true)
-    List<Object[]> obtenerUsuariosPorAreaConocimiento(@Param("area_conocimiento_id") Integer areaConocimientoId);
+	@Query(value = "SELECT * FROM obtener_usuarios_por_estado(:activo_param)", nativeQuery = true)
+	List<Object[]> obtenerUsuariosPorEstado(@Param("activo_param") Boolean activoParam);
 
-    // Comprueba si existe un usuario con ese id y cuyo tipoUsuario.nombre = el
-    // pasado.
-    Boolean existsByIdAndTipoUsuarioNombre(Integer usuarioId, String tipoNombre);
+	@Query(value = "SELECT * FROM obtener_usuarios_por_area_conocimiento(:area_conocimiento_id)", nativeQuery = true)
+	List<Object[]> obtenerUsuariosPorAreaConocimiento(@Param("area_conocimiento_id") Integer areaConocimientoId);
 
-    // verificar que usuario existe y activo
-    Boolean existsByIdAndActivoTrue(Integer usuarioId);
+	// Comprueba si existe un usuario con ese id y cuyo tipoUsuario.nombre = el
+	// pasado.
+	Boolean existsByIdAndTipoUsuarioNombre(Integer usuarioId, String tipoNombre);
 
-    Optional<Usuario> findById(Integer id);
+	// verificar que usuario existe y activo
+	Boolean existsByIdAndActivoTrue(Integer usuarioId);
 
-    @Query(value = "SELECT * FROM obtener_area_conocimiento_jurado(:usuarioId)", nativeQuery = true)
-    List<Object[]> obtenerAreasConocimientoJurado(@Param("usuarioId") Integer usuarioId);
+	Optional<Usuario> findById(Integer id);
+
+	@Query(value = "SELECT * FROM obtener_area_conocimiento_jurado(:usuarioId)", nativeQuery = true)
+	List<Object[]> obtenerAreasConocimientoJurado(@Param("usuarioId") Integer usuarioId);
+
 }

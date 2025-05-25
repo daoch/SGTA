@@ -17,8 +17,8 @@ export type Proyecto = {
   coasesores: Usuario[];
   tesistas: Usuario[];
   subareas: SubAreaConocimiento[];
-  tipo: string; 
-  estudiantes?: Usuario[]; 
+  tipo: string;
+  estudiantes?: Usuario[];
 };
 
 export type TipoUsuario = {

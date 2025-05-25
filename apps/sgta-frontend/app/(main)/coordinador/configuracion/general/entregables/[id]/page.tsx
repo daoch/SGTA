@@ -10,7 +10,8 @@ const entregable = {
   nombre: "Propuesta de Proyecto",
   curso: "Proyecto de Fin de Carrera 1",
   plazo: "Semana 4",
-  descripcion: "Documento que describe el problema a resolver y la propuesta de solución.",
+  descripcion:
+    "Documento que describe el problema a resolver y la propuesta de solución.",
   contenidos: [
     {
       id: 1,
@@ -21,7 +22,8 @@ const entregable = {
     {
       id: 2,
       nombre: "Problemática",
-      descripcion: "Descripción detallada del problema a resolver, incluyendo estadísticas y evidencias.",
+      descripcion:
+        "Descripción detallada del problema a resolver, incluyendo estadísticas y evidencias.",
       peso: null,
     },
     {
@@ -33,19 +35,23 @@ const entregable = {
     {
       id: 4,
       nombre: "Propuesta de solución",
-      descripcion: "Descripción general de la solución propuesta y su justificación.",
+      descripcion:
+        "Descripción general de la solución propuesta y su justificación.",
       peso: null,
     },
     {
       id: 5,
       nombre: "Plan de trabajo",
-      descripcion: "Cronograma de actividades y entregables para el desarrollo del proyecto.",
+      descripcion:
+        "Cronograma de actividades y entregables para el desarrollo del proyecto.",
       peso: null,
     },
   ],
 };
 
-export default function EntregableDetailPage({ }: { params: Promise<{ id: string }>}) {
+export default function EntregableDetailPage({}: {
+  params: Promise<{ id: string }>;
+}) {
   return (
     <div className="py-6 px-2">
       <div className="flex items-center gap-4 mb-6">
@@ -60,7 +66,11 @@ export default function EntregableDetailPage({ }: { params: Promise<{ id: string
       <Card className="mb-6">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>{entregable.nombre}</CardTitle>
-          <Button variant="outline" size="sm" className="flex items-center gap-1">
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-1"
+          >
             <Edit size={16} />
             <span>Editar</span>
           </Button>
@@ -77,7 +87,9 @@ export default function EntregableDetailPage({ }: { params: Promise<{ id: string
             </div>
           </div>
           <div>
-            <h3 className="text-sm font-medium text-gray-500 mb-1">Descripción</h3>
+            <h3 className="text-sm font-medium text-gray-500 mb-1">
+              Descripción
+            </h3>
             <p className="text-gray-600">{entregable.descripcion}</p>
           </div>
         </CardContent>
@@ -99,21 +111,34 @@ export default function EntregableDetailPage({ }: { params: Promise<{ id: string
                 {index > 0 && <Separator className="my-6" />}
                 <div className="flex items-start justify-between">
                   <div>
-                    <h3 className="text-lg font-semibold mb-2">{contenido.nombre}</h3>
+                    <h3 className="text-lg font-semibold mb-2">
+                      {contenido.nombre}
+                    </h3>
                     <p className="text-gray-600">{contenido.descripcion}</p>
 
                     {contenido.peso !== null && (
                       <div className="mt-2 text-sm">
-                        <span className="font-medium">Peso en la calificación:</span> {contenido.peso} puntos
+                        <span className="font-medium">
+                          Peso en la calificación:
+                        </span>{" "}
+                        {contenido.peso} puntos
                       </div>
                     )}
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="flex items-center gap-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-1"
+                    >
                       <Edit size={14} />
                       <span>Editar</span>
                     </Button>
-                    <Button variant="outline" size="sm" className="flex items-center gap-1 text-red-500">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-1 text-red-500"
+                    >
                       <Trash2 size={14} />
                       <span>Eliminar</span>
                     </Button>

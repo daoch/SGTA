@@ -32,4 +32,3 @@ export const EstadoSelect: React.FC<EstadoSelectProps> = ({
     </div>
   );
 };
-

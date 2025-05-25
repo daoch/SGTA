@@ -83,4 +83,3 @@ export const ListaTesisJuradoCard: React.FC<ListaTesisJuradoCardProps> = ({
     </div>
   );
 };
-

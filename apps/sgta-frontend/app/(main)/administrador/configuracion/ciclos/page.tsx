@@ -1,8 +1,14 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { CicloEtapas, CrearCicloDto } from "@/features/administrador/types/ciclo.type"; // Asegúrate de importar el tipo correcto
-import { crearCiclo, listarCiclosConEtapas } from "@/features/administrador/types/services/cicloService";
+import {
+  CicloEtapas,
+  CrearCicloDto,
+} from "@/features/administrador/types/ciclo.type"; // Asegúrate de importar el tipo correcto
+import {
+  crearCiclo,
+  listarCiclosConEtapas,
+} from "@/features/administrador/types/services/cicloService";
 import { CiclosList } from "@/features/configuracion/components/configuracion/ciclos-list";
 import { NuevoCicloModal } from "@/features/configuracion/components/configuracion/nuevo-ciclo-modal";
 import { ArrowLeft, Plus } from "lucide-react";
@@ -30,19 +36,20 @@ export default function CiclosPage() {
     fetchCiclos();
   }, []);
 
-
-// Función para manejar la creación de un nuevo ciclo
-const handleRegistrar = async (formData: CrearCicloDto): Promise<CrearCicloDto> => {
-  try {
-    const nuevoCiclo = await crearCiclo(formData);
-    setIsModalOpen(false);
-    await fetchCiclos(); // <-- Recarga la lista
-    return nuevoCiclo;
-  } catch (error) {
-    console.error(error);
-    throw error; // Propaga el error para que el modal pueda manejarlo si es necesario
-  }
-};
+  // Función para manejar la creación de un nuevo ciclo
+  const handleRegistrar = async (
+    formData: CrearCicloDto,
+  ): Promise<CrearCicloDto> => {
+    try {
+      const nuevoCiclo = await crearCiclo(formData);
+      setIsModalOpen(false);
+      await fetchCiclos(); // <-- Recarga la lista
+      return nuevoCiclo;
+    } catch (error) {
+      console.error(error);
+      throw error; // Propaga el error para que el modal pueda manejarlo si es necesario
+    }
+  };
 
   return (
     <div className="py-6 px-2">
@@ -56,7 +63,10 @@ const handleRegistrar = async (formData: CrearCicloDto): Promise<CrearCicloDto> 
       </div>
 
       <div className="flex justify-end mb-4">
-        <Button className="flex items-center gap-2" onClick={() => setIsModalOpen(true)}>
+        <Button
+          className="flex items-center gap-2"
+          onClick={() => setIsModalOpen(true)}
+        >
           <Plus size={16} />
           <span>Nuevo Ciclo</span>
         </Button>
@@ -65,8 +75,9 @@ const handleRegistrar = async (formData: CrearCicloDto): Promise<CrearCicloDto> 
       <div className="bg-white rounded-lg shadow p-6">
         <div className="mb-4">
           <p className="text-gray-500">
-            Administre los ciclos académicos disponibles en el sistema. Cada ciclo puede tener diferentes etapas
-            formativas asociadas según la carrera.
+            Administre los ciclos académicos disponibles en el sistema. Cada
+            ciclo puede tener diferentes etapas formativas asociadas según la
+            carrera.
           </p>
         </div>
 
@@ -77,7 +88,7 @@ const handleRegistrar = async (formData: CrearCicloDto): Promise<CrearCicloDto> 
         )}
       </div>
 
-      <NuevoCicloModal 
+      <NuevoCicloModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onRegistrar={handleRegistrar}

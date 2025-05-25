@@ -16,26 +16,28 @@ import java.time.OffsetDateTime;
 @AllArgsConstructor
 @Table(name = "documento")
 public class Documento {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "documento_id")
-    private Integer id;
 
-    @Column(name = "nombre_documento", nullable = false, length = 150)
-    private String nombreDocumento;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "documento_id")
+	private Integer id;
 
-    @Column(name = "fecha_subida")
-    private LocalDate fechaSubida;
+	@Column(name = "nombre_documento", nullable = false, length = 150)
+	private String nombreDocumento;
 
-    @Column(name = "ultima_version", nullable = false)
-    private Integer ultimaVersion = 1;
+	@Column(name = "fecha_subida")
+	private LocalDate fechaSubida;
 
-    @Column(nullable = false)
-    private Boolean activo = true;
+	@Column(name = "ultima_version", nullable = false)
+	private Integer ultimaVersion = 1;
 
-    @Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private OffsetDateTime fechaCreacion;
+	@Column(nullable = false)
+	private Boolean activo = true;
 
-    @Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private OffsetDateTime fechaModificacion;
-} 
+	@Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+	private OffsetDateTime fechaCreacion;
+
+	@Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+	private OffsetDateTime fechaModificacion;
+
+}

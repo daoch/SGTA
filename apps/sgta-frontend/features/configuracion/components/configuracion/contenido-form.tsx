@@ -1,5 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -31,7 +37,11 @@ export function ContenidoForm({
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="nombre">Nombre del Contenido</Label>
-          <Input id="nombre" placeholder="Ej: Introducción" defaultValue={contenido?.nombre || ""} />
+          <Input
+            id="nombre"
+            placeholder="Ej: Introducción"
+            defaultValue={contenido?.nombre || ""}
+          />
         </div>
 
         <div className="space-y-2">
@@ -47,8 +57,17 @@ export function ContenidoForm({
         {conPeso && (
           <div className="space-y-2">
             <Label htmlFor="peso">Peso en la Calificación (puntos)</Label>
-            <Input id="peso" type="number" min="0" max="20" placeholder="Ej: 5" defaultValue={contenido?.peso || ""} />
-            <p className="text-xs text-gray-500">El total de puntos entre todos los contenidos debe sumar 20.</p>
+            <Input
+              id="peso"
+              type="number"
+              min="0"
+              max="20"
+              placeholder="Ej: 5"
+              defaultValue={contenido?.peso || ""}
+            />
+            <p className="text-xs text-gray-500">
+              El total de puntos entre todos los contenidos debe sumar 20.
+            </p>
           </div>
         )}
       </CardContent>

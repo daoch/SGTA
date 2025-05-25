@@ -17,7 +17,11 @@ interface Props {
   onImport: () => void;
 }
 
-export function RegistroUsuariosPreview({ usuarios, onCancel, onImport }: Props) {
+export function RegistroUsuariosPreview({
+  usuarios,
+  onCancel,
+  onImport,
+}: Props) {
   const getBadgeClass = (rol: string) => {
     switch (rol.toLowerCase()) {
       case "estudiante":
@@ -41,14 +45,19 @@ export function RegistroUsuariosPreview({ usuarios, onCancel, onImport }: Props)
       {/* Título + botones */}
       <div className="flex items-start justify-between mb-4">
         <div>
-          <h2 className="text-lg font-semibold mb-1">Vista previa de usuarios a importar</h2>
+          <h2 className="text-lg font-semibold mb-1">
+            Vista previa de usuarios a importar
+          </h2>
           <p className="text-sm text-muted-foreground">
-            Se encontraron {usuarios.length} usuarios válidos en el archivo <code>plantilla_usuarios.csv</code>
+            Se encontraron {usuarios.length} usuarios válidos en el archivo{" "}
+            <code>plantilla_usuarios.csv</code>
           </p>
         </div>
 
         <div className="flex gap-2">
-          <Button variant="outline" onClick={onCancel}>Cancelar</Button>
+          <Button variant="outline" onClick={onCancel}>
+            Cancelar
+          </Button>
           <Button onClick={onImport}>Importar Usuarios</Button>
         </div>
       </div>
@@ -70,7 +79,9 @@ export function RegistroUsuariosPreview({ usuarios, onCancel, onImport }: Props)
                 <TableCell>{u.codigo}</TableCell>
                 <TableCell>{u.correo}</TableCell>
                 <TableCell>
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${getBadgeClass(u.rol)}`}>
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-medium ${getBadgeClass(u.rol)}`}
+                  >
                     {capitalize(u.rol)}
                   </span>
                 </TableCell>

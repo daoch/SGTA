@@ -11,6 +11,8 @@ import lombok.Setter;
 @AllArgsConstructor
 public class ExposicionNombreDTO {
 
-    private Integer id;
-    private String nombre;
+	private Integer id;
+
+	private String nombre;
+
 }

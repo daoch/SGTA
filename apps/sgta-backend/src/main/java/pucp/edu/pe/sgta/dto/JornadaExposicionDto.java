@@ -14,17 +14,19 @@ import java.time.OffsetDateTime;
 @AllArgsConstructor
 @Builder
 public class JornadaExposicionDto {
-    private Integer id;
 
-    private Integer exposicionId;
+	private Integer id;
 
-    private OffsetDateTime datetimeInicio;
+	private Integer exposicionId;
 
-    private OffsetDateTime datetimeFin;
+	private OffsetDateTime datetimeInicio;
 
-    private Boolean activo;
+	private OffsetDateTime datetimeFin;
 
-    private OffsetDateTime fechaCreacion;
+	private Boolean activo;
 
-    private OffsetDateTime fechaModificacion;
+	private OffsetDateTime fechaCreacion;
+
+	private OffsetDateTime fechaModificacion;
+
 }

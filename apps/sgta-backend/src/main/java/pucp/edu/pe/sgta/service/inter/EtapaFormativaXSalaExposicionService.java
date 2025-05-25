@@ -6,16 +6,18 @@ import pucp.edu.pe.sgta.dto.EtapaFormativaXSalaExposicionConEtapaFormativaDTO;
 import pucp.edu.pe.sgta.dto.EtapaFormativaXSalaExposicionDto;
 
 public interface EtapaFormativaXSalaExposicionService {
-    List<EtapaFormativaXSalaExposicionDto> getAll();
 
-    EtapaFormativaXSalaExposicionDto findById(Integer id);
+	List<EtapaFormativaXSalaExposicionDto> getAll();
 
-    void create(EtapaFormativaXSalaExposicionDto dto);
+	EtapaFormativaXSalaExposicionDto findById(Integer id);
 
-    void update(EtapaFormativaXSalaExposicionDto dto);
+	void create(EtapaFormativaXSalaExposicionDto dto);
 
-    void delete(Integer id);
+	void update(EtapaFormativaXSalaExposicionDto dto);
 
-    List<EtapaFormativaXSalaExposicionConEtapaFormativaDTO> listarEtapasFormativasXSalaExposicion(
-            Integer etapaFormativaId);
+	void delete(Integer id);
+
+	List<EtapaFormativaXSalaExposicionConEtapaFormativaDTO> listarEtapasFormativasXSalaExposicion(
+			Integer etapaFormativaId);
+
 }

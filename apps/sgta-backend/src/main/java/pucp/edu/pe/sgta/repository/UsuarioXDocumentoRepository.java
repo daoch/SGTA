@@ -7,13 +7,15 @@ import java.util.List;
 
 @Repository
 public interface UsuarioXDocumentoRepository extends JpaRepository<UsuarioXDocumento, Integer> {
-    /**
-     * Listar relaciones usuario-documento para un usuario.
-     */
-    List<UsuarioXDocumento> findByUsuarioId(Integer usuarioId);
 
-    /**
-     * Listar relaciones usuario-documento para un documento.
-     */
-    List<UsuarioXDocumento> findByDocumentoId(Integer documentoId);
+	/**
+	 * Listar relaciones usuario-documento para un usuario.
+	 */
+	List<UsuarioXDocumento> findByUsuarioId(Integer usuarioId);
+
+	/**
+	 * Listar relaciones usuario-documento para un documento.
+	 */
+	List<UsuarioXDocumento> findByDocumentoId(Integer documentoId);
+
 }

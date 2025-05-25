@@ -5,7 +5,13 @@ import type React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 
@@ -24,19 +30,33 @@ export function CicloForm({ ciclo = null }: { ciclo?: Ciclo | null }) {
     <div className="space-y-6">
       <div className="space-y-2">
         <Label htmlFor="nombre">Nombre del Ciclo</Label>
-        <Input id="nombre" placeholder="Ej: 2024-I" defaultValue={ciclo?.nombre || ""} />
-        <p className="text-sm text-gray-500">Ingrese el nombre del ciclo académico (Ej: 2024-I, 2024-II)</p>
+        <Input
+          id="nombre"
+          placeholder="Ej: 2024-I"
+          defaultValue={ciclo?.nombre || ""}
+        />
+        <p className="text-sm text-gray-500">
+          Ingrese el nombre del ciclo académico (Ej: 2024-I, 2024-II)
+        </p>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="fechaInicio">Fecha de Inicio</Label>
-          <Input id="fechaInicio" type="date" defaultValue={ciclo?.fechaInicio || ""} />
+          <Input
+            id="fechaInicio"
+            type="date"
+            defaultValue={ciclo?.fechaInicio || ""}
+          />
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="fechaFin">Fecha de Fin</Label>
-          <Input id="fechaFin" type="date" defaultValue={ciclo?.fechaFin || ""} />
+          <Input
+            id="fechaFin"
+            type="date"
+            defaultValue={ciclo?.fechaFin || ""}
+          />
         </div>
       </div>
 

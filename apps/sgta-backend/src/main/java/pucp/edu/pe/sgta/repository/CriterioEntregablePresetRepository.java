@@ -8,5 +8,7 @@ import java.util.List;
 
 @Repository
 public interface CriterioEntregablePresetRepository extends JpaRepository<CriterioEntregablePreset, Integer> {
-    List<CriterioEntregablePreset> findByActivoTrue();
+
+	List<CriterioEntregablePreset> findByActivoTrue();
+
 }

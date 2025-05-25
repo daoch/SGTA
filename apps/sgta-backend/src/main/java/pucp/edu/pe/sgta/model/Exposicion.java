@@ -15,31 +15,35 @@ import java.time.OffsetDateTime;
 @Table(name = "exposicion")
 public class Exposicion {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "exposicion_id")
-    private Integer id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "exposicion_id")
+	private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "etapa_formativa_x_ciclo_id", nullable = false, foreignKey = @ForeignKey(name = "fk_texefc_ef_x_c"))
-    private EtapaFormativaXCiclo etapaFormativaXCiclo;
+	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@JoinColumn(name = "etapa_formativa_x_ciclo_id", nullable = false,
+			foreignKey = @ForeignKey(name = "fk_texefc_ef_x_c"))
+	private EtapaFormativaXCiclo etapaFormativaXCiclo;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "estado_planificacion_id", nullable = false, foreignKey = @ForeignKey(name = "fk_exp_estado_planificacion"))
-    private EstadoPlanificacion estadoPlanificacion;
+	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@JoinColumn(name = "estado_planificacion_id", nullable = false,
+			foreignKey = @ForeignKey(name = "fk_exp_estado_planificacion"))
+	private EstadoPlanificacion estadoPlanificacion;
 
-    @Column(nullable = false)
-    private Boolean activo = true;
+	@Column(nullable = false)
+	private Boolean activo = true;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
-    private String nombre;
+	@Column(nullable = false, columnDefinition = "TEXT")
+	private String nombre;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
-    private String descripcion;
+	@Column(nullable = false, columnDefinition = "TEXT")
+	private String descripcion;
 
-    @Column(name = "fecha_creacion", nullable = false, insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private OffsetDateTime fechaCreacion;
+	@Column(name = "fecha_creacion", nullable = false, insertable = false,
+			columnDefinition = "TIMESTAMP WITH TIME ZONE")
+	private OffsetDateTime fechaCreacion;
 
-    @Column(name = "fecha_modificacion", insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private OffsetDateTime fechaModificacion;
+	@Column(name = "fecha_modificacion", insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+	private OffsetDateTime fechaModificacion;
+
 }

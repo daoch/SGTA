@@ -6,6 +6,9 @@ import lombok.Setter;
 @Getter
 @Setter
 public class InfoAreaConocimientoDto {
-    private Integer idArea;
-    private String nombre;
+
+	private Integer idArea;
+
+	private String nombre;
+
 }

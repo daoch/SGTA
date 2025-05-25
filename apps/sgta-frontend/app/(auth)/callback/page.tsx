@@ -51,7 +51,14 @@ function CallbackContent() {
 
         const roles: UserRole[] = Array.isArray(rawGroups)
           ? rawGroups.filter((g): g is UserRole =>
-              ["administrador", "alumno", "jurado", "asesor", "coordinador", "revisor"].includes(g)
+              [
+                "administrador",
+                "alumno",
+                "jurado",
+                "asesor",
+                "coordinador",
+                "revisor",
+              ].includes(g),
             )
           : [];
 

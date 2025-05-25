@@ -492,4 +492,3 @@ export const asesorData = {
   id: 5,
   name: "Willians Gomez",
 };
-

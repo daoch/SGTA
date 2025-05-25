@@ -12,11 +12,19 @@ import java.time.ZonedDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UsuarioDocumentoDto {
-    private Integer id;
-    private Integer usuarioId;
-    private Integer documentoId;
-    private String permiso;
-    private boolean activo;
-    private ZonedDateTime fechaCreacion;
-    private ZonedDateTime fechaModificacion;
+
+	private Integer id;
+
+	private Integer usuarioId;
+
+	private Integer documentoId;
+
+	private String permiso;
+
+	private boolean activo;
+
+	private ZonedDateTime fechaCreacion;
+
+	private ZonedDateTime fechaModificacion;
+
 }

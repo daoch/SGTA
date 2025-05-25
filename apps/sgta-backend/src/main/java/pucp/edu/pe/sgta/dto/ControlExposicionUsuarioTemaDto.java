@@ -14,21 +14,22 @@ import java.time.OffsetDateTime;
 @AllArgsConstructor
 public class ControlExposicionUsuarioTemaDto {
 
-    private Integer id;
+	private Integer id;
 
-    private Integer exposicionXTemaId;
+	private Integer exposicionXTemaId;
 
-    private Integer usuarioId;
+	private Integer usuarioId;
 
-    private String observacionesFinalesExposicion;
+	private String observacionesFinalesExposicion;
 
-    private boolean asistio;
+	private boolean asistio;
 
-    private boolean activo;
+	private boolean activo;
 
-    private OffsetDateTime fechaCreacion;
+	private OffsetDateTime fechaCreacion;
 
-    private OffsetDateTime fechaModificacion;
+	private OffsetDateTime fechaModificacion;
 
-    private EstadoExposicionUsuario estadoExposicion;
+	private EstadoExposicionUsuario estadoExposicion;
+
 }

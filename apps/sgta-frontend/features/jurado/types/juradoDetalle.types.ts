@@ -39,7 +39,7 @@ export interface ModalDetallesExposicionProps {
 }
 
 //export interface Jurado {
-  //specialties: string[];
+//specialties: string[];
 //}
 
 export interface Tesis {
@@ -57,8 +57,6 @@ export interface Tesis {
   }[];
   rol: string;
 }
-
-
 
 export interface EspecialidadOption {
   label: string;
@@ -158,7 +156,6 @@ export interface TesisDetalleExposicion {
   }[];
 }
 
-
 export interface ModalAsignarTesisProps {
   open: boolean;
   onClose: () => void;
@@ -207,7 +204,7 @@ export enum Especialidades {
 }
 
 export interface JuradoTemasDetalle {
-  id: number,
+  id: number;
   titulo: string;
   codigo: string;
   resumen: string;
@@ -241,7 +238,7 @@ export interface EtapaFormativa {
 }
 
 export interface Ciclo {
- id: number;
- semestre: string;
- anio: number; 
+  id: number;
+  semestre: string;
+  anio: number;
 }

@@ -23,14 +23,14 @@ public class CarreraXParametroConfiguracionController {
 	@PostMapping("/update")
 	public void update(@RequestBody CarreraXParametroConfiguracionDto dto) {
 
-        //?DUDA: Se tiene que devolver ResponseEntity?
+		// ?DUDA: Se tiene que devolver ResponseEntity?
 
 		this.carreraXParametroConfiguracionService.updateCarreraXParametroConfiguracion(dto);
 	}
 
-    @GetMapping("/{carreraId}/parametros")
-    public List<CarreraXParametroConfiguracionDto> getParametros(@PathVariable Long carreraId) {
-        return this.carreraXParametroConfiguracionService.getParametrosPorCarrera(carreraId);
-    }
+	@GetMapping("/{carreraId}/parametros")
+	public List<CarreraXParametroConfiguracionDto> getParametros(@PathVariable Long carreraId) {
+		return this.carreraXParametroConfiguracionService.getParametrosPorCarrera(carreraId);
+	}
 
 }

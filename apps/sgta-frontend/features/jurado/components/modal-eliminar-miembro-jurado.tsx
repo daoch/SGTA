@@ -65,4 +65,3 @@ const ModalEliminarMiembroJurado = ({
 };
 
 export default ModalEliminarMiembroJurado;
-

@@ -7,15 +7,17 @@ import pucp.edu.pe.sgta.dto.JornadaExposicionXSalaExposicionDto;
 import pucp.edu.pe.sgta.dto.JornadaExposicionXSalaExposicionListadoDTO;
 
 public interface JornadaExposicionXSalaExposicionService {
-    List<JornadaExposicionXSalaExposicionDto> getAll();
 
-    JornadaExposicionXSalaExposicionDto findById(Integer id);
+	List<JornadaExposicionXSalaExposicionDto> getAll();
 
-    JornadaExposicionXSalaExposicionDto create(JornadaExposicionXSalaExposicionCreateDTO dto);
+	JornadaExposicionXSalaExposicionDto findById(Integer id);
 
-    void update(JornadaExposicionXSalaExposicionDto dto);
+	JornadaExposicionXSalaExposicionDto create(JornadaExposicionXSalaExposicionCreateDTO dto);
 
-    void delete(Integer id);
+	void update(JornadaExposicionXSalaExposicionDto dto);
 
-    List<JornadaExposicionXSalaExposicionListadoDTO> listarJornadasExposicionSalas(Integer exposicionId);
+	void delete(Integer id);
+
+	List<JornadaExposicionXSalaExposicionListadoDTO> listarJornadasExposicionSalas(Integer exposicionId);
+
 }

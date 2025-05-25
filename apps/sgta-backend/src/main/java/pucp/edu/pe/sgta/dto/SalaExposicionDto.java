@@ -15,10 +15,17 @@ import pucp.edu.pe.sgta.util.TipoSalaExposicion;
 @AllArgsConstructor
 @Builder
 public class SalaExposicionDto {
-    private Integer id;
-    private String nombre;
-    private Boolean activo;
-    private TipoSalaExposicion tipoSalaExposicion;
-    private OffsetDateTime fechaCreacion;
-    private OffsetDateTime fechaModificacion;
+
+	private Integer id;
+
+	private String nombre;
+
+	private Boolean activo;
+
+	private TipoSalaExposicion tipoSalaExposicion;
+
+	private OffsetDateTime fechaCreacion;
+
+	private OffsetDateTime fechaModificacion;
+
 }

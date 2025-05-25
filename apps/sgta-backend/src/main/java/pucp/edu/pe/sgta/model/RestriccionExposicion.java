@@ -16,27 +16,29 @@ import lombok.Setter;
 @Table(name = "restriccion_exposicion")
 public class RestriccionExposicion {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "restriccion_exposicion_id")
-    private Integer id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "restriccion_exposicion_id")
+	private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "exposicion_x_tema_id", foreignKey = @ForeignKey(name = "fk_bhe_exposicion_x_tema"))
-    private ExposicionXTema exposicionXTema;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "exposicion_x_tema_id", foreignKey = @ForeignKey(name = "fk_bhe_exposicion_x_tema"))
+	private ExposicionXTema exposicionXTema;
 
-    @Column(name = "datetime_inicio", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private OffsetDateTime datetimeInicio;
+	@Column(name = "datetime_inicio", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+	private OffsetDateTime datetimeInicio;
 
-    @Column(name = "datetime_fin", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private OffsetDateTime datetimeFin;
+	@Column(name = "datetime_fin", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+	private OffsetDateTime datetimeFin;
 
-    @Column(nullable = false)
-    private Boolean activo = true;
+	@Column(nullable = false)
+	private Boolean activo = true;
 
-    @Column(name = "fecha_creacion", nullable = false, insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private OffsetDateTime fechaCreacion;
+	@Column(name = "fecha_creacion", nullable = false, insertable = false,
+			columnDefinition = "TIMESTAMP WITH TIME ZONE")
+	private OffsetDateTime fechaCreacion;
 
-    @Column(name = "fecha_modificacion", insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private OffsetDateTime fechaModificacion;
+	@Column(name = "fecha_modificacion", insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+	private OffsetDateTime fechaModificacion;
+
 }

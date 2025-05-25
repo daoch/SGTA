@@ -8,9 +8,15 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class AreaFinalDTO {
-    private String teacherName;
-    private String areaName;
-    private int advisorCount;
-    private int jurorCount;
-    private int totalCount;
-} 
+
+	private String teacherName;
+
+	private String areaName;
+
+	private int advisorCount;
+
+	private int jurorCount;
+
+	private int totalCount;
+
+}

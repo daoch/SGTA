@@ -2,7 +2,6 @@ package pucp.edu.pe.sgta.dto;
 
 import lombok.*;
 
-
 @Getter
 @Setter
 @NoArgsConstructor

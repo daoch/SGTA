@@ -12,11 +12,14 @@ import java.util.List;
 
 @RequestMapping("/proyectos")
 public class ProyectoController {
-    @Autowired
-    ProyectoService proyectoService;
 
-    @GetMapping("/listarProyectosUsuarioInvolucrado/{idUsuario}")
-    public List<InfoProyectoDto> listarProyectosUsuarioInvolucrado(@PathVariable(name = "idUsuario") Integer idUsuario) {
-        return proyectoService.listarProyectosUsuarioInvolucrado(idUsuario);
-    }
+	@Autowired
+	ProyectoService proyectoService;
+
+	@GetMapping("/listarProyectosUsuarioInvolucrado/{idUsuario}")
+	public List<InfoProyectoDto> listarProyectosUsuarioInvolucrado(
+			@PathVariable(name = "idUsuario") Integer idUsuario) {
+		return proyectoService.listarProyectosUsuarioInvolucrado(idUsuario);
+	}
+
 }

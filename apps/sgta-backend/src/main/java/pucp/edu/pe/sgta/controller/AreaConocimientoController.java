@@ -18,38 +18,39 @@ public class AreaConocimientoController {
 
 	@PostMapping("/create")
 	public AreaConocimientoDto createAreaConocimiento(@RequestBody AreaConocimientoDto dto) {
-        return areaConocimientoService.create(dto);
-    }
+		return areaConocimientoService.create(dto);
+	}
 
-    @GetMapping("/list")
-    public List<AreaConocimientoDto> listAreaConocimiento() {
-        return areaConocimientoService.getAll();
-    }
+	@GetMapping("/list")
+	public List<AreaConocimientoDto> listAreaConocimiento() {
+		return areaConocimientoService.getAll();
+	}
 
-    @PostMapping("/delete/{id}")
-    public void deleteAreaConocimiento(@PathVariable Integer id) {
-        areaConocimientoService.delete(id);
-    }
+	@PostMapping("/delete/{id}")
+	public void deleteAreaConocimiento(@PathVariable Integer id) {
+		areaConocimientoService.delete(id);
+	}
 
-    //list areas por carrera
-    @GetMapping("/list/{idCarrera}")
-    public List<AreaConocimientoDto> listAreaConocimientoByCarrera(@PathVariable Integer idCarrera) {
-        return areaConocimientoService.getAllByCarrera(idCarrera);
-    }
+	// list areas por carrera
+	@GetMapping("/list/{idCarrera}")
+	public List<AreaConocimientoDto> listAreaConocimientoByCarrera(@PathVariable Integer idCarrera) {
+		return areaConocimientoService.getAllByCarrera(idCarrera);
+	}
 
-    @GetMapping("/listarPorNombre")
-    public List<InfoAreaConocimientoDto> listarInfoPorNombre(@RequestParam(name = "nombre") String nombre) {
-        return areaConocimientoService.listarInfoPorNombre(nombre);
-    }
+	@GetMapping("/listarPorNombre")
+	public List<InfoAreaConocimientoDto> listarInfoPorNombre(@RequestParam(name = "nombre") String nombre) {
+		return areaConocimientoService.listarInfoPorNombre(nombre);
+	}
 
-    @GetMapping("/listarPorUsuario") // finds a topic by id
-    public List<AreaConocimientoDto> listarPorUsuario(@RequestParam(name = "usuarioId") Integer usuarioId) {
-        return areaConocimientoService.listarPorUsuario(usuarioId);
-    }
+	@GetMapping("/listarPorUsuario") // finds a topic by id
+	public List<AreaConocimientoDto> listarPorUsuario(@RequestParam(name = "usuarioId") Integer usuarioId) {
+		return areaConocimientoService.listarPorUsuario(usuarioId);
+	}
 
-    @GetMapping("/listarTodasParaPerfilAsesor") // finds a topic by id
-    public List<InfoAreaConocimientoDto> listarPorCarrerasUsuarioParaPerfil(@RequestParam(name = "usuarioId") Integer usuarioId) {
-        return areaConocimientoService.listarPorCarrerasUsuarioParaPerfil(usuarioId);
-    }
+	@GetMapping("/listarTodasParaPerfilAsesor") // finds a topic by id
+	public List<InfoAreaConocimientoDto> listarPorCarrerasUsuarioParaPerfil(
+			@RequestParam(name = "usuarioId") Integer usuarioId) {
+		return areaConocimientoService.listarPorCarrerasUsuarioParaPerfil(usuarioId);
+	}
 
 }

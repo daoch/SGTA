@@ -12,9 +12,15 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class QueryRolResponse {
-    private List<RolDto> roles;
-    private int totalPages;
-    private long totalElements;
-    private int currentPage;
-    private int pageSize;
+
+	private List<RolDto> roles;
+
+	private int totalPages;
+
+	private long totalElements;
+
+	private int currentPage;
+
+	private int pageSize;
+
 }

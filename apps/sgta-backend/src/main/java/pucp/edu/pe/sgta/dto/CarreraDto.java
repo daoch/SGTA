@@ -10,13 +10,20 @@ import java.time.OffsetDateTime;
 @Builder
 public class CarreraDto {
 
-    private Integer id;
-    private Integer unidadAcademicaId;
+	private Integer id;
 
-    private String codigo;
-    private String nombre;
-    private String descripcion;
-    private Boolean activo;
-    private OffsetDateTime fechaCreacion;
-    private OffsetDateTime fechaModificacion;
+	private Integer unidadAcademicaId;
+
+	private String codigo;
+
+	private String nombre;
+
+	private String descripcion;
+
+	private Boolean activo;
+
+	private OffsetDateTime fechaCreacion;
+
+	private OffsetDateTime fechaModificacion;
+
 }

@@ -17,7 +17,8 @@ export default function ConfiguracionAdminPage() {
           <div>
             <h2 className="font-semibold text-lg mb-1">Gestión de Ciclos</h2>
             <p className="text-gray-500 text-sm">
-              Registre y administre los ciclos académicos para los proyectos de fin de carrera.
+              Registre y administre los ciclos académicos para los proyectos de
+              fin de carrera.
             </p>
           </div>
         </Link>
@@ -32,7 +33,8 @@ export default function ConfiguracionAdminPage() {
           <div>
             <h2 className="font-semibold text-lg mb-1">Etapas Formativas</h2>
             <p className="text-gray-500 text-sm">
-              Configure las etapas formativas (cursos de tesis) asociadas a ciclos y carreras.
+              Configure las etapas formativas (cursos de tesis) asociadas a
+              ciclos y carreras.
             </p>
           </div>
         </Link>
@@ -47,7 +49,8 @@ export default function ConfiguracionAdminPage() {
           <div>
             <h2 className="font-semibold text-lg mb-1">Gestión de Carreras</h2>
             <p className="text-gray-500 text-sm">
-              Administre las carreras disponibles en el sistema y sus configuraciones específicas.
+              Administre las carreras disponibles en el sistema y sus
+              configuraciones específicas.
             </p>
           </div>
         </Link>

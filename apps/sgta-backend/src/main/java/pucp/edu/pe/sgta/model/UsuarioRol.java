@@ -16,25 +16,27 @@ import java.time.OffsetDateTime;
 @Table(name = "usuario_rol")
 public class UsuarioRol {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "usuario_rol_id")
-    private Integer id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "usuario_rol_id")
+	private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "usuario_id", nullable = false, foreignKey = @ForeignKey(name = "fk_ur_usuario"))
-    private Usuario usuario;
+	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@JoinColumn(name = "usuario_id", nullable = false, foreignKey = @ForeignKey(name = "fk_ur_usuario"))
+	private Usuario usuario;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "rol_id", nullable = false, foreignKey = @ForeignKey(name = "fk_ur_rol"))
-    private Rol rol;
+	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@JoinColumn(name = "rol_id", nullable = false, foreignKey = @ForeignKey(name = "fk_ur_rol"))
+	private Rol rol;
 
-    @Column(nullable = false)
-    private Boolean activo = true;
+	@Column(nullable = false)
+	private Boolean activo = true;
 
-    @Column(name = "fecha_creacion", nullable = false, insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private OffsetDateTime fechaCreacion;
+	@Column(name = "fecha_creacion", nullable = false, insertable = false,
+			columnDefinition = "TIMESTAMP WITH TIME ZONE")
+	private OffsetDateTime fechaCreacion;
 
-    @Column(name = "fecha_modificacion", insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private OffsetDateTime fechaModificacion;
+	@Column(name = "fecha_modificacion", insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+	private OffsetDateTime fechaModificacion;
+
 }

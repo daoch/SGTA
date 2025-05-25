@@ -1,4 +1,5 @@
 package pucp.edu.pe.sgta.dto;
+
 import lombok.*;
 
 import java.time.LocalDate;
@@ -11,23 +12,25 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class CicloConEtapasDTO {
-    private Integer id;
 
-    private String semestre;
+	private Integer id;
 
-    private Integer anio;
+	private String semestre;
 
-    private LocalDate fechaInicio;
+	private Integer anio;
 
-    private LocalDate fechaFin;
+	private LocalDate fechaInicio;
 
-    private Boolean activo;
+	private LocalDate fechaFin;
 
-    private OffsetDateTime fechaCreacion;
+	private Boolean activo;
 
-    private OffsetDateTime fechaModificacion;
+	private OffsetDateTime fechaCreacion;
 
-    private List<String> etapasFormativas;
+	private OffsetDateTime fechaModificacion;
 
-    private Integer cantidadEtapas;
+	private List<String> etapasFormativas;
+
+	private Integer cantidadEtapas;
+
 }

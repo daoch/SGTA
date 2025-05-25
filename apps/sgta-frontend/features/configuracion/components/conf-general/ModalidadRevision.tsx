@@ -16,10 +16,11 @@ import { CarreraXParametroConfiguracion } from "../../types/CarreraXParametroCon
 const PARAM_TURNITIN = "turnitin";
 const PARAM_ANTIPLAGIO = "antiplagio";
 
-
 export default function ModalidadRevisionCard() {
   const { parametros, actualizarParametro, cargando } = useBackStore();
-  const [localParametros, setLocalParametros] = useState<CarreraXParametroConfiguracion[]>([]);
+  const [localParametros, setLocalParametros] = useState<
+    CarreraXParametroConfiguracion[]
+  >([]);
 
   useEffect(() => {
     setLocalParametros(parametros);
@@ -27,22 +28,20 @@ export default function ModalidadRevisionCard() {
 
   // Buscar los parámetros por nombre
   const turnitinParam = localParametros.find(
-    (p) => p.parametroConfiguracion.nombre === PARAM_TURNITIN
+    (p) => p.parametroConfiguracion.nombre === PARAM_TURNITIN,
   );
   const antiplagioParam = localParametros.find(
-    (p) => p.parametroConfiguracion.nombre === PARAM_ANTIPLAGIO
+    (p) => p.parametroConfiguracion.nombre === PARAM_ANTIPLAGIO,
   );
 
   // Handlers para cambiar el valor
   const handleTurnitinChange = async (checked: boolean) => {
     if (turnitinParam) {
       // Actualizar el parámetro local primero
-      setLocalParametros(prev =>
-        prev.map(p =>
-          p.id === turnitinParam.id
-            ? { ...p, valor: checked }
-            : p
-        )
+      setLocalParametros((prev) =>
+        prev.map((p) =>
+          p.id === turnitinParam.id ? { ...p, valor: checked } : p,
+        ),
       );
       // Luego actualizar el store
       actualizarParametro(turnitinParam.id, checked);
@@ -52,12 +51,10 @@ export default function ModalidadRevisionCard() {
   const handleAntiplagioChange = async (checked: boolean) => {
     if (antiplagioParam) {
       // Actualizar el parámetro local primero
-      setLocalParametros(prev =>
-        prev.map(p =>
-          p.id === antiplagioParam.id
-            ? { ...p, valor: checked }
-            : p
-        )
+      setLocalParametros((prev) =>
+        prev.map((p) =>
+          p.id === antiplagioParam.id ? { ...p, valor: checked } : p,
+        ),
       );
       // Luego actualizar el store
       actualizarParametro(antiplagioParam.id, checked);

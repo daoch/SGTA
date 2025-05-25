@@ -30,7 +30,9 @@ export function RegistroUsuariosUploader({ onUsuariosCargados }: Props) {
       const expected = ["codigo", "correo", "rol", "especialidad"];
       const esValido = expected.every((col) => headers.includes(col));
       if (!esValido) {
-        alert("El archivo no tiene el formato correcto. Verifique las columnas.");
+        alert(
+          "El archivo no tiene el formato correcto. Verifique las columnas.",
+        );
         return;
       }
 
@@ -69,19 +71,22 @@ export function RegistroUsuariosUploader({ onUsuariosCargados }: Props) {
           <ArrowLeft size={11} />
         </Link>
         <h1 className="text-2xl font-bold text-[#042354]">
-        Registro de Usuarios
+          Registro de Usuarios
         </h1>
       </div>
 
       {/* Contenido central */}
       <div className="flex flex-col items-center p-8 bg-white border rounded-md shadow-sm">
         <div className="text-center">
-          <h2 className="text-xl font-bold mb-6">Importar Usuarios desde CSV</h2>
+          <h2 className="text-xl font-bold mb-6">
+            Importar Usuarios desde CSV
+          </h2>
           <UploadCloud className="mx-auto w-12 h-12 text-gray-400 mb-4" />
 
           <p className="text-gray-600 mb-2">
             Suba un archivo CSV con el formato:{" "}
-            <strong>código, correo, rol y especialidad</strong> para importar múltiples usuarios a la vez.
+            <strong>código, correo, rol y especialidad</strong> para importar
+            múltiples usuarios a la vez.
           </p>
 
           <div className="flex items-center justify-center mt-4 text-sm text-gray-600 gap-2">
@@ -90,7 +95,7 @@ export function RegistroUsuariosUploader({ onUsuariosCargados }: Props) {
           </div>
 
           <pre className="bg-gray-100 border border-gray-300 rounded-md p-4 text-sm mt-2 text-left overflow-x-auto max-w-full">
-{`codigo,correo,rol,especialidad
+            {`codigo,correo,rol,especialidad
 12345,usuario@ejemplo.com,estudiante,Ingeniería de Software
 67890,asesor@ejemplo.com,asesor,Inteligencia Artificial`}
           </pre>
@@ -98,7 +103,10 @@ export function RegistroUsuariosUploader({ onUsuariosCargados }: Props) {
 
         <div className="flex flex-col items-center gap-4 mt-6">
           <div className="flex gap-4 items-center">
-            <label htmlFor="fileInput" className="bg-black text-white px-4 py-2 rounded cursor-pointer hover:bg-gray-900 text-sm font-medium">
+            <label
+              htmlFor="fileInput"
+              className="bg-black text-white px-4 py-2 rounded cursor-pointer hover:bg-gray-900 text-sm font-medium"
+            >
               Seleccionar Archivo CSV
             </label>
             <input

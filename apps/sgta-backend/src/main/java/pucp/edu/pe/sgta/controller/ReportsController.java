@@ -19,44 +19,47 @@ import pucp.edu.pe.sgta.service.inter.IReportService;
 @RequestMapping("/api/v1/reports")
 public class ReportsController {
 
-    private final IReportService reportingService;
+	private final IReportService reportingService;
 
-    public ReportsController(IReportService reportingService) {
-        this.reportingService = reportingService;
-    }
+	public ReportsController(IReportService reportingService) {
+		this.reportingService = reportingService;
+	}
 
-    /** RF1: estadísticas y tendencias de temas y áreas */
-    @GetMapping("/topics-areas")
-    public List<TopicAreaStatsDTO> fetchTopicAreaStats(@RequestParam Integer usuarioId,@RequestParam String ciclo) {
-        return reportingService.getTopicAreaStatistics(usuarioId,ciclo);
-    }
+	/** RF1: estadísticas y tendencias de temas y áreas */
+	@GetMapping("/topics-areas")
+	public List<TopicAreaStatsDTO> fetchTopicAreaStats(@RequestParam Integer usuarioId, @RequestParam String ciclo) {
+		return reportingService.getTopicAreaStatistics(usuarioId, ciclo);
+	}
 
-    /** RF1b: tendencias de temas por año */
-    @GetMapping("/topics-trends")
-    public List<TopicTrendDTO> fetchTopicTrendsByYear(@RequestParam Integer usuarioId) {
-        return reportingService.getTopicTrendsByYear(usuarioId);
-    }
+	/** RF1b: tendencias de temas por año */
+	@GetMapping("/topics-trends")
+	public List<TopicTrendDTO> fetchTopicTrendsByYear(@RequestParam Integer usuarioId) {
+		return reportingService.getTopicTrendsByYear(usuarioId);
+	}
 
-    /** RF2a: distribución de asesores por docente */
-    @GetMapping("/advisors-distribution")
-    public List<TeacherCountDTO> fetchAdvisorDistribution(@RequestParam Integer usuarioId,@RequestParam String ciclo) {
-        return reportingService.getAdvisorDistribution(usuarioId,ciclo);
-    }
+	/** RF2a: distribución de asesores por docente */
+	@GetMapping("/advisors-distribution")
+	public List<TeacherCountDTO> fetchAdvisorDistribution(@RequestParam Integer usuarioId, @RequestParam String ciclo) {
+		return reportingService.getAdvisorDistribution(usuarioId, ciclo);
+	}
 
-    /** RF2b: distribución de jurados por docente */
-    @GetMapping("/jurors-distribution")
-    public List<TeacherCountDTO> fetchJurorDistribution(@RequestParam Integer usuarioId,@RequestParam String ciclo) {
-        return reportingService.getJurorDistribution(usuarioId,ciclo);
-    }
-    
-    @GetMapping("/area-final")
-    public ResponseEntity<List<AreaFinalDTO>> getAreaFinal(@RequestParam Integer usuarioId, @RequestParam String ciclo) {
-        return ResponseEntity.ok(reportingService.getAreaFinal(usuarioId, ciclo));
-    }
+	/** RF2b: distribución de jurados por docente */
+	@GetMapping("/jurors-distribution")
+	public List<TeacherCountDTO> fetchJurorDistribution(@RequestParam Integer usuarioId, @RequestParam String ciclo) {
+		return reportingService.getJurorDistribution(usuarioId, ciclo);
+	}
 
-    /** RF3: Endpoint para desempeño de asesores */
-    @GetMapping("/advisors/performance")
-    public List<AdvisorPerformanceDto> getAdvisorPerformance(@RequestParam Integer usuarioId, @RequestParam String ciclo) {
-        return reportingService.getAdvisorPerformance(usuarioId, ciclo);
-    }
+	@GetMapping("/area-final")
+	public ResponseEntity<List<AreaFinalDTO>> getAreaFinal(@RequestParam Integer usuarioId,
+			@RequestParam String ciclo) {
+		return ResponseEntity.ok(reportingService.getAreaFinal(usuarioId, ciclo));
+	}
+
+	/** RF3: Endpoint para desempeño de asesores */
+	@GetMapping("/advisors/performance")
+	public List<AdvisorPerformanceDto> getAdvisorPerformance(@RequestParam Integer usuarioId,
+			@RequestParam String ciclo) {
+		return reportingService.getAdvisorPerformance(usuarioId, ciclo);
+	}
+
 }

@@ -17,64 +17,66 @@ import java.util.stream.Collectors;
 @Service
 public class CriterioEntregableServiceImpl implements CriterioEntregableService {
 
-    private final CriterioEntregableRepository criterioEntregableRepository;
+	private final CriterioEntregableRepository criterioEntregableRepository;
 
-    public CriterioEntregableServiceImpl(CriterioEntregableRepository criterioEntregableRepository) {
-        this.criterioEntregableRepository = criterioEntregableRepository;
-    }
+	public CriterioEntregableServiceImpl(CriterioEntregableRepository criterioEntregableRepository) {
+		this.criterioEntregableRepository = criterioEntregableRepository;
+	}
 
-    @Override
-    public List<CriterioEntregableDto> listarCriteriosEntregableXEntregable(Integer entregableId) {
-        List<Object[]> resultados = criterioEntregableRepository.listarCriteriosEntregableXEntregable(entregableId);
-        return resultados.stream()
-                .map(resultado -> new CriterioEntregableDto(
-                        ((Number) resultado[0]).intValue(), //id
-                        (String) resultado[1], // nombre
-                        (BigDecimal) resultado[2], // Nota maxima
-                        (String) resultado[3] //Descripcion
-                ))
-                .collect(Collectors.toList());
-    }
+	@Override
+	public List<CriterioEntregableDto> listarCriteriosEntregableXEntregable(Integer entregableId) {
+		List<Object[]> resultados = criterioEntregableRepository.listarCriteriosEntregableXEntregable(entregableId);
+		return resultados.stream()
+			.map(resultado -> new CriterioEntregableDto(((Number) resultado[0]).intValue(), // id
+					(String) resultado[1], // nombre
+					(BigDecimal) resultado[2], // Nota maxima
+					(String) resultado[3] // Descripcion
+			))
+			.collect(Collectors.toList());
+	}
 
-    @Transactional
-    @Override
-    public int crearCriterioEntregable(Integer entregableId, CriterioEntregableDto criterioEntregableDto) {
-        criterioEntregableDto.setId(null);
-        CriterioEntregable criterioEntregable = CriterioEntregableMapper.toEntity(criterioEntregableDto);
-        Entregable entregable = new Entregable();
-        entregable.setId(entregableId);
-        criterioEntregable.setEntregable(entregable);
-        criterioEntregable.setFechaCreacion(OffsetDateTime.now());
-        criterioEntregableRepository.save(criterioEntregable);
-        return criterioEntregable.getId();
-    }
+	@Transactional
+	@Override
+	public int crearCriterioEntregable(Integer entregableId, CriterioEntregableDto criterioEntregableDto) {
+		criterioEntregableDto.setId(null);
+		CriterioEntregable criterioEntregable = CriterioEntregableMapper.toEntity(criterioEntregableDto);
+		Entregable entregable = new Entregable();
+		entregable.setId(entregableId);
+		criterioEntregable.setEntregable(entregable);
+		criterioEntregable.setFechaCreacion(OffsetDateTime.now());
+		criterioEntregableRepository.save(criterioEntregable);
+		return criterioEntregable.getId();
+	}
 
-    @Transactional
-    @Override
-    public void update(CriterioEntregableDto criterioEntregableDto) {
-        CriterioEntregable criterioEntregableToUpdate = criterioEntregableRepository.findById(criterioEntregableDto.getId())
-                .orElseThrow(() -> new RuntimeException("CriterioEntregable no encontrado con ID: " + criterioEntregableDto.getId()));
+	@Transactional
+	@Override
+	public void update(CriterioEntregableDto criterioEntregableDto) {
+		CriterioEntregable criterioEntregableToUpdate = criterioEntregableRepository
+			.findById(criterioEntregableDto.getId())
+			.orElseThrow(() -> new RuntimeException(
+					"CriterioEntregable no encontrado con ID: " + criterioEntregableDto.getId()));
 
-        criterioEntregableToUpdate.setNombre(criterioEntregableDto.getNombre());
-        criterioEntregableToUpdate.setNotaMaxima(criterioEntregableDto.getNotaMaxima());
-        criterioEntregableToUpdate.setDescripcion(criterioEntregableDto.getDescripcion());
-        criterioEntregableToUpdate.setFechaModificacion(OffsetDateTime.now());
-        criterioEntregableRepository.save(criterioEntregableToUpdate);
-    }
+		criterioEntregableToUpdate.setNombre(criterioEntregableDto.getNombre());
+		criterioEntregableToUpdate.setNotaMaxima(criterioEntregableDto.getNotaMaxima());
+		criterioEntregableToUpdate.setDescripcion(criterioEntregableDto.getDescripcion());
+		criterioEntregableToUpdate.setFechaModificacion(OffsetDateTime.now());
+		criterioEntregableRepository.save(criterioEntregableToUpdate);
+	}
 
-    @Transactional
-    @Override
-    public void delete(Integer id) {
-        CriterioEntregable criterioEntregableToDelete = criterioEntregableRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("CriterioEntregable no encontrado con ID: " + id));
+	@Transactional
+	@Override
+	public void delete(Integer id) {
+		CriterioEntregable criterioEntregableToDelete = criterioEntregableRepository.findById(id)
+			.orElseThrow(() -> new RuntimeException("CriterioEntregable no encontrado con ID: " + id));
 
-        criterioEntregableToDelete.setActivo(false);
-        criterioEntregableToDelete.setFechaModificacion(OffsetDateTime.now());
-        criterioEntregableRepository.save(criterioEntregableToDelete);
-    }
+		criterioEntregableToDelete.setActivo(false);
+		criterioEntregableToDelete.setFechaModificacion(OffsetDateTime.now());
+		criterioEntregableRepository.save(criterioEntregableToDelete);
+	}
 
-    @Override
-    public CriterioEntregable findById(int id) {
-        return criterioEntregableRepository.findById(id);
-    }
+	@Override
+	public CriterioEntregable findById(int id) {
+		return criterioEntregableRepository.findById(id);
+	}
+
 }

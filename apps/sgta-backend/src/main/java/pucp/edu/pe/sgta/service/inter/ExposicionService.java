@@ -10,23 +10,24 @@ import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
 import java.util.List;
 
 public interface ExposicionService {
-    List<ExposicionDto> getAll();
 
-    List<ExposicionDto> listarExposicionesXEtapaFormativaXCiclo(Integer etapaFormativaXCicloId);
+	List<ExposicionDto> getAll();
 
-    ExposicionDto findById(Integer id);
+	List<ExposicionDto> listarExposicionesXEtapaFormativaXCiclo(Integer etapaFormativaXCicloId);
 
-    Integer create(Integer etapaFormativaXCicloId, ExposicionDto dto);
+	ExposicionDto findById(Integer id);
 
-    void update(ExposicionDto dto);
+	Integer create(Integer etapaFormativaXCicloId, ExposicionDto dto);
 
-    void delete(Integer id);
+	void update(ExposicionDto dto);
 
-    List<ExposicionNombreDTO>listarExposicionXCicloActualEtapaFormativa(Integer etapaFormativaId);
+	void delete(Integer id);
 
-    List<ListExposicionXCoordinadorDTO> listarExposicionesInicializadasXCoordinador(Integer coordinadorId);
+	List<ExposicionNombreDTO> listarExposicionXCicloActualEtapaFormativa(Integer etapaFormativaId);
 
-    List<ExposicionSinInicializarDTO>listarExposicionesSinInicializarByEtapaFormativaEnCicloActual(Integer etapaFormativaId);
+	List<ListExposicionXCoordinadorDTO> listarExposicionesInicializadasXCoordinador(Integer coordinadorId);
 
+	List<ExposicionSinInicializarDTO> listarExposicionesSinInicializarByEtapaFormativaEnCicloActual(
+			Integer etapaFormativaId);
 
 }

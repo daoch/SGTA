@@ -10,7 +10,11 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class JornadaExposicionXSalaExposicionCreateDTO {
-    private Integer id;
-    private Integer jornadaExposicionId;
-    private Integer salaExposicionId;
+
+	private Integer id;
+
+	private Integer jornadaExposicionId;
+
+	private Integer salaExposicionId;
+
 }

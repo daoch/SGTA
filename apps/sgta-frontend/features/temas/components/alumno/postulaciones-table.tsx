@@ -44,8 +44,8 @@ interface RawCoAsesor {
   primerApellido?: string;
   correoElectronico?: string;
   comentario?: string;
-  asignado?: boolean;   // directas
-  rechazado?: boolean;  // generales
+  asignado?: boolean; // directas
+  rechazado?: boolean; // generales
 }
 
 interface RawPostulacionApi {
@@ -54,8 +54,8 @@ interface RawPostulacionApi {
   subareas?: { nombre: string }[];
   resumen?: string;
   fechaLimite?: string;
-  estadoTemaNombre?: string;          // directas
-  comentario?: string;               // directas
+  estadoTemaNombre?: string; // directas
+  comentario?: string; // directas
   coasesores: RawCoAsesor[];
   tesistas: { id: number; creador?: boolean; comentario?: string }[]; // generales
 }
@@ -73,7 +73,7 @@ export function PostulacionesTable({
     decision: "aceptar" | "rechazar",
     temaId: number,
     asesorId: number,
-    alumnoId: number
+    alumnoId: number,
   ) => {
     try {
       const endpoint =
@@ -82,35 +82,38 @@ export function PostulacionesTable({
           : "rechazarPostulacionAPropuesta";
 
       const res = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/temas/${endpoint}?alumnoId=${alumnoId}&asesorId=${asesorId}&temaId=${temaId}`,
-            {
-              method: "POST",
-            }
-          );
+        `${process.env.NEXT_PUBLIC_API_URL}/temas/${endpoint}?alumnoId=${alumnoId}&asesorId=${asesorId}&temaId=${temaId}`,
+        {
+          method: "POST",
+        },
+      );
 
-          if (!res.ok) throw new Error("Error al procesar solicitud");
+      if (!res.ok) throw new Error("Error al procesar solicitud");
 
-          setPostulaciones((prev) =>
-            prev.map((p) =>
-              p.temaId === temaId && p.asesorId === asesorId
-                ? { ...p, estado: decision === "aceptar" ? "aceptado" : "rechazado" }
-                : p
-            )
-          );
-        } catch (err) {
-          console.error("Error en la API de decisión:", err);
-        }
-      };
+      setPostulaciones((prev) =>
+        prev.map((p) =>
+          p.temaId === temaId && p.asesorId === asesorId
+            ? {
+                ...p,
+                estado: decision === "aceptar" ? "aceptado" : "rechazado",
+              }
+            : p,
+        ),
+      );
+    } catch (err) {
+      console.error("Error en la API de decisión:", err);
+    }
+  };
 
   useEffect(() => {
     async function fetchAll() {
       try {
         const [dirRes, genRes] = await Promise.all([
           fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPostulacionesDirectasAMisPropuestas/41`
+            `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPostulacionesDirectasAMisPropuestas/41`,
           ),
           fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPostulacionesGeneralesAMisPropuestas/41`
+            `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPostulacionesGeneralesAMisPropuestas/41`,
           ),
         ]);
 
@@ -119,20 +122,21 @@ export function PostulacionesTable({
         const directMapped: Postulacion[] = [];
 
         dirData.forEach((item) => {
-
-          const coAceptado = item.coasesores.find(co => co.asignado === true);
+          const coAceptado = item.coasesores.find((co) => co.asignado === true);
           if (coAceptado) {
             directMapped.push({
               id: `${item.id}-${coAceptado.id}`,
               titulo: item.titulo,
               area: item.subareas?.[0]?.nombre || "—",
-              asesor: `${coAceptado.nombres} ${coAceptado.primerApellido ?? ""}`.trim(),
+              asesor:
+                `${coAceptado.nombres} ${coAceptado.primerApellido ?? ""}`.trim(),
               correoAsesor: coAceptado.correoElectronico ?? "",
               fechaLimite: item.fechaLimite?.slice(0, 10) || "",
               estado: "aceptado",
               tipo: "directa",
               descripcion: item.resumen ?? "",
-              comentarioAsesor: item.tesistas.find(t => t.creador)?.comentario ?? "",
+              comentarioAsesor:
+                item.tesistas.find((t) => t.creador)?.comentario ?? "",
               temaId: item.id,
               asesorId: coAceptado.id,
               alumnoId: 0,
@@ -152,7 +156,8 @@ export function PostulacionesTable({
                 estado: "rechazado",
                 tipo: "directa",
                 descripcion: item.resumen ?? "",
-                comentarioAsesor: item.tesistas.find(t => t.creador)?.comentario ?? "",
+                comentarioAsesor:
+                  item.tesistas.find((t) => t.creador)?.comentario ?? "",
                 temaId: item.id,
                 asesorId: co.id,
                 alumnoId: 0,
@@ -161,19 +166,19 @@ export function PostulacionesTable({
           }
         });
 
-        const generalMapped: Postulacion[] = genData.flatMap(item => {
+        const generalMapped: Postulacion[] = genData.flatMap((item) => {
           if (!item.coasesores?.length) return [];
           return item.coasesores.map((co, index) => {
             const estado: Postulacion["estado"] =
               co.rechazado === true
                 ? "rechazado"
                 : co.asignado === true
-                ? "aceptado"
-                : "pendiente";
-            const alumnoId = item.tesistas?.find(t => t.creador)?.id ?? 0;
+                  ? "aceptado"
+                  : "pendiente";
+            const alumnoId = item.tesistas?.find((t) => t.creador)?.id ?? 0;
 
             return {
-              id: `${item.id}-${co.id}-${index}`, 
+              id: `${item.id}-${co.id}-${index}`,
               titulo: item.titulo,
               area: item.subareas?.[0]?.nombre || "—",
               asesor: `${co.nombres} ${co.primerApellido ?? ""}`.trim(),
@@ -182,7 +187,8 @@ export function PostulacionesTable({
               estado,
               tipo: "general",
               descripcion: item.resumen ?? "",
-              comentarioAsesor: item.tesistas.find(t => t.creador)?.comentario ?? "",
+              comentarioAsesor:
+                item.tesistas.find((t) => t.creador)?.comentario ?? "",
               temaId: item.id,
               asesorId: co.id,
               alumnoId,
@@ -223,13 +229,9 @@ export function PostulacionesTable({
           <Badge className="bg-yellow-100 text-yellow-800">Pendiente</Badge>
         );
       case "rechazado":
-        return (
-          <Badge className="bg-red-100 text-red-800">Rechazado</Badge>
-        );
+        return <Badge className="bg-red-100 text-red-800">Rechazado</Badge>;
       case "aceptado":
-        return (
-          <Badge className="bg-green-100 text-green-800">Aceptado</Badge>
-        );
+        return <Badge className="bg-green-100 text-green-800">Aceptado</Badge>;
     }
   };
 
@@ -319,9 +321,12 @@ export function PostulacionesTable({
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>
-                                <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                <AlertDialogTitle>
+                                  ¿Estás seguro?
+                                </AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  Esta acción no se puede deshacer. Se rechazará al docente como asesor.
+                                  Esta acción no se puede deshacer. Se rechazará
+                                  al docente como asesor.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
@@ -329,7 +334,12 @@ export function PostulacionesTable({
                                 <AlertDialogAction
                                   className="bg-red-600 hover:bg-red-700 text-white"
                                   onClick={() =>
-                                    handleDecision("rechazar", p.temaId, p.asesorId, p.alumnoId)
+                                    handleDecision(
+                                      "rechazar",
+                                      p.temaId,
+                                      p.asesorId,
+                                      p.alumnoId,
+                                    )
                                   }
                                 >
                                   Rechazar
@@ -349,9 +359,12 @@ export function PostulacionesTable({
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>
-                                <AlertDialogTitle>¿Deseas aceptar esta propuesta?</AlertDialogTitle>
+                                <AlertDialogTitle>
+                                  ¿Deseas aceptar esta propuesta?
+                                </AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  El asesor será informado y se procederá a registrar tu decisión.
+                                  El asesor será informado y se procederá a
+                                  registrar tu decisión.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
@@ -359,7 +372,12 @@ export function PostulacionesTable({
                                 <AlertDialogAction
                                   className="bg-green-600 hover:bg-green-700 text-white"
                                   onClick={() =>
-                                    handleDecision("aceptar", p.temaId, p.asesorId, p.alumnoId)
+                                    handleDecision(
+                                      "aceptar",
+                                      p.temaId,
+                                      p.asesorId,
+                                      p.alumnoId,
+                                    )
                                   }
                                 >
                                   Aceptar

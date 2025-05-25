@@ -27,7 +27,9 @@ const carrera = {
   ],
 };
 
-export default function DetalleCarreraPage({ }: { params: Promise<{ id: string }>}) {
+export default function DetalleCarreraPage({}: {
+  params: Promise<{ id: string }>;
+}) {
   return (
     <div className="max-w-6xl mx-auto">
       <div className="flex items-center gap-4 mb-6">
@@ -43,10 +45,20 @@ export default function DetalleCarreraPage({ }: { params: Promise<{ id: string }
         <CardHeader className="flex flex-row items-center justify-between">
           <div className="flex items-center gap-3">
             <CardTitle>{carrera.nombre}</CardTitle>
-            <Badge variant={carrera.estado === "Activo" ? "default" : "secondary"}>{carrera.estado}</Badge>
+            <Badge
+              variant={carrera.estado === "Activo" ? "default" : "secondary"}
+            >
+              {carrera.estado}
+            </Badge>
           </div>
-          <Link href={`/administrador/configuracion/carreras/${carrera.id}/editar`}>
-            <Button variant="outline" size="sm" className="flex items-center gap-1">
+          <Link
+            href={`/administrador/configuracion/carreras/${carrera.id}/editar`}
+          >
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-1"
+            >
               <Edit size={16} />
               <span>Editar</span>
             </Button>
@@ -59,24 +71,34 @@ export default function DetalleCarreraPage({ }: { params: Promise<{ id: string }
               <p>{carrera.codigo}</p>
             </div>
             <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-1">Facultad</h3>
+              <h3 className="text-sm font-medium text-gray-500 mb-1">
+                Facultad
+              </h3>
               <p>{carrera.facultad}</p>
             </div>
           </div>
 
           <div>
-            <h3 className="text-sm font-medium text-gray-500 mb-1">Descripción</h3>
+            <h3 className="text-sm font-medium text-gray-500 mb-1">
+              Descripción
+            </h3>
             <p className="text-gray-600">{carrera.descripcion}</p>
           </div>
 
           <div>
-            <h3 className="text-sm font-medium text-gray-500 mb-2">Etapas Formativas Actuales</h3>
+            <h3 className="text-sm font-medium text-gray-500 mb-2">
+              Etapas Formativas Actuales
+            </h3>
             <div className="bg-gray-50 p-4 rounded-md">
               <table className="w-full">
                 <thead>
                   <tr className="text-left">
-                    <th className="pb-2 text-sm font-medium text-gray-500">Nombre</th>
-                    <th className="pb-2 text-sm font-medium text-gray-500">Créditos</th>
+                    <th className="pb-2 text-sm font-medium text-gray-500">
+                      Nombre
+                    </th>
+                    <th className="pb-2 text-sm font-medium text-gray-500">
+                      Créditos
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">

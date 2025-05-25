@@ -7,8 +7,10 @@ import java.util.List;
 
 @Repository
 public interface VersionXDocumentoRepository extends JpaRepository<VersionXDocumento, Integer> {
-    /**
-     * Listar versiones asociadas a un documento.
-     */
-    List<VersionXDocumento> findByDocumentoId(Integer documentoId);
+
+	/**
+	 * Listar versiones asociadas a un documento.
+	 */
+	List<VersionXDocumento> findByDocumentoId(Integer documentoId);
+
 }

@@ -74,36 +74,48 @@ interface CiclosListProps {
 //   );
 // }
 
-
 export function CiclosList({ ciclos }: CiclosListProps) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full border-collapse">
         <thead>
           <tr className="bg-gray-50 text-left">
-            <th className="px-4 py-3 text-sm font-medium text-gray-500">Ciclo</th>
-            <th className="px-4 py-3 text-sm font-medium text-gray-500">Fecha Inicio</th>
-            <th className="px-4 py-3 text-sm font-medium text-gray-500">Fecha Fin</th>
-            <th className="px-4 py-3 text-sm font-medium text-gray-500">Estado</th>
-            <th className="px-4 py-3 text-sm font-medium text-gray-500">Etapas Formativas</th>
-            <th className="px-4 py-3 text-sm font-medium text-gray-500">Acciones</th>
+            <th className="px-4 py-3 text-sm font-medium text-gray-500">
+              Ciclo
+            </th>
+            <th className="px-4 py-3 text-sm font-medium text-gray-500">
+              Fecha Inicio
+            </th>
+            <th className="px-4 py-3 text-sm font-medium text-gray-500">
+              Fecha Fin
+            </th>
+            <th className="px-4 py-3 text-sm font-medium text-gray-500">
+              Estado
+            </th>
+            <th className="px-4 py-3 text-sm font-medium text-gray-500">
+              Etapas Formativas
+            </th>
+            <th className="px-4 py-3 text-sm font-medium text-gray-500">
+              Acciones
+            </th>
           </tr>
         </thead>
         <tbody className="divide-y">
-            {ciclos.map((ciclo) => (
-          <tr key={ciclo.id}>
-            <td className="px-4 py-3 text-sm font-medium">{`${ciclo.anio}-${ciclo.semestre}`}</td>
-            <td className="px-4 py-3 text-sm">{ciclo.fechaInicio}</td>
-            <td className="px-4 py-3 text-sm">{ciclo.fechaFin}</td>
-            <td className="px-4 py-3 text-sm">
-                <Badge variant={ciclo.activo ? "default" : "secondary"}>{ciclo.activo ? "Activo" : "Inactivo"}</Badge>
-            </td>
-            <td className="px-4 py-3 text-sm">{ciclo.cantidadEtapas}</td>
-            
-          </tr>
-        ))}
-           {/* {ciclos.map((ciclo) => ( */}
-{/* //             <tr key={ciclo.id} className="hover:bg-gray-50">
+          {ciclos.map((ciclo) => (
+            <tr key={ciclo.id}>
+              <td className="px-4 py-3 text-sm font-medium">{`${ciclo.anio}-${ciclo.semestre}`}</td>
+              <td className="px-4 py-3 text-sm">{ciclo.fechaInicio}</td>
+              <td className="px-4 py-3 text-sm">{ciclo.fechaFin}</td>
+              <td className="px-4 py-3 text-sm">
+                <Badge variant={ciclo.activo ? "default" : "secondary"}>
+                  {ciclo.activo ? "Activo" : "Inactivo"}
+                </Badge>
+              </td>
+              <td className="px-4 py-3 text-sm">{ciclo.cantidadEtapas}</td>
+            </tr>
+          ))}
+          {/* {ciclos.map((ciclo) => ( */}
+          {/* //             <tr key={ciclo.id} className="hover:bg-gray-50">
 //               <td className="px-4 py-3 text-sm font-medium">{ciclo.nombre}</td>
 //               <td className="px-4 py-3 text-sm">{ciclo.fechaInicio}</td>
 //               <td className="px-4 py-3 text-sm">{ciclo.fechaFin}</td>
@@ -130,8 +142,8 @@ export function CiclosList({ ciclos }: CiclosListProps) {
 //               </td>
 //             </tr>
 //           ))} */}
-         </tbody>
-       </table>
-     </div>
-   );
- }
+        </tbody>
+      </table>
+    </div>
+  );
+}

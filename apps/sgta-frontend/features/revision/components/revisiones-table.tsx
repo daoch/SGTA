@@ -236,12 +236,13 @@ export function RevisionesTable({
                         <Progress
                           value={revision.porcentajePlagio}
                           max={30}
-                          className={`h-2 w-16 ${revision.porcentajePlagio > 20
-                            ? "bg-red-200"
-                            : revision.porcentajePlagio > 10
-                              ? "bg-yellow-200"
-                              : "bg-green-200"
-                            }`}
+                          className={`h-2 w-16 ${
+                            revision.porcentajePlagio > 20
+                              ? "bg-red-200"
+                              : revision.porcentajePlagio > 10
+                                ? "bg-yellow-200"
+                                : "bg-green-200"
+                          }`}
                         />
                         <span
                           className={
@@ -287,7 +288,9 @@ export function RevisionesTable({
                           <span className="sr-only">Ver detalles</span>
                         </Button>
                       </Link>
-                      <Link href={`/asesor/revision/revisar-doc/${revision.id}`}>
+                      <Link
+                        href={`/asesor/revision/revisar-doc/${revision.id}`}
+                      >
                         <Button
                           variant="ghost"
                           size="sm"

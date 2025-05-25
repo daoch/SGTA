@@ -6,7 +6,10 @@ import java.util.List;
 
 public interface HistorialTemaService {
 
-    public HistorialTemaDto findById(Integer id);
-    public List<HistorialTemaDto> findByTemaId(Integer id);
-    public void save(HistorialTemaDto historialTemaDto);
+	public HistorialTemaDto findById(Integer id);
+
+	public List<HistorialTemaDto> findByTemaId(Integer id);
+
+	public void save(HistorialTemaDto historialTemaDto);
+
 }

@@ -16,56 +16,57 @@ import java.time.ZonedDateTime;
 @Table(name = "observacion")
 public class Observacion {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "observacion_id")
-    private Integer observacionId;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "observacion_id")
+	private Integer observacionId;
 
-    @ManyToOne
-    @JoinColumn(name = "tipo_observacion_id", referencedColumnName = "tipo_observacion_id")
-    private TipoObservacion tipoObservacion;
+	@ManyToOne
+	@JoinColumn(name = "tipo_observacion_id", referencedColumnName = "tipo_observacion_id")
+	private TipoObservacion tipoObservacion;
 
-    @ManyToOne
-    @JoinColumn(name = "revision_id", referencedColumnName = "revision_documento_id")
-    private RevisionDocumento revisionDocumento;
+	@ManyToOne
+	@JoinColumn(name = "revision_id", referencedColumnName = "revision_documento_id")
+	private RevisionDocumento revisionDocumento;
 
-    @ManyToOne
-    @JoinColumn(name = "usuario_creacion_id", referencedColumnName = "usuario_id")
-    private Usuario usuarioCreacion;
+	@ManyToOne
+	@JoinColumn(name = "usuario_creacion_id", referencedColumnName = "usuario_id")
+	private Usuario usuarioCreacion;
 
-    @Min(value = 1, message = "El número de página inicial debe ser mayor a 0")
-    @Column(name = "numero_pagina_inicio")
-    private Integer numeroPaginaInicio;
+	@Min(value = 1, message = "El número de página inicial debe ser mayor a 0")
+	@Column(name = "numero_pagina_inicio")
+	private Integer numeroPaginaInicio;
 
-    @Min(value = 1, message = "El número de página final debe ser mayor a 0")
-    @Column(name = "numero_pagina_fin")
-    private Integer numeroPaginaFin;
+	@Min(value = 1, message = "El número de página final debe ser mayor a 0")
+	@Column(name = "numero_pagina_fin")
+	private Integer numeroPaginaFin;
 
-    @NotBlank(message = "El comentario no puede estar vacío")
-    @Column(name = "comentario", nullable = false)
-    private String comentario;
+	@NotBlank(message = "El comentario no puede estar vacío")
+	@Column(name = "comentario", nullable = false)
+	private String comentario;
 
-    @Column(name = "es_automatico", nullable = false)
-    private Boolean esAutomatico = false;
+	@Column(name = "es_automatico", nullable = false)
+	private Boolean esAutomatico = false;
 
-    @Column(name = "fecha_creacion", nullable = false, updatable = false)
-    private ZonedDateTime fechaCreacion = ZonedDateTime.now();
+	@Column(name = "fecha_creacion", nullable = false, updatable = false)
+	private ZonedDateTime fechaCreacion = ZonedDateTime.now();
 
-    @Column(name = "fecha_modificacion")
-    private ZonedDateTime fechaModificacion;
+	@Column(name = "fecha_modificacion")
+	private ZonedDateTime fechaModificacion;
 
-    @Column(name = "activo")
-    private Boolean activo = true;
+	@Column(name = "activo")
+	private Boolean activo = true;
 
-    /**
-     * Valida si el rango de páginas es válido (página de inicio <= página de fin)
-     */
-    @AssertTrue(message = "La página inicial debe ser menor o igual a la página final")
-    private boolean esRangoPaginasValido() {
-        // Si ambos valores son nulos, no validar el rango
-        if (numeroPaginaInicio == null || numeroPaginaFin == null) {
-            return true;
-        }
-        return numeroPaginaInicio <= numeroPaginaFin;
-    }
+	/**
+	 * Valida si el rango de páginas es válido (página de inicio <= página de fin)
+	 */
+	@AssertTrue(message = "La página inicial debe ser menor o igual a la página final")
+	private boolean esRangoPaginasValido() {
+		// Si ambos valores son nulos, no validar el rango
+		if (numeroPaginaInicio == null || numeroPaginaFin == null) {
+			return true;
+		}
+		return numeroPaginaInicio <= numeroPaginaFin;
+	}
+
 }

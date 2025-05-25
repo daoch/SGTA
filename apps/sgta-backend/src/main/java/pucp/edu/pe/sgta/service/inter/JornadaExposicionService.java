@@ -6,14 +6,15 @@ import pucp.edu.pe.sgta.dto.JornadaExposicionCreateDTO;
 import pucp.edu.pe.sgta.dto.JornadaExposicionDto;
 
 public interface JornadaExposicionService {
-    List<JornadaExposicionDto> getAll();
 
-    JornadaExposicionDto findById(Integer id);
+	List<JornadaExposicionDto> getAll();
 
-    JornadaExposicionDto create(JornadaExposicionCreateDTO dto);
+	JornadaExposicionDto findById(Integer id);
 
-    void update(JornadaExposicionDto dto);
+	JornadaExposicionDto create(JornadaExposicionCreateDTO dto);
 
-    void delete(Integer id);
+	void update(JornadaExposicionDto dto);
+
+	void delete(Integer id);
 
 }

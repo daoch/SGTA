@@ -10,7 +10,8 @@ import lombok.*;
 
 public class EtapaFormativaNombreDTO {
 
-    private Integer etapaFormativaId;
+	private Integer etapaFormativaId;
 
-    private String nombre;
+	private String nombre;
+
 }

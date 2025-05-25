@@ -1,8 +1,20 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
 // Datos de ejemplo
@@ -18,16 +30,26 @@ interface Entregable {
   descripcion?: string;
 }
 
-export function EntregableForm({ entregable = null }: { entregable?: Entregable | null }) {
+export function EntregableForm({
+  entregable = null,
+}: {
+  entregable?: Entregable | null;
+}) {
   return (
     <Card className="max-w-3xl mx-auto">
       <CardHeader>
-        <CardTitle>{entregable ? "Editar Entregable" : "Nuevo Entregable"}</CardTitle>
+        <CardTitle>
+          {entregable ? "Editar Entregable" : "Nuevo Entregable"}
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="nombre">Nombre del Entregable</Label>
-          <Input id="nombre" placeholder="Ej: Propuesta de Proyecto" defaultValue={entregable?.nombre || ""} />
+          <Input
+            id="nombre"
+            placeholder="Ej: Propuesta de Proyecto"
+            defaultValue={entregable?.nombre || ""}
+          />
         </div>
 
         <div className="space-y-2">
@@ -48,7 +70,11 @@ export function EntregableForm({ entregable = null }: { entregable?: Entregable 
 
         <div className="space-y-2">
           <Label htmlFor="plazo">Plazo de Entrega</Label>
-          <Input id="plazo" placeholder="Ej: Semana 4" defaultValue={entregable?.plazo || ""} />
+          <Input
+            id="plazo"
+            placeholder="Ej: Semana 4"
+            defaultValue={entregable?.plazo || ""}
+          />
         </div>
 
         <div className="space-y-2">

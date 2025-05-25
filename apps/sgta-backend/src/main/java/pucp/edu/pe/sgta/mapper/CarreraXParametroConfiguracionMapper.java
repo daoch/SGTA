@@ -7,55 +7,58 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import pucp.edu.pe.sgta.model.Carrera;
 
-
 public class CarreraXParametroConfiguracionMapper {
 
-	public static CarreraXParametroConfiguracionDto toDto(CarreraXParametroConfiguracion carreraXParametroConfiguracion) {
+	public static CarreraXParametroConfiguracionDto toDto(
+			CarreraXParametroConfiguracion carreraXParametroConfiguracion) {
 		CarreraXParametroConfiguracionDto dto = new CarreraXParametroConfiguracionDto();
 		dto.setId(carreraXParametroConfiguracion.getId());
 
-        String valor = carreraXParametroConfiguracion.getValor();
-        TipoDatoEnum tipo = carreraXParametroConfiguracion.getParametroConfiguracion().getTipoDato();
+		String valor = carreraXParametroConfiguracion.getValor();
+		TipoDatoEnum tipo = carreraXParametroConfiguracion.getParametroConfiguracion().getTipoDato();
 
-        //Pasar valores de acuerdo al tipo de dato
-        switch (tipo) {
-            case booleano:
-                // Si el tipo es booleano, convierte el valor a Boolean
-                dto.setValor(Boolean.parseBoolean(valor));
-                break;
-            case integer:
-                // Si el tipo es Integer, convierte el valor a Integer
-                dto.setValor(Integer.parseInt(valor)); 
-                break;
-            case date:
-                // Si el tipo es Date, convierte el valor a Date o ZonedDateTime 
-                DateTimeFormatter formatter = DateTimeFormatter.ISO_ZONED_DATE_TIME;
-                dto.setValor(ZonedDateTime.parse(valor, formatter)); // Si el valor es una fecha en formato ISO
-                break;
-            case string:
-            default:
-                dto.setValor(valor); 
-                break;
-        }
+		// Pasar valores de acuerdo al tipo de dato
+		switch (tipo) {
+			case booleano:
+				// Si el tipo es booleano, convierte el valor a Boolean
+				dto.setValor(Boolean.parseBoolean(valor));
+				break;
+			case integer:
+				// Si el tipo es Integer, convierte el valor a Integer
+				dto.setValor(Integer.parseInt(valor));
+				break;
+			case date:
+				// Si el tipo es Date, convierte el valor a Date o ZonedDateTime
+				DateTimeFormatter formatter = DateTimeFormatter.ISO_ZONED_DATE_TIME;
+				dto.setValor(ZonedDateTime.parse(valor, formatter)); // Si el valor es una
+																		// fecha en
+																		// formato ISO
+				break;
+			case string:
+			default:
+				dto.setValor(valor);
+				break;
+		}
 
-        
 		dto.setActivo(carreraXParametroConfiguracion.getActivo());
-        dto.setCarreraId(carreraXParametroConfiguracion.getCarrera().getId());
-        dto.setParametroConfiguracion(ParametroConfiguracionMapper.toDto(carreraXParametroConfiguracion.getParametroConfiguracion()));
+		dto.setCarreraId(carreraXParametroConfiguracion.getCarrera().getId());
+		dto.setParametroConfiguracion(
+				ParametroConfiguracionMapper.toDto(carreraXParametroConfiguracion.getParametroConfiguracion()));
 
 		return dto;
 	}
 
-    public static CarreraXParametroConfiguracion toEntity(CarreraXParametroConfiguracionDto dto) {
+	public static CarreraXParametroConfiguracion toEntity(CarreraXParametroConfiguracionDto dto) {
 		CarreraXParametroConfiguracion carreraXParametroConfiguracion = new CarreraXParametroConfiguracion();
 		carreraXParametroConfiguracion.setId(dto.getId());
-        carreraXParametroConfiguracion.setValor(dto.getValor().toString()); 
+		carreraXParametroConfiguracion.setValor(dto.getValor().toString());
 		carreraXParametroConfiguracion.setActivo(dto.getActivo());
-        Carrera carrera = new Carrera(); 
-        carrera.setId(dto.getCarreraId());
-        carreraXParametroConfiguracion.setCarrera(carrera);
-        carreraXParametroConfiguracion.setParametroConfiguracion(ParametroConfiguracionMapper.toEntity(dto.getParametroConfiguracion()));
-        return carreraXParametroConfiguracion;
+		Carrera carrera = new Carrera();
+		carrera.setId(dto.getCarreraId());
+		carreraXParametroConfiguracion.setCarrera(carrera);
+		carreraXParametroConfiguracion
+			.setParametroConfiguracion(ParametroConfiguracionMapper.toEntity(dto.getParametroConfiguracion()));
+		return carreraXParametroConfiguracion;
 
 	}
 

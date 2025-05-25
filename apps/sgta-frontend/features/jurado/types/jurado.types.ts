@@ -91,20 +91,20 @@ export interface EtapaFormativaExposiciones {
   exposiciones: Exposicion[];
 }
 
-export interface  Usuario{
+export interface Usuario {
   idUsario: number;
-  nombres : string;
+  nombres: string;
   apellidos: string;
-  rol : Rol;
+  rol: Rol;
 }
 
-export interface Rol{
+export interface Rol {
   id: number;
-  nombre:string;
+  nombre: string;
 }
 
-export interface ExposicionJurado{
-  id_exposicion:number;
+export interface ExposicionJurado {
+  id_exposicion: number;
   fechahora: Date;
   sala: string;
   estado: string;
@@ -116,13 +116,13 @@ export interface ExposicionJurado{
   miembros: MiembroJuradoExpo[];
 }
 
-export interface MiembroJuradoExpo{
+export interface MiembroJuradoExpo {
   id_persona: number;
   nombre: string;
   tipo: string;
 }
 
-export interface EvaluacionExposicionJurado{
+export interface EvaluacionExposicionJurado {
   id_exposicion: number;
   titulo: string;
   estudiantes: Estudiante[];
@@ -130,7 +130,7 @@ export interface EvaluacionExposicionJurado{
   observaciones_finales: string;
 }
 
-export interface CriterioEvaluacion{
+export interface CriterioEvaluacion {
   id: number;
   titulo: string;
   descripcion: string;

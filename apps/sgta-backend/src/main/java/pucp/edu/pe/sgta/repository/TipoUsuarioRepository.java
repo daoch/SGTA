@@ -8,5 +8,7 @@ import pucp.edu.pe.sgta.model.TipoUsuario;
 
 @Repository
 public interface TipoUsuarioRepository extends JpaRepository<TipoUsuario, Integer> {
-    Optional<TipoUsuario> findByNombre(String nombre);
+
+	Optional<TipoUsuario> findByNombre(String nombre);
+
 }

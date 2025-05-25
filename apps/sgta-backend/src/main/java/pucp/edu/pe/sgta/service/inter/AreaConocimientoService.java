@@ -24,4 +24,5 @@ public interface AreaConocimientoService {
 	List<InfoAreaConocimientoDto> listarInfoPorNombre(String nombre);
 
 	List<InfoAreaConocimientoDto> listarPorCarrerasUsuarioParaPerfil(Integer idUsuario);
+
 }

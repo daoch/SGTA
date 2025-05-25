@@ -8,7 +8,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TopicTrendDTO {
-    private String areaName;
-    private Integer year;
-    private Integer topicCount;
-} 
+
+	private String areaName;
+
+	private Integer year;
+
+	private Integer topicCount;
+
+}

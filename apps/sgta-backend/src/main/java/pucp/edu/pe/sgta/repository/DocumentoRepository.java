@@ -7,4 +7,5 @@ import pucp.edu.pe.sgta.model.Documento;
 
 @Repository
 public interface DocumentoRepository extends JpaRepository<Documento, Integer> {
-} 
+
+}

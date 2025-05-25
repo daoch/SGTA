@@ -14,9 +14,10 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 public class TipoDedicacionDTO {
-  private Integer id;
 
-  private String iniciales;
+	private Integer id;
+
+	private String iniciales;
 
 	private String descripcion;
 
@@ -25,4 +26,5 @@ public class TipoDedicacionDTO {
 	private OffsetDateTime fechaCreacion;
 
 	private OffsetDateTime fechaModificacion;
+
 }

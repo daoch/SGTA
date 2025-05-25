@@ -14,7 +14,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { addDays, isBefore, parseISO } from "date-fns";
 
 export function StudentReports() {
@@ -43,7 +49,8 @@ export function StudentReports() {
     currentPhase: "Metodología",
     nextDeadline: "25/04/2023",
     daysRemaining: 7,
-    thesis: "Implementación de algoritmos de machine learning para detección de fraudes",
+    thesis:
+      "Implementación de algoritmos de machine learning para detección de fraudes",
     area: "Inteligencia Artificial",
     advisor: {
       name: "Dr. Carlos Rodríguez",
@@ -57,26 +64,75 @@ export function StudentReports() {
   };
 
   const timelineEvents = [
-    { date: "15/01/2023", event: "Propuesta de proyecto aprobada", status: "Completado" },
-    { date: "30/01/2023", event: "Asignación de asesor: Dr. Rodríguez", status: "Completado" },
-    { date: "15/02/2023", event: "Plan de trabajo aprobado", status: "Completado" },
-    { date: "01/03/2023", event: "Primera reunión con asesor", status: "Completado" },
-    { date: "15/03/2023", event: "Entrega parcial de marco teórico", status: "Completado" },
-    { date: "30/03/2023", event: "Revisión de marco teórico", status: "En progreso" },
-    { date: "15/04/2023", event: "Entrega de metodología", status: "Pendiente", isLate: true },
-    { date: "30/04/2023", event: "Revisión de metodología", status: "Pendiente" },
-    { date: "15/05/2023", event: "Avance de implementación", status: "Pendiente" },
-    { date: "30/05/2023", event: "Revisión de implementación", status: "Pendiente" },
+    {
+      date: "15/01/2023",
+      event: "Propuesta de proyecto aprobada",
+      status: "Completado",
+    },
+    {
+      date: "30/01/2023",
+      event: "Asignación de asesor: Dr. Rodríguez",
+      status: "Completado",
+    },
+    {
+      date: "15/02/2023",
+      event: "Plan de trabajo aprobado",
+      status: "Completado",
+    },
+    {
+      date: "01/03/2023",
+      event: "Primera reunión con asesor",
+      status: "Completado",
+    },
+    {
+      date: "15/03/2023",
+      event: "Entrega parcial de marco teórico",
+      status: "Completado",
+    },
+    {
+      date: "30/03/2023",
+      event: "Revisión de marco teórico",
+      status: "En progreso",
+    },
+    {
+      date: "15/04/2023",
+      event: "Entrega de metodología",
+      status: "Pendiente",
+      isLate: true,
+    },
+    {
+      date: "30/04/2023",
+      event: "Revisión de metodología",
+      status: "Pendiente",
+    },
+    {
+      date: "15/05/2023",
+      event: "Avance de implementación",
+      status: "Pendiente",
+    },
+    {
+      date: "30/05/2023",
+      event: "Revisión de implementación",
+      status: "Pendiente",
+    },
     { date: "15/06/2023", event: "Entrega de resultados", status: "Pendiente" },
-    { date: "30/06/2023", event: "Revisión de resultados", status: "Pendiente" },
+    {
+      date: "30/06/2023",
+      event: "Revisión de resultados",
+      status: "Pendiente",
+    },
     { date: "15/07/2023", event: "Documento final", status: "Pendiente" },
     { date: "30/07/2023", event: "Defensa de proyecto", status: "Pendiente" },
   ].map((event) => {
     // Convertir fecha de string a objeto Date
-    const eventDate = parseISO(`${event.date.split("/").reverse().join("-")}T00:00:00`);
+    const eventDate = parseISO(
+      `${event.date.split("/").reverse().join("-")}T00:00:00`,
+    );
 
     // Calcular días restantes
-    const daysRemaining = Math.ceil((eventDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24));
+    const daysRemaining = Math.ceil(
+      (eventDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24),
+    );
 
     // Determinar si está en riesgo (menos de 3 días para completar y no está completado ni en progreso)
     const isAtRisk =
@@ -95,15 +151,23 @@ export function StudentReports() {
 
   // Filtrar eventos por tiempo
   const filteredByTime = timelineEvents.filter((event) => {
-    const eventDate = parseISO(`${event.date.split("/").reverse().join("-")}T00:00:00`);
+    const eventDate = parseISO(
+      `${event.date.split("/").reverse().join("-")}T00:00:00`,
+    );
 
     switch (timeFilter) {
       case "past":
         return isBefore(eventDate, currentDate);
       case "upcoming30":
-        return !isBefore(eventDate, currentDate) && isBefore(eventDate, addDays(currentDate, 30));
+        return (
+          !isBefore(eventDate, currentDate) &&
+          isBefore(eventDate, addDays(currentDate, 30))
+        );
       case "upcoming90":
-        return !isBefore(eventDate, currentDate) && isBefore(eventDate, addDays(currentDate, 90));
+        return (
+          !isBefore(eventDate, currentDate) &&
+          isBefore(eventDate, addDays(currentDate, 90))
+        );
       case "all":
       default:
         return true;
@@ -113,21 +177,33 @@ export function StudentReports() {
   // Filtrar eventos por estado
   const filteredEvents = filteredByTime.filter((event) => {
     if (statusFilter === "all") return true;
-    if (statusFilter === "completed" && event.status === "Completado") return true;
-    if (statusFilter === "inProgress" && event.status === "En progreso") return true;
-    if (statusFilter === "pending" && event.status === "Pendiente" && !event.isLate && !event.isAtRisk) return true;
+    if (statusFilter === "completed" && event.status === "Completado")
+      return true;
+    if (statusFilter === "inProgress" && event.status === "En progreso")
+      return true;
+    if (
+      statusFilter === "pending" &&
+      event.status === "Pendiente" &&
+      !event.isLate &&
+      !event.isAtRisk
+    )
+      return true;
     if (statusFilter === "late" && event.isLate) return true;
     if (statusFilter === "atRisk" && event.isAtRisk) return true;
     return false;
   });
 
   // Calcular progreso general
-  const completedEvents = timelineEvents.filter((event) => event.status === "Completado").length;
+  const completedEvents = timelineEvents.filter(
+    (event) => event.status === "Completado",
+  ).length;
   const totalEvents = timelineEvents.length;
   const overallProgress = Math.round((completedEvents / totalEvents) * 100);
 
   // Verificar si hay entregas retrasadas
-  const lateDeliveries = pendingDeliveries.filter((delivery) => delivery.isLate);
+  const lateDeliveries = pendingDeliveries.filter(
+    (delivery) => delivery.isLate,
+  );
   const hasLateDeliveries = lateDeliveries.length > 0;
 
   // Función para manejar el clic en el botón de filtro por estado
@@ -139,13 +215,17 @@ export function StudentReports() {
     <div className="space-y-6">
       {/* Alerta de entregas retrasadas */}
       {hasLateDeliveries && (
-        <Alert variant="destructive" className="bg-red-50 border-red-200 text-red-800">
+        <Alert
+          variant="destructive"
+          className="bg-red-50 border-red-200 text-red-800"
+        >
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Entregas pendientes con retraso</AlertTitle>
           <AlertDescription>
-            Tienes {lateDeliveries.length} entrega(s) con retraso. La entrega de <b>{lateDeliveries[0].name}</b> debió
-            presentarse el {lateDeliveries[0].dueDate} ({lateDeliveries[0].daysLate} días de retraso). Por favor,
-            contacta a tu asesor lo antes posible.
+            Tienes {lateDeliveries.length} entrega(s) con retraso. La entrega de{" "}
+            <b>{lateDeliveries[0].name}</b> debió presentarse el{" "}
+            {lateDeliveries[0].dueDate} ({lateDeliveries[0].daysLate} días de
+            retraso). Por favor, contacta a tu asesor lo antes posible.
           </AlertDescription>
         </Alert>
       )}
@@ -162,13 +242,19 @@ export function StudentReports() {
             <DialogHeader>
               <DialogTitle>Programar Envío de Reportes</DialogTitle>
               <DialogDescription>
-                Configura la frecuencia con la que deseas recibir reportes automáticos en tu correo.
+                Configura la frecuencia con la que deseas recibir reportes
+                automáticos en tu correo.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Frecuencia de envío</label>
-                <Select value={scheduleFrequency} onValueChange={setScheduleFrequency}>
+                <label className="text-sm font-medium">
+                  Frecuencia de envío
+                </label>
+                <Select
+                  value={scheduleFrequency}
+                  onValueChange={setScheduleFrequency}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecciona frecuencia" />
                   </SelectTrigger>
@@ -180,7 +266,9 @@ export function StudentReports() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Formato de reporte</label>
+                <label className="text-sm font-medium">
+                  Formato de reporte
+                </label>
                 <Select defaultValue="pdf">
                   <SelectTrigger>
                     <SelectValue placeholder="Selecciona formato" />
@@ -192,7 +280,9 @@ export function StudentReports() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Correo electrónico</label>
+                <label className="text-sm font-medium">
+                  Correo electrónico
+                </label>
                 <input
                   type="email"
                   className="w-full px-3 py-2 border rounded-md"
@@ -221,20 +311,34 @@ export function StudentReports() {
                     style={{
                       borderTopColor: "transparent",
                       borderRightColor: `${
-                        studentData.progress < 30 ? "#ef4444" : studentData.progress < 70 ? "#eab308" : "#22c55e"
+                        studentData.progress < 30
+                          ? "#ef4444"
+                          : studentData.progress < 70
+                            ? "#eab308"
+                            : "#22c55e"
                       }`,
                       borderBottomColor: `${
-                        studentData.progress < 30 ? "#ef4444" : studentData.progress < 70 ? "#eab308" : "#22c55e"
+                        studentData.progress < 30
+                          ? "#ef4444"
+                          : studentData.progress < 70
+                            ? "#eab308"
+                            : "#22c55e"
                       }`,
                       borderLeftColor: `${
-                        studentData.progress < 30 ? "#ef4444" : studentData.progress < 70 ? "#eab308" : "#22c55e"
+                        studentData.progress < 30
+                          ? "#ef4444"
+                          : studentData.progress < 70
+                            ? "#eab308"
+                            : "#22c55e"
                       }`,
                       transform: `rotate(${studentData.progress * 3.6}deg)`,
                     }}
                   ></div>
                 </div>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-sm font-bold">{studentData.progress}%</span>
+                  <span className="text-sm font-bold">
+                    {studentData.progress}%
+                  </span>
                 </div>
               </div>
 
@@ -244,11 +348,15 @@ export function StudentReports() {
                 <div className="mt-2 grid grid-cols-2 gap-2">
                   <div>
                     <p className="text-xs text-gray-500">Fase actual:</p>
-                    <p className="text-sm font-medium">{studentData.currentPhase}</p>
+                    <p className="text-sm font-medium">
+                      {studentData.currentPhase}
+                    </p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500">Fecha límite:</p>
-                    <p className="text-sm font-medium">{studentData.nextDeadline}</p>
+                    <p className="text-sm font-medium">
+                      {studentData.nextDeadline}
+                    </p>
                   </div>
                 </div>
 
@@ -275,22 +383,34 @@ export function StudentReports() {
           <CardContent className="py-2">
             <div className="space-y-3">
               <div>
-                <h3 className="text-xs text-gray-500">Proyecto de Fin de Carrera:</h3>
-                <p className="text-sm font-medium line-clamp-2">{studentData.thesis}</p>
+                <h3 className="text-xs text-gray-500">
+                  Proyecto de Fin de Carrera:
+                </h3>
+                <p className="text-sm font-medium line-clamp-2">
+                  {studentData.thesis}
+                </p>
                 <div className="mt-1">
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-[#006699] text-white">{studentData.area}</span>
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-[#006699] text-white">
+                    {studentData.area}
+                  </span>
                 </div>
               </div>
 
               <div className="pt-2 border-t border-gray-200">
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <h3 className="text-xs text-gray-500 mb-1">Asesor principal:</h3>
-                    <p className="text-sm font-medium">{studentData.advisor.name}</p>
+                    <h3 className="text-xs text-gray-500 mb-1">
+                      Asesor principal:
+                    </h3>
+                    <p className="text-sm font-medium">
+                      {studentData.advisor.name}
+                    </p>
                   </div>
                   <div>
                     <h3 className="text-xs text-gray-500 mb-1">Co-asesor:</h3>
-                    <p className="text-sm font-medium">{studentData.coAdvisor.name}</p>
+                    <p className="text-sm font-medium">
+                      {studentData.coAdvisor.name}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -336,7 +456,9 @@ export function StudentReports() {
                         Todos
                       </Button>
                       <Button
-                        variant={statusFilter === "completed" ? "default" : "outline"}
+                        variant={
+                          statusFilter === "completed" ? "default" : "outline"
+                        }
                         size="sm"
                         className="w-full justify-start"
                         onClick={() => {
@@ -347,7 +469,9 @@ export function StudentReports() {
                         Completado
                       </Button>
                       <Button
-                        variant={statusFilter === "inProgress" ? "default" : "outline"}
+                        variant={
+                          statusFilter === "inProgress" ? "default" : "outline"
+                        }
                         size="sm"
                         className="w-full justify-start"
                         onClick={() => {
@@ -358,7 +482,9 @@ export function StudentReports() {
                         En progreso
                       </Button>
                       <Button
-                        variant={statusFilter === "pending" ? "default" : "outline"}
+                        variant={
+                          statusFilter === "pending" ? "default" : "outline"
+                        }
                         size="sm"
                         className="w-full justify-start"
                         onClick={() => {
@@ -369,7 +495,9 @@ export function StudentReports() {
                         Pendiente
                       </Button>
                       <Button
-                        variant={statusFilter === "late" ? "default" : "outline"}
+                        variant={
+                          statusFilter === "late" ? "default" : "outline"
+                        }
                         size="sm"
                         className="w-full justify-start"
                         onClick={() => {
@@ -380,7 +508,9 @@ export function StudentReports() {
                         Retrasado
                       </Button>
                       <Button
-                        variant={statusFilter === "atRisk" ? "default" : "outline"}
+                        variant={
+                          statusFilter === "atRisk" ? "default" : "outline"
+                        }
                         size="sm"
                         className="w-full justify-start"
                         onClick={() => {
@@ -416,11 +546,15 @@ export function StudentReports() {
                     }`}
                   ></div>
                   <div>
-                    <time className="mb-1 text-xs font-normal text-gray-500">{event.date}</time>
+                    <time className="mb-1 text-xs font-normal text-gray-500">
+                      {event.date}
+                    </time>
                     <h3 className="text-sm font-medium">
                       {event.event}
                       {event.isLate && (
-                        <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-800">Retrasado</span>
+                        <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-800">
+                          Retrasado
+                        </span>
                       )}
                       {event.isAtRisk && (
                         <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800">

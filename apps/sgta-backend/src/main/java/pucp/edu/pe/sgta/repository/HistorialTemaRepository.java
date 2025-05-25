@@ -9,5 +9,7 @@ import java.util.Optional;
 
 @Repository
 public interface HistorialTemaRepository extends JpaRepository<HistorialTema, Integer> {
-    public List<HistorialTema> findByTemaId(Integer temaId);
+
+	public List<HistorialTema> findByTemaId(Integer temaId);
+
 }

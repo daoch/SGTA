@@ -11,6 +11,9 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CicloTesisDto {
-    private Integer id;
-    private String nombre;
+
+	private Integer id;
+
+	private String nombre;
+
 }

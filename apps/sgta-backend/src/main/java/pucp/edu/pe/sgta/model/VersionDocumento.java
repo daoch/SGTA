@@ -15,32 +15,34 @@ import java.time.OffsetDateTime;
 @AllArgsConstructor
 @Table(name = "version_documento")
 public class VersionDocumento {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "version_documento_id")
-    private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "documento_id", foreignKey = @ForeignKey(name = "fk_version_documento_documento"))
-    private Documento documento;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "version_documento_id")
+	private Integer id;
 
-    // Falta RevisionDocumentoID
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "documento_id", foreignKey = @ForeignKey(name = "fk_version_documento_documento"))
+	private Documento documento;
 
-    @Column(name = "fecha_ultima_subida", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private OffsetDateTime fechaUltimaSubida;
+	// Falta RevisionDocumentoID
 
-    @Column(name = "numero_version")
-    private Integer numeroVersion;
+	@Column(name = "fecha_ultima_subida", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+	private OffsetDateTime fechaUltimaSubida;
 
-    @Column(name = "link_archivo_subido", nullable = false)
-    private String linkArchivoSubido;
+	@Column(name = "numero_version")
+	private Integer numeroVersion;
 
-    @Column(nullable = false)
-    private Boolean activo = true;
+	@Column(name = "link_archivo_subido", nullable = false)
+	private String linkArchivoSubido;
 
-    @Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private OffsetDateTime fechaCreacion;
+	@Column(nullable = false)
+	private Boolean activo = true;
 
-    @Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private OffsetDateTime fechaModificacion;
-} 
+	@Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+	private OffsetDateTime fechaCreacion;
+
+	@Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+	private OffsetDateTime fechaModificacion;
+
+}

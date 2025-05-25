@@ -1,4 +1,5 @@
 package pucp.edu.pe.sgta.model;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,25 +18,27 @@ import java.time.OffsetDateTime;
 @Table(name = "sala_exposicion")
 public class SalaExposicion {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "sala_exposicion_id")
-    private Integer id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "sala_exposicion_id")
+	private Integer id;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
-    private String nombre;
+	@Column(nullable = false, columnDefinition = "TEXT")
+	private String nombre;
 
-    @Column(nullable = false)
-    private Boolean activo = true;
+	@Column(nullable = false)
+	private Boolean activo = true;
 
-    //@Enumerated(EnumType.STRING)
-    @Convert(converter = TipoSalaExposicionConverter.class)
-    @Column(name = "tipo_sala_exposicion", nullable = false)
-    private TipoSalaExposicion tipoSalaExposicion = TipoSalaExposicion.PRESENCIAL;
+	// @Enumerated(EnumType.STRING)
+	@Convert(converter = TipoSalaExposicionConverter.class)
+	@Column(name = "tipo_sala_exposicion", nullable = false)
+	private TipoSalaExposicion tipoSalaExposicion = TipoSalaExposicion.PRESENCIAL;
 
-    @Column(name = "fecha_creacion", nullable = false, insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private OffsetDateTime fechaCreacion;
+	@Column(name = "fecha_creacion", nullable = false, insertable = false,
+			columnDefinition = "TIMESTAMP WITH TIME ZONE")
+	private OffsetDateTime fechaCreacion;
 
-    @Column(name = "fecha_modificacion", insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private OffsetDateTime fechaModificacion;
+	@Column(name = "fecha_modificacion", insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+	private OffsetDateTime fechaModificacion;
+
 }

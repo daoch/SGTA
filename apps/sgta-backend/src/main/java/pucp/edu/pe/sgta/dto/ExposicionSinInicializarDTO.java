@@ -10,7 +10,11 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ExposicionSinInicializarDTO {
-    private Integer exposicionId;
-    private String nombre;
-    private Boolean inicializada;
+
+	private Integer exposicionId;
+
+	private String nombre;
+
+	private Boolean inicializada;
+
 }

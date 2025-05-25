@@ -16,26 +16,28 @@ import java.time.OffsetDateTime;
 @AllArgsConstructor
 @Table(name = "criterio_exposicion_preset")
 public class CriterioExposicionPreset {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "criterio_exposicion_preset_id")
-    private Integer id;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
-    private String nombre;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "criterio_exposicion_preset_id")
+	private Integer id;
 
-    @Column(columnDefinition = "TEXT")
-    private String descripcion;
+	@Column(nullable = false, columnDefinition = "TEXT")
+	private String nombre;
 
-    @Column(name = "nota_maxima", nullable = false, precision = 5, scale = 2)
-    private BigDecimal notaMaxima;
+	@Column(columnDefinition = "TEXT")
+	private String descripcion;
 
-    @Column(nullable = false)
-    private boolean activo = true;
+	@Column(name = "nota_maxima", nullable = false, precision = 5, scale = 2)
+	private BigDecimal notaMaxima;
 
-    @Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private OffsetDateTime fechaCreacion;
+	@Column(nullable = false)
+	private boolean activo = true;
 
-    @Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private OffsetDateTime fechaModificacion;
+	@Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+	private OffsetDateTime fechaCreacion;
+
+	@Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+	private OffsetDateTime fechaModificacion;
+
 }

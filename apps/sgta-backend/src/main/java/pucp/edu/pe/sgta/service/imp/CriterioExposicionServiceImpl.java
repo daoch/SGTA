@@ -17,75 +17,74 @@ import pucp.edu.pe.sgta.service.inter.CriterioExposicionService;
 
 @Service
 public class CriterioExposicionServiceImpl implements CriterioExposicionService {
-    private final CriterioExposicionRepository criterioExposicionRepository;
 
-    public CriterioExposicionServiceImpl(CriterioExposicionRepository criterioExposicionRepository) {
-        this.criterioExposicionRepository = criterioExposicionRepository;
-    }
+	private final CriterioExposicionRepository criterioExposicionRepository;
 
-    @Override
-    public List<CriterioExposicionDto> getAll() {
-        List<CriterioExposicion> criteriosExposicion = criterioExposicionRepository.findAll();
-        return criteriosExposicion.stream().map(CriterioExposicionMapper::toDto).collect(Collectors.toList());
+	public CriterioExposicionServiceImpl(CriterioExposicionRepository criterioExposicionRepository) {
+		this.criterioExposicionRepository = criterioExposicionRepository;
+	}
 
-    }
+	@Override
+	public List<CriterioExposicionDto> getAll() {
+		List<CriterioExposicion> criteriosExposicion = criterioExposicionRepository.findAll();
+		return criteriosExposicion.stream().map(CriterioExposicionMapper::toDto).collect(Collectors.toList());
 
-    @Override
-    public List<CriterioExposicionDto> listarCriteriosExposicionXExposicion(Integer exposicionId) {
+	}
 
-        List<Object[]> resultados = criterioExposicionRepository.listarCriteriosExposicionXExposicion(exposicionId);
-        return resultados.stream()
-                .map(resultado -> new CriterioExposicionDto(
-                        ((Number) resultado[0]).intValue(), //id
-                        ((Number) resultado[1]).intValue(), // id exposicion
-                        (String) resultado[2], // nombre
-                        (String) resultado[3], // descripcion
-                        ((BigDecimal) resultado[4]) // nota maxima
-                ))
-                .collect(Collectors.toList());
-    }
+	@Override
+	public List<CriterioExposicionDto> listarCriteriosExposicionXExposicion(Integer exposicionId) {
 
-    @Override
-    public CriterioExposicionDto findById(Integer id) {
-        return criterioExposicionRepository.findById(id)
-                .map(CriterioExposicionMapper::toDto)
-                .orElse(null);
-    }
+		List<Object[]> resultados = criterioExposicionRepository.listarCriteriosExposicionXExposicion(exposicionId);
+		return resultados.stream()
+			.map(resultado -> new CriterioExposicionDto(((Number) resultado[0]).intValue(), // id
+					((Number) resultado[1]).intValue(), // id exposicion
+					(String) resultado[2], // nombre
+					(String) resultado[3], // descripcion
+					((BigDecimal) resultado[4]) // nota maxima
+			))
+			.collect(Collectors.toList());
+	}
 
-    @Transactional
-    @Override
-    public Integer create(Integer exposicionId, CriterioExposicionDto dto) {
-        dto.setId(null);
-        CriterioExposicion criterioExposicion = CriterioExposicionMapper.toEntity(dto);
-        Exposicion exposicion = new Exposicion();
-        exposicion.setId(exposicionId);
-        criterioExposicion.setExposicion(exposicion);
-        criterioExposicion.setFechaCreacion(OffsetDateTime.now());
+	@Override
+	public CriterioExposicionDto findById(Integer id) {
+		return criterioExposicionRepository.findById(id).map(CriterioExposicionMapper::toDto).orElse(null);
+	}
 
-        criterioExposicionRepository.save(criterioExposicion);
-        return criterioExposicion.getId();
-    }
+	@Transactional
+	@Override
+	public Integer create(Integer exposicionId, CriterioExposicionDto dto) {
+		dto.setId(null);
+		CriterioExposicion criterioExposicion = CriterioExposicionMapper.toEntity(dto);
+		Exposicion exposicion = new Exposicion();
+		exposicion.setId(exposicionId);
+		criterioExposicion.setExposicion(exposicion);
+		criterioExposicion.setFechaCreacion(OffsetDateTime.now());
 
-    @Transactional
-    @Override
-    public void update(CriterioExposicionDto dto) {
-        CriterioExposicion criterioToUpdate = criterioExposicionRepository.findById(dto.getId())
-                .orElseThrow(() -> new RuntimeException("CriterioExposicion no encontrado con ID: " + dto.getId()));
+		criterioExposicionRepository.save(criterioExposicion);
+		return criterioExposicion.getId();
+	}
 
-        criterioToUpdate.setNombre(dto.getNombre());
-        criterioToUpdate.setDescripcion(dto.getDescripcion());
-        criterioToUpdate.setNotaMaxima(dto.getNotaMaxima());
-        criterioToUpdate.setFechaModificacion(OffsetDateTime.now());
-        criterioExposicionRepository.save(criterioToUpdate);
-    }
+	@Transactional
+	@Override
+	public void update(CriterioExposicionDto dto) {
+		CriterioExposicion criterioToUpdate = criterioExposicionRepository.findById(dto.getId())
+			.orElseThrow(() -> new RuntimeException("CriterioExposicion no encontrado con ID: " + dto.getId()));
 
-    @Override
-    public void delete(Integer id) {
-        CriterioExposicion criterioExposicionToDelete = criterioExposicionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("CriterioExposicion no encontrado con ID: " + id));
+		criterioToUpdate.setNombre(dto.getNombre());
+		criterioToUpdate.setDescripcion(dto.getDescripcion());
+		criterioToUpdate.setNotaMaxima(dto.getNotaMaxima());
+		criterioToUpdate.setFechaModificacion(OffsetDateTime.now());
+		criterioExposicionRepository.save(criterioToUpdate);
+	}
 
-        criterioExposicionToDelete.setActivo(false);
-        criterioExposicionToDelete.setFechaModificacion(OffsetDateTime.now());
-        criterioExposicionRepository.save(criterioExposicionToDelete);
-    }
+	@Override
+	public void delete(Integer id) {
+		CriterioExposicion criterioExposicionToDelete = criterioExposicionRepository.findById(id)
+			.orElseThrow(() -> new RuntimeException("CriterioExposicion no encontrado con ID: " + id));
+
+		criterioExposicionToDelete.setActivo(false);
+		criterioExposicionToDelete.setFechaModificacion(OffsetDateTime.now());
+		criterioExposicionRepository.save(criterioExposicionToDelete);
+	}
+
 }

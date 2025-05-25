@@ -10,7 +10,9 @@ import java.util.List;
 
 @Repository
 public interface AdvisorPerformanceRepository extends JpaRepository<Usuario, Integer> {
-    
-    @Query(value = "SELECT * FROM get_advisor_performance_by_user(:usuarioId, :cicloNombre)", nativeQuery = true)
-    List<Object[]> getAdvisorPerformanceByUser(@Param("usuarioId") Integer usuarioId, @Param("cicloNombre") String cicloNombre);
-} 
+
+	@Query(value = "SELECT * FROM get_advisor_performance_by_user(:usuarioId, :cicloNombre)", nativeQuery = true)
+	List<Object[]> getAdvisorPerformanceByUser(@Param("usuarioId") Integer usuarioId,
+			@Param("cicloNombre") String cicloNombre);
+
+}

@@ -12,16 +12,29 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ExposicionTemaMiembrosDto {
-    private Integer id_exposicion;
-    private OffsetDateTime fechahora;
-    private String sala;
-    private String estado;
-    private Integer id_etapa_formativa;
-    private String nombre_etapa_formativa;
-    private String titulo;
-    private Integer ciclo_id;
-    private Integer ciclo_anio;
-    private String ciclo_semestre;
-    private EstadoExposicionUsuario estado_control;
-    private List<MiembroExposicionDto> miembros;
+
+	private Integer id_exposicion;
+
+	private OffsetDateTime fechahora;
+
+	private String sala;
+
+	private String estado;
+
+	private Integer id_etapa_formativa;
+
+	private String nombre_etapa_formativa;
+
+	private String titulo;
+
+	private Integer ciclo_id;
+
+	private Integer ciclo_anio;
+
+	private String ciclo_semestre;
+
+	private EstadoExposicionUsuario estado_control;
+
+	private List<MiembroExposicionDto> miembros;
+
 }

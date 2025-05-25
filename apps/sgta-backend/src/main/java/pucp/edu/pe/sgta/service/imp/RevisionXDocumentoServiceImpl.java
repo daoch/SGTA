@@ -18,42 +18,40 @@ import java.util.stream.Collectors;
 @Service
 public class RevisionXDocumentoServiceImpl implements RevisionXDocumentoService {
 
-    private final RevisionXDocumentoRepository repository;
-    private final VersionXDocumentoRepository versionRepository;
+	private final RevisionXDocumentoRepository repository;
 
-    public RevisionXDocumentoServiceImpl(RevisionXDocumentoRepository repository,
-                                         VersionXDocumentoRepository versionRepository) {
-        this.repository = repository;
-        this.versionRepository = versionRepository;
-    }
+	private final VersionXDocumentoRepository versionRepository;
 
-    @Override
-    @Transactional
-    public RevisionDocumentoDto crearRevision(Integer versionDocumentoId, Integer usuarioId,
-                                              java.time.LocalDate fechaRevision,
-                                              String estadoRevision,
-                                              String linkArchivoRevision) {
-        VersionXDocumento version = versionRepository.findById(versionDocumentoId)
-                .orElseThrow(() -> new DocumentoNotFoundException("Versión no encontrada: " + versionDocumentoId));
+	public RevisionXDocumentoServiceImpl(RevisionXDocumentoRepository repository,
+			VersionXDocumentoRepository versionRepository) {
+		this.repository = repository;
+		this.versionRepository = versionRepository;
+	}
 
-        RevisionXDocumento rev = new RevisionXDocumento();
-        rev.setVersionDocumento(version);
-        rev.setUsuarioId(usuarioId);
-        rev.setFechaRevision(fechaRevision);
-        rev.setEstadoRevision(estadoRevision);
-        rev.setLinkArchivoRevision(linkArchivoRevision);
-        rev.setActivo(true);
-        rev.setFechaCreacion(OffsetDateTime.now());
+	@Override
+	@Transactional
+	public RevisionDocumentoDto crearRevision(Integer versionDocumentoId, Integer usuarioId,
+			java.time.LocalDate fechaRevision, String estadoRevision, String linkArchivoRevision) {
+		VersionXDocumento version = versionRepository.findById(versionDocumentoId)
+			.orElseThrow(() -> new DocumentoNotFoundException("Versión no encontrada: " + versionDocumentoId));
 
-        RevisionXDocumento guardado = repository.save(rev);
-        return RevisionDocumentoMapper.toDto(guardado);
-    }
+		RevisionXDocumento rev = new RevisionXDocumento();
+		rev.setVersionDocumento(version);
+		rev.setUsuarioId(usuarioId);
+		rev.setFechaRevision(fechaRevision);
+		rev.setEstadoRevision(estadoRevision);
+		rev.setLinkArchivoRevision(linkArchivoRevision);
+		rev.setActivo(true);
+		rev.setFechaCreacion(OffsetDateTime.now());
 
-    @Override
-    public List<RevisionDocumentoDto> listarRevisionesPorVersion(Integer versionDocumentoId) {
-        List<RevisionXDocumento> list = repository.findByVersionDocumentoId(versionDocumentoId);
-        return list.stream()
-                .map(RevisionDocumentoMapper::toDto)
-                .collect(Collectors.toList());
-    }
+		RevisionXDocumento guardado = repository.save(rev);
+		return RevisionDocumentoMapper.toDto(guardado);
+	}
+
+	@Override
+	public List<RevisionDocumentoDto> listarRevisionesPorVersion(Integer versionDocumentoId) {
+		List<RevisionXDocumento> list = repository.findByVersionDocumentoId(versionDocumentoId);
+		return list.stream().map(RevisionDocumentoMapper::toDto).collect(Collectors.toList());
+	}
+
 }

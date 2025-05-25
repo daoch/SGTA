@@ -8,7 +8,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ParticipanteDto {
-    private Integer id;
-    private String nombre;
-    private String tipo;
+
+	private Integer id;
+
+	private String nombre;
+
+	private String tipo;
+
 }

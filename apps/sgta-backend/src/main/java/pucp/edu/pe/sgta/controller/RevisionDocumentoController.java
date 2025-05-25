@@ -14,37 +14,39 @@ import java.util.List;
 @RequestMapping("/revision")
 public class RevisionDocumentoController {
 
-    @Autowired
-    private RevisionDocumentoService revisionDocumentoService;
+	@Autowired
+	private RevisionDocumentoService revisionDocumentoService;
 
-    @GetMapping("/findAll")
-    public List<RevisionDto> getAllRevisiones() {
-        return revisionDocumentoService.findAllRevisionesCompletas();
-    }
-    
-    @GetMapping("/findByRevisor")
-    public List<RevisionDto> getRevisionesByRevisor(@RequestParam("revisorId") Integer revisorId) {
-        return revisionDocumentoService.findRevisionesByRevisorId(revisorId);
-    }
+	@GetMapping("/findAll")
+	public List<RevisionDto> getAllRevisiones() {
+		return revisionDocumentoService.findAllRevisionesCompletas();
+	}
 
-    @GetMapping("/findByUsuario")
-    public List<RevisionDocumento> getRevisionesByUsuario(@RequestParam("idUsuario") Integer usuarioId) {
-        return revisionDocumentoService.findByUsuarioId(usuarioId);
-    }
+	@GetMapping("/findByRevisor")
+	public List<RevisionDto> getRevisionesByRevisor(@RequestParam("revisorId") Integer revisorId) {
+		return revisionDocumentoService.findRevisionesByRevisorId(revisorId);
+	}
 
-    @GetMapping("/findByDocumento")
-    public List<RevisionDocumento> getRevisionesByDocumento(@RequestParam("idDocumento") Integer documentoId) {
-        return revisionDocumentoService.findByVersionDocumentoDocumentoId(documentoId);
-    }
+	@GetMapping("/findByUsuario")
+	public List<RevisionDocumento> getRevisionesByUsuario(@RequestParam("idUsuario") Integer usuarioId) {
+		return revisionDocumentoService.findByUsuarioId(usuarioId);
+	}
 
-    @GetMapping("/findByEstado")
-    public ResponseEntity<List<RevisionDocumento>> getRevisionesByEstado(@RequestParam("estado") String estado) {
-        try {
-            EstadoRevision estadoRevision = EstadoRevision.valueOf(estado.toUpperCase());
-            return ResponseEntity.ok(revisionDocumentoService.findByEstadoRevision(estadoRevision));
-        } catch (IllegalArgumentException e) {
-            // Si el estado no es válido, retornar una lista vacía con un estado 200
-            return ResponseEntity.ok(List.of());
-        }
-    }
+	@GetMapping("/findByDocumento")
+	public List<RevisionDocumento> getRevisionesByDocumento(@RequestParam("idDocumento") Integer documentoId) {
+		return revisionDocumentoService.findByVersionDocumentoDocumentoId(documentoId);
+	}
+
+	@GetMapping("/findByEstado")
+	public ResponseEntity<List<RevisionDocumento>> getRevisionesByEstado(@RequestParam("estado") String estado) {
+		try {
+			EstadoRevision estadoRevision = EstadoRevision.valueOf(estado.toUpperCase());
+			return ResponseEntity.ok(revisionDocumentoService.findByEstadoRevision(estadoRevision));
+		}
+		catch (IllegalArgumentException e) {
+			// Si el estado no es válido, retornar una lista vacía con un estado 200
+			return ResponseEntity.ok(List.of());
+		}
+	}
+
 }

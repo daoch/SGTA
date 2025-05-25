@@ -8,7 +8,11 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 public class SubAreasConocimientoDto {
-    private Integer id;
-    private String nombre;
-    private Integer id_area_conocimiento;
+
+	private Integer id;
+
+	private String nombre;
+
+	private Integer id_area_conocimiento;
+
 }

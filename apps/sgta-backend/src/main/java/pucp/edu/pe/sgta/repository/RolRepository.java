@@ -10,14 +10,16 @@ import java.util.Optional;
 
 @Repository
 public interface RolRepository extends JpaRepository<Rol, Integer> {
-    
-    /**
-     * Busca un rol por su nombre exacto
-     */
-    Optional<Rol> findByNombre(String nombre);
-    
-    /**
-     * Busca roles cuyo nombre contenga el texto proporcionado (ignorando mayúsculas/minúsculas)
-     */
-    Page<Rol> findByNombreContainingIgnoreCase(String nombre, Pageable pageable);
+
+	/**
+	 * Busca un rol por su nombre exacto
+	 */
+	Optional<Rol> findByNombre(String nombre);
+
+	/**
+	 * Busca roles cuyo nombre contenga el texto proporcionado (ignorando
+	 * mayúsculas/minúsculas)
+	 */
+	Page<Rol> findByNombreContainingIgnoreCase(String nombre, Pageable pageable);
+
 }

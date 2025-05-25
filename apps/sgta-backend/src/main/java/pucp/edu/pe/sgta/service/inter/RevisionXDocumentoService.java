@@ -5,8 +5,10 @@ import java.util.List;
 import java.time.LocalDate;
 
 public interface RevisionXDocumentoService {
-    RevisionDocumentoDto crearRevision(Integer versionDocumentoId, Integer usuarioId,
-                                       LocalDate fechaRevision, String estadoRevision,
-                                       String linkArchivoRevision);
-    List<RevisionDocumentoDto> listarRevisionesPorVersion(Integer versionDocumentoId);
+
+	RevisionDocumentoDto crearRevision(Integer versionDocumentoId, Integer usuarioId, LocalDate fechaRevision,
+			String estadoRevision, String linkArchivoRevision);
+
+	List<RevisionDocumentoDto> listarRevisionesPorVersion(Integer versionDocumentoId);
+
 }

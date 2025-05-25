@@ -170,4 +170,3 @@ function formatDate(fechaISO: string): string {
   const anio = fecha.getUTCFullYear();
   return `${dia}/${mes}/${anio}`;
 }
-

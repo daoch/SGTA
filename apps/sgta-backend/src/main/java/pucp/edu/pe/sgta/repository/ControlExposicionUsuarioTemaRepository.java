@@ -6,5 +6,8 @@ import pucp.edu.pe.sgta.model.ControlExposicionUsuarioTema;
 import java.util.Optional;
 
 public interface ControlExposicionUsuarioTemaRepository extends JpaRepository<ControlExposicionUsuarioTema, Integer> {
-    Optional<ControlExposicionUsuarioTema> findByExposicionXTema_IdAndUsuario_Id(Integer exposicionXTemaId, Integer usuarioXTemaId);
+
+	Optional<ControlExposicionUsuarioTema> findByExposicionXTema_IdAndUsuario_Id(Integer exposicionXTemaId,
+			Integer usuarioXTemaId);
+
 }

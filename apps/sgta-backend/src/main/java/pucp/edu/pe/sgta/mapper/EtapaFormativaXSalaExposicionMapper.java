@@ -7,34 +7,35 @@ import pucp.edu.pe.sgta.model.SalaExposicion;
 
 public class EtapaFormativaXSalaExposicionMapper {
 
-    public static EtapaFormativaXSalaExposicionDto toDto(EtapaFormativaXSalaExposicion etapaFormativaXSalaExposicion) {
-        EtapaFormativaXSalaExposicionDto dto = new EtapaFormativaXSalaExposicionDto();
-        dto.setId(etapaFormativaXSalaExposicion.getId());
-        dto.setEtapaFormativaId(etapaFormativaXSalaExposicion.getEtapaFormativa().getId());
-        dto.setSalaExposicionId(etapaFormativaXSalaExposicion.getSalaExposicion().getId());
-        dto.setActivo(etapaFormativaXSalaExposicion.getActivo());
-        dto.setFechaCreacion(etapaFormativaXSalaExposicion.getFechaCreacion());
-        dto.setFechaModificacion(etapaFormativaXSalaExposicion.getFechaModificacion());
-        return dto;
-    }
+	public static EtapaFormativaXSalaExposicionDto toDto(EtapaFormativaXSalaExposicion etapaFormativaXSalaExposicion) {
+		EtapaFormativaXSalaExposicionDto dto = new EtapaFormativaXSalaExposicionDto();
+		dto.setId(etapaFormativaXSalaExposicion.getId());
+		dto.setEtapaFormativaId(etapaFormativaXSalaExposicion.getEtapaFormativa().getId());
+		dto.setSalaExposicionId(etapaFormativaXSalaExposicion.getSalaExposicion().getId());
+		dto.setActivo(etapaFormativaXSalaExposicion.getActivo());
+		dto.setFechaCreacion(etapaFormativaXSalaExposicion.getFechaCreacion());
+		dto.setFechaModificacion(etapaFormativaXSalaExposicion.getFechaModificacion());
+		return dto;
+	}
 
-    public static EtapaFormativaXSalaExposicion toEntity(EtapaFormativaXSalaExposicionDto dto) {
-        EtapaFormativaXSalaExposicion etapaFormativaXSalaExposicion = new EtapaFormativaXSalaExposicion();
+	public static EtapaFormativaXSalaExposicion toEntity(EtapaFormativaXSalaExposicionDto dto) {
+		EtapaFormativaXSalaExposicion etapaFormativaXSalaExposicion = new EtapaFormativaXSalaExposicion();
 
-        etapaFormativaXSalaExposicion.setId(dto.getId());
+		etapaFormativaXSalaExposicion.setId(dto.getId());
 
-        EtapaFormativa etapaFormativa = new EtapaFormativa();
-        etapaFormativa.setId(dto.getEtapaFormativaId());
-        etapaFormativaXSalaExposicion.setEtapaFormativa(etapaFormativa);
+		EtapaFormativa etapaFormativa = new EtapaFormativa();
+		etapaFormativa.setId(dto.getEtapaFormativaId());
+		etapaFormativaXSalaExposicion.setEtapaFormativa(etapaFormativa);
 
-        SalaExposicion salaExposicion = new SalaExposicion();
-        salaExposicion.setId(dto.getSalaExposicionId());
-        etapaFormativaXSalaExposicion.setSalaExposicion(salaExposicion);
+		SalaExposicion salaExposicion = new SalaExposicion();
+		salaExposicion.setId(dto.getSalaExposicionId());
+		etapaFormativaXSalaExposicion.setSalaExposicion(salaExposicion);
 
-        etapaFormativaXSalaExposicion.setActivo(dto.getActivo());
-        etapaFormativaXSalaExposicion.setFechaCreacion(dto.getFechaCreacion());
-        etapaFormativaXSalaExposicion.setFechaModificacion(dto.getFechaModificacion());
+		etapaFormativaXSalaExposicion.setActivo(dto.getActivo());
+		etapaFormativaXSalaExposicion.setFechaCreacion(dto.getFechaCreacion());
+		etapaFormativaXSalaExposicion.setFechaModificacion(dto.getFechaModificacion());
 
-        return etapaFormativaXSalaExposicion;
-    }
+		return etapaFormativaXSalaExposicion;
+	}
+
 }

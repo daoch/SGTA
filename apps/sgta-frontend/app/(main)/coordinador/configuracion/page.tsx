@@ -1,9 +1,8 @@
 import Configuracion from "@/features/configuracion/views/Configuracion";
 
-
 export default function ConfiguracionPage() {
   return (
-    <Configuracion/>
+    <Configuracion />
     // <div className="px-2 py-6 ">
     //   <h1 className="text-2xl font-bold mb-6">Configuración</h1>
 

@@ -21,77 +21,82 @@ import pucp.edu.pe.sgta.service.inter.JornadaExposicionXSalaExposicionService;
 
 @Service
 public class JornadaExposicionXSalaExposicionServiceImpl implements JornadaExposicionXSalaExposicionService {
-    @Autowired
-    JornadaExposicionXSalaExposicionRepository jornadaExposicionXSalaExposicionRepository;
 
-    public JornadaExposicionXSalaExposicionServiceImpl(
-            JornadaExposicionXSalaExposicionRepository jornadaExposicionXSalaExposicionRepository) {
-        this.jornadaExposicionXSalaExposicionRepository = jornadaExposicionXSalaExposicionRepository;
-    }
+	@Autowired
+	JornadaExposicionXSalaExposicionRepository jornadaExposicionXSalaExposicionRepository;
 
-    @Override
-    public List<JornadaExposicionXSalaExposicionDto> getAll() {
-        return List.of();
-    }
+	public JornadaExposicionXSalaExposicionServiceImpl(
+			JornadaExposicionXSalaExposicionRepository jornadaExposicionXSalaExposicionRepository) {
+		this.jornadaExposicionXSalaExposicionRepository = jornadaExposicionXSalaExposicionRepository;
+	}
 
-    @Override
-    public JornadaExposicionXSalaExposicionDto findById(Integer id) {
-        JornadaExposicionXSalaExposicion jornadaExposicionXSalaExposicion = jornadaExposicionXSalaExposicionRepository
-                .findById(id).orElse(null);
-        if (jornadaExposicionXSalaExposicion != null) {
-            return JornadaExposicionXSalaExposicionMapper.toDto(jornadaExposicionXSalaExposicion);
-        }
-        return null;
-    }
+	@Override
+	public List<JornadaExposicionXSalaExposicionDto> getAll() {
+		return List.of();
+	}
 
-    @Override
-    public JornadaExposicionXSalaExposicionDto create(JornadaExposicionXSalaExposicionCreateDTO dto) {
-        JornadaExposicionXSalaExposicion jese = jornadaExposicionXSalaExposicionRepository
-                .save(JornadaExposicionXSalaExposicionMapper.toEntity(dto));
-        return JornadaExposicionXSalaExposicionMapper.toDto(jese);
-    }
+	@Override
+	public JornadaExposicionXSalaExposicionDto findById(Integer id) {
+		JornadaExposicionXSalaExposicion jornadaExposicionXSalaExposicion = jornadaExposicionXSalaExposicionRepository
+			.findById(id)
+			.orElse(null);
+		if (jornadaExposicionXSalaExposicion != null) {
+			return JornadaExposicionXSalaExposicionMapper.toDto(jornadaExposicionXSalaExposicion);
+		}
+		return null;
+	}
 
-    @Override
-    public void update(JornadaExposicionXSalaExposicionDto dto) {
+	@Override
+	public JornadaExposicionXSalaExposicionDto create(JornadaExposicionXSalaExposicionCreateDTO dto) {
+		JornadaExposicionXSalaExposicion jese = jornadaExposicionXSalaExposicionRepository
+			.save(JornadaExposicionXSalaExposicionMapper.toEntity(dto));
+		return JornadaExposicionXSalaExposicionMapper.toDto(jese);
+	}
 
-    }
+	@Override
+	public void update(JornadaExposicionXSalaExposicionDto dto) {
 
-    @Override
-    public void delete(Integer id) {
+	}
 
-    }
+	@Override
+	public void delete(Integer id) {
 
-    @Override
-    public List<JornadaExposicionXSalaExposicionListadoDTO> listarJornadasExposicionSalas(Integer exposicionId) {
-        List<Object[]> objects = jornadaExposicionXSalaExposicionRepository.listarJornadasExposicionSalas(exposicionId);
+	}
 
-        Map<Integer, JornadaExposicionXSalaExposicionListadoDTO> mapaJornadas = new LinkedHashMap<>();
+	@Override
+	public List<JornadaExposicionXSalaExposicionListadoDTO> listarJornadasExposicionSalas(Integer exposicionId) {
+		List<Object[]> objects = jornadaExposicionXSalaExposicionRepository.listarJornadasExposicionSalas(exposicionId);
 
-        for (Object[] obj : objects) {
-            Integer jornadaId = (Integer) obj[0];
+		Map<Integer, JornadaExposicionXSalaExposicionListadoDTO> mapaJornadas = new LinkedHashMap<>();
 
-            // Verificar si ya existe la jornada en el mapa
-            JornadaExposicionXSalaExposicionListadoDTO jornadaDTO = mapaJornadas.get(jornadaId);
-            if (jornadaDTO == null) {
-                jornadaDTO = new JornadaExposicionXSalaExposicionListadoDTO();
-                jornadaDTO.setJornadaExposicionId(jornadaId);
-                jornadaDTO.setDatetimeInicio(Timestamp.from((Instant) obj[1]));
-                jornadaDTO.setDatetimeFin(Timestamp.from((Instant) obj[2]));
-                jornadaDTO.setSalasExposicion(new ArrayList<>()); // Importante inicializar la lista
+		for (Object[] obj : objects) {
+			Integer jornadaId = (Integer) obj[0];
 
-                mapaJornadas.put(jornadaId, jornadaDTO);
-            }
+			// Verificar si ya existe la jornada en el mapa
+			JornadaExposicionXSalaExposicionListadoDTO jornadaDTO = mapaJornadas.get(jornadaId);
+			if (jornadaDTO == null) {
+				jornadaDTO = new JornadaExposicionXSalaExposicionListadoDTO();
+				jornadaDTO.setJornadaExposicionId(jornadaId);
+				jornadaDTO.setDatetimeInicio(Timestamp.from((Instant) obj[1]));
+				jornadaDTO.setDatetimeFin(Timestamp.from((Instant) obj[2]));
+				jornadaDTO.setSalasExposicion(new ArrayList<>()); // Importante
+																	// inicializar la
+																	// lista
 
-            // Si la sala es distinta de null, agregarla
-            if (obj[4] != null) {
-                SalaExposicionJornadaDTO sala = new SalaExposicionJornadaDTO();
-                sala.setId((Integer) obj[3]);
-                sala.setNombre((String) obj[4]);
+				mapaJornadas.put(jornadaId, jornadaDTO);
+			}
 
-                jornadaDTO.getSalasExposicion().add(sala);
-            }
-        }
+			// Si la sala es distinta de null, agregarla
+			if (obj[4] != null) {
+				SalaExposicionJornadaDTO sala = new SalaExposicionJornadaDTO();
+				sala.setId((Integer) obj[3]);
+				sala.setNombre((String) obj[4]);
 
-        return new ArrayList<>(mapaJornadas.values());
-    }
+				jornadaDTO.getSalasExposicion().add(sala);
+			}
+		}
+
+		return new ArrayList<>(mapaJornadas.values());
+	}
+
 }

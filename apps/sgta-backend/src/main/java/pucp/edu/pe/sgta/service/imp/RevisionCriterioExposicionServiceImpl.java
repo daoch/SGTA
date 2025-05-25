@@ -12,41 +12,41 @@ import java.util.List;
 @Service
 public class RevisionCriterioExposicionServiceImpl implements RevisionCriterioExposicionService {
 
-    private final RevisionCriterioExposicionRepository revisionCriterioExposicionRepository;
+	private final RevisionCriterioExposicionRepository revisionCriterioExposicionRepository;
 
-    public RevisionCriterioExposicionServiceImpl(
-            RevisionCriterioExposicionRepository revisionCriterioExposicionRepository) {
-        this.revisionCriterioExposicionRepository = revisionCriterioExposicionRepository;
-    }
+	public RevisionCriterioExposicionServiceImpl(
+			RevisionCriterioExposicionRepository revisionCriterioExposicionRepository) {
+		this.revisionCriterioExposicionRepository = revisionCriterioExposicionRepository;
+	}
 
-    @Override
-    public List<RevisionCriterioExposicionDto> getAll() {
-        return List.of();
-    }
+	@Override
+	public List<RevisionCriterioExposicionDto> getAll() {
+		return List.of();
+	}
 
-    @Override
-    public RevisionCriterioExposicionDto findById(Integer id) {
-        RevisionCriterioExposicion revisionCriterioExposicion = revisionCriterioExposicionRepository.findById(id)
-                .orElse(null);
-        if (revisionCriterioExposicion != null) {
-            return RevisionCriterioExposicionMapper.toDto(revisionCriterioExposicion);
-        }
-        return null;
-    }
+	@Override
+	public RevisionCriterioExposicionDto findById(Integer id) {
+		RevisionCriterioExposicion revisionCriterioExposicion = revisionCriterioExposicionRepository.findById(id)
+			.orElse(null);
+		if (revisionCriterioExposicion != null) {
+			return RevisionCriterioExposicionMapper.toDto(revisionCriterioExposicion);
+		}
+		return null;
+	}
 
-    @Override
-    public void create(RevisionCriterioExposicionDto dto) {
+	@Override
+	public void create(RevisionCriterioExposicionDto dto) {
 
-    }
+	}
 
-    @Override
-    public void update(RevisionCriterioExposicionDto dto) {
+	@Override
+	public void update(RevisionCriterioExposicionDto dto) {
 
-    }
+	}
 
-    @Override
-    public void delete(Integer id) {
+	@Override
+	public void delete(Integer id) {
 
-    }
+	}
 
 }

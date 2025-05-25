@@ -25,39 +25,37 @@ import java.time.OffsetDateTime;
 @Table(name = "revision_documento")
 public class RevisionXDocumento {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "revision_documento_id")
-    private Integer id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "revision_documento_id")
+	private Integer id;
 
-    @Column(name = "usuario_id")
-    private Integer usuarioId;
+	@Column(name = "usuario_id")
+	private Integer usuarioId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "version_documento_id", nullable = false)
-    private VersionXDocumento versionDocumento;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "version_documento_id", nullable = false)
+	private VersionXDocumento versionDocumento;
 
-    @Column(name = "fecha_limite_revision")
-    private LocalDate fechaLimiteRevision;
+	@Column(name = "fecha_limite_revision")
+	private LocalDate fechaLimiteRevision;
 
-    @Column(name = "fecha_revision", nullable = false)
-    private LocalDate fechaRevision;
+	@Column(name = "fecha_revision", nullable = false)
+	private LocalDate fechaRevision;
 
-    @Column(name = "estado_revision", nullable = false,
-            columnDefinition = "enum_estado_revision")
-    private String estadoRevision;
+	@Column(name = "estado_revision", nullable = false, columnDefinition = "enum_estado_revision")
+	private String estadoRevision;
 
-    @Column(name = "link_archivo_revision", columnDefinition = "TEXT")
-    private String linkArchivoRevision;
+	@Column(name = "link_archivo_revision", columnDefinition = "TEXT")
+	private String linkArchivoRevision;
 
-    @Column(nullable = false)
-    private boolean activo = true;
+	@Column(nullable = false)
+	private boolean activo = true;
 
-    @Column(name = "fecha_creacion", nullable = false,
-            columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private OffsetDateTime fechaCreacion;
+	@Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+	private OffsetDateTime fechaCreacion;
 
-    @Column(name = "fecha_modificacion",
-            columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private OffsetDateTime fechaModificacion;
+	@Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+	private OffsetDateTime fechaModificacion;
+
 }

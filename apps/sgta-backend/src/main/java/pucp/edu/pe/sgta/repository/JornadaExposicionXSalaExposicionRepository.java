@@ -10,18 +10,15 @@ import java.util.List;
 import java.util.Optional;
 
 public interface JornadaExposicionXSalaExposicionRepository
-    extends JpaRepository<JornadaExposicionXSalaExposicion, Integer> {
+		extends JpaRepository<JornadaExposicionXSalaExposicion, Integer> {
 
-  @Query(value = """
-      SELECT *
-        FROM listar_jornadas_exposicion_salas(
-          :exposicion_id)
-      """, nativeQuery = true)
-  List<Object[]> listarJornadasExposicionSalas(
-      @Param("exposicion_id") Integer exposicionId);
+	@Query(value = """
+			SELECT *
+			  FROM listar_jornadas_exposicion_salas(
+			    :exposicion_id)
+			""", nativeQuery = true)
+	List<Object[]> listarJornadasExposicionSalas(@Param("exposicion_id") Integer exposicionId);
 
-  List<JornadaExposicionXSalaExposicion> findByJornadaExposicionIdAndActivoTrue(Integer jornadaExposicionId);
-
-
+	List<JornadaExposicionXSalaExposicion> findByJornadaExposicionIdAndActivoTrue(Integer jornadaExposicionId);
 
 }

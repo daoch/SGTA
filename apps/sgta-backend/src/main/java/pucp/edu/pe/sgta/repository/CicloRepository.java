@@ -10,16 +10,16 @@ import pucp.edu.pe.sgta.model.Ciclo;
 
 public interface CicloRepository extends JpaRepository<Ciclo, Integer> {
 
-  @Query(value = """
-      SELECT *
-        FROM listarCiclosOrdenadosPorFecha()
-      """, nativeQuery = true)
-  List<Ciclo> findAllOrderByActivoAndFechaInicioDesc();
+	@Query(value = """
+			SELECT *
+			  FROM listarCiclosOrdenadosPorFecha()
+			""", nativeQuery = true)
+	List<Ciclo> findAllOrderByActivoAndFechaInicioDesc();
 
-  @Query(value = """
-      SELECT *
-        FROM listarCiclosConEtapas()
-      """, nativeQuery = true)
-  List<CicloConEtapasProjection> findAllCiclesAndEtapaFormativas();
+	@Query(value = """
+			SELECT *
+			  FROM listarCiclosConEtapas()
+			""", nativeQuery = true)
+	List<CicloConEtapasProjection> findAllCiclesAndEtapaFormativas();
 
 }

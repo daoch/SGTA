@@ -5,14 +5,14 @@ import java.util.List;
 
 public interface ControlExposicionUsuarioTemaService {
 
-    List<ControlExposicionUsuarioTemaDto> getAll();
+	List<ControlExposicionUsuarioTemaDto> getAll();
 
-    ControlExposicionUsuarioTemaDto findById(Integer id);
+	ControlExposicionUsuarioTemaDto findById(Integer id);
 
-    void create(ControlExposicionUsuarioTemaDto dto);
+	void create(ControlExposicionUsuarioTemaDto dto);
 
-    void update(ControlExposicionUsuarioTemaDto dto);
+	void update(ControlExposicionUsuarioTemaDto dto);
 
-    void delete(Integer id);
+	void delete(Integer id);
 
 }

@@ -4,9 +4,6 @@ import lombok.*;
 
 import java.time.OffsetDateTime;
 
-
-
-
 @Getter
 @Setter
 @NoArgsConstructor
@@ -27,6 +24,5 @@ public class AreaConocimientoDto {
 	private OffsetDateTime fechaModificacion;
 
 	private Integer idCarrera;
-
 
 }

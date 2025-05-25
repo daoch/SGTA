@@ -24,7 +24,8 @@ public class Notificacion {
 	@Column(length = 50, nullable = false)
 	private String canal;
 
-	@Column(name = "fecha_creacion", nullable = false, insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+	@Column(name = "fecha_creacion", nullable = false, insertable = false,
+			columnDefinition = "TIMESTAMP WITH TIME ZONE")
 	private OffsetDateTime fechaCreacion;
 
 	@Column(name = "fecha_lectura", columnDefinition = "TIMESTAMP WITH TIME ZONE")

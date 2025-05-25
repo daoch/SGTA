@@ -12,8 +12,10 @@ import pucp.edu.pe.sgta.util.EstadoExposicionUsuario;
 @NoArgsConstructor
 public class EstadoControlExposicionRequest {
 
-    private Integer exposicionTemaId;
-    private Integer juradoId;
-    private EstadoExposicionUsuario estadoExposicionUsuario;
+	private Integer exposicionTemaId;
+
+	private Integer juradoId;
+
+	private EstadoExposicionUsuario estadoExposicionUsuario;
 
 }

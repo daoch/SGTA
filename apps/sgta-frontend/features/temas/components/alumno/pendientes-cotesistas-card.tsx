@@ -23,7 +23,11 @@ interface Props {
   onDelete: (id: string) => void;
 }
 
-export function PendientesCotesistasCard({ propuestasPendientes, onView, onDelete }: Props) {
+export function PendientesCotesistasCard({
+  propuestasPendientes,
+  onView,
+  onDelete,
+}: Props) {
   if (propuestasPendientes.length === 0) return null;
 
   return (
@@ -41,15 +45,30 @@ export function PendientesCotesistasCard({ propuestasPendientes, onView, onDelet
           <div>
             <p className="font-medium">{propuesta.titulo}</p>
             <p className="text-sm text-muted-foreground">
-              Cotesistas: <span className="text-[#042354]">{propuesta.estudiantes.join(", ")}</span> – Estado:{" "}
-              <span className="text-yellow-600 font-medium">Pendiente de aceptación</span>
+              Cotesistas:{" "}
+              <span className="text-[#042354]">
+                {propuesta.estudiantes.join(", ")}
+              </span>{" "}
+              – Estado:{" "}
+              <span className="text-yellow-600 font-medium">
+                Pendiente de aceptación
+              </span>
             </p>
           </div>
           <div className="flex gap-1">
-            <Button variant="ghost" size="icon" onClick={() => onView(propuesta.id)}>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onView(propuesta.id)}
+            >
               <Eye className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="icon" className="text-red-500" onClick={() => onDelete(propuesta.id)}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-red-500"
+              onClick={() => onDelete(propuesta.id)}
+            >
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>

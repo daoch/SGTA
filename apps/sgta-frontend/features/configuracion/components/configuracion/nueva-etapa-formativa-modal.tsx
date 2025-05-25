@@ -13,15 +13,21 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { etapasFormativasService } from "@/features/configuracion/services/etapas-formativas";
 import { useState } from "react";
 
 interface NuevaEtapaFormativaModalProps {
-  isOpen: boolean
-  onClose: () => void
-  onSuccess?: () => void
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess?: () => void;
 }
 
 // Datos de ejemplo
@@ -31,7 +37,11 @@ const carreras = [
   { id: 3, nombre: "Administración" },
 ];
 
-export function NuevaEtapaFormativaModal({ isOpen, onClose, onSuccess }: NuevaEtapaFormativaModalProps) {
+export function NuevaEtapaFormativaModal({
+  isOpen,
+  onClose,
+  onSuccess,
+}: NuevaEtapaFormativaModalProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -75,7 +85,8 @@ export function NuevaEtapaFormativaModal({ isOpen, onClose, onSuccess }: NuevaEt
 
       // Formatear los datos para la API
       const carreraId = parseInt(formData.carrera);
-      const carreraNombre = carreras.find(c => c.id === carreraId)?.nombre || "";
+      const carreraNombre =
+        carreras.find((c) => c.id === carreraId)?.nombre || "";
 
       // Llamamos directamente al endpoint con axios usando el mismo formato
       const response = await etapasFormativasService.create({
@@ -87,7 +98,7 @@ export function NuevaEtapaFormativaModal({ isOpen, onClose, onSuccess }: NuevaEt
         activo: true,
         cicloActual: "",
         estadoActual: "EN_CURSO",
-        historialCiclos: []
+        historialCiclos: [],
       });
 
       toast({
@@ -125,7 +136,9 @@ export function NuevaEtapaFormativaModal({ isOpen, onClose, onSuccess }: NuevaEt
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Registrar Nueva Etapa Formativa</DialogTitle>
-          <DialogDescription>Complete los campos para registrar una nueva etapa formativa.</DialogDescription>
+          <DialogDescription>
+            Complete los campos para registrar una nueva etapa formativa.
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
@@ -169,7 +182,10 @@ export function NuevaEtapaFormativaModal({ isOpen, onClose, onSuccess }: NuevaEt
             </div>
             <div className="space-y-2">
               <Label htmlFor="carrera">Carrera</Label>
-              <Select value={formData.carrera} onValueChange={(value) => handleSelectChange("carrera", value)}>
+              <Select
+                value={formData.carrera}
+                onValueChange={(value) => handleSelectChange("carrera", value)}
+              >
                 <SelectTrigger id="carrera">
                   <SelectValue placeholder="Seleccionar carrera" />
                 </SelectTrigger>
@@ -184,7 +200,12 @@ export function NuevaEtapaFormativaModal({ isOpen, onClose, onSuccess }: NuevaEt
             </div>
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              disabled={loading}
+            >
               Cancelar
             </Button>
             <Button type="submit" disabled={loading}>

@@ -10,21 +10,23 @@ import java.time.OffsetDateTime;
 @AllArgsConstructor
 @Builder
 public class HistorialTemaDto {
-    private Integer id;
 
-    private TemaDto tema;
+	private Integer id;
 
-    private String titulo;
+	private TemaDto tema;
 
-    private String resumen;
+	private String titulo;
 
-    private String descripcionCambio;
+	private String resumen;
 
-    private Integer estadoTemaId;
+	private String descripcionCambio;
 
-    private Boolean activo;
+	private Integer estadoTemaId;
 
-    private OffsetDateTime fechaCreacion;
+	private Boolean activo;
 
-    private OffsetDateTime fechaModificacion;
+	private OffsetDateTime fechaCreacion;
+
+	private OffsetDateTime fechaModificacion;
+
 }

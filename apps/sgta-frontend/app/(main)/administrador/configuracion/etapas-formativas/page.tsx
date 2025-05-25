@@ -1,7 +1,10 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { EtapasFormativasList, EtapasFormativasListRef } from "@/features/configuracion/components/configuracion/etapas-formativas-list";
+import {
+  EtapasFormativasList,
+  EtapasFormativasListRef,
+} from "@/features/configuracion/components/configuracion/etapas-formativas-list";
 import { NuevaEtapaFormativaModal } from "@/features/configuracion/components/configuracion/nueva-etapa-formativa-modal";
 import { ArrowLeft, Plus } from "lucide-react";
 import Link from "next/link";
@@ -30,7 +33,10 @@ export default function EtapasFormativasPage() {
       </div>
 
       <div className="flex justify-end mb-4">
-        <Button className="flex items-center gap-2" onClick={() => setIsModalOpen(true)}>
+        <Button
+          className="flex items-center gap-2"
+          onClick={() => setIsModalOpen(true)}
+        >
           <Plus size={16} />
           <span>Nueva Etapa Formativa</span>
         </Button>
@@ -39,8 +45,9 @@ export default function EtapasFormativasPage() {
       <div className="bg-white rounded-lg shadow p-6">
         <div className="mb-4">
           <p className="text-gray-500">
-            Administre las etapas formativas (cursos de tesis) disponibles en el sistema. Cada etapa formativa está
-            vinculada a un ciclo académico y a una carrera específica.
+            Administre las etapas formativas (cursos de tesis) disponibles en el
+            sistema. Cada etapa formativa está vinculada a un ciclo académico y
+            a una carrera específica.
           </p>
         </div>
 

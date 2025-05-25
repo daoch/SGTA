@@ -6,5 +6,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class AprobarSolicitudRequestDto {
-    private String response;
+
+	private String response;
+
 }

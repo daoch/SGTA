@@ -5,15 +5,29 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter,
+  AlertDialogDescription,
+  AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PostulacionesTable } from "@/features/temas/components/alumno/postulaciones-table";
 import { Postulacion } from "@/features/temas/types/propuestas/entidades";
@@ -21,7 +35,8 @@ import { CheckCircle, X } from "lucide-react";
 import { useState } from "react";
 
 const PostulacionesRecibidas = () => {
-  const [selectedPostulacion, setSelectedPostulacion] = useState<Postulacion | null>(null);
+  const [selectedPostulacion, setSelectedPostulacion] =
+    useState<Postulacion | null>(null);
 
   return (
     <>
@@ -34,10 +49,15 @@ const PostulacionesRecibidas = () => {
           <Card>
             <CardHeader>
               <CardTitle>Postulaciones Directas</CardTitle>
-              <CardDescription>Asesores interesados en tus propuestas dirigidas específicamente</CardDescription>
+              <CardDescription>
+                Asesores interesados en tus propuestas dirigidas específicamente
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <PostulacionesTable filter="directa" setSelectedPostulacion={setSelectedPostulacion} />
+              <PostulacionesTable
+                filter="directa"
+                setSelectedPostulacion={setSelectedPostulacion}
+              />
             </CardContent>
           </Card>
         </TabsContent>
@@ -45,21 +65,30 @@ const PostulacionesRecibidas = () => {
           <Card>
             <CardHeader>
               <CardTitle>Postulaciones Generales</CardTitle>
-              <CardDescription>Asesores interesados en tus propuestas generales</CardDescription>
+              <CardDescription>
+                Asesores interesados en tus propuestas generales
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <PostulacionesTable filter="general" setSelectedPostulacion={setSelectedPostulacion} />
+              <PostulacionesTable
+                filter="general"
+                setSelectedPostulacion={setSelectedPostulacion}
+              />
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
 
-      <Dialog open={!!selectedPostulacion} onOpenChange={(open: boolean) => !open && setSelectedPostulacion(null)}
->
+      <Dialog
+        open={!!selectedPostulacion}
+        onOpenChange={(open: boolean) => !open && setSelectedPostulacion(null)}
+      >
         <DialogContent className="w-[90vw] max-w-3xl sm:max-w-3xl">
           <DialogHeader>
             <DialogTitle>Detalles de la Postulación</DialogTitle>
-            <DialogDescription>Información sobre la postulación del asesor</DialogDescription>
+            <DialogDescription>
+              Información sobre la postulación del asesor
+            </DialogDescription>
           </DialogHeader>
 
           {selectedPostulacion && (
@@ -74,11 +103,12 @@ const PostulacionesRecibidas = () => {
                     selectedPostulacion.estado === "pendiente"
                       ? "bg-yellow-100 text-yellow-800"
                       : selectedPostulacion.estado === "rechazado"
-                      ? "bg-red-100 text-red-800"
-                      : "bg-green-100 text-green-800"
+                        ? "bg-red-100 text-red-800"
+                        : "bg-green-100 text-green-800"
                   }
                 >
-                  {selectedPostulacion.estado.charAt(0).toUpperCase() + selectedPostulacion.estado.slice(1)}
+                  {selectedPostulacion.estado.charAt(0).toUpperCase() +
+                    selectedPostulacion.estado.slice(1)}
                 </Badge>
               </div>
 
@@ -104,7 +134,9 @@ const PostulacionesRecibidas = () => {
                 <p className="font-medium">Información del Asesor</p>
                 <div className="p-3 bg-gray-50 rounded-md border text-sm text-gray-700">
                   <p>{selectedPostulacion.asesor}</p>
-                  <p className="text-muted-foreground">{selectedPostulacion.correoAsesor}</p>
+                  <p className="text-muted-foreground">
+                    {selectedPostulacion.correoAsesor}
+                  </p>
                 </div>
               </div>
 
@@ -118,7 +150,12 @@ const PostulacionesRecibidas = () => {
           )}
 
           <DialogFooter className="flex justify-between">
-            <Button variant="outline" onClick={() => setSelectedPostulacion(null)}>Cancelar</Button>
+            <Button
+              variant="outline"
+              onClick={() => setSelectedPostulacion(null)}
+            >
+              Cancelar
+            </Button>
 
             {selectedPostulacion?.estado === "pendiente" && (
               <div className="flex gap-2">
@@ -132,7 +169,9 @@ const PostulacionesRecibidas = () => {
                   <AlertDialogContent>
                     <AlertDialogHeader>
                       <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                      <AlertDialogDescription>¿Deseas rechazar a este asesor para tu tema de tesis?</AlertDialogDescription>
+                      <AlertDialogDescription>
+                        ¿Deseas rechazar a este asesor para tu tema de tesis?
+                      </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel>Cancelar</AlertDialogCancel>
@@ -159,7 +198,9 @@ const PostulacionesRecibidas = () => {
                   <AlertDialogContent>
                     <AlertDialogHeader>
                       <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                      <AlertDialogDescription>¿Deseas aceptar a este asesor para tu tema de tesis?</AlertDialogDescription>
+                      <AlertDialogDescription>
+                        ¿Deseas aceptar a este asesor para tu tema de tesis?
+                      </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel>Cancelar</AlertDialogCancel>

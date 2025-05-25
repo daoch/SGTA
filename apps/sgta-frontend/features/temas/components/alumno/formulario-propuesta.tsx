@@ -54,7 +54,9 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
   const today = new Date().toISOString().split("T")[0];
 
   const [areas, setAreas] = useState<{ id: number; nombre: string }[]>([]);
-  const [asesores, setAsesores] = useState<{ id: string; nombre: string }[]>([]);
+  const [asesores, setAsesores] = useState<{ id: string; nombre: string }[]>(
+    [],
+  );
   const [formData, setFormData] = useState<FormData>({
     titulo: "",
     descripcion: "",
@@ -66,12 +68,14 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
   });
   const [cotesistas, setCotesistas] = useState<Estudiante[]>([]);
   const [codigoCotesista, setCodigoCotesista] = useState("");
-  const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
+  const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>(
+    {},
+  );
 
   // 1) Carga de áreas al montar
   useEffect(() => {
     fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/subAreaConocimiento/listarPorCarreraDeUsuario?usuarioId=41`
+      `${process.env.NEXT_PUBLIC_API_URL}/subAreaConocimiento/listarPorCarreraDeUsuario?usuarioId=41`,
     )
       .then((res) => res.json())
       .then((data: Array<{ id: number; nombre: string }>) => {
@@ -81,37 +85,43 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
   }, []);
 
   useEffect(() => {
-  const controller = new AbortController();
-  const { signal } = controller;
+    const controller = new AbortController();
+    const { signal } = controller;
 
-  if (formData.area) {
-    fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/usuario/getAsesoresBySubArea?idSubArea=${formData.area}`,
-      { signal }
-    )
-      .then((res) => res.json())
-      .then(
-        (data: Array<{ id: number; nombres: string; primerApellido: string}>) => {
-          setAsesores(
-            data.map((u) => ({
-              id: String(u.id),
-              nombre: `${u.nombres} ${u.primerApellido}`.trim(),
-            }))
-          );
-        }
+    if (formData.area) {
+      fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/usuario/getAsesoresBySubArea?idSubArea=${formData.area}`,
+        { signal },
       )
-      .catch((err) => {
-        if (err.name !== "AbortError") {
-          console.error("Error cargando asesores:", err);
-        }
-      });
-  } else {
-    setAsesores([]);
-  }
+        .then((res) => res.json())
+        .then(
+          (
+            data: Array<{
+              id: number;
+              nombres: string;
+              primerApellido: string;
+            }>,
+          ) => {
+            setAsesores(
+              data.map((u) => ({
+                id: String(u.id),
+                nombre: `${u.nombres} ${u.primerApellido}`.trim(),
+              })),
+            );
+          },
+        )
+        .catch((err) => {
+          if (err.name !== "AbortError") {
+            console.error("Error cargando asesores:", err);
+          }
+        });
+    } else {
+      setAsesores([]);
+    }
 
-  // Limpia si cambia área antes de que termine
-  return () => controller.abort();
-}, [formData.area]);
+    // Limpia si cambia área antes de que termine
+    return () => controller.abort();
+  }, [formData.area]);
 
   const handleChange =
     (field: keyof FormData) =>
@@ -120,19 +130,15 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
       setErrors((e) => ({ ...e, [field]: undefined }));
     };
 
-  const handleSelectNum =
-    (field: keyof FormData) =>
-    (value: string) => {
-      setFormData((f) => ({ ...f, [field]: Number(value) }));
-      setErrors((e) => ({ ...e, [field]: undefined }));
-    };
+  const handleSelectNum = (field: keyof FormData) => (value: string) => {
+    setFormData((f) => ({ ...f, [field]: Number(value) }));
+    setErrors((e) => ({ ...e, [field]: undefined }));
+  };
 
-  const handleSelectStr =
-    (field: keyof FormData) =>
-    (value: string) => {
-      setFormData((f) => ({ ...f, [field]: value }));
-      setErrors((e) => ({ ...e, [field]: undefined }));
-    };
+  const handleSelectStr = (field: keyof FormData) => (value: string) => {
+    setFormData((f) => ({ ...f, [field]: value }));
+    setErrors((e) => ({ ...e, [field]: undefined }));
+  };
 
   const handleRemoveCotesista = (id: string) => {
     setCotesistas((cs) => cs.filter((c) => c.id !== id));
@@ -143,12 +149,13 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
 
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/usuario/findByCodigo?codigo=${codigoCotesista.trim()}`
+        `${process.env.NEXT_PUBLIC_API_URL}/usuario/findByCodigo?codigo=${codigoCotesista.trim()}`,
       );
       if (!res.ok) {
-        toast.error("Error", { description: "No se encontró al estudiante",
-                                  duration: 5000,
-                                });
+        toast.error("Error", {
+          description: "No se encontró al estudiante",
+          duration: 5000,
+        });
       }
       const data: Usuario = await res.json();
       const nuevo: Estudiante = {
@@ -184,8 +191,7 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
     if (formData.titulo.length > 255) e.titulo = "Máximo 255 caracteres.";
     if (formData.descripcion.length > 500)
       e.descripcion = "Máximo 500 caracteres.";
-    if (formData.objetivos.length > 500)
-      e.objetivos = "Máximo 500 caracteres.";
+    if (formData.objetivos.length > 500) e.objetivos = "Máximo 500 caracteres.";
     if (formData.fechaLimite && formData.fechaLimite <= today)
       e.fechaLimite = "Fecha límite debe ser futura.";
     setErrors(e);
@@ -235,9 +241,7 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
               value={String(formData.area)}
               onValueChange={handleSelectNum("area")}
             >
-              <SelectTrigger
-                className={errors.area ? "border-red-500" : ""}
-              >
+              <SelectTrigger className={errors.area ? "border-red-500" : ""}>
                 <SelectValue placeholder="Seleccione un área" />
               </SelectTrigger>
               <SelectContent>
@@ -329,8 +333,8 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
                     !formData.area
                       ? "opacity-50 cursor-not-allowed"
                       : errors.asesor
-                      ? "border-red-500"
-                      : ""
+                        ? "border-red-500"
+                        : ""
                   }
                 >
                   <SelectValue
@@ -438,5 +442,4 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
       </form>
     </Card>
   );
-  
 }

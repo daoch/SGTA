@@ -11,26 +11,27 @@ import java.util.List;
 @RequestMapping("/carrera")
 public class CarreraController {
 
-    @Autowired
-    private CarreraService carreraService;
+	@Autowired
+	private CarreraService carreraService;
 
-    @GetMapping("/listar")
-    public List<CarreraDto> listCarreras() {
-        return carreraService.getAll();
-    }
+	@GetMapping("/listar")
+	public List<CarreraDto> listCarreras() {
+		return carreraService.getAll();
+	}
 
-    @GetMapping("/list-active")
-    public List<CarreraDto> listActiveCarreras() {
-        return carreraService.getAllActive();
-    }
+	@GetMapping("/list-active")
+	public List<CarreraDto> listActiveCarreras() {
+		return carreraService.getAllActive();
+	}
 
-    @GetMapping("/list-by-usuario")
-    public List<CarreraDto> listCarrerasByUsuario(@RequestParam(name = "usuarioId") Integer usuarioId) {
-        return carreraService.getCarrerasByUsuario(usuarioId);
-    }
+	@GetMapping("/list-by-usuario")
+	public List<CarreraDto> listCarrerasByUsuario(@RequestParam(name = "usuarioId") Integer usuarioId) {
+		return carreraService.getCarrerasByUsuario(usuarioId);
+	}
 
-    @GetMapping("/get/{id}")
-    public CarreraDto getCarreraById(@PathVariable Integer id) {
-        return carreraService.findById(id);
-    }
-} 
+	@GetMapping("/get/{id}")
+	public CarreraDto getCarreraById(@PathVariable Integer id) {
+		return carreraService.findById(id);
+	}
+
+}

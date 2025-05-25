@@ -53,7 +53,7 @@ export function EntregableCard({
                 <strong>Peso Máximo por Documento:</strong> {entregable.pesoMaximoDocumento} MB
               </p>
               */}
-              
+
               <div className="flex gap-2 mt-2">
                 {/* Evaluable */}
                 <span className="inline-flex items-center px-2 py-1 rounded-md text-xs bg-secondary text-secondary-foreground">

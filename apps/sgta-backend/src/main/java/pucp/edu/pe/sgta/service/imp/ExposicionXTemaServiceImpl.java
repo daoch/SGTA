@@ -12,39 +12,39 @@ import java.util.List;
 @Service
 public class ExposicionXTemaServiceImpl implements ExposicionXTemaService {
 
-    private final ExposicionXTemaRepository exposicionXTemaRepository;
+	private final ExposicionXTemaRepository exposicionXTemaRepository;
 
-    public ExposicionXTemaServiceImpl(ExposicionXTemaRepository exposicionXTemaRepository) {
-        this.exposicionXTemaRepository = exposicionXTemaRepository;
-    }
+	public ExposicionXTemaServiceImpl(ExposicionXTemaRepository exposicionXTemaRepository) {
+		this.exposicionXTemaRepository = exposicionXTemaRepository;
+	}
 
-    @Override
-    public List<ExposicionXTemaDto> getAll() {
-        return List.of();
-    }
+	@Override
+	public List<ExposicionXTemaDto> getAll() {
+		return List.of();
+	}
 
-    @Override
-    public ExposicionXTemaDto findById(Integer id) {
-        ExposicionXTema exposicionXTema = exposicionXTemaRepository.findById(id).orElse(null);
-        if (exposicionXTema != null) {
-            return ExposicionXTemaMapper.toDto(exposicionXTema);
-        }
-        return null;
-    }
+	@Override
+	public ExposicionXTemaDto findById(Integer id) {
+		ExposicionXTema exposicionXTema = exposicionXTemaRepository.findById(id).orElse(null);
+		if (exposicionXTema != null) {
+			return ExposicionXTemaMapper.toDto(exposicionXTema);
+		}
+		return null;
+	}
 
-    @Override
-    public void create(ExposicionXTemaDto dto) {
+	@Override
+	public void create(ExposicionXTemaDto dto) {
 
-    }
+	}
 
-    @Override
-    public void update(ExposicionXTemaDto dto) {
+	@Override
+	public void update(ExposicionXTemaDto dto) {
 
-    }
+	}
 
-    @Override
-    public void delete(Integer id) {
+	@Override
+	public void delete(Integer id) {
 
-    }
+	}
 
 }

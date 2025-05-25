@@ -11,6 +11,7 @@ import java.util.List;
 
 public interface EstadoPlanificacionRepository extends JpaRepository<EstadoPlanificacion, Integer> {
 
-    @Query(value = "SELECT * FROM get_estado_exposicion_by_id_exposicion(:id_exposicion)", nativeQuery = true)
-    List<Object[]>  getByIdExposicion(@Param("id_exposicion") Integer exposicionId);
+	@Query(value = "SELECT * FROM get_estado_exposicion_by_id_exposicion(:id_exposicion)", nativeQuery = true)
+	List<Object[]> getByIdExposicion(@Param("id_exposicion") Integer exposicionId);
+
 }

@@ -21,7 +21,9 @@ import {
   SubAreaConocimiento,
 } from "../types/propuestas/entidades";
 const PropuestasAsesorPage = () => {
-  const [propuestasDirectas, setPropuestasDirectas] = useState<Proyecto_M[]>([]);
+  const [propuestasDirectas, setPropuestasDirectas] = useState<Proyecto_M[]>(
+    [],
+  );
   const [propuestasGenerales, setPropuestasGenerales] = useState<Proyecto_M[]>(
     [],
   );

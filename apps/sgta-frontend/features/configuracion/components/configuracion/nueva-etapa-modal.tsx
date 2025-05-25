@@ -21,8 +21,14 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Plus } from "lucide-react";
-import { etapasFormativasService, type EtapaFormativaListItem } from "../../services/etapas-formativas";
-import { etapaFormativaCicloService, ciclosService } from "../../services/etapa-formativa-ciclo";
+import {
+  etapasFormativasService,
+  type EtapaFormativaListItem,
+} from "../../services/etapas-formativas";
+import {
+  etapaFormativaCicloService,
+  ciclosService,
+} from "../../services/etapa-formativa-ciclo";
 import { Ciclo } from "../../types/etapa-formativa-ciclo";
 import { toast } from "sonner";
 
@@ -32,7 +38,9 @@ interface NuevaEtapaModalProps {
 
 export function NuevaEtapaModal({ onSuccess }: NuevaEtapaModalProps) {
   const [open, setOpen] = useState(false);
-  const [etapasFormativas, setEtapasFormativas] = useState<EtapaFormativaListItem[]>([]);
+  const [etapasFormativas, setEtapasFormativas] = useState<
+    EtapaFormativaListItem[]
+  >([]);
   const [ciclos, setCiclos] = useState<Ciclo[]>([]);
   const [selectedEtapa, setSelectedEtapa] = useState<string>("");
   const [selectedCiclo, setSelectedCiclo] = useState<string>("");
@@ -43,7 +51,7 @@ export function NuevaEtapaModal({ onSuccess }: NuevaEtapaModalProps) {
       try {
         const [etapasResponse, ciclosResponse] = await Promise.all([
           etapasFormativasService.getAll(),
-          ciclosService.getAll()
+          ciclosService.getAll(),
         ]);
         setEtapasFormativas(etapasResponse);
         setCiclos(ciclosResponse);
@@ -60,7 +68,7 @@ export function NuevaEtapaModal({ onSuccess }: NuevaEtapaModalProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!selectedEtapa || !selectedCiclo) {
       toast.error("Por favor seleccione una etapa formativa y un ciclo");
       return;
@@ -71,9 +79,9 @@ export function NuevaEtapaModal({ onSuccess }: NuevaEtapaModalProps) {
       await etapaFormativaCicloService.create({
         etapaFormativaId: parseInt(selectedEtapa),
         cicloId: parseInt(selectedCiclo),
-        activo: true
+        activo: true,
       });
-      
+
       toast.success("Etapa creada exitosamente");
       setOpen(false);
       onSuccess?.();
@@ -97,8 +105,8 @@ export function NuevaEtapaModal({ onSuccess }: NuevaEtapaModalProps) {
         <DialogHeader>
           <DialogTitle>Nueva Etapa</DialogTitle>
           <DialogDescription>
-            Agregue una nueva etapa al proyecto de fin de carrera. Las etapas representan los cursos que componen el
-            proyecto.
+            Agregue una nueva etapa al proyecto de fin de carrera. Las etapas
+            representan los cursos que componen el proyecto.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
@@ -135,7 +143,11 @@ export function NuevaEtapaModal({ onSuccess }: NuevaEtapaModalProps) {
             </div>
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+            >
               Cancelar
             </Button>
             <Button type="submit" disabled={isSubmitting}>

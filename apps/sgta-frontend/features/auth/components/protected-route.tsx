@@ -22,13 +22,15 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     if (!requiredRoles || requiredRoles.length === 0) return true;
     if (!user) return false;
     return user.roles.some((role) => requiredRoles.includes(role));
-  }, [user, requiredRoles]);  useEffect(() => {
-    const verifyAuth = async () => {      try {
-        // Check for authentication 
+  }, [user, requiredRoles]);
+  useEffect(() => {
+    const verifyAuth = async () => {
+      try {
+        // Check for authentication
         await checkAuth();
-        
-        await new Promise(resolve => setTimeout(resolve, 300));
-        
+
+        await new Promise((resolve) => setTimeout(resolve, 300));
+
         setAuthChecked(true);
       } catch (error) {
         console.error("Error verifying auth:", error);
@@ -39,7 +41,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
           console.log("Detected token but auth failed, trying one more time");
           try {
             await checkAuth();
-            await new Promise(resolve => setTimeout(resolve, 300));
+            await new Promise((resolve) => setTimeout(resolve, 300));
           } catch (retryError) {
             console.error("Retry auth check failed:", retryError);
           }

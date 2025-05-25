@@ -11,7 +11,7 @@ import java.util.List;
 @Repository
 public interface CriterioExposicionRepository extends JpaRepository<CriterioExposicion, Integer> {
 
-    @Query(value = "SELECT * FROM listar_criterios_exposicion_x_exposicion(:exposicionId)", nativeQuery = true)
-    List<Object[]> listarCriteriosExposicionXExposicion(@Param("exposicionId") Integer exposicionId);
+	@Query(value = "SELECT * FROM listar_criterios_exposicion_x_exposicion(:exposicionId)", nativeQuery = true)
+	List<Object[]> listarCriteriosExposicionXExposicion(@Param("exposicionId") Integer exposicionId);
 
 }

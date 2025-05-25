@@ -16,32 +16,34 @@ import java.time.OffsetDateTime;
 @Service
 public class VersionXDocumentoServiceImpl implements VersionXDocumentoService {
 
-    private final VersionXDocumentoRepository repository;
-    private final DocumentoRepository documentoRepository;
+	private final VersionXDocumentoRepository repository;
 
-    public VersionXDocumentoServiceImpl(VersionXDocumentoRepository repository,
-                                        DocumentoRepository documentoRepository) {
-        this.repository = repository;
-        this.documentoRepository = documentoRepository;
-    }
+	private final DocumentoRepository documentoRepository;
 
-    @Override
-    @Transactional
-    public VersionDocumentoDto crearVersion(Integer documentoId, String linkArchivoSubido) {
-        Documento doc = documentoRepository.findById(documentoId)
-                .orElseThrow(() -> new DocumentoNotFoundException("Documento no encontrado: " + documentoId));
+	public VersionXDocumentoServiceImpl(VersionXDocumentoRepository repository,
+			DocumentoRepository documentoRepository) {
+		this.repository = repository;
+		this.documentoRepository = documentoRepository;
+	}
 
-        int nextVersion = 0;
+	@Override
+	@Transactional
+	public VersionDocumentoDto crearVersion(Integer documentoId, String linkArchivoSubido) {
+		Documento doc = documentoRepository.findById(documentoId)
+			.orElseThrow(() -> new DocumentoNotFoundException("Documento no encontrado: " + documentoId));
 
-        VersionXDocumento ver = new VersionXDocumento();
-        ver.setDocumento(doc);
-        ver.setFechaUltimaSubida(OffsetDateTime.now());
-        ver.setNumeroVersion(nextVersion);
-        ver.setLinkArchivoSubido(linkArchivoSubido);
-        ver.setActivo(true);
-        ver.setFechaCreacion(OffsetDateTime.now());
+		int nextVersion = 0;
 
-        VersionXDocumento guardado = repository.save(ver);
-        return VersionDocumentoMapper.toDto(guardado);
-    }
+		VersionXDocumento ver = new VersionXDocumento();
+		ver.setDocumento(doc);
+		ver.setFechaUltimaSubida(OffsetDateTime.now());
+		ver.setNumeroVersion(nextVersion);
+		ver.setLinkArchivoSubido(linkArchivoSubido);
+		ver.setActivo(true);
+		ver.setFechaCreacion(OffsetDateTime.now());
+
+		VersionXDocumento guardado = repository.save(ver);
+		return VersionDocumentoMapper.toDto(guardado);
+	}
+
 }

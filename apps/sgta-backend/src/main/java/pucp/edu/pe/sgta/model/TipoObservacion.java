@@ -14,12 +14,12 @@ import lombok.Setter;
 @Table(name = "tipo_observacion")
 public class TipoObservacion {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "tipo_observacion_id")
-    private Integer tipoObservacionId;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "tipo_observacion_id")
+	private Integer tipoObservacionId;
 
-    @Column(name = "nombre_tipo", nullable = false, length = 100)
-    private String nombreTipo;
+	@Column(name = "nombre_tipo", nullable = false, length = 100)
+	private String nombreTipo;
 
-} 
+}

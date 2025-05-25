@@ -348,4 +348,3 @@ export function DetalleTesisJuradoView() {
     </div>
   );
 }
-

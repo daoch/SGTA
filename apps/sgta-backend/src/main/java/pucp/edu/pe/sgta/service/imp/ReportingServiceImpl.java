@@ -23,172 +23,168 @@ import pucp.edu.pe.sgta.service.inter.IReportService;
 @Service
 public class ReportingServiceImpl implements IReportService {
 
-    private final TopicAreaStatsRepository topicAreaStatsRepository;
-    private final AdvisorDistributionRepository advisorDistributionRepository;
-    private final JurorDistributionRepository jurorDistributionRepository;
-    private final AdvisorPerformanceRepository advisorPerformanceRepository;
+	private final TopicAreaStatsRepository topicAreaStatsRepository;
 
-    public ReportingServiceImpl(
-            TopicAreaStatsRepository topicAreaStatsRepository,
-            AdvisorDistributionRepository advisorDistributionRepository,
-            JurorDistributionRepository jurorDistributionRepository,
-            AdvisorPerformanceRepository advisorPerformanceRepository) {
-        this.topicAreaStatsRepository = topicAreaStatsRepository;
-        this.advisorDistributionRepository = advisorDistributionRepository;
-        this.jurorDistributionRepository = jurorDistributionRepository;
-        this.advisorPerformanceRepository = advisorPerformanceRepository;
-    }
+	private final AdvisorDistributionRepository advisorDistributionRepository;
 
-    @Override
-    public List<TopicAreaStatsDTO> getTopicAreaStatistics(Integer usuarioId, String cicloNombre) {
-        // Ahora se usa la función que filtra por usuario y ciclo
-        List<Object[]> results = topicAreaStatsRepository.getTopicAreaStatsByUserAndCiclo(usuarioId, cicloNombre);
-        return results.stream()
-                .map(result -> new TopicAreaStatsDTO(
-                        (String) result[0], // area_name
-                        ((Number) result[1]).intValue() // topic_count
-                ))
-                .collect(Collectors.toList());
-    }
+	private final JurorDistributionRepository jurorDistributionRepository;
 
-    @Override
-    public List<TeacherCountDTO> getAdvisorDistribution(Integer usuarioId, String cicloNombre) {
-        List<Object[]> rows = advisorDistributionRepository
-                .getAdvisorDistributionByCoordinatorAndCiclo(usuarioId, cicloNombre);
-        return rows.stream()
-                .map(r -> new TeacherCountDTO(
-                        (String) r[0], // teacher_name
-                        (String) r[1], // area_name
-                        ((Number) r[2]).intValue() // advisor_count
-                ))
-                .collect(Collectors.toList());
-    }
+	private final AdvisorPerformanceRepository advisorPerformanceRepository;
 
-    @Override
-    public List<TeacherCountDTO> getJurorDistribution(Integer usuarioId, String cicloNombre) {
-        List<Object[]> rows = jurorDistributionRepository
-                .getJurorDistributionByCoordinatorAndCiclo(usuarioId, cicloNombre);
-        return rows.stream()
-                .map(r -> new TeacherCountDTO(
-                        (String) r[0], // teacher_name
-                        (String) r[1], // area_name
-                        ((Number) r[2]).intValue() // juror_count
-                ))
-                .collect(Collectors.toList());
-    }
-    // TODO: Agregar metodos para comparativa de Asesor vs Jurado <-- Talves se
-    // pueda hacer con los datos mismos anteriores ya guardados.
+	public ReportingServiceImpl(TopicAreaStatsRepository topicAreaStatsRepository,
+			AdvisorDistributionRepository advisorDistributionRepository,
+			JurorDistributionRepository jurorDistributionRepository,
+			AdvisorPerformanceRepository advisorPerformanceRepository) {
+		this.topicAreaStatsRepository = topicAreaStatsRepository;
+		this.advisorDistributionRepository = advisorDistributionRepository;
+		this.jurorDistributionRepository = jurorDistributionRepository;
+		this.advisorPerformanceRepository = advisorPerformanceRepository;
+	}
 
-    @Override
-    public List<AreaFinalDTO> getAreaFinal(Integer usuarioId, String cicloNombre) {
-        if (usuarioId == null || cicloNombre == null || cicloNombre.trim().isEmpty()) {
-            throw new IllegalArgumentException("El ID de usuario y el ciclo son requeridos");
-        }
+	@Override
+	public List<TopicAreaStatsDTO> getTopicAreaStatistics(Integer usuarioId, String cicloNombre) {
+		// Ahora se usa la función que filtra por usuario y ciclo
+		List<Object[]> results = topicAreaStatsRepository.getTopicAreaStatsByUserAndCiclo(usuarioId, cicloNombre);
+		return results.stream()
+			.map(result -> new TopicAreaStatsDTO((String) result[0], // area_name
+					((Number) result[1]).intValue() // topic_count
+			))
+			.collect(Collectors.toList());
+	}
 
-        // Obtener datos usando los métodos existentes
-        List<TeacherCountDTO> advisors = getAdvisorDistribution(usuarioId, cicloNombre);
-        List<TeacherCountDTO> jurors = getJurorDistribution(usuarioId, cicloNombre);
+	@Override
+	public List<TeacherCountDTO> getAdvisorDistribution(Integer usuarioId, String cicloNombre) {
+		List<Object[]> rows = advisorDistributionRepository.getAdvisorDistributionByCoordinatorAndCiclo(usuarioId,
+				cicloNombre);
+		return rows.stream()
+			.map(r -> new TeacherCountDTO((String) r[0], // teacher_name
+					(String) r[1], // area_name
+					((Number) r[2]).intValue() // advisor_count
+			))
+			.collect(Collectors.toList());
+	}
 
-        // Mapa para mantener el registro de todos los profesores y sus asignaciones
-        Map<String, AreaFinalDTO.AreaFinalDTOBuilder> teacherMap = new HashMap<>();
+	@Override
+	public List<TeacherCountDTO> getJurorDistribution(Integer usuarioId, String cicloNombre) {
+		List<Object[]> rows = jurorDistributionRepository.getJurorDistributionByCoordinatorAndCiclo(usuarioId,
+				cicloNombre);
+		return rows.stream()
+			.map(r -> new TeacherCountDTO((String) r[0], // teacher_name
+					(String) r[1], // area_name
+					((Number) r[2]).intValue() // juror_count
+			))
+			.collect(Collectors.toList());
+	}
+	// TODO: Agregar metodos para comparativa de Asesor vs Jurado <-- Talves se
+	// pueda hacer con los datos mismos anteriores ya guardados.
 
-        // Procesar asesores
-        processTeachers(advisors, teacherMap, true);
+	@Override
+	public List<AreaFinalDTO> getAreaFinal(Integer usuarioId, String cicloNombre) {
+		if (usuarioId == null || cicloNombre == null || cicloNombre.trim().isEmpty()) {
+			throw new IllegalArgumentException("El ID de usuario y el ciclo son requeridos");
+		}
 
-        // Procesar jurados
-        processTeachers(jurors, teacherMap, false);
+		// Obtener datos usando los métodos existentes
+		List<TeacherCountDTO> advisors = getAdvisorDistribution(usuarioId, cicloNombre);
+		List<TeacherCountDTO> jurors = getJurorDistribution(usuarioId, cicloNombre);
 
-        // Calcular totales y construir DTOs finales
-        return teacherMap.values().stream()
-                .map(builder -> {
-                    AreaFinalDTO dto = builder.build();
-                    int total = dto.getAdvisorCount() + dto.getJurorCount();
+		// Mapa para mantener el registro de todos los profesores y sus asignaciones
+		Map<String, AreaFinalDTO.AreaFinalDTOBuilder> teacherMap = new HashMap<>();
 
-                    return AreaFinalDTO.builder()
-                            .teacherName(dto.getTeacherName())
-                            .areaName(dto.getAreaName())
-                            .advisorCount(dto.getAdvisorCount())
-                            .jurorCount(dto.getJurorCount())
-                            .totalCount(total)
-                            .build();
-                })
-                .sorted(Comparator.comparing(AreaFinalDTO::getAreaName)
-                        .thenComparing(AreaFinalDTO::getTeacherName))
-                .collect(Collectors.toList());
-    }
+		// Procesar asesores
+		processTeachers(advisors, teacherMap, true);
 
-    private void processTeachers(List<TeacherCountDTO> teachers,
-            Map<String, AreaFinalDTO.AreaFinalDTOBuilder> teacherMap,
-            boolean isAdvisor) {
+		// Procesar jurados
+		processTeachers(jurors, teacherMap, false);
 
-        for (TeacherCountDTO teacher : teachers) {
+		// Calcular totales y construir DTOs finales
+		return teacherMap.values().stream().map(builder -> {
+			AreaFinalDTO dto = builder.build();
+			int total = dto.getAdvisorCount() + dto.getJurorCount();
 
-            // 👉 1. Obtenemos los valores directamente del DTO
-            String teacherName = teacher.getTeacherName().trim();
-            String areaName = teacher.getAreaName().trim();
+			return AreaFinalDTO.builder()
+				.teacherName(dto.getTeacherName())
+				.areaName(dto.getAreaName())
+				.advisorCount(dto.getAdvisorCount())
+				.jurorCount(dto.getJurorCount())
+				.totalCount(total)
+				.build();
+		})
+			.sorted(Comparator.comparing(AreaFinalDTO::getAreaName).thenComparing(AreaFinalDTO::getTeacherName))
+			.collect(Collectors.toList());
+	}
 
-            if (teacherName.isEmpty() || areaName.isEmpty()) {
-                System.err.println("Datos incompletos para profesor: " + teacher);
-                continue;
-            }
+	private void processTeachers(List<TeacherCountDTO> teachers,
+			Map<String, AreaFinalDTO.AreaFinalDTOBuilder> teacherMap, boolean isAdvisor) {
 
-            // 👉 2. Clave única docente-área
-            String key = teacherName + "|" + areaName;
+		for (TeacherCountDTO teacher : teachers) {
 
-            // 👉 3. Insertar o reutilizar builder
-            teacherMap.computeIfAbsent(key, k -> AreaFinalDTO.builder()
-                    .teacherName(teacherName)
-                    .areaName(areaName)
-                    .advisorCount(0)
-                    .jurorCount(0)
-                    .totalCount(0));
+			// 👉 1. Obtenemos los valores directamente del DTO
+			String teacherName = teacher.getTeacherName().trim();
+			String areaName = teacher.getAreaName().trim();
 
-            // 👉 4. Actualizar contador correspondiente
-            AreaFinalDTO.AreaFinalDTOBuilder builder = teacherMap.get(key);
-            if (isAdvisor) {
-                builder.advisorCount(teacher.getCount());
-            } else {
-                builder.jurorCount(teacher.getCount());
-            }
-        }
-    }
+			if (teacherName.isEmpty() || areaName.isEmpty()) {
+				System.err.println("Datos incompletos para profesor: " + teacher);
+				continue;
+			}
 
-    // TODO: Agregar desempeño de asesores por cantidad de tesis avanzadas (en
-    // progreso) y comparativa con tesistas totales
-    @Override
-    public List<AdvisorPerformanceDto> getAdvisorPerformance(Integer usuarioId, String cicloNombre) {
-        if (usuarioId == null) {
-            throw new IllegalArgumentException("El ID de usuario es requerido");
-        }
-        if (cicloNombre == null || cicloNombre.trim().isEmpty()) {
-            throw new IllegalArgumentException("El ciclo es requerido");
-        }
+			// 👉 2. Clave única docente-área
+			String key = teacherName + "|" + areaName;
 
-        List<Object[]> results = advisorPerformanceRepository.getAdvisorPerformanceByUser(usuarioId, cicloNombre);
-        return results.stream()
-                .map(result -> new AdvisorPerformanceDto(
-                        (String) result[0],           // advisor_name
-                        (String) result[1],           // area_name
-                        ((Number) result[2]).doubleValue(), // performance_percentage
-                        ((Number) result[3]).intValue()     // total_students
-                ))
-                .collect(Collectors.toList());
-    }
+			// 👉 3. Insertar o reutilizar builder
+			teacherMap.computeIfAbsent(key,
+					k -> AreaFinalDTO.builder()
+						.teacherName(teacherName)
+						.areaName(areaName)
+						.advisorCount(0)
+						.jurorCount(0)
+						.totalCount(0));
 
-    @Override
-    public List<TopicTrendDTO> getTopicTrendsByYear(Integer usuarioId) {
-        if (usuarioId == null) {
-            throw new IllegalArgumentException("El ID de usuario es requerido");
-        }
+			// 👉 4. Actualizar contador correspondiente
+			AreaFinalDTO.AreaFinalDTOBuilder builder = teacherMap.get(key);
+			if (isAdvisor) {
+				builder.advisorCount(teacher.getCount());
+			}
+			else {
+				builder.jurorCount(teacher.getCount());
+			}
+		}
+	}
 
-        List<Object[]> results = topicAreaStatsRepository.getTopicTrendsByUser(usuarioId);
-        return results.stream()
-                .map(result -> new TopicTrendDTO(
-                        (String) result[0],           // area_name
-                        ((Number) result[1]).intValue(), // year
-                        ((Number) result[2]).intValue()  // topic_count
-                ))
-                .collect(Collectors.toList());
-    }
+	// TODO: Agregar desempeño de asesores por cantidad de tesis avanzadas (en
+	// progreso) y comparativa con tesistas totales
+	@Override
+	public List<AdvisorPerformanceDto> getAdvisorPerformance(Integer usuarioId, String cicloNombre) {
+		if (usuarioId == null) {
+			throw new IllegalArgumentException("El ID de usuario es requerido");
+		}
+		if (cicloNombre == null || cicloNombre.trim().isEmpty()) {
+			throw new IllegalArgumentException("El ciclo es requerido");
+		}
+
+		List<Object[]> results = advisorPerformanceRepository.getAdvisorPerformanceByUser(usuarioId, cicloNombre);
+		return results.stream()
+			.map(result -> new AdvisorPerformanceDto((String) result[0], // advisor_name
+					(String) result[1], // area_name
+					((Number) result[2]).doubleValue(), // performance_percentage
+					((Number) result[3]).intValue() // total_students
+			))
+			.collect(Collectors.toList());
+	}
+
+	@Override
+	public List<TopicTrendDTO> getTopicTrendsByYear(Integer usuarioId) {
+		if (usuarioId == null) {
+			throw new IllegalArgumentException("El ID de usuario es requerido");
+		}
+
+		List<Object[]> results = topicAreaStatsRepository.getTopicTrendsByUser(usuarioId);
+		return results.stream()
+			.map(result -> new TopicTrendDTO((String) result[0], // area_name
+					((Number) result[1]).intValue(), // year
+					((Number) result[2]).intValue() // topic_count
+			))
+			.collect(Collectors.toList());
+	}
 
 }

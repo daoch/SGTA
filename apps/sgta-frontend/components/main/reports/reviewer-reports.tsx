@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Eye } from "lucide-react";
@@ -22,7 +28,8 @@ export function ReviewerReports() {
     {
       id: "1",
       name: "Ana Martínez",
-      thesis: "Implementación de algoritmos de machine learning para detección de fraudes",
+      thesis:
+        "Implementación de algoritmos de machine learning para detección de fraudes",
       advisor: "Dr. Rodríguez",
       timeline: [
         {
@@ -145,7 +152,8 @@ export function ReviewerReports() {
           date: "02/04/2023",
           event: "Metodología",
           status: "En revisión",
-          comments: "Pendiente de revisión. El documento fue recibido y será evaluado en los próximos días.",
+          comments:
+            "Pendiente de revisión. El documento fue recibido y será evaluado en los próximos días.",
         },
       ],
       deliverables: [
@@ -188,7 +196,9 @@ export function ReviewerReports() {
     },
   ];
 
-  const selectedStudentData = students.find((student) => student.id === selectedStudent);
+  const selectedStudentData = students.find(
+    (student) => student.id === selectedStudent,
+  );
 
   return (
     <div className="space-y-6">
@@ -215,15 +225,25 @@ export function ReviewerReports() {
       {selectedStudentData && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">{selectedStudentData.name}</CardTitle>
-            <p className="text-sm text-gray-500">{selectedStudentData.thesis}</p>
-            <p className="text-sm text-gray-500">Asesor: {selectedStudentData.advisor}</p>
+            <CardTitle className="text-lg">
+              {selectedStudentData.name}
+            </CardTitle>
+            <p className="text-sm text-gray-500">
+              {selectedStudentData.thesis}
+            </p>
+            <p className="text-sm text-gray-500">
+              Asesor: {selectedStudentData.advisor}
+            </p>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="timeline">
               <TabsList className="mb-4">
-                <TabsTrigger value="timeline">Historial Cronológico</TabsTrigger>
-                <TabsTrigger value="consolidated">Reporte Consolidado</TabsTrigger>
+                <TabsTrigger value="timeline">
+                  Historial Cronológico
+                </TabsTrigger>
+                <TabsTrigger value="consolidated">
+                  Reporte Consolidado
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="timeline">
@@ -242,7 +262,9 @@ export function ReviewerReports() {
                         }`}
                       ></div>
                       <div>
-                        <time className="mb-1 text-xs font-normal text-gray-500">{event.date}</time>
+                        <time className="mb-1 text-xs font-normal text-gray-500">
+                          {event.date}
+                        </time>
                         <h3 className="text-sm font-medium">{event.event}</h3>
                         <p
                           className={`text-xs ${
@@ -260,7 +282,11 @@ export function ReviewerReports() {
                         <div className="flex items-center mt-1">
                           <Dialog>
                             <DialogTrigger asChild>
-                              <Button variant="ghost" size="sm" className="px-2 h-6 text-xs">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="px-2 h-6 text-xs"
+                              >
                                 <Eye className="h-3 w-3 mr-1" /> Ver detalle
                               </Button>
                             </DialogTrigger>
@@ -275,7 +301,8 @@ export function ReviewerReports() {
                                     className={`inline-block rounded-full px-2 py-1 text-xs ${
                                       event.status === "Aprobado"
                                         ? "bg-green-100 text-green-800"
-                                        : event.status === "Aprobado con observaciones"
+                                        : event.status ===
+                                            "Aprobado con observaciones"
                                           ? "bg-yellow-100 text-yellow-800"
                                           : "bg-blue-100 text-blue-800"
                                     }`}
@@ -285,8 +312,12 @@ export function ReviewerReports() {
                                 </DialogDescription>
                               </DialogHeader>
                               <div className="mt-4">
-                                <h4 className="text-sm font-medium mb-2">Comentarios:</h4>
-                                <p className="text-sm text-gray-700">{event.comments}</p>
+                                <h4 className="text-sm font-medium mb-2">
+                                  Comentarios:
+                                </h4>
+                                <p className="text-sm text-gray-700">
+                                  {event.comments}
+                                </p>
                               </div>
                             </DialogContent>
                           </Dialog>
@@ -300,15 +331,21 @@ export function ReviewerReports() {
               <TabsContent value="consolidated">
                 <div className="space-y-6">
                   {selectedStudentData.deliverables.map((deliverable) => (
-                    <Card key={deliverable.id} className="border-l-4 border-l-[#006699]">
+                    <Card
+                      key={deliverable.id}
+                      className="border-l-4 border-l-[#006699]"
+                    >
                       <CardHeader className="pb-2">
                         <div className="flex items-center justify-between">
-                          <CardTitle className="text-base">{deliverable.title}</CardTitle>
+                          <CardTitle className="text-base">
+                            {deliverable.title}
+                          </CardTitle>
                           <span
                             className={`text-xs px-2 py-1 rounded-full ${
                               deliverable.status === "Aprobado"
                                 ? "bg-green-100 text-green-800"
-                                : deliverable.status === "Aprobado con observaciones"
+                                : deliverable.status ===
+                                    "Aprobado con observaciones"
                                   ? "bg-yellow-100 text-yellow-800"
                                   : "bg-blue-100 text-blue-800"
                             }`}
@@ -316,15 +353,23 @@ export function ReviewerReports() {
                             {deliverable.status}
                           </span>
                         </div>
-                        <p className="text-xs text-gray-500">Fecha de entrega: {deliverable.date}</p>
+                        <p className="text-xs text-gray-500">
+                          Fecha de entrega: {deliverable.date}
+                        </p>
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-2">
                           <div>
-                            <h4 className="text-sm font-medium">Retroalimentación:</h4>
+                            <h4 className="text-sm font-medium">
+                              Retroalimentación:
+                            </h4>
                             <Dialog>
                               <DialogTrigger asChild>
-                                <Button variant="ghost" size="sm" className="px-2 h-7">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="px-2 h-7"
+                                >
                                   <Eye className="h-4 w-4 mr-1" /> Ver detalle
                                 </Button>
                               </DialogTrigger>
@@ -339,7 +384,8 @@ export function ReviewerReports() {
                                       className={`inline-block rounded-full px-2 py-1 text-xs ${
                                         deliverable.status === "Aprobado"
                                           ? "bg-green-100 text-green-800"
-                                          : deliverable.status === "Aprobado con observaciones"
+                                          : deliverable.status ===
+                                              "Aprobado con observaciones"
                                             ? "bg-yellow-100 text-yellow-800"
                                             : "bg-blue-100 text-blue-800"
                                       }`}
@@ -349,15 +395,21 @@ export function ReviewerReports() {
                                   </DialogDescription>
                                 </DialogHeader>
                                 <div className="mt-4">
-                                  <h4 className="text-sm font-medium mb-2">Retroalimentación completa:</h4>
-                                  <p className="text-sm text-gray-700">{deliverable.feedback}</p>
+                                  <h4 className="text-sm font-medium mb-2">
+                                    Retroalimentación completa:
+                                  </h4>
+                                  <p className="text-sm text-gray-700">
+                                    {deliverable.feedback}
+                                  </p>
                                 </div>
                               </DialogContent>
                             </Dialog>
                           </div>
                           {deliverable.score !== null && (
                             <div>
-                              <h4 className="text-sm font-medium">Calificación:</h4>
+                              <h4 className="text-sm font-medium">
+                                Calificación:
+                              </h4>
                               <div className="flex items-center gap-2">
                                 <div className="h-2 w-full max-w-[200px] rounded-full bg-gray-200">
                                   <div
@@ -368,10 +420,14 @@ export function ReviewerReports() {
                                           ? "bg-yellow-500"
                                           : "bg-green-500"
                                     }`}
-                                    style={{ width: `${(deliverable.score / 20) * 100}%` }}
+                                    style={{
+                                      width: `${(deliverable.score / 20) * 100}%`,
+                                    }}
                                   ></div>
                                 </div>
-                                <span className="text-sm font-medium">{deliverable.score}/20</span>
+                                <span className="text-sm font-medium">
+                                  {deliverable.score}/20
+                                </span>
                               </div>
                             </div>
                           )}

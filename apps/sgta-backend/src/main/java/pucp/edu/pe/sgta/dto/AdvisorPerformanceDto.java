@@ -8,8 +8,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AdvisorPerformanceDto {
-    private String advisorName;
-    private String areaName;
-    private Double performancePercentage;
-    private Integer totalStudents;
+
+	private String advisorName;
+
+	private String areaName;
+
+	private Double performancePercentage;
+
+	private Integer totalStudents;
+
 }

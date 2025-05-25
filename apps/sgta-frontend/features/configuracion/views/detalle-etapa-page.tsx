@@ -13,7 +13,14 @@ import { EntregableModal } from "../components/entregable/entregable-modal";
 import { ExposicionModal } from "../components/exposicion/exposicion-modal";
 import axiosInstance from "@/lib/axios/axios-instance";
 import Link from "next/link";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface DetalleEtapaPageProps {
   etapaId: string;
@@ -25,11 +32,15 @@ const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
   const [entregables, setEntregables] = useState<Entregable[]>([]);
   const [exposiciones, setExposiciones] = useState<Exposicion[]>([]);
 
-  const [isDeleteEntregableModalOpen, setIsDeleteEntregableModalOpen] = useState(false);
-  const [entregableAEliminar, setEntregableAEliminar] = useState<Entregable | null>(null);
+  const [isDeleteEntregableModalOpen, setIsDeleteEntregableModalOpen] =
+    useState(false);
+  const [entregableAEliminar, setEntregableAEliminar] =
+    useState<Entregable | null>(null);
 
-  const [isDeleteExposicionModalOpen, setIsDeleteExposicionModalOpen] = useState(false);
-  const [exposicionAEliminar, setExposicionAEliminar] = useState<Exposicion | null>(null);
+  const [isDeleteExposicionModalOpen, setIsDeleteExposicionModalOpen] =
+    useState(false);
+  const [exposicionAEliminar, setExposicionAEliminar] =
+    useState<Exposicion | null>(null);
 
   useEffect(() => {
     const fetchEntregables = async () => {
@@ -152,8 +163,10 @@ const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
     if (!entregableAEliminar) return;
 
     try {
-      await axiosInstance.put("/entregable/delete",entregableAEliminar.id);
-      setEntregables((prev) => prev.filter((e) => e.id !== entregableAEliminar.id));
+      await axiosInstance.put("/entregable/delete", entregableAEliminar.id);
+      setEntregables((prev) =>
+        prev.filter((e) => e.id !== entregableAEliminar.id),
+      );
       console.log("Entregable eliminado exitosamente");
     } catch (error) {
       console.error("Error al eliminar el entregable:", error);
@@ -167,8 +180,10 @@ const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
     if (!exposicionAEliminar) return;
 
     try {
-      await axiosInstance.put("/exposicion/delete",exposicionAEliminar.id);
-      setExposiciones((prev) => prev.filter((e) => e.id !== exposicionAEliminar.id));
+      await axiosInstance.put("/exposicion/delete", exposicionAEliminar.id);
+      setExposiciones((prev) =>
+        prev.filter((e) => e.id !== exposicionAEliminar.id),
+      );
       console.log("Exposición eliminada exitosamente");
     } catch (error) {
       console.error("Error al eliminar la exposición:", error);
@@ -307,13 +322,17 @@ const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
         mode={"create"}
       />
 
-      <Dialog open={isDeleteEntregableModalOpen} onOpenChange={setIsDeleteEntregableModalOpen}>
+      <Dialog
+        open={isDeleteEntregableModalOpen}
+        onOpenChange={setIsDeleteEntregableModalOpen}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Eliminar Entregable</DialogTitle>
             <DialogDescription>
               ¿Estás seguro de que deseas eliminar el entregable{" "}
-              <strong>{entregableAEliminar?.nombre}</strong>? Esta acción no se puede deshacer.
+              <strong>{entregableAEliminar?.nombre}</strong>? Esta acción no se
+              puede deshacer.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -327,13 +346,17 @@ const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={isDeleteExposicionModalOpen} onOpenChange={setIsDeleteExposicionModalOpen}>
+      <Dialog
+        open={isDeleteExposicionModalOpen}
+        onOpenChange={setIsDeleteExposicionModalOpen}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Eliminar Exposición</DialogTitle>
             <DialogDescription>
               ¿Estás seguro de que deseas eliminar la exposición{" "}
-              <strong>{exposicionAEliminar?.nombre}</strong>? Esta acción no se puede deshacer.
+              <strong>{exposicionAEliminar?.nombre}</strong>? Esta acción no se
+              puede deshacer.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

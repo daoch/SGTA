@@ -1,7 +1,14 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ChevronRight, Edit, Monitor, Presentation, Trash2, Users } from "lucide-react";
+import {
+  ChevronRight,
+  Edit,
+  Monitor,
+  Presentation,
+  Trash2,
+  Users,
+} from "lucide-react";
 import Link from "next/link";
 
 // Datos de ejemplo
@@ -61,27 +68,41 @@ export function ExposicionesList() {
                     <Presentation size={20} />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold mb-1">{exposicion.nombre}</h3>
+                    <h3 className="text-lg font-semibold mb-1">
+                      {exposicion.nombre}
+                    </h3>
                     <Badge variant="outline" className="mb-3">
                       {exposicion.curso}
                     </Badge>
-                    <p className="text-sm text-gray-500 mb-3">{exposicion.descripcion}</p>
+                    <p className="text-sm text-gray-500 mb-3">
+                      {exposicion.descripcion}
+                    </p>
 
                     <div className="flex gap-3">
                       <Badge
-                        variant={exposicion.presencial ? "default" : "secondary"}
+                        variant={
+                          exposicion.presencial ? "default" : "secondary"
+                        }
                         className="flex items-center gap-1"
                       >
                         <Monitor size={14} />
-                        <span>{exposicion.presencial ? "Presencial" : "Virtual"}</span>
+                        <span>
+                          {exposicion.presencial ? "Presencial" : "Virtual"}
+                        </span>
                       </Badge>
 
                       <Badge
-                        variant={exposicion.conJurados ? "default" : "secondary"}
+                        variant={
+                          exposicion.conJurados ? "default" : "secondary"
+                        }
                         className="flex items-center gap-1"
                       >
                         <Users size={14} />
-                        <span>{exposicion.conJurados ? "Con jurados" : "Sin jurados"}</span>
+                        <span>
+                          {exposicion.conJurados
+                            ? "Con jurados"
+                            : "Sin jurados"}
+                        </span>
                       </Badge>
                     </div>
                   </div>
@@ -90,7 +111,11 @@ export function ExposicionesList() {
                   <Button variant="outline" size="icon">
                     <Edit size={16} />
                   </Button>
-                  <Button variant="outline" size="icon" className="text-red-500">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="text-red-500"
+                  >
                     <Trash2 size={16} />
                   </Button>
                 </div>
@@ -100,15 +125,23 @@ export function ExposicionesList() {
             <div className="bg-gray-50 p-4 border-t flex items-center justify-between">
               <div className="flex gap-6">
                 <div className="text-sm">
-                  <span className="text-gray-500">Fechas:</span> {exposicion.fechas}
+                  <span className="text-gray-500">Fechas:</span>{" "}
+                  {exposicion.fechas}
                 </div>
                 <div className="text-sm">
-                  <span className="text-gray-500">Contenidos esperados:</span> {exposicion.contenidos}
+                  <span className="text-gray-500">Contenidos esperados:</span>{" "}
+                  {exposicion.contenidos}
                 </div>
               </div>
 
-              <Link href={`/coordinador/configuracion/general/exposiciones/${exposicion.id}`}>
-                <Button variant="ghost" size="sm" className="flex items-center gap-1">
+              <Link
+                href={`/coordinador/configuracion/general/exposiciones/${exposicion.id}`}
+              >
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="flex items-center gap-1"
+                >
                   <span>Ver detalles</span>
                   <ChevronRight size={16} />
                 </Button>

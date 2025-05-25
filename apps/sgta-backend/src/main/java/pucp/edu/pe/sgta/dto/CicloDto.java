@@ -11,19 +11,21 @@ import java.time.OffsetDateTime;
 @AllArgsConstructor
 @Builder
 public class CicloDto {
-    private Integer id;
 
-    private String semestre;
+	private Integer id;
 
-    private Integer anio;
+	private String semestre;
 
-    private LocalDate fechaInicio;
+	private Integer anio;
 
-    private LocalDate fechaFin;
+	private LocalDate fechaInicio;
 
-    private Boolean activo;
+	private LocalDate fechaFin;
 
-    private OffsetDateTime fechaCreacion;
+	private Boolean activo;
 
-    private OffsetDateTime fechaModificacion;
+	private OffsetDateTime fechaCreacion;
+
+	private OffsetDateTime fechaModificacion;
+
 }

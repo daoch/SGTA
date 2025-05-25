@@ -33,318 +33,298 @@ import pucp.edu.pe.sgta.service.inter.SolicitudService;
 
 @Service
 public class SolicitudServiceImpl implements SolicitudService {
-    @Autowired
-    private SolicitudRepository solicitudRepository;
-    @Autowired
-    private UsuarioXSolicitudRepository usuarioXSolicitudRepository;
-    @Autowired
-    private UsuarioXTemaRepository usuarioXTemaRepository;
-    @Autowired
-    private SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository;
 
-    public SolicitudCeseDto findAllSolicitudesCese(int page, int size) {
-        List<Solicitud> allSolicitudes = solicitudRepository.findByTipoSolicitudNombre("Cese Asesoria");
+	@Autowired
+	private SolicitudRepository solicitudRepository;
 
-        int totalElements = allSolicitudes.size();
-        int totalPages = (int) Math.ceil((double) totalElements / size);
+	@Autowired
+	private UsuarioXSolicitudRepository usuarioXSolicitudRepository;
 
-        int fromIndex = page * size;
-        int toIndex = Math.min(fromIndex + size, totalElements);
+	@Autowired
+	private UsuarioXTemaRepository usuarioXTemaRepository;
 
-        if (fromIndex >= totalElements) {
-            return new SolicitudCeseDto(Collections.emptyList(), totalPages);
-        }
+	@Autowired
+	private SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository;
 
-        List<Solicitud> solicitudesPage = allSolicitudes.subList(fromIndex, toIndex);
+	public SolicitudCeseDto findAllSolicitudesCese(int page, int size) {
+		List<Solicitud> allSolicitudes = solicitudRepository.findByTipoSolicitudNombre("Cese Asesoria");
 
-        List<SolicitudCeseDto.RequestTermination> requestList = solicitudesPage.stream().map(solicitud -> {
-            List<UsuarioXSolicitud> relaciones = usuarioXSolicitudRepository.findBySolicitud(solicitud);
+		int totalElements = allSolicitudes.size();
+		int totalPages = (int) Math.ceil((double) totalElements / size);
 
-            var asesor = relaciones.stream()
-                .filter(uxs -> Boolean.FALSE.equals(uxs.getDestinatario()))
-                .map(uxs -> uxs.getUsuario())
-                .findFirst()
-                .map(u -> new SolicitudCeseDto.Assessor(
-                    u.getId(),
-                    u.getNombres(),
-                    u.getPrimerApellido(),
-                    u.getCorreoElectronico(),
-                    usuarioXTemaRepository.findByUsuarioIdAndRolNombreAndActivoTrue(u.getId(), "asesor").size(),
-                    u.getFotoPerfil() // URL foto
-                ))
-                .orElse(null);
-        
-            var students = relaciones.stream()
-                .filter(uxs -> Boolean.TRUE.equals(uxs.getDestinatario()))
-                .map(uxs -> new SolicitudCeseDto.Estudiante(
-                    uxs.getUsuario().getId(),
-                    uxs.getUsuario().getNombres(),
-                    uxs.getUsuario().getPrimerApellido(),
-                    new SolicitudCeseDto.Tema(solicitud.getTema().getTitulo())
-                ))
-                .toList();
-        
-            String estado = switch (solicitud.getEstado()) {
-                case 0 -> "approved";
-                case 1 -> "pending";
-                case 2 -> "rejected";
-                default -> "unknown";
-            };
-        
-            return new SolicitudCeseDto.RequestTermination(
-                solicitud.getId(),
-                solicitud.getFechaCreacion().toLocalDate(),
-                estado,
-                solicitud.getDescripcion(),
-                solicitud.getRespuesta(), // respuesta
-                solicitud.getFechaModificacion() != null ? solicitud.getFechaModificacion().toLocalDate() : null,
-                asesor,
-                students
-            );
-        }).toList();
-        
-        return new SolicitudCeseDto(requestList, totalPages);
-    }
+		int fromIndex = page * size;
+		int toIndex = Math.min(fromIndex + size, totalElements);
 
-    @Override
-    public RechazoSolicitudResponseDto rechazarSolicitud(Integer solicitudId, String response) {
-        Solicitud solicitud = solicitudRepository.findById(solicitudId)
-                .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
+		if (fromIndex >= totalElements) {
+			return new SolicitudCeseDto(Collections.emptyList(), totalPages);
+		}
 
-        // Verificar que la solicitud esté en estado pendiente (1)
-        if (solicitud.getEstado() != 1) {
-            throw new RuntimeException("La solicitud no está en estado pendiente");
-        }
+		List<Solicitud> solicitudesPage = allSolicitudes.subList(fromIndex, toIndex);
 
-        // Verificar que la solicitud sea de tipo cese (tipoSolicitud.nombre == Cese Asesoria)
-        if (solicitud.getTipoSolicitud() == null || solicitud.getTipoSolicitud().getNombre() != "Cese Asesoria") {
-            throw new RuntimeException("La solicitud no es de tipo cese");
-        }
+		List<SolicitudCeseDto.RequestTermination> requestList = solicitudesPage.stream().map(solicitud -> {
+			List<UsuarioXSolicitud> relaciones = usuarioXSolicitudRepository.findBySolicitud(solicitud);
 
-        solicitud.setRespuesta(response);
-        solicitud.setEstado(2); // Rechazado
-        solicitud.setFechaModificacion(OffsetDateTime.now());
-        solicitudRepository.save(solicitud);
+			var asesor = relaciones.stream()
+				.filter(uxs -> Boolean.FALSE.equals(uxs.getDestinatario()))
+				.map(uxs -> uxs.getUsuario())
+				.findFirst()
+				.map(u -> new SolicitudCeseDto.Assessor(u.getId(), u.getNombres(), u.getPrimerApellido(),
+						u.getCorreoElectronico(),
+						usuarioXTemaRepository.findByUsuarioIdAndRolNombreAndActivoTrue(u.getId(), "asesor").size(),
+						u.getFotoPerfil() // URL foto
+			))
+				.orElse(null);
 
-        List<UsuarioXTema> asesoresActivos = usuarioXTemaRepository.findByTemaIdAndRolNombreAndActivoTrue( solicitud.getTema().getId(), "Asesor");
-        List<UsuarioXTema> tesistasActivos = usuarioXTemaRepository.findByTemaIdAndRolNombreAndActivoTrue(solicitud.getTema().getId(), "Tesista");
+			var students = relaciones.stream()
+				.filter(uxs -> Boolean.TRUE.equals(uxs.getDestinatario()))
+				.map(uxs -> new SolicitudCeseDto.Estudiante(uxs.getUsuario().getId(), uxs.getUsuario().getNombres(),
+						uxs.getUsuario().getPrimerApellido(),
+						new SolicitudCeseDto.Tema(solicitud.getTema().getTitulo())))
+				.toList();
 
-        List<AsignacionDto> asignaciones = new ArrayList<>();
+			String estado = switch (solicitud.getEstado()) {
+				case 0 -> "approved";
+				case 1 -> "pending";
+				case 2 -> "rejected";
+				default -> "unknown";
+			};
 
-        for (UsuarioXTema tesista : tesistasActivos) {
-            for (UsuarioXTema asesor : asesoresActivos) {
-                asignaciones.add(new AsignacionDto(
-                        tesista.getUsuario().getId(),
-                        asesor.getUsuario().getId()
-                ));
-            }
-        }
-        
-        RechazoSolicitudResponseDto dto = new RechazoSolicitudResponseDto();
-        dto.setIdRequest(solicitud.getId());
-        dto.setStatus("rejected");
-        dto.setResponse(response); // se usa lo que viene del request
-        dto.setAssignations(asignaciones);
+			return new SolicitudCeseDto.RequestTermination(solicitud.getId(),
+					solicitud.getFechaCreacion().toLocalDate(), estado, solicitud.getDescripcion(),
+					solicitud.getRespuesta(), // respuesta
+					solicitud.getFechaModificacion() != null ? solicitud.getFechaModificacion().toLocalDate() : null,
+					asesor, students);
+		}).toList();
 
-        return dto;
-    }
+		return new SolicitudCeseDto(requestList, totalPages);
+	}
 
-    @Override
-    public AprobarSolicitudResponseDto aprobarSolicitud(Integer solicitudId, String response) {
-        Solicitud solicitud = solicitudRepository.findById(solicitudId)
-                .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
+	@Override
+	public RechazoSolicitudResponseDto rechazarSolicitud(Integer solicitudId, String response) {
+		Solicitud solicitud = solicitudRepository.findById(solicitudId)
+			.orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
 
-        if (solicitud.getEstado() != 1) {
-            throw new RuntimeException("La solicitud no está en estado pendiente");
-        }
+		// Verificar que la solicitud esté en estado pendiente (1)
+		if (solicitud.getEstado() != 1) {
+			throw new RuntimeException("La solicitud no está en estado pendiente");
+		}
 
-        // Verificar que la solicitud sea de tipo cese (tipoSolicitud.nombre == Cese Asesoria)
-        if (solicitud.getTipoSolicitud() == null || solicitud.getTipoSolicitud().getNombre() != "Cese Asesoria") {
-            throw new RuntimeException("La solicitud no es de tipo cese");
-        }
+		// Verificar que la solicitud sea de tipo cese (tipoSolicitud.nombre == Cese
+		// Asesoria)
+		if (solicitud.getTipoSolicitud() == null || solicitud.getTipoSolicitud().getNombre() != "Cese Asesoria") {
+			throw new RuntimeException("La solicitud no es de tipo cese");
+		}
 
-        solicitud.setRespuesta(response);
-        solicitud.setEstado(0); // Aprobado
-        solicitud.setFechaModificacion(OffsetDateTime.now());
-        solicitudRepository.save(solicitud);
+		solicitud.setRespuesta(response);
+		solicitud.setEstado(2); // Rechazado
+		solicitud.setFechaModificacion(OffsetDateTime.now());
+		solicitudRepository.save(solicitud);
 
-        // Simular asignaciones
-        List<UsuarioXTema> asesoresActivos = usuarioXTemaRepository.findByTemaIdAndRolNombreAndActivoTrue( solicitud.getTema().getId(), "Asesor");
-        List<UsuarioXTema> tesistasActivos = usuarioXTemaRepository.findByTemaIdAndRolNombreAndActivoTrue(solicitud.getTema().getId(), "Tesista");
-        
-        List<AprobarAsignacionDto> asignaciones = new ArrayList<>();
+		List<UsuarioXTema> asesoresActivos = usuarioXTemaRepository
+			.findByTemaIdAndRolNombreAndActivoTrue(solicitud.getTema().getId(), "Asesor");
+		List<UsuarioXTema> tesistasActivos = usuarioXTemaRepository
+			.findByTemaIdAndRolNombreAndActivoTrue(solicitud.getTema().getId(), "Tesista");
 
-        for (UsuarioXTema tesista : tesistasActivos) {
-            for (UsuarioXTema asesor : asesoresActivos) {
-                asignaciones.add(new AprobarAsignacionDto(
-                        tesista.getUsuario().getId(),
-                        asesor.getUsuario().getId()
-                ));
-            }
-        }
+		List<AsignacionDto> asignaciones = new ArrayList<>();
 
-        for (UsuarioXTema usuarioXTema : asesoresActivos) {
-            usuarioXTema.setActivo(false);
-            usuarioXTemaRepository.save(usuarioXTema);
-        }
-        for (UsuarioXTema usuarioXTema : tesistasActivos) {
-            usuarioXTema.setActivo(false);
-            usuarioXTemaRepository.save(usuarioXTema);
-        }
+		for (UsuarioXTema tesista : tesistasActivos) {
+			for (UsuarioXTema asesor : asesoresActivos) {
+				asignaciones.add(new AsignacionDto(tesista.getUsuario().getId(), asesor.getUsuario().getId()));
+			}
+		}
 
-        AprobarSolicitudResponseDto dto = new AprobarSolicitudResponseDto();
-        dto.setIdRequest(solicitud.getId());
-        dto.setStatus("approved");
-        dto.setResponse(response);
-        dto.setAssignations(asignaciones);
+		RechazoSolicitudResponseDto dto = new RechazoSolicitudResponseDto();
+		dto.setIdRequest(solicitud.getId());
+		dto.setStatus("rejected");
+		dto.setResponse(response); // se usa lo que viene del request
+		dto.setAssignations(asignaciones);
 
-        return dto;
-    }
+		return dto;
+	}
 
-    public SolicitudCambioAsesorDto findAllSolicitudesCambioAsesor(int page, int size) {
-        List<Solicitud> allSolicitudes = solicitudRepository.findByTipoSolicitudNombre("Cambio Asesor");
+	@Override
+	public AprobarSolicitudResponseDto aprobarSolicitud(Integer solicitudId, String response) {
+		Solicitud solicitud = solicitudRepository.findById(solicitudId)
+			.orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
 
-        int totalElements = allSolicitudes.size();
-        int totalPages = (int) Math.ceil((double) totalElements / size);
+		if (solicitud.getEstado() != 1) {
+			throw new RuntimeException("La solicitud no está en estado pendiente");
+		}
 
-        int fromIndex = page * size;
-        int toIndex = Math.min(fromIndex + size, totalElements);
+		// Verificar que la solicitud sea de tipo cese (tipoSolicitud.nombre == Cese
+		// Asesoria)
+		if (solicitud.getTipoSolicitud() == null || solicitud.getTipoSolicitud().getNombre() != "Cese Asesoria") {
+			throw new RuntimeException("La solicitud no es de tipo cese");
+		}
 
-        if (fromIndex >= totalElements) {
-            return new SolicitudCambioAsesorDto(Collections.emptyList(), totalPages);
-        }
+		solicitud.setRespuesta(response);
+		solicitud.setEstado(0); // Aprobado
+		solicitud.setFechaModificacion(OffsetDateTime.now());
+		solicitudRepository.save(solicitud);
 
-        List<Solicitud> solicitudesPage = allSolicitudes.subList(fromIndex, toIndex);
+		// Simular asignaciones
+		List<UsuarioXTema> asesoresActivos = usuarioXTemaRepository
+			.findByTemaIdAndRolNombreAndActivoTrue(solicitud.getTema().getId(), "Asesor");
+		List<UsuarioXTema> tesistasActivos = usuarioXTemaRepository
+			.findByTemaIdAndRolNombreAndActivoTrue(solicitud.getTema().getId(), "Tesista");
 
-        List<SolicitudCambioAsesorDto.RequestChange> requestList = solicitudesPage.stream().map(solicitud -> {
-            List<UsuarioXSolicitud> relaciones = usuarioXSolicitudRepository.findBySolicitud(solicitud);
+		List<AprobarAsignacionDto> asignaciones = new ArrayList<>();
 
-            var asesor = relaciones.stream()
-                .filter(uxs -> Boolean.FALSE.equals(uxs.getDestinatario()))
-                .map(uxs -> uxs.getUsuario())
-                .map(u -> new SolicitudCambioAsesorDto.Assessor(
-                    u.getId(),
-                    u.getNombres(),
-                    u.getPrimerApellido(),
-                    u.getCorreoElectronico(),
-                    u.getFotoPerfil() // URL foto
-                ))
-                .toList();
-        
-            var students = relaciones.stream()
-                .filter(uxs -> Boolean.TRUE.equals(uxs.getDestinatario()))
-                .findFirst()
-                .map(uxs -> new SolicitudCambioAsesorDto.Estudiante(
-                    uxs.getUsuario().getId(),
-                    uxs.getUsuario().getNombres(),
-                    uxs.getUsuario().getPrimerApellido(),
-                    uxs.getUsuario().getCorreoElectronico(),
-                    uxs.getUsuario().getFotoPerfil(),
-                    new SolicitudCambioAsesorDto.Tema(
-                        solicitud.getTema().getId(),
-                        solicitud.getTema().getTitulo(),
-                        new SolicitudCambioAsesorDto.AreaConocimiento(
-                            subAreaConocimientoXTemaRepository.findFirstByTemaIdAndActivoTrue(solicitud.getTema().getId()).getSubAreaConocimiento().getId(),
-                            subAreaConocimientoXTemaRepository.findFirstByTemaIdAndActivoTrue(solicitud.getTema().getId()).getSubAreaConocimiento().getNombre()
-                        ))
-                ))
-                .orElse(null);
-        
-            String estado = switch (solicitud.getEstado()) {
-                case 0 -> "approved";
-                case 1 -> "pending";
-                case 2 -> "rejected";
-                default -> "unknown";
-            };
-        
-            return new SolicitudCambioAsesorDto.RequestChange(
-                solicitud.getId(),
-                solicitud.getFechaCreacion().toLocalDate(),
-                estado,
-                solicitud.getDescripcion(),
-                solicitud.getRespuesta(),
-                solicitud.getFechaModificacion() != null ? solicitud.getFechaModificacion().toLocalDate() : null,
-                asesor,
-                students
-            );
-        }).toList();
-        
-        return new SolicitudCambioAsesorDto(requestList, totalPages);
-    }
-    
-    @Override
-    public RechazoSolicitudCambioAsesorResponseDto rechazarSolicitudCambioAsesor(Integer solicitudId, String response) {
-        Solicitud solicitud = solicitudRepository.findById(solicitudId)
-                .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
+		for (UsuarioXTema tesista : tesistasActivos) {
+			for (UsuarioXTema asesor : asesoresActivos) {
+				asignaciones.add(new AprobarAsignacionDto(tesista.getUsuario().getId(), asesor.getUsuario().getId()));
+			}
+		}
 
-        // Verificar que la solicitud esté en estado pendiente (1)
-        if (solicitud.getEstado() != 1) {
-            throw new RuntimeException("La solicitud no está en estado pendiente");
-        }
+		for (UsuarioXTema usuarioXTema : asesoresActivos) {
+			usuarioXTema.setActivo(false);
+			usuarioXTemaRepository.save(usuarioXTema);
+		}
+		for (UsuarioXTema usuarioXTema : tesistasActivos) {
+			usuarioXTema.setActivo(false);
+			usuarioXTemaRepository.save(usuarioXTema);
+		}
 
-        // Verificar que la solicitud sea de tipo cese (tipoSolicitud.nombre == Cambio Asesor)
-        if (solicitud.getTipoSolicitud() == null || solicitud.getTipoSolicitud().getNombre() != "Cambio Asesor") {
-            throw new RuntimeException("La solicitud no es de tipo cambio de asesor");
-        }
+		AprobarSolicitudResponseDto dto = new AprobarSolicitudResponseDto();
+		dto.setIdRequest(solicitud.getId());
+		dto.setStatus("approved");
+		dto.setResponse(response);
+		dto.setAssignations(asignaciones);
 
-        solicitud.setRespuesta(response);
-        solicitud.setEstado(0); // Rechazado
-        solicitud.setFechaModificacion(OffsetDateTime.now());
-        solicitudRepository.save(solicitud);
+		return dto;
+	}
 
-        UsuarioXSolicitud asesor = usuarioXSolicitudRepository.findFirstBySolicitudAndDestinatarioTrue(solicitud);
-        UsuarioXSolicitud tesista = usuarioXSolicitudRepository.findFirstBySolicitudAndDestinatarioFalse(solicitud);
+	public SolicitudCambioAsesorDto findAllSolicitudesCambioAsesor(int page, int size) {
+		List<Solicitud> allSolicitudes = solicitudRepository.findByTipoSolicitudNombre("Cambio Asesor");
 
-        CambioAsignacionDto asignacion = new CambioAsignacionDto(
-                tesista.getUsuario().getId(),
-                asesor.getUsuario().getId()
-        );
+		int totalElements = allSolicitudes.size();
+		int totalPages = (int) Math.ceil((double) totalElements / size);
 
-        
-        RechazoSolicitudCambioAsesorResponseDto dto = new RechazoSolicitudCambioAsesorResponseDto();
-        dto.setIdRequest(solicitud.getId());
-        dto.setStatus("rejected");
-        dto.setResponse(response); // se usa lo que viene del request
-        dto.setAssignation(asignacion);
+		int fromIndex = page * size;
+		int toIndex = Math.min(fromIndex + size, totalElements);
 
-        return dto;
-    }
+		if (fromIndex >= totalElements) {
+			return new SolicitudCambioAsesorDto(Collections.emptyList(), totalPages);
+		}
 
-    @Override
-    public AprobarSolicitudCambioAsesorResponseDto aprobarSolicitudCambioAsesor(Integer solicitudId, String response) {
-        Solicitud solicitud = solicitudRepository.findById(solicitudId)
-                .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
+		List<Solicitud> solicitudesPage = allSolicitudes.subList(fromIndex, toIndex);
 
-        // Verificar que la solicitud esté en estado pendiente (1)
-        if (solicitud.getEstado() != 1) {
-            throw new RuntimeException("La solicitud no está en estado pendiente");
-        }
+		List<SolicitudCambioAsesorDto.RequestChange> requestList = solicitudesPage.stream().map(solicitud -> {
+			List<UsuarioXSolicitud> relaciones = usuarioXSolicitudRepository.findBySolicitud(solicitud);
 
-        // Verificar que la solicitud sea de tipo cese (tipoSolicitud.nombre == Cambio Asesor)
-        if (solicitud.getTipoSolicitud() == null || solicitud.getTipoSolicitud().getNombre() != "Cambio Asesor") {
-            throw new RuntimeException("La solicitud no es de tipo cambio de asesor");
-        }
+			var asesor = relaciones.stream()
+				.filter(uxs -> Boolean.FALSE.equals(uxs.getDestinatario()))
+				.map(uxs -> uxs.getUsuario())
+				.map(u -> new SolicitudCambioAsesorDto.Assessor(u.getId(), u.getNombres(), u.getPrimerApellido(),
+						u.getCorreoElectronico(), u.getFotoPerfil() // URL foto
+			))
+				.toList();
 
-        solicitud.setRespuesta(response);
-        solicitud.setEstado(2); // Aprobado
-        solicitud.setFechaModificacion(OffsetDateTime.now());
-        solicitudRepository.save(solicitud);
+			var students = relaciones.stream()
+				.filter(uxs -> Boolean.TRUE.equals(uxs.getDestinatario()))
+				.findFirst()
+				.map(uxs -> new SolicitudCambioAsesorDto.Estudiante(uxs.getUsuario().getId(),
+						uxs.getUsuario().getNombres(), uxs.getUsuario().getPrimerApellido(),
+						uxs.getUsuario().getCorreoElectronico(), uxs.getUsuario().getFotoPerfil(),
+						new SolicitudCambioAsesorDto.Tema(solicitud.getTema().getId(), solicitud.getTema().getTitulo(),
+								new SolicitudCambioAsesorDto.AreaConocimiento(
+										subAreaConocimientoXTemaRepository
+											.findFirstByTemaIdAndActivoTrue(solicitud.getTema().getId())
+											.getSubAreaConocimiento()
+											.getId(),
+										subAreaConocimientoXTemaRepository
+											.findFirstByTemaIdAndActivoTrue(solicitud.getTema().getId())
+											.getSubAreaConocimiento()
+											.getNombre()))))
+				.orElse(null);
 
-        UsuarioXSolicitud asesor = usuarioXSolicitudRepository.findFirstBySolicitudAndDestinatarioTrue(solicitud);
-        UsuarioXSolicitud tesista = usuarioXSolicitudRepository.findFirstBySolicitudAndDestinatarioFalse(solicitud);
+			String estado = switch (solicitud.getEstado()) {
+				case 0 -> "approved";
+				case 1 -> "pending";
+				case 2 -> "rejected";
+				default -> "unknown";
+			};
 
-        AprobarCambioAsesorAsignacionDto asignacion = new AprobarCambioAsesorAsignacionDto(
-                tesista.getUsuario().getId(),
-                asesor.getUsuario().getId()
-        );
+			return new SolicitudCambioAsesorDto.RequestChange(solicitud.getId(),
+					solicitud.getFechaCreacion().toLocalDate(), estado, solicitud.getDescripcion(),
+					solicitud.getRespuesta(),
+					solicitud.getFechaModificacion() != null ? solicitud.getFechaModificacion().toLocalDate() : null,
+					asesor, students);
+		}).toList();
 
-        
-        AprobarSolicitudCambioAsesorResponseDto dto = new AprobarSolicitudCambioAsesorResponseDto();
-        dto.setIdRequest(solicitud.getId());
-        dto.setStatus("approved");
-        dto.setResponse(response); // se usa lo que viene del request
-        dto.setAssignation(asignacion);
+		return new SolicitudCambioAsesorDto(requestList, totalPages);
+	}
 
-        return dto;
-    }
+	@Override
+	public RechazoSolicitudCambioAsesorResponseDto rechazarSolicitudCambioAsesor(Integer solicitudId, String response) {
+		Solicitud solicitud = solicitudRepository.findById(solicitudId)
+			.orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
+
+		// Verificar que la solicitud esté en estado pendiente (1)
+		if (solicitud.getEstado() != 1) {
+			throw new RuntimeException("La solicitud no está en estado pendiente");
+		}
+
+		// Verificar que la solicitud sea de tipo cese (tipoSolicitud.nombre == Cambio
+		// Asesor)
+		if (solicitud.getTipoSolicitud() == null || solicitud.getTipoSolicitud().getNombre() != "Cambio Asesor") {
+			throw new RuntimeException("La solicitud no es de tipo cambio de asesor");
+		}
+
+		solicitud.setRespuesta(response);
+		solicitud.setEstado(0); // Rechazado
+		solicitud.setFechaModificacion(OffsetDateTime.now());
+		solicitudRepository.save(solicitud);
+
+		UsuarioXSolicitud asesor = usuarioXSolicitudRepository.findFirstBySolicitudAndDestinatarioTrue(solicitud);
+		UsuarioXSolicitud tesista = usuarioXSolicitudRepository.findFirstBySolicitudAndDestinatarioFalse(solicitud);
+
+		CambioAsignacionDto asignacion = new CambioAsignacionDto(tesista.getUsuario().getId(),
+				asesor.getUsuario().getId());
+
+		RechazoSolicitudCambioAsesorResponseDto dto = new RechazoSolicitudCambioAsesorResponseDto();
+		dto.setIdRequest(solicitud.getId());
+		dto.setStatus("rejected");
+		dto.setResponse(response); // se usa lo que viene del request
+		dto.setAssignation(asignacion);
+
+		return dto;
+	}
+
+	@Override
+	public AprobarSolicitudCambioAsesorResponseDto aprobarSolicitudCambioAsesor(Integer solicitudId, String response) {
+		Solicitud solicitud = solicitudRepository.findById(solicitudId)
+			.orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
+
+		// Verificar que la solicitud esté en estado pendiente (1)
+		if (solicitud.getEstado() != 1) {
+			throw new RuntimeException("La solicitud no está en estado pendiente");
+		}
+
+		// Verificar que la solicitud sea de tipo cese (tipoSolicitud.nombre == Cambio
+		// Asesor)
+		if (solicitud.getTipoSolicitud() == null || solicitud.getTipoSolicitud().getNombre() != "Cambio Asesor") {
+			throw new RuntimeException("La solicitud no es de tipo cambio de asesor");
+		}
+
+		solicitud.setRespuesta(response);
+		solicitud.setEstado(2); // Aprobado
+		solicitud.setFechaModificacion(OffsetDateTime.now());
+		solicitudRepository.save(solicitud);
+
+		UsuarioXSolicitud asesor = usuarioXSolicitudRepository.findFirstBySolicitudAndDestinatarioTrue(solicitud);
+		UsuarioXSolicitud tesista = usuarioXSolicitudRepository.findFirstBySolicitudAndDestinatarioFalse(solicitud);
+
+		AprobarCambioAsesorAsignacionDto asignacion = new AprobarCambioAsesorAsignacionDto(tesista.getUsuario().getId(),
+				asesor.getUsuario().getId());
+
+		AprobarSolicitudCambioAsesorResponseDto dto = new AprobarSolicitudCambioAsesorResponseDto();
+		dto.setIdRequest(solicitud.getId());
+		dto.setStatus("approved");
+		dto.setResponse(response); // se usa lo que viene del request
+		dto.setAssignation(asignacion);
+
+		return dto;
+	}
+
 }

@@ -15,7 +15,6 @@ import {
 import axiosInstance from "@/lib/axios/axios-instance";
 import { CriterioExposicion } from "../../dtos/criterio-exposicion";
 
-
 interface NuevoCriterioExposicionModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -23,27 +22,40 @@ interface NuevoCriterioExposicionModalProps {
   criteriosExistentes: CriterioExposicion[]; // Criterios ya agregados
 }
 
-export const NuevoCriterioExposicionModal: React.FC<NuevoCriterioExposicionModalProps> = ({
+export const NuevoCriterioExposicionModal: React.FC<
+  NuevoCriterioExposicionModalProps
+> = ({
   isOpen,
   onClose,
   onSubmit,
   criteriosExistentes, // Pasar los criterios ya agregados desde DetalleExposicionPage
 }) => {
-  const [criteriosPredefinidos, setCriteriosPredefinidos] = useState<CriterioExposicion[]>([]);
-  const [criteriosSeleccionados, setCriteriosSeleccionados] = useState<CriterioExposicion[]>([]);
+  const [criteriosPredefinidos, setCriteriosPredefinidos] = useState<
+    CriterioExposicion[]
+  >([]);
+  const [criteriosSeleccionados, setCriteriosSeleccionados] = useState<
+    CriterioExposicion[]
+  >([]);
   const [searchTerm, setSearchTerm] = useState(""); // Estado para la barra de búsqueda
 
   // Calcular la suma total de las notas máximas
-  const sumaTotalNotas = criteriosExistentes.reduce(
-    (acc, criterio) => acc + criterio.notaMaxima,
-    0
-  ) + criteriosSeleccionados.reduce((acc, criterio) => acc + criterio.notaMaxima, 0);
+  const sumaTotalNotas =
+    criteriosExistentes.reduce(
+      (acc, criterio) => acc + criterio.notaMaxima,
+      0,
+    ) +
+    criteriosSeleccionados.reduce(
+      (acc, criterio) => acc + criterio.notaMaxima,
+      0,
+    );
 
   // Cargar criterios predefinidos desde la base de datos
   useEffect(() => {
     const fetchCriteriosPredefinidos = async () => {
       try {
-        const response = await axiosInstance.get("/criterio-exposicion-preset/getAll");
+        const response = await axiosInstance.get(
+          "/criterio-exposicion-preset/getAll",
+        );
         setCriteriosPredefinidos(response.data);
       } catch (error) {
         console.error("Error al cargar los criterios predefinidos:", error);
@@ -79,8 +91,8 @@ export const NuevoCriterioExposicionModal: React.FC<NuevoCriterioExposicionModal
   const handleNotaChange = (id: string, nuevaNota: number) => {
     setCriteriosSeleccionados((prev) =>
       prev.map((criterio) =>
-        criterio.id === id ? { ...criterio, notaMaxima: nuevaNota } : criterio
-      )
+        criterio.id === id ? { ...criterio, notaMaxima: nuevaNota } : criterio,
+      ),
     );
   };
 
@@ -94,8 +106,9 @@ export const NuevoCriterioExposicionModal: React.FC<NuevoCriterioExposicionModal
   const criteriosFiltrados = criteriosPredefinidos.filter(
     (criterio) =>
       !criteriosExistentes.some(
-        (existente) => existente.nombre.toLowerCase() === criterio.nombre.toLowerCase()
-      ) && criterio.nombre.toLowerCase().includes(searchTerm.toLowerCase())
+        (existente) =>
+          existente.nombre.toLowerCase() === criterio.nombre.toLowerCase(),
+      ) && criterio.nombre.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   return (
@@ -104,7 +117,8 @@ export const NuevoCriterioExposicionModal: React.FC<NuevoCriterioExposicionModal
         <DialogHeader>
           <DialogTitle>Agregar Criterios de Calificación</DialogTitle>
           <DialogDescription>
-            Seleccione los criterios de calificación que desea agregar a la exposición.
+            Seleccione los criterios de calificación que desea agregar a la
+            exposición.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -138,9 +152,11 @@ export const NuevoCriterioExposicionModal: React.FC<NuevoCriterioExposicionModal
               </p>
             ) : (
               criteriosFiltrados.map((criterio) => {
-                const isSelected = criteriosSeleccionados.some((c) => c.id === criterio.id);
+                const isSelected = criteriosSeleccionados.some(
+                  (c) => c.id === criterio.id,
+                );
                 const criterioSeleccionado = criteriosSeleccionados.find(
-                  (c) => c.id === criterio.id
+                  (c) => c.id === criterio.id,
                 );
 
                 return (
@@ -158,7 +174,10 @@ export const NuevoCriterioExposicionModal: React.FC<NuevoCriterioExposicionModal
                         <span className="font-medium">{criterio.nombre}</span>
                       </Label>
                       <div className="flex items-center space-x-2">
-                        <Label htmlFor={`nota-${criterio.id}`} className="text-sm">
+                        <Label
+                          htmlFor={`nota-${criterio.id}`}
+                          className="text-sm"
+                        >
                           Puntaje:
                         </Label>
                         <Input
@@ -166,16 +185,24 @@ export const NuevoCriterioExposicionModal: React.FC<NuevoCriterioExposicionModal
                           type="number"
                           min="1"
                           max="20"
-                          value={criterioSeleccionado?.notaMaxima || criterio.notaMaxima}
+                          value={
+                            criterioSeleccionado?.notaMaxima ||
+                            criterio.notaMaxima
+                          }
                           disabled={!isSelected} // Deshabilitar si no está seleccionado
                           onChange={(e) =>
-                            handleNotaChange(criterio.id ?? "", parseFloat(e.target.value) || 0)
+                            handleNotaChange(
+                              criterio.id ?? "",
+                              parseFloat(e.target.value) || 0,
+                            )
                           }
                           className="w-20"
                         />
                       </div>
                     </div>
-                    <p className="text-sm text-muted-foreground">{criterio.descripcion}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {criterio.descripcion}
+                    </p>
                   </div>
                 );
               })
@@ -188,7 +215,9 @@ export const NuevoCriterioExposicionModal: React.FC<NuevoCriterioExposicionModal
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={criteriosSeleccionados.length === 0 || sumaTotalNotas > 20}
+            disabled={
+              criteriosSeleccionados.length === 0 || sumaTotalNotas > 20
+            }
           >
             Agregar Seleccionados
           </Button>

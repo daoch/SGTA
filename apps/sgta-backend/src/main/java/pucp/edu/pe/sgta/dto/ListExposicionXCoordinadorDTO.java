@@ -10,13 +10,23 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ListExposicionXCoordinadorDTO {
-    private Integer exposicionId;
-    private String nombre;
-    private String descripcion;
-    private Integer etapaFormativaId;
-    private String etapaFormativaNombre;
-    private Integer cicloId;
-    private String cicloNombre;
-    private Integer estadoPlanificacionId;
-    private String estadoPlanificacionNombre;
+
+	private Integer exposicionId;
+
+	private String nombre;
+
+	private String descripcion;
+
+	private Integer etapaFormativaId;
+
+	private String etapaFormativaNombre;
+
+	private Integer cicloId;
+
+	private String cicloNombre;
+
+	private Integer estadoPlanificacionId;
+
+	private String estadoPlanificacionNombre;
+
 }

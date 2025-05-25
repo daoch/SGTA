@@ -8,8 +8,13 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class EtapaFormativaListadoDto {
-    private Integer id;
-    private String nombre;
-    private String carreraNombre;
-    private String estado; // EN_CURSO o FINALIZADO
-} 
+
+	private Integer id;
+
+	private String nombre;
+
+	private String carreraNombre;
+
+	private String estado; // EN_CURSO o FINALIZADO
+
+}

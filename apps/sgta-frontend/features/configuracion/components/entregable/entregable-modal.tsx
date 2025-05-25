@@ -83,14 +83,15 @@ export const EntregableModal: React.FC<EntregableModalProps> = ({
   }, [entregable, isEditMode, isOpen]);
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: name === "maximoDocumentos" || name === "pesoMaximoDocumento"
-        ? parseInt(value, 10) || 0 // Convertir a entero
-        : value, // Mantener como string para otros campos
+      [name]:
+        name === "maximoDocumentos" || name === "pesoMaximoDocumento"
+          ? parseInt(value, 10) || 0 // Convertir a entero
+          : value, // Mantener como string para otros campos
     }));
   };
 
@@ -104,20 +105,20 @@ export const EntregableModal: React.FC<EntregableModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-  
+
     try {
       // Convertir las fechas al formato ISO completo
       const formattedData = {
         ...formData,
         fechaInicio: new Date(formData.fechaInicio).toISOString(),
-        fechaFin: new Date(formData.fechaFin).toISOString()
+        fechaFin: new Date(formData.fechaFin).toISOString(),
       };
-  
+
       await onSubmit(formattedData);
     } catch (error) {
       console.error(
         `Error al ${isEditMode ? "actualizar" : "crear"} el entregable:`,
-        error
+        error,
       );
     } finally {
       setIsSubmitting(false);
@@ -131,7 +132,7 @@ export const EntregableModal: React.FC<EntregableModalProps> = ({
     const day = String(date.getDate()).padStart(2, "0");
     const hours = String(date.getHours()).padStart(2, "0");
     const minutes = String(date.getMinutes()).padStart(2, "0");
-  
+
     // Formato compatible con datetime-local: "YYYY-MM-DDTHH:mm"
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
@@ -210,7 +211,9 @@ export const EntregableModal: React.FC<EntregableModalProps> = ({
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="extensionesPermitidas">Extensiones Permitidas</Label>
+              <Label htmlFor="extensionesPermitidas">
+                Extensiones Permitidas
+              </Label>
               <Input
                 id="extensionesPermitidas"
                 name="extensionesPermitidas"
@@ -223,7 +226,9 @@ export const EntregableModal: React.FC<EntregableModalProps> = ({
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="pesoMaximoDocumento">Peso Máximo por Documento (MB)</Label>
+              <Label htmlFor="pesoMaximoDocumento">
+                Peso Máximo por Documento (MB)
+              </Label>
               <Input
                 id="pesoMaximoDocumento"
                 name="pesoMaximoDocumento"
@@ -278,8 +283,8 @@ export const EntregableModal: React.FC<EntregableModalProps> = ({
                   ? "Guardando..."
                   : "Creando..."
                 : isEditMode
-                ? "Guardar Cambios"
-                : "Crear Entregable"}
+                  ? "Guardar Cambios"
+                  : "Crear Entregable"}
             </Button>
           </DialogFooter>
         </form>

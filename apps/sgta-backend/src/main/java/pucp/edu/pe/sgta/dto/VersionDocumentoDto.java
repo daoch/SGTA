@@ -13,13 +13,23 @@ import java.time.OffsetDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class VersionDocumentoDto {
-    private Integer id;
-    private Documento documento;
-    private Integer revisionDocumentoId;
-    private OffsetDateTime fechaUltimaSubida;
-    private Integer numeroVersion;
-    private String linkArchivoSubido;
-    private boolean activo;
-    private OffsetDateTime fechaCreacion;
-    private OffsetDateTime fechaModificacion;
+
+	private Integer id;
+
+	private Documento documento;
+
+	private Integer revisionDocumentoId;
+
+	private OffsetDateTime fechaUltimaSubida;
+
+	private Integer numeroVersion;
+
+	private String linkArchivoSubido;
+
+	private boolean activo;
+
+	private OffsetDateTime fechaCreacion;
+
+	private OffsetDateTime fechaModificacion;
+
 }

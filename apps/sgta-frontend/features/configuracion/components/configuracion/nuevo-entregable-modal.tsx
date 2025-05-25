@@ -39,15 +39,19 @@ export function NuevoEntregableModal({ etapaId }: { etapaId: string }) {
         <DialogHeader>
           <DialogTitle>Nuevo Entregable</DialogTitle>
           <DialogDescription>
-            Agregue un nuevo entregable a la etapa. Los entregables son documentos o archivos que los estudiantes deben
-            presentar.
+            Agregue un nuevo entregable a la etapa. Los entregables son
+            documentos o archivos que los estudiantes deben presentar.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="nombre">Nombre del Entregable</Label>
-              <Input id="nombre" placeholder="Ej: Propuesta de Proyecto" required />
+              <Input
+                id="nombre"
+                placeholder="Ej: Propuesta de Proyecto"
+                required
+              />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="fecha">Fecha límite</Label>
@@ -59,11 +63,20 @@ export function NuevoEntregableModal({ etapaId }: { etapaId: string }) {
             </div>
             <div className="grid gap-2">
               <Label htmlFor="descripcion">Descripción</Label>
-              <Textarea id="descripcion" placeholder="Descripción general del entregable" rows={3} required />
+              <Textarea
+                id="descripcion"
+                placeholder="Descripción general del entregable"
+                rows={3}
+                required
+              />
             </div>
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+            >
               Cancelar
             </Button>
             <Button type="submit">Crear Entregable</Button>

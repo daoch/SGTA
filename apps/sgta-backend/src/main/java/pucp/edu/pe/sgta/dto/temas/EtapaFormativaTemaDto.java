@@ -1,4 +1,5 @@
 package pucp.edu.pe.sgta.dto.temas;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,7 +10,11 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class EtapaFormativaTemaDto {
-    private Integer id;
-    private String nombre;
-    private List<ExposicionTemaDto> exposiciones;
+
+	private Integer id;
+
+	private String nombre;
+
+	private List<ExposicionTemaDto> exposiciones;
+
 }

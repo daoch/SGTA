@@ -386,4 +386,3 @@ export const ModalAsignarTesis: React.FC<ModalAsignarTesisProps> = ({
     </Dialog>
   );
 };
-

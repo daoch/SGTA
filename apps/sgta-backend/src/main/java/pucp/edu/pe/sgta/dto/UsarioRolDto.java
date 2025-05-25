@@ -11,8 +11,12 @@ import lombok.Setter;
 @AllArgsConstructor
 public class UsarioRolDto {
 
-    private int idUsario;
-    private String nombres;
-    private String apellidos;
-    private RolDto rol;
+	private int idUsario;
+
+	private String nombres;
+
+	private String apellidos;
+
+	private RolDto rol;
+
 }

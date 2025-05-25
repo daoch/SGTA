@@ -11,34 +11,38 @@ import java.util.List;
 @RequestMapping("/entregable")
 
 public class EntregableController {
-    @Autowired
-    EntregableService entregableService;
 
-    @GetMapping("/etapa-formativa-x-ciclo/{etapaFormativaXCicloId}")
-    public List<EntregableDto> listarEntregablesXEtapaFormativaXCiclo(@PathVariable Integer etapaFormativaXCicloId) {
-        return entregableService.listarEntregablesXEtapaFormativaXCiclo(etapaFormativaXCicloId);
-    }
+	@Autowired
+	EntregableService entregableService;
 
-    @PostMapping("/etapa-formativa-x-ciclo/{etapaFormativaXCicloId}")
-    public Integer create(@PathVariable Integer etapaFormativaXCicloId, @RequestBody EntregableDto entregableDto) {
-        return entregableService.create(etapaFormativaXCicloId, entregableDto);
-    }
+	@GetMapping("/etapa-formativa-x-ciclo/{etapaFormativaXCicloId}")
+	public List<EntregableDto> listarEntregablesXEtapaFormativaXCiclo(@PathVariable Integer etapaFormativaXCicloId) {
+		return entregableService.listarEntregablesXEtapaFormativaXCiclo(etapaFormativaXCicloId);
+	}
 
-    @PutMapping("/update")
-    public void update(@RequestBody EntregableDto entregableDto) {
-        entregableService.update(entregableDto);
-    }
+	@PostMapping("/etapa-formativa-x-ciclo/{etapaFormativaXCicloId}")
+	public Integer create(@PathVariable Integer etapaFormativaXCicloId, @RequestBody EntregableDto entregableDto) {
+		return entregableService.create(etapaFormativaXCicloId, entregableDto);
+	}
 
-    @PutMapping("/delete")
-    public void delete(@RequestBody Integer entregableId) {
-        entregableService.delete(entregableId);
-    }
+	@PutMapping("/update")
+	public void update(@RequestBody EntregableDto entregableDto) {
+		entregableService.update(entregableDto);
+	}
 
-    @GetMapping("/getAll") // Obtiene la lista de entregables
-    public List<EntregableDto> getAll() {
-        return entregableService.getAll();
-    }
+	@PutMapping("/delete")
+	public void delete(@RequestBody Integer entregableId) {
+		entregableService.delete(entregableId);
+	}
 
-    @GetMapping("/{id}")
-    public EntregableDto findById(@PathVariable Integer id) { return entregableService.findById(id); }
+	@GetMapping("/getAll") // Obtiene la lista de entregables
+	public List<EntregableDto> getAll() {
+		return entregableService.getAll();
+	}
+
+	@GetMapping("/{id}")
+	public EntregableDto findById(@PathVariable Integer id) {
+		return entregableService.findById(id);
+	}
+
 }

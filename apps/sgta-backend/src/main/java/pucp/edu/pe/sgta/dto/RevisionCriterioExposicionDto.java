@@ -12,14 +12,25 @@ import java.time.OffsetDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RevisionCriterioExposicionDto {
-    private Integer id;
-    private Integer exposicionXTemaId;
-    private Integer criterioExposicionId;
-    private Integer usuarioId;
-    private BigDecimal nota;
-    private Boolean revisado;
-    private String observacion;
-    private Boolean activo;
-    private OffsetDateTime fechaCreacion;
-    private OffsetDateTime fechaModificacion;
+
+	private Integer id;
+
+	private Integer exposicionXTemaId;
+
+	private Integer criterioExposicionId;
+
+	private Integer usuarioId;
+
+	private BigDecimal nota;
+
+	private Boolean revisado;
+
+	private String observacion;
+
+	private Boolean activo;
+
+	private OffsetDateTime fechaCreacion;
+
+	private OffsetDateTime fechaModificacion;
+
 }

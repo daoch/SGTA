@@ -119,4 +119,3 @@ export interface AreaConocimiento {
   fechaModificacion: string;
   idCarrera: number;
 }
-

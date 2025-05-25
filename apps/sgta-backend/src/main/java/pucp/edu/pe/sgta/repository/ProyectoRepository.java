@@ -10,6 +10,8 @@ import java.util.List;
 
 @Repository
 public interface ProyectoRepository extends JpaRepository<Proyecto, Integer> {
-    @Query(value = "SELECT * FROM obtener_proyectos_usuario_involucrado(:usuarioId)", nativeQuery = true)
-    List<Object[]> listarProyectosUsuarioInvolucrado(@Param("usuarioId") Integer usuarioId);
+
+	@Query(value = "SELECT * FROM obtener_proyectos_usuario_involucrado(:usuarioId)", nativeQuery = true)
+	List<Object[]> listarProyectosUsuarioInvolucrado(@Param("usuarioId") Integer usuarioId);
+
 }

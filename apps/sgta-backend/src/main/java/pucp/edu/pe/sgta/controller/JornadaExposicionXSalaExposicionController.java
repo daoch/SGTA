@@ -13,12 +13,14 @@ import java.util.List;
 @RestController
 @RequestMapping("/jornada-exposcion-salas")
 public class JornadaExposicionXSalaExposicionController {
-    @Autowired
-    JornadaExposicionXSalaExposicionService jornadaExposicionXSalaExposicionService;
 
-    @GetMapping("/listar-jornadas-salas/{exposicionId}")
-    public List<JornadaExposicionXSalaExposicionListadoDTO> listarJornadasExposicionSalas(
-            @PathVariable("exposicionId") Integer exposicionId) {
-        return jornadaExposicionXSalaExposicionService.listarJornadasExposicionSalas(exposicionId);
-    }
+	@Autowired
+	JornadaExposicionXSalaExposicionService jornadaExposicionXSalaExposicionService;
+
+	@GetMapping("/listar-jornadas-salas/{exposicionId}")
+	public List<JornadaExposicionXSalaExposicionListadoDTO> listarJornadasExposicionSalas(
+			@PathVariable("exposicionId") Integer exposicionId) {
+		return jornadaExposicionXSalaExposicionService.listarJornadasExposicionSalas(exposicionId);
+	}
+
 }

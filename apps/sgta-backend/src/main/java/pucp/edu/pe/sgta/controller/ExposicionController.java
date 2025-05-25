@@ -1,6 +1,5 @@
 package pucp.edu.pe.sgta.controller;
 
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import pucp.edu.pe.sgta.dto.ExposicionDto;
@@ -14,51 +13,56 @@ import java.util.List;
 @RestController
 @RequestMapping("/exposicion")
 public class ExposicionController {
-    @Autowired
-    ExposicionService exposicionService;
 
-    @GetMapping("/etapa-formativa-x-ciclo/{etapaFormativaXCicloId}")
-    public List<ExposicionDto> listarExposicionesXEtapaFormativaXCiclo(@PathVariable Integer etapaFormativaXCicloId) {
-        return exposicionService.listarExposicionesXEtapaFormativaXCiclo(etapaFormativaXCicloId);
-    }
+	@Autowired
+	ExposicionService exposicionService;
 
-    @PostMapping("/etapa-formativa-x-ciclo/{etapaFormativaXCicloId}")
-    public Integer create(@PathVariable Integer etapaFormativaXCicloId, @RequestBody ExposicionDto exposicionDto) {
-        return exposicionService.create(etapaFormativaXCicloId, exposicionDto);
-    }
+	@GetMapping("/etapa-formativa-x-ciclo/{etapaFormativaXCicloId}")
+	public List<ExposicionDto> listarExposicionesXEtapaFormativaXCiclo(@PathVariable Integer etapaFormativaXCicloId) {
+		return exposicionService.listarExposicionesXEtapaFormativaXCiclo(etapaFormativaXCicloId);
+	}
 
-    @PutMapping("/update")
-    public void update(@RequestBody ExposicionDto exposicionDto) {
-        exposicionService.update(exposicionDto);
-    }
+	@PostMapping("/etapa-formativa-x-ciclo/{etapaFormativaXCicloId}")
+	public Integer create(@PathVariable Integer etapaFormativaXCicloId, @RequestBody ExposicionDto exposicionDto) {
+		return exposicionService.create(etapaFormativaXCicloId, exposicionDto);
+	}
 
-    @PutMapping("/delete")
-    public void delete(@RequestBody Integer exposicionId) {
-        exposicionService.delete(exposicionId);
-    }
+	@PutMapping("/update")
+	public void update(@RequestBody ExposicionDto exposicionDto) {
+		exposicionService.update(exposicionDto);
+	}
 
-    @GetMapping("/getAll") // Obtiene la lista de entregables
-    public List<ExposicionDto> getAll() {
-        return exposicionService.getAll();
-    }
+	@PutMapping("/delete")
+	public void delete(@RequestBody Integer exposicionId) {
+		exposicionService.delete(exposicionId);
+	}
 
-    @GetMapping("/{id}")
-    public ExposicionDto findById(@PathVariable Integer id) {
-        return exposicionService.findById(id);
-    }
+	@GetMapping("/getAll") // Obtiene la lista de entregables
+	public List<ExposicionDto> getAll() {
+		return exposicionService.getAll();
+	}
 
-    @GetMapping("/listarExposicionXCicloActualEtapaFormativa")
-    public List<ExposicionNombreDTO> listarExposicionXCicloActualEtapaFormativa(@RequestParam("etapaFormativaId") Integer etapaFormativaId){
-    return exposicionService.listarExposicionXCicloActualEtapaFormativa(etapaFormativaId);
-    }
+	@GetMapping("/{id}")
+	public ExposicionDto findById(@PathVariable Integer id) {
+		return exposicionService.findById(id);
+	}
 
-    @GetMapping("/listarExposicionesInicializadasXCoordinador/{coordinadorId}")
-    public List<ListExposicionXCoordinadorDTO> listarExposicionesInicializadasXCoordinador(@PathVariable Integer coordinadorId){
-        return exposicionService.listarExposicionesInicializadasXCoordinador(coordinadorId);
-    }
+	@GetMapping("/listarExposicionXCicloActualEtapaFormativa")
+	public List<ExposicionNombreDTO> listarExposicionXCicloActualEtapaFormativa(
+			@RequestParam("etapaFormativaId") Integer etapaFormativaId) {
+		return exposicionService.listarExposicionXCicloActualEtapaFormativa(etapaFormativaId);
+	}
 
-    @GetMapping("/listarExposicionesSinInicializarByEtapaFormativaEnCicloActual/{etapaFormativaId}")
-    public List<ExposicionSinInicializarDTO> listarExposicionesSinInicializarByEtapaFormativaEnCicloActual(@PathVariable Integer etapaFormativaId){
-    return exposicionService.listarExposicionesSinInicializarByEtapaFormativaEnCicloActual(etapaFormativaId);
-    }
+	@GetMapping("/listarExposicionesInicializadasXCoordinador/{coordinadorId}")
+	public List<ListExposicionXCoordinadorDTO> listarExposicionesInicializadasXCoordinador(
+			@PathVariable Integer coordinadorId) {
+		return exposicionService.listarExposicionesInicializadasXCoordinador(coordinadorId);
+	}
+
+	@GetMapping("/listarExposicionesSinInicializarByEtapaFormativaEnCicloActual/{etapaFormativaId}")
+	public List<ExposicionSinInicializarDTO> listarExposicionesSinInicializarByEtapaFormativaEnCicloActual(
+			@PathVariable Integer etapaFormativaId) {
+		return exposicionService.listarExposicionesSinInicializarByEtapaFormativaEnCicloActual(etapaFormativaId);
+	}
+
 }

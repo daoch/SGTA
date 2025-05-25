@@ -16,15 +16,19 @@ import pucp.edu.pe.sgta.util.DurationDeserializer;
 
 public class EtapaFormativaDto {
 
-    private Integer id;
-    private String nombre;
-    private BigDecimal creditajePorTema;
-    
-    @JsonDeserialize(using = DurationDeserializer.class)
-    private Duration duracionExposicion;
-    
-    private Boolean activo;
-    // private OffsetDateTime fechaCreacion;
-    // private OffsetDateTime fechaModificacion;
-    private Integer carreraId;
+	private Integer id;
+
+	private String nombre;
+
+	private BigDecimal creditajePorTema;
+
+	@JsonDeserialize(using = DurationDeserializer.class)
+	private Duration duracionExposicion;
+
+	private Boolean activo;
+
+	// private OffsetDateTime fechaCreacion;
+	// private OffsetDateTime fechaModificacion;
+	private Integer carreraId;
+
 }

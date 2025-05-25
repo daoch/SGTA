@@ -15,7 +15,14 @@ import { Exposicion } from "../dtos/exposicion";
 import { CriterioExposicion } from "../dtos/criterio-exposicion";
 import axiosInstance from "@/lib/axios/axios-instance";
 import { NuevoCriterioExposicionModal } from "../components/exposicion/nuevo-criterio-exposicion-modal";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface DetalleExposicionPageProps {
   etapaId: string;
@@ -29,13 +36,15 @@ const DetalleExposicionPage: React.FC<DetalleExposicionPageProps> = ({
   const router = useRouter();
 
   const [isCriterioModalOpen, setIsCriterioModalOpen] = useState(false);
-  const [isNuevoCriterioModalOpen, setIsNuevoCriterioModalOpen] = useState(false);
+  const [isNuevoCriterioModalOpen, setIsNuevoCriterioModalOpen] =
+    useState(false);
   const [isExposicionModalOpen, setIsExposicionModalOpen] = useState(false);
   const [criterioSeleccionado, setCriterioSeleccionado] =
     useState<CriterioExposicionFormData | null>(null);
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [criterioAEliminar, setCriterioAEliminar] = useState<CriterioExposicion | null>(null);
+  const [criterioAEliminar, setCriterioAEliminar] =
+    useState<CriterioExposicion | null>(null);
 
   const [exposicion, setExposicion] = useState<Exposicion>({
     id: "",
@@ -62,7 +71,9 @@ const DetalleExposicionPage: React.FC<DetalleExposicionPageProps> = ({
   useEffect(() => {
     const fetchCriterios = async () => {
       try {
-        const response = await axiosInstance.get(`/criterio-exposicion/exposicion/${exposicionId}`);
+        const response = await axiosInstance.get(
+          `/criterio-exposicion/exposicion/${exposicionId}`,
+        );
         setCriterios(response.data);
       } catch (error) {
         console.error("Error al cargar los criterios:", error);
@@ -74,7 +85,10 @@ const DetalleExposicionPage: React.FC<DetalleExposicionPageProps> = ({
 
   const createCriterio = async (nuevoCriterio: CriterioExposicion) => {
     try {
-      const response = await axiosInstance.post(`/criterio-exposicion/exposicion/${exposicionId}`, nuevoCriterio);
+      const response = await axiosInstance.post(
+        `/criterio-exposicion/exposicion/${exposicionId}`,
+        nuevoCriterio,
+      );
       console.log("Criterio creado exitosamente:", response.data);
       return response.data; // Devuelve el criterio creado si es necesario
     } catch (error) {
@@ -84,21 +98,21 @@ const DetalleExposicionPage: React.FC<DetalleExposicionPageProps> = ({
   };
 
   const handleCreateCriterio = async (nuevoCriterio: CriterioExposicion) => {
-      try {
-        const idCriterio = await createCriterio(nuevoCriterio);
-        const nuevoCriterioConId: CriterioExposicion = {
-          ...nuevoCriterio,
-          id: idCriterio, // Asignar el ID devuelto por la API
-        };
-    
-          // Actualizar el estado local con el criterio creado
-        setCriterios((prev) => [...prev, nuevoCriterioConId]);
-     
-        // Cerrar el modal
-        setIsCriterioModalOpen(false);
-      } catch (error) {
-        console.error("Error al crear el criterio:", error);
-      }
+    try {
+      const idCriterio = await createCriterio(nuevoCriterio);
+      const nuevoCriterioConId: CriterioExposicion = {
+        ...nuevoCriterio,
+        id: idCriterio, // Asignar el ID devuelto por la API
+      };
+
+      // Actualizar el estado local con el criterio creado
+      setCriterios((prev) => [...prev, nuevoCriterioConId]);
+
+      // Cerrar el modal
+      setIsCriterioModalOpen(false);
+    } catch (error) {
+      console.error("Error al crear el criterio:", error);
+    }
   };
 
   const handleNuevoCriterio = () => {
@@ -107,24 +121,26 @@ const DetalleExposicionPage: React.FC<DetalleExposicionPageProps> = ({
     setIsCriterioModalOpen(true);
   };
 
-  const handleCreateCriterios = async (nuevosCriterios: CriterioExposicion[]) => {
-  try {
-    const criteriosCreados = await Promise.all(
-      nuevosCriterios.map(async (criterio) => {
-        const idCriterio = await createCriterio(criterio);
-        return { ...criterio, id: idCriterio }; // Agregar el ID devuelto por la API
-      })
-    );
+  const handleCreateCriterios = async (
+    nuevosCriterios: CriterioExposicion[],
+  ) => {
+    try {
+      const criteriosCreados = await Promise.all(
+        nuevosCriterios.map(async (criterio) => {
+          const idCriterio = await createCriterio(criterio);
+          return { ...criterio, id: idCriterio }; // Agregar el ID devuelto por la API
+        }),
+      );
 
-    // Actualizar el estado local con los criterios creados
-    setCriterios((prev) => [...prev, ...criteriosCreados]);
+      // Actualizar el estado local con los criterios creados
+      setCriterios((prev) => [...prev, ...criteriosCreados]);
 
-    // Cerrar el modal
-    setIsNuevoCriterioModalOpen(false);
-  } catch (error) {
-    console.error("Error al crear los criterios:", error);
-  }
-};
+      // Cerrar el modal
+      setIsNuevoCriterioModalOpen(false);
+    } catch (error) {
+      console.error("Error al crear los criterios:", error);
+    }
+  };
 
   const updateCriterio = async (updatedCriterio: CriterioExposicion) => {
     try {
@@ -141,87 +157,89 @@ const DetalleExposicionPage: React.FC<DetalleExposicionPageProps> = ({
   };
 
   const handleUpdateCriterio = async (updatedCriterio: CriterioExposicion) => {
-      try {
-        await updateCriterio(updatedCriterio);
-        setCriterios((prev) =>
-          prev.map((c) =>
-            c.id === updatedCriterio.id
-              ? {
-                  ...updatedCriterio,
-                  id: updatedCriterio.id,
-                } // Asegurar que id sea un string
-              : c,
-          ),
-        );
-     
-        // Cerrar el modal
-        setIsCriterioModalOpen(false);
-      } catch (error) {
-        console.error("Error al actualizar el criterio:", error);
-      }
-    };
+    try {
+      await updateCriterio(updatedCriterio);
+      setCriterios((prev) =>
+        prev.map((c) =>
+          c.id === updatedCriterio.id
+            ? {
+                ...updatedCriterio,
+                id: updatedCriterio.id,
+              } // Asegurar que id sea un string
+            : c,
+        ),
+      );
 
-    const handleEditCriterio = (id: string) => {
-      const criterio = criterios.find((c) => c.id === id);
-      if (criterio) {
-        setCriterioSeleccionado(criterio);
-        setModalMode("edit");
-        setIsCriterioModalOpen(true);
-      }
-    };
+      // Cerrar el modal
+      setIsCriterioModalOpen(false);
+    } catch (error) {
+      console.error("Error al actualizar el criterio:", error);
+    }
+  };
 
-    const handleDeleteCriterio = (id: string) => {
-      const criterio = criterios.find((c) => c.id === id);
-      if (criterio) {
-        setCriterioAEliminar(criterio);
-        setIsDeleteModalOpen(true);
-      }
-    };
+  const handleEditCriterio = (id: string) => {
+    const criterio = criterios.find((c) => c.id === id);
+    if (criterio) {
+      setCriterioSeleccionado(criterio);
+      setModalMode("edit");
+      setIsCriterioModalOpen(true);
+    }
+  };
 
-    const deleteCriterio = async () => {
-      if (!criterioAEliminar) return;
+  const handleDeleteCriterio = (id: string) => {
+    const criterio = criterios.find((c) => c.id === id);
+    if (criterio) {
+      setCriterioAEliminar(criterio);
+      setIsDeleteModalOpen(true);
+    }
+  };
 
-      try {
-        await axiosInstance.put("/criterio-exposicion/delete", criterioAEliminar.id);
-        setCriterios((prev) => prev.filter((c) => c.id !== criterioAEliminar.id));
-        setIsDeleteModalOpen(false);
-        setCriterioAEliminar(null);
-        console.log("Criterio eliminado exitosamente");
-      } catch (error) {
-        console.error("Error al eliminar el criterio:", error);
-      }
-    };
+  const deleteCriterio = async () => {
+    if (!criterioAEliminar) return;
 
-    const cancelDeleteCriterio = () => {
+    try {
+      await axiosInstance.put(
+        "/criterio-exposicion/delete",
+        criterioAEliminar.id,
+      );
+      setCriterios((prev) => prev.filter((c) => c.id !== criterioAEliminar.id));
       setIsDeleteModalOpen(false);
       setCriterioAEliminar(null);
-    };
+      console.log("Criterio eliminado exitosamente");
+    } catch (error) {
+      console.error("Error al eliminar el criterio:", error);
+    }
+  };
 
-    const updateExposicion = async (updatedExposicion: Exposicion) => {
-      try {
-        const response = await axiosInstance.put(
-          "/exposicion/update",
-          updatedExposicion,
-        );
-        console.log("Exposicion actualizada exitosamente:", response.data);
-        return response.data; // Devuelve el criterio actualizado si es necesario
-      } catch (error) {
-        console.error("Error al actualizar la Exposicion:", error);
-        throw error; // Lanza el error para manejarlo en el lugar donde se llame
-      }
-    };
+  const cancelDeleteCriterio = () => {
+    setIsDeleteModalOpen(false);
+    setCriterioAEliminar(null);
+  };
 
-    const handleUpdateExposicion = async (updatedExposicion: Exposicion) => {
-        try {
-          await updateExposicion(updatedExposicion);
-          setExposicion(updatedExposicion);
-          // Cerrar el modal
-          setIsExposicionModalOpen(false);
-        } catch (error) {
-          console.error("Error al actualizar la Exposicion:", error);
-        }
-      };
+  const updateExposicion = async (updatedExposicion: Exposicion) => {
+    try {
+      const response = await axiosInstance.put(
+        "/exposicion/update",
+        updatedExposicion,
+      );
+      console.log("Exposicion actualizada exitosamente:", response.data);
+      return response.data; // Devuelve el criterio actualizado si es necesario
+    } catch (error) {
+      console.error("Error al actualizar la Exposicion:", error);
+      throw error; // Lanza el error para manejarlo en el lugar donde se llame
+    }
+  };
 
+  const handleUpdateExposicion = async (updatedExposicion: Exposicion) => {
+    try {
+      await updateExposicion(updatedExposicion);
+      setExposicion(updatedExposicion);
+      // Cerrar el modal
+      setIsExposicionModalOpen(false);
+    } catch (error) {
+      console.error("Error al actualizar la Exposicion:", error);
+    }
+  };
 
   return (
     <div className="w-full px-6 py-6">
@@ -279,7 +297,8 @@ const DetalleExposicionPage: React.FC<DetalleExposicionPageProps> = ({
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-2">
           <h2 className="text-lg font-semibold">Criterios de calificación</h2>
-          {criterios.reduce((acc, criterio) => acc + criterio.notaMaxima, 0) < 20 && (
+          {criterios.reduce((acc, criterio) => acc + criterio.notaMaxima, 0) <
+            20 && (
             <p className="text-sm text-orange-500">
               La suma de los criterios debe ser 20
             </p>
@@ -309,7 +328,9 @@ const DetalleExposicionPage: React.FC<DetalleExposicionPageProps> = ({
       </div>
 
       <p className="text-sm text-muted-foreground">
-        Suma total de criterios: {criterios.reduce((acc, criterio) => acc + criterio.notaMaxima, 0)} puntos
+        Suma total de criterios:{" "}
+        {criterios.reduce((acc, criterio) => acc + criterio.notaMaxima, 0)}{" "}
+        puntos
       </p>
 
       <div className="space-y-4">
@@ -355,7 +376,8 @@ const DetalleExposicionPage: React.FC<DetalleExposicionPageProps> = ({
             <DialogTitle>Eliminar Criterio</DialogTitle>
             <DialogDescription>
               ¿Estás seguro de que deseas eliminar el criterio{" "}
-              <strong>{criterioAEliminar?.nombre}</strong>? Esta acción no se puede deshacer.
+              <strong>{criterioAEliminar?.nombre}</strong>? Esta acción no se
+              puede deshacer.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

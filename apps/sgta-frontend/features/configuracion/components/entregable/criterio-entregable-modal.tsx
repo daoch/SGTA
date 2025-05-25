@@ -31,14 +31,9 @@ interface CriterioEntregableModalProps {
   criteriosExistentes: CriterioEntregableFormData[]; // Criterios ya agregados
 }
 
-export const CriterioEntregableModal: React.FC<CriterioEntregableModalProps> = ({
-  isOpen,
-  onClose,
-  onSubmit,
-  criterio,
-  mode,
-  criteriosExistentes,
-}) => {
+export const CriterioEntregableModal: React.FC<
+  CriterioEntregableModalProps
+> = ({ isOpen, onClose, onSubmit, criterio, mode, criteriosExistentes }) => {
   const isEditMode = mode === "edit";
 
   const [formData, setFormData] = useState<CriterioEntregableFormData>({
@@ -69,7 +64,7 @@ export const CriterioEntregableModal: React.FC<CriterioEntregableModalProps> = (
   }, [criterio, isEditMode, isOpen]);
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -87,7 +82,7 @@ export const CriterioEntregableModal: React.FC<CriterioEntregableModalProps> = (
     } catch (error) {
       console.error(
         `Error al ${isEditMode ? "actualizar" : "crear"} el contenido:`,
-        error
+        error,
       );
     } finally {
       setIsSubmitting(false);
@@ -96,14 +91,14 @@ export const CriterioEntregableModal: React.FC<CriterioEntregableModalProps> = (
 
   // Filtrar el criterio que está siendo editado
   const criteriosFiltrados = criteriosExistentes.filter(
-    (c) => c.id !== criterio?.id
+    (c) => c.id !== criterio?.id,
   );
 
   // Calcular la suma total de los puntajes
   const sumaTotalNotas =
     criteriosFiltrados.reduce(
       (acc, criterioExistente) => acc + criterioExistente.notaMaxima,
-      0
+      0,
     ) + formData.notaMaxima;
 
   return (
@@ -194,8 +189,8 @@ export const CriterioEntregableModal: React.FC<CriterioEntregableModalProps> = (
                   ? "Guardando..."
                   : "Creando..."
                 : isEditMode
-                ? "Guardar Cambios"
-                : "Crear Criterio"}
+                  ? "Guardar Cambios"
+                  : "Crear Criterio"}
             </Button>
           </DialogFooter>
         </form>

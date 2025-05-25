@@ -11,12 +11,21 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ListBloqueHorarioExposicionDTO {
-    private Integer bloqueHorarioExposicionId;
-    private Integer jornadaExposicionXSalaId;
-    private Integer exposicionXTemaId;
-    private Boolean esBloqueReservado;
-    private Boolean esBloqueBloqueado;
-    private OffsetDateTime datetimeInicio;
-    private OffsetDateTime datetimeFin;
-    private String salaNombre;
+
+	private Integer bloqueHorarioExposicionId;
+
+	private Integer jornadaExposicionXSalaId;
+
+	private Integer exposicionXTemaId;
+
+	private Boolean esBloqueReservado;
+
+	private Boolean esBloqueBloqueado;
+
+	private OffsetDateTime datetimeInicio;
+
+	private OffsetDateTime datetimeFin;
+
+	private String salaNombre;
+
 }

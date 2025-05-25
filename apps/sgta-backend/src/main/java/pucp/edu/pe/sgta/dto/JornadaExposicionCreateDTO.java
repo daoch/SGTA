@@ -14,11 +14,13 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 public class JornadaExposicionCreateDTO {
-    private Integer id;
 
-    private Integer exposicionId;
+	private Integer id;
 
-    private OffsetDateTime datetimeInicio;
+	private Integer exposicionId;
 
-    private OffsetDateTime datetimeFin;
+	private OffsetDateTime datetimeInicio;
+
+	private OffsetDateTime datetimeFin;
+
 }

@@ -11,16 +11,24 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class IniatilizeJornadasExposicionCreateDTO {
-    private Integer etapaFormativaId;
-    private Integer exposicionId;
-    private List<FechaDto> fechas;
 
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class FechaDto {
-        private OffsetDateTime fechaHoraInicio;
-        private OffsetDateTime fechaHoraFin;
-        private List<Integer> salas;
-    }
+	private Integer etapaFormativaId;
+
+	private Integer exposicionId;
+
+	private List<FechaDto> fechas;
+
+	@Data
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class FechaDto {
+
+		private OffsetDateTime fechaHoraInicio;
+
+		private OffsetDateTime fechaHoraFin;
+
+		private List<Integer> salas;
+
+	}
+
 }

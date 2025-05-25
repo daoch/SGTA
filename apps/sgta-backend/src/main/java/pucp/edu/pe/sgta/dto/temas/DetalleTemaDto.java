@@ -10,8 +10,13 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class DetalleTemaDto {
-    private List<ParticipanteDto> estudiantes;
-    private List<ParticipanteDto> asesores;
-    private List<ParticipanteDto> miembrosJurado;
-    private List<EtapaFormativaTemaDto> etapasFormativas;
+
+	private List<ParticipanteDto> estudiantes;
+
+	private List<ParticipanteDto> asesores;
+
+	private List<ParticipanteDto> miembrosJurado;
+
+	private List<EtapaFormativaTemaDto> etapasFormativas;
+
 }

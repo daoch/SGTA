@@ -40,7 +40,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Proyecto, SubAreaConocimiento, Usuario } from "@/features/temas/types/propuestas/entidades";
+import {
+  Proyecto,
+  SubAreaConocimiento,
+  Usuario,
+} from "@/features/temas/types/propuestas/entidades";
 import { Eye, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Toaster, toast } from "sonner";
@@ -54,8 +58,8 @@ interface PropuestaAPI {
   fechaLimite: string;
   cantPostulaciones?: number;
   subareas: SubAreaConocimiento[];
-  tesistas: Usuario[];    
-  coasesores: Usuario[];  
+  tesistas: Usuario[];
+  coasesores: Usuario[];
   estadoTemaNombre?: string;
 }
 
@@ -67,7 +71,9 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
   const [propuestas, setPropuestas] = useState<Proyecto[]>([]);
   const [areaFilter, setAreaFilter] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedPropuesta, setSelectedPropuesta] = useState<Proyecto | null>(null);
+  const [selectedPropuesta, setSelectedPropuesta] = useState<Proyecto | null>(
+    null,
+  );
 
   const MY_ID = 4;
 
@@ -75,7 +81,7 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
     async function fetchPropuestas() {
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPropuestasPorTesista/41`
+          `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPropuestasPorTesista/41`,
         );
         const data: PropuestaAPI[] = await res.json();
 
@@ -90,9 +96,9 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
           tipo:
             item.estadoTemaNombre === "PROPUESTO_DIRECTO"
               ? "directa"
-            : item.estadoTemaNombre === "PROPUESTO_GENERAL"
-              ? "general"
-            : "preinscrito",        
+              : item.estadoTemaNombre === "PROPUESTO_GENERAL"
+                ? "general"
+                : "preinscrito",
           resumen: item.resumen || "",
           objetivos: item.objetivos || "",
           metodologia: item.metodologia || "",
@@ -116,7 +122,8 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
       return (
         p.titulo.toLowerCase().includes(term) ||
         p.tesistas.some((t) => {
-          const fullName = `${t.nombres} ${t.primerApellido} ${t.segundoApellido}`.toLowerCase();
+          const fullName =
+            `${t.nombres} ${t.primerApellido} ${t.segundoApellido}`.toLowerCase();
           return fullName.includes(term);
         })
       );
@@ -125,7 +132,7 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
   });
 
   const areasUnicas = Array.from(
-    new Set(propuestas.map((p) => p.subareas[0]?.nombre || "—"))
+    new Set(propuestas.map((p) => p.subareas[0]?.nombre || "—")),
   );
 
   return (
@@ -177,7 +184,10 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
           <TableBody>
             {propuestasFiltradas.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                <TableCell
+                  colSpan={8}
+                  className="text-center py-8 text-muted-foreground"
+                >
                   No hay propuestas disponibles
                 </TableCell>
               </TableRow>
@@ -200,18 +210,26 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
                   {/* Asesores propuestos */}
                   <TableCell>
                     {(() => {
-                      const visibles = p.tipo === "preinscrito"
-                        ? p.coasesores.filter(c => c.asignado === true)
-                        : p.coasesores.filter(c => c.rechazado !== true);
+                      const visibles =
+                        p.tipo === "preinscrito"
+                          ? p.coasesores.filter((c) => c.asignado === true)
+                          : p.coasesores.filter((c) => c.rechazado !== true);
                       return visibles.length > 0
-                        ? visibles.map(c => `${c.nombres} ${c.primerApellido}`.trim()).join(", ")
+                        ? visibles
+                            .map((c) =>
+                              `${c.nombres} ${c.primerApellido}`.trim(),
+                            )
+                            .join(", ")
                         : "-";
                     })()}
                   </TableCell>
 
                   <TableCell>
                     {p.cantPostulaciones > 0 ? (
-                      <Badge variant="outline" className="bg-blue-100 text-blue-800">
+                      <Badge
+                        variant="outline"
+                        className="bg-blue-100 text-blue-800"
+                      >
                         {p.cantPostulaciones}
                       </Badge>
                     ) : (
@@ -229,13 +247,13 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
                       className={
                         p.tipo === "directa"
                           ? "bg-purple-100 text-purple-800"
-                        : p.tipo === "general"
-                          ? "bg-green-100 text-green-800"
-                        : "bg-sky-100 text-sky-800"
+                          : p.tipo === "general"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-sky-100 text-sky-800"
                       }
                     >
                       {p.tipo === "directa"
-                          ? "Directa"
+                        ? "Directa"
                         : p.tipo === "general"
                           ? "General"
                           : "Preinscrito"}
@@ -270,14 +288,16 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
                             <div className="grid grid-cols-2 gap-4">
                               <div className="space-y-1">
                                 <h3 className="font-medium">Área</h3>
-                                <p>{selectedPropuesta.subareas[0]?.nombre || "—"}</p>
+                                <p>
+                                  {selectedPropuesta.subareas[0]?.nombre || "—"}
+                                </p>
                               </div>
                               {selectedPropuesta.fechaLimite && (
                                 <div className="space-y-1">
                                   <h3 className="font-medium">Fecha Límite</h3>
                                   <p>
                                     {new Date(
-                                      selectedPropuesta.fechaLimite
+                                      selectedPropuesta.fechaLimite,
                                     ).toLocaleDateString()}
                                   </p>
                                 </div>
@@ -308,11 +328,15 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
                             </div>
 
                             {/* Cotesistas invitados pendientes */}
-                            {selectedPropuesta.tesistas.filter((t) => !t.creador && t.rechazado !== true).length > 0 && (
+                            {selectedPropuesta.tesistas.filter(
+                              (t) => !t.creador && t.rechazado !== true,
+                            ).length > 0 && (
                               <div className="space-y-2">
                                 <h3 className="font-medium">Cotesistas</h3>
                                 {selectedPropuesta.tesistas
-                                  .filter((t) => !t.creador && t.rechazado !== true)
+                                  .filter(
+                                    (t) => !t.creador && t.rechazado !== true,
+                                  )
                                   .map((t, i) => (
                                     <div
                                       key={i}
@@ -334,13 +358,18 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
                             {/* Coasesores (asesores propuestos) */}
                             {(() => {
                               const cp = selectedPropuesta!;
-                              const visibles = cp.tipo === "preinscrito"
-                                ? cp.coasesores.filter(c => c.asignado === true)
-                                : cp.coasesores.filter(c => c.rechazado !== true);
+                              const visibles =
+                                cp.tipo === "preinscrito"
+                                  ? cp.coasesores.filter(
+                                      (c) => c.asignado === true,
+                                    )
+                                  : cp.coasesores.filter(
+                                      (c) => c.rechazado !== true,
+                                    );
                               return visibles.length > 0 ? (
                                 <div className="space-y-2">
                                   <Label>Asesor(es) Propuesto(s)</Label>
-                                  {visibles.map(c => (
+                                  {visibles.map((c) => (
                                     <p key={c.id}>
                                       {c.nombres} {c.primerApellido}
                                     </p>
@@ -368,7 +397,10 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
                         )}
 
                         <DialogFooter>
-                          <Button variant="outline" onClick={() => setSelectedPropuesta(null)}>
+                          <Button
+                            variant="outline"
+                            onClick={() => setSelectedPropuesta(null)}
+                          >
                             Cerrar
                           </Button>
                         </DialogFooter>
@@ -378,7 +410,11 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
                     {/* Botones de acción */}
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon" className="text-red-500">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-red-500"
+                        >
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </AlertDialogTrigger>
@@ -386,7 +422,8 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
                         <AlertDialogHeader>
                           <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
                           <AlertDialogDescription>
-                            Esta acción eliminará la propuesta permanentemente. ¿Deseas continuar?
+                            Esta acción eliminará la propuesta permanentemente.
+                            ¿Deseas continuar?
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
@@ -395,23 +432,32 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
                             className="bg-red-600 text-white hover:bg-red-700"
                             onClick={async () => {
                               try {
-                                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/temas/deleteTema`, {
-                                  method: "POST",
-                                  headers: { "Content-Type": "application/json" },
-                                  body: JSON.stringify(p.id),
-                                });
+                                const res = await fetch(
+                                  `${process.env.NEXT_PUBLIC_API_URL}/temas/deleteTema`,
+                                  {
+                                    method: "POST",
+                                    headers: {
+                                      "Content-Type": "application/json",
+                                    },
+                                    body: JSON.stringify(p.id),
+                                  },
+                                );
 
                                 if (!res.ok) throw new Error("Error en la API");
 
                                 toast.success("Propuesta eliminada", {
-                                  description: "Tu propuesta ha sido eliminada satisfactoriamente",
+                                  description:
+                                    "Tu propuesta ha sido eliminada satisfactoriamente",
                                   duration: 5000, // 5 segundos
                                 });
 
-                                setPropuestas((prev) => prev.filter((x) => x.id !== p.id));
+                                setPropuestas((prev) =>
+                                  prev.filter((x) => x.id !== p.id),
+                                );
                               } catch (err) {
                                 toast.error("Error", {
-                                  description: "No se pudo eliminar la propuesta",
+                                  description:
+                                    "No se pudo eliminar la propuesta",
                                   duration: 5000,
                                 });
                                 console.error(err);
@@ -423,7 +469,6 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
                         </AlertDialogFooter>
                       </AlertDialogContent>
                     </AlertDialog>
-
                   </TableCell>
                 </TableRow>
               ))

@@ -11,9 +11,12 @@ import java.math.BigDecimal;
 @Builder
 public class CriterioEntregableDto {
 
-    private Integer id;
-    private String nombre;
-    private BigDecimal notaMaxima;
-    private String descripcion;
+	private Integer id;
+
+	private String nombre;
+
+	private BigDecimal notaMaxima;
+
+	private String descripcion;
 
 }

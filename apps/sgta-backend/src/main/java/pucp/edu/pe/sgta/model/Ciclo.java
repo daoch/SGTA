@@ -17,30 +17,32 @@ import java.time.OffsetDateTime;
 @AllArgsConstructor
 @Table(name = "ciclo")
 public class Ciclo {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "ciclo_id")
-    private Integer id;
 
-    @Column(length = 10, nullable = false)
-    private String semestre;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "ciclo_id")
+	private Integer id;
 
-    @Column(nullable = false)
-    private Integer anio;
+	@Column(length = 10, nullable = false)
+	private String semestre;
 
-    @Column(name = "fecha_inicio", nullable = false)
-    private LocalDate fechaInicio;
+	@Column(nullable = false)
+	private Integer anio;
 
-    @Column(name = "fecha_fin", nullable = false)
-    private LocalDate fechaFin;
+	@Column(name = "fecha_inicio", nullable = false)
+	private LocalDate fechaInicio;
 
-    @Column(nullable = false)
-    private Boolean activo = true;
+	@Column(name = "fecha_fin", nullable = false)
+	private LocalDate fechaFin;
 
-    @Column(name = "fecha_creacion", nullable = false, insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private OffsetDateTime fechaCreacion;
+	@Column(nullable = false)
+	private Boolean activo = true;
 
-    @Column(name = "fecha_modificacion", insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private OffsetDateTime fechaModificacion;
+	@Column(name = "fecha_creacion", nullable = false, insertable = false,
+			columnDefinition = "TIMESTAMP WITH TIME ZONE")
+	private OffsetDateTime fechaCreacion;
+
+	@Column(name = "fecha_modificacion", insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+	private OffsetDateTime fechaModificacion;
 
 }

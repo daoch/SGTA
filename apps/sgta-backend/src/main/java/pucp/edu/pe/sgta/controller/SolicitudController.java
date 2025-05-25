@@ -20,57 +20,54 @@ import pucp.edu.pe.sgta.service.inter.SolicitudService;
 
 @RequestMapping("/coordinators")
 public class SolicitudController {
-    
-    @Autowired
-    private SolicitudService solicitudService;
 
-    @GetMapping("/cessation-requests")
-    public ResponseEntity<SolicitudCeseDto> getSolicitudesCese(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(solicitudService.findAllSolicitudesCese(page, size));
-    }
+	@Autowired
+	private SolicitudService solicitudService;
 
-    @PostMapping("/cessation-requests/{requestId}/reject")
-    public ResponseEntity<RechazoSolicitudResponseDto> rechazarSolicitud(
-        @PathVariable Integer requestId,
-        @RequestBody RechazoSolicitudRequestDto requestDto) {
+	@GetMapping("/cessation-requests")
+	public ResponseEntity<SolicitudCeseDto> getSolicitudesCese(@RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "10") int size) {
+		return ResponseEntity.ok(solicitudService.findAllSolicitudesCese(page, size));
+	}
 
-        RechazoSolicitudResponseDto response = solicitudService.rechazarSolicitud(requestId, requestDto.getResponse());
-        return ResponseEntity.ok(response);
-    }
+	@PostMapping("/cessation-requests/{requestId}/reject")
+	public ResponseEntity<RechazoSolicitudResponseDto> rechazarSolicitud(@PathVariable Integer requestId,
+			@RequestBody RechazoSolicitudRequestDto requestDto) {
 
-    @PostMapping("/cessation-requests/{requestId}/approve")
-    public ResponseEntity<AprobarSolicitudResponseDto> aprobarSolicitud(
-        @PathVariable Integer requestId,
-        @RequestBody AprobarSolicitudRequestDto requestDto) {
+		RechazoSolicitudResponseDto response = solicitudService.rechazarSolicitud(requestId, requestDto.getResponse());
+		return ResponseEntity.ok(response);
+	}
 
-        AprobarSolicitudResponseDto response = solicitudService.aprobarSolicitud(requestId, requestDto.getResponse());
-        return ResponseEntity.ok(response);
-    }
+	@PostMapping("/cessation-requests/{requestId}/approve")
+	public ResponseEntity<AprobarSolicitudResponseDto> aprobarSolicitud(@PathVariable Integer requestId,
+			@RequestBody AprobarSolicitudRequestDto requestDto) {
 
-    @GetMapping("/advisor-change-requests")
-    public ResponseEntity<SolicitudCambioAsesorDto> getSolicitudesCambioAsesor(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(solicitudService.findAllSolicitudesCambioAsesor(page, size));
-    }
+		AprobarSolicitudResponseDto response = solicitudService.aprobarSolicitud(requestId, requestDto.getResponse());
+		return ResponseEntity.ok(response);
+	}
 
-    @PostMapping("/advisor-change-requests/{requestId}/reject")
-    public ResponseEntity<RechazoSolicitudCambioAsesorResponseDto> rechazarSolicitudCambioAsesor(
-        @PathVariable Integer requestId,
-        @RequestBody RechazoSolicitudCambioAsesorRequestDto requestDto) {
+	@GetMapping("/advisor-change-requests")
+	public ResponseEntity<SolicitudCambioAsesorDto> getSolicitudesCambioAsesor(
+			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+		return ResponseEntity.ok(solicitudService.findAllSolicitudesCambioAsesor(page, size));
+	}
 
-        RechazoSolicitudCambioAsesorResponseDto response = solicitudService.rechazarSolicitudCambioAsesor(requestId, requestDto.getResponse());
-        return ResponseEntity.ok(response);
-    }
+	@PostMapping("/advisor-change-requests/{requestId}/reject")
+	public ResponseEntity<RechazoSolicitudCambioAsesorResponseDto> rechazarSolicitudCambioAsesor(
+			@PathVariable Integer requestId, @RequestBody RechazoSolicitudCambioAsesorRequestDto requestDto) {
 
-    @PostMapping("/advisor-change-requests/{requestId}/approve")
-    public ResponseEntity<AprobarSolicitudCambioAsesorResponseDto> aprobarSolicitudCambioAsesor(
-        @PathVariable Integer requestId,
-        @RequestBody AprobarSolicitudCambioAsesorRequestDto requestDto) {
+		RechazoSolicitudCambioAsesorResponseDto response = solicitudService.rechazarSolicitudCambioAsesor(requestId,
+				requestDto.getResponse());
+		return ResponseEntity.ok(response);
+	}
 
-        AprobarSolicitudCambioAsesorResponseDto response = solicitudService.aprobarSolicitudCambioAsesor(requestId, requestDto.getResponse());
-        return ResponseEntity.ok(response);
-    }
+	@PostMapping("/advisor-change-requests/{requestId}/approve")
+	public ResponseEntity<AprobarSolicitudCambioAsesorResponseDto> aprobarSolicitudCambioAsesor(
+			@PathVariable Integer requestId, @RequestBody AprobarSolicitudCambioAsesorRequestDto requestDto) {
+
+		AprobarSolicitudCambioAsesorResponseDto response = solicitudService.aprobarSolicitudCambioAsesor(requestId,
+				requestDto.getResponse());
+		return ResponseEntity.ok(response);
+	}
+
 }

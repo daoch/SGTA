@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useEffect, useState } from "react";
-import { Controller, Control,useForm } from "react-hook-form";
+import { Controller, Control, useForm } from "react-hook-form";
 import {
   Select,
   SelectTrigger,
@@ -26,9 +26,6 @@ import {
   getEtapasFormativasNombres,
 } from "../services/jurado-service";
 
-
-
-
 const estados = [
   { value: "todos", label: "Todos" },
   { value: "esperando_respuesta", label: "Esperando Respuesta" },
@@ -50,85 +47,82 @@ interface FormValues {
   estado: string;
 }
 
-
-export const FilterExposicionJurado: React.FC<Props> = ({ control ,onSearch}) => {
-
+export const FilterExposicionJurado: React.FC<Props> = ({
+  control,
+  onSearch,
+}) => {
   const [etapasFormativas, setEtapasFormativas] = useState<EtapaFormativa[]>(
-      [],
-    );
-    const [selectedEtapaFormativa, setSelectedEtapaFormativa] =
-      useState<string>("TODOS");
-    useEffect(() => {
-      const fetchEtapasFormativas = async () => {
-        try {
-          const etapasFormativas = await getEtapasFormativasNombres();
-          setEtapasFormativas(etapasFormativas);
-        } catch (error) {
-          console.error("Error fetching etapas formativas:", error);
+    [],
+  );
+  const [selectedEtapaFormativa, setSelectedEtapaFormativa] =
+    useState<string>("TODOS");
+  useEffect(() => {
+    const fetchEtapasFormativas = async () => {
+      try {
+        const etapasFormativas = await getEtapasFormativasNombres();
+        setEtapasFormativas(etapasFormativas);
+      } catch (error) {
+        console.error("Error fetching etapas formativas:", error);
+      }
+    };
+    fetchEtapasFormativas();
+  }, []);
+
+  const [ciclos, setCiclos] = useState<Ciclo[]>([]);
+  const [selectedCiclo, setSelectedCiclo] = useState<string>("TODOS");
+  useEffect(() => {
+    const fetchCiclos = async () => {
+      try {
+        const ciclos = await getCiclos();
+        setCiclos(ciclos);
+        if (ciclos.length > 0) {
+          const primerValor = `${ciclos[0].anio}-${ciclos[0].semestre}`;
+          setSelectedCiclo(primerValor);
         }
-      };
-      fetchEtapasFormativas();
-    }, []);
-
-    const [ciclos, setCiclos] = useState<Ciclo[]>([]);
-      const [selectedCiclo, setSelectedCiclo] = useState<string>("TODOS");
-      useEffect(() => {
-        const fetchCiclos = async () => {
-          try {
-            const ciclos = await getCiclos();
-            setCiclos(ciclos);
-            if (ciclos.length > 0) {
-              const primerValor = `${ciclos[0].anio}-${ciclos[0].semestre}`;
-              setSelectedCiclo(primerValor);
-            }
-          } catch (error) {
-            console.error("Error fetching ciclos:", error);
-          }
-        };
-        fetchCiclos();
-      }, []);
-
-
-
+      } catch (error) {
+        console.error("Error fetching ciclos:", error);
+      }
+    };
+    fetchCiclos();
+  }, []);
 
   return (
     <div className="flex flex-wrap gap-4 pb-4 items-end">
       {/* Buscador */}
-      <div >
+      <div>
         <Label htmlFor="buscador" className="text-sm font-semibold block mb-2">
           Buscar
         </Label>
         <div className="flex items-center gap-3">
-        <Controller
-          name="buscador"
-          control={control}
-          render={({ field }) => (
-            <Input
-              {...field}
-              placeholder="Ingrese el título del tema proyecto o el nombre del estudiante"
-              className="w-[450px] "
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && onSearch) {
-                  e.preventDefault(); // Prevenir el comportamiento por defecto del Enter
-                  onSearch();
-                }
-              }}
-            />
-          )}
-        />
-        <Button
+          <Controller
+            name="buscador"
+            control={control}
+            render={({ field }) => (
+              <Input
+                {...field}
+                placeholder="Ingrese el título del tema proyecto o el nombre del estudiante"
+                className="w-[450px] "
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && onSearch) {
+                    e.preventDefault(); // Prevenir el comportamiento por defecto del Enter
+                    onSearch();
+                  }
+                }}
+              />
+            )}
+          />
+          <Button
             type="button"
             onClick={onSearch}
             className="h-10 bg-[#042354] text-white px-4 "
           >
-            
             Buscar
           </Button>
-          </div>
+        </div>
       </div>
 
       {/* Curso */}
-      <div >
+      <div>
         <Label htmlFor="curso" className="text-sm font-semibold mb-2">
           Curso
         </Label>
@@ -137,15 +131,15 @@ export const FilterExposicionJurado: React.FC<Props> = ({ control ,onSearch}) =>
           control={control}
           defaultValue="TODOS"
           render={({ field }) => (
-            <Select onValueChange={field.onChange} value={field.value} >
+            <Select onValueChange={field.onChange} value={field.value}>
               <SelectTrigger className="w-[240px]">
                 <SelectValue placeholder="Todos" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="TODOS">Todos</SelectItem>
-                  {etapasFormativas.map((etapa) => (
+                {etapasFormativas.map((etapa) => (
                   <SelectItem key={etapa.etapaFormativaId} value={etapa.nombre}>
-                          {etapa.nombre}
+                    {etapa.nombre}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -155,7 +149,7 @@ export const FilterExposicionJurado: React.FC<Props> = ({ control ,onSearch}) =>
       </div>
 
       {/* Periodo */}
-      <div >
+      <div>
         <Label htmlFor="periodo" className="text-sm font-semibold block mb-2">
           Período
         </Label>
@@ -168,7 +162,7 @@ export const FilterExposicionJurado: React.FC<Props> = ({ control ,onSearch}) =>
                 <SelectValue placeholder="Seleccionar período" />
               </SelectTrigger>
               <SelectContent>
-                  {ciclos.map((ciclo) => {
+                {ciclos.map((ciclo) => {
                   const value = `${ciclo.anio}-${ciclo.semestre}`;
                   return (
                     <SelectItem key={ciclo.id} value={value}>
@@ -183,7 +177,7 @@ export const FilterExposicionJurado: React.FC<Props> = ({ control ,onSearch}) =>
       </div>
 
       {/* Estado */}
-      <div >
+      <div>
         <Label htmlFor="estado" className="text-sm font-semibold block mb-2">
           Estado
         </Label>

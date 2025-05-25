@@ -10,8 +10,13 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class TemaConAsesorJuradoDTO {
-    private Integer id;
-    private String codigo;
-    private String titulo;
-    private List<UsarioRolDto> usuarios;
+
+	private Integer id;
+
+	private String codigo;
+
+	private String titulo;
+
+	private List<UsarioRolDto> usuarios;
+
 }

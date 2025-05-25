@@ -9,11 +9,13 @@ import pucp.edu.pe.sgta.model.UsuarioXAreaConocimiento;
 import java.util.List;
 
 public interface UsuarioXAreaConocimientoRepository extends JpaRepository<UsuarioXAreaConocimiento, Integer> {
-    List<UsuarioXAreaConocimiento> findAllByUsuario_IdAndActivoIsTrue(Integer id);
 
-    @Query(value = "SELECT asignar_usuario_areas(:usuarioId, cast(:listaIds as INTEGER[]))", nativeQuery = true)
-    void asignarUsuarioAreas(@Param("usuarioId") Integer idUsuario, @Param("listaIds") String idsAreas);
+	List<UsuarioXAreaConocimiento> findAllByUsuario_IdAndActivoIsTrue(Integer id);
 
-    @Query(value = "SELECT desactivar_usuario_areas(:usuarioId, cast(:listaIds as INTEGER[]))", nativeQuery = true)
-    void desactivarUsuarioAreas(@Param("usuarioId") Integer idUsuario, @Param("listaIds") String idsAreas);
+	@Query(value = "SELECT asignar_usuario_areas(:usuarioId, cast(:listaIds as INTEGER[]))", nativeQuery = true)
+	void asignarUsuarioAreas(@Param("usuarioId") Integer idUsuario, @Param("listaIds") String idsAreas);
+
+	@Query(value = "SELECT desactivar_usuario_areas(:usuarioId, cast(:listaIds as INTEGER[]))", nativeQuery = true)
+	void desactivarUsuarioAreas(@Param("usuarioId") Integer idUsuario, @Param("listaIds") String idsAreas);
+
 }

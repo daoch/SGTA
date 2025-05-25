@@ -1,6 +1,10 @@
 import { useDndMonitor } from "@dnd-kit/core";
 
-export function DragMonitor({ setIsDragging }: { setIsDragging: (val: boolean) => void }) {
+export function DragMonitor({
+  setIsDragging,
+}: {
+  setIsDragging: (val: boolean) => void;
+}) {
   useDndMonitor({
     onDragStart() {
       setIsDragging(true);

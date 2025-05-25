@@ -5,7 +5,13 @@ import type React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 
@@ -30,16 +36,30 @@ interface EtapaFormativa {
   descripcion?: string;
 }
 
-export function EtapaFormativaForm({ etapaFormativa = null }: { etapaFormativa?: EtapaFormativa | null }) {
-  const [ciclo, setCiclo] = useState(etapaFormativa?.ciclo_id?.toString() || "");
-  const [carrera, setCarrera] = useState(etapaFormativa?.carrera_id?.toString() || "");
+export function EtapaFormativaForm({
+  etapaFormativa = null,
+}: {
+  etapaFormativa?: EtapaFormativa | null;
+}) {
+  const [ciclo, setCiclo] = useState(
+    etapaFormativa?.ciclo_id?.toString() || "",
+  );
+  const [carrera, setCarrera] = useState(
+    etapaFormativa?.carrera_id?.toString() || "",
+  );
 
   return (
     <div className="space-y-6">
       <div className="space-y-2">
         <Label htmlFor="nombre">Nombre de la Etapa Formativa</Label>
-        <Input id="nombre" placeholder="Ej: Proyecto de Tesis 1" defaultValue={etapaFormativa?.nombre || ""} />
-        <p className="text-sm text-gray-500">Ingrese el nombre del curso de tesis</p>
+        <Input
+          id="nombre"
+          placeholder="Ej: Proyecto de Tesis 1"
+          defaultValue={etapaFormativa?.nombre || ""}
+        />
+        <p className="text-sm text-gray-500">
+          Ingrese el nombre del curso de tesis
+        </p>
       </div>
 
       <div className="space-y-2">
@@ -76,15 +96,28 @@ export function EtapaFormativaForm({ etapaFormativa = null }: { etapaFormativa?:
 
       <div className="space-y-2">
         <Label htmlFor="orden">Orden</Label>
-        <Input id="orden" type="number" min="1" placeholder="Ej: 1" defaultValue={etapaFormativa?.orden || "1"} />
+        <Input
+          id="orden"
+          type="number"
+          min="1"
+          placeholder="Ej: 1"
+          defaultValue={etapaFormativa?.orden || "1"}
+        />
         <p className="text-sm text-gray-500">
-          Indica el orden de la etapa formativa dentro de la carrera (1 para el primer curso, 2 para el segundo, etc.)
+          Indica el orden de la etapa formativa dentro de la carrera (1 para el
+          primer curso, 2 para el segundo, etc.)
         </p>
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="creditos">Créditos</Label>
-        <Input id="creditos" type="number" min="1" placeholder="Ej: 4" defaultValue={etapaFormativa?.creditos || ""} />
+        <Input
+          id="creditos"
+          type="number"
+          min="1"
+          placeholder="Ej: 4"
+          defaultValue={etapaFormativa?.creditos || ""}
+        />
       </div>
 
       <div className="space-y-2">
@@ -101,7 +134,9 @@ export function EtapaFormativaForm({ etapaFormativa = null }: { etapaFormativa?:
         <Link href="/administrador/configuracion/etapas-formativas">
           <Button variant="outline">Cancelar</Button>
         </Link>
-        <Button>{etapaFormativa ? "Guardar Cambios" : "Registrar Etapa Formativa"}</Button>
+        <Button>
+          {etapaFormativa ? "Guardar Cambios" : "Registrar Etapa Formativa"}
+        </Button>
       </div>
     </div>
   );

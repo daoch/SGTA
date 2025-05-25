@@ -18,23 +18,25 @@ import java.time.OffsetDateTime;
 @Data
 public class EtapaFormativaXCicloDto {
 
-    private Integer id;
+	private Integer id;
 
-    private Integer etapaFormativaId;
+	private Integer etapaFormativaId;
 
-    private Integer cicloId;
+	private Integer cicloId;
 
-    private Integer carreraId;
+	private Integer carreraId;
 
-    private Boolean activo;
+	private Boolean activo;
 
-    private OffsetDateTime fechaCreacion;
+	private OffsetDateTime fechaCreacion;
 
-    private OffsetDateTime fechaModificacion;
+	private OffsetDateTime fechaModificacion;
 
-    // Información detallada de la etapa formativa
-    private String nombreEtapaFormativa;
+	// Información detallada de la etapa formativa
+	private String nombreEtapaFormativa;
 
-    private BigDecimal creditajePorTema;
-    //private String descripcionEtapaFormativa;
+	private BigDecimal creditajePorTema;
+
+	// private String descripcionEtapaFormativa;
+
 }

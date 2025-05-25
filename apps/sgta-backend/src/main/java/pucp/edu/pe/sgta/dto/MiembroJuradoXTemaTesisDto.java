@@ -12,14 +12,25 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class MiembroJuradoXTemaTesisDto {
-    private Integer id;
-    private String titulo;
-    private String codigo;
-    private String resumen;
-    private String rol;
-    private List<EstudiantesDto> estudiantes;
-    private List<SubAreasConocimientoDto> sub_areas_conocimiento;
-    private EtapaFormativaTesisDto etapaFormativaTesis;
-    private CicloTesisDto cicloTesis;
-    private EstadoTemaDto estadoTema;
+
+	private Integer id;
+
+	private String titulo;
+
+	private String codigo;
+
+	private String resumen;
+
+	private String rol;
+
+	private List<EstudiantesDto> estudiantes;
+
+	private List<SubAreasConocimientoDto> sub_areas_conocimiento;
+
+	private EtapaFormativaTesisDto etapaFormativaTesis;
+
+	private CicloTesisDto cicloTesis;
+
+	private EstadoTemaDto estadoTema;
+
 }

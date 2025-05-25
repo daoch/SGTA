@@ -16,7 +16,11 @@ import {
   deleteSubAreaById,
   getAllSubAreasByAreaId,
 } from "@/features/configuracion/services/configuracion-service";
-import { AreaResponse, AreaType, SubAreaType } from "@/features/configuracion/types/Area.type";
+import {
+  AreaResponse,
+  AreaType,
+  SubAreaType,
+} from "@/features/configuracion/types/Area.type";
 
 export default function AreasPage() {
   const [areas, setAreas] = useState<AreaType[]>([]);
@@ -25,7 +29,13 @@ export default function AreasPage() {
   const [newSubArea, setNewSubArea] = useState("");
   const [showSubAreaInput, setShowSubAreaInput] = useState<number | null>(null);
   const [loadingOperation, setLoadingOperation] = useState<{
-    type: "addArea" | "addSubArea" | "deleteArea" | "deleteSubArea" | "save" | null;
+    type:
+      | "addArea"
+      | "addSubArea"
+      | "deleteArea"
+      | "deleteSubArea"
+      | "save"
+      | null;
     id?: number;
   }>({ type: null });
 
@@ -226,12 +236,17 @@ export default function AreasPage() {
         <ScrollArea className="h-[500px] pr-4">
           {areas && areas.length > 0 ? (
             areas.map((area: AreaType) => (
-              <div key={`area-${area.id}`} className="mb-6 bg-gray-50 p-4 rounded-lg">
+              <div
+                key={`area-${area.id}`}
+                className="mb-6 bg-gray-50 p-4 rounded-lg"
+              >
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="font-medium">{area.nombre}</h4>
                     {area.descripcion && (
-                      <p className="text-sm text-gray-500">{area.descripcion}</p>
+                      <p className="text-sm text-gray-500">
+                        {area.descripcion}
+                      </p>
                     )}
                   </div>
                   <div className="flex items-center gap-2">
@@ -307,7 +322,9 @@ export default function AreasPage() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => handleDeleteSubArea(area.id, subArea.id)}
+                            onClick={() =>
+                              handleDeleteSubArea(area.id, subArea.id)
+                            }
                             disabled={
                               loadingOperation.type === "deleteSubArea" &&
                               loadingOperation.id === area.id
@@ -337,4 +354,4 @@ export default function AreasPage() {
       </div>
     </div>
   );
-} 
+}

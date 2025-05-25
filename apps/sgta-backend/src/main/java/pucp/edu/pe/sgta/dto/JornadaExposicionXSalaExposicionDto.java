@@ -13,10 +13,17 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class JornadaExposicionXSalaExposicionDto {
-    private Integer id;
-    private Integer jornadaExposicionId;
-    private Integer salaExposicionId;
-    private Boolean activo;
-    private OffsetDateTime fechaCreacion;
-    private OffsetDateTime fechaModificacion;
+
+	private Integer id;
+
+	private Integer jornadaExposicionId;
+
+	private Integer salaExposicionId;
+
+	private Boolean activo;
+
+	private OffsetDateTime fechaCreacion;
+
+	private OffsetDateTime fechaModificacion;
+
 }

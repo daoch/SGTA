@@ -12,7 +12,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @EnableJpaRepositories(basePackages = "pucp.edu.pe.sgta.repository")
 public class SgtaApplication {
 
-
 	static {
 		Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
 		System.setProperty("DB_URL", dotenv.get("DB_URL", ""));
@@ -27,7 +26,7 @@ public class SgtaApplication {
 	}
 
 	public static void main(String[] args) {
-		
+
 		SpringApplication.run(SgtaApplication.class, args);
 
 	}

@@ -36,13 +36,15 @@ export default function ConfiguracionSistema() {
 
   // Detectar si hay cambios comparando con los valores originales
   const hasChanges = parametros.some((param) => {
-    const originalParam = parametrosOriginales.find(p => p.id === param.id);
+    const originalParam = parametrosOriginales.find((p) => p.id === param.id);
 
     //rastrear cambios en el valor de los parámetros
     const cambiado = originalParam && originalParam.valor !== param.valor;
     if (cambiado) {
       console.log(`⚠️ Cambio detectado en parámetro ID ${param.id}`);
-      console.log(`➡️ Original: ${originalParam.valor}, Actual: ${param.valor}`);
+      console.log(
+        `➡️ Original: ${originalParam.valor}, Actual: ${param.valor}`,
+      );
     }
 
     return originalParam && originalParam.valor !== param.valor;
@@ -77,7 +79,9 @@ export default function ConfiguracionSistema() {
               <TabsTrigger value="revision">Revisión</TabsTrigger>
             </TabsList>
             <Button
-              className={"px-4 py-2 rounded text-white font-semibold transition disabled:bg-gray-300"}
+              className={
+                "px-4 py-2 rounded text-white font-semibold transition disabled:bg-gray-300"
+              }
               disabled={!hasChanges || cargando}
               onClick={handleGuardar}
             >

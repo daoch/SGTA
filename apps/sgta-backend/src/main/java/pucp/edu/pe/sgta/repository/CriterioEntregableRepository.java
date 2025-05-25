@@ -10,8 +10,10 @@ import java.util.List;
 
 @Repository
 public interface CriterioEntregableRepository extends JpaRepository<CriterioEntregable, Integer> {
-    @Query(value = "SELECT * FROM listar_criterios_entregable_x_entregable(:entregableId)", nativeQuery = true)
-    List<Object[]> listarCriteriosEntregableXEntregable(@Param("entregableId") Integer entregableId);
 
-    CriterioEntregable findById(int id);
+	@Query(value = "SELECT * FROM listar_criterios_entregable_x_entregable(:entregableId)", nativeQuery = true)
+	List<Object[]> listarCriteriosEntregableXEntregable(@Param("entregableId") Integer entregableId);
+
+	CriterioEntregable findById(int id);
+
 }

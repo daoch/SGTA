@@ -222,4 +222,3 @@ const JuradosView = () => {
 };
 
 export default JuradosView;
-

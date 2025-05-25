@@ -31,20 +31,18 @@ public class TemaController {
 		return temaService.findById(idTema);
 	}
 
-    @PostMapping("/createPropuesta")
-    public void createTema(@RequestBody TemaDto dto,
-                           @RequestParam(name = "idUsuarioCreador") Integer idUsuarioCreador,
-						   @RequestParam(name = "tipoPropuesta", defaultValue = "0") Integer tipoPropuesta) {
-        temaService.createTemaPropuesta(dto, idUsuarioCreador, tipoPropuesta);
-    }
+	@PostMapping("/createPropuesta")
+	public void createTema(@RequestBody TemaDto dto, @RequestParam(name = "idUsuarioCreador") Integer idUsuarioCreador,
+			@RequestParam(name = "tipoPropuesta", defaultValue = "0") Integer tipoPropuesta) {
+		temaService.createTemaPropuesta(dto, idUsuarioCreador, tipoPropuesta);
+	}
 
-    @PostMapping("/createInscripcion") // Inscripcion de tema oficial por asesor
-    public void createInscripcion(
-            @RequestBody @Valid TemaDto dto
-            //@RequestParam(name = "idUsuarioCreador") Integer idUsuarioCreador
-			) {
-        temaService.createInscripcionTema(dto);
-    }
+	@PostMapping("/createInscripcion") // Inscripcion de tema oficial por asesor
+	public void createInscripcion(@RequestBody @Valid TemaDto dto
+	// @RequestParam(name = "idUsuarioCreador") Integer idUsuarioCreador
+	) {
+		temaService.createInscripcionTema(dto);
+	}
 
 	@PutMapping("/update") // updates a topic
 	public void update(@RequestBody TemaDto dto) {
@@ -52,40 +50,34 @@ public class TemaController {
 	}
 
 	@GetMapping("/listarTemasPropuestosAlAsesor/{asesorId}")
-	public List<TemaDto> listarTemasPropuestosAlAsesor(
-			@PathVariable Integer asesorId,
+	public List<TemaDto> listarTemasPropuestosAlAsesor(@PathVariable Integer asesorId,
 			@RequestParam(required = false) String titulo, // Parámetro opcional de título
-			@RequestParam(defaultValue = "10") Integer limit, // Parámetro de límite, con valor por defecto de 10
-			@RequestParam(defaultValue = "0") Integer offset // Parámetro de desplazamiento, con valor por defecto de 0
+			@RequestParam(defaultValue = "10") Integer limit, // Parámetro de límite, con
+																// valor por defecto de 10
+			@RequestParam(defaultValue = "0") Integer offset // Parámetro de
+																// desplazamiento, con
+																// valor por defecto de 0
 	) {
 
 		return temaService.listarTemasPropuestosAlAsesor(asesorId, titulo, limit, offset);
 	}
 
-
 	@GetMapping("/listarTemasPropuestosPorSubAreaConocimiento")
-	public List<TemaDto> listarTemasPropuestosPorSubAreaConocimiento(
-			@RequestParam List<Integer> subareaIds,
+	public List<TemaDto> listarTemasPropuestosPorSubAreaConocimiento(@RequestParam List<Integer> subareaIds,
 			@RequestParam(name = "asesorId") Integer asesorId,
 			@RequestParam(name = "titulo", required = false) String titulo,
 			@RequestParam(value = "limit", defaultValue = "10") Integer limit,
-			@RequestParam(value = "offset", defaultValue = "0") Integer offset
-	) {
+			@RequestParam(value = "offset", defaultValue = "0") Integer offset) {
 
 		return temaService.listarTemasPropuestosPorSubAreaConocimiento(subareaIds, asesorId, titulo, limit, offset);
 	}
 
-
-
 	@PostMapping("/postularAsesorTemaPropuestoGeneral")
-	public void postularAsesorTemaPropuestoGeneral(
-			@RequestParam(name = "idAlumno") Integer idAlumno,
-			@RequestParam(name = "idAsesor") Integer idAsesor,
-			@RequestParam(name = "idTema") Integer idTema,
+	public void postularAsesorTemaPropuestoGeneral(@RequestParam(name = "idAlumno") Integer idAlumno,
+			@RequestParam(name = "idAsesor") Integer idAsesor, @RequestParam(name = "idTema") Integer idTema,
 			@RequestParam(name = "comentario") String comentario) {
 
 		temaService.postularAsesorTemaPropuestoGeneral(idAlumno, idAsesor, idTema, comentario);
-
 
 	}
 
@@ -96,22 +88,20 @@ public class TemaController {
 		Integer[] usuariosId = usuariosIdList.toArray(new Integer[0]);
 		Integer temaId = (Integer) body.get("temaId");
 		Integer profesorId = (Integer) body.get("profesorId");
-		String comentario = (String) body.getOrDefault("comentario", ""); // por defecto vacío
+		String comentario = (String) body.getOrDefault("comentario", ""); // por defecto
+																			// vacío
 
 		temaService.enlazarTesistasATemaPropuestDirecta(usuariosId, temaId, profesorId, comentario);
 	}
-    @GetMapping("/listarTemasPorUsuarioRolEstado/{usuarioId}")
-    public List<TemaDto> listarTemasPorUsuarioRolEstado(
-            @PathVariable("usuarioId") Integer usuarioId,
-            @RequestParam("rolNombre")   String rolNombre,
-            @RequestParam("estadoNombre")String estadoNombre) {
-        return temaService.listarTemasPorUsuarioEstadoYRol(usuarioId, rolNombre, estadoNombre);
-    }
+
+	@GetMapping("/listarTemasPorUsuarioRolEstado/{usuarioId}")
+	public List<TemaDto> listarTemasPorUsuarioRolEstado(@PathVariable("usuarioId") Integer usuarioId,
+			@RequestParam("rolNombre") String rolNombre, @RequestParam("estadoNombre") String estadoNombre) {
+		return temaService.listarTemasPorUsuarioEstadoYRol(usuarioId, rolNombre, estadoNombre);
+	}
 
 	@PostMapping("/rechazarTemaPropuestaDirecta")
-	public void rechazarTema(
-			@RequestParam("alumnoId") Integer alumnoId,
-			@RequestParam("comentario") String comentario,
+	public void rechazarTema(@RequestParam("alumnoId") Integer alumnoId, @RequestParam("comentario") String comentario,
 			@RequestParam("temaId") Integer temaId) {
 
 		temaService.rechazarTemaPropuestaDirecta(alumnoId, comentario, temaId);
@@ -124,7 +114,8 @@ public class TemaController {
 	}
 
 	@GetMapping("/listarTemasCicloActualXEtapaFormativa/{etapaFormativaId}")
-	public List<TemaConAsesorJuradoDTO>listarTemasCicloActualXEtapaFormativa(@PathVariable("etapaFormativaId") Integer etapaFormativaId) {
+	public List<TemaConAsesorJuradoDTO> listarTemasCicloActualXEtapaFormativa(
+			@PathVariable("etapaFormativaId") Integer etapaFormativaId) {
 		return temaService.listarTemasCicloActualXEtapaFormativa(etapaFormativaId);
 	}
 
@@ -133,12 +124,11 @@ public class TemaController {
 		return temaService.listarPostulacionesAMisPropuestas(tesistaId, 1);
 	}
 
-
-
 	@GetMapping("/listarTemasAsesorInvolucrado/{asesorId}")
 	public List<InfoTemaPerfilDto> listarTemasAsesorInvolucrado(@PathVariable("asesorId") Integer asesorId) {
 		return temaService.listarTemasAsesorInvolucrado(asesorId);
 	}
+
 	@GetMapping("/listarPostulacionesGeneralesAMisPropuestas/{tesistaId}")
 	public List<TemaDto> listarPostulacionesGeneralesAMisPropuestas(@PathVariable("tesistaId") Integer tesistaId) {
 		return temaService.listarPostulacionesAMisPropuestas(tesistaId, 0);
@@ -151,24 +141,19 @@ public class TemaController {
 
 	@PostMapping("/aprobarPostulacionAPropuesta")
 	public void aprobarPostulacionAPropuestaGeneral(@RequestParam("alumnoId") Integer alumnoId,
-													@RequestParam("asesorId") Integer asesorId,
-													@RequestParam("temaId") Integer temaId){
+			@RequestParam("asesorId") Integer asesorId, @RequestParam("temaId") Integer temaId) {
 		temaService.aprobarPostulacionAPropuestaGeneral(temaId, asesorId, alumnoId);
 	}
 
 	@PostMapping("/rechazarPostulacionAPropuesta")
 	public void rechazarPostulacionAPropuestaGeneral(@RequestParam("alumnoId") Integer alumnoId,
-													@RequestParam("asesorId") Integer asesorId,
-													@RequestParam("temaId") Integer temaId){
+			@RequestParam("asesorId") Integer asesorId, @RequestParam("temaId") Integer temaId) {
 		temaService.rechazarPostulacionAPropuestaGeneral(temaId, asesorId, alumnoId);
 	}
 
 	@GetMapping("/listarExposiciones/{temaId}")
-	public List<ExposicionTemaMiembrosDto> listarExposicionXTemaId(@PathVariable Integer temaId){
+	public List<ExposicionTemaMiembrosDto> listarExposicionXTemaId(@PathVariable Integer temaId) {
 		return temaService.listarExposicionXTemaId(temaId);
 	}
 
-
 }
-
-

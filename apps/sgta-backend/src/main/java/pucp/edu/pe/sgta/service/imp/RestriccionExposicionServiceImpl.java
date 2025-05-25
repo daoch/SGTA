@@ -12,39 +12,39 @@ import java.util.List;
 @Service
 public class RestriccionExposicionServiceImpl implements RestriccionExposicionService {
 
-    private final RestriccionExposicionRepository restriccionExposicionRepository;
+	private final RestriccionExposicionRepository restriccionExposicionRepository;
 
-    public RestriccionExposicionServiceImpl(RestriccionExposicionRepository restriccionExposicionRepository) {
-        this.restriccionExposicionRepository = restriccionExposicionRepository;
-    }
+	public RestriccionExposicionServiceImpl(RestriccionExposicionRepository restriccionExposicionRepository) {
+		this.restriccionExposicionRepository = restriccionExposicionRepository;
+	}
 
-    @Override
-    public List<RestriccionExposicionDto> getAll() {
-        return List.of();
-    }
+	@Override
+	public List<RestriccionExposicionDto> getAll() {
+		return List.of();
+	}
 
-    @Override
-    public RestriccionExposicionDto findById(Integer id) {
-        RestriccionExposicion restriccionExposicion = restriccionExposicionRepository.findById(id).orElse(null);
-        if (restriccionExposicion != null) {
-            return RestriccionExposicionMapper.toDto(restriccionExposicion);
-        }
-        return null;
-    }
+	@Override
+	public RestriccionExposicionDto findById(Integer id) {
+		RestriccionExposicion restriccionExposicion = restriccionExposicionRepository.findById(id).orElse(null);
+		if (restriccionExposicion != null) {
+			return RestriccionExposicionMapper.toDto(restriccionExposicion);
+		}
+		return null;
+	}
 
-    @Override
-    public void create(RestriccionExposicionDto dto) {
+	@Override
+	public void create(RestriccionExposicionDto dto) {
 
-    }
+	}
 
-    @Override
-    public void update(RestriccionExposicionDto dto) {
+	@Override
+	public void update(RestriccionExposicionDto dto) {
 
-    }
+	}
 
-    @Override
-    public void delete(Integer id) {
+	@Override
+	public void delete(Integer id) {
 
-    }
+	}
 
 }

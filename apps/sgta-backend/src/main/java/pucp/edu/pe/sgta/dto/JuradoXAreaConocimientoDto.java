@@ -11,6 +11,8 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 public class JuradoXAreaConocimientoDto {
-    @JsonProperty("areas_conocimiento")
-    List<JuradoAreaDto> juradoAreaDtos;
+
+	@JsonProperty("areas_conocimiento")
+	List<JuradoAreaDto> juradoAreaDtos;
+
 }

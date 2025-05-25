@@ -7,7 +7,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle
+  CardTitle,
 } from "@/components/ui/card";
 import {
   Dialog,
@@ -15,16 +15,11 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger
-} from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PropuestasTable } from "@/features/temas/components/alumno/propuestas-table";
 import { TemaCard } from "@/features/temas/components/alumno/tema-inscrito-card";
 import Link from "next/link";
@@ -60,7 +55,7 @@ const propuestas: Propuesta[] = [
     objetivos:
       "Crear una interfaz intuitiva para la gestión de eventos. Implementar algoritmos de IA para optimizar horarios. Desarrollar un sistema de notificaciones automáticas.",
     asesor: "Dr. Miguel Ángel Torres",
-    estado: "cotesista_pendiente"
+    estado: "cotesista_pendiente",
   },
   {
     id: "2",
@@ -75,7 +70,7 @@ const propuestas: Propuesta[] = [
       "Diseño e implementación de un sistema de monitoreo ambiental en tiempo real usando sensores conectados mediante IoT.",
     objetivos:
       "Recolectar datos ambientales. Procesar datos en la nube. Visualizar información en dashboard.",
-    estado: "propuesta"
+    estado: "propuesta",
   },
   {
     id: "3",
@@ -91,7 +86,7 @@ const propuestas: Propuesta[] = [
     objetivos:
       "Clasificar publicaciones por sentimiento. Evaluar tendencias por marca. Automatizar alertas de menciones negativas.",
     asesor: "Dra. Carmen Vega",
-    estado: "propuesta"
+    estado: "propuesta",
   },
   {
     id: "4",
@@ -106,15 +101,21 @@ const propuestas: Propuesta[] = [
       "Desarrollar un sistema que prediga la demanda de productos usando modelos de machine learning supervisado.",
     objetivos:
       "Obtener histórico de ventas. Entrenar modelos predictivos. Validar predicciones con nuevas ventas.",
-    estado: "propuesta"
-  }
+    estado: "propuesta",
+  },
 ];
 
 const MisTemasPage = () => {
-  const [selectedPropuesta, setSelectedPropuesta] = useState<Propuesta | null>(null);
+  const [selectedPropuesta, setSelectedPropuesta] = useState<Propuesta | null>(
+    null,
+  );
 
-  const propuestasPendientes = propuestas.filter((p) => p.estado === "cotesista_pendiente");
-  const propuestasConfirmadas = propuestas.filter((p) => p.estado === "propuesta");
+  const propuestasPendientes = propuestas.filter(
+    (p) => p.estado === "cotesista_pendiente",
+  );
+  const propuestasConfirmadas = propuestas.filter(
+    (p) => p.estado === "propuesta",
+  );
 
   return (
     <div className="space-y-8 mt-4">
@@ -122,11 +123,14 @@ const MisTemasPage = () => {
         <div>
           <h1 className="text-3xl font-bold text-[#042354]">Mis Temas</h1>
           <p className="text-muted-foreground">
-            Gestión de tus temas de proyecto de fin de carrera, postulaciones y propuestas
+            Gestión de tus temas de proyecto de fin de carrera, postulaciones y
+            propuestas
           </p>
         </div>
         <Link href="/alumno/temas/nueva-propuesta">
-          <Button className="bg-[#042354] hover:bg-[#0e2f7a] text-white">+ Nueva Propuesta</Button>
+          <Button className="bg-[#042354] hover:bg-[#0e2f7a] text-white">
+            + Nueva Propuesta
+          </Button>
         </Link>
       </div>
 
@@ -141,7 +145,9 @@ const MisTemasPage = () => {
           <Card>
             <CardHeader>
               <CardTitle>Tema Inscrito</CardTitle>
-              <CardDescription>Información sobre tu tema actualmente inscrito</CardDescription>
+              <CardDescription>
+                Información sobre tu tema actualmente inscrito
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <TemaCard />
@@ -153,10 +159,12 @@ const MisTemasPage = () => {
           <Card>
             <CardHeader>
               <CardTitle>Mis Postulaciones</CardTitle>
-              <CardDescription>Temas de proyectos a los que has postulado</CardDescription>
+              <CardDescription>
+                Temas de proyectos a los que has postulado
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <PropuestasTable/>
+              <PropuestasTable />
             </CardContent>
           </Card>
         </TabsContent>
@@ -177,13 +185,16 @@ const MisTemasPage = () => {
                 onDelete={() => {}}
               />*/}
               <div className="mt-6" />
-              <PropuestasTable/>
+              <PropuestasTable />
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
 
-      <Dialog open={!!selectedPropuesta} onOpenChange={(open) => !open && setSelectedPropuesta(null)}>
+      <Dialog
+        open={!!selectedPropuesta}
+        onOpenChange={(open) => !open && setSelectedPropuesta(null)}
+      >
         <DialogContent className="w-[90vw] max-w-3xl sm:max-w-3xl">
           <DialogHeader>
             <DialogTitle>
@@ -211,9 +222,15 @@ const MisTemasPage = () => {
                 </div>
                 <div className="space-y-1">
                   <h3 className="font-medium">
-                    {selectedPropuesta.estado === "cotesista_pendiente" ? "Fecha de creación" : "Fecha límite"}
+                    {selectedPropuesta.estado === "cotesista_pendiente"
+                      ? "Fecha de creación"
+                      : "Fecha límite"}
                   </h3>
-                  <p>{new Date(selectedPropuesta.fechaLimite).toLocaleDateString()}</p>
+                  <p>
+                    {new Date(
+                      selectedPropuesta.fechaLimite,
+                    ).toLocaleDateString()}
+                  </p>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -227,7 +244,9 @@ const MisTemasPage = () => {
                         : "bg-green-100 text-green-800"
                     }
                   >
-                    {selectedPropuesta.tipo === "directa" ? "Directa" : "General"}
+                    {selectedPropuesta.tipo === "directa"
+                      ? "Directa"
+                      : "General"}
                   </Badge>
                 </div>
                 {selectedPropuesta.estado !== "cotesista_pendiente" && (
@@ -244,7 +263,10 @@ const MisTemasPage = () => {
                     <div className="flex justify-between items-center">
                       <span>{selectedPropuesta.estudiantes[0]}</span>
                       {selectedPropuesta.estado === "cotesista_pendiente" && (
-                        <Badge variant="outline" className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">
+                        <Badge
+                          variant="outline"
+                          className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100"
+                        >
                           Pendiente
                         </Badge>
                       )}
@@ -275,7 +297,10 @@ const MisTemasPage = () => {
           )}
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setSelectedPropuesta(null)}>
+            <Button
+              variant="outline"
+              onClick={() => setSelectedPropuesta(null)}
+            >
               Cerrar
             </Button>
           </DialogFooter>

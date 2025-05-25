@@ -23,7 +23,8 @@ export default function TesistaDetailPage() {
   const student = {
     id: studentId,
     name: "Ana Martínez",
-    thesis: "Implementación de algoritmos de machine learning para detección de fraudes",
+    thesis:
+      "Implementación de algoritmos de machine learning para detección de fraudes",
     progress: 75,
     status: "En progreso",
     currentPhase: "Avance de implementación",
@@ -65,11 +66,31 @@ export default function TesistaDetailPage() {
     startDate: "15/01/2023",
     expectedEndDate: "30/07/2023",
     meetings: [
-      { date: "01/02/2023", duration: "1 hora", notes: "Revisión de propuesta y definición de alcance" },
-      { date: "15/02/2023", duration: "45 minutos", notes: "Discusión de metodología y fuentes bibliográficas" },
-      { date: "01/03/2023", duration: "1 hora", notes: "Revisión de avance de marco teórico" },
-      { date: "15/03/2023", duration: "30 minutos", notes: "Feedback sobre marco teórico y siguientes pasos" },
-      { date: "01/04/2023", duration: "1 hora", notes: "Revisión de metodología y planificación de implementación" },
+      {
+        date: "01/02/2023",
+        duration: "1 hora",
+        notes: "Revisión de propuesta y definición de alcance",
+      },
+      {
+        date: "15/02/2023",
+        duration: "45 minutos",
+        notes: "Discusión de metodología y fuentes bibliográficas",
+      },
+      {
+        date: "01/03/2023",
+        duration: "1 hora",
+        notes: "Revisión de avance de marco teórico",
+      },
+      {
+        date: "15/03/2023",
+        duration: "30 minutos",
+        notes: "Feedback sobre marco teórico y siguientes pasos",
+      },
+      {
+        date: "01/04/2023",
+        duration: "1 hora",
+        notes: "Revisión de metodología y planificación de implementación",
+      },
     ],
     nextMeeting: "25/04/2023",
   };
@@ -125,7 +146,9 @@ export default function TesistaDetailPage() {
 
               <div className="space-y-4">
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500">Título del Proyecto:</h3>
+                  <h3 className="text-sm font-medium text-gray-500">
+                    Título del Proyecto:
+                  </h3>
                   <p className="text-base">{student.thesis}</p>
                 </div>
 
@@ -135,23 +158,33 @@ export default function TesistaDetailPage() {
                     <p className="text-base">{student.area}</p>
                   </div>
                   <div>
-                    <h3 className="text-sm font-medium text-gray-500">Fase actual:</h3>
+                    <h3 className="text-sm font-medium text-gray-500">
+                      Fase actual:
+                    </h3>
                     <p className="text-base">{student.currentPhase}</p>
                   </div>
                   <div>
-                    <h3 className="text-sm font-medium text-gray-500">Asesor:</h3>
+                    <h3 className="text-sm font-medium text-gray-500">
+                      Asesor:
+                    </h3>
                     <p className="text-base">{student.advisor}</p>
                   </div>
                   <div>
-                    <h3 className="text-sm font-medium text-gray-500">Co-asesor:</h3>
+                    <h3 className="text-sm font-medium text-gray-500">
+                      Co-asesor:
+                    </h3>
                     <p className="text-base">{student.coAdvisor}</p>
                   </div>
                   <div>
-                    <h3 className="text-sm font-medium text-gray-500">Fecha de inicio:</h3>
+                    <h3 className="text-sm font-medium text-gray-500">
+                      Fecha de inicio:
+                    </h3>
                     <p className="text-base">{student.startDate}</p>
                   </div>
                   <div>
-                    <h3 className="text-sm font-medium text-gray-500">Fecha estimada de fin:</h3>
+                    <h3 className="text-sm font-medium text-gray-500">
+                      Fecha estimada de fin:
+                    </h3>
                     <p className="text-base">{student.expectedEndDate}</p>
                   </div>
                 </div>
@@ -166,20 +199,34 @@ export default function TesistaDetailPage() {
                     style={{
                       borderTopColor: "transparent",
                       borderRightColor: `${
-                        student.progress < 30 ? "#ef4444" : student.progress < 70 ? "#eab308" : "#22c55e"
+                        student.progress < 30
+                          ? "#ef4444"
+                          : student.progress < 70
+                            ? "#eab308"
+                            : "#22c55e"
                       }`,
                       borderBottomColor: `${
-                        student.progress < 30 ? "#ef4444" : student.progress < 70 ? "#eab308" : "#22c55e"
+                        student.progress < 30
+                          ? "#ef4444"
+                          : student.progress < 70
+                            ? "#eab308"
+                            : "#22c55e"
                       }`,
                       borderLeftColor: `${
-                        student.progress < 30 ? "#ef4444" : student.progress < 70 ? "#eab308" : "#22c55e"
+                        student.progress < 30
+                          ? "#ef4444"
+                          : student.progress < 70
+                            ? "#eab308"
+                            : "#22c55e"
                       }`,
                       transform: `rotate(${student.progress * 3.6}deg)`,
                     }}
                   ></div>
                 </div>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-3xl font-bold">{student.progress}%</span>
+                  <span className="text-3xl font-bold">
+                    {student.progress}%
+                  </span>
                   <span className="text-sm text-gray-500">Progreso</span>
                 </div>
               </div>
@@ -218,7 +265,10 @@ export default function TesistaDetailPage() {
                   <div>Comentarios</div>
                 </div>
                 {student.deliveries.map((delivery, index) => (
-                  <div key={index} className="grid grid-cols-4 border-b px-4 py-3 text-sm last:border-0">
+                  <div
+                    key={index}
+                    className="grid grid-cols-4 border-b px-4 py-3 text-sm last:border-0"
+                  >
                     <div>{delivery.date}</div>
                     <div>{delivery.title}</div>
                     <div>
@@ -237,7 +287,11 @@ export default function TesistaDetailPage() {
                     <div className="text-gray-600">
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button variant="ghost" size="sm" className="px-2 h-7">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="px-2 h-7"
+                          >
                             <Eye className="h-4 w-4 mr-1" /> Ver detalle
                           </Button>
                         </DialogTrigger>
@@ -262,8 +316,12 @@ export default function TesistaDetailPage() {
                             </DialogDescription>
                           </DialogHeader>
                           <div className="mt-4">
-                            <h4 className="text-sm font-medium mb-2">Comentarios:</h4>
-                            <p className="text-sm text-gray-700">{delivery.comments}</p>
+                            <h4 className="text-sm font-medium mb-2">
+                              Comentarios:
+                            </h4>
+                            <p className="text-sm text-gray-700">
+                              {delivery.comments}
+                            </p>
                           </div>
                         </DialogContent>
                       </Dialog>
@@ -294,7 +352,9 @@ export default function TesistaDetailPage() {
                       }`}
                     ></div>
                     <div>
-                      <time className="mb-1 text-xs font-normal text-gray-500">{delivery.date}</time>
+                      <time className="mb-1 text-xs font-normal text-gray-500">
+                        {delivery.date}
+                      </time>
                       <h3 className="text-sm font-medium">{delivery.title}</h3>
                       <p
                         className={`text-xs ${
@@ -310,7 +370,11 @@ export default function TesistaDetailPage() {
                       <div className="mt-1">
                         <Dialog>
                           <DialogTrigger asChild>
-                            <Button variant="ghost" size="sm" className="px-2 h-6 text-xs">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="px-2 h-6 text-xs"
+                            >
                               <Eye className="h-3 w-3 mr-1" /> Ver detalle
                             </Button>
                           </DialogTrigger>
@@ -335,8 +399,12 @@ export default function TesistaDetailPage() {
                               </DialogDescription>
                             </DialogHeader>
                             <div className="mt-4">
-                              <h4 className="text-sm font-medium mb-2">Comentarios:</h4>
-                              <p className="text-sm text-gray-700">{delivery.comments}</p>
+                              <h4 className="text-sm font-medium mb-2">
+                                Comentarios:
+                              </h4>
+                              <p className="text-sm text-gray-700">
+                                {delivery.comments}
+                              </p>
                             </div>
                           </DialogContent>
                         </Dialog>
@@ -357,8 +425,12 @@ export default function TesistaDetailPage() {
             <CardContent>
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-sm font-medium">Próxima reunión programada:</h3>
-                  <span className="text-sm font-medium">{student.nextMeeting}</span>
+                  <h3 className="text-sm font-medium">
+                    Próxima reunión programada:
+                  </h3>
+                  <span className="text-sm font-medium">
+                    {student.nextMeeting}
+                  </span>
                 </div>
 
                 <div className="rounded-md border">
@@ -368,7 +440,10 @@ export default function TesistaDetailPage() {
                     <div>Notas</div>
                   </div>
                   {student.meetings.map((meeting, index) => (
-                    <div key={index} className="grid grid-cols-3 border-b px-4 py-3 text-sm last:border-0">
+                    <div
+                      key={index}
+                      className="grid grid-cols-3 border-b px-4 py-3 text-sm last:border-0"
+                    >
                       <div>{meeting.date}</div>
                       <div>{meeting.duration}</div>
                       <div>{meeting.notes}</div>

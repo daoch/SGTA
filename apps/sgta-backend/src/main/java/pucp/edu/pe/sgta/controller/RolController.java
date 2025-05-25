@@ -15,52 +15,51 @@ import java.util.Optional;
 @RequestMapping("/rol")
 public class RolController {
 
-    private final RolService rolService;
+	private final RolService rolService;
 
-    public RolController(RolService rolService) {
-        this.rolService = rolService;
-    }
+	public RolController(RolService rolService) {
+		this.rolService = rolService;
+	}
 
-    /**
-     * Obtiene todos los roles sin paginación
-     */
-    @GetMapping("/all")
-    public List<RolDto> getAllRoles() {
-        return rolService.findAllRoles();
-    }
+	/**
+	 * Obtiene todos los roles sin paginación
+	 */
+	@GetMapping("/all")
+	public List<RolDto> getAllRoles() {
+		return rolService.findAllRoles();
+	}
 
-    /**
-     * Obtiene roles con paginación y opcionalmente filtrados por nombre
-     */
-    @GetMapping("/paginated")
-    public ResponseEntity<QueryRolResponse> getRolesPaginated(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String nombre) {
-        
-        QueryRolResponse response = rolService.findRolesPaginated(page, size, nombre);
-        return new ResponseEntity<>(response, HttpStatus.OK);
-    }
+	/**
+	 * Obtiene roles con paginación y opcionalmente filtrados por nombre
+	 */
+	@GetMapping("/paginated")
+	public ResponseEntity<QueryRolResponse> getRolesPaginated(@RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "10") int size, @RequestParam(required = false) String nombre) {
 
-    /**
-     * Obtiene un rol por su ID
-     */
-    @GetMapping("/{id}")
-    public ResponseEntity<RolDto> getRolById(@PathVariable Integer id) {
-        Optional<RolDto> rol = rolService.findRolById(id);
-        
-        return rol.map(rolDto -> new ResponseEntity<>(rolDto, HttpStatus.OK))
-                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
-    }
+		QueryRolResponse response = rolService.findRolesPaginated(page, size, nombre);
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
 
-    /**
-     * Obtiene un rol por su nombre
-     */
-    @GetMapping("/nombre/{nombre}")
-    public ResponseEntity<RolDto> getRolByNombre(@PathVariable String nombre) {
-        Optional<RolDto> rol = rolService.findRolByNombre(nombre);
-        
-        return rol.map(rolDto -> new ResponseEntity<>(rolDto, HttpStatus.OK))
-                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
-    }
+	/**
+	 * Obtiene un rol por su ID
+	 */
+	@GetMapping("/{id}")
+	public ResponseEntity<RolDto> getRolById(@PathVariable Integer id) {
+		Optional<RolDto> rol = rolService.findRolById(id);
+
+		return rol.map(rolDto -> new ResponseEntity<>(rolDto, HttpStatus.OK))
+			.orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+	}
+
+	/**
+	 * Obtiene un rol por su nombre
+	 */
+	@GetMapping("/nombre/{nombre}")
+	public ResponseEntity<RolDto> getRolByNombre(@PathVariable String nombre) {
+		Optional<RolDto> rol = rolService.findRolByNombre(nombre);
+
+		return rol.map(rolDto -> new ResponseEntity<>(rolDto, HttpStatus.OK))
+			.orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+	}
+
 }

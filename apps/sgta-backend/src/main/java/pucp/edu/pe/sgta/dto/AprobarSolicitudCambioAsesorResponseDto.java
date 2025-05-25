@@ -10,16 +10,24 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AprobarSolicitudCambioAsesorResponseDto {
-    private Integer idRequest;
-    private String response;
-    private String status;
-    private AprobarCambioAsesorAsignacionDto assignation;
 
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class AprobarCambioAsesorAsignacionDto {
-        private Integer idStudent;
-        private Integer idAssessor;
-    }
+	private Integer idRequest;
+
+	private String response;
+
+	private String status;
+
+	private AprobarCambioAsesorAsignacionDto assignation;
+
+	@Data
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class AprobarCambioAsesorAsignacionDto {
+
+		private Integer idStudent;
+
+		private Integer idAssessor;
+
+	}
+
 }

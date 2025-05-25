@@ -6,13 +6,14 @@ import pucp.edu.pe.sgta.model.AreaConocimiento;
 
 public interface AreaConocimientoRepository extends JpaRepository<AreaConocimiento, Integer> {
 
-    List<AreaConocimiento> findAllByActivoTrue();
+	List<AreaConocimiento> findAllByActivoTrue();
 
-    List<AreaConocimiento> findAllByCarreraIdAndActivoTrue(Integer idCarrera);
+	List<AreaConocimiento> findAllByCarreraIdAndActivoTrue(Integer idCarrera);
 
-    List<AreaConocimiento> findAllByIdIn(List<Integer> ids);
+	List<AreaConocimiento> findAllByIdIn(List<Integer> ids);
 
-    List<AreaConocimiento> findByNombreContainingIgnoreCaseAndActivoIsTrue(String nombre);
+	List<AreaConocimiento> findByNombreContainingIgnoreCaseAndActivoIsTrue(String nombre);
 
-    List<AreaConocimiento> findByCarreraIdInAndActivoTrue(List<Integer> idCarrera);
+	List<AreaConocimiento> findByCarreraIdInAndActivoTrue(List<Integer> idCarrera);
+
 }

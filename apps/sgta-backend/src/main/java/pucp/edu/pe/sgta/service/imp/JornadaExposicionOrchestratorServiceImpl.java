@@ -27,63 +27,69 @@ import pucp.edu.pe.sgta.service.inter.JornadaExposicionXSalaExposicionService;
 
 @Service
 public class JornadaExposicionOrchestratorServiceImpl implements JornadaExposicionOrchestratorService {
-    @Autowired
-    private JornadaExposicionService jornadaExposicionService;
-    @Autowired
-    private JornadaExposicionXSalaExposicionService jornadaExposicionXSalaExposicionService;
-    @Autowired
-    private EtapaFormativaService etapaFormativaService;
-    @Autowired
-    private BloqueHorarioExposicionService bloqueHorarioExposicionService;
-    @Autowired
-    private ExposicionService exposicionService;
 
-    @Override
-    @Transactional
-    public void initializeJornadasExposicion(IniatilizeJornadasExposicionCreateDTO dto) {
+	@Autowired
+	private JornadaExposicionService jornadaExposicionService;
 
-        EtapaFormativaDto etapaFormativaDto = etapaFormativaService.findById(dto.getEtapaFormativaId());
-        List<BloqueHorarioExposicionCreateDTO> bloqueHorarioExposicionCreateDTOs = new ArrayList<BloqueHorarioExposicionCreateDTO>();
+	@Autowired
+	private JornadaExposicionXSalaExposicionService jornadaExposicionXSalaExposicionService;
 
-        dto.getFechas().forEach(fecha -> {
-            JornadaExposicionCreateDTO createDTO = new JornadaExposicionCreateDTO();
-            createDTO.setDatetimeInicio(fecha.getFechaHoraInicio());
-            createDTO.setDatetimeFin(fecha.getFechaHoraFin());
-            createDTO.setExposicionId(dto.getExposicionId());
-            JornadaExposicionDto jornadaExposicionDto = jornadaExposicionService.create(createDTO);
+	@Autowired
+	private EtapaFormativaService etapaFormativaService;
 
-            fecha.getSalas().forEach(sala -> {
-                JornadaExposicionXSalaExposicionCreateDTO salaExposicionCreateDTO = new JornadaExposicionXSalaExposicionCreateDTO();
-                salaExposicionCreateDTO.setJornadaExposicionId(jornadaExposicionDto.getId());
-                salaExposicionCreateDTO.setSalaExposicionId(sala);
-                JornadaExposicionXSalaExposicionDto jornadaExposicionXSalaExposicionDto = jornadaExposicionXSalaExposicionService
-                        .create(salaExposicionCreateDTO);
+	@Autowired
+	private BloqueHorarioExposicionService bloqueHorarioExposicionService;
 
-                Duration duracionBloque = etapaFormativaDto.getDuracionExposicion();
+	@Autowired
+	private ExposicionService exposicionService;
 
-                OffsetDateTime actualInicio = createDTO.getDatetimeInicio();
-                OffsetDateTime finJornada = createDTO.getDatetimeFin();
+	@Override
+	@Transactional
+	public void initializeJornadasExposicion(IniatilizeJornadasExposicionCreateDTO dto) {
 
-                while (!actualInicio.plus(duracionBloque).isAfter(finJornada)) {
-                    OffsetDateTime actualFin = actualInicio.plus(duracionBloque);
+		EtapaFormativaDto etapaFormativaDto = etapaFormativaService.findById(dto.getEtapaFormativaId());
+		List<BloqueHorarioExposicionCreateDTO> bloqueHorarioExposicionCreateDTOs = new ArrayList<BloqueHorarioExposicionCreateDTO>();
 
-                    BloqueHorarioExposicionCreateDTO bloqueHorarioExposicionCreateDTO = new BloqueHorarioExposicionCreateDTO();
-                    bloqueHorarioExposicionCreateDTO
-                            .setJornadaExposicionXSalaId(jornadaExposicionXSalaExposicionDto.getId());
-                    bloqueHorarioExposicionCreateDTO.setDatetimeInicio(actualInicio);
-                    bloqueHorarioExposicionCreateDTO.setDatetimeFin(actualFin);
+		dto.getFechas().forEach(fecha -> {
+			JornadaExposicionCreateDTO createDTO = new JornadaExposicionCreateDTO();
+			createDTO.setDatetimeInicio(fecha.getFechaHoraInicio());
+			createDTO.setDatetimeFin(fecha.getFechaHoraFin());
+			createDTO.setExposicionId(dto.getExposicionId());
+			JornadaExposicionDto jornadaExposicionDto = jornadaExposicionService.create(createDTO);
 
-                    bloqueHorarioExposicionCreateDTOs.add(bloqueHorarioExposicionCreateDTO);
+			fecha.getSalas().forEach(sala -> {
+				JornadaExposicionXSalaExposicionCreateDTO salaExposicionCreateDTO = new JornadaExposicionXSalaExposicionCreateDTO();
+				salaExposicionCreateDTO.setJornadaExposicionId(jornadaExposicionDto.getId());
+				salaExposicionCreateDTO.setSalaExposicionId(sala);
+				JornadaExposicionXSalaExposicionDto jornadaExposicionXSalaExposicionDto = jornadaExposicionXSalaExposicionService
+					.create(salaExposicionCreateDTO);
 
-                    actualInicio = actualFin;
-                }
-            });
-        });
+				Duration duracionBloque = etapaFormativaDto.getDuracionExposicion();
 
-        bloqueHorarioExposicionService.createAll(bloqueHorarioExposicionCreateDTOs);
+				OffsetDateTime actualInicio = createDTO.getDatetimeInicio();
+				OffsetDateTime finJornada = createDTO.getDatetimeFin();
 
-        ExposicionDto exposicionDto = exposicionService.findById(dto.getExposicionId());
-        exposicionDto.setEstadoPlanificacionId(2);
-        exposicionService.update(exposicionDto);
-    }
+				while (!actualInicio.plus(duracionBloque).isAfter(finJornada)) {
+					OffsetDateTime actualFin = actualInicio.plus(duracionBloque);
+
+					BloqueHorarioExposicionCreateDTO bloqueHorarioExposicionCreateDTO = new BloqueHorarioExposicionCreateDTO();
+					bloqueHorarioExposicionCreateDTO
+						.setJornadaExposicionXSalaId(jornadaExposicionXSalaExposicionDto.getId());
+					bloqueHorarioExposicionCreateDTO.setDatetimeInicio(actualInicio);
+					bloqueHorarioExposicionCreateDTO.setDatetimeFin(actualFin);
+
+					bloqueHorarioExposicionCreateDTOs.add(bloqueHorarioExposicionCreateDTO);
+
+					actualInicio = actualFin;
+				}
+			});
+		});
+
+		bloqueHorarioExposicionService.createAll(bloqueHorarioExposicionCreateDTOs);
+
+		ExposicionDto exposicionDto = exposicionService.findById(dto.getExposicionId());
+		exposicionDto.setEstadoPlanificacionId(2);
+		exposicionService.update(exposicionDto);
+	}
+
 }

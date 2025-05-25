@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.OffsetDateTime;
+
 @Entity
 @Getter
 @Setter
@@ -14,25 +15,28 @@ import java.time.OffsetDateTime;
 @AllArgsConstructor
 @Table(name = "usuario_area_conocimiento")
 public class UsuarioXAreaConocimiento {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "usuario_area_conocimiento_id")
-    private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "usuario_id", nullable = false, foreignKey = @ForeignKey(name = "fk_uac_usuario"))
-    private Usuario usuario;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "usuario_area_conocimiento_id")
+	private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "area_conocimiento_id", nullable = false, foreignKey = @ForeignKey(name = "fk_uac_ac"))
-    private AreaConocimiento AreaConocimiento;
+	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@JoinColumn(name = "usuario_id", nullable = false, foreignKey = @ForeignKey(name = "fk_uac_usuario"))
+	private Usuario usuario;
 
-    @Column(nullable = false)
-    private Boolean activo = true;
+	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@JoinColumn(name = "area_conocimiento_id", nullable = false, foreignKey = @ForeignKey(name = "fk_uac_ac"))
+	private AreaConocimiento AreaConocimiento;
 
-    @Column(name = "fecha_creacion", nullable = false, insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private OffsetDateTime fechaCreacion;
+	@Column(nullable = false)
+	private Boolean activo = true;
 
-    @Column(name = "fecha_modificacion", insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private OffsetDateTime fechaModificacion;
+	@Column(name = "fecha_creacion", nullable = false, insertable = false,
+			columnDefinition = "TIMESTAMP WITH TIME ZONE")
+	private OffsetDateTime fechaCreacion;
+
+	@Column(name = "fecha_modificacion", insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+	private OffsetDateTime fechaModificacion;
+
 }

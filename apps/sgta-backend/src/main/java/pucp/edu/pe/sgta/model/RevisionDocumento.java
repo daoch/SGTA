@@ -17,71 +17,76 @@ import java.time.OffsetDateTime;
 @AllArgsConstructor
 @Table(name = "revision_documento")
 public class RevisionDocumento {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "revision_documento_id")
-    private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "usuario_id", foreignKey = @ForeignKey(name = "fk_revision_documento_usuario"))
-    private Usuario usuario;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "revision_documento_id")
+	private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "version_documento_id", nullable = false, foreignKey = @ForeignKey(name = "fk_revision_documento_version_documento"))
-    private VersionDocumento versionDocumento;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "usuario_id", foreignKey = @ForeignKey(name = "fk_revision_documento_usuario"))
+	private Usuario usuario;
 
-    @Column(name = "fecha_limite_revision")
-    private LocalDate fechaLimiteRevision;
+	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@JoinColumn(name = "version_documento_id", nullable = false,
+			foreignKey = @ForeignKey(name = "fk_revision_documento_version_documento"))
+	private VersionDocumento versionDocumento;
 
-    @Column(name = "fecha_revision", nullable = false)
-    private LocalDate fechaRevision;
+	@Column(name = "fecha_limite_revision")
+	private LocalDate fechaLimiteRevision;
 
-    @Column(name = "estado_revision", nullable = false)
-    private String estadoRevisionStr = "pendiente";
+	@Column(name = "fecha_revision", nullable = false)
+	private LocalDate fechaRevision;
 
-    @Transient
-    private EstadoRevision estadoRevision;
+	@Column(name = "estado_revision", nullable = false)
+	private String estadoRevisionStr = "pendiente";
 
-    @Column(name = "link_archivo_revision")
-    private String linkArchivoRevision;
+	@Transient
+	private EstadoRevision estadoRevision;
 
-    @Column(nullable = false)
-    private Boolean activo = true;
+	@Column(name = "link_archivo_revision")
+	private String linkArchivoRevision;
 
-    @Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private OffsetDateTime fechaCreacion;
+	@Column(nullable = false)
+	private Boolean activo = true;
 
-    @Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private OffsetDateTime fechaModificacion;
-    
-    @PostLoad
-    void fillTransient() {
-        if (estadoRevisionStr != null) {
-            try {
-                this.estadoRevision = EstadoRevision.valueOf(estadoRevisionStr.toUpperCase());
-            } catch (IllegalArgumentException e) {
-                // Manejar el caso donde el valor en la base de datos no coincide con la enumeración
-                this.estadoRevision = EstadoRevision.PENDIENTE;
-            }
-        }
-    }
-    
-    @PrePersist
-    @PreUpdate
-    void fillPersistent() {
-        if (estadoRevision != null) {
-            this.estadoRevisionStr = estadoRevision.name().toLowerCase();
-        }
-    }
-    
-    public EstadoRevision getEstadoRevision() {
-        return this.estadoRevision;
-    }
-    
-    public void setEstadoRevision(EstadoRevision estadoRevision) {
-        this.estadoRevision = estadoRevision;
-        if (estadoRevision != null) {
-            this.estadoRevisionStr = estadoRevision.name().toLowerCase();
-        }
-    }
-} 
+	@Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+	private OffsetDateTime fechaCreacion;
+
+	@Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+	private OffsetDateTime fechaModificacion;
+
+	@PostLoad
+	void fillTransient() {
+		if (estadoRevisionStr != null) {
+			try {
+				this.estadoRevision = EstadoRevision.valueOf(estadoRevisionStr.toUpperCase());
+			}
+			catch (IllegalArgumentException e) {
+				// Manejar el caso donde el valor en la base de datos no coincide con la
+				// enumeración
+				this.estadoRevision = EstadoRevision.PENDIENTE;
+			}
+		}
+	}
+
+	@PrePersist
+	@PreUpdate
+	void fillPersistent() {
+		if (estadoRevision != null) {
+			this.estadoRevisionStr = estadoRevision.name().toLowerCase();
+		}
+	}
+
+	public EstadoRevision getEstadoRevision() {
+		return this.estadoRevision;
+	}
+
+	public void setEstadoRevision(EstadoRevision estadoRevision) {
+		this.estadoRevision = estadoRevision;
+		if (estadoRevision != null) {
+			this.estadoRevisionStr = estadoRevision.name().toLowerCase();
+		}
+	}
+
+}

@@ -12,33 +12,45 @@ import java.util.List;
 @Builder
 public class MiembroJuradoDto {
 
-    private Integer id;
-    private String codigoPucp;
-    private String nombres;
-    private String primerApellido;
-    private String segundoApellido;
-    private String correoElectronico;
-    private String nivelEstudios;
-    private Integer asignados;
-    private String tipoDedicacion;
-    private boolean activo;
-    private OffsetDateTime fechaAsignacion;
-    private List<String> especialidades;
+	private Integer id;
 
-    public MiembroJuradoDto(Integer id, String codigoPucp, String nombres, String primerApellido,
-            String segundoApellido, String correoElectronico, String nivelEstudios, Integer asignados,
-            String tipoDedicacion, boolean activo, OffsetDateTime fechaAsignacion, List<String> especialidades) {
-        this.id = id;
-        this.codigoPucp = codigoPucp;
-        this.nombres = nombres;
-        this.primerApellido = primerApellido;
-        this.segundoApellido = segundoApellido;
-        this.correoElectronico = correoElectronico;
-        this.nivelEstudios = nivelEstudios;
-        this.asignados = asignados;
-        this.tipoDedicacion = tipoDedicacion;
-        this.activo = activo;
-        this.fechaAsignacion = fechaAsignacion;
-        this.especialidades = especialidades;
-    }
+	private String codigoPucp;
+
+	private String nombres;
+
+	private String primerApellido;
+
+	private String segundoApellido;
+
+	private String correoElectronico;
+
+	private String nivelEstudios;
+
+	private Integer asignados;
+
+	private String tipoDedicacion;
+
+	private boolean activo;
+
+	private OffsetDateTime fechaAsignacion;
+
+	private List<String> especialidades;
+
+	public MiembroJuradoDto(Integer id, String codigoPucp, String nombres, String primerApellido,
+			String segundoApellido, String correoElectronico, String nivelEstudios, Integer asignados,
+			String tipoDedicacion, boolean activo, OffsetDateTime fechaAsignacion, List<String> especialidades) {
+		this.id = id;
+		this.codigoPucp = codigoPucp;
+		this.nombres = nombres;
+		this.primerApellido = primerApellido;
+		this.segundoApellido = segundoApellido;
+		this.correoElectronico = correoElectronico;
+		this.nivelEstudios = nivelEstudios;
+		this.asignados = asignados;
+		this.tipoDedicacion = tipoDedicacion;
+		this.activo = activo;
+		this.fechaAsignacion = fechaAsignacion;
+		this.especialidades = especialidades;
+	}
+
 }

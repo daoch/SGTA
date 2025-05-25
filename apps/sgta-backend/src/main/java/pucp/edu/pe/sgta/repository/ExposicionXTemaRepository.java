@@ -6,5 +6,7 @@ import pucp.edu.pe.sgta.model.ExposicionXTema;
 import java.util.List;
 
 public interface ExposicionXTemaRepository extends JpaRepository<ExposicionXTema, Integer> {
-    List<ExposicionXTema> findByTemaIdAndActivoTrue(Integer temaId);
+
+	List<ExposicionXTema> findByTemaIdAndActivoTrue(Integer temaId);
+
 }

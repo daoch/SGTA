@@ -1,8 +1,20 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -21,16 +33,26 @@ interface Exposicion {
   conJurados?: boolean;
 }
 
-export function ExposicionForm({ exposicion = null }: { exposicion?: Exposicion | null }) {
+export function ExposicionForm({
+  exposicion = null,
+}: {
+  exposicion?: Exposicion | null;
+}) {
   return (
     <Card className="max-w-3xl mx-auto">
       <CardHeader>
-        <CardTitle>{exposicion ? "Editar Exposición" : "Nueva Exposición"}</CardTitle>
+        <CardTitle>
+          {exposicion ? "Editar Exposición" : "Nueva Exposición"}
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="nombre">Nombre de la Exposición</Label>
-          <Input id="nombre" placeholder="Ej: Exposición de Avance 1" defaultValue={exposicion?.nombre || ""} />
+          <Input
+            id="nombre"
+            placeholder="Ej: Exposición de Avance 1"
+            defaultValue={exposicion?.nombre || ""}
+          />
         </div>
 
         <div className="space-y-2">
@@ -51,7 +73,11 @@ export function ExposicionForm({ exposicion = null }: { exposicion?: Exposicion 
 
         <div className="space-y-2">
           <Label htmlFor="fechas">Rango de Fechas</Label>
-          <Input id="fechas" placeholder="Ej: Semana 6-7" defaultValue={exposicion?.fechas || ""} />
+          <Input
+            id="fechas"
+            placeholder="Ej: Semana 6-7"
+            defaultValue={exposicion?.fechas || ""}
+          />
         </div>
 
         <div className="space-y-2">
@@ -68,14 +94,20 @@ export function ExposicionForm({ exposicion = null }: { exposicion?: Exposicion 
           <Label htmlFor="presencial" className="cursor-pointer">
             Exposición Presencial
           </Label>
-          <Switch id="presencial" defaultChecked={exposicion?.presencial || false} />
+          <Switch
+            id="presencial"
+            defaultChecked={exposicion?.presencial || false}
+          />
         </div>
 
         <div className="flex items-center justify-between">
           <Label htmlFor="jurados" className="cursor-pointer">
             Con Jurados
           </Label>
-          <Switch id="jurados" defaultChecked={exposicion?.conJurados || false} />
+          <Switch
+            id="jurados"
+            defaultChecked={exposicion?.conJurados || false}
+          />
         </div>
       </CardContent>
       <CardFooter className="flex justify-end gap-3">

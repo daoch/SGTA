@@ -16,25 +16,25 @@ import pucp.edu.pe.sgta.service.inter.CicloService;
 @RequestMapping("/ciclos")
 public class CicloController {
 
-    @Autowired
-    private CicloService cicloService;
+	@Autowired
+	private CicloService cicloService;
 
-    @GetMapping("/listarCiclos")
-    public List<Ciclo> listarCiclosOrdenados() {
-        return cicloService.listarCiclosOrdenados();
-    }
+	@GetMapping("/listarCiclos")
+	public List<Ciclo> listarCiclosOrdenados() {
+		return cicloService.listarCiclosOrdenados();
+	}
 
-    @GetMapping("/listarCiclosConEtapas")
-    public List<CicloConEtapasDTO> listarCiclosYetapasFormativas() {
-        return cicloService.listarCiclosYetapasFormativas();
-    }
+	@GetMapping("/listarCiclosConEtapas")
+	public List<CicloConEtapasDTO> listarCiclosYetapasFormativas() {
+		return cicloService.listarCiclosYetapasFormativas();
+	}
 
-    @PostMapping("/create")
+	@PostMapping("/create")
 	public void create(@RequestBody CicloDto dto) {
 		this.cicloService.create(dto);
 	}
 
-    @PutMapping("/update")
+	@PutMapping("/update")
 	public void update(@RequestBody CicloDto dto) {
 		cicloService.update(dto);
 	}

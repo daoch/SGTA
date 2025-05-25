@@ -14,7 +14,13 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import Link from "next/link";
 
 export function AdvisorReports() {
@@ -29,7 +35,8 @@ export function AdvisorReports() {
     {
       id: "1",
       name: "Ana Martínez",
-      thesis: "Implementación de algoritmos de machine learning para detección de fraudes",
+      thesis:
+        "Implementación de algoritmos de machine learning para detección de fraudes",
       progress: 75,
       status: "En progreso",
       currentPhase: "Avance de implementación",
@@ -128,7 +135,8 @@ export function AdvisorReports() {
     {
       id: "4",
       name: "Juan Pérez",
-      thesis: "Diseño de una arquitectura de microservicios para sistemas educativos",
+      thesis:
+        "Diseño de una arquitectura de microservicios para sistemas educativos",
       progress: 90,
       status: "En progreso",
       currentPhase: "Resultados preliminares",
@@ -185,18 +193,23 @@ export function AdvisorReports() {
     const matchesProgress =
       progressFilter === "all" ||
       (progressFilter === "low" && student.progress < 30) ||
-      (progressFilter === "medium" && student.progress >= 30 && student.progress < 70) ||
+      (progressFilter === "medium" &&
+        student.progress >= 30 &&
+        student.progress < 70) ||
       (progressFilter === "high" && student.progress >= 70);
 
     // Filter by status
     const matchesStatus =
       statusFilter === "all" ||
-      (statusFilter === "onTrack" && student.status === "En progreso" && student.daysToNextDelivery >= 3) ||
+      (statusFilter === "onTrack" &&
+        student.status === "En progreso" &&
+        student.daysToNextDelivery >= 3) ||
       (statusFilter === "atRisk" &&
         student.status === "En progreso" &&
         student.daysToNextDelivery < 3 &&
         student.daysToNextDelivery >= 0) ||
-      (statusFilter === "delayed" && (student.status === "Con retraso" || student.daysToNextDelivery < 0));
+      (statusFilter === "delayed" &&
+        (student.status === "Con retraso" || student.daysToNextDelivery < 0));
 
     return matchesSearch && matchesProgress && matchesStatus;
   });
@@ -205,13 +218,20 @@ export function AdvisorReports() {
   const totalStudents = students.length;
   // const studentsInProgress = students.filter((student) => student.status === "En progreso").length;
   const studentsWithDelay = students.filter(
-    (student) => student.status === "Con retraso" || student.daysToNextDelivery < 0,
+    (student) =>
+      student.status === "Con retraso" || student.daysToNextDelivery < 0,
   ).length;
   const studentsAtRisk = students.filter(
-    (student) => student.status === "En progreso" && student.daysToNextDelivery < 3 && student.daysToNextDelivery >= 0,
+    (student) =>
+      student.status === "En progreso" &&
+      student.daysToNextDelivery < 3 &&
+      student.daysToNextDelivery >= 0,
   ).length;
   // const studentsCompleted = students.filter((student) => student.status === "Completado").length;
-  const averageProgress = Math.round(students.reduce((sum, student) => sum + student.progress, 0) / totalStudents);
+  const averageProgress = Math.round(
+    students.reduce((sum, student) => sum + student.progress, 0) /
+      totalStudents,
+  );
 
   // Función para manejar el clic en el botón de filtro por progreso
   const handleProgressFilterClick = () => {
@@ -230,80 +250,97 @@ export function AdvisorReports() {
       <Card>
         <CardHeader>
           <div className="flex justify-between">
-          <CardTitle className="text-lg">Resumen de Asesorías</CardTitle>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button variant="outline" className="gap-2">
-              <Calendar className="h-4 w-4" />
-              Programar Reportes
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Programar Envío de Reportes</DialogTitle>
-              <DialogDescription>
-                Configura la frecuencia con la que deseas recibir reportes automáticos en tu correo.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Frecuencia de envío</label>
-                <Select value={scheduleFrequency} onValueChange={setScheduleFrequency}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecciona frecuencia" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="daily">Diario</SelectItem>
-                    <SelectItem value="weekly">Semanal</SelectItem>
-                    <SelectItem value="monthly">Mensual</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Formato de reporte</label>
-                <Select defaultValue="pdf">
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecciona formato" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pdf">PDF</SelectItem>
-                    <SelectItem value="excel">Excel</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Correo electrónico</label>
-                <input
-                  type="email"
-                  className="w-full px-3 py-2 border rounded-md"
-                  defaultValue="asesor@pucp.edu.pe"
-                  readOnly
-                />
-              </div>
-              <Button className="w-full mt-4">Guardar configuración</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
-
+            <CardTitle className="text-lg">Resumen de Asesorías</CardTitle>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="gap-2">
+                  <Calendar className="h-4 w-4" />
+                  Programar Reportes
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Programar Envío de Reportes</DialogTitle>
+                  <DialogDescription>
+                    Configura la frecuencia con la que deseas recibir reportes
+                    automáticos en tu correo.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">
+                      Frecuencia de envío
+                    </label>
+                    <Select
+                      value={scheduleFrequency}
+                      onValueChange={setScheduleFrequency}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecciona frecuencia" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="daily">Diario</SelectItem>
+                        <SelectItem value="weekly">Semanal</SelectItem>
+                        <SelectItem value="monthly">Mensual</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">
+                      Formato de reporte
+                    </label>
+                    <Select defaultValue="pdf">
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecciona formato" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pdf">PDF</SelectItem>
+                        <SelectItem value="excel">Excel</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">
+                      Correo electrónico
+                    </label>
+                    <input
+                      type="email"
+                      className="w-full px-3 py-2 border rounded-md"
+                      defaultValue="asesor@pucp.edu.pe"
+                      readOnly
+                    />
+                  </div>
+                  <Button className="w-full mt-4">Guardar configuración</Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="bg-[#F5F5F5] p-4 rounded-lg">
-                <div className="text-3xl font-bold text-[#002855]">{totalStudents}</div>
+                <div className="text-3xl font-bold text-[#002855]">
+                  {totalStudents}
+                </div>
                 <div className="text-sm text-gray-500">Total de tesistas</div>
               </div>
               <div className="bg-[#F5F5F5] p-4 rounded-lg">
-                <div className="text-3xl font-bold text-[#006699]">{averageProgress}%</div>
+                <div className="text-3xl font-bold text-[#006699]">
+                  {averageProgress}%
+                </div>
                 <div className="text-sm text-gray-500">Progreso promedio</div>
               </div>
               <div className="bg-[#F5F5F5] p-4 rounded-lg">
-                <div className="text-3xl font-bold text-red-600">{studentsWithDelay}</div>
+                <div className="text-3xl font-bold text-red-600">
+                  {studentsWithDelay}
+                </div>
                 <div className="text-sm text-gray-500">Con retraso</div>
               </div>
               <div className="bg-[#F5F5F5] p-4 rounded-lg">
-                <div className="text-3xl font-bold text-yellow-600">{studentsAtRisk}</div>
+                <div className="text-3xl font-bold text-yellow-600">
+                  {studentsAtRisk}
+                </div>
                 <div className="text-sm text-gray-500">En riesgo</div>
               </div>
             </div>
@@ -336,7 +373,9 @@ export function AdvisorReports() {
                       <h4 className="font-medium text-sm">Progreso</h4>
                       <div className="space-y-1">
                         <Button
-                          variant={progressFilter === "all" ? "default" : "outline"}
+                          variant={
+                            progressFilter === "all" ? "default" : "outline"
+                          }
                           size="sm"
                           className="w-full justify-start"
                           onClick={() => {
@@ -347,7 +386,9 @@ export function AdvisorReports() {
                           Todos
                         </Button>
                         <Button
-                          variant={progressFilter === "low" ? "default" : "outline"}
+                          variant={
+                            progressFilter === "low" ? "default" : "outline"
+                          }
                           size="sm"
                           className="w-full justify-start"
                           onClick={() => {
@@ -358,7 +399,9 @@ export function AdvisorReports() {
                           Bajo (&lt;30%)
                         </Button>
                         <Button
-                          variant={progressFilter === "medium" ? "default" : "outline"}
+                          variant={
+                            progressFilter === "medium" ? "default" : "outline"
+                          }
                           size="sm"
                           className="w-full justify-start"
                           onClick={() => {
@@ -369,7 +412,9 @@ export function AdvisorReports() {
                           Medio (30-70%)
                         </Button>
                         <Button
-                          variant={progressFilter === "high" ? "default" : "outline"}
+                          variant={
+                            progressFilter === "high" ? "default" : "outline"
+                          }
                           size="sm"
                           className="w-full justify-start"
                           onClick={() => {
@@ -395,7 +440,9 @@ export function AdvisorReports() {
                       <h4 className="font-medium text-sm">Estado</h4>
                       <div className="space-y-1">
                         <Button
-                          variant={statusFilter === "all" ? "default" : "outline"}
+                          variant={
+                            statusFilter === "all" ? "default" : "outline"
+                          }
                           size="sm"
                           className="w-full justify-start"
                           onClick={() => {
@@ -406,7 +453,9 @@ export function AdvisorReports() {
                           Todos
                         </Button>
                         <Button
-                          variant={statusFilter === "onTrack" ? "default" : "outline"}
+                          variant={
+                            statusFilter === "onTrack" ? "default" : "outline"
+                          }
                           size="sm"
                           className="w-full justify-start"
                           onClick={() => {
@@ -417,7 +466,9 @@ export function AdvisorReports() {
                           En progreso normal
                         </Button>
                         <Button
-                          variant={statusFilter === "atRisk" ? "default" : "outline"}
+                          variant={
+                            statusFilter === "atRisk" ? "default" : "outline"
+                          }
                           size="sm"
                           className="w-full justify-start"
                           onClick={() => {
@@ -428,7 +479,9 @@ export function AdvisorReports() {
                           En riesgo (&lt;3 días)
                         </Button>
                         <Button
-                          variant={statusFilter === "delayed" ? "default" : "outline"}
+                          variant={
+                            statusFilter === "delayed" ? "default" : "outline"
+                          }
                           size="sm"
                           className="w-full justify-start"
                           onClick={() => {
@@ -460,20 +513,34 @@ export function AdvisorReports() {
                       style={{
                         borderTopColor: "transparent",
                         borderRightColor: `${
-                          student.progress < 30 ? "#ef4444" : student.progress < 70 ? "#eab308" : "#22c55e"
+                          student.progress < 30
+                            ? "#ef4444"
+                            : student.progress < 70
+                              ? "#eab308"
+                              : "#22c55e"
                         }`,
                         borderBottomColor: `${
-                          student.progress < 30 ? "#ef4444" : student.progress < 70 ? "#eab308" : "#22c55e"
+                          student.progress < 30
+                            ? "#ef4444"
+                            : student.progress < 70
+                              ? "#eab308"
+                              : "#22c55e"
                         }`,
                         borderLeftColor: `${
-                          student.progress < 30 ? "#ef4444" : student.progress < 70 ? "#eab308" : "#22c55e"
+                          student.progress < 30
+                            ? "#ef4444"
+                            : student.progress < 70
+                              ? "#eab308"
+                              : "#22c55e"
                         }`,
                         transform: `rotate(${student.progress * 3.6}deg)`,
                       }}
                     ></div>
                   </div>
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-sm font-bold">{student.progress}%</span>
+                    <span className="text-sm font-bold">
+                      {student.progress}%
+                    </span>
                   </div>
                 </div>
 
@@ -483,7 +550,9 @@ export function AdvisorReports() {
                       <h3 className="text-base font-medium">{student.name}</h3>
                       <p className="text-sm text-gray-600 line-clamp-1 mt-0.5">
                         Proyecto:{" "}
-                        {student.thesis.length > 50 ? `${student.thesis.substring(0, 50)}...` : student.thesis}
+                        {student.thesis.length > 50
+                          ? `${student.thesis.substring(0, 50)}...`
+                          : student.thesis}
                       </p>
                     </div>
                     <div className="flex items-center space-x-1 whitespace-nowrap">
@@ -492,14 +561,18 @@ export function AdvisorReports() {
                           <span className="inline-block px-2 py-0.5 text-xs rounded-full bg-red-100 text-red-800">
                             Retrasado
                           </span>
-                          <span className="text-xs text-red-800 ml-1">({Math.abs(student.daysToNextDelivery)}d)</span>
+                          <span className="text-xs text-red-800 ml-1">
+                            ({Math.abs(student.daysToNextDelivery)}d)
+                          </span>
                         </>
                       ) : student.daysToNextDelivery < 3 ? (
                         <>
                           <span className="inline-block px-2 py-0.5 text-xs rounded-full bg-yellow-100 text-yellow-800">
                             En riesgo
                           </span>
-                          <span className="text-xs text-yellow-800 ml-1">({student.daysToNextDelivery}d)</span>
+                          <span className="text-xs text-yellow-800 ml-1">
+                            ({student.daysToNextDelivery}d)
+                          </span>
                         </>
                       ) : (
                         <span className="inline-block px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-800">
@@ -512,17 +585,29 @@ export function AdvisorReports() {
                   <div className="mt-3 grid grid-cols-2 gap-2">
                     <div>
                       <p className="text-xs text-gray-500">Fase actual:</p>
-                      <p className="text-sm font-medium">{student.currentPhase}</p>
+                      <p className="text-sm font-medium">
+                        {student.currentPhase}
+                      </p>
                     </div>
                     <div>
                       <p className="text-xs text-gray-500">Fecha límite:</p>
-                      <p className="text-sm font-medium">{student.nextDeadline}</p>
+                      <p className="text-sm font-medium">
+                        {student.nextDeadline}
+                      </p>
                     </div>
                   </div>
 
                   <div className="mt-3 flex justify-end">
-                    <Link href={`/asesor/reportes/tesista/${student.id}`} passHref>
-                      <Button variant="outline" size="sm" className="gap-1" asChild>
+                    <Link
+                      href={`/asesor/reportes/tesista/${student.id}`}
+                      passHref
+                    >
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-1"
+                        asChild
+                      >
                         <a>
                           <ExternalLink className="h-3.5 w-3.5" /> Ver detalles
                         </a>
@@ -538,7 +623,10 @@ export function AdvisorReports() {
 
       {filteredStudents.length === 0 && (
         <div className="text-center py-8 bg-gray-50 rounded-lg border">
-          <p className="text-gray-500">No se encontraron tesistas que coincidan con los filtros seleccionados</p>
+          <p className="text-gray-500">
+            No se encontraron tesistas que coincidan con los filtros
+            seleccionados
+          </p>
         </div>
       )}
     </div>

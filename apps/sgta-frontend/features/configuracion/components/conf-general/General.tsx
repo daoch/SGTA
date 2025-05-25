@@ -30,7 +30,8 @@ export default function GeneralConfCards() {
 
   // Buscar los parámetros por nombre
   const modalidadDelimitacionParam = parametros.find(
-    (p) => p.parametroConfiguracion.nombre === PARAM_MODALIDAD_DELIMITACION_TEMA,
+    (p) =>
+      p.parametroConfiguracion.nombre === PARAM_MODALIDAD_DELIMITACION_TEMA,
   );
   const fechaLimiteParam = parametros.find(
     (p) => p.parametroConfiguracion.nombre === PARAM_FECHA_LIMITE_ASESOR,
@@ -61,7 +62,6 @@ export default function GeneralConfCards() {
       actualizarParametro(fechaLimiteParam.id, formattedDate);
     }
   };
-
 
   return (
     <>

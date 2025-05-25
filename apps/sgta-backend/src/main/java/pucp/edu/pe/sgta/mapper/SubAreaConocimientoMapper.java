@@ -17,7 +17,6 @@ public class SubAreaConocimientoMapper {
 		return dto;
 	}
 
-
 	public static SubAreaConocimiento toEntity(SubAreaConocimientoDto dto) {
 		SubAreaConocimiento subAreaConocimiento = new SubAreaConocimiento();
 		subAreaConocimiento.setId(dto.getId());

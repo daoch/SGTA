@@ -42,13 +42,16 @@ const exposicion = {
     {
       id: 5,
       nombre: "Conclusiones y trabajo futuro",
-      descripcion: "Conclusiones preliminares y plan de trabajo para el siguiente curso.",
+      descripcion:
+        "Conclusiones preliminares y plan de trabajo para el siguiente curso.",
       peso: 3,
     },
   ],
 };
 
-export default function ExposicionDetailPage({ }: { params: Promise<{ id: string }> }) {
+export default function ExposicionDetailPage({}: {
+  params: Promise<{ id: string }>;
+}) {
   return (
     <div className="py-6 px-2">
       <div className="flex items-center gap-4 mb-6">
@@ -63,7 +66,11 @@ export default function ExposicionDetailPage({ }: { params: Promise<{ id: string
       <Card className="mb-6">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>{exposicion.nombre}</CardTitle>
-          <Button variant="outline" size="sm" className="flex items-center gap-1">
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-1"
+          >
             <Edit size={16} />
             <span>Editar</span>
           </Button>
@@ -80,18 +87,28 @@ export default function ExposicionDetailPage({ }: { params: Promise<{ id: string
             </div>
           </div>
           <div>
-            <h3 className="text-sm font-medium text-gray-500 mb-1">Descripción</h3>
+            <h3 className="text-sm font-medium text-gray-500 mb-1">
+              Descripción
+            </h3>
             <p className="text-gray-600">{exposicion.descripcion}</p>
           </div>
           <div className="flex gap-3">
-            <Badge variant={exposicion.presencial ? "default" : "secondary"} className="flex items-center gap-1">
+            <Badge
+              variant={exposicion.presencial ? "default" : "secondary"}
+              className="flex items-center gap-1"
+            >
               <Monitor size={14} />
               <span>{exposicion.presencial ? "Presencial" : "Virtual"}</span>
             </Badge>
 
-            <Badge variant={exposicion.conJurados ? "default" : "secondary"} className="flex items-center gap-1">
+            <Badge
+              variant={exposicion.conJurados ? "default" : "secondary"}
+              className="flex items-center gap-1"
+            >
               <Users size={14} />
-              <span>{exposicion.conJurados ? "Con jurados" : "Sin jurados"}</span>
+              <span>
+                {exposicion.conJurados ? "Con jurados" : "Sin jurados"}
+              </span>
             </Badge>
           </div>
         </CardContent>
@@ -113,21 +130,36 @@ export default function ExposicionDetailPage({ }: { params: Promise<{ id: string
                 {index > 0 && <Separator className="my-6" />}
                 <div className="flex items-start justify-between">
                   <div>
-                    <h3 className="text-lg font-semibold mb-2">{contenido.nombre}</h3>
-                    <p className="text-gray-600 mb-2">{contenido.descripcion}</p>
+                    <h3 className="text-lg font-semibold mb-2">
+                      {contenido.nombre}
+                    </h3>
+                    <p className="text-gray-600 mb-2">
+                      {contenido.descripcion}
+                    </p>
 
                     {exposicion.conJurados && (
                       <div className="mt-2 text-sm bg-gray-50 px-3 py-2 rounded-md inline-block">
-                        <span className="font-medium">Peso en la calificación:</span> {contenido.peso} puntos
+                        <span className="font-medium">
+                          Peso en la calificación:
+                        </span>{" "}
+                        {contenido.peso} puntos
                       </div>
                     )}
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="flex items-center gap-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-1"
+                    >
                       <Edit size={14} />
                       <span>Editar</span>
                     </Button>
-                    <Button variant="outline" size="sm" className="flex items-center gap-1 text-red-500">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-1 text-red-500"
+                    >
                       <Trash2 size={14} />
                       <span>Eliminar</span>
                     </Button>

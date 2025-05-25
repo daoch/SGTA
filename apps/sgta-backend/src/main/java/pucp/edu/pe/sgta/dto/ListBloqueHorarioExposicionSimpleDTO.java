@@ -10,12 +10,21 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ListBloqueHorarioExposicionSimpleDTO {
-    private String key;
-    private String range;
-    private Integer idBloque;
-    private Integer idJornadaExposicionSala;
-    private Integer idExposicion;
-    private TemaConAsesorJuradoDTO expo;
-    private Boolean esBloqueReservado;
-    private Boolean esBloqueBloqueado;
+
+	private String key;
+
+	private String range;
+
+	private Integer idBloque;
+
+	private Integer idJornadaExposicionSala;
+
+	private Integer idExposicion;
+
+	private TemaConAsesorJuradoDTO expo;
+
+	private Boolean esBloqueReservado;
+
+	private Boolean esBloqueBloqueado;
+
 }

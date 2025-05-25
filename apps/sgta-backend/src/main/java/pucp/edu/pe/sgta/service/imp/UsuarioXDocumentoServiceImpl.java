@@ -20,50 +20,48 @@ import java.util.stream.Collectors;
 @Service
 public class UsuarioXDocumentoServiceImpl implements UsuarioXDocumentoService {
 
-    private final UsuarioXDocumentoRepository repository;
-    private final UsuarioRepository usuarioRepository;
-    private final DocumentoRepository documentoRepository;
+	private final UsuarioXDocumentoRepository repository;
 
-    public UsuarioXDocumentoServiceImpl(UsuarioXDocumentoRepository repository,
-                                        UsuarioRepository usuarioRepository,
-                                        DocumentoRepository documentoRepository) {
-        this.repository = repository;
-        this.usuarioRepository = usuarioRepository;
-        this.documentoRepository = documentoRepository;
-    }
+	private final UsuarioRepository usuarioRepository;
 
-    @Override
-    @Transactional
-    public UsuarioDocumentoDto asignarDocumentoAUsuario(Integer usuarioId, Integer documentoId, String permiso) {
-        Usuario usuario = usuarioRepository.findById(usuarioId)
-                .orElseThrow(() -> new DocumentoNotFoundException("Usuario no encontrado: " + usuarioId));
-        Documento documento = documentoRepository.findById(documentoId)
-                .orElseThrow(() -> new DocumentoNotFoundException("Documento no encontrado: " + documentoId));
+	private final DocumentoRepository documentoRepository;
 
-        UsuarioXDocumento uxd = new UsuarioXDocumento();
-        uxd.setUsuario(usuario);
-        uxd.setDocumento(documento);
-        uxd.setPermiso(permiso);
-        uxd.setActivo(true);
-        uxd.setFechaCreacion(ZonedDateTime.now());
+	public UsuarioXDocumentoServiceImpl(UsuarioXDocumentoRepository repository, UsuarioRepository usuarioRepository,
+			DocumentoRepository documentoRepository) {
+		this.repository = repository;
+		this.usuarioRepository = usuarioRepository;
+		this.documentoRepository = documentoRepository;
+	}
 
-        UsuarioXDocumento guardado = repository.save(uxd);
-        return UsuarioDocumentoMapper.toDto(guardado);
-    }
+	@Override
+	@Transactional
+	public UsuarioDocumentoDto asignarDocumentoAUsuario(Integer usuarioId, Integer documentoId, String permiso) {
+		Usuario usuario = usuarioRepository.findById(usuarioId)
+			.orElseThrow(() -> new DocumentoNotFoundException("Usuario no encontrado: " + usuarioId));
+		Documento documento = documentoRepository.findById(documentoId)
+			.orElseThrow(() -> new DocumentoNotFoundException("Documento no encontrado: " + documentoId));
 
-    @Override
-    public List<UsuarioDocumentoDto> listarDocumentosPorUsuario(Integer usuarioId) {
-        List<UsuarioXDocumento> list = repository.findByUsuarioId(usuarioId);
-        return list.stream()
-                .map(UsuarioDocumentoMapper::toDto)
-                .collect(Collectors.toList());
-    }
+		UsuarioXDocumento uxd = new UsuarioXDocumento();
+		uxd.setUsuario(usuario);
+		uxd.setDocumento(documento);
+		uxd.setPermiso(permiso);
+		uxd.setActivo(true);
+		uxd.setFechaCreacion(ZonedDateTime.now());
 
-    @Override
-    public List<UsuarioDocumentoDto> listarUsuariosPorDocumento(Integer documentoId) {
-        List<UsuarioXDocumento> list = repository.findByDocumentoId(documentoId);
-        return list.stream()
-                .map(UsuarioDocumentoMapper::toDto)
-                .collect(Collectors.toList());
-    }
+		UsuarioXDocumento guardado = repository.save(uxd);
+		return UsuarioDocumentoMapper.toDto(guardado);
+	}
+
+	@Override
+	public List<UsuarioDocumentoDto> listarDocumentosPorUsuario(Integer usuarioId) {
+		List<UsuarioXDocumento> list = repository.findByUsuarioId(usuarioId);
+		return list.stream().map(UsuarioDocumentoMapper::toDto).collect(Collectors.toList());
+	}
+
+	@Override
+	public List<UsuarioDocumentoDto> listarUsuariosPorDocumento(Integer documentoId) {
+		List<UsuarioXDocumento> list = repository.findByDocumentoId(documentoId);
+		return list.stream().map(UsuarioDocumentoMapper::toDto).collect(Collectors.toList());
+	}
+
 }

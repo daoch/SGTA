@@ -13,32 +13,33 @@ import java.util.List;
 
 public class CriterioEntregableController {
 
-    @Autowired
-    CriterioEntregableService criterioEntregableService;
+	@Autowired
+	CriterioEntregableService criterioEntregableService;
 
-    @GetMapping("/entregable/{entregableId}")
-    public List<CriterioEntregableDto> listarCriteriosEntregableXEntregable(@PathVariable Integer entregableId) {
-        return criterioEntregableService.listarCriteriosEntregableXEntregable(entregableId);
-    }
+	@GetMapping("/entregable/{entregableId}")
+	public List<CriterioEntregableDto> listarCriteriosEntregableXEntregable(@PathVariable Integer entregableId) {
+		return criterioEntregableService.listarCriteriosEntregableXEntregable(entregableId);
+	}
 
-    @PostMapping("/entregable/{entregableId}")
-    public int crearCriterioEntregable(@PathVariable Integer entregableId, @RequestBody CriterioEntregableDto criterioEntregableDto) {
-        return criterioEntregableService.crearCriterioEntregable(entregableId, criterioEntregableDto);
-    }
+	@PostMapping("/entregable/{entregableId}")
+	public int crearCriterioEntregable(@PathVariable Integer entregableId,
+			@RequestBody CriterioEntregableDto criterioEntregableDto) {
+		return criterioEntregableService.crearCriterioEntregable(entregableId, criterioEntregableDto);
+	}
 
-    @PutMapping("/update")
-    public void update(@RequestBody CriterioEntregableDto criterioEntregableDto) {
-        criterioEntregableService.update(criterioEntregableDto);
-    }
+	@PutMapping("/update")
+	public void update(@RequestBody CriterioEntregableDto criterioEntregableDto) {
+		criterioEntregableService.update(criterioEntregableDto);
+	}
 
-    @PutMapping("/delete")
-    public void delete(@RequestBody Integer criterioEntregableId) {
-        criterioEntregableService.delete(criterioEntregableId);
-    }
+	@PutMapping("/delete")
+	public void delete(@RequestBody Integer criterioEntregableId) {
+		criterioEntregableService.delete(criterioEntregableId);
+	}
 
-    @GetMapping("/{id}")
-    public CriterioEntregable findById(@PathVariable int id) {
-        return criterioEntregableService.findById(id);
-    }
+	@GetMapping("/{id}")
+	public CriterioEntregable findById(@PathVariable int id) {
+		return criterioEntregableService.findById(id);
+	}
 
 }

@@ -34,13 +34,14 @@ public class HistorialTema {
 	@Column(name = "descripcion_cambio", columnDefinition = "TEXT")
 	private String descripcionCambio;
 
-	@Column(name = "estado_tema_id", nullable = false) //new estado
+	@Column(name = "estado_tema_id", nullable = false) // new estado
 	private Integer estadoTemaId;
 
 	@Column(nullable = false)
 	private Boolean activo = true;
 
-	@Column(name = "fecha_creacion", nullable = false, insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+	@Column(name = "fecha_creacion", nullable = false, insertable = false,
+			columnDefinition = "TIMESTAMP WITH TIME ZONE")
 	private OffsetDateTime fechaCreacion;
 
 	@Column(name = "fecha_modificacion", insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")

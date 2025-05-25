@@ -12,38 +12,39 @@ import java.util.List;
 @Service
 public class SalaExposicionServiceImpl implements SalaExposicionService {
 
-    private final SalaExposicionRepository salaExposicionRepository;
+	private final SalaExposicionRepository salaExposicionRepository;
 
-    public SalaExposicionServiceImpl(SalaExposicionRepository salaExposicionRepository) {
-        this.salaExposicionRepository = salaExposicionRepository;
-    }
+	public SalaExposicionServiceImpl(SalaExposicionRepository salaExposicionRepository) {
+		this.salaExposicionRepository = salaExposicionRepository;
+	}
 
-    @Override
-    public List<SalaExposicionDto> getAll() {
-        return List.of();
-    }
+	@Override
+	public List<SalaExposicionDto> getAll() {
+		return List.of();
+	}
 
-    @Override
-    public SalaExposicionDto findById(Integer id) {
-        SalaExposicion salaExposicion = salaExposicionRepository.findById(id).orElse(null);
-        if (salaExposicion != null) {
-            return SalaExposicionMapper.tDto(salaExposicion);
-        }
-        return null;
-    }
+	@Override
+	public SalaExposicionDto findById(Integer id) {
+		SalaExposicion salaExposicion = salaExposicionRepository.findById(id).orElse(null);
+		if (salaExposicion != null) {
+			return SalaExposicionMapper.tDto(salaExposicion);
+		}
+		return null;
+	}
 
-    @Override
-    public void create(SalaExposicionDto dto) {
+	@Override
+	public void create(SalaExposicionDto dto) {
 
-    }
+	}
 
-    @Override
-    public void update(SalaExposicionDto dto) {
+	@Override
+	public void update(SalaExposicionDto dto) {
 
-    }
+	}
 
-    @Override
-    public void delete(Integer id) {
+	@Override
+	public void delete(Integer id) {
 
-    }
+	}
+
 }

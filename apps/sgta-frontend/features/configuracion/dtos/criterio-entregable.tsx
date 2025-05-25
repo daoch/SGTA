@@ -3,4 +3,4 @@ export interface CriterioEntregable {
   nombre: string;
   descripcion: string;
   notaMaxima: number;
-};
+}

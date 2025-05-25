@@ -11,18 +11,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-
 @RestController
 @RequestMapping("/jornada-exposicion")
 public class JornadaExposicionController {
 
-    @Autowired
-    private JornadaExposicionOrchestratorService jornadaExposicionOrchestratorService;
+	@Autowired
+	private JornadaExposicionOrchestratorService jornadaExposicionOrchestratorService;
 
-    @PostMapping("/initialize")
-    public ResponseEntity<Void> initializeJornadasExposicion(@RequestBody IniatilizeJornadasExposicionCreateDTO dto) {
-        jornadaExposicionOrchestratorService.initializeJornadasExposicion(dto);
-        return ResponseEntity.ok().build();
-    }
+	@PostMapping("/initialize")
+	public ResponseEntity<Void> initializeJornadasExposicion(@RequestBody IniatilizeJornadasExposicionCreateDTO dto) {
+		jornadaExposicionOrchestratorService.initializeJornadasExposicion(dto);
+		return ResponseEntity.ok().build();
+	}
+
 }
-
