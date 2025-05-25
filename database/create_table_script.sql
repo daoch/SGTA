@@ -267,7 +267,7 @@ CREATE TABLE IF NOT EXISTS usuario_solicitud
     usuario_id           INTEGER                  NOT NULL,
     solicitud_id         INTEGER                  NOT NULL,
     solicitud_completada BOOLEAN                  NOT NULL DEFAULT FALSE,
-    aprovado             BOOLEAN                  NOT NULL DEFAULT FALSE,
+    aprobado             BOOLEAN                  NOT NULL DEFAULT FALSE,
     comentario           TEXT,
     destinatario         BOOLEAN                  NOT NULL DEFAULT FALSE,
     activo               BOOLEAN                  NOT NULL DEFAULT TRUE,
