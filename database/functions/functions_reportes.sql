@@ -80,9 +80,6 @@ BEGIN
 END;
 $BODY$;
 
-ALTER FUNCTION get_advisor_distribution_by_coordinator_and_ciclo(integer, varchar)
-  OWNER TO sgtauser;
-
 -------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION get_juror_distribution_by_coordinator_and_ciclo(
     p_usuario_id    INTEGER,
