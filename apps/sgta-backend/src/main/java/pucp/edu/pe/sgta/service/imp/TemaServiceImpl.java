@@ -19,6 +19,7 @@ import pucp.edu.pe.sgta.mapper.UsuarioMapper;
 import pucp.edu.pe.sgta.model.*;
 import pucp.edu.pe.sgta.repository.*;
 import pucp.edu.pe.sgta.service.inter.HistorialTemaService;
+import pucp.edu.pe.sgta.service.inter.SolicitudService;
 import pucp.edu.pe.sgta.service.inter.SubAreaConocimientoService;
 import pucp.edu.pe.sgta.service.inter.TemaService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
@@ -27,9 +28,7 @@ import pucp.edu.pe.sgta.util.RolEnum;
 import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
 
 import java.io.IOException;
-import java.sql.Array;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
@@ -65,6 +64,15 @@ public class TemaServiceImpl implements TemaService {
 
 	private final ObjectMapper objectMapper = new ObjectMapper(); // for JSON conversion
 
+	private final TipoSolicitudRepository        tipoSolicitudRepository;
+
+	private final SolicitudRepository            solicitudRepository;
+
+	private final UsuarioXSolicitudRepository    usuarioXSolicitudRepository;
+
+	private final SolicitudService solicitudService;
+
+
 	@PersistenceContext
 	private EntityManager entityManager;
 
@@ -73,7 +81,9 @@ public class TemaServiceImpl implements TemaService {
 			SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository, RolRepository rolRepository,
 			EstadoTemaRepository estadoTemaRepository, UsuarioXCarreraRepository usuarioCarreraRepository,
 			CarreraRepository carreraRepository, HistorialTemaService historialTemaService,
-			UsuarioRepository usuarioRepository) {
+			UsuarioRepository usuarioRepository, TipoSolicitudRepository tipoSolicitudRepository, 
+			SolicitudRepository solicitudRepository, SolicitudService solicitudService,
+			UsuarioXSolicitudRepository usuarioXSolicitudRepository) {
 		this.temaRepository = temaRepository;
 		this.usuarioXTemaRepository = usuarioXTemaRepository;
 		this.subAreaConocimientoXTemaRepository = subAreaConocimientoXTemaRepository;
@@ -85,6 +95,10 @@ public class TemaServiceImpl implements TemaService {
 		this.carreraRepository = carreraRepository;
 		this.historialTemaService = historialTemaService;
 		this.usuarioRepository = usuarioRepository;
+		this.tipoSolicitudRepository = tipoSolicitudRepository;
+		this.solicitudRepository = solicitudRepository;
+		this.usuarioXSolicitudRepository = usuarioXSolicitudRepository;
+		this.solicitudService = solicitudService;
 	}
 
 	@Override
@@ -366,6 +380,8 @@ public class TemaServiceImpl implements TemaService {
 			eliminarPostulacionesTesista(u.getId());
 			eliminarPropuestasTesista(u.getId());
 		}
+		// 6) Generar y enviar la solicitud de aprobación
+		solicitudService.crearSolicitudAprobacionTema(tema);
     }
 
     /**

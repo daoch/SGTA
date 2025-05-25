@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springdoc.core.converters.models.Pageable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,14 +23,22 @@ import pucp.edu.pe.sgta.dto.RechazoSolicitudResponseDto;
 import pucp.edu.pe.sgta.dto.SolicitudCambioAsesorDto;
 import pucp.edu.pe.sgta.dto.RechazoSolicitudResponseDto.AsignacionDto;
 import pucp.edu.pe.sgta.dto.SolicitudCeseDto;
+import pucp.edu.pe.sgta.dto.TemaDto;
 import pucp.edu.pe.sgta.model.Solicitud;
+import pucp.edu.pe.sgta.model.Tema;
+import pucp.edu.pe.sgta.model.TipoSolicitud;
+import pucp.edu.pe.sgta.model.TipoUsuario;
 import pucp.edu.pe.sgta.model.UsuarioXSolicitud;
 import pucp.edu.pe.sgta.model.UsuarioXTema;
 import pucp.edu.pe.sgta.repository.SolicitudRepository;
 import pucp.edu.pe.sgta.repository.SubAreaConocimientoXTemaRepository;
+import pucp.edu.pe.sgta.repository.TipoSolicitudRepository;
+import pucp.edu.pe.sgta.repository.UsuarioXCarreraRepository;
 import pucp.edu.pe.sgta.repository.UsuarioXSolicitudRepository;
 import pucp.edu.pe.sgta.repository.UsuarioXTemaRepository;
 import pucp.edu.pe.sgta.service.inter.SolicitudService;
+import pucp.edu.pe.sgta.util.RolEnum;
+import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
 
 @Service
 public class SolicitudServiceImpl implements SolicitudService {
@@ -41,6 +50,11 @@ public class SolicitudServiceImpl implements SolicitudService {
     private UsuarioXTemaRepository usuarioXTemaRepository;
     @Autowired
     private SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository;
+    @Autowired 
+    private TipoSolicitudRepository tipoSolicitudRepository;
+    @Autowired 
+    private UsuarioXCarreraRepository usuarioCarreraRepository;
+    
 
     public SolicitudCeseDto findAllSolicitudesCese(int page, int size) {
         List<Solicitud> allSolicitudes = solicitudRepository.findByTipoSolicitudNombre("Cese Asesoria");
@@ -347,4 +361,53 @@ public class SolicitudServiceImpl implements SolicitudService {
 
         return dto;
     }
+
+
+        /**
+     * Crea una solicitud de aprobación de tema y la asigna a todos los coordinadores
+     * activos de la carrera asociada.
+     *
+     * @param tema Tema recién creado al que se asociará la solicitud.
+     */
+    public void crearSolicitudAprobacionTema(Tema tema) {
+        // 1) Obtener el tipo de solicitud
+        TipoSolicitud tipoSolicitud = tipoSolicitudRepository
+            .findByNombre("Aprobación de tema (por coordinador)")
+            .orElseThrow(() ->
+                new RuntimeException("Tipo de solicitud no configurado: Aprobación de tema (por coordinador)"));
+
+        // 2) Construir y guardar la solicitud
+        Solicitud solicitud = new Solicitud();
+        solicitud.setDescripcion("Solicitud de aprobación de tema por coordinador");
+        solicitud.setTipoSolicitud(tipoSolicitud);
+        solicitud.setTema(tema);
+        solicitud.setEstado(0); // Ajusta según tu convención (p.ej. 0 = PENDIENTE)
+        Solicitud savedSolicitud = solicitudRepository.save(solicitud);
+
+        // 3) Buscar los usuarios-coordinador de la carrera del tema
+        List<UsuarioXSolicitud> asignaciones = usuarioCarreraRepository
+            .findByCarreraIdAndActivoTrue(tema.getCarrera().getId()).stream()
+            .map(rel -> rel.getUsuario())
+            .filter(u -> TipoUsuarioEnum.coordinador.name().equalsIgnoreCase(u.getTipoUsuario().getNombre()))
+            .map(coord -> {
+                UsuarioXSolicitud us = new UsuarioXSolicitud();
+                us.setUsuario(coord);
+                us.setSolicitud(savedSolicitud);
+                us.setDestinatario(true);
+                us.setAprovado(false);
+                us.setSolicitudCompletada(false);
+                return us;
+            })
+            .collect(Collectors.toList());
+
+        if (asignaciones.isEmpty()) {
+            throw new RuntimeException(
+                "No hay coordinador activo para la carrera con id " + tema.getCarrera().getId());
+        }
+
+        // 4) Guardar todas las asignaciones de la solicitud
+        usuarioXSolicitudRepository.saveAll(asignaciones);
+    }
+
+
 }
