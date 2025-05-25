@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 
 public class UpdateEtapaFormativaRequest {
     private String estado;
-    // Getters y Setters
+     // Getters y Setters
     public String getEstado() {
         return estado;
     }

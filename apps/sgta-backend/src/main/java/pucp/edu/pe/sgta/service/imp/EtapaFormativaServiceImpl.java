@@ -332,5 +332,4 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
         EtapaFormativaXCiclo efc = expo.getEtapaFormativaXCiclo();
         return efc.getId();
     }
-
 }
