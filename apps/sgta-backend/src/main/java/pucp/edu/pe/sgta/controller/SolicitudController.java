@@ -25,11 +25,12 @@ public class SolicitudController {
     @Autowired
     private SolicitudService solicitudService;
 
-    @GetMapping("/cessation-requests")
+    @GetMapping("/{coordinatorId}/cessation-requests")
     public ResponseEntity<SolicitudCeseDto> getSolicitudesCese(
+            @PathVariable Integer coordinatorId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(solicitudService.findAllSolicitudesCese(page, size));
+        return ResponseEntity.ok(solicitudService.findAllSolicitudesCese(coordinatorId, page, size));
     }
 
     @GetMapping("/cessation-requests/{requestId}")

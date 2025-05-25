@@ -9,7 +9,7 @@ import pucp.edu.pe.sgta.dto.SolicitudCambioAsesorDto;
 import pucp.edu.pe.sgta.dto.SolicitudCeseDto;
 
 public interface SolicitudService {
-    SolicitudCeseDto findAllSolicitudesCese(int page, int size);
+    SolicitudCeseDto findAllSolicitudesCese(int coordinatorId, int page, int size);
     DetalleSolicitudCeseDto getDetalleSolicitudCese(Integer solicitudId);
     RechazoSolicitudResponseDto rechazarSolicitud(Integer solicitudId, String response);
     AprobarSolicitudResponseDto aprobarSolicitud(Integer solicitudId, String response);

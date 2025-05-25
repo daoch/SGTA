@@ -23,10 +23,12 @@ import pucp.edu.pe.sgta.dto.RechazoSolicitudResponseDto;
 import pucp.edu.pe.sgta.dto.SolicitudCambioAsesorDto;
 import pucp.edu.pe.sgta.dto.RechazoSolicitudResponseDto.AsignacionDto;
 import pucp.edu.pe.sgta.dto.SolicitudCeseDto;
+import pucp.edu.pe.sgta.model.Carrera;
 import pucp.edu.pe.sgta.model.EstadoTema;
 import pucp.edu.pe.sgta.model.Solicitud;
 import pucp.edu.pe.sgta.model.Tema;
 import pucp.edu.pe.sgta.model.UsuarioXAreaConocimiento;
+import pucp.edu.pe.sgta.model.UsuarioXCarrera;
 import pucp.edu.pe.sgta.model.UsuarioXSolicitud;
 import pucp.edu.pe.sgta.model.UsuarioXTema;
 import pucp.edu.pe.sgta.repository.EstadoTemaRepository;
@@ -34,6 +36,7 @@ import pucp.edu.pe.sgta.repository.SolicitudRepository;
 import pucp.edu.pe.sgta.repository.SubAreaConocimientoXTemaRepository;
 import pucp.edu.pe.sgta.repository.TemaRepository;
 import pucp.edu.pe.sgta.repository.UsuarioXAreaConocimientoRepository;
+import pucp.edu.pe.sgta.repository.UsuarioXCarreraRepository;
 import pucp.edu.pe.sgta.repository.UsuarioXSolicitudRepository;
 import pucp.edu.pe.sgta.repository.UsuarioXTemaRepository;
 import pucp.edu.pe.sgta.service.inter.SolicitudService;
@@ -53,12 +56,28 @@ public class SolicitudServiceImpl implements SolicitudService {
     @Autowired
     private TemaRepository temaRepository;
     @Autowired
-    private UsuarioXAreaConocimientoRepository usuarioXAreaConocimientoRepository;
+    private UsuarioXCarreraRepository usuarioXCarreraRepository;
 
-    public SolicitudCeseDto findAllSolicitudesCese(int page, int size) {
+    public SolicitudCeseDto findAllSolicitudesCese(int coordinatorId, int page, int size) {
+        List<UsuarioXCarrera> coordinadorCarreras = usuarioXCarreraRepository.findByUsuarioIdAndActivoTrue(coordinatorId);
+        List<Carrera> carreras = new ArrayList<>();
+        for (UsuarioXCarrera coordinadorCarrera : coordinadorCarreras) {
+            Carrera carrera = coordinadorCarrera.getCarrera();
+            carreras.add(carrera);
+        }
         List<Solicitud> allSolicitudes = solicitudRepository.findByTipoSolicitudNombre("Cese Asesoria");
 
-        int totalElements = allSolicitudes.size();
+        List<Solicitud> allSolicitudesCarrera = new ArrayList<>();
+
+        for (Solicitud solicitud : allSolicitudes) {
+            for(Carrera carrera : carreras) {
+                if(solicitud.getTema().getCarrera().getId() == carrera.getId()){
+                    allSolicitudesCarrera.add(solicitud);
+                }
+            }
+        }
+
+        int totalElements = allSolicitudesCarrera.size();
         int totalPages = (int) Math.ceil((double) totalElements / size);
 
         int fromIndex = page * size;
@@ -68,7 +87,7 @@ public class SolicitudServiceImpl implements SolicitudService {
             return new SolicitudCeseDto(Collections.emptyList(), totalPages);
         }
 
-        List<Solicitud> solicitudesPage = allSolicitudes.subList(fromIndex, toIndex);
+        List<Solicitud> solicitudesPage = allSolicitudesCarrera.subList(fromIndex, toIndex);
 
         List<SolicitudCeseDto.RequestTermination> requestList = solicitudesPage.stream().map(solicitud -> {
             UsuarioXTema asesorRelacion = usuarioXTemaRepository.findFirstByTemaIdAndRolNombreAndActivoTrue(solicitud.getTema().getId(), "Asesor");
@@ -79,7 +98,7 @@ public class SolicitudServiceImpl implements SolicitudService {
                 asesorRelacion.getUsuario().getNombres(),
                 asesorRelacion.getUsuario().getPrimerApellido(),
                 asesorRelacion.getUsuario().getCorreoElectronico(),
-                usuarioXTemaRepository.findByUsuarioIdAndRolNombreAndActivoTrue(asesorRelacion.getUsuario().getId(), "asesor").size(),
+                usuarioXTemaRepository.findByUsuarioIdAndRolNombreAndActivoTrue(asesorRelacion.getUsuario().getId(), "Asesor").size(),
                 asesorRelacion.getUsuario().getFotoPerfil() // URL foto
             );
 
