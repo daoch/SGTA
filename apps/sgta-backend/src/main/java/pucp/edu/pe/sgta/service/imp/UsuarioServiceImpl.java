@@ -21,6 +21,7 @@ import pucp.edu.pe.sgta.mapper.PerfilAsesorMapper;
 import pucp.edu.pe.sgta.mapper.UsuarioMapper;
 import pucp.edu.pe.sgta.model.*;
 import pucp.edu.pe.sgta.repository.*;
+import pucp.edu.pe.sgta.service.inter.CognitoService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
 import pucp.edu.pe.sgta.util.Utils;
 
@@ -36,6 +37,7 @@ import java.time.ZoneOffset;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Logger;
 
 @Service
 public class UsuarioServiceImpl implements UsuarioService {
@@ -48,6 +50,8 @@ public class UsuarioServiceImpl implements UsuarioService {
 	private final CarreraRepository carreraRepository;
 	private final UsuarioXTemaRepository usuarioXTemaRepository;
 	private final TipoUsuarioRepository tipoUsuarioRepository;
+	private final CognitoService cognitoService;
+	private final Logger logger = Logger.getLogger(TemaServiceImpl.class.getName());
 
 	@PersistenceContext
     private EntityManager em;
@@ -58,7 +62,8 @@ public class UsuarioServiceImpl implements UsuarioService {
 							, AreaConocimientoRepository areaConocimientoRepository
 							, UsuarioXAreaConocimientoRepository usuarioXAreaConocimientoRepository, CarreraRepository carreraRepository
 							,UsuarioXTemaRepository usuarioXTemaRepository
-							, TipoUsuarioRepository tipoUsuarioRepository) {
+							, TipoUsuarioRepository tipoUsuarioRepository
+							, CognitoService cognitoService) {
 		this.usuarioRepository = usuarioRepository;
 		this.usuarioXSubAreaConocimientoRepository = usuarioXSubAreaConocimientoRepository;
 		this.subAreaConocimientoRepository = subAreaConocimientoRepository;
@@ -67,6 +72,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 		this.carreraRepository = carreraRepository;
 		this.usuarioXTemaRepository = usuarioXTemaRepository;
 		this.tipoUsuarioRepository = tipoUsuarioRepository;
+		this.cognitoService = cognitoService;
 	}
 
 	@Override
@@ -346,10 +352,12 @@ public class UsuarioServiceImpl implements UsuarioService {
 	@Override
 	public void procesarArchivoUsuarios(MultipartFile archivo) throws Exception {
 		String nombre = archivo.getOriginalFilename();
+
 		if (nombre == null) throw new Exception("Archivo sin nombre");
 
 		if (nombre.endsWith(".csv")) {
 			procesarCSV(archivo);
+			logger.warning("Procesando archivo CSV: " + nombre);
 		} else if (nombre.endsWith(".xlsx")) {
 			procesarExcel(archivo);
 		} else {
@@ -370,7 +378,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 
 				String[] campos = linea.split(",");
 
-				if (campos.length < 8) continue;
+				if (campos.length < 6) continue;
 
 				// Mapear campos en el orden correcto del CSV
 				String nombres = campos[0].trim();
@@ -378,9 +386,8 @@ public class UsuarioServiceImpl implements UsuarioService {
 				String segundoApellido = campos[2].trim();
 				String correo = campos[3].trim();
 				String codigoPUCP = campos[4].trim();
-				String nivelEstudios = campos[5].trim();
-				String contrasena = campos[6].trim();
-				String tipoUsuario = campos[7].trim(); // este es el rol
+				String contrasena = "temp";
+				String tipoUsuario = campos[5].trim(); // este es el rol
 
 				Optional<TipoUsuario> tipo = buscarTipoUsuarioPorNombre(tipoUsuario);
 				if (tipo.isEmpty()) {
@@ -388,20 +395,32 @@ public class UsuarioServiceImpl implements UsuarioService {
 					continue;
 				}
 
-				Usuario nuevo = new Usuario();
-				nuevo.setNombres(nombres);
-				nuevo.setPrimerApellido(primerApellido);
-				nuevo.setSegundoApellido(segundoApellido);
-				nuevo.setCorreoElectronico(correo);
-				nuevo.setCodigoPucp(codigoPUCP);
-				nuevo.setNivelEstudios(nivelEstudios);
-				nuevo.setContrasena(contrasena);
-				nuevo.setTipoUsuario(tipo.get());
-				nuevo.setActivo(true);
-				nuevo.setFechaCreacion(OffsetDateTime.now());
-				nuevo.setFechaModificacion(OffsetDateTime.now());
+				String nombreCompleto = nombres + " " + primerApellido + " " + segundoApellido;
 
-				usuarioRepository.save(nuevo);
+				try {
+					// Registrar en Cognito y obtener el sub (id)
+					String idCognito = cognitoService.registrarUsuarioEnCognito(correo, nombreCompleto, tipoUsuario);
+
+					// Crear entidad local
+					Usuario nuevo = new Usuario();
+					nuevo.setNombres(nombres);
+					nuevo.setPrimerApellido(primerApellido);
+					nuevo.setSegundoApellido(segundoApellido);
+					nuevo.setCorreoElectronico(correo);
+					nuevo.setCodigoPucp(codigoPUCP);
+					nuevo.setContrasena(contrasena);
+					nuevo.setTipoUsuario(tipo.get());
+					nuevo.setIdCognito(idCognito); // guardar sub de Cognito
+					nuevo.setActivo(true);
+					nuevo.setFechaCreacion(OffsetDateTime.now());
+					nuevo.setFechaModificacion(OffsetDateTime.now());
+
+					usuarioRepository.save(nuevo);
+					System.out.printf("Usuario '%s' creado y registrado correctamente.%n", correo);
+
+				} catch (Exception e) {
+					System.err.printf("Error al registrar usuario '%s' en Cognito: %s%n", correo, e.getMessage());
+				}
 			}
 		} catch (IOException e) {
 			System.err.println("Error al leer el CSV: " + e.getMessage());
@@ -413,7 +432,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 			Workbook workbook = new XSSFWorkbook(is);
 			Sheet hoja = workbook.getSheetAt(0);
 
-			// Suponiendo que la primera fila es cabecera
+			//la primera fila es cabecera,empezar por filaIndex = 1
 			for (int filaIndex = 1; filaIndex <= hoja.getLastRowNum(); filaIndex++) {
 				Row fila = hoja.getRow(filaIndex);
 				if (fila == null) continue;
@@ -423,9 +442,8 @@ public class UsuarioServiceImpl implements UsuarioService {
 				String segundoApellido = getCellValue(fila.getCell(2));
 				String correo = getCellValue(fila.getCell(3));
 				String codigoPUCP = getCellValue(fila.getCell(4));
-				String nivelEstudios = getCellValue(fila.getCell(5));
-				String contrasena = getCellValue(fila.getCell(6));
-				String tipoUsuario = getCellValue(fila.getCell(7));
+				String contrasena = "temp";
+				String tipoUsuario = getCellValue(fila.getCell(5));
 
 				Optional<TipoUsuario> tipo = buscarTipoUsuarioPorNombre(tipoUsuario);
 				if (tipo.isEmpty()) {
@@ -433,22 +451,33 @@ public class UsuarioServiceImpl implements UsuarioService {
 					continue;
 				}
 
-				Usuario nuevo = new Usuario();
-				nuevo.setNombres(nombres);
-				nuevo.setPrimerApellido(primerApellido);
-				nuevo.setSegundoApellido(segundoApellido);
-				nuevo.setCorreoElectronico(correo);
-				nuevo.setCodigoPucp(codigoPUCP);
-				nuevo.setNivelEstudios(nivelEstudios);
-				nuevo.setContrasena(contrasena);
-				nuevo.setTipoUsuario(tipo.get());
-				nuevo.setActivo(true);
-				nuevo.setFechaCreacion(OffsetDateTime.now());
-				nuevo.setFechaModificacion(OffsetDateTime.now());
+				String nombreCompleto = nombres + " " + primerApellido + " " + segundoApellido;
 
-				usuarioRepository.save(nuevo);
+				try {
+					// Registrar en Cognito y obtener el sub
+					String idCognito = cognitoService.registrarUsuarioEnCognito(correo, nombreCompleto, tipoUsuario);
+
+					Usuario nuevo = new Usuario();
+					nuevo.setNombres(nombres);
+					nuevo.setPrimerApellido(primerApellido);
+					nuevo.setSegundoApellido(segundoApellido);
+					nuevo.setCorreoElectronico(correo);
+					nuevo.setCodigoPucp(codigoPUCP);
+					nuevo.setContrasena(contrasena);
+					nuevo.setTipoUsuario(tipo.get());
+					nuevo.setIdCognito(idCognito); // Guardar sub de Cognito
+					nuevo.setActivo(true);
+					nuevo.setFechaCreacion(OffsetDateTime.now());
+					nuevo.setFechaModificacion(OffsetDateTime.now());
+
+					usuarioRepository.save(nuevo);
+					System.out.printf("Fila %d: Usuario '%s' creado exitosamente.\n", filaIndex + 1, correo);
+
+				} catch (Exception e) {
+					System.err.printf("Fila %d: Error al registrar usuario '%s' en Cognito: %s\n",
+							filaIndex + 1, correo, e.getMessage());
+				}
 			}
-
 			workbook.close();
 		}
 	}
