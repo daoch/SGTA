@@ -3,6 +3,7 @@ package pucp.edu.pe.sgta.dto.exposiciones;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import pucp.edu.pe.sgta.util.EstadoExposicionUsuario;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -21,5 +22,6 @@ public class ExposicionTemaMiembrosDto {
     private Integer ciclo_id;
     private Integer ciclo_anio;
     private String ciclo_semestre;
+    private EstadoExposicionUsuario estado_control;
     private List<MiembroExposicionDto> miembros;
 }
