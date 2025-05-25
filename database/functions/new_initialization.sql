@@ -38,6 +38,15 @@ INSERT INTO tipo_notificacion (nombre,
            ('error', 'Notificación de error crítico', 3, TRUE, NOW(), NOW());
 
 
+-- INSERT INTO tipo_rechazo_tema (nombre, descripcion)
+--     VALUES ('Inconsistencia en objetivos', 'Los objetivos planteados no guardan coherencia con la metodología propuesta.'),
+--            ('Falta de viabilidad técnica', 'El proyecto propuesto no puede ser llevado a cabo con los recursos o conocimientos disponibles.'),
+--            ('Duplicación de tema', 'El tema ya ha sido aprobado previamente por otro estudiante.'),
+--            ('Contenido insuficiente', 'El planteamiento del problema o la justificación no es suficientemente sólido.'),
+--            ('Fuera del alcance académico', 'El tema no se ajusta al perfil de la carrera o a los objetivos del curso.'),
+--            ('Propuesta incompleta', 'El formulario fue entregado sin todos los campos requeridos.'),
+--            ('Problemas éticos o legales', 'La propuesta presenta conflictos éticos o legales que impiden su aprobación.');
+
 
 ----------------------------------
 --|      ENTIDADES FIJAS       |--
@@ -544,6 +553,7 @@ INSERT INTO usuario_tema (usuario_id, tema_id, rol_id)
            (6, 11, 2),
            (5, 11, 2);
 
+--RESTO DE TABLAS CRUZADAS
 
 INSERT INTO etapa_formativa_x_ciclo_x_tema (etapa_formativa_x_ciclo_id, tema_id, aprobado, fecha_modificacion)
     VALUES (1, 1, TRUE, NOW()),
@@ -582,6 +592,23 @@ INSERT INTO exposicion_x_tema (exposicion_id,
            (2, 9),
            (2, 10),
            (2, 11);
+
+
+INSERT INTO control_exposicion_usuario (exposicion_x_tema_id,
+                                        usuario_x_tema_id)
+SELECT et.exposicion_x_tema_id,
+       ut.usuario_tema_id
+    FROM exposicion_x_tema et
+             JOIN usuario_tema ut ON et.tema_id = ut.tema_id
+    WHERE et.exposicion_id = 1;
+
+INSERT INTO control_exposicion_usuario (exposicion_x_tema_id,
+                                        usuario_x_tema_id)
+SELECT et.exposicion_x_tema_id,
+       ut.usuario_tema_id
+    FROM exposicion_x_tema et
+             JOIN usuario_tema ut ON et.tema_id = ut.tema_id
+    WHERE et.exposicion_id = 2;
 
 -----------------------------------
 --| PARÁMETROS DE CONFIGURACIÓN |--
