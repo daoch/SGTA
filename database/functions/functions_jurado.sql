@@ -873,6 +873,32 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION listar_bloque_con_sala(
+	_exposicion_id integer
+)
+RETURNS TABLE(
+	id_bloque integer,
+    fecha_ini  timestamptz,
+    fecha_fin  timestamptz,
+    id_sala integer,
+    sala text    
+)
+AS $$
+BEGIN
+    RETURN QUERY
+ 	SELECT 
+		b.bloque_horario_exposicion_id as "id_bloque",
+		b.datetime_inicio as "fecha_ini",
+		b.datetime_fin as "fecha_fin",
+		s.sala_exposicion_id as "id_sala",
+		s.nombre  as "sala"
+    from bloque_horario_exposicion b
+	inner join jornada_exposicion_x_sala_exposicion j  on b.jornada_exposicion_x_sala_id = j.jornada_exposicion_x_sala_id
+	inner join jornada_exposicion je on je.jornada_exposicion_id = j.jornada_exposicion_id
+	inner join sala_exposicion s on s.sala_exposicion_id = j.sala_exposicion_id 
+	where b.activo = true and je.exposicion_id = _exposicion_id;
+END;
+$$ LANGUAGE plpgsql;
 
 -- Para volver a estados
 
