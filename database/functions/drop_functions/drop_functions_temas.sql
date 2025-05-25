@@ -57,3 +57,6 @@ DROP FUNCTION IF EXISTS obtener_usuarios_por_tipo_carrera_y_busqueda CASCADE;
 DROP FUNCTION IF EXISTS obtener_carreras_por_usuario CASCADE;
 
 DROP FUNCTION IF EXISTS listar_temas_por_estado_y_carrera(TEXT, INTEGER);
+
+DROP PROCEDURE IF EXISTS actualizar_estado_tema(integer, TEXT);
+DROP FUNCTION IF EXISTS actualizar_estado_tema(integer, TEXT);
