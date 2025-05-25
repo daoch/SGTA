@@ -927,7 +927,6 @@ END;
 $$ LANGUAGE plpgsql;
 
 
-DROP TRIGGER IF EXISTS trigger_generar_codigo_tema ON tema;
 
 CREATE TRIGGER trigger_generar_codigo_tema
 AFTER INSERT ON tema
@@ -954,7 +953,7 @@ RETURNS TABLE(
     usuarios           JSONB
 )
 LANGUAGE plpgsql
-SET search_path = sgtadb, public
+
 AS $$
 BEGIN
     RETURN QUERY
@@ -1010,7 +1009,6 @@ BEGIN
 END;
 $$;
 
-ALTER FUNCTION listar_propuestas_del_tesista_con_usuarios(INTEGER) OWNER TO postgres;
 
 CREATE OR REPLACE FUNCTION listar_postulaciones_del_tesista_con_usuarios(
     p_tesista_id INTEGER,
@@ -1033,7 +1031,7 @@ RETURNS TABLE(
     usuarios           JSONB
 )
 LANGUAGE plpgsql
-SET search_path = sgtadb, public
+
 AS $$
 BEGIN
     RETURN QUERY
@@ -1130,7 +1128,6 @@ BEGIN
 END;
 $$;
 
-ALTER FUNCTION listar_postulaciones_del_tesista_con_usuarios(INTEGER) OWNER TO postgres;
 
 CREATE OR REPLACE FUNCTION listar_asesores_por_subarea_conocimiento(
     p_subarea_id INTEGER
@@ -1165,9 +1162,8 @@ WHERE usac.sub_area_conocimiento_id = p_subarea_id
   AND tu.nombre ILIKE 'profesor'
 $$;
 
-ALTER FUNCTION listar_postulaciones_del_tesista_con_usuarios(INTEGER) OWNER TO postgres;
 
-CREATE OR REPLACE FUNCTION sgtadb.obtener_sub_areas_por_carrera_usuario(
+CREATE OR REPLACE FUNCTION obtener_sub_areas_por_carrera_usuario(
     p_usuario_id INTEGER
 )
 RETURNS TABLE(
@@ -1202,7 +1198,8 @@ ALTER FUNCTION obtener_sub_areas_por_carrera_usuario(INTEGER) OWNER TO postgres;
 CREATE OR REPLACE FUNCTION aprobar_postulacion_propuesta_general_tesista(
     p_tema_id    INT,
     p_asesor_id  INT,
-    p_tesista_id INT
+    p_tesista_id INT,
+	estado_preinscrito_id INT
 )
 RETURNS VOID
 LANGUAGE plpgsql
@@ -1238,7 +1235,7 @@ BEGIN
 END;
 $$;
 
-ALTER FUNCTION aprobar_postulacion_propuesta_general_tesista(INTEGER, INTEGER, INTEGER) OWNER TO postgres;
+ALTER FUNCTION aprobar_postulacion_propuesta_general_tesista(INTEGER, INTEGER, INTEGER, INTEGER) OWNER TO postgres;
 
 CREATE OR REPLACE FUNCTION rechazar_postulacion_propuesta_general_tesista(
     p_tema_id    INT,
@@ -1324,7 +1321,8 @@ RETURNS TABLE(
     activo                BOOLEAN,
     fecha_creacion        TIMESTAMPTZ,
     fecha_modificacion    TIMESTAMPTZ,
-    tipo_usuario_nombre   VARCHAR
+    tipo_usuario_nombre   VARCHAR,
+    asignado              BOOLEAN
 )
 LANGUAGE SQL
 STABLE
@@ -1348,7 +1346,14 @@ AS $$
       u.activo,
       u.fecha_creacion,
       u.fecha_modificacion,
-      tu.nombre
+      tu.nombre,
+      EXISTS (
+          SELECT 1
+          FROM usuario_tema ut
+          WHERE ut.usuario_id = u.usuario_id
+            AND ut.activo = TRUE
+            AND ut.asignado = TRUE
+      ) AS asignado
     FROM usuario u
     JOIN usuario_carrera uc
       ON u.usuario_id = uc.usuario_id

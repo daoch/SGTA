@@ -3,17 +3,18 @@
 import { getIdByCorreo } from "@/features/asesores/hooks/perfil/perfil-apis";
 import PerfilAsesor from "@/features/asesores/views/mi-perfil-asesor";
 import { useAuth } from "@/features/auth";
-import { UserX } from "lucide-react";
+import { Loader2, UserX } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export default function AppProfile() {
   const { user } = useAuth();
   const [asesorId, setAsesorId] = useState<number | null>(null);
-  //const userId = /^\d+$/.test(user?.id ?? "") ? user?.id : null;
-  //console.log("userId", userId);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (!user || !user.email) return;
+    if (!user) return;
+
+    setIsLoading(true);
 
     getIdByCorreo(user.email)
       .then((id) => {
@@ -22,8 +23,23 @@ export default function AppProfile() {
       })
       .catch((error) => {
         console.error("Error al obtener el ID del asesor:", error);
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
-  }, [user]);
+
+    return;
+  }, []);
+
+  if (isLoading)
+    return (
+      <div className="flex items-center justify-center h-screen w-full flex-col gap-4">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <span className="text-muted-foreground text-lg">
+          Cargando perfil...
+        </span>
+      </div>
+    );
 
   if (!user || !asesorId)
     return (

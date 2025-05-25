@@ -26,12 +26,17 @@ import { JuradoUI } from "@/features/jurado/types/juradoDetalle.types";
 import { ChevronLeft, ChevronRight, FileSearch, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import * as React from "react";
+import { useEffect } from "react";
 
 interface TableJuradosProps {
   juradosData: JuradoUI[];
+  onOpenModal: (id: string) => void;
 }
 
-const TableJurados: React.FC<TableJuradosProps> = ({ juradosData }) => {
+const TableJurados: React.FC<TableJuradosProps> = ({
+  juradosData,
+  onOpenModal,
+}) => {
   const router = useRouter();
 
   //PARA LA PAGINACION
@@ -62,6 +67,10 @@ const TableJurados: React.FC<TableJuradosProps> = ({ juradosData }) => {
     setItemsPerPage(Number(value));
     setCurrentPage(1);
   };
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [juradosData]);
 
   const handleClick = (detalleJurado: string) => {
     router.push(`/coordinador/jurados/${detalleJurado}`);
@@ -120,7 +129,7 @@ const TableJurados: React.FC<TableJuradosProps> = ({ juradosData }) => {
                     variant="ghost"
                     size="icon"
                     className="relative cursor-pointer"
-                    onClick={() => handleClick(jurado.code)} // Cambia a la ruta de detalle del jurado
+                    onClick={() => handleClick(jurado.id!)} // Cambia a la ruta de detalle del jurado
                   >
                     <FileSearch className="h-5 w-5" />
                   </Button>
@@ -128,6 +137,7 @@ const TableJurados: React.FC<TableJuradosProps> = ({ juradosData }) => {
                     variant="ghost"
                     size="icon"
                     className="relative cursor-pointer"
+                    onClick={() => onOpenModal(jurado.id!)}
                   >
                     <Trash2 className="h-5 w-5 text-red-500" />
                   </Button>

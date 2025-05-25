@@ -1,14 +1,22 @@
 "use client";
 
-import { EtapasFormativasList } from "@/components/main/configuracion/etapas-formativas-list";
-import { NuevaEtapaFormativaModal } from "@/components/main/configuracion/nueva-etapa-formativa-modal";
 import { Button } from "@/components/ui/button";
+import { EtapasFormativasList, EtapasFormativasListRef } from "@/features/configuracion/components/configuracion/etapas-formativas-list";
+import { NuevaEtapaFormativaModal } from "@/features/configuracion/components/configuracion/nueva-etapa-formativa-modal";
 import { ArrowLeft, Plus } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 export default function EtapasFormativasPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const etapasListRef = useRef<EtapasFormativasListRef>(null);
+
+  const handleModalSuccess = () => {
+    // Refrescar la lista de etapas formativas después de crear una nueva
+    if (etapasListRef.current) {
+      etapasListRef.current.loadEtapasFormativas();
+    }
+  };
 
   return (
     <div className="py-6 px-2">
@@ -36,10 +44,14 @@ export default function EtapasFormativasPage() {
           </p>
         </div>
 
-        <EtapasFormativasList />
+        <EtapasFormativasList ref={etapasListRef} />
       </div>
 
-      <NuevaEtapaFormativaModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <NuevaEtapaFormativaModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={handleModalSuccess}
+      />
     </div>
   );
 }

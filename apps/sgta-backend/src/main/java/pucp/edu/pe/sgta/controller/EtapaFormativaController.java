@@ -23,6 +23,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import pucp.edu.pe.sgta.dto.EtapaFormativaListadoDto;
 import pucp.edu.pe.sgta.dto.EtapaFormativaDetalleDto;
 
+
+import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.*;
+import pucp.edu.pe.sgta.dto.UpdateEtapaFormativaRequest;
+
+import pucp.edu.pe.sgta.dto.*;
+
+
 @RestController
 @RequestMapping("/etapas-formativas")
 public class EtapaFormativaController {
@@ -33,6 +41,11 @@ public class EtapaFormativaController {
     public List<EtapaFormativaNombreDTO> obtenerPorInicializarPorCoordinador(
             @PathVariable("corodinador_id") Integer usuarioId) {
         return etapaFormativaService.findToInitializeByCoordinador(usuarioId);
+    }
+
+    @GetMapping("/listarActivasNombre")
+    public List<EtapaFormativaNombreDTO> obtenerEtapasFormativasActivasNombre() {
+        return etapaFormativaService.findAllActivasNombre();
     }
 
     @GetMapping("/listarActivas")
@@ -102,6 +115,21 @@ public class EtapaFormativaController {
     public ResponseEntity<Void> eliminarEtapa(@PathVariable Integer id) {
         etapaFormativaService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/actualizar-relacion/{etapaFormativaXCicloId}/{etapaFormativaId}")
+    public ResponseEntity<EtapaFormativaDto> actualizarEtapaConRelacion(
+            @PathVariable Integer etapaFormativaXCicloId,
+            @PathVariable Integer  etapaFormativaId,
+            @Valid @RequestBody UpdateEtapaFormativaRequest request) {
+        
+        EtapaFormativaDto updated = etapaFormativaService.updateCamposConRelacion(
+            etapaFormativaXCicloId,
+            etapaFormativaId,
+            request.getNombre(),
+            request.getCreditajePorTema()
+        );
+        return ResponseEntity.ok(updated);
     }
 
 }

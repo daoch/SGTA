@@ -267,7 +267,7 @@ CREATE TABLE IF NOT EXISTS usuario_solicitud
     usuario_id           INTEGER                  NOT NULL,
     solicitud_id         INTEGER                  NOT NULL,
     solicitud_completada BOOLEAN                  NOT NULL DEFAULT FALSE,
-    aprovado             BOOLEAN                  NOT NULL DEFAULT FALSE,
+    aprobado             BOOLEAN                  NOT NULL DEFAULT FALSE,
     comentario           TEXT,
     destinatario         BOOLEAN                  NOT NULL DEFAULT FALSE,
     activo               BOOLEAN                  NOT NULL DEFAULT TRUE,
@@ -284,6 +284,15 @@ CREATE TABLE IF NOT EXISTS usuario_solicitud
             ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS tipo_rechazo_tema (
+    tipo_rechazo_tema_id SERIAL PRIMARY KEY,
+    nombre               VARCHAR(100)             NOT NULL,
+    descripcion          TEXT,
+    fecha_creacion       TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion   TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    activo               BOOLEAN                  NOT NULL DEFAULT TRUE
+);
+
 -- 7) USUARIO_TEMA (M:N entre usuario, tema y rol)
 CREATE TABLE IF NOT EXISTS usuario_tema
 (
@@ -291,6 +300,7 @@ CREATE TABLE IF NOT EXISTS usuario_tema
     usuario_id         INTEGER                  NOT NULL,
     tema_id            INTEGER                  NOT NULL,
     rol_id             INTEGER                  NOT NULL,
+    tipo_rechazo_tema_id INTEGER,
     asignado           BOOLEAN                  NOT NULL DEFAULT FALSE,
     rechazado          BOOLEAN                  NOT NULL DEFAULT FALSE,
     creador            BOOLEAN                  NOT NULL DEFAULT FALSE,
@@ -311,6 +321,10 @@ CREATE TABLE IF NOT EXISTS usuario_tema
     CONSTRAINT fk_rol
         FOREIGN KEY (rol_id)
             REFERENCES rol (rol_id)
+            ON DELETE RESTRICT,
+    CONSTRAINT fk_tipo_rechazo_tema
+        FOREIGN KEY (tipo_rechazo_tema_id)
+            REFERENCES tipo_rechazo_tema (tipo_rechazo_tema_id)
             ON DELETE RESTRICT
 );
 
@@ -741,6 +755,7 @@ CREATE TABLE IF NOT EXISTS etapa_formativa_x_ciclo
     etapa_formativa_x_ciclo_id SERIAL PRIMARY KEY,
     etapa_formativa_id         INTEGER                  NOT NULL,
     ciclo_id                   INTEGER                  NOT NULL,
+    estado                     TEXT                     NOT NULL,
     activo                     BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion             TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion         TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -1339,4 +1354,10 @@ CREATE TABLE IF NOT EXISTS criterio_exposicion_preset
 
 -- NECESARIO PARA QUE NO EXISTAN PROBLEMAS CON LOS ENUMS
 -- AGREGAR EL CAST PARA LOS DEMAS ENUMS DE SER NECESARIO
-CREATE CAST (CHARACTER VARYING AS enum_estado_actividad) WITH INOUT AS ASSIGNMENT;
+--DROP CAST IF EXISTS (character varying AS enum_estado_actividad);
+
+CREATE CAST (character varying AS enum_estado_actividad)
+    WITH INOUT AS ASSIGNMENT;
+
+
+--CREATE CAST (CHARACTER VARYING AS enum_estado_actividad) WITH INOUT AS ASSIGNMENT;
