@@ -80,8 +80,8 @@ public class SolicitudController {
     @GetMapping("/listSolicitudesByTema/{id}")
     public ResponseEntity<SolicitudTemaDto> getSolicitudesByTema(
             @PathVariable Integer id,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "10") Integer size) {
         return ResponseEntity.ok(solicitudService.findAllSolicitudesByTema(id, page, size));
     }
 }

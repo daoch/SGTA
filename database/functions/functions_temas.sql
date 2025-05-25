@@ -1390,3 +1390,62 @@ AS $$
        AND c.activo
     ORDER BY c.nombre;
 $$;
+
+CREATE OR REPLACE FUNCTION get_solicitudes_by_tema(
+    input_tema_id INTEGER,
+    offset_val INTEGER,
+    limit_val INTEGER
+)
+RETURNS TABLE (
+    solicitud_id INTEGER,
+    fecha_creacion DATE,
+    estado INTEGER,
+    descripcion TEXT,
+    respuesta TEXT,
+    fecha_modificacion DATE,
+    tipo_solicitud_id INTEGER,
+    tipo_solicitud_nombre VARCHAR,
+    tipo_solicitud_descripcion TEXT,
+    usuario_id INTEGER,
+    usuario_nombres VARCHAR,
+    usuario_primer_apellido VARCHAR,
+    usuario_segundo_apellido VARCHAR,
+    usuario_correo VARCHAR
+) AS $$
+BEGIN
+    RETURN QUERY    SELECT 
+        s.solicitud_id,
+        s.fecha_creacion::DATE,
+        s.estado,
+        s.descripcion,
+        s.respuesta,
+        s.fecha_modificacion::DATE,
+        ts.tipo_solicitud_id,
+        ts.nombre,
+        ts.descripcion,
+        u.usuario_id,
+        u.nombres,
+        u.primer_apellido,
+        u.segundo_apellido,
+        u.correo_electronico    FROM solicitud s
+    INNER JOIN tipo_solicitud ts ON s.tipo_solicitud_id = ts.tipo_solicitud_id
+    INNER JOIN usuario_solicitud uxs ON s.solicitud_id = uxs.solicitud_id AND uxs.destinatario = true
+    INNER JOIN usuario u ON uxs.usuario_id = u.usuario_id
+    WHERE s.tema_id = input_tema_id
+    ORDER BY s.fecha_creacion DESC
+    OFFSET offset_val
+    LIMIT limit_val;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to count solicitudes by tema
+CREATE OR REPLACE FUNCTION get_solicitudes_by_tema_count(input_tema_id INTEGER)
+RETURNS INTEGER AS $$
+BEGIN
+    RETURN (
+        SELECT COUNT(*)
+        FROM solicitud s
+        WHERE s.tema_id = input_tema_id
+    );
+END;
+$$ LANGUAGE plpgsql;

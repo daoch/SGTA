@@ -377,8 +377,7 @@ public class SolicitudServiceImpl implements SolicitudService {
             String descripcion = (String) row[3];
             String respuesta = (String) row[4];
             java.time.LocalDate fechaModificacion = row[5] != null ? ((java.sql.Date) row[5]).toLocalDate() : null;
-            
-            // TipoSolicitud data
+              // TipoSolicitud data
             Integer tipoSolicitudId = (Integer) row[6];
             String tipoSolicitudNombre = (String) row[7];
             String tipoSolicitudDescripcion = (String) row[8];
@@ -389,7 +388,6 @@ public class SolicitudServiceImpl implements SolicitudService {
             String usuarioPrimerApellido = (String) row[11];
             String usuarioSegundoApellido = (String) row[12];
             String usuarioCorreo = (String) row[13];
-            String usuarioFoto = (String) row[14];
             
             // Map status
             String estadoStr = switch (estado) {
@@ -397,9 +395,7 @@ public class SolicitudServiceImpl implements SolicitudService {
                 case 1 -> "pending";
                 case 2 -> "rejected";
                 default -> "unknown";
-            };
-
-            // Create DTOs
+            };            // Create DTOs
             var tipoSolicitudDto = new SolicitudTemaDto.TipoSolicitud(
                 tipoSolicitudId,
                 tipoSolicitudNombre,
@@ -412,11 +408,13 @@ public class SolicitudServiceImpl implements SolicitudService {
                 usuarioPrimerApellido,
                 usuarioSegundoApellido,
                 usuarioCorreo,
-                usuarioFoto
-            );
-              // In this implementation we're not getting asesor data from the procedure
+                null            );
+            
+            // In this implementation we're not getting asesor data from the procedure
             // But we can fetch it from another repository call if needed
-            SolicitudTemaDto.Asesor asesorDto = null;            // Business logic for solicitudCompletada and aprobado
+            SolicitudTemaDto.Asesor asesorDto = null;
+            
+            // Business logic for solicitudCompletada and aprobado
             boolean solicitudCompletada = determinarSolicitudCompletadaFromData(estado);
             boolean aprobado = determinarAprobadoFromData(estado);
 

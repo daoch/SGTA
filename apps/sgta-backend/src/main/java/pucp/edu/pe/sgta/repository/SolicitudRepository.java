@@ -14,8 +14,8 @@ public interface SolicitudRepository extends JpaRepository<Solicitud, Integer>{
     List<Solicitud> findByTipoSolicitudId(Integer tipoSolicitudId);
     List<Solicitud> findByTipoSolicitudNombre(String tipoSolicitudNombre);
     
-    @Query(value = "SELECT * FROM get_solicitudes_by_tema(:temaId, :offset_val, :limit_val)", nativeQuery = true)
-    List<Object[]> findSolicitudesByTemaWithProcedure(@Param("temaId") Integer temaId, 
+    @Query(value = "SELECT * FROM get_solicitudes_by_tema(:input_tema_id, :offset_val, :limit_val)", nativeQuery = true)
+    List<Object[]> findSolicitudesByTemaWithProcedure(@Param("input_tema_id") Integer temaId,
                                                       @Param("offset_val") Integer offset, 
                                                       @Param("limit_val") Integer limit);
 
