@@ -117,19 +117,6 @@ public class EtapaFormativaController {
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/actualizar-relacion/{etapaFormativaXCicloId}/{etapaFormativaId}")
-    public ResponseEntity<EtapaFormativaDto> actualizarEtapaConRelacion(
-            @PathVariable Integer etapaFormativaXCicloId,
-            @PathVariable Integer  etapaFormativaId,
-            @Valid @RequestBody UpdateEtapaFormativaRequest request) {
-        
-        EtapaFormativaDto updated = etapaFormativaService.updateCamposConRelacion(
-            etapaFormativaXCicloId,
-            etapaFormativaId,
-            request.getNombre(),
-            request.getCreditajePorTema()
-        );
-        return ResponseEntity.ok(updated);
-    }
+    
 
 }

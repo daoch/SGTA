@@ -70,10 +70,4 @@ public interface EtapaFormativaService {
 
     Integer getEtapaFormativaIdByExposicionId(Integer exposicionId);
 
-    EtapaFormativaDto updateCamposConRelacion(
-        Integer etapaFormativaXCicloId,
-        Integer  etapaFormativaId,
-        String nombre,
-        Integer creditajePorTema
-    );
 }

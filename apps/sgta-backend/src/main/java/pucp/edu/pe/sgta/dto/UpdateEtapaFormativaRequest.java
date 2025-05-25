@@ -3,14 +3,16 @@ package pucp.edu.pe.sgta.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import java.math.BigDecimal;
 
 public class UpdateEtapaFormativaRequest {
-    private String nombre;
-    private BigDecimal  creditajePorTema;
+    private String estado;
+     // Getters y Setters
+    public String getEstado() {
+        return estado;
+    }
 
-    // Getters y Setters
-    public String getNombre() { return nombre; }
-    public void setNombre(String nombre) { this.nombre = nombre; }
-    public BigDecimal getCreditajePorTema() { return creditajePorTema; }
-    public void setCreditajePorTema(BigDecimal  creditajePorTema) { this.creditajePorTema = creditajePorTema; }
+    public void setEstado(String estado) {
+        this.estado = estado;
+    }
 }
