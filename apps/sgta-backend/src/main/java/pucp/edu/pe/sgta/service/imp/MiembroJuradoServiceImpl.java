@@ -1,9 +1,12 @@
 package pucp.edu.pe.sgta.service.imp;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import pucp.edu.pe.sgta.dto.*;
 import pucp.edu.pe.sgta.dto.exposiciones.EstadoControlExposicionRequest;
 import pucp.edu.pe.sgta.dto.exposiciones.EstadoExposicionJuradoRequest;
@@ -13,6 +16,7 @@ import pucp.edu.pe.sgta.dto.temas.DetalleTemaDto;
 import pucp.edu.pe.sgta.dto.temas.EtapaFormativaTemaDto;
 import pucp.edu.pe.sgta.dto.temas.ExposicionTemaDto;
 import pucp.edu.pe.sgta.dto.temas.ParticipanteDto;
+import pucp.edu.pe.sgta.event.EstadoControlExposicionActualizadoEvent;
 import pucp.edu.pe.sgta.model.*;
 import pucp.edu.pe.sgta.repository.*;
 import pucp.edu.pe.sgta.service.inter.MiembroJuradoService;
@@ -38,11 +42,12 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
     private final ExposicionXTemaRepository exposicionXTemaRepository;
     private final BloqueHorarioExposicionRepository bloqueHorarioExposicionRepository;
     private final ControlExposicionUsuarioTemaRepository controlExposicionUsuarioTemaRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public MiembroJuradoServiceImpl(UsuarioRepository usuarioRepository, UsuarioXTemaRepository usuarioXTemaRepository,
                                     EstadoTemaRepository estadoTemaRepository, RolRepository rolRepository, TemaRepository temaRepository,
                                     SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository,
-                                    EtapaFormativaRepository etapaFormativaRepository, ExposicionXTemaRepository exposicionXTemaRepository, BloqueHorarioExposicionRepository bloqueHorarioExposicionRepository, ControlExposicionUsuarioTemaRepository controlExposicionUsuarioTemaRepository) {
+                                    EtapaFormativaRepository etapaFormativaRepository, ExposicionXTemaRepository exposicionXTemaRepository, BloqueHorarioExposicionRepository bloqueHorarioExposicionRepository, ControlExposicionUsuarioTemaRepository controlExposicionUsuarioTemaRepository, ApplicationEventPublisher eventPublisher) {
         this.usuarioRepository = usuarioRepository;
         this.usuarioXTemaRepository = usuarioXTemaRepository;
         this.estadoTemaRepository = estadoTemaRepository;
@@ -53,6 +58,7 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
         this.exposicionXTemaRepository = exposicionXTemaRepository;
         this.bloqueHorarioExposicionRepository = bloqueHorarioExposicionRepository;
         this.controlExposicionUsuarioTemaRepository = controlExposicionUsuarioTemaRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -659,6 +665,7 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<?> actualizarEstadoControlExposicion(EstadoControlExposicionRequest request) {
         Map<String, Object> response = new HashMap<>();
 
@@ -704,6 +711,15 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
         ControlExposicionUsuarioTema control = controlOptional.get();
         control.setEstadoExposicion(request.getEstadoExposicionUsuario());
         controlExposicionUsuarioTemaRepository.save(control);
+
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                eventPublisher.publishEvent(new EstadoControlExposicionActualizadoEvent(
+                        request.getExposicionTemaId(), temaId));
+            }
+        });
+
 
         response.put("mensaje", "Se actualizó correctamente al estado: " + request.getEstadoExposicionUsuario());
         response.put("exito", true);
