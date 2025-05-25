@@ -431,3 +431,44 @@ $BODY$;
 ALTER FUNCTION get_topic_area_trends_by_user(integer)
   OWNER TO postgres;
 
+----------------------------------------------------------------------------------
+
+CREATE OR REPLACE FUNCTION listar_tesistas_por_asesor(
+  p_asesor_id INT
+)
+RETURNS TABLE (
+  tema_id            INT,
+  tesista_id         INT,
+  nombres            TEXT,
+  primer_apellido    TEXT,
+  segundo_apellido   TEXT,
+  correo_electronico TEXT
+)
+LANGUAGE plpgsql AS
+$$
+BEGIN
+  RETURN QUERY
+    SELECT 
+      ut_t.tema_id,
+      ut_t.usuario_id       AS tesista_id,
+      u.nombres,
+      u.primer_apellido,
+      u.segundo_apellido,
+      u.correo_electronico
+    FROM usuario_tema ut_t
+    JOIN rol r_t 
+      ON ut_t.rol_id = r_t.rol_id
+     AND r_t.nombre = 'Tesista'
+    JOIN usuario u 
+      ON ut_t.usuario_id = u.usuario_id
+    WHERE ut_t.tema_id IN (
+      -- todos los temas donde el asesor participa como asesor
+      SELECT ut_a.tema_id
+      FROM usuario_tema ut_a
+      JOIN rol r_a 
+        ON ut_a.rol_id = r_a.rol_id
+       AND r_a.nombre = 'Asesor'
+      WHERE ut_a.usuario_id = p_asesor_id
+    );
+END;
+$$;
