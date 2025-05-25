@@ -10,6 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import pucp.edu.pe.sgta.dto.SolicitudCeseDto;
 import pucp.edu.pe.sgta.dto.AprobarSolicitudCambioAsesorResponseDto;
+import pucp.edu.pe.sgta.dto.DetalleSolicitudCeseDto;
 import pucp.edu.pe.sgta.dto.RechazoSolicitudCambioAsesorResponseDto;
 import pucp.edu.pe.sgta.dto.RechazoSolicitudResponseDto;
 import pucp.edu.pe.sgta.dto.SolicitudCambioAsesorDto;
@@ -20,6 +21,7 @@ import pucp.edu.pe.sgta.model.Tema;
 import pucp.edu.pe.sgta.model.TipoSolicitud;
 import pucp.edu.pe.sgta.model.Usuario;
 import pucp.edu.pe.sgta.model.UsuarioXSolicitud;
+import pucp.edu.pe.sgta.model.UsuarioXTema;
 import pucp.edu.pe.sgta.repository.SolicitudRepository;
 import pucp.edu.pe.sgta.repository.SubAreaConocimientoXTemaRepository;
 import pucp.edu.pe.sgta.repository.TemaRepository;
@@ -65,52 +67,140 @@ public class SolicitudServiceImplTest {
         // Mock Solicitud
         Solicitud solicitud = new Solicitud();
         solicitud.setId(1);
-        solicitud.setEstado(0);
+        solicitud.setEstado(0); // approved
         solicitud.setDescripcion("Solicitud de cese");
         solicitud.setFechaCreacion(OffsetDateTime.of(2024, 5, 1, 12, 0, 0, 0, ZoneOffset.UTC));
         solicitud.setFechaModificacion(OffsetDateTime.of(2024, 5, 2, 12, 0, 0, 0, ZoneOffset.UTC));
+
         Tema tema = new Tema();
         tema.setTitulo("Título del tema");
+        tema.setId(2);
         solicitud.setTema(tema);
 
-        // Mock Usuarios
+        // Mock Asesor
         Usuario asesor = new Usuario();
         asesor.setId(10);
         asesor.setNombres("Juan");
         asesor.setPrimerApellido("Pérez");
         asesor.setCorreoElectronico("juan@pucp.edu.pe");
 
+        UsuarioXTema relAsesor = new UsuarioXTema();
+        relAsesor.setUsuario(asesor);
+
+        // Mock Estudiante
         Usuario estudiante = new Usuario();
         estudiante.setId(20);
         estudiante.setNombres("Ana");
         estudiante.setPrimerApellido("Gómez");
 
-        // Mock relaciones
-        UsuarioXSolicitud relAsesor = new UsuarioXSolicitud();
-        relAsesor.setUsuario(asesor);
-        relAsesor.setDestinatario(false);
-
-        UsuarioXSolicitud relEstudiante = new UsuarioXSolicitud();
+        UsuarioXTema relEstudiante = new UsuarioXTema();
         relEstudiante.setUsuario(estudiante);
-        relEstudiante.setDestinatario(true);
 
+        // Mock repositorios
         when(solicitudRepository.findByTipoSolicitudNombre("Cese Asesoria")).thenReturn(List.of(solicitud));
-        when(usuarioXSolicitudRepository.findBySolicitud(solicitud)).thenReturn(List.of(relAsesor, relEstudiante));
+        when(usuarioXTemaRepository.findFirstByTemaIdAndRolNombreAndActivoTrue(2, "Asesor")).thenReturn(relAsesor);
+        when(usuarioXTemaRepository.findByTemaIdAndRolNombreAndActivoTrue(2, "Tesista")).thenReturn(List.of(relEstudiante));
+        when(usuarioXTemaRepository.findByUsuarioIdAndRolNombreAndActivoTrue(10, "asesor")).thenReturn(List.of(new UsuarioXTema())); // tamaño 1
 
-        // Ejecutar
+        // Ejecutar método
         SolicitudCeseDto resultado = solicitudService.findAllSolicitudesCese(0, 10);
 
-        // Validaciones
+        // Validaciones generales
         assertNotNull(resultado);
         assertEquals(1, resultado.getRequestTermmination().size());
-
         assertEquals(1, resultado.getTotalPages());
 
-        var request = resultado.getRequestTermmination().get(0);
+        // Validar contenido de la solicitud
+        SolicitudCeseDto.RequestTermination request = resultado.getRequestTermmination().get(0);
+        assertEquals(1, request.getId());
         assertEquals("approved", request.getStatus());
-        assertEquals("Juan", request.getAssessor().getName());
-        assertEquals("Ana", request.getStudents().get(0).getName());
-        assertEquals("Título del tema", request.getStudents().get(0).getTopic().getName());
+        assertEquals("Solicitud de cese", request.getReason());
+
+        // Validar asesor
+        SolicitudCeseDto.Assessor assessor = request.getAssessor();
+        assertEquals(10, assessor.getId());
+        assertEquals("Juan", assessor.getName());
+        assertEquals("Pérez", assessor.getLastName());
+        assertEquals("juan@pucp.edu.pe", assessor.getEmail());
+        assertEquals(1, assessor.getQuantityCurrentProyects());
+
+        // Validar estudiantes
+        List<SolicitudCeseDto.Estudiante> students = request.getStudents();
+        assertEquals(1, students.size());
+        assertEquals(20, students.get(0).getId());
+        assertEquals("Ana", students.get(0).getName());
+        assertEquals("Gómez", students.get(0).getLastName());
+        assertEquals("Título del tema", students.get(0).getTopic().getName());
+    }
+
+    @Test
+    public void testGetDetalleSolicitudCese_ReturnsCorrectDetails() {
+        // Mock Solicitud
+        Solicitud solicitud = new Solicitud();
+        solicitud.setId(1);
+        solicitud.setEstado(0); // approved
+        solicitud.setDescripcion("Solicitud de cese");
+        solicitud.setRespuesta("Respuesta del comité");
+        solicitud.setFechaCreacion(OffsetDateTime.of(2024, 5, 1, 12, 0, 0, 0, ZoneOffset.UTC));
+        solicitud.setFechaModificacion(OffsetDateTime.of(2024, 5, 2, 12, 0, 0, 0, ZoneOffset.UTC));
+
+        Tema tema = new Tema();
+        tema.setId(100);
+        tema.setTitulo("Tema de Tesis");
+        solicitud.setTema(tema);
+
+        // Mock Asesor
+        Usuario asesor = new Usuario();
+        asesor.setId(10);
+        asesor.setNombres("Carlos");
+        asesor.setPrimerApellido("Ramírez");
+        asesor.setCorreoElectronico("carlos@pucp.edu.pe");
+
+        UsuarioXTema relAsesor = new UsuarioXTema();
+        relAsesor.setUsuario(asesor);
+
+        // Mock Estudiante
+        Usuario estudiante = new Usuario();
+        estudiante.setId(20);
+        estudiante.setNombres("Lucía");
+        estudiante.setPrimerApellido("Torres");
+        estudiante.setCorreoElectronico("lucia@pucp.edu.pe");
+
+        UsuarioXTema relEstudiante = new UsuarioXTema();
+        relEstudiante.setUsuario(estudiante);
+
+        // Configurar mocks
+        when(solicitudRepository.findById(1)).thenReturn(Optional.of(solicitud));
+        when(usuarioXTemaRepository.findFirstByTemaIdAndRolNombreAndActivoTrue(100, "Asesor")).thenReturn(relAsesor);
+        when(usuarioXTemaRepository.findByTemaIdAndRolNombreAndActivoTrue(100, "Tesista")).thenReturn(List.of(relEstudiante));
+        when(usuarioXTemaRepository.findByUsuarioIdAndRolNombreAndActivoTrue(10, "asesor")).thenReturn(List.of(new UsuarioXTema(), new UsuarioXTema())); // 2 solicitudes
+
+        // Ejecutar método
+        DetalleSolicitudCeseDto detalle = solicitudService.getDetalleSolicitudCese(1);
+
+        // Validaciones
+        assertNotNull(detalle);
+        assertEquals(1, detalle.getId());
+        assertEquals("approved", detalle.getStatus());
+        assertEquals("Solicitud de cese", detalle.getReason());
+        assertEquals("Respuesta del comité", detalle.getResponse());
+
+        // Validar asesor
+        var asesorDto = detalle.getAssessor();
+        assertEquals(10, asesorDto.getId());
+        assertEquals("Carlos", asesorDto.getName());
+        assertEquals("Ramírez", asesorDto.getLastName());
+        assertEquals("carlos@pucp.edu.pe", asesorDto.getEmail());
+        assertEquals(2, asesorDto.getQuantityCurrentProyects());
+
+        // Validar estudiantes
+        assertEquals(1, detalle.getStudents().size());
+        var estudianteDto = detalle.getStudents().get(0);
+        assertEquals(20, estudianteDto.getId());
+        assertEquals("Lucía", estudianteDto.getName());
+        assertEquals("Torres", estudianteDto.getLastName());
+        assertEquals("lucia@pucp.edu.pe", estudianteDto.getEmail());
+        assertEquals("Tema de Tesis", estudianteDto.getTopic().getName());
     }
 
     @Test

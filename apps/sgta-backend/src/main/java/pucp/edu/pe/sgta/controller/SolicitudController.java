@@ -8,6 +8,7 @@ import pucp.edu.pe.sgta.dto.AprobarSolicitudCambioAsesorRequestDto;
 import pucp.edu.pe.sgta.dto.AprobarSolicitudCambioAsesorResponseDto;
 import pucp.edu.pe.sgta.dto.AprobarSolicitudRequestDto;
 import pucp.edu.pe.sgta.dto.AprobarSolicitudResponseDto;
+import pucp.edu.pe.sgta.dto.DetalleSolicitudCeseDto;
 import pucp.edu.pe.sgta.dto.RechazoSolicitudCambioAsesorRequestDto;
 import pucp.edu.pe.sgta.dto.RechazoSolicitudCambioAsesorResponseDto;
 import pucp.edu.pe.sgta.dto.RechazoSolicitudRequestDto;
@@ -29,6 +30,12 @@ public class SolicitudController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(solicitudService.findAllSolicitudesCese(page, size));
+    }
+
+    @GetMapping("/cessation-requests/{requestId}")
+    public ResponseEntity<DetalleSolicitudCeseDto> getDetalleSolicitudesCese(
+        @PathVariable Integer requestId) {
+        return ResponseEntity.ok(solicitudService.getDetalleSolicitudCese(requestId));
     }
 
     @PostMapping("/cessation-requests/{requestId}/reject")
