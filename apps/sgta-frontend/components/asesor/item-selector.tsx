@@ -8,7 +8,10 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { AreaDeInvestigacion, Coasesor } from "@/app/types/temas/entidades";
+import {
+  AreaDeInvestigacion,
+  Coasesor,
+} from "@/features/temas/types/inscripcion/entities";
 
 type Item = Coasesor | AreaDeInvestigacion;
 

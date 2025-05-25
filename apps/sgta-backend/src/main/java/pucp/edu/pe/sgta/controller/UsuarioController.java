@@ -9,7 +9,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
+import pucp.edu.pe.sgta.model.Carrera;
+import pucp.edu.pe.sgta.dto.CarreraDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
+import pucp.edu.pe.sgta.service.inter.CarreraService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
 
 @RestController
@@ -19,6 +22,9 @@ public class UsuarioController {
 
 	@Autowired
 	private UsuarioService usuarioService;
+
+	@Autowired
+	private CarreraService carreraService;
 
 	@PostMapping("/create")
 	public void create(@RequestBody UsuarioDto dto) {
@@ -49,6 +55,7 @@ public class UsuarioController {
 
 	/**
 	 * HU01: Asignar Rol de Asesor a Profesor
+	 * 
 	 * @param userId ID del profesor
 	 * @return ResponseEntity con mensaje de éxito o error
 	 */
@@ -57,14 +64,11 @@ public class UsuarioController {
 		try {
 			usuarioService.assignAdvisorRoleToUser(userId);
 			return new ResponseEntity<>("Rol de Asesor asignado exitosamente", HttpStatus.OK);
-		}
-		catch (NoSuchElementException e) {
+		} catch (NoSuchElementException e) {
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
-		}
-		catch (IllegalArgumentException e) {
+		} catch (IllegalArgumentException e) {
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			return new ResponseEntity<>("Error al asignar el rol de Asesor: " + e.getMessage(),
 					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -72,6 +76,7 @@ public class UsuarioController {
 
 	/**
 	 * HU02: Quitar Rol de Asesor a Profesor (Usuario)
+	 * 
 	 * @param userId ID del profesor
 	 * @return ResponseEntity con mensaje de éxito o error
 	 */
@@ -80,14 +85,11 @@ public class UsuarioController {
 		try {
 			usuarioService.removeAdvisorRoleFromUser(userId);
 			return new ResponseEntity<>("Rol de Asesor removido exitosamente", HttpStatus.OK);
-		}
-		catch (NoSuchElementException e) {
+		} catch (NoSuchElementException e) {
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
-		}
-		catch (IllegalArgumentException e) {
+		} catch (IllegalArgumentException e) {
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			return new ResponseEntity<>("Error al remover el rol de Asesor: " + e.getMessage(),
 					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -95,6 +97,7 @@ public class UsuarioController {
 
 	/**
 	 * HU03: Asignar Rol de Jurado a Profesor (Usuario)
+	 * 
 	 * @param userId ID del profesor
 	 * @return ResponseEntity con mensaje de éxito o error
 	 */
@@ -103,14 +106,11 @@ public class UsuarioController {
 		try {
 			usuarioService.assignJuryRoleToUser(userId);
 			return new ResponseEntity<>("Rol de Jurado asignado exitosamente", HttpStatus.OK);
-		}
-		catch (NoSuchElementException e) {
+		} catch (NoSuchElementException e) {
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
-		}
-		catch (IllegalArgumentException e) {
+		} catch (IllegalArgumentException e) {
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			return new ResponseEntity<>("Error al asignar el rol de Jurado: " + e.getMessage(),
 					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -118,6 +118,7 @@ public class UsuarioController {
 
 	/**
 	 * HU04: Quitar Rol de Jurado a Profesor (Usuario)
+	 * 
 	 * @param userId ID del profesor
 	 * @return ResponseEntity con mensaje de éxito o error
 	 */
@@ -126,14 +127,11 @@ public class UsuarioController {
 		try {
 			usuarioService.removeJuryRoleFromUser(userId);
 			return new ResponseEntity<>("Rol de Jurado removido exitosamente", HttpStatus.OK);
-		}
-		catch (NoSuchElementException e) {
+		} catch (NoSuchElementException e) {
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
-		}
-		catch (IllegalArgumentException e) {
+		} catch (IllegalArgumentException e) {
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			return new ResponseEntity<>("Error al remover el rol de Jurado: " + e.getMessage(),
 					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -141,8 +139,10 @@ public class UsuarioController {
 
 	/**
 	 * HU05: Listar Profesores (Usuarios) con Estado de Roles
-	 * @param rolNombre Rol por el que filtrar (opcional, "Todos" por defecto)
-	 * @param terminoBusqueda Término para buscar por nombre, correo o código (opcional)
+	 * 
+	 * @param rolNombre       Rol por el que filtrar (opcional, "Todos" por defecto)
+	 * @param terminoBusqueda Término para buscar por nombre, correo o código
+	 *                        (opcional)
 	 * @return Lista de usuarios con sus roles
 	 */
 	@GetMapping("/professors-with-roles")
@@ -153,8 +153,7 @@ public class UsuarioController {
 		try {
 			List<UsuarioDto> usuarios = usuarioService.getProfessorsWithRoles(rolNombre, terminoBusqueda);
 			return new ResponseEntity<>(usuarios, HttpStatus.OK);
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
