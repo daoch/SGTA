@@ -2,6 +2,7 @@ package pucp.edu.pe.sgta.service.inter;
 
 import org.springframework.http.ResponseEntity;
 import pucp.edu.pe.sgta.dto.*;
+import pucp.edu.pe.sgta.dto.exposiciones.EstadoControlExposicionRequest;
 import pucp.edu.pe.sgta.dto.exposiciones.EstadoExposicionJuradoRequest;
 import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
 import pucp.edu.pe.sgta.dto.temas.DetalleTemaDto;
@@ -44,5 +45,7 @@ public interface MiembroJuradoService {
     List<ExposicionTemaMiembrosDto> listarExposicionXJuradoId(Integer juradoId);
 
     ResponseEntity<?> actualizarEstadoExposicionJurado(EstadoExposicionJuradoRequest request);
+
+    ResponseEntity<?> actualizarEstadoControlExposicion(EstadoControlExposicionRequest request);
 
 }
