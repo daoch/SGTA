@@ -16,6 +16,7 @@ import pucp.edu.pe.sgta.dto.temas.ParticipanteDto;
 import pucp.edu.pe.sgta.model.*;
 import pucp.edu.pe.sgta.repository.*;
 import pucp.edu.pe.sgta.service.inter.MiembroJuradoService;
+import pucp.edu.pe.sgta.util.EstadoExposicion;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -574,6 +575,9 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
 
                     // Estado planificación
                     String estado = exposicionXTema.getEstadoExposicion().toString();
+                    if (exposicionXTema.getEstadoExposicion() == EstadoExposicion.SIN_PROGRAMAR) {
+                        continue;
+                    }
 
                     // Etapa formativa
                     EtapaFormativa etapa = exposicion.getEtapaFormativaXCiclo().getEtapaFormativa();
@@ -593,6 +597,16 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                         return miembro;
                     }).toList();
 
+                    // Buscar el usuario x tema
+                    Optional<UsuarioXTema> usuarioXTemaOptional = usuarioXTemaRepository.findByUsuarioIdAndActivoTrue(juradoId)
+                            .stream()
+                            .filter(u -> u.getTema().getId().equals(tema.getId()))
+                            .findFirst();
+
+                    // Obtener estado
+                    Optional<ControlExposicionUsuarioTema> controlOptional =
+                            controlExposicionUsuarioTemaRepository.findByExposicionXTema_IdAndUsuario_Id(exposicionXTema.getId(), usuarioXTemaOptional.get().getId());
+
                     // Crear DTO
                     ExposicionTemaMiembrosDto dto = new ExposicionTemaMiembrosDto();
                     dto.setId_exposicion(exposicionXTema.getId());
@@ -605,6 +619,7 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                     dto.setCiclo_id(idCiclo);
                     dto.setCiclo_anio(anioCiclo);
                     dto.setCiclo_semestre(semestreCiclo);
+                    dto.setEstado_control(controlOptional.map(ControlExposicionUsuarioTema::getEstadoExposicion).orElse(null));
                     dto.setMiembros(miembros);
 
                     result.add(dto);
