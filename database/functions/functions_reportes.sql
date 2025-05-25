@@ -412,8 +412,7 @@ BEGIN
     ORDER BY ty.year, ac.nombre;
 END;
 $BODY$;
-
---------
+-------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION listar_tesistas_por_asesor(p_asesor_id INT)
     RETURNS TABLE(
                      tema_id            INT,
@@ -444,4 +443,48 @@ BEGIN
         );
 END;
 $$ LANGUAGE plpgsql;
+
+---------------------------------------------------------------------------------------------------------------------
+-- A esta funcion falta traer el "estado_revisión", si es que no existe en la tabla, colocar algo como "nada", para no mostrar en el front
+CREATE OR REPLACE FUNCTION listar_hitos_cronograma_tesista(p_tesista_id INT)
+RETURNS TABLE (
+    hito_id INT,
+    nombre VARCHAR,
+    descripcion TEXT,
+    fecha_inicio TIMESTAMP WITH TIME ZONE,
+    fecha_fin TIMESTAMP WITH TIME ZONE,
+    estado enum_estado_entrega,
+    es_evaluable BOOLEAN,
+    tema_id INT,
+    tema_titulo VARCHAR
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        e.entregable_id AS hito_id,
+        e.nombre,
+        e.descripcion,
+        e.fecha_inicio,
+        e.fecha_fin,
+        et.estado,
+        e.es_evaluable,
+        t.tema_id,
+        t.titulo AS tema_titulo
+    FROM entregable_x_tema et
+    JOIN entregable e ON e.entregable_id = et.entregable_id
+    JOIN tema t ON t.tema_id = et.tema_id
+    JOIN usuario_tema ut ON ut.tema_id = t.tema_id
+    JOIN rol r ON r.rol_id = ut.rol_id AND r.nombre = 'Tesista'
+    WHERE ut.usuario_id = p_tesista_id
+      AND et.activo = TRUE
+      AND e.activo = TRUE
+      AND t.activo = TRUE
+      AND ut.activo = TRUE
+    ORDER BY e.fecha_fin ASC;
+END;
+$$ LANGUAGE plpgsql;
+
+---------------------------------------------------------------------------------------------------------------------
+
+
 
