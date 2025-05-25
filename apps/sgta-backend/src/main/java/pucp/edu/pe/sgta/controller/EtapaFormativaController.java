@@ -116,7 +116,4 @@ public class EtapaFormativaController {
         etapaFormativaService.delete(id);
         return ResponseEntity.noContent().build();
     }
-
-    
-
 }
