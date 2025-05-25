@@ -22,6 +22,7 @@ import pucp.edu.pe.sgta.dto.RechazoSolicitudResponseDto;
 import pucp.edu.pe.sgta.dto.SolicitudCambioAsesorDto;
 import pucp.edu.pe.sgta.dto.RechazoSolicitudResponseDto.AsignacionDto;
 import pucp.edu.pe.sgta.dto.SolicitudCeseDto;
+import pucp.edu.pe.sgta.dto.temas.SolicitudTemaDto;
 import pucp.edu.pe.sgta.model.Solicitud;
 import pucp.edu.pe.sgta.model.UsuarioXSolicitud;
 import pucp.edu.pe.sgta.model.UsuarioXTema;
@@ -346,5 +347,112 @@ public class SolicitudServiceImpl implements SolicitudService {
         dto.setAssignation(asignacion);
 
         return dto;
+    }    @Override
+    public SolicitudTemaDto findAllSolicitudesByTema(Integer temaId, int page, int size) {
+        // Calculate offset for pagination
+        int offset = page * size;
+        
+        // Call PostgreSQL function to get solicitudes data
+        List<Object[]> solicitudesData = solicitudRepository.findSolicitudesByTemaWithProcedure(temaId, offset, size);
+        
+        // Get total count for pagination
+        Integer totalElements = solicitudRepository.countSolicitudesByTema(temaId);
+        int totalPages = (int) Math.ceil((double) totalElements / size);
+        
+        if (solicitudesData.isEmpty()) {
+            return new SolicitudTemaDto(Collections.emptyList(), totalPages);
+        }
+
+        List<SolicitudTemaDto.RequestChange> requestList = solicitudesData.stream().map(row -> {
+            // Map the database procedure result to our DTO
+            // The procedure returns fields in the following order:
+            // solicitud_id, fecha_creacion, estado, descripcion, respuesta, fecha_modificacion,
+            // tipo_solicitud_id, tipo_solicitud_nombre, tipo_solicitud_descripcion,
+            // usuario_id, usuario_nombres, usuario_primer_apellido, usuario_segundo_apellido, 
+            // usuario_correo, usuario_foto_perfil
+            
+            Integer solicitudId = (Integer) row[0];
+            java.time.LocalDate fechaCreacion = row[1] != null ? ((java.sql.Date) row[1]).toLocalDate() : null;
+            Integer estado = (Integer) row[2];
+            String descripcion = (String) row[3];
+            String respuesta = (String) row[4];
+            java.time.LocalDate fechaModificacion = row[5] != null ? ((java.sql.Date) row[5]).toLocalDate() : null;
+            
+            // TipoSolicitud data
+            Integer tipoSolicitudId = (Integer) row[6];
+            String tipoSolicitudNombre = (String) row[7];
+            String tipoSolicitudDescripcion = (String) row[8];
+            
+            // Usuario data
+            Integer usuarioId = (Integer) row[9];
+            String usuarioNombres = (String) row[10];
+            String usuarioPrimerApellido = (String) row[11];
+            String usuarioSegundoApellido = (String) row[12];
+            String usuarioCorreo = (String) row[13];
+            String usuarioFoto = (String) row[14];
+            
+            // Map status
+            String estadoStr = switch (estado) {
+                case 0 -> "approved";
+                case 1 -> "pending";
+                case 2 -> "rejected";
+                default -> "unknown";
+            };
+
+            // Create DTOs
+            var tipoSolicitudDto = new SolicitudTemaDto.TipoSolicitud(
+                tipoSolicitudId,
+                tipoSolicitudNombre,
+                tipoSolicitudDescripcion
+            );
+
+            var usuarioDto = new SolicitudTemaDto.Usuario(
+                usuarioId,
+                usuarioNombres,
+                usuarioPrimerApellido,
+                usuarioSegundoApellido,
+                usuarioCorreo,
+                usuarioFoto
+            );
+              // In this implementation we're not getting asesor data from the procedure
+            // But we can fetch it from another repository call if needed
+            SolicitudTemaDto.Asesor asesorDto = null;            // Business logic for solicitudCompletada and aprobado
+            boolean solicitudCompletada = determinarSolicitudCompletadaFromData(estado);
+            boolean aprobado = determinarAprobadoFromData(estado);
+
+            // For students, we could fetch from a separate query or include in the procedure
+            // For now, using a simple representation with the current user as the student
+            SolicitudTemaDto.Tema tema = new SolicitudTemaDto.Tema("Tema de Tesis"); // This should be replaced with actual topic name
+            SolicitudTemaDto.Tesista tesista = new SolicitudTemaDto.Tesista(
+                usuarioId,
+                usuarioNombres,
+                usuarioPrimerApellido,
+                tema
+            );
+            List<SolicitudTemaDto.Tesista> students = Collections.singletonList(tesista);
+
+            return new SolicitudTemaDto.RequestChange(
+                solicitudId,
+                fechaCreacion,
+                estadoStr,
+                descripcion,
+                respuesta,
+                fechaModificacion,
+                solicitudCompletada,
+                aprobado,
+                tipoSolicitudDto,
+                usuarioDto,
+                asesorDto,
+                students
+            );
+        }).toList();
+
+        return new SolicitudTemaDto(requestList, totalPages);
+    }    private boolean determinarSolicitudCompletadaFromData(Integer estado) {
+        // Business logic based on procedure data
+        return estado == 0 || estado == 2; // approved or rejected
+    }    private boolean determinarAprobadoFromData(Integer estado) {
+        // Simple implementation for now - approved if status is 0 (approved)
+        return estado != null && estado == 0;
     }
 }
