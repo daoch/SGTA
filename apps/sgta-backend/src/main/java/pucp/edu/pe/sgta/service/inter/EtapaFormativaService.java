@@ -7,6 +7,9 @@ import pucp.edu.pe.sgta.dto.EtapaFormativaDetalleDto;
 
 import java.util.List;
 
+import pucp.edu.pe.sgta.dto.*;
+
+
 public interface EtapaFormativaService {
 
     List<EtapaFormativaDto> getAll();
@@ -31,6 +34,8 @@ public interface EtapaFormativaService {
     List<EtapaFormativaDto> findAllActivas();
 
     List<EtapaFormativaDto> findAllActivasByCoordinador(Integer coordinadorId);
+
+    List<EtapaFormativaNombreDTO> findAllActivasNombre();
 
     /**
      * Obtiene un listado simple de todas las etapas formativas
@@ -64,4 +69,5 @@ public interface EtapaFormativaService {
      */
 
     Integer getEtapaFormativaIdByExposicionId(Integer exposicionId);
+
 }

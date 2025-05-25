@@ -25,6 +25,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.EntityNotFoundException;
 
+import pucp.edu.pe.sgta.repository.EtapaFormativaXCicloRepository;
+import java.util.NoSuchElementException;
+
 @Service
 public class EtapaFormativaServiceImpl implements EtapaFormativaService {
     @Autowired
@@ -33,6 +36,8 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
     private ExposicionRepository exposicionRepository;
     @Autowired
     private EtapaFormativaRepository etapaFormativaRepository;
+    @Autowired
+    private EtapaFormativaXCicloRepository etapaFormativaXCicloRepository;
 
     public EtapaFormativaServiceImpl(EtapaFormativaRepository etapaFormativaRepository) {
         this.etapaFormativaRepository = etapaFormativaRepository;
@@ -176,6 +181,14 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
     }
 
     @Override
+    public List<EtapaFormativaNombreDTO> findAllActivasNombre() {
+        List<EtapaFormativaNombreDTO> etapasFormativas = etapaFormativaRepository.findAllActivasNombre();
+        return etapasFormativas.stream()
+                .map(ef -> new EtapaFormativaNombreDTO(ef.getEtapaFormativaId(),
+                        ef.getNombre()))
+                .toList();
+    }
+
     public EtapaFormativaDto create(EtapaFormativaDto dto) {
         try {
             // 1) Validar y cargar la Carrera

@@ -3,7 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { etapasFormativasService, type EtapaFormativaDetail } from "@/services/etapas-formativas";
+import { etapasFormativasService, type EtapaFormativaDetail } from "@/features/configuracion/services/etapas-formativas";
 import { ArrowLeft, Edit } from "lucide-react";
 import Link from "next/link";
 import { use, useEffect, useState } from "react";

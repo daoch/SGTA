@@ -1,21 +1,39 @@
-import { EstadoPlanificacion, Tema, TimeSlot } from "@/features/jurado/types/jurado.types";
+"use client";
+
+import {
+  EstadoPlanificacion,
+  Tema,
+  TimeSlot,
+} from "@/features/jurado/types/jurado.types";
 import Draggable from "./Draggable";
 import ExpoSon from "./ExpoSon";
-
-
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import ToolTipoBloque from "./ToolTipoBloque";
 
 interface Props {
   code: string;
   assignedExpos: Record<string, Tema>;
   room: TimeSlot;
   removeExpo: (expo: Tema) => void;
-  estadoPlanificacion:EstadoPlanificacion;
+  estadoPlanificacion: EstadoPlanificacion;
 }
 
-const RoomSlot: React.FC<Props> = ({ code,  assignedExpos,  room,  removeExpo,  estadoPlanificacion,}: Props) => {
-  
-  const isDraggeable = estadoPlanificacion.nombre==="Cierre de planificacion"? false: true;
-  const expoFind =  room.key in assignedExpos ? assignedExpos[room.key] : undefined;
+const RoomSlot: React.FC<Props> = ({
+  code,
+  assignedExpos,
+  room,
+  removeExpo,
+  estadoPlanificacion,
+}: Props) => {
+  const isDraggeable =
+    estadoPlanificacion.nombre === "Cierre de planificacion" ? false : true;
+  const expoFind =
+    room.key in assignedExpos ? assignedExpos[room.key] : undefined;
 
   const baseStyle: React.CSSProperties = {
     border: "2px dashed #868A8F",
@@ -42,11 +60,28 @@ const RoomSlot: React.FC<Props> = ({ code,  assignedExpos,  room,  removeExpo,  
       }}
     >
       {expoFind ? (
-        <Draggable id={expoFind.codigo} key={expoFind.codigo} isDraggeable={isDraggeable}>
-          <ExpoSon expoFind={expoFind} removeExpo={removeExpo} estadoPlan={estadoPlanificacion} />
+        <Draggable
+          id={expoFind.codigo}
+          key={expoFind.codigo}
+          isDraggeable={isDraggeable}
+        >
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger className="w-full">
+                <ExpoSon
+                  expoFind={expoFind}
+                  removeExpo={removeExpo}
+                  estadoPlan={estadoPlanificacion}
+                />
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <ToolTipoBloque expoFind={expoFind} />
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </Draggable>
       ) : (
-        room?.key.split("|")[2]
+        <span className="text-lg">{room?.key.split("|")[2]}</span>
       )}
     </div>
   );

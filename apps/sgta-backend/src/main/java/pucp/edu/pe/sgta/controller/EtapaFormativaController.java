@@ -23,6 +23,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import pucp.edu.pe.sgta.dto.EtapaFormativaListadoDto;
 import pucp.edu.pe.sgta.dto.EtapaFormativaDetalleDto;
 
+
+import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.*;
+import pucp.edu.pe.sgta.dto.UpdateEtapaFormativaRequest;
+
+import pucp.edu.pe.sgta.dto.*;
+
+
 @RestController
 @RequestMapping("/etapas-formativas")
 public class EtapaFormativaController {
@@ -33,6 +41,11 @@ public class EtapaFormativaController {
     public List<EtapaFormativaNombreDTO> obtenerPorInicializarPorCoordinador(
             @PathVariable("corodinador_id") Integer usuarioId) {
         return etapaFormativaService.findToInitializeByCoordinador(usuarioId);
+    }
+
+    @GetMapping("/listarActivasNombre")
+    public List<EtapaFormativaNombreDTO> obtenerEtapasFormativasActivasNombre() {
+        return etapaFormativaService.findAllActivasNombre();
     }
 
     @GetMapping("/listarActivas")

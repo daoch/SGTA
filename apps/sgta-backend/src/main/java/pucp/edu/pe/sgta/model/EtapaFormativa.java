@@ -16,6 +16,9 @@ import java.time.OffsetDateTime;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import org.hibernate.annotations.CreationTimestamp;
+import java.util.ArrayList;
+import java.util.List;
+
 
 @Entity
 @Getter
@@ -63,6 +66,13 @@ public class EtapaFormativa {
     )
     private OffsetDateTime fechaModificacion;
 
+    @OneToMany(mappedBy = "etapaFormativa", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<EtapaFormativaXCiclo> etapasXCiclo = new ArrayList<>();
+
+    public void addEtapaXCiclo(EtapaFormativaXCiclo etapaXCiclo) {
+        etapasXCiclo.add(etapaXCiclo);
+        etapaXCiclo.setEtapaFormativa(this);
+    }
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "carrera_id", nullable = false, foreignKey = @ForeignKey(name = "fk_area_conocimiento_carrera"))
