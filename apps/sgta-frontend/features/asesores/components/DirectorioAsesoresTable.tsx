@@ -10,6 +10,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import AdministrarRolesModal from "./AdministrarRolesModal";
 import AlertaModalDesactivarAsesor from "./AlertaModalDesactivarAsesor";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 type Props = {
   profesores: Profesor[];
@@ -17,11 +18,11 @@ type Props = {
 };
 
 export default function DirectorioAsesoresTable({ profesores, onUpdateRoles }: Props) {
-  
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [data, setData] = useState<Profesor[]>(profesores);
   const totalPages = Math.max(1, Math.ceil(data.length / rowsPerPage));
+  const router = useRouter();
 
   useEffect(() => {
     setPage(1);
@@ -56,7 +57,6 @@ export default function DirectorioAsesoresTable({ profesores, onUpdateRoles }: P
   const [alertMessage, setAlertMessage] = useState("");
   const [pendingAlert, setPendingAlert] = useState<string | null>(null);
 
-
   const handleOpenRolesModal = (profesor: Profesor) => {
     setSelectedProfesor(profesor);
     setIsModalOpen(true);
@@ -72,24 +72,21 @@ export default function DirectorioAsesoresTable({ profesores, onUpdateRoles }: P
     setPendingAlert(msg);
   };
 
-
   useEffect(() => {
     if (!isModalOpen && pendingAlert) {
       setTimeout(() => {
         setAlertMessage(pendingAlert);
         setAlertOpen(true);
         setPendingAlert(null);
-      }, 100); // prueba con 50 o 100ms
+      }, 100);
     }
-  }, [isModalOpen, pendingAlert]); 
+  }, [isModalOpen, pendingAlert]);
 
   useEffect(() => {
     if (!alertOpen) {
       document.body.style.overflow = "";
     }
   }, [alertOpen]);
-
-
 
   return (
     <>
@@ -141,7 +138,11 @@ export default function DirectorioAsesoresTable({ profesores, onUpdateRoles }: P
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Button size="icon" variant="ghost">
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => router.push(`/coordinador/asesores/perfil/${p.id}`)}
+                            >
                               <Eye className="w-4 h-4" />
                             </Button>
                           </TooltipTrigger>
@@ -233,19 +234,18 @@ export default function DirectorioAsesoresTable({ profesores, onUpdateRoles }: P
         onShowAlert={handleShowAlert}
       />
       {alertOpen && (
-          <AlertaModalDesactivarAsesor
-            open={alertOpen}
-            onOpenChange={(open) => {
-              console.log("AlertaModalDesactivarAsesor onOpenChange", open);
-              setAlertOpen(open);
-              if (!open) {
-                setSelectedProfesor(null);
-                setIsModalOpen(false);
-              }
-            }}
-            mensaje={alertMessage}
-          />
-        )}
+        <AlertaModalDesactivarAsesor
+          open={alertOpen}
+          onOpenChange={(open) => {
+            setAlertOpen(open);
+            if (!open) {
+              setSelectedProfesor(null);
+              setIsModalOpen(false);
+            }
+          }}
+          mensaje={alertMessage}
+        />
+      )}
     </>
   );
 }
