@@ -355,8 +355,9 @@ export const actualizarEstadoExposicion = async (
   nuevoEstado: string
 ): Promise<boolean> => {
   try {
-    const response = await axiosInstance.put(`/jurado/exposiciones/${exposicionId}/estado`, {
-      estado: nuevoEstado
+    const response = await axiosInstance.put(`/jurado/conformidad`, {
+      exposicionTemaId: exposicionId,
+      estadoExposicion: nuevoEstado
     });
     
     return response.status === 200;

@@ -23,9 +23,10 @@ import { actualizarEstadoExposicion } from "../services/jurado-service";
 interface ExposicionCardProps {
   exposicion: ExposicionJurado;
   onClick?: (exposicion: ExposicionJurado) => void;
+  onStatusChange?: () => Promise<void>;
 }
 
-export function ExposicionCard({ exposicion, onClick }: ExposicionCardProps) {
+export function ExposicionCard({ exposicion, onClick,onStatusChange }: ExposicionCardProps) {
   const router = useRouter();
 
   // Estado local para manejar actualizaciones sin recargar la página
@@ -76,8 +77,10 @@ export function ExposicionCard({ exposicion, onClick }: ExposicionCardProps) {
     
     try {
       // Llamar al endpoint para actualizar el estado
-      await actualizarEstadoExposicion(exposicion.id_exposicion, "esperando_aprobacion");
-      
+      await actualizarEstadoExposicion(exposicion.id_exposicion, "ESPERANDO_APROBACION");
+      if (onStatusChange) {
+        await onStatusChange();
+      }
       // Actualizar el estado local para reflejar el cambio inmediatamente
       setEstadoActual("esperando_aprobacion");
       
@@ -98,7 +101,7 @@ export function ExposicionCard({ exposicion, onClick }: ExposicionCardProps) {
   
     try {
       // Cambiar el estado para mostrar "Reprogramación Solicitada"
-      await actualizarEstadoExposicion(exposicion.id_exposicion, "esperando_aprobacion");
+      //await actualizarEstadoExposicion(exposicion.id_exposicion, "ESPERANDO_APROBACION");
       setIsReprogramacionSolicitada(true);
       setEstadoActual("esperando_aprobacion");
       // Mostrar mensaje de éxito
@@ -117,8 +120,10 @@ export function ExposicionCard({ exposicion, onClick }: ExposicionCardProps) {
   
   try {
     // Puedes agregar aquí una llamada API específica para registrar la no disponibilidad
-    await actualizarEstadoExposicion(exposicion.id_exposicion, "esperando_aprobacion");
-
+    await actualizarEstadoExposicion(exposicion.id_exposicion, "ESPERANDO_APROBACION");
+    if (onStatusChange) {
+        await onStatusChange();
+      }
     // Activar el estado de reprogramación solicitada
     setIsReprogramacionSolicitada(true);
     // Actualizar el estado actual a "esperando_aprobacion" (opcional, dependiendo de tu lógica de negocio)

@@ -152,8 +152,8 @@ const ExposicionesJuradoPage: React.FC = () => {
   }, []);
 
   const [exposiciones, setExposiciones] = useState<ExposicionJurado[]>([]);
-  useEffect(() => {
-    const fetchExposiciones = async () => {
+
+  const fetchExposiciones = async () => {
       setIsLoading(true);
       try {
         //se debe reemplazar el 6 por el id del jurado logueado
@@ -166,6 +166,7 @@ const ExposicionesJuradoPage: React.FC = () => {
       }
     };
 
+  useEffect(() => {
     fetchExposiciones();
   }, []);
 
@@ -278,6 +279,7 @@ const ExposicionesJuradoPage: React.FC = () => {
             key={exposicion.id_exposicion}
             exposicion={exposicion}
             onClick={() => handleOpenModal(exposicion)}
+            onStatusChange={fetchExposiciones}
           />
         ))}
       </div>
@@ -286,6 +288,7 @@ const ExposicionesJuradoPage: React.FC = () => {
         open={modalOpen}
         onOpenChange={setModalOpen}
         exposicion={selectedExposicion}
+        
       />
     </div>
   );
