@@ -13,6 +13,7 @@ import {
 import { useDirectorioAsesores } from "@/features/asesores/hooks/useDirectorioAsesores";
 import DirectorioAsesoresTable from "@/features/asesores/components/DirectorioAsesoresTable";
 import Breadcrumb from "@/components/layout/breadcrumb";
+import {useRef } from "react";
 
 export default function DirectorioAsesoresPage() {
   const {
@@ -23,6 +24,7 @@ export default function DirectorioAsesoresPage() {
     setRolAsignado,
     updateRoles
   } = useDirectorioAsesores();
+
 
   return (
     <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-6">

@@ -18,14 +18,21 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   onSave: (id: number, newRoles: ("asesor" | "jurado")[]) => void;
+  onShowAlert: (msg: string) => void;
 }
 
-export default function AdministrarRolesModal({ profesor, isOpen, onClose, onSave }: Props) {
+export default function AdministrarRolesModal({ profesor, isOpen, onClose, onSave, onShowAlert }: Props) {
   const [roles, setRoles] = useState<("asesor" | "jurado")[]>([]);
 
   useEffect(() => {
     if (profesor) setRoles(profesor.rolesAsignados);
   }, [profesor]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setRoles([]);
+    }
+  }, [isOpen]);
 
   const toggleRole = (rol: "asesor" | "jurado") => {
     setRoles((prev) =>
@@ -35,6 +42,17 @@ export default function AdministrarRolesModal({ profesor, isOpen, onClose, onSav
 
   const handleSave = () => {
     if (!profesor) return;
+    // Validar si se intenta desactivar un rol con tesis activas
+    const desactivandoRol =
+      (profesor.rolesAsignados.includes("asesor") && !roles.includes("asesor")) ||
+      (profesor.rolesAsignados.includes("jurado") && !roles.includes("jurado"));
+
+    if (desactivandoRol && profesor.tesisActivas > 0) {
+      onClose(); // Cierra el modal principal antes de mostrar la alerta
+      onShowAlert("No puedes desactivar el rol porque el profesor tiene tesis activas.");
+      return;
+    }
+
     setTimeout(() => {
       onSave(profesor.id, roles);
       onClose();

@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Profesor } from "../types";
 import axiosInstance from "@/lib/axios/axios-instance";
 
-// Mapeo para enviar el valor correcto al backend
 const ROL_MAP: Record<"todos" | "asesor" | "jurado", string | undefined> = {
   todos: undefined,
   asesor: "Asesor",
@@ -27,20 +26,26 @@ export function useDirectorioAsesores() {
         const res = await axiosInstance.get("/usuario/professors-with-roles", { params });
         console.log("Respuesta API profesores:", res.data);
         const data = res.data;
-        const mapped: Profesor[] = data.map((dto: any) => ({
-          id: dto.id,
-          nombres: dto.nombres,
-          primerApellido: dto.primerApellido,
-          segundoApellido: dto.segundoApellido,
-          correo: dto.correoElectronico,
-          codigo: dto.codigoPucp,
-          rolesAsignados: [
-            ...(dto.rolesStr?.toLowerCase().includes("asesor") ? ["asesor"] : []),
-            ...(dto.rolesStr?.toLowerCase().includes("jurado") ? ["jurado"] : []),
-          ],
-          tesisActivas: Number(dto.tesisActivas ?? 0),
-          estado: "activo",
-        }));
+        const mapped: Profesor[] = data.map((dto: any) => {
+          const roles = (dto.rolesConcat || "")
+            .toLowerCase()
+            .split(",")
+            .map((r: string) => r.trim());
+          return {
+            id: dto.usuario.id,
+            nombres: dto.usuario.nombres,
+            primerApellido: dto.usuario.primerApellido,
+            segundoApellido: dto.usuario.segundoApellido,
+            correo: dto.usuario.correoElectronico,
+            codigo: dto.usuario.codigoPucp,
+            rolesAsignados: [
+              ...(roles.includes("asesor") ? ["asesor"] : []),
+              ...(roles.includes("jurado") ? ["jurado"] : []),
+            ],
+            tesisActivas: Number(dto.tesisCount ?? 0),
+            estado: "activo",
+          };
+        });
         setProfesores(mapped);
       } catch (error) {
         console.error("Error al obtener profesores:", error);
@@ -59,7 +64,7 @@ export function useDirectorioAsesores() {
         p.id === id ? { ...p, rolesAsignados: nuevosRoles } : p
       )
     );
-    // Aquí podrías llamar a una API para actualizar roles si lo necesitas
+    // Aquí  llamamos a una API para actualizar roles
   };
 
   return {

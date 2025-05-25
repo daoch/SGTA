@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Eye, Shield } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import AdministrarRolesModal from "./AdministrarRolesModal";
+import AlertaModalDesactivarAsesor from "./AlertaModalDesactivarAsesor";
 import { useState, useEffect } from "react";
 
 type Props = {
@@ -16,6 +17,7 @@ type Props = {
 };
 
 export default function DirectorioAsesoresTable({ profesores, onUpdateRoles }: Props) {
+  
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [data, setData] = useState<Profesor[]>(profesores);
@@ -50,6 +52,11 @@ export default function DirectorioAsesoresTable({ profesores, onUpdateRoles }: P
   const [selectedProfesor, setSelectedProfesor] = useState<Profesor | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
+  const [pendingAlert, setPendingAlert] = useState<string | null>(null);
+
+
   const handleOpenRolesModal = (profesor: Profesor) => {
     setSelectedProfesor(profesor);
     setIsModalOpen(true);
@@ -58,6 +65,31 @@ export default function DirectorioAsesoresTable({ profesores, onUpdateRoles }: P
   const handleSaveRoles = (id: number, newRoles: ("asesor" | "jurado")[]) => {
     onUpdateRoles(id, newRoles);
   };
+
+  const handleShowAlert = (msg: string) => {
+    setIsModalOpen(false);
+    setSelectedProfesor(null);
+    setPendingAlert(msg);
+  };
+
+
+  useEffect(() => {
+    if (!isModalOpen && pendingAlert) {
+      setTimeout(() => {
+        setAlertMessage(pendingAlert);
+        setAlertOpen(true);
+        setPendingAlert(null);
+      }, 100); // prueba con 50 o 100ms
+    }
+  }, [isModalOpen, pendingAlert]); 
+
+  useEffect(() => {
+    if (!alertOpen) {
+      document.body.style.overflow = "";
+    }
+  }, [alertOpen]);
+
+
 
   return (
     <>
@@ -121,7 +153,11 @@ export default function DirectorioAsesoresTable({ profesores, onUpdateRoles }: P
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Button size="icon" variant="ghost" onClick={() => handleOpenRolesModal(p)}>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => handleOpenRolesModal(p)}
+                            >
                               <Shield className="w-4 h-4" />
                             </Button>
                           </TooltipTrigger>
@@ -189,9 +225,27 @@ export default function DirectorioAsesoresTable({ profesores, onUpdateRoles }: P
       <AdministrarRolesModal
         isOpen={isModalOpen}
         profesor={selectedProfesor}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedProfesor(null);
+        }}
         onSave={handleSaveRoles}
+        onShowAlert={handleShowAlert}
       />
+      {alertOpen && (
+          <AlertaModalDesactivarAsesor
+            open={alertOpen}
+            onOpenChange={(open) => {
+              console.log("AlertaModalDesactivarAsesor onOpenChange", open);
+              setAlertOpen(open);
+              if (!open) {
+                setSelectedProfesor(null);
+                setIsModalOpen(false);
+              }
+            }}
+            mensaje={alertMessage}
+          />
+        )}
     </>
   );
 }
