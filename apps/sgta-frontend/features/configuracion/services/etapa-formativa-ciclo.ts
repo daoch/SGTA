@@ -15,6 +15,21 @@ export const etapaFormativaCicloService = {
 
     delete: async (id: number): Promise<void> => {
         await axiosInstance.post(`/etapa-formativa-x-ciclo/delete/${id}`);
+    },
+
+    update: async (etapaFormativaId: number, cicloId: number, data: { nombre: string; creditajePorTema: number }) => {
+        const response = await fetch(
+        `http://localhost:5000/etapas-formativas/actualizar-relacion/${etapaFormativaId}/${cicloId}`,
+        {
+            method: "PUT",
+            headers: {
+            "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+        }
+        );
+        if (!response.ok) throw new Error("Error al actualizar la etapa");
+        return response.json();
     }
 };
 
