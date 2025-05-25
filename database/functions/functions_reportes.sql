@@ -420,27 +420,122 @@ CREATE OR REPLACE FUNCTION listar_tesistas_por_asesor(p_asesor_id INT)
                      nombres            VARCHAR(100),
                      primer_apellido    VARCHAR(100),
                      segundo_apellido   VARCHAR(100),
-                     correo_electronico VARCHAR(255)
+                     correo_electronico VARCHAR(255),
+                     -- Nuevos campos para información del entregable
+                     entregable_actual_id INT,
+                     entregable_actual_nombre VARCHAR(150),
+                     entregable_actual_descripcion TEXT,
+                     entregable_actual_fecha_inicio TIMESTAMP WITH TIME ZONE,
+                     entregable_actual_fecha_fin TIMESTAMP WITH TIME ZONE,
+                     entregable_actual_estado VARCHAR,
+                     entregable_envio_estado VARCHAR,
+                     entregable_envio_fecha DATE
                  ) AS $$
+DECLARE
+    v_current_date TIMESTAMP WITH TIME ZONE := NOW();
 BEGIN
+    -- Primera consulta: Tesistas con entregables actuales
     RETURN QUERY
         SELECT
             ut.tema_id,
-            ut.usuario_id       AS tesista_id,
+            ut.usuario_id AS tesista_id,
             u.nombres,
             u.primer_apellido,
             u.segundo_apellido,
-            u.correo_electronico
+            u.correo_electronico,
+            -- Información del entregable actual
+            e.entregable_id,
+            e.nombre,
+            e.descripcion,
+            e.fecha_inicio,
+            e.fecha_fin,
+            e.estado::VARCHAR,
+            et.estado::VARCHAR,
+            et.fecha_envio
         FROM usuario_tema ut
-                 JOIN rol r1 ON ut.rol_id = r1.rol_id AND r1.nombre = 'Tesista'
-                 JOIN usuario u ON u.usuario_id = ut.usuario_id
-        WHERE ut.tema_id IN (
-            -- traerme los temas donde p_asesor_id es Asesor
+        JOIN rol r1 ON ut.rol_id = r1.rol_id AND r1.nombre = 'Tesista'
+        JOIN usuario u ON u.usuario_id = ut.usuario_id
+        -- Obtener el tema de los tesistas asesorados
+        JOIN (
             SELECT ut2.tema_id
             FROM usuario_tema ut2
-                     JOIN rol r2 ON ut2.rol_id = r2.rol_id AND r2.nombre = 'Asesor'
-            WHERE ut2.usuario_id = p_asesor_id
-        );
+            JOIN rol r2 ON ut2.rol_id = r2.rol_id AND (r2.nombre = 'Asesor' OR r2.nombre = 'Coasesor')
+            WHERE ut2.usuario_id = p_asesor_id AND ut2.activo = TRUE
+        ) temas_asesor ON temas_asesor.tema_id = ut.tema_id
+        -- Datos del entregable actual
+        LEFT JOIN LATERAL (
+            SELECT e.*
+            FROM entregable e
+            JOIN entregable_x_tema et ON et.entregable_id = e.entregable_id
+            WHERE et.tema_id = ut.tema_id
+              AND e.fecha_inicio <= v_current_date
+              AND e.fecha_fin >= v_current_date
+              AND e.activo = TRUE
+              AND et.activo = TRUE
+            ORDER BY e.fecha_fin ASC
+            LIMIT 1
+        ) e ON TRUE
+        -- Estado del envío del entregable
+        LEFT JOIN entregable_x_tema et ON et.tema_id = ut.tema_id AND et.entregable_id = e.entregable_id AND et.activo = TRUE
+        WHERE ut.activo = TRUE
+        AND e.entregable_id IS NOT NULL;
+
+    -- Segunda consulta: Tesistas sin entregables actuales pero con próximos entregables
+    RETURN QUERY
+        SELECT
+            ut.tema_id,
+            ut.usuario_id AS tesista_id,
+            u.nombres,
+            u.primer_apellido,
+            u.segundo_apellido,
+            u.correo_electronico,
+            -- Información del próximo entregable
+            e_next.entregable_id,
+            e_next.nombre,
+            e_next.descripcion,
+            e_next.fecha_inicio,
+            e_next.fecha_fin,
+            e_next.estado::VARCHAR,
+            et_next.estado::VARCHAR,
+            et_next.fecha_envio
+        FROM usuario_tema ut
+        JOIN rol r1 ON ut.rol_id = r1.rol_id AND r1.nombre = 'Tesista'
+        JOIN usuario u ON u.usuario_id = ut.usuario_id
+        -- Obtener el tema de los tesistas asesorados
+        JOIN (
+            SELECT ut2.tema_id
+            FROM usuario_tema ut2
+            JOIN rol r2 ON ut2.rol_id = r2.rol_id AND (r2.nombre = 'Asesor' OR r2.nombre = 'Coasesor')
+            WHERE ut2.usuario_id = p_asesor_id AND ut2.activo = TRUE
+        ) temas_asesor ON temas_asesor.tema_id = ut.tema_id
+        -- Verifica que no haya entregable actual (usando LATERAL para acceder a ut.tema_id)
+        LEFT JOIN LATERAL (
+            SELECT e.entregable_id
+            FROM entregable e
+            JOIN entregable_x_tema et ON et.entregable_id = e.entregable_id
+            WHERE et.tema_id = ut.tema_id
+              AND e.fecha_inicio <= v_current_date
+              AND e.fecha_fin >= v_current_date
+              AND e.activo = TRUE
+              AND et.activo = TRUE
+            LIMIT 1
+        ) current_entregable ON TRUE
+        -- Datos del próximo entregable
+        JOIN LATERAL (
+            SELECT e.*
+            FROM entregable e
+            JOIN entregable_x_tema et ON et.entregable_id = e.entregable_id
+            WHERE et.tema_id = ut.tema_id
+              AND e.fecha_inicio > v_current_date
+              AND e.activo = TRUE
+              AND et.activo = TRUE
+            ORDER BY e.fecha_inicio ASC
+            LIMIT 1
+        ) e_next ON TRUE
+        -- Estado del envío del entregable
+        LEFT JOIN entregable_x_tema et_next ON et_next.tema_id = ut.tema_id AND et_next.entregable_id = e_next.entregable_id AND et_next.activo = TRUE
+        WHERE ut.activo = TRUE
+        AND current_entregable.entregable_id IS NULL;
 END;
 $$ LANGUAGE plpgsql;
 
