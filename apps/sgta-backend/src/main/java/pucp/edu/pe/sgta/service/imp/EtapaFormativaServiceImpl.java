@@ -25,6 +25,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.EntityNotFoundException;
 
+import pucp.edu.pe.sgta.repository.EtapaFormativaXCicloRepository;
+import java.util.NoSuchElementException;
+
 @Service
 public class EtapaFormativaServiceImpl implements EtapaFormativaService {
     @Autowired
@@ -33,6 +36,8 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
     private ExposicionRepository exposicionRepository;
     @Autowired
     private EtapaFormativaRepository etapaFormativaRepository;
+    @Autowired
+    private EtapaFormativaXCicloRepository etapaFormativaXCicloRepository;
 
     public EtapaFormativaServiceImpl(EtapaFormativaRepository etapaFormativaRepository) {
         this.etapaFormativaRepository = etapaFormativaRepository;
@@ -327,5 +332,34 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
         EtapaFormativaXCiclo efc = expo.getEtapaFormativaXCiclo();
         return efc.getId();
     }
+
+    @Override
+    @Transactional
+    public EtapaFormativaDto updateCamposConRelacion(
+        Integer etapaFormativaXCicloId,
+        Integer etapaFormativaId, 
+        String nombre, 
+        Integer creditajePorTema
+        ) {
+        
+        // 1. Obtener etapa formativa
+        EtapaFormativa etapa = etapaFormativaRepository.findById(etapaFormativaId)
+            .orElseThrow(() -> new NoSuchElementException(
+                "Etapa formativa no encontrada con ID: " + etapaFormativaId));
+        
+        // 2. Actualizar campos
+        etapa.setNombre(nombre.toUpperCase());
+        etapa.setCreditajePorTema(BigDecimal.valueOf(creditajePorTema));
+        
+        // 3. Guardar cambios
+        EtapaFormativa etapaActualizada = etapaFormativaRepository.save(etapa);
+        
+        // 4. Convertir a DTO
+        return EtapaFormativaDto.builder()
+            .id(etapaActualizada.getId())
+            .nombre(etapaActualizada.getNombre())
+            .creditajePorTema(etapaActualizada.getCreditajePorTema())
+            .build();
+        }
 
 }

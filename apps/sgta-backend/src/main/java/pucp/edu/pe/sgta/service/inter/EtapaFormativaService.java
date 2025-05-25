@@ -7,6 +7,9 @@ import pucp.edu.pe.sgta.dto.EtapaFormativaDetalleDto;
 
 import java.util.List;
 
+import pucp.edu.pe.sgta.dto.*;
+
+
 public interface EtapaFormativaService {
 
     List<EtapaFormativaDto> getAll();
@@ -66,4 +69,11 @@ public interface EtapaFormativaService {
      */
 
     Integer getEtapaFormativaIdByExposicionId(Integer exposicionId);
+
+    EtapaFormativaDto updateCamposConRelacion(
+        Integer etapaFormativaXCicloId,
+        Integer  etapaFormativaId,
+        String nombre,
+        Integer creditajePorTema
+    );
 }
