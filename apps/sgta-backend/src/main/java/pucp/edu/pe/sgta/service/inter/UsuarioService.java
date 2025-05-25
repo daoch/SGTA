@@ -13,6 +13,7 @@ public interface UsuarioService {
 	void createUsuario(UsuarioDto usuarioDto);
 
 	UsuarioDto findUsuarioById(Integer id);
+    Integer getIdByCorreo(String correoUsuario);
 
 	List<UsuarioDto> findAllUsuarios();
 

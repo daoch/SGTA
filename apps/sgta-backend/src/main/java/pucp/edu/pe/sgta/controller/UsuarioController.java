@@ -46,6 +46,10 @@ public class UsuarioController {
 
 		return this.usuarioService.findUsuarioById(idUsuario);
 	}
+    @GetMapping("/getIdByCorreo")
+    public Integer getIdByCorreo(@RequestParam("correoUsuario") String correoUsuario) {
+        return this.usuarioService.getIdByCorreo(correoUsuario);
+    }
 
 	@GetMapping("/getPerfilAsesor")
 	public PerfilAsesorDto getPerfilAsesor(@RequestParam(name = "id") Integer id) {
