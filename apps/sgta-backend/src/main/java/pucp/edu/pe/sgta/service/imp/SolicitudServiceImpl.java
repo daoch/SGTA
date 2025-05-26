@@ -41,6 +41,7 @@ import pucp.edu.pe.sgta.repository.UsuarioXTemaRepository;
 import pucp.edu.pe.sgta.service.inter.SolicitudService;
 import pucp.edu.pe.sgta.service.inter.TemaService;
 import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
+import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
 
 @Service
 public class SolicitudServiceImpl implements SolicitudService {

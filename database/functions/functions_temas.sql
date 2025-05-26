@@ -1393,6 +1393,66 @@ AS $$
     ORDER BY c.nombre;
 $$;
 
+CREATE OR REPLACE FUNCTION listar_temas_por_estado_y_carrera(
+    p_estado_nombre TEXT,
+    p_carrera_id    INTEGER
+)
+RETURNS TABLE (
+    tema_id            INTEGER,
+    codigo             TEXT,
+    titulo             TEXT,
+    resumen            TEXT,
+    metodologia         TEXT,
+    objetivos          TEXT,
+    estado_nombre      TEXT,
+    fecha_limite       TIMESTAMP WITH TIME ZONE,
+    fecha_creacion     TIMESTAMP WITH TIME ZONE,
+    fecha_modificacion TIMESTAMP WITH TIME ZONE
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN QUERY
+    SELECT
+      t.tema_id,
+      t.codigo::text,        -- <- casteo a text
+      t.titulo::text,        -- <- casteo a text
+      t.resumen::text,
+      t.metodologia::text,
+      t.objetivos::text,
+      et.nombre::text,       -- <- casteo a text
+      t.fecha_limite,
+      t.fecha_creacion,
+      t.fecha_modificacion
+    FROM tema t
+    JOIN estado_tema et
+      ON t.estado_tema_id = et.estado_tema_id
+    WHERE
+      t.carrera_id = p_carrera_id
+      AND et.nombre ILIKE p_estado_nombre
+      AND t.activo = TRUE
+    ORDER BY t.fecha_creacion DESC;
+END;
+$$;
+
+CREATE PROCEDURE actualizar_estado_tema(
+  p_tema_id           INTEGER,
+  p_nuevo_estado_nombre TEXT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  UPDATE tema
+  SET estado_tema_id = (
+    SELECT estado_tema_id
+    FROM estado_tema
+    WHERE nombre ILIKE p_nuevo_estado_nombre
+    LIMIT 1
+  )
+  WHERE tema_id = p_tema_id;
+END;
+$$;
+
 CREATE OR REPLACE FUNCTION get_solicitudes_by_tema(
     input_tema_id INTEGER,
     offset_val INTEGER,
