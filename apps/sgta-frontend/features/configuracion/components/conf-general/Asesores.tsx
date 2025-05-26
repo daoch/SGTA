@@ -14,126 +14,92 @@ import { useEffect, useState } from "react";
 import { useBackStore } from "../../store/configuracion-store";
 import { CarreraXParametroConfiguracion } from "../../types/CarreraXParametroConfiguracion.type";
 
+//Parametros de configuración según la tabla parametro_configuracion en bdd
 const PARAM_ACTLIMASESOR = "ActivarLimiteAsesor";
 const PARAM_LIM_POR_ASESOR = "LimXasesor";
+const PARAM_TIEMPO_LIMITE_REVISAR = "TiempoLimiteRevisar";
+
 
 export default function AsesoresCards() {
   const { parametros, actualizarParametro, cargando } = useBackStore();
   const [localParametros, setLocalParametros] = useState<CarreraXParametroConfiguracion[]>([]);
   const [limiteHabilitado, setLimiteHabilitado] = useState<boolean>(false);
-  // Estados para el parámetro "Límite por Asesor"
-  const [limitePorAsesor, setLimitePorAsesor] = useState<number>(0);
-  const [limiteOriginal, setLimiteOriginal] = useState<number>(0);
-  const [cambiosPendientes, setCambiosPendientes] = useState<boolean>(false);
-
-
-  // Cargar los parámetros al inicio
-  useEffect(() => {
-    setLocalParametros(parametros);
   
-    const param = parametros.find(
-      (p) => p.parametroConfiguracion.nombre === PARAM_ACTLIMASESOR
-    );
-    if (param && typeof param.valor === "boolean") {
-      setLimiteHabilitado(param.valor);
-    }
-    ///const paramLimitePorAsesor = parametros.find(p => p.parametroConfiguracion.nombre === PARAM_LIM_POR_ASESOR);
-    //if (paramLimitePorAsesor) {
-    //  const valor = Number(paramLimitePorAsesor.valor);
-    //  setLimitePorAsesor(valor);
-    //  setLimiteOriginal(valor);
-    //}
+  // Estado para el parámetro "Limite por Asesor"
+  const [limitePorAsesor, setLimitePorAsesor] = useState<number>(0); //este si
+  // Estado para el parámetro "Tiempo limite revisar"
+  const [tiempoLimiteRevisar, setTiempoLimiteRevisar] = useState<number>(0);
 
-    //const limitePorAsesorParam = localParametros.find(
-    //  (p) => p.parametroConfiguracion.nombre === PARAM_LIM_POR_ASESOR
-    //);
-
-    const param2 = parametros.find(
-      (p) => p.parametroConfiguracion.nombre === PARAM_LIM_POR_ASESOR
-    );
-    if (param2 && typeof param2.valor === "number") {
-      setLimitePorAsesor(param2.valor);
-    }
-
-  }, [parametros]);
-
-
-
-  // Actualizar los parámetros locales cuando cambian en el store
   useEffect(() => {
     setLocalParametros(parametros);
   }, [parametros]);
-
-//  const getParametro = (nombre: string) =>
-//    localParametros.find(p => p.parametroConfiguracion.nombre === nombre);
 
   // Buscar los parámetros por nombre
-  const activarLimAsesorParam = localParametros.find(
-    (p) => p.parametroConfiguracion.nombre === PARAM_ACTLIMASESOR
+  const activarLimiteTesistas = parametros.find(
+    (p) => p.parametroConfiguracion.nombre === PARAM_ACTLIMASESOR,
   );
-  const limitePorAsesorParam = localParametros.find(
-    (p) => p.parametroConfiguracion.nombre === PARAM_LIM_POR_ASESOR
+  const limitePorAsesores = parametros.find(
+    (p) => p.parametroConfiguracion.nombre === PARAM_LIM_POR_ASESOR,
+  );
+  const limiteDiasRevisar = parametros.find(
+    (p) => p.parametroConfiguracion.nombre === PARAM_TIEMPO_LIMITE_REVISAR,
   );
 
-  // Handlers para cambiar el valor
-  const handleActivarLimAsesorChange = async (checked: boolean) => {
+  // Actualizar el estado local cuando cambia el parámetro
+  useEffect(() => {
+    if (limitePorAsesores?.valor) {
+      const limiteTesistasAsesores = (limitePorAsesores.valor) as number;
+      setLimitePorAsesor(limiteTesistasAsesores);
+    }
+  }, [limitePorAsesores]);
+  
+  useEffect(() => {
+    if (activarLimiteTesistas) {
+      setLimiteHabilitado(Boolean(activarLimiteTesistas.valor));
+    }
+  }, [activarLimiteTesistas]);
+
+  useEffect(() => {
+    if (limiteDiasRevisar?.valor) {
+      const limiteDias = (limiteDiasRevisar.valor) as number;
+      setTiempoLimiteRevisar(limiteDias);
+    }
+  }, [limiteDiasRevisar]);
+
+
+  //Handler para cambiar el valor del limite de asesores
+  const handleLimitePorAsesorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const nuevoValor = Number(e.target.value);
+    setLimitePorAsesor(nuevoValor);
+    //setCambiosPendientes(nuevoValor !== limiteOriginal);
+    if (limitePorAsesores) {
+      actualizarParametro(limitePorAsesores.id, nuevoValor);
+    }
+  };
+
+  // Handler para activar/desactivar el límite de asesores
+  const handleActivarLimAsesorChange = (checked: boolean) => {
     setLimiteHabilitado(checked);
-
-    if (activarLimAsesorParam) {
+    if (activarLimiteTesistas) {
       // Actualizar el parámetro local primero
-      setLocalParametros(prev => 
-        prev.map(p => 
-          p.id === activarLimAsesorParam.id 
+      setLocalParametros((prev) =>
+        prev.map((p) =>
+          p.id === activarLimiteTesistas.id
             ? { ...p, valor: checked }
             : p
         )
       );
       // Luego actualizar el store
-      actualizarParametro(activarLimAsesorParam.id, checked);
+      actualizarParametro(activarLimiteTesistas.id, checked);
     }
   };
 
-  // Handler para el cambio del límite por asesor
-  /*
-  const handleLimitePorAsesorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const nuevoValor = Number(e.target.value);
-    setLimitePorAsesor(nuevoValor);
-    setCambiosPendientes(nuevoValor !== limiteOriginal);
-  };
-
-  const handleGuardarLimitePorAsesor = () => {
-    if (!limitePorAsesorParam) return;
-
-    setLocalParametros(prev =>
-      prev.map(p =>
-        p.id === limitePorAsesorParam.id
-          ? { ...p, valor: limitePorAsesor }
-          : p
-      )
-    );
-
-    actualizarParametro(limitePorAsesorParam.id, limitePorAsesor);
-    setLimiteOriginal(limitePorAsesor);
-    setCambiosPendientes(false);
-  };
-  */
-
-  // Handler para el cambio del límite por asesor
-  const handleLimitePorAsesorChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const nuevoValor = Number(event.target.value);
-    setLimitePorAsesor(nuevoValor);
-
-    if (limitePorAsesorParam) {
-      // Actualizar el parámetro local primero
-      setLocalParametros(prev => 
-        prev.map(p => 
-          p.id === limitePorAsesorParam.id 
-            ? { ...p, valor: nuevoValor }
-            : p
-        )
-      );
-      // Luego actualizar el store
-      actualizarParametro(limitePorAsesorParam.id, nuevoValor);
+  //Handler para cambiar el tiempo límite de revisión
+  const handleTiempoLimiteRevisarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const tiempito = Number(e.target.value);
+    setTiempoLimiteRevisar(tiempito);
+    if (limiteDiasRevisar) {
+      actualizarParametro(limiteDiasRevisar.id, tiempito);
     }
   };
 
@@ -148,21 +114,6 @@ export default function AsesoresCards() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-           {/* Ocultando Límite total de asesores */}
-          {/*
-          <div className="grid w-full max-w-sm items-center gap-1.5">
-            <Label htmlFor="limite-total">Límite total de asesores</Label>
-            <Input
-              type="number"
-              id="limite-total"
-              placeholder="Ej: 20"
-              defaultValue="20"
-              //value={limitePorAsesor}
-              //onChange={handleLimitePorAsesorChange}
-              //disabled={!limiteHabilitado || cargando}
-              />
-          </div>
-          */}
 
           <div className="grid w-full max-w-sm items-center gap-1.5">
             <Label htmlFor="limite-por-asesor">Límite por asesor</Label>
@@ -170,12 +121,10 @@ export default function AsesoresCards() {
               type="number"
               id="limite-por-asesor"
               placeholder="Ej: 5"
-              defaultValue="5"
-              checked={!!limitePorAsesorParam?.valor}
-              onChange={(e) => handleLimitePorAsesorChange(e)}
-              //onChange={handleLimitePorAsesorChange}
-              //value={getParametro("Limite por Asesor")?.valor || ""}
-              //onChange={(e) => handleChange("Limite por Asesor", parseInt(e.target.value))}
+              value={limitePorAsesor}
+              defaultValue="3"
+              onChangeCapture={handleLimitePorAsesorChange}
+              disabled={!limiteHabilitado || cargando}
             />
           </div>
 
@@ -185,7 +134,7 @@ export default function AsesoresCards() {
             </Label>
             <Switch 
               id="habilitar-limites"
-              checked={!!activarLimAsesorParam?.valor}
+              checked={limiteHabilitado}
               disabled={cargando}
               onCheckedChange={handleActivarLimAsesorChange}
             />
@@ -194,7 +143,6 @@ export default function AsesoresCards() {
       </Card>
 
       {/*Ocultando el tiempo límite para revisar*/}
-      {/*
       <Card>
         <CardHeader>
           <CardTitle>Tiempo límite para revisar</CardTitle>
@@ -212,15 +160,14 @@ export default function AsesoresCards() {
               type="number"
               id="tiempo-asesor"
               placeholder="Ej: 7"
-              defaultValue="7"
-              //disabled={cargando}
-              //value={getParametro("Tiempo Limite de Revisar al Asesor")?.valor || ""}
-              //onChange={(e) => handleChange("Tiempo Limite de Revisar al Asesor", parseInt(e.target.value))}
+              value={tiempoLimiteRevisar}
+              defaultValue={"7"}
+              onChange={handleTiempoLimiteRevisarChange}
+              disabled={cargando}
             />
           </div>
         </CardContent>
       </Card>
-      */}
     </>
   );
 }
