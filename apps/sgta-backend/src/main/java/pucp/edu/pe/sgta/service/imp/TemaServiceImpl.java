@@ -65,15 +65,16 @@ public class TemaServiceImpl implements TemaService {
 
 	private final ObjectMapper objectMapper = new ObjectMapper(); // for JSON conversion
 
+
 	@PersistenceContext
 	private EntityManager entityManager;
 
 	public TemaServiceImpl(TemaRepository temaRepository, UsuarioXTemaRepository usuarioXTemaRepository,
-			UsuarioService usuarioService, SubAreaConocimientoService subAreaConocimientoService,
-			SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository, RolRepository rolRepository,
-			EstadoTemaRepository estadoTemaRepository, UsuarioXCarreraRepository usuarioCarreraRepository,
-			CarreraRepository carreraRepository, HistorialTemaService historialTemaService,
-			UsuarioRepository usuarioRepository) {
+						   UsuarioService usuarioService, SubAreaConocimientoService subAreaConocimientoService,
+						   SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository, RolRepository rolRepository,
+						   EstadoTemaRepository estadoTemaRepository, UsuarioXCarreraRepository usuarioCarreraRepository,
+						   CarreraRepository carreraRepository, HistorialTemaService historialTemaService,
+						   UsuarioRepository usuarioRepository) {
 		this.temaRepository = temaRepository;
 		this.usuarioXTemaRepository = usuarioXTemaRepository;
 		this.subAreaConocimientoXTemaRepository = subAreaConocimientoXTemaRepository;
@@ -1086,5 +1087,95 @@ public class TemaServiceImpl implements TemaService {
 				.getSingleResult();
 		
 		eliminarPostulacionesTesista(idTesista);
+	}
+	
+	@Override
+	public void updateTituloResumenTemaSolicitud(Integer idTema, String titulo, String resumen) {
+		// Get the tema from the repository
+		Tema tema = temaRepository.findById(idTema)
+			.orElseThrow(() -> new RuntimeException("Tema no encontrado con ID: " + idTema));
+		
+		// Update the title and summary
+		String oldTitulo = tema.getTitulo();
+		String oldResumen = tema.getResumen();
+		
+		// Only update if there are changes
+		boolean hasChanges = false;
+		
+		if (titulo != null && !titulo.isEmpty() && !titulo.equals(oldTitulo)) {
+			tema.setTitulo(titulo);
+			hasChanges = true;
+		}
+		
+		if (resumen != null && !resumen.isEmpty() && !resumen.equals(oldResumen)) {
+			tema.setResumen(resumen);
+			hasChanges = true;
+		}
+		
+		if (hasChanges) {
+			// Save the updated tema
+			temaRepository.save(tema);
+			
+			// Create a description of changes
+			StringBuilder changeDescription = new StringBuilder("Actualización de ");
+			if (titulo != null && !titulo.isEmpty() && !titulo.equals(oldTitulo)) {
+				changeDescription.append("título");
+				if (resumen != null && !resumen.isEmpty() && !resumen.equals(oldResumen)) {
+					changeDescription.append(" y resumen");
+				}
+			} else if (resumen != null && !resumen.isEmpty() && !resumen.equals(oldResumen)) {
+				changeDescription.append("resumen");
+			}
+					// Record the changes in the tema history
+			saveHistorialTemaChange(tema, titulo, resumen, changeDescription.toString());
+		}
+	}
+
+	@Override
+	@Transactional
+	public void updateTituloTemaSolicitud(Integer solicitudId, String titulo, String respuesta) {
+		// Get the solicitud and related information
+		// This would be implemented to call a procedure that updates a specific usuario_solicitud
+		// register for title change requests
+		
+		try {
+			// Call the stored procedure that handles the solicitud and updates usuario_solicitud
+			entityManager
+				.createNativeQuery("SELECT atender_solicitud_titulo(:solicitudId, :titulo, :respuesta)")
+				.setParameter("solicitudId", solicitudId)
+				.setParameter("titulo", titulo)
+				.setParameter("respuesta", respuesta)
+				.getSingleResult();
+			
+			// Log successful processing
+			Logger.getLogger(TemaServiceImpl.class.getName()).info("Processed title change request " + solicitudId);
+		} catch (Exception e) {
+			Logger.getLogger(TemaServiceImpl.class.getName()).severe("Error processing title change request " + solicitudId + ": " + e.getMessage());
+			throw new RuntimeException("Failed to process title change request", e);
+		}
+	}
+
+	@Override
+	@Transactional
+	public void updateResumenTemaSolicitud(Integer solicitudId, String resumen, String respuesta) {
+		// Get the solicitud and related information
+		// This would be implemented to call a procedure that updates a specific usuario_solicitud
+		// register for summary change requests
+		
+		try {
+			// Call the stored procedure that handles the solicitud and updates usuario_solicitud
+			entityManager
+				.createNativeQuery("SELECT atender_solicitud_resumen(:solicitudId, :resumen, :respuesta)")
+				.setParameter("solicitudId", solicitudId)
+				.setParameter("resumen", resumen)
+				.setParameter("respuesta", respuesta)
+				.getSingleResult();
+			
+			// Log successful processing
+			Logger.getLogger(TemaServiceImpl.class.getName()).info("Processed summary change request " + solicitudId);
+		} catch (Exception e) {
+			Logger.getLogger(TemaServiceImpl.class.getName()).severe("Error processing summary change request " + solicitudId + ": " + e.getMessage());
+			throw new RuntimeException("Failed to process summary change request", e);
+		}
 	}
 }

@@ -18,14 +18,14 @@ public class SolicitudTemaDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class RequestChange {
-        private int id;
+        private Integer id;
         private LocalDate registerTime;
         private String status;
         private String reason; // descripcion from Solicitud
         private String response;
         private LocalDate responseTime;
-        private boolean solicitudCompletada;
-        private boolean aprobado;
+        private Boolean solicitudCompletada;
+        private Boolean aprobado;
         private SolicitudTemaDto.TipoSolicitud tipoSolicitud;
         private SolicitudTemaDto.Usuario usuario;
         private SolicitudTemaDto.Asesor asesor;
@@ -34,7 +34,7 @@ public class SolicitudTemaDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class TipoSolicitud {
-        private int id;
+        private Integer id;
         private String nombre;
         private String descripcion;
     }
@@ -43,7 +43,7 @@ public class SolicitudTemaDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class Usuario {
-        private int id;
+        private Integer id;
         private String nombres;
         private String primerApellido;
         private String segundoApellido;
@@ -54,7 +54,7 @@ public class SolicitudTemaDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class Asesor {
-        private int id;
+        private Integer id;
         private String name;
         private String lastName;
         private String email;
@@ -65,7 +65,7 @@ public class SolicitudTemaDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class Tesista {
-        private int id;
+        private Integer id;
         private String name;
         private String lastName;
         private SolicitudTemaDto.Tema topic;
@@ -75,6 +75,7 @@ public class SolicitudTemaDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class Tema {
-        private String name;
+        private String titulo;
+        private String resumen;
     }
 }
