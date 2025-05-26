@@ -1,4 +1,3 @@
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -15,7 +14,8 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { Check, ChevronsUpDown, Plus, X } from "lucide-react";
-import type { AreaTematica } from "../types/perfil/entidades";
+import type { AreaTematica } from "../../types/perfil/entidades";
+import BadgeArea from "../shared/badge-area";
 
 interface Props {
   isEditing: boolean;
@@ -147,13 +147,11 @@ export default function AreasTematicasCard({
         <div className="flex flex-wrap gap-2">
           {editedAreas?.length ? (
             editedAreas.map((area) => (
-              <Badge
+              <BadgeArea
                 key={area.idArea}
-                variant="outline"
-                className="bg-green-100 text-green-800 hover:bg-green-200 border-green-200 text-xs sm:text-sm"
-              >
-                {area.nombre}
-              </Badge>
+                id={area.idArea}
+                text={area.nombre}
+              />
             ))
           ) : (
             <span className="text-gray-500 text-sm">Sin áreas registradas</span>

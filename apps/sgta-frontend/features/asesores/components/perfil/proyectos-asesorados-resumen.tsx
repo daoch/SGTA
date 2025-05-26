@@ -11,7 +11,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Users } from "lucide-react";
 import { useState } from "react";
-import { Proyecto } from "../types/perfil/entidades";
+import { Proyecto } from "../../types/perfil/entidades";
 
 interface Props {
   proyectos: Proyecto[];

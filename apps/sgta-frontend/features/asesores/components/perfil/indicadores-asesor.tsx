@@ -1,4 +1,4 @@
-import { Proyecto, Tesis } from "../types/perfil/entidades";
+import { Proyecto, Tesis } from "../../types/perfil/entidades";
 
 import { CheckCircle, Clock, Users } from "lucide-react";
 
