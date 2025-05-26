@@ -234,9 +234,6 @@ VALUES
     -- Juan Pérez como asesor del tema "Inteligencia Artificial Aplicada"
     (1, 1, (SELECT rol_id FROM rol WHERE nombre = 'Asesor'), TRUE, TRUE, NOW(), NOW()),
 
-    -- Juan Pérez como asesor del tema "Machine Learning para Datos No Estructurados"
-    (1, 2, (SELECT rol_id FROM rol WHERE nombre = 'Asesor'), TRUE, TRUE, NOW(), NOW()),
-
     -- Ana Martínez como asesora del tema "Redes Neuronales Profundas"
     (5, 3, (SELECT rol_id FROM rol WHERE nombre = 'Asesor'), TRUE, TRUE, NOW(), NOW()),
 
