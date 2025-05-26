@@ -31,7 +31,7 @@ public class UsuarioController {
 		this.usuarioService.createUsuario(dto);
 	}
 
-	@GetMapping("findByTipoUsuarioAndCarrera")
+	@GetMapping("/findByTipoUsuarioAndCarrera")
     public List<UsuarioDto> getByTipoYCarrera(
             @RequestParam String tipoUsuarioNombre,
             @RequestParam(required = false) Integer carreraId,
