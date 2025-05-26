@@ -21,7 +21,9 @@ import {
   SubAreaConocimiento,
 } from "../types/propuestas/entidades";
 const PropuestasAsesorPage = () => {
-  const [propuestasDirectas, setPropuestasDirectas] = useState<Proyecto_M[]>([]);
+  const [propuestasDirectas, setPropuestasDirectas] = useState<Proyecto_M[]>(
+    [],
+  );
   const [propuestasGenerales, setPropuestasGenerales] = useState<Proyecto_M[]>(
     [],
   );
@@ -33,7 +35,7 @@ const PropuestasAsesorPage = () => {
   const [subAreasData, setSubAreasData] = useState<SubAreaConocimiento[]>([]);
   //const [totalPropuestasGenerales, setTotalPropuestasGenerales] = useState(0);
   //const [totalPropuestasDirectas, setTotalPropuestasDirectas] = useState(0);
-  const [usuarioId] = useState(40);
+  const [usuarioId] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
