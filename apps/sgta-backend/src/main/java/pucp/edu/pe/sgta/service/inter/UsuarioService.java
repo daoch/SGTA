@@ -74,4 +74,6 @@ public interface UsuarioService {
     List<UsuarioDto> getProfessorsWithRoles(String rolNombre, String terminoBusqueda);
 
 	void procesarArchivoUsuarios(MultipartFile archivo) throws Exception;
+
+    List<UsuarioDto> getAsesoresBySubArea(Integer idSubArea);
 }
