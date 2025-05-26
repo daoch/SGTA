@@ -6,6 +6,7 @@ import type {
   Tesis,
 } from "@/features/asesores/types/perfil/entidades";
 import axiosInstance from "@/lib/axios/axios-instance";
+import axios from "axios";
 
 export async function getPerfilAsesor(id: number) {
   try {
@@ -21,7 +22,9 @@ export async function getPerfilAsesor(id: number) {
   }
 }
 
-export async function getIdByCorreo(correoUsuario: string): Promise<number> {
+export async function getIdByCorreo(
+  correoUsuario: string,
+): Promise<number | null> {
   try {
     const response = await axiosInstance.get("/usuario/getIdByCorreo", {
       params: { correoUsuario },
@@ -29,7 +32,20 @@ export async function getIdByCorreo(correoUsuario: string): Promise<number> {
 
     console.log("ID obtenido por correo:", response.data);
     return response.data as number;
-  } catch (error) {
+  } catch (error: any) {
+    // Verifica si es un error de Axios
+    if (axios.isAxiosError(error)) {
+      const status = error.response?.status;
+
+      if (
+        status === 500 &&
+        error.response?.data?.message?.includes("Usuario no encontrado")
+      ) {
+        console.warn("El usuario no existe en la base de datos.");
+        return null; // puedes devolver null o -1 según tu lógica
+      }
+    }
+
     console.error("Error al obtener ID por correo:", error);
     throw error;
   }

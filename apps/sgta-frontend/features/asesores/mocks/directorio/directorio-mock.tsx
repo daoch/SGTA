@@ -120,3 +120,52 @@ export const generateMockAsesores = (): Asesor[] => {
 
   return [...baseAsesores, ...moreAsesores];
 };
+
+export function filtrarAsesores(
+  soloDisponible: boolean,
+  areasTematicas: AreaTematica[],
+  temasInteres: TemaInteres[],
+  searchQuery: string,
+): Asesor[] {
+  let results = generateMockAsesores();
+
+  // Filtrar por disponibilidad
+  if (soloDisponible) {
+    results = results.filter((advisor) => advisor.estado);
+  }
+
+  // Filtrar por áreas temáticas
+  if (areasTematicas.length > 0) {
+    results = results.filter((advisor) =>
+      areasTematicas.some((area) =>
+        advisor.areasTematicas.some((a) => a.idArea === area.idArea),
+      ),
+    );
+  }
+
+  // Filtrar por temas de interés
+  if (temasInteres.length > 0) {
+    results = results.filter((advisor) =>
+      temasInteres.some((tema) =>
+        advisor.temasIntereses.some((t) => t.idTema === tema.idTema),
+      ),
+    );
+  }
+
+  // Filtrar por búsqueda de texto
+  if (searchQuery.trim() !== "") {
+    const query = searchQuery.toLowerCase();
+    results = results.filter(
+      (advisor) =>
+        advisor.nombre.toLowerCase().includes(query) ||
+        advisor.areasTematicas.some((area) =>
+          area.nombre.toLowerCase().includes(query),
+        ) ||
+        advisor.temasIntereses.some((tema) =>
+          tema.nombre.toLowerCase().includes(query),
+        ),
+    );
+  }
+
+  return results;
+}
