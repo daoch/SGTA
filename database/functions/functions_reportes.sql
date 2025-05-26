@@ -1027,4 +1027,65 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- 1) Creamos/reemplazamos la función que, dado solo el ID de un tesista,
+--    recupera todas las reuniones en las que participó junto a su(s) asesor(es).
+drop function listar_historial_reuniones_por_tesista;
+CREATE OR REPLACE FUNCTION listar_historial_reuniones_por_tesista(
+    p_tesista_id INT
+)
+    RETURNS TABLE(
+                     fecha    DATE,
+                     duracion TEXT,
+                     notas    TEXT
+                 ) AS $$
+BEGIN
+    RETURN QUERY
 
+        WITH asesores_del_tema AS (
+            -- Encuentra todos los asesores de los temas en los que el tesista participa
+            SELECT DISTINCT ut2.usuario_id AS asesor_id
+            FROM usuario_tema ut1
+                     JOIN rol r1 ON ut1.rol_id = r1.rol_id
+                AND r1.nombre = 'Tesista'
+                     JOIN usuario_tema ut2 ON ut1.tema_id = ut2.tema_id
+                     JOIN rol r2 ON ut2.rol_id = r2.rol_id
+                AND r2.nombre = 'Asesor'
+            WHERE ut1.usuario_id = p_tesista_id
+        )
+
+        SELECT
+            r.fecha_hora_inicio::DATE AS fecha,
+
+            CASE
+                WHEN EXTRACT(HOUR   FROM (r.fecha_hora_fin - r.fecha_hora_inicio)) = 0
+                    THEN EXTRACT(MINUTE FROM (r.fecha_hora_fin - r.fecha_hora_inicio)) || ' minutos'
+                WHEN EXTRACT(MINUTE FROM (r.fecha_hora_fin - r.fecha_hora_inicio)) = 0
+                    THEN EXTRACT(HOUR   FROM (r.fecha_hora_fin - r.fecha_hora_inicio)) || ' horas'
+                ELSE
+                    EXTRACT(HOUR   FROM (r.fecha_hora_fin - r.fecha_hora_inicio)) || ' horas '
+                        || EXTRACT(MINUTE FROM (r.fecha_hora_fin - r.fecha_hora_inicio)) || ' minutos'
+                END AS duracion,
+
+            r.descripcion AS notas
+
+        FROM reunion r
+
+                 -- Confirmamos que el tesista participó
+                 JOIN usuario_reunion ut
+                      ON ut.reunion_id = r.reunion_id
+                          AND ut.usuario_id = p_tesista_id
+
+            -- Confirmamos que al menos uno de sus asesores participó
+                 JOIN usuario_reunion ua
+                      ON ua.reunion_id = r.reunion_id
+                          AND ua.usuario_id IN (SELECT asesor_id FROM asesores_del_tema)
+
+        ORDER BY r.fecha_hora_inicio;
+END;
+$$ LANGUAGE plpgsql;
+
+
+-- 2) Ejemplo de uso en DataGrip (le das solo el tesista_id):
+--    Al ejecutar, DataGrip te preguntará el valor de "tesista_id".
+
+SELECT * FROM listar_historial_reuniones_por_tesista(2);
