@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Info } from "lucide-react";
 import { useState } from "react";
-import { Tesis } from "../types/perfil/entidades";
+import { Tesis } from "../../types/perfil/entidades";
 
 interface Props {
   tesis: Tesis[];

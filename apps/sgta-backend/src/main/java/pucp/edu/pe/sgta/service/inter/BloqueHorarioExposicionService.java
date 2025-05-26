@@ -26,5 +26,7 @@ public interface BloqueHorarioExposicionService {
     boolean finishPlanning(Integer exposicionId);
 
     Integer createAll(List<BloqueHorarioExposicionCreateDTO> dtos);
+    int bloquearBloque(int idBloque );
 
+    int desbloquearBloque(int idBloque );
 }

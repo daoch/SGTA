@@ -1281,6 +1281,112 @@ VALUES (
         NOW()
     );
 
+--Profesores adicionales todos informatica
+INSERT INTO
+    usuario (
+        tipo_usuario_id,
+        codigo_pucp,
+        nombres,
+        primer_apellido,
+        segundo_apellido,
+        correo_electronico,
+        nivel_estudios,
+        contrasena,
+        biografia,
+        disponibilidad,
+        tipo_disponibilidad,
+        activo,
+        fecha_creacion,
+        fecha_modificacion
+    )
+VALUES (
+        (
+            SELECT tipo_usuario_id
+            FROM tipo_usuario
+            WHERE
+                LOWER(nombre) = 'profesor'
+            LIMIT 1
+        ),
+        'PROF001',
+        'Julio',
+        'Ramírez',
+        'Lozano',
+        'julio.ramirez@pucp.edu.pe',
+        'Maestría',
+        'hashed_password_1',
+        'Docente con experiencia en ingeniería de software y arquitectura empresarial.',
+        'Lunes-Viernes 08:00-12:00',
+        'presencial',
+        TRUE,
+        NOW(),
+        NOW()
+    ),
+    (
+        (
+            SELECT tipo_usuario_id
+            FROM tipo_usuario
+            WHERE
+                LOWER(nombre) = 'profesor'
+            LIMIT 1
+        ),
+        'PROF002',
+        'Elena',
+        'Torres',
+        'Mendoza',
+        'elena.torres@pucp.edu.pe',
+        'Doctorado',
+        'hashed_password_2',
+        'Investigadora en inteligencia artificial con publicaciones en aprendizaje automático.',
+        'Martes-Jueves 10:00-14:00',
+        'presencial',
+        TRUE,
+        NOW(),
+        NOW()
+    ),
+    (
+        (
+            SELECT tipo_usuario_id
+            FROM tipo_usuario
+            WHERE
+                LOWER(nombre) = 'profesor'
+            LIMIT 1
+        ),
+        'PROF003',
+        'Ricardo',
+        'Salas',
+        'Gutiérrez',
+        'ricardo.salas@pucp.edu.pe',
+        'Maestría',
+        'hashed_password_3',
+        'Especialista en redes y ciberseguridad, con 10 años de experiencia docente.',
+        'Lunes-Miércoles 13:00-17:00',
+        'presencial',
+        TRUE,
+        NOW(),
+        NOW()
+    ),
+    (
+        (
+            SELECT tipo_usuario_id
+            FROM tipo_usuario
+            WHERE
+                LOWER(nombre) = 'profesor'
+            LIMIT 1
+        ),
+        'PROF004',
+        'Carla',
+        'Reyes',
+        'Fernández',
+        'carla.reyes@pucp.edu.pe',
+        'Doctorado',
+        'hashed_password_4',
+        'Profesora enfocada en bases de datos y minería de datos en entornos empresariales.',
+        'Martes-Viernes 09:00-13:00',
+        'presencial',
+        TRUE,
+        NOW(),
+        NOW()
+    );
 -- 2) Relación usuario_carrera (cada usuario con su carrera)
 INSERT INTO
     usuario_carrera (
@@ -2048,6 +2154,156 @@ VALUES (
         TRUE,
         '2025-05-01 10:00:00+00',
         '2025-05-01 10:00:00+00'
+    ),
+    (
+        'Machine Learning para Datos No Estructurados',
+        'Uso de algoritmos de ML para datos no estructurados como imágenes y texto.',
+        'Clustering y análisis de patrones.',
+        'Aplicar técnicas de aprendizaje automático a datos no estructurados.',
+        'https://www.example.com/ml-no-estructurados',
+        3,
+        NULL,
+        1,
+        '2024-12-15 00:00:00+00',
+        NULL,
+        TRUE,
+        '2025-05-08 21:24:41+00',
+        '2025-05-08 21:24:41+00'
+    ),
+    (
+        'Redes Neuronales Profundas',
+        'Estudio de redes neuronales profundas y su uso en la clasificación de datos complejos.',
+        'Capacitación en redes neuronales y aprendizaje profundo.',
+        'Explorar arquitecturas avanzadas de redes neuronales para clasificación de datos.',
+        'https://www.example.com/redes-neuronales',
+        3,
+        NULL,
+        1,
+        '2024-12-10 00:00:00+00',
+        NULL,
+        TRUE,
+        '2025-05-08 21:24:41+00',
+        '2025-05-08 21:24:41+00'
+    ),
+    (
+        'Big Data y Análisis Predictivo',
+        'Aplicación de técnicas de big data para realizar predicciones de comportamiento en grandes volúmenes de datos.',
+        'Análisis exploratorio y técnicas predictivas.',
+        'Utilizar Big Data para predecir tendencias en diversos sectores.',
+        'https://www.example.com/bigdata-predictivo',
+        3,
+        NULL,
+        1,
+        '2024-12-20 00:00:00+00',
+        NULL,
+        TRUE,
+        '2025-05-08 21:24:41+00',
+        '2025-05-08 21:24:41+00'
+    ),
+    (
+        'Automatización en la Industria 4.0',
+        'Exploración de sistemas automatizados y su integración en la industria moderna.',
+        'Simulación y análisis de sistemas automatizados.',
+        'Implementar soluciones de automatización en procesos industriales.',
+        'https://www.example.com/industria-4-0',
+        3,
+        NULL,
+        1,
+        '2024-12-05 00:00:00+00',
+        NULL,
+        TRUE,
+        '2025-05-08 21:24:41+00',
+        '2025-05-08 21:24:41+00'
+    ),
+    (
+        'Blockchain y su Aplicación en Logística',
+        'Estudio del uso de blockchain para mejorar la trazabilidad en cadenas de suministro.',
+        'Investigación y análisis de caso de blockchain.',
+        'Explorar cómo blockchain puede mejorar la seguridad y transparencia en la logística.',
+        'https://www.example.com/blockchain-logistica',
+        3,
+        NULL,
+        1,
+        '2024-12-12 00:00:00+00',
+        NULL,
+        TRUE,
+        '2025-05-08 21:24:41+00',
+        '2025-05-08 21:24:41+00'
+    ),
+    (
+        'Ciberseguridad en la Era Digital',
+        'Estudio de las amenazas digitales actuales y las mejores prácticas de ciberseguridad.',
+        'Estudio de vulnerabilidades y técnicas de defensa.',
+        'Mejorar las habilidades de ciberseguridad en un entorno digital cambiante.',
+        'https://www.example.com/ciberseguridad-digital',
+        3,
+        NULL,
+        1,
+        '2024-12-18 00:00:00+00',
+        NULL,
+        TRUE,
+        '2025-05-08 21:24:41+00',
+        '2025-05-08 21:24:41+00'
+    ),
+    (
+        'Desarrollo de Software Ágil',
+        'Implementación de metodologías ágiles en el desarrollo de software.',
+        'Técnicas de desarrollo ágil y Scrum.',
+        'Optimizar el ciclo de desarrollo de software mediante metodologías ágiles.',
+        'https://www.example.com/software-agil',
+        3,
+        NULL,
+        1,
+        '2024-12-25 00:00:00+00',
+        NULL,
+        TRUE,
+        '2025-05-08 21:24:41+00',
+        '2025-05-08 21:24:41+00'
+    ),
+    (
+        'Internet de las Cosas (IoT)',
+        'Exploración de dispositivos conectados y su impacto en la vida cotidiana.',
+        'Análisis de datos y conectividad.',
+        'Investigar cómo IoT transforma industrias y hogares.',
+        'https://www.example.com/iot',
+        3,
+        NULL,
+        1,
+        '2024-12-30 00:00:00+00',
+        NULL,
+        TRUE,
+        '2025-05-08 21:24:41+00',
+        '2025-05-08 21:24:41+00'
+    ),
+    (
+        'Tecnologías Emergentes en Medicina',
+        'Exploración de nuevas tecnologías como la IA y la robótica en el ámbito médico.',
+        'Investigación sobre aplicaciones tecnológicas en el sector salud.',
+        'Estudiar cómo las tecnologías emergentes pueden transformar el sector médico.',
+        'https://www.example.com/tecnologias-medicina',
+        3,
+        NULL,
+        1,
+        '2025-01-05 00:00:00+00',
+        NULL,
+        TRUE,
+        '2025-05-08 21:24:41+00',
+        '2025-05-08 21:24:41+00'
+    ),
+    (
+        'Detección de depresión en estudiantes de Ingeniería Electrónica: Un caso de estudio',
+        'Este tema propone aplicar técnicas de visión por computadora para detectar informáticos deprimidos.',
+        NULL,
+        NULL,
+        'https://miuniversidad.edu/repos/tema003',
+        3,
+        NULL,
+        1,
+        '2025-05-10 10:00:00+00',
+        NULL,
+        TRUE,
+        '2025-05-01 10:00:00+00',
+        '2025-05-01 10:00:00+00'
     );
 
 INSERT INTO
@@ -2060,6 +2316,252 @@ INSERT INTO
 VALUES (1, 2, TRUE, NOW()),
     (1, 3, TRUE, NOW()),
     (1, 4, TRUE, NOW());
+
+-- Agregamos areas de conocimiento
+insert into
+    usuario_area_conocimiento (
+        usuario_id,
+        area_conocimiento_id,
+        activo,
+        fecha_creacion,
+        fecha_modificacion
+    ) (
+        select
+            usuario_id,
+            area_conocimiento_id,
+            true,
+            now(),
+            now()
+        from usuario
+            join area_conocimiento on area_conocimiento.nombre = 'ciberseguridad'
+        where
+            codigo_pucp in ('P003', 'PROF001', 'PROF003')
+        union
+        select
+            usuario_id,
+            area_conocimiento_id,
+            true,
+            now(),
+            now()
+        from usuario
+            join area_conocimiento on area_conocimiento.nombre = 'sistemas de información'
+        where
+            codigo_pucp in ('P002', 'PROF001', 'PROF004')
+        union
+        select
+            usuario_id,
+            area_conocimiento_id,
+            true,
+            now(),
+            now()
+        from usuario
+            join area_conocimiento on area_conocimiento.nombre = 'ciencias de la computación'
+        where
+            codigo_pucp in ('PROF002', 'PROF004')
+    );
+
+-- Agregamos sub areas de conocimiento
+
+INSERT INTO
+    usuario_sub_area_conocimiento (
+        usuario_id,
+        sub_area_conocimiento_id,
+        activo
+    )
+VALUES (6, 11, true);
+
+INSERT INTO
+    usuario_sub_area_conocimiento (
+        usuario_id,
+        sub_area_conocimiento_id,
+        activo
+    )
+VALUES (6, 12, true);
+
+INSERT INTO
+    usuario_sub_area_conocimiento (
+        usuario_id,
+        sub_area_conocimiento_id,
+        activo
+    )
+VALUES (6, 14, true);
+
+INSERT INTO
+    usuario_sub_area_conocimiento (
+        usuario_id,
+        sub_area_conocimiento_id,
+        activo
+    )
+VALUES (9, 7, true);
+
+INSERT INTO
+    usuario_sub_area_conocimiento (
+        usuario_id,
+        sub_area_conocimiento_id,
+        activo
+    )
+VALUES (9, 6, true);
+
+INSERT INTO
+    usuario_sub_area_conocimiento (
+        usuario_id,
+        sub_area_conocimiento_id,
+        activo
+    )
+VALUES (9, 14, true);
+
+INSERT INTO
+    usuario_sub_area_conocimiento (
+        usuario_id,
+        sub_area_conocimiento_id,
+        activo
+    )
+VALUES (9, 15, true);
+
+INSERT INTO
+    usuario_sub_area_conocimiento (
+        usuario_id,
+        sub_area_conocimiento_id,
+        activo
+    )
+VALUES (9, 11, true);
+
+INSERT INTO
+    usuario_sub_area_conocimiento (
+        usuario_id,
+        sub_area_conocimiento_id,
+        activo
+    )
+VALUES (10, 5, true);
+
+INSERT INTO
+    usuario_sub_area_conocimiento (
+        usuario_id,
+        sub_area_conocimiento_id,
+        activo
+    )
+VALUES (10, 4, true);
+
+INSERT INTO
+    usuario_sub_area_conocimiento (
+        usuario_id,
+        sub_area_conocimiento_id,
+        activo
+    )
+VALUES (11, 11, true);
+
+INSERT INTO
+    usuario_sub_area_conocimiento (
+        usuario_id,
+        sub_area_conocimiento_id,
+        activo
+    )
+VALUES (11, 14, true);
+
+INSERT INTO
+    usuario_sub_area_conocimiento (
+        usuario_id,
+        sub_area_conocimiento_id,
+        activo
+    )
+VALUES (12, 1, true);
+
+INSERT INTO
+    usuario_sub_area_conocimiento (
+        usuario_id,
+        sub_area_conocimiento_id,
+        activo
+    )
+VALUES (12, 3, true);
+
+INSERT INTO
+    usuario_sub_area_conocimiento (
+        usuario_id,
+        sub_area_conocimiento_id,
+        activo
+    )
+VALUES (12, 6, true);
+
+INSERT INTO
+    usuario_sub_area_conocimiento (
+        usuario_id,
+        sub_area_conocimiento_id,
+        activo
+    )
+VALUES (12, 10, true);
+
+INSERT INTO
+    usuario_sub_area_conocimiento (
+        usuario_id,
+        sub_area_conocimiento_id,
+        activo
+    )
+VALUES (12, 7, true);
+
+-- Agregamos rol de asesor a los profesores
+insert into
+    usuario_rol (
+        usuario_id,
+        rol_id,
+        activo,
+        fecha_creacion,
+        fecha_modificacion
+    ) (
+        select usuario.usuario_id, rol.rol_id, TRUE, now(), now()
+        from
+            usuario
+            inner join tipo_usuario on tipo_usuario.tipo_usuario_id = usuario.tipo_usuario_id
+            inner join usuario_carrera on usuario_carrera.usuario_id = usuario.usuario_id
+            join rol on rol.nombre = 'Asesor'
+        where
+            tipo_usuario.nombre like 'profesor'
+            and usuario_carrera.carrera_id = 1
+    );
+
+-- Parametros para asesores
+INSERT INTO
+    parametro_configuracion (
+        parametro_configuracion_id,
+        activo,
+        descripcion,
+        fecha_creacion,
+        fecha_modificacion,
+        nombre,
+        tipo,
+        modulo_id
+    )
+VALUES (
+        12,
+        true,
+        'Numero de limites por asesor',
+        NOW(),
+        NOW(),
+        'LimXasesor',
+        'integer',
+        1
+    );
+
+INSERT INTO
+    carrera_parametro_configuracion (
+        carrera_parametro_configuracion_id,
+        activo,
+        fecha_creacion,
+        fecha_modificacion,
+        valor,
+        carrera_id,
+        parametro_configuracion_id,
+        etapa_formativa_id
+    )
+VALUES (
+        11,
+        true,
+        NOW(),
+        NOW(),
+        '8',
+        1,
+        12,
+        1
+    );
 
 -- Asignar temas a los estudiantes A004-A008
 INSERT INTO

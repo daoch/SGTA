@@ -216,10 +216,11 @@ INSERT INTO ciclo (semestre, anio, fecha_inicio, fecha_fin, activo, fecha_creaci
 
 INSERT INTO etapa_formativa_x_ciclo (etapa_formativa_id,
                                      ciclo_id,
+                                     estado,
                                      activo,
                                      fecha_creacion,
                                      fecha_modificacion)
-    VALUES (1, 1, TRUE, NOW(), NOW());
+    VALUES (1, 1, 'En Curso', TRUE, NOW(), NOW());
 
 
 INSERT INTO etapa_formativa_x_sala_exposicion (etapa_formativa_id,

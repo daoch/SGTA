@@ -1,15 +1,3 @@
-export interface TemaForm {
-  tipoRegistro: string;
-  titulo: string;
-  areaInvestigacion: string;
-  descripcion: string;
-  coasesores: string[];
-  asesorPrincipal: string;
-  estudiantes: string[];
-  requisitos?: string;
-  fechaLimite?: string;
-}
-
 export interface Tema {
   id: number;
   codigo: string | null;
@@ -30,24 +18,8 @@ export interface Tema {
   idSubAreasConocimientoList: number[] | null;
   coasesores: Coasesor[] | null;
   tesistas: Tesista[] | null;
-  subareas: AreaDeInvestigacion[];
-  requisitos: string;
-}
-
-export interface TemaCreateInscription {
-  titulo: string;
-  carrera: Identifiable;
-  resumen: string;
-  objetivos: string;
-  metodologia: string;
-  fechaLimite: string;
-  subareas: Identifiable[];
-  coasesores: Identifiable[];
-  tesistas: Identifiable[];
-}
-
-export interface Identifiable {
-  id: number;
+  subareas: Subareas[];
+  requisitos: string; //agregado
 }
 
 export interface Carrera {
@@ -102,7 +74,7 @@ export interface Coasesor {
   fechaModificacion: string | null;
 }
 
-export interface AreaDeInvestigacion {
+export interface Subareas {
   id: number;
   nombre: string;
   descripcion: string | null;
@@ -120,4 +92,47 @@ export interface AreaConocimiento {
   fechaCreacion: string;
   fechaModificacion: string;
   idCarrera: number;
+}
+
+export type Usuario = {
+  id: number;
+  tipoUsuario: TipoUsuario;
+  codigoPucp: string;
+  nombres: string;
+  primerApellido: string;
+  segundoApellido: string;
+  correoElectronico: string | null;
+  nivelEstudios: string;
+  contrasena: string | null;
+  biografia: string | null;
+  enlaceRepositorio: string | null;
+  enlaceLinkedin: string | null;
+  disponibilidad: string | null;
+  tipoDisponibilidad: string;
+  asignado: boolean;
+  creador: boolean;
+  rechazado: boolean;
+  activo: boolean;
+  fechaCreacion: string;
+  fechaModificacion: string;
+};
+
+export type TipoUsuario = {
+  id: number;
+  nombre: string;
+  activo: boolean;
+  fechaCreacion: string;
+  fechaModificacion: string;
+};
+
+export interface TemaCreateLibre {
+  titulo: string;
+  carrera: number;
+  resumen: string;
+  objetivos: string;
+  metodologia: string;
+  fechaLimite: string;
+  subareas: number[];
+  coasesores: number[];
+  requisitos: string;
 }
