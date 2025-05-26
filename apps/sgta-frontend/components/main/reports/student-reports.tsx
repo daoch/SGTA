@@ -1,11 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { AlertTriangle, Calendar } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -14,8 +11,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { addDays, isBefore, parseISO } from "date-fns";
+import { AlertTriangle, Calendar } from "lucide-react";
+import { useState } from "react";
 
 export function StudentReports() {
   const [scheduleFrequency, setScheduleFrequency] = useState("weekly");
@@ -269,11 +269,11 @@ export function StudentReports() {
 
         {/* Resumen de proyecto - Lado derecho */}
         <Card>
-          <CardHeader className="py-3">
+          <CardHeader className="py- pb-1">
             <CardTitle className="text-lg">Resumen de Proyecto</CardTitle>
           </CardHeader>
-          <CardContent className="py-2">
-            <div className="space-y-3">
+          <CardContent className="pt-1">
+            <div className="space-y-2">
               <div>
                 <h3 className="text-xs text-gray-500">Proyecto de Fin de Carrera:</h3>
                 <p className="text-sm font-medium line-clamp-2">{studentData.thesis}</p>
