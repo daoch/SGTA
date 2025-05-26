@@ -32,7 +32,7 @@ public class UsuarioXSolicitud {
 	@Column(name = "solicitud_completada", nullable = false)
 	private Boolean solicitudCompletada = false;
 
-	@Column(nullable = false)
+	@Column(name = "aprobado", nullable = false)
 	private Boolean aprobado = false;
 
 	@Column(columnDefinition = "TEXT")
