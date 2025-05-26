@@ -77,4 +77,24 @@ public interface TemaService {
 	void rechazarPostulacionAPropuestaGeneral(Integer idTema, Integer idAsesor, Integer idTesista);
 
 	void aprobarPostulacionAPropuestaGeneral(Integer idTema, Integer idAsesor, Integer idTesista);
+	void updateTituloResumenTemaSolicitud(Integer idTema, String titulo, String resumen);
+
+	/**
+	 * Updates the title of a theme based on a request and handles the request status.
+	 * 
+	 * @param solicitudId ID of the request to process
+	 * @param titulo New title for the theme (can be null)
+	 * @param respuesta Response message for the request
+	 */
+	void updateTituloTemaSolicitud(Integer solicitudId, String titulo, String respuesta);
+
+	/**
+	 * Updates the summary of a theme based on a request and handles the request status.
+	 * 
+	 * @param solicitudId ID of the request to process
+	 * @param resumen New summary for the theme (can be null) 
+	 * @param respuesta Response message for the request
+	 */
+	void updateResumenTemaSolicitud(Integer solicitudId, String resumen, String respuesta);
+
 }

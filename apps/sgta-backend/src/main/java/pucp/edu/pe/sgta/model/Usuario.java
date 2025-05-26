@@ -64,6 +64,9 @@ public class Usuario {
 	@Column(name = "tipo_disponibilidad", columnDefinition = "TEXT")
 	private String tipoDisponibilidad;
 
+	@Column(name = "id_cognito", length = 255)
+	private String idCognito;
+
 	@ManyToOne(fetch = FetchType.LAZY, optional = true)
 	@JoinColumn(name = "tipo_dedicacion_id", nullable = true, foreignKey = @ForeignKey(name = "fk_tipo_dedicacion"))
 	private TipoDedicacion tipoDedicacion;

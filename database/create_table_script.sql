@@ -84,6 +84,7 @@ CREATE TABLE IF NOT EXISTS usuario
     disponibilidad      TEXT,
     tipo_disponibilidad TEXT,
     tipo_dedicacion_id     INTEGER,
+	id_cognito          VARCHAR(255),
     activo              BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
