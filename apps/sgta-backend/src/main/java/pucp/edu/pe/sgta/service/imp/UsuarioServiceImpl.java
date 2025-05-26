@@ -280,48 +280,45 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Override
     @Transactional
     public void assignAdvisorRoleToUser(Integer userId) {
-        System.out.println("Intentando asignar rol de Asesor al usuario ID: " + userId);
-        
-        // 1. Buscar y validar que el usuario existe
+        // 1. Buscar usuario activo y validar que sea Profesor
         Usuario user = usuarioRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado: " + userId));
         
-        // 2. Validar que el usuario es de tipo Profesor
+        if (!user.getActivo()) {
+            throw new IllegalArgumentException("El usuario está inactivo");
+        }
+
         TipoUsuario tipoUsuario = user.getTipoUsuario();
         if (tipoUsuario == null || !"Profesor".equalsIgnoreCase(tipoUsuario.getNombre())) {
-            System.out.println("El usuario ID: " + userId + " no es profesor, es: " + 
-                    (tipoUsuario != null ? tipoUsuario.getNombre() : "null"));
             throw new IllegalArgumentException("Solo los usuarios de tipo Profesor pueden ser asignados como Asesores");
         }
-        
-        // 3. Buscar el rol de Asesor
+
+        // 2. Obtener rol Asesor
         String rolNombre = RolEnum.Asesor.name();
         Rol advisorRole = rolRepository.findByNombre(rolNombre)
                 .orElseThrow(() -> new NoSuchElementException("Rol '" + rolNombre + "' no configurado en el sistema"));
-        
-        // 4. Verificar si ya tiene el rol (idempotencia)
-        String jpql = "SELECT COUNT(u) FROM Usuario u JOIN u.roles r WHERE u.id = :userId AND r.id = :rolId";
-        Long count = em.createQuery(jpql, Long.class)
-                .setParameter("userId", userId)
-                .setParameter("rolId", advisorRole.getId())
-                .getSingleResult();
-        
-        boolean alreadyExists = count > 0;
-        
-        if (!alreadyExists) {
-            // 5. Asignar el rol al usuario
-            String sql = "INSERT INTO usuario_rol (usuario_id, rol_id, activo) VALUES (:usuarioId, :rolId, true)";
-            em.createNativeQuery(sql)
+
+        // 3. Verificar si ya tiene el rol activo asignado (consulta nativa)
+        String countSql = "SELECT COUNT(*) FROM usuario_rol WHERE usuario_id = :usuarioId AND rol_id = :rolId AND activo = true";
+        Number count = (Number) em.createNativeQuery(countSql)
                 .setParameter("usuarioId", userId)
                 .setParameter("rolId", advisorRole.getId())
-                .executeUpdate();
-                
+                .getSingleResult();
+
+        if (count.intValue() == 0) {
+            // 4. Insertar nuevo rol activo
+            String insertSql = "INSERT INTO usuario_rol (usuario_id, rol_id, activo, fecha_creacion, fecha_modificacion) " +
+                    "VALUES (:usuarioId, :rolId, true, NOW(), NOW())";
+            em.createNativeQuery(insertSql)
+                    .setParameter("usuarioId", userId)
+                    .setParameter("rolId", advisorRole.getId())
+                    .executeUpdate();
             System.out.println("Rol de Asesor asignado exitosamente al usuario ID: " + userId);
         } else {
-            System.out.println("El usuario ID: " + userId + " ya tiene el rol de Asesor. No se realizó ninguna acción.");
+            System.out.println("El usuario ID: " + userId + " ya tiene el rol de Asesor activo. No se realizó ninguna acción.");
         }
     }
-    
+        
     /**
      * HU02: Quita el rol de Asesor a un usuario
      */
