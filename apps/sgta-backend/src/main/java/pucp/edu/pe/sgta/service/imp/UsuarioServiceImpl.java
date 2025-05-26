@@ -264,6 +264,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 				.activo((Boolean) r[15])
 				.fechaCreacion(fechaCreacion)
 				.fechaModificacion(fechaModificacion)
+                .asignado((Boolean) r[19])
 				.build();
 
 			lista.add(u);

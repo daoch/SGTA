@@ -1,22 +1,21 @@
+import { Tipo } from "@/features/temas/types/inscripcion/enums";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
-  DialogTrigger,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
 import { Eye, History } from "lucide-react";
-import { Tema } from "@/app/types/temas/entidades";
-import { asesorData } from "@/app/types/temas/data";
-import { Tipo } from "@/app/types/temas/enums";
+import { Coasesor, Tema } from "@/features/temas/types/inscripcion/entities";
 
 interface TemaDetailsDialogProps {
   tema: Tema;
+  asesor?: Coasesor;
 }
 
 /**
@@ -26,6 +25,7 @@ interface TemaDetailsDialogProps {
  */
 export const TemaDetailsDialog: React.FC<TemaDetailsDialogProps> = ({
   tema,
+  asesor,
 }) => {
   const coasesores = tema.coasesores
     ? tema.coasesores
@@ -75,7 +75,7 @@ export const TemaDetailsDialog: React.FC<TemaDetailsDialogProps> = ({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <p className="text-sm font-medium">Asesor</p>
-              <p className="bg-muted p-2 rounded-md">{asesorData.name}</p>
+              <p className="bg-muted p-2 rounded-md">{asesor?.nombres}</p>
             </div>
 
             {/* Estado */}
@@ -90,7 +90,7 @@ export const TemaDetailsDialog: React.FC<TemaDetailsDialogProps> = ({
           </div>
 
           {/* Coasesores */}
-          {coasesores && coasesores.length && (
+          {!!coasesores?.length && (
             <div>
               <p className="text-sm font-medium">Coasesores</p>
               <p className="bg-muted p-2 rounded-md">{coasesores}</p>
@@ -138,7 +138,7 @@ export const TemaDetailsDialog: React.FC<TemaDetailsDialogProps> = ({
           )}
 
           {/* Fecha límite */}
-          {tema.fechaLimite && (
+          {tema.estadoTemaNombre === Tipo.LIBRE && (
             <div>
               <p className="text-sm font-medium">Fecha Límite</p>
               <p className="bg-muted p-2 rounded-md">
