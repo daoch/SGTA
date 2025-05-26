@@ -184,7 +184,7 @@ export function TemaCard() {
         </div>
       </CardContent>
       <CardFooter className="flex justify-between">
-        <Link href={`/temas/${tesisData.id}`}>
+        <Link href={`/alumno/temas/${tesisData.id}`}>
           <Button variant="outline">
             <Eye className="mr-2 h-4 w-4" /> Ver detalle completo
           </Button>
