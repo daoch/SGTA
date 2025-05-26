@@ -72,6 +72,8 @@ public class TemaServiceImpl implements TemaService {
 
 	private final SolicitudService solicitudService;
 
+  	private final SubAreaConocimientoService subAreaService;
+
 
 	@PersistenceContext
 	private EntityManager entityManager;
@@ -99,6 +101,7 @@ public class TemaServiceImpl implements TemaService {
 		this.solicitudRepository = solicitudRepository;
 		this.usuarioXSolicitudRepository = usuarioXSolicitudRepository;
 		this.solicitudService = solicitudService;
+		this.subAreaService = subAreaConocimientoService;
 	}
 
 	@Override
@@ -620,6 +623,7 @@ public class TemaServiceImpl implements TemaService {
 					.rechazado((Boolean) r[8])
 					.codigoPucp((String) r[9])
 					.build();
+			u.setRol(rolNombre);
             resultados.add(u);
         }
         return resultados;
@@ -650,9 +654,29 @@ public class TemaServiceImpl implements TemaService {
 
         // por cada tema cargo coasesores, tesistas y subáreas
         for (TemaDto t : temas) {
-            t.setCoasesores(
-                listarUsuariosPorTemaYRol(t.getId(), RolEnum.Coasesor.name())
-            );
+            List<UsuarioDto> asesores = listarUsuariosPorTemaYRol(
+				t.getId(),
+				RolEnum.Asesor.name()
+			);
+			// 2) Obtengo a los coasesores (o la lista base que ya tenías)
+			List<UsuarioDto> coasesores = listarUsuariosPorTemaYRol(
+				t.getId(),
+				RolEnum.Coasesor.name()
+			);
+
+			// 3) Combino: Asesor primero, luego coasesores, sin duplicados
+			List<UsuarioDto> combinado = new ArrayList<>();
+			if (!asesores.isEmpty()) {
+				combinado.addAll(asesores);
+			}
+			for (UsuarioDto u : coasesores) {
+				// evitamos volver a añadir al mismo usuario si coincide con el asesor
+				if (asesores.stream().noneMatch(a -> a.getId().equals(u.getId()))) {
+					combinado.add(u);
+				}
+			}
+
+			t.setCoasesores(combinado);
             t.setTesistas(
                 listarUsuariosPorTemaYRol(t.getId(), RolEnum.Tesista.name())
             );
@@ -1219,21 +1243,56 @@ public class TemaServiceImpl implements TemaService {
 		List<TemaDto> resultados = new ArrayList<>(rows.size());
 		for (Object[] r : rows) {
 			TemaDto dto = TemaDto.builder()
-				.id( ((Number) r[0]).intValue() )        // tema_id
-				.codigo(       (String)   r[1] )          // codigo
-				.titulo(       (String)   r[2] )          // titulo
-				.resumen(      (String)   r[3] )          // resumen
-				.metodologia(  (String)   r[4] )          // metodologia
-				.objetivos(    (String)   r[5] )          // objetivos
-				.estadoTemaNombre((String) r[6] )         // estado_nombre
-				.fechaLimite(      toOffsetDateTime(r[7]) )   // fecha_limite
-				.fechaCreacion(    toOffsetDateTime(r[8]) )   // fecha_creacion
-				.fechaModificacion(toOffsetDateTime(r[9]) )   // fecha_modificacion
-				.build();
+			.id(((Number) r[0]).intValue())
+			.codigo((String) r[1])
+			.titulo((String) r[2])
+			.resumen((String) r[3])
+			.metodologia((String) r[4])
+			.objetivos((String) r[5])
+			.estadoTemaNombre((String) r[6])
+			.fechaLimite(toOffsetDateTime(r[7]))
+			.fechaCreacion(toOffsetDateTime(r[8]))
+			.fechaModificacion(toOffsetDateTime(r[9]))
+			.build();
 			resultados.add(dto);
 		}
-		return resultados;
+
+		// —— Aquí completas asesores, coasesores, tesistas y subáreas ——
+		for (TemaDto t : resultados) {
+			List<UsuarioDto> asesores = listarUsuariosPorTemaYRol(
+				t.getId(),
+				RolEnum.Asesor.name()
+			);
+			// 2) Obtengo a los coasesores (o la lista base que ya tenías)
+			List<UsuarioDto> coasesores = listarUsuariosPorTemaYRol(
+				t.getId(),
+				RolEnum.Coasesor.name()
+			);
+
+			// 3) Combino: Asesor primero, luego coasesores, sin duplicados
+			List<UsuarioDto> combinado = new ArrayList<>();
+			if (!asesores.isEmpty()) {
+				combinado.addAll(asesores);
+			}
+			for (UsuarioDto u : coasesores) {
+				// evitamos volver a añadir al mismo usuario si coincide con el asesor
+				if (asesores.stream().noneMatch(a -> a.getId().equals(u.getId()))) {
+					combinado.add(u);
+				}
+			}
+
+			t.setCoasesores(combinado);
+			t.setTesistas(
+			listarUsuariosPorTemaYRol(t.getId(), RolEnum.Tesista.name())
+			);
+			t.setSubareas(
+			listarSubAreasPorTema(t.getId())
+			);
+		}
+
+	return resultados;
 	}
+
 
 	private void validarCoordinadorYEstado(
 		Integer temaId,
