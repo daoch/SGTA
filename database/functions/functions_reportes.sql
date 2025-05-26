@@ -548,7 +548,8 @@ RETURNS TABLE (
     descripcion TEXT,
     fecha_inicio TIMESTAMP WITH TIME ZONE,
     fecha_fin TIMESTAMP WITH TIME ZONE,
-    estado enum_estado_entrega,
+    entregable_envio_estado enum_estado_entrega,
+    entregable_actividad_estado VARCHAR,
     es_evaluable BOOLEAN,
     tema_id INT,
     tema_titulo VARCHAR
@@ -561,7 +562,8 @@ BEGIN
         e.descripcion,
         e.fecha_inicio,
         e.fecha_fin,
-        et.estado,
+        et.estado AS entregable_envio_estado,
+        e.estado::VARCHAR AS entregable_actividad_estado,
         e.es_evaluable,
         t.tema_id,
         t.titulo AS tema_titulo
@@ -601,21 +603,28 @@ RETURNS TABLE (
     area_conocimiento VARCHAR,
     sub_area_conocimiento VARCHAR,
     -- Datos del asesor
-    asesor_nombre TEXT,  -- TEXT para string_agg
-    asesor_correo TEXT,  -- TEXT para string_agg
-    -- Datos del coasesor (nuevas columnas)
-    coasesor_nombre TEXT,  -- TEXT para string_agg
-    coasesor_correo TEXT,  -- TEXT para string_agg
+    asesor_nombre TEXT,
+    asesor_correo TEXT,
+    -- Datos del coasesor
+    coasesor_nombre TEXT,
+    coasesor_correo TEXT,
     -- Datos del ciclo académico
     ciclo_id INT,
-    ciclo_nombre TEXT,  -- TEXT para CONCAT
-    fecha_inicio_ciclo DATE,  -- Cambiado a DATE para coincidir con la tabla ciclo
-    fecha_fin_ciclo DATE,     -- Cambiado a DATE para coincidir con la tabla ciclo
+    ciclo_nombre TEXT,
+    fecha_inicio_ciclo DATE,
+    fecha_fin_ciclo DATE,
     -- Datos de la etapa formativa
     etapa_formativa_id INT,
-    etapa_formativa_nombre TEXT,  -- TEXT para coincidir con el campo nombre en etapa_formativa
+    etapa_formativa_nombre TEXT,
     -- Fase actual
-    fase_actual VARCHAR
+    fase_actual VARCHAR,
+    -- Información del entregable actual (nuevos campos)
+    entregable_id INT,
+    entregable_nombre VARCHAR,
+    entregable_actividad_estado VARCHAR,
+    entregable_envio_estado VARCHAR,
+    entregable_fecha_inicio TIMESTAMP WITH TIME ZONE,
+    entregable_fecha_fin TIMESTAMP WITH TIME ZONE
 ) AS $$
 DECLARE
     v_current_date TIMESTAMP WITH TIME ZONE := NOW();
@@ -626,6 +635,10 @@ DECLARE
     v_ciclo_actual_id INT;
     v_fase_actual VARCHAR;
     v_next_entregable_nombre VARCHAR;
+    v_entregable_actividad_estado VARCHAR;
+    v_entregable_envio_estado VARCHAR;
+    v_entregable_fecha_inicio TIMESTAMP WITH TIME ZONE;
+    v_entregable_fecha_fin TIMESTAMP WITH TIME ZONE;
 BEGIN
     -- Obtenemos el tema del tesista
     SELECT ut.tema_id INTO v_tema_id
@@ -654,11 +667,19 @@ BEGIN
     SELECT
         e.entregable_id,
         e.nombre,
+        e.fecha_fin,
+        e.estado::VARCHAR,
+        et.estado::VARCHAR,
+        e.fecha_inicio,
         e.fecha_fin
     INTO
         v_current_entregable_id,
         v_current_entregable_nombre,
-        v_fecha_fin_entregable
+        v_fecha_fin_entregable,
+        v_entregable_actividad_estado,
+        v_entregable_envio_estado,
+        v_entregable_fecha_inicio,
+        v_entregable_fecha_fin
     FROM entregable e
     JOIN entregable_x_tema et ON et.entregable_id = e.entregable_id
     JOIN etapa_formativa_x_ciclo efc ON efc.etapa_formativa_x_ciclo_id = e.etapa_formativa_x_ciclo_id
@@ -679,11 +700,19 @@ BEGIN
         SELECT
             e.entregable_id,
             e.nombre,
+            e.fecha_fin,
+            e.estado::VARCHAR,
+            et.estado::VARCHAR,
+            e.fecha_inicio,
             e.fecha_fin
         INTO
             v_current_entregable_id,
             v_current_entregable_nombre,
-            v_fecha_fin_entregable
+            v_fecha_fin_entregable,
+            v_entregable_actividad_estado,
+            v_entregable_envio_estado,
+            v_entregable_fecha_inicio,
+            v_entregable_fecha_fin
         FROM entregable e
         JOIN entregable_x_tema et ON et.entregable_id = e.entregable_id
         JOIN etapa_formativa_x_ciclo efc ON efc.etapa_formativa_x_ciclo_id = e.etapa_formativa_x_ciclo_id
@@ -698,7 +727,20 @@ BEGIN
             v_fase_actual := 'FINALIZADO - FUERA DE CRONOGRAMA';
         ELSE
             -- Buscamos el próximo entregable programado
-            SELECT e.nombre INTO v_next_entregable_nombre
+            SELECT
+                e.nombre,
+                e.entregable_id,
+                e.estado::VARCHAR,
+                et.estado::VARCHAR,
+                e.fecha_inicio,
+                e.fecha_fin
+            INTO
+                v_next_entregable_nombre,
+                v_current_entregable_id,
+                v_entregable_actividad_estado,
+                v_entregable_envio_estado,
+                v_entregable_fecha_inicio,
+                v_entregable_fecha_fin
             FROM entregable e
             JOIN entregable_x_tema et ON et.entregable_id = e.entregable_id
             JOIN etapa_formativa_x_ciclo efc ON efc.etapa_formativa_x_ciclo_id = e.etapa_formativa_x_ciclo_id
@@ -781,7 +823,14 @@ BEGIN
         ef.etapa_formativa_id,
         ef.nombre AS etapa_formativa_nombre,
         -- Fase actual
-        v_fase_actual AS fase_actual
+        v_fase_actual AS fase_actual,
+        -- Información del entregable actual (nuevos campos)
+        v_current_entregable_id AS entregable_id,
+        v_current_entregable_nombre AS entregable_nombre,
+        v_entregable_actividad_estado AS entregable_actividad_estado,
+        v_entregable_envio_estado AS entregable_envio_estado,
+        v_entregable_fecha_inicio AS entregable_fecha_inicio,
+        v_entregable_fecha_fin AS entregable_fecha_fin
     FROM usuario u
     JOIN usuario_tema ut ON ut.usuario_id = u.usuario_id AND ut.activo = TRUE
     JOIN rol r_tesista ON r_tesista.rol_id = ut.rol_id AND r_tesista.nombre = 'Tesista'
@@ -822,4 +871,3 @@ BEGIN
         ef.nombre;
 END;
 $$ LANGUAGE plpgsql;
-
