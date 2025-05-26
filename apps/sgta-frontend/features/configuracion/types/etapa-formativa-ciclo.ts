@@ -6,6 +6,7 @@ export interface Ciclo {
 
 export interface EtapaFormativaCiclo {
     id: number;
+    estado: "En Curso" | "Finalizado"; // Tipo específico
     etapaFormativaId: number;
     cicloId: number;
     carreraId: number;
