@@ -188,3 +188,270 @@ AND entregable_id IN (
     FROM entregable
     WHERE nombre = 'Plan de Tesis'
 );
+
+
+-- Insertar relaciones entre usuarios y áreas de conocimiento
+INSERT INTO usuario_area_conocimiento (
+    usuario_id,
+    area_conocimiento_id,
+    activo,
+    fecha_creacion,
+    fecha_modificacion
+)
+VALUES
+    -- Juan Pérez (profesor) - Asignamos al área de ciencias de la computación <- segundo area de conocimiento asignado
+    (1, 1, TRUE, NOW(), NOW()),
+
+    -- Ana Martínez (profesora) - Asignamos al área de sistemas de información  <- segundo area de conocimiento asignado
+    (5, 2, TRUE, NOW(), NOW()),
+
+    -- Carlos Sánchez (profesor) - Asignamos al área de ciberseguridad
+    (6, 3, TRUE, NOW(), NOW()),
+
+    -- Asignamos algunos profesores a más de un área para mostrar versatilidad
+    -- Juan Pérez también trabaja en sistemas de información
+    (1, 2, TRUE, NOW(), NOW()),
+
+    -- Ana Martínez también trabaja en ciencias de la computación
+    (5, 1, TRUE, NOW(), NOW());
+
+
+-- Asegurarse de que la columna 'asignado' exista en la tabla usuario_tema
+-- Si no existe, ejecutar:
+-- ALTER TABLE usuario_tema ADD COLUMN asignado BOOLEAN DEFAULT TRUE;
+
+-- Insertar relaciones entre usuarios y temas
+INSERT INTO usuario_tema(
+    usuario_id,
+    tema_id,
+    rol_id,
+    asignado,
+    activo,
+    fecha_creacion,
+    fecha_modificacion
+)
+VALUES
+    -- Juan Pérez como asesor del tema "Inteligencia Artificial Aplicada"
+    (1, 1, (SELECT rol_id FROM rol WHERE nombre = 'Asesor'), TRUE, TRUE, NOW(), NOW()),
+
+    -- Juan Pérez como asesor del tema "Machine Learning para Datos No Estructurados"
+    (1, 2, (SELECT rol_id FROM rol WHERE nombre = 'Asesor'), TRUE, TRUE, NOW(), NOW()),
+
+    -- Ana Martínez como asesora del tema "Redes Neuronales Profundas"
+    (5, 3, (SELECT rol_id FROM rol WHERE nombre = 'Asesor'), TRUE, TRUE, NOW(), NOW()),
+
+    -- Carlos Sánchez como asesor del tema "Ciberseguridad en la Era Digital"
+    (6, 7, (SELECT rol_id FROM rol WHERE nombre = 'Asesor'), TRUE, TRUE, NOW(), NOW()),
+
+    -- Carlos Sánchez como coasesor del tema "Blockchain y su Aplicación en Logística"
+    (6, 6, (SELECT rol_id FROM rol WHERE nombre = 'Coasesor'), TRUE, TRUE, NOW(), NOW());
+
+-- Asegurarnos de que los temas estén asociados al ciclo '1-2025'
+-- (Asumiendo que el etapa_formativa_x_ciclo_id es 1 para este ciclo)
+INSERT INTO etapa_formativa_x_ciclo_x_tema (
+    etapa_formativa_x_ciclo_id,
+    tema_id,
+    aprobado,
+    fecha_modificacion
+)
+SELECT 1, 1, TRUE, NOW()
+WHERE NOT EXISTS (
+    SELECT 1 FROM etapa_formativa_x_ciclo_x_tema
+    WHERE etapa_formativa_x_ciclo_id = 1 AND tema_id = 1
+);
+
+INSERT INTO etapa_formativa_x_ciclo_x_tema (
+    etapa_formativa_x_ciclo_id,
+    tema_id,
+    aprobado,
+    fecha_modificacion
+)
+SELECT 1, 6, TRUE, NOW()
+WHERE NOT EXISTS (
+    SELECT 1 FROM etapa_formativa_x_ciclo_x_tema
+    WHERE etapa_formativa_x_ciclo_id = 1 AND tema_id = 6
+);
+
+INSERT INTO etapa_formativa_x_ciclo_x_tema (
+    etapa_formativa_x_ciclo_id,
+    tema_id,
+    aprobado,
+    fecha_modificacion
+)
+SELECT 1, 7, TRUE, NOW()
+WHERE NOT EXISTS (
+    SELECT 1 FROM etapa_formativa_x_ciclo_x_tema
+    WHERE etapa_formativa_x_ciclo_id = 1 AND tema_id = 7
+);
+
+-- Crear entregables para los temas asignados al ciclo
+-- Para tema 1: Inteligencia Artificial Aplicada
+INSERT INTO entregable_x_tema (
+    tema_id,
+    entregable_id,
+    estado,
+    activo,
+    fecha_creacion,
+    fecha_modificacion
+)
+SELECT 1, 1, 'enviado_a_tiempo'::enum_estado_entrega, TRUE, NOW(), NOW()
+WHERE NOT EXISTS (
+    SELECT 1 FROM entregable_x_tema
+    WHERE tema_id = 1 AND entregable_id = 1
+);
+
+INSERT INTO entregable_x_tema (
+    tema_id,
+    entregable_id,
+    estado,
+    activo,
+    fecha_creacion,
+    fecha_modificacion
+)
+SELECT 1, 2, 'enviado_a_tiempo'::enum_estado_entrega, TRUE, NOW(), NOW()
+WHERE NOT EXISTS (
+    SELECT 1 FROM entregable_x_tema
+    WHERE tema_id = 1 AND entregable_id = 2
+);
+
+INSERT INTO entregable_x_tema (
+    tema_id,
+    entregable_id,
+    estado,
+    activo,
+    fecha_creacion,
+    fecha_modificacion
+)
+SELECT 1, 3, 'no_enviado'::enum_estado_entrega, TRUE, NOW(), NOW()
+WHERE NOT EXISTS (
+    SELECT 1 FROM entregable_x_tema
+    WHERE tema_id = 1 AND entregable_id = 3
+);
+
+-- Para tema 2: Machine Learning para Datos No Estructurados
+INSERT INTO entregable_x_tema (
+    tema_id,
+    entregable_id,
+    estado,
+    activo,
+    fecha_creacion,
+    fecha_modificacion
+)
+SELECT 2, 1, 'enviado_a_tiempo'::enum_estado_entrega, TRUE, NOW(), NOW()
+WHERE NOT EXISTS (
+    SELECT 1 FROM entregable_x_tema
+    WHERE tema_id = 2 AND entregable_id = 1
+);
+
+INSERT INTO entregable_x_tema (
+    tema_id,
+    entregable_id,
+    estado,
+    activo,
+    fecha_creacion,
+    fecha_modificacion
+)
+SELECT 2, 2, 'enviado_a_tiempo'::enum_estado_entrega, TRUE, NOW(), NOW()
+WHERE NOT EXISTS (
+    SELECT 1 FROM entregable_x_tema
+    WHERE tema_id = 2 AND entregable_id = 2
+);
+
+INSERT INTO entregable_x_tema (
+    tema_id,
+    entregable_id,
+    estado,
+    activo,
+    fecha_creacion,
+    fecha_modificacion
+)
+SELECT 2, 3, 'enviado_a_tiempo'::enum_estado_entrega, TRUE, NOW(), NOW()
+WHERE NOT EXISTS (
+    SELECT 1 FROM entregable_x_tema
+    WHERE tema_id = 2 AND entregable_id = 3
+);
+
+-- Para otros temas
+INSERT INTO entregable_x_tema (
+    tema_id,
+    entregable_id,
+    estado,
+    activo,
+    fecha_creacion,
+    fecha_modificacion
+)
+SELECT 3, 1, 'enviado_a_tiempo'::enum_estado_entrega, TRUE, NOW(), NOW()
+WHERE NOT EXISTS (
+    SELECT 1 FROM entregable_x_tema
+    WHERE tema_id = 3 AND entregable_id = 1
+);
+
+INSERT INTO entregable_x_tema (
+    tema_id,
+    entregable_id,
+    estado,
+    activo,
+    fecha_creacion,
+    fecha_modificacion
+)
+SELECT 3, 2, 'no_enviado'::enum_estado_entrega, TRUE, NOW(), NOW()
+WHERE NOT EXISTS (
+    SELECT 1 FROM entregable_x_tema
+    WHERE tema_id = 3 AND entregable_id = 2
+);
+
+INSERT INTO entregable_x_tema (
+    tema_id,
+    entregable_id,
+    estado,
+    activo,
+    fecha_creacion,
+    fecha_modificacion
+)
+SELECT 7, 1, 'enviado_a_tiempo'::enum_estado_entrega, TRUE, NOW(), NOW()
+WHERE NOT EXISTS (
+    SELECT 1 FROM entregable_x_tema
+    WHERE tema_id = 7 AND entregable_id = 1
+);
+
+INSERT INTO entregable_x_tema (
+    tema_id,
+    entregable_id,
+    estado,
+    activo,
+    fecha_creacion,
+    fecha_modificacion
+)
+SELECT 7, 2, 'enviado_a_tiempo'::enum_estado_entrega, TRUE, NOW(), NOW()
+WHERE NOT EXISTS (
+    SELECT 1 FROM entregable_x_tema
+    WHERE tema_id = 7 AND entregable_id = 2
+);
+
+INSERT INTO entregable_x_tema (
+    tema_id,
+    entregable_id,
+    estado,
+    activo,
+    fecha_creacion,
+    fecha_modificacion
+)
+SELECT 6, 1, 'enviado_a_tiempo'::enum_estado_entrega, TRUE, NOW(), NOW()
+WHERE NOT EXISTS (
+    SELECT 1 FROM entregable_x_tema
+    WHERE tema_id = 6 AND entregable_id = 1
+);
+
+INSERT INTO entregable_x_tema (
+    tema_id,
+    entregable_id,
+    estado,
+    activo,
+    fecha_creacion,
+    fecha_modificacion
+)
+SELECT 6, 3, 'no_enviado'::enum_estado_entrega, TRUE, NOW(), NOW()
+WHERE NOT EXISTS (
+    SELECT 1 FROM entregable_x_tema
+    WHERE tema_id = 6 AND entregable_id = 3
+);

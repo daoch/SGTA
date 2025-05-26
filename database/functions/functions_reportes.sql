@@ -228,17 +228,20 @@ BEGIN
         CAST(CONCAT(u.nombres,' ',u.primer_apellido,' ',COALESCE(u.segundo_apellido,'')) AS VARCHAR) AS advisor_name,
         ac.nombre AS area_name,
         t.tema_id
-      FROM usuario             u
-      JOIN usuario_tema        ut  ON ut.usuario_id = u.usuario_id AND ut.activo
-      JOIN rol                 r   ON r.rol_id      = ut.rol_id    AND r.nombre = 'Asesor'
-      JOIN tema                t   ON t.tema_id     = ut.tema_id   AND t.activo AND t.carrera_id = v_carrera_id
-      JOIN sub_area_conocimiento_tema sact 
-                                ON sact.tema_id    = t.tema_id   AND sact.activo
-      JOIN sub_area_conocimiento     sac
-                                ON sac.sub_area_conocimiento_id = sact.sub_area_conocimiento_id AND sac.activo
-      JOIN area_conocimiento         ac
-                                ON ac.area_conocimiento_id      = sac.area_conocimiento_id      AND ac.activo
-      WHERE u.activo
+      FROM usuario u
+      JOIN usuario_tema ut ON ut.usuario_id = u.usuario_id AND ut.activo = TRUE
+      JOIN rol r ON r.rol_id = ut.rol_id AND (r.nombre = 'Asesor' OR r.nombre = 'Coasesor')
+      JOIN tema t ON t.tema_id = ut.tema_id AND t.activo = TRUE AND t.carrera_id = v_carrera_id
+      -- Nos aseguramos que el tema esté asignado al ciclo actual
+      JOIN etapa_formativa_x_ciclo_x_tema efcxt ON efcxt.tema_id = t.tema_id
+      JOIN etapa_formativa_x_ciclo efc ON efc.etapa_formativa_x_ciclo_id = efcxt.etapa_formativa_x_ciclo_id
+                                       AND efc.ciclo_id = v_ciclo_id
+                                       AND efc.activo = TRUE
+      -- Usar la tabla usuario_area_conocimiento para obtener el área del usuario
+      JOIN usuario_area_conocimiento uac ON uac.usuario_id = u.usuario_id AND uac.activo = TRUE
+      JOIN area_conocimiento ac ON ac.area_conocimiento_id = uac.area_conocimiento_id AND ac.activo = TRUE
+      WHERE u.activo = TRUE
+        AND ut.asignado = TRUE
     ),
 
     topic_deliveries AS (
@@ -247,14 +250,16 @@ BEGIN
         at.advisor_name,
         at.area_name,
         at.tema_id,
-        COUNT(et.entregable_x_tema_id)                                        AS total_deliverables,
-        COUNT(*) FILTER (WHERE et.estado <> 'no_enviado')                     AS submitted_deliverables
+        COUNT(et.entregable_x_tema_id) AS total_deliverables,
+        COUNT(*) FILTER (WHERE et.estado::text != 'no_enviado') AS submitted_deliverables
       FROM advisor_topics AS at
-      LEFT JOIN entregable_x_tema   et  ON et.tema_id       = at.tema_id AND et.activo
-      LEFT JOIN entregable          e   ON e.entregable_id  = et.entregable_id AND e.activo
-      LEFT JOIN etapa_formativa_x_ciclo efc 
-                                      ON efc.etapa_formativa_x_ciclo_id = e.etapa_formativa_x_ciclo_id
-                                      AND efc.activo AND efc.ciclo_id = v_ciclo_id
+      -- Entregables del tema
+      LEFT JOIN entregable_x_tema et ON et.tema_id = at.tema_id AND et.activo = TRUE
+      LEFT JOIN entregable e ON e.entregable_id = et.entregable_id AND e.activo = TRUE
+      -- Filtrar entregables del ciclo actual
+      LEFT JOIN etapa_formativa_x_ciclo efc ON efc.etapa_formativa_x_ciclo_id = e.etapa_formativa_x_ciclo_id
+                                           AND efc.ciclo_id = v_ciclo_id
+                                           AND efc.activo = TRUE
       GROUP BY at.usuario_id, at.advisor_name, at.area_name, at.tema_id
     )
 
