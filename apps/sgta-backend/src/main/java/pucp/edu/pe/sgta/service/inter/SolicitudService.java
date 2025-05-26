@@ -19,5 +19,4 @@ public interface SolicitudService {
     void crearSolicitudAprobacionTema(Tema tema);
     SolicitudTemaDto findAllSolicitudesByTema(Integer temaId, int page, int size);
     void atenderSolicitudTemaInscrito(SolicitudTemaDto solicitudAtendida);
-    void crearSolicitudAprobacionTema(Tema tema);
 }

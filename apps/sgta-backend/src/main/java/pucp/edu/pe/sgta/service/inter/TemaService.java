@@ -101,7 +101,4 @@ public interface TemaService {
 	void updateResumenTemaSolicitud(Integer solicitudId, String resumen, String respuesta);
 
 
-	List<TemaDto> listarTemasPorEstadoYCarrera(String estadoNombre, Integer carreraId);
-
-	void cambiarEstadoTemaCoordinador(Integer temaId, String nuevoEstadoNombre,Integer usuarioId, String comentario);
 }
