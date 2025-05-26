@@ -66,7 +66,7 @@ export default function JuradosCards() {
     if (cantidadLimiteTesisJurado) {
       actualizarParametro(cantidadLimiteTesisJurado.id, limTesis);
     }
-  }
+  };
 
 
   return (
