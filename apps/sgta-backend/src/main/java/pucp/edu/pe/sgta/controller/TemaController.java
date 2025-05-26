@@ -162,6 +162,11 @@ public class TemaController {
 		temaService.rechazarPostulacionAPropuestaGeneral(temaId, asesorId, alumnoId);
 	}
 
+	@PostMapping("/crearTemaLibre")
+	public void crearTemaLibre(@Valid @RequestBody TemaDto dto) {
+		temaService.crearTemaLibre(dto);
+	}
+
 }
 
 

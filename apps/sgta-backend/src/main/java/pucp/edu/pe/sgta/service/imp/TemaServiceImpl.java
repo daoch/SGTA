@@ -1189,4 +1189,43 @@ public class TemaServiceImpl implements TemaService {
 			throw new RuntimeException("Failed to process summary change request", e);
 		}
 	}
+
+	@Override
+	public void crearTemaLibre(TemaDto dto) {
+		try {
+			// Obtener IDs de subáreas y coasesores
+			Integer[] subareaIds = dto.getSubareas() != null
+					? dto.getSubareas().stream().map(sa -> sa.getId()).toArray(Integer[]::new)
+					: null;
+
+			Integer[] coasesorIds = dto.getCoasesores() != null
+					? dto.getCoasesores().stream().map(user -> user.getId()).toArray(Integer[]::new)
+					: null;
+
+			// Validar asesor/coasesores
+			if (coasesorIds == null || coasesorIds.length < 1) {
+				throw new IllegalArgumentException("Debe haber al menos un asesor (en coasesores).");
+			}
+
+			// Llamada a la función de base de datos
+			entityManager.createNativeQuery("SELECT crear_tema_libre(:titulo, :resumen, :metodologia, :objetivos, :carreraId, :fechaLimite, :requisitos, :subareaIds, :coasesorIds)")
+					.setParameter("titulo", dto.getTitulo())
+					.setParameter("resumen", dto.getResumen())
+					.setParameter("metodologia", dto.getMetodologia())
+					.setParameter("objetivos", dto.getObjetivos())
+					.setParameter("carreraId", dto.getCarrera() != null ? dto.getCarrera().getId() : null)
+					.setParameter("fechaLimite", dto.getFechaLimite() != null ? dto.getFechaLimite().toLocalDate() : null)
+					.setParameter("requisitos", dto.getRequisitos() != null ? dto.getRequisitos() : "")
+					.setParameter("subareaIds", subareaIds)
+					.setParameter("coasesorIds", coasesorIds)
+					.getSingleResult();
+
+			logger.info("Tema creado exitosamente: " + dto.getTitulo());
+		} catch (Exception e) {
+			logger.severe("Error al crear tema: " + e.getMessage());
+			throw new RuntimeException("No se pudo crear el tema", e);
+		}
+	}
+
+
 }

@@ -97,4 +97,8 @@ public interface TemaService {
 	 */
 	void updateResumenTemaSolicitud(Integer solicitudId, String resumen, String respuesta);
 
+
+	void crearTemaLibre(TemaDto dto);
+
+
 }
