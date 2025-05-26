@@ -36,6 +36,9 @@ public class Tema {
 	@Column(columnDefinition = "TEXT")
 	private String metodologia;
 
+	@Column(columnDefinition = "TEXT")
+	private String requisitos;
+
 	@Column(name = "portafolio_url",  length = 255)
 	private String portafolioUrl;
 

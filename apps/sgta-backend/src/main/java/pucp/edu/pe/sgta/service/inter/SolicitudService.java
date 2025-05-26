@@ -6,8 +6,8 @@ import pucp.edu.pe.sgta.dto.RechazoSolicitudCambioAsesorResponseDto;
 import pucp.edu.pe.sgta.dto.RechazoSolicitudResponseDto;
 import pucp.edu.pe.sgta.dto.SolicitudCambioAsesorDto;
 import pucp.edu.pe.sgta.dto.SolicitudCeseDto;
-import pucp.edu.pe.sgta.model.Tema;
 import pucp.edu.pe.sgta.dto.temas.SolicitudTemaDto;
+import pucp.edu.pe.sgta.model.Tema;
 
 public interface SolicitudService {
     SolicitudCeseDto findAllSolicitudesCese(int page, int size);
@@ -19,4 +19,5 @@ public interface SolicitudService {
     void crearSolicitudAprobacionTema(Tema tema);
     SolicitudTemaDto findAllSolicitudesByTema(Integer temaId, int page, int size);
     void atenderSolicitudTemaInscrito(SolicitudTemaDto solicitudAtendida);
+    void crearSolicitudAprobacionTema(Tema tema);
 }

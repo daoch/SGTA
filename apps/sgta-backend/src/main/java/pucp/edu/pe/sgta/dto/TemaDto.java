@@ -37,6 +37,8 @@ public class TemaDto {
 
     private String metodologia;
 
+    private String requisitos;
+
     private String portafolioUrl;
 
     private Boolean activo;

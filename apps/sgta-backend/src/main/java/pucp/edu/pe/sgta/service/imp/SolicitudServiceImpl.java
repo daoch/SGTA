@@ -8,10 +8,12 @@ import java.util.stream.Collectors;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.transaction.Transactional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import pucp.edu.pe.sgta.dto.AprobarSolicitudCambioAsesorResponseDto;
@@ -39,6 +41,7 @@ import pucp.edu.pe.sgta.repository.UsuarioXTemaRepository;
 import pucp.edu.pe.sgta.service.inter.SolicitudService;
 import pucp.edu.pe.sgta.service.inter.TemaService;
 import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
+import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
 
 @Service
 public class SolicitudServiceImpl implements SolicitudService {
@@ -57,6 +60,7 @@ public class SolicitudServiceImpl implements SolicitudService {
     private SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository;
 
     @Autowired
+    @Lazy
     private TemaService temaService;
     @Autowired 
     private TipoSolicitudRepository tipoSolicitudRepository;
@@ -463,7 +467,8 @@ public class SolicitudServiceImpl implements SolicitudService {
      *
      * @param solicitudAtendida DTO containing the request information
      * @throws RuntimeException if the request is invalid or processing fails
-     */    @Override
+     */    
+    @Override
     @Transactional
     public void atenderSolicitudTemaInscrito(SolicitudTemaDto solicitudAtendida) {
         if (solicitudAtendida == null || solicitudAtendida.getChangeRequests() == null || solicitudAtendida.getChangeRequests().isEmpty()) {
