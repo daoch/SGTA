@@ -1,9 +1,10 @@
 "use client";
 
+import DirectorioAsesoresEstudiantes from "@/features/asesores/views/directorio-asesores-estudiantes";
 import React from "react";
 
 const Page: React.FC = () => {
-  return <div>page</div>;
+  return <DirectorioAsesoresEstudiantes />;
 };
 
 export default Page;

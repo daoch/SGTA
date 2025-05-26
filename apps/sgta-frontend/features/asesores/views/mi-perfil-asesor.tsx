@@ -4,15 +4,15 @@ import { ArrowLeft, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-import EditarPerfilActions from "../components/acciones-editar-perfil";
-import AreasTematicasCard from "../components/areas-tematicas-card";
-import SaveConfirmationDialog from "../components/confirmation-dialog";
-import AlertaValidacionDialog from "../components/modal-alerta-validacion-areas";
-import EliminarAreaDialog from "../components/modal-eliminar-area-con-temas";
-import PerfilAsesorCard from "../components/perfil-asesor-card";
-import PresentacionCard from "../components/presentacion-card";
-import TemasInteresCard from "../components/subareas-tematicas-card";
-import TesisDirigidasResumen from "../components/tesis-dirigidas-resumen";
+import EditarPerfilActions from "../components/perfil/acciones-editar-perfil";
+import AreasTematicasCard from "../components/perfil/areas-tematicas-card";
+import SaveConfirmationDialog from "../components/perfil/confirmation-dialog";
+import AlertaValidacionDialog from "../components/perfil/modal-alerta-validacion-areas";
+import EliminarAreaDialog from "../components/perfil/modal-eliminar-area-con-temas";
+import PerfilAsesorCard from "../components/perfil/perfil-asesor-card";
+import PresentacionCard from "../components/perfil/presentacion-card";
+import TemasInteresCard from "../components/perfil/subareas-tematicas-card";
+import TesisDirigidasResumen from "../components/perfil/tesis-dirigidas-resumen";
 
 import {
   editarAsesor,
@@ -34,8 +34,8 @@ import {
 
 import { useAuth } from "@/features/auth";
 import { useRouter } from "next/navigation";
-import IndicadoresAsesor from "../components/indicadores-asesor";
-import ProyectosAsesoradosResumen from "../components/proyectos-asesorados-resumen";
+import IndicadoresAsesor from "../components/perfil/indicadores-asesor";
+import ProyectosAsesoradosResumen from "../components/perfil/proyectos-asesorados-resumen";
 
 interface Props {
   userId: number;
