@@ -1449,3 +1449,129 @@ BEGIN
     );
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION atender_solicitud_titulo(
+    p_solicitud_id   INTEGER,
+    p_title          VARCHAR,
+    p_response       TEXT
+) RETURNS INTEGER
+LANGUAGE plpgsql AS
+$$
+DECLARE
+    v_tema_id         INTEGER;
+    v_current_estado  INTEGER;
+BEGIN
+    IF p_solicitud_id IS NULL THEN
+        RAISE EXCEPTION 'Solicitud ID cannot be null';
+    END IF;
+
+    -- Bloqueamos la solicitud y obtenemos tema_id y estado
+    SELECT tema_id, estado
+      INTO v_tema_id, v_current_estado
+    FROM solicitud
+    WHERE solicitud_id = p_solicitud_id
+    FOR UPDATE;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'No existe solicitud %', p_solicitud_id;
+    END IF;
+    IF v_current_estado <> 1 THEN
+        RAISE EXCEPTION 'Solicitud % no está en estado pendiente (estado=%)', 
+                         p_solicitud_id, v_current_estado;
+    END IF;
+
+    BEGIN
+        -- 1) Actualizar sólo el título del tema
+        UPDATE tema
+           SET titulo             = COALESCE(p_title, titulo),
+               fecha_modificacion = NOW()
+         WHERE tema_id = v_tema_id;
+
+        -- 2) Guardar la respuesta en la solicitud (no tocamos estado)
+        UPDATE solicitud
+           SET respuesta          = p_response,
+               fecha_modificacion = NOW()
+         WHERE solicitud_id = p_solicitud_id;
+
+        -- 3) Marcar el registro usuario_solicitud como completado
+        UPDATE usuario_solicitud
+           SET solicitud_completada = TRUE,
+               fecha_modificacion   = NOW()
+         WHERE solicitud_id = p_solicitud_id
+           AND destinatario IS TRUE;
+
+        IF NOT FOUND THEN
+            RAISE EXCEPTION 'No se encontró usuario_solicitud para solicitud % con destinatario=TRUE',
+                              p_solicitud_id;
+        END IF;
+
+    EXCEPTION WHEN OTHERS THEN
+        RAISE;
+    END;
+
+    RETURN v_current_estado;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION atender_solicitud_resumen(
+    p_solicitud_id   INTEGER,
+    p_summary        TEXT,
+    p_response       TEXT
+) RETURNS INTEGER
+LANGUAGE plpgsql AS
+$$
+DECLARE
+    v_tema_id         INTEGER;
+    v_current_estado  INTEGER;
+BEGIN
+    IF p_solicitud_id IS NULL THEN
+        RAISE EXCEPTION 'Solicitud ID cannot be null';
+    END IF;
+
+    -- Bloqueamos la solicitud y obtenemos tema_id y estado
+    SELECT tema_id, estado
+      INTO v_tema_id, v_current_estado
+    FROM solicitud
+    WHERE solicitud_id = p_solicitud_id
+    FOR UPDATE;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'No existe solicitud %', p_solicitud_id;
+    END IF;
+    IF v_current_estado <> 1 THEN
+        RAISE EXCEPTION 'Solicitud % no está en estado pendiente (estado=%)', 
+                         p_solicitud_id, v_current_estado;
+    END IF;
+
+    BEGIN
+        -- 1) Actualizar sólo el resumen del tema
+        UPDATE tema
+           SET resumen            = COALESCE(p_summary, resumen),
+               fecha_modificacion = NOW()
+         WHERE tema_id = v_tema_id;
+
+        -- 2) Guardar la respuesta en la solicitud (no tocamos estado)
+        UPDATE solicitud
+           SET respuesta          = p_response,
+               fecha_modificacion = NOW()
+         WHERE solicitud_id = p_solicitud_id;
+
+        -- 3) Marcar el registro usuario_solicitud como completado
+        UPDATE usuario_solicitud
+           SET solicitud_completada = TRUE,
+               fecha_modificacion   = NOW()
+         WHERE solicitud_id = p_solicitud_id
+           AND destinatario IS TRUE;
+
+        IF NOT FOUND THEN
+            RAISE EXCEPTION 'No se encontró usuario_solicitud para solicitud % con destinatario=TRUE',
+                              p_solicitud_id;
+        END IF;
+
+    EXCEPTION WHEN OTHERS THEN
+        RAISE;
+    END;
+
+    RETURN v_current_estado;
+END;
+$$;

@@ -16,4 +16,5 @@ public interface SolicitudService {
     RechazoSolicitudCambioAsesorResponseDto rechazarSolicitudCambioAsesor(Integer solicitudId, String response);
     AprobarSolicitudCambioAsesorResponseDto aprobarSolicitudCambioAsesor(Integer solicitudId, String response);
     SolicitudTemaDto findAllSolicitudesByTema(Integer temaId, int page, int size);
+    void atenderSolicitudTemaInscrito(SolicitudTemaDto solicitudAtendida);
 }
