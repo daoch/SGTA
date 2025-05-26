@@ -2,16 +2,12 @@ package pucp.edu.pe.sgta.service.imp;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springdoc.core.converters.models.Pageable;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import pucp.edu.pe.sgta.dto.AprobarSolicitudCambioAsesorResponseDto;
 import pucp.edu.pe.sgta.dto.AprobarSolicitudCambioAsesorResponseDto.AprobarCambioAsesorAsignacionDto;
@@ -23,11 +19,9 @@ import pucp.edu.pe.sgta.dto.RechazoSolicitudResponseDto;
 import pucp.edu.pe.sgta.dto.SolicitudCambioAsesorDto;
 import pucp.edu.pe.sgta.dto.RechazoSolicitudResponseDto.AsignacionDto;
 import pucp.edu.pe.sgta.dto.SolicitudCeseDto;
-import pucp.edu.pe.sgta.dto.TemaDto;
 import pucp.edu.pe.sgta.model.Solicitud;
 import pucp.edu.pe.sgta.model.Tema;
 import pucp.edu.pe.sgta.model.TipoSolicitud;
-import pucp.edu.pe.sgta.model.TipoUsuario;
 import pucp.edu.pe.sgta.model.UsuarioXSolicitud;
 import pucp.edu.pe.sgta.model.UsuarioXTema;
 import pucp.edu.pe.sgta.repository.SolicitudRepository;
@@ -37,7 +31,6 @@ import pucp.edu.pe.sgta.repository.UsuarioXCarreraRepository;
 import pucp.edu.pe.sgta.repository.UsuarioXSolicitudRepository;
 import pucp.edu.pe.sgta.repository.UsuarioXTemaRepository;
 import pucp.edu.pe.sgta.service.inter.SolicitudService;
-import pucp.edu.pe.sgta.util.RolEnum;
 import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
 
 @Service

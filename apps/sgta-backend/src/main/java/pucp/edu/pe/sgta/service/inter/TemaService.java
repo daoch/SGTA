@@ -79,5 +79,5 @@ public interface TemaService {
 
 	List<TemaDto> listarTemasPorEstadoYCarrera(String estadoNombre, Integer carreraId);
 
-	void cambiarEstadoTema(Integer temaId, String nuevoEstadoNombre);
+	void cambiarEstadoTemaCoordinador(Integer temaId, String nuevoEstadoNombre,Integer usuarioId, String comentario);
 }

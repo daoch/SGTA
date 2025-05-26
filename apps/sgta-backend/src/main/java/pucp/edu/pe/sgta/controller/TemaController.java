@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import pucp.edu.pe.sgta.dto.asesores.InfoTemaPerfilDto;
 import pucp.edu.pe.sgta.dto.TemaConAsesorJuradoDTO;
 import pucp.edu.pe.sgta.dto.TemaDto;
+import pucp.edu.pe.sgta.dto.UsuarioSolicitudDto;
 import pucp.edu.pe.sgta.service.inter.TemaService;
 
 import java.util.List;
@@ -170,17 +171,22 @@ public class TemaController {
 		return temaService.listarTemasPorEstadoYCarrera(estado, carreraId);
 	}	
 
-	@PatchMapping("/estado")
-    public ResponseEntity<Void> actualizarEstadoTema(
-             @RequestBody TemaDto temaDto // <- sin @Valid
-    ) {
-        // delega al servicio: toma id + estado
-        temaService.cambiarEstadoTema(
-            temaDto.getId(),
-            temaDto.getEstadoTemaNombre()
-        );
-        return ResponseEntity.noContent().build();
-    }
+	@PatchMapping("/CambiarEstadoTemaPorCoordinador")
+	@SuppressWarnings("unchecked")
+	public ResponseEntity<Void> actualizarEstadoTema(
+	@RequestBody Map<String,Object> body
+	) {
+		Map<String,Object> temaMap = (Map<String,Object>) body.get("tema");
+		Map<String,Object> solMap  = (Map<String,Object>) body.get("usuarioSolicitud");
+
+		Integer id        = (Integer) temaMap.get("id");
+		String  estado    = (String)  temaMap.get("estadoTemaNombre");
+		Integer usuarioId = (Integer) solMap.get("usuarioId");
+		String  comentario= (String)  solMap.get("comentario");
+
+		temaService.cambiarEstadoTemaCoordinador(id, estado, usuarioId, comentario);
+		return ResponseEntity.noContent().build();
+	}
 }
 
 

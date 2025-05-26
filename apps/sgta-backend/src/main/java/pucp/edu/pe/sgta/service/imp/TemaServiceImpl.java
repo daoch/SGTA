@@ -1134,18 +1134,152 @@ public class TemaServiceImpl implements TemaService {
 		return resultados;
 	}
 
-	@Override
-	@Transactional
-	public void cambiarEstadoTema(Integer temaId, String nuevoEstadoNombre) {
-	// valida existencia del estado
-	estadoTemaRepository.findByNombre(nuevoEstadoNombre)
-		.orElseThrow(() -> new ResponseStatusException(
-			HttpStatus.NOT_FOUND,
-			"EstadoTema '" + nuevoEstadoNombre + "' no existe"
-		));
-	// update masivo
-	temaRepository.actualizarEstadoTema(temaId, nuevoEstadoNombre);
+	private void validarCoordinadorYEstado(
+		Integer temaId,
+		String nuevoEstadoNombre,
+		Integer usuarioId
+	) {
+		validarTipoUsurio(usuarioId, TipoUsuarioEnum.coordinador.name());
+		estadoTemaRepository.findByNombre(nuevoEstadoNombre)
+			.orElseThrow(() -> new ResponseStatusException(
+				HttpStatus.NOT_FOUND,
+				"EstadoTema '" + nuevoEstadoNombre + "' no existe"
+			));
+		validarEstadoTema(temaId, EstadoTemaEnum.INSCRITO.name());
 	}
-    
+
+	private Tema actualizarTemaYHistorial(
+		Integer temaId,
+		String nuevoEstadoNombre,
+		String comentario
+	) {
+		Tema tema = validarEstadoTema(temaId, EstadoTemaEnum.INSCRITO.name());
+		temaRepository.actualizarEstadoTema(temaId, nuevoEstadoNombre);
+		saveHistorialTemaChange(
+			tema,
+			tema.getTitulo(),
+			tema.getResumen(),
+			comentario == null ? "" : comentario
+		);
+		return tema;
+	}
+
+	private Solicitud cargarSolicitud(Integer temaId) {
+		return solicitudRepository
+			.findByTipoSolicitudNombreAndTemaIdAndActivoTrue(
+				"Aprobación de tema (por coordinador)",
+				temaId
+			)
+			.orElseThrow(() -> new RuntimeException(
+				"No existe solicitud de aprobación para el tema " + temaId
+			));
+	}
+
+	private UsuarioXSolicitud actualizarUsuarioXSolicitud(
+		Integer solicitudId,
+		Integer usuarioId,
+		String nuevoEstadoNombre,
+		String comentario
+	) {
+		UsuarioXSolicitud uxs = usuarioXSolicitudRepository
+			.findFirstBySolicitudIdAndUsuarioIdAndActivoTrue(solicitudId, usuarioId)
+			.orElseThrow(() -> new RuntimeException(
+				"No hay registro en usuario_solicitud para la solicitud "
+				+ solicitudId + " y usuario " + usuarioId
+			));
+
+		uxs.setComentario(comentario);
+		switch (nuevoEstadoNombre.toUpperCase()) {
+			case "REGISTRADO":
+				uxs.setAprovado(true);
+				uxs.setSolicitudCompletada(true);
+				break;
+			case "RECHAZADO":
+				uxs.setAprovado(false);
+				uxs.setSolicitudCompletada(true);
+				break;
+			case "OBSERVADO":
+				uxs.setAprovado(false);
+				uxs.setSolicitudCompletada(true);
+				break;
+			default:
+				// opcional
+		}
+		uxs.setFechaModificacion(OffsetDateTime.now());
+		return usuarioXSolicitudRepository.save(uxs);
+	}
+
+	private void actualizarSolicitud(
+		Solicitud solicitud,
+		String nuevoEstadoNombre,
+		String comentario
+	) {
+		switch (nuevoEstadoNombre.toUpperCase()) {
+			case "REGISTRADO":
+				solicitud.setEstado(3);
+				break;
+			case "RECHAZADO":
+				solicitud.setEstado(2);
+				break;
+			case "OBSERVADO":
+				solicitud.setEstado(1);
+				break;
+			default:
+				// opcional
+		}
+		solicitud.setRespuesta(comentario);
+		solicitud.setFechaModificacion(OffsetDateTime.now());
+		solicitudRepository.save(solicitud);
+	}
+
+	/**
+	 * Recupera el tema y valida que su estado actual coincida con el esperado.
+	 *
+	 * @param temaId           Id del tema
+	 * @param estadoEsperado   Nombre del estado que debe tener el tema (p.ej. "INSCRITO")
+	 * @return tema            La entidad Tema ya validada
+	 * @throws ResponseStatusException  404 si no existe el tema, 400 si no está en el estado esperado
+	 */
+	private Tema validarEstadoTema(Integer temaId, String estadoEsperado) {
+		Tema tema = temaRepository.findById(temaId)
+			.orElseThrow(() -> new ResponseStatusException(
+				HttpStatus.NOT_FOUND,
+				"Tema con id " + temaId + " no encontrado"
+			));
+		String estadoActual = tema.getEstadoTema().getNombre();
+		if (!estadoEsperado.equalsIgnoreCase(estadoActual)) {
+			throw new ResponseStatusException(
+				HttpStatus.BAD_REQUEST,
+				"Operación inválida: el tema debe estar en estado '" + estadoEsperado +
+				"', pero está en '" + estadoActual + "'"
+			);
+		}
+		return tema;
+	}
+		
+	@Transactional
+	@Override
+	public void cambiarEstadoTemaCoordinador(
+		Integer temaId,
+		String nuevoEstadoNombre,
+		Integer usuarioId,
+		String comentario
+	) {
+		validarCoordinadorYEstado(temaId, nuevoEstadoNombre, usuarioId);
+
+		actualizarTemaYHistorial(temaId, nuevoEstadoNombre, comentario);
+
+		Solicitud solicitud = cargarSolicitud(temaId);
+
+		actualizarUsuarioXSolicitud(
+			solicitud.getId(),
+			usuarioId,
+			nuevoEstadoNombre,
+			comentario
+		);
+
+		actualizarSolicitud(solicitud, nuevoEstadoNombre, comentario);
+	}
+
 
 }
