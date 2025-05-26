@@ -17,7 +17,10 @@ export const CardAsesorBusqueda: FC<CardAsesorBusquedaProps> = ({
   advisor,
 }) => {
   return (
-    <Link href={`/advisor/${advisor.id}`} key={advisor.id}>
+    <Link
+      href={`/alumno/directorio-de-asesores/perfil/${advisor.id}`}
+      key={advisor.id}
+    >
       <Card className="w-full hover:bg-muted/50 transition-colors cursor-pointer">
         <CardContent className="p-6">
           <div className="flex gap-6">
