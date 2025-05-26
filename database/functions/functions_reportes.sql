@@ -540,7 +540,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 ---------------------------------------------------------------------------------------------------------------------
--- A esta funcion falta traer el "estado_revisión", si es que no existe en la tabla, colocar algo como "nada", para no mostrar en el front
+
 CREATE OR REPLACE FUNCTION listar_hitos_cronograma_tesista(p_tesista_id INT)
 RETURNS TABLE (
     hito_id INT,
