@@ -474,7 +474,8 @@ public class UsuarioServiceImpl implements UsuarioService {
                 u.correo_electronico, 
                 u.codigo_pucp, 
                 string_agg(DISTINCT r.nombre, ',') AS roles_names,
-                COUNT(DISTINCT CASE WHEN r.nombre ILIKE 'asesor' OR r.nombre ILIKE 'coasesor' THEN t.tema_id END) AS tesis_count,
+                -- contar temas donde usuario sea asesor o coasesor (rol_id 1 o 5)
+                COUNT(DISTINCT CASE WHEN ut.rol_id IN (1, 5) THEN ut.tema_id END) AS tesis_count,
                 tu.tipo_usuario_id,
                 tu.nombre AS tipo_usuario_nombre
             FROM 
@@ -482,11 +483,11 @@ public class UsuarioServiceImpl implements UsuarioService {
             JOIN 
                 tipo_usuario tu ON u.tipo_usuario_id = tu.tipo_usuario_id
             LEFT JOIN 
-                usuario_tema ut ON u.usuario_id = ut.usuario_id
+                usuario_rol ur ON u.usuario_id = ur.usuario_id AND ur.activo = true
             LEFT JOIN 
-                rol r ON ut.rol_id = r.rol_id
-            LEFT JOIN 
-                tema t ON ut.tema_id = t.tema_id AND t.activo = true
+                rol r ON ur.rol_id = r.rol_id AND r.activo = true
+            LEFT JOIN
+                usuario_tema ut ON u.usuario_id = ut.usuario_id AND ut.activo = true
             WHERE 
                 u.activo = true
                 AND LOWER(tu.nombre) = 'profesor'
@@ -565,4 +566,5 @@ public class UsuarioServiceImpl implements UsuarioService {
             })
             .collect(Collectors.toList());
     }
+
 }
