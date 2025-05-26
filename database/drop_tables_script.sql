@@ -39,6 +39,8 @@ DROP TABLE IF EXISTS recurso                            CASCADE;
 DROP TABLE IF EXISTS tema                               CASCADE;
 DROP TABLE IF EXISTS historial_tema                     CASCADE;
 DROP TABLE IF EXISTS estado_tema                        CASCADE;
+DROP TABLE IF EXISTS tipo_rechazo_tema CASCADE;
+
 
 -- Tablas de exposiciones
 DROP TABLE IF EXISTS restriccion_exposicion               CASCADE;
@@ -80,3 +82,9 @@ DROP TYPE IF EXISTS enum_estado_entrega                 CASCADE;
 DROP TYPE IF EXISTS enum_estado_actividad                CASCADE;
 DROP TYPE IF EXISTS enum_estado_revision                CASCADE;
 DROP TYPE IF EXISTS enum_tipo_dato                      CASCADE;
+
+DROP TYPE IF EXISTS tipo_dedicacion cascade;
+
+DROP TYPE IF EXISTS criterio_entregable_preset cascade;
+
+DROP TYPE IF EXISTS criterio_exposicion_preset cascade;

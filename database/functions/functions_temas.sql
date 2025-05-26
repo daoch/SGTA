@@ -927,7 +927,6 @@ END;
 $$ LANGUAGE plpgsql;
 
 
-DROP TRIGGER IF EXISTS trigger_generar_codigo_tema ON tema;
 
 CREATE TRIGGER trigger_generar_codigo_tema
 AFTER INSERT ON tema
@@ -954,7 +953,7 @@ RETURNS TABLE(
     usuarios           JSONB
 )
 LANGUAGE plpgsql
-SET search_path = sgtadb, public
+
 AS $$
 BEGIN
     RETURN QUERY
@@ -978,7 +977,8 @@ BEGIN
             'nombre_completo', u.nombres || ' ' || u.primer_apellido,
             'rol',            rl.nombre,
             'creador',        ut.creador,
-            'asignado',       ut.asignado
+            'asignado',       ut.asignado,
+            'rechazado',      ut.rechazado
           ))
           FROM usuario_tema ut
           JOIN usuario         u  ON u.usuario_id = ut.usuario_id
@@ -1010,7 +1010,6 @@ BEGIN
 END;
 $$;
 
-ALTER FUNCTION listar_propuestas_del_tesista_con_usuarios(INTEGER) OWNER TO postgres;
 
 CREATE OR REPLACE FUNCTION listar_postulaciones_del_tesista_con_usuarios(
     p_tesista_id INTEGER,
@@ -1033,7 +1032,7 @@ RETURNS TABLE(
     usuarios           JSONB
 )
 LANGUAGE plpgsql
-SET search_path = sgtadb, public
+
 AS $$
 BEGIN
     RETURN QUERY
@@ -1130,7 +1129,6 @@ BEGIN
 END;
 $$;
 
-ALTER FUNCTION listar_postulaciones_del_tesista_con_usuarios(INTEGER) OWNER TO postgres;
 
 CREATE OR REPLACE FUNCTION listar_asesores_por_subarea_conocimiento(
     p_subarea_id INTEGER
@@ -1165,9 +1163,8 @@ WHERE usac.sub_area_conocimiento_id = p_subarea_id
   AND tu.nombre ILIKE 'profesor'
 $$;
 
-ALTER FUNCTION listar_postulaciones_del_tesista_con_usuarios(INTEGER) OWNER TO postgres;
 
-CREATE OR REPLACE FUNCTION sgtadb.obtener_sub_areas_por_carrera_usuario(
+CREATE OR REPLACE FUNCTION obtener_sub_areas_por_carrera_usuario(
     p_usuario_id INTEGER
 )
 RETURNS TABLE(
@@ -1207,6 +1204,8 @@ CREATE OR REPLACE FUNCTION aprobar_postulacion_propuesta_general_tesista(
 RETURNS VOID
 LANGUAGE plpgsql
 AS $$
+DECLARE
+    estado_preinscrito_id  INTEGER;
 BEGIN
     -- Only proceed if the tesista is the creator of this topic
     IF EXISTS (
@@ -1238,7 +1237,7 @@ BEGIN
 END;
 $$;
 
-ALTER FUNCTION aprobar_postulacion_propuesta_general_tesista(INTEGER, INTEGER, INTEGER) OWNER TO postgres;
+ALTER FUNCTION aprobar_postulacion_propuesta_general_tesista(INTEGER, INTEGER, INTEGER) OWNER TO doadmin;
 
 CREATE OR REPLACE FUNCTION rechazar_postulacion_propuesta_general_tesista(
     p_tema_id    INT,
@@ -1324,7 +1323,8 @@ RETURNS TABLE(
     activo                BOOLEAN,
     fecha_creacion        TIMESTAMPTZ,
     fecha_modificacion    TIMESTAMPTZ,
-    tipo_usuario_nombre   VARCHAR
+    tipo_usuario_nombre   VARCHAR,
+    asignado              BOOLEAN
 )
 LANGUAGE SQL
 STABLE
@@ -1348,7 +1348,14 @@ AS $$
       u.activo,
       u.fecha_creacion,
       u.fecha_modificacion,
-      tu.nombre
+      tu.nombre,
+      EXISTS (
+          SELECT 1
+          FROM usuario_tema ut
+          WHERE ut.usuario_id = u.usuario_id
+            AND ut.activo = TRUE
+            AND ut.asignado = TRUE
+      ) AS asignado
     FROM usuario u
     JOIN usuario_carrera uc
       ON u.usuario_id = uc.usuario_id
@@ -1384,4 +1391,229 @@ AS $$
        AND uc.activo
        AND c.activo
     ORDER BY c.nombre;
+$$;
+
+CREATE OR REPLACE FUNCTION get_solicitudes_by_tema(
+    input_tema_id INTEGER,
+    offset_val INTEGER,
+    limit_val INTEGER
+)
+RETURNS TABLE (
+    solicitud_id INTEGER,
+    fecha_creacion DATE,
+    estado INTEGER,
+    descripcion TEXT,
+    respuesta TEXT,
+    fecha_modificacion DATE,
+    tipo_solicitud_id INTEGER,
+    tipo_solicitud_nombre VARCHAR,
+    tipo_solicitud_descripcion TEXT,
+    usuario_id INTEGER,
+    usuario_nombres VARCHAR,
+    usuario_primer_apellido VARCHAR,
+    usuario_segundo_apellido VARCHAR,
+    usuario_correo VARCHAR
+) AS $$
+BEGIN
+    RETURN QUERY    SELECT 
+        s.solicitud_id,
+        s.fecha_creacion::DATE,
+        s.estado,
+        s.descripcion,
+        s.respuesta,
+        s.fecha_modificacion::DATE,
+        ts.tipo_solicitud_id,
+        ts.nombre,
+        ts.descripcion,
+        u.usuario_id,
+        u.nombres,
+        u.primer_apellido,
+        u.segundo_apellido,
+        u.correo_electronico    FROM solicitud s
+    INNER JOIN tipo_solicitud ts ON s.tipo_solicitud_id = ts.tipo_solicitud_id
+    INNER JOIN usuario_solicitud uxs ON s.solicitud_id = uxs.solicitud_id AND uxs.destinatario = true
+    INNER JOIN usuario u ON uxs.usuario_id = u.usuario_id
+    WHERE s.tema_id = input_tema_id
+    ORDER BY s.fecha_creacion DESC
+    OFFSET offset_val
+    LIMIT limit_val;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to count solicitudes by tema
+CREATE OR REPLACE FUNCTION get_solicitudes_by_tema_count(input_tema_id INTEGER)
+RETURNS INTEGER AS $$
+BEGIN
+    RETURN (
+        SELECT COUNT(*)
+        FROM solicitud s
+        WHERE s.tema_id = input_tema_id
+    );
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION atender_solicitud_titulo(
+    p_solicitud_id   INTEGER,
+    p_title          VARCHAR,
+    p_response       TEXT
+) RETURNS INTEGER
+LANGUAGE plpgsql AS
+$$
+DECLARE
+    v_tema_id         INTEGER;
+    v_current_estado  INTEGER;
+BEGIN
+    IF p_solicitud_id IS NULL THEN
+        RAISE EXCEPTION 'Solicitud ID cannot be null';
+    END IF;
+
+    -- Bloqueamos la solicitud y obtenemos tema_id y estado
+    SELECT tema_id, estado
+      INTO v_tema_id, v_current_estado
+    FROM solicitud
+    WHERE solicitud_id = p_solicitud_id
+    FOR UPDATE;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'No existe solicitud %', p_solicitud_id;
+    END IF;
+    IF v_current_estado <> 1 THEN
+        RAISE EXCEPTION 'Solicitud % no está en estado pendiente (estado=%)', 
+                         p_solicitud_id, v_current_estado;
+    END IF;
+
+    BEGIN
+        -- 1) Actualizar sólo el título del tema
+        UPDATE tema
+           SET titulo             = COALESCE(p_title, titulo),
+               fecha_modificacion = NOW()
+         WHERE tema_id = v_tema_id;
+
+        -- 2) Guardar la respuesta en la solicitud (no tocamos estado)
+        UPDATE solicitud
+           SET respuesta          = p_response,
+               fecha_modificacion = NOW()
+         WHERE solicitud_id = p_solicitud_id;
+
+        -- 3) Marcar el registro usuario_solicitud como completado
+        UPDATE usuario_solicitud
+           SET solicitud_completada = TRUE,
+               fecha_modificacion   = NOW()
+         WHERE solicitud_id = p_solicitud_id
+           AND destinatario IS TRUE;
+
+        IF NOT FOUND THEN
+            RAISE EXCEPTION 'No se encontró usuario_solicitud para solicitud % con destinatario=TRUE',
+                              p_solicitud_id;
+        END IF;
+
+    EXCEPTION WHEN OTHERS THEN
+        RAISE;
+    END;
+
+    RETURN v_current_estado;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION atender_solicitud_resumen(
+    p_solicitud_id   INTEGER,
+    p_summary        TEXT,
+    p_response       TEXT
+) RETURNS INTEGER
+LANGUAGE plpgsql AS
+$$
+DECLARE
+    v_tema_id         INTEGER;
+    v_current_estado  INTEGER;
+BEGIN
+    IF p_solicitud_id IS NULL THEN
+        RAISE EXCEPTION 'Solicitud ID cannot be null';
+    END IF;
+
+    -- Bloqueamos la solicitud y obtenemos tema_id y estado
+    SELECT tema_id, estado
+      INTO v_tema_id, v_current_estado
+    FROM solicitud
+    WHERE solicitud_id = p_solicitud_id
+    FOR UPDATE;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'No existe solicitud %', p_solicitud_id;
+    END IF;
+    IF v_current_estado <> 1 THEN
+        RAISE EXCEPTION 'Solicitud % no está en estado pendiente (estado=%)', 
+                         p_solicitud_id, v_current_estado;
+    END IF;
+
+    BEGIN
+        -- 1) Actualizar sólo el resumen del tema
+        UPDATE tema
+           SET resumen            = COALESCE(p_summary, resumen),
+               fecha_modificacion = NOW()
+         WHERE tema_id = v_tema_id;
+
+        -- 2) Guardar la respuesta en la solicitud (no tocamos estado)
+        UPDATE solicitud
+           SET respuesta          = p_response,
+               fecha_modificacion = NOW()
+         WHERE solicitud_id = p_solicitud_id;
+
+        -- 3) Marcar el registro usuario_solicitud como completado
+        UPDATE usuario_solicitud
+           SET solicitud_completada = TRUE,
+               fecha_modificacion   = NOW()
+         WHERE solicitud_id = p_solicitud_id
+           AND destinatario IS TRUE;
+
+        IF NOT FOUND THEN
+            RAISE EXCEPTION 'No se encontró usuario_solicitud para solicitud % con destinatario=TRUE',
+                              p_solicitud_id;
+        END IF;
+
+    EXCEPTION WHEN OTHERS THEN
+        RAISE;
+    END;
+
+    RETURN v_current_estado;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION rechazar_postulaciones_propuesta_general_tesista(
+    p_tesista_id INT
+)
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_tema_id INT;
+    v_rol_asesor_id INT;
+BEGIN
+    -- 1) Verifico que el tesista existe y es creador del tema
+    SELECT ut.tema_id
+      INTO v_tema_id
+    FROM usuario_tema ut
+    JOIN rol r ON r.rol_id = ut.rol_id
+    WHERE ut.usuario_id = p_tesista_id
+      AND ut.creador = TRUE
+      AND r.nombre ILIKE 'Tesista';
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'El usuario % no es tesista creador de ningún tema', p_tesista_id;
+    END IF;
+
+    -- 2) Obtengo el rol_id de “Asesor”
+    SELECT rol_id
+      INTO v_rol_asesor_id
+    FROM rol
+    WHERE nombre ILIKE 'Asesor';
+
+    -- 3) Marco como rechazados todos los asesores de ese tema
+    --    excepto al confirmado y excepto al propio tesista
+    UPDATE usuario_tema
+       SET rechazado = TRUE,
+           fecha_modificacion = NOW()
+     WHERE rol_id         = v_rol_asesor_id
+       AND tema_id        = v_tema_id
+       AND asignado       = FALSE;
+END;
 $$;

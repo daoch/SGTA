@@ -130,22 +130,38 @@ CREATE OR REPLACE FUNCTION listar_temas_ciclo_actual_x_etapa_formativa(
 RETURNS TABLE(
 	tema_id integer,
     codigo  varchar,
-    titulo  varchar   
+    titulo  varchar,
+    usuario_id integer,
+     nombres varchar,
+  apellidos varchar,
+  rol_id integer,
+  rol_nombre varchar
+    
 ) AS $$
 BEGIN
     RETURN QUERY
  	SELECT 
 		t.tema_id,
 		t.codigo,
-		t.titulo    
+		t.titulo ,
+		u.usuario_id,
+		u.nombres,
+		u.primer_apellido,
+		r.rol_id,
+		r.nombre
     FROM tema t
     inner join etapa_formativa_x_ciclo_x_tema  efct on t.tema_id = efct.tema_id 
 	inner join etapa_formativa_x_ciclo efc on efc.etapa_formativa_x_ciclo_id = efct.etapa_formativa_x_ciclo_id
 	inner join etapa_formativa ef on ef.etapa_formativa_id = efc.etapa_formativa_id
 	inner join ciclo c on c.ciclo_id = efc.ciclo_id
-	where c.activo = true and  ef.etapa_formativa_id = etapa_id ;  
+	inner join usuario_tema ut on ut.tema_id = t.tema_id
+	inner join usuario u on  u.usuario_id = ut.usuario_id
+	inner join rol r on r.rol_id = ut.rol_id
+	where c.activo = true and  ef.etapa_formativa_id = etapa_id 
+	order by t.tema_id;  
 END;
 $$ LANGUAGE plpgsql;
+
 
 CREATE OR REPLACE FUNCTION listar_jornadas_exposicion_salas(
 	expo_id integer
@@ -362,7 +378,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE FUNCTION obtener_ciclo_etapa_por_tema(p_tema_id integer)
+CREATE OR REPLACE FUNCTION obtener_ciclo_etapa_por_tema(p_tema_id integer)
     RETURNS TABLE(ciclo_id integer, ciclo_nombre text, etapa_formativa_id integer, etapa_formativa_nombre text)
     LANGUAGE plpgsql
 AS
@@ -385,9 +401,8 @@ BEGIN
 END;
 $$;
 
-ALTER FUNCTION obtener_ciclo_etapa_por_tema(INTEGER) OWNER TO postgres;
 
-CREATE FUNCTION obtener_area_conocimiento_jurado(usuario_id_param integer)
+CREATE OR REPLACE FUNCTION obtener_area_conocimiento_jurado(usuario_id_param integer)
     RETURNS TABLE(usuario_id integer, area_conocimiento_id integer, area_conocimiento_nombre character varying)
     LANGUAGE plpgsql
 AS
@@ -410,8 +425,6 @@ BEGIN
         ac.nombre;
 END;
 $$;
-
-ALTER FUNCTION obtener_area_conocimiento_jurado(INTEGER) OWNER TO postgres;
 
 CREATE OR REPLACE FUNCTION listar_etapas_formativas_activas_by_coordinador(p_coordinador_id INTEGER)
 RETURNS TABLE(
@@ -490,7 +503,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-create or replace function actualizar_bloque_exposicion_siguientes_fases(bloques_json jsonb)
+CREATE OR REPLACE FUNCTION actualizar_bloque_exposicion_siguientes_fases(bloques_json jsonb)
 returns void as $$
 declare
     bloque jsonb;
@@ -661,7 +674,7 @@ BEGIN
     WHERE ut.rol_id = 2 AND ut.activo = true
     ORDER BY u.usuario_id, ut.prioridad;
 END;
-$function$
+$function$;
 
 CREATE OR REPLACE FUNCTION obtener_jurados_por_tema(p_tema_id integer)
 RETURNS TABLE(
@@ -723,7 +736,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE FUNCTION terminar_planificacion(idExposicion integer) returns BOOLEAN
+CREATE OR REPLACE FUNCTION terminar_planificacion(idExposicion integer) returns BOOLEAN
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -742,3 +755,31 @@ BEGIN
 	RETURN TRUE;
 END;
 $$;
+
+
+CREATE OR REPLACE FUNCTION listar_bloque_con_sala(
+	_exposicion_id integer
+)
+RETURNS TABLE(
+	id_bloque integer,
+    fecha_ini  timestamptz,
+    fecha_fin  timestamptz,
+    id_sala integer,
+    sala text    
+)
+AS $$
+BEGIN
+    RETURN QUERY
+ 	SELECT 
+		b.bloque_horario_exposicion_id as "id_bloque",
+		b.datetime_inicio as "fecha_ini",
+		b.datetime_fin as "fecha_fin",
+		s.sala_exposicion_id as "id_sala",
+		s.nombre  as "sala"
+    from bloque_horario_exposicion b
+	inner join jornada_exposicion_x_sala_exposicion j  on b.jornada_exposicion_x_sala_id = j.jornada_exposicion_x_sala_id
+	inner join jornada_exposicion je on je.jornada_exposicion_id = j.jornada_exposicion_id
+	inner join sala_exposicion s on s.sala_exposicion_id = j.sala_exposicion_id 
+	where b.activo = true and je.exposicion_id = _exposicion_id;
+END;
+$$ LANGUAGE plpgsql;

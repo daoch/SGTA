@@ -11,7 +11,6 @@ import pucp.edu.pe.sgta.model.Usuario;
 import pucp.edu.pe.sgta.model.UsuarioXTema;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {

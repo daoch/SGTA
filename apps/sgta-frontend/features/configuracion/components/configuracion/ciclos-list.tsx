@@ -1,7 +1,5 @@
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Trash2, Eye } from "lucide-react";
-import Link from "next/link";
+import { CicloEtapas } from "@/features/administrador/types/ciclo.type";
 
 // Datos de ejemplo
 const ciclos = [
@@ -47,7 +45,37 @@ const ciclos = [
   },
 ];
 
-export function CiclosList() {
+interface CiclosListProps {
+  ciclos: CicloEtapas[];
+}
+
+// export function CiclosList({ ciclos }: CiclosListProps) {
+//   return (
+//     <table className="w-full text-left">
+//       <thead>
+//         <tr>
+//           <th className="border-b py-2">Nombre</th>
+//           <th className="border-b py-2">Estado</th>
+//           <th className="border-b py-2">Fecha Inicio</th>
+//           <th className="border-b py-2">Fecha Fin</th>
+//         </tr>
+//       </thead>
+//       <tbody>
+//         {ciclos.map((ciclo) => (
+//           <tr key={ciclo.id}>
+//             <td className="py-2">{ciclo.nombre}</td>
+//             <td className="py-2">{ciclo.estado}</td>
+//             <td className="py-2">{ciclo.fechaInicio}</td>
+//             <td className="py-2">{ciclo.fechaFin}</td>
+//           </tr>
+//         ))}
+//       </tbody>
+//     </table>
+//   );
+// }
+
+
+export function CiclosList({ ciclos }: CiclosListProps) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full border-collapse">
@@ -62,36 +90,48 @@ export function CiclosList() {
           </tr>
         </thead>
         <tbody className="divide-y">
-          {ciclos.map((ciclo) => (
-            <tr key={ciclo.id} className="hover:bg-gray-50">
-              <td className="px-4 py-3 text-sm font-medium">{ciclo.nombre}</td>
-              <td className="px-4 py-3 text-sm">{ciclo.fechaInicio}</td>
-              <td className="px-4 py-3 text-sm">{ciclo.fechaFin}</td>
-              <td className="px-4 py-3 text-sm">
-                <Badge variant={ciclo.estado === "En curso" ? "default" : "secondary"}>{ciclo.estado}</Badge>
-              </td>
-              <td className="px-4 py-3 text-sm">{ciclo.etapasFormativas}</td>
-              <td className="px-4 py-3 text-sm">
-                <div className="flex gap-2">
-                  <Link href={`/administrador/configuracion/ciclos/${ciclo.id}`}>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <Eye size={16} />
-                    </Button>
-                  </Link>
-                  <Link href={`/administrador/configuracion/ciclos/${ciclo.id}/editar`}>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <Edit size={16} />
-                    </Button>
-                  </Link>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500">
-                    <Trash2 size={16} />
-                  </Button>
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
+            {ciclos.map((ciclo) => (
+          <tr key={ciclo.id}>
+            <td className="px-4 py-3 text-sm font-medium">{`${ciclo.anio}-${ciclo.semestre}`}</td>
+            <td className="px-4 py-3 text-sm">{ciclo.fechaInicio}</td>
+            <td className="px-4 py-3 text-sm">{ciclo.fechaFin}</td>
+            <td className="px-4 py-3 text-sm">
+                <Badge variant={ciclo.activo ? "default" : "secondary"}>{ciclo.activo ? "Activo" : "Inactivo"}</Badge>
+            </td>
+            <td className="px-4 py-3 text-sm">{ciclo.cantidadEtapas}</td>
+            
+          </tr>
+        ))}
+           {/* {ciclos.map((ciclo) => ( */}
+{/* //             <tr key={ciclo.id} className="hover:bg-gray-50">
+//               <td className="px-4 py-3 text-sm font-medium">{ciclo.nombre}</td>
+//               <td className="px-4 py-3 text-sm">{ciclo.fechaInicio}</td>
+//               <td className="px-4 py-3 text-sm">{ciclo.fechaFin}</td>
+//               <td className="px-4 py-3 text-sm">
+//                 <Badge variant={ciclo.estado === "En curso" ? "default" : "secondary"}>{ciclo.estado}</Badge>
+//               </td>
+//               <td className="px-4 py-3 text-sm">{ciclo.etapasFormativas}</td>
+//               <td className="px-4 py-3 text-sm">
+//                 <div className="flex gap-2">
+//                   <Link href={`/administrador/configuracion/ciclos/${ciclo.id}`}>
+//                     <Button variant="ghost" size="icon" className="h-8 w-8">
+//                       <Eye size={16} />
+//                     </Button>
+//                   </Link>
+//                   <Link href={`/administrador/configuracion/ciclos/${ciclo.id}/editar`}>
+//                     <Button variant="ghost" size="icon" className="h-8 w-8">
+//                       <Edit size={16} />
+//                     </Button>
+//                   </Link>
+//                   <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500">
+//                     <Trash2 size={16} />
+//                   </Button>
+//                 </div>
+//               </td>
+//             </tr>
+//           ))} */}
+         </tbody>
+       </table>
+     </div>
+   );
+ }
