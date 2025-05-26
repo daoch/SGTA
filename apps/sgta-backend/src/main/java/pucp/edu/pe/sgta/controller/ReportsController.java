@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import pucp.edu.pe.sgta.dto.AdvisorPerformanceDto;
 import pucp.edu.pe.sgta.dto.AreaFinalDTO;
 import pucp.edu.pe.sgta.dto.DetalleTesistaDTO;
+import pucp.edu.pe.sgta.dto.HitoCronogramaDTO;
 import pucp.edu.pe.sgta.dto.TeacherCountDTO;
 import pucp.edu.pe.sgta.dto.TopicAreaStatsDTO;
 import pucp.edu.pe.sgta.dto.TopicTrendDTO;
@@ -76,5 +77,15 @@ public class ReportsController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(detalle);
+    }
+
+    /** RF6: Endpoint para listar hitos del cronograma de un tesista */
+    @GetMapping("/tesistas/cronograma")
+    public ResponseEntity<List<HitoCronogramaDTO>> getHitosCronogramaTesista(@RequestParam Integer tesistaId) {
+        List<HitoCronogramaDTO> hitos = reportingService.getHitosCronogramaTesista(tesistaId);
+        if (hitos.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(hitos);
     }
 }
