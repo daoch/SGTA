@@ -160,7 +160,7 @@ INSERT INTO usuario (
 )
 VALUES
     -- Profesor
-    (1, 'P001', 'Juan',   'Pérez',   'Lopez',    'juan.perez@pucp.edu.pe',      'Doctorado', 'secret1', 'Profesor de IA', NULL, 'Lun-Vie 9-12', 'Presencial', TRUE, NOW(), NOW()),
+    (1, 'P001', 'Juan',   'Pérez',   'Lopez',    'jperez@pucp.edu.pe',      'Doctorado', 'secret1', 'Profesor de IA', NULL, 'Lun-Vie 9-12', 'Presencial', TRUE, NOW(), NOW()),
     -- Alumno
     (2, 'A001', 'María',  'Gómez',   'Torres',   'maria.gomez@pucp.edu.pe',     'Pregrado',  'secret2', 'Estudiante de sistemas', NULL, 'Mar-Jue 14-18','Híbrido',     TRUE, NOW(), NOW()),
     -- Coordinador
@@ -274,10 +274,11 @@ INSERT INTO ciclo (semestre, anio, fecha_inicio, fecha_fin, activo, fecha_creaci
 
 INSERT INTO etapa_formativa_x_ciclo (etapa_formativa_id,
                                      ciclo_id,
+                                     estado,
                                      activo,
                                      fecha_creacion,
                                      fecha_modificacion)
-    VALUES (1, 1, TRUE, NOW(), NOW());
+    VALUES (1, 1, 'En Curso',TRUE, NOW(), NOW());
 
 -- Entregables
 
@@ -293,7 +294,7 @@ INSERT INTO entregable (
     extensiones_permitidas,
     peso_maximo_documento,
     activo
-) VALUES 
+) VALUES
 (
     1,
     'Informe de avance 1',
@@ -383,7 +384,7 @@ INSERT INTO jornada_exposicion_x_sala_exposicion (jornada_exposicion_id,
            (1, 4, TRUE, NOW(), NOW());
 
 
--- Parametros de configuración 
+-- Parametros de configuración
 
 WITH nuevo_parametro AS (
     INSERT INTO parametro_configuracion (
@@ -454,7 +455,7 @@ INSERT INTO tema (
     fecha_creacion,
     fecha_modificacion
 )
-VALUES 
+VALUES
 ('Inteligencia Artificial Aplicada', 'Exploración de aplicaciones de IA en distintos campos como la medicina y la logística.', 'Investigación de campo y análisis de caso.', 'Estudiar aplicaciones de IA en entornos reales y su impacto.', 'https://www.example.com/ai-aplicada', 3, NULL, 1, '2024-12-01 00:00:00+00', NULL, TRUE, '2025-05-08 21:24:41+00', '2025-05-08 21:24:41+00'),
 
 ('Machine Learning para Datos No Estructurados', 'Uso de algoritmos de ML para datos no estructurados como imágenes y texto.', 'Clustering y análisis de patrones.', 'Aplicar técnicas de aprendizaje automático a datos no estructurados.', 'https://www.example.com/ml-no-estructurados', 3, NULL, 1, '2024-12-15 00:00:00+00', NULL, TRUE, '2025-05-08 21:24:41+00', '2025-05-08 21:24:41+00'),
@@ -484,7 +485,7 @@ INSERT INTO etapa_formativa_x_ciclo_x_tema (etapa_formativa_x_ciclo_id, tema_id,
            (1, 4, TRUE, NOW());
 
 INSERT INTO tipo_rechazo_tema (nombre, descripcion)
-VALUES 
+VALUES
   ('Inconsistencia en objetivos', 'Los objetivos planteados no guardan coherencia con la metodología propuesta.'),
   ('Falta de viabilidad técnica', 'El proyecto propuesto no puede ser llevado a cabo con los recursos o conocimientos disponibles.'),
   ('Duplicación de tema', 'El tema ya ha sido aprobado previamente por otro estudiante.'),

@@ -13,6 +13,8 @@ import pucp.edu.pe.sgta.service.inter.EtapaFormativaXCicloService;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import pucp.edu.pe.sgta.dto.UpdateEtapaFormativaRequest;
+
 @Service
 public class EtapaFormativaXCicloServiceImpl implements EtapaFormativaXCicloService {
 
@@ -86,6 +88,17 @@ public class EtapaFormativaXCicloServiceImpl implements EtapaFormativaXCicloServ
 
     private EtapaFormativaXCicloDto mapToDto(EtapaFormativaXCiclo etapaFormativaXCiclo) {
         return EtapaFormativaXCicloMapper.toDto(etapaFormativaXCiclo);
+    }
+
+    @Override
+    public EtapaFormativaXCicloDto actualizarEstadoRelacion(Integer relacionId, UpdateEtapaFormativaRequest request) {
+        // Buscar la relación por ID
+        EtapaFormativaXCiclo relacion = etapaFormativaXCicloRepository.findById(relacionId)
+            .orElseThrow(() -> new RuntimeException("Relación no encontrada")); // <-- Usar RuntimeException
+
+        relacion.setEstado(request.getEstado());
+        EtapaFormativaXCiclo relacionActualizada = etapaFormativaXCicloRepository.save(relacion);
+        return EtapaFormativaXCicloMapper.toDto(relacionActualizada);
     }
 
     

@@ -140,3 +140,10 @@ DROP FUNCTION IF EXISTS listar_temas_por_estado_y_carrera(TEXT, INTEGER);
 
 DROP PROCEDURE IF EXISTS actualizar_estado_tema(integer, TEXT);
 DROP FUNCTION IF EXISTS actualizar_estado_tema(integer, TEXT);
+DROP FUNCTION IF EXISTS get_advisor_distribution_by_coordinator_and_ciclov2 (INTEGER, VARCHAR) CASCADE;
+
+DROP FUNCTION IF EXISTS listar_etapas_formativas_simple () CASCADE;
+
+DROP FUNCTION IF EXISTS obtener_detalle_etapa_formativa (INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS obtener_historial_ciclos_etapa_formativa (INTEGER) CASCADE;
