@@ -10,19 +10,21 @@ import {
   PaginationLink,
 } from "@/components/ui/pagination";
 import { Search } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
+import { useAuth } from "@/features/auth";
 import FiltrosAsesoresSheet from "../components/directorio/filtros-asesores";
 import FiltrosAplicados from "../components/directorio/filtros-seleccionados";
 import OrdenDropdown, {
   SortOption,
 } from "../components/directorio/orden-dropdown-directorio";
 import ResultadosAsesores from "../components/directorio/resultados-busqueda";
+import { getAsesoresPorFiltros } from "../hooks/directorio/page";
 import {
-  filtrarAsesores,
-  getAllAreasTematicas,
-  getAllTemasInteres,
-} from "../mocks/directorio/directorio-mock";
+  getIdByCorreo,
+  listarAreasTematicas,
+  listarTemasInteres,
+} from "../hooks/perfil/perfil-apis";
 import { AreaTematica, Asesor, TemaInteres } from "../types/perfil/entidades";
 
 // Tipos de datos
@@ -34,7 +36,10 @@ interface SearchFilters {
 }
 
 export default function DirectorioAsesoresEstudiantes() {
-  // Estado para la búsqueda y filtros
+  const { user } = useAuth();
+
+  const [userId, setUserId] = useState<number | null>(null);
+  const hasFetchedId = useRef(false);
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOption, setSortOption] = useState<SortOption>("default");
@@ -57,25 +62,81 @@ export default function DirectorioAsesoresEstudiantes() {
   const [asesores, setAsesores] = useState<Asesor[]>([]);
   const [allAreaTematica, setAllAreasTematicas] = useState<AreaTematica[]>([]);
   const [allTemasInteres, setAllTemasInteres] = useState<TemaInteres[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const loadUsuarioId = async () => {
+    if (!user) return;
+
+    setIsLoading(true);
+
+    try {
+      const id = await getIdByCorreo(user.email);
+
+      if (id !== null) {
+        setUserId(id);
+        console.log("ID del asesor obtenido:", id);
+      } else {
+        console.warn("No se encontró un asesor con ese correo.");
+        // puedes mostrar un mensaje de advertencia aquí si deseas
+      }
+    } catch (error) {
+      console.error("Error inesperado al obtener el ID del asesor:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user && !hasFetchedId.current) {
+      hasFetchedId.current = true;
+      loadUsuarioId();
+    }
+  }, [user]);
 
   //Inicializar asesores, areas y temas de interés mediante mock
   useEffect(() => {
-    setLoading(true);
-    setAsesores(
-      filtrarAsesores(
-        filters.soloDisponible,
-        filters.areasTematicas,
-        filters.temasInteres,
-        searchQuery,
-      ),
-    );
-    setAllAreasTematicas(getAllAreasTematicas());
-    setAllTemasInteres(getAllTemasInteres());
+    if (!userId) return;
 
-    setLoading(false);
-  }, []);
+    const fetchAsesores = async () => {
+      setIsLoading(true);
+
+      try {
+        const data = await getAsesoresPorFiltros({
+          alumnoId: userId,
+          cadenaBusqueda: searchQuery,
+          activo: filters.soloDisponible,
+          idAreas: filters.areasTematicas.map((a) => a.idArea),
+          idTemas: filters.temasInteres.map((t) => t.idTema),
+        });
+
+        setAsesores(data);
+      } catch (error) {
+        console.error("Error al cargar asesores:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchAsesores();
+    setCurrentPage(1);
+  }, [userId, filters, searchQuery]);
+
+  useEffect(() => {
+    if (!userId) return;
+    (async () => {
+      try {
+        const [allAreas, allTemas] = await Promise.all([
+          listarAreasTematicas(userId),
+          listarTemasInteres(userId),
+        ]);
+        setAllAreasTematicas(allAreas);
+        setAllTemasInteres(allTemas);
+      } catch (e) {
+        console.error("Error al cargar filtros:", e);
+      }
+    })();
+  }, [userId]);
 
   // Inicializar filtros temporales cuando se abre el panel
   useEffect(() => {
@@ -123,18 +184,6 @@ export default function DirectorioAsesoresEstudiantes() {
     const startIndex = (currentPage - 1) * itemsPerPage;
     return asesores.slice(startIndex, startIndex + itemsPerPage);
   }, [asesores, currentPage]);
-
-  useEffect(() => {
-    // Filtrar asesores cuando cambian los filtros o la búsqueda
-    const filteredAsesores = filtrarAsesores(
-      filters.soloDisponible,
-      filters.areasTematicas,
-      filters.temasInteres,
-      searchQuery,
-    );
-    setAsesores(filteredAsesores);
-    setCurrentPage(1);
-  }, [searchQuery, filters]);
 
   // Función para aplicar filtros
   const applyFilters = () => {

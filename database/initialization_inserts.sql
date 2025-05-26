@@ -519,6 +519,28 @@ select usuario_id, area_conocimiento_id, true, now(), now() from usuario join ar
 union
 select usuario_id, area_conocimiento_id, true, now(), now() from usuario join area_conocimiento on area_conocimiento.nombre = 'ciencias de la computación' where codigo_pucp in ('PROF002', 'PROF004')
 );
+
+-- Agregamos sub areas de conocimiento
+
+INSERT INTO usuario_sub_area_conocimiento (usuario_id, sub_area_conocimiento_id, activo) VALUES (6, 11, true);
+INSERT INTO usuario_sub_area_conocimiento (usuario_id, sub_area_conocimiento_id, activo) VALUES (6, 12, true);
+INSERT INTO usuario_sub_area_conocimiento (usuario_id, sub_area_conocimiento_id, activo) VALUES (6, 14, true);
+INSERT INTO usuario_sub_area_conocimiento (usuario_id, sub_area_conocimiento_id, activo) VALUES (9, 7, true);
+INSERT INTO usuario_sub_area_conocimiento (usuario_id, sub_area_conocimiento_id, activo) VALUES (9, 6, true);
+INSERT INTO usuario_sub_area_conocimiento (usuario_id, sub_area_conocimiento_id, activo) VALUES (9, 14, true);
+INSERT INTO usuario_sub_area_conocimiento (usuario_id, sub_area_conocimiento_id, activo) VALUES (9, 15, true);
+INSERT INTO usuario_sub_area_conocimiento (usuario_id, sub_area_conocimiento_id, activo) VALUES (9, 11, true);
+INSERT INTO usuario_sub_area_conocimiento (usuario_id, sub_area_conocimiento_id, activo) VALUES (10, 5, true);
+INSERT INTO usuario_sub_area_conocimiento (usuario_id, sub_area_conocimiento_id, activo) VALUES (10, 4, true);
+INSERT INTO usuario_sub_area_conocimiento (usuario_id, sub_area_conocimiento_id, activo) VALUES (11, 11, true);
+INSERT INTO usuario_sub_area_conocimiento (usuario_id, sub_area_conocimiento_id, activo) VALUES (11, 14, true);
+INSERT INTO usuario_sub_area_conocimiento (usuario_id, sub_area_conocimiento_id, activo) VALUES (12, 1, true);
+INSERT INTO usuario_sub_area_conocimiento (usuario_id, sub_area_conocimiento_id, activo) VALUES (12, 3, true);
+INSERT INTO usuario_sub_area_conocimiento (usuario_id, sub_area_conocimiento_id, activo) VALUES (12, 6, true);
+INSERT INTO usuario_sub_area_conocimiento (usuario_id, sub_area_conocimiento_id, activo) VALUES (12, 10, true);
+INSERT INTO usuario_sub_area_conocimiento (usuario_id, sub_area_conocimiento_id, activo) VALUES (12, 7, true);
+
+
 -- Agregamos rol de asesor a los profesores
 insert into usuario_rol(usuario_id, rol_id, activo ,fecha_creacion, fecha_modificacion)
 (

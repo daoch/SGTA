@@ -13,7 +13,7 @@ export default function AppProfile() {
   const [isLoading, setIsLoading] = useState(false);
   const hasFetchedId = useRef(false);
 
-  const loadAsesorId = async () => {
+  const loadUsuarioId = async () => {
     if (!user) return;
 
     setIsLoading(true);
@@ -38,7 +38,7 @@ export default function AppProfile() {
   useEffect(() => {
     if (user && !hasFetchedId.current) {
       hasFetchedId.current = true;
-      loadAsesorId();
+      loadUsuarioId();
     }
   }, [user]);
 
@@ -59,7 +59,7 @@ export default function AppProfile() {
         <p className="text-base font-medium">Usuario no encontrado</p>
         <div className="mt-4">
           <Button
-            onClick={loadAsesorId}
+            onClick={loadUsuarioId}
             variant="outline"
             className="bg-white text-black border border-gray-300 hover:bg-gray-100"
           >

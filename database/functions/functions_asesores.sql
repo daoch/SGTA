@@ -304,11 +304,21 @@ BEGIN
         p_activo IS FALSE
         OR (p_activo IS TRUE AND u.activo = TRUE)
       )
-	  AND	(
-	    uac.area_conocimiento_id IS NOT NULL AND uac.area_conocimiento_id = ANY(p_areas)
-	    OR
-	    usac.sub_area_conocimiento_id IS NOT NULL AND usac.sub_area_conocimiento_id = ANY(p_subareas)
-	  )
+	  AND (
+       -- Caso 1: ambas listas vacías → traer todo
+      (cardinality(p_areas) = 0 AND cardinality(p_subareas) = 0)
+
+      -- Caso 2: solo áreas tiene valores → filtrar por área
+      OR (cardinality(p_areas) > 0 AND cardinality(p_subareas) = 0 AND uac.area_conocimiento_id = ANY(p_areas))
+
+      -- Caso 3: solo subáreas tiene valores → filtrar por subárea
+      OR (cardinality(p_subareas) > 0 AND cardinality(p_areas) = 0 AND usac.sub_area_conocimiento_id = ANY(p_subareas))
+
+      -- Caso 4: ambas tienen valores → filtrar por cualquiera
+      OR (cardinality(p_areas) > 0 AND cardinality(p_subareas) > 0 AND (
+        uac.area_conocimiento_id = ANY(p_areas) OR usac.sub_area_conocimiento_id = ANY(p_subareas)
+      ))
+     )
       AND (
         CONCAT(u.nombres, ' ', u.primer_apellido, ' ', u.segundo_apellido) ILIKE '%' || p_busqueda || '%'
         OR ac.nombre ILIKE '%' || p_busqueda || '%'
