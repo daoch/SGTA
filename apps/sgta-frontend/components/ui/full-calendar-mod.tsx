@@ -92,6 +92,7 @@ type CalendarEvent = {
     start: Date;
     end: Date;
     title: string;
+    type?: string;
     description?: string;  // <-- Añade esto
     color?: VariantProps<typeof monthEventVariants>['variant'];
   };
@@ -197,7 +198,7 @@ const EventGroup = ({ events, hour }: { events: CalendarEvent[]; hour: Date }) =
       {events
         .filter((event) => isSameHour(event.start, hour))
         .map((event) => {
-          const isDeadline = differenceInMinutes(event.end, event.start) === 0;
+          const isDeadline = event.type === 'Entregable';
           const hoursDifference = isDeadline 
             ? 1 // Altura fija de 30 minutos (ajustable)
             : differenceInMinutes(event.end, event.start) / 60;
@@ -223,7 +224,7 @@ const EventGroup = ({ events, hour }: { events: CalendarEvent[]; hour: Date }) =
               {event.description && (
                 <p className="text-xs opacity-80 truncate">{event.description}</p>
               )}
-              {event.description && (
+              {event.description && !isDeadline &&(
                 <p className="text-xs opacity-80 truncate">
                   {"Inicio: " + format(event.start, 'HH:mm')}
                 </p>
@@ -334,7 +335,7 @@ const CalendarWeekView = () => {
                   'h-full text-sm text-muted-foreground border-l first:border-l-0',
                   [0, 6].includes(i) && 'bg-muted/50'
                 )}
-                key={hours[0].toString()}
+                key={format(hours[0], 'yyyy-MM-dd')}
               >
                 {hours.map((hour) => (
                   <EventGroup

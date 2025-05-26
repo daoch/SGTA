@@ -29,10 +29,9 @@ interface CalendarEvent {
   id: string;
   title: string;
   description?: string;
-  start: Date;
+  start?: Date;
   end: Date;
   tipoEvento: TipoEvento;
-  allDay?: boolean;
 }
 
 const MiCronogramaPage = () => {
@@ -75,33 +74,33 @@ const MiCronogramaPage = () => {
       id: "1",
       title: "Reunión con el asesor 1",
       description: "Primera revision de avances",
-      start: createDate(15, 5, 2025, 8, 0),
-      end: createDate(15, 5, 2025, 10, 0),
+      start: createDate(26, 5, 2025, 8, 0),
+      end: createDate(26, 5, 2025, 10, 0),
       tipoEvento: "Reunión"
     },
     {
       id: "2",
       title: "Exposición de avances",
       description: "Presentación de resultados parciales",
-      start: createDate(15, 5, 2025, 11, 0),
-      end: createDate(15, 5, 2025, 12, 0),
+      start: createDate(26, 5, 2025, 11, 0),
+      end: createDate(26, 5, 2025, 12, 0),
       tipoEvento: "Exposición"
     },
     {
       id: "3",
       title: "Entrega de Documentos",
       description: "Fecha límite para entregar los documentos",
-      start: createDate(16, 5, 2025, 1, 0),
-      end: createDate(16, 5, 2025, 1, 0),
+      start: createDate(27, 5, 2025, 1, 0),
+      end: createDate(27, 5, 2025, 1, 0),
       tipoEvento: "Entregable",
-      allDay: true
     }
   ]);
 
   // Adaptamos los eventos para el calendario (mapeando tipoEvento a color)
   const eventosParaCalendario = events.map(event => ({
     ...event,
-    color: getColorByTipoEvento(event.tipoEvento)
+    color: getColorByTipoEvento(event.tipoEvento),
+    type: event.tipoEvento // <- se adapta al nombre esperado
   }));
 
   // Estado para el formulario
@@ -112,7 +111,6 @@ const MiCronogramaPage = () => {
     start: new Date(),
     end: new Date(),
     tipoEvento: "Reunión",
-    allDay: false
   });
 
   // Función para manejar el cambio de inputs
@@ -141,7 +139,6 @@ const MiCronogramaPage = () => {
       start: new Date(),
       end: new Date(),
       tipoEvento: "Reunión",
-      allDay: false
     });
   };
 
