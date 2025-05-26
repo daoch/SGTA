@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import pucp.edu.pe.sgta.dto.AdvisorPerformanceDto;
 import pucp.edu.pe.sgta.dto.AreaFinalDTO;
 import pucp.edu.pe.sgta.dto.DetalleTesistaDTO;
+import pucp.edu.pe.sgta.dto.HistorialReunionDTO;
 import pucp.edu.pe.sgta.dto.HitoCronogramaDTO;
 import pucp.edu.pe.sgta.dto.TeacherCountDTO;
 import pucp.edu.pe.sgta.dto.TopicAreaStatsDTO;
@@ -87,5 +88,15 @@ public class ReportsController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(hitos);
+    }
+
+    /** RF7: Endpoint para listar historial de reuniones de un tesista */
+    @GetMapping("/tesistas/reuniones")
+    public ResponseEntity<List<HistorialReunionDTO>> getHistorialReuniones(@RequestParam Integer tesistaId) {
+        List<HistorialReunionDTO> historial = reportingService.getHistorialReuniones(tesistaId);
+        if (historial.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(historial);
     }
 }

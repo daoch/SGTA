@@ -1,5 +1,6 @@
 package pucp.edu.pe.sgta.service.imp;
 
+import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import pucp.edu.pe.sgta.dto.AdvisorPerformanceDto;
 import pucp.edu.pe.sgta.dto.AreaFinalDTO;
 import pucp.edu.pe.sgta.dto.DetalleTesistaDTO;
+import pucp.edu.pe.sgta.dto.HistorialReunionDTO;
 import pucp.edu.pe.sgta.dto.HitoCronogramaDTO;
 import pucp.edu.pe.sgta.dto.TeacherCountDTO;
 import pucp.edu.pe.sgta.dto.TopicAreaStatsDTO;
@@ -23,6 +25,7 @@ import pucp.edu.pe.sgta.dto.TesistasPorAsesorDTO;
 import pucp.edu.pe.sgta.repository.AdvisorDistributionRepository;
 import pucp.edu.pe.sgta.repository.AdvisorPerformanceRepository;
 import pucp.edu.pe.sgta.repository.DetalleTesistaRepository;
+import pucp.edu.pe.sgta.repository.HistorialReunionRepository;
 import pucp.edu.pe.sgta.repository.HitoCronogramaRepository;
 import pucp.edu.pe.sgta.repository.JurorDistributionRepository;
 import pucp.edu.pe.sgta.repository.TopicAreaStatsRepository;
@@ -39,6 +42,7 @@ public class ReportingServiceImpl implements IReportService {
     private final TesistasPorAsesorRepository tesistasPorAsesorRepository;
     private final DetalleTesistaRepository detalleTesistaRepository;
     private final HitoCronogramaRepository hitoCronogramaRepository;
+    private final HistorialReunionRepository historialReunionRepository;
 
     public ReportingServiceImpl(
             TopicAreaStatsRepository topicAreaStatsRepository,
@@ -47,7 +51,8 @@ public class ReportingServiceImpl implements IReportService {
             AdvisorPerformanceRepository advisorPerformanceRepository,
             TesistasPorAsesorRepository tesistasPorAsesorRepository,
             DetalleTesistaRepository detalleTesistaRepository,
-            HitoCronogramaRepository hitoCronogramaRepository) {
+            HitoCronogramaRepository hitoCronogramaRepository,
+            HistorialReunionRepository historialReunionRepository) {
         this.topicAreaStatsRepository = topicAreaStatsRepository;
         this.advisorDistributionRepository = advisorDistributionRepository;
         this.jurorDistributionRepository = jurorDistributionRepository;
@@ -55,6 +60,7 @@ public class ReportingServiceImpl implements IReportService {
         this.tesistasPorAsesorRepository = tesistasPorAsesorRepository;
         this.detalleTesistaRepository = detalleTesistaRepository;
         this.hitoCronogramaRepository = hitoCronogramaRepository;
+        this.historialReunionRepository = historialReunionRepository;
     }
 
     @Override
@@ -313,6 +319,22 @@ public class ReportingServiceImpl implements IReportService {
                         .esEvaluable((Boolean) result[7])
                         .temaId((Integer) result[8])
                         .temaTitulo((String) result[9])
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<HistorialReunionDTO> getHistorialReuniones(Integer tesistaId) {
+        if (tesistaId == null) {
+            throw new IllegalArgumentException("El ID del tesista es requerido");
+        }
+
+        List<Object[]> results = historialReunionRepository.getHistorialReuniones(tesistaId);
+        return results.stream()
+                .map(result -> HistorialReunionDTO.builder()
+                        .fecha(((Date) result[0]).toLocalDate())
+                        .duracion((String) result[1])
+                        .notas((String) result[2])
                         .build())
                 .collect(Collectors.toList());
     }

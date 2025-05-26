@@ -876,3 +876,44 @@ AND NOT EXISTS (
     SELECT 1 FROM exposicion_x_tema ext
     WHERE ext.tema_id = t.tema_id AND ext.exposicion_id = e.exposicion_id
 );
+
+-----------
+-- 1) Insertar 5 reuniones adicionales de forma persistente
+WITH nuevas_reuniones AS (
+    INSERT INTO reunion (
+                         titulo,
+                         descripcion,
+                         fecha_hora_inicio,
+                         fecha_hora_fin,
+                         activo,
+                         fecha_creacion,
+                         fecha_modificacion
+        ) VALUES
+              ('Reunión de seguimiento 1', 'Chequeo de avances y dudas específicas',
+               '2025-05-05T09:00:00+00', '2025-05-05T10:00:00+00', TRUE, NOW(), NOW()),
+              ('Reunión de seguimiento 2', 'Revisión de resultados preliminares',
+               '2025-05-10T09:00:00+00', '2025-05-10T10:00:00+00', TRUE, NOW(), NOW()),
+              ('Reunión de seguimiento 3', 'Ajustes al marco metodológico',
+               '2025-05-15T09:00:00+00', '2025-05-15T09:45:00+00', TRUE, NOW(), NOW()),
+              ('Reunión de seguimiento 4', 'Plan de pruebas y validación',
+               '2025-05-20T14:00:00+00', '2025-05-20T15:00:00+00', TRUE, NOW(), NOW()),
+              ('Reunión de seguimiento 5', 'Preparación de la presentación final',
+               '2025-05-25T14:00:00+00', '2025-05-25T14:30:00+00', TRUE, NOW(), NOW())
+        RETURNING reunion_id
+)
+
+-- 2) Vincular cada nueva reunión al asesor (usuario_id = 1) y al tesista (usuario_id = 2)
+INSERT INTO usuario_reunion (
+    reunion_id,
+    usuario_id,
+    estado_asistencia,
+    estado_detalle,
+    activo,
+    fecha_creacion,
+    fecha_modificacion
+)
+SELECT reunion_id, 1, 'asistió', 'Asesor presente', TRUE, NOW(), NOW()
+FROM nuevas_reuniones
+UNION ALL
+SELECT reunion_id, 2, 'asistió', 'Tesista presente', TRUE, NOW(), NOW()
+FROM nuevas_reuniones;
