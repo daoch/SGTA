@@ -63,7 +63,7 @@ export default function DirectorioAsesoresEstudiantes() {
   const [allAreaTematica, setAllAreasTematicas] = useState<AreaTematica[]>([]);
   const [allTemasInteres, setAllTemasInteres] = useState<TemaInteres[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  //const [error, setError] = useState<string | null>(null);
 
   const loadUsuarioId = async () => {
     if (!user) return;
@@ -334,7 +334,6 @@ export default function DirectorioAsesoresEstudiantes() {
           allTemasInteres={allTemasInteres}
           applyFilters={applyFilters}
           cancelFilters={cancelFilters}
-          clearFilters={clearFilters}
         />
       </div>
 

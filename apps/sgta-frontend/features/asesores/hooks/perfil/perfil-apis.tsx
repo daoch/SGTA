@@ -32,8 +32,7 @@ export async function getIdByCorreo(
 
     console.log("ID obtenido por correo:", response.data);
     return response.data as number;
-  } catch (error: any) {
-    // Verifica si es un error de Axios
+  } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
       const status = error.response?.status;
 
@@ -42,11 +41,14 @@ export async function getIdByCorreo(
         error.response?.data?.message?.includes("Usuario no encontrado")
       ) {
         console.warn("El usuario no existe en la base de datos.");
-        return null; // puedes devolver null o -1 según tu lógica
+        return null;
       }
+
+      console.error("Error de Axios al obtener ID por correo:", error.message);
+    } else {
+      console.error("Error desconocido al obtener ID por correo:", error);
     }
 
-    console.error("Error al obtener ID por correo:", error);
     throw error;
   }
 }

@@ -38,7 +38,6 @@ interface FiltrosSheetProps {
   allTemasInteres: TemaInteres[];
   applyFilters: () => void;
   cancelFilters: () => void;
-  clearFilters: () => void;
 }
 
 export default function FiltrosAsesoresSheet({
@@ -51,7 +50,6 @@ export default function FiltrosAsesoresSheet({
   allTemasInteres,
   applyFilters,
   cancelFilters,
-  clearFilters,
 }: FiltrosSheetProps) {
   const [thematicAreaSearch, setThematicAreaSearch] = useState("");
   const [interestAreaSearch, setInterestAreaSearch] = useState("");

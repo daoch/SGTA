@@ -28,7 +28,7 @@ export const CardAsesorBusqueda: FC<CardAsesorBusquedaProps> = ({
             <Avatar className="h-20 w-20 flex-shrink-0">
               <AvatarImage
                 src={
-                  advisor.fotoPerfil || `/placeholder.svg?height=80&width=80`
+                  advisor.fotoPerfil || "/placeholder.svg?height=80&width=80"
                 }
                 alt={advisor.nombre}
               />
