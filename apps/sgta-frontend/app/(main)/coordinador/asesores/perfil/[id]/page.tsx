@@ -1,33 +1,35 @@
 "use client";
-import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import PerfilAsesorCard from "@/features/asesores/components/perfil-asesor-card";
-import { getPerfilAsesor, getFotoUsuario } from "@/features/asesores/hooks/perfil/perfil-apis";
-import type { Asesor } from "@/features/asesores/types/perfil/entidades";
+import PerfilAsesor from "@/features/asesores/views/mi-perfil-asesor";
+import { Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
 
 export default function PerfilAsesorPage() {
   const { id } = useParams();
-  const [asesor, setAsesor] = useState<Asesor | null>(null);
-  const [avatar, setAvatar] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    if (id && typeof id === "string") {
-      getPerfilAsesor(Number(id)).then(setAsesor);
-      getFotoUsuario(Number(id))
-        .then(setAvatar)
-        .catch(() => setAvatar(null));
-    }
-  }, [id]);
+    setMounted(true);
+  }, []);
 
-  if (!asesor) return <div>Cargando...</div>;
+  if (!id || typeof id !== "string") {
+    return (
+      <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-gray-500">
+        <p className="text-base font-medium">ID de asesor no válido</p>
+      </div>
+    );
+  }
 
-  return (
-    <PerfilAsesorCard
-      asesor={asesor}
-      editedData={asesor}
-      isEditing={false}
-      setEditedData={() => {}}
-      avatar={avatar}
-    />
-  );
+  if (!mounted) {
+    return (
+      <div className="flex items-center justify-center h-screen w-full flex-col gap-4">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <span className="text-muted-foreground text-lg">
+          Cargando perfil...
+        </span>
+      </div>
+    );
+  }
+
+  return <PerfilAsesor userId={Number(id)} editable={false} />;
 }
