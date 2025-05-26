@@ -455,3 +455,427 @@ WHERE NOT EXISTS (
     SELECT 1 FROM entregable_x_tema
     WHERE tema_id = 6 AND entregable_id = 3
 );
+
+
+
+INSERT INTO usuario (
+    tipo_usuario_id,
+    codigo_pucp,
+    nombres,
+    primer_apellido,
+    segundo_apellido,
+    correo_electronico,
+    nivel_estudios,
+    contrasena,
+    biografia,
+    foto_perfil,
+    disponibilidad,
+    tipo_disponibilidad,
+    activo,
+    fecha_creacion,
+    fecha_modificacion
+)
+VALUES
+
+  -- Nuevos alumnos
+  (2, 'A008', 'Pepito',    'Flores', 'García',   'pepito.fernandez@pucp.edu.pe', 'Pregrado',    'secret7', 'Estudiante de IA',               NULL, 'Lun-Vie 14-18',    'Híbrido',    TRUE, NOW(), NOW()),
+  (2, 'A009', 'Melanie',    'Rojas',     'Huertas',  'melanie.rojas@pucp.edu.pe',      'Pregrado',    'secret8', 'Estudiante de Data Science',     NULL, 'Mar-Jue 10-12',    'Remoto',     TRUE, NOW(), NOW());
+
+
+INSERT INTO usuario_tema(usuario_id, tema_id, rol_id, asignado, creador, fecha_creacion, fecha_modificacion)
+VALUES
+    (6, 3,  (SELECT rol_id FROM rol WHERE nombre = 'Tesista'), TRUE, TRUE,  NOW(), NOW()),
+    (7, 6,  (SELECT rol_id FROM rol WHERE nombre = 'Tesista'), TRUE, TRUE,  NOW(), NOW()),
+    (8, 7,  (SELECT rol_id FROM rol WHERE nombre = 'Tesista'), TRUE, TRUE,  NOW(), NOW()),
+    (9, 4,  (SELECT rol_id FROM rol WHERE nombre = 'Tesista'), TRUE, TRUE,  NOW(), NOW());
+
+-- Primero, vamos a crear el insert para asociar cada tema con su sub-área de conocimiento correspondiente
+-- Realizamos las asociaciones según la temática de cada título
+
+INSERT INTO sub_area_conocimiento_tema (
+    sub_area_conocimiento_id,
+    tema_id,
+    activo,
+    fecha_creacion,
+    fecha_modificacion
+)
+-- Tema 1: Inteligencia Artificial Aplicada -> Procesamiento de lenguaje natural (1)
+SELECT
+    1, -- Procesamiento de lenguaje natural
+    t.tema_id,
+    TRUE,
+    NOW(),
+    NOW()
+FROM tema t
+WHERE t.titulo = 'Inteligencia Artificial Aplicada'
+AND NOT EXISTS (
+    SELECT 1 FROM sub_area_conocimiento_tema sact
+    WHERE sact.tema_id = t.tema_id
+)
+
+UNION ALL
+
+-- Tema 2: Machine Learning para Datos No Estructurados -> Machine Learning (5)
+SELECT
+    5, -- Machine Learning
+    t.tema_id,
+    TRUE,
+    NOW(),
+    NOW()
+FROM tema t
+WHERE t.titulo = 'Machine Learning para Datos No Estructurados'
+AND NOT EXISTS (
+    SELECT 1 FROM sub_area_conocimiento_tema sact
+    WHERE sact.tema_id = t.tema_id
+)
+
+UNION ALL
+
+-- Tema 3: Redes Neuronales Profundas -> Machine Learning (5)
+SELECT
+    5, -- Machine Learning
+    t.tema_id,
+    TRUE,
+    NOW(),
+    NOW()
+FROM tema t
+WHERE t.titulo = 'Redes Neuronales Profundas'
+AND NOT EXISTS (
+    SELECT 1 FROM sub_area_conocimiento_tema sact
+    WHERE sact.tema_id = t.tema_id
+)
+
+UNION ALL
+
+-- Tema 4: Big Data y Análisis Predictivo -> Sistemas de gestión de bases de datos (6)
+SELECT
+    6, -- Sistemas de gestión de bases de datos
+    t.tema_id,
+    TRUE,
+    NOW(),
+    NOW()
+FROM tema t
+WHERE t.titulo = 'Big Data y Análisis Predictivo'
+AND NOT EXISTS (
+    SELECT 1 FROM sub_area_conocimiento_tema sact
+    WHERE sact.tema_id = t.tema_id
+)
+
+UNION ALL
+
+-- Tema 5: Automatización en la Industria 4.0 -> Sistemas distribuidos (7)
+SELECT
+    7, -- Sistemas distribuidos
+    t.tema_id,
+    TRUE,
+    NOW(),
+    NOW()
+FROM tema t
+WHERE t.titulo = 'Automatización en la Industria 4.0'
+AND NOT EXISTS (
+    SELECT 1 FROM sub_area_conocimiento_tema sact
+    WHERE sact.tema_id = t.tema_id
+)
+
+UNION ALL
+
+-- Tema 6: Blockchain y su Aplicación en Logística -> Sistemas distribuidos (7)
+SELECT
+    7, -- Sistemas distribuidos
+    t.tema_id,
+    TRUE,
+    NOW(),
+    NOW()
+FROM tema t
+WHERE t.titulo = 'Blockchain y su Aplicación en Logística'
+AND NOT EXISTS (
+    SELECT 1 FROM sub_area_conocimiento_tema sact
+    WHERE sact.tema_id = t.tema_id
+)
+
+UNION ALL
+
+-- Tema 7: Ciberseguridad en la Era Digital -> Seguridad en redes (11)
+SELECT
+    11, -- Seguridad en redes
+    t.tema_id,
+    TRUE,
+    NOW(),
+    NOW()
+FROM tema t
+WHERE t.titulo = 'Ciberseguridad en la Era Digital'
+AND NOT EXISTS (
+    SELECT 1 FROM sub_area_conocimiento_tema sact
+    WHERE sact.tema_id = t.tema_id
+)
+
+UNION ALL
+
+-- Tema 8: Desarrollo de Software Ágil -> Desarrollo de software (9)
+SELECT
+    9, -- Desarrollo de software
+    t.tema_id,
+    TRUE,
+    NOW(),
+    NOW()
+FROM tema t
+WHERE t.titulo = 'Desarrollo de Software Ágil'
+AND NOT EXISTS (
+    SELECT 1 FROM sub_area_conocimiento_tema sact
+    WHERE sact.tema_id = t.tema_id
+)
+
+UNION ALL
+
+-- Tema 9: Internet de las Cosas (IoT) -> Redes de computadoras (8)
+SELECT
+    8, -- Redes de computadoras
+    t.tema_id,
+    TRUE,
+    NOW(),
+    NOW()
+FROM tema t
+WHERE t.titulo = 'Internet de las Cosas (IoT)'
+AND NOT EXISTS (
+    SELECT 1 FROM sub_area_conocimiento_tema sact
+    WHERE sact.tema_id = t.tema_id
+)
+
+UNION ALL
+
+-- Tema 10: Tecnologías Emergentes en Medicina -> Procesamiento de imágenes (3)
+SELECT
+    3, -- Procesamiento de imágenes
+    t.tema_id,
+    TRUE,
+    NOW(),
+    NOW()
+FROM tema t
+WHERE t.titulo = 'Tecnologías Emergentes en Medicina'
+AND NOT EXISTS (
+    SELECT 1 FROM sub_area_conocimiento_tema sact
+    WHERE sact.tema_id = t.tema_id
+)
+
+UNION ALL
+
+-- Tema 11: Detección de depresión en estudiantes... -> Visión computacional (4)
+SELECT
+    4, -- Visión computacional
+    t.tema_id,
+    TRUE,
+    NOW(),
+    NOW()
+FROM tema t
+WHERE t.titulo LIKE 'Detección de depresión en estudiantes%'
+AND NOT EXISTS (
+    SELECT 1 FROM sub_area_conocimiento_tema sact
+    WHERE sact.tema_id = t.tema_id
+);
+
+-- WAZAAAAA--------------------------------
+-- 5. Insertamos nuevos profesores que actuarán como jurados
+INSERT INTO usuario (
+    tipo_usuario_id,
+    codigo_pucp,
+    nombres,
+    primer_apellido,
+    segundo_apellido,
+    correo_electronico,
+    nivel_estudios,
+    contrasena,
+    biografia,
+    activo,
+    fecha_creacion,
+    fecha_modificacion
+)
+-- Profesores para ciencias de la computación (Redes Neuronales)
+SELECT
+    1,
+    'P101',
+    'Gabriela',
+    'Martínez',
+    'Rodríguez',
+    'gabriela.martinez@pucp.edu.pe',
+    'Doctorado',
+    'pwd123',
+    'Profesora especialista en machine learning y redes neuronales',
+    TRUE, NOW(), NOW()
+WHERE NOT EXISTS (SELECT 1 FROM usuario WHERE correo_electronico = 'gabriela.martinez@pucp.edu.pe')
+
+UNION ALL
+
+SELECT
+    1,
+    'P102',
+    'Ricardo',
+    'Paredes',
+    'Luna',
+    'ricardo.paredes@pucp.edu.pe',
+    'Doctorado',
+    'pwd123',
+    'Profesor con experiencia en inteligencia artificial y computación cognitiva',
+    TRUE, NOW(), NOW()
+WHERE NOT EXISTS (SELECT 1 FROM usuario WHERE correo_electronico = 'ricardo.paredes@pucp.edu.pe')
+
+UNION ALL
+
+-- Profesores para ciberseguridad
+SELECT
+    1,
+    'P103',
+    'Eduardo',
+    'Vega',
+    'Torres',
+    'eduardo.vega@pucp.edu.pe',
+    'Doctorado',
+    'pwd123',
+    'Profesor especialista en seguridad informática y criptografía',
+    TRUE, NOW(), NOW()
+WHERE NOT EXISTS (SELECT 1 FROM usuario WHERE correo_electronico = 'eduardo.vega@pucp.edu.pe')
+
+UNION ALL
+
+SELECT
+    1,
+    'P104',
+    'Sandra',
+    'Morales',
+    'Quiroz',
+    'sandra.morales@pucp.edu.pe',
+    'Doctorado',
+    'pwd123',
+    'Profesora experta en análisis forense digital y seguridad de redes',
+    TRUE, NOW(), NOW()
+WHERE NOT EXISTS (SELECT 1 FROM usuario WHERE correo_electronico = 'sandra.morales@pucp.edu.pe');
+
+-- 6. Vinculamos los profesores a la carrera
+INSERT INTO usuario_carrera (
+    usuario_id,
+    carrera_id,
+    activo,
+    fecha_creacion,
+    fecha_modificacion
+)
+SELECT
+    u.usuario_id,
+    -- Asumimos que los temas pertenecen a la carrera_id=1 según los scripts anteriores
+    1,
+    TRUE, NOW(), NOW()
+FROM usuario u
+WHERE u.correo_electronico IN (
+    'gabriela.martinez@pucp.edu.pe',
+    'ricardo.paredes@pucp.edu.pe',
+    'eduardo.vega@pucp.edu.pe',
+    'sandra.morales@pucp.edu.pe'
+)
+AND NOT EXISTS (
+    SELECT 1 FROM usuario_carrera uc
+    WHERE uc.usuario_id = u.usuario_id AND uc.carrera_id = 2
+);
+
+-- 7. Asignamos áreas de conocimiento a los profesores
+INSERT INTO usuario_area_conocimiento (
+    usuario_id,
+    area_conocimiento_id,
+    activo,
+    fecha_creacion,
+    fecha_modificacion
+)
+-- Profesores de Ciencias de la Computación
+SELECT
+    u.usuario_id,
+    (SELECT area_conocimiento_id FROM area_conocimiento WHERE nombre = 'ciencias de la computación'),
+    TRUE, NOW(), NOW()
+FROM usuario u
+WHERE u.correo_electronico IN ('gabriela.martinez@pucp.edu.pe', 'ricardo.paredes@pucp.edu.pe')
+AND NOT EXISTS (
+    SELECT 1 FROM usuario_area_conocimiento uac
+    WHERE uac.usuario_id = u.usuario_id
+    AND uac.area_conocimiento_id = (SELECT area_conocimiento_id FROM area_conocimiento WHERE nombre = 'ciencias de la computación')
+)
+
+UNION ALL
+
+-- Profesores de Ciberseguridad
+SELECT
+    u.usuario_id,
+    (SELECT area_conocimiento_id FROM area_conocimiento WHERE nombre = 'ciberseguridad'),
+    TRUE, NOW(), NOW()
+FROM usuario u
+WHERE u.correo_electronico IN ('eduardo.vega@pucp.edu.pe', 'sandra.morales@pucp.edu.pe')
+AND NOT EXISTS (
+    SELECT 1 FROM usuario_area_conocimiento uac
+    WHERE uac.usuario_id = u.usuario_id
+    AND uac.area_conocimiento_id = (SELECT area_conocimiento_id FROM area_conocimiento WHERE nombre = 'ciberseguridad')
+);
+
+-- 8. Asignamos rol de jurado a los profesores para los temas correspondientes
+INSERT INTO usuario_tema (
+    usuario_id,
+    tema_id,
+    rol_id,
+    asignado,
+    activo,
+    fecha_creacion,
+    fecha_modificacion
+)
+-- Profesores de Ciencias de la Computación para Redes Neuronales
+SELECT
+    u.usuario_id,
+    t.tema_id,
+    (SELECT rol_id FROM rol WHERE nombre = 'Jurado'),
+    TRUE, TRUE, NOW(), NOW()
+FROM usuario u
+JOIN tema t ON t.titulo = 'Redes Neuronales Profundas'
+WHERE u.correo_electronico IN ('gabriela.martinez@pucp.edu.pe', 'ricardo.paredes@pucp.edu.pe')
+AND NOT EXISTS (
+    SELECT 1 FROM usuario_tema ut
+    WHERE ut.usuario_id = u.usuario_id
+    AND ut.tema_id = t.tema_id
+    AND ut.rol_id = (SELECT rol_id FROM rol WHERE nombre = 'Jurado')
+)
+
+UNION ALL
+
+-- Profesores de Ciberseguridad para Ciberseguridad en la Era Digital
+SELECT
+    u.usuario_id,
+    t.tema_id,
+    (SELECT rol_id FROM rol WHERE nombre = 'Jurado'),
+    TRUE, TRUE, NOW(), NOW()
+FROM usuario u
+JOIN tema t ON t.titulo = 'Ciberseguridad en la Era Digital'
+WHERE u.correo_electronico IN ('eduardo.vega@pucp.edu.pe', 'sandra.morales@pucp.edu.pe')
+AND NOT EXISTS (
+    SELECT 1 FROM usuario_tema ut
+    WHERE ut.usuario_id = u.usuario_id
+    AND ut.tema_id = t.tema_id
+    AND ut.rol_id = (SELECT rol_id FROM rol WHERE nombre = 'Jurado')
+);
+
+-- 9. Verificamos que estos temas estén vinculados a exposiciones del ciclo actual
+INSERT INTO exposicion_x_tema (
+    exposicion_id,
+    tema_id,
+    estado_exposicion,
+    activo,
+    fecha_creacion,
+    fecha_modificacion
+)
+SELECT
+    e.exposicion_id,
+    t.tema_id,
+    'programada',
+    TRUE,
+    NOW(),
+    NOW()
+FROM exposicion e
+JOIN etapa_formativa_x_ciclo efc ON e.etapa_formativa_x_ciclo_id = efc.etapa_formativa_x_ciclo_id
+JOIN ciclo c ON efc.ciclo_id = c.ciclo_id
+JOIN tema t ON t.titulo IN ('Redes Neuronales Profundas', 'Ciberseguridad en la Era Digital')
+WHERE c.anio = 2025 AND c.semestre = '1'
+AND NOT EXISTS (
+    SELECT 1 FROM exposicion_x_tema ext
+    WHERE ext.tema_id = t.tema_id AND ext.exposicion_id = e.exposicion_id
+);
