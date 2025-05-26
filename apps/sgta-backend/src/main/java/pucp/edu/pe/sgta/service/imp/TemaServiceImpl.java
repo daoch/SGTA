@@ -1085,8 +1085,19 @@ public class TemaServiceImpl implements TemaService {
 				.setParameter("p_asesor_id", idAsesor)
 				.setParameter("p_tesista_id", idTesista)
 				.getSingleResult();
-		
+		entityManager.flush();
+		logger.info("Eliminando postulaciones a propuesta de usuario: " + idTesista + " START");
+		String queryRechazo = "SELECT rechazar_postulaciones_propuesta_general_tesista(:uid)";
+
+		entityManager.createNativeQuery(queryRechazo)
+				.setParameter("uid", idTesista)
+				.getSingleResult();
+		logger.info("Eliminando postulaciones a propuesta de usuario: " + idTesista + " FINISH");
+		logger.info("Eliminando postulaciones de usuario: " + idTesista);
+		eliminarPropuestasTesista(idTesista);
 		eliminarPostulacionesTesista(idTesista);
+		entityManager.flush();
+
 	}
 	
 	@Override

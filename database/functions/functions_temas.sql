@@ -977,7 +977,8 @@ BEGIN
             'nombre_completo', u.nombres || ' ' || u.primer_apellido,
             'rol',            rl.nombre,
             'creador',        ut.creador,
-            'asignado',       ut.asignado
+            'asignado',       ut.asignado,
+            'rechazado',      ut.rechazado
           ))
           FROM usuario_tema ut
           JOIN usuario         u  ON u.usuario_id = ut.usuario_id
@@ -1198,12 +1199,13 @@ ALTER FUNCTION obtener_sub_areas_por_carrera_usuario(INTEGER) OWNER TO postgres;
 CREATE OR REPLACE FUNCTION aprobar_postulacion_propuesta_general_tesista(
     p_tema_id    INT,
     p_asesor_id  INT,
-    p_tesista_id INT,
-	estado_preinscrito_id INT
+    p_tesista_id INT
 )
 RETURNS VOID
 LANGUAGE plpgsql
 AS $$
+DECLARE
+    estado_preinscrito_id  INTEGER;
 BEGIN
     -- Only proceed if the tesista is the creator of this topic
     IF EXISTS (
@@ -1235,7 +1237,7 @@ BEGIN
 END;
 $$;
 
-ALTER FUNCTION aprobar_postulacion_propuesta_general_tesista(INTEGER, INTEGER, INTEGER, INTEGER) OWNER TO postgres;
+ALTER FUNCTION aprobar_postulacion_propuesta_general_tesista(INTEGER, INTEGER, INTEGER) OWNER TO doadmin;
 
 CREATE OR REPLACE FUNCTION rechazar_postulacion_propuesta_general_tesista(
     p_tema_id    INT,
@@ -1573,5 +1575,45 @@ BEGIN
     END;
 
     RETURN v_current_estado;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION rechazar_postulaciones_propuesta_general_tesista(
+    p_tesista_id INT
+)
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_tema_id INT;
+    v_rol_asesor_id INT;
+BEGIN
+    -- 1) Verifico que el tesista existe y es creador del tema
+    SELECT ut.tema_id
+      INTO v_tema_id
+    FROM usuario_tema ut
+    JOIN rol r ON r.rol_id = ut.rol_id
+    WHERE ut.usuario_id = p_tesista_id
+      AND ut.creador = TRUE
+      AND r.nombre ILIKE 'Tesista';
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'El usuario % no es tesista creador de ningún tema', p_tesista_id;
+    END IF;
+
+    -- 2) Obtengo el rol_id de “Asesor”
+    SELECT rol_id
+      INTO v_rol_asesor_id
+    FROM rol
+    WHERE nombre ILIKE 'Asesor';
+
+    -- 3) Marco como rechazados todos los asesores de ese tema
+    --    excepto al confirmado y excepto al propio tesista
+    UPDATE usuario_tema
+       SET rechazado = TRUE,
+           fecha_modificacion = NOW()
+     WHERE rol_id         = v_rol_asesor_id
+       AND tema_id        = v_tema_id
+       AND asignado       = FALSE;
 END;
 $$;
