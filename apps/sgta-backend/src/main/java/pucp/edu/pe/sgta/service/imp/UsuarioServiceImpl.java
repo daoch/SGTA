@@ -796,15 +796,6 @@ public class UsuarioServiceImpl implements UsuarioService {
 	}
 
 	@Override
-	public Integer getIdByCorreo(String correo) {
-		Usuario user = usuarioRepository.findByCorreoElectronicoIsLikeIgnoreCase(correo);
-		if (user == null) {
-			throw new RuntimeException("Usuario no encontrado con CORREO: " + correo);
-		}
-		return user.getId();
-	}
-
-	@Override
 	public List<PerfilAsesorDto> getDirectorioDeAsesoresPorFiltros(FiltrosDirectorioAsesores filtros) {
 		List<Object[]> queryResults = usuarioRepository
 				.obtenerListaDirectorioAsesoresAlumno(	filtros.getAlumnoId(),
