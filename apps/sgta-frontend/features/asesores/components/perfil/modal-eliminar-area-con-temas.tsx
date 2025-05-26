@@ -10,7 +10,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import type { AreaTematica, TemaInteres } from "../types/perfil/entidades";
+import type { AreaTematica, TemaInteres } from "../../types/perfil/entidades";
 
 interface Props {
   open: boolean;
