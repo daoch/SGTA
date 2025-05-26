@@ -171,4 +171,26 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
         return saved.size();
     }
 
+    @Override
+    public int bloquearBloque(int idBloque) {
+        BloqueHorarioExposicion bloqueHorarioExposicion = bloqueHorarioExposicionRepository.findById(idBloque).orElse(null);
+        if(bloqueHorarioExposicion != null) {
+            bloqueHorarioExposicion.setEsBloqueBloqueado(true);
+            bloqueHorarioExposicionRepository.save(bloqueHorarioExposicion);
+            return 1;
+        }
+        return 0;
+    }
+
+    @Override
+    public int desbloquearBloque(int idBloque) {
+        BloqueHorarioExposicion bloqueHorarioExposicion = bloqueHorarioExposicionRepository.findById(idBloque).orElse(null);
+        if(bloqueHorarioExposicion != null) {
+            bloqueHorarioExposicion.setEsBloqueBloqueado(false);
+            bloqueHorarioExposicionRepository.save(bloqueHorarioExposicion);
+            return 1;
+        }
+        return 0;
+    }
+
 }
