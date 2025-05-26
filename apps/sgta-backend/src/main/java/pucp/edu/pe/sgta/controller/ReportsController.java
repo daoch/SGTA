@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import pucp.edu.pe.sgta.dto.AdvisorPerformanceDto;
 import pucp.edu.pe.sgta.dto.AreaFinalDTO;
+import pucp.edu.pe.sgta.dto.DetalleTesistaDTO;
 import pucp.edu.pe.sgta.dto.TeacherCountDTO;
 import pucp.edu.pe.sgta.dto.TopicAreaStatsDTO;
 import pucp.edu.pe.sgta.dto.TopicTrendDTO;
@@ -65,5 +66,15 @@ public class ReportsController {
     @GetMapping("/advisors/tesistas")
     public ResponseEntity<List<TesistasPorAsesorDTO>> getTesistasPorAsesor(@RequestParam Integer asesorId) {
         return ResponseEntity.ok(reportingService.getTesistasPorAsesor(asesorId));
+    }
+
+    /** RF5: Endpoint para obtener detalle completo de un tesista */
+    @GetMapping("/tesistas/detalle")
+    public ResponseEntity<DetalleTesistaDTO> getDetalleTesista(@RequestParam Integer tesistaId) {
+        DetalleTesistaDTO detalle = reportingService.getDetalleTesista(tesistaId);
+        if (detalle == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(detalle);
     }
 }

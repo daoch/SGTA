@@ -1,7 +1,9 @@
 package pucp.edu.pe.sgta.service.imp;
 
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -12,12 +14,14 @@ import org.springframework.stereotype.Service;
 
 import pucp.edu.pe.sgta.dto.AdvisorPerformanceDto;
 import pucp.edu.pe.sgta.dto.AreaFinalDTO;
+import pucp.edu.pe.sgta.dto.DetalleTesistaDTO;
 import pucp.edu.pe.sgta.dto.TeacherCountDTO;
 import pucp.edu.pe.sgta.dto.TopicAreaStatsDTO;
 import pucp.edu.pe.sgta.dto.TopicTrendDTO;
 import pucp.edu.pe.sgta.dto.TesistasPorAsesorDTO;
 import pucp.edu.pe.sgta.repository.AdvisorDistributionRepository;
 import pucp.edu.pe.sgta.repository.AdvisorPerformanceRepository;
+import pucp.edu.pe.sgta.repository.DetalleTesistaRepository;
 import pucp.edu.pe.sgta.repository.JurorDistributionRepository;
 import pucp.edu.pe.sgta.repository.TopicAreaStatsRepository;
 import pucp.edu.pe.sgta.repository.TesistasPorAsesorRepository;
@@ -31,18 +35,21 @@ public class ReportingServiceImpl implements IReportService {
     private final JurorDistributionRepository jurorDistributionRepository;
     private final AdvisorPerformanceRepository advisorPerformanceRepository;
     private final TesistasPorAsesorRepository tesistasPorAsesorRepository;
+    private final DetalleTesistaRepository detalleTesistaRepository;
 
     public ReportingServiceImpl(
             TopicAreaStatsRepository topicAreaStatsRepository,
             AdvisorDistributionRepository advisorDistributionRepository,
             JurorDistributionRepository jurorDistributionRepository,
             AdvisorPerformanceRepository advisorPerformanceRepository,
-            TesistasPorAsesorRepository tesistasPorAsesorRepository) {
+            TesistasPorAsesorRepository tesistasPorAsesorRepository,
+            DetalleTesistaRepository detalleTesistaRepository) {
         this.topicAreaStatsRepository = topicAreaStatsRepository;
         this.advisorDistributionRepository = advisorDistributionRepository;
         this.jurorDistributionRepository = jurorDistributionRepository;
         this.advisorPerformanceRepository = advisorPerformanceRepository;
         this.tesistasPorAsesorRepository = tesistasPorAsesorRepository;
+        this.detalleTesistaRepository = detalleTesistaRepository;
     }
 
     @Override
@@ -229,6 +236,55 @@ public class ReportingServiceImpl implements IReportService {
                         .build();
                 })
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public DetalleTesistaDTO getDetalleTesista(Integer tesistaId) {
+        if (tesistaId == null) {
+            throw new IllegalArgumentException("El ID del tesista es requerido");
+        }
+
+        List<Object[]> results = detalleTesistaRepository.getDetalleTesista(tesistaId);
+        if (results.isEmpty()) {
+            return null;
+        }
+
+        Object[] result = results.get(0);
+        return DetalleTesistaDTO.builder()
+                .tesistaId((Integer) result[0])
+                .nombres((String) result[1])
+                .primerApellido((String) result[2])
+                .segundoApellido((String) result[3])
+                .correoElectronico((String) result[4])
+                .nivelEstudios((String) result[5])
+                .codigoPucp((String) result[6])
+                .temaId((Integer) result[7])
+                .tituloTema((String) result[8])
+                .resumenTema((String) result[9])
+                .metodologia((String) result[10])
+                .objetivos((String) result[11])
+                .areaConocimiento((String) result[12])
+                .subAreaConocimiento((String) result[13])
+                .asesorNombre((String) result[14])
+                .asesorCorreo((String) result[15])
+                .coasesorNombre((String) result[16])
+                .coasesorCorreo((String) result[17])
+                .cicloId((Integer) result[18])
+                .cicloNombre((String) result[19])
+                .fechaInicioCiclo(result[20] != null ? ((java.sql.Date) result[20]).toLocalDate() : null)
+                .fechaFinCiclo(result[21] != null ? ((java.sql.Date) result[21]).toLocalDate() : null)
+                .etapaFormativaId((Integer) result[22])
+                .etapaFormativaNombre((String) result[23])
+                .faseActual((String) result[24])
+                .entregableId((Integer) result[25])
+                .entregableNombre((String) result[26])
+                .entregableActividadEstado((String) result[27])
+                .entregableEnvioEstado((String) result[28])
+                .entregableFechaInicio(result[29] != null ? 
+                    ((Timestamp) result[29]).toLocalDateTime().atZone(ZoneId.systemDefault()) : null)
+                .entregableFechaFin(result[30] != null ? 
+                    ((Timestamp) result[30]).toLocalDateTime().atZone(ZoneId.systemDefault()) : null)
+                .build();
     }
 
 }
