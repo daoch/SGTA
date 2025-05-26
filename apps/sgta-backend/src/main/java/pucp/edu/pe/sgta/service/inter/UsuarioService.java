@@ -1,5 +1,6 @@
 package pucp.edu.pe.sgta.service.inter;
 
+import pucp.edu.pe.sgta.dto.asesores.FiltrosDirectorioAsesores;
 import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
 import pucp.edu.pe.sgta.dto.asesores.UsuarioFotoDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
@@ -84,4 +85,6 @@ public interface UsuarioService {
 	UsuarioFotoDto getUsuarioFoto(Integer id);
 
 	Integer getIdByCorreo(String correo);
+
+    List<PerfilAsesorDto> getDirectorioDeAsesoresPorFiltros(FiltrosDirectorioAsesores filtros);
 }

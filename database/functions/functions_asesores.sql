@@ -5,7 +5,7 @@ BEGIN
     RETURN QUERY
 	Select c.* from Carrera as c
 	where c.activo = true
-	and c.carrera_id in(select uc.usuario_carrera_id
+	and c.carrera_id in(select uc.carrera_id
 						from usuario_carrera as uc
 						where uc.usuario_id = p_usuario_id
 						and uc.activo = true);
@@ -248,5 +248,71 @@ BEGIN
 									and upi.activo = true)
 	group by
 		p.proyecto_id, p.titulo, extract(year from p.fecha_creacion), p.estado;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION obtener_lista_directorio_asesores_alumno(
+    p_usuario_id INTEGER,
+    p_busqueda TEXT,
+    p_activo BOOLEAN,
+    p_areas INT[],
+    p_subareas INT[]
+)
+RETURNS TABLE (
+    usuario_id INTEGER,
+    nombres TEXT,
+    primer_apellido TEXT,
+    carrera_nombre TEXT,
+    correo_electronico TEXT,
+    biografia TEXT,
+    foto_perfil BYTEA,
+    valor TEXT
+)
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT DISTINCT 
+        u.usuario_id,
+        u.nombres::TEXT,
+        u.primer_apellido::TEXT,
+        c.nombre::TEXT AS carrera_nombre,
+        u.correo_electronico::TEXT,
+        u.biografia,
+        u.foto_perfil,
+        cpc.valor
+    FROM usuario u
+    JOIN usuario_rol ur ON ur.usuario_id = u.usuario_id
+    JOIN rol r ON r.rol_id = ur.rol_id
+    JOIN usuario_carrera uc ON uc.usuario_id = u.usuario_id
+    JOIN carrera c ON uc.carrera_id = c.carrera_id
+    JOIN parametro_configuracion pc ON pc.nombre = 'LimXasesor'
+    JOIN carrera_parametro_configuracion cpc ON 
+        cpc.parametro_configuracion_id = pc.parametro_configuracion_id
+        AND cpc.carrera_id = c.carrera_id
+    LEFT JOIN usuario_area_conocimiento uac ON uac.usuario_id = u.usuario_id
+    LEFT JOIN area_conocimiento ac ON ac.area_conocimiento_id = uac.area_conocimiento_id
+    LEFT JOIN usuario_sub_area_conocimiento usac ON usac.usuario_id = u.usuario_id
+    LEFT JOIN sub_area_conocimiento sac ON sac.sub_area_conocimiento_id = usac.sub_area_conocimiento_id
+    WHERE lower(r.nombre) = 'asesor'
+      AND uc.carrera_id = (
+          SELECT carrera_id
+          FROM usuario_carrera cuc
+          WHERE cuc.usuario_id = p_usuario_id
+          LIMIT 1
+      )
+      AND (
+        p_activo IS FALSE
+        OR (p_activo IS TRUE AND u.activo = TRUE)
+      )
+	  AND	(
+	    uac.area_conocimiento_id IS NOT NULL AND uac.area_conocimiento_id = ANY(p_areas)
+	    OR
+	    usac.sub_area_conocimiento_id IS NOT NULL AND usac.sub_area_conocimiento_id = ANY(p_subareas)
+	  )
+      AND (
+        CONCAT(u.nombres, ' ', u.primer_apellido, ' ', u.segundo_apellido) ILIKE '%' || p_busqueda || '%'
+        OR ac.nombre ILIKE '%' || p_busqueda || '%'
+        OR sac.nombre ILIKE '%' || p_busqueda || '%'
+      );
 END;
 $$ LANGUAGE plpgsql;

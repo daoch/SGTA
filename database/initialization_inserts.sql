@@ -174,7 +174,41 @@ VALUES
   (2, 'A002', 'Diego',    'Fernández','García',   'diego.fernandez@pucp.edu.pe', 'Pregrado',    'secret7', 'Estudiante de IA',               NULL, 'Lun-Vie 14-18',    'Híbrido',    TRUE, NOW(), NOW()),
   (2, 'A003', 'Sofía',    'Lima',     'Huertas',  'sofia.lima@pucp.edu.pe',      'Pregrado',    'secret8', 'Estudiante de Data Science',     NULL, 'Mar-Jue 10-12',    'Remoto',     TRUE, NOW(), NOW());
 
-
+	--Profesores adicionales todos informatica
+INSERT INTO usuario (
+    tipo_usuario_id, codigo_pucp, nombres, primer_apellido, segundo_apellido,
+    correo_electronico, nivel_estudios, contrasena, biografia,
+    disponibilidad, tipo_disponibilidad, activo, fecha_creacion, fecha_modificacion
+)
+VALUES
+(
+    (SELECT tipo_usuario_id FROM tipo_usuario WHERE LOWER(nombre) = 'profesor' LIMIT 1),
+    'PROF001', 'Julio', 'Ramírez', 'Lozano', 'julio.ramirez@pucp.edu.pe',
+    'Maestría', 'hashed_password_1',
+    'Docente con experiencia en ingeniería de software y arquitectura empresarial.',
+    'Lunes-Viernes 08:00-12:00', 'presencial', TRUE, NOW(), NOW()
+),
+(
+    (SELECT tipo_usuario_id FROM tipo_usuario WHERE LOWER(nombre) = 'profesor' LIMIT 1),
+    'PROF002', 'Elena', 'Torres', 'Mendoza', 'elena.torres@pucp.edu.pe',
+    'Doctorado', 'hashed_password_2',
+    'Investigadora en inteligencia artificial con publicaciones en aprendizaje automático.',
+    'Martes-Jueves 10:00-14:00', 'presencial', TRUE, NOW(), NOW()
+),
+(
+    (SELECT tipo_usuario_id FROM tipo_usuario WHERE LOWER(nombre) = 'profesor' LIMIT 1),
+    'PROF003', 'Ricardo', 'Salas', 'Gutiérrez', 'ricardo.salas@pucp.edu.pe',
+    'Maestría', 'hashed_password_3',
+    'Especialista en redes y ciberseguridad, con 10 años de experiencia docente.',
+    'Lunes-Miércoles 13:00-17:00', 'presencial', TRUE, NOW(), NOW()
+),
+(
+    (SELECT tipo_usuario_id FROM tipo_usuario WHERE LOWER(nombre) = 'profesor' LIMIT 1),
+    'PROF004', 'Carla', 'Reyes', 'Fernández', 'carla.reyes@pucp.edu.pe',
+    'Doctorado', 'hashed_password_4',
+    'Profesora enfocada en bases de datos y minería de datos en entornos empresariales.',
+    'Martes-Viernes 09:00-13:00', 'presencial', TRUE, NOW(), NOW()
+);
 -- 2) Relación usuario_carrera (cada usuario con su carrera)
 INSERT INTO usuario_carrera (
     usuario_id,
@@ -201,6 +235,12 @@ VALUES
     -- Sofía Lima estudia Ingeniería Informática (carrera_id = 1)
     (8, 1, TRUE, NOW(), NOW())
 ;
+	-- De los profesores adicionales de informatica
+INSERT INTO usuario_carrera (usuario_id, carrera_id, activo,fecha_creacion,fecha_modificacion)
+SELECT u.usuario_id, c.carrera_id,TRUE,now(),now()
+FROM usuario u
+JOIN carrera c ON c.codigo = 'INF'
+WHERE u.codigo_pucp IN ('PROF001', 'PROF002', 'PROF003', 'PROF004');
 
 -- 3) Relación usuario_grupo_investigacion (asignar a todos al Grupo IA PUCP, id = 1)
 INSERT INTO usuario_grupo_investigacion (usuario_id,
@@ -469,4 +509,40 @@ INSERT INTO etapa_formativa_x_ciclo_x_tema (etapa_formativa_x_ciclo_id, tema_id,
     VALUES (1, 2, TRUE, NOW()),
            (1, 3, TRUE, NOW()),
            (1, 4, TRUE, NOW());
+		   
+-- Agregamos areas de conocimiento
+insert into usuario_area_conocimiento (usuario_id,area_conocimiento_id,activo,fecha_creacion,fecha_modificacion)
+(
+select usuario_id, area_conocimiento_id, true, now(), now() from usuario join area_conocimiento on area_conocimiento.nombre = 'ciberseguridad' where codigo_pucp in ('P003', 'PROF001', 'PROF003')
+union
+select usuario_id, area_conocimiento_id, true, now(), now() from usuario join area_conocimiento on area_conocimiento.nombre = 'sistemas de información' where codigo_pucp in ('P002', 'PROF001', 'PROF004')
+union
+select usuario_id, area_conocimiento_id, true, now(), now() from usuario join area_conocimiento on area_conocimiento.nombre = 'ciencias de la computación' where codigo_pucp in ('PROF002', 'PROF004')
+);
+-- Agregamos rol de asesor a los profesores
+insert into usuario_rol(usuario_id, rol_id, activo ,fecha_creacion, fecha_modificacion)
+(
+select usuario.usuario_id, rol.rol_id, TRUE, now(), now()
+from usuario
+	inner join tipo_usuario on tipo_usuario.tipo_usuario_id = usuario.tipo_usuario_id
+	inner join usuario_carrera on usuario_carrera.usuario_id = usuario.usuario_id
+	join rol on rol.nombre = 'Asesor'
+where
+	tipo_usuario.nombre like 'profesor'
+	and usuario_carrera.carrera_id = 1
+);
+
+-- Parametros para asesores
+INSERT INTO parametro_configuracion (
+    parametro_configuracion_id, activo, descripcion, fecha_creacion, fecha_modificacion, nombre, tipo, modulo_id 
+) VALUES (
+    12, true, 'Numero de limites por asesor', NOW(), NOW(), 'LimXasesor', 'integer', 1
+);
+
+
+INSERT INTO carrera_parametro_configuracion (
+    carrera_parametro_configuracion_id, activo, fecha_creacion, fecha_modificacion, valor, carrera_id, parametro_configuracion_id, etapa_formativa_id
+) VALUES (
+    11, true, NOW(), NOW(), '8', 1, 12, 1
+);
 

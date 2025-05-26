@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import pucp.edu.pe.sgta.dto.asesores.FiltrosDirectorioAsesores;
 import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
 import pucp.edu.pe.sgta.dto.asesores.UsuarioFotoDto;
 import pucp.edu.pe.sgta.dto.CarreraDto;
@@ -198,5 +199,17 @@ public class UsuarioController {
 	public UsuarioDto findByCodigo(@RequestParam("codigo") String codigo) {
 		return this.usuarioService.findUsuarioByCodigo(codigo);
 	}
+    @GetMapping("/asesor-directory-by-filters")
+    public ResponseEntity<List<PerfilAsesorDto>> getDirectorioDeAsesoresPorFiltros(
+            @ModelAttribute FiltrosDirectorioAsesores filtros) {
+            List<PerfilAsesorDto> asesores = usuarioService.getDirectorioDeAsesoresPorFiltros(filtros);
+            return new ResponseEntity<>(asesores, HttpStatus.OK);
 
+//        try {
+//            List<PerfilAsesorDto> asesores = usuarioService.getDirectorioDeAsesoresPorFiltros(filtros);
+//            return new ResponseEntity<>(asesores, HttpStatus.OK);
+//        } catch (Exception e) {
+//            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+//        }
+    }
 }
