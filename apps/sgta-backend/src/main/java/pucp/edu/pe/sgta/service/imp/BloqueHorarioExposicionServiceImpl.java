@@ -15,10 +15,13 @@ import org.springframework.stereotype.Service;
 
 import pucp.edu.pe.sgta.dto.BloqueHorarioExposicionCreateDTO;
 import pucp.edu.pe.sgta.dto.BloqueHorarioExposicionDto;
+import pucp.edu.pe.sgta.dto.JornadaExposicionCreateDTO;
+import pucp.edu.pe.sgta.dto.JornadaExposicionDto;
 import pucp.edu.pe.sgta.dto.ListBloqueHorarioExposicionSimpleDTO;
 import pucp.edu.pe.sgta.dto.TemaConAsesorJuradoDTO;
 import pucp.edu.pe.sgta.mapper.BloqueHorarioExposicionMapper;
 import pucp.edu.pe.sgta.model.BloqueHorarioExposicion;
+import pucp.edu.pe.sgta.model.JornadaExposicion;
 import pucp.edu.pe.sgta.repository.BloqueHorarioExposicionRepository;
 import pucp.edu.pe.sgta.service.inter.BloqueHorarioExposicionService;
 
@@ -47,7 +50,8 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
 
     @Override
     public BloqueHorarioExposicionDto create(BloqueHorarioExposicionCreateDTO dto) {
-        BloqueHorarioExposicion bloqueHorarioExposicion = bloqueHorarioExposicionRepository.save(BloqueHorarioExposicionMapper.toEntity(dto));
+        BloqueHorarioExposicion bloqueHorarioExposicion = bloqueHorarioExposicionRepository
+                .save(BloqueHorarioExposicionMapper.toEntity(dto));
         return BloqueHorarioExposicionMapper.toDTO(bloqueHorarioExposicion);
     }
 
@@ -64,20 +68,20 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
     @Override
     public List<ListBloqueHorarioExposicionSimpleDTO> listarBloquesHorarioPorExposicion(Integer exposicionId) {
         List<Object[]> results = bloqueHorarioExposicionRepository.listarBloquesHorarioPorExposicion(exposicionId);
-        
-        //Asi deberia ser :V
+
+        // Asi deberia ser :V
         // return results.stream().map(row -> new ListBloqueHorarioExposicionDTO(
-        //     (Integer) row[0],
-        //     (Integer) row[1],
-        //     (Integer) row[2],
-        //     (Boolean) row[3],
-        //     (Boolean) row[4],
-        //     OffsetDateTime.ofInstant((Instant) row[5], ZoneId.systemDefault()),
-        //     OffsetDateTime.ofInstant((Instant) row[6], ZoneId.systemDefault()),
-        //     (String) row[7]
+        // (Integer) row[0],
+        // (Integer) row[1],
+        // (Integer) row[2],
+        // (Boolean) row[3],
+        // (Boolean) row[4],
+        // OffsetDateTime.ofInstant((Instant) row[5], ZoneId.systemDefault()),
+        // OffsetDateTime.ofInstant((Instant) row[6], ZoneId.systemDefault()),
+        // (String) row[7]
         // )).collect(Collectors.toList());
 
-        //solucion temporal
+        // solucion temporal
         DateTimeFormatter fechaFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
         DateTimeFormatter horaFormatter = DateTimeFormatter.ofPattern("HH:mm");
 
@@ -88,7 +92,7 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
             String key = inicio.format(fechaFormatter) + "|" + inicio.format(horaFormatter) + "|" + row[7];
             String range = inicio.format(horaFormatter) + " - " + fin.format(horaFormatter);
             Integer idBloque = (Integer) row[0];
-            Integer idJornadaExposicionSala = (Integer) row[1]; 
+            Integer idJornadaExposicionSala = (Integer) row[1];
             Boolean esBloqueReservado = (Boolean) row[3];
             Boolean esBloqueBloqueado = (Boolean) row[4];
 
@@ -97,9 +101,11 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
             temaConAsesorJuradoDTO.setCodigo((String) row[9]);
             temaConAsesorJuradoDTO.setTitulo((String) row[10]);
 
-            return new ListBloqueHorarioExposicionSimpleDTO(key, range, idBloque,idJornadaExposicionSala,exposicionId,temaConAsesorJuradoDTO,esBloqueReservado,esBloqueBloqueado);
+            return new ListBloqueHorarioExposicionSimpleDTO(key, range, idBloque, idJornadaExposicionSala, exposicionId,
+                    temaConAsesorJuradoDTO, esBloqueReservado, esBloqueBloqueado);
         }).collect(Collectors.toList());
     }
+
     @Transactional
     @Override
     public boolean updateBloquesListFirstTime(List<ListBloqueHorarioExposicionSimpleDTO> bloquesList) {
@@ -112,7 +118,6 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
             ObjectMapper mapper = new ObjectMapper();
             String jsonString = mapper.writeValueAsString(filtered);
 
-
             bloqueHorarioExposicionRepository.actualizarMasivo(jsonString);
 
             return true;
@@ -121,10 +126,10 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
             return false;
         }
     }
+
     @Transactional
     @Override
     public boolean updateBlouqesListNextPhase(List<ListBloqueHorarioExposicionSimpleDTO> bloquesList) {
-
 
         try {
 
@@ -140,6 +145,7 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
         }
 
     }
+
     @Transactional
     @Override
     public boolean finishPlanning(Integer exposicionId) {
@@ -152,4 +158,39 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
             return false;
         }
     }
+
+    @Override
+    @Transactional
+    public Integer createAll(List<BloqueHorarioExposicionCreateDTO> dtos) {
+        List<BloqueHorarioExposicion> entities = dtos.stream()
+                .map(BloqueHorarioExposicionMapper::toEntity)
+                .collect(Collectors.toList());
+
+        List<BloqueHorarioExposicion> saved = bloqueHorarioExposicionRepository.saveAll(entities);
+
+        return saved.size();
+    }
+
+    @Override
+    public int bloquearBloque(int idBloque) {
+        BloqueHorarioExposicion bloqueHorarioExposicion = bloqueHorarioExposicionRepository.findById(idBloque).orElse(null);
+        if(bloqueHorarioExposicion != null) {
+            bloqueHorarioExposicion.setEsBloqueBloqueado(true);
+            bloqueHorarioExposicionRepository.save(bloqueHorarioExposicion);
+            return 1;
+        }
+        return 0;
+    }
+
+    @Override
+    public int desbloquearBloque(int idBloque) {
+        BloqueHorarioExposicion bloqueHorarioExposicion = bloqueHorarioExposicionRepository.findById(idBloque).orElse(null);
+        if(bloqueHorarioExposicion != null) {
+            bloqueHorarioExposicion.setEsBloqueBloqueado(false);
+            bloqueHorarioExposicionRepository.save(bloqueHorarioExposicion);
+            return 1;
+        }
+        return 0;
+    }
+
 }

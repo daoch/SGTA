@@ -29,7 +29,7 @@ export interface EtapaFormativaDetail {
 export const etapasFormativasService = {
   // Obtener todas las etapas formativas
   getAll: async (): Promise<EtapaFormativaListItem[]> => {
-    const response = await axiosInstance.get("/etapas-formativas/listarActivas");
+    const response = await axiosInstance.get("/etapas-formativas");
     return response.data;
   },
 
@@ -41,18 +41,18 @@ export const etapasFormativasService = {
 
   // Crear una nueva etapa formativa
   create: async (etapaFormativa: Omit<EtapaFormativaDetail, "id">): Promise<EtapaFormativaDetail> => {
-    const response = await axiosInstance.post("/etapas-formativas", etapaFormativa);
+    const response = await axiosInstance.post("/etapas-formativas/crear", etapaFormativa);
     return response.data;
   },
 
   // Actualizar una etapa formativa
   update: async (id: string | number, etapaFormativa: Partial<EtapaFormativaDetail>): Promise<EtapaFormativaDetail> => {
-    const response = await axiosInstance.put(`/etapas-formativas/${id}`, etapaFormativa);
+    const response = await axiosInstance.put(`/etapas-formativas/actualizar/${id}`, etapaFormativa);
     return response.data;
   },
 
   // Eliminar una etapa formativa
   delete: async (id: string | number): Promise<void> => {
-    await axiosInstance.delete(`/etapas-formativas/${id}`);
+    await axiosInstance.delete(`/etapas-formativas/eliminar/${id}`);
   }
 }; 

@@ -1,14 +1,48 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+import { CicloEtapas, CrearCicloDto } from "@/features/administrador/types/ciclo.type"; // Asegúrate de importar el tipo correcto
+import { crearCiclo, listarCiclosConEtapas } from "@/features/administrador/types/services/cicloService";
 import { CiclosList } from "@/features/configuracion/components/configuracion/ciclos-list";
 import { NuevoCicloModal } from "@/features/configuracion/components/configuracion/nuevo-ciclo-modal";
-import { Button } from "@/components/ui/button";
 import { ArrowLeft, Plus } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function CiclosPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [ciclosActivos, setCiclosActivos] = useState<CicloEtapas[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Mueve fetchCiclos al scope del componente para que esté disponible en handleRegistrar
+  const fetchCiclos = async () => {
+    try {
+      const ciclos: CicloEtapas[] = await listarCiclosConEtapas();
+      setCiclosActivos(ciclos);
+    } catch (error) {
+      console.error("Error al cargar ciclos con etapas", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCiclos();
+  }, []);
+
+
+// Función para manejar la creación de un nuevo ciclo
+const handleRegistrar = async (formData: CrearCicloDto): Promise<CrearCicloDto> => {
+  try {
+    const nuevoCiclo = await crearCiclo(formData);
+    setIsModalOpen(false);
+    await fetchCiclos(); // <-- Recarga la lista
+    return nuevoCiclo;
+  } catch (error) {
+    console.error(error);
+    throw error; // Propaga el error para que el modal pueda manejarlo si es necesario
+  }
+};
 
   return (
     <div className="py-6 px-2">
@@ -36,10 +70,18 @@ export default function CiclosPage() {
           </p>
         </div>
 
-        <CiclosList />
+        {isLoading ? (
+          <p className="text-gray-500">Cargando ciclos...</p>
+        ) : (
+          <CiclosList ciclos={ciclosActivos} />
+        )}
       </div>
 
-      <NuevoCicloModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <NuevoCicloModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onRegistrar={handleRegistrar}
+      />
     </div>
   );
 }

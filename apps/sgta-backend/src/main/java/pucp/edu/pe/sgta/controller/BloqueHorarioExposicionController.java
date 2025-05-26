@@ -84,4 +84,30 @@ public class BloqueHorarioExposicionController {
                     .body(new ResponseMessage(false, "Error al terminar la planificacion"));
         }
     }
+
+    @PatchMapping("/bloquearBloque/{idBloque}")
+    public ResponseEntity<ResponseMessage>bloquearBloque (@PathVariable("idBloque")  Integer idBloque) {
+        int bloqueBloqueado = bloqueHorarioExposicionService.bloquearBloque(idBloque);
+
+        if(bloqueBloqueado == 1){
+            return ResponseEntity.ok(new ResponseMessage(true, "Bloqueado"));
+        }
+        else{
+            return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseMessage(false, "No se pudo bloquear la bloque"));
+        }
+    }
+
+    @PatchMapping("/desbloquearBloque/{idBloque}")
+    public ResponseEntity<ResponseMessage>desbloquearBloque (@PathVariable("idBloque")  Integer idBloque) {
+        int bloqueBloqueado = bloqueHorarioExposicionService.desbloquearBloque(idBloque);
+
+        if(bloqueBloqueado == 1){
+            return ResponseEntity.ok(new ResponseMessage(true, "Bloqueado"));
+        }
+        else{
+            return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseMessage(false, "No se pudo bloquear el bloque"));
+        }
+    }
 }

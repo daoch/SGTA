@@ -78,6 +78,7 @@ export interface Tesista {
   activo: boolean;
   fechaCreacion: string;
   fechaModificacion: string | null;
+  asignado: boolean;
 }
 
 export interface Coasesor {
