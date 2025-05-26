@@ -1,3 +1,5 @@
+"use client";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,31 +21,25 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { BookOpen, Edit, Eye, Users } from "lucide-react";
 import Link from "next/link";
-import type React from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-const tesisData = {
-  id: "1",
-  titulo: "Implementación de algoritmos de aprendizaje profundo para detección de objetos en tiempo real",
-  descripcion:
-    "Este proyecto busca desarrollar un sistema de detección de objetos en tiempo real utilizando técnicas de aprendizaje profundo, específicamente redes neuronales convolucionales. Se implementarán algoritmos como YOLO y SSD para comparar su rendimiento en diferentes escenarios.",
-  estudiantes: [
-    { codigo: "20190123", nombre: "Carlos Mendoza" },
-    { codigo: "20190456", nombre: "Pedro López" },
-  ],
-  fechaCreacion: "2023-10-15",
-  fechaAprobacion: "2023-10-20",
-  estado: "en_desarrollo",
-  area: "Inteligencia Artificial",
-  tipo: "inscrito",
-  ciclo: "2023-2",
-  asesor: "Dr. Roberto Sánchez",
-  coasesores: ["Dra. Carmen Vega"],
-};
+const profesoresData = [
+  { id: "1", nombre: "Dr. Roberto Sánchez" },
+  { id: "2", nombre: "Dra. Carmen Vega" },
+  { id: "3", nombre: "Dr. Miguel Torres" },
+  { id: "4", nombre: "Dra. Laura Mendoza" },
+  { id: "5", nombre: "Dr. Javier Pérez" },
+];
 
 const areasData = [
   "Inteligencia Artificial",
@@ -58,25 +54,41 @@ const areasData = [
   "Realidad Virtual y Aumentada",
 ];
 
-const profesoresData = [
-  { id: "1", nombre: "Dr. Roberto Sánchez" },
-  { id: "2", nombre: "Dra. Carmen Vega" },
-  { id: "3", nombre: "Dr. Miguel Torres" },
-  { id: "4", nombre: "Dra. Laura Mendoza" },
-  { id: "5", nombre: "Dr. Javier Pérez" },
-];
-
 export function TemaCard() {
+  const [tesisData, setTesisData] = useState<any | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    titulo: tesisData.titulo,
-    area: tesisData.area,
-    descripcion: tesisData.descripcion,
-    asesor: tesisData.asesor,
-    coasesores: tesisData.coasesores,
+    titulo: "",
+    area: "",
+    descripcion: "",
+    asesor: "",
+    coasesores: [] as string[],
   });
   const [nuevoCoasesor, setNuevoCoasesor] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchTesis = async () => {
+      try {
+        const response = await fetch("http://localhost:5000/temas/listarTemasPorUsuarioRolEstado/7?rolNombre=Tesista&estadoNombre=INSCRITO");
+        if (!response.ok) throw new Error("Error al obtener datos de tesis");
+        const data = await response.json();
+        const tesis = data[0];
+        setTesisData(tesis);
+        setFormData({
+          titulo: tesis.titulo,
+          area: tesis.area ?? "",
+          descripcion: tesis.resumen,
+          asesor: profesoresData[0].nombre, // por defecto
+          coasesores: tesis.coasesores ?? [],
+        });
+      } catch (error) {
+        console.error("Error:", error);
+      }
+    };
+
+    fetchTesis();
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -141,7 +153,7 @@ export function TemaCard() {
         <div className="flex justify-between items-start">
           <div>
             <CardTitle className="text-xl text-pucp-blue">{tesisData.titulo}</CardTitle>
-            <CardDescription className="mt-1">{tesisData.area}</CardDescription>
+            <CardDescription className="mt-1">{tesisData.area ?? "Área no especificada"}</CardDescription>
           </div>
           <Badge variant="outline" className="bg-green-100 text-green-800 hover:bg-green-100">
             En desarrollo
@@ -151,7 +163,7 @@ export function TemaCard() {
       <CardContent className="space-y-6">
         <div className="space-y-2">
           <h3 className="text-sm font-medium">Descripción</h3>
-          <p className="text-sm text-muted-foreground">{tesisData.descripcion}</p>
+          <p className="text-sm text-muted-foreground">{tesisData.resumen}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -159,11 +171,11 @@ export function TemaCard() {
             <h3 className="text-sm font-medium flex items-center gap-1">
               <Users className="h-4 w-4" /> <span>Asesor</span>
             </h3>
-            <p className="text-sm">{tesisData.asesor}</p>
-            {tesisData.coasesores.length > 0 && (
+            <p className="text-sm">{formData.asesor}</p>
+            {formData.coasesores.length > 0 && (
               <div className="mt-1">
                 <h4 className="text-xs text-muted-foreground">Coasesores:</h4>
-                <p className="text-sm">{tesisData.coasesores.join(", ")}</p>
+                <p className="text-sm">{formData.coasesores.join(", ")}</p>
               </div>
             )}
           </div>
@@ -173,10 +185,10 @@ export function TemaCard() {
               <Users className="h-4 w-4" /> <span>Tesistas</span>
             </h3>
             <ul className="space-y-1">
-              {tesisData.estudiantes.map((estudiante) => (
-                <li key={estudiante.codigo} className="text-sm flex justify-between">
-                  <span>{estudiante.nombre}</span>
-                  <span className="text-muted-foreground">{estudiante.codigo}</span>
+              {tesisData.tesistas.map((est: any) => (
+                <li key={est.id} className="text-sm flex justify-between">
+                  <span>{`${est.nombres} ${est.primerApellido}`}</span>
+                  <span className="text-muted-foreground">{est.codigoPucp}</span>
                 </li>
               ))}
             </ul>
