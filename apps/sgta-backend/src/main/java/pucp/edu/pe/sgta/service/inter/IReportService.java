@@ -7,6 +7,7 @@ import pucp.edu.pe.sgta.dto.AreaFinalDTO;
 import pucp.edu.pe.sgta.dto.TeacherCountDTO;
 import pucp.edu.pe.sgta.dto.TopicAreaStatsDTO;
 import pucp.edu.pe.sgta.dto.TopicTrendDTO;
+import pucp.edu.pe.sgta.dto.TesistasPorAsesorDTO;
 
 public interface IReportService {
     /** RF1: estadísticas de temas por área */
@@ -21,4 +22,6 @@ public interface IReportService {
     List<TopicTrendDTO> getTopicTrendsByYear(Integer usuarioId);
     /** RF3: desempeño de asesores */
     List<AdvisorPerformanceDto> getAdvisorPerformance(Integer usuarioId, String cicloNombre);
+    /** RF4: Listar tesistas por asesor con sus entregables actuales o próximos */
+    List<TesistasPorAsesorDTO> getTesistasPorAsesor(Integer asesorId);
 }

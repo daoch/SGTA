@@ -13,6 +13,7 @@ import pucp.edu.pe.sgta.dto.AreaFinalDTO;
 import pucp.edu.pe.sgta.dto.TeacherCountDTO;
 import pucp.edu.pe.sgta.dto.TopicAreaStatsDTO;
 import pucp.edu.pe.sgta.dto.TopicTrendDTO;
+import pucp.edu.pe.sgta.dto.TesistasPorAsesorDTO;
 import pucp.edu.pe.sgta.service.inter.IReportService;
 
 @RestController
@@ -58,5 +59,11 @@ public class ReportsController {
     @GetMapping("/advisors/performance")
     public List<AdvisorPerformanceDto> getAdvisorPerformance(@RequestParam Integer usuarioId, @RequestParam String ciclo) {
         return reportingService.getAdvisorPerformance(usuarioId, ciclo);
+    }
+
+    /** RF4: Endpoint para listar tesistas por asesor */
+    @GetMapping("/advisors/tesistas")
+    public ResponseEntity<List<TesistasPorAsesorDTO>> getTesistasPorAsesor(@RequestParam Integer asesorId) {
+        return ResponseEntity.ok(reportingService.getTesistasPorAsesor(asesorId));
     }
 }

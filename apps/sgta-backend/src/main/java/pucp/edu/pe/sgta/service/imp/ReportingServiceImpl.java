@@ -1,6 +1,7 @@
 package pucp.edu.pe.sgta.service.imp;
 
-import java.util.Arrays;
+import java.sql.Timestamp;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -14,10 +15,12 @@ import pucp.edu.pe.sgta.dto.AreaFinalDTO;
 import pucp.edu.pe.sgta.dto.TeacherCountDTO;
 import pucp.edu.pe.sgta.dto.TopicAreaStatsDTO;
 import pucp.edu.pe.sgta.dto.TopicTrendDTO;
+import pucp.edu.pe.sgta.dto.TesistasPorAsesorDTO;
 import pucp.edu.pe.sgta.repository.AdvisorDistributionRepository;
 import pucp.edu.pe.sgta.repository.AdvisorPerformanceRepository;
 import pucp.edu.pe.sgta.repository.JurorDistributionRepository;
 import pucp.edu.pe.sgta.repository.TopicAreaStatsRepository;
+import pucp.edu.pe.sgta.repository.TesistasPorAsesorRepository;
 import pucp.edu.pe.sgta.service.inter.IReportService;
 
 @Service
@@ -27,16 +30,19 @@ public class ReportingServiceImpl implements IReportService {
     private final AdvisorDistributionRepository advisorDistributionRepository;
     private final JurorDistributionRepository jurorDistributionRepository;
     private final AdvisorPerformanceRepository advisorPerformanceRepository;
+    private final TesistasPorAsesorRepository tesistasPorAsesorRepository;
 
     public ReportingServiceImpl(
             TopicAreaStatsRepository topicAreaStatsRepository,
             AdvisorDistributionRepository advisorDistributionRepository,
             JurorDistributionRepository jurorDistributionRepository,
-            AdvisorPerformanceRepository advisorPerformanceRepository) {
+            AdvisorPerformanceRepository advisorPerformanceRepository,
+            TesistasPorAsesorRepository tesistasPorAsesorRepository) {
         this.topicAreaStatsRepository = topicAreaStatsRepository;
         this.advisorDistributionRepository = advisorDistributionRepository;
         this.jurorDistributionRepository = jurorDistributionRepository;
         this.advisorPerformanceRepository = advisorPerformanceRepository;
+        this.tesistasPorAsesorRepository = tesistasPorAsesorRepository;
     }
 
     @Override
@@ -188,6 +194,40 @@ public class ReportingServiceImpl implements IReportService {
                         ((Number) result[1]).intValue(), // year
                         ((Number) result[2]).intValue()  // topic_count
                 ))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<TesistasPorAsesorDTO> getTesistasPorAsesor(Integer asesorId) {
+        if (asesorId == null) {
+            throw new IllegalArgumentException("El ID del asesor es requerido");
+        }
+
+        List<Object[]> results = tesistasPorAsesorRepository.getTesistasPorAsesor(asesorId);
+        return results.stream()
+                .map(result -> {
+                    Object fechaInicio = result[9];
+                    Object fechaFin = result[10];
+                    
+                    return TesistasPorAsesorDTO.builder()
+                        .temaId((Integer) result[0])
+                        .tesistaId((Integer) result[1])
+                        .nombres((String) result[2])
+                        .primerApellido((String) result[3])
+                        .segundoApellido((String) result[4])
+                        .correoElectronico((String) result[5])
+                        .entregableActualId((Integer) result[6])
+                        .entregableActualNombre((String) result[7])
+                        .entregableActualDescripcion((String) result[8])
+                        .entregableActualFechaInicio(fechaInicio != null ? 
+                            ((Timestamp) fechaInicio).toLocalDateTime().atZone(ZoneId.systemDefault()) : null)
+                        .entregableActualFechaFin(fechaFin != null ? 
+                            ((Timestamp) fechaFin).toLocalDateTime().atZone(ZoneId.systemDefault()) : null)
+                        .entregableActualEstado((String) result[11])
+                        .entregableEnvioEstado((String) result[12])
+                        .entregableEnvioFecha(result[13] != null ? new java.util.Date(((Timestamp) result[13]).getTime()) : null)
+                        .build();
+                })
                 .collect(Collectors.toList());
     }
 
