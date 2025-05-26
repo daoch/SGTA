@@ -1,15 +1,17 @@
 package pucp.edu.pe.sgta.service.imp;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.persistence.Query;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import org.springframework.transaction.annotation.Transactional;
-
+import org.springframework.web.multipart.MultipartFile;
 import pucp.edu.pe.sgta.dto.asesores.InfoAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.asesores.InfoSubAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
+import pucp.edu.pe.sgta.dto.*;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -22,23 +24,25 @@ import pucp.edu.pe.sgta.mapper.PerfilAsesorMapper;
 import pucp.edu.pe.sgta.mapper.UsuarioMapper;
 import pucp.edu.pe.sgta.model.*;
 import pucp.edu.pe.sgta.repository.*;
+import pucp.edu.pe.sgta.service.inter.CognitoService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
-import pucp.edu.pe.sgta.util.RolEnum;
 import pucp.edu.pe.sgta.util.RolEnum;
 import pucp.edu.pe.sgta.util.Utils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.io.IOException;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.*;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
+import java.util.logging.Logger;
 
-import java.util.NoSuchElementException;
-import java.util.stream.Collectors;
-
-import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 @Service
@@ -51,6 +55,9 @@ public class UsuarioServiceImpl implements UsuarioService {
 	private final UsuarioXAreaConocimientoRepository usuarioXAreaConocimientoRepository;
 	private final CarreraRepository carreraRepository;
 	private final UsuarioXTemaRepository usuarioXTemaRepository;
+	private final TipoUsuarioRepository tipoUsuarioRepository;
+	private final CognitoService cognitoService;
+	private final Logger logger = Logger.getLogger(TemaServiceImpl.class.getName());
 
 	@Autowired
     private RolRepository rolRepository;
@@ -63,7 +70,9 @@ public class UsuarioServiceImpl implements UsuarioService {
 							, SubAreaConocimientoRepository subAreaConocimientoRepository
 							, AreaConocimientoRepository areaConocimientoRepository
 							, UsuarioXAreaConocimientoRepository usuarioXAreaConocimientoRepository, CarreraRepository carreraRepository
-							,UsuarioXTemaRepository usuarioXTemaRepository) {
+							,UsuarioXTemaRepository usuarioXTemaRepository
+							, TipoUsuarioRepository tipoUsuarioRepository
+							, CognitoService cognitoService) {
 		this.usuarioRepository = usuarioRepository;
 		this.usuarioXSubAreaConocimientoRepository = usuarioXSubAreaConocimientoRepository;
 		this.subAreaConocimientoRepository = subAreaConocimientoRepository;
@@ -71,6 +80,8 @@ public class UsuarioServiceImpl implements UsuarioService {
 		this.usuarioXAreaConocimientoRepository = usuarioXAreaConocimientoRepository;
 		this.carreraRepository = carreraRepository;
 		this.usuarioXTemaRepository = usuarioXTemaRepository;
+		this.tipoUsuarioRepository = tipoUsuarioRepository;
+		this.cognitoService = cognitoService;
 	}
 
 	@Override
@@ -283,7 +294,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 	}
 
 	// Implementaciones para las historias de usuario HU01-HU05
-    
+
     /**
      * HU01: Asigna el rol de Asesor a un usuario que debe ser profesor
      */
@@ -291,33 +302,33 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Transactional
     public void assignAdvisorRoleToUser(Integer userId) {
         System.out.println("Intentando asignar rol de Asesor al usuario ID: " + userId);
-        
+
         // 1. Buscar y validar que el usuario existe
         Usuario user = usuarioRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado: " + userId));
-        
+
         // 2. Validar que el usuario es de tipo Profesor
         TipoUsuario tipoUsuario = user.getTipoUsuario();
         if (tipoUsuario == null || !"Profesor".equalsIgnoreCase(tipoUsuario.getNombre())) {
-            System.out.println("El usuario ID: " + userId + " no es profesor, es: " + 
+            System.out.println("El usuario ID: " + userId + " no es profesor, es: " +
                     (tipoUsuario != null ? tipoUsuario.getNombre() : "null"));
             throw new IllegalArgumentException("Solo los usuarios de tipo Profesor pueden ser asignados como Asesores");
         }
-        
+
         // 3. Buscar el rol de Asesor
         String rolNombre = RolEnum.Asesor.name();
         Rol advisorRole = rolRepository.findByNombre(rolNombre)
                 .orElseThrow(() -> new NoSuchElementException("Rol '" + rolNombre + "' no configurado en el sistema"));
-        
+
         // 4. Verificar si ya tiene el rol (idempotencia)
         String jpql = "SELECT COUNT(u) FROM Usuario u JOIN u.roles r WHERE u.id = :userId AND r.id = :rolId";
         Long count = em.createQuery(jpql, Long.class)
                 .setParameter("userId", userId)
                 .setParameter("rolId", advisorRole.getId())
                 .getSingleResult();
-        
+
         boolean alreadyExists = count > 0;
-        
+
         if (!alreadyExists) {
             // 5. Asignar el rol al usuario
             String sql = "INSERT INTO usuario_rol (usuario_id, rol_id, activo) VALUES (:usuarioId, :rolId, true)";
@@ -325,13 +336,13 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .setParameter("usuarioId", userId)
                 .setParameter("rolId", advisorRole.getId())
                 .executeUpdate();
-                
+
             System.out.println("Rol de Asesor asignado exitosamente al usuario ID: " + userId);
         } else {
             System.out.println("El usuario ID: " + userId + " ya tiene el rol de Asesor. No se realizó ninguna acción.");
         }
     }
-    
+
     /**
      * HU02: Quita el rol de Asesor a un usuario
      */
@@ -339,25 +350,25 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Transactional
     public void removeAdvisorRoleFromUser(Integer userId) {
         System.out.println("Intentando quitar rol de Asesor al usuario ID: " + userId);
-        
+
         // 1. Buscar y validar que el usuario existe
         Usuario user = usuarioRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado: " + userId));
-        
+
         // 2. Buscar el rol de Asesor
         String rolNombre = RolEnum.Asesor.name();
         Rol advisorRole = rolRepository.findByNombre(rolNombre)
                 .orElseThrow(() -> new NoSuchElementException("Rol '" + rolNombre + "' no configurado en el sistema"));
-        
+
         // 3. Verificar si tiene el rol asignado
         String jpql = "SELECT COUNT(u) FROM Usuario u JOIN u.roles r WHERE u.id = :userId AND r.id = :rolId";
         Long count = em.createQuery(jpql, Long.class)
                 .setParameter("userId", userId)
                 .setParameter("rolId", advisorRole.getId())
                 .getSingleResult();
-        
+
         boolean hasRole = count > 0;
-        
+
         if (hasRole) {
             // 4. Quitar el rol al usuario (desactivar la relación)
             String sql = "UPDATE usuario_rol SET activo = false WHERE usuario_id = :usuarioId AND rol_id = :rolId";
@@ -365,7 +376,7 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .setParameter("usuarioId", userId)
                 .setParameter("rolId", advisorRole.getId())
                 .executeUpdate();
-            
+
             if (updated > 0) {
                 System.out.println("Rol de Asesor quitado exitosamente al usuario ID: " + userId);
             } else {
@@ -375,7 +386,7 @@ public class UsuarioServiceImpl implements UsuarioService {
             throw new IllegalArgumentException("El usuario no tiene el rol de Asesor asignado");
         }
     }
-    
+
     /**
      * HU03: Asigna el rol de Jurado a un usuario que debe ser profesor
      */
@@ -383,33 +394,33 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Transactional
     public void assignJuryRoleToUser(Integer userId) {
         System.out.println("Intentando asignar rol de Jurado al usuario ID: " + userId);
-        
+
         // 1. Buscar y validar que el usuario existe
         Usuario user = usuarioRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado: " + userId));
-        
+
         // 2. Validar que el usuario es de tipo Profesor
         TipoUsuario tipoUsuario = user.getTipoUsuario();
         if (tipoUsuario == null || !"Profesor".equalsIgnoreCase(tipoUsuario.getNombre())) {
-            System.out.println("El usuario ID: " + userId + " no es profesor, es: " + 
+            System.out.println("El usuario ID: " + userId + " no es profesor, es: " +
                     (tipoUsuario != null ? tipoUsuario.getNombre() : "null"));
             throw new IllegalArgumentException("Solo los usuarios de tipo Profesor pueden ser asignados como Jurados");
         }
-        
+
         // 3. Buscar el rol de Jurado
         String rolNombre = RolEnum.Jurado.name();
         Rol juryRole = rolRepository.findByNombre(rolNombre)
                 .orElseThrow(() -> new NoSuchElementException("Rol '" + rolNombre + "' no configurado en el sistema"));
-        
+
         // 4. Verificar si ya tiene el rol (idempotencia)
         String jpql = "SELECT COUNT(u) FROM Usuario u JOIN u.roles r WHERE u.id = :userId AND r.id = :rolId";
         Long count = em.createQuery(jpql, Long.class)
                 .setParameter("userId", userId)
                 .setParameter("rolId", juryRole.getId())
                 .getSingleResult();
-        
+
         boolean alreadyExists = count > 0;
-        
+
         if (!alreadyExists) {
             // 5. Asignar el rol al usuario
             String sql = "INSERT INTO usuario_rol (usuario_id, rol_id, activo) VALUES (:usuarioId, :rolId, true)";
@@ -417,13 +428,13 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .setParameter("usuarioId", userId)
                 .setParameter("rolId", juryRole.getId())
                 .executeUpdate();
-                
+
             System.out.println("Rol de Jurado asignado exitosamente al usuario ID: " + userId);
         } else {
             System.out.println("El usuario ID: " + userId + " ya tiene el rol de Jurado. No se realizó ninguna acción.");
         }
     }
-    
+
     /**
      * HU04: Quita el rol de Jurado a un usuario
      */
@@ -431,25 +442,25 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Transactional
     public void removeJuryRoleFromUser(Integer userId) {
         System.out.println("Intentando quitar rol de Jurado al usuario ID: " + userId);
-        
+
         // 1. Buscar y validar que el usuario existe
         Usuario user = usuarioRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado: " + userId));
-        
+
         // 2. Buscar el rol de Jurado
         String rolNombre = RolEnum.Jurado.name();
         Rol juryRole = rolRepository.findByNombre(rolNombre)
                 .orElseThrow(() -> new NoSuchElementException("Rol '" + rolNombre + "' no configurado en el sistema"));
-        
+
         // 3. Verificar si tiene el rol asignado
         String jpql = "SELECT COUNT(u) FROM Usuario u JOIN u.roles r WHERE u.id = :userId AND r.id = :rolId";
         Long count = em.createQuery(jpql, Long.class)
                 .setParameter("userId", userId)
                 .setParameter("rolId", juryRole.getId())
                 .getSingleResult();
-        
+
         boolean hasRole = count > 0;
-        
+
         if (hasRole) {
             // 4. Quitar el rol al usuario (desactivar la relación)
             String sql = "UPDATE usuario_rol SET activo = false WHERE usuario_id = :usuarioId AND rol_id = :rolId";
@@ -457,7 +468,7 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .setParameter("usuarioId", userId)
                 .setParameter("rolId", juryRole.getId())
                 .executeUpdate();
-            
+
             if (updated > 0) {
                 System.out.println("Rol de Jurado quitado exitosamente al usuario ID: " + userId);
             } else {
@@ -467,7 +478,7 @@ public class UsuarioServiceImpl implements UsuarioService {
             throw new IllegalArgumentException("El usuario no tiene el rol de Jurado asignado");
         }
     }
-    
+
     /**
      * HU05: Obtiene la lista de profesores con sus roles asignados
      */
@@ -533,7 +544,7 @@ public class UsuarioServiceImpl implements UsuarioService {
                 params.size() + 4,
                 params.size() + 5
             ));
-            
+
             String searchTerm = "%" + terminoBusqueda.trim() + "%";
             for (int i = 0; i < 5; i++) {
                 params.add(searchTerm);
@@ -551,7 +562,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         // Crear y ejecutar la consulta
         Query query = em.createNativeQuery(sql.toString());
-        
+
         // Establecer parámetros
         for (int i = 0; i < params.size(); i++) {
             query.setParameter(i + 1, params.get(i));
@@ -570,13 +581,13 @@ public class UsuarioServiceImpl implements UsuarioService {
                     .nombre((String) row[9])
                     .activo(true)
                     .build();
-                
+
                 // Parsear los roles desde el string_agg (para agregar como información adicional)
                 String rolesStr = (String) row[6];
-                List<String> roles = rolesStr != null 
-                    ? Arrays.asList(rolesStr.split(",")) 
+                List<String> roles = rolesStr != null
+                    ? Arrays.asList(rolesStr.split(","))
                     : new ArrayList<>();
-                
+
                 // Crear el UsuarioDto
                 return UsuarioDto.builder()
                     .id((Integer) row[0])
@@ -591,4 +602,167 @@ public class UsuarioServiceImpl implements UsuarioService {
             })
             .collect(Collectors.toList());
     }
+
+	@Override
+	public void procesarArchivoUsuarios(MultipartFile archivo) throws Exception {
+		String nombre = archivo.getOriginalFilename();
+
+		if (nombre == null) throw new Exception("Archivo sin nombre");
+
+		if (nombre.endsWith(".csv")) {
+			procesarCSV(archivo);
+			logger.warning("Procesando archivo CSV: " + nombre);
+		} else if (nombre.endsWith(".xlsx")) {
+			procesarExcel(archivo);
+		} else {
+			throw new Exception("Formato de archivo no soportado. Solo se acepta .csv o .xlsx");
+		}
+	}
+
+	private void procesarCSV(MultipartFile archivo) {
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(archivo.getInputStream()))) {
+			String linea;
+			boolean primeraLinea = true;
+
+			while ((linea = reader.readLine()) != null) {
+				if (primeraLinea) {
+					primeraLinea = false;
+					continue; // saltar encabezado
+				}
+
+				String[] campos = linea.split(",");
+
+				if (campos.length < 6) continue;
+
+				// Mapear campos en el orden correcto del CSV
+				String nombres = campos[0].trim();
+				String primerApellido = campos[1].trim();
+				String segundoApellido = campos[2].trim();
+				String correo = campos[3].trim();
+				String codigoPUCP = campos[4].trim();
+				String contrasena = "temp";
+				String tipoUsuario = campos[5].trim(); // este es el rol
+
+				Optional<TipoUsuario> tipo = buscarTipoUsuarioPorNombre(tipoUsuario);
+				if (tipo.isEmpty()) {
+					System.out.println("Rol inválido para: " + correo);
+					continue;
+				}
+
+				String nombreCompleto = nombres + " " + primerApellido + " " + segundoApellido;
+
+				try {
+					// Registrar en Cognito y obtener el sub (id)
+					String idCognito = cognitoService.registrarUsuarioEnCognito(correo, nombreCompleto, tipoUsuario);
+
+					// Crear entidad local
+					Usuario nuevo = new Usuario();
+					nuevo.setNombres(nombres);
+					nuevo.setPrimerApellido(primerApellido);
+					nuevo.setSegundoApellido(segundoApellido);
+					nuevo.setCorreoElectronico(correo);
+					nuevo.setCodigoPucp(codigoPUCP);
+					nuevo.setContrasena(contrasena);
+					nuevo.setTipoUsuario(tipo.get());
+					nuevo.setIdCognito(idCognito); // guardar sub de Cognito
+					nuevo.setActivo(true);
+					nuevo.setFechaCreacion(OffsetDateTime.now());
+					nuevo.setFechaModificacion(OffsetDateTime.now());
+
+					usuarioRepository.save(nuevo);
+					System.out.printf("Usuario '%s' creado y registrado correctamente.%n", correo);
+
+				} catch (Exception e) {
+					System.err.printf("Error al registrar usuario '%s' en Cognito: %s%n", correo, e.getMessage());
+				}
+			}
+		} catch (IOException e) {
+			System.err.println("Error al leer el CSV: " + e.getMessage());
+		}
+	}
+
+	private void procesarExcel(MultipartFile archivo) throws Exception {
+		try (InputStream is = archivo.getInputStream()) {
+			Workbook workbook = new XSSFWorkbook(is);
+			Sheet hoja = workbook.getSheetAt(0);
+
+			//la primera fila es cabecera,empezar por filaIndex = 1
+			for (int filaIndex = 1; filaIndex <= hoja.getLastRowNum(); filaIndex++) {
+				Row fila = hoja.getRow(filaIndex);
+				if (fila == null) continue;
+
+				String nombres = getCellValue(fila.getCell(0));
+				String primerApellido = getCellValue(fila.getCell(1));
+				String segundoApellido = getCellValue(fila.getCell(2));
+				String correo = getCellValue(fila.getCell(3));
+				String codigoPUCP = getCellValue(fila.getCell(4));
+				String contrasena = "temp";
+				String tipoUsuario = getCellValue(fila.getCell(5));
+
+				Optional<TipoUsuario> tipo = buscarTipoUsuarioPorNombre(tipoUsuario);
+				if (tipo.isEmpty()) {
+					System.out.printf("Fila %d ignorada: Tipo usuario no encontrado: %s\n", filaIndex + 1, tipoUsuario);
+					continue;
+				}
+
+				String nombreCompleto = nombres + " " + primerApellido + " " + segundoApellido;
+
+				try {
+					// Registrar en Cognito y obtener el sub
+					String idCognito = cognitoService.registrarUsuarioEnCognito(correo, nombreCompleto, tipoUsuario);
+
+					Usuario nuevo = new Usuario();
+					nuevo.setNombres(nombres);
+					nuevo.setPrimerApellido(primerApellido);
+					nuevo.setSegundoApellido(segundoApellido);
+					nuevo.setCorreoElectronico(correo);
+					nuevo.setCodigoPucp(codigoPUCP);
+					nuevo.setContrasena(contrasena);
+					nuevo.setTipoUsuario(tipo.get());
+					nuevo.setIdCognito(idCognito); // Guardar sub de Cognito
+					nuevo.setActivo(true);
+					nuevo.setFechaCreacion(OffsetDateTime.now());
+					nuevo.setFechaModificacion(OffsetDateTime.now());
+
+					usuarioRepository.save(nuevo);
+					System.out.printf("Fila %d: Usuario '%s' creado exitosamente.\n", filaIndex + 1, correo);
+
+				} catch (Exception e) {
+					System.err.printf("Fila %d: Error al registrar usuario '%s' en Cognito: %s\n",
+							filaIndex + 1, correo, e.getMessage());
+				}
+			}
+			workbook.close();
+		}
+	}
+
+	private String getCellValue(Cell celda) {
+		if (celda == null) return "";
+
+		switch (celda.getCellType()) {
+			case STRING:
+				return celda.getStringCellValue().trim();
+			case NUMERIC:
+				if (DateUtil.isCellDateFormatted(celda)) {
+					return celda.getDateCellValue().toString();
+				}
+				return String.valueOf((long) celda.getNumericCellValue()); // Si esperas solo enteros
+			case BOOLEAN:
+				return String.valueOf(celda.getBooleanCellValue());
+			case FORMULA:
+				return celda.getCellFormula();
+			case BLANK:
+			case _NONE:
+			case ERROR:
+			default:
+				return "";
+		}
+	}
+
+	private Optional<TipoUsuario> buscarTipoUsuarioPorNombre(String nombre) {
+		String nombreLimpio = nombre.trim().toLowerCase();
+		return tipoUsuarioRepository.findAll().stream()
+				.filter(tu -> tu.getNombre().equalsIgnoreCase(nombreLimpio))
+				.findFirst();
+	}
 }

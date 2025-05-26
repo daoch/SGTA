@@ -120,3 +120,11 @@ DROP FUNCTION IF EXISTS get_estado_exposicion_by_id_exposicion(INTEGER) CASCADE;
 DROP FUNCTION IF EXISTS obtener_jurados_por_tema (INTEGER) CASCADE;
 
 DROP FUNCTION IF EXISTS obtener_exposiciones_por_etapa_formativa_por_tema (INTEGER, INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS get_advisor_distribution_by_coordinator_and_ciclov2 (INTEGER, VARCHAR) CASCADE;
+
+DROP FUNCTION IF EXISTS listar_etapas_formativas_simple () CASCADE;
+
+DROP FUNCTION IF EXISTS obtener_detalle_etapa_formativa (INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS obtener_historial_ciclos_etapa_formativa (INTEGER) CASCADE;

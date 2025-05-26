@@ -85,3 +85,9 @@ DROP TYPE IF EXISTS enum_estado_entrega                 CASCADE;
 DROP TYPE IF EXISTS enum_estado_actividad                CASCADE;
 DROP TYPE IF EXISTS enum_estado_revision                CASCADE;
 DROP TYPE IF EXISTS enum_tipo_dato                      CASCADE;
+
+DROP TYPE IF EXISTS tipo_dedicacion cascade;
+
+DROP TYPE IF EXISTS criterio_entregable_preset cascade;
+
+DROP TYPE IF EXISTS criterio_exposicion_preset cascade;
