@@ -15,7 +15,7 @@ public class UsuarioSolicitudMapper {
             .usuarioId(entity.getUsuario() != null ? entity.getUsuario().getId() : null)
             .solicitudId(entity.getSolicitud() != null ? entity.getSolicitud().getId() : null)
             .solicitudCompletada(entity.getSolicitudCompletada())
-            .aprovado(entity.getAprovado())
+            .aprovado(entity.getAprobado())
             .comentario(entity.getComentario())
             .destinatario(entity.getDestinatario())
             .activo(entity.getActivo())
@@ -42,7 +42,7 @@ public class UsuarioSolicitudMapper {
         }
 
         entity.setSolicitudCompletada(dto.getSolicitudCompletada());
-        entity.setAprovado(dto.getAprovado());
+        entity.setAprobado(dto.getAprovado());
         entity.setComentario(dto.getComentario());
         entity.setDestinatario(dto.getDestinatario());
         entity.setActivo(dto.getActivo());

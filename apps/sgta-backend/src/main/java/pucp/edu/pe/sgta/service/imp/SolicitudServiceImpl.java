@@ -387,7 +387,7 @@ public class SolicitudServiceImpl implements SolicitudService {
                 us.setUsuario(coord);
                 us.setSolicitud(savedSolicitud);
                 us.setDestinatario(true);
-                us.setAprovado(false);
+                us.setAprobado(false);
                 us.setSolicitudCompletada(false);
                 return us;
             })

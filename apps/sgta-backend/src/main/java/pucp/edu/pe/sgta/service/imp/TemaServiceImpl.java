@@ -1191,15 +1191,15 @@ public class TemaServiceImpl implements TemaService {
 		uxs.setComentario(comentario);
 		switch (nuevoEstadoNombre.toUpperCase()) {
 			case "REGISTRADO":
-				uxs.setAprovado(true);
+				uxs.setAprobado(true);
 				uxs.setSolicitudCompletada(true);
 				break;
 			case "RECHAZADO":
-				uxs.setAprovado(false);
+				uxs.setAprobado(false);
 				uxs.setSolicitudCompletada(true);
 				break;
 			case "OBSERVADO":
-				uxs.setAprovado(false);
+				uxs.setAprobado(false);
 				uxs.setSolicitudCompletada(true);
 				break;
 			default:
