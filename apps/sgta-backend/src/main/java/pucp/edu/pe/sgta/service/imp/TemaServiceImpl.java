@@ -1380,7 +1380,19 @@ public class TemaServiceImpl implements TemaService {
 		);
 
 		actualizarSolicitud(solicitud, nuevoEstadoNombre, comentario);
+		if (EstadoTemaEnum.RECHAZADO.name().equalsIgnoreCase(nuevoEstadoNombre)) {
+			desasignarUsuariosDeTema(temaId);
+		}
 	}
 
-
+	private void desasignarUsuariosDeTema(Integer temaId) {
+		List<UsuarioXTema> lista = usuarioXTemaRepository
+			.findByTemaIdAndActivoTrue(temaId);  // ajusta el finder según tu repo
+		
+		for (UsuarioXTema uxt : lista) {
+			uxt.setAsignado(false);
+			uxt.setFechaModificacion(OffsetDateTime.now());
+		}
+		usuarioXTemaRepository.saveAll(lista);
+	}
 }
