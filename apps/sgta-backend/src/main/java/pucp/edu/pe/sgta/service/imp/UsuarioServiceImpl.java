@@ -14,7 +14,7 @@ import pucp.edu.pe.sgta.dto.asesores.InfoAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.asesores.InfoSubAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
 import pucp.edu.pe.sgta.dto.asesores.UsuarioFotoDto;
-
+import pucp.edu.pe.sgta.dto.AlumnoTemaDto;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import pucp.edu.pe.sgta.dto.TipoUsuarioDto;
@@ -883,5 +883,123 @@ public class UsuarioServiceImpl implements UsuarioService {
 		return null;
 	}
 
+	/*@Override
+	public AlumnoTemaDto getAlumnoTema(Integer idAlumno) {
+		// Obtener el detallte de la tesis del alumno con respecto al último tema de tesis asignada
+		//Alumno DTO: id, Tema, Asesor, Cosasesor, fechaInicio, Area, Subarea
+		Usuario alumno = usuarioRepository.findById(idAlumno).orElse(null);
+		if(alumno == null){
+			throw new RuntimeException("Alumno no encontrado con ID: " + idAlumno);
+		}
+
+		//Obtener el último tema de tesis asignada
+		UsuarioXTema usuarioXTema = usuarioXTemaRepository.findFirstByUsuario_IdOrderByFechaInicioDesc(idAlumno);
+		if(usuarioXTema == null){
+			throw new RuntimeException("Alumno no tiene tema de tesis asignado");
+		}
+
+		//Buscamos el asesor o coasesor ya tenienedo el id de usuarioXtema y buscando que el rol sea asesor y coasesro
+		Tema tema = usuarioXTema.getTema();
+		
+		// Obtener nombres de área y subárea de conocimiento
+		String sqlArea = """
+			SELECT 
+				ac.nombre as area_nombre,
+				sac.nombre as subarea_nombre
+			FROM tema t
+			JOIN subarea_conocimiento_tema sact ON t.tema_id = sact.tema_id
+			JOIN subarea_conocimiento sac ON sact.subarea_conocimiento_id = sac.subarea_conocimiento_id
+			JOIN area_conocimiento ac ON sac.area_conocimiento_id = ac.area_conocimiento_id
+			WHERE t.tema_id = :temaId
+			AND t.activo = true
+			AND sact.activo = true
+		""";
+		
+		Query queryArea = em.createNativeQuery(sqlArea)
+			.setParameter("temaId", tema.getId());
+		
+		@SuppressWarnings("unchecked")
+		List<Object[]> resultadosArea = queryArea.getResultList();
+		
+		String areaNombre = null;
+		String subareaNombre = null;
+		if (!resultadosArea.isEmpty()) {
+			Object[] row = resultadosArea.get(0);
+			areaNombre = (String) row[0];
+			subareaNombre = (String) row[1];
+		}
+		
+		// Buscar el rol de Asesor usando el enum
+		String rolNombre = RolEnum.Asesor.name();
+		Rol advisorRole = rolRepository.findByNombre(rolNombre)
+				.orElseThrow(() -> new NoSuchElementException("Rol '" + rolNombre + "' no configurado en el sistema"));
+		
+		// Buscar el rol de Coasesor usando el enum
+		String rolCoasesorNombre = RolEnum.Coasesor.name();
+		Rol coasesorRole = rolRepository.findByNombre(rolCoasesorNombre)
+				.orElseThrow(() -> new NoSuchElementException("Rol '" + rolCoasesorNombre + "' no configurado en el sistema"));
+		
+		// Buscar el asesor usando el rol obtenido del enum
+		String sqlAsesor = """
+			SELECT u.usuario_id, u.nombres, u.primer_apellido, u.segundo_apellido, u.correo_electronico
+			FROM usuario_tema ut
+			JOIN usuario u ON ut.usuario_id = u.usuario_id
+			WHERE ut.tema_id = :temaId
+			AND ut.rol_id = :rolId
+			AND ut.activo = true
+		""";
+		
+		Query queryAsesor = em.createNativeQuery(sqlAsesor)
+			.setParameter("temaId", tema.getId())
+			.setParameter("rolId", advisorRole.getId());
+		
+		@SuppressWarnings("unchecked")
+		List<Object[]> resultadosAsesor = queryAsesor.getResultList();
+		
+		String asesor = null;
+		if (!resultadosAsesor.isEmpty()) {
+			Object[] row = resultadosAsesor.get(0);
+			asesor = String.format("%s %s %s",
+				(String) row[1],  // nombres
+				(String) row[2],  // primer apellido
+				(String) row[3]   // segundo apellido
+			).trim();
+		}
+
+		// Buscar los coasesores
+		String sqlCoasesores = """
+			SELECT u.usuario_id, u.nombres, u.primer_apellido, u.segundo_apellido, u.correo_electronico
+			FROM usuario_tema ut
+			JOIN usuario u ON ut.usuario_id = u.usuario_id
+			WHERE ut.tema_id = :temaId
+			AND ut.rol_id = :rolId
+			AND ut.activo = true
+		""";
+		
+		Query queryCoasesores = em.createNativeQuery(sqlCoasesores)
+			.setParameter("temaId", tema.getId())
+			.setParameter("rolId", coasesorRole.getId());
+		
+		@SuppressWarnings("unchecked")
+		List<Object[]> resultadosCoasesores = queryCoasesores.getResultList();
+		
+		List<String> coasesores = new ArrayList<>();
+		for (Object[] row : resultadosCoasesores) {
+			String nombreCompleto = String.format("%s %s %s",
+				(String) row[1],  // nombres
+				(String) row[2],  // primer apellido
+				(String) row[3]   // segundo apellido
+			).trim();
+			coasesores.add(nombreCompleto);
+		}
+
+		AlumnoTemaDto alumnoTemaDto = new AlumnoTemaDto();
+		alumnoTemaDto.setId(alumno.getId());
+		alumnoTemaDto.setAsesorNombre(asesor);
+		alumnoTemaDto.setCoasesoresNombre(coasesores);
+		alumnoTemaDto.setAreaNombre(areaNombre);
+		alumnoTemaDto.setSubAreaNombre(subareaNombre);
+		return alumnoTemaDto;
+	}*/
 
 }
