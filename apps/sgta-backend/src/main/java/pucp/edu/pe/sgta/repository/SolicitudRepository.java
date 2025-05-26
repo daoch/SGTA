@@ -1,8 +1,10 @@
 package pucp.edu.pe.sgta.repository;
 
 import pucp.edu.pe.sgta.model.Solicitud;
+import pucp.edu.pe.sgta.model.Tema;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -25,4 +27,5 @@ public interface SolicitudRepository extends JpaRepository<Solicitud, Integer>{
 
     @Query(value = "SELECT COUNT(*) FROM get_solicitudes_by_tema_count(:temaId)", nativeQuery = true)
     Integer countSolicitudesByTema(@Param("temaId") Integer temaId);
+    Optional<Solicitud> findByTipoSolicitudNombreAndTemaIdAndActivoTrue(String string, Integer temaId);
 }

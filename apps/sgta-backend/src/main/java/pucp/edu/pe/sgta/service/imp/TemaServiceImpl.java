@@ -19,6 +19,7 @@ import pucp.edu.pe.sgta.mapper.UsuarioMapper;
 import pucp.edu.pe.sgta.model.*;
 import pucp.edu.pe.sgta.repository.*;
 import pucp.edu.pe.sgta.service.inter.HistorialTemaService;
+import pucp.edu.pe.sgta.service.inter.SolicitudService;
 import pucp.edu.pe.sgta.service.inter.SubAreaConocimientoService;
 import pucp.edu.pe.sgta.service.inter.TemaService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
@@ -27,9 +28,7 @@ import pucp.edu.pe.sgta.util.RolEnum;
 import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
 
 import java.io.IOException;
-import java.sql.Array;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
@@ -65,16 +64,26 @@ public class TemaServiceImpl implements TemaService {
 
 	private final ObjectMapper objectMapper = new ObjectMapper(); // for JSON conversion
 
+	private final TipoSolicitudRepository        tipoSolicitudRepository;
+
+	private final SolicitudRepository            solicitudRepository;
+
+	private final UsuarioXSolicitudRepository    usuarioXSolicitudRepository;
+
+	private final SolicitudService solicitudService;
+
 
 	@PersistenceContext
 	private EntityManager entityManager;
 
 	public TemaServiceImpl(TemaRepository temaRepository, UsuarioXTemaRepository usuarioXTemaRepository,
-						   UsuarioService usuarioService, SubAreaConocimientoService subAreaConocimientoService,
-						   SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository, RolRepository rolRepository,
-						   EstadoTemaRepository estadoTemaRepository, UsuarioXCarreraRepository usuarioCarreraRepository,
-						   CarreraRepository carreraRepository, HistorialTemaService historialTemaService,
-						   UsuarioRepository usuarioRepository) {
+			UsuarioService usuarioService, SubAreaConocimientoService subAreaConocimientoService,
+			SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository, RolRepository rolRepository,
+			EstadoTemaRepository estadoTemaRepository, UsuarioXCarreraRepository usuarioCarreraRepository,
+			CarreraRepository carreraRepository, HistorialTemaService historialTemaService,
+			UsuarioRepository usuarioRepository, TipoSolicitudRepository tipoSolicitudRepository, 
+			SolicitudRepository solicitudRepository, SolicitudService solicitudService,
+			UsuarioXSolicitudRepository usuarioXSolicitudRepository) {
 		this.temaRepository = temaRepository;
 		this.usuarioXTemaRepository = usuarioXTemaRepository;
 		this.subAreaConocimientoXTemaRepository = subAreaConocimientoXTemaRepository;
@@ -86,6 +95,10 @@ public class TemaServiceImpl implements TemaService {
 		this.carreraRepository = carreraRepository;
 		this.historialTemaService = historialTemaService;
 		this.usuarioRepository = usuarioRepository;
+		this.tipoSolicitudRepository = tipoSolicitudRepository;
+		this.solicitudRepository = solicitudRepository;
+		this.usuarioXSolicitudRepository = usuarioXSolicitudRepository;
+		this.solicitudService = solicitudService;
 	}
 
 	@Override
@@ -367,6 +380,8 @@ public class TemaServiceImpl implements TemaService {
 			eliminarPostulacionesTesista(u.getId());
 			eliminarPropuestasTesista(u.getId());
 		}
+		// 6) Generar y enviar la solicitud de aprobación
+		solicitudService.crearSolicitudAprobacionTema(tema);
     }
 
     /**
@@ -1189,4 +1204,183 @@ public class TemaServiceImpl implements TemaService {
 			throw new RuntimeException("Failed to process summary change request", e);
 		}
 	}
+
+
+	@Override
+	@Transactional
+	public List<TemaDto> listarTemasPorEstadoYCarrera(String estadoNombre, Integer carreraId) {
+		String sql = "SELECT * FROM listar_temas_por_estado_y_carrera(:estado, :carreraId)";
+		@SuppressWarnings("unchecked")
+		List<Object[]> rows = entityManager.createNativeQuery(sql)
+			.setParameter("estado", estadoNombre)
+			.setParameter("carreraId", carreraId)
+			.getResultList();
+
+		List<TemaDto> resultados = new ArrayList<>(rows.size());
+		for (Object[] r : rows) {
+			TemaDto dto = TemaDto.builder()
+				.id( ((Number) r[0]).intValue() )        // tema_id
+				.codigo(       (String)   r[1] )          // codigo
+				.titulo(       (String)   r[2] )          // titulo
+				.resumen(      (String)   r[3] )          // resumen
+				.metodologia(  (String)   r[4] )          // metodologia
+				.objetivos(    (String)   r[5] )          // objetivos
+				.estadoTemaNombre((String) r[6] )         // estado_nombre
+				.fechaLimite(      toOffsetDateTime(r[7]) )   // fecha_limite
+				.fechaCreacion(    toOffsetDateTime(r[8]) )   // fecha_creacion
+				.fechaModificacion(toOffsetDateTime(r[9]) )   // fecha_modificacion
+				.build();
+			resultados.add(dto);
+		}
+		return resultados;
+	}
+
+	private void validarCoordinadorYEstado(
+		Integer temaId,
+		String nuevoEstadoNombre,
+		Integer usuarioId
+	) {
+		validarTipoUsurio(usuarioId, TipoUsuarioEnum.coordinador.name());
+		estadoTemaRepository.findByNombre(nuevoEstadoNombre)
+			.orElseThrow(() -> new ResponseStatusException(
+				HttpStatus.NOT_FOUND,
+				"EstadoTema '" + nuevoEstadoNombre + "' no existe"
+			));
+		validarEstadoTema(temaId, EstadoTemaEnum.INSCRITO.name());
+	}
+
+	private Tema actualizarTemaYHistorial(
+		Integer temaId,
+		String nuevoEstadoNombre,
+		String comentario
+	) {
+		Tema tema = validarEstadoTema(temaId, EstadoTemaEnum.INSCRITO.name());
+		temaRepository.actualizarEstadoTema(temaId, nuevoEstadoNombre);
+		saveHistorialTemaChange(
+			tema,
+			tema.getTitulo(),
+			tema.getResumen(),
+			comentario == null ? "" : comentario
+		);
+		return tema;
+	}
+
+	private Solicitud cargarSolicitud(Integer temaId) {
+		return solicitudRepository
+			.findByTipoSolicitudNombreAndTemaIdAndActivoTrue(
+				"Aprobación de tema (por coordinador)",
+				temaId
+			)
+			.orElseThrow(() -> new RuntimeException(
+				"No existe solicitud de aprobación para el tema " + temaId
+			));
+	}
+
+	private UsuarioXSolicitud actualizarUsuarioXSolicitud(
+		Integer solicitudId,
+		Integer usuarioId,
+		String nuevoEstadoNombre,
+		String comentario
+	) {
+		UsuarioXSolicitud uxs = usuarioXSolicitudRepository
+			.findFirstBySolicitudIdAndUsuarioIdAndActivoTrue(solicitudId, usuarioId)
+			.orElseThrow(() -> new RuntimeException(
+				"No hay registro en usuario_solicitud para la solicitud "
+				+ solicitudId + " y usuario " + usuarioId
+			));
+
+		uxs.setComentario(comentario);
+		switch (nuevoEstadoNombre.toUpperCase()) {
+			case "REGISTRADO":
+				uxs.setAprobado(true);
+				uxs.setSolicitudCompletada(true);
+				break;
+			case "RECHAZADO":
+				uxs.setAprobado(false);
+				uxs.setSolicitudCompletada(true);
+				break;
+			case "OBSERVADO":
+				uxs.setAprobado(false);
+				uxs.setSolicitudCompletada(true);
+				break;
+			default:
+				// opcional
+		}
+		uxs.setFechaModificacion(OffsetDateTime.now());
+		return usuarioXSolicitudRepository.save(uxs);
+	}
+
+	private void actualizarSolicitud(
+		Solicitud solicitud,
+		String nuevoEstadoNombre,
+		String comentario
+	) {
+		switch (nuevoEstadoNombre.toUpperCase()) {
+			case "REGISTRADO":
+				solicitud.setEstado(3);
+				break;
+			case "RECHAZADO":
+				solicitud.setEstado(2);
+				break;
+			case "OBSERVADO":
+				solicitud.setEstado(1);
+				break;
+			default:
+				// opcional
+		}
+		solicitud.setRespuesta(comentario);
+		solicitud.setFechaModificacion(OffsetDateTime.now());
+		solicitudRepository.save(solicitud);
+	}
+
+	/**
+	 * Recupera el tema y valida que su estado actual coincida con el esperado.
+	 *
+	 * @param temaId           Id del tema
+	 * @param estadoEsperado   Nombre del estado que debe tener el tema (p.ej. "INSCRITO")
+	 * @return tema            La entidad Tema ya validada
+	 * @throws ResponseStatusException  404 si no existe el tema, 400 si no está en el estado esperado
+	 */
+	private Tema validarEstadoTema(Integer temaId, String estadoEsperado) {
+		Tema tema = temaRepository.findById(temaId)
+			.orElseThrow(() -> new ResponseStatusException(
+				HttpStatus.NOT_FOUND,
+				"Tema con id " + temaId + " no encontrado"
+			));
+		String estadoActual = tema.getEstadoTema().getNombre();
+		if (!estadoEsperado.equalsIgnoreCase(estadoActual)) {
+			throw new ResponseStatusException(
+				HttpStatus.BAD_REQUEST,
+				"Operación inválida: el tema debe estar en estado '" + estadoEsperado +
+				"', pero está en '" + estadoActual + "'"
+			);
+		}
+		return tema;
+	}
+		
+	@Transactional
+	@Override
+	public void cambiarEstadoTemaCoordinador(
+		Integer temaId,
+		String nuevoEstadoNombre,
+		Integer usuarioId,
+		String comentario
+	) {
+		validarCoordinadorYEstado(temaId, nuevoEstadoNombre, usuarioId);
+
+		actualizarTemaYHistorial(temaId, nuevoEstadoNombre, comentario);
+
+		Solicitud solicitud = cargarSolicitud(temaId);
+
+		actualizarUsuarioXSolicitud(
+			solicitud.getId(),
+			usuarioId,
+			nuevoEstadoNombre,
+			comentario
+		);
+
+		actualizarSolicitud(solicitud, nuevoEstadoNombre, comentario);
+	}
+
+
 }

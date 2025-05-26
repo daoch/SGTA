@@ -8,7 +8,6 @@ import pucp.edu.pe.sgta.dto.UsuarioDto;
 import pucp.edu.pe.sgta.dto.TemaConAsesorJuradoDTO;
 import java.util.List;
 
-import jakarta.persistence.criteria.CriteriaBuilder.In;
 
 public interface TemaService {
 	List<TemaDto> getAll();
@@ -77,6 +76,10 @@ public interface TemaService {
 	void rechazarPostulacionAPropuestaGeneral(Integer idTema, Integer idAsesor, Integer idTesista);
 
 	void aprobarPostulacionAPropuestaGeneral(Integer idTema, Integer idAsesor, Integer idTesista);
+
+	List<TemaDto> listarTemasPorEstadoYCarrera(String estadoNombre, Integer carreraId);
+
+	void cambiarEstadoTemaCoordinador(Integer temaId, String nuevoEstadoNombre,Integer usuarioId, String comentario);
 	void updateTituloResumenTemaSolicitud(Integer idTema, String titulo, String resumen);
 
 	/**

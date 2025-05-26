@@ -1,12 +1,14 @@
 package pucp.edu.pe.sgta.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import pucp.edu.pe.sgta.dto.asesores.InfoTemaPerfilDto;
 import pucp.edu.pe.sgta.dto.TemaConAsesorJuradoDTO;
 import pucp.edu.pe.sgta.dto.TemaDto;
+import pucp.edu.pe.sgta.dto.UsuarioSolicitudDto;
 import pucp.edu.pe.sgta.service.inter.TemaService;
 
 import java.util.List;
@@ -162,6 +164,29 @@ public class TemaController {
 		temaService.rechazarPostulacionAPropuestaGeneral(temaId, asesorId, alumnoId);
 	}
 
+	@GetMapping("/listarTemasPorCarrera/{carreraId}/{estado}")
+	public List<TemaDto> buscarPorEstadoYCarrera(
+			@PathVariable("estado") String estado,
+			@PathVariable("carreraId") Integer carreraId) {
+		return temaService.listarTemasPorEstadoYCarrera(estado, carreraId);
+	}	
+
+	@PatchMapping("/CambiarEstadoTemaPorCoordinador")
+	@SuppressWarnings("unchecked")
+	public ResponseEntity<Void> actualizarEstadoTema(
+	@RequestBody Map<String,Object> body
+	) {
+		Map<String,Object> temaMap = (Map<String,Object>) body.get("tema");
+		Map<String,Object> solMap  = (Map<String,Object>) body.get("usuarioSolicitud");
+
+		Integer id        = (Integer) temaMap.get("id");
+		String  estado    = (String)  temaMap.get("estadoTemaNombre");
+		Integer usuarioId = (Integer) solMap.get("usuarioId");
+		String  comentario= (String)  solMap.get("comentario");
+
+		temaService.cambiarEstadoTemaCoordinador(id, estado, usuarioId, comentario);
+		return ResponseEntity.noContent().build();
+	}
 }
 
 
