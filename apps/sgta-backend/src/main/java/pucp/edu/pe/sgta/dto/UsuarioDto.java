@@ -1,7 +1,6 @@
 package pucp.edu.pe.sgta.dto;
 
 import lombok.*;
-import pucp.edu.pe.sgta.model.TipoUsuario;
 
 import java.time.OffsetDateTime;
 
