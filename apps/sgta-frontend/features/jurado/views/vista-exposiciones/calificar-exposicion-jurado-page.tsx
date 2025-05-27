@@ -85,12 +85,12 @@ const CalificarExposicionJuradoPage: React.FC<Props> = ({ id_exposicion }) => {
         <Textarea placeholder="Escribe tus observaciones aquí" />
       </div>
       <div className="flex justify-center gap-4">
-        <Button variant="destructive" onClick={() => {}}>
+        <Button variant="destructive" onClick={() => { }}>
           <X />
           Cancelar
         </Button>
 
-        <Button onClick={() => {}}>
+        <Button onClick={() => { }}>
           <Save />
           Guardar
         </Button>
