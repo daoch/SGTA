@@ -1,5 +1,4 @@
 "use client";
-
 import React from "react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -19,7 +18,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"; // Importar componentes de Select de shadcn/ui
+} from "@/components/ui/select";
 import { etapaFormativaCicloService } from "../../services/etapa-formativa-ciclo";
 import { EtapaFormativaCiclo } from "../../types/etapa-formativa-ciclo";
 import { toast } from "sonner";
@@ -32,36 +31,27 @@ interface EditarEtapaModalProps {
 
 export function EditarEtapaModal({ etapa, onSuccess }: EditarEtapaModalProps) {
   const [open, setOpen] = useState(false);
-  const [estado, setEstado] = useState(etapa.estado || "");
+  const [estado, setEstado] = useState<"En Curso" | "Finalizado">(
+    etapa.estado || "En Curso"
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Opciones permitidas
-  const opcionesEstado = [
-    { valor: "En Curso", etiqueta: "En Curso" },
-    { valor: "Finalizado", etiqueta: "Finalizado" },
-  ];
-
   useEffect(() => {
-    if (open) setEstado(etapa.estado || "");
+    if (open) setEstado(etapa.estado);
   }, [open, etapa.estado]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!estado) {
-      toast.error("Debe seleccionar un estado");
-      return;
-    }
-
     setIsSubmitting(true);
+    
     try {
       await etapaFormativaCicloService.actualizarEstado(etapa.id, estado);
-      toast.success("Estado actualizado exitosamente");
+      toast.success("Estado actualizado");
       setOpen(false);
       onSuccess?.();
     } catch (error) {
-      console.error("Error al actualizar:", error);
-      toast.error("Error al actualizar el estado");
+      console.error("Error:", error);
+      toast.error("Error al actualizar");
     } finally {
       setIsSubmitting(false);
     }
@@ -78,31 +68,30 @@ export function EditarEtapaModal({ etapa, onSuccess }: EditarEtapaModalProps) {
         <DialogHeader>
           <DialogTitle>Editar Estado</DialogTitle>
           <DialogDescription>
-            Seleccione el nuevo estado de la etapa
+            Seleccione el nuevo estado
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="estado">Estado</Label>
-              <Select 
-                value={estado} 
-                onValueChange={(value) => setEstado(value)}
+              <Label>Estado</Label>
+
+
+              <Select
+                value={estado}
+                onValueChange={(value: "En Curso" | "Finalizado") => setEstado(value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccione un estado" />
                 </SelectTrigger>
                 <SelectContent>
-                  {opcionesEstado.map((opcion) => (
-                    <SelectItem 
-                      key={opcion.valor} 
-                      value={opcion.valor}
-                    >
-                      {opcion.etiqueta}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="En Curso">En Curso</SelectItem>
+                  <SelectItem value="Finalizado">Finalizado</SelectItem>
                 </SelectContent>
               </Select>
+
+
+
             </div>
           </div>
           <DialogFooter>
@@ -114,7 +103,7 @@ export function EditarEtapaModal({ etapa, onSuccess }: EditarEtapaModalProps) {
               Cancelar
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Actualizando..." : "Guardar Cambios"}
+              {isSubmitting ? "Guardando..." : "Guardar"}
             </Button>
           </DialogFooter>
         </form>
