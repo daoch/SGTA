@@ -17,9 +17,11 @@ import {
   MiembroJuradoExpo,
 } from "@/features/jurado/types/jurado.types";
 
+import ModalConfirmarReprogramacion from "./modal-confirmar-reprogramacion";
+
+
 import { ExposicionEstado } from "../types/exposicion.types";
 import {
-  actualizarEstadoExposicion,
   actualizarEstadoControlExposicion,
 } from "../services/jurado-service";
 
@@ -48,6 +50,8 @@ export function ExposicionCard({
   const [isReprogramacionSolicitada, setIsReprogramacionSolicitada] = useState(
     exposicion.estado_control === "RECHAZADO",
   );
+
+  const [isReprogramacionModalOpen, setIsReprogramacionModalOpen] = useState(false);
 
   const getAsesor = () =>
     exposicion.miembros.filter((m) => m.tipo === "Asesor");
@@ -131,7 +135,9 @@ export function ExposicionCard({
 
   // Función para solicitar reprogramación
   const handleSolicitarReprogramacion = async (e: React.MouseEvent) => {
-    e.stopPropagation();
+    //e.stopPropagation();
+
+
     setIsLoading(true);
 
     try {
@@ -161,6 +167,43 @@ export function ExposicionCard({
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleConfirmReprogramacion = async () => {
+    setIsLoading(true);
+
+    try {
+      const idJurado = 6;
+
+      await actualizarEstadoControlExposicion(
+        exposicion.id_exposicion,
+        idJurado,
+        "RECHAZADO",
+      );
+
+      if (onStatusChange) {
+        await onStatusChange();
+      }
+
+      setIsReprogramacionSolicitada(true);
+      setEstadoControlActual("RECHAZADO");
+
+      toast.success("Se ha solicitado la reprogramación de la exposición.");
+    } catch (error) {
+      console.error("Error al solicitar reprogramación:", error);
+      toast.error(
+        "No se pudo solicitar la reprogramación. Inténtalo de nuevo.",
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+
+
+  const handleClickSolicitarReprogramacion = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Evitar propagación del clic
+    setIsReprogramacionModalOpen(true); // Abrir el modal de confirmación
   };
 
   const handleNoDisponible = async (e: React.MouseEvent) => {
@@ -338,7 +381,8 @@ export function ExposicionCard({
               <>
                 <Button
                   variant="outline"
-                  onClick={handleSolicitarReprogramacion}
+                  onClick={handleClickSolicitarReprogramacion}
+                  disabled={isLoading}
                 >
                   Solicitar Reprogramación
                 </Button>
@@ -376,6 +420,12 @@ export function ExposicionCard({
           </div>
         </div>
       </div>
+      <ModalConfirmarReprogramacion
+        open={isReprogramacionModalOpen}
+        onClose={() => setIsReprogramacionModalOpen(false)}
+        onConfirm={handleConfirmReprogramacion}
+      />
+
     </div>
   );
 }
