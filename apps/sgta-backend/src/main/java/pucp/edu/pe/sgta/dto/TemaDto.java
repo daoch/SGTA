@@ -69,5 +69,4 @@ public class TemaDto {
 
     private List< UsuarioDto> coasesores ;
 
-    private String requisitos;
 }
