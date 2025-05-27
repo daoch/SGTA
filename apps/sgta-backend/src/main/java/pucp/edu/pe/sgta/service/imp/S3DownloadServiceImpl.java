@@ -20,9 +20,8 @@ public class S3DownloadServiceImpl implements S3DownloadService {
         String bucket = System.getenv("s3.bucket");
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         s3Client.getObject(
-            GetObjectRequest.builder().bucket(bucket).key(key).build(),
-            ResponseTransformer.toOutputStream(baos)
-        );
+                GetObjectRequest.builder().bucket(bucket).key(key).build(),
+                ResponseTransformer.toOutputStream(baos));
         return baos.toByteArray();
     }
 }
