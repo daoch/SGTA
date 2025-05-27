@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { Controller, Control } from "react-hook-form";
+import { useEffect, useState } from "react";
+import { Controller, Control, useForm } from "react-hook-form";
 import {
   Select,
   SelectTrigger,
@@ -12,18 +13,18 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { AreaEspecialidad, TipoDedicacion } from "../types/jurado.types";
+import { Button } from "@/components/ui/button";
+import { Search } from "lucide-react";
+import {
+  EtapaFormativa,
+  Ciclo,
+} from "@/features/jurado/types/juradoDetalle.types";
 
-const periodos = [
-  { value: "2025-1", label: "2025-1" },
-  { value: "2024-2", label: "2024-2" },
-  { value: "2024-1", label: "2024-1" },
-  { value: "2023-2", label: "2023-2" },
-];
-
-const cursos = [
-  { value: "PFC1", label: "Proyecto de Fin de Carrera 1" },
-  { value: "PFC2", label: "Proyecto de Fin de Carrera 2" },
-];
+import {
+  getCiclos,
+  getEtapasFormativasNombres,
+} from "../services/jurado-service";
 
 const estados = [
   { value: "todos", label: "Todos" },
@@ -35,56 +36,112 @@ const estados = [
 ];
 
 interface Props {
-  control: Control<{
-    buscador: string;
-    curso: string;
-    periodo: string;
-    estado: string;
-  }>;
+  control: Control<FormValues>;
+  onSearch?: () => void;
 }
 
-export const FilterExposicionJurado: React.FC<Props> = ({ control }) => {
+interface FormValues {
+  buscador: string;
+  curso: string;
+  periodo: string;
+  estado: string;
+}
+
+export const FilterExposicionJurado: React.FC<Props> = ({
+  control,
+  onSearch,
+}) => {
+  const [etapasFormativas, setEtapasFormativas] = useState<EtapaFormativa[]>(
+    [],
+  );
+  const [selectedEtapaFormativa, setSelectedEtapaFormativa] =
+    useState<string>("TODOS");
+  useEffect(() => {
+    const fetchEtapasFormativas = async () => {
+      try {
+        const etapasFormativas = await getEtapasFormativasNombres();
+        setEtapasFormativas(etapasFormativas);
+      } catch (error) {
+        console.error("Error fetching etapas formativas:", error);
+      }
+    };
+    fetchEtapasFormativas();
+  }, []);
+
+  const [ciclos, setCiclos] = useState<Ciclo[]>([]);
+  const [selectedCiclo, setSelectedCiclo] = useState<string>("TODOS");
+  useEffect(() => {
+    const fetchCiclos = async () => {
+      try {
+        const ciclos = await getCiclos();
+        setCiclos(ciclos);
+        if (ciclos.length > 0) {
+          const primerValor = `${ciclos[0].anio}-${ciclos[0].semestre}`;
+          setSelectedCiclo(primerValor);
+        }
+      } catch (error) {
+        console.error("Error fetching ciclos:", error);
+      }
+    };
+    fetchCiclos();
+  }, []);
+
   return (
-    <div className="flex flex-wrap gap-4 pb-4 justify-between">
+    <div className="flex flex-wrap gap-4 pb-4 items-end">
       {/* Buscador */}
-      <div className="pt-4">
-        <Label htmlFor="buscador" className="text-sm font-semibold">
+      <div>
+        <Label htmlFor="buscador" className="text-sm font-semibold block mb-2">
           Buscar
         </Label>
-        <Controller
-          name="buscador"
-          control={control}
-          render={({ field }) => (
-            <Input
-              {...field}
-              placeholder="Título o estudiante"
-              className="w-[380px]"
-            />
-          )}
-        />
+        <div className="flex items-center gap-3">
+          <Controller
+            name="buscador"
+            control={control}
+            render={({ field }) => (
+              <Input
+                {...field}
+                placeholder="Ingrese el título del tema proyecto o el nombre del estudiante"
+                className="w-[450px] "
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && onSearch) {
+                    e.preventDefault(); // Prevenir el comportamiento por defecto del Enter
+                    onSearch();
+                  }
+                }}
+              />
+            )}
+          />
+          <Button
+            type="button"
+            onClick={onSearch}
+            className="h-10 bg-[#042354] text-white px-4 "
+          >
+            Buscar
+          </Button>
+        </div>
       </div>
 
       {/* Curso */}
-      <div className="pt-4">
-        <Label htmlFor="curso" className="text-sm font-semibold">
+      <div>
+        <Label htmlFor="curso" className="text-sm font-semibold mb-2">
           Curso
         </Label>
         <Controller
           name="curso"
           control={control}
+          defaultValue="TODOS"
           render={({ field }) => (
             <Select onValueChange={field.onChange} value={field.value}>
               <SelectTrigger className="w-[240px]">
-                <SelectValue placeholder="Seleccionar curso" />
+                <SelectValue placeholder="Todos" />
               </SelectTrigger>
               <SelectContent>
-                <SelectGroup>
-                  {cursos.map((curso) => (
-                    <SelectItem key={curso.value} value={curso.value}>
-                      {curso.label}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
+                <SelectItem value="TODOS">Todos</SelectItem>
+                {etapasFormativas.map((etapa) => (
+                  <SelectItem key={etapa.etapaFormativaId} value={etapa.nombre}>
+                    {etapa.nombre}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           )}
@@ -92,8 +149,8 @@ export const FilterExposicionJurado: React.FC<Props> = ({ control }) => {
       </div>
 
       {/* Periodo */}
-      <div className="pt-4">
-        <Label htmlFor="periodo" className="text-sm font-semibold">
+      <div>
+        <Label htmlFor="periodo" className="text-sm font-semibold block mb-2">
           Período
         </Label>
         <Controller
@@ -105,13 +162,14 @@ export const FilterExposicionJurado: React.FC<Props> = ({ control }) => {
                 <SelectValue placeholder="Seleccionar período" />
               </SelectTrigger>
               <SelectContent>
-                <SelectGroup>
-                  {periodos.map((periodo) => (
-                    <SelectItem key={periodo.value} value={periodo.value}>
-                      {periodo.label}
+                {ciclos.map((ciclo) => {
+                  const value = `${ciclo.anio}-${ciclo.semestre}`;
+                  return (
+                    <SelectItem key={ciclo.id} value={value}>
+                      {value}
                     </SelectItem>
-                  ))}
-                </SelectGroup>
+                  );
+                })}
               </SelectContent>
             </Select>
           )}
@@ -119,8 +177,8 @@ export const FilterExposicionJurado: React.FC<Props> = ({ control }) => {
       </div>
 
       {/* Estado */}
-      <div className="pt-4">
-        <Label htmlFor="estado" className="text-sm font-semibold">
+      <div>
+        <Label htmlFor="estado" className="text-sm font-semibold block mb-2">
           Estado
         </Label>
         <Controller

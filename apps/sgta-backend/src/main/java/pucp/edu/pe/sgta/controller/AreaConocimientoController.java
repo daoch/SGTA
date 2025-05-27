@@ -52,4 +52,10 @@ public class AreaConocimientoController {
         return areaConocimientoService.listarPorCarrerasUsuarioParaPerfil(usuarioId);
     }
 
+    @GetMapping("/listarPorIdExpo/{idExpo}")
+    public List<AreaConocimientoDto> listarPorIdExpo(@PathVariable Integer idExpo) {
+        return areaConocimientoService.getAllByIdExpo(idExpo);
+    }
+
 }
+

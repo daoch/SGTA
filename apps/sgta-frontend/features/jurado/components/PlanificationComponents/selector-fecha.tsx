@@ -1,16 +1,18 @@
 import { JornadaExposicionDTO } from "@/features/jurado/dtos/JornadExposicionDTO";
 
 interface Props {
-  room: JornadaExposicionDTO;
+  day: JornadaExposicionDTO;
   isSelected: boolean;
   onSelect: () => void;
 }
 
-const SelectorFecha: React.FC<Props> = ({ room, isSelected, onSelect }) => {
-  const day = room.fecha?.toLocaleDateString("es-ES", { weekday: "long" });
-  const dateNumber = room.fecha?.getDate().toString().padStart(2, "0");
-  const month = room.fecha?.toLocaleDateString("es-ES", { month: "long" });
-  const availableBlocks = room.salasExposicion.length;
+const SelectorFecha: React.FC<Props> = ({ day, isSelected, onSelect }) => {
+  const dayNumber = day.fecha?.toLocaleDateString("es-ES", {
+    weekday: "long",
+  });
+  const dateNumber = day.fecha?.getDate().toString().padStart(2, "0");
+  const month = day.fecha?.toLocaleDateString("es-ES", { month: "long" });
+  const availableBlocks = day.salasExposicion.length;
 
   return (
     <div
@@ -18,7 +20,7 @@ const SelectorFecha: React.FC<Props> = ({ room, isSelected, onSelect }) => {
       className={`border select-none rounded-lg p-4 text-center min-w-41 max-w-41 cursor-pointer transition-all duration-100 border-gray-300
           ${isSelected ? "bg-blue-100 text-black" : "bg-white"}`}
     >
-      <div className="font-medium">{day.toUpperCase()}</div>
+      <div className="font-medium">{dayNumber.toUpperCase()}</div>
       <div className="text-4xl font-bold">
         {dateNumber}
         <span className="text-xs">/{month}</span>

@@ -103,6 +103,15 @@ public class UsuarioServiceImpl implements UsuarioService {
 		return null;
 	}
 
+    @Override
+    public Integer getIdByCorreo(String correoUsuario) {
+        Usuario usuario = usuarioRepository.findByCorreoElectronico(correoUsuario).orElse(null);
+        if (usuario != null) {
+            return usuario.getId();
+        }
+        throw new NoSuchElementException("Usuario no encontrado con correo: " + correoUsuario);
+    }
+
 	@Override
 	public List<UsuarioDto> findAllUsuarios() {
 		return List.of();
@@ -757,7 +766,35 @@ public class UsuarioServiceImpl implements UsuarioService {
 				.filter(tu -> tu.getNombre().equalsIgnoreCase(nombreLimpio))
 				.findFirst();
 	}
-    
+
+	@Override
+	public List<UsuarioDto> getAsesoresBySubArea(Integer idSubArea) {
+		String sql =
+				"SELECT usuario_id, nombre_completo, correo_electronico " +
+						"  FROM sgtadb.listar_asesores_por_subarea_conocimiento(:p_subarea_id)";
+		Query query = em.createNativeQuery(sql)
+				.setParameter("p_subarea_id", idSubArea);
+
+		@SuppressWarnings("unchecked")
+		List<Object[]> rows = query.getResultList();
+		List<UsuarioDto> advisors = new ArrayList<>(rows.size());
+
+		for (Object[] row : rows) {
+			Integer userId       = ((Number) row[0]).intValue();
+			String fullName      = (String) row[1];
+			String email         = (String) row[2];
+
+			advisors.add(UsuarioDto.builder()
+					.id(userId)
+					.nombres(fullName.split(" ")[0])
+					.primerApellido(fullName.split(" ")[1])
+					.correoElectronico(email)
+					.build());
+		}
+
+		return advisors;
+	}
+
 
     @Override
 	public void uploadFoto(Integer idUsuario, MultipartFile file) {
@@ -784,15 +821,6 @@ public class UsuarioServiceImpl implements UsuarioService {
 
 		usuarioFotoDto.setFoto(Utils.convertByteArrayToStringBase64(user.getFotoPerfil()));
 		return usuarioFotoDto;
-	}
-
-	@Override
-	public Integer getIdByCorreo(String correo) {
-		Usuario user = usuarioRepository.findByCorreoElectronicoIsLikeIgnoreCase(correo);
-		if (user == null) {
-			throw new RuntimeException("Usuario no encontrado con CORREO: " + correo);
-		}
-		return user.getId();
 	}
 
 	@Override
@@ -845,33 +873,6 @@ public class UsuarioServiceImpl implements UsuarioService {
 		return perfilAsesorDtos;
 	}
 
-	@Override
-	public List<UsuarioDto> getAsesoresBySubArea(Integer idSubArea) {
-		String sql =
-				"SELECT usuario_id, nombre_completo, correo_electronico " +
-						"  FROM listar_asesores_por_subarea_conocimiento_v2(:p_subarea_id)";
-		Query query = em.createNativeQuery(sql)
-				.setParameter("p_subarea_id", idSubArea);
-
-		@SuppressWarnings("unchecked")
-		List<Object[]> rows = query.getResultList();
-		List<UsuarioDto> advisors = new ArrayList<>(rows.size());
-
-		for (Object[] row : rows) {
-			Integer userId       = ((Number) row[0]).intValue();
-			String fullName      = (String) row[1];
-			String email         = (String) row[2];
-
-			advisors.add(UsuarioDto.builder()
-					.id(userId)
-					.nombres(fullName.split(" ")[0])
-							.primerApellido(fullName.split(" ")[1])
-					.correoElectronico(email)
-					.build());
-		}
-
-		return advisors;
-	}
 
 	@Override
 	public UsuarioDto findUsuarioByCodigo(String codigoPucp) {

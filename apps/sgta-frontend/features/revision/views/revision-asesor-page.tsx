@@ -17,11 +17,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RevisionesCards } from "@/features/revision/components/revisiones-cards";
-import { RevisionesTable } from "@/features/revision/components/revisiones-table";
 import { LayoutGrid, LayoutList, Search } from "lucide-react";
 import { useState } from "react";
 import "../../../features/revision/types/colors.css";
+import { RevisionesCardsAsesor } from "../components/revisiones-cards-asesor";
+import { RevisionesTableAsesor } from "../components/revisiones-table-asesor";
 
 const RevisionAsesorPage = () => {
   const [viewMode, setViewMode] = useState<"table" | "cards">("table");
@@ -29,7 +29,7 @@ const RevisionAsesorPage = () => {
   const [cursoFilter, setCursoFilter] = useState("todos");
 
   return (
-    <div className="space-y-6">
+    <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold " style={{ color: "#042354" }}>
@@ -113,14 +113,14 @@ const RevisionAsesorPage = () => {
             </CardHeader>
             <CardContent>
               {viewMode === "table" ? (
-                <RevisionesTable
-                  filter="Por Aprobar"
+                <RevisionesTableAsesor
+                  filter="por-aprobar"
                   searchQuery={searchQuery}
                   cursoFilter={cursoFilter}
                 />
               ) : (
-                <RevisionesCards
-                  filter="Por Aprobar"
+                <RevisionesCardsAsesor
+                  filter="por-aprobar"
                   searchQuery={searchQuery}
                   cursoFilter={cursoFilter}
                 />
@@ -138,14 +138,14 @@ const RevisionAsesorPage = () => {
             </CardHeader>
             <CardContent>
               {viewMode === "table" ? (
-                <RevisionesTable
-                  filter="Aprobado"
+                <RevisionesTableAsesor
+                  filter="aprobado"
                   searchQuery={searchQuery}
                   cursoFilter={cursoFilter}
                 />
               ) : (
-                <RevisionesCards
-                  filter="Aprobado"
+                <RevisionesCardsAsesor
+                  filter="aprobado"
                   searchQuery={searchQuery}
                   cursoFilter={cursoFilter}
                 />
@@ -163,14 +163,14 @@ const RevisionAsesorPage = () => {
             </CardHeader>
             <CardContent>
               {viewMode === "table" ? (
-                <RevisionesTable
-                  filter="Revisado"
+                <RevisionesTableAsesor
+                  filter="revisado"
                   searchQuery={searchQuery}
                   cursoFilter={cursoFilter}
                 />
               ) : (
-                <RevisionesCards
-                  filter="Revisado"
+                <RevisionesCardsAsesor
+                  filter="revisado"
                   searchQuery={searchQuery}
                   cursoFilter={cursoFilter}
                 />
@@ -186,12 +186,12 @@ const RevisionAsesorPage = () => {
             </CardHeader>
             <CardContent>
               {viewMode === "table" ? (
-                <RevisionesTable
+                <RevisionesTableAsesor
                   searchQuery={searchQuery}
                   cursoFilter={cursoFilter}
                 />
               ) : (
-                <RevisionesCards
+                <RevisionesCardsAsesor
                   searchQuery={searchQuery}
                   cursoFilter={cursoFilter}
                 />

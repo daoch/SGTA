@@ -137,23 +137,48 @@ export interface TemaCreateLibre {
   requisitos: string;
 }
 
+export interface TipoSolicitud {
+  id: number;
+  nombre: string;
+  descripcion: string;
+}
+
+export interface Usuario_V2 {
+  id: number;
+  nombres: string;
+  primerApellido: string;
+  segundoApellido: string;
+  correoElectronico: string;
+  fotoPerfil: string | null;
+}
+
+export interface Topic {
+  titulo: string;
+  resumen: string;
+}
+
+export interface Student {
+  id: number;
+  name: string;
+  lastName: string;
+  topic: Topic;
+}
+
+export interface Solicitud {
+  id: number;
+  registerTime: string;
+  status: string;
+  reason: string;
+  solicitudCompletada: boolean;
+  aprobado: boolean;
+  tipoSolicitud: TipoSolicitud;
+  usuario: Usuario;
+  students: Student[];
+}
+
 export interface Observacion {
   campo: "título" | "descripción";
   detalle: string;
   autor: string;
   fecha: string;
-}
-
-export interface Solicitud {
-  id: number;
-  usuario: { id: number };
-  students: {
-    id: number;
-    name: string;
-    lastName: string;
-    topic: {
-      titulo: string;
-      resumen: string;
-    };
-  }[];
 }

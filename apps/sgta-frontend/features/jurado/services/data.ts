@@ -1,3 +1,5 @@
+import axiosInstance from "@/lib/axios/axios-instance";
+
 const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
 export async function listarTemasCicloActulXEtapaFormativa(
@@ -154,3 +156,31 @@ export async function getEtapaFormativaIdByExposicionId(
     return 0;
   }
 }
+
+export const bloquearBloquePorId = async (
+  idBloque: number,
+): Promise<boolean> => {
+  try {
+    const response = await axiosInstance.post(
+      `/bloqueHorarioExposicion/bloquear/${idBloque}`,
+    );
+    return response.status === 200;
+  } catch (error) {
+    console.error("Error al bloquear el bloque:", error);
+    return false;
+  }
+};
+
+export const desbloquearBloquePorId = async (
+  idBloque: number,
+): Promise<boolean> => {
+  try {
+    const response = await axiosInstance.post(
+      `/bloqueHorarioExposicion/desbloquear/${idBloque}`,
+    );
+    return response.status === 200;
+  } catch (error) {
+    console.error("Error al desbloquear el bloque:", error);
+    return false;
+  }
+};
