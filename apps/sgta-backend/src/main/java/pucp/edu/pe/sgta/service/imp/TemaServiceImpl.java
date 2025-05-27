@@ -72,18 +72,6 @@ public class TemaServiceImpl implements TemaService {
 
 	private final UsuarioXTemaRepository usuarioTemaRepository;
 
-	private final ExposicionService exposicionService;
-
-	private final ExposicionXTemaRepository exposicionXTemaRepository;
-
-	private final JornadaExposicionRepository jornadaExposicionRepository;
-
-	private final ExposicionRepository exposicionRepository;
-
-	private final JornadaExposicionXSalaExposicionRepository jornadaExposicionXSalaExposicionRepository;
-
-	private final UsuarioXTemaRepository usuarioTemaRepository;
-
 	private final ObjectMapper objectMapper = new ObjectMapper(); // for JSON conversion
 
 	private final TipoSolicitudRepository        tipoSolicitudRepository;
@@ -109,7 +97,9 @@ public class TemaServiceImpl implements TemaService {
 			ExposicionXTemaRepository exposicionXTemaRepository,
 			JornadaExposicionRepository jornadaExposicionRepository, ExposicionRepository exposicionRepository,
 			JornadaExposicionXSalaExposicionRepository jornadaExposicionXSalaExposicionRepository,
-			UsuarioXTemaRepository usuarioTemaRepository) {
+			UsuarioXTemaRepository usuarioTemaRepository, TipoSolicitudRepository tipoSolicitudRepository, 
+			SolicitudRepository solicitudRepository, SolicitudService solicitudService,
+			UsuarioXSolicitudRepository usuarioXSolicitudRepository) {
 		this.temaRepository = temaRepository;
 		this.usuarioXTemaRepository = usuarioXTemaRepository;
 		this.subAreaConocimientoXTemaRepository = subAreaConocimientoXTemaRepository;
