@@ -189,10 +189,6 @@ public class UsuarioController {
         }
         return ResponseEntity.ok(carreras);
     }
-	@GetMapping("/getAsesoresBySubArea")
-	public List<UsuarioDto> getAsesoresBySubArea(@RequestParam(name = "idSubArea") Integer idSubArea) {
-		return this.usuarioService.getAsesoresBySubArea(idSubArea);
-	}
 
 	@GetMapping("/findByCodigo")
 	public UsuarioDto findByCodigo(@RequestParam("codigo") String codigo) {
@@ -223,4 +219,9 @@ public class UsuarioController {
 					.body("Error al procesar el archivo: " + e.getMessage());
 		}
 	}
+
+    @GetMapping("/getAsesoresBySubArea")
+    public List<UsuarioDto> getAsesoresBySubArea(@RequestParam(name = "idSubArea") Integer idSubArea) {
+        return this.usuarioService.getAsesoresBySubArea(idSubArea);
+    }
 }

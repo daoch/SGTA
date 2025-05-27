@@ -766,7 +766,35 @@ public class UsuarioServiceImpl implements UsuarioService {
 				.filter(tu -> tu.getNombre().equalsIgnoreCase(nombreLimpio))
 				.findFirst();
 	}
-    
+
+	@Override
+	public List<UsuarioDto> getAsesoresBySubArea(Integer idSubArea) {
+		String sql =
+				"SELECT usuario_id, nombre_completo, correo_electronico " +
+						"  FROM sgtadb.listar_asesores_por_subarea_conocimiento(:p_subarea_id)";
+		Query query = em.createNativeQuery(sql)
+				.setParameter("p_subarea_id", idSubArea);
+
+		@SuppressWarnings("unchecked")
+		List<Object[]> rows = query.getResultList();
+		List<UsuarioDto> advisors = new ArrayList<>(rows.size());
+
+		for (Object[] row : rows) {
+			Integer userId       = ((Number) row[0]).intValue();
+			String fullName      = (String) row[1];
+			String email         = (String) row[2];
+
+			advisors.add(UsuarioDto.builder()
+					.id(userId)
+					.nombres(fullName.split(" ")[0])
+					.primerApellido(fullName.split(" ")[1])
+					.correoElectronico(email)
+					.build());
+		}
+
+		return advisors;
+	}
+
 
     @Override
 	public void uploadFoto(Integer idUsuario, MultipartFile file) {
@@ -845,33 +873,6 @@ public class UsuarioServiceImpl implements UsuarioService {
 		return perfilAsesorDtos;
 	}
 
-	@Override
-	public List<UsuarioDto> getAsesoresBySubArea(Integer idSubArea) {
-		String sql =
-				"SELECT usuario_id, nombre_completo, correo_electronico " +
-						"  FROM listar_asesores_por_subarea_conocimiento_v2(:p_subarea_id)";
-		Query query = em.createNativeQuery(sql)
-				.setParameter("p_subarea_id", idSubArea);
-
-		@SuppressWarnings("unchecked")
-		List<Object[]> rows = query.getResultList();
-		List<UsuarioDto> advisors = new ArrayList<>(rows.size());
-
-		for (Object[] row : rows) {
-			Integer userId       = ((Number) row[0]).intValue();
-			String fullName      = (String) row[1];
-			String email         = (String) row[2];
-
-			advisors.add(UsuarioDto.builder()
-					.id(userId)
-					.nombres(fullName.split(" ")[0])
-							.primerApellido(fullName.split(" ")[1])
-					.correoElectronico(email)
-					.build());
-		}
-
-		return advisors;
-	}
 
 	@Override
 	public UsuarioDto findUsuarioByCodigo(String codigoPucp) {
