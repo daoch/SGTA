@@ -89,5 +89,5 @@ public interface UsuarioService {
 
 	void procesarArchivoUsuarios(MultipartFile archivo) throws Exception;
 
-    //AlumnoTemaDto getAlumnoTema(Integer idAlumno);
+    AlumnoTemaDto getAlumnoTema(Integer idAlumno);
 }

@@ -48,4 +48,6 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
                                                         @Param("activo") Boolean activo,
                                                         @Param("areaIds") String areaIds,
                                                         @Param("temaIds") String temaIds);
+
+
 }

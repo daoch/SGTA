@@ -17,5 +17,5 @@ public class AlumnoTemaDto {
     private List<String> coasesoresNombre;
     private OffsetDateTime fechaInicio;
     private String areaNombre;
-    private String subareaNombre;
+    private String subAreaNombre;
 }

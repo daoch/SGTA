@@ -445,3 +445,23 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION obtener_area_subarea_por_tema(p_tema_id INT)
+RETURNS TABLE (
+    area_nombre TEXT,
+    subarea_nombre TEXT
+)
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        ac.nombre AS area_nombre,
+        sac.nombre AS subarea_nombre
+    FROM tema t
+    JOIN sub_area_conocimiento_tema sact ON t.tema_id = sact.tema_id
+    JOIN sub_area_conocimiento sac ON sact.sub_area_conocimiento_id = sac.sub_area_conocimiento_id
+    JOIN area_conocimiento ac ON sac.area_conocimiento_id = ac.area_conocimiento_id
+    WHERE t.tema_id = p_tema_id
+      AND t.activo = true
+      AND sact.activo = true;
+END;
+$$ LANGUAGE plpgsql;

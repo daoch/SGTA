@@ -883,7 +883,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 		return null;
 	}
 
-	/*@Override
+	@Override
 	public AlumnoTemaDto getAlumnoTema(Integer idAlumno) {
 		// Obtener el detallte de la tesis del alumno con respecto al último tema de tesis asignada
 		//Alumno DTO: id, Tema, Asesor, Cosasesor, fechaInicio, Area, Subarea
@@ -891,28 +891,27 @@ public class UsuarioServiceImpl implements UsuarioService {
 		if(alumno == null){
 			throw new RuntimeException("Alumno no encontrado con ID: " + idAlumno);
 		}
+		String rolAlumnoNombre = RolEnum.Tesista.name();
+		Rol alumnoRole = rolRepository.findByNombre(rolAlumnoNombre)
+				.orElseThrow(() -> new NoSuchElementException("Rol '" + rolAlumnoNombre + "' no configurado en el sistema"));
+		
+		//Obtener el último tema de tesis asignada para el rol de Alumno
+		// Assuming you chose Option 2 from repository modification for latest record:
+		UsuarioXTema usuarioXTema = usuarioXTemaRepository.findFirstByUsuario_IdAndRol_IdAndActivoTrueOrderByFechaCreacionDesc(idAlumno, alumnoRole.getId());
 
-		//Obtener el último tema de tesis asignada
-		UsuarioXTema usuarioXTema = usuarioXTemaRepository.findFirstByUsuario_IdOrderByFechaInicioDesc(idAlumno);
 		if(usuarioXTema == null){
 			throw new RuntimeException("Alumno no tiene tema de tesis asignado");
 		}
 
 		//Buscamos el asesor o coasesor ya tenienedo el id de usuarioXtema y buscando que el rol sea asesor y coasesro
 		Tema tema = usuarioXTema.getTema();
-		
+		System.out.println("Tema ID: " + tema.getId());
+		if(tema == null){
+			throw new RuntimeException("Tema no encontrado para el alumno con ID: " + idAlumno);
+		}
 		// Obtener nombres de área y subárea de conocimiento
 		String sqlArea = """
-			SELECT 
-				ac.nombre as area_nombre,
-				sac.nombre as subarea_nombre
-			FROM tema t
-			JOIN subarea_conocimiento_tema sact ON t.tema_id = sact.tema_id
-			JOIN subarea_conocimiento sac ON sact.subarea_conocimiento_id = sac.subarea_conocimiento_id
-			JOIN area_conocimiento ac ON sac.area_conocimiento_id = ac.area_conocimiento_id
-			WHERE t.tema_id = :temaId
-			AND t.activo = true
-			AND sact.activo = true
+			SELECT * FROM obtener_area_subarea_por_tema(:temaId)
 		""";
 		
 		Query queryArea = em.createNativeQuery(sqlArea)
@@ -925,8 +924,8 @@ public class UsuarioServiceImpl implements UsuarioService {
 		String subareaNombre = null;
 		if (!resultadosArea.isEmpty()) {
 			Object[] row = resultadosArea.get(0);
-			areaNombre = (String) row[0];
-			subareaNombre = (String) row[1];
+			areaNombre = (String) row[0];    // nombre del área
+			subareaNombre = (String) row[1]; // nombre de la subárea
 		}
 		
 		// Buscar el rol de Asesor usando el enum
@@ -1000,6 +999,6 @@ public class UsuarioServiceImpl implements UsuarioService {
 		alumnoTemaDto.setAreaNombre(areaNombre);
 		alumnoTemaDto.setSubAreaNombre(subareaNombre);
 		return alumnoTemaDto;
-	}*/
+	}
 
 }
