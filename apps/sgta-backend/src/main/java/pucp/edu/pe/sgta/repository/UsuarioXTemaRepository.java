@@ -52,6 +52,5 @@ public interface UsuarioXTemaRepository extends JpaRepository<UsuarioXTema, Inte
 
         List<UsuarioXTema> findByTemaIdAndRolNombreAndActivoTrue(Integer temaId, String nombreRol);
 
-
-
+        UsuarioXTema findFirstByTemaIdAndRolNombreAndActivoTrue(Integer temaId, String nombreRol);
 }
