@@ -247,6 +247,7 @@ CREATE OR REPLACE FUNCTION listar_temas_por_usuario_rol_estado(
 )
 RETURNS TABLE (
   tema_id            INT,
+  codigo             TEXT,
   titulo             TEXT,
   resumen            TEXT,
   metodologia         TEXT,
@@ -256,34 +257,48 @@ RETURNS TABLE (
   fecha_limite       TIMESTAMPTZ,
   fecha_creacion     TIMESTAMPTZ,
   fecha_modificacion TIMESTAMPTZ,
-  codigo			  TEXT
+  requisitos         TEXT,
+  carrera_id         INT,      -- nuevo
+  carrera_nombre     TEXT,     -- nombre de la carrera
+  area_id            INT,      -- nuevo
+  area_nombre        TEXT      -- nombre del área
 ) AS $$
 BEGIN
   RETURN QUERY
   SELECT
     t.tema_id,
+    t.codigo::text,
     t.titulo::text,
-    t.resumen,
-    t.metodologia,
-    t.objetivos,
+    t.resumen::text,
+    t.metodologia::text,
+    t.objetivos::text,
     t.portafolio_url::text,
     t.activo,
     t.fecha_limite,
     t.fecha_creacion,
     t.fecha_modificacion,
-	t.codigo::text
+    t.requisitos::text,
+    c.carrera_id,                       -- columna 12
+    c.nombre::text      AS carrera_nombre,   -- columna 13
+    ac.area_conocimiento_id AS area_id,      -- columna 14
+    ac.nombre::text     AS area_nombre       -- columna 15
   FROM tema t
-  JOIN usuario_tema ut
-    ON ut.tema_id = t.tema_id
-  JOIN rol r
-    ON ut.rol_id = r.rol_id
-  JOIN estado_tema et
-    ON t.estado_tema_id = et.estado_tema_id
+    JOIN estado_tema est   ON t.estado_tema_id = est.estado_tema_id
+    JOIN usuario_tema ut   ON ut.tema_id      = t.tema_id
+    JOIN rol r             ON ut.rol_id       = r.rol_id
+    JOIN usuario u         ON ut.usuario_id   = u.usuario_id
+    JOIN carrera c         ON t.carrera_id    = c.carrera_id
+    LEFT JOIN sub_area_conocimiento_tema sact
+           ON sact.tema_id = t.tema_id
+    LEFT JOIN sub_area_conocimiento sac
+           ON sac.sub_area_conocimiento_id = sact.sub_area_conocimiento_id
+    LEFT JOIN area_conocimiento ac
+           ON ac.area_conocimiento_id = sac.area_conocimiento_id
   WHERE
-    ut.usuario_id = p_usuario_id
-    AND r.nombre ILIKE p_rol_nombre
-    AND et.nombre ILIKE p_estado_nombre
-    AND t.activo = TRUE;
+    u.activo
+    AND r.nombre   ILIKE p_rol_nombre
+    AND est.nombre ILIKE p_estado_nombre
+    AND u.usuario_id = p_usuario_id;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -1394,20 +1409,26 @@ AS $$
 $$;
 
 CREATE OR REPLACE FUNCTION listar_temas_por_estado_y_carrera(
-    p_estado_nombre TEXT,
-    p_carrera_id    INTEGER
+  p_estado_nombre TEXT,
+  p_carrera_id    INTEGER
 )
 RETURNS TABLE (
-    tema_id            INTEGER,
-    codigo             TEXT,
-    titulo             TEXT,
-    resumen            TEXT,
-    metodologia         TEXT,
-    objetivos          TEXT,
-    estado_nombre      TEXT,
-    fecha_limite       TIMESTAMP WITH TIME ZONE,
-    fecha_creacion     TIMESTAMP WITH TIME ZONE,
-    fecha_modificacion TIMESTAMP WITH TIME ZONE
+  tema_id            INTEGER,
+  codigo             TEXT,
+  titulo             TEXT,
+  resumen            TEXT,
+  metodologia         TEXT,
+  objetivos          TEXT,
+  portafolio_url     TEXT,    -- nuevo
+  requisitos         TEXT,    -- nuevo
+  estado_nombre      TEXT,
+  fecha_limite       TIMESTAMPTZ,
+  fecha_creacion     TIMESTAMPTZ,
+  fecha_modificacion TIMESTAMPTZ,
+  carrera_id         INT,     -- nuevo
+  carrera_nombre     TEXT,    -- nuevo
+  area_id            INT,     -- nuevo
+  area_nombre        TEXT     -- nuevo
 )
 LANGUAGE plpgsql
 AS $$
@@ -1415,18 +1436,32 @@ BEGIN
   RETURN QUERY
     SELECT
       t.tema_id,
-      t.codigo::text,        -- <- casteo a text
-      t.titulo::text,        -- <- casteo a text
+      t.codigo::text,
+      t.titulo::text,
       t.resumen::text,
       t.metodologia::text,
       t.objetivos::text,
-      et.nombre::text,       -- <- casteo a text
+      t.portafolio_url::text,
+      t.requisitos::text,
+      et.nombre::text       AS estado_nombre,
       t.fecha_limite,
       t.fecha_creacion,
-      t.fecha_modificacion
+      t.fecha_modificacion,
+      c.carrera_id,
+      c.nombre::text        AS carrera_nombre,
+      ac.area_conocimiento_id AS area_id,
+      ac.nombre::text       AS area_nombre
     FROM tema t
-    JOIN estado_tema et
-      ON t.estado_tema_id = et.estado_tema_id
+      JOIN estado_tema et
+        ON t.estado_tema_id = et.estado_tema_id
+      JOIN carrera c
+        ON t.carrera_id = c.carrera_id
+      LEFT JOIN sub_area_conocimiento_tema sact
+        ON sact.tema_id = t.tema_id
+      LEFT JOIN sub_area_conocimiento sac
+        ON sac.sub_area_conocimiento_id = sact.sub_area_conocimiento_id
+      LEFT JOIN area_conocimiento ac
+        ON ac.area_conocimiento_id = sac.area_conocimiento_id
     WHERE
       t.carrera_id = p_carrera_id
       AND et.nombre ILIKE p_estado_nombre
@@ -1434,6 +1469,7 @@ BEGIN
     ORDER BY t.fecha_creacion DESC;
 END;
 $$;
+
 
 CREATE PROCEDURE actualizar_estado_tema(
   p_tema_id           INTEGER,
@@ -1680,62 +1716,4 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION listar_temas_por_estado_y_carrera(
-    p_estado_nombre TEXT,
-    p_carrera_id    INTEGER
-)
-RETURNS TABLE (
-    tema_id            INTEGER,
-    codigo             TEXT,
-    titulo             TEXT,
-    resumen            TEXT,
-    metodologia         TEXT,
-    objetivos          TEXT,
-    estado_nombre      TEXT,
-    fecha_limite       TIMESTAMP WITH TIME ZONE,
-    fecha_creacion     TIMESTAMP WITH TIME ZONE,
-    fecha_modificacion TIMESTAMP WITH TIME ZONE
-)
-LANGUAGE plpgsql
-AS $$
-BEGIN
-  RETURN QUERY
-    SELECT
-      t.tema_id,
-      t.codigo::text,        -- <- casteo a text
-      t.titulo::text,        -- <- casteo a text
-      t.resumen::text,
-      t.metodologia::text,
-      t.objetivos::text,
-      et.nombre::text,       -- <- casteo a text
-      t.fecha_limite,
-      t.fecha_creacion,
-      t.fecha_modificacion
-    FROM tema t
-    JOIN estado_tema et
-      ON t.estado_tema_id = et.estado_tema_id
-    WHERE
-      t.carrera_id = p_carrera_id
-      AND et.nombre ILIKE p_estado_nombre
-      AND t.activo = TRUE
-    ORDER BY t.fecha_creacion DESC;
-END;
-$$;
 
-CREATE PROCEDURE actualizar_estado_tema(
-  p_tema_id           INTEGER,
-  p_nuevo_estado_nombre TEXT
-)
-LANGUAGE plpgsql
-AS $$
-BEGIN
-  UPDATE tema
-  SET estado_tema_id = (
-    SELECT estado_tema_id
-    FROM estado_tema
-    WHERE nombre ILIKE p_nuevo_estado_nombre
-    LIMIT 1
-  )
-  WHERE tema_id = p_tema_id;
-END;
-$$;
