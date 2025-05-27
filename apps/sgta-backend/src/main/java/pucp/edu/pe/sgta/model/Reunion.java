@@ -33,8 +33,8 @@ public class Reunion {
     @Column(columnDefinition = "TEXT")
     private String descripcion;
 
-    @Column(nullable = false)
-    private Boolean disponible = true;
+    @Column(nullable = false, columnDefinition = "INTEGER")
+    private Integer disponible = 1;
 
     private String url;
 

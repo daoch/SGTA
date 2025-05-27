@@ -18,7 +18,7 @@ public class ReunionDto {
     private OffsetDateTime fechaHoraInicio;
     private OffsetDateTime fechaHoraFin;
     private String descripcion;
-    private Boolean disponible;
+    private Integer disponible;
     private String url;
     private Boolean activo;
     private OffsetDateTime fechaCreacion;
