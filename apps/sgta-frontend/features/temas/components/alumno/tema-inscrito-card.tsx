@@ -33,6 +33,23 @@ import { BookOpen, Edit, Eye, Users } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+interface Tesis {
+  id: number;
+  titulo: string;
+  resumen: string;
+  area?: {
+    id: number;
+    nombre: string;
+  };
+  tesistas: {
+    id: number;
+    nombres: string;
+    primerApellido: string;
+    codigoPucp: string;
+  }[];
+  coasesores?: string[];
+}
+
 const profesoresData = [
   { id: "1", nombre: "Dr. Roberto Sánchez" },
   { id: "2", nombre: "Dra. Carmen Vega" },
@@ -55,7 +72,7 @@ const areasData = [
 ];
 
 export function TemaCard() {
-  const [tesisData, setTesisData] = useState<any | null>(null);
+  const [tesisData, setTesisData] = useState<Tesis | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     titulo: "",
@@ -154,7 +171,7 @@ export function TemaCard() {
         <div className="flex justify-between items-start">
           <div>
             <CardTitle className="text-xl text-pucp-blue">{tesisData.titulo}</CardTitle>
-            <CardDescription className="mt-1">{tesisData.area ?? "Área no especificada"}</CardDescription>
+            <CardDescription className="mt-1">{tesisData.area?.nombre ?? "Área no especificada"}</CardDescription>
           </div>
           <Badge variant="outline" className="bg-green-100 text-green-800 hover:bg-green-100">
             En desarrollo
@@ -186,7 +203,7 @@ export function TemaCard() {
               <Users className="h-4 w-4" /> <span>Tesistas</span>
             </h3>
             <ul className="space-y-1">
-              {tesisData.tesistas.map((est: any) => (
+              {tesisData.tesistas.map((est) => (
                 <li key={est.id} className="text-sm flex justify-between">
                   <span>{`${est.nombres} ${est.primerApellido}`}</span>
                   <span className="text-muted-foreground">{est.codigoPucp}</span>

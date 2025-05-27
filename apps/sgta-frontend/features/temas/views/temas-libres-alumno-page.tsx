@@ -12,6 +12,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { PropuestasTable } from "@/features/temas/components/alumno/temas-libres-table";
 import { useEffect, useState } from "react";
 
+interface Subarea {
+  nombre: string;
+  [key: string]: unknown; 
+}
+
 export default function TemasLibresAlumnoPage() {
   const [searchTitulo, setSearchTitulo] = useState("");
   const [searchAsesor, setSearchAsesor] = useState("");
@@ -27,7 +32,7 @@ export default function TemasLibresAlumnoPage() {
         if (!res.ok) throw new Error("Error al obtener subáreas");
         const data = await res.json();
         const nombresUnicos = Array.from(
-          new Set(data.map((item: any) => item.nombre).filter(Boolean))
+          new Set((data as Subarea[]).map((item) => item.nombre).filter(Boolean))
         ).sort();
         setSubareas(nombresUnicos);
       } catch (err) {
