@@ -431,7 +431,7 @@ public class SolicitudServiceImpl implements SolicitudService {
             SolicitudTemaDto.Asesor asesorDto = null;
             
             // Business logic for solicitudCompletada and aprobado
-            boolean solicitudCompletada = determinarSolicitudCompletadaFromData(estado);
+            boolean solicitudCompletada = (Boolean) row[14];
             boolean aprobado = determinarAprobadoFromData(estado);            // For students, we could fetch from a separate query or include in the procedure
             // For now, using a simple representation with the current user as the student
             SolicitudTemaDto.Tema tema = new SolicitudTemaDto.Tema("Tema de Tesis", "Resumen del tema"); // This should be replaced with actual topic title and summary

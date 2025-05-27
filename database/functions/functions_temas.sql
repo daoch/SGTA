@@ -1472,7 +1472,8 @@ RETURNS TABLE (
     usuario_nombres VARCHAR,
     usuario_primer_apellido VARCHAR,
     usuario_segundo_apellido VARCHAR,
-    usuario_correo VARCHAR
+    usuario_correo VARCHAR,
+    solicitud_completada BOOLEAN
 ) AS $$
 BEGIN
     RETURN QUERY    SELECT 
@@ -1489,7 +1490,8 @@ BEGIN
         u.nombres,
         u.primer_apellido,
         u.segundo_apellido,
-        u.correo_electronico    FROM solicitud s
+        u.correo_electronico,
+        uxs.solicitud_completada    FROM solicitud s
     INNER JOIN tipo_solicitud ts ON s.tipo_solicitud_id = ts.tipo_solicitud_id
     INNER JOIN usuario_solicitud uxs ON s.solicitud_id = uxs.solicitud_id AND uxs.destinatario = true
     INNER JOIN usuario u ON uxs.usuario_id = u.usuario_id
