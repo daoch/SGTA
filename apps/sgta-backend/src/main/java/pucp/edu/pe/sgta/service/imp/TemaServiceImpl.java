@@ -82,8 +82,6 @@ public class TemaServiceImpl implements TemaService {
 
 	private final UsuarioXSolicitudRepository    usuarioXSolicitudRepository;
 
-	private final SolicitudService solicitudService;
-
   	private final SubAreaConocimientoService subAreaService;
 
 
@@ -100,7 +98,7 @@ public class TemaServiceImpl implements TemaService {
 			JornadaExposicionRepository jornadaExposicionRepository, ExposicionRepository exposicionRepository,
 			JornadaExposicionXSalaExposicionRepository jornadaExposicionXSalaExposicionRepository,
 			UsuarioXTemaRepository usuarioTemaRepository, TipoSolicitudRepository tipoSolicitudRepository, 
-			SolicitudRepository solicitudRepository, SolicitudService solicitudService,
+			SolicitudRepository solicitudRepository, 
 			UsuarioXSolicitudRepository usuarioXSolicitudRepository) {
 		this.temaRepository = temaRepository;
 		this.usuarioXTemaRepository = usuarioXTemaRepository;
@@ -122,7 +120,6 @@ public class TemaServiceImpl implements TemaService {
 		this.tipoSolicitudRepository = tipoSolicitudRepository;
 		this.solicitudRepository = solicitudRepository;
 		this.usuarioXSolicitudRepository = usuarioXSolicitudRepository;
-		this.solicitudService = solicitudService;
 		this.subAreaService = subAreaConocimientoService;
 	}
 
@@ -406,7 +403,53 @@ public class TemaServiceImpl implements TemaService {
 			eliminarPropuestasTesista(u.getId());
 		}
 		// 6) Generar y enviar la solicitud de aprobación
-		solicitudService.crearSolicitudAprobacionTema(tema);
+		crearSolicitudAprobacionTema(tema);
+    }
+
+	    /**
+     * Crea una solicitud de aprobación de tema y la asigna a todos los coordinadores
+     * activos de la carrera asociada.
+     *
+     * @param tema Tema recién creado al que se asociará la solicitud.
+     */
+    private void crearSolicitudAprobacionTema(Tema tema) {
+        // 1) Obtener el tipo de solicitud
+        TipoSolicitud tipoSolicitud = tipoSolicitudRepository
+            .findByNombre("Aprobación de tema (por coordinador)")
+            .orElseThrow(() ->
+                new RuntimeException("Tipo de solicitud no configurado: Aprobación de tema (por coordinador)"));
+
+        // 2) Construir y guardar la solicitud
+        Solicitud solicitud = new Solicitud();
+        solicitud.setDescripcion("Solicitud de aprobación de tema por coordinador");
+        solicitud.setTipoSolicitud(tipoSolicitud);
+        solicitud.setTema(tema);
+        solicitud.setEstado(0); // Ajusta según tu convención (p.ej. 0 = PENDIENTE)
+        Solicitud savedSolicitud = solicitudRepository.save(solicitud);
+
+        // 3) Buscar los usuarios-coordinador de la carrera del tema
+        List<UsuarioXSolicitud> asignaciones = usuarioCarreraRepository
+            .findByCarreraIdAndActivoTrue(tema.getCarrera().getId()).stream()
+            .map(rel -> rel.getUsuario())
+            .filter(u -> TipoUsuarioEnum.coordinador.name().equalsIgnoreCase(u.getTipoUsuario().getNombre()))
+            .map(coord -> {
+                UsuarioXSolicitud us = new UsuarioXSolicitud();
+                us.setUsuario(coord);
+                us.setSolicitud(savedSolicitud);
+                us.setDestinatario(true);
+                us.setAprobado(false);
+                us.setSolicitudCompletada(false);
+                return us;
+            })
+            .collect(Collectors.toList());
+
+        if (asignaciones.isEmpty()) {
+            throw new RuntimeException(
+                "No hay coordinador activo para la carrera con id " + tema.getCarrera().getId());
+        }
+
+        // 4) Guardar todas las asignaciones de la solicitud
+        usuarioXSolicitudRepository.saveAll(asignaciones);
     }
 
 	/**
