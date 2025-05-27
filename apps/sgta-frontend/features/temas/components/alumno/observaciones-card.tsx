@@ -1,7 +1,17 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -12,7 +22,6 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -20,20 +29,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { AlertCircle, CheckCircle, Pencil } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogTrigger,
-  AlertDialogCancel,
-  AlertDialogAction,
-} from "@/components/ui/alert-dialog";
+import { AlertCircle, CheckCircle, Pencil } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 interface Props {
   observaciones: {
@@ -94,11 +94,13 @@ export function ObservacionesCard({ observaciones, solicitudes }: Props) {
     if (campo === "asesor") return editadoAsesor && asesor.trim() !== "";
     return true;
   });
-
+  
   useEffect(() => {
     const fetchTema = async () => {
       try {
-        const res = await fetch("http://localhost:5000/temas/listarTemasPorUsuarioRolEstado/7?rolNombre=Tesista&estadoNombre=INSCRITO");
+        const res = await fetch(
+              `${process.env.NEXT_PUBLIC_API_URL}/temas/listarTemasPorUsuarioRolEstado/2?rolNombre=Tesista&estadoNombre=INSCRITO`
+        );
         const data = await res.json();
         const tema = data[0];
         if (tema) {
@@ -135,7 +137,8 @@ export function ObservacionesCard({ observaciones, solicitudes }: Props) {
     };
 
     try {
-      const response = await fetch("http://localhost:5000/solicitudes/atenderSolicitudTemaInscrito", {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/solicitudes/atenderSolicitudTemaInscrito`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

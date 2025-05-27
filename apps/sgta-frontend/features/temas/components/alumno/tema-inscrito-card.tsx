@@ -70,7 +70,8 @@ export function TemaCard() {
   useEffect(() => {
     const fetchTesis = async () => {
       try {
-        const response = await fetch("http://localhost:5000/temas/listarTemasPorUsuarioRolEstado/7?rolNombre=Tesista&estadoNombre=INSCRITO");
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/temas/listarTemasPorUsuarioRolEstado/2?rolNombre=Tesista&estadoNombre=INSCRITO`
+        );
         if (!response.ok) throw new Error("Error al obtener datos de tesis");
         const data = await response.json();
         const tesis = data[0];
@@ -198,7 +199,7 @@ export function TemaCard() {
       <CardFooter className="flex justify-between">
         <Link href={`/alumno/temas/${tesisData.id}`}>
           <Button variant="outline">
-            <Eye className="mr-2 h-4 w-4" /> Ver detalle completo
+            <Eye className="mr-2 h-4 w-4" /> Ver observaciones
           </Button>
         </Link>
 

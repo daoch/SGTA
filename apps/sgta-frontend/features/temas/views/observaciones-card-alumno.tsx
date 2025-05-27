@@ -1,14 +1,11 @@
 "use client";
 
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { ObservacionesCard } from "@/features/temas/components/alumno/observaciones-card";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-
-interface Props {
-  id: string; 
-}
 
 interface Observacion {
   campo: "título" | "descripción";
@@ -31,24 +28,29 @@ interface Solicitud {
   }[];
 }
 
-export function ObservacionesAlumnoView({ id }: Props) {
+export function ObservacionesAlumnoView() {
   const router = useRouter();
+  const [temaId, setTemaId] = useState<string | null>(null);
   const [observaciones, setObservaciones] = useState<Observacion[]>([]);
   const [solicitudes, setSolicitudes] = useState<Solicitud[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchObservaciones = async () => {
+    const fetchTemaYObservaciones = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/solicitudes/listSolicitudesByTema/${id}`);
-        if (!response.ok) throw new Error("Error al obtener las observaciones");
-        const data = await response.json();
+        const temaRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/temas/listarTemasPorUsuarioRolEstado/2?rolNombre=Tesista&estadoNombre=INSCRITO`);
+        const temaData = await temaRes.json();
+        const tema = temaData[0];
+        if (!tema?.id) throw new Error("No se encontró tema inscrito");
 
-        // Filtrar tipos de solicitud 2 y 3 (título y descripción)
-        const filtradas = data.changeRequests.filter((req: any) =>
-          req.tipoSolicitud.id === 2 || req.tipoSolicitud.id === 3
-        );
+        setTemaId(tema.id);
+
+        const obsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/solicitudes/listSolicitudesByTema/${tema.id}`);
+        if (!obsRes.ok) throw new Error("Error al obtener las observaciones");
+
+        const obsData = await obsRes.json();
+        const filtradas = obsData.changeRequests.filter((req: any) => req.tipoSolicitud.id === 2 || req.tipoSolicitud.id === 3);
 
         const observacionesFormateadas: Observacion[] = filtradas.map((req: any) => ({
           campo: req.tipoSolicitud.id === 2 ? "título" : "descripción",
@@ -66,12 +68,10 @@ export function ObservacionesAlumnoView({ id }: Props) {
       }
     };
 
-    fetchObservaciones();
-  }, [id]);
+    fetchTemaYObservaciones();
+  }, []);
 
   if (loading) return <p className="p-6">Cargando observaciones...</p>;
-  if (error) return <p className="p-6 text-red-500">Error: {error}</p>;
-  if (observaciones.length === 0) return <p className="p-6">No se encontraron observaciones para este tema.</p>;
 
   return (
     <div className="space-y-8 mt-4">
@@ -87,8 +87,21 @@ export function ObservacionesAlumnoView({ id }: Props) {
         </p>
       </div>
 
-      {/* ✅ Pasas ambos como props al componente hijo */}
-      <ObservacionesCard observaciones={observaciones} solicitudes={solicitudes} />
+      {error && (
+        <Alert variant="destructive">
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {observaciones.length === 0 ? (
+        <Alert>
+          <AlertTitle>Sin observaciones</AlertTitle>
+          <AlertDescription>No se encontraron observaciones para este tema.</AlertDescription>
+        </Alert>
+      ) : (
+        <ObservacionesCard observaciones={observaciones} solicitudes={solicitudes} />
+      )}
     </div>
   );
 }
