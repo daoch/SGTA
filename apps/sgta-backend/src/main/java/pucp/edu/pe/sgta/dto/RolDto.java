@@ -2,7 +2,7 @@ package pucp.edu.pe.sgta.dto;
 
 import java.time.OffsetDateTime;
 
-import jakarta.persistence.Entity;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -22,4 +22,5 @@ public class RolDto {
     private Boolean activo;
     private OffsetDateTime fechaCreacion;
     private OffsetDateTime fechaModificacion;
+    
 }

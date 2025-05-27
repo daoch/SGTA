@@ -190,10 +190,6 @@ public class UsuarioController {
         }
         return ResponseEntity.ok(carreras);
     }
-	@GetMapping("/getAsesoresBySubArea")
-	public List<UsuarioDto> getAsesoresBySubArea(@RequestParam(name = "idSubArea") Integer idSubArea) {
-		return this.usuarioService.getAsesoresBySubArea(idSubArea);
-	}
 
 	@GetMapping("/findByCodigo")
 	public UsuarioDto findByCodigo(@RequestParam("codigo") String codigo) {
@@ -235,5 +231,11 @@ public class UsuarioController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
+
+    }
+    
+    @GetMapping("/getAsesoresBySubArea")
+    public List<UsuarioDto> getAsesoresBySubArea(@RequestParam(name = "idSubArea") Integer idSubArea) {
+        return this.usuarioService.getAsesoresBySubArea(idSubArea);
     }
 }

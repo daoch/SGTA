@@ -1,6 +1,5 @@
 "use client";
-
-import type React from "react";
+import React from "react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,7 +12,13 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { etapaFormativaCicloService } from "../../services/etapa-formativa-ciclo";
 import { EtapaFormativaCiclo } from "../../types/etapa-formativa-ciclo";
 import { toast } from "sonner";
@@ -26,42 +31,27 @@ interface EditarEtapaModalProps {
 
 export function EditarEtapaModal({ etapa, onSuccess }: EditarEtapaModalProps) {
   const [open, setOpen] = useState(false);
-  const [nombre, setNombre] = useState(etapa.nombreEtapaFormativa);
-  const [creditaje, setCreditaje] = useState(etapa.creditajePorTema.toString());
+  const [estado, setEstado] = useState<"En Curso" | "Finalizado">(
+    etapa.estado || "En Curso"
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (open) {
-      setNombre(etapa.nombreEtapaFormativa);
-      setCreditaje(etapa.creditajePorTema.toString());
-    }
-  }, [open, etapa]);
+    if (open) setEstado(etapa.estado);
+  }, [open, etapa.estado]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!nombre || !creditaje) {
-      toast.error("Por favor complete todos los campos");
-      return;
-    }
-
     setIsSubmitting(true);
+    
     try {
-      await etapaFormativaCicloService.update(
-        etapa.etapaFormativaId,
-        etapa.cicloId,
-        {
-          nombre: nombre,
-          creditajePorTema: parseFloat(creditaje)
-        }
-      );
-      
-      toast.success("Etapa actualizada exitosamente");
+      await etapaFormativaCicloService.actualizarEstado(etapa.id, estado);
+      toast.success("Estado actualizado");
       setOpen(false);
       onSuccess?.();
     } catch (error) {
-      console.error("Error al actualizar la etapa:", error);
-      toast.error("Error al actualizar la etapa");
+      console.error("Error:", error);
+      toast.error("Error al actualizar");
     } finally {
       setIsSubmitting(false);
     }
@@ -76,38 +66,44 @@ export function EditarEtapaModal({ etapa, onSuccess }: EditarEtapaModalProps) {
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Editar Etapa</DialogTitle>
+          <DialogTitle>Editar Estado</DialogTitle>
           <DialogDescription>
-            Modifique los datos de la etapa formativa. Los cambios se verán reflejados inmediatamente.
+            Seleccione el nuevo estado
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="nombre">Nombre de la Etapa</Label>
-              <Input
-                id="nombre"
-                value={nombre}
-                onChange={(e) => setNombre(e.target.value)}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="creditaje">Creditaje por Tema</Label>
-              <Input
-                id="creditaje"
-                type="number"
-                step="0.01"
-                value={creditaje}
-                onChange={(e) => setCreditaje(e.target.value)}
-              />
+              <Label>Estado</Label>
+
+
+              <Select
+                value={estado}
+                onValueChange={(value: "En Curso" | "Finalizado") => setEstado(value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccione un estado" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="En Curso">En Curso</SelectItem>
+                  <SelectItem value="Finalizado">Finalizado</SelectItem>
+                </SelectContent>
+              </Select>
+
+
+
             </div>
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => setOpen(false)}
+            >
               Cancelar
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Actualizando..." : "Guardar Cambios"}
+              {isSubmitting ? "Guardando..." : "Guardar"}
             </Button>
           </DialogFooter>
         </form>
