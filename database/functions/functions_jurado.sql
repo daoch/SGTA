@@ -162,7 +162,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-
 CREATE OR REPLACE FUNCTION listar_jornadas_exposicion_salas(
 	expo_id integer
 )
@@ -379,6 +378,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION obtener_ciclo_etapa_por_tema(p_tema_id integer)
+CREATE OR REPLACE FUNCTION obtener_ciclo_etapa_por_tema(p_tema_id integer)
     RETURNS TABLE(ciclo_id integer, ciclo_nombre text, etapa_formativa_id integer, etapa_formativa_nombre text)
     LANGUAGE plpgsql
 AS
@@ -401,7 +401,7 @@ BEGIN
 END;
 $$;
 
-
+CREATE OR REPLACE FUNCTION obtener_area_conocimiento_jurado(usuario_id_param integer)
 CREATE OR REPLACE FUNCTION obtener_area_conocimiento_jurado(usuario_id_param integer)
     RETURNS TABLE(usuario_id integer, area_conocimiento_id integer, area_conocimiento_nombre character varying)
     LANGUAGE plpgsql
@@ -736,9 +736,123 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION terminar_planificacion(idExposicion integer) returns BOOLEAN
-LANGUAGE plpgsql
-AS $$
+CREATE OR REPLACE FUNCTION listar_entregables_x_etapa_formativa_x_ciclo(etapaformativaxcicloid integer)
+    RETURNS TABLE(id integer, etapa_formativa_x_ciclo_id integer, nombre character varying, descripcion text, fecha_inicio timestamp with time zone, fecha_fin timestamp with time zone, estado enum_estado_actividad, es_evaluable boolean)
+    LANGUAGE plpgsql
+AS
+$$
+BEGIN
+    RETURN QUERY
+    SELECT
+        e.entregable_id AS id,
+        e.etapa_formativa_x_ciclo_id,
+        e.nombre,
+        e.descripcion,
+        e.fecha_inicio,
+        e.fecha_fin,
+        e.estado AS estado,
+        e.es_evaluable
+    FROM entregable e
+    INNER JOIN etapa_formativa_x_ciclo efc ON e.etapa_formativa_x_ciclo_id = efc.etapa_formativa_x_ciclo_id
+    WHERE efc.etapa_formativa_x_ciclo_id = etapaFormativaXCicloId
+      AND e.activo = TRUE;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION listar_etapa_formativa_nombre()
+    RETURNS TABLE(etapa_formativa_id integer, nombre text)
+    LANGUAGE plpgsql
+AS
+$$
+BEGIN
+    RETURN QUERY
+    SELECT
+        ef.etapa_formativa_id,
+        ef.nombre
+    FROM etapa_formativa ef
+    WHERE ef.activo = true;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION obtener_carreras_activas_por_usuario(p_usuario_id integer) RETURNS SETOF carrera
+    LANGUAGE plpgsql
+AS
+$$
+BEGIN
+    RETURN QUERY
+	Select c.* from Carrera as c
+	where c.activo = true
+	and c.carrera_id in(select uc.usuario_carrera_id
+						from usuario_carrera as uc
+						where uc.usuario_id = p_usuario_id
+						and uc.activo = true);
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION obtener_etapas_formativas_por_tema_simple(p_tema_id integer)
+    RETURNS TABLE(etapa_formativa_id integer, nombre_etapa text)
+    LANGUAGE plpgsql
+AS
+$$
+BEGIN
+    RETURN QUERY
+    SELECT DISTINCT
+        ef.etapa_formativa_id,
+        ef.nombre AS nombre_etapa
+    FROM exposicion_x_tema ext
+    JOIN exposicion e ON ext.exposicion_id = e.exposicion_id
+    JOIN etapa_formativa_x_ciclo efxc ON e.etapa_formativa_x_ciclo_id = efxc.etapa_formativa_x_ciclo_id
+    JOIN etapa_formativa ef ON efxc.etapa_formativa_id = ef.etapa_formativa_id
+    WHERE ext.tema_id = p_tema_id
+      AND ext.activo = true
+      AND e.activo = true
+      AND ef.activo = true;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION obtener_exposiciones_por_etapa_formativa(p_etapa_formativa_id integer)
+    RETURNS TABLE(exposicion_id integer, nombre_exposicion text, estado_exposicion character varying, datetime_inicio timestamp with time zone, datetime_fin timestamp with time zone, nombre_sala_exposicion text)
+    LANGUAGE plpgsql
+AS
+$$
+BEGIN
+    RETURN QUERY
+    SELECT
+        e.exposicion_id,
+        e.nombre AS nombre_exposicion,
+        ext.estado_exposicion::VARCHAR,
+        bhe.datetime_inicio,
+        bhe.datetime_fin,
+        se.nombre AS nombre_sala_exposicion
+    FROM etapa_formativa ef
+    JOIN etapa_formativa_x_sala_exposicion efxs
+        ON ef.etapa_formativa_id = efxs.etapa_formativa_id
+    JOIN sala_exposicion se
+        ON efxs.sala_exposicion_id = se.sala_exposicion_id
+    JOIN jornada_exposicion_x_sala_exposicion jexs
+        ON se.sala_exposicion_id = jexs.sala_exposicion_id
+    JOIN jornada_exposicion je
+        ON jexs.jornada_exposicion_id = je.jornada_exposicion_id
+    JOIN exposicion e
+        ON je.exposicion_id = e.exposicion_id
+    JOIN exposicion_x_tema ext
+        ON ext.exposicion_id = e.exposicion_id
+    JOIN bloque_horario_exposicion bhe
+        ON bhe.exposicion_x_tema_id = ext.exposicion_x_tema_id
+    WHERE ef.etapa_formativa_id = p_etapa_formativa_id
+      AND ef.activo = TRUE
+      AND efxs.activo = TRUE
+      AND jexs.activo = TRUE
+      AND e.activo = TRUE
+      AND ext.activo = TRUE
+      AND bhe.activo = TRUE;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION terminar_planificacion(idexposicion integer) RETURNS boolean
+    LANGUAGE plpgsql
+AS
+$$
 DECLARE
    id_cierre_planificacion integer;
 BEGIN
@@ -748,10 +862,55 @@ BEGIN
  	update exposicion set estado_planificacion_id = id_cierre_planificacion
 	where exposicion_id = idExposicion;
 
-	update exposicion_x_tema set estado_exposicion = 'programada' 
+	update exposicion_x_tema set estado_exposicion = 'programada'
 	where exposicion_id = idExposicion;
 
-	
+
 	RETURN TRUE;
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION listar_bloque_con_sala(
+	_exposicion_id integer
+)
+RETURNS TABLE(
+	id_bloque integer,
+    fecha_ini  timestamptz,
+    fecha_fin  timestamptz,
+    id_sala integer,
+    sala text    
+)
+AS $$
+BEGIN
+    RETURN QUERY
+ 	SELECT 
+		b.bloque_horario_exposicion_id as "id_bloque",
+		b.datetime_inicio as "fecha_ini",
+		b.datetime_fin as "fecha_fin",
+		s.sala_exposicion_id as "id_sala",
+		s.nombre  as "sala"
+    from bloque_horario_exposicion b
+	inner join jornada_exposicion_x_sala_exposicion j  on b.jornada_exposicion_x_sala_id = j.jornada_exposicion_x_sala_id
+	inner join jornada_exposicion je on je.jornada_exposicion_id = j.jornada_exposicion_id
+	inner join sala_exposicion s on s.sala_exposicion_id = j.sala_exposicion_id 
+	where b.activo = true and je.exposicion_id = _exposicion_id;
+END;
+$$ LANGUAGE plpgsql;
+-- Para volver a estados
+
+update exposicion
+set
+    estado_planificacion_id = 2
+where
+    exposicion_id = 1
+    or exposicion_id = 2;
+
+update bloque_horario_exposicion
+set
+    exposicion_x_tema_id = null,
+    es_bloque_reservado = false,
+    fecha_modificacion = null
+where
+    bloque_horario_exposicion_id >= 1;
+
+update exposicion_x_tema set estado_exposicion = 'sin_programar';

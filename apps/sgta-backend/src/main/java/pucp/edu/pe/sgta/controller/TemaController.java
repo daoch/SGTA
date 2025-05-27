@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import pucp.edu.pe.sgta.dto.asesores.InfoTemaPerfilDto;
 import pucp.edu.pe.sgta.dto.TemaConAsesorJuradoDTO;
 import pucp.edu.pe.sgta.dto.TemaDto;
+import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
 import pucp.edu.pe.sgta.service.inter.TemaService;
 
 import java.util.List;
@@ -161,6 +162,12 @@ public class TemaController {
 													@RequestParam("temaId") Integer temaId){
 		temaService.rechazarPostulacionAPropuestaGeneral(temaId, asesorId, alumnoId);
 	}
+
+	@GetMapping("/listarExposiciones/{temaId}")
+	public List<ExposicionTemaMiembrosDto> listarExposicionXTemaId(@PathVariable Integer temaId){
+		return temaService.listarExposicionXTemaId(temaId);
+	}
+
 
 }
 
