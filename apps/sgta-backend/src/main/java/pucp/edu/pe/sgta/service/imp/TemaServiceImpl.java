@@ -581,41 +581,59 @@ public class TemaServiceImpl implements TemaService {
 	public List<TemaDto> listarTemasPorUsuarioRolEstado(Integer usuarioId,
 			String rolNombre,
 			String estadoNombre) {
+
 		List<Object[]> rows = temaRepository.listarTemasPorUsuarioRolEstado(
 				usuarioId, rolNombre, estadoNombre);
-		List<TemaDto> resultados = new ArrayList<>();
+
+		Map<Integer, TemaDto> dtoMap = new LinkedHashMap<>();
 
 		for (Object[] r : rows) {
-			System.out.println("cols=" + r.length + " → " + java.util.Arrays.toString(r));
-			// luego tu mapeo…
-		}
-		for (Object[] r : rows) {
-			TemaDto dto = TemaDto.builder()
-					.id((Integer) r[0])
-					.titulo((String) r[1])
-					.resumen((String) r[2])
-					.metodologia((String) r[3])
-					.objetivos((String) r[4])
-					.portafolioUrl((String) r[5])
-					.activo((Boolean) r[6])
-					.fechaLimite(
-							r[7] != null
-									? ((Instant) r[7]).atOffset(ZoneOffset.UTC)
-									: null)
-					.fechaCreacion(
-							r[8] != null
+			Integer temaId = (Integer) r[0];
+
+			// Construye el DTO de área usando los índices corregidos
+			AreaConocimientoDto areaDto = AreaConocimientoDto.builder()
+				.id    ((Integer) r[14])   // ahora sí es area_id
+				.nombre((String ) r[15])   // area_nombre
+				.build();
+
+			TemaDto dto = dtoMap.get(temaId);
+			if (dto == null) {
+				dto = TemaDto.builder()
+					.id               ((Integer) r[0])
+					.codigo           ((String ) r[1])
+					.titulo           ((String ) r[2])
+					.resumen          ((String ) r[3])
+					.metodologia      ((String ) r[4])
+					.objetivos        ((String ) r[5])
+					.portafolioUrl    ((String ) r[6])
+					.activo           ((Boolean) r[7])
+					.fechaLimite      (r[8]  != null
 									? ((Instant) r[8]).atOffset(ZoneOffset.UTC)
 									: null)
-					.fechaModificacion(
-							r[9] != null
+					.fechaCreacion    (r[9]  != null
 									? ((Instant) r[9]).atOffset(ZoneOffset.UTC)
 									: null)
-					.codigo((String) r[10])
-					.estadoTemaNombre(estadoNombre)
+					.fechaModificacion(r[10] != null
+									? ((Instant) r[10]).atOffset(ZoneOffset.UTC)
+									: null)
+					.requisitos       ((String ) r[11])
+					.carrera          (
+						CarreraDto.builder()
+						.id    ((Integer) r[12])   // carrera_id
+						.nombre((String ) r[13])   // carrera_nombre
+						.build()
+					)
+					.area             (new ArrayList<>())
+					.estadoTemaNombre (estadoNombre)
 					.build();
-			resultados.add(dto);
+
+				dtoMap.put(temaId, dto);
+			}
+
+			dto.getArea().add(areaDto);
 		}
-		return resultados;
+
+		return new ArrayList<>(dtoMap.values());
 	}
 
 	@Override
