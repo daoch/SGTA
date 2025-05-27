@@ -8,31 +8,33 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import pucp.edu.pe.sgta.dto.asesores.FiltrosDirectorioAsesores;
 import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
-import pucp.edu.pe.sgta.model.Carrera;
+import pucp.edu.pe.sgta.dto.asesores.UsuarioFotoDto;
 import pucp.edu.pe.sgta.dto.CarreraDto;
-import pucp.edu.pe.sgta.dto.UserInfoDTO;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
 import pucp.edu.pe.sgta.service.inter.CarreraService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
+import pucp.edu.pe.sgta.dto.AlumnoTemaDto;
 
 @RestController
 
 @RequestMapping("/usuario")
 public class UsuarioController {
 
+    @Autowired
+	private CarreraService carreraService;
+
 	@Autowired
 	private UsuarioService usuarioService;
-
-    @Autowired
-    private CarreraService carreraService;
 
 	@PostMapping("/create")
 	public void create(@RequestBody UsuarioDto dto) {
 		this.usuarioService.createUsuario(dto);
 	}
 
-	@GetMapping("findByTipoUsuarioAndCarrera")
+	@GetMapping("/findByTipoUsuarioAndCarrera")
     public List<UsuarioDto> getByTipoYCarrera(
             @RequestParam String tipoUsuarioNombre,
             @RequestParam(required = false) Integer carreraId,
@@ -161,12 +163,52 @@ public class UsuarioController {
         }
     }
 
-    @GetMapping("/{id}/carreras")
-    public ResponseEntity<List<CarreraDto>> obtenerCarrerasPorUsuario(@PathVariable Integer id) {
-        // Lógica de negocio que obtiene carreras del usuario
-        List<CarreraDto> carreras = carreraService.listarCarrerasPorUsuario(id);
+
+    @PutMapping("/uploadFoto")
+	public void uploadFoto(@RequestParam("idUsuario") Integer idUsuario, @RequestParam("file") MultipartFile file) {
+		usuarioService.uploadFoto(idUsuario, file);
+	}
+
+	@GetMapping("/getFotoUsuario")
+	public UsuarioFotoDto getFotoUsuario(@RequestParam("idUsuario") Integer idUsuario) {
+		return usuarioService.getUsuarioFoto(idUsuario);
+	}
+
+	@GetMapping("/getIdByCorreo")
+	public Integer getIdByCorreo(@RequestParam("correoUsuario") String correo) {
+		return usuarioService.getIdByCorreo(correo);
+	}
+	
+	@GetMapping("/{id}/carreras")
+    public ResponseEntity<List<CarreraDto>> listarCarreras(
+            @PathVariable("id") Integer usuarioId) {
+
+        List<CarreraDto> carreras = carreraService.listarCarrerasPorUsuario(usuarioId);
+
+        if (carreras.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
         return ResponseEntity.ok(carreras);
     }
+
+	@GetMapping("/findByCodigo")
+	public UsuarioDto findByCodigo(@RequestParam("codigo") String codigo) {
+		return this.usuarioService.findUsuarioByCodigo(codigo);
+	}
+    @GetMapping("/asesor-directory-by-filters")
+    public ResponseEntity<List<PerfilAsesorDto>> getDirectorioDeAsesoresPorFiltros(
+            @ModelAttribute FiltrosDirectorioAsesores filtros) {
+            List<PerfilAsesorDto> asesores = usuarioService.getDirectorioDeAsesoresPorFiltros(filtros);
+            return new ResponseEntity<>(asesores, HttpStatus.OK);
+
+//        try {
+//            List<PerfilAsesorDto> asesores = usuarioService.getDirectorioDeAsesoresPorFiltros(filtros);
+//            return new ResponseEntity<>(asesores, HttpStatus.OK);
+//        } catch (Exception e) {
+//            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+//        }
+    }
+    
 
 	@PostMapping("/carga-masiva")
 	public ResponseEntity<String> cargarUsuarios(@RequestParam("archivo") MultipartFile archivo) {
@@ -178,4 +220,22 @@ public class UsuarioController {
 					.body("Error al procesar el archivo: " + e.getMessage());
 		}
 	}
+
+    @GetMapping("/detalle-tema-alumno/{idUsuario}")
+    public ResponseEntity<AlumnoTemaDto> getDetalleTemaAlumno(@PathVariable("idUsuario") Integer idUsuario) {
+        try {
+            AlumnoTemaDto tema = usuarioService.getAlumnoTema(idUsuario);
+            return ResponseEntity.ok(tema);
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+
+    }
+    
+    @GetMapping("/getAsesoresBySubArea")
+    public List<UsuarioDto> getAsesoresBySubArea(@RequestParam(name = "idSubArea") Integer idSubArea) {
+        return this.usuarioService.getAsesoresBySubArea(idSubArea);
+    }
 }

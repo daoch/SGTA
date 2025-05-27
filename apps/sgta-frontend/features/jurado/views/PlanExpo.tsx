@@ -10,8 +10,7 @@ import {
 } from "@/features/jurado/services/data";
 import { JornadaExposicionDTO } from "../dtos/JornadExposicionDTO";
 import { transformarJornada } from "../utils/transformar-jornada";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import BackButton from "@/components/ui/back-button";
 
 type Props = {
   exposicionId: number;
@@ -24,8 +23,7 @@ export default async function PlanExpo({ exposicionId }: Props) {
   const jornadasSalas =
     await listarJornadasExposicionSalasByExposicion(exposicionId);
   const topics: AreaEspecialidad[] = [];
-  const roomAvailList: JornadaExposicionDTO[] =
-    jornadasSalas.map(transformarJornada);
+  const days: JornadaExposicionDTO[] = jornadasSalas.map(transformarJornada);
   const bloquesList = await listarBloquesHorariosExposicion(exposicionId);
   const estadoPlanificacion =
     await listarEstadoPlanificacionPorExposicion(exposicionId);
@@ -33,20 +31,14 @@ export default async function PlanExpo({ exposicionId }: Props) {
   return (
     <div className="h-fit w-full flex flex-col gap-4">
       <h1 className="text-3xl font-bold text-primary">
-        <Button
-          variant="outline"
-          size="icon"
-          // onClick={() => router.push("coordinador/exposiciones")}
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
+        <BackButton backUrl="/coordinador/exposiciones" />
         <span className="ml-3">Planificador de exposiciones</span>
       </h1>
       <GeneralPlanificationExpo
-        expos={expos}
+        temas={expos}
         topics={topics}
-        roomAvailList={roomAvailList}
-        bloquesList={bloquesList}
+        days={days}
+        bloques={bloquesList}
         exposicionId={exposicionId}
         estadoPlanificacion={estadoPlanificacion}
       />

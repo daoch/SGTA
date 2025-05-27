@@ -11,20 +11,21 @@ import java.sql.SQLException;
 import java.util.List;
 
 import jakarta.persistence.criteria.CriteriaBuilder.In;
+import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
 
 public interface TemaService {
 	List<TemaDto> getAll();
 
 	TemaDto findById(Integer id);
 
-	List<TemaDto> findByUsuario(Integer idUsuario); //Works for asesor, alumno, coordinador and revisor
+	List<TemaDto> findByUsuario(Integer idUsuario); // Works for asesor, alumno, coordinador and revisor
 
 	/**
 	 *
 	 *
 	 * @param dto
 	 * @param idUsuarioCreador: tesista id
-	 * @param tipoPropuesta: 0 for general, 1 for direct
+	 * @param tipoPropuesta:    0 for general, 1 for direct
 	 */
 	void createTemaPropuesta(TemaDto dto, Integer idUsuarioCreador, Integer tipoPropuesta);
 
@@ -32,7 +33,7 @@ public interface TemaService {
 
 	void delete(Integer id);
 
-	void createInscripcionTema(TemaDto dto); //Works for asesor, alumno, coordinador and revisor
+	void createInscripcionTema(TemaDto dto); // Works for asesor, alumno, coordinador and revisor
 
 	List<TemaDto> listarTemasPropuestosAlAsesor(Integer asesorId, String titulo, Integer limit, Integer offset);
 
@@ -41,19 +42,19 @@ public interface TemaService {
 			Integer asesorId,
 			String titulo,
 			Integer limit,
-			Integer offset
-	);
+			Integer offset);
 
 	void postularAsesorTemaPropuestoGeneral(Integer alumnoId, Integer asesorId, Integer temaId, String comentario);
 
-	void enlazarTesistasATemaPropuestDirecta(Integer[] usuariosId, Integer temaId, Integer profesorId, String comentario);
+	void enlazarTesistasATemaPropuestDirecta(Integer[] usuariosId, Integer temaId, Integer profesorId,
+			String comentario);
 
 	List<TemaDto> listarTemasPorUsuarioRolEstado(Integer usuarioId,
-												 String rolNombre,
-												 String estadoNombre);
+			String rolNombre,
+			String estadoNombre);
 
 	List<UsuarioDto> listarUsuariosPorTemaYRol(Integer temaId,
-											   String rolNombre);
+			String rolNombre);
 
 	List<SubAreaConocimientoDto> listarSubAreasPorTema(Integer temaId);
 
@@ -61,14 +62,11 @@ public interface TemaService {
 
 	void rechazarTemaPropuestaDirecta(Integer alumnoId, String comentario, Integer temaId);
 
-
 	List<TemaConAsesorJuradoDTO> listarTemasCicloActualXEtapaFormativa(Integer etapaFormativaId);
 
 	List<TemaDto> listarPropuestasPorTesista(Integer tesistaId);
 
 	List<TemaDto> listarPostulacionesAMisPropuestas(Integer tesistaId, Integer tipoPropuesta);
-
-
 
 	List<InfoTemaPerfilDto> listarTemasAsesorInvolucrado(Integer idAsesor);
 
@@ -79,23 +77,32 @@ public interface TemaService {
 	void rechazarPostulacionAPropuestaGeneral(Integer idTema, Integer idAsesor, Integer idTesista);
 
 	void aprobarPostulacionAPropuestaGeneral(Integer idTema, Integer idAsesor, Integer idTesista);
+
+	List<TemaDto> listarTemasPorEstadoYCarrera(String estadoNombre, Integer carreraId);
+
+	void cambiarEstadoTemaCoordinador(Integer temaId, String nuevoEstadoNombre,Integer usuarioId, String comentario);
+
+	List<ExposicionTemaMiembrosDto> listarExposicionXTemaId(Integer temaId);
+
 	void updateTituloResumenTemaSolicitud(Integer idTema, String titulo, String resumen);
 
 	/**
-	 * Updates the title of a theme based on a request and handles the request status.
+	 * Updates the title of a theme based on a request and handles the request
+	 * status.
 	 * 
 	 * @param solicitudId ID of the request to process
-	 * @param titulo New title for the theme (can be null)
-	 * @param respuesta Response message for the request
+	 * @param titulo      New title for the theme (can be null)
+	 * @param respuesta   Response message for the request
 	 */
 	void updateTituloTemaSolicitud(Integer solicitudId, String titulo, String respuesta);
 
 	/**
-	 * Updates the summary of a theme based on a request and handles the request status.
+	 * Updates the summary of a theme based on a request and handles the request
+	 * status.
 	 * 
 	 * @param solicitudId ID of the request to process
-	 * @param resumen New summary for the theme (can be null) 
-	 * @param respuesta Response message for the request
+	 * @param resumen     New summary for the theme (can be null)
+	 * @param respuesta   Response message for the request
 	 */
 	void updateResumenTemaSolicitud(Integer solicitudId, String resumen, String respuesta);
 

@@ -1,11 +1,13 @@
 package pucp.edu.pe.sgta.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import pucp.edu.pe.sgta.model.Solicitud;
+import pucp.edu.pe.sgta.model.Tema;
 import pucp.edu.pe.sgta.model.UsuarioXSolicitud;
 
 @Repository
@@ -14,5 +16,6 @@ public interface UsuarioXSolicitudRepository extends JpaRepository<UsuarioXSolic
     List<UsuarioXSolicitud> findBySolicitud(Solicitud solicitud);
     UsuarioXSolicitud findFirstBySolicitudAndDestinatarioTrue(Solicitud solicitud);
     UsuarioXSolicitud findFirstBySolicitudAndDestinatarioFalse(Solicitud solicitud);
+    Optional<UsuarioXSolicitud> findFirstBySolicitudIdAndUsuarioIdAndActivoTrue(Integer id, Integer usuarioId);
 
 }

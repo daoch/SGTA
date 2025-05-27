@@ -26,6 +26,7 @@ DROP TABLE IF EXISTS carrera                           CASCADE;
 DROP TABLE IF EXISTS unidad_academica                  CASCADE;
 DROP TABLE IF EXISTS usuario                           CASCADE;
 DROP TABLE IF EXISTS tipo_usuario                      CASCADE;
+DROP TABLE IF EXISTS tipo_dedicacion                   CASCADE;
 
 -- Tablas de gestión de temas y proyectos
 DROP TABLE IF EXISTS usuario_grupo_investigacion       CASCADE;  -- si no está repetida
@@ -73,6 +74,8 @@ DROP TABLE IF EXISTS version_documento                    CASCADE;
 DROP TABLE IF EXISTS revision_documento                   CASCADE;
 DROP TABLE IF EXISTS documento                            CASCADE;
 DROP TABLE IF EXISTS entregable                           CASCADE;
+DROP TABLE IF EXISTS criterio_entregable_preset           CASCADE;
+DROP TABLE IF EXISTS criterio_exposicion_preset           CASCADE;
 
 -- Finalmente, los ENUMs
 DROP TYPE IF EXISTS enum_estado_exposicion              CASCADE;
@@ -83,8 +86,8 @@ DROP TYPE IF EXISTS enum_estado_actividad                CASCADE;
 DROP TYPE IF EXISTS enum_estado_revision                CASCADE;
 DROP TYPE IF EXISTS enum_tipo_dato                      CASCADE;
 
-DROP TYPE IF EXISTS tipo_dedicacion cascade;
+DROP TABLE IF EXISTS tipo_dedicacion cascade;
 
-DROP TYPE IF EXISTS criterio_entregable_preset cascade;
+DROP TABLE IF EXISTS criterio_entregable_preset cascade;
 
-DROP TYPE IF EXISTS criterio_exposicion_preset cascade;
+DROP TABLE IF EXISTS criterio_exposicion_preset cascade;

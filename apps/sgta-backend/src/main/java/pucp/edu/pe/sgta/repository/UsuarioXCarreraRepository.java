@@ -8,4 +8,5 @@ import pucp.edu.pe.sgta.model.UsuarioXCarrera;
 
 public interface UsuarioXCarreraRepository extends JpaRepository<UsuarioXCarrera, Integer>{
     List<UsuarioXCarrera> findByUsuarioIdAndActivoTrue(Integer usuarioId);
+    List<UsuarioXCarrera> findByCarreraIdAndActivoTrue(Integer carreraId);
 }

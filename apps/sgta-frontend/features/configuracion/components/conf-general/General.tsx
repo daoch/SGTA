@@ -1,12 +1,4 @@
-import { useState } from "react";
-import { useEffect } from "react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -14,11 +6,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { useBackStore } from "../../store/configuracion-store";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { useBackStore } from "../../store/configuracion-store";
 
 //Nombres de los parámetros de configuración según la tabla parametro_configuracion en bdd
 const PARAM_MODALIDAD_DELIMITACION_TEMA = "modalidad_delimitacion_tema";

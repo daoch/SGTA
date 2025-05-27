@@ -1,5 +1,6 @@
 "use client";
-import { CoordinatorReports } from "@/components/main/reports/coordinator-reports";
+
+import { CoordinatorReports } from "@/features/reportes/views/coordinator-reports";
 
 export default function ReportsPage() {
 

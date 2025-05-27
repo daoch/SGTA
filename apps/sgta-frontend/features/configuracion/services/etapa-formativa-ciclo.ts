@@ -30,7 +30,21 @@ export const etapaFormativaCicloService = {
         );
         if (!response.ok) throw new Error("Error al actualizar la etapa");
         return response.json();
-    }
+    },
+
+    actualizarEstado: async (relacionId: number, estado: string) => {
+    const response = await fetch(
+      `http://localhost:5000/etapa-formativa-x-ciclo/actualizar-relacion/${relacionId}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ estado }),
+      }
+    );
+    return response.json();
+  }
 };
 
 export const ciclosService = {

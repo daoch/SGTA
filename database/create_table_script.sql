@@ -163,6 +163,7 @@ CREATE TABLE IF NOT EXISTS tema
     activo             BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    requisitos            TEXT,
 
     CONSTRAINT fk_estado_tema
         FOREIGN KEY (estado_tema_id)
@@ -250,6 +251,7 @@ CREATE TABLE IF NOT EXISTS solicitud
 	respuesta		   TEXT,	
     fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
 
     CONSTRAINT fk_solicitud_tipo
         FOREIGN KEY (tipo_solicitud_id)

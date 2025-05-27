@@ -1,6 +1,5 @@
 package pucp.edu.pe.sgta.dto;
 
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +8,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -38,6 +36,8 @@ public class TemaDto {
     private String objetivos;
 
     private String metodologia;
+
+    private String requisitos;
 
     private String portafolioUrl;
 
