@@ -26,17 +26,8 @@ interface StudentDetailsProps {
 const formatDate = (dateString: string) => {
   try {
     return format(parseISO(dateString), "dd/MM/yyyy", { locale: es });
-  } catch (error) {
+  } catch (_) {
     return "Fecha no disponible";
-  }
-};
-
-// Función auxiliar para formatear hora
-const formatTime = (timeString: string) => {
-  try {
-    return format(parseISO(`2000-01-01T${timeString}`), "HH:mm", { locale: es });
-  } catch (error) {
-    return timeString;
   }
 };
 

@@ -37,22 +37,23 @@ export function NuevaEtapaFormativaModal({ isOpen, onClose, onSuccess }: NuevaEt
   });
 
   useEffect(() => {
+    const cargarCarreras = async () => {
+      try {
+        const data = await carreraService.getAll();
+        setCarreras(data);
+      } catch (error) {
+        console.error("Error al cargar carreras:", error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "No se pudieron cargar las carreras. Intente nuevamente.",
+        });
+      }
+    };
+
     cargarCarreras();
   }, []);
 
-  const cargarCarreras = async () => {
-    try {
-      const data = await carreraService.getAll();
-      setCarreras(data);
-    } catch (error) {
-      console.error("Error al cargar carreras:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "No se pudieron cargar las carreras. Intente nuevamente.",
-      });
-    }
-  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;

@@ -46,11 +46,6 @@ export function AdvisorReports() {
     fetchStudents();
   }, []);
 
-  const getProgressColor = (progress: number) => {
-    if (progress < 30) return "#ef4444";
-    if (progress < 70) return "#eab308";
-    return "#22c55e";
-  };
 
   const renderStudentStatus = (estado: string) => {
     switch (estado) {
@@ -129,6 +124,12 @@ export function AdvisorReports() {
     setShowStatusFilter(!showStatusFilter);
     setShowProgressFilter(false);
   };
+
+  if (loading) {
+    return <div className="flex justify-center items-center min-h-[200px]">
+      <div className="text-lg">Cargando reportes del asesor...</div>
+    </div>;
+  }
 
   return (
     <div className="py-6">

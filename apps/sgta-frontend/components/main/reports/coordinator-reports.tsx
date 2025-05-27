@@ -184,20 +184,21 @@ export function CoordinatorReports() {
     return found ? found.topicCount : 0;
   };
 
-  const transformTrendsData = (responseData: Array<{year: number; areaName: string; topicCount: number}>) => {
-    const years = Array.from(new Set(responseData.map(item => item.year))).sort((a, b) => a - b);
-    const areas = Array.from(new Set(responseData.map(item => item.areaName)));
-
-    return years.map(year => {
-      const entry: { name: string; [key: string]: string | number } = { name: year.toString() };
-      areas.forEach(area => {
-        entry[area] = findTopicCount(responseData, year, area);
-      });
-      return entry;
-    });
-  };
 
   useEffect(() => {
+    const transformTrendsData = (responseData: Array<{year: number; areaName: string; topicCount: number}>) => {
+      const years = Array.from(new Set(responseData.map(item => item.year))).sort((a, b) => a - b);
+      const areas = Array.from(new Set(responseData.map(item => item.areaName)));
+
+      return years.map(year => {
+        const entry: { name: string; [key: string]: string | number } = { name: year.toString() };
+        areas.forEach(area => {
+          entry[area] = findTopicCount(responseData, year, area);
+        });
+        return entry;
+      });
+    };
+
     const fetchTopicTrends = async () => {
       try {
         setLoadingJuryDistribution(true);
@@ -434,7 +435,7 @@ export function CoordinatorReports() {
                     </tr>
                   </thead>
                   <tbody>
-                    {advisorDistribution.map((advisor, index) => {
+                    {advisorDistribution.map((advisor) => {
                       const juryCount = juryDistribution.find((j) => j.name === advisor.name)?.count ?? 0;
                       const total = advisor.count + juryCount;
 
@@ -468,7 +469,7 @@ export function CoordinatorReports() {
 
     return (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
-        {advisorPerformance.map((advisor, index) => (
+        {advisorPerformance.map((advisor) => (
           <div key={`${advisor.name}-${advisor.department}`} className="space-y-1">
             <div className="flex justify-between items-center">
               <div>
@@ -685,8 +686,8 @@ export function CoordinatorReports() {
                     <RechartsBarChart data={advisorPerformance} margin={{top: 5, right: 30, left: 20, bottom: 20}}>
                       <CartesianGrid strokeDasharray="3 3"/>
                       <XAxis dataKey="name" tickFormatter={toTitleCase} height={60} angle={0} textAnchor="end"/>
-                      <YAxis yAxisId="left" orientation="left" stroke="#002855" tick={{fontSize: 12}} label={{ value: 'Progreso (%)', angle: -90, position: 'insideLeft' }} allowDecimals={false}/>
-                      <YAxis yAxisId="right" orientation="right" stroke="#006699" tick={{fontSize: 12}} label={{ value: 'Tesistas', angle: 90, position: 'insideRight' }} allowDecimals={false}/>
+                      <YAxis yAxisId="left" orientation="left" stroke="#002855" tick={{fontSize: 12}} label={{ value: "Progreso (%)", angle: -90, position: "insideLeft" }} allowDecimals={false}/>
+                      <YAxis yAxisId="right" orientation="right" stroke="#006699" tick={{fontSize: 12}} label={{ value: "Tesistas", angle: 90, position: "insideRight" }} allowDecimals={false}/>
                       <Tooltip/>
                       <Legend wrapperStyle={{fontSize: "12px", marginTop: "10px"}}/>
                       <Bar yAxisId="left" dataKey="progress" name="Progreso (%)" fill="#002855"/>

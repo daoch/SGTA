@@ -31,7 +31,7 @@ const formatISOtoDuracion = (isoDuracion: string): string => {
     if (minutesMatch) minutes = parseInt(minutesMatch[1]);
     if (secondsMatch) seconds = parseInt(secondsMatch[1]);
 
-    return `${hours} horas ${minutes} minutos ${seconds} segundos`.trim().replace(/\b0 \w+ ?/g, '').trim() || '0 minutos';
+    return `${hours} horas ${minutes} minutos ${seconds} segundos`.trim().replace(/\b0 \w+ ?/g, "").trim() || "0 minutos";
 };
 
 export default function DetalleEtapaFormativaPage({ params }: { params: Promise<{ id: string }> }) {
@@ -40,20 +40,22 @@ export default function DetalleEtapaFormativaPage({ params }: { params: Promise<
   const { id } = use(params);
 
   useEffect(() => {
+    const loadEtapaFormativa = async () => {
+      try {
+        const data = await etapasFormativasService.getById(id);
+        setEtapaFormativa(data);
+      } catch (error) {
+        console.error("Error al cargar etapa formativa:", error);
+        toast.error("Error al cargar la etapa formativa");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     loadEtapaFormativa();
   }, [id]);
 
-  const loadEtapaFormativa = async () => {
-    try {
-      const data = await etapasFormativasService.getById(id);
-      setEtapaFormativa(data);
-    } catch (error) {
-      console.error("Error al cargar etapa formativa:", error);
-      toast.error("Error al cargar la etapa formativa");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+
 
   if (isLoading) {
     return <div className="py-6 px-2">Cargando etapa formativa...</div>;
