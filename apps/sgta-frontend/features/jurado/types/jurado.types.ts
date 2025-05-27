@@ -104,4 +104,41 @@ export interface Rol {
   nombre: string;
 }
 
+export interface ExposicionJurado {
+  id_exposicion: number;
+  fechahora: Date;
+  sala: string;
+  estado: string;
+  estado_control: string;
+  id_etapa_formativa: number;
+  nombre_etapa_formativa: string;
+  titulo: string;
+  ciclo_id: number;
+  miembros: MiembroJuradoExpo[];
+}
+
+export interface MiembroJuradoExpo {
+  id_persona: number;
+  nombre: string;
+  tipo: string;
+}
+
+export interface EvaluacionExposicionJurado {
+  id_exposicion: number;
+  titulo: string;
+  estudiantes: Estudiante[];
+  criterios: CriterioEvaluacion[];
+  observaciones_finales: string;
+}
+
+export interface CriterioEvaluacion {
+  id: number;
+  titulo: string;
+  descripcion: string;
+  calificacion: number;
+  nota_maxima: number;
+  observaciones: string;
+}
+
+
 export type OrigenBoton = "siguiente" | "terminar";
