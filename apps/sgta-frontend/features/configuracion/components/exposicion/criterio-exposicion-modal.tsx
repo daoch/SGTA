@@ -28,11 +28,17 @@ interface CriterioExposicionModalProps {
   onSubmit: (contenido: CriterioExposicionFormData) => Promise<void>;
   criterio?: CriterioExposicionFormData | null;
   mode: "create" | "edit";
+  criteriosExistentes: CriterioExposicionFormData[]; // Criterios ya agregados
 }
 
-export const CriterioExposicionModal: React.FC<
-CriterioExposicionModalProps
-> = ({ isOpen, onClose, onSubmit, criterio, mode }) => {
+export const CriterioExposicionModal: React.FC<CriterioExposicionModalProps> = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  criterio,
+  mode,
+  criteriosExistentes, // Pasar los criterios ya definidos en la exposición
+}) => {
   const isEditMode = mode === "edit";
 
   const [formData, setFormData] = useState<CriterioExposicionFormData>({
@@ -63,12 +69,12 @@ CriterioExposicionModalProps
   }, [criterio, isEditMode, isOpen]);
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: name === "notaMaxima" ? Number.parseInt(value) || 0 : value,
+      [name]: name === "notaMaxima" ? parseFloat(value) || 0 : value,
     }));
   };
 
@@ -78,16 +84,27 @@ CriterioExposicionModalProps
 
     try {
       await onSubmit(formData);
-      // No limpiamos el formulario aquí, ya que useEffect se encargará de eso
     } catch (error) {
       console.error(
         `Error al ${isEditMode ? "actualizar" : "crear"} el contenido:`,
-        error,
+        error
       );
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  // Filtrar el criterio que está siendo editado
+  const criteriosFiltrados = criteriosExistentes.filter(
+    (c) => c.id !== criterio?.id
+  );
+
+  // Calcular la suma total de los puntajes
+  const sumaTotalNotas =
+    criteriosFiltrados.reduce(
+      (acc, criterioExistente) => acc + criterioExistente.notaMaxima,
+      0
+    ) + formData.notaMaxima;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -95,34 +112,34 @@ CriterioExposicionModalProps
         <DialogHeader>
           <DialogTitle>
             {isEditMode
-              ? "Editar Contenido Esperado"
-              : "Nuevo Contenido Esperado"}
+              ? "Editar Criterio de Calificación"
+              : "Nuevo Criterio de Calificación"}
           </DialogTitle>
           <DialogDescription>
             {isEditMode
-              ? "Modifique los datos del contenido esperado para la exposición."
-              : "Agregue un nuevo contenido esperado para la exposición."}
+              ? "Modifique los datos del criterio de calificación."
+              : "Agregue un nuevo criterio de calificación."}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="titulo">Nombre del Contenido</Label>
+              <Label htmlFor="titulo">Nombre del Criterio</Label>
               <Input
-                id="txtNombreContenido"
+                id="txtNombreCriterio"
                 name="nombre"
-                placeholder="Ej: Introducción"
+                placeholder="Ej: Originalidad"
                 value={formData.nombre}
                 onChange={handleInputChange}
                 required
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="descripcion">Descripción Detallada</Label>
+              <Label htmlFor="descripcion">Descripción</Label>
               <Textarea
-                id="txtDescripcionContenido"
+                id="txtDescripcionCriterio"
                 name="descripcion"
-                placeholder="Descripción detallada del contenido esperado"
+                placeholder="Descripción detallada del criterio"
                 value={formData.descripcion}
                 onChange={handleInputChange}
                 required
@@ -132,21 +149,30 @@ CriterioExposicionModalProps
             <div className="grid gap-2">
               <Label htmlFor="puntos">Peso en la Calificación (puntos)</Label>
               <Input
-                id="txtPuntosContenido"
+                id="txtPuntosCriterio"
                 name="notaMaxima"
                 type="number"
-                min="1"
+                min="0.5"
                 max="20"
+                step="0.1"
                 placeholder="Ej: 5"
                 value={formData.notaMaxima || ""}
                 onChange={handleInputChange}
                 required
               />
               <p className="text-xs text-muted-foreground">
-                El total de puntos entre todos los contenidos debe sumar 20.
+                El total de puntos entre todos los criterios debe sumar 20.
               </p>
             </div>
           </div>
+          <p className="text-sm text-muted-foreground">
+            Suma total de criterios: {sumaTotalNotas} puntos
+          </p>
+          {sumaTotalNotas > 20 && (
+            <p className="text-sm text-red-500">
+              La suma de los criterios no puede exceder 20 puntos.
+            </p>
+          )}
           <DialogFooter>
             <Button
               id="btnCancel"
@@ -161,15 +187,15 @@ CriterioExposicionModalProps
               id="btnSave"
               type="submit"
               className="bg-black hover:bg-gray-800"
-              disabled={isSubmitting}
+              disabled={isSubmitting || sumaTotalNotas > 20} // Deshabilitar si la suma excede 20
             >
               {isSubmitting
                 ? isEditMode
                   ? "Guardando..."
                   : "Creando..."
                 : isEditMode
-                  ? "Guardar Cambios"
-                  : "Crear Contenido"}
+                ? "Guardar Cambios"
+                : "Crear Criterio"}
             </Button>
           </DialogFooter>
         </form>

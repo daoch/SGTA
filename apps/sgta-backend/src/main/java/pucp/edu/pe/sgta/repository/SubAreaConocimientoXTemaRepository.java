@@ -11,5 +11,5 @@ public interface SubAreaConocimientoXTemaRepository
         extends JpaRepository<SubAreaConocimientoXTema, SubAreaConocimientoXTema.SubAreaConocimientoXTemaId> {
 
     List<SubAreaConocimientoXTema> findByTemaIdAndActivoTrue(Integer temaId);
-
+    SubAreaConocimientoXTema findFirstByTemaIdAndActivoTrue(Integer temaId);
 }

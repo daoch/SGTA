@@ -3,6 +3,8 @@ package pucp.edu.pe.sgta.service.imp;
 import java.time.Duration;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.ArrayList;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -39,8 +41,9 @@ public class JornadaExposicionOrchestratorServiceImpl implements JornadaExposici
     @Override
     @Transactional
     public void initializeJornadasExposicion(IniatilizeJornadasExposicionCreateDTO dto) {
-        
+
         EtapaFormativaDto etapaFormativaDto = etapaFormativaService.findById(dto.getEtapaFormativaId());
+        List<BloqueHorarioExposicionCreateDTO> bloqueHorarioExposicionCreateDTOs = new ArrayList<BloqueHorarioExposicionCreateDTO>();
 
         dto.getFechas().forEach(fecha -> {
             JornadaExposicionCreateDTO createDTO = new JornadaExposicionCreateDTO();
@@ -48,12 +51,13 @@ public class JornadaExposicionOrchestratorServiceImpl implements JornadaExposici
             createDTO.setDatetimeFin(fecha.getFechaHoraFin());
             createDTO.setExposicionId(dto.getExposicionId());
             JornadaExposicionDto jornadaExposicionDto = jornadaExposicionService.create(createDTO);
-            
+
             fecha.getSalas().forEach(sala -> {
                 JornadaExposicionXSalaExposicionCreateDTO salaExposicionCreateDTO = new JornadaExposicionXSalaExposicionCreateDTO();
                 salaExposicionCreateDTO.setJornadaExposicionId(jornadaExposicionDto.getId());
                 salaExposicionCreateDTO.setSalaExposicionId(sala);
-                JornadaExposicionXSalaExposicionDto jornadaExposicionXSalaExposicionDto = jornadaExposicionXSalaExposicionService.create(salaExposicionCreateDTO);
+                JornadaExposicionXSalaExposicionDto jornadaExposicionXSalaExposicionDto = jornadaExposicionXSalaExposicionService
+                        .create(salaExposicionCreateDTO);
 
                 Duration duracionBloque = etapaFormativaDto.getDuracionExposicion();
 
@@ -64,15 +68,19 @@ public class JornadaExposicionOrchestratorServiceImpl implements JornadaExposici
                     OffsetDateTime actualFin = actualInicio.plus(duracionBloque);
 
                     BloqueHorarioExposicionCreateDTO bloqueHorarioExposicionCreateDTO = new BloqueHorarioExposicionCreateDTO();
-                    bloqueHorarioExposicionCreateDTO.setJornadaExposicionXSalaId(jornadaExposicionXSalaExposicionDto.getId());
+                    bloqueHorarioExposicionCreateDTO
+                            .setJornadaExposicionXSalaId(jornadaExposicionXSalaExposicionDto.getId());
                     bloqueHorarioExposicionCreateDTO.setDatetimeInicio(actualInicio);
                     bloqueHorarioExposicionCreateDTO.setDatetimeFin(actualFin);
-                    bloqueHorarioExposicionService.create(bloqueHorarioExposicionCreateDTO);
+
+                    bloqueHorarioExposicionCreateDTOs.add(bloqueHorarioExposicionCreateDTO);
 
                     actualInicio = actualFin;
                 }
             });
         });
+
+        bloqueHorarioExposicionService.createAll(bloqueHorarioExposicionCreateDTOs);
 
         ExposicionDto exposicionDto = exposicionService.findById(dto.getExposicionId());
         exposicionDto.setEstadoPlanificacionId(2);

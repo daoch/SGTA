@@ -16,22 +16,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PostulacionesTable } from "@/features/temas/components/alumno/postulaciones-table";
+import { Postulacion } from "@/features/temas/types/propuestas/entidades";
 import { CheckCircle, X } from "lucide-react";
 import { useState } from "react";
-
-interface Postulacion {
-  id: string;
-  titulo: string;
-  area: string;
-  asesor: string;
-  correoAsesor: string;
-  fechaPostulacion: string;
-  fechaLimite: string;
-  estado: string;
-  tipo: "general" | "directa";
-  descripcion: string;
-  comentarioAsesor: string;
-}
 
 const PostulacionesRecibidas = () => {
   const [selectedPostulacion, setSelectedPostulacion] = useState<Postulacion | null>(null);

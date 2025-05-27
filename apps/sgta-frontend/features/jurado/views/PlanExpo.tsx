@@ -1,66 +1,47 @@
-import {
-  AreaEspecialidad,
-  JornadaExposicionSalas,
-} from "../types/jurado.types";
+import { AreaEspecialidad } from "../types/jurado.types";
 
-import GeneralPlanificationExpo from "@/features/jurado/components/GeneralPlanificationExpo";
+import GeneralPlanificationExpo from "@/features/jurado/components/PlanificationComponents/GeneralPlanificationExpo";
 import {
+  getEtapaFormativaIdByExposicionId,
   listarBloquesHorariosExposicion,
   listarEstadoPlanificacionPorExposicion,
-  listarJornadasExposicionSalas,
+  listarJornadasExposicionSalasByExposicion,
   listarTemasCicloActulXEtapaFormativa,
 } from "@/features/jurado/services/data";
 import { JornadaExposicionDTO } from "../dtos/JornadExposicionDTO";
+import { transformarJornada } from "../utils/transformar-jornada";
+import BackButton from "@/components/ui/back-button";
+
 type Props = {
   exposicionId: number;
- 
 };
+
 export default async function PlanExpo({ exposicionId }: Props) {
-  const expos = await listarTemasCicloActulXEtapaFormativa(exposicionId);
-  const jornadasSalas = await listarJornadasExposicionSalas(exposicionId);
+  const etapaFormativaId =
+    await getEtapaFormativaIdByExposicionId(exposicionId);
+  const expos = await listarTemasCicloActulXEtapaFormativa(etapaFormativaId);
+  const jornadasSalas =
+    await listarJornadasExposicionSalasByExposicion(exposicionId);
   const topics: AreaEspecialidad[] = [];
-  const roomAvailList: JornadaExposicionDTO[] =
-    jornadasSalas.map(transformarJornada);
+  const days: JornadaExposicionDTO[] = jornadasSalas.map(transformarJornada);
   const bloquesList = await listarBloquesHorariosExposicion(exposicionId);
-  const estadoPlanificacion = await listarEstadoPlanificacionPorExposicion(exposicionId);
- 
+  const estadoPlanificacion =
+    await listarEstadoPlanificacionPorExposicion(exposicionId);
 
-
-
-  return (  
-    <main className="h-screen flex flex-col">
-      <div className="py-4">
-        <h1
-          className="text-blue-900 font-bold text-2xl"
-          style={{ color: "#042354" }}
-        >
-          Planificador de exposiciones
-        </h1>
-      </div>
+  return (
+    <div className="h-fit w-full flex flex-col gap-4">
+      <h1 className="text-3xl font-bold text-primary">
+        <BackButton backUrl="/coordinador/exposiciones" />
+        <span className="ml-3">Planificador de exposiciones</span>
+      </h1>
       <GeneralPlanificationExpo
-        expos={expos}
+        temas={expos}
         topics={topics}
-        roomAvailList={roomAvailList}
-        bloquesList={bloquesList}
+        days={days}
+        bloques={bloquesList}
         exposicionId={exposicionId}
         estadoPlanificacion={estadoPlanificacion}
-      ></GeneralPlanificationExpo>
-    </main>
+      />
+    </div>
   );
 }
-
-const transformarJornada = (
-  data: JornadaExposicionSalas,
-): JornadaExposicionDTO => {
-  const fechaInicio = new Date(data.datetimeInicio);
-  const fechaFin = new Date(data.datetimeFin);
-
-  // De aquí puedes tomar cualquiera de las dos fechas, por ejemplo, `fechaInicio`
-  return {
-    code: data.jornadaExposicionId, // O cualquier otro campo relevante
-    fecha: fechaInicio, // Usamos `dateTimeInicio` como fecha
-    horaInicio: fechaInicio.toTimeString().split(" ")[0], // Solo hora
-    horaFin: fechaFin.toTimeString().split(" ")[0], // Solo hora
-    salasExposicion: data.salasExposicion,
-  };
-};

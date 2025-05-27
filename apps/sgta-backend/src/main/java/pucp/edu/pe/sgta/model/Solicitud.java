@@ -44,4 +44,6 @@ public class Solicitud {
 	@Column(name = "fecha_modificacion", insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
 	private OffsetDateTime fechaModificacion;
 
+	@Column(name = "respuesta", columnDefinition = "TEXT", nullable = true)
+	private String respuesta;
 }

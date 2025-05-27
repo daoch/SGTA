@@ -57,4 +57,9 @@ public class SubAreaConocimientoController {
         return subAreaConocimientoService.listarPorCarrerasUsuarioParaPerfil(usuarioId);
     }
 
+    @GetMapping("/listarPorCarreraDeUsuario")
+    public List<SubAreaConocimientoDto> listarPorCarreraDeUsuario(@RequestParam(name = "usuarioId") Integer usuarioId) {
+        return subAreaConocimientoService.listarPorCarreraDeUsuario(usuarioId);
+    }
+
 }

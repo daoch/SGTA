@@ -17,5 +17,5 @@ public interface JornadaExposicionXSalaExposicionService {
 
     void delete(Integer id);
 
-    List<JornadaExposicionXSalaExposicionListadoDTO> listarJornadasExposicionSalas(Integer etapaFormativaId);
+    List<JornadaExposicionXSalaExposicionListadoDTO> listarJornadasExposicionSalas(Integer exposicionId);
 }
