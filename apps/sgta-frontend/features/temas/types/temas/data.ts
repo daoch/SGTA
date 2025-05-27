@@ -116,3 +116,80 @@ export async function obtenerCarrerasPorUsuario(
     throw error;
   }
 }
+
+export async function fetchTemasAPI(
+  usuarioId: number,
+  rol: string,
+  estado: string,
+) {
+  try {
+    const response = await fetch(
+      `${baseUrl}/temas/listarTemasPorUsuarioRolEstado/${usuarioId}?rolNombre=${rol}&estadoNombre=${estado}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error("Error al obtener los temas del usuario");
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("La página no responde. No se obtuvieron los temas.", error);
+    throw error;
+  }
+}
+
+export async function buscarTema(idTema: number) {
+  try {
+    console.log(`${baseUrl}/temas/findById?idTema=${idTema}`);
+    const response = await fetch(`${baseUrl}/temas/findById?idTema=${idTema}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Error al obtener el tema");
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("La página no responde. No se obtuvo el tema..", error);
+    throw error;
+  }
+}
+
+export async function obtenerObservacionesTema(idTema: number) {
+  try {
+    const response = await fetch(
+      `${baseUrl}/solicitudes/listSolicitudesByTema/${idTema}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error("Error al obtener las observaciones.");
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error(
+      "La página no responde. No se obtuvieron las observaciones del tema.",
+      error,
+    );
+    throw error;
+  }
+}

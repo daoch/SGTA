@@ -124,7 +124,7 @@ export function PropuestasModal({
     setAceptarPropuesta?.(false);
     setRechazarPropuesta?.(false);
   };
-
+  console.log(`La data es :${data}`);
   return (
     <DialogContent className="max-w-3xl">
       <DialogHeader>
@@ -146,13 +146,17 @@ export function PropuestasModal({
           <div className="space-y-2">
             <Label>Área</Label>
             <div className="p-3 bg-gray-50 rounded-md border">
+              <p>{data.subAreas[0].areaConocimiento.nombre}</p>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Subárea(s)</Label>
+            <div className="p-3 bg-gray-50 rounded-md border">
               <p>
-                {data.subareas
-                  .map(
-                    (subareas) =>
-                      `(${subareas.nombre})`,
-                  )
-                  .join(", ")}
+                {data.subAreas
+                  .map((subAreas) => `${subAreas.nombre}`) //Secambia subarea por subArea
+                  .join("- ")}
               </p>
             </div>
           </div>
@@ -201,13 +205,6 @@ export function PropuestasModal({
             <Label>Objetivos</Label>
             <div className="p-3 bg-gray-50 rounded-md border">
               <p>{data.objetivos}</p>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Metodología</Label>
-            <div className="p-3 bg-gray-50 rounded-md border">
-              <p>{data.metodologia}</p>
             </div>
           </div>
 

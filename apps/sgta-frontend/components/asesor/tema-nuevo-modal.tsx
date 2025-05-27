@@ -606,7 +606,6 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
               )}
 
               {/* Fecha Límite */}
-              {/* {tipoRegistro === TipoRegistro.LIBRE && ( */}
               {
                 <div className="space-y-2">
                   <Label>Fecha Límite</Label>

@@ -136,3 +136,24 @@ export interface TemaCreateLibre {
   coasesores: number[];
   requisitos: string;
 }
+
+export interface Observacion {
+  campo: "título" | "descripción";
+  detalle: string;
+  autor: string;
+  fecha: string;
+}
+
+export interface Solicitud {
+  id: number;
+  usuario: { id: number };
+  students: {
+    id: number;
+    name: string;
+    lastName: string;
+    topic: {
+      titulo: string;
+      resumen: string;
+    };
+  }[];
+}

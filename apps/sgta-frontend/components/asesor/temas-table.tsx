@@ -1,11 +1,5 @@
 "use client";
 
-import {
-  Coasesor,
-  Tema,
-  Tesista,
-} from "@/features/temas/types/inscripcion/entities";
-import { estadosValues, Tipo } from "@/features/temas/types/inscripcion/enums";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,6 +10,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Coasesor,
+  Tema,
+  Tesista,
+} from "@/features/temas/types/inscripcion/entities";
+import { estadosValues, Tipo } from "@/features/temas/types/inscripcion/enums";
 import { titleCase } from "@/lib/utils";
 import { FilePen, Trash2 } from "lucide-react";
 import DeleteTemaPopUp from "./delete-tema-pop-up";
@@ -93,7 +93,9 @@ export function TemasTable({
                     {tema.titulo}
                   </TableCell>
                   {/* Area */}
-                  <TableCell>{tema.subareas[0].nombre}</TableCell>
+                  <TableCell>
+                    {tema.subareas[0].areaConocimiento?.nombre}
+                  </TableCell>
                   {/* Asesor */}
                   <TableCell>{asesor ? asesor.nombres : ""}</TableCell>
                   {/* Tesistas */}
@@ -151,7 +153,7 @@ export function TemasTable({
                           className="text-pucp-blue"
                         >
                           <FilePen className="h-4 w-4" />
-                          <span className="sr-only">Postular</span>
+                          <span className="sr-only">Editar</span>
                         </Button>
                       )}
                       {/* Delete */}
@@ -183,4 +185,3 @@ export function TemasTable({
     </div>
   );
 }
-

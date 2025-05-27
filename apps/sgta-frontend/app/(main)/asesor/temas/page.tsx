@@ -21,6 +21,7 @@ import {
 } from "@/features/temas/types/inscripcion/entities";
 import { Tipo } from "@/features/temas/types/inscripcion/enums";
 import {
+  fetchTemasAPI,
   fetchUsuariosFindById,
   obtenerCarrerasPorUsuario,
 } from "@/features/temas/types/temas/data";
@@ -52,22 +53,15 @@ const Page = () => {
 
   const usuarioId = 1;
 
-  const fetchTemasAPI = async (rol: string, estado: string) => {
-    if (asesorData) {
-      const url = `/temas/listarTemasPorUsuarioRolEstado/${asesorData.id}?rolNombre=${rol}&estadoNombre=${estado}`;
-      const response = await axiosInstance.get<Tema[]>(url);
-      return response.data;
-    }
-  };
-
   // Función para recargar los temas
   const fetchTemas = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
-      const inscritosData = (await fetchTemasAPI("Asesor", "INSCRITO")) || [];
+      const inscritosData =
+        (await fetchTemasAPI(usuarioId, "Asesor", "INSCRITO")) || [];
       const libresData =
-        (await fetchTemasAPI("Asesor", "PROPUESTO_LIBRE")) || [];
+        (await fetchTemasAPI(usuarioId, "Asesor", "PROPUESTO_LIBRE")) || [];
       setTemasData([...inscritosData, ...libresData]);
       console.log("consegui los temas data");
     } catch (err: unknown) {

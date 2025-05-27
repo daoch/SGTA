@@ -1,4 +1,3 @@
-import { Tipo } from "@/features/temas/types/inscripcion/enums";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,8 +9,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Eye, History } from "lucide-react";
 import { Coasesor, Tema } from "@/features/temas/types/inscripcion/entities";
+import { Tipo } from "@/features/temas/types/inscripcion/enums";
+import { Eye } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface TemaDetailsDialogProps {
   tema: Tema;
@@ -27,12 +28,17 @@ export const TemaDetailsDialog: React.FC<TemaDetailsDialogProps> = ({
   tema,
   asesor,
 }) => {
+  const router = useRouter();
   const coasesores = tema.coasesores
     ? tema.coasesores
         .map((c) => `${c.nombres} ${c.primerApellido} ${c.segundoApellido}`)
         .join(", ")
     : "";
-  const subarea = tema.subareas?.[0]?.nombre || "No especificada";
+  const subarea = tema.subareas?.[0];
+
+  function handleVerInformacion(tema: Tema) {
+    router.push(`/asesor/temas/informacion/${tema.id}`);
+  }
 
   return (
     <Dialog>
@@ -60,7 +66,17 @@ export const TemaDetailsDialog: React.FC<TemaDetailsDialogProps> = ({
           {/* Area */}
           <div>
             <p className="text-sm font-medium">Área</p>
-            <p className="bg-muted p-2 rounded-md">{subarea}</p>
+            <p className="bg-muted p-2 rounded-md">
+              {subarea.areaConocimiento?.nombre}
+            </p>
+          </div>
+
+          {/* Subáreas */}
+          <div>
+            <p className="text-sm font-medium">Subáreas</p>
+            <p className="bg-muted p-2 rounded-md">
+              {tema.subareas.map((subareas) => `${subareas.nombre}`).join("- ")}
+            </p>
           </div>
 
           {/* Description */}
@@ -149,9 +165,13 @@ export const TemaDetailsDialog: React.FC<TemaDetailsDialogProps> = ({
         </div>
 
         <DialogFooter className="pt-4 flex justify-between">
-          <Button variant="outline">
-            <History className="mr-2 h-4 w-4" />
-            Ver historial de cambios
+          <Button
+            variant="outline"
+            onClick={() => {
+              handleVerInformacion(tema);
+            }}
+          >
+            Más información
           </Button>
           <Button variant="outline">Cerrar</Button>
           {tema.estadoTemaNombre === Tipo.LIBRE && (
@@ -170,4 +190,3 @@ function formatDate(fechaISO: string): string {
   const anio = fecha.getUTCFullYear();
   return `${dia}/${mes}/${anio}`;
 }
-
