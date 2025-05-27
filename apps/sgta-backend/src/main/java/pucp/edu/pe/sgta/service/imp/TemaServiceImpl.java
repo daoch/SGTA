@@ -88,7 +88,9 @@ public class TemaServiceImpl implements TemaService {
 			ExposicionXTemaRepository exposicionXTemaRepository,
 			JornadaExposicionRepository jornadaExposicionRepository, ExposicionRepository exposicionRepository,
 			JornadaExposicionXSalaExposicionRepository jornadaExposicionXSalaExposicionRepository,
-			UsuarioXTemaRepository usuarioTemaRepository) {
+			UsuarioXTemaRepository usuarioTemaRepository, TipoSolicitudRepository tipoSolicitudRepository, 
+			SolicitudRepository solicitudRepository, SolicitudService solicitudService,
+			UsuarioXSolicitudRepository usuarioXSolicitudRepository) {
 		this.temaRepository = temaRepository;
 		this.usuarioXTemaRepository = usuarioXTemaRepository;
 		this.subAreaConocimientoXTemaRepository = subAreaConocimientoXTemaRepository;
