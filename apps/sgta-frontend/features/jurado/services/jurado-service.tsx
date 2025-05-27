@@ -359,7 +359,7 @@ export const actualizarEstadoExposicion = async (
   nuevoEstado: string,
 ): Promise<boolean> => {
   try {
-    const response = await axiosInstance.put(`/jurado/conformidad`, {
+    const response = await axiosInstance.put("/jurado/conformidad", {
       exposicionTemaId: exposicionId,
       estadoExposicion: nuevoEstado,
     });
@@ -377,7 +377,7 @@ export const actualizarEstadoControlExposicion = async (
   nuevoEstado: string,
 ): Promise<boolean> => {
   try {
-    const response = await axiosInstance.put(`/jurado/control`, {
+    const response = await axiosInstance.put("/jurado/control", {
       exposicionTemaId: exposicionId,
       juradoId: juradoId,
       estadoExposicionUsuario: nuevoEstado,
