@@ -3,11 +3,13 @@ package pucp.edu.pe.sgta.service.imp;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import jakarta.transaction.Transactional;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -1558,6 +1560,27 @@ public class TemaServiceImpl implements TemaService {
 		}
 
 		return resultado;
+	}
+
+	 @Transactional
+	public void eliminarTemaCoordinador(Integer temaId, Integer usuarioId) {
+		// 1) Validación EXTERNA al procedure:
+		//    Comprueba que usuarioId sea coordinador 
+		validarTipoUsurio(usuarioId, TipoUsuarioEnum.coordinador.name());
+		
+		// 2) Obtener la carrera del tema y validar que el usuario esté activo en esa carrera
+		Tema tema = temaRepository.findById(temaId)
+			.orElseThrow(() -> new EntityNotFoundException("Tema no encontrado: " + temaId));
+		Integer carreraId = tema.getCarrera().getId();
+
+		boolean pertenece = usuarioCarreraRepository
+			.existsByUsuarioIdAndCarreraIdAndActivo(usuarioId, carreraId, true);
+		if (!pertenece) {
+		throw new AccessDeniedException(
+			"El usuario no pertenece a la carrera del tema: " + carreraId);
+		}
+		// 3) Llamas al procedure puro, que sólo hace los UPDATEs
+		temaRepository.desactivarTemaYDesasignarUsuarios(temaId);
 	}
 
 }
