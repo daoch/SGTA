@@ -39,7 +39,7 @@ export const MultiSelectCheckbox: React.FC<MultiSelectCheckboxProps> = ({
       <Popover.Trigger asChild>
         <button
           className={cn(
-            "flex items-center justify-between border border-input rounded-md px-3 py-2 text-sm w-[200px] shadow-sm bg-white",
+            "flex items-center justify-between border border-input rounded-md px-3 py-2 text-sm w-[195px] shadow-sm bg-white",
             "hover:border-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring",
           )}
         >
@@ -67,3 +67,4 @@ export const MultiSelectCheckbox: React.FC<MultiSelectCheckboxProps> = ({
     </Popover.Root>
   );
 };
+

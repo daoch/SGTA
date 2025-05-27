@@ -16,7 +16,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { etapasFormativasService } from "@/features/configuracion/services/etapas-formativas";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Carrera, carreraService } from "../../services/carrera-service";
 
 interface NuevaEtapaFormativaModalProps {
   isOpen: boolean
@@ -24,22 +25,35 @@ interface NuevaEtapaFormativaModalProps {
   onSuccess?: () => void
 }
 
-// Datos de ejemplo
-const carreras = [
-  { id: 1, nombre: "Ingeniería de Sistemas" },
-  { id: 2, nombre: "Ingeniería Industrial" },
-  { id: 3, nombre: "Administración" },
-];
-
 export function NuevaEtapaFormativaModal({ isOpen, onClose, onSuccess }: NuevaEtapaFormativaModalProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [carreras, setCarreras] = useState<Carrera[]>([]);
   const [formData, setFormData] = useState({
     nombre: "",
     creditos: "",
     duracionExposicion: "00:20:00",
     carrera: "",
   });
+
+  useEffect(() => {
+    const cargarCarreras = async () => {
+      try {
+        const data = await carreraService.getAll();
+        setCarreras(data);
+      } catch (error) {
+        console.error("Error al cargar carreras:", error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "No se pudieron cargar las carreras. Intente nuevamente.",
+        });
+      }
+    };
+
+    cargarCarreras();
+  }, []);
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -75,12 +89,16 @@ export function NuevaEtapaFormativaModal({ isOpen, onClose, onSuccess }: NuevaEt
 
       // Formatear los datos para la API
       const carreraId = parseInt(formData.carrera);
-      const carreraNombre = carreras.find(c => c.id === carreraId)?.nombre || "";
+      const carreraSeleccionada = carreras.find(c => c.id === carreraId);
+      
+      if (!carreraSeleccionada) {
+        throw new Error("Carrera no encontrada");
+      }
 
       // Llamamos directamente al endpoint con axios usando el mismo formato
       const response = await etapasFormativasService.create({
         nombre: formData.nombre,
-        carreraNombre: carreraNombre,
+        carreraNombre: carreraSeleccionada.nombre,
         carreraId: carreraId,
         creditajePorTema: parseFloat(formData.creditos),
         duracionExposicion: formatDuracionToISO(formData.duracionExposicion),

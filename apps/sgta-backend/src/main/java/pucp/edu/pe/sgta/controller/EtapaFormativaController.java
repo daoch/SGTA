@@ -23,6 +23,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import pucp.edu.pe.sgta.dto.EtapaFormativaListadoDto;
 import pucp.edu.pe.sgta.dto.EtapaFormativaDetalleDto;
 
+
+import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.*;
+import pucp.edu.pe.sgta.dto.UpdateEtapaFormativaRequest;
+
+import pucp.edu.pe.sgta.dto.*;
+
+
 @RestController
 @RequestMapping("/etapas-formativas")
 public class EtapaFormativaController {
@@ -108,5 +116,4 @@ public class EtapaFormativaController {
         etapaFormativaService.delete(id);
         return ResponseEntity.noContent().build();
     }
-
 }

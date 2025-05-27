@@ -1,3 +1,7 @@
+DROP FUNCTION IF EXISTS listar_etapas_formativas_simple CASCADE;
+DROP FUNCTION IF EXISTS obtener_detalle_etapa_formativa CASCADE;
+DROP FUNCTION IF EXISTS obtener_historial_ciclos_etapa_formativa CASCADE;
+
 -- Función para obtener listado simple de etapas formativas
 CREATE OR REPLACE FUNCTION listar_etapas_formativas_simple()
     RETURNS TABLE
@@ -21,8 +25,14 @@ BEGIN
                        FROM etapa_formativa_x_ciclo efc
                        WHERE efc.etapa_formativa_id = ef.etapa_formativa_id
                          AND efc.activo = true
-                   ) THEN 'EN_CURSO'::TEXT
-                   ELSE 'FINALIZADO'::TEXT
+                   ) THEN 
+                       (SELECT efc.estado::TEXT
+                        FROM etapa_formativa_x_ciclo efc
+                        WHERE efc.etapa_formativa_id = ef.etapa_formativa_id
+                          AND efc.activo = true
+                        ORDER BY efc.etapa_formativa_x_ciclo_id DESC
+                        LIMIT 1)
+                   ELSE 'Por Asignar'::TEXT
                    END as estado
         FROM etapa_formativa ef
                  JOIN carrera c ON ef.carrera_id = c.carrera_id
@@ -69,8 +79,14 @@ BEGIN
                        FROM etapa_formativa_x_ciclo efc
                        WHERE efc.etapa_formativa_id = ef.etapa_formativa_id
                          AND efc.activo = true
-                   ) THEN 'EN_CURSO'::TEXT
-                   ELSE 'FINALIZADO'::TEXT
+                   ) THEN 
+                       (SELECT efc.estado::TEXT
+                        FROM etapa_formativa_x_ciclo efc
+                        WHERE efc.etapa_formativa_id = ef.etapa_formativa_id
+                          AND efc.activo = true
+                        ORDER BY efc.etapa_formativa_x_ciclo_id DESC
+                        LIMIT 1)
+                   ELSE 'Por Asignar'::TEXT
                    END as estado_actual,
                ef.duracion_exposicion
         FROM etapa_formativa ef
@@ -94,10 +110,7 @@ BEGIN
     RETURN QUERY
         SELECT efc.etapa_formativa_x_ciclo_id,
                (ciclo.anio || ' ' || ciclo.semestre)::TEXT as ciclo,
-               CASE
-                   WHEN efc.activo = true THEN 'EN_CURSO'::TEXT
-                   ELSE 'FINALIZADO'::TEXT
-                   END as estado
+               efc.estado::TEXT
         FROM etapa_formativa_x_ciclo efc
                  JOIN ciclo ON efc.ciclo_id = ciclo.ciclo_id
         WHERE efc.etapa_formativa_id = p_etapa_id
@@ -106,6 +119,3 @@ END;
 $$;
 
 
-drop function listar_etapas_formativas_simple;
-drop function obtener_detalle_etapa_formativa;
-drop function obtener_historial_ciclos_etapa_formativa;

@@ -15,11 +15,14 @@ import pucp.edu.pe.sgta.dto.RechazoSolicitudRequestDto;
 import pucp.edu.pe.sgta.dto.RechazoSolicitudResponseDto;
 import pucp.edu.pe.sgta.dto.SolicitudCambioAsesorDto;
 import pucp.edu.pe.sgta.dto.SolicitudCeseDto;
+import pucp.edu.pe.sgta.dto.temas.SolicitudTemaDto;
 import pucp.edu.pe.sgta.service.inter.SolicitudService;
+
+import java.util.List;
 
 @RestController
 
-@RequestMapping("/coordinators")
+@RequestMapping("/solicitudes")
 public class SolicitudController {
     
     @Autowired
@@ -80,5 +83,23 @@ public class SolicitudController {
 
         AprobarSolicitudCambioAsesorResponseDto response = solicitudService.aprobarSolicitudCambioAsesor(requestId, requestDto.getResponse());
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/listSolicitudesByTema/{id}")
+    public ResponseEntity<SolicitudTemaDto> getSolicitudesByTema(
+            @PathVariable Integer id,
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "10") Integer size) {
+        return ResponseEntity.ok(solicitudService.findAllSolicitudesByTema(id, page, size));
+    }    
+    
+    @PostMapping("/atenderSolicitudTemaInscrito")
+    public ResponseEntity<Void> atenderSolicitudTemaInscrito(@RequestBody SolicitudTemaDto solicitudAtendida) {
+        try {
+            solicitudService.atenderSolicitudTemaInscrito(solicitudAtendida);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 }

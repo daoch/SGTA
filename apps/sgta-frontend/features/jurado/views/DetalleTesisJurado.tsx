@@ -114,7 +114,7 @@ export function DetalleTesisJuradoView() {
   }
 
   return (
-    <div className="p-6">
+    <div>
       {/* Alert Dialog de shadcn/ui */}
       <AlertDialog open={showAlertDialog} onOpenChange={setShowAlertDialog}>
         <AlertDialogContent>
@@ -135,10 +135,10 @@ export function DetalleTesisJuradoView() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <div className="flex items-center mb-6">
+      <div className="flex h-[60px] pt-[15px] pr-[20px] pb-[10px] items-center gap-[10px] self-stretch">
         <button
           onClick={() => router.back()}
-          className="flex items-center justify-center text-black hover:text-gray-600 w-8 h-8 mr-2"
+          className="flex items-center text-black hover:underline cursor-pointer"
           aria-label="Volver"
         >
           <ArrowLeft className="w-5 h-5" />

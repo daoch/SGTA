@@ -6,8 +6,6 @@ export const transformarJornada = (
 ): JornadaExposicionDTO => {
   const fechaInicio = new Date(data.datetimeInicio);
   const fechaFin = new Date(data.datetimeFin);
-
-  // De aquí puedes tomar cualquiera de las dos fechas, por ejemplo, `fechaInicio`
   return {
     code: data.jornadaExposicionId, // O cualquier otro campo relevante
     fecha: fechaInicio, // Usamos `dateTimeInicio` como fecha

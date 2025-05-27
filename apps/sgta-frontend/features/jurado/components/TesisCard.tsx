@@ -53,19 +53,24 @@ export const ListaTesisJuradoCard: React.FC<ListaTesisJuradoCardProps> = ({
                   {tesis.estudiantes.map((est) => est.nombre).join(", ")}
                 </div>
               </div>
-              <span
-                className="text-sm font-medium px-3 py-1.5 rounded-full"
-                style={{
-                  backgroundColor:
-                    tesis.rol === "Asesor" ? "#F9D534" : "#d2a5fd",
-                  color: tesis.rol === "Asesor" ? "#000000" : "#ffffff",
-                }}
-              >
-                {tesis.rol}
-              </span>
+
+              {tesis.rol && (
+                <span
+                  className="text-sm font-medium px-3 py-1.5 rounded-full"
+                  style={{
+                    backgroundColor:
+                      tesis.rol === "Asesor" ? "#F9D534" : "#d2a5fd",
+                    color: tesis.rol === "Asesor" ? "#000000" : "#ffffff",
+                  }}
+                >
+                  {tesis.rol}
+                </span>
+              )}
             </div>
 
-            <p className="text-sm text-justify pt-2">{tesis.resumen}</p>
+            {tesis.resumen && (
+              <p className="text-sm text-justify pt-2">{tesis.resumen}</p>
+            )}
 
             <div className="flex gap-2 flex-wrap mt-2 pt-2">
               {tesis.sub_areas_conocimiento.map((esp, idx) => (
