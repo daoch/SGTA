@@ -4,10 +4,10 @@ export interface Jurado {
 }
 
 export interface Tema {
-  id: number;
-  codigo: string;
-  titulo: string;
-  usuarios: Usuario[];
+  id: number | null;
+  codigo: string | null;
+  titulo: string | null;
+  usuarios: Usuario[] | null;
 }
 
 export interface AreaEspecialidad {
@@ -104,4 +104,4 @@ export interface Rol {
   nombre: string;
 }
 
-export type OrigenBoton = "siguiente" | "terminar";
+export type TipoAccion = "siguiente" | "terminar";
