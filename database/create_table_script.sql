@@ -879,7 +879,7 @@ CREATE TABLE IF NOT EXISTS exposicion_x_tema
     exposicion_id                     INTEGER                  NOT NULL,
     tema_id                           INTEGER                  NOT NULL,
     --bloque_horario_exposicion_id      INTEGER,
-    revision_criterio_x_exposicion_id INTEGER,
+    --revision_criterio_x_exposicion_id INTEGER,
     link_exposicion                   TEXT,
     link_grabacion                    TEXT,
     estado_exposicion                 enum_estado_exposicion   NOT NULL DEFAULT 'sin_programar',
@@ -1314,13 +1314,13 @@ ALTER TABLE bloque_horario_exposicion
             REFERENCES exposicion_x_tema (exposicion_x_tema_id)
             ON DELETE SET NULL;
 
-ALTER TABLE exposicion_x_tema
-    DROP CONSTRAINT IF EXISTS fk_ext_revision_criterio_x_exposicion;
-ALTER TABLE exposicion_x_tema
-    ADD CONSTRAINT fk_ext_revision_criterio_x_exposicion
-        FOREIGN KEY (revision_criterio_x_exposicion_id)
-            REFERENCES revision_criterio_x_exposicion (revision_criterio_x_exposicion_id)
-            ON DELETE SET NULL;
+--ALTER TABLE exposicion_x_tema
+--    DROP CONSTRAINT IF EXISTS fk_ext_revision_criterio_x_exposicion;
+--ALTER TABLE exposicion_x_tema
+--    ADD CONSTRAINT fk_ext_revision_criterio_x_exposicion
+--        FOREIGN KEY (revision_criterio_x_exposicion_id)
+--            REFERENCES revision_criterio_x_exposicion (revision_criterio_x_exposicion_id)
+--            ON DELETE SET NULL;
 
 
 ALTER TABLE carrera_parametro_configuracion
