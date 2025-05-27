@@ -128,3 +128,11 @@ DROP FUNCTION IF EXISTS listar_etapas_formativas_simple () CASCADE;
 DROP FUNCTION IF EXISTS obtener_detalle_etapa_formativa (INTEGER) CASCADE;
 
 DROP FUNCTION IF EXISTS obtener_historial_ciclos_etapa_formativa (INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS get_topic_area_stats_by_user_and_ciclo(integer, varchar) CASCADE;
+
+DROP FUNCTION IF EXISTS get_topic_area_trends_by_user(integer) CASCADE;
+
+DROP FUNCTION IF EXISTS listar_tesistas_por_asesor(integer) CASCADE;
+
+DROP FUNCTION IF EXISTS obtener_detalle_tesista(integer) CASCADE;
