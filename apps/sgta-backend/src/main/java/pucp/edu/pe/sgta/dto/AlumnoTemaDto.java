@@ -22,4 +22,8 @@ public class AlumnoTemaDto {
     private Integer totalEntregables;
     private Integer entregablesEnviados;
     private Double porcentajeProgreso;
+    
+    // Campos para el siguiente entregable no enviado
+    private OffsetDateTime siguienteEntregableFechaFin;
+    private String siguienteEntregableNombre;
 }

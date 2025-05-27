@@ -905,7 +905,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 			
 			Object[] rowDetalle = resultsDetalle.get(0);
 			
-			// Luego obtenemos el progreso del alumno
+			// Luego obtenemos el progreso del alumno y el siguiente entregable
 			String sqlProgreso = """
 				SELECT * FROM calcular_progreso_alumno(:p_alumno_id)
 			""";
@@ -924,12 +924,25 @@ public class UsuarioServiceImpl implements UsuarioService {
 			alumnoTemaDto.setAreaNombre((String) rowDetalle[12]); // area_conocimiento
 			alumnoTemaDto.setSubAreaNombre((String) rowDetalle[13]); // sub_area_conocimiento
 			
-			// Agregamos la información de progreso
+			// Agregamos la información de progreso y siguiente entregable
 			if (!resultsProgreso.isEmpty()) {
 				Object[] rowProgreso = resultsProgreso.get(0);
 				alumnoTemaDto.setTotalEntregables((Integer) rowProgreso[0]);
 				alumnoTemaDto.setEntregablesEnviados((Integer) rowProgreso[1]);
 				alumnoTemaDto.setPorcentajeProgreso(((Number) rowProgreso[2]).doubleValue());
+				
+				// Información del siguiente entregable no enviado
+				if (rowProgreso[3] != null) { // siguiente_entregable_nombre
+					alumnoTemaDto.setSiguienteEntregableNombre((String) rowProgreso[3]);
+					if (rowProgreso[4] != null) { // siguiente_entregable_fecha_fin
+						// Manejo seguro de la conversión de fechas
+						if (rowProgreso[4] instanceof java.sql.Timestamp) {
+							alumnoTemaDto.setSiguienteEntregableFechaFin(((java.sql.Timestamp) rowProgreso[4]).toInstant().atOffset(java.time.ZoneOffset.UTC));
+						} else if (rowProgreso[4] instanceof java.time.Instant) {
+							alumnoTemaDto.setSiguienteEntregableFechaFin(((java.time.Instant) rowProgreso[4]).atOffset(java.time.ZoneOffset.UTC));
+						}
+					}
+				}
 			} else {
 				alumnoTemaDto.setTotalEntregables(0);
 				alumnoTemaDto.setEntregablesEnviados(0);
