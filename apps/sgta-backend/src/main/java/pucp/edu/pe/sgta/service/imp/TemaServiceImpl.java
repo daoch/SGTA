@@ -1374,10 +1374,38 @@ public class TemaServiceImpl implements TemaService {
 
 		List<TemaDto> resultados = new ArrayList<>(dtoMap.values());
 
-		// — Completar asesores, coasesores, tesistas y subáreas —
-		for (TemaDto t : resultados) {
-			// ... tu lógica existente ...
-		}
+		// por cada tema cargo coasesores, tesistas y subáreas
+        for (TemaDto t : resultados) {
+            List<UsuarioDto> asesores = listarUsuariosPorTemaYRol(
+				t.getId(),
+				RolEnum.Asesor.name()
+			);
+			// 2) Obtengo a los coasesores (o la lista base que ya tenías)
+			List<UsuarioDto> coasesores = listarUsuariosPorTemaYRol(
+				t.getId(),
+				RolEnum.Coasesor.name()
+			);
+
+			// 3) Combino: Asesor primero, luego coasesores, sin duplicados
+			List<UsuarioDto> combinado = new ArrayList<>();
+			if (!asesores.isEmpty()) {
+				combinado.addAll(asesores);
+			}
+			for (UsuarioDto u : coasesores) {
+				// evitamos volver a añadir al mismo usuario si coincide con el asesor
+				if (asesores.stream().noneMatch(a -> a.getId().equals(u.getId()))) {
+					combinado.add(u);
+				}
+			}
+
+			t.setCoasesores(combinado);
+            t.setTesistas(
+                listarUsuariosPorTemaYRol(t.getId(), RolEnum.Tesista.name())
+            );
+            t.setSubareas(
+                listarSubAreasPorTema(t.getId())
+            );
+        }
 
 		return resultados;
 	}
