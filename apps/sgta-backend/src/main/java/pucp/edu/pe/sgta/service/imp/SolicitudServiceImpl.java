@@ -41,7 +41,7 @@ import pucp.edu.pe.sgta.repository.EstadoTemaRepository;
 import pucp.edu.pe.sgta.repository.SolicitudRepository;
 import pucp.edu.pe.sgta.repository.SubAreaConocimientoXTemaRepository;
 import pucp.edu.pe.sgta.repository.TemaRepository;
-import pucp.edu.pe.sgta.repository.UsuarioXAreaConocimientoRepository;
+
 import pucp.edu.pe.sgta.repository.TipoSolicitudRepository;
 import pucp.edu.pe.sgta.repository.UsuarioXCarreraRepository;
 import pucp.edu.pe.sgta.repository.UsuarioXSolicitudRepository;
@@ -49,7 +49,7 @@ import pucp.edu.pe.sgta.repository.UsuarioXTemaRepository;
 import pucp.edu.pe.sgta.service.inter.SolicitudService;
 import pucp.edu.pe.sgta.service.inter.TemaService;
 import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
-import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
+
 
 @Service
 public class SolicitudServiceImpl implements SolicitudService {
