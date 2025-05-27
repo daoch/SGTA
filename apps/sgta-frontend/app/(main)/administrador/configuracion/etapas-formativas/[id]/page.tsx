@@ -17,6 +17,23 @@ const getEstadoLabel = (estado: string) => {
   return estados[estado as keyof typeof estados] || estado;
 };
 
+const formatISOtoDuracion = (isoDuracion: string): string => {
+    // Convertir formato ISO 8601 (PT[H]H[M]M[S]S) a HH:MM:SS
+    let hours = 0;
+    let minutes = 0;
+    let seconds = 0;
+
+    const hoursMatch = isoDuracion.match(/(\d+)H/);
+    const minutesMatch = isoDuracion.match(/(\d+)M/);
+    const secondsMatch = isoDuracion.match(/(\d+)S/);
+
+    if (hoursMatch) hours = parseInt(hoursMatch[1]);
+    if (minutesMatch) minutes = parseInt(minutesMatch[1]);
+    if (secondsMatch) seconds = parseInt(secondsMatch[1]);
+
+    return `${hours} horas ${minutes} minutos ${seconds} segundos`.trim().replace(/\b0 \w+ ?/g, '').trim() || '0 minutos';
+};
+
 export default function DetalleEtapaFormativaPage({ params }: { params: Promise<{ id: string }> }) {
   const [etapaFormativa, setEtapaFormativa] = useState<EtapaFormativaDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -87,7 +104,7 @@ export default function DetalleEtapaFormativaPage({ params }: { params: Promise<
           <div className="grid grid-cols-2 gap-4">
             <div>
               <h3 className="text-sm font-medium text-gray-500 mb-1">Duración de Exposición</h3>
-              <p>{etapaFormativa.duracionExposicion}</p>
+              <p>{formatISOtoDuracion(etapaFormativa.duracionExposicion)}</p>
             </div>
             <div>
               <h3 className="text-sm font-medium text-gray-500 mb-1">Ciclo Actual</h3>

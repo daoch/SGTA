@@ -1029,7 +1029,7 @@ $$ LANGUAGE plpgsql;
 
 -- 1) Creamos/reemplazamos la función que, dado solo el ID de un tesista,
 --    recupera todas las reuniones en las que participó junto a su(s) asesor(es).
-drop function listar_historial_reuniones_por_tesista;
+-- drop function listar_historial_reuniones_por_tesista;
 CREATE OR REPLACE FUNCTION listar_historial_reuniones_por_tesista(
     p_tesista_id INT
 )
