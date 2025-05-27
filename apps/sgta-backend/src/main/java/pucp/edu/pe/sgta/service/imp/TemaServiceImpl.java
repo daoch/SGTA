@@ -28,10 +28,8 @@ import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
 
 import java.io.IOException;
 import java.sql.Array;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
+import java.sql.SQLException;
+import java.time.*;
 import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -64,6 +62,7 @@ public class TemaServiceImpl implements TemaService {
 	private final UsuarioRepository usuarioRepository;
 
 	private final ObjectMapper objectMapper = new ObjectMapper(); // for JSON conversion
+	private final CarreraServiceImpl carreraServiceImpl;
 
 
 	@PersistenceContext
@@ -74,7 +73,7 @@ public class TemaServiceImpl implements TemaService {
 						   SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository, RolRepository rolRepository,
 						   EstadoTemaRepository estadoTemaRepository, UsuarioXCarreraRepository usuarioCarreraRepository,
 						   CarreraRepository carreraRepository, HistorialTemaService historialTemaService,
-						   UsuarioRepository usuarioRepository) {
+						   UsuarioRepository usuarioRepository, CarreraServiceImpl carreraServiceImpl) {
 		this.temaRepository = temaRepository;
 		this.usuarioXTemaRepository = usuarioXTemaRepository;
 		this.subAreaConocimientoXTemaRepository = subAreaConocimientoXTemaRepository;
@@ -86,6 +85,7 @@ public class TemaServiceImpl implements TemaService {
 		this.carreraRepository = carreraRepository;
 		this.historialTemaService = historialTemaService;
 		this.usuarioRepository = usuarioRepository;
+		this.carreraServiceImpl = carreraServiceImpl;
 	}
 
 	@Override
@@ -1227,5 +1227,94 @@ public class TemaServiceImpl implements TemaService {
 		}
 	}
 
+	@Override
+	public TemaDto buscarTemaPorId(Integer idTema) throws SQLException {
+		String sql = "SELECT * FROM buscar_tema_por_id(:idTema)";
+
+		Object[] result = (Object[]) entityManager
+				.createNativeQuery(sql)
+				.setParameter("idTema", idTema)
+				.getSingleResult();
+
+		TemaDto dto = new TemaDto();
+		dto.setId(idTema);
+		dto.setCodigo((String) result[0]);
+		dto.setTitulo((String) result[1]);
+		dto.setResumen((String) result[2]);
+		dto.setMetodologia((String) result[3]);
+		dto.setObjetivos((String) result[4]);
+		java.sql.Date sqlDate = (java.sql.Date) result[5];  // fecha_limite
+		if (sqlDate != null) {
+			LocalDate localDate = sqlDate.toLocalDate();
+			OffsetDateTime offsetDateTime = localDate.atStartOfDay(ZoneOffset.UTC).toOffsetDateTime();
+			dto.setFechaLimite(offsetDateTime);
+		} else {
+			dto.setFechaLimite(null);
+		}
+		dto.setRequisitos((String) result[6]);
+
+		// Asegurar listas no sean null
+		if (dto.getSubareas() == null) {
+			dto.setSubareas(new ArrayList<>());
+		}
+		if (dto.getCoasesores() == null) {
+			dto.setCoasesores(new ArrayList<>());
+		}
+		if (dto.getCarrera() == null) {
+			dto.setCarrera(new CarreraDto());
+		}
+		if (dto.getTesistas() == null) {
+			dto.setTesistas(new ArrayList<>());
+		}
+
+		// Asesor
+		Integer asesorId = (Integer) result[7];
+
+
+		// Subareas
+		Integer[] subareaArray = (Integer[]) result[8];
+		if (subareaArray != null) {
+			for (Integer subareaId : subareaArray) {
+				//SubAreaConocimientoDto subarea = new SubAreaConocimientoDto();
+				SubAreaConocimientoDto subarea = subAreaConocimientoService.findById(subareaId);
+				dto.getSubareas().add(subarea);
+			}
+		}
+
+// Coasesores
+		Integer[] coasesoresArray = (Integer[]) result[9];
+
+// Lista final coasesores con asesor primero
+		if (asesorId != null) {
+			UsuarioDto asesorDto = usuarioService.findUsuarioById(asesorId);
+			asesorDto.setId(asesorId);
+			dto.getCoasesores().add(asesorDto);
+		}
+		if (coasesoresArray != null) {
+			for (Integer coasesorId : coasesoresArray) {
+				UsuarioDto coasesorDto = usuarioService.findUsuarioById(coasesorId);
+				coasesorDto.setId(coasesorId);
+				dto.getCoasesores().add(coasesorDto);
+			}
+		}
+		Integer carreraId = (Integer) result[10];
+		if (carreraId != null) {
+			CarreraDto carreraDTO = carreraServiceImpl.findById(carreraId);
+			dto.setCarrera(carreraDTO);
+		}
+
+		// Tesistas
+		Integer[] tesistasArray = (Integer[]) result[11];
+		if (tesistasArray != null) {
+			for (Integer tesistaId : tesistasArray) {
+				UsuarioDto tesistaDto = usuarioService.findUsuarioById(tesistaId);
+				tesistaDto.setId(tesistaId);
+				dto.getTesistas().add(tesistaDto);
+			}
+		}
+
+
+		return dto;
+	}
 
 }

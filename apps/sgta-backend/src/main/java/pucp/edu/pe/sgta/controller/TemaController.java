@@ -9,6 +9,7 @@ import pucp.edu.pe.sgta.dto.TemaConAsesorJuradoDTO;
 import pucp.edu.pe.sgta.dto.TemaDto;
 import pucp.edu.pe.sgta.service.inter.TemaService;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
@@ -166,6 +167,12 @@ public class TemaController {
 	public void crearTemaLibre(@Valid @RequestBody TemaDto dto) {
 		temaService.crearTemaLibre(dto);
 	}
+
+	@GetMapping("/buscarTemaPorId")
+	public TemaDto buscarTemaPorId(@RequestParam(name = "idTema") Integer idTema) throws SQLException {
+		return temaService.buscarTemaPorId(idTema);
+	}
+
 
 }
 
