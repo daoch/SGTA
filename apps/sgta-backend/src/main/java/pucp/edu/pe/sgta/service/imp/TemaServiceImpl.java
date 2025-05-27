@@ -26,6 +26,9 @@ import pucp.edu.pe.sgta.util.RolEnum;
 import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
 
 import java.io.IOException;
+import java.sql.Array;
+import java.sql.SQLException;
+import java.time.*;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -73,6 +76,7 @@ public class TemaServiceImpl implements TemaService {
 	private final UsuarioXTemaRepository usuarioTemaRepository;
 
 	private final ObjectMapper objectMapper = new ObjectMapper(); // for JSON conversion
+	private final CarreraServiceImpl carreraServiceImpl;
 
 	private final TipoSolicitudRepository        tipoSolicitudRepository;
 
@@ -93,7 +97,7 @@ public class TemaServiceImpl implements TemaService {
 			SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository, RolRepository rolRepository,
 			EstadoTemaRepository estadoTemaRepository, UsuarioXCarreraRepository usuarioCarreraRepository,
 			CarreraRepository carreraRepository, HistorialTemaService historialTemaService,
-			UsuarioRepository usuarioRepository, ExposicionService exposicionService,
+			UsuarioRepository usuarioRepository, CarreraServiceImpl carreraServiceImpl,  ExposicionService exposicionService,
 			ExposicionXTemaRepository exposicionXTemaRepository,
 			JornadaExposicionRepository jornadaExposicionRepository, ExposicionRepository exposicionRepository,
 			JornadaExposicionXSalaExposicionRepository jornadaExposicionXSalaExposicionRepository,
@@ -122,6 +126,7 @@ public class TemaServiceImpl implements TemaService {
 		this.usuarioXSolicitudRepository = usuarioXSolicitudRepository;
 		//this.solicitudService = solicitudService;
 		this.subAreaService = subAreaConocimientoService;
+		this.carreraServiceImpl = carreraServiceImpl;
 	}
 
 	@Override
@@ -1275,6 +1280,132 @@ public class TemaServiceImpl implements TemaService {
 		}
 	}
 
+	@Override
+	public void crearTemaLibre(TemaDto dto) {
+		try {
+			// Obtener IDs de subáreas y coasesores
+			Integer[] subareaIds = dto.getSubareas() != null
+					? dto.getSubareas().stream().map(sa -> sa.getId()).toArray(Integer[]::new)
+					: null;
+
+			Integer[] coasesorIds = dto.getCoasesores() != null
+					? dto.getCoasesores().stream().map(user -> user.getId()).toArray(Integer[]::new)
+					: null;
+
+			// Validar asesor/coasesores
+			if (coasesorIds == null || coasesorIds.length < 1) {
+				throw new IllegalArgumentException("Debe haber al menos un asesor (en coasesores).");
+			}
+
+			// Llamada a la función de base de datos
+			entityManager.createNativeQuery("SELECT crear_tema_libre(:titulo, :resumen, :metodologia, :objetivos, :carreraId, :fechaLimite, :requisitos, :subareaIds, :coasesorIds)")
+					.setParameter("titulo", dto.getTitulo())
+					.setParameter("resumen", dto.getResumen())
+					.setParameter("metodologia", dto.getMetodologia())
+					.setParameter("objetivos", dto.getObjetivos())
+					.setParameter("carreraId", dto.getCarrera() != null ? dto.getCarrera().getId() : null)
+					.setParameter("fechaLimite", dto.getFechaLimite() != null ? dto.getFechaLimite().toLocalDate() : null)
+					.setParameter("requisitos", dto.getRequisitos() != null ? dto.getRequisitos() : "")
+					.setParameter("subareaIds", subareaIds)
+					.setParameter("coasesorIds", coasesorIds)
+					.getSingleResult();
+
+			logger.info("Tema creado exitosamente: " + dto.getTitulo());
+		} catch (Exception e) {
+			logger.severe("Error al crear tema: " + e.getMessage());
+			throw new RuntimeException("No se pudo crear el tema", e);
+		}
+	}
+
+	@Override
+	public TemaDto buscarTemaPorId(Integer idTema) throws SQLException {
+		String sql = "SELECT * FROM buscar_tema_por_id(:idTema)";
+
+		Object[] result = (Object[]) entityManager
+				.createNativeQuery(sql)
+				.setParameter("idTema", idTema)
+				.getSingleResult();
+
+		TemaDto dto = new TemaDto();
+		dto.setId(idTema);
+		dto.setCodigo((String) result[0]);
+		dto.setTitulo((String) result[1]);
+		dto.setResumen((String) result[2]);
+		dto.setMetodologia((String) result[3]);
+		dto.setObjetivos((String) result[4]);
+		java.sql.Date sqlDate = (java.sql.Date) result[5];  // fecha_limite
+		if (sqlDate != null) {
+			LocalDate localDate = sqlDate.toLocalDate();
+			OffsetDateTime offsetDateTime = localDate.atStartOfDay(ZoneOffset.UTC).toOffsetDateTime();
+			dto.setFechaLimite(offsetDateTime);
+		} else {
+			dto.setFechaLimite(null);
+		}
+		dto.setRequisitos((String) result[6]);
+
+		// Asegurar listas no sean null
+		if (dto.getSubareas() == null) {
+			dto.setSubareas(new ArrayList<>());
+		}
+		if (dto.getCoasesores() == null) {
+			dto.setCoasesores(new ArrayList<>());
+		}
+		if (dto.getCarrera() == null) {
+			dto.setCarrera(new CarreraDto());
+		}
+		if (dto.getTesistas() == null) {
+			dto.setTesistas(new ArrayList<>());
+		}
+
+		// Asesor
+		Integer asesorId = (Integer) result[7];
+
+
+		// Subareas
+		Integer[] subareaArray = (Integer[]) result[8];
+		if (subareaArray != null) {
+			for (Integer subareaId : subareaArray) {
+				//SubAreaConocimientoDto subarea = new SubAreaConocimientoDto();
+				SubAreaConocimientoDto subarea = subAreaConocimientoService.findById(subareaId);
+				dto.getSubareas().add(subarea);
+			}
+		}
+
+// Coasesores
+		Integer[] coasesoresArray = (Integer[]) result[9];
+
+// Lista final coasesores con asesor primero
+		if (asesorId != null) {
+			UsuarioDto asesorDto = usuarioService.findUsuarioById(asesorId);
+			asesorDto.setId(asesorId);
+			dto.getCoasesores().add(asesorDto);
+		}
+		if (coasesoresArray != null) {
+			for (Integer coasesorId : coasesoresArray) {
+				UsuarioDto coasesorDto = usuarioService.findUsuarioById(coasesorId);
+				coasesorDto.setId(coasesorId);
+				dto.getCoasesores().add(coasesorDto);
+			}
+		}
+		Integer carreraId = (Integer) result[10];
+		if (carreraId != null) {
+			CarreraDto carreraDTO = carreraServiceImpl.findById(carreraId);
+			dto.setCarrera(carreraDTO);
+		}
+
+		// Tesistas
+		Integer[] tesistasArray = (Integer[]) result[11];
+		if (tesistasArray != null) {
+			for (Integer tesistaId : tesistasArray) {
+				UsuarioDto tesistaDto = usuarioService.findUsuarioById(tesistaId);
+				tesistaDto.setId(tesistaId);
+				dto.getTesistas().add(tesistaDto);
+			}
+		}
+
+
+		return dto;
+	}
 
 	@Override
 	@Transactional
