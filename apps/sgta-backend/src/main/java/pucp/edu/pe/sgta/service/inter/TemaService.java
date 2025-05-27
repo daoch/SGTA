@@ -76,6 +76,10 @@ public interface TemaService {
 
 	void aprobarPostulacionAPropuestaGeneral(Integer idTema, Integer idAsesor, Integer idTesista);
 
+	List<TemaDto> listarTemasPorEstadoYCarrera(String estadoNombre, Integer carreraId);
+
+	void cambiarEstadoTemaCoordinador(Integer temaId, String nuevoEstadoNombre,Integer usuarioId, String comentario);
+
 	List<ExposicionTemaMiembrosDto> listarExposicionXTemaId(Integer temaId);
 
 	void updateTituloResumenTemaSolicitud(Integer idTema, String titulo, String resumen);
@@ -99,5 +103,6 @@ public interface TemaService {
 	 * @param respuesta   Response message for the request
 	 */
 	void updateResumenTemaSolicitud(Integer solicitudId, String resumen, String respuesta);
+
 
 }
