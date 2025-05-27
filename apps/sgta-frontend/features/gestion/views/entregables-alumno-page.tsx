@@ -7,82 +7,62 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EntregablesTable } from "../components/alumno/entregables-table";
-import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { getEntregablesConEnvioXEtapaFormativaXCiclo } from "../services/entregable-service";
-import { EntregableDto } from "../dtos/EntregableDto";
+import axiosInstance from "@/lib/axios/axios-instance";
+import { EtapaFormativaAlumnoDto } from "../dtos/EtapaFormativaAlumnoDto";
+import { EntregableAlumnoDto } from "../dtos/EntregableAlumnoDto";
 
-// Datos de ejemplo
-const entregablesData2 = [
-    {
-      id: "E0",
-      nombre: "Cronograma",
-      fechaLimite: "22/03/2025",
-      fechaEntrega: "18/03/2025",
-      estado: "Revisado",
-    },
-    {
-        id: "E1",
-        nombre: "Revisión de Avances",
-        fechaLimite: "29/03/2025",
-        fechaEntrega: "28/03/2025",
-        estado: "Revisado",
-    },
-    {
-        id: "E2",
-        nombre: "Implementación Completa",
-        fechaLimite: "26/04/2025",
-        fechaEntrega: "25/04/2025",
-        estado: "En Revisión",
-    },
-    {
-        id: "E3",
-        nombre: "Validación",
-        fechaLimite: "17/05/2025",
-        fechaEntrega: "No entregado",
-        estado: "Pendiente",
-    },
-    {
-        id: "E4",
-        nombre: "Informe Final",
-        fechaLimite: "20/06/2025",
-        fechaEntrega: "No entregado",
-        estado: "Pendiente",
-    },
-    {
-        id: "E5",
-        nombre: "Informe Parcial",
-        fechaLimite: "20/06/2025",
-        fechaEntrega: "19/06/2025",
-        estado: "Entregado",
-    },
-];
-
-const ciclos = ["2023-1", "2023-2", "2024-1", "2024-2", "2025-1"];
+interface Ciclo {
+    cicloId: number;
+    cicloNombre: string;
+}
 
 const EntregablesAlumnoPage = () => {
-    const [searchTerm, setSearchTerm] = useState("");
-    const [estadoFilter, setEstadoFilter] = useState<string | null>(null);
-    const [cicloSeleccionado, setCicloSeleccionado] = useState("2025-1");
-    const [entregablesData, setEntregablesData] = useState<EntregableDto[]>([]);
+    const alumnoId = 14; // FALTA OBTENER ID DEL ALUMNO
+    const [ciclos, setCiclos] = useState<Ciclo[]>([]);
+    const [cicloSeleccionado, setCicloSeleccionado] = useState("");
+    const [entregables, setEntregables] = useState<EntregableAlumnoDto[]>([]);
+    const [etapasFormativas, setEtapasFormativas] = useState<EtapaFormativaAlumnoDto[]>([]);
+    const [tabValue, setTabValue] = useState<keyof typeof TABS_VALUES>("todos");
 
     useEffect(() => {
-        const fetchData = async () => {
-            const data = await getEntregablesConEnvioXEtapaFormativaXCiclo(1, 2);
-            setEntregablesData(data);
+        const fetchEtapasFormativas = async () => {
+            try{
+                const response = await axiosInstance.get(`/etapas-formativas/alumno/${alumnoId}`);
+                setEtapasFormativas(response.data);
+                setCiclos(response.data.map((etapa: EtapaFormativaAlumnoDto) => ({
+                    cicloId: etapa.cicloId,
+                    cicloNombre: etapa.cicloNombre
+                })));
+            } catch (error) {
+                console.error("Error al cargar las etapas formativas:", error);
+            }
         };
-        fetchData();
-    }, []);
+        fetchEtapasFormativas();
+    }, [ alumnoId ]);
 
-    const entregablesDataFiltradas = entregablesData.filter((entregable) => {
-        if (searchTerm) {
-            const searchTermLower = searchTerm.toLowerCase();
-            const nombreMatch = entregable.nombre.toLowerCase().includes(searchTermLower);
-            return nombreMatch;
+    useEffect(() => {
+        const fetchEntregables = async () => {
+            try{
+                const response = await axiosInstance.get(`/entregable/alumno/${alumnoId}`);
+                setEntregables(response.data);
+            } catch (error) {
+                console.error("Error al cargar los entregables:", error);
+            }
+        };
+        fetchEntregables();
+    }, [ alumnoId ]);
+
+    useEffect(() => {
+        if (etapasFormativas.length > 0) {
+            setCicloSeleccionado(etapasFormativas[etapasFormativas.length - 1].cicloNombre);
         }
-        return true;
-    });
+    }, [etapasFormativas]);
+
+    const entregablesFiltrados = entregables.filter(
+        (entregable) => cicloSeleccionado === "" || entregable.cicloNombre === cicloSeleccionado
+    );
 
 
     return (
@@ -99,8 +79,8 @@ const EntregablesAlumnoPage = () => {
                     </SelectTrigger>
                     <SelectContent>
                         {ciclos.map((ciclo) => (
-                        <SelectItem key={ciclo} value={ciclo}>
-                            {ciclo}
+                        <SelectItem key={ciclo.cicloId} value={ciclo.cicloNombre}>
+                            {ciclo.cicloNombre}
                         </SelectItem>
                         ))}
                     </SelectContent>
@@ -108,103 +88,30 @@ const EntregablesAlumnoPage = () => {
                 </div>
             </div>
 
-            <div className="relative flex-1">
-                <Input
-                    type="search"
-                    placeholder="Buscar por nombre de documento"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full"
-                />
-            </div>
-
-        <Tabs defaultValue="no_iniciado" className="w-full">
+        <Tabs 
+            value={tabValue} 
+            onValueChange={(value) => setTabValue(value as keyof typeof TABS_VALUES)}
+            className="w-full">
             <TabsList>
-            <TabsTrigger value="no_iniciado">Pendientes</TabsTrigger>
-            <TabsTrigger value="entregados">Entregados</TabsTrigger>
-            <TabsTrigger value="revision">En Revisión</TabsTrigger>
-            <TabsTrigger value="revisados">Revisados</TabsTrigger>
-            <TabsTrigger value="todos">Todos</TabsTrigger>
+                <TabsTrigger value="no_iniciado">Pendientes</TabsTrigger>
+                <TabsTrigger value="entregados">Entregados</TabsTrigger>
+                <TabsTrigger value="revision">En Revisión</TabsTrigger>
+                <TabsTrigger value="revisados">Revisados</TabsTrigger> 
+                <TabsTrigger value="todos">Todos</TabsTrigger>
             </TabsList>
-            <TabsContent value="no_iniciado">
-            <Card>
-                <CardHeader>
-                <CardTitle>Pendientes</CardTitle>
-                <CardDescription>
-                    Lista de entregables pendientes de revisión
-                </CardDescription>
-                </CardHeader>
-                <CardContent>
-                <EntregablesTable 
-                    filter="no_iniciado" 
-                    entregablesData ={entregablesDataFiltradas} 
-                />
-                </CardContent>
-            </Card>
-            </TabsContent>
-            <TabsContent value="entregados">
-            <Card>
-                <CardHeader>
-                <CardTitle>Entregados</CardTitle>
-                <CardDescription>
-                    Lista de entregables presentados
-                </CardDescription>
-                </CardHeader>
-                <CardContent>
-                <EntregablesTable 
-                    filter="Entregado" 
-                    entregablesData ={entregablesDataFiltradas} 
-                />
-                </CardContent>
-            </Card>
-            </TabsContent>
-            <TabsContent value="revision">
-            <Card>
-                <CardHeader>
-                <CardTitle>En Revisión</CardTitle>
-                <CardDescription>
-                    Lista de entregables en revisión
-                </CardDescription>
-                </CardHeader>
-                <CardContent>
-                <EntregablesTable 
-                    filter="En Revisión" 
-                    entregablesData ={entregablesDataFiltradas} 
-                />
-                </CardContent>
-            </Card>
-            </TabsContent>
-            <TabsContent value="revisados">
-            <Card>
-                <CardHeader>
-                <CardTitle>Revisados</CardTitle>
-                <CardDescription>
-                    Lista de entregables revisados
-                </CardDescription>
-                </CardHeader>
-                <CardContent>
-                <EntregablesTable 
-                    filter="Revisado" 
-                    entregablesData ={entregablesDataFiltradas} 
-                />
-                </CardContent>
-            </Card>
-            </TabsContent>
-            <TabsContent value="todos">
-            <Card>
-                <CardHeader>
-                <CardTitle>Todos</CardTitle>
-                <CardDescription>
-                    Lista completa de entregables
-                </CardDescription>
-                </CardHeader>
-                <CardContent>
-                <EntregablesTable 
-                    filter="Todos" 
-                    entregablesData ={entregablesDataFiltradas} 
-                />
-                </CardContent>
-            </Card>
+            <TabsContent value={tabValue}>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>{TABS_VALUES[tabValue].title}</CardTitle>
+                        <CardDescription>{TABS_VALUES[tabValue].description}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <EntregablesTable
+                        filter={TABS_VALUES[tabValue].filter}
+                        entregables={entregablesFiltrados}
+                        />
+                    </CardContent>
+                </Card>
             </TabsContent>
         </Tabs>
         </div>
@@ -212,3 +119,31 @@ const EntregablesAlumnoPage = () => {
 };
 
 export default EntregablesAlumnoPage;
+
+const TABS_VALUES= {
+   no_iniciado: {
+    title: "Pendientes",
+    description: "Lista de entregables pendientes de revisión",
+    filter: "no_iniciado",
+  },
+  entregados: {
+    title: "Entregados",
+    description: "Lista de entregables presentados",
+    filter: "Entregado",
+  },
+  revision: {
+    title: "En Revisión",
+    description: "Lista de entregables en revisión",
+    filter: "En Revisión",
+  },
+  revisados: {
+    title: "Revisados",
+    description: "Lista de entregables revisados",
+    filter: "Revisado",
+  },
+  todos: {
+    title: "Todos",
+    description: "Lista completa de entregables",
+    filter: "Todos",
+  },
+};

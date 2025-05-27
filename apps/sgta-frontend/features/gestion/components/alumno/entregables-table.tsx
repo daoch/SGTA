@@ -6,40 +6,29 @@ import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Eye, Upload } from "lucide-react";
 import { useState } from "react";
-import { Entregable } from "../../types/entregables/entidades";
 import { EntregablesModal } from "./subida-entregable-modal";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { EntregableDto } from "../../dtos/EntregableDto";
+import { EntregableAlumnoDto } from "../../dtos/EntregableAlumnoDto";
 
 interface EntregablesTableProps {
     filter?: string,
-    entregablesData?: EntregableDto[],
+    entregables?: EntregableAlumnoDto[],
 }
 
-export function EntregablesTable({ filter, entregablesData }: EntregablesTableProps) {
-    const [estadoFilter, setEstadoFilter] = useState<string | null>(null);
-    const [searchTerm, setSearchTerm] = useState("");
-    const [selectedEntregable, setSelectedEntregable] = useState< EntregableDto | null>(null);
-    const [comentario, setComentario] = useState("");
-    const router = useRouter();
+export function EntregablesTable({ filter, entregables }: EntregablesTableProps) {
+    const [selectedEntregable, setSelectedEntregable] = useState< EntregableAlumnoDto | null>(null);
 
     
-        const entregablesFiltradas = (entregablesData ?? []).filter((entregable: EntregableDto) => {
+        const entregablesFiltradas = (entregables ?? []).filter((entregable: EntregableAlumnoDto) => {
             // Filtrar por tipo
-            if (filter && filter != "Todos" && entregable.estado.toLowerCase() !== filter.toLowerCase()) {
+            if (filter && filter != "Todos" && entregable.entregableEstado.toLowerCase() !== filter.toLowerCase()) {
                 return false;
             }
-
-            if (estadoFilter && entregable.estado !== estadoFilter && filter != "Todos") {
-                return false;
-            }
-           
             return true;
         });
     
 
-    const handleOpenDialog = (entregable: EntregableDto) => {
+    const handleOpenDialog = (entregable: EntregableAlumnoDto) => {
         setSelectedEntregable(entregable);
     };
 
@@ -66,34 +55,35 @@ export function EntregablesTable({ filter, entregablesData }: EntregablesTablePr
                             </TableRow>
                         ):(
                             entregablesFiltradas.map((entregable)=>(
-                                <TableRow key={entregable.id}>
-                                    <TableCell>{entregable.id}</TableCell>
-                                    <TableCell className="font-medium max-w-xs truncate">{entregable.nombre}</TableCell>
-                                    <TableCell>{entregable.fechaFin ? new Date(entregable.fechaFin).toLocaleDateString("es-PE") : "-"}</TableCell>
-                                    <TableCell>{entregable.fechaEnvio ? new Date(entregable.fechaEnvio).toLocaleDateString("es-PE") : "-"}</TableCell>
+                                <TableRow key={entregable.entregableId}>
+                                    <TableCell>{entregable.entregableId}</TableCell>
+                                    <TableCell className="font-medium max-w-xs truncate">{entregable.entregableNombre}</TableCell>
+                                    <TableCell>{entregable.entregableFechaFin ? new Date(entregable.entregableFechaFin).toLocaleDateString("es-PE") : "-"}</TableCell>
+                                    <TableCell>{entregable.entregableFechaEnvio ? new Date(entregable.entregableFechaEnvio).toLocaleDateString("es-PE") : "-"}</TableCell>
                                     <TableCell>
-                                        <Badge
-                                        variant="outline"
-                                        className={
-                                            entregable.estado === "no_iniciado"
-                                                ? "bg-gray-100 text-gray-800 hover:bg-gray-100"
-                                                : entregable.estado === "Revisado"
-                                                ? "bg-green-100 text-green-800 hover:bg-green-100"
-                                                : entregable.estado === "En Revisión"
-                                                ? "bg-yellow-100 text-yellow-800 hover:bg-yellow-100"
-                                                : "bg-purple-100 text-purple-800 hover:bg-purple-100" 
-                                        }
-                                        >
-                                        {entregable.estado === "no_iniciado"
-                                        ? "Pendiente"
-                                        : entregable.estado}
-                                        </Badge>
+                                        {(() => {
+                                            let badgeClass = "bg-purple-100 text-purple-800 hover:bg-purple-100";
+                                            if (entregable.entregableEstado === "no_iniciado") {
+                                                badgeClass = "bg-gray-100 text-gray-800 hover:bg-gray-100";
+                                            } else if (entregable.entregableEstado === "Revisado") {
+                                                badgeClass = "bg-green-100 text-green-800 hover:bg-green-100";
+                                            } else if (entregable.entregableEstado === "En Revisión") {
+                                                badgeClass = "bg-yellow-100 text-yellow-800 hover:bg-yellow-100";
+                                            }
+                                            return (
+                                                <Badge variant="outline" className={badgeClass}>
+                                                    {entregable.entregableEstado === "no_iniciado"
+                                                        ? "Pendiente"
+                                                        : entregable.entregableEstado}
+                                                </Badge>
+                                            );
+                                        })()}
                                     </TableCell>
                                     <TableCell className="text-center">
                                         <div className="flex justify-end gap-2">
-                                            {entregable.estado != "no_iniciado" && (
+                                            {entregable.entregableEstado != "no_iniciado" && (
                                                 <Dialog> 
-                                                    <Link href={`/alumno/mi-proyecto/entregables/${entregable.id}`} passHref>
+                                                    <Link href={`/alumno/mi-proyecto/entregables/${entregable.entregableId}`} passHref>
                                                         <Button variant="ghost" size="icon">
                                                             <Eye className="h-4 w-4" />
                                                             <span className="sr-only">Ver detalles</span>
@@ -101,7 +91,7 @@ export function EntregablesTable({ filter, entregablesData }: EntregablesTablePr
                                                     </Link>
                                                 </Dialog>
                                             )}
-                                            {entregable.estado === "no_iniciado" && (
+                                            {entregable.entregableEstado === "no_enviado" && (
                                                 <Dialog> 
                                                     <DialogTrigger asChild>
                                                         <Button variant="ghost" size="icon" onClick={() =>handleOpenDialog(entregable)}>
@@ -110,9 +100,8 @@ export function EntregablesTable({ filter, entregablesData }: EntregablesTablePr
                                                     </DialogTrigger>
                                                     { selectedEntregable &&(
                                                         <EntregablesModal
-                                                            data={selectedEntregable} 
-                                                            setSelectedEntregable={setSelectedEntregable} 
-                                                            setComentario={setComentario}
+                                                            entregable={selectedEntregable} 
+                                                            setSelectedEntregable={setSelectedEntregable}
                                                         ></EntregablesModal>
                                                     )}
                                                 </Dialog>

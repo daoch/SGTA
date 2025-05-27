@@ -3,6 +3,7 @@ package pucp.edu.pe.sgta.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import pucp.edu.pe.sgta.dto.EntregableAlumnoDto;
 import pucp.edu.pe.sgta.dto.EntregableDto;
 import pucp.edu.pe.sgta.service.inter.EntregableService;
 
@@ -53,4 +54,9 @@ public class EntregableController {
 
     @GetMapping("/{id}")
     public EntregableDto findById(@PathVariable Integer id) { return entregableService.findById(id); }
+
+    @GetMapping("/alumno/{alumnoId}")
+    public List<EntregableAlumnoDto> listarEntregablesPorAlumno(@PathVariable Integer alumnoId) {
+        return entregableService.listarEntregablesPorAlumno(alumnoId);
+    }
 }

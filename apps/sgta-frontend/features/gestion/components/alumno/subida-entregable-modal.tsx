@@ -7,16 +7,14 @@ import {
   import { Label } from "@/components/ui/label";
   import { Button } from "@/components/ui/button";
   import { Input } from "@/components/ui/input";
-  import { useState } from "react";
-  import { Entregable } from "../../types/entregables/entidades";
   import { Calendar, Clock } from "lucide-react";
   import { Textarea } from "@/components/ui/textarea";
-import { EntregableDto } from "../../dtos/EntregableDto";
+import { EntregableAlumnoDto } from "../../dtos/EntregableAlumnoDto";
+import { useState } from "react";
   
   interface EntregablesModalProps {
-    data?: EntregableDto;
-    setSelectedEntregable?: (selectedEntregable: EntregableDto | null) => void;
-    setComentario?: (comentario: string) => void;
+    entregable?: EntregableAlumnoDto;
+    setSelectedEntregable?: (selectedEntregable: EntregableAlumnoDto | null) => void;
   }
 
   const formatFecha = (fechaString?: string) => {
@@ -34,18 +32,17 @@ import { EntregableDto } from "../../dtos/EntregableDto";
   };
   
   export function EntregablesModal({
-    data,
+    entregable,
     setSelectedEntregable,
-    setComentario,
   }: EntregablesModalProps) {
-    const [comentario, setComentarioLocal] = useState("");
+    const [comentario, setComentario] = useState<string>("");
   
     return (
       <DialogContent className="max-w-xl">
         <DialogHeader>
-          <DialogTitle>{data?.nombre || "Entregable"}</DialogTitle>
+          <DialogTitle>{entregable?.entregableNombre ?? "Entregable"}</DialogTitle>
           <p className="text-sm text-muted-foreground">
-            Proyecto de fin de carrera 2 (1INF46) - {data?.id}
+            {entregable?.etapaFormativaNombre}
           </p>
         </DialogHeader>
   
@@ -55,14 +52,14 @@ import { EntregableDto } from "../../dtos/EntregableDto";
                     <Calendar className="w-4 h-4 mt-1 text-gray-500" />
                     <p>
                     <strong>Apertura:</strong>{" "}
-                      {formatFecha(data?.fechaInicio)}
+                      {formatFecha(entregable?.entregableFechaInicio)}
                     </p>
                 </div>
                 <div className="flex items-start gap-2">
                     <Clock className="w-4 h-4 mt-1 text-gray-500" />
                     <p>
                     <strong>Fecha límite:</strong>{" "}
-                    {formatFecha(data?.fechaFin)}
+                    {formatFecha(entregable?.entregableFechaFin)}
                     </p>
                 </div>
             </div>
@@ -73,7 +70,7 @@ import { EntregableDto } from "../../dtos/EntregableDto";
                     <div className="grid grid-cols-2 border-b">
                         <div className="bg-gray-100 px-4 py-3 font-medium text-gray-800">Estado de la entrega</div>
                         <div className="px-4 py-3 text-gray-700">
-                          {data?.estado === "no_iniciado" ? "Pendiente" : data?.estado}
+                          {entregable?.entregableEstado === "no_iniciado" ? "Pendiente" : entregable?.entregableEstado}
                         </div>
                     </div>
                     <div className="grid grid-cols-2 border-b">
@@ -95,7 +92,6 @@ import { EntregableDto } from "../../dtos/EntregableDto";
                             placeholder="Añade comentarios sobre tu entrega aquí..."
                             value={comentario}
                             onChange={(e) => {
-                                setComentarioLocal(e.target.value);
                                 setComentario?.(e.target.value);
                             }}
                         />
@@ -103,30 +99,17 @@ import { EntregableDto } from "../../dtos/EntregableDto";
                     </div>
                 </div>
             </div>
-  
-            {/* Comentarios 
-            <div className="space-y-2">
-                <Label>Comentarios de la entrega</Label>
-                <Input
-                    placeholder="Añade comentarios sobre tu entrega aquí..."
-                    value={comentario}
-                    onChange={(e) => {
-                        setComentarioLocal(e.target.value);
-                        setComentario?.(e.target.value);
-                    }}
-                />
-            </div>*/}
-  
         
-            <div className="space-y-2">
+            {/*<div className="space-y-2">
                 <Label className="text-m">Añadir nuevo archivo</Label>
                 <Input type="file" accept=".pdf,.doc,.docx" />
                 <p className="text-xs text-muted-foreground">
-                    Máximo de archivos: {data?.maximoDocumentos} <br />
-                    Tamaño máximo: {data?.pesoMaximoDocumento} MB <br />
-                    Formatos aceptados: {data?.extensionesPermitidas} <br />                    
+                    Máximo de archivos: {entregable?.entregableMaximoDocumentos} <br />
+                    Tamaño máximo: {entregable?.entregablePesoMaximoDocumento} MB <br />
+                    Formatos aceptados: {entregable?.entregableExtensionesPermitidas} <br />                    
                 </p>
-            </div>
+            </div>*/}
+            
         </div>
   
         <DialogFooter>

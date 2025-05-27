@@ -22,5 +22,6 @@ public interface EntregableRepository extends JpaRepository<Entregable, Integer>
         @Param("temaId") Integer temaId
     );
 
-
+    @Query(value = "SELECT * FROM obtener_entregables_alumno(:alumnoId)", nativeQuery = true)
+    List<Object[]> listarEntregablesPorAlumno(@Param("alumnoId") Integer alumnoId);
 }

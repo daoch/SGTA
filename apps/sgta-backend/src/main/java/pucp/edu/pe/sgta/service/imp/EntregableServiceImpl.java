@@ -4,6 +4,7 @@ import jakarta.transaction.Transactional;
 
 import org.springframework.stereotype.Service;
 
+import pucp.edu.pe.sgta.dto.EntregableAlumnoDto;
 import pucp.edu.pe.sgta.dto.EntregableDto;
 import pucp.edu.pe.sgta.mapper.EntregableMapper;
 import pucp.edu.pe.sgta.model.Entregable;
@@ -15,6 +16,7 @@ import pucp.edu.pe.sgta.util.EstadoActividad;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -138,5 +140,40 @@ public class EntregableServiceImpl implements EntregableService {
         return entregableRepository.findById(id)
                 .map(EntregableMapper::toDto)
                 .orElse(null);
+    }
+
+    @Override
+    public List<EntregableAlumnoDto> listarEntregablesPorAlumno(Integer alumnoId) {
+        List<Object[]> result = entregableRepository.listarEntregablesPorAlumno(alumnoId);
+        List<EntregableAlumnoDto> entregables = new ArrayList<>();
+
+        for(Object[] row : result) {
+            EntregableAlumnoDto dto = new EntregableAlumnoDto();
+            dto.setEntregableId((Integer) row[0]);
+            dto.setEntregableNombre((String) row[1]);
+            dto.setEntregableDescripcion((String) row[2]);
+            dto.setEntregableFechaInicio(((Instant) row[3]).atOffset(ZoneOffset.UTC));
+            dto.setEntregableFechaFin(((Instant) row[4]).atOffset(ZoneOffset.UTC));
+            dto.setEntregableEstado((String) row[5]);
+            dto.setEntregableEsEvaluable((Boolean) row[6]);
+            dto.setEntregableMaximoDocumentos((Integer) row[7]);
+            dto.setEntregableExtensionesPermitidas((String) row[8]);
+            dto.setEntregablePesoMaximoDocumento((Integer) row[9]);
+            dto.setEtapaFormativaId((Integer) row[10]);
+            dto.setEtapaFormativaNombre((String) row[11]);
+            dto.setCicloId((Integer) row[12]);
+            dto.setCicloNombre((String) row[13]);
+            dto.setCicloAnio((Integer) row[14]);
+            dto.setCicloSemestre((String) row[15]);
+            dto.setTemaId((Integer) row[16]);
+            if( row[17] != null){
+                dto.setEntregableFechaEnvio(((Instant) row[17]).atOffset(ZoneOffset.UTC));
+            } else {
+                dto.setEntregableFechaEnvio(null);
+            }
+            entregables.add(dto);
+        }
+
+        return entregables;
     }
 }
