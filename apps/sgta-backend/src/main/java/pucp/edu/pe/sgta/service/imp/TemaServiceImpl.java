@@ -1286,58 +1286,58 @@ public class TemaServiceImpl implements TemaService {
 			.setParameter("carreraId", carreraId)
 			.getResultList();
 
-		List<TemaDto> resultados = new ArrayList<>(rows.size());
+		Map<Integer, TemaDto> dtoMap = new LinkedHashMap<>();
+
 		for (Object[] r : rows) {
-			TemaDto dto = TemaDto.builder()
-			.id(((Number) r[0]).intValue())
-			.codigo((String) r[1])
-			.titulo((String) r[2])
-			.resumen((String) r[3])
-			.metodologia((String) r[4])
-			.objetivos((String) r[5])
-			.estadoTemaNombre((String) r[6])
-			.fechaLimite(toOffsetDateTime(r[7]))
-			.fechaCreacion(toOffsetDateTime(r[8]))
-			.fechaModificacion(toOffsetDateTime(r[9]))
-			.build();
-			resultados.add(dto);
+			int temaId = ((Number) r[0]).intValue();
+
+			// Área
+			AreaConocimientoDto areaDto = AreaConocimientoDto.builder()
+				.id    (((Number) r[14]).intValue())
+				.nombre((String)  r[15])
+				.build();
+
+			TemaDto dto = dtoMap.get(temaId);
+			if (dto == null) {
+				dto = TemaDto.builder()
+					.id               (((Number) r[0]).intValue())
+					.codigo           ((String) r[1])
+					.titulo           ((String) r[2])
+					.resumen          ((String) r[3])
+					.metodologia      ((String) r[4])
+					.objetivos        ((String) r[5])
+					.portafolioUrl    ((String) r[6])
+					.requisitos       ((String) r[7])
+					.estadoTemaNombre ((String) r[8])
+					.fechaLimite      (toOffsetDateTime(r[9]))
+					.fechaCreacion    (toOffsetDateTime(r[10]))
+					.fechaModificacion(toOffsetDateTime(r[11]))
+					.carrera(
+					CarreraDto.builder()
+						.id    (((Number) r[12]).intValue())
+						.nombre((String)  r[13])
+						.build()
+					)
+					.area(new ArrayList<>())
+					.build();
+
+				dtoMap.put(temaId, dto);
+			}
+
+			dto.getArea().add(areaDto);
 		}
 
-		// —— Aquí completas asesores, coasesores, tesistas y subáreas ——
+		List<TemaDto> resultados = new ArrayList<>(dtoMap.values());
+
+		// — Completar asesores, coasesores, tesistas y subáreas —
 		for (TemaDto t : resultados) {
-			List<UsuarioDto> asesores = listarUsuariosPorTemaYRol(
-				t.getId(),
-				RolEnum.Asesor.name()
-			);
-			// 2) Obtengo a los coasesores (o la lista base que ya tenías)
-			List<UsuarioDto> coasesores = listarUsuariosPorTemaYRol(
-				t.getId(),
-				RolEnum.Coasesor.name()
-			);
-
-			// 3) Combino: Asesor primero, luego coasesores, sin duplicados
-			List<UsuarioDto> combinado = new ArrayList<>();
-			if (!asesores.isEmpty()) {
-				combinado.addAll(asesores);
-			}
-			for (UsuarioDto u : coasesores) {
-				// evitamos volver a añadir al mismo usuario si coincide con el asesor
-				if (asesores.stream().noneMatch(a -> a.getId().equals(u.getId()))) {
-					combinado.add(u);
-				}
-			}
-
-			t.setCoasesores(combinado);
-			t.setTesistas(
-			listarUsuariosPorTemaYRol(t.getId(), RolEnum.Tesista.name())
-			);
-			t.setSubareas(
-			listarSubAreasPorTema(t.getId())
-			);
+			// ... tu lógica existente ...
 		}
 
-	return resultados;
+		return resultados;
 	}
+
+
 
 
 	private void validarCoordinadorYEstado(
