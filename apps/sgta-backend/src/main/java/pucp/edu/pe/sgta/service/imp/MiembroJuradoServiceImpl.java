@@ -274,11 +274,16 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
     @Override
     public List<MiembroJuradoXTemaDto> findByUsuarioIdAndActivoTrueAndRolId(Integer usuarioId) {
         List<UsuarioXTema> temasJurado = usuarioXTemaRepository.findByUsuarioIdAndActivoTrue(usuarioId);
-
+        int limite = 2;
         return temasJurado.stream()
                 .filter(ut -> ut.getRol().getId().equals(2))
                 .filter(ut -> esEstadoTemaValido(ut.getTema().getEstadoTema()))
-                .filter(tema -> usuarioXTemaRepository.countByTemaIdAndActivoTrue(tema.getId()) < 3)
+                .filter(ut -> {
+                    long cantidadJurados = usuarioXTemaRepository.findByTemaIdAndActivoTrue(ut.getTema().getId()).stream()
+                            .filter(rel -> rel.getRol().getId().equals(2)) // solo jurados
+                            .count();
+                    return cantidadJurados < limite;
+                })
                 .map(ut -> {
                     Tema tema = ut.getTema();
 
