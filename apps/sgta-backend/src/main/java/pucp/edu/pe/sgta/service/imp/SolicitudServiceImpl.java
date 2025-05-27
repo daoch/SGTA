@@ -70,6 +70,8 @@ public class SolicitudServiceImpl implements SolicitudService {
     private TemaRepository temaRepository;
     @Autowired
     private UsuarioXCarreraRepository usuarioXCarreraRepository;
+    @Autowired
+    private TemaService temaService;
 
     public SolicitudCeseDto findAllSolicitudesCese(int coordinatorId, int page, int size) {
         List<UsuarioXCarrera> coordinadorCarreras = usuarioXCarreraRepository.findByUsuarioIdAndActivoTrue(coordinatorId);
@@ -207,7 +209,7 @@ public class SolicitudServiceImpl implements SolicitudService {
         }
 
         // Check that the request is of type termination (tipoSolicitud.nombre == Cese Asesoria)
-        if (solicitud.getTipoSolicitud() == null || solicitud.getTipoSolicitud().getNombre() != "Cese Asesoria") {
+        if (solicitud.getTipoSolicitud() == null || !solicitud.getTipoSolicitud().getNombre().equalsIgnoreCase("Cese Asesoria")) {
             throw new RuntimeException("Request is not of termination type");
         }
 
@@ -247,7 +249,7 @@ public class SolicitudServiceImpl implements SolicitudService {
         }
 
         // Check that the request is of type termination (tipoSolicitud.nombre == Cese Asesoria)
-        if (solicitud.getTipoSolicitud() == null || solicitud.getTipoSolicitud().getNombre() != "Cese Asesoria") {
+        if (solicitud.getTipoSolicitud() == null || !solicitud.getTipoSolicitud().getNombre().equalsIgnoreCase("Cese Asesoria")) {
             throw new RuntimeException("Request is not of termination type");
         }
 
@@ -270,7 +272,7 @@ public class SolicitudServiceImpl implements SolicitudService {
         }
 
         for (UsuarioXTema usuarioXTema : asesoresActivos) {
-            usuarioXTema.setActivo(false);
+            //usuarioXTema.setActivo(false);
             usuarioXTemaRepository.save(usuarioXTema);
         }
         for (UsuarioXTema usuarioXTema : tesistasActivos) {
@@ -371,7 +373,7 @@ public class SolicitudServiceImpl implements SolicitudService {
         }
 
         // Check that the request is of type advisor change (tipoSolicitud.nombre == Cambio Asesor)
-        if (solicitud.getTipoSolicitud() == null || solicitud.getTipoSolicitud().getNombre() != "Cambio Asesor") {
+        if (solicitud.getTipoSolicitud() == null || !solicitud.getTipoSolicitud().getNombre().equalsIgnoreCase("Cambio Asesor")) {
             throw new RuntimeException("Request is not of advisor change type");
         }
 
@@ -407,7 +409,7 @@ public class SolicitudServiceImpl implements SolicitudService {
         }
 
         // Check that the request is of type advisor change (tipoSolicitud.nombre == Cambio Asesor)
-        if (solicitud.getTipoSolicitud() == null || solicitud.getTipoSolicitud().getNombre() != "Cambio Asesor") {
+        if (solicitud.getTipoSolicitud() == null || !solicitud.getTipoSolicitud().getNombre().equalsIgnoreCase("Cambio Asesor")) {
             throw new RuntimeException("Request is not of advisor change type");
         }
 
