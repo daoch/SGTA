@@ -24,15 +24,16 @@ public class S3FileController {
             ByteArrayResource resource = new ByteArrayResource(data);
 
             return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + key + "\"")
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .contentLength(data.length)
-                .body(resource);
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + key + "\"")
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .contentLength(data.length)
+                    .body(resource);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body("Archivo no encontrado o error al descargar: " + e.getMessage());
+                    .body("Archivo no encontrado o error al descargar: " + e.getMessage());
         }
     }
 
-    // Aquí podrías añadir más endpoints relacionados con S3 (p.ej. listar, borrar, etc.)
+    // Aquí podrías añadir más endpoints relacionados con S3 (p.ej. listar, borrar,
+    // etc.)
 }

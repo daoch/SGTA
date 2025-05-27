@@ -162,7 +162,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-
 CREATE OR REPLACE FUNCTION listar_jornadas_exposicion_salas(
 	expo_id integer
 )
@@ -401,7 +400,6 @@ BEGIN
       AND c.activo = true;
 END;
 $$;
-
 
 CREATE OR REPLACE FUNCTION obtener_area_conocimiento_jurado(usuario_id_param integer)
 CREATE OR REPLACE FUNCTION obtener_area_conocimiento_jurado(usuario_id_param integer)
@@ -737,6 +735,7 @@ BEGIN
       AND se.activo = TRUE;
 END;
 $$ LANGUAGE plpgsql;
+
 CREATE OR REPLACE FUNCTION listar_entregables_x_etapa_formativa_x_ciclo(etapaformativaxcicloid integer)
     RETURNS TABLE(id integer, etapa_formativa_x_ciclo_id integer, nombre character varying, descripcion text, fecha_inicio timestamp with time zone, fecha_fin timestamp with time zone, estado enum_estado_actividad, es_evaluable boolean)
     LANGUAGE plpgsql
@@ -774,7 +773,6 @@ BEGIN
     WHERE ef.activo = true;
 END;
 $$;
-
 
 CREATE OR REPLACE FUNCTION obtener_carreras_activas_por_usuario(p_usuario_id integer) RETURNS SETOF carrera
     LANGUAGE plpgsql
@@ -851,7 +849,6 @@ BEGIN
 END;
 $$;
 
-
 CREATE OR REPLACE FUNCTION terminar_planificacion(idexposicion integer) RETURNS boolean
     LANGUAGE plpgsql
 AS
@@ -899,9 +896,21 @@ BEGIN
 	where b.activo = true and je.exposicion_id = _exposicion_id;
 END;
 $$ LANGUAGE plpgsql;
-
 -- Para volver a estados
 
-update exposicion set estado_planificacion_id = 2 where exposicion_id = 1 or exposicion_id =2;
-update bloque_horario_exposicion set exposicion_x_tema_id = null,es_bloque_reservado = false,fecha_modificacion=null  where bloque_horario_exposicion_id >= 1;
+update exposicion
+set
+    estado_planificacion_id = 2
+where
+    exposicion_id = 1
+    or exposicion_id = 2;
+
+update bloque_horario_exposicion
+set
+    exposicion_x_tema_id = null,
+    es_bloque_reservado = false,
+    fecha_modificacion = null
+where
+    bloque_horario_exposicion_id >= 1;
+
 update exposicion_x_tema set estado_exposicion = 'sin_programar';

@@ -5,9 +5,6 @@ interface Props {
 }
 
 export default function ToolTipoBloque({ expoFind }: Props) {
-  console.log(expoFind);
-  const roles = expoFind?.usuarios?.filter((u) => u.rol?.nombre === "Jurado");
-  console.log({ roles });
   return (
     <div className="flex flex-col gap-2 p-2 max-w-60">
       <section>
@@ -30,7 +27,6 @@ export default function ToolTipoBloque({ expoFind }: Props) {
 
       <div className="flex flex-col">
         <strong>Jurados:</strong>
-
         <ul>
           {expoFind?.usuarios
             ?.filter((u) => u.rol?.nombre === "Jurado")
@@ -41,6 +37,7 @@ export default function ToolTipoBloque({ expoFind }: Props) {
             ))}
         </ul>
       </div>
+
       <div className="flex flex-col">
         <strong>Asesor:</strong>
         {expoFind?.usuarios
