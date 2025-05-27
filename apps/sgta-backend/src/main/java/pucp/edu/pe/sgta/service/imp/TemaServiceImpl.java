@@ -26,9 +26,7 @@ import pucp.edu.pe.sgta.util.RolEnum;
 import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
 
 import java.io.IOException;
-import java.sql.Array;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
@@ -76,6 +74,17 @@ public class TemaServiceImpl implements TemaService {
 
 	private final ObjectMapper objectMapper = new ObjectMapper(); // for JSON conversion
 
+	private final TipoSolicitudRepository        tipoSolicitudRepository;
+
+	private final SolicitudRepository            solicitudRepository;
+
+	private final UsuarioXSolicitudRepository    usuarioXSolicitudRepository;
+
+	private final SolicitudService solicitudService;
+
+  	private final SubAreaConocimientoService subAreaService;
+
+
 	@PersistenceContext
 	private EntityManager entityManager;
 
@@ -88,7 +97,9 @@ public class TemaServiceImpl implements TemaService {
 			ExposicionXTemaRepository exposicionXTemaRepository,
 			JornadaExposicionRepository jornadaExposicionRepository, ExposicionRepository exposicionRepository,
 			JornadaExposicionXSalaExposicionRepository jornadaExposicionXSalaExposicionRepository,
-			UsuarioXTemaRepository usuarioTemaRepository) {
+			UsuarioXTemaRepository usuarioTemaRepository, TipoSolicitudRepository tipoSolicitudRepository, 
+			SolicitudRepository solicitudRepository, SolicitudService solicitudService,
+			UsuarioXSolicitudRepository usuarioXSolicitudRepository) {
 		this.temaRepository = temaRepository;
 		this.usuarioXTemaRepository = usuarioXTemaRepository;
 		this.subAreaConocimientoXTemaRepository = subAreaConocimientoXTemaRepository;
@@ -106,6 +117,11 @@ public class TemaServiceImpl implements TemaService {
 		this.exposicionRepository = exposicionRepository;
 		this.jornadaExposicionXSalaExposicionRepository = jornadaExposicionXSalaExposicionRepository;
 		this.usuarioTemaRepository = usuarioTemaRepository;
+		this.tipoSolicitudRepository = tipoSolicitudRepository;
+		this.solicitudRepository = solicitudRepository;
+		this.usuarioXSolicitudRepository = usuarioXSolicitudRepository;
+		this.solicitudService = solicitudService;
+		this.subAreaService = subAreaConocimientoService;
 	}
 
 	@Override
@@ -387,7 +403,9 @@ public class TemaServiceImpl implements TemaService {
 			eliminarPostulacionesTesista(u.getId());
 			eliminarPropuestasTesista(u.getId());
 		}
-	}
+		// 6) Generar y enviar la solicitud de aprobación
+		solicitudService.crearSolicitudAprobacionTema(tema);
+    }
 
 	/**
 	 * Crea y persiste un vínculo UsuarioXTema para el tema dado.
@@ -563,41 +581,59 @@ public class TemaServiceImpl implements TemaService {
 	public List<TemaDto> listarTemasPorUsuarioRolEstado(Integer usuarioId,
 			String rolNombre,
 			String estadoNombre) {
+
 		List<Object[]> rows = temaRepository.listarTemasPorUsuarioRolEstado(
 				usuarioId, rolNombre, estadoNombre);
-		List<TemaDto> resultados = new ArrayList<>();
+
+		Map<Integer, TemaDto> dtoMap = new LinkedHashMap<>();
 
 		for (Object[] r : rows) {
-			System.out.println("cols=" + r.length + " → " + java.util.Arrays.toString(r));
-			// luego tu mapeo…
-		}
-		for (Object[] r : rows) {
-			TemaDto dto = TemaDto.builder()
-					.id((Integer) r[0])
-					.titulo((String) r[1])
-					.resumen((String) r[2])
-					.metodologia((String) r[3])
-					.objetivos((String) r[4])
-					.portafolioUrl((String) r[5])
-					.activo((Boolean) r[6])
-					.fechaLimite(
-							r[7] != null
-									? ((Instant) r[7]).atOffset(ZoneOffset.UTC)
-									: null)
-					.fechaCreacion(
-							r[8] != null
+			Integer temaId = (Integer) r[0];
+
+			// Construye el DTO de área usando los índices corregidos
+			AreaConocimientoDto areaDto = AreaConocimientoDto.builder()
+				.id    ((Integer) r[14])   // ahora sí es area_id
+				.nombre((String ) r[15])   // area_nombre
+				.build();
+
+			TemaDto dto = dtoMap.get(temaId);
+			if (dto == null) {
+				dto = TemaDto.builder()
+					.id               ((Integer) r[0])
+					.codigo           ((String ) r[1])
+					.titulo           ((String ) r[2])
+					.resumen          ((String ) r[3])
+					.metodologia      ((String ) r[4])
+					.objetivos        ((String ) r[5])
+					.portafolioUrl    ((String ) r[6])
+					.activo           ((Boolean) r[7])
+					.fechaLimite      (r[8]  != null
 									? ((Instant) r[8]).atOffset(ZoneOffset.UTC)
 									: null)
-					.fechaModificacion(
-							r[9] != null
+					.fechaCreacion    (r[9]  != null
 									? ((Instant) r[9]).atOffset(ZoneOffset.UTC)
 									: null)
-					.codigo((String) r[10])
-					.estadoTemaNombre(estadoNombre)
+					.fechaModificacion(r[10] != null
+									? ((Instant) r[10]).atOffset(ZoneOffset.UTC)
+									: null)
+					.requisitos       ((String ) r[11])
+					.carrera          (
+						CarreraDto.builder()
+						.id    ((Integer) r[12])   // carrera_id
+						.nombre((String ) r[13])   // carrera_nombre
+						.build()
+					)
+					.area             (new ArrayList<>())
+					.estadoTemaNombre (estadoNombre)
 					.build();
-			resultados.add(dto);
+
+				dtoMap.put(temaId, dto);
+			}
+
+			dto.getArea().add(areaDto);
 		}
-		return resultados;
+
+		return new ArrayList<>(dtoMap.values());
 	}
 
 	@Override
@@ -620,10 +656,11 @@ public class TemaServiceImpl implements TemaService {
 					.rechazado((Boolean) r[8])
 					.codigoPucp((String) r[9])
 					.build();
-			resultados.add(u);
-		}
-		return resultados;
-	}
+			u.setRol(rolNombre);
+            resultados.add(u);
+        }
+        return resultados;
+    }
 
 	@Override
 	public List<SubAreaConocimientoDto> listarSubAreasPorTema(Integer temaId) {
@@ -647,15 +684,38 @@ public class TemaServiceImpl implements TemaService {
 				rolNombre,
 				estadoNombre);
 
-		// por cada tema cargo coasesores, tesistas y subáreas
-		for (TemaDto t : temas) {
-			t.setCoasesores(
-					listarUsuariosPorTemaYRol(t.getId(), RolEnum.Coasesor.name()));
-			t.setTesistas(
-					listarUsuariosPorTemaYRol(t.getId(), RolEnum.Tesista.name()));
-			t.setSubareas(
-					listarSubAreasPorTema(t.getId()));
-		}
+        // por cada tema cargo coasesores, tesistas y subáreas
+        for (TemaDto t : temas) {
+            List<UsuarioDto> asesores = listarUsuariosPorTemaYRol(
+				t.getId(),
+				RolEnum.Asesor.name()
+			);
+			// 2) Obtengo a los coasesores (o la lista base que ya tenías)
+			List<UsuarioDto> coasesores = listarUsuariosPorTemaYRol(
+				t.getId(),
+				RolEnum.Coasesor.name()
+			);
+
+			// 3) Combino: Asesor primero, luego coasesores, sin duplicados
+			List<UsuarioDto> combinado = new ArrayList<>();
+			if (!asesores.isEmpty()) {
+				combinado.addAll(asesores);
+			}
+			for (UsuarioDto u : coasesores) {
+				// evitamos volver a añadir al mismo usuario si coincide con el asesor
+				if (asesores.stream().noneMatch(a -> a.getId().equals(u.getId()))) {
+					combinado.add(u);
+				}
+			}
+
+			t.setCoasesores(combinado);
+            t.setTesistas(
+                listarUsuariosPorTemaYRol(t.getId(), RolEnum.Tesista.name())
+            );
+            t.setSubareas(
+                listarSubAreasPorTema(t.getId())
+            );
+        }
 
 		return temas;
 	}
@@ -929,7 +989,7 @@ public class TemaServiceImpl implements TemaService {
 						.nombres(m.get("nombre_completo") != null ? ((String) m.get("nombre_completo")).split(" ")[0]
 								: null)
 						.primerApellido(
-								m.get("primer_apellido") != null ? ((String) m.get("nombre_completo")).split(" ")[1]
+								m.get("nombre_completo") != null ? ((String) m.get("nombre_completo")).split(" ")[1]
 										: null)
 						.rol((String) m.get("rol"))
 						.rechazado((Boolean) m.get("rechazado"))
@@ -1213,6 +1273,232 @@ public class TemaServiceImpl implements TemaService {
 					.severe("Error processing summary change request " + solicitudId + ": " + e.getMessage());
 			throw new RuntimeException("Failed to process summary change request", e);
 		}
+	}
+
+
+	@Override
+	@Transactional
+	public List<TemaDto> listarTemasPorEstadoYCarrera(String estadoNombre, Integer carreraId) {
+		String sql = "SELECT * FROM listar_temas_por_estado_y_carrera(:estado, :carreraId)";
+		@SuppressWarnings("unchecked")
+		List<Object[]> rows = entityManager.createNativeQuery(sql)
+			.setParameter("estado", estadoNombre)
+			.setParameter("carreraId", carreraId)
+			.getResultList();
+
+		Map<Integer, TemaDto> dtoMap = new LinkedHashMap<>();
+
+		for (Object[] r : rows) {
+			int temaId = ((Number) r[0]).intValue();
+
+			// Área
+			AreaConocimientoDto areaDto = AreaConocimientoDto.builder()
+				.id    (((Number) r[14]).intValue())
+				.nombre((String)  r[15])
+				.build();
+
+			TemaDto dto = dtoMap.get(temaId);
+			if (dto == null) {
+				dto = TemaDto.builder()
+					.id               (((Number) r[0]).intValue())
+					.codigo           ((String) r[1])
+					.titulo           ((String) r[2])
+					.resumen          ((String) r[3])
+					.metodologia      ((String) r[4])
+					.objetivos        ((String) r[5])
+					.portafolioUrl    ((String) r[6])
+					.requisitos       ((String) r[7])
+					.estadoTemaNombre ((String) r[8])
+					.fechaLimite      (toOffsetDateTime(r[9]))
+					.fechaCreacion    (toOffsetDateTime(r[10]))
+					.fechaModificacion(toOffsetDateTime(r[11]))
+					.carrera(
+					CarreraDto.builder()
+						.id    (((Number) r[12]).intValue())
+						.nombre((String)  r[13])
+						.build()
+					)
+					.area(new ArrayList<>())
+					.build();
+
+				dtoMap.put(temaId, dto);
+			}
+
+			dto.getArea().add(areaDto);
+		}
+
+		List<TemaDto> resultados = new ArrayList<>(dtoMap.values());
+
+		// — Completar asesores, coasesores, tesistas y subáreas —
+		for (TemaDto t : resultados) {
+			// ... tu lógica existente ...
+		}
+
+		return resultados;
+	}
+
+
+
+
+	private void validarCoordinadorYEstado(
+		Integer temaId,
+		String nuevoEstadoNombre,
+		Integer usuarioId
+	) {
+		validarTipoUsurio(usuarioId, TipoUsuarioEnum.coordinador.name());
+		estadoTemaRepository.findByNombre(nuevoEstadoNombre)
+			.orElseThrow(() -> new ResponseStatusException(
+				HttpStatus.NOT_FOUND,
+				"EstadoTema '" + nuevoEstadoNombre + "' no existe"
+			));
+		validarEstadoTema(temaId, EstadoTemaEnum.INSCRITO.name());
+	}
+
+	private Tema actualizarTemaYHistorial(
+		Integer temaId,
+		String nuevoEstadoNombre,
+		String comentario
+	) {
+		Tema tema = validarEstadoTema(temaId, EstadoTemaEnum.INSCRITO.name());
+		temaRepository.actualizarEstadoTema(temaId, nuevoEstadoNombre);
+		saveHistorialTemaChange(
+			tema,
+			tema.getTitulo(),
+			tema.getResumen(),
+			comentario == null ? "" : comentario
+		);
+		return tema;
+	}
+
+	private Solicitud cargarSolicitud(Integer temaId) {
+		return solicitudRepository
+			.findByTipoSolicitudNombreAndTemaIdAndActivoTrue(
+				"Aprobación de tema (por coordinador)",
+				temaId
+			)
+			.orElseThrow(() -> new RuntimeException(
+				"No existe solicitud de aprobación para el tema " + temaId
+			));
+	}
+
+	private UsuarioXSolicitud actualizarUsuarioXSolicitud(
+		Integer solicitudId,
+		Integer usuarioId,
+		String nuevoEstadoNombre,
+		String comentario
+	) {
+		UsuarioXSolicitud uxs = usuarioXSolicitudRepository
+			.findFirstBySolicitudIdAndUsuarioIdAndActivoTrue(solicitudId, usuarioId)
+			.orElseThrow(() -> new RuntimeException(
+				"No hay registro en usuario_solicitud para la solicitud "
+				+ solicitudId + " y usuario " + usuarioId
+			));
+
+		uxs.setComentario(comentario);
+		switch (nuevoEstadoNombre.toUpperCase()) {
+			case "REGISTRADO":
+				uxs.setAprobado(true);
+				uxs.setSolicitudCompletada(true);
+				break;
+			case "RECHAZADO":
+				uxs.setAprobado(false);
+				uxs.setSolicitudCompletada(true);
+				break;
+			case "OBSERVADO":
+				uxs.setAprobado(false);
+				uxs.setSolicitudCompletada(true);
+				break;
+			default:
+				// opcional
+		}
+		uxs.setFechaModificacion(OffsetDateTime.now());
+		return usuarioXSolicitudRepository.save(uxs);
+	}
+
+	private void actualizarSolicitud(
+		Solicitud solicitud,
+		String nuevoEstadoNombre,
+		String comentario
+	) {
+		switch (nuevoEstadoNombre.toUpperCase()) {
+			case "REGISTRADO":
+				solicitud.setEstado(3);
+				break;
+			case "RECHAZADO":
+				solicitud.setEstado(2);
+				break;
+			case "OBSERVADO":
+				solicitud.setEstado(1);
+				break;
+			default:
+				// opcional
+		}
+		solicitud.setRespuesta(comentario);
+		solicitud.setFechaModificacion(OffsetDateTime.now());
+		solicitudRepository.save(solicitud);
+	}
+
+	/**
+	 * Recupera el tema y valida que su estado actual coincida con el esperado.
+	 *
+	 * @param temaId           Id del tema
+	 * @param estadoEsperado   Nombre del estado que debe tener el tema (p.ej. "INSCRITO")
+	 * @return tema            La entidad Tema ya validada
+	 * @throws ResponseStatusException  404 si no existe el tema, 400 si no está en el estado esperado
+	 */
+	private Tema validarEstadoTema(Integer temaId, String estadoEsperado) {
+		Tema tema = temaRepository.findById(temaId)
+			.orElseThrow(() -> new ResponseStatusException(
+				HttpStatus.NOT_FOUND,
+				"Tema con id " + temaId + " no encontrado"
+			));
+		String estadoActual = tema.getEstadoTema().getNombre();
+		if (!estadoEsperado.equalsIgnoreCase(estadoActual)) {
+			throw new ResponseStatusException(
+				HttpStatus.BAD_REQUEST,
+				"Operación inválida: el tema debe estar en estado '" + estadoEsperado +
+				"', pero está en '" + estadoActual + "'"
+			);
+		}
+		return tema;
+	}
+		
+	@Transactional
+	@Override
+	public void cambiarEstadoTemaCoordinador(
+		Integer temaId,
+		String nuevoEstadoNombre,
+		Integer usuarioId,
+		String comentario
+	) {
+		validarCoordinadorYEstado(temaId, nuevoEstadoNombre, usuarioId);
+
+		actualizarTemaYHistorial(temaId, nuevoEstadoNombre, comentario);
+
+		Solicitud solicitud = cargarSolicitud(temaId);
+
+		actualizarUsuarioXSolicitud(
+			solicitud.getId(),
+			usuarioId,
+			nuevoEstadoNombre,
+			comentario
+		);
+
+		actualizarSolicitud(solicitud, nuevoEstadoNombre, comentario);
+		if (EstadoTemaEnum.RECHAZADO.name().equalsIgnoreCase(nuevoEstadoNombre)) {
+			desasignarUsuariosDeTema(temaId);
+		}
+	}
+
+	private void desasignarUsuariosDeTema(Integer temaId) {
+		List<UsuarioXTema> lista = usuarioXTemaRepository
+			.findByTemaIdAndActivoTrue(temaId);  // ajusta el finder según tu repo
+		
+		for (UsuarioXTema uxt : lista) {
+			uxt.setAsignado(false);
+			uxt.setFechaModificacion(OffsetDateTime.now());
+		}
+		usuarioXTemaRepository.saveAll(lista);
 	}
 
 	@Override
