@@ -251,6 +251,7 @@ CREATE TABLE IF NOT EXISTS solicitud
     fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
+
     CONSTRAINT fk_solicitud_tipo
         FOREIGN KEY (tipo_solicitud_id)
             REFERENCES tipo_solicitud (tipo_solicitud_id)

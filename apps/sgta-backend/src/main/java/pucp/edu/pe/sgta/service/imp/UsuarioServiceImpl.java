@@ -8,14 +8,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import org.springframework.web.multipart.MultipartFile;
+
+import pucp.edu.pe.sgta.dto.asesores.FiltrosDirectorioAsesores;
 import pucp.edu.pe.sgta.dto.asesores.InfoAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.asesores.InfoSubAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
-import pucp.edu.pe.sgta.dto.*;
+import pucp.edu.pe.sgta.dto.asesores.UsuarioFotoDto;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.Query;
 import pucp.edu.pe.sgta.dto.TipoUsuarioDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
 import pucp.edu.pe.sgta.mapper.InfoAreaConocimientoMapper;
@@ -33,16 +34,16 @@ import java.io.IOException;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
-
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 @Service
@@ -102,6 +103,15 @@ public class UsuarioServiceImpl implements UsuarioService {
 		return null;
 	}
 
+    @Override
+    public Integer getIdByCorreo(String correoUsuario) {
+        Usuario usuario = usuarioRepository.findByCorreoElectronico(correoUsuario).orElse(null);
+        if (usuario != null) {
+            return usuario.getId();
+        }
+        throw new NoSuchElementException("Usuario no encontrado con correo: " + correoUsuario);
+    }
+
 	@Override
 	public List<UsuarioDto> findAllUsuarios() {
 		return List.of();
@@ -145,7 +155,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 				.stream()
 				.map(InfoAreaConocimientoMapper::toDto)
 				.toList();
-		//Luego la consulta de las areas de conocimiento
+		//Luego la consulta de las subareas de conocimiento
 		List<InfoSubAreaConocimientoDto> subareas;
 		List<Integer> idSubareas = usuarioXSubAreaConocimientoRepository.findAllByUsuario_IdAndActivoIsTrue(id).
 									stream()
@@ -784,4 +794,95 @@ public class UsuarioServiceImpl implements UsuarioService {
 
 		return advisors;
 	}
+
+
+    @Override
+	public void uploadFoto(Integer idUsuario, MultipartFile file) {
+		Usuario user = usuarioRepository.findById(idUsuario).orElse(null);
+		if (user == null) {
+			throw new RuntimeException("Usuario no encontrado con ID: " + idUsuario);
+		}
+        try {
+            user.setFotoPerfil(file.getBytes());
+			usuarioRepository.save(user);
+        } catch (IOException e) {
+            throw new RuntimeException("No se pudo subir foto del usuario: " + idUsuario);
+        }
+    }
+
+	@Override
+	public UsuarioFotoDto getUsuarioFoto(Integer id) {
+		Usuario user = usuarioRepository.findById(id).orElse(null);
+		if (user == null) {
+			throw new RuntimeException("Usuario no encontrado con ID: " + id);
+		}
+		UsuarioFotoDto usuarioFotoDto = new UsuarioFotoDto();
+		usuarioFotoDto.setIdUsuario(id);
+
+		usuarioFotoDto.setFoto(Utils.convertByteArrayToStringBase64(user.getFotoPerfil()));
+		return usuarioFotoDto;
+	}
+
+	@Override
+	public List<PerfilAsesorDto> getDirectorioDeAsesoresPorFiltros(FiltrosDirectorioAsesores filtros) {
+		List<Object[]> queryResults = usuarioRepository
+				.obtenerListaDirectorioAsesoresAlumno(	filtros.getAlumnoId(),
+														filtros.getCadenaBusqueda(),
+														filtros.getActivo(),
+														Utils.convertIntegerListToString(filtros.getIdAreas()),
+														Utils.convertIntegerListToString(filtros.getIdTemas()));
+		List<PerfilAsesorDto> perfilAsesorDtos = new ArrayList<>();
+
+		for(Object[] result : queryResults){
+			PerfilAsesorDto perfil = PerfilAsesorDto.fromQueryDirectorioAsesores(result);
+			//el numero de tesistas actuales
+			Integer cantTesistas ;
+			List<Object[]> tesistas =usuarioXTemaRepository.listarNumeroTesistasAsesor(perfil.getId());//ASEGURADO sale 1 sola fila
+			cantTesistas = (Integer) tesistas.get(0)[0];
+			perfil.setTesistasActuales(cantTesistas);
+			//Luego la consulta de las áreas de conocimiento
+			List<InfoAreaConocimientoDto> areas;
+			List<Integer> idAreas = usuarioXAreaConocimientoRepository.findAllByUsuario_IdAndActivoIsTrue(perfil.getId()).
+					stream()
+					.map(UsuarioXAreaConocimiento::getAreaConocimiento)
+					.map(AreaConocimiento::getId)
+					.toList();
+			areas = areaConocimientoRepository.findAllByIdIn(idAreas)
+					.stream()
+					.map(InfoAreaConocimientoMapper::toDto)
+					.toList();
+			//Luego la consulta de las subareas de conocimiento
+			List<InfoSubAreaConocimientoDto> subareas;
+			List<Integer> idSubareas = usuarioXSubAreaConocimientoRepository.findAllByUsuario_IdAndActivoIsTrue(perfil.getId()).
+					stream()
+					.map(UsuarioXSubAreaConocimiento::getSubAreaConocimiento)
+					.map(SubAreaConocimiento::getId)
+					.toList();
+			subareas = subAreaConocimientoRepository.findAllByIdIn(idSubareas)
+					.stream()
+					.map(InfoSubAreaConocimientoMapper::toDto)
+					.toList();
+
+			perfil.setAreasTematicas(areas);
+			perfil.setTemasIntereses(subareas);
+			//Toques finales
+			perfil.actualizarEstado();
+			perfilAsesorDtos.add(perfil);
+		}
+
+		return perfilAsesorDtos;
+	}
+
+
+	@Override
+	public UsuarioDto findUsuarioByCodigo(String codigoPucp) {
+		Optional<Usuario> usuario = usuarioRepository.findByCodigoPucp(codigoPucp);
+		if(usuario.isPresent()){
+			UsuarioDto usuarioDto = UsuarioMapper.toDto(usuario.get());
+			return usuarioDto;
+		}
+		return null;
+	}
+
+
 }

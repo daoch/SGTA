@@ -10,7 +10,7 @@ import {
 import { useEffect, useState, useTransition } from "react";
 import {
   finishPlanning,
-  updateBloquesListFirstTime,
+  //updateBloquesListFirstTime,
   updateBloquesNextPhase,
 } from "../../actions/actions";
 import { JornadaExposicionDTO } from "../../dtos/JornadExposicionDTO";
@@ -29,26 +29,30 @@ import PlanificationPanel from "./PlanificationPanel";
 import AppLoading from "@/components/loading/app-loading";
 
 interface Props {
-  expos: Tema[];
+  temas: Tema[];
   topics: AreaEspecialidad[];
-  roomAvailList: JornadaExposicionDTO[];
-  bloquesList: TimeSlot[];
+  days: JornadaExposicionDTO[];
+  bloques: TimeSlot[];
   exposicionId: number;
   estadoPlanificacion: EstadoPlanificacion;
 }
 
 const GeneralPlanificationExpo: React.FC<Props> = ({
-  expos,
+  temas,
   topics,
-  bloquesList,
-  roomAvailList,
+  bloques,
+  days,
   exposicionId,
   estadoPlanificacion,
 }: Props) => {
-  const [freeExpos, setFreeExpos] = useState<Tema[]>(expos);
-  const [assignedExpos, setAssignedExpos] = useState<Record<string, Tema>>({});
+  console.log("bloquesList", bloques);
+  const [bloquesMapeados, setBloquesMapeados] = useState<TimeSlot[]>(bloques);
+  const [temasSinBloque, setTemasSinBloque] = useState<Tema[]>(temas);
+  const [temasAsignados, setTemasAsignados] = useState<Record<string, Tema>>(
+    {},
+  );
   const [isPending, startTransition] = useTransition();
-  const [isLoading, setIsLoading] = useState(false);
+  const [_, setIsLoading] = useState(false);
   const [estadoPlan, setEstadoPlan] =
     useState<EstadoPlanificacion>(estadoPlanificacion);
 
@@ -56,8 +60,8 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
     const assigned: Record<string, Tema> = {};
     const assignedTemaIds = new Set<string>();
 
-    for (const bloque of bloquesList) {
-      const temaAsignado = expos.find(
+    for (const bloque of bloquesMapeados) {
+      const temaAsignado = temas.find(
         (tema) => tema.codigo === bloque.expo?.codigo,
       ); // O ajusta el campo según sea necesario
       if (temaAsignado) {
@@ -66,11 +70,17 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
       }
     }
 
-    const free = expos.filter((tema) => !assignedTemaIds.has(tema.codigo));
+    const free = temas.filter((tema) => !assignedTemaIds.has(tema.codigo));
 
-    setAssignedExpos(assigned);
-    setFreeExpos(free);
-  }, [bloquesList, expos]);
+    setTemasAsignados(assigned);
+    setTemasSinBloque(free);
+  }, [bloquesMapeados, temas]);
+
+  const actualizarBloque = (idBloque: number, datos: Partial<TimeSlot>) => {
+    setBloquesMapeados((prev) =>
+      prev.map((b) => (b.idBloque === idBloque ? { ...b, ...datos } : b)),
+    );
+  };
 
   /*Handles the drag and drop event for the expositions*/
   function handleDragEnd(event: DragEndEvent) {
@@ -82,41 +92,41 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
     const expoId = active.id;
     const spaceId = over.id;
     /*checks if the item being dragged is in the list of unassigned expositions.*/
-    const chosenExpo = freeExpos.find((e) => e.codigo === expoId);
+    const chosenExpo = temasSinBloque.find((e) => e.codigo === expoId);
 
     if (chosenExpo) {
       /*If it's in the unassigned list, it's removed from there and added to the assigned list*/
-      if (spaceId in assignedExpos) {
+      if (spaceId in temasAsignados) {
         return;
       }
 
       const newAssignment = {
         [spaceId]: chosenExpo,
       };
-      setAssignedExpos((prevAssignment) => ({
+      setTemasAsignados((prevAssignment) => ({
         ...prevAssignment,
         ...newAssignment,
       }));
 
-      setFreeExpos((prev) => prev.filter((e) => e.codigo !== expoId));
+      setTemasSinBloque((prev) => prev.filter((e) => e.codigo !== expoId));
     } else {
       /*If it's not in the unassigned list, it means it was already assigned,
            so we remove it from its previous assignment and reassign it to the new location.*/
-      const chosenExpo = Object.values(assignedExpos).find(
+      const chosenExpo = Object.values(temasAsignados).find(
         (a) => a.codigo === expoId,
       );
       if (chosenExpo) {
         const newAssignment = {
           [spaceId]: chosenExpo,
         };
-        const updatedAssignment = Object.keys(assignedExpos)
-          .filter((key) => assignedExpos[key].codigo !== chosenExpo.codigo)
+        const updatedAssignment = Object.keys(temasAsignados)
+          .filter((key) => temasAsignados[key].codigo !== chosenExpo.codigo)
           .reduce((acc: Record<string, Tema>, key) => {
-            acc[key] = assignedExpos[key];
+            acc[key] = temasAsignados[key];
             return acc;
           }, {});
 
-        setAssignedExpos(() => ({
+        setTemasAsignados(() => ({
           ...updatedAssignment,
           ...newAssignment,
         }));
@@ -127,15 +137,15 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
   const removeExpo = (expo: Tema) => {
     if (estadoPlan.nombre === "Cierre de planificacion") return;
     //find the click expo
-    const clickedExpo = Object.values(assignedExpos).find(
+    const clickedExpo = Object.values(temasAsignados).find(
       (a) => a.id === expo.id,
     );
 
     if (clickedExpo) {
       //if we find it , add to free expos
-      setFreeExpos((prev) => [...prev, clickedExpo]);
+      setTemasSinBloque((prev) => [...prev, clickedExpo]);
       //and remove from assigned expos
-      setAssignedExpos((prev) => {
+      setTemasAsignados((prev) => {
         const updatedAssignment = { ...prev };
         Object.keys(updatedAssignment).forEach((key) => {
           if (updatedAssignment[key].id === expo.id) {
@@ -153,48 +163,49 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
     },
   });
 
-  const onPlanificacionInicialClick = () => {
-    if (freeExpos.length > 0) {
-      console.log("No puede dejar temas sin asignar");
-      return;
-    }
-    setIsLoading(true);
-    const bloquesListToInsert: TimeSlot[] = bloquesList.map((bloque) => {
-      const temaAsignado = assignedExpos[bloque.key];
-      return {
-        ...bloque,
-        expo: temaAsignado ? temaAsignado : undefined,
-        idExposicion: exposicionId,
-      };
-    });
-    if (estadoPlanificacion.nombre === "Planificacion inicial") {
-      try {
-        startTransition(async () => {
-          await updateBloquesListFirstTime(bloquesListToInsert);
-          const newEstadoPlanificacion =
-            await listarEstadoPlanificacionPorExposicion(exposicionId);
-          setEstadoPlan(newEstadoPlanificacion);
-        });
-      } catch (err) {
-        console.error("Error al actualizar los bloques:", err);
-      } finally {
-        setIsLoading(false); // ✅ Siempre oculta el loading
-      }
-    }
+  // const onPlanificacionInicialClick = () => {
+  //   if (temasSinBloque.length > 0) {
+  //     console.log("No puede dejar temas sin asignar");
+  //     return;
+  //   }
+  //   setIsLoading(true);
+  //   const bloquesListToInsert: TimeSlot[] = bloques.map((bloque) => {
+  //     const temaAsignado = temasAsignados[bloque.key];
+  //     return {
+  //       ...bloque,
+  //       expo: temaAsignado ? temaAsignado : undefined,
+  //       idExposicion: exposicionId,
+  //     };
+  //   });
+  //   if (estadoPlanificacion.nombre === "Planificacion inicial") {
+  //     try {
+  //       startTransition(async () => {
+  //         await updateBloquesListFirstTime(bloquesListToInsert);
+  //         const newEstadoPlanificacion =
+  //           await listarEstadoPlanificacionPorExposicion(exposicionId);
+  //         setEstadoPlan(newEstadoPlanificacion);
+  //       });
+  //     } catch (err) {
+  //       console.error("Error al actualizar los bloques:", err);
+  //     } finally {
+  //       setIsLoading(false); // ✅ Siempre oculta el loading
+  //     }
+  //   }
 
-    console.log(
-      "Lista final de bloques con expos asignadas:",
-      bloquesListToInsert,
-    );
-  };
+  //   console.log(
+  //     "Lista final de bloques con expos asignadas:",
+  //     bloquesListToInsert,
+  //   );
+  // };
+
   const onAvanzarPlanificacionClick = (origen: OrigenBoton) => {
-    if (freeExpos.length > 0) {
+    if (temasSinBloque.length > 0) {
       console.log("No puede dejar temas sin asignar");
       return;
     }
     setIsLoading(true);
-    const bloquesListToInsert: TimeSlot[] = bloquesList.map((bloque) => {
-      const temaAsignado = assignedExpos[bloque.key];
+    const bloquesListToInsert: TimeSlot[] = bloquesMapeados.map((bloque) => {
+      const temaAsignado = temasAsignados[bloque.key];
       return {
         ...bloque,
         expo: temaAsignado ? temaAsignado : undefined,
@@ -231,17 +242,18 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
           <DragMonitor setIsDragging={setIsDragging} />
           <div className="flex flex-col md:flex-row w-full h-full gap-4">
             <div className="w-full md:w-1/4 h-full">
-              <ExposList freeExpos={freeExpos} topics={topics} />
+              <ExposList freeExpos={temasSinBloque} topics={topics} />
             </div>
             <div className="bg-gray-300 w-full h-px md:w-px md:h-auto"></div>
             <div className="flex flex-col w-full md:w-3/4">
               <PlanificationPanel
-                roomAvailList={roomAvailList}
-                assignedExpos={assignedExpos}
+                days={days}
+                assignedExpos={temasAsignados}
                 removeExpo={removeExpo}
                 onAvanzarPlanificacionClick={onAvanzarPlanificacionClick}
-                bloquesList={bloquesList}
+                bloquesList={bloquesMapeados}
                 estadoPlan={estadoPlan}
+                actualizarBloque={actualizarBloque}
               />
             </div>
           </div>

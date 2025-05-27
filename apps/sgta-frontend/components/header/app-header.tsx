@@ -23,9 +23,10 @@ const AppHeader = () => {
           src="/logo.png"
           alt="Logo"
           width={150}
-          height={36}
-          className="select-none pointer-events-none"
+          height={41}
+          className="select-none pointer-events-none h-10 w-auto"
           draggable={false}
+          priority={true}
         />
         <Separator orientation="vertical" className="mr-2 h-4" />
         <DropdownMenu>

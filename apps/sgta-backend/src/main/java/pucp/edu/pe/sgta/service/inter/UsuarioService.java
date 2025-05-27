@@ -1,11 +1,12 @@
 package pucp.edu.pe.sgta.service.inter;
 
+import pucp.edu.pe.sgta.dto.asesores.FiltrosDirectorioAsesores;
 import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
+import pucp.edu.pe.sgta.dto.asesores.UsuarioFotoDto;
 import org.springframework.web.multipart.MultipartFile;
 import pucp.edu.pe.sgta.dto.UserInfoDTO;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
 import java.util.List;
-import java.util.Optional;
 import java.util.NoSuchElementException;
 
 public interface UsuarioService {
@@ -72,6 +73,18 @@ public interface UsuarioService {
      * @return Lista de usuarios con información de sus roles
      */
     List<UsuarioDto> getProfessorsWithRoles(String rolNombre, String terminoBusqueda);
+
+    List<UsuarioDto> getAsesoresBySubArea(Integer idSubArea);
+
+	UsuarioDto findUsuarioByCodigo(String codigoPucp);
+
+    void uploadFoto(Integer idUsuario, MultipartFile file);
+
+	UsuarioFotoDto getUsuarioFoto(Integer id);
+
+	Integer getIdByCorreo(String correo);
+
+    List<PerfilAsesorDto> getDirectorioDeAsesoresPorFiltros(FiltrosDirectorioAsesores filtros);
 
 	void procesarArchivoUsuarios(MultipartFile archivo) throws Exception;
 
