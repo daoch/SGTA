@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import { Badge } from "@/components/ui/badge"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Input } from "@/components/ui/input"
-import { AlertTriangle, FileWarning, Quote, Sparkles } from "lucide-react"
-import { useState } from "react"
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { AlertTriangle, FileWarning, Quote, Sparkles } from "lucide-react";
+import { useState } from "react";
 
 interface Observacion {
 	id: string
@@ -21,34 +21,34 @@ interface ObservacionesListProps {
 }
 
 export function ObservacionesList({ observaciones, editable = false }: ObservacionesListProps) {
-	const [filtro, setFiltro] = useState<string>("")
-	const [observacionesState, setObservacionesState] = useState<Observacion[]>(observaciones)
+	const [filtro, setFiltro] = useState<string>("");
+	const [observacionesState, setObservacionesState] = useState<Observacion[]>(observaciones);
 
 	const observacionesFiltradas = observacionesState.filter(
 		(obs) =>
 			obs.texto.toLowerCase().includes(filtro.toLowerCase()) ||
 			obs.pagina.toString().includes(filtro) ||
 			obs.tipo.includes(filtro.toLowerCase()),
-	)
+	);
 
 	const handleToggleResuelto = (id: string) => {
-		if (!editable) return
+		if (!editable) return;
 
-		setObservacionesState(observacionesState.map((obs) => (obs.id === id ? { ...obs, resuelto: !obs.resuelto } : obs)))
-	}
+		setObservacionesState(observacionesState.map((obs) => (obs.id === id ? { ...obs, resuelto: !obs.resuelto } : obs)));
+	};
 
 	const getIconByTipo = (tipo: string) => {
 		switch (tipo) {
 			case "contenido":
-				return <FileWarning className="h-4 w-4 text-yellow-500" />
+				return <FileWarning className="h-4 w-4 text-yellow-500" />;
 			case "plagio":
-				return <AlertTriangle className="h-4 w-4 text-red-500" />
+				return <AlertTriangle className="h-4 w-4 text-red-500" />;
 			case "citado":
-				return <Quote className="h-4 w-4 text-blue-500" />
+				return <Quote className="h-4 w-4 text-blue-500" />;
 			default:
-				return null
+				return null;
 		}
-	}
+	};
 
 	const getBadgeByTipo = (tipo: string) => {
 		switch (tipo) {
@@ -57,7 +57,7 @@ export function ObservacionesList({ observaciones, editable = false }: Observaci
 					<Badge variant="outline" className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">
 						Contenido
 					</Badge>
-				)
+				);
 			case "plagio":
 				return (
 					<div className="flex gap-2">
@@ -69,17 +69,17 @@ export function ObservacionesList({ observaciones, editable = false }: Observaci
 							Automático
 						</Badge>
 					</div>
-				)
+				);
 			case "citado":
 				return (
 					<Badge variant="outline" className="bg-blue-100 text-blue-800 hover:bg-blue-100">
 						Citado
 					</Badge>
-				)
+				);
 			default:
-				return null
+				return null;
 		}
-	}
+	};
 
 	return (
 		<div className="space-y-4">
@@ -99,7 +99,7 @@ export function ObservacionesList({ observaciones, editable = false }: Observaci
 					{observacionesFiltradas.map((observacion) => (
 						<div
 							key={observacion.id}
-							className={`p-4 border rounded-lg bg-white`}
+							className={"p-4 border rounded-lg bg-white"}
 						>
 							<div className="flex items-start gap-3">
 								{editable && (
@@ -131,5 +131,5 @@ export function ObservacionesList({ observaciones, editable = false }: Observaci
 				</div>
 			)}
 		</div>
-	)
+	);
 }

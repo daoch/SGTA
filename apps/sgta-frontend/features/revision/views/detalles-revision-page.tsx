@@ -1,10 +1,10 @@
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import { ArrowLeft, CheckCircle, Download, FileText, X } from "lucide-react"
-import Link from "next/link"
-import { ObservacionesList } from "../components/observaciones-list"
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { ArrowLeft, CheckCircle, Download, FileText, X } from "lucide-react";
+import Link from "next/link";
+import { ObservacionesList } from "../components/observaciones-list";
 
 // Datos de ejemplo para una revisión específica
 const revisionData = {
@@ -98,11 +98,11 @@ const revisionData = {
       accion: "Agregadas 7 observaciones",
     },
   ],
-}
+};
 
 export default function RevisionDetailPage({ params }: { params: { id: string } }) {
   // En una aplicación real, aquí se obtendría la revisión específica según el ID
-  const revision = revisionData
+  const revision = revisionData;
 
   return (
     <div className="space-y-6">
@@ -322,5 +322,5 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
         </div>
       </div>
     </div>
-  )
+  );
 }
