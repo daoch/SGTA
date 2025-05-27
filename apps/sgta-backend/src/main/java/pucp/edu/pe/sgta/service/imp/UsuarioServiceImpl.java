@@ -103,6 +103,15 @@ public class UsuarioServiceImpl implements UsuarioService {
 		return null;
 	}
 
+    @Override
+    public Integer getIdByCorreo(String correoUsuario) {
+        Usuario usuario = usuarioRepository.findByCorreoElectronico(correoUsuario).orElse(null);
+        if (usuario != null) {
+            return usuario.getId();
+        }
+        throw new NoSuchElementException("Usuario no encontrado con correo: " + correoUsuario);
+    }
+
 	@Override
 	public List<UsuarioDto> findAllUsuarios() {
 		return List.of();
@@ -784,15 +793,6 @@ public class UsuarioServiceImpl implements UsuarioService {
 
 		usuarioFotoDto.setFoto(Utils.convertByteArrayToStringBase64(user.getFotoPerfil()));
 		return usuarioFotoDto;
-	}
-
-	@Override
-	public Integer getIdByCorreo(String correo) {
-		Usuario user = usuarioRepository.findByCorreoElectronicoIsLikeIgnoreCase(correo);
-		if (user == null) {
-			throw new RuntimeException("Usuario no encontrado con CORREO: " + correo);
-		}
-		return user.getId();
 	}
 
 	@Override

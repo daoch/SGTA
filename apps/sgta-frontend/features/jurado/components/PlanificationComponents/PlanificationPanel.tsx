@@ -17,31 +17,29 @@ import { TimeSlotCard } from "./time-slot-card";
 
 // id 3
 interface Props {
-  roomAvailList: JornadaExposicionDTO[];
+  days: JornadaExposicionDTO[];
   assignedExpos: Record<string, Tema>;
   removeExpo: (expo: Tema) => void;
   onAvanzarPlanificacionClick: (origen: OrigenBoton) => void;
   bloquesList: TimeSlot[];
   estadoPlan: EstadoPlanificacion;
+  actualizarBloque: (idBloque: number, datos: Partial<TimeSlot>) => void;
 }
 
 const PlanificationPanel: React.FC<Props> = ({
-  roomAvailList,
+  days,
   assignedExpos,
   removeExpo,
   onAvanzarPlanificacionClick,
   bloquesList,
   estadoPlan,
+  actualizarBloque,
 }) => {
   //BLOQUES
-  const [selectedCode, setSelectedCode] = useState<number>(
-    roomAvailList[0]?.code ?? 0,
-  );
+  const [selectedCode, setSelectedCode] = useState<number>(days[0]?.code ?? 0);
 
   //FILTRO
-  const selectedRoom = roomAvailList.find((room) => room.code === selectedCode);
-
-  //const selectedDateStr = selectedRoom?.fecha.toISOString().split("T")[0];
+  const selectedRoom = days.find((room) => room.code === selectedCode);
   const selectedDate = selectedRoom?.fecha;
   const selectedDateStr = selectedDate
     ? `${selectedDate.getDate().toString().padStart(2, "0")}-${(selectedDate.getMonth() + 1).toString().padStart(2, "0")}-${selectedDate.getFullYear()}`
@@ -65,12 +63,17 @@ const PlanificationPanel: React.FC<Props> = ({
     >
       <div className="flex flex-row justify-between items-center">
         <PlanificacionEstadoStepper estadoPlan={estadoPlan} />
+        {/* Botones */}
         <div className="flex flex-row gap-2">
           {estadoPlan.nombre != "Fase 2" &&
             estadoPlan.nombre != "Cierre de planificacion" && (
               <Button
                 onClick={() => onAvanzarPlanificacionClick("siguiente")}
-                variant={"outline"}
+                variant={
+                  estadoPlan.nombre == "Planificacion inicial"
+                    ? "default"
+                    : "outline"
+                }
               >
                 Siguiente fase
                 <ArrowRight />
@@ -87,12 +90,12 @@ const PlanificationPanel: React.FC<Props> = ({
       </div>
 
       <div className="w-full flex flex-row gap-4 overflow-x-scroll">
-        {roomAvailList.map((room) => (
+        {days.map((day) => (
           <SelectorFecha
-            key={room.code}
-            room={room}
-            isSelected={room.code === selectedCode}
-            onSelect={() => setSelectedCode(room.code)}
+            key={day.code}
+            day={day}
+            isSelected={day.code === selectedCode}
+            onSelect={() => setSelectedCode(day.code)}
           />
         ))}
       </div>
@@ -108,6 +111,7 @@ const PlanificationPanel: React.FC<Props> = ({
             assignedExpos={assignedExpos}
             removeExpo={removeExpo}
             estadoPlan={estadoPlan}
+            actualizarBloque={actualizarBloque}
           />
         ))}
       </div>
