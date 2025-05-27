@@ -17,4 +17,9 @@ public class AlumnoTemaDto {
     private String coasesorNombre;
     private String areaNombre;
     private String subAreaNombre;
+    
+    // Campos para el progreso del alumno
+    private Integer totalEntregables;
+    private Integer entregablesEnviados;
+    private Double porcentajeProgreso;
 }

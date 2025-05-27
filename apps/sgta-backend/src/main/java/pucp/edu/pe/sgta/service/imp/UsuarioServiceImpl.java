@@ -887,31 +887,63 @@ public class UsuarioServiceImpl implements UsuarioService {
 
 	@Override
 	public AlumnoTemaDto getAlumnoTema(Integer idAlumno) {
-		String sql = """
-			SELECT * FROM obtener_detalle_tesista(:p_tesista_id)
-		""";
-		
-		Query query = em.createNativeQuery(sql)
-			.setParameter("p_tesista_id", idAlumno);
-		
-		@SuppressWarnings("unchecked")
-		List<Object[]> results = query.getResultList();
-		
-		if (results.isEmpty()) {
-			throw new RuntimeException("No se encontraron datos para el alumno con ID: " + idAlumno);
+		try {
+			// Primero obtenemos los datos básicos del alumno y su tema
+			String sqlDetalle = """
+				SELECT * FROM obtener_detalle_tesista(:p_tesista_id)
+			""";
+			
+			Query queryDetalle = em.createNativeQuery(sqlDetalle)
+				.setParameter("p_tesista_id", idAlumno);
+			
+			@SuppressWarnings("unchecked")
+			List<Object[]> resultsDetalle = queryDetalle.getResultList();
+			
+			if (resultsDetalle.isEmpty()) {
+				throw new NoSuchElementException("No se encontraron datos para el alumno con ID: " + idAlumno);
+			}
+			
+			Object[] rowDetalle = resultsDetalle.get(0);
+			
+			// Luego obtenemos el progreso del alumno
+			String sqlProgreso = """
+				SELECT * FROM calcular_progreso_alumno(:p_alumno_id)
+			""";
+			
+			Query queryProgreso = em.createNativeQuery(sqlProgreso)
+				.setParameter("p_alumno_id", idAlumno);
+			
+			@SuppressWarnings("unchecked")
+			List<Object[]> resultsProgreso = queryProgreso.getResultList();
+			
+			AlumnoTemaDto alumnoTemaDto = new AlumnoTemaDto();
+			alumnoTemaDto.setId((Integer) rowDetalle[0]); // tesista_id
+			alumnoTemaDto.setTemaNombre((String) rowDetalle[8]); // tema_nombre
+			alumnoTemaDto.setAsesorNombre((String) rowDetalle[14]); // asesor_nombre
+			alumnoTemaDto.setCoasesorNombre((String) rowDetalle[16]); // coasesor_nombre
+			alumnoTemaDto.setAreaNombre((String) rowDetalle[12]); // area_conocimiento
+			alumnoTemaDto.setSubAreaNombre((String) rowDetalle[13]); // sub_area_conocimiento
+			
+			// Agregamos la información de progreso
+			if (!resultsProgreso.isEmpty()) {
+				Object[] rowProgreso = resultsProgreso.get(0);
+				alumnoTemaDto.setTotalEntregables((Integer) rowProgreso[0]);
+				alumnoTemaDto.setEntregablesEnviados((Integer) rowProgreso[1]);
+				alumnoTemaDto.setPorcentajeProgreso(((Number) rowProgreso[2]).doubleValue());
+			} else {
+				alumnoTemaDto.setTotalEntregables(0);
+				alumnoTemaDto.setEntregablesEnviados(0);
+				alumnoTemaDto.setPorcentajeProgreso(0.0);
+			}
+			
+			return alumnoTemaDto;
+		} catch (NoSuchElementException e) {
+			throw e; // Re-throw NoSuchElementException as is
+		} catch (Exception e) {
+			// Log the actual error for debugging
+			logger.severe("Error al obtener datos del alumno " + idAlumno + ": " + e.getMessage());
+			throw new RuntimeException("Error al obtener datos del alumno: " + e.getMessage());
 		}
-		
-		Object[] row = results.get(0);
-		
-		AlumnoTemaDto alumnoTemaDto = new AlumnoTemaDto();
-		alumnoTemaDto.setId((Integer) row[0]); // tesista_id
-		alumnoTemaDto.setTemaNombre((String) row[8]); // tema_nombre
-		alumnoTemaDto.setAsesorNombre((String) row[14]); // asesor_nombre
-		alumnoTemaDto.setCoasesorNombre((String) row[16]); // coasesor_nombre
-		alumnoTemaDto.setAreaNombre((String) row[12]); // area_conocimiento
-		alumnoTemaDto.setSubAreaNombre((String) row[13]); // sub_area_conocimiento
-		
-		return alumnoTemaDto;
 	}
-
+	
 }

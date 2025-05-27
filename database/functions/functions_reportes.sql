@@ -2,16 +2,16 @@ CREATE OR REPLACE FUNCTION get_advisor_distribution_by_coordinator_and_ciclo(
     p_usuario_id    INTEGER,
     p_ciclo_nombre  VARCHAR
 )
-RETURNS TABLE(
+  RETURNS TABLE(
     teacher_name   VARCHAR,
     area_name      VARCHAR,
     advisor_count  BIGINT,
     tesistas_names TEXT,
     temas_names    TEXT  -- Nuevo campo para mostrar los temas
-)
-LANGUAGE plpgsql
-COST 100
-VOLATILE PARALLEL UNSAFE
+  )
+  LANGUAGE plpgsql
+  COST 100
+  VOLATILE PARALLEL UNSAFE
 AS $BODY$
 DECLARE
     v_carrera_id  INTEGER;
@@ -155,16 +155,16 @@ CREATE OR REPLACE FUNCTION get_juror_distribution_by_coordinator_and_ciclo(
     p_usuario_id    INTEGER,
     p_ciclo_nombre  VARCHAR
 )
-RETURNS TABLE(
+  RETURNS TABLE(
     teacher_name   VARCHAR,
     area_name      VARCHAR,
     juror_count    BIGINT,
     tesistas_names TEXT,
     temas_names    TEXT
-)
-LANGUAGE plpgsql
-COST 100
-VOLATILE PARALLEL UNSAFE
+  )
+  LANGUAGE plpgsql
+  COST 100
+  VOLATILE PARALLEL UNSAFE
 AS $BODY$
 DECLARE
     v_carrera_id  INTEGER;
@@ -308,15 +308,15 @@ CREATE OR REPLACE FUNCTION get_advisor_performance_by_user(
     p_usuario_id     INTEGER,
     p_ciclo_nombre   VARCHAR
 )
-RETURNS TABLE(
+  RETURNS TABLE(
     advisor_name           VARCHAR,
     area_name              VARCHAR,
     performance_percentage NUMERIC,
     total_students         INTEGER
-)
-LANGUAGE plpgsql
-COST 100
-VOLATILE PARALLEL UNSAFE
+  )
+  LANGUAGE plpgsql
+  COST 100
+  VOLATILE PARALLEL UNSAFE
 AS $BODY$
 DECLARE
     v_carrera_id INTEGER;
@@ -654,8 +654,8 @@ BEGIN
             et_next.estado::VARCHAR,
             et_next.fecha_envio
         FROM usuario_tema ut
-        JOIN rol r1 ON ut.rol_id = r1.rol_id AND r1.nombre = 'Tesista'
-        JOIN usuario u ON u.usuario_id = ut.usuario_id
+                 JOIN rol r1 ON ut.rol_id = r1.rol_id AND r1.nombre = 'Tesista'
+                 JOIN usuario u ON u.usuario_id = ut.usuario_id
         -- Obtener el tema de los tesistas asesorados
         JOIN (
             SELECT ut2.tema_id
@@ -711,7 +711,7 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT
+    SELECT 
         e.entregable_id AS hito_id,
         e.nombre,
         e.descripcion,
@@ -1089,3 +1089,48 @@ $$ LANGUAGE plpgsql;
 --    Al ejecutar, DataGrip te preguntará el valor de "tesista_id".
 
 SELECT * FROM listar_historial_reuniones_por_tesista(2);
+
+CREATE OR REPLACE FUNCTION calcular_progreso_alumno(p_alumno_id INT)
+RETURNS TABLE (
+    total_entregables INT,
+    entregables_enviados INT,
+    porcentaje_progreso NUMERIC
+) AS $$
+DECLARE
+    v_tema_id INT;
+BEGIN
+    -- 1. Obtener el tema actual del alumno
+    SELECT ut.tema_id INTO v_tema_id
+    FROM usuario_tema ut
+    JOIN rol r ON r.rol_id = ut.rol_id AND r.nombre = 'Tesista'
+    WHERE ut.usuario_id = p_alumno_id
+    AND ut.activo = true
+    ORDER BY ut.fecha_creacion DESC
+    LIMIT 1;
+
+    -- 2. Si no se encuentra tema, retornar 0s
+    IF v_tema_id IS NULL THEN
+        RETURN QUERY SELECT 0::INT, 0::INT, 0::NUMERIC;
+        RETURN;
+    END IF;
+
+    -- 3. Calcular las estadísticas
+    RETURN QUERY
+    WITH estadisticas AS (
+        SELECT 
+            COUNT(et.entregable_x_tema_id) as total,
+            COUNT(CASE WHEN et.estado = 'enviado_a_tiempo' THEN 1 END) as enviados
+        FROM entregable_x_tema et
+        WHERE et.tema_id = v_tema_id
+        AND et.activo = true
+    )
+    SELECT 
+        total::INT,
+        enviados::INT,
+        CASE 
+            WHEN total = 0 THEN 0
+            ELSE ROUND((enviados::NUMERIC / total::NUMERIC) * 100, 2)
+        END as porcentaje
+    FROM estadisticas;
+END;
+$$ LANGUAGE plpgsql;
