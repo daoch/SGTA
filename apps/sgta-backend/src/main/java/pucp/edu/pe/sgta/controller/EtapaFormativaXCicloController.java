@@ -11,6 +11,8 @@ import pucp.edu.pe.sgta.service.inter.EtapaFormativaXCicloService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import java.util.List;
+import org.springframework.web.bind.annotation.PutMapping;
+import pucp.edu.pe.sgta.dto.UpdateEtapaFormativaRequest;
 
 @RestController
 @RequestMapping("/etapa-formativa-x-ciclo")
@@ -52,5 +54,15 @@ public class EtapaFormativaXCicloController {
 		etapaFormativaXCicloService.delete(id);
 		return ResponseEntity.noContent().build();
 	}
+
+     @PutMapping("/actualizar-relacion/{relacionId}") 
+    public ResponseEntity<EtapaFormativaXCicloDto> actualizarEstadoRelacion(
+        @PathVariable Integer relacionId,
+        @RequestBody UpdateEtapaFormativaRequest request) {
+
+        EtapaFormativaXCicloDto updatedRelacion = 
+            etapaFormativaXCicloService.actualizarEstadoRelacion(relacionId, request);
+        return ResponseEntity.ok(updatedRelacion);
+    }
 
 }

@@ -7,6 +7,8 @@ import pucp.edu.pe.sgta.dto.EtapaFormativaDetalleDto;
 
 import java.util.List;
 
+import pucp.edu.pe.sgta.dto.*;
+
 public interface EtapaFormativaService {
 
 	List<EtapaFormativaDto> getAll();
@@ -36,6 +38,7 @@ public interface EtapaFormativaService {
 
 	/**
 	 * Obtiene un listado simple de todas las etapas formativas
+	 * 
 	 * @return Lista de etapas formativas con nombre, carrera y estado
 	 */
 	List<EtapaFormativaListadoDto> getSimpleList();
@@ -43,6 +46,7 @@ public interface EtapaFormativaService {
 	/**
 	 * Obtiene el detalle completo de una etapa formativa incluyendo su historial de
 	 * ciclos
+	 * 
 	 * @param id ID de la etapa formativa
 	 * @return Detalle completo de la etapa formativa
 	 */
@@ -58,7 +62,8 @@ public interface EtapaFormativaService {
 	 * etapaFormativaXCicloId);
 	 *
 	 * // Devuelve todo el historial de vínculos de una etapa formativa
-	 * List<EtapaFormativaXCicloDto> findHistorialByEtapaId(Integer etapaFormativaId);
+	 * List<EtapaFormativaXCicloDto> findHistorialByEtapaId(Integer
+	 * etapaFormativaId);
 	 *
 	 */
 

@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { ListaTesisJuradoCard } from "./TesisCard";
 import { MultiSelectCheckbox } from "./EspecialiadMultiSelect";
 import {
@@ -133,7 +133,7 @@ export const ModalAsignarTesis: React.FC<ModalAsignarTesisProps> = ({
   // Texto para mostrar en el MultiSelect
   const getMultiSelectDisplayText = () => {
     const count = especialidadesSeleccionadas.length;
-    if (count === 0) return "Seleccione áreas";
+    if (count === 0) return "Seleccione las áreas";
     return `${count} área${count !== 1 ? "s" : ""} seleccionada${count !== 1 ? "s" : ""}`;
   };
 
@@ -164,8 +164,12 @@ export const ModalAsignarTesis: React.FC<ModalAsignarTesisProps> = ({
     const selectedIds = selectedValues.map((value) => parseInt(value, 10));
     setEspecialidadesSeleccionadas(selectedIds);
   };
+
+  const [isAssigning, setIsAssigning] = useState(false);
+
   const handleAsignarClick = async () => {
-    if (tesisSeleccionada) {
+    if (tesisSeleccionada && !isAssigning) {
+      setIsAssigning(true);
       try {
         // Llamar a la función onAsignar y esperar si es una función asíncrona
         await onAsignar(tesisSeleccionada);
@@ -181,6 +185,8 @@ export const ModalAsignarTesis: React.FC<ModalAsignarTesisProps> = ({
         // Mostrar mensaje de error
         toast.error("Hubo un error al asignar el tema al jurado");
         console.error(error);
+      } finally {
+        setIsAssigning(false);
       }
     }
   };
@@ -211,13 +217,13 @@ export const ModalAsignarTesis: React.FC<ModalAsignarTesisProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="flex flex-col w-[811px] h-[496px] max-w-none !max-w-[100vw]">
+      <DialogContent className="flex flex-col w-[850px] h-[1000px] max-w-none !max-w-[100vw]">
         <DialogHeader>
           <DialogTitle>Asignar Tema de Proyecto</DialogTitle>
         </DialogHeader>
 
-        <div className="flex gap-4 mb-4">
-          <div className="relative flex items-center w-[75%]">
+        <div className="flex flex-wrap gap-4 mb-4">
+          <div className="relative flex items-center w-[60%]">
             <Search className="absolute left-3 text-gray-400 w-5 h-5" />
             <Input
               placeholder="Ingrese el título del tema de proyecto o nombre del estudiante"
@@ -269,7 +275,7 @@ export const ModalAsignarTesis: React.FC<ModalAsignarTesisProps> = ({
 
         {!isLoading && filteredData.length > 0 && (
           <div className="flex items-center justify-between pt-4 border-t">
-            <div className="flex items-center gap-2">
+            {/* <div className="flex items-center gap-2">
               <span className="text-sm text-gray-500">Mostrar</span>
               <Select
                 value={itemsPerPage.toString()}
@@ -286,13 +292,13 @@ export const ModalAsignarTesis: React.FC<ModalAsignarTesisProps> = ({
                 </SelectContent>
               </Select>
               <span className="text-sm text-gray-500">por página</span>
-            </div>
+            </div> */}
 
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-500">
                 Mostrando {indexOfFirstItem + 1}-
-                {Math.min(indexOfLastItem, asignadas.length)} de{" "}
-                {asignadas.length} registros
+                {Math.min(indexOfLastItem, filteredData.length)} de{" "}
+                {filteredData.length} registros
               </span>
             </div>
 
@@ -370,16 +376,23 @@ export const ModalAsignarTesis: React.FC<ModalAsignarTesisProps> = ({
           </div>
         )}
 
-        <DialogFooter className="absolute bottom-4 right-4 flex gap-2 justify-end">
+        <DialogFooter className="absolute bottom-6 right-4 flex gap-2 justify-end">
           <Button variant="outline" onClick={onClose}>
             Cancelar
           </Button>
           <Button
             onClick={handleAsignarClick}
-            disabled={!tesisSeleccionada}
+            disabled={!tesisSeleccionada || isAssigning}
             className="bg-[#042354] text-white"
           >
-            Asignar
+            {isAssigning ? (
+              <>
+                <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                Asignando
+              </>
+            ) : (
+              "Asignar"
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

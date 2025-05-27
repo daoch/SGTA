@@ -13,6 +13,8 @@ import pucp.edu.pe.sgta.service.inter.EtapaFormativaXCicloService;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import pucp.edu.pe.sgta.dto.UpdateEtapaFormativaRequest;
+
 @Service
 public class EtapaFormativaXCicloServiceImpl implements EtapaFormativaXCicloService {
 
@@ -61,13 +63,13 @@ public class EtapaFormativaXCicloServiceImpl implements EtapaFormativaXCicloServ
 	@Override
 	public List<EtapaFormativaXCicloDto> getAllByCarreraId(Integer carreraId) {
 		List<EtapaFormativaXCiclo> etapaFormativaXCiclos = etapaFormativaXCicloRepository
-			.findAllByEtapaFormativa_Carrera_IdAndActivoTrue(carreraId);
+				.findAllByEtapaFormativa_Carrera_IdAndActivoTrue(carreraId);
 		return etapaFormativaXCiclos.stream().map(etapaFormativaXCiclo -> {
 			EtapaFormativaXCicloDto dto = mapToDto(etapaFormativaXCiclo);
 			// Obtener la información de la etapa formativa
 			EtapaFormativa etapaFormativa = etapaFormativaRepository
-				.findById(etapaFormativaXCiclo.getEtapaFormativa().getId())
-				.orElseThrow(() -> new RuntimeException("Etapa Formativa no encontrada"));
+					.findById(etapaFormativaXCiclo.getEtapaFormativa().getId())
+					.orElseThrow(() -> new RuntimeException("Etapa Formativa no encontrada"));
 			dto.setNombreEtapaFormativa(etapaFormativa.getNombre());
 			dto.setCreditajePorTema(etapaFormativa.getCreditajePorTema());
 			return dto;
@@ -78,7 +80,7 @@ public class EtapaFormativaXCicloServiceImpl implements EtapaFormativaXCicloServ
 	@Override
 	public List<EtapaFormativaXCicloDto> getAllByCarreraIdAndCicloId(Integer carreraId, Integer cicloId) {
 		List<EtapaFormativaXCiclo> etapaFormativaXCiclos = etapaFormativaXCicloRepository
-			.findAllByEtapaFormativa_Carrera_IdAndCiclo_IdAndActivoTrue(carreraId, cicloId);
+				.findAllByEtapaFormativa_Carrera_IdAndCiclo_IdAndActivoTrue(carreraId, cicloId);
 		if (etapaFormativaXCiclos.isEmpty()) {
 			return List.of();
 		}
@@ -87,6 +89,17 @@ public class EtapaFormativaXCicloServiceImpl implements EtapaFormativaXCicloServ
 
 	private EtapaFormativaXCicloDto mapToDto(EtapaFormativaXCiclo etapaFormativaXCiclo) {
 		return EtapaFormativaXCicloMapper.toDto(etapaFormativaXCiclo);
+	}
+
+	@Override
+	public EtapaFormativaXCicloDto actualizarEstadoRelacion(Integer relacionId, UpdateEtapaFormativaRequest request) {
+		// Buscar la relación por ID
+		EtapaFormativaXCiclo relacion = etapaFormativaXCicloRepository.findById(relacionId)
+				.orElseThrow(() -> new RuntimeException("Relación no encontrada")); // <-- Usar RuntimeException
+
+		relacion.setEstado(request.getEstado());
+		EtapaFormativaXCiclo relacionActualizada = etapaFormativaXCicloRepository.save(relacion);
+		return EtapaFormativaXCicloMapper.toDto(relacionActualizada);
 	}
 
 }

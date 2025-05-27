@@ -6,19 +6,22 @@ import pucp.edu.pe.sgta.dto.RechazoSolicitudCambioAsesorResponseDto;
 import pucp.edu.pe.sgta.dto.RechazoSolicitudResponseDto;
 import pucp.edu.pe.sgta.dto.SolicitudCambioAsesorDto;
 import pucp.edu.pe.sgta.dto.SolicitudCeseDto;
+import pucp.edu.pe.sgta.dto.temas.SolicitudTemaDto;
 
 public interface SolicitudService {
+    SolicitudCeseDto findAllSolicitudesCese(int page, int size);
 
-	SolicitudCeseDto findAllSolicitudesCese(int page, int size);
+    RechazoSolicitudResponseDto rechazarSolicitud(Integer solicitudId, String response);
 
-	RechazoSolicitudResponseDto rechazarSolicitud(Integer solicitudId, String response);
+    AprobarSolicitudResponseDto aprobarSolicitud(Integer solicitudId, String response);
 
-	AprobarSolicitudResponseDto aprobarSolicitud(Integer solicitudId, String response);
+    SolicitudCambioAsesorDto findAllSolicitudesCambioAsesor(int page, int size);
 
-	SolicitudCambioAsesorDto findAllSolicitudesCambioAsesor(int page, int size);
+    RechazoSolicitudCambioAsesorResponseDto rechazarSolicitudCambioAsesor(Integer solicitudId, String response);
 
-	RechazoSolicitudCambioAsesorResponseDto rechazarSolicitudCambioAsesor(Integer solicitudId, String response);
+    AprobarSolicitudCambioAsesorResponseDto aprobarSolicitudCambioAsesor(Integer solicitudId, String response);
 
-	AprobarSolicitudCambioAsesorResponseDto aprobarSolicitudCambioAsesor(Integer solicitudId, String response);
+    SolicitudTemaDto findAllSolicitudesByTema(Integer temaId, int page, int size);
 
+    void atenderSolicitudTemaInscrito(SolicitudTemaDto solicitudAtendida);
 }

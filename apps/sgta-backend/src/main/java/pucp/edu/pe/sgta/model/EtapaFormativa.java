@@ -16,6 +16,8 @@ import java.time.OffsetDateTime;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import org.hibernate.annotations.CreationTimestamp;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -50,13 +52,16 @@ public class EtapaFormativa {
 	private OffsetDateTime fechaCreacion;
 
 	@UpdateTimestamp
-	@Column(name = "fecha_modificacion", nullable = false, insertable = false,
-			columnDefinition = "TIMESTAMP WITH TIME ZONE")
+	@Column(name = "fecha_modificacion", nullable = false, insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
 	private OffsetDateTime fechaModificacion;
 
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "carrera_id", nullable = false, foreignKey = @ForeignKey(name = "fk_area_conocimiento_carrera"))
-	private Carrera carrera;
+	@OneToMany(mappedBy = "etapaFormativa", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	private List<EtapaFormativaXCiclo> etapasXCiclo = new ArrayList<>();
+
+	public void addEtapaXCiclo(EtapaFormativaXCiclo etapaXCiclo) {
+		etapasXCiclo.add(etapaXCiclo);
+		etapaXCiclo.setEtapaFormativa(this);
+	}
 
 	/**
 	 * Converter para transformar Duration a PostgreSQL interval
@@ -94,8 +99,7 @@ public class EtapaFormativa {
 				}
 
 				return sb.toString();
-			}
-			catch (Exception e) {
+			} catch (Exception e) {
 				// En caso de cualquier error, retornar null
 				return null;
 			}
@@ -126,8 +130,7 @@ public class EtapaFormativa {
 
 				// Convert to Duration
 				return Duration.ofSeconds(totalSeconds);
-			}
-			catch (Exception e) {
+			} catch (Exception e) {
 				// If parsing fails, return null
 				return null;
 			}

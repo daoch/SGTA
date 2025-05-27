@@ -1,11 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { AlertTriangle, Calendar } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -14,14 +11,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Progress } from "@/components/ui/progress";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { addDays, isBefore, parseISO } from "date-fns";
+import { AlertTriangle, Calendar } from "lucide-react";
+import { useState } from "react";
 
 export function StudentReports() {
   const [scheduleFrequency, setScheduleFrequency] = useState("weekly");
@@ -310,27 +304,24 @@ export function StudentReports() {
                     className="absolute inset-0 rounded-full border-4 border-t-transparent"
                     style={{
                       borderTopColor: "transparent",
-                      borderRightColor: `${
-                        studentData.progress < 30
+                      borderRightColor: `${studentData.progress < 30
                           ? "#ef4444"
                           : studentData.progress < 70
                             ? "#eab308"
                             : "#22c55e"
-                      }`,
-                      borderBottomColor: `${
-                        studentData.progress < 30
+                        }`,
+                      borderBottomColor: `${studentData.progress < 30
                           ? "#ef4444"
                           : studentData.progress < 70
                             ? "#eab308"
                             : "#22c55e"
-                      }`,
-                      borderLeftColor: `${
-                        studentData.progress < 30
+                        }`,
+                      borderLeftColor: `${studentData.progress < 30
                           ? "#ef4444"
                           : studentData.progress < 70
                             ? "#eab308"
                             : "#22c55e"
-                      }`,
+                        }`,
                       transform: `rotate(${studentData.progress * 3.6}deg)`,
                     }}
                   ></div>
@@ -377,11 +368,11 @@ export function StudentReports() {
 
         {/* Resumen de proyecto - Lado derecho */}
         <Card>
-          <CardHeader className="py-3">
+          <CardHeader className="py- pb-1">
             <CardTitle className="text-lg">Resumen de Proyecto</CardTitle>
           </CardHeader>
-          <CardContent className="py-2">
-            <div className="space-y-3">
+          <CardContent className="pt-1">
+            <div className="space-y-2">
               <div>
                 <h3 className="text-xs text-gray-500">
                   Proyecto de Fin de Carrera:
@@ -533,8 +524,7 @@ export function StudentReports() {
               filteredEvents.map((event, index) => (
                 <div key={index} className="relative">
                   <div
-                    className={`absolute -left-10 mt-1.5 h-4 w-4 rounded-full border ${
-                      event.status === "Completado"
+                    className={`absolute -left-10 mt-1.5 h-4 w-4 rounded-full border ${event.status === "Completado"
                         ? "bg-green-500 border-green-500"
                         : event.status === "En progreso"
                           ? "bg-blue-500 border-blue-500"
@@ -543,7 +533,7 @@ export function StudentReports() {
                             : event.isAtRisk
                               ? "bg-yellow-500 border-yellow-500"
                               : "bg-gray-300 border-gray-300"
-                    }`}
+                      }`}
                   ></div>
                   <div>
                     <time className="mb-1 text-xs font-normal text-gray-500">
@@ -563,8 +553,7 @@ export function StudentReports() {
                       )}
                     </h3>
                     <p
-                      className={`text-xs ${
-                        event.status === "Completado"
+                      className={`text-xs ${event.status === "Completado"
                           ? "text-green-600"
                           : event.status === "En progreso"
                             ? "text-blue-600"
@@ -573,7 +562,7 @@ export function StudentReports() {
                               : event.isAtRisk
                                 ? "text-yellow-600"
                                 : "text-gray-600"
-                      }`}
+                        }`}
                     >
                       {event.status}
                     </p>

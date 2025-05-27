@@ -25,17 +25,19 @@ import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.EntityNotFoundException;
 
+import pucp.edu.pe.sgta.repository.EtapaFormativaXCicloRepository;
+import java.util.NoSuchElementException;
+
 @Service
 public class EtapaFormativaServiceImpl implements EtapaFormativaService {
-
 	@Autowired
 	private CarreraRepository carreraRepository;
-
 	@Autowired
 	private ExposicionRepository exposicionRepository;
-
 	@Autowired
 	private EtapaFormativaRepository etapaFormativaRepository;
+	@Autowired
+	private EtapaFormativaXCicloRepository etapaFormativaXCicloRepository;
 
 	public EtapaFormativaServiceImpl(EtapaFormativaRepository etapaFormativaRepository) {
 		this.etapaFormativaRepository = etapaFormativaRepository;
@@ -75,12 +77,12 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
 	public EtapaFormativaDto update(EtapaFormativaDto dto) {
 		// 1) Cargar la entidad existente
 		var etapa = etapaFormativaRepository.findById(dto.getId())
-			.orElseThrow(() -> new RuntimeException("Etapa no encontrada: " + dto.getId()));
+				.orElseThrow(() -> new RuntimeException("Etapa no encontrada: " + dto.getId()));
 
 		// 2) Si cambió la carrera, validar y seteársela
 		if (!etapa.getCarrera().getId().equals(dto.getCarreraId())) {
 			var carrera = carreraRepository.findById(dto.getCarreraId())
-				.orElseThrow(() -> new RuntimeException("Carrera no encontrada: " + dto.getCarreraId()));
+					.orElseThrow(() -> new RuntimeException("Carrera no encontrada: " + dto.getCarreraId()));
 			etapa.setCarrera(carrera);
 		}
 
@@ -94,22 +96,22 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
 
 		// 5) Mapear Entidad → DTO
 		return EtapaFormativaDto.builder()
-			.id(updated.getId())
-			.nombre(updated.getNombre())
-			.creditajePorTema(updated.getCreditajePorTema())
-			.duracionExposicion(updated.getDuracionExposicion())
-			.activo(updated.getActivo())
-			.carreraId(updated.getCarrera().getId())
-			.build();
+				.id(updated.getId())
+				.nombre(updated.getNombre())
+				.creditajePorTema(updated.getCreditajePorTema())
+				.duracionExposicion(updated.getDuracionExposicion())
+				.activo(updated.getActivo())
+				.carreraId(updated.getCarrera().getId())
+				.build();
 	}
 
 	@Override
 	public List<EtapaFormativaNombreDTO> findToInitializeByCoordinador(Integer coordiandorId) {
 		List<EtapaFormativaNombreDTO> etapasFormativas = etapaFormativaRepository
-			.findToInitializeByCoordinador(coordiandorId);
+				.findToInitializeByCoordinador(coordiandorId);
 		return etapasFormativas.stream()
-			.map(ef -> new EtapaFormativaNombreDTO(ef.getEtapaFormativaId(), ef.getNombre()))
-			.toList();
+				.map(ef -> new EtapaFormativaNombreDTO(ef.getEtapaFormativaId(), ef.getNombre()))
+				.toList();
 	}
 
 	@Override
@@ -182,15 +184,15 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
 	public List<EtapaFormativaNombreDTO> findAllActivasNombre() {
 		List<EtapaFormativaNombreDTO> etapasFormativas = etapaFormativaRepository.findAllActivasNombre();
 		return etapasFormativas.stream()
-			.map(ef -> new EtapaFormativaNombreDTO(ef.getEtapaFormativaId(), ef.getNombre()))
-			.toList();
+				.map(ef -> new EtapaFormativaNombreDTO(ef.getEtapaFormativaId(), ef.getNombre()))
+				.toList();
 	}
 
 	public EtapaFormativaDto create(EtapaFormativaDto dto) {
 		try {
 			// 1) Validar y cargar la Carrera
 			var carrera = carreraRepository.findById(dto.getCarreraId())
-				.orElseThrow(() -> new RuntimeException("Carrera no encontrada: " + dto.getCarreraId()));
+					.orElseThrow(() -> new RuntimeException("Carrera no encontrada: " + dto.getCarreraId()));
 
 			// 2) Guardar Duration para uso posterior
 			Duration duration = dto.getDuracionExposicion();
@@ -215,15 +217,14 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
 
 			// 6) Construir DTO de respuesta
 			return EtapaFormativaDto.builder()
-				.id(saved.getId())
-				.nombre(saved.getNombre())
-				.creditajePorTema(saved.getCreditajePorTema())
-				.duracionExposicion(saved.getDuracionExposicion())
-				.activo(saved.getActivo())
-				.carreraId(carrera.getId())
-				.build();
-		}
-		catch (Exception e) {
+					.id(saved.getId())
+					.nombre(saved.getNombre())
+					.creditajePorTema(saved.getCreditajePorTema())
+					.duracionExposicion(saved.getDuracionExposicion())
+					.activo(saved.getActivo())
+					.carreraId(carrera.getId())
+					.build();
+		} catch (Exception e) {
 			throw new RuntimeException("Error al crear etapa formativa: " + e.getMessage(), e);
 		}
 	}
@@ -254,11 +255,11 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
 
 		for (Object[] row : result) {
 			EtapaFormativaListadoDto dto = EtapaFormativaListadoDto.builder()
-				.id((Integer) row[0])
-				.nombre((String) row[1])
-				.carreraNombre((String) row[2])
-				.estado((String) row[3])
-				.build();
+					.id((Integer) row[0])
+					.nombre((String) row[1])
+					.carreraNombre((String) row[2])
+					.estado((String) row[3])
+					.build();
 
 			listadoDtos.add(dto);
 		}
@@ -277,15 +278,15 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
 
 		// Construir DTO con datos principales
 		EtapaFormativaDetalleDto dto = EtapaFormativaDetalleDto.builder()
-			.id((Integer) row[0])
-			.nombre((String) row[1])
-			.carreraNombre((String) row[2])
-			.carreraId((Integer) row[3])
-			.creditajePorTema((BigDecimal) row[4])
-			.activo((Boolean) row[5])
-			.cicloActual((String) row[6])
-			.estadoActual((String) row[7])
-			.build();
+				.id((Integer) row[0])
+				.nombre((String) row[1])
+				.carreraNombre((String) row[2])
+				.carreraId((Integer) row[3])
+				.creditajePorTema((BigDecimal) row[4])
+				.activo((Boolean) row[5])
+				.cicloActual((String) row[6])
+				.estadoActual((String) row[7])
+				.build();
 
 		// Convertir PGInterval a Duration
 		PGInterval pgInterval = (PGInterval) row[8];
@@ -299,10 +300,10 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
 
 		for (Object[] historialRow : historialResult) {
 			EtapaFormativaDetalleDto.CicloHistorialDto cicloDto = EtapaFormativaDetalleDto.CicloHistorialDto.builder()
-				.id((Integer) historialRow[0])
-				.ciclo((String) historialRow[1])
-				.estado((String) historialRow[2])
-				.build();
+					.id((Integer) historialRow[0])
+					.ciclo((String) historialRow[1])
+					.estado((String) historialRow[2])
+					.build();
 
 			historialCiclos.add(cicloDto);
 		}
@@ -316,7 +317,7 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
 	@Transactional
 	public void delete(Integer id) {
 		EtapaFormativa e = etapaFormativaRepository.findById(id)
-			.orElseThrow(() -> new NoSuchElementException("No existe etapa formativa: " + id));
+				.orElseThrow(() -> new NoSuchElementException("No existe etapa formativa: " + id));
 		e.setActivo(false);
 		etapaFormativaRepository.save(e);
 	}
@@ -325,7 +326,7 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
 	@Transactional(readOnly = true)
 	public Integer getEtapaFormativaIdByExposicionId(Integer exposicionId) {
 		Exposicion expo = exposicionRepository.findById(exposicionId)
-			.orElseThrow(() -> new EntityNotFoundException("No existe Exposicion con id " + exposicionId));
+				.orElseThrow(() -> new EntityNotFoundException("No existe Exposicion con id " + exposicionId));
 		EtapaFormativaXCiclo efc = expo.getEtapaFormativaXCiclo();
 		return efc.getId();
 	}

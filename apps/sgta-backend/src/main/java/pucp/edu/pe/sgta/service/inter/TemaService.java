@@ -17,13 +17,12 @@ public interface TemaService {
 
 	TemaDto findById(Integer id);
 
-	List<TemaDto> findByUsuario(Integer idUsuario); // Works for asesor, alumno,
-													// coordinador and revisor
+	List<TemaDto> findByUsuario(Integer idUsuario); // Works for asesor, alumno, coordinador and revisor
 
 	/**
 	 * @param dto
 	 * @param idUsuarioCreador: tesista id
-	 * @param tipoPropuesta: 0 for general, 1 for direct
+	 * @param tipoPropuesta:    0 for general, 1 for direct
 	 */
 	void createTemaPropuesta(TemaDto dto, Integer idUsuarioCreador, Integer tipoPropuesta);
 
@@ -31,22 +30,28 @@ public interface TemaService {
 
 	void delete(Integer id);
 
-	void createInscripcionTema(TemaDto dto); // Works for asesor, alumno, coordinador and
-												// revisor
+	void createInscripcionTema(TemaDto dto); // Works for asesor, alumno, coordinador and revisor
 
 	List<TemaDto> listarTemasPropuestosAlAsesor(Integer asesorId, String titulo, Integer limit, Integer offset);
 
-	List<TemaDto> listarTemasPropuestosPorSubAreaConocimiento(List<Integer> subareaIds, Integer asesorId, String titulo,
-			Integer limit, Integer offset);
+	List<TemaDto> listarTemasPropuestosPorSubAreaConocimiento(
+			List<Integer> subareaIds,
+			Integer asesorId,
+			String titulo,
+			Integer limit,
+			Integer offset);
 
 	void postularAsesorTemaPropuestoGeneral(Integer alumnoId, Integer asesorId, Integer temaId, String comentario);
 
 	void enlazarTesistasATemaPropuestDirecta(Integer[] usuariosId, Integer temaId, Integer profesorId,
 			String comentario);
 
-	List<TemaDto> listarTemasPorUsuarioRolEstado(Integer usuarioId, String rolNombre, String estadoNombre);
+	List<TemaDto> listarTemasPorUsuarioRolEstado(Integer usuarioId,
+			String rolNombre,
+			String estadoNombre);
 
-	List<UsuarioDto> listarUsuariosPorTemaYRol(Integer temaId, String rolNombre);
+	List<UsuarioDto> listarUsuariosPorTemaYRol(Integer temaId,
+			String rolNombre);
 
 	List<SubAreaConocimientoDto> listarSubAreasPorTema(Integer temaId);
 
@@ -71,5 +76,27 @@ public interface TemaService {
 	void aprobarPostulacionAPropuestaGeneral(Integer idTema, Integer idAsesor, Integer idTesista);
 
 	List<ExposicionTemaMiembrosDto> listarExposicionXTemaId(Integer temaId);
+
+	void updateTituloResumenTemaSolicitud(Integer idTema, String titulo, String resumen);
+
+	/**
+	 * Updates the title of a theme based on a request and handles the request
+	 * status.
+	 * 
+	 * @param solicitudId ID of the request to process
+	 * @param titulo      New title for the theme (can be null)
+	 * @param respuesta   Response message for the request
+	 */
+	void updateTituloTemaSolicitud(Integer solicitudId, String titulo, String respuesta);
+
+	/**
+	 * Updates the summary of a theme based on a request and handles the request
+	 * status.
+	 * 
+	 * @param solicitudId ID of the request to process
+	 * @param resumen     New summary for the theme (can be null)
+	 * @param respuesta   Response message for the request
+	 */
+	void updateResumenTemaSolicitud(Integer solicitudId, String resumen, String respuesta);
 
 }

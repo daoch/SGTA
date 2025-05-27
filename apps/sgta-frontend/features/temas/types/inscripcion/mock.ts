@@ -33,6 +33,7 @@ export const temaVacio: Tema = {
   coasesores: [],
   tesistas: [],
   subareas: [],
+  requisitos: "",
 };
 
 export const coasesoresData: Coasesor[] = [
@@ -481,4 +482,3 @@ export const coasesoresData: Coasesor[] = [
 //     subareas: [],
 //   },
 // ];
-

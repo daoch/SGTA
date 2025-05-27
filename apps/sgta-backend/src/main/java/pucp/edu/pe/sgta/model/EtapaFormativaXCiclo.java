@@ -19,19 +19,20 @@ public class EtapaFormativaXCiclo {
 	private Integer id;
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "etapa_formativa_id", nullable = false,
-			foreignKey = @ForeignKey(name = "fk_efc_etapa_formativa"))
+	@JoinColumn(name = "etapa_formativa_id", nullable = false, foreignKey = @ForeignKey(name = "fk_efc_etapa_formativa"))
 	private EtapaFormativa etapaFormativa;
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "ciclo_id", nullable = false, foreignKey = @ForeignKey(name = "fk_efc_ciclo"))
 	private Ciclo ciclo;
 
+	@Column(name = "estado", nullable = false)
+	private String estado;
+
 	@Column(nullable = false)
 	private Boolean activo = true;
 
-	@Column(name = "fecha_creacion", nullable = false, insertable = false,
-			columnDefinition = "TIMESTAMP WITH TIME ZONE")
+	@Column(name = "fecha_creacion", nullable = false, insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
 	private OffsetDateTime fechaCreacion;
 
 	@Column(name = "fecha_modificacion", insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")

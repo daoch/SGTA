@@ -11,14 +11,11 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import pucp.edu.pe.sgta.dto.BloqueHorarioExposicionCreateDTO;
-import pucp.edu.pe.sgta.dto.BloqueHorarioExposicionDto;
-import pucp.edu.pe.sgta.dto.JornadaExposicionCreateDTO;
-import pucp.edu.pe.sgta.dto.JornadaExposicionDto;
-import pucp.edu.pe.sgta.dto.ListBloqueHorarioExposicionSimpleDTO;
-import pucp.edu.pe.sgta.dto.TemaConAsesorJuradoDTO;
+import org.springframework.web.client.RestTemplate;
+import pucp.edu.pe.sgta.dto.*;
 import pucp.edu.pe.sgta.mapper.BloqueHorarioExposicionMapper;
 import pucp.edu.pe.sgta.model.BloqueHorarioExposicion;
 import pucp.edu.pe.sgta.model.JornadaExposicion;
@@ -51,7 +48,7 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
 	@Override
 	public BloqueHorarioExposicionDto create(BloqueHorarioExposicionCreateDTO dto) {
 		BloqueHorarioExposicion bloqueHorarioExposicion = bloqueHorarioExposicionRepository
-			.save(BloqueHorarioExposicionMapper.toEntity(dto));
+				.save(BloqueHorarioExposicionMapper.toEntity(dto));
 		return BloqueHorarioExposicionMapper.toDTO(bloqueHorarioExposicion);
 	}
 
@@ -112,8 +109,8 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
 
 		try {
 			List<ListBloqueHorarioExposicionSimpleDTO> filtered = bloquesList.stream()
-				.filter(b -> b.getExpo() != null)
-				.collect(Collectors.toList());
+					.filter(b -> b.getExpo() != null)
+					.collect(Collectors.toList());
 
 			ObjectMapper mapper = new ObjectMapper();
 			String jsonString = mapper.writeValueAsString(filtered);
@@ -121,8 +118,7 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
 			bloqueHorarioExposicionRepository.actualizarMasivo(jsonString);
 
 			return true;
-		}
-		catch (JsonProcessingException e) {
+		} catch (JsonProcessingException e) {
 			e.printStackTrace();
 			return false;
 		}
@@ -140,8 +136,7 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
 			bloqueHorarioExposicionRepository.updateBloquesExposicionNextPhase(jsonString);
 
 			return true;
-		}
-		catch (JsonProcessingException e) {
+		} catch (JsonProcessingException e) {
 			e.printStackTrace();
 			return false;
 		}
@@ -155,8 +150,7 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
 		try {
 			Boolean result = bloqueHorarioExposicionRepository.finishPlanning(exposicionId);
 			return Boolean.TRUE.equals(result);
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
 		}
@@ -166,12 +160,64 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
 	@Transactional
 	public Integer createAll(List<BloqueHorarioExposicionCreateDTO> dtos) {
 		List<BloqueHorarioExposicion> entities = dtos.stream()
-			.map(BloqueHorarioExposicionMapper::toEntity)
-			.collect(Collectors.toList());
+				.map(BloqueHorarioExposicionMapper::toEntity)
+				.collect(Collectors.toList());
 
 		List<BloqueHorarioExposicion> saved = bloqueHorarioExposicionRepository.saveAll(entities);
 
 		return saved.size();
+	}
+
+	@Override
+
+	public int bloquearBloque(int idBloque) {
+		BloqueHorarioExposicion bloqueHorarioExposicion = bloqueHorarioExposicionRepository.findById(idBloque)
+				.orElse(null);
+		if (bloqueHorarioExposicion != null) {
+			bloqueHorarioExposicion.setEsBloqueBloqueado(true);
+			bloqueHorarioExposicionRepository.save(bloqueHorarioExposicion);
+			return 1;
+		}
+		return 0;
+	}
+
+	@Override
+	public int desbloquearBloque(int idBloque) {
+		BloqueHorarioExposicion bloqueHorarioExposicion = bloqueHorarioExposicionRepository.findById(idBloque)
+				.orElse(null);
+		if (bloqueHorarioExposicion != null) {
+			bloqueHorarioExposicion.setEsBloqueBloqueado(false);
+			bloqueHorarioExposicionRepository.save(bloqueHorarioExposicion);
+			return 1;
+		}
+		return 0;
+	}
+
+	public List<ListBloqueHorarioExposicionSimpleDTO> asignarTemasBloques(List<AsignacionBloqueDTO> listaBloquesTemas,
+			DistribucionRequestDTO request) {
+		List<ListBloqueHorarioExposicionSimpleDTO> bloques = request.getBloques();
+		List<TemaConAsesorJuradoDTO> temas = request.getTemas();
+		List<ListBloqueHorarioExposicionSimpleDTO> nuevaLista = new ArrayList<>();
+
+		for (AsignacionBloqueDTO asig : listaBloquesTemas) {
+			ListBloqueHorarioExposicionSimpleDTO bloqueElegido = bloques.stream()
+					.filter(b -> b.getIdBloque() == asig.getIdBloque())
+					.findFirst()
+					.orElse(null);
+
+			if (bloqueElegido == null)
+				continue;
+			TemaConAsesorJuradoDTO temaElegido = temas.stream()
+					.filter(t -> t.getId() == asig.getTema())
+					.findFirst()
+					.orElse(null);
+
+			if (temaElegido == null)
+				continue;
+			bloqueElegido.setExpo(temaElegido);
+		}
+
+		return bloques;
 	}
 
 }

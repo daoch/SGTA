@@ -31,6 +31,7 @@ export interface Tema {
   coasesores: Coasesor[] | null;
   tesistas: Tesista[] | null;
   subareas: AreaDeInvestigacion[];
+  requisitos: string;
 }
 
 export interface TemaCreateInscription {

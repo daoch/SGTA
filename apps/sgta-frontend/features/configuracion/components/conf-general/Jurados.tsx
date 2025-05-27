@@ -7,9 +7,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useEffect, useState } from "react";
 import { useBackStore } from "../../store/configuracion-store";
+
+const PARAM_CANT_TESIS_X_JURADO = "CantidadTesisXJurado";
 
 export default function JuradosCards() {
   const { parametros, actualizarParametro, cargando } = useBackStore();
@@ -23,10 +26,22 @@ export default function JuradosCards() {
     (p) => p.parametroConfiguracion.nombre === "Tiempo Limite Jurado",
   );
 
+  // Estado para el parámetro "Cantidad limite de tesis ppor jurado"
+  const [cantLimiteTesisJurado, setCantLimiteTesisJurado] = useState<number>(0);
+  const cantidadLimiteTesisJurado = parametros.find(
+    (p) => p.parametroConfiguracion.nombre === PARAM_CANT_TESIS_X_JURADO,
+  );
+
+  useEffect(() => {
+    if (cantidadLimiteTesisJurado?.valor) {
+      const limiteTesis = (cantidadLimiteTesisJurado.valor) as number;
+      setCantLimiteTesisJurado(limiteTesis);
+    }
+  }, [cantidadLimiteTesisJurado]);
+
+
   // Handlers para cambios
-  const handleCantidadChange = async (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
+  const handleCantidadChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     //Convierte valor ingresado a numero
     const value = parseInt(e.target.value);
     //valida que tengamos valor obtenido en la busqueda del parametro cantidad juraods
@@ -43,13 +58,24 @@ export default function JuradosCards() {
     }
   };
 
+
+  //Handler para cambiar cantidad de tesis por jurado
+  const handleCantidadTesisJuradoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const limTesis = Number(e.target.value);
+    setCantLimiteTesisJurado(limTesis);
+    if (cantidadLimiteTesisJurado) {
+      actualizarParametro(cantidadLimiteTesisJurado.id, limTesis);
+    }
+  };
+
+
   return (
     <>
       <Card>
         <CardHeader>
-          <CardTitle>Cantidad de jurados</CardTitle>
+          <CardTitle>Cantidad de jurados por Tesis</CardTitle>
           <CardDescription>
-            Establezca el número fijo de jurados para cada proyecto de tesis
+            Establezca el número fijo de jurados que debe tener cada presentación de tesis
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -96,6 +122,30 @@ export default function JuradosCards() {
               onChange={handleTiempoChange}
               disabled={cargando}
               min="1"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Cantidad de trabajos por Jurado</CardTitle>
+          <CardDescription>
+            Configure el número máximo de tesis que puede tener asignadas un jurado de forma simultánea
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid w-full max-w-sm items-center gap-1.5">
+            <Label htmlFor="tiempo-jurado">
+              Número máximo de trabajos por jurado
+            </Label>
+            <Input
+              type="number"
+              id="tiempo-jurado"
+              placeholder="Ej: 10"
+              value={cantLimiteTesisJurado}
+              onChange={handleCantidadTesisJuradoChange}
+              disabled={cargando}
             />
           </div>
         </CardContent>

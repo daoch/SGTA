@@ -150,7 +150,7 @@ export function PropuestasTable({
       try {
         await postularTemaPropuestoGeneral(
           selectedPropuesta?.estudiantes[0]?.id,
-          40,
+          1,
           selectedPropuesta?.id,
           comentario,
         );
@@ -178,7 +178,7 @@ export function PropuestasTable({
         await enlazarTesistasATemaPropuestoDirecta(
           selectedPropuesta?.estudiantes?.map((item) => item.id),
           selectedPropuesta?.id,
-          40,
+          1,
           comentario,
         );
 

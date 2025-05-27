@@ -33,7 +33,7 @@ public class UsuarioXSolicitud {
 	private Boolean solicitudCompletada = false;
 
 	@Column(nullable = false)
-	private Boolean aprovado = false;
+	private Boolean aprobado = false;
 
 	@Column(columnDefinition = "TEXT")
 	private String comentario;
