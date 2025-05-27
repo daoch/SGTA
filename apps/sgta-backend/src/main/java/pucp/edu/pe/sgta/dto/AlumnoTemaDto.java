@@ -14,8 +14,7 @@ public class AlumnoTemaDto {
     private Integer id;
     private String temaNombre;
     private String asesorNombre;
-    private List<String> coasesoresNombre;
-    private OffsetDateTime fechaInicio;
+    private String coasesorNombre;
     private String areaNombre;
     private String subAreaNombre;
 }
