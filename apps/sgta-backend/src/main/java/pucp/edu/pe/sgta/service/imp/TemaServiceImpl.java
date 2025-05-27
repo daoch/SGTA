@@ -989,7 +989,7 @@ public class TemaServiceImpl implements TemaService {
 						.nombres(m.get("nombre_completo") != null ? ((String) m.get("nombre_completo")).split(" ")[0]
 								: null)
 						.primerApellido(
-								m.get("primer_apellido") != null ? ((String) m.get("nombre_completo")).split(" ")[1]
+								m.get("nombre_completo") != null ? ((String) m.get("nombre_completo")).split(" ")[1]
 										: null)
 						.rol((String) m.get("rol"))
 						.rechazado((Boolean) m.get("rechazado"))
