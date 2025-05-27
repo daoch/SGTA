@@ -6,14 +6,14 @@ import {
   TimeSlot,
 } from "@/features/jurado/types/jurado.types";
 import Draggable from "./Draggable";
-import ExpoSon from "./ExpoSon";
+import ExpoSon from "./expo-son";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import ToolTipoBloque from "./ToolTipoBloque";
+import ToolTipoBloque from "./tooltip-bloque";
 
 interface Props {
   code: string;
@@ -21,6 +21,7 @@ interface Props {
   room: TimeSlot;
   removeExpo: (expo: Tema) => void;
   estadoPlanificacion: EstadoPlanificacion;
+  onContextMenu?: (e: React.MouseEvent, room: TimeSlot, expo?: Tema) => void;
 }
 
 const RoomSlot: React.FC<Props> = ({
@@ -29,35 +30,36 @@ const RoomSlot: React.FC<Props> = ({
   room,
   removeExpo,
   estadoPlanificacion,
+  onContextMenu,
 }: Props) => {
+  const isBloqueBloqueado = room.esBloqueBloqueado;
   const isDraggeable =
     estadoPlanificacion.nombre === "Cierre de planificacion" ? false : true;
   const expoFind =
     room.key in assignedExpos ? assignedExpos[room.key] : undefined;
 
-  const baseStyle: React.CSSProperties = {
-    border: "2px dashed #868A8F",
-    backgroundColor: "#F4F5F6",
-    color: "#4F5254",
-    height: "63px",
-    textAlign: "center",
-    borderRadius: "8px",
-    transition: "all 0.3s",
-  };
-
-  const centeredStyle: React.CSSProperties = {
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
+  const handleContextMenu = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (onContextMenu) {
+      await onContextMenu(e, room, expoFind);
+    }
   };
 
   return (
     <div
       key={code}
-      style={{
-        ...baseStyle,
-        ...(expoFind ? {} : centeredStyle),
-      }}
+      className={`
+        border-2 border-dashed border-[#868A8F] 
+        bg-gray-100
+        text-black
+        h-[63px]
+        text-center 
+        rounded-lg 
+        transition-all duration-300
+        ${!expoFind ? "flex justify-center items-center" : ""} 
+        ${isBloqueBloqueado ? "bg-red-400 border-red-700" : ""}
+      `}
+      onContextMenu={handleContextMenu}
     >
       {expoFind ? (
         <Draggable
@@ -81,7 +83,17 @@ const RoomSlot: React.FC<Props> = ({
           </TooltipProvider>
         </Draggable>
       ) : (
-        <span className="text-lg">{room?.key.split("|")[2]}</span>
+        <div>
+          {isBloqueBloqueado && (
+            <>
+              <span className="text-lg">Bloqueado</span>
+              <br />
+            </>
+          )}
+          <span className={`${isBloqueBloqueado ? "text-sm" : "text-lg "}`}>
+            {room?.key.split("|")[2]}
+          </span>
+        </div>
       )}
     </div>
   );
