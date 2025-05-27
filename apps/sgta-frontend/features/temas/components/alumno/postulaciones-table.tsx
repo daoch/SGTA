@@ -107,10 +107,10 @@ export function PostulacionesTable({
       try {
         const [dirRes, genRes] = await Promise.all([
           fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPostulacionesDirectasAMisPropuestas/41`
+            `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPostulacionesDirectasAMisPropuestas/7`
           ),
           fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPostulacionesGeneralesAMisPropuestas/41`
+            `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPostulacionesGeneralesAMisPropuestas/7`
           ),
         ]);
 

@@ -80,7 +80,7 @@ public class TemaServiceImpl implements TemaService {
 
 	private final UsuarioXSolicitudRepository    usuarioXSolicitudRepository;
 
-	private final SolicitudService solicitudService;
+	//private final SolicitudService solicitudService;
 
   	private final SubAreaConocimientoService subAreaService;
 
@@ -98,7 +98,7 @@ public class TemaServiceImpl implements TemaService {
 			JornadaExposicionRepository jornadaExposicionRepository, ExposicionRepository exposicionRepository,
 			JornadaExposicionXSalaExposicionRepository jornadaExposicionXSalaExposicionRepository,
 			UsuarioXTemaRepository usuarioTemaRepository, TipoSolicitudRepository tipoSolicitudRepository, 
-			SolicitudRepository solicitudRepository, SolicitudService solicitudService,
+			SolicitudRepository solicitudRepository,
 			UsuarioXSolicitudRepository usuarioXSolicitudRepository) {
 		this.temaRepository = temaRepository;
 		this.usuarioXTemaRepository = usuarioXTemaRepository;
@@ -120,7 +120,7 @@ public class TemaServiceImpl implements TemaService {
 		this.tipoSolicitudRepository = tipoSolicitudRepository;
 		this.solicitudRepository = solicitudRepository;
 		this.usuarioXSolicitudRepository = usuarioXSolicitudRepository;
-		this.solicitudService = solicitudService;
+		//this.solicitudService = solicitudService;
 		this.subAreaService = subAreaConocimientoService;
 	}
 
@@ -404,7 +404,7 @@ public class TemaServiceImpl implements TemaService {
 			eliminarPropuestasTesista(u.getId());
 		}
 		// 6) Generar y enviar la solicitud de aprobación
-		solicitudService.crearSolicitudAprobacionTema(tema);
+		//.crearSolicitudAprobacionTema(tema);
     }
 
 	/**
