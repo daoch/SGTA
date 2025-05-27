@@ -75,7 +75,7 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
     async function fetchPropuestas() {
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPropuestasPorTesista/41`
+          `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPropuestasPorTesista/7`
         );
         const data: PropuestaAPI[] = await res.json();
 
