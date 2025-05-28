@@ -6,6 +6,7 @@ import type {
   Tesis,
 } from "@/features/asesores/types/perfil/entidades";
 import axiosInstance from "@/lib/axios/axios-instance";
+import axios from "axios";
 
 export async function getPerfilAsesor(id: number) {
   try {
@@ -21,11 +22,56 @@ export async function getPerfilAsesor(id: number) {
   }
 }
 
+export async function getIdByCorreo(
+  correoUsuario: string,
+): Promise<number | null> {
+  try {
+    const response = await axiosInstance.get("/usuario/getIdByCorreo", {
+      params: { correoUsuario },
+    });
+
+    console.log("ID obtenido por correo:", response.data);
+    return response.data as number;
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      const status = error.response?.status;
+
+      if (
+        status === 500 &&
+        error.response?.data?.message?.includes("Usuario no encontrado")
+      ) {
+        console.warn("El usuario no existe en la base de datos.");
+        return null;
+      }
+
+      console.error("Error de Axios al obtener ID por correo:", error.message);
+    } else {
+      console.error("Error desconocido al obtener ID por correo:", error);
+    }
+
+    throw error;
+  }
+}
+
+export async function getFotoUsuario(idUsuario: number): Promise<string> {
+  try {
+    const response = await axiosInstance.get("/usuario/getFotoUsuario", {
+      params: { idUsuario },
+    });
+
+    console.log("Foto recibida:", response.data);
+    return response.data.foto as string; // base64 string
+  } catch (error) {
+    console.error("Error al obtener la foto del usuario:", error);
+    throw error;
+  }
+}
+
 export async function getListaProyectos(idAsesor: number) {
   try {
-    const response = await axiosInstance.get("/proyectos/listarPorAsesor", {
-      params: { idAsesor },
-    });
+    const response = await axiosInstance.get(
+      `/proyectos/listarProyectosUsuarioInvolucrado/${idAsesor}`,
+    );
     console.log("Proyectos recibidos:", response.data);
     return (response.data as Proyecto[]) ?? [];
   } catch (error) {
@@ -36,9 +82,9 @@ export async function getListaProyectos(idAsesor: number) {
 
 export async function getListaTesisPorAsesor(idAsesor: number) {
   try {
-    const response = await axiosInstance.get("/tesis/listarPorAsesor", {
-      params: { idAsesor },
-    });
+    const response = await axiosInstance.get(
+      `/temas/listarTemasAsesorInvolucrado/${idAsesor}`,
+    );
     console.log("Tesis recibidas:", response.data);
     return (response.data as Tesis[]) ?? [];
   } catch (error) {

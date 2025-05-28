@@ -1,25 +1,24 @@
 export type Proyecto = {
   id: number;
-  codigo: string | null;
+  codigo?: string | null;
   titulo: string;
-  resumen: string;
+  resumen?: string;
   objetivos: string;
   metodologia: string;
-  portafolioUrl: string;
-  activo: boolean;
+  portafolioUrl?: string;
+  activo?: boolean;
   fechaLimite: string;
-  fechaFinalizacion: string;
-  fechaCreacion: string;
-  fechaModificacion: string;
-  estadoTemaNombre: string;
-  carrera: string;
+  fechaFinalizacion?: string;
+  fechaCreacion?: string;
+  fechaModificacion?: string;
+  estadoTemaNombre?: string;
+  carrera?: string;
   cantPostulaciones: number;
-  coasesores: Usuario[] | null;
-  tesistas: Usuario[] | null;
+  coasesores: Usuario[];
+  tesistas: Usuario[];
   subareas: SubAreaConocimiento[];
-  tipo: string; //agregado
-  subAreas: SubAreaConocimiento[]; //agregado
-  estudiantes: Usuario[]; //agregado
+  tipo: string; 
+  estudiantes?: Usuario[]; 
 };
 
 export type TipoUsuario = {
@@ -44,6 +43,9 @@ export type Usuario = {
   enlaceRepositorio: string | null;
   disponibilidad: string | null;
   tipoDisponibilidad: string;
+  asignado: boolean;
+  creador: boolean;
+  rechazado: boolean;
   activo: boolean;
   fechaCreacion: string;
   fechaModificacion: string;
@@ -66,4 +68,44 @@ export type SubAreaConocimiento = {
   activo: boolean;
   fechaCreacion: string | null;
   fechaModificacion: string | null;
+};
+
+export interface Postulacion {
+  id: string;
+  titulo: string;
+  area: string;
+  asesor: string;
+  correoAsesor: string;
+  fechaLimite: string;
+  estado: "pendiente" | "rechazado" | "aceptado";
+  tipo: "general" | "directa";
+  descripcion: string;
+  comentarioAsesor: string;
+  temaId: number;
+  asesorId: number;
+  alumnoId: number;
+}
+
+export type Proyecto_M = {
+  id: number;
+  codigo: string | null;
+  titulo: string;
+  resumen: string;
+  objetivos: string;
+  metodologia: string;
+  portafolioUrl: string;
+  activo: boolean;
+  fechaLimite: string;
+  fechaFinalizacion: string;
+  fechaCreacion: string;
+  fechaModificacion: string;
+  estadoTemaNombre: string;
+  carrera: string;
+  cantPostulaciones: number;
+  coasesores: Usuario[] | null;
+  tesistas: Usuario[] | null;
+  subareas: SubAreaConocimiento[];
+  tipo: string; //agregado
+  subAreas: SubAreaConocimiento[]; //agregado
+  estudiantes: Usuario[]; //agregado
 };

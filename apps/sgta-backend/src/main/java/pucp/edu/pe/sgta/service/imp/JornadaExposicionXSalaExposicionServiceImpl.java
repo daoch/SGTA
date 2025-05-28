@@ -46,7 +46,8 @@ public class JornadaExposicionXSalaExposicionServiceImpl implements JornadaExpos
 
     @Override
     public JornadaExposicionXSalaExposicionDto create(JornadaExposicionXSalaExposicionCreateDTO dto) {
-        JornadaExposicionXSalaExposicion jese = jornadaExposicionXSalaExposicionRepository.save(JornadaExposicionXSalaExposicionMapper.toEntity(dto));
+        JornadaExposicionXSalaExposicion jese = jornadaExposicionXSalaExposicionRepository
+                .save(JornadaExposicionXSalaExposicionMapper.toEntity(dto));
         return JornadaExposicionXSalaExposicionMapper.toDto(jese);
     }
 
@@ -61,8 +62,8 @@ public class JornadaExposicionXSalaExposicionServiceImpl implements JornadaExpos
     }
 
     @Override
-    public List<JornadaExposicionXSalaExposicionListadoDTO> listarJornadasExposicionSalas(Integer etapaFormativaId) {
-        List<Object[]> objects = jornadaExposicionXSalaExposicionRepository.listarJornadasExposicionSalas(etapaFormativaId);
+    public List<JornadaExposicionXSalaExposicionListadoDTO> listarJornadasExposicionSalas(Integer exposicionId) {
+        List<Object[]> objects = jornadaExposicionXSalaExposicionRepository.listarJornadasExposicionSalas(exposicionId);
 
         Map<Integer, JornadaExposicionXSalaExposicionListadoDTO> mapaJornadas = new LinkedHashMap<>();
 

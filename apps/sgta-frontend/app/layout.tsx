@@ -1,3 +1,4 @@
+import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/features/auth/components/auth-provider";
 import { QueryClientProvider } from "@/lib/react-query/query-client-provider";
 import type { Metadata } from "next";
@@ -39,7 +40,7 @@ export default function RootLayout({
           <AuthProvider>{children}</AuthProvider>
           <ToastContainer position="bottom-right" autoClose={5000} />
         </QueryClientProvider>
-        
+        <Toaster />
       </body>
     </html>
   );

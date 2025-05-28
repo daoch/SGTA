@@ -20,6 +20,7 @@ public class TemaMapper {
         dto.setFechaFinalizacion(tema.getFechaFinalizacion()); // Assuming fechaFinalizacion is not set in the DTO
         dto.setFechaModificacion(tema.getFechaModificacion());
         dto.setPortafolioUrl(tema.getPortafolioUrl());
+        dto.setRequisitos(tema.getRequisitos());
         if (tema.getEstadoTema() != null) {
             dto.setEstadoTemaNombre(tema.getEstadoTema().getNombre());
         }
@@ -42,6 +43,7 @@ public class TemaMapper {
         tema.setFechaFinalizacion(dto.getFechaFinalizacion()); // Assuming fechaFinalizacion is not set in the DTO
         tema.setFechaModificacion(dto.getFechaModificacion());
         tema.setPortafolioUrl(dto.getPortafolioUrl());
+        tema.setRequisitos(dto.getRequisitos());
         if (dto.getCarrera() != null && dto.getCarrera().getId() != null) {
             Carrera carrera = new Carrera();
             carrera.setId(dto.getCarrera().getId());

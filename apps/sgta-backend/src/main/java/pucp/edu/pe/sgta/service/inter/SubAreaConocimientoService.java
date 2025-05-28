@@ -22,6 +22,8 @@ public interface SubAreaConocimientoService {
 
 	List<InfoSubAreaConocimientoDto> listarInfoPorNombre(String nombre);
 
+	List<SubAreaConocimientoDto> listarPorCarreraDeUsuario(String usuarioId);
+
 	List<InfoSubAreaConocimientoDto> listarPorCarrerasUsuarioParaPerfil(Integer idUsuario);
 
 }

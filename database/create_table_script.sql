@@ -5,7 +5,7 @@ $$
             'string',
             'date',
             'integer',
-            'boolean'
+            'booleano'
             );
     EXCEPTION
         WHEN duplicate_object THEN NULL;
@@ -51,6 +51,20 @@ CREATE TABLE IF NOT EXISTS tipo_usuario
     fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Tipo Dedicacion
+
+CREATE TABLE IF NOT EXISTS tipo_dedicacion
+(
+    tipo_dedicacion_id SERIAL PRIMARY KEY,
+    iniciales          VARCHAR(10)              NOT NULL,
+    descripcion        VARCHAR(100)             NOT NULL,
+    activo             BOOLEAN                  NOT NULL DEFAULT TRUE,
+    fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion TIMESTAMP WITH TIME ZONE
+);
+
+
 -- 3. Tabla usuario
 CREATE TABLE IF NOT EXISTS usuario
 (
@@ -69,7 +83,8 @@ CREATE TABLE IF NOT EXISTS usuario
     foto_perfil         bytea,
     disponibilidad      TEXT,
     tipo_disponibilidad TEXT,
-    tipo_dedicacion     VARCHAR(100),
+    tipo_dedicacion_id     INTEGER,
+	id_cognito          VARCHAR(255),
     activo              BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -78,6 +93,10 @@ CREATE TABLE IF NOT EXISTS usuario
     CONSTRAINT fk_tipo_usuario
         FOREIGN KEY (tipo_usuario_id)
             REFERENCES tipo_usuario (tipo_usuario_id)
+            ON DELETE RESTRICT,
+    CONSTRAINT fk_tipo_dedicacion
+        FOREIGN KEY (tipo_dedicacion_id)
+            REFERENCES tipo_dedicacion (tipo_dedicacion_id)
             ON DELETE RESTRICT
 );
 
@@ -144,6 +163,7 @@ CREATE TABLE IF NOT EXISTS tema
     activo             BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    requisitos            TEXT,
 
     CONSTRAINT fk_estado_tema
         FOREIGN KEY (estado_tema_id)
@@ -228,8 +248,10 @@ CREATE TABLE IF NOT EXISTS solicitud
     tema_id            INTEGER                  NOT NULL,
     estado             INTEGER                  NOT NULL,
     activo             BOOLEAN                  NOT NULL DEFAULT TRUE,
+	respuesta		   TEXT,	
     fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
 
     CONSTRAINT fk_solicitud_tipo
         FOREIGN KEY (tipo_solicitud_id)
@@ -248,7 +270,7 @@ CREATE TABLE IF NOT EXISTS usuario_solicitud
     usuario_id           INTEGER                  NOT NULL,
     solicitud_id         INTEGER                  NOT NULL,
     solicitud_completada BOOLEAN                  NOT NULL DEFAULT FALSE,
-    aprovado             BOOLEAN                  NOT NULL DEFAULT FALSE,
+    aprobado             BOOLEAN                  NOT NULL DEFAULT FALSE,
     comentario           TEXT,
     destinatario         BOOLEAN                  NOT NULL DEFAULT FALSE,
     activo               BOOLEAN                  NOT NULL DEFAULT TRUE,
@@ -265,6 +287,15 @@ CREATE TABLE IF NOT EXISTS usuario_solicitud
             ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS tipo_rechazo_tema (
+    tipo_rechazo_tema_id SERIAL PRIMARY KEY,
+    nombre               VARCHAR(100)             NOT NULL,
+    descripcion          TEXT,
+    fecha_creacion       TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion   TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    activo               BOOLEAN                  NOT NULL DEFAULT TRUE
+);
+
 -- 7) USUARIO_TEMA (M:N entre usuario, tema y rol)
 CREATE TABLE IF NOT EXISTS usuario_tema
 (
@@ -272,6 +303,7 @@ CREATE TABLE IF NOT EXISTS usuario_tema
     usuario_id         INTEGER                  NOT NULL,
     tema_id            INTEGER                  NOT NULL,
     rol_id             INTEGER                  NOT NULL,
+    tipo_rechazo_tema_id INTEGER,
     asignado           BOOLEAN                  NOT NULL DEFAULT FALSE,
     rechazado          BOOLEAN                  NOT NULL DEFAULT FALSE,
     creador            BOOLEAN                  NOT NULL DEFAULT FALSE,
@@ -292,6 +324,10 @@ CREATE TABLE IF NOT EXISTS usuario_tema
     CONSTRAINT fk_rol
         FOREIGN KEY (rol_id)
             REFERENCES rol (rol_id)
+            ON DELETE RESTRICT,
+    CONSTRAINT fk_tipo_rechazo_tema
+        FOREIGN KEY (tipo_rechazo_tema_id)
+            REFERENCES tipo_rechazo_tema (tipo_rechazo_tema_id)
             ON DELETE RESTRICT
 );
 
@@ -390,6 +426,25 @@ CREATE TABLE IF NOT EXISTS usuario_area_conocimiento
             ON DELETE RESTRICT
 );
 
+-- USUARIO_ROL
+CREATE TABLE IF NOT EXISTS usuario_rol
+(
+	usuario_rol_id 		SERIAL 		PRIMARY KEY,
+	usuario_id 			INTEGER		NOT NULL,
+	rol_id				INTEGER		NOT NULL,
+	activo				BOOLEAN 	NOT NULL,
+    fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+	CONSTRAINT fk_ur_usuario
+		FOREIGN KEY (usuario_id)
+		REFERENCES usuario (usuario_id)
+		ON DELETE CASCADE,
+	CONSTRAINT fk_ur_rol
+		FOREIGN KEY (rol_id)
+		REFERENCES rol (rol_id)
+		ON DELETE CASCADE
+);
 
 -- 3) MODULO
 CREATE TABLE IF NOT EXISTS modulo
@@ -703,6 +758,7 @@ CREATE TABLE IF NOT EXISTS etapa_formativa_x_ciclo
     etapa_formativa_x_ciclo_id SERIAL PRIMARY KEY,
     etapa_formativa_id         INTEGER                  NOT NULL,
     ciclo_id                   INTEGER                  NOT NULL,
+    estado                     TEXT                     NOT NULL,
     activo                     BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion             TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion         TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -1005,6 +1061,9 @@ CREATE TABLE IF NOT EXISTS entregable
     fecha_fin                  TIMESTAMP WITH TIME ZONE NOT NULL,
     estado                     enum_estado_actividad    NOT NULL DEFAULT 'no_iniciado',
     es_evaluable               BOOLEAN                  NOT NULL DEFAULT FALSE,
+	maximo_documentos          INTEGER                  NOT NULL,
+	extensiones_permitidas     TEXT                     NOT NULL,
+	peso_maximo_documento      INTEGER                  NOT NULL,
     activo                     BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion             TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion         TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -1272,6 +1331,36 @@ ALTER TABLE carrera_parametro_configuracion
             REFERENCES etapa_formativa (etapa_formativa_id)
             ON DELETE RESTRICT; -->**REVISAR**<--
 
+-- TABLAS PARA CRITERIOS DE ENTREGABLES Y EXPOSICIONES PREDEFINIDOS
+
+CREATE TABLE IF NOT EXISTS criterio_entregable_preset
+(
+    criterio_entregable_preset_id SERIAL PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    nota_maxima DECIMAL(6,2),
+    descripcion TEXT,
+    activo BOOLEAN NOT NULL DEFAULT TRUE,
+    fecha_creacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS criterio_exposicion_preset
+(
+    criterio_exposicion_preset_id SERIAL PRIMARY KEY,
+    nombre TEXT NOT NULL,
+    descripcion TEXT,
+	nota_maxima NUMERIC(6, 2) NOT NULL,
+    activo BOOLEAN NOT NULL DEFAULT TRUE,
+    fecha_creacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 -- NECESARIO PARA QUE NO EXISTAN PROBLEMAS CON LOS ENUMS
 -- AGREGAR EL CAST PARA LOS DEMAS ENUMS DE SER NECESARIO
-CREATE CAST (CHARACTER VARYING AS enum_estado_actividad) WITH INOUT AS ASSIGNMENT;
+--DROP CAST IF EXISTS (character varying AS enum_estado_actividad);
+
+CREATE CAST (character varying AS enum_estado_actividad)
+    WITH INOUT AS ASSIGNMENT;
+
+
+--CREATE CAST (CHARACTER VARYING AS enum_estado_actividad) WITH INOUT AS ASSIGNMENT;
