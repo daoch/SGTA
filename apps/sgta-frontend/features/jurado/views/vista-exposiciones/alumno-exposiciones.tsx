@@ -18,88 +18,6 @@ import {
 } from "../../services/exposicion-service";
 import { ExposicionAlumno } from "../../types/exposicion.types";
 
-//exposiciones:
-// const exposiciones = [
-//   {
-//     id_exposicion: 1,
-//     hora: "10:00",
-//     fecha: "2025-10-01",
-//     sala: "A201",
-//     estado: "Pendiente",
-//     titulo:
-//       "Identificación del nivel de complejidad de texto para el entrenamiento de chatbots basado en Machine Learning",
-//     miembros_jurado: [
-//       {
-//         id_docente: 1,
-//         nombre: "Juan Perez",
-//         tipo: "asesor",
-//       },
-//       {
-//         id_docente: 3,
-//         nombre: "Maria Lopez",
-//         tipo: "miembro",
-//       },
-//       {
-//         id_docente: 4,
-//         nombre: "Luis Muroya",
-//         tipo: "miembro",
-//       },
-//     ],
-//   },
-//   {
-//     id_exposicion: 2,
-//     hora: "10:00",
-//     fecha: "2025-10-01",
-//     sala: "A201",
-//     estado: "Completado",
-//     titulo:
-//       "Identificación del nivel de complejidad de texto para el entrenamiento de chatbots basado en Machine Learning",
-//     miembros_jurado: [
-//       {
-//         id_docente: 1,
-//         nombre: "Juan Perez",
-//         tipo: "asesor",
-//       },
-//       {
-//         id_docente: 2,
-//         nombre: "Maria Lopez",
-//         tipo: "miembro",
-//       },
-//       {
-//         id_docente: 3,
-//         nombre: "Luis Muroya",
-//         tipo: "miembro",
-//       },
-//     ],
-//   },
-//   {
-//     id_exposicion: 3,
-//     hora: "10:00",
-//     fecha: "2025-10-01",
-//     sala: "A201",
-//     estado: "Pendiente",
-//     titulo:
-//       "Identificación del nivel de complejidad de texto para el entrenamiento de chatbots basado en Machine Learning",
-//     miembros_jurado: [
-//       {
-//         id_docente: 1,
-//         nombre: "Juan Perez",
-//         tipo: "asesor",
-//       },
-//       {
-//         id_docente: 2,
-//         nombre: "Maria Lopez",
-//         tipo: "miembro",
-//       },
-//       {
-//         id_docente: 3,
-//         nombre: "Luis Muroya",
-//         tipo: "miembro",
-//       },
-//     ],
-//   },
-// ];
-
 const Exposiciones: React.FC = () => {
   //JALAMOS LOS CICLOS
   const [ciclos, setCiclos] = useState<Ciclo[]>([]);
@@ -129,13 +47,14 @@ const Exposiciones: React.FC = () => {
 
   const [isLoading, setIsLoading] = useState(true);
   const [exposiciones, setExposiciones] = useState<ExposicionAlumno[]>([]);
+  const alumnoId = 21; // Este debe ser el ID del alumno logueado
   //JALAMOS LAS EXPOSICIONES DEL ALUMNO
   const fetchExposiciones = async () => {
     setIsLoading(true);
     try {
       //se debe reemplazar el 21 por el id del jurado logueado
       const exposicionesData =
-        await getExposicionesEstudiantesByEstudianteId(21);
+        await getExposicionesEstudiantesByEstudianteId(alumnoId);
       setExposiciones(exposicionesData);
     } catch (error) {
       console.error("Error al cargar exposiciones:", error);
@@ -229,6 +148,7 @@ const Exposiciones: React.FC = () => {
             <ExposicionCard
               key={`${exposicion.exposicionId}-${index}`}
               exposicion={exposicion}
+              alumnoId={alumnoId}
             />
           ))}
         </div>

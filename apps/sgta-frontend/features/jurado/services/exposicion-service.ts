@@ -133,9 +133,14 @@ export const getExposicionesEstudiantesByEstudianteId = async (
       `/exposicion/listarExposicionesPorUsuario/${estudianteId}`,
     );
 
+    console.log(
+      "Datos de exposiciones obtenidos:",
+      response.data,
+    );
+
     return response.data.map(
     (item: ExposicionAlumno) => ({
-    exposicion_id: item.exposicionId,
+    exposicionId: item.exposicionId,
     tema_id: item.temaId,
     estado: item.estado,
     link_exposicion: item.linkExposicion,
@@ -144,7 +149,7 @@ export const getExposicionesEstudiantesByEstudianteId = async (
     datetimeFin: new Date(item.datetimeFin),
     sala: item.sala,
     titulo: item.titulo,
-    etapa_formativa: item.etapaFormativa,
+    etapaFormativa: item.etapaFormativa,
     ciclo: item.ciclo,
     miembrosJurado: item.miembrosJurado.map((miembro) => ({
       id_persona: miembro.id_persona,
@@ -161,4 +166,4 @@ export const getExposicionesEstudiantesByEstudianteId = async (
     );
     throw new Error("Error al obtener exposiciones de estudiantes por ID");
   }
-}
+};
