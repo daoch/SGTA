@@ -15,7 +15,7 @@ import ModalPlanificadorCoordinador from "../components/modal-planificador-coord
 import { Button } from "@/components/ui/button";
 
 export const ExposicionesCoordinadorPage: FC = () => {
-  const coordinadorId = 3;
+  const coordinadorId = 13;
 
   const [modalOpen, setModalOpen] = useState(false);
 

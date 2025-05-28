@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
+import { useAuthStore } from "@/features/auth/store/auth-store";
 import { AlertCircle, CheckCircle, Pencil } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -94,13 +95,28 @@ export function ObservacionesCard({ observaciones, solicitudes }: Props) {
     if (campo === "asesor") return editadoAsesor && asesor.trim() !== "";
     return true;
   });
-  
-  useEffect(() => {
+    useEffect(() => {
     const fetchTema = async () => {
       try {
+        const { idToken } = useAuthStore.getState();
+        
+        if (!idToken) {
+          console.error("No authentication token available");
+          return;
+        }
+
         const res = await fetch(
-              `${process.env.NEXT_PUBLIC_API_URL}/temas/listarTemasPorUsuarioRolEstado/2?rolNombre=Tesista&estadoNombre=INSCRITO`
+          `${process.env.NEXT_PUBLIC_API_URL}/temas/listarTemasPorUsuarioRolEstado?rolNombre=Tesista&estadoNombre=INSCRITO`,
+          {
+            headers: {
+              "Authorization": `Bearer ${idToken}`,
+              "Content-Type": "application/json"
+            }
+          }
         );
+        
+        if (!res.ok) throw new Error("Error al obtener tema");
+        
         const data = await res.json();
         const tema = data[0];
         if (tema) {

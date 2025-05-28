@@ -2,18 +2,15 @@
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { useAuthStore } from "@/features/auth/store/auth-store";
 import { ObservacionesCard } from "@/features/temas/components/alumno/observaciones-card";
+import type {
+  Observacion,
+  Solicitud
+} from "@/features/temas/types/temas/entidades";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import type {
-  TipoSolicitud,
-  Usuario_V2,
-  Topic,
-  Student,
-  Solicitud,
-  Observacion
-} from "@/features/temas/types/temas/entidades";
 
 export function ObservacionesAlumnoView() {
   const router = useRouter();
@@ -21,13 +18,28 @@ export function ObservacionesAlumnoView() {
   const [solicitudesFiltradas, setSolicitudesFiltradas] = useState<Solicitud[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
   useEffect(() => {
     const fetchTemaYObservaciones = async () => {
       try {
+        const { idToken } = useAuthStore.getState();
+        
+        if (!idToken) {
+          console.error("No authentication token available");
+          return;
+        }
+
         const temaRes = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/temas/listarTemasPorUsuarioRolEstado/2?rolNombre=Tesista&estadoNombre=INSCRITO`
+          `${process.env.NEXT_PUBLIC_API_URL}/temas/listarTemasPorUsuarioRolEstado?rolNombre=Tesista&estadoNombre=INSCRITO`,
+          {
+            headers: {
+              "Authorization": `Bearer ${idToken}`,
+              "Content-Type": "application/json"
+            }
+          }
         );
+        
+        if (!temaRes.ok) throw new Error("Error al obtener tema");
+        
         const temaData = await temaRes.json();
         const tema = temaData[0];
         if (!tema?.id) throw new Error("No se encontró tema inscrito");

@@ -23,5 +23,6 @@ public class ExposicionTemaMiembrosDto {
     private Integer ciclo_anio;
     private String ciclo_semestre;
     private EstadoExposicionUsuario estado_control;
+    private String nombre_exposicion;
     private List<MiembroExposicionDto> miembros;
 }
