@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { useAuthStore } from "@/features/auth/store/auth-store";
 import FormularioPropuesta, {
   Estudiante,
   FormData,
@@ -22,7 +23,7 @@ export default function FormularioPropuestaPage() {
       ? new Date(data.fechaLimite + "T10:00:00Z").toISOString()
       : null;
 
-    const idUsuarioCreador = 41;
+    const idUsuarioCreador = 7;
     const tipoPropuesta = data.tipo === "general" ? 0 : 1;
 
     const subareas = [{ id: data.area }];
@@ -56,13 +57,20 @@ export default function FormularioPropuestaPage() {
     };
 
     try {
-      const res = await fetch(
+      const { idToken } = useAuthStore.getState();
+              
+      if (!idToken) {
+        console.error("No authentication token available");
+        return;
+      }      const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/temas/createPropuesta` +
-          `?idUsuarioCreador=${idUsuarioCreador}` +
-          `&tipoPropuesta=${tipoPropuesta}`,
+          `?tipoPropuesta=${tipoPropuesta}`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+              "Authorization": `Bearer ${idToken}`,
+              "Content-Type": "application/json"
+          },
           body: JSON.stringify(payload),
         }
       );

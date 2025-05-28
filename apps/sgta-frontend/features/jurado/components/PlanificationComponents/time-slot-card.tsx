@@ -8,7 +8,11 @@ import {
   TimeSlot,
 } from "../../types/jurado.types";
 import Droppable from "./Droppable";
-import RoomSlot from "./RoomSlot";
+import RoomSlot from "./room-slot";
+import {
+  bloquearBloquePorId,
+  desbloquearBloquePorId,
+} from "../../services/data";
 
 export function TimeSlotCard({
   time,
@@ -16,6 +20,7 @@ export function TimeSlotCard({
   assignedExpos,
   removeExpo,
   estadoPlan,
+  actualizarBloque,
 }: {
   time: string;
   spaces?: SalaExposicion[];
@@ -23,7 +28,44 @@ export function TimeSlotCard({
   assignedExpos: Record<string, Tema>;
   removeExpo: (expo: Tema) => void;
   estadoPlan: EstadoPlanificacion;
+  actualizarBloque: (idBloque: number, datos: Partial<TimeSlot>) => void;
 }) {
+  const numberOfAvailableRooms =
+    filteredRooms?.reduce(
+      (acc, room) => acc + (!room.expo?.id && !room.esBloqueBloqueado ? 1 : 0),
+      0,
+    ) ?? 0;
+
+  const bloquearBloque = async (room: TimeSlot) => {
+    if (
+      room.expo != undefined &&
+      room.expo.id == null &&
+      !room.esBloqueBloqueado
+    ) {
+      const ok = await bloquearBloquePorId(room.idBloque);
+      if (ok) {
+        actualizarBloque(room.idBloque, {
+          esBloqueBloqueado: true,
+        });
+      }
+    }
+  };
+
+  const desbloquearBloque = async (room: TimeSlot) => {
+    if (
+      room.expo != undefined &&
+      room.expo.id == null &&
+      room.esBloqueBloqueado
+    ) {
+      const ok = await desbloquearBloquePorId(room.idBloque);
+      if (ok) {
+        actualizarBloque(room.idBloque, {
+          esBloqueBloqueado: false,
+        });
+      }
+    }
+  };
+
   return (
     <div className="border rounded-lg p-3 select-none flex flex-col gap-3">
       <div className="flex items-center justify-between">
@@ -31,20 +73,36 @@ export function TimeSlotCard({
           <Clock className="h-5 w-5 text-gray-500" />
           <span className="font-bold text-lg">{time} hrs</span>
         </div>
-        <span className="text-gray-500">3 disponibles</span>
+        <span className="text-gray-500">
+          {numberOfAvailableRooms} disponibles
+        </span>
       </div>
       <div className="grid grid-cols-3 gap-2">
-        {filteredRooms?.map((room) => (
-          <Droppable key={room.key} id={room.key}>
-            <RoomSlot
-              code={room.key}
-              assignedExpos={assignedExpos}
-              room={room}
-              removeExpo={removeExpo}
-              estadoPlanificacion={estadoPlan}
-            />
-          </Droppable>
-        ))}
+        {filteredRooms?.map((room) =>
+          room.esBloqueBloqueado ? (
+            <div key={room.key}>
+              <RoomSlot
+                code={room.key}
+                assignedExpos={assignedExpos}
+                room={room}
+                removeExpo={removeExpo}
+                estadoPlanificacion={estadoPlan}
+                onContextMenu={() => desbloquearBloque(room)}
+              />
+            </div>
+          ) : (
+            <Droppable key={room.key} id={room.key}>
+              <RoomSlot
+                code={room.key}
+                assignedExpos={assignedExpos}
+                room={room}
+                removeExpo={removeExpo}
+                estadoPlanificacion={estadoPlan}
+                onContextMenu={() => bloquearBloque(room)}
+              />
+            </Droppable>
+          ),
+        )}
       </div>
     </div>
   );

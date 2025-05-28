@@ -40,6 +40,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useAuthStore } from "@/features/auth/store/auth-store";
 import { Proyecto, SubAreaConocimiento, Usuario } from "@/features/temas/types/propuestas/entidades";
 import { Eye, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -66,17 +67,33 @@ interface PropuestasTableProps {
 export function PropuestasTable({ filter }: PropuestasTableProps) {
   const [propuestas, setPropuestas] = useState<Proyecto[]>([]);
   const [areaFilter, setAreaFilter] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedPropuesta, setSelectedPropuesta] = useState<Proyecto | null>(null);
-
-  const MY_ID = 4;
+  const [searchTerm, setSearchTerm] = useState("");  const [selectedPropuesta, setSelectedPropuesta] = useState<Proyecto | null>(null);
+  const [openDialog, setOpenDialog] = useState(false); 
 
   useEffect(() => {
     async function fetchPropuestas() {
       try {
+        const { idToken } = useAuthStore.getState();
+        
+        if (!idToken) {
+          console.error("No authentication token available");
+          return;
+        }
+
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPropuestasPorTesista/41`
+          `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPropuestasPorTesista`,
+          {
+            headers: {
+              "Authorization": `Bearer ${idToken}`,
+              "Content-Type": "application/json"
+            }
+          }
         );
+        
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+
         const data: PropuestaAPI[] = await res.json();
 
         const mapped: Proyecto[] = data.map((item) => ({
@@ -242,12 +259,15 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Dialog>
+                    <Dialog open={openDialog} onOpenChange={setOpenDialog}>
                       <DialogTrigger asChild>
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => setSelectedPropuesta(p)}
+                          onClick={() => {
+                            setSelectedPropuesta(p);
+                            setOpenDialog(true); // abrir el modal
+                          }}
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
@@ -368,7 +388,13 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
                         )}
 
                         <DialogFooter>
-                          <Button variant="outline" onClick={() => setSelectedPropuesta(null)}>
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              setOpenDialog(false);        
+                              setTimeout(() => setSelectedPropuesta(null), 200); 
+                            }}
+                          >
                             Cerrar
                           </Button>
                         </DialogFooter>

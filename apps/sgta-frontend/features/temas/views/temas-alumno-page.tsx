@@ -28,7 +28,7 @@ import {
 import { PropuestasTable } from "@/features/temas/components/alumno/propuestas-table";
 import { TemaCard } from "@/features/temas/components/alumno/tema-inscrito-card";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export interface Propuesta {
   id: string;
@@ -45,76 +45,34 @@ export interface Propuesta {
   estado: "propuesta" | "cotesista_pendiente";
 }
 
-const propuestas: Propuesta[] = [
-  {
-    id: "1",
-    titulo: "Plataforma de gestión de eventos académicos con IA",
-    area: "Desarrollo Web",
-    estudiantes: ["Laura Martínez"],
-    codigos: ["20201234"],
-    postulaciones: 0,
-    fechaLimite: "2023-11-17",
-    tipo: "directa",
-    descripcion:
-      "Desarrollo de una plataforma web para la gestión integral de eventos académicos que utilice inteligencia artificial para optimizar la programación y asignación de recursos.",
-    objetivos:
-      "Crear una interfaz intuitiva para la gestión de eventos. Implementar algoritmos de IA para optimizar horarios. Desarrollar un sistema de notificaciones automáticas.",
-    asesor: "Dr. Miguel Ángel Torres",
-    estado: "cotesista_pendiente"
-  },
-  {
-    id: "2",
-    titulo: "Sistema de monitoreo ambiental con IoT",
-    area: "Internet de las Cosas",
-    estudiantes: ["Pedro Sánchez"],
-    codigos: ["20193345"],
-    postulaciones: 1,
-    fechaLimite: "2023-11-30",
-    tipo: "general",
-    descripcion:
-      "Diseño e implementación de un sistema de monitoreo ambiental en tiempo real usando sensores conectados mediante IoT.",
-    objetivos:
-      "Recolectar datos ambientales. Procesar datos en la nube. Visualizar información en dashboard.",
-    estado: "propuesta"
-  },
-  {
-    id: "3",
-    titulo: "Análisis de sentimientos en redes sociales",
-    area: "Ciencia de Datos",
-    estudiantes: ["Carla Rodríguez", "Luis Pérez"],
-    codigos: ["20181234", "20191234"],
-    postulaciones: 2,
-    fechaLimite: "2023-12-10",
-    tipo: "directa",
-    descripcion:
-      "Aplicación de técnicas de NLP para analizar sentimientos en publicaciones de redes sociales con fines de estudio de mercado.",
-    objetivos:
-      "Clasificar publicaciones por sentimiento. Evaluar tendencias por marca. Automatizar alertas de menciones negativas.",
-    asesor: "Dra. Carmen Vega",
-    estado: "propuesta"
-  },
-  {
-    id: "4",
-    titulo: "Sistema de predicción de demanda con aprendizaje automático",
-    area: "Inteligencia Artificial",
-    estudiantes: ["Marco Antonio"],
-    codigos: ["20204567"],
-    postulaciones: 1,
-    fechaLimite: "2023-12-05",
-    tipo: "general",
-    descripcion:
-      "Desarrollar un sistema que prediga la demanda de productos usando modelos de machine learning supervisado.",
-    objetivos:
-      "Obtener histórico de ventas. Entrenar modelos predictivos. Validar predicciones con nuevas ventas.",
-    estado: "propuesta"
-  }
-];
+interface TemaInscrito {
+  id: number;
+  titulo: string;
+  resumen: string;
+  area: { id: number; nombre: string };
+  tesistas: { id: number; nombres: string; primerApellido: string; codigoPucp: string }[];
+}
 
 const MisTemasPage = () => {
   const [selectedPropuesta, setSelectedPropuesta] = useState<Propuesta | null>(null);
+  const [temaInscrito, setTemaInscrito] = useState<TemaInscrito | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const propuestasPendientes = propuestas.filter((p) => p.estado === "cotesista_pendiente");
-  const propuestasConfirmadas = propuestas.filter((p) => p.estado === "propuesta");
+  useEffect(() => {
+    const fetchTema = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/temas/listarTemasPorUsuarioRolEstado/2?rolNombre=Tesista&estadoNombre=INSCRITO`);
+        const data = await res.json();
+        setTemaInscrito(data.length > 0 ? data[0] : null);
+      } catch (error) {
+        console.error("Error al obtener tema inscrito", error);
+      } finally {
+        setIsLoading(false); // ✅ se completa la carga
+      }
+    };
+
+    fetchTema();
+  }, []);
 
   return (
     <div className="space-y-8 mt-4">
@@ -125,9 +83,11 @@ const MisTemasPage = () => {
             Gestión de tus temas de proyecto de fin de carrera, postulaciones y propuestas
           </p>
         </div>
-        <Link href="/alumno/temas/nueva-propuesta">
-          <Button className="bg-[#042354] hover:bg-[#0e2f7a] text-white">+ Nueva Propuesta</Button>
-        </Link>
+        {!isLoading && !temaInscrito && (
+          <Link href="/alumno/temas/nueva-propuesta">
+            <Button className="bg-[#042354] hover:bg-[#0e2f7a] text-white">+ Nueva Propuesta</Button>
+          </Link>
+        )}
       </div>
 
       <Tabs defaultValue="inscrito" className="w-full">

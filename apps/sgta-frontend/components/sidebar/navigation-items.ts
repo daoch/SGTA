@@ -1,5 +1,6 @@
 import {
   BarChart3,
+  BookOpenText,
   Calendar,
   CalendarIcon,
   CheckSquare,
@@ -9,9 +10,11 @@ import {
   FolderOpen,
   Home,
   MessageSquare,
+  RefreshCcw,
   Search,
   Settings,
   Users,
+  UserX2,
 } from "lucide-react";
 
 export interface NavigationGroup {
@@ -161,12 +164,17 @@ export const navigationItems: Record<string, NavigationItem[]> = {
         {
           name: "Cese de asesoria",
           href: "/coordinador/asesores/cese-de-asesoria",
-          icon: CalendarIcon,
+          icon: UserX2,
+        },
+        {
+          name: "Cambio de asesor",
+          href: "/coordinador/asesores/cambio-asesor",
+          icon: RefreshCcw,
         },
         {
           name: "Areas tematicas",
           href: "/coordinador/asesores/areas-tematicas",
-          icon: CalendarIcon,
+          icon: BookOpenText,
         },
       ],
 
