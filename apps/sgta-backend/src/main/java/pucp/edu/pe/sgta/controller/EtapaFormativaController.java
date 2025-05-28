@@ -9,8 +9,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import pucp.edu.pe.sgta.dto.EtapaFormativaDto;
-import pucp.edu.pe.sgta.dto.EtapaFormativaNombreDTO;
+import pucp.edu.pe.sgta.dto.*;
 import pucp.edu.pe.sgta.service.inter.EtapaFormativaService;
 
 import org.springframework.http.ResponseEntity;
@@ -116,4 +115,10 @@ public class EtapaFormativaController {
         etapaFormativaService.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/alumno/{alumnoId}")
+    public List<EtapaFormativaAlumnoDto> listarEtapasFormativasPorAlumno(@PathVariable Integer alumnoId) {
+        return etapaFormativaService.listarEtapasFormativasPorAlumno(alumnoId);
+    }
+
 }

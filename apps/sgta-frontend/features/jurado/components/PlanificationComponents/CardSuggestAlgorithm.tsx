@@ -7,8 +7,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Bot } from "lucide-react";
+import { Bot, FolderSync } from "lucide-react";
 import React from "react";
+
 const CardSugerenciaDistribucion: React.FC = () => {
   return (
     <Card className="py-5">
@@ -21,8 +22,12 @@ const CardSugerenciaDistribucion: React.FC = () => {
           dedicación del miembro de docente, área de especialidad, entre otros
           factores.
         </CardDescription>
-        <div className="flex justify-end">
-          <Button className="w-fit" disabled={true}>
+        <div className="flex justify-between">
+          <Button className="w-fit" disabled={true} variant="destructive">
+            <FolderSync />
+            Regresar Temas
+          </Button>
+          <Button className="w-fit" disabled={true} variant="default">
             <Bot />
             Generar Distribución
           </Button>
@@ -32,4 +37,4 @@ const CardSugerenciaDistribucion: React.FC = () => {
   );
 };
 
-export default CardSugerenciaDistribucion;
+export default React.memo(CardSugerenciaDistribucion);

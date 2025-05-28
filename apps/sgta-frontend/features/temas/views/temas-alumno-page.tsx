@@ -25,6 +25,7 @@ import {
   TabsList,
   TabsTrigger
 } from "@/components/ui/tabs";
+import { useAuthStore } from "@/features/auth/store/auth-store";
 import { PropuestasTable } from "@/features/temas/components/alumno/propuestas-table";
 import { TemaCard } from "@/features/temas/components/alumno/tema-inscrito-card";
 import Link from "next/link";
@@ -57,11 +58,28 @@ const MisTemasPage = () => {
   const [selectedPropuesta, setSelectedPropuesta] = useState<Propuesta | null>(null);
   const [temaInscrito, setTemaInscrito] = useState<TemaInscrito | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-
   useEffect(() => {
     const fetchTema = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/temas/listarTemasPorUsuarioRolEstado/2?rolNombre=Tesista&estadoNombre=INSCRITO`);
+        const { idToken } = useAuthStore.getState();
+        
+        if (!idToken) {
+          console.error("No authentication token available");
+          return;
+        }
+
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/temas/listarTemasPorUsuarioRolEstado?rolNombre=Tesista&estadoNombre=INSCRITO`,
+          {
+            headers: {
+              "Authorization": `Bearer ${idToken}`,
+              "Content-Type": "application/json"
+            }
+          }
+        );
+        
+        if (!res.ok) throw new Error("Error al obtener tema");
+        
         const data = await res.json();
         setTemaInscrito(data.length > 0 ? data[0] : null);
       } catch (error) {

@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle
 } from "@/components/ui/card";
+import { useAuthStore } from "@/features/auth/store/auth-store";
 import { BookOpen, Eye, Users } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -62,11 +63,26 @@ export function TemaCard() {
   });
   const [nuevoCoasesor, setNuevoCoasesor] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-
   useEffect(() => {
     const fetchTesis = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/temas/listarTemasPorUsuarioRolEstado/2?rolNombre=Tesista&estadoNombre=INSCRITO`);
+        const { idToken } = useAuthStore.getState();
+        
+        if (!idToken) {
+          console.error("No authentication token available");
+          return;
+        }
+
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/temas/listarTemasPorUsuarioRolEstado?rolNombre=Tesista&estadoNombre=INSCRITO`,
+          {
+            headers: {
+              "Authorization": `Bearer ${idToken}`,
+              "Content-Type": "application/json"
+            }
+          }
+        );
+        
         if (!response.ok) throw new Error("Error al obtener datos de tesis");
         const data = await response.json();
         const tesis = data[0];

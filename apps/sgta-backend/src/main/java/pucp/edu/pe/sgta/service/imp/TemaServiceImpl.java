@@ -630,12 +630,13 @@ public class TemaServiceImpl implements TemaService {
 	}
 
 	@Override
-	public List<TemaDto> listarTemasPorUsuarioRolEstado(Integer usuarioId,
+	public List<TemaDto> listarTemasPorUsuarioRolEstado(String usuarioId,
 			String rolNombre,
 			String estadoNombre) {
 
+		UsuarioDto usuDto = usuarioService.findByCognitoId(usuarioId);
 		List<Object[]> rows = temaRepository.listarTemasPorUsuarioRolEstado(
-				usuarioId, rolNombre, estadoNombre);
+				usuDto.getId(), rolNombre, estadoNombre);
 
 		Map<Integer, TemaDto> dtoMap = new LinkedHashMap<>();
 
@@ -729,7 +730,7 @@ public class TemaServiceImpl implements TemaService {
 	}
 
 	@Override
-	public List<TemaDto> listarTemasPorUsuarioEstadoYRol(Integer asesorId, String rolNombre, String estadoNombre) {
+	public List<TemaDto> listarTemasPorUsuarioEstadoYRol(String asesorId, String rolNombre, String estadoNombre) {
 		// primero cargo los temas con estado INSCRITO y rol Asesor
 		List<TemaDto> temas = listarTemasPorUsuarioRolEstado(
 				asesorId,
@@ -1092,7 +1093,7 @@ public class TemaServiceImpl implements TemaService {
 	}
 
 	@Override
-	public List<TemaDto> listarPostulacionesAMisPropuestas(Integer tesistaId, Integer tipoPost) {
+	public List<TemaDto> listarPostulacionesAMisPropuestas(String tesistaId, Integer tipoPost) {
 		String sql = "SELECT * " +
 				"  FROM listar_postulaciones_del_tesista_con_usuarios(:p_tesista_id, :p_tipo_post)";
 		Query query = entityManager.createNativeQuery(sql)

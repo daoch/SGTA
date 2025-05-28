@@ -49,7 +49,7 @@ public interface TemaService {
 	void enlazarTesistasATemaPropuestDirecta(Integer[] usuariosId, Integer temaId, Integer profesorId,
 			String comentario);
 
-	List<TemaDto> listarTemasPorUsuarioRolEstado(Integer usuarioId,
+	List<TemaDto> listarTemasPorUsuarioRolEstado(String usuarioId,
 			String rolNombre,
 			String estadoNombre);
 
@@ -58,7 +58,7 @@ public interface TemaService {
 
 	List<SubAreaConocimientoDto> listarSubAreasPorTema(Integer temaId);
 
-	List<TemaDto> listarTemasPorUsuarioEstadoYRol(Integer asesorId, String rolNombre, String estadoNombre);
+	List<TemaDto> listarTemasPorUsuarioEstadoYRol(String asesorId, String rolNombre, String estadoNombre);
 
 	void rechazarTemaPropuestaDirecta(Integer alumnoId, String comentario, Integer temaId);
 
@@ -66,7 +66,7 @@ public interface TemaService {
 
 	List<TemaDto> listarPropuestasPorTesista(String tesistaId);
 
-	List<TemaDto> listarPostulacionesAMisPropuestas(Integer tesistaId, Integer tipoPropuesta);
+	List<TemaDto> listarPostulacionesAMisPropuestas(String tesistaId, Integer tipoPropuesta);
 
 	List<InfoTemaPerfilDto> listarTemasAsesorInvolucrado(Integer idAsesor);
 

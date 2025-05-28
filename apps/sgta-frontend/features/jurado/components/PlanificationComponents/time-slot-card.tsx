@@ -36,30 +36,32 @@ export function TimeSlotCard({
       0,
     ) ?? 0;
 
-  const bloquearBloque = async (room: TimeSlot) => {
+  const bloquearBloque = async (bloque: TimeSlot) => {
     if (
-      room.expo != undefined &&
-      room.expo.id == null &&
-      !room.esBloqueBloqueado
+      bloque.expo != undefined &&
+      bloque.expo.id == null &&
+      !bloque.esBloqueBloqueado &&
+      estadoPlan.nombre !== "Cierre de planificacion"
     ) {
-      const ok = await bloquearBloquePorId(room.idBloque);
+      const ok = await bloquearBloquePorId(bloque.idBloque);
       if (ok) {
-        actualizarBloque(room.idBloque, {
+        actualizarBloque(bloque.idBloque, {
           esBloqueBloqueado: true,
         });
       }
     }
   };
 
-  const desbloquearBloque = async (room: TimeSlot) => {
+  const desbloquearBloque = async (bloque: TimeSlot) => {
     if (
-      room.expo != undefined &&
-      room.expo.id == null &&
-      room.esBloqueBloqueado
+      bloque.expo != undefined &&
+      bloque.expo.id == null &&
+      bloque.esBloqueBloqueado &&
+      estadoPlan.nombre !== "Cierre de planificacion"
     ) {
-      const ok = await desbloquearBloquePorId(room.idBloque);
+      const ok = await desbloquearBloquePorId(bloque.idBloque);
       if (ok) {
-        actualizarBloque(room.idBloque, {
+        actualizarBloque(bloque.idBloque, {
           esBloqueBloqueado: false,
         });
       }
