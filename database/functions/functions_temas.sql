@@ -1716,4 +1716,23 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE PROCEDURE desactivar_tema_y_desasignar_usuarios(
+  IN p_tema_id INT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  -- 1) Desactivar el tema
+  UPDATE tema
+     SET activo = FALSE
+   WHERE tema_id = p_tema_id;
+
+  -- 2) Desasignar y desactivar todos los registros de usuario_tema
+  UPDATE usuario_tema
+     SET asignado = FALSE,
+         activo   = FALSE
+   WHERE tema_id = p_tema_id;
+END;
+$$;
+
 

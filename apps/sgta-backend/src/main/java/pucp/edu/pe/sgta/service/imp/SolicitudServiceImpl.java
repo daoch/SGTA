@@ -22,18 +22,26 @@ import pucp.edu.pe.sgta.dto.AprobarSolicitudResponseDto;
 import pucp.edu.pe.sgta.dto.RechazoSolicitudCambioAsesorResponseDto;
 import pucp.edu.pe.sgta.dto.RechazoSolicitudCambioAsesorResponseDto.CambioAsignacionDto;
 import pucp.edu.pe.sgta.dto.AprobarSolicitudResponseDto.AprobarAsignacionDto;
+import pucp.edu.pe.sgta.dto.DetalleSolicitudCeseDto;
 import pucp.edu.pe.sgta.dto.RechazoSolicitudResponseDto;
 import pucp.edu.pe.sgta.dto.SolicitudCambioAsesorDto;
 import pucp.edu.pe.sgta.dto.RechazoSolicitudResponseDto.AsignacionDto;
 import pucp.edu.pe.sgta.dto.SolicitudCeseDto;
+import pucp.edu.pe.sgta.model.Carrera;
+import pucp.edu.pe.sgta.model.EstadoTema;
 import pucp.edu.pe.sgta.dto.temas.SolicitudTemaDto;
 import pucp.edu.pe.sgta.model.Solicitud;
 import pucp.edu.pe.sgta.model.Tema;
+import pucp.edu.pe.sgta.model.UsuarioXAreaConocimiento;
+import pucp.edu.pe.sgta.model.UsuarioXCarrera;
 import pucp.edu.pe.sgta.model.TipoSolicitud;
 import pucp.edu.pe.sgta.model.UsuarioXSolicitud;
 import pucp.edu.pe.sgta.model.UsuarioXTema;
+import pucp.edu.pe.sgta.repository.EstadoTemaRepository;
 import pucp.edu.pe.sgta.repository.SolicitudRepository;
 import pucp.edu.pe.sgta.repository.SubAreaConocimientoXTemaRepository;
+import pucp.edu.pe.sgta.repository.TemaRepository;
+
 import pucp.edu.pe.sgta.repository.TipoSolicitudRepository;
 import pucp.edu.pe.sgta.repository.UsuarioXCarreraRepository;
 import pucp.edu.pe.sgta.repository.UsuarioXSolicitudRepository;
@@ -41,7 +49,7 @@ import pucp.edu.pe.sgta.repository.UsuarioXTemaRepository;
 import pucp.edu.pe.sgta.service.inter.SolicitudService;
 import pucp.edu.pe.sgta.service.inter.TemaService;
 import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
-import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
+
 
 @Service
 public class SolicitudServiceImpl implements SolicitudService {
@@ -60,7 +68,12 @@ public class SolicitudServiceImpl implements SolicitudService {
     private SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository;
 
     @Autowired
-    @Lazy
+    private EstadoTemaRepository estadoTemaRepository;
+    @Autowired
+    private TemaRepository temaRepository;
+    @Autowired
+    private UsuarioXCarreraRepository usuarioXCarreraRepository;
+    @Autowired
     private TemaService temaService;
     @Autowired 
     private TipoSolicitudRepository tipoSolicitudRepository;
@@ -68,10 +81,26 @@ public class SolicitudServiceImpl implements SolicitudService {
     private UsuarioXCarreraRepository usuarioCarreraRepository;
     
 
-    public SolicitudCeseDto findAllSolicitudesCese(int page, int size) {
+    public SolicitudCeseDto findAllSolicitudesCese(int coordinatorId, int page, int size) {
+        List<UsuarioXCarrera> coordinadorCarreras = usuarioXCarreraRepository.findByUsuarioIdAndActivoTrue(coordinatorId);
+        List<Carrera> carreras = new ArrayList<>();
+        for (UsuarioXCarrera coordinadorCarrera : coordinadorCarreras) {
+            Carrera carrera = coordinadorCarrera.getCarrera();
+            carreras.add(carrera);
+        }
         List<Solicitud> allSolicitudes = solicitudRepository.findByTipoSolicitudNombre("Cese Asesoria");
 
-        int totalElements = allSolicitudes.size();
+        List<Solicitud> allSolicitudesCarrera = new ArrayList<>();
+
+        for (Solicitud solicitud : allSolicitudes) {
+            for(Carrera carrera : carreras) {
+                if(solicitud.getTema().getCarrera().getId() == carrera.getId()){
+                    allSolicitudesCarrera.add(solicitud);
+                }
+            }
+        }
+
+        int totalElements = allSolicitudesCarrera.size();
         int totalPages = (int) Math.ceil((double) totalElements / size);
 
         int fromIndex = page * size;
@@ -81,42 +110,39 @@ public class SolicitudServiceImpl implements SolicitudService {
             return new SolicitudCeseDto(Collections.emptyList(), totalPages);
         }
 
-        List<Solicitud> solicitudesPage = allSolicitudes.subList(fromIndex, toIndex);
+        List<Solicitud> solicitudesPage = allSolicitudesCarrera.subList(fromIndex, toIndex);
 
         List<SolicitudCeseDto.RequestTermination> requestList = solicitudesPage.stream().map(solicitud -> {
-            List<UsuarioXSolicitud> relaciones = usuarioXSolicitudRepository.findBySolicitud(solicitud);
+            UsuarioXTema asesorRelacion = usuarioXTemaRepository.findFirstByTemaIdAndRolNombreAndActivoTrue(solicitud.getTema().getId(), "Asesor");
+            List<UsuarioXTema> estudiantesRelacion = usuarioXTemaRepository.findByTemaIdAndRolNombreAndActivoTrue(solicitud.getTema().getId(), "Tesista");
 
-            var asesor = relaciones.stream()
-                .filter(uxs -> Boolean.FALSE.equals(uxs.getDestinatario()))
-                .map(uxs -> uxs.getUsuario())
-                .findFirst()
-                .map(u -> new SolicitudCeseDto.Assessor(
-                    u.getId(),
-                    u.getNombres(),
-                    u.getPrimerApellido(),
-                    u.getCorreoElectronico(),
-                    usuarioXTemaRepository.findByUsuarioIdAndRolNombreAndActivoTrue(u.getId(), "asesor").size(),
-                    u.getFotoPerfil() // URL foto
-                ))
-                .orElse(null);
-        
-            var students = relaciones.stream()
-                .filter(uxs -> Boolean.TRUE.equals(uxs.getDestinatario()))
-                .map(uxs -> new SolicitudCeseDto.Estudiante(
-                    uxs.getUsuario().getId(),
-                    uxs.getUsuario().getNombres(),
-                    uxs.getUsuario().getPrimerApellido(),
-                    new SolicitudCeseDto.Tema(solicitud.getTema().getTitulo())
-                ))
-                .toList();
-        
+            var asesor = new SolicitudCeseDto.Assessor(
+                asesorRelacion.getUsuario().getId(),
+                asesorRelacion.getUsuario().getNombres(),
+                asesorRelacion.getUsuario().getPrimerApellido(),
+                asesorRelacion.getUsuario().getCorreoElectronico(),
+                usuarioXTemaRepository.findByUsuarioIdAndRolNombreAndActivoTrue(asesorRelacion.getUsuario().getId(), "Asesor").size(),
+                asesorRelacion.getUsuario().getFotoPerfil() // URL foto
+            );
+
+            List<SolicitudCeseDto.Estudiante> students = new ArrayList<>();
+
+            for (UsuarioXTema estudianteRelacion : estudiantesRelacion) {
+                    students.add(new SolicitudCeseDto.Estudiante(
+                        estudianteRelacion.getUsuario().getId(),
+                        estudianteRelacion.getUsuario().getNombres(),
+                        estudianteRelacion.getUsuario().getPrimerApellido(),
+                        new SolicitudCeseDto.Tema(solicitud.getTema().getTitulo())
+                ));
+            }
+
             String estado = switch (solicitud.getEstado()) {
                 case 0 -> "approved";
                 case 1 -> "pending";
                 case 2 -> "rejected";
                 default -> "unknown";
             };
-        
+
             return new SolicitudCeseDto.RequestTermination(
                 solicitud.getId(),
                 solicitud.getFechaCreacion().toLocalDate(),
@@ -133,6 +159,56 @@ public class SolicitudServiceImpl implements SolicitudService {
     }
 
     @Override
+    public DetalleSolicitudCeseDto getDetalleSolicitudCese(Integer solicitudId){
+        Solicitud solicitud = solicitudRepository.findById(solicitudId)
+                .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
+        
+        UsuarioXTema asesorRelacion = usuarioXTemaRepository.findFirstByTemaIdAndRolNombreAndActivoTrue(solicitud.getTema().getId(), "Asesor");
+        List<UsuarioXTema> estudiantesRelacion = usuarioXTemaRepository.findByTemaIdAndRolNombreAndActivoTrue(solicitud.getTema().getId(), "Tesista");
+
+        var asesor = new DetalleSolicitudCeseDto.Assessor(
+            asesorRelacion.getUsuario().getId(),
+            asesorRelacion.getUsuario().getNombres(),
+            asesorRelacion.getUsuario().getPrimerApellido(),
+            asesorRelacion.getUsuario().getCorreoElectronico(),
+            usuarioXTemaRepository.findByUsuarioIdAndRolNombreAndActivoTrue(asesorRelacion.getUsuario().getId(), "asesor").size(),
+            asesorRelacion.getUsuario().getFotoPerfil() // URL foto
+        );
+
+        List<DetalleSolicitudCeseDto.Estudiante> students = new ArrayList<>();
+
+        for (UsuarioXTema estudianteRelacion : estudiantesRelacion) {
+            students.add(new DetalleSolicitudCeseDto.Estudiante(
+                estudianteRelacion.getUsuario().getId(),
+                estudianteRelacion.getUsuario().getNombres(),
+                estudianteRelacion.getUsuario().getPrimerApellido(),
+                estudianteRelacion.getUsuario().getCorreoElectronico(),
+                estudianteRelacion.getUsuario().getFotoPerfil(),
+                new DetalleSolicitudCeseDto.Tema(solicitud.getTema().getTitulo())
+            ));
+        }
+
+        String estado = switch (solicitud.getEstado()) {
+            case 0 -> "approved";
+            case 1 -> "pending";
+            case 2 -> "rejected";
+            default -> "unknown";
+        };
+
+        return new DetalleSolicitudCeseDto(
+            solicitud.getId(),
+            solicitud.getFechaCreacion().toLocalDate(),
+            estado,
+            solicitud.getDescripcion(),
+            solicitud.getRespuesta(), // respuesta
+            solicitud.getFechaModificacion() != null ? solicitud.getFechaModificacion().toLocalDate() : null,
+            asesor,
+            students
+        );
+
+    }
+
+    @Override
     public RechazoSolicitudResponseDto rechazarSolicitud(Integer solicitudId, String response) {
         Solicitud solicitud = solicitudRepository.findById(solicitudId)
                 .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));        // Check that the request is in pending status (1)
@@ -141,7 +217,7 @@ public class SolicitudServiceImpl implements SolicitudService {
         }
 
         // Check that the request is of type termination (tipoSolicitud.nombre == Cese Asesoria)
-        if (solicitud.getTipoSolicitud() == null || solicitud.getTipoSolicitud().getNombre() != "Cese Asesoria") {
+        if (solicitud.getTipoSolicitud() == null || !solicitud.getTipoSolicitud().getNombre().equalsIgnoreCase("Cese Asesoria")) {
             throw new RuntimeException("Request is not of termination type");
         }
 
@@ -150,7 +226,7 @@ public class SolicitudServiceImpl implements SolicitudService {
         solicitud.setFechaModificacion(OffsetDateTime.now());
         solicitudRepository.save(solicitud);
 
-        List<UsuarioXTema> asesoresActivos = usuarioXTemaRepository.findByTemaIdAndRolNombreAndActivoTrue( solicitud.getTema().getId(), "Asesor");
+        List<UsuarioXTema> asesoresActivos = usuarioXTemaRepository.findByTemaIdAndRolNombreAndActivoTrue(solicitud.getTema().getId(), "Asesor");
         List<UsuarioXTema> tesistasActivos = usuarioXTemaRepository.findByTemaIdAndRolNombreAndActivoTrue(solicitud.getTema().getId(), "Tesista");
 
         List<AsignacionDto> asignaciones = new ArrayList<>();
@@ -181,7 +257,7 @@ public class SolicitudServiceImpl implements SolicitudService {
         }
 
         // Check that the request is of type termination (tipoSolicitud.nombre == Cese Asesoria)
-        if (solicitud.getTipoSolicitud() == null || solicitud.getTipoSolicitud().getNombre() != "Cese Asesoria") {
+        if (solicitud.getTipoSolicitud() == null || !solicitud.getTipoSolicitud().getNombre().equalsIgnoreCase("Cese Asesoria")) {
             throw new RuntimeException("Request is not of termination type");
         }
 
@@ -204,12 +280,15 @@ public class SolicitudServiceImpl implements SolicitudService {
         }
 
         for (UsuarioXTema usuarioXTema : asesoresActivos) {
-            usuarioXTema.setActivo(false);
+            //usuarioXTema.setActivo(false);
             usuarioXTemaRepository.save(usuarioXTema);
         }
         for (UsuarioXTema usuarioXTema : tesistasActivos) {
-            usuarioXTema.setActivo(false);
-            usuarioXTemaRepository.save(usuarioXTema);
+            Tema tema = usuarioXTema.getTema();
+            EstadoTema estadoTema = estadoTemaRepository.findByNombre("PAUSADO")
+            .orElseThrow(() -> new RuntimeException("EstadoTema '" + "PAUSADO" + "' no encontrado"));;
+            tema.setEstadoTema(estadoTema);
+            temaRepository.save(tema);
         }
 
         AprobarSolicitudResponseDto dto = new AprobarSolicitudResponseDto();
@@ -302,7 +381,7 @@ public class SolicitudServiceImpl implements SolicitudService {
         }
 
         // Check that the request is of type advisor change (tipoSolicitud.nombre == Cambio Asesor)
-        if (solicitud.getTipoSolicitud() == null || solicitud.getTipoSolicitud().getNombre() != "Cambio Asesor") {
+        if (solicitud.getTipoSolicitud() == null || !solicitud.getTipoSolicitud().getNombre().equalsIgnoreCase("Cambio Asesor")) {
             throw new RuntimeException("Request is not of advisor change type");
         }
 
@@ -338,7 +417,7 @@ public class SolicitudServiceImpl implements SolicitudService {
         }
 
         // Check that the request is of type advisor change (tipoSolicitud.nombre == Cambio Asesor)
-        if (solicitud.getTipoSolicitud() == null || solicitud.getTipoSolicitud().getNombre() != "Cambio Asesor") {
+        if (solicitud.getTipoSolicitud() == null || !solicitud.getTipoSolicitud().getNombre().equalsIgnoreCase("Cambio Asesor")) {
             throw new RuntimeException("Request is not of advisor change type");
         }
 
