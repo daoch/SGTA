@@ -113,14 +113,19 @@ public class TemaController {
 		String comentario = (String) body.getOrDefault("comentario", ""); // por defecto vacío
 
 		temaService.enlazarTesistasATemaPropuestDirecta(usuariosId, temaId, profesorId, comentario);
-	}
-
-    @GetMapping("/listarTemasPorUsuarioRolEstado/{usuarioId}")
+	}    
+	
+	@GetMapping("/listarTemasPorUsuarioRolEstado")
     public List<TemaDto> listarTemasPorUsuarioRolEstado(
-            @PathVariable("usuarioId") Integer usuarioId,
             @RequestParam("rolNombre")   String rolNombre,
-            @RequestParam("estadoNombre")String estadoNombre) {
-        return temaService.listarTemasPorUsuarioEstadoYRol(usuarioId, rolNombre, estadoNombre);
+            @RequestParam("estadoNombre")String estadoNombre,
+            HttpServletRequest request) {
+        try {
+            String usuarioId = jwtService.extractSubFromRequest(request);
+            return temaService.listarTemasPorUsuarioEstadoYRol(usuarioId, rolNombre, estadoNombre);
+        } catch (RuntimeException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        }
     }
 
 	@PostMapping("/rechazarTemaPropuestaDirecta")
