@@ -23,37 +23,46 @@ export function useDirectorioAsesores() {
   useEffect(() => {
     setLoading(true);
 
-    const params: any = {};
+    const params: Record<string, unknown> = {};
     if (rolAsignado !== "todos") params.rolNombre = ROL_MAP[rolAsignado];
     if (search) params.terminoBusqueda = search;
 
     const fetchProfesores = async () => {
       try {
         const res = await axiosInstance.get("/usuario/professors-with-roles", { params });
-        console.log("Respuesta API profesores:", res.data);
-        const data = res.data;
-        const mapped: Profesor[] = data.map((dto: any) => {
-          const roles = (dto.rolesConcat || "")
-            .toLowerCase()
-            .split(",")
-            .map((r: string) => r.trim());
-          return {
-            id: dto.usuario.id,
-            nombres: dto.usuario.nombres,
-            primerApellido: dto.usuario.primerApellido,
-            segundoApellido: dto.usuario.segundoApellido,
-            correo: dto.usuario.correoElectronico,
-            codigo: dto.usuario.codigoPucp,
-            rolesAsignados: [
-              ...(roles.includes("asesor") ? ["asesor"] : []),
-              ...(roles.includes("jurado") ? ["jurado"] : []),
-            ],
-            tesisActivas: Number(dto.tesisCount ?? 0),
-            estado: "activo",
+        const data = res.data as Array<{
+          usuario: {
+            id: number;
+            nombres: string;
+            primerApellido: string;
+            segundoApellido: string;
+            correoElectronico: string;
+            codigoPucp: string;
           };
-        });
+          rolesConcat: string;
+          tesisCount?: number;
+        }>;
+    const mapped: Profesor[] = data.map((dto) => {
+      const roles = (dto.rolesConcat || "")
+        .toLowerCase()
+        .split(",")
+        .map((r: string) => r.trim())
+        .filter((r): r is "asesor" | "jurado" => r === "asesor" || r === "jurado");
+
+      return {
+        id: dto.usuario.id,
+        nombres: dto.usuario.nombres,
+        primerApellido: dto.usuario.primerApellido,
+        segundoApellido: dto.usuario.segundoApellido,
+        correo: dto.usuario.correoElectronico,
+        codigo: dto.usuario.codigoPucp,
+        rolesAsignados: roles,
+        tesisActivas: Number(dto.tesisCount ?? 0),
+        estado: "activo",
+      };
+});
         setProfesores(mapped);
-      } catch (error) {
+      } catch (error: unknown) {
         console.error("Error al obtener profesores:", error);
         setProfesores([]);
       } finally {
@@ -63,7 +72,6 @@ export function useDirectorioAsesores() {
 
     fetchProfesores();
   }, [rolAsignado, search]);
-
 
   const updateRoles = async (
     id: number,
@@ -100,9 +108,11 @@ export function useDirectorioAsesores() {
       );
 
       return mensaje || "Roles actualizados correctamente.";
-    } catch (error: any) {
-      // Puedes retornar el mensaje de error para mostrarlo en el modal/toast
-      return error.message || "Ocurrió un error al actualizar los roles.";
+    } catch (error: unknown) {
+      if (typeof error === "object" && error && "message" in error) {
+        return (error as { message?: string }).message || "Ocurrió un error al actualizar los roles.";
+      }
+      return "Ocurrió un error al actualizar los roles.";
     }
   };
 
