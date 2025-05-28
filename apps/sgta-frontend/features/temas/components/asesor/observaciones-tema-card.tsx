@@ -18,7 +18,7 @@ export function ObservacionesCard({ observaciones }: ObservacionesCardProps) {
     <Card className="mt-4 border border-gray-300 shadow-sm rounded-xl">
       <CardHeader className="flex flex-row gap-2 items-start">
         <AlertCircle className="text-red-500 mt-1" />
-        <div>
+        <div className="w-full">
           <CardTitle className="text-red-700 text-lg">
             Observaciones del Coordinador
           </CardTitle>
@@ -26,7 +26,7 @@ export function ObservacionesCard({ observaciones }: ObservacionesCardProps) {
             El tema tiene observaciones que se deben subsanar para continuar con
             el proceso
           </CardDescription>
-          <CardContent className="space-y-4">
+          <CardContent className="px-0 max-w-full mt-2 space-y-4">
             {observaciones.map((obs) => (
               <Card
                 key={obs.campo}

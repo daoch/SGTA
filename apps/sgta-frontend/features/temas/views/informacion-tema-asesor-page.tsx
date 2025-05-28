@@ -12,7 +12,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Tema } from "../types/inscripcion/entities";
-import { Observacion } from "../types/temas/entidades";
+import { Observacion, Solicitud } from "../types/temas/entidades";
 
 export default function InformacionTemaAsesor({ params }: { params: string }) {
   const router = useRouter();
@@ -39,15 +39,17 @@ export default function InformacionTemaAsesor({ params }: { params: string }) {
     const fetchObservaciones = async (id: number) => {
       setLoading(true);
       try {
-        const observaciones = await obtenerObservacionesTema(id);
+        const obsData: { changeRequests: Solicitud[] } =
+          await obtenerObservacionesTema(id);
 
-        const filtradas = observaciones.changeRequests.filter(
-          (req: any) =>
-            req.tipoSolicitud.id === 2 || req.tipoSolicitud.id === 3,
+        const filtradas = obsData.changeRequests.filter(
+          (req) =>
+            (req.tipoSolicitud.id === 2 || req.tipoSolicitud.id === 3) &&
+            req.solicitudCompletada === false,
         );
 
         const observacionesFormateadas: Observacion[] = filtradas.map(
-          (req: any) => ({
+          (req) => ({
             campo: req.tipoSolicitud.id === 2 ? "título" : "descripción",
             detalle: req.reason,
             autor: `${req.usuario.nombres} ${req.usuario.primerApellido}`,
@@ -57,8 +59,12 @@ export default function InformacionTemaAsesor({ params }: { params: string }) {
 
         setObservaciones(observacionesFormateadas);
         //setSolicitudes(filtradas);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError("Error desconocido");
+        }
       } finally {
         setLoading(false);
       }
