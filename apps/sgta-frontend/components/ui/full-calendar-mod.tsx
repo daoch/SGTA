@@ -57,7 +57,7 @@ const dayEventVariants = cva('font-bold border-l-4 rounded p-2 text-xs', {
   variants: {
     variant: {
       default: 'bg-muted/30 text-muted-foreground border-muted',
-      blue: 'bg-blue-500/30 text-black', // Quitamos border-t-2 de aquí
+      blue: 'bg-blue-500/30 text-black border-blue-500 border-l-0', // Quitamos border-t-2 de aquí
       green: 'bg-green-500/30 text-black border-green-500',
       pink: 'bg-pink-500/30 text-black border-pink-500',
       purple: 'bg-purple-500/30 text-purple-600 border-purple-500',
@@ -211,7 +211,7 @@ const EventGroup = ({ events, hour }: { events: CalendarEvent[]; hour: Date }) =
               className={cn(
                 'relative flex flex-col p-1 overflow-hidden',
                 dayEventVariants({ variant: event.color }),
-                isDeadline && 'border-t-2 border-t-dashed border-l-4'
+                isDeadline && 'border-t-4 border-t-dashed'
               )}
               style={{
                 top: `${startPosition * 100}%`,

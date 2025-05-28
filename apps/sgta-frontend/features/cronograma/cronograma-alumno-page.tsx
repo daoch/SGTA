@@ -19,8 +19,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { format } from 'date-fns';
 
 // Definimos los tipos de evento posibles
 type TipoEvento = "Entregable" | "Reunión" | "Exposición";
@@ -90,8 +91,8 @@ const MiCronogramaPage = () => {
       id: "3",
       title: "Entrega de Documentos",
       description: "Fecha límite para entregar los documentos",
-      start: createDate(27, 5, 2025, 1, 0),
-      end: createDate(27, 5, 2025, 1, 0),
+      start: createDate(26, 5, 2025, 13, 0),
+      end: createDate(26, 5, 2025, 13, 0),
       tipoEvento: "Entregable",
     }
   ]);
@@ -142,6 +143,61 @@ const MiCronogramaPage = () => {
     });
   };
 
+  //Boton de exportar a csv
+  const ExportToCSVButton = ({ events }: { events: CalendarEvent[] }) => {
+    const exportToCSV = () => {
+      // Verificar que todos los eventos tengan start definido
+      const validEvents = events.filter(event => event.start !== undefined);
+      
+      // Encabezados del CSV según especificación
+      const headers = [
+        'Subject',
+        'Start Date',
+        'Start Time',
+        'End Date',
+        'End Time',
+        'Description'
+      ];
+  
+      // Convertir eventos a filas CSV (sin comillas en Subject y Description)
+      const rows = validEvents.map(event => [
+        event.tipoEvento,               // Subject (sin comillas)
+        format(event.start!, 'yyyy-MM-dd'), // Start Date
+        format(event.start!, 'HH:mm'),     // Start Time
+        format(event.end, 'yyyy-MM-dd'),   // End Date
+        format(event.end, 'HH:mm'),        // End Time
+        event.description || ''           // Description (sin comillas)
+      ]);
+  
+      // Combinar encabezados y filas
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.join(','))
+      ].join('\n');
+  
+      // Crear archivo descargable
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'calendario_eventos.csv');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    };
+  
+    return (
+      <Button 
+        onClick={exportToCSV}
+        variant="outline"
+        className="flex items-center gap-2 ml-auto cursor-pointer" // Añadido cursor-pointer
+      >
+        <Download size={16} />
+        Exportar calendario a CSV
+      </Button>
+    );
+  };
+
   return (
     <div className="space-y-8 mt-4">
       <div>
@@ -172,123 +228,10 @@ const MiCronogramaPage = () => {
         </div>
 
         {/* Botón para abrir el popup */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="flex items-center gap-2 ml-auto">
-              <PlusCircle size={18} />
-              Crear nuevo evento
-            </Button>
-          </DialogTrigger>
-          
-          <DialogContent className="sm:max-w-[600px]">
-            <DialogHeader>
-              <DialogTitle>Crear nuevo evento</DialogTitle>
-            </DialogHeader>
-            
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="title" className="text-right">
-                  Título*
-                </Label>
-                <Input
-                  id="title"
-                  name="title"
-                  value={newEvent.title}
-                  onChange={handleInputChange}
-                  className="col-span-3"
-                  required
-                />
-              </div>
-              
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="description" className="text-right">
-                  Descripción
-                </Label>
-                <Input
-                  id="description"
-                  name="description"
-                  value={newEvent.description}
-                  onChange={handleInputChange}
-                  className="col-span-3"
-                />
-              </div>
-              
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="tipoEvento" className="text-right">
-                  Tipo de evento*
-                </Label>
-                <Select
-                  value={newEvent.tipoEvento}
-                  onValueChange={(value) => setNewEvent(prev => ({
-                    ...prev,
-                    tipoEvento: value as TipoEvento
-                  }))}
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Selecciona un tipo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Entregable">Entregable</SelectItem>
-                    <SelectItem value="Reunión">Reunión</SelectItem>
-                    <SelectItem value="Exposición">Exposición</SelectItem>
-                    <SelectItem value="Otros">Otros</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="start" className="text-right">
-                  Fecha inicio*
-                </Label>
-                <Input
-                  id="start"
-                  type="datetime-local"
-                  value={newEvent.start.toISOString().slice(0, 16)}
-                  onChange={(e) => handleDateChange('start', e.target.value)}
-                  className="col-span-3"
-                />
-              </div>
-              
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="end" className="text-right">
-                  Fecha fin*
-                </Label>
-                <Input
-                  id="end"
-                  type="datetime-local"
-                  value={newEvent.end.toISOString().slice(0, 16)}
-                  onChange={(e) => handleDateChange('end', e.target.value)}
-                  className="col-span-3"
-                />
-              </div>
-              
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="allDay" className="text-right">
-                  Todo el día
-                </Label>
-                <input
-                  id="allDay"
-                  type="checkbox"
-                  checked={newEvent.allDay}
-                  onChange={(e) => setNewEvent(prev => ({
-                    ...prev,
-                    allDay: e.target.checked
-                  }))}
-                  className="h-4 w-4"
-                />
-              </div>
-            </div>
-            
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                Cancelar
-              </Button>
-              <Button onClick={handleAddEvent}>
-                Guardar evento
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+        
+        {/* Botón para exportar a csv */}
+        <ExportToCSVButton events={events} />
+
       </div>
 
       <div className="h-screen flex flex-col">
