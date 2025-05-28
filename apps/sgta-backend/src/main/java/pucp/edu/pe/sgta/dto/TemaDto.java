@@ -64,8 +64,9 @@ public class TemaDto {
     //@NotEmpty(message = "Debe haber al menos una subárea")
     private List<@NotNull(message = "Subárea inválida") SubAreaConocimientoDto> subareas;
 
-    @NotEmpty(message = "Debe haber al menos un tesista")
+    //@NotEmpty(message = "Debe haber al menos un tesista")
     private List<UsuarioDto> tesistas ;
 
     private List< UsuarioDto> coasesores ;
+
 }

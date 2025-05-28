@@ -113,6 +113,16 @@ public class AreaConocimientoServiceImpl implements AreaConocimientoService {
     }
 
     @Override
+    public List<AreaConocimientoDto> getAllByIdExpo(Integer idExpo) {
+        Integer idCarrera = carreraRepository.obtenerIdCarreraPorIdExpo(idExpo);
+        List<AreaConocimiento> areasConocimiento = areaConocimientoRepository.findAllByCarreraIdAndActivoTrue(idCarrera);
+        List<AreaConocimientoDto> dtos = areasConocimiento.stream()
+                .map(AreaConocimientoMapper::toDto)
+                .toList();
+        return dtos;
+    }
+
+    @Override
     public void update(AreaConocimientoDto dto) {
 
     }

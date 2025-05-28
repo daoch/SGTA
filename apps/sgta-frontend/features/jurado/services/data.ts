@@ -2,7 +2,7 @@ import axiosInstance from "@/lib/axios/axios-instance";
 
 const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
-export async function listarTemasCicloActulXEtapaFormativa(
+export async function listarTemasCicloActualXEtapaFormativa(
   etapaFormativaId: number,
 ) {
   try {
@@ -161,8 +161,8 @@ export const bloquearBloquePorId = async (
   idBloque: number,
 ): Promise<boolean> => {
   try {
-    const response = await axiosInstance.post(
-      `/bloqueHorarioExposicion/bloquear/${idBloque}`,
+    const response = await axiosInstance.patch(
+      `/bloqueHorarioExposicion/bloquearBloque/${idBloque}`,
     );
     return response.status === 200;
   } catch (error) {
@@ -175,8 +175,8 @@ export const desbloquearBloquePorId = async (
   idBloque: number,
 ): Promise<boolean> => {
   try {
-    const response = await axiosInstance.post(
-      `/bloqueHorarioExposicion/desbloquear/${idBloque}`,
+    const response = await axiosInstance.patch(
+      `/bloqueHorarioExposicion/desbloquearBloque/${idBloque}`,
     );
     return response.status === 200;
   } catch (error) {

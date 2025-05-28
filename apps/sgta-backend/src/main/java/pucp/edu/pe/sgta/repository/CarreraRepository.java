@@ -22,4 +22,10 @@ public interface CarreraRepository extends JpaRepository<Carrera, Integer>{
       nativeQuery = true
     )
     List<Carrera> findByUsuarioId(@Param("usuarioId") Integer usuarioId);
+
+    @Query(
+            value = "select * from obtener_id_carrera_por_id_expo(:idExpo)",
+            nativeQuery = true
+    )
+    Integer obtenerIdCarreraPorIdExpo(@Param("idExpo")Integer idExpo);
 }
