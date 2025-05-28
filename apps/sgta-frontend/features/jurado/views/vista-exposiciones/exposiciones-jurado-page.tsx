@@ -39,7 +39,7 @@ const estados = [
   { value: "esperando_aprobacion", label: "Esperando Aprobacion" },
   { value: "programada", label: "Programada" },
   { value: "completada", label: "Completada" },
-  { value: "finalizada", label: "Finalizada" },
+  { value: "calificada", label: "Calificada" },
 ];
 
 {

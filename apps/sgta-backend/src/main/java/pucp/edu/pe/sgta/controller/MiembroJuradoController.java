@@ -11,6 +11,7 @@ import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
 import pucp.edu.pe.sgta.dto.temas.DetalleTemaDto;
 import pucp.edu.pe.sgta.model.UsuarioXTema;
 import pucp.edu.pe.sgta.service.inter.MiembroJuradoService;
+import pucp.edu.pe.sgta.dto.exposiciones.EstadoExposicionDto;
 
 import java.util.HashMap;
 import java.util.List;
@@ -123,7 +124,8 @@ public class MiembroJuradoController {
     }
 
     @GetMapping("/{usuarioId}/exposiciones")
-    public ResponseEntity<List<ExposicionTemaMiembrosDto>> listarExposicionesPorJurado(@PathVariable Integer usuarioId) {
+    public ResponseEntity<List<ExposicionTemaMiembrosDto>> listarExposicionesPorJurado(
+            @PathVariable Integer usuarioId) {
         List<ExposicionTemaMiembrosDto> exposiciones = juradoService.listarExposicionXJuradoId(usuarioId);
         return ResponseEntity.ok(exposiciones);
     }
@@ -134,8 +136,13 @@ public class MiembroJuradoController {
     }
 
     @PutMapping("/control")
-    public ResponseEntity<?> actualizarControlEstadoExposicion(@RequestBody EstadoControlExposicionRequest request){
+    public ResponseEntity<?> actualizarControlEstadoExposicion(@RequestBody EstadoControlExposicionRequest request) {
         return juradoService.actualizarEstadoControlExposicion(request);
+    }
+
+    @GetMapping("/estados")
+    public ResponseEntity<List<EstadoExposicionDto>> listarEstados() {
+        return ResponseEntity.ok(juradoService.listarEstados());
     }
 
 }

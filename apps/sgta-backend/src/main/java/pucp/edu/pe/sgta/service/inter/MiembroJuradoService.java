@@ -7,6 +7,7 @@ import pucp.edu.pe.sgta.dto.exposiciones.EstadoExposicionJuradoRequest;
 import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
 import pucp.edu.pe.sgta.dto.temas.DetalleTemaDto;
 import pucp.edu.pe.sgta.model.UsuarioXTema;
+import pucp.edu.pe.sgta.dto.exposiciones.EstadoExposicionDto;
 
 import java.util.List;
 import java.util.Map;
@@ -47,5 +48,7 @@ public interface MiembroJuradoService {
     ResponseEntity<?> actualizarEstadoExposicionJurado(EstadoExposicionJuradoRequest request);
 
     ResponseEntity<?> actualizarEstadoControlExposicion(EstadoControlExposicionRequest request);
+
+    List<EstadoExposicionDto> listarEstados();
 
 }

@@ -942,3 +942,43 @@ WHERE ut.usuario_id = p_usuario_id
 AND ext.estado_exposicion IN ('programada', 'calificada', 'completada');
 END;
 $$ LANGUAGE plpgsql;
+
+update exposicion
+set
+    estado_planificacion_id = 2
+where
+    exposicion_id = 1
+    or exposicion_id = 2;
+
+update bloque_horario_exposicion
+set
+    exposicion_x_tema_id = null,
+    es_bloque_reservado = false,
+    fecha_modificacion = null
+where
+    bloque_horario_exposicion_id >= 1;
+
+update exposicion_x_tema set estado_exposicion = 'sin_programar';
+
+CREATE OR REPLACE PROCEDURE terminar_planificacion(idExposicion INT, idEtapaFormativa INT)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+   INSERT INTO control_exposicion_usuario (
+        exposicion_x_tema_id,
+        usuario_x_tema_id,
+        estado_exposicion_usuario,
+        fecha_creacion,
+        fecha_modificacion
+    )
+   SELECT
+        ext.exposicion_x_tema_id,
+        tu.usuario_tema_id,
+        'esperando_respuesta',
+        NOW(),
+        NOW()
+   FROM exposicion_x_tema ext
+   INNER JOIN usuario_tema tu ON tu.tema_id = ext.tema_id
+   WHERE ext.exposicion_id = idExposicion;
+END;
+$$;
