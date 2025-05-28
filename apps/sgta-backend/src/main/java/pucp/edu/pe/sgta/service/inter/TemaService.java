@@ -6,6 +6,8 @@ import pucp.edu.pe.sgta.dto.TemaDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
 
 import pucp.edu.pe.sgta.dto.TemaConAsesorJuradoDTO;
+
+import java.sql.SQLException;
 import java.util.List;
 
 import jakarta.persistence.criteria.CriteriaBuilder.In;
@@ -105,4 +107,10 @@ public interface TemaService {
 	void updateResumenTemaSolicitud(Integer solicitudId, String resumen, String respuesta);
 
 	void eliminarTemaCoordinador(Integer temaId, Integer usuarioId);
+
+	void crearTemaLibre(TemaDto dto);
+
+
+	TemaDto buscarTemaPorId(Integer idTema) throws SQLException;
+
 }

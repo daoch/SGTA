@@ -14,6 +14,7 @@ import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
 import pucp.edu.pe.sgta.service.inter.JwtService;
 import pucp.edu.pe.sgta.service.inter.TemaService;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
@@ -186,6 +187,16 @@ public class TemaController {
 		}
 	}
 
+	@PostMapping("/crearTemaLibre")
+	public void crearTemaLibre(@Valid @RequestBody TemaDto dto) {
+		temaService.crearTemaLibre(dto);
+	}
+
+	@GetMapping("/buscarTemaPorId")
+	public TemaDto buscarTemaPorId(@RequestParam(name = "idTema") Integer idTema) throws SQLException {
+		return temaService.buscarTemaPorId(idTema);
+	}
+	
 	@GetMapping("/listarTemasPorCarrera/{carreraId}/{estado}")
 	public List<TemaDto> buscarPorEstadoYCarrera(
 			@PathVariable("estado") String estado,
