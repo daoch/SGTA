@@ -28,6 +28,9 @@ import pucp.edu.pe.sgta.util.RolEnum;
 import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
 
 import java.io.IOException;
+import java.sql.Array;
+import java.sql.SQLException;
+import java.time.*;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -75,6 +78,7 @@ public class TemaServiceImpl implements TemaService {
 	private final UsuarioXTemaRepository usuarioTemaRepository;
 
 	private final ObjectMapper objectMapper = new ObjectMapper(); // for JSON conversion
+	private final CarreraServiceImpl carreraServiceImpl;
 
 	private final TipoSolicitudRepository        tipoSolicitudRepository;
 
@@ -93,7 +97,7 @@ public class TemaServiceImpl implements TemaService {
 			SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository, RolRepository rolRepository,
 			EstadoTemaRepository estadoTemaRepository, UsuarioXCarreraRepository usuarioCarreraRepository,
 			CarreraRepository carreraRepository, HistorialTemaService historialTemaService,
-			UsuarioRepository usuarioRepository, ExposicionService exposicionService,
+			UsuarioRepository usuarioRepository, CarreraServiceImpl carreraServiceImpl,  ExposicionService exposicionService,
 			ExposicionXTemaRepository exposicionXTemaRepository,
 			JornadaExposicionRepository jornadaExposicionRepository, ExposicionRepository exposicionRepository,
 			JornadaExposicionXSalaExposicionRepository jornadaExposicionXSalaExposicionRepository,
@@ -121,6 +125,7 @@ public class TemaServiceImpl implements TemaService {
 		this.solicitudRepository = solicitudRepository;
 		this.usuarioXSolicitudRepository = usuarioXSolicitudRepository;
 		this.subAreaService = subAreaConocimientoService;
+		this.carreraServiceImpl = carreraServiceImpl;
 	}
 
 	@Override
@@ -160,7 +165,7 @@ public class TemaServiceImpl implements TemaService {
 
 	@Transactional
 	@Override
-	public void createTemaPropuesta(TemaDto dto, Integer idUsuarioCreador, Integer tipoPropuesta) {
+	public void createTemaPropuesta(TemaDto dto, String idUsuarioCreador, Integer tipoPropuesta) {
 
 		dto.setId(null);
 
@@ -171,9 +176,15 @@ public class TemaServiceImpl implements TemaService {
 			tema = prepareNewTema(dto, EstadoTemaEnum.PROPUESTO_GENERAL);
 		}
 
+		UsuarioDto usuarioDto = usuarioService.findByCognitoId(idUsuarioCreador);
+
+		if (usuarioDto == null) {
+			throw new RuntimeException("Usuario no encontrado con Cognito ID: " + idUsuarioCreador);
+		}
+
 		/////////////////////// se tiene que modificar si se puede elegir carrera,
 		/////////////////////// pararía como parámetro/////
-		var relaciones = usuarioCarreraRepository.findByUsuarioIdAndActivoTrue(idUsuarioCreador);
+		var relaciones = usuarioCarreraRepository.findByUsuarioIdAndActivoTrue(usuarioDto.getId());
 		if (relaciones.isEmpty()) {
 			throw new RuntimeException("El usuario no tiene ninguna carrera activa.");
 		}
@@ -185,7 +196,7 @@ public class TemaServiceImpl implements TemaService {
 		tema.setCarrera(carrera);
 		/////////////////////////////////////////////////////////////////////////////////////////////////////
 
-		List<UsuarioXTema> temaRelations = usuarioXTemaRepository.findByUsuarioIdAndActivoTrue(idUsuarioCreador);
+		List<UsuarioXTema> temaRelations = usuarioXTemaRepository.findByUsuarioIdAndActivoTrue(usuarioDto.getId());
 		for (UsuarioXTema ux : temaRelations) {
 			Tema temaAux = temaRepository.findById(ux.getTema().getId())
 					.orElseThrow(() -> new RuntimeException("Tema no encontrado con ID: " + ux.getTema().getId()));
@@ -194,11 +205,7 @@ public class TemaServiceImpl implements TemaService {
 			}
 		}
 
-		UsuarioDto usuarioDto = usuarioService.findUsuarioById(idUsuarioCreador);
 
-		if (usuarioDto == null) {
-			throw new RuntimeException("Usuario no encontrado con ID: " + idUsuarioCreador);
-		}
 
 		// Save the Tema first to generate its ID. We assume the tema has an
 		// areaEspecializacion
@@ -210,7 +217,7 @@ public class TemaServiceImpl implements TemaService {
 		// 1) Subáreas de conocimiento
 		saveSubAreas(tema, dto.getSubareas());
 		// 2) Save Creador
-		saveUsuarioXTema(tema, idUsuarioCreador, RolEnum.Tesista.name(), false, true);
+		saveUsuarioXTema(tema, usuarioDto.getId(), RolEnum.Tesista.name(), false, true);
 		// 3) Save Asesor (Propuesta Directa)
 		if (tipoPropuesta == 1) {
 			if (dto.getCoasesores() == null || dto.getCoasesores().isEmpty()) {
@@ -219,7 +226,7 @@ public class TemaServiceImpl implements TemaService {
 			saveUsuarioXTema(tema, dto.getCoasesores().get(0).getId(), RolEnum.Asesor.name(), false, false);
 		}
 		// 4) Save cotesistas
-		saveUsuariosInvolucrados(tema, idUsuarioCreador, dto.getTesistas(), RolEnum.Tesista.name(), false, false); // Save
+		saveUsuariosInvolucrados(tema, usuarioDto.getId(), dto.getTesistas(), RolEnum.Tesista.name(), false, false); // Save
 																													// cotesistas
 
 	}
@@ -903,7 +910,7 @@ public class TemaServiceImpl implements TemaService {
 		return resultado;
 	}
 
-	public List<TemaDto> listarPropuestasPorTesista(Integer tesistaId) {
+	public List<TemaDto> listarPropuestasPorTesista(String tesistaId) {
 		String sql = "SELECT * " +
 				"  FROM listar_propuestas_del_tesista_con_usuarios(:p_tesista_id)";
 		Query query = entityManager.createNativeQuery(sql)
@@ -1085,7 +1092,7 @@ public class TemaServiceImpl implements TemaService {
 	}
 
 	@Override
-	public List<TemaDto> listarPostulacionesAMisPropuestas(Integer tesistaId, Integer tipoPost) {
+	public List<TemaDto> listarPostulacionesAMisPropuestas(String tesistaId, Integer tipoPost) {
 		String sql = "SELECT * " +
 				"  FROM listar_postulaciones_del_tesista_con_usuarios(:p_tesista_id, :p_tipo_post)";
 		Query query = entityManager.createNativeQuery(sql)
@@ -1188,7 +1195,7 @@ public class TemaServiceImpl implements TemaService {
 
 	@Transactional
 	@Override
-	public void rechazarPostulacionAPropuestaGeneral(Integer idTema, Integer idAsesor, Integer idTesista) {
+	public void rechazarPostulacionAPropuestaGeneral(Integer idTema, Integer idAsesor, String idTesista) {
 		String sql = "SELECT rechazar_postulacion_propuesta_general_tesista(:p_tema_id, :p_asesor_id, :p_tesista_id)";
 
 		entityManager.createNativeQuery(sql)
@@ -1201,7 +1208,13 @@ public class TemaServiceImpl implements TemaService {
 
 	@Transactional
 	@Override
-	public void aprobarPostulacionAPropuestaGeneral(Integer idTema, Integer idAsesor, Integer idTesista) {
+	public void aprobarPostulacionAPropuestaGeneral(Integer idTema, Integer idAsesor, String idTesista) {
+		UsuarioDto dto = usuarioService.findByCognitoId(idTesista);
+		if (dto == null) {
+			logger.severe("No se encontró el usuario con ID: " + idTesista);
+			return;
+		}
+
 		String sql = "SELECT aprobar_postulacion_propuesta_general_tesista(:p_tema_id, :p_asesor_id, :p_tesista_id)";
 
 		entityManager.createNativeQuery(sql)
@@ -1218,8 +1231,9 @@ public class TemaServiceImpl implements TemaService {
 				.getSingleResult();
 		logger.info("Eliminando postulaciones a propuesta de usuario: " + idTesista + " FINISH");
 		logger.info("Eliminando postulaciones de usuario: " + idTesista);
-		eliminarPropuestasTesista(idTesista);
-		eliminarPostulacionesTesista(idTesista);
+
+		eliminarPropuestasTesista(dto.getId());
+		eliminarPostulacionesTesista(dto.getId());
 		entityManager.flush();
 
 	}
@@ -1320,6 +1334,132 @@ public class TemaServiceImpl implements TemaService {
 		}
 	}
 
+	@Override
+	public void crearTemaLibre(TemaDto dto) {
+		try {
+			// Obtener IDs de subáreas y coasesores
+			Integer[] subareaIds = dto.getSubareas() != null
+					? dto.getSubareas().stream().map(sa -> sa.getId()).toArray(Integer[]::new)
+					: null;
+
+			Integer[] coasesorIds = dto.getCoasesores() != null
+					? dto.getCoasesores().stream().map(user -> user.getId()).toArray(Integer[]::new)
+					: null;
+
+			// Validar asesor/coasesores
+			if (coasesorIds == null || coasesorIds.length < 1) {
+				throw new IllegalArgumentException("Debe haber al menos un asesor (en coasesores).");
+			}
+
+			// Llamada a la función de base de datos
+			entityManager.createNativeQuery("SELECT crear_tema_libre(:titulo, :resumen, :metodologia, :objetivos, :carreraId, :fechaLimite, :requisitos, :subareaIds, :coasesorIds)")
+					.setParameter("titulo", dto.getTitulo())
+					.setParameter("resumen", dto.getResumen())
+					.setParameter("metodologia", dto.getMetodologia())
+					.setParameter("objetivos", dto.getObjetivos())
+					.setParameter("carreraId", dto.getCarrera() != null ? dto.getCarrera().getId() : null)
+					.setParameter("fechaLimite", dto.getFechaLimite() != null ? dto.getFechaLimite().toLocalDate() : null)
+					.setParameter("requisitos", dto.getRequisitos() != null ? dto.getRequisitos() : "")
+					.setParameter("subareaIds", subareaIds)
+					.setParameter("coasesorIds", coasesorIds)
+					.getSingleResult();
+
+			logger.info("Tema creado exitosamente: " + dto.getTitulo());
+		} catch (Exception e) {
+			logger.severe("Error al crear tema: " + e.getMessage());
+			throw new RuntimeException("No se pudo crear el tema", e);
+		}
+	}
+
+	@Override
+	public TemaDto buscarTemaPorId(Integer idTema) throws SQLException {
+		String sql = "SELECT * FROM buscar_tema_por_id(:idTema)";
+
+		Object[] result = (Object[]) entityManager
+				.createNativeQuery(sql)
+				.setParameter("idTema", idTema)
+				.getSingleResult();
+
+		TemaDto dto = new TemaDto();
+		dto.setId(idTema);
+		dto.setCodigo((String) result[0]);
+		dto.setTitulo((String) result[1]);
+		dto.setResumen((String) result[2]);
+		dto.setMetodologia((String) result[3]);
+		dto.setObjetivos((String) result[4]);
+		java.sql.Date sqlDate = (java.sql.Date) result[5];  // fecha_limite
+		if (sqlDate != null) {
+			LocalDate localDate = sqlDate.toLocalDate();
+			OffsetDateTime offsetDateTime = localDate.atStartOfDay(ZoneOffset.UTC).toOffsetDateTime();
+			dto.setFechaLimite(offsetDateTime);
+		} else {
+			dto.setFechaLimite(null);
+		}
+		dto.setRequisitos((String) result[6]);
+
+		// Asegurar listas no sean null
+		if (dto.getSubareas() == null) {
+			dto.setSubareas(new ArrayList<>());
+		}
+		if (dto.getCoasesores() == null) {
+			dto.setCoasesores(new ArrayList<>());
+		}
+		if (dto.getCarrera() == null) {
+			dto.setCarrera(new CarreraDto());
+		}
+		if (dto.getTesistas() == null) {
+			dto.setTesistas(new ArrayList<>());
+		}
+
+		// Asesor
+		Integer asesorId = (Integer) result[7];
+
+
+		// Subareas
+		Integer[] subareaArray = (Integer[]) result[8];
+		if (subareaArray != null) {
+			for (Integer subareaId : subareaArray) {
+				//SubAreaConocimientoDto subarea = new SubAreaConocimientoDto();
+				SubAreaConocimientoDto subarea = subAreaConocimientoService.findById(subareaId);
+				dto.getSubareas().add(subarea);
+			}
+		}
+
+// Coasesores
+		Integer[] coasesoresArray = (Integer[]) result[9];
+
+// Lista final coasesores con asesor primero
+		if (asesorId != null) {
+			UsuarioDto asesorDto = usuarioService.findUsuarioById(asesorId);
+			asesorDto.setId(asesorId);
+			dto.getCoasesores().add(asesorDto);
+		}
+		if (coasesoresArray != null) {
+			for (Integer coasesorId : coasesoresArray) {
+				UsuarioDto coasesorDto = usuarioService.findUsuarioById(coasesorId);
+				coasesorDto.setId(coasesorId);
+				dto.getCoasesores().add(coasesorDto);
+			}
+		}
+		Integer carreraId = (Integer) result[10];
+		if (carreraId != null) {
+			CarreraDto carreraDTO = carreraServiceImpl.findById(carreraId);
+			dto.setCarrera(carreraDTO);
+		}
+
+		// Tesistas
+		Integer[] tesistasArray = (Integer[]) result[11];
+		if (tesistasArray != null) {
+			for (Integer tesistaId : tesistasArray) {
+				UsuarioDto tesistaDto = usuarioService.findUsuarioById(tesistaId);
+				tesistaDto.setId(tesistaId);
+				dto.getTesistas().add(tesistaDto);
+			}
+		}
+
+
+		return dto;
+	}
 
 	@Override
 	@Transactional

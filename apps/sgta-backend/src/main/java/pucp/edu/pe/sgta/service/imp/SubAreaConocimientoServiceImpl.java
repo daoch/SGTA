@@ -168,7 +168,7 @@ public class SubAreaConocimientoServiceImpl implements SubAreaConocimientoServic
 	}
 
 	@Override
-	public List<SubAreaConocimientoDto> listarPorCarreraDeUsuario(Integer usuarioId) {
+	public List<SubAreaConocimientoDto> listarPorCarreraDeUsuario(String usuarioId) {
 		String sql =
 				"SELECT sub_area_conocimiento_id, area_conocimiento_id, nombre, descripcion, activo " +
 						"  FROM obtener_sub_areas_por_carrera_usuario(:p_usuario_id)";

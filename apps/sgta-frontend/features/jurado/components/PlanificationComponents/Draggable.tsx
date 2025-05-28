@@ -3,7 +3,7 @@ import { useDraggable } from "@dnd-kit/core";
 import React from "react";
 
 interface DraggableProps {
-  id: string;
+  id: string | null;
   children: React.ReactNode;
   isDraggeable: boolean;
 }
@@ -11,7 +11,7 @@ interface DraggableProps {
 export default function Draggable(props: DraggableProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
-      id: props.id,
+      id: props.id || "",
       disabled: !props.isDraggeable,
     });
 
@@ -23,7 +23,7 @@ export default function Draggable(props: DraggableProps) {
   // Estilo del contenedor raíz: movimiento y cursor
   const rootStyle = {
     transform: translate,
-    //zIndex: isDragging ? 900 : undefined,
+    zIndex: isDragging ? 900 : undefined,
     cursor: props.isDraggeable ? (isDragging ? "grabbing" : "grab") : "default",
   } as React.CSSProperties;
 

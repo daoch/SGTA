@@ -9,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useAuthStore } from "@/features/auth/store/auth-store";
 import { PropuestasTable } from "@/features/temas/components/alumno/temas-libres-table";
 import { useEffect, useState } from "react";
 
@@ -22,18 +23,31 @@ export default function TemasLibresAlumnoPage() {
   const [searchAsesor, setSearchAsesor] = useState("");
   const [selectedArea, setSelectedArea] = useState("");
   const [subareas, setSubareas] = useState<string[]>([]);
-
   useEffect(() => {
     const fetchSubareas = async () => {
       try {
+        const { idToken } = useAuthStore.getState();
+        
+        if (!idToken) {
+          console.error("No authentication token available");
+          return;
+        }
+
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/subAreaConocimiento/listarPorCarreraDeUsuario?usuarioId=2`
+          `${process.env.NEXT_PUBLIC_API_URL}/subAreaConocimiento/listarPorCarreraDeUsuario`,
+          {
+            headers: {
+              "Authorization": `Bearer ${idToken}`,
+              "Content-Type": "application/json"
+            }
+          }
         );
+        
         if (!res.ok) throw new Error("Error al obtener subáreas");
         const data = await res.json();
         const nombresUnicos = Array.from(
           new Set((data as Subarea[]).map((item) => item.nombre).filter(Boolean))
-        ).sort();
+        ).sort((a, b) => a.localeCompare(b));
         setSubareas(nombresUnicos);
       } catch (err) {
         console.error("Error cargando subáreas:", err);
