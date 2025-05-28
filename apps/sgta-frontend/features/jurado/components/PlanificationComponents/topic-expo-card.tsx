@@ -12,7 +12,7 @@ interface Props {
   exposicion: Tema;
 }
 
-const CardTemaExposicion: React.FC<Props> = ({ exposicion }) => {
+const TemaExposicionCard: React.FC<Props> = ({ exposicion }) => {
   return (
     <Card>
       <CardHeader className="select-none">
@@ -20,20 +20,18 @@ const CardTemaExposicion: React.FC<Props> = ({ exposicion }) => {
           {exposicion.codigo} - {exposicion.titulo}
         </CardTitle>
         <CardDescription>
-          <strong>Asesor :</strong>
+          <strong>Miembros de jurado :</strong>
           {exposicion?.usuarios
             ?.filter((u) => u.rol?.nombre === "Asesor")
             .map((a) => (
-              <p className="ml-4" key={a.idUsario}>
+              <li key={a.idUsario}>
                 {a.nombres} {a.apellidos}
-              </p>
+              </li>
             ))}
-          <br />
-          <span className="font-semibold"> Jurados: </span>
           {exposicion?.usuarios
             ?.filter((u) => u.rol?.nombre === "Jurado")
             .map((j) => (
-              <li className="ml-4" key={j.idUsario}>
+              <li key={j.idUsario}>
                 {j.nombres} {j.apellidos}
               </li>
             ))}
@@ -43,4 +41,4 @@ const CardTemaExposicion: React.FC<Props> = ({ exposicion }) => {
   );
 };
 
-export default CardTemaExposicion;
+export default React.memo(TemaExposicionCard);

@@ -1,4 +1,4 @@
-import PlanExpo from "@/features/jurado/views/PlanExpo";
+import PlanExpo from "@/features/jurado/views/plan-expo";
 
 export default async function Page({
   params,
