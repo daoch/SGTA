@@ -558,12 +558,14 @@ public class TemaServiceImpl implements TemaService {
 	}
 
 	@Override
-	public List<TemaDto> listarTemasPropuestosAlAsesor(Integer asesorId, String titulo, Integer limit, Integer offset) {
+	public List<TemaDto> listarTemasPropuestosAlAsesor(String asesorId, String titulo, Integer limit, Integer offset) {
+		UsuarioDto usuDto = usuarioService.findByCognitoId(asesorId);
+
 		String sql = "SELECT * FROM listar_temas_propuestos_al_asesor(:asesorId, :titulo, :limit, :offset)";
 
 		List<Object[]> resultados = entityManager
 				.createNativeQuery(sql)
-				.setParameter("asesorId", asesorId)
+				.setParameter("asesorId", usuDto.getId())
 				.setParameter("titulo", titulo != null ? titulo : "")
 				.setParameter("limit", limit != null ? limit : 10)
 				.setParameter("offset", offset != null ? offset : 0)

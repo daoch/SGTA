@@ -66,15 +66,20 @@ public class TemaController {
 		temaService.update(dto);
 	}
 
-	@GetMapping("/listarTemasPropuestosAlAsesor/{asesorId}")
+	@GetMapping("/listarTemasPropuestosAlAsesor")
 	public List<TemaDto> listarTemasPropuestosAlAsesor(
-			@PathVariable Integer asesorId,
 			@RequestParam(required = false) String titulo, // Parámetro opcional de título
 			@RequestParam(defaultValue = "10") Integer limit, // Parámetro de límite, con valor por defecto de 10
-			@RequestParam(defaultValue = "0") Integer offset // Parámetro de desplazamiento, con valor por defecto de 0
+			@RequestParam(defaultValue = "0") Integer offset, // Parámetro de desplazamiento, con valor por defecto de 0
+			HttpServletRequest request
 	) {
+		try {
+			String asesorId = jwtService.extractSubFromRequest(request);
+			return temaService.listarTemasPropuestosAlAsesor(asesorId, titulo, limit, offset);
+		} catch (RuntimeException e) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+		}
 
-		return temaService.listarTemasPropuestosAlAsesor(asesorId, titulo, limit, offset);
 	}
 
 
