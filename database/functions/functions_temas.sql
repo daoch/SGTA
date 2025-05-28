@@ -949,7 +949,7 @@ FOR EACH ROW
 EXECUTE FUNCTION generar_codigo_tema();
 
 CREATE OR REPLACE FUNCTION listar_propuestas_del_tesista_con_usuarios(
-    p_tesista_id INTEGER
+    p_tesista_id TEXT
 )
 RETURNS TABLE(
     tema_id            INTEGER,
@@ -968,9 +968,16 @@ RETURNS TABLE(
     usuarios           JSONB
 )
 LANGUAGE plpgsql
-
 AS $$
+DECLARE 
+    v_uid INTEGER;
 BEGIN
+    -- Obtener el usuario_id desde el cognito_id
+    SELECT u.usuario_id
+    INTO v_uid
+    FROM usuario u
+    WHERE u.id_cognito = p_tesista_id;
+
     RETURN QUERY
     SELECT
         t.tema_id,
@@ -1004,7 +1011,7 @@ BEGIN
     FROM tema t
     JOIN usuario_tema ut_tesista
       ON ut_tesista.tema_id    = t.tema_id
-     AND ut_tesista.usuario_id = p_tesista_id
+     AND ut_tesista.usuario_id = v_uid
      AND ut_tesista.rol_id     = (
          SELECT rol_id FROM rol WHERE nombre ILIKE 'Tesista' LIMIT 1
      )
@@ -1024,6 +1031,7 @@ BEGIN
       r.documento_url, t.activo, t.fecha_limite, t.fecha_creacion, t.fecha_modificacion, et.nombre;
 END;
 $$;
+
 
 
 CREATE OR REPLACE FUNCTION listar_postulaciones_del_tesista_con_usuarios(

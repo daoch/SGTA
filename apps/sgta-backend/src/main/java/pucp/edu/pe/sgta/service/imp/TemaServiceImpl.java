@@ -160,7 +160,7 @@ public class TemaServiceImpl implements TemaService {
 
 	@Transactional
 	@Override
-	public void createTemaPropuesta(TemaDto dto, Integer idUsuarioCreador, Integer tipoPropuesta) {
+	public void createTemaPropuesta(TemaDto dto, String idUsuarioCreador, Integer tipoPropuesta) {
 
 		dto.setId(null);
 
@@ -903,7 +903,7 @@ public class TemaServiceImpl implements TemaService {
 		return resultado;
 	}
 
-	public List<TemaDto> listarPropuestasPorTesista(Integer tesistaId) {
+	public List<TemaDto> listarPropuestasPorTesista(String tesistaId) {
 		String sql = "SELECT * " +
 				"  FROM listar_propuestas_del_tesista_con_usuarios(:p_tesista_id)";
 		Query query = entityManager.createNativeQuery(sql)

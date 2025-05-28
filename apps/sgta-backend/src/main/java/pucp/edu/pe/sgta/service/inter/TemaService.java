@@ -25,7 +25,7 @@ public interface TemaService {
 	 * @param idUsuarioCreador: tesista id
 	 * @param tipoPropuesta:    0 for general, 1 for direct
 	 */
-	void createTemaPropuesta(TemaDto dto, Integer idUsuarioCreador, Integer tipoPropuesta);
+	void createTemaPropuesta(TemaDto dto, String idUsuarioCreador, Integer tipoPropuesta);
 
 	void update(TemaDto dto);
 
@@ -62,7 +62,7 @@ public interface TemaService {
 
 	List<TemaConAsesorJuradoDTO> listarTemasCicloActualXEtapaFormativa(Integer etapaFormativaId);
 
-	List<TemaDto> listarPropuestasPorTesista(Integer tesistaId);
+	List<TemaDto> listarPropuestasPorTesista(String tesistaId);
 
 	List<TemaDto> listarPostulacionesAMisPropuestas(Integer tesistaId, Integer tipoPropuesta);
 

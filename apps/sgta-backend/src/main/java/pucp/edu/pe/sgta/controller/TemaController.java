@@ -1,15 +1,17 @@
 package pucp.edu.pe.sgta.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import pucp.edu.pe.sgta.dto.asesores.InfoTemaPerfilDto;
-import pucp.edu.pe.sgta.dto.TemaConAsesorJuradoDTO;
 import pucp.edu.pe.sgta.dto.TemaDto;
-import pucp.edu.pe.sgta.dto.UsuarioSolicitudDto;
 import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
+import pucp.edu.pe.sgta.service.inter.JwtService;
 import pucp.edu.pe.sgta.service.inter.TemaService;
 
 import java.util.List;
@@ -23,6 +25,9 @@ public class TemaController {
 	@Autowired
 	TemaService temaService;
 
+	@Autowired
+	JwtService jwtService;
+
 	@GetMapping("/findByUser") // finds topics by user
 	public List<TemaDto> findByUser(@RequestParam(name = "idUsuario") Integer idUsuario) {
 		return temaService.findByUsuario(idUsuario);
@@ -31,13 +36,19 @@ public class TemaController {
 	@GetMapping("/findById") // finds a topic by id
 	public TemaDto findById(@RequestParam(name = "idTema") Integer idTema) {
 		return temaService.findById(idTema);
-	}
-
-    @PostMapping("/createPropuesta")
+	}  
+	
+	
+	@PostMapping("/createPropuesta")
     public void createTema(@RequestBody TemaDto dto,
-                           @RequestParam(name = "idUsuarioCreador") Integer idUsuarioCreador,
-						   @RequestParam(name = "tipoPropuesta", defaultValue = "0") Integer tipoPropuesta) {
-        temaService.createTemaPropuesta(dto, idUsuarioCreador, tipoPropuesta);
+						   @RequestParam(name = "tipoPropuesta", defaultValue = "0") Integer tipoPropuesta,
+						   HttpServletRequest request) {
+		try {
+			String idUsuarioCreador = jwtService.extractSubFromRequest(request);
+			temaService.createTemaPropuesta(dto, idUsuarioCreador, tipoPropuesta);
+		} catch (RuntimeException e) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+		}
     }
 
     @PostMapping("/createInscripcion") // Inscripcion de tema oficial por asesor
@@ -102,6 +113,7 @@ public class TemaController {
 
 		temaService.enlazarTesistasATemaPropuestDirecta(usuariosId, temaId, profesorId, comentario);
 	}
+
     @GetMapping("/listarTemasPorUsuarioRolEstado/{usuarioId}")
     public List<TemaDto> listarTemasPorUsuarioRolEstado(
             @PathVariable("usuarioId") Integer usuarioId,
@@ -120,14 +132,14 @@ public class TemaController {
 
 	}
 
-	@GetMapping("/listarPropuestasPorTesista/{tesistaId}")
-	public List<TemaDto> listarPropuestasPorTesista(@PathVariable("tesistaId") Integer tesistaId) {
-		return temaService.listarPropuestasPorTesista(tesistaId);
-	}
-
-	@GetMapping("/listarTemasCicloActualXEtapaFormativa/{etapaFormativaId}")
-	public List<TemaConAsesorJuradoDTO>listarTemasCicloActualXEtapaFormativa(@PathVariable("etapaFormativaId") Integer etapaFormativaId) {
-		return temaService.listarTemasCicloActualXEtapaFormativa(etapaFormativaId);
+	@GetMapping("/listarPropuestasPorTesista")
+	public List<TemaDto> listarPropuestasPorTesista(HttpServletRequest request) {
+		try {
+			String tesistaId = jwtService.extractSubFromRequest(request);
+			return temaService.listarPropuestasPorTesista(tesistaId);
+		} catch (RuntimeException e) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+		}
 	}
 
 	@GetMapping("/listarPostulacionesDirectasAMisPropuestas/{tesistaId}")
@@ -135,12 +147,11 @@ public class TemaController {
 		return temaService.listarPostulacionesAMisPropuestas(tesistaId, 1);
 	}
 
-
-
 	@GetMapping("/listarTemasAsesorInvolucrado/{asesorId}")
 	public List<InfoTemaPerfilDto> listarTemasAsesorInvolucrado(@PathVariable("asesorId") Integer asesorId) {
 		return temaService.listarTemasAsesorInvolucrado(asesorId);
 	}
+	
 	@GetMapping("/listarPostulacionesGeneralesAMisPropuestas/{tesistaId}")
 	public List<TemaDto> listarPostulacionesGeneralesAMisPropuestas(@PathVariable("tesistaId") Integer tesistaId) {
 		return temaService.listarPostulacionesAMisPropuestas(tesistaId, 0);
@@ -152,17 +163,27 @@ public class TemaController {
 	}
 
 	@PostMapping("/aprobarPostulacionAPropuesta")
-	public void aprobarPostulacionAPropuestaGeneral(@RequestParam("alumnoId") Integer alumnoId,
-													@RequestParam("asesorId") Integer asesorId,
-													@RequestParam("temaId") Integer temaId){
-		temaService.aprobarPostulacionAPropuestaGeneral(temaId, asesorId, alumnoId);
+	public void aprobarPostulacionAPropuestaGeneral(@RequestParam("asesorId") Integer asesorId,
+													@RequestParam("temaId") Integer temaId,
+													HttpServletRequest request){
+		try {
+			String alumnoId = jwtService.extractSubFromRequest(request);
+			temaService.aprobarPostulacionAPropuestaGeneral(temaId, asesorId, Integer.parseInt(alumnoId));
+		} catch (RuntimeException e) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+		}
 	}
 
 	@PostMapping("/rechazarPostulacionAPropuesta")
-	public void rechazarPostulacionAPropuestaGeneral(@RequestParam("alumnoId") Integer alumnoId,
-													@RequestParam("asesorId") Integer asesorId,
-													@RequestParam("temaId") Integer temaId){
-		temaService.rechazarPostulacionAPropuestaGeneral(temaId, asesorId, alumnoId);
+	public void rechazarPostulacionAPropuestaGeneral(@RequestParam("asesorId") Integer asesorId,
+													@RequestParam("temaId") Integer temaId,
+													HttpServletRequest request){
+		try {
+			String alumnoId = jwtService.extractSubFromRequest(request);
+			temaService.rechazarPostulacionAPropuestaGeneral(temaId, asesorId, Integer.parseInt(alumnoId));
+		} catch (RuntimeException e) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+		}
 	}
 
 	@GetMapping("/listarTemasPorCarrera/{carreraId}/{estado}")
@@ -188,6 +209,7 @@ public class TemaController {
 		temaService.cambiarEstadoTemaCoordinador(id, estado, usuarioId, comentario);
 		return ResponseEntity.noContent().build();
 	}
+
 	@GetMapping("/listarExposiciones/{temaId}")
 	public List<ExposicionTemaMiembrosDto> listarExposicionXTemaId(@PathVariable Integer temaId){
 		return temaService.listarExposicionXTemaId(temaId);

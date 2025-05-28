@@ -40,6 +40,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useAuthStore } from "@/features/auth/store/auth-store";
 import { Proyecto, SubAreaConocimiento, Usuario } from "@/features/temas/types/propuestas/entidades";
 import { Eye, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -74,9 +75,28 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
   useEffect(() => {
     async function fetchPropuestas() {
       try {
+        const { idToken } = useAuthStore.getState();
+        
+        if (!idToken) {
+          console.error("No authentication token available");
+          return;
+        }
+
+        debugger;
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPropuestasPorTesista/7`
+          `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPropuestasPorTesista`,
+          {
+            headers: {
+              'Authorization': `Bearer ${idToken}`,
+              'Content-Type': 'application/json'
+            }
+          }
         );
+        
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+
         const data: PropuestaAPI[] = await res.json();
 
         const mapped: Proyecto[] = data.map((item) => ({
