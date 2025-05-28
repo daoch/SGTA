@@ -18,4 +18,6 @@ public class ListBloqueHorarioExposicionSimpleDTO {
     private TemaConAsesorJuradoDTO expo;
     private Boolean esBloqueReservado;
     private Boolean esBloqueBloqueado;
+    private TemaConAsesorJuradoDTO anteriorExpo;
+    private boolean cambiado = false;
 }
