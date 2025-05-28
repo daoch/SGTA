@@ -379,14 +379,6 @@ export const actualizarEstadoControlExposicion = async (
 ): Promise<boolean> => {
   try {
 
-    const requestData = {
-      exposicionTemaId: exposicionId,
-      juradoId: juradoId,
-      estadoExposicionUsuario: nuevoEstado,
-    };
-
-    console.log('PUT Request a:', '/jurado/control');
-    console.log('Datos enviados:', JSON.stringify(requestData, null, 2));
 
     const response = await axiosInstance.put("/jurado/control", {
       exposicionTemaId: exposicionId,
@@ -394,13 +386,6 @@ export const actualizarEstadoControlExposicion = async (
       estadoExposicionUsuario: nuevoEstado,
     });
 
-
-
-    console.log('Respuesta recibida:', {
-      status: response.status,
-      statusText: response.statusText,
-      data: response.data
-    });
 
     return response.status === 200;
 
