@@ -4,7 +4,7 @@ import { EstadoSolicitud, TipoSolicitud } from "./enums";
 import { Usuario } from "../temas/entidades";
 
 export const ejemploTemaInscrito: Tema = {
-  id: 1,
+  id: 22,
   codigo: "TT2025-001",
   carrera: {
     id: 2,

@@ -1,7 +1,10 @@
 "use client";
 
 import SolicitudesPendientes from "@/features/temas/views/solicitudes-pendientes";
-import { listarTemasPorCarrera } from "@/features/temas/types/solicitudes/data";
+import {
+  fetchCarrerasMiembroComite,
+  listarTemasPorCarrera,
+} from "@/features/temas/types/solicitudes/data";
 import React, { useEffect, useState } from "react";
 import { Tema } from "@/features/temas/types/temas/entidades";
 import { SolicitudPendiente } from "@/features/temas/types/solicitudes/entities";
@@ -13,12 +16,24 @@ import { ejemploUsuario } from "@/features/temas/types/solicitudes/mock"; // O i
 
 const Page: React.FC = () => {
   const [temas, setTemas] = useState<Tema[]>([]);
-  const carreraId = 1; // Cambia esto por el id real de la carrera
-  const estado = "INSCRITO"; // O el estado que necesites
+  const usuarioId = Number(process.env.NEXT_PUBLIC_ID_USUARIO) || 1;
 
   useEffect(() => {
-    listarTemasPorCarrera(carreraId, estado).then(setTemas);
-  }, [carreraId, estado]);
+    async function fetchAllTemas() {
+      // 1. Obtener carreras del usuario
+      const carreras = await fetchCarrerasMiembroComite(usuarioId);
+      const carreraIds = (carreras || []).map((c) => c.id);
+
+      // 2. Obtener temas de todas las carreras con estado INSCRITO
+      const temasPorCarrera = await Promise.all(
+        carreraIds.map((id) => listarTemasPorCarrera(id, "INSCRITO")),
+      );
+      // 3. Unir todos los temas en una sola lista
+      const todosLosTemas = temasPorCarrera.flat();
+      setTemas(todosLosTemas);
+    }
+    fetchAllTemas();
+  }, [usuarioId]);
 
   // Mapea los temas a solicitudes con data harcodeada
   const solicitudes: SolicitudPendiente[] = temas.map((tema, idx) => ({

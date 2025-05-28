@@ -103,7 +103,10 @@ export function SolicitudesTable({
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Link href={`/solicitudes/${sol.id}`} passHref>
+                          <Link
+                            href={`/coordinador/aprobaciones/${sol.id}`}
+                            passHref
+                          >
                             <Button variant="ghost" size="icon">
                               <Eye className="h-4 w-4" />
                               <span className="sr-only">Ver detalles</span>
@@ -117,7 +120,7 @@ export function SolicitudesTable({
                     </TooltipProvider>
 
                     {/* Solo si está pendiente, mostrar rechazar/aceptar */}
-                    {sol.estado === EstadoSolicitud.PENDIENTE && (
+                    {/* {sol.estado === EstadoSolicitud.PENDIENTE && (
                       <>
                         <TooltipProvider>
                           <Tooltip>
@@ -155,7 +158,7 @@ export function SolicitudesTable({
                           </Tooltip>
                         </TooltipProvider>
                       </>
-                    )}
+                    )} */}
                   </div>
                 </TableCell>
               </TableRow>
