@@ -378,7 +378,6 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION obtener_ciclo_etapa_por_tema(p_tema_id integer)
-CREATE OR REPLACE FUNCTION obtener_ciclo_etapa_por_tema(p_tema_id integer)
     RETURNS TABLE(ciclo_id integer, ciclo_nombre text, etapa_formativa_id integer, etapa_formativa_nombre text)
     LANGUAGE plpgsql
 AS
@@ -401,7 +400,6 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION obtener_area_conocimiento_jurado(usuario_id_param integer)
 CREATE OR REPLACE FUNCTION obtener_area_conocimiento_jurado(usuario_id_param integer)
     RETURNS TABLE(usuario_id integer, area_conocimiento_id integer, area_conocimiento_nombre character varying)
     LANGUAGE plpgsql
@@ -736,29 +734,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION listar_entregables_x_etapa_formativa_x_ciclo(etapaformativaxcicloid integer)
-    RETURNS TABLE(id integer, etapa_formativa_x_ciclo_id integer, nombre character varying, descripcion text, fecha_inicio timestamp with time zone, fecha_fin timestamp with time zone, estado enum_estado_actividad, es_evaluable boolean)
-    LANGUAGE plpgsql
-AS
-$$
-BEGIN
-    RETURN QUERY
-    SELECT
-        e.entregable_id AS id,
-        e.etapa_formativa_x_ciclo_id,
-        e.nombre,
-        e.descripcion,
-        e.fecha_inicio,
-        e.fecha_fin,
-        e.estado AS estado,
-        e.es_evaluable
-    FROM entregable e
-    INNER JOIN etapa_formativa_x_ciclo efc ON e.etapa_formativa_x_ciclo_id = efc.etapa_formativa_x_ciclo_id
-    WHERE efc.etapa_formativa_x_ciclo_id = etapaFormativaXCicloId
-      AND e.activo = TRUE;
-END;
-$$;
-
 CREATE OR REPLACE FUNCTION listar_etapa_formativa_nombre()
     RETURNS TABLE(etapa_formativa_id integer, nombre text)
     LANGUAGE plpgsql
@@ -898,19 +873,18 @@ END;
 $$ LANGUAGE plpgsql;
 -- Para volver a estados
 
-update exposicion
-set
-    estado_planificacion_id = 2
-where
-    exposicion_id = 1
-    or exposicion_id = 2;
+--update exposicion
+--set
+--    estado_planificacion_id = 2
+--where
+--    exposicion_id = 1
+--    or exposicion_id = 2;
 
-update bloque_horario_exposicion
-set
-    exposicion_x_tema_id = null,
-    es_bloque_reservado = false,
-    fecha_modificacion = null
-where
-    bloque_horario_exposicion_id >= 1;
+--update bloque_horario_exposicion
+--set
+--  exposicion_x_tema_id = null,
+--    es_bloque_reservado = false,
+--where
+--    bloque_horario_exposicion_id >= 1;
 
-update exposicion_x_tema set estado_exposicion = 'sin_programar';
+--update exposicion_x_tema set estado_exposicion = 'sin_programar';

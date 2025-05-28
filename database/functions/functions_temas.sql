@@ -1252,7 +1252,7 @@ BEGIN
 END;
 $$;
 
-ALTER FUNCTION aprobar_postulacion_propuesta_general_tesista(INTEGER, INTEGER, INTEGER) OWNER TO doadmin;
+--ALTER FUNCTION aprobar_postulacion_propuesta_general_tesista(INTEGER, INTEGER, INTEGER) OWNER TO doadmin;
 
 CREATE OR REPLACE FUNCTION rechazar_postulacion_propuesta_general_tesista(
     p_tema_id    INT,
