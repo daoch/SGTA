@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
+import { useAuthStore } from "@/features/auth/store/auth-store";
 import { Usuario } from "@/features/temas/types/propuestas/entidades";
 import { Plus, Save } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -67,16 +68,36 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
   const [cotesistas, setCotesistas] = useState<Estudiante[]>([]);
   const [codigoCotesista, setCodigoCotesista] = useState("");
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
-
   useEffect(() => {
-    fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/subAreaConocimiento/listarPorCarreraDeUsuario?usuarioId=7`
-    )
-      .then((res) => res.json())
-      .then((data: Array<{ id: number; nombre: string }>) => {
+    async function fetchAreas() {
+      try {
+        const { idToken } = useAuthStore.getState();
+        
+        if (!idToken) {
+          console.error("No authentication token available");
+          return;
+        }
+
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/subAreaConocimiento/listarPorCarreraDeUsuario`,
+          {
+            headers: {
+              "Authorization": `Bearer ${idToken}`,
+              "Content-Type": "application/json"
+            }
+          }
+        );
+
+        if (!res.ok) throw new Error("Error loading areas");
+
+        const data: Array<{ id: number; nombre: string }> = await res.json();
         setAreas(data.map((a) => ({ id: a.id, nombre: a.nombre })));
-      })
-      .catch((err) => console.error("Error cargando áreas:", err));
+      } catch (err) {
+        console.error("Error cargando áreas:", err);
+      }
+    }
+
+    fetchAreas();
   }, []);
 
   useEffect(() => {
