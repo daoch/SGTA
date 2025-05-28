@@ -67,11 +67,8 @@ interface PropuestasTableProps {
 export function PropuestasTable({ filter }: PropuestasTableProps) {
   const [propuestas, setPropuestas] = useState<Proyecto[]>([]);
   const [areaFilter, setAreaFilter] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedPropuesta, setSelectedPropuesta] = useState<Proyecto | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");  const [selectedPropuesta, setSelectedPropuesta] = useState<Proyecto | null>(null);
   const [openDialog, setOpenDialog] = useState(false); 
-
-  const MY_ID = 4;
 
   useEffect(() => {
     async function fetchPropuestas() {
@@ -83,13 +80,12 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
           return;
         }
 
-        debugger;
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPropuestasPorTesista`,
           {
             headers: {
-              'Authorization': `Bearer ${idToken}`,
-              'Content-Type': 'application/json'
+              "Authorization": `Bearer ${idToken}`,
+              "Content-Type": "application/json"
             }
           }
         );
