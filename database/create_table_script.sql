@@ -745,7 +745,7 @@ CREATE TABLE IF NOT EXISTS sala_exposicion
     sala_exposicion_id   SERIAL PRIMARY KEY,
     nombre               TEXT                      NOT NULL,
     activo               BOOLEAN                   NOT NULL DEFAULT TRUE,
-    tipo_sala_exposicion enum_tipo_sala_exposicion NOT NULL DEFAULT 'presencial',
+    tipo_sala_exposicion enum_tipo_sala_exposicion  NOT NULL DEFAULT 'presencial', --enum_tipo_sala_exposicion | VARCHAR(255)
     fecha_creacion       TIMESTAMP WITH TIME ZONE  NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion   TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -882,7 +882,7 @@ CREATE TABLE IF NOT EXISTS exposicion_x_tema
     --revision_criterio_x_exposicion_id INTEGER,
     link_exposicion                   TEXT,
     link_grabacion                    TEXT,
-    estado_exposicion                 enum_estado_exposicion   NOT NULL DEFAULT 'sin_programar',
+    estado_exposicion                 enum_estado_exposicion   NOT NULL DEFAULT 'sin_programar', --enum_estado_exposicion | VARCHAR(255)
     nota_final                        NUMERIC(6, 2),
     activo                            BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion                    TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -954,7 +954,7 @@ CREATE TABLE IF NOT EXISTS control_exposicion_usuario
     control_exposicion_usuario_id    SERIAL PRIMARY KEY,
     exposicion_x_tema_id             INTEGER                  NOT NULL,
     usuario_x_tema_id                INTEGER                  NOT NULL,
-    estado_exposicion_usuario        enum_estado_usuario_exposicion,
+    estado_exposicion_usuario        VARCHAR(255), --enum_estado_usuario_exposicion
     observaciones_finales_exposicion TEXT,
     asistio                          BOOLEAN,
     activo                           BOOLEAN                  NOT NULL DEFAULT TRUE,
