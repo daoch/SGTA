@@ -1736,3 +1736,59 @@ END;
 $$;
 
 
+CREATE OR REPLACE FUNCTION buscar_tema_por_id(p_tema_id INT)
+RETURNS TABLE (
+    codigo TEXT,
+    titulo TEXT,
+    resumen TEXT,
+    metodologia TEXT,
+    objetivos TEXT,
+    fecha_limite DATE,
+    requisitos TEXT,
+    asesor INTEGER,
+    subareas_id INTEGER[],
+    asesores_id INTEGER[],
+    carrera INTEGER,
+    tesistas_id INTEGER[]      -- Nuevo campo para tesistas
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        t.codigo::TEXT,
+        t.titulo::TEXT,
+        t.resumen::TEXT,
+        t.metodologia::TEXT,
+        t.objetivos::TEXT,
+        t.fecha_limite::DATE,
+        t.requisitos,
+        (
+            SELECT ut.usuario_id
+            FROM usuario_tema ut
+            WHERE ut.tema_id = t.tema_id 
+              AND ut.rol_id = (SELECT rol_id FROM rol WHERE nombre = 'Asesor')
+            LIMIT 1
+        ) AS asesor,
+        ARRAY(
+            SELECT DISTINCT sct.sub_area_conocimiento_id
+            FROM sub_area_conocimiento_tema sct
+            WHERE sct.tema_id = t.tema_id
+        ) AS subareas_id,
+        ARRAY(
+            SELECT DISTINCT ut.usuario_id
+            FROM usuario_tema ut
+            WHERE ut.tema_id = t.tema_id 
+              AND ut.rol_id = (SELECT rol_id FROM rol WHERE nombre = 'Coasesor')
+        ) AS asesores_id,
+        t.carrera_id,
+        ARRAY(
+            SELECT DISTINCT ut.usuario_id
+            FROM usuario_tema ut
+            WHERE ut.tema_id = t.tema_id
+              AND ut.rol_id = (SELECT rol_id FROM rol WHERE nombre = 'Tesista')
+        ) AS tesistas_id
+    FROM tema t
+    WHERE t.tema_id = p_tema_id;
+END;
+$$ LANGUAGE plpgsql;
+
+
