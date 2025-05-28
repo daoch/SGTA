@@ -1092,7 +1092,7 @@ public class TemaServiceImpl implements TemaService {
 	}
 
 	@Override
-	public List<TemaDto> listarPostulacionesAMisPropuestas(Integer tesistaId, Integer tipoPost) {
+	public List<TemaDto> listarPostulacionesAMisPropuestas(String tesistaId, Integer tipoPost) {
 		String sql = "SELECT * " +
 				"  FROM listar_postulaciones_del_tesista_con_usuarios(:p_tesista_id, :p_tipo_post)";
 		Query query = entityManager.createNativeQuery(sql)
