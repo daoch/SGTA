@@ -35,4 +35,7 @@ public interface ExposicionRepository extends JpaRepository<Exposicion, Integer>
 
   @Query(value = "SELECT * FROM listar_exposiciones_sin_inicializar_cicloactual_por_etapa_formativa(:etapaFormativaId)", nativeQuery = true)
     List<Object[]> listarExposicionesSinInicializarByEtapaFormativaEnCicloActual(@Param("etapaFormativaId") Integer etapaFormativaId);
+
+    @Query(value = "SELECT * FROM listar_exposiciones_por_usuario(:usuarioId)", nativeQuery = true)
+    List<Object[]> listarExposicionesXUsuario(@Param("usuarioId") Integer usuarioId);
 }
