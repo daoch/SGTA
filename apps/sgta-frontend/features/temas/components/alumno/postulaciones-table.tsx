@@ -110,16 +110,34 @@ export function PostulacionesTable({
           console.error("Error en la API de decisión:", err);
         }
       };
-
   useEffect(() => {
     async function fetchAll() {
       try {
+        const { idToken } = useAuthStore.getState();
+        
+        if (!idToken) {
+          console.error("No authentication token available");
+          return;
+        }
+
         const [dirRes, genRes] = await Promise.all([
           fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPostulacionesDirectasAMisPropuestas/7`
+            `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPostulacionesDirectasAMisPropuestas`,
+            {
+              headers: {
+                "Authorization": `Bearer ${idToken}`,
+                "Content-Type": "application/json"
+              }
+            }
           ),
           fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPostulacionesGeneralesAMisPropuestas/7`
+            `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPostulacionesGeneralesAMisPropuestas`,
+            {
+              headers: {
+                "Authorization": `Bearer ${idToken}`,
+                "Content-Type": "application/json"
+              }
+            }
           ),
         ]);
 
