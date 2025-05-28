@@ -650,13 +650,40 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- CREATE OR REPLACE FUNCTION obtener_usuarios_con_temass()
+--  RETURNS TABLE(usuario_id integer, codigo_pucp character varying, nombres character varying, primer_apellido character varying, segundo_apellido character varying, correo_electronico character varying, nivel_estudios character varying, cantidad_temas_asignados bigint, tema_activo boolean, fecha_asignacion timestamp with time zone)
+--  LANGUAGE plpgsql
+-- AS $function$
+-- BEGIN
+--     RETURN QUERY
+--     SELECT DISTINCT ON (u.usuario_id)
+--         u.usuario_id,
+--         u.codigo_pucp,
+--         u.nombres,
+--         u.primer_apellido,
+--         u.segundo_apellido,
+--         u.correo_electronico,
+--         u.nivel_estudios,
+--         COUNT(ut.tema_id) OVER (PARTITION BY u.usuario_id) AS cantidad_temas_asignados,
+--         ut.activo AS tema_activo,
+--         ut.fecha_creacion AS fecha_asignacion
+--     FROM usuario u
+--     JOIN usuario_tema ut ON u.usuario_id = ut.usuario_id
+--     JOIN tema t ON ut.tema_id = t.tema_id
+--     WHERE ut.rol_id = 2 AND ut.activo = true
+--     ORDER BY u.usuario_id, ut.prioridad;
+-- END;
+-- $function$;
+
 CREATE OR REPLACE FUNCTION obtener_usuarios_con_temass()
  RETURNS TABLE(usuario_id integer, codigo_pucp character varying, nombres character varying, primer_apellido character varying, segundo_apellido character varying, correo_electronico character varying, nivel_estudios character varying, cantidad_temas_asignados bigint, tema_activo boolean, fecha_asignacion timestamp with time zone)
  LANGUAGE plpgsql
 AS $function$
 BEGIN
     RETURN QUERY
-    SELECT DISTINCT ON (u.usuario_id)
+    SELECT *
+    FROM (
+      SELECT DISTINCT ON (u.usuario_id)
         u.usuario_id,
         u.codigo_pucp,
         u.nombres,
@@ -664,14 +691,15 @@ BEGIN
         u.segundo_apellido,
         u.correo_electronico,
         u.nivel_estudios,
-        COUNT(ut.tema_id) OVER (PARTITION BY u.usuario_id) AS cantidad_temas_asignados,
+        COUNT(CASE WHEN ut.activo = true THEN 1 END) OVER (PARTITION BY u.usuario_id) AS cantidad_temas_asignados,
         ut.activo AS tema_activo,
         ut.fecha_creacion AS fecha_asignacion
-    FROM usuario u
-    JOIN usuario_tema ut ON u.usuario_id = ut.usuario_id
-    JOIN tema t ON ut.tema_id = t.tema_id
-    WHERE ut.rol_id = 2 AND ut.activo = true
-    ORDER BY u.usuario_id, ut.prioridad;
+      FROM usuario u
+      LEFT JOIN usuario_tema ut ON u.usuario_id = ut.usuario_id AND ut.rol_id = 2
+      LEFT JOIN tema t ON ut.tema_id = t.tema_id
+      ORDER BY u.usuario_id, ut.prioridad NULLS LAST
+    ) sub
+    WHERE sub.cantidad_temas_asignados > 0;
 END;
 $function$;
 
