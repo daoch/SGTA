@@ -958,5 +958,15 @@ public class UsuarioServiceImpl implements UsuarioService {
 			throw new RuntimeException("Error al obtener datos del alumno: " + e.getMessage());
 		}
 	}
-	
+
+	@Override
+	public UsuarioDto findByCognitoId(String cognitoId) throws NoSuchElementException {
+		Optional<Usuario> usuario = usuarioRepository.findByIdCognito(cognitoId);
+		if (usuario.isPresent()) {
+			return UsuarioMapper.toDto(usuario.get());
+		} else {
+			throw new NoSuchElementException("Usuario not found with ID Cognito: " + cognitoId);
+		}
+	}
+
 }

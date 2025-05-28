@@ -72,9 +72,9 @@ public interface TemaService {
 
 	void eliminarPostulacionesTesista(Integer idUsuario);
 
-	void rechazarPostulacionAPropuestaGeneral(Integer idTema, Integer idAsesor, Integer idTesista);
+	void rechazarPostulacionAPropuestaGeneral(Integer idTema, Integer idAsesor, String idTesista);
 
-	void aprobarPostulacionAPropuestaGeneral(Integer idTema, Integer idAsesor, Integer idTesista);
+	void aprobarPostulacionAPropuestaGeneral(Integer idTema, Integer idAsesor, String idTesista);
 
 	List<TemaDto> listarTemasPorEstadoYCarrera(String estadoNombre, Integer carreraId);
 

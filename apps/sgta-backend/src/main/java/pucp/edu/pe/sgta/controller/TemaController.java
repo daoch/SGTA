@@ -168,7 +168,7 @@ public class TemaController {
 													HttpServletRequest request){
 		try {
 			String alumnoId = jwtService.extractSubFromRequest(request);
-			temaService.aprobarPostulacionAPropuestaGeneral(temaId, asesorId, Integer.parseInt(alumnoId));
+			temaService.aprobarPostulacionAPropuestaGeneral(temaId, asesorId, alumnoId);
 		} catch (RuntimeException e) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
 		}
@@ -180,7 +180,7 @@ public class TemaController {
 													HttpServletRequest request){
 		try {
 			String alumnoId = jwtService.extractSubFromRequest(request);
-			temaService.rechazarPostulacionAPropuestaGeneral(temaId, asesorId, Integer.parseInt(alumnoId));
+			temaService.rechazarPostulacionAPropuestaGeneral(temaId, asesorId, alumnoId);
 		} catch (RuntimeException e) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
 		}
