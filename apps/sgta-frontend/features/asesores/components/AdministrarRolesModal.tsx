@@ -1,28 +1,21 @@
-"use client";
-
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Profesor } from "@/features/asesores/types";
 import { useEffect, useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { Profesor } from "@/features/asesores/types";
 
 interface Props {
   profesor: Profesor | null;
   isOpen: boolean;
   onClose: () => void;
   onSave: (id: number, newRoles: ("asesor" | "jurado")[]) => void;
-  onShowAlert: (msg: string) => void;
 }
 
-export default function AdministrarRolesModal({ profesor, isOpen, onClose, onSave, onShowAlert }: Props) {
+export default function AdministrarRolesModal({ profesor, isOpen, onClose, onSave }: Props) {
   const [roles, setRoles] = useState<("asesor" | "jurado")[]>([]);
+  const [alerta, setAlerta] = useState<string | null>(null);
 
   useEffect(() => {
     if (profesor) setRoles(profesor.rolesAsignados);
@@ -31,6 +24,7 @@ export default function AdministrarRolesModal({ profesor, isOpen, onClose, onSav
   useEffect(() => {
     if (!isOpen) {
       setRoles([]);
+      setAlerta(null); // Limpia la alerta al cerrar el modal
     }
   }, [isOpen]);
 
@@ -38,25 +32,22 @@ export default function AdministrarRolesModal({ profesor, isOpen, onClose, onSav
     setRoles((prev) =>
       prev.includes(rol) ? prev.filter((r) => r !== rol) : [...prev, rol]
     );
+    setAlerta(null); // Limpia la alerta si el usuario cambia algo
   };
 
   const handleSave = () => {
     if (!profesor) return;
-    // Validar si se intenta desactivar un rol con tesis activas
     const desactivandoRol =
       (profesor.rolesAsignados.includes("asesor") && !roles.includes("asesor")) ||
       (profesor.rolesAsignados.includes("jurado") && !roles.includes("jurado"));
 
     if (desactivandoRol && profesor.tesisActivas > 0) {
-      onClose(); // Cierra el modal principal antes de mostrar la alerta
-      onShowAlert("No puedes desactivar el rol porque el profesor tiene tesis activas.");
-      return;
+      setAlerta("No puedes desactivar el rol porque el profesor tiene tesis activas.");
+      return; // Bloquea el guardado
     }
 
-    setTimeout(() => {
-      onSave(profesor.id, roles);
-      onClose();
-    }, 300);
+    onSave(profesor.id, roles);
+    onClose();
   };
 
   return (
@@ -65,6 +56,13 @@ export default function AdministrarRolesModal({ profesor, isOpen, onClose, onSav
         <DialogHeader>
           <DialogTitle>Administrar Roles</DialogTitle>
         </DialogHeader>
+
+        {alerta && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertTitle>Acción no permitida</AlertTitle>
+            <AlertDescription>{alerta}</AlertDescription>
+          </Alert>
+        )}
 
         <div className="space-y-4 py-2">
           <div className="flex items-center justify-between gap-2">

@@ -8,9 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Eye, Shield } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import AdministrarRolesModal from "./AdministrarRolesModal";
-import AlertaModalDesactivarAsesor from "./AlertaModalDesactivarAsesor";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/ui/use-toast";
 
 type Props = {
   profesores: Profesor[];
@@ -23,6 +23,7 @@ export default function DirectorioAsesoresTable({ profesores, onUpdateRoles }: P
   const [data, setData] = useState<Profesor[]>(profesores);
   const totalPages = Math.max(1, Math.ceil(data.length / rowsPerPage));
   const router = useRouter();
+  const { toast } = useToast();
 
   useEffect(() => {
     setPage(1);
@@ -53,40 +54,19 @@ export default function DirectorioAsesoresTable({ profesores, onUpdateRoles }: P
   const [selectedProfesor, setSelectedProfesor] = useState<Profesor | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const [alertOpen, setAlertOpen] = useState(false);
-  const [alertMessage, setAlertMessage] = useState("");
-  const [pendingAlert, setPendingAlert] = useState<string | null>(null);
-
   const handleOpenRolesModal = (profesor: Profesor) => {
     setSelectedProfesor(profesor);
     setIsModalOpen(true);
   };
 
-  const handleSaveRoles = (id: number, newRoles: ("asesor" | "jurado")[]) => {
-    onUpdateRoles(id, newRoles);
+  const handleSaveRoles = async (id: number, newRoles: ("asesor" | "jurado")[]) => {
+    await onUpdateRoles(id, newRoles);
+    toast({
+      title: "Roles actualizados",
+      description: "Los roles del profesor se actualizaron correctamente.",
+      variant: "success",
+    });
   };
-
-  const handleShowAlert = (msg: string) => {
-    setIsModalOpen(false);
-    setSelectedProfesor(null);
-    setPendingAlert(msg);
-  };
-
-  useEffect(() => {
-    if (!isModalOpen && pendingAlert) {
-      setTimeout(() => {
-        setAlertMessage(pendingAlert);
-        setAlertOpen(true);
-        setPendingAlert(null);
-      }, 100);
-    }
-  }, [isModalOpen, pendingAlert]);
-
-  useEffect(() => {
-    if (!alertOpen) {
-      document.body.style.overflow = "";
-    }
-  }, [alertOpen]);
 
   return (
     <>
@@ -231,21 +211,7 @@ export default function DirectorioAsesoresTable({ profesores, onUpdateRoles }: P
           setSelectedProfesor(null);
         }}
         onSave={handleSaveRoles}
-        onShowAlert={handleShowAlert}
       />
-      {alertOpen && (
-        <AlertaModalDesactivarAsesor
-          open={alertOpen}
-          onOpenChange={(open) => {
-            setAlertOpen(open);
-            if (!open) {
-              setSelectedProfesor(null);
-              setIsModalOpen(false);
-            }
-          }}
-          mensaje={alertMessage}
-        />
-      )}
     </>
   );
 }

@@ -1,6 +1,12 @@
 import { useState, useEffect } from "react";
 import { Profesor } from "../types";
 import axiosInstance from "@/lib/axios/axios-instance";
+import {
+  assignAdvisorRole,
+  removeAdvisorRole,
+  assignJuryRole,
+  removeJuryRole,
+} from "@/features/asesores/hooks/AdministrarRoles-apis";
 
 const ROL_MAP: Record<"todos" | "asesor" | "jurado", string | undefined> = {
   todos: undefined,
@@ -58,13 +64,46 @@ export function useDirectorioAsesores() {
     fetchProfesores();
   }, [rolAsignado, search]);
 
-  const updateRoles = (id: number, nuevosRoles: ("asesor" | "jurado")[]) => {
-    setProfesores(prev =>
-      prev.map(p =>
-        p.id === id ? { ...p, rolesAsignados: nuevosRoles } : p
-      )
-    );
-    // Aquí  llamamos a una API para actualizar roles
+
+  const updateRoles = async (
+    id: number,
+    nuevosRoles: ("asesor" | "jurado")[]
+  ): Promise<string | void> => {
+    const profesor = profesores.find((p) => p.id === id);
+    if (!profesor) return;
+
+    const rolesActuales = profesor.rolesAsignados;
+    let mensaje = "";
+
+    try {
+      // Asesor
+      if (!rolesActuales.includes("asesor") && nuevosRoles.includes("asesor")) {
+        mensaje = await assignAdvisorRole(id);
+      }
+      if (rolesActuales.includes("asesor") && !nuevosRoles.includes("asesor")) {
+        mensaje = await removeAdvisorRole(id);
+      }
+
+      // Jurado
+      if (!rolesActuales.includes("jurado") && nuevosRoles.includes("jurado")) {
+        mensaje = await assignJuryRole(id);
+      }
+      if (rolesActuales.includes("jurado") && !nuevosRoles.includes("jurado")) {
+        mensaje = await removeJuryRole(id);
+      }
+
+      // Actualiza el estado local solo si todo salió bien
+      setProfesores((prev) =>
+        prev.map((p) =>
+          p.id === id ? { ...p, rolesAsignados: nuevosRoles } : p
+        )
+      );
+
+      return mensaje || "Roles actualizados correctamente.";
+    } catch (error: any) {
+      // Puedes retornar el mensaje de error para mostrarlo en el modal/toast
+      return error.message || "Ocurrió un error al actualizar los roles.";
+    }
   };
 
   return {
