@@ -32,25 +32,43 @@ const ModalConfirmarReprogramacion = ({
         }
     };
 
+    const handleClose = (e?: React.MouseEvent) => {
+        if (e) {
+            e.stopPropagation();
+        }
+        onClose();
+    };
+
+    const handleContentClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+    };
+
     return (
-        <AlertDialog open={open} onOpenChange={onClose}>
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>
-                        Confirmar solicitud de reprogramación
-                    </AlertDialogTitle>
-                    <AlertDialogDescription>
-                        ¿Estás seguro de que deseas solicitar la reprogramación de esta exposición?
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleConfirm}>
-                        Confirmar
-                    </AlertDialogAction>
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
+
+        <div onClick={(e) => e.stopPropagation()}>
+            <AlertDialog open={open} onOpenChange={onClose}>
+                <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>
+                            Confirmar solicitud de reprogramación
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                            ¿Estás seguro de que deseas solicitar la reprogramación de esta exposición?
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={(e) => {
+                            e.stopPropagation();
+                            handleClose();
+                        }}>
+                            Cancelar</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleConfirm}>
+                            Confirmar
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </div>
     );
 };
 

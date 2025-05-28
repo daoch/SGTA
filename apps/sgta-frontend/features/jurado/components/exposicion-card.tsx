@@ -78,7 +78,7 @@ export function ExposicionCard({
       estadoNormalizado === "esperando_aprobacion" ||
       estadoNormalizado === "programada" ||
       estadoNormalizado === "completada" ||
-      estadoNormalizado === "finalizada"
+      estadoNormalizado === "calificada"
     ) {
       return estadoNormalizado as ExposicionEstado;
     }
@@ -96,7 +96,7 @@ export function ExposicionCard({
     )
       return "esperando_aprobacion";
     if (estadoNormalizado.includes("completa")) return "completada";
-    if (estadoNormalizado.includes("finaliza")) return "finalizada";
+    if (estadoNormalizado.includes("califica")) return "calificada";
 
     // Si no se encuentra ninguna coincidencia, devolver un valor por defecto
     return "sin_programar";

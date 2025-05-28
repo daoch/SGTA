@@ -342,6 +342,7 @@ export const getExposicionesJurado = async (
         id_etapa_formativa: expo.id_etapa_formativa,
         nombre_etapa_formativa: expo.nombre_etapa_formativa,
         titulo: expo.titulo,
+        nombre_exposicion: expo.nombre_exposicion,
         ciclo_id: expo.ciclo_id,
         miembros,
       };

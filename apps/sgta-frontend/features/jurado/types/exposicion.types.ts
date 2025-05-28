@@ -10,7 +10,7 @@ const ESTADOS = [
   "esperando_aprobacion",
   "programada",
   "completada",
-  "finalizada",
+  "calificada",
 ] as const;
 
 export type ExposicionEstado = (typeof ESTADOS)[number];
