@@ -106,9 +106,9 @@ const MiCronogramaPage = () => {
 
   // Estado para el formulario
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [newEvent, setNewEvent] = useState<Omit<CalendarEvent, 'id'>>({
-    title: '',
-    description: '',
+  const [newEvent, setNewEvent] = useState<Omit<CalendarEvent, "id">>({
+    title: "",
+    description: "",
     start: new Date(),
     end: new Date(),
     tipoEvento: "Reunión",
@@ -122,7 +122,7 @@ const MiCronogramaPage = () => {
   };
 
   // Función para manejar fechas
-  const handleDateChange = (name: 'start' | 'end', value: string) => {
+  const handleDateChange = (name: "start" | "end", value: string) => {
     const date = new Date(value);
     setNewEvent(prev => ({ ...prev, [name]: date }));
   };
@@ -136,8 +136,8 @@ const MiCronogramaPage = () => {
     setEvents(prev => [...prev, eventWithId]);
     setIsDialogOpen(false);
     setNewEvent({
-      title: '',
-      description: '',
+      title: "",
+      description: "",
       start: new Date(),
       end: new Date(),
       tipoEvento: "Reunión",
@@ -247,7 +247,7 @@ const MiCronogramaPage = () => {
                   id="start"
                   type="datetime-local"
                   value={newEvent.start.toISOString().slice(0, 16)}
-                  onChange={(e) => handleDateChange('start', e.target.value)}
+                  onChange={(e) => handleDateChange("start", e.target.value)}
                   className="col-span-3"
                 />
               </div>
@@ -260,7 +260,7 @@ const MiCronogramaPage = () => {
                   id="end"
                   type="datetime-local"
                   value={newEvent.end.toISOString().slice(0, 16)}
-                  onChange={(e) => handleDateChange('end', e.target.value)}
+                  onChange={(e) => handleDateChange("end", e.target.value)}
                   className="col-span-3"
                 />
               </div>

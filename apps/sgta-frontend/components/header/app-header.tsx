@@ -18,8 +18,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 
+declare global {
+  interface Window {
+    toast: typeof toast;
+  }
+}
+
 if (typeof window !== "undefined") {
-  (window as any).toast = toast;
+  window.toast = toast;
 }
 
 type TipoEvento = "Entregable" | "Reunión" | "Exposición";
