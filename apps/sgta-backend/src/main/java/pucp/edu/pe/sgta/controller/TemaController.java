@@ -142,20 +142,28 @@ public class TemaController {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
 		}
 	}
-
-	@GetMapping("/listarPostulacionesDirectasAMisPropuestas/{tesistaId}")
-	public List<TemaDto> listarPostulacionesDirectasAMisPropuestas(@PathVariable("tesistaId") Integer tesistaId) {
-		return temaService.listarPostulacionesAMisPropuestas(tesistaId, 1);
+	@GetMapping("/listarPostulacionesDirectasAMisPropuestas")
+	public List<TemaDto> listarPostulacionesDirectasAMisPropuestas(HttpServletRequest request) {
+		try {
+			String tesistaId = jwtService.extractSubFromRequest(request);
+			return temaService.listarPostulacionesAMisPropuestas(tesistaId, 1);
+		} catch (RuntimeException e) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+		}
 	}
 
 	@GetMapping("/listarTemasAsesorInvolucrado/{asesorId}")
 	public List<InfoTemaPerfilDto> listarTemasAsesorInvolucrado(@PathVariable("asesorId") Integer asesorId) {
 		return temaService.listarTemasAsesorInvolucrado(asesorId);
 	}
-	
-	@GetMapping("/listarPostulacionesGeneralesAMisPropuestas/{tesistaId}")
-	public List<TemaDto> listarPostulacionesGeneralesAMisPropuestas(@PathVariable("tesistaId") Integer tesistaId) {
-		return temaService.listarPostulacionesAMisPropuestas(tesistaId, 0);
+		@GetMapping("/listarPostulacionesGeneralesAMisPropuestas")
+	public List<TemaDto> listarPostulacionesGeneralesAMisPropuestas(HttpServletRequest request) {
+		try {
+			String tesistaId = jwtService.extractSubFromRequest(request);
+			return temaService.listarPostulacionesAMisPropuestas(tesistaId, 0);
+		} catch (RuntimeException e) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+		}
 	}
 
 	@PostMapping("/deleteTema") // deletes a topic
