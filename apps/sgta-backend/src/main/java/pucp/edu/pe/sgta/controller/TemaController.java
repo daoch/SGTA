@@ -8,6 +8,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import pucp.edu.pe.sgta.dto.TemaConAsesorJuradoDTO;
 import pucp.edu.pe.sgta.dto.asesores.InfoTemaPerfilDto;
 import pucp.edu.pe.sgta.dto.TemaDto;
 import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
@@ -170,6 +171,12 @@ public class TemaController {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
 		}
 	}
+
+	@GetMapping("/listarTemasCicloActualXEtapaFormativa/{etapaFormativaId}")
+	public List<TemaConAsesorJuradoDTO>listarTemasCicloActualXEtapaFormativa(@PathVariable("etapaFormativaId") Integer etapaFormativaId) {
+		return temaService.listarTemasCicloActualXEtapaFormativa(etapaFormativaId);
+	}
+
 
 	@PostMapping("/deleteTema") // deletes a topic
 	public void deleteTema(@RequestBody Integer idTema) {
