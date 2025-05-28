@@ -45,8 +45,8 @@ public class ControlExposicionUsuarioTema {
     @Column(name = "fecha_modificacion", insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaModificacion;
 
-    @Enumerated(EnumType.STRING)
+    // @Enumerated(EnumType.STRING)
     @Column(name = "estado_exposicion_usuario", nullable = false)
-    // @Convert(converter = EstadoExposicionUsuarioConverter.class)
+    @Convert(converter = EstadoExposicionUsuarioConverter.class)
     private EstadoExposicionUsuario estadoExposicion = EstadoExposicionUsuario.ESPERANDO_RESPUESTA;
 }

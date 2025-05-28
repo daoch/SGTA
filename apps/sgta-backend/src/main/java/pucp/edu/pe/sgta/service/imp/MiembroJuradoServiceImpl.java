@@ -21,6 +21,7 @@ import pucp.edu.pe.sgta.model.*;
 import pucp.edu.pe.sgta.repository.*;
 import pucp.edu.pe.sgta.service.inter.MiembroJuradoService;
 import pucp.edu.pe.sgta.util.EstadoExposicion;
+import pucp.edu.pe.sgta.dto.exposiciones.EstadoExposicionDto;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -616,6 +617,7 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                     // Crear DTO
                     ExposicionTemaMiembrosDto dto = new ExposicionTemaMiembrosDto();
                     dto.setId_exposicion(exposicionXTema.getId());
+                    dto.setNombre_exposicion(exposicionXTema.getExposicion().getNombre());
                     dto.setFechahora(datetimeInicio);
                     dto.setSala(salaNombre);
                     dto.setEstado(estado);
@@ -726,5 +728,17 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
         return ResponseEntity.ok(response);
     }
 
+    @Override
+    public List<EstadoExposicionDto> listarEstados() {
+        return Arrays.stream(EstadoExposicion.values())
+                .map(e -> new EstadoExposicionDto(e.name(), beautify(e.name())))
+                .collect(Collectors.toList());
+    }
+
+    private String beautify(String enumName) {
+        return enumName.replace("_", " ")
+                .toLowerCase()
+                .replaceFirst(String.valueOf(enumName.charAt(0)), String.valueOf(enumName.charAt(0)).toUpperCase());
+    }
 
 }

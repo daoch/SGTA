@@ -21,7 +21,10 @@ const ModalConfirmarReprogramacion = ({
     onClose,
     onConfirm,
 }: ModalConfirmarReprogramacionProps) => {
-    const handleConfirm = async () => {
+    const handleConfirm = async (e: React.MouseEvent) => {
+
+        e.stopPropagation();
+
         try {
             await onConfirm();
         } finally {
