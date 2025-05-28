@@ -19,4 +19,3 @@ export enum estadosValues {
   OBSERVADO = "observado",
   VENCIDO = "vencido",
 }
-

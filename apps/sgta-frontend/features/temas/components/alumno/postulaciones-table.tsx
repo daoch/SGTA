@@ -29,6 +29,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useAuthStore } from "@/features/auth/store/auth-store";
 import { Postulacion } from "@/features/temas/types/propuestas/entidades";
 import { CheckCircle, Eye, X } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -68,23 +69,31 @@ export function PostulacionesTable({
   const [searchTitulo, setSearchTitulo] = useState("");
   const [searchAsesor, setSearchAsesor] = useState("");
   const [areaFilter, setAreaFilter] = useState<string | null>(null);
-
   const handleDecision = async (
     decision: "aceptar" | "rechazar",
     temaId: number,
     asesorId: number,
-    alumnoId: number
+    _alumnoId: number
   ) => {
     try {
+      const { idToken } = useAuthStore.getState();
+                    
+      if (!idToken) {
+        console.error("No authentication token available");
+        return;
+      }
+
       const endpoint =
         decision === "aceptar"
           ? "aprobarPostulacionAPropuesta"
-          : "rechazarPostulacionAPropuesta";
-
-      const res = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/temas/${endpoint}?alumnoId=${alumnoId}&asesorId=${asesorId}&temaId=${temaId}`,
+          : "rechazarPostulacionAPropuesta";        const res = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/temas/${endpoint}?asesorId=${asesorId}&temaId=${temaId}`,
             {
               method: "POST",
+              headers: {
+                  "Authorization": `Bearer ${idToken}`,
+                  "Content-Type": "application/json"
+              }
             }
           );
 
@@ -107,10 +116,10 @@ export function PostulacionesTable({
       try {
         const [dirRes, genRes] = await Promise.all([
           fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPostulacionesDirectasAMisPropuestas/41`
+            `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPostulacionesDirectasAMisPropuestas/7`
           ),
           fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPostulacionesGeneralesAMisPropuestas/41`
+            `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPostulacionesGeneralesAMisPropuestas/7`
           ),
         ]);
 
