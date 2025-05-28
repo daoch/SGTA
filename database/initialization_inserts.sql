@@ -1,3 +1,5 @@
+SET search_path TO sgtadb;
+
 -- 1) Tipo de usuario y dedicacion
 INSERT INTO
     tipo_usuario (
