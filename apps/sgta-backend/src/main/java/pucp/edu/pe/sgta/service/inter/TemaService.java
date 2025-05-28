@@ -112,4 +112,5 @@ public interface TemaService {
 
 	TemaDto buscarTemaPorId(Integer idTema) throws SQLException;
 
+	void eliminarTemaCoordinador(Integer temaId, Integer usuarioId);
 }
