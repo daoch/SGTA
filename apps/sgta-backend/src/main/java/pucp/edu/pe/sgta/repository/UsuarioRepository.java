@@ -17,6 +17,8 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
     Optional<Usuario> findByCodigoPucp(String codigoPucp);
     Optional<Usuario> findByCorreoElectronico(String correoElectronico);
 
+    Optional<Usuario> findByIdCognito(String idCognito);
+
     @Query(value = "SELECT * FROM obtener_usuarios_con_temass()", nativeQuery = true)
     List<Object[]> findUsuarioTemaInfo();
 

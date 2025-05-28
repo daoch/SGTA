@@ -949,7 +949,7 @@ FOR EACH ROW
 EXECUTE FUNCTION generar_codigo_tema();
 
 CREATE OR REPLACE FUNCTION listar_propuestas_del_tesista_con_usuarios(
-    p_tesista_id INTEGER
+    p_tesista_id TEXT
 )
 RETURNS TABLE(
     tema_id            INTEGER,
@@ -968,9 +968,16 @@ RETURNS TABLE(
     usuarios           JSONB
 )
 LANGUAGE plpgsql
-
 AS $$
+DECLARE 
+    v_uid INTEGER;
 BEGIN
+    -- Obtener el usuario_id desde el cognito_id
+    SELECT u.usuario_id
+    INTO v_uid
+    FROM usuario u
+    WHERE u.id_cognito = p_tesista_id;
+
     RETURN QUERY
     SELECT
         t.tema_id,
@@ -1004,7 +1011,7 @@ BEGIN
     FROM tema t
     JOIN usuario_tema ut_tesista
       ON ut_tesista.tema_id    = t.tema_id
-     AND ut_tesista.usuario_id = p_tesista_id
+     AND ut_tesista.usuario_id = v_uid
      AND ut_tesista.rol_id     = (
          SELECT rol_id FROM rol WHERE nombre ILIKE 'Tesista' LIMIT 1
      )
@@ -1024,6 +1031,7 @@ BEGIN
       r.documento_url, t.activo, t.fecha_limite, t.fecha_creacion, t.fecha_modificacion, et.nombre;
 END;
 $$;
+
 
 
 CREATE OR REPLACE FUNCTION listar_postulaciones_del_tesista_con_usuarios(
@@ -1214,25 +1222,32 @@ ALTER FUNCTION obtener_sub_areas_por_carrera_usuario(INTEGER) OWNER TO postgres;
 CREATE OR REPLACE FUNCTION aprobar_postulacion_propuesta_general_tesista(
     p_tema_id    INT,
     p_asesor_id  INT,
-    p_tesista_id INT
+    p_tesista_id TEXT
 )
 RETURNS VOID
 LANGUAGE plpgsql
 AS $$
 DECLARE
     estado_preinscrito_id  INTEGER;
+    v_uid                  INTEGER;
 BEGIN
-    -- Only proceed if the tesista is the creator of this topic
+    -- Obtener el usuario_id a partir del cognito_id
+    SELECT usuario_id
+    INTO v_uid
+    FROM usuario
+    WHERE cognito_id = p_tesista_id;
+
+    -- Solo proceder si el tesista es el creador de este tema
     IF EXISTS (
         SELECT 1
         FROM usuario_tema ut
         JOIN rol r ON r.rol_id = ut.rol_id
         WHERE ut.tema_id = p_tema_id
-          AND ut.usuario_id = p_tesista_id
+          AND ut.usuario_id = v_uid
           AND ut.creador = TRUE
           AND r.nombre ILIKE 'Tesista'
     ) THEN
-        -- Perform the update to mark the advisor as assigned
+        -- Marcar al asesor como asignado
         UPDATE usuario_tema ut
         SET asignado = TRUE
         FROM rol r
@@ -1242,38 +1257,51 @@ BEGIN
           AND r.nombre ILIKE 'Asesor';
     END IF;
 
-    -- Get the estado_tema_id for the tema
-    SELECT estado_tema_id INTO estado_preinscrito_id FROM estado_tema WHERE nombre ILIKE 'PREINSCRITO' LIMIT 1;
+    -- Obtener el ID de estado 'PREINSCRITO'
+    SELECT estado_tema_id
+    INTO estado_preinscrito_id
+    FROM estado_tema
+    WHERE nombre ILIKE 'PREINSCRITO'
+    LIMIT 1;
 
-	  -- Update estado_tema_id
+    -- Actualizar el estado del tema
     UPDATE tema
     SET estado_tema_id = estado_preinscrito_id
     WHERE tema_id = p_tema_id;
 END;
 $$;
 
+
 ALTER FUNCTION aprobar_postulacion_propuesta_general_tesista(INTEGER, INTEGER, INTEGER) OWNER TO doadmin;
 
 CREATE OR REPLACE FUNCTION rechazar_postulacion_propuesta_general_tesista(
     p_tema_id    INT,
     p_asesor_id  INT,
-    p_tesista_id INT
+    p_tesista_id TEXT
 )
 RETURNS VOID
 LANGUAGE plpgsql
 AS $$
+DECLARE
+    v_uid INTEGER;
 BEGIN
-    -- Only proceed if the tesista is the creator of this topic
+    -- Obtener el usuario_id a partir del cognito_id
+    SELECT usuario_id
+    INTO v_uid
+    FROM usuario
+    WHERE cognito_id = p_tesista_id;
+
+    -- Solo proceder si el tesista es el creador de este tema
     IF EXISTS (
         SELECT 1
         FROM usuario_tema ut
         JOIN rol r ON r.rol_id = ut.rol_id
         WHERE ut.tema_id = p_tema_id
-          AND ut.usuario_id = p_tesista_id
+          AND ut.usuario_id = v_uid
           AND ut.creador = TRUE
           AND r.nombre ILIKE 'Tesista'
     ) THEN
-        -- Perform the update to mark the advisor as rejected
+        -- Marcar al asesor como rechazado
         UPDATE usuario_tema ut
         SET rechazado = TRUE
         FROM rol r
@@ -1284,6 +1312,7 @@ BEGIN
     END IF;
 END;
 $$;
+
 
 ALTER FUNCTION rechazar_postulacion_propuesta_general_tesista(INTEGER, INTEGER, INTEGER) OWNER TO postgres;
 
