@@ -58,8 +58,6 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
     setTemasAsignados,
     bloques,
     setBloques,
-    //asignarTemaABloque,
-    //desasignarTemaDeBloque,
     actualizarBloqueByKey,
   } = usePlanificationStore();
 

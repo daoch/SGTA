@@ -1061,9 +1061,9 @@ CREATE TABLE IF NOT EXISTS entregable
     fecha_fin                  TIMESTAMP WITH TIME ZONE NOT NULL,
     estado                     enum_estado_actividad    NOT NULL DEFAULT 'no_iniciado',
     es_evaluable               BOOLEAN                  NOT NULL DEFAULT FALSE,
-	maximo_documentos          INTEGER                  NOT NULL,
-	extensiones_permitidas     TEXT                     NOT NULL,
-	peso_maximo_documento      INTEGER                  NOT NULL,
+	maximo_documentos          INTEGER,
+	extensiones_permitidas     TEXT,
+	peso_maximo_documento      INTEGER,
     activo                     BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion             TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion         TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -1098,8 +1098,7 @@ CREATE TABLE IF NOT EXISTS entregable_x_tema
     entregable_x_tema_id            SERIAL PRIMARY KEY,
     entregable_id                   INTEGER,
     tema_id                         INTEGER,
-    revision_criterio_entregable_id INTEGER,
-    fecha_envio                     DATE,
+    fecha_envio                     TIMESTAMP WITH TIME ZONE,
     comentario                      TEXT,
     estado                          enum_estado_entrega      NOT NULL DEFAULT 'no_enviado',
     activo                          BOOLEAN                  NOT NULL DEFAULT TRUE,
@@ -1147,7 +1146,7 @@ CREATE TABLE IF NOT EXISTS documento
 (
     documento_id       SERIAL PRIMARY KEY,
     nombre_documento   VARCHAR(150)             NOT NULL,
-    fecha_subida       DATE,
+    fecha_subida       TIMESTAMP WITH TIME ZONE,
     ultima_version     INTEGER                  NOT NULL DEFAULT 1,
     activo             BOOLEAN                           DEFAULT TRUE,
     fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -1158,6 +1157,7 @@ CREATE TABLE IF NOT EXISTS version_documento
 (
     version_documento_id  SERIAL PRIMARY KEY,
     documento_id          INTEGER,
+    entregable_x_tema_id    INTEGER,
     revision_documento_id INTEGER,
     fecha_ultima_subida   TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     numero_version        INTEGER,
@@ -1169,6 +1169,10 @@ CREATE TABLE IF NOT EXISTS version_documento
     CONSTRAINT fk_version_documento_documento
         FOREIGN KEY (documento_id)
             REFERENCES documento (documento_id)
+            ON DELETE CASCADE,
+    CONSTRAINT fk_version_documento_entregable_x_tema
+        FOREIGN KEY (entregable_x_tema_id)
+            REFERENCES entregable_x_tema (entregable_x_tema_id)
             ON DELETE CASCADE
 );
 

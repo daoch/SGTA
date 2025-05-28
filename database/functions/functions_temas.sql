@@ -972,7 +972,7 @@ AS $$
 DECLARE 
     v_uid INTEGER;
 BEGIN
-    -- Obtener el usuario_id desde el cognito_id
+    -- Obtener el usuario_id desde el id cognito
     SELECT u.usuario_id
     INTO v_uid
     FROM usuario u
@@ -1035,7 +1035,7 @@ $$;
 
 
 CREATE OR REPLACE FUNCTION listar_postulaciones_del_tesista_con_usuarios(
-    p_tesista_id INTEGER,
+    p_tesista_id TEXT,       -- ahora es el cognito_id
     p_tipo_post  INTEGER     -- 0 = GENERAL, 1 = DIRECTO
 )
 RETURNS TABLE(
@@ -1051,13 +1051,20 @@ RETURNS TABLE(
     fecha_limite       TIMESTAMPTZ,
     fecha_creacion     TIMESTAMPTZ,
     fecha_modificacion TIMESTAMPTZ,
-    estado_tema_nombre TEXT,    -- current state name
+    estado_tema_nombre TEXT,
     usuarios           JSONB
 )
 LANGUAGE plpgsql
-
 AS $$
+DECLARE
+    v_uid INTEGER;
 BEGIN
+    -- Obtener el usuario_id a partir del cognito_id
+    SELECT usuario_id
+    INTO v_uid
+    FROM usuario
+    WHERE id_cognito = p_tesista_id;
+
     RETURN QUERY
     SELECT
         t.tema_id,
@@ -1079,9 +1086,9 @@ BEGIN
                      'usuario_id',      u.usuario_id,
                      'nombre_completo', u.nombres || ' ' || u.primer_apellido,
                      'rol',             rl.nombre,
-                     'comentario', ut.comentario,
+                     'comentario',      ut.comentario,
                      'creador',         ut.creador,
-                     'rechazado',         ut.rechazado,
+                     'rechazado',       ut.rechazado,
                      'asignado',        ut.asignado
                    )
                  )
@@ -1092,22 +1099,19 @@ BEGIN
             AND rl.nombre ILIKE ANY(ARRAY['Tesista','Asesor','Coasesor'])
         ) AS usuarios
     FROM tema t
-
-    -- only those temas where this tesista was assigned as Tesista
     JOIN usuario_tema ut_tesista
       ON ut_tesista.tema_id    = t.tema_id
-     AND ut_tesista.usuario_id = p_tesista_id
+     AND ut_tesista.usuario_id = v_uid
      AND ut_tesista.rol_id     = (
          SELECT rol_id FROM rol
-          WHERE nombre ILIKE 'Tesista'
-          LIMIT 1
+         WHERE nombre ILIKE 'Tesista'
+         LIMIT 1
      )
-    AND ut_tesista.creador = true
-    -- current estado
+     AND ut_tesista.creador = true
+
     LEFT JOIN estado_tema et_current
       ON et_current.estado_tema_id = t.estado_tema_id
 
-    -- initial (creation) estado from historial_tema
     LEFT JOIN LATERAL (
       SELECT ht.estado_tema_id
       FROM historial_tema ht
@@ -1120,13 +1124,11 @@ BEGIN
     LEFT JOIN estado_tema et_init
       ON et_init.estado_tema_id = init_ht.estado_tema_id
 
-    -- sub-areas
     LEFT JOIN sub_area_conocimiento_tema sact
       ON sact.tema_id = t.tema_id
     LEFT JOIN sub_area_conocimiento sac
       ON sac.sub_area_conocimiento_id = sact.sub_area_conocimiento_id
 
-    -- recurso (active only)
     LEFT JOIN recurso r
       ON r.tema_id = t.tema_id
      AND r.activo = TRUE
@@ -1151,6 +1153,7 @@ BEGIN
       et_current.nombre;
 END;
 $$;
+
 
 
 CREATE OR REPLACE FUNCTION listar_asesores_por_subarea_conocimiento(
@@ -1188,7 +1191,7 @@ $$;
 
 
 CREATE OR REPLACE FUNCTION obtener_sub_areas_por_carrera_usuario(
-    p_usuario_id INTEGER
+    p_usuario_id TEXT 
 )
 RETURNS TABLE(
     sub_area_conocimiento_id INTEGER,
@@ -1206,16 +1209,20 @@ SELECT DISTINCT
     sac.descripcion::TEXT AS descripcion,
     sac.activo
 FROM usuario_carrera usac
+JOIN usuario u
+  ON u.usuario_id = usac.usuario_id
+ AND u.id_cognito = p_usuario_id
+ AND u.activo = TRUE
 JOIN area_conocimiento ac
   ON ac.carrera_id = usac.carrera_id
  AND ac.activo = TRUE
 JOIN sub_area_conocimiento sac
   ON sac.area_conocimiento_id = ac.area_conocimiento_id
  AND sac.activo = TRUE
-WHERE usac.usuario_id = p_usuario_id
-  AND usac.activo = TRUE
+WHERE usac.activo = TRUE
 ORDER BY nombre;
 $$;
+
 
 ALTER FUNCTION obtener_sub_areas_por_carrera_usuario(INTEGER) OWNER TO postgres;
 
@@ -1231,11 +1238,11 @@ DECLARE
     estado_preinscrito_id  INTEGER;
     v_uid                  INTEGER;
 BEGIN
-    -- Obtener el usuario_id a partir del cognito_id
+    -- Obtener el usuario_id a partir del id_cognito
     SELECT usuario_id
     INTO v_uid
     FROM usuario
-    WHERE cognito_id = p_tesista_id;
+    WHERE id_cognito = p_tesista_id;
 
     -- Solo proceder si el tesista es el creador de este tema
     IF EXISTS (
@@ -1289,7 +1296,7 @@ BEGIN
     SELECT usuario_id
     INTO v_uid
     FROM usuario
-    WHERE cognito_id = p_tesista_id;
+    WHERE id_cognito = p_tesista_id;
 
     -- Solo proceder si el tesista es el creador de este tema
     IF EXISTS (

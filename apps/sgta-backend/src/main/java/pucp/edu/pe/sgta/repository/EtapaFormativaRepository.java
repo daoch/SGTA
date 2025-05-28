@@ -61,4 +61,7 @@ public interface EtapaFormativaRepository extends JpaRepository<EtapaFormativa, 
      */
     @Query(value = "SELECT * FROM obtener_historial_ciclos_etapa_formativa(:etapaId)", nativeQuery = true)
     List<Object[]> getHistorialCiclosEtapaFormativa(@Param("etapaId") Integer etapaId);
+
+    @Query(value = "SELECT * FROM listar_etapas_formativas_alumno(:alumnoId)", nativeQuery = true)
+    List<Object[]> listarEtapasFormativasPorAlumno(@Param("alumnoId") Integer alumnoId);
 }
