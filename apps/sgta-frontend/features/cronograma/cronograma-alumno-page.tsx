@@ -48,7 +48,7 @@ const MiCronogramaPage = () => {
   };
 
   // Función que asigna colores según el tipo de evento
-  const getColorByTipoEvento = (tipo: TipoEvento) => {
+  const getColorByTipoEvento = (tipo: TipoEvento): "default" | "blue" | "green" | "pink" | "purple" => {
     switch(tipo) {
       case "Entregable": return "blue";
       case "Reunión": return "green";
