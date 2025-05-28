@@ -1359,7 +1359,7 @@ INSERT INTO
 VALUES (
         'Proyecto de fin de carrera 1',
         4.5,
-        INTERVAL '20 minutes',
+        'PT20M',
         TRUE,
         NOW(),
         NOW(),
@@ -1368,7 +1368,7 @@ VALUES (
     (
         'Proyecto de fin de carrera 2',
         4.0,
-        INTERVAL '20 minutes',
+        'PT20M',
         TRUE,
         NOW(),
         NOW(),
