@@ -193,6 +193,19 @@ public class TemaController {
 		return temaService.listarExposicionXTemaId(temaId);
 	}
 
+	    /**
+     * Desactiva un tema y desasigna todos sus usuarios.
+     * Sólo puede invocarlo un coordinador activo del tema.
+     */
+    @PatchMapping("/{temaId}/eliminar")
+    public ResponseEntity<Void> cerrarTema(
+            @PathVariable("temaId") Integer temaId,
+            @RequestParam("usuarioId") Integer usuarioId) {
+
+        // este método primero valida que sea coordinador y luego llama al procedure
+        temaService.eliminarTemaCoordinador(temaId, usuarioId);
+        return ResponseEntity.noContent().build();
+    }
 
 }
 

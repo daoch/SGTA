@@ -2,16 +2,16 @@ CREATE OR REPLACE FUNCTION get_advisor_distribution_by_coordinator_and_ciclo(
     p_usuario_id    INTEGER,
     p_ciclo_nombre  VARCHAR
 )
-RETURNS TABLE(
+  RETURNS TABLE(
     teacher_name   VARCHAR,
     area_name      VARCHAR,
     advisor_count  BIGINT,
     tesistas_names TEXT,
     temas_names    TEXT  -- Nuevo campo para mostrar los temas
-)
-LANGUAGE plpgsql
-COST 100
-VOLATILE PARALLEL UNSAFE
+  )
+  LANGUAGE plpgsql
+  COST 100
+  VOLATILE PARALLEL UNSAFE
 AS $BODY$
 DECLARE
     v_carrera_id  INTEGER;
@@ -155,16 +155,16 @@ CREATE OR REPLACE FUNCTION get_juror_distribution_by_coordinator_and_ciclo(
     p_usuario_id    INTEGER,
     p_ciclo_nombre  VARCHAR
 )
-RETURNS TABLE(
+  RETURNS TABLE(
     teacher_name   VARCHAR,
     area_name      VARCHAR,
     juror_count    BIGINT,
     tesistas_names TEXT,
     temas_names    TEXT
-)
-LANGUAGE plpgsql
-COST 100
-VOLATILE PARALLEL UNSAFE
+  )
+  LANGUAGE plpgsql
+  COST 100
+  VOLATILE PARALLEL UNSAFE
 AS $BODY$
 DECLARE
     v_carrera_id  INTEGER;
@@ -308,15 +308,15 @@ CREATE OR REPLACE FUNCTION get_advisor_performance_by_user(
     p_usuario_id     INTEGER,
     p_ciclo_nombre   VARCHAR
 )
-RETURNS TABLE(
+  RETURNS TABLE(
     advisor_name           VARCHAR,
     area_name              VARCHAR,
     performance_percentage NUMERIC,
     total_students         INTEGER
-)
-LANGUAGE plpgsql
-COST 100
-VOLATILE PARALLEL UNSAFE
+  )
+  LANGUAGE plpgsql
+  COST 100
+  VOLATILE PARALLEL UNSAFE
 AS $BODY$
 DECLARE
     v_carrera_id INTEGER;
@@ -654,8 +654,8 @@ BEGIN
             et_next.estado::VARCHAR,
             et_next.fecha_envio
         FROM usuario_tema ut
-        JOIN rol r1 ON ut.rol_id = r1.rol_id AND r1.nombre = 'Tesista'
-        JOIN usuario u ON u.usuario_id = ut.usuario_id
+                 JOIN rol r1 ON ut.rol_id = r1.rol_id AND r1.nombre = 'Tesista'
+                 JOIN usuario u ON u.usuario_id = ut.usuario_id
         -- Obtener el tema de los tesistas asesorados
         JOIN (
             SELECT ut2.tema_id
@@ -711,7 +711,7 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT
+    SELECT 
         e.entregable_id AS hito_id,
         e.nombre,
         e.descripcion,
@@ -794,6 +794,8 @@ DECLARE
     v_entregable_envio_estado VARCHAR;
     v_entregable_fecha_inicio TIMESTAMP WITH TIME ZONE;
     v_entregable_fecha_fin TIMESTAMP WITH TIME ZONE;
+    v_siguiente_entregable_nombre VARCHAR;
+    v_siguiente_entregable_fecha_fin TIMESTAMP WITH TIME ZONE;
 BEGIN
     -- Obtenemos el tema del tesista
     SELECT ut.tema_id INTO v_tema_id
@@ -805,6 +807,19 @@ BEGIN
     IF v_tema_id IS NULL THEN
         RAISE EXCEPTION 'El usuario con ID % no es tesista de ningún tema activo', p_tesista_id;
     END IF;
+
+    -- Obtenemos el siguiente entregable no enviado
+    SELECT e.nombre, e.fecha_fin
+    INTO v_siguiente_entregable_nombre, v_siguiente_entregable_fecha_fin
+    FROM entregable e
+    JOIN entregable_x_tema et ON et.entregable_id = e.entregable_id
+    WHERE et.tema_id = v_tema_id
+    AND et.estado != 'enviado_a_tiempo'
+    AND e.fecha_fin > NOW()
+    AND e.activo = TRUE
+    AND et.activo = TRUE
+    ORDER BY e.fecha_fin ASC
+    LIMIT 1;
 
     -- Obtenemos el ciclo actual del tesista
     SELECT efc.ciclo_id INTO v_ciclo_actual_id
@@ -985,7 +1000,10 @@ BEGIN
         v_entregable_actividad_estado AS entregable_actividad_estado,
         v_entregable_envio_estado AS entregable_envio_estado,
         v_entregable_fecha_inicio AS entregable_fecha_inicio,
-        v_entregable_fecha_fin AS entregable_fecha_fin
+        v_entregable_fecha_fin AS entregable_fecha_fin,
+        -- Información del siguiente entregable no enviado
+        v_siguiente_entregable_nombre AS siguiente_entregable_nombre,
+        v_siguiente_entregable_fecha_fin AS siguiente_entregable_fecha_fin
     FROM usuario u
     JOIN usuario_tema ut ON ut.usuario_id = u.usuario_id AND ut.activo = TRUE
     JOIN rol r_tesista ON r_tesista.rol_id = ut.rol_id AND r_tesista.nombre = 'Tesista'
@@ -1089,3 +1107,65 @@ $$ LANGUAGE plpgsql;
 --    Al ejecutar, DataGrip te preguntará el valor de "tesista_id".
 
 SELECT * FROM listar_historial_reuniones_por_tesista(2);
+
+CREATE OR REPLACE FUNCTION calcular_progreso_alumno(p_alumno_id INT)
+RETURNS TABLE (
+    total_entregables INT,
+    entregables_enviados INT,
+    porcentaje_progreso NUMERIC,
+    siguiente_entregable_nombre VARCHAR,
+    siguiente_entregable_fecha_fin TIMESTAMP WITH TIME ZONE
+) AS $$
+DECLARE
+    v_tema_id INT;
+BEGIN
+    -- 1. Obtener el tema actual del alumno
+    SELECT ut.tema_id INTO v_tema_id
+    FROM usuario_tema ut
+    JOIN rol r ON r.rol_id = ut.rol_id AND r.nombre = 'Tesista'
+    WHERE ut.usuario_id = p_alumno_id
+    AND ut.activo = true
+    ORDER BY ut.fecha_creacion DESC
+    LIMIT 1;
+
+    -- 2. Si no se encuentra tema, retornar 0s
+    IF v_tema_id IS NULL THEN
+        RETURN QUERY SELECT 0::INT, 0::INT, 0::NUMERIC, NULL::VARCHAR, NULL::TIMESTAMP WITH TIME ZONE;
+        RETURN;
+    END IF;
+
+    -- 3. Calcular las estadísticas y obtener el siguiente entregable no enviado
+    RETURN QUERY
+    WITH estadisticas AS (
+        SELECT 
+            COUNT(et.entregable_x_tema_id) as total,
+            COUNT(CASE WHEN et.estado = 'enviado_a_tiempo' THEN 1 END) as enviados
+        FROM entregable_x_tema et
+        WHERE et.tema_id = v_tema_id
+        AND et.activo = true
+    ),
+    siguiente_entregable AS (
+        SELECT e.nombre, e.fecha_fin
+        FROM entregable e
+        JOIN entregable_x_tema et ON et.entregable_id = e.entregable_id
+        WHERE et.tema_id = v_tema_id
+        AND et.estado != 'enviado_a_tiempo'
+        AND e.fecha_fin > NOW()
+        AND e.activo = TRUE
+        AND et.activo = TRUE
+        ORDER BY e.fecha_fin ASC
+        LIMIT 1
+    )
+    SELECT 
+        total::INT,
+        enviados::INT,
+        CASE 
+            WHEN total = 0 THEN 0
+            ELSE ROUND((enviados::NUMERIC / total::NUMERIC) * 100, 2)
+        END as porcentaje,
+        se.nombre,
+        se.fecha_fin
+    FROM estadisticas
+    LEFT JOIN siguiente_entregable se ON true;
+END;
+$$ LANGUAGE plpgsql;

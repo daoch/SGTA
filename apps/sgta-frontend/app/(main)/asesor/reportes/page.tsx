@@ -1,6 +1,7 @@
 "use client";
 
-import { AdvisorReports } from "@/components/main/reports/advisor-reports";
+import { AdvisorReports } from "@/features/reportes/views/advisor-reports";
+
 
 export default function ReportsPage() {
 
