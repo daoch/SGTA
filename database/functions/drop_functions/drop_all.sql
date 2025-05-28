@@ -158,3 +158,16 @@ DROP FUNCTION IF EXISTS get_topic_area_trends_by_user(integer) CASCADE;
 DROP FUNCTION IF EXISTS listar_tesistas_por_asesor(integer) CASCADE;
 
 DROP FUNCTION IF EXISTS obtener_detalle_tesista(integer) CASCADE;
+
+--vestigios?
+
+DROP FUNCTION IF EXISTS actualizar_bloque_exposicion_siguientes_fases(jsonb) CASCADE;
+
+DROP FUNCTION IF EXISTS obtener_etapas_formativas_por_tema_simple(INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS obtener_exposiciones_por_etapa_formativa(INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS terminar_planificacion(INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS obtener_lista_directorio_asesores_alumno(INTEGER, TEXT, BOOLEAN, INTEGER[], INTEGER[]) CASCADE;
+
