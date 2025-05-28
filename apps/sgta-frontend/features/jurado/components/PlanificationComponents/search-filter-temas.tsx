@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import React, { useState } from "react";
 import { AreaEspecialidad } from "../../types/jurado.types";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -60,4 +60,4 @@ const SearchFilter: React.FC<Props> = ({ topics }) => {
   );
 };
 
-export default SearchFilter;
+export default React.memo(SearchFilter);

@@ -25,6 +25,8 @@ const PlanificacionEstadoStepper: React.FC<Props> = React.memo(
     const isActive = (stepId: number) => stepId === estadoPlan.id;
     const isSuccess = (stepId: number) => stepId < estadoPlan.id;
 
+    console.log("estadoPlan", estadoPlan);
+
     return (
       <div data-hs-stepper="" className="w-full">
         <ul className="relative flex flex-row gap-x-2">
