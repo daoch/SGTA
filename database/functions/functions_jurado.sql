@@ -1,3 +1,4 @@
+-- Active: 1748374313012@@localhost@5432@postgres@public
 CREATE OR REPLACE FUNCTION obtener_etapas_formativas_por_usuario(p_usuario_id INTEGER)
 RETURNS TABLE (
     etapa_formativa_id INTEGER,
@@ -378,7 +379,6 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION obtener_ciclo_etapa_por_tema(p_tema_id integer)
-CREATE OR REPLACE FUNCTION obtener_ciclo_etapa_por_tema(p_tema_id integer)
     RETURNS TABLE(ciclo_id integer, ciclo_nombre text, etapa_formativa_id integer, etapa_formativa_nombre text)
     LANGUAGE plpgsql
 AS
@@ -401,7 +401,6 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION obtener_area_conocimiento_jurado(usuario_id_param integer)
 CREATE OR REPLACE FUNCTION obtener_area_conocimiento_jurado(usuario_id_param integer)
     RETURNS TABLE(usuario_id integer, area_conocimiento_id integer, area_conocimiento_nombre character varying)
     LANGUAGE plpgsql
@@ -898,19 +897,48 @@ END;
 $$ LANGUAGE plpgsql;
 -- Para volver a estados
 
-update exposicion
-set
-    estado_planificacion_id = 2
-where
-    exposicion_id = 1
-    or exposicion_id = 2;
-
-update bloque_horario_exposicion
-set
-    exposicion_x_tema_id = null,
-    es_bloque_reservado = false,
-    fecha_modificacion = null
-where
-    bloque_horario_exposicion_id >= 1;
-
-update exposicion_x_tema set estado_exposicion = 'sin_programar';
+CREATE OR REPLACE FUNCTION obtener_exposiciones_por_usuario(
+	p_usuario_id integer
+)
+RETURNS TABLE(
+	exposicion_id integer,
+	tema_id integer,
+	estado text,
+	link_exposicion text,
+	link_grabacion text,
+	datetime_inicio timestamp with time zone,
+	datetime_fin timestamp with time zone,
+	sala text,
+	titulo text,
+	etapa_formativa text,
+	ciclo text
+) AS $$
+BEGIN 
+RETURN QUERY
+SELECT
+	ext.exposicion_x_tema_id AS exposicion_id,
+	ext.tema_id,
+	ext.estado_exposicion::text AS estado,
+	ext.link_exposicion,
+	ext.link_grabacion,
+	bhe.datetime_inicio,
+	bhe.datetime_fin,
+	se.nombre AS sala,
+	tema.titulo::text,
+	ef.nombre AS etapa_formativa,
+	ciclo.nombre::text
+FROM
+	usuario_tema ut
+	JOIN exposicion_x_tema ext ON ext.tema_id = ut.tema_id
+	JOIN bloque_horario_exposicion bhe ON bhe.exposicion_x_tema_id = ext.exposicion_x_tema_id
+	JOIN jornada_exposicion_x_sala_exposicion ON jornada_exposicion_x_sala_exposicion.jornada_exposicion_x_sala_id = bhe.jornada_exposicion_x_sala_id
+	JOIN sala_exposicion se ON se.sala_exposicion_id = jornada_exposicion_x_sala_exposicion.sala_exposicion_id
+	JOIN tema ON tema.tema_id = ut.tema_id
+	JOIN etapa_formativa_x_ciclo_x_tema efxct ON efxct.tema_id = tema.tema_id
+	JOIN etapa_formativa_x_ciclo efxc ON efxc.etapa_formativa_x_ciclo_id = efxct.etapa_formativa_x_ciclo_id
+	JOIN etapa_formativa ef ON ef.etapa_formativa_id = efxc.etapa_formativa_id
+	JOIN ciclo ON ciclo.ciclo_id = efxc.ciclo_id
+WHERE ut.usuario_id = p_usuario_id
+AND ext.estado_exposicion IN ('programada', 'calificada', 'completada');
+END;
+$$ LANGUAGE plpgsql;
