@@ -1,5 +1,6 @@
 "use client";
-import { ReviewerReports } from "@/components/main/reports/reviewer-reports";
+
+import { ReviewerReports } from "@/features/reportes/views/reviewer-reports";
 
 export default function ReportsPage() {
 

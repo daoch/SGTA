@@ -3,11 +3,13 @@ package pucp.edu.pe.sgta.service.imp;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import jakarta.transaction.Transactional;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -80,8 +82,6 @@ public class TemaServiceImpl implements TemaService {
 
 	private final UsuarioXSolicitudRepository    usuarioXSolicitudRepository;
 
-	//private final SolicitudService solicitudService;
-
   	private final SubAreaConocimientoService subAreaService;
 
 
@@ -120,7 +120,6 @@ public class TemaServiceImpl implements TemaService {
 		this.tipoSolicitudRepository = tipoSolicitudRepository;
 		this.solicitudRepository = solicitudRepository;
 		this.usuarioXSolicitudRepository = usuarioXSolicitudRepository;
-		//this.solicitudService = solicitudService;
 		this.subAreaService = subAreaConocimientoService;
 	}
 
@@ -404,7 +403,53 @@ public class TemaServiceImpl implements TemaService {
 			eliminarPropuestasTesista(u.getId());
 		}
 		// 6) Generar y enviar la solicitud de aprobación
-		//.crearSolicitudAprobacionTema(tema);
+		crearSolicitudAprobacionTema(tema);
+    }
+
+	    /**
+     * Crea una solicitud de aprobación de tema y la asigna a todos los coordinadores
+     * activos de la carrera asociada.
+     *
+     * @param tema Tema recién creado al que se asociará la solicitud.
+     */
+    private void crearSolicitudAprobacionTema(Tema tema) {
+        // 1) Obtener el tipo de solicitud
+        TipoSolicitud tipoSolicitud = tipoSolicitudRepository
+            .findByNombre("Aprobación de tema (por coordinador)")
+            .orElseThrow(() ->
+                new RuntimeException("Tipo de solicitud no configurado: Aprobación de tema (por coordinador)"));
+
+        // 2) Construir y guardar la solicitud
+        Solicitud solicitud = new Solicitud();
+        solicitud.setDescripcion("Solicitud de aprobación de tema por coordinador");
+        solicitud.setTipoSolicitud(tipoSolicitud);
+        solicitud.setTema(tema);
+        solicitud.setEstado(0); // Ajusta según tu convención (p.ej. 0 = PENDIENTE)
+        Solicitud savedSolicitud = solicitudRepository.save(solicitud);
+
+        // 3) Buscar los usuarios-coordinador de la carrera del tema
+        List<UsuarioXSolicitud> asignaciones = usuarioCarreraRepository
+            .findByCarreraIdAndActivoTrue(tema.getCarrera().getId()).stream()
+            .map(rel -> rel.getUsuario())
+            .filter(u -> TipoUsuarioEnum.coordinador.name().equalsIgnoreCase(u.getTipoUsuario().getNombre()))
+            .map(coord -> {
+                UsuarioXSolicitud us = new UsuarioXSolicitud();
+                us.setUsuario(coord);
+                us.setSolicitud(savedSolicitud);
+                us.setDestinatario(true);
+                us.setAprobado(false);
+                us.setSolicitudCompletada(false);
+                return us;
+            })
+            .collect(Collectors.toList());
+
+        if (asignaciones.isEmpty()) {
+            throw new RuntimeException(
+                "No hay coordinador activo para la carrera con id " + tema.getCarrera().getId());
+        }
+
+        // 4) Guardar todas las asignaciones de la solicitud
+        usuarioXSolicitudRepository.saveAll(asignaciones);
     }
 
 	/**
@@ -1329,10 +1374,38 @@ public class TemaServiceImpl implements TemaService {
 
 		List<TemaDto> resultados = new ArrayList<>(dtoMap.values());
 
-		// — Completar asesores, coasesores, tesistas y subáreas —
-		for (TemaDto t : resultados) {
-			// ... tu lógica existente ...
-		}
+		// por cada tema cargo coasesores, tesistas y subáreas
+        for (TemaDto t : resultados) {
+            List<UsuarioDto> asesores = listarUsuariosPorTemaYRol(
+				t.getId(),
+				RolEnum.Asesor.name()
+			);
+			// 2) Obtengo a los coasesores (o la lista base que ya tenías)
+			List<UsuarioDto> coasesores = listarUsuariosPorTemaYRol(
+				t.getId(),
+				RolEnum.Coasesor.name()
+			);
+
+			// 3) Combino: Asesor primero, luego coasesores, sin duplicados
+			List<UsuarioDto> combinado = new ArrayList<>();
+			if (!asesores.isEmpty()) {
+				combinado.addAll(asesores);
+			}
+			for (UsuarioDto u : coasesores) {
+				// evitamos volver a añadir al mismo usuario si coincide con el asesor
+				if (asesores.stream().noneMatch(a -> a.getId().equals(u.getId()))) {
+					combinado.add(u);
+				}
+			}
+
+			t.setCoasesores(combinado);
+            t.setTesistas(
+                listarUsuariosPorTemaYRol(t.getId(), RolEnum.Tesista.name())
+            );
+            t.setSubareas(
+                listarSubAreasPorTema(t.getId())
+            );
+        }
 
 		return resultados;
 	}
@@ -1558,6 +1631,27 @@ public class TemaServiceImpl implements TemaService {
 		}
 
 		return resultado;
+	}
+
+	 @Transactional
+	public void eliminarTemaCoordinador(Integer temaId, Integer usuarioId) {
+		// 1) Validación EXTERNA al procedure:
+		//    Comprueba que usuarioId sea coordinador 
+		validarTipoUsurio(usuarioId, TipoUsuarioEnum.coordinador.name());
+		
+		// 2) Obtener la carrera del tema y validar que el usuario esté activo en esa carrera
+		Tema tema = temaRepository.findById(temaId)
+			.orElseThrow(() -> new EntityNotFoundException("Tema no encontrado: " + temaId));
+		Integer carreraId = tema.getCarrera().getId();
+
+		boolean pertenece = usuarioCarreraRepository
+			.existsByUsuarioIdAndCarreraIdAndActivo(usuarioId, carreraId, true);
+		if (!pertenece) {
+		throw new AccessDeniedException(
+			"El usuario no pertenece a la carrera del tema: " + carreraId);
+		}
+		// 3) Llamas al procedure puro, que sólo hace los UPDATEs
+		temaRepository.desactivarTemaYDesasignarUsuarios(temaId);
 	}
 
 }

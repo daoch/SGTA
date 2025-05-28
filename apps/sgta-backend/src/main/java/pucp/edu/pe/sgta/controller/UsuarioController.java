@@ -16,6 +16,7 @@ import pucp.edu.pe.sgta.dto.CarreraDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
 import pucp.edu.pe.sgta.service.inter.CarreraService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
+import pucp.edu.pe.sgta.dto.AlumnoTemaDto;
 
 @RestController
 
@@ -221,6 +222,19 @@ public class UsuarioController {
         }
     }
 
+    @GetMapping("/detalle-tema-alumno/{idUsuario}")
+    public ResponseEntity<AlumnoTemaDto> getDetalleTemaAlumno(@PathVariable("idUsuario") Integer idUsuario) {
+        try {
+            AlumnoTemaDto tema = usuarioService.getAlumnoTema(idUsuario);
+            return ResponseEntity.ok(tema);
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+
+    }
+    
     @GetMapping("/getAsesoresBySubArea")
     public List<UsuarioDto> getAsesoresBySubArea(@RequestParam(name = "idSubArea") Integer idSubArea) {
         return this.usuarioService.getAsesoresBySubArea(idSubArea);

@@ -1,7 +1,7 @@
 "use client";
 
-import { StudentDetails } from "@/components/main/reports/student-details";
 import { useParams } from "next/navigation";
+import { StudentDetails } from "@/features/reportes/views/student-details";
 
 export default function StudentPage() {
   const params = useParams();
