@@ -1,5 +1,6 @@
 "use client";
 
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -8,7 +9,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PropuestasTable } from "@/features/temas/components/alumno/temas-libres-table";
 import { useEffect, useState } from "react";
 
@@ -49,7 +49,7 @@ export default function TemasLibresAlumnoPage() {
         <div>
           <h1 className="text-3xl font-bold text-[#042354]">Temas Libres</h1>
           <p className="text-muted-foreground">
-            Explora y postula a temas de tesis disponibles en tu área
+            Explora y postula a temas de proyecto de fin de carrera disponibles.
           </p>
         </div>
       </div>
