@@ -68,7 +68,6 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
   const [codigoCotesista, setCodigoCotesista] = useState("");
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
 
-  // 1) Carga de áreas al montar
   useEffect(() => {
     fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/subAreaConocimiento/listarPorCarreraDeUsuario?usuarioId=7`
@@ -121,11 +120,23 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
     };
 
   const handleSelectNum =
-    (field: keyof FormData) =>
-    (value: string) => {
-      setFormData((f) => ({ ...f, [field]: Number(value) }));
-      setErrors((e) => ({ ...e, [field]: undefined }));
-    };
+  (field: keyof FormData) =>
+  (value: string) => {
+    const areaId = Number(value);
+
+    setFormData((f) => ({
+      ...f,
+      [field]: areaId,
+      ...(field === "area" ? { asesor: "" } : {}), 
+    }));
+
+    setErrors((e) => ({
+      ...e,
+      [field]: undefined,
+      ...(field === "area" ? { asesor: undefined } : {}),
+    }));
+  };
+
 
   const handleSelectStr =
     (field: keyof FormData) =>

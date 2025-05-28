@@ -68,6 +68,7 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
   const [areaFilter, setAreaFilter] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPropuesta, setSelectedPropuesta] = useState<Proyecto | null>(null);
+  const [openDialog, setOpenDialog] = useState(false); 
 
   const MY_ID = 4;
 
@@ -242,12 +243,15 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Dialog>
+                    <Dialog open={openDialog} onOpenChange={setOpenDialog}>
                       <DialogTrigger asChild>
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => setSelectedPropuesta(p)}
+                          onClick={() => {
+                            setSelectedPropuesta(p);
+                            setOpenDialog(true); // abrir el modal
+                          }}
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
@@ -368,7 +372,13 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
                         )}
 
                         <DialogFooter>
-                          <Button variant="outline" onClick={() => setSelectedPropuesta(null)}>
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              setOpenDialog(false);        
+                              setTimeout(() => setSelectedPropuesta(null), 200); 
+                            }}
+                          >
                             Cerrar
                           </Button>
                         </DialogFooter>
