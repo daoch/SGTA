@@ -1579,7 +1579,7 @@ VALUES (
     ('Fase 1', TRUE, NOW(), NOW()),
     ('Fase 2', TRUE, NOW(), NOW()),
     (
-        'Cierre de planificación',
+        'Cierre de planificacion',
         TRUE,
         NOW(),
         NOW()

@@ -72,7 +72,7 @@ INSERT INTO estado_planificacion (nombre,
            ('Planificacion inicial', TRUE, NOW(), NOW()),
            ('Fase 1', TRUE, NOW(), NOW()),
            ('Fase 2', TRUE, NOW(), NOW()),
-           ('Cierre de planificación', TRUE, NOW(), NOW());
+           ('Cierre de planificacion', TRUE, NOW(), NOW());
 
 
 INSERT INTO estado_tema (nombre,
