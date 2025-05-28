@@ -2,6 +2,7 @@ import axiosInstance from "@/lib/axios/axios-instance";
 import { ExposicionAlumno, Sala } from "../types/exposicion.types";
 import { FormValues } from "../schemas/exposicion-form-schema";
 import { EtapaFormativaXSalaExposicion } from "../dtos/EtapaFormativaXSalaExposicion";
+import axios from "axios";
 
 export const getEtapasFormativasPorInicializarByCoordinador = async (
   coordinador_id: number,
@@ -21,39 +22,48 @@ export const getExposicionSinInicializarPorEtapaFormativa = async (
   return response.data;
 };
 
-export const enviarPlanificacion = async (data: FormValues) => {
-  const payload = {
-    etapaFormativaId: data.etapa_formativa_id,
-    exposicionId: data.exposicion_id,
-    fechas: data.fechas.map((fechaItem) => {
-      if (!fechaItem.fecha) {
-        throw new Error(
-          "La fecha no puede ser nula al enviar la planificación",
-        );
-      }
+export const enviarPlanificacion = async (data: FormValues): Promise<{ success: boolean; message: string }> => {
+  try {
+    const payload = {
+      etapaFormativaId: data.etapa_formativa_id,
+      exposicionId: data.exposicion_id,
+      fechas: data.fechas.map((fechaItem) => {
+        if (!fechaItem.fecha) {
+          throw new Error("La fecha no puede ser nula al enviar la planificación");
+        }
 
-      const fechaISO = fechaItem.fecha.toISOString().split("T")[0];
-      return {
-        fechaHoraInicio: new Date(
-          `${fechaISO}T${fechaItem.hora_inicio}`,
-        ).toISOString(),
-        fechaHoraFin: new Date(
-          `${fechaISO}T${fechaItem.hora_fin}`,
-        ).toISOString(),
-        salas: fechaItem.salas,
-      };
-    }),
-  };
+        const fechaISO = fechaItem.fecha.toISOString().split("T")[0];
+        return {
+          fechaHoraInicio: new Date(`${fechaISO}T${fechaItem.hora_inicio}`).toISOString(),
+          fechaHoraFin: new Date(`${fechaISO}T${fechaItem.hora_fin}`).toISOString(),
+          salas: fechaItem.salas,
+        };
+      }),
+    };
 
-  console.log("Datos enviados para la planificación (mapeados):", payload);
+    console.log("Datos enviados para la planificación (mapeados):", payload);
 
-  const response = await axiosInstance.post(
-    "/jornada-exposicion/initialize",
-    payload,
-  );
+    const response = await axiosInstance.post("/jornada-exposicion/initialize", payload);
 
-  return response.data;
+    return {
+      success: true,
+      message: "Planificación enviada correctamente",
+    };
+  } catch (error: any) {
+    const mensajeError =
+      axios.isAxiosError(error) && error.response?.data?.mensaje
+        ? error.response.data.mensaje
+        : "Error inesperado al enviar la planificación";
+
+    console.error("Error al enviar planificación:", mensajeError);
+
+    return {
+      success: false,
+      message: mensajeError,
+    };
+  }
 };
+
 
 export const getSalasDisponiblesByEtapaFormativa = async (
   etapaFormativaId: number,

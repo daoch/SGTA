@@ -5,6 +5,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import pucp.edu.pe.sgta.model.BloqueHorarioExposicion;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+
+import java.time.OffsetDateTime;
 import java.util.List;
 
 public interface BloqueHorarioExposicionRepository extends JpaRepository<BloqueHorarioExposicion, Integer> {
@@ -15,8 +17,7 @@ public interface BloqueHorarioExposicionRepository extends JpaRepository<BloqueH
     @Query(value = "SELECT actualizar_exposicon_tema_bloque_exposicion(CAST(:bloques_json AS jsonb))", nativeQuery = true)
     void actualizarMasivo(@Param("bloques_json") String bloquesJson);
 
-
-    @Query(value = "SELECT actualizar_bloque_exposicion_siguientes_fases(CAST(:bloques_json AS jsonb))",nativeQuery = true)
+    @Query(value = "SELECT actualizar_bloque_exposicion_siguientes_fases(CAST(:bloques_json AS jsonb))", nativeQuery = true)
     void updateBloquesExposicionNextPhase(@Param("bloques_json") String bloquesJson);
 
     @Query(value = "SELECT terminar_planificacion(:idExposicion)", nativeQuery = true)
@@ -24,4 +25,9 @@ public interface BloqueHorarioExposicionRepository extends JpaRepository<BloqueH
 
     List<BloqueHorarioExposicion> findByExposicionXTemaIdAndActivoTrue(Integer exposicionXTemaId);
 
+    @Query(value = "SELECT sala_ocupada_en_rango(:salaId, :inicio, :fin)", nativeQuery = true)
+    Boolean verificarSalaOcupada(
+            @Param("salaId") Integer salaId,
+            @Param("inicio") OffsetDateTime inicio,
+            @Param("fin") OffsetDateTime fin);
 }

@@ -987,3 +987,25 @@ BEGIN
 END;
 $$;
 --update exposicion_x_tema set estado_exposicion = 'sin_programar';
+
+CREATE OR REPLACE FUNCTION sala_ocupada_en_rango(
+    p_sala_id INTEGER,
+    p_inicio TIMESTAMPTZ,
+    p_fin TIMESTAMPTZ
+) RETURNS BOOLEAN
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    existe_conflicto BOOLEAN;
+BEGIN
+    SELECT EXISTS (
+        SELECT 1
+        FROM jornada_exposicion_x_sala_exposicion jxs
+        JOIN jornada_exposicion je ON jxs.jornada_exposicion_id = je.jornada_exposicion_id
+        WHERE jxs.sala_exposicion_id = p_sala_id
+          AND NOT (je.datetime_fin <= p_inicio OR je.datetime_inicio >= p_fin)
+    ) INTO existe_conflicto;
+
+    RETURN existe_conflicto;
+END;
+$$;

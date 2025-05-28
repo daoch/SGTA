@@ -13,6 +13,7 @@ import { ExposicionList } from "../components/exposicion-list";
 import { Pagination } from "../components/exposicion-pagination";
 import ModalPlanificadorCoordinador from "../components/modal-planificador-coordinador";
 import { Button } from "@/components/ui/button";
+import { Toaster } from "sonner";
 
 export const ExposicionesCoordinadorPage: FC = () => {
   const coordinadorId = 13;
@@ -75,6 +76,8 @@ export const ExposicionesCoordinadorPage: FC = () => {
         open={modalOpen}
         onClose={() => setModalOpen(false)}
       />
+
+      <Toaster position="bottom-right" richColors />
     </div>
   );
 };
