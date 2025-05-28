@@ -1,0 +1,270 @@
+"use client";
+
+import {
+  DndContext,
+  DragEndEvent,
+  MouseSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import { useCallback, useEffect, useState } from "react";
+import {
+  finishPlanning,
+  updateBloquesNextPhase,
+} from "../../services/planificacion-service";
+import { JornadaExposicionDTO } from "../../dtos/JornadExposicionDTO";
+import { listarEstadoPlanificacionPorExposicion } from "../../services/data";
+import {
+  AreaEspecialidad,
+  EstadoPlanificacion,
+  TipoAccion,
+  Tema,
+  TimeSlot,
+} from "../../types/jurado.types";
+import { DragContext } from "./DragContext";
+import { DragMonitor } from "./DragMonitor";
+import TemasList from "./temas-list";
+import PlanificationPanel from "./planification-panel";
+import { usePlanificationStore } from "../../store/use-planificacion-store";
+
+interface Props {
+  temas: Tema[];
+  temasSinAsignar: Tema[];
+  temasAsignados: Record<string, Tema>;
+  areasEspecialidad: AreaEspecialidad[];
+  days: JornadaExposicionDTO[];
+  bloques: TimeSlot[];
+  exposicionId: number;
+  estado: EstadoPlanificacion;
+}
+
+const GeneralPlanificationExpo: React.FC<Props> = ({
+  temas: temasRecibidos,
+  temasSinAsignar: temasSinAsignarRecibidos,
+  temasAsignados: temasAsignadosRecibidos,
+  areasEspecialidad,
+  bloques: bloquesRecibidos,
+  days,
+  exposicionId,
+  estado: estadoRecibido,
+}: Props) => {
+  const {
+    estadoPlanificacion,
+    setEstadoPlanificacion,
+    setTemas,
+    temasSinAsignar,
+    setTemasSinAsignar,
+    temasAsignados,
+    setTemasAsignados,
+    bloques,
+    setBloques,
+    actualizarBloqueByKey,
+  } = usePlanificationStore();
+
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    setEstadoPlanificacion(estadoRecibido);
+    setTemas(temasRecibidos);
+    setTemasSinAsignar(temasSinAsignarRecibidos);
+    setTemasAsignados(temasAsignadosRecibidos);
+    setBloques(bloquesRecibidos);
+  }, [
+    estadoRecibido,
+    setEstadoPlanificacion,
+    setTemas,
+    temasRecibidos,
+    setBloques,
+    bloquesRecibidos,
+    setTemasSinAsignar,
+    temasSinAsignarRecibidos,
+    temasAsignadosRecibidos,
+    setTemasAsignados,
+  ]);
+
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id) return;
+      const expoId = active.id;
+      const spaceId = over.id;
+
+      const temaEscogidoDesdeLista = temasSinAsignar.find(
+        (e) => e.codigo === expoId,
+      );
+      if (temaEscogidoDesdeLista) {
+        //si se asigna desde la lista de temas sin asignar
+        if (spaceId in temasAsignados) return;
+        const temaPorAsignar = { [spaceId]: temaEscogidoDesdeLista };
+        setTemasAsignados({
+          ...temasAsignados,
+          ...temaPorAsignar,
+        });
+        setTemasSinAsignar(temasSinAsignar.filter((e) => e.codigo !== expoId));
+        actualizarBloqueByKey(spaceId.toString(), {
+          expo: temaEscogidoDesdeLista,
+        });
+      } else {
+        //si se asigna desde un bloque ya asignado
+        const keyTemaEscogido = Object.keys(temasAsignados).find(
+          (key) => temasAsignados[key].codigo === expoId,
+        );
+        const temaEscogidosDesdeBloque = keyTemaEscogido
+          ? temasAsignados[keyTemaEscogido]
+          : undefined;
+        if (temaEscogidosDesdeBloque) {
+          const temaPorAsignar = { [spaceId]: temaEscogidosDesdeBloque };
+          const updatedAssignment = Object.keys(temasAsignados)
+            .filter(
+              (key) =>
+                temasAsignados[key].codigo !== temaEscogidosDesdeBloque.codigo,
+            )
+            .reduce((acc: Record<string, Tema>, key) => {
+              acc[key] = temasAsignados[key];
+              return acc;
+            }, {});
+          setTemasAsignados({
+            ...updatedAssignment,
+            ...temaPorAsignar,
+          });
+          actualizarBloqueByKey(spaceId.toString(), {
+            expo: temaEscogidosDesdeBloque,
+          });
+          actualizarBloqueByKey(keyTemaEscogido || "", {
+            expo: {
+              id: null,
+              codigo: null,
+              titulo: null,
+              usuarios: null,
+            },
+          });
+        }
+      }
+    },
+    [
+      setTemasAsignados,
+      setTemasSinAsignar,
+      temasAsignados,
+      temasSinAsignar,
+      actualizarBloqueByKey,
+    ],
+  );
+
+  const removeExpo = useCallback(
+    (tema: Tema) => {
+      if (
+        estadoPlanificacion === undefined ||
+        estadoPlanificacion.nombre === "Cierre de planificacion"
+      )
+        return;
+      const clickedExpo = Object.values(temasAsignados).find(
+        (a) => a.id === tema.id,
+      );
+      if (clickedExpo) {
+        setTemasSinAsignar([...temasSinAsignar, clickedExpo]);
+        const updatedAssignment = { ...temasAsignados };
+        const keyClicked = Object.keys(temasAsignados).find(
+          (key) => temasAsignados[key] === clickedExpo,
+        );
+        Object.keys(updatedAssignment).forEach((key) => {
+          if (updatedAssignment[key].id === tema.id) {
+            delete updatedAssignment[key];
+          }
+        });
+        setTemasAsignados(updatedAssignment);
+        actualizarBloqueByKey(keyClicked || "", {
+          expo: {
+            id: null,
+            codigo: null,
+            titulo: null,
+            usuarios: null,
+          },
+        });
+      }
+    },
+    [
+      estadoPlanificacion,
+      setTemasAsignados,
+      setTemasSinAsignar,
+      temasAsignados,
+      temasSinAsignar,
+      actualizarBloqueByKey,
+    ],
+  );
+
+  const mouseSensor = useSensor(MouseSensor, {
+    activationConstraint: {
+      distance: 20,
+    },
+  });
+
+  const onAvanzarPlanificacionClick = async (origen: TipoAccion) => {
+    if (temasSinAsignar.length > 0) {
+      console.log("No puede dejar temas sin asignar");
+      return;
+    }
+
+    setIsLoading(true);
+    const bloquesListToInsert: TimeSlot[] = bloques.map((bloque) => {
+      const temaAsignado = temasAsignados[bloque.key];
+      return {
+        ...bloque,
+        expo: temaAsignado ? temaAsignado : undefined,
+        idExposicion: exposicionId,
+        esBloqueReservado: temaAsignado ? true : false,
+      };
+    });
+
+    console.log("bloquesListToInsert", bloquesListToInsert);
+
+    try {
+      await updateBloquesNextPhase(bloquesListToInsert);
+      if (origen == "terminar") await finishPlanning(exposicionId);
+      const newEstadoPlanificacion =
+        await listarEstadoPlanificacionPorExposicion(exposicionId);
+      setEstadoPlanificacion(newEstadoPlanificacion);
+    } catch (err) {
+      console.error("Error al actualizar los bloques:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const sensors = useSensors(mouseSensor);
+
+  const [isDragging, setIsDragging] = useState(false);
+
+  console.log("temasAsignados", temasAsignados);
+  console.log("bloques", bloques);
+
+  return (
+    <DragContext.Provider value={isDragging}>
+      <DndContext onDragEnd={handleDragEnd} sensors={sensors}>
+        <DragMonitor setIsDragging={setIsDragging} />
+        <div className="flex flex-col md:flex-row w-full h-full gap-4">
+          {estadoPlanificacion?.nombre != "Cierre de planificacion" && (
+            <>
+              <div className="w-full h-full md:w-1/4 min-w-1/4">
+                <TemasList areasEspecialidad={areasEspecialidad} />
+              </div>
+              <div className="bg-gray-300 w-full h-px md:w-px md:h-auto" />
+            </>
+          )}
+          <div className="flex flex-col w-full">
+            <PlanificationPanel
+              days={days}
+              assignedExpos={temasAsignados}
+              removeExpo={removeExpo}
+              onAvanzarPlanificacionClick={onAvanzarPlanificacionClick}
+              bloquesList={bloques}
+              estadoPlan={estadoPlanificacion}
+              isLoading={isLoading}
+            />
+          </div>
+        </div>
+      </DndContext>
+    </DragContext.Provider>
+  );
+};
+
+export default GeneralPlanificationExpo;

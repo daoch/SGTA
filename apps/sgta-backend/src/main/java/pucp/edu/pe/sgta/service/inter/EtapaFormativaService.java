@@ -4,6 +4,9 @@ import pucp.edu.pe.sgta.dto.*;
 
 import java.util.List;
 
+import pucp.edu.pe.sgta.dto.*;
+
+
 public interface EtapaFormativaService {
 
     List<EtapaFormativaDto> getAll();

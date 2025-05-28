@@ -1,6 +1,5 @@
 package pucp.edu.pe.sgta.dto;
 
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +8,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -39,6 +37,8 @@ public class TemaDto {
 
     private String metodologia;
 
+    private String requisitos;
+
     private String portafolioUrl;
 
     private Boolean activo;
@@ -64,8 +64,9 @@ public class TemaDto {
     //@NotEmpty(message = "Debe haber al menos una subárea")
     private List<@NotNull(message = "Subárea inválida") SubAreaConocimientoDto> subareas;
 
-    @NotEmpty(message = "Debe haber al menos un tesista")
+    //@NotEmpty(message = "Debe haber al menos un tesista")
     private List<UsuarioDto> tesistas ;
 
     private List< UsuarioDto> coasesores ;
+
 }

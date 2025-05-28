@@ -19,6 +19,17 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import pucp.edu.pe.sgta.dto.EtapaFormativaListadoDto;
+import pucp.edu.pe.sgta.dto.EtapaFormativaDetalleDto;
+
+
+import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.*;
+import pucp.edu.pe.sgta.dto.UpdateEtapaFormativaRequest;
+
+import pucp.edu.pe.sgta.dto.*;
+
+
 @RestController
 @RequestMapping("/etapas-formativas")
 public class EtapaFormativaController {

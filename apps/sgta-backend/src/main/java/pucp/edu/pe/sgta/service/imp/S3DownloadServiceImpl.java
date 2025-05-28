@@ -4,6 +4,8 @@ import org.springframework.web.multipart.MultipartFile;
 import pucp.edu.pe.sgta.controller.DocumentoController;
 import pucp.edu.pe.sgta.service.inter.S3DownloadService;
 import java.io.ByteArrayOutputStream;
+
+import org.springframework.beans.factory.annotation.Value;
 import java.io.IOException;
 import java.util.logging.Logger;
 
@@ -23,13 +25,13 @@ public class S3DownloadServiceImpl implements S3DownloadService {
     public S3DownloadServiceImpl(S3Client s3Client) {
         this.s3Client = s3Client;
     }
-
+    @Value("${s3.bucket}")
+    private String bucketName;
     @Override
     public byte[] download(String key) {
-        String bucket = System.getenv("s3.bucket");
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         s3Client.getObject(
-            GetObjectRequest.builder().bucket(bucket).key(key).build(),
+            GetObjectRequest.builder().bucket(bucketName).key(key).build(),
             ResponseTransformer.toOutputStream(baos)
         );
         return baos.toByteArray();

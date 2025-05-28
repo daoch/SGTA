@@ -26,6 +26,9 @@ public class EtapaFormativaXCiclo {
     @JoinColumn(name = "ciclo_id", nullable = false, foreignKey = @ForeignKey(name = "fk_efc_ciclo"))
     private Ciclo ciclo;
 
+    @Column(name = "estado", nullable = false)
+    private String estado;
+
     @Column(nullable = false)
     private Boolean activo = true;
 

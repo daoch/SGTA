@@ -22,6 +22,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.EntityNotFoundException;
 
+import pucp.edu.pe.sgta.repository.EtapaFormativaXCicloRepository;
+import java.util.NoSuchElementException;
+
 @Service
 public class EtapaFormativaServiceImpl implements EtapaFormativaService {
     @Autowired
@@ -30,6 +33,8 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
     private ExposicionRepository exposicionRepository;
     @Autowired
     private EtapaFormativaRepository etapaFormativaRepository;
+    @Autowired
+    private EtapaFormativaXCicloRepository etapaFormativaXCicloRepository;
 
     public EtapaFormativaServiceImpl(EtapaFormativaRepository etapaFormativaRepository) {
         this.etapaFormativaRepository = etapaFormativaRepository;
