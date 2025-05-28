@@ -32,6 +32,13 @@ import pucp.edu.pe.sgta.repository.TopicAreaStatsRepository;
 import pucp.edu.pe.sgta.repository.TesistasPorAsesorRepository;
 import pucp.edu.pe.sgta.service.inter.IReportService;
 
+import pucp.edu.pe.sgta.dto.EntregableEstudianteDto;
+import pucp.edu.pe.sgta.repository.UsuarioXTemaRepository;
+import pucp.edu.pe.sgta.repository.EntregableXTemaRepository;
+import pucp.edu.pe.sgta.model.UsuarioXTema;
+import pucp.edu.pe.sgta.model.EntregableXTema;
+import java.util.Optional;
+
 @Service
 public class ReportingServiceImpl implements IReportService {
 
@@ -44,6 +51,9 @@ public class ReportingServiceImpl implements IReportService {
     private final HitoCronogramaRepository hitoCronogramaRepository;
     private final HistorialReunionRepository historialReunionRepository;
 
+    private final UsuarioXTemaRepository usuarioXTemaRepository;
+    private final EntregableXTemaRepository entregableXTemaRepository;
+
     public ReportingServiceImpl(
             TopicAreaStatsRepository topicAreaStatsRepository,
             AdvisorDistributionRepository advisorDistributionRepository,
@@ -52,7 +62,11 @@ public class ReportingServiceImpl implements IReportService {
             TesistasPorAsesorRepository tesistasPorAsesorRepository,
             DetalleTesistaRepository detalleTesistaRepository,
             HitoCronogramaRepository hitoCronogramaRepository,
-            HistorialReunionRepository historialReunionRepository) {
+            HistorialReunionRepository historialReunionRepository,
+            
+            UsuarioXTemaRepository usuarioXTemaRepository,          
+            EntregableXTemaRepository entregableXTemaRepository
+            ) {
         this.topicAreaStatsRepository = topicAreaStatsRepository;
         this.advisorDistributionRepository = advisorDistributionRepository;
         this.jurorDistributionRepository = jurorDistributionRepository;
@@ -61,6 +75,9 @@ public class ReportingServiceImpl implements IReportService {
         this.detalleTesistaRepository = detalleTesistaRepository;
         this.hitoCronogramaRepository = hitoCronogramaRepository;
         this.historialReunionRepository = historialReunionRepository;
+
+        this.usuarioXTemaRepository = usuarioXTemaRepository;
+        this.entregableXTemaRepository = entregableXTemaRepository;
     }
 
     @Override
@@ -338,5 +355,23 @@ public class ReportingServiceImpl implements IReportService {
                         .build())
                 .collect(Collectors.toList());
     }
+
+
+    @Override
+    public List<EntregableEstudianteDto> getEntregablesEstudiante(Integer usuarioId) {
+        Optional<UsuarioXTema> usuarioTema = usuarioXTemaRepository.findByUsuarioId(usuarioId);
+        if (usuarioTema.isEmpty()) throw new RuntimeException("Usuario no tiene tema asignado");
+
+        Integer temaId = usuarioTema.get().getTema().getId();
+
+        return entregableXTemaRepository.findByTemaIdWithEntregable(temaId).stream()
+            .map(et -> new EntregableEstudianteDto(
+                et.getEntregable().getNombre(),
+                et.getEstado().name(),
+                et.getFechaEnvio() != null ? et.getFechaEnvio().atStartOfDay() : null
+            ))
+            .collect(Collectors.toList());
+    }
+
 
 }
