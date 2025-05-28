@@ -37,6 +37,7 @@ import ItemSelector from "./item-selector";
 
 //imports de Tema libre
 import {
+  crearTemaLibre,
   fetchAreaConocimientoFindByUsuarioId,
   fetchSubareasPorAreaConocimiento,
 } from "@/features/temas/types/temas/data";
@@ -247,12 +248,11 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
     if (!validarCampos()) return;
     try {
       if (carrera) {
-        //guardar el tema libre
-        console.log(mapTemaCreateLibre(temaData, carrera, asesor));
+        await crearTemaLibre(mapTemaCreateLibre(temaData, carrera, asesor));
         toast.success("Tema guardado exitosamente");
         console.log("Tema libre guardado exitosamente:");
       } else {
-        throw new Error("Falta carrera");
+        throw new Error("No se puede insertar el tema.");
       }
 
       // Reinicia el formulario y cierra el modal
@@ -261,9 +261,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
       setIsNuevoTemaDialogOpen(false);
       onTemaGuardado();
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Error al guardar el tema.",
-      );
+      toast.error("Error al guardar el tema.");
       console.error("Error al guardar el tema:", error);
     }
   };
@@ -678,15 +676,15 @@ const mapTemaCreateInscription = (
 const mapTemaCreateLibre = (tema: Tema, carrera: Carrera, asesor: Coasesor) => {
   return {
     titulo: tema.titulo,
-    carrera: carrera.id,
+    carrera: { id: carrera.id },
     resumen: tema.resumen,
     objetivos: tema.objetivos,
     metodologia: tema.metodologia,
     fechaLimite: new Date(tema.fechaLimite + "T10:00:00Z").toISOString(),
-    subareas: tema.subareas.map((a) => a.id),
+    subareas: tema.subareas.map((a) => ({ id: a.id })),
     coasesores: [
-      asesor.id,
-      ...(tema.coasesores ? tema.coasesores.map((c) => c.id) : []),
+      { id: asesor.id },
+      ...(tema.coasesores ? tema.coasesores.map((c) => ({ id: c.id })) : []),
     ],
     requisitos: tema.requisitos,
   } as TemaCreateLibre;

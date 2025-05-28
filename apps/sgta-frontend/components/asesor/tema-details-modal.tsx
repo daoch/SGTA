@@ -34,8 +34,6 @@ export const TemaDetailsDialog: React.FC<TemaDetailsDialogProps> = ({
         .map((c) => `${c.nombres} ${c.primerApellido} ${c.segundoApellido}`)
         .join(", ")
     : "";
-  const subarea = tema.subareas?.[0];
-
   function handleVerInformacion(tema: Tema) {
     router.push(`/asesor/temas/informacion/${tema.id}`);
   }
@@ -48,7 +46,7 @@ export const TemaDetailsDialog: React.FC<TemaDetailsDialogProps> = ({
           <span className="sr-only">Ver detalles</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-h-screen overflow-y-auto max-w-2xl">
+      <DialogContent className="overflow-y-auto max-w-3xl">
         <DialogHeader>
           <DialogTitle>Detalles del Tema</DialogTitle>
           <DialogDescription>
@@ -66,9 +64,7 @@ export const TemaDetailsDialog: React.FC<TemaDetailsDialogProps> = ({
           {/* Area */}
           <div>
             <p className="text-sm font-medium">Área</p>
-            <p className="bg-muted p-2 rounded-md">
-              {subarea.areaConocimiento?.nombre}
-            </p>
+            <p className="bg-muted p-2 rounded-md">{tema.area[0].nombre}</p>
           </div>
 
           {/* Subáreas */}

@@ -62,6 +62,8 @@ const Page = () => {
         (await fetchTemasAPI(usuarioId, "Asesor", "INSCRITO")) || [];
       const libresData =
         (await fetchTemasAPI(usuarioId, "Asesor", "PROPUESTO_LIBRE")) || [];
+      //const interesadosData =
+      //(await fetchTemasAPI(usuarioId, "Asesor", "PROPUESTA_GENERAL")) || [];
       setTemasData([...inscritosData, ...libresData]);
       console.log("consegui los temas data");
     } catch (err: unknown) {

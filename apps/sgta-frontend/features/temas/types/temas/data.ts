@@ -2,6 +2,7 @@ import {
   AreaConocimiento,
   Carrera,
   Subareas,
+  TemaCreateLibre,
   Usuario,
 } from "@/features/temas/types/temas/entidades";
 
@@ -188,6 +189,30 @@ export async function obtenerObservacionesTema(idTema: number) {
   } catch (error) {
     console.error(
       "La página no responde. No se obtuvieron las observaciones del tema.",
+      error,
+    );
+    throw error;
+  }
+}
+
+export async function crearTemaLibre(tema: TemaCreateLibre) {
+  try {
+    const response = await fetch(`${baseUrl}/temas/crearTemaLibre`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(tema),
+    });
+
+    if (!response.ok) {
+      throw new Error("Error al insertar el tema.");
+    }
+
+    return;
+  } catch (error) {
+    console.error(
+      "La página no responde. No se pudo registrar el tema libre.",
       error,
     );
     throw error;

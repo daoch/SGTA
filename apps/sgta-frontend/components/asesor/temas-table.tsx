@@ -59,6 +59,7 @@ export function TemasTable({
     // Aquí podrías llamar a tu API o actualizar el estado global
   };
 
+  console.log(temasData);
   return (
     <div>
       <div className="rounded-md border">
@@ -93,21 +94,21 @@ export function TemasTable({
                     {tema.titulo}
                   </TableCell>
                   {/* Area */}
-                  <TableCell>
-                    {tema.subareas[0].areaConocimiento?.nombre}
-                  </TableCell>
+                  <TableCell>{tema.area[0]?.nombre}</TableCell>
                   {/* Asesor */}
                   <TableCell>{asesor ? asesor.nombres : ""}</TableCell>
                   {/* Tesistas */}
                   <TableCell>
-                    {!tema.tesistas
-                      ? "Sin asignar"
-                      : tema.tesistas.map((e: Tesista) => e.nombres).join(", ")}
+                    {!tema.tesistas || tema.tesistas.length === 0 ? (
+                      <p className="text-gray-400">Sin asignar</p>
+                    ) : (
+                      tema.tesistas.map((e: Tesista) => e.nombres).join(", ")
+                    )}
                   </TableCell>
                   {/* Postulaciones */}
                   {tema.estadoTemaNombre === Tipo.LIBRE ? (
                     <TableCell>
-                      {/* {!tema.postulaciones ? "-" : tema.postulaciones} */}
+                      {!tema.cantPostulaciones ? "-" : tema.cantPostulaciones}
                     </TableCell>
                   ) : (
                     <TableCell>-</TableCell>
