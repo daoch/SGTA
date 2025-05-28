@@ -13,6 +13,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RolDTO {
+public class RolDTO {
 
     private Integer id;
     private String nombre;
