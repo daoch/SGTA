@@ -1,12 +1,11 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { parseISO } from "date-fns";
-import { ModalProgramarReporte } from "../components/general/modal-programar";
-import { LineaTiempoReporte } from "../components/general/linea-tiempo";
-import { obtenerDetalleTemaAlumno } from "../services/report-services";
+import { format, parseISO } from "date-fns";
 import { useEffect, useState } from "react";
-import { format } from "date-fns";
+import { LineaTiempoReporte } from "../components/general/linea-tiempo";
+import { ModalProgramarReporte } from "../components/general/modal-programar";
+import { obtenerDetalleTemaAlumno } from "../services/report-services";
 import { AlumnoTemaDetalle } from "../types/Alumno.type";
 
 export function StudentReports() {
@@ -16,9 +15,17 @@ export function StudentReports() {
   useEffect(() => {
     const fetchStudentData = async () => {
       try {
+        //Probando lo de ID_Token
+        const idToken = localStorage.getItem("idToken"); // <-- Obtén el token
+        if (!idToken) throw new Error("No autenticado");
         // TODO: Reemplazar con el ID real del usuario logueado
-        const data = await obtenerDetalleTemaAlumno(7);
+        const data = await obtenerDetalleTemaAlumno(8, idToken); // <-- Pásalo al servicio
         setStudentData(data);
+        
+        
+        // TODO: Reemplazar con el ID real del usuario logueado
+        //const data = await obtenerDetalleTemaAlumno(8);
+        //setStudentData(data);
       } catch (error) {
         console.error("Error al obtener datos del alumno:", error);
       } finally {

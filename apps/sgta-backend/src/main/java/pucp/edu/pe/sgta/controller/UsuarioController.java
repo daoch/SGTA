@@ -5,6 +5,8 @@ import java.util.NoSuchElementException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -233,6 +235,28 @@ public class UsuarioController {
         }
 
     }
+
+
+    //Probando lo del Id_Token
+    @GetMapping("/detalle-tema-alumno/{idUsuario}")
+    public ResponseEntity<AlumnoTemaDto> getDetalleTemaAlumno(@AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            // Obtén el username (o email, o sub) desde el token
+            Integer idUsuario = Integer.parseInt(userDetails.getUsername());
+            // Si necesitas el id, búscalo en tu base de datos usando el username/email
+            AlumnoTemaDto tema = usuarioService.getAlumnoTema(idUsuario);
+            return ResponseEntity.ok(tema);
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+
+
+
+
     
     @GetMapping("/getAsesoresBySubArea")
     public List<UsuarioDto> getAsesoresBySubArea(@RequestParam(name = "idSubArea") Integer idSubArea) {
