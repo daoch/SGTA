@@ -1,10 +1,8 @@
-"use client";
-
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useEffect, useState } from "react";
-import { addDays, isBefore, parseISO } from "date-fns";
+import { addDays, format, isBefore, parseISO } from "date-fns";
 
 import { getEntregablesAlumno } from "@/features/reportes/services/report-services";
 import type { User } from "@/features/auth/types/auth.types";
@@ -15,27 +13,39 @@ interface Props {
   user: User;
 }
 
+interface TimelineEvent {
+  event: string;
+  date: string;
+  status: "Completado" | "Pendiente" | "En progreso";
+  isLate: boolean;
+  daysRemaining: number;
+  isAtRisk: boolean;
+}
+
 export function LineaTiempoReporte({ user }: Props) {
   const [timeFilter, setTimeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [showStatusFilter, setShowStatusFilter] = useState(false);
-  const [timelineEvents, setTimelineEvents] = useState<any[]>([]);
+  const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[]>([]);
 
   useEffect(() => {
     const fetchEntregables = async () => {
       try {
         const alumnoId = "36"; // Hardcodeado por ahora
         const data = await getEntregablesAlumno(alumnoId);
-        console.log("✅ Datos recibidos del API:", data);
 
-        const eventosTransformados = data.map((item: any) => {
+        const eventosTransformados: TimelineEvent[] = data.map((item: {
+          nombreEntregable: string;
+          fechaEnvio: string;
+          estado: string;
+        }) => {
           const eventDate = parseISO(item.fechaEnvio);
           const daysRemaining = Math.ceil((eventDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24));
 
-          const statusMap: Record<string, string> = {
-            "no_enviado": "Pendiente",
-            "enviado_a_tiempo": "Completado",
-            "enviado_tarde": "Completado",
+          const statusMap: Record<string, TimelineEvent["status"]> = {
+            no_enviado: "Pendiente",
+            enviado_a_tiempo: "Completado",
+            enviado_tarde: "Completado",
           };
 
           const isLate = item.estado === "enviado_tarde";
@@ -50,7 +60,7 @@ export function LineaTiempoReporte({ user }: Props) {
 
           return {
             event: item.nombreEntregable,
-            date: item.fechaEnvio,
+            date: format(eventDate, "yyyy-MM-dd"),
             status,
             isLate,
             daysRemaining,
@@ -58,9 +68,10 @@ export function LineaTiempoReporte({ user }: Props) {
           };
         });
 
+        eventosTransformados.sort((a, b) => parseISO(a.date).getTime() - parseISO(b.date).getTime());
         setTimelineEvents(eventosTransformados);
       } catch (error) {
-        console.error("❌ Error al obtener entregables:", error);
+        console.error("Error al obtener entregables:", error);
       }
     };
 

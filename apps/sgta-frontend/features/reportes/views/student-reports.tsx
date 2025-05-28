@@ -17,12 +17,9 @@ export function StudentReports() {
 
   const { user } = useAuth();
 
-  if (!user) {
-    return <div>Cargando usuario...</div>;
-  }
-
   useEffect(() => {
     const fetchStudentData = async () => {
+      if (!user) return;
       try {
         // TODO: Reemplazar con el ID real del usuario logueado
         const data = await obtenerDetalleTemaAlumno(7);
@@ -36,6 +33,10 @@ export function StudentReports() {
 
     fetchStudentData();
   }, []);
+
+  if (!user || isLoading || !studentData) {
+    return <div>Cargando...</div>;
+  }
 
   // Datos de entregas con estado de retraso
   const pendingDeliveries = [
@@ -90,11 +91,11 @@ export function StudentReports() {
   const totalEvents = timelineEvents.length;
   const overallProgress = Math.round((completedEvents / totalEvents) * 100);
 
-  
+  /*
   if (isLoading || !studentData) {
     return <div>Cargando...</div>;
   }
-  
+  */
 
   return (
     <div className="space-y-6">
