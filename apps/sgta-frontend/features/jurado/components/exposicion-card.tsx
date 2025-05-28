@@ -92,7 +92,7 @@ export function ExposicionCard({
     )
       return "esperando_aprobacion";
     if (estadoNormalizado.includes("completa")) return "completada";
-    if (estadoNormalizado.includes("finaliza")) return "finalizada";
+    if (estadoNormalizado.includes("calificada")) return "calificada";
 
     // Si no se encuentra ninguna coincidencia, devolver un valor por defecto
     return "sin_programar";
@@ -245,9 +245,10 @@ export function ExposicionCard({
   return (
     <div
       className={`bg-gray-50 rounded-lg shadow-sm border p-5 flex flex-col md:flex-row gap-10
-        ${mostrarReprogramacionSolicitada()
-          ? "bg-red-50 border-red-200"
-          : "bg-gray-50"
+        ${
+          mostrarReprogramacionSolicitada()
+            ? "bg-red-50 border-red-200"
+            : "bg-gray-50"
         }`}
       onClick={handleClick}
     >
@@ -379,3 +380,4 @@ export function ExposicionCard({
     </div>
   );
 }
+

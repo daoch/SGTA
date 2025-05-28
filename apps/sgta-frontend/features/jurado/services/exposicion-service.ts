@@ -1,5 +1,5 @@
 import axiosInstance from "@/lib/axios/axios-instance";
-import { Sala } from "../types/exposicion.types";
+import { ExposicionAlumno, Sala } from "../types/exposicion.types";
 import { FormValues } from "../schemas/exposicion-form-schema";
 import { EtapaFormativaXSalaExposicion } from "../dtos/EtapaFormativaXSalaExposicion";
 
@@ -124,3 +124,41 @@ export const getExposicionesInicializadasByCoordinador = async (
     );
   }
 };
+
+export const getExposicionesEstudiantesByEstudianteId = async (
+  estudianteId: number,
+) => {
+  try {
+    const response = await axiosInstance.get(
+      `/exposicion/listarExposicionesPorUsuario/${estudianteId}`,
+    );
+
+    return response.data.map(
+    (item: ExposicionAlumno) => ({
+    exposicion_id: item.exposicionId,
+    tema_id: item.temaId,
+    estado: item.estado,
+    link_exposicion: item.linkExposicion,
+    link_grabacion: item.linkGrabacion,
+    datetimeInicio: new Date(item.datetimeInicio),
+    datetimeFin: new Date(item.datetimeFin),
+    sala: item.sala,
+    titulo: item.titulo,
+    etapa_formativa: item.etapaFormativa,
+    ciclo: item.ciclo,
+    miembrosJurado: item.miembrosJurado.map((miembro) => ({
+      id_persona: miembro.id_persona,
+      nombre: miembro.nombre,
+      tipo: miembro.tipo,
+    })),
+    }),
+  );
+
+  } catch (error) {
+    console.error(
+      "Error al obtener exposiciones de estudiantes por ID:",
+      error,
+    );
+    throw new Error("Error al obtener exposiciones de estudiantes por ID");
+  }
+}

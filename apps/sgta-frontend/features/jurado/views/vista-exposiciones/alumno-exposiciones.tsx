@@ -9,154 +9,195 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { ExposicionCard } from "@/features/jurado/components/alumno-exposicion-card";
-import React from "react";
+import React, { useEffect } from "react";
 import { useState } from "react";
-
-//periodos: 2025-1, 2025-2, 2026-1, 2026-2
-//atributos: id_ciclo, semestre, anio
-const periodos = [
-  { value: "2025-1", label: "2025-1" },
-  { value: "2024-2", label: "2024-2" },
-  { value: "2024-1", label: "2024-1" },
-  { value: "2023-2", label: "2023-2" },
-];
-
-//estado: todos, completado, pendiente
-const estados = [
-  { value: "todos", label: "Todos" },
-  { value: "completado", label: "Completado" },
-  { value: "pendiente", label: "Pendiente" },
-];
+import { Ciclo } from "../../types/juradoDetalle.types";
+import {
+  getCiclos,
+  getExposicionesEstudiantesByEstudianteId,
+} from "../../services/exposicion-service";
+import { ExposicionAlumno } from "../../types/exposicion.types";
 
 //exposiciones:
-const exposiciones = [
-  {
-    id_exposicion: 1,
-    hora: "10:00",
-    fecha: "2025-10-01",
-    sala: "A201",
-    estado: "Pendiente",
-    titulo:
-      "Identificación del nivel de complejidad de texto para el entrenamiento de chatbots basado en Machine Learning",
-    miembros_jurado: [
-      {
-        id_docente: 1,
-        nombre: "Juan Perez",
-        tipo: "asesor",
-      },
-      {
-        id_docente: 3,
-        nombre: "Maria Lopez",
-        tipo: "miembro",
-      },
-      {
-        id_docente: 4,
-        nombre: "Luis Muroya",
-        tipo: "miembro",
-      },
-    ],
-  },
-  {
-    id_exposicion: 2,
-    hora: "10:00",
-    fecha: "2025-10-01",
-    sala: "A201",
-    estado: "Completado",
-    titulo:
-      "Identificación del nivel de complejidad de texto para el entrenamiento de chatbots basado en Machine Learning",
-    miembros_jurado: [
-      {
-        id_docente: 1,
-        nombre: "Juan Perez",
-        tipo: "asesor",
-      },
-      {
-        id_docente: 2,
-        nombre: "Maria Lopez",
-        tipo: "miembro",
-      },
-      {
-        id_docente: 3,
-        nombre: "Luis Muroya",
-        tipo: "miembro",
-      },
-    ],
-  },
-  {
-    id_exposicion: 3,
-    hora: "10:00",
-    fecha: "2025-10-01",
-    sala: "A201",
-    estado: "Pendiente",
-    titulo:
-      "Identificación del nivel de complejidad de texto para el entrenamiento de chatbots basado en Machine Learning",
-    miembros_jurado: [
-      {
-        id_docente: 1,
-        nombre: "Juan Perez",
-        tipo: "asesor",
-      },
-      {
-        id_docente: 2,
-        nombre: "Maria Lopez",
-        tipo: "miembro",
-      },
-      {
-        id_docente: 3,
-        nombre: "Luis Muroya",
-        tipo: "miembro",
-      },
-    ],
-  },
-];
+// const exposiciones = [
+//   {
+//     id_exposicion: 1,
+//     hora: "10:00",
+//     fecha: "2025-10-01",
+//     sala: "A201",
+//     estado: "Pendiente",
+//     titulo:
+//       "Identificación del nivel de complejidad de texto para el entrenamiento de chatbots basado en Machine Learning",
+//     miembros_jurado: [
+//       {
+//         id_docente: 1,
+//         nombre: "Juan Perez",
+//         tipo: "asesor",
+//       },
+//       {
+//         id_docente: 3,
+//         nombre: "Maria Lopez",
+//         tipo: "miembro",
+//       },
+//       {
+//         id_docente: 4,
+//         nombre: "Luis Muroya",
+//         tipo: "miembro",
+//       },
+//     ],
+//   },
+//   {
+//     id_exposicion: 2,
+//     hora: "10:00",
+//     fecha: "2025-10-01",
+//     sala: "A201",
+//     estado: "Completado",
+//     titulo:
+//       "Identificación del nivel de complejidad de texto para el entrenamiento de chatbots basado en Machine Learning",
+//     miembros_jurado: [
+//       {
+//         id_docente: 1,
+//         nombre: "Juan Perez",
+//         tipo: "asesor",
+//       },
+//       {
+//         id_docente: 2,
+//         nombre: "Maria Lopez",
+//         tipo: "miembro",
+//       },
+//       {
+//         id_docente: 3,
+//         nombre: "Luis Muroya",
+//         tipo: "miembro",
+//       },
+//     ],
+//   },
+//   {
+//     id_exposicion: 3,
+//     hora: "10:00",
+//     fecha: "2025-10-01",
+//     sala: "A201",
+//     estado: "Pendiente",
+//     titulo:
+//       "Identificación del nivel de complejidad de texto para el entrenamiento de chatbots basado en Machine Learning",
+//     miembros_jurado: [
+//       {
+//         id_docente: 1,
+//         nombre: "Juan Perez",
+//         tipo: "asesor",
+//       },
+//       {
+//         id_docente: 2,
+//         nombre: "Maria Lopez",
+//         tipo: "miembro",
+//       },
+//       {
+//         id_docente: 3,
+//         nombre: "Luis Muroya",
+//         tipo: "miembro",
+//       },
+//     ],
+//   },
+// ];
 
 const Exposiciones: React.FC = () => {
-  const [selectedPeriodo, setSelectedPeriodo] = useState(periodos[0].value);
-  const [selectedEstado, setSelectedEstado] = useState(estados[2].value);
+  //JALAMOS LOS CICLOS
+  const [ciclos, setCiclos] = useState<Ciclo[]>([]);
+  const [selectedCiclo, setSelectedCiclo] = useState<string>("TODOS");
+
+  const fetchCiclos = async () => {
+    try {
+      const ciclos = await getCiclos();
+      setCiclos(ciclos);
+      if (ciclos.length > 0) {
+        const primerValor = `${ciclos[0].anio}-${ciclos[0].semestre}`;
+        setSelectedCiclo(primerValor);
+      }
+    } catch (error) {
+      console.error("Error fetching ciclos:", error);
+    }
+  };
+
+  //ESTADOS DE EXPOSICION
+  const estados = [
+    { value: "todos", label: "Todos" },
+    { value: "programada", label: "Programada" },
+    { value: "completada", label: "Completada" },
+    { value: "finalizada", label: "Finalizada" },
+  ];
+  const [selectedEstado, setSelectedEstado] = useState(estados[0].value);
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [exposiciones, setExposiciones] = useState<ExposicionAlumno[]>([]);
+  //JALAMOS LAS EXPOSICIONES DEL ALUMNO
+  const fetchExposiciones = async () => {
+    setIsLoading(true);
+    try {
+      //se debe reemplazar el 21 por el id del jurado logueado
+      const exposicionesData =
+        await getExposicionesEstudiantesByEstudianteId(21);
+      setExposiciones(exposicionesData);
+    } catch (error) {
+      console.error("Error al cargar exposiciones:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchExposiciones();
+    fetchCiclos();
+  }, []);
 
   const filteredExposiciones = exposiciones.filter((exposicion) => {
-    if (selectedEstado === "todos") return true;
-    return exposicion.estado.toLowerCase() === selectedEstado.toLowerCase();
+    const coincideEstado =
+      selectedEstado === "todos" ||
+      exposicion.estado.toLowerCase() === selectedEstado.toLowerCase();
+    const coincideCiclo =
+      selectedCiclo === "TODOS" || exposicion.ciclo === selectedCiclo;
+    return coincideEstado && coincideCiclo;
   });
 
   return (
     <div>
-      <div className="flex gap-4 pb-4">
-        {/*PERIODO*/}
-        <div className="pt-4">
-          <label htmlFor="periodo" className="text-sm font-semibold">
-            Período
-          </label>
+      <div className="flex h-[60px] pt-[15px] pr-[20px] pb-[10px] items-center gap-[10px] self-stretch">
+        <h1 className="text-[#042354] font-montserrat text-[24px] font-semibold leading-[32px] tracking-[-0.144px]">
+          Mis Exposiciones
+        </h1>
+      </div>
+      <div className="flex flex-wrap gap-3 items-center">
+        {/*CICLO*/}
+        <div className="flex flex-col w-[104px] h-[80px] items-start gap-[6px] flex-shrink-0">
+          <label className="text-m font-semibold">Periodo</label>
           <Select
-            defaultValue={selectedPeriodo}
-            onValueChange={setSelectedPeriodo}
+            value={selectedCiclo}
+            onValueChange={(val) => setSelectedCiclo(val)}
           >
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Seleccionar período" />
+            <SelectTrigger className="h-[68px] w-full">
+              <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectGroup>
-                {periodos.map((periodo) => (
-                  <SelectItem key={periodo.value} value={periodo.value}>
-                    {periodo.label}
+              {ciclos.map((ciclo) => {
+                const value = `${ciclo.anio}-${ciclo.semestre}`;
+                return (
+                  <SelectItem key={ciclo.id} value={value}>
+                    {value}
                   </SelectItem>
-                ))}
-              </SelectGroup>
+                );
+              })}
             </SelectContent>
           </Select>
         </div>
 
         {/*ESTADO*/}
-        <div className="pt-4">
-          <label htmlFor="estado" className="text-sm font-semibold">
-            Estado
-          </label>
+        <div className="flex flex-col w-[150px] h-[80px] items-start gap-[6px] flex-shrink-0">
+          <label className="text-m font-semibold">Estado</label>
           <Select
             defaultValue={selectedEstado}
             onValueChange={setSelectedEstado}
           >
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Seleccionar estado" />
+            <SelectTrigger className="h-[150px] w-full">
+              <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
@@ -172,14 +213,26 @@ const Exposiciones: React.FC = () => {
       </div>
 
       {/*TABLA DE EXPOSICIONES*/}
-      <div className="space-y-4">
-        {filteredExposiciones.map((exposicion) => (
-          <ExposicionCard
-            key={exposicion.id_exposicion}
-            exposicion={exposicion}
-          />
-        ))}
-      </div>
+      {isLoading ? (
+        <div className="text-center mt-10">
+          <p className="text-gray-500 animate-pulse">
+            Cargando exposiciones del alumno...
+          </p>
+        </div>
+      ) : filteredExposiciones.length === 0 ? (
+        <div className="text-center text-gray-400 mt-5">
+          <p>No hay exposiciones que coincidan con los filtros aplicados.</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {filteredExposiciones.map((exposicion, index) => (
+            <ExposicionCard
+              key={`${exposicion.exposicionId}-${index}`}
+              exposicion={exposicion}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 };
