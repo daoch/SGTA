@@ -28,6 +28,7 @@ import pucp.edu.pe.sgta.dto.RechazoSolicitudResponseDto;
 import pucp.edu.pe.sgta.dto.SolicitudCambioAsesorDto;
 import pucp.edu.pe.sgta.dto.RechazoSolicitudResponseDto.AsignacionDto;
 import pucp.edu.pe.sgta.dto.SolicitudCeseDto;
+import pucp.edu.pe.sgta.dto.asesores.SolicitudCambioAsesorResumenDto;
 import pucp.edu.pe.sgta.model.*;
 import pucp.edu.pe.sgta.dto.temas.SolicitudTemaDto;
 import pucp.edu.pe.sgta.repository.*;
@@ -724,7 +725,7 @@ public class SolicitudServiceImpl implements SolicitudService {
         actualAsesor.setUsuario(asesorActual);
         actualAsesor.setSolicitud(nuevaSolicitud);
         actualAsesor.setAccionSolicitud(sinAccion);
-        actualAsesor.setRolSolicitud(rolAsesorEntrada);
+        actualAsesor.setRolSolicitud(rolAsesorActual);
         actualAsesor.setDestinatario(false);
 
         usuarioXSolicitudRepository.save(nuevoRemitente);
@@ -733,6 +734,17 @@ public class SolicitudServiceImpl implements SolicitudService {
         usuarioXSolicitudRepository.save(actualAsesor);
 
         return solicitud;
+    }
+
+    @Override
+    public List<SolicitudCambioAsesorResumenDto> listarResumenSolicitudCambioAsesorUsuario(Integer idUsuario, String rolSolicitud) {
+        List<Object[]> queryResult = solicitudRepository.listarResumenSolicitudCambioAsesorUsuario(idUsuario,rolSolicitud);
+        List<SolicitudCambioAsesorResumenDto> solicitudes = new ArrayList<>();
+        for(Object[] row : queryResult){
+            SolicitudCambioAsesorResumenDto solicitud = SolicitudCambioAsesorResumenDto.fromResultQuery(row);
+            solicitudes.add(solicitud);
+        }
+        return solicitudes;
     }
 
     private boolean determinarSolicitudCompletadaFromData(Integer estado) {

@@ -325,8 +325,8 @@ BEGIN
         OR sac.nombre ILIKE '%' || p_busqueda || '%'
       );
 END;
-
 $$ LANGUAGE plpgsql;
+
 CREATE OR REPLACE FUNCTION validar_tema_existe_cambiar_asesor_posible(p_tema_id INTEGER)
 RETURNS BOOLEAN AS
 $$
@@ -396,4 +396,93 @@ $$
           )
         LIMIT 1
     ), -1);
+$$;
+
+CREATE OR REPLACE FUNCTION listar_resumen_solicitud_cambio_asesor_usuario(
+    p_usuario_id INTEGER,
+    p_rol_control TEXT
+)
+RETURNS TABLE (
+    solicitud_id INTEGER,
+    fecha_creacion TIMESTAMP WITH TIME ZONE,
+    tema_id INTEGER,
+    titulo TEXT,
+    estado_nombre TEXT,
+    nombre_alumno TEXT,
+    apellido_alumno TEXT,
+    correo_alumno TEXT,
+    nombre_asesor_actual TEXT,
+    apellido_asesor_actual TEXT,
+    nombre_asesor_entrada TEXT,
+    apellido_asesor_entrada TEXT,
+	estado_accion TEXT
+)
+LANGUAGE sql
+AS $$
+    SELECT
+        s.solicitud_id,
+        s.fecha_creacion,
+        t.tema_id,
+        t.titulo,
+        es.nombre,
+        us_remitente.nombres AS nombre_alumno,
+        us_remitente.primer_apellido AS apellido_alumno,
+        us_remitente.correo_electronico AS correo_alumno,
+        us_asesor_actual.nombres AS nombre_asesor_actual,
+        us_asesor_actual.primer_apellido AS apellido_asesor_actual,
+        us_asesor_entrada.nombres AS nombre_asesor_entrada,
+        us_asesor_entrada.primer_apellido AS apellido_asesor_entrada,
+		accion.nombre AS estado_accion
+    FROM
+        solicitud s
+        INNER JOIN tema t ON t.tema_id = s.tema_id
+        INNER JOIN estado_solicitud es ON es.estado_solicitud_id = s.estado_solicitud
+
+        LEFT JOIN LATERAL (
+            SELECT u.nombres, u.correo_electronico, u.primer_apellido
+            FROM usuario_solicitud us
+            JOIN usuario u ON u.usuario_id = us.usuario_id
+            JOIN rol_solicitud rs ON rs.rol_solicitud_id = us.rol_solicitud
+            WHERE us.solicitud_id = s.solicitud_id
+              AND rs.nombre = 'REMITENTE'
+            LIMIT 1
+        ) us_remitente ON true
+
+        LEFT JOIN LATERAL (
+            SELECT u.nombres, u.primer_apellido
+            FROM usuario_solicitud us
+            JOIN usuario u ON u.usuario_id = us.usuario_id
+            JOIN rol_solicitud rs ON rs.rol_solicitud_id = us.rol_solicitud
+            WHERE us.solicitud_id = s.solicitud_id
+              AND rs.nombre = 'ASESOR_ACTUAL'
+            LIMIT 1
+        ) us_asesor_actual ON true
+
+        LEFT JOIN LATERAL (
+            SELECT u.nombres, u.primer_apellido
+            FROM usuario_solicitud us
+            JOIN usuario u ON u.usuario_id = us.usuario_id
+            JOIN rol_solicitud rs ON rs.rol_solicitud_id = us.rol_solicitud
+            WHERE us.solicitud_id = s.solicitud_id
+              AND rs.nombre = 'ASESOR_ENTRADA'
+            LIMIT 1
+        ) us_asesor_entrada ON true
+		LEFT JOIN LATERAL (
+	    	SELECT acs.nombre
+	    	FROM usuario_solicitud us
+			JOIN rol_solicitud rs on rs.rol_solicitud_id = us.rol_solicitud
+	    	JOIN accion_solicitud acs on acs.accion_solicitud_id = us.accion_solicitud
+	    	WHERE us.solicitud_id = s.solicitud_id
+	      		AND us.usuario_id = p_usuario_id
+		  		and rs.nombre = p_rol_control
+	    	LIMIT 1
+		) accion ON true
+
+    WHERE s.solicitud_id IN (
+        SELECT us_control.solicitud_id
+        FROM usuario_solicitud us_control
+        INNER JOIN rol_solicitud rs_control ON us_control.rol_solicitud = rs_control.rol_solicitud_id
+        WHERE us_control.usuario_id = p_usuario_id
+          AND rs_control.nombre = p_rol_control
+    );
 $$;

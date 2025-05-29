@@ -27,5 +27,10 @@ public interface SolicitudRepository extends JpaRepository<Solicitud, Integer>{
 
     @Query(value = "SELECT COUNT(*) FROM get_solicitudes_by_tema_count(:temaId)", nativeQuery = true)
     Integer countSolicitudesByTema(@Param("temaId") Integer temaId);
+
     Optional<Solicitud> findByTipoSolicitudNombreAndTemaIdAndActivoTrue(String string, Integer temaId);
+
+    @Query(value = "SELECT * FROM listar_resumen_solicitud_cambio_asesor_usuario(:idUsuario,:nombreRol)", nativeQuery = true)
+    List<Object[]> listarResumenSolicitudCambioAsesorUsuario(@Param("idUsuario") Integer idUsuario,
+                                                             @Param("nombreRol") String nombreRol);
 }
