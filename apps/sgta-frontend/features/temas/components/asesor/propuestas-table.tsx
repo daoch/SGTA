@@ -25,6 +25,7 @@ import {
   fetchTemasPropuestosAlAsesor,
   fetchTemasPropuestosPorSubAreaConocimiento,
   postularTemaPropuestoGeneral,
+  rechazarTema,
 } from "@/features/temas/types/propuestas/data";
 import {
   Area,
@@ -202,7 +203,7 @@ export function PropuestasTable({
     console.log({ comentario });
     console.log({ selectedPropuesta });
     console.log({ tipoRechazo });
-    /*if (selectedPropuesta) {
+    if (selectedPropuesta) {
       try {
         if (selectedPropuesta) {
           await rechazarTema(
@@ -221,7 +222,7 @@ export function PropuestasTable({
 
     const propuestasDirectas = await fetchTemasPropuestosAlAsesor("", 50, 0);
     setPropuestasData?.(propuestasDirectas);
-    router.refresh();*/
+    router.refresh();
   };
 
   const handlerAceptarPropuesta = (propuesta: Proyecto_M) => {
