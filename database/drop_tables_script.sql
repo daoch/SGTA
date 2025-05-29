@@ -81,6 +81,7 @@ DROP TABLE IF EXISTS criterio_exposicion_preset           CASCADE;
 DROP TABLE IF EXISTS accion_solicitud;
 DROP TABLE IF EXISTS rol_solicitud;
 DROP TABLE IF EXISTS estado_solicitud;
+
 -- Finalmente, los ENUMs
 DROP TYPE IF EXISTS enum_estado_exposicion              CASCADE;
 DROP TYPE IF EXISTS enum_estado_usuario_exposicion       CASCADE;
