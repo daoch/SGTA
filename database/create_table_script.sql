@@ -672,7 +672,7 @@ CREATE TABLE IF NOT EXISTS etapa_formativa
     etapa_formativa_id  SERIAL PRIMARY KEY,
     nombre              TEXT                     NOT NULL,
     creditaje_por_tema  NUMERIC(6, 2),
-    duracion_exposicion INTERVAL,
+    duracion_exposicion VARCHAR(50),
     activo              BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
