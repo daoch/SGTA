@@ -184,3 +184,40 @@ export const desbloquearBloquePorId = async (
     return false;
   }
 };
+
+/**
+ * Obtiene las áreas de conocimiento asociadas a una exposición.
+ *
+ * @param exposicionId - El ID de la exposición para listar sus áreas de conocimiento.
+ * @returns Un array de objetos con la información de cada área de conocimiento.
+ */
+export async function listarAreasConocimientoPorExposicion(
+  exposicionId: number,
+) {
+  try {
+    const response = await fetch(
+      `${baseUrl}/areaConocimiento/listarPorIdExpo/${exposicionId}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Error en la respuesta de red (status ${response.status})`,
+      );
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error(
+      "Error al obtener áreas de conocimiento por exposición:",
+      error,
+    );
+    return [];
+  }
+}
