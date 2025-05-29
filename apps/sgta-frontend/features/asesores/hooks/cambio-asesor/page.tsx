@@ -86,7 +86,7 @@ export async function registrarSolicitudCambioAsesor(
 ): Promise<{ success: boolean; message: string; solicitudId?: number }> {
   try {
     const response = await axiosInstance.post(
-      "/solicitudes/registrar-cambio-asesor",
+      "/solicitudes/registrarSolicitudCambioAsesor",
       data,
     );
 

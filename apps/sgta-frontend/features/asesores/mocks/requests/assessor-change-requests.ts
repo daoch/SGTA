@@ -135,14 +135,14 @@ export function getMockTemaYAsesor(): {
   asesorActual: Asesor;
 } {
   const temaActual: TemaActual = {
-    id: 501,
+    id: 22,
     titulo:
       "Implementación de algoritmos de aprendizaje profundo para detección de patrones en imágenes médicas",
     areas: "Ciencia de la computación",
   };
 
   const asesorActual: Asesor = {
-    id: 101,
+    id: 35,
     nombre: "Dra. Mariana López",
     especialidad: "Inteligencia Artificial",
     email: "mariana.lopez@pucp.edu.pe",

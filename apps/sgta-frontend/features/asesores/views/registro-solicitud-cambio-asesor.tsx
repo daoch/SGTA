@@ -45,9 +45,9 @@ import { Asesor } from "../types/perfil/entidades";
 
 // Mock de datos del alumno y tema actual
 const alumnoActual = {
-  id: 8,
-  nombre: "Juan Pérez",
-  correo: "felix@pucp.edu.pe",
+  id: 37,
+  nombre: "Juana Pérez",
+  correo: "juana.perez@pucp.edu.pe",
 };
 
 export default function RegistrarSolicitudCambioAsesor() {
