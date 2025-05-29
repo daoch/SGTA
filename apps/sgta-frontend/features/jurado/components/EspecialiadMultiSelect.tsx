@@ -11,14 +11,14 @@ interface MultiSelectCheckboxProps {
   options: SelectOption[];
   selected: string[];
   onChange: (selected: string[]) => void;
-  placeholder?: string;
+  displayText?: string;
 }
 
 export const MultiSelectCheckbox: React.FC<MultiSelectCheckboxProps> = ({
   options,
   selected,
   onChange,
-  placeholder = "Selecciona áreas",
+  displayText = "Selecciona áreas",
 }) => {
   const toggleValue = (value: string) => {
     if (selected.includes(value)) {
@@ -28,29 +28,28 @@ export const MultiSelectCheckbox: React.FC<MultiSelectCheckboxProps> = ({
     }
   };
 
+  const getDisplayText = () => {
+    const count = selected.length;
+    if (count === 0) return displayText;
+    return `${count} área${count !== 1 ? "s" : ""} seleccionada${count !== 1 ? "s" : ""}`;
+  };
+
   return (
     <Popover.Root>
       <Popover.Trigger asChild>
         <button
           className={cn(
-            "flex items-center justify-between border border-input rounded-md px-3 py-2 text-sm w-[200px] shadow-sm bg-white",
+            "flex items-center justify-between border border-input rounded-md px-3 py-2 text-sm w-[195px] shadow-sm bg-white",
             "hover:border-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring",
           )}
         >
-          <span className="truncate">
-            {selected.length > 0
-              ? options
-                  .filter((opt) => selected.includes(opt.value))
-                  .map((opt) => opt.label)
-                  .join(", ")
-              : placeholder}
-          </span>
+          <span className="truncate">{getDisplayText()}</span>
           <ChevronDownIcon className="ml-2 h-4 w-4 text-muted-foreground" />
         </button>
       </Popover.Trigger>
 
       <Popover.Content
-        className="bg-white border rounded-md shadow-md p-2 w-[200px]"
+        className="bg-white border rounded-md shadow-md p-2 w-[200px] max-h-48 overflow-y-auto"
         align="start"
         sideOffset={4}
       >
@@ -68,3 +67,4 @@ export const MultiSelectCheckbox: React.FC<MultiSelectCheckboxProps> = ({
     </Popover.Root>
   );
 };
+

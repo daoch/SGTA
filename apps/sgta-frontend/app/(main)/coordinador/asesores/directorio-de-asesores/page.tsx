@@ -1,9 +1,11 @@
 "use client";
 
+import DirectorioAsesoresCoordinadorView from "@/features/asesores/views/directorio-asesores-coordinador";
 import React from "react";
 
 const Page: React.FC = () => {
-  return <div>page</div>;
+
+  return <DirectorioAsesoresCoordinadorView />;
 };
 
 export default Page;

@@ -267,38 +267,162 @@ INSERT INTO grupo_investigacion_proyecto (
 ) VALUES
   (1, 1, TRUE, NOW(), NOW());
 
+WITH nuevo_parametro AS (
+    INSERT INTO parametro_configuracion (
+                                         nombre, descripcion, modulo_id, activo, fecha_creacion, fecha_modificacion,
+                                         tipo
+        ) VALUES ('antiplagio',
+                  'Configure la opcion de revision antiplagio',
+                  4, TRUE, NOW(), NOW(), 'booleano') RETURNING parametro_configuracion_id)
+INSERT
+    INTO carrera_parametro_configuracion (carrera_id, parametro_configuracion_id, valor, activo, fecha_creacion, fecha_modificacion, etapa_formativa_id)
+SELECT 1, parametro_configuracion_id, 'false', TRUE, NOW(), NOW(), 1
+    FROM nuevo_parametro;
 
--- No corregido
--- (2) Parametro de configuración
-INSERT INTO parametro_configuracion (
-  nombre,
-  descripcion,
-  modulo_id,
-  activo,
-  fecha_creacion,
-  fecha_modificacion
-) VALUES (
-  'Parámetro Test',
-  'Descripción de prueba',
-  1,
-  TRUE, NOW(), NOW()
-);
 
--- (3) Carrera–Parametro Configuración
-INSERT INTO carrera_parametro_configuracion (
-  valor,
-  activo,
-  fecha_creacion,
-  fecha_modificacion,
-  carrera_id,
-  parametro_configuracion_id
-) VALUES (
-  'activo',
-  TRUE, NOW(), NOW(),
-  1,
-  1
-);
+WITH nuevo_parametro AS (
+    INSERT INTO parametro_configuracion (
+                                         nombre, descripcion, modulo_id, activo, fecha_creacion, fecha_modificacion,
+                                         tipo
+        ) VALUES ('turnitin',
+                  'Configure la opcion de revision turnitin',
+                  4, TRUE, NOW(), NOW(), 'booleano') RETURNING parametro_configuracion_id)
+INSERT
+    INTO carrera_parametro_configuracion (carrera_id, parametro_configuracion_id, valor, activo, fecha_creacion, fecha_modificacion, etapa_formativa_id)
+SELECT 1, parametro_configuracion_id, 'false', TRUE, NOW(), NOW(), 1
+    FROM nuevo_parametro;
 
+
+WITH nuevo_parametro AS (
+    INSERT INTO parametro_configuracion (
+                                         nombre, descripcion, modulo_id, activo, fecha_creacion, fecha_modificacion,
+                                         tipo
+        ) VALUES ('modalidad_delimitacion_tema',
+                  'Define delimitación de tema de tesis',
+                  1, TRUE, NOW(), NOW(), 'string') RETURNING parametro_configuracion_id)
+INSERT
+    INTO carrera_parametro_configuracion (carrera_id, parametro_configuracion_id, valor, activo, fecha_creacion, fecha_modificacion, etapa_formativa_id)
+SELECT 1, parametro_configuracion_id, 'propuesta', TRUE, NOW(), NOW(), 1
+    FROM nuevo_parametro;
+
+
+
+WITH nuevo_parametro AS (
+    INSERT INTO parametro_configuracion (
+                                         nombre, descripcion, modulo_id, activo, fecha_creacion, fecha_modificacion,
+                                         tipo
+        ) VALUES ('fecha_limite_asesor',
+                  'Establece la fecha máxima para cambios de asesor',
+                  2, TRUE, NOW(), NOW(), 'date') RETURNING parametro_configuracion_id)
+INSERT
+    INTO carrera_parametro_configuracion (carrera_id, parametro_configuracion_id, valor, activo, fecha_creacion, fecha_modificacion, etapa_formativa_id)
+SELECT 1, parametro_configuracion_id, '2025-06-30T00:00:00Z', TRUE, NOW(), NOW(), 1
+    FROM nuevo_parametro;
 -- Para verificar
 SELECT * FROM parametro_configuracion;
 SELECT * FROM carrera_parametro_configuracion;
+
+-- PARA REPORTES
+-- (1)
+CREATE OR REPLACE FUNCTION get_topic_area_stats_by_user_and_ciclo(
+    p_usuario_id INTEGER,
+    p_ciclo_nombre VARCHAR
+)
+RETURNS TABLE (
+    area_name VARCHAR,
+    topic_count BIGINT
+) AS $$
+DECLARE
+    v_carrera_id INTEGER;
+    v_ciclo_id INTEGER;
+    v_semestre VARCHAR;
+    v_anio INTEGER;
+BEGIN
+    -- Separar el ciclo_nombre en semestre y año
+    v_anio := split_part(p_ciclo_nombre, '-', 1)::INTEGER;
+    v_semestre := split_part(p_ciclo_nombre, '-', 2);
+
+    -- Obtener la carrera del usuario (asumimos que solo tiene una activa)
+    SELECT carrera_id INTO v_carrera_id
+    FROM usuario_carrera
+    WHERE usuario_id = p_usuario_id AND activo = true
+    LIMIT 1;
+
+    -- Obtener el ciclo_id a partir de semestre y año
+    SELECT ciclo_id INTO v_ciclo_id
+    FROM ciclo
+    WHERE semestre = v_semestre AND anio = v_anio AND activo = true
+    LIMIT 1;
+
+    RETURN QUERY
+    SELECT 
+        ac.nombre as area_name,
+        COUNT(DISTINCT t.tema_id) as topic_count
+    FROM area_conocimiento ac
+    INNER JOIN sub_area_conocimiento sac ON sac.area_conocimiento_id = ac.area_conocimiento_id AND sac.activo = true
+    INNER JOIN sub_area_conocimiento_tema sact ON sact.sub_area_conocimiento_id = sac.sub_area_conocimiento_id AND sact.activo = true
+    INNER JOIN tema t ON t.tema_id = sact.tema_id AND t.activo = true
+    INNER JOIN usuario_tema ut ON ut.tema_id = t.tema_id AND ut.usuario_id = p_usuario_id AND ut.activo = true
+    INNER JOIN usuario_carrera uc ON uc.usuario_id = p_usuario_id AND uc.carrera_id = v_carrera_id AND uc.activo = true
+    -- Relación con exposición y ciclo
+    INNER JOIN exposicion_x_tema ext ON ext.tema_id = t.tema_id AND ext.activo = true
+    INNER JOIN exposicion e ON e.exposicion_id = ext.exposicion_id AND e.activo = true
+    INNER JOIN tipo_exposicion_x_ef_x_c texefc ON texefc.tipo_exposicion_x_ef_x_c_id = e.tipo_exposicion_x_ef_x_c_id AND texefc.activo = true
+    INNER JOIN etapa_formativa_x_ciclo efc ON efc.etapa_formativa_x_ciclo_id = texefc.etapa_formativa_x_ciclo_id AND efc.activo = true
+    INNER JOIN ciclo ci ON ci.ciclo_id = efc.ciclo_id AND ci.ciclo_id = v_ciclo_id AND ci.activo = true
+    WHERE ac.activo = true
+    GROUP BY ac.nombre
+    ORDER BY topic_count DESC;
+END;
+$$ LANGUAGE plpgsql;
+
+-- (2)
+CREATE OR REPLACE FUNCTION get_advisor_distribution_by_coordinator_and_ciclo(
+    p_usuario_id INTEGER,
+    p_ciclo_nombre VARCHAR
+)
+RETURNS TABLE (
+    teacher_name VARCHAR(255),
+    advisor_count BIGINT
+) AS $$
+DECLARE
+    v_carrera_id INTEGER;
+    v_ciclo_id INTEGER;
+    v_semestre VARCHAR;
+    v_anio INTEGER;
+BEGIN
+    -- Separar el ciclo_nombre en semestre y año
+    v_anio := split_part(p_ciclo_nombre, '-', 1)::INTEGER;
+    v_semestre := split_part(p_ciclo_nombre, '-', 2);
+
+    -- Obtener la carrera del coordinador (asumimos que solo tiene una activa)
+    SELECT carrera_id INTO v_carrera_id
+    FROM usuario_carrera
+    WHERE usuario_id = p_usuario_id AND activo = true
+    LIMIT 1;
+
+    -- Obtener el ciclo_id a partir de semestre y año
+    SELECT ciclo_id INTO v_ciclo_id
+    FROM ciclo
+    WHERE semestre = v_semestre AND anio = v_anio AND activo = true
+    LIMIT 1;
+
+    RETURN QUERY
+    SELECT 
+        CAST(CONCAT(u.nombres, ' ', u.primer_apellido, ' ', COALESCE(u.segundo_apellido, '')) AS VARCHAR(255)) as teacher_name,
+        COUNT(DISTINCT t.tema_id) as advisor_count
+    FROM usuario u
+    INNER JOIN usuario_tema ut ON ut.usuario_id = u.usuario_id AND ut.activo = true
+    INNER JOIN tema t ON t.tema_id = ut.tema_id AND t.activo = true
+    INNER JOIN rol r ON r.rol_id = ut.rol_id AND r.nombre = 'Asesor'
+    INNER JOIN usuario_carrera uc ON uc.usuario_id = u.usuario_id AND uc.carrera_id = v_carrera_id AND uc.activo = true
+    -- Relación con exposición y ciclo
+    INNER JOIN exposicion_x_tema ext ON ext.tema_id = t.tema_id AND ext.activo = true
+    INNER JOIN exposicion e ON e.exposicion_id = ext.exposicion_id AND e.activo = true
+    INNER JOIN tipo_exposicion_x_ef_x_c texefc ON texefc.tipo_exposicion_x_ef_x_c_id = e.tipo_exposicion_x_ef_x_c_id AND texefc.activo = true
+    INNER JOIN etapa_formativa_x_ciclo efc ON efc.etapa_formativa_x_ciclo_id = texefc.etapa_formativa_x_ciclo_id AND efc.activo = true
+    INNER JOIN ciclo ci ON ci.ciclo_id = efc.ciclo_id AND ci.ciclo_id = v_ciclo_id AND ci.activo = true
+    GROUP BY u.nombres, u.primer_apellido, u.segundo_apellido
+    ORDER BY advisor_count DESC;
+END;
+$$ LANGUAGE plpgsql; 

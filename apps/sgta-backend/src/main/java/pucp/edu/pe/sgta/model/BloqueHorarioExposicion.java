@@ -25,6 +25,10 @@ public class BloqueHorarioExposicion {
         @JoinColumn(name = "jornada_exposicion_x_sala_id", nullable = false, foreignKey = @ForeignKey(name = "fk_bhe_jornada_exposicion_x_sala"))
         private JornadaExposicionXSalaExposicion jornadaExposicionXSala;
 
+        @ManyToOne(fetch = FetchType.LAZY,optional = false)
+        @JoinColumn(name = "exposicion_x_tema_id",nullable = false,foreignKey = @ForeignKey(name = "fk_bhe_exposicion_x_tema"))
+        private ExposicionXTema exposicionXTema;
+
         @Column(name = "es_bloque_reservado", nullable = false)
         private boolean esBloqueReservado = false;
 
@@ -40,9 +44,9 @@ public class BloqueHorarioExposicion {
         @Column(nullable = false)
         private Boolean activo = true;
 
-        @Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+        @Column(name = "fecha_creacion", nullable = false, insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
         private OffsetDateTime fechaCreacion;
 
-        @Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+        @Column(name = "fecha_modificacion", insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
         private OffsetDateTime fechaModificacion;
 }

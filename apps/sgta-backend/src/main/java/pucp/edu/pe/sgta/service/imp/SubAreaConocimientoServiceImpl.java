@@ -2,36 +2,48 @@ package pucp.edu.pe.sgta.service.imp;
 
 import jakarta.persistence.*;
 import org.springframework.stereotype.Service;
+import pucp.edu.pe.sgta.dto.asesores.InfoAreaConocimientoDto;
+import pucp.edu.pe.sgta.dto.asesores.InfoSubAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.AreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.SubAreaConocimientoDto;
+import pucp.edu.pe.sgta.mapper.InfoSubAreaConocimientoMapper;
 import pucp.edu.pe.sgta.mapper.AreaConocimientoMapper;
 import pucp.edu.pe.sgta.mapper.SubAreaConocimientoMapper;
 import pucp.edu.pe.sgta.model.AreaConocimiento;
 import pucp.edu.pe.sgta.model.SubAreaConocimiento;
 import pucp.edu.pe.sgta.repository.AreaConocimientoRepository;
+import pucp.edu.pe.sgta.repository.CarreraRepository;
 import pucp.edu.pe.sgta.repository.SubAreaConocimientoRepository;
 import pucp.edu.pe.sgta.service.inter.SubAreaConocimientoService;
 
+import java.awt.geom.Area;
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
 public class SubAreaConocimientoServiceImpl implements SubAreaConocimientoService {
 
+	private final CarreraRepository carreraRepository;
 	@PersistenceContext
 	private EntityManager entityManager;
 	private final SubAreaConocimientoRepository subAreaConocimientoRepository;
 	private final AreaConocimientoRepository areaConocimientoRepository;
+	private final AreaConocimientoServiceImpl areaConocimientoServiceImpl;
 
-	public SubAreaConocimientoServiceImpl(SubAreaConocimientoRepository subAreaConocimientoRepository, AreaConocimientoRepository areaConocimientoRepository) {
+	public SubAreaConocimientoServiceImpl(SubAreaConocimientoRepository subAreaConocimientoRepository,
+										  AreaConocimientoRepository areaConocimientoRepository,
+										  CarreraRepository carreraRepository,
+										  AreaConocimientoServiceImpl areaConocimientoServiceImpl) {
 		this.subAreaConocimientoRepository = subAreaConocimientoRepository;
         this.areaConocimientoRepository = areaConocimientoRepository;
-    }
+		this.carreraRepository = carreraRepository;
+		this.areaConocimientoServiceImpl = areaConocimientoServiceImpl;
+	}
 
 	@Override
 	public List<SubAreaConocimientoDto> getAll() {
 		List<SubAreaConocimiento> subAreasConocimiento = subAreaConocimientoRepository.findAllByActivoTrue();
-		
+
 		//retornar la lista de subáreas de conocimiento como DTOs con el área de conocimiento
 		List<SubAreaConocimientoDto> dtos = new ArrayList<>();
 		for (SubAreaConocimiento subArea : subAreasConocimiento) {
@@ -43,7 +55,7 @@ public class SubAreaConocimientoServiceImpl implements SubAreaConocimientoServic
 			dtos.add(dto);
 		}
 
-	
+
 		return dtos;
 	}
 
@@ -75,18 +87,18 @@ public class SubAreaConocimientoServiceImpl implements SubAreaConocimientoServic
 		SubAreaConocimiento subAreaConocimiento = SubAreaConocimientoMapper.toEntity(dto);
 		subAreaConocimiento.setAreaConocimiento(areaConocimiento);
 		SubAreaConocimiento savedSubArea = subAreaConocimientoRepository.save(subAreaConocimiento);
-		
+
 		// Obtenemos el área de conocimiento completa para el DTO
 		AreaConocimiento area = areaConocimientoRepository.findById(savedSubArea.getAreaConocimiento().getId())
 				.orElseThrow(() -> new EntityNotFoundException("Área de conocimiento no encontrada con id: " + savedSubArea.getAreaConocimiento().getId()));
 		AreaConocimientoDto areaDto = AreaConocimientoMapper.toDto(area);
-		
+
 		return SubAreaConocimientoMapper.toDto(savedSubArea, areaDto);
 	}
 
 	@Override
 	public List<SubAreaConocimientoDto> listarPorUsuario(Integer usuarioId) {
-		String sql = "SELECT * FROM sgta.obtener_sub_areas_por_usuario(:usuarioId)";
+		String sql = "SELECT * FROM obtener_sub_areas_por_usuario(:usuarioId)";
 
 		Query query = entityManager.createNativeQuery(sql);
 		query.setParameter("usuarioId", usuarioId);
@@ -98,7 +110,7 @@ public class SubAreaConocimientoServiceImpl implements SubAreaConocimientoServic
 			// Crear entidad simulada de SubAreaConocimiento
 			SubAreaConocimiento sac = new SubAreaConocimiento();
 			sac.setId((Integer) row[0]);
-			//sac.setAreaConocimiento((Integer) row[1]); // si existe este campo en la entidad
+			//sac.setAreaConocimiento((Integer) row[1]); // si existe deeste campo en la entidad
 			sac.setNombre((String) row[2]);
 			sac.setDescripcion((String) row[3]);
 			sac.setActivo((Boolean) row[4]);
@@ -134,17 +146,65 @@ public class SubAreaConocimientoServiceImpl implements SubAreaConocimientoServic
 	@Override
 	public List<SubAreaConocimientoDto> getAllByArea(Integer idArea) {
 		List<SubAreaConocimiento> subAreasConocimiento = subAreaConocimientoRepository.findAllByAreaConocimientoIdAndActivoTrue(idArea);
-		
+
 		// Obtenemos el área de conocimiento una sola vez
 		AreaConocimiento area = areaConocimientoRepository.findById(idArea)
 				.orElseThrow(() -> new EntityNotFoundException("Área de conocimiento no encontrada con id: " + idArea));
 		AreaConocimientoDto areaDto = AreaConocimientoMapper.toDto(area);
-		
+
 		// Mapeamos cada subárea con el área de conocimiento
 		List<SubAreaConocimientoDto> dtos = subAreasConocimiento.stream()
 				.map(subArea -> SubAreaConocimientoMapper.toDto(subArea, areaDto))
 				.toList();
 		return dtos;
+	}
+
+	@Override
+	public List<InfoSubAreaConocimientoDto> listarInfoPorNombre(String nombre) {
+		return subAreaConocimientoRepository.findByNombreContainingIgnoreCaseAndActivoIsTrue(nombre)
+				.stream()
+				.map(InfoSubAreaConocimientoMapper::toDto)
+				.toList();
+	}
+
+	@Override
+	public List<SubAreaConocimientoDto> listarPorCarreraDeUsuario(String usuarioId) {
+		String sql =
+				"SELECT sub_area_conocimiento_id, area_conocimiento_id, nombre, descripcion, activo " +
+						"  FROM obtener_sub_areas_por_carrera_usuario(:p_usuario_id)";
+		Query query = entityManager.createNativeQuery(sql)
+				.setParameter("p_usuario_id", usuarioId);
+
+		@SuppressWarnings("unchecked")
+		List<Object[]> rows = query.getResultList();
+
+		List<SubAreaConocimientoDto> result = new ArrayList<>(rows.size());
+		for (Object[] row : rows) {
+			AreaConocimientoDto areaConocimiento = new AreaConocimientoDto();
+			areaConocimiento.setId(((Number) row[1]).intValue());
+			SubAreaConocimientoDto dto = SubAreaConocimientoDto.builder()
+					.id(((Number) row[0]).intValue())
+					.areaConocimiento(areaConocimiento)
+					.nombre((String)  row[2])
+					.descripcion((String) row[3])
+					.activo((Boolean) row[4])
+					.build();
+			result.add(dto);
+		}
+
+		return result;
+	}
+
+	@Override
+	public List<InfoSubAreaConocimientoDto> listarPorCarrerasUsuarioParaPerfil(Integer idUsuario) {
+		List<Integer> idAreasUsuario = areaConocimientoServiceImpl.listarPorCarrerasUsuarioParaPerfil(idUsuario).
+				stream()
+				.map(InfoAreaConocimientoDto::getIdArea)
+				.toList();
+		return  subAreaConocimientoRepository.findAllByAreaConocimientoIdInAndActivoTrue(idAreasUsuario)
+				.stream()
+				.map(InfoSubAreaConocimientoMapper::toDto)
+				.toList();
 	}
 
 }

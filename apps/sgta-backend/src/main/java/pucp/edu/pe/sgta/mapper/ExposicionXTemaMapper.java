@@ -13,8 +13,6 @@ public class ExposicionXTemaMapper {
         dto.setId(entity.getId());
         dto.setExposicionId(entity.getExposicion() != null ? entity.getExposicion().getId() : null);
         dto.setTemaId(entity.getTema() != null ? entity.getTema().getId() : null);
-        dto.setBloqueHorarioExposicionId(
-                entity.getBloqueHorarioExposicion() != null ? entity.getBloqueHorarioExposicion().getId() : null);
         dto.setLinkExposicion(entity.getLinkExposicion());
         dto.setLinkGrabacion(entity.getLinkGrabacion());
         dto.setEstadoExposicion(entity.getEstadoExposicion());
@@ -49,12 +47,6 @@ public class ExposicionXTemaMapper {
             Tema tema = new Tema();
             tema.setId(dto.getTemaId());
             entity.setTema(tema);
-        }
-
-        if (dto.getBloqueHorarioExposicionId() != null) {
-            BloqueHorarioExposicion bloque = new BloqueHorarioExposicion();
-            bloque.setId(dto.getBloqueHorarioExposicionId());
-            entity.setBloqueHorarioExposicion(bloque);
         }
 
         return entity;

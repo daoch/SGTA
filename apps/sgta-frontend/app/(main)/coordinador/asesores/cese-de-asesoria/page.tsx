@@ -1,9 +1,10 @@
 "use client";
 
 import React from "react";
+import ListaSolicitudesCeseAsesoria from "@/features/asesores/views/view-coordinator-cessation-requests.tsx";
 
 const Page: React.FC = () => {
-  return <div>page</div>;
+  return <ListaSolicitudesCeseAsesoria />;
 };
 
 export default Page;

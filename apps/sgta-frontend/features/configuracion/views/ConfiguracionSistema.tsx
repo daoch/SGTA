@@ -1,15 +1,15 @@
 "use client";
 
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
 import { useEffect } from "react";
-import ModalidadRevisionCard from "../components/conf-general/ModalidadRevision";
-import JuradosCards from "../components/conf-general/Jurados";
 import AsesoresCards from "../components/conf-general/Asesores";
 import GeneralConfCards from "../components/conf-general/General";
+import JuradosCards from "../components/conf-general/Jurados";
+import ModalidadRevisionCard from "../components/conf-general/ModalidadRevision";
 import { useBackStore } from "../store/configuracion-store";
-import { Button } from "@/components/ui/button";
 
 export default function ConfiguracionSistema() {
   const {
@@ -23,9 +23,11 @@ export default function ConfiguracionSistema() {
   useEffect(() => {
     const initializeData = async () => {
       try {
-        await cargarParametros(1);
+        //console.log("📦 Parámetros cargados:", parametros);
+        //console.log("📦 Parámetros originales:", parametrosOriginales);
+        await cargarParametros(1); // ID de carrera hardcodeado
       } catch (error) {
-        console.error("Error al inicializar datos:", error);
+        //console.error("Error al inicializar datos:", error);
       }
     };
 
@@ -35,6 +37,14 @@ export default function ConfiguracionSistema() {
   // Detectar si hay cambios comparando con los valores originales
   const hasChanges = parametros.some((param) => {
     const originalParam = parametrosOriginales.find(p => p.id === param.id);
+
+    //rastrear cambios en el valor de los parámetros
+    const cambiado = originalParam && originalParam.valor !== param.valor;
+    if (cambiado) {
+      console.log(`⚠️ Cambio detectado en parámetro ID ${param.id}`);
+      console.log(`➡️ Original: ${originalParam.valor}, Actual: ${param.valor}`);
+    }
+
     return originalParam && originalParam.valor !== param.valor;
   });
 
@@ -44,7 +54,7 @@ export default function ConfiguracionSistema() {
   };
 
   return (
-    <div className="max-w-5xl ">
+    <div>
       <div className="flex items-center gap-2 mt-5 mb-4">
         <Link
           href="/coordinador/configuracion"

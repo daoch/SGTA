@@ -1,3 +1,5 @@
+"use client";
+
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { useAuthStore } from "../store/auth-store";
@@ -11,8 +13,11 @@ export const useAuth = (requiredRoles?: UserRole[]) => {
     login,
     logout,
     checkAuth,
+    signUp,
+    confirmSignUp,
     error,
     clearError,
+    loginWithProvider,
   } = useAuthStore();
   const router = useRouter();
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
@@ -74,5 +79,17 @@ export const useAuth = (requiredRoles?: UserRole[]) => {
     hasRequiredRole,
     redirectToLogin,
     redirectToDashboard,
+    signUp,
+    confirmSignUp,
+    loginWithProvider,
   };
+};
+
+/**
+ * Hook to access the authentication token
+ * @returns The current ID token or null if not authenticated
+ */
+export const useAuthToken = () => {
+  const { idToken } = useAuthStore();
+  return idToken;
 };
