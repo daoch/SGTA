@@ -43,7 +43,17 @@ const CardSugerenciaDistribucion: React.FC = () => {
             className="w-fit"
             disabled={temasSinAsignar.length === 0}
             variant="default"
-            onClick={() => generarDistribucionAutomatica()}
+            onClick={async () => {
+              try {
+                await generarDistribucionAutomatica();
+                console.log("Distribución automática generada correctamente.");
+              } catch (error) {
+                console.error(
+                  "Error al generar la distribución automática:",
+                  error,
+                );
+              }
+            }}
           >
             <Bot />
             Generar Distribución

@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { PlanificacionState } from "../types/planificacion-state.types";
 import { distribuirBloquesExposicion } from "../services/data";
+import { Tema } from "../types/jurado.types";
 
 export const usePlanificationStore = create<PlanificacionState>((set, get) => ({
   estadoPlanificacion: undefined,
@@ -121,7 +122,22 @@ export const usePlanificationStore = create<PlanificacionState>((set, get) => ({
         temasSinAsignar,
         bloques,
       );
-      // set({ bloques: nuevosBloques });
+
+      const nuevosTemasAsignados: Record<string, Tema> = {};
+      const asignadosSet = new Set<number>();
+
+      nuevosBloques.forEach((bloque) => {
+        if (bloque.expo && bloque.expo.id != null) {
+          nuevosTemasAsignados[bloque.key] = bloque.expo;
+          asignadosSet.add(bloque.expo.id);
+        }
+      });
+
+      set({
+        bloques: nuevosBloques,
+        temasSinAsignar: [],
+        temasAsignados: nuevosTemasAsignados,
+      });
       console.log("Nuevos bloques generados:", nuevosBloques);
     } catch (error) {
       console.error("Error al generar la distribución automática:", error);

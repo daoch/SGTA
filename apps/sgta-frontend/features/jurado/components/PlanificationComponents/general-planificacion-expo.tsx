@@ -102,6 +102,7 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
         });
         setTemasSinAsignar(temasSinAsignar.filter((e) => e.codigo !== expoId));
         actualizarBloqueByKey(spaceId.toString(), {
+          esBloqueReservado: true,
           expo: temaEscogidoDesdeLista,
         });
       } else {
@@ -128,9 +129,11 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
             ...temaPorAsignar,
           });
           actualizarBloqueByKey(spaceId.toString(), {
+            esBloqueReservado: true,
             expo: temaEscogidosDesdeBloque,
           });
           actualizarBloqueByKey(keyTemaEscogido || "", {
+            esBloqueReservado: false,
             expo: {
               id: null,
               codigo: null,
@@ -174,6 +177,7 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
         });
         setTemasAsignados(updatedAssignment);
         actualizarBloqueByKey(keyClicked || "", {
+          esBloqueReservado: false,
           expo: {
             id: null,
             codigo: null,
@@ -214,7 +218,7 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
         expo: temaAsignado ? temaAsignado : undefined,
         idExposicion: exposicionId,
         esBloqueReservado: temaAsignado ? true : false,
-       anteriorExpo : bloque.anteriorExpo,
+        anteriorExpo: bloque.anteriorExpo,
       };
     });
 
