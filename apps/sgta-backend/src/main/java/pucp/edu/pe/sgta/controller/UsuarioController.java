@@ -3,12 +3,14 @@ package pucp.edu.pe.sgta.controller;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import org.springframework.web.server.ResponseStatusException;
 import pucp.edu.pe.sgta.dto.asesores.FiltrosDirectorioAsesores;
 import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
 import pucp.edu.pe.sgta.dto.asesores.UsuarioConRolDto;
@@ -16,6 +18,7 @@ import pucp.edu.pe.sgta.dto.asesores.UsuarioFotoDto;
 import pucp.edu.pe.sgta.dto.CarreraDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
 import pucp.edu.pe.sgta.service.inter.CarreraService;
+import pucp.edu.pe.sgta.service.inter.JwtService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
 import pucp.edu.pe.sgta.dto.AlumnoTemaDto;
 
@@ -26,6 +29,9 @@ public class UsuarioController {
 
     @Autowired
 	private CarreraService carreraService;
+
+    @Autowired
+    JwtService jwtService;
 
 	@Autowired
 	private UsuarioService usuarioService;
@@ -239,4 +245,19 @@ public class UsuarioController {
     public List<UsuarioDto> getAsesoresBySubArea(@RequestParam(name = "idSubArea") Integer idSubArea) {
         return this.usuarioService.getAsesoresBySubArea(idSubArea);
     }
+
+    @GetMapping("/getInfoUsuarioLogueado")
+    public UsuarioDto getInfoUsuarioLogueado(HttpServletRequest request) {
+        try {
+            String usuarioId = jwtService.extractSubFromRequest(request);
+            return this.usuarioService.findByCognitoId(usuarioId);
+        } catch (RuntimeException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        }
+    }
+
+
 }
+
+
+
