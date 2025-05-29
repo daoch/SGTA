@@ -4,10 +4,10 @@ export interface Jurado {
 }
 
 export interface Tema {
-  id: number;
-  codigo: string;
-  titulo: string;
-  usuarios: Usuario[];
+  id: number | null;
+  codigo: string | null;
+  titulo: string | null;
+  usuarios: Usuario[] | null;
 }
 
 export interface AreaEspecialidad {
@@ -41,6 +41,7 @@ export interface TipoDedicacion {
   fechaCreacion: Date;
   fechaModificacion: Date | null;
 }
+
 export interface TimeSlot {
   key: string;
   range: string; // 17:00  -  18:00
@@ -91,16 +92,53 @@ export interface EtapaFormativaExposiciones {
   exposiciones: Exposicion[];
 }
 
-export interface  Usuario{
+export interface Usuario {
   idUsario: number;
-  nombres : string;
+  nombres: string;
   apellidos: string;
-  rol : Rol;
+  rol: Rol;
 }
 
-export interface Rol{
+export interface Rol {
   id: number;
-  nombre:string;
+  nombre: string;
 }
 
-export type OrigenBoton = "siguiente" | "terminar";
+export type TipoAccion = "siguiente" | "terminar";
+
+export interface ExposicionJurado {
+  id_exposicion: number;
+  fechahora: Date;
+  sala: string;
+  estado: string;
+  estado_control: string;
+  id_etapa_formativa: number;
+  nombre_etapa_formativa: string;
+  titulo: string;
+  ciclo_id: number;
+  nombre_exposicion: string;
+  miembros: MiembroJuradoExpo[];
+}
+
+export interface MiembroJuradoExpo {
+  id_persona: number;
+  nombre: string;
+  tipo: string;
+}
+
+export interface EvaluacionExposicionJurado {
+  id_exposicion: number;
+  titulo: string;
+  estudiantes: Estudiante[];
+  criterios: CriterioEvaluacion[];
+  observaciones_finales: string;
+}
+
+export interface CriterioEvaluacion {
+  id: number;
+  titulo: string;
+  descripcion: string;
+  calificacion: number;
+  nota_maxima: number;
+  observaciones: string;
+}

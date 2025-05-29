@@ -1,9 +1,6 @@
 package pucp.edu.pe.sgta.service.inter;
 
-import pucp.edu.pe.sgta.dto.EtapaFormativaDto;
-import pucp.edu.pe.sgta.dto.EtapaFormativaNombreDTO;
-import pucp.edu.pe.sgta.dto.EtapaFormativaListadoDto;
-import pucp.edu.pe.sgta.dto.EtapaFormativaDetalleDto;
+import pucp.edu.pe.sgta.dto.*;
 
 import java.util.List;
 
@@ -70,4 +67,5 @@ public interface EtapaFormativaService {
 
     Integer getEtapaFormativaIdByExposicionId(Integer exposicionId);
 
+    List<EtapaFormativaAlumnoDto> listarEtapasFormativasPorAlumno(Integer alumnoId);
 }

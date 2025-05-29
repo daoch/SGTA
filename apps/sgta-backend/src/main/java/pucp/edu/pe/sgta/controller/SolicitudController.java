@@ -8,6 +8,7 @@ import pucp.edu.pe.sgta.dto.AprobarSolicitudCambioAsesorRequestDto;
 import pucp.edu.pe.sgta.dto.AprobarSolicitudCambioAsesorResponseDto;
 import pucp.edu.pe.sgta.dto.AprobarSolicitudRequestDto;
 import pucp.edu.pe.sgta.dto.AprobarSolicitudResponseDto;
+import pucp.edu.pe.sgta.dto.DetalleSolicitudCeseDto;
 import pucp.edu.pe.sgta.dto.RechazoSolicitudCambioAsesorRequestDto;
 import pucp.edu.pe.sgta.dto.RechazoSolicitudCambioAsesorResponseDto;
 import pucp.edu.pe.sgta.dto.RechazoSolicitudRequestDto;
@@ -27,11 +28,18 @@ public class SolicitudController {
     @Autowired
     private SolicitudService solicitudService;
 
-    @GetMapping("/cessation-requests")
+    @GetMapping("/{coordinatorId}/cessation-requests")
     public ResponseEntity<SolicitudCeseDto> getSolicitudesCese(
+            @PathVariable Integer coordinatorId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(solicitudService.findAllSolicitudesCese(page, size));
+        return ResponseEntity.ok(solicitudService.findAllSolicitudesCese(coordinatorId, page, size));
+    }
+
+    @GetMapping("/cessation-requests/{requestId}")
+    public ResponseEntity<DetalleSolicitudCeseDto> getDetalleSolicitudesCese(
+        @PathVariable Integer requestId) {
+        return ResponseEntity.ok(solicitudService.getDetalleSolicitudCese(requestId));
     }
 
     @PostMapping("/cessation-requests/{requestId}/reject")
@@ -93,5 +101,12 @@ public class SolicitudController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
+    }
+
+    @PostMapping("/registrarSolicitudCambioAsesor")
+    public ResponseEntity<Object> registrarSolicitudCambioAsesor(@RequestBody pucp.edu.pe.sgta.dto.asesores.SolicitudCambioAsesorDto solicitud){
+
+        solicitud =solicitudService.registrarSolicitudCambioAsesor(solicitud);
+        return ResponseEntity.ok(solicitud);
     }
 }

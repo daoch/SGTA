@@ -15,6 +15,9 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
 
     Usuario findByCorreoElectronicoIsLikeIgnoreCase(String email);
     Optional<Usuario> findByCodigoPucp(String codigoPucp);
+    Optional<Usuario> findByCorreoElectronico(String correoElectronico);
+
+    Optional<Usuario> findByIdCognito(String idCognito);
 
     @Query(value = "SELECT * FROM obtener_usuarios_con_temass()", nativeQuery = true)
     List<Object[]> findUsuarioTemaInfo();
@@ -48,4 +51,12 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
                                                         @Param("activo") Boolean activo,
                                                         @Param("areaIds") String areaIds,
                                                         @Param("temaIds") String temaIds);
+    @Query(value = """
+        SELECT * FROM obtener_coordinador_por_carrera_usuario(:usuarioId)
+        """, nativeQuery = true)
+    List<Object[]> obtenerIdCoordinadorPorUsuario(
+            @Param("usuarioId") Integer usuarioId
+    );
+
+
 }

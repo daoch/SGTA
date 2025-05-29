@@ -2,23 +2,13 @@ package pucp.edu.pe.sgta.model;
 
 import java.time.OffsetDateTime;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.ForeignKey;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import pucp.edu.pe.sgta.util.EstadoExposicionUsuario;
+import pucp.edu.pe.sgta.util.EstadoExposicionUsuarioConverter;
 
 @Entity
 @Getter
@@ -44,10 +34,10 @@ public class ControlExposicionUsuarioTema {
     private String observacionesFinalesExposicion;
 
     @Column(nullable = false)
-    private boolean asistio = true;
+    private Boolean asistio = true;
 
     @Column(nullable = false)
-    private boolean activo = true;
+    private Boolean activo = true;
 
     @Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaCreacion;
@@ -55,7 +45,8 @@ public class ControlExposicionUsuarioTema {
     @Column(name = "fecha_modificacion", insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaModificacion;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "estado_exposicion_usuario", nullable = false, insertable = false)
+    // @Enumerated(EnumType.STRING)
+    @Column(name = "estado_exposicion_usuario", nullable = false)
+    @Convert(converter = EstadoExposicionUsuarioConverter.class)
     private EstadoExposicionUsuario estadoExposicion = EstadoExposicionUsuario.ESPERANDO_RESPUESTA;
 }

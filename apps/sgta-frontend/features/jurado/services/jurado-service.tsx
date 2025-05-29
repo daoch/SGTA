@@ -7,6 +7,8 @@ import {
   Exposicion,
   MiembroJurado,
   TipoDedicacion,
+  ExposicionJurado,
+  MiembroJuradoExpo,
 } from "../types/jurado.types";
 import {
   JuradoDTO,
@@ -300,4 +302,97 @@ export const desasignarJuradoTema = async (
     };
   }
 };
+
+
+export const getExposicionesJurado = async (
+  idJurado: number,
+): Promise<ExposicionJurado[]> => {
+  try {
+    const response = await axiosInstance.get(
+      `/jurado/${idJurado}/exposiciones`,
+    );
+    const data = response.data as ExposicionJurado[];
+
+    // Verificar si hay datos recibidos
+    if (!data || !Array.isArray(data)) {
+      console.warn(
+        "No se recibieron datos de exposiciones o el formato es incorrecto",
+      );
+      return [];
+    }
+
+    // Mapear los datos al formato requerido
+    return data.map((expo): ExposicionJurado => {
+      // Mapear miembros corrigiendo el campo id_persona a id
+      const miembros: MiembroJuradoExpo[] = expo.miembros.map(
+        (miembro): MiembroJuradoExpo => ({
+          id_persona: miembro.id_persona, // Aquí es donde se hace la conversión de id_persona a id
+          nombre: miembro.nombre,
+          tipo: miembro.tipo,
+        }),
+      );
+
+      // Retornar objeto con el tipo correcto
+      return {
+        id_exposicion: expo.id_exposicion,
+        fechahora: new Date(expo.fechahora),
+        sala: expo.sala,
+        estado: expo.estado,
+        estado_control: expo.estado_control,
+        id_etapa_formativa: expo.id_etapa_formativa,
+        nombre_etapa_formativa: expo.nombre_etapa_formativa,
+        titulo: expo.titulo,
+        nombre_exposicion: expo.nombre_exposicion,
+        ciclo_id: expo.ciclo_id,
+        miembros,
+      };
+    });
+  } catch (error) {
+    console.error("Error al obtener exposiciones del jurado:", error);
+
+    // En caso de error, devolver un array vacío
+    return [];
+  }
+};
+
+export const actualizarEstadoExposicion = async (
+  exposicionId: number,
+  nuevoEstado: string,
+): Promise<boolean> => {
+  try {
+    const response = await axiosInstance.put("/jurado/conformidad", {
+      exposicionTemaId: exposicionId,
+      estadoExposicion: nuevoEstado,
+    });
+
+    return response.status === 200;
+  } catch (error) {
+    console.error("Error al actualizar el estado de la exposición:", error);
+    throw error;
+  }
+};
+
+export const actualizarEstadoControlExposicion = async (
+  exposicionId: number,
+  juradoId: number,
+  nuevoEstado: string,
+): Promise<boolean> => {
+  try {
+
+
+    const response = await axiosInstance.put("/jurado/control", {
+      exposicionTemaId: exposicionId,
+      juradoId: juradoId,
+      estadoExposicionUsuario: nuevoEstado,
+    });
+
+
+    return response.status === 200;
+
+  } catch (error) {
+    console.error("Error al actualizar el estado de la exposición:", error);
+    throw error;
+  }
+};
+
 

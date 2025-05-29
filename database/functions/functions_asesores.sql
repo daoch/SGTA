@@ -325,4 +325,75 @@ BEGIN
         OR sac.nombre ILIKE '%' || p_busqueda || '%'
       );
 END;
+
 $$ LANGUAGE plpgsql;
+CREATE OR REPLACE FUNCTION validar_tema_existe_cambiar_asesor_posible(p_tema_id INTEGER)
+RETURNS BOOLEAN AS
+$$
+DECLARE
+    v_existe BOOLEAN;
+BEGIN
+    SELECT COUNT(*) > 0 INTO v_existe
+    FROM tema t
+    INNER JOIN estado_tema et ON et.estado_tema_id = t.estado_tema_id
+    WHERE t.tema_id = p_tema_id
+      AND et.nombre IN ('PREINSCRITO', 'INSCRITO', 'REGISTRADO', 'EN_PROGRESO', 'PAUSADO');
+
+    RETURN v_existe;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION es_usuario_alumno(p_usuario_id INTEGER)
+RETURNS BOOLEAN AS
+$$
+DECLARE
+    v_es_alumno BOOLEAN;
+BEGIN
+    SELECT COUNT(*) > 0 INTO v_es_alumno
+    FROM usuario u
+    INNER JOIN tipo_usuario tu ON u.tipo_usuario_id = tu.tipo_usuario_id
+    WHERE u.usuario_id = p_usuario_id
+      AND LOWER(tu.nombre) = 'alumno';
+
+    RETURN v_es_alumno;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION es_profesor_asesor(p_usuario_id INTEGER)
+RETURNS BOOLEAN AS
+$$
+DECLARE
+    v_es_valido BOOLEAN;
+BEGIN
+    SELECT COUNT(*) > 0 INTO v_es_valido
+    FROM usuario u
+    INNER JOIN tipo_usuario tu ON u.tipo_usuario_id = tu.tipo_usuario_id
+    INNER JOIN usuario_rol ur ON u.usuario_id = ur.usuario_id
+    INNER JOIN rol r ON r.rol_id = ur.rol_id
+    WHERE u.usuario_id = p_usuario_id
+      AND LOWER(tu.nombre) = 'profesor'
+      AND LOWER(r.nombre) = 'asesor';
+
+    RETURN v_es_valido;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION obtener_coordinador_por_carrera_usuario(p_usuario_id INTEGER)
+RETURNS INTEGER
+LANGUAGE sql AS
+$$
+    SELECT COALESCE((
+        SELECT u.usuario_id
+        FROM usuario u
+        INNER JOIN usuario_carrera uc ON uc.usuario_id = u.usuario_id
+        INNER JOIN tipo_usuario tu ON tu.tipo_usuario_id = u.tipo_usuario_id
+        WHERE tu.nombre = 'coordinador'
+          AND uc.carrera_id = (
+              SELECT uc2.carrera_id
+              FROM usuario_carrera uc2
+              WHERE uc2.usuario_id = p_usuario_id
+              LIMIT 1
+          )
+        LIMIT 1
+    ), -1);
+$$;

@@ -10,10 +10,17 @@ import org.springframework.web.bind.annotation.RestController;
 
 import pucp.edu.pe.sgta.dto.AdvisorPerformanceDto;
 import pucp.edu.pe.sgta.dto.AreaFinalDTO;
+import pucp.edu.pe.sgta.dto.DetalleTesistaDTO;
+import pucp.edu.pe.sgta.dto.HistorialReunionDTO;
+import pucp.edu.pe.sgta.dto.HitoCronogramaDTO;
 import pucp.edu.pe.sgta.dto.TeacherCountDTO;
 import pucp.edu.pe.sgta.dto.TopicAreaStatsDTO;
 import pucp.edu.pe.sgta.dto.TopicTrendDTO;
+import pucp.edu.pe.sgta.dto.TesistasPorAsesorDTO;
 import pucp.edu.pe.sgta.service.inter.IReportService;
+
+import org.springframework.web.bind.annotation.PathVariable;
+import pucp.edu.pe.sgta.dto.EntregableEstudianteDto;
 
 @RestController
 @RequestMapping("/api/v1/reports")
@@ -58,5 +65,48 @@ public class ReportsController {
     @GetMapping("/advisors/performance")
     public List<AdvisorPerformanceDto> getAdvisorPerformance(@RequestParam Integer usuarioId, @RequestParam String ciclo) {
         return reportingService.getAdvisorPerformance(usuarioId, ciclo);
+    }
+
+    /** RF4: Endpoint para listar tesistas por asesor */
+    @GetMapping("/advisors/tesistas")
+    public ResponseEntity<List<TesistasPorAsesorDTO>> getTesistasPorAsesor(@RequestParam Integer asesorId) {
+        return ResponseEntity.ok(reportingService.getTesistasPorAsesor(asesorId));
+    }
+
+    /** RF5: Endpoint para obtener detalle completo de un tesista */
+    @GetMapping("/tesistas/detalle")
+    public ResponseEntity<DetalleTesistaDTO> getDetalleTesista(@RequestParam Integer tesistaId) {
+        DetalleTesistaDTO detalle = reportingService.getDetalleTesista(tesistaId);
+        if (detalle == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(detalle);
+    }
+
+    /** RF6: Endpoint para listar hitos del cronograma de un tesista */
+    @GetMapping("/tesistas/cronograma")
+    public ResponseEntity<List<HitoCronogramaDTO>> getHitosCronogramaTesista(@RequestParam Integer tesistaId) {
+        List<HitoCronogramaDTO> hitos = reportingService.getHitosCronogramaTesista(tesistaId);
+        if (hitos.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(hitos);
+    }
+
+    /** RF7: Endpoint para listar historial de reuniones de un tesista */
+    @GetMapping("/tesistas/reuniones")
+    public ResponseEntity<List<HistorialReunionDTO>> getHistorialReuniones(@RequestParam Integer tesistaId) {
+        List<HistorialReunionDTO> historial = reportingService.getHistorialReuniones(tesistaId);
+        if (historial.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(historial);
+    }
+
+    /** RF8: Endpoint para entregables de estudiante */
+    @GetMapping("/entregables/{usuarioId}")
+    public ResponseEntity<List<EntregableEstudianteDto>> getEntregablesEstudiante(@PathVariable Integer usuarioId){
+        List<EntregableEstudianteDto> entregables = reportingService.getEntregablesEstudiante(usuarioId);
+        return ResponseEntity.ok(entregables);
     }
 }

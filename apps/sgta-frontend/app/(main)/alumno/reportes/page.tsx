@@ -1,6 +1,7 @@
 "use client";
 
-import { StudentReports } from "@/components/main/reports/student-reports";
+import { StudentReports } from "@/features/reportes/views/student-reports";
+
 
 export default function ReportsPage() {
   return (
