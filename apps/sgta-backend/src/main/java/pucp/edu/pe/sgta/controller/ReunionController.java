@@ -7,9 +7,7 @@ import pucp.edu.pe.sgta.dto.ReunionDto;
 import pucp.edu.pe.sgta.dto.ReunionesXUsuariosDto;
 import pucp.edu.pe.sgta.dto.UsuarioXReunionDto;
 import pucp.edu.pe.sgta.mapper.ReunionMapper;
-import pucp.edu.pe.sgta.mapper.ReunionesXUsuariosMapper;
 import pucp.edu.pe.sgta.mapper.UsuarioXReunionMapper;
-import pucp.edu.pe.sgta.model.UsuarioXReunion;
 import pucp.edu.pe.sgta.service.inter.ReunionService;
 import pucp.edu.pe.sgta.service.inter.UsuarioXReunionService;
 
@@ -29,7 +27,6 @@ public class ReunionController {
     private final UsuarioXReunionService usuarioXReunionService;
     private final ReunionMapper reunionMapper;
     private final UsuarioXReunionMapper usuarioXReunionMapper;
-    private final ReunionesXUsuariosMapper reunionesXUsuariosMapper;
 
     @GetMapping
     @Operation(summary = "Listar reuniones", description = "Obtiene todas las reuniones activas")
@@ -81,11 +78,10 @@ public class ReunionController {
         return ResponseEntity.ok(reuniones);
     }
 
-    @GetMapping("/asesor-alumno/{usuarioId}/")
-    @Operation(summary = "Listar las reuniones de un alumno con su asesor", description = "Obtiene todas las reunioes de un alumno con su asesor")
-    public ResponseEntity<List<ReunionesXUsuariosDto>> listarReunionesPorAlumno(@PathVariable Integer usuarioId) {
-        List<UsuarioXReunion> reunionesAsesorAlumno = usuarioXReunionService.findReunionesByUser(usuarioId);
-        return reunionesXUsuariosMapper.toDTOList(reunionesAsesorAlumno);
+    @GetMapping("/asesor-alumno")
+    @Operation(summary = "Listar las reuniones de un alumno con su asesor", description = "Obtiene todas las reuniones de un alumno con su asesor")
+    public ResponseEntity<List<ReunionesXUsuariosDto>> listarReunionesPorAlumno() {
+        return ResponseEntity.ok(usuarioXReunionService.findReunionesAlumnoAsesor());
     }
 
 }

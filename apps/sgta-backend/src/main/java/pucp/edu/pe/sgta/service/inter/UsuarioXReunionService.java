@@ -19,6 +19,6 @@ public interface UsuarioXReunionService {
     // Listar reuniones de un usuario ordenadas por fecha
     List<UsuarioXReunion> findByUsuarioIdOrderedByDate(Integer usuarioId);
 
-    List<ReunionesXUsuariosDto> findReunionesByUser(Integer usuarioId);
+    List<ReunionesXUsuariosDto> findReunionesAlumnoAsesor();
 
 }

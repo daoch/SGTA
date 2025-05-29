@@ -12,6 +12,7 @@ import lombok.Setter;
 public class ReunionesXUsuariosDto {
     UsuarioDto asesor;
     UsuarioDto alumno;
+    UsuarioDto coasesor;
     String estado;
     String curso;
 }
