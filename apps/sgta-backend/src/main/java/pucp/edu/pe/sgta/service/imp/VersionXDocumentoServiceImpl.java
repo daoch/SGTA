@@ -18,11 +18,13 @@ public class VersionXDocumentoServiceImpl implements VersionXDocumentoService {
 
     private final VersionXDocumentoRepository repository;
     private final DocumentoRepository documentoRepository;
+    private final VersionXDocumentoRepository versionXDocumentoRepository;
 
     public VersionXDocumentoServiceImpl(VersionXDocumentoRepository repository,
-                                        DocumentoRepository documentoRepository) {
+                                        DocumentoRepository documentoRepository, VersionXDocumentoRepository versionXDocumentoRepository) {
         this.repository = repository;
         this.documentoRepository = documentoRepository;
+        this.versionXDocumentoRepository = versionXDocumentoRepository;
     }
 
     @Override
@@ -43,5 +45,11 @@ public class VersionXDocumentoServiceImpl implements VersionXDocumentoService {
 
         VersionXDocumento guardado = repository.save(ver);
         return VersionDocumentoMapper.toDto(guardado);
+    }
+
+    @Override
+    @Transactional
+    public void create(VersionXDocumento versionXDocumento) {
+        versionXDocumentoRepository.save(versionXDocumento);
     }
 }

@@ -1,9 +1,12 @@
 package pucp.edu.pe.sgta.model;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.time.OffsetDateTime;
-import java.util.List;
 
 @Entity
 @Getter
@@ -18,33 +21,30 @@ public class Reunion {
     @Column(name = "reunion_id")
     private Integer id;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(nullable = false)
     private String titulo;
 
-    @Column(name = "fecha_hora_inicio", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    @Column(name = "fecha_hora_inicio", nullable = false)
     private OffsetDateTime fechaHoraInicio;
 
-    @Column(name = "fecha_hora_fin", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    @Column(name = "fecha_hora_fin", nullable = false)
     private OffsetDateTime fechaHoraFin;
 
     @Column(columnDefinition = "TEXT")
     private String descripcion;
 
-    @Column
-    private Integer disponible;
+    @Column(nullable = false, columnDefinition = "INTEGER")
+    private Integer disponible = 1;
 
-    @Column
     private String url;
-
-    @Column(name = "fecha_creacion", nullable = false, insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP")
-    private OffsetDateTime fechaCreacion;
-
-    @Column(name = "fecha_modificacion", nullable = false, insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP")
-    private OffsetDateTime fechaModificacion;
 
     @Column(nullable = false)
     private Boolean activo = true;
 
-    @OneToMany(mappedBy = "reunion", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<UsuarioXReunion> usuarios;
+    @Column(name = "fecha_creacion", nullable = false, insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private OffsetDateTime fechaCreacion;
+
+    @Column(name = "fecha_modificacion", insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private OffsetDateTime fechaModificacion;
+
 }
