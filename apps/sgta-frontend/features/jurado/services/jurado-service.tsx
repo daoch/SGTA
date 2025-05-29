@@ -203,10 +203,10 @@ export const desasignarMiembroJuradoTemaTodos = async (
         ? error.response.data.mensaje
         : "Error al eliminar las asignaciones del miembro de jurado con sus temas";
 
-    console.error(
-      "Error al eliminar desasignar miembro de jurado a todos sus temas:",
-      errorMessage,
-    );
+    // console.error(
+    //   "Error al eliminar desasignar miembro de jurado a todos sus temas:",
+    //   errorMessage,
+    // );
 
     return {
       success: false,
@@ -295,14 +295,13 @@ export const desasignarJuradoTema = async (
         ? error.response.data.mensaje
         : "Error al desasignar el jurado del tema";
 
-    console.error("Error al desasignar jurado:", errorMessage);
+    // console.error("Error al desasignar jurado:", errorMessage);
     return {
       success: false,
       message: errorMessage,
     };
   }
 };
-
 
 export const getExposicionesJurado = async (
   idJurado: number,
@@ -378,21 +377,16 @@ export const actualizarEstadoControlExposicion = async (
   nuevoEstado: string,
 ): Promise<boolean> => {
   try {
-
-
     const response = await axiosInstance.put("/jurado/control", {
       exposicionTemaId: exposicionId,
       juradoId: juradoId,
       estadoExposicionUsuario: nuevoEstado,
     });
 
-
     return response.status === 200;
-
   } catch (error) {
     console.error("Error al actualizar el estado de la exposición:", error);
     throw error;
   }
 };
-
 

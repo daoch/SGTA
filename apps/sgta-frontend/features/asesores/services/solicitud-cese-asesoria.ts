@@ -14,7 +14,7 @@ export async function getTerminationConsultancyList(
 ): Promise<ITerminationConsultancyRequest> {
   const ELEMENTS_PER_PAGE = 10;
   const BASE_URL = process.env.BASE_URL ?? "http://localhost:5000/";
-  const urlFetch = `${BASE_URL}solicitudes/cessation-requests?page=${searchCriteria.page}&size=${ELEMENTS_PER_PAGE}`;
+  const urlFetch = `${BASE_URL}solicitudes/2/cessation-requests?page=${searchCriteria.page}&size=${ELEMENTS_PER_PAGE}`;
 
   try {
     const response = await fetch(urlFetch, {

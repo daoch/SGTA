@@ -4,6 +4,8 @@ import { QueryClientProvider } from "@/lib/react-query/query-client-provider";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,6 +38,7 @@ export default function RootLayout({
       <body className={"tsqd-parent-container"}>
         <QueryClientProvider>
           <AuthProvider>{children}</AuthProvider>
+          <ToastContainer position="bottom-right" autoClose={5000} />
         </QueryClientProvider>
         <Toaster />
       </body>
