@@ -29,7 +29,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Select,
   SelectContent,
@@ -48,7 +47,6 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ArrowLeft,
-  Download,
   Edit,
   FileSpreadsheet,
   MoreHorizontal,
@@ -59,9 +57,8 @@ import {
   X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { use, useState } from "react";
+import { useState, useEffect } from "react";
 import axiosInstance from "@/lib/axios/axios-instance";
-import { useEffect } from "react";
 
 // Types for users
 interface User {
@@ -73,6 +70,17 @@ interface User {
   email?: string;
   tipo?: string;
   estado?: boolean;
+}
+
+interface UserFromBack {
+  id: string | number;
+  codigoPucp: string;
+  nombres: string;
+  primerApellido: string;
+  segundoApellido: string;
+  correoElectronico: string;
+  tipoUsuario?: { nombre: string };
+  activo: boolean;
 }
 
 export default function ConfiguracionUsuariosPage() {
@@ -93,7 +101,7 @@ export default function ConfiguracionUsuariosPage() {
   const fetchUsuarios = async () => {
     try {
       const response = await axiosInstance.get("/usuario/find_all");
-      const mappedUsers: User[] = response.data.map((u: any) => ({
+      const mappedUsers: User[] = response.data.map((u: UserFromBack ) => ({
         id: String(u.id),
         codigo: u.codigoPucp,
         nombre: u.nombres,
@@ -137,7 +145,7 @@ export default function ConfiguracionUsuariosPage() {
       user.apellidoPaterno?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.apellidoMaterno?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.codigo?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (user.email || "").toLowerCase().includes(searchQuery.toLowerCase())
+      (user.email ?? "").toLowerCase().includes(searchQuery.toLowerCase())
     );
   });
 
@@ -203,15 +211,6 @@ export default function ConfiguracionUsuariosPage() {
       estado: true,
     });
     setIsAddUserDialogOpen(true);
-  };
-  const handleCloseAddUserDialog = (open: boolean) => {
-    setIsAddUserDialogOpen(open);
-    if (!open) {
-      setFormData(null);
-      setCurrentUser(null);
-      setIsEditMode(false);
-      setUploadError(null);
-    }
   };
 
   // Open edit user dialog
@@ -339,6 +338,7 @@ export default function ConfiguracionUsuariosPage() {
       setIsUploadDialogOpen(false);
       setSelectedFile(null);
     } catch (error) {
+      console.error("Error al cargar usuarios masivamente:", error);
       setUploadError("Error al cargar usuarios masivamente");
     }
   };
@@ -493,7 +493,7 @@ export default function ConfiguracionUsuariosPage() {
       </div>
 
       {/* Add/Edit User Dialog */}
-      <Dialog open={isAddUserDialogOpen} onOpenChange={setIsAddUserDialogOpen}>
+      <Dialog open={isAddUserDialogOpen} onOpenChange={() => setIsAddUserDialogOpen(false)}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>
@@ -609,12 +609,12 @@ export default function ConfiguracionUsuariosPage() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() =>isEditMode ? setIsEditMode(false) : setIsAddUserDialogOpen(false)}
+                onClick={() => setIsAddUserDialogOpen(false)}
               >
                 Cancelar
               </Button>
               <Button type="submit"
-                      onClick={() =>isEditMode ? setIsEditMode(false) : setIsAddUserDialogOpen(false)}>
+                      onClick={() => setIsAddUserDialogOpen(false)}>
                 {isEditMode ? "Guardar Cambios" : "Agregar Usuario"}
               </Button>
             </DialogFooter>
