@@ -29,6 +29,7 @@ interface PropuestasModalProps {
   setPostularPropuesta?: (estado: boolean) => void;
   rechazarPropuesta?: boolean;
   setRechazarPropuesta?: (estado: boolean) => void;
+  setTipoRechazo?: (tipoRechazo: number) => void;
 }
 
 export function PropuestasModal({
@@ -44,6 +45,7 @@ export function PropuestasModal({
   setPostularPropuesta,
   rechazarPropuesta,
   setRechazarPropuesta,
+  setTipoRechazo,
 }: PropuestasModalProps) {
   const [postularDialog, setPostularDialog] = useState(postularPropuesta);
   const [aceptarDialog, setAceptarDialog] = useState(aceptarPropuesta);
@@ -64,6 +66,7 @@ export function PropuestasModal({
     submitRechazo?.();
     setSelectedPropuesta?.(null);
     setComentario?.("");
+    setTipoRechazo?.(0);
     setRechazarDialog(false);
     setAceptarPropuesta?.(false);
     setPostularPropuesta?.(false);
@@ -94,6 +97,7 @@ export function PropuestasModal({
     submitPostulacion?.();
     setSelectedPropuesta?.(null);
     setComentario?.("");
+    setTipoRechazo?.(0);
     setPostularDialog(false);
     setAceptarPropuesta?.(false);
     setPostularPropuesta?.(false);
@@ -107,6 +111,7 @@ export function PropuestasModal({
     console.log("Ya entré y enlacé...");
     setSelectedPropuesta?.(null);
     setComentario?.("");
+    setTipoRechazo?.(0);
     setAceptarDialog(false);
     setAceptarPropuesta?.(false);
     setPostularPropuesta?.(false);
@@ -231,7 +236,11 @@ export function PropuestasModal({
       )}
 
       {data && rechazarDialog && (
-        <RechazarPropuestaCard data={data} setComentario={setComentario} />
+        <RechazarPropuestaCard
+          data={data}
+          setComentario={setComentario}
+          setTipoRechazo={setTipoRechazo}
+        />
       )}
 
       <DialogFooter className="mt-6">

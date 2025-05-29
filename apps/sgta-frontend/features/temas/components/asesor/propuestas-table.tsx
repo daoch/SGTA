@@ -25,7 +25,6 @@ import {
   fetchTemasPropuestosAlAsesor,
   fetchTemasPropuestosPorSubAreaConocimiento,
   postularTemaPropuestoGeneral,
-  rechazarTema,
 } from "@/features/temas/types/propuestas/data";
 import {
   Area,
@@ -118,6 +117,7 @@ export function PropuestasTable({
   const [aceptarPropuesta, setAceptarPropuesta] = useState(false);
   const [postularPropuesta, setPostularPropuesta] = useState(false);
   const [rechazarPropuesta, setRechazarPropuesta] = useState(false);
+  const [tipoRechazo, setTipoRechazo] = useState(0);
 
   const router = useRouter();
 
@@ -201,7 +201,8 @@ export function PropuestasTable({
   const submitRechazo = async () => {
     console.log({ comentario });
     console.log({ selectedPropuesta });
-    if (selectedPropuesta) {
+    console.log({ tipoRechazo });
+    /*if (selectedPropuesta) {
       try {
         if (selectedPropuesta) {
           await rechazarTema(
@@ -220,7 +221,7 @@ export function PropuestasTable({
 
     const propuestasDirectas = await fetchTemasPropuestosAlAsesor("", 50, 0);
     setPropuestasData?.(propuestasDirectas);
-    router.refresh();
+    router.refresh();*/
   };
 
   const handlerAceptarPropuesta = (propuesta: Proyecto_M) => {
@@ -390,6 +391,7 @@ export function PropuestasTable({
                                   setPostularPropuesta={setPostularPropuesta}
                                   rechazarPropuesta={rechazarPropuesta}
                                   setRechazarPropuesta={setRechazarPropuesta}
+                                  setTipoRechazo={setTipoRechazo}
                                 ></PropuestasModal>
                               )}
                           </Dialog>
@@ -422,6 +424,7 @@ export function PropuestasTable({
                                   setPostularPropuesta={setPostularPropuesta}
                                   rechazarPropuesta={rechazarPropuesta}
                                   setRechazarPropuesta={setRechazarPropuesta}
+                                  setTipoRechazo={setTipoRechazo}
                                 ></PropuestasModal>
                               )}
                             </Dialog>
@@ -455,6 +458,7 @@ export function PropuestasTable({
                                     setPostularPropuesta={setPostularPropuesta}
                                     rechazarPropuesta={rechazarPropuesta}
                                     setRechazarPropuesta={setRechazarPropuesta}
+                                    setTipoRechazo={setTipoRechazo}
                                   ></PropuestasModal>
                                 )}
                               </Dialog>
@@ -486,6 +490,7 @@ export function PropuestasTable({
                                     setPostularPropuesta={setPostularPropuesta}
                                     rechazarPropuesta={rechazarPropuesta}
                                     setRechazarPropuesta={setRechazarPropuesta}
+                                    setTipoRechazo={setTipoRechazo}
                                   ></PropuestasModal>
                                 )}
                               </Dialog>

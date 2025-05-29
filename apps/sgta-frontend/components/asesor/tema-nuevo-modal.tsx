@@ -248,7 +248,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
     if (!validarCampos()) return;
     try {
       if (carrera) {
-        await crearTemaLibre(mapTemaCreateLibre(temaData, carrera, asesor));
+        await crearTemaLibre(mapTemaCreateLibre(temaData, carrera));
         toast.success("Tema guardado exitosamente");
         console.log("Tema libre guardado exitosamente:");
       } else {
@@ -673,7 +673,7 @@ const mapTemaCreateInscription = (
   } as TemaCreateInscription;
 };
 
-const mapTemaCreateLibre = (tema: Tema, carrera: Carrera, asesor: Coasesor) => {
+const mapTemaCreateLibre = (tema: Tema, carrera: Carrera) => {
   return {
     titulo: tema.titulo,
     carrera: { id: carrera.id },
@@ -682,10 +682,9 @@ const mapTemaCreateLibre = (tema: Tema, carrera: Carrera, asesor: Coasesor) => {
     metodologia: tema.metodologia,
     fechaLimite: new Date(tema.fechaLimite + "T10:00:00Z").toISOString(),
     subareas: tema.subareas.map((a) => ({ id: a.id })),
-    coasesores: [
-      { id: asesor.id },
-      ...(tema.coasesores ? tema.coasesores.map((c) => ({ id: c.id })) : []),
-    ],
+    coasesores: tema.coasesores
+      ? tema.coasesores.map((c) => ({ id: c.id }))
+      : [],
     requisitos: tema.requisitos,
   } as TemaCreateLibre;
 };
