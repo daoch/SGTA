@@ -16,11 +16,10 @@ import {
 import { toast } from "@/components/ui/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import HighlighterPdfViewer from "@/features/revision/components/HighlighterPDFViewer";
-import { saveAs } from "file-saver";
 import { AlertTriangle, ArrowLeft, CheckCircle, FileWarning, Quote, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { PDFDocument, rgb } from "pdf-lib";
+import { PDFDocument } from "pdf-lib";
 import { useCallback, useEffect, useState } from "react";
 import { IHighlight } from "react-pdf-highlighter/dist/types";
 import { analizarPlagioArchivoS3, descargarArchivoS3, guardarObservacionesRevision } from "../servicios/revision-service";
@@ -68,28 +67,10 @@ const revisionData = {
     },
   ],
 };
-const observacionesPlagio = [
-  {
-    id: "p1",
-    pagina: 3,
-    texto: "Posible plagio detectado en la introducción.",
-    tipo: "plagio",
-    resuelto: false,
-  },
-  {
-    id: "p2",
-    pagina: 7,
-    texto: "Coincidencia alta con otra fuente en la conclusión.",
-    tipo: "plagio",
-    resuelto: false,
-  },
-];
 
-type ScrollFn = (highlight: IHighlight) => void;
 export default function RevisarDocumentoPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const [revision, setRevision] = useState(revisionData);
-  const [showObservacionForm, setShowObservacionForm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showFinalizarDialog, setShowFinalizarDialog] = useState(false);
   const [showRubricaDialog, setShowRubricaDialog] = useState(false);
@@ -204,7 +185,7 @@ export default function RevisarDocumentoPage({ params }: { params: { id: string 
     }, 0);
   }, []);
 
-  const handleSaveAnnotatedPDF = async () => {
+  /*const handleSaveAnnotatedPDF = async () => {
     console.log("Iniciando guardado del PDF");
     try {
       setIsLoading(true);
@@ -249,7 +230,8 @@ export default function RevisarDocumentoPage({ params }: { params: { id: string 
     } finally {
       setIsLoading(false);
     }
-  };
+  };*/
+
   const handleFormatoValidoChange = () => {
     setRevision({
       ...revision,
@@ -489,7 +471,7 @@ export default function RevisarDocumentoPage({ params }: { params: { id: string 
                   setIsLoading(true);
                   try {
                     await handleFinalizarRevision(); // puede ser solo lógica de guardado
-                    router.push(`/revision/${revision.id}/detalles`);
+                    router.push(`/asesor/revision/detalles-revision/${revision.id}`);
                   } catch (error) {
                     console.error("Error al redirigir:", error);
                   } finally {
@@ -543,8 +525,7 @@ export default function RevisarDocumentoPage({ params }: { params: { id: string 
         </div>
 
         <div className="space-y-6">
-          <Card>
-
+          <Card className="mb-4">
             <CardHeader>
               <CardTitle>Observaciones</CardTitle>
               <CardDescription>

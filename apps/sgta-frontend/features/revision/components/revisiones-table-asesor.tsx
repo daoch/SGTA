@@ -18,113 +18,23 @@ import {
   TableHeader,
   TableRow,
 } from "../../../components/ui/table";
-
-const revisionesData = [
-  {
-    id: "1",
-    titulo:
-      "Implementación de algoritmos de aprendizaje profundo para detección de objetos en tiempo real",
-    entregable: "E4",
-    estudiante: "Carlos Mendoza",
-    codigo: "20180123",
-    curso: "1INF42",
-    fechaEntrega: "2023-10-15",
-    fechaLimite: "2023-10-20",
-    estado: "aprobado",
-    porcentajePlagio: 5,
-    formatoValido: true,
-    entregaATiempo: true,
-    citadoCorrecto: true,
-    observaciones: 3,
-    ultimoCiclo: "2025-1",
-  },
-  {
-    id: "2",
-    titulo:
-      "Desarrollo de un sistema de monitoreo de calidad del aire utilizando IoT",
-    entregable: "E4",
-    estudiante: "Ana García",
-    codigo: "20190456",
-    curso: "1INF46",
-    fechaEntrega: "2023-11-02",
-    fechaLimite: "2023-11-05",
-    estado: "por-aprobar",
-    porcentajePlagio: 12,
-    formatoValido: false,
-    entregaATiempo: true,
-    citadoCorrecto: false,
-    observaciones: 7,
-    ultimoCiclo: "2025-1",
-  },
-  {
-    id: "3",
-    titulo:
-      "Análisis comparativo de frameworks de desarrollo web para aplicaciones de alta concurrencia",
-    entregable: "E4",
-    estudiante: "Luis Rodríguez",
-    codigo: "20180789",
-    curso: "tesis2",
-    fechaEntrega: "2023-09-28",
-    fechaLimite: "2023-10-01",
-    estado: "aprobado",
-    porcentajePlagio: 8,
-    formatoValido: true,
-    entregaATiempo: true,
-    citadoCorrecto: true,
-    observaciones: 2,
-    ultimoCiclo: "2025-1",
-  },
-  {
-    id: "4",
-    titulo:
-      "Diseño e implementación de un sistema de recomendación basado en filtrado colaborativo",
-    entregable: "E4",
-    estudiante: "María Torres",
-    codigo: "20190321",
-    curso: "1INF42",
-    fechaEntrega: null,
-    fechaLimite: "2023-11-25",
-    estado: "revisado",
-    porcentajePlagio: null,
-    formatoValido: null,
-    entregaATiempo: null,
-    citadoCorrecto: null,
-    observaciones: 0,
-    ultimoCiclo: "2024-2",
-  },
-  {
-    id: "5",
-    titulo:
-      "Optimización de consultas en bases de datos NoSQL para aplicaciones de big data",
-    entregable: "E4",
-    estudiante: "Jorge Sánchez",
-    codigo: "20180654",
-    curso: "tesis1",
-    fechaEntrega: "2023-11-10",
-    fechaLimite: "2023-11-08",
-    estado: "revisado",
-    porcentajePlagio: 15,
-    formatoValido: true,
-    entregaATiempo: false,
-    citadoCorrecto: true,
-    observaciones: 5,
-    ultimoCiclo: "2023-2",
-  },
-];
+import { RevisionResumen } from "../types/RevisionResumen.types";
 
 interface RevisionesTableAsesorProps {
+  data: RevisionResumen[];
   filter?: string;
   searchQuery?: string;
   cursoFilter?: string;
 }
 
 export function RevisionesTableAsesor({
+  data,
   filter,
   searchQuery = "",
   cursoFilter = "todos",
 }: RevisionesTableAsesorProps) {
   // Filtrar las revisiones según los criterios
-  let revisionesFiltradas = revisionesData;
+  let revisionesFiltradas = data;
 
   // Filtrar por estado
   if (filter) {
@@ -189,7 +99,7 @@ export function RevisionesTableAsesor({
                     </div>
                   </TableCell>
                   <TableCell className="font-medium max-w-xs truncate text-center">
-                    <div className="flex items-center justify-center gap-2">
+                    <div className="flex items-center gap-2">
                       <span>{revision.entregable}</span>
                     </div>
                   </TableCell>
@@ -203,7 +113,7 @@ export function RevisionesTableAsesor({
                   </TableCell>
                   <TableCell>
                     <Badge variant="outline" className="bg-gray-100">
-                      {revision.curso === "1INF42" ? "1INF42" : "1INF46"}
+                      {revision.curso === "tesis1" ? "1INF42" : "1INF46"}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -228,17 +138,7 @@ export function RevisionesTableAsesor({
                   <TableCell>
                     {revision.porcentajePlagio !== null ? (
                       <div className="flex items-center gap-2">
-                        <span
-                          className={
-                            revision.porcentajePlagio > 20
-                              ? "text-red-600"
-                              : revision.porcentajePlagio > 10
-                                ? "text-yellow-600"
-                                : "text-green-600"
-                          }
-                        >
-                          {revision.porcentajePlagio}%
-                        </span>
+                        <span>-</span>
                       </div>
                     ) : (
                       <span className="text-muted-foreground">-</span>
@@ -259,15 +159,24 @@ export function RevisionesTableAsesor({
                   <TableCell className="text-start">
                     <div>{revision.ultimoCiclo}</div>
                   </TableCell>
+
                   <TableCell className="text-center">
                     <div className="flex items-center gap-0.5">
-                      <Link href={`/revision/${revision.id}`}>
+                      {/* Botón "Ver detalles" (el ojito) */}
+                      <Link href={`/asesor/revision/detalles-revision/${revision.id}`}>
                         <Button variant="ghost" size="icon">
                           <Eye className="h-4 w-4" />
                           <span className="sr-only">Ver detalles</span>
                         </Button>
                       </Link>
-                      <Link href={`/asesor/revision/revisar-doc/${revision.id}`}>
+                      {/* Botón de estado: condicionalmente cambia el href */}
+                      <Link
+                        href={
+                          revision.estado === "por-aprobar"
+                            ? `/asesor/revision/revisar-doc/${revision.id}`
+                            : `/asesor/revision/detalles-revision/${revision.id}`
+                        }
+                      >
                         <Button
                           variant="ghost"
                           size="sm"
@@ -276,7 +185,9 @@ export function RevisionesTableAsesor({
                               ? "text-green-600"
                               : revision.estado === "aprobado"
                                 ? "text-blue-600"
-                                : "text-yellow-600"
+                                : revision.estado === "rechazado"
+                                  ? "text-red-600"
+                                  : "text-yellow-600"
                           }
                         >
                           {revision.estado === "revisado" ? (
@@ -289,6 +200,11 @@ export function RevisionesTableAsesor({
                               <CheckCircle className="mr-1 h-4 w-4" />
                               Aprobado
                             </>
+                          ) : revision.estado === "rechazado" ? (
+                            <>
+                              <AlertTriangle className="mr-1 h-4 w-4" />
+                              Rechazado
+                            </>
                           ) : (
                             <>
                               <Search className="mr-1 h-4 w-4" />
@@ -297,6 +213,7 @@ export function RevisionesTableAsesor({
                           )}
                         </Button>
                       </Link>
+
                     </div>
                   </TableCell>
                 </TableRow>
