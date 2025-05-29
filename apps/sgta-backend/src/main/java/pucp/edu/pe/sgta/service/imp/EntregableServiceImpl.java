@@ -6,10 +6,13 @@ import org.springframework.stereotype.Service;
 
 import pucp.edu.pe.sgta.dto.EntregableAlumnoDto;
 import pucp.edu.pe.sgta.dto.EntregableDto;
+import pucp.edu.pe.sgta.dto.EntregableSubidoDto;
 import pucp.edu.pe.sgta.mapper.EntregableMapper;
 import pucp.edu.pe.sgta.model.Entregable;
 import pucp.edu.pe.sgta.model.EtapaFormativaXCiclo;
+import pucp.edu.pe.sgta.model.Usuario;
 import pucp.edu.pe.sgta.repository.EntregableRepository;
+import pucp.edu.pe.sgta.repository.UsuarioRepository;
 import pucp.edu.pe.sgta.service.inter.EntregableService;
 import pucp.edu.pe.sgta.util.EstadoActividad;
 
@@ -18,6 +21,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -29,9 +33,11 @@ public class EntregableServiceImpl implements EntregableService {
     private final EntregableRepository entregableRepository;
 
     private final Logger logger = Logger.getLogger(EntregableServiceImpl.class.getName());
+    private final UsuarioRepository usuarioRepository;
 
-    public EntregableServiceImpl(EntregableRepository entregableRepository) {
+    public EntregableServiceImpl(EntregableRepository entregableRepository, UsuarioRepository usuarioRepository) {
         this.entregableRepository = entregableRepository;
+        this.usuarioRepository = usuarioRepository;
     }
 
     @Override
@@ -143,8 +149,15 @@ public class EntregableServiceImpl implements EntregableService {
     }
 
     @Override
-    public List<EntregableAlumnoDto> listarEntregablesPorAlumno(Integer alumnoId) {
-        List<Object[]> result = entregableRepository.listarEntregablesPorAlumno(alumnoId);
+    public List<EntregableAlumnoDto> listarEntregablesPorAlumno(String alumnoId) {
+        Optional<Usuario> usuario = usuarioRepository.findByIdCognito(alumnoId);
+        if(usuario.isEmpty()) {
+            throw new RuntimeException("Usuario no encontrado con ID Cognito: " + alumnoId);
+        }
+
+        Usuario user = usuario.get();
+
+        List<Object[]> result = entregableRepository.listarEntregablesPorAlumno(user.getId());
         List<EntregableAlumnoDto> entregables = new ArrayList<>();
 
         for(Object[] row : result) {
@@ -171,9 +184,18 @@ public class EntregableServiceImpl implements EntregableService {
             } else {
                 dto.setEntregableFechaEnvio(null);
             }
+            dto.setEntregableComentario((String) row[18]);
             entregables.add(dto);
         }
 
         return entregables;
+    }
+
+    @Transactional
+    @Override
+    public void entregarEntregable(Integer entregableId, EntregableSubidoDto entregableDto) {
+        entregableRepository.entregarEntregable(entregableId,
+                                                entregableDto.getComentario(),
+                                                entregableDto.getEstado());
     }
 }
