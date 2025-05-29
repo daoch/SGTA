@@ -60,7 +60,14 @@ const EntregablesAlumnoPage = () => {
         }
     }, [etapasFormativas]);
 
-    const entregablesFiltrados = entregables.filter(
+    /*const entregablesFiltrados = entregables.filter(
+        (entregable) => cicloSeleccionado === "" || entregable.cicloNombre === cicloSeleccionado
+    );*/
+
+    const entregablesFiltrados = entregables
+    .slice() // para no mutar el array original
+    .sort((a, b) => new Date(a.entregableFechaFin).getTime() - new Date(b.entregableFechaFin).getTime())
+    .filter(
         (entregable) => cicloSeleccionado === "" || entregable.cicloNombre === cicloSeleccionado
     );
 

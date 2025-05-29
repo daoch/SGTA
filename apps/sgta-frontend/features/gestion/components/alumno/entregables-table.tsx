@@ -63,9 +63,9 @@ export function EntregablesTable({ filter, entregables, setEntregables }: Entreg
                                 </TableCell>
                             </TableRow>
                         ):(
-                            entregablesFiltradas.map((entregable)=>(
+                            entregablesFiltradas.map((entregable, idx)=>(
                                 <TableRow key={entregable.entregableId}>
-                                    <TableCell>{entregable.entregableId}</TableCell>
+                                    <TableCell>{`E${idx + 1}`}</TableCell>
                                     <TableCell className="font-medium max-w-xs truncate">{entregable.entregableNombre}</TableCell>
                                     <TableCell>
                                         {entregable.entregableFechaFin ? new Date(entregable.entregableFechaFin).toLocaleString("es-PE", {
@@ -114,7 +114,7 @@ export function EntregablesTable({ filter, entregables, setEntregables }: Entreg
                                                     </Link>
                                                 </Dialog>
                                             )}
-                                            {(
+                                            {new Date() <= new Date(entregable.entregableFechaFin) && (
                                                 <Dialog> 
                                                     <DialogTrigger asChild>
                                                         <Button variant="ghost" size="icon" onClick={() =>handleOpenDialog(entregable)}>
