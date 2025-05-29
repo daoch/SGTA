@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import jakarta.transaction.Transactional;
@@ -15,6 +16,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 import pucp.edu.pe.sgta.dto.*;
 import pucp.edu.pe.sgta.dto.asesores.InfoTemaPerfilDto;
+import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
+import pucp.edu.pe.sgta.dto.asesores.TemaConAsesorDto;
+import pucp.edu.pe.sgta.dto.asesores.TemaResumenDto;
 import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
 import pucp.edu.pe.sgta.dto.exposiciones.MiembroExposicionDto;
 import pucp.edu.pe.sgta.exception.CustomException;
@@ -1794,5 +1798,37 @@ public class TemaServiceImpl implements TemaService {
 		// 3) Llamas al procedure puro, que sólo hace los UPDATEs
 		temaRepository.desactivarTemaYDesasignarUsuarios(temaId);
 	}
+
+	@Override
+	public TemaConAsesorDto obtenerTemaActivoPorAlumno(Integer idAlumno) {
+    try {
+        // Ejecutar la función que devuelve el tema actual y el ID del asesor
+        Object[] result = (Object[]) entityManager
+            .createNativeQuery("SELECT * FROM obtener_temas_por_alumno(:idAlumno)")
+            .setParameter("idAlumno", idAlumno)
+            .getSingleResult();
+
+        // Mapear a TemaActual
+        TemaResumenDto tema = new TemaResumenDto();
+        tema.setId((Integer) result[0]);
+        tema.setTitulo((String) result[1]);
+        tema.setAreas((String) result[3]);
+
+        // Obtener el perfil del asesor
+        Integer idAsesor = (Integer) result[4];
+        PerfilAsesorDto asesorDto = usuarioService.getPerfilAsesor(idAsesor);
+
+        // Retornar combinado en TemaConAsesorDto
+        TemaConAsesorDto respuesta = new TemaConAsesorDto();
+        respuesta.setTemaActual(tema);
+        respuesta.setAsesorActual(asesorDto);
+
+        return respuesta;
+
+    } catch (NoResultException e) {
+        // Si el alumno no tiene tema activo, retornar null o manejarlo con una excepción custom
+        return null;
+    }
+}
 
 }

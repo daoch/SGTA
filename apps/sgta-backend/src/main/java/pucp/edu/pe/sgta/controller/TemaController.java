@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import pucp.edu.pe.sgta.dto.TemaConAsesorJuradoDTO;
 import pucp.edu.pe.sgta.dto.asesores.InfoTemaPerfilDto;
+import pucp.edu.pe.sgta.dto.asesores.TemaConAsesorDto;
 import pucp.edu.pe.sgta.dto.TemaDto;
 import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
 import pucp.edu.pe.sgta.service.inter.JwtService;
@@ -284,6 +285,12 @@ public class TemaController {
         // este método primero valida que sea coordinador y luego llama al procedure
         temaService.eliminarTemaCoordinador(temaId, usuarioId);
         return ResponseEntity.noContent().build();
+    }
+
+		@GetMapping("/listarTemaActivoConAsesor/{idAlumno}")
+    public ResponseEntity<TemaConAsesorDto> listarTemas(@PathVariable Integer idAlumno) {
+        TemaConAsesorDto temas = temaService.obtenerTemaActivoPorAlumno(idAlumno);
+        return ResponseEntity.ok(temas);
     }
 
 }

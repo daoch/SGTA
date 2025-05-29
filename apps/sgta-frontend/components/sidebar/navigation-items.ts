@@ -132,6 +132,11 @@ export const navigationItems: Record<string, NavigationItem[]> = {
           href: "/asesor/asesores/cese-de-asesoria",
           icon: CalendarIcon,
         },
+        {
+          name: "Cambios de asesor",
+          href: "/asesor/asesores/cambio-asesor",
+          icon: RefreshCcw,
+        },
       ],
     },
     { name: "Revisión", href: "/asesor/revision", icon: Search },
@@ -177,8 +182,6 @@ export const navigationItems: Record<string, NavigationItem[]> = {
           icon: BookOpenText,
         },
       ],
-
-
     },
     { name: "Jurados", href: "/coordinador/jurados", icon: Users },
     { name: "Reportes", href: "/coordinador/reportes", icon: BarChart3 },
