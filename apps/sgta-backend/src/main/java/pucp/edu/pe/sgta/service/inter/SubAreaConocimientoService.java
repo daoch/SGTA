@@ -12,7 +12,7 @@ public interface SubAreaConocimientoService {
 
 	SubAreaConocimientoDto create(SubAreaConocimientoDto dto);
 
-	List<SubAreaConocimientoDto> listarPorUsuario(String usuarioId);
+	List<SubAreaConocimientoDto> listarPorUsuario(Integer usuarioId);
 
 	void update(SubAreaConocimientoDto dto);
 

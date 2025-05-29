@@ -21,7 +21,7 @@ public interface AreaConocimientoService {
 
 	AreaConocimientoDto findById(Integer id);
 
-	List<AreaConocimientoDto> listarPorUsuario(String usuarioId);
+	List<AreaConocimientoDto> listarPorUsuario(Integer usuarioId);
 
 	List<InfoAreaConocimientoDto> listarInfoPorNombre(String nombre);
 

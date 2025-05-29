@@ -103,14 +103,12 @@ public class SubAreaConocimientoServiceImpl implements SubAreaConocimientoServic
 	}
 
 	@Override
-	public List<SubAreaConocimientoDto> listarPorUsuario(String usuarioId) {
-
-		UsuarioDto usuDto = usuarioService.findByCognitoId(usuarioId);
+	public List<SubAreaConocimientoDto> listarPorUsuario(Integer usuarioId) {
 
 		String sql = "SELECT * FROM obtener_sub_areas_por_usuario(:usuarioId)";
 
 		Query query = entityManager.createNativeQuery(sql);
-		query.setParameter("usuarioId", usuDto.getId());
+		query.setParameter("usuarioId", usuarioId);
 
 		List<Object[]> resultados = query.getResultList();
 

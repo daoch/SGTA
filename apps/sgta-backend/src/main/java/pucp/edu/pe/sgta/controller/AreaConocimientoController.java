@@ -50,15 +50,8 @@ public class AreaConocimientoController {
     }
 
     @GetMapping("/listarPorUsuario") // finds a topic by id
-    public List<AreaConocimientoDto> listarPorUsuario(HttpServletRequest request) {
-
-        try {
-            String usuarioId = jwtService.extractSubFromRequest(request);
-            return areaConocimientoService.listarPorUsuario(usuarioId);
-        } catch (RuntimeException e) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
-        }
-
+    public List<AreaConocimientoDto> listarPorUsuario(@RequestParam(name = "usuarioId") Integer usuarioId) {
+        return areaConocimientoService.listarPorUsuario(usuarioId);
     }
 
     @GetMapping("/listarTodasParaPerfilAsesor") // finds a topic by id

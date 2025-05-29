@@ -65,16 +65,14 @@ public class AreaConocimientoServiceImpl implements AreaConocimientoService {
     }
 
     @Override
-    public List<AreaConocimientoDto> listarPorUsuario(String usuarioId) {
+    public List<AreaConocimientoDto> listarPorUsuario(Integer usuarioId) {
 
-
-        UsuarioDto usuDto = usuarioService.findByCognitoId(usuarioId);
 
         List<AreaConocimientoDto> lista = new ArrayList<>();
 
         List<Object[]> resultados = entityManager
                 .createNativeQuery("SELECT * FROM listar_areas_conocimiento_por_usuario(:usuarioId)")
-                .setParameter("usuarioId", usuDto.getId())
+                .setParameter("usuarioId", usuarioId)
                 .getResultList();
 
         for (Object[] fila : resultados) {
