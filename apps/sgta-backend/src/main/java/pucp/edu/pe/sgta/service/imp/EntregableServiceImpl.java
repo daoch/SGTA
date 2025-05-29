@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import pucp.edu.pe.sgta.dto.EntregableAlumnoDto;
 import pucp.edu.pe.sgta.dto.EntregableDto;
+import pucp.edu.pe.sgta.dto.EntregableSubidoDto;
 import pucp.edu.pe.sgta.mapper.EntregableMapper;
 import pucp.edu.pe.sgta.model.Entregable;
 import pucp.edu.pe.sgta.model.EtapaFormativaXCiclo;
@@ -171,9 +172,18 @@ public class EntregableServiceImpl implements EntregableService {
             } else {
                 dto.setEntregableFechaEnvio(null);
             }
+            dto.setEntregableComentario((String) row[18]);
             entregables.add(dto);
         }
 
         return entregables;
+    }
+
+    @Transactional
+    @Override
+    public void entregarEntregable(Integer entregableId, EntregableSubidoDto entregableDto) {
+        entregableRepository.entregarEntregable(entregableId,
+                                                entregableDto.getComentario(),
+                                                entregableDto.getEstado());
     }
 }

@@ -109,6 +109,7 @@ const EntregablesAlumnoPage = () => {
                         <EntregablesTable
                         filter={TABS_VALUES[tabValue].filter}
                         entregables={entregablesFiltrados}
+                        setEntregables={setEntregables}
                         />
                     </CardContent>
                 </Card>

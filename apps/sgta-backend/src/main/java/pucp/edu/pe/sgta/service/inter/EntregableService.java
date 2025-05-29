@@ -2,6 +2,7 @@ package pucp.edu.pe.sgta.service.inter;
 
 import pucp.edu.pe.sgta.dto.EntregableAlumnoDto;
 import pucp.edu.pe.sgta.dto.EntregableDto;
+import pucp.edu.pe.sgta.dto.EntregableSubidoDto;
 import pucp.edu.pe.sgta.dto.EntregableXTemaDto;
 
 import java.util.List;
@@ -15,4 +16,5 @@ public interface EntregableService {
     void delete(Integer entregableId); // Elimina un entregable
     EntregableDto findById(Integer id);
     List<EntregableAlumnoDto> listarEntregablesPorAlumno(Integer alumnoId);
+    void entregarEntregable(Integer entregableId, EntregableSubidoDto entregableDto);
 }
