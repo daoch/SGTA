@@ -47,7 +47,7 @@ const Exposiciones: React.FC = () => {
 
   const [isLoading, setIsLoading] = useState(true);
   const [exposiciones, setExposiciones] = useState<ExposicionAlumno[]>([]);
-  const alumnoId = 21; // Este debe ser el ID del alumno logueado
+  const alumnoId = 14; // Este debe ser el ID del alumno logueado
   //JALAMOS LAS EXPOSICIONES DEL ALUMNO
   const fetchExposiciones = async () => {
     setIsLoading(true);
