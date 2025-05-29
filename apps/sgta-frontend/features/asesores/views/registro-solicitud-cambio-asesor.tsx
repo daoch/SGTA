@@ -31,32 +31,30 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/features/auth";
 import { cn } from "@/lib/utils";
-import { ArrowLeft, Check, ChevronsUpDown, Loader2 } from "lucide-react";
+import { ArrowLeft, Check, ChevronsUpDown, Loader2, UserX } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   getInformacionTesisPorAlumno,
   registrarSolicitudCambioAsesor,
 } from "../hooks/cambio-asesor/page";
 import { getAsesoresPorFiltros } from "../hooks/directorio/page";
+import { getIdByCorreo } from "../hooks/perfil/perfil-apis";
 import { TemaActual } from "../types/cambio-asesor/entidades";
 import { Asesor } from "../types/perfil/entidades";
 
-// Mock de datos del alumno y tema actual
-const alumnoActual = {
-  id: 37,
-  nombre: "Juana Pérez",
-  correo: "juana.perez@pucp.edu.pe",
-};
-
 export default function RegistrarSolicitudCambioAsesor() {
+  const { user } = useAuth();
+  const [userId, setUserId] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const hasFetchedId = useRef(false);
   const router = useRouter();
   const [motivo, setMotivo] = useState("");
   const [nuevoAsesor, setNuevoAsesor] = useState<Asesor | null>(null);
   const [asesores, setAsesores] = useState<Asesor[]>([]);
   const [busqueda, setBusqueda] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const [openCombobox, setOpenCombobox] = useState(false);
   const [temaActual, setTemaActual] = useState<TemaActual | null>(null);
   const [asesorActual, setAsesorActual] = useState<Asesor | null>(null);
@@ -69,14 +67,43 @@ export default function RegistrarSolicitudCambioAsesor() {
   const [mensajeRegistro, setMensajeRegistro] = useState("");
   const [solicitudId, setSolicitudId] = useState<number | null>(null);
 
+  const loadUsuarioId = async () => {
+    if (!user) return;
+
+    setIsLoading(true);
+
+    try {
+      const id = await getIdByCorreo(user.email);
+
+      if (id !== null) {
+        setUserId(id);
+        console.log("ID del asesor obtenido:", id);
+      } else {
+        console.warn("No se encontró un asesor con ese correo.");
+        // puedes mostrar un mensaje de advertencia aquí si deseas
+      }
+    } catch (error) {
+      console.error("Error inesperado al obtener el ID del asesor:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user && !hasFetchedId.current) {
+      hasFetchedId.current = true;
+      loadUsuarioId();
+    }
+  }, [user]);
+
   // Buscar asesores cuando cambia la búsqueda
   useEffect(() => {
     const buscarAsesores = async () => {
-      if (busqueda.length >= 2) {
+      if (busqueda.length >= 2 && userId) {
         setIsLoading(true);
         try {
           const resultado = await getAsesoresPorFiltros({
-            alumnoId: alumnoActual.id,
+            alumnoId: userId,
             cadenaBusqueda: busqueda,
             activo: true,
             idAreas: [],
@@ -96,11 +123,11 @@ export default function RegistrarSolicitudCambioAsesor() {
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!userId) return;
       try {
         setIsLoading(true);
-        const { temaActual, asesorActual } = await getInformacionTesisPorAlumno(
-          alumnoActual.id,
-        );
+        const { temaActual, asesorActual } =
+          await getInformacionTesisPorAlumno(userId);
         setTemaActual(temaActual);
         setAsesorActual(asesorActual);
       } catch (error) {
@@ -111,7 +138,7 @@ export default function RegistrarSolicitudCambioAsesor() {
     };
 
     fetchData();
-  }, [alumnoActual.id]);
+  }, [userId]);
 
   // Función para manejar el registro de la solicitud
   const handleRegistrarSolicitud = async () => {
@@ -126,7 +153,7 @@ export default function RegistrarSolicitudCambioAsesor() {
   const confirmarRegistro = async () => {
     setRegistroEstado("loading");
 
-    if (!nuevoAsesor || !temaActual || !asesorActual) {
+    if (!nuevoAsesor || !temaActual || !asesorActual || !userId) {
       setRegistroEstado("error");
       setMensajeRegistro(
         "Debes seleccionar un nuevo asesor antes de continuar.",
@@ -136,7 +163,7 @@ export default function RegistrarSolicitudCambioAsesor() {
 
     try {
       const resultado = await registrarSolicitudCambioAsesor({
-        alumnoId: alumnoActual.id,
+        alumnoId: userId,
         temaId: temaActual.id,
         asesorActualId: asesorActual.id,
         nuevoAsesorId: nuevoAsesor.id,
@@ -173,6 +200,33 @@ export default function RegistrarSolicitudCambioAsesor() {
       );
     }
   };
+
+  if (isLoading)
+    return (
+      <div className="flex items-center justify-center h-screen w-full flex-col gap-4">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <span className="text-muted-foreground text-lg">
+          Cargando perfil...
+        </span>
+      </div>
+    );
+
+  if ((!user || !userId) && hasFetchedId.current === true)
+    return (
+      <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-gray-500">
+        <UserX className="w-16 h-16 mb-4" />
+        <p className="text-base font-medium">Usuario no encontrado</p>
+        <div className="mt-4">
+          <Button
+            onClick={loadUsuarioId}
+            variant="outline"
+            className="bg-white text-black border border-gray-300 hover:bg-gray-100"
+          >
+            Volver a intentar
+          </Button>
+        </div>
+      </div>
+    );
 
   return (
     <div className="container mx-auto py-8 max-w-3xl">

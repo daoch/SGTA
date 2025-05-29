@@ -3,7 +3,6 @@ import axiosInstance from "@/lib/axios/axios-instance";
 import {
   getMockDetalleSolicitudCambioAsesor,
   getMockSolicitudCambioAsesorResumen,
-  getMockTemaYAsesor,
 } from "../../mocks/requests/assessor-change-requests";
 import {
   DetalleSolicitudCambioAsesor,
@@ -68,13 +67,11 @@ export async function getInformacionTesisPorAlumno(
   idAlumno: number,
 ): Promise<InformacionTesisResponse> {
   try {
-    /*
-    const response = await axiosInstance.get("/solicitudes/informacion-tesis/", {
-      params: { idAlumno },
-    });
+    const response = await axiosInstance.get(
+      `/temas/listarTemaActivoConAsesor/${idAlumno}`,
+    );
 
-    return response.data as InformacionTesisResponse; */
-    return getMockTemaYAsesor();
+    return response.data as InformacionTesisResponse;
   } catch (error) {
     console.error("Error al obtener información de tesis:", error);
     throw error;

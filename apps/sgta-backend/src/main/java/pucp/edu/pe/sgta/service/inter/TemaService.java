@@ -1,6 +1,7 @@
 package pucp.edu.pe.sgta.service.inter;
 
 import pucp.edu.pe.sgta.dto.asesores.InfoTemaPerfilDto;
+import pucp.edu.pe.sgta.dto.asesores.TemaConAsesorDto;
 import pucp.edu.pe.sgta.dto.SubAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.TemaDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
@@ -112,5 +113,7 @@ public interface TemaService {
 
 
 	TemaDto buscarTemaPorId(Integer idTema) throws SQLException;
+
+	TemaConAsesorDto obtenerTemaActivoPorAlumno(Integer idAlumno);
 
 }
