@@ -250,7 +250,7 @@ export default function ConfiguracionUsuariosPage() {
         primerApellido: formData.apellidoPaterno,
         segundoApellido: formData.apellidoMaterno,
         correoElectronico: formData.email,
-        tipoUsuario: { nombre: formData.tipo },
+        tipoUsuario: { nombre: formData.tipo?.toLowerCase() },
         activo: true,
       });
 
@@ -284,7 +284,7 @@ export default function ConfiguracionUsuariosPage() {
           primerApellido: formData.apellidoPaterno,
           segundoApellido: formData.apellidoMaterno,
           correoElectronico: formData.email,
-          tipoUsuario: { nombre: formData.tipo },
+          tipoUsuario: { nombre: formData.tipo?.toLowerCase()},
           activo: true
         });
 
@@ -508,6 +508,7 @@ export default function ConfiguracionUsuariosPage() {
                     value={formData?.codigo}
                     onChange={handleInputChange}
                     required
+                    maxLength={8} 
                   />
                 </div>
                 <div className="grid gap-2">
@@ -544,9 +545,9 @@ export default function ConfiguracionUsuariosPage() {
                 <div className="grid gap-2">
                   <Label htmlFor="apellidoPaterno">Apellido Paterno</Label>
                   <Input
-                    id="apellido"
-                    name="apellido"
-                    placeholder="Apellido"
+                    id="apellidoPaterno"
+                    name="apellidoPaterno"
+                    placeholder="Apellido Paterno"
                     value={formData?.apellidoPaterno}
                     onChange={handleInputChange}
                     required
@@ -555,9 +556,9 @@ export default function ConfiguracionUsuariosPage() {
                 <div className="grid gap-2">
                   <Label htmlFor="apellidoMaterno">Apellido Materno</Label>
                   <Input
-                    id="apellido"
-                    name="apellido"
-                    placeholder="Apellido"
+                    id="apellidoMaterno"
+                    name="apellidoMaterno"
+                    placeholder="Apellido Materno"
                     value={formData?.apellidoMaterno}
                     onChange={handleInputChange}
                     required
@@ -570,6 +571,7 @@ export default function ConfiguracionUsuariosPage() {
                     onValueChange={(value) =>
                       handleSelectChange("estado", value)
                     }
+                    disabled={true}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Seleccionar estado" />
