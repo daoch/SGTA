@@ -16,4 +16,6 @@ public interface CarreraService {
     List<CarreraDto> getCarrerasByUsuario(Integer usuarioId);
 
     List<CarreraDto> listarCarrerasPorUsuario(Integer usuarioId);
+
+
 } 

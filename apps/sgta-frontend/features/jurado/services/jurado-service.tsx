@@ -203,10 +203,10 @@ export const desasignarMiembroJuradoTemaTodos = async (
         ? error.response.data.mensaje
         : "Error al eliminar las asignaciones del miembro de jurado con sus temas";
 
-    console.error(
-      "Error al eliminar desasignar miembro de jurado a todos sus temas:",
-      errorMessage,
-    );
+    // console.error(
+    //   "Error al eliminar desasignar miembro de jurado a todos sus temas:",
+    //   errorMessage,
+    // );
 
     return {
       success: false,
@@ -295,14 +295,13 @@ export const desasignarJuradoTema = async (
         ? error.response.data.mensaje
         : "Error al desasignar el jurado del tema";
 
-    console.error("Error al desasignar jurado:", errorMessage);
+    // console.error("Error al desasignar jurado:", errorMessage);
     return {
       success: false,
       message: errorMessage,
     };
   }
 };
-
 
 export const getExposicionesJurado = async (
   idJurado: number,
@@ -342,6 +341,7 @@ export const getExposicionesJurado = async (
         id_etapa_formativa: expo.id_etapa_formativa,
         nombre_etapa_formativa: expo.nombre_etapa_formativa,
         titulo: expo.titulo,
+        nombre_exposicion: expo.nombre_exposicion,
         ciclo_id: expo.ciclo_id,
         miembros,
       };
@@ -389,5 +389,4 @@ export const actualizarEstadoControlExposicion = async (
     throw error;
   }
 };
-
 

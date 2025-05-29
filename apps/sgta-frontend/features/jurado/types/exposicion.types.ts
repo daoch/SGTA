@@ -10,7 +10,7 @@ const ESTADOS = [
   "esperando_aprobacion",
   "programada",
   "completada",
-  "finalizada",
+  "calificada",
 ] as const;
 
 export type ExposicionEstado = (typeof ESTADOS)[number];
@@ -38,4 +38,19 @@ export type ExposicionSinInicializar = {
 export type Sala = {
   id: number;
   nombre: string;
+};
+
+export type ExposicionAlumno = {
+  exposicionId: number;
+  temaId: number;
+  estado: ExposicionEstado;
+  linkExposicion: string;
+  linkGrabacion: string;
+  datetimeInicio: Date; // o Date si ya viene parseado
+  datetimeFin: Date;    // igual que arriba
+  sala: string;
+  titulo: string;
+  etapaFormativa: string;
+  ciclo: string;
+  miembrosJurado: Miembro[];
 };

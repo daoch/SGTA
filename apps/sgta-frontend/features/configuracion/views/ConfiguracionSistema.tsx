@@ -54,7 +54,7 @@ export default function ConfiguracionSistema() {
   };
 
   return (
-    <div className="max-w-5xl ">
+    <div>
       <div className="flex items-center gap-2 mt-5 mb-4">
         <Link
           href="/coordinador/configuracion"

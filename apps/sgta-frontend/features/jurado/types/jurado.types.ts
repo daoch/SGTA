@@ -4,10 +4,11 @@ export interface Jurado {
 }
 
 export interface Tema {
-  id: number;
-  codigo: string;
-  titulo: string;
-  usuarios: Usuario[];
+  id: number | null;
+  codigo: string | null;
+  titulo: string | null;
+  usuarios: Usuario[] | null;
+  areasConocimiento: AreaEspecialidad[] | undefined;
 }
 
 export interface AreaEspecialidad {
@@ -104,6 +105,8 @@ export interface Rol {
   nombre: string;
 }
 
+export type TipoAccion = "siguiente" | "terminar";
+
 export interface ExposicionJurado {
   id_exposicion: number;
   fechahora: Date;
@@ -114,6 +117,7 @@ export interface ExposicionJurado {
   nombre_etapa_formativa: string;
   titulo: string;
   ciclo_id: number;
+  nombre_exposicion: string;
   miembros: MiembroJuradoExpo[];
 }
 
@@ -139,6 +143,3 @@ export interface CriterioEvaluacion {
   nota_maxima: number;
   observaciones: string;
 }
-
-
-export type OrigenBoton = "siguiente" | "terminar";

@@ -13,7 +13,7 @@ const estadoEstilos: Record<ExposicionEstado, string> = {
   esperando_aprobacion: "bg-orange-100 text-orange-800 border-orange-300",
   programada: "bg-blue-100 text-blue-800 border-blue-300",
   completada: "bg-green-600 text-white border-green-500",
-  finalizada: "bg-purple-100 text-purple-800 border-purple-300",
+  calificada: "bg-purple-100 text-purple-800 border-purple-300",
 };
 
 export function EstadoBadge({ estado }: EstadoBadgeProps) {

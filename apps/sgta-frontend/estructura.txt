@@ -1,0 +1,809 @@
+Listado de rutas de carpetas para el volumen DATA
+El número de serie del volumen es 35BD-71C0
+D:.
+¦   .dockerignore
+¦   .env
+¦   .gitignore
+¦   .prettierignore
+¦   .prettierrc.json
+¦   components.json
+¦   Dockerfile
+¦   eslint.config.mjs
+¦   estructura.txt
+¦   next.config.ts
+¦   package.json
+¦   postcss.config.mjs
+¦   README.md
+¦   tsconfig.json
+¦   
++---.vscode
+¦       settings.json
+¦       
++---app
+¦   ¦   favicon.ico
+¦   ¦   globals.css
+¦   ¦   layout.tsx
+¦   ¦   page.tsx
+¦   ¦   
+¦   +---(auth)
+¦   ¦   +---callback
+¦   ¦   ¦       page.tsx
+¦   ¦   ¦       
+¦   ¦   +---login
+¦   ¦           page.tsx
+¦   ¦           
+¦   +---(example)
+¦   ¦   +---ping
+¦   ¦           page.tsx
+¦   ¦           
+¦   +---(main)
+¦       ¦   layout.tsx
+¦       ¦   
+¦       +---administrador
+¦       ¦   +---configuracion
+¦       ¦       ¦   page.tsx
+¦       ¦       ¦   
+¦       ¦       +---carreras
+¦       ¦       ¦   ¦   page.tsx
+¦       ¦       ¦   ¦   
+¦       ¦       ¦   +---[id]
+¦       ¦       ¦           page.tsx
+¦       ¦       ¦           
+¦       ¦       +---ciclos
+¦       ¦       ¦   ¦   page.tsx
+¦       ¦       ¦   ¦   
+¦       ¦       ¦   +---[id]
+¦       ¦       ¦           loading.tsx
+¦       ¦       ¦           page.tsx
+¦       ¦       ¦           
+¦       ¦       +---etapas-formativas
+¦       ¦           ¦   page.tsx
+¦       ¦           ¦   
+¦       ¦           +---[id]
+¦       ¦                   page.tsx
+¦       ¦                   
+¦       +---alumno
+¦       ¦   ¦   layout.tsx
+¦       ¦   ¦   
+¦       ¦   +---directorio-de-asesores
+¦       ¦   ¦   ¦   page.tsx
+¦       ¦   ¦   ¦   
+¦       ¦   ¦   +---perfil
+¦       ¦   ¦       +---[id]
+¦       ¦   ¦               page.tsx
+¦       ¦   ¦               
+¦       ¦   +---mi-proyecto
+¦       ¦   ¦   ¦   page.tsx
+¦       ¦   ¦   ¦   
+¦       ¦   ¦   +---cronograma
+¦       ¦   ¦   ¦       page.tsx
+¦       ¦   ¦   ¦       
+¦       ¦   ¦   +---entregables
+¦       ¦   ¦   ¦       page.tsx
+¦       ¦   ¦   ¦       
+¦       ¦   ¦   +---exposiciones
+¦       ¦   ¦   ¦   ¦   page.tsx
+¦       ¦   ¦   ¦   ¦   
+¦       ¦   ¦   ¦   +---[id]
+¦       ¦   ¦   ¦       ¦   page.tsx
+¦       ¦   ¦   ¦       ¦   
+¦       ¦   ¦   ¦       +---observaciones
+¦       ¦   ¦   ¦           +---[id-docente]
+¦       ¦   ¦   ¦                   page.tsx
+¦       ¦   ¦   ¦                   
+¦       ¦   ¦   +---informacion-del-proyecto
+¦       ¦   ¦   ¦       page.tsx
+¦       ¦   ¦   ¦       
+¦       ¦   ¦   +---reuniones
+¦       ¦   ¦           page.tsx
+¦       ¦   ¦           
+¦       ¦   +---reportes
+¦       ¦   ¦       page.tsx
+¦       ¦   ¦       
+¦       ¦   +---solicitudes-academicas
+¦       ¦   ¦       page.tsx
+¦       ¦   ¦       
+¦       ¦   +---temas
+¦       ¦       ¦   page.tsx
+¦       ¦       ¦   
+¦       ¦       +---catalogo-de-temas
+¦       ¦       ¦       page.tsx
+¦       ¦       ¦       
+¦       ¦       +---nueva-propuesta
+¦       ¦       ¦       page.tsx
+¦       ¦       ¦       
+¦       ¦       +---postulaciones-de-asesores
+¦       ¦       ¦       page.tsx
+¦       ¦       ¦       
+¦       ¦       +---[id]
+¦       ¦               page.tsx
+¦       ¦               
+¦       +---asesor
+¦       ¦   ¦   layout.tsx
+¦       ¦   ¦   
+¦       ¦   +---asesores
+¦       ¦   ¦   ¦   page.tsx
+¦       ¦   ¦   ¦   
+¦       ¦   ¦   +---cese-de-asesoria
+¦       ¦   ¦   ¦       page.tsx
+¦       ¦   ¦   ¦       
+¦       ¦   ¦   +---directorio-de-asesores
+¦       ¦   ¦           page.tsx
+¦       ¦   ¦           
+¦       ¦   +---postulaciones
+¦       ¦   ¦       page.tsx
+¦       ¦   ¦       
+¦       ¦   +---propuestas
+¦       ¦   ¦       page.tsx
+¦       ¦   ¦       
+¦       ¦   +---reportes
+¦       ¦   ¦   ¦   page.tsx
+¦       ¦   ¦   ¦   
+¦       ¦   ¦   +---tesista
+¦       ¦   ¦       +---[id]
+¦       ¦   ¦               page.tsx
+¦       ¦   ¦               
+¦       ¦   +---revision
+¦       ¦   ¦   ¦   page.tsx
+¦       ¦   ¦   ¦   
+¦       ¦   ¦   +---detalles
+¦       ¦   ¦   ¦       page.tsx
+¦       ¦   ¦   ¦       
+¦       ¦   ¦   +---revisar-doc
+¦       ¦   ¦       +---[id]
+¦       ¦   ¦               page.tsx
+¦       ¦   ¦               
+¦       ¦   +---temas
+¦       ¦   ¦       page.tsx
+¦       ¦   ¦       
+¦       ¦   +---tesistas
+¦       ¦           page.tsx
+¦       ¦           
+¦       +---coordinador
+¦       ¦   ¦   layout.tsx
+¦       ¦   ¦   
+¦       ¦   +---aprobaciones
+¦       ¦   ¦       page.tsx
+¦       ¦   ¦       
+¦       ¦   +---asesores
+¦       ¦   ¦   ¦   page.tsx
+¦       ¦   ¦   ¦   
+¦       ¦   ¦   +---areas-tematicas
+¦       ¦   ¦   ¦       page.tsx
+¦       ¦   ¦   ¦       
+¦       ¦   ¦   +---cambio-asesor
+¦       ¦   ¦   ¦       page.tsx
+¦       ¦   ¦   ¦       
+¦       ¦   ¦   +---cese-de-asesoria
+¦       ¦   ¦   ¦       page.tsx
+¦       ¦   ¦   ¦       
+¦       ¦   ¦   +---directorio-de-asesores
+¦       ¦   ¦           page.tsx
+¦       ¦   ¦           
+¦       ¦   +---configuracion
+¦       ¦   ¦   ¦   page.tsx
+¦       ¦   ¦   ¦   
+¦       ¦   ¦   +---areas
+¦       ¦   ¦   ¦       page.tsx
+¦       ¦   ¦   ¦       
+¦       ¦   ¦   +---general
+¦       ¦   ¦   ¦   ¦   page.tsx
+¦       ¦   ¦   ¦   ¦   
+¦       ¦   ¦   ¦   +---cursos
+¦       ¦   ¦   ¦   ¦   +---[id]
+¦       ¦   ¦   ¦   ¦           page.tsx
+¦       ¦   ¦   ¦   ¦           
+¦       ¦   ¦   ¦   +---entregables
+¦       ¦   ¦   ¦   ¦   +---[id]
+¦       ¦   ¦   ¦   ¦           page.tsx
+¦       ¦   ¦   ¦   ¦           
+¦       ¦   ¦   ¦   +---exposiciones
+¦       ¦   ¦   ¦       +---[id]
+¦       ¦   ¦   ¦               page.tsx
+¦       ¦   ¦   ¦               
+¦       ¦   ¦   +---proceso
+¦       ¦   ¦   ¦   ¦   page.tsx
+¦       ¦   ¦   ¦   ¦   
+¦       ¦   ¦   ¦   +---etapa
+¦       ¦   ¦   ¦       +---[etapaId]
+¦       ¦   ¦   ¦           ¦   page.tsx
+¦       ¦   ¦   ¦           ¦   
+¦       ¦   ¦   ¦           +---entregable
+¦       ¦   ¦   ¦           ¦   +---[entregableId]
+¦       ¦   ¦   ¦           ¦           page.tsx
+¦       ¦   ¦   ¦           ¦           
+¦       ¦   ¦   ¦           +---exposicion
+¦       ¦   ¦   ¦               +---[exposicionId]
+¦       ¦   ¦   ¦                       page.tsx
+¦       ¦   ¦   ¦                       
+¦       ¦   ¦   +---usuarios
+¦       ¦   ¦           page.tsx
+¦       ¦   ¦           
+¦       ¦   +---exposiciones
+¦       ¦   ¦   ¦   page.tsx
+¦       ¦   ¦   ¦   
+¦       ¦   ¦   +---planificacion
+¦       ¦   ¦       +---[exposicion_id]
+¦       ¦   ¦               loading.tsx
+¦       ¦   ¦               page.tsx
+¦       ¦   ¦               
+¦       ¦   +---jurados
+¦       ¦   ¦   ¦   page.tsx
+¦       ¦   ¦   ¦   
+¦       ¦   ¦   +---icons
+¦       ¦   ¦   ¦       file-search.png
+¦       ¦   ¦   ¦       trash-2.png
+¦       ¦   ¦   ¦       
+¦       ¦   ¦   +---[detalleJurado]
+¦       ¦   ¦       ¦   page.tsx
+¦       ¦   ¦       ¦   
+¦       ¦   ¦       +---tesis
+¦       ¦   ¦           +---[codigoTesis]
+¦       ¦   ¦                   page.tsx
+¦       ¦   ¦                   
+¦       ¦   +---propuestas
+¦       ¦   ¦       page.tsx
+¦       ¦   ¦       
+¦       ¦   +---reportes
+¦       ¦   ¦       page.tsx
+¦       ¦   ¦       
+¦       ¦   +---revision
+¦       ¦   ¦       page.tsx
+¦       ¦   ¦       
+¦       ¦   +---temas
+¦       ¦       ¦   page.tsx
+¦       ¦       ¦   
+¦       ¦       +---[detalleTema]
+¦       ¦               page.tsx
+¦       ¦               
+¦       +---dashboard
+¦       ¦       layout.tsx
+¦       ¦       page.tsx
+¦       ¦       
+¦       +---jurado
+¦       ¦   ¦   layout.tsx
+¦       ¦   ¦   
+¦       ¦   +---calendario
+¦       ¦   ¦       page.tsx
+¦       ¦   ¦       
+¦       ¦   +---exposiciones
+¦       ¦   ¦   ¦   page.tsx
+¦       ¦   ¦   ¦   
+¦       ¦   ¦   +---calificar
+¦       ¦   ¦       +---[id_exposicion]
+¦       ¦   ¦               page.tsx
+¦       ¦   ¦               
+¦       ¦   +---revision
+¦       ¦   ¦       page.tsx
+¦       ¦   ¦       
+¦       ¦   +---temas
+¦       ¦           page.tsx
+¦       ¦           
+¦       +---perfil
+¦       ¦       page.tsx
+¦       ¦       
+¦       +---revisor
+¦           ¦   layout.tsx
+¦           ¦   
+¦           +---reportes
+¦           ¦       page.tsx
+¦           ¦       
+¦           +---revision
+¦                   page.tsx
+¦                   
++---components
+¦   +---asesor
+¦   ¦       delete-tema-pop-up.tsx
+¦   ¦       item-selector.tsx
+¦   ¦       tema-details-modal.tsx
+¦   ¦       tema-nuevo-modal.tsx
+¦   ¦       temas-table.tsx
+¦   ¦       
+¦   +---header
+¦   ¦       app-header.tsx
+¦   ¦       
+¦   +---loading
+¦   ¦       app-loading.tsx
+¦   ¦       
+¦   +---main
+¦   ¦       app-main.tsx
+¦   ¦       
+¦   +---profile
+¦   ¦       app-profile.tsx
+¦   ¦       
+¦   +---sidebar
+¦   ¦       app-sidebar.tsx
+¦   ¦       nav-main.tsx
+¦   ¦       nav-user.tsx
+¦   ¦       navigation-groups.ts
+¦   ¦       navigation-items.ts
+¦   ¦       
+¦   +---ui
+¦           alert-dialog.tsx
+¦           alert.tsx
+¦           avatar.tsx
+¦           back-button.tsx
+¦           badge.tsx
+¦           button.tsx
+¦           calendar.tsx
+¦           card.tsx
+¦           checkbox.tsx
+¦           collapsible.tsx
+¦           command.tsx
+¦           customtip.tsx
+¦           dialog.tsx
+¦           dropdown-menu.tsx
+¦           input.tsx
+¦           label.tsx
+¦           pagination.tsx
+¦           popover.tsx
+¦           progress.tsx
+¦           radio-group.tsx
+¦           scroll-area.tsx
+¦           select.tsx
+¦           separator.tsx
+¦           sheet.tsx
+¦           sidebar.tsx
+¦           skeleton.tsx
+¦           switch.tsx
+¦           table.tsx
+¦           tabs.tsx
+¦           textarea.tsx
+¦           toast.tsx
+¦           toaster.tsx
+¦           tooltip.tsx
+¦           use-toast.tsx
+¦           
++---features
+¦   +---administrador
+¦   ¦   +---types
+¦   ¦       ¦   ciclo.type.tsx
+¦   ¦       ¦   
+¦   ¦       +---services
+¦   ¦               cicloService.tsx
+¦   ¦               
+¦   +---asesores
+¦   ¦   +---components
+¦   ¦   ¦   +---assessor-change-request
+¦   ¦   ¦   ¦       assignment-modal.tsx
+¦   ¦   ¦   ¦       card-request.tsx
+¦   ¦   ¦   ¦       list-approved-rejected-requests.tsx
+¦   ¦   ¦   ¦       list-available-assessors.tsx
+¦   ¦   ¦   ¦       list-pending-requests.tsx
+¦   ¦   ¦   ¦       modal-assignment-students.tsx
+¦   ¦   ¦   ¦       modal-detail.tsx
+¦   ¦   ¦   ¦       modal-reject.tsx
+¦   ¦   ¦   ¦       not-assessor-change-request-found.tsx
+¦   ¦   ¦   ¦       pagination-assessor-change-request.tsx
+¦   ¦   ¦   ¦       search-filters-request-list.tsx
+¦   ¦   ¦   ¦       
+¦   ¦   ¦   +---cessation-request
+¦   ¦   ¦   ¦       assigned-advisor-list.tsx
+¦   ¦   ¦   ¦       card-request.tsx
+¦   ¦   ¦   ¦       list-approved-rejected-requests.tsx
+¦   ¦   ¦   ¦       list-available-assessors.tsx
+¦   ¦   ¦   ¦       list-pending-requests.tsx
+¦   ¦   ¦   ¦       modal-assignment-students.tsx
+¦   ¦   ¦   ¦       modal-detail.tsx
+¦   ¦   ¦   ¦       not-cessation-request-found.tsx
+¦   ¦   ¦   ¦       pagination-cessation-request.tsx
+¦   ¦   ¦   ¦       reject-cessation-modal.tsx
+¦   ¦   ¦   ¦       search-filters-request-list.tsx
+¦   ¦   ¦   ¦       student-list.tsx
+¦   ¦   ¦   ¦       
+¦   ¦   ¦   +---directorio
+¦   ¦   ¦   ¦       card-asesor-busqueda.tsx
+¦   ¦   ¦   ¦       filtros-asesores.tsx
+¦   ¦   ¦   ¦       filtros-seleccionados.tsx
+¦   ¦   ¦   ¦       orden-dropdown-directorio.tsx
+¦   ¦   ¦   ¦       resultados-busqueda.tsx
+¦   ¦   ¦   ¦       
+¦   ¦   ¦   +---perfil
+¦   ¦   ¦   ¦       acciones-editar-perfil.tsx
+¦   ¦   ¦   ¦       areas-tematicas-card.tsx
+¦   ¦   ¦   ¦       confirmation-dialog.tsx
+¦   ¦   ¦   ¦       indicadores-asesor.tsx
+¦   ¦   ¦   ¦       item-copia.tsx
+¦   ¦   ¦   ¦       modal-alerta-validacion-areas.tsx
+¦   ¦   ¦   ¦       modal-eliminar-area-con-temas.tsx
+¦   ¦   ¦   ¦       perfil-asesor-card.tsx
+¦   ¦   ¦   ¦       presentacion-card.tsx
+¦   ¦   ¦   ¦       proyectos-asesorados-resumen.tsx
+¦   ¦   ¦   ¦       subareas-tematicas-card.tsx
+¦   ¦   ¦   ¦       tesis-dirigidas-resumen.tsx
+¦   ¦   ¦   ¦       
+¦   ¦   ¦   +---shared
+¦   ¦   ¦           badge-area.tsx
+¦   ¦   ¦           
+¦   ¦   +---hooks
+¦   ¦   ¦   ¦   use-debounce.ts
+¦   ¦   ¦   ¦   
+¦   ¦   ¦   +---directorio
+¦   ¦   ¦   ¦       page.tsx
+¦   ¦   ¦   ¦       
+¦   ¦   ¦   +---perfil
+¦   ¦   ¦           perfil-apis.tsx
+¦   ¦   ¦           
+¦   ¦   +---mocks
+¦   ¦   ¦   +---directorio
+¦   ¦   ¦   ¦       directorio-mock.tsx
+¦   ¦   ¦   ¦       
+¦   ¦   ¦   +---perfil
+¦   ¦   ¦   ¦       asesor-mock.tsx
+¦   ¦   ¦   ¦       
+¦   ¦   ¦   +---requests
+¦   ¦   ¦           assessor-change-requests.ts
+¦   ¦   ¦           assessor.ts
+¦   ¦   ¦           cessation-request.ts
+¦   ¦   ¦           
+¦   ¦   +---queries
+¦   ¦   ¦       assessor-change-request.ts
+¦   ¦   ¦       cessation-request.ts
+¦   ¦   ¦       
+¦   ¦   +---services
+¦   ¦   ¦       advisor-service.ts
+¦   ¦   ¦       solicitud-cambio-asesor.ts
+¦   ¦   ¦       solicitud-cese-asesoria.ts
+¦   ¦   ¦       
+¦   ¦   +---store
+¦   ¦   ¦       assessor-change-request-filters.tsx
+¦   ¦   ¦       assignment-cessation-request.tsx
+¦   ¦   ¦       assignmment-assessor-change-request.tsx
+¦   ¦   ¦       cessation-request-filters.tsx
+¦   ¦   ¦       
+¦   ¦   +---types
+¦   ¦   ¦   ¦   assessor-change-request.ts
+¦   ¦   ¦   ¦   cessation-request.ts
+¦   ¦   ¦   ¦   
+¦   ¦   ¦   +---perfil
+¦   ¦   ¦           entidades.ts
+¦   ¦   ¦           
+¦   ¦   +---views
+¦   ¦           directorio-asesores-estudiantes.tsx
+¦   ¦           mi-perfil-asesor.tsx
+¦   ¦           view-coordinator-assessor-change-requests.tsx
+¦   ¦           view-coordinator-cessation-requests.tsx.tsx
+¦   ¦           
+¦   +---auth
+¦   ¦   ¦   index.ts
+¦   ¦   ¦   
+¦   ¦   +---components
+¦   ¦   ¦       auth-provider.tsx
+¦   ¦   ¦       login-form.tsx
+¦   ¦   ¦       protected-route.tsx
+¦   ¦   ¦       role-guard.tsx
+¦   ¦   ¦       signup-form.tsx
+¦   ¦   ¦       
+¦   ¦   +---hooks
+¦   ¦   ¦       use-auth.ts
+¦   ¦   ¦       
+¦   ¦   +---schemas
+¦   ¦   ¦       login-schema.ts
+¦   ¦   ¦       
+¦   ¦   +---store
+¦   ¦   ¦       auth-store.ts
+¦   ¦   ¦       
+¦   ¦   +---types
+¦   ¦   ¦       auth.types.ts
+¦   ¦   ¦       
+¦   ¦   +---utils
+¦   ¦   ¦       auth-utils.ts
+¦   ¦   ¦       
+¦   ¦   +---views
+¦   ¦           login-page.tsx
+¦   ¦           
+¦   +---configuracion
+¦   ¦   +---components
+¦   ¦   ¦   +---conf-general
+¦   ¦   ¦   ¦       Asesores.tsx
+¦   ¦   ¦   ¦       General.tsx
+¦   ¦   ¦   ¦       Jurados.tsx
+¦   ¦   ¦   ¦       ModalidadRevision.tsx
+¦   ¦   ¦   ¦       
+¦   ¦   ¦   +---configuracion
+¦   ¦   ¦   ¦       carreras-list.tsx
+¦   ¦   ¦   ¦       ciclo-form.tsx
+¦   ¦   ¦   ¦       ciclos-list.tsx
+¦   ¦   ¦   ¦       confirmar-eliminar-modal.tsx
+¦   ¦   ¦   ¦       contenido-form.tsx
+¦   ¦   ¦   ¦       curso-form.tsx
+¦   ¦   ¦   ¦       cursos-list.tsx
+¦   ¦   ¦   ¦       editar-etapa-formativa-modal.tsx
+¦   ¦   ¦   ¦       editar-etapa-modal.tsx
+¦   ¦   ¦   ¦       entregable-form.tsx
+¦   ¦   ¦   ¦       entregables-list.tsx
+¦   ¦   ¦   ¦       etapa-formativa-form.tsx
+¦   ¦   ¦   ¦       etapas-formativas-list.tsx
+¦   ¦   ¦   ¦       exposicion-form.tsx
+¦   ¦   ¦   ¦       exposiciones-list.tsx
+¦   ¦   ¦   ¦       nueva-carrera-modal.tsx
+¦   ¦   ¦   ¦       nueva-etapa-formativa-modal.tsx
+¦   ¦   ¦   ¦       nueva-etapa-modal.tsx
+¦   ¦   ¦   ¦       nueva-exposicion-modal.tsx
+¦   ¦   ¦   ¦       nuevo-ciclo-modal.tsx
+¦   ¦   ¦   ¦       nuevo-contenido-modal.tsx
+¦   ¦   ¦   ¦       nuevo-entregable-modal.tsx
+¦   ¦   ¦   ¦       
+¦   ¦   ¦   +---entregable
+¦   ¦   ¦   ¦       criterio-entregable-card.tsx
+¦   ¦   ¦   ¦       criterio-entregable-modal.tsx
+¦   ¦   ¦   ¦       entregable-card.tsx
+¦   ¦   ¦   ¦       entregable-modal.tsx
+¦   ¦   ¦   ¦       nuevo-criterio-entregable-modal.tsx
+¦   ¦   ¦   ¦       
+¦   ¦   ¦   +---exposicion
+¦   ¦   ¦   ¦       criterio-exposicion-card.tsx
+¦   ¦   ¦   ¦       criterio-exposicion-modal.tsx
+¦   ¦   ¦   ¦       exposicion-card.tsx
+¦   ¦   ¦   ¦       exposicion-modal.tsx
+¦   ¦   ¦   ¦       nuevo-criterio-exposicion-modal.tsx
+¦   ¦   ¦   ¦       
+¦   ¦   ¦   +---registro-usuarios
+¦   ¦   ¦           registro-usuario-client.tsx
+¦   ¦   ¦           registro-usuario-preview.tsx
+¦   ¦   ¦           registro-usuario-uploader.tsx
+¦   ¦   ¦           
+¦   ¦   +---dtos
+¦   ¦   ¦       criterio-entregable.tsx
+¦   ¦   ¦       criterio-exposicion.tsx
+¦   ¦   ¦       entregable.tsx
+¦   ¦   ¦       exposicion.tsx
+¦   ¦   ¦       
+¦   ¦   +---services
+¦   ¦   ¦       carrera-service.ts
+¦   ¦   ¦       configuracion-service.ts
+¦   ¦   ¦       etapa-formativa-ciclo.ts
+¦   ¦   ¦       etapas-formativas.ts
+¦   ¦   ¦       
+¦   ¦   +---store
+¦   ¦   ¦       configuracion-store.ts
+¦   ¦   ¦       
+¦   ¦   +---types
+¦   ¦   ¦       .gitkeep
+¦   ¦   ¦       Area.type.ts
+¦   ¦   ¦       CarreraXParametroConfiguracion.type.ts
+¦   ¦   ¦       configuracion.types.ts
+¦   ¦   ¦       etapa-formativa-ciclo.ts
+¦   ¦   ¦       exposicion.ts
+¦   ¦   ¦       
+¦   ¦   +---views
+¦   ¦           ares-view.tsx
+¦   ¦           config-proceso-page.tsx
+¦   ¦           Configuracion.tsx
+¦   ¦           ConfiguracionSistema.tsx
+¦   ¦           detalle-entregable-page.tsx
+¦   ¦           detalle-etapa-page.tsx
+¦   ¦           detalle-exposicion-page.tsx
+¦   ¦           registro-usuario-masivo-page.tsx
+¦   ¦           
+¦   +---example
+¦   ¦   +---components
+¦   ¦   ¦       .gitkeep
+¦   ¦   ¦       simple-ping.tsx
+¦   ¦   ¦       
+¦   ¦   +---dtos
+¦   ¦   ¦       .gitkeep
+¦   ¦   ¦       
+¦   ¦   +---hooks
+¦   ¦   ¦       .gitkeep
+¦   ¦   ¦       
+¦   ¦   +---queries
+¦   ¦   ¦       use-ping.ts
+¦   ¦   ¦       
+¦   ¦   +---schemas
+¦   ¦   ¦       .gitkeep
+¦   ¦   ¦       
+¦   ¦   +---services
+¦   ¦   ¦       .gitkeep
+¦   ¦   ¦       ping-service.ts
+¦   ¦   ¦       
+¦   ¦   +---store
+¦   ¦   ¦       .gitkeep
+¦   ¦   ¦       
+¦   ¦   +---types
+¦   ¦   ¦       .gitkeep
+¦   ¦   ¦       
+¦   ¦   +---views
+¦   ¦           .gitkeep
+¦   ¦           ping-page.tsx
+¦   ¦           
+¦   +---jurado
+¦   ¦   +---actions
+¦   ¦   ¦       actions.ts
+¦   ¦   ¦       
+¦   ¦   +---components
+¦   ¦   ¦   ¦   alumno-criterio-observacion.tsx
+¦   ¦   ¦   ¦   alumno-exposicion-card.tsx
+¦   ¦   ¦   ¦   badge-estado-exposicion.tsx
+¦   ¦   ¦   ¦   curso-select.tsx
+¦   ¦   ¦   ¦   EspecialiadMultiSelect.tsx
+¦   ¦   ¦   ¦   EspecialidadCheckbox.tsx
+¦   ¦   ¦   ¦   estado-select.tsx
+¦   ¦   ¦   ¦   exposicion-card.tsx
+¦   ¦   ¦   ¦   exposicion-coordinador-card.tsx
+¦   ¦   ¦   ¦   exposicion-list.tsx
+¦   ¦   ¦   ¦   exposicion-pagination.tsx
+¦   ¦   ¦   ¦   exposiciones-filter-form.tsx
+¦   ¦   ¦   ¦   filters-exposicion-jurado.tsx
+¦   ¦   ¦   ¦   item-calificacion.tsx
+¦   ¦   ¦   ¦   item-fecha-exposicion.tsx
+¦   ¦   ¦   ¦   JuradosTable.tsx
+¦   ¦   ¦   ¦   modal-detalles-exposicion.tsx
+¦   ¦   ¦   ¦   modal-eliminar-miembro-jurado.tsx
+¦   ¦   ¦   ¦   modal-planificador-coordinador.tsx
+¦   ¦   ¦   ¦   ModalDetallesExposicion.tsx
+¦   ¦   ¦   ¦   periodo-select.tsx
+¦   ¦   ¦   ¦   TesisAsignacionModal.tsx
+¦   ¦   ¦   ¦   TesisCard.tsx
+¦   ¦   ¦   ¦   
+¦   ¦   ¦   +---PlanificationComponents
+¦   ¦   ¦           CardSuggestAlgorithm.tsx
+¦   ¦   ¦           CardTopicExpo.tsx
+¦   ¦   ¦           DragContext.tsx
+¦   ¦   ¦           Draggable.tsx
+¦   ¦   ¦           DragMonitor.tsx
+¦   ¦   ¦           Droppable.tsx
+¦   ¦   ¦           expo-son.tsx
+¦   ¦   ¦           ExposList.tsx
+¦   ¦   ¦           GeneralPlanificationExpo.tsx
+¦   ¦   ¦           planificacion-estado-stepper.tsx
+¦   ¦   ¦           PlanificationPanel.tsx
+¦   ¦   ¦           room-slot.tsx
+¦   ¦   ¦           SearchFilter.tsx
+¦   ¦   ¦           selector-fecha.tsx
+¦   ¦   ¦           time-slot-card.tsx
+¦   ¦   ¦           tooltip-bloque.tsx
+¦   ¦   ¦           
+¦   ¦   +---dtos
+¦   ¦   ¦       EtapaFormativaXSalaExposicion.ts
+¦   ¦   ¦       JornadExposicionDTO.ts
+¦   ¦   ¦       ListExposicionXCoordiandorDTO.ts
+¦   ¦   ¦       
+¦   ¦   +---hooks
+¦   ¦   ¦       use-exposicion-filters-form.ts
+¦   ¦   ¦       use-exposicion-filters.ts
+¦   ¦   ¦       use-exposiciones-pagination.ts
+¦   ¦   ¦       use-fetch-exposicion-filters.ts
+¦   ¦   ¦       use-fetch-exposiciones.ts
+¦   ¦   ¦       
+¦   ¦   +---schemas
+¦   ¦   ¦       exposicion-form-schema.ts
+¦   ¦   ¦       
+¦   ¦   +---services
+¦   ¦   ¦       data.ts
+¦   ¦   ¦       exposicion-service.ts
+¦   ¦   ¦       jurado-service.tsx
+¦   ¦   ¦       
+¦   ¦   +---store
+¦   ¦   ¦       .gitkeep
+¦   ¦   ¦       
+¦   ¦   +---types
+¦   ¦   ¦       exposicion.types.ts
+¦   ¦   ¦       jurado.types.ts
+¦   ¦   ¦       juradoDetalle.types.ts
+¦   ¦   ¦       
+¦   ¦   +---utils
+¦   ¦   ¦       transformar-jornada.ts
+¦   ¦   ¦       
+¦   ¦   +---views
+¦   ¦       ¦   CoordinadorJuradoPage.tsx
+¦   ¦       ¦   DetalleTesisJurado.tsx
+¦   ¦       ¦   exposiciones-coordinador-page.tsx
+¦   ¦       ¦   JuradoDetallePage.tsx
+¦   ¦       ¦   PlanExpo.tsx
+¦   ¦       ¦   
+¦   ¦       +---vista-exposiciones
+¦   ¦               alumno-detalle-exposicion.tsx
+¦   ¦               alumno-exposiciones.tsx
+¦   ¦               alumno-observacion.tsx
+¦   ¦               calificar-exposicion-jurado-page.tsx
+¦   ¦               exposiciones-jurado-page.tsx
+¦   ¦               
+¦   +---reportes
+¦   ¦   +---components
+¦   ¦   ¦   +---general
+¦   ¦   ¦           linea-tiempo.tsx
+¦   ¦   ¦           modal-programar.tsx
+¦   ¦   ¦           
+¦   ¦   +---services
+¦   ¦   ¦       report-services.ts
+¦   ¦   ¦       
+¦   ¦   +---types
+¦   ¦   ¦       Alumno.type.ts
+¦   ¦   ¦       
+¦   ¦   +---views
+¦   ¦           advisor-reports.tsx
+¦   ¦           coordinator-reports.tsx
+¦   ¦           reviewer-reports.tsx
+¦   ¦           student-details.tsx
+¦   ¦           student-reports.tsx
+¦   ¦           
+¦   +---revision
+¦   ¦   +---components
+¦   ¦   ¦       HighlighterPDFViewer.tsx
+¦   ¦   ¦       observaciones-list.tsx
+¦   ¦   ¦       revisiones-cards-asesor.tsx
+¦   ¦   ¦       revisiones-table-asesor.tsx
+¦   ¦   ¦       
+¦   ¦   +---servicios
+¦   ¦   ¦       revision-service.ts
+¦   ¦   ¦       
+¦   ¦   +---types
+¦   ¦   ¦       colors.css
+¦   ¦   ¦       
+¦   ¦   +---views
+¦   ¦           detalles-revision-page.tsx
+¦   ¦           revision-asesor-page.tsx
+¦   ¦           RevisionDocumentoPage.tsx
+¦   ¦           
+¦   +---temas
+¦       +---components
+¦       ¦   +---alumno
+¦       ¦   ¦       formulario-propuesta.tsx
+¦       ¦   ¦       observaciones-card.tsx
+¦       ¦   ¦       pendientes-cotesistas-card.tsx
+¦       ¦   ¦       postulaciones-recibidas.tsx
+¦       ¦   ¦       postulaciones-table.tsx
+¦       ¦   ¦       propuestas-table.tsx
+¦       ¦   ¦       tema-inscrito-card.tsx
+¦       ¦   ¦       temas-libres-table.tsx
+¦       ¦   ¦       
+¦       ¦   +---asesor
+¦       ¦           enviar-propuesta-card.tsx
+¦       ¦           propuesta-modal.tsx
+¦       ¦           propuestas-table.tsx
+¦       ¦           rechazar-propuesta-card.tsx
+¦       ¦           temas-table.tsx
+¦       ¦           
+¦       +---types
+¦       ¦   +---inscripcion
+¦       ¦   ¦       data.ts
+¦       ¦   ¦       entities.ts
+¦       ¦   ¦       enums.ts
+¦       ¦   ¦       mock.ts
+¦       ¦   ¦       
+¦       ¦   +---propuestas
+¦       ¦   ¦       data.ts
+¦       ¦   ¦       entidades.ts
+¦       ¦   ¦       
+¦       ¦   +---temas
+¦       ¦           data.ts
+¦       ¦           entidades.ts
+¦       ¦           
+¦       +---views
+¦               detalle-temas-coordinador-page.tsx
+¦               formulario-propuesta-alumno-page.tsx
+¦               observaciones-card-alumno.tsx
+¦               postulaciones-recibidas-alumno-page.tsx
+¦               propuestas-asesor-page.tsx
+¦               temas-alumno-page.tsx
+¦               temas-asesor-page.tsx
+¦               temas-coordinador-page.tsx
+¦               temas-libres-alumno-page.tsx
+¦               
++---hooks
+¦       use-mobile.ts
+¦       
++---lib
+¦   ¦   utils.ts
+¦   ¦   
+¦   +---axios
+¦   ¦       axios-instance.ts
+¦   ¦       
+¦   +---cognito
+¦   ¦       cognito.ts
+¦   ¦       
+¦   +---react-query
+¦           query-client-provider.tsx
+¦           query-client.ts
+¦           
++---public
+        file.svg
+        globe.svg
+        loading-logo.webp
+        logo.png
+        next.svg
+        silabo.PDF
+        vercel.svg
+        window.svg
+        

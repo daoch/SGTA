@@ -72,7 +72,7 @@ INSERT INTO estado_planificacion (nombre,
            ('Planificacion inicial', TRUE, NOW(), NOW()),
            ('Fase 1', TRUE, NOW(), NOW()),
            ('Fase 2', TRUE, NOW(), NOW()),
-           ('Cierre de planificación', TRUE, NOW(), NOW());
+           ('Cierre de planificacion', TRUE, NOW(), NOW());
 
 
 INSERT INTO estado_tema (nombre,
@@ -254,28 +254,13 @@ INSERT INTO criterio_exposicion(exposicion_id,
                                 nota_maxima,
                                 activo,
                                 fecha_creacion)
-    VALUES (1, 'Entonacion', 'El alumno tiene una correcta entonacion durante toda la exposicion', 3.5, TRUE, NOW());
+    VALUES (1, 'Entonación', 'El alumno tiene una correcta entonación durante toda la exposición', 3.0, TRUE, NOW()),
+           (1, 'Dominio del tema', 'Demuestra conocimiento profundo y comprensión del tema presentado', 4.0, TRUE, NOW()),
+           (1, 'Material de apoyo', 'Las diapositivas y recursos visuales son claros y apoyan efectivamente la presentación', 3.0, TRUE, NOW()),
+           (1, 'Organización', 'La presentación sigue una estructura lógica y coherente', 3.0, TRUE, NOW()),
+           (1, 'Tiempo', 'Se ajusta al tiempo asignado para la presentación', 2.0, TRUE, NOW()),
+           (1, 'Respuesta a preguntas', 'Responde las preguntas del jurado de manera clara y precisa', 5.0, TRUE, NOW());
 
-
-INSERT INTO jornada_exposicion (exposicion_id,
-                                datetime_inicio,
-                                datetime_fin,
-                                activo,
-                                fecha_creacion,
-                                fecha_modificacion)
-    VALUES (1, '2025-05-12 17:00:00', '2025-05-12 20:00:00', TRUE, NOW(), NOW()),
-           (1, '2025-05-14 17:00:00', '2025-05-14 20:00:00', TRUE, NOW(), NOW());
-
-
-INSERT INTO jornada_exposicion_x_sala_exposicion (jornada_exposicion_id,
-                                                  sala_exposicion_id,
-                                                  activo,
-                                                  fecha_creacion,
-                                                  fecha_modificacion)
-    VALUES (1, 1, TRUE, NOW(), NOW()),
-           (1, 2, TRUE, NOW(), NOW()),
-           (1, 3, TRUE, NOW(), NOW()),
-           (1, 4, TRUE, NOW(), NOW());
 
 -- OPERATIVA DE ENTREGABLES
 
@@ -667,3 +652,4 @@ INSERT
 SELECT 1, parametro_configuracion_id, '2025-06-30T00:00:00Z', TRUE, NOW(), NOW(), 1
     FROM nuevo_parametro;
 
+-- LAS JORNADAS DE EXPOSICIÓN ESTÁN EN INSERTS JURADO.
