@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import org.springframework.web.server.ResponseStatusException;
 import pucp.edu.pe.sgta.dto.*;
 import pucp.edu.pe.sgta.dto.AprobarSolicitudCambioAsesorResponseDto.AprobarCambioAsesorAsignacionDto;
 import pucp.edu.pe.sgta.dto.RechazoSolicitudCambioAsesorResponseDto.CambioAsignacionDto;
@@ -618,6 +619,7 @@ public class SolicitudServiceImpl implements SolicitudService {
 
     }
 
+    @Transactional
     @Override
     public pucp.edu.pe.sgta.dto.asesores.SolicitudCambioAsesorDto registrarSolicitudCambioAsesor(pucp.edu.pe.sgta.dto.asesores.SolicitudCambioAsesorDto solicitud) {
         if(!validarExistenEstadosAccionesRoles()) throw new RuntimeException("Faltan registrar estados, roles o acciones");
@@ -754,7 +756,7 @@ public class SolicitudServiceImpl implements SolicitudService {
         UsuarioSolicitudCambioAsesorDto asesorActual= getUsuarioSolicitudFromId(idAsesorActual, idSolicitud);
         int idAsesorEntrada = (int) result[8];
         UsuarioSolicitudCambioAsesorDto asesorEntrada= getUsuarioSolicitudFromId(idAsesorEntrada, idSolicitud);
-        int idDetinatario = (int) result[6];
+        int idDetinatario = (int) result[9];
         UsuarioSolicitudCambioAsesorDto destinatario= getUsuarioSolicitudFromId(idDetinatario, idSolicitud);
 
         detalle.setSolicitante(remitente);
@@ -764,6 +766,20 @@ public class SolicitudServiceImpl implements SolicitudService {
 
         return detalle;
 
+    }
+
+    @Transactional
+    @Override
+    public void aprobarRechazarSolicitudCambioAsesor(Integer idSolicitud, Integer idUsuario, String rolSolictud, boolean aprobar) {
+        //validar Solicitud se puede aprobar o rechazar verifica que haya una solcitud con ese if y estado pendiente
+        boolean validar = solicitudRepository.existsSolicitudByIdAndEstadoSolicitud_Nombre(idSolicitud, EstadoSolicitudEnum.PENDIENTE.name());
+        if(!validar) throw new RuntimeException("Solicitud no puede ser modificada");
+        //validar que el usuario con ese rol puede aprobar o rechazar esa solicitud
+        List<Object[]> result = usuarioXSolicitudRepository.puedeUsuarioCambiarSolicitud(idUsuario,rolSolictud,idSolicitud);
+        validar = Utils.validarTrueOrFalseDeQuery(result);
+        if(!validar) throw new RuntimeException("El usuario no puede modificar la solicitud");
+        //El procedure se encarga de all
+        usuarioXSolicitudRepository.procesarSolicitudCambio(idUsuario,rolSolictud,idSolicitud,aprobar);
     }
 
     private UsuarioSolicitudCambioAsesorDto getUsuarioSolicitudFromId(int idUsuario, int idSolicitud) {

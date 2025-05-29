@@ -42,4 +42,6 @@ public interface SolicitudRepository extends JpaRepository<Solicitud, Integer>{
     List<Object[]> listarDetalleUsuarioSolicitudCambioAsesor(@Param("idUsuario") Integer idUsuario,
                                                       @Param("idSolicitud")Integer idSolicitud);
 
+    boolean existsSolicitudByIdAndEstadoSolicitud_Nombre(Integer idSolicitud, String nombreSolicitud);
+
 }
