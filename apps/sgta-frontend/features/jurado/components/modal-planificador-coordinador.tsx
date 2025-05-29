@@ -46,7 +46,7 @@ export default function ModalPlanificadorCoordinador({
   open,
   onClose,
 }: ModalPlanificadorCoordinadorProps) {
-  const idCoordinador = 13;
+  const idCoordinador = 3;
   const router = useRouter();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
