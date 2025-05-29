@@ -79,7 +79,7 @@ public class UsuarioXReunionServiceImpl implements UsuarioXReunionService {
                         }
                     }
                 }
-                dto.setEstado(reunion.getEstadoDetalle());
+                dto.setEstado(Boolean.TRUE.equals(reunion.getActivo()) ? "Activo" : "Finalizado");
                 reunionesXUsuariosDtos.add(dto);
             }
         }
