@@ -55,7 +55,7 @@ export function DetalleTesisJuradoView() {
         console.log("Datos de la tesis:", data);
         setTesis(data);
       } catch (err) {
-        console.error("Error al cargar datos de la tesis:", err);
+        // console.error("Error al cargar datos de la tesis:", err);
         toast.error("No se pudo cargar la información del tema");
       } finally {
         setLoading(false);

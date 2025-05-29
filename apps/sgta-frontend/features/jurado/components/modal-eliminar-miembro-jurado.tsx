@@ -27,14 +27,17 @@ const ModalEliminarMiembroJurado = ({
 }: ModalEliminarMiembroJuradoProps) => {
   const handleConfirm = async () => {
     try {
-      await desasignarMiembroJuradoTemaTodos(Number(juradoId));
-      toast.success(
-        "El jurado fue desasignado exitosamente de todos los temas en los que participaba.",
-      );
-      onSuccess();
+      const result = await desasignarMiembroJuradoTemaTodos(Number(juradoId));
+
+      if (result.success) {
+        toast.success(result.message);
+        onSuccess();
+      } else {
+        toast.error(result.message);
+      }
     } catch (error) {
       toast.error("Hubo un error al desasignar al jurado");
-      console.error(error);
+      // console.error(error);
     } finally {
       onClose();
     }
