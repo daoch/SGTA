@@ -58,7 +58,7 @@ export interface CambioEstadoPayload {
 export async function cambiarEstadoTemaPorCoordinador(
   payload: CambioEstadoPayload,
 ): Promise<void> {
-  await axiosInstance.patch(`/temas/CambiarEstadoTemaPorCoordinador`, payload);
+  await axiosInstance.patch("/temas/CambiarEstadoTemaPorCoordinador", payload);
 }
 
 /**
@@ -94,7 +94,7 @@ export async function eliminarTemaPorCoordinador(
  *    GET http://localhost:5000/temas/buscarTemaPorId?idTema=22
  */
 export async function buscarTemaPorId(idTema: number): Promise<Tema> {
-  const { data } = await axiosInstance.get<Tema>(`/temas/buscarTemaPorId`, {
+  const { data } = await axiosInstance.get<Tema>("/temas/buscarTemaPorId", {
     params: { idTema },
   });
   return data;

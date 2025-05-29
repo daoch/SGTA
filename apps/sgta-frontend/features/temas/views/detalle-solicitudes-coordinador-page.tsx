@@ -1,23 +1,21 @@
 "use client";
 
-import { Dispatch, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import {
-  ArrowLeft,
-  Clock,
-  User,
   Calendar,
-  FileText,
-  Target,
-  AlertTriangle,
-  MessageSquare,
   Check,
-  X,
-  Trash2,
+  Clock,
   Eye,
+  FileText,
   History,
+  MessageSquare,
+  Target,
+  Trash2,
+  User,
+  X,
 } from "lucide-react";
+import { Dispatch, useEffect, useState } from "react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -26,11 +24,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Separator } from "@/components/ui/separator";
 import {
   Dialog,
   DialogContent,
@@ -40,19 +33,22 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { SolicitudPendiente } from "../types/solicitudes/entities";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 import {
   buscarTemaPorId,
   cambiarEstadoTemaPorCoordinador,
   eliminarTemaPorCoordinador,
 } from "../types/solicitudes/data";
+import { SolicitudPendiente } from "../types/solicitudes/entities";
+import { EstadoSolicitud } from "../types/solicitudes/enums";
 import { idCoasesor } from "../types/solicitudes/mock";
 import { Tema } from "../types/temas/entidades";
-import { EstadoSolicitud } from "../types/solicitudes/enums";
 
 interface Props {
   solicitud: SolicitudPendiente;
-  setTema: Dispatch<any>;
+  setTema: Dispatch<Tema>;
 }
 
 const usuarioId = idCoasesor;
