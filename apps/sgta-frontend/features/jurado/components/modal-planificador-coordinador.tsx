@@ -59,14 +59,7 @@ export default function ModalPlanificadorCoordinador({
     },
   });
 
-  const {
-    control,
-    handleSubmit,
-    watch,
-    reset,
-    setValue,
-    formState: { errors },
-  } = methods;
+  const { control, handleSubmit, watch, reset, setValue } = methods;
 
   const [cursos, setCursos] = useState<EtapaFormativa[]>([]);
   const [tiposExposicion, setTiposExposicion] = useState<
@@ -336,4 +329,3 @@ export default function ModalPlanificadorCoordinador({
     </FormProvider>
   );
 }
-
