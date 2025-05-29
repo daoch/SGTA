@@ -22,7 +22,7 @@ import { useRouter } from "next/navigation";
 import { PDFDocument, rgb } from "pdf-lib";
 import { useCallback, useEffect, useState } from "react";
 import { IHighlight } from "react-pdf-highlighter/dist/types";
-import { analizarPlagioArchivoS3, descargarArchivoS3 } from "../servicios/revision-service";
+import { analizarPlagioArchivoS3, descargarArchivoS3, guardarObservacionesRevision } from "../servicios/revision-service";
 // ...otros imports...
 
 // Datos de ejemplo para una revisión específica
@@ -308,12 +308,15 @@ export default function RevisarDocumentoPage({ params }: { params: { id: string 
 
     try {
       // En una aplicación real, aquí se enviaría la revisión al backend
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await guardarObservacionesRevision(revision.id, highlights, 1); // Asumiendo que el usuario es el asesor con ID 1
+      console.log("Revisión guardada exitosamente");
 
-      // Cerramos el diálogo de finalizar y mostramos la rúbrica
-      setShowFinalizarDialog(false);
-      setShowRubricaDialog(true);
-      setIsLoading(false);
+      // await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      // // Cerramos el diálogo de finalizar y mostramos la rúbrica
+      // setShowFinalizarDialog(false);
+      // setShowRubricaDialog(true);
+      // setIsLoading(false);
     } catch (error) {
       console.error("Error al finalizar la revisión:", error);
       setIsLoading(false);
