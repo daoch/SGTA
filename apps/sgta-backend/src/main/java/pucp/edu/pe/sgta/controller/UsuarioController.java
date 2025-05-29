@@ -11,6 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import pucp.edu.pe.sgta.dto.asesores.FiltrosDirectorioAsesores;
 import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
+import pucp.edu.pe.sgta.dto.asesores.UsuarioConRolDto;
 import pucp.edu.pe.sgta.dto.asesores.UsuarioFotoDto;
 import pucp.edu.pe.sgta.dto.CarreraDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
@@ -152,12 +153,12 @@ public class UsuarioController {
      * @return Lista de usuarios con sus roles
      */
     @GetMapping("/professors-with-roles")
-    public ResponseEntity<List<UsuarioDto>> getProfessorsWithRoles(
+    public ResponseEntity<List<UsuarioConRolDto>> getProfessorsWithRoles(
             @RequestParam(required = false, defaultValue = "Todos") String rolNombre,
             @RequestParam(required = false) String terminoBusqueda) {
 
         try {
-            List<UsuarioDto> usuarios = usuarioService.getProfessorsWithRoles(rolNombre, terminoBusqueda);
+            List<UsuarioConRolDto> usuarios = usuarioService.getProfessorsWithRoles(rolNombre, terminoBusqueda);
             return new ResponseEntity<>(usuarios, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);

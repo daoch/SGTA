@@ -1,3 +1,5 @@
+SET search_path TO sgtadb;
+
 DO
 $$
     BEGIN
@@ -181,36 +183,109 @@ CREATE TABLE IF NOT EXISTS tipo_solicitud (
     fecha_creacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+-- NUEVAS TABLAS MANEJO DE ESTADOS Y ACCIONES EN SOLICITUD
 
--- 5) SOLICITUD (depende de tipo_solicitud)
-CREATE TABLE IF NOT EXISTS solicitud (
-    solicitud_id SERIAL PRIMARY KEY,
+-- Tabla de roles en la solicitud
+CREATE TABLE IF NOT EXISTS rol_solicitud (
+    rol_solicitud_id SERIAL PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL UNIQUE,
     descripcion TEXT,
-    tipo_solicitud_id INTEGER NOT NULL,
-    tema_id INTEGER NOT NULL,
-    estado INTEGER NOT NULL,
     activo BOOLEAN NOT NULL DEFAULT TRUE,
-    respuesta TEXT,
     fecha_creacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tabla de estados de solicitud
+CREATE TABLE IF NOT EXISTS estado_solicitud (
+    estado_solicitud_id SERIAL PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL UNIQUE,
+    descripcion TEXT,
+    activo BOOLEAN NOT NULL DEFAULT TRUE,
+    fecha_creacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tabla de acciones sobre la solicitud
+CREATE TABLE IF NOT EXISTS accion_solicitud (
+    accion_solicitud_id SERIAL PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL UNIQUE,
+    descripcion TEXT,
+    activo BOOLEAN NOT NULL DEFAULT TRUE,
+    fecha_creacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+-- 5) SOLICITUD (depende de tipo_solicitud)
+CREATE TABLE IF NOT EXISTS solicitud
+(
+    solicitud_id       SERIAL PRIMARY KEY,
+    descripcion        TEXT,
+    tipo_solicitud_id  INTEGER                  NOT NULL,
+    tema_id            INTEGER                  NOT NULL,
+    -- Nuevas columnas en transición
+    estado_solicitud   INTEGER,
+    fecha_resolucion   TIMESTAMP WITH TIME ZONE,
+
+-- Columnas antiguas mantenidas por compatibilidad
+estado             INTEGER                  NOT NULL,
+
+    activo             BOOLEAN                  NOT NULL DEFAULT TRUE,
+	respuesta		   TEXT,	
+    fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_solicitud_tipo FOREIGN KEY (tipo_solicitud_id) REFERENCES tipo_solicitud (tipo_solicitud_id) ON DELETE RESTRICT,
-    CONSTRAINT fk_s_tema FOREIGN KEY (tema_id) REFERENCES tema (tema_id) ON DELETE RESTRICT
+
+
+    CONSTRAINT fk_solicitud_tipo
+        FOREIGN KEY (tipo_solicitud_id)
+            REFERENCES tipo_solicitud (tipo_solicitud_id)
+            ON DELETE RESTRICT,
+    CONSTRAINT fk_s_tema
+        FOREIGN KEY (tema_id)
+            REFERENCES tema (tema_id)
+            ON DELETE RESTRICT,
+    CONSTRAINT fk_s_es
+        FOREIGN KEY (estado_solicitud)
+            REFERENCES estado_solicitud (estado_solicitud_id)
+            ON DELETE RESTRICT
 );
 
 -- 6) USUARIO_SOLICITUD (M:N entre usuario y solicitud)
 CREATE TABLE IF NOT EXISTS usuario_solicitud (
     usuario_solicitud_id SERIAL PRIMARY KEY,
-    usuario_id INTEGER NOT NULL,
-    solicitud_id INTEGER NOT NULL,
-    solicitud_completada BOOLEAN NOT NULL DEFAULT FALSE,
-    aprobado BOOLEAN NOT NULL DEFAULT FALSE,
-    comentario TEXT,
-    destinatario BOOLEAN NOT NULL DEFAULT FALSE,
-    activo BOOLEAN NOT NULL DEFAULT TRUE,
-    fecha_creacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_usuario FOREIGN KEY (usuario_id) REFERENCES usuario (usuario_id) ON DELETE CASCADE,
-    CONSTRAINT fk_solicitud FOREIGN KEY (solicitud_id) REFERENCES solicitud (solicitud_id) ON DELETE CASCADE
+    usuario_id           INTEGER                  NOT NULL,
+    solicitud_id         INTEGER                  NOT NULL,
+
+-- Nuevas columnas en transición
+accion_solicitud INTEGER,
+rol_solicitud INTEGER,
+fecha_accion TIMESTAMP WITH TIME ZONE,
+
+-- Columnas antiguas mantenidas por compatibilidad
+
+solicitud_completada BOOLEAN                  NOT NULL DEFAULT FALSE,
+    aprobado             BOOLEAN                  NOT NULL DEFAULT FALSE,
+    destinatario         BOOLEAN                  NOT NULL DEFAULT FALSE,
+
+    comentario           TEXT,
+    activo               BOOLEAN                  NOT NULL DEFAULT TRUE,
+    fecha_creacion       TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion   TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_usuario
+        FOREIGN KEY (usuario_id)
+            REFERENCES usuario (usuario_id)
+            ON DELETE CASCADE,
+    CONSTRAINT fk_solicitud
+        FOREIGN KEY (solicitud_id)
+            REFERENCES solicitud (solicitud_id)
+            ON DELETE CASCADE,
+    CONSTRAINT fk_us_as
+        FOREIGN KEY (accion_solicitud)
+            REFERENCES accion_solicitud (accion_solicitud_id)
+            ON DELETE RESTRICT,
+    CONSTRAINT fk_us_rs
+        FOREIGN KEY (rol_solicitud)
+            REFERENCES rol_solicitud (rol_solicitud_id)
+            ON DELETE RESTRICT
 );
 
 CREATE TABLE IF NOT EXISTS tipo_rechazo_tema (
@@ -930,6 +1005,7 @@ CREATE TABLE IF NOT EXISTS usuario_reunion (
 
 --Para 1-1
 
+<< << << < HEAD
 ALTER TABLE entregable_x_tema
 DROP CONSTRAINT IF EXISTS fk_entregable_x_tema_revision_criterio_entregable;
 
@@ -943,6 +1019,8 @@ ADD CONSTRAINT fk_entregable_x_tema_revision_criterio_entregable FOREIGN KEY (
     revision_criterio_entregable_id
 ) ON DELETE SET NULL;
 
+=======
+>>>>>>> 7ae768d3a0e8cddaa79e4cc2b40cce3c48e7f22a
 ALTER TABLE version_documento
 DROP CONSTRAINT IF EXISTS fk_version_documento_revision_documento;
 
