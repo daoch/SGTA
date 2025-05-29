@@ -14,6 +14,9 @@ public interface EntregableRepository extends JpaRepository<Entregable, Integer>
     @Query(value = "SELECT * FROM listar_entregables_x_etapa_formativa_x_ciclo(:etapaFormativaXCicloId)", nativeQuery = true)
     List<Object[]> listarEntregablesXEtapaFormativaXCiclo(@Param("etapaFormativaXCicloId") Integer etapaFormativaXCicloId);
 
+    @Query(value = "SELECT * FROM listar_entregables_por_usuario(:usuarioId)", nativeQuery = true)
+    List<Object[]> listarEntregablesXUsuario(@Param("usuarioId") Integer usuarioId);
+    
     @Query(value = "SELECT * FROM listar_entregables_con_envio_x_etapa_formativa_x_ciclo(:etapaFormativaXCicloId, :temaId)",
             nativeQuery = true
     )
