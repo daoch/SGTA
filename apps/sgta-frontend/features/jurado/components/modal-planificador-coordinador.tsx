@@ -46,6 +46,7 @@ export default function ModalPlanificadorCoordinador({
   open,
   onClose,
 }: ModalPlanificadorCoordinadorProps) {
+  const idCoordinador = 13;
   const router = useRouter();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -81,7 +82,7 @@ export default function ModalPlanificadorCoordinador({
         fechas: [],
       });
 
-      getEtapasFormativasPorInicializarByCoordinador(3)
+      getEtapasFormativasPorInicializarByCoordinador(idCoordinador)
         .then(setCursos)
         .catch(console.error);
     }
