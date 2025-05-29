@@ -117,4 +117,11 @@ public class SolicitudController {
 
         return ResponseEntity.ok(solicitudService.listarResumenSolicitudCambioAsesorUsuario(idUsuario,rolSolicitud));
     }
+
+    @GetMapping("/listarDetalleSolicitudCambioAsesorUsuario")
+    public ResponseEntity<Object> listarDetalleSolicitudCambioAsesorUsuario(
+            @RequestParam(name = "idSolicitud") Integer idSolicitud){
+
+        return ResponseEntity.ok(solicitudService.listarDetalleSolicitudCambioAsesorUsuario(idSolicitud));
+    }
 }

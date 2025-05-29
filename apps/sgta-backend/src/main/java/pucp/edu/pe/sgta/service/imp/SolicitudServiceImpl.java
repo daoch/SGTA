@@ -1,6 +1,5 @@
 package pucp.edu.pe.sgta.service.imp;
 
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -17,18 +16,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import pucp.edu.pe.sgta.dto.AprobarSolicitudCambioAsesorResponseDto;
+import pucp.edu.pe.sgta.dto.*;
 import pucp.edu.pe.sgta.dto.AprobarSolicitudCambioAsesorResponseDto.AprobarCambioAsesorAsignacionDto;
-import pucp.edu.pe.sgta.dto.AprobarSolicitudResponseDto;
-import pucp.edu.pe.sgta.dto.RechazoSolicitudCambioAsesorResponseDto;
 import pucp.edu.pe.sgta.dto.RechazoSolicitudCambioAsesorResponseDto.CambioAsignacionDto;
 import pucp.edu.pe.sgta.dto.AprobarSolicitudResponseDto.AprobarAsignacionDto;
-import pucp.edu.pe.sgta.dto.DetalleSolicitudCeseDto;
-import pucp.edu.pe.sgta.dto.RechazoSolicitudResponseDto;
-import pucp.edu.pe.sgta.dto.SolicitudCambioAsesorDto;
 import pucp.edu.pe.sgta.dto.RechazoSolicitudResponseDto.AsignacionDto;
-import pucp.edu.pe.sgta.dto.SolicitudCeseDto;
+import pucp.edu.pe.sgta.dto.asesores.DetalleSolicitudCambioAsesorDto;
 import pucp.edu.pe.sgta.dto.asesores.SolicitudCambioAsesorResumenDto;
+import pucp.edu.pe.sgta.dto.asesores.UsuarioSolicitudCambioAsesorDto;
 import pucp.edu.pe.sgta.model.*;
 import pucp.edu.pe.sgta.dto.temas.SolicitudTemaDto;
 import pucp.edu.pe.sgta.repository.*;
@@ -745,6 +740,36 @@ public class SolicitudServiceImpl implements SolicitudService {
             solicitudes.add(solicitud);
         }
         return solicitudes;
+    }
+
+    @Override
+    public DetalleSolicitudCambioAsesorDto listarDetalleSolicitudCambioAsesorUsuario(Integer idSolicitud) {
+        List<Object[]> queryResult = solicitudRepository.listarDetalleSolicitudCambioAsesor(idSolicitud);
+        if(queryResult.isEmpty()) return null;
+        Object[] result = queryResult.get(0);
+        DetalleSolicitudCambioAsesorDto detalle = DetalleSolicitudCambioAsesorDto.fromResultQuery(result);
+        int idRemitente = (int) result[6];
+        UsuarioSolicitudCambioAsesorDto remitente= getUsuarioSolicitudFromId(idRemitente, idSolicitud);
+        int idAsesorActual = (int) result[7];
+        UsuarioSolicitudCambioAsesorDto asesorActual= getUsuarioSolicitudFromId(idAsesorActual, idSolicitud);
+        int idAsesorEntrada = (int) result[8];
+        UsuarioSolicitudCambioAsesorDto asesorEntrada= getUsuarioSolicitudFromId(idAsesorEntrada, idSolicitud);
+        int idDetinatario = (int) result[6];
+        UsuarioSolicitudCambioAsesorDto destinatario= getUsuarioSolicitudFromId(idDetinatario, idSolicitud);
+
+        detalle.setSolicitante(remitente);
+        detalle.setAsesorActual(asesorActual);
+        detalle.setAsesorNuevo(asesorEntrada);
+        detalle.setCoordinador(destinatario);
+
+        return detalle;
+
+    }
+
+    private UsuarioSolicitudCambioAsesorDto getUsuarioSolicitudFromId(int idUsuario, int idSolicitud) {
+        List<Object[]> queryResult = solicitudRepository.listarDetalleUsuarioSolicitudCambioAsesor(idUsuario, idSolicitud);
+        Object[] result = queryResult.get(0);
+        return UsuarioSolicitudCambioAsesorDto.fromQueryResult(result);
     }
 
     private boolean determinarSolicitudCompletadaFromData(Integer estado) {

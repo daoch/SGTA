@@ -486,3 +486,106 @@ AS $$
           AND rs_control.nombre = p_rol_control
     );
 $$;
+
+CREATE OR REPLACE FUNCTION obtener_detalle_solicitud_cambio_asesor(p_solicitud_id INTEGER)
+RETURNS TABLE (
+    solicitud_id INTEGER,
+    fecha_creacion TIMESTAMP WITH TIME ZONE,
+    estado_nombre TEXT,
+    descripcion TEXT,
+    tema_id INTEGER,
+    titulo TEXT,
+    remitente_id INTEGER,
+    asesor_actual_id INTEGER,
+    asesor_entrada_id INTEGER,
+    destinatario_id INTEGER,
+    fecha_resolucion TIMESTAMP WITH TIME ZONE
+)
+LANGUAGE sql AS
+$$
+    SELECT
+        s.solicitud_id,
+        s.fecha_creacion,
+        es.nombre,
+        s.descripcion,
+        t.tema_id,
+        t.titulo,
+        us_remitente.usuario_id AS remitente_id,
+        us_asesor_actual.usuario_id AS asesor_actual_id,
+        us_asesor_entrada.usuario_id AS asesor_entrada_id,
+        us_destinatario.usuario_id AS destinatario_id,
+        s.fecha_resolucion
+    FROM
+        solicitud s
+        INNER JOIN tema t ON t.tema_id = s.tema_id
+        INNER JOIN estado_solicitud es ON es.estado_solicitud_id = s.estado_solicitud
+        LEFT JOIN LATERAL (
+            SELECT u.usuario_id
+            FROM usuario_solicitud us
+            JOIN usuario u ON u.usuario_id = us.usuario_id
+            JOIN rol_solicitud rs ON rs.rol_solicitud_id = us.rol_solicitud
+            WHERE us.solicitud_id = s.solicitud_id AND rs.nombre = 'REMITENTE'
+            LIMIT 1
+        ) us_remitente ON true
+        LEFT JOIN LATERAL (
+            SELECT u.usuario_id
+            FROM usuario_solicitud us
+            JOIN usuario u ON u.usuario_id = us.usuario_id
+            JOIN rol_solicitud rs ON rs.rol_solicitud_id = us.rol_solicitud
+            WHERE us.solicitud_id = s.solicitud_id AND rs.nombre = 'ASESOR_ACTUAL'
+            LIMIT 1
+        ) us_asesor_actual ON true
+        LEFT JOIN LATERAL (
+            SELECT u.usuario_id
+            FROM usuario_solicitud us
+            JOIN usuario u ON u.usuario_id = us.usuario_id
+            JOIN rol_solicitud rs ON rs.rol_solicitud_id = us.rol_solicitud
+            WHERE us.solicitud_id = s.solicitud_id AND rs.nombre = 'ASESOR_ENTRADA'
+            LIMIT 1
+        ) us_asesor_entrada ON true
+        LEFT JOIN LATERAL (
+            SELECT u.usuario_id
+            FROM usuario_solicitud us
+            JOIN usuario u ON u.usuario_id = us.usuario_id
+            JOIN rol_solicitud rs ON rs.rol_solicitud_id = us.rol_solicitud
+            WHERE us.solicitud_id = s.solicitud_id AND rs.nombre = 'DESTINATARIO'
+            LIMIT 1
+        ) us_destinatario ON true
+    WHERE
+        s.solicitud_id = p_solicitud_id;
+$$;
+
+CREATE OR REPLACE FUNCTION obtener_detalle_usuario_solicitud_cambio_asesor(
+    p_usuario_id INTEGER,
+    p_solicitud_id INTEGER
+)
+RETURNS TABLE (
+    usuario_id INTEGER,
+    nombres TEXT,
+    primer_apellido TEXT,
+    foto_perfil TEXT,
+    nombre_rol TEXT,
+    nombre_accion TEXT,
+    fecha_accion TIMESTAMP WITH TIME ZONE,
+    comentario TEXT
+)
+LANGUAGE sql AS
+$$
+    SELECT
+        u.usuario_id,
+        u.nombres,
+        u.primer_apellido,
+        u.foto_perfil,
+        rs.nombre AS nombre_rol,
+        acs.nombre AS nombre_accion,
+        us.fecha_accion,
+        us.comentario
+    FROM
+        usuario u
+        INNER JOIN usuario_solicitud us ON us.usuario_id = u.usuario_id
+        INNER JOIN rol_solicitud rs ON rs.rol_solicitud_id = us.rol_solicitud
+        INNER JOIN accion_solicitud acs ON acs.accion_solicitud_id = us.accion_solicitud
+    WHERE
+        us.usuario_id = p_usuario_id
+        AND us.solicitud_id = p_solicitud_id;
+$$;

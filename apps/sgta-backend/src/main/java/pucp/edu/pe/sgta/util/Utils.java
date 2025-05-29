@@ -21,6 +21,7 @@ public class Utils {
         return (boolean) list.get(0)[0];
     }
     static public String formatearInstant(Instant dateTime) {
+        if(dateTime == null) {return null;}
         OffsetDateTime asOffSet = dateTime.atZone(ZoneId.of("America/Lima")).toOffsetDateTime();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         return asOffSet.format(formatter);
