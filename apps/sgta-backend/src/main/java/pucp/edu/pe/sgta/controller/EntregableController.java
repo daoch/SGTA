@@ -1,5 +1,6 @@
 package pucp.edu.pe.sgta.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,6 +12,7 @@ import pucp.edu.pe.sgta.service.inter.EntregableService;
 import java.util.List;
 
 import pucp.edu.pe.sgta.dto.EntregableXTemaDto;
+import pucp.edu.pe.sgta.service.inter.JwtService;
 
 @RestController
 @RequestMapping("/entregable")
@@ -18,6 +20,9 @@ import pucp.edu.pe.sgta.dto.EntregableXTemaDto;
 public class EntregableController {
     @Autowired
     EntregableService entregableService;
+
+    @Autowired
+    JwtService jwtService;
 
     @GetMapping("/etapa-formativa-x-ciclo/{etapaFormativaXCicloId}")
     public List<EntregableDto> listarEntregablesXEtapaFormativaXCiclo(@PathVariable Integer etapaFormativaXCicloId) {
@@ -56,8 +61,9 @@ public class EntregableController {
     @GetMapping("/{id}")
     public EntregableDto findById(@PathVariable Integer id) { return entregableService.findById(id); }
 
-    @GetMapping("/alumno/{alumnoId}")
-    public List<EntregableAlumnoDto> listarEntregablesPorAlumno(@PathVariable Integer alumnoId) {
+    @GetMapping("/alumno")
+    public List<EntregableAlumnoDto> listarEntregablesPorAlumno(HttpServletRequest request) {
+        String alumnoId = jwtService.extractSubFromRequest(request);
         return entregableService.listarEntregablesPorAlumno(alumnoId);
     }
 

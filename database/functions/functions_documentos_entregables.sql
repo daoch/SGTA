@@ -26,7 +26,8 @@ BEGIN
     JOIN tema t ON t.tema_id = ut.tema_id
     WHERE ut.usuario_id = p_usuario_id
       AND ut.asignado = TRUE
-      AND ut.rechazado = FALSE;
+      AND ut.rechazado = FALSE
+      AND t.estado_tema_id IN (6, 10, 11, 12);
 END;
 $$ LANGUAGE plpgsql;
 
@@ -49,7 +50,8 @@ RETURNS TABLE (
     ciclo_anio INTEGER,
     ciclo_semestre VARCHAR,
     tema_id INTEGER,
-	fecha_envio DATE
+    fecha_envio TIMESTAMP WITH TIME ZONE,
+    comentario TEXT
 ) AS $$
 BEGIN
     RETURN QUERY
@@ -71,16 +73,19 @@ BEGIN
         c.anio AS ciclo_anio,
         c.semestre AS ciclo_semestre,
         et.tema_id,
-		et.fecha_envio
+        et.fecha_envio,
+        et.comentario
     FROM usuario_tema ut
     JOIN entregable_x_tema et ON et.tema_id = ut.tema_id
     JOIN entregable e ON e.entregable_id = et.entregable_id
     JOIN etapa_formativa_x_ciclo efc ON efc.etapa_formativa_x_ciclo_id = e.etapa_formativa_x_ciclo_id
     JOIN etapa_formativa ef ON ef.etapa_formativa_id = efc.etapa_formativa_id
     JOIN ciclo c ON c.ciclo_id = efc.ciclo_id
+    JOIN tema t ON t.tema_id = ut.tema_id
     WHERE ut.usuario_id = p_usuario_id
       AND ut.asignado = TRUE
-      AND ut.rechazado = FALSE;
+      AND ut.rechazado = FALSE
+      AND t.estado_tema_id IN (6, 10, 11, 12);
 END;
 $$ LANGUAGE plpgsql;
 
@@ -103,5 +108,22 @@ BEGIN
     FROM version_documento v
     JOIN documento d ON d.documento_id = v.documento_id
     WHERE v.entregable_x_tema_id = p_entregable_x_tema_id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION entregar_entregable(
+    p_entregable_x_tema_id INTEGER,
+    p_comentario TEXT,
+    p_estado TEXT
+)
+RETURNS VOID AS $$
+BEGIN
+    UPDATE entregable_x_tema
+    SET
+        fecha_envio = CURRENT_TIMESTAMP AT TIME ZONE 'America/Lima',
+        comentario = p_comentario,
+        estado = p_estado::enum_estado_entrega,
+        fecha_modificacion = CURRENT_TIMESTAMP AT TIME ZONE 'America/Lima'
+    WHERE entregable_x_tema_id = p_entregable_x_tema_id;
 END;
 $$ LANGUAGE plpgsql;

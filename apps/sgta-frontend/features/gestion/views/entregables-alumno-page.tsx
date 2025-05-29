@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import axiosInstance from "@/lib/axios/axios-instance";
 import { EtapaFormativaAlumnoDto } from "../dtos/EtapaFormativaAlumnoDto";
 import { EntregableAlumnoDto } from "../dtos/EntregableAlumnoDto";
+import { useAuthStore } from "@/features/auth/store/auth-store";
 
 interface Ciclo {
     cicloId: number;
@@ -19,7 +20,6 @@ interface Ciclo {
 }
 
 const EntregablesAlumnoPage = () => {
-    const alumnoId = 14; // FALTA OBTENER ID DEL ALUMNO
     const [ciclos, setCiclos] = useState<Ciclo[]>([]);
     const [cicloSeleccionado, setCicloSeleccionado] = useState("");
     const [entregables, setEntregables] = useState<EntregableAlumnoDto[]>([]);
@@ -29,7 +29,17 @@ const EntregablesAlumnoPage = () => {
     useEffect(() => {
         const fetchEtapasFormativas = async () => {
             try{
-                const response = await axiosInstance.get(`/etapas-formativas/alumno/${alumnoId}`);
+                const { idToken } = useAuthStore.getState();
+                console.log("Token de autenticación:", idToken);
+                if (!idToken) {
+                    console.error("No authentication token available");
+                    return;
+                }
+                const response = await axiosInstance.get("/etapas-formativas/alumno",{
+                    headers: {
+                        Authorization: `Bearer ${idToken}`
+                    }
+                });
                 setEtapasFormativas(response.data);
                 setCiclos(response.data.map((etapa: EtapaFormativaAlumnoDto) => ({
                     cicloId: etapa.cicloId,
@@ -40,19 +50,28 @@ const EntregablesAlumnoPage = () => {
             }
         };
         fetchEtapasFormativas();
-    }, [ alumnoId ]);
+    }, []);
 
     useEffect(() => {
         const fetchEntregables = async () => {
             try{
-                const response = await axiosInstance.get(`/entregable/alumno/${alumnoId}`);
+                const { idToken } = useAuthStore.getState();
+                if (!idToken) {
+                    console.error("No authentication token available");
+                    return;
+                }
+                const response = await axiosInstance.get("/entregable/alumno",{
+                    headers: {
+                        Authorization: `Bearer ${idToken}`
+                    }
+                });
                 setEntregables(response.data);
             } catch (error) {
                 console.error("Error al cargar los entregables:", error);
             }
         };
         fetchEntregables();
-    }, [ alumnoId ]);
+    }, []);
 
     useEffect(() => {
         if (etapasFormativas.length > 0) {
@@ -94,6 +113,19 @@ const EntregablesAlumnoPage = () => {
                     </Select>
                 </div>
             </div>
+
+        {/* Mostrar el nombre del tema asociado a la etapa formativa seleccionada */}
+        <div className="text-lg font-medium text-[#042354]">
+            {(() => {
+                // Busca la etapa formativa seleccionada según el ciclo
+                const etapa = etapasFormativas.find(
+                    (e) => e.cicloNombre === cicloSeleccionado
+                );
+                return etapa?.temaTitulo
+                    ? `Tema: ${etapa.temaTitulo}`
+                    : "No hay tema asociado";
+            })()}
+        </div>
 
         <Tabs 
             value={tabValue} 

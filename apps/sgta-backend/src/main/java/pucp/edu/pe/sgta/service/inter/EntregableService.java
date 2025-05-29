@@ -15,6 +15,6 @@ public interface EntregableService {
     void update(EntregableDto entregableDto); // Actualiza un entregable
     void delete(Integer entregableId); // Elimina un entregable
     EntregableDto findById(Integer id);
-    List<EntregableAlumnoDto> listarEntregablesPorAlumno(Integer alumnoId);
+    List<EntregableAlumnoDto> listarEntregablesPorAlumno(String alumnoId);
     void entregarEntregable(Integer entregableId, EntregableSubidoDto entregableDto);
 }
