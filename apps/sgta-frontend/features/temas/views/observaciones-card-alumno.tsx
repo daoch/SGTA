@@ -45,7 +45,13 @@ export function ObservacionesAlumnoView() {
         if (!tema?.id) throw new Error("No se encontró tema inscrito");
 
         const obsRes = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/solicitudes/listSolicitudesByTema/${tema.id}`
+          `${process.env.NEXT_PUBLIC_API_URL}/solicitudes/listSolicitudesByTema/${tema.id}`,
+          {
+            headers: {
+              "Authorization": `Bearer ${idToken}`,
+              "Content-Type": "application/json"
+            }
+          }
         );
         if (!obsRes.ok) throw new Error("Error al obtener las observaciones");
 

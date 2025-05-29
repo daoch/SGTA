@@ -1,4 +1,5 @@
 "use client";
+
 import React from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { AreaEspecialidad } from "@/features/jurado/types/jurado.types";
@@ -6,7 +7,8 @@ import TemaExposicionCard from "./topic-expo-card";
 import Draggable from "./Draggable";
 import SearchFilterTemas, { FilterForm } from "./search-filter-temas";
 import { usePlanificationStore } from "../../store/use-planificacion-store";
-import { es } from "date-fns/locale";
+import CardSuggestAlgorithm from "./CardSuggestAlgorithm";
+import { Toaster } from "sonner";
 
 interface Props {
   areasEspecialidad: AreaEspecialidad[];
@@ -45,6 +47,8 @@ const TemasList: React.FC<Props> = ({ areasEspecialidad }) => {
         <SearchFilterTemas areasEspecialidad={areasEspecialidad} />
       </FormProvider>
 
+      <CardSuggestAlgorithm />
+
       <div className="flex flex-col gap-4">
         {temasFiltrados.map((tema, idx) => {
           const key = tema.codigo ?? tema.id?.toString() ?? `tema-${idx}`;
@@ -55,6 +59,7 @@ const TemasList: React.FC<Props> = ({ areasEspecialidad }) => {
           );
         })}
       </div>
+      <Toaster position="bottom-right" richColors />
     </section>
   );
 };

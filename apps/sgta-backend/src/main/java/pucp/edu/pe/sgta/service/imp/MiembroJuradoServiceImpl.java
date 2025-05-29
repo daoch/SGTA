@@ -716,7 +716,6 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
     }
 
     @Override
-    @Transactional
     public ResponseEntity<?> actualizarEstadoControlExposicion(EstadoControlExposicionRequest request) {
         Map<String, Object> response = new HashMap<>();
 
@@ -767,13 +766,9 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
         control.setEstadoExposicion(request.getEstadoExposicionUsuario());
         controlExposicionUsuarioTemaRepository.save(control);
 
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCommit() {
-                eventPublisher.publishEvent(new EstadoControlExposicionActualizadoEvent(
-                        request.getExposicionTemaId(), temaId));
-            }
-        });
+        System.out.println("Publicando evento EstadoControlExposicionActualizadoEvent...");
+        eventPublisher.publishEvent(new EstadoControlExposicionActualizadoEvent(
+                                request.getExposicionTemaId(), temaId));
 
         response.put("mensaje", "Se actualizó correctamente al estado: " + request.getEstadoExposicionUsuario());
         response.put("exito", true);

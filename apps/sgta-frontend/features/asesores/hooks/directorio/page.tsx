@@ -1,6 +1,6 @@
 import axiosInstance from "@/lib/axios/axios-instance";
 
-interface FiltrosDirectorioAsesores {
+export interface FiltrosDirectorioAsesores {
   alumnoId: number;
   cadenaBusqueda: string;
   activo: boolean;
