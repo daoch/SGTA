@@ -1,4 +1,4 @@
-import { Tema, Usuario } from "../temas/entidades";
+import { Tema } from "../temas/entidades";
 import { EstadoSolicitud, TipoSolicitud } from "./enums";
 
 export interface SolicitudPendiente {
@@ -6,8 +6,18 @@ export interface SolicitudPendiente {
   tipo: TipoSolicitud;
   titulo: string;
   tema: Tema;
-  solicitante: Usuario;
+  solicitante: Solicitante;
   fechaSolicitud: string; // formato ISO
   estado: EstadoSolicitud;
+}
+
+export interface Solicitante {
+  id: number;
+  tipoSolicitante: string;
+  codigoPucp: string;
+  nombres: string;
+  primerApellido: string;
+  segundoApellido: string;
+  correoElectronico: string | null;
 }
 

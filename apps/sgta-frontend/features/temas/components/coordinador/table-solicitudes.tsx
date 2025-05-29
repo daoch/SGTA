@@ -1,8 +1,6 @@
 // components/SolicitudesTable.tsx
 "use client";
 
-import React from "react";
-import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,10 +17,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Eye, X, CheckCircle } from "lucide-react";
 import { titleCase } from "@/lib/utils";
-import { EstadoSolicitud } from "../../types/solicitudes/enums";
+import { Eye } from "lucide-react";
+import Link from "next/link";
 import { SolicitudPendiente } from "../../types/solicitudes/entities";
+import { EstadoSolicitud } from "../../types/solicitudes/enums";
 
 export interface SolicitudesTableProps {
   readonly solicitudes: readonly SolicitudPendiente[];
@@ -81,7 +80,7 @@ export function SolicitudesTable({
                       {sol.solicitante.nombres} {sol.solicitante.primerApellido}
                     </span>
                     <Badge variant="outline" className="mt-1 text-sm">
-                      {sol.solicitante.tipoUsuario.nombre}
+                      {sol.solicitante.tipoSolicitante}
                     </Badge>
                   </div>
                 </TableCell>
@@ -104,7 +103,7 @@ export function SolicitudesTable({
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Link
-                            href={`/coordinador/aprobaciones/${sol.id}`}
+                            href={`/coordinador/aprobaciones/${sol.tema.id}`}
                             passHref
                           >
                             <Button variant="ghost" size="icon">

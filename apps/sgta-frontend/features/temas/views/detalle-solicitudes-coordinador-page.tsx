@@ -45,12 +45,13 @@ import {
   cambiarEstadoTemaPorCoordinador,
   eliminarTemaPorCoordinador,
 } from "../types/solicitudes/data";
+import { idCoasesor } from "../types/solicitudes/mock";
 
 interface Props {
   solicitud: SolicitudPendiente;
 }
 
-const usuarioId = Number(process.env.NEXT_PUBLIC_ID_USUARIO) || 1;
+const usuarioId = idCoasesor;
 
 export default function DetalleSolicitudesCoordinadorPage({
   solicitud,
@@ -124,7 +125,7 @@ export default function DetalleSolicitudesCoordinadorPage({
           Observada: "OBSERVADO",
         };
 
-        await cambiarEstadoTemaPorCoordinador({
+        const payload = {
           tema: {
             id: solicitud.tema.id,
             estadoTemaNombre: estadoMap[accion],
@@ -133,7 +134,9 @@ export default function DetalleSolicitudesCoordinadorPage({
             usuarioId,
             comentario,
           },
-        });
+        };
+
+        await cambiarEstadoTemaPorCoordinador(payload);
       }
 
       alert(`Solicitud ${accion.toLowerCase()} exitosamente.`);

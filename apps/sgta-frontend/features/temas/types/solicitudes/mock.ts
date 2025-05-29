@@ -1,7 +1,7 @@
 import { Tema } from "../inscripcion/entities";
-import { SolicitudPendiente } from "./entities";
-import { EstadoSolicitud, TipoSolicitud } from "./enums";
 import { Usuario } from "../temas/entidades";
+import { Solicitante, SolicitudPendiente } from "./entities";
+import { EstadoSolicitud, TipoSolicitud } from "./enums";
 
 export const ejemploTemaInscrito: Tema = {
   id: 22,
@@ -152,13 +152,25 @@ export const ejemploUsuario: Usuario = {
   fechaModificacion: "2024-03-12",
 };
 
+export const ejemploSolicitanteCooasesor: Solicitante = {
+  id: 1001,
+  codigoPucp: "202055321",
+  tipoSolicitante: "Coasesor",
+  nombres: "Juan",
+  primerApellido: "Pérez",
+  segundoApellido: "Lopez",
+  correoElectronico: "jperez@pucp.edu.pe",
+};
+
 export const ejemploSolicitudPendiente: SolicitudPendiente = {
   id: 1,
   fechaSolicitud: "2025-05-10",
   estado: EstadoSolicitud.PENDIENTE,
   tipo: TipoSolicitud.INCRIPCION_TEMA,
   titulo: "Solicitud de inscripción de tema de tesis",
-  solicitante: ejemploUsuario,
+  solicitante: ejemploSolicitanteCooasesor,
   tema: ejemploTemaInscrito,
 };
+
+export const idCoasesor = 3;
 

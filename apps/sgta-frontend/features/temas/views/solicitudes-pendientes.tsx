@@ -10,10 +10,12 @@ import { SolicitudesTable } from "../components/coordinador/table-solicitudes";
 
 interface SolicitudesPendientesProps {
   readonly solicitudes: SolicitudPendiente[];
+  readonly loading: boolean;
 }
 
 export default function SolicitudesPendientes({
   solicitudes,
+  loading,
 }: SolicitudesPendientesProps) {
   const [currentTab, setCurrentTab] = React.useState<EstadoSolicitud>(
     EstadoSolicitud.PENDIENTE,
@@ -74,7 +76,11 @@ export default function SolicitudesPendientes({
           </div>
         </CardHeader>
         <CardContent>
-          <SolicitudesTable solicitudes={solicitudes} filter={currentTab} />
+          {loading ? (
+            <div>Cargando solicitudes...</div>
+          ) : (
+            <SolicitudesTable solicitudes={solicitudes} filter={currentTab} />
+          )}
         </CardContent>
       </Card>
     </div>

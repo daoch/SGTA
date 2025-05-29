@@ -86,3 +86,17 @@ export async function eliminarTemaPorCoordinador(
   });
 }
 
+/**
+ * 5) Obtener un tema específico por su ID
+ *    GET /temas/buscarTemaPorId?idTema=...
+ *
+ *    Ejemplo:
+ *    GET http://localhost:5000/temas/buscarTemaPorId?idTema=22
+ */
+export async function buscarTemaPorId(idTema: number): Promise<Tema> {
+  const { data } = await axiosInstance.get<Tema>(`/temas/buscarTemaPorId`, {
+    params: { idTema },
+  });
+  return data;
+}
+
