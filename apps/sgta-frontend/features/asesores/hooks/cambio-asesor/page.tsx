@@ -1,5 +1,6 @@
 // Update the import path below if the actual path is different
 import axiosInstance from "@/lib/axios/axios-instance";
+import axios from "axios";
 import {
   DetalleSolicitudCambioAsesor,
   SolicidudRegistro,
@@ -82,16 +83,20 @@ export async function registrarSolicitudCambioAsesor(
     return {
       success: true,
       message: "Solicitud registrada exitosamente",
-      solicitudId: response.data?.solicitudId, // Asegúrate de que la API retorne esto
+      solicitudId: response.data?.solicitudId,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
+    let message = "Ocurrió un error al registrar la solicitud.";
+
+    if (axios.isAxiosError(error)) {
+      message = error.response?.data?.message ?? message;
+    }
+
     console.error("Error al registrar solicitud:", error);
 
     return {
       success: false,
-      message:
-        error.response?.data?.message ||
-        "Ocurrió un error al registrar la solicitud.",
+      message,
     };
   }
 }
