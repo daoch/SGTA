@@ -2,6 +2,7 @@ package pucp.edu.pe.sgta.service.imp;
 
 import jakarta.persistence.*;
 import org.springframework.stereotype.Service;
+import pucp.edu.pe.sgta.dto.UsuarioDto;
 import pucp.edu.pe.sgta.dto.asesores.InfoAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.asesores.InfoSubAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.AreaConocimientoDto;
@@ -15,6 +16,7 @@ import pucp.edu.pe.sgta.repository.AreaConocimientoRepository;
 import pucp.edu.pe.sgta.repository.CarreraRepository;
 import pucp.edu.pe.sgta.repository.SubAreaConocimientoRepository;
 import pucp.edu.pe.sgta.service.inter.SubAreaConocimientoService;
+import pucp.edu.pe.sgta.service.inter.UsuarioService;
 
 import java.awt.geom.Area;
 import java.util.ArrayList;
@@ -30,14 +32,18 @@ public class SubAreaConocimientoServiceImpl implements SubAreaConocimientoServic
 	private final AreaConocimientoRepository areaConocimientoRepository;
 	private final AreaConocimientoServiceImpl areaConocimientoServiceImpl;
 
+	private final UsuarioService usuarioService;
+
 	public SubAreaConocimientoServiceImpl(SubAreaConocimientoRepository subAreaConocimientoRepository,
 										  AreaConocimientoRepository areaConocimientoRepository,
 										  CarreraRepository carreraRepository,
-										  AreaConocimientoServiceImpl areaConocimientoServiceImpl) {
+										  AreaConocimientoServiceImpl areaConocimientoServiceImpl,
+										  UsuarioService usuarioService) {
 		this.subAreaConocimientoRepository = subAreaConocimientoRepository;
         this.areaConocimientoRepository = areaConocimientoRepository;
 		this.carreraRepository = carreraRepository;
 		this.areaConocimientoServiceImpl = areaConocimientoServiceImpl;
+		this.usuarioService = usuarioService;
 	}
 
 	@Override
@@ -97,11 +103,14 @@ public class SubAreaConocimientoServiceImpl implements SubAreaConocimientoServic
 	}
 
 	@Override
-	public List<SubAreaConocimientoDto> listarPorUsuario(Integer usuarioId) {
+	public List<SubAreaConocimientoDto> listarPorUsuario(String usuarioId) {
+
+		UsuarioDto usuDto = usuarioService.findByCognitoId(usuarioId);
+
 		String sql = "SELECT * FROM obtener_sub_areas_por_usuario(:usuarioId)";
 
 		Query query = entityManager.createNativeQuery(sql);
-		query.setParameter("usuarioId", usuarioId);
+		query.setParameter("usuarioId", usuDto.getId());
 
 		List<Object[]> resultados = query.getResultList();
 

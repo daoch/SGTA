@@ -4,6 +4,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Service;
 import pucp.edu.pe.sgta.dto.AreaConocimientoDto;
+import pucp.edu.pe.sgta.dto.UsuarioDto;
 import pucp.edu.pe.sgta.mapper.AreaConocimientoMapper;
 import pucp.edu.pe.sgta.model.AreaConocimiento;
 import pucp.edu.pe.sgta.repository.AreaConocimientoRepository;
@@ -13,6 +14,9 @@ import pucp.edu.pe.sgta.repository.CarreraRepository;
 import pucp.edu.pe.sgta.service.inter.AreaConocimientoService;
 
 import pucp.edu.pe.sgta.model.Carrera;
+import pucp.edu.pe.sgta.service.inter.UsuarioService;
+
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,13 +25,17 @@ public class AreaConocimientoServiceImpl implements AreaConocimientoService {
 
     private final AreaConocimientoRepository areaConocimientoRepository;
     private final CarreraRepository carreraRepository;
+
+    private final UsuarioService usuarioService;
+
     @PersistenceContext
     private EntityManager entityManager;
 
     public AreaConocimientoServiceImpl(AreaConocimientoRepository areaConocimientoRepository,
-            CarreraRepository carreraRepository) {
+            CarreraRepository carreraRepository,UsuarioService usuarioService) {
         this.areaConocimientoRepository = areaConocimientoRepository;
         this.carreraRepository = carreraRepository;
+        this.usuarioService = usuarioService;
     }
 
     // create
@@ -37,7 +45,7 @@ public class AreaConocimientoServiceImpl implements AreaConocimientoService {
             throw new IllegalArgumentException("El id de la carrera no puede ser nulo");
         }
         // fecha Creacion
-        dto.setFechaCreacion(java.time.OffsetDateTime.now());
+        dto.setFechaCreacion(OffsetDateTime.now());
         Carrera carrera = new Carrera();
         carrera.setId(dto.getIdCarrera());
         AreaConocimiento areaConocimiento = AreaConocimientoMapper.toEntity(dto);
@@ -57,12 +65,16 @@ public class AreaConocimientoServiceImpl implements AreaConocimientoService {
     }
 
     @Override
-    public List<AreaConocimientoDto> listarPorUsuario(Integer usuarioId) {
+    public List<AreaConocimientoDto> listarPorUsuario(String usuarioId) {
+
+
+        UsuarioDto usuDto = usuarioService.findByCognitoId(usuarioId);
+
         List<AreaConocimientoDto> lista = new ArrayList<>();
 
         List<Object[]> resultados = entityManager
                 .createNativeQuery("SELECT * FROM listar_areas_conocimiento_por_usuario(:usuarioId)")
-                .setParameter("usuarioId", usuarioId)
+                .setParameter("usuarioId", usuDto.getId())
                 .getResultList();
 
         for (Object[] fila : resultados) {
