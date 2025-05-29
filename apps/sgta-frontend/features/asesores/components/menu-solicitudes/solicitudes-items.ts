@@ -1,5 +1,5 @@
 import { FileText, Plus, User } from "lucide-react";
-import Solicitud from "../../types/menu-solicitudes/entidades";
+import { Solicitud } from "../../types/menu-solicitudes/entidades";
 
 export const solicitudesItems: Solicitud[] = [
   {

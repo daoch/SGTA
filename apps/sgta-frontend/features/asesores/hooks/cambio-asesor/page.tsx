@@ -21,15 +21,19 @@ export async function getDetalleSolicitudCambioAsesor(
     const response = await axiosInstance.get(
       "/solicitudes/listarDetalleSolicitudCambioAsesorUsuario",
       {
-        params: {
-          idSolicitud,
-        },
+        params: { idSolicitud },
       },
     );
-
     return response.data as DetalleSolicitudCambioAsesor;
-  } catch (error) {
-    console.error("Error al obtener el detalle de la solicitud:", error);
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      console.error(
+        "Error al obtener el detalle de la solicitud:",
+        error.message,
+      );
+    } else {
+      console.error("Error inesperado al obtener el detalle:", error);
+    }
     throw error;
   }
 }
@@ -42,16 +46,19 @@ export async function getResumenesSolicitudCambioAsesor(
     const response = await axiosInstance.get(
       "/solicitudes/listarResumenSolicitudCambioAsesorUsuario",
       {
-        params: {
-          idUsuario,
-          rolSolicitud,
-        },
+        params: { idUsuario, rolSolicitud },
       },
     );
-
     return response.data as SolicitudCambioAsesorResumen[];
-  } catch (error) {
-    console.error("Error al obtener los resúmenes de solicitudes:", error);
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      console.error(
+        "Error al obtener los resúmenes de solicitudes:",
+        error.message,
+      );
+    } else {
+      console.error("Error inesperado al obtener los resúmenes:", error);
+    }
     throw error;
   }
 }
@@ -63,10 +70,13 @@ export async function getInformacionTesisPorAlumno(
     const response = await axiosInstance.get(
       `/temas/listarTemaActivoConAsesor/${idAlumno}`,
     );
-
     return response.data as InformacionTesisResponse;
-  } catch (error) {
-    console.error("Error al obtener información de tesis:", error);
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      console.error("Error al obtener información de tesis:", error.message);
+    } else {
+      console.error("Error inesperado al obtener información de tesis:", error);
+    }
     throw error;
   }
 }
@@ -105,15 +115,21 @@ export async function aceptarSolicitud(
   idUsuario: number,
   idSolicitud: number,
   rolSolicitud: string,
-): Promise<void> {
+): Promise<SolicitudCambioAsesorResumen[]> {
   try {
-    await axiosInstance.post("/solicitudes/aprobarSolicitudCambioAsesor", {
+    const response = await axiosInstance.post("/solicitudes/aceptarSolicitud", {
       idUsuario,
       idSolicitud,
       rolSolicitud,
     });
-  } catch (error) {
-    console.error("Error al aceptar la solicitud:", error);
+
+    return response.data as SolicitudCambioAsesorResumen[];
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      console.error("Error al aceptar la solicitud:", error.message);
+    } else {
+      console.error("Error inesperado al aceptar la solicitud:", error);
+    }
     throw error;
   }
 }
@@ -122,15 +138,24 @@ export async function rechazarSolicitud(
   idUsuario: number,
   idSolicitud: number,
   rolSolicitud: string,
-): Promise<void> {
+): Promise<SolicitudCambioAsesorResumen[]> {
   try {
-    await axiosInstance.post("/solicitudes/rechazarSolicitudCambioAsesor", {
-      idUsuario,
-      idSolicitud,
-      rolSolicitud,
-    });
-  } catch (error) {
-    console.error("Error al rechazar la solicitud:", error);
+    const response = await axiosInstance.post(
+      "/solicitudes/rechazarSolicitud",
+      {
+        idUsuario,
+        idSolicitud,
+        rolSolicitud,
+      },
+    );
+
+    return response.data as SolicitudCambioAsesorResumen[];
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      console.error("Error al rechazar la solicitud:", error.message);
+    } else {
+      console.error("Error inesperado al rechazar la solicitud:", error);
+    }
     throw error;
   }
 }
