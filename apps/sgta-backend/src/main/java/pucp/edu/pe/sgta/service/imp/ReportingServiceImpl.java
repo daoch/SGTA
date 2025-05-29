@@ -368,7 +368,7 @@ public class ReportingServiceImpl implements IReportService {
             .map(et -> new EntregableEstudianteDto(
                 et.getEntregable().getNombre(),
                 et.getEstado().name(),
-                et.getFechaEnvio() != null ? et.getFechaEnvio().atStartOfDay() : null
+                et.getFechaEnvio() != null ? et.getFechaEnvio().toLocalDateTime() : null
             ))
             .collect(Collectors.toList());
     }
