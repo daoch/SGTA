@@ -914,3 +914,38 @@ where
     bloque_horario_exposicion_id >= 1;
 
 update exposicion_x_tema set estado_exposicion = 'sin_programar';
+
+
+CREATE OR REPLACE FUNCTION listar_areas_por_tema(
+  _tema_id integer
+)
+RETURNS TABLE(
+  area_conocimiento_id   integer,
+  carrera_id             integer,
+  nombre                 text,
+  descripcion            text,
+  activo                 boolean,
+  fecha_creacion         timestamptz,
+  fecha_modificacion     timestamptz
+)
+AS $$
+BEGIN
+  RETURN QUERY
+    SELECT DISTINCT
+      ac.area_conocimiento_id,
+	  ac.carrera_id,
+      ac.nombre::text,
+      ac.descripcion::text,
+      ac.activo,
+      ac.fecha_creacion,
+      ac.fecha_modificacion
+    FROM area_conocimiento ac
+    INNER JOIN sub_area_conocimiento sac 
+      ON sac.area_conocimiento_id = ac.area_conocimiento_id 
+    INNER JOIN sub_area_conocimiento_tema sact 
+      ON sact.sub_area_conocimiento_id = sac.sub_area_conocimiento_id 
+    INNER JOIN tema t 
+      ON t.tema_id = sact.tema_id
+    WHERE t.tema_id = _tema_id;
+END;
+$$ LANGUAGE plpgsql;

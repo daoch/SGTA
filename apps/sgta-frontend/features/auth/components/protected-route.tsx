@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "../hooks/use-auth";
 import { UserRole } from "../types/auth.types";
+import AppLoading from "@/components/loading/app-loading";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -22,13 +23,15 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     if (!requiredRoles || requiredRoles.length === 0) return true;
     if (!user) return false;
     return user.roles.some((role) => requiredRoles.includes(role));
-  }, [user, requiredRoles]);  useEffect(() => {
-    const verifyAuth = async () => {      try {
-        // Check for authentication 
+  }, [user, requiredRoles]);
+  useEffect(() => {
+    const verifyAuth = async () => {
+      try {
+        // Check for authentication
         await checkAuth();
-        
-        await new Promise(resolve => setTimeout(resolve, 300));
-        
+
+        await new Promise((resolve) => setTimeout(resolve, 300));
+
         setAuthChecked(true);
       } catch (error) {
         console.error("Error verifying auth:", error);
@@ -39,7 +42,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
           console.log("Detected token but auth failed, trying one more time");
           try {
             await checkAuth();
-            await new Promise(resolve => setTimeout(resolve, 300));
+            await new Promise((resolve) => setTimeout(resolve, 300));
           } catch (retryError) {
             console.error("Retry auth check failed:", retryError);
           }
@@ -62,11 +65,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }, [authChecked, isLoading, isAuthenticated, router, hasRequiredRole]);
 
   if (isLoading || !authChecked) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        Cargando...
-      </div>
-    );
+    return <AppLoading />;
   }
 
   if (!isAuthenticated || !hasRequiredRole()) {
