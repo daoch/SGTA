@@ -29,4 +29,13 @@ jobs:
 
       - name: Build with Maven
         working-directory: apps/sgta-backend
+        env:
+          DB_URL: "jdbc:postgresql://example.amazonaws.com:5432/postgres?currentSchema=sgta"
+          DB_USER: "postgres"
+          DB_PASSWORD: "example"
+          CORS_ALLOWED_ORIGIN: "http://localhost:3000"
+          AWS_S3_BUCKET: "123"
+          AWS_ACCESS_KEY_ID: "123"
+          AWS_SECRET_ACCESS_KEY: "123"
+          AWS_REGION: "123"
         run: mvn clean verify -B
