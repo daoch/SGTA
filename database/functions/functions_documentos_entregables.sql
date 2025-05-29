@@ -1,3 +1,8 @@
+DROP FUNCTION IF EXISTS listar_etapas_formativas_alumno;
+DROP FUNCTION IF EXISTS obtener_entregables_alumno;
+DROP FUNCTION IF EXISTS listar_documentos_x_entregable;
+DROP FUNCTION IF EXISTS entregar_entregable;
+
 CREATE OR REPLACE FUNCTION listar_etapas_formativas_alumno(p_usuario_id INTEGER)
 RETURNS TABLE (
     etapa_formativa_id INTEGER,
