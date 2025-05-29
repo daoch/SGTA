@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Dispatch, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -42,19 +42,24 @@ import {
 } from "@/components/ui/dialog";
 import { SolicitudPendiente } from "../types/solicitudes/entities";
 import {
+  buscarTemaPorId,
   cambiarEstadoTemaPorCoordinador,
   eliminarTemaPorCoordinador,
 } from "../types/solicitudes/data";
 import { idCoasesor } from "../types/solicitudes/mock";
+import { Tema } from "../types/temas/entidades";
+import { EstadoSolicitud } from "../types/solicitudes/enums";
 
 interface Props {
   solicitud: SolicitudPendiente;
+  setTema: Dispatch<any>;
 }
 
 const usuarioId = idCoasesor;
 
 export default function DetalleSolicitudesCoordinadorPage({
   solicitud,
+  setTema,
 }: Readonly<Props>) {
   // const router = useRouter();
   const [comentario, setComentario] = useState("");
@@ -141,7 +146,10 @@ export default function DetalleSolicitudesCoordinadorPage({
 
       alert(`Solicitud ${accion.toLowerCase()} exitosamente.`);
       setDialogAbierto("");
-      setComentario("");
+
+      // Actualizar solicitud
+      const tema = await buscarTemaPorId(solicitud.tema.id);
+      setTema(tema);
     } catch (error) {
       console.error("Error al procesar la solicitud:", error);
       alert("Ocurrió un error. Por favor, intente nuevamente.");
@@ -252,7 +260,7 @@ export default function DetalleSolicitudesCoordinadorPage({
         </Card>
 
         {/* ======= Análisis de Similitud ======= */}
-        <Card>
+        {/* <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Target className="w-5 h-5" />
@@ -280,255 +288,259 @@ export default function DetalleSolicitudesCoordinadorPage({
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge variant="outline">{tema.similitud}%</Badge>
-                    {/* <Button
+                    <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => window.open(`/temas/${tema.id}`, "_blank")}
                     >
                       <Eye className="w-4 h-4 mr-1" />
                       Ver
-                    </Button> */}
+                    </Button>
                   </div>
                 </div>
               ))}
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
 
-        {/* ======= Comentarios del Comité ======= */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MessageSquare className="w-5 h-5" />
-              Comentarios del Comité
-            </CardTitle>
-            <CardDescription>
-              Obligatorio para aprobar, rechazar u observar
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Label htmlFor="comentario">Comentario</Label>
-            <Textarea
-              id="comentario"
-              value={comentario}
-              onChange={(e) => {
-                setComentario(e.target.value);
-                if (e.target.value.trim()) {
-                  setErrorComentario("");
-                }
-              }}
-              className="min-h-[120px]"
-            />
-            {errorComentario && (
-              <p className="mt-1 text-sm text-red-600">{errorComentario}</p>
-            )}
-          </CardContent>
-        </Card>
+        {solicitud.estado === EstadoSolicitud.PENDIENTE && (
+          <>
+            {/* ======= Comentarios del Comité ======= */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MessageSquare className="w-5 h-5" />
+                  Comentarios del Comité
+                </CardTitle>
+                <CardDescription>
+                  Obligatorio para aprobar, rechazar u observar
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Label htmlFor="comentario">Comentario</Label>
+                <Textarea
+                  id="comentario"
+                  value={comentario}
+                  onChange={(e) => {
+                    setComentario(e.target.value);
+                    if (e.target.value.trim()) {
+                      setErrorComentario("");
+                    }
+                  }}
+                  className="min-h-[120px]"
+                />
+                {errorComentario && (
+                  <p className="mt-1 text-sm text-red-600">{errorComentario}</p>
+                )}
+              </CardContent>
+            </Card>
 
-        {/* ======= Acciones Disponibles ======= */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Acciones Disponibles</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {/* Aprobar */}
-            <Dialog
-              open={dialogAbierto === "aprobar"}
-              onOpenChange={(o) => setDialogAbierto(o ? "aprobar" : "")}
-            >
-              <DialogTrigger asChild>
-                <Button
-                  className="w-full bg-green-600 hover:bg-green-700"
-                  disabled={!comentario.trim().length}
+            {/* ======= Acciones Disponibles ======= */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Acciones Disponibles</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {/* Aprobar */}
+                <Dialog
+                  open={dialogAbierto === "aprobar"}
+                  onOpenChange={(o) => setDialogAbierto(o ? "aprobar" : "")}
                 >
-                  <Check className="w-4 h-4 mr-2" />
-                  Aprobar
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Confirmar Aprobación</DialogTitle>
-                  <DialogDescription>
-                    ¿Seguro de aprobar esta solicitud?
-                  </DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                  <Button
-                    variant="outline"
-                    onClick={() => setDialogAbierto("")}
-                  >
-                    Cancelar
-                  </Button>
-                  <Button
-                    className="bg-green-600 hover:bg-green-700"
-                    onClick={() => handleAccion("Aprobada")}
-                  >
-                    Confirmar
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+                  <DialogTrigger asChild>
+                    <Button
+                      className="w-full bg-green-600 hover:bg-green-700"
+                      disabled={!comentario.trim().length}
+                    >
+                      <Check className="w-4 h-4 mr-2" />
+                      Aprobar
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Confirmar Aprobación</DialogTitle>
+                      <DialogDescription>
+                        ¿Seguro de aprobar esta solicitud?
+                      </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                      <Button
+                        variant="outline"
+                        onClick={() => setDialogAbierto("")}
+                      >
+                        Cancelar
+                      </Button>
+                      <Button
+                        className="bg-green-600 hover:bg-green-700"
+                        onClick={() => handleAccion("Aprobada")}
+                      >
+                        Confirmar
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
 
-            {/* Rechazar */}
-            <Dialog
-              open={dialogAbierto === "rechazar"}
-              onOpenChange={(o) => setDialogAbierto(o ? "rechazar" : "")}
-            >
-              <DialogTrigger asChild>
-                <Button
-                  variant="destructive"
-                  className="w-full"
-                  disabled={!comentario.trim().length}
+                {/* Rechazar */}
+                <Dialog
+                  open={dialogAbierto === "rechazar"}
+                  onOpenChange={(o) => setDialogAbierto(o ? "rechazar" : "")}
                 >
-                  <X className="w-4 h-4 mr-2" />
-                  Rechazar
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Confirmar Rechazo</DialogTitle>
-                  <DialogDescription>
-                    ¿Seguro de rechazar esta solicitud?
-                  </DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                  <Button
-                    variant="outline"
-                    onClick={() => setDialogAbierto("")}
-                  >
-                    Cancelar
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    onClick={() => handleAccion("Rechazada")}
-                  >
-                    Confirmar
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="destructive"
+                      className="w-full"
+                      disabled={!comentario.trim().length}
+                    >
+                      <X className="w-4 h-4 mr-2" />
+                      Rechazar
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Confirmar Rechazo</DialogTitle>
+                      <DialogDescription>
+                        ¿Seguro de rechazar esta solicitud?
+                      </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                      <Button
+                        variant="outline"
+                        onClick={() => setDialogAbierto("")}
+                      >
+                        Cancelar
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        onClick={() => handleAccion("Rechazada")}
+                      >
+                        Confirmar
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
 
-            {/* Observar */}
-            <Dialog
-              open={dialogAbierto === "observar"}
-              onOpenChange={(o) => setDialogAbierto(o ? "observar" : "")}
-            >
-              <DialogTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-full border-yellow-600 text-yellow-600 hover:bg-yellow-50"
-                  disabled={!comentario.trim().length}
+                {/* Observar */}
+                <Dialog
+                  open={dialogAbierto === "observar"}
+                  onOpenChange={(o) => setDialogAbierto(o ? "observar" : "")}
                 >
-                  <Eye className="w-4 h-4 mr-2" />
-                  Observar
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Confirmar Observación</DialogTitle>
-                  <DialogDescription>
-                    ¿Seguro de observar esta solicitud?
-                  </DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                  <Button
-                    variant="outline"
-                    onClick={() => setDialogAbierto("")}
-                  >
-                    Cancelar
-                  </Button>
-                  <Button onClick={() => handleAccion("Observada")}>
-                    Confirmar
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full border-yellow-600 text-yellow-600 hover:bg-yellow-50"
+                      disabled={!comentario.trim().length}
+                    >
+                      <Eye className="w-4 h-4 mr-2" />
+                      Observar
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Confirmar Observación</DialogTitle>
+                      <DialogDescription>
+                        ¿Seguro de observar esta solicitud?
+                      </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                      <Button
+                        variant="outline"
+                        onClick={() => setDialogAbierto("")}
+                      >
+                        Cancelar
+                      </Button>
+                      <Button onClick={() => handleAccion("Observada")}>
+                        Confirmar
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
 
-            {/* Eliminar */}
-            <Dialog
-              open={dialogAbierto === "eliminar"}
-              onOpenChange={(o) => setDialogAbierto(o ? "eliminar" : "")}
-            >
-              <DialogTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-full border-red-200 text-red-600 hover:bg-red-50"
-                  disabled={!comentario.trim().length}
+                {/* Eliminar */}
+                <Dialog
+                  open={dialogAbierto === "eliminar"}
+                  onOpenChange={(o) => setDialogAbierto(o ? "eliminar" : "")}
                 >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Eliminar
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Confirmar Eliminación</DialogTitle>
-                  <DialogDescription>
-                    ¿Seguro de eliminar esta solicitud?
-                  </DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                  <Button
-                    variant="outline"
-                    onClick={() => setDialogAbierto("")}
-                  >
-                    Cancelar
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    onClick={() => handleAccion("Eliminada")}
-                  >
-                    Confirmar
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full border-red-200 text-red-600 hover:bg-red-50"
+                      disabled={!comentario.trim().length}
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Eliminar
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Confirmar Eliminación</DialogTitle>
+                      <DialogDescription>
+                        ¿Seguro de eliminar esta solicitud?
+                      </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                      <Button
+                        variant="outline"
+                        onClick={() => setDialogAbierto("")}
+                      >
+                        Cancelar
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        onClick={() => handleAccion("Eliminada")}
+                      >
+                        Confirmar
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
 
-            {/* <Button
+                {/* <Button
               variant="link"
               onClick={() => router.push("/coordinador/aprobaciones")}
             >
               Volver a la lista de solicitudes
             </Button> */}
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
 
-        {/* ======= Historial de Evaluación ======= */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <History className="w-5 h-5" />
-              Historial de Evaluación
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {historialMock.map((evt, idx) => (
-                <div key={idx} className="flex gap-3">
-                  <div className="flex flex-col items-center">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full" />
-                    {idx < historialMock.length - 1 && (
-                      <div className="w-px h-8 bg-gray-200 mt-2" />
-                    )}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-medium">{evt.accion}</span>
-                      <Badge variant="outline">{evt.responsable}</Badge>
+            {/* ======= Historial de Evaluación ======= */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <History className="w-5 h-5" />
+                  Historial de Evaluación
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {historialMock.map((evt, idx) => (
+                    <div key={idx} className="flex gap-3">
+                      <div className="flex flex-col items-center">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full" />
+                        {idx < historialMock.length - 1 && (
+                          <div className="w-px h-8 bg-gray-200 mt-2" />
+                        )}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-medium">{evt.accion}</span>
+                          <Badge variant="outline">{evt.responsable}</Badge>
+                        </div>
+                        <p className="text-xs text-gray-500 mb-1">
+                          {new Date(evt.fecha).toLocaleDateString("es-PE", {
+                            day: "numeric",
+                            month: "long",
+                            year: "numeric",
+                          })}
+                        </p>
+                        <p>{evt.comentario}</p>
+                      </div>
                     </div>
-                    <p className="text-xs text-gray-500 mb-1">
-                      {new Date(evt.fecha).toLocaleDateString("es-PE", {
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                      })}
-                    </p>
-                    <p>{evt.comentario}</p>
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          </>
+        )}
       </div>
     </form>
   );

@@ -42,7 +42,22 @@ export function getSolicitudFromTema(
     tema,
     solicitante,
     fechaSolicitud: tema.fechaCreacion || new Date().toISOString(),
-    estado: EstadoSolicitud.PENDIENTE,
+    estado: mapEstadoTemaToEstadoSolicitud(tema.estadoTemaNombre || "INSCRITO"),
   };
+}
+
+function mapEstadoTemaToEstadoSolicitud(estadoTema: string): EstadoSolicitud {
+  switch (estadoTema) {
+    case "INSCRITO":
+      return EstadoSolicitud.PENDIENTE;
+    case "REGISTRADO":
+      return EstadoSolicitud.ACEPTADA;
+    case "RECHAZADO":
+      return EstadoSolicitud.RECHAZADA;
+    case "OBSERVADO":
+      return EstadoSolicitud.OBSEVADA;
+    default:
+      return EstadoSolicitud.PENDIENTE;
+  }
 }
 

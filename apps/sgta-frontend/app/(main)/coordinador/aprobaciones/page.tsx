@@ -24,7 +24,10 @@ const Page: React.FC = () => {
 
       // 2. Obtener temas de todas las carreras con estado INSCRITO
       const temasPorCarrera = await Promise.all(
-        carreraIds.map((id) => listarTemasPorCarrera(id, "INSCRITO")),
+        carreraIds.flatMap((id) => [
+          listarTemasPorCarrera(id, "INSCRITO"),
+          listarTemasPorCarrera(id, "REGISTRADO"),
+        ]),
       );
       // 3. Unir todos los temas en una sola lista
       const todosLosTemas = temasPorCarrera.flat();
