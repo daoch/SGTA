@@ -24,6 +24,8 @@ public class UsuarioMapper {
         dto.setNivelEstudios(usuario.getNivelEstudios());
         dto.setEnlaceLinkedin(usuario.getEnlaceLinkedin());
         dto.setEnlaceRepositorio(usuario.getEnlaceRepositorio());
+        dto.setActivo(usuario.getActivo());
+        dto.setCorreoElectronico(usuario.getCorreoElectronico());
         return dto;
     }
 
@@ -48,6 +50,8 @@ public class UsuarioMapper {
         }
         usuario.setEnlaceLinkedin(dto.getEnlaceLinkedin());
         usuario.setEnlaceRepositorio(dto.getEnlaceRepositorio());
+        usuario.setActivo(dto.getActivo());
+        usuario.setCorreoElectronico(dto.getCorreoElectronico());
         return usuario;
     }
 }
