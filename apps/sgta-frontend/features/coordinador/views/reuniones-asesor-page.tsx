@@ -17,9 +17,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { ReunionesAsesorModal } from "../components/reuniones-asersor-modal";
+import { ReunionesXUsuariosDto } from "../dtos/ReunionesXUsuariosDto";
+import { getReunionesXAlumno } from "../services/reuniones-asesor-service";
 
 // Ciclos disponibles
 const ciclos = ["2023-1", "2024-2", "2025-1"];
@@ -84,6 +86,39 @@ export default function ReunionesAsesoresPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const [cicloSeleccionado, setCicloSeleccionado] = useState<string | undefined>(undefined);
     const [cursoSeleccionado, setCursoSeleccionado] = useState<string | undefined>(undefined);
+    const [alumnosXasesores, setAlumnosXasesores] = useState<ReunionesXUsuariosDto[]>([]);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+            const data = await getReunionesXAlumno();
+
+            // Filtra reuniones que tengan asesor y alumno válidos
+            const filtrados = data.filter(
+                (item) => item.alumno !== null && item.asesor !== null
+            );
+
+            setAlumnosXasesores(filtrados);
+            console.log("datos recibidos:", filtrados);
+            } catch (error) {
+            console.error("Error al obtener los datos de alumnos y asesores", error);
+            }
+        };
+
+        fetchData();
+    }, []);
+
+    const unicos = alumnosXasesores
+        .filter((item) => item.alumno && item.asesor) // evitar nulls
+        .filter((item, index, self) => {
+            return index === self.findIndex((other) =>
+                other.alumno && other.asesor &&
+                other.asesor.id === item.asesor.id && 
+                other.alumno.id === item.alumno.id
+            );
+        });
+
+    console.log("alumnosXasesores", alumnosXasesores);
 
     const handleCicloChange = (value: string) => {
         setCicloSeleccionado(value);
@@ -91,10 +126,9 @@ export default function ReunionesAsesoresPage() {
         setCursoSeleccionado(primerCurso);
     };
 
-    const filtrados = asesoresDummy.filter((a) => {
+    const filtrados2 = asesoresDummy.filter((a) => {
         const matchesSearch =
             a.asesor.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            a.codAsesor.toLowerCase().includes(searchTerm.toLowerCase()) ||
             a.tesista.toLowerCase().includes(searchTerm.toLowerCase()) ||
             a.codTesista.toLowerCase().includes(searchTerm.toLowerCase());
 
@@ -102,6 +136,29 @@ export default function ReunionesAsesoresPage() {
         const matchesCurso = !cursoSeleccionado || a.curso === cursoSeleccionado;
 
         return matchesSearch && matchesCiclo && matchesCurso;
+    });
+
+    const filtrados = unicos
+        .map((r) => ({
+            asesor: `${r.asesor.nombres} ${r.asesor.primerApellido} ${r.asesor.segundoApellido}`,
+            tesista: `${r.alumno.nombres} ${r.alumno.primerApellido} ${r.alumno.segundoApellido}`,
+            codAsesor: r.asesor.codigoPucp,
+            codTesista: r.alumno.codigoPucp,
+            estado: r.estado,
+            curso: r.curso,
+            asesorId: r.asesor.id,
+            alumnoId: r.alumno.id,
+        }))
+        .filter((a) => {
+            const matchesSearch =
+            a.asesor.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            a.codAsesor.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            a.tesista.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            a.codTesista.toLowerCase().includes(searchTerm.toLowerCase());
+
+            const matchesCurso = !cursoSeleccionado || a.curso === cursoSeleccionado;
+
+            return matchesSearch && matchesCurso;
     });
 
     return (
@@ -204,7 +261,11 @@ export default function ReunionesAsesoresPage() {
                                             Ver reuniones
                                         </Button>
                                         </DialogTrigger>
-                                        <ReunionesAsesorModal onClose={() => setOpen(false)} />
+                                        <ReunionesAsesorModal 
+                                            asesorId={fila.asesorId}
+                                            alumnoId={fila.alumnoId}
+                                            onClose={() => setOpen(false)} 
+                                        />
                                     </Dialog>
                                 </TableCell>
                                 </TableRow>
