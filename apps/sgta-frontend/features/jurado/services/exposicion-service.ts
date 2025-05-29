@@ -1,7 +1,8 @@
 import axiosInstance from "@/lib/axios/axios-instance";
-import { Sala } from "../types/exposicion.types";
+import { ExposicionAlumno, Sala } from "../types/exposicion.types";
 import { FormValues } from "../schemas/exposicion-form-schema";
 import { EtapaFormativaXSalaExposicion } from "../dtos/EtapaFormativaXSalaExposicion";
+import axios from "axios";
 
 export const getEtapasFormativasPorInicializarByCoordinador = async (
   coordinador_id: number,
@@ -21,39 +22,48 @@ export const getExposicionSinInicializarPorEtapaFormativa = async (
   return response.data;
 };
 
-export const enviarPlanificacion = async (data: FormValues) => {
-  const payload = {
-    etapaFormativaId: data.etapa_formativa_id,
-    exposicionId: data.exposicion_id,
-    fechas: data.fechas.map((fechaItem) => {
-      if (!fechaItem.fecha) {
-        throw new Error(
-          "La fecha no puede ser nula al enviar la planificación",
-        );
-      }
+export const enviarPlanificacion = async (data: FormValues): Promise<{ success: boolean; message: string }> => {
+  try {
+    const payload = {
+      etapaFormativaId: data.etapa_formativa_id,
+      exposicionId: data.exposicion_id,
+      fechas: data.fechas.map((fechaItem) => {
+        if (!fechaItem.fecha) {
+          throw new Error("La fecha no puede ser nula al enviar la planificación");
+        }
 
-      const fechaISO = fechaItem.fecha.toISOString().split("T")[0];
-      return {
-        fechaHoraInicio: new Date(
-          `${fechaISO}T${fechaItem.hora_inicio}`,
-        ).toISOString(),
-        fechaHoraFin: new Date(
-          `${fechaISO}T${fechaItem.hora_fin}`,
-        ).toISOString(),
-        salas: fechaItem.salas,
-      };
-    }),
-  };
+        const fechaISO = fechaItem.fecha.toISOString().split("T")[0];
+        return {
+          fechaHoraInicio: new Date(`${fechaISO}T${fechaItem.hora_inicio}`).toISOString(),
+          fechaHoraFin: new Date(`${fechaISO}T${fechaItem.hora_fin}`).toISOString(),
+          salas: fechaItem.salas,
+        };
+      }),
+    };
 
-  console.log("Datos enviados para la planificación (mapeados):", payload);
+    console.log("Datos enviados para la planificación (mapeados):", payload);
 
-  const response = await axiosInstance.post(
-    "/jornada-exposicion/initialize",
-    payload,
-  );
+    const response = await axiosInstance.post("/jornada-exposicion/initialize", payload);
 
-  return response.data;
+    return {
+      success: true,
+      message: "Planificación enviada correctamente",
+    };
+  } catch (error: unknown) {
+    const mensajeError =
+      axios.isAxiosError(error) && error.response?.data?.mensaje
+        ? error.response.data.mensaje
+        : "Error inesperado al enviar la planificación";
+
+    console.error("Error al enviar planificación:", mensajeError);
+
+    return {
+      success: false,
+      message: mensajeError,
+    };
+  }
 };
+
 
 export const getSalasDisponiblesByEtapaFormativa = async (
   etapaFormativaId: number,
@@ -122,5 +132,48 @@ export const getExposicionesInicializadasByCoordinador = async (
     throw new Error(
       "Error al obtener exposiciones inicializadas por coordinador",
     );
+  }
+};
+
+export const getExposicionesEstudiantesByEstudianteId = async (
+  estudianteId: number,
+) => {
+  try {
+    const response = await axiosInstance.get(
+      `/exposicion/listarExposicionesPorUsuario/${estudianteId}`,
+    );
+
+    console.log(
+      "Datos de exposiciones obtenidos:",
+      response.data,
+    );
+
+    return response.data.map(
+    (item: ExposicionAlumno) => ({
+    exposicionId: item.exposicionId,
+    tema_id: item.temaId,
+    estado: item.estado,
+    link_exposicion: item.linkExposicion,
+    link_grabacion: item.linkGrabacion,
+    datetimeInicio: new Date(item.datetimeInicio),
+    datetimeFin: new Date(item.datetimeFin),
+    sala: item.sala,
+    titulo: item.titulo,
+    etapaFormativa: item.etapaFormativa,
+    ciclo: item.ciclo,
+    miembrosJurado: item.miembrosJurado.map((miembro) => ({
+      id_persona: miembro.id_persona,
+      nombre: miembro.nombre,
+      tipo: miembro.tipo,
+    })),
+    }),
+  );
+
+  } catch (error) {
+    console.error(
+      "Error al obtener exposiciones de estudiantes por ID:",
+      error,
+    );
+    throw new Error("Error al obtener exposiciones de estudiantes por ID");
   }
 };

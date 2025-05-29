@@ -44,7 +44,8 @@ import {
   listarAreasConocimientoJurado,
   getTemasModalAsignar,
 } from "../services/jurado-service";
-import { toast,Toaster } from "sonner";
+import { toast, Toaster } from "sonner";
+import AppLoading from "@/components/loading/app-loading";
 
 export function JuradoDetalleView({
   modalAsignarTesisComponent: ModalAsignarTesis,
@@ -216,7 +217,7 @@ export function JuradoDetalleView({
       }
     } catch (error) {
       console.error("Error en la asignación:", error);
-     // toast.error("Ocurrió un error al intentar asignar la tesis.");
+      // toast.error("Ocurrió un error al intentar asignar la tesis.");
     }
   };
 
@@ -266,7 +267,7 @@ export function JuradoDetalleView({
   };
 
   if (!detalleJurado) {
-    return <p>Cargando...</p>;
+    return <AppLoading />;
   }
 
   return (
@@ -491,4 +492,3 @@ export function JuradoDetalleView({
 }
 
 export default JuradoDetalleView;
-

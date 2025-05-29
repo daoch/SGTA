@@ -1,5 +1,6 @@
 "use client";
 
+import AppLoading from "@/components/loading/app-loading";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { useAuthStore } from "@/features/auth/store/auth-store";
 import type { User, UserRole } from "@/features/auth/types/auth.types";
@@ -51,7 +52,14 @@ function CallbackContent() {
 
         const roles: UserRole[] = Array.isArray(rawGroups)
           ? rawGroups.filter((g): g is UserRole =>
-              ["administrador", "alumno", "jurado", "asesor", "coordinador", "revisor"].includes(g)
+              [
+                "administrador",
+                "alumno",
+                "jurado",
+                "asesor",
+                "coordinador",
+                "revisor",
+              ].includes(g),
             )
           : [];
 
@@ -98,7 +106,7 @@ function CallbackContent() {
 
 export default function Callback() {
   return (
-    <Suspense fallback={<p className="p-6 text-center">Cargando...</p>}>
+    <Suspense fallback={<AppLoading />}>
       <CallbackContent />
     </Suspense>
   );

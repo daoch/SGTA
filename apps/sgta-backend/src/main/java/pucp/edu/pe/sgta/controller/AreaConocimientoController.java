@@ -1,14 +1,10 @@
 package pucp.edu.pe.sgta.controller;
 
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import pucp.edu.pe.sgta.dto.AreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.asesores.InfoAreaConocimientoDto;
 import pucp.edu.pe.sgta.service.inter.AreaConocimientoService;
-import pucp.edu.pe.sgta.service.inter.JwtService;
 
 import java.util.List;
 
@@ -17,14 +13,11 @@ import java.util.List;
 @RequestMapping("/areaConocimiento")
 public class AreaConocimientoController {
 
-	@Autowired
-	AreaConocimientoService areaConocimientoService;
-
     @Autowired
-    JwtService jwtService;
+    AreaConocimientoService areaConocimientoService;
 
-	@PostMapping("/create")
-	public AreaConocimientoDto createAreaConocimiento(@RequestBody AreaConocimientoDto dto) {
+    @PostMapping("/create")
+    public AreaConocimientoDto createAreaConocimiento(@RequestBody AreaConocimientoDto dto) {
         return areaConocimientoService.create(dto);
     }
 
@@ -38,7 +31,7 @@ public class AreaConocimientoController {
         areaConocimientoService.delete(id);
     }
 
-    //list areas por carrera
+    // list areas por carrera
     @GetMapping("/list/{idCarrera}")
     public List<AreaConocimientoDto> listAreaConocimientoByCarrera(@PathVariable Integer idCarrera) {
         return areaConocimientoService.getAllByCarrera(idCarrera);
@@ -55,7 +48,8 @@ public class AreaConocimientoController {
     }
 
     @GetMapping("/listarTodasParaPerfilAsesor") // finds a topic by id
-    public List<InfoAreaConocimientoDto> listarPorCarrerasUsuarioParaPerfil(@RequestParam(name = "usuarioId") Integer usuarioId) {
+    public List<InfoAreaConocimientoDto> listarPorCarrerasUsuarioParaPerfil(
+            @RequestParam(name = "usuarioId") Integer usuarioId) {
         return areaConocimientoService.listarPorCarrerasUsuarioParaPerfil(usuarioId);
     }
 
@@ -64,5 +58,9 @@ public class AreaConocimientoController {
         return areaConocimientoService.getAllByIdExpo(idExpo);
     }
 
-}
+    @GetMapping("/listarPorTemaId/{temaId}")
+    public List<AreaConocimientoDto> listarPorTemaId(@PathVariable Integer temaId) {
+        return areaConocimientoService.getAllByTemaId(temaId);
+    }
 
+}
