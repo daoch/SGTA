@@ -1250,6 +1250,31 @@ CREATE TABLE IF NOT EXISTS observacion
             REFERENCES usuario (usuario_id)
             ON DELETE RESTRICT
 );
+CREATE TABLE IF NOT EXISTS observacion_rect (
+  observacion_id   INT               NOT NULL,
+  x1               DOUBLE PRECISION,
+  y1               DOUBLE PRECISION,
+  x2               DOUBLE PRECISION,
+  y2               DOUBLE PRECISION,
+  width            DOUBLE PRECISION,
+  height           DOUBLE PRECISION,
+  page_number      INT,
+  CONSTRAINT fk_obsrect_obs
+    FOREIGN KEY (observacion_id)
+    REFERENCES observacion(observacion_id)
+    ON DELETE CASCADE
+);
+
+
+ALTER TABLE observacion
+  ADD COLUMN IF NOT EXISTS bounding_x1     DOUBLE PRECISION,
+  ADD COLUMN IF NOT EXISTS bounding_y1     DOUBLE PRECISION,
+  ADD COLUMN IF NOT EXISTS bounding_x2     DOUBLE PRECISION,
+  ADD COLUMN IF NOT EXISTS bounding_y2     DOUBLE PRECISION,
+  ADD COLUMN IF NOT EXISTS bounding_width  DOUBLE PRECISION,
+  ADD COLUMN IF NOT EXISTS bounding_height DOUBLE PRECISION,
+  ADD COLUMN IF NOT EXISTS bounding_page   INT,
+  ADD COLUMN contenido TEXT NOT NULL;
 
 CREATE TABLE IF NOT EXISTS reunion
 (
