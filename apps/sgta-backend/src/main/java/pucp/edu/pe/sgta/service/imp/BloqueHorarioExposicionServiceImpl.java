@@ -141,6 +141,13 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
 
             bloqueHorarioExposicionRepository.updateBloquesExposicionNextPhase(jsonString);
 
+            List<ListBloqueHorarioExposicionSimpleDTO> bloquesCambiado = new ArrayList<>();
+            for(ListBloqueHorarioExposicionSimpleDTO dto : bloquesList) {
+                    if(dto.getExpo() != dto.getAnteriorExpo()) {
+                        System.out.println("Hola, diferencias");
+                    }
+            }
+
             return true;
         } catch (JsonProcessingException e) {
             e.printStackTrace();

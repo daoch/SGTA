@@ -43,7 +43,7 @@ export default async function PlanExpo({ exposicionId }: Props) {
   }, []);
 
   const bloquesList = await listarBloquesHorariosExposicion(exposicionId);
-
+  console.log(bloquesList);
 
   const bloquesOrdenados = bloquesList.sort((a: TimeSlot, b: TimeSlot) => {
     const parse = (key: string) => {
