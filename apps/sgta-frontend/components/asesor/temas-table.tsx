@@ -23,7 +23,7 @@ import { TemaDetailsDialog } from "./tema-details-modal";
 
 interface PropuestasTableProps {
   temasData: Tema[];
-  filter?: string;
+  filter?: string[];
   isLoading?: boolean;
   error?: string | null;
   asesor?: Coasesor;
@@ -42,8 +42,11 @@ export function TemasTable({
   asesor,
 }: Readonly<PropuestasTableProps>) {
   const propuestasFiltradas = temasData.filter((tema) => {
-    if (!filter || filter === Tipo.TODOS) return true;
-    return tema.estadoTemaNombre === filter;
+    if (!filter || filter.includes(Tipo.TODOS)) return true;
+    if (tema.estadoTemaNombre) return filter.includes(tema.estadoTemaNombre);
+    else {
+      return true;
+    }
   });
 
   if (isLoading) {
@@ -137,7 +140,13 @@ export function TemasTable({
                           : "bg-purple-100 text-purple-800 hover:bg-purple-100"
                       }
                     >
-                      {titleCase(tema.activo ? "Activo" : "Inactivo")}
+                      {titleCase(
+                        filter?.includes(Tipo.INTERESADO)
+                          ? "Pendiente"
+                          : tema.activo
+                            ? "Activo"
+                            : "Inactivo",
+                      )}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">

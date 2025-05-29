@@ -1,3 +1,4 @@
+//import { useAuthStore } from "@/features/auth";
 import {
   AreaConocimiento,
   Carrera,
@@ -6,7 +7,11 @@ import {
   Usuario,
 } from "@/features/temas/types/temas/entidades";
 
+import { useAuthStore } from "@/features/auth/store/auth-store";
+
 const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+const { idToken } = useAuthStore.getState();
+
 //listar areas asesor
 export async function fetchAreaConocimientoFindByUsuarioId(
   usuarioId: number,
@@ -118,17 +123,15 @@ export async function obtenerCarrerasPorUsuario(
   }
 }
 
-export async function fetchTemasAPI(
-  usuarioId: number,
-  rol: string,
-  estado: string,
-) {
+export async function fetchTemasAPI(rol: string, estado: string) {
   try {
+    console.log({ idToken });
     const response = await fetch(
-      `${baseUrl}/temas/listarTemasPorUsuarioRolEstado/${usuarioId}?rolNombre=${rol}&estadoNombre=${estado}`,
+      `${baseUrl}/temas/listarTemasPorUsuarioRolEstado?rolNombre=${rol}&estadoNombre=${estado}`,
       {
         method: "GET",
         headers: {
+          Authorization: `Bearer ${idToken}`,
           "Content-Type": "application/json",
         },
       },

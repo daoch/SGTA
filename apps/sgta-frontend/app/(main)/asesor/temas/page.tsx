@@ -58,13 +58,19 @@ const Page = () => {
     try {
       setIsLoading(true);
       setError(null);
-      const inscritosData =
-        (await fetchTemasAPI(usuarioId, "Asesor", "INSCRITO")) || [];
+      const inscritosData = (await fetchTemasAPI("Asesor", "INSCRITO")) || [];
       const libresData =
-        (await fetchTemasAPI(usuarioId, "Asesor", "PROPUESTO_LIBRE")) || [];
-      //const interesadosData =
-      //(await fetchTemasAPI(usuarioId, "Asesor", "PROPUESTA_GENERAL")) || [];
-      setTemasData([...inscritosData, ...libresData]);
+        (await fetchTemasAPI("Asesor", "PROPUESTO_LIBRE")) || [];
+      const interesadosData =
+        (await fetchTemasAPI("Asesor", "PROPUESTO_GENERAL")) || [];
+      const preInscritosData =
+        (await fetchTemasAPI("Asesor", "PREINSCRITO")) || [];
+      setTemasData([
+        ...inscritosData,
+        ...libresData,
+        ...interesadosData,
+        ...preInscritosData,
+      ]);
       console.log("consegui los temas data");
     } catch (err: unknown) {
       console.log(err);
@@ -194,7 +200,7 @@ const Page = () => {
             <CardContent>
               <TemasTable
                 temasData={temasData}
-                filter={Tipo.TODOS}
+                filter={[Tipo.TODOS]}
                 isLoading={isLoading}
                 error={error}
                 asesor={asesorData}
@@ -213,7 +219,7 @@ const Page = () => {
             <CardContent>
               <TemasTable
                 temasData={temasData}
-                filter={Tipo.INSCRITO}
+                filter={[Tipo.INSCRITO]}
                 isLoading={isLoading}
                 error={error}
                 asesor={asesorData}
@@ -232,7 +238,7 @@ const Page = () => {
             <CardContent>
               <TemasTable
                 temasData={temasData}
-                filter={Tipo.LIBRE}
+                filter={[Tipo.LIBRE]}
                 isLoading={isLoading}
                 error={error}
                 asesor={asesorData}
@@ -251,7 +257,7 @@ const Page = () => {
             <CardContent>
               <TemasTable
                 temasData={temasData}
-                filter={Tipo.INTERESADO}
+                filter={[Tipo.INTERESADO, Tipo.PREINSCRITO]}
                 isLoading={isLoading}
                 error={error}
                 asesor={asesorData}
