@@ -49,7 +49,7 @@ export const enviarPlanificacion = async (data: FormValues): Promise<{ success: 
       success: true,
       message: "Planificación enviada correctamente",
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     const mensajeError =
       axios.isAxiosError(error) && error.response?.data?.mensaje
         ? error.response.data.mensaje
