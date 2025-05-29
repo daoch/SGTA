@@ -1827,4 +1827,52 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION contar_postulaciones(p_tema_id INT)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+DECLARE
+  v_estado  TEXT;
+  v_rol_id  INT;
+  v_count   INT;
+BEGIN
+  -- 1) Recupero el nombre del estado del tema
+  SELECT et.nombre
+    INTO v_estado
+    FROM tema t
+    JOIN estado_tema et
+      ON t.estado_tema_id = et.estado_tema_id
+   WHERE t.tema_id = p_tema_id;
+
+  -- 2) Según el estado elijo el rol que me interesa
+  IF v_estado ILIKE 'PROPUESTO_GENERAL' THEN
+    SELECT rol_id
+      INTO v_rol_id
+      FROM rol
+     WHERE nombre ILIKE 'Asesor'
+     LIMIT 1;
+  ELSIF v_estado ILIKE 'PROPUESTO_LIBRE' THEN
+    SELECT rol_id
+      INTO v_rol_id
+      FROM rol
+     WHERE nombre ILIKE 'Tesista'
+     LIMIT 1;
+  ELSE
+    -- otros estados: no contamos postulaciones
+    RETURN 0;
+  END IF;
+
+  -- 3) Cuento en usuario_tema con los filtros que pediste
+  SELECT COUNT(*) 
+    INTO v_count
+    FROM usuario_tema ut
+   WHERE ut.tema_id   = p_tema_id
+     AND ut.rol_id    = v_rol_id
+     AND ut.activo    = TRUE
+     AND ut.rechazado = FALSE
+     AND ut.asignado  = FALSE;
+
+  RETURN v_count;
+END;
+$$;
 

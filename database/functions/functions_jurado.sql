@@ -888,3 +888,61 @@ $$ LANGUAGE plpgsql;
 --    bloque_horario_exposicion_id >= 1;
 
 --update exposicion_x_tema set estado_exposicion = 'sin_programar';
+
+
+CREATE OR REPLACE FUNCTION listar_areas_por_tema(
+  _tema_id integer
+)
+RETURNS TABLE(
+  area_conocimiento_id   integer,
+  carrera_id             integer,
+  nombre                 text,
+  descripcion            text,
+  activo                 boolean,
+  fecha_creacion         timestamptz,
+  fecha_modificacion     timestamptz
+)
+AS $$
+BEGIN
+  RETURN QUERY
+    SELECT DISTINCT
+      ac.area_conocimiento_id,
+	  ac.carrera_id,
+      ac.nombre::text,
+      ac.descripcion::text,
+      ac.activo,
+      ac.fecha_creacion,
+      ac.fecha_modificacion
+    FROM area_conocimiento ac
+    INNER JOIN sub_area_conocimiento sac 
+      ON sac.area_conocimiento_id = ac.area_conocimiento_id 
+    INNER JOIN sub_area_conocimiento_tema sact 
+      ON sact.sub_area_conocimiento_id = sac.sub_area_conocimiento_id 
+    INNER JOIN tema t 
+      ON t.tema_id = sact.tema_id
+    WHERE t.tema_id = _tema_id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE PROCEDURE terminar_planificacion(idExposicion INT, idEtapaFormativa INT)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+   INSERT INTO control_exposicion_usuario (
+        exposicion_x_tema_id,
+        usuario_x_tema_id,
+        estado_exposicion_usuario,
+        fecha_creacion,
+        fecha_modificacion
+    )
+   SELECT
+        ext.exposicion_x_tema_id,
+        tu.usuario_tema_id,
+        'esperando_respuesta',
+        NOW(),
+        NOW()
+   FROM exposicion_x_tema ext
+   INNER JOIN usuario_tema tu ON tu.tema_id = ext.tema_id
+   WHERE ext.exposicion_id = idExposicion;
+END;
+$$;
