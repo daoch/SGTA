@@ -8,6 +8,7 @@ export interface Tema {
   codigo: string | null;
   titulo: string | null;
   usuarios: Usuario[] | null;
+  areasConocimiento: AreaEspecialidad[] | undefined;
 }
 
 export interface AreaEspecialidad {

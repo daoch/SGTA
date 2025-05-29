@@ -1507,7 +1507,7 @@ END;
 $$;
 
 
-CREATE PROCEDURE actualizar_estado_tema(
+CREATE OR REPLACE PROCEDURE actualizar_estado_tema(
   p_tema_id           INTEGER,
   p_nuevo_estado_nombre TEXT
 )

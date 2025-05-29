@@ -39,3 +39,18 @@ export type Sala = {
   id: number;
   nombre: string;
 };
+
+export type ExposicionAlumno = {
+  exposicionId: number;
+  temaId: number;
+  estado: ExposicionEstado;
+  linkExposicion: string;
+  linkGrabacion: string;
+  datetimeInicio: Date; // o Date si ya viene parseado
+  datetimeFin: Date;    // igual que arriba
+  sala: string;
+  titulo: string;
+  etapaFormativa: string;
+  ciclo: string;
+  miembrosJurado: Miembro[];
+};

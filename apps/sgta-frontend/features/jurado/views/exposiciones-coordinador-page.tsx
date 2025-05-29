@@ -13,6 +13,8 @@ import { ExposicionList } from "../components/exposicion-list";
 import { Pagination } from "../components/exposicion-pagination";
 import ModalPlanificadorCoordinador from "../components/modal-planificador-coordinador";
 import { Button } from "@/components/ui/button";
+import { Toaster } from "sonner";
+import AppLoading from "@/components/loading/app-loading";
 
 export const ExposicionesCoordinadorPage: FC = () => {
   const coordinadorId = 13;
@@ -39,7 +41,7 @@ export const ExposicionesCoordinadorPage: FC = () => {
     10,
   );
 
-  if (loadingExp || loadingOpts) return <p>Cargando…</p>;
+  if (loadingExp || loadingOpts) return <AppLoading />;
   if (errorOpts) return <p>Error filtros: {errorOpts}</p>;
   if (errorExp) return <p>Error exposiciones: {errorExp}</p>;
 
@@ -75,6 +77,8 @@ export const ExposicionesCoordinadorPage: FC = () => {
         open={modalOpen}
         onClose={() => setModalOpen(false)}
       />
+
+      <Toaster position="bottom-right" richColors />
     </div>
   );
 };

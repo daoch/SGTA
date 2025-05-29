@@ -35,6 +35,7 @@ import {
 } from "../types/exposicion.types";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 interface ModalPlanificadorCoordinadorProps {
   open: boolean;
@@ -58,14 +59,7 @@ export default function ModalPlanificadorCoordinador({
     },
   });
 
-  const {
-    control,
-    handleSubmit,
-    watch,
-    reset,
-    setValue,
-    formState: { errors },
-  } = methods;
+  const { control, handleSubmit, watch, reset, setValue } = methods;
 
   const [cursos, setCursos] = useState<EtapaFormativa[]>([]);
   const [tiposExposicion, setTiposExposicion] = useState<
@@ -123,6 +117,26 @@ export default function ModalPlanificadorCoordinador({
       f.salas.length > 0,
   );
 
+  // const onSubmit = (data: FormValues) => {
+  //   console.log("Datos enviados:", data);
+  //   setIsSubmitting(true);
+
+  //   enviarPlanificacion(data)
+  //     .then((res) => {
+  //       console.log("Respuesta del servidor:", res);
+  //       onClose();
+  //       router.push(
+  //         `/coordinador/exposiciones/planificacion/${data.exposicion_id}`,
+  //       );
+  //     })
+  //     .catch((err) => {
+  //       console.error("Error al enviar datos:", err);
+  //     })
+  //     .finally(() => {
+  //       setIsSubmitting(false);
+  //     });
+  // };
+
   const onSubmit = (data: FormValues) => {
     console.log("Datos enviados:", data);
     setIsSubmitting(true);
@@ -130,13 +144,20 @@ export default function ModalPlanificadorCoordinador({
     enviarPlanificacion(data)
       .then((res) => {
         console.log("Respuesta del servidor:", res);
-        onClose();
-        router.push(
-          `/coordinador/exposiciones/planificacion/${data.exposicion_id}`,
-        );
+
+        if (res.success) {
+          toast.success(res.message || "Planificación enviada correctamente");
+          onClose();
+          router.push(
+            `/coordinador/exposiciones/planificacion/${data.exposicion_id}`,
+          );
+        } else {
+          toast.error(res.message || "Error al enviar la planificación");
+        }
       })
       .catch((err) => {
         console.error("Error al enviar datos:", err);
+        toast.error("Error inesperado al enviar la planificación");
       })
       .finally(() => {
         setIsSubmitting(false);

@@ -1,5 +1,6 @@
 package pucp.edu.pe.sgta.service.inter;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 
 import pucp.edu.pe.sgta.dto.*;
@@ -24,11 +25,13 @@ public interface BloqueHorarioExposicionService {
     boolean finishPlanning(Integer exposicionId);
 
     Integer createAll(List<BloqueHorarioExposicionCreateDTO> dtos);
-    int bloquearBloque(int idBloque );
 
+    int bloquearBloque(int idBloque);
 
-    int desbloquearBloque(int idBloque );
+    int desbloquearBloque(int idBloque);
 
-    List<ListBloqueHorarioExposicionSimpleDTO> asignarTemasBloques(List<AsignacionBloqueDTO> listaBloquesTemas, DistribucionRequestDTO request);
+    List<ListBloqueHorarioExposicionSimpleDTO> asignarTemasBloques(List<AsignacionBloqueDTO> listaBloquesTemas,
+            DistribucionRequestDTO request);
 
+    boolean verificarSalaOcupada(Integer salaId, OffsetDateTime inicio, OffsetDateTime fin);
 }

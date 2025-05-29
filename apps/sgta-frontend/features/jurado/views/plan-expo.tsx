@@ -3,6 +3,7 @@ import { AreaEspecialidad, Tema, TimeSlot } from "../types/jurado.types";
 import GeneralPlanificationExpo from "@/features/jurado/components/PlanificationComponents/general-planificacion-expo";
 import {
   getEtapaFormativaIdByExposicionId,
+  listarAreasConocimientoPorExposicion,
   listarBloquesHorariosExposicion,
   listarEstadoPlanificacionPorExposicion,
   listarJornadasExposicionSalasByExposicion,
@@ -27,7 +28,10 @@ export default async function PlanExpo({ exposicionId }: Props) {
   const jornadasSalas =
     await listarJornadasExposicionSalasByExposicion(exposicionId);
 
-  const areasEspecialidad: AreaEspecialidad[] = [];
+  const areasEspecialidad: AreaEspecialidad[] =
+    await listarAreasConocimientoPorExposicion(exposicionId);
+
+  console.log("Areas de especialidad:", areasEspecialidad);
 
   const daysSinfiltrar: JornadaExposicionDTO[] =
     jornadasSalas.map(transformarJornada);
@@ -70,7 +74,6 @@ export default async function PlanExpo({ exposicionId }: Props) {
         (asignado) => asignado.id === tema.id,
       ),
   );
-
   return (
     <div className="h-fit w-full flex flex-col gap-4">
       <h1 className="text-3xl font-bold text-primary">
