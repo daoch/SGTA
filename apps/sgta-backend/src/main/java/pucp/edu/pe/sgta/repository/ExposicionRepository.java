@@ -39,4 +39,7 @@ public interface ExposicionRepository extends JpaRepository<Exposicion, Integer>
   @Query(value = "SELECT * FROM obtener_exposiciones_por_usuario(:usuarioId)", nativeQuery = true)
   List<Object[]> obtener_exposiciones_por_usuario(
       @Param("usuarioId") Integer usuarioId);
+
+    @Query(value = "SELECT * FROM listar_exposiciones_por_usuario(:usuarioId)", nativeQuery = true)
+    List<Object[]> listarExposicionesXUsuario(@Param("usuarioId") Integer usuarioId);
 }
