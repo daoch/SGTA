@@ -36,18 +36,18 @@ public interface TemaService {
 
 	void createInscripcionTema(TemaDto dto); // Works for asesor, alumno, coordinador and revisor
 
-	List<TemaDto> listarTemasPropuestosAlAsesor(Integer asesorId, String titulo, Integer limit, Integer offset);
+	List<TemaDto> listarTemasPropuestosAlAsesor(String asesorId, String titulo, Integer limit, Integer offset);
 
 	List<TemaDto> listarTemasPropuestosPorSubAreaConocimiento(
 			List<Integer> subareaIds,
-			Integer asesorId,
+			String asesorId,
 			String titulo,
 			Integer limit,
 			Integer offset);
 
-	void postularAsesorTemaPropuestoGeneral(Integer alumnoId, Integer asesorId, Integer temaId, String comentario);
+	void postularAsesorTemaPropuestoGeneral(Integer alumnoId, String asesorId, Integer temaId, String comentario);
 
-	void enlazarTesistasATemaPropuestDirecta(Integer[] usuariosId, Integer temaId, Integer profesorId,
+	void enlazarTesistasATemaPropuestDirecta(Integer[] usuariosId, Integer temaId, String profesorId,
 			String comentario);
 
 	List<TemaDto> listarTemasPorUsuarioRolEstado(String usuarioId,
@@ -109,7 +109,7 @@ public interface TemaService {
 
 	void eliminarTemaCoordinador(Integer temaId, Integer usuarioId);
 
-	void crearTemaLibre(TemaDto dto);
+	void crearTemaLibre(TemaDto dto,String asesorId);
 
 
 	TemaDto buscarTemaPorId(Integer idTema) throws SQLException;

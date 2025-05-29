@@ -1,14 +1,15 @@
 "use client";
 
-import { useForm, useFieldArray, FormProvider } from "react-hook-form";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-  DialogDescription,
 } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -16,12 +17,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Loader2, PlusIcon } from "lucide-react";
-import { Label } from "@/components/ui/label";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2, PlusIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { FormProvider, useFieldArray, useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { formSchema, FormValues } from "../schemas/exposicion-form-schema";
-import { ItemFechaExposicion } from "./item-fecha-exposicion";
 import {
   enviarPlanificacion,
   getEtapasFormativasPorInicializarByCoordinador,
@@ -33,9 +35,7 @@ import {
   ExposicionSinInicializar,
   Sala,
 } from "../types/exposicion.types";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { ItemFechaExposicion } from "./item-fecha-exposicion";
 
 interface ModalPlanificadorCoordinadorProps {
   open: boolean;
@@ -46,6 +46,7 @@ export default function ModalPlanificadorCoordinador({
   open,
   onClose,
 }: ModalPlanificadorCoordinadorProps) {
+  const idCoordinador = 13;
   const router = useRouter();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -81,7 +82,7 @@ export default function ModalPlanificadorCoordinador({
         fechas: [],
       });
 
-      getEtapasFormativasPorInicializarByCoordinador(3)
+      getEtapasFormativasPorInicializarByCoordinador(idCoordinador)
         .then(setCursos)
         .catch(console.error);
     }

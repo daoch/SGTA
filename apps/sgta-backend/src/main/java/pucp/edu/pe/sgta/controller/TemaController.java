@@ -67,28 +67,37 @@ public class TemaController {
 		temaService.update(dto);
 	}
 
-	@GetMapping("/listarTemasPropuestosAlAsesor/{asesorId}")
+	@GetMapping("/listarTemasPropuestosAlAsesor")
 	public List<TemaDto> listarTemasPropuestosAlAsesor(
-			@PathVariable Integer asesorId,
 			@RequestParam(required = false) String titulo, // Parámetro opcional de título
 			@RequestParam(defaultValue = "10") Integer limit, // Parámetro de límite, con valor por defecto de 10
-			@RequestParam(defaultValue = "0") Integer offset // Parámetro de desplazamiento, con valor por defecto de 0
+			@RequestParam(defaultValue = "0") Integer offset, // Parámetro de desplazamiento, con valor por defecto de 0
+			HttpServletRequest request
 	) {
+		try {
+			String asesorId = jwtService.extractSubFromRequest(request);
+			return temaService.listarTemasPropuestosAlAsesor(asesorId, titulo, limit, offset);
+		} catch (RuntimeException e) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+		}
 
-		return temaService.listarTemasPropuestosAlAsesor(asesorId, titulo, limit, offset);
 	}
 
 
 	@GetMapping("/listarTemasPropuestosPorSubAreaConocimiento")
 	public List<TemaDto> listarTemasPropuestosPorSubAreaConocimiento(
 			@RequestParam List<Integer> subareaIds,
-			@RequestParam(name = "asesorId") Integer asesorId,
 			@RequestParam(name = "titulo", required = false) String titulo,
 			@RequestParam(value = "limit", defaultValue = "10") Integer limit,
-			@RequestParam(value = "offset", defaultValue = "0") Integer offset
+			@RequestParam(value = "offset", defaultValue = "0") Integer offset,
+			HttpServletRequest request
 	) {
-
-		return temaService.listarTemasPropuestosPorSubAreaConocimiento(subareaIds, asesorId, titulo, limit, offset);
+		try {
+			String asesorId = jwtService.extractSubFromRequest(request);
+			return temaService.listarTemasPropuestosPorSubAreaConocimiento(subareaIds, asesorId, titulo, limit, offset);
+		} catch (RuntimeException e) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+		}
 	}
 
 
@@ -96,26 +105,37 @@ public class TemaController {
 	@PostMapping("/postularAsesorTemaPropuestoGeneral")
 	public void postularAsesorTemaPropuestoGeneral(
 			@RequestParam(name = "idAlumno") Integer idAlumno,
-			@RequestParam(name = "idAsesor") Integer idAsesor,
 			@RequestParam(name = "idTema") Integer idTema,
-			@RequestParam(name = "comentario") String comentario) {
+			@RequestParam(name = "comentario") String comentario,
+			HttpServletRequest request) {
 
-		temaService.postularAsesorTemaPropuestoGeneral(idAlumno, idAsesor, idTema, comentario);
+		try {
+			String asesorId = jwtService.extractSubFromRequest(request);
+			temaService.postularAsesorTemaPropuestoGeneral(idAlumno, asesorId, idTema, comentario);
 
+		} catch (RuntimeException e) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+		}
 
 	}
 
 	@PostMapping("/enlazarTesistasATemaPropuestDirecta")
-	public void enlazarTesistasATemaPropuestDirecta(@RequestBody Map<String, Object> body) {
+	public void enlazarTesistasATemaPropuestDirecta(@RequestBody Map<String, Object> body,HttpServletRequest request) {
 
-		List<Integer> usuariosIdList = (List<Integer>) body.get("usuariosId");
-		Integer[] usuariosId = usuariosIdList.toArray(new Integer[0]);
-		Integer temaId = (Integer) body.get("temaId");
-		Integer profesorId = (Integer) body.get("profesorId");
-		String comentario = (String) body.getOrDefault("comentario", ""); // por defecto vacío
+		try {
+			String profesorId = jwtService.extractSubFromRequest(request);
+			List<Integer> usuariosIdList = (List<Integer>) body.get("usuariosId");
+			Integer[] usuariosId = usuariosIdList.toArray(new Integer[0]);
+			Integer temaId = (Integer) body.get("temaId");
+			String comentario = (String) body.getOrDefault("comentario", ""); // por defecto vacío
 
-		temaService.enlazarTesistasATemaPropuestDirecta(usuariosId, temaId, profesorId, comentario);
-	}    
+			temaService.enlazarTesistasATemaPropuestDirecta(usuariosId, temaId, profesorId, comentario);
+
+		} catch (RuntimeException e) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+		}
+
+	}
 	
 	@GetMapping("/listarTemasPorUsuarioRolEstado")
     public List<TemaDto> listarTemasPorUsuarioRolEstado(
@@ -209,8 +229,14 @@ public class TemaController {
 	}
 
 	@PostMapping("/crearTemaLibre")
-	public void crearTemaLibre(@Valid @RequestBody TemaDto dto) {
-		temaService.crearTemaLibre(dto);
+	public void crearTemaLibre(@Valid @RequestBody TemaDto dto, HttpServletRequest request) {
+		try {
+			String asesorId = jwtService.extractSubFromRequest(request);
+			temaService.crearTemaLibre(dto,asesorId);
+		} catch (RuntimeException e) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+		}
+
 	}
 
 	@GetMapping("/buscarTemaPorId")

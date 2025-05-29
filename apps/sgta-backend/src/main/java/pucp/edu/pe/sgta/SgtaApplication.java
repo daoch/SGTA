@@ -5,11 +5,13 @@ import io.github.cdimascio.dotenv.Dotenv;
 import java.util.TimeZone;
 
 import org.springframework.boot.SpringApplication;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.web.client.RestTemplate;
 
+@EnableAspectJAutoProxy
 @SpringBootApplication
 @EnableJpaRepositories(basePackages = "pucp.edu.pe.sgta.repository")
 public class SgtaApplication {

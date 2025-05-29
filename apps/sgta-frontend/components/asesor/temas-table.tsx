@@ -1,11 +1,5 @@
 "use client";
 
-import {
-  Coasesor,
-  Tema,
-  Tesista,
-} from "@/features/temas/types/inscripcion/entities";
-import { estadosValues, Tipo } from "@/features/temas/types/inscripcion/enums";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,6 +10,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Coasesor,
+  Tema,
+  Tesista,
+} from "@/features/temas/types/inscripcion/entities";
+import { estadosValues, Tipo } from "@/features/temas/types/inscripcion/enums";
 import { titleCase } from "@/lib/utils";
 import { FilePen, Trash2 } from "lucide-react";
 import DeleteTemaPopUp from "./delete-tema-pop-up";
@@ -23,7 +23,7 @@ import { TemaDetailsDialog } from "./tema-details-modal";
 
 interface PropuestasTableProps {
   temasData: Tema[];
-  filter?: string;
+  filter?: string[];
   isLoading?: boolean;
   error?: string | null;
   asesor?: Coasesor;
@@ -42,8 +42,11 @@ export function TemasTable({
   asesor,
 }: Readonly<PropuestasTableProps>) {
   const propuestasFiltradas = temasData.filter((tema) => {
-    if (!filter || filter === Tipo.TODOS) return true;
-    return tema.estadoTemaNombre === filter;
+    if (!filter || filter.includes(Tipo.TODOS)) return true;
+    if (tema.estadoTemaNombre) return filter.includes(tema.estadoTemaNombre);
+    else {
+      return true;
+    }
   });
 
   if (isLoading) {
@@ -59,6 +62,7 @@ export function TemasTable({
     // Aquí podrías llamar a tu API o actualizar el estado global
   };
 
+  console.log(temasData);
   return (
     <div>
       <div className="rounded-md border">
@@ -93,19 +97,21 @@ export function TemasTable({
                     {tema.titulo}
                   </TableCell>
                   {/* Area */}
-                  <TableCell>{tema.subareas[0].nombre}</TableCell>
+                  <TableCell>{tema.area[0]?.nombre}</TableCell>
                   {/* Asesor */}
                   <TableCell>{asesor ? asesor.nombres : ""}</TableCell>
                   {/* Tesistas */}
                   <TableCell>
-                    {!tema.tesistas
-                      ? "Sin asignar"
-                      : tema.tesistas.map((e: Tesista) => e.nombres).join(", ")}
+                    {!tema.tesistas || tema.tesistas.length === 0 ? (
+                      <p className="text-gray-400">Sin asignar</p>
+                    ) : (
+                      tema.tesistas.map((e: Tesista) => e.nombres).join(", ")
+                    )}
                   </TableCell>
                   {/* Postulaciones */}
                   {tema.estadoTemaNombre === Tipo.LIBRE ? (
                     <TableCell>
-                      {/* {!tema.postulaciones ? "-" : tema.postulaciones} */}
+                      {!tema.cantPostulaciones ? "-" : tema.cantPostulaciones}
                     </TableCell>
                   ) : (
                     <TableCell>-</TableCell>
@@ -134,7 +140,13 @@ export function TemasTable({
                           : "bg-purple-100 text-purple-800 hover:bg-purple-100"
                       }
                     >
-                      {titleCase(tema.activo ? "Activo" : "Inactivo")}
+                      {titleCase(
+                        filter?.includes(Tipo.INTERESADO)
+                          ? "Pendiente"
+                          : tema.activo
+                            ? "Activo"
+                            : "Inactivo",
+                      )}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
@@ -151,7 +163,7 @@ export function TemasTable({
                           className="text-pucp-blue"
                         >
                           <FilePen className="h-4 w-4" />
-                          <span className="sr-only">Postular</span>
+                          <span className="sr-only">Editar</span>
                         </Button>
                       )}
                       {/* Delete */}
@@ -183,4 +195,3 @@ export function TemasTable({
     </div>
   );
 }
-

@@ -10,10 +10,15 @@ import {
 import { Bot, FolderSync } from "lucide-react";
 import React from "react";
 import { usePlanificationStore } from "../../store/use-planificacion-store";
+import { toast } from "sonner";
 
 const CardSugerenciaDistribucion: React.FC = () => {
-  const { desasignarTodosLosTemas, temasAsignados, temasSinAsignar } =
-    usePlanificationStore();
+  const {
+    desasignarTodosLosTemas,
+    temasAsignados,
+    temasSinAsignar,
+    generarDistribucionAutomatica,
+  } = usePlanificationStore();
   return (
     <Card className="py-5">
       <CardHeader>
@@ -39,6 +44,21 @@ const CardSugerenciaDistribucion: React.FC = () => {
             className="w-fit"
             disabled={temasSinAsignar.length === 0}
             variant="default"
+            onClick={async () => {
+              try {
+                await generarDistribucionAutomatica();
+                toast.success(
+                  "Distribución automática generada correctamente.",
+                );
+                console.log("Distribución automática generada correctamente.");
+              } catch (error) {
+                toast.error("Error al generar la distribución automática.");
+                console.error(
+                  "Error al generar la distribución automática:",
+                  error,
+                );
+              }
+            }}
           >
             <Bot />
             Generar Distribución
