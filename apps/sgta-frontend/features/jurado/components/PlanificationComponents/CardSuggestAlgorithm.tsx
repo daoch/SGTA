@@ -9,8 +9,11 @@ import {
 } from "@/components/ui/card";
 import { Bot, FolderSync } from "lucide-react";
 import React from "react";
+import { usePlanificationStore } from "../../store/use-planificacion-store";
 
 const CardSugerenciaDistribucion: React.FC = () => {
+  const { desasignarTodosLosTemas, temasAsignados, temasSinAsignar } =
+    usePlanificationStore();
   return (
     <Card className="py-5">
       <CardHeader>
@@ -23,11 +26,20 @@ const CardSugerenciaDistribucion: React.FC = () => {
           factores.
         </CardDescription>
         <div className="flex justify-between">
-          <Button className="w-fit" disabled={true} variant="destructive">
+          <Button
+            className="w-fit"
+            disabled={Object.keys(temasAsignados).length === 0}
+            variant="destructive"
+            onClick={() => desasignarTodosLosTemas()}
+          >
             <FolderSync />
             Regresar Temas
           </Button>
-          <Button className="w-fit" disabled={true} variant="default">
+          <Button
+            className="w-fit"
+            disabled={temasSinAsignar.length === 0}
+            variant="default"
+          >
             <Bot />
             Generar Distribución
           </Button>

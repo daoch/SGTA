@@ -79,4 +79,37 @@ export const usePlanificationStore = create<PlanificacionState>((set) => ({
       return { temasSinAsignar, temasAsignados };
     });
   },
+
+  desasignarTodosLosTemas: () => {
+    set((state) => {
+      if (Object.keys(state.temasAsignados).length === 0) {
+        return {};
+      }
+
+      // Mueve todos los temas a temasSinAsignar (evita duplicados)
+      const nuevosTemasSinAsignar = [...state.temas];
+
+      // Limpia los temas asignados
+      const temasAsignados = {};
+
+      // Actualiza todos los bloques para remover el tema asignado
+      const bloques = state.bloques.map((bloque) => ({
+        ...bloque,
+        //expo: undefined,
+        expo: {
+          id: null,
+          codigo: null,
+          titulo: null,
+          usuarios: null,
+          areasConocimiento: undefined,
+        },
+      }));
+
+      return {
+        temasSinAsignar: nuevosTemasSinAsignar,
+        temasAsignados,
+        bloques,
+      };
+    });
+  },
 }));
