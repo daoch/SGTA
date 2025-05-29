@@ -46,7 +46,9 @@ public class Observacion {
     @NotBlank(message = "El comentario no puede estar vacío")
     @Column(name = "comentario", nullable = false)
     private String comentario;
-
+    @Column(name = "contenido", nullable = false)
+    private String contenido;
+    
     @Column(name = "es_automatico", nullable = false)
     private Boolean esAutomatico = false;
 
