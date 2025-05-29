@@ -3,7 +3,7 @@ export interface SolicitudCambioAsesorResumen {
   fechaEnvio: string | Date;
   estadoGlobal: string;
   estadoAccion: string;
-  tema: string;
+  tema: number;
   temaTitulo: string;
   nombreSolicitante: string;
   correoSolicitante: string;
