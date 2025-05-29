@@ -1,3 +1,5 @@
+SET search_path TO sgtadb;
+
 -- 1) Tipo de usuario y dedicacion
 INSERT INTO
     tipo_usuario (
@@ -2490,3 +2492,90 @@ VALUES (
         'Problemas éticos o legales',
         'La propuesta presenta conflictos éticos o legales que impiden su aprobación.'
     );
+
+
+INSERT INTO
+    usuario (
+        tipo_usuario_id,
+        codigo_pucp,
+        nombres,
+        primer_apellido,
+        segundo_apellido,
+        correo_electronico,
+        nivel_estudios,
+        contrasena,
+        biografia,
+        foto_perfil,
+        disponibilidad,
+        tipo_disponibilidad,
+        activo,
+        fecha_creacion,
+        fecha_modificacion
+    )
+VALUES
+    -- Nuevo usuario Paolo Ore
+    (
+        2,                                 -- tipo_usuario_id = Alumno
+        'A004',                            -- código PUCP
+        'Paolo',                           -- nombres
+        'Ore',                             -- primer_apellido
+        'Ventura',                         -- segundo_apellido
+        'ore.paolo@pucp.edu.pe',           -- correo_electronico
+        'Pregrado',                        -- nivel_estudios
+        'secretPaolo123',                  -- contrasena (en texto plano como en el ejemplo)
+        'Estudiante de Comunicaciones.',   -- biografia
+        NULL,                              -- foto_perfil
+        'Lun-Vie 10-18',                   -- disponibilidad
+        'Remoto',                          -- tipo_disponibilidad
+        TRUE,                              -- activo
+        NOW(),                             -- fecha_creacion
+        NOW()                              -- fecha_modificacion
+    );
+
+--select * from usuario
+
+INSERT INTO usuario_tema (
+    usuario_id,
+    tema_id,
+    rol_id
+)
+SELECT
+    u.usuario_id,
+    CASE u.codigo_pucp
+        WHEN 'A004' THEN 3 -- Tema: Machine Learning para Datos No Estructurados
+        WHEN 'A005' THEN 4 -- Tema: Redes Neuronales Profundas
+        WHEN 'A006' THEN 5 -- Tema: Big Data y Análisis Predictivo
+        WHEN 'A007' THEN 6 -- Tema: Automatización en la Industria 4.0
+        WHEN 'A008' THEN 7 -- Tema: Blockchain y su Aplicación en Logística
+    END AS tema_id,
+    2 AS rol_id           -- rol de Tesista
+FROM usuario u
+WHERE u.nombres = 'Paolo' and primer_apellido='Ore'; 
+
+--tema_id obtenido es 3
+--select * from usuario_tema
+--DELETE FROM entregable_x_tema;
+
+INSERT INTO entregable_x_tema (entregable_id, tema_id, estado, fecha_envio) 
+VALUES (1, 3, DEFAULT, DATE '2025-03-01'); -- Estado por defecto: 'no_enviado'
+
+-- Registro 2 (entregable_id = 2)
+INSERT INTO entregable_x_tema (entregable_id, tema_id, estado, fecha_envio) 
+VALUES (2, 3, 'enviado_a_tiempo', DATE '2025-02-01');
+
+-- Registro 3 (entregable_id = 3)
+INSERT INTO entregable_x_tema (entregable_id, tema_id, estado, fecha_envio) 
+VALUES (3, 3, 'enviado_tarde',  DATE '2025-01-01');
+
+
+INSERT INTO entregable_x_tema (entregable_id, tema_id, estado, fecha_envio) 
+VALUES (3, 3, 'enviado_a_tiempo',  DATE '2025-05-01');
+
+INSERT INTO entregable_x_tema (entregable_id, tema_id, estado, fecha_envio) 
+VALUES (3, 3, DEFAULT,  DATE '2025-06-01');
+
+--select * from entregable_x_tema
+
+--select * from entregable
+
+
