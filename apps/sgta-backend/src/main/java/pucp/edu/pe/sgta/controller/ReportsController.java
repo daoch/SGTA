@@ -19,6 +19,9 @@ import pucp.edu.pe.sgta.dto.TopicTrendDTO;
 import pucp.edu.pe.sgta.dto.TesistasPorAsesorDTO;
 import pucp.edu.pe.sgta.service.inter.IReportService;
 
+import org.springframework.web.bind.annotation.PathVariable;
+import pucp.edu.pe.sgta.dto.EntregableEstudianteDto;
+
 @RestController
 @RequestMapping("/api/v1/reports")
 public class ReportsController {
@@ -98,5 +101,12 @@ public class ReportsController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(historial);
+    }
+
+    /** RF8: Endpoint para entregables de estudiante */
+    @GetMapping("/entregables/{usuarioId}")
+    public ResponseEntity<List<EntregableEstudianteDto>> getEntregablesEstudiante(@PathVariable Integer usuarioId){
+        List<EntregableEstudianteDto> entregables = reportingService.getEntregablesEstudiante(usuarioId);
+        return ResponseEntity.ok(entregables);
     }
 }

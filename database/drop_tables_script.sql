@@ -77,6 +77,11 @@ DROP TABLE IF EXISTS entregable                           CASCADE;
 DROP TABLE IF EXISTS criterio_entregable_preset           CASCADE;
 DROP TABLE IF EXISTS criterio_exposicion_preset           CASCADE;
 
+--Tablas acciones y roles solicitud
+DROP TABLE IF EXISTS accion_solicitud;
+DROP TABLE IF EXISTS rol_solicitud;
+DROP TABLE IF EXISTS estado_solicitud;
+
 -- Finalmente, los ENUMs
 DROP TYPE IF EXISTS enum_estado_exposicion              CASCADE;
 DROP TYPE IF EXISTS enum_estado_usuario_exposicion       CASCADE;
@@ -86,8 +91,8 @@ DROP TYPE IF EXISTS enum_estado_actividad                CASCADE;
 DROP TYPE IF EXISTS enum_estado_revision                CASCADE;
 DROP TYPE IF EXISTS enum_tipo_dato                      CASCADE;
 
-DROP TYPE IF EXISTS tipo_dedicacion cascade;
+DROP TABLE IF EXISTS tipo_dedicacion cascade;
 
-DROP TYPE IF EXISTS criterio_entregable_preset cascade;
+DROP TABLE IF EXISTS criterio_entregable_preset cascade;
 
-DROP TYPE IF EXISTS criterio_exposicion_preset cascade;
+DROP TABLE IF EXISTS criterio_exposicion_preset cascade;

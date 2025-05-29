@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import pucp.edu.pe.sgta.model.UsuarioXReunion;
 
+import java.util.Collection;
 import java.util.List;
 
 @Repository
@@ -20,5 +21,8 @@ public interface UsuarioXReunionRepository extends JpaRepository<UsuarioXReunion
 
     // Listar reuniones de un usuario ordenadas por fecha
     List<UsuarioXReunion> findByUsuarioIdAndActivoTrueOrderByReunionFechaHoraInicioDesc(Integer usuarioId);
+
+    // Listar las reuniones por reunion ID
+    List<UsuarioXReunion> findByReunionIdIn(Collection<Integer> reunionIds);
 
 }

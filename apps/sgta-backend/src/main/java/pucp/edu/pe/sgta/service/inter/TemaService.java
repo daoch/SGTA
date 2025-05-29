@@ -6,6 +6,8 @@ import pucp.edu.pe.sgta.dto.TemaDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
 
 import pucp.edu.pe.sgta.dto.TemaConAsesorJuradoDTO;
+
+import java.sql.SQLException;
 import java.util.List;
 
 import jakarta.persistence.criteria.CriteriaBuilder.In;
@@ -25,7 +27,7 @@ public interface TemaService {
 	 * @param idUsuarioCreador: tesista id
 	 * @param tipoPropuesta:    0 for general, 1 for direct
 	 */
-	void createTemaPropuesta(TemaDto dto, Integer idUsuarioCreador, Integer tipoPropuesta);
+	void createTemaPropuesta(TemaDto dto, String idUsuarioCreador, Integer tipoPropuesta);
 
 	void update(TemaDto dto);
 
@@ -47,7 +49,7 @@ public interface TemaService {
 	void enlazarTesistasATemaPropuestDirecta(Integer[] usuariosId, Integer temaId, Integer profesorId,
 			String comentario);
 
-	List<TemaDto> listarTemasPorUsuarioRolEstado(Integer usuarioId,
+	List<TemaDto> listarTemasPorUsuarioRolEstado(String usuarioId,
 			String rolNombre,
 			String estadoNombre);
 
@@ -56,15 +58,15 @@ public interface TemaService {
 
 	List<SubAreaConocimientoDto> listarSubAreasPorTema(Integer temaId);
 
-	List<TemaDto> listarTemasPorUsuarioEstadoYRol(Integer asesorId, String rolNombre, String estadoNombre);
+	List<TemaDto> listarTemasPorUsuarioEstadoYRol(String asesorId, String rolNombre, String estadoNombre);
 
 	void rechazarTemaPropuestaDirecta(Integer alumnoId, String comentario, Integer temaId);
 
 	List<TemaConAsesorJuradoDTO> listarTemasCicloActualXEtapaFormativa(Integer etapaFormativaId);
 
-	List<TemaDto> listarPropuestasPorTesista(Integer tesistaId);
+	List<TemaDto> listarPropuestasPorTesista(String tesistaId);
 
-	List<TemaDto> listarPostulacionesAMisPropuestas(Integer tesistaId, Integer tipoPropuesta);
+	List<TemaDto> listarPostulacionesAMisPropuestas(String tesistaId, Integer tipoPropuesta);
 
 	List<InfoTemaPerfilDto> listarTemasAsesorInvolucrado(Integer idAsesor);
 
@@ -72,9 +74,13 @@ public interface TemaService {
 
 	void eliminarPostulacionesTesista(Integer idUsuario);
 
-	void rechazarPostulacionAPropuestaGeneral(Integer idTema, Integer idAsesor, Integer idTesista);
+	void rechazarPostulacionAPropuestaGeneral(Integer idTema, Integer idAsesor, String idTesista);
 
-	void aprobarPostulacionAPropuestaGeneral(Integer idTema, Integer idAsesor, Integer idTesista);
+	void aprobarPostulacionAPropuestaGeneral(Integer idTema, Integer idAsesor, String idTesista);
+
+	List<TemaDto> listarTemasPorEstadoYCarrera(String estadoNombre, Integer carreraId);
+
+	void cambiarEstadoTemaCoordinador(Integer temaId, String nuevoEstadoNombre,Integer usuarioId, String comentario);
 
 	List<ExposicionTemaMiembrosDto> listarExposicionXTemaId(Integer temaId);
 
@@ -99,5 +105,12 @@ public interface TemaService {
 	 * @param respuesta   Response message for the request
 	 */
 	void updateResumenTemaSolicitud(Integer solicitudId, String resumen, String respuesta);
+
+	void eliminarTemaCoordinador(Integer temaId, Integer usuarioId);
+
+	void crearTemaLibre(TemaDto dto);
+
+
+	TemaDto buscarTemaPorId(Integer idTema) throws SQLException;
 
 }

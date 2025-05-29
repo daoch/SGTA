@@ -15,19 +15,23 @@ import { User } from "lucide-react";
 import { Exposicion } from "../types/exposicion.types";
 import { format } from "date-fns";
 import { Label } from "@radix-ui/react-label";
+import {
+  ExposicionJurado,
+  MiembroJuradoExpo,
+} from "@/features/jurado/types/jurado.types";
 
 const ModalDetallesExposicion: React.FC<{
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  exposicion: Exposicion | null;
+  exposicion: ExposicionJurado | null;
 }> = ({ open, onOpenChange, exposicion }) => {
   if (!exposicion) return null;
 
   const { miembros } = exposicion;
 
-  const asesor = miembros.find((m) => m.tipo === "asesor");
-  const estudiantes = miembros.filter((m) => m.tipo === "estudiante");
-  const jurados = miembros.filter((m) => m.tipo === "jurado");
+  const asesor = miembros.find((m) => m.tipo === "Asesor");
+  const estudiantes = miembros.filter((m) => m.tipo === "Tesista");
+  const jurados = miembros.filter((m) => m.tipo === "Jurado");
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
@@ -48,7 +52,7 @@ const ModalDetallesExposicion: React.FC<{
             <div className="gap-4 pb-4">
               <Label className="text-sm font-medium text-gray-500">Curso</Label>
               <Textarea
-                value={exposicion.titulo}
+                value={exposicion.nombre_etapa_formativa + " - " + exposicion.nombre_exposicion}
                 disabled
                 className="bg-gray-50 resize-none"
               />
@@ -116,7 +120,7 @@ const ModalDetallesExposicion: React.FC<{
                   Fecha
                 </Label>
                 <Input
-                  value={format(exposicion.fechaHora, "dd/MM/yyyy")}
+                  value={format(exposicion.fechahora, "dd/MM/yyyy")}
                   disabled
                   className="bg-gray-50"
                 />
@@ -126,7 +130,7 @@ const ModalDetallesExposicion: React.FC<{
                   Hora
                 </Label>
                 <Input
-                  value={format(exposicion.fechaHora, "HH:mm 'hrs'")}
+                  value={format(exposicion.fechahora, "HH:mm 'hrs'")}
                   disabled
                   className="bg-gray-50"
                 />

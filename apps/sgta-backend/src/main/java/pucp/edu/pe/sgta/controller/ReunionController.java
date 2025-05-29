@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pucp.edu.pe.sgta.dto.ReunionDto;
+import pucp.edu.pe.sgta.dto.ReunionesXUsuariosDto;
 import pucp.edu.pe.sgta.dto.UsuarioXReunionDto;
 import pucp.edu.pe.sgta.mapper.ReunionMapper;
 import pucp.edu.pe.sgta.mapper.UsuarioXReunionMapper;
@@ -75,6 +76,12 @@ public class ReunionController {
         List<UsuarioXReunionDto> reuniones = usuarioXReunionMapper.toDTOList(
                 usuarioXReunionService.findByUsuarioIdOrderedByDate(usuarioId));
         return ResponseEntity.ok(reuniones);
+    }
+
+    @GetMapping("/asesor-alumno")
+    @Operation(summary = "Listar las reuniones de un alumno con su asesor", description = "Obtiene todas las reuniones de un alumno con su asesor")
+    public ResponseEntity<List<ReunionesXUsuariosDto>> listarReunionesPorAlumno() {
+        return ResponseEntity.ok(usuarioXReunionService.findReunionesAlumnoAsesor());
     }
 
 }

@@ -182,6 +182,8 @@ export const navigationItems: Record<string, NavigationItem[]> = {
           icon: CalendarIcon,
         },
       ],
+
+
     },
     { name: "Jurados", href: "/coordinador/jurados", icon: Users },
     { name: "Reportes", href: "/coordinador/reportes", icon: BarChart3 },

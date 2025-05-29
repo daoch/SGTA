@@ -39,10 +39,14 @@ public class VersionXDocumento {
     private boolean activo = true;
 
     @Column(name = "fecha_creacion", nullable = false,
-            columnDefinition = "TIMESTAMP WITH TIME ZONE")
+            columnDefinition = "TIMESTAMP WITH TIME ZONE",insertable = false)
     private OffsetDateTime fechaCreacion;
 
     @Column(name = "fecha_modificacion",
-            columnDefinition = "TIMESTAMP WITH TIME ZONE")
+            columnDefinition = "TIMESTAMP WITH TIME ZONE",insertable = false)
     private OffsetDateTime fechaModificacion;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "entregable_x_tema_id", nullable = false)
+    private EntregableXTema entregableXTema;
 }

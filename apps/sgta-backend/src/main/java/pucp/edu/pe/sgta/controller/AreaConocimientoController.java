@@ -9,15 +9,14 @@ import pucp.edu.pe.sgta.service.inter.AreaConocimientoService;
 import java.util.List;
 
 @RestController
-
 @RequestMapping("/areaConocimiento")
 public class AreaConocimientoController {
 
-	@Autowired
-	AreaConocimientoService areaConocimientoService;
+    @Autowired
+    AreaConocimientoService areaConocimientoService;
 
-	@PostMapping("/create")
-	public AreaConocimientoDto createAreaConocimiento(@RequestBody AreaConocimientoDto dto) {
+    @PostMapping("/create")
+    public AreaConocimientoDto createAreaConocimiento(@RequestBody AreaConocimientoDto dto) {
         return areaConocimientoService.create(dto);
     }
 
@@ -31,7 +30,7 @@ public class AreaConocimientoController {
         areaConocimientoService.delete(id);
     }
 
-    //list areas por carrera
+    // list areas por carrera
     @GetMapping("/list/{idCarrera}")
     public List<AreaConocimientoDto> listAreaConocimientoByCarrera(@PathVariable Integer idCarrera) {
         return areaConocimientoService.getAllByCarrera(idCarrera);
@@ -48,8 +47,19 @@ public class AreaConocimientoController {
     }
 
     @GetMapping("/listarTodasParaPerfilAsesor") // finds a topic by id
-    public List<InfoAreaConocimientoDto> listarPorCarrerasUsuarioParaPerfil(@RequestParam(name = "usuarioId") Integer usuarioId) {
+    public List<InfoAreaConocimientoDto> listarPorCarrerasUsuarioParaPerfil(
+            @RequestParam(name = "usuarioId") Integer usuarioId) {
         return areaConocimientoService.listarPorCarrerasUsuarioParaPerfil(usuarioId);
+    }
+
+    @GetMapping("/listarPorIdExpo/{idExpo}")
+    public List<AreaConocimientoDto> listarPorIdExpo(@PathVariable Integer idExpo) {
+        return areaConocimientoService.getAllByIdExpo(idExpo);
+    }
+
+    @GetMapping("/listarPorTemaId/{temaId}")
+    public List<AreaConocimientoDto> listarPorTemaId(@PathVariable Integer temaId) {
+        return areaConocimientoService.getAllByTemaId(temaId);
     }
 
 }
