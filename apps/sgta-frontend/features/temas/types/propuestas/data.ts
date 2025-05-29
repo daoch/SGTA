@@ -1,6 +1,3 @@
-"use server";
-
-import { useAuthStore } from "@/features/auth/store/auth-store";
 import {
   Area,
   Proyecto_M,
@@ -9,6 +6,8 @@ import {
 } from "@/features/temas/types/propuestas/entidades";
 
 const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+
+import { useAuthStore } from "@/features/auth/store/auth-store";
 const { idToken } = useAuthStore.getState();
 
 export async function fetchTemasPropuestosAlAsesor(
@@ -19,9 +18,13 @@ export async function fetchTemasPropuestosAlAsesor(
   try {
     const params = new URLSearchParams();
 
-    if (titulo) params.append("titulo", titulo);
+    params.append("titulo", titulo != null ? titulo?.toString() : "");
     params.append("limit", limit != null ? limit.toString() : "50");
     params.append("offset", offset != null ? offset.toString() : "0");
+    console.log(
+      `${baseUrl}/temas/listarTemasPropuestosAlAsesor?${params.toString()}`,
+    );
+    console.log({ idToken });
     const response = await fetch(
       `${baseUrl}/temas/listarTemasPropuestosAlAsesor?${params.toString()}`,
       {

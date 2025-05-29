@@ -200,6 +200,7 @@ export async function crearTemaLibre(tema: TemaCreateLibre) {
     const response = await fetch(`${baseUrl}/temas/crearTemaLibre`, {
       method: "POST",
       headers: {
+        Authorization: `Bearer ${idToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(tema),
