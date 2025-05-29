@@ -124,4 +124,20 @@ public class SolicitudController {
 
         return ResponseEntity.ok(solicitudService.listarDetalleSolicitudCambioAsesorUsuario(idSolicitud));
     }
+    @PatchMapping("/aprobarSolicitudCambioAsesor")
+    public ResponseEntity<Object> aprobarSolicitudCambioAsesor(
+            @RequestParam(name = "idSolicitud") Integer idSolicitud,
+            @RequestParam(name = "idUsuario") Integer idUsuario,
+            @RequestParam(name = "rolSolicitud") String rolSolictud){
+        solicitudService.aprobarRechazarSolicitudCambioAsesor(idSolicitud,idUsuario,rolSolictud,true);
+        return ResponseEntity.ok(null);
+    }
+    @PatchMapping("/rechazarSolicitudCambioAsesor")
+    public ResponseEntity<Object> rechazarSolicitudCambioAsesor(
+            @RequestParam(name = "idSolicitud") Integer idSolicitud,
+            @RequestParam(name = "idUsuario") Integer idUsuario,
+            @RequestParam(name = "rolSolicitud") String rolSolictud){
+        solicitudService.aprobarRechazarSolicitudCambioAsesor(idSolicitud,idUsuario,rolSolictud,false);
+        return ResponseEntity.ok(null);
+    }
 }
