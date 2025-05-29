@@ -3,7 +3,9 @@
 import {
   DetalleSolicitudCambioAsesor,
   SolicitudCambioAsesorResumen,
+  TemaActual,
 } from "../../types/cambio-asesor/entidades";
+import { Asesor } from "../../types/perfil/entidades";
 
 export function getMockSolicitudCambioAsesorResumen(): SolicitudCambioAsesorResumen[] {
   return [
@@ -12,7 +14,7 @@ export function getMockSolicitudCambioAsesorResumen(): SolicitudCambioAsesorResu
       fechaEnvio: "2025-05-25",
       estadoGlobal: "PENDIENTE",
       estadoAccion: "PENDIENTE_ACCION",
-      tema: 701,
+      temaId: 701,
       temaTitulo: "Desarrollo de Sistemas Inteligentes para Diagnóstico Médico",
       nombreSolicitante: "Ana Salas",
       correoSolicitante: "ana.s@pucp.edu.pe",
@@ -24,7 +26,7 @@ export function getMockSolicitudCambioAsesorResumen(): SolicitudCambioAsesorResu
       fechaEnvio: "2025-04-20",
       estadoGlobal: "ACEPTADA",
       estadoAccion: "APROBADO",
-      tema: 702,
+      temaId: 702,
       temaTitulo: "Aplicación de Redes Neuronales en Sistemas de Recomendación",
       nombreSolicitante: "Luis Reyes",
       correoSolicitante: "luis.r@pucp.edu.pe",
@@ -36,7 +38,7 @@ export function getMockSolicitudCambioAsesorResumen(): SolicitudCambioAsesorResu
       fechaEnvio: "2025-03-15",
       estadoGlobal: "RECHAZADA",
       estadoAccion: "RECHAZADO",
-      tema: 703,
+      temaId: 703,
       temaTitulo: "Evaluación de Interfaces Conversacionales con IA",
       nombreSolicitante: "Carmen Delgado",
       correoSolicitante: "carmen.d@pucp.edu.pe",
@@ -48,7 +50,7 @@ export function getMockSolicitudCambioAsesorResumen(): SolicitudCambioAsesorResu
       fechaEnvio: "2025-02-10",
       estadoGlobal: "PENDIENTE",
       estadoAccion: "PENDIENTE_ACCION",
-      tema: 704,
+      temaId: 704,
       temaTitulo: "Automatización de Procesos con RPA en Entornos Educativos",
       nombreSolicitante: "Miguel Torres",
       correoSolicitante: "miguel.t@pucp.edu.pe",
@@ -60,7 +62,7 @@ export function getMockSolicitudCambioAsesorResumen(): SolicitudCambioAsesorResu
       fechaEnvio: "2025-01-12",
       estadoGlobal: "ACEPTADA",
       estadoAccion: "APROBADO",
-      tema: 705,
+      temaId: 705,
       temaTitulo: "Sistemas Predictivos en el Comercio Electrónico",
       nombreSolicitante: "Valeria Campos",
       correoSolicitante: "valeria.c@pucp.edu.pe",
@@ -126,4 +128,50 @@ export function getMockDetalleSolicitudCambioAsesor(): DetalleSolicitudCambioAse
 
     fechaResolucion: null,
   };
+}
+
+export function getMockTemaYAsesor(): {
+  temaActual: TemaActual;
+  asesorActual: Asesor;
+} {
+  const temaActual: TemaActual = {
+    id: 501,
+    titulo:
+      "Implementación de algoritmos de aprendizaje profundo para detección de patrones en imágenes médicas",
+    areas: "Ciencia de la computación",
+  };
+
+  const asesorActual: Asesor = {
+    id: 101,
+    nombre: "Dra. Mariana López",
+    especialidad: "Inteligencia Artificial",
+    email: "mariana.lopez@pucp.edu.pe",
+    fotoPerfil: "https://miweb.com/fotos/mariana.jpg",
+    linkedin: "https://www.linkedin.com/in/marianalopez",
+    repositorio: "https://github.com/marianalopez",
+    biografia:
+      "Profesora e investigadora especializada en IA aplicada a la educación. Cuenta con más de 10 años de experiencia en asesoría de tesis.",
+    limiteTesis: 10,
+    tesistasActuales: 6,
+    areasTematicas: [
+      { idArea: 1, nombre: "Inteligencia Artificial" },
+      { idArea: 2, nombre: "Aprendizaje Automático" },
+    ],
+    temasIntereses: [
+      {
+        idTema: 1,
+        nombre: "Redes Neuronales",
+        areaTematica: { idArea: 1, nombre: "Inteligencia Artificial" },
+      },
+      {
+        idTema: 2,
+        nombre: "Procesamiento de Lenguaje Natural",
+        areaTematica: { idArea: 2, nombre: "Aprendizaje Automático" },
+      },
+    ],
+    estado: true,
+    foto: null,
+  };
+
+  return { temaActual, asesorActual };
 }

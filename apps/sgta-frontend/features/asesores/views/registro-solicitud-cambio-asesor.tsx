@@ -35,76 +35,19 @@ import { cn } from "@/lib/utils";
 import { ArrowLeft, Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getAsesoresPorFiltros } from "../hooks/directorio/page";
-import { Asesor } from "../types/perfil/entidades";
-
 import {
-  SolicidudRegistro,
-  TemaActual,
-} from "../types/cambio-asesor/entidades";
-
-// Mock de la función para registrar solicitud
-async function registrarSolicitudCambioAsesor(
-  data: SolicidudRegistro,
-): Promise<{ success: boolean; message: string; solicitudId?: number }> {
-  // Simulación de llamada a API
-  console.log("Registrando solicitud:", data);
-
-  // Simular tiempo de respuesta
-  await new Promise((resolve) => setTimeout(resolve, 2000));
-
-  // Simular éxito
-  return {
-    success: true,
-    message: "Solicitud registrada exitosamente",
-    solicitudId: 12345,
-  };
-}
+  getInformacionTesisPorAlumno,
+  registrarSolicitudCambioAsesor,
+} from "../hooks/cambio-asesor/page";
+import { getAsesoresPorFiltros } from "../hooks/directorio/page";
+import { TemaActual } from "../types/cambio-asesor/entidades";
+import { Asesor } from "../types/perfil/entidades";
 
 // Mock de datos del alumno y tema actual
 const alumnoActual = {
   id: 8,
   nombre: "Juan Pérez",
   correo: "felix@pucp.edu.pe",
-};
-
-const temaActual: TemaActual = {
-  id: 501,
-  titulo:
-    "Implementación de algoritmos de aprendizaje profundo para detección de patrones en imágenes médicas",
-  areas: "Ciencia de la computación",
-};
-
-const asesorActual: Asesor = {
-  id: 101,
-  nombre: "Dra. Mariana López",
-  especialidad: "Inteligencia Artificial",
-  email: "mariana.lopez@pucp.edu.pe",
-  fotoPerfil: "https://miweb.com/fotos/mariana.jpg",
-  linkedin: "https://www.linkedin.com/in/marianalopez",
-  repositorio: "https://github.com/marianalopez",
-  biografia:
-    "Profesora e investigadora especializada en IA aplicada a la educación. Cuenta con más de 10 años de experiencia en asesoría de tesis.",
-  limiteTesis: 10,
-  tesistasActuales: 6,
-  areasTematicas: [
-    { idArea: 1, nombre: "Inteligencia Artificial" },
-    { idArea: 2, nombre: "Aprendizaje Automático" },
-  ],
-  temasIntereses: [
-    {
-      idTema: 1,
-      nombre: "Redes Neuronales",
-      areaTematica: { idArea: 1, nombre: "Inteligencia Artificial" },
-    },
-    {
-      idTema: 2,
-      nombre: "Procesamiento de Lenguaje Natural",
-      areaTematica: { idArea: 2, nombre: "Aprendizaje Automático" },
-    },
-  ],
-  estado: true,
-  foto: null,
 };
 
 export default function RegistrarSolicitudCambioAsesor() {
@@ -115,6 +58,8 @@ export default function RegistrarSolicitudCambioAsesor() {
   const [busqueda, setBusqueda] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [openCombobox, setOpenCombobox] = useState(false);
+  const [temaActual, setTemaActual] = useState<TemaActual | null>(null);
+  const [asesorActual, setAsesorActual] = useState<Asesor | null>(null);
 
   // Estados para el modal
   const [modalOpen, setModalOpen] = useState(false);
@@ -149,6 +94,25 @@ export default function RegistrarSolicitudCambioAsesor() {
     buscarAsesores();
   }, [busqueda]);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        const { temaActual, asesorActual } = await getInformacionTesisPorAlumno(
+          alumnoActual.id,
+        );
+        setTemaActual(temaActual);
+        setAsesorActual(asesorActual);
+      } catch (error) {
+        console.error("Error al cargar información de tesis:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [alumnoActual.id]);
+
   // Función para manejar el registro de la solicitud
   const handleRegistrarSolicitud = async () => {
     if (!nuevoAsesor || !motivo.trim()) {
@@ -162,9 +126,11 @@ export default function RegistrarSolicitudCambioAsesor() {
   const confirmarRegistro = async () => {
     setRegistroEstado("loading");
 
-    if (!nuevoAsesor) {
-      // Mostrar alerta o manejar el caso donde no hay asesor sugerido
+    if (!nuevoAsesor || !temaActual || !asesorActual) {
       setRegistroEstado("error");
+      setMensajeRegistro(
+        "Debes seleccionar un nuevo asesor antes de continuar.",
+      );
       return;
     }
 
@@ -173,14 +139,14 @@ export default function RegistrarSolicitudCambioAsesor() {
         alumnoId: alumnoActual.id,
         temaId: temaActual.id,
         asesorActualId: asesorActual.id,
-        nuevoAsesorId: nuevoAsesor?.id,
+        nuevoAsesorId: nuevoAsesor.id,
         motivo,
       });
 
       if (resultado.success) {
         setRegistroEstado("success");
         setMensajeRegistro(resultado.message);
-        setSolicitudId(resultado?.solicitudId ?? null);
+        setSolicitudId(resultado.solicitudId ?? null);
       } else {
         setRegistroEstado("error");
         setMensajeRegistro(
@@ -188,9 +154,9 @@ export default function RegistrarSolicitudCambioAsesor() {
         );
       }
     } catch (error) {
+      console.error("Error al registrar solicitud:", error);
       setRegistroEstado("error");
       setMensajeRegistro("Ocurrió un error inesperado. Inténtelo nuevamente.");
-      console.error("Error al registrar solicitud:", error);
     }
   };
 
@@ -232,8 +198,8 @@ export default function RegistrarSolicitudCambioAsesor() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <h3 className="font-medium text-lg">{temaActual.titulo}</h3>
-          {temaActual.areas && (
+          <h3 className="font-medium text-lg">{temaActual?.titulo}</h3>
+          {temaActual?.areas && (
             <p className="text-muted-foreground mt-2">{temaActual.areas}</p>
           )}
         </CardContent>
@@ -249,16 +215,16 @@ export default function RegistrarSolicitudCambioAsesor() {
           <div className="flex items-center gap-4">
             <Avatar className="h-16 w-16">
               <AvatarImage
-                src={asesorActual.foto ?? undefined}
-                alt={`${asesorActual.nombre}`}
+                src={asesorActual?.foto ?? undefined}
+                alt={`${asesorActual?.nombre}`}
               />
-              <AvatarFallback>{asesorActual.nombre.charAt(0)}</AvatarFallback>
+              <AvatarFallback>{asesorActual?.nombre.charAt(0)}</AvatarFallback>
             </Avatar>
             <div>
-              <h3 className="font-medium text-lg">{asesorActual.nombre}</h3>
-              <p className="text-muted-foreground">{asesorActual.email}</p>
-              {asesorActual.areasTematicas &&
-                asesorActual.areasTematicas.length > 0 && (
+              <h3 className="font-medium text-lg">{asesorActual?.nombre}</h3>
+              <p className="text-muted-foreground">{asesorActual?.email}</p>
+              {asesorActual?.areasTematicas &&
+                asesorActual?.areasTematicas.length > 0 && (
                   <p className="text-xs text-muted-foreground">
                     Área:{" "}
                     {asesorActual.areasTematicas
@@ -452,7 +418,7 @@ export default function RegistrarSolicitudCambioAsesor() {
               {registroEstado === "idle" && (
                 <>
                   ¿Estás seguro que deseas solicitar el cambio de asesor de{" "}
-                  <span className="font-medium">{asesorActual.nombre}</span> a{" "}
+                  <span className="font-medium">{asesorActual?.nombre}</span> a{" "}
                   <span className="font-medium">{nuevoAsesor?.nombre}</span>?
                 </>
               )}
