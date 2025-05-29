@@ -8,24 +8,24 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { useCallback, useEffect, useState } from "react";
+import { JornadaExposicionDTO } from "../../dtos/JornadExposicionDTO";
+import { listarEstadoPlanificacionPorExposicion } from "../../services/data";
 import {
   finishPlanning,
   updateBloquesNextPhase,
 } from "../../services/planificacion-service";
-import { JornadaExposicionDTO } from "../../dtos/JornadExposicionDTO";
-import { listarEstadoPlanificacionPorExposicion } from "../../services/data";
+import { usePlanificationStore } from "../../store/use-planificacion-store";
 import {
   AreaEspecialidad,
   EstadoPlanificacion,
-  TipoAccion,
   Tema,
   TimeSlot,
+  TipoAccion,
 } from "../../types/jurado.types";
 import { DragContext } from "./DragContext";
 import { DragMonitor } from "./DragMonitor";
-import TemasList from "./temas-list";
 import PlanificationPanel from "./planification-panel";
-import { usePlanificationStore } from "../../store/use-planificacion-store";
+import TemasList from "./temas-list";
 
 interface Props {
   temas: Tema[];
@@ -214,6 +214,7 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
         expo: temaAsignado ? temaAsignado : undefined,
         idExposicion: exposicionId,
         esBloqueReservado: temaAsignado ? true : false,
+       anteriorExpo : bloque.anteriorExpo,
       };
     });
 

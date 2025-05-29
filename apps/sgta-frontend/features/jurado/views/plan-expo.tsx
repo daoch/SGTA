@@ -1,5 +1,7 @@
 import { AreaEspecialidad, Tema, TimeSlot } from "../types/jurado.types";
 
+import AppLoading from "@/components/loading/app-loading";
+import BackButton from "@/components/ui/back-button";
 import GeneralPlanificationExpo from "@/features/jurado/components/PlanificationComponents/general-planificacion-expo";
 import {
   getEtapaFormativaIdByExposicionId,
@@ -9,11 +11,9 @@ import {
   listarJornadasExposicionSalasByExposicion,
   listarTemasCicloActualXEtapaFormativa,
 } from "@/features/jurado/services/data";
+import { isSameDay } from "date-fns";
 import { JornadaExposicionDTO } from "../dtos/JornadExposicionDTO";
 import { transformarJornada } from "../utils/transformar-jornada";
-import BackButton from "@/components/ui/back-button";
-import { isSameDay } from "date-fns";
-import AppLoading from "@/components/loading/app-loading";
 
 type Props = {
   exposicionId: number;
@@ -31,7 +31,6 @@ export default async function PlanExpo({ exposicionId }: Props) {
   const areasEspecialidad: AreaEspecialidad[] =
     await listarAreasConocimientoPorExposicion(exposicionId);
 
-  console.log("Areas de especialidad:", areasEspecialidad);
 
   const daysSinfiltrar: JornadaExposicionDTO[] =
     jornadasSalas.map(transformarJornada);
@@ -44,6 +43,7 @@ export default async function PlanExpo({ exposicionId }: Props) {
   }, []);
 
   const bloquesList = await listarBloquesHorariosExposicion(exposicionId);
+
 
   const bloquesOrdenados = bloquesList.sort((a: TimeSlot, b: TimeSlot) => {
     const parse = (key: string) => {
