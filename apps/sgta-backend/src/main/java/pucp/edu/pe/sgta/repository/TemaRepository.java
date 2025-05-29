@@ -80,4 +80,12 @@ public interface TemaRepository extends JpaRepository<Tema, Integer> {
   void desactivarTemaYDesasignarUsuarios(
     @Param("p_tema_id") Integer temaId
   );
+
+  @Query(value = """
+        SELECT * FROM validar_tema_existe_cambiar_asesor_posible(:temaId)
+""", nativeQuery = true)
+  List<Object[]> validarTemaExisteYSePuedeCambiarAsesor(
+          @Param("temaId") Integer temaId
+  );
+
 }

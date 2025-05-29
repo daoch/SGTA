@@ -12,4 +12,8 @@ public class Utils {
     static public String convertByteArrayToStringBase64(byte[] array) {
         return array != null? Base64.getEncoder().encodeToString(array) : null;
     }
+    static public boolean validarTrueOrFalseDeQuery(List<Object[]> list) {
+        //Si un query asegura tener una sola fila con una sola columna y valor true or false
+        return (boolean) list.get(0)[0];
+    }
 }

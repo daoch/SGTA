@@ -21,4 +21,5 @@ public interface SolicitudService {
     void crearSolicitudAprobacionTema(Tema tema);
     SolicitudTemaDto findAllSolicitudesByTema(Integer temaId, int page, int size);
     void atenderSolicitudTemaInscrito(SolicitudTemaDto solicitudAtendida);
+    pucp.edu.pe.sgta.dto.asesores.SolicitudCambioAsesorDto registrarSolicitudCambioAsesor(pucp.edu.pe.sgta.dto.asesores.SolicitudCambioAsesorDto solicitud);
 }

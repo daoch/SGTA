@@ -1,6 +1,8 @@
 package pucp.edu.pe.sgta.service.imp;
 
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -13,7 +15,6 @@ import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import pucp.edu.pe.sgta.dto.AprobarSolicitudCambioAsesorResponseDto;
@@ -27,28 +28,13 @@ import pucp.edu.pe.sgta.dto.RechazoSolicitudResponseDto;
 import pucp.edu.pe.sgta.dto.SolicitudCambioAsesorDto;
 import pucp.edu.pe.sgta.dto.RechazoSolicitudResponseDto.AsignacionDto;
 import pucp.edu.pe.sgta.dto.SolicitudCeseDto;
-import pucp.edu.pe.sgta.model.Carrera;
-import pucp.edu.pe.sgta.model.EstadoTema;
+import pucp.edu.pe.sgta.model.*;
 import pucp.edu.pe.sgta.dto.temas.SolicitudTemaDto;
-import pucp.edu.pe.sgta.model.Solicitud;
-import pucp.edu.pe.sgta.model.Tema;
-import pucp.edu.pe.sgta.model.UsuarioXAreaConocimiento;
-import pucp.edu.pe.sgta.model.UsuarioXCarrera;
-import pucp.edu.pe.sgta.model.TipoSolicitud;
-import pucp.edu.pe.sgta.model.UsuarioXSolicitud;
-import pucp.edu.pe.sgta.model.UsuarioXTema;
-import pucp.edu.pe.sgta.repository.EstadoTemaRepository;
-import pucp.edu.pe.sgta.repository.SolicitudRepository;
-import pucp.edu.pe.sgta.repository.SubAreaConocimientoXTemaRepository;
-import pucp.edu.pe.sgta.repository.TemaRepository;
+import pucp.edu.pe.sgta.repository.*;
 
-import pucp.edu.pe.sgta.repository.TipoSolicitudRepository;
-import pucp.edu.pe.sgta.repository.UsuarioXCarreraRepository;
-import pucp.edu.pe.sgta.repository.UsuarioXSolicitudRepository;
-import pucp.edu.pe.sgta.repository.UsuarioXTemaRepository;
 import pucp.edu.pe.sgta.service.inter.SolicitudService;
 import pucp.edu.pe.sgta.service.inter.TemaService;
-import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
+import pucp.edu.pe.sgta.util.*;
 
 
 @Service
@@ -79,6 +65,16 @@ public class SolicitudServiceImpl implements SolicitudService {
     private TipoSolicitudRepository tipoSolicitudRepository;
     @Autowired 
     private UsuarioXCarreraRepository usuarioCarreraRepository;
+    @Autowired
+    private AccionSolicitudRepository accionSolicitudRepository;
+    @Autowired
+    private RolSolicitudRepository rolSolicitudRepository;
+    @Autowired
+    private EstadoSolicitudRepository estadoSolicitudRepository;
+    @Autowired
+    private UsuarioXRolRepository usuarioXRolRepository;
+    @Autowired
+    private UsuarioRepository usuarioRepository;
     
 
     public SolicitudCeseDto findAllSolicitudesCese(int coordinatorId, int page, int size) {
@@ -626,6 +622,119 @@ public class SolicitudServiceImpl implements SolicitudService {
 
     }
 
+    @Override
+    public pucp.edu.pe.sgta.dto.asesores.SolicitudCambioAsesorDto registrarSolicitudCambioAsesor(pucp.edu.pe.sgta.dto.asesores.SolicitudCambioAsesorDto solicitud) {
+        if(!validarExistenEstadosAccionesRoles()) throw new RuntimeException("Faltan registrar estados, roles o acciones");
+        boolean validacion;
+        //Validar que el tema exista
+        validacion = Utils.validarTrueOrFalseDeQuery(temaRepository.validarTemaExisteYSePuedeCambiarAsesor(solicitud.getTemaId()));
+        if(!validacion) throw new RuntimeException("Tema no valido para cambio de asesor");
+        //Validar los roles
+        validacion = (Utils.validarTrueOrFalseDeQuery(usuarioXRolRepository.esProfesorAsesor(solicitud.getNuevoAsesorId()))
+                && Utils.validarTrueOrFalseDeQuery(usuarioXRolRepository.esProfesorAsesor(solicitud.getAsesorActualId())));
+        if(!validacion) throw new RuntimeException("Asesor elegido no valido para cambio de asesor");
+
+        validacion = Utils.validarTrueOrFalseDeQuery(usuarioXRolRepository.esUsuarioAlumno(solicitud.getAlumnoId()));
+        if(!validacion) throw new RuntimeException("Alumno no valido para cambio de asesor");
+
+        int idCoordinador = (int) usuarioRepository.obtenerIdCoordinadorPorUsuario(solicitud.getAlumnoId()).get(0)[0];
+        if(idCoordinador == -1 ) throw new RuntimeException("Coordinador de la carrera inexistente para el alumno " + solicitud.getAlumnoId());
+        //Tipo Solicitud
+        TipoSolicitud tipoSolicitud = tipoSolicitudRepository
+                .findByNombre("Cambio de asesor (por asesor)")
+                .orElseThrow(() ->
+                        new RuntimeException("Tipo de solicitud no configurado: Cambio de asesor (por asesor)"));
+        //Estado solicitud
+        EstadoSolicitud estadoSolicitud = estadoSolicitudRepository
+                .findByNombre(EstadoSolicitudEnum.PENDIENTE.name())
+                .orElseThrow(() -> new RuntimeException("Estado de solicitud no encontrado"));
+
+        //Tema
+        Tema tema = temaRepository
+                .findById(solicitud.getTemaId())
+                .orElseThrow(() -> new RuntimeException("Tema no encontrado"));
+
+        //Solicitud
+        Solicitud nuevaSolicitud = new Solicitud();
+        nuevaSolicitud.setDescripcion(solicitud.getMotivo());
+        nuevaSolicitud.setTipoSolicitud(tipoSolicitud);
+        nuevaSolicitud.setTema(tema);
+        nuevaSolicitud.setEstadoSolicitud(estadoSolicitud);
+        nuevaSolicitud.setFechaCreacion(OffsetDateTime.now(ZoneId.of("America/Lima")));
+        solicitudRepository.save(nuevaSolicitud);
+
+        //Llenamos el idSolicitud
+        solicitud.setSolicitudId(nuevaSolicitud.getId());
+
+        //Tabla UsuarioSolicitud
+        Usuario alumno = usuarioRepository
+                .findById(solicitud.getAlumnoId())
+                .orElseThrow(() -> new RuntimeException("Alumno no encontrado"));
+        Usuario asesorActual = usuarioRepository
+                .findById(solicitud.getAsesorActualId())
+                .orElseThrow(() -> new RuntimeException("Asesor actual no encontrado"));
+        Usuario asesorNuevo = usuarioRepository
+                .findById(solicitud.getNuevoAsesorId())
+                .orElseThrow(() -> new RuntimeException("Asesor entrante no encontrado"));
+        Usuario coordinador = usuarioRepository
+                .findById(idCoordinador)
+                .orElseThrow(() -> new RuntimeException("Coordinador de la carrera inexistente"));
+        AccionSolicitud accionPendiente = accionSolicitudRepository
+                .findByNombre(AccionSolicitudEnum.PENDIENTE_ACCION.name())
+                .orElseThrow(() -> new RuntimeException("Accion pendiente_aprobacion no encontrado"));
+        AccionSolicitud sinAccion = accionSolicitudRepository
+                .findByNombre(AccionSolicitudEnum.SIN_ACCION.name())
+                .orElseThrow(() -> new RuntimeException("Accion sin_accion no encontrado"));
+        RolSolicitud rolRemitente = rolSolicitudRepository
+                .findByNombre(RolSolicitudEnum.REMITENTE.name())
+                .orElseThrow(() -> new RuntimeException("Rol remitente no encontrado"));
+        RolSolicitud rolDestinatario = rolSolicitudRepository
+                .findByNombre(RolSolicitudEnum.DESTINATARIO.name())
+                .orElseThrow(() -> new RuntimeException("Rol destinatario no encontrado"));
+        RolSolicitud rolAsesorEntrada = rolSolicitudRepository
+                .findByNombre(RolSolicitudEnum.ASESOR_ENTRADA.name())
+                .orElseThrow(() -> new RuntimeException("Rol destinatario no encontrado"));
+        RolSolicitud rolAsesorActual = rolSolicitudRepository
+                .findByNombre(RolSolicitudEnum.ASESOR_ACTUAL.name())
+                .orElseThrow(() -> new RuntimeException("Rol destinatario no encontrado"));
+
+
+        UsuarioXSolicitud nuevoRemitente = new UsuarioXSolicitud();
+        nuevoRemitente.setUsuario(alumno);
+        nuevoRemitente.setSolicitud(nuevaSolicitud);
+        nuevoRemitente.setAccionSolicitud(sinAccion);
+        nuevoRemitente.setRolSolicitud(rolRemitente);
+        nuevoRemitente.setDestinatario(false);
+
+        UsuarioXSolicitud nuevoDestinatario = new UsuarioXSolicitud();
+        nuevoDestinatario.setUsuario(coordinador);
+        nuevoDestinatario.setSolicitud(nuevaSolicitud);
+        nuevoDestinatario.setAccionSolicitud(accionPendiente);
+        nuevoDestinatario.setRolSolicitud(rolDestinatario);
+        nuevoDestinatario.setDestinatario(true);
+
+        UsuarioXSolicitud nuevoAsesor = new UsuarioXSolicitud();
+        nuevoAsesor.setUsuario(asesorNuevo);
+        nuevoAsesor.setSolicitud(nuevaSolicitud);
+        nuevoAsesor.setAccionSolicitud(accionPendiente);
+        nuevoAsesor.setRolSolicitud(rolAsesorEntrada);
+        nuevoAsesor.setDestinatario(false);
+
+        UsuarioXSolicitud actualAsesor = new UsuarioXSolicitud();
+        actualAsesor.setUsuario(asesorActual);
+        actualAsesor.setSolicitud(nuevaSolicitud);
+        actualAsesor.setAccionSolicitud(sinAccion);
+        actualAsesor.setRolSolicitud(rolAsesorEntrada);
+        actualAsesor.setDestinatario(false);
+
+        usuarioXSolicitudRepository.save(nuevoRemitente);
+        usuarioXSolicitudRepository.save(nuevoDestinatario);
+        usuarioXSolicitudRepository.save(nuevoAsesor);
+        usuarioXSolicitudRepository.save(actualAsesor);
+
+        return solicitud;
+    }
+
     private boolean determinarSolicitudCompletadaFromData(Integer estado) {
         // Business logic based on procedure data
         return estado == 0 || estado == 2; // approved or rejected
@@ -681,5 +790,37 @@ public class SolicitudServiceImpl implements SolicitudService {
         usuarioXSolicitudRepository.saveAll(asignaciones);
     }
 
+    private boolean validarExistenEstadosAccionesRoles(){
+        boolean exists;
+        for (EstadoSolicitudEnum estado : EstadoSolicitudEnum.values()) {
+            exists =  estadoSolicitudRepository.existsByNombre(estado.name());
+            if (!exists) {
+                System.out.println("falta " + estado.name());
+                return false;
+            }
+        }
+        for (AccionSolicitudEnum accion : AccionSolicitudEnum.values()) {
+            exists =  accionSolicitudRepository.existsByNombre(accion.name());
+            if (!exists) {
+                System.out.println("falta " + accion.name());
+                return false;
+            }
+        }
+        for (RolSolicitudEnum rol : RolSolicitudEnum.values()) {
+            exists =  rolSolicitudRepository.existsByNombre(rol.name());
+            if (!exists) {
+                System.out.println("falta " + rol.name());
+                return false;
+            }
+        }
+        for (EstadoTemaEnum estado : EstadoTemaEnum.values()) {
+            exists = estadoTemaRepository.existsByNombre(estado.name());
+            if (!exists) {
+                System.out.println("falta " + estado.name());
+                return false;
+            }
+        }
+        return true;
+    }
 
 }

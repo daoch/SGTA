@@ -102,4 +102,11 @@ public class SolicitudController {
             return ResponseEntity.badRequest().build();
         }
     }
+
+    @PostMapping("/registrarSolicitudCambioAsesor")
+    public ResponseEntity<Object> registrarSolicitudCambioAsesor(@RequestBody pucp.edu.pe.sgta.dto.asesores.SolicitudCambioAsesorDto solicitud){
+
+        solicitud =solicitudService.registrarSolicitudCambioAsesor(solicitud);
+        return ResponseEntity.ok(solicitud);
+    }
 }
