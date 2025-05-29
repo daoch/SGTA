@@ -1,4 +1,6 @@
 import axiosInstance from "@/lib/axios/axios-instance";
+import { Tema, TimeSlot } from "../types/jurado.types";
+import axios from "axios";
 
 const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
@@ -218,6 +220,37 @@ export async function listarAreasConocimientoPorExposicion(
       "Error al obtener áreas de conocimiento por exposición:",
       error,
     );
+    return [];
+  }
+}
+
+/**
+ * Ejecuta el algoritmo de distribución de bloques de exposición.
+ *
+ * @param temas      - Lista de temas a distribuir (Tema[]).
+ * @param timeSlots  - Lista de time slots disponibles (TimeSlot[]).
+ * @returns          - Array de TimeSlot reasignados tras el algoritmo.
+ */
+export async function distribuirBloquesExposicion(
+  temas: Tema[],
+  timeSlots: TimeSlot[],
+): Promise<TimeSlot[]> {
+  try {
+    const payload = { temas, bloques: timeSlots };
+    const response = await axiosInstance.post<TimeSlot[]>(
+      "/bloqueHorarioExposicion/algoritmoDistribucion",
+      payload,
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error(
+        "Error al distribuir bloques de exposición:",
+        error.response ?? error.message,
+      );
+    } else {
+      console.error("Error inesperado al distribuir bloques:", error);
+    }
     return [];
   }
 }

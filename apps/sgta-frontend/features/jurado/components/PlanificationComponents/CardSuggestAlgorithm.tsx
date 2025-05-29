@@ -12,8 +12,12 @@ import React from "react";
 import { usePlanificationStore } from "../../store/use-planificacion-store";
 
 const CardSugerenciaDistribucion: React.FC = () => {
-  const { desasignarTodosLosTemas, temasAsignados, temasSinAsignar } =
-    usePlanificationStore();
+  const {
+    desasignarTodosLosTemas,
+    temasAsignados,
+    temasSinAsignar,
+    generarDistribucionAutomatica,
+  } = usePlanificationStore();
   return (
     <Card className="py-5">
       <CardHeader>
@@ -39,6 +43,7 @@ const CardSugerenciaDistribucion: React.FC = () => {
             className="w-fit"
             disabled={temasSinAsignar.length === 0}
             variant="default"
+            onClick={() => generarDistribucionAutomatica()}
           >
             <Bot />
             Generar Distribución

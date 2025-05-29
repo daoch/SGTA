@@ -1,7 +1,8 @@
 import { create } from "zustand";
 import { PlanificacionState } from "../types/planificacion-state.types";
+import { distribuirBloquesExposicion } from "../services/data";
 
-export const usePlanificationStore = create<PlanificacionState>((set) => ({
+export const usePlanificationStore = create<PlanificacionState>((set, get) => ({
   estadoPlanificacion: undefined,
   temas: [],
   temasSinAsignar: [],
@@ -111,5 +112,19 @@ export const usePlanificationStore = create<PlanificacionState>((set) => ({
         bloques,
       };
     });
+  },
+
+  generarDistribucionAutomatica: async () => {
+    const { temasSinAsignar, bloques } = get();
+    try {
+      const nuevosBloques = await distribuirBloquesExposicion(
+        temasSinAsignar,
+        bloques,
+      );
+      // set({ bloques: nuevosBloques });
+      console.log("Nuevos bloques generados:", nuevosBloques);
+    } catch (error) {
+      console.error("Error al generar la distribución automática:", error);
+    }
   },
 }));
