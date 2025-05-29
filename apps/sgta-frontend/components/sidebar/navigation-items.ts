@@ -181,11 +181,6 @@ export const navigationItems: Record<string, NavigationItem[]> = {
           href: "/coordinador/asesores/reuniones",
           icon: CalendarIcon,
         },
-        {
-          name: "Reuniones",
-          href: "/coordinador/asesores/reuniones",
-          icon: CalendarIcon,
-        },
       ],
     },
     { name: "Jurados", href: "/coordinador/jurados", icon: Users },
