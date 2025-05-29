@@ -102,7 +102,7 @@ export async function aceptarSolicitud(
   rolSolicitud: string,
 ): Promise<void> {
   try {
-    await axiosInstance.post("/solicitudes/aceptarSolicitud", {
+    await axiosInstance.post("/solicitudes/aprobarSolicitudCambioAsesor", {
       idUsuario,
       idSolicitud,
       rolSolicitud,
@@ -119,7 +119,7 @@ export async function rechazarSolicitud(
   rolSolicitud: string,
 ): Promise<void> {
   try {
-    await axiosInstance.post("/solicitudes/rechazarSolicitud", {
+    await axiosInstance.post("/solicitudes/rechazarSolicitudCambioAsesor", {
       idUsuario,
       idSolicitud,
       rolSolicitud,
