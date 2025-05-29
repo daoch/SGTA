@@ -94,12 +94,14 @@ public class UsuarioServiceImpl implements UsuarioService {
             System.out.println("Rol inválido para: " + usuario.getCorreoElectronico());
             throw new IllegalArgumentException("Tipo de usuario no válido: " + tipoUsuario);
         }
-
+        usuario.setTipoUsuario(tipoUsuario.get());
+        usuario.setContrasena("Temp");
         String nombreCompleto = usuario.getNombres() + " " + usuario.getPrimerApellido() + " " + usuario.getSegundoApellido();
 
         try {
             // Registrar el usuario en Cognito
             String idCognito = cognitoService.registrarUsuarioEnCognito(usuario.getCorreoElectronico(), nombreCompleto, tipoUsuario.get().getNombre());
+            usuario.setIdCognito(idCognito);
             usuarioRepository.save(usuario);
         } catch (Exception e) {
             System.out.println("Error al registrar usuario: " + e.getMessage());

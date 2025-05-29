@@ -609,7 +609,7 @@ export default function ConfiguracionUsuariosPage() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() =>isEditMode ? setIsEditMode(false) : setIsAddUserDialogOpen(false)}
+                onClick={() => setIsAddUserDialogOpen(false)}
               >
                 Cancelar
               </Button>
