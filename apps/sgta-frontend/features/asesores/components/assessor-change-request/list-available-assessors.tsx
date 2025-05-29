@@ -1,38 +1,60 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Loader2, User, UserMinus, UserPlus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { useDebounce } from "@/features/asesores/hooks/use-debounce";
-import { IAssessorChangeAvailableAssessorsListProps, IAssessorChangeRequestSearchCriteriaAvailableAdvisorList } from "@/features/asesores/types/assessor-change-request";
+import {
+  IAssessorChangeAvailableAssessorsListProps,
+  IAssessorChangeRequestSearchCriteriaAvailableAdvisorList,
+} from "@/features/asesores/types/cambio-asesor/entidades";
+import { Loader2, User, UserMinus, UserPlus } from "lucide-react";
+import { useEffect, useState } from "react";
 
-import AssessorChangeRequestPagination from "@/features/asesores/components/assessor-change-request/pagination-assessor-change-request";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { useAssessorChangeRequestAdvisorPerThematicArea } from "../../queries/assessor-change-request";
+import AssessorChangeRequestPagination from "@/features/asesores/components/assessor-change-request/pagination-assessor-change-request";
 import { Image } from "@radix-ui/react-avatar";
+import { useAssessorChangeRequestAdvisorPerThematicArea } from "../../queries/assessor-change-request";
 
-
-
-
-export default function AssessorListAssessorChangeRequest({selectedAssessorId, setSelectedAssessorId, selectedIdThematicAreas}: Readonly<IAssessorChangeAvailableAssessorsListProps>) {
-  const initialStateSearchCriteria: IAssessorChangeRequestSearchCriteriaAvailableAdvisorList = {idThematicAreas: selectedIdThematicAreas, fullNameEmailCode: "", page: 1};
-  const [ searchCriteria, setSearchCriteria ] = useState(initialStateSearchCriteria);
-  const debouncedSearchTerm = useDebounce(searchCriteria.fullNameEmailCode, 2000);
+export default function AssessorListAssessorChangeRequest({
+  selectedAssessorId,
+  setSelectedAssessorId,
+  selectedIdThematicAreas,
+}: Readonly<IAssessorChangeAvailableAssessorsListProps>) {
+  const initialStateSearchCriteria: IAssessorChangeRequestSearchCriteriaAvailableAdvisorList =
+    {
+      idThematicAreas: selectedIdThematicAreas,
+      fullNameEmailCode: "",
+      page: 1,
+    };
+  const [searchCriteria, setSearchCriteria] = useState(
+    initialStateSearchCriteria,
+  );
+  const debouncedSearchTerm = useDebounce(
+    searchCriteria.fullNameEmailCode,
+    2000,
+  );
   const [localTerm, setLocalTerm] = useState(searchCriteria.fullNameEmailCode);
-  const { isLoading, data } = useAssessorChangeRequestAdvisorPerThematicArea(searchCriteria);
+  const { isLoading, data } =
+    useAssessorChangeRequestAdvisorPerThematicArea(searchCriteria);
 
   const debouncedTerm = useDebounce(localTerm, 1500);
   useEffect(() => {
-      if (debouncedTerm !== searchCriteria.fullNameEmailCode) {
-        setSearchCriteria((prev) => ({
-      ...prev,
-      fullNameEmailCode: debouncedTerm, 
-      page: 1,
-    }));
-      }
+    if (debouncedTerm !== searchCriteria.fullNameEmailCode) {
+      setSearchCriteria((prev) => ({
+        ...prev,
+        fullNameEmailCode: debouncedTerm,
+        page: 1,
+      }));
+    }
   }, [debouncedTerm, searchCriteria.fullNameEmailCode]);
 
   const validPattern = /^[A-Za-z0-9ÁÉÍÓÚáéíóúÑñ@. ]*$/;
@@ -50,9 +72,9 @@ export default function AssessorListAssessorChangeRequest({selectedAssessorId, s
   };
 
   const handlePageChange = (page: number) => {
-    setSearchCriteria((prev)=>({
+    setSearchCriteria((prev) => ({
       ...prev,
-      page: page
+      page: page,
     }));
   };
 
@@ -61,10 +83,10 @@ export default function AssessorListAssessorChangeRequest({selectedAssessorId, s
   };
 
   const handleSelectAssessor = (id: number) => {
-  return () => {
-    setSelectedAssessorId(id);
+    return () => {
+      setSelectedAssessorId(id);
+    };
   };
-};
 
   useEffect(() => {
     setSearchCriteria((prev) => ({
@@ -83,7 +105,6 @@ export default function AssessorListAssessorChangeRequest({selectedAssessorId, s
           onChange={handleChange}
           className="flex-1"
         />
-
       </div>
       <div className="rounded-md border overflow-hidden flex-1">
         <div className="overflow-y-auto h-[calc(100%-2px)]">
@@ -115,7 +136,10 @@ export default function AssessorListAssessorChangeRequest({selectedAssessorId, s
                 if (!data?.assessors?.length) {
                   return (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-6 text-muted-foreground">
+                      <TableCell
+                        colSpan={5}
+                        className="text-center py-6 text-muted-foreground"
+                      >
                         No se encontraron asesores
                       </TableCell>
                     </TableRow>
@@ -123,10 +147,13 @@ export default function AssessorListAssessorChangeRequest({selectedAssessorId, s
                 }
 
                 return data.assessors.map((advisor) => {
-                  const advisorAssignedCount = advisor.assignedStudentsQuantity + (advisor.id === selectedAssessorId ? 1 : 0);
+                  const advisorAssignedCount =
+                    advisor.assignedStudentsQuantity +
+                    (advisor.id === selectedAssessorId ? 1 : 0);
                   const isAtCapacity = advisorAssignedCount >= advisor.capacity;
                   const wasAssigned = advisor.id === selectedAssessorId;
-                  const assignedAndAtCapacity = wasAssigned || (isAtCapacity && wasAssigned);
+                  const assignedAndAtCapacity =
+                    wasAssigned || (isAtCapacity && wasAssigned);
 
                   return (
                     <TableRow key={advisor.id}>
@@ -134,15 +161,15 @@ export default function AssessorListAssessorChangeRequest({selectedAssessorId, s
                         <div className="h-10 w-10 rounded-full overflow-hidden">
                           <Avatar className="h-8 w-8">
                             {advisor.urlPhoto ? (
-                                <Image
-                                    src={advisor.urlPhoto}
-                                    alt={`User-photo-${advisor.firstName}`}
-                                    className='rounded-full'
-                                />
+                              <Image
+                                src={advisor.urlPhoto}
+                                alt={`User-photo-${advisor.firstName}`}
+                                className="rounded-full"
+                              />
                             ) : (
-                                <AvatarFallback className="bg-gray-400" />
+                              <AvatarFallback className="bg-gray-400" />
                             )}
-                            </Avatar>
+                          </Avatar>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -150,17 +177,18 @@ export default function AssessorListAssessorChangeRequest({selectedAssessorId, s
                           <div className="font-medium">
                             {advisor.firstName} {advisor.lastName}
                           </div>
-                          <div className="text-sm text-muted-foreground">{advisor.email}</div>
-                          <div className="text-xs text-muted-foreground">{advisor.code}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {advisor.email}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {advisor.code}
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-col gap-1">
                           {advisor.thematicAreas.map((area) => (
-                            <Badge
-                              key={area.id}
-                              variant="outline"
-                            >
+                            <Badge key={area.id} variant="outline">
                               {area.description}
                             </Badge>
                           ))}
@@ -172,7 +200,7 @@ export default function AssessorListAssessorChangeRequest({selectedAssessorId, s
                         </span>
                       </TableCell>
                       <TableCell className="text-right">
-                        {(()=>{
+                        {(() => {
                           if (assignedAndAtCapacity)
                             return (
                               <Button
@@ -183,7 +211,7 @@ export default function AssessorListAssessorChangeRequest({selectedAssessorId, s
                               >
                                 <UserMinus className="h-4 w-4" />
                               </Button>
-                          );
+                            );
                           if (!isAtCapacity)
                             return (
                               <Button
@@ -206,18 +234,19 @@ export default function AssessorListAssessorChangeRequest({selectedAssessorId, s
                 });
               })()}
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-6 text-muted-foreground">
-                <AssessorChangeRequestPagination
+                <TableCell
+                  colSpan={5}
+                  className="text-center py-6 text-muted-foreground"
+                >
+                  <AssessorChangeRequestPagination
                     currentPage={searchCriteria.page}
                     totalPages={data?.totalPages ?? 1}
-                    onPageChange={handlePageChange}                
+                    onPageChange={handlePageChange}
                   />
                 </TableCell>
               </TableRow>
             </TableBody>
-              
           </Table>
-
         </div>
       </div>
     </div>

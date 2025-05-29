@@ -1,716 +1,129 @@
-export const mockAssessorChangeRequests = [
-  {
-    "id": 1,
-    "registerTime": "2025-04-16T10:30:00Z",
-    "status": "rejected",
-    "reason": "no assistance",
-    "response": "no se puede",
-    "responseTime": "2025-05-15T17:38:57.252684Z",
-    "assessors": [
-      {
-        "id": 1,
-        "name": "Andres",
-        "lastName": "Pereda",
-        "email": "andreper@email.com",
-        "urlPhoto": ""
-      }
-    ],
-    "student": {
-      "id": 1,
-      "name": "Josue",
-      "lastName": "Mercedez",
-      "email": "josmer@email.com",
-      "urlPhoto": "",
-      "topic": {
-        "id": 1,
-        "name": "Inteligencia Artificial",
-        "thematicAreas": [
-          {
-            "id": 1,
-            "description": "Ciencias de la computación"
-          }
-        ]
-      }
-    }
-  },
-  {
-    "id": 2,
-    "registerTime": "2025-04-16T10:30:00Z",
-    "status": "rejected",
-    "reason": "no assistance",
-    "response": "No procedente",
-    "responseTime": "2025-05-15T16:51:32.281907Z",
-    "assessors": [
-      {
-        "id": 1,
-        "name": "Andres",
-        "lastName": "Pereda",
-        "email": "andreper@email.com",
-        "urlPhoto": ""
-      }
-    ],
-    "student": {
-      "id": 1,
-      "name": "Josue",
-      "lastName": "Mercedez",
-      "email": "josmer@email.com",
-      "urlPhoto": "",
-      "topic": {
-        "id": 1,
-        "name": "Inteligencia Artificial",
-        "thematicAreas": [
-          {
-            "id": 1,
-            "description": "Ciencias de la computación"
-          }
-        ]
-      }
-    }
-  },
-  {
-    "id": 3,
-    "registerTime": "2025-04-16T10:30:00Z",
-    "status": "rejected",
-    "reason": "no assistance",
-    "response": "asfd",
-    "responseTime": "2025-05-15T17:42:57.343059Z",
-    "assessors": [
-      {
-        "id": 1,
-        "name": "Andres",
-        "lastName": "Pereda",
-        "email": "andreper@email.com",
-        "urlPhoto": ""
-      }
-    ],
-    "student": {
-      "id": 1,
-      "name": "Josue",
-      "lastName": "Mercedez",
-      "email": "josmer@email.com",
-      "urlPhoto": "",
-      "topic": {
-        "id": 1,
-        "name": "Inteligencia Artificial",
-        "thematicAreas": [
-          {
-            "id": 1,
-            "description": "Ciencias de la computación"
-          }
-        ]
-      }
-    }
-  },
-  {
-    "id": 4,
-    "registerTime": "2025-04-16T10:30:00Z",
-    "status": "rejected",
-    "reason": "no assistance",
-    "response": "rechazado",
-    "responseTime": "2025-05-15T17:48:31.025266Z",
-    "assessors": [
-      {
-        "id": 1,
-        "name": "Andres",
-        "lastName": "Pereda",
-        "email": "andreper@email.com",
-        "urlPhoto": ""
-      }
-    ],
-    "student": {
-      "id": 1,
-      "name": "Josue",
-      "lastName": "Mercedez",
-      "email": "josmer@email.com",
-      "urlPhoto": "",
-      "topic": {
-        "id": 1,
-        "name": "Inteligencia Artificial",
-        "thematicAreas": [
-          {
-            "id": 1,
-            "description": "Ciencias de la computación"
-          }
-        ]
-      }
-    }
-  },
-  {
-    "id": 5,
-    "registerTime": "2025-04-16T10:30:00Z",
-    "status": "rejected",
-    "reason": "no assistance",
-    "response": "haz algo",
-    "responseTime": "2025-05-15T17:52:18.075622Z",
-    "assessors": [
-      {
-        "id": 1,
-        "name": "Andres",
-        "lastName": "Pereda",
-        "email": "andreper@email.com",
-        "urlPhoto": ""
-      }
-    ],
-    "student": {
-      "id": 1,
-      "name": "Josue",
-      "lastName": "Mercedez",
-      "email": "josmer@email.com",
-      "urlPhoto": "",
-      "topic": {
-        "id": 1,
-        "name": "Inteligencia Artificial",
-        "thematicAreas": [
-          {
-            "id": 1,
-            "description": "Ciencias de la computación"
-          }
-        ]
-      }
-    }
-  },
-  {
-    "id": 6,
-    "registerTime": "2025-04-16T10:30:00Z",
-    "status": "rejected",
-    "reason": "no assistance",
-    "response": "sfa",
-    "responseTime": "2025-05-15T17:55:20.264008Z",
-    "assessors": [
-      {
-        "id": 1,
-        "name": "Andres",
-        "lastName": "Pereda",
-        "email": "andreper@email.com",
-        "urlPhoto": ""
-      }
-    ],
-    "student": {
-      "id": 1,
-      "name": "Josue",
-      "lastName": "Mercedez",
-      "email": "josmer@email.com",
-      "urlPhoto": "",
-      "topic": {
-        "id": 1,
-        "name": "Inteligencia Artificial",
-        "thematicAreas": [
-          {
-            "id": 1,
-            "description": "Ciencias de la computación"
-          }
-        ]
-      }
-    }
-  },
-  {
-    "id": 7,
-    "registerTime": "2025-04-16T10:30:00Z",
-    "status": "rejected",
-    "reason": "no assistance",
-    "response": "safdafa",
-    "responseTime": "2025-05-15T17:55:28.564280Z",
-    "assessors": [
-      {
-        "id": 1,
-        "name": "Andres",
-        "lastName": "Pereda",
-        "email": "andreper@email.com",
-        "urlPhoto": ""
-      }
-    ],
-    "student": {
-      "id": 1,
-      "name": "Josue",
-      "lastName": "Mercedez",
-      "email": "josmer@email.com",
-      "urlPhoto": "",
-      "topic": {
-        "id": 1,
-        "name": "Inteligencia Artificial",
-        "thematicAreas": [
-          {
-            "id": 1,
-            "description": "Ciencias de la computación"
-          }
-        ]
-      }
-    }
-  },
-  {
-    "id": 8,
-    "registerTime": "2025-04-16T10:30:00Z",
-    "status": "rejected",
-    "reason": "no assistance",
-    "response": "asdfa",
-    "responseTime": "2025-05-15T17:55:41.440101Z",
-    "assessors": [
-      {
-        "id": 1,
-        "name": "Andres",
-        "lastName": "Pereda",
-        "email": "andreper@email.com",
-        "urlPhoto": ""
-      }
-    ],
-    "student": {
-      "id": 1,
-      "name": "Josue",
-      "lastName": "Mercedez",
-      "email": "josmer@email.com",
-      "urlPhoto": "",
-      "topic": {
-        "id": 1,
-        "name": "Inteligencia Artificial",
-        "thematicAreas": [
-          {
-            "id": 1,
-            "description": "Ciencias de la computación"
-          }
-        ]
-      }
-    }
-  },
-  {
-    "id": 9,
-    "registerTime": "2025-04-16T10:30:00Z",
-    "status": "rejected",
-    "reason": "no assistance",
-    "response": "asfdasfd",
-    "responseTime": "2025-05-15T17:55:46.624392Z",
-    "assessors": [
-      {
-        "id": 1,
-        "name": "Andres",
-        "lastName": "Pereda",
-        "email": "andreper@email.com",
-        "urlPhoto": ""
-      }
-    ],
-    "student": {
-      "id": 1,
-      "name": "Josue",
-      "lastName": "Mercedez",
-      "email": "josmer@email.com",
-      "urlPhoto": "",
-      "topic": {
-        "id": 1,
-        "name": "Inteligencia Artificial",
-        "thematicAreas": [
-          {
-            "id": 1,
-            "description": "Ciencias de la computación"
-          }
-        ]
-      }
-    }
-  },
-  {
-    "id": 10,
-    "registerTime": "2025-04-16T10:30:00Z",
-    "status": "rejected",
-    "reason": "no assistance",
-    "response": "asfdasfd",
-    "responseTime": "2025-05-15T17:55:50.375979Z",
-    "assessors": [
-      {
-        "id": 1,
-        "name": "Andres",
-        "lastName": "Pereda",
-        "email": "andreper@email.com",
-        "urlPhoto": ""
-      }
-    ],
-    "student": {
-      "id": 1,
-      "name": "Josue",
-      "lastName": "Mercedez",
-      "email": "josmer@email.com",
-      "urlPhoto": "",
-      "topic": {
-        "id": 1,
-        "name": "Inteligencia Artificial",
-        "thematicAreas": [
-          {
-            "id": 1,
-            "description": "Ciencias de la computación"
-          }
-        ]
-      }
-    }
-  },
-  {
-    "id": 11,
-    "registerTime": "2025-04-16T10:30:00Z",
-    "status": "rejected",
-    "reason": "no assistance",
-    "response": "saf",
-    "responseTime": "2025-05-15T17:59:16.878168Z",
-    "assessors": [
-      {
-        "id": 1,
-        "name": "Andres",
-        "lastName": "Pereda",
-        "email": "andreper@email.com",
-        "urlPhoto": ""
-      }
-    ],
-    "student": {
-      "id": 1,
-      "name": "Josue",
-      "lastName": "Mercedez",
-      "email": "josmer@email.com",
-      "urlPhoto": "",
-      "topic": {
-        "id": 1,
-        "name": "Inteligencia Artificial",
-        "thematicAreas": [
-          {
-            "id": 1,
-            "description": "Ciencias de la computación"
-          }
-        ]
-      }
-    }
-  },
-  {
-    "id": 12,
-    "registerTime": "2025-04-16T10:30:00Z",
-    "status": "rejected",
-    "reason": "no assistance",
-    "response": "SOLICITUD IMPROCEDENTE POR DETERMINADOS motivos",
-    "responseTime": "2025-05-15T18:00:01.384406Z",
-    "assessors": [
-      {
-        "id": 1,
-        "name": "Andres",
-        "lastName": "Pereda",
-        "email": "andreper@email.com",
-        "urlPhoto": ""
-      }
-    ],
-    "student": {
-      "id": 1,
-      "name": "Josue",
-      "lastName": "Mercedez",
-      "email": "josmer@email.com",
-      "urlPhoto": "",
-      "topic": {
-        "id": 1,
-        "name": "Inteligencia Artificial",
-        "thematicAreas": [
-          {
-            "id": 1,
-            "description": "Ciencias de la computación"
-          }
-        ]
-      }
-    }
-  },
-  {
-    "id": 13,
-    "registerTime": "2025-04-16T10:30:00Z",
-    "status": "approved",
-    "reason": "no assistance",
-    "response": "Text placeholder",
-    "responseTime": "2025-05-15T18:11:28.950561Z",
-    "assessors": [
-      {
-        "id": 1,
-        "name": "Andres",
-        "lastName": "Pereda",
-        "email": "andreper@email.com",
-        "urlPhoto": ""
-      }
-    ],
-    "student": {
-      "id": 1,
-      "name": "Josue",
-      "lastName": "Mercedez",
-      "email": "josmer@email.com",
-      "urlPhoto": "",
-      "topic": {
-        "id": 1,
-        "name": "Inteligencia Artificial",
-        "thematicAreas": [
-          {
-            "id": 1,
-            "description": "Ciencias de la computación"
-          }
-        ]
-      }
-    }
-  },
-  {
-    "id": 14,
-    "registerTime": "2025-04-16T10:30:00Z",
-    "status": "pending",
-    "reason": "no assistance",
-    "response": "Could not proceed",
-    "responseTime": "2025-04-16T10:30:00Z",
-    "assessors": [
-      {
-        "id": 1,
-        "name": "Andres",
-        "lastName": "Pereda",
-        "email": "andreper@email.com",
-        "urlPhoto": ""
-      }
-    ],
-    "student": {
-      "id": 1,
-      "name": "Josue",
-      "lastName": "Mercedez",
-      "email": "josmer@email.com",
-      "urlPhoto": "",
-      "topic": {
-        "id": 1,
-        "name": "Inteligencia Artificial",
-        "thematicAreas": [
-          {
-            "id": 1,
-            "description": "Ciencias de la computación"
-          }
-        ]
-      }
-    }
-  },
-  {
-    "id": 15,
-    "registerTime": "2025-04-16T10:30:00Z",
-    "status": "pending",
-    "reason": "no assistance",
-    "response": "Could not proceed",
-    "responseTime": "2025-04-16T10:30:00Z",
-    "assessors": [
-      {
-        "id": 1,
-        "name": "Andres",
-        "lastName": "Pereda",
-        "email": "andreper@email.com",
-        "urlPhoto": ""
-      }
-    ],
-    "student": {
-      "id": 1,
-      "name": "Josue",
-      "lastName": "Mercedez",
-      "email": "josmer@email.com",
-      "urlPhoto": "",
-      "topic": {
-        "id": 1,
-        "name": "Inteligencia Artificial",
-        "thematicAreas": [
-          {
-            "id": 1,
-            "description": "Ciencias de la computación"
-          }
-        ]
-      }
-    }
-  },
-  {
-    "id": 16,
-    "registerTime": "2025-04-16T10:30:00Z",
-    "status": "pending",
-    "reason": "no assistance",
-    "response": "Could not proceed",
-    "responseTime": "2025-04-16T10:30:00Z",
-    "assessors": [
-      {
-        "id": 1,
-        "name": "Andres",
-        "lastName": "Pereda",
-        "email": "andreper@email.com",
-        "urlPhoto": ""
-      }
-    ],
-    "student": {
-      "id": 1,
-      "name": "Josue",
-      "lastName": "Mercedez",
-      "email": "josmer@email.com",
-      "urlPhoto": "",
-      "topic": {
-        "id": 1,
-        "name": "Inteligencia Artificial",
-        "thematicAreas": [
-          {
-            "id": 1,
-            "description": "Ciencias de la computación"
-          }
-        ]
-      }
-    }
-  },
-  {
-    "id": 17,
-    "registerTime": "2025-04-16T10:30:00Z",
-    "status": "rejected",
-    "reason": "no assistance",
-    "response": "afsd",
-    "responseTime": "2025-05-15T17:55:37.566251Z",
-    "assessors": [
-      {
-        "id": 1,
-        "name": "Andres",
-        "lastName": "Pereda",
-        "email": "andreper@email.com",
-        "urlPhoto": ""
-      }
-    ],
-    "student": {
-      "id": 1,
-      "name": "Josue",
-      "lastName": "Mercedez",
-      "email": "josmer@email.com",
-      "urlPhoto": "",
-      "topic": {
-        "id": 1,
-        "name": "Inteligencia Artificial",
-        "thematicAreas": [
-          {
-            "id": 1,
-            "description": "Ciencias de la computación"
-          }
-        ]
-      }
-    }
-  },
-  {
-    "id": 18,
-    "registerTime": "2025-04-16T10:30:00Z",
-    "status": "pending",
-    "reason": "no assistance",
-    "response": "Could not proceed",
-    "responseTime": "2025-04-16T10:30:00Z",
-    "assessors": [
-      {
-        "id": 1,
-        "name": "Andres",
-        "lastName": "Pereda",
-        "email": "andreper@email.com",
-        "urlPhoto": ""
-      }
-    ],
-    "student": {
-      "id": 1,
-      "name": "Josue",
-      "lastName": "Mercedez",
-      "email": "josmer@email.com",
-      "urlPhoto": "",
-      "topic": {
-        "id": 1,
-        "name": "Inteligencia Artificial",
-        "thematicAreas": [
-          {
-            "id": 1,
-            "description": "Ciencias de la computación"
-          }
-        ]
-      }
-    }
-  },
-  {
-    "id": 19,
-    "registerTime": "2025-04-16T10:30:00Z",
-    "status": "pending",
-    "reason": "no assistance",
-    "response": "Could not proceed",
-    "responseTime": "2025-04-16T10:30:00Z",
-    "assessors": [
-      {
-        "id": 1,
-        "name": "Andres",
-        "lastName": "Pereda",
-        "email": "andreper@email.com",
-        "urlPhoto": ""
-      }
-    ],
-    "student": {
-      "id": 1,
-      "name": "Josue",
-      "lastName": "Mercedez",
-      "email": "josmer@email.com",
-      "urlPhoto": "",
-      "topic": {
-        "id": 1,
-        "name": "Inteligencia Artificial",
-        "thematicAreas": [
-          {
-            "id": 1,
-            "description": "Ciencias de la computación"
-          }
-        ]
-      }
-    }
-  },
-  {
-    "id": 20,
-    "registerTime": "2025-04-16T10:30:00Z",
-    "status": "rejected",
-    "reason": "no assistance",
-    "response": "asdfasdfsa",
-    "responseTime": "2025-05-15T17:56:05.274563Z",
-    "assessors": [
-      {
-        "id": 1,
-        "name": "Andres",
-        "lastName": "Pereda",
-        "email": "andreper@email.com",
-        "urlPhoto": ""
-      }
-    ],
-    "student": {
-      "id": 1,
-      "name": "Josue",
-      "lastName": "Mercedez",
-      "email": "josmer@email.com",
-      "urlPhoto": "",
-      "topic": {
-        "id": 1,
-        "name": "Inteligencia Artificial",
-        "thematicAreas": [
-          {
-            "id": 1,
-            "description": "Ciencias de la computación"
-          }
-        ]
-      }
-    }
-  },
-  {
-    "id": 21,
-    "registerTime": "2025-04-16T10:30:00Z",
-    "status": "approved",
-    "reason": "no assistance",
-    "response": "Text placeholder",
-    "responseTime": "2025-05-15T18:12:03.224105Z",
-    "assessors": [
-      {
-        "id": 1,
-        "name": "Andres",
-        "lastName": "Pereda",
-        "email": "andreper@email.com",
-        "urlPhoto": ""
-      }
-    ],
-    "student": {
-      "id": 1,
-      "name": "Josue",
-      "lastName": "Mercedez",
-      "email": "josmer@email.com",
-      "urlPhoto": "",
-      "topic": {
-        "id": 1,
-        "name": "Inteligencia Artificial",
-        "thematicAreas": [
-          {
-            "id": 1,
-            "description": "Ciencias de la computación"
-          }
-        ]
-      }
-    }
-  }
-];
+// Ajusta el path si es necesario
+
+import {
+  DetalleSolicitudCambioAsesor,
+  SolicitudCambioAsesorResumen,
+} from "../../types/cambio-asesor/entidades";
+
+export function getMockSolicitudCambioAsesorResumen(): SolicitudCambioAsesorResumen[] {
+  return [
+    {
+      solicitudId: 101,
+      fechaEnvio: "2025-05-25",
+      estadoGlobal: "PENDIENTE",
+      estadoAccion: "PENDIENTE_ACCION",
+      tema: "701",
+      temaTitulo: "Desarrollo de Sistemas Inteligentes para Diagnóstico Médico",
+      nombreSolicitante: "Ana Salas",
+      correoSolicitante: "ana.s@pucp.edu.pe",
+      nombreAsesorActual: "Dr. Marco Gómez",
+      nombreAsesorNuevo: "Dra. Teresa López",
+    },
+    {
+      solicitudId: 102,
+      fechaEnvio: "2025-04-20",
+      estadoGlobal: "ACEPTADA",
+      estadoAccion: "APROBADO",
+      tema: "702",
+      temaTitulo: "Aplicación de Redes Neuronales en Sistemas de Recomendación",
+      nombreSolicitante: "Luis Reyes",
+      correoSolicitante: "luis.r@pucp.edu.pe",
+      nombreAsesorActual: "Dr. Jorge Salazar",
+      nombreAsesorNuevo: "Dra. Marta Fernández",
+    },
+    {
+      solicitudId: 103,
+      fechaEnvio: "2025-03-15",
+      estadoGlobal: "RECHAZADA",
+      estadoAccion: "RECHAZADO",
+      tema: "703",
+      temaTitulo: "Evaluación de Interfaces Conversacionales con IA",
+      nombreSolicitante: "Carmen Delgado",
+      correoSolicitante: "carmen.d@pucp.edu.pe",
+      nombreAsesorActual: "Dr. Ricardo Velásquez",
+      nombreAsesorNuevo: "Dra. Marta Fernández",
+    },
+    {
+      solicitudId: 104,
+      fechaEnvio: "2025-02-10",
+      estadoGlobal: "PENDIENTE",
+      estadoAccion: "PENDIENTE_ACCION",
+      tema: "704",
+      temaTitulo: "Automatización de Procesos con RPA en Entornos Educativos",
+      nombreSolicitante: "Miguel Torres",
+      correoSolicitante: "miguel.t@pucp.edu.pe",
+      nombreAsesorActual: "Dra. Laura Jiménez",
+      nombreAsesorNuevo: "Dr. Esteban Rojas",
+    },
+    {
+      solicitudId: 105,
+      fechaEnvio: "2025-01-12",
+      estadoGlobal: "ACEPTADA",
+      estadoAccion: "APROBADO",
+      tema: "705",
+      temaTitulo: "Sistemas Predictivos en el Comercio Electrónico",
+      nombreSolicitante: "Valeria Campos",
+      correoSolicitante: "valeria.c@pucp.edu.pe",
+      nombreAsesorActual: "Dr. Marco Gómez",
+      nombreAsesorNuevo: "Dra. Natalia Paredes",
+    },
+  ];
+}
+
+export function getMockDetalleSolicitudCambioAsesor(): DetalleSolicitudCambioAsesor {
+  return {
+    solicitudId: 101,
+    fechaEnvio: "2025-05-25",
+    estadoGlobal: "PENDIENTE",
+    motivoEstudiante:
+      "El asesor actual no está disponible por motivos de salud.",
+    temaId: 701,
+    temaTitulo: "Desarrollo de Sistemas Inteligentes para Diagnóstico Médico",
+
+    solicitante: {
+      id: 11001,
+      nombres: "Ana Salas",
+      correoElectronico: "ana.s@pucp.edu.pe",
+      rolSolicitud: "REMITENTE",
+      foto: null,
+      accionSolicitud: "SIN_ACCION",
+      fechaAccion: null,
+      comentario: null,
+    },
+
+    asesorActual: {
+      id: 21001,
+      nombres: "Dr. Marco Gómez",
+      correoElectronico: "marco.g@pucp.edu.pe",
+      rolSolicitud: "ASESOR_ACTUAL",
+      foto: null,
+      accionSolicitud: "SIN_ACCION",
+      fechaAccion: null,
+      comentario: null,
+    },
+
+    asesorNuevo: {
+      id: 21005,
+      nombres: "Dra. Teresa López",
+      correoElectronico: "teresa.l@pucp.edu.pe",
+      rolSolicitud: "ASESOR_ENTRADA",
+      foto: null,
+      accionSolicitud: "PENDIENTE_ACCION",
+      fechaAccion: null,
+      comentario: null,
+    },
+
+    coordinador: {
+      id: 30001,
+      nombres: "Mg. Felipe Ramírez",
+      correoElectronico: "felipe.r@pucp.edu.pe",
+      rolSolicitud: "DESTINATARIO",
+      foto: null,
+      accionSolicitud: "PENDIENTE_ACCION",
+      fechaAccion: null,
+      comentario: null,
+    },
+
+    fechaResolucion: null,
+  };
+}

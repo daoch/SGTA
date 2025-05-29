@@ -4,7 +4,7 @@ import ListadoSolicitudesCambioAsesor from "@/features/asesores/views/listado-so
 import React from "react";
 
 const Page: React.FC = () => {
-  return <ListadoSolicitudesCambioAsesor rol="coordinador" />;
+  return <ListadoSolicitudesCambioAsesor rol="alumno" />;
 };
 
 export default Page;

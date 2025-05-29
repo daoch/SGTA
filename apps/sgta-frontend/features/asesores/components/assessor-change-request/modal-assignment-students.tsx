@@ -1,29 +1,53 @@
 "use client";
-import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { CheckCircle, Users, BookOpen, GraduationCap, Loader2 } from "lucide-react";
-import { z } from "zod";
-import { toast } from "sonner";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { differenceInDays, format } from "date-fns";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import AssessorListAssessorChangeRequest from "@/features/asesores/components//assessor-change-request/list-available-assessors";
-import { IAssessorChangeAssignmentModalProps } from "@/features/asesores/types/assessor-change-request";
-import { useApproveAssesorChangeRequest, useRequestAssessorChangeDetail } from "../../queries/assessor-change-request";
+import { IAssessorChangeAssignmentModalProps } from "@/features/asesores/types/cambio-asesor/entidades";
+import { differenceInDays, format } from "date-fns";
+import {
+  BookOpen,
+  CheckCircle,
+  GraduationCap,
+  Loader2,
+  Users,
+} from "lucide-react";
 import Image from "next/image";
+import { useState } from "react";
+import { toast } from "sonner";
+import { z } from "zod";
+import {
+  useApproveAssesorChangeRequest,
+  useRequestAssessorChangeDetail,
+} from "../../queries/assessor-change-request";
 
-export function AssessorChangeAssignmentModal({ open, onOpenChange, idRequest, refetch }: Readonly<IAssessorChangeAssignmentModalProps>) {
-  const [ selectedAssessorId, setSelectedAssessorId] = useState<number | null>(null);
-  const { isLoading: loadingRequestDetail, data: dataRequestDetail} = useRequestAssessorChangeDetail(idRequest);
+export function AssessorChangeAssignmentModal({
+  open,
+  onOpenChange,
+  idRequest,
+  refetch,
+}: Readonly<IAssessorChangeAssignmentModalProps>) {
+  const [selectedAssessorId, setSelectedAssessorId] = useState<number | null>(
+    null,
+  );
+  const { isLoading: loadingRequestDetail, data: dataRequestDetail } =
+    useRequestAssessorChangeDetail(idRequest);
   const approveMutation = useApproveAssesorChangeRequest();
-  
+
   const isProcessing = approveMutation.status === "pending";
   const handleSubmit = () => {
     try {
-
-      if (!dataRequestDetail?.id){
-        console.error("No se obtuvo la informacion del detalle de la solicitud");
+      if (!dataRequestDetail?.id) {
+        console.error(
+          "No se obtuvo la informacion del detalle de la solicitud",
+        );
         return;
       }
       approveMutation.mutate(
@@ -40,12 +64,13 @@ export function AssessorChangeAssignmentModal({ open, onOpenChange, idRequest, r
             onOpenChange(false);
           },
           onError: (error) => {
-            const message = error instanceof Error ? error.message : "Error desconocido";
+            const message =
+              error instanceof Error ? error.message : "Error desconocido";
             toast.error("Error del servidor", {
               description: message,
             });
           },
-        }
+        },
       );
       refetch();
     } catch (error) {
@@ -62,15 +87,14 @@ export function AssessorChangeAssignmentModal({ open, onOpenChange, idRequest, r
   };
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={onOpenChange}
-      >
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-full sm:max-w-[800px]">
         <DialogHeader>
-          <DialogTitle className="text-xl">Asignación de Asesor a Alumno</DialogTitle>
+          <DialogTitle className="text-xl">
+            Asignación de Asesor a Alumno
+          </DialogTitle>
         </DialogHeader>
-        {(()=>{
+        {(() => {
           if (loadingRequestDetail)
             return (
               <div className="p-12 text-center flex flex-col items-center justify-center text-muted-foreground">
@@ -104,7 +128,9 @@ export function AssessorChangeAssignmentModal({ open, onOpenChange, idRequest, r
                         </Avatar>
                         <div>
                           <p className="text-sm font-medium">{`${dataRequestDetail.student.name} ${dataRequestDetail.student.lastName}`}</p>
-                          <p className="text-xs text-muted-foreground">{dataRequestDetail.student.email}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {dataRequestDetail.student.email}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -115,8 +141,13 @@ export function AssessorChangeAssignmentModal({ open, onOpenChange, idRequest, r
                         <BookOpen size={14} />
                         <span>Tema</span>
                       </div>
-                      <p className="text-sm font-medium mb-2">Algoritmos metaheurísticos para la predicción de temperatura en zonas Rurales en invierno</p>
-                      <Badge variant="secondary" className="text-xs">Ciencias de la Computación</Badge>
+                      <p className="text-sm font-medium mb-2">
+                        Algoritmos metaheurísticos para la predicción de
+                        temperatura en zonas Rurales en invierno
+                      </p>
+                      <Badge variant="secondary" className="text-xs">
+                        Ciencias de la Computación
+                      </Badge>
                     </div>
                   </div>
 
@@ -133,7 +164,7 @@ export function AssessorChangeAssignmentModal({ open, onOpenChange, idRequest, r
                       </p>
                       <p className="text-xs text-gray-500 mt-1">{`Hace ${differenceInDays(new Date(), dataRequestDetail.registerTime)} días`}</p>
                     </div>
-                    
+
                     {/* Asesor section - 4/6 */}
                     <div className="col-span-6 md:col-span-4 border rounded-md p-3">
                       <div className="text-xs text-gray-500 mb-2 flex items-center gap-1">
@@ -142,11 +173,15 @@ export function AssessorChangeAssignmentModal({ open, onOpenChange, idRequest, r
                       </div>
                       <div className="flex items-center gap-2">
                         <Avatar className="h-10 w-10">
-                          <AvatarFallback className="bg-gray-400">AA</AvatarFallback>
+                          <AvatarFallback className="bg-gray-400">
+                            AA
+                          </AvatarFallback>
                         </Avatar>
                         <div>
                           <p className="text-sm font-medium">Dr. Juan Pérez</p>
-                          <p className="text-xs text-muted-foreground">juan.perez@universidad.edu</p>
+                          <p className="text-xs text-muted-foreground">
+                            juan.perez@universidad.edu
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -155,11 +190,21 @@ export function AssessorChangeAssignmentModal({ open, onOpenChange, idRequest, r
                 {/* Advisors section - full width */}
                 <div className="w-full border rounded-lg p-4">
                   <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-semibold">Asesores disponibles</h2>
+                    <h2 className="text-xl font-semibold">
+                      Asesores disponibles
+                    </h2>
                   </div>
                 </div>
                 <div className="h-[350px]">
-                    <AssessorListAssessorChangeRequest selectedAssessorId={selectedAssessorId} setSelectedAssessorId={setSelectedAssessorId} selectedIdThematicAreas={dataRequestDetail?.student?.topic?.thematicAreas?.map(area => area.id) ?? []}/>
+                  <AssessorListAssessorChangeRequest
+                    selectedAssessorId={selectedAssessorId}
+                    setSelectedAssessorId={setSelectedAssessorId}
+                    selectedIdThematicAreas={
+                      dataRequestDetail?.student?.topic?.thematicAreas?.map(
+                        (area) => area.id,
+                      ) ?? []
+                    }
+                  />
                 </div>
               </>
             );
@@ -167,21 +212,27 @@ export function AssessorChangeAssignmentModal({ open, onOpenChange, idRequest, r
 
         <DialogFooter className="mt-4">
           <Button
-          variant="outline"
-          onClick={() => {onOpenChange(false);}}>
+            variant="outline"
+            onClick={() => {
+              onOpenChange(false);
+            }}
+          >
             Cancelar
           </Button>
-          {isProcessing?
-          <>
-            <Loader2 className="h-4 w-4 animate-spin mr-2" /> Procesando...
-          </>
-          :
-          <Button onClick={handleSubmit} disabled={selectedAssessorId===null}>
-            {selectedAssessorId!==null
-              ? "Asignar asesor"
-              : "Faltan asignar un asesor"}
-          </Button>
-          }
+          {isProcessing ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin mr-2" /> Procesando...
+            </>
+          ) : (
+            <Button
+              onClick={handleSubmit}
+              disabled={selectedAssessorId === null}
+            >
+              {selectedAssessorId !== null
+                ? "Asignar asesor"
+                : "Faltan asignar un asesor"}
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

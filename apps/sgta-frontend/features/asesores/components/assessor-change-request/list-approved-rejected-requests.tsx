@@ -1,24 +1,25 @@
-import React from "react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Table,
-  TableHeader,
-  TableRow,
-  TableHead,
   TableBody,
   TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import {
+  IAssessorChangeHistoryRequestsTableProps,
+  IRequestAssessorChangeRequestData,
+} from "@/features/asesores/types/cambio-asesor/entidades";
 import { differenceInDays, format } from "date-fns";
-import { IAssessorChangeHistoryRequestsTableProps, IRequestAssessorChangeRequestData } from "@/features/asesores/types/assessor-change-request";
 import Image from "next/image";
+import React from "react";
 
-
-const RequestHistoryTable: React.FC<IAssessorChangeHistoryRequestsTableProps> = ({
-  requests,
-  onViewDetails,
-}) => {
+const RequestHistoryTable: React.FC<
+  IAssessorChangeHistoryRequestsTableProps
+> = ({ requests, onViewDetails }) => {
   const columns = [
     { name: "ALUMNO", uid: "assessors" },
     { name: "FECHA SOLICITUD", uid: "requestDate" },
@@ -28,34 +29,36 @@ const RequestHistoryTable: React.FC<IAssessorChangeHistoryRequestsTableProps> = 
     { name: "ACCIONES", uid: "actions" },
   ];
 
-
-  const renderCell = (request: IRequestAssessorChangeRequestData, columnKey: string) => {
+  const renderCell = (
+    request: IRequestAssessorChangeRequestData,
+    columnKey: string,
+  ) => {
     switch (columnKey) {
       case "assessors":
         return (
           <div>
-          {
-            request.assessors.map((assessor)=>(
-            <div key={assessor.id}>
-              <div className="flex items-center gap-2">
-                <Avatar className="h-8 w-8">
+            {request.assessors.map((assessor) => (
+              <div key={assessor.id}>
+                <div className="flex items-center gap-2">
+                  <Avatar className="h-8 w-8">
                     {assessor.urlPhoto ? (
-                        <Image
-                            src={assessor.urlPhoto}
-                            alt={`User-photo-${assessor.id}`}
-                        />
+                      <Image
+                        src={assessor.urlPhoto}
+                        alt={`User-photo-${assessor.id}`}
+                      />
                     ) : (
-                        <AvatarFallback className="bg-gray-400" />
+                      <AvatarFallback className="bg-gray-400" />
                     )}
-                </Avatar>
-                <div>
-                  <p className="text-sm font-medium">{`${assessor.name} ${assessor.lastName}`}</p>
-                  <p className="text-xs text-muted-foreground">{assessor.email}</p>
+                  </Avatar>
+                  <div>
+                    <p className="text-sm font-medium">{`${assessor.name} ${assessor.lastName}`}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {assessor.email}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-            ))
-          }
+            ))}
           </div>
         );
       case "requestDate":
@@ -68,13 +71,15 @@ const RequestHistoryTable: React.FC<IAssessorChangeHistoryRequestsTableProps> = 
       case "thematicArea":
         return (
           <div className="w-full text-left">
-            {request.student.topic.thematicAreas.map((thematicArea)=>(
-              <Badge variant="secondary" className="text-xs" key={thematicArea.id}>
+            {request.student.topic.thematicAreas.map((thematicArea) => (
+              <Badge
+                variant="secondary"
+                className="text-xs"
+                key={thematicArea.id}
+              >
                 {thematicArea.description}
               </Badge>
-            ))
-            
-            }
+            ))}
           </div>
         );
       case "status":
@@ -133,16 +138,17 @@ const RequestHistoryTable: React.FC<IAssessorChangeHistoryRequestsTableProps> = 
           {requests.length === 0 ? (
             <TableRow>
               <TableCell colSpan={6} className="text-center py-12">
-                No hay solicitudes en el historial para los filtros seleccionados.
+                No hay solicitudes en el historial para los filtros
+                seleccionados.
               </TableCell>
             </TableRow>
           ) : (
             requests.map((item) => (
               <TableRow key={item.id}>
                 {columns.map((column) => (
-                    <TableCell key={column.uid}>
-                      {renderCell(item, column.uid)}
-                    </TableCell>
+                  <TableCell key={column.uid}>
+                    {renderCell(item, column.uid)}
+                  </TableCell>
                 ))}
               </TableRow>
             ))

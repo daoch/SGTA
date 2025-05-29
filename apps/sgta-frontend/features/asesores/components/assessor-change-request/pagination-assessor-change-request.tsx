@@ -1,4 +1,3 @@
-import React from "react";
 import {
   Pagination,
   PaginationContent,
@@ -8,15 +7,12 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { IAssessorChangeRequestPaginationProps } from "@/features/asesores/types/assessor-change-request";
+import { IAssessorChangeRequestPaginationProps } from "@/features/asesores/types/cambio-asesor/entidades";
+import React from "react";
 
-
-
-const AssessorChangeRequestPagination: React.FC<IAssessorChangeRequestPaginationProps> = ({
-  currentPage,
-  totalPages,
-  onPageChange
-}) => {
+const AssessorChangeRequestPagination: React.FC<
+  IAssessorChangeRequestPaginationProps
+> = ({ currentPage, totalPages, onPageChange }) => {
   const MAX_PAGE_BUTTONS = 5;
 
   if (totalPages <= 1) {
@@ -25,15 +21,15 @@ const AssessorChangeRequestPagination: React.FC<IAssessorChangeRequestPagination
 
   const getPageNumbers = () => {
     const pages = [];
-    
+
     let startPage: number, endPage: number;
-    
-    if (totalPages <= MAX_PAGE_BUTTONS) {  
+
+    if (totalPages <= MAX_PAGE_BUTTONS) {
       startPage = 1;
       endPage = totalPages;
     } else {
       const buttonsOnEachSide = Math.floor((MAX_PAGE_BUTTONS - 1) / 2);
-      
+
       if (currentPage <= buttonsOnEachSide + 1) {
         startPage = 1;
         endPage = MAX_PAGE_BUTTONS - 1;
@@ -45,25 +41,25 @@ const AssessorChangeRequestPagination: React.FC<IAssessorChangeRequestPagination
         endPage = currentPage + buttonsOnEachSide;
       }
     }
-    
+
     if (startPage > 1) {
       pages.push(1);
       if (startPage > 2) {
         pages.push("ellipsis-start");
       }
     }
-    
+
     for (let i = startPage; i <= endPage; i++) {
       pages.push(i);
     }
-    
+
     if (endPage < totalPages) {
       if (endPage < totalPages - 1) {
         pages.push("ellipsis-end");
       }
       pages.push(totalPages);
     }
-    
+
     return pages;
   };
 
@@ -74,13 +70,19 @@ const AssessorChangeRequestPagination: React.FC<IAssessorChangeRequestPagination
       <Pagination>
         <PaginationContent>
           <PaginationItem>
-            <PaginationPrevious 
-              onClick={() => currentPage > 1 ? onPageChange(currentPage - 1) : null}
-              className={currentPage <= 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+            <PaginationPrevious
+              onClick={() =>
+                currentPage > 1 ? onPageChange(currentPage - 1) : null
+              }
+              className={
+                currentPage <= 1
+                  ? "pointer-events-none opacity-50"
+                  : "cursor-pointer"
+              }
               aria-disabled={currentPage <= 1}
             />
           </PaginationItem>
-          
+
           {pageNumbers.map((pageNum, index) => (
             <PaginationItem key={`page-${pageNum}-${index}`}>
               {pageNum === "ellipsis-start" || pageNum === "ellipsis-end" ? (
@@ -97,7 +99,7 @@ const AssessorChangeRequestPagination: React.FC<IAssessorChangeRequestPagination
               )}
             </PaginationItem>
           ))}
-          
+
           <PaginationItem>
             <PaginationNext
               onClick={() => {
@@ -105,7 +107,11 @@ const AssessorChangeRequestPagination: React.FC<IAssessorChangeRequestPagination
                   onPageChange(currentPage + 1);
                 }
               }}
-              className={currentPage >= totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+              className={
+                currentPage >= totalPages
+                  ? "pointer-events-none opacity-50"
+                  : "cursor-pointer"
+              }
               aria-disabled={currentPage >= totalPages}
             />
           </PaginationItem>

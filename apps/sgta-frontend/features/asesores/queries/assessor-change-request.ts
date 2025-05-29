@@ -1,21 +1,19 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { approveAssessorChangeRequest, getAssessorChangeRequestDetail, rejectAssessorChangeRequest } from "../services/solicitud-cambio-asesor";
+import {
+  approveAssessorChangeRequest,
+  getAssessorChangeRequestDetail,
+  rejectAssessorChangeRequest,
+} from "../services/solicitud-cambio-asesor";
 import { getTerminationRequestAssessorList } from "../services/solicitud-cese-asesoria";
-import { IAssessorChangeRequestSearchCriteriaAvailableAdvisorList } from "../types/assessor-change-request";
-
-
-
+import { IAssessorChangeRequestSearchCriteriaAvailableAdvisorList } from "../types/cambio-asesor/entidades";
 
 const useRequestAssessorChangeDetail = (idRequest: number | null) => {
+  const queryAssessorChangeRequestDetail = useQuery({
+    queryKey: ["request-assessor-change-detail", idRequest],
+    queryFn: () => getAssessorChangeRequestDetail(idRequest).then((res) => res),
+  });
 
-    const queryAssessorChangeRequestDetail = useQuery({
-        queryKey: ["request-assessor-change-detail", idRequest],
-        queryFn: () =>
-            getAssessorChangeRequestDetail(idRequest).then((res) => res),
-        
-    });
-
-    return queryAssessorChangeRequestDetail;
+  return queryAssessorChangeRequestDetail;
 };
 
 export function useRejectAssessorChangeRequest() {
@@ -42,14 +40,23 @@ export function useApproveAssesorChangeRequest() {
   });
 }
 
-
-const useAssessorChangeRequestAdvisorPerThematicArea = (searchCriteria: IAssessorChangeRequestSearchCriteriaAvailableAdvisorList) => {
-    const queryRequestStudentList = useQuery({
-        queryKey: ["assessor-change-request-detail-assessor-list-per-thematic-area", searchCriteria.idThematicAreas, searchCriteria.fullNameEmailCode, searchCriteria.page],
-        queryFn: () =>
-            getTerminationRequestAssessorList(searchCriteria).then((res) => res),
-    });
-    return queryRequestStudentList;
+const useAssessorChangeRequestAdvisorPerThematicArea = (
+  searchCriteria: IAssessorChangeRequestSearchCriteriaAvailableAdvisorList,
+) => {
+  const queryRequestStudentList = useQuery({
+    queryKey: [
+      "assessor-change-request-detail-assessor-list-per-thematic-area",
+      searchCriteria.idThematicAreas,
+      searchCriteria.fullNameEmailCode,
+      searchCriteria.page,
+    ],
+    queryFn: () =>
+      getTerminationRequestAssessorList(searchCriteria).then((res) => res),
+  });
+  return queryRequestStudentList;
 };
 
-export { useRequestAssessorChangeDetail, useAssessorChangeRequestAdvisorPerThematicArea};
+export {
+  useAssessorChangeRequestAdvisorPerThematicArea,
+  useRequestAssessorChangeDetail,
+};
