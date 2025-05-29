@@ -4,7 +4,9 @@ import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import pucp.edu.pe.sgta.service.inter.CognitoService;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.*;
@@ -18,12 +20,20 @@ public class CognitoServiceImpl implements CognitoService {
     @Value("${cognito.region}")
     private String region;
 
+    @Value("${AWS_ACCESS_KEY_ID}")
+    private String accessKeyId;
+
+    @Value("${AWS_SECRET_ACCESS_KEY}")
+    private String secretAccessKey;
+
     private CognitoIdentityProviderClient cognitoClient;
 
     @PostConstruct
     public void init() {
+        AwsBasicCredentials awsCreds = AwsBasicCredentials.create(accessKeyId, secretAccessKey);
+
         this.cognitoClient = CognitoIdentityProviderClient.builder()
-                .credentialsProvider(DefaultCredentialsProvider.create())
+                .credentialsProvider(StaticCredentialsProvider.create(awsCreds))
                 .region(Region.of(region))
                 .build();
     }
@@ -93,5 +103,62 @@ public class CognitoServiceImpl implements CognitoService {
         cognitoClient.adminAddUserToGroup(groupRequest);
 
         return idCognito;
+    }
+
+    @Override
+    public void eliminarUsuarioEnCognito(String idCognito) throws Exception {
+        try {
+            AdminDeleteUserRequest deleteUserRequest = AdminDeleteUserRequest.builder()
+                    .userPoolId(userPoolId)
+                    .username(idCognito)
+                    .build();
+
+            // Llamar al cliente de Cognito para eliminar al usuario
+            cognitoClient.adminDeleteUser(deleteUserRequest);
+            System.out.println("Usuario eliminado en Cognito con ID: " + idCognito);
+        } catch (Exception e) {
+            System.err.println("Error al eliminar usuario en Cognito con ID: " + idCognito + ". Detalles: " + e.getMessage());
+            throw new RuntimeException("Error al eliminar usuario en Cognito", e);
+        }
+    }
+
+    @Override
+    public void updateUsuarioEnCognito(String idCognito, String grupoAnterior, String grupoNuevo, String nuevoCorreo) {
+        try {
+            // Si el grupo ha cambiado, actualizar los grupos
+            if (grupoAnterior != null && grupoNuevo != null) {
+                AdminRemoveUserFromGroupRequest removeRequest = AdminRemoveUserFromGroupRequest.builder()
+                        .userPoolId(userPoolId)
+                        .username(idCognito)
+                        .groupName(grupoAnterior)
+                        .build();
+                cognitoClient.adminRemoveUserFromGroup(removeRequest);
+
+                AdminAddUserToGroupRequest addRequest = AdminAddUserToGroupRequest.builder()
+                        .userPoolId(userPoolId)
+                        .username(idCognito)
+                        .groupName(grupoNuevo)
+                        .build();
+                cognitoClient.adminAddUserToGroup(addRequest);
+            }
+
+            // Si el correo ha cambiado, actualizarlo
+            if (nuevoCorreo != null) {
+                AdminUpdateUserAttributesRequest updateRequest = AdminUpdateUserAttributesRequest.builder()
+                        .userPoolId(userPoolId)
+                        .username(idCognito)
+                        .userAttributes(AttributeType.builder()
+                                .name("email")
+                                .value(nuevoCorreo)
+                                .build())
+                        .build();
+                cognitoClient.adminUpdateUserAttributes(updateRequest);
+            }
+
+            System.out.println("Usuario actualizado en Cognito con ID: " + idCognito);
+        } catch (Exception e) {
+            System.err.println("Error al actualizar usuario en Cognito con ID: " + idCognito + ". Detalles: " + e.getMessage());
+            throw new RuntimeException("Error al actualizar usuario en Cognito", e);
+        }
     }
 }
