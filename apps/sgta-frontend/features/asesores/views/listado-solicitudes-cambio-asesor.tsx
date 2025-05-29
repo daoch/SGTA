@@ -117,7 +117,7 @@ export default function ListadoSolicitudesCambioAsesor(
       case "coordinador":
         return "/coordinador/asesores/cambio-asesor/detalle/";
       case "asesor":
-        return "/asesor/solicitudes-academicas/cambio-asesor/solicitudes/detalle/";
+        return "/asesor/asesores/cambio-asesor/detalle/";
       default:
         return "/";
     }

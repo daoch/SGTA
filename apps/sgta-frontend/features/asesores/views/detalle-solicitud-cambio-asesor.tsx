@@ -5,6 +5,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
   DetalleSolicitudCambioAsesor,
   UsuarioSolicitud,
 } from "@/features/asesores/types/cambio-asesor/entidades";
@@ -23,7 +31,11 @@ import {
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import AccionesDisponiblesSolicitud from "../components/assessor-change-request/acciones-disponibles";
-import { getDetalleSolicitudCambioAsesor } from "../hooks/cambio-asesor/page";
+import {
+  aceptarSolicitud,
+  getDetalleSolicitudCambioAsesor,
+  rechazarSolicitud,
+} from "../hooks/cambio-asesor/page";
 import { getIdByCorreo } from "../hooks/perfil/perfil-apis";
 import { formatFecha } from "../utils/date-functions";
 
@@ -46,6 +58,13 @@ export default function SolicitudDetalle({
   const [participantesWorkflow, setParticipantesWorkflow] = useState<
     UsuarioSolicitud[]
   >([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalType, setModalType] = useState<"aprobar" | "rechazar" | null>(
+    null,
+  );
+  const [comentario, setComentario] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const getRolSolicitud = (rol: string): string => {
     switch (rol) {
@@ -218,11 +237,73 @@ export default function SolicitudDetalle({
   const router = useRouter();
 
   const handleAprobar = () => {
-    console.log("Solicitud aprobada");
+    setModalType("aprobar");
+    setIsModalOpen(true);
+    setComentario("");
+    setIsSuccess(false);
+    setError("");
   };
 
   const handleRechazar = () => {
-    console.log("Solicitud rechazada");
+    setModalType("rechazar");
+    setIsModalOpen(true);
+    setComentario("");
+    setIsSuccess(false);
+    setError("");
+  };
+
+  const handleCloseModal = () => {
+    if (!isLoading && !isSuccess) {
+      setIsModalOpen(false);
+      setModalType(null);
+      setComentario("");
+      setError("");
+    }
+  };
+
+  const handleVolverASolicitud = () => {
+    setIsModalOpen(false);
+    setModalType(null);
+    setComentario("");
+    setIsSuccess(false);
+    setError("");
+    // Refrescar la página
+    window.location.reload();
+  };
+
+  const handleConfirmarAccion = async () => {
+    if (!comentario.trim()) {
+      setError("El comentario es obligatorio");
+      return;
+    }
+
+    if (!modalType) {
+      setError("No se ha definido la acción a realizar.");
+      return;
+    }
+
+    setIsLoading(true);
+    setError("");
+
+    try {
+      if (!userId || !idSolicitud || !rolSolicitud) {
+        setError("No se ha podido identificar al usuario.");
+        return;
+      }
+
+      if (modalType === "aprobar") {
+        await aceptarSolicitud(userId, idSolicitud, rolSolicitud);
+      } else if (modalType === "rechazar") {
+        await rechazarSolicitud(userId, idSolicitud, rolSolicitud);
+      }
+
+      console.log(`Solicitud ${modalType}da con comentario:`, comentario);
+      setIsSuccess(true);
+    } catch (err) {
+      setError("Error al procesar la solicitud. Intente nuevamente.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleEnviarRecordatorio = () => {
@@ -243,7 +324,9 @@ export default function SolicitudDetalle({
     return (
       <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-gray-500">
         <UserX className="w-16 h-16 mb-4" />
-        <p className="text-base font-medium">Usuario no encontrado</p>
+        <p className="text-base font-medium">
+          No cuenta con permisos para acceder a esta página
+        </p>
         <div className="mt-4">
           <Button
             onClick={loadUsuarioId}
@@ -462,6 +545,110 @@ export default function SolicitudDetalle({
           onRechazar={handleRechazar}
           onEnviarRecordatorio={handleEnviarRecordatorio}
         />
+
+        {/* Modal de Confirmación */}
+        <Dialog open={isModalOpen} onOpenChange={handleCloseModal}>
+          <DialogContent
+            className="sm:max-w-md"
+            onPointerDownOutside={(e) => {
+              if (loading || isSuccess) {
+                e.preventDefault();
+              }
+            }}
+            onEscapeKeyDown={(e) => {
+              if (isLoading || isSuccess) {
+                e.preventDefault();
+              }
+            }}
+          >
+            <DialogHeader>
+              <DialogTitle>
+                {isSuccess
+                  ? "¡Acción Completada!"
+                  : `${modalType === "aprobar" ? "Aprobar" : "Rechazar"} Solicitud`}
+              </DialogTitle>
+            </DialogHeader>
+
+            {!isSuccess ? (
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="comentario">
+                    Comentario{" "}
+                    {modalType === "aprobar" ? "de aprobación" : "de rechazo"} *
+                  </Label>
+                  <Textarea
+                    id="comentario"
+                    placeholder={`Ingrese el motivo ${modalType === "aprobar" ? "de la aprobación" : "del rechazo"}...`}
+                    value={comentario}
+                    onChange={(e) => setComentario(e.target.value)}
+                    disabled={isLoading}
+                    className="mt-2"
+                    rows={4}
+                  />
+                </div>
+
+                {error && <div className="text-red-600 text-sm">{error}</div>}
+
+                <div className="flex gap-3 pt-4">
+                  <Button
+                    variant="outline"
+                    onClick={handleCloseModal}
+                    disabled={isLoading}
+                    className="flex-1"
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    onClick={handleConfirmarAccion}
+                    disabled={isLoading || !comentario.trim()}
+                    className={`flex-1 ${
+                      modalType === "aprobar"
+                        ? "bg-green-600 hover:bg-green-700"
+                        : "bg-red-600 hover:bg-red-700"
+                    }`}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Procesando...
+                      </>
+                    ) : (
+                      `${modalType === "aprobar" ? "Aprobar" : "Rechazar"} Solicitud`
+                    )}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4 text-center">
+                <div className="flex justify-center">
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                    <CheckCircle className="w-8 h-8 text-green-600" />
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-lg font-medium text-gray-900">
+                    Solicitud{" "}
+                    {modalType === "aprobar" ? "aprobada" : "rechazada"}{" "}
+                    exitosamente
+                  </p>
+                  <p className="text-gray-600 mt-2">
+                    La solicitud ha sido{" "}
+                    {modalType === "aprobar" ? "aprobada" : "rechazada"} y se
+                    han notificado a todos los participantes.
+                  </p>
+                </div>
+
+                <Button
+                  onClick={handleVolverASolicitud}
+                  className="w-full bg-blue-600 hover:bg-blue-700"
+                >
+                  Volver a la Solicitud
+                </Button>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

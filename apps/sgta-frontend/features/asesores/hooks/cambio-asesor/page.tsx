@@ -95,3 +95,37 @@ export async function registrarSolicitudCambioAsesor(
     };
   }
 }
+
+export async function aceptarSolicitud(
+  idUsuario: number,
+  idSolicitud: number,
+  rolSolicitud: string,
+): Promise<void> {
+  try {
+    await axiosInstance.post("/solicitudes/aceptarSolicitud", {
+      idUsuario,
+      idSolicitud,
+      rolSolicitud,
+    });
+  } catch (error) {
+    console.error("Error al aceptar la solicitud:", error);
+    throw error;
+  }
+}
+
+export async function rechazarSolicitud(
+  idUsuario: number,
+  idSolicitud: number,
+  rolSolicitud: string,
+): Promise<void> {
+  try {
+    await axiosInstance.post("/solicitudes/rechazarSolicitud", {
+      idUsuario,
+      idSolicitud,
+      rolSolicitud,
+    });
+  } catch (error) {
+    console.error("Error al rechazar la solicitud:", error);
+    throw error;
+  }
+}
