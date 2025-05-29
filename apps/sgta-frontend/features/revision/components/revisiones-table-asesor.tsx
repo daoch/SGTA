@@ -72,7 +72,7 @@ export function RevisionesTableAsesor({
               <TableHead>Entregable</TableHead>
               <TableHead>Estudiante</TableHead>
               <TableHead>Curso</TableHead>
-              <TableHead>Plagio (%)</TableHead>
+              <TableHead>Similitud (%)</TableHead>
               <TableHead>Gen. IA (%)</TableHead>
               <TableHead>F. de Carga</TableHead>
               <TableHead>Ultimo Ciclo</TableHead>

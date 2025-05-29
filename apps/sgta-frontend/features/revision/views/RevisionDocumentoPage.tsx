@@ -13,16 +13,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { toast } from "@/components/ui/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "@/components/ui/use-toast";
 import HighlighterPdfViewer from "@/features/revision/components/HighlighterPDFViewer";
-import { AlertTriangle, ArrowLeft, CheckCircle, FileWarning, Quote, X } from "lucide-react";
+import { AlertTriangle, ArrowLeft, CheckCircle, FileWarning, Quote, Sparkles, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PDFDocument } from "pdf-lib";
 import { useCallback, useEffect, useState } from "react";
 import { IHighlight } from "react-pdf-highlighter/dist/types";
-import { analizarPlagioArchivoS3, descargarArchivoS3, guardarObservacionesRevision } from "../servicios/revision-service";
+import { analizarPlagioArchivoS3, descargarArchivoS3 } from "../servicios/revision-service";
 // ...otros imports...
 
 // Datos de ejemplo para una revisión específica
@@ -41,36 +41,37 @@ const revisionData = {
   entregaATiempo: true,
   citadoCorrecto: false,
   observaciones: [
-    {
-      id: "1",
-      pagina: 5,
-      parrafo: 2,
-      texto: "Falta mayor profundidad en el análisis de resultados.",
-      tipo: "contenido",
-      resuelto: false,
-    },
-    {
-      id: "2",
-      pagina: 8,
-      parrafo: 3,
-      texto: "Se detectó un posible plagio en este párrafo. Verificar la fuente original y citar correctamente.",
-      tipo: "plagio",
-      resuelto: false,
-    },
-    {
-      id: "3",
-      pagina: 12,
-      parrafo: 1,
-      texto: "La tabla 3 no tiene la referencia adecuada según normas APA.",
-      tipo: "citado",
-      resuelto: false,
-    },
+
   ],
 };
 
 export default function RevisarDocumentoPage({ params }: { params: { id: string } }) {
   const router = useRouter();
-  const [revision, setRevision] = useState(revisionData);
+  interface Observacion {
+    id: string;
+    texto: string;
+    pagina: number;
+    tipo?: string;
+    resuelto?: boolean;
+  }
+
+  const [revision, setRevision] = useState<{
+    id: string;
+    titulo: string;
+    estudiante: string;
+    codigo: string;
+    curso: string;
+    entregable: string;
+    fechaEntrega: string;
+    fechaLimite: string;
+    estado: string;
+    porcentajePlagio: number;
+    formatoValido: boolean;
+    entregaATiempo: boolean;
+    citadoCorrecto: boolean;
+    observaciones: Observacion[];
+  }>(revisionData);
+
   const [isLoading, setIsLoading] = useState(false);
   const [showFinalizarDialog, setShowFinalizarDialog] = useState(false);
   const [showRubricaDialog, setShowRubricaDialog] = useState(false);
@@ -81,7 +82,7 @@ export default function RevisarDocumentoPage({ params }: { params: { id: string 
   const [highlights, setHighlights] = useState<IHighlight[]>([]);
   const [activeHighlight, setActiveHighlight] = useState<IHighlight | undefined>(undefined);
 
-  const [tab, setTab] = useState<"revisor" | "plagio">("revisor");
+  const [tab, setTab] = useState<"revisor" | "plagio" | "ia">("revisor");
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [numPages, setNumPages] = useState<number | null>(null);
   interface PlagioDetalle {
@@ -135,7 +136,7 @@ export default function RevisarDocumentoPage({ params }: { params: { id: string 
         const blob = await descargarArchivoS3(key);
         const url = URL.createObjectURL(blob);
         setPdfUrl(url);
-
+        console.log("PDF URL:", url);
         // Obtener número de páginas usando pdf-lib
         const arrayBuffer = await blob.arrayBuffer();
         const pdfDoc = await PDFDocument.load(arrayBuffer);
@@ -291,15 +292,15 @@ export default function RevisarDocumentoPage({ params }: { params: { id: string 
 
     try {
       // En una aplicación real, aquí se enviaría la revisión al backend
-      await guardarObservacionesRevision(revision.id, highlights, 1); // Asumiendo que el usuario es el asesor con ID 1
+      // await guardarObservacionesRevision(revision.id, highlights, 1); // Asumiendo que el usuario es el asesor con ID 1
       console.log("Revisión guardada exitosamente");
 
-      // await new Promise((resolve) => setTimeout(resolve, 1500));
+      await new Promise((resolve) => setTimeout(resolve, 1500));
 
       // // Cerramos el diálogo de finalizar y mostramos la rúbrica
-      // setShowFinalizarDialog(false);
-      // setShowRubricaDialog(true);
-      // setIsLoading(false);
+      setShowFinalizarDialog(false);
+      setShowRubricaDialog(true);
+      setIsLoading(false);
     } catch (error) {
       console.error("Error al finalizar la revisión:", error);
       setIsLoading(false);
@@ -357,7 +358,7 @@ export default function RevisarDocumentoPage({ params }: { params: { id: string 
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div>
-                <h4 className="text-sm font-medium mb-2">Detección de Plagio</h4>
+                <h4 className="text-sm font-medium mb-2">Detección de similitud</h4>
                 <div className="flex items-center gap-2">
                   {/* <Progress
                     value={revision.porcentajePlagio}
@@ -534,9 +535,10 @@ export default function RevisarDocumentoPage({ params }: { params: { id: string 
             </CardHeader>
             <CardContent>
               <Tabs value={tab} onValueChange={v => setTab(v as "revisor" | "plagio")}>
-                <TabsList className="mb-4">
-                  <TabsTrigger value="revisor">Del Revisor</TabsTrigger>
-                  <TabsTrigger value="plagio">API de Plagio</TabsTrigger>
+                <TabsList className="mb-4 w-full">
+                  <TabsTrigger value="revisor">Revisor</TabsTrigger>
+                  <TabsTrigger value="plagio">Deteccion de similitud</TabsTrigger>
+                  <TabsTrigger value="ia" className="flex-1">Generado con IA</TabsTrigger>
                 </TabsList>
                 <TabsContent value="revisor">
                   <div className="space-y-4">
@@ -610,9 +612,14 @@ export default function RevisarDocumentoPage({ params }: { params: { id: string 
                     ))}
                     {(!plagioData || plagioData.detalles.length === 0) && (
                       <div className="text-center py-6 text-gray-500">
-                        No hay observaciones de plagio
+                        No hay observaciones de similitud
                       </div>
                     )}
+                  </div>
+                </TabsContent>
+                <TabsContent value="ia">
+                  <div className="text-center py-6 text-gray-500">
+                    No hay observaciones de contenido generado por IA
                   </div>
                 </TabsContent>
               </Tabs>
@@ -624,7 +631,7 @@ export default function RevisarDocumentoPage({ params }: { params: { id: string 
             variant="outline"
             className="w-full mb-4"
           >
-            {isAnalizandoPlagio ? "Analizando plagio..." : "Analizar plagio"}
+            {isAnalizandoPlagio ? "Analizando similitudes..." : "Analizar similitud"}
           </Button>
           {/* <Button
                         onClick={handleSaveAnnotatedPDF}
@@ -662,7 +669,7 @@ export default function RevisarDocumentoPage({ params }: { params: { id: string 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <AlertTriangle className="h-4 w-4 text-red-500" />
-                    <span>Plagio</span>
+                    <span>Similitud</span>
                   </div>
                   <Badge variant="outline" className="bg-red-100 text-red-800">
                     {revision.observaciones.filter((o) => o.tipo === "plagio").length}
@@ -678,58 +685,67 @@ export default function RevisarDocumentoPage({ params }: { params: { id: string 
                     {revision.observaciones.filter((o) => o.tipo === "citado").length}
                   </Badge>
                 </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-green-500" />
+                    <span>Generado con IA</span>
+                  </div>
+                  <Badge variant="outline" className="bg-green-100 text-green-800">
+                    {revision.observaciones.filter((o) => o.tipo === "citado").length}
+                  </Badge>
+                </div>
               </div>
             </CardContent>
           </Card>
           {revision.estado === "por-aprobar" && (
-              <div className="flex justify-end gap-4 mt-6">
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="default">Aceptar Entregable</Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>¿Estás seguro de aceptar este entregable?</DialogTitle>
-                    </DialogHeader>
-                    <DialogFooter>
-                      <Button variant="outline">Cancelar</Button>
-                      <Button
-                        variant="default"
-                        onClick={() => {
-                          setRevision({ ...revision, estado: "aprobado" });
-                          toast({ title: "Entregable aprobado" });
-                        }}
-                      >
-                        Confirmar
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
+            <div className="flex justify-end gap-4 mt-6">
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="default">Aceptar Entregable</Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>¿Estás seguro de aceptar este entregable?</DialogTitle>
+                  </DialogHeader>
+                  <DialogFooter>
+                    <Button variant="outline">Cancelar</Button>
+                    <Button
+                      variant="default"
+                      onClick={() => {
+                        setRevision({ ...revision, estado: "aprobado" });
+                        toast({ title: "Entregable aprobado" });
+                      }}
+                    >
+                      Confirmar
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
 
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="destructive">Rechazar Entregable</Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>¿Estás seguro de rechazar este entregable?</DialogTitle>
-                    </DialogHeader>
-                    <DialogFooter>
-                      <Button variant="outline">Cancelar</Button>
-                      <Button
-                        variant="destructive"
-                        onClick={() => {
-                          setRevision({ ...revision, estado: "rechazado" });
-                          toast({ title: "Entregable rechazado" });
-                        }}
-                      >
-                        Confirmar
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-              </div>
-            )}   
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="destructive">Rechazar Entregable</Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>¿Estás seguro de rechazar este entregable?</DialogTitle>
+                  </DialogHeader>
+                  <DialogFooter>
+                    <Button variant="outline">Cancelar</Button>
+                    <Button
+                      variant="destructive"
+                      onClick={() => {
+                        setRevision({ ...revision, estado: "rechazado" });
+                        toast({ title: "Entregable rechazado" });
+                      }}
+                    >
+                      Confirmar
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+          )}
         </div>
       </div>
     </div>

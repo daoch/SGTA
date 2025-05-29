@@ -464,7 +464,7 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
               <Separator />
 
               <div>
-                <h4 className="text-sm font-medium mb-2">Detección de Plagio</h4>
+                <h4 className="text-sm font-medium mb-2">Detección de similitud</h4>
                 <div>
 
                 </div>
@@ -481,10 +481,10 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
                 </span>
                 <p className="text-xs text-muted-foreground mt-1">
                   {revision.porcentajePlagio !== null && revision.porcentajePlagio > 20
-                    ? "Alto nivel de plagio detectado"
+                    ? "Alto nivel de similitud detectado"
                     : revision.porcentajePlagio !== null && revision.porcentajePlagio > 10
-                      ? "Nivel moderado de plagio detectado"
-                      : "Nivel aceptable de plagio"}
+                      ? "Nivel moderado de similitud detectado"
+                      : "Nivel aceptable de similitud "}
                 </p>
               </div>
 
