@@ -2,6 +2,7 @@ package pucp.edu.pe.sgta.controller;
 
 import java.util.List;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 import pucp.edu.pe.sgta.dto.UpdateEtapaFormativaRequest;
 
 import pucp.edu.pe.sgta.dto.*;
+import pucp.edu.pe.sgta.service.inter.JwtService;
 
 
 @RestController
@@ -35,6 +37,9 @@ import pucp.edu.pe.sgta.dto.*;
 public class EtapaFormativaController {
     @Autowired
     EtapaFormativaService etapaFormativaService;
+
+    @Autowired
+    JwtService jwtService;
 
     @GetMapping("/listarPorInicializarByCoordinador/{corodinador_id}")
     public List<EtapaFormativaNombreDTO> obtenerPorInicializarPorCoordinador(
@@ -116,8 +121,9 @@ public class EtapaFormativaController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/alumno/{alumnoId}")
-    public List<EtapaFormativaAlumnoDto> listarEtapasFormativasPorAlumno(@PathVariable Integer alumnoId) {
+    @GetMapping("/alumno")
+    public List<EtapaFormativaAlumnoDto> listarEtapasFormativasPorAlumno(HttpServletRequest request) {
+        String alumnoId = jwtService.extractSubFromRequest(request);
         return etapaFormativaService.listarEtapasFormativasPorAlumno(alumnoId);
     }
 

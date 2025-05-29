@@ -67,5 +67,5 @@ public interface EtapaFormativaService {
 
     Integer getEtapaFormativaIdByExposicionId(Integer exposicionId);
 
-    List<EtapaFormativaAlumnoDto> listarEtapasFormativasPorAlumno(Integer alumnoId);
+    List<EtapaFormativaAlumnoDto> listarEtapasFormativasPorAlumno(String alumnoId);
 }
