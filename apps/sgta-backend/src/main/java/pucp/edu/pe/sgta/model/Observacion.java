@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -57,6 +59,16 @@ public class Observacion {
     @Column(name = "activo")
     private Boolean activo = true;
 
+    
+    @Embedded
+    private BoundingRect boundingRect;
+
+    @ElementCollection
+    @CollectionTable(
+      name = "observacion_rect",
+      joinColumns = @JoinColumn(name = "observacion_id")
+    )
+    private List<Rect> rects = new ArrayList<>();
     /**
      * Valida si el rango de páginas es válido (página de inicio <= página de fin)
      */

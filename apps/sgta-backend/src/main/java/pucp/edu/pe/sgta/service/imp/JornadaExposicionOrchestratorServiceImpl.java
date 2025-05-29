@@ -4,9 +4,12 @@ import java.time.Duration;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.ArrayList;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,10 +46,25 @@ public class JornadaExposicionOrchestratorServiceImpl implements JornadaExposici
 
     @Override
     @Transactional
-    public void initializeJornadasExposicion(IniatilizeJornadasExposicionCreateDTO dto) {
+    public ResponseEntity<?> initializeJornadasExposicion(IniatilizeJornadasExposicionCreateDTO dto) {
 
         EtapaFormativaDto etapaFormativaDto = etapaFormativaService.findById(dto.getEtapaFormativaId());
         List<BloqueHorarioExposicionCreateDTO> bloqueHorarioExposicionCreateDTOs = new ArrayList<BloqueHorarioExposicionCreateDTO>();
+
+        for (var fecha : dto.getFechas()) {
+            for (var sala : fecha.getSalas()) {
+                boolean ocupada = bloqueHorarioExposicionService.verificarSalaOcupada(
+                        sala, fecha.getFechaHoraInicio(), fecha.getFechaHoraFin());
+
+                if (ocupada) {
+                    return ResponseEntity.status(HttpStatus.CONFLICT).body(
+                            Map.of("mensaje",
+                                    "No se puede asignar la sala " + sala +
+                                            " porque ya está ocupada en el rango de fechas " +
+                                            fecha.getFechaHoraInicio() + " a " + fecha.getFechaHoraFin()));
+                }
+            }
+        }
 
         dto.getFechas().forEach(fecha -> {
             JornadaExposicionCreateDTO createDTO = new JornadaExposicionCreateDTO();
@@ -89,7 +107,9 @@ public class JornadaExposicionOrchestratorServiceImpl implements JornadaExposici
         exposicionDto.setEstadoPlanificacionId(2);
         exposicionService.update(exposicionDto);
 
-        controlExposicionUsuarioTemaRepository.insertarControlesDeExposicion(dto.getExposicionId(),dto.getEtapaFormativaId());
+        controlExposicionUsuarioTemaRepository.insertarControlesDeExposicion(dto.getExposicionId(),
+                dto.getEtapaFormativaId());
 
+        return ResponseEntity.ok(Map.of("mensaje", "Registro inicial de planificación registrado correctamente"));
     }
 }

@@ -13,6 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { toast } from "@/components/ui/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import HighlighterPdfViewer from "@/features/revision/components/HighlighterPDFViewer";
 import { AlertTriangle, ArrowLeft, CheckCircle, FileWarning, Quote, X } from "lucide-react";
@@ -21,7 +22,7 @@ import { useRouter } from "next/navigation";
 import { PDFDocument } from "pdf-lib";
 import { useCallback, useEffect, useState } from "react";
 import { IHighlight } from "react-pdf-highlighter/dist/types";
-import { analizarPlagioArchivoS3, descargarArchivoS3 } from "../servicios/revision-service";
+import { analizarPlagioArchivoS3, descargarArchivoS3, guardarObservacionesRevision } from "../servicios/revision-service";
 // ...otros imports...
 
 // Datos de ejemplo para una revisión específica
@@ -34,7 +35,7 @@ const revisionData = {
   entregable: "E1",
   fechaEntrega: "2023-11-02",
   fechaLimite: "2023-11-05",
-  estado: "en-proceso",
+  estado: "por-aprobar",
   porcentajePlagio: 12,
   formatoValido: false,
   entregaATiempo: true,
@@ -290,12 +291,15 @@ export default function RevisarDocumentoPage({ params }: { params: { id: string 
 
     try {
       // En una aplicación real, aquí se enviaría la revisión al backend
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await guardarObservacionesRevision(revision.id, highlights, 1); // Asumiendo que el usuario es el asesor con ID 1
+      console.log("Revisión guardada exitosamente");
 
-      // Cerramos el diálogo de finalizar y mostramos la rúbrica
-      setShowFinalizarDialog(false);
-      setShowRubricaDialog(true);
-      setIsLoading(false);
+      // await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      // // Cerramos el diálogo de finalizar y mostramos la rúbrica
+      // setShowFinalizarDialog(false);
+      // setShowRubricaDialog(true);
+      // setIsLoading(false);
     } catch (error) {
       console.error("Error al finalizar la revisión:", error);
       setIsLoading(false);
@@ -332,6 +336,16 @@ export default function RevisarDocumentoPage({ params }: { params: { id: string 
           </Link>
           <h1 className="text-3xl font-bold text-pucp-blue">Revisar Documento</h1>
         </div>
+        {revision.estado === "aprobado" && (
+          <div className="bg-green-100 text-green-700 ml-50 px-4 py-1 rounded-xl border border-green-300 text-sm font-medium">
+            ENTREGABLE APROBADO
+          </div>
+        )}
+        {revision.estado === "rechazado" && (
+          <div className="bg-red-100 text-red-700 ml-50 px-4 py-1 rounded-xl border border-red-300 text-sm font-medium">
+            ENTREGABLE RECHAZADO
+          </div>
+        )}
         <Dialog open={showFinalizarDialog} onOpenChange={setShowFinalizarDialog}>
           <DialogTrigger asChild>
             <Button className="bg-pucp-blue hover:bg-pucp-light">Guardar Revisión</Button>
@@ -667,6 +681,55 @@ export default function RevisarDocumentoPage({ params }: { params: { id: string 
               </div>
             </CardContent>
           </Card>
+          {revision.estado === "por-aprobar" && (
+              <div className="flex justify-end gap-4 mt-6">
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="default">Aceptar Entregable</Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>¿Estás seguro de aceptar este entregable?</DialogTitle>
+                    </DialogHeader>
+                    <DialogFooter>
+                      <Button variant="outline">Cancelar</Button>
+                      <Button
+                        variant="default"
+                        onClick={() => {
+                          setRevision({ ...revision, estado: "aprobado" });
+                          toast({ title: "Entregable aprobado" });
+                        }}
+                      >
+                        Confirmar
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="destructive">Rechazar Entregable</Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>¿Estás seguro de rechazar este entregable?</DialogTitle>
+                    </DialogHeader>
+                    <DialogFooter>
+                      <Button variant="outline">Cancelar</Button>
+                      <Button
+                        variant="destructive"
+                        onClick={() => {
+                          setRevision({ ...revision, estado: "rechazado" });
+                          toast({ title: "Entregable rechazado" });
+                        }}
+                      >
+                        Confirmar
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            )}   
         </div>
       </div>
     </div>

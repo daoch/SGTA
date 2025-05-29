@@ -136,6 +136,7 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
               codigo: null,
               titulo: null,
               usuarios: null,
+              areasConocimiento: undefined,
             },
           });
         }
@@ -178,6 +179,7 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
             codigo: null,
             titulo: null,
             usuarios: null,
+            areasConocimiento: undefined,
           },
         });
       }
