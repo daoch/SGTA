@@ -1,10 +1,6 @@
 // Update the import path below if the actual path is different
 import axiosInstance from "@/lib/axios/axios-instance";
 import {
-  getMockDetalleSolicitudCambioAsesor,
-  getMockSolicitudCambioAsesorResumen,
-} from "../../mocks/requests/assessor-change-requests";
-import {
   DetalleSolicitudCambioAsesor,
   SolicidudRegistro,
   SolicitudCambioAsesorResumen,
@@ -19,23 +15,18 @@ export interface InformacionTesisResponse {
 
 export async function getDetalleSolicitudCambioAsesor(
   idSolicitud: number,
-  idUsuario: number,
-  rolSolicitud: string,
 ): Promise<DetalleSolicitudCambioAsesor> {
   try {
-    /*
-    const response = await axiosInstance.get("/solicitudes/detalleSolicitud", {
-      params: {
-        idSolicitud,
-        idUsuario,
-        rolSolicitud,
+    const response = await axiosInstance.get(
+      "/solicitudes/listarDetalleSolicitudCambioAsesorUsuario",
+      {
+        params: {
+          idSolicitud,
+        },
       },
-    });
+    );
 
     return response.data as DetalleSolicitudCambioAsesor;
-    */
-
-    return getMockDetalleSolicitudCambioAsesor();
   } catch (error) {
     console.error("Error al obtener el detalle de la solicitud:", error);
     throw error;
@@ -47,16 +38,17 @@ export async function getResumenesSolicitudCambioAsesor(
   rolSolicitud: string,
 ): Promise<SolicitudCambioAsesorResumen[]> {
   try {
-    /*
-    const response = await axiosInstance.get("/solicitudes/listarResumenes", {
-      params: {
-        idUsuario,
-        rolSolicitud,
+    const response = await axiosInstance.get(
+      "/solicitudes/listarResumenSolicitudCambioAsesorUsuario",
+      {
+        params: {
+          idUsuario,
+          rolSolicitud,
+        },
       },
-    });
+    );
 
-    return response.data as SolicitudCambioAsesorResumen[];*/
-    return getMockSolicitudCambioAsesorResumen();
+    return response.data as SolicitudCambioAsesorResumen[];
   } catch (error) {
     console.error("Error al obtener los resúmenes de solicitudes:", error);
     throw error;

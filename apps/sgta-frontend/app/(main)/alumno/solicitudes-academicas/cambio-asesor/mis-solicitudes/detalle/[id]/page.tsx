@@ -1,10 +1,13 @@
 "use client";
 
 import SolicitudDetalle from "@/features/asesores/views/detalle-solicitud-cambio-asesor";
-import React from "react";
+import { useParams } from "next/navigation";
 
 const Page: React.FC = () => {
-  return <SolicitudDetalle rol="alumno" />;
+  const params = useParams();
+  const id = params?.id ? Number(params.id) : null;
+
+  return <SolicitudDetalle rol="alumno" idSolicitud={id} />;
 };
 
 export default Page;

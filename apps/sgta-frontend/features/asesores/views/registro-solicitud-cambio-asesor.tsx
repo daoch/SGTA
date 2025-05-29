@@ -100,7 +100,6 @@ export default function RegistrarSolicitudCambioAsesor() {
   useEffect(() => {
     const buscarAsesores = async () => {
       if (busqueda.length >= 2 && userId) {
-        setIsLoading(true);
         try {
           const resultado = await getAsesoresPorFiltros({
             alumnoId: userId,
@@ -112,8 +111,6 @@ export default function RegistrarSolicitudCambioAsesor() {
           setAsesores(resultado);
         } catch (error) {
           console.error("Error al buscar asesores:", error);
-        } finally {
-          setIsLoading(false);
         }
       }
     };
@@ -196,7 +193,7 @@ export default function RegistrarSolicitudCambioAsesor() {
   const verDetalleSolicitud = () => {
     if (solicitudId) {
       router.push(
-        `/alumno/solicitudes-academicas/cambio-asesor/detalle/${solicitudId}`,
+        `/alumno/solicitudes-academicas/cambio-asesor/mis-solicitudes/detalle/${solicitudId}`,
       );
     }
   };
@@ -206,7 +203,7 @@ export default function RegistrarSolicitudCambioAsesor() {
       <div className="flex items-center justify-center h-screen w-full flex-col gap-4">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         <span className="text-muted-foreground text-lg">
-          Cargando perfil...
+          Cargando información...
         </span>
       </div>
     );

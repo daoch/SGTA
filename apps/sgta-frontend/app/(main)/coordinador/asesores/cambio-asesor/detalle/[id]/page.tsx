@@ -5,9 +5,9 @@ import { useParams } from "next/navigation";
 
 const Page: React.FC = () => {
   const params = useParams();
-  const id = params?.id;
+  const id = params?.id ? Number(params.id) : null;
 
-  return <SolicitudDetalle rol="coordinador" />;
+  return <SolicitudDetalle rol="coordinador" idSolicitud={id} />;
 };
 
 export default Page;

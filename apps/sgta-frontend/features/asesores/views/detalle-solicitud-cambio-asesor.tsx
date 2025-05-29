@@ -8,6 +8,7 @@ import {
   DetalleSolicitudCambioAsesor,
   UsuarioSolicitud,
 } from "@/features/asesores/types/cambio-asesor/entidades";
+import { useAuth } from "@/features/auth";
 import {
   AlertCircle,
   ArrowLeft,
@@ -15,24 +16,29 @@ import {
   Clock,
   FileText,
   Info,
+  Loader2,
   User,
+  UserX,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import AccionesDisponiblesSolicitud from "../components/assessor-change-request/acciones-disponibles";
 import { getDetalleSolicitudCambioAsesor } from "../hooks/cambio-asesor/page";
+import { getIdByCorreo } from "../hooks/perfil/perfil-apis";
+import { formatFecha } from "../utils/date-functions";
 
 interface SolicitudDetalleProps {
   rol: "asesor" | "coordinador" | "alumno";
-  idSolicitud?: number;
-  idUsuario?: number;
+  idSolicitud: number | null;
 }
 
 export default function SolicitudDetalle({
   rol,
-  idSolicitud = 1,
-  idUsuario = 1,
+  idSolicitud,
 }: Readonly<SolicitudDetalleProps>) {
+  const { user } = useAuth();
+  const hasFetchedId = useRef(false);
+  const [userId, setUserId] = useState<number | null>(null);
   const [solicitudData, setSolicitudData] =
     useState<DetalleSolicitudCambioAsesor | null>(null);
   const [loading, setLoading] = useState(false);
@@ -41,26 +47,67 @@ export default function SolicitudDetalle({
     UsuarioSolicitud[]
   >([]);
 
-  useEffect(() => {
-    const fetchDataDetalle = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const data = await getDetalleSolicitudCambioAsesor(
-          idSolicitud,
-          idUsuario,
-          rol,
-        );
-        setSolicitudData(data);
-      } catch (err) {
-        setError((err as Error).message);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const getRolSolicitud = (rol: string): string => {
+    switch (rol) {
+      case "alumno":
+        return "REMITENTE";
+      case "coordinador":
+        return "DESTINATARIO";
+      case "asesor":
+        return "PENDIENTE_ACCION";
+      default:
+        return "/";
+    }
+  };
+  const rolSolicitud = getRolSolicitud(rol);
 
-    fetchDataDetalle();
-  }, []);
+  const loadUsuarioId = async () => {
+    if (!user) return;
+
+    setLoading(true);
+
+    try {
+      const id = await getIdByCorreo(user.email);
+
+      if (id !== null) {
+        setUserId(id);
+        console.log("ID del asesor obtenido:", id);
+      } else {
+        console.warn("No se encontró un asesor con ese correo.");
+        // puedes mostrar un mensaje de advertencia aquí si deseas
+      }
+    } catch (error) {
+      console.error("Error inesperado al obtener el ID del asesor:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user && !hasFetchedId.current) {
+      hasFetchedId.current = true;
+      loadUsuarioId();
+      fetchDataDetalle();
+    }
+  }, [user]);
+
+  const fetchDataDetalle = async () => {
+    setLoading(true);
+    setError(null);
+    if (!idSolicitud) {
+      setError("ID de solicitud no proporcionado");
+      setLoading(false);
+      return;
+    }
+    try {
+      const data = await getDetalleSolicitudCambioAsesor(idSolicitud);
+      setSolicitudData(data);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (solicitudData) {
@@ -168,14 +215,6 @@ export default function SolicitudDetalle({
     }
   };
 
-  const formatDate = (date: string | Date) => {
-    return new Date(date).toLocaleDateString("es-ES", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    });
-  };
-
   const router = useRouter();
 
   const handleAprobar = () => {
@@ -190,9 +229,32 @@ export default function SolicitudDetalle({
     console.log("Recordatorio enviado");
   };
 
-  if (loading) {
-    return <div className="text-center text-gray-500">Cargando...</div>;
-  }
+  if (loading)
+    return (
+      <div className="flex items-center justify-center h-screen w-full flex-col gap-4">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <span className="text-muted-foreground text-lg">
+          Cargando detalle...
+        </span>
+      </div>
+    );
+
+  if ((!user || !userId) && hasFetchedId.current === true)
+    return (
+      <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-gray-500">
+        <UserX className="w-16 h-16 mb-4" />
+        <p className="text-base font-medium">Usuario no encontrado</p>
+        <div className="mt-4">
+          <Button
+            onClick={loadUsuarioId}
+            variant="outline"
+            className="bg-white text-black border border-gray-300 hover:bg-gray-100"
+          >
+            Volver a intentar
+          </Button>
+        </div>
+      </div>
+    );
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-7xl space-y-6">
@@ -244,7 +306,7 @@ export default function SolicitudDetalle({
                   Fecha de Envío
                 </label>
                 <p className="text-gray-900">
-                  {formatDate(solicitudData?.fechaEnvio ?? new Date())}
+                  {formatFecha(solicitudData?.fechaEnvio ?? new Date())}
                 </p>
               </div>
             </div>
@@ -294,7 +356,7 @@ export default function SolicitudDetalle({
               {solicitudData?.asesorNuevo && (
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                   <h5 className="font-medium text-green-800 mb-3">
-                    Asesor Sugerido
+                    Nuevo Asesor
                   </h5>
                   <div className="flex items-center gap-3">
                     <Avatar>
@@ -375,7 +437,7 @@ export default function SolicitudDetalle({
                       </Badge>
                       {participante.fechaAccion && (
                         <span className="text-xs text-gray-500">
-                          {formatDate(participante.fechaAccion)}
+                          {formatFecha(participante.fechaAccion)}
                         </span>
                       )}
                     </div>

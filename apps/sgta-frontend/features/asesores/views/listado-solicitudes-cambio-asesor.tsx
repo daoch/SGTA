@@ -1,12 +1,17 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Check, Clock, FileText, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useAuth } from "@/features/auth";
+import { Check, Clock, FileText, Loader2, UserX, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import RequestSearchFilters from "../components/assessor-change-request/search-filters-request-list";
 import TablaSolicitudesCambioAsesor from "../components/assessor-change-request/table-solicitudes-cambio";
-import { getMockSolicitudCambioAsesorResumen } from "../mocks/requests/assessor-change-requests";
+import { getResumenesSolicitudCambioAsesor } from "../hooks/cambio-asesor/page";
+import { getIdByCorreo } from "../hooks/perfil/perfil-apis";
+import { SolicitudCambioAsesorResumen } from "../types/cambio-asesor/entidades";
+import { formatFecha } from "../utils/date-functions";
 
 interface ListadoSolicitudesCambioAsesorProps {
   rol: "asesor" | "coordinador" | "alumno";
@@ -17,11 +22,84 @@ export default function ListadoSolicitudesCambioAsesor(
     rol: "coordinador", // Default role for the component
   },
 ) {
+  const { user } = useAuth();
+  const hasFetchedId = useRef(false);
   const [busqueda, setBusqueda] = useState("");
   const [status, setStatus] = useState("all");
+  const [solicitudes, setSolicitudes] = useState<
+    SolicitudCambioAsesorResumen[]
+  >([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [idUsuario, setIdUsuario] = useState<number | null>(null);
 
-  const solicitudes = getMockSolicitudCambioAsesorResumen();
-  console.log("Datos de solicitudes:", solicitudes);
+  const getRolSolicitud = (rol: string): string => {
+    switch (rol) {
+      case "alumno":
+        return "REMITENTE";
+      case "coordinador":
+        return "DESTINATARIO";
+      case "asesor":
+        return "PENDIENTE_ACCION";
+      default:
+        return "/";
+    }
+  };
+
+  const rolSolicitud = getRolSolicitud(rol);
+
+  const loadUsuarioId = async () => {
+    if (!user) return;
+
+    setLoading(true);
+
+    try {
+      const id = await getIdByCorreo(user.email);
+
+      if (id !== null) {
+        setIdUsuario(id);
+        console.log("ID del asesor obtenido:", id);
+      } else {
+        console.warn("No se encontró un asesor con ese correo.");
+        // puedes mostrar un mensaje de advertencia aquí si deseas
+      }
+    } catch (error) {
+      console.error("Error inesperado al obtener el ID del asesor:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user && !hasFetchedId.current) {
+      hasFetchedId.current = true;
+      loadUsuarioId();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    const fetchSolicitudes = async () => {
+      if (!idUsuario || !rolSolicitud) return;
+      setLoading(true);
+      setError(null);
+
+      try {
+        const data = await getResumenesSolicitudCambioAsesor(
+          idUsuario,
+          rolSolicitud,
+        );
+        setSolicitudes(data);
+      } catch (err) {
+        setError("No se pudieron cargar las solicitudes.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (idUsuario && rolSolicitud) {
+      fetchSolicitudes();
+    }
+  }, [idUsuario, rolSolicitud]);
 
   const clearFullNameEmailPage = () => {
     setBusqueda("");
@@ -46,18 +124,6 @@ export default function ListadoSolicitudesCambioAsesor(
   };
 
   const rutaDetalle = getRutaDetalle(rol);
-
-  const formatFecha = (fecha: string | Date) => {
-    const date = new Date(fecha);
-    return date.toLocaleDateString("es-ES", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    });
-  };
-
-  console.log("Rol:", rol);
-  console.log("Ruta de detalle:", rutaDetalle);
 
   const solicitudesFiltradas = useMemo(() => {
     let filtradas = solicitudes;
@@ -134,6 +200,33 @@ export default function ListadoSolicitudesCambioAsesor(
         return <Badge variant="outline">{estado}</Badge>;
     }
   };
+
+  if (loading)
+    return (
+      <div className="flex items-center justify-center h-screen w-full flex-col gap-4">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <span className="text-muted-foreground text-lg">
+          Cargando solicitudes...
+        </span>
+      </div>
+    );
+
+  if ((!user || !idUsuario) && hasFetchedId.current === true)
+    return (
+      <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-gray-500">
+        <UserX className="w-16 h-16 mb-4" />
+        <p className="text-base font-medium">Usuario no encontrado</p>
+        <div className="mt-4">
+          <Button
+            onClick={loadUsuarioId}
+            variant="outline"
+            className="bg-white text-black border border-gray-300 hover:bg-gray-100"
+          >
+            Volver a intentar
+          </Button>
+        </div>
+      </div>
+    );
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-7xl space-y-6">
