@@ -7,8 +7,10 @@ import React from "react";
 const Page: React.FC = () => {
   const params = useParams();
   const id = params?.id as string;
+  const exposicionId = params?.exposicionId as string;
 
-  return <DetalleExposicion id={id} />;
+  return <DetalleExposicion id={id} exposicionId={exposicionId} />;
 };
 
 export default Page;
+

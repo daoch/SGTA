@@ -27,8 +27,6 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
 
     private final BloqueHorarioExposicionRepository bloqueHorarioExposicionRepository;
 
-
-
     public BloqueHorarioExposicionServiceImpl(BloqueHorarioExposicionRepository bloqueHorarioExposicionRepository) {
         this.bloqueHorarioExposicionRepository = bloqueHorarioExposicionRepository;
     }
@@ -101,7 +99,7 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
             temaConAsesorJuradoDTO.setTitulo((String) row[10]);
 
             return new ListBloqueHorarioExposicionSimpleDTO(key, range, idBloque, idJornadaExposicionSala, exposicionId,
-                    temaConAsesorJuradoDTO, esBloqueReservado, esBloqueBloqueado,temaConAsesorJuradoDTO,false);
+                    temaConAsesorJuradoDTO, esBloqueReservado, esBloqueBloqueado, temaConAsesorJuradoDTO, false);
         }).collect(Collectors.toList());
     }
 
@@ -173,8 +171,9 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
     @Override
 
     public int bloquearBloque(int idBloque) {
-        BloqueHorarioExposicion bloqueHorarioExposicion = bloqueHorarioExposicionRepository.findById(idBloque).orElse(null);
-        if(bloqueHorarioExposicion != null) {
+        BloqueHorarioExposicion bloqueHorarioExposicion = bloqueHorarioExposicionRepository.findById(idBloque)
+                .orElse(null);
+        if (bloqueHorarioExposicion != null) {
             bloqueHorarioExposicion.setEsBloqueBloqueado(true);
             bloqueHorarioExposicionRepository.save(bloqueHorarioExposicion);
             return 1;
@@ -184,8 +183,9 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
 
     @Override
     public int desbloquearBloque(int idBloque) {
-        BloqueHorarioExposicion bloqueHorarioExposicion = bloqueHorarioExposicionRepository.findById(idBloque).orElse(null);
-        if(bloqueHorarioExposicion != null) {
+        BloqueHorarioExposicion bloqueHorarioExposicion = bloqueHorarioExposicionRepository.findById(idBloque)
+                .orElse(null);
+        if (bloqueHorarioExposicion != null) {
             bloqueHorarioExposicion.setEsBloqueBloqueado(false);
             bloqueHorarioExposicionRepository.save(bloqueHorarioExposicion);
             return 1;
@@ -193,9 +193,10 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
         return 0;
     }
 
-    public List<ListBloqueHorarioExposicionSimpleDTO> asignarTemasBloques(List<AsignacionBloqueDTO> listaBloquesTemas,DistribucionRequestDTO request) {
+    public List<ListBloqueHorarioExposicionSimpleDTO> asignarTemasBloques(List<AsignacionBloqueDTO> listaBloquesTemas,
+            DistribucionRequestDTO request) {
         List<ListBloqueHorarioExposicionSimpleDTO> bloques = request.getBloques();
-        List<TemaConAsesorJuradoDTO>temas = request.getTemas();
+        List<TemaConAsesorJuradoDTO> temas = request.getTemas();
         List<ListBloqueHorarioExposicionSimpleDTO> nuevaLista = new ArrayList<>();
 
         for (AsignacionBloqueDTO asig : listaBloquesTemas) {
@@ -204,19 +205,23 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
                     .findFirst()
                     .orElse(null);
 
-            if (bloqueElegido == null) continue;
+            if (bloqueElegido == null)
+                continue;
             TemaConAsesorJuradoDTO temaElegido = temas.stream()
                     .filter(t -> t.getId() == asig.getTema())
                     .findFirst()
                     .orElse(null);
 
-            if(temaElegido == null) continue;
+            if (temaElegido == null)
+                continue;
             bloqueElegido.setExpo(temaElegido);
         }
 
         return bloques;
     }
 
-
-
+    @Override
+    public boolean verificarSalaOcupada(Integer salaId, OffsetDateTime fechaHoraInicio, OffsetDateTime fechaHoraFin) {
+        return bloqueHorarioExposicionRepository.verificarSalaOcupada(salaId, fechaHoraInicio, fechaHoraFin);
+    }
 }

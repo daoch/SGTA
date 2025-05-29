@@ -1,56 +1,57 @@
 "use client";
-import React, { useState } from "react";
-import { AreaEspecialidad } from "../../types/jurado.types";
+import React from "react";
+import { useFormContext } from "react-hook-form";
+import { AreaEspecialidad } from "@/features/jurado/types/jurado.types";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import {
   Select,
-  SelectTrigger,
-  SelectValue,
   SelectContent,
   SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 
+export type FilterForm = {
+  query: string;
+  especialidad: string;
+};
+
 interface Props {
-  topics: AreaEspecialidad[];
+  areasEspecialidad: AreaEspecialidad[];
 }
 
-const SearchFilter: React.FC<Props> = ({ topics }) => {
-  const placeholder = "Nombre del docente o código de tesis";
-  const [selectedEspecialidad, setSelectedEspecialidad] = useState<string>("");
-
-  function handleSearch(term: string) {
-    // lógica de búsqueda aquí
-  }
+const SearchFilterTemas: React.FC<Props> = ({ areasEspecialidad }) => {
+  const { register, setValue, watch } = useFormContext<FilterForm>();
+  const especialidad = watch("especialidad");
 
   return (
     <div className="flex gap-4 justify-between">
+      {/* Campo de búsqueda */}
       <div>
         <Label>Buscar</Label>
         <Input
           className="mt-1"
-          placeholder={placeholder}
-          onChange={(e) => {
-            handleSearch(e.target.value);
-          }}
+          placeholder={"Nombre del docente o código de tesis"}
+          {...register("query")}
         />
       </div>
+
+      {/* Selector de especialidad */}
       <div>
         <Label>Especialidad</Label>
         <Select
-          value={selectedEspecialidad || "__all__"}
-          onValueChange={(val) =>
-            setSelectedEspecialidad(val === "__all__" ? "" : val)
-          }
+          value={especialidad || "__all__"}
+          onValueChange={(val) => setValue("especialidad", val)}
         >
           <SelectTrigger className="mt-1 min-w-40">
             <SelectValue placeholder="Todas" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="__all__">Todas</SelectItem>
-            {topics.map((top) => (
-              <SelectItem key={top.nombre} value={top.nombre}>
-                {top.nombre}
+            {areasEspecialidad.map((a) => (
+              <SelectItem key={a.id} value={a.nombre}>
+                {a.nombre}
               </SelectItem>
             ))}
           </SelectContent>
@@ -60,4 +61,4 @@ const SearchFilter: React.FC<Props> = ({ topics }) => {
   );
 };
 
-export default React.memo(SearchFilter);
+export default React.memo(SearchFilterTemas);

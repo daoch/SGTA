@@ -125,7 +125,8 @@ public class AreaConocimientoServiceImpl implements AreaConocimientoService {
     @Override
     public List<AreaConocimientoDto> getAllByIdExpo(Integer idExpo) {
         Integer idCarrera = carreraRepository.obtenerIdCarreraPorIdExpo(idExpo);
-        List<AreaConocimiento> areasConocimiento = areaConocimientoRepository.findAllByCarreraIdAndActivoTrue(idCarrera);
+        List<AreaConocimiento> areasConocimiento = areaConocimientoRepository
+                .findAllByCarreraIdAndActivoTrue(idCarrera);
         List<AreaConocimientoDto> dtos = areasConocimiento.stream()
                 .map(AreaConocimientoMapper::toDto)
                 .toList();
@@ -147,6 +148,14 @@ public class AreaConocimientoServiceImpl implements AreaConocimientoService {
         return areaConocimientoRepository.findByCarreraIdInAndActivoTrue(idCarrerasUsuario)
                 .stream()
                 .map(InfoAreaConocimientoMapper::toDto)
+                .toList();
+    }
+
+    @Override
+    public List<AreaConocimientoDto> getAllByTemaId(Integer temaId) {
+        List<AreaConocimiento> areasConocimiento = areaConocimientoRepository.findByTemaId(temaId);
+        return areasConocimiento.stream()
+                .map(AreaConocimientoMapper::toDto)
                 .toList();
     }
 
