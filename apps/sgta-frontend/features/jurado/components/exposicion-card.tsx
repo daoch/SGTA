@@ -19,11 +19,8 @@ import {
 
 import ModalConfirmarReprogramacion from "./modal-confirmar-reprogramacion";
 
-
 import { ExposicionEstado } from "../types/exposicion.types";
-import {
-  actualizarEstadoControlExposicion,
-} from "../services/jurado-service";
+import { actualizarEstadoControlExposicion } from "../services/jurado-service";
 
 interface ExposicionCardProps {
   exposicion: ExposicionJurado;
@@ -51,7 +48,8 @@ export function ExposicionCard({
     exposicion.estado_control === "RECHAZADO",
   );
 
-  const [isReprogramacionModalOpen, setIsReprogramacionModalOpen] = useState(false);
+  const [isReprogramacionModalOpen, setIsReprogramacionModalOpen] =
+    useState(false);
 
   const getAsesor = () =>
     exposicion.miembros.filter((m) => m.tipo === "Asesor");
@@ -137,7 +135,6 @@ export function ExposicionCard({
   const handleSolicitarReprogramacion = async (e: React.MouseEvent) => {
     //e.stopPropagation();
 
-
     setIsLoading(true);
 
     try {
@@ -198,8 +195,6 @@ export function ExposicionCard({
       setIsLoading(false);
     }
   };
-
-
 
   const handleClickSolicitarReprogramacion = (e: React.MouseEvent) => {
     e.stopPropagation(); // Evitar propagación del clic
@@ -288,9 +283,10 @@ export function ExposicionCard({
   return (
     <div
       className={`bg-gray-50 rounded-lg shadow-sm border p-5 flex flex-col md:flex-row gap-10
-        ${mostrarReprogramacionSolicitada()
-          ? "bg-red-50 border-red-200"
-          : "bg-gray-50"
+        ${
+          mostrarReprogramacionSolicitada()
+            ? "bg-red-50 border-red-200"
+            : "bg-gray-50"
         }`}
       onClick={handleClick}
     >
@@ -425,7 +421,7 @@ export function ExposicionCard({
         onClose={() => setIsReprogramacionModalOpen(false)}
         onConfirm={handleConfirmReprogramacion}
       />
-
     </div>
   );
 }
+

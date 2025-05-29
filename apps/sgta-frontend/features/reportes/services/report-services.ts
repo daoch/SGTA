@@ -1,5 +1,6 @@
 import axiosInstance from "@/lib/axios/axios-instance";
 
+import axios from "@/lib/axios/axios-instance";
 
 
 // export const obtenerDetalleTemaAlumno = async (idUsuario: number): Promise<AlumnoTemaDetalle> => {
@@ -23,3 +24,9 @@ export async function obtenerDetalleTemaAlumno(idAlumno: number, idToken: string
   return response.data;
 }
 
+
+
+export const getEntregablesAlumno = async (alumnoId: string) => {
+  const response = await axios.get(`/api/v1/reports/entregables/${alumnoId}`);
+  return response.data;
+};

@@ -8,12 +8,17 @@ import { ModalProgramarReporte } from "../components/general/modal-programar";
 import { obtenerDetalleTemaAlumno } from "../services/report-services";
 import { AlumnoTemaDetalle } from "../types/Alumno.type";
 
+import { useAuth } from "@/features/auth/hooks/use-auth";
+
 export function StudentReports() {
   const [studentData, setStudentData] = useState<AlumnoTemaDetalle | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const { user } = useAuth();
+
   useEffect(() => {
     const fetchStudentData = async () => {
+      if (!user) return;
       try {
         //Probando lo de ID_Token
         const idToken = localStorage.getItem("idToken"); // <-- Obtén el token
@@ -35,6 +40,10 @@ export function StudentReports() {
 
     fetchStudentData();
   }, []);
+
+  if (!user || isLoading || !studentData) {
+    return <div>Cargando...</div>;
+  }
 
   // Datos de entregas con estado de retraso
   const pendingDeliveries = [
@@ -89,9 +98,11 @@ export function StudentReports() {
   const totalEvents = timelineEvents.length;
   const overallProgress = Math.round((completedEvents / totalEvents) * 100);
 
+  /*
   if (isLoading || !studentData) {
     return <div>Cargando...</div>;
   }
+  */
 
   return (
     <div className="space-y-6">
@@ -189,7 +200,7 @@ export function StudentReports() {
           </CardContent>
         </Card>
 
-        {/* Resumen de proyecto - Lado derecho */}
+         {/* Resumen de proyecto - Lado derecho */}
         <Card>
           <CardHeader className="py-3">
             <CardTitle className="text-lg">Resumen de Proyecto</CardTitle>
@@ -219,11 +230,14 @@ export function StudentReports() {
               </div>
             </div>
           </CardContent>
-        </Card>
+        </Card> 
+         
+         
+        
       </div>
 
       {/* Línea de tiempo */}
-      <LineaTiempoReporte />
+      <LineaTiempoReporte user={user} />
     </div>
   );
 }
