@@ -72,7 +72,7 @@ export default function TesisDirigidasResumen({ tesis }: Props) {
               </Badge>
             </div>
             <p className="text-gray-600 text-sm mt-1">
-              {t.estudiantes} · {t.anio}
+              {t.estudiantes.join(", ")} · {t.anio} · {t.anio}
             </p>
           </div>
         ))}
