@@ -42,6 +42,7 @@ export function useDirectorioAsesores() {
           rolesConcat: string;
           tesisCount?: number;
         }>;
+    console.log("Profesores desde API:", data); 
     const mapped: Profesor[] = data.map((dto) => {
       const roles = (dto.rolesConcat || "")
         .toLowerCase()
