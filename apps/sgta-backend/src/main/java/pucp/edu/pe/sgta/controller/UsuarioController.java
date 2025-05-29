@@ -30,10 +30,18 @@ public class UsuarioController {
     @Autowired
     private UsuarioService usuarioService;
 
-    @PostMapping("/create")
-    public void create(@RequestBody UsuarioDto dto) {
-        this.usuarioService.createUsuario(dto);
-    }
+	@PostMapping("/create")
+	public ResponseEntity<?> create(@RequestBody UsuarioDto user) {
+
+        try {
+            usuarioService.createUsuario(user);
+            return ResponseEntity.ok("Usuario procesado exitosamente");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al procesar el usuario: " + e.getMessage());
+        }
+
+	}
 
     @GetMapping("/findByTipoUsuarioAndCarrera")
     public List<UsuarioDto> getByTipoYCarrera(
@@ -212,14 +220,48 @@ public class UsuarioController {
         // }
     }
 
-    @PostMapping("/carga-masiva")
-    public ResponseEntity<String> cargarUsuarios(@RequestParam("archivo") MultipartFile archivo) {
+	@PostMapping("/carga-masiva")
+	public ResponseEntity<String> cargarUsuarios(@RequestParam("archivo") MultipartFile archivo) {
+		try {
+			usuarioService.procesarArchivoUsuarios(archivo);
+			return ResponseEntity.ok("Usuarios procesados exitosamente");
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body("Error al procesar el archivo: " + e.getMessage());
+		}
+	}
+
+    @GetMapping("/find_all")
+    public ResponseEntity<List<UsuarioDto>> findAllUsuarios() {
         try {
-            usuarioService.procesarArchivoUsuarios(archivo);
-            return ResponseEntity.ok("Usuarios procesados exitosamente");
+            List<UsuarioDto> usuarios = usuarioService.findAllUsuarios();
+            return new ResponseEntity<>(usuarios, HttpStatus.OK);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error al procesar el archivo: " + e.getMessage());
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<String> deleteUsuario(@PathVariable Integer id) {
+        try {
+            usuarioService.deleteUsuario(id);
+            return new ResponseEntity<>("Usuario eliminado exitosamente", HttpStatus.OK);
+        } catch (NoSuchElementException e) {
+            return new ResponseEntity<>("Usuario no encontrado: " + e.getMessage(), HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Error al eliminar el usuario: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PutMapping("/update/{id}")
+    public ResponseEntity<String> updateUsuario(@PathVariable Integer id, @RequestBody UsuarioDto usuarioDto) {
+        try {
+            usuarioService.updateUsuario(id, usuarioDto);
+            return new ResponseEntity<>("Usuario actualizado exitosamente", HttpStatus.OK);
+        } catch (NoSuchElementException e) {
+            return new ResponseEntity<>("Usuario no encontrado: " + e.getMessage(), HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Error al actualizar el usuario: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import jakarta.transaction.Transactional;
@@ -15,6 +16,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 import pucp.edu.pe.sgta.dto.*;
 import pucp.edu.pe.sgta.dto.asesores.InfoTemaPerfilDto;
+import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
+import pucp.edu.pe.sgta.dto.asesores.TemaConAsesorDto;
+import pucp.edu.pe.sgta.dto.asesores.TemaResumenDto;
 import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
 import pucp.edu.pe.sgta.dto.exposiciones.MiembroExposicionDto;
 import pucp.edu.pe.sgta.exception.CustomException;
@@ -548,12 +552,14 @@ public class TemaServiceImpl implements TemaService {
 	}
 
 	@Override
-	public List<TemaDto> listarTemasPropuestosAlAsesor(Integer asesorId, String titulo, Integer limit, Integer offset) {
+	public List<TemaDto> listarTemasPropuestosAlAsesor(String asesorId, String titulo, Integer limit, Integer offset) {
+		UsuarioDto usuDto = usuarioService.findByCognitoId(asesorId);
+
 		String sql = "SELECT * FROM listar_temas_propuestos_al_asesor(:asesorId, :titulo, :limit, :offset)";
 
 		List<Object[]> resultados = entityManager
 				.createNativeQuery(sql)
-				.setParameter("asesorId", asesorId)
+				.setParameter("asesorId", usuDto.getId())
 				.setParameter("titulo", titulo != null ? titulo : "")
 				.setParameter("limit", limit != null ? limit : 10)
 				.setParameter("offset", offset != null ? offset : 0)
@@ -772,18 +778,21 @@ public class TemaServiceImpl implements TemaService {
 	@Override
 	public List<TemaDto> listarTemasPropuestosPorSubAreaConocimiento(
 			List<Integer> subareaIds,
-			Integer asesorId,
+			String asesorId,
 			String titulo,
 			Integer limit, // Agregar parámetro para el límite
 			Integer offset // Agregar parámetro para el offset
 	) {
+
+		UsuarioDto usuDto = usuarioService.findByCognitoId(asesorId);
+
 		String sql = "SELECT * FROM listar_temas_propuestos_por_subarea_conocimiento(:subareas,:asesorId,:titulo,:limit,:offset)";
 		Integer[] subareaArray = subareaIds.toArray(new Integer[0]);
 
 		List<Object[]> resultados = entityManager
 				.createNativeQuery(sql)
 				.setParameter("subareas", subareaArray)
-				.setParameter("asesorId", asesorId)
+				.setParameter("asesorId", usuDto.getId())
 				.setParameter("titulo", titulo)
 				.setParameter("limit", limit) // Establecer parámetro limit
 				.setParameter("offset", offset) // Establecer parámetro offset
@@ -827,25 +836,32 @@ public class TemaServiceImpl implements TemaService {
 	}
 
 	@Transactional
-	public void postularAsesorTemaPropuestoGeneral(Integer alumnoId, Integer asesorId, Integer temaId,
+	public void postularAsesorTemaPropuestoGeneral(Integer alumnoId, String asesorId, Integer temaId,
 			String comentario) {
+
+		UsuarioDto usuDto = usuarioService.findByCognitoId(asesorId);
+
 		entityManager
 				.createNativeQuery("SELECT postular_asesor_a_tema(:alumnoId, :asesorId, :temaId, :comentario)")
 				.setParameter("alumnoId", alumnoId)
-				.setParameter("asesorId", asesorId)
+				.setParameter("asesorId", usuDto.getId())
 				.setParameter("temaId", temaId)
 				.setParameter("comentario", comentario)
 				.getSingleResult();
 	}
 
 	@Transactional
-	public void enlazarTesistasATemaPropuestDirecta(Integer[] usuariosId, Integer temaId, Integer profesorId,
+	public void enlazarTesistasATemaPropuestDirecta(Integer[] usuariosId, Integer temaId, String profesorId,
 			String comentario) {
+
+
+		UsuarioDto usuDto = usuarioService.findByCognitoId(profesorId);
+
 		entityManager.createNativeQuery(
 				"SELECT  enlazar_tesistas_tema_propuesta_directa(:usuariosId, :temaId, :profesorId, :comentario)")
 				.setParameter("usuariosId", usuariosId)
 				.setParameter("temaId", temaId)
-				.setParameter("profesorId", profesorId)
+				.setParameter("profesorId", usuDto.getId())
 				.setParameter("comentario", comentario)
 				.getSingleResult();
 	}
@@ -1334,7 +1350,10 @@ public class TemaServiceImpl implements TemaService {
 	}
 
 	@Override
-	public void crearTemaLibre(TemaDto dto) {
+	public void crearTemaLibre(TemaDto dto,String asesorId) {
+
+		UsuarioDto usuDto = usuarioService.findByCognitoId(asesorId);
+
 		try {
 			// Obtener IDs de subáreas y coasesores
 			Integer[] subareaIds = dto.getSubareas() != null
@@ -1345,8 +1364,13 @@ public class TemaServiceImpl implements TemaService {
 					? dto.getCoasesores().stream().map(user -> user.getId()).toArray(Integer[]::new)
 					: null;
 
+			// Insertar el ID del asesor actual (usuDto) en la posición 0
+			Integer[] coasesoresConAsesor = new Integer[coasesorIds.length + 1];
+			coasesoresConAsesor[0] = usuDto.getId();
+			System.arraycopy(coasesorIds, 0, coasesoresConAsesor, 1, coasesorIds.length);
+
 			// Validar asesor/coasesores
-			if (coasesorIds == null || coasesorIds.length < 1) {
+			if (coasesoresConAsesor == null || coasesorIds.length < 1) {
 				throw new IllegalArgumentException("Debe haber al menos un asesor (en coasesores).");
 			}
 
@@ -1362,7 +1386,7 @@ public class TemaServiceImpl implements TemaService {
 							dto.getFechaLimite() != null ? dto.getFechaLimite().toLocalDate() : null)
 					.setParameter("requisitos", dto.getRequisitos() != null ? dto.getRequisitos() : "")
 					.setParameter("subareaIds", subareaIds)
-					.setParameter("coasesorIds", coasesorIds)
+					.setParameter("coasesorIds", coasesoresConAsesor)
 					.getSingleResult();
 
 			logger.info("Tema creado exitosamente: " + dto.getTitulo());
@@ -1774,5 +1798,37 @@ public class TemaServiceImpl implements TemaService {
 		// 3) Llamas al procedure puro, que sólo hace los UPDATEs
 		temaRepository.desactivarTemaYDesasignarUsuarios(temaId);
 	}
+
+	@Override
+	public TemaConAsesorDto obtenerTemaActivoPorAlumno(Integer idAlumno) {
+    try {
+        // Ejecutar la función que devuelve el tema actual y el ID del asesor
+        Object[] result = (Object[]) entityManager
+            .createNativeQuery("SELECT * FROM obtener_temas_por_alumno(:idAlumno)")
+            .setParameter("idAlumno", idAlumno)
+            .getSingleResult();
+
+        // Mapear a TemaActual
+        TemaResumenDto tema = new TemaResumenDto();
+        tema.setId((Integer) result[0]);
+        tema.setTitulo((String) result[1]);
+        tema.setAreas((String) result[3]);
+
+        // Obtener el perfil del asesor
+        Integer idAsesor = (Integer) result[4];
+        PerfilAsesorDto asesorDto = usuarioService.getPerfilAsesor(idAsesor);
+
+        // Retornar combinado en TemaConAsesorDto
+        TemaConAsesorDto respuesta = new TemaConAsesorDto();
+        respuesta.setTemaActual(tema);
+        respuesta.setAsesorActual(asesorDto);
+
+        return respuesta;
+
+    } catch (NoResultException e) {
+        // Si el alumno no tiene tema activo, retornar null o manejarlo con una excepción custom
+        return null;
+    }
+}
 
 }

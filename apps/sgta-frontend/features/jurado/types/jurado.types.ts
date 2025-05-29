@@ -52,6 +52,8 @@ export interface TimeSlot {
   idExposicion?: number;
   esBloqueReservado?: boolean;
   esBloqueBloqueado?: boolean;
+  anteriorExpo?: Tema;
+  cambiado? : boolean;
 }
 
 export interface EstadoPlanificacion {
