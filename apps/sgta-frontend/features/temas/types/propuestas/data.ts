@@ -1,15 +1,17 @@
 "use server";
 
+import { useAuthStore } from "@/features/auth/store/auth-store";
 import {
   Area,
   Proyecto_M,
   SubAreaConocimiento,
   Usuario,
 } from "@/features/temas/types/propuestas/entidades";
+
 const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+const { idToken } = useAuthStore.getState();
 
 export async function fetchTemasPropuestosAlAsesor(
-  asesorId: number,
   titulo?: string,
   limit?: number,
   offset?: number,
@@ -21,10 +23,11 @@ export async function fetchTemasPropuestosAlAsesor(
     params.append("limit", limit != null ? limit.toString() : "50");
     params.append("offset", offset != null ? offset.toString() : "0");
     const response = await fetch(
-      `${baseUrl}/temas/listarTemasPropuestosAlAsesor/${asesorId}?${params.toString()}`,
+      `${baseUrl}/temas/listarTemasPropuestosAlAsesor?${params.toString()}`,
       {
         method: "GET",
         headers: {
+          Authorization: `Bearer ${idToken}`,
           "Content-Type": "application/json",
         },
       },
@@ -74,7 +77,6 @@ export async function fetchTemasPropuestosAlAsesor(
 
 export async function fetchTemasPropuestosPorSubAreaConocimiento(
   subAreas: SubAreaConocimiento[],
-  asesorId: number,
   titulo?: string,
   limit?: number,
   offset?: number,
@@ -85,7 +87,6 @@ export async function fetchTemasPropuestosPorSubAreaConocimiento(
     // Agregar múltiples valores para el mismo parámetro
     idsSubAreas.forEach((id) => params.append("subareaIds", id.toString()));
 
-    params.append("asesorId", asesorId.toString());
     if (titulo) params.append("titulo", titulo);
     params.append("limit", limit ? limit.toString() : "10");
     params.append("offset", offset ? offset.toString() : "0");
@@ -95,6 +96,7 @@ export async function fetchTemasPropuestosPorSubAreaConocimiento(
       {
         method: "GET",
         headers: {
+          Authorization: `Bearer ${idToken}`,
           "Content-Type": "application/json",
         },
       },
@@ -173,9 +175,6 @@ export async function fetchAreaConocimientoFindByUsuarioId(
   usuarioId: number,
 ): Promise<Area[]> {
   try {
-    console.log(
-      `${baseUrl}/areaConocimiento/listarPorUsuario?usuarioId=${usuarioId}`,
-    );
     const response = await fetch(
       `${baseUrl}/areaConocimiento/listarPorUsuario?usuarioId=${usuarioId}`,
       {
@@ -255,16 +254,16 @@ export async function fetchSubAreaConocimientoFindById(
 
 export async function postularTemaPropuestoGeneral(
   idAlumno: number,
-  idAsesor: number,
   idTema: number,
   comentario: string,
 ) {
   try {
     const response = await fetch(
-      `${baseUrl}/temas/postularAsesorTemaPropuestoGeneral?idAlumno=${idAlumno}&idAsesor=${idAsesor}&idTema=${idTema}&comentario=${encodeURIComponent(comentario)}`,
+      `${baseUrl}/temas/postularAsesorTemaPropuestoGeneral?idAlumno=${idAlumno}&idTema=${idTema}&comentario=${encodeURIComponent(comentario)}`,
       {
         method: "POST",
         headers: {
+          Authorization: `Bearer ${idToken}`,
           "Content-Type": "application/json",
         },
       },
@@ -283,7 +282,6 @@ export async function postularTemaPropuestoGeneral(
 export async function enlazarTesistasATemaPropuestoDirecta(
   usuariosId: number[],
   temaId: number,
-  profesorId: number,
   comentario: string,
 ) {
   try {
@@ -292,12 +290,12 @@ export async function enlazarTesistasATemaPropuestoDirecta(
       {
         method: "POST",
         headers: {
+          Authorization: `Bearer ${idToken}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           usuariosId,
           temaId,
-          profesorId,
           comentario,
         }),
       },

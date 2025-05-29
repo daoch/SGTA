@@ -17,9 +17,6 @@ export async function fetchAreaConocimientoFindByUsuarioId(
   usuarioId: number,
 ): Promise<AreaConocimiento[]> {
   try {
-    console.log(
-      `${baseUrl}/areaConocimiento/listarPorUsuario?usuarioId=${usuarioId}`,
-    );
     const response = await fetch(
       `${baseUrl}/areaConocimiento/listarPorUsuario?usuarioId=${usuarioId}`,
       {

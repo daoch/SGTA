@@ -150,7 +150,6 @@ export function PropuestasTable({
       try {
         await postularTemaPropuestoGeneral(
           selectedPropuesta?.estudiantes[0]?.id,
-          1,
           selectedPropuesta?.id,
           comentario,
         );
@@ -163,7 +162,12 @@ export function PropuestasTable({
     }
     if (subAreasData) {
       const propuestasGenerales =
-        await fetchTemasPropuestosPorSubAreaConocimiento(subAreasData, 1);
+        await fetchTemasPropuestosPorSubAreaConocimiento(
+          subAreasData,
+          "",
+          50,
+          0,
+        );
       setPropuestasData?.(propuestasGenerales);
     }
     router.refresh();
@@ -178,7 +182,6 @@ export function PropuestasTable({
         await enlazarTesistasATemaPropuestoDirecta(
           selectedPropuesta?.estudiantes?.map((item) => item.id),
           selectedPropuesta?.id,
-          1,
           comentario,
         );
 
@@ -190,7 +193,7 @@ export function PropuestasTable({
         );
       }
     }
-    const propuestasDirectas = await fetchTemasPropuestosAlAsesor(1);
+    const propuestasDirectas = await fetchTemasPropuestosAlAsesor("", 50, 0);
     setPropuestasData?.(propuestasDirectas);
     router.refresh();
   };
@@ -215,7 +218,7 @@ export function PropuestasTable({
       }
     }
 
-    const propuestasDirectas = await fetchTemasPropuestosAlAsesor(1);
+    const propuestasDirectas = await fetchTemasPropuestosAlAsesor("", 50, 0);
     setPropuestasData?.(propuestasDirectas);
     router.refresh();
   };
