@@ -32,6 +32,8 @@ export interface Tema {
   tesistas: Tesista[] | null;
   subareas: AreaDeInvestigacion[];
   requisitos: string;
+  area: AreaConocimiento[];
+  cantPostulaciones: number;
 }
 
 export interface TemaCreateInscription {

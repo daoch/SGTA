@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -93,10 +94,14 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
             Boolean esBloqueReservado = (Boolean) row[3];
             Boolean esBloqueBloqueado = (Boolean) row[4];
 
-            TemaConAsesorJuradoDTO temaConAsesorJuradoDTO = new TemaConAsesorJuradoDTO();
-            temaConAsesorJuradoDTO.setId((Integer) row[8]);
-            temaConAsesorJuradoDTO.setCodigo((String) row[9]);
-            temaConAsesorJuradoDTO.setTitulo((String) row[10]);
+            TemaConAsesorJuradoDTO temaConAsesorJuradoDTO = null;
+            if((Integer)row[8] != null) {
+                temaConAsesorJuradoDTO =  new TemaConAsesorJuradoDTO();
+                temaConAsesorJuradoDTO.setId((Integer) row[8]);
+                temaConAsesorJuradoDTO.setCodigo((String) row[9]);
+                temaConAsesorJuradoDTO.setTitulo((String) row[10]);
+            }
+
 
             return new ListBloqueHorarioExposicionSimpleDTO(key, range, idBloque, idJornadaExposicionSala, exposicionId,
                     temaConAsesorJuradoDTO, esBloqueReservado, esBloqueBloqueado, temaConAsesorJuradoDTO, false);
@@ -131,9 +136,17 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
         try {
 
             ObjectMapper mapper = new ObjectMapper();
+            mapper.registerModule(new JavaTimeModule());
             String jsonString = mapper.writeValueAsString(bloquesList);
 
             bloqueHorarioExposicionRepository.updateBloquesExposicionNextPhase(jsonString);
+
+            List<ListBloqueHorarioExposicionSimpleDTO> bloquesCambiado = new ArrayList<>();
+            for(ListBloqueHorarioExposicionSimpleDTO dto : bloquesList) {
+                    if(dto.getExpo() != dto.getAnteriorExpo()) {
+                        System.out.println("Hola, diferencias");
+                    }
+            }
 
             return true;
         } catch (JsonProcessingException e) {
