@@ -109,4 +109,12 @@ public class SolicitudController {
         solicitud =solicitudService.registrarSolicitudCambioAsesor(solicitud);
         return ResponseEntity.ok(solicitud);
     }
+
+    @GetMapping("/listarResumenSolicitudCambioAsesorUsuario")
+    public ResponseEntity<Object> listarResumenSolicitudCambioAsesorUsuario(
+            @RequestParam(name = "idUsuario") Integer idUsuario,
+            @RequestParam(name = "rolSolicitud") String rolSolicitud){
+
+        return ResponseEntity.ok(solicitudService.listarResumenSolicitudCambioAsesorUsuario(idUsuario,rolSolicitud));
+    }
 }
