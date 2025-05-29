@@ -21,4 +21,6 @@ export interface PlanificacionState {
   asignarTemaABloque: (tema: Tema, bloqueId: number) => void;
   desasignarTemaDeBloque: (bloqueId: number) => void;
   desasignarTodosLosTemas: () => void;
+
+  generarDistribucionAutomatica: () => Promise<void>;
 }
