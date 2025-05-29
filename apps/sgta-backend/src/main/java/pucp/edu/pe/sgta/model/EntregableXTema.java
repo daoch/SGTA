@@ -32,8 +32,8 @@ public class EntregableXTema {
     @JoinColumn(name = "tema_id", foreignKey = @ForeignKey(name = "fk_entregable_x_tema_tema"))
     private Tema tema;
 
-    @Column(name = "fecha_envio")
-    private LocalDate fechaEnvio;
+    @Column(name = "fecha_envio", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private OffsetDateTime fechaEnvio;
 
     @Column(name = "comentario", columnDefinition = "TEXT")
     private String comentario;

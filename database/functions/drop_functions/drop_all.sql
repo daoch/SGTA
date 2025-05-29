@@ -114,9 +114,35 @@ DROP FUNCTION IF EXISTS eliminar_postulaciones_tesista (INTEGER) CASCADE;
 
 DROP FUNCTION IF EXISTS listar_etapa_formativa_nombre ();
 
+DROP FUNCTION IF EXISTS get_estado_exposicion_by_id_exposicion (INTEGER) CASCADE;
+
 DROP FUNCTION IF EXISTS obtener_jurados_por_tema (INTEGER) CASCADE;
 
 DROP FUNCTION IF EXISTS obtener_exposiciones_por_etapa_formativa_por_tema (INTEGER, INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS listar_propuestas_del_tesista_con_usuarios CASCADE;
+
+DROP FUNCTION IF EXISTS listar_postulaciones_del_tesista_con_usuarios CASCADE;
+
+DROP FUNCTION IF EXISTS listar_asesores_por_subarea_conocimiento CASCADE;
+
+DROP FUNCTION IF EXISTS obtener_sub_areas_por_carrera_usuario CASCADE;
+
+DROP FUNCTION IF EXISTS aprobar_postulacion_propuesta_general_tesista CASCADE;
+
+DROP FUNCTION IF EXISTS rechazar_postulacion_propuesta_general_tesista CASCADE;
+
+DROP FUNCTION IF EXISTS listar_asesores_por_subarea_conocimiento_v2 CASCADE;
+
+DROP FUNCTION IF EXISTS obtener_usuarios_por_tipo_carrera_y_busqueda CASCADE;
+
+DROP FUNCTION IF EXISTS obtener_carreras_por_usuario CASCADE;
+
+DROP FUNCTION IF EXISTS listar_temas_por_estado_y_carrera (TEXT, INTEGER);
+
+DROP PROCEDURE IF EXISTS actualizar_estado_tema (integer, TEXT);
+
+DROP FUNCTION IF EXISTS actualizar_estado_tema (integer, TEXT);
 
 DROP FUNCTION IF EXISTS get_advisor_distribution_by_coordinator_and_ciclov2 (INTEGER, VARCHAR) CASCADE;
 
@@ -125,3 +151,35 @@ DROP FUNCTION IF EXISTS listar_etapas_formativas_simple () CASCADE;
 DROP FUNCTION IF EXISTS obtener_detalle_etapa_formativa (INTEGER) CASCADE;
 
 DROP FUNCTION IF EXISTS obtener_historial_ciclos_etapa_formativa (INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS get_topic_area_stats_by_user_and_ciclo (integer, varchar) CASCADE;
+
+DROP FUNCTION IF EXISTS get_topic_area_trends_by_user (integer) CASCADE;
+
+DROP FUNCTION IF EXISTS listar_tesistas_por_asesor (integer) CASCADE;
+
+DROP FUNCTION IF EXISTS obtener_detalle_tesista (integer) CASCADE;
+
+--vestigios?
+
+DROP FUNCTION IF EXISTS actualizar_bloque_exposicion_siguientes_fases (jsonb) CASCADE;
+
+DROP FUNCTION IF EXISTS obtener_etapas_formativas_por_tema_simple (INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS obtener_exposiciones_por_etapa_formativa (INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS terminar_planificacion (INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS obtener_lista_directorio_asesores_alumno (
+    INTEGER,
+    TEXT,
+    BOOLEAN,
+    INTEGER[],
+    INTEGER[]
+) CASCADE;
+
+DROP FUNCTION IF EXISTS sala_ocupada_en_rango (
+    integer,
+    timestamptz,
+    timestamptz
+);

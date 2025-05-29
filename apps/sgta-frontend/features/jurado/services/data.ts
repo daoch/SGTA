@@ -1,6 +1,8 @@
+import axiosInstance from "@/lib/axios/axios-instance";
+
 const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
-export async function listarTemasCicloActulXEtapaFormativa(
+export async function listarTemasCicloActualXEtapaFormativa(
   etapaFormativaId: number,
 ) {
   try {
@@ -152,5 +154,70 @@ export async function getEtapaFormativaIdByExposicionId(
     console.error("Error : fetching EtapaFormativaId por exposicionId:", error);
     // En caso de fallo, devolvemos 0 (o podrías devolver `null` si prefieres)
     return 0;
+  }
+}
+
+export const bloquearBloquePorId = async (
+  idBloque: number,
+): Promise<boolean> => {
+  try {
+    const response = await axiosInstance.patch(
+      `/bloqueHorarioExposicion/bloquearBloque/${idBloque}`,
+    );
+    return response.status === 200;
+  } catch (error) {
+    console.error("Error al bloquear el bloque:", error);
+    return false;
+  }
+};
+
+export const desbloquearBloquePorId = async (
+  idBloque: number,
+): Promise<boolean> => {
+  try {
+    const response = await axiosInstance.patch(
+      `/bloqueHorarioExposicion/desbloquearBloque/${idBloque}`,
+    );
+    return response.status === 200;
+  } catch (error) {
+    console.error("Error al desbloquear el bloque:", error);
+    return false;
+  }
+};
+
+/**
+ * Obtiene las áreas de conocimiento asociadas a una exposición.
+ *
+ * @param exposicionId - El ID de la exposición para listar sus áreas de conocimiento.
+ * @returns Un array de objetos con la información de cada área de conocimiento.
+ */
+export async function listarAreasConocimientoPorExposicion(
+  exposicionId: number,
+) {
+  try {
+    const response = await fetch(
+      `${baseUrl}/areaConocimiento/listarPorIdExpo/${exposicionId}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Error en la respuesta de red (status ${response.status})`,
+      );
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error(
+      "Error al obtener áreas de conocimiento por exposición:",
+      error,
+    );
+    return [];
   }
 }

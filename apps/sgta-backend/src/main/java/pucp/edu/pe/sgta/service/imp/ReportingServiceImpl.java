@@ -1,6 +1,10 @@
 package pucp.edu.pe.sgta.service.imp;
 
-import java.util.Arrays;
+import java.sql.Date;
+import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -11,14 +15,29 @@ import org.springframework.stereotype.Service;
 
 import pucp.edu.pe.sgta.dto.AdvisorPerformanceDto;
 import pucp.edu.pe.sgta.dto.AreaFinalDTO;
+import pucp.edu.pe.sgta.dto.DetalleTesistaDTO;
+import pucp.edu.pe.sgta.dto.HistorialReunionDTO;
+import pucp.edu.pe.sgta.dto.HitoCronogramaDTO;
 import pucp.edu.pe.sgta.dto.TeacherCountDTO;
 import pucp.edu.pe.sgta.dto.TopicAreaStatsDTO;
 import pucp.edu.pe.sgta.dto.TopicTrendDTO;
+import pucp.edu.pe.sgta.dto.TesistasPorAsesorDTO;
 import pucp.edu.pe.sgta.repository.AdvisorDistributionRepository;
 import pucp.edu.pe.sgta.repository.AdvisorPerformanceRepository;
+import pucp.edu.pe.sgta.repository.DetalleTesistaRepository;
+import pucp.edu.pe.sgta.repository.HistorialReunionRepository;
+import pucp.edu.pe.sgta.repository.HitoCronogramaRepository;
 import pucp.edu.pe.sgta.repository.JurorDistributionRepository;
 import pucp.edu.pe.sgta.repository.TopicAreaStatsRepository;
+import pucp.edu.pe.sgta.repository.TesistasPorAsesorRepository;
 import pucp.edu.pe.sgta.service.inter.IReportService;
+
+import pucp.edu.pe.sgta.dto.EntregableEstudianteDto;
+import pucp.edu.pe.sgta.repository.UsuarioXTemaRepository;
+import pucp.edu.pe.sgta.repository.EntregableXTemaRepository;
+import pucp.edu.pe.sgta.model.UsuarioXTema;
+import pucp.edu.pe.sgta.model.EntregableXTema;
+import java.util.Optional;
 
 @Service
 public class ReportingServiceImpl implements IReportService {
@@ -27,16 +46,38 @@ public class ReportingServiceImpl implements IReportService {
     private final AdvisorDistributionRepository advisorDistributionRepository;
     private final JurorDistributionRepository jurorDistributionRepository;
     private final AdvisorPerformanceRepository advisorPerformanceRepository;
+    private final TesistasPorAsesorRepository tesistasPorAsesorRepository;
+    private final DetalleTesistaRepository detalleTesistaRepository;
+    private final HitoCronogramaRepository hitoCronogramaRepository;
+    private final HistorialReunionRepository historialReunionRepository;
+
+    private final UsuarioXTemaRepository usuarioXTemaRepository;
+    private final EntregableXTemaRepository entregableXTemaRepository;
 
     public ReportingServiceImpl(
             TopicAreaStatsRepository topicAreaStatsRepository,
             AdvisorDistributionRepository advisorDistributionRepository,
             JurorDistributionRepository jurorDistributionRepository,
-            AdvisorPerformanceRepository advisorPerformanceRepository) {
+            AdvisorPerformanceRepository advisorPerformanceRepository,
+            TesistasPorAsesorRepository tesistasPorAsesorRepository,
+            DetalleTesistaRepository detalleTesistaRepository,
+            HitoCronogramaRepository hitoCronogramaRepository,
+            HistorialReunionRepository historialReunionRepository,
+            
+            UsuarioXTemaRepository usuarioXTemaRepository,          
+            EntregableXTemaRepository entregableXTemaRepository
+            ) {
         this.topicAreaStatsRepository = topicAreaStatsRepository;
         this.advisorDistributionRepository = advisorDistributionRepository;
         this.jurorDistributionRepository = jurorDistributionRepository;
         this.advisorPerformanceRepository = advisorPerformanceRepository;
+        this.tesistasPorAsesorRepository = tesistasPorAsesorRepository;
+        this.detalleTesistaRepository = detalleTesistaRepository;
+        this.hitoCronogramaRepository = hitoCronogramaRepository;
+        this.historialReunionRepository = historialReunionRepository;
+
+        this.usuarioXTemaRepository = usuarioXTemaRepository;
+        this.entregableXTemaRepository = entregableXTemaRepository;
     }
 
     @Override
@@ -190,5 +231,147 @@ public class ReportingServiceImpl implements IReportService {
                 ))
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public List<TesistasPorAsesorDTO> getTesistasPorAsesor(Integer asesorId) {
+        if (asesorId == null) {
+            throw new IllegalArgumentException("El ID del asesor es requerido");
+        }
+
+        List<Object[]> results = tesistasPorAsesorRepository.getTesistasPorAsesor(asesorId);
+        return results.stream()
+                .map(result -> {
+                    Object fechaInicio = result[9];
+                    Object fechaFin = result[10];
+                    
+                    return TesistasPorAsesorDTO.builder()
+                        .temaId((Integer) result[0])
+                        .tesistaId((Integer) result[1])
+                        .nombres((String) result[2])
+                        .primerApellido((String) result[3])
+                        .segundoApellido((String) result[4])
+                        .correoElectronico((String) result[5])
+                        .entregableActualId((Integer) result[6])
+                        .entregableActualNombre((String) result[7])
+                        .entregableActualDescripcion((String) result[8])
+                        .entregableActualFechaInicio(fechaInicio != null ? 
+                            ((Timestamp) fechaInicio).toLocalDateTime().atZone(ZoneId.systemDefault()) : null)
+                        .entregableActualFechaFin(fechaFin != null ? 
+                            ((Timestamp) fechaFin).toLocalDateTime().atZone(ZoneId.systemDefault()) : null)
+                        .entregableActualEstado((String) result[11])
+                        .entregableEnvioEstado((String) result[12])
+                        .entregableEnvioFecha(result[13] != null ? new java.util.Date(((Timestamp) result[13]).getTime()) : null)
+                        .build();
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public DetalleTesistaDTO getDetalleTesista(Integer tesistaId) {
+        if (tesistaId == null) {
+            throw new IllegalArgumentException("El ID del tesista es requerido");
+        }
+
+        List<Object[]> results = detalleTesistaRepository.getDetalleTesista(tesistaId);
+        if (results.isEmpty()) {
+            return null;
+        }
+
+        Object[] result = results.get(0);
+        return DetalleTesistaDTO.builder()
+                .tesistaId((Integer) result[0])
+                .nombres((String) result[1])
+                .primerApellido((String) result[2])
+                .segundoApellido((String) result[3])
+                .correoElectronico((String) result[4])
+                .nivelEstudios((String) result[5])
+                .codigoPucp((String) result[6])
+                .temaId((Integer) result[7])
+                .tituloTema((String) result[8])
+                .resumenTema((String) result[9])
+                .metodologia((String) result[10])
+                .objetivos((String) result[11])
+                .areaConocimiento((String) result[12])
+                .subAreaConocimiento((String) result[13])
+                .asesorNombre((String) result[14])
+                .asesorCorreo((String) result[15])
+                .coasesorNombre((String) result[16])
+                .coasesorCorreo((String) result[17])
+                .cicloId((Integer) result[18])
+                .cicloNombre((String) result[19])
+                .fechaInicioCiclo(result[20] != null ? ((java.sql.Date) result[20]).toLocalDate() : null)
+                .fechaFinCiclo(result[21] != null ? ((java.sql.Date) result[21]).toLocalDate() : null)
+                .etapaFormativaId((Integer) result[22])
+                .etapaFormativaNombre((String) result[23])
+                .faseActual((String) result[24])
+                .entregableId((Integer) result[25])
+                .entregableNombre((String) result[26])
+                .entregableActividadEstado((String) result[27])
+                .entregableEnvioEstado((String) result[28])
+                .entregableFechaInicio(result[29] != null ? 
+                    ((Timestamp) result[29]).toLocalDateTime().atZone(ZoneId.systemDefault()) : null)
+                .entregableFechaFin(result[30] != null ? 
+                    ((Timestamp) result[30]).toLocalDateTime().atZone(ZoneId.systemDefault()) : null)
+                .build();
+    }
+
+    @Override
+    public List<HitoCronogramaDTO> getHitosCronogramaTesista(Integer tesistaId) {
+        if (tesistaId == null) {
+            throw new IllegalArgumentException("El ID del tesista es requerido");
+        }
+
+        List<Object[]> results = hitoCronogramaRepository.getHitosCronogramaTesista(tesistaId);
+        return results.stream()
+                .map(result -> HitoCronogramaDTO.builder()
+                        .hitoId((Integer) result[0])
+                        .nombre((String) result[1])
+                        .descripcion((String) result[2])
+                        .fechaInicio(result[3] != null ? 
+                            ((Timestamp) result[3]).toLocalDateTime().atZone(ZoneId.systemDefault()) : null)
+                        .fechaFin(result[4] != null ? 
+                            ((Timestamp) result[4]).toLocalDateTime().atZone(ZoneId.systemDefault()) : null)
+                        .entregableEnvioEstado((String) result[5])
+                        .entregableActividadEstado((String) result[6])
+                        .esEvaluable((Boolean) result[7])
+                        .temaId((Integer) result[8])
+                        .temaTitulo((String) result[9])
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<HistorialReunionDTO> getHistorialReuniones(Integer tesistaId) {
+        if (tesistaId == null) {
+            throw new IllegalArgumentException("El ID del tesista es requerido");
+        }
+
+        List<Object[]> results = historialReunionRepository.getHistorialReuniones(tesistaId);
+        return results.stream()
+                .map(result -> HistorialReunionDTO.builder()
+                        .fecha(((Date) result[0]).toLocalDate())
+                        .duracion((String) result[1])
+                        .notas((String) result[2])
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+
+    @Override
+    public List<EntregableEstudianteDto> getEntregablesEstudiante(Integer usuarioId) {
+        Optional<UsuarioXTema> usuarioTema = usuarioXTemaRepository.findByUsuarioId(usuarioId);
+        if (usuarioTema.isEmpty()) throw new RuntimeException("Usuario no tiene tema asignado");
+
+        Integer temaId = usuarioTema.get().getTema().getId();
+
+        return entregableXTemaRepository.findByTemaIdWithEntregable(temaId).stream()
+            .map(et -> new EntregableEstudianteDto(
+                et.getEntregable().getNombre(),
+                et.getEstado().name(),
+                et.getFechaEnvio() != null ? et.getFechaEnvio().toLocalDateTime() : null
+            ))
+            .collect(Collectors.toList());
+    }
+
 
 }

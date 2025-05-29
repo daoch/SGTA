@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import pucp.edu.pe.sgta.util.EstadoExposicion;
+import pucp.edu.pe.sgta.util.EstadoExposicionConverter;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -41,14 +42,15 @@ public class ExposicionXTema {
         @Column(name = "link_grabacion")
         private String linkGrabacion;
 
-        @Enumerated(EnumType.STRING)
+        //@Enumerated(EnumType.STRING)
         @Column(name = "estado_exposicion", nullable = false)
+        @Convert(converter = EstadoExposicionConverter.class)
         private EstadoExposicion estadoExposicion = EstadoExposicion.SIN_PROGRAMAR;
 
         @Column(name = "nota_final", precision = 6, scale = 2)
         private BigDecimal notaFinal;
 
-        @Column(nullable = false)
+        @Column(name = "activo", nullable = false)
         private Boolean activo = true;
 
         @Column(name = "fecha_creacion", nullable = false, insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")

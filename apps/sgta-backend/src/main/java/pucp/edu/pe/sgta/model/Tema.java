@@ -36,6 +36,9 @@ public class Tema {
 	@Column(columnDefinition = "TEXT")
 	private String metodologia;
 
+	@Column(columnDefinition = "TEXT")
+	private String requisitos;
+
 	@Column(name = "portafolio_url",  length = 255)
 	private String portafolioUrl;
 
@@ -63,8 +66,6 @@ public class Tema {
 
 	@Column(nullable = false ,insertable = false)
 	private Boolean activo = true;
-
-
 
 	@Column(name = "fecha_creacion", nullable = false, insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
 	private OffsetDateTime fechaCreacion;

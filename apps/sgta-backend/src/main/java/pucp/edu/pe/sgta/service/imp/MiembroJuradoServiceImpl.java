@@ -1,17 +1,27 @@
 package pucp.edu.pe.sgta.service.imp;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import pucp.edu.pe.sgta.dto.*;
+import pucp.edu.pe.sgta.dto.exposiciones.EstadoControlExposicionRequest;
+import pucp.edu.pe.sgta.dto.exposiciones.EstadoExposicionJuradoRequest;
+import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
+import pucp.edu.pe.sgta.dto.exposiciones.MiembroExposicionDto;
 import pucp.edu.pe.sgta.dto.temas.DetalleTemaDto;
 import pucp.edu.pe.sgta.dto.temas.EtapaFormativaTemaDto;
 import pucp.edu.pe.sgta.dto.temas.ExposicionTemaDto;
 import pucp.edu.pe.sgta.dto.temas.ParticipanteDto;
+import pucp.edu.pe.sgta.event.EstadoControlExposicionActualizadoEvent;
 import pucp.edu.pe.sgta.model.*;
 import pucp.edu.pe.sgta.repository.*;
 import pucp.edu.pe.sgta.service.inter.MiembroJuradoService;
+import pucp.edu.pe.sgta.util.EstadoExposicion;
+import pucp.edu.pe.sgta.dto.exposiciones.EstadoExposicionDto;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -30,11 +40,18 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
     private final TemaRepository temaRepository;
     private final SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository;
     private final EtapaFormativaRepository etapaFormativaRepository;
+    private final ExposicionXTemaRepository exposicionXTemaRepository;
+    private final BloqueHorarioExposicionRepository bloqueHorarioExposicionRepository;
+    private final ControlExposicionUsuarioTemaRepository controlExposicionUsuarioTemaRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public MiembroJuradoServiceImpl(UsuarioRepository usuarioRepository, UsuarioXTemaRepository usuarioXTemaRepository,
             EstadoTemaRepository estadoTemaRepository, RolRepository rolRepository, TemaRepository temaRepository,
             SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository,
-            EtapaFormativaRepository etapaFormativaRepository) {
+            EtapaFormativaRepository etapaFormativaRepository, ExposicionXTemaRepository exposicionXTemaRepository,
+            BloqueHorarioExposicionRepository bloqueHorarioExposicionRepository,
+            ControlExposicionUsuarioTemaRepository controlExposicionUsuarioTemaRepository,
+            ApplicationEventPublisher eventPublisher) {
         this.usuarioRepository = usuarioRepository;
         this.usuarioXTemaRepository = usuarioXTemaRepository;
         this.estadoTemaRepository = estadoTemaRepository;
@@ -42,6 +59,10 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
         this.temaRepository = temaRepository;
         this.subAreaConocimientoXTemaRepository = subAreaConocimientoXTemaRepository;
         this.etapaFormativaRepository = etapaFormativaRepository;
+        this.exposicionXTemaRepository = exposicionXTemaRepository;
+        this.bloqueHorarioExposicionRepository = bloqueHorarioExposicionRepository;
+        this.controlExposicionUsuarioTemaRepository = controlExposicionUsuarioTemaRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -257,11 +278,17 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
     @Override
     public List<MiembroJuradoXTemaDto> findByUsuarioIdAndActivoTrueAndRolId(Integer usuarioId) {
         List<UsuarioXTema> temasJurado = usuarioXTemaRepository.findByUsuarioIdAndActivoTrue(usuarioId);
-
+        int limite = 2;
         return temasJurado.stream()
                 .filter(ut -> ut.getRol().getId().equals(2))
                 .filter(ut -> esEstadoTemaValido(ut.getTema().getEstadoTema()))
-                .filter(tema -> usuarioXTemaRepository.countByTemaIdAndActivoTrue(tema.getId()) < 3)
+                .filter(ut -> {
+                    long cantidadJurados = usuarioXTemaRepository.findByTemaIdAndActivoTrue(ut.getTema().getId())
+                            .stream()
+                            .filter(rel -> rel.getRol().getId().equals(2)) // solo jurados
+                            .count();
+                    return cantidadJurados < limite;
+                })
                 .map(ut -> {
                     Tema tema = ut.getTema();
 
@@ -445,6 +472,20 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                     .body(Map.of("mensaje", "No existe una asignación activa entre este jurado y el tema"));
         }
 
+        List<EstadoExposicion> estadosNoPermitidos = List.of(
+                EstadoExposicion.PROGRAMADA,
+                EstadoExposicion.CALIFICADA,
+                EstadoExposicion.COMPLETADA);
+
+        boolean exposicionActiva = exposicionXTemaRepository.findByTemaIdAndActivoTrue(temaId).stream()
+                .anyMatch(ex -> estadosNoPermitidos.contains(ex.getEstadoExposicion()));
+
+        if (exposicionActiva) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("mensaje",
+                            "No se puede eliminar porque el jurado tiene temas pendientes o en evaluación"));
+        }
+
         UsuarioXTema asignacion = asignacionOpt.get();
         asignacion.setActivo(false);
         asignacion.setFechaModificacion(OffsetDateTime.now());
@@ -507,13 +548,44 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
 
     @Override
     public ResponseEntity<?> desasignarJuradoDeTemaTodos(Integer usuarioId) {
-
         List<UsuarioXTema> asignaciones = usuarioXTemaRepository.findByUsuarioIdAndRolId(usuarioId, 2);
+
         if (asignaciones.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Map.of("mensaje", "No existen asignaciones activas para este miembro de jurado"));
         }
 
+        // Verificar si alguno de los temas tiene estado 7 o 12
+        boolean tieneTemasPendientes = asignaciones.stream()
+                .anyMatch(asignacion -> {
+                    Integer estadoId = asignacion.getTema().getEstadoTema().getId();
+                    return estadoId == 7 || estadoId == 12;
+                });
+
+        if (tieneTemasPendientes) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("mensaje",
+                            "No se puede eliminar porque el jurado tiene temas pendientes o en evaluación"));
+        }
+
+        List<EstadoExposicion> estadosNoPermitidos = List.of(
+                EstadoExposicion.PROGRAMADA,
+                EstadoExposicion.CALIFICADA,
+                EstadoExposicion.COMPLETADA);
+        for (UsuarioXTema asignacion : asignaciones) {
+            Integer temaId = asignacion.getTema().getId();
+
+            boolean exposicionActiva = exposicionXTemaRepository.findByTemaIdAndActivoTrue(temaId).stream()
+                    .anyMatch(ex -> estadosNoPermitidos.contains(ex.getEstadoExposicion()));
+
+            if (exposicionActiva) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("mensaje",
+                                "No se puede eliminar porque el jurado tiene temas pendientes o en evaluación"));
+            }
+        }
+
+        // Se desactiva todas las asignaciones si todos los estados son válidos
         for (UsuarioXTema asignacion : asignaciones) {
             asignacion.setActivo(false);
             asignacion.setFechaModificacion(OffsetDateTime.now());
@@ -522,4 +594,203 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
 
         return ResponseEntity.ok(Map.of("mensaje", "Todas las asignaciones del miembro de jurado han sido eliminadas"));
     }
+
+    @Override
+    public List<ExposicionTemaMiembrosDto> listarExposicionXJuradoId(Integer juradoId) {
+        Set<Integer> temasDelJurado = usuarioXTemaRepository.findAll().stream()
+                .filter(ut -> ut.getActivo())
+                .filter(ut -> ut.getUsuario().getId().equals(juradoId))
+                .map(ut -> ut.getTema().getId())
+                .collect(Collectors.toSet());
+        List<Tema> temas = temaRepository.findAllById(temasDelJurado);
+        List<ExposicionTemaMiembrosDto> result = new ArrayList<>();
+
+        for (Tema tema : temas) {
+            List<ExposicionXTema> exposiciones = exposicionXTemaRepository.findByTemaIdAndActivoTrue(tema.getId());
+            for (ExposicionXTema exposicionXTema : exposiciones) {
+                List<BloqueHorarioExposicion> bloques = bloqueHorarioExposicionRepository
+                        .findByExposicionXTemaIdAndActivoTrue(exposicionXTema.getId());
+                for (BloqueHorarioExposicion bloque : bloques) {
+                    OffsetDateTime datetimeInicio = bloque.getDatetimeInicio();
+
+                    // Obtener sala desde el bloque -> jornadaExposicionXSala -> sala
+                    String salaNombre = "";
+                    if (bloque.getJornadaExposicionXSala() != null &&
+                            bloque.getJornadaExposicionXSala().getSalaExposicion() != null) {
+                        salaNombre = bloque.getJornadaExposicionXSala().getSalaExposicion().getNombre();
+                    }
+
+                    Exposicion exposicion = exposicionXTema.getExposicion();
+
+                    // Estado planificación
+                    String estado = exposicionXTema.getEstadoExposicion().toString();
+                    if (exposicionXTema.getEstadoExposicion() == EstadoExposicion.SIN_PROGRAMAR) {
+                        continue;
+                    }
+
+                    // Etapa formativa
+                    EtapaFormativa etapa = exposicion.getEtapaFormativaXCiclo().getEtapaFormativa();
+                    Integer idEtapaFormativa = etapa.getId();
+                    String nombreEtapaFormativa = etapa.getNombre();
+                    Integer idCiclo = exposicion.getEtapaFormativaXCiclo().getCiclo().getId();
+                    Integer anioCiclo = exposicion.getEtapaFormativaXCiclo().getCiclo().getAnio();
+                    String semestreCiclo = exposicion.getEtapaFormativaXCiclo().getCiclo().getSemestre();
+
+                    // Miembros
+                    List<UsuarioXTema> usuarioTemas = usuarioXTemaRepository.findByTemaIdAndActivoTrue(tema.getId());
+                    List<MiembroExposicionDto> miembros = usuarioTemas.stream().map(ut -> {
+                        MiembroExposicionDto miembro = new MiembroExposicionDto();
+                        miembro.setId_persona(ut.getUsuario().getId());
+                        miembro.setNombre(ut.getUsuario().getNombres() + " " + ut.getUsuario().getPrimerApellido() + " "
+                                + ut.getUsuario().getSegundoApellido());
+                        miembro.setTipo(ut.getRol().getNombre());
+                        return miembro;
+                    }).toList();
+
+                    // Buscar el usuario x tema
+                    Optional<UsuarioXTema> usuarioXTemaOptional = usuarioXTemaRepository
+                            .findByUsuarioIdAndActivoTrue(juradoId)
+                            .stream()
+                            .filter(u -> u.getTema().getId().equals(tema.getId()))
+                            .findFirst();
+
+                    // Obtener estado
+                    Optional<ControlExposicionUsuarioTema> controlOptional = controlExposicionUsuarioTemaRepository
+                            .findByExposicionXTema_IdAndUsuario_Id(exposicionXTema.getId(),
+                                    usuarioXTemaOptional.get().getId());
+
+                    // Crear DTO
+                    ExposicionTemaMiembrosDto dto = new ExposicionTemaMiembrosDto();
+                    dto.setId_exposicion(exposicionXTema.getId());
+                    dto.setNombre_exposicion(exposicionXTema.getExposicion().getNombre());
+                    dto.setFechahora(datetimeInicio);
+                    dto.setSala(salaNombre);
+                    dto.setEstado(estado);
+                    dto.setId_etapa_formativa(idEtapaFormativa);
+                    dto.setNombre_etapa_formativa(nombreEtapaFormativa);
+                    dto.setTitulo(tema.getTitulo());
+                    dto.setCiclo_id(idCiclo);
+                    dto.setCiclo_anio(anioCiclo);
+                    dto.setCiclo_semestre(semestreCiclo);
+                    dto.setEstado_control(
+                            controlOptional.map(ControlExposicionUsuarioTema::getEstadoExposicion).orElse(null));
+                    dto.setMiembros(miembros);
+
+                    result.add(dto);
+                }
+
+            }
+
+        }
+        return result;
+    }
+
+    @Override
+    public ResponseEntity<?> actualizarEstadoExposicionJurado(EstadoExposicionJuradoRequest request) {
+        Map<String, Object> response = new HashMap<>();
+
+        Optional<ExposicionXTema> optionalExposicionXTema = exposicionXTemaRepository
+                .findById(request.getExposicionTemaId());
+
+        if (optionalExposicionXTema.isEmpty()) {
+            response.put("mensaje",
+                    "No se encontró la relacion exposición_x_tema con el ID: " + request.getExposicionTemaId());
+            response.put("exito", false);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+
+        if (!optionalExposicionXTema.get().getActivo()) {
+            response.put("mensaje", "La relacion exposición_x_tema con el ID: " + request.getExposicionTemaId()
+                    + " no esta habilitado");
+            response.put("exito", false);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+
+        ExposicionXTema exposicionXTema = optionalExposicionXTema.get();
+        exposicionXTema.setEstadoExposicion(request.getEstadoExposicion());
+        exposicionXTemaRepository.save(exposicionXTema);
+
+        response.put("mensaje", "Se actualizó correctamente al estado: " + request.getEstadoExposicion());
+        response.put("exito", true);
+        return ResponseEntity.ok(response);
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<?> actualizarEstadoControlExposicion(EstadoControlExposicionRequest request) {
+        Map<String, Object> response = new HashMap<>();
+
+        // Buscar la relación Exposición x Tema
+        Optional<ExposicionXTema> optionalExposicionXTema = exposicionXTemaRepository
+                .findById(request.getExposicionTemaId());
+        if (optionalExposicionXTema.isEmpty()) {
+            response.put("mensaje",
+                    "No se encontró la relación exposición_x_tema con el ID: " + request.getExposicionTemaId());
+            response.put("exito", false);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+
+        // Obtener el tema ID desde la relación
+        ExposicionXTema exposicionXTema = optionalExposicionXTema.get();
+        Integer temaId = exposicionXTema.getTema().getId();
+        Integer usuarioId = request.getJuradoId();
+
+        // Buscar el usuario x tema
+        Optional<UsuarioXTema> usuarioXTemaOptional = usuarioXTemaRepository.findByUsuarioIdAndActivoTrue(usuarioId)
+                .stream()
+                .filter(u -> u.getTema().getId().equals(temaId))
+                .findFirst();
+
+        if (usuarioXTemaOptional.isEmpty()) {
+            response.put("mensaje", "No se encontró un usuario_x_tema activo con el usuario ID: " + usuarioId
+                    + " y tema ID: " + temaId);
+            response.put("exito", false);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+
+        Integer usuarioXTemaId = usuarioXTemaOptional.get().getId();
+
+        // Buscar control_exposicion_usuario_tema
+        Optional<ControlExposicionUsuarioTema> controlOptional = controlExposicionUsuarioTemaRepository
+                .findByExposicionXTema_IdAndUsuario_Id(request.getExposicionTemaId(), usuarioXTemaId);
+
+        if (controlOptional.isEmpty()) {
+            response.put("mensaje",
+                    "No se encontró control_exposicion_usuario_tema con exposición ID: " + request.getExposicionTemaId()
+                            + " y usuario_x_tema ID: " + usuarioXTemaId);
+            response.put("exito", false);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+
+        // Actualizar estado
+        ControlExposicionUsuarioTema control = controlOptional.get();
+        control.setEstadoExposicion(request.getEstadoExposicionUsuario());
+        controlExposicionUsuarioTemaRepository.save(control);
+
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                eventPublisher.publishEvent(new EstadoControlExposicionActualizadoEvent(
+                        request.getExposicionTemaId(), temaId));
+            }
+        });
+
+        response.put("mensaje", "Se actualizó correctamente al estado: " + request.getEstadoExposicionUsuario());
+        response.put("exito", true);
+        return ResponseEntity.ok(response);
+    }
+
+    @Override
+    public List<EstadoExposicionDto> listarEstados() {
+        return Arrays.stream(EstadoExposicion.values())
+                .map(e -> new EstadoExposicionDto(e.name(), beautify(e.name())))
+                .collect(Collectors.toList());
+    }
+
+    private String beautify(String enumName) {
+        return enumName.replace("_", " ")
+                .toLowerCase()
+                .replaceFirst(String.valueOf(enumName.charAt(0)), String.valueOf(enumName.charAt(0)).toUpperCase());
+    }
+
 }

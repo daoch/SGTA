@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import AppLoading from "@/components/loading/app-loading";
 
 export default function HomePage() {
   const router = useRouter();
@@ -10,5 +11,5 @@ export default function HomePage() {
     router.push("/login");
   }, [router]);
 
-  return <div>Cargando...</div>;
+  return <AppLoading />;
 }

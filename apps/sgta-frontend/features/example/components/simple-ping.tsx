@@ -1,5 +1,6 @@
 "use client";
 
+import AppLoading from "@/components/loading/app-loading";
 import { usePing } from "../queries/use-ping";
 import { useState } from "react";
 
@@ -40,7 +41,7 @@ export default function SimplePing() {
         </div>
 
         {isLoading ? (
-          <p className="text-gray-600">Cargando...</p>
+          <AppLoading />
         ) : error ? (
           <p className="text-red-500">
             Error: {error instanceof Error ? error.message : "Desconocido"}

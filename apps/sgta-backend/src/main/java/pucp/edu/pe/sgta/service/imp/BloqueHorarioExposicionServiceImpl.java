@@ -11,14 +11,11 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import pucp.edu.pe.sgta.dto.BloqueHorarioExposicionCreateDTO;
-import pucp.edu.pe.sgta.dto.BloqueHorarioExposicionDto;
-import pucp.edu.pe.sgta.dto.JornadaExposicionCreateDTO;
-import pucp.edu.pe.sgta.dto.JornadaExposicionDto;
-import pucp.edu.pe.sgta.dto.ListBloqueHorarioExposicionSimpleDTO;
-import pucp.edu.pe.sgta.dto.TemaConAsesorJuradoDTO;
+import org.springframework.web.client.RestTemplate;
+import pucp.edu.pe.sgta.dto.*;
 import pucp.edu.pe.sgta.mapper.BloqueHorarioExposicionMapper;
 import pucp.edu.pe.sgta.model.BloqueHorarioExposicion;
 import pucp.edu.pe.sgta.model.JornadaExposicion;
@@ -102,7 +99,7 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
             temaConAsesorJuradoDTO.setTitulo((String) row[10]);
 
             return new ListBloqueHorarioExposicionSimpleDTO(key, range, idBloque, idJornadaExposicionSala, exposicionId,
-                    temaConAsesorJuradoDTO, esBloqueReservado, esBloqueBloqueado);
+                    temaConAsesorJuradoDTO, esBloqueReservado, esBloqueBloqueado, temaConAsesorJuradoDTO, false);
         }).collect(Collectors.toList());
     }
 
@@ -172,9 +169,11 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
     }
 
     @Override
+
     public int bloquearBloque(int idBloque) {
-        BloqueHorarioExposicion bloqueHorarioExposicion = bloqueHorarioExposicionRepository.findById(idBloque).orElse(null);
-        if(bloqueHorarioExposicion != null) {
+        BloqueHorarioExposicion bloqueHorarioExposicion = bloqueHorarioExposicionRepository.findById(idBloque)
+                .orElse(null);
+        if (bloqueHorarioExposicion != null) {
             bloqueHorarioExposicion.setEsBloqueBloqueado(true);
             bloqueHorarioExposicionRepository.save(bloqueHorarioExposicion);
             return 1;
@@ -184,8 +183,9 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
 
     @Override
     public int desbloquearBloque(int idBloque) {
-        BloqueHorarioExposicion bloqueHorarioExposicion = bloqueHorarioExposicionRepository.findById(idBloque).orElse(null);
-        if(bloqueHorarioExposicion != null) {
+        BloqueHorarioExposicion bloqueHorarioExposicion = bloqueHorarioExposicionRepository.findById(idBloque)
+                .orElse(null);
+        if (bloqueHorarioExposicion != null) {
             bloqueHorarioExposicion.setEsBloqueBloqueado(false);
             bloqueHorarioExposicionRepository.save(bloqueHorarioExposicion);
             return 1;
@@ -193,4 +193,35 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
         return 0;
     }
 
+    public List<ListBloqueHorarioExposicionSimpleDTO> asignarTemasBloques(List<AsignacionBloqueDTO> listaBloquesTemas,
+            DistribucionRequestDTO request) {
+        List<ListBloqueHorarioExposicionSimpleDTO> bloques = request.getBloques();
+        List<TemaConAsesorJuradoDTO> temas = request.getTemas();
+        List<ListBloqueHorarioExposicionSimpleDTO> nuevaLista = new ArrayList<>();
+
+        for (AsignacionBloqueDTO asig : listaBloquesTemas) {
+            ListBloqueHorarioExposicionSimpleDTO bloqueElegido = bloques.stream()
+                    .filter(b -> b.getIdBloque() == asig.getIdBloque())
+                    .findFirst()
+                    .orElse(null);
+
+            if (bloqueElegido == null)
+                continue;
+            TemaConAsesorJuradoDTO temaElegido = temas.stream()
+                    .filter(t -> t.getId() == asig.getTema())
+                    .findFirst()
+                    .orElse(null);
+
+            if (temaElegido == null)
+                continue;
+            bloqueElegido.setExpo(temaElegido);
+        }
+
+        return bloques;
+    }
+
+    @Override
+    public boolean verificarSalaOcupada(Integer salaId, OffsetDateTime fechaHoraInicio, OffsetDateTime fechaHoraFin) {
+        return bloqueHorarioExposicionRepository.verificarSalaOcupada(salaId, fechaHoraInicio, fechaHoraFin);
+    }
 }
