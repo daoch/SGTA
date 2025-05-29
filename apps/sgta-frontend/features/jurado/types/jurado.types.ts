@@ -117,6 +117,7 @@ export interface ExposicionJurado {
   nombre_etapa_formativa: string;
   titulo: string;
   ciclo_id: number;
+  nombre_exposicion: string;
   miembros: MiembroJuradoExpo[];
 }
 

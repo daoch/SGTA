@@ -2,6 +2,7 @@ package pucp.edu.pe.sgta.service.inter;
 
 import pucp.edu.pe.sgta.dto.asesores.FiltrosDirectorioAsesores;
 import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
+import pucp.edu.pe.sgta.dto.asesores.UsuarioConRolDto;
 import pucp.edu.pe.sgta.dto.asesores.UsuarioFotoDto;
 import org.springframework.web.multipart.MultipartFile;
 import pucp.edu.pe.sgta.dto.UserInfoDTO;
@@ -73,7 +74,7 @@ public interface UsuarioService {
      * @param terminoBusqueda Término para buscar en nombre, correo o código
      * @return Lista de usuarios con información de sus roles
      */
-    List<UsuarioDto> getProfessorsWithRoles(String rolNombre, String terminoBusqueda);
+    List<UsuarioConRolDto> getProfessorsWithRoles(String rolNombre, String terminoBusqueda);
 
     List<UsuarioDto> getAsesoresBySubArea(Integer idSubArea);
 

@@ -342,6 +342,7 @@ export const getExposicionesJurado = async (
         id_etapa_formativa: expo.id_etapa_formativa,
         nombre_etapa_formativa: expo.nombre_etapa_formativa,
         titulo: expo.titulo,
+        nombre_exposicion: expo.nombre_exposicion,
         ciclo_id: expo.ciclo_id,
         miembros,
       };
@@ -377,13 +378,17 @@ export const actualizarEstadoControlExposicion = async (
   nuevoEstado: string,
 ): Promise<boolean> => {
   try {
+
+
     const response = await axiosInstance.put("/jurado/control", {
       exposicionTemaId: exposicionId,
       juradoId: juradoId,
       estadoExposicionUsuario: nuevoEstado,
     });
 
+
     return response.status === 200;
+
   } catch (error) {
     console.error("Error al actualizar el estado de la exposición:", error);
     throw error;

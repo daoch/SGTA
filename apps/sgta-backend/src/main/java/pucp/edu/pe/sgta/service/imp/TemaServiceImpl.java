@@ -675,7 +675,18 @@ public class TemaServiceImpl implements TemaService {
 			dto.getArea().add(areaDto);
 		}
 
-		return new ArrayList<>(dtoMap.values());
+		// Ahora convierto el map en lista y completo cantPostulaciones
+        List<TemaDto> temas = new ArrayList<>(dtoMap.values());
+        for (TemaDto t : temas) {
+            // Llamada a la función contar_postulaciones
+            Integer count = ((Number) entityManager.createNativeQuery(
+                    "SELECT contar_postulaciones(:temaId)")
+                    .setParameter("temaId", t.getId())
+                    .getSingleResult()
+            ).intValue();
+            t.setCantPostulaciones(count);
+        }
+		return temas;
 	}
 
 	@Override

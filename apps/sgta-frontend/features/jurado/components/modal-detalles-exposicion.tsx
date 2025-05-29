@@ -52,7 +52,7 @@ const ModalDetallesExposicion: React.FC<{
             <div className="gap-4 pb-4">
               <Label className="text-sm font-medium text-gray-500">Curso</Label>
               <Textarea
-                value={exposicion.nombre_etapa_formativa}
+                value={exposicion.nombre_etapa_formativa + " - " + exposicion.nombre_exposicion}
                 disabled
                 className="bg-gray-50 resize-none"
               />

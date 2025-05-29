@@ -199,3 +199,36 @@ README.html
 *.iml
 .idea
 .exercism
+
+# --- Frontend / Node.js / React ---
+node_modules/
+dist/
+build/
+*.tsbuildinfo
+*.js.map
+*.css.map
+
+# --- Archivos de configuración o binarios innecesarios ---
+*.sqlite
+*.sqlite3
+*.db
+*.node
+*.wasm
+
+# Archivos de entorno
+.env
+.env.*
+
+# --- VS Code extensiones y archivos innecesarios ---
+.vscode/extensions/
+.vscode-test/
+
+# --- Archivos que causaron el error antes ---
+Copilot-App-Icon.png
+documentation.svg
+indexWorker.js
+extension.js
+extensionUninstalled.js
+kerberos.node
+tree-sitter-*.wasm
+codicon.css
