@@ -74,10 +74,10 @@ export default async function PlanExpo({ exposicionId }: Props) {
   );
   return (
     <div className="h-fit w-full flex flex-col gap-4">
-      <h1 className="text-3xl font-bold flex gap-4 items-center">
+      <div className="text-3xl font-bold flex gap-4 items-center">
         <BackButton backUrl="/coordinador/exposiciones" />
         <h1 className="text-2xl font-bold">Planificador de exposiciones</h1>
-      </h1>
+      </div>
       {estadoPlanificacion ? (
         <GeneralPlanificationExpo
           temas={temas}

@@ -11,6 +11,7 @@ import { Bot, FolderSync } from "lucide-react";
 import React from "react";
 import { usePlanificationStore } from "../../store/use-planificacion-store";
 import { toast } from "sonner";
+import ButtonAlertDialog from "../button-alert-dialog";
 
 const CardSugerenciaDistribucion: React.FC = () => {
   const {
@@ -31,15 +32,25 @@ const CardSugerenciaDistribucion: React.FC = () => {
           factores.
         </CardDescription>
         <div className="flex justify-between">
-          <Button
-            className="w-fit"
-            disabled={Object.keys(temasAsignados).length === 0}
-            variant="destructive"
-            onClick={() => desasignarTodosLosTemas()}
-          >
-            <FolderSync />
-            Regresar Temas
-          </Button>
+          <ButtonAlertDialog
+            message="¿Estás seguro de que deseas regresar todos los temas asignados a la lista de temas sin asignar? Esta acción no se puede deshacer."
+            trigger={
+              <Button
+                className="w-fit"
+                disabled={Object.keys(temasAsignados).length === 0}
+                variant="destructive"
+              >
+                <FolderSync />
+                Regresar Temas
+              </Button>
+            }
+            onConfirm={() => {
+              desasignarTodosLosTemas();
+              toast.success(
+                "Todos los temas han sido regresados correctamente.",
+              );
+            }}
+          />
           <Button
             className="w-fit"
             disabled={temasSinAsignar.length === 0}

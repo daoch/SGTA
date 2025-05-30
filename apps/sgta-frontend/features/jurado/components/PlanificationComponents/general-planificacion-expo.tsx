@@ -259,8 +259,6 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
       };
     });
 
-    console.log("bloquesListToInsert", bloquesListToInsert);
-
     try {
       await updateBloquesNextPhase(bloquesListToInsert);
       if (origen == "terminar") await finishPlanning(exposicionId);
