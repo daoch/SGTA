@@ -2,6 +2,7 @@ import { JornadaExposicionDTO } from "@/features/jurado/dtos/JornadExposicionDTO
 
 interface Props {
   day: JornadaExposicionDTO;
+  assignedBlocks: number;
   availableBlocks: number;
   bloquedBlocks: number;
   isSelected: boolean;
@@ -12,6 +13,7 @@ const SelectorFecha: React.FC<Props> = ({
   day,
   isSelected,
   onSelect,
+  assignedBlocks,
   availableBlocks,
   bloquedBlocks,
 }) => {
@@ -35,6 +37,10 @@ const SelectorFecha: React.FC<Props> = ({
       <div className="flex items-center justify-start text-sm gap-2 px-3">
         <div className="w-2 h-2 rounded-full bg-green-400"></div>
         <span>{availableBlocks} disponibles</span>
+      </div>
+      <div className="flex items-center justify-start text-sm gap-2 px-3">
+        <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+        <span>{assignedBlocks} asignados</span>
       </div>
       <div className="flex items-center justify-start text-sm gap-2 px-3">
         <div className="w-2 h-2 rounded-full bg-red-400"></div>
