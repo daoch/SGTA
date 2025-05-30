@@ -5,7 +5,6 @@ import lombok.Setter;
 import pucp.edu.pe.sgta.util.Utils;
 
 import java.time.Instant;
-import java.time.OffsetDateTime;
 
 @Setter
 @Getter
@@ -31,14 +30,14 @@ public class SolicitudCambioAsesorResumenDto {
         resumen.estadoGlobal = (String) results[4];
         String nombreSolicitante = (String) results[5];
         String apellidSolicitante = (String) results[6];
-        resumen.nombreSolicitante = Utils.normalizarNombre(nombreSolicitante,apellidSolicitante);
+        resumen.nombreSolicitante = Utils.normalizarNombre(nombreSolicitante, apellidSolicitante);
         resumen.correoSolicitante = (String) results[7];
         String nombreAsesorActual = (String) results[8];
         String apellidoAsesorActual = (String) results[9];
-        resumen.nombreAsesorActual = Utils.normalizarNombre(nombreAsesorActual,apellidoAsesorActual);
+        resumen.nombreAsesorActual = Utils.normalizarNombre(nombreAsesorActual, apellidoAsesorActual);
         String nombreAsesorNuevo = (String) results[10];
         String apellidoAsesorNuevo = (String) results[11];
-        resumen.nombreAsesorNuevo = Utils.normalizarNombre(nombreAsesorNuevo,apellidoAsesorNuevo);
+        resumen.nombreAsesorNuevo = Utils.normalizarNombre(nombreAsesorNuevo, apellidoAsesorNuevo);
         resumen.estadoAccion = (String) results[12];
         return resumen;
     }

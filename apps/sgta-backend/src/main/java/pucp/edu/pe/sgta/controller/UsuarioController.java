@@ -2,13 +2,11 @@ package pucp.edu.pe.sgta.controller;
 
 import java.util.List;
 import java.util.NoSuchElementException;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
 import pucp.edu.pe.sgta.dto.asesores.FiltrosDirectorioAsesores;
 import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
 import pucp.edu.pe.sgta.dto.asesores.UsuarioConRolDto;
@@ -30,8 +28,8 @@ public class UsuarioController {
     @Autowired
     private UsuarioService usuarioService;
 
-	@PostMapping("/create")
-	public ResponseEntity<?> create(@RequestBody UsuarioDto user) {
+    @PostMapping("/create")
+    public ResponseEntity<?> create(@RequestBody UsuarioDto user) {
 
         try {
             usuarioService.createUsuario(user);
@@ -41,7 +39,7 @@ public class UsuarioController {
                     .body("Error al procesar el usuario: " + e.getMessage());
         }
 
-	}
+    }
 
     @GetMapping("/findByTipoUsuarioAndCarrera")
     public List<UsuarioDto> getByTipoYCarrera(
@@ -220,16 +218,16 @@ public class UsuarioController {
         // }
     }
 
-	@PostMapping("/carga-masiva")
-	public ResponseEntity<String> cargarUsuarios(@RequestParam("archivo") MultipartFile archivo) {
-		try {
-			usuarioService.procesarArchivoUsuarios(archivo);
-			return ResponseEntity.ok("Usuarios procesados exitosamente");
-		} catch (Exception e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body("Error al procesar el archivo: " + e.getMessage());
-		}
-	}
+    @PostMapping("/carga-masiva")
+    public ResponseEntity<String> cargarUsuarios(@RequestParam("archivo") MultipartFile archivo) {
+        try {
+            usuarioService.procesarArchivoUsuarios(archivo);
+            return ResponseEntity.ok("Usuarios procesados exitosamente");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al procesar el archivo: " + e.getMessage());
+        }
+    }
 
     @GetMapping("/find_all")
     public ResponseEntity<List<UsuarioDto>> findAllUsuarios() {
@@ -249,7 +247,8 @@ public class UsuarioController {
         } catch (NoSuchElementException e) {
             return new ResponseEntity<>("Usuario no encontrado: " + e.getMessage(), HttpStatus.NOT_FOUND);
         } catch (Exception e) {
-            return new ResponseEntity<>("Error al eliminar el usuario: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Error al eliminar el usuario: " + e.getMessage(),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -261,7 +260,8 @@ public class UsuarioController {
         } catch (NoSuchElementException e) {
             return new ResponseEntity<>("Usuario no encontrado: " + e.getMessage(), HttpStatus.NOT_FOUND);
         } catch (Exception e) {
-            return new ResponseEntity<>("Error al actualizar el usuario: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Error al actualizar el usuario: " + e.getMessage(),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -277,7 +277,7 @@ public class UsuarioController {
         }
 
     }
-    
+
     @GetMapping("/getAsesoresBySubArea")
     public List<UsuarioDto> getAsesoresBySubArea(@RequestParam(name = "idSubArea") Integer idSubArea) {
         return this.usuarioService.getAsesoresBySubArea(idSubArea);

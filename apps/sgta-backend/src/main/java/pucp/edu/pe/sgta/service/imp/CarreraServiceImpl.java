@@ -6,7 +6,6 @@ import pucp.edu.pe.sgta.mapper.CarreraMapper;
 import pucp.edu.pe.sgta.model.Carrera;
 import pucp.edu.pe.sgta.repository.CarreraRepository;
 import pucp.edu.pe.sgta.service.inter.CarreraService;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -50,7 +49,7 @@ public class CarreraServiceImpl implements CarreraService {
     public List<CarreraDto> getCarrerasByUsuario(Integer usuarioId) {
         List<CarreraDto> carrerasList = new ArrayList<>();
         List<Object[]> resultados = carreraRepository.listarCarrerasPorIdUsusario(usuarioId);
-        
+
         for (Object[] fila : resultados) {
             CarreraDto dto = new CarreraDto();
             dto.setId((Integer) fila[0]); // carrera_id
@@ -60,26 +59,22 @@ public class CarreraServiceImpl implements CarreraService {
             dto.setActivo(true);
             carrerasList.add(dto);
         }
-        
+
         return carrerasList;
     }
 
     @Override
     public List<CarreraDto> listarCarrerasPorUsuario(Integer usuarioId) {
         return carreraRepository.findByUsuarioId(usuarioId).stream()
-            // explícitamente indicamos que 'c' es una Carrera
-            .map((Carrera c) -> CarreraDto.builder()
-                .id(c.getId())
-                .codigo(c.getCodigo())
-                .nombre(c.getNombre())
-                .descripcion(c.getDescripcion())
-                .build()
-            )
-            .collect(Collectors.toList());
-    
+                // explícitamente indicamos que 'c' es una Carrera
+                .map((Carrera c) -> CarreraDto.builder()
+                        .id(c.getId())
+                        .codigo(c.getCodigo())
+                        .nombre(c.getNombre())
+                        .descripcion(c.getDescripcion())
+                        .build())
+                .collect(Collectors.toList());
+
     }
 
-
-
-
-} 
+}

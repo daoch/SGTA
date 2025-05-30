@@ -34,7 +34,6 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -44,7 +43,6 @@ import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
-import java.util.Collections;
 
 @Service
 public class UsuarioServiceImpl implements UsuarioService {
@@ -66,14 +64,13 @@ public class UsuarioServiceImpl implements UsuarioService {
     @PersistenceContext
     private EntityManager em;
 
-    public UsuarioServiceImpl(UsuarioRepository usuarioRepository
-            , UsuarioXSubAreaConocimientoRepository usuarioXSubAreaConocimientoRepository
-            , SubAreaConocimientoRepository subAreaConocimientoRepository
-            , AreaConocimientoRepository areaConocimientoRepository
-            , UsuarioXAreaConocimientoRepository usuarioXAreaConocimientoRepository, CarreraRepository carreraRepository
-            , UsuarioXTemaRepository usuarioXTemaRepository
-            , TipoUsuarioRepository tipoUsuarioRepository
-            , CognitoService cognitoService) {
+    public UsuarioServiceImpl(UsuarioRepository usuarioRepository,
+            UsuarioXSubAreaConocimientoRepository usuarioXSubAreaConocimientoRepository,
+            SubAreaConocimientoRepository subAreaConocimientoRepository,
+            AreaConocimientoRepository areaConocimientoRepository,
+            UsuarioXAreaConocimientoRepository usuarioXAreaConocimientoRepository, CarreraRepository carreraRepository,
+            UsuarioXTemaRepository usuarioXTemaRepository, TipoUsuarioRepository tipoUsuarioRepository,
+            CognitoService cognitoService) {
         this.usuarioRepository = usuarioRepository;
         this.usuarioXSubAreaConocimientoRepository = usuarioXSubAreaConocimientoRepository;
         this.subAreaConocimientoRepository = subAreaConocimientoRepository;
@@ -96,11 +93,13 @@ public class UsuarioServiceImpl implements UsuarioService {
         }
         usuario.setTipoUsuario(tipoUsuario.get());
         usuario.setContrasena("Temp");
-        String nombreCompleto = usuario.getNombres() + " " + usuario.getPrimerApellido() + " " + usuario.getSegundoApellido();
+        String nombreCompleto = usuario.getNombres() + " " + usuario.getPrimerApellido() + " "
+                + usuario.getSegundoApellido();
 
         try {
             // Registrar el usuario en Cognito
-            String idCognito = cognitoService.registrarUsuarioEnCognito(usuario.getCorreoElectronico(), nombreCompleto, tipoUsuario.get().getNombre());
+            String idCognito = cognitoService.registrarUsuarioEnCognito(usuario.getCorreoElectronico(), nombreCompleto,
+                    tipoUsuario.get().getNombre());
             usuario.setIdCognito(idCognito);
             usuarioRepository.save(usuario);
         } catch (Exception e) {
@@ -109,14 +108,14 @@ public class UsuarioServiceImpl implements UsuarioService {
         }
     }
 
-	@Override
-	public UsuarioDto findUsuarioById(Integer id) {
-		Usuario usuario = usuarioRepository.findById(id).orElse(null);
-		if (usuario != null) {
-			return UsuarioMapper.toDto(usuario);
-		}
-		return null;
-	}
+    @Override
+    public UsuarioDto findUsuarioById(Integer id) {
+        Usuario usuario = usuarioRepository.findById(id).orElse(null);
+        if (usuario != null) {
+            return UsuarioMapper.toDto(usuario);
+        }
+        return null;
+    }
 
     @Override
     public Integer getIdByCorreo(String correoUsuario) {
@@ -199,14 +198,14 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @Override
     public PerfilAsesorDto getPerfilAsesor(Integer id) {
-        //Primero los datos básicos de la entidad
+        // Primero los datos básicos de la entidad
         PerfilAsesorDto tmp;
         Usuario usuario = usuarioRepository.findById(id).orElse(null);
         if (usuario == null) {
             throw new RuntimeException("Usuario no encontrado con ID: " + id);
         }
         tmp = PerfilAsesorMapper.toDto(usuario);
-        //Encontramos el nombre de la carrera del Asesor
+        // Encontramos el nombre de la carrera del Asesor
         List<String> carreras = new ArrayList<>();
         List<Object[]> resultadoQuery = carreraRepository.listarCarrerasPorIdUsusario(id);
         for (Object[] o : resultadoQuery) {
@@ -214,10 +213,9 @@ public class UsuarioServiceImpl implements UsuarioService {
         }
 
         tmp.setEspecialidad(String.join(" - ", carreras));
-        //Luego la consulta de las áreas de conocimiento
+        // Luego la consulta de las áreas de conocimiento
         List<InfoAreaConocimientoDto> areas;
-        List<Integer> idAreas = usuarioXAreaConocimientoRepository.findAllByUsuario_IdAndActivoIsTrue(id).
-                stream()
+        List<Integer> idAreas = usuarioXAreaConocimientoRepository.findAllByUsuario_IdAndActivoIsTrue(id).stream()
                 .map(UsuarioXAreaConocimiento::getAreaConocimiento)
                 .map(AreaConocimiento::getId)
                 .toList();
@@ -225,10 +223,9 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .stream()
                 .map(InfoAreaConocimientoMapper::toDto)
                 .toList();
-        //Luego la consulta de las subareas de conocimiento
+        // Luego la consulta de las subareas de conocimiento
         List<InfoSubAreaConocimientoDto> subareas;
-        List<Integer> idSubareas = usuarioXSubAreaConocimientoRepository.findAllByUsuario_IdAndActivoIsTrue(id).
-                stream()
+        List<Integer> idSubareas = usuarioXSubAreaConocimientoRepository.findAllByUsuario_IdAndActivoIsTrue(id).stream()
                 .map(UsuarioXSubAreaConocimiento::getSubAreaConocimiento)
                 .map(SubAreaConocimiento::getId)
                 .toList();
@@ -239,10 +236,10 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         tmp.setAreasTematicas(areas);
         tmp.setTemasIntereses(subareas);
-        //TODO: El numero máximo de estudiantes
-        //TODO: La cantidad de alumnos por asesor
+        // TODO: El numero máximo de estudiantes
+        // TODO: La cantidad de alumnos por asesor
         Integer cantTesistas;
-        List<Object[]> tesistas = usuarioXTemaRepository.listarNumeroTesistasAsesor(id);//ASEGURADO sale 1 sola fila
+        List<Object[]> tesistas = usuarioXTemaRepository.listarNumeroTesistasAsesor(id);// ASEGURADO sale 1 sola fila
         cantTesistas = (Integer) tesistas.get(0)[0];
         tmp.setTesistasActuales(cantTesistas);
 
@@ -261,8 +258,9 @@ public class UsuarioServiceImpl implements UsuarioService {
         user.setBiografia(perfilAsesorDto.getBiografia());
 
         usuarioRepository.save(user);
-        //Revision areas temáticas
-        List<Integer> areasRegistradas = usuarioXAreaConocimientoRepository.findAllByUsuario_IdAndActivoIsTrue(user.getId())
+        // Revision areas temáticas
+        List<Integer> areasRegistradas = usuarioXAreaConocimientoRepository
+                .findAllByUsuario_IdAndActivoIsTrue(user.getId())
                 .stream()
                 .map(UsuarioXAreaConocimiento::getAreaConocimiento)
                 .map(AreaConocimiento::getId)
@@ -271,17 +269,20 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .stream()
                 .map(InfoAreaConocimientoDto::getIdArea)
                 .toList();
-        //Id's que no estan registrados (Todos los que entraron - los que ya estaban=
+        // Id's que no estan registrados (Todos los que entraron - los que ya estaban=
         List<Integer> idNuevos = new ArrayList<>(areasActualizadas);
         idNuevos.removeAll(areasRegistradas);
-        usuarioXAreaConocimientoRepository.asignarUsuarioAreas(user.getId(), Utils.convertIntegerListToString(idNuevos));
-        //Id's que ya no estan en registrados (Todos los que habian - los que entraron)
+        usuarioXAreaConocimientoRepository.asignarUsuarioAreas(user.getId(),
+                Utils.convertIntegerListToString(idNuevos));
+        // Id's que ya no estan en registrados (Todos los que habian - los que entraron)
         List<Integer> idEliminados = new ArrayList<>(areasRegistradas);
         idEliminados.removeAll(areasActualizadas);
-        usuarioXAreaConocimientoRepository.desactivarUsuarioAreas(user.getId(), Utils.convertIntegerListToString(idEliminados));
+        usuarioXAreaConocimientoRepository.desactivarUsuarioAreas(user.getId(),
+                Utils.convertIntegerListToString(idEliminados));
 
-        //Revision sub areas tematicas
-        List<Integer> subAreasRegistradas = usuarioXSubAreaConocimientoRepository.findAllByUsuario_IdAndActivoIsTrue(user.getId())
+        // Revision sub areas tematicas
+        List<Integer> subAreasRegistradas = usuarioXSubAreaConocimientoRepository
+                .findAllByUsuario_IdAndActivoIsTrue(user.getId())
                 .stream()
                 .map(UsuarioXSubAreaConocimiento::getSubAreaConocimiento)
                 .map(SubAreaConocimiento::getId)
@@ -290,14 +291,16 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .stream()
                 .map(InfoSubAreaConocimientoDto::getIdTema)
                 .toList();
-        //Id's que no estan registrados (Todos los que entraron - los que ya estaban=
+        // Id's que no estan registrados (Todos los que entraron - los que ya estaban=
         idNuevos = new ArrayList<>(subAreasActualizadas);
         idNuevos.removeAll(subAreasRegistradas);
-        usuarioXSubAreaConocimientoRepository.asignarUsuarioSubAreas(user.getId(), Utils.convertIntegerListToString(idNuevos));
-        //Id's que ya no estan en registrados (Todos los que habian - los que entraron)
+        usuarioXSubAreaConocimientoRepository.asignarUsuarioSubAreas(user.getId(),
+                Utils.convertIntegerListToString(idNuevos));
+        // Id's que ya no estan en registrados (Todos los que habian - los que entraron)
         idEliminados = new ArrayList<>(subAreasRegistradas);
         idEliminados.removeAll(subAreasActualizadas);
-        usuarioXSubAreaConocimientoRepository.desactivarUsuarioSubAreas(user.getId(), Utils.convertIntegerListToString(idEliminados));
+        usuarioXSubAreaConocimientoRepository.desactivarUsuarioSubAreas(user.getId(),
+                Utils.convertIntegerListToString(idEliminados));
     }
 
     @Override
@@ -339,8 +342,7 @@ public class UsuarioServiceImpl implements UsuarioService {
                                     .id((Integer) r[1])
                                     .nombre((String) r[18])
                                     .activo(true)
-                                    .build()
-                    )
+                                    .build())
                     .codigoPucp((String) r[2])
                     .nombres((String) r[3])
                     .primerApellido((String) r[4])
@@ -376,7 +378,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         // 1. Buscar usuario activo y validar que sea Profesor
         Usuario user = usuarioRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado: " + userId));
-        
+
         if (!user.getActivo()) {
             throw new IllegalArgumentException("El usuario está inactivo");
         }
@@ -400,7 +402,8 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         if (count.intValue() == 0) {
             // 4. Insertar nuevo rol activo
-            String insertSql = "INSERT INTO usuario_rol (usuario_id, rol_id, activo, fecha_creacion, fecha_modificacion) " +
+            String insertSql = "INSERT INTO usuario_rol (usuario_id, rol_id, activo, fecha_creacion, fecha_modificacion) "
+                    +
                     "VALUES (:usuarioId, :rolId, true, NOW(), NOW())";
             em.createNativeQuery(insertSql)
                     .setParameter("usuarioId", userId)
@@ -408,10 +411,11 @@ public class UsuarioServiceImpl implements UsuarioService {
                     .executeUpdate();
             System.out.println("Rol de Asesor asignado exitosamente al usuario ID: " + userId);
         } else {
-            System.out.println("El usuario ID: " + userId + " ya tiene el rol de Asesor activo. No se realizó ninguna acción.");
+            System.out.println(
+                    "El usuario ID: " + userId + " ya tiene el rol de Asesor activo. No se realizó ninguna acción.");
         }
     }
-        
+
     /**
      * HU02: Quita el rol de Asesor a un usuario
      */
@@ -420,7 +424,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     public void removeAdvisorRoleFromUser(Integer userId) {
         Usuario user = usuarioRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado: " + userId));
-        
+
         String rolNombre = RolEnum.Asesor.name();
         Rol advisorRole = rolRepository.findByNombre(rolNombre)
                 .orElseThrow(() -> new NoSuchElementException("Rol '" + rolNombre + "' no configurado en el sistema"));
@@ -447,7 +451,6 @@ public class UsuarioServiceImpl implements UsuarioService {
         }
     }
 
-    
     /**
      * HU03: Asigna el rol de Jurado a un usuario que debe ser profesor
      */
@@ -482,7 +485,8 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         if (count.intValue() == 0) {
             // 4. Insertar el rol
-            String insertSql = "INSERT INTO usuario_rol (usuario_id, rol_id, activo, fecha_creacion, fecha_modificacion) " +
+            String insertSql = "INSERT INTO usuario_rol (usuario_id, rol_id, activo, fecha_creacion, fecha_modificacion) "
+                    +
                     "VALUES (:usuarioId, :rolId, true, NOW(), NOW())";
             em.createNativeQuery(insertSql)
                     .setParameter("usuarioId", userId)
@@ -490,7 +494,8 @@ public class UsuarioServiceImpl implements UsuarioService {
                     .executeUpdate();
             System.out.println("Rol de Jurado asignado exitosamente al usuario ID: " + userId);
         } else {
-            System.out.println("El usuario ID: " + userId + " ya tiene el rol de Jurado activo. No se realizó ninguna acción.");
+            System.out.println(
+                    "El usuario ID: " + userId + " ya tiene el rol de Jurado activo. No se realizó ninguna acción.");
         }
     }
 
@@ -543,32 +548,32 @@ public class UsuarioServiceImpl implements UsuarioService {
     public List<UsuarioConRolDto> getProfessorsWithRoles(String rolNombre, String terminoBusqueda) {
         StringBuilder sql = new StringBuilder();
         sql.append("""
-            SELECT 
-                u.usuario_id, 
-                u.nombres, 
-                u.primer_apellido, 
-                u.segundo_apellido, 
-                u.correo_electronico, 
-                u.codigo_pucp, 
-                string_agg(DISTINCT r.nombre, ',') AS roles_names,
-                -- contar temas donde usuario sea asesor o coasesor (rol_id 1 o 5)
-                COUNT(DISTINCT CASE WHEN ut.rol_id IN (1, 5) THEN ut.tema_id END) AS tesis_count,
-                tu.tipo_usuario_id,
-                tu.nombre AS tipo_usuario_nombre
-            FROM 
-                usuario u
-            JOIN 
-                tipo_usuario tu ON u.tipo_usuario_id = tu.tipo_usuario_id
-            LEFT JOIN 
-                usuario_rol ur ON u.usuario_id = ur.usuario_id AND ur.activo = true
-            LEFT JOIN 
-                rol r ON ur.rol_id = r.rol_id AND r.activo = true
-            LEFT JOIN
-                usuario_tema ut ON u.usuario_id = ut.usuario_id AND ut.activo = true
-            WHERE 
-                u.activo = true
-                AND LOWER(tu.nombre) = 'profesor'
-        """);
+                    SELECT
+                        u.usuario_id,
+                        u.nombres,
+                        u.primer_apellido,
+                        u.segundo_apellido,
+                        u.correo_electronico,
+                        u.codigo_pucp,
+                        string_agg(DISTINCT r.nombre, ',') AS roles_names,
+                        -- contar temas donde usuario sea asesor o coasesor (rol_id 1 o 5)
+                        COUNT(DISTINCT CASE WHEN ut.rol_id IN (1, 5) THEN ut.tema_id END) AS tesis_count,
+                        tu.tipo_usuario_id,
+                        tu.nombre AS tipo_usuario_nombre
+                    FROM
+                        usuario u
+                    JOIN
+                        tipo_usuario tu ON u.tipo_usuario_id = tu.tipo_usuario_id
+                    LEFT JOIN
+                        usuario_rol ur ON u.usuario_id = ur.usuario_id AND ur.activo = true
+                    LEFT JOIN
+                        rol r ON ur.rol_id = r.rol_id AND r.activo = true
+                    LEFT JOIN
+                        usuario_tema ut ON u.usuario_id = ut.usuario_id AND ut.activo = true
+                    WHERE
+                        u.activo = true
+                        AND LOWER(tu.nombre) = 'profesor'
+                """);
 
         List<String> params = new ArrayList<>();
         if (rolNombre != null && !rolNombre.equalsIgnoreCase("Todos")) {
@@ -590,8 +595,7 @@ public class UsuarioServiceImpl implements UsuarioService {
                     params.size() + 2,
                     params.size() + 3,
                     params.size() + 4,
-                    params.size() + 5
-            ));
+                    params.size() + 5));
 
             String searchTerm = "%" + terminoBusqueda.trim() + "%";
             for (int i = 0; i < 5; i++) {
@@ -600,12 +604,12 @@ public class UsuarioServiceImpl implements UsuarioService {
         }
 
         sql.append("""
-            GROUP BY 
-                u.usuario_id, u.nombres, u.primer_apellido, u.segundo_apellido, 
-                u.correo_electronico, u.codigo_pucp, tu.tipo_usuario_id, tu.nombre
-            ORDER BY 
-                u.primer_apellido, u.segundo_apellido, u.nombres
-        """);
+                    GROUP BY
+                        u.usuario_id, u.nombres, u.primer_apellido, u.segundo_apellido,
+                        u.correo_electronico, u.codigo_pucp, tu.tipo_usuario_id, tu.nombre
+                    ORDER BY
+                        u.primer_apellido, u.segundo_apellido, u.nombres
+                """);
 
         Query query = em.createNativeQuery(sql.toString());
 
@@ -617,38 +621,39 @@ public class UsuarioServiceImpl implements UsuarioService {
         List<Object[]> results = query.getResultList();
 
         return results.stream()
-            .map(row -> {
-                TipoUsuarioDto tipoUsuarioDto = TipoUsuarioDto.builder()
-                    .id((Integer) row[8])
-                    .nombre((String) row[9])
-                    .activo(true)
-                    .build();
+                .map(row -> {
+                    TipoUsuarioDto tipoUsuarioDto = TipoUsuarioDto.builder()
+                            .id((Integer) row[8])
+                            .nombre((String) row[9])
+                            .activo(true)
+                            .build();
 
-                UsuarioDto usuarioBase = UsuarioDto.builder()
-                    .id((Integer) row[0])
-                    .nombres((String) row[1])
-                    .primerApellido((String) row[2])
-                    .segundoApellido((String) row[3])
-                    .correoElectronico((String) row[4])
-                    .codigoPucp((String) row[5])
-                    .tipoUsuario(tipoUsuarioDto)
-                    .activo(true)
-                    .build();
+                    UsuarioDto usuarioBase = UsuarioDto.builder()
+                            .id((Integer) row[0])
+                            .nombres((String) row[1])
+                            .primerApellido((String) row[2])
+                            .segundoApellido((String) row[3])
+                            .correoElectronico((String) row[4])
+                            .codigoPucp((String) row[5])
+                            .tipoUsuario(tipoUsuarioDto)
+                            .activo(true)
+                            .build();
 
-                return UsuarioConRolDto.builder()
-                    .usuario(usuarioBase)
-                    .rolesConcat((String) row[6])
-                    .tesisCount(((Number) row[7]).intValue())
-                    .build();
-            })
-            .collect(Collectors.toList());
+                    return UsuarioConRolDto.builder()
+                            .usuario(usuarioBase)
+                            .rolesConcat((String) row[6])
+                            .tesisCount(((Number) row[7]).intValue())
+                            .build();
+                })
+                .collect(Collectors.toList());
     }
 
     @Override
     public void procesarArchivoUsuarios(MultipartFile archivo) throws Exception {
         String nombre = archivo.getOriginalFilename();
 
-        if (nombre == null) throw new Exception("Archivo sin nombre");
+        if (nombre == null)
+            throw new Exception("Archivo sin nombre");
 
         if (nombre.endsWith(".csv")) {
             procesarCSV(archivo);
@@ -673,7 +678,8 @@ public class UsuarioServiceImpl implements UsuarioService {
 
                 String[] campos = linea.split(",");
 
-                if (campos.length < 6) continue;
+                if (campos.length < 6)
+                    continue;
 
                 // Mapear campos en el orden correcto del CSV
                 String nombres = campos[0].trim();
@@ -727,10 +733,11 @@ public class UsuarioServiceImpl implements UsuarioService {
             Workbook workbook = new XSSFWorkbook(is);
             Sheet hoja = workbook.getSheetAt(0);
 
-            //la primera fila es cabecera,empezar por filaIndex = 1
+            // la primera fila es cabecera,empezar por filaIndex = 1
             for (int filaIndex = 1; filaIndex <= hoja.getLastRowNum(); filaIndex++) {
                 Row fila = hoja.getRow(filaIndex);
-                if (fila == null) continue;
+                if (fila == null)
+                    continue;
 
                 String nombres = getCellValue(fila.getCell(0));
                 String primerApellido = getCellValue(fila.getCell(1));
@@ -778,7 +785,8 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     private String getCellValue(Cell celda) {
-        if (celda == null) return "";
+        if (celda == null)
+            return "";
 
         switch (celda.getCellType()) {
             case STRING:
@@ -800,41 +808,39 @@ public class UsuarioServiceImpl implements UsuarioService {
         }
     }
 
-	private Optional<TipoUsuario> buscarTipoUsuarioPorNombre(String nombre) {
-		String nombreLimpio = nombre.trim().toLowerCase();
-		return tipoUsuarioRepository.findAll().stream()
-				.filter(tu -> tu.getNombre().equalsIgnoreCase(nombreLimpio))
-				.findFirst();
-	}
+    private Optional<TipoUsuario> buscarTipoUsuarioPorNombre(String nombre) {
+        String nombreLimpio = nombre.trim().toLowerCase();
+        return tipoUsuarioRepository.findAll().stream()
+                .filter(tu -> tu.getNombre().equalsIgnoreCase(nombreLimpio))
+                .findFirst();
+    }
 
-	@Override
-	public List<UsuarioDto> getAsesoresBySubArea(Integer idSubArea) {
-		String sql =
-				"SELECT usuario_id, nombre_completo, correo_electronico " +
-						"  FROM sgtadb.listar_asesores_por_subarea_conocimiento(:p_subarea_id)";
-		Query query = em.createNativeQuery(sql)
-				.setParameter("p_subarea_id", idSubArea);
+    @Override
+    public List<UsuarioDto> getAsesoresBySubArea(Integer idSubArea) {
+        String sql = "SELECT usuario_id, nombre_completo, correo_electronico " +
+                "  FROM sgtadb.listar_asesores_por_subarea_conocimiento(:p_subarea_id)";
+        Query query = em.createNativeQuery(sql)
+                .setParameter("p_subarea_id", idSubArea);
 
-		@SuppressWarnings("unchecked")
-		List<Object[]> rows = query.getResultList();
-		List<UsuarioDto> advisors = new ArrayList<>(rows.size());
+        @SuppressWarnings("unchecked")
+        List<Object[]> rows = query.getResultList();
+        List<UsuarioDto> advisors = new ArrayList<>(rows.size());
 
-		for (Object[] row : rows) {
-			Integer userId       = ((Number) row[0]).intValue();
-			String fullName      = (String) row[1];
-			String email         = (String) row[2];
+        for (Object[] row : rows) {
+            Integer userId = ((Number) row[0]).intValue();
+            String fullName = (String) row[1];
+            String email = (String) row[2];
 
-			advisors.add(UsuarioDto.builder()
-					.id(userId)
-					.nombres(fullName.split(" ")[0])
-					.primerApellido(fullName.split(" ")[1])
-					.correoElectronico(email)
-					.build());
-		}
+            advisors.add(UsuarioDto.builder()
+                    .id(userId)
+                    .nombres(fullName.split(" ")[0])
+                    .primerApellido(fullName.split(" ")[1])
+                    .correoElectronico(email)
+                    .build());
+        }
 
-		return advisors;
-	}
-
+        return advisors;
+    }
 
     @Override
     public void uploadFoto(Integer idUsuario, MultipartFile file) {
@@ -859,9 +865,9 @@ public class UsuarioServiceImpl implements UsuarioService {
         UsuarioFotoDto usuarioFotoDto = new UsuarioFotoDto();
         usuarioFotoDto.setIdUsuario(id);
 
-		usuarioFotoDto.setFoto(Utils.convertByteArrayToStringBase64(user.getFotoPerfil()));
-		return usuarioFotoDto;
-	}
+        usuarioFotoDto.setFoto(Utils.convertByteArrayToStringBase64(user.getFotoPerfil()));
+        return usuarioFotoDto;
+    }
 
     @Override
     public List<PerfilAsesorDto> getDirectorioDeAsesoresPorFiltros(FiltrosDirectorioAsesores filtros) {
@@ -875,15 +881,17 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         for (Object[] result : queryResults) {
             PerfilAsesorDto perfil = PerfilAsesorDto.fromQueryDirectorioAsesores(result);
-            //el numero de tesistas actuales
+            // el numero de tesistas actuales
             Integer cantTesistas;
-            List<Object[]> tesistas = usuarioXTemaRepository.listarNumeroTesistasAsesor(perfil.getId());//ASEGURADO sale 1 sola fila
+            List<Object[]> tesistas = usuarioXTemaRepository.listarNumeroTesistasAsesor(perfil.getId());// ASEGURADO
+                                                                                                        // sale 1 sola
+                                                                                                        // fila
             cantTesistas = (Integer) tesistas.get(0)[0];
             perfil.setTesistasActuales(cantTesistas);
-            //Luego la consulta de las áreas de conocimiento
+            // Luego la consulta de las áreas de conocimiento
             List<InfoAreaConocimientoDto> areas;
-            List<Integer> idAreas = usuarioXAreaConocimientoRepository.findAllByUsuario_IdAndActivoIsTrue(perfil.getId()).
-                    stream()
+            List<Integer> idAreas = usuarioXAreaConocimientoRepository
+                    .findAllByUsuario_IdAndActivoIsTrue(perfil.getId()).stream()
                     .map(UsuarioXAreaConocimiento::getAreaConocimiento)
                     .map(AreaConocimiento::getId)
                     .toList();
@@ -891,10 +899,10 @@ public class UsuarioServiceImpl implements UsuarioService {
                     .stream()
                     .map(InfoAreaConocimientoMapper::toDto)
                     .toList();
-            //Luego la consulta de las subareas de conocimiento
+            // Luego la consulta de las subareas de conocimiento
             List<InfoSubAreaConocimientoDto> subareas;
-            List<Integer> idSubareas = usuarioXSubAreaConocimientoRepository.findAllByUsuario_IdAndActivoIsTrue(perfil.getId()).
-                    stream()
+            List<Integer> idSubareas = usuarioXSubAreaConocimientoRepository
+                    .findAllByUsuario_IdAndActivoIsTrue(perfil.getId()).stream()
                     .map(UsuarioXSubAreaConocimiento::getSubAreaConocimiento)
                     .map(SubAreaConocimiento::getId)
                     .toList();
@@ -905,109 +913,108 @@ public class UsuarioServiceImpl implements UsuarioService {
 
             perfil.setAreasTematicas(areas);
             perfil.setTemasIntereses(subareas);
-            //Toques finales
+            // Toques finales
             perfil.actualizarEstado();
             perfilAsesorDtos.add(perfil);
         }
 
-		return perfilAsesorDtos;
-	}
+        return perfilAsesorDtos;
+    }
 
+    @Override
+    public UsuarioDto findUsuarioByCodigo(String codigoPucp) {
+        Optional<Usuario> usuario = usuarioRepository.findByCodigoPucp(codigoPucp);
+        if (usuario.isPresent()) {
+            UsuarioDto usuarioDto = UsuarioMapper.toDto(usuario.get());
+            return usuarioDto;
+        }
+        return null;
+    }
 
-	@Override
-	public UsuarioDto findUsuarioByCodigo(String codigoPucp) {
-		Optional<Usuario> usuario = usuarioRepository.findByCodigoPucp(codigoPucp);
-		if(usuario.isPresent()){
-			UsuarioDto usuarioDto = UsuarioMapper.toDto(usuario.get());
-			return usuarioDto;
-		}
-		return null;
-	}
+    @Override
+    public AlumnoTemaDto getAlumnoTema(Integer idAlumno) {
+        try {
+            // Primero obtenemos los datos básicos del alumno y su tema
+            String sqlDetalle = """
+                    	SELECT * FROM obtener_detalle_tesista(:p_tesista_id)
+                    """;
 
-	@Override
-	public AlumnoTemaDto getAlumnoTema(Integer idAlumno) {
-		try {
-			// Primero obtenemos los datos básicos del alumno y su tema
-			String sqlDetalle = """
-				SELECT * FROM obtener_detalle_tesista(:p_tesista_id)
-			""";
-			
-			Query queryDetalle = em.createNativeQuery(sqlDetalle)
-				.setParameter("p_tesista_id", idAlumno);
-			
-			@SuppressWarnings("unchecked")
-			List<Object[]> resultsDetalle = queryDetalle.getResultList();
-			
-			if (resultsDetalle.isEmpty()) {
-				throw new NoSuchElementException("No se encontraron datos para el alumno con ID: " + idAlumno);
-			}
-			
-			Object[] rowDetalle = resultsDetalle.get(0);
-			
-			// Luego obtenemos el progreso del alumno y el siguiente entregable
-			String sqlProgreso = """
-				SELECT * FROM calcular_progreso_alumno(:p_alumno_id)
-			""";
-			
-			Query queryProgreso = em.createNativeQuery(sqlProgreso)
-				.setParameter("p_alumno_id", idAlumno);
-			
-			@SuppressWarnings("unchecked")
-			List<Object[]> resultsProgreso = queryProgreso.getResultList();
-			
-			AlumnoTemaDto alumnoTemaDto = new AlumnoTemaDto();
-			alumnoTemaDto.setId((Integer) rowDetalle[0]); // tesista_id
-			alumnoTemaDto.setTemaNombre((String) rowDetalle[8]); // tema_nombre
-			alumnoTemaDto.setAsesorNombre((String) rowDetalle[14]); // asesor_nombre
-			alumnoTemaDto.setCoasesorNombre((String) rowDetalle[16]); // coasesor_nombre
-			alumnoTemaDto.setAreaNombre((String) rowDetalle[12]); // area_conocimiento
-			alumnoTemaDto.setSubAreaNombre((String) rowDetalle[13]); // sub_area_conocimiento
-			
-			// Agregamos la información de progreso y siguiente entregable
-			if (!resultsProgreso.isEmpty()) {
-				Object[] rowProgreso = resultsProgreso.get(0);
-				alumnoTemaDto.setTotalEntregables((Integer) rowProgreso[0]);
-				alumnoTemaDto.setEntregablesEnviados((Integer) rowProgreso[1]);
-				alumnoTemaDto.setPorcentajeProgreso(((Number) rowProgreso[2]).doubleValue());
-				
-				// Información del siguiente entregable no enviado
-				if (rowProgreso[3] != null) { // siguiente_entregable_nombre
-					alumnoTemaDto.setSiguienteEntregableNombre((String) rowProgreso[3]);
-					if (rowProgreso[4] != null) { // siguiente_entregable_fecha_fin
-						// Manejo seguro de la conversión de fechas
-						if (rowProgreso[4] instanceof java.sql.Timestamp) {
-							alumnoTemaDto.setSiguienteEntregableFechaFin(((java.sql.Timestamp) rowProgreso[4]).toInstant().atOffset(java.time.ZoneOffset.UTC));
-						} else if (rowProgreso[4] instanceof java.time.Instant) {
-							alumnoTemaDto.setSiguienteEntregableFechaFin(((java.time.Instant) rowProgreso[4]).atOffset(java.time.ZoneOffset.UTC));
-						}
-					}
-				}
-			} else {
-				alumnoTemaDto.setTotalEntregables(0);
-				alumnoTemaDto.setEntregablesEnviados(0);
-				alumnoTemaDto.setPorcentajeProgreso(0.0);
-			}
-			
-			return alumnoTemaDto;
-		} catch (NoSuchElementException e) {
-			throw e; // Re-throw NoSuchElementException as is
-		} catch (Exception e) {
-			// Log the actual error for debugging
-			logger.severe("Error al obtener datos del alumno " + idAlumno + ": " + e.getMessage());
-			throw new RuntimeException("Error al obtener datos del alumno: " + e.getMessage());
-		}
-	}
+            Query queryDetalle = em.createNativeQuery(sqlDetalle)
+                    .setParameter("p_tesista_id", idAlumno);
 
-    
+            @SuppressWarnings("unchecked")
+            List<Object[]> resultsDetalle = queryDetalle.getResultList();
 
-	@Override
-	public UsuarioDto findByCognitoId(String cognitoId) throws NoSuchElementException {
-		Optional<Usuario> usuario = usuarioRepository.findByIdCognito(cognitoId);
-		if (usuario.isPresent()) {
-			return UsuarioMapper.toDto(usuario.get());
-		} else {
-			throw new NoSuchElementException("Usuario not found with ID Cognito: " + cognitoId);
-		}
-	}
+            if (resultsDetalle.isEmpty()) {
+                throw new NoSuchElementException("No se encontraron datos para el alumno con ID: " + idAlumno);
+            }
+
+            Object[] rowDetalle = resultsDetalle.get(0);
+
+            // Luego obtenemos el progreso del alumno y el siguiente entregable
+            String sqlProgreso = """
+                    	SELECT * FROM calcular_progreso_alumno(:p_alumno_id)
+                    """;
+
+            Query queryProgreso = em.createNativeQuery(sqlProgreso)
+                    .setParameter("p_alumno_id", idAlumno);
+
+            @SuppressWarnings("unchecked")
+            List<Object[]> resultsProgreso = queryProgreso.getResultList();
+
+            AlumnoTemaDto alumnoTemaDto = new AlumnoTemaDto();
+            alumnoTemaDto.setId((Integer) rowDetalle[0]); // tesista_id
+            alumnoTemaDto.setTemaNombre((String) rowDetalle[8]); // tema_nombre
+            alumnoTemaDto.setAsesorNombre((String) rowDetalle[14]); // asesor_nombre
+            alumnoTemaDto.setCoasesorNombre((String) rowDetalle[16]); // coasesor_nombre
+            alumnoTemaDto.setAreaNombre((String) rowDetalle[12]); // area_conocimiento
+            alumnoTemaDto.setSubAreaNombre((String) rowDetalle[13]); // sub_area_conocimiento
+
+            // Agregamos la información de progreso y siguiente entregable
+            if (!resultsProgreso.isEmpty()) {
+                Object[] rowProgreso = resultsProgreso.get(0);
+                alumnoTemaDto.setTotalEntregables((Integer) rowProgreso[0]);
+                alumnoTemaDto.setEntregablesEnviados((Integer) rowProgreso[1]);
+                alumnoTemaDto.setPorcentajeProgreso(((Number) rowProgreso[2]).doubleValue());
+
+                // Información del siguiente entregable no enviado
+                if (rowProgreso[3] != null) { // siguiente_entregable_nombre
+                    alumnoTemaDto.setSiguienteEntregableNombre((String) rowProgreso[3]);
+                    if (rowProgreso[4] != null) { // siguiente_entregable_fecha_fin
+                        // Manejo seguro de la conversión de fechas
+                        if (rowProgreso[4] instanceof java.sql.Timestamp) {
+                            alumnoTemaDto.setSiguienteEntregableFechaFin(((java.sql.Timestamp) rowProgreso[4])
+                                    .toInstant().atOffset(java.time.ZoneOffset.UTC));
+                        } else if (rowProgreso[4] instanceof java.time.Instant) {
+                            alumnoTemaDto.setSiguienteEntregableFechaFin(
+                                    ((java.time.Instant) rowProgreso[4]).atOffset(java.time.ZoneOffset.UTC));
+                        }
+                    }
+                }
+            } else {
+                alumnoTemaDto.setTotalEntregables(0);
+                alumnoTemaDto.setEntregablesEnviados(0);
+                alumnoTemaDto.setPorcentajeProgreso(0.0);
+            }
+
+            return alumnoTemaDto;
+        } catch (NoSuchElementException e) {
+            throw e; // Re-throw NoSuchElementException as is
+        } catch (Exception e) {
+            // Log the actual error for debugging
+            logger.severe("Error al obtener datos del alumno " + idAlumno + ": " + e.getMessage());
+            throw new RuntimeException("Error al obtener datos del alumno: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public UsuarioDto findByCognitoId(String cognitoId) throws NoSuchElementException {
+        Optional<Usuario> usuario = usuarioRepository.findByIdCognito(cognitoId);
+        if (usuario.isPresent()) {
+            return UsuarioMapper.toDto(usuario.get());
+        } else {
+            throw new NoSuchElementException("Usuario not found with ID Cognito: " + cognitoId);
+        }
+    }
 
 }
