@@ -12,12 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { UsuarioXReunionDto } from "../dtos/UsuarioXReunionDto";
 import { useEffect, useState } from "react";
 import { getReunionesXUsuario } from "../services/reuniones-asesor-service";
-  
-// interface ReunionesAsesorModalProps {
-//     data?: EntregableDto;
-//     setSelectedEntregable?: (selectedEntregable: EntregableDto | null) => void;
-//     setComentario?: (comentario: string) => void;
-// }
+
 
 const formatFecha = (fechaString?: string) => {
     if (!fechaString) return "Sin fecha";
@@ -76,12 +71,7 @@ const reunionesDummy = [
   },
 ];
 
-  
-// export function ReunionesAsesorModal({
-//     data,
-//     setSelectedEntregable,
-//     setComentario,
-// }: ReunionesAsesorModalProps) {
+
 export function ReunionesAsesorModal({
   asesorId,
   alumnoId,

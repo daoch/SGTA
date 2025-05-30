@@ -173,7 +173,7 @@ export default function ReunionesAsesoresPage() {
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="md:w-[300px] w-full"
                 />
-                <Select
+                {/* <Select
                     value={cicloSeleccionado}
                     onValueChange={(value) => {
                         if (value === "TODOS") {
@@ -196,7 +196,7 @@ export default function ReunionesAsesoresPage() {
                             </SelectItem>
                         ))}
                     </SelectContent>
-                </Select>
+                </Select> */}
                 <Select
                     value={cursoSeleccionado}
                     onValueChange={(value) => {
@@ -206,7 +206,6 @@ export default function ReunionesAsesoresPage() {
                         setCursoSeleccionado(value);
                         }
                     }}
-                    disabled={!cicloSeleccionado}
                 >
                     <SelectTrigger className="w-[220px]">
                         <SelectValue placeholder="Curso" />
