@@ -187,7 +187,14 @@ export function ReunionesAsesorModal({
                             : "bg-red-100 text-red-700"
                         }
                         >
-                        {r.estadoAsistencia === "CONFIRMADO" ? "Asistió" : "No asistió"}
+                        {r.estadoAsistencia === "CONFIRMADO"
+                            ? "Completa"
+                            : r.estadoAsistencia === "PENDIENTE"
+                                ? "Pendiente"
+                                : r.estadoAsistencia === "RECHAZADO"
+                                    ? "Falta"
+                                    : "Falta"
+                        }
                         </Badge>
                     </TableCell>
                     <TableCell className="py-4 whitespace-normal break-words max-w-xs">{r.reunionTitulo}</TableCell>

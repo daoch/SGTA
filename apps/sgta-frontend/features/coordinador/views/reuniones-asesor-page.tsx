@@ -250,22 +250,24 @@ export default function ReunionesAsesoresPage() {
                                 <TableCell>{fila.codTesista}</TableCell>
                                 <TableCell>{fila.estado}</TableCell>
                                 <TableCell>
-                                    {cursosPorCiclo[fila.ciclo]?.find((c) => c.codigo === fila.curso)?.nombre ??
-                                    fila.curso}
+                                    {/* {cursosPorCiclo[fila.ciclo]?.find((c) => c.codigo === fila.curso)?.nombre ??
+                                    fila.curso} */}
+                                    -
                                 </TableCell>
                                 <TableCell>
-                                    <Dialog open={open} onOpenChange={setOpen}>
-                                        <DialogTrigger asChild>
-                                        <Button variant="outline">
-                                            Ver reuniones
-                                        </Button>
-                                        </DialogTrigger>
-                                        <ReunionesAsesorModal 
-                                            asesorId={fila.asesorId}
-                                            alumnoId={fila.alumnoId}
-                                            onClose={() => setOpen(false)} 
-                                        />
-                                    </Dialog>
+                                    <TableCell>
+  <Dialog>
+    <DialogTrigger asChild>
+      <Button variant="outline">Ver reuniones</Button>
+    </DialogTrigger>
+    <ReunionesAsesorModal 
+      asesorId={fila.asesorId}
+      alumnoId={fila.alumnoId}
+      onClose={() => {}} 
+    />
+  </Dialog>
+</TableCell>
+
                                 </TableCell>
                                 </TableRow>
                             ))
