@@ -1,7 +1,7 @@
 export interface Tesis {
   idTesis: number;
   titulo: string;
-  estudiantes: string[];
+  estudiantes: string;
   anio: string;
   nivel: string;
   estado: "en_proceso" | "finalizada" | null;
