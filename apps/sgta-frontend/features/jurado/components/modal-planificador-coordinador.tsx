@@ -62,7 +62,9 @@ export default function ModalPlanificadorCoordinador({
 
   const { control, handleSubmit, watch, reset, setValue } = methods;
 
-  const [cursos, setCursos] = useState<EtapaFormativa[]>([]);
+  const [etapasFormativas, setEtapasFormativas] = useState<EtapaFormativa[]>(
+    [],
+  );
   const [tiposExposicion, setTiposExposicion] = useState<
     ExposicionSinInicializar[]
   >([]);
@@ -83,7 +85,7 @@ export default function ModalPlanificadorCoordinador({
       });
 
       getEtapasFormativasPorInicializarByCoordinador(idCoordinador)
-        .then(setCursos)
+        .then(setEtapasFormativas)
         .catch(console.error);
     }
   }, [open, reset]);
@@ -194,9 +196,9 @@ export default function ModalPlanificadorCoordinador({
           </DialogHeader>
 
           <div className="space-y-4">
-            {/* Selección de Curso */}
+            {/* Selección de EtapaFormativa */}
             <div className="space-y-2">
-              <Label>Curso</Label>
+              <Label>Etapa Formativa</Label>
               <Select
                 onValueChange={(val) =>
                   setValue("etapa_formativa_id", Number(val))
@@ -212,7 +214,7 @@ export default function ModalPlanificadorCoordinador({
                   <SelectValue placeholder="Seleccionar curso" />
                 </SelectTrigger>
                 <SelectContent>
-                  {cursos.map((curso) => (
+                  {etapasFormativas.map((curso) => (
                     <SelectItem
                       key={curso.etapaFormativaId}
                       value={curso.etapaFormativaId.toString()}

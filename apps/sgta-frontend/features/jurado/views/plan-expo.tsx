@@ -74,9 +74,9 @@ export default async function PlanExpo({ exposicionId }: Props) {
   );
   return (
     <div className="h-fit w-full flex flex-col gap-4">
-      <h1 className="text-3xl font-bold text-primary">
+      <h1 className="text-3xl font-bold flex gap-4 items-center">
         <BackButton backUrl="/coordinador/exposiciones" />
-        <span className="ml-3">Planificador de exposiciones</span>
+        <h1 className="text-2xl font-bold">Planificador de exposiciones</h1>
       </h1>
       {estadoPlanificacion ? (
         <GeneralPlanificationExpo
