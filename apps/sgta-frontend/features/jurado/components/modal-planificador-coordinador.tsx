@@ -36,6 +36,7 @@ import {
   Sala,
 } from "../types/exposicion.types";
 import { ItemFechaExposicion } from "./item-fecha-exposicion";
+import { getIdCoordinador } from "../utils/get-id-coordinador";
 
 interface ModalPlanificadorCoordinadorProps {
   open: boolean;
@@ -46,7 +47,7 @@ export default function ModalPlanificadorCoordinador({
   open,
   onClose,
 }: ModalPlanificadorCoordinadorProps) {
-  const idCoordinador = 13;
+  const idCoordinador = getIdCoordinador();
   const router = useRouter();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
