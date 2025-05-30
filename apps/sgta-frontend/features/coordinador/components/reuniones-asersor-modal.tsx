@@ -183,8 +183,12 @@ export function ReunionesAsesorModal({
                         <Badge
                         className={
                             r.estadoAsistencia === "CONFIRMADO"
-                            ? "bg-green-100 text-green-700"
-                            : "bg-red-100 text-red-700"
+                                ? "bg-green-100 text-green-700"
+                                : r.estadoAsistencia === "PENDIENTE"
+                                    ? "bg-gray-200 text-gray-700"
+                                    : r.estadoAsistencia === "RECHAZADO"
+                                        ? "bg-red-100 text-red-700"
+                                        : "bg-gray-200 text-gray-700"
                         }
                         >
                         {r.estadoAsistencia === "CONFIRMADO"

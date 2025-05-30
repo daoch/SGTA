@@ -255,19 +255,16 @@ export default function ReunionesAsesoresPage() {
                                     -
                                 </TableCell>
                                 <TableCell>
-                                    <TableCell>
-  <Dialog>
-    <DialogTrigger asChild>
-      <Button variant="outline">Ver reuniones</Button>
-    </DialogTrigger>
-    <ReunionesAsesorModal 
-      asesorId={fila.asesorId}
-      alumnoId={fila.alumnoId}
-      onClose={() => {}} 
-    />
-  </Dialog>
-</TableCell>
-
+                                    <Dialog>
+                                        <DialogTrigger asChild>
+                                            <Button variant="outline">Ver reuniones</Button>
+                                        </DialogTrigger>
+                                        <ReunionesAsesorModal 
+                                            asesorId={fila.asesorId}
+                                            alumnoId={fila.alumnoId}
+                                            onClose={() => {}} 
+                                        />
+                                    </Dialog>
                                 </TableCell>
                                 </TableRow>
                             ))
