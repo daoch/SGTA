@@ -1,12 +1,11 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { parseISO } from "date-fns";
-import { ModalProgramarReporte } from "../components/general/modal-programar";
-import { LineaTiempoReporte } from "../components/general/linea-tiempo";
-import { obtenerDetalleTemaAlumno } from "../services/report-services";
+import { format, parseISO } from "date-fns";
 import { useEffect, useState } from "react";
-import { format } from "date-fns";
+import { LineaTiempoReporte } from "../components/general/linea-tiempo";
+import { ModalProgramarReporte } from "../components/general/modal-programar";
+import { obtenerDetalleTemaAlumno } from "../services/report-services";
 import { AlumnoTemaDetalle } from "../types/Alumno.type";
 
 import { useAuth } from "@/features/auth/hooks/use-auth";
@@ -32,21 +31,11 @@ export function StudentReports() {
     };
 
     fetchStudentData();
-  }, []);
+  }, [user]);
 
   if (!user || isLoading || !studentData) {
     return <div>Cargando...</div>;
   }
-
-  // Datos de entregas con estado de retraso
-  const pendingDeliveries = [
-    {
-      name: "Metodología",
-      dueDate: "15/04/2023",
-      isLate: true,
-      daysLate: 3,
-    },
-  ];
 
   const timelineEvents = [
     { date: "15/01/2023", event: "Propuesta de proyecto aprobada", status: "Completado" },
@@ -85,17 +74,6 @@ export function StudentReports() {
       isAtRisk,
     };
   });
-
-  // Calcular progreso general
-  const completedEvents = timelineEvents.filter((event) => event.status === "Completado").length;
-  const totalEvents = timelineEvents.length;
-  const overallProgress = Math.round((completedEvents / totalEvents) * 100);
-
-  /*
-  if (isLoading || !studentData) {
-    return <div>Cargando...</div>;
-  }
-  */
 
   return (
     <div className="space-y-6">
