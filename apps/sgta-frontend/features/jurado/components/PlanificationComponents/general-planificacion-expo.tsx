@@ -124,10 +124,13 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
         );
         return;
       }
+      if (spaceId in temasAsignados) {
+        console.warn("No se puede asignar a un bloque ya asignado.");
+        return;
+      }
 
       if (temaEscogidoDesdeLista) {
         //si se asigna desde la lista de temas sin asignar
-        if (spaceId in temasAsignados) return;
         const temaPorAsignar = { [spaceId]: temaEscogidoDesdeLista };
         setTemasAsignados({
           ...temasAsignados,
@@ -184,6 +187,7 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
       temasAsignados,
       temasSinAsignar,
       actualizarBloqueByKey,
+      bloques,
     ],
   );
 
@@ -274,6 +278,7 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
 
   const [isDragging, setIsDragging] = useState(false);
 
+  console.log("temasSinAsignar", temasSinAsignar);
   console.log("temasAsignados", temasAsignados);
   console.log("bloques", bloques);
 

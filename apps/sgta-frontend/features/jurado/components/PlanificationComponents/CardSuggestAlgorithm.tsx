@@ -20,7 +20,7 @@ const CardSugerenciaDistribucion: React.FC = () => {
     generarDistribucionAutomatica,
   } = usePlanificationStore();
   return (
-    <Card className="py-5">
+    <Card>
       <CardHeader>
         <CardTitle className="text-xs">
           ¿Deseas automatizar la distribución de exposiciones?

@@ -31,28 +31,26 @@ export default async function PlanExpo({ exposicionId }: Props) {
   const areasEspecialidad: AreaEspecialidad[] =
     await listarAreasConocimientoPorExposicion(exposicionId);
 
-
   const daysSinfiltrar: JornadaExposicionDTO[] =
     jornadasSalas.map(transformarJornada);
 
-  const days: JornadaExposicionDTO[] = daysSinfiltrar.reduce<
-    JornadaExposicionDTO[]
-  >((acc, curr) => {
-    const yaExiste = acc.some((item) => isSameDay(item.fecha, curr.fecha));
-    return yaExiste ? acc : [...acc, curr];
-  }, []);
+  const days: JornadaExposicionDTO[] = daysSinfiltrar
+    .reduce<JornadaExposicionDTO[]>((acc, curr) => {
+      const yaExiste = acc.some((item) => isSameDay(item.fecha, curr.fecha));
+      return yaExiste ? acc : [...acc, curr];
+    }, [])
+    .sort((a, b) => a.fecha.getTime() - b.fecha.getTime());
 
   const bloquesList = await listarBloquesHorariosExposicion(exposicionId);
-  console.log(bloquesList);
 
   const bloquesOrdenados = bloquesList.sort((a: TimeSlot, b: TimeSlot) => {
-    const parse = (key: string) => {
-      const [d, m, y] = key.split("|")[0].split("-").map(Number);
-      const [h, min] = key.split("|")[1].split(":").map(Number);
-      return new Date(y, m - 1, d, h, min);
-    };
-
-    return parse(a.key).getTime() - parse(b.key).getTime();
+    // const parse = (key: string) => {
+    //   const [d, m, y] = key.split("|")[0].split("-").map(Number);
+    //   const [h, min] = key.split("|")[1].split(":").map(Number);
+    //   return new Date(y, m - 1, d, h, min);
+    // };
+    // return parse(a.key).getTime() - parse(b.key).getTime();
+    return a.key.localeCompare(b.key);
   });
 
   const estadoPlanificacion =

@@ -16,7 +16,7 @@ import { useFetchExposicionFilters } from "../hooks/use-fetch-exposicion-filters
 import { useFetchExposiciones } from "../hooks/use-fetch-exposiciones";
 
 export const ExposicionesCoordinadorPage: FC = () => {
-  const coordinadorId = 3;
+  const coordinadorId = 13;
 
   const [modalOpen, setModalOpen] = useState(false);
 

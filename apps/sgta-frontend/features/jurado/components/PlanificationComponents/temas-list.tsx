@@ -25,18 +25,20 @@ const TemasList: React.FC<Props> = ({ areasEspecialidad }) => {
 
   const temasFiltrados = React.useMemo(() => {
     const q = query.trim().toLowerCase();
-    return temasSinAsignar.filter((tema) => {
-      const matchCodigo = (tema.codigo ?? "").toLowerCase().includes(q);
-      const matchJurado = (tema.usuarios ?? []).some(
-        (u) =>
-          (u.nombres ?? "").toLowerCase().includes(q) ||
-          (u.apellidos ?? "").toLowerCase().includes(q),
-      );
-      const matchArea =
-        especialidad === "__all__" ||
-        (tema.areasConocimiento ?? []).some((a) => a.nombre === especialidad);
-      return (matchCodigo || matchJurado) && matchArea;
-    });
+    return temasSinAsignar
+      .filter((tema) => {
+        const matchCodigo = (tema.codigo ?? "").toLowerCase().includes(q);
+        const matchJurado = (tema.usuarios ?? []).some(
+          (u) =>
+            (u.nombres ?? "").toLowerCase().includes(q) ||
+            (u.apellidos ?? "").toLowerCase().includes(q),
+        );
+        const matchArea =
+          especialidad === "__all__" ||
+          (tema.areasConocimiento ?? []).some((a) => a.nombre === especialidad);
+        return (matchCodigo || matchJurado) && matchArea;
+      })
+      .sort((a, b) => (a.codigo ?? "").localeCompare(b.codigo ?? ""));
   }, [temasSinAsignar, query, especialidad]);
 
   return (
