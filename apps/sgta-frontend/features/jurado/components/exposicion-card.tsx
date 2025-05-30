@@ -259,7 +259,8 @@ export function ExposicionCard({
   };
 
   const mostrarReprogramacionSolicitada = () => {
-    return isReprogramacionSolicitada || estadoControlActual === "RECHAZADO";
+    return (isReprogramacionSolicitada || estadoControlActual === "RECHAZADO") && 
+         mapEstadoToExposicionEstado(exposicion.estado) !== "programada";
   };
 
   const determinarEstadoMostrado = (): ExposicionEstado => {
@@ -282,13 +283,14 @@ export function ExposicionCard({
 
   return (
     <div
-      className={`bg-gray-50 rounded-lg shadow-sm border p-5 flex flex-col md:flex-row gap-10
-        ${
-          mostrarReprogramacionSolicitada()
-            ? "bg-red-50 border-red-200"
-            : "bg-gray-50"
-        }`}
-      onClick={handleClick}
+    className={`rounded-lg shadow-sm border p-5 flex flex-col md:flex-row gap-10
+      ${
+        mostrarReprogramacionSolicitada() && 
+        mapEstadoToExposicionEstado(exposicion.estado) !== "programada"
+          ? "bg-red-50 border-red-200"
+          : "bg-gray-50"
+      }`}
+    onClick={handleClick}
     >
       {/* HORA, FECHA Y SALA */}
       <div className="flex flex-col items-center space-y-2 md:min-w-[180px] justify-center">
@@ -392,7 +394,8 @@ export function ExposicionCard({
               </>
             )}
 
-            {mostrarReprogramacionSolicitada() && (
+            {mostrarReprogramacionSolicitada() && 
+            mapEstadoToExposicionEstado(exposicion.estado) !== "programada" && (
               <Button variant="outline" disabled>
                 Reprogramación Solicitada
               </Button>
