@@ -1,6 +1,5 @@
 package pucp.edu.pe.sgta.mapper;
 
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 
 import pucp.edu.pe.sgta.dto.JornadaExposicionCreateDTO;

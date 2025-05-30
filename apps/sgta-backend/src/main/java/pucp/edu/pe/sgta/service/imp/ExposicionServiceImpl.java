@@ -18,7 +18,6 @@ import pucp.edu.pe.sgta.repository.UsuarioXTemaRepository;
 import pucp.edu.pe.sgta.service.inter.ExposicionService;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;

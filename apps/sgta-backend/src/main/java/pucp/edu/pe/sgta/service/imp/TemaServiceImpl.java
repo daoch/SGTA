@@ -8,12 +8,10 @@ import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import jakarta.transaction.Transactional;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-
 import pucp.edu.pe.sgta.dto.*;
 import pucp.edu.pe.sgta.dto.asesores.InfoTemaPerfilDto;
 import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
@@ -30,9 +28,7 @@ import pucp.edu.pe.sgta.service.inter.*;
 import pucp.edu.pe.sgta.util.EstadoTemaEnum;
 import pucp.edu.pe.sgta.util.RolEnum;
 import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
-
 import java.io.IOException;
-import java.sql.Array;
 import java.sql.SQLException;
 import java.time.*;
 import java.util.*;
@@ -682,16 +678,15 @@ public class TemaServiceImpl implements TemaService {
 		}
 
 		// Ahora convierto el map en lista y completo cantPostulaciones
-        List<TemaDto> temas = new ArrayList<>(dtoMap.values());
-        for (TemaDto t : temas) {
-            // Llamada a la función contar_postulaciones
-            Integer count = ((Number) entityManager.createNativeQuery(
-                    "SELECT contar_postulaciones(:temaId)")
-                    .setParameter("temaId", t.getId())
-                    .getSingleResult()
-            ).intValue();
-            t.setCantPostulaciones(count);
-        }
+		List<TemaDto> temas = new ArrayList<>(dtoMap.values());
+		for (TemaDto t : temas) {
+			// Llamada a la función contar_postulaciones
+			Integer count = ((Number) entityManager.createNativeQuery(
+					"SELECT contar_postulaciones(:temaId)")
+					.setParameter("temaId", t.getId())
+					.getSingleResult()).intValue();
+			t.setCantPostulaciones(count);
+		}
 		return temas;
 	}
 
@@ -853,7 +848,6 @@ public class TemaServiceImpl implements TemaService {
 	@Transactional
 	public void enlazarTesistasATemaPropuestDirecta(Integer[] usuariosId, Integer temaId, String profesorId,
 			String comentario) {
-
 
 		UsuarioDto usuDto = usuarioService.findByCognitoId(profesorId);
 
@@ -1350,7 +1344,7 @@ public class TemaServiceImpl implements TemaService {
 	}
 
 	@Override
-	public void crearTemaLibre(TemaDto dto,String asesorId) {
+	public void crearTemaLibre(TemaDto dto, String asesorId) {
 
 		UsuarioDto usuDto = usuarioService.findByCognitoId(asesorId);
 
@@ -1801,34 +1795,35 @@ public class TemaServiceImpl implements TemaService {
 
 	@Override
 	public TemaConAsesorDto obtenerTemaActivoPorAlumno(Integer idAlumno) {
-    try {
-        // Ejecutar la función que devuelve el tema actual y el ID del asesor
-        Object[] result = (Object[]) entityManager
-            .createNativeQuery("SELECT * FROM obtener_temas_por_alumno(:idAlumno)")
-            .setParameter("idAlumno", idAlumno)
-            .getSingleResult();
+		try {
+			// Ejecutar la función que devuelve el tema actual y el ID del asesor
+			Object[] result = (Object[]) entityManager
+					.createNativeQuery("SELECT * FROM obtener_temas_por_alumno(:idAlumno)")
+					.setParameter("idAlumno", idAlumno)
+					.getSingleResult();
 
-        // Mapear a TemaActual
-        TemaResumenDto tema = new TemaResumenDto();
-        tema.setId((Integer) result[0]);
-        tema.setTitulo((String) result[1]);
-        tema.setAreas((String) result[3]);
+			// Mapear a TemaActual
+			TemaResumenDto tema = new TemaResumenDto();
+			tema.setId((Integer) result[0]);
+			tema.setTitulo((String) result[1]);
+			tema.setAreas((String) result[3]);
 
-        // Obtener el perfil del asesor
-        Integer idAsesor = (Integer) result[4];
-        PerfilAsesorDto asesorDto = usuarioService.getPerfilAsesor(idAsesor);
+			// Obtener el perfil del asesor
+			Integer idAsesor = (Integer) result[4];
+			PerfilAsesorDto asesorDto = usuarioService.getPerfilAsesor(idAsesor);
 
-        // Retornar combinado en TemaConAsesorDto
-        TemaConAsesorDto respuesta = new TemaConAsesorDto();
-        respuesta.setTemaActual(tema);
-        respuesta.setAsesorActual(asesorDto);
+			// Retornar combinado en TemaConAsesorDto
+			TemaConAsesorDto respuesta = new TemaConAsesorDto();
+			respuesta.setTemaActual(tema);
+			respuesta.setAsesorActual(asesorDto);
 
-        return respuesta;
+			return respuesta;
 
-    } catch (NoResultException e) {
-        // Si el alumno no tiene tema activo, retornar null o manejarlo con una excepción custom
-        return null;
-    }
-}
+		} catch (NoResultException e) {
+			// Si el alumno no tiene tema activo, retornar null o manejarlo con una
+			// excepción custom
+			return null;
+		}
+	}
 
 }
