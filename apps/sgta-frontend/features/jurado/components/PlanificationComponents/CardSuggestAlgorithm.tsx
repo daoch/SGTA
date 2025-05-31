@@ -23,14 +23,8 @@ const CardSugerenciaDistribucion: React.FC = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-xs">
-          ¿Deseas automatizar la distribución de exposiciones?
-        </CardTitle>
-        <CardDescription className="text-xs text-muted-foreground">
-          Esta planificación toma en cuenta diversos factores como el tipo de
-          dedicación del miembro de docente, área de especialidad, entre otros
-          factores.
-        </CardDescription>
+        <CardTitle>Panel de acciones rápidas</CardTitle>
+        <CardDescription className="text-xs text-muted-foreground"></CardDescription>
         <div className="flex justify-between">
           <ButtonAlertDialog
             message="¿Estás seguro de que deseas regresar todos los temas asignados a la lista de temas sin asignar? Esta acción no se puede deshacer."
