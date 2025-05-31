@@ -132,6 +132,7 @@ export interface MiembroJuradoExpo {
 export interface EvaluacionExposicionJurado {
   id_exposicion: number;
   titulo: string;
+  descripcion: string;
   estudiantes: Estudiante[];
   criterios: CriterioEvaluacion[];
   observaciones_finales: string;

@@ -73,7 +73,7 @@ export function ExposicionCard({
     if (
       estadoNormalizado === "sin_programar" ||
       estadoNormalizado === "esperando_respuesta" ||
-      estadoNormalizado === "esperando_aprobacion" ||
+      estadoNormalizado === "esperando_aprobación" ||
       estadoNormalizado === "programada" ||
       estadoNormalizado === "completada" ||
       estadoNormalizado === "calificada"
@@ -90,9 +90,9 @@ export function ExposicionCard({
       return "esperando_respuesta";
     if (
       estadoNormalizado.includes("esperando") &&
-      estadoNormalizado.includes("aprobacion")
+      estadoNormalizado.includes("aprobación")
     )
-      return "esperando_aprobacion";
+      return "esperando_aprobación";
     if (estadoNormalizado.includes("completa")) return "completada";
     if (estadoNormalizado.includes("califica")) return "calificada";
 
@@ -250,7 +250,7 @@ export function ExposicionCard({
   const mostrarEsperandoAprobacion = () => {
     const estado = mapEstadoToExposicionEstado(estadoActual);
     return (
-      ((estado === "esperando_aprobacion" &&
+      ((estado === "esperando_aprobación" &&
         estadoControlActual !== "RECHAZADO") ||
         (estado === "esperando_respuesta" &&
           estadoControlActual === "ACEPTADO")) &&
@@ -274,7 +274,7 @@ export function ExposicionCard({
       (estadoControlActual === "ACEPTADO" ||
         estadoControlActual === "RECHAZADO")
     ) {
-      return "esperando_aprobacion";
+      return "esperando_aprobación";
     }
 
     // En cualquier otro caso, mostrar el estado base
@@ -371,7 +371,7 @@ export function ExposicionCard({
                   disabled={isLoading}
                 >
                   {/*<Link href="">Confirmar Asistencia</Link>*/}
-                  {isLoading ? "Procesando..." : "Confirmar Asistencia"}
+                  {isLoading ? "Procesando..." : "Confirmo Asistencia"}
                 </Button>
               </>
             )}
@@ -382,14 +382,14 @@ export function ExposicionCard({
                   onClick={handleClickSolicitarReprogramacion}
                   disabled={isLoading}
                 >
-                  Solicitar Reprogramación
+                  Solicito Reprogramación
                 </Button>
 
                 <Button
                   // variant="outline"
                   disabled
                 >
-                  Esperando confirmacion Oficial
+                  Esperando confirmación Oficial
                 </Button>
               </>
             )}
@@ -402,13 +402,16 @@ export function ExposicionCard({
             )}
 
             {mapEstadoToExposicionEstado(exposicion.estado) === "programada" &&
-              isBefore(new Date(exposicion.fechahora), new Date()) && (
+            // isBefore(new Date(exposicion.fechahora), new Date()) && 
+            //se el esta pasando la expo por tema
+              (
                 <Button
                   asChild
                   onClick={(e) => {
                     e.stopPropagation();
                   }}
                 >
+                  
                   <Link
                     href={`/jurado/exposiciones/calificar/${exposicion.id_exposicion}`}
                   >

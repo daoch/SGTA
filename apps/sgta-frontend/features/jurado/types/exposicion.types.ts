@@ -7,7 +7,7 @@ type Miembro = {
 const ESTADOS = [
   "sin_programar",
   "esperando_respuesta",
-  "esperando_aprobacion",
+  "esperando_aprobación",
   "programada",
   "completada",
   "calificada",
