@@ -48,14 +48,14 @@ public interface TemaService {
 
 	List<TemaDto> listarTemasPorUsuarioRolEstado(String usuarioId,
 			String rolNombre,
-			String estadoNombre);
+			String estadoNombre, Integer limit, Integer offset);
 
 	List<UsuarioDto> listarUsuariosPorTemaYRol(Integer temaId,
 			String rolNombre);
 
 	List<SubAreaConocimientoDto> listarSubAreasPorTema(Integer temaId);
 
-	List<TemaDto> listarTemasPorUsuarioEstadoYRol(String asesorId, String rolNombre, String estadoNombre);
+	List<TemaDto> listarTemasPorUsuarioEstadoYRol(String asesorId, String rolNombre, String estadoNombre, Integer limit, Integer offset);
 
 	void rechazarTemaPropuestaDirecta(Integer alumnoId, String comentario, Integer temaId);
 

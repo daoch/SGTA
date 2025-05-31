@@ -135,10 +135,13 @@ public class TemaController {
 	public List<TemaDto> listarTemasPorUsuarioRolEstado(
 			@RequestParam("rolNombre") String rolNombre,
 			@RequestParam("estadoNombre") String estadoNombre,
+			@RequestParam(defaultValue = "10") Integer limit, 
+			@RequestParam(defaultValue = "0") Integer offset,
 			HttpServletRequest request) {
 		try {
 			String usuarioId = jwtService.extractSubFromRequest(request);
-			return temaService.listarTemasPorUsuarioEstadoYRol(usuarioId, rolNombre, estadoNombre);
+			//System.err.println("Usuario ID: " + usuarioId);
+			return temaService.listarTemasPorUsuarioEstadoYRol(usuarioId, rolNombre, estadoNombre, limit, offset);
 		} catch (RuntimeException e) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
 		}

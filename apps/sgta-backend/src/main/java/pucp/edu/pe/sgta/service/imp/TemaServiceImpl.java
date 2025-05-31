@@ -624,11 +624,11 @@ public class TemaServiceImpl implements TemaService {
 	@Override
 	public List<TemaDto> listarTemasPorUsuarioRolEstado(String usuarioId,
 			String rolNombre,
-			String estadoNombre) {
+			String estadoNombre, Integer limit, Integer offset) {
 
 		UsuarioDto usuDto = usuarioService.findByCognitoId(usuarioId);
 		List<Object[]> rows = temaRepository.listarTemasPorUsuarioRolEstado(
-				usuDto.getId(), rolNombre, estadoNombre);
+				usuDto.getId(), rolNombre, estadoNombre, limit, offset);
 
 		Map<Integer, TemaDto> dtoMap = new LinkedHashMap<>();
 
@@ -731,12 +731,15 @@ public class TemaServiceImpl implements TemaService {
 	}
 
 	@Override
-	public List<TemaDto> listarTemasPorUsuarioEstadoYRol(String asesorId, String rolNombre, String estadoNombre) {
+	public List<TemaDto> listarTemasPorUsuarioEstadoYRol(String asesorId, String rolNombre, String estadoNombre
+														, Integer limit, Integer offset) {
 		// primero cargo los temas con estado INSCRITO y rol Asesor
 		List<TemaDto> temas = listarTemasPorUsuarioRolEstado(
 				asesorId,
 				rolNombre,
-				estadoNombre);
+				estadoNombre, 
+				limit, 
+				offset);
 
 		// por cada tema cargo coasesores, tesistas y subáreas
 		for (TemaDto t : temas) {

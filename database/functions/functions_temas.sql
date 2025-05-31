@@ -243,7 +243,9 @@ $BODY$;
 CREATE OR REPLACE FUNCTION listar_temas_por_usuario_rol_estado(
   p_usuario_id    INT,
   p_rol_nombre    TEXT,
-  p_estado_nombre TEXT
+  p_estado_nombre TEXT,
+  p_limit INT ,
+  p_offset INT 
 )
 RETURNS TABLE (
   tema_id            INT,
@@ -298,7 +300,9 @@ BEGIN
     u.activo
     AND r.nombre   ILIKE p_rol_nombre
     AND est.nombre ILIKE p_estado_nombre
-    AND u.usuario_id = p_usuario_id;
+    AND u.usuario_id = p_usuario_id
+  ORDER BY t.fecha_creacion DESC
+  LIMIT p_limit OFFSET p_offset;
 END;
 $$ LANGUAGE plpgsql;
 
