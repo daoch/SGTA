@@ -1848,6 +1848,169 @@ SELECT
     1
 FROM nuevo_parametro;
 
+-- Limite de tesistas por asesor
+WITH nuevo_parametro AS (
+    INSERT INTO parametro_configuracion (
+        nombre,
+        descripcion,
+        modulo_id,
+        activo,
+        fecha_creacion,
+        fecha_modificacion,
+        tipo
+    ) VALUES (
+        'LimXasesor',
+        'Numero de limites por asesor',
+        2,
+        TRUE,
+        NOW(),
+        NOW(),
+        'integer'
+    )
+    RETURNING parametro_configuracion_id
+)
+INSERT INTO carrera_parametro_configuracion (
+    carrera_id,
+    parametro_configuracion_id,
+    valor,
+    activo,
+    fecha_creacion,
+    fecha_modificacion,
+    etapa_formativa_id
+)
+SELECT
+    1,
+    parametro_configuracion_id,
+    3,
+    TRUE,
+    NOW(),
+    NOW(),
+    1
+FROM nuevo_parametro;
+
+--Switch para activar el limite de asesores
+WITH nuevo_parametro AS (
+    INSERT INTO parametro_configuracion (
+        nombre,
+        descripcion,
+        modulo_id,
+        activo,
+        fecha_creacion,
+        fecha_modificacion,
+        tipo
+    ) VALUES (
+        'ActivarLimiteAsesor',
+        'Configure la opcion de editar el numero de tesistas por asesor',
+        2, 
+        TRUE,
+        NOW(),
+        NOW(),
+        'booleano'
+    )
+    RETURNING parametro_configuracion_id
+)
+INSERT INTO carrera_parametro_configuracion (
+    carrera_id,
+    parametro_configuracion_id,
+    valor,
+    activo,
+    fecha_creacion,
+    fecha_modificacion,
+    etapa_formativa_id
+)
+SELECT
+    1,
+    parametro_configuracion_id,
+    true,
+    TRUE,
+    NOW(),
+    NOW(),
+    1
+FROM nuevo_parametro;
+
+-- Tiempo limite para revisar
+WITH nuevo_parametro AS (
+    INSERT INTO parametro_configuracion (
+        nombre,
+        descripcion,
+        modulo_id,
+        activo,
+        fecha_creacion,
+        fecha_modificacion,
+        tipo
+    ) VALUES (
+        'TiempoLimiteRevisar',
+        'Configure la opcion de editar el tiempo limite (dias) para revisar el avance',
+        2, 
+        TRUE,
+        NOW(),
+        NOW(),
+        'integer'
+    )
+    RETURNING parametro_configuracion_id
+)
+INSERT INTO carrera_parametro_configuracion (
+    carrera_id,
+    parametro_configuracion_id,
+    valor,
+    activo,
+    fecha_creacion,
+    fecha_modificacion,
+    etapa_formativa_id
+)
+SELECT
+    1,
+    parametro_configuracion_id,
+    5,
+    TRUE,
+    NOW(),
+    NOW(),
+    1
+FROM nuevo_parametro;
+
+-- Cantidad tesis en simultaneo asignadas a un jurado
+WITH nuevo_parametro AS (
+    INSERT INTO parametro_configuracion (
+        nombre,
+        descripcion,
+        modulo_id,
+        activo,
+        fecha_creacion,
+        fecha_modificacion,
+        tipo
+    ) VALUES (
+        'CantidadTesisXJurado',
+        'Configure el numero maximo de tesis que puede tener asignadas un jurado de forma simultanea',
+        3, 
+        TRUE,
+        NOW(),
+        NOW(),
+        'integer'
+    )
+    RETURNING parametro_configuracion_id
+)
+INSERT INTO carrera_parametro_configuracion (
+    carrera_id,
+    parametro_configuracion_id,
+    valor,
+    activo,
+    fecha_creacion,
+    fecha_modificacion,
+    etapa_formativa_id
+)
+SELECT
+    1,
+    parametro_configuracion_id,
+    4,
+    TRUE,
+    NOW(),
+    NOW(),
+    1
+FROM nuevo_parametro;
+
+
+-----------------------------------------
+
 /* NUEVOS */
 
 INSERT INTO
