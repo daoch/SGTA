@@ -9,6 +9,7 @@ import pucp.edu.pe.sgta.service.inter.AreaConocimientoService;
 import java.util.List;
 
 @RestController
+
 @RequestMapping("/areaConocimiento")
 public class AreaConocimientoController {
 

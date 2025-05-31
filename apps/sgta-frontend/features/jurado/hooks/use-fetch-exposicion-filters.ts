@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import {
   getCiclos,
   getCursosByCoordinador,
+  getEstadosExposicion,
 } from "../services/exposicion-service";
 
 export interface CursoDTO {
@@ -32,10 +33,12 @@ export function useFetchExposicionFilters(coordinadorId: number) {
   useEffect(() => {
     async function fetchOptions() {
       try {
-        const [cursosResponse, ciclosResponse] = await Promise.all([
-          getCursosByCoordinador(coordinadorId),
-          getCiclos(),
-        ]);
+        const [cursosResponse, ciclosResponse, estadosResponse] =
+          await Promise.all([
+            getCursosByCoordinador(coordinadorId),
+            getCiclos(),
+            getEstadosExposicion(),
+          ]);
 
         setOptions({
           etapasFormativas: cursosResponse.map((c: CursoDTO) => ({
@@ -48,11 +51,12 @@ export function useFetchExposicionFilters(coordinadorId: number) {
               label: c.anio + "-" + c.semestre,
             }),
           ),
-          estados: [
-            { value: "Programada", label: "Programada" },
-            { value: "En Curso", label: "En Curso" },
-            { value: "Finalizada", label: "Finalizada" },
-          ],
+          estados: estadosResponse
+            .filter((e: { id: number; nombre: string }) => e.id != 1)
+            .map((e: { id: number; nombre: string }) => ({
+              value: e.id,
+              label: e.nombre,
+            })),
         });
       } catch (e) {
         setError(e instanceof Error ? e.message : "Ocurrió un error");

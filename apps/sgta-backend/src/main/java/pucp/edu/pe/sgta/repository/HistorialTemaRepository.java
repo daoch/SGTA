@@ -5,7 +5,6 @@ import org.springframework.stereotype.Repository;
 import pucp.edu.pe.sgta.model.HistorialTema;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface HistorialTemaRepository extends JpaRepository<HistorialTema, Integer> {
