@@ -238,7 +238,7 @@ public class UsuarioController {
 
     }
 
-
+{/*
     //Probando lo del Id_Token
     @GetMapping("/detalle-tema-alumno/{idUsuario}")
     public ResponseEntity<AlumnoTemaDto> getDetalleTemaAlumno(@AuthenticationPrincipal UserDetails userDetails) {
@@ -254,7 +254,7 @@ public class UsuarioController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
-
+*/}
 
 
 
