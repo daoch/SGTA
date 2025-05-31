@@ -41,11 +41,11 @@ interface CalendarEvent {
 }
 
 const createDate = (
-  day: number, 
-  month: number, 
-  year: number, 
-  hours: number = 0, 
-  minutes: number = 0
+  day: number,
+  month: number,
+  year: number,
+  hours: number = 0,
+  minutes: number = 0,
 ) => {
   return new Date(year, month - 1, day, hours, minutes);
 };
@@ -57,7 +57,7 @@ const eventosEstaticos: CalendarEvent[] = [
     description: "Primera revision de avances",
     start: createDate(29, 5, 2025, 8, 0),
     end: createDate(29, 5, 2025, 10, 0),
-    tipoEvento: "Reunión"
+    tipoEvento: "Reunión",
   },
   {
     id: "2",
@@ -65,7 +65,7 @@ const eventosEstaticos: CalendarEvent[] = [
     description: "Presentación de resultados parciales",
     start: createDate(30, 5, 2025, 11, 0),
     end: createDate(30, 5, 2025, 12, 0),
-    tipoEvento: "Exposición"
+    tipoEvento: "Exposición",
   },
   {
     id: "3",
@@ -74,7 +74,7 @@ const eventosEstaticos: CalendarEvent[] = [
     start: createDate(28, 5, 2025, 1, 0),
     end: createDate(28, 5, 2025, 1, 0),
     tipoEvento: "Entregable",
-    allDay: true
+    allDay: true,
   },
   {
     id: "4",
@@ -83,7 +83,7 @@ const eventosEstaticos: CalendarEvent[] = [
     start: createDate(27, 5, 2025, 1, 15),
     end: createDate(2, 5, 2025, 1, 15),
     tipoEvento: "Entregable",
-    allDay: true
+    allDay: true,
   },
   {
     id: "5",
@@ -92,7 +92,7 @@ const eventosEstaticos: CalendarEvent[] = [
     start: createDate(27, 5, 2025, 0, 43),
     end: createDate(27, 5, 2025, 0, 43),
     tipoEvento: "Entregable",
-    allDay: true
+    allDay: true,
   },
   {
     id: "6",
@@ -101,7 +101,7 @@ const eventosEstaticos: CalendarEvent[] = [
     start: createDate(27, 5, 2025, 1, 15),
     end: createDate(2, 5, 2025, 1, 15),
     tipoEvento: "Entregable",
-    allDay: true
+    allDay: true,
   },
   {
     id: "7",
@@ -110,7 +110,7 @@ const eventosEstaticos: CalendarEvent[] = [
     start: createDate(27, 5, 2025, 1, 15),
     end: createDate(2, 5, 2025, 1, 15),
     tipoEvento: "Entregable",
-    allDay: true
+    allDay: true,
   },
   {
     id: "8",
@@ -119,7 +119,7 @@ const eventosEstaticos: CalendarEvent[] = [
     start: createDate(27, 5, 2025, 1, 15),
     end: createDate(2, 5, 2025, 1, 15),
     tipoEvento: "Entregable",
-    allDay: true
+    allDay: true,
   },
 ];
 
@@ -127,90 +127,98 @@ const AppHeader = () => {
   const [notificaciones, setNotificaciones] = useState<CalendarEvent[]>([]);
 
   useEffect(() => {
-  const obtenerEventosProximos = () => {
-    const ahora = new Date();
-    const proximos: CalendarEvent[] = [];
+    const obtenerEventosProximos = () => {
+      const ahora = new Date();
+      const proximos: CalendarEvent[] = [];
 
-    eventosEstaticos.forEach((evento) => {
-      const diffMin = (evento.start.getTime() - ahora.getTime()) / 60000;
+      eventosEstaticos.forEach((evento) => {
+        const diffMin = (evento.start.getTime() - ahora.getTime()) / 60000;
 
-      if (diffMin <= 1440 && diffMin >= -15) {
-        proximos.push(evento); // se mostrará en campanita
-      }
-    });
-
-    return proximos;
-  };
-
-  const manejarNotificacionesToast = (eventos: CalendarEvent[]) => {
-    const ahora = new Date();
-    const notificados: string[] = JSON.parse(localStorage.getItem("toastNotificados") || "[]");
-
-    eventos.forEach((evento) => {
-      const diffMin = Math.round((evento.start.getTime() - ahora.getTime()) / 60000);
-
-      const id1d = `${evento.id}-1d`;
-      const id30 = `${evento.id}-30`;
-      const id5 = `${evento.id}-5`;
-
-      // Hasta 1 día
-      if (diffMin <= 1440 && !notificados.includes(id1d)) {
-        toast.info(`${evento.tipoEvento}: ${evento.title}\n\n${evento.start.toLocaleString("es-PE")}`);
-
-        if (Notification.permission === "granted") {
-          new Notification("Próximo evento:", {
-            body: `${evento.title}\n${evento.start.toLocaleTimeString("es-PE")} - ${evento.end.toLocaleTimeString("es-PE")}`,
-            icon: "/logo.png",
-          });
+        if (diffMin <= 1440 && diffMin >= -15) {
+          proximos.push(evento); // se mostrará en campanita
         }
-        notificados.push(id1d);
-      }
+      });
 
-      // 30 min
-      if (diffMin >= 30 && !notificados.includes(id30)) {
-         toast.info(`Próximo evento en 30 minutos: ${evento.title}\n\n${evento.start.toLocaleString("es-PE")}`);
+      return proximos;
+    };
 
-        if (Notification.permission === "granted") {
-          new Notification("Próximo evento en 30 minutos", {
-            body: `${evento.title}\n${evento.start.toLocaleTimeString("es-PE")} - ${evento.end.toLocaleTimeString("es-PE")}`,
-            icon: "/logo.png",
-          });
-        }
-        notificados.push(id30);
-      }
+    const manejarNotificacionesToast = (eventos: CalendarEvent[]) => {
+      const ahora = new Date();
+      const notificados: string[] = JSON.parse(
+        localStorage.getItem("toastNotificados") || "[]",
+      );
 
-      // 5 min
-      if (diffMin >= 5 && !notificados.includes(id5)) {
-        toast.info(`Próximo evento en 5 minutos: ${evento.title}\n\n${evento.start.toLocaleString("es-PE")}`);
+      eventos.forEach((evento) => {
+        const diffMin = Math.round(
+          (evento.start.getTime() - ahora.getTime()) / 60000,
+        );
 
-        if (Notification.permission === "granted") {
-          new Notification("Próximo evento en 5 minutos", {
-            body: `${evento.title}\n${evento.start.toLocaleTimeString("es-PE")} - ${evento.end.toLocaleTimeString("es-PE")}`,
-            icon: "/logo.png",
-          });
+        const id1d = `${evento.id}-1d`;
+        const id30 = `${evento.id}-30`;
+        const id5 = `${evento.id}-5`;
+
+        // Hasta 1 día
+        if (diffMin <= 1440 && !notificados.includes(id1d)) {
+          toast.info(
+            `${evento.tipoEvento}: ${evento.title}\n\n${evento.start.toLocaleString("es-PE")}`,
+          );
+
+          if (Notification.permission === "granted") {
+            new Notification("Próximo evento:", {
+              body: `${evento.title}\n${evento.start.toLocaleTimeString("es-PE")} - ${evento.end.toLocaleTimeString("es-PE")}`,
+              icon: "/logo.png",
+            });
+          }
+          notificados.push(id1d);
         }
 
-        notificados.push(id5);
-      }
-    });
+        // 30 min
+        if (diffMin >= 30 && !notificados.includes(id30)) {
+          toast.info(
+            `Próximo evento en 30 minutos: ${evento.title}\n\n${evento.start.toLocaleString("es-PE")}`,
+          );
 
-    localStorage.setItem("toastNotificados", JSON.stringify(notificados));
-  };
+          if (Notification.permission === "granted") {
+            new Notification("Próximo evento en 30 minutos", {
+              body: `${evento.title}\n${evento.start.toLocaleTimeString("es-PE")} - ${evento.end.toLocaleTimeString("es-PE")}`,
+              icon: "/logo.png",
+            });
+          }
+          notificados.push(id30);
+        }
 
-  // Ejecutar al cargar y luego cada 30s
-  const actualizar = () => {
-    const proximos = obtenerEventosProximos();
-    setNotificaciones(proximos);
-    manejarNotificacionesToast(proximos);
-  };
+        // 5 min
+        if (diffMin >= 5 && !notificados.includes(id5)) {
+          toast.info(
+            `Próximo evento en 5 minutos: ${evento.title}\n\n${evento.start.toLocaleString("es-PE")}`,
+          );
 
-  actualizar();
-  const interval = setInterval(actualizar, 30000); // cada 30s
+          if (Notification.permission === "granted") {
+            new Notification("Próximo evento en 5 minutos", {
+              body: `${evento.title}\n${evento.start.toLocaleTimeString("es-PE")} - ${evento.end.toLocaleTimeString("es-PE")}`,
+              icon: "/logo.png",
+            });
+          }
 
-  return () => clearInterval(interval);
-}, []);
+          notificados.push(id5);
+        }
+      });
 
+      localStorage.setItem("toastNotificados", JSON.stringify(notificados));
+    };
 
+    // Ejecutar al cargar y luego cada 30s
+    const actualizar = () => {
+      const proximos = obtenerEventosProximos();
+      setNotificaciones(proximos);
+      manejarNotificacionesToast(proximos);
+    };
+
+    actualizar();
+    const interval = setInterval(actualizar, 30000); // cada 30s
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 border-b bg-white">
@@ -243,7 +251,9 @@ const AppHeader = () => {
             <DropdownMenuSeparator />
             {/* <DropdownMenuItem>No tienes nuevas notificaciones</DropdownMenuItem> */}
             {notificaciones.length === 0 ? (
-              <DropdownMenuItem>No tienes nuevas notificaciones</DropdownMenuItem>
+              <DropdownMenuItem>
+                No tienes nuevas notificaciones
+              </DropdownMenuItem>
             ) : (
               notificaciones.map((n, i) => (
                 <DropdownMenuItem key={i} className="flex flex-col items-start">
