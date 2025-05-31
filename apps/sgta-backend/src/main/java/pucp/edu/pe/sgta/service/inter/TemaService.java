@@ -113,4 +113,5 @@ public interface TemaService {
 
 	TemaDto buscarTemaPorId(Integer idTema) throws SQLException;
 
+	List<TemaDto> listarTemasLibres(String titulo, Integer limit, Integer offset);
 }

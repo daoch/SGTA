@@ -1461,6 +1461,104 @@ public class TemaServiceImpl implements TemaService {
 	}
 
 	@Override
+	public List<TemaDto> listarTemasLibres(String titulo, Integer limit, Integer offset) {
+		String sql = "SELECT * FROM listar_temas_libres(:titulo, :limit, :offset)";
+
+		List<Object[]> resultados = entityManager
+				.createNativeQuery(sql)
+				.setParameter("titulo", titulo != null ? titulo : "")
+				.setParameter("limit", limit != null ? limit : 10)
+				.setParameter("offset", offset != null ? offset : 0)
+				.getResultList();
+
+		List<TemaDto> lista = new ArrayList<>();
+
+		for (Object[] fila : resultados) {
+			TemaDto dto = new TemaDto();
+			dto.setSubareas(new ArrayList<>());
+			dto.setCoasesores(new ArrayList<>());
+			dto.setTesistas(new ArrayList<>());
+
+			dto.setId((Integer) fila[0]); // tema_id
+			dto.setTitulo((String) fila[1]); // titulo
+			dto.setResumen((String) fila[2]); // resumen
+			dto.setMetodologia((String) fila[3]); // metodologia
+			dto.setObjetivos((String) fila[4]); // objetivos
+			dto.setRequisitos((String) fila[5]); // requisitos
+			dto.setPortafolioUrl((String) fila[6]); // portafolio_url
+			dto.setActivo((Boolean) fila[7]); // activo
+
+			// Fechas
+			dto.setFechaLimite(fila[8] != null ? ((Instant) fila[8]).atOffset(ZoneOffset.UTC) : null);
+			dto.setFechaCreacion(fila[9] != null ? ((Instant) fila[9]).atOffset(ZoneOffset.UTC) : null);
+			dto.setFechaModificacion(fila[10] != null ? ((Instant) fila[10]).atOffset(ZoneOffset.UTC) : null);
+
+			// Carrera
+			if (fila[11] != null && fila[12] != null) {
+				CarreraDto carrera = new CarreraDto();
+				carrera.setId((Integer) fila[11]); // carrera_id
+				carrera.setNombre((String) fila[12]); // carrera_nombre
+				dto.setCarrera(carrera);
+			}
+
+			// Subáreas
+			Integer[] subareaArray = (Integer[]) fila[13]; // subareas_ids
+			String[] subareasNombres = (String[]) fila[14]; // subareas_nombres
+			if (subareaArray != null && subareasNombres != null) {
+				for (int i = 0; i < subareaArray.length && i < subareasNombres.length; i++) {
+					SubAreaConocimientoDto subarea = new SubAreaConocimientoDto();
+					subarea.setId(subareaArray[i]);
+					subarea.setNombre(subareasNombres[i]);
+					dto.getSubareas().add(subarea);
+				}
+			}
+
+			// Asesor principal
+			if (fila[15] != null && fila[16] != null) {
+				UsuarioDto asesor = new UsuarioDto();
+				asesor.setId((Integer) fila[15]); // asesor_id
+				asesor.setNombres((String) fila[16]); // asesor_nombres
+				asesor.setPrimerApellido((String) fila[17]); // asesor_primer_apellido
+				asesor.setSegundoApellido((String) fila[18]); // asesor_segundo_apellido
+				asesor.setCorreoElectronico((String) fila[19]); // asesor_correo
+				dto.getCoasesores().add(asesor); // Asesor principal como primer coasesor
+			}
+
+			// Coasesores adicionales
+			Integer[] coasesoresIds = (Integer[]) fila[20]; // coasesores_ids
+			String[] coasesoresNombres = (String[]) fila[21]; // coasesores_nombres
+			String[] coasesoresApellidos1 = (String[]) fila[22]; // coasesores_primer_apellido
+			String[] coasesoresApellidos2 = (String[]) fila[23]; // coasesores_segundo_apellido
+			String[] coasesoresCorreos = (String[]) fila[24]; // coasesores_correos
+
+			if (coasesoresIds != null && coasesoresNombres != null) {
+				for (int i = 0; i < coasesoresIds.length; i++) {
+					UsuarioDto coasesor = new UsuarioDto();
+					coasesor.setId(coasesoresIds[i]);
+					coasesor.setNombres(coasesoresNombres[i]);
+					if (coasesoresApellidos1 != null && i < coasesoresApellidos1.length) {
+						coasesor.setPrimerApellido(coasesoresApellidos1[i]);
+					}
+					if (coasesoresApellidos2 != null && i < coasesoresApellidos2.length) {
+						coasesor.setSegundoApellido(coasesoresApellidos2[i]);
+					}
+					if (coasesoresCorreos != null && i < coasesoresCorreos.length) {
+						coasesor.setCorreoElectronico(coasesoresCorreos[i]);
+					}
+					dto.getCoasesores().add(coasesor);
+				}
+			}
+
+			// Estado del tema
+			dto.setEstadoTemaNombre((String) fila[25]); // estado_tema_nombre
+
+			lista.add(dto);
+		}
+
+		return lista;
+	}
+
+	@Override
 	@Transactional
 	public List<TemaDto> listarTemasPorEstadoYCarrera(String estadoNombre, Integer carreraId) {
 		String sql = "SELECT * FROM listar_temas_por_estado_y_carrera(:estado, :carreraId)";

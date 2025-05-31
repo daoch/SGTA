@@ -162,6 +162,7 @@ public class TemaController {
 	public List<InfoTemaPerfilDto> listarTemasAsesorInvolucrado(@PathVariable("asesorId") Integer asesorId) {
 		return temaService.listarTemasAsesorInvolucrado(asesorId);
 	}
+
 		@GetMapping("/listarPostulacionesGeneralesAMisPropuestas")
 	public List<TemaDto> listarPostulacionesGeneralesAMisPropuestas(HttpServletRequest request) {
 		try {
@@ -259,6 +260,14 @@ public class TemaController {
         temaService.eliminarTemaCoordinador(temaId, usuarioId);
         return ResponseEntity.noContent().build();
     }
+
+	@GetMapping("/listarTemasLibres")
+	public List<TemaDto> listarTemasLibres(
+			@RequestParam(name = "titulo", required = false) String titulo,
+			@RequestParam(name = "limit", defaultValue = "10") Integer limit,
+			@RequestParam(name = "offset", defaultValue = "0") Integer offset) {
+		return temaService.listarTemasLibres(titulo, limit, offset);
+	}
 
 }
 
