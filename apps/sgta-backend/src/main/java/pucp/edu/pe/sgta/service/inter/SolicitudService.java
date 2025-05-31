@@ -7,8 +7,12 @@ import pucp.edu.pe.sgta.dto.RechazoSolicitudCambioAsesorResponseDto;
 import pucp.edu.pe.sgta.dto.RechazoSolicitudResponseDto;
 import pucp.edu.pe.sgta.dto.SolicitudCambioAsesorDto;
 import pucp.edu.pe.sgta.dto.SolicitudCeseDto;
+import pucp.edu.pe.sgta.dto.asesores.DetalleSolicitudCambioAsesorDto;
+import pucp.edu.pe.sgta.dto.asesores.SolicitudCambioAsesorResumenDto;
 import pucp.edu.pe.sgta.dto.temas.SolicitudTemaDto;
 import pucp.edu.pe.sgta.model.Tema;
+
+import java.util.List;
 
 public interface SolicitudService {
     SolicitudCeseDto findAllSolicitudesCese(int coordinatorId, int page, int size);
@@ -21,4 +25,8 @@ public interface SolicitudService {
     void crearSolicitudAprobacionTema(Tema tema);
     SolicitudTemaDto findAllSolicitudesByTema(Integer temaId, int page, int size);
     void atenderSolicitudTemaInscrito(SolicitudTemaDto solicitudAtendida);
+    pucp.edu.pe.sgta.dto.asesores.SolicitudCambioAsesorDto registrarSolicitudCambioAsesor(pucp.edu.pe.sgta.dto.asesores.SolicitudCambioAsesorDto solicitud);
+    List<SolicitudCambioAsesorResumenDto> listarResumenSolicitudCambioAsesorUsuario(Integer idUsuario, String rolSolicitud);
+    DetalleSolicitudCambioAsesorDto listarDetalleSolicitudCambioAsesorUsuario(Integer idSolicitud);
+    void aprobarRechazarSolicitudCambioAsesor(Integer idSolicitud, Integer idUsuario, String rolSolictud, boolean aprobar);
 }

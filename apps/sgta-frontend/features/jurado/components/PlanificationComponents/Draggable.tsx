@@ -29,7 +29,7 @@ export default function Draggable(props: DraggableProps) {
 
   // Estilo interno: solo escala y transición en el shrink
   const innerStyle = {
-    transform: `scale(${isDragging ? 0.6 : 1})`,
+    transform: `scale(${isDragging ? 0.5 : 1})`,
     transition: isDragging ? "transform 0.5s ease" : undefined,
   } as React.CSSProperties;
 
@@ -41,7 +41,15 @@ export default function Draggable(props: DraggableProps) {
       {...listeners}
       {...attributes}
     >
-      <div style={innerStyle}>{props.children}</div>
+      <div style={innerStyle}>
+        {isDragging ? (
+          <div className="w-full h-32 border-4 border-dashed border-[#868A8F] bg-green-200 text-center rounded-lg flex justify-center items-center">
+            <span className="text-black font-bold text-5xl">{props.id}</span>
+          </div>
+        ) : (
+          props.children
+        )}
+      </div>
     </div>
   );
 }

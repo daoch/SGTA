@@ -34,6 +34,8 @@ export const temaVacio: Tema = {
   tesistas: [],
   subareas: [],
   requisitos: "",
+  area: [],
+  cantPostulaciones: 0,
 };
 
 export const coasesoresData: Coasesor[] = [

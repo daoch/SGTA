@@ -13,6 +13,8 @@ import pucp.edu.pe.sgta.repository.CarreraRepository;
 import pucp.edu.pe.sgta.service.inter.AreaConocimientoService;
 
 import pucp.edu.pe.sgta.model.Carrera;
+
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,6 +23,7 @@ public class AreaConocimientoServiceImpl implements AreaConocimientoService {
 
     private final AreaConocimientoRepository areaConocimientoRepository;
     private final CarreraRepository carreraRepository;
+
     @PersistenceContext
     private EntityManager entityManager;
 
@@ -37,7 +40,7 @@ public class AreaConocimientoServiceImpl implements AreaConocimientoService {
             throw new IllegalArgumentException("El id de la carrera no puede ser nulo");
         }
         // fecha Creacion
-        dto.setFechaCreacion(java.time.OffsetDateTime.now());
+        dto.setFechaCreacion(OffsetDateTime.now());
         Carrera carrera = new Carrera();
         carrera.setId(dto.getIdCarrera());
         AreaConocimiento areaConocimiento = AreaConocimientoMapper.toEntity(dto);
@@ -58,6 +61,7 @@ public class AreaConocimientoServiceImpl implements AreaConocimientoService {
 
     @Override
     public List<AreaConocimientoDto> listarPorUsuario(Integer usuarioId) {
+
         List<AreaConocimientoDto> lista = new ArrayList<>();
 
         List<Object[]> resultados = entityManager

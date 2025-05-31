@@ -1,16 +1,13 @@
 package pucp.edu.pe.sgta.service.inter;
 
 import pucp.edu.pe.sgta.dto.asesores.InfoTemaPerfilDto;
+import pucp.edu.pe.sgta.dto.asesores.TemaConAsesorDto;
 import pucp.edu.pe.sgta.dto.SubAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.TemaDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
-
 import pucp.edu.pe.sgta.dto.TemaConAsesorJuradoDTO;
-
 import java.sql.SQLException;
 import java.util.List;
-
-import jakarta.persistence.criteria.CriteriaBuilder.In;
 import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
 
 public interface TemaService {
@@ -35,18 +32,18 @@ public interface TemaService {
 
 	void createInscripcionTema(TemaDto dto); // Works for asesor, alumno, coordinador and revisor
 
-	List<TemaDto> listarTemasPropuestosAlAsesor(Integer asesorId, String titulo, Integer limit, Integer offset);
+	List<TemaDto> listarTemasPropuestosAlAsesor(String asesorId, String titulo, Integer limit, Integer offset);
 
 	List<TemaDto> listarTemasPropuestosPorSubAreaConocimiento(
 			List<Integer> subareaIds,
-			Integer asesorId,
+			String asesorId,
 			String titulo,
 			Integer limit,
 			Integer offset);
 
-	void postularAsesorTemaPropuestoGeneral(Integer alumnoId, Integer asesorId, Integer temaId, String comentario);
+	void postularAsesorTemaPropuestoGeneral(Integer alumnoId, String asesorId, Integer temaId, String comentario);
 
-	void enlazarTesistasATemaPropuestDirecta(Integer[] usuariosId, Integer temaId, Integer profesorId,
+	void enlazarTesistasATemaPropuestDirecta(Integer[] usuariosId, Integer temaId, String profesorId,
 			String comentario);
 
 	List<TemaDto> listarTemasPorUsuarioRolEstado(String usuarioId,
@@ -80,7 +77,7 @@ public interface TemaService {
 
 	List<TemaDto> listarTemasPorEstadoYCarrera(String estadoNombre, Integer carreraId);
 
-	void cambiarEstadoTemaCoordinador(Integer temaId, String nuevoEstadoNombre,Integer usuarioId, String comentario);
+	void cambiarEstadoTemaCoordinador(Integer temaId, String nuevoEstadoNombre, Integer usuarioId, String comentario);
 
 	List<ExposicionTemaMiembrosDto> listarExposicionXTemaId(Integer temaId);
 
@@ -108,10 +105,11 @@ public interface TemaService {
 
 	void eliminarTemaCoordinador(Integer temaId, Integer usuarioId);
 
-	void crearTemaLibre(TemaDto dto);
-
+	void crearTemaLibre(TemaDto dto, String asesorId);
 
 	TemaDto buscarTemaPorId(Integer idTema) throws SQLException;
+
+	TemaConAsesorDto obtenerTemaActivoPorAlumno(Integer idAlumno);
 
 	List<TemaDto> listarTemasLibres(String titulo, Integer limit, Integer offset);
 }
