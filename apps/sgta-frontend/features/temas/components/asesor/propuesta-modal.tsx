@@ -29,6 +29,7 @@ interface PropuestasModalProps {
   setPostularPropuesta?: (estado: boolean) => void;
   rechazarPropuesta?: boolean;
   setRechazarPropuesta?: (estado: boolean) => void;
+  setTipoRechazo?: (tipoRechazo: number) => void;
 }
 
 export function PropuestasModal({
@@ -44,6 +45,7 @@ export function PropuestasModal({
   setPostularPropuesta,
   rechazarPropuesta,
   setRechazarPropuesta,
+  setTipoRechazo,
 }: PropuestasModalProps) {
   const [postularDialog, setPostularDialog] = useState(postularPropuesta);
   const [aceptarDialog, setAceptarDialog] = useState(aceptarPropuesta);
@@ -64,6 +66,7 @@ export function PropuestasModal({
     submitRechazo?.();
     setSelectedPropuesta?.(null);
     setComentario?.("");
+    setTipoRechazo?.(0);
     setRechazarDialog(false);
     setAceptarPropuesta?.(false);
     setPostularPropuesta?.(false);
@@ -94,6 +97,7 @@ export function PropuestasModal({
     submitPostulacion?.();
     setSelectedPropuesta?.(null);
     setComentario?.("");
+    setTipoRechazo?.(0);
     setPostularDialog(false);
     setAceptarPropuesta?.(false);
     setPostularPropuesta?.(false);
@@ -107,6 +111,7 @@ export function PropuestasModal({
     console.log("Ya entré y enlacé...");
     setSelectedPropuesta?.(null);
     setComentario?.("");
+    setTipoRechazo?.(0);
     setAceptarDialog(false);
     setAceptarPropuesta?.(false);
     setPostularPropuesta?.(false);
@@ -124,7 +129,7 @@ export function PropuestasModal({
     setAceptarPropuesta?.(false);
     setRechazarPropuesta?.(false);
   };
-
+  console.log(`La data es :${data}`);
   return (
     <DialogContent className="max-w-3xl">
       <DialogHeader>
@@ -146,13 +151,17 @@ export function PropuestasModal({
           <div className="space-y-2">
             <Label>Área</Label>
             <div className="p-3 bg-gray-50 rounded-md border">
+              <p>{data.subAreas[0].areaConocimiento.nombre}</p>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Subárea(s)</Label>
+            <div className="p-3 bg-gray-50 rounded-md border">
               <p>
-                {data.subareas
-                  .map(
-                    (subareas) =>
-                      `(${subareas.nombre})`,
-                  )
-                  .join(", ")}
+                {data.subAreas
+                  .map((subAreas) => `${subAreas.nombre}`) //Secambia subarea por subArea
+                  .join("- ")}
               </p>
             </div>
           </div>
@@ -205,13 +214,6 @@ export function PropuestasModal({
           </div>
 
           <div className="space-y-2">
-            <Label>Metodología</Label>
-            <div className="p-3 bg-gray-50 rounded-md border">
-              <p>{data.metodologia}</p>
-            </div>
-          </div>
-
-          <div className="space-y-2">
             <Label>Recursos</Label>
             <div className="p-3 bg-gray-50 rounded-md border">
               {data.portafolioUrl && data.portafolioUrl.length > 0 ? (
@@ -234,7 +236,11 @@ export function PropuestasModal({
       )}
 
       {data && rechazarDialog && (
-        <RechazarPropuestaCard data={data} setComentario={setComentario} />
+        <RechazarPropuestaCard
+          data={data}
+          setComentario={setComentario}
+          setTipoRechazo={setTipoRechazo}
+        />
       )}
 
       <DialogFooter className="mt-6">

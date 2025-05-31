@@ -7,7 +7,6 @@ import org.springframework.data.repository.query.Param;
 import pucp.edu.pe.sgta.model.JornadaExposicionXSalaExposicion;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface JornadaExposicionXSalaExposicionRepository
     extends JpaRepository<JornadaExposicionXSalaExposicion, Integer> {
@@ -21,7 +20,5 @@ public interface JornadaExposicionXSalaExposicionRepository
       @Param("exposicion_id") Integer exposicionId);
 
   List<JornadaExposicionXSalaExposicion> findByJornadaExposicionIdAndActivoTrue(Integer jornadaExposicionId);
-
-
 
 }

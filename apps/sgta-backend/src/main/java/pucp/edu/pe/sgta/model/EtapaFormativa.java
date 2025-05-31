@@ -1,7 +1,6 @@
 package pucp.edu.pe.sgta.model;
 
 import jakarta.persistence.*;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Converter;
 import jakarta.persistence.AttributeConverter;
 import lombok.AllArgsConstructor;
@@ -18,7 +17,6 @@ import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.CreationTimestamp;
 import java.util.ArrayList;
 import java.util.List;
-
 
 @Entity
 @Getter
@@ -49,21 +47,11 @@ public class EtapaFormativa {
     private Boolean activo = true;
 
     @CreationTimestamp
-    @Column(
-        name = "fecha_creacion",
-        nullable = false,
-        updatable = false,
-        columnDefinition = "TIMESTAMP WITH TIME ZONE"
-    )
+    @Column(name = "fecha_creacion", nullable = false, updatable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaCreacion;
 
     @UpdateTimestamp
-    @Column(
-        name = "fecha_modificacion",
-        nullable = false,
-        insertable = false,
-        columnDefinition = "TIMESTAMP WITH TIME ZONE"
-    )
+    @Column(name = "fecha_modificacion", nullable = false, insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaModificacion;
 
     @OneToMany(mappedBy = "etapaFormativa", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -141,7 +129,7 @@ public class EtapaFormativa {
                 float seconds = Float.parseFloat(parts[2]);
 
                 // Convert all to seconds
-                long totalSeconds = hours * 3600 + minutes * 60 + (long)seconds;
+                long totalSeconds = hours * 3600 + minutes * 60 + (long) seconds;
 
                 // Convert to Duration
                 return Duration.ofSeconds(totalSeconds);

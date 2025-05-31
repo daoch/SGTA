@@ -4,17 +4,19 @@ import {
     DialogTitle,
     DialogFooter,
   } from "@/components/ui/dialog";
-  import { Label } from "@/components/ui/label";
   import { Button } from "@/components/ui/button";
-  import { Input } from "@/components/ui/input";
   import { Calendar, Clock } from "lucide-react";
   import { Textarea } from "@/components/ui/textarea";
 import { EntregableAlumnoDto } from "../../dtos/EntregableAlumnoDto";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { DropzoneDocumentosAlumno } from "./dropzone-documentos-alumno";
+import { DocumentoConVersionDto } from "../../dtos/DocumentoConVersionDto";
+import axiosInstance from "@/lib/axios/axios-instance";
   
   interface EntregablesModalProps {
-    entregable?: EntregableAlumnoDto;
+    entregable: EntregableAlumnoDto;
     setSelectedEntregable?: (selectedEntregable: EntregableAlumnoDto | null) => void;
+    handleUpdateEntregable?: (updated: EntregableAlumnoDto) => void;
   }
 
   const formatFecha = (fechaString?: string) => {
@@ -34,8 +36,66 @@ import { useState } from "react";
   export function EntregablesModal({
     entregable,
     setSelectedEntregable,
+    handleUpdateEntregable,
   }: EntregablesModalProps) {
-    const [comentario, setComentario] = useState<string>("");
+    const [comentario, setComentario] = useState<string>(entregable.entregableComentario ?? "");
+    const [archivosSubidos, setArchivosSubidos] = useState<DocumentoConVersionDto[]>([]);
+    const [archivosASubir, setArchivosASubir] = useState<File[]>([]);
+
+    useEffect(() => {
+      console.log("El comentario es:", entregable.entregableComentario);
+      setComentario(entregable.entregableComentario ?? "");
+    }, [entregable]);
+
+    useEffect(() => {
+      const fetchArchivosSubidos = async () => {
+        try{
+          const response = await axiosInstance.get(`/documento/entregable/${entregable.entregableId}`);
+          setArchivosSubidos(response.data);
+        } catch (error) {
+          console.error("Error al cargar las etapas formativas:", error);
+        }
+      };
+      fetchArchivosSubidos();
+    }, [entregable.entregableId]);
+
+    const handleGuardar = async () => {
+      // TODO: Ver si la fecha funciona bien con la zona horaria
+      const fechaActual = new Date();
+      const fechaLimite = new Date(entregable.entregableFechaFin);
+
+      let estado = "enviado_a_tiempo";
+      if(fechaActual > fechaLimite) {
+        estado = "enviado_tarde";
+      }
+      
+      await axiosInstance.post(`/entregable/entregar/${entregable.entregableId}`, {
+        comentario: comentario,
+        estado: estado,
+      });
+
+      if (archivosASubir.length > 0) {
+        const formData = new FormData();
+        archivosASubir.forEach((archivo) => formData.append("archivos", archivo));
+        formData.append("ciclo", entregable.cicloNombre.toString());
+        formData.append("curso", entregable.etapaFormativaNombre.toString());
+        formData.append("codigoAlumno", "20183178");
+
+        await axiosInstance.post(`/documento/entregable/${entregable.entregableId}`, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      }
+      if (handleUpdateEntregable) {
+        handleUpdateEntregable({
+          ...entregable,
+          entregableEstado: estado,
+          entregableFechaEnvio: fechaActual.toISOString(),
+          entregableComentario: comentario,
+        });
+      }
+
+      setSelectedEntregable?.(null);
+    };
   
     return (
       <DialogContent className="max-w-xl">
@@ -65,12 +125,11 @@ import { useState } from "react";
             </div>
 
             <div className="space-y-2">
-                <Label className="text-m">Estado de la entrega</Label>
                 <div className="rounded-md border overflow-hidden text-sm">
                     <div className="grid grid-cols-2 border-b">
                         <div className="bg-gray-100 px-4 py-3 font-medium text-gray-800">Estado de la entrega</div>
                         <div className="px-4 py-3 text-gray-700">
-                          {entregable?.entregableEstado === "no_iniciado" ? "Pendiente" : entregable?.entregableEstado}
+                          {estadoLabels[entregable.entregableEstado] || entregable.entregableEstado}
                         </div>
                     </div>
                     <div className="grid grid-cols-2 border-b">
@@ -83,7 +142,26 @@ import { useState } from "react";
                     </div>
                     <div className="grid grid-cols-2 border-b">
                         <div className="bg-gray-100 px-4 py-3 font-medium text-gray-800">Archivos enviados</div>
-                        <div className="px-4 py-3 text-gray-700">No hay archivos enviados</div>
+                        <div className="px-4 py-3 text-gray-700">
+                          {archivosSubidos.length === 0 ? (
+                            "No hay archivos enviados"
+                          ) : (
+                            <ul className="list-disc pl-4">
+                              {archivosSubidos.map((archivo) => (
+                                <li key={archivo.documentoId}>
+                                  <a
+                                    href={archivo.documentoLinkArchivo}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-blue-600 underline"
+                                  >
+                                    {archivo.documentoNombre}
+                                  </a>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
                     </div>
                     <div className="grid grid-cols-2">
                         <div className="bg-gray-100 px-4 py-3 font-medium text-gray-800 align-top">Comentarios de la entrega</div>
@@ -99,17 +177,7 @@ import { useState } from "react";
                     </div>
                 </div>
             </div>
-        
-            {/*<div className="space-y-2">
-                <Label className="text-m">Añadir nuevo archivo</Label>
-                <Input type="file" accept=".pdf,.doc,.docx" />
-                <p className="text-xs text-muted-foreground">
-                    Máximo de archivos: {entregable?.entregableMaximoDocumentos} <br />
-                    Tamaño máximo: {entregable?.entregablePesoMaximoDocumento} MB <br />
-                    Formatos aceptados: {entregable?.entregableExtensionesPermitidas} <br />                    
-                </p>
-            </div>*/}
-            
+            <DropzoneDocumentosAlumno onFilesChange={setArchivosASubir} accept=".pdf,.doc,.docx" maxFiles={3} maxSizeMB={10} />
         </div>
   
         <DialogFooter>
@@ -119,7 +187,7 @@ import { useState } from "react";
           >
             Cancelar
           </Button>
-          <Button className="bg-[#042354] hover:bg-[#001e44] text-white">
+          <Button className="bg-[#042354] hover:bg-[#001e44] text-white" onClick={handleGuardar}>
             Guardar cambios
           </Button>
         </DialogFooter>
@@ -127,3 +195,8 @@ import { useState } from "react";
     );
 }
   
+const estadoLabels: Record<string, string> = {
+    no_enviado: "Pendiente",
+    enviado_a_tiempo: "Enviado a tiempo",
+    enviado_tarde: "Enviado tarde",
+};

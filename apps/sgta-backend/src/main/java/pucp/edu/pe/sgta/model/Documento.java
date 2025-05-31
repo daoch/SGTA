@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDate;
 import java.time.OffsetDateTime;
 
 @Entity
@@ -33,9 +32,9 @@ public class Documento {
     @Column(nullable = false)
     private Boolean activo = true;
 
-    @Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE",insertable = false)
+    @Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE", insertable = false)
     private OffsetDateTime fechaCreacion;
 
-    @Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE",insertable = false)
+    @Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE", insertable = false)
     private OffsetDateTime fechaModificacion;
-} 
+}

@@ -79,19 +79,34 @@ export function AdvisorReports() {
   // Filter students based on filters
   const filteredStudents = students.filter((student) => {
     const fullName = `${student.nombres} ${student.primerApellido} ${student.segundoApellido}`.toLowerCase();
-    // Filter by name/search
+    
+    // Filtro por nombre/búsqueda
     const matchesSearch =
       fullName.includes(searchQuery.toLowerCase()) ||
       student.entregableActualNombre.toLowerCase().includes(searchQuery.toLowerCase());
 
-    // Filter by progress
+    // Calcular el progreso del estudiante (ejemplo: basado en el estado actual)
+    let studentProgress = 0;
+    switch (student.entregableActualEstado) {
+      case "no_iniciado":
+        studentProgress = 0;
+        break;
+      case "en_proceso":
+        studentProgress = 50;
+        break;
+      case "completado":
+        studentProgress = 100;
+        break;
+    }
+
+    // Filtro por progreso
     const matchesProgress =
       progressFilter === "all" ||
-      (progressFilter === "low" && student.entregableActualEstado === "no_iniciado") ||
-      (progressFilter === "medium" && student.entregableActualEstado === "en_proceso") ||
-      (progressFilter === "high" && student.entregableActualEstado === "completado");
+      (progressFilter === "low" && studentProgress < 30) ||
+      (progressFilter === "medium" && studentProgress >= 30 && studentProgress <= 70) ||
+      (progressFilter === "high" && studentProgress > 70);
 
-    // Filter by status
+    // Filtro por estado
     const matchesStatus =
       statusFilter === "all" ||
       (statusFilter === "onTrack" && student.entregableEnvioEstado === "enviado_a_tiempo") ||
@@ -109,7 +124,7 @@ export function AdvisorReports() {
   const studentsAtRisk = students.filter(
     (student) => student.entregableEnvioEstado === "pendiente"
   ).length;
-  const averageProgress = Math.round(
+  const averageProgress = totalStudents === 0 ? 0 : Math.round(
     students.filter(student => student.entregableActualEstado === "completado").length / totalStudents * 100
   );
 
@@ -388,6 +403,19 @@ export function AdvisorReports() {
                           {new Date(student.entregableActualFechaFin).toLocaleDateString()}
                         </p>
                       </div>
+                    </div>
+
+                    <div className="mt-3">
+                      <div className="flex justify-between text-xs text-gray-500 mb-1">
+                        <span>Progreso</span>
+                        <span>{student.entregableActualEstado === "completado" ? "100%" : 
+                               student.entregableActualEstado === "en_proceso" ? "50%" : "0%"}</span>
+                      </div>
+                      <Progress 
+                        value={student.entregableActualEstado === "completado" ? 100 : 
+                               student.entregableActualEstado === "en_proceso" ? 50 : 0} 
+                        className="h-1"
+                      />
                     </div>
 
                     <div className="mt-3 flex justify-end">

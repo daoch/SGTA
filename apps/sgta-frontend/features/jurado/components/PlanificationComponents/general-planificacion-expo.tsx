@@ -8,24 +8,25 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { useCallback, useEffect, useState } from "react";
+import { JornadaExposicionDTO } from "../../dtos/JornadExposicionDTO";
+import { listarEstadoPlanificacionPorExposicion } from "../../services/data";
 import {
   finishPlanning,
   updateBloquesNextPhase,
 } from "../../services/planificacion-service";
-import { JornadaExposicionDTO } from "../../dtos/JornadExposicionDTO";
-import { listarEstadoPlanificacionPorExposicion } from "../../services/data";
+import { usePlanificationStore } from "../../store/use-planificacion-store";
 import {
   AreaEspecialidad,
   EstadoPlanificacion,
-  TipoAccion,
   Tema,
   TimeSlot,
+  TipoAccion,
 } from "../../types/jurado.types";
 import { DragContext } from "./DragContext";
 import { DragMonitor } from "./DragMonitor";
-import TemasList from "./temas-list";
 import PlanificationPanel from "./planification-panel";
-import { usePlanificationStore } from "../../store/use-planificacion-store";
+import TemasList from "./temas-list";
+import { getFechaHoraFromKey } from "../../utils/get-fecha-hora-from-key";
 
 interface Props {
   temas: Tema[];
@@ -89,12 +90,47 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
       const expoId = active.id;
       const spaceId = over.id;
 
+      const bloqueDestino = bloques.find((b) => b.key === spaceId);
+
+      // Encuentra el tema que se quiere asignar
       const temaEscogidoDesdeLista = temasSinAsignar.find(
         (e) => e.codigo === expoId,
       );
+
+      // Usuarios del tema a asignar
+      const usuariosTema = temaEscogidoDesdeLista?.usuarios ?? [];
+
+      // Validación: ¿algún usuario ya tiene bloque en ese día y hora?
+      const conflicto = Object.entries(temasAsignados).some(
+        ([bloqueKey, temaAsignado]) => {
+          if (!temaAsignado?.usuarios) return false;
+          const bloqueAsignado = bloques.find((b) => b.key === bloqueKey);
+          // Compara fecha y hora exacta
+          return (
+            bloqueAsignado &&
+            bloqueDestino &&
+            getFechaHoraFromKey(bloqueAsignado.key) ===
+              getFechaHoraFromKey(bloqueDestino.key) &&
+            temaAsignado.usuarios.some((u) =>
+              usuariosTema.some((ut) => ut.idUsario === u.idUsario),
+            )
+          );
+        },
+      );
+
+      if (conflicto) {
+        console.warn(
+          "No se puede asignar: uno de los usuarios ya tiene un bloque en ese horario.",
+        );
+        return;
+      }
+      if (spaceId in temasAsignados) {
+        console.warn("No se puede asignar a un bloque ya asignado.");
+        return;
+      }
+
       if (temaEscogidoDesdeLista) {
         //si se asigna desde la lista de temas sin asignar
-        if (spaceId in temasAsignados) return;
         const temaPorAsignar = { [spaceId]: temaEscogidoDesdeLista };
         setTemasAsignados({
           ...temasAsignados,
@@ -102,6 +138,7 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
         });
         setTemasSinAsignar(temasSinAsignar.filter((e) => e.codigo !== expoId));
         actualizarBloqueByKey(spaceId.toString(), {
+          esBloqueReservado: true,
           expo: temaEscogidoDesdeLista,
         });
       } else {
@@ -128,9 +165,11 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
             ...temaPorAsignar,
           });
           actualizarBloqueByKey(spaceId.toString(), {
+            esBloqueReservado: true,
             expo: temaEscogidosDesdeBloque,
           });
           actualizarBloqueByKey(keyTemaEscogido || "", {
+            esBloqueReservado: false,
             expo: {
               id: null,
               codigo: null,
@@ -148,6 +187,7 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
       temasAsignados,
       temasSinAsignar,
       actualizarBloqueByKey,
+      bloques,
     ],
   );
 
@@ -174,6 +214,7 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
         });
         setTemasAsignados(updatedAssignment);
         actualizarBloqueByKey(keyClicked || "", {
+          esBloqueReservado: false,
           expo: {
             id: null,
             codigo: null,
@@ -214,10 +255,9 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
         expo: temaAsignado ? temaAsignado : undefined,
         idExposicion: exposicionId,
         esBloqueReservado: temaAsignado ? true : false,
+        anteriorExpo: bloque.anteriorExpo,
       };
     });
-
-    console.log("bloquesListToInsert", bloquesListToInsert);
 
     try {
       await updateBloquesNextPhase(bloquesListToInsert);
@@ -236,6 +276,7 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
 
   const [isDragging, setIsDragging] = useState(false);
 
+  console.log("temasSinAsignar", temasSinAsignar);
   console.log("temasAsignados", temasAsignados);
   console.log("bloques", bloques);
 
