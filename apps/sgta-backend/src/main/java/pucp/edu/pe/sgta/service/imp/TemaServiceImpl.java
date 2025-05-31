@@ -1415,6 +1415,7 @@ public class TemaServiceImpl implements TemaService {
 			dto.setFechaLimite(null);
 		}
 		dto.setRequisitos((String) result[6]);
+		dto.setEstadoTemaNombre((String) result[12]);
 
 		// Asegurar listas no sean null
 		if (dto.getSubareas() == null) {

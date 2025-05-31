@@ -1785,7 +1785,8 @@ RETURNS TABLE (
     subareas_id INTEGER[],
     asesores_id INTEGER[],
     carrera INTEGER,
-    tesistas_id INTEGER[]      -- Nuevo campo para tesistas
+    tesistas_id INTEGER[],      -- Nuevo campo para tesistas
+    estado_nombre TEXT
 ) AS $$
 BEGIN
     RETURN QUERY
@@ -1821,8 +1822,11 @@ BEGIN
             FROM usuario_tema ut
             WHERE ut.tema_id = t.tema_id
               AND ut.rol_id = (SELECT rol_id FROM rol WHERE nombre = 'Tesista')
-        ) AS tesistas_id
-    FROM tema t
+        ) AS tesistas_id,
+        et.nombre::TEXT AS estado_nombre
+    FROM tema t 
+    LEFT JOIN estado_tema et
+      ON t.estado_tema_id = et.estado_tema_id
     WHERE t.tema_id = p_tema_id;
 END;
 $$ LANGUAGE plpgsql;
