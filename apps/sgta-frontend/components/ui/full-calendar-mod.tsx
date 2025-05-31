@@ -89,11 +89,12 @@ const Context = createContext<ContextType>({} as ContextType);
 // 1. Primero, actualiza el tipo CalendarEvent (si no está ya extendido)
 type CalendarEvent = {
     id: string;
-    start: Date;
+    start?: Date;
     end: Date;
     title: string;
     type?: string;
     description?: string;  // <-- Añade esto
+    tesista?: string;
     color?: VariantProps<typeof monthEventVariants>['variant'];
   };
 
@@ -192,15 +193,28 @@ const CalendarViewTrigger = forwardRef<
 CalendarViewTrigger.displayName = 'CalendarViewTrigger';
 
 // 2. Luego modifica el componente EventGroup:
-const EventGroup = ({ events, hour }: { events: CalendarEvent[]; hour: Date }) => {
+const EventGroup = ({ events, hour, tipoVista }: { events: CalendarEvent[]; hour: Date; tipoVista: string }) => {
+  const getTipoColor = (tipo: string) => {
+    switch (tipo) {
+      case 'Reunión':
+        return 'bg-green-300 text-green-800';
+      case 'Entregable':
+        return 'bg-blue-300 text-blue-800';
+      case 'Exposición':
+        return 'bg-pink-300 text-pink-800';
+      default:
+        return 'bg-gray-300 text-gray-800';
+    }
+  };
+
   return (
     <div className="h-20 border-t last:border-b">
       {events
         .filter((event) => isSameHour(event.start, hour))
         .map((event) => {
           const isDeadline = event.type === 'Entregable';
-          const hoursDifference = isDeadline 
-            ? 1 // Altura fija de 30 minutos (ajustable)
+          const hoursDifference = isDeadline
+            ? 1
             : differenceInMinutes(event.end, event.start) / 60;
 
           const startPosition = event.start.getMinutes() / 60;
@@ -218,18 +232,38 @@ const EventGroup = ({ events, hour }: { events: CalendarEvent[]; hour: Date }) =
                 height: `${hoursDifference * 100}%`,
               }}
             >
+              {/* Etiqueta de tipo de evento */}
+              {event.type && (
+                <span
+                  className={cn(
+                    'text-[10px] font-semibold px-1 py-0.5 rounded w-fit',
+                    getTipoColor(event.type)
+                  )}
+                >
+                  {event.type}
+                </span>
+              )}
+              
               <strong className="font-medium text-sm truncate">
                 {event.title} {isDeadline && "⏰"}
               </strong>
-              {event.description && (
+
+              {/*event.description && (
                 <p className="text-xs opacity-80 truncate">{event.description}</p>
+              )*/}
+
+              {event.tesista && (
+                <p className="text-xs opacity-80 truncate">
+                  Tesista: {event.tesista}
+                </p>
               )}
-              {event.description && !isDeadline &&(
+              
+              {event.description && !isDeadline && tipoVista != "Semana" && (
                 <p className="text-xs opacity-80 truncate">
                   {"Inicio: " + format(event.start, 'HH:mm')}
                 </p>
               )}
-              {event.description && (
+              {event.description && tipoVista != "Semana" &&(
                 <p className="text-xs opacity-80 truncate">
                   {"Fin: " + format(event.end, 'HH:mm')}
                 </p>
@@ -240,6 +274,7 @@ const EventGroup = ({ events, hour }: { events: CalendarEvent[]; hour: Date }) =
     </div>
   );
 };
+
 
 // Versión corregida de CalendarDayView (todo lo demás igual)
 const CalendarDayView = () => {
@@ -263,7 +298,7 @@ const CalendarDayView = () => {
         <TimeTable />
         <div className="flex-1 relative">
           {hours.map((hour) => (
-            <EventGroup key={hour.toString()} hour={hour} events={events} />
+            <EventGroup key={hour.toString()} hour={hour} events={events} tipoVista="Día"/>
           ))}
         </div>
       </div>
@@ -342,6 +377,7 @@ const CalendarWeekView = () => {
                     key={hour.toString()}
                     hour={hour}
                     events={events}
+                    tipoVista="Semana"
                   />
                 ))}
               </div>

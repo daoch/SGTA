@@ -193,7 +193,7 @@ const MiCronogramaPage = () => {
         className="flex items-center gap-2 ml-auto cursor-pointer" // Añadido cursor-pointer
       >
         <Download size={16} />
-        Exportar calendario a CSV
+        Exportar calendario para Google Calendar
       </Button>
     );
   };
@@ -222,10 +222,11 @@ const MiCronogramaPage = () => {
           <div className="w-3 h-3 rounded-full bg-pink-500"></div>
           <span>Exposición</span>
         </div>
+        {/** 
         <div className={cn(leyendaItemVariants({ color: "black" }))}>
           <div className="w-3 h-3 rounded-full bg-black"></div>
           <span>Otros</span>
-        </div>
+        </div>*/}
 
         {/* Botón para abrir el popup */}
         
