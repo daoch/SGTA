@@ -55,10 +55,12 @@ public class TemaController {
 
 	@PostMapping("/createInscripcion") // Inscripcion de tema oficial por asesor
 	public void createInscripcion(
-			@RequestBody @Valid TemaDto dto
+			@RequestBody @Valid TemaDto dto,
+			HttpServletRequest request
 	// @RequestParam(name = "idUsuarioCreador") Integer idUsuarioCreador
 	) {
-		temaService.createInscripcionTema(dto);
+		String idUsuarioCreador = jwtService.extractSubFromRequest(request);
+		temaService.createInscripcionTema(dto, idUsuarioCreador);
 	}
 
 	@PutMapping("/update") // updates a topic
@@ -135,10 +137,13 @@ public class TemaController {
 	public List<TemaDto> listarTemasPorUsuarioRolEstado(
 			@RequestParam("rolNombre") String rolNombre,
 			@RequestParam("estadoNombre") String estadoNombre,
+			@RequestParam(defaultValue = "10") Integer limit, 
+			@RequestParam(defaultValue = "0") Integer offset,
 			HttpServletRequest request) {
 		try {
 			String usuarioId = jwtService.extractSubFromRequest(request);
-			return temaService.listarTemasPorUsuarioEstadoYRol(usuarioId, rolNombre, estadoNombre);
+			//System.err.println("Usuario ID: " + usuarioId);
+			return temaService.listarTemasPorUsuarioEstadoYRol(usuarioId, rolNombre, estadoNombre, limit, offset);
 		} catch (RuntimeException e) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
 		}
@@ -275,10 +280,11 @@ public class TemaController {
 	@PatchMapping("/{temaId}/eliminar")
 	public ResponseEntity<Void> cerrarTema(
 			@PathVariable("temaId") Integer temaId,
-			@RequestParam("usuarioId") Integer usuarioId) {
+			HttpServletRequest request) {
 
+		String coordinadorId = jwtService.extractSubFromRequest(request);
 		// este método primero valida que sea coordinador y luego llama al procedure
-		temaService.eliminarTemaCoordinador(temaId, usuarioId);
+		temaService.eliminarTemaCoordinador(temaId, coordinadorId);
 		return ResponseEntity.noContent().build();
 	}
 
