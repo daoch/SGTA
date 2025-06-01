@@ -560,3 +560,26 @@ AND NOT EXISTS (
     SELECT 1 FROM entregable_x_tema ext
     WHERE ext.entregable_id = e.entregable_id AND ext.tema_id = t.tema_id
 );
+
+-- Primero, vamos a crear algunas reuniones para diferentes fechas y horarios
+INSERT INTO reunion (reunion_id, fecha_hora_inicio, fecha_hora_fin, descripcion) VALUES
+(1001, '2025-05-31 14:00:00', '2025-05-31 15:00:00', 'Revisión de avance del marco teórico'),
+(1002, '2025-06-02 10:00:00', '2025-06-02 11:30:00', 'Feedback sobre metodología'),
+(1003, '2025-06-05 15:00:00', '2025-06-05 16:00:00', 'Revisión de objetivos específicos'),
+(1004, '2025-06-10 11:00:00', '2025-06-10 12:00:00', 'Correcciones del capítulo 1');
+
+-- Ahora, vamos a crear las relaciones entre usuarios y reuniones
+-- Para cada reunión, incluimos tanto al tesista (id=7) como al asesor (id=1)
+INSERT INTO usuario_reunion (reunion_id, usuario_id) VALUES
+-- Primera reunión
+(1001, 41),  -- Tesista
+(1001, 5),  -- Asesor
+-- Segunda reunión
+(1002, 41),  -- Tesista
+(1002, 5),  -- Asesor
+-- Tercera reunión
+(1003, 41),  -- Tesista
+(1003, 5),  -- Asesor
+-- Cuarta reunión
+(1004, 41),  -- Tesista
+(1004, 5);  -- Asesor
