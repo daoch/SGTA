@@ -1777,9 +1777,11 @@ public class TemaServiceImpl implements TemaService {
 	}
 
 	@Transactional
-	public void eliminarTemaCoordinador(Integer temaId, Integer usuarioId) {
+	public void eliminarTemaCoordinador(Integer temaId, String coordinadorId) {
 		// 1) Validación EXTERNA al procedure:
 		// Comprueba que usuarioId sea coordinador
+		UsuarioDto usuDto = usuarioService.findByCognitoId(coordinadorId);
+		Integer usuarioId = usuDto.getId();
 		validarTipoUsurio(usuarioId, TipoUsuarioEnum.coordinador.name());
 
 		// 2) Obtener la carrera del tema y validar que el usuario esté activo en esa

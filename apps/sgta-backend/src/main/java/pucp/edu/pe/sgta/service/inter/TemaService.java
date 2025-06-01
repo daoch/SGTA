@@ -103,7 +103,7 @@ public interface TemaService {
 	 */
 	void updateResumenTemaSolicitud(Integer solicitudId, String resumen, String respuesta);
 
-	void eliminarTemaCoordinador(Integer temaId, Integer usuarioId);
+	void eliminarTemaCoordinador(Integer temaId, String usuarioId);
 
 	void crearTemaLibre(TemaDto dto, String asesorId);
 

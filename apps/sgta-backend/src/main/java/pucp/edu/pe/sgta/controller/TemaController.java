@@ -280,10 +280,11 @@ public class TemaController {
 	@PatchMapping("/{temaId}/eliminar")
 	public ResponseEntity<Void> cerrarTema(
 			@PathVariable("temaId") Integer temaId,
-			@RequestParam("usuarioId") Integer usuarioId) {
+			HttpServletRequest request) {
 
+		String coordinadorId = jwtService.extractSubFromRequest(request);
 		// este método primero valida que sea coordinador y luego llama al procedure
-		temaService.eliminarTemaCoordinador(temaId, usuarioId);
+		temaService.eliminarTemaCoordinador(temaId, coordinadorId);
 		return ResponseEntity.noContent().build();
 	}
 

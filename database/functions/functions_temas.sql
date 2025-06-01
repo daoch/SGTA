@@ -1772,6 +1772,18 @@ BEGIN
      SET asignado = FALSE,
          activo   = FALSE
    WHERE tema_id = p_tema_id;
+
+   UPDATE solicitud
+      SET activo = FALSE
+    WHERE tema_id = p_tema_id;
+
+   UPDATE usuario_solicitud
+      SET activo = FALSE
+    WHERE solicitud_id IN (
+        SELECT solicitud_id
+        FROM solicitud
+        WHERE tema_id = p_tema_id
+    );
 END;
 $$;
 
