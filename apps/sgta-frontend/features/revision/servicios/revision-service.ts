@@ -1,5 +1,5 @@
 import axiosInstance from "@/lib/axios/axios-instance";
-
+import { IHighlight } from "react-pdf-highlighter";
 /**
  * Descarga un archivo desde el backend S3.
  * @param key Nombre o clave del archivo a descargar (ej: "silabo.pdf").
@@ -50,4 +50,14 @@ export async function analizarPlagioArchivoS3(key: string): Promise<PlagioApiRes
     );
     // El backend devuelve un string JSON, así que lo parseamos
     return typeof response.data === "string" ? JSON.parse(response.data) as PlagioApiResponse : response.data;
+}
+export async function guardarObservacionesRevision(
+  revisionId: string,
+  highlights: IHighlight[],
+  usuarioId: number
+) {
+  return axiosInstance.post(
+    `/revision/${revisionId}/observaciones?usuarioId=${usuarioId}`,
+    highlights // <-- el array directo, no un objeto
+  );
 }
