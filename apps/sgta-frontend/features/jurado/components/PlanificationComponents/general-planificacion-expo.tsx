@@ -7,6 +7,7 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
+// import { restrictToWindowEdges } from "@dnd-kit/modifiers";
 import { useCallback, useEffect, useState } from "react";
 import { JornadaExposicionDTO } from "../../dtos/JornadExposicionDTO";
 import { listarEstadoPlanificacionPorExposicion } from "../../services/data";
@@ -124,10 +125,13 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
         );
         return;
       }
+      if (spaceId in temasAsignados) {
+        console.warn("No se puede asignar a un bloque ya asignado.");
+        return;
+      }
 
       if (temaEscogidoDesdeLista) {
         //si se asigna desde la lista de temas sin asignar
-        if (spaceId in temasAsignados) return;
         const temaPorAsignar = { [spaceId]: temaEscogidoDesdeLista };
         setTemasAsignados({
           ...temasAsignados,
@@ -184,6 +188,7 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
       temasAsignados,
       temasSinAsignar,
       actualizarBloqueByKey,
+      bloques,
     ],
   );
 
@@ -255,8 +260,6 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
       };
     });
 
-    console.log("bloquesListToInsert", bloquesListToInsert);
-
     try {
       await updateBloquesNextPhase(bloquesListToInsert);
       if (origen == "terminar") await finishPlanning(exposicionId);
@@ -274,12 +277,17 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
 
   const [isDragging, setIsDragging] = useState(false);
 
+  console.log("temasSinAsignar", temasSinAsignar);
   console.log("temasAsignados", temasAsignados);
   console.log("bloques", bloques);
 
   return (
     <DragContext.Provider value={isDragging}>
-      <DndContext onDragEnd={handleDragEnd} sensors={sensors}>
+      <DndContext
+        onDragEnd={handleDragEnd}
+        sensors={sensors}
+        // modifiers={[restrictToWindowEdges]}
+      >
         <DragMonitor setIsDragging={setIsDragging} />
         <div className="flex flex-col md:flex-row w-full h-full gap-4">
           {estadoPlanificacion?.nombre != "Cierre de planificacion" && (

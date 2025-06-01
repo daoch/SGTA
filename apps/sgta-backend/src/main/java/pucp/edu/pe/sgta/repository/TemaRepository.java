@@ -20,13 +20,17 @@ public interface TemaRepository extends JpaRepository<Tema, Integer> {
         FROM listar_temas_por_usuario_rol_estado(
           :uid,
           :rol,
-          :est
+          :est,
+          :limit,
+          :offset
         )
       """, nativeQuery = true)
   List<Object[]> listarTemasPorUsuarioRolEstado(
       @Param("uid") Integer usuarioId,
       @Param("rol") String rolNombre,
-      @Param("est") String estadoNombre);
+      @Param("est") String estadoNombre,
+      @Param("limit") Integer limit,
+      @Param("offset") Integer offset);
 
   @Query(value = """
       SELECT *

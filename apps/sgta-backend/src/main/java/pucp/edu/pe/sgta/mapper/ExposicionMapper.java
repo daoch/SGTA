@@ -1,7 +1,6 @@
 package pucp.edu.pe.sgta.mapper;
 
 import pucp.edu.pe.sgta.dto.ExposicionDto;
-import pucp.edu.pe.sgta.dto.ExposicionNombreDTO;
 import pucp.edu.pe.sgta.model.Exposicion;
 import pucp.edu.pe.sgta.model.EstadoPlanificacion;
 import pucp.edu.pe.sgta.model.EtapaFormativaXCiclo;
@@ -20,7 +19,6 @@ public class ExposicionMapper {
 
         if (exposicion.getEtapaFormativaXCiclo() != null) {
             dto.setEtapaFormativaXCicloId(exposicion.getEtapaFormativaXCiclo().getId());
-            ;
         }
 
         if (exposicion.getEstadoPlanificacion() != null) {
@@ -54,6 +52,5 @@ public class ExposicionMapper {
 
         return entity;
     }
-
 
 }

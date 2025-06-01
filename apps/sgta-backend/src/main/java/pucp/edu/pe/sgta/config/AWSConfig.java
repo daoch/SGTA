@@ -14,15 +14,13 @@ public class AWSConfig {
 
     @Bean
     public S3Client s3Client(
-        @Value("${AWS_ACCESS_KEY_ID}") String accessKey,
-        @Value("${AWS_SECRET_ACCESS_KEY}") String secretKey,
-        @Value("${AWS_REGION}") String region
-    ) {
+            @Value("${AWS_ACCESS_KEY_ID}") String accessKey,
+            @Value("${AWS_SECRET_ACCESS_KEY}") String secretKey,
+            @Value("${AWS_REGION}") String region) {
         return S3Client.builder()
-            .region(Region.of(region))
-            .credentialsProvider(
-                StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey, secretKey))
-            )
-            .build();
+                .region(Region.of(region))
+                .credentialsProvider(
+                        StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey, secretKey)))
+                .build();
     }
 }

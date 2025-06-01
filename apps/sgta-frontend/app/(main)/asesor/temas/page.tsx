@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { fetchUsers } from "@/features/temas/types/inscripcion/data";
 import {
   AreaDeInvestigacion,
   Carrera,
@@ -175,12 +176,6 @@ const Page = () => {
         </Dialog>
       </div>
 
-      {!asesorData && (
-        <p className="text-red-500 font-semibold mt-2">
-          Error al cargar datos del asesor
-        </p>
-      )}
-
       {/* Tabs */}
       <Tabs defaultValue={Tipo.TODOS} className="w-full">
         <TabsList>
@@ -271,13 +266,3 @@ const Page = () => {
 };
 
 export default Page;
-
-const fetchUsers = async (
-  carreraId: number,
-  tipoUsuarioNombre: string,
-  cadenaBusqueda: string = "",
-) => {
-  const url = `/usuario/findByTipoUsuarioAndCarrera?carreraId=${carreraId}&tipoUsuarioNombre=${tipoUsuarioNombre}&cadenaBusqueda=${cadenaBusqueda}`;
-  const response = await axiosInstance.get(url);
-  return response.data;
-};

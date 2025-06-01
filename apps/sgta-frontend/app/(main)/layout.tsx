@@ -7,14 +7,18 @@ import { AppSidebar } from "@/components/sidebar/app-sidebar";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <div className="h-screen w-full flex flex-1 flex-col overflow-hidden">
-        <AppHeader />
-        <SidebarInset className="flex-1 overflow-hidden">
-          <AppMain>{children}</AppMain>
-        </SidebarInset>
-      </div>
-    </SidebarProvider>
+    <div className="flex h-screen w-screen">
+      <SidebarProvider>
+        <div className="w-fit">
+          <AppSidebar />
+        </div>
+        <div className="flex flex-col w-full h-full overflow-auto">
+          <AppHeader />
+          <SidebarInset className="flex-1">
+            <AppMain>{children}</AppMain>
+          </SidebarInset>
+        </div>
+      </SidebarProvider>
+    </div>
   );
 }

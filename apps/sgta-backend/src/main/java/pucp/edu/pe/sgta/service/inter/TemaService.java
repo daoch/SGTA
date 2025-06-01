@@ -5,13 +5,9 @@ import pucp.edu.pe.sgta.dto.asesores.TemaConAsesorDto;
 import pucp.edu.pe.sgta.dto.SubAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.TemaDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
-
 import pucp.edu.pe.sgta.dto.TemaConAsesorJuradoDTO;
-
 import java.sql.SQLException;
 import java.util.List;
-
-import jakarta.persistence.criteria.CriteriaBuilder.In;
 import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
 
 public interface TemaService {
@@ -34,7 +30,7 @@ public interface TemaService {
 
 	void delete(Integer id);
 
-	void createInscripcionTema(TemaDto dto); // Works for asesor, alumno, coordinador and revisor
+	void createInscripcionTema(TemaDto dto, String idUsuario); // Works for asesor, alumno, coordinador and revisor
 
 	List<TemaDto> listarTemasPropuestosAlAsesor(String asesorId, String titulo, Integer limit, Integer offset);
 
@@ -52,14 +48,14 @@ public interface TemaService {
 
 	List<TemaDto> listarTemasPorUsuarioRolEstado(String usuarioId,
 			String rolNombre,
-			String estadoNombre);
+			String estadoNombre, Integer limit, Integer offset);
 
 	List<UsuarioDto> listarUsuariosPorTemaYRol(Integer temaId,
 			String rolNombre);
 
 	List<SubAreaConocimientoDto> listarSubAreasPorTema(Integer temaId);
 
-	List<TemaDto> listarTemasPorUsuarioEstadoYRol(String asesorId, String rolNombre, String estadoNombre);
+	List<TemaDto> listarTemasPorUsuarioEstadoYRol(String asesorId, String rolNombre, String estadoNombre, Integer limit, Integer offset);
 
 	void rechazarTemaPropuestaDirecta(Integer alumnoId, String comentario, Integer temaId);
 
@@ -81,7 +77,7 @@ public interface TemaService {
 
 	List<TemaDto> listarTemasPorEstadoYCarrera(String estadoNombre, Integer carreraId);
 
-	void cambiarEstadoTemaCoordinador(Integer temaId, String nuevoEstadoNombre,Integer usuarioId, String comentario);
+	void cambiarEstadoTemaCoordinador(Integer temaId, String nuevoEstadoNombre, Integer usuarioId, String comentario);
 
 	List<ExposicionTemaMiembrosDto> listarExposicionXTemaId(Integer temaId);
 
@@ -107,10 +103,9 @@ public interface TemaService {
 	 */
 	void updateResumenTemaSolicitud(Integer solicitudId, String resumen, String respuesta);
 
-	void eliminarTemaCoordinador(Integer temaId, Integer usuarioId);
+	void eliminarTemaCoordinador(Integer temaId, String usuarioId);
 
-	void crearTemaLibre(TemaDto dto,String asesorId);
-
+	void crearTemaLibre(TemaDto dto, String asesorId);
 
 	TemaDto buscarTemaPorId(Integer idTema) throws SQLException;
 
