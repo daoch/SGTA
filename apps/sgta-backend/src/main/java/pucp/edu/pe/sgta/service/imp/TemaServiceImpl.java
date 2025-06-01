@@ -403,6 +403,71 @@ public class TemaServiceImpl implements TemaService {
 		crearSolicitudAprobacionTema(tema);
 	}
 
+	@Override
+	public void crearSolicitudCambioDeTitulo(String idUsuario,
+											String comentario,
+											Integer temaId){
+		UsuarioDto usuarioDto = usuarioService.findByCognitoId(idUsuario);
+		Integer idUsuarioCreador = usuarioDto.getId();
+		crearSolicitudTemaCoordinador(
+				temaRepository.findById(temaId)
+						.orElseThrow(() -> new EntityNotFoundException("Tema no encontrado con ID: " + temaId)),
+				idUsuarioCreador,
+				comentario,
+				"Solicitud de cambio de título"
+		);
+	}
+
+	@Override
+	public void crearSolicitudCambioDeResumen(String idUsuario,
+											String comentario,
+											Integer temaId){
+		UsuarioDto usuarioDto = usuarioService.findByCognitoId(idUsuario);
+		Integer idUsuarioCreador = usuarioDto.getId();
+		crearSolicitudTemaCoordinador(
+				temaRepository.findById(temaId)
+						.orElseThrow(() -> new EntityNotFoundException("Tema no encontrado con ID: " + temaId)),
+				idUsuarioCreador,
+				comentario,
+				"Solicitud de cambio de resumen"
+		);
+	}
+
+	private void crearSolicitudTemaCoordinador(Tema tema, 
+											Integer idUsuarioCreador, 
+											String comentario,
+											String tipoSolicitudNombre) {
+		//Validar que el usuario es el coordinador de la carrera
+		
+		// 1) Obtener el tipo de solicitud
+		TipoSolicitud tipoSolicitud = tipoSolicitudRepository
+				.findByNombre(tipoSolicitudNombre)
+				.orElseThrow(() -> new RuntimeException(
+						"Tipo de solicitud no configurado: " + tipoSolicitudNombre));
+
+		// 2) Construir y guardar la solicitud
+		Solicitud solicitud = new Solicitud();
+		solicitud.setDescripcion(comentario != null ? comentario : tipoSolicitudNombre);
+		solicitud.setTipoSolicitud(tipoSolicitud);
+		solicitud.setTema(tema);
+		solicitud.setEstado(0); // Ajusta según tu convención (p.ej. 0 = PENDIENTE)
+		Solicitud savedSolicitud = solicitudRepository.save(solicitud);
+
+		// 3) Crear la relación UsuarioXSolicitud
+		Usuario usuario = usuarioRepository.findById(idUsuarioCreador)
+				.orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + idUsuarioCreador));
+		UsuarioXSolicitud usuarioXSolicitud = new UsuarioXSolicitud();
+		usuarioXSolicitud.setUsuario(usuario);
+		usuarioXSolicitud.setSolicitud(savedSolicitud);
+		usuarioXSolicitud.setDestinatario(false); // o false según tu lógica
+		usuarioXSolicitud.setAprobado(false);
+		usuarioXSolicitud.setSolicitudCompletada(false);
+		usuarioXSolicitud.setComentario(comentario);
+		usuarioXSolicitud.setActivo(true);
+		usuarioXSolicitud.setFechaCreacion(OffsetDateTime.now());
+
+		usuarioXSolicitudRepository.save(usuarioXSolicitud);
+	}
 	/**
 	 * Crea una solicitud de aprobación de tema y la asigna a todos los
 	 * coordinadores
@@ -1686,8 +1751,11 @@ public class TemaServiceImpl implements TemaService {
 	public void cambiarEstadoTemaCoordinador(
 			Integer temaId,
 			String nuevoEstadoNombre,
-			Integer usuarioId,
+			String coordinadorId,
 			String comentario) {
+
+		UsuarioDto usuDto = usuarioService.findByCognitoId(coordinadorId);
+		Integer usuarioId = usuDto.getId();
 		validarCoordinadorYEstado(temaId, nuevoEstadoNombre, usuarioId);
 
 		actualizarTemaYHistorial(temaId, nuevoEstadoNombre, comentario);
