@@ -15,7 +15,6 @@ export const obtenerDetalleTemaAlumno = async (idUsuario: number): Promise<Alumn
 };
 
 
-
 export const getEntregablesAlumno = async (alumnoId: string) => {
   const response = await axios.get(`/api/v1/reports/entregables/${alumnoId}`);
   return response.data;

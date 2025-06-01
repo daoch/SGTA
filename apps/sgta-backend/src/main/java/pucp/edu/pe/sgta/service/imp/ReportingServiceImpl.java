@@ -36,6 +36,10 @@ import pucp.edu.pe.sgta.repository.EntregableXTemaRepository;
 import pucp.edu.pe.sgta.model.UsuarioXTema;
 import java.util.Optional;
 
+import pucp.edu.pe.sgta.repository.RevisionCriterioEntregableRepository;
+
+
+
 @Service
 public class ReportingServiceImpl implements IReportService {
 
@@ -50,6 +54,8 @@ public class ReportingServiceImpl implements IReportService {
 
     private final UsuarioXTemaRepository usuarioXTemaRepository;
     private final EntregableXTemaRepository entregableXTemaRepository;
+    private final RevisionCriterioEntregableRepository revisionCriterioEntregableRepository;
+
 
     public ReportingServiceImpl(
             TopicAreaStatsRepository topicAreaStatsRepository,
@@ -60,9 +66,10 @@ public class ReportingServiceImpl implements IReportService {
             DetalleTesistaRepository detalleTesistaRepository,
             HitoCronogramaRepository hitoCronogramaRepository,
             HistorialReunionRepository historialReunionRepository,
-
             UsuarioXTemaRepository usuarioXTemaRepository,
-            EntregableXTemaRepository entregableXTemaRepository) {
+            EntregableXTemaRepository entregableXTemaRepository,
+            RevisionCriterioEntregableRepository revisionCriterioEntregableRepository
+            ) {
         this.topicAreaStatsRepository = topicAreaStatsRepository;
         this.advisorDistributionRepository = advisorDistributionRepository;
         this.jurorDistributionRepository = jurorDistributionRepository;
@@ -74,6 +81,7 @@ public class ReportingServiceImpl implements IReportService {
 
         this.usuarioXTemaRepository = usuarioXTemaRepository;
         this.entregableXTemaRepository = entregableXTemaRepository;
+        this.revisionCriterioEntregableRepository = revisionCriterioEntregableRepository;
     }
 
     @Override
@@ -359,20 +367,44 @@ public class ReportingServiceImpl implements IReportService {
                 .collect(Collectors.toList());
     }
 
-    @Override
-    public List<EntregableEstudianteDto> getEntregablesEstudiante(Integer usuarioId) {
-        Optional<UsuarioXTema> usuarioTema = usuarioXTemaRepository.findByUsuarioId(usuarioId);
-        if (usuarioTema.isEmpty())
-            throw new RuntimeException("Usuario no tiene tema asignado");
-
-        Integer temaId = usuarioTema.get().getTema().getId();
-
-        return entregableXTemaRepository.findByTemaIdWithEntregable(temaId).stream()
-                .map(et -> new EntregableEstudianteDto(
-                        et.getEntregable().getNombre(),
-                        et.getEstado().name(),
-                        et.getFechaEnvio() != null ? et.getFechaEnvio().toLocalDateTime() : null))
-                .collect(Collectors.toList());
+@Override
+public List<EntregableEstudianteDto> getEntregablesEstudiante(Integer usuarioId) {
+    Optional<UsuarioXTema> usuarioTema = usuarioXTemaRepository.findByUsuarioId(usuarioId);
+    if (usuarioTema.isEmpty()) {
+        throw new RuntimeException("Usuario no tiene tema asignado");
     }
 
+    Integer temaId = usuarioTema.get().getTema().getId();
+
+    return entregableXTemaRepository.findByTemaIdWithEntregable(temaId).stream()
+            .map(et -> {
+                // 1) Obtener ID de EntregableXTema
+                Integer entregableXTemaId = et.getEntregableXTemaId();
+
+                // 2) Buscar nota (puede ser null)
+                Double nota = revisionCriterioEntregableRepository
+                        .findNotaByEntregableXTemaId(entregableXTemaId)
+                        .orElse(null);
+
+                // 3) Obtener el nuevo campo 'esEvaluable' desde la entidad Entregable
+                boolean esEvaluable = et.getEntregable().isEsEvaluable();
+
+                // 4) Construir el DTO, ahora con cinco parámetros
+                return new EntregableEstudianteDto(
+                        et.getEntregable().getNombre(),
+                        et.getEstado().name(),
+                        et.getFechaEnvio() != null
+                                ? et.getFechaEnvio().toLocalDateTime()
+                                : null,
+                        nota,
+                        esEvaluable  // <— se añade aquí
+                );
+            })
+            .collect(Collectors.toList());
 }
+
+
+
+
+}
+

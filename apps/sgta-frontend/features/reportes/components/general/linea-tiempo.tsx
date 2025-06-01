@@ -6,6 +6,8 @@ import { addDays, format, isBefore, parseISO } from "date-fns";
 
 import { getEntregablesAlumno } from "@/features/reportes/services/report-services";
 import type { User } from "@/features/auth/types/auth.types";
+import { Eye } from "lucide-react";
+
 
 const currentDate = new Date("2023-04-18");
 
@@ -20,6 +22,9 @@ interface TimelineEvent {
   isLate: boolean;
   daysRemaining: number;
   isAtRisk: boolean;
+
+  esEvaluable: boolean;
+  nota: number | null;
 }
 
 
@@ -32,13 +37,15 @@ export function LineaTiempoReporte({ user }: Props) {
   useEffect(() => {
     const fetchEntregables = async () => {
       try {
-        const alumnoId = "11"; // Hardcodeado por ahora
+        const alumnoId = "36"; // Hardcodeado por ahora
         const data = await getEntregablesAlumno(alumnoId);
 
         const eventosTransformados: TimelineEvent[] = data.map((item: {
           nombreEntregable: string;
           fechaEnvio: string;
           estado: string;
+          esEvaluable: boolean;
+          nota: number | null;
         }) => {
           const eventDate = parseISO(item.fechaEnvio);
           const daysRemaining = Math.ceil((eventDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24));
@@ -66,6 +73,8 @@ export function LineaTiempoReporte({ user }: Props) {
             isLate,
             daysRemaining,
             isAtRisk,
+            esEvaluable: item.esEvaluable,
+            nota: item.nota,
           };
         });
 
@@ -192,8 +201,9 @@ export function LineaTiempoReporte({ user }: Props) {
                       </span>
                     )}
                   </h3>
+                  
                   <p
-                    className={`text-xs ${
+                    className={`text-xs flex items-center ${
                       event.status === "Completado"
                         ? "text-green-600"
                         : event.status === "En progreso"
@@ -205,8 +215,20 @@ export function LineaTiempoReporte({ user }: Props) {
                         : "text-gray-600"
                     }`}
                   >
-                    {event.status}
+                    <span>{event.status}</span>
+                    {event.esEvaluable && (
+                      <span className="ml-2 text-xs font-semibold text-gray-800">
+                        — Nota: {event.nota ?? "-"}
+                      </span>
+                    )}
+                    {/* Botón “eye” + texto “Ver detalle” en blanco/negro */}
+                    <Button variant="ghost" className="ml-4 text-gray-800 hover:text-gray-900" size="sm">
+                      <Eye className="h-4 w-4" />
+                      <span className="ml-1 text-xs">Ver detalle</span>
+                    </Button>
                   </p>
+
+
                 </div>
               </div>
             ))
@@ -217,6 +239,7 @@ export function LineaTiempoReporte({ user }: Props) {
           )}
         </div>
       </CardContent>
+
     </Card>
   );
 }
