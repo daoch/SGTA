@@ -357,10 +357,11 @@ public class TemaServiceImpl implements TemaService {
 
 	@Transactional
 	@Override
-	public void createInscripcionTema(TemaDto dto) {
+	public void createInscripcionTema(TemaDto dto, String idUsuario) {
 
 		validacionesInscripcionTema(dto);
-		Integer idUsuarioCreador = dto.getCoasesores().get(0).getId();
+		UsuarioDto usuarioDto = usuarioService.findByCognitoId(idUsuario);
+		Integer idUsuarioCreador = usuarioDto.getId();
 		dto.setId(null);
 		// Prepara y guarda el tema con estado INSCRITO
 		Tema tema = prepareNewTema(dto, EstadoTemaEnum.INSCRITO);
@@ -402,6 +403,71 @@ public class TemaServiceImpl implements TemaService {
 		crearSolicitudAprobacionTema(tema);
 	}
 
+	@Override
+	public void crearSolicitudCambioDeTitulo(String idUsuario,
+											String comentario,
+											Integer temaId){
+		UsuarioDto usuarioDto = usuarioService.findByCognitoId(idUsuario);
+		Integer idUsuarioCreador = usuarioDto.getId();
+		crearSolicitudTemaCoordinador(
+				temaRepository.findById(temaId)
+						.orElseThrow(() -> new EntityNotFoundException("Tema no encontrado con ID: " + temaId)),
+				idUsuarioCreador,
+				comentario,
+				"Solicitud de cambio de título"
+		);
+	}
+
+	@Override
+	public void crearSolicitudCambioDeResumen(String idUsuario,
+											String comentario,
+											Integer temaId){
+		UsuarioDto usuarioDto = usuarioService.findByCognitoId(idUsuario);
+		Integer idUsuarioCreador = usuarioDto.getId();
+		crearSolicitudTemaCoordinador(
+				temaRepository.findById(temaId)
+						.orElseThrow(() -> new EntityNotFoundException("Tema no encontrado con ID: " + temaId)),
+				idUsuarioCreador,
+				comentario,
+				"Solicitud de cambio de resumen"
+		);
+	}
+
+	private void crearSolicitudTemaCoordinador(Tema tema, 
+											Integer idUsuarioCreador, 
+											String comentario,
+											String tipoSolicitudNombre) {
+		//Validar que el usuario es el coordinador de la carrera
+		
+		// 1) Obtener el tipo de solicitud
+		TipoSolicitud tipoSolicitud = tipoSolicitudRepository
+				.findByNombre(tipoSolicitudNombre)
+				.orElseThrow(() -> new RuntimeException(
+						"Tipo de solicitud no configurado: " + tipoSolicitudNombre));
+
+		// 2) Construir y guardar la solicitud
+		Solicitud solicitud = new Solicitud();
+		solicitud.setDescripcion(comentario != null ? comentario : tipoSolicitudNombre);
+		solicitud.setTipoSolicitud(tipoSolicitud);
+		solicitud.setTema(tema);
+		solicitud.setEstado(0); // Ajusta según tu convención (p.ej. 0 = PENDIENTE)
+		Solicitud savedSolicitud = solicitudRepository.save(solicitud);
+
+		// 3) Crear la relación UsuarioXSolicitud
+		Usuario usuario = usuarioRepository.findById(idUsuarioCreador)
+				.orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + idUsuarioCreador));
+		UsuarioXSolicitud usuarioXSolicitud = new UsuarioXSolicitud();
+		usuarioXSolicitud.setUsuario(usuario);
+		usuarioXSolicitud.setSolicitud(savedSolicitud);
+		usuarioXSolicitud.setDestinatario(false); // o false según tu lógica
+		usuarioXSolicitud.setAprobado(false);
+		usuarioXSolicitud.setSolicitudCompletada(false);
+		usuarioXSolicitud.setComentario(comentario);
+		usuarioXSolicitud.setActivo(true);
+		usuarioXSolicitud.setFechaCreacion(OffsetDateTime.now());
+
+		usuarioXSolicitudRepository.save(usuarioXSolicitud);
+	}
 	/**
 	 * Crea una solicitud de aprobación de tema y la asigna a todos los
 	 * coordinadores
@@ -624,11 +690,11 @@ public class TemaServiceImpl implements TemaService {
 	@Override
 	public List<TemaDto> listarTemasPorUsuarioRolEstado(String usuarioId,
 			String rolNombre,
-			String estadoNombre) {
+			String estadoNombre, Integer limit, Integer offset) {
 
 		UsuarioDto usuDto = usuarioService.findByCognitoId(usuarioId);
 		List<Object[]> rows = temaRepository.listarTemasPorUsuarioRolEstado(
-				usuDto.getId(), rolNombre, estadoNombre);
+				usuDto.getId(), rolNombre, estadoNombre, limit, offset);
 
 		Map<Integer, TemaDto> dtoMap = new LinkedHashMap<>();
 
@@ -731,12 +797,15 @@ public class TemaServiceImpl implements TemaService {
 	}
 
 	@Override
-	public List<TemaDto> listarTemasPorUsuarioEstadoYRol(String asesorId, String rolNombre, String estadoNombre) {
+	public List<TemaDto> listarTemasPorUsuarioEstadoYRol(String asesorId, String rolNombre, String estadoNombre
+														, Integer limit, Integer offset) {
 		// primero cargo los temas con estado INSCRITO y rol Asesor
 		List<TemaDto> temas = listarTemasPorUsuarioRolEstado(
 				asesorId,
 				rolNombre,
-				estadoNombre);
+				estadoNombre, 
+				limit, 
+				offset);
 
 		// por cada tema cargo coasesores, tesistas y subáreas
 		for (TemaDto t : temas) {
@@ -1415,6 +1484,7 @@ public class TemaServiceImpl implements TemaService {
 			dto.setFechaLimite(null);
 		}
 		dto.setRequisitos((String) result[6]);
+		dto.setEstadoTemaNombre((String) result[12]);
 
 		// Asegurar listas no sean null
 		if (dto.getSubareas() == null) {
@@ -1778,8 +1848,11 @@ public class TemaServiceImpl implements TemaService {
 	public void cambiarEstadoTemaCoordinador(
 			Integer temaId,
 			String nuevoEstadoNombre,
-			Integer usuarioId,
+			String coordinadorId,
 			String comentario) {
+
+		UsuarioDto usuDto = usuarioService.findByCognitoId(coordinadorId);
+		Integer usuarioId = usuDto.getId();
 		validarCoordinadorYEstado(temaId, nuevoEstadoNombre, usuarioId);
 
 		actualizarTemaYHistorial(temaId, nuevoEstadoNombre, comentario);
@@ -1869,9 +1942,11 @@ public class TemaServiceImpl implements TemaService {
 	}
 
 	@Transactional
-	public void eliminarTemaCoordinador(Integer temaId, Integer usuarioId) {
+	public void eliminarTemaCoordinador(Integer temaId, String coordinadorId) {
 		// 1) Validación EXTERNA al procedure:
 		// Comprueba que usuarioId sea coordinador
+		UsuarioDto usuDto = usuarioService.findByCognitoId(coordinadorId);
+		Integer usuarioId = usuDto.getId();
 		validarTipoUsurio(usuarioId, TipoUsuarioEnum.coordinador.name());
 
 		// 2) Obtener la carrera del tema y validar que el usuario esté activo en esa

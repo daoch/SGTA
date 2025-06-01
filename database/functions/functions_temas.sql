@@ -243,7 +243,9 @@ $BODY$;
 CREATE OR REPLACE FUNCTION listar_temas_por_usuario_rol_estado(
   p_usuario_id    INT,
   p_rol_nombre    TEXT,
-  p_estado_nombre TEXT
+  p_estado_nombre TEXT,
+  p_limit INT ,
+  p_offset INT 
 )
 RETURNS TABLE (
   tema_id            INT,
@@ -298,7 +300,9 @@ BEGIN
     u.activo
     AND r.nombre   ILIKE p_rol_nombre
     AND est.nombre ILIKE p_estado_nombre
-    AND u.usuario_id = p_usuario_id;
+    AND u.usuario_id = p_usuario_id
+  ORDER BY t.fecha_creacion DESC
+  LIMIT p_limit OFFSET p_offset;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -1768,6 +1772,18 @@ BEGIN
      SET asignado = FALSE,
          activo   = FALSE
    WHERE tema_id = p_tema_id;
+
+   UPDATE solicitud
+      SET activo = FALSE
+    WHERE tema_id = p_tema_id;
+
+   UPDATE usuario_solicitud
+      SET activo = FALSE
+    WHERE solicitud_id IN (
+        SELECT solicitud_id
+        FROM solicitud
+        WHERE tema_id = p_tema_id
+    );
 END;
 $$;
 
@@ -1785,7 +1801,8 @@ RETURNS TABLE (
     subareas_id INTEGER[],
     asesores_id INTEGER[],
     carrera INTEGER,
-    tesistas_id INTEGER[]      -- Nuevo campo para tesistas
+    tesistas_id INTEGER[],      -- Nuevo campo para tesistas
+    estado_nombre TEXT
 ) AS $$
 BEGIN
     RETURN QUERY
@@ -1821,8 +1838,11 @@ BEGIN
             FROM usuario_tema ut
             WHERE ut.tema_id = t.tema_id
               AND ut.rol_id = (SELECT rol_id FROM rol WHERE nombre = 'Tesista')
-        ) AS tesistas_id
-    FROM tema t
+        ) AS tesistas_id,
+        et.nombre::TEXT AS estado_nombre
+    FROM tema t 
+    LEFT JOIN estado_tema et
+      ON t.estado_tema_id = et.estado_tema_id
     WHERE t.tema_id = p_tema_id;
 END;
 $$ LANGUAGE plpgsql;
