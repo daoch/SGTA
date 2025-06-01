@@ -1,10 +1,10 @@
 "use client";
 
+import ListadoSolicitudesCambioAsesor from "@/features/asesores/views/listado-solicitudes-cambio-asesor";
 import React from "react";
-import ListaSolicitudesCambioAsesor from "@/features/asesores/views/view-coordinator-assessor-change-requests";
 
 const Page: React.FC = () => {
-  return <ListaSolicitudesCambioAsesor />;
+  return <ListadoSolicitudesCambioAsesor rol="coordinador" />;
 };
 
 export default Page;

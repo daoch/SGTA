@@ -30,8 +30,11 @@ def formatear_bloques(bloques:list):
         sala = partes_key[2]
 
         hora_inicio, hora_fin = bloque['range'].split('-')
-        fecha_ini = datetime.strptime(f"{fecha_str} {hora_inicio}", "%Y-%m-%d %H:%M")
-        fecha_fin = datetime.strptime(f"{fecha_str} {hora_fin}", "%Y-%m-%d %H:%M")
+        hora_inicio = hora_inicio.strip()
+        hora_fin = hora_fin.strip()
+        fecha_ini = datetime.strptime(f"{fecha_str} {hora_inicio}", "%d-%m-%Y %H:%M")
+        fecha_fin = datetime.strptime(f"{fecha_str} {hora_fin}", "%d-%m-%Y %H:%M")
+
 
         bloque_formateado = {
             'idBloque': bloque['idBloque'],

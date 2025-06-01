@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { fetchUsers } from "@/features/temas/types/inscripcion/data";
 import {
   AreaDeInvestigacion,
   Carrera,
@@ -21,6 +22,7 @@ import {
 } from "@/features/temas/types/inscripcion/entities";
 import { Tipo } from "@/features/temas/types/inscripcion/enums";
 import {
+  fetchTemasAPI,
   fetchUsuariosFindById,
   obtenerCarrerasPorUsuario,
 } from "@/features/temas/types/temas/data";
@@ -52,14 +54,6 @@ const Page = () => {
 
   const usuarioId = 1;
 
-  const fetchTemasAPI = async (rol: string, estado: string) => {
-    if (asesorData) {
-      const url = `/temas/listarTemasPorUsuarioRolEstado/${asesorData.id}?rolNombre=${rol}&estadoNombre=${estado}`;
-      const response = await axiosInstance.get<Tema[]>(url);
-      return response.data;
-    }
-  };
-
   // Función para recargar los temas
   const fetchTemas = useCallback(async () => {
     try {
@@ -68,7 +62,16 @@ const Page = () => {
       const inscritosData = (await fetchTemasAPI("Asesor", "INSCRITO")) || [];
       const libresData =
         (await fetchTemasAPI("Asesor", "PROPUESTO_LIBRE")) || [];
-      setTemasData([...inscritosData, ...libresData]);
+      const interesadosData =
+        (await fetchTemasAPI("Asesor", "PROPUESTO_GENERAL")) || [];
+      const preInscritosData =
+        (await fetchTemasAPI("Asesor", "PREINSCRITO")) || [];
+      setTemasData([
+        ...inscritosData,
+        ...libresData,
+        ...interesadosData,
+        ...preInscritosData,
+      ]);
       console.log("consegui los temas data");
     } catch (err: unknown) {
       console.log(err);
@@ -173,12 +176,6 @@ const Page = () => {
         </Dialog>
       </div>
 
-      {!asesorData && (
-        <p className="text-red-500 font-semibold mt-2">
-          Error al cargar datos del asesor
-        </p>
-      )}
-
       {/* Tabs */}
       <Tabs defaultValue={Tipo.TODOS} className="w-full">
         <TabsList>
@@ -198,7 +195,7 @@ const Page = () => {
             <CardContent>
               <TemasTable
                 temasData={temasData}
-                filter={Tipo.TODOS}
+                filter={[Tipo.TODOS]}
                 isLoading={isLoading}
                 error={error}
                 asesor={asesorData}
@@ -217,7 +214,7 @@ const Page = () => {
             <CardContent>
               <TemasTable
                 temasData={temasData}
-                filter={Tipo.INSCRITO}
+                filter={[Tipo.INSCRITO]}
                 isLoading={isLoading}
                 error={error}
                 asesor={asesorData}
@@ -236,7 +233,7 @@ const Page = () => {
             <CardContent>
               <TemasTable
                 temasData={temasData}
-                filter={Tipo.LIBRE}
+                filter={[Tipo.LIBRE]}
                 isLoading={isLoading}
                 error={error}
                 asesor={asesorData}
@@ -255,7 +252,7 @@ const Page = () => {
             <CardContent>
               <TemasTable
                 temasData={temasData}
-                filter={Tipo.INTERESADO}
+                filter={[Tipo.INTERESADO, Tipo.PREINSCRITO]}
                 isLoading={isLoading}
                 error={error}
                 asesor={asesorData}
@@ -269,13 +266,3 @@ const Page = () => {
 };
 
 export default Page;
-
-const fetchUsers = async (
-  carreraId: number,
-  tipoUsuarioNombre: string,
-  cadenaBusqueda: string = "",
-) => {
-  const url = `/usuario/findByTipoUsuarioAndCarrera?carreraId=${carreraId}&tipoUsuarioNombre=${tipoUsuarioNombre}&cadenaBusqueda=${cadenaBusqueda}`;
-  const response = await axiosInstance.get(url);
-  return response.data;
-};

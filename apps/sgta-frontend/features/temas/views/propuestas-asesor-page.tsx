@@ -29,7 +29,7 @@ const PropuestasAsesorPage = () => {
   );
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage] = useState(1);
-  const limit = 10;
+  const limit = 50;
   //const limiteTotal = 50;
   const [areasData, setAreasData] = useState<Area[]>([]);
   const [subAreasData, setSubAreasData] = useState<SubAreaConocimiento[]>([]);
@@ -57,7 +57,6 @@ const PropuestasAsesorPage = () => {
       const offset = (currentPage - 1) * limit;
 
       const dataDirecta = await fetchTemasPropuestosAlAsesor(
-        usuarioId,
         searchTerm,
         limit,
         offset,
@@ -66,7 +65,6 @@ const PropuestasAsesorPage = () => {
 
       const dataGeneral = await fetchTemasPropuestosPorSubAreaConocimiento(
         subAreasData,
-        usuarioId,
         searchTerm,
         limit,
         0,

@@ -4,17 +4,19 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import jakarta.transaction.Transactional;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-
 import pucp.edu.pe.sgta.dto.*;
 import pucp.edu.pe.sgta.dto.asesores.InfoTemaPerfilDto;
+import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
+import pucp.edu.pe.sgta.dto.asesores.TemaConAsesorDto;
+import pucp.edu.pe.sgta.dto.asesores.TemaResumenDto;
 import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
 import pucp.edu.pe.sgta.dto.exposiciones.MiembroExposicionDto;
 import pucp.edu.pe.sgta.exception.CustomException;
@@ -26,9 +28,7 @@ import pucp.edu.pe.sgta.service.inter.*;
 import pucp.edu.pe.sgta.util.EstadoTemaEnum;
 import pucp.edu.pe.sgta.util.RolEnum;
 import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
-
 import java.io.IOException;
-import java.sql.Array;
 import java.sql.SQLException;
 import java.time.*;
 import java.util.*;
@@ -357,10 +357,11 @@ public class TemaServiceImpl implements TemaService {
 
 	@Transactional
 	@Override
-	public void createInscripcionTema(TemaDto dto) {
+	public void createInscripcionTema(TemaDto dto, String idUsuario) {
 
 		validacionesInscripcionTema(dto);
-		Integer idUsuarioCreador = dto.getCoasesores().get(0).getId();
+		UsuarioDto usuarioDto = usuarioService.findByCognitoId(idUsuario);
+		Integer idUsuarioCreador = usuarioDto.getId();
 		dto.setId(null);
 		// Prepara y guarda el tema con estado INSCRITO
 		Tema tema = prepareNewTema(dto, EstadoTemaEnum.INSCRITO);
@@ -402,6 +403,71 @@ public class TemaServiceImpl implements TemaService {
 		crearSolicitudAprobacionTema(tema);
 	}
 
+	@Override
+	public void crearSolicitudCambioDeTitulo(String idUsuario,
+											String comentario,
+											Integer temaId){
+		UsuarioDto usuarioDto = usuarioService.findByCognitoId(idUsuario);
+		Integer idUsuarioCreador = usuarioDto.getId();
+		crearSolicitudTemaCoordinador(
+				temaRepository.findById(temaId)
+						.orElseThrow(() -> new EntityNotFoundException("Tema no encontrado con ID: " + temaId)),
+				idUsuarioCreador,
+				comentario,
+				"Solicitud de cambio de título"
+		);
+	}
+
+	@Override
+	public void crearSolicitudCambioDeResumen(String idUsuario,
+											String comentario,
+											Integer temaId){
+		UsuarioDto usuarioDto = usuarioService.findByCognitoId(idUsuario);
+		Integer idUsuarioCreador = usuarioDto.getId();
+		crearSolicitudTemaCoordinador(
+				temaRepository.findById(temaId)
+						.orElseThrow(() -> new EntityNotFoundException("Tema no encontrado con ID: " + temaId)),
+				idUsuarioCreador,
+				comentario,
+				"Solicitud de cambio de resumen"
+		);
+	}
+
+	private void crearSolicitudTemaCoordinador(Tema tema, 
+											Integer idUsuarioCreador, 
+											String comentario,
+											String tipoSolicitudNombre) {
+		//Validar que el usuario es el coordinador de la carrera
+		
+		// 1) Obtener el tipo de solicitud
+		TipoSolicitud tipoSolicitud = tipoSolicitudRepository
+				.findByNombre(tipoSolicitudNombre)
+				.orElseThrow(() -> new RuntimeException(
+						"Tipo de solicitud no configurado: " + tipoSolicitudNombre));
+
+		// 2) Construir y guardar la solicitud
+		Solicitud solicitud = new Solicitud();
+		solicitud.setDescripcion(comentario != null ? comentario : tipoSolicitudNombre);
+		solicitud.setTipoSolicitud(tipoSolicitud);
+		solicitud.setTema(tema);
+		solicitud.setEstado(0); // Ajusta según tu convención (p.ej. 0 = PENDIENTE)
+		Solicitud savedSolicitud = solicitudRepository.save(solicitud);
+
+		// 3) Crear la relación UsuarioXSolicitud
+		Usuario usuario = usuarioRepository.findById(idUsuarioCreador)
+				.orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + idUsuarioCreador));
+		UsuarioXSolicitud usuarioXSolicitud = new UsuarioXSolicitud();
+		usuarioXSolicitud.setUsuario(usuario);
+		usuarioXSolicitud.setSolicitud(savedSolicitud);
+		usuarioXSolicitud.setDestinatario(false); // o false según tu lógica
+		usuarioXSolicitud.setAprobado(false);
+		usuarioXSolicitud.setSolicitudCompletada(false);
+		usuarioXSolicitud.setComentario(comentario);
+		usuarioXSolicitud.setActivo(true);
+		usuarioXSolicitud.setFechaCreacion(OffsetDateTime.now());
+
+		usuarioXSolicitudRepository.save(usuarioXSolicitud);
+	}
 	/**
 	 * Crea una solicitud de aprobación de tema y la asigna a todos los
 	 * coordinadores
@@ -624,11 +690,11 @@ public class TemaServiceImpl implements TemaService {
 	@Override
 	public List<TemaDto> listarTemasPorUsuarioRolEstado(String usuarioId,
 			String rolNombre,
-			String estadoNombre) {
+			String estadoNombre, Integer limit, Integer offset) {
 
 		UsuarioDto usuDto = usuarioService.findByCognitoId(usuarioId);
 		List<Object[]> rows = temaRepository.listarTemasPorUsuarioRolEstado(
-				usuDto.getId(), rolNombre, estadoNombre);
+				usuDto.getId(), rolNombre, estadoNombre, limit, offset);
 
 		Map<Integer, TemaDto> dtoMap = new LinkedHashMap<>();
 
@@ -678,16 +744,15 @@ public class TemaServiceImpl implements TemaService {
 		}
 
 		// Ahora convierto el map en lista y completo cantPostulaciones
-        List<TemaDto> temas = new ArrayList<>(dtoMap.values());
-        for (TemaDto t : temas) {
-            // Llamada a la función contar_postulaciones
-            Integer count = ((Number) entityManager.createNativeQuery(
-                    "SELECT contar_postulaciones(:temaId)")
-                    .setParameter("temaId", t.getId())
-                    .getSingleResult()
-            ).intValue();
-            t.setCantPostulaciones(count);
-        }
+		List<TemaDto> temas = new ArrayList<>(dtoMap.values());
+		for (TemaDto t : temas) {
+			// Llamada a la función contar_postulaciones
+			Integer count = ((Number) entityManager.createNativeQuery(
+					"SELECT contar_postulaciones(:temaId)")
+					.setParameter("temaId", t.getId())
+					.getSingleResult()).intValue();
+			t.setCantPostulaciones(count);
+		}
 		return temas;
 	}
 
@@ -732,12 +797,15 @@ public class TemaServiceImpl implements TemaService {
 	}
 
 	@Override
-	public List<TemaDto> listarTemasPorUsuarioEstadoYRol(String asesorId, String rolNombre, String estadoNombre) {
+	public List<TemaDto> listarTemasPorUsuarioEstadoYRol(String asesorId, String rolNombre, String estadoNombre
+														, Integer limit, Integer offset) {
 		// primero cargo los temas con estado INSCRITO y rol Asesor
 		List<TemaDto> temas = listarTemasPorUsuarioRolEstado(
 				asesorId,
 				rolNombre,
-				estadoNombre);
+				estadoNombre, 
+				limit, 
+				offset);
 
 		// por cada tema cargo coasesores, tesistas y subáreas
 		for (TemaDto t : temas) {
@@ -849,7 +917,6 @@ public class TemaServiceImpl implements TemaService {
 	@Transactional
 	public void enlazarTesistasATemaPropuestDirecta(Integer[] usuariosId, Integer temaId, String profesorId,
 			String comentario) {
-
 
 		UsuarioDto usuDto = usuarioService.findByCognitoId(profesorId);
 
@@ -1346,7 +1413,7 @@ public class TemaServiceImpl implements TemaService {
 	}
 
 	@Override
-	public void crearTemaLibre(TemaDto dto,String asesorId) {
+	public void crearTemaLibre(TemaDto dto, String asesorId) {
 
 		UsuarioDto usuDto = usuarioService.findByCognitoId(asesorId);
 
@@ -1417,6 +1484,7 @@ public class TemaServiceImpl implements TemaService {
 			dto.setFechaLimite(null);
 		}
 		dto.setRequisitos((String) result[6]);
+		dto.setEstadoTemaNombre((String) result[12]);
 
 		// Asegurar listas no sean null
 		if (dto.getSubareas() == null) {
@@ -1683,8 +1751,11 @@ public class TemaServiceImpl implements TemaService {
 	public void cambiarEstadoTemaCoordinador(
 			Integer temaId,
 			String nuevoEstadoNombre,
-			Integer usuarioId,
+			String coordinadorId,
 			String comentario) {
+
+		UsuarioDto usuDto = usuarioService.findByCognitoId(coordinadorId);
+		Integer usuarioId = usuDto.getId();
 		validarCoordinadorYEstado(temaId, nuevoEstadoNombre, usuarioId);
 
 		actualizarTemaYHistorial(temaId, nuevoEstadoNombre, comentario);
@@ -1774,9 +1845,11 @@ public class TemaServiceImpl implements TemaService {
 	}
 
 	@Transactional
-	public void eliminarTemaCoordinador(Integer temaId, Integer usuarioId) {
+	public void eliminarTemaCoordinador(Integer temaId, String coordinadorId) {
 		// 1) Validación EXTERNA al procedure:
 		// Comprueba que usuarioId sea coordinador
+		UsuarioDto usuDto = usuarioService.findByCognitoId(coordinadorId);
+		Integer usuarioId = usuDto.getId();
 		validarTipoUsurio(usuarioId, TipoUsuarioEnum.coordinador.name());
 
 		// 2) Obtener la carrera del tema y validar que el usuario esté activo en esa
@@ -1793,6 +1866,39 @@ public class TemaServiceImpl implements TemaService {
 		}
 		// 3) Llamas al procedure puro, que sólo hace los UPDATEs
 		temaRepository.desactivarTemaYDesasignarUsuarios(temaId);
+	}
+
+	@Override
+	public TemaConAsesorDto obtenerTemaActivoPorAlumno(Integer idAlumno) {
+		try {
+			// Ejecutar la función que devuelve el tema actual y el ID del asesor
+			Object[] result = (Object[]) entityManager
+					.createNativeQuery("SELECT * FROM obtener_temas_por_alumno(:idAlumno)")
+					.setParameter("idAlumno", idAlumno)
+					.getSingleResult();
+
+			// Mapear a TemaActual
+			TemaResumenDto tema = new TemaResumenDto();
+			tema.setId((Integer) result[0]);
+			tema.setTitulo((String) result[1]);
+			tema.setAreas((String) result[3]);
+
+			// Obtener el perfil del asesor
+			Integer idAsesor = (Integer) result[4];
+			PerfilAsesorDto asesorDto = usuarioService.getPerfilAsesor(idAsesor);
+
+			// Retornar combinado en TemaConAsesorDto
+			TemaConAsesorDto respuesta = new TemaConAsesorDto();
+			respuesta.setTemaActual(tema);
+			respuesta.setAsesorActual(asesorDto);
+
+			return respuesta;
+
+		} catch (NoResultException e) {
+			// Si el alumno no tiene tema activo, retornar null o manejarlo con una
+			// excepción custom
+			return null;
+		}
 	}
 
 }

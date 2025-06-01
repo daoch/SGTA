@@ -1,29 +1,23 @@
 package pucp.edu.pe.sgta.controller;
 
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import pucp.edu.pe.sgta.dto.AreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.asesores.InfoAreaConocimientoDto;
 import pucp.edu.pe.sgta.service.inter.AreaConocimientoService;
-import pucp.edu.pe.sgta.service.inter.JwtService;
 
 import java.util.List;
 
 @RestController
+
 @RequestMapping("/areaConocimiento")
 public class AreaConocimientoController {
 
     @Autowired
     AreaConocimientoService areaConocimientoService;
 
-    @Autowired
-    JwtService jwtService;
-
-	@PostMapping("/create")
-	public AreaConocimientoDto createAreaConocimiento(@RequestBody AreaConocimientoDto dto) {
+    @PostMapping("/create")
+    public AreaConocimientoDto createAreaConocimiento(@RequestBody AreaConocimientoDto dto) {
         return areaConocimientoService.create(dto);
     }
 

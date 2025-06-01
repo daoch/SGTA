@@ -1,23 +1,23 @@
+import AppLoading from "@/components/loading/app-loading";
+import { Button } from "@/components/ui/button";
 import { FC, useState } from "react";
-import React from "react";
-import { useFetchExposiciones } from "../hooks/use-fetch-exposiciones";
-import { useFetchExposicionFilters } from "../hooks/use-fetch-exposicion-filters";
+import { Toaster } from "sonner";
+import { ExposicionList } from "../components/exposicion-list";
+import { Pagination } from "../components/exposicion-pagination";
+import { ExposicionesFilterForm } from "../components/exposiciones-filter-form";
+import ModalPlanificadorCoordinador from "../components/modal-planificador-coordinador";
+import { useExposicionFilters } from "../hooks/use-exposicion-filters";
 import {
   Filtros,
   useExposicionFilterForm,
 } from "../hooks/use-exposicion-filters-form";
-import { useExposicionFilters } from "../hooks/use-exposicion-filters";
 import { useClientPagination } from "../hooks/use-exposiciones-pagination";
-import { ExposicionesFilterForm } from "../components/exposiciones-filter-form";
-import { ExposicionList } from "../components/exposicion-list";
-import { Pagination } from "../components/exposicion-pagination";
-import ModalPlanificadorCoordinador from "../components/modal-planificador-coordinador";
-import { Button } from "@/components/ui/button";
-import { Toaster } from "sonner";
-import AppLoading from "@/components/loading/app-loading";
+import { useFetchExposicionFilters } from "../hooks/use-fetch-exposicion-filters";
+import { useFetchExposiciones } from "../hooks/use-fetch-exposiciones";
+import { getIdCoordinador } from "../utils/get-id-coordinador";
 
 export const ExposicionesCoordinadorPage: FC = () => {
-  const coordinadorId = 13;
+  const coordinadorId = getIdCoordinador();
 
   const [modalOpen, setModalOpen] = useState(false);
 

@@ -118,6 +118,7 @@ export function PropuestasTable({
   const [aceptarPropuesta, setAceptarPropuesta] = useState(false);
   const [postularPropuesta, setPostularPropuesta] = useState(false);
   const [rechazarPropuesta, setRechazarPropuesta] = useState(false);
+  const [tipoRechazo, setTipoRechazo] = useState(0);
 
   const router = useRouter();
 
@@ -150,7 +151,6 @@ export function PropuestasTable({
       try {
         await postularTemaPropuestoGeneral(
           selectedPropuesta?.estudiantes[0]?.id,
-          1,
           selectedPropuesta?.id,
           comentario,
         );
@@ -163,7 +163,12 @@ export function PropuestasTable({
     }
     if (subAreasData) {
       const propuestasGenerales =
-        await fetchTemasPropuestosPorSubAreaConocimiento(subAreasData, 1);
+        await fetchTemasPropuestosPorSubAreaConocimiento(
+          subAreasData,
+          "",
+          50,
+          0,
+        );
       setPropuestasData?.(propuestasGenerales);
     }
     router.refresh();
@@ -178,7 +183,6 @@ export function PropuestasTable({
         await enlazarTesistasATemaPropuestoDirecta(
           selectedPropuesta?.estudiantes?.map((item) => item.id),
           selectedPropuesta?.id,
-          1,
           comentario,
         );
 
@@ -190,7 +194,7 @@ export function PropuestasTable({
         );
       }
     }
-    const propuestasDirectas = await fetchTemasPropuestosAlAsesor(1);
+    const propuestasDirectas = await fetchTemasPropuestosAlAsesor("", 50, 0);
     setPropuestasData?.(propuestasDirectas);
     router.refresh();
   };
@@ -198,6 +202,7 @@ export function PropuestasTable({
   const submitRechazo = async () => {
     console.log({ comentario });
     console.log({ selectedPropuesta });
+    console.log({ tipoRechazo });
     if (selectedPropuesta) {
       try {
         if (selectedPropuesta) {
@@ -215,7 +220,7 @@ export function PropuestasTable({
       }
     }
 
-    const propuestasDirectas = await fetchTemasPropuestosAlAsesor(1);
+    const propuestasDirectas = await fetchTemasPropuestosAlAsesor("", 50, 0);
     setPropuestasData?.(propuestasDirectas);
     router.refresh();
   };
@@ -387,6 +392,7 @@ export function PropuestasTable({
                                   setPostularPropuesta={setPostularPropuesta}
                                   rechazarPropuesta={rechazarPropuesta}
                                   setRechazarPropuesta={setRechazarPropuesta}
+                                  setTipoRechazo={setTipoRechazo}
                                 ></PropuestasModal>
                               )}
                           </Dialog>
@@ -419,6 +425,7 @@ export function PropuestasTable({
                                   setPostularPropuesta={setPostularPropuesta}
                                   rechazarPropuesta={rechazarPropuesta}
                                   setRechazarPropuesta={setRechazarPropuesta}
+                                  setTipoRechazo={setTipoRechazo}
                                 ></PropuestasModal>
                               )}
                             </Dialog>
@@ -452,6 +459,7 @@ export function PropuestasTable({
                                     setPostularPropuesta={setPostularPropuesta}
                                     rechazarPropuesta={rechazarPropuesta}
                                     setRechazarPropuesta={setRechazarPropuesta}
+                                    setTipoRechazo={setTipoRechazo}
                                   ></PropuestasModal>
                                 )}
                               </Dialog>
@@ -483,6 +491,7 @@ export function PropuestasTable({
                                     setPostularPropuesta={setPostularPropuesta}
                                     rechazarPropuesta={rechazarPropuesta}
                                     setRechazarPropuesta={setRechazarPropuesta}
+                                    setTipoRechazo={setTipoRechazo}
                                   ></PropuestasModal>
                                 )}
                               </Dialog>
