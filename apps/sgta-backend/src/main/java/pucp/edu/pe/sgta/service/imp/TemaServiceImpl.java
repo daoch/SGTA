@@ -357,10 +357,11 @@ public class TemaServiceImpl implements TemaService {
 
 	@Transactional
 	@Override
-	public void createInscripcionTema(TemaDto dto) {
+	public void createInscripcionTema(TemaDto dto, String idUsuario) {
 
 		validacionesInscripcionTema(dto);
-		Integer idUsuarioCreador = dto.getCoasesores().get(0).getId();
+		UsuarioDto usuarioDto = usuarioService.findByCognitoId(idUsuario);
+		Integer idUsuarioCreador = usuarioDto.getId();
 		dto.setId(null);
 		// Prepara y guarda el tema con estado INSCRITO
 		Tema tema = prepareNewTema(dto, EstadoTemaEnum.INSCRITO);
