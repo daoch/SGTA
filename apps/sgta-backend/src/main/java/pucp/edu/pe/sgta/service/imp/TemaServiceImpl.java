@@ -1479,96 +1479,95 @@ public class TemaServiceImpl implements TemaService {
 	}
 
 	@Override
-	public List<TemaDto> listarTemasLibres(String titulo, Integer limit, Integer offset) {
-		String sql = "SELECT * FROM listar_temas_libres(:titulo, :limit, :offset)";
+	public List<TemaDto> listarTemasLibres(String titulo, Integer limit, Integer offset, String usuarioId) {
+		String sql = "SELECT * FROM listar_temas_libres_con_usuarios(:titulo, :limit, :offset, :usuarioId)";
 
+		@SuppressWarnings("unchecked")
 		List<Object[]> resultados = entityManager
 				.createNativeQuery(sql)
-				.setParameter("titulo", titulo != null ? titulo : "")
-				.setParameter("limit", limit != null ? limit : 10)
-				.setParameter("offset", offset != null ? offset : 0)
+				.setParameter("titulo",  titulo  != null ? titulo  : "")
+				.setParameter("limit",   limit   != null ? limit   : 10)
+				.setParameter("offset",  offset  != null ? offset  : 0)
+				.setParameter("usuarioId", usuarioId)
 				.getResultList();
 
 		List<TemaDto> lista = new ArrayList<>();
-
 		for (Object[] fila : resultados) {
 			TemaDto dto = new TemaDto();
 			dto.setSubareas(new ArrayList<>());
 			dto.setCoasesores(new ArrayList<>());
 			dto.setTesistas(new ArrayList<>());
+			dto.setArea(new ArrayList<>());
+			// 0: tema_id
+			dto.setId(((Number) fila[0]).intValue());
 
-			dto.setId((Integer) fila[0]); // tema_id
-			dto.setTitulo((String) fila[1]); // titulo
-			dto.setResumen((String) fila[2]); // resumen
-			dto.setMetodologia((String) fila[3]); // metodologia
-			dto.setObjetivos((String) fila[4]); // objetivos
-			dto.setRequisitos((String) fila[5]); // requisitos
-			dto.setPortafolioUrl((String) fila[6]); // portafolio_url
-			dto.setActivo((Boolean) fila[7]); // activo
+			// 1: codigo (si quieres guardarlo en el DTO, puedes añadir dto.setCodigo(...))
+			dto.setCodigo((String) fila[1]);
 
-			// Fechas
-			dto.setFechaLimite(fila[8] != null ? ((Instant) fila[8]).atOffset(ZoneOffset.UTC) : null);
-			dto.setFechaCreacion(fila[9] != null ? ((Instant) fila[9]).atOffset(ZoneOffset.UTC) : null);
-			dto.setFechaModificacion(fila[10] != null ? ((Instant) fila[10]).atOffset(ZoneOffset.UTC) : null);
+			// 2: titulo
+			dto.setTitulo((String) fila[2]);
 
-			// Carrera
+			// 3: resumen
+			dto.setResumen((String) fila[3]);
+
+			// 4: metodologia
+			dto.setMetodologia((String) fila[4]);
+
+			// 5: objetivos
+			dto.setObjetivos((String) fila[5]);
+
+			// 6: requisitos
+			dto.setRequisitos((String) fila[6]);
+
+			// 7: portafolio_url
+			dto.setPortafolioUrl((String) fila[7]);
+
+			// 8, 9, 10: fechas (TIMESTAMPTZ → Instant → OffsetDateTime)
+			dto.setFechaLimite(toOffsetDateTime(fila[8]));
+			dto.setFechaCreacion(toOffsetDateTime(fila[9]));
+			dto.setFechaModificacion(toOffsetDateTime(fila[10]));
+
+			// 11, 12: carrera
 			if (fila[11] != null && fila[12] != null) {
 				CarreraDto carrera = new CarreraDto();
-				carrera.setId((Integer) fila[11]); // carrera_id
-				carrera.setNombre((String) fila[12]); // carrera_nombre
+				carrera.setId(((Number) fila[11]).intValue());
+				carrera.setNombre((String) fila[12]);
 				dto.setCarrera(carrera);
 			}
 
-			// Subáreas
-			Integer[] subareaArray = (Integer[]) fila[13]; // subareas_ids
-			String[] subareasNombres = (String[]) fila[14]; // subareas_nombres
-			if (subareaArray != null && subareasNombres != null) {
-				for (int i = 0; i < subareaArray.length && i < subareasNombres.length; i++) {
+			// 13: subareas_ids  (java.sql.Array → Integer[])
+			Integer[] subareaIds = extractSqlIntArray(fila[13]);
+
+			// 14: subareas_nombres (String[])
+			String[] subareasNombres = (String[]) fila[14];
+
+			if (subareaIds != null && subareasNombres != null) {
+				for (int i = 0; i < subareaIds.length && i < subareasNombres.length; i++) {
 					SubAreaConocimientoDto subarea = new SubAreaConocimientoDto();
-					subarea.setId(subareaArray[i]);
+					subarea.setId(subareaIds[i]);
 					subarea.setNombre(subareasNombres[i]);
 					dto.getSubareas().add(subarea);
 				}
 			}
 
-			// Asesor principal
-			if (fila[15] != null && fila[16] != null) {
-				UsuarioDto asesor = new UsuarioDto();
-				asesor.setId((Integer) fila[15]); // asesor_id
-				asesor.setNombres((String) fila[16]); // asesor_nombres
-				asesor.setPrimerApellido((String) fila[17]); // asesor_primer_apellido
-				asesor.setSegundoApellido((String) fila[18]); // asesor_segundo_apellido
-				asesor.setCorreoElectronico((String) fila[19]); // asesor_correo
-				dto.getCoasesores().add(asesor); // Asesor principal como primer coasesor
+			// 15: usuarios JSONB  → String con JSON
+			String usuariosJsonStr = fila[15] != null ? fila[15].toString() : "[]";
+			List<UsuarioDto> allUsers = parseUsuariosJson(usuariosJsonStr);
+
+			dto.setCoasesores(filterByRoleExcept(allUsers, RolEnum.Tesista.name()));
+
+			dto.setTesistas(filterByRole(allUsers, RolEnum.Tesista.name()));
+
+			// 16: estado_tema_nombre
+			dto.setEstadoTemaNombre((String) fila[16]);
+
+			// 17, 18: área / subárea_principal
+			if (fila[17] != null && fila[18] != null) {
+				AreaConocimientoDto areaDto = new AreaConocimientoDto();
+				areaDto.setId(((Number) fila[17]).intValue());
+				areaDto.setNombre((String) fila[18]);
+				dto.getArea().add(areaDto);
 			}
-
-			// Coasesores adicionales
-			Integer[] coasesoresIds = (Integer[]) fila[20]; // coasesores_ids
-			String[] coasesoresNombres = (String[]) fila[21]; // coasesores_nombres
-			String[] coasesoresApellidos1 = (String[]) fila[22]; // coasesores_primer_apellido
-			String[] coasesoresApellidos2 = (String[]) fila[23]; // coasesores_segundo_apellido
-			String[] coasesoresCorreos = (String[]) fila[24]; // coasesores_correos
-
-			if (coasesoresIds != null && coasesoresNombres != null) {
-				for (int i = 0; i < coasesoresIds.length; i++) {
-					UsuarioDto coasesor = new UsuarioDto();
-					coasesor.setId(coasesoresIds[i]);
-					coasesor.setNombres(coasesoresNombres[i]);
-					if (coasesoresApellidos1 != null && i < coasesoresApellidos1.length) {
-						coasesor.setPrimerApellido(coasesoresApellidos1[i]);
-					}
-					if (coasesoresApellidos2 != null && i < coasesoresApellidos2.length) {
-						coasesor.setSegundoApellido(coasesoresApellidos2[i]);
-					}
-					if (coasesoresCorreos != null && i < coasesoresCorreos.length) {
-						coasesor.setCorreoElectronico(coasesoresCorreos[i]);
-					}
-					dto.getCoasesores().add(coasesor);
-				}
-			}
-
-			// Estado del tema
-			dto.setEstadoTemaNombre((String) fila[25]); // estado_tema_nombre
 
 			lista.add(dto);
 		}

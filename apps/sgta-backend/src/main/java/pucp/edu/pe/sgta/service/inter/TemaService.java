@@ -111,5 +111,5 @@ public interface TemaService {
 
 	TemaConAsesorDto obtenerTemaActivoPorAlumno(Integer idAlumno);
 
-	List<TemaDto> listarTemasLibres(String titulo, Integer limit, Integer offset);
+	List<TemaDto> listarTemasLibres(String titulo, Integer limit, Integer offset, String usuarioId);
 }
