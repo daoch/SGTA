@@ -255,16 +255,17 @@ public class TemaController {
 	@PatchMapping("/CambiarEstadoTemaPorCoordinador")
 	@SuppressWarnings("unchecked")
 	public ResponseEntity<Void> actualizarEstadoTema(
-			@RequestBody Map<String, Object> body) {
+			@RequestBody Map<String, Object> body,
+			HttpServletRequest request) {
+		String coordinadorId = jwtService.extractSubFromRequest(request);
 		Map<String, Object> temaMap = (Map<String, Object>) body.get("tema");
 		Map<String, Object> solMap = (Map<String, Object>) body.get("usuarioSolicitud");
 
 		Integer id = (Integer) temaMap.get("id");
 		String estado = (String) temaMap.get("estadoTemaNombre");
-		Integer usuarioId = (Integer) solMap.get("usuarioId");
 		String comentario = (String) solMap.get("comentario");
 
-		temaService.cambiarEstadoTemaCoordinador(id, estado, usuarioId, comentario);
+		temaService.cambiarEstadoTemaCoordinador(id, estado, coordinadorId, comentario);
 		return ResponseEntity.noContent().build();
 	}
 
@@ -293,5 +294,36 @@ public class TemaController {
 		TemaConAsesorDto temas = temaService.obtenerTemaActivoPorAlumno(idAlumno);
 		return ResponseEntity.ok(temas);
 	}
+
+	@PostMapping("/solicitud/cambio-resumen/{temaId}")
+    public ResponseEntity<String> crearSolicitudCambioDeResumen(
+            @PathVariable Integer temaId,
+            @RequestBody Map<String, Object> body,
+            HttpServletRequest request) {
+
+		String coordinadorId = jwtService.extractSubFromRequest(request);        
+
+		Map<String, Object> solMap = (Map<String, Object>) body.get("usuarioSolicitud");
+
+		String comentario = (String) solMap.get("comentario");
+	    temaService.crearSolicitudCambioDeResumen(coordinadorId, comentario, temaId);
+
+        return ResponseEntity.ok("Solicitud de cambio de resumen creada correctamente.");
+    }
+
+    @PostMapping("/solicitud/cambio-titulo/{temaId}")
+    public ResponseEntity<String> crearSolicitudCambioDeTitulo(
+            @PathVariable Integer temaId,
+           @RequestBody Map<String, Object> body,
+            HttpServletRequest request) {
+
+		String coordinadorId = jwtService.extractSubFromRequest(request);  
+		Map<String, Object> solMap = (Map<String, Object>) body.get("usuarioSolicitud");
+
+		String comentario = (String) solMap.get("comentario");
+        temaService.crearSolicitudCambioDeTitulo(coordinadorId, comentario, temaId);
+
+        return ResponseEntity.ok("Solicitud de cambio de título creada correctamente.");
+    }
 
 }

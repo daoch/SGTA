@@ -77,7 +77,7 @@ public interface TemaService {
 
 	List<TemaDto> listarTemasPorEstadoYCarrera(String estadoNombre, Integer carreraId);
 
-	void cambiarEstadoTemaCoordinador(Integer temaId, String nuevoEstadoNombre, Integer usuarioId, String comentario);
+	void cambiarEstadoTemaCoordinador(Integer temaId, String nuevoEstadoNombre, String usuarioId, String comentario);
 
 	List<ExposicionTemaMiembrosDto> listarExposicionXTemaId(Integer temaId);
 
@@ -111,4 +111,11 @@ public interface TemaService {
 
 	TemaConAsesorDto obtenerTemaActivoPorAlumno(Integer idAlumno);
 
+	void crearSolicitudCambioDeTitulo(String idUsuario,
+											String comentario,
+											Integer temaId);
+
+	void crearSolicitudCambioDeResumen(String idUsuario,
+											String comentario,
+											Integer temaId);
 }
