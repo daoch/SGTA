@@ -1549,6 +1549,103 @@ public class TemaServiceImpl implements TemaService {
 	}
 
 	@Override
+	public List<TemaDto> listarTemasLibres(String titulo, Integer limit, Integer offset, String usuarioId) {
+		String sql = "SELECT * FROM listar_temas_libres_con_usuarios(:titulo, :limit, :offset, :usuarioId)";
+
+		@SuppressWarnings("unchecked")
+		List<Object[]> resultados = entityManager
+				.createNativeQuery(sql)
+				.setParameter("titulo",  titulo  != null ? titulo  : "")
+				.setParameter("limit",   limit   != null ? limit   : 10)
+				.setParameter("offset",  offset  != null ? offset  : 0)
+				.setParameter("usuarioId", usuarioId)
+				.getResultList();
+
+		List<TemaDto> lista = new ArrayList<>();
+		for (Object[] fila : resultados) {
+			TemaDto dto = new TemaDto();
+			dto.setSubareas(new ArrayList<>());
+			dto.setCoasesores(new ArrayList<>());
+			dto.setTesistas(new ArrayList<>());
+			dto.setArea(new ArrayList<>());
+			// 0: tema_id
+			dto.setId(((Number) fila[0]).intValue());
+
+			// 1: codigo (si quieres guardarlo en el DTO, puedes añadir dto.setCodigo(...))
+			dto.setCodigo((String) fila[1]);
+
+			// 2: titulo
+			dto.setTitulo((String) fila[2]);
+
+			// 3: resumen
+			dto.setResumen((String) fila[3]);
+
+			// 4: metodologia
+			dto.setMetodologia((String) fila[4]);
+
+			// 5: objetivos
+			dto.setObjetivos((String) fila[5]);
+
+			// 6: requisitos
+			dto.setRequisitos((String) fila[6]);
+
+			// 7: portafolio_url
+			dto.setPortafolioUrl((String) fila[7]);
+
+			// 8, 9, 10: fechas (TIMESTAMPTZ → Instant → OffsetDateTime)
+			dto.setFechaLimite(toOffsetDateTime(fila[8]));
+			dto.setFechaCreacion(toOffsetDateTime(fila[9]));
+			dto.setFechaModificacion(toOffsetDateTime(fila[10]));
+
+			// 11, 12: carrera
+			if (fila[11] != null && fila[12] != null) {
+				CarreraDto carrera = new CarreraDto();
+				carrera.setId(((Number) fila[11]).intValue());
+				carrera.setNombre((String) fila[12]);
+				dto.setCarrera(carrera);
+			}
+
+			// 13: subareas_ids  (java.sql.Array → Integer[])
+			Integer[] subareaIds = extractSqlIntArray(fila[13]);
+
+			// 14: subareas_nombres (String[])
+			String[] subareasNombres = (String[]) fila[14];
+
+			if (subareaIds != null && subareasNombres != null) {
+				for (int i = 0; i < subareaIds.length && i < subareasNombres.length; i++) {
+					SubAreaConocimientoDto subarea = new SubAreaConocimientoDto();
+					subarea.setId(subareaIds[i]);
+					subarea.setNombre(subareasNombres[i]);
+					dto.getSubareas().add(subarea);
+				}
+			}
+
+			// 15: usuarios JSONB  → String con JSON
+			String usuariosJsonStr = fila[15] != null ? fila[15].toString() : "[]";
+			List<UsuarioDto> allUsers = parseUsuariosJson(usuariosJsonStr);
+
+			dto.setCoasesores(filterByRoleExcept(allUsers, RolEnum.Tesista.name()));
+
+			dto.setTesistas(filterByRole(allUsers, RolEnum.Tesista.name()));
+
+			// 16: estado_tema_nombre
+			dto.setEstadoTemaNombre((String) fila[16]);
+
+			// 17, 18: área / subárea_principal
+			if (fila[17] != null && fila[18] != null) {
+				AreaConocimientoDto areaDto = new AreaConocimientoDto();
+				areaDto.setId(((Number) fila[17]).intValue());
+				areaDto.setNombre((String) fila[18]);
+				dto.getArea().add(areaDto);
+			}
+
+			lista.add(dto);
+		}
+
+		return lista;
+	}
+
+	@Override
 	@Transactional
 	public List<TemaDto> listarTemasPorEstadoYCarrera(String estadoNombre, Integer carreraId) {
 		String sql = "SELECT * FROM listar_temas_por_estado_y_carrera(:estado, :carreraId)";
