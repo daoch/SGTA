@@ -1,5 +1,3 @@
-SET search_path TO sgtadb;
-
 DO
 $$
     BEGIN
