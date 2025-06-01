@@ -584,7 +584,7 @@ CREATE OR REPLACE FUNCTION listar_tesistas_por_asesor(p_asesor_id INT)
                      entregable_actual_fecha_fin TIMESTAMP WITH TIME ZONE,
                      entregable_actual_estado VARCHAR,
                      entregable_envio_estado VARCHAR,
-                     entregable_envio_fecha DATE
+                     entregable_envio_fecha TIMESTAMP WITH TIME ZONE
                  ) AS $$
 DECLARE
     v_current_date TIMESTAMP WITH TIME ZONE := NOW();
