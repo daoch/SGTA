@@ -5,7 +5,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 import pucp.edu.pe.sgta.dto.*;
+import pucp.edu.pe.sgta.dto.calificacion.*;
 import pucp.edu.pe.sgta.dto.exposiciones.EstadoControlExposicionRequest;
 import pucp.edu.pe.sgta.dto.exposiciones.EstadoExposicionJuradoRequest;
 import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
@@ -39,17 +41,19 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
         private final BloqueHorarioExposicionRepository bloqueHorarioExposicionRepository;
         private final ControlExposicionUsuarioTemaRepository controlExposicionUsuarioTemaRepository;
         private final ApplicationEventPublisher eventPublisher;
+        private final CriterioExposicionRepository criterioExposicionRepository;
+        private final RevisionCriterioExposicionRepository revisionCriterioExposicionRepository;
 
         public MiembroJuradoServiceImpl(UsuarioRepository usuarioRepository,
-                        UsuarioXTemaRepository usuarioXTemaRepository,
-                        RolRepository rolRepository,
-                        TemaRepository temaRepository,
-                        SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository,
-                        EtapaFormativaRepository etapaFormativaRepository,
-                        ExposicionXTemaRepository exposicionXTemaRepository,
-                        BloqueHorarioExposicionRepository bloqueHorarioExposicionRepository,
-                        ControlExposicionUsuarioTemaRepository controlExposicionUsuarioTemaRepository,
-                        ApplicationEventPublisher eventPublisher) {
+                                        UsuarioXTemaRepository usuarioXTemaRepository,
+                                        RolRepository rolRepository,
+                                        TemaRepository temaRepository,
+                                        SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository,
+                                        EtapaFormativaRepository etapaFormativaRepository,
+                                        ExposicionXTemaRepository exposicionXTemaRepository,
+                                        BloqueHorarioExposicionRepository bloqueHorarioExposicionRepository,
+                                        ControlExposicionUsuarioTemaRepository controlExposicionUsuarioTemaRepository,
+                                        ApplicationEventPublisher eventPublisher, CriterioExposicionRepository criterioExposicionRepository, RevisionCriterioExposicionRepository revisionCriterioExposicionRepository) {
                 this.usuarioRepository = usuarioRepository;
                 this.usuarioXTemaRepository = usuarioXTemaRepository;
                 this.rolRepository = rolRepository;
@@ -60,6 +64,8 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                 this.bloqueHorarioExposicionRepository = bloqueHorarioExposicionRepository;
                 this.controlExposicionUsuarioTemaRepository = controlExposicionUsuarioTemaRepository;
                 this.eventPublisher = eventPublisher;
+            this.criterioExposicionRepository = criterioExposicionRepository;
+            this.revisionCriterioExposicionRepository = revisionCriterioExposicionRepository;
         }
 
         @Override
@@ -644,6 +650,13 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                                                 .findByExposicionXTemaIdAndActivoTrue(exposicionXTema.getId());
                                 for (BloqueHorarioExposicion bloque : bloques) {
                                         OffsetDateTime datetimeInicio = bloque.getDatetimeInicio();
+                                        OffsetDateTime datetimeFin = bloque.getDatetimeFin();
+
+                                        OffsetDateTime fechaActual = OffsetDateTime.now(ZoneOffset.UTC);
+                                        if (fechaActual.isAfter(datetimeFin)) {
+                                                exposicionXTema.setEstadoExposicion(EstadoExposicion.CALIFICADA);
+                                                exposicionXTemaRepository.save(exposicionXTema);
+                                        }
 
                                         // Obtener sala desde el bloque -> jornadaExposicionXSala -> sala
                                         String salaNombre = "";
@@ -827,6 +840,100 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                                 .map(e -> new EstadoExposicionDto(e.name(), beautify(e.name())))
                                 .collect(Collectors.toList());
         }
+
+        @Override
+        public ResponseEntity<ExposicionCalificacionDto> listarExposicionCalificacion(ExposicionCalificacionRequest exposicionCalificacionRequest) {
+
+                ExposicionXTema exposicionXTema = exposicionXTemaRepository.findById(exposicionCalificacionRequest.getExposicion_tema_id())
+                        .orElseThrow(() -> new RuntimeException("No se encontró exposicion_x_tema con id: " + exposicionCalificacionRequest.getExposicion_tema_id()));
+
+
+                Integer id = exposicionCalificacionRequest.getExposicion_tema_id();
+                Tema tema = exposicionXTema.getTema();
+                Exposicion exposicion = exposicionXTema.getExposicion();
+                String titulo = tema.getTitulo();
+                String descripcion = tema.getResumen();
+
+                List<UsuarioXTema> usuarioTemas = usuarioXTemaRepository
+                        .findByTemaIdAndActivoTrue(tema.getId());
+
+                List<EstudiantesCalificacionDto> estudiantes = usuarioTemas.stream()
+                        .filter(u -> u.getRol().getId() == 4)
+                        .map(u -> {
+                                EstudiantesCalificacionDto estudianteCalificacionDto = new EstudiantesCalificacionDto();
+                                estudianteCalificacionDto.setId(u.getUsuario().getId());
+                                estudianteCalificacionDto.setNombre(u.getUsuario().getNombres() + " " + u.getUsuario().getPrimerApellido() + " " + u.getUsuario().getSegundoApellido());
+                                return estudianteCalificacionDto;
+                        }).toList();
+
+                List<CriterioExposicion> criterios = criterioExposicionRepository
+                        .findByExposicion_IdAndActivoTrue(exposicion.getId());
+
+                List<CriteriosCalificacionDto> criteriosCalificacionDtos = criterios.stream()
+                        .map(criterio -> {
+                                Optional<RevisionCriterioExposicion> revisionOpt = revisionCriterioExposicionRepository
+                                        .findByExposicionXTema_IdAndCriterioExposicion_IdAndUsuario_Id(
+                                                exposicionCalificacionRequest.getExposicion_tema_id(),
+                                                criterio.getId(),
+                                                exposicionCalificacionRequest.getJurado_id());
+
+                                RevisionCriterioExposicion revision = revisionOpt.orElse(null);
+
+                                CriteriosCalificacionDto dto = new CriteriosCalificacionDto();
+                                dto.setId(revision != null ? revision.getId() : null);
+                                dto.setTitulo(criterio.getNombre());
+                                dto.setDescripcion(criterio.getDescripcion());
+                                dto.setCalificacion(revision != null ? revision.getNota() : null);
+                                dto.setNota_maxima(criterio.getNotaMaxima());
+                                dto.setObservacion(revision != null ? revision.getObservacion() : null);
+
+                                return dto;
+                        })
+                        .collect(Collectors.toList());
+
+                String observacionesFinales = null;
+
+                ExposicionCalificacionDto dtoFinal = new ExposicionCalificacionDto();
+                dtoFinal.setId_exposicion(exposicion.getId());
+                dtoFinal.setTitulo(titulo);
+                dtoFinal.setDescripcion(descripcion);
+                dtoFinal.setEstudiantes(estudiantes);
+                dtoFinal.setCriterios(criteriosCalificacionDtos);
+                dtoFinal.setObservaciones_finales(observacionesFinales);
+
+                return ResponseEntity.ok(dtoFinal);
+        }
+
+        @Override
+        public ResponseEntity<?> actualizarRevisionCriterios(RevisionCriteriosRequest request) {
+                Map<String, Object> response = new HashMap<>();
+                try {
+                        for (RevisionCriterioUpdateRequest dto : request.getCriterios()) {
+                                RevisionCriterioExposicion revision = revisionCriterioExposicionRepository
+                                        .findById(dto.getId())
+                                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                                "No se encontró el criterio de revisión con id: " + dto.getId()));
+
+                                if (Boolean.TRUE.equals(revision.getActivo())) {
+                                        revision.setNota(dto.getCalificacion());
+                                        revision.setObservacion(dto.getObservacion());
+                                        revision.setRevisado(true);
+                                        revisionCriterioExposicionRepository.save(revision);
+                                }
+                        }
+
+                        response.put("mensaje", "Se actualizaron correctamente los criterios.");
+                        response.put("exito", true);
+                } catch (ResponseStatusException e) {
+                        response.put("mensaje", e.getReason());
+                        response.put("exito", false);
+                } catch (Exception e) {
+                        response.put("mensaje", "Ocurrió un error inesperado al actualizar los criterios.");
+                        response.put("exito", false);
+                }
+                return ResponseEntity.ok(response);
+        }
+
 
         private String beautify(String enumName) {
                 return enumName.replace("_", " ")
