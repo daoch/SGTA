@@ -662,7 +662,7 @@ export default function RevisarDocumentoPage({ params }: { params: { id: string 
                     <span>Contenido</span>
                   </div>
                   <Badge variant="outline" className="bg-yellow-100 text-yellow-800">
-                    {revision.observaciones.filter((o) => o.tipo === "contenido").length}
+                    {highlights.filter((h) => h.comment.emoji === "contenido").length}
                   </Badge>
                 </div>
 
@@ -672,7 +672,7 @@ export default function RevisarDocumentoPage({ params }: { params: { id: string 
                     <span>Similitud</span>
                   </div>
                   <Badge variant="outline" className="bg-red-100 text-red-800">
-                    {revision.observaciones.filter((o) => o.tipo === "plagio").length}
+                    {highlights.filter((h) => h.comment.emoji === "similitud").length}
                   </Badge>
                 </div>
 
@@ -682,7 +682,7 @@ export default function RevisarDocumentoPage({ params }: { params: { id: string 
                     <span>Citado</span>
                   </div>
                   <Badge variant="outline" className="bg-blue-100 text-blue-800">
-                    {revision.observaciones.filter((o) => o.tipo === "citado").length}
+                    {highlights.filter((h) => h.comment.emoji === "citado").length}
                   </Badge>
                 </div>
                 <div className="flex items-center justify-between">
