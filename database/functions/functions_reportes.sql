@@ -568,24 +568,31 @@ BEGIN
 END;
 $BODY$;
 -------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION listar_tesistas_por_asesor(p_asesor_id INT)
+CREATE OR REPLACE FUNCTION listar_tesistas_por_asesor(p_asesor_id integer)
     RETURNS TABLE(
-                     tema_id            INT,
-                     tesista_id         INT,
-                     nombres            VARCHAR(100),
-                     primer_apellido    VARCHAR(100),
-                     segundo_apellido   VARCHAR(100),
-                     correo_electronico VARCHAR(255),
-                     -- Nuevos campos para información del entregable
-                     entregable_actual_id INT,
-                     entregable_actual_nombre VARCHAR(150),
-                     entregable_actual_descripcion TEXT,
-                     entregable_actual_fecha_inicio TIMESTAMP WITH TIME ZONE,
-                     entregable_actual_fecha_fin TIMESTAMP WITH TIME ZONE,
-                     entregable_actual_estado VARCHAR,
-                     entregable_envio_estado VARCHAR,
-                     entregable_envio_fecha TIMESTAMP WITH TIME ZONE
-                 ) AS $$
+        tema_id integer,
+        tesista_id integer,
+        nombres character varying,
+        primer_apellido character varying,
+        segundo_apellido character varying,
+        correo_electronico character varying,
+        -- NUEVAS COLUMNAS AGREGADAS
+        titulo_tema character varying,
+        etapa_formativa_nombre text,
+        carrera character varying,
+        -- COLUMNAS EXISTENTES
+        entregable_actual_id integer,
+        entregable_actual_nombre character varying,
+        entregable_actual_descripcion text,
+        entregable_actual_fecha_inicio timestamp with time zone,
+        entregable_actual_fecha_fin timestamp with time zone,
+        entregable_actual_estado character varying,
+        entregable_envio_estado character varying,
+        entregable_envio_fecha timestamp with time zone
+    )
+    LANGUAGE plpgsql
+AS
+$$
 DECLARE
     v_current_date TIMESTAMP WITH TIME ZONE := NOW();
 BEGIN
@@ -598,6 +605,10 @@ BEGIN
             u.primer_apellido,
             u.segundo_apellido,
             u.correo_electronico,
+            -- NUEVAS COLUMNAS
+            t.titulo AS titulo_tema,
+            ef.nombre AS etapa_formativa_nombre,
+            COALESCE(car.nombre, 'Sin carrera') AS carrera,
             -- Información del entregable actual
             e.entregable_id,
             e.nombre,
@@ -610,6 +621,21 @@ BEGIN
         FROM usuario_tema ut
         JOIN rol r1 ON ut.rol_id = r1.rol_id AND r1.nombre = 'Tesista'
         JOIN usuario u ON u.usuario_id = ut.usuario_id
+        -- JOIN para obtener datos del tema
+        JOIN tema t ON t.tema_id = ut.tema_id
+        -- JOIN para obtener la carrera del tesista
+        LEFT JOIN usuario_carrera uc ON uc.usuario_id = u.usuario_id AND uc.activo = TRUE
+        LEFT JOIN carrera car ON car.carrera_id = uc.carrera_id
+        -- JOIN para obtener la etapa formativa
+        LEFT JOIN etapa_formativa_x_ciclo efc ON efc.etapa_formativa_id = (
+            SELECT ef2.etapa_formativa_id
+            FROM etapa_formativa ef2
+            WHERE ef2.carrera_id = uc.carrera_id
+            AND ef2.activo = TRUE
+            ORDER BY ef2.fecha_creacion DESC
+            LIMIT 1
+        ) AND efc.activo = TRUE
+        LEFT JOIN etapa_formativa ef ON ef.etapa_formativa_id = efc.etapa_formativa_id
         -- Obtener el tema de los tesistas asesorados
         JOIN (
             SELECT ut2.tema_id
@@ -644,6 +670,10 @@ BEGIN
             u.primer_apellido,
             u.segundo_apellido,
             u.correo_electronico,
+            -- NUEVAS COLUMNAS
+            t.titulo AS titulo_tema,
+            ef.nombre AS etapa_formativa_nombre,
+            COALESCE(car.nombre, 'Sin carrera') AS carrera,
             -- Información del próximo entregable
             e_next.entregable_id,
             e_next.nombre,
@@ -654,8 +684,23 @@ BEGIN
             et_next.estado::VARCHAR,
             et_next.fecha_envio
         FROM usuario_tema ut
-                 JOIN rol r1 ON ut.rol_id = r1.rol_id AND r1.nombre = 'Tesista'
-                 JOIN usuario u ON u.usuario_id = ut.usuario_id
+        JOIN rol r1 ON ut.rol_id = r1.rol_id AND r1.nombre = 'Tesista'
+        JOIN usuario u ON u.usuario_id = ut.usuario_id
+        -- JOIN para obtener datos del tema
+        JOIN tema t ON t.tema_id = ut.tema_id
+        -- JOIN para obtener la carrera del tesista
+        LEFT JOIN usuario_carrera uc ON uc.usuario_id = u.usuario_id AND uc.activo = TRUE
+        LEFT JOIN carrera car ON car.carrera_id = uc.carrera_id
+        -- JOIN para obtener la etapa formativa
+        LEFT JOIN etapa_formativa_x_ciclo efc ON efc.etapa_formativa_id = (
+            SELECT ef2.etapa_formativa_id
+            FROM etapa_formativa ef2
+            WHERE ef2.carrera_id = uc.carrera_id
+            AND ef2.activo = TRUE
+            ORDER BY ef2.fecha_creacion DESC
+            LIMIT 1
+        ) AND efc.activo = TRUE
+        LEFT JOIN etapa_formativa ef ON ef.etapa_formativa_id = efc.etapa_formativa_id
         -- Obtener el tema de los tesistas asesorados
         JOIN (
             SELECT ut2.tema_id
@@ -663,7 +708,7 @@ BEGIN
             JOIN rol r2 ON ut2.rol_id = r2.rol_id AND (r2.nombre = 'Asesor' OR r2.nombre = 'Coasesor')
             WHERE ut2.usuario_id = p_asesor_id AND ut2.activo = TRUE
         ) temas_asesor ON temas_asesor.tema_id = ut.tema_id
-        -- Verifica que no haya entregable actual (usando LATERAL para acceder a ut.tema_id)
+        -- Verifica que no haya entregable actual
         LEFT JOIN LATERAL (
             SELECT e.entregable_id
             FROM entregable e
@@ -692,7 +737,7 @@ BEGIN
         WHERE ut.activo = TRUE
         AND current_entregable.entregable_id IS NULL;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 ---------------------------------------------------------------------------------------------------------------------
 
