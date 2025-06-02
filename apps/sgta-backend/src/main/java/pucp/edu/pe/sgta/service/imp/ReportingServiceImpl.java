@@ -237,8 +237,8 @@ public class ReportingServiceImpl implements IReportService {
         List<Object[]> results = tesistasPorAsesorRepository.getTesistasPorAsesor(asesorId);
         return results.stream()
                 .map(result -> {
-                    Object fechaInicio = result[9];
-                    Object fechaFin = result[10];
+                    Object fechaInicio = result[12];
+                    Object fechaFin = result[13];
 
                     return TesistasPorAsesorDTO.builder()
                             .temaId((Integer) result[0])
@@ -247,19 +247,22 @@ public class ReportingServiceImpl implements IReportService {
                             .primerApellido((String) result[3])
                             .segundoApellido((String) result[4])
                             .correoElectronico((String) result[5])
-                            .entregableActualId((Integer) result[6])
-                            .entregableActualNombre((String) result[7])
-                            .entregableActualDescripcion((String) result[8])
+                            .tituloTema((String) result[6])
+                            .etapaFormativaNombre((String) result[7])
+                            .carrera((String) result[8])
+                            .entregableActualId((Integer) result[9])
+                            .entregableActualNombre((String) result[10])
+                            .entregableActualDescripcion((String) result[11])
                             .entregableActualFechaInicio(fechaInicio != null
                                     ? ((Timestamp) fechaInicio).toLocalDateTime().atZone(ZoneId.systemDefault())
                                     : null)
                             .entregableActualFechaFin(fechaFin != null
                                     ? ((Timestamp) fechaFin).toLocalDateTime().atZone(ZoneId.systemDefault())
                                     : null)
-                            .entregableActualEstado((String) result[11])
-                            .entregableEnvioEstado((String) result[12])
+                            .entregableActualEstado((String) result[14])
+                            .entregableEnvioEstado((String) result[15])
                             .entregableEnvioFecha(
-                                    result[13] != null ? new java.util.Date(((Timestamp) result[13]).getTime()) : null)
+                                    result[16] != null ? new java.util.Date(((Timestamp) result[16]).getTime()) : null)
                             .build();
                 })
                 .collect(Collectors.toList());
