@@ -2035,7 +2035,8 @@ $$;
 
 CREATE OR REPLACE FUNCTION postular_tesista_tema_libre(
     p_tema_id     INTEGER,
-    p_tesista_id  TEXT
+    p_tesista_id  TEXT,
+    p_comentario TEXT
 )
 RETURNS VOID 
 LANGUAGE plpgsql
@@ -2121,15 +2122,18 @@ BEGIN
         rol_id,
         asignado,
         creador,
-        rechazado
+        rechazado,
+        comentario
     ) VALUES (
         p_tema_id,
         v_usuario_id,
         v_rol_tesista_id,
         FALSE,  -- asignado = FALSE (pendiente)
         FALSE,  -- creador = FALSE
-        FALSE   -- rechazado = FALSE
+        FALSE,   -- rechazado = FALSE
+        p_comentario
     );
 
 END;
 $$;
+

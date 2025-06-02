@@ -1999,12 +1999,13 @@ public class TemaServiceImpl implements TemaService {
 	}
 
 	@Transactional
-	public void postularTemaLibre(Integer temaId, String tesistaId) {
+	public void postularTemaLibre(Integer temaId, String tesistaId, String comentario) {
 		try {
 			// Call the PostgreSQL function to handle the postulation
-			entityManager.createNativeQuery("SELECT postular_tesista_tema_libre(:temaId, :tesistaId)")
+			entityManager.createNativeQuery("SELECT postular_tesista_tema_libre(:temaId, :tesistaId, :comentario)")
 					.setParameter("temaId", temaId)
 					.setParameter("tesistaId", tesistaId)
+					.setParameter("comentario", comentario)
 					.getSingleResult();
 			
 			logger.info("Tesista " + tesistaId + " successfully applied to tema libre " + temaId);

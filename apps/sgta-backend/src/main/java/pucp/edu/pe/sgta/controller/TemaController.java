@@ -339,10 +339,12 @@ public class TemaController {
         return ResponseEntity.ok("Solicitud de cambio de título creada correctamente.");
     }
 	@PostMapping("/postularTemaLibre")
-	public void postularTemaLibre(@RequestParam("temaId") Integer temaId, HttpServletRequest request) {
+	public void postularTemaLibre(@RequestParam("temaId") Integer temaId,
+        @RequestParam("comentario") String comentario,
+		 HttpServletRequest request) {
 		try {
 			String tesistaId = jwtService.extractSubFromRequest(request);
-			temaService.postularTemaLibre(temaId, tesistaId);
+			temaService.postularTemaLibre(temaId, tesistaId, comentario);
 		} catch (RuntimeException e) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
 		}
