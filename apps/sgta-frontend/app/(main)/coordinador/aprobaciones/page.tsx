@@ -27,6 +27,8 @@ const Page: React.FC = () => {
         carreraIds.flatMap((id) => [
           listarTemasPorCarrera(id, "INSCRITO"),
           listarTemasPorCarrera(id, "REGISTRADO"),
+          listarTemasPorCarrera(id, "RECHAZADO"),
+          listarTemasPorCarrera(id, "OBSERVADO"),
         ]),
       );
       // 3. Unir todos los temas en una sola lista
