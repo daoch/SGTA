@@ -1896,6 +1896,247 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION listar_temas_libres_con_usuarios(
+    p_titulo TEXT DEFAULT '',
+    p_limit  INTEGER DEFAULT 10,
+    p_offset INTEGER DEFAULT 0,
+    p_usuario_cognito_id TEXT DEFAULT NULL
+)
+RETURNS TABLE(
+    tema_id            INTEGER,
+    codigo             TEXT,
+    titulo             TEXT,
+    resumen            TEXT,
+    metodologia         TEXT,
+    objetivos          TEXT,
+    requisitos         TEXT,
+    portafolio_url     TEXT,
+    fecha_limite       TIMESTAMPTZ,
+    fecha_creacion     TIMESTAMPTZ,
+    fecha_modificacion TIMESTAMPTZ,
+    carrera_id         INTEGER,
+    carrera_nombre     TEXT,
+    subareas_ids       INTEGER[],
+    subareas_nombres   TEXT[],
+    usuarios           JSONB,
+    estado_tema_nombre TEXT,
+    area_id            INTEGER,
+    area_nombre        TEXT
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_usuario_id INTEGER;
+BEGIN
+    -- Convertir Cognito ID a usuario_id interno
+    IF p_usuario_cognito_id IS NOT NULL THEN
+        SELECT u.usuario_id
+        INTO   v_usuario_id
+        FROM   usuario u
+        WHERE  u.id_cognito = p_usuario_cognito_id
+          AND  u.activo = TRUE;
+    END IF;
+
+    RETURN QUERY
+    SELECT
+        t.tema_id,
+        t.codigo::text,
+        t.titulo::text,
+        t.resumen::text,
+        t.metodologia::text,
+        t.objetivos::text,
+        t.requisitos::text,
+        t.portafolio_url::text,
+        t.fecha_limite,
+        t.fecha_creacion,
+        t.fecha_modificacion,
+        c.carrera_id,
+        c.nombre::text          AS carrera_nombre,
+        -- ARRAY_AGG de subáreas (IDs y nombres)
+        COALESCE(
+            ARRAY_AGG(DISTINCT sac.sub_area_conocimiento_id ORDER BY sac.sub_area_conocimiento_id)
+                FILTER (WHERE sac.sub_area_conocimiento_id IS NOT NULL),
+            ARRAY[]::INTEGER[]
+        ) AS subareas_ids,
+        COALESCE(
+            ARRAY_AGG(DISTINCT sac.nombre::text ORDER BY sac.nombre::text)
+                FILTER (WHERE sac.nombre IS NOT NULL),
+            ARRAY[]::TEXT[]
+        ) AS subareas_nombres,
+        -- JSONB de usuarios (Asesor + Coasesores)
+        (
+            SELECT jsonb_agg(
+                     jsonb_build_object(
+                       'usuario_id',      u2.usuario_id,
+                       'nombre_completo', u2.nombres || ' ' || u2.primer_apellido,
+                       'rol',             rl2.nombre,
+                       'comentario',      ut2.comentario,
+                       'creador',         ut2.creador
+                     )
+                   )
+            FROM   usuario_tema ut2
+            JOIN   usuario   u2  ON u2.usuario_id = ut2.usuario_id
+            JOIN   rol       rl2 ON rl2.rol_id     = ut2.rol_id
+            WHERE  ut2.tema_id = t.tema_id
+              AND  rl2.nombre ILIKE ANY (ARRAY['Asesor','Coasesor'])
+        ) AS usuarios,
+        et.nombre::text          AS estado_tema_nombre,
+        ac.area_conocimiento_id  AS area_id,
+        ac.nombre::text          AS area_nombre
+    FROM tema t
+    INNER JOIN estado_tema et ON t.estado_tema_id = et.estado_tema_id
+    LEFT JOIN carrera c     ON t.carrera_id = c.carrera_id
+
+    -- Join a subáreas y de allí a área de conocimiento
+    LEFT JOIN sub_area_conocimiento_tema sact 
+           ON t.tema_id = sact.tema_id
+    LEFT JOIN sub_area_conocimiento sac 
+           ON sact.sub_area_conocimiento_id = sac.sub_area_conocimiento_id
+    LEFT JOIN area_conocimiento ac 
+           ON sac.area_conocimiento_id = ac.area_conocimiento_id
+
+    WHERE
+        t.activo = TRUE
+        AND et.nombre = 'PROPUESTO_LIBRE'
+        AND (p_titulo = '' OR t.titulo ILIKE '%' || p_titulo || '%')
+        AND (
+            v_usuario_id IS NULL
+            OR t.carrera_id IN (
+                SELECT uc.carrera_id
+                FROM usuario_carrera uc
+                WHERE uc.usuario_id = v_usuario_id
+                  AND uc.activo = TRUE
+            )
+        )
+
+    GROUP BY
+        t.tema_id,
+        t.codigo,
+        t.titulo,
+        t.resumen,
+        t.metodologia,
+        t.objetivos,
+        t.requisitos,
+        t.portafolio_url,
+        t.fecha_limite,
+        t.fecha_creacion,
+        t.fecha_modificacion,
+        c.carrera_id,
+        c.nombre,
+        et.nombre,
+        ac.area_conocimiento_id,
+        ac.nombre
+
+    ORDER BY t.fecha_creacion DESC
+    LIMIT p_limit
+    OFFSET p_offset;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION postular_tesista_tema_libre(
+    p_tema_id     INTEGER,
+    p_tesista_id  TEXT,
+    p_comentario TEXT
+)
+RETURNS VOID 
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_usuario_id      INTEGER;
+    v_tema_estado     TEXT;
+    v_rol_tesista_id  INTEGER;
+    v_existing_count  INTEGER;
+BEGIN
+    -- 1. Convertir Cognito ID a usuario_id interno
+    SELECT u.usuario_id
+    INTO   v_usuario_id
+    FROM   usuario u
+    WHERE  u.id_cognito = p_tesista_id
+      AND  u.activo = TRUE;
+
+    IF v_usuario_id IS NULL THEN
+        RAISE EXCEPTION 'Usuario no encontrado o inactivo con Cognito ID: %', p_tesista_id;
+    END IF;
+
+    -- 2. Validar que el tema exista, esté activo y en estado PROPUESTO_LIBRE
+    SELECT et.nombre
+    INTO   v_tema_estado
+    FROM   tema t
+    JOIN   estado_tema et 
+      ON   t.estado_tema_id = et.estado_tema_id
+    WHERE  t.tema_id = p_tema_id
+      AND  t.activo = TRUE;
+
+    IF v_tema_estado IS NULL THEN
+        RAISE EXCEPTION 'Tema no encontrado o inactivo con ID: %', p_tema_id;
+    END IF;
+
+    IF v_tema_estado != 'PROPUESTO_LIBRE' THEN
+        RAISE EXCEPTION 'El tema debe estar en estado PROPUESTO_LIBRE, pero está en estado: %', v_tema_estado;
+    END IF;
+
+    -- 3. Obtener rol_id correspondiente a "Tesista"
+    SELECT r.rol_id
+    INTO   v_rol_tesista_id
+    FROM   rol r
+    WHERE  r.nombre = 'Tesista'
+      AND  r.activo = TRUE
+    LIMIT  1;
+
+    IF v_rol_tesista_id IS NULL THEN
+        RAISE EXCEPTION 'Rol "Tesista" no encontrado o inactivo';
+    END IF;
+
+    -- 4. Verificar si el tesista ya está postulado a este tema
+    SELECT COUNT(*) 
+    INTO   v_existing_count
+    FROM   usuario_tema ut
+    WHERE  ut.tema_id   = p_tema_id
+      AND  ut.usuario_id = v_usuario_id
+      AND  ut.rol_id     = v_rol_tesista_id
+      AND  ut.activo     = TRUE;
+
+    IF v_existing_count > 0 THEN
+        RAISE EXCEPTION 'El tesista ya está postulado a este tema';
+    END IF;
+
+    -- 5. Verificar si el tesista ya tiene un tema asignado (asignado = TRUE)
+    SELECT COUNT(*)
+    INTO   v_existing_count
+    FROM   usuario_tema ut
+    JOIN   rol r 
+      ON   ut.rol_id = r.rol_id
+    WHERE  ut.usuario_id = v_usuario_id
+      AND  r.nombre = 'Tesista'
+      AND  ut.asignado = TRUE
+      AND  ut.activo   = TRUE;
+
+    IF v_existing_count > 0 THEN
+        RAISE EXCEPTION 'El tesista ya tiene un tema asignado';
+    END IF;
+
+    -- 6. Insertar la postulación en usuario_tema (activo y fechas por default)
+    INSERT INTO usuario_tema (
+        tema_id,
+        usuario_id,
+        rol_id,
+        asignado,
+        creador,
+        rechazado,
+        comentario
+    ) VALUES (
+        p_tema_id,
+        v_usuario_id,
+        v_rol_tesista_id,
+        FALSE,  -- asignado = FALSE (pendiente)
+        FALSE,  -- creador = FALSE
+        FALSE,   -- rechazado = FALSE
+        p_comentario
+    );
+
+END;
+$$;
+
 
 CREATE OR REPLACE FUNCTION tiene_rol_en_tema(
     p_usuario_id  INTEGER,

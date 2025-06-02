@@ -294,6 +294,19 @@ public class TemaController {
 		TemaConAsesorDto temas = temaService.obtenerTemaActivoPorAlumno(idAlumno);
 		return ResponseEntity.ok(temas);
 	}
+	@GetMapping("/listarTemasLibres")
+	public List<TemaDto> listarTemasLibres(
+			@RequestParam(name = "titulo", required = false) String titulo,
+			@RequestParam(name = "limit", defaultValue = "10") Integer limit,
+			@RequestParam(name = "offset", defaultValue = "0") Integer offset,
+			HttpServletRequest request) {
+		try {
+			String usuarioId = jwtService.extractSubFromRequest(request);
+			return temaService.listarTemasLibres(titulo, limit, offset, usuarioId);
+		} catch (RuntimeException e) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+		}
+	}
 
 	@PostMapping("/solicitud/cambio-resumen/{temaId}")
     public ResponseEntity<String> crearSolicitudCambioDeResumen(
@@ -325,7 +338,17 @@ public class TemaController {
 
         return ResponseEntity.ok("Solicitud de cambio de título creada correctamente.");
     }
-
+	@PostMapping("/postularTemaLibre")
+	public void postularTemaLibre(@RequestParam("temaId") Integer temaId,
+        @RequestParam("comentario") String comentario,
+		 HttpServletRequest request) {
+		try {
+			String tesistaId = jwtService.extractSubFromRequest(request);
+			temaService.postularTemaLibre(temaId, tesistaId, comentario);
+		} catch (RuntimeException e) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+		}
+	}
 	@PutMapping("/inscribirTemaPrenscrito/{temaId}")
     public ResponseEntity<String> inscribirTemaPrenscrito(
             @PathVariable Integer temaId,
@@ -339,3 +362,4 @@ public class TemaController {
     }
 
 }
+
