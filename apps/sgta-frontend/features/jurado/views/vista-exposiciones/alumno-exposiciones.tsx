@@ -41,7 +41,7 @@ const Exposiciones: React.FC = () => {
     { value: "todos", label: "Todos" },
     { value: "programada", label: "Programada" },
     { value: "completada", label: "Completada" },
-    { value: "finalizada", label: "Finalizada" },
+    { value: "calificada", label: "Calificada" },
   ];
   const [selectedEstado, setSelectedEstado] = useState(estados[0].value);
 
