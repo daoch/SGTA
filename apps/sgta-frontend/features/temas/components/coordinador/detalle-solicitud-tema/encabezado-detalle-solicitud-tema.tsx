@@ -24,7 +24,7 @@ export const EncabezadoDetalleSolicitudTema: React.FC<
           Volver a solicitudes
         </Button> */}
         <Badge variant="secondary" className="text-sm">
-          # {solicitud.id} {solicitud.tema.id}
+          # {solicitud.tema.id}
         </Badge>
       </div>
       <div className="space-y-4">

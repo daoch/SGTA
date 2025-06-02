@@ -78,12 +78,8 @@ export async function cambiarEstadoTemaPorCoordinador(
  */
 export async function eliminarTemaPorCoordinador(
   temaId: number,
-  usuarioId: number,
-  comentario?: string,
 ): Promise<void> {
-  await axiosInstance.delete(`/temas/${temaId}/eliminar`, {
-    params: { usuarioId, comentario },
-  });
+  await axiosInstance.patch(`/temas/${temaId}/eliminar`);
 }
 
 /**

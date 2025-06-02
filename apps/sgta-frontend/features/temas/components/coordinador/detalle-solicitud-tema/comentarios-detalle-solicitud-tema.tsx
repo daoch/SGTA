@@ -48,3 +48,4 @@ export const ComentariosDetalleSolicitudTema: React.FC<
     </CardContent>
   </Card>
 );
+

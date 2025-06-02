@@ -17,6 +17,8 @@ import { SolicitudPendiente } from "../types/solicitudes/entities";
 import { EstadoSolicitud } from "../types/solicitudes/enums";
 import { idCoasesor } from "../types/solicitudes/mock";
 import { Tema } from "../types/temas/entidades";
+import { toast, Toaster } from "sonner";
+import { useRouter } from "next/navigation";
 
 interface Props {
   solicitud: SolicitudPendiente;
@@ -29,7 +31,7 @@ export default function DetalleSolicitudesCoordinadorPage({
   solicitud,
   setTema,
 }: Readonly<Props>) {
-  // const router = useRouter();
+  const router = useRouter();
   const [comentario, setComentario] = useState("");
   const [dialogAbierto, setDialogAbierto] = useState<
     "aprobar" | "rechazar" | "observar" | "eliminar" | ""
@@ -77,17 +79,10 @@ export default function DetalleSolicitudesCoordinadorPage({
   const handleAccion = async (
     accion: "Aprobada" | "Rechazada" | "Observada" | "Eliminada",
   ) => {
-    if (!comentario.trim()) {
-      return;
-    }
-
     try {
       if (accion === "Eliminada") {
-        await eliminarTemaPorCoordinador(
-          solicitud.tema.id,
-          usuarioId,
-          comentario,
-        );
+        await eliminarTemaPorCoordinador(solicitud.tema.id);
+        router.push("/coordinador/aprobaciones");
       } else {
         const estadoMap: Record<
           "Aprobada" | "Rechazada" | "Observada",
@@ -110,17 +105,14 @@ export default function DetalleSolicitudesCoordinadorPage({
         };
 
         await cambiarEstadoTemaPorCoordinador(payload);
+        buscarTemaPorId(solicitud.tema.id).then(setTema); // Actualizar solicitud
       }
 
-      alert(`Solicitud ${accion.toLowerCase()} exitosamente.`);
+      toast.success(`Solicitud ${accion.toLowerCase()} exitosamente.`);
       setDialogAbierto("");
-
-      // Actualizar solicitud
-      const tema = await buscarTemaPorId(solicitud.tema.id);
-      setTema(tema);
     } catch (error) {
       console.error("Error al procesar la solicitud:", error);
-      alert("Ocurrió un error. Por favor, intente nuevamente.");
+      toast.error("Ocurrió un error. Por favor, intente nuevamente.");
     }
   };
 
@@ -137,41 +129,44 @@ export default function DetalleSolicitudesCoordinadorPage({
   }, [comentario]);
 
   return (
-    <form className="min-h-screen bg-gray-50 p-4 md:p-6">
-      <div className="max-w-6xl mx-auto space-y-6">
-        <EncabezadoDetalleSolicitudTema solicitud={solicitud} />
-        <InfoDetalleSolicitudTema solicitud={solicitud} />
+    <>
+      <Toaster position="top-right" richColors />
+      <form className="min-h-screen bg-gray-50 p-4 md:p-6">
+        <div className="max-w-6xl mx-auto space-y-6">
+          <EncabezadoDetalleSolicitudTema solicitud={solicitud} />
+          <InfoDetalleSolicitudTema solicitud={solicitud} />
 
-        {solicitud.estado === EstadoSolicitud.PENDIENTE && (
-          <>
-            {/* ======= Comentarios del Comité ======= */}
-            <ComentariosDetalleSolicitudTema
-              comentario={comentario}
-              setComentario={setComentario}
-              errorComentario={errorComentario}
-            />
+          {solicitud.estado === EstadoSolicitud.PENDIENTE && (
+            <>
+              {/* ======= Comentarios del Comité ======= */}
+              <ComentariosDetalleSolicitudTema
+                comentario={comentario}
+                setComentario={setComentario}
+                errorComentario={errorComentario}
+              />
 
-            {/* ======= Acciones Disponibles ======= */}
-            <AccionesDetalleSoliTema
-              accionesConfig={{
-                aprobar: { show: true, disabled: !comentario.trim().length },
-                rechazar: { show: true, disabled: !comentario.trim().length },
-                observar: { show: true, disabled: !comentario.trim().length },
-                eliminar: { show: true, disabled: !comentario.trim().length },
-              }}
-              dialogAbierto={dialogAbierto}
-              handleAccion={handleAccion}
-              setDialogAbierto={setDialogAbierto}
-            />
+              {/* ======= Acciones Disponibles ======= */}
+              <AccionesDetalleSoliTema
+                accionesConfig={{
+                  aprobar: { show: true, disabled: !comentario.trim().length },
+                  rechazar: { show: true, disabled: !comentario.trim().length },
+                  observar: { show: true, disabled: !comentario.trim().length },
+                  eliminar: { show: true, disabled: false },
+                }}
+                dialogAbierto={dialogAbierto}
+                handleAccion={handleAccion}
+                setDialogAbierto={setDialogAbierto}
+              />
 
-            {/* ======= Análisis de Similitud ======= */}
-            <AnalisisSimilitudTema similitud={similitudMock} />
-          </>
-        )}
+              {/* ======= Análisis de Similitud ======= */}
+              <AnalisisSimilitudTema similitud={similitudMock} />
+            </>
+          )}
 
-        <HistorialDetalleSolicitudTema historial={historialMock} />
-      </div>
-    </form>
+          <HistorialDetalleSolicitudTema historial={historialMock} />
+        </div>
+      </form>
+    </>
   );
 }
 

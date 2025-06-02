@@ -53,3 +53,4 @@ export const HistorialDetalleSolicitudTema: React.FC<
     </CardContent>
   </Card>
 );
+
