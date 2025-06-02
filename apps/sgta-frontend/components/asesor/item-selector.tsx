@@ -75,7 +75,9 @@ const ItemSelector: React.FC<ItemSelectorProps> = ({
                 key={item.id}
                 value={String(item[itemLabel as keyof Item])}
               >
-                {item[itemKey as keyof Item]}: {item[itemLabel as keyof Item]}
+                {item.hasOwnProperty("codigoPucp")
+                  ? `${item[itemKey as keyof Item]}: ${item[itemLabel as keyof Item]}`
+                  : item[itemLabel as keyof Item]}
               </SelectItem>
             ))}
           </SelectContent>
@@ -87,21 +89,20 @@ const ItemSelector: React.FC<ItemSelectorProps> = ({
 
       {/* Lista de elementos seleccionados */}
       <div className="flex flex-wrap gap-2 mt-2">
-        {itemsSeleccionados &&
-          itemsSeleccionados.map((item) => (
-            <div
-              key={item.id}
-              className="flex items-center bg-blue-500 text-white px-3 py-1 rounded-full"
+        {itemsSeleccionados?.map((item) => (
+          <div
+            key={item?.id}
+            className="flex items-center bg-blue-500 text-white px-3 py-1 rounded-full"
+          >
+            <span>{item[itemLabel as keyof Item]}</span>
+            <button
+              className="ml-2 text-white hover:text-gray-200"
+              onClick={() => onEliminarItem(item?.id)}
             >
-              <span>{item[itemLabel as keyof Item]}</span>
-              <button
-                className="ml-2 text-white hover:text-gray-200"
-                onClick={() => onEliminarItem(item.id)}
-              >
-                ✕
-              </button>
-            </div>
-          ))}
+              ✕
+            </button>
+          </div>
+        ))}
       </div>
     </div>
   );
