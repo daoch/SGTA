@@ -115,9 +115,9 @@ export function AdvisorReports() {
       }
     }
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -221,10 +221,7 @@ export function AdvisorReports() {
   const studentsWithDelay = students.filter(
     (student) => student.entregableEnvioEstado === "enviado_tarde"
   ).length;
-  const studentsAtRisk = students.filter(
-    (student) => student.entregableEnvioEstado === "no_enviado"
-  ).length;
-  
+
   // Contar estudiantes por etapa de carrera
   const studentsInPFC1 = students.filter(
     (student) => student.etapaFormativaNombre === "Proyecto de fin de carrera 1"
