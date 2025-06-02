@@ -206,7 +206,7 @@ public class ReportingServiceImpl implements IReportService {
                 .map(result -> new AdvisorPerformanceDto(
                         (String) result[0], // advisor_name
                         (String) result[1], // area_name
-                        ((Number) result[2]).doubleValue(), // performance_percentage
+                        Optional.ofNullable((Number) result[2]).map(r -> r.doubleValue()).orElse(0.0d),// performance_percentage
                         ((Number) result[3]).intValue() // total_students
                 ))
                 .collect(Collectors.toList());
