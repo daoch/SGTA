@@ -21,11 +21,13 @@ import {
   Tesista,
 } from "@/features/temas/types/inscripcion/entities";
 import { Tipo } from "@/features/temas/types/inscripcion/enums";
+import { buscarUsuarioPorToken } from "@/features/temas/types/propuestas/data";
 import {
   fetchTemasAPI,
   fetchUsuariosFindById,
   obtenerCarrerasPorUsuario,
 } from "@/features/temas/types/temas/data";
+import { Usuario } from "@/features/temas/types/temas/entidades";
 import axiosInstance from "@/lib/axios/axios-instance";
 import { Plus } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
@@ -52,7 +54,20 @@ const Page = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const usuarioId = 1;
+  const [usuarioLoggeado, setUsuarioLoggueado] = useState<Usuario>();
+
+  useEffect(() => {
+    const obtenerUsuario = async () => {
+      try {
+        const usuario = await buscarUsuarioPorToken();
+        setUsuarioLoggueado(usuario);
+      } catch (err: unknown) {
+        console.log(err);
+        setError("Error al traer al usuario loggeado.");
+      }
+    };
+    obtenerUsuario();
+  }, []);
 
   // Función para recargar los temas
   const fetchTemas = useCallback(async () => {
@@ -82,6 +97,7 @@ const Page = () => {
   }, []);
 
   useEffect(() => {
+    if (!usuarioLoggeado) return;
     const fetchData = async () => {
       try {
         const response = await axiosInstance.get("subAreaConocimiento/list");
@@ -90,7 +106,7 @@ const Page = () => {
         //setAsesorData(coasesoresData[0]); // TODO El asesor logeado debe traerse globalmente
 
         //llenar datos del asesor mediante su id y no por su carrera
-        const usuario = await fetchUsuariosFindById(usuarioId);
+        const usuario = await fetchUsuariosFindById(usuarioLoggeado.id);
         const coasesor: Coasesor = {
           id: usuario.id,
           tipoUsuario: usuario.tipoUsuario.nombre,
@@ -113,7 +129,7 @@ const Page = () => {
         setAsesorData(coasesor);
 
         //obtener la carrera
-        const carreras = await obtenerCarrerasPorUsuario(usuarioId);
+        const carreras = await obtenerCarrerasPorUsuario(usuarioLoggeado.id);
         setCarrera(carreras);
         console.log({ carreras });
         if (carreras) {
@@ -136,7 +152,7 @@ const Page = () => {
     };
 
     fetchData().then(() => fetchTemas());
-  }, [usuarioId, fetchTemas]);
+  }, [usuarioLoggeado, fetchTemas]);
 
   return (
     <div className="space-y-8 mt-4">
