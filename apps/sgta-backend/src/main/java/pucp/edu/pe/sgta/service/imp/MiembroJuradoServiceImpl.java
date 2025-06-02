@@ -43,6 +43,7 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
         private final ApplicationEventPublisher eventPublisher;
         private final CriterioExposicionRepository criterioExposicionRepository;
         private final RevisionCriterioExposicionRepository revisionCriterioExposicionRepository;
+        private final ControlExposicionUsuarioTema controlExposicionUsuarioTema;
 
         public MiembroJuradoServiceImpl(UsuarioRepository usuarioRepository,
                                         UsuarioXTemaRepository usuarioXTemaRepository,
@@ -53,7 +54,7 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                                         ExposicionXTemaRepository exposicionXTemaRepository,
                                         BloqueHorarioExposicionRepository bloqueHorarioExposicionRepository,
                                         ControlExposicionUsuarioTemaRepository controlExposicionUsuarioTemaRepository,
-                                        ApplicationEventPublisher eventPublisher, CriterioExposicionRepository criterioExposicionRepository, RevisionCriterioExposicionRepository revisionCriterioExposicionRepository) {
+                                        ApplicationEventPublisher eventPublisher, CriterioExposicionRepository criterioExposicionRepository, RevisionCriterioExposicionRepository revisionCriterioExposicionRepository, ControlExposicionUsuarioTema controlExposicionUsuarioTema) {
                 this.usuarioRepository = usuarioRepository;
                 this.usuarioXTemaRepository = usuarioXTemaRepository;
                 this.rolRepository = rolRepository;
@@ -66,6 +67,7 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                 this.eventPublisher = eventPublisher;
             this.criterioExposicionRepository = criterioExposicionRepository;
             this.revisionCriterioExposicionRepository = revisionCriterioExposicionRepository;
+            this.controlExposicionUsuarioTema = controlExposicionUsuarioTema;
         }
 
         @Override
@@ -854,6 +856,20 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                 String titulo = tema.getTitulo();
                 String descripcion = tema.getResumen();
 
+                UsuarioXTema usuarioXTema = usuarioXTemaRepository
+                        .findByUsuarioIdAndTemaIdAndRolId(exposicionCalificacionRequest.getJurado_id(), tema.getId(), 2)
+                        .orElseThrow(() -> new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "No se encontró una relación UsuarioXTema con los IDs proporcionados"
+                        ));
+
+                ControlExposicionUsuarioTema controlExposicion = controlExposicionUsuarioTemaRepository
+                        .findByExposicionXTema_IdAndUsuario_Id(exposicionXTema.getId(),usuarioXTema.getId())
+                        .orElseThrow(() -> new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "No se encontró controlExposicion con los IDs proporcionados"
+                        ));
+
                 List<UsuarioXTema> usuarioTemas = usuarioXTemaRepository
                         .findByTemaIdAndActivoTrue(tema.getId());
 
@@ -891,7 +907,7 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                         })
                         .collect(Collectors.toList());
 
-                String observacionesFinales = null;
+                String observacionesFinales = controlExposicion.getObservacionesFinalesExposicion();
 
                 ExposicionCalificacionDto dtoFinal = new ExposicionCalificacionDto();
                 dtoFinal.setId_exposicion(exposicion.getId());
