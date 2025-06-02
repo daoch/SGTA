@@ -103,8 +103,6 @@ const Page = () => {
         const response = await axiosInstance.get("subAreaConocimiento/list");
         setSubareasDisponibles(response.data);
 
-        //setAsesorData(coasesoresData[0]); // TODO El asesor logeado debe traerse globalmente
-
         //llenar datos del asesor mediante su id y no por su carrera
         const usuario = await fetchUsuariosFindById(usuarioLoggeado.id);
         const coasesor: Coasesor = {
