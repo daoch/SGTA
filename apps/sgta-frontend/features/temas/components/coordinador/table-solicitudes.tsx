@@ -28,18 +28,29 @@ export interface SolicitudesTableProps {
   readonly solicitudes: readonly SolicitudPendiente[];
   readonly filter?: EstadoSolicitud;
   readonly isLoading: boolean;
+  readonly searchQuery: string;
 }
 
 export function SolicitudesTable({
   solicitudes,
   filter,
   isLoading,
+  searchQuery,
 }: SolicitudesTableProps) {
-  // aplico filtro si viene por props
-  const solicitudesFiltradas =
-    filter && filter !== EstadoSolicitud.ANY
-      ? solicitudes.filter((s) => s.estado === filter)
-      : solicitudes;
+  // Filtrar por estado
+  let solicitudesFiltradas = filter
+    ? solicitudes.filter((s) => s.estado === filter)
+    : solicitudes;
+
+  // Filtrar por búsqueda
+  if (searchQuery) {
+    const query = searchQuery.toLowerCase();
+    solicitudesFiltradas = solicitudesFiltradas.filter(
+      (solicitud) =>
+        solicitud.tema.titulo.toLowerCase().includes(query) ||
+        solicitud.titulo.toLowerCase().includes(query),
+    );
+  }
 
   let tableBodyContent;
   if (isLoading) {
@@ -151,6 +162,7 @@ export function SolicitudesTable({
       </TableRow>
     ));
   }
+
   return (
     <div className="rounded-md border">
       <Table>

@@ -1,12 +1,23 @@
 // components/SolicitudesPendientes.tsx
 "use client";
 
-import React from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import CessationRequestPagination from "@/features/asesores/components/cessation-request/pagination-cessation-request";
+import { Search } from "lucide-react";
+import React, { useState } from "react";
+import { SolicitudesTable } from "../components/coordinador/table-solicitudes";
+import { filters, pageSolicitudes } from "../types/solicitudes/constants";
 import { SolicitudPendiente } from "../types/solicitudes/entities";
 import { EstadoSolicitud } from "../types/solicitudes/enums";
-import { SolicitudesTable } from "../components/coordinador/table-solicitudes";
 
 interface SolicitudesPendientesProps {
   readonly solicitudes: SolicitudPendiente[];
@@ -17,74 +28,94 @@ export default function SolicitudesPendientes({
   solicitudes,
   loading,
 }: SolicitudesPendientesProps) {
-  const [currentTab, setCurrentTab] = React.useState<EstadoSolicitud>(
-    EstadoSolicitud.ANY,
+  const [estadoSolicitud, setEstadoSolicitud] = React.useState<EstadoSolicitud>(
+    EstadoSolicitud.PENDIENTE,
   );
-
-  const titles: Record<EstadoSolicitud, string> = {
-    [EstadoSolicitud.ANY]: "Todas las solicitudes",
-    [EstadoSolicitud.PENDIENTE]: "Solicitudes Pendientes",
-    [EstadoSolicitud.ACEPTADA]: "Solicitudes Aprobadas",
-    [EstadoSolicitud.RECHAZADA]: "Solicitudes Rechazadas",
-    [EstadoSolicitud.OBSEVADA]: "Solicitudes Observadas",
-  };
-
-  const descriptions: Record<EstadoSolicitud, string> = {
-    [EstadoSolicitud.ANY]:
-      "Solicitudes de cambios con estados: Aprobado, Observado, Rechazado, etc.",
-    [EstadoSolicitud.PENDIENTE]:
-      "Solicitudes de cambios que requieren aprobación",
-    [EstadoSolicitud.ACEPTADA]: "Solicitudes de cambios que han sido aprobadas",
-    [EstadoSolicitud.RECHAZADA]:
-      "Solicitudes de cambios que han sido rechazadas",
-    [EstadoSolicitud.OBSEVADA]:
-      "Solicitudes de cambios que quedaron observadas",
-  };
+  const [searchQuery, setSearchQuery] = useState("");
+  const [cursoFilter, setCursoFilter] = useState("todos");
 
   return (
     <div className="space-y-8 mt-4">
       {/* Título general */}
       <div>
-        <h1 className="text-3xl font-bold text-[#042354]">Aprobaciones</h1>
-        <p className="text-muted-foreground">
-          Gestión de solicitudes de cambios en tesis
-        </p>
+        <h1 className="text-3xl font-bold text-[#042354]">
+          {pageSolicitudes.title}
+        </h1>
+        <p className="text-muted-foreground">{pageSolicitudes.description}</p>
+      </div>
+
+      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
+        {/* Searchbar */}
+        <div className="relative w-full md:flex-1">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder={filters.search.placeholder}
+            className="pl-8 w-full"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+
+        {/* Selector tipo de tema */}
+        <Select value={cursoFilter} onValueChange={setCursoFilter}>
+          <SelectTrigger className="w-[300px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.entries(filters.filterTipos).map(([key, filter]) => (
+              <SelectItem key={key} value={key}>
+                {filter.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Pestañas */}
       <Tabs
-        value={currentTab}
-        onValueChange={(value) => setCurrentTab(value as EstadoSolicitud)}
+        value={estadoSolicitud}
+        onValueChange={(value) => setEstadoSolicitud(value as EstadoSolicitud)}
       >
         <TabsList>
-          <TabsTrigger value={EstadoSolicitud.ANY}>Todos</TabsTrigger>
-          <TabsTrigger value={EstadoSolicitud.PENDIENTE}>
-            Pendientes
-          </TabsTrigger>
-          <TabsTrigger value={EstadoSolicitud.ACEPTADA}>Aprobadas</TabsTrigger>
-          <TabsTrigger value={EstadoSolicitud.OBSEVADA}>Observadas</TabsTrigger>
-          <TabsTrigger value={EstadoSolicitud.RECHAZADA}>
-            Rechazadas
-          </TabsTrigger>
+          {Object.entries(filters.temaEstados).map(([key, estado]) => (
+            <TabsTrigger key={key} value={key}>
+              {estado.label}
+            </TabsTrigger>
+          ))}
         </TabsList>
       </Tabs>
 
       {/* Card con tabla */}
       <Card>
+        {/* Header */}
         <CardHeader>
           <div className="space-y-1">
-            <h2 className="text-lg font-semibold">{titles[currentTab]}</h2>
+            <h2 className="text-lg font-semibold">
+              {filters.temaEstados[estadoSolicitud].title}
+            </h2>
             <p className="text-sm text-muted-foreground">
-              {descriptions[currentTab]}
+              {filters.temaEstados[estadoSolicitud].description}
             </p>
           </div>
         </CardHeader>
+
+        {/* Solicitudes */}
         <CardContent>
           <SolicitudesTable
             solicitudes={solicitudes}
-            filter={currentTab}
+            filter={estadoSolicitud}
             isLoading={loading}
+            searchQuery={searchQuery}
           />
+
+          {/* Pagination */}
+          {!loading && (
+            <CessationRequestPagination
+              currentPage={1}
+              totalPages={2}
+              onPageChange={() => {}}
+            />
+          )}
         </CardContent>
       </Card>
     </div>
