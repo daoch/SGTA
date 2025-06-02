@@ -1169,3 +1169,40 @@ BEGIN
     LEFT JOIN siguiente_entregable se ON true;
 END;
 $$ LANGUAGE plpgsql;
+
+
+--Funcion necesaria para listar los ciclos con sus etapas formativas asociadas -- crear ciclos
+CREATE OR REPLACE FUNCTION listarCiclosConEtapas()
+RETURNS TABLE(
+    ciclo_id integer,
+    semestre text,
+    anio integer,
+    fecha_inicio date,
+    fecha_fin date,
+    activo boolean,
+    fecha_creacion TIMESTAMP WITH TIME ZONE,
+    fecha_modificacion TIMESTAMP WITH TIME ZONE,
+    etapas_formativas text[], -- arreglo de nombres de etapas
+    cantidad_etapas integer   -- número total de etapas asociadas
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        c.ciclo_id,
+        c.semestre::TEXT,
+        c.anio,
+        c.fecha_inicio,
+        c.fecha_fin,
+        c.activo,
+        c.fecha_creacion,
+        c.fecha_modificacion,
+        ARRAY_AGG(ef.nombre ORDER BY ef.nombre) AS etapas_formativas,
+        COUNT(ef.etapa_formativa_id)::integer AS cantidad_etapas
+    FROM ciclo c
+    LEFT JOIN etapa_formativa_x_ciclo efc ON efc.ciclo_id = c.ciclo_id AND efc.activo = true
+    LEFT JOIN etapa_formativa ef ON ef.etapa_formativa_id = efc.etapa_formativa_id AND ef.activo = true
+    WHERE c.activo = true
+    GROUP BY c.ciclo_id, c.semestre, c.anio, c.fecha_inicio, c.fecha_fin, c.activo, c.fecha_creacion, c.fecha_modificacion
+    ORDER BY c.anio DESC, c.semestre DESC;
+END;
+$$ LANGUAGE plpgsql;
