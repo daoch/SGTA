@@ -1998,4 +1998,20 @@ public class TemaServiceImpl implements TemaService {
 		}
 	}
 
+	@Transactional
+	public void postularTemaLibre(Integer temaId, String tesistaId) {
+		try {
+			// Call the PostgreSQL function to handle the postulation
+			entityManager.createNativeQuery("SELECT postular_tesista_tema_libre(:temaId, :tesistaId)")
+					.setParameter("temaId", temaId)
+					.setParameter("tesistaId", tesistaId)
+					.getSingleResult();
+			
+			logger.info("Tesista " + tesistaId + " successfully applied to tema libre " + temaId);
+		} catch (Exception e) {
+			logger.severe("Error applying tesista " + tesistaId + " to tema libre " + temaId + ": " + e.getMessage());
+			throw new RuntimeException("No se pudo postular al tema libre", e);
+		}
+	}
+
 }
