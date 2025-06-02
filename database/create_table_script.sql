@@ -503,20 +503,16 @@ CREATE TABLE IF NOT EXISTS grupo_investigacion_proyecto (
     CONSTRAINT fk_gip_proyecto FOREIGN KEY (proyecto_id) REFERENCES proyecto (proyecto_id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS etapa_formativa
-(
-    etapa_formativa_id  SERIAL PRIMARY KEY,
-    nombre              TEXT                     NOT NULL,
-    creditaje_por_tema  NUMERIC(6, 2),
+CREATE TABLE IF NOT EXISTS etapa_formativa (
+    etapa_formativa_id SERIAL PRIMARY KEY,
+    nombre TEXT NOT NULL,
+    creditaje_por_tema NUMERIC(6, 2),
     duracion_exposicion INTERVAL,
-    activo              BOOLEAN                  NOT NULL DEFAULT TRUE,
-    fecha_creacion      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    carrera_id          INTEGER                  NOT NULL,
-
-    CONSTRAINT fk_area_conocimiento_carrera
-        FOREIGN KEY (carrera_id)
-            REFERENCES carrera (carrera_id)
+    activo BOOLEAN NOT NULL DEFAULT TRUE,
+    fecha_creacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    carrera_id INTEGER NOT NULL,
+    CONSTRAINT fk_area_conocimiento_carrera FOREIGN KEY (carrera_id) REFERENCES carrera (carrera_id)
 );
 
 -- 1) Tabla parametro_configuracion
