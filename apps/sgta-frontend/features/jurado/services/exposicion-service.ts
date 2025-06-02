@@ -163,9 +163,9 @@ export const getExposicionesEstudiantesByEstudianteId = async (
     //   `/exposicion/listarExposicionesPorUsuario/${bearerTokenId}`,
     // );
 
-    const response = await axiosInstance.get('/exposicion/listarExposicionesPorUsuario', {
+    const response = await axiosInstance.get("/exposicion/listarExposicionesPorUsuario", {
       headers: {
-        'Authorization': `Bearer ${bearerTokenId}`,
+        "Authorization": `Bearer ${bearerTokenId}`,
       },
     });
 
