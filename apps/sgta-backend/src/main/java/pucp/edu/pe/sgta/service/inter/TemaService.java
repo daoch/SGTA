@@ -118,4 +118,6 @@ public interface TemaService {
 	void crearSolicitudCambioDeResumen(String idUsuario,
 											String comentario,
 											Integer temaId);
+
+	void inscribirTemaPreinscrito(Integer temaId, String idUsuario);
 }

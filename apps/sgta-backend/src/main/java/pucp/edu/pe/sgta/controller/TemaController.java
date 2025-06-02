@@ -326,4 +326,16 @@ public class TemaController {
         return ResponseEntity.ok("Solicitud de cambio de título creada correctamente.");
     }
 
+	@PutMapping("/inscribirTemaPrenscrito/{temaId}")
+    public ResponseEntity<String> inscribirTemaPrenscrito(
+            @PathVariable Integer temaId,
+            HttpServletRequest request) {
+
+		String asesorId = jwtService.extractSubFromRequest(request);  
+
+        temaService.inscribirTemaPreinscrito(temaId, asesorId);
+
+        return ResponseEntity.ok("Inscripción de tema preinscrito exitoso.");
+    }
+
 }

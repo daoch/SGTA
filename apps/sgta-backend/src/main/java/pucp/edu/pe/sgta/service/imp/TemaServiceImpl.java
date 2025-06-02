@@ -317,12 +317,11 @@ public class TemaServiceImpl implements TemaService {
 		}
 	}
 
-	private void validacionesInscripcionTema(TemaDto dto) {
+	private void validacionesInscripcionTema(TemaDto dto, Integer idUsuarioCreador) {
 
 		validarDtoTemaNoNulo(dto); // validar que el DTO no sea nulo
 		validarExistenciaListaUsuarios(dto.getTesistas());
 		validarExistenciaListaUsuarios(dto.getCoasesores()); // validar que hay al menos un tesista
-		Integer idUsuarioCreador = dto.getCoasesores().get(0).getId();
 		validarUsuarioExiste(idUsuarioCreador);
 		validarTipoUsurio(idUsuarioCreador, TipoUsuarioEnum.profesor.name()); // validar que la inscripción la haga un
 																				// profesor
@@ -359,9 +358,10 @@ public class TemaServiceImpl implements TemaService {
 	@Override
 	public void createInscripcionTema(TemaDto dto, String idUsuario) {
 
-		validacionesInscripcionTema(dto);
+		
 		UsuarioDto usuarioDto = usuarioService.findByCognitoId(idUsuario);
 		Integer idUsuarioCreador = usuarioDto.getId();
+		validacionesInscripcionTema(dto, idUsuarioCreador);
 		dto.setId(null);
 		// Prepara y guarda el tema con estado INSCRITO
 		Tema tema = prepareNewTema(dto, EstadoTemaEnum.INSCRITO);
@@ -1648,7 +1648,10 @@ public class TemaServiceImpl implements TemaService {
 			Integer temaId,
 			String nuevoEstadoNombre,
 			String comentario) {
-		Tema tema = validarEstadoTema(temaId, EstadoTemaEnum.INSCRITO.name());
+		Tema tema = temaRepository.findById(temaId)
+				.orElseThrow(() -> new ResponseStatusException(
+						HttpStatus.NOT_FOUND,
+						"Tema con id " + temaId + " no encontrado"));
 		temaRepository.actualizarEstadoTema(temaId, nuevoEstadoNombre);
 		saveHistorialTemaChange(
 				tema,
@@ -1899,6 +1902,57 @@ public class TemaServiceImpl implements TemaService {
 			// excepción custom
 			return null;
 		}
+	}
+
+	private void validarRolAsignadoAtema(Integer usuarioId, Integer temaId, String rolNombre) {
+		boolean esAsesor = usuarioXTemaRepository
+			.verificarUsuarioRolEnTema(
+				usuarioId,
+				temaId,
+				rolNombre
+			);
+
+		if (!esAsesor) {
+			throw new ResponseStatusException(
+				HttpStatus.FORBIDDEN,
+				"El usuario con ID " + usuarioId + " no es " + rolNombre +" del tema con ID " + temaId
+			);
+		}
+	}
+
+	@Override
+	@Transactional
+	public void inscribirTemaPreinscrito(Integer temaId, String idUsuario){
+		// Validar que el usuario sea coordinador
+		UsuarioDto usuDto = usuarioService.findByCognitoId(idUsuario);
+
+		validarRolAsignadoAtema(usuDto.getId(), temaId, RolEnum.Asesor.name());
+		// Validar que el tema esté en estado PREINSCRITO
+		Tema tema = validarEstadoTema(temaId, EstadoTemaEnum.PREINSCRITO.name());
+
+		TemaDto dto = null;
+		try {
+			dto = buscarTemaPorId(temaId);
+		} catch (SQLException e) {
+			throw new RuntimeException("Error al buscar el tema por ID: " + temaId, e);
+		}
+
+		// Actualizar el estado del tema a INSCRITO
+		temaRepository.actualizarEstadoTema(temaId, EstadoTemaEnum.INSCRITO.name());
+
+		for (UsuarioDto u : dto.getTesistas()) {
+			System.out.println("Eliminando postulaciones de usuario: " + u.getId());
+			eliminarPostulacionesTesista(u.getId());
+			eliminarPropuestasTesista(u.getId());
+		}
+
+		// Guardar el historial del cambio de estado
+		saveHistorialTemaChange(
+				tema,
+				tema.getTitulo(),
+				tema.getResumen(),
+				"Inscripción de tema por Asesor");
+		crearSolicitudAprobacionTema(tema);
 	}
 
 }
