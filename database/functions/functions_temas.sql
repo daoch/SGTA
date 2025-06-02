@@ -2032,3 +2032,104 @@ BEGIN
     OFFSET p_offset;
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION postular_tesista_tema_libre(
+    p_tema_id     INTEGER,
+    p_tesista_id  TEXT
+)
+RETURNS VOID 
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_usuario_id      INTEGER;
+    v_tema_estado     TEXT;
+    v_rol_tesista_id  INTEGER;
+    v_existing_count  INTEGER;
+BEGIN
+    -- 1. Convertir Cognito ID a usuario_id interno
+    SELECT u.usuario_id
+    INTO   v_usuario_id
+    FROM   usuario u
+    WHERE  u.id_cognito = p_tesista_id
+      AND  u.activo = TRUE;
+
+    IF v_usuario_id IS NULL THEN
+        RAISE EXCEPTION 'Usuario no encontrado o inactivo con Cognito ID: %', p_tesista_id;
+    END IF;
+
+    -- 2. Validar que el tema exista, esté activo y en estado PROPUESTO_LIBRE
+    SELECT et.nombre
+    INTO   v_tema_estado
+    FROM   tema t
+    JOIN   estado_tema et 
+      ON   t.estado_tema_id = et.estado_tema_id
+    WHERE  t.tema_id = p_tema_id
+      AND  t.activo = TRUE;
+
+    IF v_tema_estado IS NULL THEN
+        RAISE EXCEPTION 'Tema no encontrado o inactivo con ID: %', p_tema_id;
+    END IF;
+
+    IF v_tema_estado != 'PROPUESTO_LIBRE' THEN
+        RAISE EXCEPTION 'El tema debe estar en estado PROPUESTO_LIBRE, pero está en estado: %', v_tema_estado;
+    END IF;
+
+    -- 3. Obtener rol_id correspondiente a "Tesista"
+    SELECT r.rol_id
+    INTO   v_rol_tesista_id
+    FROM   rol r
+    WHERE  r.nombre = 'Tesista'
+      AND  r.activo = TRUE
+    LIMIT  1;
+
+    IF v_rol_tesista_id IS NULL THEN
+        RAISE EXCEPTION 'Rol "Tesista" no encontrado o inactivo';
+    END IF;
+
+    -- 4. Verificar si el tesista ya está postulado a este tema
+    SELECT COUNT(*) 
+    INTO   v_existing_count
+    FROM   usuario_tema ut
+    WHERE  ut.tema_id   = p_tema_id
+      AND  ut.usuario_id = v_usuario_id
+      AND  ut.rol_id     = v_rol_tesista_id
+      AND  ut.activo     = TRUE;
+
+    IF v_existing_count > 0 THEN
+        RAISE EXCEPTION 'El tesista ya está postulado a este tema';
+    END IF;
+
+    -- 5. Verificar si el tesista ya tiene un tema asignado (asignado = TRUE)
+    SELECT COUNT(*)
+    INTO   v_existing_count
+    FROM   usuario_tema ut
+    JOIN   rol r 
+      ON   ut.rol_id = r.rol_id
+    WHERE  ut.usuario_id = v_usuario_id
+      AND  r.nombre = 'Tesista'
+      AND  ut.asignado = TRUE
+      AND  ut.activo   = TRUE;
+
+    IF v_existing_count > 0 THEN
+        RAISE EXCEPTION 'El tesista ya tiene un tema asignado';
+    END IF;
+
+    -- 6. Insertar la postulación en usuario_tema (activo y fechas por default)
+    INSERT INTO usuario_tema (
+        tema_id,
+        usuario_id,
+        rol_id,
+        asignado,
+        creador,
+        rechazado
+    ) VALUES (
+        p_tema_id,
+        v_usuario_id,
+        v_rol_tesista_id,
+        FALSE,  -- asignado = FALSE (pendiente)
+        FALSE,  -- creador = FALSE
+        FALSE   -- rechazado = FALSE
+    );
+
+END;
+$$;

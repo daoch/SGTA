@@ -119,4 +119,6 @@ public interface TemaService {
 											String comentario,
 											Integer temaId);
 	List<TemaDto> listarTemasLibres(String titulo, Integer limit, Integer offset, String usuarioId);
+
+	void postularTemaLibre(Integer temaId, String tesistaId);
 }
