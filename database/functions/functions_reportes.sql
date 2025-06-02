@@ -568,24 +568,31 @@ BEGIN
 END;
 $BODY$;
 -------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION listar_tesistas_por_asesor(p_asesor_id INT)
+CREATE OR REPLACE FUNCTION listar_tesistas_por_asesor(p_asesor_id integer)
     RETURNS TABLE(
-                     tema_id            INT,
-                     tesista_id         INT,
-                     nombres            VARCHAR(100),
-                     primer_apellido    VARCHAR(100),
-                     segundo_apellido   VARCHAR(100),
-                     correo_electronico VARCHAR(255),
-                     -- Nuevos campos para información del entregable
-                     entregable_actual_id INT,
-                     entregable_actual_nombre VARCHAR(150),
-                     entregable_actual_descripcion TEXT,
-                     entregable_actual_fecha_inicio TIMESTAMP WITH TIME ZONE,
-                     entregable_actual_fecha_fin TIMESTAMP WITH TIME ZONE,
-                     entregable_actual_estado VARCHAR,
-                     entregable_envio_estado VARCHAR,
-                     entregable_envio_fecha DATE
-                 ) AS $$
+        tema_id integer,
+        tesista_id integer,
+        nombres character varying,
+        primer_apellido character varying,
+        segundo_apellido character varying,
+        correo_electronico character varying,
+        -- NUEVAS COLUMNAS AGREGADAS
+        titulo_tema character varying,
+        etapa_formativa_nombre text,
+        carrera character varying,
+        -- COLUMNAS EXISTENTES
+        entregable_actual_id integer,
+        entregable_actual_nombre character varying,
+        entregable_actual_descripcion text,
+        entregable_actual_fecha_inicio timestamp with time zone,
+        entregable_actual_fecha_fin timestamp with time zone,
+        entregable_actual_estado character varying,
+        entregable_envio_estado character varying,
+        entregable_envio_fecha timestamp with time zone
+    )
+    LANGUAGE plpgsql
+AS
+$$
 DECLARE
     v_current_date TIMESTAMP WITH TIME ZONE := NOW();
 BEGIN
@@ -598,6 +605,10 @@ BEGIN
             u.primer_apellido,
             u.segundo_apellido,
             u.correo_electronico,
+            -- NUEVAS COLUMNAS
+            t.titulo AS titulo_tema,
+            ef.nombre AS etapa_formativa_nombre,
+            COALESCE(car.nombre, 'Sin carrera') AS carrera,
             -- Información del entregable actual
             e.entregable_id,
             e.nombre,
@@ -610,6 +621,21 @@ BEGIN
         FROM usuario_tema ut
         JOIN rol r1 ON ut.rol_id = r1.rol_id AND r1.nombre = 'Tesista'
         JOIN usuario u ON u.usuario_id = ut.usuario_id
+        -- JOIN para obtener datos del tema
+        JOIN tema t ON t.tema_id = ut.tema_id
+        -- JOIN para obtener la carrera del tesista
+        LEFT JOIN usuario_carrera uc ON uc.usuario_id = u.usuario_id AND uc.activo = TRUE
+        LEFT JOIN carrera car ON car.carrera_id = uc.carrera_id
+        -- JOIN para obtener la etapa formativa
+        LEFT JOIN etapa_formativa_x_ciclo efc ON efc.etapa_formativa_id = (
+            SELECT ef2.etapa_formativa_id
+            FROM etapa_formativa ef2
+            WHERE ef2.carrera_id = uc.carrera_id
+            AND ef2.activo = TRUE
+            ORDER BY ef2.fecha_creacion DESC
+            LIMIT 1
+        ) AND efc.activo = TRUE
+        LEFT JOIN etapa_formativa ef ON ef.etapa_formativa_id = efc.etapa_formativa_id
         -- Obtener el tema de los tesistas asesorados
         JOIN (
             SELECT ut2.tema_id
@@ -644,6 +670,10 @@ BEGIN
             u.primer_apellido,
             u.segundo_apellido,
             u.correo_electronico,
+            -- NUEVAS COLUMNAS
+            t.titulo AS titulo_tema,
+            ef.nombre AS etapa_formativa_nombre,
+            COALESCE(car.nombre, 'Sin carrera') AS carrera,
             -- Información del próximo entregable
             e_next.entregable_id,
             e_next.nombre,
@@ -654,8 +684,23 @@ BEGIN
             et_next.estado::VARCHAR,
             et_next.fecha_envio
         FROM usuario_tema ut
-                 JOIN rol r1 ON ut.rol_id = r1.rol_id AND r1.nombre = 'Tesista'
-                 JOIN usuario u ON u.usuario_id = ut.usuario_id
+        JOIN rol r1 ON ut.rol_id = r1.rol_id AND r1.nombre = 'Tesista'
+        JOIN usuario u ON u.usuario_id = ut.usuario_id
+        -- JOIN para obtener datos del tema
+        JOIN tema t ON t.tema_id = ut.tema_id
+        -- JOIN para obtener la carrera del tesista
+        LEFT JOIN usuario_carrera uc ON uc.usuario_id = u.usuario_id AND uc.activo = TRUE
+        LEFT JOIN carrera car ON car.carrera_id = uc.carrera_id
+        -- JOIN para obtener la etapa formativa
+        LEFT JOIN etapa_formativa_x_ciclo efc ON efc.etapa_formativa_id = (
+            SELECT ef2.etapa_formativa_id
+            FROM etapa_formativa ef2
+            WHERE ef2.carrera_id = uc.carrera_id
+            AND ef2.activo = TRUE
+            ORDER BY ef2.fecha_creacion DESC
+            LIMIT 1
+        ) AND efc.activo = TRUE
+        LEFT JOIN etapa_formativa ef ON ef.etapa_formativa_id = efc.etapa_formativa_id
         -- Obtener el tema de los tesistas asesorados
         JOIN (
             SELECT ut2.tema_id
@@ -663,7 +708,7 @@ BEGIN
             JOIN rol r2 ON ut2.rol_id = r2.rol_id AND (r2.nombre = 'Asesor' OR r2.nombre = 'Coasesor')
             WHERE ut2.usuario_id = p_asesor_id AND ut2.activo = TRUE
         ) temas_asesor ON temas_asesor.tema_id = ut.tema_id
-        -- Verifica que no haya entregable actual (usando LATERAL para acceder a ut.tema_id)
+        -- Verifica que no haya entregable actual
         LEFT JOIN LATERAL (
             SELECT e.entregable_id
             FROM entregable e
@@ -692,7 +737,7 @@ BEGIN
         WHERE ut.activo = TRUE
         AND current_entregable.entregable_id IS NULL;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 ---------------------------------------------------------------------------------------------------------------------
 
@@ -738,56 +783,52 @@ $$ LANGUAGE plpgsql;
 
 ---------------------------------------------------------------------------------------------------------------------
 
-CREATE OR REPLACE FUNCTION obtener_detalle_tesista(p_tesista_id INT)
-RETURNS TABLE (
-    -- Datos del tesista
-    tesista_id INT,
-    nombres VARCHAR,
-    primer_apellido VARCHAR,
-    segundo_apellido VARCHAR,
-    correo_electronico VARCHAR,
-    nivel_estudios VARCHAR,
-    codigo_pucp VARCHAR,
-    -- Datos del tema/proyecto
-    tema_id INT,
-    titulo_tema VARCHAR,
+CREATE OR REPLACE FUNCTION obtener_detalle_tesista(p_tesista_id INTEGER)
+RETURNS TABLE(
+    tesista_id INTEGER,
+    nombres CHARACTER VARYING,
+    primer_apellido CHARACTER VARYING,
+    segundo_apellido CHARACTER VARYING,
+    correo_electronico CHARACTER VARYING,
+    nivel_estudios CHARACTER VARYING,
+    codigo_pucp CHARACTER VARYING,
+    carrera CHARACTER VARYING, -- NUEVO CAMPO AGREGADO
+    tema_id INTEGER,
+    titulo_tema CHARACTER VARYING,
     resumen_tema TEXT,
     metodologia TEXT,
     objetivos TEXT,
-    -- Datos del área de conocimiento
-    area_conocimiento VARCHAR,
-    sub_area_conocimiento VARCHAR,
-    -- Datos del asesor
+    area_conocimiento CHARACTER VARYING,
+    sub_area_conocimiento CHARACTER VARYING,
     asesor_nombre TEXT,
     asesor_correo TEXT,
-    -- Datos del coasesor
     coasesor_nombre TEXT,
     coasesor_correo TEXT,
-    -- Datos del ciclo académico
-    ciclo_id INT,
-    ciclo_nombre TEXT,
+    ciclo_id INTEGER,
+    ciclo_nombre CHARACTER VARYING,
     fecha_inicio_ciclo DATE,
     fecha_fin_ciclo DATE,
-    -- Datos de la etapa formativa
-    etapa_formativa_id INT,
+    etapa_formativa_id INTEGER,
     etapa_formativa_nombre TEXT,
-    -- Fase actual
-    fase_actual VARCHAR,
-    -- Información del entregable actual (nuevos campos)
-    entregable_id INT,
-    entregable_nombre VARCHAR,
-    entregable_actividad_estado VARCHAR,
-    entregable_envio_estado VARCHAR,
+    fase_actual CHARACTER VARYING,
+    entregable_id INTEGER,
+    entregable_nombre CHARACTER VARYING,
+    entregable_actividad_estado CHARACTER VARYING,
+    entregable_envio_estado CHARACTER VARYING,
     entregable_fecha_inicio TIMESTAMP WITH TIME ZONE,
-    entregable_fecha_fin TIMESTAMP WITH TIME ZONE
+    entregable_fecha_fin TIMESTAMP WITH TIME ZONE,
+    siguiente_entregable_nombre CHARACTER VARYING,
+    siguiente_entregable_fecha_fin TIMESTAMP WITH TIME ZONE
 ) AS $$
 DECLARE
     v_current_date TIMESTAMP WITH TIME ZONE := NOW();
     v_tema_id INT;
+    v_ciclo_id INT;
+    v_etapa_formativa_id INT;
+    v_efc_id INT;
     v_current_entregable_id INT;
     v_current_entregable_nombre VARCHAR;
     v_fecha_fin_entregable TIMESTAMP WITH TIME ZONE;
-    v_ciclo_actual_id INT;
     v_fase_actual VARCHAR;
     v_next_entregable_nombre VARCHAR;
     v_entregable_actividad_estado VARCHAR;
@@ -808,124 +849,164 @@ BEGIN
         RAISE EXCEPTION 'El usuario con ID % no es tesista de ningún tema activo', p_tesista_id;
     END IF;
 
-    -- Obtenemos el siguiente entregable no enviado
-    SELECT e.nombre, e.fecha_fin
-    INTO v_siguiente_entregable_nombre, v_siguiente_entregable_fecha_fin
-    FROM entregable e
-    JOIN entregable_x_tema et ON et.entregable_id = e.entregable_id
-    WHERE et.tema_id = v_tema_id
-    AND et.estado != 'enviado_a_tiempo'
-    AND e.fecha_fin > NOW()
-    AND e.activo = TRUE
-    AND et.activo = TRUE
-    ORDER BY e.fecha_fin ASC
-    LIMIT 1;
-
-    -- Obtenemos el ciclo actual del tesista
-    SELECT efc.ciclo_id INTO v_ciclo_actual_id
+    -- Obtenemos el ciclo y etapa formativa del tesista usando la relación correcta
+    SELECT
+        efc.ciclo_id,
+        efc.etapa_formativa_id,
+        efc.etapa_formativa_x_ciclo_id
+    INTO
+        v_ciclo_id,
+        v_etapa_formativa_id,
+        v_efc_id
     FROM etapa_formativa_x_ciclo efc
-    JOIN exposicion e ON e.etapa_formativa_x_ciclo_id = efc.etapa_formativa_x_ciclo_id
-    JOIN exposicion_x_tema ext ON ext.exposicion_id = e.exposicion_id
-    WHERE ext.tema_id = v_tema_id
+    JOIN etapa_formativa ef ON ef.etapa_formativa_id = efc.etapa_formativa_id
+    JOIN usuario_carrera uc ON uc.carrera_id = ef.carrera_id
+    WHERE uc.usuario_id = p_tesista_id
+      AND uc.activo = TRUE
       AND efc.activo = TRUE
-      AND e.activo = TRUE
-      AND ext.activo = TRUE
+      AND ef.activo = TRUE
     ORDER BY efc.fecha_creacion DESC
     LIMIT 1;
 
-    -- Determinamos la fase actual basada en el cronograma de entregables
-    SELECT
-        e.entregable_id,
-        e.nombre,
-        e.fecha_fin,
-        e.estado::VARCHAR,
-        et.estado::VARCHAR,
-        e.fecha_inicio,
-        e.fecha_fin
-    INTO
-        v_current_entregable_id,
-        v_current_entregable_nombre,
-        v_fecha_fin_entregable,
-        v_entregable_actividad_estado,
-        v_entregable_envio_estado,
-        v_entregable_fecha_inicio,
-        v_entregable_fecha_fin
-    FROM entregable e
-    JOIN entregable_x_tema et ON et.entregable_id = e.entregable_id
-    JOIN etapa_formativa_x_ciclo efc ON efc.etapa_formativa_x_ciclo_id = e.etapa_formativa_x_ciclo_id
-    WHERE et.tema_id = v_tema_id
-      AND e.fecha_inicio <= v_current_date
-      AND e.fecha_fin >= v_current_date
-      AND e.activo = TRUE
-      AND et.activo = TRUE
-      AND efc.activo = TRUE
-    ORDER BY e.fecha_fin ASC
-    LIMIT 1;
-
-    -- Determinamos la fase actual
-    IF v_current_entregable_id IS NOT NULL THEN
-        v_fase_actual := 'ENTREGABLE: ' || v_current_entregable_nombre;
-    ELSE
-        -- Verificar si está fuera del cronograma (después del último entregable)
+    -- Si no encuentra por carrera, buscar por tema en etapa_formativa_x_ciclo_x_tema
+    IF v_efc_id IS NULL THEN
         SELECT
-            e.entregable_id,
-            e.nombre,
-            e.fecha_fin,
-            e.estado::VARCHAR,
-            et.estado::VARCHAR,
-            e.fecha_inicio,
-            e.fecha_fin
+            efc.ciclo_id,
+            efc.etapa_formativa_id,
+            efc.etapa_formativa_x_ciclo_id
         INTO
-            v_current_entregable_id,
-            v_current_entregable_nombre,
-            v_fecha_fin_entregable,
-            v_entregable_actividad_estado,
-            v_entregable_envio_estado,
-            v_entregable_fecha_inicio,
-            v_entregable_fecha_fin
-        FROM entregable e
-        JOIN entregable_x_tema et ON et.entregable_id = e.entregable_id
-        JOIN etapa_formativa_x_ciclo efc ON efc.etapa_formativa_x_ciclo_id = e.etapa_formativa_x_ciclo_id
-        WHERE et.tema_id = v_tema_id
-          AND e.activo = TRUE
-          AND et.activo = TRUE
+            v_ciclo_id,
+            v_etapa_formativa_id,
+            v_efc_id
+        FROM etapa_formativa_x_ciclo efc
+        JOIN etapa_formativa_x_ciclo_x_tema efcxt ON efcxt.etapa_formativa_x_ciclo_id = efc.etapa_formativa_x_ciclo_id
+        WHERE efcxt.tema_id = v_tema_id
           AND efc.activo = TRUE
-        ORDER BY e.fecha_fin DESC
+          AND efcxt.activo = TRUE
+        ORDER BY efc.fecha_creacion DESC
         LIMIT 1;
+    END IF;
 
-        IF v_current_entregable_id IS NOT NULL AND v_fecha_fin_entregable < v_current_date THEN
-            v_fase_actual := 'FINALIZADO - FUERA DE CRONOGRAMA';
-        ELSE
-            -- Buscamos el próximo entregable programado
+    -- NUEVA VALIDACIÓN: Si no hay ciclo asociado (v_ciclo_id es NULL), establecer estados en "EN PAUSA"
+    IF v_ciclo_id IS NULL THEN
+        v_entregable_actividad_estado := 'EN PAUSA';
+        v_entregable_envio_estado := 'EN PAUSA';
+        v_fase_actual := 'EN PAUSA - Sin ciclo activo';
+    ELSE
+        -- Obtenemos el siguiente entregable no enviado
+        IF v_efc_id IS NOT NULL THEN
+            SELECT e.nombre, e.fecha_fin
+            INTO v_siguiente_entregable_nombre, v_siguiente_entregable_fecha_fin
+            FROM entregable e
+            JOIN entregable_x_tema et ON et.entregable_id = e.entregable_id
+            WHERE et.tema_id = v_tema_id
+              AND e.etapa_formativa_x_ciclo_id = v_efc_id
+              AND et.estado != 'enviado_a_tiempo'
+              AND e.fecha_fin > NOW()
+              AND e.activo = TRUE
+              AND et.activo = TRUE
+            ORDER BY e.fecha_fin ASC
+            LIMIT 1;
+        END IF;
+
+        -- Determinamos la fase actual basada en el cronograma de entregables
+        IF v_efc_id IS NOT NULL THEN
             SELECT
-                e.nombre,
                 e.entregable_id,
-                e.estado::VARCHAR,
-                et.estado::VARCHAR,
+                e.nombre,
+                e.fecha_fin,
+                COALESCE(e.estado::VARCHAR, 'sin_estado'),
+                COALESCE(et.estado::VARCHAR, 'sin_estado'),
                 e.fecha_inicio,
                 e.fecha_fin
             INTO
-                v_next_entregable_nombre,
                 v_current_entregable_id,
+                v_current_entregable_nombre,
+                v_fecha_fin_entregable,
                 v_entregable_actividad_estado,
                 v_entregable_envio_estado,
                 v_entregable_fecha_inicio,
                 v_entregable_fecha_fin
             FROM entregable e
             JOIN entregable_x_tema et ON et.entregable_id = e.entregable_id
-            JOIN etapa_formativa_x_ciclo efc ON efc.etapa_formativa_x_ciclo_id = e.etapa_formativa_x_ciclo_id
             WHERE et.tema_id = v_tema_id
-              AND e.fecha_inicio > v_current_date
+              AND e.etapa_formativa_x_ciclo_id = v_efc_id
+              AND e.fecha_inicio <= v_current_date
+              AND e.fecha_fin >= v_current_date
               AND e.activo = TRUE
               AND et.activo = TRUE
-              AND efc.activo = TRUE
-            ORDER BY e.fecha_inicio ASC
+            ORDER BY e.fecha_fin ASC
             LIMIT 1;
+        END IF;
 
-            IF v_next_entregable_nombre IS NOT NULL THEN
-                v_fase_actual := v_next_entregable_nombre;
+        -- Determinamos la fase actual
+        IF v_current_entregable_id IS NOT NULL THEN
+            v_fase_actual := 'ENTREGABLE: ' || v_current_entregable_nombre;
+        ELSE
+            -- Verificar si está fuera del cronograma (después del último entregable)
+            IF v_efc_id IS NOT NULL THEN
+                SELECT
+                    e.entregable_id,
+                    e.nombre,
+                    e.fecha_fin,
+                    COALESCE(e.estado::VARCHAR, 'sin_estado'),
+                    COALESCE(et.estado::VARCHAR, 'sin_estado'),
+                    e.fecha_inicio,
+                    e.fecha_fin
+                INTO
+                    v_current_entregable_id,
+                    v_current_entregable_nombre,
+                    v_fecha_fin_entregable,
+                    v_entregable_actividad_estado,
+                    v_entregable_envio_estado,
+                    v_entregable_fecha_inicio,
+                    v_entregable_fecha_fin
+                FROM entregable e
+                JOIN entregable_x_tema et ON et.entregable_id = e.entregable_id
+                WHERE et.tema_id = v_tema_id
+                  AND e.etapa_formativa_x_ciclo_id = v_efc_id
+                  AND e.activo = TRUE
+                  AND et.activo = TRUE
+                ORDER BY e.fecha_fin DESC
+                LIMIT 1;
+            END IF;
+
+            IF v_current_entregable_id IS NOT NULL AND v_fecha_fin_entregable < v_current_date THEN
+                v_fase_actual := 'FINALIZADO - FUERA DE CRONOGRAMA';
             ELSE
-                v_fase_actual := 'SIN ENTREGABLES PROGRAMADOS';
+                -- Buscamos el próximo entregable programado
+                IF v_efc_id IS NOT NULL THEN
+                    SELECT
+                        e.nombre,
+                        e.entregable_id,
+                        COALESCE(e.estado::VARCHAR, 'sin_estado'),
+                        COALESCE(et.estado::VARCHAR, 'sin_estado'),
+                        e.fecha_inicio,
+                        e.fecha_fin
+                    INTO
+                        v_next_entregable_nombre,
+                        v_current_entregable_id,
+                        v_entregable_actividad_estado,
+                        v_entregable_envio_estado,
+                        v_entregable_fecha_inicio,
+                        v_entregable_fecha_fin
+                    FROM entregable e
+                    JOIN entregable_x_tema et ON et.entregable_id = e.entregable_id
+                    WHERE et.tema_id = v_tema_id
+                      AND e.etapa_formativa_x_ciclo_id = v_efc_id
+                      AND e.fecha_inicio > v_current_date
+                      AND e.activo = TRUE
+                      AND et.activo = TRUE
+                    ORDER BY e.fecha_inicio ASC
+                    LIMIT 1;
+                END IF;
+
+                IF v_next_entregable_nombre IS NOT NULL THEN
+                    v_fase_actual := 'PRÓXIMO: ' || v_next_entregable_nombre;
+                    v_current_entregable_nombre := v_next_entregable_nombre;
+                ELSE
+                    v_fase_actual := 'SIN ENTREGABLES PROGRAMADOS';
+                END IF;
             END IF;
         END IF;
     END IF;
@@ -941,6 +1022,8 @@ BEGIN
         u.correo_electronico,
         u.nivel_estudios,
         u.codigo_pucp,
+        -- NUEVO CAMPO: Carrera del usuario
+        COALESCE(car.nombre::CHARACTER VARYING, 'Sin carrera'::CHARACTER VARYING) AS carrera,
         -- Datos del tema/proyecto
         t.tema_id,
         t.titulo AS titulo_tema,
@@ -948,8 +1031,8 @@ BEGIN
         t.metodologia,
         t.objetivos,
         -- Datos del área de conocimiento
-        ac.nombre AS area_conocimiento,
-        sac.nombre AS sub_area_conocimiento,
+        COALESCE(ac.nombre::CHARACTER VARYING, 'Sin área'::CHARACTER VARYING) AS area_conocimiento,
+        COALESCE(sac.nombre::CHARACTER VARYING, 'Sin subárea'::CHARACTER VARYING) AS sub_area_conocimiento,
         -- Datos del asesor (solo rol "Asesor")
         (SELECT string_agg(DISTINCT CONCAT(ua_asesor.nombres, ' ', ua_asesor.primer_apellido, ' ', COALESCE(ua_asesor.segundo_apellido, '')), ', ')
          FROM usuario_tema ut_asesor
@@ -985,63 +1068,50 @@ BEGIN
            AND ut_coasesor.usuario_id != p_tesista_id) AS coasesor_correo,
 
         -- Datos del ciclo académico
-        c.ciclo_id,
-        CONCAT(c.anio, '-', c.semestre) AS ciclo_nombre,
+        v_ciclo_id AS ciclo_id,
+        COALESCE(c.nombre::CHARACTER VARYING, 'Sin ciclo'::CHARACTER VARYING) AS ciclo_nombre,
         c.fecha_inicio AS fecha_inicio_ciclo,
         c.fecha_fin AS fecha_fin_ciclo,
         -- Datos de la etapa formativa
-        ef.etapa_formativa_id,
-        ef.nombre AS etapa_formativa_nombre,
+        v_etapa_formativa_id AS etapa_formativa_id,
+        COALESCE(ef.nombre, 'Sin etapa formativa') AS etapa_formativa_nombre,
         -- Fase actual
-        v_fase_actual AS fase_actual,
-        -- Información del entregable actual (nuevos campos)
+        COALESCE(v_fase_actual::CHARACTER VARYING, 'Sin fase definida'::CHARACTER VARYING) AS fase_actual,
+        -- Información del entregable actual
         v_current_entregable_id AS entregable_id,
-        v_current_entregable_nombre AS entregable_nombre,
-        v_entregable_actividad_estado AS entregable_actividad_estado,
-        v_entregable_envio_estado AS entregable_envio_estado,
+        COALESCE(v_current_entregable_nombre::CHARACTER VARYING, 'Sin entregable'::CHARACTER VARYING) AS entregable_nombre,
+        -- APLICAR VALIDACIÓN PARA ESTADOS EN PAUSA
+        CASE
+            WHEN v_ciclo_id IS NULL THEN 'EN PAUSA'::CHARACTER VARYING
+            ELSE COALESCE(v_entregable_actividad_estado::CHARACTER VARYING, 'Sin estado'::CHARACTER VARYING)
+        END AS entregable_actividad_estado,
+        CASE
+            WHEN v_ciclo_id IS NULL THEN 'EN PAUSA'::CHARACTER VARYING
+            ELSE COALESCE(v_entregable_envio_estado::CHARACTER VARYING, 'Sin estado'::CHARACTER VARYING)
+        END AS entregable_envio_estado,
         v_entregable_fecha_inicio AS entregable_fecha_inicio,
         v_entregable_fecha_fin AS entregable_fecha_fin,
         -- Información del siguiente entregable no enviado
-        v_siguiente_entregable_nombre AS siguiente_entregable_nombre,
+        COALESCE(v_siguiente_entregable_nombre::CHARACTER VARYING, 'Sin siguiente entregable'::CHARACTER VARYING) AS siguiente_entregable_nombre,
         v_siguiente_entregable_fecha_fin AS siguiente_entregable_fecha_fin
+
     FROM usuario u
     JOIN usuario_tema ut ON ut.usuario_id = u.usuario_id AND ut.activo = TRUE
     JOIN rol r_tesista ON r_tesista.rol_id = ut.rol_id AND r_tesista.nombre = 'Tesista'
     JOIN tema t ON t.tema_id = ut.tema_id AND t.activo = TRUE
+    -- Unión con carrera del usuario
+    LEFT JOIN usuario_carrera uc ON uc.usuario_id = u.usuario_id AND uc.activo = TRUE
+    LEFT JOIN carrera car ON car.carrera_id = uc.carrera_id AND car.activo = TRUE
     -- Unión con áreas de conocimiento
     LEFT JOIN sub_area_conocimiento_tema sact ON sact.tema_id = t.tema_id AND sact.activo = TRUE
     LEFT JOIN sub_area_conocimiento sac ON sac.sub_area_conocimiento_id = sact.sub_area_conocimiento_id AND sac.activo = TRUE
     LEFT JOIN area_conocimiento ac ON ac.area_conocimiento_id = sac.area_conocimiento_id AND ac.activo = TRUE
-    -- Unión con ciclo y etapa formativa
-    LEFT JOIN exposicion_x_tema ext ON ext.tema_id = t.tema_id AND ext.activo = TRUE
-    LEFT JOIN exposicion e ON e.exposicion_id = ext.exposicion_id AND e.activo = TRUE
-    LEFT JOIN etapa_formativa_x_ciclo efc ON efc.etapa_formativa_x_ciclo_id = e.etapa_formativa_x_ciclo_id AND efc.activo = TRUE
-    LEFT JOIN ciclo c ON c.ciclo_id = efc.ciclo_id AND c.activo = TRUE
-    LEFT JOIN etapa_formativa ef ON ef.etapa_formativa_id = efc.etapa_formativa_id AND ef.activo = TRUE
-    WHERE u.usuario_id = p_tesista_id
-      AND t.tema_id = v_tema_id
-    GROUP BY
-        u.usuario_id,
-        u.nombres,
-        u.primer_apellido,
-        u.segundo_apellido,
-        u.correo_electronico,
-        u.nivel_estudios,
-        u.codigo_pucp,
-        t.tema_id,
-        t.titulo,
-        t.resumen,
-        t.metodologia,
-        t.objetivos,
-        ac.nombre,
-        sac.nombre,
-        c.ciclo_id,
-        c.anio,
-        c.semestre,
-        c.fecha_inicio,
-        c.fecha_fin,
-        ef.etapa_formativa_id,
-        ef.nombre;
+    -- Unión con ciclo y etapa formativa usando las variables obtenidas
+    LEFT JOIN ciclo c ON c.ciclo_id = v_ciclo_id AND c.activo = TRUE
+    LEFT JOIN etapa_formativa ef ON ef.etapa_formativa_id = v_etapa_formativa_id AND ef.activo = TRUE
+
+    WHERE u.usuario_id = p_tesista_id AND u.activo = TRUE;
+
 END;
 $$ LANGUAGE plpgsql;
 

@@ -12,8 +12,8 @@ import pucp.edu.pe.sgta.model.Usuario;
 @Repository
 public interface TesistasPorAsesorRepository extends JpaRepository<Usuario, Integer> {
     @Query(value = "SELECT t.tema_id, t.tesista_id, t.nombres, t.primer_apellido, t.segundo_apellido, " +
-           "t.correo_electronico, t.entregable_actual_id, t.entregable_actual_nombre, " +
-           "t.entregable_actual_descripcion, " +
+           "t.correo_electronico, t.titulo_tema, t.etapa_formativa_nombre, t.carrera, " +
+           "t.entregable_actual_id, t.entregable_actual_nombre, t.entregable_actual_descripcion, " +
            "CAST(t.entregable_actual_fecha_inicio AS timestamp), " +
            "CAST(t.entregable_actual_fecha_fin AS timestamp), " +
            "t.entregable_actual_estado, t.entregable_envio_estado, " +
