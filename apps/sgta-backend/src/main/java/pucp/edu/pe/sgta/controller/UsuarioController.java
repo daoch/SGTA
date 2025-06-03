@@ -2,11 +2,17 @@ package pucp.edu.pe.sgta.controller;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import org.springframework.web.server.ResponseStatusException;
 import pucp.edu.pe.sgta.dto.asesores.FiltrosDirectorioAsesores;
 import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
 import pucp.edu.pe.sgta.dto.asesores.UsuarioConRolDto;
@@ -14,6 +20,7 @@ import pucp.edu.pe.sgta.dto.asesores.UsuarioFotoDto;
 import pucp.edu.pe.sgta.dto.CarreraDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
 import pucp.edu.pe.sgta.service.inter.CarreraService;
+import pucp.edu.pe.sgta.service.inter.JwtService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
 import pucp.edu.pe.sgta.dto.AlumnoTemaDto;
 
@@ -26,7 +33,10 @@ public class UsuarioController {
     private CarreraService carreraService;
 
     @Autowired
-    private UsuarioService usuarioService;
+    JwtService jwtService;
+
+	@Autowired
+	private UsuarioService usuarioService;
 
     @PostMapping("/create")
     public ResponseEntity<?> create(@RequestBody UsuarioDto user) {
@@ -186,10 +196,11 @@ public class UsuarioController {
         return usuarioService.getIdByCorreo(correo);
     }
 
-    @GetMapping("/{id}/carreras")
+    @GetMapping("/carreras")
     public ResponseEntity<List<CarreraDto>> listarCarreras(
-            @PathVariable("id") Integer usuarioId) {
+            HttpServletRequest request) {
 
+        String usuarioId = jwtService.extractSubFromRequest(request); 
         List<CarreraDto> carreras = carreraService.listarCarrerasPorUsuario(usuarioId);
 
         if (carreras.isEmpty()) {
@@ -278,8 +289,45 @@ public class UsuarioController {
 
     }
 
+{/*
+    //Probando lo del Id_Token
+    @GetMapping("/detalle-tema-alumno/{idUsuario}")
+    public ResponseEntity<AlumnoTemaDto> getDetalleTemaAlumno(@AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            // Obtén el username (o email, o sub) desde el token
+            Integer idUsuario = Integer.parseInt(userDetails.getUsername());
+            // Si necesitas el id, búscalo en tu base de datos usando el username/email
+            AlumnoTemaDto tema = usuarioService.getAlumnoTema(idUsuario);
+            return ResponseEntity.ok(tema);
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+*/}
+
+
+
+
+    
     @GetMapping("/getAsesoresBySubArea")
     public List<UsuarioDto> getAsesoresBySubArea(@RequestParam(name = "idSubArea") Integer idSubArea) {
         return this.usuarioService.getAsesoresBySubArea(idSubArea);
     }
+
+    @GetMapping("/getInfoUsuarioLogueado")
+    public UsuarioDto getInfoUsuarioLogueado(HttpServletRequest request) {
+        try {
+            String usuarioId = jwtService.extractSubFromRequest(request);
+            return this.usuarioService.findByCognitoId(usuarioId);
+        } catch (RuntimeException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        }
+    }
+
+
 }
+
+
+

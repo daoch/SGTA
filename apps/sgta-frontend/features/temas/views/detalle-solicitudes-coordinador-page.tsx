@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  AlertTriangle,
   Calendar,
   Check,
   Clock,
@@ -45,6 +46,9 @@ import { SolicitudPendiente } from "../types/solicitudes/entities";
 import { EstadoSolicitud } from "../types/solicitudes/enums";
 import { idCoasesor } from "../types/solicitudes/mock";
 import { Tema } from "../types/temas/entidades";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import clsx from "clsx";
+import { mapEstadoSolToClassName } from "../types/solicitudes/lib";
 
 interface Props {
   solicitud: SolicitudPendiente;
@@ -180,7 +184,7 @@ export default function DetalleSolicitudesCoordinadorPage({
                 Volver a solicitudes
               </Button> */}
               <Badge variant="secondary" className="text-sm">
-                #{solicitud.id}
+                # {solicitud.id} {solicitud.tema.id}
               </Badge>
             </div>
             <div className="space-y-4">
@@ -188,7 +192,13 @@ export default function DetalleSolicitudesCoordinadorPage({
                 <CardTitle className="text-2xl md:text-3xl">
                   {solicitud.tema.titulo}
                 </CardTitle>
-                <Badge variant="outline" className="flex items-center gap-1">
+                <Badge
+                  variant="outline"
+                  className={clsx(
+                    "flex items-center gap-1",
+                    mapEstadoSolToClassName(solicitud.estado),
+                  )}
+                >
                   <Clock className="w-4 h-4" />
                   {solicitud.estado}
                 </Badge>
@@ -254,50 +264,6 @@ export default function DetalleSolicitudesCoordinadorPage({
             </div>
           </CardContent>
         </Card>
-
-        {/* ======= Análisis de Similitud ======= */}
-        {/* <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Target className="w-5 h-5" />
-              Análisis de Similitud
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Alert>
-              <AlertTriangle className="w-4 h-4" />
-              <AlertDescription>
-                Este tema presenta un{" "}
-                <strong>{similitudMock.porcentaje}%</strong> de similitud con
-                otros previamente aprobados. Revise antes de tomar una decisión.
-              </AlertDescription>
-            </Alert>
-            <div className="space-y-3">
-              {similitudMock.temasRelacionados.map((tema, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center justify-between p-3 border rounded-lg"
-                >
-                  <div>
-                    <p className="font-medium">{tema.titulo}</p>
-                    <p className="text-xs text-gray-500">ID: {tema.id}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline">{tema.similitud}%</Badge>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => window.open(`/temas/${tema.id}`, "_blank")}
-                    >
-                      <Eye className="w-4 h-4 mr-1" />
-                      Ver
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card> */}
 
         {solicitud.estado === EstadoSolicitud.PENDIENTE && (
           <>
@@ -498,37 +464,46 @@ export default function DetalleSolicitudesCoordinadorPage({
               </CardContent>
             </Card>
 
-            {/* ======= Historial de Evaluación ======= */}
+            {/* ======= Análisis de Similitud ======= */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <History className="w-5 h-5" />
-                  Historial de Evaluación
+                  <Target className="w-5 h-5" />
+                  Análisis de Similitud
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {historialMock.map((evt, idx) => (
-                    <div key={idx} className="flex gap-3">
-                      <div className="flex flex-col items-center">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full" />
-                        {idx < historialMock.length - 1 && (
-                          <div className="w-px h-8 bg-gray-200 mt-2" />
-                        )}
-                      </div>
+              <CardContent className="space-y-4">
+                <Alert>
+                  <AlertTriangle className="w-4 h-4" />
+                  <AlertDescription>
+                    Este tema presenta un{" "}
+                    <strong>{similitudMock.porcentaje}%</strong> de similitud
+                    con otros previamente aprobados. Revise antes de tomar una
+                    decisión.
+                  </AlertDescription>
+                </Alert>
+                <div className="space-y-3">
+                  {similitudMock.temasRelacionados.map((tema, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between p-3 border rounded-lg"
+                    >
                       <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-medium">{evt.accion}</span>
-                          <Badge variant="outline">{evt.responsable}</Badge>
-                        </div>
-                        <p className="text-xs text-gray-500 mb-1">
-                          {new Date(evt.fecha).toLocaleDateString("es-PE", {
-                            day: "numeric",
-                            month: "long",
-                            year: "numeric",
-                          })}
-                        </p>
-                        <p>{evt.comentario}</p>
+                        <p className="font-medium">{tema.titulo}</p>
+                        <p className="text-xs text-gray-500">ID: {tema.id}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline">{tema.similitud}%</Badge>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() =>
+                            window.open(`/temas/${tema.id}`, "_blank")
+                          }
+                        >
+                          <Eye className="w-4 h-4 mr-1" />
+                          Ver
+                        </Button>
                       </div>
                     </div>
                   ))}
@@ -537,6 +512,44 @@ export default function DetalleSolicitudesCoordinadorPage({
             </Card>
           </>
         )}
+
+        {/* ======= Historial de Evaluación ======= */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <History className="w-5 h-5" />
+              Historial de Evaluación
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {historialMock.map((evt, idx) => (
+                <div key={idx} className="flex gap-3">
+                  <div className="flex flex-col items-center">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full" />
+                    {idx < historialMock.length - 1 && (
+                      <div className="w-px h-8 bg-gray-200 mt-2" />
+                    )}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-medium">{evt.accion}</span>
+                      <Badge variant="outline">{evt.responsable}</Badge>
+                    </div>
+                    <p className="text-xs text-gray-500 mb-1">
+                      {new Date(evt.fecha).toLocaleDateString("es-PE", {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      })}
+                    </p>
+                    <p>{evt.comentario}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </form>
   );

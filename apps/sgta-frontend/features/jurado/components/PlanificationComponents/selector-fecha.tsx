@@ -26,25 +26,30 @@ const SelectorFecha: React.FC<Props> = ({
   return (
     <div
       onClick={onSelect}
-      className={`border select-none rounded-lg p-4 text-center min-w-43 max-w-43 cursor-pointer transition-all duration-100 border-gray-300
+      className={`flex border select-none rounded-lg p-4 text-center  cursor-pointer transition-all duration-100 border-gray-300
           ${isSelected ? "bg-blue-100 text-black" : "bg-white"}`}
     >
-      <div className="font-medium">{dayNumber.toUpperCase()}</div>
-      <div className="text-4xl font-bold">
-        {dateNumber}
-        <span className="text-xs">/{month}</span>
+      <div>
+        <div className="font-medium">{dayNumber.toUpperCase()}</div>
+        <div className="text-4xl font-bold">
+          {dateNumber}
+          <span className="text-xs">/{month}</span>
+        </div>
       </div>
-      <div className="flex items-center justify-start text-sm gap-2 px-3">
-        <div className="w-2 h-2 rounded-full bg-green-400"></div>
-        <span>{availableBlocks} disponibles</span>
-      </div>
-      <div className="flex items-center justify-start text-sm gap-2 px-3">
-        <div className="w-2 h-2 rounded-full bg-blue-400"></div>
-        <span>{assignedBlocks} asignados</span>
-      </div>
-      <div className="flex items-center justify-start text-sm gap-2 px-3">
-        <div className="w-2 h-2 rounded-full bg-red-400"></div>
-        <span>{bloquedBlocks} bloqueados</span>
+      <div className="w-px h-full bg-gray-300 mx-2"></div>
+      <div>
+        <div className="flex items-center justify-start text-sm gap-2 px-3">
+          <div className="w-2 h-2 rounded-full bg-green-400"></div>
+          <span>{availableBlocks} disponibles</span>
+        </div>
+        <div className="flex items-center justify-start text-sm gap-2 px-3">
+          <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+          <span>{assignedBlocks} asignados</span>
+        </div>
+        <div className="flex items-center justify-start text-sm gap-2 px-3">
+          <div className="w-2 h-2 rounded-full bg-red-400"></div>
+          <span>{bloquedBlocks} bloqueados</span>
+        </div>
       </div>
     </div>
   );

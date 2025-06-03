@@ -18,10 +18,11 @@ export default function SolicitudesPendientes({
   loading,
 }: SolicitudesPendientesProps) {
   const [currentTab, setCurrentTab] = React.useState<EstadoSolicitud>(
-    EstadoSolicitud.PENDIENTE,
+    EstadoSolicitud.ANY,
   );
 
   const titles: Record<EstadoSolicitud, string> = {
+    [EstadoSolicitud.ANY]: "Todas las solicitudes",
     [EstadoSolicitud.PENDIENTE]: "Solicitudes Pendientes",
     [EstadoSolicitud.ACEPTADA]: "Solicitudes Aprobadas",
     [EstadoSolicitud.RECHAZADA]: "Solicitudes Rechazadas",
@@ -29,6 +30,8 @@ export default function SolicitudesPendientes({
   };
 
   const descriptions: Record<EstadoSolicitud, string> = {
+    [EstadoSolicitud.ANY]:
+      "Solicitudes de cambios con estados: Aprobado, Observado, Rechazado, etc.",
     [EstadoSolicitud.PENDIENTE]:
       "Solicitudes de cambios que requieren aprobación",
     [EstadoSolicitud.ACEPTADA]: "Solicitudes de cambios que han sido aprobadas",
@@ -54,14 +57,15 @@ export default function SolicitudesPendientes({
         onValueChange={(value) => setCurrentTab(value as EstadoSolicitud)}
       >
         <TabsList>
+          <TabsTrigger value={EstadoSolicitud.ANY}>Todos</TabsTrigger>
           <TabsTrigger value={EstadoSolicitud.PENDIENTE}>
             Pendientes
           </TabsTrigger>
           <TabsTrigger value={EstadoSolicitud.ACEPTADA}>Aprobadas</TabsTrigger>
+          <TabsTrigger value={EstadoSolicitud.OBSEVADA}>Observadas</TabsTrigger>
           <TabsTrigger value={EstadoSolicitud.RECHAZADA}>
             Rechazadas
           </TabsTrigger>
-          <TabsTrigger value={EstadoSolicitud.OBSEVADA}>Observadas</TabsTrigger>
         </TabsList>
       </Tabs>
 
@@ -76,11 +80,11 @@ export default function SolicitudesPendientes({
           </div>
         </CardHeader>
         <CardContent>
-          {loading ? (
-            <div>Cargando solicitudes...</div>
-          ) : (
-            <SolicitudesTable solicitudes={solicitudes} filter={currentTab} />
-          )}
+          <SolicitudesTable
+            solicitudes={solicitudes}
+            filter={currentTab}
+            isLoading={loading}
+          />
         </CardContent>
       </Card>
     </div>

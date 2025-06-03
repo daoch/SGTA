@@ -7,6 +7,9 @@ export interface Student {
   primerApellido: string;
   segundoApellido: string;
   correoElectronico: string;
+  tituloTema: string;
+  etapaFormativaNombre: string;
+  carrera: string;
   entregableActualId: number;
   entregableActualNombre: string;
   entregableActualDescripcion: string;

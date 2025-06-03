@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { fetchUsers } from "@/features/temas/types/inscripcion/data";
 import {
   AreaDeInvestigacion,
   Carrera,
@@ -20,11 +21,13 @@ import {
   Tesista,
 } from "@/features/temas/types/inscripcion/entities";
 import { Tipo } from "@/features/temas/types/inscripcion/enums";
+import { buscarUsuarioPorToken } from "@/features/temas/types/propuestas/data";
 import {
   fetchTemasAPI,
   fetchUsuariosFindById,
   obtenerCarrerasPorUsuario,
 } from "@/features/temas/types/temas/data";
+import { Usuario } from "@/features/temas/types/temas/entidades";
 import axiosInstance from "@/lib/axios/axios-instance";
 import { Plus } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
@@ -51,7 +54,20 @@ const Page = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const usuarioId = 1;
+  const [usuarioLoggeado, setUsuarioLoggueado] = useState<Usuario>();
+
+  useEffect(() => {
+    const obtenerUsuario = async () => {
+      try {
+        const usuario = await buscarUsuarioPorToken();
+        setUsuarioLoggueado(usuario);
+      } catch (err: unknown) {
+        console.log(err);
+        setError("Error al traer al usuario loggeado.");
+      }
+    };
+    obtenerUsuario();
+  }, []);
 
   // Función para recargar los temas
   const fetchTemas = useCallback(async () => {
@@ -81,6 +97,7 @@ const Page = () => {
   }, []);
 
   useEffect(() => {
+    if (!usuarioLoggeado) return;
     const fetchData = async () => {
       try {
         const response = await axiosInstance.get("subAreaConocimiento/list");
@@ -89,7 +106,7 @@ const Page = () => {
         //setAsesorData(coasesoresData[0]); // TODO El asesor logeado debe traerse globalmente
 
         //llenar datos del asesor mediante su id y no por su carrera
-        const usuario = await fetchUsuariosFindById(usuarioId);
+        const usuario = await fetchUsuariosFindById(usuarioLoggeado.id);
         const coasesor: Coasesor = {
           id: usuario.id,
           tipoUsuario: usuario.tipoUsuario.nombre,
@@ -112,7 +129,7 @@ const Page = () => {
         setAsesorData(coasesor);
 
         //obtener la carrera
-        const carreras = await obtenerCarrerasPorUsuario(usuarioId);
+        const carreras = await obtenerCarrerasPorUsuario(usuarioLoggeado.id);
         setCarrera(carreras);
         console.log({ carreras });
         if (carreras) {
@@ -135,14 +152,14 @@ const Page = () => {
     };
 
     fetchData().then(() => fetchTemas());
-  }, [usuarioId, fetchTemas]);
+  }, [usuarioLoggeado, fetchTemas]);
 
   return (
     <div className="space-y-8 mt-4">
       <div className="flex items-end justify-between">
         {/* Intro */}
         <div className="w-4/5">
-          <h1 className="text-3xl font-bold text-[#042354]">Mis Temas</h1>
+          <h1 className="text-3xl font-bold text-[#042354]">Temas</h1>
           <p className="text-muted-foreground">
             Gestión de temas de tesis propuestos y asignados
           </p>
@@ -174,12 +191,6 @@ const Page = () => {
           )}
         </Dialog>
       </div>
-
-      {!asesorData && (
-        <p className="text-red-500 font-semibold mt-2">
-          Error al cargar datos del asesor
-        </p>
-      )}
 
       {/* Tabs */}
       <Tabs defaultValue={Tipo.TODOS} className="w-full">
@@ -271,13 +282,3 @@ const Page = () => {
 };
 
 export default Page;
-
-const fetchUsers = async (
-  carreraId: number,
-  tipoUsuarioNombre: string,
-  cadenaBusqueda: string = "",
-) => {
-  const url = `/usuario/findByTipoUsuarioAndCarrera?carreraId=${carreraId}&tipoUsuarioNombre=${tipoUsuarioNombre}&cadenaBusqueda=${cadenaBusqueda}`;
-  const response = await axiosInstance.get(url);
-  return response.data;
-};

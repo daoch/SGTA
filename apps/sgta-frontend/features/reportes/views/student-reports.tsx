@@ -20,8 +20,17 @@ export function StudentReports() {
     const fetchStudentData = async () => {
       if (!user) return;
       try {
+{/*
+        //Probando lo de ID_Token
+        const idToken = localStorage.getItem("idToken"); // <-- Obtén el token
+        if (!idToken) throw new Error("No autenticado");
         // TODO: Reemplazar con el ID real del usuario logueado
-        const data = await obtenerDetalleTemaAlumno(7);
+        const data = await obtenerDetalleTemaAlumno(8, idToken); // <-- Pásalo al servicio
+        setStudentData(data);
+*/}        
+        
+        // TODO: Reemplazar con el ID real del usuario logueado
+        const data = await obtenerDetalleTemaAlumno(8);
         setStudentData(data);
       } catch (error) {
         console.error("Error al obtener datos del alumno:", error);

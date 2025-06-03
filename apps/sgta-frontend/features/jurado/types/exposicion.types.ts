@@ -41,6 +41,7 @@ export type Sala = {
 };
 
 export type ExposicionAlumno = {
+  estudianteId: number;
   exposicionId: number;
   temaId: number;
   estado: ExposicionEstado;

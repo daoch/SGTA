@@ -339,3 +339,29 @@ export async function rechazarTema(
     console.error("Error en la solicitud:", error);
   }
 }
+
+export async function buscarUsuarioPorToken() {
+  try {
+    const response = await fetch(`${baseUrl}/usuario/getInfoUsuarioLogueado`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Error al obtener el usuario.");
+    }
+
+    const data = await response.json();
+
+    return data;
+  } catch (error) {
+    console.error(
+      "La página no responde. No se pudo encontrar al usuario.",
+      error,
+    );
+    throw error;
+  }
+}
