@@ -283,7 +283,7 @@ BEGIN
     c.carrera_id,                       -- columna 12
     c.nombre::text      AS carrera_nombre,   -- columna 13
     ac.area_conocimiento_id AS area_id,      -- columna 14
-    ac.nombre::text     AS area_nombre       -- columna 15
+    ac.nombre::text     AS area_nombre      -- columna 15
   FROM tema t
     JOIN estado_tema est   ON t.estado_tema_id = est.estado_tema_id
     JOIN usuario_tema ut   ON ut.tema_id      = t.tema_id

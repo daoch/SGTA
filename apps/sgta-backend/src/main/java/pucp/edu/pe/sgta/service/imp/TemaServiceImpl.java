@@ -735,12 +735,13 @@ public class TemaServiceImpl implements TemaService {
 										.build())
 						.area(new ArrayList<>())
 						.estadoTemaNombre(estadoNombre)
+						.subareas(new ArrayList<>())
 						.build();
-
+				// Asignar el área de conocimiento al DTO
+				dto.getArea().add(areaDto);
 				dtoMap.put(temaId, dto);
 			}
 
-			dto.getArea().add(areaDto);
 		}
 
 		// Ahora convierto el map en lista y completo cantPostulaciones
@@ -752,6 +753,20 @@ public class TemaServiceImpl implements TemaService {
 					.setParameter("temaId", t.getId())
 					.getSingleResult()).intValue();
 			t.setCantPostulaciones(count);
+
+			List<Object[]> subareasRows = entityManager.createNativeQuery(
+					"SELECT * FROM listar_subareas_por_tema(:temaId)")
+					.setParameter("temaId", t.getId())
+					.getResultList();
+
+			// Construir subáreas
+			for (Object[] row : subareasRows) {
+				SubAreaConocimientoDto subArea = SubAreaConocimientoDto.builder()
+						.id((Integer) row[0])      // sub_area_id
+						.nombre((String) row[1])   // sub_area_nombre
+						.build();
+				t.getSubareas().add(subArea);
+			}
 		}
 		return temas;
 	}
