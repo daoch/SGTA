@@ -349,5 +349,17 @@ public class TemaController {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
 		}
 	}
+	@PutMapping("/inscribirTemaPrenscrito/{temaId}")
+    public ResponseEntity<String> inscribirTemaPrenscrito(
+            @PathVariable Integer temaId,
+            HttpServletRequest request) {
+
+		String asesorId = jwtService.extractSubFromRequest(request);  
+
+        temaService.inscribirTemaPreinscrito(temaId, asesorId);
+
+        return ResponseEntity.ok("Inscripción de tema preinscrito exitoso.");
+    }
+
 }
 

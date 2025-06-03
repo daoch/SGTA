@@ -2137,3 +2137,27 @@ BEGIN
 END;
 $$;
 
+
+CREATE OR REPLACE FUNCTION tiene_rol_en_tema(
+    p_usuario_id  INTEGER,
+    p_tema_id     INTEGER,
+    p_rol_nombre  TEXT
+) RETURNS BOOLEAN AS $$
+DECLARE
+    v_tiene BOOLEAN;
+BEGIN
+    SELECT EXISTS (
+        SELECT 1
+          FROM usuario_tema ut
+          JOIN rol          r  ON ut.rol_id = r.rol_id
+         WHERE ut.usuario_id = p_usuario_id
+           AND ut.tema_id    = p_tema_id
+           AND r.nombre      = p_rol_nombre
+           AND ut.activo     = TRUE
+           AND ut.asignado   = TRUE
+    ) INTO v_tiene;
+
+    RETURN v_tiene;
+END;
+$$ LANGUAGE plpgsql;
+
