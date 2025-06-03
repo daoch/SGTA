@@ -2572,4 +2572,29 @@ VALUES (3, 3, 'enviado_tarde',  DATE '2025-01-01');
 
 --select * from entregable
 
+INSERT INTO criterio_entregable (
+    entregable_id,
+    nombre,
+    nota_maxima,
+    descripcion
+) VALUES
+    (1, 'Claridad en la redacción', 20.00, 'Se evalúa la claridad, coherencia y cohesión del contenido entregado.'),
+    (2, 'Cumplimiento de requisitos', 20.00, 'Se verifica que el entregable cumpla con todos los requisitos solicitados.'),
+	(3, 'Originalidad del contenido', 20.00, 'Se evalúa la capacidad de presentar ideas propias y enfoques creativos en el entregable.'),
+	(1, 'Presentación visual', 20.00, 'Se evalúa el formato, uso adecuado de gráficos, y presentación ordenada del entregable.'),
+    (2, 'Análisis crítico', 20.00, 'Se mide la capacidad para interpretar y argumentar los resultados con pensamiento crítico.');
+	
+
+--select * from criterio_entregable
+
+INSERT INTO revision_criterio_entregable (
+    entregable_x_tema_id,
+    criterio_entregable_id,
+    usuario_id,
+    nota,
+    observacion
+) VALUES
+    (1, 1, 36, 17.00, NULL),
+    (2, 2, 36, 10.00, NULL),
+	(3, 3, 36, 19.00, NULL);
 
