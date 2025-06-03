@@ -1,6 +1,6 @@
 import { Tema } from "../temas/entidades";
 import { EstadoTemaNombre } from "../temas/enums";
-import { EstadoSolicitud, TipoSolicitud } from "./enums";
+import { TipoSolicitud } from "./enums";
 
 export interface SolicitudPendiente {
   id: number;

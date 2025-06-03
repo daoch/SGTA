@@ -22,6 +22,7 @@ import {
 } from "../types/solicitudes/constants";
 import {
   fetchCarrerasMiembroComite,
+  lenTemasPorCarrera,
   listarTemasPorCarrera,
 } from "../types/solicitudes/data";
 import { PagesList, TemasPages } from "../types/solicitudes/entities";
@@ -30,7 +31,7 @@ import { EstadoTemaNombre } from "../types/temas/enums";
 
 type PagesListKey = keyof TemasPages;
 
-const LIMIT = 1;
+const LIMIT = 10;
 
 export default function SolicitudesPendientes() {
   const [estadoTema, setEstadoTema] = React.useState<EstadoTemaNombre>(
@@ -52,8 +53,11 @@ export default function SolicitudesPendientes() {
         const ids = (carreras || []).map((c) => c.id);
         setCarrerasIds(ids);
 
-        // Cargar primera página
         if (ids.length > 0) {
+          // Inicializar totalCounts
+          await fetchTotalCounts(ids);
+
+          // Cargar primera página
           await fetchData(estadoTema, 1, ids);
         }
       } catch (error) {
@@ -73,7 +77,9 @@ export default function SolicitudesPendientes() {
       // Fetch de la página en caso no exista
       const existingPage = temas[estadoTema]?.pages?.[newPage];
       if (!existingPage?.length) {
+        setLoading(true);
         fetchData(estadoTema, newPage, carrerasIds);
+        setLoading(false);
       }
     },
     [estadoTema, temas, carrerasIds],
@@ -85,7 +91,6 @@ export default function SolicitudesPendientes() {
     carrerasIds: number[],
   ) {
     try {
-      setLoading(true);
       if (carrerasIds && carrerasIds.length > 0) {
         const data = await listarTemasPorCarrera(
           carrerasIds[0], // TODO: Validar
@@ -104,15 +109,30 @@ export default function SolicitudesPendientes() {
             [status]: {
               ...prev[status],
               pages: newPages,
-              totalCounts: 2, // TODO: Añadir total de paginas
             },
           };
         });
       }
     } catch (err) {
       console.error("Error loading data", err);
-    } finally {
-      setLoading(false);
+    }
+  }
+
+  async function fetchTotalCounts(carrerasIds: number[]) {
+    try {
+      // Asignar total Counts
+      const estadosConPages: EstadoTemaNombre[] = Object.keys(
+        temas,
+      ) as EstadoTemaNombre[];
+      for (const estado of estadosConPages) {
+        const count = await lenTemasPorCarrera(carrerasIds[0], estado); // TODO: Debe traer un number
+        // const count = 2;
+        console.log(estado + ": count = " + count);
+
+        updatePagesListKey(estado, "totalCounts", count);
+      }
+    } catch (err) {
+      console.error("Error loading total counts", err);
     }
   }
 
@@ -229,7 +249,7 @@ export default function SolicitudesPendientes() {
           {!loading && (
             <CessationRequestPagination
               currentPage={temas[estadoTema].current}
-              totalPages={temas[estadoTema].totalCounts}
+              totalPages={Math.ceil(temas[estadoTema].totalCounts / LIMIT)}
               onPageChange={handlePageChange}
             />
           )}

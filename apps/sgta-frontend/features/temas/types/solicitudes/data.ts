@@ -27,6 +27,19 @@ export async function listarTemasPorCarrera(
   return data;
 }
 
+// Get tamaño
+export async function lenTemasPorCarrera(
+  carreraId: number,
+  estado: EstadoTemaNombre,
+  limit: number = 200,
+  offset: number = 0,
+): Promise<number> {
+  const { data } = await axiosInstance.get<Tema[]>(
+    `/temas/listarTemasPorCarrera/${carreraId}/${estado}?limit=${limit}&offset=${offset}`,
+  );
+  return data.length;
+}
+
 /**
  * 3) Cambiar el estado de un tema (aprobar, rechazar u observar)
  *    PATCH /temas/CambiarEstadoTemaPorCoordinador

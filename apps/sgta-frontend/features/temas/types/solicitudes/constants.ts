@@ -1,5 +1,5 @@
 import { EstadoTemaNombre } from "../temas/enums";
-import { PagesList, TemasPages } from "./entities";
+import { PagesList } from "./entities";
 
 export const pageSolicitudes = {
   title: "Aprobaciones",
