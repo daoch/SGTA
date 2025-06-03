@@ -120,17 +120,23 @@ DROP FUNCTION IF EXISTS obtener_jurados_por_tema (INTEGER) CASCADE;
 
 DROP FUNCTION IF EXISTS obtener_exposiciones_por_etapa_formativa_por_tema (INTEGER, INTEGER) CASCADE;
 
-DROP FUNCTION IF EXISTS listar_propuestas_del_tesista_con_usuarios CASCADE;
+DROP FUNCTION IF EXISTS listar_propuestas_del_tesista_con_usuarios (INTEGER) CASCADE;
 
-DROP FUNCTION IF EXISTS listar_postulaciones_del_tesista_con_usuarios CASCADE;
+DROP FUNCTION IF EXISTS listar_propuestas_del_tesista_con_usuarios (TEXT) CASCADE;
+
+DROP FUNCTION IF EXISTS listar_postulaciones_del_tesista_con_usuarios (INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS listar_postulaciones_del_tesista_con_usuarios (TEXT) CASCADE;
 
 DROP FUNCTION IF EXISTS listar_asesores_por_subarea_conocimiento CASCADE;
 
-DROP FUNCTION IF EXISTS obtener_sub_areas_por_carrera_usuario CASCADE;
+DROP FUNCTION IF EXISTS obtener_sub_areas_por_carrera_usuario (INTEGER) CASCADE;
 
-DROP FUNCTION IF EXISTS aprobar_postulacion_propuesta_general_tesista CASCADE;
+DROP FUNCTION IF EXISTS obtener_sub_areas_por_carrera_usuario (TEXT) CASCADE;
 
-DROP FUNCTION IF EXISTS rechazar_postulacion_propuesta_general_tesista CASCADE;
+DROP FUNCTION IF EXISTS aprobar_postulacion_propuesta_general_tesista (INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS rechazar_postulacion_propuesta_general_tesista (TEXT) CASCADE;
 
 DROP FUNCTION IF EXISTS listar_asesores_por_subarea_conocimiento_v2 CASCADE;
 
@@ -185,3 +191,42 @@ DROP FUNCTION IF EXISTS sala_ocupada_en_rango (
 );
 
 DROP FUNCTION IF EXISTS obtener_exposiciones_por_usuario (INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS aprobar_postulacion_propuesta_general_tesista(p_tema_id INTEGER, p_asesor_id INTEGER, p_tesista_id INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS aprobar_postulacion_propuesta_general_tesista(p_tema_id INTEGER, p_asesor_id INTEGER, p_tesista_id TEXT) CASCADE;
+
+DROP FUNCTION IF EXISTS atender_solicitud_resumen(p_solicitud_id INTEGER, p_summary TEXT, p_response TEXT) CASCADE;
+
+DROP FUNCTION IF EXISTS atender_solicitud_titulo(p_solicitud_id INTEGER, p_title VARCHAR, p_response TEXT) CASCADE;
+
+DROP FUNCTION IF EXISTS buscar_tema_por_id(p_tema_id INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS calcular_progreso_alumno(p_alumno_id INTEGER) CASCADE;
+
+DROP PROCEDURE IF EXISTS desactivar_tema_y_desasignar_usuarios(p_tema_id INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS get_solicitudes_by_tema(input_tema_id INTEGER, offset_val INTEGER, limit_val INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS get_solicitudes_by_tema_count(input_tema_id INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS listar_bloque_con_sala(_exposicion_id INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS listar_historial_reuniones_por_tesista(p_tesista_id INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS listar_postulaciones_del_tesista_con_usuarios(p_tesista_id INTEGER, p_tipo_post INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS listar_postulaciones_del_tesista_con_usuarios(p_tesista_id TEXT, p_tipo_post INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS listar_temas_propuestos_al_asesor(p_asesor_id INTEGER, p_titulo TEXT, p_limit INTEGER, p_offset INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS listar_temas_propuestos_por_subarea_conocimiento(p_subareas_ids INTEGER[], p_asesor_id INTEGER, p_titulo TEXT, p_limit INTEGER, p_offset INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS rechazar_postulacion_propuesta_general_tesista(p_tema_id INTEGER, p_asesor_id INTEGER, p_tesista_id INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS rechazar_postulacion_propuesta_general_tesista(p_tema_id INTEGER, p_asesor_id INTEGER, p_tesista_id TEXT) CASCADE;
+
+DROP FUNCTION IF EXISTS rechazar_postulaciones_propuesta_general_tesista(p_tesista_id INTEGER) CASCADE;
+
+DROP PROCEDURE IF EXISTS terminar_planificacion(idexposicion INTEGER, idetapaformativa INTEGER) CASCADE;
+
