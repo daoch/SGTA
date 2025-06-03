@@ -10,7 +10,7 @@ const { idToken } = useAuthStore.getState();
 export const obtenerDetalleTemaAlumno = async (): Promise<AlumnoTemaDetalle> => {
     try {
        
-        const response = await axiosInstance.get<AlumnoTemaDetalle>(`/usuario/detalle-tema-alumno`, {
+        const response = await axiosInstance.get<AlumnoTemaDetalle>("/usuario/detalle-tema-alumno", {
           headers: {
             Authorization: `Bearer ${idToken}`,
           },
