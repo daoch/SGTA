@@ -37,7 +37,7 @@ const PlanificationPanel: React.FC<Props> = ({
   estadoPlan,
   isLoading,
 }) => {
-  const { actualizarBloque } = usePlanificationStore();
+  const { actualizarBloque, temasSinAsignar } = usePlanificationStore();
 
   //BLOQUES
   const [selectedCode, setSelectedCode] = useState<number>(days[0]?.code ?? 0);
@@ -81,7 +81,7 @@ const PlanificationPanel: React.FC<Props> = ({
                     ? "default"
                     : "outline"
                 }
-                disabled={isLoading}
+                disabled={isLoading || temasSinAsignar.length > 0}
               >
                 Siguiente fase
                 <ArrowRight />
@@ -113,20 +113,25 @@ const PlanificationPanel: React.FC<Props> = ({
                 bloque.key.startsWith(dateStr + "|"),
               );
 
+              const assignedBlocks = bloquesDelDia.filter(
+                (bloque) => bloque.expo != null && bloque.expo.id != null,
+              ).length;
+
               // Calcula los bloques asignados (bloquedBlocks)
               const bloquedBlocks = bloquesDelDia.filter(
                 (bloque) => bloque.esBloqueBloqueado,
               ).length;
 
               // Los disponibles son el total menos los asignados
-              const availableBlocks = bloquesDelDia.filter(
-                (bloque) => bloque.esBloqueBloqueado || bloque.expo?.id == null,
-              ).length;
+              const availableBlocks =
+                bloquesDelDia.filter((bloque) => !bloque.esBloqueBloqueado)
+                  .length - assignedBlocks;
 
               return (
                 <SelectorFecha
                   key={day.code}
                   day={day}
+                  assignedBlocks={assignedBlocks}
                   availableBlocks={availableBlocks}
                   bloquedBlocks={bloquedBlocks}
                   isSelected={day.code === selectedCode}

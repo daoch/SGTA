@@ -1,5 +1,3 @@
-SET search_path TO sgtadb;
-
 DO
 $$
     BEGIN
@@ -667,20 +665,16 @@ CREATE TABLE IF NOT EXISTS grupo_investigacion_proyecto
             ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS etapa_formativa
-(
-    etapa_formativa_id  SERIAL PRIMARY KEY,
-    nombre              TEXT                     NOT NULL,
-    creditaje_por_tema  NUMERIC(6, 2),
+CREATE TABLE IF NOT EXISTS etapa_formativa (
+    etapa_formativa_id SERIAL PRIMARY KEY,
+    nombre TEXT NOT NULL,
+    creditaje_por_tema NUMERIC(6, 2),
     duracion_exposicion INTERVAL,
-    activo              BOOLEAN                  NOT NULL DEFAULT TRUE,
-    fecha_creacion      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    carrera_id          INTEGER                  NOT NULL,
-
-    CONSTRAINT fk_area_conocimiento_carrera
-        FOREIGN KEY (carrera_id)
-            REFERENCES carrera (carrera_id)
+    activo BOOLEAN NOT NULL DEFAULT TRUE,
+    fecha_creacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    carrera_id INTEGER NOT NULL,
+    CONSTRAINT fk_area_conocimiento_carrera FOREIGN KEY (carrera_id) REFERENCES carrera (carrera_id)
 );
 
 -- 1) Tabla parametro_configuracion
@@ -1313,6 +1307,31 @@ CREATE TABLE IF NOT EXISTS observacion
             REFERENCES usuario (usuario_id)
             ON DELETE RESTRICT
 );
+CREATE TABLE IF NOT EXISTS observacion_rect (
+  observacion_id   INT               NOT NULL,
+  x1               DOUBLE PRECISION,
+  y1               DOUBLE PRECISION,
+  x2               DOUBLE PRECISION,
+  y2               DOUBLE PRECISION,
+  width            DOUBLE PRECISION,
+  height           DOUBLE PRECISION,
+  page_number      INT,
+  CONSTRAINT fk_obsrect_obs
+    FOREIGN KEY (observacion_id)
+    REFERENCES observacion(observacion_id)
+    ON DELETE CASCADE
+);
+
+
+ALTER TABLE observacion
+  ADD COLUMN IF NOT EXISTS bounding_x1     DOUBLE PRECISION,
+  ADD COLUMN IF NOT EXISTS bounding_y1     DOUBLE PRECISION,
+  ADD COLUMN IF NOT EXISTS bounding_x2     DOUBLE PRECISION,
+  ADD COLUMN IF NOT EXISTS bounding_y2     DOUBLE PRECISION,
+  ADD COLUMN IF NOT EXISTS bounding_width  DOUBLE PRECISION,
+  ADD COLUMN IF NOT EXISTS bounding_height DOUBLE PRECISION,
+  ADD COLUMN IF NOT EXISTS bounding_page   INT,
+  ADD COLUMN contenido TEXT NOT NULL;
 
 CREATE TABLE IF NOT EXISTS reunion
 (

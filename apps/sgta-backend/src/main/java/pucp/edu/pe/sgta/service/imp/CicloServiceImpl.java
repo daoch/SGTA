@@ -1,15 +1,11 @@
 package pucp.edu.pe.sgta.service.imp;
 
 import org.springframework.stereotype.Service;
-
 import pucp.edu.pe.sgta.dto.CicloConEtapasDTO;
 import pucp.edu.pe.sgta.dto.CicloConEtapasProjection;
 import pucp.edu.pe.sgta.dto.CicloDto;
-import pucp.edu.pe.sgta.dto.UsuarioDto;
 import pucp.edu.pe.sgta.mapper.CicloMapper;
-import pucp.edu.pe.sgta.mapper.UsuarioMapper;
 import pucp.edu.pe.sgta.model.Ciclo;
-import pucp.edu.pe.sgta.model.Usuario;
 import pucp.edu.pe.sgta.repository.CicloRepository;
 import pucp.edu.pe.sgta.service.inter.CicloService;
 
@@ -60,11 +56,16 @@ public class CicloServiceImpl implements CicloService {
             throw new IllegalArgumentException("No se encontró un ciclo con el id proporcionado: " + ciclodto.getId());
         }
 
-        if (ciclodto.getSemestre() != null) ciclo.setSemestre(ciclodto.getSemestre());
-        if (ciclodto.getAnio() != null) ciclo.setAnio(ciclodto.getAnio());
-        if (ciclodto.getFechaInicio() != null) ciclo.setFechaInicio(ciclodto.getFechaInicio());
-        if (ciclodto.getFechaFin() != null) ciclo.setFechaFin(ciclodto.getFechaFin());
-        if (ciclodto.getActivo() != null) ciclo.setActivo(ciclodto.getActivo());
+        if (ciclodto.getSemestre() != null)
+            ciclo.setSemestre(ciclodto.getSemestre());
+        if (ciclodto.getAnio() != null)
+            ciclo.setAnio(ciclodto.getAnio());
+        if (ciclodto.getFechaInicio() != null)
+            ciclo.setFechaInicio(ciclodto.getFechaInicio());
+        if (ciclodto.getFechaFin() != null)
+            ciclo.setFechaFin(ciclodto.getFechaFin());
+        if (ciclodto.getActivo() != null)
+            ciclo.setActivo(ciclodto.getActivo());
         ciclo.setFechaModificacion(OffsetDateTime.now());
 
         try {
@@ -95,8 +96,12 @@ public class CicloServiceImpl implements CicloService {
             dto.setFechaInicio(p.getFecha_inicio());
             dto.setFechaFin(p.getFecha_fin());
             dto.setActivo(p.getActivo());
-            dto.setFechaCreacion(p.getFecha_creacion() != null ? OffsetDateTime.ofInstant(p.getFecha_creacion(), ZoneOffset.UTC) : null);
-            dto.setFechaModificacion(p.getFecha_modificacion() != null ? OffsetDateTime.ofInstant(p.getFecha_modificacion(), ZoneOffset.UTC) : null);
+            dto.setFechaCreacion(
+                    p.getFecha_creacion() != null ? OffsetDateTime.ofInstant(p.getFecha_creacion(), ZoneOffset.UTC)
+                            : null);
+            dto.setFechaModificacion(p.getFecha_modificacion() != null
+                    ? OffsetDateTime.ofInstant(p.getFecha_modificacion(), ZoneOffset.UTC)
+                    : null);
             dto.setEtapasFormativas(p.getEtapas_formativas());
             dto.setCantidadEtapas(p.getCantidad_etapas());
             return dto;

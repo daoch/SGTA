@@ -14,9 +14,10 @@ import {
 import { useClientPagination } from "../hooks/use-exposiciones-pagination";
 import { useFetchExposicionFilters } from "../hooks/use-fetch-exposicion-filters";
 import { useFetchExposiciones } from "../hooks/use-fetch-exposiciones";
+import { getIdCoordinador } from "../utils/get-id-coordinador";
 
 export const ExposicionesCoordinadorPage: FC = () => {
-  const coordinadorId = 3;
+  const coordinadorId = getIdCoordinador();
 
   const [modalOpen, setModalOpen] = useState(false);
 

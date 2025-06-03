@@ -1,6 +1,5 @@
 package pucp.edu.pe.sgta.controller;
 
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -17,11 +16,11 @@ import java.util.List;
 @RequestMapping("/subAreaConocimiento")
 public class SubAreaConocimientoController {
 
-	@Autowired
-	SubAreaConocimientoService subAreaConocimientoService;
+    @Autowired
+    SubAreaConocimientoService subAreaConocimientoService;
 
-	@Autowired
-	JwtService jwtService;
+    @Autowired
+    JwtService jwtService;
 
     @GetMapping("/listarPorNombre")
     public List<InfoSubAreaConocimientoDto> listarInfoPorNombre(@RequestParam(name = "nombre") String nombre) {
@@ -29,9 +28,9 @@ public class SubAreaConocimientoController {
     }
 
     @PostMapping("/create")
-	public SubAreaConocimientoDto createSubAreaConocimiento(@RequestBody SubAreaConocimientoDto dto) {
-		return subAreaConocimientoService.create(dto);
-	}
+    public SubAreaConocimientoDto createSubAreaConocimiento(@RequestBody SubAreaConocimientoDto dto) {
+        return subAreaConocimientoService.create(dto);
+    }
 
     @GetMapping("/list")
     public List<SubAreaConocimientoDto> listSubAreaConocimiento() {
@@ -43,7 +42,7 @@ public class SubAreaConocimientoController {
         subAreaConocimientoService.delete(id);
     }
 
-    //listar por area
+    // listar por area
     @GetMapping("/list/{idArea}")
     public List<SubAreaConocimientoDto> listSubAreaConocimientoByArea(@PathVariable Integer idArea) {
         return subAreaConocimientoService.getAllByArea(idArea);
@@ -60,7 +59,8 @@ public class SubAreaConocimientoController {
     }
 
     @GetMapping("/listarTodasParaPerfilAsesor") // finds a topic by id
-    public List<InfoSubAreaConocimientoDto> listarPorCarrerasUsuarioParaPerfil(@RequestParam(name = "usuarioId") Integer usuarioId) {
+    public List<InfoSubAreaConocimientoDto> listarPorCarrerasUsuarioParaPerfil(
+            @RequestParam(name = "usuarioId") Integer usuarioId) {
         return subAreaConocimientoService.listarPorCarrerasUsuarioParaPerfil(usuarioId);
     }
 

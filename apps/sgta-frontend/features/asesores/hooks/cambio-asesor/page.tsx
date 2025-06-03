@@ -43,6 +43,7 @@ export async function getResumenesSolicitudCambioAsesor(
   rolSolicitud: string,
 ): Promise<SolicitudCambioAsesorResumen[]> {
   try {
+    console.log(idUsuario, rolSolicitud);
     const response = await axiosInstance.get(
       "/solicitudes/listarResumenSolicitudCambioAsesorUsuario",
       {

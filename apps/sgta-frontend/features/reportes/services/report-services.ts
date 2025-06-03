@@ -1,7 +1,7 @@
 import axiosInstance from "@/lib/axios/axios-instance";
-import { AlumnoTemaDetalle } from "../types/Alumno.type";
 
 import axios from "@/lib/axios/axios-instance";
+import { AlumnoTemaDetalle } from "../types/Alumno.type";
 
 
 export const obtenerDetalleTemaAlumno = async (idUsuario: number): Promise<AlumnoTemaDetalle> => {
@@ -14,6 +14,18 @@ export const obtenerDetalleTemaAlumno = async (idUsuario: number): Promise<Alumn
     }
 };
 
+
+{/*
+//Probando lo de ID_Token
+export async function obtenerDetalleTemaAlumno(idAlumno: number, idToken: string) {
+  const response = await axiosInstance.get(`/usuario/detalle-tema-alumno/${idAlumno}`, {
+    headers: {
+      Authorization: `Bearer ${idToken}`,
+    },
+  });
+  return response.data;
+}
+*/}
 
 
 export const getEntregablesAlumno = async (alumnoId: string) => {

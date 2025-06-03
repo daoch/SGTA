@@ -6,7 +6,7 @@ export default function Page() {
 	const { id } = useParams();
 
 	if (typeof id !== "string") {
-		return <div>Error: id inválido</div>;
+		throw new Error("Invalid parameter: id must be a string");
 	}
 
 	return <RevisionDetailPage params={{ id }} />;

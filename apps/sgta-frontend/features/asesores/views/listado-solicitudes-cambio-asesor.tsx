@@ -40,7 +40,7 @@ export default function ListadoSolicitudesCambioAsesor(
       case "coordinador":
         return "DESTINATARIO";
       case "asesor":
-        return "PENDIENTE_ACCION";
+        return "ASESOR_ENTRADA";
       default:
         return "/";
     }
@@ -89,6 +89,7 @@ export default function ListadoSolicitudesCambioAsesor(
           rolSolicitud,
         );
         setSolicitudes(data);
+        console.log(idUsuario, rolSolicitud);
       } catch (err) {
         setError("No se pudieron cargar las solicitudes.");
       } finally {

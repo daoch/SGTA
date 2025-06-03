@@ -17,6 +17,7 @@ import {
   getExposicionesEstudiantesByEstudianteId,
 } from "../../services/exposicion-service";
 import { ExposicionAlumno } from "../../types/exposicion.types";
+import { useAuthStore } from "@/features/auth/store/auth-store";
 
 const Exposiciones: React.FC = () => {
   //JALAMOS LOS CICLOS
@@ -41,20 +42,25 @@ const Exposiciones: React.FC = () => {
     { value: "todos", label: "Todos" },
     { value: "programada", label: "Programada" },
     { value: "completada", label: "Completada" },
-    { value: "finalizada", label: "Finalizada" },
+    { value: "calificada", label: "Calificada" },
   ];
   const [selectedEstado, setSelectedEstado] = useState(estados[0].value);
 
   const [isLoading, setIsLoading] = useState(true);
   const [exposiciones, setExposiciones] = useState<ExposicionAlumno[]>([]);
-  const alumnoId = 14; // Este debe ser el ID del alumno logueado
+
   //JALAMOS LAS EXPOSICIONES DEL ALUMNO
   const fetchExposiciones = async () => {
     setIsLoading(true);
     try {
       //se debe reemplazar el 21 por el id del jurado logueado
+      const { idToken } = useAuthStore.getState();
+      if (!idToken) {
+        console.error("No authentication token available");
+        return;
+      }
       const exposicionesData =
-        await getExposicionesEstudiantesByEstudianteId(alumnoId);
+        await getExposicionesEstudiantesByEstudianteId(idToken);
       setExposiciones(exposicionesData);
     } catch (error) {
       console.error("Error al cargar exposiciones:", error);
@@ -148,7 +154,7 @@ const Exposiciones: React.FC = () => {
             <ExposicionCard
               key={`${exposicion.exposicionId}-${index}`}
               exposicion={exposicion}
-              alumnoId={alumnoId}
+              alumnoId={exposicion.estudianteId}
             />
           ))}
         </div>
