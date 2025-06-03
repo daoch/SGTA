@@ -1450,7 +1450,9 @@ $$;
 
 CREATE OR REPLACE FUNCTION listar_temas_por_estado_y_carrera(
   p_estado_nombre TEXT,
-  p_carrera_id    INTEGER
+  p_carrera_id    INTEGER,
+  p_limit         INTEGER DEFAULT 100,
+  p_offset        INTEGER DEFAULT 0
 )
 RETURNS TABLE (
   tema_id            INTEGER,
@@ -1506,7 +1508,8 @@ BEGIN
       t.carrera_id = p_carrera_id
       AND et.nombre ILIKE p_estado_nombre
       AND t.activo = TRUE
-    ORDER BY t.fecha_creacion DESC;
+    ORDER BY t.fecha_creacion DESC
+    LIMIT p_limit OFFSET p_offset;
 END;
 $$;
 

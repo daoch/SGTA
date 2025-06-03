@@ -75,7 +75,7 @@ public interface TemaService {
 
 	void aprobarPostulacionAPropuestaGeneral(Integer idTema, Integer idAsesor, String idTesista);
 
-	List<TemaDto> listarTemasPorEstadoYCarrera(String estadoNombre, Integer carreraId);
+	List<TemaDto> listarTemasPorEstadoYCarrera(String estadoNombre, Integer carreraId, Integer limit, Integer offset);
 
 	void cambiarEstadoTemaCoordinador(Integer temaId, String nuevoEstadoNombre, String usuarioId, String comentario);
 

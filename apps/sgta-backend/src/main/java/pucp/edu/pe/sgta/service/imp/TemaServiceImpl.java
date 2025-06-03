@@ -1662,12 +1662,17 @@ public class TemaServiceImpl implements TemaService {
 
 	@Override
 	@Transactional
-	public List<TemaDto> listarTemasPorEstadoYCarrera(String estadoNombre, Integer carreraId) {
-		String sql = "SELECT * FROM listar_temas_por_estado_y_carrera(:estado, :carreraId)";
+	public List<TemaDto> listarTemasPorEstadoYCarrera(String estadoNombre,
+													 Integer carreraId,
+													 Integer limit,
+													 Integer offset) {
+		String sql = "SELECT * FROM listar_temas_por_estado_y_carrera(:estado, :carreraId, :limit, :offset)";
 		@SuppressWarnings("unchecked")
 		List<Object[]> rows = entityManager.createNativeQuery(sql)
 				.setParameter("estado", estadoNombre)
 				.setParameter("carreraId", carreraId)
+				.setParameter("limit", limit)
+				.setParameter("offset", offset)
 				.getResultList();
 
 		Map<Integer, TemaDto> dtoMap = new LinkedHashMap<>();
@@ -1702,6 +1707,7 @@ public class TemaServiceImpl implements TemaService {
 										.nombre((String) r[13])
 										.build())
 						.area(new ArrayList<>())
+						.subareas(new ArrayList<>())
 						.build();
 
 				dtoMap.put(temaId, dto);
@@ -1732,6 +1738,20 @@ public class TemaServiceImpl implements TemaService {
 				if (asesores.stream().noneMatch(a -> a.getId().equals(u.getId()))) {
 					combinado.add(u);
 				}
+			}
+
+			List<Object[]> subareasRows = entityManager.createNativeQuery(
+					"SELECT * FROM listar_subareas_por_tema(:temaId)")
+					.setParameter("temaId", t.getId())
+					.getResultList();
+
+			// Construir subáreas
+			for (Object[] row : subareasRows) {
+				SubAreaConocimientoDto subArea = SubAreaConocimientoDto.builder()
+						.id((Integer) row[0])      // sub_area_id
+						.nombre((String) row[1])   // sub_area_nombre
+						.build();
+				t.getSubareas().add(subArea);
 			}
 
 			t.setCoasesores(combinado);

@@ -248,8 +248,10 @@ public class TemaController {
 	@GetMapping("/listarTemasPorCarrera/{carreraId}/{estado}")
 	public List<TemaDto> buscarPorEstadoYCarrera(
 			@PathVariable("estado") String estado,
-			@PathVariable("carreraId") Integer carreraId) {
-		return temaService.listarTemasPorEstadoYCarrera(estado, carreraId);
+			@PathVariable("carreraId") Integer carreraId,
+			@RequestParam(name = "limit", defaultValue = "10") Integer limit,
+			@RequestParam(name = "offset", defaultValue = "0") Integer offset) {
+		return temaService.listarTemasPorEstadoYCarrera(estado, carreraId, limit, offset);	
 	}
 
 	@PatchMapping("/CambiarEstadoTemaPorCoordinador")
