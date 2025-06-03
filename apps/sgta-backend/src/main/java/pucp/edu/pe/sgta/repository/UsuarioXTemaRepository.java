@@ -57,4 +57,14 @@ public interface UsuarioXTemaRepository extends JpaRepository<UsuarioXTema, Inte
 
         Optional<UsuarioXTema> findByUsuarioId(Integer usuarioId);
 
+        @Query(
+        value = "SELECT tiene_rol_en_tema(:usuarioId, :temaId, :rolNombre)",
+        nativeQuery = true
+        )
+        boolean verificarUsuarioRolEnTema(
+                @Param("usuarioId") Integer usuarioId,
+                @Param("temaId")    Integer temaId,
+                @Param("rolNombre") String rolNombre
+        );
+
 }

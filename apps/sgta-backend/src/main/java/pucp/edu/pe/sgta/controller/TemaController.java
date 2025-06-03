@@ -248,8 +248,10 @@ public class TemaController {
 	@GetMapping("/listarTemasPorCarrera/{carreraId}/{estado}")
 	public List<TemaDto> buscarPorEstadoYCarrera(
 			@PathVariable("estado") String estado,
-			@PathVariable("carreraId") Integer carreraId) {
-		return temaService.listarTemasPorEstadoYCarrera(estado, carreraId);
+			@PathVariable("carreraId") Integer carreraId,
+			@RequestParam(name = "limit", defaultValue = "10") Integer limit,
+			@RequestParam(name = "offset", defaultValue = "0") Integer offset) {
+		return temaService.listarTemasPorEstadoYCarrera(estado, carreraId, limit, offset);	
 	}
 
 	@PatchMapping("/CambiarEstadoTemaPorCoordinador")
@@ -349,5 +351,17 @@ public class TemaController {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
 		}
 	}
+	@PutMapping("/inscribirTemaPrenscrito/{temaId}")
+    public ResponseEntity<String> inscribirTemaPrenscrito(
+            @PathVariable Integer temaId,
+            HttpServletRequest request) {
+
+		String asesorId = jwtService.extractSubFromRequest(request);  
+
+        temaService.inscribirTemaPreinscrito(temaId, asesorId);
+
+        return ResponseEntity.ok("Inscripción de tema preinscrito exitoso.");
+    }
+
 }
 

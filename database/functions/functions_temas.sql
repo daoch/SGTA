@@ -283,7 +283,7 @@ BEGIN
     c.carrera_id,                       -- columna 12
     c.nombre::text      AS carrera_nombre,   -- columna 13
     ac.area_conocimiento_id AS area_id,      -- columna 14
-    ac.nombre::text     AS area_nombre       -- columna 15
+    ac.nombre::text     AS area_nombre      -- columna 15
   FROM tema t
     JOIN estado_tema est   ON t.estado_tema_id = est.estado_tema_id
     JOIN usuario_tema ut   ON ut.tema_id      = t.tema_id
@@ -1450,7 +1450,9 @@ $$;
 
 CREATE OR REPLACE FUNCTION listar_temas_por_estado_y_carrera(
   p_estado_nombre TEXT,
-  p_carrera_id    INTEGER
+  p_carrera_id    INTEGER,
+  p_limit         INTEGER DEFAULT 100,
+  p_offset        INTEGER DEFAULT 0
 )
 RETURNS TABLE (
   tema_id            INTEGER,
@@ -1506,7 +1508,8 @@ BEGIN
       t.carrera_id = p_carrera_id
       AND et.nombre ILIKE p_estado_nombre
       AND t.activo = TRUE
-    ORDER BY t.fecha_creacion DESC;
+    ORDER BY t.fecha_creacion DESC
+    LIMIT p_limit OFFSET p_offset;
 END;
 $$;
 
@@ -2136,4 +2139,28 @@ BEGIN
 
 END;
 $$;
+
+
+CREATE OR REPLACE FUNCTION tiene_rol_en_tema(
+    p_usuario_id  INTEGER,
+    p_tema_id     INTEGER,
+    p_rol_nombre  TEXT
+) RETURNS BOOLEAN AS $$
+DECLARE
+    v_tiene BOOLEAN;
+BEGIN
+    SELECT EXISTS (
+        SELECT 1
+          FROM usuario_tema ut
+          JOIN rol          r  ON ut.rol_id = r.rol_id
+         WHERE ut.usuario_id = p_usuario_id
+           AND ut.tema_id    = p_tema_id
+           AND r.nombre      = p_rol_nombre
+           AND ut.activo     = TRUE
+           AND ut.asignado   = TRUE
+    ) INTO v_tiene;
+
+    RETURN v_tiene;
+END;
+$$ LANGUAGE plpgsql;
 
