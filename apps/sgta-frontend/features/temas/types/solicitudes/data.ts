@@ -8,9 +8,7 @@ import axiosInstance from "@/lib/axios/axios-instance";
 export async function fetchCarrerasMiembroComite(
   usuarioId: number,
 ): Promise<Carrera[]> {
-  const { data } = await axiosInstance.get<Carrera[]>(
-    `/usuario/${usuarioId}/carreras`,
-  );
+  const { data } = await axiosInstance.get<Carrera[]>(`/usuario/carreras`);
   return data;
 }
 

@@ -99,8 +99,8 @@ export default function SolicitudesPendientes({
           </div>
         </CardHeader>
 
-        {/* Solicitudes */}
         <CardContent>
+          {/* Solicitudes */}
           <SolicitudesTable
             solicitudes={solicitudes}
             filter={estadoSolicitud}

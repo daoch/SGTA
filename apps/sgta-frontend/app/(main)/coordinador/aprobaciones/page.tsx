@@ -22,7 +22,7 @@ const Page: React.FC = () => {
       const carreras = await fetchCarrerasMiembroComite(usuarioId);
       const carreraIds = (carreras || []).map((c) => c.id);
 
-      // 2. Obtener temas de todas las carreras con estado INSCRITO
+      // 2. Obtener temas de todas las carreras
       const temasPorCarrera = await Promise.all(
         carreraIds.flatMap((id) => [
           listarTemasPorCarrera(id, "INSCRITO"),
