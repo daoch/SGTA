@@ -2,22 +2,26 @@ package pucp.edu.pe.sgta.service.imp;
 
 import org.springframework.stereotype.Service;
 import pucp.edu.pe.sgta.dto.CarreraDto;
+import pucp.edu.pe.sgta.dto.UsuarioDto;
 import pucp.edu.pe.sgta.mapper.CarreraMapper;
 import pucp.edu.pe.sgta.model.Carrera;
 import pucp.edu.pe.sgta.repository.CarreraRepository;
 import pucp.edu.pe.sgta.service.inter.CarreraService;
+import pucp.edu.pe.sgta.service.inter.UsuarioService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 public class CarreraServiceImpl implements CarreraService {
-
     private final CarreraRepository carreraRepository;
+    private final UsuarioService usuarioService;
 
-    public CarreraServiceImpl(CarreraRepository carreraRepository) {
+    public CarreraServiceImpl(CarreraRepository carreraRepository, UsuarioService usuarioService) {
         this.carreraRepository = carreraRepository;
+        this.usuarioService = usuarioService;
     }
+    
 
     @Override
     public CarreraDto findById(Integer id) {
@@ -64,7 +68,9 @@ public class CarreraServiceImpl implements CarreraService {
     }
 
     @Override
-    public List<CarreraDto> listarCarrerasPorUsuario(Integer usuarioId) {
+    public List<CarreraDto> listarCarrerasPorUsuario(String usuario) {
+        UsuarioDto usuDto = usuarioService.findByCognitoId(usuario);
+		Integer usuarioId = usuDto.getId();
         return carreraRepository.findByUsuarioId(usuarioId).stream()
                 // explícitamente indicamos que 'c' es una Carrera
                 .map((Carrera c) -> CarreraDto.builder()

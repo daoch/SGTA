@@ -196,10 +196,11 @@ public class UsuarioController {
         return usuarioService.getIdByCorreo(correo);
     }
 
-    @GetMapping("/{id}/carreras")
+    @GetMapping("/carreras")
     public ResponseEntity<List<CarreraDto>> listarCarreras(
-            @PathVariable("id") Integer usuarioId) {
+            HttpServletRequest request) {
 
+        String usuarioId = jwtService.extractSubFromRequest(request); 
         List<CarreraDto> carreras = carreraService.listarCarrerasPorUsuario(usuarioId);
 
         if (carreras.isEmpty()) {
