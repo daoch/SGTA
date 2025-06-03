@@ -951,7 +951,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 
             Object[] rowDetalle = resultsDetalle.get(0);
 
-            // Luego obtenemos el progreso del alumno y el siguiente entregable
+            //Luego obtenemos el progreso del alumno y el siguiente entregable
             String sqlProgreso = """
                     	SELECT * FROM calcular_progreso_alumno(:p_alumno_id)
                     """;
@@ -962,13 +962,14 @@ public class UsuarioServiceImpl implements UsuarioService {
             @SuppressWarnings("unchecked")
             List<Object[]> resultsProgreso = queryProgreso.getResultList();
 
+
             AlumnoTemaDto alumnoTemaDto = new AlumnoTemaDto();
             alumnoTemaDto.setId((Integer) rowDetalle[0]); // tesista_id
-            alumnoTemaDto.setTemaNombre((String) rowDetalle[8]); // tema_nombre
-            alumnoTemaDto.setAsesorNombre((String) rowDetalle[14]); // asesor_nombre
-            alumnoTemaDto.setCoasesorNombre((String) rowDetalle[16]); // coasesor_nombre
-            alumnoTemaDto.setAreaNombre((String) rowDetalle[12]); // area_conocimiento
-            alumnoTemaDto.setSubAreaNombre((String) rowDetalle[13]); // sub_area_conocimiento
+            alumnoTemaDto.setTemaNombre((String) rowDetalle[9]); // tema_nombre
+            alumnoTemaDto.setAsesorNombre((String) rowDetalle[15]); // asesor_nombre
+            alumnoTemaDto.setCoasesorNombre((String) rowDetalle[17]); // coasesor_nombre
+            alumnoTemaDto.setAreaNombre((String) rowDetalle[13]); // area_conocimiento
+            alumnoTemaDto.setSubAreaNombre((String) rowDetalle[14]); // sub_area_conocimiento
 
             // Agregamos la información de progreso y siguiente entregable
             if (!resultsProgreso.isEmpty()) {
@@ -999,9 +1000,8 @@ public class UsuarioServiceImpl implements UsuarioService {
 
             return alumnoTemaDto;
         } catch (NoSuchElementException e) {
-            throw e; // Re-throw NoSuchElementException as is
+            throw e; 
         } catch (Exception e) {
-            // Log the actual error for debugging
             logger.severe("Error al obtener datos del alumno " + idAlumno + ": " + e.getMessage());
             throw new RuntimeException("Error al obtener datos del alumno: " + e.getMessage());
         }
