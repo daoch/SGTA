@@ -38,6 +38,13 @@ import java.util.Optional;
 
 import pucp.edu.pe.sgta.repository.RevisionCriterioEntregableRepository;
 
+import pucp.edu.pe.sgta.dto.CriterioEntregableDto;
+import pucp.edu.pe.sgta.repository.CriterioEntregableRepository;
+import pucp.edu.pe.sgta.model.CriterioEntregable;
+import java.util.stream.Collectors;
+import java.math.BigDecimal;
+import pucp.edu.pe.sgta.service.inter.CriterioEntregableService;
+
 
 
 @Service
@@ -56,6 +63,9 @@ public class ReportingServiceImpl implements IReportService {
     private final EntregableXTemaRepository entregableXTemaRepository;
     private final RevisionCriterioEntregableRepository revisionCriterioEntregableRepository;
 
+    private final CriterioEntregableRepository criterioEntregableRepository;
+
+    private final CriterioEntregableService criterioEntregableService;
 
     public ReportingServiceImpl(
             TopicAreaStatsRepository topicAreaStatsRepository,
@@ -68,7 +78,9 @@ public class ReportingServiceImpl implements IReportService {
             HistorialReunionRepository historialReunionRepository,
             UsuarioXTemaRepository usuarioXTemaRepository,
             EntregableXTemaRepository entregableXTemaRepository,
-            RevisionCriterioEntregableRepository revisionCriterioEntregableRepository
+            RevisionCriterioEntregableRepository revisionCriterioEntregableRepository,
+            CriterioEntregableRepository criterioEntregableRepository,
+            CriterioEntregableService criterioEntregableService
             ) {
         this.topicAreaStatsRepository = topicAreaStatsRepository;
         this.advisorDistributionRepository = advisorDistributionRepository;
@@ -82,6 +94,8 @@ public class ReportingServiceImpl implements IReportService {
         this.usuarioXTemaRepository = usuarioXTemaRepository;
         this.entregableXTemaRepository = entregableXTemaRepository;
         this.revisionCriterioEntregableRepository = revisionCriterioEntregableRepository;
+        this.criterioEntregableRepository = criterioEntregableRepository;
+        this.criterioEntregableService = criterioEntregableService;
     }
 
     @Override
@@ -377,31 +391,68 @@ public List<EntregableEstudianteDto> getEntregablesEstudiante(Integer usuarioId)
     Integer temaId = usuarioTema.get().getTema().getId();
 
     return entregableXTemaRepository.findByTemaIdWithEntregable(temaId).stream()
-            .map(et -> {
-                // 1) Obtener ID de EntregableXTema
-                Integer entregableXTemaId = et.getEntregableXTemaId();
+        .map(et -> {
+            // 1) Obtener ID de EntregableXTema
+            Integer entregableXTemaId = et.getEntregableXTemaId();
 
-                // 2) Buscar nota (puede ser null)
-                Double nota = revisionCriterioEntregableRepository
-                        .findNotaByEntregableXTemaId(entregableXTemaId)
-                        .orElse(null);
+            // 2) Obtener la nota global para este EntregableXTema (si existe)
+            //    (asumiendo que en tu entidad EntregableXTema ya existe un campo `notaEntregable`)
+            Double notaGlobal = et.getNotaEntregable();
 
-                // 3) Obtener el nuevo campo 'esEvaluable' desde la entidad Entregable
-                boolean esEvaluable = et.getEntregable().isEsEvaluable();
+            // 3) Obtener esEvaluable desde la entidad Entregable
+            boolean esEvaluable = et.getEntregable().isEsEvaluable();
 
-                // 4) Construir el DTO, ahora con cinco parámetros
-                return new EntregableEstudianteDto(
-                        et.getEntregable().getNombre(),
-                        et.getEstado().name(),
-                        et.getFechaEnvio() != null
-                                ? et.getFechaEnvio().toLocalDateTime()
-                                : null,
-                        nota,
-                        esEvaluable  // <— se añade aquí
-                );
-            })
-            .collect(Collectors.toList());
+            // 4) Obtener el estado que vive en la tabla "entregable"
+            String estadoEntregable = et.getEntregable().getEstadoStr();
+
+            // 5) Obtener el estado que vive en la tabla "entregable_x_tema"
+            String estadoEntregaXTema = et.getEstado().name();
+
+            // 6) Construir la lista de criterios para este entregable_x_tema.
+            //    Primero obtenemos todos los criterios activos de este entregable.
+            List<CriterioEntregableDto> criteriosDtoList = criterioEntregableService
+                .listarCriteriosEntregableXEntregable(et.getEntregable().getId())
+                .stream()
+                .map(critDto -> {
+                    // Para cada criterio: buscamos su nota en revision_criterio_entregable (si existe)
+                    Optional<BigDecimal> notaOpt = revisionCriterioEntregableRepository
+                        .findNotaByEntregableXTemaIdAndCriterioEntregableId(
+                            entregableXTemaId,
+                            critDto.getId()
+                        );
+
+                    // Lo convertimos a Double (o null si no hay nota registrada)
+                    Double notaCriterio = notaOpt.map(BigDecimal::doubleValue).orElse(null);
+
+                    // Clonamos el DTO y le seteamos la nota obtenida
+                    CriterioEntregableDto copia = new CriterioEntregableDto();
+                    copia.setId(critDto.getId());
+                    copia.setNombre(critDto.getNombre());
+                    copia.setNotaMaxima(critDto.getNotaMaxima());
+                    copia.setDescripcion(critDto.getDescripcion());
+                    copia.setNota(notaCriterio);
+                    return copia;
+                })
+                .collect(Collectors.toList());
+
+            // 7) Construir el DTO final, pasándole T-O-D-O-S los campos en el orden correcto:
+            return new EntregableEstudianteDto(
+                et.getEntregable().getNombre(),    // nombreEntregable
+                estadoEntregable,                  // estado (tabla entregable)
+                estadoEntregaXTema,                // estado (tabla entregable_x_tema)
+                et.getFechaEnvio() != null
+                    ? et.getFechaEnvio().toLocalDateTime()
+                    : null,                       // fechaEnvio
+                notaGlobal,                        // nota (nota_entregable en ent_x_tema)
+                esEvaluable,                       // esEvaluable
+                criteriosDtoList                   // criterios (con su campo nota de cada criterio)
+            );
+        })
+        .collect(Collectors.toList());
 }
+
+
+
 
 
 

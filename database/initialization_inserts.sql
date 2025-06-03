@@ -2568,12 +2568,6 @@ INSERT INTO entregable_x_tema (entregable_id, tema_id, estado, fecha_envio)
 VALUES (3, 3, 'enviado_tarde',  DATE '2025-01-01');
 
 
-INSERT INTO entregable_x_tema (entregable_id, tema_id, estado, fecha_envio) 
-VALUES (3, 3, 'enviado_a_tiempo',  DATE '2025-05-01');
-
-INSERT INTO entregable_x_tema (entregable_id, tema_id, estado, fecha_envio) 
-VALUES (3, 3, DEFAULT,  DATE '2025-06-01');
-
 --select * from entregable_x_tema
 
 --select * from entregable

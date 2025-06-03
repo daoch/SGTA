@@ -43,6 +43,9 @@ public class EntregableXTema {
     @Transient
     private EstadoEntrega estado;
 
+    @Column(name = "nota_entregable")
+    private Double notaEntregable;
+
     @Column(name = "activo", nullable = false)
     private Boolean activo = true;
 
