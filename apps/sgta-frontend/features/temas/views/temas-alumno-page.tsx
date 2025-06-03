@@ -85,7 +85,7 @@ const MisTemasPage = () => {
       } catch (error) {
         console.error("Error al obtener tema inscrito", error);
       } finally {
-        setIsLoading(false); // ✅ se completa la carga
+        setIsLoading(false); 
       }
     };
 
@@ -96,7 +96,7 @@ const MisTemasPage = () => {
     <div className="space-y-8 mt-4">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-[#042354]">Mis Temas</h1>
+          <h1 className="text-3xl font-bold text-[#042354]">Temas</h1>
           <p className="text-muted-foreground">
             Gestión de tus temas de proyecto de fin de carrera, postulaciones y propuestas
           </p>

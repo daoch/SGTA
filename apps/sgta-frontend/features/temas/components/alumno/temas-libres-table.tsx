@@ -8,7 +8,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
+  DialogTrigger
 } from "@/components/ui/dialog";
 import {
   Table,
@@ -24,15 +24,29 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { EnviarPropuestaCard } from "./postular-card";
 
+interface TemaAPI {
+  id: number;
+  titulo: string;
+  area?: { nombre: string }[];
+  subareas?: { nombre: string }[];
+  coasesores?: { nombres: string; primerApellido?: string }[];
+  fechaLimite: string;
+  resumen?: string;
+  objetivos?: string;
+  requisitos?: string; 
+}
+
 interface TemaDisponible {
   id: number;
   titulo: string;
   area: string;
+  subareas: string[];
   asesor: string;
   coasesores?: string[];
   fechaLimite: string;
   resumen?: string;
   objetivos?: string;
+  requisitos?: string; 
 }
 
 interface PropuestasTableProps {
@@ -75,18 +89,19 @@ export function PropuestasTable({
 
         const data = await res.json();
 
-        const temasMapeados: TemaDisponible[] = data.map((tema: any) => {
+        const temasMapeados: TemaDisponible[] = (data as TemaAPI[]).map((tema) => {
           const asesor = tema.coasesores?.[0];
           const coasesores = tema.coasesores?.slice(1) ?? [];
           return {
             id: tema.id,
             titulo: tema.titulo,
             area: tema.area?.[0]?.nombre ?? "No especificada",
+            subareas: tema.subareas?.map((sa) => sa.nombre) ?? [],
             asesor: asesor
               ? `${asesor.nombres} ${asesor.primerApellido ?? ""}`
               : "No asignado",
             coasesores: coasesores.map(
-              (c: any) => `${c.nombres} ${c.primerApellido ?? ""}`
+              (c) => `${c.nombres} ${c.primerApellido ?? ""}`
             ),
             fechaLimite: tema.fechaLimite,
             resumen: tema.resumen,
@@ -161,7 +176,7 @@ export function PropuestasTable({
                           <Eye className="w-4 h-4" />
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="w-[90vw] max-w-2xl overflow-y-auto max-h-[80vh]">
+                      <DialogContent className="w-[90vw] max-w-3xl sm:max-w-3xl">
                         <DialogHeader>
                           <DialogTitle>Detalles del Tema</DialogTitle>
                           <DialogDescription>
@@ -181,6 +196,13 @@ export function PropuestasTable({
                             <label className="text-sm font-medium">Área</label>
                             <div className="p-3 bg-gray-50 rounded-md border">
                               {selected?.area}
+                            </div>
+                          </div>
+
+                          <div className="space-y-1">
+                            <label className="text-sm font-medium">Subárea(s)</label>
+                            <div className="p-3 bg-gray-50 rounded-md border">
+                              {selected?.subareas?.join(" - ") || "No especificadas"}
                             </div>
                           </div>
 
@@ -209,15 +231,17 @@ export function PropuestasTable({
                           <div className="space-y-1">
                             <label className="text-sm font-medium">Requisitos</label>
                             <div className="p-3 bg-gray-50 rounded-md border whitespace-pre-wrap">
-                              {(selected as any)?.requisitos || "No especificados"}
+                              {selected?.requisitos || "No especificados"}
                             </div>
                           </div>
                         </div>
 
                         <DialogFooter className="mt-4">
-                          <Button variant="outline" onClick={() => setSelected(null)}>
-                            Cancelar
-                          </Button>
+                          <DialogTrigger asChild>
+                            <Button variant="outline">
+                              Cerrar
+                            </Button>
+                          </DialogTrigger>
                         </DialogFooter>
                       </DialogContent>
                     </Dialog>
@@ -243,7 +267,15 @@ export function PropuestasTable({
       </Table>
 
       {/* Dialog global para postulación */}
-      <Dialog open={openPostularDialog} onOpenChange={setOpenPostularDialog}>
+      <Dialog
+        open={openPostularDialog}
+        onOpenChange={(open) => {
+          setOpenPostularDialog(open);
+          if (!open) {
+            setTimeout(() => setSelected(null), 200);
+          }
+        }}
+      >
         <DialogContent className="w-[90vw] max-w-2xl overflow-y-auto max-h-[80vh]">
           <DialogHeader>
             <DialogTitle>Postular a tema</DialogTitle>

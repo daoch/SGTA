@@ -159,7 +159,7 @@ const Page = () => {
       <div className="flex items-end justify-between">
         {/* Intro */}
         <div className="w-4/5">
-          <h1 className="text-3xl font-bold text-[#042354]">Mis Temas</h1>
+          <h1 className="text-3xl font-bold text-[#042354]">Temas</h1>
           <p className="text-muted-foreground">
             Gestión de temas de tesis propuestos y asignados
           </p>
