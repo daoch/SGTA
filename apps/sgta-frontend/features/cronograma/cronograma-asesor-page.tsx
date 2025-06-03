@@ -15,13 +15,15 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { cva } from "class-variance-authority";
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PlusCircle, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format } from 'date-fns';
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { es } from "date-fns/locale";
 
 
 import { Filter } from "lucide-react";
@@ -235,99 +237,74 @@ const MiCronogramaPage = () => {
     [filteredEvents]
   );
 
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [newEvent, setNewEvent] = useState<Omit<CalendarEvent, 'id'>>({
-    title: '',
-    description: '',
-    start: new Date(),
-    end: new Date(),
-    tipoEvento: "Reunión",
-    tesista: ''
-  });
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
+  const [modoExportacion, setModoExportacion] = useState<"actual" | "rango">("actual");
+  const [mesInicioDate, setMesInicioDate] = useState<Date | null>(new Date());
+  const [mesFinDate, setMesFinDate] = useState<Date | null>(new Date());
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setNewEvent(prev => ({ ...prev, [name]: value }));
-  };
+  const handleExport = () => {
+    const now = new Date();
 
-  const handleDateChange = (name: 'start' | 'end', value: string) => {
-    const date = new Date(value);
-    setNewEvent(prev => ({ ...prev, [name]: date }));
-  };
+    let eventosFiltrados = events;
 
-  const handleAddEvent = () => {
-    const eventWithId = {
-      ...newEvent,
-      id: Math.random().toString(36).substring(2, 9)
-    };
-    setEvents(prev => [...prev, eventWithId]);
-    setIsDialogOpen(false);
-    setNewEvent({
-      title: '',
-      description: '',
-      start: new Date(),
-      end: new Date(),
-      tipoEvento: "Reunión",
-      tesista: ''
-    });
-  };
+    if (modoExportacion === "actual") {
+      const mesActual = now.getMonth();
+      eventosFiltrados = events.filter((event) => {
+        const fecha = event.start ?? event.end;
+        return fecha.getMonth() === mesActual && fecha.getFullYear() === now.getFullYear();
+      });
+    } else {
+      if (!mesInicioDate || !mesFinDate) return;
+      const startMonth = mesInicioDate.getMonth();
+      const startYear = mesInicioDate.getFullYear();
+      const endMonth = mesFinDate.getMonth();
+      const endYear = mesFinDate.getFullYear();
 
-//Boton de exportar a csv
-const ExportToCSVButton = () => {
-  const exportToCSV = () => {
-    // Usamos directamente eventosParaCalendario y filtramos los que tienen start definido
-    const validEvents = eventosParaCalendario.filter(event => event.start !== undefined);
-    
-    // Encabezados del CSV (se mantienen igual)
-    const headers = [
-      'Subject',
-      'Start Date',
-      'Start Time',
-      'End Date',
-      'End Time',
-      'Description'
-    ];
+      eventosFiltrados = events.filter((event) => {
+        const fecha = event.start ?? event.end;
+        const mes = fecha.getMonth();
+        const anio = fecha.getFullYear();
+        const desde = new Date(startYear, startMonth);
+        const hasta = new Date(endYear, endMonth + 1); // incluye el mesFin
+        return fecha >= desde && fecha < hasta;
+      });
+    }
 
-    // Convertir eventos a filas CSV (formato idéntico al original)
-    const rows = validEvents.map(event => [
-      event.tipoEvento,               // Subject
-      format(event.start!, 'yyyy-MM-dd'), // Start Date
-      format(event.start!, 'HH:mm'),     // Start Time
-      format(event.end, 'yyyy-MM-dd'),   // End Date
-      format(event.end, 'HH:mm'),        // End Time
-      event.description 
-    ? (event.tesista ? `${event.description} - ${event.tesista}` : event.description)
-    : (event.tesista || '')          // Description
+    const headers = ["Subject", "Start Date", "Start Time", "End Date", "End Time", "Description"];
+    const rows = eventosFiltrados.map((event) => [
+      event.tipoEvento,
+      format(event.start ?? event.end, "yyyy-MM-dd"),
+      format(event.start ?? event.end, "HH:mm"),
+      format(event.end, "yyyy-MM-dd"),
+      format(event.end, "HH:mm"),
+      event.description || ""
     ]);
+    const csvContent = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
 
-    // Crear contenido CSV (igual que antes)
-    const csvContent = [
-      headers.join(','),
-      ...rows.map(row => row.join(','))
-    ].join('\n');
-
-    // Crear y descargar archivo (mismo proceso)
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = url;
-    link.setAttribute('download', 'calendario_eventos.csv');
+    link.setAttribute("download", "calendario_eventos.csv");
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+
+    setIsExportDialogOpen(false);
   };
 
-  return (
-    <Button 
-      onClick={exportToCSV}
-      variant="outline"
-      className="flex items-center gap-2 ml-auto cursor-pointer"
-    >
-      <Download size={16} />
-      Exportar calendario para Google Calendar
-    </Button>
-  );
-};
+  const isRangoInvalido =
+  modoExportacion === "rango" &&
+  mesInicioDate &&
+  mesFinDate &&
+  (mesFinDate.getFullYear() < mesInicioDate.getFullYear() ||
+    (mesFinDate.getFullYear() === mesInicioDate.getFullYear() &&
+      mesFinDate.getMonth() < mesInicioDate.getMonth()));
+
+  const mesActual = new Date().toLocaleString("es-ES", {
+    month: "long",
+    year: "numeric",
+  });
 
   return (
     <div className="space-y-8 mt-4">
@@ -351,8 +328,14 @@ const ExportToCSVButton = () => {
         </div>*/}
 
 
-        <ExportToCSVButton />
-
+        <Button
+          onClick={() => setIsExportDialogOpen(true)}
+          variant="outline"
+          className="flex items-center gap-2 ml-auto cursor-pointer"
+        >
+          <Download size={16} />
+          Exportar calendario para Google Calendar
+        </Button>
 
         <Dialog open={filterOpen} onOpenChange={setFilterOpen}>
           <DialogTrigger asChild>
@@ -411,6 +394,129 @@ const ExportToCSVButton = () => {
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Modal de selección de exportación */}
+      <Dialog open={isExportDialogOpen} onOpenChange={setIsExportDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Exportar calendario para Google Calendar</DialogTitle>
+            <DialogDescription>Selecciona el periodo de exportación.</DialogDescription>
+          </DialogHeader>
+
+          <RadioGroup
+            value={modoExportacion}
+            onValueChange={(val) => setModoExportacion(val as "actual" | "rango")}
+            className="space-y-2"
+          >
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="actual" id="actual" />
+              <label htmlFor="actual" className="text-sm">
+                Mes actual: {mesActual.charAt(0).toUpperCase() + mesActual.slice(1)}
+              </label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="rango" id="rango" />
+              <label htmlFor="rango" className="text-sm">Rango personalizado</label>
+            </div>
+          </RadioGroup>
+
+          {modoExportacion === "rango" && (
+          <div className="flex gap-4 pt-4">
+            {/* MES INICIO */}
+            <div className="flex flex-col gap-1">
+              <span className="text-sm font-medium">Mes inicio</span>
+              <div className="flex gap-2">
+                <select
+                  value={(mesInicioDate?.getMonth() ?? 0)}
+                  onChange={(e) =>
+                    setMesInicioDate((prev) => {
+                      const year = prev?.getFullYear() ?? new Date().getFullYear();
+                      return new Date(year, parseInt(e.target.value));
+                    })
+                  }
+                  className="border p-2 rounded"
+                >
+                  {Array.from({ length: 12 }, (_, i) => (
+                    <option key={i} value={i}>
+                      {format(new Date(2000, i), "MMMM", { locale: es })}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={(mesInicioDate?.getFullYear() ?? new Date().getFullYear())}
+                  onChange={(e) =>
+                    setMesInicioDate((prev) => {
+                      const month = prev?.getMonth() ?? 0;
+                      return new Date(parseInt(e.target.value), month);
+                    })
+                  }
+                  className="border p-2 rounded"
+                >
+                  {Array.from({ length: 11 }, (_, i) => 2020 + i).map((year) => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </select>
+              </div>
+              {isRangoInvalido && (
+                <p className="text-sm text-red-600 mt-2">
+                  El mes inicio no puede ser posterior al mes fin.
+                </p>
+              )}
+            </div>
+
+            {/* MES FIN */}
+            <div className="flex flex-col gap-1">
+              <span className="text-sm font-medium">Mes fin</span>
+              <div className="flex gap-2">
+                <select
+                  value={(mesFinDate?.getMonth() ?? 0)}
+                  onChange={(e) =>
+                    setMesFinDate((prev) => {
+                      const year = prev?.getFullYear() ?? new Date().getFullYear();
+                      return new Date(year, parseInt(e.target.value));
+                    })
+                  }
+                  className="border p-2 rounded"
+                >
+                  {Array.from({ length: 12 }, (_, i) => (
+                    <option key={i} value={i}>
+                      {format(new Date(2000, i), "MMMM", { locale: es })}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={(mesFinDate?.getFullYear() ?? new Date().getFullYear())}
+                  onChange={(e) =>
+                    setMesFinDate((prev) => {
+                      const month = prev?.getMonth() ?? 0;
+                      return new Date(parseInt(e.target.value), month);
+                    })
+                  }
+                  className="border p-2 rounded"
+                >
+                  {Array.from({ length: 11 }, (_, i) => 2020 + i).map((year) => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </select>
+              </div>
+              {isRangoInvalido && (
+                <p className="text-sm text-red-600 mt-2">
+                  El mes fin no puede ser anterior al mes inicio.
+                </p>
+              )}
+            </div>
+          </div>
+)}
+
+
+        <DialogFooter>
+          <Button onClick={handleExport} disabled={isRangoInvalido}>
+            Exportar
+          </Button>
+        </DialogFooter>
+
+        </DialogContent>
+      </Dialog>
 
       <div className="h-screen flex flex-col">
         <Calendar 

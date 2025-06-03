@@ -15,7 +15,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { cva } from "class-variance-authority";
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -23,7 +23,13 @@ import { PlusCircle, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format } from 'date-fns';
 
-// Definimos los tipos de evento posibles
+import { Calendar as CalendarIcon } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Calendar as MonthPicker } from "@/components/ui/calendar"; // asegúrate de tenerlo
+import { es } from "date-fns/locale";
+
+
 type TipoEvento = "Entregable" | "Reunión" | "Exposición";
 
 interface CalendarEvent {
@@ -36,24 +42,19 @@ interface CalendarEvent {
 }
 
 const MiCronogramaPage = () => {
-  // Función para crear fechas con formato más legible
-  const createDate = (
-    day: number, 
-    month: number, 
-    year: number, 
-    hours: number = 0, 
-    minutes: number = 0
-  ) => {
-    return new Date(year, month - 1, day, hours, minutes);
-  };
+  const createDate = (day: number, month: number, year: number, hours = 0, minutes = 0) =>
+    new Date(year, month - 1, day, hours, minutes);
 
-  // Función que asigna colores según el tipo de evento
   const getColorByTipoEvento = (tipo: TipoEvento) => {
-    switch(tipo) {
-      case "Entregable": return "blue";
-      case "Reunión": return "green";
-      case "Exposición": return "pink";
-      default: return "default";
+    switch (tipo) {
+      case "Entregable":
+        return "blue";
+      case "Reunión":
+        return "green";
+      case "Exposición":
+        return "pink";
+      default:
+        return "default";
     }
   };
 
@@ -69,7 +70,6 @@ const MiCronogramaPage = () => {
     }
   });
 
-  // Preparamos los eventos con el nuevo formato
   const [events, setEvents] = useState<CalendarEvent[]>([
     {
       id: "1",
@@ -93,121 +93,99 @@ const MiCronogramaPage = () => {
       description: "Fecha límite para entregar los documentos",
       start: createDate(26, 5, 2025, 13, 0),
       end: createDate(26, 5, 2025, 13, 0),
-      tipoEvento: "Entregable",
+      tipoEvento: "Entregable"
+    },
+    {
+      id: "4",
+      title: "Entrega de Documentos 2",
+      description: "Fecha límite para entregar los documentos",
+      start: createDate(26, 6, 2025, 13, 0),
+      end: createDate(26, 6, 2025, 13, 0),
+      tipoEvento: "Entregable"
     }
   ]);
 
-  // Adaptamos los eventos para el calendario (mapeando tipoEvento a color)
-  const eventosParaCalendario = events.map(event => ({
+  const eventosParaCalendario = events.map((event) => ({
     ...event,
     color: getColorByTipoEvento(event.tipoEvento),
-    type: event.tipoEvento // <- se adapta al nombre esperado
+    type: event.tipoEvento
   }));
 
-  // Estado para el formulario
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [newEvent, setNewEvent] = useState<Omit<CalendarEvent, 'id'>>({
-    title: '',
-    description: '',
-    start: new Date(),
-    end: new Date(),
-    tipoEvento: "Reunión",
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
+  const [modoExportacion, setModoExportacion] = useState<"actual" | "rango">("actual");
+  const [mesInicioDate, setMesInicioDate] = useState<Date | null>(new Date());
+  const [mesFinDate, setMesFinDate] = useState<Date | null>(new Date());
+
+  const handleExport = () => {
+    const now = new Date();
+
+    let eventosFiltrados = events;
+
+    if (modoExportacion === "actual") {
+      const mesActual = now.getMonth();
+      eventosFiltrados = events.filter((event) => {
+        const fecha = event.start ?? event.end;
+        return fecha.getMonth() === mesActual && fecha.getFullYear() === now.getFullYear();
+      });
+    } else {
+      if (!mesInicioDate || !mesFinDate) return;
+      const startMonth = mesInicioDate.getMonth();
+      const startYear = mesInicioDate.getFullYear();
+      const endMonth = mesFinDate.getMonth();
+      const endYear = mesFinDate.getFullYear();
+
+      eventosFiltrados = events.filter((event) => {
+        const fecha = event.start ?? event.end;
+        const mes = fecha.getMonth();
+        const anio = fecha.getFullYear();
+        const desde = new Date(startYear, startMonth);
+        const hasta = new Date(endYear, endMonth + 1); // incluye el mesFin
+        return fecha >= desde && fecha < hasta;
+      });
+    }
+
+    const headers = ["Subject", "Start Date", "Start Time", "End Date", "End Time", "Description"];
+    const rows = eventosFiltrados.map((event) => [
+      event.tipoEvento,
+      format(event.start ?? event.end, "yyyy-MM-dd"),
+      format(event.start ?? event.end, "HH:mm"),
+      format(event.end, "yyyy-MM-dd"),
+      format(event.end, "HH:mm"),
+      event.description || ""
+    ]);
+    const csvContent = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "calendario_eventos.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    setIsExportDialogOpen(false);
+  };
+
+  const isRangoInvalido =
+  modoExportacion === "rango" &&
+  mesInicioDate &&
+  mesFinDate &&
+  (mesFinDate.getFullYear() < mesInicioDate.getFullYear() ||
+    (mesFinDate.getFullYear() === mesInicioDate.getFullYear() &&
+      mesFinDate.getMonth() < mesInicioDate.getMonth()));
+
+  const mesActual = new Date().toLocaleString("es-ES", {
+    month: "long",
+    year: "numeric",
   });
-
-  // Función para manejar el cambio de inputs
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setNewEvent(prev => ({ ...prev, [name]: value }));
-  };
-
-  // Función para manejar fechas
-  const handleDateChange = (name: 'start' | 'end', value: string) => {
-    const date = new Date(value);
-    setNewEvent(prev => ({ ...prev, [name]: date }));
-  };
-
-  // Función para añadir el evento
-  const handleAddEvent = () => {
-    const eventWithId = {
-      ...newEvent,
-      id: Math.random().toString(36).substring(2, 9)
-    };
-    setEvents(prev => [...prev, eventWithId]);
-    setIsDialogOpen(false);
-    setNewEvent({
-      title: '',
-      description: '',
-      start: new Date(),
-      end: new Date(),
-      tipoEvento: "Reunión",
-    });
-  };
-
-  //Boton de exportar a csv
-  const ExportToCSVButton = ({ events }: { events: CalendarEvent[] }) => {
-    const exportToCSV = () => {
-      // Verificar que todos los eventos tengan start definido
-      const validEvents = events.filter(event => event.start !== undefined);
-      
-      // Encabezados del CSV según especificación
-      const headers = [
-        'Subject',
-        'Start Date',
-        'Start Time',
-        'End Date',
-        'End Time',
-        'Description'
-      ];
-  
-      // Convertir eventos a filas CSV (sin comillas en Subject y Description)
-      const rows = validEvents.map(event => [
-        event.tipoEvento,               // Subject (sin comillas)
-        format(event.start!, 'yyyy-MM-dd'), // Start Date
-        format(event.start!, 'HH:mm'),     // Start Time
-        format(event.end, 'yyyy-MM-dd'),   // End Date
-        format(event.end, 'HH:mm'),        // End Time
-        event.description || ''           // Description (sin comillas)
-      ]);
-  
-      // Combinar encabezados y filas
-      const csvContent = [
-        headers.join(','),
-        ...rows.map(row => row.join(','))
-      ].join('\n');
-  
-      // Crear archivo descargable
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', 'calendario_eventos.csv');
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    };
-  
-    return (
-      <Button 
-        onClick={exportToCSV}
-        variant="outline"
-        className="flex items-center gap-2 ml-auto cursor-pointer" // Añadido cursor-pointer
-      >
-        <Download size={16} />
-        Exportar calendario para Google Calendar
-      </Button>
-    );
-  };
 
   return (
     <div className="space-y-8 mt-4">
       <div>
         <h1 className="text-3xl font-bold text-[#042354]">Mi Cronograma</h1>
-        <p className="text-muted-foreground">
-          Visualización de eventos planificados
-        </p>
+        <p className="text-muted-foreground">Visualización de eventos planificados</p>
       </div>
-
-      
 
       <div className="flex flex-wrap gap-4 p-4 bg-white rounded-lg shadow-sm border">
         <div className={cn(leyendaItemVariants({ color: "blue" }))}>
@@ -222,26 +200,147 @@ const MiCronogramaPage = () => {
           <div className="w-3 h-3 rounded-full bg-pink-500"></div>
           <span>Exposición</span>
         </div>
-        {/** 
-        <div className={cn(leyendaItemVariants({ color: "black" }))}>
-          <div className="w-3 h-3 rounded-full bg-black"></div>
-          <span>Otros</span>
-        </div>*/}
 
-        {/* Botón para abrir el popup */}
-        
-        {/* Botón para exportar a csv */}
-        <ExportToCSVButton events={events} />
-
+        {/* Botón para abrir el popup de exportación */}
+        <Button
+          onClick={() => setIsExportDialogOpen(true)}
+          variant="outline"
+          className="flex items-center gap-2 ml-auto cursor-pointer"
+        >
+          <Download size={16} />
+          Exportar calendario para Google Calendar
+        </Button>
       </div>
+
+      {/* Modal de selección de exportación */}
+      <Dialog open={isExportDialogOpen} onOpenChange={setIsExportDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Exportar calendario para Google Calendar</DialogTitle>
+            <DialogDescription>Selecciona el periodo de exportación.</DialogDescription>
+          </DialogHeader>
+
+          <RadioGroup
+            value={modoExportacion}
+            onValueChange={(val) => setModoExportacion(val as "actual" | "rango")}
+            className="space-y-2"
+          >
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="actual" id="actual" />
+              <label htmlFor="actual" className="text-sm">
+                Mes actual: {mesActual.charAt(0).toUpperCase() + mesActual.slice(1)}
+              </label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="rango" id="rango" />
+              <label htmlFor="rango" className="text-sm">Rango personalizado</label>
+            </div>
+          </RadioGroup>
+
+          {modoExportacion === "rango" && (
+          <div className="flex gap-4 pt-4">
+            {/* MES INICIO */}
+            <div className="flex flex-col gap-1">
+              <span className="text-sm font-medium">Mes inicio</span>
+              <div className="flex gap-2">
+                <select
+                  value={(mesInicioDate?.getMonth() ?? 0)}
+                  onChange={(e) =>
+                    setMesInicioDate((prev) => {
+                      const year = prev?.getFullYear() ?? new Date().getFullYear();
+                      return new Date(year, parseInt(e.target.value));
+                    })
+                  }
+                  className="border p-2 rounded"
+                >
+                  {Array.from({ length: 12 }, (_, i) => (
+                    <option key={i} value={i}>
+                      {format(new Date(2000, i), "MMMM", { locale: es })}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={(mesInicioDate?.getFullYear() ?? new Date().getFullYear())}
+                  onChange={(e) =>
+                    setMesInicioDate((prev) => {
+                      const month = prev?.getMonth() ?? 0;
+                      return new Date(parseInt(e.target.value), month);
+                    })
+                  }
+                  className="border p-2 rounded"
+                >
+                  {Array.from({ length: 11 }, (_, i) => 2020 + i).map((year) => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </select>
+              </div>
+              {isRangoInvalido && (
+                <p className="text-sm text-red-600 mt-2">
+                  El mes inicio no puede ser posterior al mes fin.
+                </p>
+              )}
+            </div>
+
+            {/* MES FIN */}
+            <div className="flex flex-col gap-1">
+              <span className="text-sm font-medium">Mes fin</span>
+              <div className="flex gap-2">
+                <select
+                  value={(mesFinDate?.getMonth() ?? 0)}
+                  onChange={(e) =>
+                    setMesFinDate((prev) => {
+                      const year = prev?.getFullYear() ?? new Date().getFullYear();
+                      return new Date(year, parseInt(e.target.value));
+                    })
+                  }
+                  className="border p-2 rounded"
+                >
+                  {Array.from({ length: 12 }, (_, i) => (
+                    <option key={i} value={i}>
+                      {format(new Date(2000, i), "MMMM", { locale: es })}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={(mesFinDate?.getFullYear() ?? new Date().getFullYear())}
+                  onChange={(e) =>
+                    setMesFinDate((prev) => {
+                      const month = prev?.getMonth() ?? 0;
+                      return new Date(parseInt(e.target.value), month);
+                    })
+                  }
+                  className="border p-2 rounded"
+                >
+                  {Array.from({ length: 11 }, (_, i) => 2020 + i).map((year) => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </select>
+              </div>
+              {isRangoInvalido && (
+                <p className="text-sm text-red-600 mt-2">
+                  El mes fin no puede ser anterior al mes inicio.
+                </p>
+              )}
+            </div>
+          </div>
+)}
+
+
+        <DialogFooter>
+          <Button onClick={handleExport} disabled={isRangoInvalido}>
+            Exportar
+          </Button>
+        </DialogFooter>
+
+        </DialogContent>
+      </Dialog>
 
       <div className="h-screen flex flex-col">
         <Calendar events={eventosParaCalendario}>
           <div className="h-full flex flex-col">
-            {/* Barra de controles */}
             <div className="flex px-6 items-center gap-2 mb-6 py-4 border-b">
-              <CalendarViewTrigger 
-                view="day" 
+              <CalendarViewTrigger
+                view="day"
                 className="aria-[current=true]:bg-accent px-3 py-1 text-sm rounded"
               >
                 Día
@@ -271,12 +370,11 @@ const MiCronogramaPage = () => {
               </CalendarTodayTrigger>
 
               <CalendarNextTrigger className="p-2 rounded hover:bg-accent">
-              <ChevronRight size={20} />
+                <ChevronRight size={20} />
                 <span className="sr-only">Siguiente</span>
               </CalendarNextTrigger>
             </div>
 
-            {/* Vista del Calendario */}
             <div className="flex-1 overflow-auto px-6 pb-6">
               <CalendarMonthView />
               <CalendarWeekView />
