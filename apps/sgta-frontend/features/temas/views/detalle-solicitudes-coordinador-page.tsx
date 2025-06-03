@@ -19,6 +19,7 @@ import { idCoasesor } from "../types/solicitudes/mock";
 import { Tema } from "../types/temas/entidades";
 import { toast, Toaster } from "sonner";
 import { useRouter } from "next/navigation";
+import { EstadoTemaNombre } from "../types/temas/enums";
 
 interface Props {
   solicitud: SolicitudPendiente;
@@ -86,11 +87,11 @@ export default function DetalleSolicitudesCoordinadorPage({
       } else {
         const estadoMap: Record<
           "Aprobada" | "Rechazada" | "Observada",
-          "REGISTRADO" | "RECHAZADO" | "OBSERVADO"
+          EstadoTemaNombre
         > = {
-          Aprobada: "REGISTRADO",
-          Rechazada: "RECHAZADO",
-          Observada: "OBSERVADO",
+          Aprobada: EstadoTemaNombre.REGISTRADO,
+          Rechazada: EstadoTemaNombre.RECHAZADO,
+          Observada: EstadoTemaNombre.OBSERVADO,
         };
 
         const payload = {
@@ -136,7 +137,7 @@ export default function DetalleSolicitudesCoordinadorPage({
           <EncabezadoDetalleSolicitudTema solicitud={solicitud} />
           <InfoDetalleSolicitudTema solicitud={solicitud} />
 
-          {solicitud.estado === EstadoSolicitud.PENDIENTE && (
+          {solicitud.estado === EstadoTemaNombre.INSCRITO && (
             <>
               {/* ======= Comentarios del Comité ======= */}
               <ComentariosDetalleSolicitudTema

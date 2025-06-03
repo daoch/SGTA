@@ -1,4 +1,5 @@
-import { EstadoSolicitud } from "./enums";
+import { EstadoTemaNombre } from "../temas/enums";
+import { PagesList, TemasPages } from "./entities";
 
 export const pageSolicitudes = {
   title: "Aprobaciones",
@@ -7,25 +8,29 @@ export const pageSolicitudes = {
 
 export const filters = {
   temaEstados: {
-    [EstadoSolicitud.PENDIENTE]: {
+    [EstadoTemaNombre.INSCRITO]: {
       label: "Pendientes",
       title: "Solicitudes Pendientes",
       description: "Solicitudes de cambios que requieren aprobación",
+      show: true,
     },
-    [EstadoSolicitud.ACEPTADA]: {
+    [EstadoTemaNombre.REGISTRADO]: {
       label: "Aprobadas",
       title: "Solicitudes Aprobadas",
       description: "Solicitudes de cambios que han sido aprobadas",
+      show: true,
     },
-    [EstadoSolicitud.OBSEVADA]: {
+    [EstadoTemaNombre.OBSERVADO]: {
       label: "Observadas",
       title: "Solicitudes Observadas",
       description: "Solicitudes de cambios que quedaron observadas",
+      show: true,
     },
-    [EstadoSolicitud.RECHAZADA]: {
+    [EstadoTemaNombre.RECHAZADO]: {
       label: "Rechazadas",
       title: "Solicitudes Rechazadas",
       description: "Solicitudes de cambios que han sido rechazadas",
+      show: true,
     },
   },
   search: {
@@ -44,3 +49,27 @@ export const filters = {
     },
   },
 };
+
+export const initialPagesList: PagesList = {
+  [EstadoTemaNombre.INSCRITO]: {
+    pages: {},
+    current: 1,
+    totalCounts: 0,
+  },
+  [EstadoTemaNombre.OBSERVADO]: {
+    pages: {},
+    current: 1,
+    totalCounts: 0,
+  },
+  [EstadoTemaNombre.RECHAZADO]: {
+    pages: {},
+    current: 1,
+    totalCounts: 0,
+  },
+  [EstadoTemaNombre.REGISTRADO]: {
+    pages: {},
+    current: 1,
+    totalCounts: 0,
+  },
+};
+

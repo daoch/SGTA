@@ -88,7 +88,7 @@ export default function SolicitudesPendientes({
       {/* Card con tabla */}
       <Card>
         {/* Header */}
-        <CardHeader>
+        {/* <CardHeader>
           <div className="space-y-1">
             <h2 className="text-lg font-semibold">
               {filters.temaEstados[estadoSolicitud].title}
@@ -97,16 +97,16 @@ export default function SolicitudesPendientes({
               {filters.temaEstados[estadoSolicitud].description}
             </p>
           </div>
-        </CardHeader>
+        </CardHeader> */}
 
         <CardContent>
           {/* Solicitudes */}
-          <SolicitudesTable
+          {/* <SolicitudesTable
             solicitudes={solicitudes}
             filter={estadoSolicitud}
             isLoading={loading}
             searchQuery={searchQuery}
-          />
+          /> */}
 
           {/* Pagination */}
           {!loading && (
