@@ -38,7 +38,7 @@ export default function SolicitudesPendientes() {
   );
   const [searchQuery, setSearchQuery] = useState("");
   const [cursoFilter, setCursoFilter] = useState("todos");
-  const [loading] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const [temas, setTemas] = useState<PagesList>(initialPagesList);
   const [carrerasIds, setCarrerasIds] = useState<number[]>([]);
@@ -46,6 +46,7 @@ export default function SolicitudesPendientes() {
   useEffect(() => {
     async function fetchCarrerasYPrimeraPagina() {
       try {
+        setLoading(true);
         // Get CarrerasIds
         const carreras = await fetchCarrerasMiembroComite();
         const ids = (carreras || []).map((c) => c.id);
@@ -57,6 +58,8 @@ export default function SolicitudesPendientes() {
         }
       } catch (error) {
         console.log("No se pudo cargar las carreras del usuario: " + error);
+      } finally {
+        setLoading(false);
       }
     }
 
@@ -82,6 +85,7 @@ export default function SolicitudesPendientes() {
     carrerasIds: number[],
   ) {
     try {
+      setLoading(true);
       if (carrerasIds && carrerasIds.length > 0) {
         const data = await listarTemasPorCarrera(
           carrerasIds[0], // TODO: Validar
@@ -107,6 +111,8 @@ export default function SolicitudesPendientes() {
       }
     } catch (err) {
       console.error("Error loading data", err);
+    } finally {
+      setLoading(false);
     }
   }
 
