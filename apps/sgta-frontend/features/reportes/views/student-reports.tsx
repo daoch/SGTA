@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { format, parseISO } from "date-fns";
+import { format } from "date-fns";
 import { useEffect, useState } from "react";
 import { LineaTiempoReporte } from "../components/general/linea-tiempo";
 import { ModalProgramarReporte } from "../components/general/modal-programar";
@@ -20,7 +20,6 @@ export function StudentReports() {
     const fetchStudentData = async () => {
       if (!user) return;
       try {      
-        // TODO: Reemplazar con el ID real del usuario logueado
         const data = await obtenerDetalleTemaAlumno();
         setStudentData(data);
       } catch (error) {
