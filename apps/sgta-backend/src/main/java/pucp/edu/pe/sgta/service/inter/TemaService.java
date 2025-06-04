@@ -125,6 +125,8 @@ public interface TemaService {
 
 	void inscribirTemaPreinscrito(Integer temaId, String idUsuario);
 
+	void eliminarPostulacionTemaLibre(Integer temaId, String idUsuario);
+
 	void aceptarPostulacionAlumno(Integer temaId, Integer idTesista, String idAsesor, String comentario);
 
 	void rechazarPostulacionAlumno(Integer temaId, Integer idTesista, String idAsesor, String comentario);

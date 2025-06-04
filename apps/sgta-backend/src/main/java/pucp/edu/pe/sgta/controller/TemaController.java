@@ -377,6 +377,19 @@ public class TemaController {
 		}
 	}
 
+	@PostMapping("/eliminarPostulacionTemaLibre")
+	public ResponseEntity<Void> eliminarPostulacionTemaLibre(
+			@RequestParam("temaId") Integer temaId,
+			HttpServletRequest request) {
+		try {
+			String tesistaId = jwtService.extractSubFromRequest(request);
+			temaService.eliminarPostulacionTemaLibre(temaId, tesistaId);
+			return ResponseEntity.noContent().build();
+		} catch (RuntimeException e) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+		}
+	}
+
 	@PutMapping("/aceptarPostulacionAlumnoTemaLibre")
 	public void aceptarPostulacionAlumnoTemaLibre(
 		@RequestBody UsuarioTemaDto usuarioTemaDto,
@@ -406,7 +419,7 @@ public class TemaController {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
 		}
 	}
-	
+
 
 }
 

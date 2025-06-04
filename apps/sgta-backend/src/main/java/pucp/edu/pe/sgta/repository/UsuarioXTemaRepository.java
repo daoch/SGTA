@@ -1,9 +1,11 @@
 package pucp.edu.pe.sgta.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import pucp.edu.pe.sgta.model.UsuarioXTema;
 
 import java.util.List;
@@ -67,6 +69,10 @@ public interface UsuarioXTemaRepository extends JpaRepository<UsuarioXTema, Inte
                 @Param("rolNombre") String rolNombre
         );
         
+        @Modifying
+        @Transactional
+        @Query("UPDATE UsuarioXTema u SET u.activo = false WHERE u.id = :id")
+        void softDeleteById(@Param("id") Integer id);
         // Devuelve Optional<UsuarioXTema> por tema y usuario, solo si está activo
         Optional<UsuarioXTema> findByTemaIdAndUsuarioIdAndActivoTrue(Integer temaId, Integer usuarioId);
 
