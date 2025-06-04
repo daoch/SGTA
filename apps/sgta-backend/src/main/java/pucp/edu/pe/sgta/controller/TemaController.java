@@ -1,5 +1,6 @@
 package pucp.edu.pe.sgta.controller;
 
+import org.aspectj.lang.annotation.Before;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,7 @@ import pucp.edu.pe.sgta.dto.TemaDto;
 import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
 import pucp.edu.pe.sgta.service.inter.JwtService;
 import pucp.edu.pe.sgta.service.inter.TemaService;
+import pucp.edu.pe.sgta.dto.UsuarioTemaDto;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -374,6 +376,8 @@ public class TemaController {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
 		}
 	}
+
+	
 
 }
 

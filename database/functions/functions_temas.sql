@@ -366,34 +366,6 @@ END;
 $$ LANGUAGE plpgsql;
 
 
-CREATE OR REPLACE FUNCTION listar_areas_por_tema (
-  p_tema_id INT
-)
-RETURNS TABLE (
-  area_conocimiento_id INT,
-  nombre               TEXT
-) AS $$
-BEGIN
-  RETURN QUERY
-  SELECT
-    ac.area_conocimiento_id,
-    ac.nombre::text
-  FROM sub_area_conocimiento_tema sact
-  JOIN sub_area_conocimiento sac
-    ON sac.sub_area_conocimiento_id = sact.sub_area_conocimiento_id
-  JOIN area_conocimiento ac
-    ON ac.area_conocimiento_id = sac.area_conocimiento_id
-  WHERE
-    sact.tema_id = p_tema_id
-    AND sac.activo = TRUE
-    AND ac.activo = TRUE
-  GROUP BY
-    ac.area_conocimiento_id,
-    ac.nombre;
-END;
-$$ LANGUAGE plpgsql;
-
-
 
 CREATE OR REPLACE FUNCTION enlazar_tesistas_tema_propuesta_directa(
     p_usuarios_id integer[],
