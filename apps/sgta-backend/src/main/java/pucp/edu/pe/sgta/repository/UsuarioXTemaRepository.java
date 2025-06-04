@@ -76,6 +76,9 @@ public interface UsuarioXTemaRepository extends JpaRepository<UsuarioXTema, Inte
         // Devuelve Optional<UsuarioXTema> por tema y usuario, solo si está activo
         Optional<UsuarioXTema> findByTemaIdAndUsuarioIdAndActivoTrue(Integer temaId, Integer usuarioId);
 
+        Optional<UsuarioXTema> findByUsuarioIdAndTemaIdAndRolId(Integer usuarioId, Integer temaId, Integer rolId);
+
+        Optional<UsuarioXTema> findByUsuario_IdAndTema_Id(Integer usuarioId, Integer temaId);
         // Devuelve lista de UsuarioXTema por tema, donde asignado = false y activo = true
         List<UsuarioXTema> findByTemaIdAndAsignadoFalseAndActivoTrue(Integer temaId);
 }
