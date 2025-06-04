@@ -8,7 +8,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle
+  DialogTitle,
 } from "@/components/ui/dialog";
 import {
   Table,
@@ -18,56 +18,96 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useAuthStore } from "@/features/auth/store/auth-store";
 import { Eye, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-// Datos sintéticos
-const data = [
-  {
-    titulo: "Modelo de detección de casas",
-    area: "ciencias de la computación",
-    asesor: "MarthaAsesor Pérez",
-    coasesores: ["RenzoAsesor Iwamoto"],
-    fechaLimite: "6/6/2025",
-    estado: "Pendiente",
-    resumen: "Resumen de modelo de casas...",
-  },
-  {
-    titulo: "Análisis de sentimientos para marketing",
-    area: "ciencias de la computación",
-    asesor: "Carlos Sánchez",
-    coasesores: [],
-    fechaLimite: "7/6/2025",
-    estado: "Aceptado",
-    resumen: "Resumen de análisis de sentimientos...",
-  },
-  {
-    titulo: "Desarrollo de app con IoT",
-    area: "ciencias de la computación",
-    asesor: "MarthaAsesor Pérez",
-    coasesores: ["Carlos Sánchez", "RenzoAsesor Iwamoto"],
-    fechaLimite: "10/6/2025",
-    estado: "Rechazado",
-    resumen: "Resumen de app con IoT...",
-  },
-];
+interface TemaAPI {
+  id: number;
+  titulo: string;
+  resumen: string;
+  fechaLimite: string;
+  estadoTemaNombre: string;
+  area: { nombre: string }[];
+  subareas?: { nombre: string }[];
+  coasesores: { nombres: string; primerApellido?: string; rol: string }[];
+}
 
-// Estado visual
+interface Tema {
+  id: number;
+  titulo: string;
+  resumen: string;
+  area: string;
+  subareas: string[];
+  asesor: string;
+  coasesores: string[];
+  fechaLimite: string;
+  estado: string;
+}
+
 const getEstadoBadge = (estado: string) => {
   switch (estado) {
+    case "PROPUESTO_LIBRE":
     case "Pendiente":
       return <Badge className="bg-yellow-100 text-yellow-800">Pendiente</Badge>;
-    case "Rechazado":
-      return <Badge className="bg-red-100 text-red-800">Rechazado</Badge>;
     case "Aceptado":
       return <Badge className="bg-green-100 text-green-800">Aceptado</Badge>;
+    case "Rechazado":
+      return <Badge className="bg-red-100 text-red-800">Rechazado</Badge>;
     default:
       return <Badge variant="outline">Desconocido</Badge>;
   }
 };
 
 export function PostulacionesTable() {
+  const [temas, setTemas] = useState<Tema[]>([]);
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
+
+  useEffect(() => {
+    const fetchPostulaciones = async () => {
+      try {
+        const { idToken } = useAuthStore.getState();
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/temas/listarMisPostulacionesTemaLibre`,
+          {
+            headers: {
+              Authorization: `Bearer ${idToken}`,
+            },
+          }
+        );
+
+        if (!res.ok) throw new Error("Error al obtener postulaciones");
+
+        const data: TemaAPI[] = await res.json();
+        const mapped = data.map((tema) => {
+          const asesorObj = tema.coasesores[0];
+          const coasesoresObj = tema.coasesores.slice(1);
+
+          return {
+            id: tema.id,
+            titulo: tema.titulo,
+            resumen: tema.resumen,
+            area: tema.area?.[0]?.nombre || "No especificada",
+            subareas: tema.subareas?.map((s) => s.nombre) || [],
+            asesor: asesorObj
+              ? `${asesorObj.nombres} ${asesorObj.primerApellido || ""}`
+              : "No asignado",
+            coasesores: coasesoresObj.map(
+              (c) => `${c.nombres} ${c.primerApellido || ""}`
+            ),
+            fechaLimite: new Date(tema.fechaLimite).toLocaleDateString("es-PE"),
+            estado: tema.estadoTemaNombre,
+          };
+        });
+
+        setTemas(mapped);
+      } catch (err) {
+        console.error("Error al cargar postulaciones:", err);
+      }
+    };
+
+    fetchPostulaciones();
+  }, []);
 
   return (
     <div className="rounded-md border bg-white">
@@ -84,8 +124,8 @@ export function PostulacionesTable() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {data.map((item, idx) => (
-            <TableRow key={idx}>
+          {temas.map((item, idx) => (
+            <TableRow key={item.id}>
               <TableCell className="max-w-xs truncate">{item.titulo}</TableCell>
               <TableCell>{item.area}</TableCell>
               <TableCell>{item.asesor}</TableCell>
@@ -100,7 +140,7 @@ export function PostulacionesTable() {
                 >
                   <Eye className="w-4 h-4" />
                 </Button>
-                {item.estado === "Pendiente" && (
+                {item.estado === "PROPUESTO_LIBRE" && (
                   <Button size="icon" variant="ghost" className="text-red-600">
                     <Trash2 className="w-4 h-4" />
                   </Button>
@@ -112,7 +152,10 @@ export function PostulacionesTable() {
       </Table>
 
       {selectedIdx !== null && (
-        <Dialog open={selectedIdx !== null} onOpenChange={(open) => !open && setSelectedIdx(null)}>
+        <Dialog
+          open={selectedIdx !== null}
+          onOpenChange={(open) => !open && setSelectedIdx(null)}
+        >
           <DialogContent className="w-[90vw] max-w-3xl sm:max-w-3xl">
             <DialogHeader>
               <DialogTitle>Detalles del Tema</DialogTitle>
@@ -125,21 +168,21 @@ export function PostulacionesTable() {
               <div className="space-y-1">
                 <label className="text-sm font-medium">Título</label>
                 <div className="p-3 bg-gray-50 rounded-md border">
-                  {data[selectedIdx].titulo}
+                  {temas[selectedIdx].titulo}
                 </div>
               </div>
 
               <div className="space-y-1">
                 <label className="text-sm font-medium">Área</label>
                 <div className="p-3 bg-gray-50 rounded-md border">
-                  {data[selectedIdx].area}
+                  {temas[selectedIdx].area}
                 </div>
               </div>
 
               <div className="space-y-1">
                 <label className="text-sm font-medium">Descripción</label>
                 <div className="p-3 bg-gray-50 rounded-md border whitespace-pre-wrap">
-                  {data[selectedIdx].resumen}
+                  {temas[selectedIdx].resumen}
                 </div>
               </div>
 
@@ -147,13 +190,13 @@ export function PostulacionesTable() {
                 <div className="space-y-1">
                   <label className="text-sm font-medium">Asesor</label>
                   <div className="p-3 bg-gray-50 rounded-md border">
-                    {data[selectedIdx].asesor}
+                    {temas[selectedIdx].asesor}
                   </div>
                 </div>
                 <div className="space-y-1">
                   <label className="text-sm font-medium">Fecha Límite</label>
                   <div className="p-3 bg-gray-50 rounded-md border">
-                    {data[selectedIdx].fechaLimite}
+                    {temas[selectedIdx].fechaLimite}
                   </div>
                 </div>
               </div>
