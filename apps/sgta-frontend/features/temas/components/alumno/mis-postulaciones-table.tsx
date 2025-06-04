@@ -31,6 +31,7 @@ interface TemaAPI {
   area: { nombre: string }[];
   subareas?: { nombre: string }[];
   coasesores: { nombres: string; primerApellido?: string; rol: string }[];
+  tesistas?: { comentario?: string }[]; 
 }
 
 interface Tema {
@@ -43,6 +44,8 @@ interface Tema {
   coasesores: string[];
   fechaLimite: string;
   estado: string;
+  comentarioTesista?: string; 
+  comentariosAsesores?: string;
 }
 
 const getEstadoBadge = (estado: string) => {
@@ -82,6 +85,10 @@ export function PostulacionesTable() {
         const mapped = data.map((tema) => {
           const asesorObj = tema.coasesores[0];
           const coasesoresObj = tema.coasesores.slice(1);
+          const comentarios = tema.coasesores
+            .map((c) => c.rol && "comentario" in c ? (c as any).comentario : null)
+            .filter((c) => c && c.trim() !== "")
+            .join("\n\n");
 
           return {
             id: tema.id,
@@ -97,6 +104,8 @@ export function PostulacionesTable() {
             ),
             fechaLimite: new Date(tema.fechaLimite).toLocaleDateString("es-PE"),
             estado: tema.estadoTemaNombre,
+            comentarioTesista: tema.tesistas?.[0]?.comentario || "Sin comentario",
+            comentariosAsesores: comentarios || undefined, // si no hay, queda undefined
           };
         });
 
@@ -158,9 +167,9 @@ export function PostulacionesTable() {
         >
           <DialogContent className="w-[90vw] max-w-3xl sm:max-w-3xl">
             <DialogHeader>
-              <DialogTitle>Detalles del Tema</DialogTitle>
+              <DialogTitle>Detalles de tu postulación</DialogTitle>
               <DialogDescription>
-                Información completa sobre la postulación seleccionada
+                Información completa sobre la postulación realizada
               </DialogDescription>
             </DialogHeader>
 
@@ -200,6 +209,20 @@ export function PostulacionesTable() {
                   </div>
                 </div>
               </div>
+              <div className="space-y-1">
+                <label className="text-sm font-medium">Comentario enviado al asesor</label>
+                <div className="p-3 bg-gray-50 rounded-md border whitespace-pre-wrap">
+                  {temas[selectedIdx].comentarioTesista}
+                </div>
+              </div>
+              {temas[selectedIdx].comentariosAsesores && (
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">Comentario(s) del Asesor</label>
+                  <div className="p-3 bg-gray-50 rounded-md border whitespace-pre-wrap">
+                    {temas[selectedIdx].comentariosAsesores}
+                  </div>
+                </div>
+              )}
             </div>
 
             <DialogFooter className="mt-4">
