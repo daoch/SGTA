@@ -1,11 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Eye } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -14,6 +10,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Eye } from "lucide-react";
+import { useState } from "react";
+import { SeleccionarEstudianteModal } from "../components/general/modal-seleccionar-estudiante";
+
 
 export function ReviewerReports() {
   const [selectedStudent, setSelectedStudent] = useState("1");
@@ -197,18 +198,11 @@ export function ReviewerReports() {
           <CardTitle className="text-lg">Seleccionar Estudiante</CardTitle>
         </CardHeader>
         <CardContent>
-          <Select value={selectedStudent} onValueChange={setSelectedStudent}>
-            <SelectTrigger className="w-full md:w-[300px]">
-              <SelectValue placeholder="Seleccionar estudiante" />
-            </SelectTrigger>
-            <SelectContent>
-              {students.map((student) => (
-                <SelectItem key={student.id} value={student.id}>
-                  {student.name} - {student.thesis.substring(0, 30)}...
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <SeleccionarEstudianteModal
+            students={students}
+            selectedStudentId={selectedStudent}
+            onSelect={setSelectedStudent}
+          />
         </CardContent>
       </Card>
 
