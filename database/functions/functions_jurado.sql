@@ -1131,3 +1131,4 @@ begin
 	where e.exposicion_id =idExpo ;
 end
 $$;
+
