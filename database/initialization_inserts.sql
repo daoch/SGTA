@@ -2598,3 +2598,91 @@ INSERT INTO revision_criterio_entregable (
     (2, 2, 36, 10.00, NULL),
 	(3, 3, 36, 19.00, NULL);
 
+
+INSERT INTO parametro_configuracion (
+    nombre,
+    descripcion,
+    modulo_id,
+    activo,
+    fecha_creacion,
+    fecha_modificacion,
+    tipo
+) VALUES (
+    'Cantidad Jurados',
+    'cantidad maxima de tesis por jurado',
+    1,
+    true,
+    NOW(),       -- Fecha de creación actual
+    NOW(),        -- Fecha de modificación actual
+    'integer'
+);
+
+
+INSERT INTO carrera_parametro_configuracion (
+    carrera_id,
+    parametro_configuracion_id,
+    valor,
+    activo,
+    fecha_creacion,
+    fecha_modificacion,
+    etapa_formativa_id
+) VALUES (
+    1,  -- ID de la carrera
+    (
+        SELECT parametro_configuracion_id
+        FROM parametro_configuracion
+        WHERE nombre = 'Cantidad Jurados'
+        LIMIT 1
+    ),
+    5,      -- Valor de la configuración
+    true,   -- Estado activo
+    NOW(),  -- Fecha de creación
+    NOW(),  -- Fecha de modificación
+    1       -- ID de etapa formativa
+);
+
+
+------------------------------------------------------------------------------------------------------
+
+
+INSERT INTO parametro_configuracion (
+    nombre,
+    descripcion,
+    modulo_id,
+    activo,
+    fecha_creacion,
+    fecha_modificacion,
+    tipo
+) VALUES (
+    'Tiempo Limite Jurado',
+    'Tiempo limite para que jurado revise entregables',
+    1,
+    true,
+    NOW(),       -- Fecha de creación actual
+    NOW(),        -- Fecha de modificación actual
+    'integer'
+);
+
+INSERT INTO carrera_parametro_configuracion (
+    carrera_id,
+    parametro_configuracion_id,
+    valor,
+    activo,
+    fecha_creacion,
+    fecha_modificacion,
+    etapa_formativa_id
+) VALUES (
+    1,                            -- ID de la carrera asociada (ejemplo: 1)
+    (
+        SELECT parametro_configuracion_id
+        FROM parametro_configuracion
+        WHERE nombre = 'Tiempo Limite Jurado'
+        LIMIT 1
+    ),                            -- ID del parametro_configuracion asociado (ejemplo: 1)
+    15,                            -- Valor de la configuración
+    true,                         -- Estado activo
+    NOW(),                        -- Fecha de creación actual
+    NOW(),                         -- Fecha de modificación actual
+    1
+);
+
