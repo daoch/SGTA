@@ -89,4 +89,32 @@ public interface NotificacionRepository extends JpaRepository<Notificacion, Inte
           AND n.fechaLectura IS NULL
     """)
     int countAllUnreadByUsuario(@Param("usuarioId") Integer usuarioId);
+
+    /**
+     * Obtiene todas las notificaciones del usuario (leídas y no leídas) para un módulo específico
+     */
+    @Query("""
+        SELECT n
+        FROM Notificacion n
+        WHERE n.usuario.id = :usuarioId
+          AND n.modulo.id = :moduloId
+          AND n.activo = true
+        ORDER BY n.tipoNotificacion.prioridad DESC, n.fechaCreacion DESC
+    """)
+    List<Notificacion> findAllByUsuarioAndModulo(
+            @Param("usuarioId") Integer usuarioId,
+            @Param("moduloId") Integer moduloId
+    );
+
+    /**
+     * Obtiene todas las notificaciones del usuario (leídas y no leídas) de todos los módulos
+     */
+    @Query("""
+        SELECT n
+        FROM Notificacion n
+        WHERE n.usuario.id = :usuarioId
+          AND n.activo = true
+        ORDER BY n.tipoNotificacion.prioridad DESC, n.fechaCreacion DESC
+    """)
+    List<Notificacion> findAllByUsuario(@Param("usuarioId") Integer usuarioId);
 } 

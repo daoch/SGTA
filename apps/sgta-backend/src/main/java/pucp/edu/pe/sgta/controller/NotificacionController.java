@@ -39,6 +39,23 @@ public class NotificacionController {
     }
 
     /**
+     * Obtiene todas las notificaciones (leídas y no leídas) del usuario autenticado
+     * GET /api/notifications/all
+     */
+    @GetMapping("/all")
+    public ResponseEntity<List<NotificacionDto>> getAllNotifications(Authentication authentication) {
+        try {
+            Integer usuarioId = 33;
+            List<NotificacionDto> notificaciones = notificacionService.getAllNotifications(usuarioId);
+            log.info("Usuario {} consultó {} notificaciones totales", usuarioId, notificaciones.size());
+            return ResponseEntity.ok(notificaciones);
+        } catch (Exception e) {
+            log.error("Error al obtener todas las notificaciones: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
      * Obtiene las notificaciones no leídas del usuario para un módulo específico
      * GET /api/notifications/unread/{moduloId}
      */
@@ -54,6 +71,26 @@ public class NotificacionController {
             return ResponseEntity.ok(notificaciones);
         } catch (Exception e) {
             log.error("Error al obtener notificaciones no leídas por módulo: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * Obtiene todas las notificaciones (leídas y no leídas) del usuario para un módulo específico
+     * GET /api/notifications/all/{moduloId}
+     */
+    @GetMapping("/all/{moduloId}")
+    public ResponseEntity<List<NotificacionDto>> getAllNotificationsByModule(
+            @PathVariable Integer moduloId,
+            Authentication authentication) {
+        try {
+            Integer usuarioId = 33;
+            List<NotificacionDto> notificaciones = notificacionService.getAllNotifications(usuarioId, moduloId);
+            log.info("Usuario {} consultó {} notificaciones totales del módulo {}", 
+                    usuarioId, notificaciones.size(), moduloId);
+            return ResponseEntity.ok(notificaciones);
+        } catch (Exception e) {
+            log.error("Error al obtener todas las notificaciones por módulo: {}", e.getMessage(), e);
             return ResponseEntity.internalServerError().build();
         }
     }

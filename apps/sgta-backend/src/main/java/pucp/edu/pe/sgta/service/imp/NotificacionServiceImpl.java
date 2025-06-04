@@ -51,6 +51,20 @@ public class NotificacionServiceImpl implements NotificacionService {
 
     @Override
     @Transactional(readOnly = true)
+    public List<NotificacionDto> getAllNotifications(Integer usuarioId, Integer moduloId) {
+        List<Notificacion> notificaciones = notificacionRepository.findAllByUsuarioAndModulo(usuarioId, moduloId);
+        return convertirADto(notificaciones);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<NotificacionDto> getAllNotifications(Integer usuarioId) {
+        List<Notificacion> notificaciones = notificacionRepository.findAllByUsuario(usuarioId);
+        return convertirADto(notificaciones);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public int countUnreadNotifications(Integer usuarioId, Integer moduloId) {
         return notificacionRepository.countUnreadByUsuarioAndModulo(usuarioId, moduloId);
     }

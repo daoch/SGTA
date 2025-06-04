@@ -18,6 +18,16 @@ public interface NotificacionService {
     List<NotificacionDto> getAllUnreadNotifications(Integer usuarioId);
 
     /**
+     * Obtiene todas las notificaciones (leídas y no leídas) de un usuario para un módulo específico
+     */
+    List<NotificacionDto> getAllNotifications(Integer usuarioId, Integer moduloId);
+
+    /**
+     * Obtiene todas las notificaciones (leídas y no leídas) de un usuario
+     */
+    List<NotificacionDto> getAllNotifications(Integer usuarioId);
+
+    /**
      * Cuenta las notificaciones no leídas de un usuario para un módulo específico
      */
     int countUnreadNotifications(Integer usuarioId, Integer moduloId);
