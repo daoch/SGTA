@@ -12,184 +12,80 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Eye } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { SeleccionarEstudianteModal } from "../components/general/modal-seleccionar-estudiante";
+import { fetchUsers } from "@/features/temas/types/inscripcion/data";
 
+interface Timeline {
+  date: string;
+  event: string;
+  status: string;
+  comments: string;
+}
+
+interface Deliverable {
+  id: string;
+  title: string;
+  date: string;
+  status: string;
+  feedback: string;
+  score: number | null;
+}
+
+interface Student {
+  id: string;
+  name: string;
+  thesis: string;
+  advisor: string;
+  timeline: Timeline[];
+  deliverables: Deliverable[];
+}
+
+interface APIStudent {
+  id: number;
+  nombres: string;
+  primerApellido: string;
+  tituloTesis?: string;
+  asesor?: string;
+}
 
 export function ReviewerReports() {
-  const [selectedStudent, setSelectedStudent] = useState("1");
+  const [selectedStudent, setSelectedStudent] = useState<string>("");
+  const [students, setStudents] = useState<Student[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const students = [
-    {
-      id: "1",
-      name: "Ana Martínez",
-      thesis: "Implementación de algoritmos de machine learning para detección de fraudes",
-      advisor: "Dr. Rodríguez",
-      timeline: [
-        {
-          date: "15/01/2023",
-          event: "Propuesta de tema",
-          status: "Aprobado",
-          comments:
-            "Tema relevante y bien definido. La propuesta está bien estructurada y el tema es relevante. Se recomienda acotar un poco más el alcance para asegurar que sea factible en el tiempo disponible. Los objetivos están claros y la justificación es adecuada.",
-        },
-        {
-          date: "01/02/2023",
-          event: "Asignación de asesor",
-          status: "Completado",
-          comments:
-            "Dr. Rodríguez asignado como asesor. El asesor tiene experiencia en el área de machine learning y detección de fraudes, lo que lo hace idóneo para guiar este trabajo.",
-        },
-        {
-          date: "15/02/2023",
-          event: "Plan de trabajo",
-          status: "Aprobado",
-          comments:
-            "Cronograma realista y bien estructurado. El plan de trabajo presenta una distribución adecuada de las actividades en el tiempo disponible. Los hitos están bien definidos y son alcanzables.",
-        },
-        {
-          date: "28/02/2023",
-          event: "Marco teórico",
-          status: "Aprobado con observaciones",
-          comments:
-            "Incluir más referencias recientes sobre algoritmos de detección. El marco teórico es sólido pero podría beneficiarse de literatura más actual (últimos 2-3 años). Las definiciones son claras y la estructura es coherente.",
-        },
-        {
-          date: "15/03/2023",
-          event: "Metodología",
-          status: "Aprobado",
-          comments:
-            "Metodología adecuada para los objetivos planteados. Los métodos seleccionados son apropiados para los objetivos planteados. El diseño experimental es robusto y la selección de variables es adecuada.",
-        },
-        {
-          date: "10/04/2023",
-          event: "Avance de implementación",
-          status: "En revisión",
-          comments:
-            "Pendiente de revisión. El documento fue recibido y será evaluado en los próximos días. Se notificará cuando la revisión esté completa.",
-        },
-      ],
-      deliverables: [
-        {
-          id: "1",
-          title: "Propuesta de tema",
-          date: "15/01/2023",
-          status: "Aprobado",
-          feedback:
-            "La propuesta está bien estructurada y el tema es relevante. Se recomienda acotar un poco más el alcance. Los objetivos están claros y bien definidos. La justificación demuestra la relevancia del tema en el contexto actual. La metodología propuesta es adecuada para abordar el problema.",
-          score: 18,
-        },
-        {
-          id: "2",
-          title: "Marco teórico",
-          date: "28/02/2023",
-          status: "Aprobado con observaciones",
-          feedback:
-            "El marco teórico es completo, pero se sugiere incluir referencias más recientes sobre algoritmos de detección de fraudes. La estructura es coherente y las definiciones son claras. Se recomienda profundizar en la sección sobre evaluación de modelos de machine learning.",
-          score: 16,
-        },
-        {
-          id: "3",
-          title: "Metodología",
-          date: "15/03/2023",
-          status: "Aprobado",
-          feedback:
-            "La metodología está bien definida y es adecuada para los objetivos planteados. El diseño experimental es robusto y la selección de variables es adecuada. Los métodos de validación son apropiados para evaluar el rendimiento de los algoritmos.",
-          score: 17,
-        },
-        {
-          id: "4",
-          title: "Avance de implementación",
-          date: "10/04/2023",
-          status: "En revisión",
-          feedback:
-            "Pendiente de revisión. El documento fue recibido y será evaluado en los próximos días. Se notificará cuando la revisión esté completa.",
-          score: null,
-        },
-      ],
-    },
-    {
-      id: "2",
-      name: "Carlos López",
-      thesis: "Desarrollo de un sistema de recomendación basado en contenido",
-      advisor: "Dra. Sánchez",
-      timeline: [
-        {
-          date: "20/01/2023",
-          event: "Propuesta de tema",
-          status: "Aprobado",
-          comments:
-            "Tema interesante y con aplicaciones prácticas. La propuesta aborda un tema relevante en el campo de los sistemas de recomendación. Los objetivos están bien planteados aunque podrían ser más específicos.",
-        },
-        {
-          date: "05/02/2023",
-          event: "Asignación de asesor",
-          status: "Completado",
-          comments:
-            "Dra. Sánchez asignada como asesora. La asesora tiene amplia experiencia en sistemas de recomendación y minería de datos, lo que la hace idónea para guiar este trabajo.",
-        },
-        {
-          date: "20/02/2023",
-          event: "Plan de trabajo",
-          status: "Aprobado con observaciones",
-          comments:
-            "Ajustar tiempos de implementación. El plan es adecuado, pero se sugiere ajustar los tiempos de implementación para hacerlos más realistas considerando la complejidad del sistema propuesto.",
-        },
-        {
-          date: "05/03/2023",
-          event: "Marco teórico",
-          status: "Aprobado con observaciones",
-          comments:
-            "Profundizar en algoritmos de filtrado colaborativo. El marco teórico es bueno, pero debe profundizar en algoritmos de filtrado colaborativo y su comparación con métodos basados en contenido.",
-        },
-        {
-          date: "02/04/2023",
-          event: "Metodología",
-          status: "En revisión",
-          comments: "Pendiente de revisión. El documento fue recibido y será evaluado en los próximos días.",
-        },
-      ],
-      deliverables: [
-        {
-          id: "1",
-          title: "Propuesta de tema",
-          date: "20/01/2023",
-          status: "Aprobado",
-          feedback:
-            "La propuesta es interesante y tiene aplicaciones prácticas. Se recomienda definir mejor los objetivos específicos. La justificación demuestra la relevancia del tema en el contexto actual de sistemas de recomendación.",
-          score: 17,
-        },
-        {
-          id: "2",
-          title: "Plan de trabajo",
-          date: "20/02/2023",
-          status: "Aprobado con observaciones",
-          feedback:
-            "El plan es adecuado, pero se sugiere ajustar los tiempos de implementación para hacerlos más realistas considerando la complejidad del sistema propuesto. El cronograma debe ser más detallado en la fase de evaluación.",
-          score: 15,
-        },
-        {
-          id: "3",
-          title: "Marco teórico",
-          date: "05/03/2023",
-          status: "Aprobado con observaciones",
-          feedback:
-            "El marco teórico es bueno, pero debe profundizar en algoritmos de filtrado colaborativo y su comparación con métodos basados en contenido. Las referencias son adecuadas pero se sugiere ampliar la sección sobre evaluación de sistemas de recomendación.",
-          score: 16,
-        },
-        {
-          id: "4",
-          title: "Metodología",
-          date: "02/04/2023",
-          status: "En revisión",
-          feedback: "Pendiente de revisión",
-          score: null,
-        },
-      ],
-    },
-  ];
+  useEffect(() => {
+    const loadStudents = async () => {
+      try {
+        setLoading(true);
+        //TODO: cambiar id Carrera
+        const data = await fetchUsers(1, "Alumno");
+
+        const transformedData = data.map((student: APIStudent) => ({
+          id: student.id.toString(),
+          name: `${student.nombres} ${student.primerApellido}`,
+          thesis: student.tituloTesis || "Sin título asignado",
+          advisor: student.asesor || "Sin asesor asignado",
+          timeline: [],
+          deliverables: [] 
+        }));
+        setStudents(transformedData);
+      } catch (error) {
+        console.error("Error loading students:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadStudents();
+  }, []);
 
   const selectedStudentData = students.find((student) => student.id === selectedStudent);
+  console.log("Selected Student Data:", selectedStudent);
+
+  if (loading) {
+    return <div>Cargando estudiantes...</div>;
+  }
 
   return (
     <div className="space-y-6">

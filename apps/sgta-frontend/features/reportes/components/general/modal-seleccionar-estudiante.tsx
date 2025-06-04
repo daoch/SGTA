@@ -47,10 +47,7 @@ export function SeleccionarEstudianteModal({
             : "Seleccionar estudiante"}
         </Button>
       </DialogTrigger>
-      <DialogContent
-        className="modal-dialog modal-lg"
-        style={{ width: "80%", maxWidth: "60%" }}
-        >
+      <DialogContent className="modal-dialog modal-lg" style={{ width: "80%", maxWidth: "60%" }}>
         <DialogHeader>
           <DialogTitle className="mb-2 text-center">Buscar y seleccionar estudiante</DialogTitle>
         </DialogHeader>
@@ -67,27 +64,27 @@ export function SeleccionarEstudianteModal({
           ) : (
             <ul className="flex flex-col gap-3">
               {filteredStudents.map((student) => (
-                <li key={student.id}>
+                <li key={`student-${student.id}`}>
                   <Button
                     variant={student.id === selectedStudentId ? "default" : "ghost"}
                     className={`w-full flex flex-wrap md:flex-nowrap justify-between items-start gap-4 py-4 px-5 rounded-lg transition-all shadow-sm ${
-                        student.id === selectedStudentId
+                      student.id === selectedStudentId
                         ? "bg-[#006699] text-white"
                         : "hover:bg-gray-100"
                     }`}
                     style={{ minHeight: 56 }}
                     onClick={() => {
-                        onSelect(student.id);
-                        setOpen(false);
+                      onSelect(student.id);
+                      setOpen(false);
                     }}
-                    >
+                  >
                     <span className="font-medium text-left text-base max-w-full md:max-w-[40%] truncate">
-                        {student.name}
+                      {student.name}
                     </span>
-                    <span className="text-xs text-gray-600 bg-gray-100 px-3 py-2 rounded-md whitespace-nowrap max-w-full md:max-w-[55%] truncate overflow-hidden">
-                        {student.thesis}
+                    <span className={`text-xs ${student.id === selectedStudentId ? "text-white bg-opacity-20" : "text-gray-600 bg-gray-100"} px-3 py-2 rounded-md whitespace-nowrap max-w-full md:max-w-[55%] truncate overflow-hidden`}>
+                      {student.thesis}
                     </span>
-                    </Button>
+                  </Button>
                 </li>
               ))}
             </ul>
