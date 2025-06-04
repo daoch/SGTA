@@ -26,23 +26,17 @@ import { EstadoTemaNombre } from "../../types/temas/enums";
 
 export interface SolicitudesTableProps {
   readonly solicitudes: readonly SolicitudPendiente[];
-  readonly filter?: EstadoTemaNombre;
   readonly isLoading: boolean;
   readonly searchQuery: string;
 }
 
 export function SolicitudesTable({
   solicitudes,
-  filter,
   isLoading,
   searchQuery,
 }: SolicitudesTableProps) {
-  // Filtrar por estado
-  let solicitudesFiltradas = filter
-    ? solicitudes.filter((s) => s.estado === filter)
-    : solicitudes;
-
   // Filtrar por búsqueda
+  let solicitudesFiltradas = solicitudes;
   if (searchQuery) {
     const query = searchQuery.toLowerCase();
     solicitudesFiltradas = solicitudesFiltradas.filter(
