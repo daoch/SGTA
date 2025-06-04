@@ -932,9 +932,25 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     @Override
-    public AlumnoTemaDto getAlumnoTema(Integer idAlumno) {
+    public UsuarioDto findByCognitoId(String cognitoId) throws NoSuchElementException {
+        Optional<Usuario> usuario = usuarioRepository.findByIdCognito(cognitoId);
+        if (usuario.isPresent()) {
+            return UsuarioMapper.toDto(usuario.get());
+        } else {
+            throw new NoSuchElementException("Usuario not found with ID Cognito: " + cognitoId);
+        }
+    }
+
+    @Override
+    public AlumnoTemaDto getAlumnoTema(String idUsuario) {
         try {
-            // Primero obtenemos los datos básicos del alumno y su tema
+            
+            UsuarioDto usuDto = findByCognitoId(idUsuario);
+
+            if (usuDto == null) {
+                throw new RuntimeException("Usuario no encontrado con Cognito ID: " + idUsuario);
+            }
+            Integer idAlumno = usuDto.getId();
             String sqlDetalle = """
                     	SELECT * FROM obtener_detalle_tesista(:p_tesista_id)
                     """;
@@ -1002,19 +1018,10 @@ public class UsuarioServiceImpl implements UsuarioService {
         } catch (NoSuchElementException e) {
             throw e; 
         } catch (Exception e) {
-            logger.severe("Error al obtener datos del alumno " + idAlumno + ": " + e.getMessage());
+            logger.severe("Error al obtener datos del alumno " + idUsuario + ": " + e.getMessage());
             throw new RuntimeException("Error al obtener datos del alumno: " + e.getMessage());
         }
     }
 
-    @Override
-    public UsuarioDto findByCognitoId(String cognitoId) throws NoSuchElementException {
-        Optional<Usuario> usuario = usuarioRepository.findByIdCognito(cognitoId);
-        if (usuario.isPresent()) {
-            return UsuarioMapper.toDto(usuario.get());
-        } else {
-            throw new NoSuchElementException("Usuario not found with ID Cognito: " + cognitoId);
-        }
-    }
 
 }
