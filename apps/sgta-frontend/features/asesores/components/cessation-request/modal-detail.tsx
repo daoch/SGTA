@@ -1,4 +1,4 @@
-"use client";
+/* "use client";
 
 import React from "react";
 import { Loader2, Calendar, Users, User } from "lucide-react";
@@ -162,4 +162,4 @@ const ApproveCessationModal: React.FC<ApproveCessationModalProps> = ({
   );
 };
 
-export default ApproveCessationModal;
+export default ApproveCessationModal; */

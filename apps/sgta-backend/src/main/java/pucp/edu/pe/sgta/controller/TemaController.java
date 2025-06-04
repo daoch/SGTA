@@ -39,7 +39,7 @@ public class TemaController {
 	public TemaDto findById(@RequestParam(name = "idTema") Integer idTema) {
 		return temaService.findById(idTema);
 	}  
-	
+
 	
 	@PostMapping("/createPropuesta")
     public void createTema(@RequestBody TemaDto dto,

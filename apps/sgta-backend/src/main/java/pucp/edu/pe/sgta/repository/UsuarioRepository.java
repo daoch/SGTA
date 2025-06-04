@@ -53,4 +53,18 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
                                                         @Param("temaIds") String temaIds);
 
 
+    // NUEVO MÉTODO para encontrar usuarios (coordinadores) activos de una carrera específica por tipo de usuario
+    @Query("SELECT uc.usuario FROM UsuarioXCarrera uc " +
+            "JOIN uc.usuario u " +        // uc.usuario es el campo 'usuario' en la entidad UsuarioXCarrera
+            "JOIN u.tipoUsuario tu " +    // u.tipoUsuario es el campo 'tipoUsuario' en la entidad Usuario
+            "JOIN uc.carrera c " +        // uc.carrera es el campo 'carrera' en la entidad UsuarioXCarrera
+            "WHERE tu.nombre = :tipoUsuarioNombre " +
+            "AND c.id = :carreraId " +
+            "AND u.activo = true " +      // El usuario debe estar activo
+            "AND uc.activo = true")       // La relación usuario-carrera debe estar activa
+    List<Usuario> findUsuariosActivosPorCarreraYTipo(
+            @Param("carreraId") Integer carreraId,
+            @Param("tipoUsuarioNombre") String tipoUsuarioNombre
+    );
+
 }

@@ -1,4 +1,4 @@
-"use client";
+/* "use client";
 
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -166,7 +166,7 @@ export function AssignmentModal({ open, onOpenChange, idRequest, refetch }: Read
                 </div>
               
               <div className="grid grid-cols-1 lg:grid-cols-7 gap-6">
-                {/* Students section */}
+                
                 <div className="lg:col-span-3 border rounded-lg p-4">
                   <h2 className="text-xl font-semibold mb-4">Alumnos</h2>
                   <div className="h-[350px]">
@@ -174,7 +174,7 @@ export function AssignmentModal({ open, onOpenChange, idRequest, refetch }: Read
                   </div>
                 </div>
 
-                {/* Assessors section */}
+                
                 <div className="lg:col-span-4 border rounded-lg p-4">
                   <Tabs value={activeTab} onValueChange={setActiveTab}>
                     <div className="flex items-center justify-between mb-4">
@@ -228,3 +228,4 @@ export function AssignmentModal({ open, onOpenChange, idRequest, refetch }: Read
     </Dialog>
   );
 }
+ */
