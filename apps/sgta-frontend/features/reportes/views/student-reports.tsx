@@ -3,12 +3,17 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from "date-fns";
 import { useEffect, useState } from "react";
-import { LineaTiempoReporte } from "../components/general/linea-tiempo";
-import { ModalProgramarReporte } from "../components/general/modal-programar";
+import { ProjectTracking } from "../components/general/project-tracking";
 import { obtenerDetalleTemaAlumno } from "../services/report-services";
 import { AlumnoTemaDetalle } from "../types/Alumno.type";
 
 import { useAuth } from "@/features/auth/hooks/use-auth";
+
+const getProgressColor = (progreso: number) => {
+  if (progreso < 30) return "#ef4444";
+  if (progreso < 70) return "#eab308";
+  return "#22c55e";
+};
 
 export function StudentReports() {
   const [studentData, setStudentData] = useState<AlumnoTemaDetalle | null>(null);
@@ -19,7 +24,7 @@ export function StudentReports() {
   useEffect(() => {
     const fetchStudentData = async () => {
       if (!user) return;
-      try {      
+      try {
         const data = await obtenerDetalleTemaAlumno();
         setStudentData(data);
       } catch (error) {
@@ -36,8 +41,6 @@ export function StudentReports() {
     return <div>Cargando...</div>;
   }
 
-  
-
   return (
     <div className="space-y-6">
       {/* Alerta de entregas retrasadas */}
@@ -53,7 +56,6 @@ export function StudentReports() {
         </Alert>
       )*/}
 
-      <ModalProgramarReporte />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         {/* Estado actual del estudiante - Lado izquierdo */}
@@ -69,27 +71,9 @@ export function StudentReports() {
                     className="absolute inset-0 rounded-full border-4 border-t-transparent"
                     style={{
                       borderTopColor: "transparent",
-                      borderRightColor: `${
-                        studentData.porcentajeProgreso < 30
-                          ? "#ef4444"
-                          : studentData.porcentajeProgreso < 70
-                          ? "#eab308"
-                          : "#22c55e"
-                      }`,
-                      borderBottomColor: `${
-                        studentData.porcentajeProgreso < 30
-                          ? "#ef4444"
-                          : studentData.porcentajeProgreso < 70
-                          ? "#eab308"
-                          : "#22c55e"
-                      }`,
-                      borderLeftColor: `${
-                        studentData.porcentajeProgreso < 30
-                          ? "#ef4444"
-                          : studentData.porcentajeProgreso < 70
-                          ? "#eab308"
-                          : "#22c55e"
-                      }`,
+                      borderRightColor: getProgressColor(studentData.porcentajeProgreso),
+                      borderBottomColor: getProgressColor(studentData.porcentajeProgreso),
+                      borderLeftColor: getProgressColor(studentData.porcentajeProgreso),
                       transform: `rotate(${studentData.porcentajeProgreso * 3.6}deg)`,
                     }}
                   ></div>
@@ -102,7 +86,7 @@ export function StudentReports() {
               <div className="flex-1">
                 <h3 className="text-sm font-medium">{studentData.temaNombre}</h3>
                 <p className="text-xs text-gray-500 mt-1">
-                    {studentData.entregablesEnviados} de {studentData.totalEntregables} entregables completados
+                  {studentData.entregablesEnviados} de {studentData.totalEntregables} entregables completados
                 </p>
                 <div className="mt-2 grid grid-cols-2 gap-2">
                   <div>
@@ -112,8 +96,8 @@ export function StudentReports() {
                   <div>
                     <p className="text-xs text-gray-500">Fecha límite:</p>
                     <p className="text-sm font-medium">
-                      {studentData.siguienteEntregableFechaFin ? 
-                        format(new Date(studentData.siguienteEntregableFechaFin), "dd/MM/yyyy") : 
+                      {studentData.siguienteEntregableFechaFin ?
+                        format(new Date(studentData.siguienteEntregableFechaFin), "dd/MM/yyyy") :
                         "No hay fecha límite"}
                     </p>
                   </div>
@@ -134,7 +118,7 @@ export function StudentReports() {
           </CardContent>
         </Card>
 
-         {/* Resumen de proyecto - Lado derecho */}
+        {/* Resumen de proyecto - Lado derecho */}
         <Card>
           <CardHeader className="py-3">
             <CardTitle className="text-lg">Resumen de Proyecto</CardTitle>
@@ -164,14 +148,14 @@ export function StudentReports() {
               </div>
             </div>
           </CardContent>
-        </Card> 
-         
-         
-        
+        </Card>
+
+
+
       </div>
 
       {/* Línea de tiempo */}
-      <LineaTiempoReporte user={user} />
+      <ProjectTracking user={user} />
     </div>
   );
 }
