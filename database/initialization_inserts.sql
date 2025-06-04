@@ -2609,7 +2609,7 @@ INSERT INTO parametro_configuracion (
     tipo
 ) VALUES (
     'Cantidad Jurados',
-    'cantidad maxima de tesis por jurado',
+    'cantidad maxima de jurados por tesis',
     1,
     true,
     NOW(),       -- Fecha de creación actual
@@ -2634,7 +2634,7 @@ INSERT INTO carrera_parametro_configuracion (
         WHERE nombre = 'Cantidad Jurados'
         LIMIT 1
     ),
-    5,      -- Valor de la configuración
+    3,      -- Valor de la configuración
     true,   -- Estado activo
     NOW(),  -- Fecha de creación
     NOW(),  -- Fecha de modificación
