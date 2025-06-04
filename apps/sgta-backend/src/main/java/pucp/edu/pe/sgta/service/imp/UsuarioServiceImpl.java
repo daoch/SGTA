@@ -933,9 +933,25 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     @Override
-    public AlumnoTemaDto getAlumnoTema(Integer idAlumno) {
+    public UsuarioDto findByCognitoId(String cognitoId) throws NoSuchElementException {
+        Optional<Usuario> usuario = usuarioRepository.findByIdCognito(cognitoId);
+        if (usuario.isPresent()) {
+            return UsuarioMapper.toDto(usuario.get());
+        } else {
+            throw new NoSuchElementException("Usuario not found with ID Cognito: " + cognitoId);
+        }
+    }
+
+    @Override
+    public AlumnoTemaDto getAlumnoTema(String idUsuario) {
         try {
-            // Primero obtenemos los datos básicos del alumno y su tema
+            
+            UsuarioDto usuDto = findByCognitoId(idUsuario);
+
+            if (usuDto == null) {
+                throw new RuntimeException("Usuario no encontrado con Cognito ID: " + idUsuario);
+            }
+            Integer idAlumno = usuDto.getId();
             String sqlDetalle = """
                     	SELECT * FROM obtener_detalle_tesista(:p_tesista_id)
                     """;
@@ -952,7 +968,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 
             Object[] rowDetalle = resultsDetalle.get(0);
 
-            // Luego obtenemos el progreso del alumno y el siguiente entregable
+            //Luego obtenemos el progreso del alumno y el siguiente entregable
             String sqlProgreso = """
                     	SELECT * FROM calcular_progreso_alumno(:p_alumno_id)
                     """;
@@ -963,13 +979,14 @@ public class UsuarioServiceImpl implements UsuarioService {
             @SuppressWarnings("unchecked")
             List<Object[]> resultsProgreso = queryProgreso.getResultList();
 
+
             AlumnoTemaDto alumnoTemaDto = new AlumnoTemaDto();
             alumnoTemaDto.setId((Integer) rowDetalle[0]); // tesista_id
-            alumnoTemaDto.setTemaNombre((String) rowDetalle[8]); // tema_nombre
-            alumnoTemaDto.setAsesorNombre((String) rowDetalle[14]); // asesor_nombre
-            alumnoTemaDto.setCoasesorNombre((String) rowDetalle[16]); // coasesor_nombre
-            alumnoTemaDto.setAreaNombre((String) rowDetalle[12]); // area_conocimiento
-            alumnoTemaDto.setSubAreaNombre((String) rowDetalle[13]); // sub_area_conocimiento
+            alumnoTemaDto.setTemaNombre((String) rowDetalle[9]); // tema_nombre
+            alumnoTemaDto.setAsesorNombre((String) rowDetalle[15]); // asesor_nombre
+            alumnoTemaDto.setCoasesorNombre((String) rowDetalle[17]); // coasesor_nombre
+            alumnoTemaDto.setAreaNombre((String) rowDetalle[13]); // area_conocimiento
+            alumnoTemaDto.setSubAreaNombre((String) rowDetalle[14]); // sub_area_conocimiento
 
             // Agregamos la información de progreso y siguiente entregable
             if (!resultsProgreso.isEmpty()) {
@@ -1000,23 +1017,13 @@ public class UsuarioServiceImpl implements UsuarioService {
 
             return alumnoTemaDto;
         } catch (NoSuchElementException e) {
-            throw e; // Re-throw NoSuchElementException as is
+            throw e; 
         } catch (Exception e) {
-            // Log the actual error for debugging
-            logger.severe("Error al obtener datos del alumno " + idAlumno + ": " + e.getMessage());
+            logger.severe("Error al obtener datos del alumno " + idUsuario + ": " + e.getMessage());
             throw new RuntimeException("Error al obtener datos del alumno: " + e.getMessage());
         }
     }
 
-    @Override
-    public UsuarioDto findByCognitoId(String cognitoId) throws NoSuchElementException {
-        Optional<Usuario> usuario = usuarioRepository.findByIdCognito(cognitoId);
-        if (usuario.isPresent()) {
-            return UsuarioMapper.toDto(usuario.get());
-        } else {
-            throw new NoSuchElementException("Usuario not found with ID Cognito: " + cognitoId);
-        }
-    }
 
     @Override
     public List<DocentesDTO> getProfesores() {
