@@ -129,7 +129,7 @@ const Page = () => {
         setAsesorData(coasesor);
 
         //obtener la carrera
-        const carreras = await obtenerCarrerasPorUsuario(usuarioLoggeado.id);
+        const carreras = await obtenerCarrerasPorUsuario();
         setCarrera(carreras);
         console.log({ carreras });
         if (carreras) {
