@@ -26,6 +26,7 @@ import {
   TabsTrigger
 } from "@/components/ui/tabs";
 import { useAuthStore } from "@/features/auth/store/auth-store";
+import { PostulacionesTable } from "@/features/temas/components/alumno/mis-postulaciones-table";
 import { PropuestasTable } from "@/features/temas/components/alumno/propuestas-table";
 import { TemaCard } from "@/features/temas/components/alumno/tema-inscrito-card";
 import Link from "next/link";
@@ -134,7 +135,7 @@ const MisTemasPage = () => {
               <CardDescription>Temas de proyectos a los que has postulado</CardDescription>
             </CardHeader>
             <CardContent>
-              <PropuestasTable/>
+              <PostulacionesTable/>
             </CardContent>
           </Card>
         </TabsContent>
