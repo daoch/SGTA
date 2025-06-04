@@ -1918,7 +1918,8 @@ RETURNS TABLE(
     usuarios           JSONB,
     estado_tema_nombre TEXT,
     area_id            INTEGER,
-    area_nombre        TEXT
+    area_nombre        TEXT,
+    postulaciones      INTEGER
 )
 LANGUAGE plpgsql
 AS $$
@@ -1949,6 +1950,7 @@ BEGIN
         t.fecha_modificacion,
         c.carrera_id,
         c.nombre::text          AS carrera_nombre,
+
         -- ARRAY_AGG de subáreas (IDs y nombres)
         COALESCE(
             ARRAY_AGG(DISTINCT sac.sub_area_conocimiento_id ORDER BY sac.sub_area_conocimiento_id)
@@ -1960,6 +1962,7 @@ BEGIN
                 FILTER (WHERE sac.nombre IS NOT NULL),
             ARRAY[]::TEXT[]
         ) AS subareas_nombres,
+
         -- JSONB de usuarios (Asesor + Coasesores)
         (
             SELECT jsonb_agg(
@@ -1977,9 +1980,21 @@ BEGIN
             WHERE  ut2.tema_id = t.tema_id
               AND  rl2.nombre ILIKE ANY (ARRAY['Asesor','Coasesor'])
         ) AS usuarios,
+
         et.nombre::text          AS estado_tema_nombre,
         ac.area_conocimiento_id  AS area_id,
-        ac.nombre::text          AS area_nombre
+        ac.nombre::text          AS area_nombre,
+
+        -- Conteo de postulaciones: solo rol = 'Tesista' y asignado = FALSE
+        (
+            SELECT COUNT(*)::INTEGER
+            FROM   usuario_tema utp
+            JOIN   rol rlp ON utp.rol_id = rlp.rol_id
+            WHERE  utp.tema_id  = t.tema_id
+              AND  rlp.nombre   = 'Tesista'
+              AND  utp.asignado = FALSE
+        ) AS postulaciones
+
     FROM tema t
     INNER JOIN estado_tema et ON t.estado_tema_id = et.estado_tema_id
     LEFT JOIN carrera c     ON t.carrera_id = c.carrera_id
@@ -2029,7 +2044,6 @@ BEGIN
     OFFSET p_offset;
 END;
 $$;
-
 CREATE OR REPLACE FUNCTION postular_tesista_tema_libre(
     p_tema_id     INTEGER,
     p_tesista_id  TEXT,
@@ -2158,3 +2172,158 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION listar_temas_libres_postulados_alumno(
+    p_usuario_cognito_id TEXT
+)
+RETURNS TABLE(
+    tema_id            INTEGER,
+    codigo             TEXT,
+    titulo             TEXT,
+    resumen            TEXT,
+    metodología         TEXT,
+    objetivos          TEXT,
+    requisitos         TEXT,
+    portafolio_url     TEXT,
+    fecha_limite       TIMESTAMPTZ,
+    fecha_creacion     TIMESTAMPTZ,
+    fecha_modificacion TIMESTAMPTZ,
+    carrera_id         INTEGER,
+    carrera_nombre     TEXT,
+    subáreas_ids       INTEGER[],
+    subáreas_nombres   TEXT[],
+    usuarios           JSONB,
+    estado_tema_nombre TEXT,
+    área_id            INTEGER,
+    área_nombre        TEXT
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_usuario_id      INTEGER;
+    v_rol_tesista_id  INTEGER;
+BEGIN
+    -- 1. Convertir Cognito ID a usuario_id interno
+    IF p_usuario_cognito_id IS NULL THEN
+        RETURN;
+    END IF;
+
+    SELECT u.usuario_id
+    INTO   v_usuario_id
+    FROM   usuario u
+    WHERE  u.id_cognito = p_usuario_cognito_id
+      AND  u.activo = TRUE;
+
+    IF v_usuario_id IS NULL THEN
+        -- Si no existe usuario activo para ese Cognito ID, regresar sin filas
+        RETURN;
+    END IF;
+
+    -- 2. Obtener rol_id correspondiente a "Tesista"
+    SELECT r.rol_id
+    INTO   v_rol_tesista_id
+    FROM   rol r
+    WHERE  r.nombre = 'Tesista'
+      AND  r.activo = TRUE
+    LIMIT  1;
+
+    IF v_rol_tesista_id IS NULL THEN
+        -- Si no existe rol "Tesista" activo, regresar sin filas
+        RETURN;
+    END IF;
+
+    -- 3. Devolver los temas libres a los que este usuario (tesista) ya se postuló
+    RETURN QUERY
+    SELECT
+        t.tema_id,
+        t.codigo::text,
+        t.titulo::text,
+        t.resumen::text,
+        t.metodologia::text,
+        t.objetivos::text,
+        t.requisitos::text,
+        t.portafolio_url::text,
+        t.fecha_limite,
+        t.fecha_creacion,
+        t.fecha_modificacion,
+        c.carrera_id,
+        c.nombre::text AS carrera_nombre,
+
+        -- ARRAY_AGG de subáreas (IDs y nombres)
+        COALESCE(
+            ARRAY_AGG(DISTINCT sac.sub_area_conocimiento_id ORDER BY sac.sub_area_conocimiento_id)
+                FILTER (WHERE sac.sub_area_conocimiento_id IS NOT NULL),
+            ARRAY[]::INTEGER[]
+        ) AS subáreas_ids,
+        COALESCE(
+            ARRAY_AGG(DISTINCT sac.nombre::text ORDER BY sac.nombre::text)
+                FILTER (WHERE sac.nombre IS NOT NULL),
+            ARRAY[]::TEXT[]
+        ) AS subáreas_nombres,
+
+        -- JSONB de usuarios (Asesor + Coasesores) para cada tema
+        (
+            SELECT jsonb_agg(
+                     jsonb_build_object(
+                       'usuario_id',      u2.usuario_id,
+                       'nombre_completo', u2.nombres || ' ' || u2.primer_apellido,
+                       'rol',             rl2.nombre,
+                       'comentario',      ut2.comentario,
+                       'creador',         ut2.creador
+                     )
+                   )
+            FROM   usuario_tema ut2
+            JOIN   usuario   u2  ON u2.usuario_id = ut2.usuario_id
+            JOIN   rol       rl2 ON rl2.rol_id     = ut2.rol_id
+            WHERE  ut2.tema_id = t.tema_id
+              AND  rl2.nombre ILIKE ANY (ARRAY['Asesor','Coasesor'])
+        ) AS usuarios,
+
+        et.nombre::text         AS estado_tema_nombre,
+        ac.area_conocimiento_id AS área_id,
+        ac.nombre::text         AS área_nombre
+
+    FROM tema t
+    INNER JOIN estado_tema et
+        ON t.estado_tema_id = et.estado_tema_id
+    LEFT JOIN carrera c
+        ON t.carrera_id = c.carrera_id
+    LEFT JOIN sub_area_conocimiento_tema sact
+        ON t.tema_id = sact.tema_id
+    LEFT JOIN sub_area_conocimiento sac
+        ON sact.sub_area_conocimiento_id = sac.sub_area_conocimiento_id
+    LEFT JOIN area_conocimiento ac
+        ON sac.area_conocimiento_id = ac.area_conocimiento_id
+
+    -- Aquí comprobamos que el usuario ya se postuló a este tema (rol "Tesista", activo)
+    INNER JOIN usuario_tema utp
+        ON utp.tema_id   = t.tema_id
+       AND utp.usuario_id = v_usuario_id
+       AND utp.rol_id     = v_rol_tesista_id
+       AND utp.activo     = TRUE
+
+    WHERE
+        t.activo = TRUE
+        AND et.nombre = 'PROPUESTO_LIBRE'
+
+    GROUP BY
+        t.tema_id,
+        t.codigo,
+        t.titulo,
+        t.resumen,
+        t.metodologia,
+        t.objetivos,
+        t.requisitos,
+        t.portafolio_url,
+        t.fecha_limite,
+        t.fecha_creacion,
+        t.fecha_modificacion,
+        c.carrera_id,
+        c.nombre,
+        et.nombre,
+        ac.area_conocimiento_id,
+        ac.nombre
+
+    ORDER BY
+        t.fecha_creacion DESC;
+END;
+$$;
