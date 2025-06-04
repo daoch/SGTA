@@ -9,7 +9,6 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Textarea } from "@/components/ui/textarea";
 import { CheckCircle, X } from "lucide-react";
 import { Postulacion } from "../../types/postulaciones/entidades";
 
@@ -19,16 +18,14 @@ interface PostulacionModalProps {
   feedbackText: string;
   setFeedbackText: (feedbackText: string) => void;
   handleReject: () => void;
-  handleApprove: () => void;
+  handleOpenAcceptDialog: (propuesta: Postulacion) => void;
 }
 
 export function PostulacionModal({
   selectedPostulacion,
   setSelectedPostulacion,
-  feedbackText,
-  setFeedbackText,
   handleReject,
-  handleApprove,
+  handleOpenAcceptDialog,
 }: PostulacionModalProps) {
   return (
     <DialogContent className="max-w-3xl">
@@ -123,19 +120,6 @@ export function PostulacionModal({
                 </div>
               </div>
             )}
-
-          {selectedPostulacion.estado === "pendiente" && (
-            <div className="space-y-2">
-              <Label htmlFor="feedback">Comentario para el estudiante</Label>
-              <Textarea
-                id="feedback"
-                placeholder="Escribe un comentario para el estudiante..."
-                value={feedbackText}
-                onChange={(e) => setFeedbackText(e.target.value)}
-                rows={3}
-              />
-            </div>
-          )}
         </div>
       )}
       <DialogFooter className="mt-6">
@@ -150,7 +134,7 @@ export function PostulacionModal({
               Rechazar
             </Button>
             <Button
-              onClick={handleApprove}
+              onClick={() => handleOpenAcceptDialog(selectedPostulacion)}
               className="bg-green-600 hover:bg-green-700"
             >
               <CheckCircle className="mr-2 h-4 w-4" />
