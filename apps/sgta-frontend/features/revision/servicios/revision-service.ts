@@ -52,7 +52,7 @@ export async function analizarPlagioArchivoS3(key: string): Promise<PlagioApiRes
     return typeof response.data === "string" ? JSON.parse(response.data) as PlagioApiResponse : response.data;
 }
 export async function guardarObservacionesRevision(
-  revisionId: string,
+  revisionId: number,
   highlights: IHighlight[],
   usuarioId: number
 ) {
@@ -60,4 +60,66 @@ export async function guardarObservacionesRevision(
     `/revision/${revisionId}/observaciones?usuarioId=${usuarioId}`,
     highlights // <-- el array directo, no un objeto
   );
+}
+interface ObservacionToHighlightRect {
+  x1?: number;
+  y1?: number;
+  x2?: number;
+  y2?: number;
+  width?: number;
+  height?: number;
+  pageNumber?: number;
+}
+
+interface ObservacionToHighlight {
+  observacionId: string | number;
+  contenido?: string;
+  comentario?: string;
+  tipoObservacion?: {
+    nombreTipo?: string;
+  };
+  boundingRect?: ObservacionToHighlightRect;
+  rects?: ObservacionToHighlightRect[];
+  numeroPaginaInicio?: number;
+}
+
+function observacionToIHighlight(obs: ObservacionToHighlight): IHighlight {
+  return {
+    id: String(obs.observacionId),
+    content: {
+      text: obs.contenido ?? "",
+      // Si tienes imágenes, puedes mapearlas aquí
+    },
+    comment: {
+      text: obs.comentario ?? "",
+      emoji: obs.tipoObservacion?.nombreTipo ?? "", // o el campo que corresponda
+    },
+    position: {
+      boundingRect: {
+        x1: obs.boundingRect?.x1 ?? 0,
+        y1: obs.boundingRect?.y1 ?? 0,
+        x2: obs.boundingRect?.x2 ?? 0,
+        y2: obs.boundingRect?.y2 ?? 0,
+        width: obs.boundingRect?.width ?? 0,
+        height: obs.boundingRect?.height ?? 0,
+        pageNumber: obs.boundingRect?.pageNumber ?? obs.numeroPaginaInicio ?? 1,
+      },
+      rects: (obs.rects ?? []).map((r: ObservacionToHighlightRect) => ({
+        x1: r.x1 ?? 0,
+        y1: r.y1 ?? 0,
+        x2: r.x2 ?? 0,
+        y2: r.y2 ?? 0,
+        width: r.width ?? 0,
+        height: r.height ?? 0,
+        pageNumber: r.pageNumber ?? obs.numeroPaginaInicio ?? 1,
+      })),
+      pageNumber: obs.numeroPaginaInicio ?? 1,
+      usePdfCoordinates: true, // si corresponde
+    },
+  };
+}
+export async function obtenerObservacionesRevision(revisionId: number): Promise<IHighlight[]> {
+  const response = await axiosInstance.get(`/revision/${revisionId}/observaciones`);
+  // Mapea cada observación del backend a IHighlight
+  return response.data.map(observacionToIHighlight);
 }

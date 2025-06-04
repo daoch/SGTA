@@ -8,9 +8,11 @@ import pucp.edu.pe.sgta.model.BoundingRect;
 import pucp.edu.pe.sgta.model.Observacion;
 import pucp.edu.pe.sgta.model.Rect;
 import pucp.edu.pe.sgta.model.RevisionDocumento;
+import pucp.edu.pe.sgta.model.RevisionXDocumento;
 import pucp.edu.pe.sgta.model.Usuario;
 import pucp.edu.pe.sgta.repository.ObservacionRepository;
 import pucp.edu.pe.sgta.repository.RevisionDocumentoRepository;
+import pucp.edu.pe.sgta.repository.RevisionXDocumentoRepository;
 import pucp.edu.pe.sgta.repository.UsuarioRepository;
 
 import java.time.ZonedDateTime;
@@ -45,8 +47,9 @@ public class ObservacionServiceImpl {
             obs.setNumeroPaginaInicio(h.getPosition().getPageNumber());
             obs.setNumeroPaginaFin(h.getPosition().getPageNumber());
             obs.setFechaCreacion(ZonedDateTime.now());
+            obs.setContenido(h.getContent().getText());
             obs.setActivo(true);
-
+            obs.setFechaModificacion(ZonedDateTime.now());
             // Mapear boundingRect
             if (h.getPosition().getBoundingRect() != null) {
                 var b = h.getPosition().getBoundingRect();
@@ -78,7 +81,10 @@ public class ObservacionServiceImpl {
             }
             obs.setRects(rects);
 
-            observacionRepository.save(obs);
+            obs.setFechaModificacion(ZonedDateTime.now());            observacionRepository.save(obs);
         }
     }
+    public List<Observacion> obtenerObservacionesPorRevision(Integer revisionId) {
+    return observacionRepository.findByRevisionDocumento_Id(revisionId);
+}
 }
