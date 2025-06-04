@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { EvaluacionExposicionJurado,CriterioEvaluacion } from "../../types/jurado.types";
-import { getExposicionCalificarJurado,actualizarComentarioFinalJurado } from "../../services/jurado-service";
+import { getExposicionCalificarJurado,actualizarComentarioFinalJurado,actualizarCriteriosEvaluacion } from "../../services/jurado-service";
 import React from "react";
 import { useEffect, useState } from "react";
 import { CalificacionItem } from "../../components/item-calificacion";
@@ -96,32 +96,63 @@ const CalificarExposicionJuradoPage: React.FC<Props> = ({ id_exposicion }) => {
   const handleSave = async () => {
   try {
     setIsLoading(true);
-    // Aquí llamarías a tu API para guardar las observaciones
-    // Por ejemplo:
-    // await guardarObservacionesExposicion(id_exposicion_tema, id_jurado, {
-    //   observaciones_finales: observacionesFinales,
-    //   criterios: evaluacion?.criterios || []
-    // });
+    let successMessage = "";
+    let hasError = false;
 
-    const exposicionId = evaluacion.criterios[0].id;
-
-    const resultado = await actualizarComentarioFinalJurado(
-      exposicionId,
-      observacionesFinales
-    );
-
-    if (resultado) {
-      toast({
-        title: "Éxito",
-        description: "Las observaciones se han guardado correctamente",
-      });
+    if (evaluacion && evaluacion.criterios && evaluacion.criterios.length > 0) {
+      const exposicionId = evaluacion.id_exposicion || evaluacion.criterios[0].id;
       
-      // Opcional: redirigir al usuario a la página anterior o a otra página
-      // router.back();
+      
+      try {
+        const resultadoObservaciones = await actualizarComentarioFinalJurado(
+          exposicionId,
+          observacionesFinales
+        );
+        
+        if (resultadoObservaciones) {
+          successMessage += "Observaciones finales guardadas correctamente. ";
+        }
+      } catch (error) {
+        console.error("Error al guardar observaciones finales:", error);
+        hasError = true;
+      }
+
+    try {
+        const criteriosParaActualizar = evaluacion.criterios.map(criterio => ({
+          id: criterio.id,
+          calificacion: criterio.calificacion,
+          observacion: criterio.observacion
+        }));
+
+        const resultadoCriterios = await actualizarCriteriosEvaluacion(
+          criteriosParaActualizar
+        );
+        
+        if (resultadoCriterios) {
+          successMessage += "Criterios de evaluación guardados correctamente.";
+        }
+      } catch (error) {
+        console.error("Error al guardar criterios:", error);
+        hasError = true;
+      }
+
+    if (successMessage) {
+        toast({
+          title: hasError ? "Guardado parcial" : "Éxito",
+          description: successMessage,
+          variant: hasError ? "default" : "default"
+        });
+      } else if (hasError) {
+        toast({
+          title: "Error",
+          description: "No se pudo guardar la información. Intente nuevamente.",
+          variant: "destructive"
+        });
+      }
     } else {
       toast({
         title: "Advertencia",
-        description: "Hubo un problema al guardar las observaciones",
+        description: "No hay datos suficientes para guardar",
         variant: "destructive"
       });
     }

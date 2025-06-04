@@ -471,3 +471,22 @@ export const actualizarComentarioFinalJurado = async (
     throw error;
   }
 };
+
+export const actualizarCriteriosEvaluacion = async (
+  criterios: {
+    id: number;
+    calificacion: number;
+    observacion: string;
+  }[]
+): Promise<boolean> => {
+  try {
+    const response = await axiosInstance.put("/jurado/criterios", {
+      criterios: criterios
+    });
+
+    return response.status === 200;
+  } catch (error) {
+    console.error("Error al actualizar los criterios de evaluación:", error);
+    throw error;
+  }
+};
