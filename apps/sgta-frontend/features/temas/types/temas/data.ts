@@ -94,13 +94,12 @@ export async function fetchUsuariosFindById(
   }
 }
 
-export async function obtenerCarrerasPorUsuario(
-  usuarioId: number,
-): Promise<Carrera[]> {
+export async function obtenerCarrerasPorUsuario(): Promise<Carrera[]> {
   try {
-    const response = await fetch(`${baseUrl}/usuario/${usuarioId}/carreras`, {
+    const response = await fetch(`${baseUrl}/usuario/carreras`, {
       method: "GET",
       headers: {
+        Authorization: `Bearer ${idToken}`,
         "Content-Type": "application/json",
       },
     });
@@ -110,6 +109,7 @@ export async function obtenerCarrerasPorUsuario(
     }
 
     const data = await response.json();
+    console.log(data);
     return data;
   } catch (error) {
     console.error(

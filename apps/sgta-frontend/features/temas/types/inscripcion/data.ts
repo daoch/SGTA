@@ -40,3 +40,15 @@ export const fetchUsers = async (
   return response.data;
 };
 
+export async function inscribirTemaPrescrito(temaId: number) {
+  try {
+    const response = await axiosInstance.put(
+      `/temas/inscribirTemaPrenscrito/${temaId}`,
+    );
+    return response.data;
+  } catch (error) {
+    console.error("No se pudo inscribir el tema prescrito.", error);
+    throw error;
+  }
+}
+

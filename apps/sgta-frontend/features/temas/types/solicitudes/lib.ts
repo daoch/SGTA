@@ -8,6 +8,7 @@ import {
   TipoSolicitud,
 } from "@/features/temas/types/solicitudes/enums";
 import { ejemploSolicitanteCooasesor } from "@/features/temas/types/solicitudes/mock";
+import { EstadoTemaNombre } from "../temas/enums";
 
 /**
  * Transforma un Tema en una SolicitudPendiente.
@@ -42,7 +43,8 @@ export function getSolicitudFromTema(
     tema,
     solicitante,
     fechaSolicitud: tema.fechaCreacion || new Date().toISOString(),
-    estado: mapEstadoTemaToEstadoSolicitud(tema.estadoTemaNombre || "INSCRITO"),
+    estado:
+      (tema.estadoTemaNombre as EstadoTemaNombre) || EstadoTemaNombre.INSCRITO,
   };
 }
 
@@ -61,15 +63,15 @@ function mapEstadoTemaToEstadoSolicitud(estadoTema: string): EstadoSolicitud {
   }
 }
 
-export function mapEstadoSolToClassName(estado: EstadoSolicitud): string {
+export function mapEstadoSolToClassName(estado: EstadoTemaNombre): string {
   switch (estado) {
-    case EstadoSolicitud.PENDIENTE:
+    case EstadoTemaNombre.INSCRITO:
       return "bg-purple-100 text-purple-800 hover:bg-purple-100";
-    case EstadoSolicitud.ACEPTADA:
+    case EstadoTemaNombre.REGISTRADO:
       return "bg-green-100 text-green-800 hover:bg-green-100";
-    case EstadoSolicitud.OBSEVADA:
+    case EstadoTemaNombre.OBSERVADO:
       return "bg-yellow-100 text-yellow-800 hover:bg-yellow-100";
-    case EstadoSolicitud.RECHAZADA:
+    case EstadoTemaNombre.RECHAZADO:
       return "bg-red-100 text-red-800 hover:bg-red-100";
     default:
       return "bg-purple-100 text-purple-800 hover:bg-purple-100";
