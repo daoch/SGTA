@@ -400,9 +400,33 @@ export const getExposicionCalificarJurado = async (
   try {
     // Convertir IDs a números si vienen como strings (por ejemplo, desde URL params)
     const jId = 6;
-    const expId = typeof exposicionId === 'string' ? parseInt(exposicionId) : exposicionId;
+    const expId = typeof exposicionId === "string" ? parseInt(exposicionId) : exposicionId;
     
     console.log("ID Jurado:", jId, "ID Exposición:", expId);
+
+    interface EstudianteRespuesta {
+      id: number;
+      nombre: string;
+    }
+    
+    interface CriterioRespuesta {
+      id: number;
+      titulo: string;
+      descripcion: string;
+      calificacion?: number;
+      nota_maxima?: number;
+      observacion?: string;
+    }
+    
+    interface RespuestaAPI {
+      id_exposicion?: number;
+      titulo?: string;
+      descripcion?: string;
+      estudiantes?: EstudianteRespuesta[];
+      criterios?: CriterioRespuesta[];
+      observaciones_finales?: string;
+    }
+
     // Llamada al endpoint de criterios con los parámetros requeridos
     //const response = await axiosInstance.get(`/jurado/${temaId}/detalle`);
     const response = await axiosInstance.get("/jurado/criterios", {
@@ -423,13 +447,13 @@ export const getExposicionCalificarJurado = async (
       titulo: data.titulo || "",
       descripcion: data.descripcion || "",
       estudiantes: Array.isArray(data.estudiantes) 
-        ? data.estudiantes.map((est: any) => ({
+        ? data.estudiantes.map((est: EstudianteRespuesta) => ({
             id: est.id,
             nombre: est.nombre
           }))
         : [],
       criterios: Array.isArray(data.criterios)
-        ? data.criterios.map((criterio: any) => ({
+        ? data.criterios.map((criterio: CriterioRespuesta) => ({
             id: criterio.id,
             titulo: criterio.titulo,
             descripcion: criterio.descripcion,

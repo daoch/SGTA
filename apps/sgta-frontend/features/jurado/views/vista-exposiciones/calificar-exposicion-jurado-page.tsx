@@ -48,7 +48,7 @@ type Props = {
 };
 
 const CalificarExposicionJuradoPage: React.FC<Props> = ({ id_exposicion }) => {
-  const [id_exposicion_tema, id_jurado] = id_exposicion.split('-');
+  const [id_exposicion_tema, id_jurado] = id_exposicion.split("-");
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [evaluacion, setEvaluacion] = useState<EvaluacionExposicionJurado>();
@@ -206,7 +206,7 @@ const CalificarExposicionJuradoPage: React.FC<Props> = ({ id_exposicion }) => {
         <div key={estudiante.id} className="flex items-center gap-2 flex-1 justify-start">
           <Avatar>
             <AvatarFallback>
-              {estudiante.nombre.split(' ').map(n => n[0]).join('').toUpperCase()}
+              {estudiante.nombre.split(" ").map(n => n[0]).join("").toUpperCase()}
             </AvatarFallback>
           </Avatar>
           <span>{estudiante.nombre}</span>

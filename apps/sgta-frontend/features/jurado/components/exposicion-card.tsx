@@ -297,11 +297,11 @@ export function ExposicionCard({
       {/* HORA, FECHA Y SALA */}
       <div className="flex flex-col items-center space-y-2 md:min-w-[180px] justify-center">
         <div className="text-4xl font-semibold">
-          {format(exposicion.fechahora, "HH:mm 'hrs'")}
+          {format(exposicion.fechahora, "HH:mm \"hrs\"")}
         </div>
         <div className="flex items-center gap-1 mt-1">
           <span>
-            {format(exposicion.fechahora, "d 'de' MMMM 'del' yyyy", {
+            {format(exposicion.fechahora, "d \"de\" MMMM \"del\" yyyy", {
               locale: es,
             })}
           </span>
@@ -415,7 +415,7 @@ export function ExposicionCard({
                 >
                   
                   <Link
-                    href={`/jurado/exposiciones/calificar/${exposicion.id_exposicion}-${id_jurado || ''}`}
+                    href={`/jurado/exposiciones/calificar/${exposicion.id_exposicion}-${id_jurado || ""}`}
                   >
                     Calificar
                   </Link>
