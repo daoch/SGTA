@@ -1,16 +1,13 @@
 import { Carrera, Tema } from "@/features/temas/types/temas/entidades";
 import axiosInstance from "@/lib/axios/axios-instance";
+import { EstadoTemaNombre } from "../temas/enums";
 
 /**
  * 1) Obtener las carreras (y el ID implícito del usuario) de un miembro del comité
  *    GET /usuario/{usuarioId}/carreras
  */
-export async function fetchCarrerasMiembroComite(
-  usuarioId: number,
-): Promise<Carrera[]> {
-  const { data } = await axiosInstance.get<Carrera[]>(
-    `/usuario/${usuarioId}/carreras`,
-  );
+export async function fetchCarrerasMiembroComite(): Promise<Carrera[]> {
+  const { data } = await axiosInstance.get<Carrera[]>("/usuario/carreras");
   return data;
 }
 
@@ -20,12 +17,27 @@ export async function fetchCarrerasMiembroComite(
  */
 export async function listarTemasPorCarrera(
   carreraId: number,
-  estado: "INSCRITO" | "REGISTRADO" | "RECHAZADO" | "OBSERVADO",
+  estado: EstadoTemaNombre,
+  limit: number = 10,
+  offset: number = 0,
 ): Promise<Tema[]> {
   const { data } = await axiosInstance.get<Tema[]>(
-    `/temas/listarTemasPorCarrera/${carreraId}/${estado}`,
+    `/temas/listarTemasPorCarrera/${carreraId}/${estado}?limit=${limit}&offset=${offset}`,
   );
   return data;
+}
+
+// Get tamaño
+export async function lenTemasPorCarrera(
+  carreraId: number,
+  estado: EstadoTemaNombre,
+  limit: number = 200,
+  offset: number = 0,
+): Promise<number> {
+  const { data } = await axiosInstance.get<Tema[]>(
+    `/temas/listarTemasPorCarrera/${carreraId}/${estado}?limit=${limit}&offset=${offset}`,
+  );
+  return data.length;
 }
 
 /**
@@ -47,7 +59,7 @@ export async function listarTemasPorCarrera(
 export interface CambioEstadoPayload {
   tema: {
     id: number;
-    estadoTemaNombre: "REGISTRADO" | "RECHAZADO" | "OBSERVADO";
+    estadoTemaNombre: EstadoTemaNombre;
   };
   usuarioSolicitud: {
     usuarioId: number;
@@ -78,12 +90,8 @@ export async function cambiarEstadoTemaPorCoordinador(
  */
 export async function eliminarTemaPorCoordinador(
   temaId: number,
-  usuarioId: number,
-  comentario?: string,
 ): Promise<void> {
-  await axiosInstance.delete(`/temas/${temaId}/eliminar`, {
-    params: { usuarioId, comentario },
-  });
+  await axiosInstance.patch(`/temas/${temaId}/eliminar`);
 }
 
 /**
