@@ -13,4 +13,5 @@ public class UsuarioTemaDto {
     private Integer usuarioId;
     private Integer temaId;
     private Boolean activo;
+    private String comentario;
 }
