@@ -1,10 +1,8 @@
 package pucp.edu.pe.sgta.dto;
 
 import lombok.*;
-import java.time.OffsetDateTime;
 
 import pucp.edu.pe.sgta.util.TipoDatoEnum;
-import pucp.edu.pe.sgta.model.Modulo;
 
 @Getter
 @Setter

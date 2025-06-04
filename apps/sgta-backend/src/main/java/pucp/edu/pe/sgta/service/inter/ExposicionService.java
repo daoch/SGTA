@@ -5,7 +5,6 @@ import pucp.edu.pe.sgta.dto.ExposicionEstudianteDTO;
 import pucp.edu.pe.sgta.dto.ExposicionNombreDTO;
 import pucp.edu.pe.sgta.dto.ExposicionSinInicializarDTO;
 import pucp.edu.pe.sgta.dto.ListExposicionXCoordinadorDTO;
-import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
 
 import java.util.List;
 

@@ -1,7 +1,8 @@
 "use client";
+import PostulacionesDeAlumnosPage from "@/features/temas/views/postulaciones-de-alumnos";
 
 const Page: React.FC = () => {
-  return <div>page</div>;
+  return <PostulacionesDeAlumnosPage />;
 };
 
 export default Page;

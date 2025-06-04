@@ -51,6 +51,12 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
                                                         @Param("activo") Boolean activo,
                                                         @Param("areaIds") String areaIds,
                                                         @Param("temaIds") String temaIds);
+    @Query(value = """
+        SELECT * FROM obtener_coordinador_por_carrera_usuario(:usuarioId)
+        """, nativeQuery = true)
+    List<Object[]> obtenerIdCoordinadorPorUsuario(
+            @Param("usuarioId") Integer usuarioId
+    );
 
 
 }

@@ -22,6 +22,7 @@ interface TimelineEvent {
   isAtRisk: boolean;
 }
 
+
 export function LineaTiempoReporte({ user }: Props) {
   const [timeFilter, setTimeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -31,7 +32,7 @@ export function LineaTiempoReporte({ user }: Props) {
   useEffect(() => {
     const fetchEntregables = async () => {
       try {
-        const alumnoId = "36"; // Hardcodeado por ahora
+        const alumnoId = "11"; // Hardcodeado por ahora
         const data = await getEntregablesAlumno(alumnoId);
 
         const eventosTransformados: TimelineEvent[] = data.map((item: {

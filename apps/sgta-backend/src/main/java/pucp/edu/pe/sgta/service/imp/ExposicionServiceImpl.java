@@ -18,7 +18,6 @@ import pucp.edu.pe.sgta.repository.UsuarioXTemaRepository;
 import pucp.edu.pe.sgta.service.inter.ExposicionService;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -185,6 +184,7 @@ public class ExposicionServiceImpl implements ExposicionService {
             dto.setTitulo((String) obj[8]);
             dto.setEtapaFormativa((String) obj[9]);
             dto.setCiclo((String) obj[10]);
+            dto.setEstudianteId(usuarioId);
 
             List<UsuarioXTema> usuarioTemas = usuarioXTemaRepository.findByTemaIdAndActivoTrue(dto.getTemaId());
             List<MiembroExposicionDto> miembros = usuarioTemas.stream()
