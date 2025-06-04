@@ -15,7 +15,7 @@ import {
   Tema,
   Tesista,
 } from "@/features/temas/types/inscripcion/entities";
-import { estadosValues, Tipo } from "@/features/temas/types/inscripcion/enums";
+import { Tipo } from "@/features/temas/types/inscripcion/enums";
 import { titleCase } from "@/lib/utils";
 import { FilePen, Trash2 } from "lucide-react";
 import DeleteTemaPopUp from "./delete-tema-pop-up";
@@ -103,7 +103,9 @@ export function TemasTable({
         <TableCell>{asesor ? asesor.nombres : ""}</TableCell>
         {/* Tesistas */}
         <TableCell>
-          {!tema.tesistas || tema.tesistas.length === 0 ? (
+          {!tema.tesistas ||
+          tema.tesistas.length === 0 ||
+          tema.tesistas.map((tesista) => tesista.asignado === false) ? (
             <p className="text-gray-400">Sin asignar</p>
           ) : (
             tema.tesistas.map((e: Tesista) => e.nombres).join(", ")
@@ -121,9 +123,13 @@ export function TemasTable({
           <Badge
             variant="outline"
             className={
-              tema.estadoTemaNombre === estadosValues.PROPUESTO_LIBRE
+              tema.estadoTemaNombre === Tipo.LIBRE
                 ? "bg-purple-100 text-purple-800 hover:bg-purple-100"
-                : "bg-green-100 text-green-800 hover:bg-green-100"
+                : tema.estadoTemaNombre === Tipo.PREINSCRITO
+                  ? "bg-orange-100 text-orange-800 hover:bg-orange-100"
+                  : tema.estadoTemaNombre === Tipo.INTERESADO
+                    ? "bg-blue-100 text-blue-800 hover:bg-blue-100"
+                    : "bg-green-100 text-green-800 hover:bg-green-100"
             }
           >
             {titleCase(tema?.estadoTemaNombre ?? "")}
@@ -133,7 +139,10 @@ export function TemasTable({
         <TableCell>
           {(() => {
             let estadoLabel = "";
-            if (filter?.includes(Tipo.INTERESADO)) {
+            if (
+              tema?.estadoTemaNombre === Tipo.INTERESADO ||
+              tema?.estadoTemaNombre === Tipo.LIBRE
+            ) {
               estadoLabel = "Pendiente";
             } else if (tema.activo) {
               estadoLabel = "Activo";
@@ -144,9 +153,12 @@ export function TemasTable({
               <Badge
                 variant="outline"
                 className={
-                  tema.activo
-                    ? "bg-green-100 text-green-800 hover:bg-green-100"
-                    : "bg-purple-100 text-purple-800 hover:bg-purple-100"
+                  tema?.estadoTemaNombre === Tipo.INTERESADO ||
+                  tema?.estadoTemaNombre === Tipo.LIBRE
+                    ? "bg-yellow-100 text-black-500 hover:bg-yellow-100"
+                    : tema.activo
+                      ? "bg-green-100 text-green-800 hover:bg-green-100"
+                      : "bg-purple-100 text-purple-800 hover:bg-purple-100"
                 }
               >
                 {titleCase(estadoLabel)}

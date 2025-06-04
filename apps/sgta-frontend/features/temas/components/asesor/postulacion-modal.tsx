@@ -8,9 +8,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
+import { Postulacion } from "@/features/temas/types/postulaciones/entidades";
 import { CheckCircle, X } from "lucide-react";
-import { Postulacion } from "../../types/postulaciones/entidades";
 
 interface PostulacionModalProps {
   selectedPostulacion: Postulacion | null;
@@ -47,7 +46,7 @@ export function PostulacionModal({
           <div className="space-y-2">
             <Label>Área</Label>
             <div className="p-3 bg-gray-50 rounded-md border">
-              <p>{selectedPostulacion.area}</p>
+              <p>{selectedPostulacion.subareas[0].areaConocimiento.nombre}</p>
             </div>
           </div>
 
@@ -56,14 +55,14 @@ export function PostulacionModal({
               <Label>Estudiante(s)</Label>
               <div className="p-3 bg-gray-50 rounded-md border">
                 <ul className="space-y-1">
-                  {selectedPostulacion.estudiantes.map((estudiante, index) => (
+                  {selectedPostulacion.tesistas.map((tesista, index) => (
                     <li
                       key={index}
                       className="flex items-center justify-between"
                     >
-                      <span>{estudiante}</span>
+                      <span>{`${tesista.nombres} ${tesista.primerApellido} ${tesista.segundoApellido}`}</span>
                       <span className="text-sm text-muted-foreground">
-                        {selectedPostulacion.codigos[index]}
+                        {selectedPostulacion.tesistas[index].codigoPucp}
                       </span>
                     </li>
                   ))}
@@ -78,7 +77,7 @@ export function PostulacionModal({
                   <span className="text-sm font-medium">Postulación:</span>
                   <span>
                     {new Date(
-                      selectedPostulacion.fechaPostulacion,
+                      selectedPostulacion.fechaCreacion,
                     ).toLocaleDateString()}
                   </span>
                 </div>
@@ -94,29 +93,23 @@ export function PostulacionModal({
             </div>
           </div>
 
-          <Separator />
-
           <div className="space-y-2">
-            <Label>Motivación</Label>
+            <Label>Comentario</Label>
             <div className="p-3 bg-gray-50 rounded-md border">
-              <p>{selectedPostulacion.motivacion}</p>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Experiencia</Label>
-            <div className="p-3 bg-gray-50 rounded-md border">
-              <p>{selectedPostulacion.experiencia}</p>
+              {selectedPostulacion.tesistas.map((tesista, index) => (
+                <span key={index}>{tesista.comentario}</span>
+              ))}
             </div>
           </div>
 
           {/* Mostrar comentario si existe y el estado no es pendiente */}
-          {selectedPostulacion.estado !== "pendiente" &&
-            selectedPostulacion.comentario && (
+          {/*CAMBIAR CUANDO SE TENGA EL LISTADO DE COASESORES*/}
+          {selectedPostulacion.estadoUsuarioTema !== "Pendiente" &&
+            selectedPostulacion.coasesores && (
               <div className="space-y-2">
                 <Label>Comentario para el estudiante</Label>
                 <div className="p-3 bg-gray-50 rounded-md border">
-                  <p>{selectedPostulacion.comentario}</p>
+                  <p>{selectedPostulacion.coasesores}</p>
                 </div>
               </div>
             )}
@@ -127,24 +120,25 @@ export function PostulacionModal({
           Cerrar
         </Button>
 
-        {selectedPostulacion && selectedPostulacion.estado === "pendiente" && (
-          <>
-            <Button
-              onClick={() => handleOpenRejectDialog(selectedPostulacion)}
-              variant="destructive"
-            >
-              <X className="mr-2 h-4 w-4" />
-              Rechazar
-            </Button>
-            <Button
-              onClick={() => handleOpenAcceptDialog(selectedPostulacion)}
-              className="bg-green-600 hover:bg-green-700"
-            >
-              <CheckCircle className="mr-2 h-4 w-4" />
-              Aprobar
-            </Button>
-          </>
-        )}
+        {selectedPostulacion &&
+          selectedPostulacion.estadoUsuarioTema === "Pendiente" && (
+            <>
+              <Button
+                onClick={() => handleOpenRejectDialog(selectedPostulacion)}
+                variant="destructive"
+              >
+                <X className="mr-2 h-4 w-4" />
+                Rechazar
+              </Button>
+              <Button
+                onClick={() => handleOpenAcceptDialog(selectedPostulacion)}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                <CheckCircle className="mr-2 h-4 w-4" />
+                Aprobar
+              </Button>
+            </>
+          )}
       </DialogFooter>
     </DialogContent>
   );
