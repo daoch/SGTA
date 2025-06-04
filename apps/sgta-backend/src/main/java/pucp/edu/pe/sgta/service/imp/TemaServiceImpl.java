@@ -765,7 +765,7 @@ public class TemaServiceImpl implements TemaService {
 			for (Object[] row : areasRows) {
 				AreaConocimientoDto area = AreaConocimientoDto.builder()
 					.id((Integer) row[0])     // area_conocimiento_id
-					.nombre((String) row[1])  // nombre de la área
+					.nombre((String) row[2])  // nombre de la área
 					.build();
 				t.getArea().add(area);
 			}
