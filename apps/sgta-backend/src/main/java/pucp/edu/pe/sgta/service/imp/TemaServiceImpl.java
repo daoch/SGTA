@@ -2106,4 +2106,60 @@ public class TemaServiceImpl implements TemaService {
 		crearSolicitudAprobacionTema(tema);
 	}
 
+	@Override
+	public List<TemaDto> listarPostuladosTemaLibre(String titulo, Integer limit, Integer offset, String usuarioId) {
+		UsuarioDto usuDto = usuarioService.findByCognitoId(usuarioId);
+
+		String sql = "SELECT * FROM listar_postulaciones_alumnos_tema_libre(:asesorId, :titulo, :limit, :offset)";
+
+		@SuppressWarnings("unchecked")
+		List<Object[]> resultados = entityManager
+				.createNativeQuery(sql)
+				.setParameter("asesorId", usuDto.getId())
+				.setParameter("titulo", titulo != null ? titulo : "")
+				.setParameter("limit", limit != null ? limit : 10)
+				.setParameter("offset", offset != null ? offset : 0)
+				.getResultList();
+
+		List<TemaDto> lista = new ArrayList<>();
+
+		for (Object[] fila : resultados) {
+			TemaDto dto = new TemaDto();
+
+			dto=findById((Integer) fila[0]);
+
+			dto.setTitulo((String) fila[1]);
+
+			// Crear UsuarioDto para el tesista
+			dto.setTesistas(new ArrayList<>());
+			dto.setSubareas(new ArrayList<>());
+			int tesistaId = (Integer) fila[5];
+			UsuarioDto tesista = usuarioService.findUsuarioById(tesistaId);
+			tesista.setComentario((String) fila[3]);
+			dto.getTesistas().add(tesista);
+
+			dto.setEstadoUsuarioTema((String) fila[6]);
+
+			dto.setTesistas(Collections.singletonList(tesista));
+
+			dto.setFechaLimite(fila[7] != null
+					? ((java.sql.Date) fila[7]).toLocalDate().atStartOfDay().atOffset(ZoneOffset.UTC)
+					: null);
+
+			Integer[] subareaArray = (Integer[]) fila[8];
+			if (subareaArray != null) {
+				for (Integer subareaId : subareaArray) {
+
+					dto.getSubareas().add(subAreaConocimientoService.findById(subareaId));
+				}
+			}
+
+
+			lista.add(dto);
+		}
+
+		return lista;
+	}
+
+
 }

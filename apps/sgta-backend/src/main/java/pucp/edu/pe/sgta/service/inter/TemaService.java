@@ -123,4 +123,7 @@ public interface TemaService {
 	void postularTemaLibre(Integer temaId, String tesistaId, String comentario);
 
 	void inscribirTemaPreinscrito(Integer temaId, String idUsuario);
+
+	List<TemaDto> listarPostuladosTemaLibre(String titulo, Integer limit, Integer offset, String usuarioId);
+
 }

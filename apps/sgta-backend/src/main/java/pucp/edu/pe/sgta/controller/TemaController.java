@@ -363,5 +363,20 @@ public class TemaController {
         return ResponseEntity.ok("Inscripción de tema preinscrito exitoso.");
     }
 
+	@GetMapping("/listarPostuladosTemaLibre")
+	public List<TemaDto> listarPostuladosTemaLibre(
+			@RequestParam(name = "titulo", required = false) String titulo,
+			@RequestParam(name = "limit", defaultValue = "10") Integer limit,
+			@RequestParam(name = "offset", defaultValue = "0") Integer offset,
+			HttpServletRequest request) {
+		try {
+			String usuarioId = jwtService.extractSubFromRequest(request);
+			return temaService.listarPostuladosTemaLibre(titulo, limit, offset, usuarioId);
+		} catch (RuntimeException e) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+		}
+	}
+
+
 }
 
