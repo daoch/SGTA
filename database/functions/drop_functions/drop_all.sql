@@ -230,3 +230,62 @@ DROP FUNCTION IF EXISTS rechazar_postulaciones_propuesta_general_tesista(p_tesis
 
 DROP PROCEDURE IF EXISTS terminar_planificacion(idexposicion INTEGER, idetapaformativa INTEGER) CASCADE;
 
+
+--
+
+
+DROP FUNCTION IF EXISTS validar_tema_existe_cambiar_asesor_posible(INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS es_usuario_alumno(INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS es_profesor_asesor(INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS obtener_coordinador_por_carrera_usuario(INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS listar_resumen_solicitud_cambio_asesor_usuario(INTEGER, TEXT) CASCADE;
+
+DROP FUNCTION IF EXISTS obtener_detalle_solicitud_cambio_asesor(INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS obtener_detalle_usuario_solicitud_cambio_asesor(INTEGER, INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS puede_usuario_cambiar_solicitud(INTEGER, TEXT, INTEGER) CASCADE;
+
+DROP PROCEDURE IF EXISTS procesar_solicitud_cambio(INTEGER, TEXT, INTEGER, BOOLEAN) CASCADE;
+
+DROP FUNCTION IF EXISTS listar_areas_por_tema(INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS listar_hitos_cronograma_tesista(INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS listarciclosconetapas() CASCADE;
+
+DROP FUNCTION IF EXISTS listar_temas_por_usuario_rol_estado(INTEGER, TEXT, TEXT, INTEGER, INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS listar_temas_por_estado_y_carrera(TEXT, INTEGER, INTEGER, INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS contar_postulaciones(INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS listar_temas_libres_con_usuarios(TEXT, INTEGER, INTEGER, TEXT) CASCADE;
+
+DROP FUNCTION IF EXISTS postular_tesista_tema_libre(INTEGER, TEXT, TEXT) CASCADE;
+
+DROP FUNCTION IF EXISTS tiene_rol_en_tema(INTEGER, INTEGER, TEXT) CASCADE;
+
+--
+
+DROP FUNCTION IF EXISTS listar_etapas_formativas_alumno;
+DROP FUNCTION IF EXISTS obtener_entregables_alumno;
+DROP FUNCTION IF EXISTS listar_documentos_x_entregable;
+DROP FUNCTION IF EXISTS entregar_entregable;
+
+DROP FUNCTION IF EXISTS listar_entregables_x_etapa_formativa_x_ciclo;
+DROP FUNCTION IF EXISTS listar_criterios_entregable_x_entregable;
+DROP FUNCTION IF EXISTS listar_exposiciones_x_etapa_formativa_x_ciclo;
+DROP FUNCTION IF EXISTS listar_criterios_exposicion_x_exposicion;
+DROP FUNCTION IF EXISTS listar_entregables_por_usuario;
+DROP FUNCTION IF EXISTS listar_exposiciones_por_usuario;
+DROP FUNCTION IF EXISTS listar_entregables_con_envio_x_etapa_formativa_x_ciclo;
+
+DROP FUNCTION IF EXISTS listar_etapas_formativas_simple CASCADE;
+DROP FUNCTION IF EXISTS obtener_detalle_etapa_formativa CASCADE;
+DROP FUNCTION IF EXISTS obtener_historial_ciclos_etapa_formativa CASCADE;
+

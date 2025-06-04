@@ -1043,3 +1043,18 @@ BEGIN
     RETURN existe_conflicto;
 END;
 $$;
+
+CREATE FUNCTION obtener_id_carrera_por_id_expo(idexpo integer)
+    RETURNS TABLE(id_carrera integer)
+    LANGUAGE plpgsql
+AS
+$$
+begin
+	return query
+	select c.carrera_id from carrera  c
+	inner join etapa_formativa ef on ef.carrera_id = c.carrera_id
+	inner join etapa_formativa_x_ciclo efc on efc.etapa_formativa_id = ef.etapa_formativa_id
+	inner join exposicion e on  e.etapa_formativa_x_ciclo_id  = efc.etapa_formativa_x_ciclo_id
+	where e.exposicion_id =idExpo ;
+end
+$$;
