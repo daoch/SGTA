@@ -147,9 +147,11 @@ public class MiembroJuradoController {
     public ResponseEntity<List<EstadoExposicionDto>> listarEstados() {
         return ResponseEntity.ok(juradoService.listarEstados());
     }
+
     @GetMapping("/criterios")
-    public ResponseEntity<ExposicionCalificacionDto> listarExposicionCalificacion(@RequestBody ExposicionCalificacionRequest request) {
-        return  juradoService.listarExposicionCalificacion(request);
+    public ResponseEntity<ExposicionCalificacionDto> listarExposicionCalificacion(
+            @RequestBody ExposicionCalificacionRequest request) {
+        return juradoService.listarExposicionCalificacion(request);
     }
 
     @PutMapping("/criterios")

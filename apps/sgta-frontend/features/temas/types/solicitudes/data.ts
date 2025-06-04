@@ -97,6 +97,6 @@ export async function buscarTemaPorId(idTema: number): Promise<Tema> {
   const { data } = await axiosInstance.get<Tema>("/temas/buscarTemaPorId", {
     params: { idTema },
   });
+  console.log("Tema obtenido:", data);
   return data;
 }
-

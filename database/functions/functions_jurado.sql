@@ -1043,3 +1043,42 @@ BEGIN
     RETURN existe_conflicto;
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION obtener_profesores()
+RETURNS TABLE(
+    id_usuario INTEGER,
+    nombres TEXT,
+    primer_apellido TEXT,
+    segundo_apellido TEXT,
+    codigo_pucp TEXT,
+    correo_electronico TEXT,
+    tipo_dedicacion TEXT,
+    cantidad_temas_asignados BIGINT
+)
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+    u.usuario_id AS id_usuario,
+	u.nombres::TEXT,
+	u.primer_apellido::TEXT,
+	u.segundo_apellido::TEXT,
+	u.codigo_pucp::TEXT,
+	u.correo_electronico::TEXT,
+	td.iniciales::TEXT AS tipo_dedicacion,
+	ut.cantidad_temas_asignados
+FROM usuario u
+INNER JOIN tipo_usuario tu ON u.tipo_usuario_id = tu.tipo_usuario_id
+INNER JOIN tipo_dedicacion td ON u.tipo_dedicacion_id = td.tipo_dedicacion_id
+INNER JOIN (
+    SELECT usuario_id AS id_usuario, COUNT(*) AS cantidad_temas_asignados
+    FROM usuario_tema
+    WHERE activo = true
+    GROUP BY usuario_id
+) ut ON u.usuario_id = ut.id_usuario
+WHERE
+	tu.nombre = 'profesor'
+	AND u.activo = true
+ORDER BY ut.cantidad_temas_asignados ASC;
+END;
+$$ LANGUAGE plpgsql;
