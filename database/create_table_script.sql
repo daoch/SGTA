@@ -2,10 +2,13 @@ DO
 $$
     BEGIN
         CREATE TYPE enum_tipo_dato AS ENUM (
-            'string',
-            'date',
-            'integer',
-            'booleano'
+            'pendiente',
+            'en_proceso',
+            'completada',
+	        'revisado'
+	        'aprobado'
+            'rechazado'
+	        'por_aprobar'
             );
     EXCEPTION
         WHEN duplicate_object THEN NULL;

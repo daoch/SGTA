@@ -183,3 +183,5 @@ DROP FUNCTION IF EXISTS sala_ocupada_en_rango (
     timestamptz,
     timestamptz
 );
+
+DROP FUNCTION IF EXISTS obtener_documentos_asesor (INTEGER) CASCADE;
