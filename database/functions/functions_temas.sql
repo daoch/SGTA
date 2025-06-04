@@ -261,9 +261,7 @@ RETURNS TABLE (
   fecha_modificacion TIMESTAMPTZ,
   requisitos         TEXT,
   carrera_id         INT,      -- nuevo
-  carrera_nombre     TEXT,     -- nombre de la carrera
-  area_id            INT,      -- nuevo
-  area_nombre        TEXT      -- nombre del área
+  carrera_nombre     TEXT    -- nombre de la carrera
 ) AS $$
 BEGIN
   RETURN QUERY
@@ -281,26 +279,21 @@ BEGIN
     t.fecha_modificacion,
     t.requisitos::text,
     c.carrera_id,                       -- columna 12
-    c.nombre::text      AS carrera_nombre,   -- columna 13
-    ac.area_conocimiento_id AS area_id,      -- columna 14
-    ac.nombre::text     AS area_nombre      -- columna 15
+    c.nombre::text      AS carrera_nombre   -- columna 13
   FROM tema t
     JOIN estado_tema est   ON t.estado_tema_id = est.estado_tema_id
     JOIN usuario_tema ut   ON ut.tema_id      = t.tema_id
     JOIN rol r             ON ut.rol_id       = r.rol_id
     JOIN usuario u         ON ut.usuario_id   = u.usuario_id
     JOIN carrera c         ON t.carrera_id    = c.carrera_id
-    LEFT JOIN sub_area_conocimiento_tema sact
-           ON sact.tema_id = t.tema_id
-    LEFT JOIN sub_area_conocimiento sac
-           ON sac.sub_area_conocimiento_id = sact.sub_area_conocimiento_id
-    LEFT JOIN area_conocimiento ac
-           ON ac.area_conocimiento_id = sac.area_conocimiento_id
+
   WHERE
     u.activo
     AND r.nombre   ILIKE p_rol_nombre
     AND est.nombre ILIKE p_estado_nombre
     AND u.usuario_id = p_usuario_id
+    AND t.activo = TRUE
+    AND c.activo = TRUE
   ORDER BY t.fecha_creacion DESC
   LIMIT p_limit OFFSET p_offset;
 END;
@@ -371,6 +364,35 @@ BEGIN
     AND sac.activo = TRUE;
 END;
 $$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION listar_areas_por_tema (
+  p_tema_id INT
+)
+RETURNS TABLE (
+  area_conocimiento_id INT,
+  nombre               TEXT
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    ac.area_conocimiento_id,
+    ac.nombre::text
+  FROM sub_area_conocimiento_tema sact
+  JOIN sub_area_conocimiento sac
+    ON sac.sub_area_conocimiento_id = sact.sub_area_conocimiento_id
+  JOIN area_conocimiento ac
+    ON ac.area_conocimiento_id = sac.area_conocimiento_id
+  WHERE
+    sact.tema_id = p_tema_id
+    AND sac.activo = TRUE
+    AND ac.activo = TRUE
+  GROUP BY
+    ac.area_conocimiento_id,
+    ac.nombre;
+END;
+$$ LANGUAGE plpgsql;
+
 
 
 CREATE OR REPLACE FUNCTION enlazar_tesistas_tema_propuesta_directa(
