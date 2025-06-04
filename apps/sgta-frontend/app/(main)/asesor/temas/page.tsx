@@ -197,7 +197,7 @@ const Page = () => {
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue={Tipo.TODOS} className="w-full">
+      <Tabs defaultValue={Tipo.INSCRITO} className="w-full">
         <TabsList>
           {Object.entries(tableTexts)
             .filter(([, value]) => value.show)
