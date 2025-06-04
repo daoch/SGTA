@@ -67,4 +67,7 @@ public interface UsuarioXTemaRepository extends JpaRepository<UsuarioXTema, Inte
                 @Param("rolNombre") String rolNombre
         );
 
+        Optional<UsuarioXTema> findByUsuarioIdAndTemaIdAndRolId(Integer usuarioId, Integer temaId, Integer rolId);
+
+        Optional<UsuarioXTema> findByUsuario_IdAndTema_Id(Integer usuarioId, Integer temaId);
 }
