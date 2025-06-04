@@ -30,7 +30,12 @@ interface TemaAPI {
   estadoTemaNombre: string;
   area: { nombre: string }[];
   subareas?: { nombre: string }[];
-  coasesores: { nombres: string; primerApellido?: string; rol: string }[];
+  coasesores: {
+    nombres: string;
+    primerApellido?: string;
+    rol: string;
+    comentario?: string | null;
+  }[];
   tesistas?: { comentario?: string }[]; 
 }
 
@@ -86,8 +91,8 @@ export function PostulacionesTable() {
           const asesorObj = tema.coasesores[0];
           const coasesoresObj = tema.coasesores.slice(1);
           const comentarios = tema.coasesores
-            .map((c) => c.rol && "comentario" in c ? (c as any).comentario : null)
-            .filter((c) => c && c.trim() !== "")
+            .map((c) => c.comentario?.trim())
+            .filter((c): c is string => Boolean(c))
             .join("\n\n");
 
           return {
@@ -105,7 +110,7 @@ export function PostulacionesTable() {
             fechaLimite: new Date(tema.fechaLimite).toLocaleDateString("es-PE"),
             estado: tema.estadoTemaNombre,
             comentarioTesista: tema.tesistas?.[0]?.comentario || "Sin comentario",
-            comentariosAsesores: comentarios || undefined, // si no hay, queda undefined
+            comentariosAsesores: comentarios || undefined, 
           };
         });
 
