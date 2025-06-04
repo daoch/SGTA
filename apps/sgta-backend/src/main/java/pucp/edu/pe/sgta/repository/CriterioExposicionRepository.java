@@ -14,4 +14,5 @@ public interface CriterioExposicionRepository extends JpaRepository<CriterioExpo
     @Query(value = "SELECT * FROM listar_criterios_exposicion_x_exposicion(:exposicionId)", nativeQuery = true)
     List<Object[]> listarCriteriosExposicionXExposicion(@Param("exposicionId") Integer exposicionId);
 
+    List<CriterioExposicion> findByExposicion_IdAndActivoTrue(Integer exposicionId);
 }

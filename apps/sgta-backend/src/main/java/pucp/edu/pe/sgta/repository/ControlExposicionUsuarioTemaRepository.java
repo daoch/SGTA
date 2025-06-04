@@ -16,4 +16,5 @@ public interface ControlExposicionUsuarioTemaRepository extends JpaRepository<Co
     void insertarControlesDeExposicion(@Param("idExposicion") Integer exposicionId,
                                        @Param("idEtapaFormativa") Integer etapaFormativa);
 
+
 }
