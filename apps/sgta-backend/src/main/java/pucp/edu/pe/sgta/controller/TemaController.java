@@ -304,7 +304,7 @@ public class TemaController {
 			HttpServletRequest request) {
 		try {
 			String usuarioId = jwtService.extractSubFromRequest(request);
-			return temaService.listarTemasLibres(titulo, limit, offset, usuarioId);
+			return temaService.listarTemasLibres(titulo, limit, offset, usuarioId, false);
 		} catch (RuntimeException e) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
 		}
@@ -340,6 +340,7 @@ public class TemaController {
 
         return ResponseEntity.ok("Solicitud de cambio de título creada correctamente.");
     }
+
 	@PostMapping("/postularTemaLibre")
 	public void postularTemaLibre(@RequestParam("temaId") Integer temaId,
         @RequestParam("comentario") String comentario,
@@ -351,6 +352,7 @@ public class TemaController {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
 		}
 	}
+
 	@PutMapping("/inscribirTemaPrenscrito/{temaId}")
     public ResponseEntity<String> inscribirTemaPrenscrito(
             @PathVariable Integer temaId,
@@ -362,6 +364,16 @@ public class TemaController {
 
         return ResponseEntity.ok("Inscripción de tema preinscrito exitoso.");
     }
+
+	@GetMapping("/listarMisPostulacionesTemaLibre")
+	public List<TemaDto> listarMisPostulacionesTemaLibre(HttpServletRequest request) {
+		try {
+			String tesistaId = jwtService.extractSubFromRequest(request);
+			return temaService.listarTemasLibres("",0,0 , tesistaId, true);
+		} catch (RuntimeException e) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+		}
+	}
 
 }
 
