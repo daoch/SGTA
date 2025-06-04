@@ -391,6 +391,21 @@ public class TemaController {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
 		}
 	}
+
+	@PutMapping("/rechazarPostulacionAlumnoTemaLibre")
+	public void rechazarPostulacionAlumnoTemaLibre(
+		@RequestBody UsuarioTemaDto usuarioTemaDto,
+		HttpServletRequest request) {
+		try {
+			String asesorId = jwtService.extractSubFromRequest(request);
+			temaService.rechazarPostulacionAlumno(usuarioTemaDto.getTemaId(), 
+												usuarioTemaDto.getUsuarioId(), 
+												asesorId,
+												usuarioTemaDto.getComentario());
+		} catch (RuntimeException e) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+		}
+	}
 	
 
 }

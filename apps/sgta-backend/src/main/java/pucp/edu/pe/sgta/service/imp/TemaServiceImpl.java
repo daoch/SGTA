@@ -2131,10 +2131,19 @@ public class TemaServiceImpl implements TemaService {
 	public void aceptarPostulacionAlumno(Integer temaId, Integer idTesista, String idAsesor, String comentario) {
 		// 1) Validar que quien llama sea el asesor asignado al tema
 		UsuarioDto usuDto = usuarioService.findByCognitoId(idAsesor);
-		validarRolAsignadoAtema(usuDto.getId(), temaId, RolEnum.Asesor.name());
 
 		// 2) Validar que el tema esté en el estado correcto para aceptar postulaciones
 		Tema tema = validarEstadoTema(temaId, EstadoTemaEnum.PROPUESTO_LIBRE.name());
+
+		boolean yaAsignado = usuarioXTemaRepository
+				.existsByUsuarioIdAndRolNombreAndActivoTrueAndAsignadoTrue(
+						idTesista,
+						"Tesista" // o el nombre exacto de tu rol
+				);
+		if (yaAsignado) {
+			throw new CustomException(
+					"El tesista con id " + idTesista + " ya tiene un tema asignado");
+		}
 
 		// 3) Buscar el registro de UsuarioXTema para ese tesista y tema
 		UsuarioXTema usuarioXTema = usuarioXTemaRepository
@@ -2207,5 +2216,29 @@ public class TemaServiceImpl implements TemaService {
 		// 3) Guardar todos los cambios en lote
 		usuarioXTemaRepository.saveAll(postulacionesPendientes);
 	}
+
+
+	@Override
+	@Transactional
+	public void rechazarPostulacionAlumno(Integer temaId, Integer idTesista, String idAsesor, String comentario) {
+		// 1) (Opcional) Validar que quien llama tenga permiso: p.ej. sea Asesor del tema
+		UsuarioDto usuDto = usuarioService.findByCognitoId(idAsesor);
+		validarRolAsignadoAtema(usuDto.getId(), temaId, RolEnum.Asesor.name());
+
+		// 2) Buscar el registro de UsuarioXTema correspondiente
+		UsuarioXTema registro = usuarioXTemaRepository
+				.findByTemaIdAndUsuarioIdAndActivoTrue(temaId, idTesista)
+				.orElseThrow(() -> new ResponseStatusException(
+						HttpStatus.NOT_FOUND,
+						"No existe postulación para el tesista " + idTesista + " en el tema " + temaId
+				));
+
+		// 3) Marcarlo como rechazado
+		registro.setRechazado(true);
+		registro.setFechaModificacion(OffsetDateTime.now());
+		registro.setComentario(comentario != null ? comentario : "Postulación rechazada por el asesor");
+		usuarioXTemaRepository.save(registro);
+	}
+
 
 }
