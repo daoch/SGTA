@@ -1,5 +1,5 @@
 --COMENTAR SI NO LES HACE FALTA
-SET search_path TO sgtadb;
+--SET search_path TO sgtadb;
 
 ----------------------------------
 --|           TIPOS            |--
@@ -438,7 +438,7 @@ INSERT INTO usuario_area_conocimiento (usuario_id, area_conocimiento_id)
            (11, 2),
            (12, 2);
 
-INSERT INTO usuario_sub_area_conocimiento (usuario_id, sub_area_conocimiento_id,)
+INSERT INTO usuario_sub_area_conocimiento (usuario_id, sub_area_conocimiento_id)
     VALUES (6, 11),
            (6, 12),
            (6, 14),
@@ -539,7 +539,7 @@ SELECT u.usuario_id,
     FROM usuario u
     WHERE u.codigo_pucp IN
           ('ALU0001', 'ALU0002', 'ALU0003', 'ALU0004', 'ALU0005', 'ALU0006', 'ALU0007', 'ALU0008', 'ALU0009', 'ALU0010',
-           'ALU0011');
+           'ALU0019');
 
 --Asesores
 

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { ListExposicionXCoordinadorDTO } from "../dtos/ListExposicionXCoordiandorDTO";
 import { getExposicionesInicializadasByCoordinador } from "../services/exposicion-service";
 
-export function useFetchExposiciones(coordinadorId: number) {
+export function useFetchExposiciones(tokenId: string) {
   const [exposiciones, setExposiciones] = useState<
     ListExposicionXCoordinadorDTO[]
   >([]);
@@ -13,8 +13,7 @@ export function useFetchExposiciones(coordinadorId: number) {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const data =
-          await getExposicionesInicializadasByCoordinador(coordinadorId);
+        const data = await getExposicionesInicializadasByCoordinador(tokenId);
         setExposiciones(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Ocurrió un error");
@@ -24,7 +23,7 @@ export function useFetchExposiciones(coordinadorId: number) {
     };
 
     fetchData();
-  }, [coordinadorId]);
+  }, [tokenId]);
 
   return { exposiciones, loading, error };
 }

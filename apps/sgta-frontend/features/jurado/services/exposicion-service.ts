@@ -114,11 +114,13 @@ export const getCursos = async () => {
   }
 };
 
-export const getCursosByCoordinador = async (coordinadorId: number) => {
+export const getCursosByCoordinador = async (bearerTokenId: string) => {
   try {
-    const response = await axiosInstance.get(
-      `/etapas-formativas/listarActivasPorCoordinador/${coordinadorId}`,
-    );
+    const response = await axiosInstance.get("/etapas-formativas/listarActivasPorCoordinador", {
+      headers: {
+        "Authorization": `Bearer ${bearerTokenId}`,
+      }
+    });
     return response.data;
   } catch (error) {
     console.error("Error al obtener cursos por coordinador:", error);
@@ -137,11 +139,15 @@ export const getEstadosExposicion = async () => {
 };
 
 export const getExposicionesInicializadasByCoordinador = async (
-  coordinadorId: number,
+  tokenId: string,
 ) => {
   try {
     const response = await axiosInstance.get(
-      `/exposicion/listarExposicionesInicializadasXCoordinador/${coordinadorId}`,
+      "/exposicion/listarExposicionesInicializadasXCoordinador", {
+        headers: {
+          "Authorization": `Bearer ${tokenId}`,
+        }
+      }
     );
     return response.data;
   } catch (error) {

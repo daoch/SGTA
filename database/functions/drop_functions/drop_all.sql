@@ -289,3 +289,4 @@ DROP FUNCTION IF EXISTS listar_etapas_formativas_simple CASCADE;
 DROP FUNCTION IF EXISTS obtener_detalle_etapa_formativa CASCADE;
 DROP FUNCTION IF EXISTS obtener_historial_ciclos_etapa_formativa CASCADE;
 
+DROP FUNCTION IF EXISTS listar_temas_libres_postulados_alumno(TEXT) CASCADE;

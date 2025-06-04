@@ -2346,3 +2346,129 @@ BEGIN
     ORDER BY t.fecha_creacion DESC;
 END;
 $$;
+
+
+CREATE FUNCTION crear_tema_libre(p_titulo text, p_resumen text, p_metodologia text, p_objetivos text, p_carrera_id integer, p_fecha_limite date, p_requisitos text, p_sub_areas_conocimiento_ids integer[], p_coasesores_ids integer[]) RETURNS void
+    LANGUAGE plpgsql
+AS
+$$
+DECLARE
+    v_tema_id INT;
+    v_now TIMESTAMP := NOW();
+    v_asesor_id INT;
+    v_coasesores INT[];
+    v_rol_asesor_id INT;
+    v_rol_coasesor_id INT;
+    v_estado_tema_id INT;
+BEGIN
+    -- Validar que haya al menos un asesor
+    IF array_length(p_coasesores_ids, 1) < 1 THEN
+        RAISE EXCEPTION 'Debe haber al menos un usuario: el asesor';
+    END IF;
+
+    -- Obtener los rol_id por nombre
+    SELECT rol_id INTO v_rol_asesor_id FROM rol WHERE LOWER(nombre) = 'asesor' LIMIT 1;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'No se encontró el rol con nombre "Asesor"';
+    END IF;
+
+    SELECT rol_id INTO v_rol_coasesor_id FROM rol WHERE LOWER(nombre) = 'coasesor' LIMIT 1;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'No se encontró el rol con nombre "Coasesor"';
+    END IF;
+
+    -- Obtener el estado_tema_id para 'PROPUESTO_LIBRE'
+    SELECT estado_tema_id INTO v_estado_tema_id FROM estado_tema WHERE nombre = 'PROPUESTO_LIBRE' LIMIT 1;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'No se encontró el estado_tema con nombre "PROPUESTO_LIBRE"';
+    END IF;
+
+    -- Separar asesor y coasesores
+    v_asesor_id := p_coasesores_ids[1];
+    v_coasesores := CASE
+        WHEN array_length(p_coasesores_ids, 1) > 1 THEN p_coasesores_ids[2:array_length(p_coasesores_ids, 1)]
+        ELSE NULL
+    END;
+
+    -- Insertar el tema con el estado_tema_id
+    INSERT INTO tema (
+        titulo, resumen, metodologia, objetivos, carrera_id,
+        fecha_limite, requisitos, activo, fecha_creacion, fecha_modificacion,
+        estado_tema_id
+    )
+    VALUES (
+        p_titulo, p_resumen, p_metodologia, p_objetivos, p_carrera_id,
+        p_fecha_limite, p_requisitos, TRUE, v_now, v_now,
+        v_estado_tema_id
+    )
+    RETURNING tema_id INTO v_tema_id;
+
+    -- Insertar subáreas
+    IF p_sub_areas_conocimiento_ids IS NOT NULL THEN
+        INSERT INTO sub_area_conocimiento_tema (
+            sub_area_conocimiento_id, tema_id, activo, fecha_creacion, fecha_modificacion
+        )
+        SELECT unnest(p_sub_areas_conocimiento_ids), v_tema_id, TRUE, v_now, v_now;
+    END IF;
+
+    -- Insertar asesor
+    INSERT INTO usuario_tema (
+        usuario_id, tema_id, rol_id, asignado, rechazado, creador, activo, fecha_creacion, fecha_modificacion
+    )
+    VALUES (
+        v_asesor_id, v_tema_id, v_rol_asesor_id, FALSE, FALSE, TRUE, TRUE, v_now, v_now
+    );
+
+    -- Insertar coasesores
+    IF v_coasesores IS NOT NULL THEN
+        INSERT INTO usuario_tema (
+            usuario_id, tema_id, rol_id, asignado, rechazado, creador, activo, fecha_creacion, fecha_modificacion
+        )
+        SELECT
+            unnest(v_coasesores), v_tema_id, v_rol_coasesor_id, FALSE, FALSE, FALSE, TRUE, v_now, v_now;
+    END IF;
+END;
+$$;
+
+CREATE FUNCTION obtener_temas_por_alumno(p_id_alumno INTEGER)
+    RETURNS TABLE
+            (
+                idtema         INTEGER,
+                titulo         TEXT,
+                estado         TEXT,
+                areastematicas TEXT,
+                idasesor       INTEGER
+            )
+    LANGUAGE plpgsql
+AS
+$$
+BEGIN
+    RETURN QUERY
+        SELECT t.tema_id                                  AS "idTema",
+               t.titulo::TEXT,
+               et.nombre::TEXT,
+               STRING_AGG(DISTINCT at.nombre, ', ')::TEXT AS "areasTematicas",
+               u.usuario_id                               AS "idAsesor"
+            FROM tema t
+                     JOIN estado_tema et ON t.estado_tema_id = et.estado_tema_id
+                     JOIN usuario_tema uta ON uta.tema_id = t.tema_id
+                     LEFT JOIN LATERAL (
+                SELECT u2.usuario_id
+                    FROM usuario_tema ut
+                             JOIN usuario u2 ON u2.usuario_id = ut.usuario_id
+                    WHERE ut.tema_id = t.tema_id
+                      AND ut.rol_id = 1
+                      AND ut.activo = TRUE
+                    LIMIT 1
+                ) u ON TRUE
+                     LEFT JOIN sub_area_conocimiento_tema tsac ON tsac.tema_id = t.tema_id
+                     LEFT JOIN sub_area_conocimiento sac ON sac.sub_area_conocimiento_id = tsac.sub_area_conocimiento_id
+                     LEFT JOIN area_conocimiento at ON at.area_conocimiento_id = sac.area_conocimiento_id
+            WHERE et.nombre IN ('INSCRITO', 'REGISTRADO', 'EN_PROGRESO', 'PAUSADO')
+              AND uta.usuario_id = p_id_alumno
+              AND uta.rol_id = 4
+              AND uta.activo = TRUE
+            GROUP BY t.tema_id, t.titulo, et.nombre, u.usuario_id;
+END;
+$$;
+
