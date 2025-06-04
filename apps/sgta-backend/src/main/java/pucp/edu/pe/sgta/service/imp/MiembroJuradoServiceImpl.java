@@ -43,6 +43,8 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
         private final ApplicationEventPublisher eventPublisher;
         private final CriterioExposicionRepository criterioExposicionRepository;
         private final RevisionCriterioExposicionRepository revisionCriterioExposicionRepository;
+        private final ParametroConfiguracionRepository parametroConfiguracionRepository;
+        private final CarreraXParametroConfiguracionRepository carreraXParametroConfiguracionRepository;
 
         public MiembroJuradoServiceImpl(UsuarioRepository usuarioRepository,
                                         UsuarioXTemaRepository usuarioXTemaRepository,
@@ -55,7 +57,7 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                                         ControlExposicionUsuarioTemaRepository controlExposicionUsuarioTemaRepository,
                                         ApplicationEventPublisher eventPublisher,
                                         CriterioExposicionRepository criterioExposicionRepository,
-                                        RevisionCriterioExposicionRepository revisionCriterioExposicionRepository) {
+                                        RevisionCriterioExposicionRepository revisionCriterioExposicionRepository, ParametroConfiguracionRepository parametroConfiguracionRepository, CarreraXParametroConfiguracionRepository carreraXParametroConfiguracionRepository) {
                 this.usuarioRepository = usuarioRepository;
                 this.usuarioXTemaRepository = usuarioXTemaRepository;
                 this.rolRepository = rolRepository;
@@ -68,6 +70,8 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                 this.eventPublisher = eventPublisher;
                 this.criterioExposicionRepository = criterioExposicionRepository;
                 this.revisionCriterioExposicionRepository = revisionCriterioExposicionRepository;
+            this.parametroConfiguracionRepository = parametroConfiguracionRepository;
+            this.carreraXParametroConfiguracionRepository = carreraXParametroConfiguracionRepository;
         }
 
 
@@ -290,7 +294,14 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
         @Override
         public List<MiembroJuradoXTemaDto> findByUsuarioIdAndActivoTrueAndRolId(Integer usuarioId) {
                 List<UsuarioXTema> temasJurado = usuarioXTemaRepository.findByUsuarioIdAndActivoTrue(usuarioId);
-                int limite = 2;
+                ParametroConfiguracion parametroConfiguracion = parametroConfiguracionRepository.findByNombre("Cantidad Jurados")
+                        .orElseThrow(() -> new RuntimeException("Parámetro no encontrado"));
+
+                CarreraXParametroConfiguracion carreraXParametroConfiguracion = carreraXParametroConfiguracionRepository
+                        .findFirstByParametroConfiguracionId(parametroConfiguracion.getId())
+                        .orElseThrow(()->new RuntimeException("No se encontro carrera x parametro configuración"));
+
+                int limite = Integer.parseInt(carreraXParametroConfiguracion.getValor()) - 1;
                 return temasJurado.stream()
                                 .filter(ut -> ut.getRol().getId().equals(2))
                                 .filter(ut -> esEstadoTemaValido(ut.getTema().getEstadoTema()))
