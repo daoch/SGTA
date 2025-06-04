@@ -1,6 +1,7 @@
 package pucp.edu.pe.sgta.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +18,7 @@ import pucp.edu.pe.sgta.service.inter.JwtService;
 import pucp.edu.pe.sgta.service.inter.TemaService;
 
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -365,13 +367,16 @@ public class TemaController {
 
 	@GetMapping("/listarPostuladosTemaLibre")
 	public List<TemaDto> listarPostuladosTemaLibre(
-			@RequestParam(name = "titulo", required = false) String titulo,
-			@RequestParam(name = "limit", defaultValue = "10") Integer limit,
-			@RequestParam(name = "offset", defaultValue = "0") Integer offset,
-			HttpServletRequest request) {
+			@RequestParam(required = false) String busqueda,
+			@RequestParam(required = false) String estado,
+			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaLimite,
+			@RequestParam(defaultValue = "10") Integer limit,
+			@RequestParam(defaultValue = "0") Integer offset,
+			HttpServletRequest request
+	) {
 		try {
 			String usuarioId = jwtService.extractSubFromRequest(request);
-			return temaService.listarPostuladosTemaLibre(titulo, limit, offset, usuarioId);
+			return temaService.listarPostuladosTemaLibre(busqueda, estado, fechaLimite, limit, offset, usuarioId);
 		} catch (RuntimeException e) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
 		}

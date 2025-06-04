@@ -2107,19 +2107,29 @@ public class TemaServiceImpl implements TemaService {
 	}
 
 	@Override
-	public List<TemaDto> listarPostuladosTemaLibre(String titulo, Integer limit, Integer offset, String usuarioId) {
+	public List<TemaDto> listarPostuladosTemaLibre(
+			String busqueda,
+			String estado,
+			LocalDate fechaLimite,
+			Integer limit,
+			Integer offset,
+			String usuarioId
+	){
 		UsuarioDto usuDto = usuarioService.findByCognitoId(usuarioId);
 
-		String sql = "SELECT * FROM listar_postulaciones_alumnos_tema_libre(:asesorId, :titulo, :limit, :offset)";
+		String sql = "SELECT * FROM listar_postulaciones_alumnos_tema_libre(:asesorId, :busqueda, :estado, :fechaLimite, :limit, :offset)";
 
 		@SuppressWarnings("unchecked")
 		List<Object[]> resultados = entityManager
 				.createNativeQuery(sql)
 				.setParameter("asesorId", usuDto.getId())
-				.setParameter("titulo", titulo != null ? titulo : "")
+				.setParameter("busqueda", busqueda != null ? busqueda : "")
+				.setParameter("estado", estado != null ? estado : "")
+				.setParameter("fechaLimite", fechaLimite != null ? java.sql.Date.valueOf(fechaLimite) : null)
 				.setParameter("limit", limit != null ? limit : 10)
 				.setParameter("offset", offset != null ? offset : 0)
 				.getResultList();
+
 
 		List<TemaDto> lista = new ArrayList<>();
 
