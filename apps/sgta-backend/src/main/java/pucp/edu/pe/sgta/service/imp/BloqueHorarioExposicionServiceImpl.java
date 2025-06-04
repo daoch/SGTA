@@ -5,7 +5,9 @@ import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -62,7 +64,8 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
 
     @Override
     public List<ListBloqueHorarioExposicionSimpleDTO> listarBloquesHorarioPorExposicion(Integer exposicionId) {
-        List<Object[]> results = bloqueHorarioExposicionRepository.listarBloquesHorarioPorExposicion(exposicionId);
+        //List<Object[]> results = bloqueHorarioExposicionRepository.listarBloquesHorarioPorExposicion(exposicionId);
+        List<Object[]> results = bloqueHorarioExposicionRepository.listarBloquesHorarioPorExposicionConUsuariosYRespuesta(exposicionId);
 
         // Asi deberia ser :V
         // return results.stream().map(row -> new ListBloqueHorarioExposicionDTO(
@@ -80,7 +83,7 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
         DateTimeFormatter fechaFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
         DateTimeFormatter horaFormatter = DateTimeFormatter.ofPattern("HH:mm");
 
-        return results.stream().map(row -> {
+        /*return results.stream().map(row -> {
             OffsetDateTime inicio = OffsetDateTime.ofInstant((Instant) row[5], ZoneId.systemDefault());
             OffsetDateTime fin = OffsetDateTime.ofInstant((Instant) row[6], ZoneId.systemDefault());
 
@@ -97,11 +100,74 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
                 temaConAsesorJuradoDTO.setId((Integer) row[8]);
                 temaConAsesorJuradoDTO.setCodigo((String) row[9]);
                 temaConAsesorJuradoDTO.setTitulo((String) row[10]);
+                temaConAsesorJuradoDTO.setUsuarios(new ArrayList<UsarioRolDto>());
             }
 
             return new ListBloqueHorarioExposicionSimpleDTO(key, range, idBloque, idJornadaExposicionSala, exposicionId,
                     temaConAsesorJuradoDTO, esBloqueReservado, esBloqueBloqueado, temaConAsesorJuradoDTO, false);
-        }).collect(Collectors.toList());
+        }).collect(Collectors.toList());*/
+
+        Map<Integer, List<Object[]>> bloquesAgrupados = results.stream()
+                .collect(Collectors.groupingBy(row -> (Integer) row[0])); // Agrupar por idBloque
+
+        List<ListBloqueHorarioExposicionSimpleDTO> listaFinal = new ArrayList<>();
+
+        for (Map.Entry<Integer, List<Object[]>> entry : bloquesAgrupados.entrySet()) {
+            List<Object[]> filasBloque = entry.getValue();
+            Object[] rowEjemplo = filasBloque.get(0); // todas las filas comparten info base del bloque
+
+            OffsetDateTime inicio = OffsetDateTime.ofInstant((Instant) rowEjemplo[5], ZoneId.systemDefault());
+            OffsetDateTime fin = OffsetDateTime.ofInstant((Instant) rowEjemplo[6], ZoneId.systemDefault());
+
+            String fecha = inicio.format(fechaFormatter);
+            String hora = inicio.format(horaFormatter) + " - " + fin.format(horaFormatter);
+
+            // Armar lista de usuarios vinculados a ese bloque
+            List<UsarioRolDto> usuarios = filasBloque.stream()
+                    .filter(row -> row[11] != null) // aseguramos que usuario_id exista para crear el DTO
+                    .map(row -> new UsarioRolDto(
+                            ((Number) row[11]).intValue(),               // idPersona
+                            (String) row[12],                             // nombres
+                            (String) row[13],                             // apellidos
+                            row[14] != null ? ((Number) row[14]).intValue() : null, // rolId (puede ser null)
+                            (String) row[15],                             // rolNombre
+                            (String) row[16]                              // estadoRespuesta
+                    ))
+                    .distinct()
+                    .toList();
+
+            TemaConAsesorJuradoDTO tema = null;
+            if (rowEjemplo[8] != null) { // Validamos que el tema_id exista
+                tema = new TemaConAsesorJuradoDTO();
+                tema.setId(((Number) rowEjemplo[8]).intValue());
+                tema.setCodigo((String) rowEjemplo[9]);
+                tema.setTitulo((String) rowEjemplo[10]);
+                tema.setUsuarios(usuarios);
+            } else {
+                // En caso no haya tema, puedes asignar usuarios vacíos o null
+                tema = new TemaConAsesorJuradoDTO();
+                tema.setUsuarios(Collections.emptyList());
+            }
+
+            ListBloqueHorarioExposicionSimpleDTO dto = new ListBloqueHorarioExposicionSimpleDTO();
+
+
+            dto.setIdBloque( ((Number) rowEjemplo[0]).intValue());
+            dto.setIdJornadaExposicionSala( (Integer) rowEjemplo[1]);
+            dto.setEsBloqueReservado((Boolean) rowEjemplo[3]);
+            dto.setEsBloqueBloqueado((Boolean) rowEjemplo[4]);
+            String key = inicio.format(fechaFormatter) + "|" + inicio.format(horaFormatter) + "|" + (String) rowEjemplo[7];
+            String range = inicio.format(horaFormatter) + " - " + fin.format(horaFormatter);
+            dto.setKey(key);
+            dto.setRange(range);
+            dto.setExpo(tema);
+            dto.setAnteriorExpo(tema);
+            dto.setCambiado(false);
+
+            listaFinal.add(dto);
+        }
+
+        return listaFinal;
     }
 
     @Transactional
