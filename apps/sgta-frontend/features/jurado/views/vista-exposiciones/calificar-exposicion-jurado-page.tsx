@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation"; 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +13,7 @@ import { CalificacionItem } from "../../components/item-calificacion";
 import { Button } from "@/components/ui/button";
 import { Save, X } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import ModalConfirmarGuardado from "../../components/modal-confirmar-calificacion-jurado";
 
 const criterios = [
   {
@@ -51,6 +53,16 @@ const CalificarExposicionJuradoPage: React.FC<Props> = ({ id_exposicion }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [evaluacion, setEvaluacion] = useState<EvaluacionExposicionJurado>();
   const [observacionesFinales, setObservacionesFinales] = useState("");
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const router = useRouter(); 
+
+  const handleCancel = () => {
+    router.back(); // Regresa a la página anterior
+  };
+
+  const handleSaveClick = () => {
+  setIsConfirmModalOpen(true);
+  };
 
   useEffect(() => {
     const cargarDatosEvaluacion = async () => {
@@ -99,7 +111,6 @@ const CalificarExposicionJuradoPage: React.FC<Props> = ({ id_exposicion }) => {
     let successMessage = "";
     let hasError = false;
 
-    if (evaluacion && evaluacion.criterios && evaluacion.criterios.length > 0) {
       const exposicionId = evaluacion.id_exposicion || evaluacion.criterios[0].id;
       
       
@@ -136,23 +147,29 @@ const CalificarExposicionJuradoPage: React.FC<Props> = ({ id_exposicion }) => {
         hasError = true;
       }
 
-    if (successMessage) {
+      if (successMessage) {
+      if (hasError) {
         toast({
-          title: hasError ? "Guardado parcial" : "Éxito",
-          description: successMessage,
-          variant: hasError ? "default" : "default"
+          title: "Guardado parcial",
+          description: "Algunos elementos se guardaron correctamente, pero otros fallaron.",
+          variant: "default"
         });
-      } else if (hasError) {
+      } else {
         toast({
-          title: "Error",
-          description: "No se pudo guardar la información. Intente nuevamente.",
-          variant: "destructive"
+          title: "¡Guardado exitoso!",
+          description: "Todos los datos se guardaron correctamente.",
+          variant: "default"
         });
+        
+        // Opcional: redirigir a la página anterior después de un breve retraso
+        setTimeout(() => {
+          router.back();
+        }, 1500);
       }
-    } else {
+    } else if (hasError) {
       toast({
-        title: "Advertencia",
-        description: "No hay datos suficientes para guardar",
+        title: "Error",
+        description: "No se pudo guardar la información. Intenta nuevamente.",
         variant: "destructive"
       });
     }
@@ -163,6 +180,7 @@ const CalificarExposicionJuradoPage: React.FC<Props> = ({ id_exposicion }) => {
     
   } finally {
     setIsLoading(false);
+    setIsConfirmModalOpen(false);
   }
   };
   
@@ -218,16 +236,24 @@ const CalificarExposicionJuradoPage: React.FC<Props> = ({ id_exposicion }) => {
          />
       </div>
       <div className="flex justify-center gap-4">
-        <Button variant="destructive" onClick={() => { }}>
+        <Button variant="destructive" onClick={handleCancel}>
           <X />
           Cancelar
         </Button>
 
-        <Button onClick={handleSave}>
+        <Button onClick={handleSaveClick}>
           <Save />
           Guardar
         </Button>
       </div>
+
+      {/* Agregar el modal de confirmación */}
+      <ModalConfirmarGuardado
+        open={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)}
+        onConfirm={handleSave}
+      />
+
     </div>
   );
 };
