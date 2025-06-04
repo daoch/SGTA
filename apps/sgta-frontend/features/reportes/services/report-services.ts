@@ -3,10 +3,18 @@ import axiosInstance from "@/lib/axios/axios-instance";
 import axios from "@/lib/axios/axios-instance";
 import { AlumnoTemaDetalle } from "../types/Alumno.type";
 
+import { useAuthStore } from "@/features/auth/store/auth-store";
 
-export const obtenerDetalleTemaAlumno = async (idUsuario: number): Promise<AlumnoTemaDetalle> => {
+const { idToken } = useAuthStore.getState();
+
+export const obtenerDetalleTemaAlumno = async (): Promise<AlumnoTemaDetalle> => {
     try {
-        const response = await axiosInstance.get<AlumnoTemaDetalle>(`/usuario/detalle-tema-alumno/${idUsuario}`);
+       
+        const response = await axiosInstance.get<AlumnoTemaDetalle>("/usuario/detalle-tema-alumno", {
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+          },
+        });
         return response.data;
     } catch (error) {
         console.error("Error al obtener detalle del tema del alumno:", error);

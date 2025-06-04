@@ -276,9 +276,11 @@ public class UsuarioController {
         }
     }
 
-    @GetMapping("/detalle-tema-alumno/{idUsuario}")
-    public ResponseEntity<AlumnoTemaDto> getDetalleTemaAlumno(@PathVariable("idUsuario") Integer idUsuario) {
+
+    @GetMapping("/detalle-tema-alumno")
+    public ResponseEntity<AlumnoTemaDto> getDetalleTemaAlumno(HttpServletRequest request) {
         try {
+            String idUsuario = jwtService.extractSubFromRequest(request);
             AlumnoTemaDto tema = usuarioService.getAlumnoTema(idUsuario);
             return ResponseEntity.ok(tema);
         } catch (NoSuchElementException e) {
