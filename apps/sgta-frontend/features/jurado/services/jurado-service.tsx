@@ -454,3 +454,20 @@ export const getExposicionCalificarJurado = async (
     };
   }
 };
+
+export const actualizarComentarioFinalJurado = async (
+  exposicionId: number,
+  observacion_final: string,
+): Promise<boolean> => {
+  try {
+    const response = await axiosInstance.put("/jurado/observacionfinal", {
+      id: exposicionId,
+      observacion_final: observacion_final
+    });
+
+    return response.status === 200;
+  } catch (error) {
+    console.error("Error al actualizar el estado de la exposición:", error);
+    throw error;
+  }
+};

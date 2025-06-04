@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { EvaluacionExposicionJurado,CriterioEvaluacion } from "../../types/jurado.types";
-import { getExposicionCalificarJurado } from "../../services/jurado-service";
+import { getExposicionCalificarJurado,actualizarComentarioFinalJurado } from "../../services/jurado-service";
 import React from "react";
 import { useEffect, useState } from "react";
 import { CalificacionItem } from "../../components/item-calificacion";
@@ -102,6 +102,29 @@ const CalificarExposicionJuradoPage: React.FC<Props> = ({ id_exposicion }) => {
     //   observaciones_finales: observacionesFinales,
     //   criterios: evaluacion?.criterios || []
     // });
+
+    const exposicionId = evaluacion.criterios[0].id;
+
+    const resultado = await actualizarComentarioFinalJurado(
+      exposicionId,
+      observacionesFinales
+    );
+
+    if (resultado) {
+      toast({
+        title: "Éxito",
+        description: "Las observaciones se han guardado correctamente",
+      });
+      
+      // Opcional: redirigir al usuario a la página anterior o a otra página
+      // router.back();
+    } else {
+      toast({
+        title: "Advertencia",
+        description: "Hubo un problema al guardar las observaciones",
+        variant: "destructive"
+      });
+    }
     
    
   } catch (error) {
@@ -151,6 +174,7 @@ const CalificarExposicionJuradoPage: React.FC<Props> = ({ id_exposicion }) => {
           <CalificacionItem
             key={criterio.id}
             criterio={criterio}
+            onChange={handleCriterioChange}
           />
         ))}
       </div>
