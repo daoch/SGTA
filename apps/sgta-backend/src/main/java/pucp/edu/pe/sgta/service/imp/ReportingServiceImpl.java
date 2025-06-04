@@ -397,7 +397,7 @@ public List<EntregableEstudianteDto> getEntregablesEstudiante(Integer usuarioId)
 
             // 2) Obtener la nota global para este EntregableXTema (si existe)
             //    (asumiendo que en tu entidad EntregableXTema ya existe un campo `notaEntregable`)
-            Double notaGlobal = et.getNotaEntregable();
+            Double notaGlobal = et.getNotaEntregable() != null ? et.getNotaEntregable().doubleValue() : null;
 
             // 3) Obtener esEvaluable desde la entidad Entregable
             boolean esEvaluable = et.getEntregable().isEsEvaluable();
