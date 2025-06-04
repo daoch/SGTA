@@ -43,7 +43,6 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
         private final ApplicationEventPublisher eventPublisher;
         private final CriterioExposicionRepository criterioExposicionRepository;
         private final RevisionCriterioExposicionRepository revisionCriterioExposicionRepository;
-        private final ControlExposicionUsuarioTema controlExposicionUsuarioTema;
 
         public MiembroJuradoServiceImpl(UsuarioRepository usuarioRepository,
                                         UsuarioXTemaRepository usuarioXTemaRepository,
@@ -54,7 +53,9 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                                         ExposicionXTemaRepository exposicionXTemaRepository,
                                         BloqueHorarioExposicionRepository bloqueHorarioExposicionRepository,
                                         ControlExposicionUsuarioTemaRepository controlExposicionUsuarioTemaRepository,
-                                        ApplicationEventPublisher eventPublisher, CriterioExposicionRepository criterioExposicionRepository, RevisionCriterioExposicionRepository revisionCriterioExposicionRepository, ControlExposicionUsuarioTema controlExposicionUsuarioTema) {
+                                        ApplicationEventPublisher eventPublisher,
+                                        CriterioExposicionRepository criterioExposicionRepository,
+                                        RevisionCriterioExposicionRepository revisionCriterioExposicionRepository) {
                 this.usuarioRepository = usuarioRepository;
                 this.usuarioXTemaRepository = usuarioXTemaRepository;
                 this.rolRepository = rolRepository;
@@ -65,10 +66,10 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                 this.bloqueHorarioExposicionRepository = bloqueHorarioExposicionRepository;
                 this.controlExposicionUsuarioTemaRepository = controlExposicionUsuarioTemaRepository;
                 this.eventPublisher = eventPublisher;
-            this.criterioExposicionRepository = criterioExposicionRepository;
-            this.revisionCriterioExposicionRepository = revisionCriterioExposicionRepository;
-            this.controlExposicionUsuarioTema = controlExposicionUsuarioTema;
+                this.criterioExposicionRepository = criterioExposicionRepository;
+                this.revisionCriterioExposicionRepository = revisionCriterioExposicionRepository;
         }
+
 
         @Override
         public List<MiembroJuradoDto> obtenerUsuarioTemaInfo() {
@@ -947,6 +948,52 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                         response.put("mensaje", "Ocurrió un error inesperado al actualizar los criterios.");
                         response.put("exito", false);
                 }
+                return ResponseEntity.ok(response);
+        }
+
+        @Override
+        @Transactional
+        public ResponseEntity<?> actualizarObservacionFinal(ExposicionObservacionRequest request) {
+                Map<String, Object> response = new HashMap<>();
+
+                try{
+                        RevisionCriterioExposicion revisionCriterioExposicion = revisionCriterioExposicionRepository
+                                .findById(request.getId())
+                                .orElseThrow(() -> new ResponseStatusException(
+                                        HttpStatus.NOT_FOUND,
+                                        "No se encontró una revisionXcriterio con ese id"
+                                ));
+
+                        ExposicionXTema exposicionXTema = revisionCriterioExposicion.getExposicionXTema();
+                        Integer usuarioId = revisionCriterioExposicion.getUsuario().getId();
+                        Integer temaId = exposicionXTema.getTema().getId();
+
+                        UsuarioXTema usuarioXTema = usuarioXTemaRepository.findByUsuario_IdAndTema_Id(usuarioId,temaId)
+                                .orElseThrow(() -> new ResponseStatusException(
+                                        HttpStatus.NOT_FOUND,
+                                        "No se encontró usuarioXTema con ese id"
+                                ));
+
+                        ControlExposicionUsuarioTema controlExposicionUsuarioTema = controlExposicionUsuarioTemaRepository
+                                .findByExposicionXTema_IdAndUsuario_Id(exposicionXTema.getId(),usuarioXTema.getId())
+                                .orElseThrow(() -> new ResponseStatusException(
+                                        HttpStatus.NOT_FOUND,
+                                        "No se encontró controlExposicionUsuarioTema"
+                                ));
+
+                        controlExposicionUsuarioTema.setObservacionesFinalesExposicion(request.getObservacion_final());
+                        controlExposicionUsuarioTemaRepository.save(controlExposicionUsuarioTema);
+                        response.put("mensaje", "Se actualizo correctamente la observacion final");
+                        response.put("exito", true);
+                }catch (ResponseStatusException e){
+                        response.put("mensaje", e.getReason());
+                        response.put("exito", false);
+                } catch (Exception e) {
+                        response.put("mensaje", "Ocurrió un error inesperado al actualizar la observacion final.");
+                        response.put("exito", false);
+                }
+
+
                 return ResponseEntity.ok(response);
         }
 
