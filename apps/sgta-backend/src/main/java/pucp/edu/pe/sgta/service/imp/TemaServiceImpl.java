@@ -2126,6 +2126,31 @@ public class TemaServiceImpl implements TemaService {
 		crearSolicitudAprobacionTema(tema);
 	}
 
-	
+	@Override
+	public void eliminarPostulacionTemaLibre(Integer temaId, String idUsuario) {
+
+		UsuarioDto usuDto = usuarioService.findByCognitoId(idUsuario);
+		if(usuDto == null){
+			throw new ResponseStatusException(
+				HttpStatus.NOT_FOUND,
+				"Usuario no encontrado con ID: " + idUsuario
+			);
+		}
+		Optional<UsuarioXTema> asignacionOpt = usuarioXTemaRepository
+				.findByUsuarioIdAndTemaIdAndRolIdAndActivoTrue(usuDto.getId(), temaId, 4); // Rol Tesista
+
+		if (asignacionOpt.isEmpty()) {
+			logger.severe("No se encontró una asignación de tesista para el tema con ID: " + temaId);
+			throw new ResponseStatusException(
+				HttpStatus.NOT_FOUND,
+				"No se encontró una asignación de tesista para el tema con ID: " + temaId
+			);
+		} else{
+			UsuarioXTema asignacion = asignacionOpt.get();
+			usuarioXTemaRepository.softDeleteById(asignacion.getId());
+			logger.info("Postulación eliminada para el tesista con ID: " + usuDto.getId() + " en el tema con ID: " + temaId);
+		}
+	}
+
 
 }

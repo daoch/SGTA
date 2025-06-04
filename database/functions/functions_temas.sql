@@ -2208,7 +2208,7 @@ RETURNS TABLE(
     codigo             TEXT,
     titulo             TEXT,
     resumen            TEXT,
-    metodología         TEXT,
+    metodologia         TEXT,
     objetivos          TEXT,
     requisitos         TEXT,
     portafolio_url     TEXT,
@@ -2217,18 +2217,19 @@ RETURNS TABLE(
     fecha_modificacion TIMESTAMPTZ,
     carrera_id         INTEGER,
     carrera_nombre     TEXT,
-    subáreas_ids       INTEGER[],
-    subáreas_nombres   TEXT[],
+    subareas_ids       INTEGER[],
+    subareas_nombres   TEXT[],
     usuarios           JSONB,
     estado_tema_nombre TEXT,
-    área_id            INTEGER,
-    área_nombre        TEXT
+    area_id            INTEGER,
+    area_nombre        TEXT,
+    postulaciones      INTEGER
 )
 LANGUAGE plpgsql
 AS $$
 DECLARE
-    v_usuario_id      INTEGER;
-    v_rol_tesista_id  INTEGER;
+    v_usuario_id     INTEGER;
+    v_rol_tesista_id INTEGER;
 BEGIN
     -- 1. Convertir Cognito ID a usuario_id interno
     IF p_usuario_cognito_id IS NULL THEN
@@ -2242,7 +2243,6 @@ BEGIN
       AND  u.activo = TRUE;
 
     IF v_usuario_id IS NULL THEN
-        -- Si no existe usuario activo para ese Cognito ID, regresar sin filas
         RETURN;
     END IF;
 
@@ -2255,11 +2255,11 @@ BEGIN
     LIMIT  1;
 
     IF v_rol_tesista_id IS NULL THEN
-        -- Si no existe rol "Tesista" activo, regresar sin filas
         RETURN;
     END IF;
 
-    -- 3. Devolver los temas libres a los que este usuario (tesista) ya se postuló
+    -- 3. Devolver los mismos campos que listar_temas_libres_con_usuarios,
+    --    pero solo para los temas a los que este usuario (tesista) ya se postuló.
     RETURN QUERY
     SELECT
         t.tema_id,
@@ -2274,21 +2274,21 @@ BEGIN
         t.fecha_creacion,
         t.fecha_modificacion,
         c.carrera_id,
-        c.nombre::text AS carrera_nombre,
+        c.nombre::text          AS carrera_nombre,
 
-        -- ARRAY_AGG de subáreas (IDs y nombres)
+        -- ARRAY_AGG de subáreas
         COALESCE(
             ARRAY_AGG(DISTINCT sac.sub_area_conocimiento_id ORDER BY sac.sub_area_conocimiento_id)
                 FILTER (WHERE sac.sub_area_conocimiento_id IS NOT NULL),
             ARRAY[]::INTEGER[]
-        ) AS subáreas_ids,
+        ) AS subareas_ids,
         COALESCE(
             ARRAY_AGG(DISTINCT sac.nombre::text ORDER BY sac.nombre::text)
                 FILTER (WHERE sac.nombre IS NOT NULL),
             ARRAY[]::TEXT[]
-        ) AS subáreas_nombres,
+        ) AS subareas_nombres,
 
-        -- JSONB de usuarios (Asesor + Coasesores) para cada tema
+        -- JSONB de usuarios (Asesor + Coasesores)
         (
             SELECT jsonb_agg(
                      jsonb_build_object(
@@ -2303,35 +2303,55 @@ BEGIN
             JOIN   usuario   u2  ON u2.usuario_id = ut2.usuario_id
             JOIN   rol       rl2 ON rl2.rol_id     = ut2.rol_id
             WHERE  ut2.tema_id = t.tema_id
-              AND  rl2.nombre ILIKE ANY (ARRAY['Asesor','Coasesor'])
+              AND  (rl2.nombre ILIKE ANY (ARRAY['Asesor','Coasesor'])
+               -- Incluir solo el Tesista que coincide con mi usuario
+              OR (rl2.nombre ILIKE 'Tesista' AND ut2.usuario_id = v_usuario_id))
         ) AS usuarios,
 
-        et.nombre::text         AS estado_tema_nombre,
-        ac.area_conocimiento_id AS área_id,
-        ac.nombre::text         AS área_nombre
+        et.nombre::text          AS estado_tema_nombre,
+        ac.area_conocimiento_id  AS area_id,
+        ac.nombre::text          AS area_nombre,
+
+        -- Conteo de postulaciones (rol = 'Tesista', asignado = FALSE)
+        (
+            SELECT COUNT(*)::INTEGER
+            FROM   usuario_tema utp
+            JOIN   rol        rlp ON utp.rol_id = rlp.rol_id
+            WHERE  utp.tema_id  = t.tema_id
+              AND  rlp.nombre   = 'Tesista'
+              AND  utp.asignado = FALSE
+              AND  utp.activo   = TRUE
+        ) AS postulaciones
 
     FROM tema t
-    INNER JOIN estado_tema et
-        ON t.estado_tema_id = et.estado_tema_id
-    LEFT JOIN carrera c
-        ON t.carrera_id = c.carrera_id
-    LEFT JOIN sub_area_conocimiento_tema sact
-        ON t.tema_id = sact.tema_id
-    LEFT JOIN sub_area_conocimiento sac
-        ON sact.sub_area_conocimiento_id = sac.sub_area_conocimiento_id
-    LEFT JOIN area_conocimiento ac
-        ON sac.area_conocimiento_id = ac.area_conocimiento_id
+    INNER JOIN estado_tema et ON t.estado_tema_id = et.estado_tema_id
+    LEFT JOIN carrera c     ON t.carrera_id = c.carrera_id
 
-    -- Aquí comprobamos que el usuario ya se postuló a este tema (rol "Tesista", activo)
-    INNER JOIN usuario_tema utp
-        ON utp.tema_id   = t.tema_id
-       AND utp.usuario_id = v_usuario_id
-       AND utp.rol_id     = v_rol_tesista_id
-       AND utp.activo     = TRUE
+    -- Join a subáreas y de allí a área de conocimiento
+    LEFT JOIN sub_area_conocimiento_tema sact 
+           ON t.tema_id = sact.tema_id
+    LEFT JOIN sub_area_conocimiento sac 
+           ON sact.sub_area_conocimiento_id = sac.sub_area_conocimiento_id
+    LEFT JOIN area_conocimiento ac 
+           ON sac.area_conocimiento_id = ac.area_conocimiento_id
+
+    -- Solo incluir los temas a los que el tesista ya se postuló (rol "Tesista", activo)
+    INNER JOIN usuario_tema ut_exist
+        ON ut_exist.tema_id   = t.tema_id
+       AND ut_exist.usuario_id = v_usuario_id
+       AND ut_exist.rol_id     = v_rol_tesista_id
+       AND ut_exist.activo     = TRUE
 
     WHERE
         t.activo = TRUE
         AND et.nombre = 'PROPUESTO_LIBRE'
+        -- Mantener el mismo filtro de carrera que en listar_temas_libres_con_usuarios
+        AND t.carrera_id IN (
+            SELECT uc.carrera_id
+            FROM   usuario_carrera uc
+            WHERE  uc.usuario_id = v_usuario_id
+              AND  uc.activo = TRUE
+        )
 
     GROUP BY
         t.tema_id,
@@ -2351,7 +2371,6 @@ BEGIN
         ac.area_conocimiento_id,
         ac.nombre
 
-    ORDER BY
-        t.fecha_creacion DESC;
+    ORDER BY t.fecha_creacion DESC;
 END;
 $$;
