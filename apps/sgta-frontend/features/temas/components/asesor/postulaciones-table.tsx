@@ -76,13 +76,16 @@ export function PostulacionesTable() {
   const [filtroEstado, setFiltroEstado] = useState<string | null>(null);
   const [fechaFin, setFechaFin] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [abrirModal, setAbrirModal] = useState(false);
 
   const handleOpenDialog = (postulacion: Postulacion) => {
+    setAbrirModal(true);
     setSelectedPostulacion(postulacion);
     setFeedbackText(postulacion.comentario || "");
   };
 
   const handleOpenAcceptDialog = (postulacion: Postulacion) => {
+    setAbrirModal(false);
     setSelectedPostulacion(postulacion);
     setFeedbackText("");
     setShowAcceptDialog(true);
@@ -104,6 +107,7 @@ export function PostulacionesTable() {
     );
 
     setSelectedPostulacion(null);
+    setFeedbackText("");
     setShowAcceptDialog(false);
   };
 
@@ -117,6 +121,7 @@ export function PostulacionesTable() {
     );
 
     setSelectedPostulacion(null);
+    setFeedbackText("");
     setShowRejectDialog(false);
   };
 
@@ -252,7 +257,7 @@ export function PostulacionesTable() {
                             <span className="sr-only">Ver detalles</span>
                           </Button>
                         </DialogTrigger>
-                        {selectedPostulacion && (
+                        {selectedPostulacion && abrirModal && (
                           <PostulacionModal
                             selectedPostulacion={selectedPostulacion}
                             setSelectedPostulacion={setSelectedPostulacion}

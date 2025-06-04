@@ -63,7 +63,13 @@ export function AceptarPostulacionModal({
       )}
 
       <DialogFooter>
-        <Button variant="outline" onClick={() => setShowAcceptDialog(false)}>
+        <Button
+          variant="outline"
+          onClick={() => {
+            setShowAcceptDialog(false);
+            setFeedbackText("");
+          }}
+        >
           Cancelar
         </Button>
         <Button
