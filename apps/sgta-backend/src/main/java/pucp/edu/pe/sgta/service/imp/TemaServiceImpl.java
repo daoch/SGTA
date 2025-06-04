@@ -765,7 +765,7 @@ public class TemaServiceImpl implements TemaService {
 			for (Object[] row : areasRows) {
 				AreaConocimientoDto area = AreaConocimientoDto.builder()
 					.id((Integer) row[0])     // area_conocimiento_id
-					.nombre((String) row[1])  // nombre de la área
+					.nombre((String) row[2])  // nombre de la área
 					.build();
 				t.getArea().add(area);
 			}
@@ -1566,17 +1566,35 @@ public class TemaServiceImpl implements TemaService {
 	}
 
 	@Override
-	public List<TemaDto> listarTemasLibres(String titulo, Integer limit, Integer offset, String usuarioId) {
-		String sql = "SELECT * FROM listar_temas_libres_con_usuarios(:titulo, :limit, :offset, :usuarioId)";
+	public List<TemaDto> listarTemasLibres(String titulo, Integer limit, Integer offset, String usuarioId, Boolean myOwn) {
+		if (myOwn == null) {
+			myOwn = false; // Default to false if not specified
+		}
 
 		@SuppressWarnings("unchecked")
-		List<Object[]> resultados = entityManager
-				.createNativeQuery(sql)
-				.setParameter("titulo",  titulo  != null ? titulo  : "")
-				.setParameter("limit",   limit   != null ? limit   : 10)
-				.setParameter("offset",  offset  != null ? offset  : 0)
-				.setParameter("usuarioId", usuarioId)
-				.getResultList();
+		List<Object[]> resultados = new ArrayList<>();
+		
+		if (myOwn){
+			String sql = "SELECT * FROM listar_temas_libres_postulados_alumno(:usuarioId)";
+			
+			resultados = entityManager
+					.createNativeQuery(sql)
+					.setParameter("usuarioId", usuarioId)
+					.getResultList();
+		}
+		else{
+			String sql = "SELECT * FROM listar_temas_libres_con_usuarios(:titulo, :limit, :offset, :usuarioId)";
+
+			resultados = entityManager
+					.createNativeQuery(sql)
+					.setParameter("titulo",  titulo  != null ? titulo  : "")
+					.setParameter("limit",   limit   != null ? limit   : 10)
+					.setParameter("offset",  offset  != null ? offset  : 0)
+					.setParameter("usuarioId", usuarioId)
+					.getResultList();
+		}
+
+		
 
 		List<TemaDto> lista = new ArrayList<>();
 		for (Object[] fila : resultados) {
@@ -1655,6 +1673,8 @@ public class TemaServiceImpl implements TemaService {
 				areaDto.setNombre((String) fila[18]);
 				dto.getArea().add(areaDto);
 			}
+
+			dto.setCantPostulaciones((Integer) fila[19]);
 
 			lista.add(dto);
 		}
@@ -2105,5 +2125,7 @@ public class TemaServiceImpl implements TemaService {
 				"Inscripción de tema por Asesor");
 		crearSolicitudAprobacionTema(tema);
 	}
+
+	
 
 }
