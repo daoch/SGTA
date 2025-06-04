@@ -103,8 +103,6 @@ const Page = () => {
         const response = await axiosInstance.get("subAreaConocimiento/list");
         setSubareasDisponibles(response.data);
 
-        //setAsesorData(coasesoresData[0]); // TODO El asesor logeado debe traerse globalmente
-
         //llenar datos del asesor mediante su id y no por su carrera
         const usuario = await fetchUsuariosFindById(usuarioLoggeado.id);
         const coasesor: Coasesor = {
@@ -129,7 +127,7 @@ const Page = () => {
         setAsesorData(coasesor);
 
         //obtener la carrera
-        const carreras = await obtenerCarrerasPorUsuario(usuarioLoggeado.id);
+        const carreras = await obtenerCarrerasPorUsuario();
         setCarrera(carreras);
         console.log({ carreras });
         if (carreras) {
@@ -159,7 +157,7 @@ const Page = () => {
       <div className="flex items-end justify-between">
         {/* Intro */}
         <div className="w-4/5">
-          <h1 className="text-3xl font-bold text-[#042354]">Mis Temas</h1>
+          <h1 className="text-3xl font-bold text-[#042354]">Temas</h1>
           <p className="text-muted-foreground">
             Gestión de temas de tesis propuestos y asignados
           </p>

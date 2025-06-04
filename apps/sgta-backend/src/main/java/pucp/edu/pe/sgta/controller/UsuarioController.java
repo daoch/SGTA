@@ -196,10 +196,11 @@ public class UsuarioController {
         return usuarioService.getIdByCorreo(correo);
     }
 
-    @GetMapping("/{id}/carreras")
+    @GetMapping("/carreras")
     public ResponseEntity<List<CarreraDto>> listarCarreras(
-            @PathVariable("id") Integer usuarioId) {
+            HttpServletRequest request) {
 
+        String usuarioId = jwtService.extractSubFromRequest(request); 
         List<CarreraDto> carreras = carreraService.listarCarrerasPorUsuario(usuarioId);
 
         if (carreras.isEmpty()) {
@@ -275,9 +276,11 @@ public class UsuarioController {
         }
     }
 
-    @GetMapping("/detalle-tema-alumno/{idUsuario}")
-    public ResponseEntity<AlumnoTemaDto> getDetalleTemaAlumno(@PathVariable("idUsuario") Integer idUsuario) {
+
+    @GetMapping("/detalle-tema-alumno")
+    public ResponseEntity<AlumnoTemaDto> getDetalleTemaAlumno(HttpServletRequest request) {
         try {
+            String idUsuario = jwtService.extractSubFromRequest(request);
             AlumnoTemaDto tema = usuarioService.getAlumnoTema(idUsuario);
             return ResponseEntity.ok(tema);
         } catch (NoSuchElementException e) {
