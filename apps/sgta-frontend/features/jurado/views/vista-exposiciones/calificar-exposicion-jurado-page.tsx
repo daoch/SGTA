@@ -161,10 +161,6 @@ const CalificarExposicionJuradoPage: React.FC<Props> = ({ id_exposicion }) => {
           variant: "default"
         });
         
-        // Opcional: redirigir a la página anterior después de un breve retraso
-        setTimeout(() => {
-          router.back();
-        }, 1500);
       }
     } else if (hasError) {
       toast({

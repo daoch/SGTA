@@ -403,7 +403,7 @@ export function ExposicionCard({
               </Button>
             )}
 
-            {mapEstadoToExposicionEstado(exposicion.estado) === "programada" &&
+            {mapEstadoToExposicionEstado(exposicion.estado) === "completada" &&
             // isBefore(new Date(exposicion.fechahora), new Date()) && 
             //se el esta pasando la expo por tema
               (
