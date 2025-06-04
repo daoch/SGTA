@@ -4,7 +4,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { EvaluacionExposicionJurado } from "../../types/jurado.types";
+import { EvaluacionExposicionJurado,CriterioEvaluacion } from "../../types/jurado.types";
 import { getExposicionCalificarJurado } from "../../services/jurado-service";
 import React from "react";
 import { useEffect, useState } from "react";
@@ -92,6 +92,25 @@ const CalificarExposicionJuradoPage: React.FC<Props> = ({ id_exposicion }) => {
   if (!evaluacion) {
     return <div className="p-4 text-center">No se pudieron cargar los datos de la exposición.</div>;
   }
+
+  const handleSave = async () => {
+  try {
+    setIsLoading(true);
+    // Aquí llamarías a tu API para guardar las observaciones
+    // Por ejemplo:
+    // await guardarObservacionesExposicion(id_exposicion_tema, id_jurado, {
+    //   observaciones_finales: observacionesFinales,
+    //   criterios: evaluacion?.criterios || []
+    // });
+    
+   
+  } catch (error) {
+    console.error("Error al guardar las observaciones:", error);
+    
+  } finally {
+    setIsLoading(false);
+  }
+  };
   
   
 
@@ -128,11 +147,10 @@ const CalificarExposicionJuradoPage: React.FC<Props> = ({ id_exposicion }) => {
 
       <div className="flex flex-col gap-5">
         <h1 className="text-2xl font-bold">Criterios de Calificación</h1>
-        {evaluacion.criterios.map((criterio, index) => (
+        {evaluacion.criterios.map((criterio) => (
           <CalificacionItem
-            key={index}
-            titulo={criterio.titulo}
-            descripcion={criterio.descripcion}
+            key={criterio.id}
+            criterio={criterio}
           />
         ))}
       </div>
@@ -141,6 +159,7 @@ const CalificarExposicionJuradoPage: React.FC<Props> = ({ id_exposicion }) => {
         <Textarea 
         placeholder="Escribe tus observaciones aquí"
         value={observacionesFinales}
+        onChange={(e) => setObservacionesFinales(e.target.value)}
          />
       </div>
       <div className="flex justify-center gap-4">
@@ -149,7 +168,7 @@ const CalificarExposicionJuradoPage: React.FC<Props> = ({ id_exposicion }) => {
           Cancelar
         </Button>
 
-        <Button onClick={() => { }}>
+        <Button onClick={handleSave}>
           <Save />
           Guardar
         </Button>
