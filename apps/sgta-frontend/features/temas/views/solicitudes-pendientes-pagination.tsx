@@ -125,13 +125,18 @@ export default function SolicitudesPendientes() {
       const estadosConPages: EstadoTemaNombre[] = Object.keys(
         temas,
       ) as EstadoTemaNombre[];
-      for (const estado of estadosConPages) {
-        const count = await lenTemasPorCarrera(carrerasIds[0], estado); // TODO: Debe traer un number
-        // const count = 2;
-        console.log(estado + ": count = " + count);
+      // Get all counts
+      const counts = await Promise.all(
+        estadosConPages.map(
+          (estado) => lenTemasPorCarrera(carrerasIds[0], estado), // TODO: Debe traer un number
+        ),
+      );
 
-        updatePagesListKey(estado, "totalCounts", count);
-      }
+      // Update state
+      estadosConPages.forEach((estado, idx) => {
+        updatePagesListKey(estado, "totalCounts", counts[idx]);
+        console.log(estado + ": count = " + counts[idx]);
+      });
     } catch (err) {
       console.error("Error loading total counts", err);
     }
