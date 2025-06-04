@@ -110,13 +110,11 @@ export function TemasTable({
           )}
         </TableCell>
         {/* Postulaciones */}
-        {tema.estadoTemaNombre === Tipo.LIBRE ? (
+        {
           <TableCell>
             {!tema.cantPostulaciones ? "-" : tema.cantPostulaciones}
           </TableCell>
-        ) : (
-          <TableCell>-</TableCell>
-        )}
+        }
 
         {/* Tipo */}
         <TableCell>
@@ -212,4 +210,3 @@ export function TemasTable({
     </div>
   );
 }
-

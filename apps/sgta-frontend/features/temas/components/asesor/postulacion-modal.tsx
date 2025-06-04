@@ -17,14 +17,14 @@ interface PostulacionModalProps {
   setSelectedPostulacion: (selectedPostulacion: Postulacion | null) => void;
   feedbackText: string;
   setFeedbackText: (feedbackText: string) => void;
-  handleReject: () => void;
+  handleOpenRejectDialog: (propuesta: Postulacion) => void;
   handleOpenAcceptDialog: (propuesta: Postulacion) => void;
 }
 
 export function PostulacionModal({
   selectedPostulacion,
   setSelectedPostulacion,
-  handleReject,
+  handleOpenRejectDialog,
   handleOpenAcceptDialog,
 }: PostulacionModalProps) {
   return (
@@ -129,7 +129,10 @@ export function PostulacionModal({
 
         {selectedPostulacion && selectedPostulacion.estado === "pendiente" && (
           <>
-            <Button onClick={handleReject} variant="destructive">
+            <Button
+              onClick={() => handleOpenRejectDialog(selectedPostulacion)}
+              variant="destructive"
+            >
               <X className="mr-2 h-4 w-4" />
               Rechazar
             </Button>

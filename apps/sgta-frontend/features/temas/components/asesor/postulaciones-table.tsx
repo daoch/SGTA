@@ -17,6 +17,7 @@ import { CheckCircle, Eye, Filter, X } from "lucide-react";
 import { useState } from "react";
 import { Postulacion } from "../../types/postulaciones/entidades";
 import { AceptarPostulacionModal } from "./aceptar-postulacion-modal";
+import { RechazarPostulacionModal } from "./rechazar-postulacion-modal";
 
 const postulacionesData = [
   {
@@ -92,6 +93,7 @@ export function PostulacionesTable() {
   };
 
   const handleOpenRejectDialog = (postulacion: Postulacion) => {
+    setAbrirModal(false);
     setSelectedPostulacion(postulacion);
     setFeedbackText("");
     setShowRejectDialog(true);
@@ -263,7 +265,7 @@ export function PostulacionesTable() {
                             setSelectedPostulacion={setSelectedPostulacion}
                             feedbackText={feedbackText}
                             setFeedbackText={setFeedbackText}
-                            handleReject={handleReject}
+                            handleOpenRejectDialog={handleOpenRejectDialog}
                             handleOpenAcceptDialog={handleOpenAcceptDialog}
                           />
                         )}
@@ -306,6 +308,16 @@ export function PostulacionesTable() {
           setFeedbackText={setFeedbackText}
           setShowAcceptDialog={setShowAcceptDialog}
           handleApprove={handleApprove}
+        />
+      </Dialog>
+      {/* Modal para rechazar postulación */}
+      <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
+        <RechazarPostulacionModal
+          selectedPostulacion={selectedPostulacion}
+          feedbackText={feedbackText}
+          setFeedbackText={setFeedbackText}
+          setShowRejectDialog={setShowRejectDialog}
+          handleReject={handleReject}
         />
       </Dialog>
     </div>
