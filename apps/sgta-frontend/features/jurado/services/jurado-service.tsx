@@ -9,6 +9,7 @@ import {
   TipoDedicacion,
   ExposicionJurado,
   MiembroJuradoExpo,
+  EvaluacionExposicionJurado
 } from "../types/jurado.types";
 import {
   JuradoDTO,
@@ -390,3 +391,66 @@ export const actualizarEstadoControlExposicion = async (
   }
 };
 
+
+
+export const getExposicionCalificarJurado = async (
+  juradoId: number | string,
+  exposicionId: number | string,
+): Promise<EvaluacionExposicionJurado> => {
+  try {
+    // Convertir IDs a números si vienen como strings (por ejemplo, desde URL params)
+    const jId = 6;
+    const expId = typeof exposicionId === 'string' ? parseInt(exposicionId) : exposicionId;
+    
+    console.log("ID Jurado:", jId, "ID Exposición:", expId);
+    // Llamada al endpoint de criterios con los parámetros requeridos
+    //const response = await axiosInstance.get(`/jurado/${temaId}/detalle`);
+    const response = await axiosInstance.get("/jurado/criterios", {
+      params: {
+      jurado_id: jId,
+      exposicion_tema_id: expId
+    }
+    });
+
+    const data = response.data;
+    
+    // Log para depuración
+    console.log("Datos de evaluación recibidos:", data);
+    
+    // Mapear la respuesta al formato requerido por el cliente
+    return {
+      id_exposicion: data.id_exposicion || exposicionId,
+      titulo: data.titulo || "",
+      descripcion: data.descripcion || "",
+      estudiantes: Array.isArray(data.estudiantes) 
+        ? data.estudiantes.map((est: any) => ({
+            id: est.id,
+            nombre: est.nombre
+          }))
+        : [],
+      criterios: Array.isArray(data.criterios)
+        ? data.criterios.map((criterio: any) => ({
+            id: criterio.id,
+            titulo: criterio.titulo,
+            descripcion: criterio.descripcion,
+            calificacion: criterio.calificacion || 0,
+            nota_maxima: criterio.nota_maxima || 20,
+            observacion: criterio.observacion || ""
+          }))
+        : [],
+      observaciones_finales: data.observaciones_finales || ""
+    };
+  } catch (error) {
+    console.error("Error al obtener datos para calificar exposición:", error);
+    
+    // En caso de error, devolvemos un objeto vacío con la estructura esperada
+    return {
+      id_exposicion: Number(exposicionId),
+      titulo: "",
+      descripcion: "",
+      estudiantes: [],
+      criterios: [],
+      observaciones_finales: ""
+    };
+  }
+};

@@ -23,12 +23,14 @@ import { ExposicionEstado } from "../types/exposicion.types";
 import { actualizarEstadoControlExposicion } from "../services/jurado-service";
 
 interface ExposicionCardProps {
+  id_jurado: string | null;
   exposicion: ExposicionJurado;
   onClick?: (exposicion: ExposicionJurado) => void;
   onStatusChange?: () => Promise<void>;
 }
 
 export function ExposicionCard({
+  id_jurado,
   exposicion,
   onClick,
   onStatusChange,
@@ -413,7 +415,7 @@ export function ExposicionCard({
                 >
                   
                   <Link
-                    href={`/jurado/exposiciones/calificar/${exposicion.id_exposicion}`}
+                    href={`/jurado/exposiciones/calificar/${exposicion.id_exposicion}-${id_jurado || ''}`}
                   >
                     Calificar
                   </Link>
