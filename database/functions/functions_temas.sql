@@ -316,7 +316,8 @@ RETURNS TABLE (
     asignado            BOOLEAN,
     rechazado           BOOLEAN,
     codigo_pucp TEXT,
-    creador BOOLEAN
+    creador BOOLEAN,
+    comentario TEXT
 ) AS $$
 BEGIN
     RETURN QUERY
@@ -331,7 +332,8 @@ BEGIN
       ut.asignado,
       ut.rechazado,
       u.codigo_pucp::text,
-      ut.creador
+      ut.creador,
+      ut.comentario::text
     FROM usuario u
     JOIN usuario_tema ut
       ON ut.usuario_id = u.usuario_id

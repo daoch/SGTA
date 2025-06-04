@@ -833,6 +833,8 @@ public class TemaServiceImpl implements TemaService {
 					.asignado((Boolean) r[7]) // we identify if the asesor is assigned or not
 					.rechazado((Boolean) r[8])
 					.codigoPucp((String) r[9])
+					.creador((Boolean) r[10])
+					.comentario((String) r[11])
 					.build();
 			u.setRol(rolNombre);
 			resultados.add(u);
