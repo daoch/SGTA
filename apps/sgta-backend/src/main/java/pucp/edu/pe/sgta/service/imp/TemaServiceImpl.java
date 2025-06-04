@@ -2126,6 +2126,86 @@ public class TemaServiceImpl implements TemaService {
 		crearSolicitudAprobacionTema(tema);
 	}
 
-	
+	@Override
+	@Transactional
+	public void aceptarPostulacionAlumno(Integer temaId, Integer idTesista, String idAsesor, String comentario) {
+		// 1) Validar que quien llama sea el asesor asignado al tema
+		UsuarioDto usuDto = usuarioService.findByCognitoId(idAsesor);
+		validarRolAsignadoAtema(usuDto.getId(), temaId, RolEnum.Asesor.name());
+
+		// 2) Validar que el tema esté en el estado correcto para aceptar postulaciones
+		Tema tema = validarEstadoTema(temaId, EstadoTemaEnum.PROPUESTO_LIBRE.name());
+
+		// 3) Buscar el registro de UsuarioXTema para ese tesista y tema
+		UsuarioXTema usuarioXTema = usuarioXTemaRepository
+				.findByTemaIdAndUsuarioIdAndActivoTrue(temaId, idTesista)
+				.orElseThrow(() -> new ResponseStatusException(
+						HttpStatus.NOT_FOUND,
+						"No existe postulación de ese tesista al tema " + temaId
+				));
+
+		// 4) Obtener el Rol “Tesista” desde la tabla de roles
+		Rol rolTesista = rolRepository.findByNombre(RolEnum.Tesista.name())
+				.orElseThrow(() -> new RuntimeException("Rol 'Tesista' no encontrado"));
+
+		// 5) Actualizar el registro: asignado = true, cambiar el rol a Tesista
+		usuarioXTema.setAsignado(true);
+		usuarioXTema.setRol(rolTesista);
+		usuarioXTema.setFechaModificacion(OffsetDateTime.now());
+
+		usuarioXTemaRepository.save(usuarioXTema);
+
+		List<UsuarioXTema> asesores = usuarioXTemaRepository
+					.findByTemaIdAndRolNombreAndActivoTrue(temaId, RolEnum.Asesor.name());
+		if (asesores.isEmpty()) {
+			throw new RuntimeException("No se encontró registro de Asesor para el tema " + temaId);
+		}
+		UsuarioXTema registroAsesor = asesores.get(0);
+		registroAsesor.setAsignado(true);
+		registroAsesor.setFechaModificacion(OffsetDateTime.now());
+		usuarioXTemaRepository.save(registroAsesor);
+
+		// 7) Marcar a TODOS los coasesores como asignados = true
+		List<UsuarioXTema> registrosCoasesores = usuarioXTemaRepository
+				.findByTemaIdAndRolNombreAndActivoTrue(temaId, RolEnum.Coasesor.name());
+		OffsetDateTime ahora = OffsetDateTime.now();
+		for (UsuarioXTema coase : registrosCoasesores) {
+			coase.setAsignado(true);
+			coase.setFechaModificacion(ahora);
+		}
+		usuarioXTemaRepository.saveAll(registrosCoasesores);
+
+
+		temaRepository.actualizarEstadoTema(temaId, EstadoTemaEnum.INSCRITO.name());
+		saveHistorialTemaChange(tema, tema.getTitulo(), tema.getResumen(), comentario != null ? comentario : "Aceptación de postulante");
+
+		// 6) (Opcional) Eliminar postulaciones previas de ese alumno a otros temas
+		eliminarPostulacionesTesista(idTesista);
+		eliminarPropuestasTesista(idTesista);
+
+		// 7) Desactivar todas las demás postulaciones (asignado = false) de este mismo tema
+		eliminarPostulacionesTema(temaId);
+	}
+
+
+	private void eliminarPostulacionesTema(Integer idTema) {
+		// 1) Obtener todos los registros de usuario–tema para ese tema donde asignado = false y activo = true
+		List<UsuarioXTema> postulacionesPendientes = usuarioXTemaRepository
+				.findByTemaIdAndAsignadoFalseAndActivoTrue(idTema);
+
+		if (postulacionesPendientes.isEmpty()) {
+			return; // no hay nada que desactivar
+		}
+
+		// 2) Marcar cada registro como inactivo
+		OffsetDateTime ahora = OffsetDateTime.now();
+		for (UsuarioXTema ux : postulacionesPendientes) {
+			ux.setActivo(false);
+			ux.setFechaModificacion(ahora);
+		}
+
+		// 3) Guardar todos los cambios en lote
+		usuarioXTemaRepository.saveAll(postulacionesPendientes);
+	}
 
 }
