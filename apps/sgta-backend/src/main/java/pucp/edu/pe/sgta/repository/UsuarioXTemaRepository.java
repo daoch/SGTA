@@ -68,9 +68,14 @@ public interface UsuarioXTemaRepository extends JpaRepository<UsuarioXTema, Inte
                 @Param("temaId")    Integer temaId,
                 @Param("rolNombre") String rolNombre
         );
-
+        
         @Modifying
         @Transactional
         @Query("UPDATE UsuarioXTema u SET u.activo = false WHERE u.id = :id")
         void softDeleteById(@Param("id") Integer id);
+        // Devuelve Optional<UsuarioXTema> por tema y usuario, solo si está activo
+        Optional<UsuarioXTema> findByTemaIdAndUsuarioIdAndActivoTrue(Integer temaId, Integer usuarioId);
+
+        // Devuelve lista de UsuarioXTema por tema, donde asignado = false y activo = true
+        List<UsuarioXTema> findByTemaIdAndAsignadoFalseAndActivoTrue(Integer temaId);
 }
