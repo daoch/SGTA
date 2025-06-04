@@ -9,6 +9,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -22,6 +26,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuthStore } from "@/features/auth/store/auth-store";
+import PropuestasSimilaresCard from "@/features/temas/components/alumno/similitud-temas";
 import { Usuario } from "@/features/temas/types/propuestas/entidades";
 import { Plus, Save } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -53,6 +58,7 @@ interface Props {
 export default function FormularioPropuesta({ loading, onSubmit }: Props) {
   const router = useRouter();
   const today = new Date().toISOString().split("T")[0];
+  const [openSimilarDialog, setOpenSimilarDialog] = useState(false);
 
   const [areas, setAreas] = useState<{ id: number; nombre: string }[]>([]);
   const [asesores, setAsesores] = useState<{ id: string; nombre: string }[]>([]);
@@ -450,6 +456,11 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
             )}
           </div>
         </CardContent>
+        <Dialog open={openSimilarDialog} onOpenChange={setOpenSimilarDialog}>
+  <DialogContent className="max-w-xl p-0">
+    <PropuestasSimilaresCard />
+  </DialogContent>
+</Dialog>
 
         <CardFooter className="flex justify-between px-6 py-4">
           <Button
@@ -457,6 +468,9 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
             onClick={() => router.push("/alumno/temas")}
           >
             Cancelar
+          </Button>
+          <Button variant="outline" onClick={() => setOpenSimilarDialog(true)}>
+            Probar similitud
           </Button>
           <Button
             onClick={handleLocalSubmit}
