@@ -8,6 +8,8 @@ import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import jakarta.transaction.Transactional;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -25,8 +27,11 @@ import pucp.edu.pe.sgta.mapper.UsuarioMapper;
 import pucp.edu.pe.sgta.model.*;
 import pucp.edu.pe.sgta.repository.*;
 import pucp.edu.pe.sgta.service.inter.*;
+import pucp.edu.pe.sgta.util.AccionSolicitudEnum;
+import pucp.edu.pe.sgta.util.EstadoSolicitudEnum;
 import pucp.edu.pe.sgta.util.EstadoTemaEnum;
 import pucp.edu.pe.sgta.util.RolEnum;
+import pucp.edu.pe.sgta.util.RolSolicitudEnum;
 import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -81,6 +86,12 @@ public class TemaServiceImpl implements TemaService {
 
 	private final AreaConocimientoService areaConocimientoService;
 
+    private EstadoSolicitudRepository estadoSolicitudRepository;
+
+	private RolSolicitudRepository rolSolicitudRepository;
+
+	private AccionSolicitudRepository accionSolicitudRepository;
+
 	@PersistenceContext
 	private EntityManager entityManager;
 
@@ -96,7 +107,9 @@ public class TemaServiceImpl implements TemaService {
 			JornadaExposicionXSalaExposicionRepository jornadaExposicionXSalaExposicionRepository,
 			UsuarioXTemaRepository usuarioTemaRepository, TipoSolicitudRepository tipoSolicitudRepository,
 			SolicitudRepository solicitudRepository,
-			UsuarioXSolicitudRepository usuarioXSolicitudRepository, AreaConocimientoService areaConocimientoService) {
+			UsuarioXSolicitudRepository usuarioXSolicitudRepository, AreaConocimientoService areaConocimientoService,
+			EstadoSolicitudRepository estadoSolicitudRepository, RolSolicitudRepository rolSolicitudRepository,
+			AccionSolicitudRepository accionSolicitudRepository) {
 		this.temaRepository = temaRepository;
 		this.usuarioXTemaRepository = usuarioXTemaRepository;
 		this.subAreaConocimientoXTemaRepository = subAreaConocimientoXTemaRepository;
@@ -117,6 +130,9 @@ public class TemaServiceImpl implements TemaService {
 		this.usuarioXSolicitudRepository = usuarioXSolicitudRepository;
 		this.carreraServiceImpl = carreraServiceImpl;
 		this.areaConocimientoService = areaConocimientoService;
+		this.estadoSolicitudRepository = estadoSolicitudRepository;
+		this.rolSolicitudRepository = rolSolicitudRepository;
+		this.accionSolicitudRepository = accionSolicitudRepository;
 	}
 
 	@Override
@@ -445,13 +461,25 @@ public class TemaServiceImpl implements TemaService {
 				.orElseThrow(() -> new RuntimeException(
 						"Tipo de solicitud no configurado: " + tipoSolicitudNombre));
 
+		EstadoSolicitud estadoSolicitud = estadoSolicitudRepository
+                .findByNombre(EstadoSolicitudEnum.PENDIENTE.name())
+                .orElseThrow(() -> new RuntimeException("Estado de solicitud no encontrado"));
+
 		// 2) Construir y guardar la solicitud
 		Solicitud solicitud = new Solicitud();
 		solicitud.setDescripcion(comentario != null ? comentario : tipoSolicitudNombre);
 		solicitud.setTipoSolicitud(tipoSolicitud);
 		solicitud.setTema(tema);
-		solicitud.setEstado(0); // Ajusta según tu convención (p.ej. 0 = PENDIENTE)
+		//solicitud.setEstado(0); // Ajusta según tu convención (p.ej. 0 = PENDIENTE)
+		solicitud.setEstadoSolicitud(estadoSolicitud);
 		Solicitud savedSolicitud = solicitudRepository.save(solicitud);
+
+		RolSolicitud rolRemitente = rolSolicitudRepository
+                .findByNombre(RolSolicitudEnum.REMITENTE.name()).
+				orElseThrow(() -> new RuntimeException("Rol destinatario no encontrado"));
+		AccionSolicitud accionPendiente = accionSolicitudRepository
+                .findByNombre(AccionSolicitudEnum.PENDIENTE_ACCION.name())
+                .orElseThrow(() -> new RuntimeException("Accion pendiente_aprobacion no encontrado"));
 
 		// 3) Crear la relación UsuarioXSolicitud
 		Usuario usuario = usuarioRepository.findById(idUsuarioCreador)
@@ -459,12 +487,12 @@ public class TemaServiceImpl implements TemaService {
 		UsuarioXSolicitud usuarioXSolicitud = new UsuarioXSolicitud();
 		usuarioXSolicitud.setUsuario(usuario);
 		usuarioXSolicitud.setSolicitud(savedSolicitud);
-		usuarioXSolicitud.setDestinatario(false); // o false según tu lógica
-		usuarioXSolicitud.setAprobado(false);
-		usuarioXSolicitud.setSolicitudCompletada(false);
+		//usuarioXSolicitud.setDestinatario(false); // o false según tu lógica
+		//usuarioXSolicitud.setAprobado(false);
+		//usuarioXSolicitud.setSolicitudCompletada(false);
 		usuarioXSolicitud.setComentario(comentario);
-		usuarioXSolicitud.setActivo(true);
-		usuarioXSolicitud.setFechaCreacion(OffsetDateTime.now());
+		usuarioXSolicitud.setRolSolicitud(rolRemitente);
+		usuarioXSolicitud.setAccionSolicitud(accionPendiente);
 
 		usuarioXSolicitudRepository.save(usuarioXSolicitud);
 	}
@@ -482,13 +510,24 @@ public class TemaServiceImpl implements TemaService {
 				.orElseThrow(() -> new RuntimeException(
 						"Tipo de solicitud no configurado: Aprobación de tema (por coordinador)"));
 
+		// Estado solicitud
+        EstadoSolicitud estadoSolicitud = estadoSolicitudRepository
+                .findByNombre(EstadoSolicitudEnum.PENDIENTE.name())
+                .orElseThrow(() -> new RuntimeException("Estado de solicitud no encontrado"));
 		// 2) Construir y guardar la solicitud
 		Solicitud solicitud = new Solicitud();
 		solicitud.setDescripcion("Solicitud de aprobación de tema por coordinador");
 		solicitud.setTipoSolicitud(tipoSolicitud);
 		solicitud.setTema(tema);
-		solicitud.setEstado(0); // Ajusta según tu convención (p.ej. 0 = PENDIENTE)
+		solicitud.setEstadoSolicitud(estadoSolicitud); // Ajusta según tu convención (p.ej. 0 = PENDIENTE)
 		Solicitud savedSolicitud = solicitudRepository.save(solicitud);
+
+		RolSolicitud rolDestinatario = rolSolicitudRepository
+                .findByNombre(RolSolicitudEnum.DESTINATARIO.name()).
+				orElseThrow(() -> new RuntimeException("Rol destinatario no encontrado"));
+		AccionSolicitud accionPendiente = accionSolicitudRepository
+                .findByNombre(AccionSolicitudEnum.PENDIENTE_ACCION.name())
+                .orElseThrow(() -> new RuntimeException("Accion pendiente_aprobacion no encontrado"));
 
 		// 3) Buscar los usuarios-coordinador de la carrera del tema
 		List<UsuarioXSolicitud> asignaciones = usuarioCarreraRepository
@@ -499,9 +538,11 @@ public class TemaServiceImpl implements TemaService {
 					UsuarioXSolicitud us = new UsuarioXSolicitud();
 					us.setUsuario(coord);
 					us.setSolicitud(savedSolicitud);
-					us.setDestinatario(true);
-					us.setAprobado(false);
-					us.setSolicitudCompletada(false);
+					//us.setDestinatario(true);
+					us.setRolSolicitud(rolDestinatario);
+					//us.setAprobado(false);
+					us.setAccionSolicitud(accionPendiente);
+					//us.setSolicitudCompletada(false);
 					return us;
 				})
 				.collect(Collectors.toList());
@@ -1795,7 +1836,7 @@ public class TemaServiceImpl implements TemaService {
 				.orElseThrow(() -> new ResponseStatusException(
 						HttpStatus.NOT_FOUND,
 						"EstadoTema '" + nuevoEstadoNombre + "' no existe"));
-		validarEstadoTema(temaId, EstadoTemaEnum.INSCRITO.name());
+		//validarEstadoTema(temaId, EstadoTemaEnum.INSCRITO.name());
 	}
 
 	private Tema actualizarTemaYHistorial(
@@ -1835,19 +1876,32 @@ public class TemaServiceImpl implements TemaService {
 						"No hay registro en usuario_solicitud para la solicitud "
 								+ solicitudId + " y usuario " + usuarioId));
 
+		RolSolicitud rolDestinatario = rolSolicitudRepository
+		.findByNombre(RolSolicitudEnum.DESTINATARIO.name()).
+		orElseThrow(() -> new RuntimeException("Rol destinatario no encontrado"));
+		// AccionSolicitud accionPendiente = accionSolicitudRepository
+		// .findByNombre(AccionSolicitudEnum.PENDIENTE_ACCION.name())
+		// .orElseThrow(() -> new RuntimeException("Accion pendiente_aprobacion no encontrado"));
+		AccionSolicitud accionAprobado = accionSolicitudRepository
+		.findByNombre(AccionSolicitudEnum.APROBADO.name())
+		.orElseThrow(() -> new RuntimeException("Accion APROBADO no encontrado"));
+		AccionSolicitud accionRechazado = accionSolicitudRepository
+		.findByNombre(AccionSolicitudEnum.RECHAZADO.name())
+		.orElseThrow(() -> new RuntimeException("Accion RECHAZADO no encontrado"));
+
 		uxs.setComentario(comentario);
 		switch (nuevoEstadoNombre.toUpperCase()) {
 			case "REGISTRADO":
-				uxs.setAprobado(true);
-				uxs.setSolicitudCompletada(true);
+				uxs.setRolSolicitud(rolDestinatario);
+				uxs.setAccionSolicitud(accionAprobado);
 				break;
 			case "RECHAZADO":
-				uxs.setAprobado(false);
-				uxs.setSolicitudCompletada(true);
+				uxs.setRolSolicitud(rolDestinatario);
+				uxs.setAccionSolicitud(accionRechazado);
 				break;
 			case "OBSERVADO":
-				uxs.setAprobado(false);
-				uxs.setSolicitudCompletada(true);
+				uxs.setRolSolicitud(rolDestinatario);
+				uxs.setAccionSolicitud(accionRechazado);
 				break;
 			default:
 				// opcional
@@ -1862,17 +1916,27 @@ public class TemaServiceImpl implements TemaService {
 			String comentario) {
 		switch (nuevoEstadoNombre.toUpperCase()) {
 			case "REGISTRADO":
-				solicitud.setEstado(3);
+				EstadoSolicitud estadoSolicitud = estadoSolicitudRepository
+						.findByNombre(EstadoSolicitudEnum.ACEPTADA.name())
+						.orElseThrow(() -> new RuntimeException("Estado de solicitud no encontrado"));
+				solicitud.setEstadoSolicitud(estadoSolicitud);
 				break;
 			case "RECHAZADO":
-				solicitud.setEstado(2);
+				EstadoSolicitud estadoSolicitudR = estadoSolicitudRepository
+						.findByNombre(EstadoSolicitudEnum.RECHAZADA.name())
+						.orElseThrow(() -> new RuntimeException("Estado de solicitud no encontrado"));
+				solicitud.setEstadoSolicitud(estadoSolicitudR);
 				break;
 			case "OBSERVADO":
-				solicitud.setEstado(1);
+				EstadoSolicitud estadoSolicitudO = estadoSolicitudRepository
+						.findByNombre(EstadoSolicitudEnum.PENDIENTE.name())
+						.orElseThrow(() -> new RuntimeException("Estado de solicitud no encontrado"));
+				solicitud.setEstadoSolicitud(estadoSolicitudO);
 				break;
 			default:
 				// opcional
 		}
+		
 		solicitud.setRespuesta(comentario);
 		solicitud.setFechaModificacion(OffsetDateTime.now());
 		solicitudRepository.save(solicitud);
