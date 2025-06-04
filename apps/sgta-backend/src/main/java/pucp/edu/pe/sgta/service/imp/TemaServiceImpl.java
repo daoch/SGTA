@@ -2248,6 +2248,24 @@ public class TemaServiceImpl implements TemaService {
 				}
 			}
 
+			//    (a) Traer la lista de asesores asignados al tema
+			List<UsuarioDto> asesores = listarUsuariosPorTemaYRol(dto.getId(), RolEnum.Asesor.name());
+
+			//    (b) Traer la lista de coasesores asignados al tema
+			List<UsuarioDto> coasesoresDirectos = listarUsuariosPorTemaYRol(dto.getId(), RolEnum.Coasesor.name());
+
+			//    (c) Combinar: primero el (o los) asesor(es), luego los coasesores sin duplicados
+			List<UsuarioDto> combinado = new ArrayList<>();
+			if (!asesores.isEmpty()) {
+				combinado.addAll(asesores);
+			}
+			for (UsuarioDto u : coasesoresDirectos) {
+				boolean yaAgregado = asesores.stream().anyMatch(a -> a.getId().equals(u.getId()));
+				if (!yaAgregado) {
+					combinado.add(u);
+				}
+			}
+			dto.setCoasesores(combinado);
 
 			lista.add(dto);
 		}
