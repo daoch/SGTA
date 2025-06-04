@@ -31,7 +31,7 @@ import { EstadoTemaNombre } from "../types/temas/enums";
 
 type PagesListKey = keyof TemasPages;
 
-const LIMIT = 10;
+const LIMIT = 2;
 
 export default function SolicitudesPendientes() {
   const [estadoTema, setEstadoTema] = React.useState<EstadoTemaNombre>(
@@ -79,7 +79,6 @@ export default function SolicitudesPendientes() {
       if (!existingPage?.length) {
         setLoading(true);
         fetchData(estadoTema, newPage, carrerasIds);
-        setLoading(false);
       }
     },
     [estadoTema, temas, carrerasIds],
@@ -115,6 +114,8 @@ export default function SolicitudesPendientes() {
       }
     } catch (err) {
       console.error("Error loading data", err);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -127,7 +128,7 @@ export default function SolicitudesPendientes() {
       for (const estado of estadosConPages) {
         const count = await lenTemasPorCarrera(carrerasIds[0], estado); // TODO: Debe traer un number
         // const count = 2;
-        console.log(estado + ": count = " + count);
+        // console.log(estado + ": count = " + count);
 
         updatePagesListKey(estado, "totalCounts", count);
       }
