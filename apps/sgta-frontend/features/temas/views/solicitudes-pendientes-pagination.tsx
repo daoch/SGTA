@@ -128,7 +128,7 @@ export default function SolicitudesPendientes() {
       for (const estado of estadosConPages) {
         const count = await lenTemasPorCarrera(carrerasIds[0], estado); // TODO: Debe traer un number
         // const count = 2;
-        // console.log(estado + ": count = " + count);
+        console.log(estado + ": count = " + count);
 
         updatePagesListKey(estado, "totalCounts", count);
       }
