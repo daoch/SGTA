@@ -50,7 +50,7 @@ export const navigationItems: Record<string, NavigationItem[]> = {
           href: "/alumno/temas/catalogo-de-temas",
           icon: FolderOpen,
         },
-        { name: "Mis temas", href: "/alumno/temas", icon: FileText },
+        { name: "Temas", href: "/alumno/temas", icon: FileText },
         {
           name: "Postulaciones de asesores",
           href: "/alumno/temas/postulaciones-de-asesores",
