@@ -118,7 +118,8 @@ public interface TemaService {
 	void crearSolicitudCambioDeResumen(String idUsuario,
 											String comentario,
 											Integer temaId);
-	List<TemaDto> listarTemasLibres(String titulo, Integer limit, Integer offset, String usuarioId);
+											
+	List<TemaDto> listarTemasLibres(String titulo, Integer limit, Integer offset, String usuarioId, Boolean myOwn);
 
 	void postularTemaLibre(Integer temaId, String tesistaId, String comentario);
 
