@@ -11,6 +11,7 @@ import org.springframework.web.server.ResponseStatusException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import pucp.edu.pe.sgta.dto.TemaConAsesorJuradoDTO;
+import pucp.edu.pe.sgta.dto.TemaPorAsociarDto;
 import pucp.edu.pe.sgta.dto.asesores.InfoTemaPerfilDto;
 import pucp.edu.pe.sgta.dto.asesores.TemaConAsesorDto;
 import pucp.edu.pe.sgta.dto.TemaDto;
@@ -440,6 +441,15 @@ public class TemaController {
 		}
 	}
 
+	@GetMapping("/listarTemasPorAsociarPorCarrera/{carreraId}")
+	public List<TemaPorAsociarDto> listarTemasPorAsociarPorCarrera(@PathVariable("carreraId") Integer carreraId) {
+		return temaService.listarTemasPorAsociarPorCarrera(carreraId);
+	}
+
+	@PostMapping("/asociar-tema-curso/curso/{cursoId}/tema/{temaId}")
+	public void asociarTemaACurso(@PathVariable Integer cursoId, @PathVariable Integer temaId){
+		temaService.asociarTemaACurso(cursoId, temaId);
+	}
 
 }
 
