@@ -1,75 +1,25 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Eye } from "lucide-react";
 import { useEffect, useState } from "react";
 import { SeleccionarEstudianteModal } from "../components/general/modal-seleccionar-estudiante";
-import { fetchUsers } from "@/features/temas/types/inscripcion/data";
+import { findStudentsForReviewer } from "../services/report-services";
+import { AlumnoReviewer } from "../types/Alumno.type";
 
-interface Timeline {
-  date: string;
-  event: string;
-  status: string;
-  comments: string;
-}
-
-interface Deliverable {
-  id: string;
-  title: string;
-  date: string;
-  status: string;
-  feedback: string;
-  score: number | null;
-}
-
-interface Student {
-  id: string;
-  name: string;
-  thesis: string;
-  advisor: string;
-  timeline: Timeline[];
-  deliverables: Deliverable[];
-}
-
-interface APIStudent {
-  id: number;
-  nombres: string;
-  primerApellido: string;
-  tituloTesis?: string;
-  asesor?: string;
-}
 
 export function ReviewerReports() {
-  const [selectedStudent, setSelectedStudent] = useState<string>("");
-  const [students, setStudents] = useState<Student[]>([]);
+  const [selectedStudent, setSelectedStudent] = useState<number>(0);
+  const [students, setStudents] = useState<AlumnoReviewer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     const loadStudents = async () => {
       try {
         setLoading(true);
-        //TODO: cambiar id Carrera
-        const data = await fetchUsers(1, "Alumno");
-
-        const transformedData = data.map((student: APIStudent) => ({
-          id: student.id.toString(),
-          name: `${student.nombres} ${student.primerApellido}`,
-          thesis: student.tituloTesis || "Sin título asignado",
-          advisor: student.asesor || "Sin asesor asignado",
-          timeline: [],
-          deliverables: [] 
-        }));
-        setStudents(transformedData);
+        const data: AlumnoReviewer[] = await findStudentsForReviewer(1, searchQuery);
+        setStudents(data);
       } catch (error) {
         console.error("Error loading students:", error);
       } finally {
@@ -78,10 +28,9 @@ export function ReviewerReports() {
     };
 
     loadStudents();
-  }, []);
+  }, [searchQuery]);
 
-  const selectedStudentData = students.find((student) => student.id === selectedStudent);
-  console.log("Selected Student Data:", selectedStudent);
+  const selectedStudentData = students.find((student) => student.usuarioId === selectedStudent);
 
   if (loading) {
     return <div>Cargando estudiantes...</div>;
@@ -105,9 +54,12 @@ export function ReviewerReports() {
       {selectedStudentData && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">{selectedStudentData.name}</CardTitle>
-            <p className="text-sm text-gray-500">{selectedStudentData.thesis}</p>
-            <p className="text-sm text-gray-500">Asesor: {selectedStudentData.advisor}</p>
+            <CardTitle className="text-lg">{selectedStudentData.nombres + ' ' + selectedStudentData.primerApellido + ' ' + selectedStudentData.segundoApellido}</CardTitle>
+            <p className="text-sm text-gray-500">{selectedStudentData.temaTitulo}</p>
+            <p className="text-sm text-gray-500">Asesor: {selectedStudentData.asesor}</p>
+            {selectedStudentData.coasesor && (
+              <p className="text-sm text-gray-500">Coasesor: {selectedStudentData.coasesor}</p>
+            )}
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="timeline">
@@ -117,7 +69,7 @@ export function ReviewerReports() {
               </TabsList>
 
               <TabsContent value="timeline">
-                <div className="relative border-l border-gray-200 ml-3 pl-8 space-y-6">
+                {/* <div className="relative border-l border-gray-200 ml-3 pl-8 space-y-6">
                   {selectedStudentData.timeline.map((event, index) => (
                     <div key={index} className="relative">
                       <div
@@ -184,12 +136,12 @@ export function ReviewerReports() {
                       </div>
                     </div>
                   ))}
-                </div>
+                </div> */}
               </TabsContent>
 
               <TabsContent value="consolidated">
                 <div className="space-y-6">
-                  {selectedStudentData.deliverables.map((deliverable) => (
+                  {/* {selectedStudentData.deliverables.map((deliverable) => (
                     <Card key={deliverable.id} className="border-l-4 border-l-[#006699]">
                       <CardHeader className="pb-2">
                         <div className="flex items-center justify-between">
@@ -268,7 +220,7 @@ export function ReviewerReports() {
                         </div>
                       </CardContent>
                     </Card>
-                  ))}
+                  ))} */}
                 </div>
               </TabsContent>
             </Tabs>

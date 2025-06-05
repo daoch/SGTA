@@ -1,15 +1,14 @@
 import axiosInstance from "@/lib/axios/axios-instance";
 
 import axios from "@/lib/axios/axios-instance";
-import { AlumnoTemaDetalle } from "../types/Alumno.type";
+import { AlumnoReviewer, AlumnoTemaDetalle } from "../types/Alumno.type";
 
 import { useAuthStore } from "@/features/auth/store/auth-store";
 
-const { idToken } = useAuthStore.getState();
 
 export const obtenerDetalleTemaAlumno = async (): Promise<AlumnoTemaDetalle> => {
     try {
-       
+        const { idToken } = useAuthStore.getState();
         const response = await axiosInstance.get<AlumnoTemaDetalle>("/usuario/detalle-tema-alumno", {
           headers: {
             Authorization: `Bearer ${idToken}`,
@@ -22,6 +21,24 @@ export const obtenerDetalleTemaAlumno = async (): Promise<AlumnoTemaDetalle> => 
     }
 };
 
+
+export const findStudentsForReviewer = async (carreraId: number, cadenaBusqueda: string): Promise<AlumnoReviewer[]> => {
+  try {
+    const response = await axiosInstance.get(`/usuario/findByStudentsForReviewer`, {
+      params: {
+        carreraId,
+        cadenaBusqueda
+      },
+      /*headers: {
+        Authorization: `Bearer ${idToken}`,
+      },*/
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error al buscar estudiantes para el revisor:", error);
+    throw error;
+  }
+};
 
 {/*
 //Probando lo de ID_Token

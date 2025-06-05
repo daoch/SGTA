@@ -6,17 +6,12 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { User } from "lucide-react";
 import { useMemo, useState } from "react";
-
-interface Student {
-  id: string;
-  name: string;
-  thesis: string;
-}
+import { AlumnoReviewer } from "../../types/Alumno.type";
 
 interface SeleccionarEstudianteModalProps {
-  students: Student[];
-  selectedStudentId: string;
-  onSelect: (studentId: string) => void;
+  students: AlumnoReviewer[];
+  selectedStudentId: number;
+  onSelect: (studentId: number) => void;
 }
 
 export function SeleccionarEstudianteModal({
@@ -32,64 +27,79 @@ export function SeleccionarEstudianteModal({
     if (!term) return students;
     return students.filter(
       (s) =>
-        s.name.toLowerCase().includes(term) ||
-        s.thesis.toLowerCase().includes(term)
+        s.temaTitulo.toLowerCase().includes(term)
+        || s.codigoPucp.toLowerCase().includes(term)
+        || `${s.nombres} ${s.primerApellido} ${s.segundoApellido}`.toLowerCase().includes(term)
     );
   }, [students, search]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="w-full md:w-[300px] flex items-center gap-2">
+        <Button variant="outline" className="w-full md:w-[300px] flex items-center gap-2 text-sm">
           <User className="w-4 h-4" />
           {selectedStudentId
-            ? students.find((s) => s.id === selectedStudentId)?.name || "Seleccionar estudiante"
+            ? (() => {
+                const student = students.find((s) => s.usuarioId === selectedStudentId);
+                return student 
+                  ? `${student.nombres} ${student.primerApellido} ${student.segundoApellido || ''}`.trim()
+                  : "Seleccionar estudiante";
+              })()
             : "Seleccionar estudiante"}
         </Button>
       </DialogTrigger>
-      <DialogContent className="modal-dialog modal-lg" style={{ width: "80%", maxWidth: "60%" }}>
-        <DialogHeader>
-          <DialogTitle className="mb-2 text-center">Buscar y seleccionar estudiante</DialogTitle>
+      <DialogContent className="sm:max-w-[425px] md:max-w-[600px] lg:max-w-[800px] w-[90vw] p-0">
+        <DialogHeader className="p-6 pb-2">
+          <DialogTitle className="text-xl font-semibold text-center">Buscar y seleccionar estudiante</DialogTitle>
         </DialogHeader>
-        <Input
-          autoFocus
-          placeholder="Buscar por nombre o tema..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="mb-5"
-        />
-        <ScrollArea className="h-80">
-          {filteredStudents.length === 0 ? (
-            <div className="text-center text-gray-500 py-10">No se encontraron estudiantes</div>
-          ) : (
-            <ul className="flex flex-col gap-3">
-              {filteredStudents.map((student) => (
-                <li key={`student-${student.id}`}>
+        <div className="p-6 pt-2">
+          <Input
+            autoFocus
+            placeholder="Buscar por nombre, código PUCP o tema..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="mb-4"
+          />
+          <ScrollArea className="h-[60vh] max-h-[500px] pr-4">
+            {filteredStudents.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                No se encontraron estudiantes que coincidan con la búsqueda
+              </div>
+            ) : (
+              <div className="grid gap-2">
+                {filteredStudents.map((student) => (
                   <Button
-                    variant={student.id === selectedStudentId ? "default" : "ghost"}
-                    className={`w-full flex flex-wrap md:flex-nowrap justify-between items-start gap-4 py-4 px-5 rounded-lg transition-all shadow-sm ${
-                      student.id === selectedStudentId
-                        ? "bg-[#006699] text-white"
-                        : "hover:bg-gray-100"
+                    key={`student-${student.usuarioId}`}
+                    variant={student.usuarioId === selectedStudentId ? "default" : "ghost"}
+                    className={`w-full flex flex-col sm:flex-row items-start justify-between gap-2 p-4 text-left h-auto ${
+                      student.usuarioId === selectedStudentId
+                        ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                        : "hover:bg-primary/10"
                     }`}
-                    style={{ minHeight: 56 }}
                     onClick={() => {
-                      onSelect(student.id);
+                      onSelect(student.usuarioId);
                       setOpen(false);
                     }}
                   >
-                    <span className="font-medium text-left text-base max-w-full md:max-w-[40%] truncate">
-                      {student.name}
-                    </span>
-                    <span className={`text-xs ${student.id === selectedStudentId ? "text-white bg-opacity-20" : "text-gray-600 bg-gray-100"} px-3 py-2 rounded-md whitespace-nowrap max-w-full md:max-w-[55%] truncate overflow-hidden`}>
-                      {student.thesis}
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full">
+                      <span className="font-medium text-base">
+                        {student.nombres} {student.primerApellido} {student.segundoApellido}
+                      </span>
+                      <span className="text-xs opacity-70">({student.codigoPucp})</span>
+                    </div>
+                    <span className={`text-xs ${
+                      student.usuarioId === selectedStudentId 
+                        ? "bg-primary-foreground/20" 
+                        : "bg-muted"
+                      } px-3 py-1.5 rounded-full w-full sm:w-auto text-center sm:text-left`}>
+                      {student.temaTitulo || "Sin tema asignado"}
                     </span>
                   </Button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </ScrollArea>
+                ))}
+              </div>
+            )}
+          </ScrollArea>
+        </div>
       </DialogContent>
     </Dialog>
   );
