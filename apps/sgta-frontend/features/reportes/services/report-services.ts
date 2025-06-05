@@ -1,23 +1,44 @@
 import axiosInstance from "@/lib/axios/axios-instance";
 
-import { AlumnoTemaDetalle } from "../types/Alumno.type";
+
+import { AlumnoReviewer, AlumnoTemaDetalle } from "../types/Alumno.type";
+import { EntregableCriteriosDetalle } from "../types/Entregable.type";
 
 import { useAuthStore } from "@/features/auth/store/auth-store";
 import { OverdueSummary } from "../types/OverdueSummary.type";
 
-const { idToken } = useAuthStore.getState();
 
 export const obtenerDetalleTemaAlumno = async (): Promise<AlumnoTemaDetalle> => {
-  try {
 
-    const response = await axiosInstance.get<AlumnoTemaDetalle>("/usuario/detalle-tema-alumno", {
-      headers: {
-        Authorization: `Bearer ${idToken}`,
+    try {
+        const { idToken } = useAuthStore.getState();
+        const response = await axiosInstance.get<AlumnoTemaDetalle>("/usuario/detalle-tema-alumno", {
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+          },
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error al obtener detalle del tema del alumno:", error);
+        throw error;
+    }
+};
+
+
+export const findStudentsForReviewer = async (carreraId: number, cadenaBusqueda: string): Promise<AlumnoReviewer[]> => {
+  try {
+    const response = await axiosInstance.get("/usuario/findByStudentsForReviewer", {
+      params: {
+        carreraId,
+        cadenaBusqueda
       },
+      /*headers: {
+        Authorization: `Bearer ${idToken}`,
+      },*/
     });
     return response.data;
   } catch (error) {
-    console.error("Error al obtener detalle del tema del alumno:", error);
+    console.error("Error al buscar estudiantes para el revisor:", error);
     throw error;
   }
 };
@@ -28,8 +49,22 @@ export const getEntregablesAlumno = async (alumnoId: string) => {
   return response.data;
 };
 
+
+export const getEntregablesConCriterios = async (usuarioId: number): Promise<EntregableCriteriosDetalle[]> => {
+  try {
+    const response = await axiosInstance.get<EntregableCriteriosDetalle[]>(
+      `/api/v1/reports/entregables-criterios/${usuarioId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error al obtener entregables con criterios:", error);
+    throw error;
+  }
+};
+
 export const obtenerEntregablesConRetraso = async (): Promise<OverdueSummary> => {
   try {
+    const { idToken } = useAuthStore.getState();
     const response = await axiosInstance.get<OverdueSummary>("/api/notifications/overdue-summary", {
       headers: {
         Authorization: `Bearer ${idToken}`,
@@ -41,3 +76,4 @@ export const obtenerEntregablesConRetraso = async (): Promise<OverdueSummary> =>
     throw error;
   }
 };
+
