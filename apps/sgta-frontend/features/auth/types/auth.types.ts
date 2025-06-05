@@ -1,3 +1,6 @@
+// src/features/auth/types/auth.types.ts
+
+// 1. Roles de usuario (sin cambios)
 export type UserRole =
   | "alumno"
   | "jurado"
@@ -6,6 +9,7 @@ export type UserRole =
   | "revisor"
   | "administrador";
 
+// 2. Interfaz del usuario (sin cambios)
 export interface User {
   id: string;
   name: string;
@@ -14,6 +18,7 @@ export interface User {
   avatar?: string;
 }
 
+// 3. Estado de autenticación, ahora con isSessionReady
 export interface AuthState {
   user: User | null;
   idToken: string | null;
@@ -21,8 +26,10 @@ export interface AuthState {
   isLoading: boolean;
   error: string | null;
   isAuthenticated: boolean;
+  isSessionReady: boolean;    // 👈 NUEVO: indica que ya se resolvió checkAuth (sea exitosa o no)
 }
 
+// 4. Store de autenticación, incluye la bandera en el estado
 export interface AuthStore extends AuthState {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;

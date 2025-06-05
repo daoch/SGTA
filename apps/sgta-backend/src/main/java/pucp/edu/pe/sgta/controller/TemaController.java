@@ -43,8 +43,9 @@ public class TemaController {
 	@GetMapping("/findById") // finds a topic by id
 	public TemaDto findById(@RequestParam(name = "idTema") Integer idTema) {
 		return temaService.findById(idTema);
-	}
+	}  
 
+	
 	@PostMapping("/createPropuesta")
 	public void createTema(@RequestBody TemaDto dto,
 			@RequestParam(name = "tipoPropuesta", defaultValue = "0") Integer tipoPropuesta,
