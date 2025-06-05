@@ -1063,9 +1063,9 @@ public class    UsuarioServiceImpl implements UsuarioService {
     }
 
     @Override
-    public void validarTipoUsuarioRolUsuario(String cognitoId, TipoUsuarioEnum tipoUsuario, RolEnum rol) {
+    public void validarTipoUsuarioRolUsuario(String cognitoId, List<TipoUsuarioEnum> tipos, RolEnum rol) {
         //Almenos debe hacerse la validación de tipoUsuario
-        if (tipoUsuario  == null)
+        if (tipos  == null || tipos.isEmpty())
             throw new ResponseStatusException(
                         HttpStatus.INTERNAL_SERVER_ERROR,
                         "La validación necesita al menos un tipo de usuario"
@@ -1079,12 +1079,23 @@ public class    UsuarioServiceImpl implements UsuarioService {
             );
 
         //Validar el tipo Usuario
-        if(!tipoUsuarioRepository.existsByNombre(tipoUsuario.name()))
-            throw new ResponseStatusException(
+        boolean encontro;
+        for(TipoUsuarioEnum tipoUsuario : tipos) {
+            encontro = tipoUsuarioRepository.existsByNombre(tipoUsuario.name());
+            if (!encontro)
+                throw new ResponseStatusException(
                     HttpStatus.INTERNAL_SERVER_ERROR,
-                        "Error en validación interna"
-                    );
-        if(!usuarioRepository.existsByIdCognitoAndTipoUsuarioNombre(cognitoId, tipoUsuario.name()))
+                    "Error en validación interna"
+                );
+        }
+
+        //Validar que tenga ese tipo
+        encontro = false;
+        for(TipoUsuarioEnum tipoUsuario : tipos) {
+            encontro = usuarioRepository.existsByIdCognitoAndTipoUsuarioNombre(cognitoId, tipoUsuario.name());
+            if (encontro) break;
+        }
+        if(!encontro)
             throw new ResponseStatusException(
                     HttpStatus.UNAUTHORIZED,
                     "No se pudo validar sus credenciales"

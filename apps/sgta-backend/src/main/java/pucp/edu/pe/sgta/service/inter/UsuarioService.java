@@ -95,7 +95,7 @@ public interface UsuarioService {
 
     UsuarioDto findByCognitoId(String cognitoId) throws NoSuchElementException;
 
-    void validarTipoUsuarioRolUsuario(String cognitoId,TipoUsuarioEnum tipoUsuario, RolEnum rol);
+    void validarTipoUsuarioRolUsuario(String cognitoId,List<TipoUsuarioEnum> tipos, RolEnum rol);
 
     List<DocentesDTO> getProfesores();
 
