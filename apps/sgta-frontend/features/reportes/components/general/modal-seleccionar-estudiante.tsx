@@ -27,9 +27,9 @@ export function SeleccionarEstudianteModal({
     if (!term) return students;
     return students.filter(
       (s) =>
-        (s.temaTitulo?.toLowerCase() || '').includes(term) ||
-        (s.codigoPucp?.toLowerCase() || '').includes(term) ||
-        `${s.nombres || ''} ${s.primerApellido || ''} ${s.segundoApellido || ''}`.toLowerCase().includes(term)
+        (s.temaTitulo?.toLowerCase() || "").includes(term) ||
+        (s.codigoPucp?.toLowerCase() || "").includes(term) ||
+        `${s.nombres || ""} ${s.primerApellido || ""} ${s.segundoApellido || ""}`.toLowerCase().includes(term)
     );
   }, [students, search]);
 
