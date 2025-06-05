@@ -11,113 +11,23 @@ import {
   CardHeader,
   CardTitle,
 } from "../../../components/ui/card";
-
-const revisionesData = [
-  {
-    id: "1",
-    titulo:
-      "Implementación de algoritmos de aprendizaje profundo para detección de objetos en tiempo real",
-    entregable: "E4",
-    estudiante: "Carlos Mendoza",
-    codigo: "20180123",
-    curso: "1INF42",
-    fechaEntrega: "2023-10-15",
-    fechaLimite: "2023-10-20",
-    estado: "aprobado",
-    porcentajePlagio: 5,
-    formatoValido: true,
-    entregaATiempo: true,
-    citadoCorrecto: true,
-    observaciones: 3,
-    ultimoCiclo: "2025-1",
-  },
-  {
-    id: "2",
-    titulo:
-      "Desarrollo de un sistema de monitoreo de calidad del aire utilizando IoT",
-    entregable: "E4",
-    estudiante: "Ana García",
-    codigo: "20190456",
-    curso: "1INF46",
-    fechaEntrega: "2023-11-02",
-    fechaLimite: "2023-11-05",
-    estado: "por-aprobar",
-    porcentajePlagio: 12,
-    formatoValido: false,
-    entregaATiempo: true,
-    citadoCorrecto: false,
-    observaciones: 7,
-    ultimoCiclo: "2025-1",
-  },
-  {
-    id: "3",
-    titulo:
-      "Análisis comparativo de frameworks de desarrollo web para aplicaciones de alta concurrencia",
-    entregable: "E4",
-    estudiante: "Luis Rodríguez",
-    codigo: "20180789",
-    curso: "tesis2",
-    fechaEntrega: "2023-09-28",
-    fechaLimite: "2023-10-01",
-    estado: "aprobado",
-    porcentajePlagio: 8,
-    formatoValido: true,
-    entregaATiempo: true,
-    citadoCorrecto: true,
-    observaciones: 2,
-    ultimoCiclo: "2025-1",
-  },
-  {
-    id: "4",
-    titulo:
-      "Diseño e implementación de un sistema de recomendación basado en filtrado colaborativo",
-    entregable: "E4",
-    estudiante: "María Torres",
-    codigo: "20190321",
-    curso: "1INF42",
-    fechaEntrega: null,
-    fechaLimite: "2023-11-25",
-    estado: "revisado",
-    porcentajePlagio: null,
-    formatoValido: null,
-    entregaATiempo: null,
-    citadoCorrecto: null,
-    observaciones: 0,
-    ultimoCiclo: "2024-2",
-  },
-  {
-    id: "5",
-    titulo:
-      "Optimización de consultas en bases de datos NoSQL para aplicaciones de big data",
-    entregable: "E4",
-    estudiante: "Jorge Sánchez",
-    codigo: "20180654",
-    curso: "tesis1",
-    fechaEntrega: "2023-11-10",
-    fechaLimite: "2023-11-08",
-    estado: "revisado",
-    porcentajePlagio: 15,
-    formatoValido: true,
-    entregaATiempo: false,
-    citadoCorrecto: true,
-    observaciones: 5,
-    ultimoCiclo: "2023-2",
-  },
-];
+import { RevisionDocumentoAsesorDto } from "../dtos/RevisionDocumentoAsesorDto";
 
 interface RevisionesCardsAsesorProps {
+  data: RevisionDocumentoAsesorDto[];
   filter?: string;
   searchQuery?: string;
   cursoFilter?: string;
 }
 
 export function RevisionesCardsAsesor({
+  data,
   filter,
   searchQuery = "",
   cursoFilter = "todos",
 }: RevisionesCardsAsesorProps) {
   // Filtrar las revisiones según los criterios
-  let revisionesFiltradas = revisionesData;
+  let revisionesFiltradas = data;
 
   // Filtrar por estado
   if (filter) {
@@ -133,13 +43,13 @@ export function RevisionesCardsAsesor({
     );
   }
 
-  // Filtrar por búsqueda (nombre de estudiante o código)
   if (searchQuery) {
     const query = searchQuery.toLowerCase();
     revisionesFiltradas = revisionesFiltradas.filter(
       (revision) =>
         revision.estudiante.toLowerCase().includes(query) ||
-        revision.codigo.includes(query),
+        revision.codigo.includes(query) ||
+        revision.titulo.toLowerCase().includes(query)
     );
   }
 
@@ -162,17 +72,21 @@ export function RevisionesCardsAsesor({
                         ? "bg-green-100 text-green-800 hover:bg-green-100"
                         : revision.estado === "aprobado"
                           ? "bg-blue-100 text-blue-800 hover:bg-blue-100"
-                          : "bg-yellow-100 text-yellow-800 hover:bg-yellow-100"
+                          : revision.estado === "rechazado"
+                            ? "bg-red-100 text-red-800 hover:bg-red-100"
+                            : "bg-yellow-100 text-yellow-800 hover:bg-yellow-100"
                     }
                   >
                     {revision.estado === "revisado"
                       ? "Revisado"
                       : revision.estado === "aprobado"
                         ? "Aprobado"
-                        : "Por Aprobar"}
+                        : revision.estado === "rechazado"
+                          ? "Rechazado"
+                          : "Por Aprobar"}
                   </Badge>
                   <Badge variant="outline" className="bg-gray-100">
-                    {revision.curso === "1INF42" ? "1INF42" : "1INF46"}
+                    {revision.curso}
                   </Badge>
                 </div>
                 <CardTitle className="text-base font-medium mt-2 line-clamp-2">
@@ -199,43 +113,50 @@ export function RevisionesCardsAsesor({
                     </span>
                   </div>
 
-                  {revision.porcentajePlagio !== null && (
+                  {revision.porcentajeSimilitud !== null && (
                     <div>
                       <div className="flex justify-between items-center mb-1">
-                        <span className="text-sm">Generación de Inteligencia Artificial:</span>
+                        <span className="text-sm">Detección de Plagio:</span>
                         <span
                           className={
-                            revision.porcentajePlagio > 20
+                            revision.porcentajeSimilitud > 20
                               ? "text-red-600 font-medium"
-                              : revision.porcentajePlagio > 10
+                              : revision.porcentajeSimilitud > 10
                                 ? "text-yellow-600 font-medium"
                                 : "text-green-600 font-medium"
                           }
                         >
-                          {revision.porcentajePlagio}%
+                          {revision.porcentajeSimilitud}%
                         </span>
                       </div>
                     </div>
                   )}
 
-                  {revision.observaciones > 0 && (
+                  {/*revision.observaciones > 0 && (
                     <div className="flex justify-between items-center">
                       <span className="text-sm">Observaciones:</span>
                       <Badge variant="outline" className="bg-gray-100">
                         {revision.observaciones}
                       </Badge>
                     </div>
-                  )}
+                  )*/}
                 </div>
               </CardContent>
               <CardFooter className="pt-2 flex justify-between">
-                <Link href={`/revision/${revision.id}`}>
+                <Link href={`/asesor/revision/detalles-revision/${revision.id}`}>
                   <Button variant="outline" size="sm">
                     <Eye className="h-4 w-4 mr-1" />
                     Detalles
                   </Button>
                 </Link>
-                <Link href={`/revision/revisar/${revision.id}`}>
+
+                <Link
+                  href={
+                    revision.estado === "por_aprobar"
+                      ? `/asesor/revision/revisar-doc/${revision.id}`
+                      : `/asesor/revision/detalles-revision/${revision.id}`
+                  }
+                >
                   <Button
                     size="sm"
                     className={
@@ -243,7 +164,9 @@ export function RevisionesCardsAsesor({
                         ? "bg-green-600 hover:bg-green-700"
                         : revision.estado === "aprobado"
                           ? "bg-blue-600 hover:bg-blue-700"
-                          : "bg-yellow-600 hover:bg-pucp-light"
+                          : revision.estado === "rechazado"
+                            ? "bg-red-600 hover:bg-red-700"
+                            : "bg-yellow-600 hover:bg-pucp-light"
                     }
                   >
                     {revision.estado === "revisado" ? (
@@ -255,6 +178,11 @@ export function RevisionesCardsAsesor({
                       <>
                         <CheckCircle className="mr-1 h-4 w-4" />
                         Aprobado
+                      </>
+                    ) : revision.estado === "rechazado" ? (
+                      <>
+                        <Search className="mr-1 h-4 w-4" />
+                        Rechazado
                       </>
                     ) : (
                       <>

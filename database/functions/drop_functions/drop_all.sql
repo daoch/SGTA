@@ -183,3 +183,11 @@ DROP FUNCTION IF EXISTS sala_ocupada_en_rango (
     timestamptz,
     timestamptz
 );
+
+DROP FUNCTION IF EXISTS obtener_exposiciones_por_usuario (INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS obtener_profesores () CASCADE;
+
+DROP FUNCTION IF EXISTS obtener_documentos_asesor (INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS obtener_exposiciones_por_usuario (INTEGER) CASCADE;

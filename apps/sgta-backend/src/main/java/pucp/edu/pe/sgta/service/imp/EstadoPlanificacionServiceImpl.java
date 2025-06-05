@@ -20,7 +20,9 @@ public class EstadoPlanificacionServiceImpl implements EstadoPlanificacionServic
 
     @Override
     public List<EstadoPlanificacionDto> getAll() {
-        return List.of();
+        return estadoPlanificacionRepository.findAll().stream()
+                .map(EstadoPlanificacionMapper::toDto)
+                .toList();
     }
 
     @Override
@@ -48,19 +50,19 @@ public class EstadoPlanificacionServiceImpl implements EstadoPlanificacionServic
     public EstadoPlanificacionDto getByIdExposicion(Integer id) {
 
         List<Object[]> results = estadoPlanificacionRepository.getByIdExposicion(id);
-        if (results == null || results.size() > 1) return null;
-        //ESTO TRAE EN 0   ID ESTADO
-                    // 1   NOMBRE ESTAOD
-                    // 2   ACTIVO
+        if (results == null || results.size() > 1)
+            return null;
+        // ESTO TRAE EN 0 ID ESTADO
+        // 1 NOMBRE ESTAOD
+        // 2 ACTIVO
         Object[] obj = results.get(0);
 
-        EstadoPlanificacionDto dto  = new EstadoPlanificacionDto();
+        EstadoPlanificacionDto dto = new EstadoPlanificacionDto();
         dto.setId((Integer) obj[0]);
         dto.setNombre((String) obj[1]);
         dto.setActivo((Boolean) obj[2]);
 
         return dto;
-
 
     }
 }

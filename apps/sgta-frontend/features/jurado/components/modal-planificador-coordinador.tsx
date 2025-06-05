@@ -1,14 +1,15 @@
 "use client";
 
-import { useForm, useFieldArray, FormProvider } from "react-hook-form";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-  DialogDescription,
 } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -16,12 +17,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Loader2, PlusIcon } from "lucide-react";
-import { Label } from "@/components/ui/label";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2, PlusIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { FormProvider, useFieldArray, useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { formSchema, FormValues } from "../schemas/exposicion-form-schema";
-import { ItemFechaExposicion } from "./item-fecha-exposicion";
 import {
   enviarPlanificacion,
   getEtapasFormativasPorInicializarByCoordinador,
@@ -33,9 +35,8 @@ import {
   ExposicionSinInicializar,
   Sala,
 } from "../types/exposicion.types";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { ItemFechaExposicion } from "./item-fecha-exposicion";
+import { getIdCoordinador } from "../utils/get-id-coordinador";
 
 interface ModalPlanificadorCoordinadorProps {
   open: boolean;
@@ -46,6 +47,7 @@ export default function ModalPlanificadorCoordinador({
   open,
   onClose,
 }: ModalPlanificadorCoordinadorProps) {
+  const idCoordinador = getIdCoordinador();
   const router = useRouter();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -61,7 +63,9 @@ export default function ModalPlanificadorCoordinador({
 
   const { control, handleSubmit, watch, reset, setValue } = methods;
 
-  const [cursos, setCursos] = useState<EtapaFormativa[]>([]);
+  const [etapasFormativas, setEtapasFormativas] = useState<EtapaFormativa[]>(
+    [],
+  );
   const [tiposExposicion, setTiposExposicion] = useState<
     ExposicionSinInicializar[]
   >([]);
@@ -81,8 +85,8 @@ export default function ModalPlanificadorCoordinador({
         fechas: [],
       });
 
-      getEtapasFormativasPorInicializarByCoordinador(3)
-        .then(setCursos)
+      getEtapasFormativasPorInicializarByCoordinador(idCoordinador)
+        .then(setEtapasFormativas)
         .catch(console.error);
     }
   }, [open, reset]);
@@ -193,9 +197,9 @@ export default function ModalPlanificadorCoordinador({
           </DialogHeader>
 
           <div className="space-y-4">
-            {/* Selección de Curso */}
+            {/* Selección de EtapaFormativa */}
             <div className="space-y-2">
-              <Label>Curso</Label>
+              <Label>Etapa Formativa</Label>
               <Select
                 onValueChange={(val) =>
                   setValue("etapa_formativa_id", Number(val))
@@ -211,7 +215,7 @@ export default function ModalPlanificadorCoordinador({
                   <SelectValue placeholder="Seleccionar curso" />
                 </SelectTrigger>
                 <SelectContent>
-                  {cursos.map((curso) => (
+                  {etapasFormativas.map((curso) => (
                     <SelectItem
                       key={curso.etapaFormativaId}
                       value={curso.etapaFormativaId.toString()}

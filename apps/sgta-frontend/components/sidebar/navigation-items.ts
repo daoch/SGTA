@@ -50,7 +50,7 @@ export const navigationItems: Record<string, NavigationItem[]> = {
           href: "/alumno/temas/catalogo-de-temas",
           icon: FolderOpen,
         },
-        { name: "Mis temas", href: "/alumno/temas", icon: FileText },
+        { name: "Temas", href: "/alumno/temas", icon: FileText },
         {
           name: "Postulaciones de asesores",
           href: "/alumno/temas/postulaciones-de-asesores",
@@ -132,6 +132,11 @@ export const navigationItems: Record<string, NavigationItem[]> = {
           href: "/asesor/asesores/cese-de-asesoria",
           icon: CalendarIcon,
         },
+        {
+          name: "Cambios de asesor",
+          href: "/asesor/asesores/cambio-asesor",
+          icon: RefreshCcw,
+        },
       ],
     },
     { name: "Revisión", href: "/asesor/revision", icon: Search },
@@ -177,8 +182,6 @@ export const navigationItems: Record<string, NavigationItem[]> = {
           icon: BookOpenText,
         },
       ],
-
-
     },
     { name: "Jurados", href: "/coordinador/jurados", icon: Users },
     { name: "Reportes", href: "/coordinador/reportes", icon: BarChart3 },

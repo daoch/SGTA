@@ -15,4 +15,18 @@ public class UsarioRolDto {
     private String nombres;
     private String apellidos;
     private RolDto rol;
+    private String estadoRespuesta;
+
+    public UsarioRolDto(int idUsuario, String nombres, String apellidos,int rolId,
+                        String rolNombre,String estadoRespuesta) {
+
+       this.idUsario = idUsuario;
+       this.nombres = nombres;
+       this.apellidos = apellidos;
+       this.rol = new RolDto();
+       this.rol.setId(rolId);
+       this.rol.setNombre(rolNombre);
+       this.estadoRespuesta = estadoRespuesta;
+
+    }
 }

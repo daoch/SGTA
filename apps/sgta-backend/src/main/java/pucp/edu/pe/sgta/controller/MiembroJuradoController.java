@@ -5,11 +5,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pucp.edu.pe.sgta.dto.*;
+import pucp.edu.pe.sgta.dto.calificacion.ExposicionCalificacionDto;
+import pucp.edu.pe.sgta.dto.calificacion.ExposicionCalificacionRequest;
+import pucp.edu.pe.sgta.dto.calificacion.ExposicionObservacionRequest;
+import pucp.edu.pe.sgta.dto.calificacion.RevisionCriteriosRequest;
 import pucp.edu.pe.sgta.dto.exposiciones.EstadoControlExposicionRequest;
 import pucp.edu.pe.sgta.dto.exposiciones.EstadoExposicionJuradoRequest;
 import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
 import pucp.edu.pe.sgta.dto.temas.DetalleTemaDto;
-import pucp.edu.pe.sgta.model.UsuarioXTema;
 import pucp.edu.pe.sgta.service.inter.MiembroJuradoService;
 import pucp.edu.pe.sgta.dto.exposiciones.EstadoExposicionDto;
 
@@ -143,6 +146,24 @@ public class MiembroJuradoController {
     @GetMapping("/estados")
     public ResponseEntity<List<EstadoExposicionDto>> listarEstados() {
         return ResponseEntity.ok(juradoService.listarEstados());
+    }
+
+    @GetMapping("/criterios")
+    public ResponseEntity<ExposicionCalificacionDto> listarExposicionCalificacion(
+            @RequestParam("jurado_id") Integer juradoId,
+            @RequestParam("exposicion_tema_id") Integer exposicionTemaId) {
+        ExposicionCalificacionRequest request = new ExposicionCalificacionRequest(juradoId, exposicionTemaId);
+        return juradoService.listarExposicionCalificacion(request);
+    }
+
+    @PutMapping("/criterios")
+    public ResponseEntity<?> actualizarCriterios(@RequestBody RevisionCriteriosRequest request) {
+        return juradoService.actualizarRevisionCriterios(request);
+    }
+
+    @PutMapping("/observacionfinal")
+    public ResponseEntity<?> actualizarObservacionFinal(@RequestBody ExposicionObservacionRequest request) {
+        return juradoService.actualizarObservacionFinal(request);
     }
 
 }

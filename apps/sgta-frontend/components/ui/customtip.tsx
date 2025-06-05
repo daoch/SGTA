@@ -2,9 +2,9 @@
 
 import { Component } from "react";
 // Reutilizamos el CSS del Tip original
+import { AlertTriangle, FileWarning, Quote } from "lucide-react";
 import styles from "react-pdf-highlighter/dist/src/style/Tip.module.css";
 import { Button } from "./button";
-
 interface CustomTipProps {
     onOpen: () => void;
     onConfirm: (comment: { text: string; emoji: string }) => void;
@@ -14,7 +14,11 @@ interface CustomTipState {
     text: string;
     emoji: string;
 }
-
+const iconOptions = [
+    { value: "contenido", icon: <FileWarning className="h-5 w-5 text-yellow-500" /> },
+    { value: "similitud", icon: <AlertTriangle className="h-5 w-5 text-red-500" /> },
+    { value: "citado", icon: <Quote className="h-5 w-5 text-blue-500" /> },
+];
 export class CustomTip extends Component<CustomTipProps, CustomTipState> {
     state: CustomTipState = { compact: true, text: "", emoji: "" };
 
@@ -55,17 +59,17 @@ export class CustomTip extends Component<CustomTipProps, CustomTipState> {
                     onChange={(e) => this.setState({ text: e.target.value })}
                     style={{ width: 320 /* ancho total del card */ }}
                 />
-                <div style={{ margin: "8px 0" }}>
-                    {["💬", "❗", "✅", "⚠️"].map((e) => (
-                        <label key={e} style={{ marginRight: 12 }}>
+                <div className="flex items-center gap-3 my-2">
+                    {iconOptions.map(({ value, icon }) => (
+                        <label key={value} className="flex items-center gap-1">
                             <input
                                 type="radio"
                                 name="emoji"
-                                value={e}
-                                checked={emoji === e}
-                                onChange={() => this.setState({ emoji: e })}
+                                value={value}
+                                checked={emoji === value}
+                                onChange={() => this.setState({ emoji: value })}
                             />
-                            <span style={{ marginLeft: 4 }}>{e}</span>
+                            <span>{icon}</span>
                         </label>
                     ))}
                 </div>

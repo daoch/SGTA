@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ExposicionAlumno } from "../../types/exposicion.types";
 import { getExposicionesEstudiantesByEstudianteId } from "../../services/exposicion-service";
-
+import { useAuthStore } from "@/features/auth/store/auth-store";
 import { useRouter } from "next/navigation";
 
 interface DetalleExposicionProps {
@@ -25,9 +25,13 @@ const DetalleExposicion: React.FC<DetalleExposicionProps> = ({
   const fetchExposiciones = async () => {
     setIsLoading(true);
     try {
-      const exposicionesData = await getExposicionesEstudiantesByEstudianteId(
-        Number(id),
-      );
+      const { idToken } = useAuthStore.getState();
+      if (!idToken) {
+        console.error("No authentication token available");
+        return;
+      }
+      const exposicionesData =
+        await getExposicionesEstudiantesByEstudianteId(idToken);
       const exposicionFiltrada = exposicionesData.find(
         (expo: ExposicionAlumno) => expo.exposicionId === Number(exposicionId),
       );
