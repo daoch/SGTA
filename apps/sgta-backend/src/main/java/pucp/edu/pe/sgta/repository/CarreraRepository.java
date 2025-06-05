@@ -8,6 +8,7 @@ import pucp.edu.pe.sgta.model.Carrera;
 
 
 import java.util.List;
+import java.util.Optional;
 
 public interface CarreraRepository extends JpaRepository<Carrera, Integer>{
     @Query(value = """
@@ -28,4 +29,15 @@ public interface CarreraRepository extends JpaRepository<Carrera, Integer>{
             nativeQuery = true
     )
     Integer obtenerIdCarreraPorIdExpo(@Param("idExpo")Integer idExpo);
+
+    @Query(value = """
+        SELECT c.*
+        FROM usuario_carrera uc
+        JOIN carrera c ON uc.carrera_id = c.carrera_id
+        WHERE uc.usuario_id = :usuarioId
+        AND uc.es_coordinador = true
+        AND uc.activo = true
+        """, nativeQuery = true)
+    Optional<Carrera> findCarreraCoordinadaPorUsuario(@Param("usuarioId") Integer usuarioId);
+
 }

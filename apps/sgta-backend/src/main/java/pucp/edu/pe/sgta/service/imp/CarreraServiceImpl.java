@@ -1,5 +1,7 @@
 package pucp.edu.pe.sgta.service.imp;
 
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import pucp.edu.pe.sgta.dto.CarreraDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
@@ -10,6 +12,7 @@ import pucp.edu.pe.sgta.service.inter.CarreraService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -92,5 +95,20 @@ public class CarreraServiceImpl implements CarreraService {
                 .collect(Collectors.toList());
 
     }
+
+    @Override
+    public CarreraDto getCarreraCoordinadaPorUsuario(Integer usuarioId) {
+        Optional<Carrera> carreraOpt = carreraRepository.findCarreraCoordinadaPorUsuario(usuarioId);
+        if (carreraOpt.isEmpty()) {
+            throw new ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "El usuario no coordina ninguna carrera o no está asociado a ninguna."
+            );
+        }
+
+        Carrera carrera = carreraOpt.get();
+        return CarreraMapper.toDto(carrera);
+    }
+
 
 }

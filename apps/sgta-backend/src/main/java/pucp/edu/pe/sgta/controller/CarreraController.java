@@ -33,4 +33,10 @@ public class CarreraController {
     public CarreraDto getCarreraById(@PathVariable Integer id) {
         return carreraService.findById(id);
     }
+
+    @GetMapping("/coordinada-por-usuario/{usuarioId}")
+    public CarreraDto getCarreraCoordinadaPorUsuario(@PathVariable Integer usuarioId) {
+        return carreraService.getCarreraCoordinadaPorUsuario(usuarioId);
+    }
+
 } 
