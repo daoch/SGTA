@@ -7,7 +7,6 @@ import {
   INotificacionTransformed,
   INotificacionesCount,
 } from "../types/notificacion.types";
-import { ELEMENTS_PER_PAGE_DEFAULT } from "@/lib/constants";
 
 /**
  * Esta interfaz refleja exactamente la forma “plana” de la API:
@@ -37,7 +36,7 @@ interface INotificacionFetched {
  */
 export async function getMisNotificaciones(
   page: number,
-  size: number = ELEMENTS_PER_PAGE_DEFAULT,
+  size: number = 10,
   soloNoLeidas: boolean = false
 ): Promise<INotificacionesListProcessed> {
   const params: { page: number; size: number; leidas?: boolean } = { page, size };
@@ -47,7 +46,7 @@ export async function getMisNotificaciones(
 
   try {
     const response = await axiosInstance.get<INotificacionesListResponseFetched>(
-      `notificaciones`,
+      "notificaciones",
       { params }
     );
     const data = response.data;
@@ -95,7 +94,7 @@ export async function getMisNotificaciones(
 export async function getCountMisNotificacionesNoLeidas(): Promise<INotificacionesCount> {
   try {
     const response = await axiosInstance.get<INotificacionesCount>(
-      `notificaciones/count-no-leidas`
+      "notificaciones/count-no-leidas"
     );
     return response.data;
   } catch (error) {
@@ -111,7 +110,7 @@ export async function marcarNotificacionComoLeidaApi(
   notificacionId: number
 ): Promise<INotificacionTransformed> {
   const response = await axiosInstance.post<INotificacionFetched>(
-    `notificaciones/${notificacionId}/marcar-leida`
+    "notificaciones/" + notificacionId + "/marcar-leida"
   );
   const data = response.data;
 
@@ -141,7 +140,7 @@ export async function marcarNotificacionComoLeidaApi(
  */
 export async function marcarTodasMisNotificacionesComoLeidasApi(): Promise<{ count: number }> {
   const response = await axiosInstance.post<{ count: number }>(
-    `notificaciones/marcar-todas-leidas`
+    "notificaciones/marcar-todas-leidas"
   );
   return response.data;
 }
