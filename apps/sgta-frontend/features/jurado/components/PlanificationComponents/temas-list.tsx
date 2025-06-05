@@ -8,7 +8,6 @@ import Draggable from "./Draggable";
 import SearchFilterTemas, { FilterForm } from "./search-filter-temas";
 import { usePlanificationStore } from "../../store/use-planificacion-store";
 import CardSuggestAlgorithm from "./CardSuggestAlgorithm";
-import { Toaster } from "sonner";
 
 interface Props {
   areasEspecialidad: AreaEspecialidad[];
@@ -61,7 +60,6 @@ const TemasList: React.FC<Props> = ({ areasEspecialidad }) => {
           );
         })}
       </div>
-      <Toaster position="bottom-right" richColors />
     </section>
   );
 };

@@ -2,13 +2,10 @@ DO
 $$
     BEGIN
         CREATE TYPE enum_tipo_dato AS ENUM (
-            'pendiente',
-            'en_proceso',
-            'completada',
-	        'revisado'
-	        'aprobado'
-            'rechazado'
-	        'por_aprobar'
+            'string',
+            'date',
+            'integer',
+            'booleano'
             );
     EXCEPTION
         WHEN duplicate_object THEN NULL;
@@ -887,7 +884,11 @@ $$
         CREATE TYPE enum_estado_revision AS ENUM (
             'pendiente',
             'en_proceso',
-            'completada'
+            'completada',
+	        'revisado',
+	        'aprobado',
+            'rechazado',
+	        'por_aprobar'
             );
     EXCEPTION
         WHEN duplicate_object THEN NULL;
@@ -959,6 +960,7 @@ CREATE TABLE IF NOT EXISTS entregable_x_tema (
     fecha_envio TIMESTAMP WITH TIME ZONE,
     comentario TEXT,
     estado enum_estado_entrega NOT NULL DEFAULT 'no_enviado',
+    nota_entregable NUMERIC(5,2),
     activo BOOLEAN NOT NULL DEFAULT TRUE,
     fecha_creacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,

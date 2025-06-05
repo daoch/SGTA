@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import pucp.edu.pe.sgta.dto.revision.HighlightDto;
+import pucp.edu.pe.sgta.model.Observacion;
 import pucp.edu.pe.sgta.service.imp.ObservacionServiceImpl;
 
 import java.util.List;
@@ -31,7 +32,14 @@ public class ObservacionController {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        //observacionService.guardarObservaciones(revisionId, highlights, usuarioId);
+        observacionService.guardarObservaciones(revisionId, highlights, usuarioId);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{revisionId}/observaciones")
+    public ResponseEntity<List<HighlightDto>> getObservacionesByRevision(
+            @PathVariable("revisionId") Integer revisionId) {
+        List<HighlightDto> highlights = observacionService.obtenerHighlightsPorRevision(revisionId);
+        return ResponseEntity.ok(highlights);
     }
 }
