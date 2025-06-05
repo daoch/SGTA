@@ -30,9 +30,9 @@ import axiosInstance from "@/lib/axios/axios-instance";
 // Datos de ejemplo para una revisión específica
 const revisionData = {
   id: "2",
-  titulo: "Desarrollo de un sistema de monitoreo de calidad del aire utilizando IoT",
-  estudiante: "Ana García",
-  codigo: "20190456",
+  titulo: "Vision Computacional",
+  estudiante: "Luis Manuel Falcon Baca",
+  codigo: "20183178",
   curso: "1INF46",
   entregable: "E1",
   fechaEntrega: "2023-11-02",
