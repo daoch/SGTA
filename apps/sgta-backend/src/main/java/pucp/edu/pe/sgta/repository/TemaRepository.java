@@ -20,13 +20,17 @@ public interface TemaRepository extends JpaRepository<Tema, Integer> {
         FROM listar_temas_por_usuario_rol_estado(
           :uid,
           :rol,
-          :est
+          :est,
+          :limit,
+          :offset
         )
       """, nativeQuery = true)
   List<Object[]> listarTemasPorUsuarioRolEstado(
       @Param("uid") Integer usuarioId,
       @Param("rol") String rolNombre,
-      @Param("est") String estadoNombre);
+      @Param("est") String estadoNombre,
+      @Param("limit") Integer limit,
+      @Param("offset") Integer offset);
 
   @Query(value = """
       SELECT *
@@ -80,4 +84,12 @@ public interface TemaRepository extends JpaRepository<Tema, Integer> {
   void desactivarTemaYDesasignarUsuarios(
     @Param("p_tema_id") Integer temaId
   );
+
+  @Query(value = """
+        SELECT * FROM validar_tema_existe_cambiar_asesor_posible(:temaId)
+""", nativeQuery = true)
+  List<Object[]> validarTemaExisteYSePuedeCambiarAsesor(
+          @Param("temaId") Integer temaId
+  );
+
 }

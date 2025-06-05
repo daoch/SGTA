@@ -384,35 +384,33 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
               </div>
 
               {/* Área de Investigación */}
-              {tipoRegistro === TipoRegistro.LIBRE && (
-                <div className="space-y-2">
-                  <Label>Áreas de Conocimiento</Label>
-                  <Select
-                    onValueChange={(value) => {
-                      const areaSeleccionada = areasConocimientos.find(
-                        (area) => String(area.id) === value,
-                      );
-                      if (areaSeleccionada) {
-                        setAreaConocimientoSeleccionada(areaSeleccionada);
-                      }
-                    }}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Seleccione un área" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {areasConocimientos.map((area) => (
-                        <SelectItem key={area.id} value={String(area.id)}>
-                          {area.nombre}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {errores.area && (
-                    <p className="text-red-500 text-xs mt-1">{errores.area}</p>
-                  )}
-                </div>
-              )}
+              <div className="space-y-2">
+                <Label>Áreas de Conocimiento</Label>
+                <Select
+                  onValueChange={(value) => {
+                    const areaSeleccionada = areasConocimientos.find(
+                      (area) => String(area.id) === value,
+                    );
+                    if (areaSeleccionada) {
+                      setAreaConocimientoSeleccionada(areaSeleccionada);
+                    }
+                  }}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Seleccione un área" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {areasConocimientos.map((area) => (
+                      <SelectItem key={area.id} value={String(area.id)}>
+                        {area.nombre}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errores.area && (
+                  <p className="text-red-500 text-xs mt-1">{errores.area}</p>
+                )}
+              </div>
 
               {/* Subareas */}
 
@@ -690,3 +688,4 @@ const mapTemaCreateLibre = (tema: Tema, carrera: Carrera) => {
 };
 
 export default NuevoTemaDialog;
+

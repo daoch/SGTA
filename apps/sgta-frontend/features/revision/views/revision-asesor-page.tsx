@@ -17,16 +17,49 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuthStore } from "@/features/auth/store/auth-store";
+import axiosInstance from "@/lib/axios/axios-instance";
 import { LayoutGrid, LayoutList, Search } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "../../../features/revision/types/colors.css";
 import { RevisionesCardsAsesor } from "../components/revisiones-cards-asesor";
 import { RevisionesTableAsesor } from "../components/revisiones-table-asesor";
+import { RevisionDocumentoAsesorDto } from "../dtos/RevisionDocumentoAsesorDto";
+
+interface Ciclo {
+  cicloId: number;
+  cicloNombre: string;
+}
 
 const RevisionAsesorPage = () => {
   const [viewMode, setViewMode] = useState<"table" | "cards">("table");
   const [searchQuery, setSearchQuery] = useState("");
   const [cursoFilter, setCursoFilter] = useState("todos");
+  const [documentos, setDocumentos] = useState<RevisionDocumentoAsesorDto[]>([]);
+
+  useEffect(() => {
+    const fetchDocumentos = async () => {
+      try {
+        const { idToken } = useAuthStore.getState();
+        console.log(idToken);
+        if (!idToken) {
+          console.error("No authentication token available");
+          return;
+        }
+        const response = await axiosInstance.get("/revision/asesor", {
+          headers: {
+            Authorization: `Bearer ${idToken}`
+          }
+        });
+        setDocumentos(response.data);
+      } catch (error) {
+        console.error("Error al cargar los documentos:", error);
+      }
+    };
+    fetchDocumentos();
+  }, []);
+
+  const cursosUnicos = Array.from(new Set(documentos.map(doc => doc.curso))).filter(Boolean);
 
   return (
     <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
@@ -58,21 +91,21 @@ const RevisionAsesorPage = () => {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="todos">Todos los cursos</SelectItem>
-            <SelectItem value="tesis1">
-              Proyecto de Fin de Carrera 1 (1INF42)
-            </SelectItem>
-            <SelectItem value="tesis2">
-              Proyecto de Fin de Carrera 2 (1INF46)
-            </SelectItem>
+            {cursosUnicos.map((curso) => (
+              <SelectItem key={curso} value={curso}>
+                {curso}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
 
-      <Tabs defaultValue="por-aprobar" className="w-full">
+      <Tabs defaultValue="por_aprobar" className="w-full">
         <div className="flex justify-between items-center mb-2">
           <TabsList>
-            <TabsTrigger value="por-aprobar">Por Aprobar</TabsTrigger>
+            <TabsTrigger value="por_aprobar">Por Aprobar</TabsTrigger>
             <TabsTrigger value="aprobados">Aprobados</TabsTrigger>
+            <TabsTrigger value="rechazados">Rechazados</TabsTrigger>
             <TabsTrigger value="revisados">Revisados</TabsTrigger>
             <TabsTrigger value="todas">Todas</TabsTrigger>
           </TabsList>
@@ -103,7 +136,7 @@ const RevisionAsesorPage = () => {
           </div>
         </div>
 
-        <TabsContent value="por-aprobar">
+        <TabsContent value="por_aprobar">
           <Card>
             <CardHeader>
               <CardTitle>Documentos Por Aprobar</CardTitle>
@@ -114,13 +147,15 @@ const RevisionAsesorPage = () => {
             <CardContent>
               {viewMode === "table" ? (
                 <RevisionesTableAsesor
-                  filter="por-aprobar"
+                  data={documentos}
+                  filter="por_aprobar"
                   searchQuery={searchQuery}
                   cursoFilter={cursoFilter}
                 />
               ) : (
                 <RevisionesCardsAsesor
-                  filter="por-aprobar"
+                  data={documentos}
+                  filter="por_aprobar"
                   searchQuery={searchQuery}
                   cursoFilter={cursoFilter}
                 />
@@ -133,19 +168,48 @@ const RevisionAsesorPage = () => {
             <CardHeader>
               <CardTitle>Documentos Aprobados</CardTitle>
               <CardDescription>
-                Documentos que ya han sido aprobados
+                Documentos que han sido aprobados por el asesor
               </CardDescription>
             </CardHeader>
             <CardContent>
               {viewMode === "table" ? (
                 <RevisionesTableAsesor
+                  data={documentos}
                   filter="aprobado"
                   searchQuery={searchQuery}
                   cursoFilter={cursoFilter}
                 />
               ) : (
                 <RevisionesCardsAsesor
+                  data={documentos}
                   filter="aprobado"
+                  searchQuery={searchQuery}
+                  cursoFilter={cursoFilter}
+                />
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="rechazados">
+          <Card>
+            <CardHeader>
+              <CardTitle>Documentos Rechazados</CardTitle>
+              <CardDescription>
+                Documentos que han sido rechazados por el asesor
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {viewMode === "table" ? (
+                <RevisionesTableAsesor
+                  data={documentos}
+                  filter="rechazado"
+                  searchQuery={searchQuery}
+                  cursoFilter={cursoFilter}
+                />
+              ) : (
+                <RevisionesCardsAsesor
+                  data={documentos}
+                  filter="rechazado"
                   searchQuery={searchQuery}
                   cursoFilter={cursoFilter}
                 />
@@ -164,12 +228,14 @@ const RevisionAsesorPage = () => {
             <CardContent>
               {viewMode === "table" ? (
                 <RevisionesTableAsesor
+                  data={documentos}
                   filter="revisado"
                   searchQuery={searchQuery}
                   cursoFilter={cursoFilter}
                 />
               ) : (
                 <RevisionesCardsAsesor
+                  data={documentos}
                   filter="revisado"
                   searchQuery={searchQuery}
                   cursoFilter={cursoFilter}
@@ -187,11 +253,13 @@ const RevisionAsesorPage = () => {
             <CardContent>
               {viewMode === "table" ? (
                 <RevisionesTableAsesor
+                  data={documentos}
                   searchQuery={searchQuery}
                   cursoFilter={cursoFilter}
                 />
               ) : (
                 <RevisionesCardsAsesor
+                  data={documentos}
                   searchQuery={searchQuery}
                   cursoFilter={cursoFilter}
                 />
