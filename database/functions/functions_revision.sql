@@ -1,6 +1,6 @@
---DROP FUNCTION sgtadb.obtener_documentos_asesor(int4);
+--DROP FUNCTION obtener_documentos_asesor(int4);
 
-CREATE OR REPLACE FUNCTION sgtadb.obtener_documentos_asesor(asesorid integer)
+CREATE OR REPLACE FUNCTION obtener_documentos_asesor(asesorid integer)
  RETURNS TABLE(
     revision_id INTEGER,
     tema TEXT,
