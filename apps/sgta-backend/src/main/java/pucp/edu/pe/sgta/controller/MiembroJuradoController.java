@@ -147,13 +147,13 @@ public class MiembroJuradoController {
     public ResponseEntity<List<EstadoExposicionDto>> listarEstados() {
         return ResponseEntity.ok(juradoService.listarEstados());
     }
+
     @GetMapping("/criterios")
     public ResponseEntity<ExposicionCalificacionDto> listarExposicionCalificacion(
-    @RequestParam("jurado_id") Integer juradoId,
-    @RequestParam("exposicion_tema_id") Integer exposicionTemaId
-    )  {
+            @RequestParam("jurado_id") Integer juradoId,
+            @RequestParam("exposicion_tema_id") Integer exposicionTemaId) {
         ExposicionCalificacionRequest request = new ExposicionCalificacionRequest(juradoId, exposicionTemaId);
-        return  juradoService.listarExposicionCalificacion(request);
+        return juradoService.listarExposicionCalificacion(request);
     }
 
     @PutMapping("/criterios")

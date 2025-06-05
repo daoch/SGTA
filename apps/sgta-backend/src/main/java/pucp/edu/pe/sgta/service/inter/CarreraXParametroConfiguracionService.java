@@ -5,7 +5,7 @@ import java.util.List;
 
 public interface CarreraXParametroConfiguracionService {
 
-	void updateCarreraXParametroConfiguracion(CarreraXParametroConfiguracionDto carreraXParametroConfiguracionDto);
-    
+    void updateCarreraXParametroConfiguracion(CarreraXParametroConfiguracionDto carreraXParametroConfiguracionDto);
+
     List<CarreraXParametroConfiguracionDto> getParametrosPorCarrera(Long carreraId);
 }

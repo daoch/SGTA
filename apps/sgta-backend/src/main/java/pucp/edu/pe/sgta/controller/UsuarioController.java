@@ -18,11 +18,14 @@ import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
 import pucp.edu.pe.sgta.dto.asesores.UsuarioConRolDto;
 import pucp.edu.pe.sgta.dto.asesores.UsuarioFotoDto;
 import pucp.edu.pe.sgta.dto.CarreraDto;
+import pucp.edu.pe.sgta.dto.DocentesDTO;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
 import pucp.edu.pe.sgta.service.inter.CarreraService;
 import pucp.edu.pe.sgta.service.inter.JwtService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
 import pucp.edu.pe.sgta.dto.AlumnoTemaDto;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 
@@ -35,8 +38,8 @@ public class UsuarioController {
     @Autowired
     JwtService jwtService;
 
-	@Autowired
-	private UsuarioService usuarioService;
+    @Autowired
+    private UsuarioService usuarioService;
 
     @PostMapping("/create")
     public ResponseEntity<?> create(@RequestBody UsuarioDto user) {
@@ -291,28 +294,27 @@ public class UsuarioController {
 
     }
 
-{/*
-    //Probando lo del Id_Token
-    @GetMapping("/detalle-tema-alumno/{idUsuario}")
-    public ResponseEntity<AlumnoTemaDto> getDetalleTemaAlumno(@AuthenticationPrincipal UserDetails userDetails) {
-        try {
-            // Obtén el username (o email, o sub) desde el token
-            Integer idUsuario = Integer.parseInt(userDetails.getUsername());
-            // Si necesitas el id, búscalo en tu base de datos usando el username/email
-            AlumnoTemaDto tema = usuarioService.getAlumnoTema(idUsuario);
-            return ResponseEntity.ok(tema);
-        } catch (NoSuchElementException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
-    }
-*/}
+    {
+        /*
+         * //Probando lo del Id_Token
+         * 
+         * @GetMapping("/detalle-tema-alumno/{idUsuario}")
+         * public ResponseEntity<AlumnoTemaDto>
+         * getDetalleTemaAlumno(@AuthenticationPrincipal UserDetails userDetails) {
+         * try {
+         * // Obtén el username (o email, o sub) desde el token
+         * Integer idUsuario = Integer.parseInt(userDetails.getUsername());
+         * // Si necesitas el id, búscalo en tu base de datos usando el username/email
+         * AlumnoTemaDto tema = usuarioService.getAlumnoTema(idUsuario);
+         * return ResponseEntity.ok(tema);
+         * } catch (NoSuchElementException e) {
+         * return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+         * } catch (Exception e) {
+         * return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+         * }
+         * }
+         */}
 
-
-
-
-    
     @GetMapping("/getAsesoresBySubArea")
     public List<UsuarioDto> getAsesoresBySubArea(@RequestParam(name = "idSubArea") Integer idSubArea) {
         return this.usuarioService.getAsesoresBySubArea(idSubArea);
@@ -328,8 +330,15 @@ public class UsuarioController {
         }
     }
 
+    @GetMapping("/getProfesoresActivos")
+    public List<DocentesDTO> getProfesoresActivos() {
+        try {
+            List<DocentesDTO> docentes = usuarioService.getProfesores();
+            return docentes;
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Error al obtener profesores activos: " + e.getMessage());
+        }
+    }
 
 }
-
-
-

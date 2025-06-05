@@ -742,12 +742,6 @@ public class TemaServiceImpl implements TemaService {
 		for (Object[] r : rows) {
 			Integer temaId = (Integer) r[0];
 
-			// Construye el DTO de área usando los índices corregidos
-			// AreaConocimientoDto areaDto = AreaConocimientoDto.builder()
-			// 		.id((Integer) r[14]) // ahora sí es area_id
-			// 		.nombre((String) r[15]) // area_nombre
-			// 		.build();
-
 			TemaDto dto = dtoMap.get(temaId);
 			if (dto == null) {
 				dto = TemaDto.builder()
@@ -833,6 +827,8 @@ public class TemaServiceImpl implements TemaService {
 					.asignado((Boolean) r[7]) // we identify if the asesor is assigned or not
 					.rechazado((Boolean) r[8])
 					.codigoPucp((String) r[9])
+					.creador((Boolean) r[10])
+					.comentario((String) r[11])
 					.build();
 			u.setRol(rolNombre);
 			resultados.add(u);
@@ -1743,12 +1739,6 @@ public class TemaServiceImpl implements TemaService {
 		for (Object[] r : rows) {
 			int temaId = ((Number) r[0]).intValue();
 
-			// Área
-			AreaConocimientoDto areaDto = AreaConocimientoDto.builder()
-					.id(((Number) r[14]).intValue())
-					.nombre((String) r[15])
-					.build();
-
 			TemaDto dto = dtoMap.get(temaId);
 			if (dto == null) {
 				dto = TemaDto.builder()
@@ -1776,7 +1766,7 @@ public class TemaServiceImpl implements TemaService {
 				dtoMap.put(temaId, dto);
 			}
 
-			dto.getArea().add(areaDto);
+			//dto.getArea().add(areaDto);
 		}
 
 		List<TemaDto> resultados = new ArrayList<>(dtoMap.values());
@@ -1815,6 +1805,20 @@ public class TemaServiceImpl implements TemaService {
 						.nombre((String) row[1])   // sub_area_nombre
 						.build();
 				t.getSubareas().add(subArea);
+			}
+
+			List<Object[]> areasRows = entityManager.createNativeQuery(
+					"SELECT * FROM listar_areas_por_tema(:temaId)")
+				.setParameter("temaId", t.getId())
+				.getResultList();
+
+			// Construir DTOs de área y agregarlos al tema
+			for (Object[] row : areasRows) {
+				AreaConocimientoDto area = AreaConocimientoDto.builder()
+					.id((Integer) row[0])     // area_conocimiento_id
+					.nombre((String) row[2])  // nombre de la área
+					.build();
+				t.getArea().add(area);
 			}
 
 			t.setCoasesores(combinado);
@@ -2191,6 +2195,90 @@ public class TemaServiceImpl implements TemaService {
 	}
 
 	@Override
+	public List<TemaDto> listarPostuladosTemaLibre(
+			String busqueda,
+			String estado,
+			LocalDate fechaLimite,
+			Integer limit,
+			Integer offset,
+			String usuarioId
+	){
+		UsuarioDto usuDto = usuarioService.findByCognitoId(usuarioId);
+
+		String sql = "SELECT * FROM listar_postulaciones_alumnos_tema_libre(:asesorId, :busqueda, :estado, :fechaLimite, :limit, :offset)";
+
+		@SuppressWarnings("unchecked")
+		List<Object[]> resultados = entityManager
+				.createNativeQuery(sql)
+				.setParameter("asesorId", usuDto.getId())
+				.setParameter("busqueda", busqueda != null ? busqueda : "")
+				.setParameter("estado", estado != null ? estado : "")
+				.setParameter("fechaLimite", fechaLimite != null ? java.sql.Date.valueOf(fechaLimite) : null)
+				.setParameter("limit", limit != null ? limit : 10)
+				.setParameter("offset", offset != null ? offset : 0)
+				.getResultList();
+
+
+		List<TemaDto> lista = new ArrayList<>();
+
+		for (Object[] fila : resultados) {
+			TemaDto dto = new TemaDto();
+
+			dto=findById((Integer) fila[0]);
+
+			dto.setTitulo((String) fila[1]);
+
+			// Crear UsuarioDto para el tesista
+			dto.setTesistas(new ArrayList<>());
+			dto.setSubareas(new ArrayList<>());
+			int tesistaId = (Integer) fila[5];
+			UsuarioDto tesista = usuarioService.findUsuarioById(tesistaId);
+			tesista.setComentario((String) fila[3]);
+			dto.getTesistas().add(tesista);
+
+			dto.setEstadoUsuarioTema((String) fila[6]);
+
+			dto.setTesistas(Collections.singletonList(tesista));
+
+			dto.setFechaLimite(fila[7] != null
+					? ((java.sql.Date) fila[7]).toLocalDate().atStartOfDay().atOffset(ZoneOffset.UTC)
+					: null);
+
+			Integer[] subareaArray = (Integer[]) fila[8];
+			if (subareaArray != null) {
+				for (Integer subareaId : subareaArray) {
+
+					dto.getSubareas().add(subAreaConocimientoService.findById(subareaId));
+				}
+			}
+
+			//    (a) Traer la lista de asesores asignados al tema
+			List<UsuarioDto> asesores = listarUsuariosPorTemaYRol(dto.getId(), RolEnum.Asesor.name());
+
+			//    (b) Traer la lista de coasesores asignados al tema
+			List<UsuarioDto> coasesoresDirectos = listarUsuariosPorTemaYRol(dto.getId(), RolEnum.Coasesor.name());
+
+			//    (c) Combinar: primero el (o los) asesor(es), luego los coasesores sin duplicados
+			List<UsuarioDto> combinado = new ArrayList<>();
+			if (!asesores.isEmpty()) {
+				combinado.addAll(asesores);
+			}
+			for (UsuarioDto u : coasesoresDirectos) {
+				boolean yaAgregado = asesores.stream().anyMatch(a -> a.getId().equals(u.getId()));
+				if (!yaAgregado) {
+					combinado.add(u);
+				}
+			}
+			dto.setCoasesores(combinado);
+
+			lista.add(dto);
+		}
+
+		return lista;
+	}
+
+
+
 	@Transactional
 	public void aceptarPostulacionAlumno(Integer temaId, Integer idTesista, String idAsesor, String comentario) {
 		// 1) Validar que quien llama sea el asesor asignado al tema

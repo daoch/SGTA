@@ -10,8 +10,10 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { inscribirTemaPrescrito } from "@/features/temas/types/inscripcion/data";
-import { Coasesor, Tema } from "@/features/temas/types/inscripcion/entities";
+import { Coasesor } from "@/features/temas/types/inscripcion/entities";
 import { Tipo } from "@/features/temas/types/inscripcion/enums";
+import { Tema } from "@/features/temas/types/temas/entidades";
+import { EstadoTemaNombre } from "@/features/temas/types/temas/enums";
 import { Eye } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast, Toaster } from "sonner";
@@ -77,7 +79,9 @@ export const TemaDetailsDialog: React.FC<TemaDetailsDialogProps> = ({
             {/* Area */}
             <div>
               <p className="text-sm font-medium">Área</p>
-              <p className="bg-muted p-2 rounded-md">{tema.area[0].nombre}</p>
+              <p className="bg-muted p-2 rounded-md">
+                {tema.subareas[0].nombre}
+              </p>
             </div>
 
             {/* Subáreas */}
@@ -179,6 +183,7 @@ export const TemaDetailsDialog: React.FC<TemaDetailsDialogProps> = ({
 
           {/* Actions */}
           <DialogFooter className="pt-4 flex justify-between">
+            {/* More Info Button */}
             <Button
               variant="outline"
               onClick={() => {
@@ -187,8 +192,10 @@ export const TemaDetailsDialog: React.FC<TemaDetailsDialogProps> = ({
             >
               Más información
             </Button>
+            {/* Close Button */}
             <Button variant="outline">Cerrar</Button>
-            {tema.estadoTemaNombre === Tipo.LIBRE && (
+            {/* Inscribir Button */}
+            {tema.estadoTemaNombre === EstadoTemaNombre.PREINSCRITO && (
               <Button
                 variant="default"
                 onClick={handleInscribirTema}
