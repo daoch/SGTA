@@ -11,5 +11,5 @@ public interface CriterioEntregableService {
     int crearCriterioEntregable(Integer entregableId, CriterioEntregableDto criterioEntregableDto);
     void update(CriterioEntregableDto criterioEntregableDto);
     void delete(Integer criterioEntregableId);
-    Optional<CriterioEntregable> findById(int id);
+    Optional<CriterioEntregable> findById(Integer id);
 }
