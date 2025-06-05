@@ -28,50 +28,6 @@ const formatFecha = (fechaString?: string) => {
     });
 };
 
-const reunionesDummy = [
-  {
-    fecha: "14/9/2023",
-    hora: "15:00",
-    duracion: "60 min",
-    asistencia: "Asistió",
-    tema: "Definición del alcance del proyecto",
-    acuerdos: "Revisar bibliografía sobre YOLO y SSD",
-  },
-  {
-    fecha: "28/9/2023",
-    hora: "15:00",
-    duracion: "60 min",
-    asistencia: "Asistió",
-    tema: "Revisión de bibliografía",
-    acuerdos: "Comenzar implementación de YOLO",
-  },
-  {
-    fecha: "12/10/2023",
-    hora: "15:00",
-    duracion: "60 min",
-    asistencia: "No asistió",
-    tema: "Avance de implementación",
-    acuerdos: "-",
-  },
-  {
-    fecha: "26/10/2023",
-    hora: "15:00",
-    duracion: "60 min",
-    asistencia: "Asistió",
-    tema: "Revisión de implementación de YOLO",
-    acuerdos: "Corregir problemas de rendimiento",
-  },
-  {
-    fecha: "9/11/2023",
-    hora: "15:00",
-    duracion: "60 min",
-    asistencia: "Asistió",
-    tema: "Avance de implementación",
-    acuerdos: "Comenzar validación",
-  },
-];
-
-
 export function ReunionesAsesorModal({
   asesorId,
   alumnoId,
@@ -82,30 +38,60 @@ export function ReunionesAsesorModal({
   onClose: () => void;
 }) {
     const [reuniones, setReuniones] = useState<UsuarioXReunionDto[]>([]);
-    const reuniones2 = reunionesDummy;
 
     useEffect(() => {
         const fetchData = async () => {
-        try {
+            try {
             const reunionesAsesor = await getReunionesXUsuario(asesorId);
             const reunionesAlumno = await getReunionesXUsuario(alumnoId);
 
-            const reunionesComunes = reunionesAsesor.filter((r1) =>
-            reunionesAlumno.some((r2) => r2.reunionId === r1.reunionId)
-            );
+            const reunionesComunes = reunionesAsesor
+                .filter((r1) =>
+                reunionesAlumno.some((r2) => r2.reunionId === r1.reunionId)
+                )
+                .map((r1) => {
+                const r2 = reunionesAlumno.find((r2) => r2.reunionId === r1.reunionId);
+                return {
+                    ...r1,
+                    asistenciaAsesor: r1.estadoAsistencia,
+                    asistenciaAlumno: r2?.estadoAsistencia ?? "PENDIENTE",
+                };
+                });
 
             setReuniones(reunionesComunes);
-        } catch (error) {
+            } catch (error) {
             console.error("Error cargando reuniones", error);
-        }
+            }
         };
 
         fetchData();
     }, [asesorId, alumnoId]);
 
-    const total = reuniones.length;
-    const asistidas = reuniones.filter((r) => r.estadoAsistencia === "CONFIRMADO").length;
-    const porcentaje = Math.round((asistidas / total) * 100);
+    const ahora = new Date();
+    const totalReuniones = reuniones.length;
+    const reunionesValidas = reuniones.filter(
+    (r) =>
+        r.reunionFechaHoraInicio &&
+        new Date(r.reunionFechaHoraInicio) <= ahora &&
+        r.asistenciaAsesor !== "RECHAZADO" &&
+        r.asistenciaAlumno !== "RECHAZADO"
+    );
+
+    const totalValidas = reunionesValidas.length;
+
+    const asistidasAsesor = reuniones.filter(
+    (r) => r.asistenciaAsesor === "CONFIRMADO"
+    ).length;
+
+    const asistidasTesista = reuniones.filter(
+    (r) => r.asistenciaAlumno === "CONFIRMADO"
+    ).length;
+
+    const porcentajeAsesor =
+    totalValidas > 0 ? Math.round((asistidasAsesor / totalReuniones) * 100) : 0;
+
+    const porcentajeTesista =
+    totalValidas > 0 ? Math.round((asistidasTesista / totalReuniones) * 100) : 0;
 
     const formatSoloFecha = (fechaString?: string) => {
         if (!fechaString) return "Sin fecha";
@@ -153,8 +139,12 @@ export function ReunionesAsesorModal({
 
         <div className="flex items-center justify-between mb-4 mt-2 px-1">
             <div className="flex flex-col text-base font-medium">
-                <p>Total de reuniones: {total}</p>
-                <p className="text-sm text-muted-foreground font-normal">Asistencia: {porcentaje}%</p>
+                <p>Total de reuniones agendadas: {totalReuniones}</p>
+                <p>Total de reuniones realizadas: {totalValidas}</p>
+                <p className="text-sm text-muted-foreground font-normal">
+                    Asistencia Asesor: {porcentajeAsesor}%   |   Asistencia Tesista: {porcentajeTesista}%
+                </p>
+                {/* <p className="text-sm text-muted-foreground font-normal">Asistencia: {porcentaje}%</p> */}
             </div>
             <Badge variant="outline" className="bg-blue-100 text-blue-800 hover:bg-blue-100 text-sm">
                 Próxima: {proxima}
@@ -168,7 +158,8 @@ export function ReunionesAsesorModal({
                     <TableHead>Fecha</TableHead>
                     <TableHead>Hora</TableHead>
                     <TableHead>Duración</TableHead>
-                    <TableHead>Asistencia</TableHead>
+                    <TableHead>Asistencia Asesor</TableHead>
+                    <TableHead>Asistencia Tesista</TableHead>
                     <TableHead>Tema</TableHead>
                     <TableHead>Detalle</TableHead>
                 </TableRow>
@@ -181,24 +172,46 @@ export function ReunionesAsesorModal({
                     <TableCell className="py-4 whitespace-normal break-words max-w-xs">{calcularDuracion(r.reunionFechaHoraInicio,r.reunionFechaHoraFin)}</TableCell>
                     <TableCell className="py-4 whitespace-normal break-words max-w-xs">
                         <Badge
-                        className={
-                            r.estadoAsistencia === "CONFIRMADO"
-                                ? "bg-green-100 text-green-700"
-                                : r.estadoAsistencia === "PENDIENTE"
-                                    ? "bg-gray-200 text-gray-700"
-                                    : r.estadoAsistencia === "RECHAZADO"
-                                        ? "bg-red-100 text-red-700"
-                                        : "bg-gray-200 text-gray-700"
-                        }
+                            className={
+                                r.asistenciaAsesor === "CONFIRMADO"
+                                    ? "bg-green-100 text-green-700"
+                                    : r.asistenciaAsesor === "PENDIENTE"
+                                        ? "bg-gray-200 text-gray-700"
+                                        : r.asistenciaAsesor === "RECHAZADO"
+                                            ? "bg-red-100 text-red-700"
+                                            : "bg-gray-200 text-gray-700"
+                            }
                         >
-                        {r.estadoAsistencia === "CONFIRMADO"
-                            ? "Completa"
-                            : r.estadoAsistencia === "PENDIENTE"
-                                ? "Pendiente"
-                                : r.estadoAsistencia === "RECHAZADO"
-                                    ? "Falta"
-                                    : "Falta"
-                        }
+                            {r.asistenciaAsesor === "CONFIRMADO"
+                                ? "Asistió"
+                                : r.asistenciaAsesor === "PENDIENTE"
+                                    ? "Pendiente"
+                                    : r.asistenciaAsesor === "RECHAZADO"
+                                        ? "Falta"
+                                        : "Falta"
+                            }
+                        </Badge>
+                    </TableCell>
+                    <TableCell className="py-4 whitespace-normal break-words max-w-xs">
+                        <Badge
+                            className={
+                                r.asistenciaAlumno === "CONFIRMADO"
+                                    ? "bg-green-100 text-green-700"
+                                    : r.asistenciaAlumno === "PENDIENTE"
+                                        ? "bg-gray-200 text-gray-700"
+                                        : r.asistenciaAlumno === "RECHAZADO"
+                                            ? "bg-red-100 text-red-700"
+                                            : "bg-gray-200 text-gray-700"
+                            }
+                        >
+                            {r.asistenciaAlumno === "CONFIRMADO"
+                                ? "Asistió"
+                                : r.asistenciaAlumno === "PENDIENTE"
+                                    ? "Pendiente"
+                                    : r.asistenciaAlumno === "RECHAZADO"
+                                        ? "Falta"
+                                        : "Falta"
+                            }
                         </Badge>
                     </TableCell>
                     <TableCell className="py-4 whitespace-normal break-words max-w-xs">{r.reunionTitulo}</TableCell>
