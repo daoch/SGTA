@@ -101,3 +101,38 @@ BEGIN
     LIMIT 1;
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION sgtadb.obtener_observaciones_por_entregable_y_tema(
+    p_entregable_id INTEGER,
+    p_tema_id INTEGER
+)
+RETURNS TABLE (
+    observacion_id INTEGER,
+    comentario TEXT,
+    contenido TEXT,
+    numero_pagina_inicio INTEGER,
+    numero_pagina_fin INTEGER,
+    fecha_creacion TIMESTAMPTZ,
+    tipo_observacion_id INTEGER,
+    revision_id INTEGER
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        o.observacion_id,
+        o.comentario,
+        o.contenido,
+        o.numero_pagina_inicio,
+        o.numero_pagina_fin,
+        o.fecha_creacion,
+        o.tipo_observacion_id,
+        r.revision_documento_id
+    FROM entregable_x_tema et
+    JOIN version_documento vd ON vd.entregable_x_tema_id = et.entregable_x_tema_id
+    JOIN revision_documento r ON r.version_documento_id = vd.version_documento_id
+    JOIN observacion o ON o.revision_id = r.revision_documento_id
+    WHERE et.entregable_id = p_entregable_id
+      AND et.tema_id = p_tema_id
+      AND o.activo = TRUE;
+END;
+$$ LANGUAGE plpgsql;
