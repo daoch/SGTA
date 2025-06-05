@@ -14,16 +14,19 @@ import {
 import { isSameDay } from "date-fns";
 import { JornadaExposicionDTO } from "../dtos/JornadExposicionDTO";
 import { transformarJornada } from "../utils/transformar-jornada";
+import { ExposicionEtapaFormativaDTO } from "../dtos/ExposicionEtapaFormativaDTO";
 
 type Props = {
   exposicionId: number;
 };
 
 export default async function PlanExpo({ exposicionId }: Props) {
-  const etapaFormativaId =
+  const exposicionEtapaFormativaDTO: ExposicionEtapaFormativaDTO | null =
     await getEtapaFormativaIdByExposicionId(exposicionId);
 
-  const temas = await listarTemasCicloActualXEtapaFormativa(etapaFormativaId);
+  const temas = await listarTemasCicloActualXEtapaFormativa(
+    exposicionEtapaFormativaDTO?.etapaFormativaId ?? 0,
+  );
 
   const jornadasSalas =
     await listarJornadasExposicionSalasByExposicion(exposicionId);
@@ -82,7 +85,7 @@ export default async function PlanExpo({ exposicionId }: Props) {
           </h1>
         </div>
         <h2 className="text-xl font-bold">
-          {`${"Exposicion Final"} / ${"Proyecto de fin de carrera 1"}`}{" "}
+          {`${exposicionEtapaFormativaDTO?.nombreExposicion} / ${exposicionEtapaFormativaDTO?.nombreEtapaFormativa}`}{" "}
         </h2>
       </div>
       {estadoPlanificacion ? (
