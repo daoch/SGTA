@@ -21,6 +21,7 @@ import {
 import { useAuthStore } from "@/features/auth/store/auth-store";
 import { Eye, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Toaster, toast } from "sonner";
 
 interface TemaAPI {
   id: number;
@@ -36,7 +37,7 @@ interface TemaAPI {
     rol: string;
     comentario?: string | null;
   }[];
-  tesistas?: { comentario?: string }[]; 
+  tesistas?: { comentario?: string }[];
 }
 
 interface Tema {
@@ -49,7 +50,7 @@ interface Tema {
   coasesores: string[];
   fechaLimite: string;
   estado: string;
-  comentarioTesista?: string; 
+  comentarioTesista?: string;
   comentariosAsesores?: string;
 }
 
@@ -70,6 +71,8 @@ const getEstadoBadge = (estado: string) => {
 export function PostulacionesTable() {
   const [temas, setTemas] = useState<Tema[]>([]);
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
+  const [openEliminarDialog, setOpenEliminarDialog] = useState(false);
+  const [temaAEliminar, setTemaAEliminar] = useState<Tema | null>(null);
 
   useEffect(() => {
     const fetchPostulaciones = async () => {
@@ -110,7 +113,7 @@ export function PostulacionesTable() {
             fechaLimite: new Date(tema.fechaLimite).toLocaleDateString("es-PE"),
             estado: tema.estadoTemaNombre,
             comentarioTesista: tema.tesistas?.[0]?.comentario || "Sin comentario",
-            comentariosAsesores: comentarios || undefined, 
+            comentariosAsesores: comentarios || undefined,
           };
         });
 
@@ -138,32 +141,109 @@ export function PostulacionesTable() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {temas.map((item, idx) => (
-            <TableRow key={item.id}>
-              <TableCell className="max-w-xs truncate">{item.titulo}</TableCell>
-              <TableCell>{item.area}</TableCell>
-              <TableCell>{item.asesor}</TableCell>
-              <TableCell>{item.coasesores.length > 0 ? item.coasesores.join(", ") : "-"}</TableCell>
-              <TableCell>{item.fechaLimite}</TableCell>
-              <TableCell>{getEstadoBadge(item.estado)}</TableCell>
-              <TableCell className="text-right flex gap-2 justify-end">
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={() => setSelectedIdx(idx)}
-                >
-                  <Eye className="w-4 h-4" />
-                </Button>
-                {item.estado === "PROPUESTO_LIBRE" && (
-                  <Button size="icon" variant="ghost" className="text-red-600">
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                )}
+          {temas.length === 0 ? (
+            <TableRow>
+              <TableCell
+                colSpan={7}
+                className="text-center py-8 text-muted-foreground"
+              >
+                No hay postulaciones disponibles
               </TableCell>
             </TableRow>
-          ))}
+          ) : (
+            temas.map((item, idx) => (
+              <TableRow key={item.id}>
+                <TableCell className="max-w-xs truncate">{item.titulo}</TableCell>
+                <TableCell>{item.area}</TableCell>
+                <TableCell>{item.asesor}</TableCell>
+                <TableCell>
+                  {item.coasesores.length > 0
+                    ? item.coasesores.join(", ")
+                    : "-"}
+                </TableCell>
+                <TableCell>{item.fechaLimite}</TableCell>
+                <TableCell>{getEstadoBadge(item.estado)}</TableCell>
+                <TableCell className="text-right flex gap-2 justify-end">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => setSelectedIdx(idx)}
+                  >
+                    <Eye className="w-4 h-4" />
+                  </Button>
+                  {(item.estado === "PROPUESTO_LIBRE" ||
+                    item.estado === "Pendiente") && (
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="text-red-600"
+                      onClick={() => {
+                        setTemaAEliminar(item);
+                        setOpenEliminarDialog(true);
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  )}
+                </TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
+
+      {/* Dialog de confirmación de eliminación */}
+      <Dialog open={openEliminarDialog} onOpenChange={setOpenEliminarDialog}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Eliminar postulación</DialogTitle>
+            <DialogDescription>
+              ¿Estás seguro de que deseas eliminar esta postulación? Esta acción no
+              se puede deshacer.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setOpenEliminarDialog(false)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              className="bg-red-600 hover:bg-red-700 text-white"
+              onClick={async () => {
+                if (!temaAEliminar) return;
+                try {
+                  const { idToken } = useAuthStore.getState();
+                  const res = await fetch(
+                    `${process.env.NEXT_PUBLIC_API_URL}/temas/eliminarPostulacionTemaLibre?temaId=${temaAEliminar.id}`,
+                    {
+                      method: "POST",
+                      headers: {
+                        Authorization: `Bearer ${idToken}`,
+                        "Content-Type": "application/json",
+                      },
+                    }
+                  );
+                  if (!res.ok) throw new Error("Error al eliminar la postulación");
+                  toast.success("Postulación eliminada exitosamente", {
+                    position: "bottom-right",
+                  });
+                  setOpenEliminarDialog(false);
+                  setTemaAEliminar(null);
+                  setTemas((prev) => prev.filter((t) => t.id !== temaAEliminar.id));
+                } catch (error) {
+                  toast.error("Ocurrió un error al eliminar la postulación", {
+                    position: "bottom-right",
+                  });
+                }
+              }}
+            >
+              Confirmar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {selectedIdx !== null && (
         <Dialog
@@ -215,14 +295,18 @@ export function PostulacionesTable() {
                 </div>
               </div>
               <div className="space-y-1">
-                <label className="text-sm font-medium">Comentario enviado al asesor</label>
+                <label className="text-sm font-medium">
+                  Comentario enviado al asesor
+                </label>
                 <div className="p-3 bg-gray-50 rounded-md border whitespace-pre-wrap">
                   {temas[selectedIdx].comentarioTesista}
                 </div>
               </div>
               {temas[selectedIdx].comentariosAsesores && (
                 <div className="space-y-1">
-                  <label className="text-sm font-medium">Comentario(s) del Asesor</label>
+                  <label className="text-sm font-medium">
+                    Comentario(s) del Asesor
+                  </label>
                   <div className="p-3 bg-gray-50 rounded-md border whitespace-pre-wrap">
                     {temas[selectedIdx].comentariosAsesores}
                   </div>
@@ -238,6 +322,7 @@ export function PostulacionesTable() {
           </DialogContent>
         </Dialog>
       )}
+      <Toaster position="bottom-right" />
     </div>
   );
 }

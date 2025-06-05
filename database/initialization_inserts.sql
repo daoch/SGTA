@@ -2731,14 +2731,121 @@ INSERT INTO entregable_x_tema (entregable_id, tema_id, estado, fecha_envio)
 VALUES (3, 3, 'enviado_tarde',  DATE '2025-01-01');
 
 
-INSERT INTO entregable_x_tema (entregable_id, tema_id, estado, fecha_envio) 
-VALUES (3, 3, 'enviado_a_tiempo',  DATE '2025-05-01');
-
-INSERT INTO entregable_x_tema (entregable_id, tema_id, estado, fecha_envio) 
-VALUES (3, 3, DEFAULT,  DATE '2025-06-01');
-
 --select * from entregable_x_tema
 
 --select * from entregable
 
+INSERT INTO criterio_entregable (
+    entregable_id,
+    nombre,
+    nota_maxima,
+    descripcion
+) VALUES
+    (1, 'Claridad en la redacción', 20.00, 'Se evalúa la claridad, coherencia y cohesión del contenido entregado.'),
+    (2, 'Cumplimiento de requisitos', 20.00, 'Se verifica que el entregable cumpla con todos los requisitos solicitados.'),
+	(3, 'Originalidad del contenido', 20.00, 'Se evalúa la capacidad de presentar ideas propias y enfoques creativos en el entregable.'),
+	(1, 'Presentación visual', 20.00, 'Se evalúa el formato, uso adecuado de gráficos, y presentación ordenada del entregable.'),
+    (2, 'Análisis crítico', 20.00, 'Se mide la capacidad para interpretar y argumentar los resultados con pensamiento crítico.');
+	
+
+--select * from criterio_entregable
+
+INSERT INTO revision_criterio_entregable (
+    entregable_x_tema_id,
+    criterio_entregable_id,
+    usuario_id,
+    nota,
+    observacion
+) VALUES
+    (1, 1, 36, 17.00, NULL),
+    (2, 2, 36, 10.00, NULL),
+	(3, 3, 36, 19.00, NULL);
+
+
+INSERT INTO parametro_configuracion (
+    nombre,
+    descripcion,
+    modulo_id,
+    activo,
+    fecha_creacion,
+    fecha_modificacion,
+    tipo
+) VALUES (
+    'Cantidad Jurados',
+    'cantidad maxima de jurados por tesis',
+    1,
+    true,
+    NOW(),       -- Fecha de creación actual
+    NOW(),        -- Fecha de modificación actual
+    'integer'
+);
+
+
+INSERT INTO carrera_parametro_configuracion (
+    carrera_id,
+    parametro_configuracion_id,
+    valor,
+    activo,
+    fecha_creacion,
+    fecha_modificacion,
+    etapa_formativa_id
+) VALUES (
+    1,  -- ID de la carrera
+    (
+        SELECT parametro_configuracion_id
+        FROM parametro_configuracion
+        WHERE nombre = 'Cantidad Jurados'
+        LIMIT 1
+    ),
+    3,      -- Valor de la configuración
+    true,   -- Estado activo
+    NOW(),  -- Fecha de creación
+    NOW(),  -- Fecha de modificación
+    1       -- ID de etapa formativa
+);
+
+
+------------------------------------------------------------------------------------------------------
+
+
+INSERT INTO parametro_configuracion (
+    nombre,
+    descripcion,
+    modulo_id,
+    activo,
+    fecha_creacion,
+    fecha_modificacion,
+    tipo
+) VALUES (
+    'Tiempo Limite Jurado',
+    'Tiempo limite para que jurado revise entregables',
+    1,
+    true,
+    NOW(),       -- Fecha de creación actual
+    NOW(),        -- Fecha de modificación actual
+    'integer'
+);
+
+INSERT INTO carrera_parametro_configuracion (
+    carrera_id,
+    parametro_configuracion_id,
+    valor,
+    activo,
+    fecha_creacion,
+    fecha_modificacion,
+    etapa_formativa_id
+) VALUES (
+    1,                            -- ID de la carrera asociada (ejemplo: 1)
+    (
+        SELECT parametro_configuracion_id
+        FROM parametro_configuracion
+        WHERE nombre = 'Tiempo Limite Jurado'
+        LIMIT 1
+    ),                            -- ID del parametro_configuracion asociado (ejemplo: 1)
+    15,                            -- Valor de la configuración
+    true,                         -- Estado activo
+    NOW(),                        -- Fecha de creación actual
+    NOW(),                         -- Fecha de modificación actual
+    1
+);
 
