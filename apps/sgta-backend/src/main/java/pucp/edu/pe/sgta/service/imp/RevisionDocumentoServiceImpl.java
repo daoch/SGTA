@@ -2,7 +2,7 @@ package pucp.edu.pe.sgta.service.imp;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
+import org.springframework.transaction.annotation.Transactional;
 import pucp.edu.pe.sgta.dto.RevisionDocumentoAsesorDto;
 import pucp.edu.pe.sgta.dto.RevisionDto;
 import pucp.edu.pe.sgta.model.RevisionDocumento;
@@ -19,6 +19,11 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import jakarta.persistence.EntityNotFoundException;
+
+
+
+
 
 @Service
 public class RevisionDocumentoServiceImpl implements RevisionDocumentoService {
@@ -332,6 +337,16 @@ public class RevisionDocumentoServiceImpl implements RevisionDocumentoService {
     }
 
     @Override
+    @Transactional
+    public void actualizarEstadoRevision(Integer revisionId, String nuevoEstado) {
+        System.out.println(">>> Actualizando revisión con ID: " + revisionId + " al estado: " + nuevoEstado);
+
+        // Ya no buscas ni seteas, solo llamas el update con casteo
+        revisionDocumentoRepository.actualizarEstadoRevisionConCast(revisionId, nuevoEstado);
+    }
+
+
+
     public RevisionDocumentoAsesorDto obtenerRevisionDocumentoPorId(Integer revisionId) {
         List<Object[]> result = revisionDocumentoRepository.obtenerRevisionDocumentoPorId(revisionId);
 
