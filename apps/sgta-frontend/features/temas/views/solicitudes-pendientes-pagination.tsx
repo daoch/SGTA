@@ -29,8 +29,6 @@ import { PagesList, TemasPages } from "../types/solicitudes/entities";
 import { getSolicitudFromTema } from "../types/solicitudes/lib";
 import { EstadoTemaNombre } from "../types/temas/enums";
 
-type PagesListKey = keyof TemasPages;
-
 const LIMIT = 2;
 
 export default function SolicitudesPendientes() {
@@ -73,7 +71,7 @@ export default function SolicitudesPendientes() {
   const handlePageChange = useCallback(
     (newPage: number) => {
       // Actualizar página actual
-      updatePagesListKey(estadoTema, "current", newPage);
+      updateStateKey(estadoTema, "current", newPage);
       // Fetch de la página en caso no exista
       const existingPage = temas[estadoTema]?.pages?.[newPage];
       if (!existingPage?.length) {
@@ -85,7 +83,7 @@ export default function SolicitudesPendientes() {
   );
 
   async function fetchData(
-    status: EstadoTemaNombre,
+    state: EstadoTemaNombre,
     page: number,
     carrerasIds: number[],
   ) {
@@ -93,20 +91,29 @@ export default function SolicitudesPendientes() {
       if (carrerasIds && carrerasIds.length > 0) {
         const data = await listarTemasPorCarrera(
           carrerasIds[0], // TODO: Validar
-          status,
+          state,
           LIMIT,
           page - 1,
         );
 
         // Añadir nueva página
         setTemas((prev) => {
-          const newPages = { ...prev[status].pages };
+          // Get Prev State
+          const prevState = prev[state] ?? {
+            pages: {},
+            current: page,
+            totalCounts: data.length,
+          };
+
+          // Get New Pages
+          const newPages = { ...prevState.pages };
           newPages[page] = data;
 
+          // Update Pagination
           return {
             ...prev,
-            [status]: {
-              ...prev[status],
+            [state]: {
+              ...prevState,
               pages: newPages,
             },
           };
@@ -134,7 +141,7 @@ export default function SolicitudesPendientes() {
 
       // Update state
       estadosConPages.forEach((estado, idx) => {
-        updatePagesListKey(estado, "totalCounts", counts[idx]);
+        updateStateKey(estado, "totalCounts", counts[idx]);
         console.log(estado + ": count = " + counts[idx]);
       });
     } catch (err) {
@@ -142,7 +149,7 @@ export default function SolicitudesPendientes() {
     }
   }
 
-  function updatePagesListKey<T extends PagesListKey>(
+  function updateStateKey<T extends keyof TemasPages>(
     state: EstadoTemaNombre,
     key: T,
     value: TemasPages[T],
@@ -153,14 +160,24 @@ export default function SolicitudesPendientes() {
     }));
   }
 
-  function getPage(state: EstadoTemaNombre) {
-    return temas[state].pages[temas[state].current] || [];
+  function getPage(pagesList: PagesList, state: EstadoTemaNombre) {
+    return pagesList[state]?.pages[pagesList[state].current] || [];
+  }
+
+  function getTotalPages(
+    pagesList: PagesList,
+    state: EstadoTemaNombre,
+    limit: number,
+  ) {
+    if (limit === 0 || !pagesList[state]) return 0;
+    return Math.ceil(pagesList[state].totalCounts / limit);
   }
 
   function handleTabChange(state: EstadoTemaNombre) {
     setEstadoTema(state);
 
     // Fetch de la página en caso no exista
+    if (!temas[state]) return;
     const currentPage = temas[state].current;
     const existingPage = temas[state]?.pages?.[currentPage];
     if (!existingPage?.length) {
@@ -244,7 +261,7 @@ export default function SolicitudesPendientes() {
         <CardContent>
           {/* Solicitudes */}
           <SolicitudesTable
-            solicitudes={getPage(estadoTema).map((p) =>
+            solicitudes={getPage(temas, estadoTema).map((p) =>
               getSolicitudFromTema(p, p.id),
             )} // TODO: Pasar todo y enviar filtro estadoTema
             isLoading={loading}
@@ -252,10 +269,10 @@ export default function SolicitudesPendientes() {
           />
 
           {/* Pagination */}
-          {!loading && (
+          {!loading && temas[estadoTema] && (
             <CessationRequestPagination
               currentPage={temas[estadoTema].current}
-              totalPages={Math.ceil(temas[estadoTema].totalCounts / LIMIT)}
+              totalPages={getTotalPages(temas, estadoTema, LIMIT)}
               onPageChange={handlePageChange}
             />
           )}
