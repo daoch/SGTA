@@ -4,11 +4,12 @@ import pucp.edu.pe.sgta.dto.CriterioEntregableDto;
 import pucp.edu.pe.sgta.model.CriterioEntregable;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface CriterioEntregableService {
     List<CriterioEntregableDto> listarCriteriosEntregableXEntregable(Integer entregableId);
     int crearCriterioEntregable(Integer entregableId, CriterioEntregableDto criterioEntregableDto);
     void update(CriterioEntregableDto criterioEntregableDto);
     void delete(Integer criterioEntregableId);
-    CriterioEntregable findById(int id);
+    Optional<CriterioEntregable> findById(int id);
 }
