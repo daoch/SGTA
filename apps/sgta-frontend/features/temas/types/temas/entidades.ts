@@ -20,6 +20,7 @@ export interface Tema {
   tesistas: Tesista[] | null;
   subareas: Subareas[];
   requisitos: string; //agregado
+  area: AreaConocimiento[];
 }
 
 export interface Carrera {

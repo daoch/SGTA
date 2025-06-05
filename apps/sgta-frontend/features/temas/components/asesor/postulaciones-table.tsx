@@ -15,6 +15,7 @@ import {
 import { FiltrosPostulacionModal } from "@/features/temas/components/asesor/filtros-postulacion-modal";
 import { PostulacionModal } from "@/features/temas/components/asesor/postulacion-modal";
 import {
+  aceptarPostulacionDeAlumno,
   fetchPostulacionesAlAsesor,
   rechazarPostulacionDeAlumno,
 } from "@/features/temas/types/postulaciones/data";
@@ -87,7 +88,7 @@ export function PostulacionesTable() {
     setShowRejectDialog(true);
   };
 
-  const handleApprove = () => {
+  const handleApprove = async () => {
     // Aquí iría la lógica para aprobar la postulación
     console.log(
       "Aprobando postulación:",
@@ -95,6 +96,23 @@ export function PostulacionesTable() {
       "Feedback:",
       feedbackText,
     );
+    if (!selectedPostulacion) return;
+
+    const temaDto: TemaDto = {
+      usuarioId: selectedPostulacion.tesistas[0].id,
+      temaId: selectedPostulacion?.id,
+      comentario: `${selectedPostulacion.tesistas[0].comentario}@${feedbackText}`,
+    };
+
+    try {
+      await aceptarPostulacionDeAlumno(temaDto);
+      toast.success("La postulación del alumno(a) fue aprobada.");
+    } catch (error) {
+      console.error("Error al aprobar la postulación del alumno:", error);
+      toast.error(
+        "Hubo un error al aprobar la postulación del alumno(a). Intentelo de nuevo.",
+      );
+    }
 
     setSelectedPostulacion(null);
     setFeedbackText("");
@@ -114,7 +132,7 @@ export function PostulacionesTable() {
     const temaDto: TemaDto = {
       usuarioId: selectedPostulacion.tesistas[0].id,
       temaId: selectedPostulacion?.id,
-      comentario: feedbackText,
+      comentario: `${selectedPostulacion.tesistas[0].comentario}@${feedbackText}`,
     };
 
     try {

@@ -97,7 +97,7 @@ export function PostulacionModal({
             <Label>Comentario</Label>
             <div className="p-3 bg-gray-50 rounded-md border">
               {selectedPostulacion.tesistas.map((tesista, index) => (
-                <span key={index}>{tesista.comentario}</span>
+                <span key={index}>{tesista.comentario.split("@")[0]}</span>
               ))}
             </div>
           </div>
@@ -105,14 +105,14 @@ export function PostulacionModal({
           {/* Mostrar comentario si existe y el estado no es pendiente */}
           {/*CAMBIAR CUANDO SE TENGA EL LISTADO DE COASESORES*/}
           {selectedPostulacion.estadoUsuarioTema !== "Pendiente" &&
-            selectedPostulacion.coasesores && (
+            selectedPostulacion.tesistas && (
               <div className="space-y-2">
                 <Label>Comentario para el estudiante</Label>
                 <div className="p-3 bg-gray-50 rounded-md border">
                   <p>
-                    {selectedPostulacion.coasesores.map((asesor, index) => (
+                    {selectedPostulacion.tesistas.map((tesista, index) => (
                       <span key={index}>
-                        {asesor.comentario}
+                        {tesista.comentario.split("@")[1]}
                         <br />
                       </span>
                     ))}

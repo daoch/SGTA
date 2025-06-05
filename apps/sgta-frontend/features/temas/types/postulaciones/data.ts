@@ -91,3 +91,31 @@ export async function rechazarPostulacionDeAlumno(tema: TemaDto) {
     throw error;
   }
 }
+
+export async function aceptarPostulacionDeAlumno(tema: TemaDto) {
+  try {
+    const response = await fetch(
+      `${baseUrl}/temas/aceptarPostulacionAlumnoTemaLibre`,
+      {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(tema),
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error("Error al aceptar la postulación.");
+    }
+
+    console.log("Postulación aceptada correctamente");
+  } catch (error) {
+    console.error(
+      "La página no responde. No se pudo aceptar la postulación.",
+      error,
+    );
+    throw error;
+  }
+}
