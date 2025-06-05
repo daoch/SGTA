@@ -7,342 +7,79 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, CheckCircle, Download, FileText, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { ObservacionesList } from "../components/observaciones-list";
+import { useEffect, useState } from "react";
+import { IHighlight } from "react-pdf-highlighter";
+import { Observacion, ObservacionesList } from "../components/observaciones-list";
+import { RevisionDocumentoAsesorDto } from "../dtos/RevisionDocumentoAsesorDto";
+import { obtenerObservacionesRevision } from "../servicios/revision-service";
+import { getRevisionById } from "../servicios/revisionService";
 
-const revisionesData = [
-  {
-    id: "1",
-    titulo:
-      "Implementación de algoritmos de aprendizaje profundo para detección de objetos en tiempo real",
-    entregable: "E4",
-    estudiante: "Carlos Mendoza",
-    codigo: "20180123",
-    curso: "tesis1",
-    fechaEntrega: "2023-10-15",
-    fechaLimite: "2023-10-20",
-    estado: "aprobado",
-    porcentajePlagio: 5,
-    formatoValido: true,
-    entregaATiempo: true,
-    citadoCorrecto: true,
-    observaciones: [
-      {
-        id: "1",
-        pagina: 4,
-        parrafo: 1,
-        texto: "La introducción no presenta claramente los objetivos del estudio.",
-        tipo: "contenido" as const,
-        resuelto: true,
-      },
-      {
-        id: "2",
-        pagina: 9,
-        parrafo: 2,
-        texto: "El modelo descrito carece de justificación teórica adecuada.",
-        tipo: "contenido" as const,
-        resuelto: false,
-      },
-      {
-        id: "3",
-        pagina: 14,
-        parrafo: 3,
-        texto: "Falta la referencia de la figura 5 en el texto.",
-        tipo: "citado" as const,
-        resuelto: true,
-      },
-    ],
-    ultimoCiclo: "2025-1",
-  },
-  {
-    id: "2",
-    titulo:
-      "Desarrollo de un sistema de monitoreo de calidad del aire utilizando IoT",
-    entregable: "E4",
-    estudiante: "Ana García",
-    codigo: "20190456",
-    curso: "tesis1",
-    fechaEntrega: "2023-11-02",
-    fechaLimite: "2023-11-05",
-    estado: "por-aprobar",
-    porcentajePlagio: 12,
-    formatoValido: false,
-    entregaATiempo: true,
-    citadoCorrecto: false,
-    observaciones: [
-      {
-        id: "1",
-        pagina: 5,
-        parrafo: 2,
-        texto: "No está transformando la data.",
-        tipo: "contenido" as const,
-        resuelto: false,
-      },
-      {
-        id: "2",
-        pagina: 8,
-        parrafo: 3,
-        texto: "Se detectó un posible plagio en este párrafo. Verificar la fuente original y citar correctamente.",
-        tipo: "plagio" as const,
-        resuelto: false,
-      },
-      {
-        id: "3",
-        pagina: 12,
-        parrafo: 1,
-        texto: "La tabla 3 no tiene la referencia adecuada según normas APA.",
-        tipo: "citado" as const,
-        resuelto: false,
-      },
-      {
-        id: "4",
-        pagina: 15,
-        parrafo: 4,
-        texto: "La figura 2 no está correctamente citada en el texto.",
-        tipo: "citado" as const,
-        resuelto: false,
-      },
-      {
-        id: "5",
-        pagina: 20,
-        parrafo: 2,
-        texto: "No está transformando la data.",
-        tipo: "contenido" as const,
-        resuelto: false,
-      },
-      {
-        id: "6",
-        pagina: 22,
-        parrafo: 3,
-        texto: "Se detectó un posible plagio en la conclusión. Verificar y reescribir.",
-        tipo: "plagio" as const,
-        resuelto: false,
-      },
-      {
-        id: "7",
-        pagina: 25,
-        parrafo: 1,
-        texto: "No está transformando la data.",
-        tipo: "contenido" as const,
-        resuelto: true,
-      },
-    ],
-    ultimoCiclo: "2025-1",
-  },
-  {
-    id: "3",
-    titulo:
-      "Análisis comparativo de frameworks de desarrollo web para aplicaciones de alta concurrencia",
-    entregable: "E4",
-    estudiante: "Luis Rodríguez",
-    codigo: "20180789",
-    curso: "tesis2",
-    fechaEntrega: "2023-09-28",
-    fechaLimite: "2023-10-01",
-    estado: "aprobado",
-    porcentajePlagio: 8,
-    formatoValido: true,
-    entregaATiempo: true,
-    citadoCorrecto: true,
-    observaciones: [
-      {
-        id: "1",
-        pagina: 6,
-        parrafo: 2,
-        texto: "Falta contextualización de los frameworks seleccionados.",
-        tipo: "contenido" as const,
-        resuelto: false,
-      },
-      {
-        id: "2",
-        pagina: 11,
-        parrafo: 3,
-        texto: "La gráfica de rendimiento no tiene fuente citada.",
-        tipo: "citado" as const,
-        resuelto: false,
-      },
-    ],
-    ultimoCiclo: "2025-1",
-  },
-  {
-    id: "4",
-    titulo:
-      "Diseño e implementación de un sistema de recomendación basado en filtrado colaborativo",
-    entregable: "E4",
-    estudiante: "María Torres",
-    codigo: "20190321",
-    curso: "tesis2",
-    fechaEntrega: null,
-    fechaLimite: "2023-11-25",
-    estado: "revisado",
-    porcentajePlagio: null,
-    formatoValido: true,
-    entregaATiempo: true,
-    citadoCorrecto: true,
-    observaciones: [],
-    ultimoCiclo: "2024-2",
-  },
-  {
-    id: "5",
-    titulo:
-      "Optimización de consultas en bases de datos NoSQL para aplicaciones de big data",
-    entregable: "E4",
-    estudiante: "Jorge Sánchez",
-    codigo: "20180654",
-    curso: "tesis1",
-    fechaEntrega: "2023-11-10",
-    fechaLimite: "2023-11-08",
-    estado: "revisado",
-    porcentajePlagio: 15,
-    formatoValido: true,
-    entregaATiempo: false,
-    citadoCorrecto: true,
-    observaciones: [
-      {
-        id: "1",
-        pagina: 7,
-        parrafo: 1,
-        texto: "La consulta presentada no es eficiente para grandes volúmenes.",
-        tipo: "contenido" as const,
-        resuelto: false,
-      },
-      {
-        id: "2",
-        pagina: 9,
-        parrafo: 2,
-        texto: "Falta referencia al motor NoSQL utilizado.",
-        tipo: "citado" as const,
-        resuelto: true,
-      },
-      {
-        id: "3",
-        pagina: 13,
-        parrafo: 4,
-        texto: "El benchmark presentado no incluye métrica de latencia.",
-        tipo: "contenido" as const,
-        resuelto: false,
-      },
-      {
-        id: "4",
-        pagina: 16,
-        parrafo: 2,
-        texto: "Conclusión no se alinea con los resultados obtenidos.",
-        tipo: "contenido" as const,
-        resuelto: true,
-      },
-      {
-        id: "5",
-        pagina: 17,
-        parrafo: 1,
-        texto: "Falta tabla de comparación de tecnologías.",
-        tipo: "contenido" as const,
-        resuelto: false,
-      },
-    ],
-    ultimoCiclo: "2023-2",
-  },
-  {
-    id: "6",
-    titulo: "Evaluación del impacto del uso de energías renovables en zonas rurales",
-    entregable: "E4",
-    estudiante: "Lucía Fernández",
-    codigo: "20190567",
-    curso: "tesis2",
-    fechaEntrega: "2023-11-12",
-    fechaLimite: "2023-11-10",
-    estado: "rechazado",
-    porcentajePlagio: 28,
-    formatoValido: true,
-    entregaATiempo: false,
-    citadoCorrecto: false,
-    observaciones: [
-      {
-        id: "1",
-        pagina: 3,
-        parrafo: 1,
-        texto: "No se menciona la fuente de los datos de consumo energético.",
-        tipo: "citado" as const,
-        resuelto: false,
-      },
-      {
-        id: "2",
-        pagina: 6,
-        parrafo: 2,
-        texto: "Conclusión carece de respaldo en datos.",
-        tipo: "contenido" as const,
-        resuelto: false,
-      },
-      {
-        id: "3",
-        pagina: 8,
-        parrafo: 3,
-        texto: "Los datos de energía solar están desactualizados.",
-        tipo: "contenido" as const,
-        resuelto: false,
-      },
-      {
-        id: "4",
-        pagina: 11,
-        parrafo: 1,
-        texto: "El mapa no tiene escala definida.",
-        tipo: "contenido" as const,
-        resuelto: true,
-      },
-      {
-        id: "5",
-        pagina: 13,
-        parrafo: 3,
-        texto: "Falta comparación con estudios similares.",
-        tipo: "citado" as const,
-        resuelto: false,
-      },
-      {
-        id: "6",
-        pagina: 18,
-        parrafo: 4,
-        texto: "El uso de términos técnicos no es consistente.",
-        tipo: "contenido" as const,
-        resuelto: true,
-      },
-    ],
-    ultimoCiclo: "2025-1",
-  },
-];
+function mapHighlightToObservacion(highlight: IHighlight): Observacion {
+  return {
+    id: highlight.id,
+    pagina: highlight.position.pageNumber ?? 1,
+    parrafo: 1,
+    texto: highlight.content?.text ?? "(Sin contenido)",
+    tipo: mapTipoObservacion(highlight.comment.text),
+    resuelto: false
+  };
+}
+
+function mapTipoObservacion(nombre: string | undefined): Observacion["tipo"] {
+  const lower = nombre?.toLowerCase() ?? "";
+  if (lower.includes("inteligencia")) return "inteligencia";
+  if (lower.includes("similitud")) return "similitud";
+  if (lower.includes("citado")) return "citado";
+  return "contenido";
+}
+
+function formatFecha(fecha: string) {
+  const date = new Date(fecha);
+  return `${date.getDate().toString().padStart(2, "0")}/${(date.getMonth() + 1)
+    .toString()
+    .padStart(2, "0")}/${date.getFullYear()}`;
+}
 
 export default function RevisionDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
-  const revision = revisionesData.find(r => r.id === params.id);
-  const [estado, setEstado] = useState(revision?.estado ?? "por-aprobar");
+  const [revision, setRevision] = useState<RevisionDocumentoAsesorDto | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [estado, setEstado] = useState(revision?.estado ?? "por_aprobar");
   const [showConfirmDialog, setShowConfirmDialog] = useState<"aprobar" | "rechazar" | null>(null);
   const [showSuccessDialog, setShowSuccessDialog] = useState<"aprobar" | "rechazar" | null>(null);
   const [selectedTab, setSelectedTab] = useState("asesor");
+  const [observaciones, setObservaciones] = useState<IHighlight[]>([]);
+  const observacionesList: Observacion[] = observaciones.map(mapHighlightToObservacion);
 
-  if (!revision || !Array.isArray(revision.observaciones)) {
-    return <div className="text-center mt-10 text-red-600">Revisión no encontrada o sin observaciones detalladas</div>;
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const data = await getRevisionById(params.id);
+        setRevision(data);
+        const obs = await obtenerObservacionesRevision(data.id);
+        setObservaciones(obs);
+      } catch (err: any) {
+        setError("Error al cargar los datos de la revisión");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchData();
+  }, [params.id]);
+
+  if (loading) {
+    return <div className="text-center mt-10 text-muted-foreground">Cargando revisión...</div>;
   }
 
-  const handleContinuar = () => {
-    router.push(`../revisar-doc/${revision.id}`);
-  };
+  if (error || !revision) {
+    return <div className="text-center mt-10 text-red-600">{error || "Revisión no encontrada"}</div>;
+  }
 
-  const observacionesJurado = [
-    {
-      id: "1",
-      pagina: 10,
-      parrafo: 1,
-      texto: "La metodología no está bien detallada para su validación empírica.",
-      tipo: "contenido" as const,
-      resuelto: false,
-    },
-    {
-      id: "2",
-      pagina: 18,
-      parrafo: 2,
-      texto: "La bibliografía no está normalizada según APA 7ma edición.",
-      tipo: "citado" as const,
-      resuelto: false,
-    }
-  ];
+  if (!revision) {
+    return <div className="text-center mt-10 text-red-600">Revisión no encontrada</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -381,18 +118,7 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
                 <div>
                   <h4 className="text-sm font-medium mb-2">Fecha de Carga</h4>
                   <div className="flex items-center gap-2">
-                    {revision.fechaEntrega ? (
-                      <>
-                        <span>{new Date(revision.fechaEntrega).toLocaleDateString()}</span>
-                        {!revision.entregaATiempo && (
-                          <Badge variant="destructive" className="ml-2">
-                            Fuera de plazo
-                          </Badge>
-                        )}
-                      </>
-                    ) : (
-                      <span className="text-muted-foreground">No entregado</span>
-                    )}
+                    <span>{revision.fechaEntrega ? formatFecha(revision.fechaEntrega) : "No entregado"}</span>
                   </div>
                 </div>
                 <div>
@@ -416,14 +142,14 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
                     <TabsTrigger value="jurado">Del Profesor o Jurado</TabsTrigger>
                   </TabsList>
                   <TabsContent value="asesor">
-                    <ObservacionesList observaciones={revision.observaciones} />
+                    <ObservacionesList observaciones={observacionesList} editable={false} />
                   </TabsContent>
                   <TabsContent value="jurado">
-                    <ObservacionesList observaciones={observacionesJurado} />
+                    <ObservacionesList observaciones={observacionesList} editable={false} />
                   </TabsContent>
                 </Tabs>
               ) : (
-                <ObservacionesList observaciones={revision.observaciones} />
+                <ObservacionesList observaciones={observacionesList} editable={false} />
               )}
             </CardContent>
           </Card>
@@ -470,19 +196,19 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
                 </div>
                 <span
                   className={
-                    revision.porcentajePlagio !== null && revision.porcentajePlagio > 20
+                    revision.porcentajeSimilitud !== null && revision.porcentajeSimilitud > 20
                       ? "text-red-600 font-medium"
-                      : revision.porcentajePlagio !== null && revision.porcentajePlagio > 10
+                      : revision.porcentajeSimilitud !== null && revision.porcentajeSimilitud > 10
                         ? "text-yellow-600 font-medium"
                         : "text-green-600 font-medium"
                   }
                 >
-                  {revision.porcentajePlagio}%
+                  {revision.porcentajeSimilitud}%
                 </span>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {revision.porcentajePlagio !== null && revision.porcentajePlagio > 20
+                  {revision.porcentajeSimilitud !== null && revision.porcentajeSimilitud > 20
                     ? "Alto nivel de similitud detectado"
-                    : revision.porcentajePlagio !== null && revision.porcentajePlagio > 10
+                    : revision.porcentajeSimilitud !== null && revision.porcentajeSimilitud > 10
                       ? "Nivel moderado de similitud detectado"
                       : "Nivel aceptable de similitud "}
                 </p>
@@ -524,16 +250,16 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
               <div>
                 <h4 className="text-sm font-medium mb-2">Observaciones</h4>
                 <div className="flex items-center gap-2">
-                  <span className="text-2xl font-bold">{revision.observaciones.length}</span>
+                  <span className="text-2xl font-bold">{observacionesList.length}</span>
                   <div>
                     <span className="text-sm text-muted-foreground">Total</span>
                     <div className="text-xs">
                       <span className="text-green-600">
-                        {revision.observaciones.filter((o) => o.resuelto).length} resueltas
+                        {observacionesList.filter((o) => o.resuelto).length} resueltas
                       </span>
                       {" / "}
                       <span className="text-red-600">
-                        {revision.observaciones.filter((o) => !o.resuelto).length} pendientes
+                        {observacionesList.filter((o) => !o.resuelto).length} pendientes
                       </span>
                     </div>
                   </div>
@@ -541,7 +267,7 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
               </div>
 
               <div className="pt-4">
-                {estado === "por-aprobar" && (
+                {estado === "por_aprobar" && (
                   <div className="flex flex-col gap-2">
                     <Link href={`../revisar-doc/${revision.id}`}>
                       <Button className="w-full bg-[#0743a3] hover:bg-pucp-light">
