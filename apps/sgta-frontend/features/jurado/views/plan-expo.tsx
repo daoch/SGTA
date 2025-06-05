@@ -23,7 +23,7 @@ export default async function PlanExpo({ exposicionId }: Props) {
   const etapaFormativaId =
     await getEtapaFormativaIdByExposicionId(exposicionId);
 
-  const temas = await listarTemasCicloActualXEtapaFormativa(etapaFormativaId);
+  const temas = await listarTemasCicloActualXEtapaFormativa(etapaFormativaId,exposicionId);
 
   const jornadasSalas =
     await listarJornadasExposicionSalasByExposicion(exposicionId);

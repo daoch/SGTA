@@ -58,10 +58,11 @@ public interface TemaRepository extends JpaRepository<Tema, Integer> {
       @Param("id") Integer asesorId);
 
   @Query(value = """
-        SELECT * FROM  listar_temas_ciclo_actual_x_etapa_formativa(:efid)
+        SELECT * FROM  listar_temas_ciclo_actual_x_etapa_formativa(:etapa_id,:expo_id)
       """, nativeQuery = true)
   List<Object[]> listarTemasCicloActualXEtapaFormativa(
-      @Param("efid") Integer etapaFormativaId
+      @Param("etapa_id") Integer etapaFormativaId,
+      @Param("expo_id") Integer expoId
     );
     
     Optional<Tema> findByTitulo(String titulo);

@@ -993,9 +993,9 @@ public class TemaServiceImpl implements TemaService {
 	}
 
 	@Override
-	public List<TemaConAsesorJuradoDTO> listarTemasCicloActualXEtapaFormativa(Integer etapaFormativaId) {
+	public List<TemaConAsesorJuradoDTO> listarTemasCicloActualXEtapaFormativa(Integer etapaFormativaId,Integer expoId) {
 
-		List<Object[]> temas = temaRepository.listarTemasCicloActualXEtapaFormativa(etapaFormativaId);
+		List<Object[]> temas = temaRepository.listarTemasCicloActualXEtapaFormativa(etapaFormativaId,expoId);
 		Map<Integer, TemaConAsesorJuradoDTO> mapaTemas = new LinkedHashMap<>();
 
 		for (Object[] fila : temas) {

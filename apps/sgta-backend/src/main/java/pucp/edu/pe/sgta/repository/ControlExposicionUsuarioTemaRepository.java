@@ -12,9 +12,12 @@ public interface ControlExposicionUsuarioTemaRepository extends JpaRepository<Co
     Optional<ControlExposicionUsuarioTema> findByExposicionXTema_IdAndUsuario_Id(Integer exposicionXTemaId, Integer usuarioXTemaId);
 
     @Modifying
-    @Query(value = "CALL terminar_planificacion(:idExposicion, :idEtapaFormativa)", nativeQuery = true)
+    @Query(value = "CALL intsertar_control_exposcion(:idExposicion, :idEtapaFormativa)", nativeQuery = true)
     void insertarControlesDeExposicion(@Param("idExposicion") Integer exposicionId,
-                                       @Param("idEtapaFormativa") Integer etapaFormativa);
+                                       @Param("idEtapaFormativa") Integer etapaFormativa);;
 
-
+    @Modifying
+    @Query(value = "CALL update_estado_exposicion_usuario(:p_exposicion_id, :p_tema_id)", nativeQuery = true)
+    void updateEstadoRespuestaExposicion(@Param("p_exposicion_id") Integer exposicionId,
+                                       @Param("p_exposicion_id") Integer etapaFormativa);
 }

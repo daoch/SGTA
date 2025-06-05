@@ -1,15 +1,16 @@
 import axiosInstance from "@/lib/axios/axios-instance";
-import { Tema, TimeSlot } from "../types/jurado.types";
 import axios from "axios";
+import { Tema, TimeSlot } from "../types/jurado.types";
 
 const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
 export async function listarTemasCicloActualXEtapaFormativa(
   etapaFormativaId: number,
+  exposicionId : number,
 ) {
   try {
     const response = await fetch(
-      `${baseUrl}/temas/listarTemasCicloActualXEtapaFormativa/${etapaFormativaId}`,
+      `${baseUrl}/temas/listarTemasCicloActualXEtapaFormativa/${etapaFormativaId}/${exposicionId}`,
       {
         method: "GET",
         headers: {
