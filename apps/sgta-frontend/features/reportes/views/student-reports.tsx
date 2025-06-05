@@ -4,10 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from "date-fns";
 import { useEffect, useState } from "react";
 import { ProjectTracking } from "../components/general/project-tracking";
-import { obtenerDetalleTemaAlumno } from "../services/report-services";
+import { obtenerDetalleTemaAlumno, obtenerEntregablesConRetraso } from "../services/report-services";
 import { AlumnoTemaDetalle } from "../types/Alumno.type";
 
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useAuth } from "@/features/auth/hooks/use-auth";
+import { AlertTriangle } from "lucide-react";
+import { OverdueSummary } from "../types/OverdueSummary.type";
 
 const getProgressColor = (progreso: number) => {
   if (progreso < 30) return "#ef4444";
@@ -18,7 +21,7 @@ const getProgressColor = (progreso: number) => {
 export function StudentReports() {
   const [studentData, setStudentData] = useState<AlumnoTemaDetalle | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-
+  const [overdueSummary, setOverdueSummary] = useState<OverdueSummary | null>(null);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -34,7 +37,13 @@ export function StudentReports() {
       }
     };
 
+    const fetchOverdueSummary = async () => {
+      const data = await obtenerEntregablesConRetraso();
+      setOverdueSummary(data);
+    };
+    
     fetchStudentData();
+    fetchOverdueSummary();
   }, [user]);
 
   if (!user || isLoading || !studentData) {
@@ -44,17 +53,15 @@ export function StudentReports() {
   return (
     <div className="space-y-6">
       {/* Alerta de entregas retrasadas */}
-      {/*hasLateDeliveries && (
+      {overdueSummary && (
         <Alert variant="destructive" className="bg-red-50 border-red-200 text-red-800">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Entregas pendientes con retraso</AlertTitle>
           <AlertDescription>
-            Tienes {lateDeliveries.length} entrega(s) con retraso. La entrega de <b>{lateDeliveries[0].name}</b> debió
-            presentarse el {lateDeliveries[0].dueDate} ({lateDeliveries[0].daysLate} días de retraso). Por favor,
-            contacta a tu asesor lo antes posible.
+            {overdueSummary.mensajes[0]}
           </AlertDescription>
         </Alert>
-      )*/}
+      )}
 
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -79,7 +86,7 @@ export function StudentReports() {
                   ></div>
                 </div>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-sm font-bold">{studentData.porcentajeProgreso}%</span>
+                  <span className="text-sm font-bold">{Math.round(studentData.porcentajeProgreso)}%</span>
                 </div>
               </div>
 

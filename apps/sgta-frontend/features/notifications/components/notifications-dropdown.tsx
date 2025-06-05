@@ -27,7 +27,7 @@ export function NotificationsDropdown() {
     const element = document.getElementById(`notificacion-${notificacionId}`);
     if (element) {
       element.style.height = `${element.offsetHeight}px`;
-      element.classList.add('notification-exit');
+      element.classList.add("notification-exit");
       // Esperar a que termine la animación antes de remover
       await new Promise(resolve => setTimeout(resolve, 200));
     }

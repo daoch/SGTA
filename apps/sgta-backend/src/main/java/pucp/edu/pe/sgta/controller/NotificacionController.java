@@ -28,7 +28,7 @@ public class NotificacionController {
     @GetMapping("/unread")
     public ResponseEntity<List<NotificacionDto>> getUnreadNotifications(Authentication authentication) {
         try {
-            Integer usuarioId = 33;
+            Integer usuarioId = 12;
             List<NotificacionDto> notificaciones = notificacionService.getAllUnreadNotifications(usuarioId);
             log.info("Usuario {} consultó {} notificaciones no leídas", usuarioId, notificaciones.size());
             return ResponseEntity.ok(notificaciones);
@@ -45,7 +45,7 @@ public class NotificacionController {
     @GetMapping("/all")
     public ResponseEntity<List<NotificacionDto>> getAllNotifications(Authentication authentication) {
         try {
-            Integer usuarioId = 33;
+            Integer usuarioId = 12;
             List<NotificacionDto> notificaciones = notificacionService.getAllNotifications(usuarioId);
             log.info("Usuario {} consultó {} notificaciones totales", usuarioId, notificaciones.size());
             return ResponseEntity.ok(notificaciones);
@@ -64,7 +64,7 @@ public class NotificacionController {
             @PathVariable Integer moduloId,
             Authentication authentication) {
         try {
-            Integer usuarioId = 33;
+            Integer usuarioId = 12;
             List<NotificacionDto> notificaciones = notificacionService.getUnreadNotifications(usuarioId, moduloId);
             log.info("Usuario {} consultó {} notificaciones no leídas del módulo {}", 
                     usuarioId, notificaciones.size(), moduloId);
@@ -84,7 +84,7 @@ public class NotificacionController {
             @PathVariable Integer moduloId,
             Authentication authentication) {
         try {
-            Integer usuarioId = 33;
+            Integer usuarioId = 12;
             List<NotificacionDto> notificaciones = notificacionService.getAllNotifications(usuarioId, moduloId);
             log.info("Usuario {} consultó {} notificaciones totales del módulo {}", 
                     usuarioId, notificaciones.size(), moduloId);
@@ -102,7 +102,7 @@ public class NotificacionController {
     @GetMapping("/count-unread")
     public ResponseEntity<Map<String, Integer>> countUnreadNotifications(Authentication authentication) {
         try {
-            Integer usuarioId = 33;
+            Integer usuarioId = 12;
             int count = notificacionService.countAllUnreadNotifications(usuarioId);
             log.debug("Usuario {} tiene {} notificaciones no leídas", usuarioId, count);
             return ResponseEntity.ok(Map.of("unreadCount", count));
@@ -121,7 +121,7 @@ public class NotificacionController {
             @PathVariable Integer moduloId,
             Authentication authentication) {
         try {
-            Integer usuarioId = 33;
+            Integer usuarioId = 12;
             int count = notificacionService.countUnreadNotifications(usuarioId, moduloId);
             log.debug("Usuario {} tiene {} notificaciones no leídas del módulo {}", usuarioId, count, moduloId);
             return ResponseEntity.ok(Map.of("unreadCount", count));
@@ -140,7 +140,7 @@ public class NotificacionController {
             @PathVariable Integer notificacionId,
             Authentication authentication) {
         try {
-            Integer usuarioId = 33;
+            Integer usuarioId = 12;
             notificacionService.markAsRead(notificacionId, usuarioId);
             log.info("Usuario {} marcó como leída la notificación {}", usuarioId, notificacionId);
             return ResponseEntity.ok(Map.of("message", "Notificación marcada como leída"));
@@ -158,7 +158,7 @@ public class NotificacionController {
     @GetMapping("/overdue-summary")
     public ResponseEntity<OverdueAlertDto> getOverdueSummary(Authentication authentication) {
         try {
-            Integer usuarioId = 33;
+            Integer usuarioId = 12;
             OverdueAlertDto summary = notificacionService.getOverdueSummary(usuarioId);
             log.info("Usuario {} consultó resumen de vencidos: {} entregables", usuarioId, summary.getTotal());
             return ResponseEntity.ok(summary);
