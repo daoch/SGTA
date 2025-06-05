@@ -48,7 +48,8 @@ BEGIN
       AND ut_asesor.rol_id = 1
       AND vd.activo = TRUE
       AND ext.activo = TRUE
-      AND e.activo = TRUE;
+      AND e.activo = TRUE
+      AND rd.usuario_id=asesorid;
 END;
 $function$;
 
