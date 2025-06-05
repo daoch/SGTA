@@ -1276,3 +1276,81 @@ BEGIN
     ORDER BY c.anio DESC, c.semestre DESC;
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION obtener_alumnos_por_carrera_y_busqueda(
+    p_carrera_id       INT,
+    p_cadena_busqueda  TEXT
+)
+RETURNS TABLE(
+    usuario_id            INT,
+    codigo_pucp           VARCHAR,
+    nombres               VARCHAR,
+    primer_apellido       VARCHAR,
+    segundo_apellido      VARCHAR,
+    tema_titulo          TEXT,
+    tema_id              INT,
+    asesor               TEXT,
+    coasesor             TEXT,
+    activo               BOOLEAN
+)
+LANGUAGE SQL
+STABLE
+AS $$
+    SELECT DISTINCT
+      u.usuario_id,
+      u.codigo_pucp,
+      u.nombres,
+      u.primer_apellido,
+      u.segundo_apellido,
+      t.titulo::TEXT as tema_titulo,
+      t.tema_id,
+      (
+        SELECT u2.nombres || ' ' || u2.primer_apellido
+        FROM usuario_tema ut2
+        JOIN usuario u2 ON u2.usuario_id = ut2.usuario_id
+        JOIN rol r2 ON r2.rol_id = ut2.rol_id
+        WHERE ut2.tema_id = t.tema_id
+        AND r2.nombre = 'Asesor'
+        AND ut2.asignado = true
+        AND ut2.activo = true
+        LIMIT 1
+      ) as asesor,
+      (
+        SELECT u2.nombres || ' ' || u2.primer_apellido
+        FROM usuario_tema ut2
+        JOIN usuario u2 ON u2.usuario_id = ut2.usuario_id
+        JOIN rol r2 ON r2.rol_id = ut2.rol_id
+        WHERE ut2.tema_id = t.tema_id
+        AND r2.nombre = 'Coasesor'
+        AND ut2.asignado = true
+        AND ut2.activo = true
+        LIMIT 1
+      ) as coasesor,
+      u.activo
+    FROM usuario u
+    JOIN usuario_carrera uc
+      ON u.usuario_id = uc.usuario_id
+     AND uc.activo = true
+    JOIN tipo_usuario tu
+      ON u.tipo_usuario_id = tu.tipo_usuario_id
+    LEFT JOIN usuario_tema ut 
+      ON ut.usuario_id = u.usuario_id
+     AND ut.asignado = true
+     AND ut.activo = true
+    LEFT JOIN tema t
+      ON t.tema_id = ut.tema_id
+     AND t.activo = true
+    LEFT JOIN rol r
+      ON r.rol_id = ut.rol_id
+    WHERE u.activo = true
+      AND tu.nombre ILIKE 'alumno'
+      AND uc.carrera_id = p_carrera_id
+      AND r.nombre = 'Tesista'
+      AND (
+           u.nombres             ILIKE '%' || p_cadena_busqueda || '%'
+        OR u.primer_apellido     ILIKE '%' || p_cadena_busqueda || '%'
+        OR u.segundo_apellido    ILIKE '%' || p_cadena_busqueda || '%'
+        OR u.codigo_pucp         ILIKE '%' || p_cadena_busqueda || '%'
+        OR t.titulo             ILIKE '%' || p_cadena_busqueda || '%'
+      );
+$$;

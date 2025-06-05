@@ -23,6 +23,7 @@ import pucp.edu.pe.sgta.service.inter.CarreraService;
 import pucp.edu.pe.sgta.service.inter.JwtService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
 import pucp.edu.pe.sgta.dto.AlumnoTemaDto;
+import pucp.edu.pe.sgta.dto.AlumnoReporteDto;
 
 @RestController
 
@@ -304,6 +305,19 @@ public class UsuarioController {
             return this.usuarioService.findByCognitoId(usuarioId);
         } catch (RuntimeException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        }
+    }
+
+    @GetMapping("/findByStudentsForReviewer")
+    public ResponseEntity<List<AlumnoReporteDto>> findByStudentsForReviewer(
+            @RequestParam(required = false) Integer carreraId,
+            @RequestParam(required = false) String cadenaBusqueda) {
+        try {
+            List<AlumnoReporteDto> alumnos = usuarioService.findByStudentsForReviewer(carreraId, cadenaBusqueda);
+            return ResponseEntity.ok(alumnos);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(null);
         }
     }
 

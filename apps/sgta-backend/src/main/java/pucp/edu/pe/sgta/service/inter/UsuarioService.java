@@ -9,6 +9,7 @@ import pucp.edu.pe.sgta.dto.AlumnoTemaDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
 import java.util.List;
 import java.util.NoSuchElementException;
+import pucp.edu.pe.sgta.dto.AlumnoReporteDto;
 
 public interface UsuarioService {
 
@@ -92,4 +93,6 @@ public interface UsuarioService {
     UsuarioDto findByCognitoId(String cognitoId) throws NoSuchElementException;
 
     AlumnoTemaDto getAlumnoTema(String idAlumno);
+
+    List<AlumnoReporteDto> findByStudentsForReviewer(Integer carreraId, String cadenaBusqueda);
 }
