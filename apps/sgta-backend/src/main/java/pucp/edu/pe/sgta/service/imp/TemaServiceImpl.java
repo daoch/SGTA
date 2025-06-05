@@ -2375,7 +2375,7 @@ public class TemaServiceImpl implements TemaService {
 	public void rechazarPostulacionAlumno(Integer temaId, Integer idTesista, String idAsesor, String comentario) {
 		// 1) (Opcional) Validar que quien llama tenga permiso: p.ej. sea Asesor del tema
 		UsuarioDto usuDto = usuarioService.findByCognitoId(idAsesor);
-		validarRolAsignadoAtema(usuDto.getId(), temaId, RolEnum.Asesor.name());
+		//validarRolAsignadoAtema(usuDto.getId(), temaId, RolEnum.Asesor.name());
 
 		// 2) Buscar el registro de UsuarioXTema correspondiente
 		UsuarioXTema registro = usuarioXTemaRepository
