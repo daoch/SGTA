@@ -1,8 +1,11 @@
 package pucp.edu.pe.sgta.service.imp;
 
+import com.amazonaws.services.kms.model.NotFoundException;
+import org.hibernate.annotations.NotFound;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import pucp.edu.pe.sgta.dto.AsesorTesistaDto;
 import pucp.edu.pe.sgta.dto.asesores.InfoAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.asesores.InfoSubAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
@@ -57,6 +60,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     private final TipoUsuarioRepository tipoUsuarioRepository;
     private final CognitoService cognitoService;
     private final Logger logger = Logger.getLogger(TemaServiceImpl.class.getName());
+    private final AsesorTesistaRepository asesorTesistaRepository;
 
     @Autowired
     private RolRepository rolRepository;
@@ -70,7 +74,7 @@ public class UsuarioServiceImpl implements UsuarioService {
             AreaConocimientoRepository areaConocimientoRepository,
             UsuarioXAreaConocimientoRepository usuarioXAreaConocimientoRepository, CarreraRepository carreraRepository,
             UsuarioXTemaRepository usuarioXTemaRepository, TipoUsuarioRepository tipoUsuarioRepository,
-            CognitoService cognitoService) {
+            CognitoService cognitoService, AsesorTesistaRepository asesorTesistaRepository) {
         this.usuarioRepository = usuarioRepository;
         this.usuarioXSubAreaConocimientoRepository = usuarioXSubAreaConocimientoRepository;
         this.subAreaConocimientoRepository = subAreaConocimientoRepository;
@@ -80,6 +84,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         this.usuarioXTemaRepository = usuarioXTemaRepository;
         this.tipoUsuarioRepository = tipoUsuarioRepository;
         this.cognitoService = cognitoService;
+        this.asesorTesistaRepository = asesorTesistaRepository;
     }
 
     @Override

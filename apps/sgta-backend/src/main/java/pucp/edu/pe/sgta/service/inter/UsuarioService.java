@@ -1,5 +1,6 @@
 package pucp.edu.pe.sgta.service.inter;
 
+import pucp.edu.pe.sgta.dto.AsesorTesistaDto;
 import pucp.edu.pe.sgta.dto.asesores.FiltrosDirectorioAsesores;
 import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
 import pucp.edu.pe.sgta.dto.asesores.UsuarioConRolDto;

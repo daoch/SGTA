@@ -13,12 +13,14 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import org.springframework.web.server.ResponseStatusException;
+import pucp.edu.pe.sgta.dto.AsesorTesistaDto;
 import pucp.edu.pe.sgta.dto.asesores.FiltrosDirectorioAsesores;
 import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
 import pucp.edu.pe.sgta.dto.asesores.UsuarioConRolDto;
 import pucp.edu.pe.sgta.dto.asesores.UsuarioFotoDto;
 import pucp.edu.pe.sgta.dto.CarreraDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
+import pucp.edu.pe.sgta.repository.CarreraRepository;
 import pucp.edu.pe.sgta.service.inter.CarreraService;
 import pucp.edu.pe.sgta.service.inter.JwtService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
@@ -37,6 +39,8 @@ public class UsuarioController {
 
 	@Autowired
 	private UsuarioService usuarioService;
+    @Autowired
+    private CarreraRepository carreraRepository;
 
     @PostMapping("/create")
     public ResponseEntity<?> create(@RequestBody UsuarioDto user) {
@@ -327,7 +331,6 @@ public class UsuarioController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
         }
     }
-
 
 }
 
