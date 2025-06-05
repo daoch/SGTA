@@ -171,9 +171,9 @@ export default function ReunionesAsesoresPage() {
                     placeholder="Buscar por nombre o código"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="md:w-[300px] w-full"
+                    className="md:w-[400px] w-full"
                 />
-                <Select
+                {/* <Select
                     value={etapaFormativaSeleccionada?.nombre || "TODOS"}
                     onValueChange={(value) => {
                     if (value === "TODOS") {
@@ -195,7 +195,7 @@ export default function ReunionesAsesoresPage() {
                                 </SelectItem>
                             ))}
                     </SelectContent>
-                </Select>
+                </Select> */}
             </div>
 
             <div className="rounded-md border text-sm">
