@@ -18,10 +18,10 @@ import {
   TableHeader,
   TableRow,
 } from "../../../components/ui/table";
-import { RevisionResumen } from "../types/RevisionResumen.types";
+import { RevisionDocumentoAsesorDto } from "../dtos/RevisionDocumentoAsesorDto";
 
 interface RevisionesTableAsesorProps {
-  data: RevisionResumen[];
+  data: RevisionDocumentoAsesorDto[];
   filter?: string;
   searchQuery?: string;
   cursoFilter?: string;
@@ -50,13 +50,13 @@ export function RevisionesTableAsesor({
     );
   }
 
-  // Filtrar por búsqueda (nombre de estudiante o código)
   if (searchQuery) {
     const query = searchQuery.toLowerCase();
     revisionesFiltradas = revisionesFiltradas.filter(
       (revision) =>
         revision.estudiante.toLowerCase().includes(query) ||
-        revision.codigo.includes(query),
+        revision.codigo.includes(query) ||
+        revision.titulo.toLowerCase().includes(query)
     );
   }
 
@@ -113,22 +113,22 @@ export function RevisionesTableAsesor({
                   </TableCell>
                   <TableCell>
                     <Badge variant="outline" className="bg-gray-100">
-                      {revision.curso === "tesis1" ? "1INF42" : "1INF46"}
+                      {revision.curso}
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    {revision.porcentajePlagio !== null ? (
+                    {revision.porcentajeSimilitud !== null ? (
                       <div className="flex items-center gap-2">
                         <span
                           className={
-                            revision.porcentajePlagio > 20
+                            revision.porcentajeSimilitud > 20
                               ? "text-red-600"
-                              : revision.porcentajePlagio > 10
+                              : revision.porcentajeSimilitud > 10
                                 ? "text-yellow-600"
                                 : "text-green-600"
                           }
                         >
-                          {revision.porcentajePlagio}%
+                          {revision.porcentajeSimilitud}%
                         </span>
                       </div>
                     ) : (
@@ -136,7 +136,7 @@ export function RevisionesTableAsesor({
                     )}
                   </TableCell>
                   <TableCell>
-                    {revision.porcentajePlagio !== null ? (
+                    {revision.porcentajeSimilitud !== null ? (
                       <div className="flex items-center gap-2">
                         <span>-</span>
                       </div>
@@ -172,7 +172,7 @@ export function RevisionesTableAsesor({
                       {/* Botón de estado: condicionalmente cambia el href */}
                       <Link
                         href={
-                          revision.estado === "por-aprobar"
+                          revision.estado === "por_aprobar"
                             ? `/asesor/revision/revisar-doc/${revision.id}`
                             : `/asesor/revision/detalles-revision/${revision.id}`
                         }
@@ -187,7 +187,9 @@ export function RevisionesTableAsesor({
                                 ? "text-blue-600"
                                 : revision.estado === "rechazado"
                                   ? "text-red-600"
-                                  : "text-yellow-600"
+                                  : revision.estado === "por_aprobar"
+                                    ? "text-yellow-600"
+                                    : "text-muted-foreground"
                           }
                         >
                           {revision.estado === "revisado" ? (
@@ -204,6 +206,11 @@ export function RevisionesTableAsesor({
                             <>
                               <AlertTriangle className="mr-1 h-4 w-4" />
                               Rechazado
+                            </>
+                          ) : revision.estado === "por_aprobar" ? (
+                            <>
+                              <Search className="mr-1 h-4 w-4" />
+                              Por Aprobar
                             </>
                           ) : (
                             <>

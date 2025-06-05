@@ -7,6 +7,7 @@ import pucp.edu.pe.sgta.dto.TemaDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
 import pucp.edu.pe.sgta.dto.TemaConAsesorJuradoDTO;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.List;
 import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
 
@@ -124,6 +125,8 @@ public interface TemaService {
 	void postularTemaLibre(Integer temaId, String tesistaId, String comentario);
 
 	void inscribirTemaPreinscrito(Integer temaId, String idUsuario);
+
+	List<TemaDto>  listarPostuladosTemaLibre(String busqueda, String estado, LocalDate fechaLimite,Integer limit,Integer offset,String usuarioId);
 
 	void eliminarPostulacionTemaLibre(Integer temaId, String idUsuario);
 
