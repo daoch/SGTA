@@ -29,6 +29,7 @@ import pucp.edu.pe.sgta.service.inter.CognitoService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
 import pucp.edu.pe.sgta.util.RolEnum;
 import pucp.edu.pe.sgta.util.Utils;
+import pucp.edu.pe.sgta.dto.AlumnoReporteDto;
 
 import java.io.IOException;
 import java.io.BufferedReader;
@@ -1024,6 +1025,39 @@ public class UsuarioServiceImpl implements UsuarioService {
         }
     }
 
+    @Override
+    public List<AlumnoReporteDto> findByStudentsForReviewer(Integer carreraId, String cadenaBusqueda) {
+        String sql = """
+                SELECT *
+                FROM obtener_alumnos_por_carrera_y_busqueda(:carrera, :cadena)
+                """;
+
+        @SuppressWarnings("unchecked")
+        List<Object[]> rows = em.createNativeQuery(sql)
+                .setParameter("carrera", carreraId)
+                .setParameter("cadena", cadenaBusqueda)
+                .getResultList();
+
+        List<AlumnoReporteDto> lista = new ArrayList<>();
+        for (Object[] r : rows) {
+            AlumnoReporteDto alumno = AlumnoReporteDto.builder()
+                    .usuarioId((Integer) r[0])
+                    .codigoPucp((String) r[1])
+                    .nombres((String) r[2])
+                    .primerApellido((String) r[3])
+                    .segundoApellido((String) r[4])
+                    .temaTitulo((String) r[5])
+                    .temaId((Integer) r[6])
+                    .asesor((String) r[7])
+                    .coasesor((String) r[8])
+                    .activo((Boolean) r[9])
+                    .build();
+
+            lista.add(alumno);
+        }
+
+        return lista;
+    }
 
     @Override
     public List<DocentesDTO> getProfesores() {

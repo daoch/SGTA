@@ -1,6 +1,8 @@
 "use client";
 
+
 import { NotificationsDropdown } from "@/features/notifications/components/notifications-dropdown";
+
 import { Separator } from "@radix-ui/react-separator";
 import Image from "next/image";
 
