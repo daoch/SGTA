@@ -1162,6 +1162,7 @@ CREATE TABLE IF NOT EXISTS entregable_x_tema
     entregable_id        INTEGER,
     tema_id              INTEGER,
     fecha_envio          TIMESTAMP WITH TIME ZONE,
+    nota_final           NUMERIC(6, 2),
     comentario           TEXT,
     estado               enum_estado_entrega      NOT NULL DEFAULT 'no_enviado',
     activo               BOOLEAN                  NOT NULL DEFAULT TRUE,
