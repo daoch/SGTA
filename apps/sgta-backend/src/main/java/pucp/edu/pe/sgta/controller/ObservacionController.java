@@ -35,11 +35,11 @@ public class ObservacionController {
         observacionService.guardarObservaciones(revisionId, highlights, usuarioId);
         return ResponseEntity.ok().build();
     }
-    
+
     @GetMapping("/{revisionId}/observaciones")
-    public ResponseEntity<List<Observacion>> getObservacionesByRevision(
+    public ResponseEntity<List<HighlightDto>> getObservacionesByRevision(
             @PathVariable("revisionId") Integer revisionId) {
-        List<Observacion> observaciones = observacionService.obtenerObservacionesPorRevision(revisionId);
-        return ResponseEntity.ok(observaciones);
+        List<HighlightDto> highlights = observacionService.obtenerHighlightsPorRevision(revisionId);
+        return ResponseEntity.ok(highlights);
     }
 }

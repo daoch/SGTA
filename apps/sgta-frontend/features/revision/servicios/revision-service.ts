@@ -13,6 +13,13 @@ export async function descargarArchivoS3(key: string): Promise<Blob> {
     );
     return response.data;
 }
+export async function descargarArchivoS3RevisionID(id: number): Promise<Blob> {
+    const response = await axiosInstance.get(
+        `/s3/archivos/descargar-por-revision/${encodeURIComponent(String(id))}`,
+        { responseType: "blob" }
+    );
+    return response.data;
+}
 export interface PlagiarismFound {
     startIndex: number;
     endIndex: number;
@@ -72,7 +79,7 @@ interface ObservacionToHighlightRect {
 }
 
 interface ObservacionToHighlight {
-  observacionId: string | number;
+  id: string | number;
   contenido?: string;
   comentario?: string;
   tipoObservacion?: {
@@ -83,43 +90,69 @@ interface ObservacionToHighlight {
   numeroPaginaInicio?: number;
 }
 
-function observacionToIHighlight(obs: ObservacionToHighlight): IHighlight {
+export interface HighlightDto {
+  id: number | string;
+  position: {
+    boundingRect: {
+      x1: number;
+      y1: number;
+      x2: number;
+      y2: number;
+      width: number;
+      height: number;
+      pageNumber?: number | null;
+    };
+    rects: Array<{
+      x1: number;
+      y1: number;
+      x2: number;
+      y2: number;
+      width: number;
+      height: number;
+      pageNumber?: number | null;
+    }>;
+    pageNumber: number;
+    usePdfCoordinates?: boolean | null;
+  };
+  content: {
+    text?: string | null;
+    image?: string | null;
+  };
+  comment: {
+    text: string;
+    emoji: string;
+  };
+}
+
+// Mapea el DTO a IHighlight
+function highlightDtoToIHighlight(dto: HighlightDto): IHighlight {
   return {
-    id: String(obs.observacionId),
+    id: String(dto.id),
     content: {
-      text: obs.contenido ?? "",
-      // Si tienes imágenes, puedes mapearlas aquí
+      text: dto.content?.text ?? "",
+      image: dto.content?.image ?? "",
     },
     comment: {
-      text: obs.comentario ?? "",
-      emoji: obs.tipoObservacion?.nombreTipo ?? "", // o el campo que corresponda
+      text: dto.comment?.text ?? "",
+      emoji: dto.comment?.emoji ?? "",
     },
     position: {
       boundingRect: {
-        x1: obs.boundingRect?.x1 ?? 0,
-        y1: obs.boundingRect?.y1 ?? 0,
-        x2: obs.boundingRect?.x2 ?? 0,
-        y2: obs.boundingRect?.y2 ?? 0,
-        width: obs.boundingRect?.width ?? 0,
-        height: obs.boundingRect?.height ?? 0,
-        pageNumber: obs.boundingRect?.pageNumber ?? obs.numeroPaginaInicio ?? 1,
+        ...dto.position.boundingRect,
+        pageNumber: dto.position.boundingRect.pageNumber ?? undefined,
       },
-      rects: (obs.rects ?? []).map((r: ObservacionToHighlightRect) => ({
-        x1: r.x1 ?? 0,
-        y1: r.y1 ?? 0,
-        x2: r.x2 ?? 0,
-        y2: r.y2 ?? 0,
-        width: r.width ?? 0,
-        height: r.height ?? 0,
-        pageNumber: r.pageNumber ?? obs.numeroPaginaInicio ?? 1,
+      rects: (dto.position.rects ?? []).map(rect => ({
+        ...rect,
+        pageNumber: rect.pageNumber === null ? undefined : rect.pageNumber,
       })),
-      pageNumber: obs.numeroPaginaInicio ?? 1,
-      usePdfCoordinates: true, // si corresponde
+      pageNumber: dto.position.pageNumber ?? 1,
+      usePdfCoordinates: dto.position.usePdfCoordinates ?? false,
     },
   };
 }
 export async function obtenerObservacionesRevision(revisionId: number): Promise<IHighlight[]> {
   const response = await axiosInstance.get(`/revision/${revisionId}/observaciones`);
   // Mapea cada observación del backend a IHighlight
-  return response.data.map(observacionToIHighlight);
+  console.log("Response data:", response.data);
+  return response.data.map(highlightDtoToIHighlight);
 }

@@ -17,6 +17,7 @@ import {
     Popup
 } from "react-pdf-highlighter";
 
+import AppLoading from "@/components/loading/app-loading";
 import { CustomTip } from "@/components/ui/customtip";
 import { AlertTriangle, FileWarning, Quote } from "lucide-react";
 
@@ -57,11 +58,11 @@ interface HighlighterPdfViewerProps {
 }
 function getIconByName(name: string) {
     switch (name) {
-        case "contenido":
+        case "Contenido":
             return <FileWarning className="h-4 w-4 text-yellow-500" />;
-        case "similitud":
+        case "Similitud":
             return <AlertTriangle className="h-4 w-4 text-red-500" />;
-        case "citado":
+        case "Citado":
             return <Quote className="h-4 w-4 text-blue-500" />;
         default:
             return null;
@@ -146,7 +147,7 @@ const HighlighterPdfViewer: React.FC<HighlighterPdfViewerProps> = ({
 
     return (
         <div style={{ position: "absolute", top: 0, left: 0, bottom: 0, right: 0, border: "1px solid #e5e7eb" }}>
-            <PdfLoader url={pdfUrl} beforeLoad={<div>Loading...</div>}>
+            <PdfLoader url={pdfUrl} beforeLoad={<AppLoading />}>
                 {(pdfDocument) => (
                     <PdfHighlighter
                         pdfDocument={pdfDocument}

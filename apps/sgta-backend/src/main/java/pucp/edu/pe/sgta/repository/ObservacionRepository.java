@@ -10,4 +10,5 @@ import pucp.edu.pe.sgta.model.Observacion;
 public interface ObservacionRepository extends JpaRepository<Observacion, Long> {
     // Puedes agregar métodos personalizados si los necesitas
     List<Observacion> findByRevisionDocumento_Id(Integer revisionId);
+    boolean existsByObservacionId(Integer highlightId);
 }
