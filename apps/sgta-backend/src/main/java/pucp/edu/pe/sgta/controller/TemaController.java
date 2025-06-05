@@ -200,10 +200,10 @@ public class TemaController {
 		}
 	}
 
-	@GetMapping("/listarTemasCicloActualXEtapaFormativa/{etapaFormativaId}")
+	@GetMapping("/listarTemasCicloActualXEtapaFormativa/{etapaFormativaId}/{exposicionId}")
 	public List<TemaConAsesorJuradoDTO> listarTemasCicloActualXEtapaFormativa(
-			@PathVariable("etapaFormativaId") Integer etapaFormativaId) {
-		return temaService.listarTemasCicloActualXEtapaFormativa(etapaFormativaId);
+			@PathVariable("etapaFormativaId") Integer etapaFormativaId, @PathVariable("exposicionId") Integer exposicionId ) {
+		return temaService.listarTemasCicloActualXEtapaFormativa(etapaFormativaId,exposicionId);
 	}
 
 	@PostMapping("/deleteTema") // deletes a topic

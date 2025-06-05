@@ -15,4 +15,6 @@ public interface ControlExposicionUsuarioTemaService {
 
     void delete(Integer id);
 
+    void updateEstadoRespuestaExposicion(Integer exposicionId, Integer temaId);
+
 }
