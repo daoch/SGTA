@@ -15,7 +15,6 @@ import { useClientPagination } from "../hooks/use-exposiciones-pagination";
 import { useFetchExposicionFilters } from "../hooks/use-fetch-exposicion-filters";
 import { useFetchExposiciones } from "../hooks/use-fetch-exposiciones";
 
-
 export const ExposicionesCoordinadorPage: FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
 

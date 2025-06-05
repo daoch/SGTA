@@ -27,21 +27,15 @@ public class EtapaFormativaController {
     private EtapaFormativaService etapaFormativaService;
 
     @Autowired
-    private JwtService jwtService;
+    JwtService jwtService;
 
     @Autowired
-    private UsuarioService usuarioService;
+    UsuarioService usuarioService;
 
     @GetMapping("/listarPorInicializarByCoordinador")
     public List<EtapaFormativaNombreDTO> obtenerPorInicializarPorCoordinador(HttpServletRequest request) {
         String cognitoId = jwtService.extractSubFromRequest(request);
-
-        //System.out.println("Cognito ID del usuario: " + cognitoId);
-        
         UsuarioDto usuario = this.usuarioService.findByCognitoId(cognitoId);
-
-        //System.out.println("ID del usuario: " + usuario.getId());
-
         return etapaFormativaService.findToInitializeByCoordinador(usuario.getId());
     }
 
@@ -58,13 +52,7 @@ public class EtapaFormativaController {
     @GetMapping("/listarActivasPorCoordinador")
     public List<EtapaFormativaDto> obtenerEtapasFormativasActivasPorCoordinador(HttpServletRequest request) {
         String cognitoId = jwtService.extractSubFromRequest(request);
-
-        System.out.println("Cognito ID del usuario: " + cognitoId);
-
         UsuarioDto usuario = this.usuarioService.findByCognitoId(cognitoId);
-
-        System.out.println("ID del usuario: " + usuario.getId());
-
         return etapaFormativaService.findAllActivasByCoordinador(usuario.getId());
     }
 

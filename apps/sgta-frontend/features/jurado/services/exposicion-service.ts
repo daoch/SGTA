@@ -6,7 +6,7 @@ import axios from "axios";
 
 export const getEtapasFormativasPorInicializarByCoordinador = async () => {
   const response = await axiosInstance.get(
-    "/etapas-formativas/listarPorInicializarByCoordinador"
+    "/etapas-formativas/listarPorInicializarByCoordinador",
   );
   return response.data;
 };
@@ -114,7 +114,9 @@ export const getCursos = async () => {
 
 export const getCursosByCoordinador = async () => {
   try {
-    const response = await axiosInstance.get("/etapas-formativas/listarActivasPorCoordinador"); // tokenId ya está enviándose
+    const response = await axiosInstance.get(
+      "/etapas-formativas/listarActivasPorCoordinador",
+    );
     return response.data;
   } catch (error) {
     console.error("Error al obtener cursos por coordinador:", error);
@@ -135,7 +137,7 @@ export const getEstadosExposicion = async () => {
 export const getExposicionesInicializadasByCoordinador = async () => {
   try {
     const response = await axiosInstance.get(
-      "/exposicion/listarExposicionesInicializadasXCoordinador" //tokenId ya está enviándose
+      "/exposicion/listarExposicionesInicializadasXCoordinador",
     );
     return response.data;
   } catch (error) {
