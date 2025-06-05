@@ -184,6 +184,7 @@ public class TemaController {
 		}
 	}
 
+
 	@GetMapping("/listarTemasAsesorInvolucrado/{asesorId}")
 	public List<InfoTemaPerfilDto> listarTemasAsesorInvolucrado(@PathVariable("asesorId") Integer asesorId) {
 		return temaService.listarTemasAsesorInvolucrado(asesorId);

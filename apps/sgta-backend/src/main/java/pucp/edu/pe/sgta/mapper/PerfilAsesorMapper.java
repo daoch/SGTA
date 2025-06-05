@@ -11,7 +11,9 @@ public class PerfilAsesorMapper {
         dto.setEmail(usuario.getCorreoElectronico());
         dto.setLinkedin(usuario.getEnlaceLinkedin());
         dto.setRepositorio(usuario.getEnlaceRepositorio());
-        dto.setBiografia(usuario.getBiografia());
+        String biografia = usuario.getBiografia();
+        if (biografia != null) {biografia = "";}
+        dto.setBiografia(biografia);
         return dto;
     }
 }

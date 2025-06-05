@@ -118,11 +118,17 @@ export async function aceptarSolicitud(
   rolSolicitud: string,
 ): Promise<SolicitudCambioAsesorResumen[]> {
   try {
-    const response = await axiosInstance.post("/solicitudes/aceptarSolicitud", {
-      idUsuario,
-      idSolicitud,
-      rolSolicitud,
-    });
+    const response = await axiosInstance.patch(
+      "/solicitudes/aprobarSolicitudCambioAsesor",
+      null,
+      {
+        params: {
+          idUsuario,
+          idSolicitud,
+          rolSolicitud,
+        },
+      },
+    );
 
     return response.data as SolicitudCambioAsesorResumen[];
   } catch (error: unknown) {
@@ -141,12 +147,16 @@ export async function rechazarSolicitud(
   rolSolicitud: string,
 ): Promise<SolicitudCambioAsesorResumen[]> {
   try {
-    const response = await axiosInstance.post(
-      "/solicitudes/rechazarSolicitud",
+    console.log(idSolicitud, idUsuario, rolSolicitud);
+    const response = await axiosInstance.patch(
+      "/solicitudes/rechazarSolicitudCambioAsesor",
+      null,
       {
-        idUsuario,
-        idSolicitud,
-        rolSolicitud,
+        params: {
+          idUsuario,
+          idSolicitud,
+          rolSolicitud,
+        },
       },
     );
 

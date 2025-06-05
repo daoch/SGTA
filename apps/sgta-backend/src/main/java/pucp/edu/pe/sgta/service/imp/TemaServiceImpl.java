@@ -1308,7 +1308,7 @@ public class TemaServiceImpl implements TemaService {
 				String nombreTesista = (String) tesista[0] + " " + (String) tesista[1];
 				tesistas.add(nombreTesista);
 			}
-			dto.setEstudiantes(tesistas);
+			dto.setEstudiantes(String.join(" - ", tesistas));
 
 			// Añadir el nivel
 
