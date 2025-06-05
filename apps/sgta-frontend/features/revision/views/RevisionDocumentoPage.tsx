@@ -159,7 +159,7 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
   useEffect(() => {
     async function fetchObservaciones() {
       try {
-        const data = await obtenerObservacionesRevision(revision.id);
+        const data = await obtenerObservacionesRevision(params.id_revision);
         console.log("Observaciones obtenidas:", data);
         setHighlights(data);
       } catch (e) {
