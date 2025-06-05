@@ -7,13 +7,35 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class CriterioEntregableDto {
-
     private Integer id;
     private String nombre;
     private BigDecimal notaMaxima;
     private String descripcion;
+    private Double nota; // este puede quedar null o asignarlo luego
 
+    /** Este constructor de 4 argumentos es el que usará la consulta JPQL “new …” */
+    public CriterioEntregableDto(Integer id,
+                                 String nombre,
+                                 BigDecimal notaMaxima,
+                                 String descripcion) {
+        this.id = id;
+        this.nombre = nombre;
+        this.notaMaxima = notaMaxima;
+        this.descripcion = descripcion;
+        // nota queda null hasta que tú la llenes manualmente después
+    }
+
+    /** Opcional: constructor completo */
+    public CriterioEntregableDto(Integer id,
+                                 String nombre,
+                                 BigDecimal notaMaxima,
+                                 String descripcion,
+                                 Double nota) {
+        this.id = id;
+        this.nombre = nombre;
+        this.notaMaxima = notaMaxima;
+        this.descripcion = descripcion;
+        this.nota = nota;
+    }
 }
