@@ -2,39 +2,32 @@ package pucp.edu.pe.sgta.controller;
 
 import java.util.List;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
 import pucp.edu.pe.sgta.dto.*;
 import pucp.edu.pe.sgta.service.inter.EtapaFormativaService;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestBody;
-
 import pucp.edu.pe.sgta.dto.EtapaFormativaListadoDto;
 import pucp.edu.pe.sgta.dto.EtapaFormativaDetalleDto;
-
-
-import jakarta.validation.Valid;
-import org.springframework.web.bind.annotation.*;
-import pucp.edu.pe.sgta.dto.UpdateEtapaFormativaRequest;
-
-import pucp.edu.pe.sgta.dto.*;
-
+import pucp.edu.pe.sgta.service.inter.JwtService;
 
 @RestController
 @RequestMapping("/etapas-formativas")
 public class EtapaFormativaController {
     @Autowired
     EtapaFormativaService etapaFormativaService;
+
+    @Autowired
+    JwtService jwtService;
 
     @GetMapping("/listarPorInicializarByCoordinador/{corodinador_id}")
     public List<EtapaFormativaNombreDTO> obtenerPorInicializarPorCoordinador(
@@ -116,8 +109,9 @@ public class EtapaFormativaController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/alumno/{alumnoId}")
-    public List<EtapaFormativaAlumnoDto> listarEtapasFormativasPorAlumno(@PathVariable Integer alumnoId) {
+    @GetMapping("/alumno")
+    public List<EtapaFormativaAlumnoDto> listarEtapasFormativasPorAlumno(HttpServletRequest request) {
+        String alumnoId = jwtService.extractSubFromRequest(request);
         return etapaFormativaService.listarEtapasFormativasPorAlumno(alumnoId);
     }
 

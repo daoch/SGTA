@@ -127,4 +127,7 @@ public interface RevisionDocumentoRepository extends JpaRepository<RevisionDocum
             rd.fecha_creacion DESC
     """, nativeQuery = true)
     List<Object[]> findRevisionesByRevisorId(@Param("revisorId") Integer revisorId);
+
+    @Query(value = "SELECT * FROM obtener_documentos_asesor(:asesorId)", nativeQuery = true)
+    List<Object[]> listarRevisionDocumentosPorAsesor(@Param("asesorId") Integer asesorId);
 } 

@@ -4,12 +4,17 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.NoSuchElementException;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import org.springframework.web.server.ResponseStatusException;
 import pucp.edu.pe.sgta.dto.asesores.FiltrosDirectorioAsesores;
 import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
 import pucp.edu.pe.sgta.dto.asesores.UsuarioConRolDto;
@@ -17,6 +22,7 @@ import pucp.edu.pe.sgta.dto.asesores.UsuarioFotoDto;
 import pucp.edu.pe.sgta.dto.CarreraDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
 import pucp.edu.pe.sgta.service.inter.CarreraService;
+import pucp.edu.pe.sgta.service.inter.JwtService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
 import pucp.edu.pe.sgta.dto.AlumnoTemaDto;
 
@@ -29,11 +35,22 @@ public class UsuarioController {
     private CarreraService carreraService;
 
     @Autowired
-    private UsuarioService usuarioService;
+    JwtService jwtService;
+
+	@Autowired
+	private UsuarioService usuarioService;
 
     @PostMapping("/create")
-    public void create(@RequestBody UsuarioDto dto) {
-        this.usuarioService.createUsuario(dto);
+    public ResponseEntity<?> create(@RequestBody UsuarioDto user) {
+
+        try {
+            usuarioService.createUsuario(user);
+            return ResponseEntity.ok("Usuario procesado exitosamente");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al procesar el usuario: " + e.getMessage());
+        }
+
     }
 
     @GetMapping("/findByTipoUsuarioAndCarrera")
@@ -181,10 +198,11 @@ public class UsuarioController {
         return usuarioService.getIdByCorreo(correo);
     }
 
-    @GetMapping("/{id}/carreras")
+    @GetMapping("/carreras")
     public ResponseEntity<List<CarreraDto>> listarCarreras(
-            @PathVariable("id") Integer usuarioId) {
+            HttpServletRequest request) {
 
+        String usuarioId = jwtService.extractSubFromRequest(request); 
         List<CarreraDto> carreras = carreraService.listarCarrerasPorUsuario(usuarioId);
 
         if (carreras.isEmpty()) {
@@ -224,9 +242,47 @@ public class UsuarioController {
         }
     }
 
-    @GetMapping("/detalle-tema-alumno/{idUsuario}")
-    public ResponseEntity<AlumnoTemaDto> getDetalleTemaAlumno(@PathVariable("idUsuario") Integer idUsuario) {
+    @GetMapping("/find_all")
+    public ResponseEntity<List<UsuarioDto>> findAllUsuarios() {
         try {
+            List<UsuarioDto> usuarios = usuarioService.findAllUsuarios();
+            return new ResponseEntity<>(usuarios, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<String> deleteUsuario(@PathVariable Integer id) {
+        try {
+            usuarioService.deleteUsuario(id);
+            return new ResponseEntity<>("Usuario eliminado exitosamente", HttpStatus.OK);
+        } catch (NoSuchElementException e) {
+            return new ResponseEntity<>("Usuario no encontrado: " + e.getMessage(), HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Error al eliminar el usuario: " + e.getMessage(),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PutMapping("/update/{id}")
+    public ResponseEntity<String> updateUsuario(@PathVariable Integer id, @RequestBody UsuarioDto usuarioDto) {
+        try {
+            usuarioService.updateUsuario(id, usuarioDto);
+            return new ResponseEntity<>("Usuario actualizado exitosamente", HttpStatus.OK);
+        } catch (NoSuchElementException e) {
+            return new ResponseEntity<>("Usuario no encontrado: " + e.getMessage(), HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Error al actualizar el usuario: " + e.getMessage(),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+    @GetMapping("/detalle-tema-alumno")
+    public ResponseEntity<AlumnoTemaDto> getDetalleTemaAlumno(HttpServletRequest request) {
+        try {
+            String idUsuario = jwtService.extractSubFromRequest(request);
             AlumnoTemaDto tema = usuarioService.getAlumnoTema(idUsuario);
             return ResponseEntity.ok(tema);
         } catch (NoSuchElementException e) {
@@ -236,9 +292,46 @@ public class UsuarioController {
         }
 
     }
+
+{/*
+    //Probando lo del Id_Token
+    @GetMapping("/detalle-tema-alumno/{idUsuario}")
+    public ResponseEntity<AlumnoTemaDto> getDetalleTemaAlumno(@AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            // Obtén el username (o email, o sub) desde el token
+            Integer idUsuario = Integer.parseInt(userDetails.getUsername());
+            // Si necesitas el id, búscalo en tu base de datos usando el username/email
+            AlumnoTemaDto tema = usuarioService.getAlumnoTema(idUsuario);
+            return ResponseEntity.ok(tema);
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+*/}
+
+
+
+
     
     @GetMapping("/getAsesoresBySubArea")
     public List<UsuarioDto> getAsesoresBySubArea(@RequestParam(name = "idSubArea") Integer idSubArea) {
         return this.usuarioService.getAsesoresBySubArea(idSubArea);
     }
+
+    @GetMapping("/getInfoUsuarioLogueado")
+    public UsuarioDto getInfoUsuarioLogueado(HttpServletRequest request) {
+        try {
+            String usuarioId = jwtService.extractSubFromRequest(request);
+            return this.usuarioService.findByCognitoId(usuarioId);
+        } catch (RuntimeException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        }
+    }
+
+
 }
+
+
+

@@ -20,4 +20,7 @@ export interface PlanificacionState {
   // Métodos para asignar y desasignar temas a bloques
   asignarTemaABloque: (tema: Tema, bloqueId: number) => void;
   desasignarTemaDeBloque: (bloqueId: number) => void;
+  desasignarTodosLosTemas: () => void;
+
+  generarDistribucionAutomatica: () => Promise<void>;
 }

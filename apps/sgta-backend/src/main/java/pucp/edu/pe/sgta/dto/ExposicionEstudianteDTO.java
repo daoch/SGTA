@@ -14,7 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ExposicionEstudianteDTO {
-
+    private Integer estudianteId;
     private Integer exposicionId;
     private Integer temaId;
     private String estado;

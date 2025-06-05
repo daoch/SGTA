@@ -4,11 +4,8 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import pucp.edu.pe.sgta.dto.AreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.CicloConEtapasDTO;
 import pucp.edu.pe.sgta.dto.CicloDto;
-import pucp.edu.pe.sgta.dto.UsuarioDto;
-import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
 import pucp.edu.pe.sgta.model.Ciclo;
 import pucp.edu.pe.sgta.service.inter.CicloService;
 
@@ -30,13 +27,13 @@ public class CicloController {
     }
 
     @PostMapping("/create")
-	public void create(@RequestBody CicloDto dto) {
-		this.cicloService.create(dto);
-	}
+    public void create(@RequestBody CicloDto dto) {
+        this.cicloService.create(dto);
+    }
 
     @PutMapping("/update")
-	public void update(@RequestBody CicloDto dto) {
-		cicloService.update(dto);
-	}
+    public void update(@RequestBody CicloDto dto) {
+        cicloService.update(dto);
+    }
 
 }
