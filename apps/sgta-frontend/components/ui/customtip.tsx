@@ -15,9 +15,9 @@ interface CustomTipState {
     emoji: string;
 }
 const iconOptions = [
-    { value: "contenido", icon: <FileWarning className="h-5 w-5 text-yellow-500" /> },
-    { value: "similitud", icon: <AlertTriangle className="h-5 w-5 text-red-500" /> },
-    { value: "citado", icon: <Quote className="h-5 w-5 text-blue-500" /> },
+    { value: "Contenido", icon: <FileWarning className="h-5 w-5 text-yellow-500" /> },
+    { value: "Similitud", icon: <AlertTriangle className="h-5 w-5 text-red-500" /> },
+    { value: "Citado", icon: <Quote className="h-5 w-5 text-blue-500" /> },
 ];
 export class CustomTip extends Component<CustomTipProps, CustomTipState> {
     state: CustomTipState = { compact: true, text: "", emoji: "" };
