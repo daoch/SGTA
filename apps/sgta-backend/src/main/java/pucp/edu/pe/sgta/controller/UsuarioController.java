@@ -18,12 +18,15 @@ import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
 import pucp.edu.pe.sgta.dto.asesores.UsuarioConRolDto;
 import pucp.edu.pe.sgta.dto.asesores.UsuarioFotoDto;
 import pucp.edu.pe.sgta.dto.CarreraDto;
+import pucp.edu.pe.sgta.dto.DocentesDTO;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
 import pucp.edu.pe.sgta.service.inter.CarreraService;
 import pucp.edu.pe.sgta.service.inter.JwtService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
 import pucp.edu.pe.sgta.dto.AlumnoTemaDto;
 import pucp.edu.pe.sgta.dto.AlumnoReporteDto;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 
@@ -36,8 +39,8 @@ public class UsuarioController {
     @Autowired
     JwtService jwtService;
 
-	@Autowired
-	private UsuarioService usuarioService;
+    @Autowired
+    private UsuarioService usuarioService;
 
     @PostMapping("/create")
     public ResponseEntity<?> create(@RequestBody UsuarioDto user) {
@@ -292,7 +295,6 @@ public class UsuarioController {
 
     }
 
-    
     @GetMapping("/getAsesoresBySubArea")
     public List<UsuarioDto> getAsesoresBySubArea(@RequestParam(name = "idSubArea") Integer idSubArea) {
         return this.usuarioService.getAsesoresBySubArea(idSubArea);
@@ -321,8 +323,15 @@ public class UsuarioController {
         }
     }
 
+    @GetMapping("/getProfesoresActivos")
+    public List<DocentesDTO> getProfesoresActivos() {
+        try {
+            List<DocentesDTO> docentes = usuarioService.getProfesores();
+            return docentes;
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Error al obtener profesores activos: " + e.getMessage());
+        }
+    }
 
 }
-
-
-

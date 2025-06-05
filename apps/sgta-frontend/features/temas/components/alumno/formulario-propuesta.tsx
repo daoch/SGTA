@@ -469,9 +469,9 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
           >
             Cancelar
           </Button>
-          <Button variant="outline" onClick={() => setOpenSimilarDialog(true)}>
-            Probar similitud
-          </Button>
+          {/*/<Button variant="outline" onClick={() => setOpenSimilarDialog(true)}>
+            Probar similitud</CardFooter>
+          </Button>/*/}
           <Button
             onClick={handleLocalSubmit}
             className="bg-[#042354] text-white"

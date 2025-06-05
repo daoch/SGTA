@@ -6,6 +6,7 @@ import pucp.edu.pe.sgta.dto.asesores.UsuarioConRolDto;
 import pucp.edu.pe.sgta.dto.asesores.UsuarioFotoDto;
 import org.springframework.web.multipart.MultipartFile;
 import pucp.edu.pe.sgta.dto.AlumnoTemaDto;
+import pucp.edu.pe.sgta.dto.DocentesDTO;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -91,6 +92,8 @@ public interface UsuarioService {
     void procesarArchivoUsuarios(MultipartFile archivo) throws Exception;
 
     UsuarioDto findByCognitoId(String cognitoId) throws NoSuchElementException;
+
+    List<DocentesDTO> getProfesores();
 
     AlumnoTemaDto getAlumnoTema(String idAlumno);
 
