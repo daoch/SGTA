@@ -998,7 +998,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE PROCEDURE terminar_planificacion(idExposicion INT, idEtapaFormativa INT)
+CREATE OR REPLACE PROCEDURE intsertar_control_exposcion(idExposicion INT, idEtapaFormativa INT)
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -1154,8 +1154,6 @@ END;
 $function$
 ;
 
-
-
 CREATE OR REPLACE PROCEDURE update_estado_exposicion_usuario(
     IN p_exposicion_id INTEGER,
     IN p_tema_id INTEGER
@@ -1172,4 +1170,3 @@ BEGIN
 	where exposicion_x_tema_id =ext_id;
 END;
 $$;
-
