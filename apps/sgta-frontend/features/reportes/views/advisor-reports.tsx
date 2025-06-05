@@ -14,9 +14,65 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { advisorService, Student } from "@/features/asesores/services/advisor-service";
-import { Calendar, ExternalLink } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Calendar, ExternalLink, LayoutGrid, Table } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+
+interface CircularProgressProps {
+  value: number;
+  size?: "sm" | "md" | "lg";
+  showLabel?: boolean;
+}
+
+function CircularProgress({ value, size = "md", showLabel = true }: CircularProgressProps) {
+  const circumference = 2 * Math.PI * 45; // radio 45 para el círculo SVG
+  const strokeDashoffset = circumference - (value / 100) * circumference;
+  
+  const sizeClasses = {
+    sm: "w-12 h-12",
+    md: "w-16 h-16",
+    lg: "w-20 h-20"
+  };
+
+  const fontSize = {
+    sm: "text-xs",
+    md: "text-sm",
+    lg: "text-base"
+  };
+
+  return (
+    <div className={cn("relative", sizeClasses[size])}>
+      <svg className="w-full h-full transform -rotate-90">
+        <circle
+          cx="50%"
+          cy="50%"
+          r="45%"
+          className="stroke-gray-200"
+          strokeWidth="10%"
+          fill="none"
+        />
+        <circle
+          cx="50%"
+          cy="50%"
+          r="45%"
+          className="stroke-[#002855] transition-all duration-300 ease-in-out"
+          strokeWidth="10%"
+          fill="none"
+          style={{
+            strokeDasharray: circumference,
+            strokeDashoffset: strokeDashoffset,
+          }}
+        />
+      </svg>
+      {showLabel && (
+        <div className={cn("absolute inset-0 flex items-center justify-center", fontSize[size])}>
+          <span className="font-semibold">{value}%</span>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function AdvisorReports() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -27,12 +83,15 @@ export function AdvisorReports() {
   const [showStatusFilter, setShowStatusFilter] = useState(false);
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
+  const progressFilterRef = useRef<HTMLDivElement>(null);
+  const statusFilterRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchStudents = async () => {
       try {
         setLoading(true);
-        const data = await advisorService.getAdvisorStudents("1");
+        const data = await advisorService.getAdvisorStudents("5");
         console.log("Datos recibidos:", data);
         setStudents(data);
       } catch (error) {
@@ -46,25 +105,66 @@ export function AdvisorReports() {
     fetchStudents();
   }, []);
 
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (progressFilterRef.current && !progressFilterRef.current.contains(event.target as Node)) {
+        setShowProgressFilter(false);
+      }
+      if (statusFilterRef.current && !statusFilterRef.current.contains(event.target as Node)) {
+        setShowStatusFilter(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const getProgressFilterLabel = () => {
+    switch (progressFilter) {
+      case "low":
+        return "Bajo (<30%)";
+      case "medium":
+        return "Medio (30-70%)";
+      case "high":
+        return "Alto (>70%)";
+      default:
+        return "Todos";
+    }
+  };
+
+  const getStatusFilterLabel = () => {
+    switch (statusFilter) {
+      case "onTrack":
+        return "En progreso normal";
+      case "atRisk":
+        return "En riesgo";
+      case "delayed":
+        return "Con retraso";
+      default:
+        return "Todos";
+    }
+  };
 
   const renderStudentStatus = (estado: string) => {
     switch (estado) {
-      case "retrasado":
+      case "no_iniciado":
         return (
-          <span className="inline-block px-2 py-0.5 text-xs rounded-full bg-red-100 text-red-800">
-            Retrasado
+          <span className="inline-block px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-800">
+            No iniciado
           </span>
         );
-      case "pendiente":
+      case "en_progreso":
         return (
-          <span className="inline-block px-2 py-0.5 text-xs rounded-full bg-yellow-100 text-yellow-800">
-            Pendiente
+          <span className="inline-block px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-800">
+            En progreso
           </span>
         );
-      case "enviado_a_tiempo":
+      case "terminado":
         return (
           <span className="inline-block px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-800">
-            En progreso
+            Terminado
           </span>
         );
       default:
@@ -94,7 +194,7 @@ export function AdvisorReports() {
       case "en_proceso":
         studentProgress = 50;
         break;
-      case "completado":
+      case "terminado":
         studentProgress = 100;
         break;
     }
@@ -110,8 +210,8 @@ export function AdvisorReports() {
     const matchesStatus =
       statusFilter === "all" ||
       (statusFilter === "onTrack" && student.entregableEnvioEstado === "enviado_a_tiempo") ||
-      (statusFilter === "atRisk" && student.entregableEnvioEstado === "pendiente") ||
-      (statusFilter === "delayed" && student.entregableEnvioEstado === "retrasado");
+      (statusFilter === "atRisk" && student.entregableEnvioEstado === "no_enviado") ||
+      (statusFilter === "delayed" && student.entregableEnvioEstado === "enviado_tarde");
 
     return matchesSearch && matchesProgress && matchesStatus;
   });
@@ -119,14 +219,16 @@ export function AdvisorReports() {
   // Calcular estadísticas del asesor
   const totalStudents = students.length;
   const studentsWithDelay = students.filter(
-    (student) => student.entregableEnvioEstado === "retrasado"
+    (student) => student.entregableEnvioEstado === "enviado_tarde"
   ).length;
-  const studentsAtRisk = students.filter(
-    (student) => student.entregableEnvioEstado === "pendiente"
+
+  // Contar estudiantes por etapa de carrera
+  const studentsInPFC1 = students.filter(
+    (student) => student.etapaFormativaNombre === "Proyecto de fin de carrera 1"
   ).length;
-  const averageProgress = totalStudents === 0 ? 0 : Math.round(
-    students.filter(student => student.entregableActualEstado === "completado").length / totalStudents * 100
-  );
+  const studentsInPFC2 = students.filter(
+    (student) => student.etapaFormativaNombre === "Proyecto de fin de carrera 2"
+  ).length;
 
   // Función para manejar el clic en el botón de filtro por progreso
   const handleProgressFilterClick = () => {
@@ -211,226 +313,309 @@ export function AdvisorReports() {
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-4 md:grid-cols-4 gap-4">
               <div className="bg-[#F5F5F5] p-4 rounded-lg">
                 <div className="text-3xl font-bold text-[#002855]">{totalStudents}</div>
                 <div className="text-sm text-gray-500">Total de tesistas</div>
-              </div>
-              <div className="bg-[#F5F5F5] p-4 rounded-lg">
-                <div className="text-3xl font-bold text-[#006699]">{averageProgress}%</div>
-                <div className="text-sm text-gray-500">Progreso promedio</div>
               </div>
               <div className="bg-[#F5F5F5] p-4 rounded-lg">
                 <div className="text-3xl font-bold text-red-600">{studentsWithDelay}</div>
                 <div className="text-sm text-gray-500">Con retraso</div>
               </div>
               <div className="bg-[#F5F5F5] p-4 rounded-lg">
-                <div className="text-3xl font-bold text-yellow-600">{studentsAtRisk}</div>
-                <div className="text-sm text-gray-500">En riesgo</div>
+                <div className="text-3xl font-bold text-[#006699]">{studentsInPFC1}</div>
+                <div className="text-sm text-gray-500">Proyecto de Fin de Carrera 1</div>
+              </div>
+              <div className="bg-[#F5F5F5] p-4 rounded-lg">
+                <div className="text-3xl font-bold text-[#006699]">{studentsInPFC2}</div>
+                <div className="text-sm text-gray-500">Proyecto de Fin de Carrera 2</div>
               </div>
             </div>
 
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>Carga actual</span>
-                <span>{totalStudents}/10 tesistas</span>
-              </div>
-              <Progress value={totalStudents * 10} className="h-2" />
-            </div>
 
-            <div className="flex gap-4">
-              <div className="flex-1">
-                <Input
-                  placeholder="Buscar por nombre o tema de proyecto..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full"
-                />
-              </div>
 
-              <div className="relative">
-                <Button variant="outline" onClick={handleProgressFilterClick}>
-                  Filtrar por progreso
-                </Button>
-                {showProgressFilter && (
-                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg z-10 border">
-                    <div className="p-3 space-y-2">
-                      <h4 className="font-medium text-sm">Progreso</h4>
-                      <div className="space-y-1">
-                        <Button
-                          variant={progressFilter === "all" ? "default" : "outline"}
-                          size="sm"
-                          className="w-full justify-start"
-                          onClick={() => {
-                            setProgressFilter("all");
-                            setShowProgressFilter(false);
-                          }}
-                        >
-                          Todos
-                        </Button>
-                        <Button
-                          variant={progressFilter === "low" ? "default" : "outline"}
-                          size="sm"
-                          className="w-full justify-start"
-                          onClick={() => {
-                            setProgressFilter("low");
-                            setShowProgressFilter(false);
-                          }}
-                        >
-                          Bajo (&lt;30%)
-                        </Button>
-                        <Button
-                          variant={progressFilter === "medium" ? "default" : "outline"}
-                          size="sm"
-                          className="w-full justify-start"
-                          onClick={() => {
-                            setProgressFilter("medium");
-                            setShowProgressFilter(false);
-                          }}
-                        >
-                          Medio (30-70%)
-                        </Button>
-                        <Button
-                          variant={progressFilter === "high" ? "default" : "outline"}
-                          size="sm"
-                          className="w-full justify-start"
-                          onClick={() => {
-                            setProgressFilter("high");
-                            setShowProgressFilter(false);
-                          }}
-                        >
-                          Alto (&gt;70%)
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="relative">
-                <Button variant="outline" onClick={handleStatusFilterClick}>
-                  Filtrar por estado
-                </Button>
-                {showStatusFilter && (
-                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg z-10 border">
-                    <div className="p-3 space-y-2">
-                      <h4 className="font-medium text-sm">Estado</h4>
-                      <div className="space-y-1">
-                        <Button
-                          variant={statusFilter === "all" ? "default" : "outline"}
-                          size="sm"
-                          className="w-full justify-start"
-                          onClick={() => {
-                            setStatusFilter("all");
-                            setShowStatusFilter(false);
-                          }}
-                        >
-                          Todos
-                        </Button>
-                        <Button
-                          variant={statusFilter === "onTrack" ? "default" : "outline"}
-                          size="sm"
-                          className="w-full justify-start"
-                          onClick={() => {
-                            setStatusFilter("onTrack");
-                            setShowStatusFilter(false);
-                          }}
-                        >
-                          En progreso normal
-                        </Button>
-                        <Button
-                          variant={statusFilter === "atRisk" ? "default" : "outline"}
-                          size="sm"
-                          className="w-full justify-start"
-                          onClick={() => {
-                            setStatusFilter("atRisk");
-                            setShowStatusFilter(false);
-                          }}
-                        >
-                          En riesgo (&lt;3 días)
-                        </Button>
-                        <Button
-                          variant={statusFilter === "delayed" ? "default" : "outline"}
-                          size="sm"
-                          className="w-full justify-start"
-                          onClick={() => {
-                            setStatusFilter("delayed");
-                            setShowStatusFilter(false);
-                          }}
-                        >
-                          Con retraso
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
           </div>
         </CardContent>
       </Card>
 
       <div className="mt-8">
         <h2 className="text-2xl font-bold text-[#002855] mb-4 px-1">Tesistas asignados</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filteredStudents.map((student) => (
-            <Card key={student.tesistaId} className="border overflow-hidden">
-              <CardContent className="p-4">
-                <div className="flex items-start gap-4">
-                  <div className="flex-1">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="text-base font-medium">
-                          {`${student.nombres} ${student.primerApellido} ${student.segundoApellido}`}
-                        </h3>
-                        <p className="text-sm text-gray-600 line-clamp-1 mt-0.5">
-                          Entregable actual: {student.entregableActualNombre}
-                        </p>
-                      </div>
-                      <div className="flex items-center space-x-1 whitespace-nowrap">
-                        {renderStudentStatus(student.entregableEnvioEstado)}
-                      </div>
-                    </div>
 
-                    <div className="mt-3 grid grid-cols-2 gap-2">
-                      <div>
-                        <p className="text-xs text-gray-500">Fase actual:</p>
-                        <p className="text-sm font-medium">{student.entregableActualNombre}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500">Fecha límite:</p>
-                        <p className="text-sm font-medium">
-                          {new Date(student.entregableActualFechaFin).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
+        <div className="flex items-center space-x-4 mb-4">
+          <Input
+            placeholder="Buscar por nombre o fase..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="flex-1"
+          />
+          <div className="relative" ref={progressFilterRef}>
+            <Button
+              variant="outline"
+              onClick={handleProgressFilterClick}
+              className={`whitespace-nowrap ${showProgressFilter ? "bg-gray-100" : ""}`}
+            >
+              Progreso: {getProgressFilterLabel()}
+            </Button>
+            {showProgressFilter && (
+              <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg z-10 border">
+                <div className="p-3 space-y-2">
+                  <h4 className="font-medium text-sm">Progreso</h4>
+                  <div className="space-y-1">
+                    <Button
+                      variant={progressFilter === "all" ? "default" : "outline"}
+                      size="sm"
+                      className="w-full justify-start"
+                      onClick={() => {
+                        setProgressFilter("all");
+                        setShowProgressFilter(false);
+                      }}
+                    >
+                      Todos
+                    </Button>
+                    <Button
+                      variant={progressFilter === "low" ? "default" : "outline"}
+                      size="sm"
+                      className="w-full justify-start"
+                      onClick={() => {
+                        setProgressFilter("low");
+                        setShowProgressFilter(false);
+                      }}
+                    >
+                      Bajo (&lt;30%)
+                    </Button>
+                    <Button
+                      variant={progressFilter === "medium" ? "default" : "outline"}
+                      size="sm"
+                      className="w-full justify-start"
+                      onClick={() => {
+                        setProgressFilter("medium");
+                        setShowProgressFilter(false);
+                      }}
+                    >
+                      Medio (30-70%)
+                    </Button>
+                    <Button
+                      variant={progressFilter === "high" ? "default" : "outline"}
+                      size="sm"
+                      className="w-full justify-start"
+                      onClick={() => {
+                        setProgressFilter("high");
+                        setShowProgressFilter(false);
+                      }}
+                    >
+                      Alto (&gt;70%)
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
 
-                    <div className="mt-3">
-                      <div className="flex justify-between text-xs text-gray-500 mb-1">
-                        <span>Progreso</span>
-                        <span>{student.entregableActualEstado === "completado" ? "100%" : 
-                               student.entregableActualEstado === "en_proceso" ? "50%" : "0%"}</span>
-                      </div>
-                      <Progress 
-                        value={student.entregableActualEstado === "completado" ? 100 : 
-                               student.entregableActualEstado === "en_proceso" ? 50 : 0} 
-                        className="h-1"
+          <div className="relative" ref={statusFilterRef}>
+            <Button
+              variant="outline"
+              onClick={handleStatusFilterClick}
+              className={`whitespace-nowrap ${showStatusFilter ? "bg-gray-100" : ""}`}
+            >
+              Estado: {getStatusFilterLabel()}
+            </Button>
+            {showStatusFilter && (
+              <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg z-10 border">
+                <div className="p-3 space-y-2">
+                  <h4 className="font-medium text-sm">Estado</h4>
+                  <div className="space-y-1">
+                    <Button
+                      variant={statusFilter === "all" ? "default" : "outline"}
+                      size="sm"
+                      className="w-full justify-start"
+                      onClick={() => {
+                        setStatusFilter("all");
+                        setShowStatusFilter(false);
+                      }}
+                    >
+                      Todos
+                    </Button>
+                    <Button
+                      variant={statusFilter === "onTrack" ? "default" : "outline"}
+                      size="sm"
+                      className="w-full justify-start"
+                      onClick={() => {
+                        setStatusFilter("onTrack");
+                        setShowStatusFilter(false);
+                      }}
+                    >
+                      En progreso normal
+                    </Button>
+                    <Button
+                      variant={statusFilter === "atRisk" ? "default" : "outline"}
+                      size="sm"
+                      className="w-full justify-start"
+                      onClick={() => {
+                        setStatusFilter("atRisk");
+                        setShowStatusFilter(false);
+                      }}
+                    >
+                      En riesgo (&lt;3 días)
+                    </Button>
+                    <Button
+                      variant={statusFilter === "delayed" ? "default" : "outline"}
+                      size="sm"
+                      className="w-full justify-start"
+                      onClick={() => {
+                        setStatusFilter("delayed");
+                        setShowStatusFilter(false);
+                      }}
+                    >
+                      Con retraso
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="border rounded-md flex shrink-0">
+            <Button
+              variant="ghost"
+              onClick={() => setViewMode("grid")}
+              className={`gap-2 rounded-r-none ${viewMode === "grid" ? "bg-gray-100" : ""}`}
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => setViewMode("table")}
+              className={`gap-2 rounded-l-none border-l ${viewMode === "table" ? "bg-gray-100" : ""}`}
+            >
+              <Table className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+        
+        {viewMode === "grid" ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {filteredStudents.map((student) => (
+              <Card key={student.tesistaId} className="border overflow-hidden">
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-6">
+                    <div className="shrink-0 pt-1">
+                      <CircularProgress
+                        value={student.entregableActualEstado === "terminado" ? 100 : 
+                               student.entregableActualEstado === "en_proceso" ? 50 : 0}
                       />
                     </div>
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h2 className="text-lg font-semibold text-[#002855]">
+                            {`${student.nombres} ${student.primerApellido} ${student.segundoApellido}`}
+                          </h2>
+                          <h3 className="text-base font-medium text-gray-800 mt-1 line-clamp-2">
+                            {student.tituloTema}
+                          </h3>
+                          <p className="text-sm text-gray-600 mt-2">
+                            {student.carrera} • {student.etapaFormativaNombre}
+                          </p>
+                        </div>
+                        <div className="flex items-center space-x-1 whitespace-nowrap">
+                          {renderStudentStatus(student.entregableActualEstado)}
+                        </div>
+                      </div>
 
-                    <div className="mt-3 flex justify-end">
+                      <div className="mt-3 grid grid-cols-2 gap-2">
+                        <div>
+                          <p className="text-xs text-gray-500">Fase actual:</p>
+                          <p className="text-sm font-medium">{student.entregableActualNombre}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500">Fecha límite:</p>
+                          <p className="text-sm font-medium">
+                            {new Date(student.entregableActualFechaFin).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="mt-3 flex justify-end">
+                        <Link href={`/asesor/reportes/tesista/${student.tesistaId}`}>
+                          <Button variant="outline" size="sm" className="gap-1">
+                            <ExternalLink className="h-3.5 w-3.5" /> Ver detalles
+                          </Button>
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse bg-white rounded-lg shadow">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Tesista</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Carrera</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Etapa</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Título de Tesis</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Entregable Actual</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Fecha Límite</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Estado</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Progreso</th>
+                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">Acciones</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {filteredStudents.map((student) => (
+                  <tr key={student.tesistaId} className="hover:bg-gray-50">
+                    <td className="px-4 py-3">
+                      <div>
+                        <div className="font-medium text-sm">
+                          {`${student.nombres} ${student.primerApellido} ${student.segundoApellido}`}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-sm">
+                      {student.carrera}
+                    </td>
+                    <td className="px-4 py-3 text-sm">
+                      {student.etapaFormativaNombre}
+                    </td>
+                    <td className="px-4 py-3 text-sm max-w-xs">
+                      <div className="line-clamp-2">
+                        {student.tituloTema}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-sm">
+                      {student.entregableActualNombre}
+                    </td>
+                    <td className="px-4 py-3 text-sm">
+                      {new Date(student.entregableActualFechaFin).toLocaleDateString()}
+                    </td>
+                    <td className="px-4 py-3">
+                      {renderStudentStatus(student.entregableActualEstado)}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="w-32">
+                        <Progress 
+                          value={student.entregableActualEstado === "terminado" ? 100 : 
+                                 student.entregableActualEstado === "en_proceso" ? 50 : 0} 
+                          className="h-2"
+                        />
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-center">
                       <Link href={`/asesor/reportes/tesista/${student.tesistaId}`}>
                         <Button variant="outline" size="sm" className="gap-1">
                           <ExternalLink className="h-3.5 w-3.5" /> Ver detalles
                         </Button>
                       </Link>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {filteredStudents.length === 0 && (

@@ -1,5 +1,6 @@
 import { Tema } from "../temas/entidades";
-import { EstadoSolicitud, TipoSolicitud } from "./enums";
+import { EstadoTemaNombre } from "../temas/enums";
+import { TipoSolicitud } from "./enums";
 
 export interface SolicitudPendiente {
   id: number;
@@ -8,7 +9,7 @@ export interface SolicitudPendiente {
   tema: Tema;
   solicitante: Solicitante;
   fechaSolicitud: string; // formato ISO
-  estado: EstadoSolicitud;
+  estado: EstadoTemaNombre;
 }
 
 export interface Solicitante {
@@ -20,4 +21,12 @@ export interface Solicitante {
   segundoApellido: string;
   correoElectronico: string | null;
 }
+
+export interface TemasPages {
+  pages: Record<number, Tema[]>;
+  current: number;
+  totalCounts: number;
+}
+
+export type PagesList = Record<string, TemasPages>;
 

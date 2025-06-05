@@ -19,6 +19,9 @@ public class TesistasPorAsesorDTO {
     private String primerApellido;
     private String segundoApellido;
     private String correoElectronico;
+    private String tituloTema;
+    private String etapaFormativaNombre;
+    private String carrera;
     private Integer entregableActualId;
     private String entregableActualNombre;
     private String entregableActualDescripcion;

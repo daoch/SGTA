@@ -29,7 +29,7 @@ import {
 const estados = [
   { value: "todos", label: "Todos" },
   { value: "esperando_respuesta", label: "Esperando Respuesta" },
-  { value: "esperando_aprobacion", label: "Esperando Aprobacion" },
+  { value: "esperando_aprobación", label: "Esperando Aprobación" },
   { value: "programada", label: "Programada" },
   { value: "completada", label: "Completada" },
   { value: "calificada", label: "Calificada" },

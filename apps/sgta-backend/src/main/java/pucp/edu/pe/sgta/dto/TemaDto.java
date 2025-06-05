@@ -69,4 +69,7 @@ public class TemaDto {
 
     private List< UsuarioDto> coasesores ;
 
+    //Para controlar las postulaciones al tema libre
+    private String estadoUsuarioTema;
+
 }
