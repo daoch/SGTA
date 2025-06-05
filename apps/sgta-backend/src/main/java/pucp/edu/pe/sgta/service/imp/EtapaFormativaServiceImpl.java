@@ -3,10 +3,7 @@ package pucp.edu.pe.sgta.service.imp;
 import org.postgresql.util.PGInterval;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import pucp.edu.pe.sgta.dto.EtapaFormativaDto;
-import pucp.edu.pe.sgta.dto.EtapaFormativaNombreDTO;
-import pucp.edu.pe.sgta.dto.EtapaFormativaListadoDto;
-import pucp.edu.pe.sgta.dto.EtapaFormativaDetalleDto;
+import pucp.edu.pe.sgta.dto.*;
 import pucp.edu.pe.sgta.model.EtapaFormativa;
 import pucp.edu.pe.sgta.model.EtapaFormativaXCiclo;
 import pucp.edu.pe.sgta.model.Exposicion;
@@ -25,6 +22,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.EntityNotFoundException;
 
+import pucp.edu.pe.sgta.repository.EtapaFormativaXCicloRepository;
+import java.util.NoSuchElementException;
+
 @Service
 public class EtapaFormativaServiceImpl implements EtapaFormativaService {
     @Autowired
@@ -33,6 +33,8 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
     private ExposicionRepository exposicionRepository;
     @Autowired
     private EtapaFormativaRepository etapaFormativaRepository;
+    @Autowired
+    private EtapaFormativaXCicloRepository etapaFormativaXCicloRepository;
 
     public EtapaFormativaServiceImpl(EtapaFormativaRepository etapaFormativaRepository) {
         this.etapaFormativaRepository = etapaFormativaRepository;
@@ -326,6 +328,27 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
                         "No existe Exposicion con id " + exposicionId));
         EtapaFormativaXCiclo efc = expo.getEtapaFormativaXCiclo();
         return efc.getId();
+    }
+
+    @Override
+    public List<EtapaFormativaAlumnoDto> listarEtapasFormativasPorAlumno(Integer alumnoId) {
+        List<Object[]> result = etapaFormativaRepository.listarEtapasFormativasPorAlumno(alumnoId);
+        List<EtapaFormativaAlumnoDto> etapasFormativas = new ArrayList<>();
+
+        for (Object[] row : result) {
+            EtapaFormativaAlumnoDto dto = new EtapaFormativaAlumnoDto();
+            dto.setEtapaFormativaId((Integer) row[0]);
+            dto.setEtapaFormativaNombre((String) row[1]);
+            dto.setCicloId((Integer) row[2]);
+            dto.setCicloNombre((String) row[3]);
+            dto.setTemaId((Integer) row[4]);
+            dto.setTemaTitulo((String) row[5]);
+            dto.setTemaResumen((String) row[6]);
+
+            etapasFormativas.add(dto);
+        }
+
+        return etapasFormativas;
     }
 
 }

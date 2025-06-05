@@ -5,7 +5,7 @@ import Link from "next/link";
 
 export default function Configuracion() {
   return (
-    <div className="max-w-5xl mx-auto">
+    <div>
       <div className="mb-8">
         <h1 className="text-2xl font-bold mt-5 mb-1 text-[#042354]">
           Configuración

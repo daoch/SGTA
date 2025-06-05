@@ -24,8 +24,8 @@ public class Documento {
     @Column(name = "nombre_documento", nullable = false, length = 150)
     private String nombreDocumento;
 
-    @Column(name = "fecha_subida")
-    private LocalDate fechaSubida;
+    @Column(name = "fecha_subida", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private OffsetDateTime fechaSubida;
 
     @Column(name = "ultima_version", nullable = false)
     private Integer ultimaVersion = 1;
@@ -33,9 +33,9 @@ public class Documento {
     @Column(nullable = false)
     private Boolean activo = true;
 
-    @Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    @Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE",insertable = false)
     private OffsetDateTime fechaCreacion;
 
-    @Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    @Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE",insertable = false)
     private OffsetDateTime fechaModificacion;
 } 

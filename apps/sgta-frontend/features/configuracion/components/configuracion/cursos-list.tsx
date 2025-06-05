@@ -55,7 +55,7 @@ export function CursosList() {
             <div className="bg-gray-50 p-4 border-t flex items-center justify-between">
               <div className="flex gap-6">
                 <div className="text-sm">
-                  <span className="text-gray-500">Entregables:</span> {curso.entregables}
+                  <span className="text-gray-500">Entregablessss:</span> {curso.entregables}
                 </div>
                 <div className="text-sm">
                   <span className="text-gray-500">Exposiciones:</span> {curso.exposiciones}

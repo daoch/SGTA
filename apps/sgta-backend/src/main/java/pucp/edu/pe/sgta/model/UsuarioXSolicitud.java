@@ -29,11 +29,27 @@ public class UsuarioXSolicitud {
 	@JoinColumn(name = "solicitud_id", nullable = false, foreignKey = @ForeignKey(name = "fk_solicitud"))
 	private Solicitud solicitud;
 
+	// Campo legado temporal
 	@Column(name = "solicitud_completada", nullable = false)
 	private Boolean solicitudCompletada = false;
 
+	// Campo legado temporal
 	@Column(nullable = false)
-	private Boolean aprovado = false;
+	private Boolean aprobado = false;
+
+	// NUEVO: relación con tabla de acciones
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "accion_solicitud", foreignKey = @ForeignKey(name = "fk_us_as"))
+	private AccionSolicitud accionSolicitud;
+
+	// NUEVO: relación con tabla de roles
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "rol_solicitud", foreignKey = @ForeignKey(name = "fk_us_rs"))
+	private RolSolicitud rolSolicitud;
+
+	// NUEVO: relación con tabla de roles
+	@Column(name = "fecha_accion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+	private OffsetDateTime fechaAccion;
 
 	@Column(columnDefinition = "TEXT")
 	private String comentario;

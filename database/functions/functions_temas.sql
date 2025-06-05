@@ -247,6 +247,7 @@ CREATE OR REPLACE FUNCTION listar_temas_por_usuario_rol_estado(
 )
 RETURNS TABLE (
   tema_id            INT,
+  codigo             TEXT,
   titulo             TEXT,
   resumen            TEXT,
   metodologia         TEXT,
@@ -256,34 +257,48 @@ RETURNS TABLE (
   fecha_limite       TIMESTAMPTZ,
   fecha_creacion     TIMESTAMPTZ,
   fecha_modificacion TIMESTAMPTZ,
-  codigo			  TEXT
+  requisitos         TEXT,
+  carrera_id         INT,      -- nuevo
+  carrera_nombre     TEXT,     -- nombre de la carrera
+  area_id            INT,      -- nuevo
+  area_nombre        TEXT      -- nombre del área
 ) AS $$
 BEGIN
   RETURN QUERY
   SELECT
     t.tema_id,
+    t.codigo::text,
     t.titulo::text,
-    t.resumen,
-    t.metodologia,
-    t.objetivos,
+    t.resumen::text,
+    t.metodologia::text,
+    t.objetivos::text,
     t.portafolio_url::text,
     t.activo,
     t.fecha_limite,
     t.fecha_creacion,
     t.fecha_modificacion,
-	t.codigo::text
+    t.requisitos::text,
+    c.carrera_id,                       -- columna 12
+    c.nombre::text      AS carrera_nombre,   -- columna 13
+    ac.area_conocimiento_id AS area_id,      -- columna 14
+    ac.nombre::text     AS area_nombre       -- columna 15
   FROM tema t
-  JOIN usuario_tema ut
-    ON ut.tema_id = t.tema_id
-  JOIN rol r
-    ON ut.rol_id = r.rol_id
-  JOIN estado_tema et
-    ON t.estado_tema_id = et.estado_tema_id
+    JOIN estado_tema est   ON t.estado_tema_id = est.estado_tema_id
+    JOIN usuario_tema ut   ON ut.tema_id      = t.tema_id
+    JOIN rol r             ON ut.rol_id       = r.rol_id
+    JOIN usuario u         ON ut.usuario_id   = u.usuario_id
+    JOIN carrera c         ON t.carrera_id    = c.carrera_id
+    LEFT JOIN sub_area_conocimiento_tema sact
+           ON sact.tema_id = t.tema_id
+    LEFT JOIN sub_area_conocimiento sac
+           ON sac.sub_area_conocimiento_id = sact.sub_area_conocimiento_id
+    LEFT JOIN area_conocimiento ac
+           ON ac.area_conocimiento_id = sac.area_conocimiento_id
   WHERE
-    ut.usuario_id = p_usuario_id
-    AND r.nombre ILIKE p_rol_nombre
-    AND et.nombre ILIKE p_estado_nombre
-    AND t.activo = TRUE;
+    u.activo
+    AND r.nombre   ILIKE p_rol_nombre
+    AND est.nombre ILIKE p_estado_nombre
+    AND u.usuario_id = p_usuario_id;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -927,7 +942,6 @@ END;
 $$ LANGUAGE plpgsql;
 
 
-DROP TRIGGER IF EXISTS trigger_generar_codigo_tema ON tema;
 
 CREATE TRIGGER trigger_generar_codigo_tema
 AFTER INSERT ON tema
@@ -935,7 +949,7 @@ FOR EACH ROW
 EXECUTE FUNCTION generar_codigo_tema();
 
 CREATE OR REPLACE FUNCTION listar_propuestas_del_tesista_con_usuarios(
-    p_tesista_id INTEGER
+    p_tesista_id TEXT
 )
 RETURNS TABLE(
     tema_id            INTEGER,
@@ -954,9 +968,16 @@ RETURNS TABLE(
     usuarios           JSONB
 )
 LANGUAGE plpgsql
-SET search_path = sgtadb, public
 AS $$
+DECLARE 
+    v_uid INTEGER;
 BEGIN
+    -- Obtener el usuario_id desde el id cognito
+    SELECT u.usuario_id
+    INTO v_uid
+    FROM usuario u
+    WHERE u.id_cognito = p_tesista_id;
+
     RETURN QUERY
     SELECT
         t.tema_id,
@@ -978,7 +999,8 @@ BEGIN
             'nombre_completo', u.nombres || ' ' || u.primer_apellido,
             'rol',            rl.nombre,
             'creador',        ut.creador,
-            'asignado',       ut.asignado
+            'asignado',       ut.asignado,
+            'rechazado',      ut.rechazado
           ))
           FROM usuario_tema ut
           JOIN usuario         u  ON u.usuario_id = ut.usuario_id
@@ -989,7 +1011,7 @@ BEGIN
     FROM tema t
     JOIN usuario_tema ut_tesista
       ON ut_tesista.tema_id    = t.tema_id
-     AND ut_tesista.usuario_id = p_tesista_id
+     AND ut_tesista.usuario_id = v_uid
      AND ut_tesista.rol_id     = (
          SELECT rol_id FROM rol WHERE nombre ILIKE 'Tesista' LIMIT 1
      )
@@ -1010,10 +1032,10 @@ BEGIN
 END;
 $$;
 
-ALTER FUNCTION listar_propuestas_del_tesista_con_usuarios(INTEGER) OWNER TO postgres;
+
 
 CREATE OR REPLACE FUNCTION listar_postulaciones_del_tesista_con_usuarios(
-    p_tesista_id INTEGER,
+    p_tesista_id TEXT,       -- ahora es el cognito_id
     p_tipo_post  INTEGER     -- 0 = GENERAL, 1 = DIRECTO
 )
 RETURNS TABLE(
@@ -1029,13 +1051,20 @@ RETURNS TABLE(
     fecha_limite       TIMESTAMPTZ,
     fecha_creacion     TIMESTAMPTZ,
     fecha_modificacion TIMESTAMPTZ,
-    estado_tema_nombre TEXT,    -- current state name
+    estado_tema_nombre TEXT,
     usuarios           JSONB
 )
 LANGUAGE plpgsql
-SET search_path = sgtadb, public
 AS $$
+DECLARE
+    v_uid INTEGER;
 BEGIN
+    -- Obtener el usuario_id a partir del cognito_id
+    SELECT usuario_id
+    INTO v_uid
+    FROM usuario
+    WHERE id_cognito = p_tesista_id;
+
     RETURN QUERY
     SELECT
         t.tema_id,
@@ -1057,9 +1086,9 @@ BEGIN
                      'usuario_id',      u.usuario_id,
                      'nombre_completo', u.nombres || ' ' || u.primer_apellido,
                      'rol',             rl.nombre,
-                     'comentario', ut.comentario,
+                     'comentario',      ut.comentario,
                      'creador',         ut.creador,
-                     'rechazado',         ut.rechazado,
+                     'rechazado',       ut.rechazado,
                      'asignado',        ut.asignado
                    )
                  )
@@ -1070,22 +1099,19 @@ BEGIN
             AND rl.nombre ILIKE ANY(ARRAY['Tesista','Asesor','Coasesor'])
         ) AS usuarios
     FROM tema t
-
-    -- only those temas where this tesista was assigned as Tesista
     JOIN usuario_tema ut_tesista
       ON ut_tesista.tema_id    = t.tema_id
-     AND ut_tesista.usuario_id = p_tesista_id
+     AND ut_tesista.usuario_id = v_uid
      AND ut_tesista.rol_id     = (
          SELECT rol_id FROM rol
-          WHERE nombre ILIKE 'Tesista'
-          LIMIT 1
+         WHERE nombre ILIKE 'Tesista'
+         LIMIT 1
      )
-    AND ut_tesista.creador = true
-    -- current estado
+     AND ut_tesista.creador = true
+
     LEFT JOIN estado_tema et_current
       ON et_current.estado_tema_id = t.estado_tema_id
 
-    -- initial (creation) estado from historial_tema
     LEFT JOIN LATERAL (
       SELECT ht.estado_tema_id
       FROM historial_tema ht
@@ -1098,13 +1124,11 @@ BEGIN
     LEFT JOIN estado_tema et_init
       ON et_init.estado_tema_id = init_ht.estado_tema_id
 
-    -- sub-areas
     LEFT JOIN sub_area_conocimiento_tema sact
       ON sact.tema_id = t.tema_id
     LEFT JOIN sub_area_conocimiento sac
       ON sac.sub_area_conocimiento_id = sact.sub_area_conocimiento_id
 
-    -- recurso (active only)
     LEFT JOIN recurso r
       ON r.tema_id = t.tema_id
      AND r.activo = TRUE
@@ -1130,7 +1154,7 @@ BEGIN
 END;
 $$;
 
-ALTER FUNCTION listar_postulaciones_del_tesista_con_usuarios(INTEGER) OWNER TO postgres;
+
 
 CREATE OR REPLACE FUNCTION listar_asesores_por_subarea_conocimiento(
     p_subarea_id INTEGER
@@ -1165,10 +1189,9 @@ WHERE usac.sub_area_conocimiento_id = p_subarea_id
   AND tu.nombre ILIKE 'profesor'
 $$;
 
-ALTER FUNCTION listar_postulaciones_del_tesista_con_usuarios(INTEGER) OWNER TO postgres;
 
-CREATE OR REPLACE FUNCTION sgtadb.obtener_sub_areas_por_carrera_usuario(
-    p_usuario_id INTEGER
+CREATE OR REPLACE FUNCTION obtener_sub_areas_por_carrera_usuario(
+    p_usuario_id TEXT 
 )
 RETURNS TABLE(
     sub_area_conocimiento_id INTEGER,
@@ -1186,39 +1209,52 @@ SELECT DISTINCT
     sac.descripcion::TEXT AS descripcion,
     sac.activo
 FROM usuario_carrera usac
+JOIN usuario u
+  ON u.usuario_id = usac.usuario_id
+ AND u.id_cognito = p_usuario_id
+ AND u.activo = TRUE
 JOIN area_conocimiento ac
   ON ac.carrera_id = usac.carrera_id
  AND ac.activo = TRUE
 JOIN sub_area_conocimiento sac
   ON sac.area_conocimiento_id = ac.area_conocimiento_id
  AND sac.activo = TRUE
-WHERE usac.usuario_id = p_usuario_id
-  AND usac.activo = TRUE
+WHERE usac.activo = TRUE
 ORDER BY nombre;
 $$;
+
 
 ALTER FUNCTION obtener_sub_areas_por_carrera_usuario(INTEGER) OWNER TO postgres;
 
 CREATE OR REPLACE FUNCTION aprobar_postulacion_propuesta_general_tesista(
     p_tema_id    INT,
     p_asesor_id  INT,
-    p_tesista_id INT
+    p_tesista_id TEXT
 )
 RETURNS VOID
 LANGUAGE plpgsql
 AS $$
+DECLARE
+    estado_preinscrito_id  INTEGER;
+    v_uid                  INTEGER;
 BEGIN
-    -- Only proceed if the tesista is the creator of this topic
+    -- Obtener el usuario_id a partir del id_cognito
+    SELECT usuario_id
+    INTO v_uid
+    FROM usuario
+    WHERE id_cognito = p_tesista_id;
+
+    -- Solo proceder si el tesista es el creador de este tema
     IF EXISTS (
         SELECT 1
         FROM usuario_tema ut
         JOIN rol r ON r.rol_id = ut.rol_id
         WHERE ut.tema_id = p_tema_id
-          AND ut.usuario_id = p_tesista_id
+          AND ut.usuario_id = v_uid
           AND ut.creador = TRUE
           AND r.nombre ILIKE 'Tesista'
     ) THEN
-        -- Perform the update to mark the advisor as assigned
+        -- Marcar al asesor como asignado
         UPDATE usuario_tema ut
         SET asignado = TRUE
         FROM rol r
@@ -1228,38 +1264,51 @@ BEGIN
           AND r.nombre ILIKE 'Asesor';
     END IF;
 
-    -- Get the estado_tema_id for the tema
-    SELECT estado_tema_id INTO estado_preinscrito_id FROM estado_tema WHERE nombre ILIKE 'PREINSCRITO' LIMIT 1;
+    -- Obtener el ID de estado 'PREINSCRITO'
+    SELECT estado_tema_id
+    INTO estado_preinscrito_id
+    FROM estado_tema
+    WHERE nombre ILIKE 'PREINSCRITO'
+    LIMIT 1;
 
-	  -- Update estado_tema_id
+    -- Actualizar el estado del tema
     UPDATE tema
     SET estado_tema_id = estado_preinscrito_id
     WHERE tema_id = p_tema_id;
 END;
 $$;
 
-ALTER FUNCTION aprobar_postulacion_propuesta_general_tesista(INTEGER, INTEGER, INTEGER) OWNER TO postgres;
+
+ALTER FUNCTION aprobar_postulacion_propuesta_general_tesista(INTEGER, INTEGER, INTEGER) OWNER TO doadmin;
 
 CREATE OR REPLACE FUNCTION rechazar_postulacion_propuesta_general_tesista(
     p_tema_id    INT,
     p_asesor_id  INT,
-    p_tesista_id INT
+    p_tesista_id TEXT
 )
 RETURNS VOID
 LANGUAGE plpgsql
 AS $$
+DECLARE
+    v_uid INTEGER;
 BEGIN
-    -- Only proceed if the tesista is the creator of this topic
+    -- Obtener el usuario_id a partir del cognito_id
+    SELECT usuario_id
+    INTO v_uid
+    FROM usuario
+    WHERE id_cognito = p_tesista_id;
+
+    -- Solo proceder si el tesista es el creador de este tema
     IF EXISTS (
         SELECT 1
         FROM usuario_tema ut
         JOIN rol r ON r.rol_id = ut.rol_id
         WHERE ut.tema_id = p_tema_id
-          AND ut.usuario_id = p_tesista_id
+          AND ut.usuario_id = v_uid
           AND ut.creador = TRUE
           AND r.nombre ILIKE 'Tesista'
     ) THEN
-        -- Perform the update to mark the advisor as rejected
+        -- Marcar al asesor como rechazado
         UPDATE usuario_tema ut
         SET rechazado = TRUE
         FROM rol r
@@ -1270,6 +1319,7 @@ BEGIN
     END IF;
 END;
 $$;
+
 
 ALTER FUNCTION rechazar_postulacion_propuesta_general_tesista(INTEGER, INTEGER, INTEGER) OWNER TO postgres;
 
@@ -1324,7 +1374,8 @@ RETURNS TABLE(
     activo                BOOLEAN,
     fecha_creacion        TIMESTAMPTZ,
     fecha_modificacion    TIMESTAMPTZ,
-    tipo_usuario_nombre   VARCHAR
+    tipo_usuario_nombre   VARCHAR,
+    asignado              BOOLEAN
 )
 LANGUAGE SQL
 STABLE
@@ -1348,7 +1399,14 @@ AS $$
       u.activo,
       u.fecha_creacion,
       u.fecha_modificacion,
-      tu.nombre
+      tu.nombre,
+      EXISTS (
+          SELECT 1
+          FROM usuario_tema ut
+          WHERE ut.usuario_id = u.usuario_id
+            AND ut.activo = TRUE
+            AND ut.asignado = TRUE
+      ) AS asignado
     FROM usuario u
     JOIN usuario_carrera uc
       ON u.usuario_id = uc.usuario_id
@@ -1385,3 +1443,436 @@ AS $$
        AND c.activo
     ORDER BY c.nombre;
 $$;
+
+CREATE OR REPLACE FUNCTION listar_temas_por_estado_y_carrera(
+  p_estado_nombre TEXT,
+  p_carrera_id    INTEGER
+)
+RETURNS TABLE (
+  tema_id            INTEGER,
+  codigo             TEXT,
+  titulo             TEXT,
+  resumen            TEXT,
+  metodologia         TEXT,
+  objetivos          TEXT,
+  portafolio_url     TEXT,    -- nuevo
+  requisitos         TEXT,    -- nuevo
+  estado_nombre      TEXT,
+  fecha_limite       TIMESTAMPTZ,
+  fecha_creacion     TIMESTAMPTZ,
+  fecha_modificacion TIMESTAMPTZ,
+  carrera_id         INT,     -- nuevo
+  carrera_nombre     TEXT,    -- nuevo
+  area_id            INT,     -- nuevo
+  area_nombre        TEXT     -- nuevo
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN QUERY
+    SELECT
+      t.tema_id,
+      t.codigo::text,
+      t.titulo::text,
+      t.resumen::text,
+      t.metodologia::text,
+      t.objetivos::text,
+      t.portafolio_url::text,
+      t.requisitos::text,
+      et.nombre::text       AS estado_nombre,
+      t.fecha_limite,
+      t.fecha_creacion,
+      t.fecha_modificacion,
+      c.carrera_id,
+      c.nombre::text        AS carrera_nombre,
+      ac.area_conocimiento_id AS area_id,
+      ac.nombre::text       AS area_nombre
+    FROM tema t
+      JOIN estado_tema et
+        ON t.estado_tema_id = et.estado_tema_id
+      JOIN carrera c
+        ON t.carrera_id = c.carrera_id
+      LEFT JOIN sub_area_conocimiento_tema sact
+        ON sact.tema_id = t.tema_id
+      LEFT JOIN sub_area_conocimiento sac
+        ON sac.sub_area_conocimiento_id = sact.sub_area_conocimiento_id
+      LEFT JOIN area_conocimiento ac
+        ON ac.area_conocimiento_id = sac.area_conocimiento_id
+    WHERE
+      t.carrera_id = p_carrera_id
+      AND et.nombre ILIKE p_estado_nombre
+      AND t.activo = TRUE
+    ORDER BY t.fecha_creacion DESC;
+END;
+$$;
+
+
+CREATE PROCEDURE actualizar_estado_tema(
+  p_tema_id           INTEGER,
+  p_nuevo_estado_nombre TEXT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  UPDATE tema
+  SET estado_tema_id = (
+    SELECT estado_tema_id
+    FROM estado_tema
+    WHERE nombre ILIKE p_nuevo_estado_nombre
+    LIMIT 1
+  )
+  WHERE tema_id = p_tema_id;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION get_solicitudes_by_tema(
+    input_tema_id INTEGER,
+    offset_val INTEGER,
+    limit_val INTEGER
+)
+RETURNS TABLE (
+    solicitud_id INTEGER,
+    fecha_creacion DATE,
+    estado INTEGER,
+    descripcion TEXT,
+    respuesta TEXT,
+    fecha_modificacion DATE,
+    tipo_solicitud_id INTEGER,
+    tipo_solicitud_nombre VARCHAR,
+    tipo_solicitud_descripcion TEXT,
+    usuario_id INTEGER,
+    usuario_nombres VARCHAR,
+    usuario_primer_apellido VARCHAR,
+    usuario_segundo_apellido VARCHAR,
+    usuario_correo VARCHAR,
+    solicitud_completada BOOLEAN
+) AS $$
+BEGIN
+    RETURN QUERY    SELECT 
+        s.solicitud_id,
+        s.fecha_creacion::DATE,
+        s.estado,
+        s.descripcion,
+        s.respuesta,
+        s.fecha_modificacion::DATE,
+        ts.tipo_solicitud_id,
+        ts.nombre,
+        ts.descripcion,
+        u.usuario_id,
+        u.nombres,
+        u.primer_apellido,
+        u.segundo_apellido,
+        u.correo_electronico,
+        uxs.solicitud_completada    FROM solicitud s
+    INNER JOIN tipo_solicitud ts ON s.tipo_solicitud_id = ts.tipo_solicitud_id
+    INNER JOIN usuario_solicitud uxs ON s.solicitud_id = uxs.solicitud_id AND uxs.destinatario = true
+    INNER JOIN usuario u ON uxs.usuario_id = u.usuario_id
+    WHERE s.tema_id = input_tema_id
+    ORDER BY s.fecha_creacion DESC
+    OFFSET offset_val
+    LIMIT limit_val;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to count solicitudes by tema
+CREATE OR REPLACE FUNCTION get_solicitudes_by_tema_count(input_tema_id INTEGER)
+RETURNS INTEGER AS $$
+BEGIN
+    RETURN (
+        SELECT COUNT(*)
+        FROM solicitud s
+        WHERE s.tema_id = input_tema_id
+    );
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION atender_solicitud_titulo(
+    p_solicitud_id   INTEGER,
+    p_title          VARCHAR,
+    p_response       TEXT
+) RETURNS INTEGER
+LANGUAGE plpgsql AS
+$$
+DECLARE
+    v_tema_id         INTEGER;
+    v_current_estado  INTEGER;
+BEGIN
+    IF p_solicitud_id IS NULL THEN
+        RAISE EXCEPTION 'Solicitud ID cannot be null';
+    END IF;
+
+    -- Bloqueamos la solicitud y obtenemos tema_id y estado
+    SELECT tema_id, estado
+      INTO v_tema_id, v_current_estado
+    FROM solicitud
+    WHERE solicitud_id = p_solicitud_id
+    FOR UPDATE;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'No existe solicitud %', p_solicitud_id;
+    END IF;
+    IF v_current_estado <> 1 THEN
+        RAISE EXCEPTION 'Solicitud % no está en estado pendiente (estado=%)', 
+                         p_solicitud_id, v_current_estado;
+    END IF;
+
+    BEGIN
+        -- 1) Actualizar sólo el título del tema
+        UPDATE tema
+           SET titulo             = COALESCE(p_title, titulo),
+               fecha_modificacion = NOW()
+         WHERE tema_id = v_tema_id;
+
+        -- 2) Guardar la respuesta en la solicitud (no tocamos estado)
+        UPDATE solicitud
+           SET respuesta          = p_response,
+               fecha_modificacion = NOW()
+         WHERE solicitud_id = p_solicitud_id;
+
+        -- 3) Marcar el registro usuario_solicitud como completado
+        UPDATE usuario_solicitud
+           SET solicitud_completada = TRUE,
+               fecha_modificacion   = NOW()
+         WHERE solicitud_id = p_solicitud_id
+           AND destinatario IS TRUE;
+
+        IF NOT FOUND THEN
+            RAISE EXCEPTION 'No se encontró usuario_solicitud para solicitud % con destinatario=TRUE',
+                              p_solicitud_id;
+        END IF;
+
+    EXCEPTION WHEN OTHERS THEN
+        RAISE;
+    END;
+
+    RETURN v_current_estado;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION atender_solicitud_resumen(
+    p_solicitud_id   INTEGER,
+    p_summary        TEXT,
+    p_response       TEXT
+) RETURNS INTEGER
+LANGUAGE plpgsql AS
+$$
+DECLARE
+    v_tema_id         INTEGER;
+    v_current_estado  INTEGER;
+BEGIN
+    IF p_solicitud_id IS NULL THEN
+        RAISE EXCEPTION 'Solicitud ID cannot be null';
+    END IF;
+
+    -- Bloqueamos la solicitud y obtenemos tema_id y estado
+    SELECT tema_id, estado
+      INTO v_tema_id, v_current_estado
+    FROM solicitud
+    WHERE solicitud_id = p_solicitud_id
+    FOR UPDATE;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'No existe solicitud %', p_solicitud_id;
+    END IF;
+    IF v_current_estado <> 1 THEN
+        RAISE EXCEPTION 'Solicitud % no está en estado pendiente (estado=%)', 
+                         p_solicitud_id, v_current_estado;
+    END IF;
+
+    BEGIN
+        -- 1) Actualizar sólo el resumen del tema
+        UPDATE tema
+           SET resumen            = COALESCE(p_summary, resumen),
+               fecha_modificacion = NOW()
+         WHERE tema_id = v_tema_id;
+
+        -- 2) Guardar la respuesta en la solicitud (no tocamos estado)
+        UPDATE solicitud
+           SET respuesta          = p_response,
+               fecha_modificacion = NOW()
+         WHERE solicitud_id = p_solicitud_id;
+
+        -- 3) Marcar el registro usuario_solicitud como completado
+        UPDATE usuario_solicitud
+           SET solicitud_completada = TRUE,
+               fecha_modificacion   = NOW()
+         WHERE solicitud_id = p_solicitud_id
+           AND destinatario IS TRUE;
+
+        IF NOT FOUND THEN
+            RAISE EXCEPTION 'No se encontró usuario_solicitud para solicitud % con destinatario=TRUE',
+                              p_solicitud_id;
+        END IF;
+
+    EXCEPTION WHEN OTHERS THEN
+        RAISE;
+    END;
+
+    RETURN v_current_estado;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION rechazar_postulaciones_propuesta_general_tesista(
+    p_tesista_id INT
+)
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_tema_id INT;
+    v_rol_asesor_id INT;
+BEGIN
+    -- 1) Verifico que el tesista existe y es creador del tema
+    SELECT ut.tema_id
+      INTO v_tema_id
+    FROM usuario_tema ut
+    JOIN rol r ON r.rol_id = ut.rol_id
+    WHERE ut.usuario_id = p_tesista_id
+      AND ut.creador = TRUE
+      AND r.nombre ILIKE 'Tesista';
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'El usuario % no es tesista creador de ningún tema', p_tesista_id;
+    END IF;
+
+    -- 2) Obtengo el rol_id de “Asesor”
+    SELECT rol_id
+      INTO v_rol_asesor_id
+    FROM rol
+    WHERE nombre ILIKE 'Asesor';
+
+    -- 3) Marco como rechazados todos los asesores de ese tema
+    --    excepto al confirmado y excepto al propio tesista
+    UPDATE usuario_tema
+       SET rechazado = TRUE,
+           fecha_modificacion = NOW()
+     WHERE rol_id         = v_rol_asesor_id
+       AND tema_id        = v_tema_id
+       AND asignado       = FALSE;
+END;
+$$;
+
+CREATE OR REPLACE PROCEDURE desactivar_tema_y_desasignar_usuarios(
+  IN p_tema_id INT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  -- 1) Desactivar el tema
+  UPDATE tema
+     SET activo = FALSE
+   WHERE tema_id = p_tema_id;
+
+  -- 2) Desasignar y desactivar todos los registros de usuario_tema
+  UPDATE usuario_tema
+     SET asignado = FALSE,
+         activo   = FALSE
+   WHERE tema_id = p_tema_id;
+END;
+$$;
+
+
+CREATE OR REPLACE FUNCTION buscar_tema_por_id(p_tema_id INT)
+RETURNS TABLE (
+    codigo TEXT,
+    titulo TEXT,
+    resumen TEXT,
+    metodologia TEXT,
+    objetivos TEXT,
+    fecha_limite DATE,
+    requisitos TEXT,
+    asesor INTEGER,
+    subareas_id INTEGER[],
+    asesores_id INTEGER[],
+    carrera INTEGER,
+    tesistas_id INTEGER[]      -- Nuevo campo para tesistas
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        t.codigo::TEXT,
+        t.titulo::TEXT,
+        t.resumen::TEXT,
+        t.metodologia::TEXT,
+        t.objetivos::TEXT,
+        t.fecha_limite::DATE,
+        t.requisitos,
+        (
+            SELECT ut.usuario_id
+            FROM usuario_tema ut
+            WHERE ut.tema_id = t.tema_id 
+              AND ut.rol_id = (SELECT rol_id FROM rol WHERE nombre = 'Asesor')
+            LIMIT 1
+        ) AS asesor,
+        ARRAY(
+            SELECT DISTINCT sct.sub_area_conocimiento_id
+            FROM sub_area_conocimiento_tema sct
+            WHERE sct.tema_id = t.tema_id
+        ) AS subareas_id,
+        ARRAY(
+            SELECT DISTINCT ut.usuario_id
+            FROM usuario_tema ut
+            WHERE ut.tema_id = t.tema_id 
+              AND ut.rol_id = (SELECT rol_id FROM rol WHERE nombre = 'Coasesor')
+        ) AS asesores_id,
+        t.carrera_id,
+        ARRAY(
+            SELECT DISTINCT ut.usuario_id
+            FROM usuario_tema ut
+            WHERE ut.tema_id = t.tema_id
+              AND ut.rol_id = (SELECT rol_id FROM rol WHERE nombre = 'Tesista')
+        ) AS tesistas_id
+    FROM tema t
+    WHERE t.tema_id = p_tema_id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION contar_postulaciones(p_tema_id INT)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+DECLARE
+  v_estado  TEXT;
+  v_rol_id  INT;
+  v_count   INT;
+BEGIN
+  -- 1) Recupero el nombre del estado del tema
+  SELECT et.nombre
+    INTO v_estado
+    FROM tema t
+    JOIN estado_tema et
+      ON t.estado_tema_id = et.estado_tema_id
+   WHERE t.tema_id = p_tema_id;
+
+  -- 2) Según el estado elijo el rol que me interesa
+  IF v_estado ILIKE 'PROPUESTO_GENERAL' THEN
+    SELECT rol_id
+      INTO v_rol_id
+      FROM rol
+     WHERE nombre ILIKE 'Asesor'
+     LIMIT 1;
+  ELSIF v_estado ILIKE 'PROPUESTO_LIBRE' THEN
+    SELECT rol_id
+      INTO v_rol_id
+      FROM rol
+     WHERE nombre ILIKE 'Tesista'
+     LIMIT 1;
+  ELSE
+    -- otros estados: no contamos postulaciones
+    RETURN 0;
+  END IF;
+
+  -- 3) Cuento en usuario_tema con los filtros que pediste
+  SELECT COUNT(*) 
+    INTO v_count
+    FROM usuario_tema ut
+   WHERE ut.tema_id   = p_tema_id
+     AND ut.rol_id    = v_rol_id
+     AND ut.activo    = TRUE
+     AND ut.rechazado = FALSE
+     AND ut.asignado  = FALSE;
+
+  RETURN v_count;
+END;
+$$;
+

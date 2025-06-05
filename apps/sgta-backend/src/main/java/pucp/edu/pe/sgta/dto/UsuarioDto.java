@@ -1,8 +1,6 @@
 package pucp.edu.pe.sgta.dto;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
-import pucp.edu.pe.sgta.model.TipoUsuario;
-
 import java.time.OffsetDateTime;
 
 @Getter
@@ -28,6 +26,7 @@ public class UsuarioDto {
 
 	private String nivelEstudios;
 
+	@JsonIgnore
 	private String contrasena;
 
 	private String comentario;

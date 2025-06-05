@@ -1,14 +1,5 @@
 "use client";
 
-import { asesorData, temaVacio } from "@/app/types/temas/data";
-import {
-  AreaDeInvestigacion,
-  Carrera,
-  Coasesor,
-  Tema,
-  TemaCreateInscription,
-  Tesista,
-} from "@/app/types/temas/entidades";
 import { Button } from "@/components/ui/button";
 import {
   DialogContent,
@@ -28,11 +19,32 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  AreaConocimiento,
+  AreaDeInvestigacion,
+  Carrera,
+  Coasesor,
+  Tema,
+  TemaCreateInscription,
+  Tesista,
+} from "@/features/temas/types/inscripcion/entities";
+import { temaVacio } from "@/features/temas/types/inscripcion/mock";
 import axiosInstance from "@/lib/axios/axios-instance";
 import { Trash2 } from "lucide-react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { toast, Toaster } from "sonner";
 import ItemSelector from "./item-selector";
+
+//imports de Tema libre
+import {
+  fetchAreaConocimientoFindByUsuarioId,
+  fetchSubareasPorAreaConocimiento,
+} from "@/features/temas/types/temas/data";
+import {
+  Subareas,
+  TemaCreateLibre,
+} from "@/features/temas/types/temas/entidades";
+//
 
 interface NuevoTemaDialogProps {
   isOpen: boolean;
@@ -42,6 +54,7 @@ interface NuevoTemaDialogProps {
   subareasDisponibles: AreaDeInvestigacion[];
   carrera: Carrera | null;
   onTemaGuardado: () => void;
+  asesor: Coasesor;
 }
 
 enum TipoRegistro {
@@ -63,15 +76,39 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
   subareasDisponibles,
   carrera,
   onTemaGuardado,
+  asesor,
 }) => {
   const [temaData, setTemaData] = useState<Tema>(temaVacio);
   const [tipoRegistro, setTipoRegistro] = useState(TipoRegistro.NONE);
   const [coasesorSeleccionado, setCoasesorSeleccionado] =
     useState<Coasesor | null>(null);
   const [areaSeleccionada, setAreaSeleccionada] =
-    useState<AreaDeInvestigacion | null>(null);
+    useState<AreaDeInvestigacion | null>(null); // en realidad es la subarea
   const [estudianteSeleccionado, setEstudianteSeleccionado] =
     useState<Tesista | null>(null);
+  const [errores, setErrores] = useState<{
+    titulo?: string;
+    resumen?: string;
+    objetivos?: string;
+    subareas?: string;
+    tesistas?: string;
+    fechaLimite?: string;
+    area?: string;
+  }>({});
+
+  // Datos de temas libres
+  const [areaConocimientoSeleccionada, setAreaConocimientoSeleccionada] =
+    useState<AreaConocimiento | null>(null);
+  const [areasConocimientos, setAreasConocimiento] = useState<
+    AreaConocimiento[]
+  >([]);
+  const [subAreas, setSubAreas] = useState<Subareas[]>([]);
+  //
+
+  useEffect(() => {
+    validarCampos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [temaData]);
 
   const handleChange = (field: keyof Tema, value: unknown) => {
     setTemaData((prev) => ({
@@ -79,6 +116,26 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
       [field]: value,
     }));
   };
+
+  useEffect(() => {
+    const cargarAreas = async () => {
+      const areas = await fetchAreaConocimientoFindByUsuarioId(asesor.id);
+      setAreasConocimiento(areas);
+    };
+    cargarAreas();
+  }, [asesor]);
+
+  useEffect(() => {
+    const cargarSubAreas = async () => {
+      if (areaConocimientoSeleccionada?.id) {
+        const subAreas = await fetchSubareasPorAreaConocimiento(
+          areaConocimientoSeleccionada?.id,
+        );
+        setSubAreas(subAreas);
+      }
+    };
+    cargarSubAreas();
+  }, [areaConocimientoSeleccionada]);
 
   const handleAgregarCoasesor = () => {
     if (
@@ -160,11 +217,12 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
    * Crea un nuevo tema (Inscripción / Tema libre) y cierra el formulario.
    */
   const handleGuardar = async () => {
+    if (!validarCampos()) return;
     try {
       if (carrera) {
         const response = await axiosInstance.post(
           "temas/createInscripcion",
-          mapTemaCreateInscription(temaData, carrera),
+          mapTemaCreateInscription(temaData, carrera, asesor),
         );
 
         toast.success("Tema guardado exitosamente");
@@ -185,8 +243,34 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
     }
   };
 
+  const handleGuardarLibre = async () => {
+    if (!validarCampos()) return;
+    try {
+      if (carrera) {
+        //guardar el tema libre
+        console.log(mapTemaCreateLibre(temaData, carrera, asesor));
+        toast.success("Tema guardado exitosamente");
+        console.log("Tema libre guardado exitosamente:");
+      } else {
+        throw new Error("Falta carrera");
+      }
+
+      // Reinicia el formulario y cierra el modal
+      setTemaData(temaVacio);
+      setAreaConocimientoSeleccionada(null);
+      setIsNuevoTemaDialogOpen(false);
+      onTemaGuardado();
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Error al guardar el tema.",
+      );
+      console.error("Error al guardar el tema:", error);
+    }
+  };
+
   const handleCancelar = () => {
     setTemaData(temaVacio);
+    setAreaConocimientoSeleccionada(null);
     setIsNuevoTemaDialogOpen(false);
   };
 
@@ -213,10 +297,46 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
     return tesistas?.some((t) => t.codigoPucp === student.codigoPucp);
   };
 
+  const validarCampos = () => {
+    const nuevosErrores: typeof errores = {};
+    if (!temaData.titulo || temaData.titulo.trim() === "") {
+      nuevosErrores.titulo = "Debe ingresar el título del tema.";
+    }
+    if (!temaData.resumen || temaData.resumen.trim() === "") {
+      nuevosErrores.resumen = "Debe ingresar la descripción del tema.";
+    }
+    if (!temaData.objetivos || temaData.objetivos.trim() === "") {
+      nuevosErrores.objetivos = "Debe ingresar los objetivos del tema.";
+    }
+    if (!temaData.subareas || temaData.subareas.length === 0) {
+      nuevosErrores.subareas = "Debe seleccionar al menos una subárea.";
+    }
+    // Solo para inscripción, validar tesistas
+    if (
+      tipoRegistro === TipoRegistro.INSCRIPCION &&
+      (!temaData.tesistas || temaData.tesistas.length === 0)
+    ) {
+      nuevosErrores.tesistas =
+        "Debe agregar al menos un estudiante para temas de tipo inscripción.";
+    }
+    if (!temaData.fechaLimite || temaData.fechaLimite.trim() === "") {
+      nuevosErrores.fechaLimite = "Debe ingresar fecha límite del tema.";
+    }
+    //Solo para tema Libre
+    if (
+      tipoRegistro === TipoRegistro.LIBRE &&
+      (areaConocimientoSeleccionada === null ||
+        areaConocimientoSeleccionada === undefined)
+    ) {
+      nuevosErrores.area = "Debe seleccionar una área.";
+    }
+    setErrores(nuevosErrores);
+    return Object.keys(nuevosErrores).length === 0;
+  };
   return (
     <>
       <Toaster richColors position="top-right" />
-      <DialogContent className="w-2xl">
+      <DialogContent className="w-3xl">
         <DialogHeader>
           <DialogTitle>Nuevo Tema de Tesis</DialogTitle>
           <DialogDescription>
@@ -231,7 +351,11 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
             <Label>Tipo de Registro</Label>
             <Select
               value={tipoRegistro}
-              onValueChange={(tipo) => setTipoRegistro(tipo as TipoRegistro)}
+              onValueChange={(tipo) => {
+                setTipoRegistro(tipo as TipoRegistro);
+                setTemaData(temaVacio);
+                setAreaConocimientoSeleccionada(null);
+              }}
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Seleccione un tipo de registro" />
@@ -256,42 +380,85 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
                   value={temaData.titulo}
                   onChange={(e) => handleChange("titulo", e.target.value)}
                 />
+                {errores.titulo && (
+                  <p className="text-red-500 text-xs mt-1">{errores.titulo}</p>
+                )}
               </div>
 
-              {/* Subareas */}
-              <ItemSelector
-                label="Subáreas"
-                itemsDisponibles={subareasDisponibles}
-                itemsSeleccionados={temaData.subareas}
-                itemKey="id"
-                itemLabel="nombre"
-                selectedItem={areaSeleccionada}
-                onSelectItem={onSelectSubarea}
-                onAgregarItem={handleAgregarSubarea}
-                onEliminarItem={handleEliminarSubarea}
-              />
-
               {/* Área de Investigación */}
-              {/* <div className="space-y-2">
-              <Label>Área de Investigación</Label>
-              <Select
-              // value={temaData.areaInvestigacion}
-              // onValueChange={(value) =>
-              //   handleChange("areaInvestigacion", value)
-              // }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Seleccione un área" />
-                </SelectTrigger>
-                <SelectContent>
-                  {subareasDisponibles.map((area) => (
-                    <SelectItem key={area.key} value={area.key}>
-                      {area.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div> */}
+              {tipoRegistro === TipoRegistro.LIBRE && (
+                <div className="space-y-2">
+                  <Label>Áreas de Conocimiento</Label>
+                  <Select
+                    onValueChange={(value) => {
+                      const areaSeleccionada = areasConocimientos.find(
+                        (area) => String(area.id) === value,
+                      );
+                      if (areaSeleccionada) {
+                        setAreaConocimientoSeleccionada(areaSeleccionada);
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Seleccione un área" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {areasConocimientos.map((area) => (
+                        <SelectItem key={area.id} value={String(area.id)}>
+                          {area.nombre}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errores.area && (
+                    <p className="text-red-500 text-xs mt-1">{errores.area}</p>
+                  )}
+                </div>
+              )}
+
+              {/* Subareas */}
+
+              {tipoRegistro === TipoRegistro.LIBRE && (
+                <div>
+                  <ItemSelector
+                    label="Subáreas de Investigación"
+                    itemsDisponibles={subAreas}
+                    itemsSeleccionados={temaData.subareas}
+                    itemKey="id"
+                    itemLabel="nombre"
+                    selectedItem={areaSeleccionada}
+                    onSelectItem={onSelectSubarea}
+                    onAgregarItem={handleAgregarSubarea}
+                    onEliminarItem={handleEliminarSubarea}
+                  />
+                  {errores.subareas && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {errores.subareas}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {tipoRegistro === TipoRegistro.INSCRIPCION && (
+                <div>
+                  <ItemSelector
+                    label="Subáreas de Investigación"
+                    itemsDisponibles={subareasDisponibles}
+                    itemsSeleccionados={temaData.subareas}
+                    itemKey="id"
+                    itemLabel="nombre"
+                    selectedItem={areaSeleccionada}
+                    onSelectItem={onSelectSubarea}
+                    onAgregarItem={handleAgregarSubarea}
+                    onEliminarItem={handleEliminarSubarea}
+                  />
+                  {errores.subareas && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {errores.subareas}
+                    </p>
+                  )}
+                </div>
+              )}
 
               {/* Descripción */}
               <div className="space-y-2">
@@ -301,6 +468,9 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
                   value={temaData.resumen}
                   onChange={(e) => handleChange("resumen", e.target.value)}
                 />
+                {errores.resumen && (
+                  <p className="text-red-500 text-xs mt-1">{errores.resumen}</p>
+                )}
               </div>
 
               {/* Objetivos */}
@@ -311,6 +481,11 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
                   value={temaData.objetivos}
                   onChange={(e) => handleChange("objetivos", e.target.value)}
                 />
+                {errores.objetivos && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errores.objetivos}
+                  </p>
+                )}
               </div>
 
               {/* Coasesores */}
@@ -334,7 +509,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
                   {/* Asesor Principal */}
                   <div className="space-y-2">
                     <Label>Asesor Principal</Label>
-                    <Input value={asesorData.name} disabled />
+                    <Input value={asesor.nombres} disabled />
                   </div>
 
                   {/* Estudiantes */}
@@ -377,9 +552,9 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
 
                     {/* Lista de estudiantes seleccionados */}
                     <div className="space-y-2 mt-2">
-                      {temaData.tesistas?.map((estudiante, index) => (
+                      {temaData.tesistas?.map((estudiante) => (
                         <div
-                          key={index}
+                          key={estudiante.id}
                           className="flex items-center justify-between bg-gray-100 px-4 py-2 rounded-md"
                         >
                           <div>
@@ -403,10 +578,11 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
                         </div>
                       ))}
                     </div>
-                    <p className="text-sm text-muted-foreground mt-2">
-                      Debe agregar al menos un estudiante para temas de tipo
-                      inscripción.
-                    </p>
+                    {errores.tesistas && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errores.tesistas}
+                      </p>
+                    )}
                   </div>
                 </>
               )}
@@ -414,27 +590,41 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
               {tipoRegistro === TipoRegistro.LIBRE && (
                 <div className="space-y-4">
                   {/* Requisitos */}
-                  {/* <div className="space-y-2">
-                  <Label>Requisitos (Opcional)</Label>
-                  <Textarea
-                  placeholder="Requisitos para los estudiantes interesados en este tema"
-                  defaultValue={temaData.requisitos}
-                  onChange={(e) => handleChange("requisitos", e.target.value)}
-                  />
-                  </div> */}
+                  {
+                    <div className="space-y-2">
+                      <Label>Requisitos (Opcional)</Label>
+                      <Textarea
+                        placeholder="Requisitos para los estudiantes interesados en este tema"
+                        defaultValue={temaData.requisitos}
+                        onChange={(e) =>
+                          handleChange("requisitos", e.target.value)
+                        }
+                      />
+                    </div>
+                  }
                 </div>
               )}
 
               {/* Fecha Límite */}
-              <div className="space-y-2">
-                <Label>Fecha Límite (Opcional)</Label>
-                <Input
-                  type="date"
-                  placeholder="mm/dd/yyyy"
-                  defaultValue={temaData.fechaLimite}
-                  onChange={(e) => handleChange("fechaLimite", e.target.value)}
-                />
-              </div>
+              {/* {tipoRegistro === TipoRegistro.LIBRE && ( */}
+              {
+                <div className="space-y-2">
+                  <Label>Fecha Límite</Label>
+                  <Input
+                    type="date"
+                    placeholder="mm/dd/yyyy"
+                    defaultValue={temaData.fechaLimite}
+                    onChange={(e) =>
+                      handleChange("fechaLimite", e.target.value)
+                    }
+                  />
+                  {errores.fechaLimite && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {errores.fechaLimite}
+                    </p>
+                  )}
+                </div>
+              }
             </>
           )}
         </div>
@@ -443,8 +633,21 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
           <Button variant="outline" onClick={handleCancelar}>
             Cancelar
           </Button>
-          {tipoRegistro !== TipoRegistro.NONE && (
-            <Button onClick={handleGuardar}>Guardar</Button>
+          {tipoRegistro === TipoRegistro.INSCRIPCION && (
+            <Button
+              onClick={handleGuardar}
+              disabled={Object.keys(errores).length > 0}
+            >
+              Guardar
+            </Button>
+          )}
+          {tipoRegistro === TipoRegistro.LIBRE && (
+            <Button
+              onClick={handleGuardarLibre}
+              disabled={Object.keys(errores).length > 0}
+            >
+              Guardar
+            </Button>
           )}
         </DialogFooter>
       </DialogContent>
@@ -452,7 +655,11 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
   );
 };
 
-const mapTemaCreateInscription = (tema: Tema, carrera: Carrera) => {
+const mapTemaCreateInscription = (
+  tema: Tema,
+  carrera: Carrera,
+  asesor: Coasesor,
+) => {
   return {
     titulo: tema.titulo,
     carrera: { id: carrera.id },
@@ -462,12 +669,28 @@ const mapTemaCreateInscription = (tema: Tema, carrera: Carrera) => {
     fechaLimite: new Date(tema.fechaLimite + "T10:00:00Z").toISOString(),
     subareas: tema.subareas.map((a) => ({ id: a.id })),
     coasesores: [
-      { id: asesorData.id },
+      { id: asesor.id },
       ...(tema.coasesores ? tema.coasesores.map((c) => ({ id: c.id })) : []),
     ],
     tesistas: tema.tesistas ? tema.tesistas.map((t) => ({ id: t.id })) : [],
   } as TemaCreateInscription;
 };
 
-export default NuevoTemaDialog;
+const mapTemaCreateLibre = (tema: Tema, carrera: Carrera, asesor: Coasesor) => {
+  return {
+    titulo: tema.titulo,
+    carrera: carrera.id,
+    resumen: tema.resumen,
+    objetivos: tema.objetivos,
+    metodologia: tema.metodologia,
+    fechaLimite: new Date(tema.fechaLimite + "T10:00:00Z").toISOString(),
+    subareas: tema.subareas.map((a) => a.id),
+    coasesores: [
+      asesor.id,
+      ...(tema.coasesores ? tema.coasesores.map((c) => c.id) : []),
+    ],
+    requisitos: tema.requisitos,
+  } as TemaCreateLibre;
+};
 
+export default NuevoTemaDialog;

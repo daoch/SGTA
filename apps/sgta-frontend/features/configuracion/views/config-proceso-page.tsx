@@ -19,6 +19,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+import { SquarePen } from "lucide-react";
+import { EditarEtapaModal } from "@/features/configuracion/components/configuracion/editar-etapa-modal";
+
 export default function ConfiguracionProcesoPage() {
   const [etapas, setEtapas] = useState<EtapaFormativaCiclo[]>([]);
   const [etapaToDelete, setEtapaToDelete] = useState<EtapaFormativaCiclo | null>(null);
@@ -58,7 +61,7 @@ export default function ConfiguracionProcesoPage() {
   };
 
   return (
-    <div className="max-w-5xl">
+    <div>
       <div className="flex items-center gap-2 mt-5 mb-4">
         <Link
           href="/coordinador/configuracion"
@@ -99,6 +102,14 @@ export default function ConfiguracionProcesoPage() {
                     {/*<Button variant="outline" size="icon">
                       <Edit size={16} />
                     </Button>*/}
+
+                    {/* Botón de Editar con SquarePen */}
+                    <EditarEtapaModal
+                      etapa={etapa}
+                      onSuccess={fetchEtapas}
+                    />
+                    
+
                     <Button 
                       variant="outline" 
                       size="icon" 
