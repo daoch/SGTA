@@ -3,7 +3,13 @@
 import { useEffect, useState } from "react";
 import { addDays, format, isBefore, parseISO } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
@@ -82,57 +88,65 @@ export function LineaTiempoReporte({ user }: Props) {
         const alumnoId = "11"; // Hardcodeado por ahora
         const data = await getEntregablesAlumno(alumnoId);
 
-        // console.log("→ data recibida de getEntregablesAlumno:", data);
-
-        const eventosTransformados: TimelineEvent[] = data.map((item: {
+        // Definimos el tipo de cada elemento que recibimos de la API:
+        type RawEntregable = {
           nombreEntregable: string;
-          fechaEnvio: string;
+          fechaEnvio: string | null;
           estadoEntregable: "no_iniciado" | "en_proceso" | "terminado";
           estadoXTema: "no_enviado" | "enviado_a_tiempo" | "enviado_tarde";
           esEvaluable: boolean;
           nota: number | null;
           criterios: Criterio[];
-        }) => {
-          const eventDate = parseISO(item.fechaEnvio);
-          const daysRemaining = Math.ceil(
-            (eventDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24)
-          );
+        };
 
-          // ——— Determinamos el “status” interno (no afecta el filtro por crudo)
-          let statusInterno: TimelineEvent["status"] = "Pendiente";
-          if (item.estadoEntregable === "terminado") {
-            statusInterno = "Completado";
-          } else if (item.estadoEntregable === "en_proceso") {
-            statusInterno = "En progreso";
-          } else {
-            statusInterno = "Pendiente"; // no_iniciado
-          }
+        // Convertimos data a RawEntregable[] y filtramos los que tengan fechaEnvio != null
+        const rawData = data as RawEntregable[];
+        const eventosTransformados: TimelineEvent[] = rawData
+          .filter((item) => item.fechaEnvio !== null)
+          .map((item) => {
+            // Para TypeScript, usamos "!" porque ya filtramos los null
+            const eventDate = parseISO(item.fechaEnvio!);
+            const daysRemaining = Math.ceil(
+              (eventDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24)
+            );
 
-          // isLate si el entregable llegó tarde
-          const isLateFlag = item.estadoXTema === "enviado_tarde";
+            // ——— Determinamos el “status” interno (no afecta el filtro por crudo)
+            let statusInterno: TimelineEvent["status"] = "Pendiente";
+            if (item.estadoEntregable === "terminado") {
+              statusInterno = "Completado";
+            } else if (item.estadoEntregable === "en_proceso") {
+              statusInterno = "En progreso";
+            } else {
+              statusInterno = "Pendiente"; // no_iniciado
+            }
 
-          const isAtRiskFlag =
-            daysRemaining > 0 &&
-            daysRemaining <= 3 &&
-            statusInterno === "Pendiente" &&
-            !isLateFlag;
+            // isLate si el entregable llegó tarde
+            const isLateFlag = item.estadoXTema === "enviado_tarde";
 
-          return {
-            event: item.nombreEntregable,
-            date: format(eventDate, "yyyy-MM-dd"),
-            rawEstadoEntregable: item.estadoEntregable,
-            rawEstadoXTema: item.estadoXTema,
-            status: statusInterno,
-            isLate: isLateFlag,
-            daysRemaining,
-            isAtRisk: isAtRiskFlag,
-            esEvaluable: item.esEvaluable,
-            nota: item.nota,
-            criterios: item.criterios || [],
-          };
-        });
+            const isAtRiskFlag =
+              daysRemaining > 0 &&
+              daysRemaining <= 3 &&
+              statusInterno === "Pendiente" &&
+              !isLateFlag;
 
-        eventosTransformados.sort((a, b) => parseISO(a.date).getTime() - parseISO(b.date).getTime());
+            return {
+              event: item.nombreEntregable,
+              date: format(eventDate, "yyyy-MM-dd"),
+              rawEstadoEntregable: item.estadoEntregable,
+              rawEstadoXTema: item.estadoXTema,
+              status: statusInterno,
+              isLate: isLateFlag,
+              daysRemaining,
+              isAtRisk: isAtRiskFlag,
+              esEvaluable: item.esEvaluable,
+              nota: item.nota,
+              criterios: item.criterios || [],
+            };
+          });
+
+        eventosTransformados.sort(
+          (a, b) => parseISO(a.date).getTime() - parseISO(b.date).getTime()
+        );
         setTimelineEvents(eventosTransformados);
       } catch (error) {
         console.error("Error al obtener entregables:", error);
@@ -148,9 +162,15 @@ export function LineaTiempoReporte({ user }: Props) {
       case "past":
         return isBefore(eventDate, currentDate);
       case "upcoming30":
-        return !isBefore(eventDate, currentDate) && isBefore(eventDate, addDays(currentDate, 30));
+        return (
+          !isBefore(eventDate, currentDate) &&
+          isBefore(eventDate, addDays(currentDate, 30))
+        );
       case "upcoming90":
-        return !isBefore(eventDate, currentDate) && isBefore(eventDate, addDays(currentDate, 90));
+        return (
+          !isBefore(eventDate, currentDate) &&
+          isBefore(eventDate, addDays(currentDate, 90))
+        );
       case "all":
       default:
         return true;
@@ -160,11 +180,9 @@ export function LineaTiempoReporte({ user }: Props) {
   // Ahora filtramos por el valor crudo seleccionado en statusFilter
   const filteredEvents = filteredByTime.filter((event) => {
     if (statusFilter === "all") return true;
-
     // Si coincide con rawEstadoEntregable o rawEstadoXTema
     if (statusFilter === event.rawEstadoEntregable) return true;
     if (statusFilter === event.rawEstadoXTema) return true;
-
     return false;
   });
 
@@ -183,7 +201,10 @@ export function LineaTiempoReporte({ user }: Props) {
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-lg">Avances y Entregas</CardTitle>
           <div className="flex items-center gap-2">
-            <Select value={timeFilter} onValueChange={(v) => setTimeFilter(v as TimeFilter)}>
+            <Select
+              value={timeFilter}
+              onValueChange={(v) => setTimeFilter(v as TimeFilter)}
+            >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Filtrar por tiempo" />
               </SelectTrigger>

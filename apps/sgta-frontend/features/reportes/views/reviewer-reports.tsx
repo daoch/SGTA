@@ -6,6 +6,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Eye } from "lucide-react";
+import { LineaTiempoReporte } from "../components/general/linea-tiempo";
+import { useAuth } from "@/features/auth/hooks/use-auth";
+
 import {
   Dialog,
   DialogContent,
@@ -17,6 +20,7 @@ import {
 
 export function ReviewerReports() {
   const [selectedStudent, setSelectedStudent] = useState("1");
+  const { user } = useAuth();
 
   const students = [
     {
@@ -385,6 +389,9 @@ export function ReviewerReports() {
           </CardContent>
         </Card>
       )}
+       {user && <LineaTiempoReporte user={user} />}
     </div>
+
+
   );
 }
