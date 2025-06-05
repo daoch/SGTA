@@ -16,20 +16,19 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/use-toast";
 import HighlighterPdfViewer from "@/features/revision/components/HighlighterPDFViewer";
+import axiosInstance from "@/lib/axios/axios-instance";
 import { AlertTriangle, ArrowLeft, CheckCircle, FileWarning, Quote, Sparkles, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PDFDocument } from "pdf-lib";
 import { useCallback, useEffect, useState } from "react";
 import { IHighlight } from "react-pdf-highlighter/dist/types";
-import { useAuthStore } from "@/features/auth/store/auth-store";
-import axiosInstance from "@/lib/axios/axios-instance";
 import { analizarPlagioArchivoS3, descargarArchivoS3RevisionID, guardarObservacionesRevision, obtenerObservacionesRevision } from "../servicios/revision-service";
 // ...otros imports...
 
 // Datos de ejemplo para una revisión específica
 const revisionData = {
-  id: "2",
+  id: 2,
   titulo: "Vision Computacional",
   estudiante: "Luis Manuel Falcon Baca",
   codigo: "20183178",
@@ -251,15 +250,15 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
   };*/
 
   async function actualizarEstadoRevision(revisionId: number, nuevoEstado: string) {
-  try {
-    const response = await axiosInstance.put(`/revision/${revisionId}/estado`, {
-      estado: nuevoEstado
-    });
-    return response.data; // o response.status si solo te importa el status
-  } catch (error) {
-    console.error("Error en la actualización:", error);
-    throw error;
-  }
+    try {
+      const response = await axiosInstance.put(`/revision/${revisionId}/estado`, {
+        estado: nuevoEstado
+      });
+      return response.data; // o response.status si solo te importa el status
+    } catch (error) {
+      console.error("Error en la actualización:", error);
+      throw error;
+    }
   }
 
 
@@ -764,7 +763,7 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
                       variant="default"
                       onClick={async () => {
                         try {
-                          await actualizarEstadoRevision(revisionId, "aprobado");
+                          await actualizarEstadoRevision(params.id_revision, "aprobado");
                           setRevision({ ...revision, estado: "aprobado" });
                           toast({ title: "Entregable aprobado" });
                         } catch {
@@ -791,7 +790,7 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
                       variant="destructive"
                       onClick={async () => {
                         try {
-                          await actualizarEstadoRevision(revisionId, "rechazado");
+                          await actualizarEstadoRevision(params.id_revision, "rechazado");
                           setRevision({ ...revision, estado: "rechazado" });
                           toast({ title: "Entregable rechazado" });
                         } catch {
