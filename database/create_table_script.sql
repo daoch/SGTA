@@ -1077,7 +1077,11 @@ $$
         CREATE TYPE enum_estado_revision AS ENUM (
             'pendiente',
             'en_proceso',
-            'completada'
+            'completada',
+	        'revisado',
+	        'aprobado',
+            'rechazado',
+	        'por_aprobar'
             );
     EXCEPTION
         WHEN duplicate_object THEN NULL;
