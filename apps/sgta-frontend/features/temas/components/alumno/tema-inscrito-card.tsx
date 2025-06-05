@@ -41,6 +41,7 @@ interface Tesis {
     codigoPucp: string;
   }[];
   coasesores?: Profesor[];
+  estadoActual?: string;
 }
 
 const profesoresData = [
@@ -67,30 +68,45 @@ export function TemaCard() {
     const fetchTesis = async () => {
       try {
         const { idToken } = useAuthStore.getState();
-        
         if (!idToken) {
           console.error("No authentication token available");
           return;
         }
 
-        const response = await fetch(
+        // Buscar primero INSCRITO
+        let response = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/temas/listarTemasPorUsuarioRolEstado?rolNombre=Tesista&estadoNombre=INSCRITO`,
           {
             headers: {
-              "Authorization": `Bearer ${idToken}`,
-              "Content-Type": "application/json"
-            }
+              Authorization: `Bearer ${idToken}`,
+              "Content-Type": "application/json",
+            },
           }
         );
-        
-        if (!response.ok) throw new Error("Error al obtener datos de tesis");
-        const data = await response.json();
-        const tesis = data[0];
-        setTesisData(tesis);
+        let data = await response.json();
 
+        let estadoActual = "Inscrito";
+        // Si no hay INSCRITO, buscar REGISTRADO
+        if (!data || data.length === 0) {
+          response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/temas/listarTemasPorUsuarioRolEstado?rolNombre=Tesista&estadoNombre=REGISTRADO`,
+            {
+              headers: {
+                Authorization: `Bearer ${idToken}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+          data = await response.json();
+          estadoActual = "Registrado";
+        }
+
+        const tesis = data[0];
+        setTesisData({ ...tesis, estadoActual });
+
+        // ...resto de tu lógica para setFormData...
         const asesorPrincipal = tesis.coasesores?.[0];
         const coasesoresRestantes = tesis.coasesores?.slice(1) ?? [];
-
         setFormData({
           titulo: tesis.titulo,
           area: tesis.area ?? "",
@@ -184,7 +200,7 @@ export function TemaCard() {
           </div>
           </div>
           <Badge variant="outline" className="bg-green-100 text-green-800 hover:bg-green-100">
-            En desarrollo
+            {tesisData.estadoActual}
           </Badge>
         </div>
       </CardHeader>
