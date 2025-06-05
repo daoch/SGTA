@@ -10,6 +10,7 @@ import pucp.edu.pe.sgta.dto.DocentesDTO;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
 import java.util.List;
 import java.util.NoSuchElementException;
+import pucp.edu.pe.sgta.dto.AlumnoReporteDto;
 
 public interface UsuarioService {
 
@@ -95,4 +96,6 @@ public interface UsuarioService {
     List<DocentesDTO> getProfesores();
 
     AlumnoTemaDto getAlumnoTema(String idAlumno);
+
+    List<AlumnoReporteDto> findByStudentsForReviewer(Integer carreraId, String cadenaBusqueda);
 }
