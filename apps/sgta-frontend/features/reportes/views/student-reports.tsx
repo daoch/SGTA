@@ -20,12 +20,6 @@ const getProgressColor = (progreso: number) => {
   return "#22c55e";
 };
 
-const getProgressColor = (progreso: number) => {
-  if (progreso < 30) return "#ef4444";
-  if (progreso < 70) return "#eab308";
-  return "#22c55e";
-};
-
 export function StudentReports() {
   const [studentData, setStudentData] = useState<AlumnoTemaDetalle | null>(null);
   const [isLoading, setIsLoading] = useState(true);
