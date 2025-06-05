@@ -8,6 +8,8 @@ import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import jakarta.transaction.Transactional;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -25,8 +27,11 @@ import pucp.edu.pe.sgta.mapper.UsuarioMapper;
 import pucp.edu.pe.sgta.model.*;
 import pucp.edu.pe.sgta.repository.*;
 import pucp.edu.pe.sgta.service.inter.*;
+import pucp.edu.pe.sgta.util.AccionSolicitudEnum;
+import pucp.edu.pe.sgta.util.EstadoSolicitudEnum;
 import pucp.edu.pe.sgta.util.EstadoTemaEnum;
 import pucp.edu.pe.sgta.util.RolEnum;
+import pucp.edu.pe.sgta.util.RolSolicitudEnum;
 import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -81,6 +86,12 @@ public class TemaServiceImpl implements TemaService {
 
 	private final AreaConocimientoService areaConocimientoService;
 
+    private EstadoSolicitudRepository estadoSolicitudRepository;
+
+	private RolSolicitudRepository rolSolicitudRepository;
+
+	private AccionSolicitudRepository accionSolicitudRepository;
+
 	@PersistenceContext
 	private EntityManager entityManager;
 
@@ -96,7 +107,9 @@ public class TemaServiceImpl implements TemaService {
 			JornadaExposicionXSalaExposicionRepository jornadaExposicionXSalaExposicionRepository,
 			UsuarioXTemaRepository usuarioTemaRepository, TipoSolicitudRepository tipoSolicitudRepository,
 			SolicitudRepository solicitudRepository,
-			UsuarioXSolicitudRepository usuarioXSolicitudRepository, AreaConocimientoService areaConocimientoService) {
+			UsuarioXSolicitudRepository usuarioXSolicitudRepository, AreaConocimientoService areaConocimientoService,
+			EstadoSolicitudRepository estadoSolicitudRepository, RolSolicitudRepository rolSolicitudRepository,
+			AccionSolicitudRepository accionSolicitudRepository) {
 		this.temaRepository = temaRepository;
 		this.usuarioXTemaRepository = usuarioXTemaRepository;
 		this.subAreaConocimientoXTemaRepository = subAreaConocimientoXTemaRepository;
@@ -117,6 +130,9 @@ public class TemaServiceImpl implements TemaService {
 		this.usuarioXSolicitudRepository = usuarioXSolicitudRepository;
 		this.carreraServiceImpl = carreraServiceImpl;
 		this.areaConocimientoService = areaConocimientoService;
+		this.estadoSolicitudRepository = estadoSolicitudRepository;
+		this.rolSolicitudRepository = rolSolicitudRepository;
+		this.accionSolicitudRepository = accionSolicitudRepository;
 	}
 
 	@Override
@@ -445,13 +461,25 @@ public class TemaServiceImpl implements TemaService {
 				.orElseThrow(() -> new RuntimeException(
 						"Tipo de solicitud no configurado: " + tipoSolicitudNombre));
 
+		EstadoSolicitud estadoSolicitud = estadoSolicitudRepository
+                .findByNombre(EstadoSolicitudEnum.PENDIENTE.name())
+                .orElseThrow(() -> new RuntimeException("Estado de solicitud no encontrado"));
+
 		// 2) Construir y guardar la solicitud
 		Solicitud solicitud = new Solicitud();
 		solicitud.setDescripcion(comentario != null ? comentario : tipoSolicitudNombre);
 		solicitud.setTipoSolicitud(tipoSolicitud);
 		solicitud.setTema(tema);
-		solicitud.setEstado(0); // Ajusta según tu convención (p.ej. 0 = PENDIENTE)
+		//solicitud.setEstado(0); // Ajusta según tu convención (p.ej. 0 = PENDIENTE)
+		solicitud.setEstadoSolicitud(estadoSolicitud);
 		Solicitud savedSolicitud = solicitudRepository.save(solicitud);
+
+		RolSolicitud rolRemitente = rolSolicitudRepository
+                .findByNombre(RolSolicitudEnum.REMITENTE.name()).
+				orElseThrow(() -> new RuntimeException("Rol destinatario no encontrado"));
+		AccionSolicitud accionPendiente = accionSolicitudRepository
+                .findByNombre(AccionSolicitudEnum.PENDIENTE_ACCION.name())
+                .orElseThrow(() -> new RuntimeException("Accion pendiente_aprobacion no encontrado"));
 
 		// 3) Crear la relación UsuarioXSolicitud
 		Usuario usuario = usuarioRepository.findById(idUsuarioCreador)
@@ -459,12 +487,12 @@ public class TemaServiceImpl implements TemaService {
 		UsuarioXSolicitud usuarioXSolicitud = new UsuarioXSolicitud();
 		usuarioXSolicitud.setUsuario(usuario);
 		usuarioXSolicitud.setSolicitud(savedSolicitud);
-		usuarioXSolicitud.setDestinatario(false); // o false según tu lógica
-		usuarioXSolicitud.setAprobado(false);
-		usuarioXSolicitud.setSolicitudCompletada(false);
+		//usuarioXSolicitud.setDestinatario(false); // o false según tu lógica
+		//usuarioXSolicitud.setAprobado(false);
+		//usuarioXSolicitud.setSolicitudCompletada(false);
 		usuarioXSolicitud.setComentario(comentario);
-		usuarioXSolicitud.setActivo(true);
-		usuarioXSolicitud.setFechaCreacion(OffsetDateTime.now());
+		usuarioXSolicitud.setRolSolicitud(rolRemitente);
+		usuarioXSolicitud.setAccionSolicitud(accionPendiente);
 
 		usuarioXSolicitudRepository.save(usuarioXSolicitud);
 	}
@@ -482,13 +510,24 @@ public class TemaServiceImpl implements TemaService {
 				.orElseThrow(() -> new RuntimeException(
 						"Tipo de solicitud no configurado: Aprobación de tema (por coordinador)"));
 
+		// Estado solicitud
+        EstadoSolicitud estadoSolicitud = estadoSolicitudRepository
+                .findByNombre(EstadoSolicitudEnum.PENDIENTE.name())
+                .orElseThrow(() -> new RuntimeException("Estado de solicitud no encontrado"));
 		// 2) Construir y guardar la solicitud
 		Solicitud solicitud = new Solicitud();
 		solicitud.setDescripcion("Solicitud de aprobación de tema por coordinador");
 		solicitud.setTipoSolicitud(tipoSolicitud);
 		solicitud.setTema(tema);
-		solicitud.setEstado(0); // Ajusta según tu convención (p.ej. 0 = PENDIENTE)
+		solicitud.setEstadoSolicitud(estadoSolicitud); // Ajusta según tu convención (p.ej. 0 = PENDIENTE)
 		Solicitud savedSolicitud = solicitudRepository.save(solicitud);
+
+		RolSolicitud rolDestinatario = rolSolicitudRepository
+                .findByNombre(RolSolicitudEnum.DESTINATARIO.name()).
+				orElseThrow(() -> new RuntimeException("Rol destinatario no encontrado"));
+		AccionSolicitud accionPendiente = accionSolicitudRepository
+                .findByNombre(AccionSolicitudEnum.PENDIENTE_ACCION.name())
+                .orElseThrow(() -> new RuntimeException("Accion pendiente_aprobacion no encontrado"));
 
 		// 3) Buscar los usuarios-coordinador de la carrera del tema
 		List<UsuarioXSolicitud> asignaciones = usuarioCarreraRepository
@@ -499,9 +538,11 @@ public class TemaServiceImpl implements TemaService {
 					UsuarioXSolicitud us = new UsuarioXSolicitud();
 					us.setUsuario(coord);
 					us.setSolicitud(savedSolicitud);
-					us.setDestinatario(true);
-					us.setAprobado(false);
-					us.setSolicitudCompletada(false);
+					//us.setDestinatario(true);
+					us.setRolSolicitud(rolDestinatario);
+					//us.setAprobado(false);
+					us.setAccionSolicitud(accionPendiente);
+					//us.setSolicitudCompletada(false);
 					return us;
 				})
 				.collect(Collectors.toList());
@@ -701,12 +742,6 @@ public class TemaServiceImpl implements TemaService {
 		for (Object[] r : rows) {
 			Integer temaId = (Integer) r[0];
 
-			// Construye el DTO de área usando los índices corregidos
-			// AreaConocimientoDto areaDto = AreaConocimientoDto.builder()
-			// 		.id((Integer) r[14]) // ahora sí es area_id
-			// 		.nombre((String) r[15]) // area_nombre
-			// 		.build();
-
 			TemaDto dto = dtoMap.get(temaId);
 			if (dto == null) {
 				dto = TemaDto.builder()
@@ -765,7 +800,7 @@ public class TemaServiceImpl implements TemaService {
 			for (Object[] row : areasRows) {
 				AreaConocimientoDto area = AreaConocimientoDto.builder()
 					.id((Integer) row[0])     // area_conocimiento_id
-					.nombre((String) row[1])  // nombre de la área
+					.nombre((String) row[2])  // nombre de la área
 					.build();
 				t.getArea().add(area);
 			}
@@ -792,6 +827,8 @@ public class TemaServiceImpl implements TemaService {
 					.asignado((Boolean) r[7]) // we identify if the asesor is assigned or not
 					.rechazado((Boolean) r[8])
 					.codigoPucp((String) r[9])
+					.creador((Boolean) r[10])
+					.comentario((String) r[11])
 					.build();
 			u.setRol(rolNombre);
 			resultados.add(u);
@@ -1566,17 +1603,35 @@ public class TemaServiceImpl implements TemaService {
 	}
 
 	@Override
-	public List<TemaDto> listarTemasLibres(String titulo, Integer limit, Integer offset, String usuarioId) {
-		String sql = "SELECT * FROM listar_temas_libres_con_usuarios(:titulo, :limit, :offset, :usuarioId)";
+	public List<TemaDto> listarTemasLibres(String titulo, Integer limit, Integer offset, String usuarioId, Boolean myOwn) {
+		if (myOwn == null) {
+			myOwn = false; // Default to false if not specified
+		}
 
 		@SuppressWarnings("unchecked")
-		List<Object[]> resultados = entityManager
-				.createNativeQuery(sql)
-				.setParameter("titulo",  titulo  != null ? titulo  : "")
-				.setParameter("limit",   limit   != null ? limit   : 10)
-				.setParameter("offset",  offset  != null ? offset  : 0)
-				.setParameter("usuarioId", usuarioId)
-				.getResultList();
+		List<Object[]> resultados = new ArrayList<>();
+		
+		if (myOwn){
+			String sql = "SELECT * FROM listar_temas_libres_postulados_alumno(:usuarioId)";
+			
+			resultados = entityManager
+					.createNativeQuery(sql)
+					.setParameter("usuarioId", usuarioId)
+					.getResultList();
+		}
+		else{
+			String sql = "SELECT * FROM listar_temas_libres_con_usuarios(:titulo, :limit, :offset, :usuarioId)";
+
+			resultados = entityManager
+					.createNativeQuery(sql)
+					.setParameter("titulo",  titulo  != null ? titulo  : "")
+					.setParameter("limit",   limit   != null ? limit   : 10)
+					.setParameter("offset",  offset  != null ? offset  : 0)
+					.setParameter("usuarioId", usuarioId)
+					.getResultList();
+		}
+
+		
 
 		List<TemaDto> lista = new ArrayList<>();
 		for (Object[] fila : resultados) {
@@ -1656,6 +1711,8 @@ public class TemaServiceImpl implements TemaService {
 				dto.getArea().add(areaDto);
 			}
 
+			dto.setCantPostulaciones((Integer) fila[19]);
+
 			lista.add(dto);
 		}
 
@@ -1681,12 +1738,6 @@ public class TemaServiceImpl implements TemaService {
 
 		for (Object[] r : rows) {
 			int temaId = ((Number) r[0]).intValue();
-
-			// Área
-			AreaConocimientoDto areaDto = AreaConocimientoDto.builder()
-					.id(((Number) r[14]).intValue())
-					.nombre((String) r[15])
-					.build();
 
 			TemaDto dto = dtoMap.get(temaId);
 			if (dto == null) {
@@ -1715,7 +1766,7 @@ public class TemaServiceImpl implements TemaService {
 				dtoMap.put(temaId, dto);
 			}
 
-			dto.getArea().add(areaDto);
+			//dto.getArea().add(areaDto);
 		}
 
 		List<TemaDto> resultados = new ArrayList<>(dtoMap.values());
@@ -1756,6 +1807,20 @@ public class TemaServiceImpl implements TemaService {
 				t.getSubareas().add(subArea);
 			}
 
+			List<Object[]> areasRows = entityManager.createNativeQuery(
+					"SELECT * FROM listar_areas_por_tema(:temaId)")
+				.setParameter("temaId", t.getId())
+				.getResultList();
+
+			// Construir DTOs de área y agregarlos al tema
+			for (Object[] row : areasRows) {
+				AreaConocimientoDto area = AreaConocimientoDto.builder()
+					.id((Integer) row[0])     // area_conocimiento_id
+					.nombre((String) row[2])  // nombre de la área
+					.build();
+				t.getArea().add(area);
+			}
+
 			t.setCoasesores(combinado);
 			t.setTesistas(
 					listarUsuariosPorTemaYRol(t.getId(), RolEnum.Tesista.name()));
@@ -1775,7 +1840,7 @@ public class TemaServiceImpl implements TemaService {
 				.orElseThrow(() -> new ResponseStatusException(
 						HttpStatus.NOT_FOUND,
 						"EstadoTema '" + nuevoEstadoNombre + "' no existe"));
-		validarEstadoTema(temaId, EstadoTemaEnum.INSCRITO.name());
+		//validarEstadoTema(temaId, EstadoTemaEnum.INSCRITO.name());
 	}
 
 	private Tema actualizarTemaYHistorial(
@@ -1815,19 +1880,32 @@ public class TemaServiceImpl implements TemaService {
 						"No hay registro en usuario_solicitud para la solicitud "
 								+ solicitudId + " y usuario " + usuarioId));
 
+		RolSolicitud rolDestinatario = rolSolicitudRepository
+		.findByNombre(RolSolicitudEnum.DESTINATARIO.name()).
+		orElseThrow(() -> new RuntimeException("Rol destinatario no encontrado"));
+		// AccionSolicitud accionPendiente = accionSolicitudRepository
+		// .findByNombre(AccionSolicitudEnum.PENDIENTE_ACCION.name())
+		// .orElseThrow(() -> new RuntimeException("Accion pendiente_aprobacion no encontrado"));
+		AccionSolicitud accionAprobado = accionSolicitudRepository
+		.findByNombre(AccionSolicitudEnum.APROBADO.name())
+		.orElseThrow(() -> new RuntimeException("Accion APROBADO no encontrado"));
+		AccionSolicitud accionRechazado = accionSolicitudRepository
+		.findByNombre(AccionSolicitudEnum.RECHAZADO.name())
+		.orElseThrow(() -> new RuntimeException("Accion RECHAZADO no encontrado"));
+
 		uxs.setComentario(comentario);
 		switch (nuevoEstadoNombre.toUpperCase()) {
 			case "REGISTRADO":
-				uxs.setAprobado(true);
-				uxs.setSolicitudCompletada(true);
+				uxs.setRolSolicitud(rolDestinatario);
+				uxs.setAccionSolicitud(accionAprobado);
 				break;
 			case "RECHAZADO":
-				uxs.setAprobado(false);
-				uxs.setSolicitudCompletada(true);
+				uxs.setRolSolicitud(rolDestinatario);
+				uxs.setAccionSolicitud(accionRechazado);
 				break;
 			case "OBSERVADO":
-				uxs.setAprobado(false);
-				uxs.setSolicitudCompletada(true);
+				uxs.setRolSolicitud(rolDestinatario);
+				uxs.setAccionSolicitud(accionRechazado);
 				break;
 			default:
 				// opcional
@@ -1842,17 +1920,27 @@ public class TemaServiceImpl implements TemaService {
 			String comentario) {
 		switch (nuevoEstadoNombre.toUpperCase()) {
 			case "REGISTRADO":
-				solicitud.setEstado(3);
+				EstadoSolicitud estadoSolicitud = estadoSolicitudRepository
+						.findByNombre(EstadoSolicitudEnum.ACEPTADA.name())
+						.orElseThrow(() -> new RuntimeException("Estado de solicitud no encontrado"));
+				solicitud.setEstadoSolicitud(estadoSolicitud);
 				break;
 			case "RECHAZADO":
-				solicitud.setEstado(2);
+				EstadoSolicitud estadoSolicitudR = estadoSolicitudRepository
+						.findByNombre(EstadoSolicitudEnum.RECHAZADA.name())
+						.orElseThrow(() -> new RuntimeException("Estado de solicitud no encontrado"));
+				solicitud.setEstadoSolicitud(estadoSolicitudR);
 				break;
 			case "OBSERVADO":
-				solicitud.setEstado(1);
+				EstadoSolicitud estadoSolicitudO = estadoSolicitudRepository
+						.findByNombre(EstadoSolicitudEnum.PENDIENTE.name())
+						.orElseThrow(() -> new RuntimeException("Estado de solicitud no encontrado"));
+				solicitud.setEstadoSolicitud(estadoSolicitudO);
 				break;
 			default:
 				// opcional
 		}
+		
 		solicitud.setRespuesta(comentario);
 		solicitud.setFechaModificacion(OffsetDateTime.now());
 		solicitudRepository.save(solicitud);
@@ -2104,6 +2192,230 @@ public class TemaServiceImpl implements TemaService {
 				tema.getResumen(),
 				"Inscripción de tema por Asesor");
 		crearSolicitudAprobacionTema(tema);
+	}
+
+	@Override
+	public List<TemaDto> listarPostuladosTemaLibre(
+			String busqueda,
+			String estado,
+			LocalDate fechaLimite,
+			Integer limit,
+			Integer offset,
+			String usuarioId
+	){
+		UsuarioDto usuDto = usuarioService.findByCognitoId(usuarioId);
+
+		String sql = "SELECT * FROM listar_postulaciones_alumnos_tema_libre(:asesorId, :busqueda, :estado, :fechaLimite, :limit, :offset)";
+
+		@SuppressWarnings("unchecked")
+		List<Object[]> resultados = entityManager
+				.createNativeQuery(sql)
+				.setParameter("asesorId", usuDto.getId())
+				.setParameter("busqueda", busqueda != null ? busqueda : "")
+				.setParameter("estado", estado != null ? estado : "")
+				.setParameter("fechaLimite", fechaLimite != null ? java.sql.Date.valueOf(fechaLimite) : null)
+				.setParameter("limit", limit != null ? limit : 10)
+				.setParameter("offset", offset != null ? offset : 0)
+				.getResultList();
+
+
+		List<TemaDto> lista = new ArrayList<>();
+
+		for (Object[] fila : resultados) {
+			TemaDto dto = new TemaDto();
+
+			dto=findById((Integer) fila[0]);
+
+			dto.setTitulo((String) fila[1]);
+
+			// Crear UsuarioDto para el tesista
+			dto.setTesistas(new ArrayList<>());
+			dto.setSubareas(new ArrayList<>());
+			int tesistaId = (Integer) fila[5];
+			UsuarioDto tesista = usuarioService.findUsuarioById(tesistaId);
+			tesista.setComentario((String) fila[3]);
+			dto.getTesistas().add(tesista);
+
+			dto.setEstadoUsuarioTema((String) fila[6]);
+
+			dto.setTesistas(Collections.singletonList(tesista));
+
+			dto.setFechaLimite(fila[7] != null
+					? ((java.sql.Date) fila[7]).toLocalDate().atStartOfDay().atOffset(ZoneOffset.UTC)
+					: null);
+
+			Integer[] subareaArray = (Integer[]) fila[8];
+			if (subareaArray != null) {
+				for (Integer subareaId : subareaArray) {
+
+					dto.getSubareas().add(subAreaConocimientoService.findById(subareaId));
+				}
+			}
+
+			//    (a) Traer la lista de asesores asignados al tema
+			List<UsuarioDto> asesores = listarUsuariosPorTemaYRol(dto.getId(), RolEnum.Asesor.name());
+
+			//    (b) Traer la lista de coasesores asignados al tema
+			List<UsuarioDto> coasesoresDirectos = listarUsuariosPorTemaYRol(dto.getId(), RolEnum.Coasesor.name());
+
+			//    (c) Combinar: primero el (o los) asesor(es), luego los coasesores sin duplicados
+			List<UsuarioDto> combinado = new ArrayList<>();
+			if (!asesores.isEmpty()) {
+				combinado.addAll(asesores);
+			}
+			for (UsuarioDto u : coasesoresDirectos) {
+				boolean yaAgregado = asesores.stream().anyMatch(a -> a.getId().equals(u.getId()));
+				if (!yaAgregado) {
+					combinado.add(u);
+				}
+			}
+			dto.setCoasesores(combinado);
+
+			lista.add(dto);
+		}
+
+		return lista;
+	}
+
+
+
+	@Transactional
+	public void aceptarPostulacionAlumno(Integer temaId, Integer idTesista, String idAsesor, String comentario) {
+		// 1) Validar que quien llama sea el asesor asignado al tema
+		UsuarioDto usuDto = usuarioService.findByCognitoId(idAsesor);
+
+		// 2) Validar que el tema esté en el estado correcto para aceptar postulaciones
+		Tema tema = validarEstadoTema(temaId, EstadoTemaEnum.PROPUESTO_LIBRE.name());
+
+		boolean yaAsignado = usuarioXTemaRepository
+				.existsByUsuarioIdAndRolNombreAndActivoTrueAndAsignadoTrue(
+						idTesista,
+						"Tesista" // o el nombre exacto de tu rol
+				);
+		if (yaAsignado) {
+			throw new CustomException(
+					"El tesista con id " + idTesista + " ya tiene un tema asignado");
+		}
+
+		// 3) Buscar el registro de UsuarioXTema para ese tesista y tema
+		UsuarioXTema usuarioXTema = usuarioXTemaRepository
+				.findByTemaIdAndUsuarioIdAndActivoTrue(temaId, idTesista)
+				.orElseThrow(() -> new ResponseStatusException(
+						HttpStatus.NOT_FOUND,
+						"No existe postulación de ese tesista al tema " + temaId
+				));
+
+		// 4) Obtener el Rol “Tesista” desde la tabla de roles
+		Rol rolTesista = rolRepository.findByNombre(RolEnum.Tesista.name())
+				.orElseThrow(() -> new RuntimeException("Rol 'Tesista' no encontrado"));
+
+		// 5) Actualizar el registro: asignado = true, cambiar el rol a Tesista
+		usuarioXTema.setAsignado(true);
+		usuarioXTema.setRol(rolTesista);
+		usuarioXTema.setFechaModificacion(OffsetDateTime.now());
+
+		usuarioXTemaRepository.save(usuarioXTema);
+
+		List<UsuarioXTema> asesores = usuarioXTemaRepository
+					.findByTemaIdAndRolNombreAndActivoTrue(temaId, RolEnum.Asesor.name());
+		if (asesores.isEmpty()) {
+			throw new RuntimeException("No se encontró registro de Asesor para el tema " + temaId);
+		}
+		UsuarioXTema registroAsesor = asesores.get(0);
+		registroAsesor.setAsignado(true);
+		registroAsesor.setFechaModificacion(OffsetDateTime.now());
+		usuarioXTemaRepository.save(registroAsesor);
+
+		// 7) Marcar a TODOS los coasesores como asignados = true
+		List<UsuarioXTema> registrosCoasesores = usuarioXTemaRepository
+				.findByTemaIdAndRolNombreAndActivoTrue(temaId, RolEnum.Coasesor.name());
+		OffsetDateTime ahora = OffsetDateTime.now();
+		for (UsuarioXTema coase : registrosCoasesores) {
+			coase.setAsignado(true);
+			coase.setFechaModificacion(ahora);
+		}
+		usuarioXTemaRepository.saveAll(registrosCoasesores);
+
+
+		temaRepository.actualizarEstadoTema(temaId, EstadoTemaEnum.INSCRITO.name());
+		saveHistorialTemaChange(tema, tema.getTitulo(), tema.getResumen(), comentario != null ? comentario : "Aceptación de postulante");
+
+		// 6) (Opcional) Eliminar postulaciones previas de ese alumno a otros temas
+		eliminarPostulacionesTesista(idTesista);
+		eliminarPropuestasTesista(idTesista);
+
+		// 7) Desactivar todas las demás postulaciones (asignado = false) de este mismo tema
+		eliminarPostulacionesTema(temaId);
+	}
+
+
+	private void eliminarPostulacionesTema(Integer idTema) {
+		// 1) Obtener todos los registros de usuario–tema para ese tema donde asignado = false y activo = true
+		List<UsuarioXTema> postulacionesPendientes = usuarioXTemaRepository
+				.findByTemaIdAndAsignadoFalseAndActivoTrue(idTema);
+
+		if (postulacionesPendientes.isEmpty()) {
+			return; // no hay nada que desactivar
+		}
+
+		// 2) Marcar cada registro como inactivo
+		OffsetDateTime ahora = OffsetDateTime.now();
+		for (UsuarioXTema ux : postulacionesPendientes) {
+			ux.setActivo(false);
+			ux.setFechaModificacion(ahora);
+		}
+
+		// 3) Guardar todos los cambios en lote
+		usuarioXTemaRepository.saveAll(postulacionesPendientes);
+	}
+
+
+	@Override
+	@Transactional
+	public void rechazarPostulacionAlumno(Integer temaId, Integer idTesista, String idAsesor, String comentario) {
+		// 1) (Opcional) Validar que quien llama tenga permiso: p.ej. sea Asesor del tema
+		UsuarioDto usuDto = usuarioService.findByCognitoId(idAsesor);
+		validarRolAsignadoAtema(usuDto.getId(), temaId, RolEnum.Asesor.name());
+
+		// 2) Buscar el registro de UsuarioXTema correspondiente
+		UsuarioXTema registro = usuarioXTemaRepository
+				.findByTemaIdAndUsuarioIdAndActivoTrue(temaId, idTesista)
+				.orElseThrow(() -> new ResponseStatusException(
+						HttpStatus.NOT_FOUND,
+						"No existe postulación para el tesista " + idTesista + " en el tema " + temaId
+				));
+
+		// 3) Marcarlo como rechazado
+		registro.setRechazado(true);
+		registro.setFechaModificacion(OffsetDateTime.now());
+		registro.setComentario(comentario != null ? comentario : "Postulación rechazada por el asesor");
+		usuarioXTemaRepository.save(registro);
+	}
+
+	@Override
+	public void eliminarPostulacionTemaLibre(Integer temaId, String idUsuario) {
+
+		UsuarioDto usuDto = usuarioService.findByCognitoId(idUsuario);
+		if(usuDto == null){
+			throw new ResponseStatusException(
+				HttpStatus.NOT_FOUND,
+				"Usuario no encontrado con ID: " + idUsuario
+			);
+		}
+		Optional<UsuarioXTema> asignacionOpt = usuarioXTemaRepository
+				.findByUsuarioIdAndTemaIdAndRolIdAndActivoTrue(usuDto.getId(), temaId, 4); // Rol Tesista
+
+		if (asignacionOpt.isEmpty()) {
+			logger.severe("No se encontró una asignación de tesista para el tema con ID: " + temaId);
+			throw new ResponseStatusException(
+				HttpStatus.NOT_FOUND,
+				"No se encontró una asignación de tesista para el tema con ID: " + temaId
+			);
+		} else{
+			UsuarioXTema asignacion = asignacionOpt.get();
+			usuarioXTemaRepository.softDeleteById(asignacion.getId());
+			logger.info("Postulación eliminada para el tesista con ID: " + usuDto.getId() + " en el tema con ID: " + temaId);
+		}
 	}
 
 }

@@ -11,10 +11,10 @@ import {
   CardHeader,
   CardTitle,
 } from "../../../components/ui/card";
-import { RevisionResumen } from "../types/RevisionResumen.types";
+import { RevisionDocumentoAsesorDto } from "../dtos/RevisionDocumentoAsesorDto";
 
 interface RevisionesCardsAsesorProps {
-  data: RevisionResumen[];
+  data: RevisionDocumentoAsesorDto[];
   filter?: string;
   searchQuery?: string;
   cursoFilter?: string;
@@ -43,13 +43,13 @@ export function RevisionesCardsAsesor({
     );
   }
 
-  // Filtrar por búsqueda (nombre de estudiante o código)
   if (searchQuery) {
     const query = searchQuery.toLowerCase();
     revisionesFiltradas = revisionesFiltradas.filter(
       (revision) =>
         revision.estudiante.toLowerCase().includes(query) ||
-        revision.codigo.includes(query),
+        revision.codigo.includes(query) ||
+        revision.titulo.toLowerCase().includes(query)
     );
   }
 
@@ -86,7 +86,7 @@ export function RevisionesCardsAsesor({
                           : "Por Aprobar"}
                   </Badge>
                   <Badge variant="outline" className="bg-gray-100">
-                    {revision.curso === "tesis1" ? "1INF42" : "1INF46"}
+                    {revision.curso}
                   </Badge>
                 </div>
                 <CardTitle className="text-base font-medium mt-2 line-clamp-2">
@@ -113,33 +113,33 @@ export function RevisionesCardsAsesor({
                     </span>
                   </div>
 
-                  {revision.porcentajePlagio !== null && (
+                  {revision.porcentajeSimilitud !== null && (
                     <div>
                       <div className="flex justify-between items-center mb-1">
                         <span className="text-sm">Detección de Plagio:</span>
                         <span
                           className={
-                            revision.porcentajePlagio > 20
+                            revision.porcentajeSimilitud > 20
                               ? "text-red-600 font-medium"
-                              : revision.porcentajePlagio > 10
+                              : revision.porcentajeSimilitud > 10
                                 ? "text-yellow-600 font-medium"
                                 : "text-green-600 font-medium"
                           }
                         >
-                          {revision.porcentajePlagio}%
+                          {revision.porcentajeSimilitud}%
                         </span>
                       </div>
                     </div>
                   )}
 
-                  {revision.observaciones > 0 && (
+                  {/*revision.observaciones > 0 && (
                     <div className="flex justify-between items-center">
                       <span className="text-sm">Observaciones:</span>
                       <Badge variant="outline" className="bg-gray-100">
                         {revision.observaciones}
                       </Badge>
                     </div>
-                  )}
+                  )*/}
                 </div>
               </CardContent>
               <CardFooter className="pt-2 flex justify-between">
@@ -152,7 +152,7 @@ export function RevisionesCardsAsesor({
 
                 <Link
                   href={
-                    revision.estado === "por-aprobar"
+                    revision.estado === "por_aprobar"
                       ? `/asesor/revision/revisar-doc/${revision.id}`
                       : `/asesor/revision/detalles-revision/${revision.id}`
                   }
