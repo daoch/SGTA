@@ -6,11 +6,13 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.client.RestTemplate;
 
 @EnableAspectJAutoProxy
 @SpringBootApplication
 @EnableJpaRepositories(basePackages = "pucp.edu.pe.sgta.repository")
+@EnableScheduling
 public class SgtaApplication {
 
 	static {
