@@ -12,6 +12,7 @@ import pucp.edu.pe.sgta.dto.TopicAreaStatsDTO;
 import pucp.edu.pe.sgta.dto.TopicTrendDTO;
 import pucp.edu.pe.sgta.dto.TesistasPorAsesorDTO;
 import pucp.edu.pe.sgta.dto.EntregableEstudianteDto;
+import pucp.edu.pe.sgta.dto.EntregableCriteriosDetalleDto;
 
 public interface IReportService {
     /** RF1: estadísticas de temas por área */
@@ -36,5 +37,6 @@ public interface IReportService {
     List<HistorialReunionDTO> getHistorialReuniones(Integer tesistaId);
     /** RF8: Obtener entregables de un estudiante */
     List<EntregableEstudianteDto> getEntregablesEstudiante(Integer usuarioId);
-
+    /** Obtener entregables con sus criterios agrupados */
+    List<EntregableCriteriosDetalleDto> getEntregablesConCriterios(Integer usuarioId);
 }

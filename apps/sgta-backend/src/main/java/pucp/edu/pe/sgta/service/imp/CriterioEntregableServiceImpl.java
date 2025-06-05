@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.Optional;
 
 @Service
 public class CriterioEntregableServiceImpl implements CriterioEntregableService {
@@ -25,17 +26,10 @@ public class CriterioEntregableServiceImpl implements CriterioEntregableService 
 
     @Override
     public List<CriterioEntregableDto> listarCriteriosEntregableXEntregable(Integer entregableId) {
-        List<Object[]> resultados = criterioEntregableRepository.listarCriteriosEntregableXEntregable(entregableId);
-        return resultados.stream()
-                .map(resultado -> new CriterioEntregableDto(
-                        ((Number) resultado[0]).intValue(), //id
-                        (String) resultado[1], // nombre
-                        (BigDecimal) resultado[2], // Nota maxima
-                        (String) resultado[3] //Descripcion
-                ))
-                .collect(Collectors.toList());
+        // Ahora el repositorio ya devuelve directamente List<CriterioEntregableDto>
+        return criterioEntregableRepository.listarCriteriosEntregableXEntregable(entregableId);
     }
-
+    
     @Transactional
     @Override
     public int crearCriterioEntregable(Integer entregableId, CriterioEntregableDto criterioEntregableDto) {
@@ -74,7 +68,7 @@ public class CriterioEntregableServiceImpl implements CriterioEntregableService 
     }
 
     @Override
-    public CriterioEntregable findById(int id) {
+    public Optional<CriterioEntregable> findById(Integer id) {
         return criterioEntregableRepository.findById(id);
     }
 }

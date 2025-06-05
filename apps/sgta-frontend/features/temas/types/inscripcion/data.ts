@@ -1,5 +1,6 @@
-import { Carrera, Usuario } from "../temas/entidades";
+import { Carrera, Tema, Usuario } from "../temas/entidades";
 import axiosInstance from "@/lib/axios/axios-instance";
+import { EstadoTemaNombre } from "../temas/enums";
 
 export async function fetchUsuariosFindById(
   usuarioId: number,
@@ -48,5 +49,38 @@ export async function inscribirTemaPrescrito(temaId: number) {
     console.error("No se pudo inscribir el tema prescrito.", error);
     throw error;
   }
+}
+
+export async function fetchTemasAPI(
+  rol: string,
+  estado: EstadoTemaNombre,
+  limit: number = 10,
+  offset: number = 0,
+): Promise<Tema[]> {
+  try {
+    const response = await axiosInstance.get(
+      "/temas/listarTemasPorUsuarioRolEstado",
+      {
+        params: {
+          rolNombre: rol,
+          estadoNombre: estado,
+          limit,
+          offset,
+        },
+      },
+    );
+    return response.data;
+  } catch (error) {
+    console.error("La página no responde. No se obtuvieron los temas.", error);
+    throw error;
+  }
+}
+
+export async function lenTemasPorUsuarioRolEstado(
+  rol: string,
+  estado: EstadoTemaNombre,
+): Promise<number> {
+  const temas = await fetchTemasAPI(rol, estado, 200, 0);
+  return temas.length;
 }
 

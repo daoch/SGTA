@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloDto;
+import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloXCarreraDto;
 import pucp.edu.pe.sgta.service.inter.EtapaFormativaXCicloService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -60,6 +61,11 @@ public class EtapaFormativaXCicloController {
         EtapaFormativaXCicloDto updatedRelacion = 
             etapaFormativaXCicloService.actualizarEstadoRelacion(relacionId, request);
         return ResponseEntity.ok(updatedRelacion);
+    }
+
+    @GetMapping("/listarEtapasFormativasXCicloXCarrera/{carreraId}")
+    public List<EtapaFormativaXCicloXCarreraDto> listarEtapasFormativasXCicloXCarrera(@PathVariable Integer carreraId) {
+        return etapaFormativaXCicloService.listarEtapasFormativasXCicloXCarrera(carreraId);
     }
 
 }
