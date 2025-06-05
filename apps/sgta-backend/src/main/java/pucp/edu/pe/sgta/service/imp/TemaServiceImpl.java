@@ -9,14 +9,11 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import jakarta.transaction.Transactional;
 
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-
-import pucp.edu.pe.sgta.config.SgtaConstants;
 import pucp.edu.pe.sgta.dto.*;
 import pucp.edu.pe.sgta.dto.asesores.InfoTemaPerfilDto;
 import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
@@ -24,7 +21,6 @@ import pucp.edu.pe.sgta.dto.asesores.TemaConAsesorDto;
 import pucp.edu.pe.sgta.dto.asesores.TemaResumenDto;
 import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
 import pucp.edu.pe.sgta.dto.exposiciones.MiembroExposicionDto;
-import pucp.edu.pe.sgta.exception.BusinessRuleException;
 import pucp.edu.pe.sgta.exception.CustomException;
 import pucp.edu.pe.sgta.mapper.TemaMapper;
 import pucp.edu.pe.sgta.mapper.UsuarioMapper;
@@ -37,8 +33,6 @@ import pucp.edu.pe.sgta.util.EstadoTemaEnum;
 import pucp.edu.pe.sgta.util.RolEnum;
 import pucp.edu.pe.sgta.util.RolSolicitudEnum;
 import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
-import pucp.edu.pe.sgta.exception.ResourceNotFoundException;
-
 import java.io.IOException;
 import java.sql.SQLException;
 import java.time.*;
@@ -92,12 +86,6 @@ public class TemaServiceImpl implements TemaService {
 
 	private final AreaConocimientoService areaConocimientoService;
 
-	@Autowired private NotificacionService notificacionService;
-	@Autowired private UsuarioXCarreraRepository usuarioXCarreraRepository; // Para validar permiso del coordinador
-
-	public static final String ESTADO_REASIGNACION_PENDIENTE_ASESOR = "PENDIENTE_ACEPTACION_ASESOR";
-	public static final String ESTADO_SOLICITUD_APROBADA_NOMBRE = "APROBADA"; // Debe coincidir con tu BD
-
     private EstadoSolicitudRepository estadoSolicitudRepository;
 
 	private RolSolicitudRepository rolSolicitudRepository;
@@ -106,8 +94,6 @@ public class TemaServiceImpl implements TemaService {
 
 	@PersistenceContext
 	private EntityManager entityManager;
-
-	private static final org.slf4j.Logger log = LoggerFactory.getLogger(SolicitudServiceImpl.class);
 
 	public TemaServiceImpl(TemaRepository temaRepository, UsuarioXTemaRepository usuarioXTemaRepository,
 			UsuarioService usuarioService, SubAreaConocimientoService subAreaConocimientoService,
@@ -2429,103 +2415,6 @@ public class TemaServiceImpl implements TemaService {
 			UsuarioXTema asignacion = asignacionOpt.get();
 			usuarioXTemaRepository.softDeleteById(asignacion.getId());
 			logger.info("Postulación eliminada para el tesista con ID: " + usuDto.getId() + " en el tema con ID: " + temaId);
-		}
-	}
-
-	@Override
-	@Transactional
-	public void proponerReasignacionParaSolicitudCese(
-			Integer solicitudDeCeseOriginalId,
-			Integer nuevoAsesorPropuestoId,
-			String coordinadorCognitoSub
-	) {
-		log.info("Coordinador {}: Proponiendo reasignación para solicitud de cese ID {} al nuevo asesor ID {}",
-				coordinadorCognitoSub, solicitudDeCeseOriginalId, nuevoAsesorPropuestoId);
-
-		Usuario coordinador = usuarioRepository.findByIdCognito(coordinadorCognitoSub)
-				.orElseThrow(() -> new ResourceNotFoundException("Coordinador no encontrado con CognitoSub: " + coordinadorCognitoSub));
-
-		Solicitud solicitudDeCese = solicitudRepository.findById(solicitudDeCeseOriginalId)
-				.orElseThrow(() -> new ResourceNotFoundException("Solicitud de cese original no encontrada con ID: " + solicitudDeCeseOriginalId));
-
-		// Validar que el coordinador tenga permiso sobre la carrera de esta solicitud
-		validarPermisoCoordinadorSobreSolicitud(coordinador, solicitudDeCese);
-
-		// Validar que la solicitud de cese esté realmente APROBADA
-		if (solicitudDeCese.getEstadoSolicitud() == null ||
-				!SgtaConstants.ESTADO_SOLICITUD_APROBADA_NOMBRE.equalsIgnoreCase(solicitudDeCese.getEstadoSolicitud().getNombre())) {
-			throw new BusinessRuleException("Solo se puede proponer reasignación para solicitudes de cese que ya han sido aprobadas. Estado actual: " +
-					(solicitudDeCese.getEstadoSolicitud() != null ? solicitudDeCese.getEstadoSolicitud().getNombre() : "NULO"));
-		}
-
-		// Validar que no esté ya en un proceso de reasignación completado o rechazado por otro asesor
-		if (SgtaConstants.ESTADO_REASIGNACION_PENDIENTE_ASESOR.equals(solicitudDeCese.getEstadoReasignacion()) &&
-				solicitudDeCese.getAsesorPropuestoReasignacion() != null &&
-				!solicitudDeCese.getAsesorPropuestoReasignacion().getId().equals(nuevoAsesorPropuestoId)) {
-			throw new BusinessRuleException("Ya hay una propuesta de reasignación pendiente para otro asesor (ID: " +
-					solicitudDeCese.getAsesorPropuestoReasignacion().getId() + "). Cancele o espere esa propuesta primero.");
-		}
-		if ("REASIGNACION_COMPLETADA".equals(solicitudDeCese.getEstadoReasignacion())) {
-			throw new BusinessRuleException("Este tema ya ha sido reasignado exitosamente.");
-		}
-
-
-		Usuario nuevoAsesorPropuesto = usuarioRepository.findById(nuevoAsesorPropuestoId)
-				.orElseThrow(() -> new ResourceNotFoundException("Nuevo asesor propuesto no encontrado con ID: " + nuevoAsesorPropuestoId));
-
-		if (nuevoAsesorPropuesto.getTipoUsuario() == null ||
-				!SgtaConstants.TIPO_USUARIO_PROFESOR.equalsIgnoreCase(nuevoAsesorPropuesto.getTipoUsuario().getNombre())) {
-			throw new IllegalArgumentException("El usuario ID " + nuevoAsesorPropuestoId + " no es un profesor/asesor válido.");
-		}
-
-		Tema temaAfectado = solicitudDeCese.getTema();
-		if (temaAfectado == null) { // Debería ser cargado por Solicitud.tema si no es LAZY extremo
-			temaAfectado = temaRepository.findById(solicitudDeCese.getTema().getId()) // Fallback por si acaso
-					.orElseThrow(() -> new ResourceNotFoundException("Tema asociado a la solicitud no encontrado."));
-		}
-
-
-		// Completar el TODO: Actualizar la solicitud original
-		solicitudDeCese.setAsesorPropuestoReasignacion(nuevoAsesorPropuesto);
-		solicitudDeCese.setEstadoReasignacion(ESTADO_REASIGNACION_PENDIENTE_ASESOR);
-		// solicitudDeCese.setFechaModificacion(OffsetDateTime.now()); // Si no tienes @PreUpdate en Solicitud
-		solicitudRepository.save(solicitudDeCese);
-
-		log.info("Solicitud de cese ID {} actualizada. Asesor propuesto: ID {}, Estado reasignación: {}",
-				solicitudDeCeseOriginalId, nuevoAsesorPropuestoId, ESTADO_REASIGNACION_PENDIENTE_ASESOR);
-
-		// Enviar notificación al nuevo asesor propuesto
-		String mensajeNotificacion = String.format(
-				"Estimado/a %s %s, se le ha propuesto para asumir la asesoría del tema '%s'. Por favor, revise sus 'Propuestas de Asesoría' en el sistema.",
-				nuevoAsesorPropuesto.getNombres(),
-				nuevoAsesorPropuesto.getPrimerApellido(),
-				temaAfectado.getTitulo()
-		);
-
-		// Asume que tienes nombres de módulo y tipo de notificación adecuados en SgtaConstants o BD
-		String enlace = "/asesor/propuestas-asesoria"; // Enlace ejemplo a la página del asesor
-		notificacionService.crearNotificacionParaUsuario(
-				nuevoAsesorPropuestoId,
-				SgtaConstants.MODULO_ASESORIA_TEMA, // O un módulo específico para "Propuestas de Asesoría"
-				SgtaConstants.TIPO_NOTIF_INFORMATIVA, // O un tipo específico "NuevaPropuestaAsesoria"
-				mensajeNotificacion,
-				"SISTEMA",
-				enlace
-		);
-
-		log.info("Notificación de propuesta enviada al asesor ID: {}", nuevoAsesorPropuestoId);
-	}
-
-	private void validarPermisoCoordinadorSobreSolicitud(Usuario coordinador, Solicitud solicitud) {
-		if (solicitud.getTema() == null || solicitud.getTema().getCarrera() == null) {
-			throw new BusinessRuleException("La solicitud no tiene un tema o carrera asociada para validar permisos.");
-		}
-		Integer carreraDeLaSolicitudId = solicitud.getTema().getCarrera().getId();
-		boolean perteneceACarreraDelCoordinador = usuarioXCarreraRepository.findByUsuarioIdAndActivoTrue(coordinador.getId())
-				.stream()
-				.anyMatch(uc -> uc.getCarrera() != null && uc.getCarrera().getId().equals(carreraDeLaSolicitudId));
-		if (!perteneceACarreraDelCoordinador) {
-			throw new AccessDeniedException("No tiene permisos para gestionar esta solicitud ya que no pertenece a sus carreras.");
 		}
 	}
 
