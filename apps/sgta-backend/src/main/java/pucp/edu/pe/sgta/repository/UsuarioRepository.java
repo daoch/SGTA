@@ -14,7 +14,9 @@ import java.util.List;
 public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
 
     Usuario findByCorreoElectronicoIsLikeIgnoreCase(String email);
+
     Optional<Usuario> findByCodigoPucp(String codigoPucp);
+
     Optional<Usuario> findByCorreoElectronico(String correoElectronico);
 
     Optional<Usuario> findByIdCognito(String idCognito);
@@ -47,16 +49,16 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
     @Query(value = "SELECT * FROM obtener_lista_directorio_asesores_alumno(:alumnoId,:cadenaBusqueda, :activo, " +
             "cast(:areaIds as INTEGER[]), cast(:temaIds as INTEGER[]))", nativeQuery = true)
     List<Object[]> obtenerListaDirectorioAsesoresAlumno(@Param("alumnoId") Integer alumnoId,
-                                                        @Param("cadenaBusqueda") String cadenaBusqueda,
-                                                        @Param("activo") Boolean activo,
-                                                        @Param("areaIds") String areaIds,
-                                                        @Param("temaIds") String temaIds);
+            @Param("cadenaBusqueda") String cadenaBusqueda,
+            @Param("activo") Boolean activo,
+            @Param("areaIds") String areaIds,
+            @Param("temaIds") String temaIds);
+
     @Query(value = """
-        SELECT * FROM obtener_coordinador_por_carrera_usuario(:usuarioId)
-        """, nativeQuery = true)
+            SELECT * FROM obtener_coordinador_por_carrera_usuario(:usuarioId)
+            """, nativeQuery = true)
     List<Object[]> obtenerIdCoordinadorPorUsuario(
-            @Param("usuarioId") Integer usuarioId
-    );
+            @Param("usuarioId") Integer usuarioId);
 
 
     // NUEVO MÉTODO para encontrar usuarios (coordinadores) activos de una carrera específica por tipo de usuario
@@ -72,5 +74,9 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
             @Param("carreraId") Integer carreraId,
             @Param("tipoUsuarioNombre") String tipoUsuarioNombre
     );
-
+    
+    @Query(value = """
+            SELECT * FROM obtener_profesores()
+            """, nativeQuery = true)
+    List<Object[]> obtenerProfesores();
 }

@@ -316,7 +316,8 @@ RETURNS TABLE (
     asignado            BOOLEAN,
     rechazado           BOOLEAN,
     codigo_pucp TEXT,
-    creador BOOLEAN
+    creador BOOLEAN,
+    comentario TEXT
 ) AS $$
 BEGIN
     RETURN QUERY
@@ -331,7 +332,8 @@ BEGIN
       ut.asignado,
       ut.rechazado,
       u.codigo_pucp::text,
-      ut.creador
+      ut.creador,
+      ut.comentario::text
     FROM usuario u
     JOIN usuario_tema ut
       ON ut.usuario_id = u.usuario_id
@@ -1462,9 +1464,7 @@ RETURNS TABLE (
   fecha_creacion     TIMESTAMPTZ,
   fecha_modificacion TIMESTAMPTZ,
   carrera_id         INT,     -- nuevo
-  carrera_nombre     TEXT,    -- nuevo
-  area_id            INT,     -- nuevo
-  area_nombre        TEXT     -- nuevo
+  carrera_nombre     TEXT
 )
 LANGUAGE plpgsql
 AS $$
@@ -1484,20 +1484,12 @@ BEGIN
       t.fecha_creacion,
       t.fecha_modificacion,
       c.carrera_id,
-      c.nombre::text        AS carrera_nombre,
-      ac.area_conocimiento_id AS area_id,
-      ac.nombre::text       AS area_nombre
+      c.nombre::text        AS carrera_nombre
     FROM tema t
       JOIN estado_tema et
         ON t.estado_tema_id = et.estado_tema_id
       JOIN carrera c
         ON t.carrera_id = c.carrera_id
-      LEFT JOIN sub_area_conocimiento_tema sact
-        ON sact.tema_id = t.tema_id
-      LEFT JOIN sub_area_conocimiento sac
-        ON sac.sub_area_conocimiento_id = sact.sub_area_conocimiento_id
-      LEFT JOIN area_conocimiento ac
-        ON ac.area_conocimiento_id = sac.area_conocimiento_id
     WHERE
       t.carrera_id = p_carrera_id
       AND et.nombre ILIKE p_estado_nombre

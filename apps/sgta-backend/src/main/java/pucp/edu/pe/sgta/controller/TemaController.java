@@ -2,6 +2,7 @@ package pucp.edu.pe.sgta.controller;
 
 import org.aspectj.lang.annotation.Before;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +20,7 @@ import pucp.edu.pe.sgta.service.inter.TemaService;
 import pucp.edu.pe.sgta.dto.UsuarioTemaDto;
 
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -140,12 +142,12 @@ public class TemaController {
 	public List<TemaDto> listarTemasPorUsuarioRolEstado(
 			@RequestParam("rolNombre") String rolNombre,
 			@RequestParam("estadoNombre") String estadoNombre,
-			@RequestParam(defaultValue = "10") Integer limit, 
+			@RequestParam(defaultValue = "10") Integer limit,
 			@RequestParam(defaultValue = "0") Integer offset,
 			HttpServletRequest request) {
 		try {
 			String usuarioId = jwtService.extractSubFromRequest(request);
-			//System.err.println("Usuario ID: " + usuarioId);
+			// System.err.println("Usuario ID: " + usuarioId);
 			return temaService.listarTemasPorUsuarioEstadoYRol(usuarioId, rolNombre, estadoNombre, limit, offset);
 		} catch (RuntimeException e) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
@@ -254,7 +256,7 @@ public class TemaController {
 			@PathVariable("carreraId") Integer carreraId,
 			@RequestParam(name = "limit", defaultValue = "10") Integer limit,
 			@RequestParam(name = "offset", defaultValue = "0") Integer offset) {
-		return temaService.listarTemasPorEstadoYCarrera(estado, carreraId, limit, offset);	
+		return temaService.listarTemasPorEstadoYCarrera(estado, carreraId, limit, offset);
 	}
 
 	@PatchMapping("/CambiarEstadoTemaPorCoordinador")
@@ -299,6 +301,7 @@ public class TemaController {
 		TemaConAsesorDto temas = temaService.obtenerTemaActivoPorAlumno(idAlumno);
 		return ResponseEntity.ok(temas);
 	}
+
 	@GetMapping("/listarTemasLibres")
 	public List<TemaDto> listarTemasLibres(
 			@RequestParam(name = "titulo", required = false) String titulo,
@@ -314,40 +317,40 @@ public class TemaController {
 	}
 
 	@PostMapping("/solicitud/cambio-resumen/{temaId}")
-    public ResponseEntity<String> crearSolicitudCambioDeResumen(
-            @PathVariable Integer temaId,
-            @RequestBody Map<String, Object> body,
-            HttpServletRequest request) {
+	public ResponseEntity<String> crearSolicitudCambioDeResumen(
+			@PathVariable Integer temaId,
+			@RequestBody Map<String, Object> body,
+			HttpServletRequest request) {
 
-		String coordinadorId = jwtService.extractSubFromRequest(request);        
+		String coordinadorId = jwtService.extractSubFromRequest(request);
 
 		Map<String, Object> solMap = (Map<String, Object>) body.get("usuarioSolicitud");
 
 		String comentario = (String) solMap.get("comentario");
-	    temaService.crearSolicitudCambioDeResumen(coordinadorId, comentario, temaId);
+		temaService.crearSolicitudCambioDeResumen(coordinadorId, comentario, temaId);
 
-        return ResponseEntity.ok("Solicitud de cambio de resumen creada correctamente.");
-    }
+		return ResponseEntity.ok("Solicitud de cambio de resumen creada correctamente.");
+	}
 
-    @PostMapping("/solicitud/cambio-titulo/{temaId}")
-    public ResponseEntity<String> crearSolicitudCambioDeTitulo(
-            @PathVariable Integer temaId,
-           @RequestBody Map<String, Object> body,
-            HttpServletRequest request) {
+	@PostMapping("/solicitud/cambio-titulo/{temaId}")
+	public ResponseEntity<String> crearSolicitudCambioDeTitulo(
+			@PathVariable Integer temaId,
+			@RequestBody Map<String, Object> body,
+			HttpServletRequest request) {
 
-		String coordinadorId = jwtService.extractSubFromRequest(request);  
+		String coordinadorId = jwtService.extractSubFromRequest(request);
 		Map<String, Object> solMap = (Map<String, Object>) body.get("usuarioSolicitud");
 
 		String comentario = (String) solMap.get("comentario");
-        temaService.crearSolicitudCambioDeTitulo(coordinadorId, comentario, temaId);
+		temaService.crearSolicitudCambioDeTitulo(coordinadorId, comentario, temaId);
 
-        return ResponseEntity.ok("Solicitud de cambio de título creada correctamente.");
-    }
+		return ResponseEntity.ok("Solicitud de cambio de título creada correctamente.");
+	}
 
 	@PostMapping("/postularTemaLibre")
 	public void postularTemaLibre(@RequestParam("temaId") Integer temaId,
-        @RequestParam("comentario") String comentario,
-		 HttpServletRequest request) {
+			@RequestParam("comentario") String comentario,
+			HttpServletRequest request) {
 		try {
 			String tesistaId = jwtService.extractSubFromRequest(request);
 			temaService.postularTemaLibre(temaId, tesistaId, comentario);
@@ -357,22 +360,40 @@ public class TemaController {
 	}
 
 	@PutMapping("/inscribirTemaPrenscrito/{temaId}")
-    public ResponseEntity<String> inscribirTemaPrenscrito(
-            @PathVariable Integer temaId,
-            HttpServletRequest request) {
+	public ResponseEntity<String> inscribirTemaPrenscrito(
+			@PathVariable Integer temaId,
+			HttpServletRequest request) {
 
-		String asesorId = jwtService.extractSubFromRequest(request);  
+		String asesorId = jwtService.extractSubFromRequest(request);
 
-        temaService.inscribirTemaPreinscrito(temaId, asesorId);
+		temaService.inscribirTemaPreinscrito(temaId, asesorId);
 
-        return ResponseEntity.ok("Inscripción de tema preinscrito exitoso.");
-    }
+		return ResponseEntity.ok("Inscripción de tema preinscrito exitoso.");
+	}
+
+	@GetMapping("/listarPostuladosTemaLibre")
+	public List<TemaDto> listarPostuladosTemaLibre(
+			@RequestParam(required = false) String busqueda,
+			@RequestParam(required = false) String estado,
+			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaLimite,
+			@RequestParam(defaultValue = "10") Integer limit,
+			@RequestParam(defaultValue = "0") Integer offset,
+			HttpServletRequest request
+	) {
+		try {
+			String usuarioId = jwtService.extractSubFromRequest(request);
+			return temaService.listarPostuladosTemaLibre(busqueda, estado, fechaLimite, limit, offset, usuarioId);
+		} catch (RuntimeException e) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+		}
+	}
+
 
 	@GetMapping("/listarMisPostulacionesTemaLibre")
 	public List<TemaDto> listarMisPostulacionesTemaLibre(HttpServletRequest request) {
 		try {
 			String tesistaId = jwtService.extractSubFromRequest(request);
-			return temaService.listarTemasLibres("",0,0 , tesistaId, true);
+			return temaService.listarTemasLibres("", 0, 0, tesistaId, true);
 		} catch (RuntimeException e) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
 		}
@@ -393,14 +414,14 @@ public class TemaController {
 
 	@PutMapping("/aceptarPostulacionAlumnoTemaLibre")
 	public void aceptarPostulacionAlumnoTemaLibre(
-		@RequestBody UsuarioTemaDto usuarioTemaDto,
-		HttpServletRequest request) {
+			@RequestBody UsuarioTemaDto usuarioTemaDto,
+			HttpServletRequest request) {
 		try {
 			String asesorId = jwtService.extractSubFromRequest(request);
-			temaService.aceptarPostulacionAlumno(usuarioTemaDto.getTemaId(), 
-												usuarioTemaDto.getUsuarioId(), 
-												asesorId,
-												usuarioTemaDto.getComentario());
+			temaService.aceptarPostulacionAlumno(usuarioTemaDto.getTemaId(),
+					usuarioTemaDto.getUsuarioId(),
+					asesorId,
+					usuarioTemaDto.getComentario());
 		} catch (RuntimeException e) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
 		}
@@ -408,19 +429,17 @@ public class TemaController {
 
 	@PutMapping("/rechazarPostulacionAlumnoTemaLibre")
 	public void rechazarPostulacionAlumnoTemaLibre(
-		@RequestBody UsuarioTemaDto usuarioTemaDto,
-		HttpServletRequest request) {
+			@RequestBody UsuarioTemaDto usuarioTemaDto,
+			HttpServletRequest request) {
 		try {
 			String asesorId = jwtService.extractSubFromRequest(request);
-			temaService.rechazarPostulacionAlumno(usuarioTemaDto.getTemaId(), 
-												usuarioTemaDto.getUsuarioId(), 
-												asesorId,
-												usuarioTemaDto.getComentario());
+			temaService.rechazarPostulacionAlumno(usuarioTemaDto.getTemaId(),
+					usuarioTemaDto.getUsuarioId(),
+					asesorId,
+					usuarioTemaDto.getComentario());
 		} catch (RuntimeException e) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
 		}
 	}
 
-
 }
-
