@@ -32,10 +32,11 @@ public class EtapaFormativaController {
     @Autowired
     private UsuarioService usuarioService;
 
-    @GetMapping("/listarPorInicializarByCoordinador/{corodinador_id}")
-    public List<EtapaFormativaNombreDTO> obtenerPorInicializarPorCoordinador(
-            @PathVariable("corodinador_id") Integer usuarioId) {
-        return etapaFormativaService.findToInitializeByCoordinador(usuarioId);
+    @GetMapping("/listarPorInicializarByCoordinador")
+    public List<EtapaFormativaNombreDTO> obtenerPorInicializarPorCoordinador(HttpServletRequest request) {
+        String cognitoId = jwtService.extractSubFromRequest(request);
+        UsuarioDto usuario = this.usuarioService.findByCognitoId(cognitoId);
+        return etapaFormativaService.findToInitializeByCoordinador(usuario.getId());
     }
 
     @GetMapping("/listarActivasNombre")

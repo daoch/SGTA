@@ -14,24 +14,21 @@ import {
 import { useClientPagination } from "../hooks/use-exposiciones-pagination";
 import { useFetchExposicionFilters } from "../hooks/use-fetch-exposicion-filters";
 import { useFetchExposiciones } from "../hooks/use-fetch-exposiciones";
-import { getIdCoordinador } from "../utils/get-id-coordinador";
-import { useAuthStore } from "@/features/auth";
+
 
 export const ExposicionesCoordinadorPage: FC = () => {
-  const { idToken } = useAuthStore.getState();
-
   const [modalOpen, setModalOpen] = useState(false);
 
   const {
     exposiciones,
     loading: loadingExp,
     error: errorExp,
-  } = useFetchExposiciones(idToken!);
+  } = useFetchExposiciones();
   const {
     options,
     loading: loadingOpts,
     error: errorOpts,
-  } = useFetchExposicionFilters(idToken!);
+  } = useFetchExposicionFilters();
 
   const [activeFilters, setActiveFilters] = useState<Filtros>({});
   const { control } = useExposicionFilterForm(setActiveFilters);

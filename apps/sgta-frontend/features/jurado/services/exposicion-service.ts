@@ -4,11 +4,9 @@ import { FormValues } from "../schemas/exposicion-form-schema";
 import { EtapaFormativaXSalaExposicion } from "../dtos/EtapaFormativaXSalaExposicion";
 import axios from "axios";
 
-export const getEtapasFormativasPorInicializarByCoordinador = async (
-  coordinador_id: number,
-) => {
+export const getEtapasFormativasPorInicializarByCoordinador = async () => {
   const response = await axiosInstance.get(
-    `/etapas-formativas/listarPorInicializarByCoordinador/${coordinador_id}`,
+    "/etapas-formativas/listarPorInicializarByCoordinador/",
   );
   return response.data;
 };
@@ -114,13 +112,9 @@ export const getCursos = async () => {
   }
 };
 
-export const getCursosByCoordinador = async (bearerTokenId: string) => {
+export const getCursosByCoordinador = async () => {
   try {
-    const response = await axiosInstance.get("/etapas-formativas/listarActivasPorCoordinador", {
-      headers: {
-        "Authorization": `Bearer ${bearerTokenId}`,
-      }
-    });
+    const response = await axiosInstance.get("/etapas-formativas/listarActivasPorCoordinador"); // tokenId ya está enviándose
     return response.data;
   } catch (error) {
     console.error("Error al obtener cursos por coordinador:", error);
@@ -138,16 +132,10 @@ export const getEstadosExposicion = async () => {
   }
 };
 
-export const getExposicionesInicializadasByCoordinador = async (
-  tokenId: string,
-) => {
+export const getExposicionesInicializadasByCoordinador = async () => {
   try {
     const response = await axiosInstance.get(
-      "/exposicion/listarExposicionesInicializadasXCoordinador", {
-        headers: {
-          "Authorization": `Bearer ${tokenId}`,
-        }
-      }
+      "/exposicion/listarExposicionesInicializadasXCoordinador" //tokenId ya está enviándose
     );
     return response.data;
   } catch (error) {
