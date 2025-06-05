@@ -74,6 +74,7 @@ export function ReviewerReports() {
 
               <TabsContent value="timeline">
                 {/* Timeline content will be implemented later */}
+                {user && <LineaTiempoReporte user={user} />}
               </TabsContent>
 
               <TabsContent value="consolidated">
@@ -83,7 +84,7 @@ export function ReviewerReports() {
           </CardContent>
         </Card>
       )}
-       {user && <LineaTiempoReporte user={user} />}
+       
     </div>
 
 
