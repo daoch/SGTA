@@ -11,10 +11,22 @@ import java.util.Optional;
 public interface ControlExposicionUsuarioTemaRepository extends JpaRepository<ControlExposicionUsuarioTema, Integer> {
     Optional<ControlExposicionUsuarioTema> findByExposicionXTema_IdAndUsuario_Id(Integer exposicionXTemaId, Integer usuarioXTemaId);
 
+<<<<<<< HEAD
     @Modifying
     @Query(value = "CALL intsertar_control_exposcion(:idExposicion, :idEtapaFormativa)", nativeQuery = true)
     void insertarControlesDeExposicion(@Param("idExposicion") Integer exposicionId,
                                        @Param("idEtapaFormativa") Integer etapaFormativa);;
+=======
+     @Modifying
+    @Query(value = "CALL intsertar_control_exposcion(:idExposicion, :idEtapaFormativa)", nativeQuery = true)
+    void insertarControlesDeExposicion(@Param("idExposicion") Integer exposicionId,
+                                       @Param("idEtapaFormativa") Integer etapaFormativa);;
+
+    @Modifying
+    @Query(value = "CALL update_estado_exposicion_usuario(:p_exposicion_id, :p_tema_id)", nativeQuery = true)
+    void updateEstadoRespuestaExposicion(@Param("p_exposicion_id") Integer exposicionId,
+                                       @Param("p_exposicion_id") Integer etapaFormativa);
+>>>>>>> 443b0c04da20cfbd33c2f4e52143fded5a25a17f
 
     @Modifying
     @Query(value = "CALL update_estado_exposicion_usuario(:p_exposicion_id, :p_tema_id)", nativeQuery = true)

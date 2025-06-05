@@ -23,4 +23,6 @@ public interface UsuarioXRolRepository extends JpaRepository<UsuarioXRol, Intege
     List<Object[]> esUsuarioAlumno(
             @Param("usuarioId") Integer usuarioId
     );
+
+    boolean existsByUsuario_IdCognitoAndRol_Nombre(String usuarioIdCognito, String rolNombre);
 }

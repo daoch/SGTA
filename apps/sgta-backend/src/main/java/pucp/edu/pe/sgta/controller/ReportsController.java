@@ -21,6 +21,7 @@ import pucp.edu.pe.sgta.service.inter.IReportService;
 
 import org.springframework.web.bind.annotation.PathVariable;
 import pucp.edu.pe.sgta.dto.EntregableEstudianteDto;
+import pucp.edu.pe.sgta.dto.EntregableCriteriosDetalleDto;
 
 @RestController
 @RequestMapping("/api/v1/reports")
@@ -107,6 +108,12 @@ public class ReportsController {
     @GetMapping("/entregables/{usuarioId}")
     public ResponseEntity<List<EntregableEstudianteDto>> getEntregablesEstudiante(@PathVariable Integer usuarioId){
         List<EntregableEstudianteDto> entregables = reportingService.getEntregablesEstudiante(usuarioId);
+        return ResponseEntity.ok(entregables);
+    }
+
+    @GetMapping("/entregables-criterios/{usuarioId}")
+    public ResponseEntity<List<EntregableCriteriosDetalleDto>> getEntregablesConCriterios(@PathVariable Integer usuarioId){
+        List<EntregableCriteriosDetalleDto> entregables = reportingService.getEntregablesConCriterios(usuarioId);
         return ResponseEntity.ok(entregables);
     }
 }

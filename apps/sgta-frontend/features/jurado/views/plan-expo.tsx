@@ -12,6 +12,8 @@ import {
   listarTemasCicloActualXEtapaFormativa,
 } from "@/features/jurado/services/data";
 import { isSameDay } from "date-fns";
+import { Toaster } from "sonner";
+import { ExposicionEtapaFormativaDTO } from "../dtos/ExposicionEtapaFormativaDTO";
 import { JornadaExposicionDTO } from "../dtos/JornadExposicionDTO";
 import { transformarJornada } from "../utils/transformar-jornada";
 
@@ -20,10 +22,13 @@ type Props = {
 };
 
 export default async function PlanExpo({ exposicionId }: Props) {
-  const etapaFormativaId =
+  const estadoPlanificacion =
+    await listarEstadoPlanificacionPorExposicion(exposicionId);
+
+  const exposicionEtapaFormativaDTO: ExposicionEtapaFormativaDTO | null =
     await getEtapaFormativaIdByExposicionId(exposicionId);
 
-  const temas = await listarTemasCicloActualXEtapaFormativa(etapaFormativaId,exposicionId);
+  const temas = await listarTemasCicloActualXEtapaFormativa(exposicionEtapaFormativaDTO?.etapaFormativaId,exposicionId);
 
   const jornadasSalas =
     await listarJornadasExposicionSalasByExposicion(exposicionId);
@@ -44,17 +49,8 @@ export default async function PlanExpo({ exposicionId }: Props) {
   const bloquesList = await listarBloquesHorariosExposicion(exposicionId);
 
   const bloquesOrdenados = bloquesList.sort((a: TimeSlot, b: TimeSlot) => {
-    // const parse = (key: string) => {
-    //   const [d, m, y] = key.split("|")[0].split("-").map(Number);
-    //   const [h, min] = key.split("|")[1].split(":").map(Number);
-    //   return new Date(y, m - 1, d, h, min);
-    // };
-    // return parse(a.key).getTime() - parse(b.key).getTime();
     return a.key.localeCompare(b.key);
   });
-
-  const estadoPlanificacion =
-    await listarEstadoPlanificacionPorExposicion(exposicionId);
 
   const temasAsignados: Record<string, Tema> = bloquesList.reduce(
     (acc: Record<string, Tema>, bloque: TimeSlot) => {
@@ -74,9 +70,16 @@ export default async function PlanExpo({ exposicionId }: Props) {
   );
   return (
     <div className="h-fit w-full flex flex-col gap-4">
-      <div className="text-3xl font-bold flex gap-4 items-center">
-        <BackButton backUrl="/coordinador/exposiciones" />
-        <h1 className="text-2xl font-bold">Planificador de exposiciones</h1>
+      <div className="text-3xl font-bold flex gap-4 items-center justify-between">
+        <div className="flex gap-4 items-center">
+          <BackButton backUrl="/coordinador/exposiciones" />
+          <h1 className="text-2xl font-bold">
+            {"Planificador de exposiciones"}
+          </h1>
+        </div>
+        <h2 className="text-xl font-bold">
+          {`${exposicionEtapaFormativaDTO?.nombreExposicion} / ${exposicionEtapaFormativaDTO?.nombreEtapaFormativa}`}{" "}
+        </h2>
       </div>
       {estadoPlanificacion ? (
         <GeneralPlanificationExpo
@@ -92,6 +95,7 @@ export default async function PlanExpo({ exposicionId }: Props) {
       ) : (
         <AppLoading />
       )}
+      <Toaster position="bottom-right" richColors />
     </div>
   );
 }
