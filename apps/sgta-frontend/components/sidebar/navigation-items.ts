@@ -9,12 +9,10 @@ import {
   FileText,
   FolderOpen,
   Home,
-  MailQuestion,
   MessageSquare,
   RefreshCcw,
   Search,
   Settings,
-  Shuffle,
   Users,
   UserX2,
 } from "lucide-react";
@@ -118,11 +116,6 @@ export const navigationItems: Record<string, NavigationItem[]> = {
       icon: ClipboardList,
     },
     { name: "Propuestas", href: "/asesor/propuestas", icon: FileText },
-    {
-      name: "Invitaciones de Asesoría",
-      href: "/asesor/propuestas-recibidas",
-      icon: MailQuestion,
-    },
     { name: "Tesistas", href: "/asesor/tesistas", icon: Users },
     {
       name: "Asesores",
@@ -156,11 +149,6 @@ export const navigationItems: Record<string, NavigationItem[]> = {
       name: "Aprobaciones",
       href: "/coordinador/aprobaciones",
       icon: CheckSquare,
-    },
-    {
-      name: "Reasignaciones Pendientes",
-      href: "/coordinador/reasignaciones-pendientes", // La ruta de la nueva página
-      icon: Shuffle, // Ícono para reasignaciones/cambios
     },
     {
       name: "Exposiciones",

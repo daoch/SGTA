@@ -1,171 +1,268 @@
-// src/components/header/AppHeader.tsx
 "use client";
 
 import { useEffect, useState } from "react";
-import { Bell, MailCheck, Loader2 } from "lucide-react";
+import { Separator } from "@radix-ui/react-separator";
+import { Bell } from "lucide-react";
 import React from "react";
 import Image from "next/image";
-import Link from "next/link";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuTrigger,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
 
-import NotificationItem from "@/features/usuario/components/NotificationItem";
-import {
-  useGetCountMisNotificacionesNoLeidas,
-  useGetMisNotificaciones,
-  useMarcarNotificacionLeida,
-  useMarcarTodasLeidas,
-} from "@/features/usuario/queries/notificacion.queries";
-import { INotificacionTransformed } from "@/features/usuario/types/notificacion.types";
-import { useAuthStore } from "@/features/auth";
+declare global {
+  interface Window {
+    toast: typeof toast;
+  }
+}
 
-const MAX_NOTIFICATIONS_IN_DROPDOWN = 7;
+if (typeof window !== "undefined") {
+  window.toast = toast;
+}
 
-const AppHeader: React.FC = () => {
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const { user, isSessionReady } = useAuthStore();
-  
-  /* ────────── hooks para datos ────────── */
-  const {
-    data: countData,
-  } = useGetCountMisNotificacionesNoLeidas({
-    enabled: isSessionReady,          
-    refetchInterval: isSessionReady ? 60_000 : false,
-  });
-  const unreadCount = countData?.count || 0;
+type TipoEvento = "Entregable" | "Reunión" | "Exposición";
 
-  const {
-    data: notificacionesData,
-    isLoading: isLoadingNotificaciones,
-    refetch: refetchNotificacionesDropdown,
-  } = useGetMisNotificaciones(0, MAX_NOTIFICATIONS_IN_DROPDOWN, false, {
-    enabled: isSessionReady,         
-  });
+interface CalendarEvent {
+  id: string;
+  title: string;
+  description?: string;
+  start: Date;
+  end: Date;
+  tipoEvento: TipoEvento;
+  allDay?: boolean;
+}
 
-  const markAsReadMutation = useMarcarNotificacionLeida();
-  const markAllAsReadMutation = useMarcarTodasLeidas();
+const createDate = (
+  day: number,
+  month: number,
+  year: number,
+  hours: number = 0,
+  minutes: number = 0,
+) => {
+  return new Date(year, month - 1, day, hours, minutes);
+};
 
-  /* ────────── efectos ────────── */
+const eventosEstaticos: CalendarEvent[] = [
+  {
+    id: "1",
+    title: "Reunión con el asesor 1",
+    description: "Primera revision de avances",
+    start: createDate(29, 5, 2025, 8, 0),
+    end: createDate(29, 5, 2025, 10, 0),
+    tipoEvento: "Reunión",
+  },
+  {
+    id: "2",
+    title: "Exposición de avances",
+    description: "Presentación de resultados parciales",
+    start: createDate(30, 5, 2025, 11, 0),
+    end: createDate(30, 5, 2025, 12, 0),
+    tipoEvento: "Exposición",
+  },
+  {
+    id: "3",
+    title: "Entrega de Documentos",
+    description: "Fecha límite para entregar los documentos",
+    start: createDate(28, 5, 2025, 1, 0),
+    end: createDate(28, 5, 2025, 1, 0),
+    tipoEvento: "Entregable",
+    allDay: true,
+  },
+  {
+    id: "4",
+    title: "Entrega de Documentos",
+    description: "Fecha límite para entregar los documentos",
+    start: createDate(27, 5, 2025, 1, 15),
+    end: createDate(2, 5, 2025, 1, 15),
+    tipoEvento: "Entregable",
+    allDay: true,
+  },
+  {
+    id: "5",
+    title: "Entrega de Documentos",
+    description: "Fecha límite para entregar los documentos",
+    start: createDate(27, 5, 2025, 0, 43),
+    end: createDate(27, 5, 2025, 0, 43),
+    tipoEvento: "Entregable",
+    allDay: true,
+  },
+  {
+    id: "6",
+    title: "Entrega de Documentos",
+    description: "Fecha límite para entregar los documentos",
+    start: createDate(27, 5, 2025, 1, 15),
+    end: createDate(2, 5, 2025, 1, 15),
+    tipoEvento: "Entregable",
+    allDay: true,
+  },
+  {
+    id: "7",
+    title: "Entrega de Documentos",
+    description: "Fecha límite para entregar los documentos",
+    start: createDate(27, 5, 2025, 1, 15),
+    end: createDate(2, 5, 2025, 1, 15),
+    tipoEvento: "Entregable",
+    allDay: true,
+  },
+  {
+    id: "8",
+    title: "Entrega de Documentos",
+    description: "Fecha límite para entregar los documentos",
+    start: createDate(27, 5, 2025, 1, 15),
+    end: createDate(2, 5, 2025, 1, 15),
+    tipoEvento: "Entregable",
+    allDay: true,
+  },
+];
+
+const AppHeader = () => {
+  const [notificaciones, setNotificaciones] = useState<CalendarEvent[]>([]);
+
   useEffect(() => {
-    if (isDropdownOpen && !isLoadingNotificaciones) {
-      refetchNotificacionesDropdown();
-    }
-  }, [isDropdownOpen, isLoadingNotificaciones, refetchNotificacionesDropdown]);
+    const obtenerEventosProximos = () => {
+      const ahora = new Date();
+      const proximos: CalendarEvent[] = [];
 
-  /* ────────── handlers ────────── */
-  const markOneAsReadAndClose = (n: INotificacionTransformed) => {
-    if (!n.fechaLectura) {
-      markAsReadMutation.mutate(n.id);
-    }
-    setIsDropdownOpen(false); // por si Radix no lo cerrase aún
-  };
+      eventosEstaticos.forEach((evento) => {
+        const diffMin = (evento.start.getTime() - ahora.getTime()) / 60000;
 
-  const handleMarkAllAsRead = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (unreadCount === 0) return;
-    markAllAsReadMutation.mutate();
-  };
+        if (diffMin <= 1440 && diffMin >= -15) {
+          proximos.push(evento); // se mostrará en campanita
+        }
+      });
 
-  /* ────────── render ────────── */
+      return proximos;
+    };
+
+    const manejarNotificacionesToast = (eventos: CalendarEvent[]) => {
+      const ahora = new Date();
+      const notificados: string[] = JSON.parse(
+        localStorage.getItem("toastNotificados") || "[]",
+      );
+
+      eventos.forEach((evento) => {
+        const diffMin = Math.round(
+          (evento.start.getTime() - ahora.getTime()) / 60000,
+        );
+
+        const id1d = `${evento.id}-1d`;
+        const id30 = `${evento.id}-30`;
+        const id5 = `${evento.id}-5`;
+
+        // Hasta 1 día
+        if (diffMin <= 1440 && !notificados.includes(id1d)) {
+          toast.info(
+            `${evento.tipoEvento}: ${evento.title}\n\n${evento.start.toLocaleString("es-PE")}`,
+          );
+
+          if (Notification.permission === "granted") {
+            new Notification("Próximo evento:", {
+              body: `${evento.title}\n${evento.start.toLocaleTimeString("es-PE")} - ${evento.end.toLocaleTimeString("es-PE")}`,
+              icon: "/logo.png",
+            });
+          }
+          notificados.push(id1d);
+        }
+
+        // 30 min
+        if (diffMin >= 30 && !notificados.includes(id30)) {
+          toast.info(
+            `Próximo evento en 30 minutos: ${evento.title}\n\n${evento.start.toLocaleString("es-PE")}`,
+          );
+
+          if (Notification.permission === "granted") {
+            new Notification("Próximo evento en 30 minutos", {
+              body: `${evento.title}\n${evento.start.toLocaleTimeString("es-PE")} - ${evento.end.toLocaleTimeString("es-PE")}`,
+              icon: "/logo.png",
+            });
+          }
+          notificados.push(id30);
+        }
+
+        // 5 min
+        if (diffMin >= 5 && !notificados.includes(id5)) {
+          toast.info(
+            `Próximo evento en 5 minutos: ${evento.title}\n\n${evento.start.toLocaleString("es-PE")}`,
+          );
+
+          if (Notification.permission === "granted") {
+            new Notification("Próximo evento en 5 minutos", {
+              body: `${evento.title}\n${evento.start.toLocaleTimeString("es-PE")} - ${evento.end.toLocaleTimeString("es-PE")}`,
+              icon: "/logo.png",
+            });
+          }
+
+          notificados.push(id5);
+        }
+      });
+
+      localStorage.setItem("toastNotificados", JSON.stringify(notificados));
+    };
+
+    // Ejecutar al cargar y luego cada 30s
+    const actualizar = () => {
+      const proximos = obtenerEventosProximos();
+      setNotificaciones(proximos);
+      manejarNotificacionesToast(proximos);
+    };
+
+    actualizar();
+    const interval = setInterval(actualizar, 30000); // cada 30s
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <header className="flex h-16 items-center gap-2 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 px-4">
-      {/* logo */}
-      <Link href="/dashboard" className="flex items-center gap-2">
-        <Image src="/logo.png" alt="SGTA Logo" width={38} height={38} className="h-8 w-auto sm:h-9" priority />
-        <span className="font-semibold text-lg hidden sm:inline">SGTA</span>
-      </Link>
-
-      {/* campana */}
-      <div className="ml-auto flex items-center gap-2">
-        <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
+    <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 border-b bg-white">
+      <div className="flex items-center justify-between gap-2 px-4 flex-1">
+        <Image
+          src="/logo.png"
+          alt="Logo"
+          width={150}
+          height={41}
+          className="select-none pointer-events-none h-10 w-auto"
+          draggable={false}
+          priority={true}
+        />
+        <Separator orientation="vertical" className="mr-2 h-4" />
+        <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="relative rounded-full h-9 w-9">
+            <Button variant="ghost" size="icon" className="relative">
               <Bell className="h-5 w-5" />
-              {unreadCount > 0 && (
-                <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs flex items-center justify-center rounded-full">
-                  {unreadCount > 9 ? "9+" : unreadCount}
-                </Badge>
+              {notificaciones.length > 0 && (
+                <span className="absolute right-0 top-0 h-2 w-2 rounded-full bg-red-500" />
               )}
             </Button>
           </DropdownMenuTrigger>
-
-          <DropdownMenuContent align="end" sideOffset={8} className="w-80 sm:w-96 rounded-lg shadow-xl bg-background">
-            {/* encabezado */}
-            <DropdownMenuLabel className="flex justify-between items-center px-3 py-2 text-sm font-medium">
-              <span>Notificaciones</span>
-              {unreadCount > 0 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-xs h-auto py-1 px-2 text-primary hover:bg-primary/10"
-                  onClick={handleMarkAllAsRead}
-                  disabled={markAllAsReadMutation.isPending}
-                >
-                  {markAllAsReadMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <MailCheck className="h-3.5 w-3.5 mr-1" />}
-                  Marcar todas leídas
-                </Button>
-              )}
-            </DropdownMenuLabel>
-
+          <DropdownMenuContent
+            align="end"
+            sideOffset={8}
+            className="w-64 rounded-lg"
+          >
+            <DropdownMenuLabel>Notificaciones</DropdownMenuLabel>
             <DropdownMenuSeparator />
-
-            {/* lista */}
-            <ScrollArea className="max-h-[calc(100vh-12rem)]">
-              {isLoadingNotificaciones && isDropdownOpen && (
-                <div className="p-4 flex justify-center text-sm text-muted-foreground">
-                  <Loader2 className="h-6 w-6 animate-spin mr-2" />
-                  Cargando...
-                </div>
-              )}
-
-              {Array.isArray(notificacionesData?.notificaciones) &&
-                notificacionesData.notificaciones.length > 0 &&
-                notificacionesData.notificaciones
-                  .slice(0, MAX_NOTIFICATIONS_IN_DROPDOWN)
-                  .map((n) => (
-                    <DropdownMenuItem
-                      key={n.id}
-                      asChild
-                      onSelect={() => markOneAsReadAndClose(n)}
-                      className="p-0" // dejamos el padding al hijo
-                    >
-                      {n.enlaceRedireccion ? (
-                        <Link href={n.enlaceRedireccion} className="w-full no-underline">
-                          <NotificationItem notificacion={n} onMarkAsRead={() => markOneAsReadAndClose(n)} />
-                        </Link>
-                      ) : (
-                        <div className="w-full">
-                          <NotificationItem notificacion={n} onMarkAsRead={() => markOneAsReadAndClose(n)} />
-                        </div>
-                      )}
-                    </DropdownMenuItem>
-                  ))}
-            </ScrollArea>
-
-            {/* footer */}
-            {(notificacionesData?.totalElements ?? 0) > MAX_NOTIFICATIONS_IN_DROPDOWN && (
-              <div className="sticky bottom-0 bg-background pt-2">
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild className="justify-center p-0">
-                  <Link
-                    href="/notificaciones"
-                    className="w-full text-center text-sm text-primary hover:underline py-2"
-                    onClick={() => setIsDropdownOpen(false)}
-                  >
-                    Ver todas las notificaciones ({notificacionesData?.totalElements ?? 0})
-                  </Link>
+            {/* <DropdownMenuItem>No tienes nuevas notificaciones</DropdownMenuItem> */}
+            {notificaciones.length === 0 ? (
+              <DropdownMenuItem>
+                No tienes nuevas notificaciones
+              </DropdownMenuItem>
+            ) : (
+              notificaciones.map((n, i) => (
+                <DropdownMenuItem key={i} className="flex flex-col items-start">
+                  <span className="text-sm font-medium">{n.title}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {n.start.toLocaleString("es-PE")}
+                  </span>
                 </DropdownMenuItem>
-              </div>
+              ))
             )}
           </DropdownMenuContent>
         </DropdownMenu>

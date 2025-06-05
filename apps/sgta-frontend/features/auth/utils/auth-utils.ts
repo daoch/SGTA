@@ -14,7 +14,6 @@ export function getAuthToken(): string | null {
  */
 export function getAuthHeader(): { Authorization?: string } {
   const token = getAuthToken();
-  console.log("Token JWT:", token);
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 

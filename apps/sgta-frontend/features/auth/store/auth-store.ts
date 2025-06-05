@@ -1,12 +1,6 @@
-// src/features/auth/stores/auth-store.ts
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import {
-  AuthState,
-  AuthStore,
-  User,
-  UserRole,
-} from "../types/auth.types";
+import { AuthState, AuthStore, User, UserRole } from "../types/auth.types";
 
 import { userPool } from "@/lib/cognito/cognito";
 import {
@@ -16,9 +10,6 @@ import {
   CognitoUserSession,
 } from "amazon-cognito-identity-js";
 
-/* ────────────────────────────────
-   1. Estado inicial con isSessionReady
-   ──────────────────────────────── */
 const initialState: AuthState = {
   user: null,
   idToken: null,
@@ -26,7 +17,6 @@ const initialState: AuthState = {
   isLoading: false,
   error: null,
   isAuthenticated: false,
-  isSessionReady: false,
 };
 
 export const useAuthStore = create<AuthStore>()(
@@ -34,8 +24,7 @@ export const useAuthStore = create<AuthStore>()(
     (set) => ({
       ...initialState,
 
-      /* ───────── login ───────── */
-      login: (email, password) => {
+      login: (email: string, password: string) => {
         set({ isLoading: true, error: null });
 
         return new Promise<void>((resolve, reject) => {
@@ -54,14 +43,7 @@ export const useAuthStore = create<AuthStore>()(
               const rawGroups = payload["cognito:groups"];
               const roles: UserRole[] = Array.isArray(rawGroups)
                 ? rawGroups.filter((g): g is UserRole =>
-                    [
-                      "administrador",
-                      "alumno",
-                      "jurado",
-                      "asesor",
-                      "coordinador",
-                      "revisor",
-                    ].includes(g),
+                    ["administrador", "alumno", "jurado", "asesor", "coordinador", "revisor"].includes(g)
                   )
                 : [];
 
@@ -72,42 +54,44 @@ export const useAuthStore = create<AuthStore>()(
                 avatar: "",
                 roles,
               };
-
               set({
                 user: newUser,
                 idToken: session.getIdToken().getJwtToken(),
                 accessToken: session.getAccessToken().getJwtToken(),
                 isAuthenticated: true,
                 isLoading: false,
-                isSessionReady: true,   // ✅ sesión lista
               });
               console.log("✅ Normal login ID token payload:", payload);
               resolve();
             },
             onFailure: (err) => {
-              set({ error: err.message || JSON.stringify(err), isLoading: false });
+              set({
+                error: err.message || JSON.stringify(err),
+                isLoading: false,
+              });
               reject(err);
             },
           });
         });
       },
-
-      /* ───────── logout ───────── */
       logout: () => {
+        // 1. Clear Cognito session
         const current = userPool.getCurrentUser();
         if (current) current.signOut();
 
+        // 2. Clear all local storage tokens and session state
         localStorage.removeItem("idToken");
         localStorage.removeItem("accessToken");
         localStorage.removeItem("cognito_id_token");
-        localStorage.removeItem("auth-storage");
-        sessionStorage.clear();
+        localStorage.removeItem("auth-storage"); // Clear Zustand persisted state
+        sessionStorage.clear(); // Clear any session storage data
 
-        set({ ...initialState, isSessionReady: false }); // ⬅️ lista = false
+        // 3. Reset auth state in Zustand
+        set({ ...initialState });
+
         console.log("✅ Logout completed: All tokens and session data cleared");
       },
 
-      /* ───────── signUp, confirmSignUp (sin cambios) ───────── */
       signUp: (email: string, password: string, name: string) => {
         set({ isLoading: true, error: null });
         return new Promise<void>((resolve, reject) => {
@@ -149,147 +133,161 @@ export const useAuthStore = create<AuthStore>()(
         });
       },
 
-      /* ───────── checkAuth (restaurar sesión) ───────── */
       checkAuth: () => {
-      set({ isLoading: true });
+        set({ isLoading: true });
 
-      // Intentar obtener el usuario actual de Cognito
-      const current = userPool.getCurrentUser();
+        // Try to get current user from Cognito
+        const current = userPool.getCurrentUser();
 
-      // Verificar si hay un "backup token" en localStorage o sessionStorage
-      const hasBackupToken =
-        localStorage.getItem("cognito_id_token") ||
-        sessionStorage.getItem("cognito_session_active");
+        // Check for backup tokens from various sources (localStorage, sessionStorage)
+        const hasBackupToken =
+          localStorage.getItem("cognito_id_token") ||
+          sessionStorage.getItem("cognito_session_active");
 
-      // Si no hay current pero sí backupToken, intentar restaurar a partir de él...
-      if (!current && hasBackupToken) {
-        try {
-          const backupToken = localStorage.getItem("cognito_id_token");
-          if (backupToken) {
-            const payload = JSON.parse(atob(backupToken.split(".")[1]));
-            const currentTime = Math.floor(Date.now() / 1000);
-            if (payload.exp && payload.exp < currentTime) {
-              console.log("⚠️ Backup token expirado, limpiando");
-              localStorage.removeItem("cognito_id_token");
-              sessionStorage.removeItem("cognito_session_active");
-              throw new Error("Token expirado");
+        // Attempt session restoration from backup token if Cognito session is missing
+        if (!current && hasBackupToken) {
+          try {
+            const backupToken = localStorage.getItem("cognito_id_token");
+            if (backupToken) {
+              // Parse the backup token to extract user info
+              const payload = JSON.parse(atob(backupToken.split(".")[1]));
+
+              // Validate token expiration
+              const currentTime = Math.floor(Date.now() / 1000);
+              if (payload.exp && payload.exp < currentTime) {
+                console.log("⚠️ Backup token expired, removing it");
+                localStorage.removeItem("cognito_id_token");
+                sessionStorage.removeItem("cognito_session_active");
+                throw new Error("Token expired");
+              }
+
+              const rawGroups = payload["cognito:groups"];
+              const roles: UserRole[] = Array.isArray(rawGroups)
+                ? rawGroups.filter((g): g is UserRole =>
+                    ["administrador", "alumno", "jurado", "asesor", "coordinador", "revisor"].includes(g)
+                  )
+                : [];
+
+              const newUser: User = {
+                id: payload.sub,
+                name: (payload["name"] as string) || payload.email,
+                email: payload.email,
+                avatar: "",
+                roles,
+              };
+
+              // Restore auth state from backup token
+              set({
+                user: newUser,
+                idToken: backupToken,
+                isAuthenticated: true,
+                isLoading: false,
+              });
+              // Refresh the session markers
+              sessionStorage.setItem("cognito_session_active", "true");
+
+              console.log("✅ Restored session from backup token");
+              return Promise.resolve();
             }
-
-            const rawGroups = payload["cognito:groups"];
-            const roles: UserRole[] = Array.isArray(rawGroups)
-              ? rawGroups.filter((g): g is UserRole =>
-                  ["administrador", "alumno", "jurado", "asesor", "coordinador", "revisor"].includes(g)
-                )
-              : [];
-
-            const newUser: User = {
-              id: payload.sub,
-              name: (payload["name"] as string) || payload.email,
-              email: payload.email,
-              avatar: "",
-              roles,
-            };
-
-            // Restaurar estado a partir del backupToken
-            set({
-              user: newUser,
-              idToken: backupToken,
-              isAuthenticated: true,
-              isLoading: false,
-              isSessionReady: true, // ✅ ya tengo sesión "falsa" restaurada
-            });
-            sessionStorage.setItem("cognito_session_active", "true");
-            console.log("✅ Sesión restaurada desde backup token");
-            return Promise.resolve();
-          }
-        } catch (e) {
-          console.error("Error al restaurar sesión desde backup token:", e);
-          localStorage.removeItem("cognito_id_token");
-          sessionStorage.removeItem("cognito_session_active");
-        }
-      }
-
-      // Si no hay current y tampoco backupToken, marcamos como "sin sesión"
-      if (!current) {
-        set({
-          user: null,
-          idToken: null,
-          accessToken: null,
-          isAuthenticated: false,
-          isLoading: false,
-          isSessionReady: true, // ✅ Ya chequé y confirmé que no hay sesión
-        });
-        return Promise.resolve();
-      }
-
-      // Si sí hay un usuario Cognito, validamos su sesión
-      return new Promise<void>((resolve) => {
-        current.getSession((err: Error | null, session: CognitoUserSession | null) => {
-          // 👆 Aquí anotamos explícitamente los tipos de err y session
-          if (err || !session || !session.isValid()) {
-            console.log("⚠️ Sesión Cognito inválida o expirada:", err);
+          } catch (e) {
+            console.error("Error restoring session from backup token:", e);
             localStorage.removeItem("cognito_id_token");
             sessionStorage.removeItem("cognito_session_active");
-
-            set({
-              user: null,
-              idToken: null,
-              accessToken: null,
-              isAuthenticated: false,
-              isLoading: false,
-              isSessionReady: true, // ✅ Ya finalicé checkAuth y no hay sesión válida
-            });
-            return resolve();
           }
-
-          // Si llegamos acá, la sesión es válida:
-          const payload = session.getIdToken().payload;
-          const rawGroups = payload["cognito:groups"];
-          const roles: UserRole[] = Array.isArray(rawGroups)
-            ? rawGroups.filter((g): g is UserRole =>
-                ["administrador", "alumno", "jurado", "asesor", "coordinador", "revisor"].includes(g)
-              )
-            : [];
-
-          const newUser: User = {
-            id: payload.sub!,
-            name: (payload["name"] as string) || payload.email!,
-            email: payload.email!,
-            avatar: "",
-            roles,
-          };
-
-          const idToken = session.getIdToken().getJwtToken();
-          const accessToken = session.getAccessToken().getJwtToken();
-
+        }
+        // If no Cognito user and no backup token was found
+        if (!current) {
           set({
-            user: newUser,
-            idToken,
-            accessToken,
-            isAuthenticated: true,
             isLoading: false,
-            isSessionReady: true, // ✅ Ya finalicé checkAuth y se presentó una sesión válida
+            isAuthenticated: false,
+            accessToken: null,
+            user: null,
+            idToken: null,
           });
+          return Promise.resolve();
+        }
 
-          // Guardamos el token en localStorage/sessionStorage para backup
-          localStorage.setItem("cognito_id_token", idToken);
-          sessionStorage.setItem("cognito_session_active", "true");
-          resolve();
+        return new Promise<void>((resolve) => {
+          current.getSession(
+            (err: Error | null, session: CognitoUserSession | null) => {
+              // If there's an error or no valid session
+              if (err || !session || !session.isValid()) {
+                console.log("⚠️ Cognito session invalid or expired", err);
+                // Try one more time with backup token
+                const backupToken = localStorage.getItem("cognito_id_token");
+                if (backupToken) {
+                  // We already tried to restore from backup above, so if we're here,
+                  // let's try one more cleanup and force user to re-authenticate
+                  localStorage.removeItem("cognito_id_token");
+                  sessionStorage.removeItem("cognito_session_active");
+                }
+
+                set({
+                  user: null,
+                  idToken: null,
+                  accessToken: null,
+                  isAuthenticated: false,
+                  isLoading: false,
+                });
+
+                return resolve();
+              }
+              // We have a valid session
+              const payload = session.getIdToken().payload;
+              const rawGroups = payload["cognito:groups"];
+              const roles: UserRole[] = Array.isArray(rawGroups)
+                ? rawGroups.filter((g): g is UserRole =>
+                    ["administrador",
+                      "alumno",
+                      "jurado",
+                      "asesor",
+                      "coordinador",
+                      "revisor",
+                    ].includes(g),
+                  )
+                : [];
+              const newUser: User = {
+                id: payload.sub!,
+                name: (payload["name"] as string) || payload.email!,
+                email: payload.email!,
+                avatar: "",
+                roles,
+              };
+
+              // Get the fresh token and store it in all locations
+              const idToken = session.getIdToken().getJwtToken();
+              const accessToken = session.getAccessToken().getJwtToken();
+
+              // Update our Zustand state
+              set({
+                user: newUser,
+                idToken: idToken,
+                accessToken: accessToken,
+                isAuthenticated: true,
+                isLoading: false,
+              });
+              // Also update backup storage locations for better reliability
+              localStorage.setItem("cognito_id_token", idToken);
+              sessionStorage.setItem("cognito_session_active", "true");
+              resolve();
+            },
+          );
         });
-      });
-    },
+      },
 
-      clearError: () => set({ error: null }),
+      clearError: () => {
+        set({ error: null });
+      },
 
       loginWithProvider: (provider: "Google") => {
         set({ isLoading: true, error: null });
         try {
           if (provider === "Google") {
-            // Redirect to the Cognito-hosted UI with Google as the identity provider
+            // Redirect to the Cognito-hosted UI with Google selected as the identity provider
             const domain = process.env.NEXT_PUBLIC_COGNITO_DOMAIN!;
             const clientId = process.env.NEXT_PUBLIC_COGNITO_APP_CLIENT_ID!;
             const redirect = encodeURIComponent(
-              process.env.NEXT_PUBLIC_COGNITO_REDIRECT_URI!
+              process.env.NEXT_PUBLIC_COGNITO_REDIRECT_URI!,
             );
             const scope = encodeURIComponent("openid email profile");
 
@@ -306,7 +304,9 @@ export const useAuthStore = create<AuthStore>()(
           }
         } catch (error: unknown) {
           const message =
-            error instanceof Error ? error.message : "Error initiating social login";
+            error instanceof Error
+              ? error.message
+              : "Error initiating social login";
           set({
             error: message,
             isLoading: false,
@@ -322,6 +322,7 @@ export const useAuthStore = create<AuthStore>()(
         accessToken: state.accessToken,
         isAuthenticated: state.isAuthenticated,
       }),
+      // Force storage to update synchronously
       version: 1,
       storage: {
         getItem: (name) => {

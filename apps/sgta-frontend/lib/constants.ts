@@ -1,1 +1,0 @@
-export const ELEMENTS_PER_PAGE_DEFAULT = 10;
