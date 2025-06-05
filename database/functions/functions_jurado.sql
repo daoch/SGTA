@@ -126,7 +126,8 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION listar_temas_ciclo_actual_x_etapa_formativa(
-	etapa_id integer
+	etapa_id integer	,
+	expo_id integer
 )
 RETURNS TABLE(
 	tema_id integer,
@@ -136,10 +137,13 @@ RETURNS TABLE(
      nombres varchar,
   apellidos varchar,
   rol_id integer,
-  rol_nombre varchar
-    
+  rol_nombre varchar    
 ) AS $$
+declare
+	
 BEGIN
+	
+	
     RETURN QUERY
  	SELECT 
 		t.tema_id,
@@ -159,6 +163,7 @@ BEGIN
 	inner join usuario u on  u.usuario_id = ut.usuario_id
 	inner join rol r on r.rol_id = ut.rol_id
 	where c.activo = true and  ef.etapa_formativa_id = etapa_id 
+	and t.tema_id in  (select po.tema_id from exposicion_x_tema po where po.exposicion_id = expo_id)
 	order by t.tema_id;  
 END;
 $$ LANGUAGE plpgsql;
