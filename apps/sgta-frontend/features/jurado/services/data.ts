@@ -1,6 +1,7 @@
 import axiosInstance from "@/lib/axios/axios-instance";
 import { Tema, TimeSlot } from "../types/jurado.types";
 import axios from "axios";
+import { ExposicionEtapaFormativaDTO } from "../dtos/ExposicionEtapaFormativaDTO";
 
 const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
@@ -127,7 +128,7 @@ export async function listarEstadoPlanificacionPorExposicion(
  */
 export async function getEtapaFormativaIdByExposicionId(
   exposicionId: number,
-): Promise<number> {
+): Promise<ExposicionEtapaFormativaDTO | null> {
   try {
     const response = await fetch(
       `${baseUrl}/etapas-formativas/getEtapaFormativaIdByExposicionId/${exposicionId}`,
@@ -150,12 +151,11 @@ export async function getEtapaFormativaIdByExposicionId(
     }
 
     // El back devuelve un número puro en el body: ej. 1
-    const data: number = await response.json();
+    const data: ExposicionEtapaFormativaDTO = await response.json();
     return data;
   } catch (error) {
     console.error("Error : fetching EtapaFormativaId por exposicionId:", error);
-    // En caso de fallo, devolvemos 0 (o podrías devolver `null` si prefieres)
-    return 0;
+    return null;
   }
 }
 
