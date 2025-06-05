@@ -106,7 +106,12 @@ export function EntregablesTable({ filter, entregables, setEntregables }: Entreg
                                         <div className="flex justify-end gap-2">
                                             {entregable.entregableEstado != "no_enviado" && (
                                                 <Dialog> 
-                                                    <Link href={`/alumno/mi-proyecto/entregables/${entregable.entregableId}`} passHref>
+                                                    <Link
+                                                        href={{
+                                                            pathname: `/alumno/mi-proyecto/entregables/${entregable.entregableId}`,
+                                                            query: { tema: entregable.temaId }
+                                                        }}
+                                                    >
                                                         <Button variant="ghost" size="icon">
                                                             <Eye className="h-4 w-4" />
                                                             <span className="sr-only">Ver detalles</span>

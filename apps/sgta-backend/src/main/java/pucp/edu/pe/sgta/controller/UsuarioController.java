@@ -24,6 +24,7 @@ import pucp.edu.pe.sgta.service.inter.CarreraService;
 import pucp.edu.pe.sgta.service.inter.JwtService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
 import pucp.edu.pe.sgta.dto.AlumnoTemaDto;
+import pucp.edu.pe.sgta.dto.AlumnoReporteDto;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -294,27 +295,6 @@ public class UsuarioController {
 
     }
 
-    {
-        /*
-         * //Probando lo del Id_Token
-         * 
-         * @GetMapping("/detalle-tema-alumno/{idUsuario}")
-         * public ResponseEntity<AlumnoTemaDto>
-         * getDetalleTemaAlumno(@AuthenticationPrincipal UserDetails userDetails) {
-         * try {
-         * // Obtén el username (o email, o sub) desde el token
-         * Integer idUsuario = Integer.parseInt(userDetails.getUsername());
-         * // Si necesitas el id, búscalo en tu base de datos usando el username/email
-         * AlumnoTemaDto tema = usuarioService.getAlumnoTema(idUsuario);
-         * return ResponseEntity.ok(tema);
-         * } catch (NoSuchElementException e) {
-         * return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-         * } catch (Exception e) {
-         * return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-         * }
-         * }
-         */}
-
     @GetMapping("/getAsesoresBySubArea")
     public List<UsuarioDto> getAsesoresBySubArea(@RequestParam(name = "idSubArea") Integer idSubArea) {
         return this.usuarioService.getAsesoresBySubArea(idSubArea);
@@ -327,6 +307,19 @@ public class UsuarioController {
             return this.usuarioService.findByCognitoId(usuarioId);
         } catch (RuntimeException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        }
+    }
+
+    @GetMapping("/findByStudentsForReviewer")
+    public ResponseEntity<List<AlumnoReporteDto>> findByStudentsForReviewer(
+            @RequestParam(required = false) Integer carreraId,
+            @RequestParam(required = false) String cadenaBusqueda) {
+        try {
+            List<AlumnoReporteDto> alumnos = usuarioService.findByStudentsForReviewer(carreraId, cadenaBusqueda);
+            return ResponseEntity.ok(alumnos);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(null);
         }
     }
 

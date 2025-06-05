@@ -22,12 +22,12 @@ import { useRouter } from "next/navigation";
 import { PDFDocument } from "pdf-lib";
 import { useCallback, useEffect, useState } from "react";
 import { IHighlight } from "react-pdf-highlighter/dist/types";
-import { analizarPlagioArchivoS3, descargarArchivoS3 } from "../servicios/revision-service";
+import { analizarPlagioArchivoS3, descargarArchivoS3RevisionID, guardarObservacionesRevision, obtenerObservacionesRevision } from "../servicios/revision-service";
 // ...otros imports...
 
 // Datos de ejemplo para una revisión específica
 const revisionData = {
-  id: "2",
+  id: 5,
   titulo: "Desarrollo de un sistema de monitoreo de calidad del aire utilizando IoT",
   estudiante: "Ana García",
   codigo: "20190456",
@@ -45,7 +45,7 @@ const revisionData = {
   ],
 };
 
-export default function RevisarDocumentoPage({ params }: { params: { id: string } }) {
+export default function RevisarDocumentoPage({ params }: { readonly params: { readonly id_revision: number } }) {
   const router = useRouter();
   interface Observacion {
     id: string;
@@ -56,7 +56,7 @@ export default function RevisarDocumentoPage({ params }: { params: { id: string 
   }
 
   const [revision, setRevision] = useState<{
-    id: string;
+    id: number;
     titulo: string;
     estudiante: string;
     codigo: string;
@@ -133,7 +133,8 @@ export default function RevisarDocumentoPage({ params }: { params: { id: string 
     async function fetchPdf() {
       try {
         const key = "E1.pdf";
-        const blob = await descargarArchivoS3(key);
+        if (!params.id_revision) return;
+        const blob = await descargarArchivoS3RevisionID(params.id_revision);
         const url = URL.createObjectURL(blob);
         setPdfUrl(url);
         console.log("PDF URL:", url);
@@ -142,6 +143,7 @@ export default function RevisarDocumentoPage({ params }: { params: { id: string 
         const pdfDoc = await PDFDocument.load(arrayBuffer);
         setNumPages(pdfDoc.getPageCount());
       } catch (e) {
+        console.error("Error al obtener el PDF:", e);
         setPdfUrl(null);
         setNumPages(null);
       }
@@ -151,8 +153,20 @@ export default function RevisarDocumentoPage({ params }: { params: { id: string 
     return () => {
       if (pdfUrl) URL.revokeObjectURL(pdfUrl);
     };
-  }, [params.id]);
-
+  }, [params.id_revision]);
+  useEffect(() => {
+    async function fetchObservaciones() {
+      try {
+        const data = await obtenerObservacionesRevision(revision.id);
+        console.log("Observaciones obtenidas:", data);
+        setHighlights(data);
+      } catch (e) {
+        console.error("Error al obtener observaciones:", e);
+        setHighlights([]);
+      }
+    }
+    fetchObservaciones();
+  }, [revision.id]);
   useEffect(() => {
     if (numPages === null) return;
     // Solo crea highlights en páginas válidas
@@ -291,8 +305,25 @@ export default function RevisarDocumentoPage({ params }: { params: { id: string 
     setIsLoading(true);
 
     try {
-      // En una aplicación real, aquí se enviaría la revisión al backend
-      // await guardarObservacionesRevision(revision.id, highlights, 1); // Asumiendo que el usuario es el asesor con ID 1
+      const highlightsDto = highlights.map(h => ({
+        id: h.id,
+        position: {
+          boundingRect: h.position.boundingRect,
+          rects: h.position.rects,
+          pageNumber: h.position.pageNumber,
+          usePdfCoordinates: h.position.usePdfCoordinates ?? undefined,
+        },
+        content: {
+          text: h.content.text ?? "",
+          image: h.content.image ?? "",
+        },
+        comment: {
+          text: h.comment.text,
+          emoji: h.comment.emoji,
+        },
+      }));
+
+      await guardarObservacionesRevision(revision.id, highlightsDto, 1); // Asumiendo que el usuario es el asesor con ID 1
       console.log("Revisión guardada exitosamente");
 
       await new Promise((resolve) => setTimeout(resolve, 1500));
@@ -371,17 +402,21 @@ export default function RevisarDocumentoPage({ params }: { params: { id: string 
                           : "bg-green-200"
                     }`}
                   /> */}
-                  <span
-                    className={
-                      revision.porcentajePlagio > 20
-                        ? "text-red-600 font-medium"
-                        : revision.porcentajePlagio > 10
-                          ? "text-yellow-600 font-medium"
-                          : "text-green-600 font-medium"
+                  {(() => {
+                    let plagioClass = "";
+                    if (revision.porcentajePlagio > 20) {
+                      plagioClass = "text-red-600 font-medium";
+                    } else if (revision.porcentajePlagio > 10) {
+                      plagioClass = "text-yellow-600 font-medium";
+                    } else {
+                      plagioClass = "text-green-600 font-medium";
                     }
-                  >
-                    {revision.porcentajePlagio}%
-                  </span>
+                    return (
+                      <span className={plagioClass}>
+                        {revision.porcentajePlagio}%
+                      </span>
+                    );
+                  })()}
                 </div>
               </div>
 
@@ -662,7 +697,7 @@ export default function RevisarDocumentoPage({ params }: { params: { id: string 
                     <span>Contenido</span>
                   </div>
                   <Badge variant="outline" className="bg-yellow-100 text-yellow-800">
-                    {highlights.filter((h) => h.comment.emoji === "contenido").length}
+                    {highlights.filter((h) => h.comment.emoji === "Contenido").length}
                   </Badge>
                 </div>
 
@@ -672,7 +707,7 @@ export default function RevisarDocumentoPage({ params }: { params: { id: string 
                     <span>Similitud</span>
                   </div>
                   <Badge variant="outline" className="bg-red-100 text-red-800">
-                    {highlights.filter((h) => h.comment.emoji === "similitud").length}
+                    {highlights.filter((h) => h.comment.emoji === "Similitud").length}
                   </Badge>
                 </div>
 
@@ -682,7 +717,7 @@ export default function RevisarDocumentoPage({ params }: { params: { id: string 
                     <span>Citado</span>
                   </div>
                   <Badge variant="outline" className="bg-blue-100 text-blue-800">
-                    {highlights.filter((h) => h.comment.emoji === "citado").length}
+                    {highlights.filter((h) => h.comment.emoji === "Citado").length}
                   </Badge>
                 </div>
                 <div className="flex items-center justify-between">
@@ -691,7 +726,7 @@ export default function RevisarDocumentoPage({ params }: { params: { id: string 
                     <span>Generado con IA</span>
                   </div>
                   <Badge variant="outline" className="bg-green-100 text-green-800">
-                    {revision.observaciones.filter((o) => o.tipo === "citado").length}
+                    {revision.observaciones.filter((o) => o.tipo === "Inteligencia Artificial").length}
                   </Badge>
                 </div>
               </div>
