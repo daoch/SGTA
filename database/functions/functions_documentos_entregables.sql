@@ -205,6 +205,7 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
     v_entregable RECORD;
+	v_exposicion RECORD;
     v_etapa_formativa_x_ciclo_x_tema_id INTEGER;
     v_estado_en_progreso_id INTEGER;
 BEGIN
@@ -231,7 +232,19 @@ BEGIN
         VALUES (v_entregable.entregable_id, p_tema_id, TRUE);
     END LOOP;
 
-    -- 4. Cambiar el estado del tema a EN_PROGRESO
+	-- 4. Buscar exposiciones activas para el curso
+	FOR v_exposicion IN
+        SELECT exposicion_id
+        FROM exposicion
+        WHERE etapa_formativa_x_ciclo_id = p_curso_id
+          AND activo = TRUE
+    LOOP
+        -- 5. Insertar en exposicion_x_tema
+        INSERT INTO exposicion_x_tema (exposicion_id, tema_id, activo)
+        VALUES (v_exposicion.exposicion_id, p_tema_id, TRUE);
+    END LOOP;
+	
+    -- 6. Cambiar el estado del tema a EN_PROGRESO
     IF v_estado_en_progreso_id IS NOT NULL THEN
         UPDATE tema
         SET estado_tema_id = v_estado_en_progreso_id
