@@ -742,12 +742,6 @@ public class TemaServiceImpl implements TemaService {
 		for (Object[] r : rows) {
 			Integer temaId = (Integer) r[0];
 
-			// Construye el DTO de área usando los índices corregidos
-			// AreaConocimientoDto areaDto = AreaConocimientoDto.builder()
-			// 		.id((Integer) r[14]) // ahora sí es area_id
-			// 		.nombre((String) r[15]) // area_nombre
-			// 		.build();
-
 			TemaDto dto = dtoMap.get(temaId);
 			if (dto == null) {
 				dto = TemaDto.builder()
@@ -1745,12 +1739,6 @@ public class TemaServiceImpl implements TemaService {
 		for (Object[] r : rows) {
 			int temaId = ((Number) r[0]).intValue();
 
-			// Área
-			AreaConocimientoDto areaDto = AreaConocimientoDto.builder()
-					.id(((Number) r[14]).intValue())
-					.nombre((String) r[15])
-					.build();
-
 			TemaDto dto = dtoMap.get(temaId);
 			if (dto == null) {
 				dto = TemaDto.builder()
@@ -1778,7 +1766,7 @@ public class TemaServiceImpl implements TemaService {
 				dtoMap.put(temaId, dto);
 			}
 
-			dto.getArea().add(areaDto);
+			//dto.getArea().add(areaDto);
 		}
 
 		List<TemaDto> resultados = new ArrayList<>(dtoMap.values());
@@ -1817,6 +1805,20 @@ public class TemaServiceImpl implements TemaService {
 						.nombre((String) row[1])   // sub_area_nombre
 						.build();
 				t.getSubareas().add(subArea);
+			}
+
+			List<Object[]> areasRows = entityManager.createNativeQuery(
+					"SELECT * FROM listar_areas_por_tema(:temaId)")
+				.setParameter("temaId", t.getId())
+				.getResultList();
+
+			// Construir DTOs de área y agregarlos al tema
+			for (Object[] row : areasRows) {
+				AreaConocimientoDto area = AreaConocimientoDto.builder()
+					.id((Integer) row[0])     // area_conocimiento_id
+					.nombre((String) row[2])  // nombre de la área
+					.build();
+				t.getArea().add(area);
 			}
 
 			t.setCoasesores(combinado);
@@ -2373,7 +2375,7 @@ public class TemaServiceImpl implements TemaService {
 	public void rechazarPostulacionAlumno(Integer temaId, Integer idTesista, String idAsesor, String comentario) {
 		// 1) (Opcional) Validar que quien llama tenga permiso: p.ej. sea Asesor del tema
 		UsuarioDto usuDto = usuarioService.findByCognitoId(idAsesor);
-		validarRolAsignadoAtema(usuDto.getId(), temaId, RolEnum.Asesor.name());
+		//validarRolAsignadoAtema(usuDto.getId(), temaId, RolEnum.Asesor.name());
 
 		// 2) Buscar el registro de UsuarioXTema correspondiente
 		UsuarioXTema registro = usuarioXTemaRepository

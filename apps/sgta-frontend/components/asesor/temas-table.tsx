@@ -98,7 +98,7 @@ export function TemasTable({
           {tema.titulo}
         </TableCell>
         {/* Area */}
-        <TableCell>{tema.area[0]?.nombre}</TableCell>
+        <TableCell>{tema.subareas[0]?.nombre}</TableCell>
         {/* Asesor */}
         <TableCell>{asesor ? asesor.nombres : ""}</TableCell>
         {/* Tesistas */}
@@ -112,11 +112,7 @@ export function TemasTable({
           )}
         </TableCell>
         {/* Postulaciones */}
-        {
-          <TableCell>
-            {!tema.cantPostulaciones ? "-" : tema.cantPostulaciones}
-          </TableCell>
-        }
+        {<TableCell>{tema.cantPostulaciones ?? "-"}</TableCell>}
 
         {/* Tipo */}
         <TableCell>
@@ -210,7 +206,7 @@ export function TemasTable({
               <TableHead>Área</TableHead>
               <TableHead>Asesor</TableHead>
               <TableHead>Estudiante(s)</TableHead>
-              <TableHead>Postulaciones</TableHead>
+              {/* <TableHead>Postulaciones</TableHead> // TODO: Mostrar postulaciones */}
               <TableHead>Tipo</TableHead>
               <TableHead>Estado</TableHead>
               <TableHead className="text-right">Acción</TableHead>
