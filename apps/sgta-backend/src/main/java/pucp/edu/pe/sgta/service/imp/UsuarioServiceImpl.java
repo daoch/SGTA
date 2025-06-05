@@ -52,7 +52,7 @@ import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 @Service
-public class UsuarioServiceImpl implements UsuarioService {
+public class    UsuarioServiceImpl implements UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
     private final UsuarioXSubAreaConocimientoRepository usuarioXSubAreaConocimientoRepository;

@@ -93,8 +93,6 @@ public interface UsuarioService {
 
     void procesarArchivoUsuarios(MultipartFile archivo) throws Exception;
 
-    AlumnoTemaDto getAlumnoTema(Integer idAlumno);
-
     UsuarioDto findByCognitoId(String cognitoId) throws NoSuchElementException;
 
     void validarTipoUsuarioRolUsuario(String cognitoId,TipoUsuarioEnum tipoUsuario, RolEnum rol);
