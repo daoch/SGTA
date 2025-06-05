@@ -50,48 +50,9 @@ public class Solicitud {
 	@Column(name = "fecha_creacion", nullable = false, insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
 	private OffsetDateTime fechaCreacion;
 
-	@Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+	@Column(name = "fecha_modificacion", insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
 	private OffsetDateTime fechaModificacion;
 
 	@Column(name = "respuesta", columnDefinition = "TEXT", nullable = true)
 	private String respuesta;
-
-	@ManyToOne(fetch = FetchType.LAZY) // Puede ser EAGER si siempre lo necesitas con la solicitud
-	@JoinColumn(name = "usuario_creador_id", nullable = false, foreignKey = @ForeignKey(name = "fk_solicitud_usuario_creador"))
-	private Usuario usuarioCreador; // NUEVO CAMPO
-
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "asesor_propuesto_reasignacion_id") // Nueva columna FK
-	private Usuario asesorPropuestoReasignacion;
-
-	@Column(name = "estado_reasignacion") // Nueva columna
-	private String estadoReasignacion; // Ej: "PENDIENTE_ACEPTACION_ASESOR", "REASIGNACION_COMPLETADA"
-
-	@PrePersist
-	protected void onCreate() {
-		fechaCreacion = OffsetDateTime.now();
-		fechaModificacion = OffsetDateTime.now(); // Asegúrate que se setee en la creación
-	}
-
-	@PreUpdate
-	protected void onUpdate() {
-		fechaModificacion = OffsetDateTime.now(); // Asegúrate que se actualice en cada update
-	}
-
-	// --- GETTERS Y SETTERS para los nuevos campos ---
-	public Usuario getAsesorPropuestoReasignacion() {
-		return asesorPropuestoReasignacion;
-	}
-
-	public void setAsesorPropuestoReasignacion(Usuario asesorPropuestoReasignacion) {
-		this.asesorPropuestoReasignacion = asesorPropuestoReasignacion;
-	}
-
-	public String getEstadoReasignacion() {
-		return estadoReasignacion;
-	}
-
-	public void setEstadoReasignacion(String estadoReasignacion) {
-		this.estadoReasignacion = estadoReasignacion;
-	}
 }

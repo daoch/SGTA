@@ -1,8 +1,10 @@
-package pucp.edu.pe.sgta.dto; // Ajusta tu paquete
+package pucp.edu.pe.sgta.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalDate;
 import java.util.List;
 
 @Data
@@ -15,24 +17,15 @@ public class SolicitudCeseDto {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class TemaPrincipalDto { // NUEVA CLASE INTERNA o ajusta la existente 'Tema'
-        private Integer id; // ID del tema
-        private String name; // o titulo
-    }
-
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
     public static class RequestTermination {
         private int id;
-        private String registerTime;
+        private LocalDate registerTime;
         private String status;
         private String reason;
         private String response;
-        private String responseTime;
+        private LocalDate responseTime;
         private Assessor assessor;
         private List<Estudiante> students;
-        private TemaPrincipalDto tema; // <<--- CAMPO AÑADIDO PARA EL TEMA PRINCIPAL
     }
 
     @Data
@@ -44,23 +37,23 @@ public class SolicitudCeseDto {
         private String lastName;
         private String email;
         private int quantityCurrentProyects;
-        private byte[] urlPhoto; // Considera String Base64 o URL
+        private byte[] urlPhoto;
     }
 
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class Estudiante { // El 'topic' aquí puede seguir siendo simple si solo es para display
+    public static class Estudiante {
         private int id;
         private String name;
         private String lastName;
-        private TemaAnidadoEnEstudiante topic; // Renombrado para claridad, o usa la clase Tema original
+        private Tema topic;
     }
 
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class TemaAnidadoEnEstudiante { // Esta es la que tenías como 'Tema'
-        private String name; // Solo el nombre para el tema del estudiante
+    public static class Tema {
+        private String name;
     }
 }

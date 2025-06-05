@@ -110,20 +110,6 @@ public interface TemaService {
 
 	TemaDto buscarTemaPorId(Integer idTema) throws SQLException;
 
-	/**
-	 * Registra una propuesta de reasignación para una solicitud de cese ya aprobada.
-	 * Actualiza la solicitud original con el asesor propuesto y un estado de reasignación.
-	 * Notifica al asesor propuesto.
-	 *
-	 * @param solicitudDeCeseOriginalId El ID de la Solicitud de cese que fue aprobada.
-	 * @param nuevoAsesorPropuestoId El ID del Usuario (profesor) que se propone como nuevo asesor.
-	 * @param coordinadorCognitoSub El Cognito Sub del coordinador que realiza la propuesta (para auditoría/validación).
-	 */
-	void proponerReasignacionParaSolicitudCese(
-			Integer solicitudDeCeseOriginalId,
-			Integer nuevoAsesorPropuestoId,
-			String coordinadorCognitoSub
-	);
 	TemaConAsesorDto obtenerTemaActivoPorAlumno(Integer idAlumno);
 
 	void crearSolicitudCambioDeTitulo(String idUsuario,

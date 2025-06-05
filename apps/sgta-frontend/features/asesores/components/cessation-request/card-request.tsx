@@ -1,201 +1,172 @@
-// src/features/asesores/components/cessation-request/card-request.tsx
 "use client";
 
 import React, { useState } from "react";
-import { format, isValid, formatDistanceToNow } from "date-fns"; // Updated imports
-import { es } from "date-fns/locale";
+import { differenceInDays, format } from "date-fns";
 import {
   Check,
   X,
-  CalendarDays,
-  // Clock, // Replaced by relative time, or can be used for resolution time if needed
-  User as UserIcon, // Renamed to avoid conflict if User component is imported
-  Users as UsersGroupIcon, // For multiple students
-  Briefcase,
-  Eye,
-  MessageSquare, // For reason
-  ChevronDown, // For "Show More"
-  ChevronUp,   // For "Show Less"
+  Calendar,
+  Clock,
+  User,
+  RefreshCw,
+  Users
 } from "lucide-react";
 
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback  } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
-import { ICessationRequestCardProps, ICessationRequestStatusBackend, ICessationRequestEstudianteBackend } from "@/features/asesores/types/cessation-request"; // Ensure ICessationRequestEstudianteBackend is available or adjust as needed
-import { cn } from "@/lib/utils"; // For conditional class names
+import { ICessationRequestCardProps, IRequestTerminationConsultancyRequestData } from "@/features/asesores/types/cessation-request";
+import { Image } from "@radix-ui/react-avatar";
 
-// Helper to get relative time
-const getRelativeTime = (date: Date | null | undefined): string | null => {
-  if (!date || !isValid(date)) return null;
-  try {
-    return formatDistanceToNow(date, { addSuffix: true, locale: es });
-  } catch (e) {
-    return null; // Fallback for safety
-  }
-};
 
-// Mini info item component for card content
-const CardInfoItem: React.FC<{
-  icon: React.ElementType;
-  label?: string; // Label is now optional
-  children: React.ReactNode;
-  className?: string;
-  labelClassName?: string;
-  valueClassName?: string;
-}> = ({ icon: Icon, label, children, className, labelClassName="text-xs text-slate-500", valueClassName="text-sm font-medium text-slate-700"}) => (
-  <div className={cn("flex items-center gap-2", className)}>
-    <Icon className="h-4 w-4 text-slate-400 flex-shrink-0" />
-    <div className="flex-1"> {/* Allow content to take remaining space */}
-      {label && <span className={cn(labelClassName, "mr-1")}>{label}:</span>}
-      <span className={valueClassName}>{children}</span>
-    </div>
-  </div>
-);
 
 
 const CessationRequestCard: React.FC<ICessationRequestCardProps> = ({
-  request,
-  onApprove,
-  onReject,
-  onViewDetails,
+    request,
+    onApprove,
+    onReject
 }) => {
-  const MAX_REASON_LENGTH_COLLAPSED = 100; // Characters to show before "Show More"
-  const [showFullReason, setShowFullReason] = useState<boolean>(false);
+  const SLICE_STUDENTS = 5;
+  const [hideStudents, setHideStudents] = useState<boolean>(true);
 
-  // Assuming status is always 'pendiente' for this specific card usage,
-  // but keeping the config for flexibility if this card is reused.
-  const statusConfig: Record<
-    ICessationRequestStatusBackend,
-    { badgeClass: string; text: string; }
-  > = {
-    pendiente: { badgeClass: "bg-yellow-100 text-yellow-800 border-yellow-300", text: "Pendiente" },
-    aprobada: { badgeClass: "bg-green-100 text-green-800 border-green-300", text: "Aprobada" },
-    rechazada: { badgeClass: "bg-red-100 text-red-800 border-red-300", text: "Rechazada" },
-    desconocido: { badgeClass: "bg-gray-100 text-gray-700 border-gray-300", text: "Desconocido" },
+
+
+  const statusConfig: Record<IRequestTerminationConsultancyRequestData["status"], { color: string; text: string }> = {
+    pending: { color: "bg-yellow-200 text-yellow-800", text: "Pendiente" },
+    approved: { color: "bg-green-200 text-green-800", text: "Aprobada" },
+    rejected: { color: "bg-red-200 text-red-800", text: "Rechazada" },
   };
-  const currentStatusConfig = statusConfig[request.status.toLowerCase() as ICessationRequestStatusBackend] || statusConfig.desconocido;
 
-  const relativeRequestTime = getRelativeTime(request.registerTime);
-  const formattedRequestDate = isValid(request.registerTime) ? format(request.registerTime, "dd MMM yyyy", { locale: es }) : "N/A";
+  const hasTesistas = request.students?.length > 0;
 
-  const reasonNeedsTruncation = request.reason && request.reason.length > MAX_REASON_LENGTH_COLLAPSED;
+  const truncateText = (text: string | undefined, limit = 200): string => {
+    if (!text) return "";
+    return text.length > limit ? text.substring(0, limit) + "..." : text;
+  };
 
   return (
-    <Card className="w-full shadow-sm border hover:shadow-md transition-shadow duration-150 ease-in-out bg-white rounded-lg overflow-hidden">
-      {/* Card Header: Assessor Info & Status */}
-      <CardHeader className="p-4 flex flex-row justify-between items-start gap-3 border-b bg-slate-50">
-        <div className="flex items-center gap-3 flex-1 min-w-0"> {/* min-w-0 for truncation */}
-          <Avatar className="h-11 w-11">
-            {request.assessor?.urlPhoto ? (
-              <AvatarImage src={request.assessor.urlPhoto} alt={request.assessor.name || "Asesor"} />
-            ) : null}
-            <AvatarFallback className="bg-sky-100 text-sky-700 font-semibold">
-              {request.assessor?.name?.[0]?.toUpperCase()}
-              {request.assessor?.lastName?.[0]?.toUpperCase()}
-            </AvatarFallback>
+    <Card className="mb-3 shadow-sm border">
+      <CardHeader className="py-4 px-4 bg-gray-50 flex flex-row justify-between items-center">
+        <div className="flex items-center gap-2 p-2">
+          <Avatar className="h-8 w-8">
+            {request.assessor.urlPhoto ? (
+                <Image
+                    src={request.assessor.urlPhoto}
+                    alt={`User-photo-${request.assessor.id}`}
+                />
+            ) : (
+                <AvatarFallback className="bg-gray-400" />
+            )}
           </Avatar>
-          <div className="flex-1 min-w-0"> {/* min-w-0 for truncation */}
-            <h3 className="text-base font-semibold text-slate-800 leading-tight truncate" title={`${request.assessor?.name} ${request.assessor?.lastName}`}>
-              {request.assessor ? `${request.assessor.name} ${request.assessor.lastName}` : "Asesor no disponible"}
-            </h3>
-            <p className="text-xs text-slate-500 leading-tight truncate" title={request.assessor?.email || ""}>
-              {request.assessor?.email || "Email no disponible"}
-            </p>
+          <div>
+            <h3 className="text-sm font-semibold text-gray-800 leading-tight">{`${request.assessor.name} ${request.assessor.lastName}`}</h3>
+            <p className="text-xs text-gray-500 leading-tight">{request.assessor.email}</p>
           </div>
         </div>
-        {/* Status Badge should only be shown if card is used for history too */}
-        {request.status !== "pendiente" && (
-             <Badge variant="outline" className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${currentStatusConfig.badgeClass}`}>
-                {currentStatusConfig.text}
-            </Badge>
-        )}
+        <span className={`text-xs font-medium px-2 py-0.5 rounded ${statusConfig[request.status]?.color}`}>
+          {statusConfig[request.status]?.text}
+        </span>
       </CardHeader>
 
-      {/* Card Content: Key Details */}
-      <CardContent className="p-4 space-y-3 text-sm">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
-            <CardInfoItem icon={CalendarDays} label="Solicitado" valueClassName="text-xs text-slate-600">
-                {formattedRequestDate}
-                {relativeRequestTime && <span className="ml-1 text-slate-500">({relativeRequestTime})</span>}
-            </CardInfoItem>
-        </div>
-        
-        {/* Assessor's Reason */}
-        <div>
-            <div className="flex items-center gap-1 mb-0.5">
-                 <MessageSquare className="h-4 w-4 text-slate-400 flex-shrink-0" />
-                 <p className="text-xs text-slate-500 font-medium">Motivo del Asesor:</p>
+      <CardContent className="py-3 px-4 text-xs border-b">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-3 gap-y-2 mb-2 p-2">
+          <div className="flex items-start gap-1.5">
+            <Calendar className="h-3.5 w-3.5 mt-0.5 text-gray-400" />
+            <div>
+              <span className="text-gray-500 text-[11px]">Solicitud:</span>
+              <span className="font-medium text-gray-800 block">{`${format(request.registerTime, "dd/MM/yyyy")} - ${format(request.registerTime, "hh:mm a")}`}</span>
+              <span className="text-gray-500 block">{`Hace ${differenceInDays(new Date(), request.registerTime)} días`}</span>
             </div>
-            <p className={cn("text-sm text-slate-700 leading-normal pl-5", !showFullReason && reasonNeedsTruncation && "line-clamp-2")}>
-                {request.reason || "No especificado."}
-            </p>
-            {reasonNeedsTruncation && (
-                <Button 
-                    variant="link" 
-                    size="sm"
-                    className="text-xs p-0 h-auto mt-1 text-blue-600 hover:text-blue-700 pl-5" 
-                    onClick={() => setShowFullReason(!showFullReason)}
-                >
-                    {showFullReason ? "Mostrar menos" : "Mostrar más"}
-                    {showFullReason ? <ChevronUp size={14} className="ml-1" /> : <ChevronDown size={14} className="ml-1" />}
-                </Button>
-            )}
+          </div>
+
+          <div className="flex items-start gap-1.5">
+            <Users className="h-3.5 w-3.5 mt-0.5 text-gray-400" />
+            <div>
+              <span className="text-gray-500 text-[11px]">Proyectos: </span>
+              <Badge variant="secondary">{request.students.length}</Badge>
+            </div>
+          </div>
+
+          {request.status !== "pending" && request.registerTime && (
+            <div className="flex items-start gap-1.5">
+              <Clock className="h-3.5 w-3.5 mt-0.5 text-gray-400" />
+              <div>
+                <span className="text-gray-500 text-[11px]">Decisión:</span>
+                <span className="font-medium text-gray-800 block">{`${format(request.registerTime, "dd/MM/yyyy")} - ${format(request.registerTime, "hh:mm a")}`}</span>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Affected Students Summary */}
-        {request.students && request.students.length > 0 && (
-            <CardInfoItem 
-                icon={UsersGroupIcon} 
-                label="Tesistas Afectados" 
-                valueClassName="text-sm font-medium text-slate-700"
-            >
-                <Badge variant="outline" className="border-slate-300 text-slate-700">
-                    {request.students.length}
-                </Badge>
-                {/* Optionally, list first 1-2 student names if space allows and is desired */}
-                {/* <span className="text-xs text-slate-500 ml-2 truncate">
-                    ({request.students.slice(0,1).map(s => `${s.name} ${s.lastName.charAt(0)}.`).join(', ')}{request.students.length > 1 ? '...': ''})
-                </span> */}
-            </CardInfoItem>
+        <div className="mb-2 p-2">
+          <p className="text-[11px] text-gray-500 font-medium mb-0.5">Motivo:</p>
+          <p className="text-xs text-gray-700 leading-snug line-clamp-2">{request.reason}</p>
+        </div>
+
+        {hasTesistas && (
+          <div className="mb-1 p-2">
+            <span className="text-[11px] text-gray-500 font-medium mb-0.5">Tesistas afectados: </span>
+            <Badge variant="secondary">{request.students.length}</Badge>
+            <div className="space-y-0.5">
+              {  
+                request.students.slice(hideStudents?0:undefined, hideStudents?SLICE_STUDENTS:undefined).map(student => (
+                  <div key={`student-${student.id}`} className="text-xs text-gray-600 flex items-start gap-1">
+                    <User className="h-3 w-3 mt-0.5 text-gray-400" />
+                    <span className="font-medium text-gray-800">{`${student.name} ${student.lastName}`}:</span>
+                    <span className="truncate text-gray-600">{truncateText(student.topic.name, 150)}</span>
+                  </div>
+                ))
+              }
+              {request.students.length > SLICE_STUDENTS && (
+                
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="text-xs p-0 h-auto mt-0.5"
+                  onClick={() => {setHideStudents((state)=>!state);}}
+                  >
+                  {hideStudents?`Ver los ${request.students.length - SLICE_STUDENTS} tesistas`:`Ocultar los ${request.students.length - SLICE_STUDENTS} tesistas`}
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {request.status === "rejected" && request.response && (
+          <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded">
+            <p className="text-xs font-medium text-red-700 mb-0.5">Motivo del rechazo:</p>
+            <p className="text-xs text-red-600 leading-snug line-clamp-2">{request.response}</p>
+            {request.response.length > 100 && (
+              <Button variant="link" size="sm" className="text-xs p-0 h-auto mt-0.5 text-red-600" onClick={() => {}}>
+                Ver completo
+              </Button>
+            )}
+          </div>
         )}
       </CardContent>
 
-      {/* Card Footer: Actions */}
-      <CardFooter className="p-3 bg-slate-25 border-t flex flex-col sm:flex-row items-center justify-end gap-2">
-        {/* For pending requests, actions are primary */}
-        {request.status === "pendiente" && (
+      <CardFooter className="py-2 px-4 bg-gray-50 flex justify-end gap-2">
+        {request.status === "pending" ? (
           <>
-            {onViewDetails && (
-              <Button variant="ghost" size="sm" onClick={onViewDetails} className="w-full sm:w-auto text-slate-700 hover:bg-slate-100">
-                <Eye size={16} className="mr-1.5" />
-                Detalles
-              </Button>
-            )}
-            <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={onReject} 
-                className="w-full sm:w-auto text-red-600 border-red-300 hover:bg-red-50 hover:border-red-400 hover:text-red-700"
-            >
-              <X size={16} className="mr-1.5" /> Rechazar
+            <Button variant="outline" size="sm" onClick={() => onReject()}>
+              <X size={14} className="mr-1" /> Rechazar
             </Button>
-            <Button 
-                size="sm" 
-                onClick={onApprove} 
-                className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              <Check size={16} className="mr-1.5" /> Aprobar
+            <Button size="sm" onClick={() => onApprove()}>
+              <Check size={14} className="mr-1" /> Reasignar alumnos
             </Button>
           </>
-        )}
-        
-        {/* For non-pending items (if card is reused for history) */}
-        {request.status !== "pendiente" && onViewDetails && (
-           <Button variant="outline" size="sm" onClick={onViewDetails} className="w-full text-slate-700 border-slate-300 hover:bg-slate-100">
-                <Eye size={16} className="mr-1.5" />
-                Ver Detalles
-           </Button>
+        ) : (
+          <>
+            <Button variant="ghost" size="sm" onClick={() => {}}>
+              Ver detalles
+            </Button>
+            {request.status === "approved" && hasTesistas && (
+              <Button size="sm" onClick={() => console.log(`Ir a reasignaciones para solicitud ${request.id}`)}>
+                <RefreshCw size={14} className="mr-1" /> Reasignaciones
+              </Button>
+            )}
+          </>
         )}
       </CardFooter>
     </Card>

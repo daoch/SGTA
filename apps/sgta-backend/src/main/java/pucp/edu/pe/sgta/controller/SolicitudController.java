@@ -2,9 +2,6 @@ package pucp.edu.pe.sgta.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import pucp.edu.pe.sgta.dto.AprobarSolicitudCambioAsesorRequestDto;
@@ -18,8 +15,6 @@ import pucp.edu.pe.sgta.dto.RechazoSolicitudRequestDto;
 import pucp.edu.pe.sgta.dto.RechazoSolicitudResponseDto;
 import pucp.edu.pe.sgta.dto.SolicitudCambioAsesorDto;
 import pucp.edu.pe.sgta.dto.SolicitudCeseDto;
-import pucp.edu.pe.sgta.dto.asesores.RejectSolicitudRequestDto;
-import pucp.edu.pe.sgta.dto.asesores.SolicitudCeseDetalleDto;
 import pucp.edu.pe.sgta.dto.temas.SolicitudTemaDto;
 import pucp.edu.pe.sgta.service.inter.SolicitudService;
 
@@ -31,48 +26,36 @@ public class SolicitudController {
     @Autowired
     private SolicitudService solicitudService;
 
-    @GetMapping("/coordinador/my-cessation-requests") // Nueva ruta más semántica
-    public ResponseEntity<SolicitudCeseDto> getMyCessationRequestsAsCoordinator(
-            @AuthenticationPrincipal Jwt jwt, // Spring Security inyecta el JWT del usuario autenticado
+    @GetMapping("/{coordinatorId}/cessation-requests")
+    public ResponseEntity<SolicitudCeseDto> getSolicitudesCese(
+            @PathVariable Integer coordinatorId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String status) {
-
-        String cognitoSub = jwt.getSubject(); // 'sub' (ID de usuario) de Cognito
-        // El servicio ahora usará este 'cognitoSub' para encontrar al usuario y sus solicitudes.
-        SolicitudCeseDto result = solicitudService.findAllSolicitudesCeseByCoordinatorCognitoSub(cognitoSub, page, size, status);
-        return ResponseEntity.ok(result);
-    }
-
-    @PutMapping("/{solicitudId}/reject")
-    public ResponseEntity<Void> rejectSolicitudCese(
-            @AuthenticationPrincipal Jwt jwt,
-            @PathVariable Integer solicitudId,
-            @RequestBody RejectSolicitudRequestDto payload, // Usar el DTO
-            @RequestHeader("Authorization") String authorizationHeader) {
-        String cognitoSub = jwt.getSubject(); // 'sub' (ID de usuario) de Cognito
-        solicitudService.rejectSolicitudCese(solicitudId, payload.getResponseText(), cognitoSub);
-
-        // Podrías devolver la solicitud actualizada si el frontend la necesita inmediatamente,
-        // pero un 200 OK o 204 No Content suele ser suficiente si el frontend hace refetch.
-        return ResponseEntity.ok().build();
-    }
-
-    @GetMapping("/cessation-requests/{solicitudId}/details")
-    public ResponseEntity<SolicitudCeseDetalleDto> getSolicitudCeseDetails(
-            @AuthenticationPrincipal Jwt jwt,
-            @PathVariable Integer solicitudId,
-            @RequestHeader("Authorization") String authorizationHeader) {
-
-        String cognitoSub = jwt.getSubject();
-        SolicitudCeseDetalleDto detalleDto = solicitudService.findSolicitudCeseDetailsById(solicitudId, cognitoSub);
-        return ResponseEntity.ok(detalleDto);
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(solicitudService.findAllSolicitudesCese(coordinatorId, page, size));
     }
 
     @GetMapping("/cessation-requests/{requestId}")
     public ResponseEntity<DetalleSolicitudCeseDto> getDetalleSolicitudesCese(
             @PathVariable Integer requestId) {
         return ResponseEntity.ok(solicitudService.getDetalleSolicitudCese(requestId));
+    }
+
+    @PostMapping("/cessation-requests/{requestId}/reject")
+    public ResponseEntity<RechazoSolicitudResponseDto> rechazarSolicitud(
+            @PathVariable Integer requestId,
+            @RequestBody RechazoSolicitudRequestDto requestDto) {
+
+        RechazoSolicitudResponseDto response = solicitudService.rechazarSolicitud(requestId, requestDto.getResponse());
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/cessation-requests/{requestId}/approve")
+    public ResponseEntity<AprobarSolicitudResponseDto> aprobarSolicitud(
+            @PathVariable Integer requestId,
+            @RequestBody AprobarSolicitudRequestDto requestDto) {
+
+        AprobarSolicitudResponseDto response = solicitudService.aprobarSolicitud(requestId, requestDto.getResponse());
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/advisor-change-requests")
