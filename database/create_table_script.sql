@@ -879,6 +879,7 @@ CREATE TABLE IF NOT EXISTS entregable_x_tema (
     fecha_envio TIMESTAMP WITH TIME ZONE,
     comentario TEXT,
     estado enum_estado_entrega NOT NULL DEFAULT 'no_enviado',
+    nota_entregable NUMERIC(5,2),
     activo BOOLEAN NOT NULL DEFAULT TRUE,
     fecha_creacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
