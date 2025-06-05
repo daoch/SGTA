@@ -298,6 +298,8 @@ DROP FUNCTION IF EXISTS obtener_documentos_asesor (INTEGER) CASCADE;
 
 DROP FUNCTION IF EXISTS obtener_exposiciones_por_usuario (INTEGER) CASCADE;
 
+DROP FUNCTION IF EXISTS obtener_revision_documento_por_id(int4);
+
 DROP FUNCTION IF EXISTS crear_tema_libre CASCADE;
 
 DROP FUNCTION IF EXISTS listar_bloques_con_temas_y_usuarios CASCADE;

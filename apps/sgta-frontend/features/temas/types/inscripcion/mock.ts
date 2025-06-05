@@ -35,6 +35,8 @@ export const temaVacio: Tema = {
   tesistas: [],
   subareas: [],
   requisitos: "",
+  area: [],
+  cantPostulaciones: 0,
 };
 
 export const coasesoresData: Coasesor[] = [
@@ -206,6 +208,8 @@ export const temaMock: Tema = {
     },
   ],
   requisitos: "Conocimientos básicos de programación.",
+  area: [], //agregado
+  cantPostulaciones: 0, // agregado
 };
 
 // export const estudiantesData: Tesista[] = [
@@ -575,4 +579,3 @@ export const temaMock: Tema = {
 //     subareas: [],
 //   },
 // ];
-

@@ -52,6 +52,56 @@ BEGIN
 END;
 $function$;
 
+--DROP FUNCTION IF EXISTS sgtadb.obtener_revision_documento_por_id(int4);
+
+CREATE OR REPLACE FUNCTION obtener_revision_documento_por_id(revision_id_input integer)
+RETURNS TABLE(
+    revision_id integer,
+    tema text,
+    entregable text,
+    estudiante text,
+    codigo text,
+    curso text,
+    fecha_carga timestamp with time zone,
+    estado_revision text,
+    entrega_a_tiempo boolean,
+    fecha_limite timestamp with time zone,
+    url_descarga text
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        rd.revision_documento_id AS revision_id,
+        t.titulo::TEXT AS tema,
+        e.nombre::TEXT AS entregable,
+        (u.nombres || ' ' || u.primer_apellido || ' ' || u.segundo_apellido)::TEXT AS estudiante,
+        u.codigo_pucp::TEXT AS codigo,
+        ef.nombre::TEXT AS curso,
+        vd.fecha_ultima_subida,
+        rd.estado_revision::TEXT AS estado_revision,
+        CASE 
+            WHEN rd.fecha_limite_revision IS NOT NULL 
+                 AND vd.fecha_ultima_subida::DATE <= rd.fecha_limite_revision THEN TRUE
+            ELSE FALSE
+        END AS entrega_a_tiempo,
+        rd.fecha_limite_revision::TIMESTAMP WITH TIME ZONE,
+        vd.link_archivo_subido::TEXT AS url_descarga
+    FROM revision_documento rd
+    JOIN version_documento vd ON rd.version_documento_id = vd.version_documento_id
+    JOIN entregable_x_tema ext ON vd.entregable_x_tema_id = ext.entregable_x_tema_id
+    JOIN entregable e ON ext.entregable_id = e.entregable_id
+    JOIN tema t ON ext.tema_id = t.tema_id
+    JOIN usuario_tema ut ON t.tema_id = ut.tema_id AND ut.creador = TRUE  -- ← FILTRA SOLO AL CREADOR
+    JOIN usuario u ON ut.usuario_id = u.usuario_id
+    JOIN etapa_formativa_x_ciclo efc ON e.etapa_formativa_x_ciclo_id = efc.etapa_formativa_x_ciclo_id
+    JOIN etapa_formativa ef ON efc.etapa_formativa_id = ef.etapa_formativa_id
+    WHERE rd.revision_documento_id = revision_id_input
+    LIMIT 1;
+END;
+$$;
+
 CREATE OR REPLACE FUNCTION obtener_observaciones_por_entregable_y_tema(
     p_entregable_id INTEGER,
     p_tema_id INTEGER

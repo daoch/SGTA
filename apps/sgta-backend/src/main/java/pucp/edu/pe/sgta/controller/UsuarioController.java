@@ -27,6 +27,7 @@ import pucp.edu.pe.sgta.dto.AlumnoTemaDto;
 import pucp.edu.pe.sgta.dto.AlumnoReporteDto;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
 
 @RestController
 
@@ -217,10 +218,19 @@ public class UsuarioController {
     public UsuarioDto findByCodigo(@RequestParam("codigo") String codigo) {
         return this.usuarioService.findUsuarioByCodigo(codigo);
     }
-
+    /**
+     Api usada por un ALUMNO para ver que asesores existen en su carrera
+     */
     @GetMapping("/asesor-directory-by-filters")
     public ResponseEntity<List<PerfilAsesorDto>> getDirectorioDeAsesoresPorFiltros(
-            @ModelAttribute FiltrosDirectorioAsesores filtros) {
+            @ModelAttribute FiltrosDirectorioAsesores filtros,
+            HttpServletRequest request
+    ) {
+        usuarioService.validarTipoUsuarioRolUsuario(
+                            jwtService.extractSubFromRequest(request),
+                            List.of(TipoUsuarioEnum.alumno, TipoUsuarioEnum.profesor),
+                            null
+        );
         List<PerfilAsesorDto> asesores = usuarioService.getDirectorioDeAsesoresPorFiltros(filtros);
         return new ResponseEntity<>(asesores, HttpStatus.OK);
 
