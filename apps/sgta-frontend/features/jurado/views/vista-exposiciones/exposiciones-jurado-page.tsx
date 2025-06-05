@@ -187,8 +187,8 @@ const ExposicionesJuradoPage: React.FC = () => {
       //se debe reemplazar el 6 por el id del jurado logueado
       //se deberia pasar el token de autenticación
 
-      const exposicionesData = await getExposicionesJurado(6);
-      //const exposicionesData = await getExposicionesJurado(token);
+      const exposicionesData = await getExposicionesJurado(token!);
+      
       setExposiciones(exposicionesData);
     } catch (error) {
       console.error("Error al cargar exposiciones:", error);

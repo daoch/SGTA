@@ -874,7 +874,7 @@ INSERT INTO carrera_parametro_configuracion (carrera_id,
                  FROM parametro_configuracion
                  WHERE nombre = 'Cantidad Jurados'
                  LIMIT 1),
-            5, -- Valor de la configuración
+            3, -- Valor de la configuración
             TRUE, -- Estado activo
             NOW(), -- Fecha de creación
             NOW(), -- Fecha de modificación

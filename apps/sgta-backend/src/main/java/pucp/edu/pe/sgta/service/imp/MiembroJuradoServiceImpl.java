@@ -690,7 +690,7 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
 
                                         OffsetDateTime fechaActual = OffsetDateTime.now(ZoneOffset.UTC);
                                         if (fechaActual.isAfter(datetimeFin)) {
-                                                exposicionXTema.setEstadoExposicion(EstadoExposicion.CALIFICADA);
+                                                exposicionXTema.setEstadoExposicion(EstadoExposicion.COMPLETADA);
                                                 exposicionXTemaRepository.save(exposicionXTema);
                                         }
 
