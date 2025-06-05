@@ -28,7 +28,7 @@ export const useGetMisNotificaciones = (
   soloNoLeidas: boolean = false,
   options?: Omit<
     UseQueryOptions<INotificacionesListProcessed, Error>,
-    'queryKey' | 'queryFn'
+    "queryKey" | "queryFn"
   >
 ): UseQueryResult<INotificacionesListProcessed, Error> => {
   return useQuery<INotificacionesListProcessed, Error>({
@@ -42,7 +42,7 @@ export const useGetMisNotificaciones = (
 // Hook para el CONTEO de notificaciones no leídas
 // -----------------------------
 export const useGetCountMisNotificacionesNoLeidas = (
-  options?: Omit<UseQueryOptions<INotificacionesCount, Error>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<INotificacionesCount, Error>, "queryKey" | "queryFn">
 ): UseQueryResult<INotificacionesCount, Error> => {
   return useQuery<INotificacionesCount, Error>({
     queryKey: notificacionesQueryKeys.countNoLeidas(),

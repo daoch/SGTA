@@ -1,21 +1,33 @@
-// src/features/coordinador/components/cessation-request/modals/ApproveCessationModal.tsx (o ruta similar)
+// src/features/asesores/components/cessation-request/modals/ApproveCessationModal.tsx
 "use client";
 import React, { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
-import { useApproveTerminationRequest } from "@/features/asesores/queries/cessation-request"; // Ajusta ruta
-import { ICessationRequestDataTransformed } from "@/features/asesores/types/cessation-request"; // Para la info de la solicitud
+import { useApproveTerminationRequest } from "@/features/asesores/queries/cessation-request";
+import { ICessationRequestDataTransformed } from "@/features/asesores/types/cessation-request";
 import { toast } from "react-toastify";
-// import { toast } from "sonner";
+
+interface ApiError {
+  response?: { data?: { message?: string } };
+  message?: string;
+}
 
 interface ApproveCessationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  request: ICessationRequestDataTransformed | null; // La solicitud a aprobar
-  onApprovalSuccess: (approvedRequestData: ICessationRequestDataTransformed) => void; // Callback para abrir modal de reasignación
+  request: ICessationRequestDataTransformed | null;
+  onApprovalSuccess: (approvedRequestData: ICessationRequestDataTransformed) => void;
 }
 
 const ApproveCessationModal: React.FC<ApproveCessationModalProps> = ({
@@ -31,7 +43,7 @@ const ApproveCessationModal: React.FC<ApproveCessationModalProps> = ({
 
   useEffect(() => {
     if (isOpen && request) {
-      setComentario(""); // Limpiar comentario al abrir
+      setComentario("");
       setErrorMessage(null);
     }
   }, [isOpen, request]);
@@ -47,16 +59,17 @@ const ApproveCessationModal: React.FC<ApproveCessationModalProps> = ({
     approveMutate(
       { requestId: request.id, comentarioAprobacion: comentario.trim() },
       {
-        onSuccess: (data) => { // data es ISolicitudActualizadaResponse
+        onSuccess: () => {
           toast.success("Solicitud aprobada con éxito.");
-          //alert("Solicitud aprobada con éxito. Proceda a reasignar.");
           onClose();
-          onApprovalSuccess(request); // Llama al callback para abrir el siguiente modal
+          onApprovalSuccess(request);
         },
-        onError: (error: any) => {
-          const apiError = error?.response?.data?.message || error?.response?.data || error?.message || "Error al aprobar la solicitud.";
+        onError: (err: ApiError) => {
+          const apiError =
+            typeof err.response?.data?.message === "string"
+              ? err.response!.data!.message!
+              : err.message || "Error al aprobar la solicitud.";
           setErrorMessage(apiError);
-          // toast.error(apiError);
         },
       }
     );
@@ -70,17 +83,22 @@ const ApproveCessationModal: React.FC<ApproveCessationModalProps> = ({
         <DialogHeader>
           <DialogTitle>Aprobar Solicitud de Cese</DialogTitle>
           <DialogDescription>
-            Va a aprobar la solicitud de cese para el tema "{request.tema?.name || request.students[0]?.topic?.name}".
+            Va a aprobar la solicitud de cese para el tema&nbsp;
+            <span className="font-semibold">&quot;{request.tema?.name || request.students[0]?.topic?.name}&quot;</span>.
             Asesor: {request.assessor?.name} {request.assessor?.lastName}.
           </DialogDescription>
         </DialogHeader>
         <div className="py-4 space-y-4">
           <div>
             <p className="text-sm font-medium">Motivo del Asesor:</p>
-            <p className="text-sm text-muted-foreground p-2 border rounded-md bg-slate-50">{request.reason}</p>
+            <p className="text-sm text-muted-foreground p-2 border rounded-md bg-slate-50">
+              {request.reason}
+            </p>
           </div>
           <div>
-            <Label htmlFor="comentario-aprobacion">Comentario de Aprobación <span className="text-red-500">*</span></Label>
+            <Label htmlFor="comentario-aprobacion">
+              Comentario de Aprobación <span className="text-red-500">*</span>
+            </Label>
             <Textarea
               id="comentario-aprobacion"
               value={comentario}
@@ -93,9 +111,19 @@ const ApproveCessationModal: React.FC<ApproveCessationModalProps> = ({
           {errorMessage && <p className="text-sm text-red-500">{errorMessage}</p>}
         </div>
         <DialogFooter>
-          <DialogClose asChild><Button variant="outline" onClick={onClose} disabled={isApproving}>Cancelar</Button></DialogClose>
+          <DialogClose asChild>
+            <Button variant="outline" onClick={onClose} disabled={isApproving}>
+              Cancelar
+            </Button>
+          </DialogClose>
           <Button onClick={handleSubmit} disabled={isApproving}>
-            {isApproving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Aprobando...</> : "Confirmar Aprobación"}
+            {isApproving ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Aprobando...
+              </>
+            ) : (
+              "Confirmar Aprobación"
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

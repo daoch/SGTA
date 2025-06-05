@@ -1,9 +1,15 @@
-// src/features/coordinador/components/cessation-request/modals/ReassignAdvisorModal.tsx
+// src/features/asesores/components/cessation-request/modals/ReassignAdvisorModal.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,14 +20,17 @@ import { Badge } from "@/components/ui/badge";
 import {
   ICessationRequestDataTransformed,
   ICessationRequestAvailableAdvisor,
-  ICessationRequestSearchCriteriaAvailableAdvisorList, // Para el hook useAvailableAdvisorList
-  IListAvailableAdvisorResponseFetched // Para el tipo de dato del hook
+  ICessationRequestSearchCriteriaAvailableAdvisorList,
 } from "@/features/asesores/types/cessation-request";
-import { useAvailableAdvisorList, useProposeReassignment } from "@/features/asesores/queries/cessation-request"; // Ajusta ruta
+import { useAvailableAdvisorList, useProposeReassignment } from "@/features/asesores/queries/cessation-request";
 import { useDebounce } from "@/features/asesores/hooks/use-debounce";
 import CessationRequestPagination from "@/features/asesores/components/cessation-request/pagination-cessation-request";
 import { toast } from "react-toastify";
-// import { toast } from "sonner";
+
+interface ApiError {
+  response?: { data?: { message?: string } };
+  message?: string;
+}
 
 interface ReassignAdvisorModalProps {
   isOpen: boolean;
@@ -40,20 +49,18 @@ const ReassignAdvisorModal: React.FC<ReassignAdvisorModalProps> = ({
   const [advisorSearchTerm, setAdvisorSearchTerm] = useState("");
   const [advisorCurrentPage, setAdvisorCurrentPage] = useState(0);
   const debouncedAdvisorSearchTerm = useDebounce(advisorSearchTerm, 500);
-  // const ADVISORS_PER_PAGE = 5; // El tamaño de página se maneja en el hook o servicio API
 
   const searchCriteriaForAvailableAdvisors: ICessationRequestSearchCriteriaAvailableAdvisorList = {
     fullNameEmailCode: debouncedAdvisorSearchTerm,
-    idThematicAreas: [], // TODO: Obtener áreas del requestData.tema.id si es posible y pasarlas
+    idThematicAreas: [], // Ajustar según requestData.tema.id si es relevante
     page: advisorCurrentPage,
-    // size: ADVISORS_PER_PAGE, // Si el backend lo necesita explícitamente y el hook no lo maneja
   };
 
   const {
     data: availableAdvisorsApiResponse,
     isLoading: isLoadingAdvisors,
     isError: isErrorAdvisors,
-    error: errorAdvisors, // Este es el objeto de error
+    error: errorAdvisors,
     refetch: refetchAvailableAdvisors,
   } = useAvailableAdvisorList(searchCriteriaForAvailableAdvisors);
 
@@ -64,22 +71,21 @@ const ReassignAdvisorModal: React.FC<ReassignAdvisorModalProps> = ({
       setSelectedNewAdvisor(null);
       setAdvisorSearchTerm("");
       setAdvisorCurrentPage(0);
-      // Considera si refetchAvailableAdvisors es necesario aquí o si la queryKey dinámica es suficiente
-      // para React Query. Si los criterios de búsqueda se resetean, la queryKey cambiará y
-      // React Query podría refetchear. Si quieres forzar data fresca siempre:
-      // refetchAvailableAdvisors();
     }
-  }, [isOpen, requestData]); // Eliminado refetchAvailableAdvisors de dependencias si no se quiere un bucle.
-
+  }, [isOpen, requestData]);
 
   const handleProposeReassignment = () => {
-    if (!selectedNewAdvisor || !requestData || !requestData.assessor || !requestData.tema) {
-      console.error("Datos incompletos para proponer reasignación:", { selectedNewAdvisor, requestData });
-      toast.error("Error: Faltan datos para la propuesta (asesor seleccionado, datos de la solicitud o del tema).");
+    if (
+      !selectedNewAdvisor ||
+      !requestData ||
+      !requestData.assessor ||
+      !requestData.tema
+    ) {
+      toast.error("Error: Faltan datos para la propuesta (asesor seleccionado o datos de la solicitud).");
       return;
     }
-    if (typeof requestData.tema.id !== 'number') {
-      toast.error("Error crítico: ID del tema no disponible en requestData. No se puede proponer reasignación.");
+    if (typeof requestData.tema.id !== "number") {
+      toast.error("Error crítico: ID del tema no disponible. No se puede proponer reasignación.");
       return;
     }
     if (selectedNewAdvisor.id === requestData.assessor.id) {
@@ -98,10 +104,13 @@ const ReassignAdvisorModal: React.FC<ReassignAdvisorModalProps> = ({
           refetchMainList();
           onClose();
         },
-        onError: (error: any) => {
-          const apiError = error?.response?.data?.message || error?.response?.data || error?.message || "Error al enviar la propuesta.";
+        onError: (err: ApiError) => {
+          const apiError =
+            typeof err.response?.data?.message === "string"
+              ? err.response!.data!.message!
+              : err.message || "Error al enviar la propuesta.";
           alert(`Error al enviar propuesta: ${apiError}`);
-          console.error("Error al proponer reasignación:", error);
+          console.error("Error al proponer reasignación:", err);
         },
       }
     );
@@ -113,7 +122,6 @@ const ReassignAdvisorModal: React.FC<ReassignAdvisorModalProps> = ({
   const asesoresPaginados = availableAdvisorsApiResponse?.content || [];
   const totalPagesAsesores = availableAdvisorsApiResponse?.totalPages || 0;
 
-  // Para el botón de proponer, obtener el nombre del asesor seleccionado
   const selectedAdvisorDisplayName = selectedNewAdvisor
     ? `${selectedNewAdvisor.nombres} ${selectedNewAdvisor.primerApellido}`
     : "Seleccione un Asesor";
@@ -124,8 +132,9 @@ const ReassignAdvisorModal: React.FC<ReassignAdvisorModalProps> = ({
         <DialogHeader>
           <DialogTitle>Proponer Nuevo Asesor</DialogTitle>
           <DialogDescription>
-            Para el tema "<span className="font-semibold">{temaInfo}</span>" (Solicitud ID: {requestData.id}).
-            Asesor original: {requestData.assessor?.name} {requestData.assessor?.lastName}.
+            Para el tema&nbsp;
+            <span className="font-semibold">&quot;{temaInfo}&quot;</span>&nbsp;(Solicitud ID: {requestData.id}).<br />
+            Asesor original:&nbsp;{requestData.assessor?.name} {requestData.assessor?.lastName}.
           </DialogDescription>
         </DialogHeader>
 
@@ -135,8 +144,10 @@ const ReassignAdvisorModal: React.FC<ReassignAdvisorModalProps> = ({
               <Users className="h-4 w-4 mr-2" /> Tesista(s) Afectado(s):
             </h4>
             <ul className="list-disc list-inside pl-2 text-sm text-muted-foreground">
-              {requestData.students.map(student => (
-                <li key={student.id}>{student.name} {student.lastName}</li>
+              {requestData.students.map((student) => (
+                <li key={student.id}>
+                  {student.name} {student.lastName}
+                </li>
               ))}
             </ul>
           </div>
@@ -149,29 +160,39 @@ const ReassignAdvisorModal: React.FC<ReassignAdvisorModalProps> = ({
               value={advisorSearchTerm}
               onChange={(e) => {
                 setAdvisorSearchTerm(e.target.value);
-                setAdvisorCurrentPage(0); 
+                setAdvisorCurrentPage(0);
               }}
               className="pl-10"
             />
           </div>
 
           <div className="border rounded-md">
-            <h4 className="font-medium text-sm p-3 border-b bg-slate-50 text-slate-700">Asesores Disponibles</h4>
+            <h4 className="font-medium text-sm p-3 border-b bg-slate-50 text-slate-700">
+              Asesores Disponibles
+            </h4>
             {isLoadingAdvisors && (
               <div className="p-6 text-center text-muted-foreground flex items-center justify-center">
                 <Loader2 className="h-5 w-5 animate-spin mr-2" /> Cargando asesores...
               </div>
             )}
-            {isErrorAdvisors && !isLoadingAdvisors && ( // MOSTRAR ERROR AQUÍ
-              <div className="p-4 m-2 border border-red-200 bg-red-50 rounded-md text-sm text-red-700" role="alert">
+            {isErrorAdvisors && !isLoadingAdvisors && (
+              <div
+                className="p-4 m-2 border border-red-200 bg-red-50 rounded-md text-sm text-red-700"
+                role="alert"
+              >
                 <div className="flex items-center">
-                    <AlertTriangle className="h-5 w-5 mr-2" />
-                    <span className="font-semibold">Error al cargar asesores</span>
+                  <AlertTriangle className="h-5 w-5 mr-2" />
+                  <span className="font-semibold">Error al cargar asesores</span>
                 </div>
                 <p className="mt-1 ml-7 text-xs">
-                  { (errorAdvisors as Error)?.message || "No se pudieron obtener los asesores. Intente de nuevo."}
+                  {(errorAdvisors as Error)?.message || "No se pudieron obtener los asesores. Intente de nuevo."}
                 </p>
-                <Button variant="outline" size="sm" onClick={() => refetchAvailableAdvisors()} className="mt-2 ml-7">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => refetchAvailableAdvisors()}
+                  className="mt-2 ml-7"
+                >
                   Reintentar
                 </Button>
               </div>
@@ -184,12 +205,19 @@ const ReassignAdvisorModal: React.FC<ReassignAdvisorModalProps> = ({
                       <div
                         key={advisor.id}
                         className={`p-3 hover:bg-slate-100 cursor-pointer flex items-center gap-3 ${
-                          selectedNewAdvisor?.id === advisor.id ? "bg-blue-100 ring-2 ring-blue-500" : ""
+                          selectedNewAdvisor?.id === advisor.id
+                            ? "bg-blue-100 ring-2 ring-blue-500"
+                            : ""
                         }`}
                         onClick={() => setSelectedNewAdvisor(advisor)}
                       >
                         <Avatar className="h-9 w-9">
-                          {advisor.urlFoto && <AvatarImage src={advisor.urlFoto} alt={`${advisor.nombres} ${advisor.primerApellido}`} />}
+                          {advisor.urlFoto && (
+                            <AvatarImage
+                              src={advisor.urlFoto}
+                              alt={`${advisor.nombres} ${advisor.primerApellido}`}
+                            />
+                          )}
                           <AvatarFallback>
                             {advisor.nombres?.[0]?.toUpperCase()}
                             {advisor.primerApellido?.[0]?.toUpperCase()}
@@ -215,6 +243,7 @@ const ReassignAdvisorModal: React.FC<ReassignAdvisorModalProps> = ({
               )
             )}
           </div>
+
           {totalPagesAsesores > 1 && (
             <div className="mt-4 flex justify-center">
               <CessationRequestPagination
@@ -227,15 +256,23 @@ const ReassignAdvisorModal: React.FC<ReassignAdvisorModalProps> = ({
         </div>
 
         <DialogFooter>
-          <DialogClose asChild><Button variant="outline" onClick={onClose} disabled={isProposing}>Cancelar</Button></DialogClose>
+          <DialogClose asChild>
+            <Button variant="outline" onClick={onClose} disabled={isProposing}>
+              Cancelar
+            </Button>
+          </DialogClose>
           <Button
             onClick={handleProposeReassignment}
             disabled={isProposing || !selectedNewAdvisor || isLoadingAdvisors}
           >
             {isProposing ? (
-              <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Proponiendo...</>
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Proponiendo...
+              </>
             ) : (
-              selectedNewAdvisor ? `Proponer a ${selectedAdvisorDisplayName}` : "Seleccione un Asesor"
+              selectedNewAdvisor
+                ? `Proponer a ${selectedAdvisorDisplayName}`
+                : "Seleccione un Asesor"
             )}
           </Button>
         </DialogFooter>

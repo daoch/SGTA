@@ -125,7 +125,7 @@ export const advisorService = {
  * Obtiene la lista de temas de tesis activos que el asesor autenticado está supervisando.
  */
 export async function getAsesorActiveSupervisingTopics(): Promise<IAsesorTemaActivo[]> {
-  const endpointPath = `asesor/mis-temas-activos`; // Ruta relativa a tu baseURL de axiosInstance
+  const endpointPath = "asesor/mis-temas-activos"; // Ruta relativa a tu baseURL de axiosInstance
   console.log(`[API_CALL] GET ${endpointPath}`);
 
   try {
@@ -151,7 +151,7 @@ export async function getMyCessationRequests(
   page: number,
   size: number
 ): Promise<IMyCessationRequestListProcessed> {
-  const endpointPath = `asesor/mis-solicitudes-cese`;
+  const endpointPath = "asesor/mis-solicitudes-cese";
   const apiParams = { page, size, sort: "fechaCreacion,desc" };
   console.log(`[API_CALL] GET ${endpointPath} with params:`, apiParams);
 
@@ -205,7 +205,7 @@ export async function getMisInvitacionesDeAsesoria(
   page: number, // 0-indexed
   size: number = ELEMENTS_PER_PAGE_DEFAULT
 ): Promise<IInvitacionesAsesoriaListProcessed> {
-  const endpointPath = `asesor/invitaciones-asesoria`; // SIN /api/ al inicio
+  const endpointPath = "asesor/invitaciones-asesoria"; // SIN /api/ al inicio
   const apiParams = {
     page,
     size,

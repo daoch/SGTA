@@ -36,7 +36,7 @@ export interface IReasignacionPendienteFetched {
  */
 export interface IReasignacionPendienteTransformed extends Omit<
   IReasignacionPendienteFetched,
-  'fechaAprobacionCese' | 'fechaPropuestaNuevoAsesor'
+  "fechaAprobacionCese" | "fechaPropuestaNuevoAsesor"
 > {
   fechaAprobacionCese: Date;
   fechaPropuestaNuevoAsesor: Date | null;

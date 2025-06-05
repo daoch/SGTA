@@ -19,7 +19,7 @@ import {
   ICessationRequestStatusBackend, // For status badge config
 } from "@/features/asesores/types/cessation-request";
 import { format, isValid, formatDistanceToNow } from "date-fns"; // Updated import
-import { es } from 'date-fns/locale';
+import { es } from "date-fns/locale";
 import { 
     Eye, 
     UserCircle2, 

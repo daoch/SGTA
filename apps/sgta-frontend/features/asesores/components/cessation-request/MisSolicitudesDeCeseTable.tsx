@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button"; // Para un posible botón de "Ver Detalles"
 import { IMyCessationRequestListItemTransformed } from "@/features/asesores/types/cessation-request";
 import { format, isValid, differenceInDays } from "date-fns";
-import { es } from 'date-fns/locale';
+import { es } from "date-fns/locale";
 
 interface MisSolicitudesDeCeseTableProps {
   requests: IMyCessationRequestListItemTransformed[];

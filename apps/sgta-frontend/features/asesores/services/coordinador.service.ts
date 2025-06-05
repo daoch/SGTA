@@ -1,3 +1,4 @@
+// src/features/asesores/services/coordinador.service.ts
 import axiosInstance from "@/lib/axios/axios-instance"; // Tu instancia configurada de Axios
 import axios from "axios"; // Para el type guard isAxiosError
 import { ELEMENTS_PER_PAGE_DEFAULT } from "@/lib/constants"; // Constante para el tamaño de página por defecto
@@ -18,11 +19,12 @@ import {
 export async function getReasignacionesPendientes(
   searchCriteria: IReasignacionesPendientesSearchCriteria
 ): Promise<IReasignacionesPendientesListProcessed> {
-  const endpointPath = `coordinador/solicitudes-cese/reasignaciones-pendientes`; // Coincide con el @GetMapping
+  const endpointPath = "coordinador/solicitudes-cese/reasignaciones-pendientes"; // Coincide con el @GetMapping
   
-  const apiParams: Record<string, any> = {
+  // Definimos apiParams con tipos más específicos en lugar de 'any'
+  const apiParams: Record<string, string | number> = {
     page: searchCriteria.page,
-    size: searchCriteria.size || ELEMENTS_PER_PAGE_DEFAULT, // Usa el size de searchCriteria o el default
+    size: searchCriteria.size || ELEMENTS_PER_PAGE_DEFAULT,
   };
 
   if (searchCriteria.searchTerm && searchCriteria.searchTerm.trim() !== "") {
@@ -41,17 +43,22 @@ export async function getReasignacionesPendientes(
       { params: apiParams }
     );
 
-    console.log(`[API_SUCCESS] GET ${endpointPath} raw data:`, JSON.stringify(response.data, null, 2));
+    console.log(
+      `[API_SUCCESS] GET ${endpointPath} raw data:`,
+      JSON.stringify(response.data, null, 2)
+    );
     const fetchedData = response.data;
 
     // Transformar los datos (ej. strings de fecha a objetos Date)
-    const transformedReasignaciones: IReasignacionPendienteTransformed[] = (fetchedData.content || []).map(
-      (item: IReasignacionPendienteFetched) => ({
-        ...item,
-        fechaAprobacionCese: new Date(item.fechaAprobacionCese),
-        fechaPropuestaNuevoAsesor: item.fechaPropuestaNuevoAsesor ? new Date(item.fechaPropuestaNuevoAsesor) : null,
-      })
-    );
+    const transformedReasignaciones: IReasignacionPendienteTransformed[] = (
+      fetchedData.content || []
+    ).map((item: IReasignacionPendienteFetched) => ({
+      ...item,
+      fechaAprobacionCese: new Date(item.fechaAprobacionCese),
+      fechaPropuestaNuevoAsesor: item.fechaPropuestaNuevoAsesor
+        ? new Date(item.fechaPropuestaNuevoAsesor)
+        : null,
+    }));
 
     const processedData: IReasignacionesPendientesListProcessed = {
       reasignaciones: transformedReasignaciones,
@@ -62,11 +69,13 @@ export async function getReasignacionesPendientes(
     };
     console.log(`[API_PROCESSED] GET ${endpointPath} processed data:`, processedData);
     return processedData;
-
   } catch (error) {
     console.error(`[API_ERROR] GET ${endpointPath}:`, error);
     if (axios.isAxiosError(error) && error.response) {
-      console.error(`[API_ERROR_DATA] GET ${endpointPath} error data:`, JSON.stringify(error.response.data, null, 2));
+      console.error(
+        `[API_ERROR_DATA] GET ${endpointPath} error data:`,
+        JSON.stringify(error.response.data, null, 2)
+      );
     }
     // Devolver una estructura vacía válida en caso de error para que el hook no falle
     return {

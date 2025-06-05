@@ -3,7 +3,7 @@
 
 import React, { useState } from "react";
 import { format, isValid, formatDistanceToNow } from "date-fns"; // Updated imports
-import { es } from 'date-fns/locale';
+import { es } from "date-fns/locale";
 import {
   Check,
   X,

@@ -39,7 +39,9 @@ public class NotificacionController {
             @RequestParam(required = false) Boolean leidas,
             @PageableDefault(size = 15, sort = "fechaCreacion", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        if (jwt == null) { return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); }
+        if (jwt == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
         String usuarioCognitoSub = jwt.getSubject();
         if (usuarioCognitoSub == null || usuarioCognitoSub.trim().isEmpty()) { return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); }
 

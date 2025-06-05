@@ -10,6 +10,20 @@ import { ELEMENTS_PER_PAGE_DEFAULT } from "@/lib/constants";
 
 const NOTIFICACIONES_API_BASE = "notificaciones"; // Asume /api/notificaciones
 
+// Definimos el tipo que esperamos recibir desde el backend para cada notificación sin transformar:
+interface INotificacionFetched {
+  id: number;
+  mensaje: string;
+  canal: string;
+  activo: boolean;
+  enlaceRedireccion: string;
+  fechaCreacion: string;
+  fechaLectura: string | null;
+  moduloNombre: string;
+  tipoNotificacionNombre: string;
+  tipoNotificacionPrioridad: number;
+}
+
 /**
  * Obtener lista paginada de notificaciones
  */
@@ -18,7 +32,13 @@ export async function getMisNotificaciones(
   size: number = ELEMENTS_PER_PAGE_DEFAULT,
   soloNoLeidas: boolean = false
 ): Promise<INotificacionesListProcessed> {
-  const params: any = { page, size };
+  // Definimos un tipo explícito para params en lugar de 'any'
+  interface Params {
+    page: number;
+    size: number;
+    leidas?: boolean;
+  }
+  const params: Params = { page, size };
   if (soloNoLeidas) {
     params.leidas = false;
   }
@@ -30,31 +50,20 @@ export async function getMisNotificaciones(
     );
     const data = response.data;
 
-    // Mapeo de cada elemento plano a INotificacionTransformed
-    const transformed: INotificacionTransformed[] = (data.content || []).map((n: any) => {
-      return {
+    // Mapeo de cada elemento bruto a INotificacionTransformed
+    const transformed: INotificacionTransformed[] = (data.content || []).map(
+      (n) => ({
         id: n.id,
         mensaje: n.mensaje,
         canal: n.canal,
         activo: n.activo,
         enlaceRedireccion: n.enlaceRedireccion,
-        // Convertimos las fechas a Date:
         fechaCreacion: new Date(n.fechaCreacion),
         fechaLectura: n.fechaLectura ? new Date(n.fechaLectura) : null,
-
-        // Creamos aquí los objetos “modulo” y “tipoNotificacion” anidados
-        modulo: {
-          // Como el raw solo trae “moduloNombre” (y no un id), asignamos id = 0 por defecto
-          id: 0,
-          nombre: n.moduloNombre,
-        },
-        tipoNotificacion: {
-          id: 0,
-          nombre: n.tipoNotificacionNombre,
-          prioridad: n.tipoNotificacionPrioridad,
-        },
-      };
-    });
+        modulo: n.modulo,
+        tipoNotificacion: n.tipoNotificacion,
+      })
+    );
 
     return {
       notificaciones: transformed,
@@ -62,8 +71,8 @@ export async function getMisNotificaciones(
       totalElements: data.totalElements,
       currentPage: data.number,
     };
-  } catch (error) {
-    // En caso de error devolvemos un objeto vacío (o maneja como prefieras)
+  } catch {
+    // En caso de error devolvemos un objeto vacío
     return {
       notificaciones: [],
       totalPages: 0,
@@ -82,7 +91,7 @@ export async function getCountMisNotificacionesNoLeidas(): Promise<{ count: numb
       `${NOTIFICACIONES_API_BASE}/count-no-leidas`
     );
     return response.data;
-  } catch (error) {
+  } catch {
     return { count: 0 };
   }
 }
@@ -94,10 +103,12 @@ export async function marcarNotificacionComoLeidaApi(
   notificacionId: number
 ): Promise<INotificacionTransformed> {
   try {
-    const response = await axiosInstance.post<any>(
+    // Usamos el tipo INotificacionFetched en lugar de 'any'
+    const response = await axiosInstance.post<INotificacionFetched>(
       `${NOTIFICACIONES_API_BASE}/${notificacionId}/marcar-leida`
     );
     const data = response.data;
+
     return {
       id: data.id,
       mensaje: data.mensaje,
@@ -116,8 +127,9 @@ export async function marcarNotificacionComoLeidaApi(
         prioridad: data.tipoNotificacionPrioridad,
       },
     };
-  } catch (error) {
-    throw error;
+  } catch (_error) {
+    // Re-lanzamos el error capturado
+    throw _error;
   }
 }
 
@@ -130,7 +142,7 @@ export async function marcarTodasMisNotificacionesComoLeidasApi(): Promise<{ cou
       `${NOTIFICACIONES_API_BASE}/marcar-todas-leidas`
     );
     return response.data;
-  } catch (error) {
-    throw error;
+  } catch (_error) {
+    throw _error;
   }
 }

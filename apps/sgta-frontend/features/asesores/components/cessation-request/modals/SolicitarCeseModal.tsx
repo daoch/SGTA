@@ -107,9 +107,9 @@ const SolicitarCeseModal: React.FC<SolicitarCeseModalProps> = ({
         console.error("Error al crear la solicitud de cese:", error);
         let specificMessage = "Ocurrió un error inesperado al enviar la solicitud.";
         if (axios.isAxiosError(error) && error.response) {
-          if (typeof error.response.data === 'string' && error.response.data.length > 0) {
+          if (typeof error.response.data === "string" && error.response.data.length > 0) {
             specificMessage = error.response.data;
-          } else if (error.response.data && typeof error.response.data.message === 'string') {
+          } else if (error.response.data && typeof error.response.data.message === "string") {
             specificMessage = error.response.data.message;
           } else if (error.message) {
             specificMessage = error.message;

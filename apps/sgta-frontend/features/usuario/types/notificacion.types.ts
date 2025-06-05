@@ -26,7 +26,7 @@ export interface INotificacionFetched {
 }
 
 // Notificación transformada para la UI
-export interface INotificacionTransformed extends Omit<INotificacionFetched, 'fechaCreacion' | 'fechaLectura'> {
+export interface INotificacionTransformed extends Omit<INotificacionFetched, "fechaCreacion" | "fechaLectura"> {
   fechaCreacion: Date;
   fechaLectura: Date | null;
 }

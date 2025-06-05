@@ -33,7 +33,7 @@ export interface IInvitacionAsesoriaFetched {
 /**
  * Representa un ítem de invitación de asesoría después de transformar las fechas.
  */
-export interface IInvitacionAsesoriaTransformed extends Omit<IInvitacionAsesoriaFetched, 'fechaPropuesta'> {
+export interface IInvitacionAsesoriaTransformed extends Omit<IInvitacionAsesoriaFetched, "fechaPropuesta"> {
   fechaPropuesta: Date;
 }
 

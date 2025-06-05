@@ -81,7 +81,7 @@ export interface ITerminationConsultancyListResponseFetched {
 
 // --- Tipos Transformados para Uso en el Frontend ---
 // ICessationRequestDataTransformed heredará 'tema' de ICessationRequestDataFetched
-export interface ICessationRequestDataTransformed extends Omit<ICessationRequestDataFetched, 'registerTime' | 'responseTime'> {
+export interface ICessationRequestDataTransformed extends Omit<ICessationRequestDataFetched, "registerTime" | "responseTime"> {
   registerTime: Date;
   // status: ICessationRequestStatusBackend; // Ya lo hereda si no está en Omit y es el mismo tipo
   responseTime: Date | null;
@@ -125,7 +125,7 @@ export interface ICessationRequestDataViewDetailFetched {
   students: ICessationRequestStudentDetailBackend[];
 }
 
-export interface ICessationRequestDataViewDetailTransformed extends Omit<ICessationRequestDataViewDetailFetched, 'registerTime' | 'responseTime' | 'status'> {
+export interface ICessationRequestDataViewDetailTransformed extends Omit<ICessationRequestDataViewDetailFetched, "registerTime" | "responseTime" | "status"> {
   registerTime: Date;
   status: ICessationRequestStatusBackend;
   responseTime: Date | null;
@@ -276,7 +276,7 @@ export interface IMyCessationRequestListItemFetched {
   fechaDecision: string | null; // Formato ISO Date String
 }
 
-export interface IMyCessationRequestListItemTransformed extends Omit<IMyCessationRequestListItemFetched, 'fechaSolicitud' | 'fechaDecision'> {
+export interface IMyCessationRequestListItemTransformed extends Omit<IMyCessationRequestListItemFetched, "fechaSolicitud" | "fechaDecision"> {
   fechaSolicitud: Date;
   fechaDecision: Date | null;
 }

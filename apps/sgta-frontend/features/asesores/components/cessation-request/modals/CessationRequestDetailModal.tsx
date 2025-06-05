@@ -80,7 +80,7 @@ const InfoField: React.FC<{
   labelClassName?: string;
   valueClassName?: string;
 }> = ({ icon: Icon, label, children, className = "", labelClassName="text-xs text-slate-500 font-medium", valueClassName="text-sm text-slate-800" }) => (
-  <div className={`flex ${Icon ? 'items-start' : 'flex-col'} gap-1.5 ${className}`}>
+  <div className={`flex ${Icon ? "items-start" : "flex-col"} gap-1.5 ${className}`}>
     {Icon && <Icon className="h-4 w-4 mt-0.5 text-slate-400 flex-shrink-0" />}
     <div>
       <p className={labelClassName}>{label}</p>
@@ -208,7 +208,7 @@ const CessationRequestDetailModal: React.FC<CessationRequestDetailModalProps> = 
           
           {request.students && request.students.length > 0 && (
             <section>
-                <InfoField icon={UsersIcon} label={`Tesista(s) Afectado(s)`}>
+                <InfoField icon={UsersIcon} label={"Tesista(s) Afectado(s)"}>
                     <Badge variant="outline" className="text-base">{request.students.length}</Badge>
                 </InfoField>
             </section>
@@ -275,7 +275,7 @@ const CessationRequestDetailModal: React.FC<CessationRequestDetailModalProps> = 
         </DialogHeader>
 
         {/* ScrollArea will now wrap the main content section, not the entire dialog content */}
-        <ScrollArea className="flex-grow" style={{ height: 'calc(100% - 65px - 61px)' }}> {/* Adjust height based on header/footer */}
+        <ScrollArea className="flex-grow" style={{ height: "calc(100% - 65px - 61px)" }}> {/* Adjust height based on header/footer */}
           {renderContent()}
         </ScrollArea>
         
