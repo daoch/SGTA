@@ -23,6 +23,8 @@ import { PDFDocument } from "pdf-lib";
 import { useCallback, useEffect, useState } from "react";
 import { IHighlight } from "react-pdf-highlighter/dist/types";
 import { analizarPlagioArchivoS3, descargarArchivoS3 } from "../servicios/revision-service";
+import { useAuthStore } from "@/features/auth/store/auth-store";
+import axiosInstance from "@/lib/axios/axios-instance";
 // ...otros imports...
 
 // Datos de ejemplo para una revisión específica
@@ -46,6 +48,8 @@ const revisionData = {
 };
 
 export default function RevisarDocumentoPage({ params }: { params: { id: string } }) {
+  const revisionId = Number(params.id);
+  console.log("ID de la revisión recibido en params:", revisionId);
   const router = useRouter();
   interface Observacion {
     id: string;
@@ -232,6 +236,19 @@ export default function RevisarDocumentoPage({ params }: { params: { id: string 
       setIsLoading(false);
     }
   };*/
+
+  async function actualizarEstadoRevision(revisionId: number, nuevoEstado: string) {
+  try {
+    const response = await axiosInstance.put(`/revision/${revisionId}/estado`, {
+      estado: nuevoEstado
+    });
+    return response.data; // o response.status si solo te importa el status
+  } catch (error) {
+    console.error("Error en la actualización:", error);
+    throw error;
+  }
+  }
+
 
   const handleFormatoValidoChange = () => {
     setRevision({
@@ -711,9 +728,14 @@ export default function RevisarDocumentoPage({ params }: { params: { id: string 
                     <Button variant="outline">Cancelar</Button>
                     <Button
                       variant="default"
-                      onClick={() => {
-                        setRevision({ ...revision, estado: "aprobado" });
-                        toast({ title: "Entregable aprobado" });
+                      onClick={async () => {
+                        try {
+                          await actualizarEstadoRevision(revisionId, "aprobado");
+                          setRevision({ ...revision, estado: "aprobado" });
+                          toast({ title: "Entregable aprobado" });
+                        } catch {
+                          toast({ title: "Error al aprobar el entregable", variant: "destructive" });
+                        }
                       }}
                     >
                       Confirmar
@@ -731,12 +753,16 @@ export default function RevisarDocumentoPage({ params }: { params: { id: string 
                     <DialogTitle>¿Estás seguro de rechazar este entregable?</DialogTitle>
                   </DialogHeader>
                   <DialogFooter>
-                    <Button variant="outline">Cancelar</Button>
                     <Button
                       variant="destructive"
-                      onClick={() => {
-                        setRevision({ ...revision, estado: "rechazado" });
-                        toast({ title: "Entregable rechazado" });
+                      onClick={async () => {
+                        try {
+                          await actualizarEstadoRevision(revisionId, "rechazado");
+                          setRevision({ ...revision, estado: "rechazado" });
+                          toast({ title: "Entregable rechazado" });
+                        } catch {
+                          toast({ title: "Error al rechazar el entregable", variant: "destructive" });
+                        }
                       }}
                     >
                       Confirmar

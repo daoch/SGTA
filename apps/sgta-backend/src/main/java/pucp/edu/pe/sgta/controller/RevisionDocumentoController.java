@@ -58,6 +58,21 @@ public class RevisionDocumentoController {
     @GetMapping("/asesor")
     public List<RevisionDocumentoAsesorDto> listarRevisionDocumentosPorAsesor(HttpServletRequest request) {
         String asesorId = jwtService.extractSubFromRequest(request);
+        System.out.println("AsesorId extraído del token: " + asesorId);
         return revisionDocumentoService.listarRevisionDocumentosPorAsesor(asesorId);
     }
+
+    @PutMapping("/{id}/estado")
+    public ResponseEntity<?> actualizarEstado(@PathVariable Integer id, @RequestBody Map<String, String> payload) {
+        try {
+            String nuevoEstado = payload.get("estado");
+            revisionDocumentoService.actualizarEstadoRevision(id, nuevoEstado);
+            return ResponseEntity.ok("Estado actualizado");
+        } catch (EntityNotFoundException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error actualizando estado");
+        }
+    }
+
 }

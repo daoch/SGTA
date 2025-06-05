@@ -330,4 +330,18 @@ public class RevisionDocumentoServiceImpl implements RevisionDocumentoService {
         }
         return documentos;
     }
+
+    @Override
+    @Transactional
+    public void actualizarEstadoRevision(Integer revisionId, String nuevoEstado) {
+        System.out.println(">>> Actualizando revisión con ID: " + revisionId + " al estado: " + nuevoEstado);
+        RevisionDocumento revision = revisionDocumentoRepository.findById(revisionId)
+            .orElseThrow(() -> new EntityNotFoundException("Revisión no encontrada con id: " + revisionId));
+
+        revision.setEstadoRevisionStr(nuevoEstado); // ← Aquí usas el setter del String
+        revisionDocumentoRepository.save(revision);
+    }
+
+
+
 }
