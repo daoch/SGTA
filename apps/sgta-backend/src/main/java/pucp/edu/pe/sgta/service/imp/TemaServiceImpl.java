@@ -993,9 +993,9 @@ public class TemaServiceImpl implements TemaService {
 	}
 
 	@Override
-	public List<TemaConAsesorJuradoDTO> listarTemasCicloActualXEtapaFormativa(Integer etapaFormativaId) {
+	public List<TemaConAsesorJuradoDTO> listarTemasCicloActualXEtapaFormativa(Integer etapaFormativaId,Integer expoId) {
 
-		List<Object[]> temas = temaRepository.listarTemasCicloActualXEtapaFormativa(etapaFormativaId);
+		List<Object[]> temas = temaRepository.listarTemasCicloActualXEtapaFormativa(etapaFormativaId,expoId);
 		Map<Integer, TemaConAsesorJuradoDTO> mapaTemas = new LinkedHashMap<>();
 
 		for (Object[] fila : temas) {
@@ -1308,7 +1308,7 @@ public class TemaServiceImpl implements TemaService {
 				String nombreTesista = (String) tesista[0] + " " + (String) tesista[1];
 				tesistas.add(nombreTesista);
 			}
-			dto.setEstudiantes(tesistas);
+			dto.setEstudiantes(String.join(" - ", tesistas));
 
 			// Añadir el nivel
 
@@ -2375,7 +2375,7 @@ public class TemaServiceImpl implements TemaService {
 	public void rechazarPostulacionAlumno(Integer temaId, Integer idTesista, String idAsesor, String comentario) {
 		// 1) (Opcional) Validar que quien llama tenga permiso: p.ej. sea Asesor del tema
 		UsuarioDto usuDto = usuarioService.findByCognitoId(idAsesor);
-		validarRolAsignadoAtema(usuDto.getId(), temaId, RolEnum.Asesor.name());
+		//validarRolAsignadoAtema(usuDto.getId(), temaId, RolEnum.Asesor.name());
 
 		// 2) Buscar el registro de UsuarioXTema correspondiente
 		UsuarioXTema registro = usuarioXTemaRepository
@@ -2416,6 +2416,50 @@ public class TemaServiceImpl implements TemaService {
 			usuarioXTemaRepository.softDeleteById(asignacion.getId());
 			logger.info("Postulación eliminada para el tesista con ID: " + usuDto.getId() + " en el tema con ID: " + temaId);
 		}
+	}
+
+	@Override
+	public List<TemaPorAsociarDto> listarTemasPorAsociarPorCarrera(Integer carreraId) {
+
+		List<Object[]> result = temaRepository.listarTemasPorAsociarPorCarrera(carreraId);
+		List<TemaPorAsociarDto> temas = new ArrayList<>();
+
+		for (Object[] row : result) {
+			TemaPorAsociarDto dto = new TemaPorAsociarDto();
+			dto.setId((Integer) row[0]); // tema_id
+			dto.setCodigo((String) row[1]); // tema_codigo
+			dto.setTitulo((String) row[2]); // tema_titulo
+			dto.setEstadoTemaNombre((String) row[3]); // estado_tema_nombre
+			CarreraLiteDto carrera = new CarreraLiteDto();
+			carrera.setId(((Integer) row[4])); // carrera_id
+			carrera.setNombre((String) row[5]); // carrera_nombre
+			dto.setCarrera(carrera); // Set carrera
+			dto.setTesistas(new ArrayList<>());
+			temas.add(dto);
+		}
+
+		// por cada tema cargo coasesores, tesistas y subáreas
+		for (TemaPorAsociarDto tema : temas) {
+			List<UsuarioDto> tesistas = listarUsuariosPorTemaYRol(tema.getId(), RolEnum.Tesista.name());
+			List<TesistaLiteDto> tesistasLite = tesistas.stream()
+					.map(tesista -> {
+						TesistaLiteDto lite = new TesistaLiteDto();
+						lite.setId(tesista.getId());
+						lite.setCodigoPucp(tesista.getCodigoPucp());
+						lite.setNombres(tesista.getNombres());
+						lite.setPrimerApellido(tesista.getPrimerApellido());
+						lite.setSegundoApellido(tesista.getSegundoApellido());
+						return lite;
+					})
+					.collect(Collectors.toList());
+			tema.setTesistas(tesistasLite);
+		}
+
+		return temas;
+	}
+
+	public void asociarTemaACurso(Integer cursoId, Integer temaId){
+		temaRepository.asociarTemaACurso(cursoId, temaId);
 	}
 
 }

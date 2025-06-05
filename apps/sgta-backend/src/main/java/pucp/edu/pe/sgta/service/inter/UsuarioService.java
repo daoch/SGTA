@@ -8,8 +8,12 @@ import org.springframework.web.multipart.MultipartFile;
 import pucp.edu.pe.sgta.dto.AlumnoTemaDto;
 import pucp.edu.pe.sgta.dto.DocentesDTO;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
+import pucp.edu.pe.sgta.util.RolEnum;
+import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
+
 import java.util.List;
 import java.util.NoSuchElementException;
+import pucp.edu.pe.sgta.dto.AlumnoReporteDto;
 
 public interface UsuarioService {
 
@@ -92,7 +96,11 @@ public interface UsuarioService {
 
     UsuarioDto findByCognitoId(String cognitoId) throws NoSuchElementException;
 
+    void validarTipoUsuarioRolUsuario(String cognitoId,List<TipoUsuarioEnum> tipos, RolEnum rol);
+
     List<DocentesDTO> getProfesores();
 
     AlumnoTemaDto getAlumnoTema(String idAlumno);
+
+    List<AlumnoReporteDto> findByStudentsForReviewer(Integer carreraId, String cadenaBusqueda);
 }

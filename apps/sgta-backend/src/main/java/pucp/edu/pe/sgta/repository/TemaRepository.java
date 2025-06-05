@@ -58,10 +58,11 @@ public interface TemaRepository extends JpaRepository<Tema, Integer> {
       @Param("id") Integer asesorId);
 
   @Query(value = """
-        SELECT * FROM  listar_temas_ciclo_actual_x_etapa_formativa(:efid)
+        SELECT * FROM  listar_temas_ciclo_actual_x_etapa_formativa(:etapa_id,:expo_id)
       """, nativeQuery = true)
   List<Object[]> listarTemasCicloActualXEtapaFormativa(
-      @Param("efid") Integer etapaFormativaId
+      @Param("etapa_id") Integer etapaFormativaId,
+      @Param("expo_id") Integer expoId
     );
     
     Optional<Tema> findByTitulo(String titulo);
@@ -91,5 +92,11 @@ public interface TemaRepository extends JpaRepository<Tema, Integer> {
   List<Object[]> validarTemaExisteYSePuedeCambiarAsesor(
           @Param("temaId") Integer temaId
   );
+
+  @Query(value = "SELECT * FROM listar_temas_por_asociar_por_carrera(:carreraId)", nativeQuery = true)
+  List<Object[]> listarTemasPorAsociarPorCarrera(@Param("carreraId") Integer carreraId);
+
+  @Query(value = "SELECT asociar_tema_a_curso(:cursoId, :temaId)", nativeQuery = true)
+  void asociarTemaACurso(@Param("cursoId") Integer cursoId,@Param("temaId") Integer temaId);
 
 }

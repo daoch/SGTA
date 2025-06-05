@@ -23,10 +23,10 @@ export interface Solicitante {
 }
 
 export interface TemasPages {
-  pages: Record<number, Tema[]>;
-  current: number;
+  pages: Record<number, Tema[]>; // [Page]: Tema[]
+  current: number; // Current Page
   totalCounts: number;
 }
 
-export type PagesList = Record<string, TemasPages>;
+export type PagesList = Partial<Record<EstadoTemaNombre, TemasPages>>;
 

@@ -1,8 +1,13 @@
 package pucp.edu.pe.sgta.service.imp;
 
+import org.apache.coyote.BadRequestException;
+import org.apache.http.HttpException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.server.ResponseStatusException;
 import pucp.edu.pe.sgta.dto.asesores.InfoAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.asesores.InfoSubAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
@@ -28,7 +33,9 @@ import pucp.edu.pe.sgta.repository.*;
 import pucp.edu.pe.sgta.service.inter.CognitoService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
 import pucp.edu.pe.sgta.util.RolEnum;
+import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
 import pucp.edu.pe.sgta.util.Utils;
+import pucp.edu.pe.sgta.dto.AlumnoReporteDto;
 
 import java.io.IOException;
 import java.io.BufferedReader;
@@ -46,7 +53,7 @@ import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 @Service
-public class UsuarioServiceImpl implements UsuarioService {
+public class    UsuarioServiceImpl implements UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
     private final UsuarioXSubAreaConocimientoRepository usuarioXSubAreaConocimientoRepository;
@@ -64,6 +71,8 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @PersistenceContext
     private EntityManager em;
+    @Autowired
+    private UsuarioXRolRepository usuarioXRolRepository;
 
     public UsuarioServiceImpl(UsuarioRepository usuarioRepository,
             UsuarioXSubAreaConocimientoRepository usuarioXSubAreaConocimientoRepository,
@@ -945,7 +954,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Override
     public AlumnoTemaDto getAlumnoTema(String idUsuario) {
         try {
-            
+
             UsuarioDto usuDto = findByCognitoId(idUsuario);
 
             if (usuDto == null) {
@@ -1024,6 +1033,39 @@ public class UsuarioServiceImpl implements UsuarioService {
         }
     }
 
+    @Override
+    public List<AlumnoReporteDto> findByStudentsForReviewer(Integer carreraId, String cadenaBusqueda) {
+        String sql = """
+                SELECT *
+                FROM obtener_alumnos_por_carrera_y_busqueda(:carrera, :cadena)
+                """;
+
+        @SuppressWarnings("unchecked")
+        List<Object[]> rows = em.createNativeQuery(sql)
+                .setParameter("carrera", carreraId)
+                .setParameter("cadena", cadenaBusqueda)
+                .getResultList();
+
+        List<AlumnoReporteDto> lista = new ArrayList<>();
+        for (Object[] r : rows) {
+            AlumnoReporteDto alumno = AlumnoReporteDto.builder()
+                    .usuarioId((Integer) r[0])
+                    .codigoPucp((String) r[1])
+                    .nombres((String) r[2])
+                    .primerApellido((String) r[3])
+                    .segundoApellido((String) r[4])
+                    .temaTitulo((String) r[5])
+                    .temaId((Integer) r[6])
+                    .asesor((String) r[7])
+                    .coasesor((String) r[8])
+                    .activo((Boolean) r[9])
+                    .build();
+
+            lista.add(alumno);
+        }
+
+        return lista;
+    }
 
     @Override
     public List<DocentesDTO> getProfesores() {
@@ -1053,4 +1095,60 @@ public class UsuarioServiceImpl implements UsuarioService {
         }
         return docentes;
     }
+
+    @Override
+    public void validarTipoUsuarioRolUsuario(String cognitoId, List<TipoUsuarioEnum> tipos, RolEnum rol) {
+        //Almenos debe hacerse la validación de tipoUsuario
+        if (tipos  == null || tipos.isEmpty())
+            throw new ResponseStatusException(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        "La validación necesita al menos un tipo de usuario"
+            );
+
+        //Validar que exista un usuario con ese cognitoID
+        if(!usuarioRepository.existsByIdCognito(cognitoId))
+            throw new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "No se encontró un usuario asociado a su token"
+            );
+
+        //Validar el tipo Usuario
+        boolean encontro;
+        for(TipoUsuarioEnum tipoUsuario : tipos) {
+            encontro = tipoUsuarioRepository.existsByNombre(tipoUsuario.name());
+            if (!encontro)
+                throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Error en validación interna"
+                );
+        }
+
+        //Validar que tenga ese tipo
+        encontro = false;
+        for(TipoUsuarioEnum tipoUsuario : tipos) {
+            encontro = usuarioRepository.existsByIdCognitoAndTipoUsuarioNombre(cognitoId, tipoUsuario.name());
+            if (encontro) break;
+        }
+        if(!encontro)
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "No se pudo validar sus credenciales"
+            );
+
+        if(rol == null) return;
+
+        //Validar el rol
+        if(!rolRepository.existsByNombre(rol.name()))
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Error en validación interna"
+            );
+
+        if(usuarioXRolRepository.existsByUsuario_IdCognitoAndRol_Nombre(cognitoId, rol.name()))
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "No se pudo validar sus credenciales"
+            );
+    }
+
 }

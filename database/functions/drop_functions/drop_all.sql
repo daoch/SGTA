@@ -191,3 +191,5 @@ DROP FUNCTION IF EXISTS obtener_profesores () CASCADE;
 DROP FUNCTION IF EXISTS obtener_documentos_asesor (INTEGER) CASCADE;
 
 DROP FUNCTION IF EXISTS obtener_exposiciones_por_usuario (INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS sgtadb.obtener_revision_documento_por_id(int4);
