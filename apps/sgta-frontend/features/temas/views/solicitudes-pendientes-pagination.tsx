@@ -61,7 +61,7 @@ export default function SolicitudesPendientes() {
           await fetchTotalCounts(ids);
 
           // Cargar primera página
-          await fetchData(estadoTema, 1, ids);
+          await fetchPage(estadoTema, 1, ids);
         }
       } catch (error) {
         console.log("No se pudo cargar las carreras del usuario: " + error);
@@ -81,19 +81,20 @@ export default function SolicitudesPendientes() {
       const existingPage = temas[estadoTema]?.pages?.[newPage];
       if (!existingPage?.length) {
         setLoading(true);
-        fetchData(estadoTema, newPage, carrerasIds);
+        fetchPage(estadoTema, newPage, carrerasIds);
       }
     },
     [estadoTema, temas, carrerasIds],
   );
 
-  async function fetchData(
+  async function fetchPage(
     state: EstadoTemaNombre,
     page: number,
     carrerasIds: number[],
   ) {
     try {
       if (carrerasIds && carrerasIds.length > 0) {
+        // Fetch page
         const data = await listarTemasPorCarrera(
           carrerasIds[0], // TODO: Validar
           state,
@@ -101,7 +102,7 @@ export default function SolicitudesPendientes() {
           page - 1,
         );
 
-        // Añadir nueva página
+        // Add new page to State
         addNewPage(state, page, data);
       }
     } catch (err) {
@@ -119,8 +120,8 @@ export default function SolicitudesPendientes() {
       ) as EstadoTemaNombre[];
       // Get all counts
       const counts = await Promise.all(
-        estadosConPages.map(
-          (estado) => lenTemasPorCarrera(carrerasIds[0], estado), // TODO: Debe traer un number
+        estadosConPages.map((estado) =>
+          lenTemasPorCarrera(carrerasIds[0], estado),
         ),
       );
 
@@ -142,7 +143,7 @@ export default function SolicitudesPendientes() {
     const currentPage = temas[state].current;
     const existingPage = temas[state]?.pages?.[currentPage];
     if (!existingPage?.length) {
-      fetchData(state, currentPage, carrerasIds);
+      fetchPage(state, currentPage, carrerasIds);
     }
   }
 
@@ -183,7 +184,7 @@ export default function SolicitudesPendientes() {
         </Select>
       </div>
 
-      {/* Pestañas */}
+      {/* Tabs */}
       <Tabs
         value={estadoTema}
         onValueChange={(value) => handleTabChange(value as EstadoTemaNombre)}
@@ -230,7 +231,7 @@ export default function SolicitudesPendientes() {
           />
 
           {/* Pagination */}
-          {!loading && temas[estadoTema] && (
+          {temas[estadoTema] && (
             <CessationRequestPagination
               currentPage={temas[estadoTema].current}
               totalPages={getTotalPages(temas, estadoTema)}
