@@ -34,8 +34,16 @@ export const fetchUsers = async (
   tipoUsuarioNombre: string,
   cadenaBusqueda: string = "",
 ) => {
-  const url = `/usuario/findByTipoUsuarioAndCarrera?carreraId=${carreraId}&tipoUsuarioNombre=${tipoUsuarioNombre}&cadenaBusqueda=${cadenaBusqueda}`;
-  const response = await axiosInstance.get(url);
+  const response = await axiosInstance.get(
+    "/usuario/findByTipoUsuarioAndCarrera",
+    {
+      params: {
+        carreraId,
+        tipoUsuarioNombre,
+        cadenaBusqueda,
+      },
+    },
+  );
   return response.data;
 };
 
