@@ -2848,4 +2848,8 @@ INSERT INTO carrera_parametro_configuracion (
     NOW(),                         -- Fecha de modificación actual
     1
 );
-
+INSERT INTO tipo_observacion (nombre_tipo) VALUES
+('Contenido'),
+('Similitud'),
+('Citado'),
+('Inteligencia Artificial');
