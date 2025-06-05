@@ -24,7 +24,7 @@ import pucp.edu.pe.sgta.service.inter.UsuarioService;
 @RequestMapping("/etapas-formativas")
 public class EtapaFormativaController {
     @Autowired
-    private EtapaFormativaService etapaFormativaService;
+    EtapaFormativaService etapaFormativaService;
 
     @Autowired
     JwtService jwtService;
