@@ -3,9 +3,9 @@ $$
     BEGIN
         CREATE TYPE enum_tipo_dato AS ENUM (
             'string',
-			'date',
-			'integer',
-			'booleano'
+            'date',
+            'integer',
+            'booleano'
             );
     EXCEPTION
         WHEN duplicate_object THEN NULL;
@@ -804,7 +804,11 @@ $$
         CREATE TYPE enum_estado_revision AS ENUM (
             'pendiente',
             'en_proceso',
-            'completada'
+            'completada',
+	        'revisado',
+	        'aprobado',
+            'rechazado',
+	        'por_aprobar'
             );
     EXCEPTION
         WHEN duplicate_object THEN NULL;

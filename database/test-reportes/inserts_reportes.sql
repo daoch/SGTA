@@ -583,3 +583,167 @@ INSERT INTO usuario_reunion (reunion_id, usuario_id) VALUES
 -- Cuarta reunión
 (1004, 41),  -- Tesista
 (1004, 5);  -- Asesor
+
+
+
+/*
+-- IMPORTANTE: Usar usuario_id = 33 (que será el alumno)
+-- Si ya existe un usuario con este ID, usa el siguiente disponible
+tema_id:  12 (Tema de prueba)
+*/
+
+-- 1) Crear usuario con tipo "alumno" (tipo_usuario_id = 2, asumiendo que 1=admin, 2=alumno)
+INSERT INTO usuario (
+  tipo_usuario_id,
+  codigo_PUCP,
+  nombres,
+  primer_apellido,
+  segundo_apellido,
+  correo_electronico,
+  contrasena,
+  biografia,
+  foto_perfil,
+  disponibilidad,
+  tipo_disponibilidad,
+  activo,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  (2, '20240001', 'María', 'González', 'López', 'maria.gonzalez@pucp.edu.pe',
+   '$2b$10$abcdefghijklmnopqrstuv',
+   'Estudiante de pregrado especializada en IA', NULL, 'Part-time', 'Inmediata',
+   TRUE, NOW(), NOW());
+
+-- 2) Usuario–Carrera (enlazar alumno con carrera)
+INSERT INTO usuario_carrera (
+  usuario_id,
+  carrera_id,
+  activo,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  (33, 1, TRUE, NOW(), NOW());
+
+
+-- 3) Tema (mantenemos el tema existente o creamos uno nuevo)
+INSERT INTO tema (
+  codigo,
+  titulo,
+  resumen,
+  portafolio_url,
+  estado_tema_id,
+  carrera_id,
+  activo,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  ('T002', 'Análisis de Sentimientos en Redes Sociales',
+   'Implementación de modelos de ML para análisis de sentimientos en datos de Twitter',
+   'https://github.com/maria/sentiment-analysis', 1, 1,
+   TRUE, NOW(), NOW());
+
+
+-- 4) Historial de Tema
+INSERT INTO historial_tema (
+  tema_id,
+  titulo,
+  resumen,
+  descripcion_cambio,
+  estado_tema_id,
+  activo,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  (12, 'Análisis de Sentimientos en Redes Sociales – v1', 'Propuesta inicial de tesis',
+   'Creación del tema para estudiante de pregrado', 1,
+   TRUE, NOW(), NOW());
+
+-- 5) Solicitud (asociada al nuevo tema)
+INSERT INTO solicitud (
+  solicitud_id,
+  descripcion,
+  tipo_solicitud_id,
+  tema_id,
+  estado,  -- Campo obligatorio que faltaba
+  activo,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  (2, 'Solicitud de aprobación de tema de tesis', 1, 12,
+   1,  -- estado = 1 (asumiendo que 1 = "Pendiente" o similar)
+   TRUE, NOW(), NOW());
+
+-- 6) Usuario–Solicitud (el alumno hace la solicitud)
+INSERT INTO usuario_solicitud (
+  usuario_id,
+  solicitud_id,
+  solicitud_completada,
+  aprobado,
+  comentario,
+  destinatario,
+  activo,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  (33, 2, FALSE, FALSE, 'Solicitud en proceso de revisión', FALSE,
+   TRUE, NOW(), NOW());
+
+-- 7) Usuario–Tema (el alumno es el tesista - rol_id = 3 asumiendo que es "Tesista")
+INSERT INTO usuario_tema (
+  usuario_id,
+  tema_id,
+  rol_id,
+  asignado,
+  prioridad,
+  activo,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  (33, 12, 3, TRUE, 1,
+   TRUE, NOW(), NOW());
+
+-- 8) Usuario–SubÁrea (asociar alumno con subárea de conocimiento)
+INSERT INTO usuario_sub_area_conocimiento (
+  usuario_id,
+  sub_area_conocimiento_id,
+  activo,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  (33, 1,
+   TRUE, NOW(), NOW());
+
+-- 9) Notificaciones para el alumno
+INSERT INTO notificacion (
+  mensaje,
+  canal,
+  modulo_id,
+  tipo_notificacion_id,
+  usuario_id,
+  activo,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  ('Bienvenida al sistema de gestión de tesis','Email',1,1,33, TRUE, NOW(), NOW()),
+  ('Tu tema de tesis está en revisión','Email',2,2,33, TRUE, NOW(), NOW());
+
+-- 10) Usuario–GrupoInvestigacion (si aplica)
+INSERT INTO usuario_grupo_investigacion (
+  usuario_id,
+  grupo_investigacion_id,
+  activo,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  (33, 1, TRUE, NOW(), NOW());
+
+-- Verificación de los datos insertados
+SELECT 'Usuario Alumno creado:' as info;
+SELECT usuario_id, nombres, primer_apellido, tipo_usuario_id, codigo_PUCP
+FROM usuario WHERE usuario_id = 33;
+
+SELECT 'Tema asociado al alumno:' as info;
+SELECT t.tema_id, t.titulo, ut.usuario_id, ut.rol_id
+FROM tema t
+JOIN usuario_tema ut ON t.tema_id = ut.tema_id
+WHERE ut.usuario_id = 33;

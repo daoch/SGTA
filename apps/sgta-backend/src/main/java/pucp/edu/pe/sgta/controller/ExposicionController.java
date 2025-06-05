@@ -64,10 +64,11 @@ public class ExposicionController {
         return exposicionService.listarExposicionXCicloActualEtapaFormativa(etapaFormativaId);
     }
 
-    @GetMapping("/listarExposicionesInicializadasXCoordinador/{coordinadorId}")
-    public List<ListExposicionXCoordinadorDTO> listarExposicionesInicializadasXCoordinador(
-            @PathVariable Integer coordinadorId) {
-        return exposicionService.listarExposicionesInicializadasXCoordinador(coordinadorId);
+    @GetMapping("/listarExposicionesInicializadasXCoordinador")
+    public List<ListExposicionXCoordinadorDTO> listarExposicionesInicializadasXCoordinador(HttpServletRequest request) {
+        String cognitoId = jwtService.extractSubFromRequest(request);
+        UsuarioDto coordinador = this.usuarioService.findByCognitoId(cognitoId);
+        return exposicionService.listarExposicionesInicializadasXCoordinador(coordinador.getId());
     }
 
     @GetMapping("/listarExposicionesSinInicializarByEtapaFormativaEnCicloActual/{etapaFormativaId}")

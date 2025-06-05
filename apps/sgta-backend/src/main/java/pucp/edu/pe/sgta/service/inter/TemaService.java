@@ -1,11 +1,9 @@
 package pucp.edu.pe.sgta.service.inter;
 
+import pucp.edu.pe.sgta.dto.*;
 import pucp.edu.pe.sgta.dto.asesores.InfoTemaPerfilDto;
 import pucp.edu.pe.sgta.dto.asesores.TemaConAsesorDto;
-import pucp.edu.pe.sgta.dto.SubAreaConocimientoDto;
-import pucp.edu.pe.sgta.dto.TemaDto;
-import pucp.edu.pe.sgta.dto.UsuarioDto;
-import pucp.edu.pe.sgta.dto.TemaConAsesorJuradoDTO;
+
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
@@ -133,4 +131,8 @@ public interface TemaService {
 	void aceptarPostulacionAlumno(Integer temaId, Integer idTesista, String idAsesor, String comentario);
 
 	void rechazarPostulacionAlumno(Integer temaId, Integer idTesista, String idAsesor, String comentario);
+
+	List<TemaPorAsociarDto> listarTemasPorAsociarPorCarrera(Integer carreraId);
+
+	void asociarTemaACurso(Integer cursoId, Integer temaId);
 }
