@@ -38,7 +38,7 @@ public class PerfilAsesorDto {
         dto.email = result[4].toString();
         dto.linkedin = null;
         dto.repositorio = null;
-        String bio = result[5].toString();
+        String bio = (String) result[5];
         dto.biografia = bio==null?"":bio;
         byte[] foto = (byte[]) result[6];
         dto.foto = Utils.convertByteArrayToStringBase64(foto);
