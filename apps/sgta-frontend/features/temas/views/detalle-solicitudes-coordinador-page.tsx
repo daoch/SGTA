@@ -2,6 +2,8 @@
 
 import { Dispatch, useEffect, useState } from "react";
 
+import { useRouter } from "next/navigation";
+import { toast, Toaster } from "sonner";
 import { AccionesDetalleSoliTema } from "../components/coordinador/detalle-solicitud-tema/acciones-detalle-soli-tema";
 import { AnalisisSimilitudTema } from "../components/coordinador/detalle-solicitud-tema/analisis-similitud-tema";
 import { ComentariosDetalleSolicitudTema } from "../components/coordinador/detalle-solicitud-tema/comentarios-detalle-solicitud-tema";
@@ -14,19 +16,13 @@ import {
   eliminarTemaPorCoordinador,
 } from "../types/solicitudes/data";
 import { SolicitudPendiente } from "../types/solicitudes/entities";
-import { EstadoSolicitud } from "../types/solicitudes/enums";
-import { idCoasesor } from "../types/solicitudes/mock";
 import { Tema } from "../types/temas/entidades";
-import { toast, Toaster } from "sonner";
-import { useRouter } from "next/navigation";
 import { EstadoTemaNombre } from "../types/temas/enums";
 
 interface Props {
   solicitud: SolicitudPendiente;
   setTema: Dispatch<Tema>;
 }
-
-const usuarioId = idCoasesor;
 
 export default function DetalleSolicitudesCoordinadorPage({
   solicitud,
@@ -100,7 +96,7 @@ export default function DetalleSolicitudesCoordinadorPage({
             estadoTemaNombre: estadoMap[accion],
           },
           usuarioSolicitud: {
-            usuarioId,
+            usuarioId: 3, // TODO: Id de coordinador
             comentario,
           },
         };
