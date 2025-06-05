@@ -15,12 +15,16 @@ import { isSameDay } from "date-fns";
 import { JornadaExposicionDTO } from "../dtos/JornadExposicionDTO";
 import { transformarJornada } from "../utils/transformar-jornada";
 import { ExposicionEtapaFormativaDTO } from "../dtos/ExposicionEtapaFormativaDTO";
+import { Toaster } from "sonner";
 
 type Props = {
   exposicionId: number;
 };
 
 export default async function PlanExpo({ exposicionId }: Props) {
+  const estadoPlanificacion =
+    await listarEstadoPlanificacionPorExposicion(exposicionId);
+
   const exposicionEtapaFormativaDTO: ExposicionEtapaFormativaDTO | null =
     await getEtapaFormativaIdByExposicionId(exposicionId);
 
@@ -47,17 +51,8 @@ export default async function PlanExpo({ exposicionId }: Props) {
   const bloquesList = await listarBloquesHorariosExposicion(exposicionId);
 
   const bloquesOrdenados = bloquesList.sort((a: TimeSlot, b: TimeSlot) => {
-    // const parse = (key: string) => {
-    //   const [d, m, y] = key.split("|")[0].split("-").map(Number);
-    //   const [h, min] = key.split("|")[1].split(":").map(Number);
-    //   return new Date(y, m - 1, d, h, min);
-    // };
-    // return parse(a.key).getTime() - parse(b.key).getTime();
     return a.key.localeCompare(b.key);
   });
-
-  const estadoPlanificacion =
-    await listarEstadoPlanificacionPorExposicion(exposicionId);
 
   const temasAsignados: Record<string, Tema> = bloquesList.reduce(
     (acc: Record<string, Tema>, bloque: TimeSlot) => {
@@ -102,6 +97,7 @@ export default async function PlanExpo({ exposicionId }: Props) {
       ) : (
         <AppLoading />
       )}
+      <Toaster position="bottom-right" richColors />
     </div>
   );
 }
