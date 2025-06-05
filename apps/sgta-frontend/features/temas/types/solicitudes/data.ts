@@ -31,13 +31,9 @@ export async function listarTemasPorCarrera(
 export async function lenTemasPorCarrera(
   carreraId: number,
   estado: EstadoTemaNombre,
-  limit: number = 200,
-  offset: number = 0,
 ): Promise<number> {
-  const { data } = await axiosInstance.get<Tema[]>(
-    `/temas/listarTemasPorCarrera/${carreraId}/${estado}?limit=${limit}&offset=${offset}`,
-  );
-  return data.length;
+  const temas = await listarTemasPorCarrera(carreraId, estado, 200, 0); // TODO: Debe traer un number
+  return temas.length;
 }
 
 /**
@@ -108,3 +104,4 @@ export async function buscarTemaPorId(idTema: number): Promise<Tema> {
   console.log("Tema obtenido:", data);
   return data;
 }
+

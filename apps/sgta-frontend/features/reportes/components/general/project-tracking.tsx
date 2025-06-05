@@ -8,7 +8,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User } from "@/features/auth/types/auth.types";
 import { getEntregablesAlumno } from "@/features/reportes/services/report-services";
 import { addDays, differenceInDays, format, isBefore, parseISO } from "date-fns";
+
 import { CheckCircle, Clock, Loader2, XCircle } from "lucide-react";
+
 import { useEffect, useState } from "react";
 
 interface ProjectTrackingProps {
@@ -50,6 +52,7 @@ const getProgressBadgeClasses = (status: string) => {
   return "bg-gray-100 text-gray-800";
 };
 
+
 const getStatusBadgeClasses = (colorXTema: string) => {
   if (colorXTema === "text-red-600") return "bg-red-100 text-red-800";
   if (colorXTema === "text-green-600") return "bg-green-100 text-green-800";
@@ -84,6 +87,7 @@ export function ProjectTracking({ user }: ProjectTrackingProps) {
   const [isCriteriosModalOpen, setIsCriteriosModalOpen] = useState(false);
   const [selectedCriterios, setSelectedCriterios] = useState<Criterio[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
 
   useEffect(() => {
     const fetchEntregables = async () => {

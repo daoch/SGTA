@@ -3,6 +3,7 @@ package pucp.edu.pe.sgta.service.inter;
 import java.util.List;
 
 import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloDto;
+import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloXCarreraDto;
 import pucp.edu.pe.sgta.dto.UpdateEtapaFormativaRequest;
 
 
@@ -23,4 +24,5 @@ public interface EtapaFormativaXCicloService {
 
     EtapaFormativaXCicloDto actualizarEstadoRelacion(Integer relacionId, UpdateEtapaFormativaRequest request);
 
+    List<EtapaFormativaXCicloXCarreraDto> listarEtapasFormativasXCicloXCarrera(Integer carreraId);
 }

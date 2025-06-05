@@ -13,30 +13,33 @@ import {
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+  initialPagination,
   pageTexts,
   tableTexts,
 } from "@/features/temas/types/inscripcion/constants";
 import {
+  fetchTemasAPI,
   fetchUsers,
+  lenTemasPorUsuarioRolEstado,
   obtenerCarrerasPorUsuario,
 } from "@/features/temas/types/inscripcion/data";
 import {
   AreaDeInvestigacion,
   Carrera,
   Coasesor,
-  Tema,
   Tesista,
 } from "@/features/temas/types/inscripcion/entities";
 import { Tipo } from "@/features/temas/types/inscripcion/enums";
 import { buscarUsuarioPorToken } from "@/features/temas/types/propuestas/data";
-import {
-  fetchTemasAPI,
-  fetchUsuariosFindById,
-} from "@/features/temas/types/temas/data";
-import { Usuario } from "@/features/temas/types/temas/entidades";
+import { fetchUsuariosFindById } from "@/features/temas/types/temas/data";
+import { Tema, Usuario } from "@/features/temas/types/temas/entidades";
+import { EstadoTemaNombre } from "@/features/temas/types/temas/enums";
+import { usePagination } from "@/hooks/temas/use-pagination";
 import axiosInstance from "@/lib/axios/axios-instance";
 import { Plus } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+
+const LIMIT = 2;
 
 /**
  * Rol: Asesor
@@ -61,6 +64,16 @@ const Page = () => {
   const [error, setError] = useState<string | null>(null);
 
   const [usuarioLoggeado, setUsuarioLoggeado] = useState<Usuario>();
+  const [estadoTema, setEstadoTema] = useState<EstadoTemaNombre>(
+    EstadoTemaNombre.REGISTRADO,
+  );
+  const {
+    pagination: temas,
+    replaceStateKey,
+    addNewPage,
+    getPage,
+    getTotalPages,
+  } = usePagination(initialPagination, LIMIT);
 
   useEffect(() => {
     const obtenerUsuario = async () => {
@@ -80,13 +93,15 @@ const Page = () => {
     try {
       setIsLoading(true);
       setError(null);
-      const inscritosData = (await fetchTemasAPI("Asesor", "INSCRITO")) || [];
+      const inscritosData =
+        (await fetchTemasAPI("Asesor", EstadoTemaNombre.INSCRITO)) || [];
       const libresData =
-        (await fetchTemasAPI("Asesor", "PROPUESTO_LIBRE")) || [];
+        (await fetchTemasAPI("Asesor", EstadoTemaNombre.PROPUESTO_LIBRE)) || [];
       const interesadosData =
-        (await fetchTemasAPI("Asesor", "PROPUESTO_GENERAL")) || [];
+        (await fetchTemasAPI("Asesor", EstadoTemaNombre.PROPUESTO_GENERAL)) ||
+        [];
       const preInscritosData =
-        (await fetchTemasAPI("Asesor", "PREINSCRITO")) || [];
+        (await fetchTemasAPI("Asesor", EstadoTemaNombre.PREINSCRITO)) || [];
       setTemasData([
         ...inscritosData,
         ...libresData,
@@ -157,6 +172,55 @@ const Page = () => {
     fetchData().then(() => fetchTemas());
   }, [usuarioLoggeado, fetchTemas]);
 
+  async function fetchPage(state: EstadoTemaNombre, page: number) {
+    try {
+      // Fetch page
+      const data = await fetchTemasAPI("Asesor", state, LIMIT, page - 1);
+
+      // Add new page to State
+      addNewPage(state, page, data);
+    } catch (err) {
+      console.error("Error loading data", err);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function fetchTotalCounts(carrerasIds: number[]) {
+    try {
+      // Asignar total Counts
+      const estadosConPages: EstadoTemaNombre[] = Object.keys(
+        temas,
+      ) as EstadoTemaNombre[];
+      // Get all counts
+      const counts = await Promise.all(
+        estadosConPages.map((estado) =>
+          lenTemasPorUsuarioRolEstado("Asesor", estado),
+        ),
+      );
+
+      // Update state
+      estadosConPages.forEach((estado, idx) => {
+        replaceStateKey(estado, "totalCounts", counts[idx]);
+        console.log(estado + ": count = " + counts[idx]);
+      });
+    } catch (err) {
+      console.error("Error loading total counts", err);
+    }
+  }
+
+  function handleTabChange(state: EstadoTemaNombre) {
+    setEstadoTema(state);
+
+    // Fetch de la página en caso no exista
+    if (!temas[state]) return;
+    const currentPage = temas[state].current;
+    const existingPage = temas[state]?.pages?.[currentPage];
+    if (!existingPage?.length) {
+      fetchPage(state, currentPage);
+    }
+  }
+
   return (
     <div className="space-y-8 mt-4">
       <div className="flex items-end justify-between">
@@ -197,7 +261,7 @@ const Page = () => {
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue={Tipo.INSCRITO} className="w-full">
+      <Tabs defaultValue={estadoTema} className="w-full">
         <TabsList>
           {Object.entries(tableTexts)
             .filter(([, value]) => value.show)

@@ -11,3 +11,16 @@ export interface AlumnoTemaDetalle {
     siguienteEntregableFechaFin: string;
     siguienteEntregableNombre: string;
 }
+
+export interface AlumnoReviewer {
+  usuarioId: number;
+  codigoPucp: string;
+  nombres: string;
+  primerApellido: string;
+  segundoApellido: string;
+  temaTitulo: string;
+  asesor: string;
+  coasesor?: string;
+  activo?: boolean;
+  temaId?: number;
+}
