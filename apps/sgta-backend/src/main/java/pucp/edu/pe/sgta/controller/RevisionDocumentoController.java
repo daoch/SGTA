@@ -77,4 +77,8 @@ public class RevisionDocumentoController {
         }
     }
 
+    @GetMapping("/detalle")
+    public RevisionDocumentoAsesorDto obtenerRevisionDocumentoPorId(@RequestParam("revisionId") Integer revisionId) {
+        return revisionDocumentoService.obtenerRevisionDocumentoPorId(revisionId);
+    }
 }

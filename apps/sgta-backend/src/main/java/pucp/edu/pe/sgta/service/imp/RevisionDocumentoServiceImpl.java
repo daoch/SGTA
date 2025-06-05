@@ -347,5 +347,43 @@ public class RevisionDocumentoServiceImpl implements RevisionDocumentoService {
 
 
 
+    public RevisionDocumentoAsesorDto obtenerRevisionDocumentoPorId(Integer revisionId) {
+        List<Object[]> result = revisionDocumentoRepository.obtenerRevisionDocumentoPorId(revisionId);
 
+        if (result.isEmpty()) {
+            throw new RuntimeException("No se encontró ninguna revisión con ID: " + revisionId);
+        }
+
+        Object[] row = result.get(0);
+        RevisionDocumentoAsesorDto dto = new RevisionDocumentoAsesorDto();
+
+        dto.setId((Integer) row[0]); // revision_id
+        dto.setTitulo((String) row[1]); // tema
+        dto.setEntregable((String) row[2]); // entregable
+        dto.setEstudiante((String) row[3]); // estudiante
+        dto.setCodigo((String) row[4]); // código PUCP
+        dto.setCurso((String) row[5]); // curso
+
+        dto.setFechaEntrega(row[6] != null
+                ? ((Instant) row[6]).atOffset(ZoneOffset.UTC)
+                : null); // fecha_carga
+
+        dto.setEstado((String) row[7]); // estado_revision
+        dto.setEntregaATiempo((Boolean) row[8]); // entrega_a_tiempo
+
+        dto.setFechaLimite(row[9] != null
+                ? ((Instant) row[9]).atOffset(ZoneOffset.UTC)
+                : null); // fecha_limite
+
+        dto.setUrlDescarga((String) row[10]); // link_archivo_subido
+
+        // Valores no retornados aún por el SP
+        dto.setPorcentajeGenIA(null);
+        dto.setPorcentajeSimilitud(null);
+        dto.setFormatoValido(null);
+        dto.setCitadoCorrecto(null);
+        dto.setUltimoCiclo(null);
+
+        return dto;
+    }
 }

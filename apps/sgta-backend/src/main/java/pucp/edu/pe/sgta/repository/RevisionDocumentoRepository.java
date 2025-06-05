@@ -138,4 +138,6 @@ public interface RevisionDocumentoRepository extends JpaRepository<RevisionDocum
     @Transactional
     @Query(value = "UPDATE revision_documento SET estado_revision = CAST(:nuevoEstado AS enum_estado_revision) WHERE revision_documento_id = :revisionId", nativeQuery = true)
     void actualizarEstadoRevisionConCast(@Param("revisionId") Integer revisionId, @Param("nuevoEstado") String nuevoEstado);
+    @Query(value = "SELECT * FROM obtener_revision_documento_por_id(:revision_id_input)", nativeQuery = true)
+    List<Object[]> obtenerRevisionDocumentoPorId(@Param("revision_id_input") Integer revision_id_input);
 } 
