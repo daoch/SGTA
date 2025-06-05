@@ -320,24 +320,29 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public Integer getEtapaFormativaIdByExposicionId(Integer exposicionId) {
+    public ExposicionEtapaFormativaDTO getEtapaFormativaIdByExposicionId(Integer exposicionId) {
         Exposicion expo = exposicionRepository.findById(exposicionId)
                 .orElseThrow(() -> new EntityNotFoundException(
                         "No existe Exposicion con id " + exposicionId));
         EtapaFormativaXCiclo efc = expo.getEtapaFormativaXCiclo();
-        return efc.getId();
+        EtapaFormativa etapaFormativa = efc.getEtapaFormativa();
+        ExposicionEtapaFormativaDTO eefd = new ExposicionEtapaFormativaDTO();
+        eefd.setExposicionId(expo.getId());
+        eefd.setNombreExposicion(expo.getNombre());
+        eefd.setEtapaFormativaId(etapaFormativa.getId());
+        eefd.setNombreEtapaFormativa(etapaFormativa.getNombre());
+        return eefd;
     }
 
     @Override
     public List<EtapaFormativaAlumnoDto> listarEtapasFormativasPorAlumno(String alumnoId) {
         Optional<Usuario> usuario = usuarioRepository.findByIdCognito(alumnoId);
-        if(usuario.isEmpty()) {
+        if (usuario.isEmpty()) {
             throw new RuntimeException("Usuario no encontrado con ID Cognito: " + alumnoId);
         }
 
         Usuario user = usuario.get();
-        
+
         List<Object[]> result = etapaFormativaRepository.listarEtapasFormativasPorAlumno(user.getId());
         List<EtapaFormativaAlumnoDto> etapasFormativas = new ArrayList<>();
 

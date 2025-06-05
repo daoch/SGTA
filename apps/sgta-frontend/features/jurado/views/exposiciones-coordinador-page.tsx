@@ -75,7 +75,6 @@ export const ExposicionesCoordinadorPage: FC = () => {
         open={modalOpen}
         onClose={() => setModalOpen(false)}
       />
-
       <Toaster position="bottom-right" richColors />
     </div>
   );

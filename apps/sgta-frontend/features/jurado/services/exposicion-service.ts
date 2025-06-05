@@ -157,11 +157,14 @@ export const getExposicionesEstudiantesByEstudianteId = async (
     //   `/exposicion/listarExposicionesPorUsuario/${bearerTokenId}`,
     // );
 
-    const response = await axiosInstance.get("/exposicion/listarExposicionesPorUsuario", {
-      headers: {
-        "Authorization": `Bearer ${bearerTokenId}`,
+    const response = await axiosInstance.get(
+      "/exposicion/listarExposicionesPorUsuario",
+      {
+        headers: {
+          Authorization: `Bearer ${bearerTokenId}`,
+        },
       },
-    });
+    );
 
     console.log("Datos de exposiciones obtenidos:", response.data);
 
