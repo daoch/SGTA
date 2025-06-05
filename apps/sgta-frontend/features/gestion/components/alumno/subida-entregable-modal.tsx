@@ -124,6 +124,17 @@ export function EntregablesModal({
     }
   };
 
+  const handleEliminarDocumento = async (documentoId: number) => {
+    try {
+      await axiosInstance.post(`documento/borrar-documento/${documentoId}`);
+      setArchivosSubidos((prev) =>
+        prev.filter((archivo) => archivo.documentoId !== documentoId),
+      );
+    } catch (error) {
+      console.error("Error al eliminar el documento:", error);
+    }
+  };
+
   return (
     <DialogContent style={{ maxWidth: "680px", width: "100%" }}>
       <DialogHeader>
@@ -207,7 +218,11 @@ export function EntregablesModal({
                             <DropdownMenuItem onClick={() => {}}>
                               <Download className="w-4 h-4 mr-2" /> Descargar
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => {}}>
+                            <DropdownMenuItem
+                              onClick={() =>
+                                handleEliminarDocumento(archivo.documentoId)
+                              }
+                            >
                               <Trash2 className="w-4 h-4 mr-2 text-red-600" />{" "}
                               Eliminar
                             </DropdownMenuItem>
