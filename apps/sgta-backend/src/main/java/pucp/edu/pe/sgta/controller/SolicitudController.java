@@ -23,13 +23,11 @@ import pucp.edu.pe.sgta.dto.asesores.SolicitudCeseDetalleDto;
 import pucp.edu.pe.sgta.dto.temas.SolicitudTemaDto;
 import pucp.edu.pe.sgta.service.inter.SolicitudService;
 
-import java.util.List;
-
 @RestController
 
 @RequestMapping("/solicitudes")
 public class SolicitudController {
-    
+
     @Autowired
     private SolicitudService solicitudService;
 
@@ -73,7 +71,7 @@ public class SolicitudController {
 
     @GetMapping("/cessation-requests/{requestId}")
     public ResponseEntity<DetalleSolicitudCeseDto> getDetalleSolicitudesCese(
-        @PathVariable Integer requestId) {
+            @PathVariable Integer requestId) {
         return ResponseEntity.ok(solicitudService.getDetalleSolicitudCese(requestId));
     }
 
@@ -86,19 +84,21 @@ public class SolicitudController {
 
     @PostMapping("/advisor-change-requests/{requestId}/reject")
     public ResponseEntity<RechazoSolicitudCambioAsesorResponseDto> rechazarSolicitudCambioAsesor(
-        @PathVariable Integer requestId,
-        @RequestBody RechazoSolicitudCambioAsesorRequestDto requestDto) {
+            @PathVariable Integer requestId,
+            @RequestBody RechazoSolicitudCambioAsesorRequestDto requestDto) {
 
-        RechazoSolicitudCambioAsesorResponseDto response = solicitudService.rechazarSolicitudCambioAsesor(requestId, requestDto.getResponse());
+        RechazoSolicitudCambioAsesorResponseDto response = solicitudService.rechazarSolicitudCambioAsesor(requestId,
+                requestDto.getResponse());
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/advisor-change-requests/{requestId}/approve")
     public ResponseEntity<AprobarSolicitudCambioAsesorResponseDto> aprobarSolicitudCambioAsesor(
-        @PathVariable Integer requestId,
-        @RequestBody AprobarSolicitudCambioAsesorRequestDto requestDto) {
+            @PathVariable Integer requestId,
+            @RequestBody AprobarSolicitudCambioAsesorRequestDto requestDto) {
 
-        AprobarSolicitudCambioAsesorResponseDto response = solicitudService.aprobarSolicitudCambioAsesor(requestId, requestDto.getResponse());
+        AprobarSolicitudCambioAsesorResponseDto response = solicitudService.aprobarSolicitudCambioAsesor(requestId,
+                requestDto.getResponse());
         return ResponseEntity.ok(response);
     }
 
@@ -108,8 +108,8 @@ public class SolicitudController {
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "10") Integer size) {
         return ResponseEntity.ok(solicitudService.findAllSolicitudesByTema(id, page, size));
-    }    
-    
+    }
+
     @PostMapping("/atenderSolicitudTemaInscrito")
     public ResponseEntity<Void> atenderSolicitudTemaInscrito(@RequestBody SolicitudTemaDto solicitudAtendida) {
         try {
@@ -118,5 +118,46 @@ public class SolicitudController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
+    }
+
+    @PostMapping("/registrarSolicitudCambioAsesor")
+    public ResponseEntity<Object> registrarSolicitudCambioAsesor(
+            @RequestBody pucp.edu.pe.sgta.dto.asesores.SolicitudCambioAsesorDto solicitud) {
+
+        solicitud = solicitudService.registrarSolicitudCambioAsesor(solicitud);
+        return ResponseEntity.ok(solicitud);
+    }
+
+    @GetMapping("/listarResumenSolicitudCambioAsesorUsuario")
+    public ResponseEntity<Object> listarResumenSolicitudCambioAsesorUsuario(
+            @RequestParam(name = "idUsuario") Integer idUsuario,
+            @RequestParam(name = "rolSolicitud") String rolSolicitud) {
+
+        return ResponseEntity.ok(solicitudService.listarResumenSolicitudCambioAsesorUsuario(idUsuario, rolSolicitud));
+    }
+
+    @GetMapping("/listarDetalleSolicitudCambioAsesorUsuario")
+    public ResponseEntity<Object> listarDetalleSolicitudCambioAsesorUsuario(
+            @RequestParam(name = "idSolicitud") Integer idSolicitud) {
+
+        return ResponseEntity.ok(solicitudService.listarDetalleSolicitudCambioAsesorUsuario(idSolicitud));
+    }
+
+    @PatchMapping("/aprobarSolicitudCambioAsesor")
+    public ResponseEntity<Object> aprobarSolicitudCambioAsesor(
+            @RequestParam(name = "idSolicitud") Integer idSolicitud,
+            @RequestParam(name = "idUsuario") Integer idUsuario,
+            @RequestParam(name = "rolSolicitud") String rolSolictud) {
+        solicitudService.aprobarRechazarSolicitudCambioAsesor(idSolicitud, idUsuario, rolSolictud, true);
+        return ResponseEntity.ok(null);
+    }
+
+    @PatchMapping("/rechazarSolicitudCambioAsesor")
+    public ResponseEntity<Object> rechazarSolicitudCambioAsesor(
+            @RequestParam(name = "idSolicitud") Integer idSolicitud,
+            @RequestParam(name = "idUsuario") Integer idUsuario,
+            @RequestParam(name = "rolSolicitud") String rolSolictud) {
+        solicitudService.aprobarRechazarSolicitudCambioAsesor(idSolicitud, idUsuario, rolSolictud, false);
+        return ResponseEntity.ok(null);
     }
 }

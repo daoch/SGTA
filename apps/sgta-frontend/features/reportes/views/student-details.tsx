@@ -26,7 +26,7 @@ interface StudentDetailsProps {
 const formatDate = (dateString: string) => {
   try {
     return format(parseISO(dateString), "dd/MM/yyyy", { locale: es });
-  } catch (_) {
+  } catch (error) {
     return "Fecha no disponible";
   }
 };
@@ -36,6 +36,7 @@ export function StudentDetails({ studentId }: StudentDetailsProps) {
   const [timeline, setTimeline] = useState<TimelineEvent[]>([]);
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     console.log("StudentId recibido:", studentId);
@@ -43,20 +44,36 @@ export function StudentDetails({ studentId }: StudentDetailsProps) {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [studentData, timelineData, meetingsData] = await Promise.all([
-          advisorService.getStudentDetails(studentId),
-          advisorService.getStudentTimeline(studentId),
-          advisorService.getStudentMeetings(studentId),
-        ]);
-        console.log("Datos recibidos:", { studentData, timelineData, meetingsData });
+        setError(null);
+        
+        // Primero obtenemos los datos del estudiante
+        const studentData = await advisorService.getStudentDetails(studentId);
+        console.log("Datos del estudiante recibidos:", studentData);
         setStudent(studentData);
-        setTimeline(Array.isArray(timelineData) ? timelineData : []);
-        setMeetings(Array.isArray(meetingsData) ? meetingsData : []);
+
+        // Luego intentamos obtener el timeline y las reuniones
+        try {
+          const timelineData = await advisorService.getStudentTimeline(studentId);
+          console.log("Datos del timeline recibidos:", timelineData);
+          setTimeline(Array.isArray(timelineData) ? timelineData : []);
+        } catch (timelineError) {
+          console.error("Error al cargar el timeline:", timelineError);
+          setTimeline([]);
+        }
+
+        try {
+          const meetingsData = await advisorService.getStudentMeetings(studentId);
+          console.log("Datos de reuniones recibidos:", meetingsData);
+          setMeetings(Array.isArray(meetingsData) ? meetingsData : []);
+        } catch (meetingsError) {
+          console.error("Error al cargar las reuniones:", meetingsError);
+          setMeetings([]);
+        }
+
       } catch (error) {
-        console.error("Error al cargar los datos:", error);
+        console.error("Error al cargar los datos del estudiante:", error);
+        setError(error instanceof Error ? error.message : "Error desconocido al cargar los datos del estudiante");
         setStudent(null);
-        setTimeline([]);
-        setMeetings([]);
       } finally {
         setLoading(false);
       }
@@ -66,20 +83,34 @@ export function StudentDetails({ studentId }: StudentDetailsProps) {
       fetchData();
     } else {
       console.error("No se recibió un studentId válido");
+      setError("No se recibió un ID de tesista válido");
       setLoading(false);
     }
   }, [studentId]);
 
   if (loading) {
-    return <div className="flex justify-center items-center min-h-[200px]">
-      <div className="text-lg">Cargando información del tesista...</div>
-    </div>;
+    return (
+      <div className="flex justify-center items-center min-h-[200px]">
+        <div className="text-lg">Cargando información del tesista...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center min-h-[200px]">
+        <div className="text-lg text-red-600">Error: {error}</div>
+      </div>
+    );
   }
 
   if (!student) {
-    return <div className="flex justify-center items-center min-h-[200px]">
-      <div className="text-lg text-red-600">No se encontró información del tesista</div>
-    </div>;
+    return (
+      <div className="flex flex-col justify-center items-center min-h-[200px] gap-2">
+        <div className="text-lg text-red-600">No se encontró información del tesista</div>
+        <div className="text-sm text-gray-600">ID del tesista: {studentId}</div>
+      </div>
+    );
   }
 
   return (

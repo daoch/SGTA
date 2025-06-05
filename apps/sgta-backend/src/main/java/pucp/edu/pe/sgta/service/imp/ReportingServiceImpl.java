@@ -2,9 +2,7 @@ package pucp.edu.pe.sgta.service.imp;
 
 import java.sql.Date;
 import java.sql.Timestamp;
-import java.time.LocalDate;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -36,7 +34,6 @@ import pucp.edu.pe.sgta.dto.EntregableEstudianteDto;
 import pucp.edu.pe.sgta.repository.UsuarioXTemaRepository;
 import pucp.edu.pe.sgta.repository.EntregableXTemaRepository;
 import pucp.edu.pe.sgta.model.UsuarioXTema;
-import pucp.edu.pe.sgta.model.EntregableXTema;
 import java.util.Optional;
 
 @Service
@@ -63,10 +60,9 @@ public class ReportingServiceImpl implements IReportService {
             DetalleTesistaRepository detalleTesistaRepository,
             HitoCronogramaRepository hitoCronogramaRepository,
             HistorialReunionRepository historialReunionRepository,
-            
-            UsuarioXTemaRepository usuarioXTemaRepository,          
-            EntregableXTemaRepository entregableXTemaRepository
-            ) {
+
+            UsuarioXTemaRepository usuarioXTemaRepository,
+            EntregableXTemaRepository entregableXTemaRepository) {
         this.topicAreaStatsRepository = topicAreaStatsRepository;
         this.advisorDistributionRepository = advisorDistributionRepository;
         this.jurorDistributionRepository = jurorDistributionRepository;
@@ -208,10 +204,10 @@ public class ReportingServiceImpl implements IReportService {
         List<Object[]> results = advisorPerformanceRepository.getAdvisorPerformanceByUser(usuarioId, cicloNombre);
         return results.stream()
                 .map(result -> new AdvisorPerformanceDto(
-                        (String) result[0],           // advisor_name
-                        (String) result[1],           // area_name
-                        ((Number) result[2]).doubleValue(), // performance_percentage
-                        ((Number) result[3]).intValue()     // total_students
+                        (String) result[0], // advisor_name
+                        (String) result[1], // area_name
+                        Optional.ofNullable((Number) result[2]).map(r -> r.doubleValue()).orElse(0.0d),// performance_percentage
+                        ((Number) result[3]).intValue() // total_students
                 ))
                 .collect(Collectors.toList());
     }
@@ -225,9 +221,9 @@ public class ReportingServiceImpl implements IReportService {
         List<Object[]> results = topicAreaStatsRepository.getTopicTrendsByUser(usuarioId);
         return results.stream()
                 .map(result -> new TopicTrendDTO(
-                        (String) result[0],           // area_name
+                        (String) result[0], // area_name
                         ((Number) result[1]).intValue(), // year
-                        ((Number) result[2]).intValue()  // topic_count
+                        ((Number) result[2]).intValue() // topic_count
                 ))
                 .collect(Collectors.toList());
     }
@@ -241,27 +237,33 @@ public class ReportingServiceImpl implements IReportService {
         List<Object[]> results = tesistasPorAsesorRepository.getTesistasPorAsesor(asesorId);
         return results.stream()
                 .map(result -> {
-                    Object fechaInicio = result[9];
-                    Object fechaFin = result[10];
-                    
+                    Object fechaInicio = result[12];
+                    Object fechaFin = result[13];
+
                     return TesistasPorAsesorDTO.builder()
-                        .temaId((Integer) result[0])
-                        .tesistaId((Integer) result[1])
-                        .nombres((String) result[2])
-                        .primerApellido((String) result[3])
-                        .segundoApellido((String) result[4])
-                        .correoElectronico((String) result[5])
-                        .entregableActualId((Integer) result[6])
-                        .entregableActualNombre((String) result[7])
-                        .entregableActualDescripcion((String) result[8])
-                        .entregableActualFechaInicio(fechaInicio != null ? 
-                            ((Timestamp) fechaInicio).toLocalDateTime().atZone(ZoneId.systemDefault()) : null)
-                        .entregableActualFechaFin(fechaFin != null ? 
-                            ((Timestamp) fechaFin).toLocalDateTime().atZone(ZoneId.systemDefault()) : null)
-                        .entregableActualEstado((String) result[11])
-                        .entregableEnvioEstado((String) result[12])
-                        .entregableEnvioFecha(result[13] != null ? new java.util.Date(((Timestamp) result[13]).getTime()) : null)
-                        .build();
+                            .temaId((Integer) result[0])
+                            .tesistaId((Integer) result[1])
+                            .nombres((String) result[2])
+                            .primerApellido((String) result[3])
+                            .segundoApellido((String) result[4])
+                            .correoElectronico((String) result[5])
+                            .tituloTema((String) result[6])
+                            .etapaFormativaNombre((String) result[7])
+                            .carrera((String) result[8])
+                            .entregableActualId((Integer) result[9])
+                            .entregableActualNombre((String) result[10])
+                            .entregableActualDescripcion((String) result[11])
+                            .entregableActualFechaInicio(fechaInicio != null
+                                    ? ((Timestamp) fechaInicio).toLocalDateTime().atZone(ZoneId.systemDefault())
+                                    : null)
+                            .entregableActualFechaFin(fechaFin != null
+                                    ? ((Timestamp) fechaFin).toLocalDateTime().atZone(ZoneId.systemDefault())
+                                    : null)
+                            .entregableActualEstado((String) result[14])
+                            .entregableEnvioEstado((String) result[15])
+                            .entregableEnvioFecha(
+                                    result[16] != null ? new java.util.Date(((Timestamp) result[16]).getTime()) : null)
+                            .build();
                 })
                 .collect(Collectors.toList());
     }
@@ -308,10 +310,12 @@ public class ReportingServiceImpl implements IReportService {
                 .entregableNombre((String) result[26])
                 .entregableActividadEstado((String) result[27])
                 .entregableEnvioEstado((String) result[28])
-                .entregableFechaInicio(result[29] != null ? 
-                    ((Timestamp) result[29]).toLocalDateTime().atZone(ZoneId.systemDefault()) : null)
-                .entregableFechaFin(result[30] != null ? 
-                    ((Timestamp) result[30]).toLocalDateTime().atZone(ZoneId.systemDefault()) : null)
+                .entregableFechaInicio(
+                        result[29] != null ? ((Timestamp) result[29]).toLocalDateTime().atZone(ZoneId.systemDefault())
+                                : null)
+                .entregableFechaFin(
+                        result[30] != null ? ((Timestamp) result[30]).toLocalDateTime().atZone(ZoneId.systemDefault())
+                                : null)
                 .build();
     }
 
@@ -327,10 +331,12 @@ public class ReportingServiceImpl implements IReportService {
                         .hitoId((Integer) result[0])
                         .nombre((String) result[1])
                         .descripcion((String) result[2])
-                        .fechaInicio(result[3] != null ? 
-                            ((Timestamp) result[3]).toLocalDateTime().atZone(ZoneId.systemDefault()) : null)
-                        .fechaFin(result[4] != null ? 
-                            ((Timestamp) result[4]).toLocalDateTime().atZone(ZoneId.systemDefault()) : null)
+                        .fechaInicio(result[3] != null
+                                ? ((Timestamp) result[3]).toLocalDateTime().atZone(ZoneId.systemDefault())
+                                : null)
+                        .fechaFin(result[4] != null
+                                ? ((Timestamp) result[4]).toLocalDateTime().atZone(ZoneId.systemDefault())
+                                : null)
                         .entregableEnvioEstado((String) result[5])
                         .entregableActividadEstado((String) result[6])
                         .esEvaluable((Boolean) result[7])
@@ -356,22 +362,20 @@ public class ReportingServiceImpl implements IReportService {
                 .collect(Collectors.toList());
     }
 
-
     @Override
     public List<EntregableEstudianteDto> getEntregablesEstudiante(Integer usuarioId) {
         Optional<UsuarioXTema> usuarioTema = usuarioXTemaRepository.findByUsuarioId(usuarioId);
-        if (usuarioTema.isEmpty()) throw new RuntimeException("Usuario no tiene tema asignado");
+        if (usuarioTema.isEmpty())
+            throw new RuntimeException("Usuario no tiene tema asignado");
 
         Integer temaId = usuarioTema.get().getTema().getId();
 
         return entregableXTemaRepository.findByTemaIdWithEntregable(temaId).stream()
-            .map(et -> new EntregableEstudianteDto(
-                et.getEntregable().getNombre(),
-                et.getEstado().name(),
-                et.getFechaEnvio() != null ? et.getFechaEnvio().toLocalDateTime() : null
-            ))
-            .collect(Collectors.toList());
+                .map(et -> new EntregableEstudianteDto(
+                        et.getEntregable().getNombre(),
+                        et.getEstado().name(),
+                        et.getFechaEnvio() != null ? et.getFechaEnvio().toLocalDateTime() : null))
+                .collect(Collectors.toList());
     }
-
 
 }

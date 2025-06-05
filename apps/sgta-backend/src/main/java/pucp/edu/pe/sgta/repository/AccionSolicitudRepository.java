@@ -14,5 +14,7 @@ public interface AccionSolicitudRepository extends JpaRepository<AccionSolicitud
     // Devuelve Optional porque el nombre podría no existir.
     Optional<AccionSolicitud> findByNombre(String nombre);
 
+    boolean existsByNombre(String nombre);
+    
     // Puedes añadir otros métodos de búsqueda si los necesitas.
 }

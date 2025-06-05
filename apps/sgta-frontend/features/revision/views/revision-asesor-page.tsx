@@ -22,6 +22,117 @@ import { useState } from "react";
 import "../../../features/revision/types/colors.css";
 import { RevisionesCardsAsesor } from "../components/revisiones-cards-asesor";
 import { RevisionesTableAsesor } from "../components/revisiones-table-asesor";
+import { RevisionResumen } from "../types/RevisionResumen.types";
+
+const revisionesData: RevisionResumen[] = [
+  {
+    id: "1",
+    titulo:
+      "Implementación de algoritmos de aprendizaje profundo para detección de objetos en tiempo real",
+    entregable: "E4",
+    estudiante: "Carlos Mendoza",
+    codigo: "20180123",
+    curso: "tesis1",
+    fechaEntrega: "2023-10-15",
+    fechaLimite: "2023-10-20",
+    estado: "aprobado",
+    porcentajePlagio: 5,
+    formatoValido: true,
+    entregaATiempo: true,
+    citadoCorrecto: true,
+    observaciones: 3,
+    ultimoCiclo: "2025-1",
+  },
+  {
+    id: "2",
+    titulo:
+      "Desarrollo de un sistema de monitoreo de calidad del aire utilizando IoT",
+    entregable: "E4",
+    estudiante: "Ana García",
+    codigo: "20190456",
+    curso: "tesis1",
+    fechaEntrega: "2023-11-02",
+    fechaLimite: "2023-11-05",
+    estado: "por-aprobar",
+    porcentajePlagio: 12,
+    formatoValido: false,
+    entregaATiempo: true,
+    citadoCorrecto: false,
+    observaciones: 7,
+    ultimoCiclo: "2025-1",
+  },
+  {
+    id: "3",
+    titulo:
+      "Análisis comparativo de frameworks de desarrollo web para aplicaciones de alta concurrencia",
+    entregable: "E4",
+    estudiante: "Luis Rodríguez",
+    codigo: "20180789",
+    curso: "tesis2",
+    fechaEntrega: "2023-09-28",
+    fechaLimite: "2023-10-01",
+    estado: "aprobado",
+    porcentajePlagio: 8,
+    formatoValido: true,
+    entregaATiempo: true,
+    citadoCorrecto: true,
+    observaciones: 2,
+    ultimoCiclo: "2025-1",
+  },
+  {
+    id: "4",
+    titulo:
+      "Diseño e implementación de un sistema de recomendación basado en filtrado colaborativo",
+    entregable: "E4",
+    estudiante: "María Torres",
+    codigo: "20190321",
+    curso: "tesis2",
+    fechaEntrega: null,
+    fechaLimite: "2023-11-25",
+    estado: "revisado",
+    porcentajePlagio: null,
+    formatoValido: null,
+    entregaATiempo: null,
+    citadoCorrecto: null,
+    observaciones: 0,
+    ultimoCiclo: "2024-2",
+  },
+  {
+    id: "5",
+    titulo:
+      "Optimización de consultas en bases de datos NoSQL para aplicaciones de big data",
+    entregable: "E4",
+    estudiante: "Jorge Sánchez",
+    codigo: "20180654",
+    curso: "tesis1",
+    fechaEntrega: "2023-11-10",
+    fechaLimite: "2023-11-08",
+    estado: "revisado",
+    porcentajePlagio: 15,
+    formatoValido: true,
+    entregaATiempo: false,
+    citadoCorrecto: true,
+    observaciones: 5,
+    ultimoCiclo: "2023-2",
+  },
+  {
+    id: "6",
+    titulo: "Evaluación del impacto del uso de energías renovables en zonas rurales",
+    entregable: "E4",
+    estudiante: "Lucía Fernández",
+    codigo: "20190567",
+    curso: "tesis2",
+    fechaEntrega: "2023-11-12",
+    fechaLimite: "2023-11-10",
+    estado: "rechazado",
+    porcentajePlagio: 28,
+    formatoValido: true,
+    entregaATiempo: false,
+    citadoCorrecto: false,
+    observaciones: 6,
+    ultimoCiclo: "2025-1",
+  },
+];
 
 const RevisionAsesorPage = () => {
   const [viewMode, setViewMode] = useState<"table" | "cards">("table");
@@ -73,6 +184,7 @@ const RevisionAsesorPage = () => {
           <TabsList>
             <TabsTrigger value="por-aprobar">Por Aprobar</TabsTrigger>
             <TabsTrigger value="aprobados">Aprobados</TabsTrigger>
+            <TabsTrigger value="rechazados">Rechazados</TabsTrigger>
             <TabsTrigger value="revisados">Revisados</TabsTrigger>
             <TabsTrigger value="todas">Todas</TabsTrigger>
           </TabsList>
@@ -114,12 +226,14 @@ const RevisionAsesorPage = () => {
             <CardContent>
               {viewMode === "table" ? (
                 <RevisionesTableAsesor
+                  data={revisionesData}
                   filter="por-aprobar"
                   searchQuery={searchQuery}
                   cursoFilter={cursoFilter}
                 />
               ) : (
                 <RevisionesCardsAsesor
+                  data={revisionesData}
                   filter="por-aprobar"
                   searchQuery={searchQuery}
                   cursoFilter={cursoFilter}
@@ -133,19 +247,48 @@ const RevisionAsesorPage = () => {
             <CardHeader>
               <CardTitle>Documentos Aprobados</CardTitle>
               <CardDescription>
-                Documentos que ya han sido aprobados
+                Documentos que han sido aprobados por el asesor
               </CardDescription>
             </CardHeader>
             <CardContent>
               {viewMode === "table" ? (
                 <RevisionesTableAsesor
+                  data={revisionesData}
                   filter="aprobado"
                   searchQuery={searchQuery}
                   cursoFilter={cursoFilter}
                 />
               ) : (
                 <RevisionesCardsAsesor
+                  data={revisionesData}
                   filter="aprobado"
+                  searchQuery={searchQuery}
+                  cursoFilter={cursoFilter}
+                />
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="rechazados">
+          <Card>
+            <CardHeader>
+              <CardTitle>Documentos Rechazados</CardTitle>
+              <CardDescription>
+                Documentos que han sido rechazados por el asesor
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {viewMode === "table" ? (
+                <RevisionesTableAsesor
+                  data={revisionesData}
+                  filter="rechazado"
+                  searchQuery={searchQuery}
+                  cursoFilter={cursoFilter}
+                />
+              ) : (
+                <RevisionesCardsAsesor
+                  data={revisionesData}
+                  filter="rechazado"
                   searchQuery={searchQuery}
                   cursoFilter={cursoFilter}
                 />
@@ -164,12 +307,14 @@ const RevisionAsesorPage = () => {
             <CardContent>
               {viewMode === "table" ? (
                 <RevisionesTableAsesor
+                  data={revisionesData}
                   filter="revisado"
                   searchQuery={searchQuery}
                   cursoFilter={cursoFilter}
                 />
               ) : (
                 <RevisionesCardsAsesor
+                  data={revisionesData}
                   filter="revisado"
                   searchQuery={searchQuery}
                   cursoFilter={cursoFilter}
@@ -187,11 +332,13 @@ const RevisionAsesorPage = () => {
             <CardContent>
               {viewMode === "table" ? (
                 <RevisionesTableAsesor
+                  data={revisionesData}
                   searchQuery={searchQuery}
                   cursoFilter={cursoFilter}
                 />
               ) : (
                 <RevisionesCardsAsesor
+                  data={revisionesData}
                   searchQuery={searchQuery}
                   cursoFilter={cursoFilter}
                 />

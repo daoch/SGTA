@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useEffect, useState } from "react";
 import { PropuestasTable } from "../components/asesor/propuestas-table";
 import {
+  buscarUsuarioPorToken,
   fetchAreaConocimientoFindByUsuarioId,
   fetchSubAreaConocimientoFindByUsuarioId,
   fetchTemasPropuestosAlAsesor,
@@ -19,6 +20,7 @@ import {
   Area,
   Proyecto_M,
   SubAreaConocimiento,
+  Usuario,
 } from "../types/propuestas/entidades";
 const PropuestasAsesorPage = () => {
   const [propuestasDirectas, setPropuestasDirectas] = useState<Proyecto_M[]>(
@@ -29,25 +31,43 @@ const PropuestasAsesorPage = () => {
   );
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage] = useState(1);
-  const limit = 10;
+  const limit = 50;
   //const limiteTotal = 50;
   const [areasData, setAreasData] = useState<Area[]>([]);
   const [subAreasData, setSubAreasData] = useState<SubAreaConocimiento[]>([]);
   //const [totalPropuestasGenerales, setTotalPropuestasGenerales] = useState(0);
   //const [totalPropuestasDirectas, setTotalPropuestasDirectas] = useState(0);
-  const [usuarioId] = useState(1);
+  const [usuarioLoggeado, setUsuarioLoggueado] = useState<Usuario>();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    const obtenerUsuario = async () => {
+      try {
+        const usuario = await buscarUsuarioPorToken();
+        setUsuarioLoggueado(usuario);
+      } catch (err: unknown) {
+        console.log(err);
+        console.log("Error al traer al usuario loggeado.");
+      }
+    };
+    obtenerUsuario();
+  }, []);
+
+  useEffect(() => {
+    if (!usuarioLoggeado) return;
     const cargarAreasYSubareas = async () => {
-      const areas = await fetchAreaConocimientoFindByUsuarioId(usuarioId);
-      const subareas = await fetchSubAreaConocimientoFindByUsuarioId(usuarioId);
+      const areas = await fetchAreaConocimientoFindByUsuarioId(
+        usuarioLoggeado.id,
+      );
+      const subareas = await fetchSubAreaConocimientoFindByUsuarioId(
+        usuarioLoggeado.id,
+      );
       setAreasData(areas);
       setSubAreasData(subareas);
     };
     cargarAreasYSubareas();
     console.log("Todos los basicos cargados");
-  }, [usuarioId]);
+  }, [usuarioLoggeado]);
 
   useEffect(() => {
     if (subAreasData.length === 0) return;
@@ -57,7 +77,6 @@ const PropuestasAsesorPage = () => {
       const offset = (currentPage - 1) * limit;
 
       const dataDirecta = await fetchTemasPropuestosAlAsesor(
-        usuarioId,
         searchTerm,
         limit,
         offset,
@@ -66,7 +85,6 @@ const PropuestasAsesorPage = () => {
 
       const dataGeneral = await fetchTemasPropuestosPorSubAreaConocimiento(
         subAreasData,
-        usuarioId,
         searchTerm,
         limit,
         0,
@@ -76,7 +94,7 @@ const PropuestasAsesorPage = () => {
     };
 
     cargarPropuestas();
-  }, [currentPage, searchTerm, usuarioId, subAreasData]);
+  }, [currentPage, searchTerm, subAreasData]);
 
   return (
     <div className="space-y-8 mt-4">

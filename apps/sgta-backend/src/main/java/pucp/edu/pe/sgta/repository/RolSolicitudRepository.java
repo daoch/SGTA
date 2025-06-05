@@ -12,6 +12,5 @@ public interface RolSolicitudRepository extends JpaRepository<RolSolicitud, Inte
     // Método para buscar un RolSolicitud por su nombre
     // Spring Data JPA generará la implementación automáticamente
     Optional<RolSolicitud> findByNombre(String nombre);
-
-    // Puedes añadir otros métodos de búsqueda si los necesitas
+    boolean existsByNombre(String nombre);
 }

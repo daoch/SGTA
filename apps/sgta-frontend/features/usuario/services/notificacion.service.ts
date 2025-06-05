@@ -11,13 +11,7 @@ import { ELEMENTS_PER_PAGE_DEFAULT } from "@/lib/constants";
 const NOTIFICACIONES_API_BASE = "notificaciones"; // Asume /api/notificaciones
 
 /**
- * Suponemos que el backend ya devuelve un objeto con “content” donde cada elemento tiene:
- *   - moduloNombre: string
- *   - tipoNotificacionNombre: string
- *   - tipoNotificacionPrioridad: number
- *   - fechaCreacion: string (ISO)
- *   - fechaLectura: string | null (ISO o null)
- *   - resto de campos planos
+ * Obtener lista paginada de notificaciones
  */
 export async function getMisNotificaciones(
   page: number,
@@ -36,7 +30,7 @@ export async function getMisNotificaciones(
     );
     const data = response.data;
 
-    //  Aquí mapeamos cada “n” de data.content (con campos planos) a INotificacionTransformed:
+    // Mapeo de cada elemento plano a INotificacionTransformed
     const transformed: INotificacionTransformed[] = (data.content || []).map((n: any) => {
       return {
         id: n.id,
@@ -50,7 +44,7 @@ export async function getMisNotificaciones(
 
         // Creamos aquí los objetos “modulo” y “tipoNotificacion” anidados
         modulo: {
-          // Como el raw solo trae “moduloNombre” (y no un id), asignamos id = 0 (o -1) por defecto
+          // Como el raw solo trae “moduloNombre” (y no un id), asignamos id = 0 por defecto
           id: 0,
           nombre: n.moduloNombre,
         },
@@ -79,6 +73,9 @@ export async function getMisNotificaciones(
   }
 }
 
+/**
+ * Obtener conteo de notificaciones no leídas
+ */
 export async function getCountMisNotificacionesNoLeidas(): Promise<{ count: number }> {
   try {
     const response = await axiosInstance.get<{ count: number }>(
@@ -90,6 +87,9 @@ export async function getCountMisNotificacionesNoLeidas(): Promise<{ count: numb
   }
 }
 
+/**
+ * Marcar una notificación como leída
+ */
 export async function marcarNotificacionComoLeidaApi(
   notificacionId: number
 ): Promise<INotificacionTransformed> {
@@ -121,6 +121,9 @@ export async function marcarNotificacionComoLeidaApi(
   }
 }
 
+/**
+ * Marcar todas las notificaciones como leídas
+ */
 export async function marcarTodasMisNotificacionesComoLeidasApi(): Promise<{ count: number }> {
   try {
     const response = await axiosInstance.post<{ count: number }>(

@@ -13,7 +13,6 @@ import pucp.edu.pe.sgta.util.EstadoExposicionUsuario;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Component
 public class EstadoControlExposicionListener {
@@ -24,14 +23,16 @@ public class EstadoControlExposicionListener {
 
     private final ExposicionXTemaRepository exposicionXTemaRepository;
 
-    public EstadoControlExposicionListener(UsuarioXTemaRepository usuarioXTemaRepository, ControlExposicionUsuarioTemaRepository controlExposicionUsuarioTemaRepository, ExposicionXTemaRepository exposicionXTemaRepository) {
+    public EstadoControlExposicionListener(UsuarioXTemaRepository usuarioXTemaRepository,
+            ControlExposicionUsuarioTemaRepository controlExposicionUsuarioTemaRepository,
+            ExposicionXTemaRepository exposicionXTemaRepository) {
         this.usuarioXTemaRepository = usuarioXTemaRepository;
         this.controlExposicionUsuarioTemaRepository = controlExposicionUsuarioTemaRepository;
         this.exposicionXTemaRepository = exposicionXTemaRepository;
     }
 
     @EventListener
-    public void handleEstadoActualizado(EstadoControlExposicionActualizadoEvent event){
+    public void handleEstadoActualizado(EstadoControlExposicionActualizadoEvent event) {
         Integer exposicionTemaId = event.getExposicionTemaId();
         Integer temaId = event.getTemaId();
         List<Integer> rolesValidos = List.of(1, 2, 5);
@@ -41,8 +42,8 @@ public class EstadoControlExposicionListener {
                 .toList();
 
         boolean todosRespondieron = usuariosValidos.stream().allMatch(uxt -> {
-            Optional<ControlExposicionUsuarioTema> controlUxt =
-                    controlExposicionUsuarioTemaRepository.findByExposicionXTema_IdAndUsuario_Id(exposicionTemaId, uxt.getId());
+            Optional<ControlExposicionUsuarioTema> controlUxt = controlExposicionUsuarioTemaRepository
+                    .findByExposicionXTema_IdAndUsuario_Id(exposicionTemaId, uxt.getId());
             return controlUxt.isPresent() &&
                     (controlUxt.get().getEstadoExposicion() == EstadoExposicionUsuario.ACEPTADO ||
                             controlUxt.get().getEstadoExposicion() == EstadoExposicionUsuario.RECHAZADO);

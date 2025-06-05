@@ -27,21 +27,30 @@ import {
   useMarcarTodasLeidas,
 } from "@/features/usuario/queries/notificacion.queries";
 import { INotificacionTransformed } from "@/features/usuario/types/notificacion.types";
+import { useAuthStore } from "@/features/auth";
 
 const MAX_NOTIFICATIONS_IN_DROPDOWN = 7;
 
 const AppHeader: React.FC = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
+  const { user, isSessionReady } = useAuthStore();
+  
   /* ────────── hooks para datos ────────── */
-  const { data: countData } = useGetCountMisNotificacionesNoLeidas();
+  const {
+    data: countData,
+  } = useGetCountMisNotificacionesNoLeidas({
+    enabled: isSessionReady,          
+    refetchInterval: isSessionReady ? 60_000 : false,
+  });
   const unreadCount = countData?.count || 0;
 
   const {
     data: notificacionesData,
     isLoading: isLoadingNotificaciones,
     refetch: refetchNotificacionesDropdown,
-  } = useGetMisNotificaciones(0, MAX_NOTIFICATIONS_IN_DROPDOWN, false);
+  } = useGetMisNotificaciones(0, MAX_NOTIFICATIONS_IN_DROPDOWN, false, {
+    enabled: isSessionReady,         
+  });
 
   const markAsReadMutation = useMarcarNotificacionLeida();
   const markAllAsReadMutation = useMarcarTodasLeidas();
