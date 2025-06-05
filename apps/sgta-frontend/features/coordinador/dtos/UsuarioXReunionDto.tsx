@@ -11,4 +11,6 @@ export interface UsuarioXReunionDto {
   activo: boolean;
   fechaCreacion: string;
   fechaModificacion: string; 
+  asistenciaAsesor?: string;
+  asistenciaAlumno?: string;
 }
