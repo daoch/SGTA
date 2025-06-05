@@ -75,4 +75,9 @@ public class DocumentoController {
         }
         return ResponseEntity.ok("Archivos subidos exitosamente");
     }
+
+    @PostMapping("/borrar-documento/{documentoId}")
+    public void borrarDocumento(@PathVariable Integer documentoId) {
+        documentoService.borrarDocumento(documentoId);
+    }
 }
