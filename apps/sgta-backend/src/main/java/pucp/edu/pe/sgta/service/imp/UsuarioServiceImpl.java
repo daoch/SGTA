@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import pucp.edu.pe.sgta.dto.asesores.FiltrosDirectorioAsesores;
 import pucp.edu.pe.sgta.dto.asesores.UsuarioFotoDto;
 import pucp.edu.pe.sgta.dto.AlumnoTemaDto;
+import pucp.edu.pe.sgta.dto.DocentesDTO;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import pucp.edu.pe.sgta.dto.TipoUsuarioDto;
@@ -1024,4 +1025,32 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
 
+    @Override
+    public List<DocentesDTO> getProfesores() {
+        List<Object[]> rows = usuarioRepository.obtenerProfesores();
+        List<DocentesDTO> docentes = new ArrayList<>();
+        for (Object[] r : rows) {
+
+            List<Integer> idAreas = usuarioXAreaConocimientoRepository
+                    .findAllByUsuario_IdAndActivoIsTrue((Integer) r[0]).stream()
+                    .map(UsuarioXAreaConocimiento::getAreaConocimiento)
+                    .map(AreaConocimiento::getId)
+                    .toList();
+
+            DocentesDTO docente = DocentesDTO.builder()
+                    .id((Integer) r[0])
+                    .nombres((String) r[1])
+                    .primerApellido((String) r[2])
+                    .segundoApellido((String) r[3])
+                    .codigoPucp((String) r[4])
+                    .correoElectronico((String) r[5])
+                    .tipoDedicacion((String) r[6])
+                    .cantTemasAsignados((Long) r[7])
+                    .areasConocimientoIds(idAreas)
+                    .build();
+
+            docentes.add(docente);
+        }
+        return docentes;
+    }
 }
