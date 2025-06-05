@@ -35,6 +35,7 @@ const temasData = [
     descripcion: "",
     coasesores: [],
     recursos: [{ nombre: "", tipo: "", fecha: "" }],
+    idAreasConocimiento: [1, 2],
   },
   {
     id: 2,
@@ -49,6 +50,7 @@ const temasData = [
     descripcion: "",
     coasesores: [],
     recursos: [{ nombre: "", tipo: "", fecha: "" }],
+    idAreasConocimiento: [2],
   },
   {
     id: 3,
@@ -66,6 +68,7 @@ const temasData = [
     descripcion: "",
     coasesores: [],
     recursos: [{ nombre: "", tipo: "", fecha: "" }],
+    idAreasConocimiento: [1],
   },
   {
     id: 4,
@@ -80,6 +83,7 @@ const temasData = [
     descripcion: "",
     coasesores: [],
     recursos: [{ nombre: "", tipo: "", fecha: "" }],
+    idAreasConocimiento: [1, 2],
   },
   {
     id: 5,
@@ -94,6 +98,7 @@ const temasData = [
     descripcion: "",
     coasesores: [],
     recursos: [{ nombre: "", tipo: "", fecha: "" }],
+    idAreasConocimiento: [1, 2],
   },
 ];
 
@@ -108,7 +113,7 @@ interface PropuestasTableProps {
   showCiclo?: boolean;
 }
 
-export function TemasTable({
+export function TemasTableCoordinador({
   filter,
   showPostulaciones = true,
   showEstado = true,
@@ -264,3 +269,4 @@ export function TemasTable({
     </div>
   );
 }
+

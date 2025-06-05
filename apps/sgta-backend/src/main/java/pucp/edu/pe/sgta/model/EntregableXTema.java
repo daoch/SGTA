@@ -9,6 +9,8 @@ import pucp.edu.pe.sgta.util.EstadoEntrega;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.math.BigDecimal;
+
 
 @Entity
 @Getter
@@ -42,6 +44,9 @@ public class EntregableXTema {
 
     @Transient
     private EstadoEntrega estado;
+
+    @Column(name = "nota_entregable")
+    private BigDecimal notaEntregable;
 
     @Column(name = "activo", nullable = false)
     private Boolean activo = true;

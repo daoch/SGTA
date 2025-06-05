@@ -16,8 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestBody;
-import pucp.edu.pe.sgta.dto.EtapaFormativaListadoDto;
-import pucp.edu.pe.sgta.dto.EtapaFormativaDetalleDto;
+
 import pucp.edu.pe.sgta.service.inter.JwtService;
 
 @RestController
@@ -52,13 +51,13 @@ public class EtapaFormativaController {
     }
 
     @GetMapping("/getEtapaFormativaIdByExposicionId/{exposicion_id}")
-    public ResponseEntity<Integer> obtenerEtapaFormativaIdPorExposicionId(
+    public ResponseEntity<ExposicionEtapaFormativaDTO> obtenerEtapaFormativaIdPorExposicionId(
             @PathVariable("exposicion_id") Integer exposicionId) {
-        Integer etapaFormativaId = etapaFormativaService.getEtapaFormativaIdByExposicionId(exposicionId);
-        if (etapaFormativaId == null) {
+        ExposicionEtapaFormativaDTO eefd = etapaFormativaService.getEtapaFormativaIdByExposicionId(exposicionId);
+        if (eefd == null) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(etapaFormativaId);
+        return ResponseEntity.ok(eefd);
     }
 
     @GetMapping
