@@ -1,12 +1,15 @@
 import axiosInstance from "@/lib/axios/axios-instance";
 
+
 import { AlumnoReviewer, AlumnoTemaDetalle } from "../types/Alumno.type";
 import { EntregableCriteriosDetalle } from "../types/Entregable.type";
 
 import { useAuthStore } from "@/features/auth/store/auth-store";
+import { OverdueSummary } from "../types/OverdueSummary.type";
 
 
 export const obtenerDetalleTemaAlumno = async (): Promise<AlumnoTemaDetalle> => {
+
     try {
         const { idToken } = useAuthStore.getState();
         const response = await axiosInstance.get<AlumnoTemaDetalle>("/usuario/detalle-tema-alumno", {
@@ -46,6 +49,7 @@ export const getEntregablesAlumno = async (alumnoId: string) => {
   return response.data;
 };
 
+
 export const getEntregablesConCriterios = async (usuarioId: number): Promise<EntregableCriteriosDetalle[]> => {
   try {
     const response = await axiosInstance.get<EntregableCriteriosDetalle[]>(
@@ -57,3 +61,18 @@ export const getEntregablesConCriterios = async (usuarioId: number): Promise<Ent
     throw error;
   }
 };
+
+export const obtenerEntregablesConRetraso = async (): Promise<OverdueSummary> => {
+  try {
+    const response = await axiosInstance.get<OverdueSummary>("/api/notifications/overdue-summary", {
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error al obtener detalle del tema del alumno:", error);
+    throw error;
+  }
+};
+
