@@ -1,3 +1,5 @@
+SET search_path = sgtadb
+
 DROP FUNCTION IF EXISTS listar_etapas_formativas_alumno;
 DROP FUNCTION IF EXISTS obtener_entregables_alumno;
 DROP FUNCTION IF EXISTS listar_documentos_x_entregable;
@@ -56,7 +58,8 @@ RETURNS TABLE (
     ciclo_semestre VARCHAR,
     tema_id INTEGER,
     fecha_envio TIMESTAMP WITH TIME ZONE,
-    comentario TEXT
+    comentario TEXT,
+	entregable_x_tema_id INTEGER
 ) AS $$
 BEGIN
     RETURN QUERY
@@ -79,7 +82,8 @@ BEGIN
         c.semestre AS ciclo_semestre,
         et.tema_id,
         et.fecha_envio,
-        et.comentario
+        et.comentario,
+		et.entregable_x_tema_id
     FROM usuario_tema ut
     JOIN entregable_x_tema et ON et.tema_id = ut.tema_id
     JOIN entregable e ON e.entregable_id = et.entregable_id
@@ -93,6 +97,12 @@ BEGIN
       AND t.estado_tema_id IN (6, 10, 11, 12);
 END;
 $$ LANGUAGE plpgsql;
+
+SELECT * FROM usuario
+
+SELECT * FROM entregable_x_tema
+
+SELECT * FROM obtener_entregables_alumno(12);
 
 CREATE OR REPLACE FUNCTION listar_documentos_x_entregable(p_entregable_x_tema_id INTEGER)
 RETURNS TABLE (
