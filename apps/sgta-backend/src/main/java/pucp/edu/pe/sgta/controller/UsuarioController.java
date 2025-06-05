@@ -23,6 +23,7 @@ import pucp.edu.pe.sgta.service.inter.CarreraService;
 import pucp.edu.pe.sgta.service.inter.JwtService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
 import pucp.edu.pe.sgta.dto.AlumnoTemaDto;
+import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
 
 @RestController
 
@@ -213,10 +214,14 @@ public class UsuarioController {
     public UsuarioDto findByCodigo(@RequestParam("codigo") String codigo) {
         return this.usuarioService.findUsuarioByCodigo(codigo);
     }
-
+    /**
+     Api usada por un ALUMNO para ver que asesores existen en su carrera
+     */
     @GetMapping("/asesor-directory-by-filters")
     public ResponseEntity<List<PerfilAsesorDto>> getDirectorioDeAsesoresPorFiltros(
-            @ModelAttribute FiltrosDirectorioAsesores filtros) {
+            @ModelAttribute FiltrosDirectorioAsesores filtros,
+            HttpServletRequest request) {
+        usuarioService.validarTipoUsuarioRolUsuario(jwtService.extractSubFromRequest(request), TipoUsuarioEnum.alumno,null);
         List<PerfilAsesorDto> asesores = usuarioService.getDirectorioDeAsesoresPorFiltros(filtros);
         return new ResponseEntity<>(asesores, HttpStatus.OK);
 

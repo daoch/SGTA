@@ -39,6 +39,8 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
     // verificar que usuario existe y activo
     Boolean existsByIdAndActivoTrue(Integer usuarioId);
 
+    Boolean existsByIdCognitoAndTipoUsuarioNombre(String cognito, String tipoUsuarioNombre);
+
     Optional<Usuario> findById(Integer id);
 
     @Query(value = "SELECT * FROM obtener_area_conocimiento_jurado(:usuarioId)", nativeQuery = true)
@@ -59,4 +61,5 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
     );
 
 
+    boolean existsByIdCognito(String idCognito);
 }

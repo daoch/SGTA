@@ -1,8 +1,13 @@
 package pucp.edu.pe.sgta.service.imp;
 
+import org.apache.coyote.BadRequestException;
+import org.apache.http.HttpException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.server.ResponseStatusException;
 import pucp.edu.pe.sgta.dto.asesores.InfoAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.asesores.InfoSubAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
@@ -27,6 +32,7 @@ import pucp.edu.pe.sgta.repository.*;
 import pucp.edu.pe.sgta.service.inter.CognitoService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
 import pucp.edu.pe.sgta.util.RolEnum;
+import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
 import pucp.edu.pe.sgta.util.Utils;
 
 import java.io.IOException;
@@ -63,6 +69,8 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @PersistenceContext
     private EntityManager em;
+    @Autowired
+    private UsuarioXRolRepository usuarioXRolRepository;
 
     public UsuarioServiceImpl(UsuarioRepository usuarioRepository,
             UsuarioXSubAreaConocimientoRepository usuarioXSubAreaConocimientoRepository,
@@ -1015,6 +1023,50 @@ public class UsuarioServiceImpl implements UsuarioService {
         } else {
             throw new NoSuchElementException("Usuario not found with ID Cognito: " + cognitoId);
         }
+    }
+
+    @Override
+    public void validarTipoUsuarioRolUsuario(String cognitoId, TipoUsuarioEnum tipoUsuario, RolEnum rol) {
+        //Almenos debe hacerse la validación de tipoUsuario
+        if (tipoUsuario  == null)
+            throw new ResponseStatusException(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        "La validación necesita al menos un tipo de usuario"
+            );
+
+        //Validar que exista un usuario con ese cognitoID
+        if(!usuarioRepository.existsByIdCognito(cognitoId))
+            throw new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "No se encontró un usuario asociado a su token"
+            );
+
+        //Validar el tipo Usuario
+        if(!tipoUsuarioRepository.existsByNombre(tipoUsuario.name()))
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                        "Error en validación interna"
+                    );
+        if(!usuarioRepository.existsByIdCognitoAndTipoUsuarioNombre(cognitoId, tipoUsuario.name()))
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "No se pudo validar sus credenciales"
+            );
+
+        if(rol == null) return;
+
+        //Validar el rol
+        if(!rolRepository.existsByNombre(rol.name()))
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Error en validación interna"
+            );
+
+        if(usuarioXRolRepository.existsByUsuario_IdCognitoAndRol_Nombre(cognitoId, rol.name()))
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "No se pudo validar sus credenciales"
+            );
     }
 
 }

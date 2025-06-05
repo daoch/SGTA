@@ -761,3 +761,40 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION obtener_temas_por_alumno(p_id_alumno INTEGER)
+RETURNS TABLE (
+  idTema INTEGER,
+  titulo TEXT,
+  estado TEXT,
+  areasTematicas TEXT,
+  idAsesor INTEGER
+) AS $$
+BEGIN
+  RETURN QUERY
+SELECT
+    t.tema_id AS "idTema",
+    t.titulo::TEXT,
+    et.nombre::TEXT,
+    STRING_AGG(DISTINCT at.nombre, ', ')::TEXT AS "areasTematicas",
+    u.usuario_id AS "idAsesor"
+  FROM tema t
+  JOIN estado_tema et ON t.estado_tema_id = et.estado_tema_id
+  JOIN usuario_tema uta ON uta.tema_id = t.tema_id
+    LEFT JOIN LATERAL (
+    SELECT u2.usuario_id
+    FROM usuario_tema ut
+    JOIN usuario u2 ON u2.usuario_id = ut.usuario_id
+    WHERE ut.tema_id = t.tema_id AND ut.rol_id = 1 AND ut.activo = TRUE
+    LIMIT 1
+  ) u ON TRUE
+  left JOIN sub_area_conocimiento_tema tsac ON tsac.tema_id = t.tema_id 
+  left JOIN sub_area_conocimiento sac ON sac.sub_area_conocimiento_id = tsac.sub_area_conocimiento_id
+  left JOIN area_conocimiento at ON at.area_conocimiento_id = sac.area_conocimiento_id
+  WHERE et.nombre IN ('INSCRITO', 'REGISTRADO', 'EN_PROGRESO', 'PAUSADO')
+  AND uta.usuario_id = p_id_alumno
+  AND uta.rol_id = 4
+  AND uta.activo = TRUE
+  GROUP BY t.tema_id, t.titulo, et.nombre, u.usuario_id;
+END;
+$$ LANGUAGE plpgsql;
+
