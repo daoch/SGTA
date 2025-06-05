@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import pucp.edu.pe.sgta.dto.ObservacionesRevisionDTO;
 import pucp.edu.pe.sgta.dto.revision.CommentDto;
 import pucp.edu.pe.sgta.dto.revision.ContentDto;
 import pucp.edu.pe.sgta.dto.revision.HighlightDto;
@@ -21,13 +22,15 @@ import pucp.edu.pe.sgta.repository.RevisionDocumentoRepository;
 import pucp.edu.pe.sgta.repository.RevisionXDocumentoRepository;
 import pucp.edu.pe.sgta.repository.TipoObservacionRepository;
 import pucp.edu.pe.sgta.repository.UsuarioRepository;
-
+import pucp.edu.pe.sgta.service.inter.ObservacionService;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class ObservacionServiceImpl {
+public class ObservacionServiceImpl implements ObservacionService{
 
     @Autowired
     private ObservacionRepository observacionRepository;
@@ -183,5 +186,27 @@ private HighlightDto mapObservacionToHighlightDto(Observacion obs) {
             case "Inteligencia Artificial" -> 4;
             default -> 1; // Por defecto, Contenido
         };
+    }
+    @Override
+    public List<ObservacionesRevisionDTO> obtenerObservacionesPorEntregableYTema(Integer entregableId, Integer temaId) {
+        List<Object[]> result = observacionRepository.listarObservacionesPorEntregableYTema(entregableId, temaId);
+        List<ObservacionesRevisionDTO> dtoList = new ArrayList<>();
+
+        for (Object[] row : result) {
+            ObservacionesRevisionDTO dto = new ObservacionesRevisionDTO();
+
+            dto.setObservacionId((Integer) row[0]);
+            dto.setComentario((String) row[1]);
+            dto.setContenido((String) row[2]);
+            dto.setNumeroPaginaInicio((Integer) row[3]);
+            dto.setNumeroPaginaFin((Integer) row[4]);
+            dto.setFechaCreacion(row[5] != null ? ((Instant) row[5]).atOffset(ZoneOffset.UTC) : null);
+            dto.setTipoObservacionId((Integer) row[6]);
+            dto.setRevisionId((Integer) row[7]);
+
+            dtoList.add(dto);
+        }
+
+        return dtoList;
     }
 }
