@@ -16,9 +16,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestBody;
-import pucp.edu.pe.sgta.dto.EtapaFormativaListadoDto;
-import pucp.edu.pe.sgta.dto.EtapaFormativaDetalleDto;
+
 import pucp.edu.pe.sgta.service.inter.JwtService;
+import pucp.edu.pe.sgta.service.inter.UsuarioService;
 
 @RestController
 @RequestMapping("/etapas-formativas")
@@ -28,6 +28,9 @@ public class EtapaFormativaController {
 
     @Autowired
     JwtService jwtService;
+
+    @Autowired
+    private UsuarioService usuarioService;
 
     @GetMapping("/listarPorInicializarByCoordinador/{corodinador_id}")
     public List<EtapaFormativaNombreDTO> obtenerPorInicializarPorCoordinador(
@@ -45,10 +48,11 @@ public class EtapaFormativaController {
         return etapaFormativaService.findAllActivas();
     }
 
-    @GetMapping("/listarActivasPorCoordinador/{coordinador_id}")
-    public List<EtapaFormativaDto> obtenerEtapasFormativasActivasPorCoordinador(
-            @PathVariable("coordinador_id") Integer coordinadorId) {
-        return etapaFormativaService.findAllActivasByCoordinador(coordinadorId);
+    @GetMapping("/listarActivasPorCoordinador")
+    public List<EtapaFormativaDto> obtenerEtapasFormativasActivasPorCoordinador(HttpServletRequest request) {
+        String cognitoId = jwtService.extractSubFromRequest(request);
+        UsuarioDto usuario = this.usuarioService.findByCognitoId(cognitoId);
+        return etapaFormativaService.findAllActivasByCoordinador(usuario.getId());
     }
 
     @GetMapping("/getEtapaFormativaIdByExposicionId/{exposicion_id}")
