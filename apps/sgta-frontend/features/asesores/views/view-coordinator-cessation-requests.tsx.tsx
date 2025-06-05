@@ -7,7 +7,7 @@ import RequestSearchFilters from "@/features/asesores/components/cessation-reque
 import PendingAssessorChangeRequestsList from "@/features/asesores/components/cessation-request/list-pending-requests";
 import CessationRequestHistoryTable from "@/features/asesores/components/cessation-request/list-approved-rejected-requests";
 import CessationRequestPagination from "@/features/asesores/components/cessation-request/pagination-cessation-request";
-import NotCessationRequestFound from "@/features/asesores/components/cessation-request/not-cessation-request-found";
+import {NotCessationRequestFound} from "@/features/asesores/components/cessation-request/not-cessation-request-found";
 import { Loader2 } from "lucide-react";
 import { useRequestTerminationList } from "@/features/asesores/queries/cessation-request"; // Asumiendo que es el correcto
 import {
@@ -142,8 +142,14 @@ const Page = () => {
               </div>
             );
           }
+          
           if (!cessationListData || cessationListData.requestTermmination.length === 0) {
-            return ( <NotCessationRequestFound type={status} appliedFilters={fullNameEmail !== ""} /> );
+            return (
+              <NotCessationRequestFound
+                statusFilter={status}
+                appliedFilters={fullNameEmail !== ""}
+              />
+            );
           }
 
           if (status === "pending") {

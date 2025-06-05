@@ -305,3 +305,7 @@ export interface ISolicitudActualizadaResponse {
   respuestaCoordinador: string | null;
   fechaResolucion: string | null; // Vendrá como string ISO
 }
+
+export type IRequestTerminationConsultancyStudentDetail = ICessationRequestStudentDetailBackend;
+export type ICessationRequestAdvisor = ICessationRequestAvailableAdvisor;
+
