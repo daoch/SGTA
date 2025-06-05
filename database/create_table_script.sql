@@ -1342,7 +1342,7 @@ ALTER TABLE observacion
     ADD COLUMN IF NOT EXISTS bounding_width  DOUBLE PRECISION,
     ADD COLUMN IF NOT EXISTS bounding_height DOUBLE PRECISION,
     ADD COLUMN IF NOT EXISTS bounding_page   INT,
-    ADD COLUMN contenido                     TEXT NOT NULL;
+    ADD COLUMN IF NOT EXISTS contenido                     TEXT NOT NULL;
 
 CREATE TABLE IF NOT EXISTS reunion
 (

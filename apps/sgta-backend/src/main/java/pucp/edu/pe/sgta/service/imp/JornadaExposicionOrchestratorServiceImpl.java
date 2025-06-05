@@ -65,6 +65,8 @@ public class JornadaExposicionOrchestratorServiceImpl implements JornadaExposici
             }
         }
 
+        
+
         dto.getFechas().forEach(fecha -> {
             JornadaExposicionCreateDTO createDTO = new JornadaExposicionCreateDTO();
             createDTO.setDatetimeInicio(fecha.getFechaHoraInicio());

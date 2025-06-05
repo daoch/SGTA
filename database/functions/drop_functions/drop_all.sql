@@ -297,3 +297,11 @@ DROP FUNCTION IF EXISTS obtener_profesores () CASCADE;
 DROP FUNCTION IF EXISTS obtener_documentos_asesor (INTEGER) CASCADE;
 
 DROP FUNCTION IF EXISTS obtener_exposiciones_por_usuario (INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS crear_tema_libre CASCADE;
+
+DROP FUNCTION IF EXISTS listar_bloques_con_temas_y_usuarios CASCADE;
+
+DROP FUNCTION IF EXISTS obtener_id_carrera_por_id_expo CASCADE;
+
+DROP FUNCTION IF EXISTS obtener_temas_por_alumno CASCADE;

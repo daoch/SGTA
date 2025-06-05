@@ -250,7 +250,7 @@ INSERT INTO exposicion(etapa_formativa_x_ciclo_id,
                        nombre,
                        descripcion,
                        fecha_creacion)
-    VALUES (1, 1, TRUE, 'Exposicion parcial', 'Exposicion parcial del proyecto', NOW()),
+    VALUES (1, 5, TRUE, 'Exposicion parcial', 'Exposicion parcial del proyecto', NOW()),
            (1, 1, TRUE, 'Exposicion final', 'Exposicion final del proyecto', NOW());
 
 

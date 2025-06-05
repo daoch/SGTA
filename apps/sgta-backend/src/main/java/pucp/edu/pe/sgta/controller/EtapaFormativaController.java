@@ -58,7 +58,13 @@ public class EtapaFormativaController {
     @GetMapping("/listarActivasPorCoordinador")
     public List<EtapaFormativaDto> obtenerEtapasFormativasActivasPorCoordinador(HttpServletRequest request) {
         String cognitoId = jwtService.extractSubFromRequest(request);
+
+        System.out.println("Cognito ID del usuario: " + cognitoId);
+
         UsuarioDto usuario = this.usuarioService.findByCognitoId(cognitoId);
+
+        System.out.println("ID del usuario: " + usuario.getId());
+
         return etapaFormativaService.findAllActivasByCoordinador(usuario.getId());
     }
 

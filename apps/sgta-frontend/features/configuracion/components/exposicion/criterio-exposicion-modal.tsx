@@ -41,6 +41,8 @@ export const CriterioExposicionModal: React.FC<CriterioExposicionModalProps> = (
 }) => {
   const isEditMode = mode === "edit";
 
+  console.log("IS EDIT MODE:", isEditMode, "CRITERIO:", mode);
+
   const [formData, setFormData] = useState<CriterioExposicionFormData>({
     nombre: "",
     descripcion: "",
@@ -81,6 +83,8 @@ export const CriterioExposicionModal: React.FC<CriterioExposicionModalProps> = (
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+
+    console.log("IS EDIT MODE:", isEditMode);
 
     try {
       await onSubmit(formData);
