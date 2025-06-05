@@ -52,14 +52,24 @@ public class CarreraServiceImpl implements CarreraService {
     @Override
     public List<CarreraDto> getCarrerasByUsuario(Integer usuarioId) {
         List<CarreraDto> carrerasList = new ArrayList<>();
+        System.out.println("antes del for1");
         List<Object[]> resultados = carreraRepository.listarCarrerasPorIdUsusario(usuarioId);
 
+
+        System.out.println("antes del for");
         for (Object[] fila : resultados) {
+            // DEBUG: Imprimir tipos de datos reales para evitar errores de casteo
+        System.out.println("fila[0] = " + fila[0] + " (" + fila[0].getClass() + ")");
+        System.out.println("fila[1] = " + fila[1] + " (" + fila[1].getClass() + ")");
+        System.out.println("fila[2] = " + fila[2] + " (" + fila[2].getClass() + ")");
+        System.out.println("fila[3] = " + fila[3] + " (" + fila[3].getClass() + ")");
+
             CarreraDto dto = new CarreraDto();
             dto.setId((Integer) fila[0]); // carrera_id
-            dto.setCodigo((String) fila[1]); // codigo
-            dto.setNombre((String) fila[2]); // nombre
-            dto.setDescripcion((String) fila[3]); // descripcion
+            dto.setUnidadAcademicaId((Integer) fila[1]); // unidad_academica_id
+            dto.setCodigo((String) fila[2]); // codigo
+            dto.setNombre((String) fila[3]); // nombre
+            dto.setDescripcion((String) fila[4]); // descripcion
             dto.setActivo(true);
             carrerasList.add(dto);
         }
