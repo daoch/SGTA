@@ -10,16 +10,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Coasesor,
-  Tema,
-  Tesista,
-} from "@/features/temas/types/inscripcion/entities";
+import { Coasesor, Tesista } from "@/features/temas/types/inscripcion/entities";
 import { estadosValues, Tipo } from "@/features/temas/types/inscripcion/enums";
 import { titleCase } from "@/lib/utils";
 import { FilePen, Trash2 } from "lucide-react";
 import DeleteTemaPopUp from "./delete-tema-pop-up";
 import { TemaDetailsDialog } from "./tema-details-modal";
+import { Tema } from "@/features/temas/types/temas/entidades";
 
 interface PropuestasTableProps {
   temasData: Tema[];
@@ -98,7 +95,7 @@ export function TemasTable({
           {tema.titulo}
         </TableCell>
         {/* Area */}
-        <TableCell>{tema.area[0]?.nombre}</TableCell>
+        <TableCell>{tema.subareas[0]?.nombre}</TableCell>
         {/* Asesor */}
         <TableCell>{asesor ? asesor.nombres : ""}</TableCell>
         {/* Tesistas */}
@@ -109,14 +106,14 @@ export function TemasTable({
             tema.tesistas.map((e: Tesista) => e.nombres).join(", ")
           )}
         </TableCell>
-        {/* Postulaciones */}
-        {tema.estadoTemaNombre === Tipo.LIBRE ? (
+        {/* Postulaciones // TODO: Mostrar postulaciones */}
+        {/* {tema.estadoTemaNombre === Tipo.LIBRE ? (
           <TableCell>
-            {!tema.cantPostulaciones ? "-" : tema.cantPostulaciones}
+            {tema.postulaciones?.length ?? "-"}
           </TableCell>
         ) : (
           <TableCell>-</TableCell>
-        )}
+        )} */}
 
         {/* Tipo */}
         <TableCell>
@@ -200,7 +197,7 @@ export function TemasTable({
               <TableHead>Área</TableHead>
               <TableHead>Asesor</TableHead>
               <TableHead>Estudiante(s)</TableHead>
-              <TableHead>Postulaciones</TableHead>
+              {/* <TableHead>Postulaciones</TableHead> // TODO: Mostrar postulaciones */}
               <TableHead>Tipo</TableHead>
               <TableHead>Estado</TableHead>
               <TableHead className="text-right">Acción</TableHead>

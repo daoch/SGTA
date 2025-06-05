@@ -15,11 +15,9 @@ export async function fetchUsuariosFindById(
   }
 }
 
-export async function obtenerCarrerasPorUsuario(
-  usuarioId: number,
-): Promise<Carrera[]> {
+export async function obtenerCarrerasPorUsuario(): Promise<Carrera[]> {
   try {
-    const response = await axiosInstance.get(`/usuario/${usuarioId}/carreras`);
+    const response = await axiosInstance.get("/usuario/carreras");
     return response.data;
   } catch (error) {
     console.error(
