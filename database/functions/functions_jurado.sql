@@ -1169,3 +1169,21 @@ begin
 end
 $$;
 
+
+CREATE OR REPLACE PROCEDURE llenar_exposicion_x_tema(idexpo integer)
+    LANGUAGE plpgsql
+AS
+$$
+begin
+    INSERT INTO exposicion_x_tema (exposicion_id, tema_id)
+
+    (SELECT idexpo, efct.tema_id
+        FROM exposicion e
+        INNER JOIN etapa_formativa_x_ciclo efc ON e.etapa_formativa_x_ciclo_id = efc.etapa_formativa_x_ciclo_id
+        INNER JOIN etapa_formativa_x_ciclo_x_tema efct ON efc.etapa_formativa_x_ciclo_id = efct.etapa_formativa_x_ciclo_id
+        INNER JOIN tema t ON efct.tema_id = t.tema_id
+            WHERE e.exposicion_id = idexpo
+            -- AND t.estado_tema_id = 10 --  EN_PROGRESO
+    );
+end
+$$;

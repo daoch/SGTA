@@ -47,4 +47,9 @@ public class ExposicionXTemaServiceImpl implements ExposicionXTemaService {
 
     }
 
+    @Override
+    public void createAllRelatedByExposicionId(Integer exposicionId){
+        exposicionXTemaRepository.createAllRelatedByExposicionId(exposicionId);
+    }
+
 }

@@ -52,7 +52,7 @@ BEGIN
 END;
 $function$;
 
-CREATE OR REPLACE FUNCTION sgtadb.obtener_observaciones_por_entregable_y_tema(
+CREATE OR REPLACE FUNCTION obtener_observaciones_por_entregable_y_tema(
     p_entregable_id INTEGER,
     p_tema_id INTEGER
 )
