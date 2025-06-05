@@ -1153,3 +1153,23 @@ RETURN QUERY
 END;
 $function$
 ;
+
+
+
+CREATE OR REPLACE PROCEDURE update_estado_exposicion_usuario(
+    IN p_exposicion_id INTEGER,
+    IN p_tema_id INTEGER
+)
+LANGUAGE plpgsql
+AS $$
+declare
+	 ext_id INTEGER;
+BEGIN
+	select exposicion_x_tema_id into ext_id from exposicion_x_tema where exposicion_id = p_exposicion_id 
+	and tema_id = p_tema_id;
+
+    update control_exposicion_usuario set estado_exposicion_usuario = 'esperando_respuesta'
+	where exposicion_x_tema_id =ext_id;
+END;
+$$;
+
