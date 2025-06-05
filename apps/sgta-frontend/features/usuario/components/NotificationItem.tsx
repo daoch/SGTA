@@ -1,3 +1,5 @@
+// src/features/usuario/components/NotificationItem.tsx
+
 "use client";
 
 import React from "react";
@@ -28,9 +30,12 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
   onMarkAsRead,
   onDismiss,
 }) => {
-  // Elegir icono según el tipo de notificación
+  // Elegir icono según el tipo de notificación (con optional chaining y fallback)
   const getIcon = () => {
-    switch (notificacion.tipoNotificacion.nombre.toLowerCase()) {
+    // Si no existe tipoNotificacion o nombre, usamos string vacío
+    const tipoNombre = notificacion.tipoNotificacion?.nombre?.toLowerCase() ?? "";
+
+    switch (tipoNombre) {
       case "informativa":
         return <Bell className="h-4 w-4 text-blue-500" />;
       case "advertencia":
@@ -74,8 +79,9 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
       <div className="flex-1">
         <div className="flex justify-between items-start gap-1">
           <p className="text-sm font-medium">
-            {notificacion.tipoNotificacion.nombre.toUpperCase()} -{" "}
-            {notificacion.modulo.nombre}
+            {/* Si no hay tipoNotificacion, mostramos "DESCONOCIDO" */}
+            {(notificacion.tipoNotificacion?.nombre ?? "DESCONOCIDO").toUpperCase()} -{" "}
+            {notificacion.modulo?.nombre ?? "—"}
           </p>
 
           {/* Icono “marcar como leída” */}

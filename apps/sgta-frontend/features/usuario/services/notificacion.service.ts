@@ -5,23 +5,31 @@ import {
   INotificacionesListResponseFetched,
   INotificacionesListProcessed,
   INotificacionTransformed,
+  INotificacionesCount,
 } from "../types/notificacion.types";
 import { ELEMENTS_PER_PAGE_DEFAULT } from "@/lib/constants";
 
-const NOTIFICACIONES_API_BASE = "notificaciones"; // Asume /api/notificaciones
-
-// Definimos el tipo que esperamos recibir desde el backend para cada notificación sin transformar:
+/**
+ * Esta interfaz refleja exactamente la forma “plana” de la API:
+ *   • módulo, tipo y prioridad vienen como campos separados:
+ *       - moduloNombre
+ *       - tipoNotificacionNombre
+ *       - tipoNotificacionPrioridad
+ */
 interface INotificacionFetched {
   id: number;
   mensaje: string;
   canal: string;
+  fechaCreacion: string;       // ISO String
+  fechaLectura: string | null; // ISO String o null
   activo: boolean;
-  enlaceRedireccion: string;
-  fechaCreacion: string;
-  fechaLectura: string | null;
+
+  // Campos planos que devuelve el backend:
   moduloNombre: string;
   tipoNotificacionNombre: string;
   tipoNotificacionPrioridad: number;
+
+  enlaceRedireccion: string | null;
 }
 
 /**
@@ -32,38 +40,37 @@ export async function getMisNotificaciones(
   size: number = ELEMENTS_PER_PAGE_DEFAULT,
   soloNoLeidas: boolean = false
 ): Promise<INotificacionesListProcessed> {
-  // Definimos un tipo explícito para params en lugar de 'any'
-  interface Params {
-    page: number;
-    size: number;
-    leidas?: boolean;
-  }
-  const params: Params = { page, size };
+  const params: { page: number; size: number; leidas?: boolean } = { page, size };
   if (soloNoLeidas) {
     params.leidas = false;
   }
 
   try {
     const response = await axiosInstance.get<INotificacionesListResponseFetched>(
-      `${NOTIFICACIONES_API_BASE}`,
+      `notificaciones`,
       { params }
     );
     const data = response.data;
 
-    // Mapeo de cada elemento bruto a INotificacionTransformed
-    const transformed: INotificacionTransformed[] = (data.content || []).map(
-      (n) => ({
-        id: n.id,
-        mensaje: n.mensaje,
-        canal: n.canal,
-        activo: n.activo,
-        enlaceRedireccion: n.enlaceRedireccion,
-        fechaCreacion: new Date(n.fechaCreacion),
-        fechaLectura: n.fechaLectura ? new Date(n.fechaLectura) : null,
-        modulo: n.modulo,
-        tipoNotificacion: n.tipoNotificacion,
-      })
-    );
+    const transformed: INotificacionTransformed[] = (data.content || []).map((n) => ({
+      id: n.id,
+      mensaje: n.mensaje,
+      canal: n.canal,
+      activo: n.activo,
+      enlaceRedireccion: n.enlaceRedireccion,
+      fechaCreacion: new Date(n.fechaCreacion),
+      fechaLectura: n.fechaLectura ? new Date(n.fechaLectura) : null,
+
+      modulo: {
+        id: 0,
+        nombre: n.moduloNombre,
+      },
+      tipoNotificacion: {
+        id: 0,
+        nombre: n.tipoNotificacionNombre,
+        prioridad: n.tipoNotificacionPrioridad,
+      },
+    }));
 
     return {
       notificaciones: transformed,
@@ -71,8 +78,8 @@ export async function getMisNotificaciones(
       totalElements: data.totalElements,
       currentPage: data.number,
     };
-  } catch {
-    // En caso de error devolvemos un objeto vacío
+  } catch (error) {
+    console.error("Error al obtener notificaciones:", error);
     return {
       notificaciones: [],
       totalPages: 0,
@@ -83,15 +90,16 @@ export async function getMisNotificaciones(
 }
 
 /**
- * Obtener conteo de notificaciones no leídas
+ * Obtener el conteo de notificaciones no leídas
  */
-export async function getCountMisNotificacionesNoLeidas(): Promise<{ count: number }> {
+export async function getCountMisNotificacionesNoLeidas(): Promise<INotificacionesCount> {
   try {
-    const response = await axiosInstance.get<{ count: number }>(
-      `${NOTIFICACIONES_API_BASE}/count-no-leidas`
+    const response = await axiosInstance.get<INotificacionesCount>(
+      `notificaciones/count-no-leidas`
     );
     return response.data;
-  } catch {
+  } catch (error) {
+    console.error("Error al obtener conteo de notificaciones no leídas:", error);
     return { count: 0 };
   }
 }
@@ -102,47 +110,38 @@ export async function getCountMisNotificacionesNoLeidas(): Promise<{ count: numb
 export async function marcarNotificacionComoLeidaApi(
   notificacionId: number
 ): Promise<INotificacionTransformed> {
-  try {
-    // Usamos el tipo INotificacionFetched en lugar de 'any'
-    const response = await axiosInstance.post<INotificacionFetched>(
-      `${NOTIFICACIONES_API_BASE}/${notificacionId}/marcar-leida`
-    );
-    const data = response.data;
+  const response = await axiosInstance.post<INotificacionFetched>(
+    `notificaciones/${notificacionId}/marcar-leida`
+  );
+  const data = response.data;
 
-    return {
-      id: data.id,
-      mensaje: data.mensaje,
-      canal: data.canal,
-      activo: data.activo,
-      enlaceRedireccion: data.enlaceRedireccion,
-      fechaCreacion: new Date(data.fechaCreacion),
-      fechaLectura: data.fechaLectura ? new Date(data.fechaLectura) : null,
-      modulo: {
-        id: 0,
-        nombre: data.moduloNombre,
-      },
-      tipoNotificacion: {
-        id: 0,
-        nombre: data.tipoNotificacionNombre,
-        prioridad: data.tipoNotificacionPrioridad,
-      },
-    };
-  } catch (_error) {
-    // Re-lanzamos el error capturado
-    throw _error;
-  }
+  return {
+    id: data.id,
+    mensaje: data.mensaje,
+    canal: data.canal,
+    activo: data.activo,
+    enlaceRedireccion: data.enlaceRedireccion,
+    fechaCreacion: new Date(data.fechaCreacion),
+    fechaLectura: data.fechaLectura ? new Date(data.fechaLectura) : null,
+
+    modulo: {
+      id: 0,
+      nombre: data.moduloNombre,
+    },
+    tipoNotificacion: {
+      id: 0,
+      nombre: data.tipoNotificacionNombre,
+      prioridad: data.tipoNotificacionPrioridad,
+    },
+  };
 }
 
 /**
  * Marcar todas las notificaciones como leídas
  */
 export async function marcarTodasMisNotificacionesComoLeidasApi(): Promise<{ count: number }> {
-  try {
-    const response = await axiosInstance.post<{ count: number }>(
-      `${NOTIFICACIONES_API_BASE}/marcar-todas-leidas`
-    );
-    return response.data;
-  } catch (_error) {
-    throw _error;
-  }
+  const response = await axiosInstance.post<{ count: number }>(
+    `notificaciones/marcar-todas-leidas`
+  );
+  return response.data;
 }
