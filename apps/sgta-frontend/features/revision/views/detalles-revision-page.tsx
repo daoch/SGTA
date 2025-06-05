@@ -59,7 +59,7 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
         setRevision(data);
         const obs = await obtenerObservacionesRevision(data.id);
         setObservaciones(obs);
-      } catch (err: any) {
+      } catch {
         setError("Error al cargar los datos de la revisión");
       } finally {
         setLoading(false);
