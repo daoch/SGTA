@@ -337,7 +337,8 @@ BEGIN
     FROM tema t
     INNER JOIN estado_tema et ON et.estado_tema_id = t.estado_tema_id
     WHERE t.tema_id = p_tema_id
-      AND et.nombre IN ('PREINSCRITO', 'INSCRITO', 'REGISTRADO', 'EN_PROGRESO', 'PAUSADO');
+      AND et.nombre IN ('PREINSCRITO', 'INSCRITO', 'REGISTRADO', 'EN_PROGRESO', 'PAUSADO')
+	  AND t.activo = TRUE;
 
     RETURN v_existe;
 END;
@@ -794,6 +795,7 @@ SELECT
   AND uta.usuario_id = p_id_alumno
   AND uta.rol_id = 4
   AND uta.activo = TRUE
+  AND t.activo = TRUE
   GROUP BY t.tema_id, t.titulo, et.nombre, u.usuario_id;
 END;
 $$ LANGUAGE plpgsql;

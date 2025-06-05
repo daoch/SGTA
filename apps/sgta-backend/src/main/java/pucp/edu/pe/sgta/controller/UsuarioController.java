@@ -223,8 +223,13 @@ public class UsuarioController {
     @GetMapping("/asesor-directory-by-filters")
     public ResponseEntity<List<PerfilAsesorDto>> getDirectorioDeAsesoresPorFiltros(
             @ModelAttribute FiltrosDirectorioAsesores filtros,
-            HttpServletRequest request) {
-        usuarioService.validarTipoUsuarioRolUsuario(jwtService.extractSubFromRequest(request), List.of(TipoUsuarioEnum.alumno, TipoUsuarioEnum.profesor) ,null);
+            HttpServletRequest request
+    ) {
+        usuarioService.validarTipoUsuarioRolUsuario(
+                            jwtService.extractSubFromRequest(request),
+                            List.of(TipoUsuarioEnum.alumno, TipoUsuarioEnum.profesor),
+                            null
+        );
         List<PerfilAsesorDto> asesores = usuarioService.getDirectorioDeAsesoresPorFiltros(filtros);
         return new ResponseEntity<>(asesores, HttpStatus.OK);
 

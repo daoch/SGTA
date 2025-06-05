@@ -2848,4 +2848,23 @@ INSERT INTO carrera_parametro_configuracion (
     NOW(),                         -- Fecha de modificación actual
     1
 );
+INSERT INTO rol_solicitud (nombre, descripcion, activo, fecha_creacion, fecha_modificacion) VALUES
+('REMITENTE', 'Usuario que inicia la solicitud', TRUE, NOW(), NOW()),
+('DESTINATARIO', 'Usuario al que está dirigida la solicitud', TRUE, NOW(), NOW()),
+('ASESOR_ACTUAL', 'Asesor vigente del usuario', TRUE, NOW(), NOW()),
+('ASESOR_ENTRADA', 'Asesor saliente del usuario', TRUE, NOW(), NOW());
+
+INSERT INTO accion_solicitud (nombre, descripcion, activo, fecha_creacion, fecha_modificacion) VALUES
+('SIN_ACCION', 'Sin acción tomada aún', TRUE, NOW(), NOW()),
+('PENDIENTE_ACCION', 'En espera de una acción', TRUE, NOW(), NOW()),
+('APROBADO', 'Solicitud aprobada', TRUE, NOW(), NOW()),
+('RECHAZADO', 'Solicitud rechazada', TRUE, NOW(), NOW());
+
+INSERT INTO estado_solicitud (nombre, descripcion, activo, fecha_creacion, fecha_modificacion) VALUES
+('PENDIENTE', 'La solicitud está en proceso de evaluación', TRUE, NOW(), NOW()),
+('ACEPTADA', 'La solicitud ha sido aceptada', TRUE, NOW(), NOW()),
+('RECHAZADA', 'La solicitud ha sido rechazada', TRUE, NOW(), NOW());
+
+insert into tipo_solicitud(nombre, descripcion, activo, fecha_creacion, fecha_modificacion)
+values('Cambio de asesor (por asesor)', 'Solicitud para que el coordinador apruebe el cambio de asesores', true, now(), now());
 
