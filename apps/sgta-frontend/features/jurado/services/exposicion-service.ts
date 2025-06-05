@@ -6,7 +6,7 @@ import axios from "axios";
 
 export const getEtapasFormativasPorInicializarByCoordinador = async () => {
   const response = await axiosInstance.get(
-    "/etapas-formativas/listarPorInicializarByCoordinador/",
+    "/etapas-formativas/listarPorInicializarByCoordinador"
   );
   return response.data;
 };

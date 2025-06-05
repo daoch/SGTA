@@ -24,10 +24,10 @@ import pucp.edu.pe.sgta.service.inter.UsuarioService;
 @RequestMapping("/etapas-formativas")
 public class EtapaFormativaController {
     @Autowired
-    EtapaFormativaService etapaFormativaService;
+    private EtapaFormativaService etapaFormativaService;
 
     @Autowired
-    JwtService jwtService;
+    private JwtService jwtService;
 
     @Autowired
     private UsuarioService usuarioService;
@@ -35,7 +35,13 @@ public class EtapaFormativaController {
     @GetMapping("/listarPorInicializarByCoordinador")
     public List<EtapaFormativaNombreDTO> obtenerPorInicializarPorCoordinador(HttpServletRequest request) {
         String cognitoId = jwtService.extractSubFromRequest(request);
+
+        //System.out.println("Cognito ID del usuario: " + cognitoId);
+        
         UsuarioDto usuario = this.usuarioService.findByCognitoId(cognitoId);
+
+        //System.out.println("ID del usuario: " + usuario.getId());
+
         return etapaFormativaService.findToInitializeByCoordinador(usuario.getId());
     }
 
