@@ -62,7 +62,7 @@ const PlanificationPanel: React.FC<Props> = ({
 
   return (
     <div
-      className="h-full w-full flex flex-col gap-4"
+      className="h-full w-full flex flex-col gap-3"
       onContextMenu={(e) => {
         e.preventDefault();
       }}
