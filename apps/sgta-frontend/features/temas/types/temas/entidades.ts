@@ -21,6 +21,7 @@ export interface Tema {
   subareas: Subareas[];
   requisitos: string; //agregado
   area: AreaConocimiento[];
+  cantPostulaciones: number;
 }
 
 export interface Carrera {
