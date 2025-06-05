@@ -79,7 +79,7 @@ export function LineaTiempoReporte({ user }: Props) {
   useEffect(() => {
     const fetchEntregables = async () => {
       try {
-        const alumnoId = "36"; // Hardcodeado por ahora
+        const alumnoId = "11"; // Hardcodeado por ahora
         const data = await getEntregablesAlumno(alumnoId);
 
         // console.log("→ data recibida de getEntregablesAlumno:", data);
