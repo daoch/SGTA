@@ -240,11 +240,13 @@ export function TemaCard() {
         </div>
       </CardContent>
       <CardFooter className="flex justify-between">
-        <Link href={`/alumno/temas/${tesisData.id}`}>
-          <Button variant="outline">
-            <Eye className="mr-2 h-4 w-4" /> Ver observaciones
-          </Button>
-        </Link>
+        {tesisData.estadoActual === "Inscrito" && (
+          <Link href={`/alumno/temas/${tesisData.id}`}>
+            <Button variant="outline">
+              <Eye className="mr-2 h-4 w-4" /> Ver observaciones
+            </Button>
+          </Link>
+        )}
       </CardFooter>
     </Card>
   );
