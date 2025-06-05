@@ -653,3 +653,199 @@ SELECT 1, parametro_configuracion_id, '2025-06-30T00:00:00Z', TRUE, NOW(), NOW()
     FROM nuevo_parametro;
 
 -- LAS JORNADAS DE EXPOSICIÓN ESTÁN EN INSERTS JURADO.
+
+
+
+
+INSERT INTO
+    usuario (
+        tipo_usuario_id,
+        codigo_pucp,
+        nombres,
+        primer_apellido,
+        segundo_apellido,
+        correo_electronico,
+        nivel_estudios,
+        contrasena,
+        biografia,
+        foto_perfil,
+        disponibilidad,
+        tipo_disponibilidad,
+        activo,
+        fecha_creacion,
+        fecha_modificacion
+    )
+VALUES
+    -- Nuevo usuario Paolo Ore
+    (
+        2,                                 -- tipo_usuario_id = Alumno
+        'A004',                            -- código PUCP
+        'Paolo',                           -- nombres
+        'Ore',                             -- primer_apellido
+        'Ventura',                         -- segundo_apellido
+        'ore.paolo@pucp.edu.pe',           -- correo_electronico
+        'Pregrado',                        -- nivel_estudios
+        'secretPaolo123',                  -- contrasena (en texto plano como en el ejemplo)
+        'Estudiante de Comunicaciones.',   -- biografia
+        NULL,                              -- foto_perfil
+        'Lun-Vie 10-18',                   -- disponibilidad
+        'Remoto',                          -- tipo_disponibilidad
+        TRUE,                              -- activo
+        NOW(),                             -- fecha_creacion
+        NOW()                              -- fecha_modificacion
+    );
+
+--select * from usuario
+
+INSERT INTO usuario_tema (
+    usuario_id,
+    tema_id,
+    rol_id
+)
+SELECT
+    u.usuario_id,
+    CASE u.codigo_pucp
+        WHEN 'A004' THEN 3 -- Tema: Machine Learning para Datos No Estructurados
+        WHEN 'A005' THEN 4 -- Tema: Redes Neuronales Profundas
+        WHEN 'A006' THEN 5 -- Tema: Big Data y Análisis Predictivo
+        WHEN 'A007' THEN 6 -- Tema: Automatización en la Industria 4.0
+        WHEN 'A008' THEN 7 -- Tema: Blockchain y su Aplicación en Logística
+    END AS tema_id,
+    2 AS rol_id           -- rol de Tesista
+FROM usuario u
+WHERE u.nombres = 'Paolo' and primer_apellido='Ore'; 
+
+--tema_id obtenido es 3
+--select * from usuario_tema
+--DELETE FROM entregable_x_tema;
+
+INSERT INTO entregable_x_tema (entregable_id, tema_id, estado, fecha_envio) 
+VALUES (1, 3, DEFAULT, DATE '2025-03-01'); -- Estado por defecto: 'no_enviado'
+
+-- Registro 2 (entregable_id = 2)
+INSERT INTO entregable_x_tema (entregable_id, tema_id, estado, fecha_envio) 
+VALUES (2, 3, 'enviado_a_tiempo', DATE '2025-02-01');
+
+-- Registro 3 (entregable_id = 3)
+INSERT INTO entregable_x_tema (entregable_id, tema_id, estado, fecha_envio) 
+VALUES (3, 3, 'enviado_tarde',  DATE '2025-01-01');
+
+
+--select * from entregable_x_tema
+
+--select * from entregable
+
+INSERT INTO criterio_entregable (
+    entregable_id,
+    nombre,
+    nota_maxima,
+    descripcion
+) VALUES
+    (1, 'Claridad en la redacción', 20.00, 'Se evalúa la claridad, coherencia y cohesión del contenido entregado.'),
+    (2, 'Cumplimiento de requisitos', 20.00, 'Se verifica que el entregable cumpla con todos los requisitos solicitados.'),
+	(3, 'Originalidad del contenido', 20.00, 'Se evalúa la capacidad de presentar ideas propias y enfoques creativos en el entregable.'),
+	(1, 'Presentación visual', 20.00, 'Se evalúa el formato, uso adecuado de gráficos, y presentación ordenada del entregable.'),
+    (2, 'Análisis crítico', 20.00, 'Se mide la capacidad para interpretar y argumentar los resultados con pensamiento crítico.');
+	
+
+--select * from criterio_entregable
+
+INSERT INTO revision_criterio_entregable (
+    entregable_x_tema_id,
+    criterio_entregable_id,
+    usuario_id,
+    nota,
+    observacion
+) VALUES
+    (1, 1, 36, 17.00, NULL),
+    (2, 2, 36, 10.00, NULL),
+	(3, 3, 36, 19.00, NULL);
+
+
+INSERT INTO parametro_configuracion (
+    nombre,
+    descripcion,
+    modulo_id,
+    activo,
+    fecha_creacion,
+    fecha_modificacion,
+    tipo
+) VALUES (
+    'Cantidad Jurados',
+    'cantidad maxima de jurados por tesis',
+    1,
+    true,
+    NOW(),       -- Fecha de creación actual
+    NOW(),        -- Fecha de modificación actual
+    'integer'
+);
+
+
+INSERT INTO carrera_parametro_configuracion (
+    carrera_id,
+    parametro_configuracion_id,
+    valor,
+    activo,
+    fecha_creacion,
+    fecha_modificacion,
+    etapa_formativa_id
+) VALUES (
+    1,  -- ID de la carrera
+    (
+        SELECT parametro_configuracion_id
+        FROM parametro_configuracion
+        WHERE nombre = 'Cantidad Jurados'
+        LIMIT 1
+    ),
+    3,      -- Valor de la configuración
+    true,   -- Estado activo
+    NOW(),  -- Fecha de creación
+    NOW(),  -- Fecha de modificación
+    1       -- ID de etapa formativa
+);
+
+
+------------------------------------------------------------------------------------------------------
+
+
+INSERT INTO parametro_configuracion (
+    nombre,
+    descripcion,
+    modulo_id,
+    activo,
+    fecha_creacion,
+    fecha_modificacion,
+    tipo
+) VALUES (
+    'Tiempo Limite Jurado',
+    'Tiempo limite para que jurado revise entregables',
+    1,
+    true,
+    NOW(),       -- Fecha de creación actual
+    NOW(),        -- Fecha de modificación actual
+    'integer'
+);
+
+INSERT INTO carrera_parametro_configuracion (
+    carrera_id,
+    parametro_configuracion_id,
+    valor,
+    activo,
+    fecha_creacion,
+    fecha_modificacion,
+    etapa_formativa_id
+) VALUES (
+    1,                            -- ID de la carrera asociada (ejemplo: 1)
+    (
+        SELECT parametro_configuracion_id
+        FROM parametro_configuracion
+        WHERE nombre = 'Tiempo Limite Jurado'
+        LIMIT 1
+    ),                            -- ID del parametro_configuracion asociado (ejemplo: 1)
+    15,                            -- Valor de la configuración
+    true,                         -- Estado activo
+    NOW(),                        -- Fecha de creación actual
+    NOW(),                         -- Fecha de modificación actual
+    1
+);
+

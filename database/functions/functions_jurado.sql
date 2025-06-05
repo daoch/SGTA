@@ -1043,3 +1043,113 @@ BEGIN
     RETURN existe_conflicto;
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION obtener_profesores()
+RETURNS TABLE(
+    id_usuario INTEGER,
+    nombres TEXT,
+    primer_apellido TEXT,
+    segundo_apellido TEXT,
+    codigo_pucp TEXT,
+    correo_electronico TEXT,
+    tipo_dedicacion TEXT,
+    cantidad_temas_asignados BIGINT
+)
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+    u.usuario_id AS id_usuario,
+	u.nombres::TEXT,
+	u.primer_apellido::TEXT,
+	u.segundo_apellido::TEXT,
+	u.codigo_pucp::TEXT,
+	u.correo_electronico::TEXT,
+	td.iniciales::TEXT AS tipo_dedicacion,
+	ut.cantidad_temas_asignados
+FROM usuario u
+INNER JOIN tipo_usuario tu ON u.tipo_usuario_id = tu.tipo_usuario_id
+INNER JOIN tipo_dedicacion td ON u.tipo_dedicacion_id = td.tipo_dedicacion_id
+INNER JOIN (
+    SELECT usuario_id AS id_usuario, COUNT(*) AS cantidad_temas_asignados
+    FROM usuario_tema
+    WHERE activo = true
+    GROUP BY usuario_id
+) ut ON u.usuario_id = ut.id_usuario
+WHERE
+	tu.nombre = 'profesor'
+	AND u.activo = true
+ORDER BY ut.cantidad_temas_asignados ASC;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION listar_bloques_con_temas_y_usuarios(p_exposicion_id integer)
+ RETURNS TABLE(bloque_horario_exposicion_id integer, jornada_exposicion_x_sala_id integer, exposicion_x_tema_id integer, es_bloque_reservado boolean, es_bloque_bloqueado boolean, datetime_inicio timestamp with time zone, datetime_fin timestamp with time zone, sala_nombre text, tema_id integer, tema_codigo character varying, tema_titulo character varying, usuario_id integer, nombres character varying, apellidos character varying, rol_id integer, rol_nombre character varying, estado_usuario_expo character varying)
+ LANGUAGE plpgsql
+ STABLE
+AS $function$
+DECLARE
+    p_etapa_id INTEGER;
+BEGIN
+	select e.etapa_formativa_id into p_etapa_id 
+	from etapa_formativa e 
+	inner join etapa_formativa_x_ciclo  efc on efc.etapa_formativa_id =  e.etapa_formativa_id
+	inner join exposicion expo on expo.etapa_formativa_x_ciclo_id = efc.etapa_formativa_x_ciclo_id
+	where expo.exposicion_id = p_exposicion_id;
+RETURN QUERY
+ SELECT
+        bhe.bloque_horario_exposicion_id,
+        bhe.jornada_exposicion_x_sala_id,
+        bhe.exposicion_x_tema_id,
+        bhe.es_bloque_reservado,
+        bhe.es_bloque_bloqueado,
+        bhe.datetime_inicio,
+        bhe.datetime_fin,
+        se.nombre AS sala_nombre,
+        t.tema_id,
+        t.codigo::VARCHAR,
+        t.titulo::VARCHAR,
+        u.usuario_id,
+        u.nombres,
+        u.primer_apellido,
+        r.rol_id,
+        r.nombre,
+        ceu.estado_exposicion_usuario
+    FROM bloque_horario_exposicion bhe
+    INNER JOIN jornada_exposicion_x_sala_exposicion jexse
+        ON jexse.jornada_exposicion_x_sala_id = bhe.jornada_exposicion_x_sala_id
+    INNER JOIN jornada_exposicion je
+        ON je.jornada_exposicion_id = jexse.jornada_exposicion_id
+    INNER JOIN exposicion e
+        ON e.exposicion_id = je.exposicion_id
+    INNER JOIN sala_exposicion se
+        ON jexse.sala_exposicion_id = se.sala_exposicion_id
+    LEFT JOIN exposicion_x_tema et
+        ON bhe.exposicion_x_tema_id = et.exposicion_x_tema_id
+    LEFT JOIN tema t
+        ON t.tema_id = et.tema_id
+    LEFT JOIN etapa_formativa_x_ciclo_x_tema efct
+        ON t.tema_id = efct.tema_id
+    LEFT JOIN etapa_formativa_x_ciclo efc
+        ON efct.etapa_formativa_x_ciclo_id = efc.etapa_formativa_x_ciclo_id
+    LEFT JOIN etapa_formativa ef
+        ON ef.etapa_formativa_id = efc.etapa_formativa_id
+    LEFT JOIN ciclo c
+        ON c.ciclo_id = efc.ciclo_id AND c.activo = TRUE
+    LEFT JOIN usuario_tema ut
+        ON ut.tema_id = t.tema_id
+    LEFT JOIN usuario u
+        ON u.usuario_id = ut.usuario_id
+    LEFT JOIN rol r
+        ON r.rol_id = ut.rol_id
+    LEFT JOIN control_exposicion_usuario ceu
+	    ON ceu.usuario_x_tema_id = ut.usuario_tema_id
+	    AND ceu.exposicion_x_tema_id = et.exposicion_x_tema_id
+    WHERE bhe.activo = TRUE
+      AND je.exposicion_id = p_exposicion_id
+      AND (ef.etapa_formativa_id = p_etapa_id OR ef.etapa_formativa_id IS NULL)
+
+    ORDER BY bhe.bloque_horario_exposicion_id;
+END;
+$function$
+;

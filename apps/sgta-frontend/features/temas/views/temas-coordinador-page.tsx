@@ -12,7 +12,6 @@ import {
   DropdownMenuTrigger,
 } from "@radix-ui/react-dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TemasTable } from "../components/asesor/temas-table";
 import {
   DropdownMenuContent,
   DropdownMenuLabel,
@@ -23,6 +22,7 @@ import {
 import { Button } from "@/components/ui/button";
 import React from "react";
 import { Input } from "@/components/ui/input";
+import { TemasTableCoordinador } from "../components/coordinador/temas-table-coordinador";
 
 enum TabValues {
   TODOS = "todos",
@@ -94,7 +94,7 @@ const TemasCoordinadorPage = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <TemasTable
+          <TemasTableCoordinador
             filter={TabValues.INSCRITOS}
             showPostulaciones={false}
             showTipo={false}
@@ -106,3 +106,4 @@ const TemasCoordinadorPage = () => {
 };
 
 export default TemasCoordinadorPage;
+

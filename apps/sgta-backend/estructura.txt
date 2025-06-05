@@ -1,0 +1,1134 @@
+Listado de rutas de carpetas para el volumen DATA
+El número de serie del volumen es 35BD-71C0
+D:.
+¦   .dockerignore
+¦   .env
+¦   .gitignore
+¦   Dockerfile
+¦   estructura.txt
+¦   mvnw
+¦   mvnw.cmd
+¦   package.json
+¦   pom.xml
+¦   sonar-project.properties
+¦   
++---.mvn
+¦   +---wrapper
+¦           maven-wrapper.properties
+¦           
++---logs
+¦       application.log
+¦       
++---src
+¦   +---main
+¦   ¦   +---java
+¦   ¦   ¦   +---pucp
+¦   ¦   ¦       +---edu
+¦   ¦   ¦           +---pe
+¦   ¦   ¦               +---sgta
+¦   ¦   ¦                   ¦   SgtaApplication.java
+¦   ¦   ¦                   ¦   
+¦   ¦   ¦                   +---config
+¦   ¦   ¦                   ¦       .gitkeep
+¦   ¦   ¦                   ¦       AWSConfig.java
+¦   ¦   ¦                   ¦       CorsConfig.java
+¦   ¦   ¦                   ¦       OpenApiConfig.java
+¦   ¦   ¦                   ¦       
+¦   ¦   ¦                   +---controller
+¦   ¦   ¦                   ¦       .gitkeep
+¦   ¦   ¦                   ¦       AreaConocimientoController.java
+¦   ¦   ¦                   ¦       BloqueHorarioExposicionController.java
+¦   ¦   ¦                   ¦       CarreraController.java
+¦   ¦   ¦                   ¦       CarreraXParametroConfiguracionController.java
+¦   ¦   ¦                   ¦       CicloController.java
+¦   ¦   ¦                   ¦       CriterioEntregableController.java
+¦   ¦   ¦                   ¦       CriterioEntregablePresetController.java
+¦   ¦   ¦                   ¦       CriterioExposicionController.java
+¦   ¦   ¦                   ¦       CriterioExposicionPresetController.java
+¦   ¦   ¦                   ¦       DocumentoController.java
+¦   ¦   ¦                   ¦       EntregableController.java
+¦   ¦   ¦                   ¦       EstadoPlanificacionController.java
+¦   ¦   ¦                   ¦       EtapaFormativaController.java
+¦   ¦   ¦                   ¦       EtapaFormativaXCicloController.java
+¦   ¦   ¦                   ¦       EtapaFormativaXSalaExposicionController.java
+¦   ¦   ¦                   ¦       EventoController.java
+¦   ¦   ¦                   ¦       ExposicionController.java
+¦   ¦   ¦                   ¦       JornadaExposicionController.java
+¦   ¦   ¦                   ¦       JornadaExposicionXSalaExposicionController.java
+¦   ¦   ¦                   ¦       MiembroJuradoController.java
+¦   ¦   ¦                   ¦       PlagiarismController.java
+¦   ¦   ¦                   ¦       ProyectoController.java
+¦   ¦   ¦                   ¦       ReportsController.java
+¦   ¦   ¦                   ¦       ReunionController.java
+¦   ¦   ¦                   ¦       RevisionDocumentoController.java
+¦   ¦   ¦                   ¦       RolController.java
+¦   ¦   ¦                   ¦       S3FileController.java
+¦   ¦   ¦                   ¦       SolicitudController.java
+¦   ¦   ¦                   ¦       SubAreaConocimientoController.java
+¦   ¦   ¦                   ¦       TemaController.java
+¦   ¦   ¦                   ¦       TipoDedicacionController.java
+¦   ¦   ¦                   ¦       UsuarioController.java
+¦   ¦   ¦                   ¦       
+¦   ¦   ¦                   +---dto
+¦   ¦   ¦                   ¦   ¦   .gitkeep
+¦   ¦   ¦                   ¦   ¦   AdvisorPerformanceDto.java
+¦   ¦   ¦                   ¦   ¦   AlumnoTemaDto.java
+¦   ¦   ¦                   ¦   ¦   AprobarSolicitudCambioAsesorRequestDto.java
+¦   ¦   ¦                   ¦   ¦   AprobarSolicitudCambioAsesorResponseDto.java
+¦   ¦   ¦                   ¦   ¦   AprobarSolicitudRequestDto.java
+¦   ¦   ¦                   ¦   ¦   AprobarSolicitudResponseDto.java
+¦   ¦   ¦                   ¦   ¦   AreaConocimientoDto.java
+¦   ¦   ¦                   ¦   ¦   AreaFinalDTO.java
+¦   ¦   ¦                   ¦   ¦   AsignacionBloqueDTO.java
+¦   ¦   ¦                   ¦   ¦   AsignarJuradoRequest.java
+¦   ¦   ¦                   ¦   ¦   BloqueHorarioExposicionCreateDTO.java
+¦   ¦   ¦                   ¦   ¦   BloqueHorarioExposicionDto.java
+¦   ¦   ¦                   ¦   ¦   CarreraDto.java
+¦   ¦   ¦                   ¦   ¦   CarreraXParametroConfiguracionDto.java
+¦   ¦   ¦                   ¦   ¦   CicloConEtapasDTO.java
+¦   ¦   ¦                   ¦   ¦   CicloConEtapasProjection.java
+¦   ¦   ¦                   ¦   ¦   CicloDto.java
+¦   ¦   ¦                   ¦   ¦   CicloTesisDto.java
+¦   ¦   ¦                   ¦   ¦   ControlExposicionUsuarioTemaDto.java
+¦   ¦   ¦                   ¦   ¦   CriterioEntregableDto.java
+¦   ¦   ¦                   ¦   ¦   CriterioExposicionDto.java
+¦   ¦   ¦                   ¦   ¦   DetalleSolicitudCeseDto.java
+¦   ¦   ¦                   ¦   ¦   DetalleTesistaDTO.java
+¦   ¦   ¦                   ¦   ¦   DistribucionRequestDTO.java
+¦   ¦   ¦                   ¦   ¦   DocumentoConVersionDto.java
+¦   ¦   ¦                   ¦   ¦   EntregableAlumnoDto.java
+¦   ¦   ¦                   ¦   ¦   EntregableDto.java
+¦   ¦   ¦                   ¦   ¦   EntregableEstudianteDto.java
+¦   ¦   ¦                   ¦   ¦   EntregableSubidoDto.java
+¦   ¦   ¦                   ¦   ¦   EntregableXTemaDto.java
+¦   ¦   ¦                   ¦   ¦   EstadoPlanificacionDto.java
+¦   ¦   ¦                   ¦   ¦   EstadoTemaDto.java
+¦   ¦   ¦                   ¦   ¦   EstudiantesDto.java
+¦   ¦   ¦                   ¦   ¦   EtapaFormativaAlumnoDto.java
+¦   ¦   ¦                   ¦   ¦   EtapaFormativaDetalleDto.java
+¦   ¦   ¦                   ¦   ¦   EtapaFormativaDto.java
+¦   ¦   ¦                   ¦   ¦   EtapaFormativaListadoDto.java
+¦   ¦   ¦                   ¦   ¦   EtapaFormativaNombreDTO.java
+¦   ¦   ¦                   ¦   ¦   EtapaFormativaTesisDto.java
+¦   ¦   ¦                   ¦   ¦   EtapaFormativaXCicloDto.java
+¦   ¦   ¦                   ¦   ¦   EtapaFormativaXSalaExposicionConEtapaFormativaDTO.java
+¦   ¦   ¦                   ¦   ¦   EtapaFormativaXSalaExposicionDto.java
+¦   ¦   ¦                   ¦   ¦   EventoDto.java
+¦   ¦   ¦                   ¦   ¦   ExposicionDto.java
+¦   ¦   ¦                   ¦   ¦   ExposicionEstudianteDTO.java
+¦   ¦   ¦                   ¦   ¦   ExposicionNombreDTO.java
+¦   ¦   ¦                   ¦   ¦   ExposicionSinInicializarDTO.java
+¦   ¦   ¦                   ¦   ¦   ExposicionXTemaDto.java
+¦   ¦   ¦                   ¦   ¦   HistorialReunionDTO.java
+¦   ¦   ¦                   ¦   ¦   HistorialTemaDto.java
+¦   ¦   ¦                   ¦   ¦   HitoCronogramaDTO.java
+¦   ¦   ¦                   ¦   ¦   IniatilizeJornadasExposicionCreateDTO.java
+¦   ¦   ¦                   ¦   ¦   JornadaExposicionCreateDTO.java
+¦   ¦   ¦                   ¦   ¦   JornadaExposicionDto.java
+¦   ¦   ¦                   ¦   ¦   JornadaExposicionXSalaExposicionCreateDTO.java
+¦   ¦   ¦                   ¦   ¦   JornadaExposicionXSalaExposicionDto.java
+¦   ¦   ¦                   ¦   ¦   JornadaExposicionXSalaExposicionListadoDTO.java
+¦   ¦   ¦                   ¦   ¦   JuradoAreaDto.java
+¦   ¦   ¦                   ¦   ¦   JuradoXAreaConocimientoDto.java
+¦   ¦   ¦                   ¦   ¦   ListBloqueHorarioExposicionDTO.java
+¦   ¦   ¦                   ¦   ¦   ListBloqueHorarioExposicionSimpleDTO.java
+¦   ¦   ¦                   ¦   ¦   ListExposicionXCoordinadorDTO.java
+¦   ¦   ¦                   ¦   ¦   MiembroJuradoDto.java
+¦   ¦   ¦                   ¦   ¦   MiembroJuradoXTemaDto.java
+¦   ¦   ¦                   ¦   ¦   MiembroJuradoXTemaTesisDto.java
+¦   ¦   ¦                   ¦   ¦   ParametroConfiguracionDto.java
+¦   ¦   ¦                   ¦   ¦   QueryRolResponse.java
+¦   ¦   ¦                   ¦   ¦   RechazoSolicitudCambioAsesorRequestDto.java
+¦   ¦   ¦                   ¦   ¦   RechazoSolicitudCambioAsesorResponseDto.java
+¦   ¦   ¦                   ¦   ¦   RechazoSolicitudRequestDto.java
+¦   ¦   ¦                   ¦   ¦   RechazoSolicitudResponseDto.java
+¦   ¦   ¦                   ¦   ¦   RestriccionExposicionDto.java
+¦   ¦   ¦                   ¦   ¦   ReunionDto.java
+¦   ¦   ¦                   ¦   ¦   ReunionesXUsuariosDto.java
+¦   ¦   ¦                   ¦   ¦   RevisionCriterioExposicionDto.java
+¦   ¦   ¦                   ¦   ¦   RevisionDocumentoDto.java
+¦   ¦   ¦                   ¦   ¦   RevisionDto.java
+¦   ¦   ¦                   ¦   ¦   RolDto.java
+¦   ¦   ¦                   ¦   ¦   SalaExposicionDto.java
+¦   ¦   ¦                   ¦   ¦   SalaExposicionJornadaDTO.java
+¦   ¦   ¦                   ¦   ¦   SolicitudCambioAsesorDto.java
+¦   ¦   ¦                   ¦   ¦   SolicitudCeseDto.java
+¦   ¦   ¦                   ¦   ¦   SubAreaConocimientoDto.java
+¦   ¦   ¦                   ¦   ¦   SubAreasConocimientoDto.java
+¦   ¦   ¦                   ¦   ¦   TeacherCountDTO.java
+¦   ¦   ¦                   ¦   ¦   TemaConAsesorJuradoDTO.java
+¦   ¦   ¦                   ¦   ¦   TemaDto.java
+¦   ¦   ¦                   ¦   ¦   TesistasPorAsesorDTO.java
+¦   ¦   ¦                   ¦   ¦   TipoDedicacionDTO.java
+¦   ¦   ¦                   ¦   ¦   TipoUsuarioDto.java
+¦   ¦   ¦                   ¦   ¦   TopicAreaStatsDTO.java
+¦   ¦   ¦                   ¦   ¦   TopicTrendDTO.java
+¦   ¦   ¦                   ¦   ¦   UpdateEtapaFormativaRequest.java
+¦   ¦   ¦                   ¦   ¦   UsarioRolDto.java
+¦   ¦   ¦                   ¦   ¦   UserInfoDTO.java
+¦   ¦   ¦                   ¦   ¦   UsuarioDocumentoDto.java
+¦   ¦   ¦                   ¦   ¦   UsuarioDto.java
+¦   ¦   ¦                   ¦   ¦   UsuarioNombresDTO.java
+¦   ¦   ¦                   ¦   ¦   UsuarioSolicitudDto.java
+¦   ¦   ¦                   ¦   ¦   UsuarioXReunionDto.java
+¦   ¦   ¦                   ¦   ¦   VersionDocumentoDto.java
+¦   ¦   ¦                   ¦   ¦   
+¦   ¦   ¦                   ¦   +---asesores
+¦   ¦   ¦                   ¦   ¦       DetalleSolicitudCambioAsesorDto.java
+¦   ¦   ¦                   ¦   ¦       FiltrosDirectorioAsesores.java
+¦   ¦   ¦                   ¦   ¦       InfoAreaConocimientoDto.java
+¦   ¦   ¦                   ¦   ¦       InfoProyectoDto.java
+¦   ¦   ¦                   ¦   ¦       InfoSubAreaConocimientoDto.java
+¦   ¦   ¦                   ¦   ¦       InfoTemaPerfilDto.java
+¦   ¦   ¦                   ¦   ¦       PerfilAsesorDto.java
+¦   ¦   ¦                   ¦   ¦       SolicitudCambioAsesorDto.java
+¦   ¦   ¦                   ¦   ¦       SolicitudCambioAsesorResumenDto.java
+¦   ¦   ¦                   ¦   ¦       TemaConAsesorDto.java
+¦   ¦   ¦                   ¦   ¦       TemaResumenDto.java
+¦   ¦   ¦                   ¦   ¦       UsuarioConRolDto.java
+¦   ¦   ¦                   ¦   ¦       UsuarioFotoDto.java
+¦   ¦   ¦                   ¦   ¦       UsuarioSolicitudCambioAsesorDto.java
+¦   ¦   ¦                   ¦   ¦       
+¦   ¦   ¦                   ¦   +---exposiciones
+¦   ¦   ¦                   ¦   ¦       EstadoControlExposicionRequest.java
+¦   ¦   ¦                   ¦   ¦       EstadoExposicionDto.java
+¦   ¦   ¦                   ¦   ¦       EstadoExposicionJuradoRequest.java
+¦   ¦   ¦                   ¦   ¦       ExposicionTemaMiembrosDto.java
+¦   ¦   ¦                   ¦   ¦       MiembroExposicionDto.java
+¦   ¦   ¦                   ¦   ¦       
+¦   ¦   ¦                   ¦   +---temas
+¦   ¦   ¦                   ¦           DetalleTemaDto.java
+¦   ¦   ¦                   ¦           EtapaFormativaTemaDto.java
+¦   ¦   ¦                   ¦           ExposicionTemaDto.java
+¦   ¦   ¦                   ¦           ParticipanteDto.java
+¦   ¦   ¦                   ¦           SolicitudTemaDto.java
+¦   ¦   ¦                   ¦           
+¦   ¦   ¦                   +---event
+¦   ¦   ¦                   ¦       EstadoControlExposicionActualizadoEvent.java
+¦   ¦   ¦                   ¦       EstadoControlExposicionListener.java
+¦   ¦   ¦                   ¦       
+¦   ¦   ¦                   +---exception
+¦   ¦   ¦                   ¦       .gitkeep
+¦   ¦   ¦                   ¦       CustomException.java
+¦   ¦   ¦                   ¦       DocumentoNotFoundException.java
+¦   ¦   ¦                   ¦       FileStorageException.java
+¦   ¦   ¦                   ¦       GlobalExceptionHandler.java
+¦   ¦   ¦                   ¦       
+¦   ¦   ¦                   +---mapper
+¦   ¦   ¦                   ¦       .gitkeep
+¦   ¦   ¦                   ¦       AreaConocimientoMapper.java
+¦   ¦   ¦                   ¦       BloqueHorarioExposicionMapper.java
+¦   ¦   ¦                   ¦       CarreraMapper.java
+¦   ¦   ¦                   ¦       CarreraXParametroConfiguracionMapper.java
+¦   ¦   ¦                   ¦       CicloConEtapasMapper.java
+¦   ¦   ¦                   ¦       CicloMapper.java
+¦   ¦   ¦                   ¦       ControlExposicionUsuarioTemaMapper.java
+¦   ¦   ¦                   ¦       CriterioEntregableMapper.java
+¦   ¦   ¦                   ¦       CriterioExposicionMapper.java
+¦   ¦   ¦                   ¦       EntregableMapper.java
+¦   ¦   ¦                   ¦       EstadoPlanificacionMapper.java
+¦   ¦   ¦                   ¦       EtapaFormativaMapper.java
+¦   ¦   ¦                   ¦       EtapaFormativaXCicloMapper.java
+¦   ¦   ¦                   ¦       EtapaFormativaXSalaExposicionMapper.java
+¦   ¦   ¦                   ¦       ExposicionMapper.java
+¦   ¦   ¦                   ¦       ExposicionXTemaMapper.java
+¦   ¦   ¦                   ¦       HistorialTemaMapper.java
+¦   ¦   ¦                   ¦       InfoAreaConocimientoMapper.java
+¦   ¦   ¦                   ¦       InfoSubAreaConocimientoMapper.java
+¦   ¦   ¦                   ¦       JornadaExposicionMapper.java
+¦   ¦   ¦                   ¦       JornadaExposicionXSalaExposicionMapper.java
+¦   ¦   ¦                   ¦       ParametroConfiguracionMapper.java
+¦   ¦   ¦                   ¦       PerfilAsesorMapper.java
+¦   ¦   ¦                   ¦       RestriccionExposicionMapper.java
+¦   ¦   ¦                   ¦       ReunionMapper.java
+¦   ¦   ¦                   ¦       RevisionCriterioExposicionMapper.java
+¦   ¦   ¦                   ¦       RevisionDocumentoMapper.java
+¦   ¦   ¦                   ¦       RolMapper.java
+¦   ¦   ¦                   ¦       SalaExposicionMapper.java
+¦   ¦   ¦                   ¦       SubAreaConocimientoMapper.java
+¦   ¦   ¦                   ¦       TemaMapper.java
+¦   ¦   ¦                   ¦       TipoDedicacionMapper.java
+¦   ¦   ¦                   ¦       TipoUsuarioMapper.java
+¦   ¦   ¦                   ¦       UsuarioDocumentoMapper.java
+¦   ¦   ¦                   ¦       UsuarioMapper.java
+¦   ¦   ¦                   ¦       UsuarioSolicitudMapper.java
+¦   ¦   ¦                   ¦       UsuarioXReunionMapper.java
+¦   ¦   ¦                   ¦       VersionDocumentoMapper.java
+¦   ¦   ¦                   ¦       
+¦   ¦   ¦                   +---model
+¦   ¦   ¦                   ¦       .gitkeep
+¦   ¦   ¦                   ¦       AccionSolicitud.java
+¦   ¦   ¦                   ¦       AreaConocimiento.java
+¦   ¦   ¦                   ¦       BloqueHorarioExposicion.java
+¦   ¦   ¦                   ¦       Carrera.java
+¦   ¦   ¦                   ¦       CarreraXParametroConfiguracion.java
+¦   ¦   ¦                   ¦       Ciclo.java
+¦   ¦   ¦                   ¦       ControlExposicionUsuarioTema.java
+¦   ¦   ¦                   ¦       CriterioEntregable.java
+¦   ¦   ¦                   ¦       CriterioEntregablePreset.java
+¦   ¦   ¦                   ¦       CriterioExposicion.java
+¦   ¦   ¦                   ¦       CriterioExposicionPreset.java
+¦   ¦   ¦                   ¦       Documento.java
+¦   ¦   ¦                   ¦       Entregable.java
+¦   ¦   ¦                   ¦       EntregableXTema.java
+¦   ¦   ¦                   ¦       EstadoPlanificacion.java
+¦   ¦   ¦                   ¦       EstadoSolicitud.java
+¦   ¦   ¦                   ¦       EstadoTema.java
+¦   ¦   ¦                   ¦       EtapaFormativa.java
+¦   ¦   ¦                   ¦       EtapaFormativaXCiclo.java
+¦   ¦   ¦                   ¦       EtapaFormativaXCicloXTema.java
+¦   ¦   ¦                   ¦       EtapaFormativaXSalaExposicion.java
+¦   ¦   ¦                   ¦       Exposicion.java
+¦   ¦   ¦                   ¦       ExposicionXTema.java
+¦   ¦   ¦                   ¦       GrupoInvestigacion.java
+¦   ¦   ¦                   ¦       GrupoInvestigacionXProyecto.java
+¦   ¦   ¦                   ¦       HistorialTema.java
+¦   ¦   ¦                   ¦       JornadaExposicion.java
+¦   ¦   ¦                   ¦       JornadaExposicionXSalaExposicion.java
+¦   ¦   ¦                   ¦       Modulo.java
+¦   ¦   ¦                   ¦       Notificacion.java
+¦   ¦   ¦                   ¦       Observacion.java
+¦   ¦   ¦                   ¦       ParametroConfiguracion.java
+¦   ¦   ¦                   ¦       Permiso.java
+¦   ¦   ¦                   ¦       Proyecto.java
+¦   ¦   ¦                   ¦       RestriccionExposicion.java
+¦   ¦   ¦                   ¦       Reunion.java
+¦   ¦   ¦                   ¦       RevisionCriterioEntregable.java
+¦   ¦   ¦                   ¦       RevisionCriterioExposicion.java
+¦   ¦   ¦                   ¦       RevisionDocumento.java
+¦   ¦   ¦                   ¦       RevisionXDocumento.java
+¦   ¦   ¦                   ¦       Rol.java
+¦   ¦   ¦                   ¦       RolSolicitud.java
+¦   ¦   ¦                   ¦       SalaExposicion.java
+¦   ¦   ¦                   ¦       Solicitud.java
+¦   ¦   ¦                   ¦       SubAreaConocimiento.java
+¦   ¦   ¦                   ¦       SubAreaConocimientoXTema.java
+¦   ¦   ¦                   ¦       Tema.java
+¦   ¦   ¦                   ¦       TipoDedicacion.java
+¦   ¦   ¦                   ¦       TipoNotificacion.java
+¦   ¦   ¦                   ¦       TipoObservacion.java
+¦   ¦   ¦                   ¦       TipoSolicitud.java
+¦   ¦   ¦                   ¦       TipoUsuario.java
+¦   ¦   ¦                   ¦       TipoUsuarioXPermiso.java
+¦   ¦   ¦                   ¦       UnidadAcademica.java
+¦   ¦   ¦                   ¦       Usuario.java
+¦   ¦   ¦                   ¦       UsuarioRol.java
+¦   ¦   ¦                   ¦       UsuarioXAreaConocimiento.java
+¦   ¦   ¦                   ¦       UsuarioXCarrera.java
+¦   ¦   ¦                   ¦       UsuarioXDocumento.java
+¦   ¦   ¦                   ¦       UsuarioXGrupoInvestigacion.java
+¦   ¦   ¦                   ¦       UsuarioXProyecto.java
+¦   ¦   ¦                   ¦       UsuarioXReunion.java
+¦   ¦   ¦                   ¦       UsuarioXRol.java
+¦   ¦   ¦                   ¦       UsuarioXSolicitud.java
+¦   ¦   ¦                   ¦       UsuarioXSubAreaConocimiento.java
+¦   ¦   ¦                   ¦       UsuarioXTema.java
+¦   ¦   ¦                   ¦       VersionDocumento.java
+¦   ¦   ¦                   ¦       VersionXDocumento.java
+¦   ¦   ¦                   ¦       
+¦   ¦   ¦                   +---repository
+¦   ¦   ¦                   ¦       .gitkeep
+¦   ¦   ¦                   ¦       AccionSolicitudRepository.java
+¦   ¦   ¦                   ¦       AdvisorDistributionRepository.java
+¦   ¦   ¦                   ¦       AdvisorPerformanceRepository.java
+¦   ¦   ¦                   ¦       AreaConocimientoRepository.java
+¦   ¦   ¦                   ¦       BloqueHorarioExposicionRepository.java
+¦   ¦   ¦                   ¦       CarreraRepository.java
+¦   ¦   ¦                   ¦       CarreraXParametroConfiguracionRepository.java
+¦   ¦   ¦                   ¦       CicloRepository.java
+¦   ¦   ¦                   ¦       ControlExposicionUsuarioTemaRepository.java
+¦   ¦   ¦                   ¦       CriterioEntregablePresetRepository.java
+¦   ¦   ¦                   ¦       CriterioEntregableRepository.java
+¦   ¦   ¦                   ¦       CriterioExposicionPresetRepository.java
+¦   ¦   ¦                   ¦       CriterioExposicionRepository.java
+¦   ¦   ¦                   ¦       DetalleTesistaRepository.java
+¦   ¦   ¦                   ¦       DocumentoRepository.java
+¦   ¦   ¦                   ¦       EntregableRepository.java
+¦   ¦   ¦                   ¦       EntregableXTemaRepository.java
+¦   ¦   ¦                   ¦       EstadoPlanificacionRepository.java
+¦   ¦   ¦                   ¦       EstadoSolicitudRepository.java
+¦   ¦   ¦                   ¦       EstadoTemaRepository.java
+¦   ¦   ¦                   ¦       EtapaFormativaRepository.java
+¦   ¦   ¦                   ¦       EtapaFormativaXCicloRepository.java
+¦   ¦   ¦                   ¦       EtapaFormativaXSalaExposicionRepository.java
+¦   ¦   ¦                   ¦       ExposicionRepository.java
+¦   ¦   ¦                   ¦       ExposicionXTemaRepository.java
+¦   ¦   ¦                   ¦       HistorialReunionRepository.java
+¦   ¦   ¦                   ¦       HistorialTemaRepository.java
+¦   ¦   ¦                   ¦       HitoCronogramaRepository.java
+¦   ¦   ¦                   ¦       JornadaExposicionRepository.java
+¦   ¦   ¦                   ¦       JornadaExposicionXSalaExposicionRepository.java
+¦   ¦   ¦                   ¦       JurorDistributionRepository.java
+¦   ¦   ¦                   ¦       ProyectoRepository.java
+¦   ¦   ¦                   ¦       RestriccionExposicionRepository.java
+¦   ¦   ¦                   ¦       ReunionRepository.java
+¦   ¦   ¦                   ¦       RevisionCriterioExposicionRepository.java
+¦   ¦   ¦                   ¦       RevisionDocumentoRepository.java
+¦   ¦   ¦                   ¦       RevisionXDocumentoRepository.java
+¦   ¦   ¦                   ¦       RolRepository.java
+¦   ¦   ¦                   ¦       RolSolicitudRepository.java
+¦   ¦   ¦                   ¦       SalaExposicionRepository.java
+¦   ¦   ¦                   ¦       SolicitudRepository.java
+¦   ¦   ¦                   ¦       SubAreaConocimientoRepository.java
+¦   ¦   ¦                   ¦       SubAreaConocimientoXTemaRepository.java
+¦   ¦   ¦                   ¦       TemaRepository.java
+¦   ¦   ¦                   ¦       TesistasPorAsesorRepository.java
+¦   ¦   ¦                   ¦       TipoDedicacionRepository.java
+¦   ¦   ¦                   ¦       TipoSolicitudRepository.java
+¦   ¦   ¦                   ¦       TipoUsuarioRepository.java
+¦   ¦   ¦                   ¦       TopicAreaStatsRepository.java
+¦   ¦   ¦                   ¦       UsuarioRepository.java
+¦   ¦   ¦                   ¦       UsuarioXAreaConocimientoRepository.java
+¦   ¦   ¦                   ¦       UsuarioXCarreraRepository.java
+¦   ¦   ¦                   ¦       UsuarioXDocumentoRepository.java
+¦   ¦   ¦                   ¦       UsuarioXReunionRepository.java
+¦   ¦   ¦                   ¦       UsuarioXRolRepository.java
+¦   ¦   ¦                   ¦       UsuarioXSolicitudRepository.java
+¦   ¦   ¦                   ¦       UsuarioXSubAreaConocimientoRepository.java
+¦   ¦   ¦                   ¦       UsuarioXTemaRepository.java
+¦   ¦   ¦                   ¦       VersionXDocumentoRepository.java
+¦   ¦   ¦                   ¦       
+¦   ¦   ¦                   +---security
+¦   ¦   ¦                   ¦       SecurityConfig.java
+¦   ¦   ¦                   ¦       
+¦   ¦   ¦                   +---service
+¦   ¦   ¦                   ¦   +---imp
+¦   ¦   ¦                   ¦   ¦       AreaConocimientoServiceImpl.java
+¦   ¦   ¦                   ¦   ¦       BloqueHorarioExposicionServiceImpl.java
+¦   ¦   ¦                   ¦   ¦       CarreraServiceImpl.java
+¦   ¦   ¦                   ¦   ¦       CarreraXParametroConfiguracionImpl.java
+¦   ¦   ¦                   ¦   ¦       CicloServiceImpl.java
+¦   ¦   ¦                   ¦   ¦       CognitoServiceImpl.java
+¦   ¦   ¦                   ¦   ¦       ControlExposicionUsuarioTemaServiceImpl.java
+¦   ¦   ¦                   ¦   ¦       CriterioEntregablePresetServiceImpl.java
+¦   ¦   ¦                   ¦   ¦       CriterioEntregableServiceImpl.java
+¦   ¦   ¦                   ¦   ¦       CriterioExposicionPresetServiceImpl.java
+¦   ¦   ¦                   ¦   ¦       CriterioExposicionServiceImpl.java
+¦   ¦   ¦                   ¦   ¦       DocumentoServiceImpl.java
+¦   ¦   ¦                   ¦   ¦       EntregableServiceImpl.java
+¦   ¦   ¦                   ¦   ¦       EstadoPlanificacionServiceImpl.java
+¦   ¦   ¦                   ¦   ¦       EtapaFormativaServiceImpl.java
+¦   ¦   ¦                   ¦   ¦       EtapaFormativaXCicloServiceImpl.java
+¦   ¦   ¦                   ¦   ¦       EtapaFormativaXSalaExposicionServiceImpl.java
+¦   ¦   ¦                   ¦   ¦       EventoServiceImpl.java
+¦   ¦   ¦                   ¦   ¦       ExposicionServiceImpl.java
+¦   ¦   ¦                   ¦   ¦       ExposicionXTemaServiceImpl.java
+¦   ¦   ¦                   ¦   ¦       HistorialTemaServiceImpl.java
+¦   ¦   ¦                   ¦   ¦       JornadaExposicionOrchestratorServiceImpl.java
+¦   ¦   ¦                   ¦   ¦       JornadaExposicionServiceImpl.java
+¦   ¦   ¦                   ¦   ¦       JornadaExposicionXSalaExposicionServiceImpl.java
+¦   ¦   ¦                   ¦   ¦       JwtServiceImpl.java
+¦   ¦   ¦                   ¦   ¦       MiembroJuradoServiceImpl.java
+¦   ¦   ¦                   ¦   ¦       PlagiarismServiceImpl.java
+¦   ¦   ¦                   ¦   ¦       ProyectoServiceImpl.java
+¦   ¦   ¦                   ¦   ¦       ReportingServiceImpl.java
+¦   ¦   ¦                   ¦   ¦       RestriccionExposicionServiceImpl.java
+¦   ¦   ¦                   ¦   ¦       ReunionServiceImpl.java
+¦   ¦   ¦                   ¦   ¦       RevisionCriterioExposicionServiceImpl.java
+¦   ¦   ¦                   ¦   ¦       RevisionDocumentoServiceImpl.java
+¦   ¦   ¦                   ¦   ¦       RevisionXDocumentoServiceImpl.java
+¦   ¦   ¦                   ¦   ¦       RolServiceImpl.java
+¦   ¦   ¦                   ¦   ¦       S3DownloadServiceImpl.java
+¦   ¦   ¦                   ¦   ¦       SalaExposicionServiceImpl.java
+¦   ¦   ¦                   ¦   ¦       SolicitudServiceImpl.java
+¦   ¦   ¦                   ¦   ¦       SubAreaConocimientoServiceImpl.java
+¦   ¦   ¦                   ¦   ¦       TemaServiceImpl.java
+¦   ¦   ¦                   ¦   ¦       TipoDedicacionImpl.java
+¦   ¦   ¦                   ¦   ¦       UsuarioServiceImpl.java
+¦   ¦   ¦                   ¦   ¦       UsuarioXDocumentoServiceImpl.java
+¦   ¦   ¦                   ¦   ¦       UsuarioXReunionServiceImpl.java
+¦   ¦   ¦                   ¦   ¦       VersionXDocumentoServiceImpl.java
+¦   ¦   ¦                   ¦   ¦       
+¦   ¦   ¦                   ¦   +---inter
+¦   ¦   ¦                   ¦           .gitkeep
+¦   ¦   ¦                   ¦           AreaConocimientoService.java
+¦   ¦   ¦                   ¦           BloqueHorarioExposicionService.java
+¦   ¦   ¦                   ¦           CarreraService.java
+¦   ¦   ¦                   ¦           CarreraXParametroConfiguracionService.java
+¦   ¦   ¦                   ¦           CicloService.java
+¦   ¦   ¦                   ¦           CognitoService.java
+¦   ¦   ¦                   ¦           ControlExposicionUsuarioTemaService.java
+¦   ¦   ¦                   ¦           CriterioEntregablePresetService.java
+¦   ¦   ¦                   ¦           CriterioEntregableService.java
+¦   ¦   ¦                   ¦           CriterioExposicionPresetService.java
+¦   ¦   ¦                   ¦           CriterioExposicionService.java
+¦   ¦   ¦                   ¦           DocumentoService.java
+¦   ¦   ¦                   ¦           EntregableService.java
+¦   ¦   ¦                   ¦           EstadoPlanificacionService.java
+¦   ¦   ¦                   ¦           EtapaFormativaService.java
+¦   ¦   ¦                   ¦           EtapaFormativaXCicloService.java
+¦   ¦   ¦                   ¦           EtapaFormativaXSalaExposicionService.java
+¦   ¦   ¦                   ¦           EventoService.java
+¦   ¦   ¦                   ¦           ExposicionService.java
+¦   ¦   ¦                   ¦           ExposicionXTemaService.java
+¦   ¦   ¦                   ¦           HistorialTemaService.java
+¦   ¦   ¦                   ¦           IReportService.java
+¦   ¦   ¦                   ¦           JornadaExposicionOrchestratorService.java
+¦   ¦   ¦                   ¦           JornadaExposicionService.java
+¦   ¦   ¦                   ¦           JornadaExposicionXSalaExposicionService.java
+¦   ¦   ¦                   ¦           JwtService.java
+¦   ¦   ¦                   ¦           MiembroJuradoService.java
+¦   ¦   ¦                   ¦           ProyectoService.java
+¦   ¦   ¦                   ¦           RestriccionExposicionService.java
+¦   ¦   ¦                   ¦           ReunionService.java
+¦   ¦   ¦                   ¦           RevisionCriterioExposicionService.java
+¦   ¦   ¦                   ¦           RevisionDocumentoService.java
+¦   ¦   ¦                   ¦           RevisionXDocumentoService.java
+¦   ¦   ¦                   ¦           RolService.java
+¦   ¦   ¦                   ¦           S3DownloadService.java
+¦   ¦   ¦                   ¦           SalaExposicionService.java
+¦   ¦   ¦                   ¦           SolicitudService.java
+¦   ¦   ¦                   ¦           SubAreaConocimientoService.java
+¦   ¦   ¦                   ¦           TemaService.java
+¦   ¦   ¦                   ¦           TipoDedicacionService.java
+¦   ¦   ¦                   ¦           UsuarioService.java
+¦   ¦   ¦                   ¦           UsuarioXDocumentoService.java
+¦   ¦   ¦                   ¦           UsuarioXReunionService.java
+¦   ¦   ¦                   ¦           VersionXDocumentoService.java
+¦   ¦   ¦                   ¦           
+¦   ¦   ¦                   +---util
+¦   ¦   ¦                           .gitkeep
+¦   ¦   ¦                           AccionSolicitudEnum.java
+¦   ¦   ¦                           DurationDeserializer.java
+¦   ¦   ¦                           EstadoActividad.java
+¦   ¦   ¦                           EstadoEntrega.java
+¦   ¦   ¦                           EstadoEtapa.java
+¦   ¦   ¦                           EstadoExposicion.java
+¦   ¦   ¦                           EstadoExposicionConverter.java
+¦   ¦   ¦                           EstadoExposicionUsuario.java
+¦   ¦   ¦                           EstadoExposicionUsuarioConverter.java
+¦   ¦   ¦                           EstadoRevision.java
+¦   ¦   ¦                           EstadoSolicitudEnum.java
+¦   ¦   ¦                           EstadoTemaEnum.java
+¦   ¦   ¦                           ResponseMessage.java
+¦   ¦   ¦                           RolEnum.java
+¦   ¦   ¦                           RolSolicitudEnum.java
+¦   ¦   ¦                           TipoDatoEnum.java
+¦   ¦   ¦                           TipoEventoEnum.java
+¦   ¦   ¦                           TipoSalaExposicion.java
+¦   ¦   ¦                           TipoSalaExposicionConverter.java
+¦   ¦   ¦                           TipoUsuarioEnum.java
+¦   ¦   ¦                           Utils.java
+¦   ¦   ¦                           
+¦   ¦   +---resources
+¦   ¦           application.properties
+¦   ¦           logback-spring.xml
+¦   ¦           
+¦   +---test
+¦       +---java
+¦       ¦   +---pucp
+¦       ¦       +---edu
+¦       ¦           +---pe
+¦       ¦               +---sgta
+¦       ¦                   ¦   SgtaApplicationTests.java
+¦       ¦                   ¦   
+¦       ¦                   +---controller
+¦       ¦                   ¦       .gitkeep
+¦       ¦                   ¦       
+¦       ¦                   +---repository
+¦       ¦                   ¦       .gitkeep
+¦       ¦                   ¦       
+¦       ¦                   +---service
+¦       ¦                   ¦   ¦   .gitkeep
+¦       ¦                   ¦   ¦   
+¦       ¦                   ¦   +---imp
+¦       ¦                   ¦           ExposicionServiceImplTest.java
+¦       ¦                   ¦           JornadaExposicionXSalaExposicionServiceImplTest.java
+¦       ¦                   ¦           SolicitudServiceImplTest.java
+¦       ¦                   ¦           
+¦       ¦                   +---util
+¦       ¦                           .gitkeep
+¦       ¦                           
+¦       +---resources
+¦               application-test.properties
+¦               
++---target
+    +---classes
+    ¦   ¦   application.properties
+    ¦   ¦   logback-spring.xml
+    ¦   ¦   
+    ¦   +---pucp
+    ¦       +---edu
+    ¦           +---pe
+    ¦               +---sgta
+    ¦                   ¦   SgtaApplication.class
+    ¦                   ¦   
+    ¦                   +---config
+    ¦                   ¦       AWSConfig.class
+    ¦                   ¦       CorsConfig.class
+    ¦                   ¦       OpenApiConfig.class
+    ¦                   ¦       
+    ¦                   +---controller
+    ¦                   ¦       AreaConocimientoController.class
+    ¦                   ¦       BloqueHorarioExposicionController$1.class
+    ¦                   ¦       BloqueHorarioExposicionController.class
+    ¦                   ¦       CarreraController.class
+    ¦                   ¦       CarreraXParametroConfiguracionController.class
+    ¦                   ¦       CicloController.class
+    ¦                   ¦       CriterioEntregableController.class
+    ¦                   ¦       CriterioEntregablePresetController.class
+    ¦                   ¦       CriterioExposicionController.class
+    ¦                   ¦       CriterioExposicionPresetController.class
+    ¦                   ¦       DocumentoController.class
+    ¦                   ¦       EntregableController.class
+    ¦                   ¦       EstadoPlanificacionController.class
+    ¦                   ¦       EtapaFormativaController.class
+    ¦                   ¦       EtapaFormativaXCicloController.class
+    ¦                   ¦       EtapaFormativaXSalaExposicionController.class
+    ¦                   ¦       EventoController.class
+    ¦                   ¦       ExposicionController.class
+    ¦                   ¦       JornadaExposicionController.class
+    ¦                   ¦       JornadaExposicionXSalaExposicionController.class
+    ¦                   ¦       MiembroJuradoController.class
+    ¦                   ¦       PlagiarismController.class
+    ¦                   ¦       ProyectoController.class
+    ¦                   ¦       ReportsController.class
+    ¦                   ¦       ReunionController.class
+    ¦                   ¦       RevisionDocumentoController.class
+    ¦                   ¦       RolController.class
+    ¦                   ¦       S3FileController.class
+    ¦                   ¦       SolicitudController.class
+    ¦                   ¦       SubAreaConocimientoController.class
+    ¦                   ¦       TemaController.class
+    ¦                   ¦       TipoDedicacionController.class
+    ¦                   ¦       UsuarioController.class
+    ¦                   ¦       
+    ¦                   +---dto
+    ¦                   ¦   ¦   AdvisorPerformanceDto.class
+    ¦                   ¦   ¦   AlumnoTemaDto$AlumnoTemaDtoBuilder.class
+    ¦                   ¦   ¦   AlumnoTemaDto.class
+    ¦                   ¦   ¦   AprobarSolicitudCambioAsesorRequestDto.class
+    ¦                   ¦   ¦   AprobarSolicitudCambioAsesorResponseDto$AprobarCambioAsesorAsignacionDto.class
+    ¦                   ¦   ¦   AprobarSolicitudCambioAsesorResponseDto.class
+    ¦                   ¦   ¦   AprobarSolicitudRequestDto.class
+    ¦                   ¦   ¦   AprobarSolicitudResponseDto$AprobarAsignacionDto.class
+    ¦                   ¦   ¦   AprobarSolicitudResponseDto.class
+    ¦                   ¦   ¦   AreaConocimientoDto$AreaConocimientoDtoBuilder.class
+    ¦                   ¦   ¦   AreaConocimientoDto.class
+    ¦                   ¦   ¦   AreaFinalDTO$AreaFinalDTOBuilder.class
+    ¦                   ¦   ¦   AreaFinalDTO.class
+    ¦                   ¦   ¦   AsignacionBloqueDTO$AsignacionBloqueDTOBuilder.class
+    ¦                   ¦   ¦   AsignacionBloqueDTO.class
+    ¦                   ¦   ¦   AsignarJuradoRequest.class
+    ¦                   ¦   ¦   BloqueHorarioExposicionCreateDTO$BloqueHorarioExposicionCreateDTOBuilder.class
+    ¦                   ¦   ¦   BloqueHorarioExposicionCreateDTO.class
+    ¦                   ¦   ¦   BloqueHorarioExposicionDto$BloqueHorarioExposicionDtoBuilder.class
+    ¦                   ¦   ¦   BloqueHorarioExposicionDto.class
+    ¦                   ¦   ¦   CarreraDto$CarreraDtoBuilder.class
+    ¦                   ¦   ¦   CarreraDto.class
+    ¦                   ¦   ¦   CarreraXParametroConfiguracionDto$CarreraXParametroConfiguracionDtoBuilder.class
+    ¦                   ¦   ¦   CarreraXParametroConfiguracionDto.class
+    ¦                   ¦   ¦   CicloConEtapasDTO$CicloConEtapasDTOBuilder.class
+    ¦                   ¦   ¦   CicloConEtapasDTO.class
+    ¦                   ¦   ¦   CicloConEtapasProjection.class
+    ¦                   ¦   ¦   CicloDto$CicloDtoBuilder.class
+    ¦                   ¦   ¦   CicloDto.class
+    ¦                   ¦   ¦   CicloTesisDto.class
+    ¦                   ¦   ¦   ControlExposicionUsuarioTemaDto.class
+    ¦                   ¦   ¦   CriterioEntregableDto$CriterioEntregableDtoBuilder.class
+    ¦                   ¦   ¦   CriterioEntregableDto.class
+    ¦                   ¦   ¦   CriterioExposicionDto$CriterioExposicionDtoBuilder.class
+    ¦                   ¦   ¦   CriterioExposicionDto.class
+    ¦                   ¦   ¦   DetalleSolicitudCeseDto$Assessor.class
+    ¦                   ¦   ¦   DetalleSolicitudCeseDto$Estudiante.class
+    ¦                   ¦   ¦   DetalleSolicitudCeseDto$Tema.class
+    ¦                   ¦   ¦   DetalleSolicitudCeseDto.class
+    ¦                   ¦   ¦   DetalleTesistaDTO$DetalleTesistaDTOBuilder.class
+    ¦                   ¦   ¦   DetalleTesistaDTO.class
+    ¦                   ¦   ¦   DistribucionRequestDTO$DistribucionRequestDTOBuilder.class
+    ¦                   ¦   ¦   DistribucionRequestDTO.class
+    ¦                   ¦   ¦   DocumentoConVersionDto$DocumentoConVersionDtoBuilder.class
+    ¦                   ¦   ¦   DocumentoConVersionDto.class
+    ¦                   ¦   ¦   EntregableAlumnoDto$EntregableAlumnoDtoBuilder.class
+    ¦                   ¦   ¦   EntregableAlumnoDto.class
+    ¦                   ¦   ¦   EntregableDto$EntregableDtoBuilder.class
+    ¦                   ¦   ¦   EntregableDto.class
+    ¦                   ¦   ¦   EntregableEstudianteDto.class
+    ¦                   ¦   ¦   EntregableSubidoDto$EntregableSubidoDtoBuilder.class
+    ¦                   ¦   ¦   EntregableSubidoDto.class
+    ¦                   ¦   ¦   EntregableXTemaDto$EntregableXTemaDtoBuilder.class
+    ¦                   ¦   ¦   EntregableXTemaDto.class
+    ¦                   ¦   ¦   EstadoPlanificacionDto$EstadoPlanificacionDtoBuilder.class
+    ¦                   ¦   ¦   EstadoPlanificacionDto.class
+    ¦                   ¦   ¦   EstadoTemaDto.class
+    ¦                   ¦   ¦   EstudiantesDto$EstudiantesDtoBuilder.class
+    ¦                   ¦   ¦   EstudiantesDto.class
+    ¦                   ¦   ¦   EtapaFormativaAlumnoDto$EtapaFormativaAlumnoDtoBuilder.class
+    ¦                   ¦   ¦   EtapaFormativaAlumnoDto.class
+    ¦                   ¦   ¦   EtapaFormativaDetalleDto$CicloHistorialDto$CicloHistorialDtoBuilder.class
+    ¦                   ¦   ¦   EtapaFormativaDetalleDto$CicloHistorialDto.class
+    ¦                   ¦   ¦   EtapaFormativaDetalleDto$EtapaFormativaDetalleDtoBuilder.class
+    ¦                   ¦   ¦   EtapaFormativaDetalleDto.class
+    ¦                   ¦   ¦   EtapaFormativaDto$EtapaFormativaDtoBuilder.class
+    ¦                   ¦   ¦   EtapaFormativaDto.class
+    ¦                   ¦   ¦   EtapaFormativaListadoDto$EtapaFormativaListadoDtoBuilder.class
+    ¦                   ¦   ¦   EtapaFormativaListadoDto.class
+    ¦                   ¦   ¦   EtapaFormativaNombreDTO$EtapaFormativaNombreDTOBuilder.class
+    ¦                   ¦   ¦   EtapaFormativaNombreDTO.class
+    ¦                   ¦   ¦   EtapaFormativaTesisDto.class
+    ¦                   ¦   ¦   EtapaFormativaXCicloDto$EtapaFormativaXCicloDtoBuilder.class
+    ¦                   ¦   ¦   EtapaFormativaXCicloDto.class
+    ¦                   ¦   ¦   EtapaFormativaXSalaExposicionConEtapaFormativaDTO$EtapaFormativaXSalaExposicionConEtapaFormativaDTOBuilder.class
+    ¦                   ¦   ¦   EtapaFormativaXSalaExposicionConEtapaFormativaDTO.class
+    ¦                   ¦   ¦   EtapaFormativaXSalaExposicionDto.class
+    ¦                   ¦   ¦   EventoDto$EventoDtoBuilder.class
+    ¦                   ¦   ¦   EventoDto.class
+    ¦                   ¦   ¦   ExposicionDto.class
+    ¦                   ¦   ¦   ExposicionEstudianteDTO.class
+    ¦                   ¦   ¦   ExposicionNombreDTO.class
+    ¦                   ¦   ¦   ExposicionSinInicializarDTO.class
+    ¦                   ¦   ¦   ExposicionXTemaDto.class
+    ¦                   ¦   ¦   HistorialReunionDTO$HistorialReunionDTOBuilder.class
+    ¦                   ¦   ¦   HistorialReunionDTO.class
+    ¦                   ¦   ¦   HistorialTemaDto$HistorialTemaDtoBuilder.class
+    ¦                   ¦   ¦   HistorialTemaDto.class
+    ¦                   ¦   ¦   HitoCronogramaDTO$HitoCronogramaDTOBuilder.class
+    ¦                   ¦   ¦   HitoCronogramaDTO.class
+    ¦                   ¦   ¦   IniatilizeJornadasExposicionCreateDTO$FechaDto.class
+    ¦                   ¦   ¦   IniatilizeJornadasExposicionCreateDTO.class
+    ¦                   ¦   ¦   JornadaExposicionCreateDTO$JornadaExposicionCreateDTOBuilder.class
+    ¦                   ¦   ¦   JornadaExposicionCreateDTO.class
+    ¦                   ¦   ¦   JornadaExposicionDto$JornadaExposicionDtoBuilder.class
+    ¦                   ¦   ¦   JornadaExposicionDto.class
+    ¦                   ¦   ¦   JornadaExposicionXSalaExposicionCreateDTO.class
+    ¦                   ¦   ¦   JornadaExposicionXSalaExposicionDto.class
+    ¦                   ¦   ¦   JornadaExposicionXSalaExposicionListadoDTO.class
+    ¦                   ¦   ¦   JuradoAreaDto$JuradoAreaDtoBuilder.class
+    ¦                   ¦   ¦   JuradoAreaDto.class
+    ¦                   ¦   ¦   JuradoXAreaConocimientoDto$JuradoXAreaConocimientoDtoBuilder.class
+    ¦                   ¦   ¦   JuradoXAreaConocimientoDto.class
+    ¦                   ¦   ¦   ListBloqueHorarioExposicionDTO.class
+    ¦                   ¦   ¦   ListBloqueHorarioExposicionSimpleDTO.class
+    ¦                   ¦   ¦   ListExposicionXCoordinadorDTO.class
+    ¦                   ¦   ¦   MiembroJuradoDto$MiembroJuradoDtoBuilder.class
+    ¦                   ¦   ¦   MiembroJuradoDto.class
+    ¦                   ¦   ¦   MiembroJuradoXTemaDto$MiembroJuradoXTemaDtoBuilder.class
+    ¦                   ¦   ¦   MiembroJuradoXTemaDto.class
+    ¦                   ¦   ¦   MiembroJuradoXTemaTesisDto.class
+    ¦                   ¦   ¦   ParametroConfiguracionDto$ParametroConfiguracionDtoBuilder.class
+    ¦                   ¦   ¦   ParametroConfiguracionDto.class
+    ¦                   ¦   ¦   QueryRolResponse$QueryRolResponseBuilder.class
+    ¦                   ¦   ¦   QueryRolResponse.class
+    ¦                   ¦   ¦   RechazoSolicitudCambioAsesorRequestDto.class
+    ¦                   ¦   ¦   RechazoSolicitudCambioAsesorResponseDto$CambioAsignacionDto.class
+    ¦                   ¦   ¦   RechazoSolicitudCambioAsesorResponseDto.class
+    ¦                   ¦   ¦   RechazoSolicitudRequestDto.class
+    ¦                   ¦   ¦   RechazoSolicitudResponseDto$AsignacionDto.class
+    ¦                   ¦   ¦   RechazoSolicitudResponseDto.class
+    ¦                   ¦   ¦   RestriccionExposicionDto.class
+    ¦                   ¦   ¦   ReunionDto.class
+    ¦                   ¦   ¦   ReunionesXUsuariosDto.class
+    ¦                   ¦   ¦   RevisionCriterioExposicionDto.class
+    ¦                   ¦   ¦   RevisionDocumentoDto.class
+    ¦                   ¦   ¦   RevisionDto.class
+    ¦                   ¦   ¦   RolDto$RolDtoBuilder.class
+    ¦                   ¦   ¦   RolDto.class
+    ¦                   ¦   ¦   SalaExposicionDto$SalaExposicionDtoBuilder.class
+    ¦                   ¦   ¦   SalaExposicionDto.class
+    ¦                   ¦   ¦   SalaExposicionJornadaDTO$SalaExposicionJornadaDTOBuilder.class
+    ¦                   ¦   ¦   SalaExposicionJornadaDTO.class
+    ¦                   ¦   ¦   SolicitudCambioAsesorDto$AreaConocimiento.class
+    ¦                   ¦   ¦   SolicitudCambioAsesorDto$Assessor.class
+    ¦                   ¦   ¦   SolicitudCambioAsesorDto$Estudiante.class
+    ¦                   ¦   ¦   SolicitudCambioAsesorDto$RequestChange.class
+    ¦                   ¦   ¦   SolicitudCambioAsesorDto$Tema.class
+    ¦                   ¦   ¦   SolicitudCambioAsesorDto.class
+    ¦                   ¦   ¦   SolicitudCeseDto$Assessor.class
+    ¦                   ¦   ¦   SolicitudCeseDto$Estudiante.class
+    ¦                   ¦   ¦   SolicitudCeseDto$RequestTermination.class
+    ¦                   ¦   ¦   SolicitudCeseDto$Tema.class
+    ¦                   ¦   ¦   SolicitudCeseDto.class
+    ¦                   ¦   ¦   SubAreaConocimientoDto$SubAreaConocimientoDtoBuilder.class
+    ¦                   ¦   ¦   SubAreaConocimientoDto.class
+    ¦                   ¦   ¦   SubAreasConocimientoDto$SubAreasConocimientoDtoBuilder.class
+    ¦                   ¦   ¦   SubAreasConocimientoDto.class
+    ¦                   ¦   ¦   TeacherCountDTO$TeacherCountDTOBuilder.class
+    ¦                   ¦   ¦   TeacherCountDTO.class
+    ¦                   ¦   ¦   TemaConAsesorJuradoDTO$TemaConAsesorJuradoDTOBuilder.class
+    ¦                   ¦   ¦   TemaConAsesorJuradoDTO.class
+    ¦                   ¦   ¦   TemaDto$TemaDtoBuilder.class
+    ¦                   ¦   ¦   TemaDto.class
+    ¦                   ¦   ¦   TesistasPorAsesorDTO$TesistasPorAsesorDTOBuilder.class
+    ¦                   ¦   ¦   TesistasPorAsesorDTO.class
+    ¦                   ¦   ¦   TipoDedicacionDTO$TipoDedicacionDTOBuilder.class
+    ¦                   ¦   ¦   TipoDedicacionDTO.class
+    ¦                   ¦   ¦   TipoUsuarioDto$TipoUsuarioDtoBuilder.class
+    ¦                   ¦   ¦   TipoUsuarioDto.class
+    ¦                   ¦   ¦   TopicAreaStatsDTO.class
+    ¦                   ¦   ¦   TopicTrendDTO.class
+    ¦                   ¦   ¦   UpdateEtapaFormativaRequest.class
+    ¦                   ¦   ¦   UsarioRolDto.class
+    ¦                   ¦   ¦   UserInfoDTO$UserInfoDTOBuilder.class
+    ¦                   ¦   ¦   UserInfoDTO.class
+    ¦                   ¦   ¦   UsuarioDocumentoDto.class
+    ¦                   ¦   ¦   UsuarioDto$UsuarioDtoBuilder.class
+    ¦                   ¦   ¦   UsuarioDto.class
+    ¦                   ¦   ¦   UsuarioNombresDTO$UsuarioNombresDTOBuilder.class
+    ¦                   ¦   ¦   UsuarioNombresDTO.class
+    ¦                   ¦   ¦   UsuarioSolicitudDto$UsuarioSolicitudDtoBuilder.class
+    ¦                   ¦   ¦   UsuarioSolicitudDto.class
+    ¦                   ¦   ¦   UsuarioXReunionDto.class
+    ¦                   ¦   ¦   VersionDocumentoDto.class
+    ¦                   ¦   ¦   
+    ¦                   ¦   +---asesores
+    ¦                   ¦   ¦       DetalleSolicitudCambioAsesorDto.class
+    ¦                   ¦   ¦       FiltrosDirectorioAsesores.class
+    ¦                   ¦   ¦       InfoAreaConocimientoDto.class
+    ¦                   ¦   ¦       InfoProyectoDto.class
+    ¦                   ¦   ¦       InfoSubAreaConocimientoDto.class
+    ¦                   ¦   ¦       InfoTemaPerfilDto.class
+    ¦                   ¦   ¦       PerfilAsesorDto.class
+    ¦                   ¦   ¦       SolicitudCambioAsesorDto.class
+    ¦                   ¦   ¦       SolicitudCambioAsesorResumenDto.class
+    ¦                   ¦   ¦       TemaConAsesorDto.class
+    ¦                   ¦   ¦       TemaResumenDto.class
+    ¦                   ¦   ¦       UsuarioConRolDto$UsuarioConRolDtoBuilder.class
+    ¦                   ¦   ¦       UsuarioConRolDto.class
+    ¦                   ¦   ¦       UsuarioFotoDto.class
+    ¦                   ¦   ¦       UsuarioSolicitudCambioAsesorDto.class
+    ¦                   ¦   ¦       
+    ¦                   ¦   +---exposiciones
+    ¦                   ¦   ¦       EstadoControlExposicionRequest.class
+    ¦                   ¦   ¦       EstadoExposicionDto.class
+    ¦                   ¦   ¦       EstadoExposicionJuradoRequest.class
+    ¦                   ¦   ¦       ExposicionTemaMiembrosDto.class
+    ¦                   ¦   ¦       MiembroExposicionDto.class
+    ¦                   ¦   ¦       
+    ¦                   ¦   +---temas
+    ¦                   ¦           DetalleTemaDto.class
+    ¦                   ¦           EtapaFormativaTemaDto.class
+    ¦                   ¦           ExposicionTemaDto.class
+    ¦                   ¦           ParticipanteDto.class
+    ¦                   ¦           SolicitudTemaDto$Asesor.class
+    ¦                   ¦           SolicitudTemaDto$RequestChange.class
+    ¦                   ¦           SolicitudTemaDto$Tema.class
+    ¦                   ¦           SolicitudTemaDto$Tesista.class
+    ¦                   ¦           SolicitudTemaDto$TipoSolicitud.class
+    ¦                   ¦           SolicitudTemaDto$Usuario.class
+    ¦                   ¦           SolicitudTemaDto.class
+    ¦                   ¦           
+    ¦                   +---event
+    ¦                   ¦       EstadoControlExposicionActualizadoEvent.class
+    ¦                   ¦       EstadoControlExposicionListener.class
+    ¦                   ¦       
+    ¦                   +---exception
+    ¦                   ¦       CustomException.class
+    ¦                   ¦       DocumentoNotFoundException.class
+    ¦                   ¦       FileStorageException.class
+    ¦                   ¦       GlobalExceptionHandler.class
+    ¦                   ¦       
+    ¦                   +---mapper
+    ¦                   ¦       AreaConocimientoMapper.class
+    ¦                   ¦       BloqueHorarioExposicionMapper.class
+    ¦                   ¦       CarreraMapper.class
+    ¦                   ¦       CarreraXParametroConfiguracionMapper$1.class
+    ¦                   ¦       CarreraXParametroConfiguracionMapper.class
+    ¦                   ¦       CicloConEtapasMapper.class
+    ¦                   ¦       CicloMapper.class
+    ¦                   ¦       ControlExposicionUsuarioTemaMapper.class
+    ¦                   ¦       CriterioEntregableMapper.class
+    ¦                   ¦       CriterioExposicionMapper.class
+    ¦                   ¦       EntregableMapper.class
+    ¦                   ¦       EstadoPlanificacionMapper.class
+    ¦                   ¦       EtapaFormativaMapper.class
+    ¦                   ¦       EtapaFormativaXCicloMapper.class
+    ¦                   ¦       EtapaFormativaXSalaExposicionMapper.class
+    ¦                   ¦       ExposicionMapper.class
+    ¦                   ¦       ExposicionXTemaMapper.class
+    ¦                   ¦       HistorialTemaMapper.class
+    ¦                   ¦       InfoAreaConocimientoMapper.class
+    ¦                   ¦       InfoSubAreaConocimientoMapper.class
+    ¦                   ¦       JornadaExposicionMapper.class
+    ¦                   ¦       JornadaExposicionXSalaExposicionMapper.class
+    ¦                   ¦       ParametroConfiguracionMapper.class
+    ¦                   ¦       PerfilAsesorMapper.class
+    ¦                   ¦       RestriccionExposicionMapper.class
+    ¦                   ¦       ReunionMapper.class
+    ¦                   ¦       RevisionCriterioExposicionMapper.class
+    ¦                   ¦       RevisionDocumentoMapper.class
+    ¦                   ¦       RolMapper.class
+    ¦                   ¦       SalaExposicionMapper.class
+    ¦                   ¦       SubAreaConocimientoMapper.class
+    ¦                   ¦       TemaMapper.class
+    ¦                   ¦       TipoDedicacionMapper.class
+    ¦                   ¦       TipoUsuarioMapper.class
+    ¦                   ¦       UsuarioDocumentoMapper.class
+    ¦                   ¦       UsuarioMapper.class
+    ¦                   ¦       UsuarioSolicitudMapper.class
+    ¦                   ¦       UsuarioXReunionMapper.class
+    ¦                   ¦       VersionDocumentoMapper.class
+    ¦                   ¦       
+    ¦                   +---model
+    ¦                   ¦       AccionSolicitud.class
+    ¦                   ¦       AreaConocimiento.class
+    ¦                   ¦       BloqueHorarioExposicion.class
+    ¦                   ¦       Carrera.class
+    ¦                   ¦       CarreraXParametroConfiguracion.class
+    ¦                   ¦       Ciclo.class
+    ¦                   ¦       ControlExposicionUsuarioTema.class
+    ¦                   ¦       CriterioEntregable.class
+    ¦                   ¦       CriterioEntregablePreset.class
+    ¦                   ¦       CriterioExposicion.class
+    ¦                   ¦       CriterioExposicionPreset.class
+    ¦                   ¦       Documento.class
+    ¦                   ¦       Entregable.class
+    ¦                   ¦       EntregableXTema.class
+    ¦                   ¦       EstadoPlanificacion.class
+    ¦                   ¦       EstadoSolicitud.class
+    ¦                   ¦       EstadoTema.class
+    ¦                   ¦       EtapaFormativa$DurationToIntervalConverter.class
+    ¦                   ¦       EtapaFormativa.class
+    ¦                   ¦       EtapaFormativaXCiclo.class
+    ¦                   ¦       EtapaFormativaXCicloXTema.class
+    ¦                   ¦       EtapaFormativaXSalaExposicion.class
+    ¦                   ¦       Exposicion.class
+    ¦                   ¦       ExposicionXTema.class
+    ¦                   ¦       GrupoInvestigacion.class
+    ¦                   ¦       GrupoInvestigacionXProyecto.class
+    ¦                   ¦       HistorialTema.class
+    ¦                   ¦       JornadaExposicion.class
+    ¦                   ¦       JornadaExposicionXSalaExposicion.class
+    ¦                   ¦       Modulo.class
+    ¦                   ¦       Notificacion.class
+    ¦                   ¦       Observacion.class
+    ¦                   ¦       ParametroConfiguracion.class
+    ¦                   ¦       Permiso.class
+    ¦                   ¦       Proyecto.class
+    ¦                   ¦       RestriccionExposicion.class
+    ¦                   ¦       Reunion.class
+    ¦                   ¦       RevisionCriterioEntregable.class
+    ¦                   ¦       RevisionCriterioExposicion.class
+    ¦                   ¦       RevisionDocumento.class
+    ¦                   ¦       RevisionXDocumento.class
+    ¦                   ¦       Rol.class
+    ¦                   ¦       RolSolicitud.class
+    ¦                   ¦       SalaExposicion.class
+    ¦                   ¦       Solicitud.class
+    ¦                   ¦       SubAreaConocimiento.class
+    ¦                   ¦       SubAreaConocimientoXTema$SubAreaConocimientoXTemaId.class
+    ¦                   ¦       SubAreaConocimientoXTema.class
+    ¦                   ¦       Tema.class
+    ¦                   ¦       TipoDedicacion.class
+    ¦                   ¦       TipoNotificacion.class
+    ¦                   ¦       TipoObservacion.class
+    ¦                   ¦       TipoSolicitud.class
+    ¦                   ¦       TipoUsuario.class
+    ¦                   ¦       TipoUsuarioXPermiso.class
+    ¦                   ¦       UnidadAcademica.class
+    ¦                   ¦       Usuario.class
+    ¦                   ¦       UsuarioRol.class
+    ¦                   ¦       UsuarioXAreaConocimiento.class
+    ¦                   ¦       UsuarioXCarrera.class
+    ¦                   ¦       UsuarioXDocumento.class
+    ¦                   ¦       UsuarioXGrupoInvestigacion.class
+    ¦                   ¦       UsuarioXProyecto.class
+    ¦                   ¦       UsuarioXReunion.class
+    ¦                   ¦       UsuarioXRol.class
+    ¦                   ¦       UsuarioXSolicitud.class
+    ¦                   ¦       UsuarioXSubAreaConocimiento.class
+    ¦                   ¦       UsuarioXTema.class
+    ¦                   ¦       VersionDocumento.class
+    ¦                   ¦       VersionXDocumento.class
+    ¦                   ¦       
+    ¦                   +---repository
+    ¦                   ¦       AccionSolicitudRepository.class
+    ¦                   ¦       AdvisorDistributionRepository.class
+    ¦                   ¦       AdvisorPerformanceRepository.class
+    ¦                   ¦       AreaConocimientoRepository.class
+    ¦                   ¦       BloqueHorarioExposicionRepository.class
+    ¦                   ¦       CarreraRepository.class
+    ¦                   ¦       CarreraXParametroConfiguracionRepository.class
+    ¦                   ¦       CicloRepository.class
+    ¦                   ¦       ControlExposicionUsuarioTemaRepository.class
+    ¦                   ¦       CriterioEntregablePresetRepository.class
+    ¦                   ¦       CriterioEntregableRepository.class
+    ¦                   ¦       CriterioExposicionPresetRepository.class
+    ¦                   ¦       CriterioExposicionRepository.class
+    ¦                   ¦       DetalleTesistaRepository.class
+    ¦                   ¦       DocumentoRepository.class
+    ¦                   ¦       EntregableRepository.class
+    ¦                   ¦       EntregableXTemaRepository.class
+    ¦                   ¦       EstadoPlanificacionRepository.class
+    ¦                   ¦       EstadoSolicitudRepository.class
+    ¦                   ¦       EstadoTemaRepository.class
+    ¦                   ¦       EtapaFormativaRepository.class
+    ¦                   ¦       EtapaFormativaXCicloRepository.class
+    ¦                   ¦       EtapaFormativaXSalaExposicionRepository.class
+    ¦                   ¦       ExposicionRepository.class
+    ¦                   ¦       ExposicionXTemaRepository.class
+    ¦                   ¦       HistorialReunionRepository.class
+    ¦                   ¦       HistorialTemaRepository.class
+    ¦                   ¦       HitoCronogramaRepository.class
+    ¦                   ¦       JornadaExposicionRepository.class
+    ¦                   ¦       JornadaExposicionXSalaExposicionRepository.class
+    ¦                   ¦       JurorDistributionRepository.class
+    ¦                   ¦       ProyectoRepository.class
+    ¦                   ¦       RestriccionExposicionRepository.class
+    ¦                   ¦       ReunionRepository.class
+    ¦                   ¦       RevisionCriterioExposicionRepository.class
+    ¦                   ¦       RevisionDocumentoRepository.class
+    ¦                   ¦       RevisionXDocumentoRepository.class
+    ¦                   ¦       RolRepository.class
+    ¦                   ¦       RolSolicitudRepository.class
+    ¦                   ¦       SalaExposicionRepository.class
+    ¦                   ¦       SolicitudRepository.class
+    ¦                   ¦       SubAreaConocimientoRepository.class
+    ¦                   ¦       SubAreaConocimientoXTemaRepository.class
+    ¦                   ¦       TemaRepository.class
+    ¦                   ¦       TesistasPorAsesorRepository.class
+    ¦                   ¦       TipoDedicacionRepository.class
+    ¦                   ¦       TipoSolicitudRepository.class
+    ¦                   ¦       TipoUsuarioRepository.class
+    ¦                   ¦       TopicAreaStatsRepository.class
+    ¦                   ¦       UsuarioRepository.class
+    ¦                   ¦       UsuarioXAreaConocimientoRepository.class
+    ¦                   ¦       UsuarioXCarreraRepository.class
+    ¦                   ¦       UsuarioXDocumentoRepository.class
+    ¦                   ¦       UsuarioXReunionRepository.class
+    ¦                   ¦       UsuarioXRolRepository.class
+    ¦                   ¦       UsuarioXSolicitudRepository.class
+    ¦                   ¦       UsuarioXSubAreaConocimientoRepository.class
+    ¦                   ¦       UsuarioXTemaRepository.class
+    ¦                   ¦       VersionXDocumentoRepository.class
+    ¦                   ¦       
+    ¦                   +---security
+    ¦                   ¦       SecurityConfig.class
+    ¦                   ¦       
+    ¦                   +---service
+    ¦                   ¦   +---imp
+    ¦                   ¦   ¦       AreaConocimientoServiceImpl.class
+    ¦                   ¦   ¦       BloqueHorarioExposicionServiceImpl.class
+    ¦                   ¦   ¦       CarreraServiceImpl.class
+    ¦                   ¦   ¦       CarreraXParametroConfiguracionImpl.class
+    ¦                   ¦   ¦       CicloServiceImpl.class
+    ¦                   ¦   ¦       CognitoServiceImpl.class
+    ¦                   ¦   ¦       ControlExposicionUsuarioTemaServiceImpl.class
+    ¦                   ¦   ¦       CriterioEntregablePresetServiceImpl.class
+    ¦                   ¦   ¦       CriterioEntregableServiceImpl.class
+    ¦                   ¦   ¦       CriterioExposicionPresetServiceImpl.class
+    ¦                   ¦   ¦       CriterioExposicionServiceImpl.class
+    ¦                   ¦   ¦       DocumentoServiceImpl.class
+    ¦                   ¦   ¦       EntregableServiceImpl.class
+    ¦                   ¦   ¦       EstadoPlanificacionServiceImpl.class
+    ¦                   ¦   ¦       EtapaFormativaServiceImpl.class
+    ¦                   ¦   ¦       EtapaFormativaXCicloServiceImpl.class
+    ¦                   ¦   ¦       EtapaFormativaXSalaExposicionServiceImpl.class
+    ¦                   ¦   ¦       EventoServiceImpl.class
+    ¦                   ¦   ¦       ExposicionServiceImpl.class
+    ¦                   ¦   ¦       ExposicionXTemaServiceImpl.class
+    ¦                   ¦   ¦       HistorialTemaServiceImpl.class
+    ¦                   ¦   ¦       JornadaExposicionOrchestratorServiceImpl.class
+    ¦                   ¦   ¦       JornadaExposicionServiceImpl.class
+    ¦                   ¦   ¦       JornadaExposicionXSalaExposicionServiceImpl.class
+    ¦                   ¦   ¦       JwtServiceImpl.class
+    ¦                   ¦   ¦       MiembroJuradoServiceImpl.class
+    ¦                   ¦   ¦       PlagiarismServiceImpl.class
+    ¦                   ¦   ¦       ProyectoServiceImpl.class
+    ¦                   ¦   ¦       ReportingServiceImpl.class
+    ¦                   ¦   ¦       RestriccionExposicionServiceImpl.class
+    ¦                   ¦   ¦       ReunionServiceImpl.class
+    ¦                   ¦   ¦       RevisionCriterioExposicionServiceImpl.class
+    ¦                   ¦   ¦       RevisionDocumentoServiceImpl.class
+    ¦                   ¦   ¦       RevisionXDocumentoServiceImpl.class
+    ¦                   ¦   ¦       RolServiceImpl.class
+    ¦                   ¦   ¦       S3DownloadServiceImpl.class
+    ¦                   ¦   ¦       SalaExposicionServiceImpl.class
+    ¦                   ¦   ¦       SolicitudServiceImpl.class
+    ¦                   ¦   ¦       SubAreaConocimientoServiceImpl.class
+    ¦                   ¦   ¦       TemaServiceImpl$1.class
+    ¦                   ¦   ¦       TemaServiceImpl.class
+    ¦                   ¦   ¦       TipoDedicacionImpl.class
+    ¦                   ¦   ¦       UsuarioServiceImpl$1.class
+    ¦                   ¦   ¦       UsuarioServiceImpl.class
+    ¦                   ¦   ¦       UsuarioXDocumentoServiceImpl.class
+    ¦                   ¦   ¦       UsuarioXReunionServiceImpl.class
+    ¦                   ¦   ¦       VersionXDocumentoServiceImpl.class
+    ¦                   ¦   ¦       
+    ¦                   ¦   +---inter
+    ¦                   ¦           AreaConocimientoService.class
+    ¦                   ¦           BloqueHorarioExposicionService.class
+    ¦                   ¦           CarreraService.class
+    ¦                   ¦           CarreraXParametroConfiguracionService.class
+    ¦                   ¦           CicloService.class
+    ¦                   ¦           CognitoService.class
+    ¦                   ¦           ControlExposicionUsuarioTemaService.class
+    ¦                   ¦           CriterioEntregablePresetService.class
+    ¦                   ¦           CriterioEntregableService.class
+    ¦                   ¦           CriterioExposicionPresetService.class
+    ¦                   ¦           CriterioExposicionService.class
+    ¦                   ¦           DocumentoService.class
+    ¦                   ¦           EntregableService.class
+    ¦                   ¦           EstadoPlanificacionService.class
+    ¦                   ¦           EtapaFormativaService.class
+    ¦                   ¦           EtapaFormativaXCicloService.class
+    ¦                   ¦           EtapaFormativaXSalaExposicionService.class
+    ¦                   ¦           EventoService.class
+    ¦                   ¦           ExposicionService.class
+    ¦                   ¦           ExposicionXTemaService.class
+    ¦                   ¦           HistorialTemaService.class
+    ¦                   ¦           IReportService.class
+    ¦                   ¦           JornadaExposicionOrchestratorService.class
+    ¦                   ¦           JornadaExposicionService.class
+    ¦                   ¦           JornadaExposicionXSalaExposicionService.class
+    ¦                   ¦           JwtService.class
+    ¦                   ¦           MiembroJuradoService.class
+    ¦                   ¦           ProyectoService.class
+    ¦                   ¦           RestriccionExposicionService.class
+    ¦                   ¦           ReunionService.class
+    ¦                   ¦           RevisionCriterioExposicionService.class
+    ¦                   ¦           RevisionDocumentoService.class
+    ¦                   ¦           RevisionXDocumentoService.class
+    ¦                   ¦           RolService.class
+    ¦                   ¦           S3DownloadService.class
+    ¦                   ¦           SalaExposicionService.class
+    ¦                   ¦           SolicitudService.class
+    ¦                   ¦           SubAreaConocimientoService.class
+    ¦                   ¦           TemaService.class
+    ¦                   ¦           TipoDedicacionService.class
+    ¦                   ¦           UsuarioService.class
+    ¦                   ¦           UsuarioXDocumentoService.class
+    ¦                   ¦           UsuarioXReunionService.class
+    ¦                   ¦           VersionXDocumentoService.class
+    ¦                   ¦           
+    ¦                   +---util
+    ¦                           AccionSolicitudEnum.class
+    ¦                           DurationDeserializer.class
+    ¦                           EstadoActividad.class
+    ¦                           EstadoEntrega.class
+    ¦                           EstadoEtapa.class
+    ¦                           EstadoExposicion.class
+    ¦                           EstadoExposicionConverter.class
+    ¦                           EstadoExposicionUsuario.class
+    ¦                           EstadoExposicionUsuarioConverter.class
+    ¦                           EstadoRevision.class
+    ¦                           EstadoSolicitudEnum.class
+    ¦                           EstadoTemaEnum.class
+    ¦                           ResponseMessage.class
+    ¦                           RolEnum.class
+    ¦                           RolSolicitudEnum.class
+    ¦                           TipoDatoEnum.class
+    ¦                           TipoEventoEnum.class
+    ¦                           TipoSalaExposicion.class
+    ¦                           TipoSalaExposicionConverter.class
+    ¦                           TipoUsuarioEnum.class
+    ¦                           Utils.class
+    ¦                           
+    +---generated-sources
+    ¦   +---annotations
+    +---generated-test-sources
+    ¦   +---test-annotations
+    +---maven-status
+    ¦   +---maven-compiler-plugin
+    ¦       +---compile
+    ¦       ¦   +---default-compile
+    ¦       ¦           createdFiles.lst
+    ¦       ¦           inputFiles.lst
+    ¦       ¦           
+    ¦       +---testCompile
+    ¦           +---default-testCompile
+    ¦                   createdFiles.lst
+    ¦                   inputFiles.lst
+    ¦                   
+    +---test-classes
+            application-test.properties
+            
