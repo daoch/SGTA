@@ -62,6 +62,31 @@ export type Tesista = {
   asignado: string | null;
 };
 
+export type Asesor = {
+  id: number;
+  tipoUsuario: string | null;
+  codigoPucp: string;
+  nombres: string;
+  primerApellido: string;
+  segundoApellido: string;
+  correoElectronico: string;
+  nivelEstudios: string | null;
+  comentario: string | null;
+  biografia: string | null;
+  enlaceRepositorio: string | null;
+  enlaceLinkedin: string | null;
+  disponibilidad: string | null;
+  tipoDisponibilidad: string | null;
+  tipoDedicacion: string | null;
+  rol: string;
+  activo: boolean;
+  rechazado: boolean;
+  creador: string | null;
+  fechaCreacion: string;
+  fechaModificacion: string | null;
+  asignado: boolean;
+};
+
 export type Postulacion = {
   id: number;
   codigo: string;
@@ -83,6 +108,35 @@ export type Postulacion = {
   area: string | null;
   subareas: Subarea[];
   tesistas: Tesista[];
-  coasesores: string | null;
+  coasesores: Asesor[];
   estadoUsuarioTema: string;
+};
+
+export type Usuario = {
+  id: number;
+  tipoUsuario: TipoUsuario;
+  codigoPucp: string;
+  nombres: string;
+  primerApellido: string;
+  segundoApellido: string;
+  correoElectronico: string | null;
+  nivelEstudios: string;
+  contrasena: string | null;
+  biografia: string | null;
+  enlaceRepositorio: string | null;
+  enlaceLinkedin: string | null;
+  disponibilidad: string | null;
+  tipoDisponibilidad: string;
+  asignado: boolean;
+  creador: boolean;
+  rechazado: boolean;
+  activo: boolean;
+  fechaCreacion: string;
+  fechaModificacion: string;
+};
+
+export type TemaDto = {
+  usuarioId: number;
+  temaId: number;
+  comentario: string;
 };

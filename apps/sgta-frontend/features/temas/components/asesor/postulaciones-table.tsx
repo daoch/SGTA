@@ -14,10 +14,17 @@ import {
 } from "@/components/ui/table";
 import { FiltrosPostulacionModal } from "@/features/temas/components/asesor/filtros-postulacion-modal";
 import { PostulacionModal } from "@/features/temas/components/asesor/postulacion-modal";
-import { fetchPostulacionesAlAsesor } from "@/features/temas/types/postulaciones/data";
+import {
+  buscarUsuarioPorToken,
+  fetchPostulacionesAlAsesor,
+  rechazarPostulacionDeAlumno,
+} from "@/features/temas/types/postulaciones/data";
+import { TemaDto } from "@/features/temas/types/postulaciones/entidades";
 import { CheckCircle, Eye, Filter, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { toast, Toaster } from "sonner";
 import { Postulacion } from "../../types/postulaciones/entidades";
+import { Usuario } from "../../types/temas/entidades";
 import { AceptarPostulacionModal } from "./aceptar-postulacion-modal";
 import { RechazarPostulacionModal } from "./rechazar-postulacion-modal";
 
@@ -39,6 +46,19 @@ export function PostulacionesTable() {
   >();
   const [debounceFechaFin, setDebounceFechaFin] = useState<string>("");
   const [debounceEstado, setDebounceEstado] = useState<string>("");
+  const [usuarioLoggeado, setUsuarioLoggeado] = useState<Usuario>();
+
+  useEffect(() => {
+    const fetchUsuarioLoggeado = async () => {
+      try {
+        const data = await buscarUsuarioPorToken();
+        setUsuarioLoggeado(data);
+      } catch {
+        console.log("No se pudo encontrar al usuario loggeado.");
+      }
+    };
+    fetchUsuarioLoggeado();
+  }, []);
 
   useEffect(() => {
     const fetchPostulaciones = async () => {
@@ -65,7 +85,7 @@ export function PostulacionesTable() {
   const handleOpenDialog = (postulacion: Postulacion) => {
     setAbrirModal(true);
     setSelectedPostulacion(postulacion);
-    setFeedbackText(postulacion.coasesores || ""); /*CAMBIAR*/
+    setFeedbackText("");
   };
 
   const handleOpenAcceptDialog = (postulacion: Postulacion) => {
@@ -96,7 +116,7 @@ export function PostulacionesTable() {
     setShowAcceptDialog(false);
   };
 
-  const handleReject = () => {
+  const handleReject = async () => {
     // Aquí iría la lógica para rechazar la postulación
     console.log(
       "Rechazando postulación:",
@@ -104,6 +124,23 @@ export function PostulacionesTable() {
       "Feedback:",
       feedbackText,
     );
+    if (!usuarioLoggeado || !selectedPostulacion) return;
+
+    const temaDto: TemaDto = {
+      usuarioId: usuarioLoggeado?.id,
+      temaId: selectedPostulacion?.id,
+      comentario: feedbackText,
+    };
+
+    try {
+      await rechazarPostulacionDeAlumno(temaDto);
+      toast.success("La postulación del alumno(a) fue rechazada.");
+    } catch (error) {
+      console.error("Error al rechazar la postulación del alumno:", error);
+      toast.error(
+        "Hubo un error al rechazar la postulación del alumno(a). Intentelo de nuevo.",
+      );
+    }
 
     setSelectedPostulacion(null);
     setFeedbackText("");
@@ -138,6 +175,7 @@ export function PostulacionesTable() {
   console.log({ postulacionesData });
   return (
     <div>
+      <Toaster position="bottom-right" richColors />
       <div className="mb-6 flex flex-wrap gap-4 items-center">
         <div className="relative flex-1">
           <Input

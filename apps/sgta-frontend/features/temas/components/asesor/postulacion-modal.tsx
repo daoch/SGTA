@@ -109,7 +109,14 @@ export function PostulacionModal({
               <div className="space-y-2">
                 <Label>Comentario para el estudiante</Label>
                 <div className="p-3 bg-gray-50 rounded-md border">
-                  <p>{selectedPostulacion.coasesores}</p>
+                  <p>
+                    {selectedPostulacion.coasesores.map((asesor, index) => (
+                      <span key={index}>
+                        {asesor.comentario}
+                        <br />
+                      </span>
+                    ))}
+                  </p>
                 </div>
               </div>
             )}
