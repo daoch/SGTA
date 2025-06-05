@@ -12,10 +12,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Eye, Upload } from "lucide-react";
-import { useState } from "react";
-import { EntregablesModal } from "./subida-entregable-modal";
 import Link from "next/link";
+import { useState } from "react";
 import { EntregableAlumnoDto } from "../../dtos/EntregableAlumnoDto";
+import { EntregablesModal } from "./subida-entregable-modal";
 
 interface EntregablesTableProps {
   readonly filter?: string;
@@ -91,28 +91,28 @@ export function EntregablesTable({
                   <TableCell>
                     {entregable.entregableFechaFin
                       ? new Date(entregable.entregableFechaFin).toLocaleString(
-                          "es-PE",
-                          {
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          },
-                        )
-                      : "-"}
-                  </TableCell>
-                  <TableCell>
-                    {entregable.entregableFechaEnvio
-                      ? new Date(
-                          entregable.entregableFechaEnvio,
-                        ).toLocaleString("es-PE", {
+                        "es-PE",
+                        {
                           day: "2-digit",
                           month: "2-digit",
                           year: "numeric",
                           hour: "2-digit",
                           minute: "2-digit",
-                        })
+                        },
+                      )
+                      : "-"}
+                  </TableCell>
+                  <TableCell>
+                    {entregable.entregableFechaEnvio
+                      ? new Date(
+                        entregable.entregableFechaEnvio,
+                      ).toLocaleString("es-PE", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
                       : "-"}
                   </TableCell>
                   <TableCell>
@@ -167,8 +167,10 @@ export function EntregablesTable({
                       {entregable.entregableEstado != "no_enviado" && (
                         <Dialog>
                           <Link
-                            href={`/alumno/mi-proyecto/entregables/${entregable.entregableId}`}
-                            passHref
+                            href={{
+                              pathname: `/alumno/mi-proyecto/entregables/${entregable.entregableId}`,
+                              query: { tema: entregable.temaId }
+                            }}
                           >
                             <Button variant="ghost" size="icon">
                               <Eye className="h-4 w-4" />
@@ -179,25 +181,25 @@ export function EntregablesTable({
                       )}
                       {new Date() <=
                         new Date(entregable.entregableFechaFin) && (
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleOpenDialog(entregable)}
-                            >
-                              <Upload className="h-4 w-4" />
-                            </Button>
-                          </DialogTrigger>
-                          {selectedEntregable && (
-                            <EntregablesModal
-                              entregable={selectedEntregable}
-                              setSelectedEntregable={setSelectedEntregable}
-                              handleUpdateEntregable={handleUpdateEntregable}
-                            ></EntregablesModal>
-                          )}
-                        </Dialog>
-                      )}
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleOpenDialog(entregable)}
+                              >
+                                <Upload className="h-4 w-4" />
+                              </Button>
+                            </DialogTrigger>
+                            {selectedEntregable && (
+                              <EntregablesModal
+                                entregable={selectedEntregable}
+                                setSelectedEntregable={setSelectedEntregable}
+                                handleUpdateEntregable={handleUpdateEntregable}
+                              ></EntregablesModal>
+                            )}
+                          </Dialog>
+                        )}
                     </div>
                   </TableCell>
                 </TableRow>
