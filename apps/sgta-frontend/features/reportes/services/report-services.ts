@@ -24,7 +24,7 @@ export const obtenerDetalleTemaAlumno = async (): Promise<AlumnoTemaDetalle> => 
 
 export const findStudentsForReviewer = async (carreraId: number, cadenaBusqueda: string): Promise<AlumnoReviewer[]> => {
   try {
-    const response = await axiosInstance.get(`/usuario/findByStudentsForReviewer`, {
+    const response = await axiosInstance.get("/usuario/findByStudentsForReviewer", {
       params: {
         carreraId,
         cadenaBusqueda

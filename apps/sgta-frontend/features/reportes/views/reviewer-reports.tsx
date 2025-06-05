@@ -56,7 +56,7 @@ export function ReviewerReports() {
       {selectedStudentData && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">{selectedStudentData.nombres + ' ' + selectedStudentData.primerApellido + ' ' + selectedStudentData.segundoApellido}</CardTitle>
+            <CardTitle className="text-lg">{selectedStudentData.nombres + " " + selectedStudentData.primerApellido + " " + selectedStudentData.segundoApellido}</CardTitle>
             <p className="text-sm text-gray-500">{selectedStudentData.temaTitulo}</p>
             <p className="text-sm text-gray-500">Asesor: {selectedStudentData.asesor}</p>
             {selectedStudentData.coasesor && (

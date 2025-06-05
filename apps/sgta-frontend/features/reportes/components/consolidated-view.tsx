@@ -102,13 +102,13 @@ export function ConsolidatedView({ studentId }: ConsolidatedViewProps) {
                 </span>
               </div>
               <p className="text-xs text-gray-500 mb-3">
-                Fecha de entrega: {deliverable.fechaEnvio ? new Date(deliverable.fechaEnvio).toLocaleDateString('es-PE', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit'
-                }) : 'No enviado'}
+                Fecha de entrega: {deliverable.fechaEnvio ? new Date(deliverable.fechaEnvio).toLocaleDateString("es-PE", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit"
+                }) : "No enviado"}
               </p>
               
               <div className="space-y-4">

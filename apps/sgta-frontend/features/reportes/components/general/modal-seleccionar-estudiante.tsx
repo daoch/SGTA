@@ -42,7 +42,7 @@ export function SeleccionarEstudianteModal({
             ? (() => {
                 const student = students.find((s) => s.usuarioId === selectedStudentId);
                 return student 
-                  ? `${student.nombres} ${student.primerApellido} ${student.segundoApellido || ''}`.trim()
+                  ? `${student.nombres} ${student.primerApellido} ${student.segundoApellido || ""}`.trim()
                   : "Seleccionar estudiante";
               })()
             : "Seleccionar estudiante"}
