@@ -16,7 +16,11 @@ import { usePagination } from "@/hooks/temas/use-pagination";
 import { Search } from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
 import { SolicitudesTable } from "../components/coordinador/table-solicitudes-pagination";
-import { filters, pageSolicitudes } from "../types/solicitudes/constants";
+import {
+  filters,
+  initialPagesList,
+  pageSolicitudes,
+} from "../types/solicitudes/constants";
 import {
   fetchCarrerasMiembroComite,
   lenTemasPorCarrera,
@@ -37,12 +41,11 @@ export default function SolicitudesPendientes() {
   const [carrerasIds, setCarrerasIds] = useState<number[]>([]);
   const {
     pagination: temas,
-    setPagination: setTemas,
     replaceStateKey,
     addNewPage,
     getPage,
     getTotalPages,
-  } = usePagination(LIMIT);
+  } = usePagination(initialPagesList, LIMIT);
 
   useEffect(() => {
     async function fetchCarrerasYPrimeraPagina() {

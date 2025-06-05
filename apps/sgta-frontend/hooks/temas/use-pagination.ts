@@ -1,4 +1,3 @@
-import { initialPagesList } from "@/features/temas/types/solicitudes/constants";
 import {
   PagesList,
   TemasPages,
@@ -7,7 +6,7 @@ import { Tema } from "@/features/temas/types/temas/entidades";
 import { EstadoTemaNombre } from "@/features/temas/types/temas/enums";
 import { useState } from "react";
 
-export function usePagination(limit: number = 10) {
+export function usePagination(initialPagesList: PagesList, limit: number = 10) {
   const [pagination, setPagination] = useState<PagesList>(initialPagesList);
 
   // Permite actualizar una clave específica de un estado
