@@ -15,7 +15,6 @@ import {
 import { FiltrosPostulacionModal } from "@/features/temas/components/asesor/filtros-postulacion-modal";
 import { PostulacionModal } from "@/features/temas/components/asesor/postulacion-modal";
 import {
-  buscarUsuarioPorToken,
   fetchPostulacionesAlAsesor,
   rechazarPostulacionDeAlumno,
 } from "@/features/temas/types/postulaciones/data";
@@ -24,7 +23,6 @@ import { CheckCircle, Eye, Filter, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast, Toaster } from "sonner";
 import { Postulacion } from "../../types/postulaciones/entidades";
-import { Usuario } from "../../types/temas/entidades";
 import { AceptarPostulacionModal } from "./aceptar-postulacion-modal";
 import { RechazarPostulacionModal } from "./rechazar-postulacion-modal";
 
@@ -46,19 +44,6 @@ export function PostulacionesTable() {
   >();
   const [debounceFechaFin, setDebounceFechaFin] = useState<string>("");
   const [debounceEstado, setDebounceEstado] = useState<string>("");
-  const [usuarioLoggeado, setUsuarioLoggeado] = useState<Usuario>();
-
-  useEffect(() => {
-    const fetchUsuarioLoggeado = async () => {
-      try {
-        const data = await buscarUsuarioPorToken();
-        setUsuarioLoggeado(data);
-      } catch {
-        console.log("No se pudo encontrar al usuario loggeado.");
-      }
-    };
-    fetchUsuarioLoggeado();
-  }, []);
 
   useEffect(() => {
     const fetchPostulaciones = async () => {
@@ -124,10 +109,10 @@ export function PostulacionesTable() {
       "Feedback:",
       feedbackText,
     );
-    if (!usuarioLoggeado || !selectedPostulacion) return;
+    if (!selectedPostulacion) return;
 
     const temaDto: TemaDto = {
-      usuarioId: usuarioLoggeado?.id,
+      usuarioId: selectedPostulacion.tesistas[0].id,
       temaId: selectedPostulacion?.id,
       comentario: feedbackText,
     };
