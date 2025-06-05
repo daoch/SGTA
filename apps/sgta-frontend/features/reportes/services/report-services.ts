@@ -1,7 +1,7 @@
 import axiosInstance from "@/lib/axios/axios-instance";
 
 import { AlumnoReviewer, AlumnoTemaDetalle } from "../types/Alumno.type";
-
+import { EntregableCriteriosDetalle } from "../types/Entregable.type";
 
 import { useAuthStore } from "@/features/auth/store/auth-store";
 
@@ -44,4 +44,16 @@ export const findStudentsForReviewer = async (carreraId: number, cadenaBusqueda:
 export const getEntregablesAlumno = async (alumnoId: string) => {
   const response = await axiosInstance.get(`/api/v1/reports/entregables/${alumnoId}`);
   return response.data;
+};
+
+export const getEntregablesConCriterios = async (usuarioId: number): Promise<EntregableCriteriosDetalle[]> => {
+  try {
+    const response = await axiosInstance.get<EntregableCriteriosDetalle[]>(
+      `/api/v1/reports/entregables-criterios/${usuarioId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error al obtener entregables con criterios:", error);
+    throw error;
+  }
 };
