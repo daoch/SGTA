@@ -92,7 +92,6 @@ export function PropuestasModal({
   };
 
   const handleSubmitPostulacion = () => {
-    //Lógica para enviar la postulación
     console.log("Postulando propuesta general...");
     submitPostulacion?.();
     setSelectedPropuesta?.(null);
@@ -105,7 +104,6 @@ export function PropuestasModal({
   };
 
   const handleSubmitAceptacion = () => {
-    // Lógica para aceptar la propuesta
     console.log("Aceptando propuesta directa...");
     submitAceptacion?.();
     console.log("Ya entré y enlacé...");

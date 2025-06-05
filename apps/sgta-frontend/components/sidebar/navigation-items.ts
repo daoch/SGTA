@@ -9,10 +9,12 @@ import {
   FileText,
   FolderOpen,
   Home,
+  MailQuestion,
   MessageSquare,
   RefreshCcw,
   Search,
   Settings,
+  Shuffle,
   Users,
   UserX2,
 } from "lucide-react";
@@ -50,7 +52,7 @@ export const navigationItems: Record<string, NavigationItem[]> = {
           href: "/alumno/temas/catalogo-de-temas",
           icon: FolderOpen,
         },
-        { name: "Mis temas", href: "/alumno/temas", icon: FileText },
+        { name: "Temas", href: "/alumno/temas", icon: FileText },
         {
           name: "Postulaciones de asesores",
           href: "/alumno/temas/postulaciones-de-asesores",
@@ -116,6 +118,11 @@ export const navigationItems: Record<string, NavigationItem[]> = {
       icon: ClipboardList,
     },
     { name: "Propuestas", href: "/asesor/propuestas", icon: FileText },
+    {
+      name: "Invitaciones de Asesoría",
+      href: "/asesor/propuestas-recibidas",
+      icon: MailQuestion,
+    },
     { name: "Tesistas", href: "/asesor/tesistas", icon: Users },
     {
       name: "Asesores",
@@ -149,6 +156,11 @@ export const navigationItems: Record<string, NavigationItem[]> = {
       name: "Aprobaciones",
       href: "/coordinador/aprobaciones",
       icon: CheckSquare,
+    },
+    {
+      name: "Reasignaciones Pendientes",
+      href: "/coordinador/reasignaciones-pendientes", // La ruta de la nueva página
+      icon: Shuffle, // Ícono para reasignaciones/cambios
     },
     {
       name: "Exposiciones",

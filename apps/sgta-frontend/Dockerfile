@@ -14,10 +14,10 @@ RUN npm install -g pnpm && pnpm install
 COPY . .
 
 # Construir la aplicación Next.js
-RUN pnpm build
+#RUN pnpm build
 
 # Exponer el puerto en el que Next.js corre por defecto
 EXPOSE 3000
 
 # Comando para ejecutar la aplicación
-CMD ["pnpm", "start"]
+CMD ["pnpm", "dev"]

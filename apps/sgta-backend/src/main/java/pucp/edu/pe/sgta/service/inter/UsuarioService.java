@@ -6,6 +6,7 @@ import pucp.edu.pe.sgta.dto.asesores.UsuarioConRolDto;
 import pucp.edu.pe.sgta.dto.asesores.UsuarioFotoDto;
 import org.springframework.web.multipart.MultipartFile;
 import pucp.edu.pe.sgta.dto.AlumnoTemaDto;
+import pucp.edu.pe.sgta.dto.DocentesDTO;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
 import pucp.edu.pe.sgta.util.RolEnum;
 import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
@@ -97,4 +98,8 @@ public interface UsuarioService {
     UsuarioDto findByCognitoId(String cognitoId) throws NoSuchElementException;
 
     void validarTipoUsuarioRolUsuario(String cognitoId,TipoUsuarioEnum tipoUsuario, RolEnum rol);
+
+    List<DocentesDTO> getProfesores();
+
+    AlumnoTemaDto getAlumnoTema(String idAlumno);
 }

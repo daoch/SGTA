@@ -49,4 +49,31 @@ public class Notificacion {
 	@Column(name = "fecha_modificacion", insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
 	private OffsetDateTime fechaModificacion;
 
+	// Enlace opcional para redirigir al usuario
+	@Column(name = "enlace_redireccion", length = 500)
+	private String enlaceRedireccion;
+
+	@PrePersist
+	protected void onCreate() {
+		fechaCreacion = OffsetDateTime.now();
+		fechaModificacion = OffsetDateTime.now();
+		if (activo == null) {
+			activo = true;
+		}
+	}
+
+	@PreUpdate
+	protected void onUpdate() {
+		fechaModificacion = OffsetDateTime.now();
+	}
+
+	// Constructor útil (opcional)
+	public Notificacion(String mensaje, String canal, Modulo modulo, TipoNotificacion tipoNotificacion, Usuario usuarioDestinatario) {
+		this.mensaje = mensaje;
+		this.canal = canal;
+		this.modulo = modulo;
+		this.tipoNotificacion = tipoNotificacion;
+		this.usuario = usuarioDestinatario;// activo se defaulta a true, fechaCreacion/Modificacion se setean en @PrePersist
+	}
+
 }

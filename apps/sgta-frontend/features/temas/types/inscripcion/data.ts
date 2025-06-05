@@ -15,11 +15,9 @@ export async function fetchUsuariosFindById(
   }
 }
 
-export async function obtenerCarrerasPorUsuario(
-  usuarioId: number,
-): Promise<Carrera[]> {
+export async function obtenerCarrerasPorUsuario(): Promise<Carrera[]> {
   try {
-    const response = await axiosInstance.get(`/usuario/${usuarioId}/carreras`);
+    const response = await axiosInstance.get("/usuario/carreras");
     return response.data;
   } catch (error) {
     console.error(
@@ -39,4 +37,16 @@ export const fetchUsers = async (
   const response = await axiosInstance.get(url);
   return response.data;
 };
+
+export async function inscribirTemaPrescrito(temaId: number) {
+  try {
+    const response = await axiosInstance.put(
+      `/temas/inscribirTemaPrenscrito/${temaId}`,
+    );
+    return response.data;
+  } catch (error) {
+    console.error("No se pudo inscribir el tema prescrito.", error);
+    throw error;
+  }
+}
 

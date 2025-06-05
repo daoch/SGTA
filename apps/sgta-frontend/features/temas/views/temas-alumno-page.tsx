@@ -26,6 +26,7 @@ import {
   TabsTrigger
 } from "@/components/ui/tabs";
 import { useAuthStore } from "@/features/auth/store/auth-store";
+import { PostulacionesTable } from "@/features/temas/components/alumno/mis-postulaciones-table";
 import { PropuestasTable } from "@/features/temas/components/alumno/propuestas-table";
 import { TemaCard } from "@/features/temas/components/alumno/tema-inscrito-card";
 import Link from "next/link";
@@ -62,13 +63,12 @@ const MisTemasPage = () => {
     const fetchTema = async () => {
       try {
         const { idToken } = useAuthStore.getState();
-        
         if (!idToken) {
           console.error("No authentication token available");
           return;
         }
 
-        const res = await fetch(
+        let res = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/temas/listarTemasPorUsuarioRolEstado?rolNombre=Tesista&estadoNombre=INSCRITO`,
           {
             headers: {
@@ -77,15 +77,26 @@ const MisTemasPage = () => {
             }
           }
         );
-        
-        if (!res.ok) throw new Error("Error al obtener tema");
-        
-        const data = await res.json();
+        let data = await res.json();
+
+        if (!data || data.length === 0) {
+          res = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/temas/listarTemasPorUsuarioRolEstado?rolNombre=Tesista&estadoNombre=REGISTRADO`,
+            {
+              headers: {
+                "Authorization": `Bearer ${idToken}`,
+                "Content-Type": "application/json"
+              }
+            }
+          );
+          data = await res.json();
+        }
+
         setTemaInscrito(data.length > 0 ? data[0] : null);
       } catch (error) {
-        console.error("Error al obtener tema inscrito", error);
+        console.error("Error al obtener tema inscrito o registrado", error);
       } finally {
-        setIsLoading(false); // ✅ se completa la carga
+        setIsLoading(false);
       }
     };
 
@@ -96,7 +107,7 @@ const MisTemasPage = () => {
     <div className="space-y-8 mt-4">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-[#042354]">Mis Temas</h1>
+          <h1 className="text-3xl font-bold text-[#042354]">Temas</h1>
           <p className="text-muted-foreground">
             Gestión de tus temas de proyecto de fin de carrera, postulaciones y propuestas
           </p>
@@ -134,7 +145,7 @@ const MisTemasPage = () => {
               <CardDescription>Temas de proyectos a los que has postulado</CardDescription>
             </CardHeader>
             <CardContent>
-              <PropuestasTable/>
+              <PostulacionesTable/>
             </CardContent>
           </Card>
         </TabsContent>

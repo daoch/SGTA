@@ -11,6 +11,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import React from "react";
 import { Tema } from "../types/temas/entidades";
 
+import { TemasDetalleExposiciones } from "@/features/jurado/components/temas-detalle-exposiciones";
+
 enum TabValues {
   INFO = "informacion",
   HISTORIAL = "libre",
@@ -68,13 +70,26 @@ const DetalleTemasCoordinadorPage: React.FC<
         </TabsContent>
         <TabsContent value={TabValues.DETALLE_EXPO}>
           <Card>
-            <CardHeader>
+            {/* <CardHeader>
               <CardTitle>Temas libres</CardTitle>
               <CardDescription>
                 Temas de tesis disponibles para postular
               </CardDescription>
-            </CardHeader>
-            <CardContent></CardContent>
+            </CardHeader> */}
+            <CardContent>
+              {tema ? (
+                <TemasDetalleExposiciones
+                  temaId={tema.id}
+                  areasConocimientoId={tema.subareas.map(
+                    (subarea) => subarea.areaConocimiento!.id,
+                  )}
+                />
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  No hay tema seleccionado.
+                </p>
+              )}
+            </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
