@@ -11,8 +11,10 @@ import pucp.edu.pe.sgta.model.RevisionDocumento;
 import pucp.edu.pe.sgta.service.inter.JwtService;
 import pucp.edu.pe.sgta.service.inter.RevisionDocumentoService;
 import pucp.edu.pe.sgta.util.EstadoRevision;
-
+import java.util.Map;
 import java.util.List;
+import jakarta.persistence.EntityNotFoundException;
+import org.springframework.http.HttpStatus;
 
 @RestController
 @RequestMapping("/revision")
