@@ -23,4 +23,7 @@ public class RevisionDocumentoAsesorDto {
     private OffsetDateTime fechaLimite;
 	private String ultimoCiclo;
 	private String estado; 
+	private Boolean formatoValido;
+	private Boolean citadoCorrecto;
+	private String urlDescarga;
 }
