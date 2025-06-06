@@ -166,6 +166,15 @@ const MiCronogramaPage = () => {
     end: createDate(31, 5, 2025, 10, 0),
     tipoEvento: "Entregable",
     tesista: "Eduardo Salas"
+  },
+  {
+    id: "11",
+    title: "Entrega del capítulo 20",
+    description: "Última versión",
+    start: createDate(20, 6, 2025, 10, 0),
+    end: createDate(20, 6, 2025, 10, 0),
+    tipoEvento: "Entregable",
+    tesista: "Eduardo Salas"
   }
 ]);
 

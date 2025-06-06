@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { 
   Calendar, 
   CalendarViewTrigger,
@@ -29,6 +29,9 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar as MonthPicker } from "@/components/ui/calendar"; // asegúrate de tenerlo
 import { es } from "date-fns/locale";
 
+import axios from "axios";
+import { useAuth } from "@/features/auth";
+import { getIdByCorreo } from "@/features/asesores/hooks/perfil/perfil-apis";
 
 type TipoEvento = "Entregable" | "Reunión" | "Exposición";
 
@@ -40,6 +43,15 @@ interface CalendarEvent {
   end: Date;
   tipoEvento: TipoEvento;
 }
+
+// Importa los tipos si usas TypeScript
+declare global {
+  interface Window {
+    gapi: any;
+  }
+}
+
+const CLIENT_ID = "1003186025477-ri4g0mveaptu3072hh27tuetc2j769rg.apps.googleusercontent.com";
 
 const MiCronogramaPage = () => {
   const createDate = (day: number, month: number, year: number, hours = 0, minutes = 0) =>
@@ -70,40 +82,63 @@ const MiCronogramaPage = () => {
     }
   });
 
-  const [events, setEvents] = useState<CalendarEvent[]>([
-    {
-      id: "1",
-      title: "Reunión con el asesor 1",
-      description: "Primera revision de avances",
-      start: createDate(26, 5, 2025, 8, 0),
-      end: createDate(26, 5, 2025, 10, 0),
-      tipoEvento: "Reunión"
-    },
-    {
-      id: "2",
-      title: "Exposición de avances",
-      description: "Presentación de resultados parciales",
-      start: createDate(26, 5, 2025, 11, 0),
-      end: createDate(26, 5, 2025, 12, 0),
-      tipoEvento: "Exposición"
-    },
-    {
-      id: "3",
-      title: "Entrega de Documentos",
-      description: "Fecha límite para entregar los documentos",
-      start: createDate(26, 5, 2025, 13, 0),
-      end: createDate(26, 5, 2025, 13, 0),
-      tipoEvento: "Entregable"
-    },
-    {
-      id: "4",
-      title: "Entrega de Documentos 2",
-      description: "Fecha límite para entregar los documentos",
-      start: createDate(26, 6, 2025, 13, 0),
-      end: createDate(26, 6, 2025, 13, 0),
-      tipoEvento: "Entregable"
+
+  const { user } = useAuth();
+  //const userId = 1;
+  const [userId, setUserId] = useState<number | null>(null);
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const hasFetchedId = useRef(false);
+
+  /*
+  const loadUsuarioId = async () => {
+    if (!user) return;
+  
+    try {
+      const id = await getIdByCorreo(user.email);
+      if (id !== null) {
+        setUserId(id);
+        console.log("ID del usuario obtenido:", id);
+      } else {
+        console.warn("No se encontró un usuario con ese correo.");
+      }
+    } catch (error) {
+      console.error("Error al obtener el ID del usuario:", error);
     }
-  ]);
+  };
+
+  useEffect(() => {
+    if (user && !hasFetchedId.current) {
+      hasFetchedId.current = true;
+      loadUsuarioId();
+    }
+  }, [user]);
+  */
+
+  useEffect(() => {
+    const fetchEventos = async () => {
+      try {
+        const userId = 1; // ID fijo para pruebas
+    
+        const response = await axios.get(`/api/eventos/usuario/${userId}`);
+    
+        const eventosMapeados = response.data.map((evento: any) => ({
+          id: evento.id.toString(),
+          title: evento.titulo || evento.nombre || "Sin título",
+          description: evento.descripcion || "",
+          start: new Date(evento.fechaInicio || evento.fecha),
+          end: new Date(evento.fechaFin || evento.fecha),
+          tipoEvento: evento.tipoEvento,
+        }));
+    
+        setEvents(eventosMapeados);
+      } catch (error) {
+        console.error("Error al obtener eventos:", error);
+      }
+    };
+    
+  
+    fetchEventos();
+  }, [userId]);
 
   const eventosParaCalendario = events.map((event) => ({
     ...event,
