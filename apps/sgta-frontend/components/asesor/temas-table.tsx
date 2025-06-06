@@ -10,16 +10,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Coasesor,
-  Tema,
-  Tesista,
-} from "@/features/temas/types/inscripcion/entities";
+import { Coasesor, Tesista } from "@/features/temas/types/inscripcion/entities";
 import { Tipo } from "@/features/temas/types/inscripcion/enums";
 import { titleCase } from "@/lib/utils";
 import { FilePen, Trash2 } from "lucide-react";
 import DeleteTemaPopUp from "./delete-tema-pop-up";
 import { TemaDetailsDialog } from "./tema-details-modal";
+import { Tema } from "@/features/temas/types/temas/entidades";
 
 interface PropuestasTableProps {
   temasData: Tema[];
@@ -116,20 +113,23 @@ export function TemasTable({
 
         {/* Tipo */}
         <TableCell>
-          <Badge
-            variant="outline"
-            className={
-              tema.estadoTemaNombre === Tipo.LIBRE
-                ? "bg-purple-100 text-purple-800 hover:bg-purple-100"
-                : tema.estadoTemaNombre === Tipo.PREINSCRITO
-                  ? "bg-orange-100 text-orange-800 hover:bg-orange-100"
-                  : tema.estadoTemaNombre === Tipo.INTERESADO
-                    ? "bg-blue-100 text-blue-800 hover:bg-blue-100"
-                    : "bg-green-100 text-green-800 hover:bg-green-100"
+          {(() => {
+            let badgeClass = "";
+            if (tema.estadoTemaNombre === Tipo.LIBRE) {
+              badgeClass = "bg-purple-100 text-purple-800 hover:bg-purple-100";
+            } else if (tema.estadoTemaNombre === Tipo.PREINSCRITO) {
+              badgeClass = "bg-orange-100 text-orange-800 hover:bg-orange-100";
+            } else if (tema.estadoTemaNombre === Tipo.INTERESADO) {
+              badgeClass = "bg-blue-100 text-blue-800 hover:bg-blue-100";
+            } else {
+              badgeClass = "bg-green-100 text-green-800 hover:bg-green-100";
             }
-          >
-            {titleCase(tema?.estadoTemaNombre ?? "")}
-          </Badge>
+            return (
+              <Badge variant="outline" className={badgeClass}>
+                {titleCase(tema?.estadoTemaNombre ?? "")}
+              </Badge>
+            );
+          })()}
         </TableCell>
         {/* Estado */}
         <TableCell>
@@ -145,18 +145,21 @@ export function TemasTable({
             } else {
               estadoLabel = "Inactivo";
             }
+
+            let badgeClass = "";
+            if (
+              tema?.estadoTemaNombre === Tipo.INTERESADO ||
+              tema?.estadoTemaNombre === Tipo.LIBRE
+            ) {
+              badgeClass = "bg-yellow-100 text-black-500 hover:bg-yellow-100";
+            } else if (tema.activo) {
+              badgeClass = "bg-green-100 text-green-800 hover:bg-green-100";
+            } else {
+              badgeClass = "bg-purple-100 text-purple-800 hover:bg-purple-100";
+            }
+
             return (
-              <Badge
-                variant="outline"
-                className={
-                  tema?.estadoTemaNombre === Tipo.INTERESADO ||
-                  tema?.estadoTemaNombre === Tipo.LIBRE
-                    ? "bg-yellow-100 text-black-500 hover:bg-yellow-100"
-                    : tema.activo
-                      ? "bg-green-100 text-green-800 hover:bg-green-100"
-                      : "bg-purple-100 text-purple-800 hover:bg-purple-100"
-                }
-              >
+              <Badge variant="outline" className={badgeClass}>
                 {titleCase(estadoLabel)}
               </Badge>
             );
@@ -206,7 +209,7 @@ export function TemasTable({
               <TableHead>Área</TableHead>
               <TableHead>Asesor</TableHead>
               <TableHead>Estudiante(s)</TableHead>
-              {/* <TableHead>Postulaciones</TableHead> // TODO: Mostrar postulaciones */}
+              <TableHead>Postulaciones</TableHead>
               <TableHead>Tipo</TableHead>
               <TableHead>Estado</TableHead>
               <TableHead className="text-right">Acción</TableHead>
@@ -218,3 +221,4 @@ export function TemasTable({
     </div>
   );
 }
+

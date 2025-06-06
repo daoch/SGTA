@@ -58,7 +58,7 @@ export function ItemFechaExposicion({
           name={`fechas.${index}.fecha`}
           control={control}
           render={({ field: dateField }) => (
-            <Popover>
+            <Popover modal={true}>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"

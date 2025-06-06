@@ -10,32 +10,6 @@ export interface TemaForm {
   fechaLimite?: string;
 }
 
-export interface Tema {
-  id: number;
-  codigo: string | null;
-  carrera: Carrera | null;
-  titulo: string;
-  resumen: string;
-  objetivos: string;
-  metodologia: string;
-  portafolioUrl: string;
-  activo: boolean;
-  fechaLimite: string;
-  fechaCreacion: string;
-  fechaModificacion: string | null;
-  estadoTemaNombre: string | null;
-  idUsuarioInvolucradosList: number[] | null;
-  idCoasesorInvolucradosList: number[] | null;
-  idEstudianteInvolucradosList: number[] | null;
-  idSubAreasConocimientoList: number[] | null;
-  coasesores: Coasesor[] | null;
-  tesistas: Tesista[] | null;
-  subareas: AreaDeInvestigacion[];
-  requisitos: string;
-  area: AreaConocimiento[];
-  cantPostulaciones: number;
-}
-
 export interface TemaCreateInscription {
   titulo: string;
   carrera: Identifiable;
@@ -123,3 +97,4 @@ export interface AreaConocimiento {
   fechaModificacion: string;
   idCarrera: number;
 }
+

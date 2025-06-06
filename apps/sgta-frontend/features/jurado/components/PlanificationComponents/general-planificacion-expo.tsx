@@ -66,6 +66,7 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
   } = usePlanificationStore();
 
   const [isLoading, setIsLoading] = useState(false);
+  console.log("EXPOSICION ID:", exposicionId);
 
   const router = useRouter();
 

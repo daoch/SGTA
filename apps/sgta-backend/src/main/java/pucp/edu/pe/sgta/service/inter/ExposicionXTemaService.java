@@ -15,4 +15,6 @@ public interface ExposicionXTemaService {
 
     void delete(Integer id);
 
+    void createAllRelatedByExposicionId(Integer exposicionId);
+
 }
