@@ -10,12 +10,6 @@ export const pageTexts = {
 };
 
 export const tableTexts = {
-  [EstadoTemaNombre.REGISTRADO]: {
-    title: "Temas registrados",
-    description: "Temas de tesis que han sido aprobados por el comité de tesis",
-    tabLabel: "Registrados",
-    show: true,
-  },
   [EstadoTemaNombre.INSCRITO]: {
     title: "Temas inscritos",
     description: "Temas de tesis en los que estás inscrito",
@@ -58,4 +52,3 @@ export const initialPagination: PagesList = {
     totalCounts: 0,
   },
 };
-
