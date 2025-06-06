@@ -101,10 +101,29 @@ export function TemaCard() {
           estadoActual = "Registrado";
         }
 
+        // Si no hay REGISTRADO, buscar EN_PROGRESO
+        if (!data || data.length === 0) {
+          response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/temas/listarTemasPorUsuarioRolEstado?rolNombre=Tesista&estadoNombre=EN_PROGRESO`,
+            {
+              headers: {
+                Authorization: `Bearer ${idToken}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+          data = await response.json();
+          estadoActual = "En progreso";
+        }
+
+        if (!data || data.length === 0) {
+          setTesisData(null);
+          return;
+        }
+
         const tesis = data[0];
         setTesisData({ ...tesis, estadoActual });
 
-        // ...resto de tu lógica para setFormData...
         const asesorPrincipal = tesis.coasesores?.[0];
         const coasesoresRestantes = tesis.coasesores?.slice(1) ?? [];
         setFormData({
@@ -118,6 +137,7 @@ export function TemaCard() {
         });
       } catch (error) {
         console.error("Error:", error);
+        setTesisData(null);
       }
     };
 
@@ -229,12 +249,16 @@ export function TemaCard() {
               <Users className="h-4 w-4" /> <span>Tesistas</span>
             </h3>
             <ul className="space-y-1">
-              {tesisData.tesistas.map((est) => (
-                <li key={est.id} className="text-sm flex justify-between">
-                  <span>{`${est.nombres} ${est.primerApellido}`}</span>
-                  <span className="text-muted-foreground">{est.codigoPucp}</span>
-                </li>
-              ))}
+              {tesisData.tesistas && tesisData.tesistas.length > 0 ? (
+                tesisData.tesistas.map((est) => (
+                  <li key={est.id} className="text-sm flex justify-between">
+                    <span>{`${est.nombres} ${est.primerApellido}`}</span>
+                    <span className="text-muted-foreground">{est.codigoPucp}</span>
+                  </li>
+                ))
+              ) : (
+                <li className="text-sm text-muted-foreground">Sin tesistas</li>
+              )}
             </ul>
           </div>
         </div>
