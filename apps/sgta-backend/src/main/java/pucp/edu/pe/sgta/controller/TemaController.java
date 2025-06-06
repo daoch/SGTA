@@ -12,7 +12,9 @@ import pucp.edu.pe.sgta.dto.TemaConAsesorJuradoDTO;
 import pucp.edu.pe.sgta.dto.asesores.InfoTemaPerfilDto;
 import pucp.edu.pe.sgta.dto.TemaDto;
 import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
+import pucp.edu.pe.sgta.dto.TemaSimilarityResult;
 import pucp.edu.pe.sgta.service.inter.JwtService;
+import pucp.edu.pe.sgta.service.inter.SimilarityService;
 import pucp.edu.pe.sgta.service.inter.TemaService;
 
 import java.sql.SQLException;
@@ -29,6 +31,9 @@ public class TemaController {
 
 	@Autowired
 	JwtService jwtService;
+
+	@Autowired
+	SimilarityService similarityService;
 
 	@GetMapping("/findByUser") // finds topics by user
 	public List<TemaDto> findByUser(@RequestParam(name = "idUsuario") Integer idUsuario) {
@@ -259,6 +264,27 @@ public class TemaController {
         temaService.eliminarTemaCoordinador(temaId, usuarioId);
         return ResponseEntity.noContent().build();
     }
+
+	@PostMapping("/findSimilar")
+	public List<TemaSimilarityResult> findSimilarTemas(
+			@RequestBody TemaDto tema,
+			@RequestParam(value = "threshold", required = false) Double threshold) {
+		if (threshold != null) {
+			return similarityService.findSimilarTemas(tema, threshold);
+		}
+		return similarityService.findSimilarTemas(tema);
+	}
+
+	@GetMapping("/similarity/threshold")
+	public Map<String, Double> getSimilarityThreshold() {
+		return Map.of("threshold", similarityService.getDefaultThreshold());
+	}
+
+	@PutMapping("/similarity/threshold")
+	public ResponseEntity<Void> setSimilarityThreshold(@RequestParam Double threshold) {
+		similarityService.setDefaultThreshold(threshold);
+		return ResponseEntity.ok().build();
+	}
 
 }
 

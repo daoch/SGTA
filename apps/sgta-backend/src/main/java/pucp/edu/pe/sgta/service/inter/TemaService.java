@@ -10,7 +10,6 @@ import pucp.edu.pe.sgta.dto.TemaConAsesorJuradoDTO;
 import java.sql.SQLException;
 import java.util.List;
 
-import jakarta.persistence.criteria.CriteriaBuilder.In;
 import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
 
 public interface TemaService {

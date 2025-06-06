@@ -44,3 +44,9 @@ yarn-error.log*
 *.iml
 *.ipr
 HELP.md
+
+#Python
+__pycache__
+.env
+env
+test_db.db
