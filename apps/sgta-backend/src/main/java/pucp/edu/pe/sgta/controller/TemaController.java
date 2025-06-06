@@ -415,8 +415,6 @@ public class TemaController {
 		return ResponseEntity.ok().build();
 	}
 
-}
-
 
 	@GetMapping("/listarMisPostulacionesTemaLibre")
 	public List<TemaDto> listarMisPostulacionesTemaLibre(HttpServletRequest request) {
@@ -482,74 +480,78 @@ public class TemaController {
 	}
 
 	@GetMapping("/porUsuarioTituloAreaCarreraEstadoFecha")
-    public List<TemaDto> listarPorUsuarioTituloAreaCarreraEstadoFecha(
-            @RequestParam(value = "titulo", required = false) String titulo,
-            @RequestParam(value = "areaId", required = false) Integer areaId,
-            @RequestParam(value = "carreraId", required = false) Integer carreraId,
-            @RequestParam(value = "estadoNombre", required = false) String estadoNombre,
-            @RequestParam(value = "fechaCreacionDesde", required = false) String fechaCreacionDesdeStr,
-            @RequestParam(value = "fechaCreacionHasta", required = false) String fechaCreacionHastaStr,
-            @RequestParam(value = "limit", defaultValue = "10") Integer limit,
-            @RequestParam(value = "offset", defaultValue = "0") Integer offset,
-            HttpServletRequest request
-    ) {
-        // Convertimos null a cadenas vacías cuando corresponda
-        String filtroTitulo = (titulo == null ? "" : titulo);
-        String filtroEstado = (estadoNombre == null ? "" : estadoNombre);
+	public List<TemaDto> listarPorUsuarioTituloAreaCarreraEstadoFecha(
+			@RequestParam(value = "titulo", required = false) String titulo,
+			@RequestParam(value = "areaId", required = false) Integer areaId,
+			@RequestParam(value = "carreraId", required = false) Integer carreraId,
+			@RequestParam(value = "estadoNombre", required = false) String estadoNombre,
+			@RequestParam(value = "fechaCreacionDesde", required = false) String fechaCreacionDesdeStr,
+			@RequestParam(value = "fechaCreacionHasta", required = false) String fechaCreacionHastaStr,
+			@RequestParam(value = "limit", defaultValue = "10") Integer limit,
+			@RequestParam(value = "offset", defaultValue = "0") Integer offset,
+			HttpServletRequest request
+	) {
+		// Convertimos null a cadenas vacías cuando corresponda
+		String filtroTitulo = (titulo == null ? "" : titulo);
+		String filtroEstado = (estadoNombre == null ? "" : estadoNombre);
 
-        // Parseo de fechas (formato "yyyy-MM-dd")
-        LocalDate fechaDesde = null;
-        LocalDate fechaHasta = null;
-        if (fechaCreacionDesdeStr != null && !fechaCreacionDesdeStr.isBlank()) {
-            fechaDesde = LocalDate.parse(fechaCreacionDesdeStr);
-        }
-        if (fechaCreacionHastaStr != null && !fechaCreacionHastaStr.isBlank()) {
-            fechaHasta = LocalDate.parse(fechaCreacionHastaStr);
-        }
+		// Parseo de fechas (formato "yyyy-MM-dd")
+		LocalDate fechaDesde = null;
+		LocalDate fechaHasta = null;
+		if (fechaCreacionDesdeStr != null && !fechaCreacionDesdeStr.isBlank()) {
+			fechaDesde = LocalDate.parse(fechaCreacionDesdeStr);
+		}
+		if (fechaCreacionHastaStr != null && !fechaCreacionHastaStr.isBlank()) {
+			fechaHasta = LocalDate.parse(fechaCreacionHastaStr);
+		}
 
-        String usuarioCognitoId = jwtService.extractSubFromRequest(request);
-        return temaService.listarTemasPorUsuarioTituloAreaCarreraEstadoFecha(
-                usuarioCognitoId,
-                filtroTitulo,
-                areaId,
-                carreraId,
-                filtroEstado,
-                fechaDesde,
-                fechaHasta,
-                limit,
-                offset
-        );
-    }
+		String usuarioCognitoId = jwtService.extractSubFromRequest(request);
+		return temaService.listarTemasPorUsuarioTituloAreaCarreraEstadoFecha(
+				usuarioCognitoId,
+				filtroTitulo,
+				areaId,
+				carreraId,
+				filtroEstado,
+				fechaDesde,
+				fechaHasta,
+				limit,
+				offset
+		);
+	}
 
 	@GetMapping("/filtradoCompleto")
-  public List<TemaDto> filtrarCompleto(
-      @RequestParam(value = "titulo",                   required = false) String titulo,
-      @RequestParam(value = "estadoNombre",             required = false) String estadoNombre,
-      @RequestParam(value = "carreraId",                required = false) Integer carreraId,
-      @RequestParam(value = "areaId",                   required = false) Integer areaId,
-      @RequestParam(value = "nombreUsuario",            required = false) String nombreUsuario,
-      @RequestParam(value = "primerApellidoUsuario",    required = false) String primerApellidoUsuario,
-      @RequestParam(value = "segundoApellidoUsuario",   required = false) String segundoApellidoUsuario,
-      @RequestParam(value = "limit",   defaultValue = "10") Integer limit,
-      @RequestParam(value = "offset",  defaultValue = "0")  Integer offset
-  ) {
-    // Convertir posibles nulls a cadenas vacías (para que la función SQL los trate como “no filtro”)
-    String filtroTitulo          = (titulo                  == null ? "" : titulo);
-    String filtroEstado          = (estadoNombre            == null ? "" : estadoNombre);
-    String filtroNombreUsuario   = (nombreUsuario           == null ? "" : nombreUsuario);
-    String filtroPrimerApellido  = (primerApellidoUsuario   == null ? "" : primerApellidoUsuario);
-    String filtroSegundoApellido = (segundoApellidoUsuario  == null ? "" : segundoApellidoUsuario);
+	public List<TemaDto> filtrarCompleto(
+			@RequestParam(value = "titulo",                   required = false) String titulo,
+			@RequestParam(value = "estadoNombre",             required = false) String estadoNombre,
+			@RequestParam(value = "carreraId",                required = false) Integer carreraId,
+			@RequestParam(value = "areaId",                   required = false) Integer areaId,
+			@RequestParam(value = "nombreUsuario",            required = false) String nombreUsuario,
+			@RequestParam(value = "primerApellidoUsuario",    required = false) String primerApellidoUsuario,
+			@RequestParam(value = "segundoApellidoUsuario",   required = false) String segundoApellidoUsuario,
+			@RequestParam(value = "limit",   defaultValue = "10") Integer limit,
+			@RequestParam(value = "offset",  defaultValue = "0")  Integer offset
+	) {
+		// Convertir posibles nulls a cadenas vacías (para que la función SQL los trate como “no filtro”)
+		String filtroTitulo          = (titulo                  == null ? "" : titulo);
+		String filtroEstado          = (estadoNombre            == null ? "" : estadoNombre);
+		String filtroNombreUsuario   = (nombreUsuario           == null ? "" : nombreUsuario);
+		String filtroPrimerApellido  = (primerApellidoUsuario   == null ? "" : primerApellidoUsuario);
+		String filtroSegundoApellido = (segundoApellidoUsuario  == null ? "" : segundoApellidoUsuario);
 
-    return temaService.listarTemasFiltradoCompleto(
-            filtroTitulo,
-            filtroEstado,
-            carreraId,
-            areaId,
-            filtroNombreUsuario,
-            filtroPrimerApellido,
-            filtroSegundoApellido,
-            limit,
-            offset
-    );
-  }
+		return temaService.listarTemasFiltradoCompleto(
+				filtroTitulo,
+				filtroEstado,
+				carreraId,
+				areaId,
+				filtroNombreUsuario,
+				filtroPrimerApellido,
+				filtroSegundoApellido,
+				limit,
+				offset
+		);
+	}
 }
+
+
+
+
