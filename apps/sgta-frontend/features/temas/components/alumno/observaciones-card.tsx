@@ -153,10 +153,19 @@ export function ObservacionesCard({ observaciones, solicitudes }: Props) {
     };
 
     try {
+      const { idToken } = useAuthStore.getState();
+        
+        if (!idToken) {
+          console.error("No authentication token available");
+          return;
+        }
+        
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/solicitudes/atenderSolicitudTemaInscrito`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Authorization": `Bearer ${idToken}`,
+          "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 

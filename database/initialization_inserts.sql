@@ -1,536 +1,205 @@
 SET search_path TO sgtadb;
 
 -- 1) Tipo de usuario y dedicacion
-INSERT INTO
-    tipo_usuario (
-        nombre,
-        activo,
-        fecha_creacion,
-        fecha_modificacion
-    )
-VALUES (
-        'profesor',
-        TRUE,
-        NOW(),
-        NOW()
-    ),
-    ('alumno', TRUE, NOW(), NOW()),
-    (
-        'coordinador',
-        TRUE,
-        NOW(),
-        NOW()
-    ),
-    (
-        'administrador',
-        TRUE,
-        NOW(),
-        NOW()
-    );
 
-INSERT INTO
-    tipo_dedicacion (iniciales, descripcion)
-VALUES ('TC', 'Tiempo completo'),
-    (
-        'TPC',
-        'Tiempo parcial convencional'
-    ),
-    (
-        'TPA',
-        'Tiempo parcial por asignaturas'
-    );
+INSERT INTO tipo_usuario (nombre,
+                          activo,
+                          fecha_creacion,
+                          fecha_modificacion)
+    VALUES ('profesor', TRUE, NOW(), NOW()),
+           ('alumno', TRUE, NOW(), NOW()),
+           ('coordinador', TRUE, NOW(), NOW()),
+           ('administrador', TRUE, NOW(), NOW());
+
+
+INSERT INTO tipo_dedicacion (iniciales, descripcion)
+    VALUES ('TC', 'Tiempo completo'),
+           ('TPC', 'Tiempo parcial convencional'),
+           ('TPA', 'Tiempo parcial por asignaturas');
 
 -- 2) Rol
-INSERT INTO
-    rol (
-        nombre,
-        descripcion,
-        activo,
-        fecha_creacion,
-        fecha_modificacion
-    )
-VALUES (
-        'Asesor',
-        'Asesora a estudiantes en sus proyectos',
-        TRUE,
-        NOW(),
-        NOW()
-    ),
-    (
-        'Jurado',
-        'Evalúa y califica exposiciones',
-        TRUE,
-        NOW(),
-        NOW()
-    ),
-    (
-        'Revisor',
-        '',
-        TRUE,
-        NOW(),
-        NOW()
-    ),
-    (
-        'Tesista',
-        'Estudiante realizando tesis de grado o proyecto de fin de carrera',
-        TRUE,
-        NOW(),
-        NOW()
-    ),
-    (
-        'Coasesor',
-        'Cosesora a estudiantes en sus proyectos',
-        TRUE,
-        NOW(),
-        NOW()
-    ),
-    (
-        'Alumno',
-        'Alumono de la universidad',
-        TRUE,
-        NOW(),
-        NOW()
-    );
+
+INSERT INTO rol (nombre,
+             descripcion,
+             activo,
+             fecha_creacion,
+             fecha_modificacion)
+VALUES ('Asesor', 'Asesora a estudiantes en sus proyectos', TRUE, NOW(), NOW()),
+       ('Jurado', 'Está presente, evalúa y califica exposiciones', TRUE, NOW(), NOW()),
+       ('Revisor', 'Califica exposiciones y entregables', TRUE, NOW(), NOW()),
+       ('Tesista', 'Estudiante realizando tesis de grado o proyecto de fin de carrera', TRUE, NOW(), NOW()),
+       ('Coasesor', 'Cosesora a estudiantes en sus proyectos', TRUE, NOW(), NOW()),
+       ('Alumno', 'Alumno de la universidad', TRUE, NOW(), NOW());
+
 
 -- 3) Estado de tema
-INSERT INTO
-    estado_tema (
-        nombre,
-        descripcion,
-        activo,
-        fecha_creacion,
-        fecha_modificacion
-    )
-VALUES (
-        'PROPUESTO_LIBRE',
-        'Tema propuesto por asesor para que los alumnos postulen',
-        TRUE,
-        NOW(),
-        NOW()
-    ),
-    (
-        'PROPUESTO_GENERAL',
-        'Tema propuesto por estudiante o estudiantes en general a una subárea de conocimiento',
-        TRUE,
-        NOW(),
-        NOW()
-    ),
-    (
-        'PROPUESTO_DIRECTO',
-        'Tema propuesto por estudiante directamente a un profesor (no visible a otros profesores)',
-        TRUE,
-        NOW(),
-        NOW()
-    ),
-    (
-        'PREINSCRITO',
-        'Tema propuesto por estudiante que cuenta con asesor aceptado',
-        TRUE,
-        NOW(),
-        NOW()
-    ),
-    (
-        'INSCRITO',
-        'Tema inscrito con asesor con detalles formalizados',
-        TRUE,
-        NOW(),
-        NOW()
-    ),
-    (
-        'REGISTRADO',
-        'Tema inscrito aceptado por comité de tesis',
-        TRUE,
-        NOW(),
-        NOW()
-    ),
-    (
-        'RECHAZADO',
-        'Tema propuesto por estudiante que ha sido rechazado',
-        TRUE,
-        NOW(),
-        NOW()
-    ),
-    (
-        'OBSERVADO',
-        'Tema inscrito con observaciones pendientes del comité de tesis',
-        TRUE,
-        NOW(),
-        NOW()
-    ),
-    (
-        'VENCIDO',
-        'Tema propuesto por asesor o estudiantes que pasó su fecha de vencimiento definida',
-        TRUE,
-        NOW(),
-        NOW()
-    ),
-    (
-        'EN_PROGRESO',
-        'Tema registrado en progreso',
-        TRUE,
-        NOW(),
-        NOW()
-    ),
-    (
-        'PAUSADO',
-        'Tema que ha sido registrado e iniciado, pero no está en progreso actualmente',
-        TRUE,
-        NOW(),
-        NOW()
-    ),
-    (
-        'FINALIZADO',
-        'Tema que ha sido registrado y ha finalizado su proceso de evaluación',
-        TRUE,
-        NOW(),
-        NOW()
-    );
+
+INSERT INTO estado_tema (nombre,
+                         descripcion,
+                         activo,
+                         fecha_creacion,
+                         fecha_modificacion)
+    VALUES ('PROPUESTO_LIBRE', 'Tema propuesto por asesor para que los alumnos postulen', TRUE, NOW(), NOW()),
+           ('PROPUESTO_GENERAL', 'Tema propuesto por estudiante o estudiantes en general a una subárea de conocimiento', TRUE, NOW(), NOW()),
+           ('PROPUESTO_DIRECTO', 'Tema propuesto por estudiante directamente a un profesor (no visible a otros profesores)', TRUE, NOW(), NOW()),
+           ('PREINSCRITO', 'Tema propuesto por estudiante que cuenta con asesor aceptado', TRUE, NOW(), NOW()),
+           ('INSCRITO', 'Tema inscrito con asesor con detalles formalizados', TRUE, NOW(), NOW()),
+           ('REGISTRADO', 'Tema inscrito aceptado por comité de tesis', TRUE, NOW(), NOW()),
+           ('RECHAZADO', 'Tema propuesto por estudiante que ha sido rechazado', TRUE, NOW(), NOW()),
+           ('OBSERVADO', 'Tema inscrito con observaciones pendientes del comité de tesis', TRUE, NOW(), NOW()),
+           ('VENCIDO', 'Tema propuesto por asesor o estudiantes que pasó su fecha de vencimiento definida', TRUE, NOW(), NOW()),
+           ('EN_PROGRESO', 'Tema registrado en progreso', TRUE, NOW(), NOW()),
+           ('PAUSADO', 'Tema que ha sido registrado e iniciado, pero no está en progreso actualmente', TRUE, NOW(), NOW()),
+           ('FINALIZADO', 'Tema que ha sido registrado y ha finalizado su proceso de evaluación', TRUE, NOW(), NOW());
+
 
 -- 4) Unidad académica
-INSERT INTO
-    unidad_academica (nombre, descripcion)
-VALUES (
-        'Facultad de Ciencias e Ingeniería',
-        'Unidad encargada de carreras de ingeniería'
-    );
+
+INSERT INTO unidad_academica (nombre, descripcion)
+    VALUES ('Facultad de Ciencias e Ingeniería', 'Unidad encargada de carreras de ingeniería');
+
 
 -- 5) Carrera  (unidad_academica_id = 1)
-INSERT INTO
-    carrera (
-        unidad_academica_id,
-        codigo,
-        nombre,
-        descripcion,
-        activo,
-        fecha_creacion,
-        fecha_modificacion
-    )
-VALUES (
-        1,
-        'INF',
-        'ingeniería informática',
-        'Carrera de software y sistemas',
-        TRUE,
-        NOW(),
-        NOW()
-    ),
-    (
-        1,
-        'CIV',
-        'ingeniería civil',
-        'Carrera de construcción y estructuras',
-        TRUE,
-        NOW(),
-        NOW()
-    ),
-    (
-        1,
-        'MEC',
-        'ingeniería mecánica',
-        'Carrera de diseño y manufactura de máquinas',
-        TRUE,
-        NOW(),
-        NOW()
-    ),
-    (
-        1,
-        'IND',
-        'ingeniería industrial',
-        'Carrera de optimización de procesos',
-        TRUE,
-        NOW(),
-        NOW()
-    );
+
+INSERT INTO carrera (unidad_academica_id,
+                     codigo,
+                     nombre,
+                     descripcion,
+                     activo,
+                     fecha_creacion,
+                     fecha_modificacion)
+    VALUES (1, 'INF', 'Ingeniería Informática', 'Carrera de software y sistemas', TRUE, NOW(), NOW()),
+           (1, 'CIV', 'Ingeniería Civil', 'Carrera de construcción y estructuras', TRUE, NOW(), NOW()),
+           (1, 'MEC', 'Ingeniería Mecánica', 'Carrera de diseño y manufactura de máquinas', TRUE, NOW(), NOW()),
+           (1, 'IND', 'Ingeniería Industrial', 'Carrera de optimización de procesos', TRUE, NOW(), NOW());
+
 
 -- 6) Grupo de investigación
-INSERT INTO
-    grupo_investigacion (
-        nombre,
-        descripcion,
-        activo,
-        fecha_creacion,
-        fecha_modificacion
-    )
-VALUES (
-        'Grupo de Inteligencia Artificial PUCP',
-        'Investigación en IA y aprendizaje automático',
-        TRUE,
-        NOW(),
-        NOW()
-    );
+
+INSERT INTO grupo_investigacion (nombre,
+                                 descripcion,
+                                 activo,
+                                 fecha_creacion,
+                                 fecha_modificacion)
+    VALUES ('Grupo de Inteligencia Artificial PUCP', 'Investigación en IA y aprendizaje automático', TRUE, NOW(), NOW()),
+           ('Grupo de Investigación HCI-DUXAIT-PUCP', 'Investigación que contribuya en las áreas de la Interacción Humano-Computador (HCI) y en el Desarrollo Tecnológico e Innovación', TRUE, NOW(), NOW());
+
 
 -- 7) Módulo
-INSERT INTO
-    modulo (
-        nombre,
-        descripcion,
-        activo,
-        fecha_creacion,
-        fecha_modificacion
-    )
-VALUES (
-        'Temas',
-        'Gestión de propuestas y temas de investigación',
-        TRUE,
-        NOW(),
-        NOW()
-    ),
-    (
-        'Asesores',
-        'Administración de asesores asignados',
-        TRUE,
-        NOW(),
-        NOW()
-    ),
-    (
-        'Jurados',
-        'Administración de jurados de evaluación',
-        TRUE,
-        NOW(),
-        NOW()
-    ),
-    (
-        'Revisión',
-        'Control y seguimiento de revisiones',
-        TRUE,
-        NOW(),
-        NOW()
-    ),
-    (
-        'Reportes',
-        'Generación de informes y estadísticas',
-        TRUE,
-        NOW(),
-        NOW()
-    );
+
+INSERT INTO modulo (nombre,
+                descripcion,
+                activo,
+                fecha_creacion,
+                fecha_modificacion)
+VALUES ('Temas', 'Gestión de propuestas y temas de investigación', TRUE, NOW(), NOW()),
+       ('Asesores', 'Administración de asesores asignados', TRUE, NOW(), NOW()),
+       ('Jurados', 'Administración de jurados de evaluación', TRUE, NOW(), NOW()),
+       ('Revisión', 'Control y seguimiento de revisiones', TRUE, NOW(), NOW()),
+       ('Reportes', 'Generación de informes y estadísticas', TRUE, NOW(), NOW());
+
 
 -- 8) Área de conocimiento (ahora incluye carrera_id)
-INSERT INTO
-    area_conocimiento (
-        carrera_id,
-        nombre,
-        descripcion,
-        activo,
-        fecha_creacion,
-        fecha_modificacion
-    )
-VALUES
-    -- ambas áreas las atribuimos a la carrera INF (carrera_id = 1)
-    (
-        1,
-        'ciencias de la computación',
-        'Disciplina de teorías y sistemas computacionales',
-        TRUE,
-        NOW(),
-        NOW()
-    ),
-    (
-        1,
-        'sistemas de información',
-        'Estudio de sistemas para gestión de información',
-        TRUE,
-        NOW(),
-        NOW()
-    ),
-    (
-        1,
-        'ciberseguridad',
-        'Protección de activos digitales ante amenazas',
-        TRUE,
-        NOW(),
-        NOW()
-    );
+
+INSERT INTO area_conocimiento (carrera_id,
+                               nombre,
+                               descripcion,
+                               activo,
+                               fecha_creacion,
+                               fecha_modificacion)
+    VALUES (1, 'Ciencias de la Computación', 'Disciplina de teorías y sistemas computacionales', TRUE, NOW(), NOW()),
+           (1, 'Sistemas de Información', 'Estudio de sistemas para gestión de información', TRUE, NOW(), NOW()),
+           (1, 'Ciberseguridad', 'Protección de activos digitales ante amenazas', TRUE, NOW(), NOW());
+
 
 -- 9) Sub-área de conocimiento (área_conocimiento_id = 1)
-INSERT INTO
-    sub_area_conocimiento (
-        area_conocimiento_id,
-        nombre,
-        descripcion,
-        activo,
-        fecha_creacion,
-        fecha_modificacion
-    )
-VALUES (
-        1,
-        'Procesamiento de lenguaje natural',
-        'Técnicas para análisis y generación de texto',
-        TRUE,
-        NOW(),
-        NOW()
-    ),
-    (
-        1,
-        'Aprendizaje por reforzamiento',
-        'Métodos basados en recompensas y agentes',
-        TRUE,
-        NOW(),
-        NOW()
-    ),
-    (
-        1,
-        'Procesamiento de imágenes',
-        'Algoritmos para interpretación de imágenes',
-        TRUE,
-        NOW(),
-        NOW()
-    ),
-    (
-        1,
-        'Visión computacional',
-        'Análisis de imágenes y videos para tareas específicas',
-        TRUE,
-        NOW(),
-        NOW()
-    ),
-    (
-        1,
-        'Machine Learning',
-        'Modelos computacionales de regresión y clasificación',
-        TRUE,
-        NOW(),
-        NOW()
-    ),
-    (
-        2,
-        'Sistemas de gestión de bases de datos',
-        'Diseño y administración de bases de datos',
-        TRUE,
-        NOW(),
-        NOW()
-    ),
-    (
-        2,
-        'Sistemas distribuidos',
-        'Arquitecturas y protocolos para sistemas distribuidos',
-        TRUE,
-        NOW(),
-        NOW()
-    ),
-    (
-        2,
-        'Redes de computadoras',
-        'Interconexión y comunicación entre computadoras',
-        TRUE,
-        NOW(),
-        NOW()
-    ),
-    (
-        2,
-        'Desarrollo de software',
-        'Metodologías y herramientas para desarrollo de software',
-        TRUE,
-        NOW(),
-        NOW()
-    ),
-    (
-        2,
-        'Ingeniería de requisitos',
-        'Recopilación y análisis de requisitos de software',
-        TRUE,
-        NOW(),
-        NOW()
-    ),
-    (
-        3,
-        'Seguridad en redes',
-        'Protección de redes y sistemas ante ataques',
-        TRUE,
-        NOW(),
-        NOW()
-    ),
-    (
-        3,
-        'Criptografía',
-        'Técnicas para asegurar la información mediante cifrado',
-        TRUE,
-        NOW(),
-        NOW()
-    ),
-    (
-        3,
-        'Seguridad en aplicaciones web',
-        'Protección de aplicaciones web contra vulnerabilidades',
-        TRUE,
-        NOW(),
-        NOW()
-    ),
-    (
-        3,
-        'Seguridad en sistemas operativos',
-        'Protección de sistemas operativos ante amenazas',
-        TRUE,
-        NOW(),
-        NOW()
-    ),
-    (
-        3,
-        'Análisis forense digital',
-        'Investigación de incidentes de seguridad digital',
-        TRUE,
-        NOW(),
-        NOW()
-    );
+
+INSERT INTO sub_area_conocimiento (area_conocimiento_id,
+                                   nombre,
+                                   descripcion,
+                                   activo,
+                                   fecha_creacion,
+                                   fecha_modificacion)
+    VALUES (1, 'Procesamiento de lenguaje natural', 'Técnicas para análisis y generación de texto', TRUE, NOW(), NOW()),
+           (1, 'Aprendizaje por reforzamiento', 'Métodos basados en recompensas y agentes', TRUE, NOW(), NOW()),
+           (1, 'Procesamiento de imágenes', 'Algoritmos para interpretación de imágenes', TRUE, NOW(), NOW()),
+           (1, 'Visión computacional', 'Análisis de imágenes y videos para tareas específicas', TRUE, NOW(), NOW()),
+           (1, 'Machine Learning', 'Modelos computacionales de regresión y clasificación', TRUE, NOW(), NOW()),
+           (2, 'Sistemas de gestión de bases de datos', 'Diseño y administración de bases de datos', TRUE, NOW(), NOW()),
+           (2, 'Sistemas distribuidos', 'Arquitecturas y protocolos para sistemas distribuidos', TRUE, NOW(), NOW()),
+           (2, 'Redes de computadoras', 'Interconexión y comunicación entre computadoras', TRUE, NOW(), NOW()),
+           (2, 'Desarrollo de software', 'Metodologías y herramientas para desarrollo de software', TRUE, NOW(), NOW()),
+           (2, 'Ingeniería de requisitos', 'Recopilación y análisis de requisitos de software', TRUE, NOW(), NOW()),
+           (3, 'Seguridad en redes', 'Protección de redes y sistemas ante ataques', TRUE, NOW(), NOW()),
+           (3, 'Criptografía', 'Técnicas para asegurar la información mediante cifrado', TRUE, NOW(), NOW()),
+           (3, 'Seguridad en aplicaciones web', 'Protección de aplicaciones web contra vulnerabilidades', TRUE, NOW(), NOW()),
+           (3, 'Seguridad en sistemas operativos', 'Protección de sistemas operativos ante amenazas', TRUE, NOW(), NOW()),
+           (3, 'Análisis forense digital', 'Investigación de incidentes de seguridad digital', TRUE, NOW(), NOW());
+
 
 -- 10) Tipo de solicitud
-INSERT INTO
-    tipo_solicitud (
-        nombre,
-        descripcion,
-        activo,
-        fecha_creacion,
-        fecha_modificacion
-    )
-VALUES (
-        'Aprobación de tema (por coordinador)',
-        'Solicitud para que el coordinador apruebe el tema',
-        TRUE,
-        NOW(),
-        NOW()
-    );
+
+INSERT INTO tipo_solicitud(nombre, descripcion, activo, fecha_creacion, fecha_modificacion)
+    VALUES ('Aprobación de tema (por coordinador)', 'Solicitud para que el coordinador apruebe el tema', TRUE, NOW(), NOW()),
+           ('Cambio de asesor (por asesor)', 'Solicitud para que el coordinador apruebe el cambio de asesores', TRUE, NOW(), NOW());
 
 -- 11) Tipo de notificación
-INSERT INTO
-    tipo_notificacion (
-        nombre,
-        descripcion,
-        prioridad,
-        activo,
-        fecha_creacion,
-        fecha_modificacion
-    )
-VALUES (
-        'informativa',
-        'Mensaje informativo para el usuario',
-        0,
-        TRUE,
-        NOW(),
-        NOW()
-    ),
-    (
-        'advertencia',
-        'Señal de posible problema o riesgo',
-        1,
-        TRUE,
-        NOW(),
-        NOW()
-    ),
-    (
-        'recordatorio',
-        'Recordatorio de acción pendiente',
-        2,
-        TRUE,
-        NOW(),
-        NOW()
-    ),
-    (
-        'error',
-        'Notificación de error crítico',
-        3,
-        TRUE,
-        NOW(),
-        NOW()
-    );
+
+INSERT INTO tipo_notificacion (nombre,
+                               descripcion,
+                               prioridad,
+                               activo,
+                               fecha_creacion,
+                               fecha_modificacion)
+    VALUES ('informativa', 'Mensaje informativo para el usuario', 0, TRUE, NOW(), NOW()),
+           ('advertencia', 'Señal de posible problema o riesgo', 1, TRUE, NOW(), NOW()),
+           ('recordatorio', 'Recordatorio de acción pendiente', 2, TRUE, NOW(), NOW()),
+           ('error', 'Notificación de error crítico', 3, TRUE, NOW(), NOW());
+
+--12) Tipo de observación
+
+INSERT INTO tipo_observacion (nombre_tipo)
+    VALUES ('Contenido'),
+           ('Similitud'),
+           ('Citado'),
+           ('Inteligencia Artificial');
+
+-- 13) Tipo de rechazo tema
+
+INSERT INTO tipo_rechazo_tema (nombre, descripcion)
+    VALUES ('Inconsistencia en objetivos',
+            'Los objetivos planteados no guardan coherencia con la metodología propuesta.'),
+           ('Falta de viabilidad técnica',
+            'El proyecto propuesto no puede ser llevado a cabo con los recursos o conocimientos disponibles.'),
+           ('Duplicación de tema',
+            'El tema ya ha sido aprobado previamente por otro estudiante.'),
+           ('Contenido insuficiente',
+            'El planteamiento del problema o la justificación no es suficientemente sólido.'),
+           ('Fuera del alcance académico',
+            'El tema no se ajusta al perfil de la carrera o a los objetivos del curso.'),
+           ('Propuesta incompleta',
+            'El formulario fue entregado sin todos los campos requeridos.'),
+           ('Problemas éticos o legales',
+            'La propuesta presenta conflictos éticos o legales que impiden su aprobación.');
+
+--13) Más entidades fijas
+
+INSERT INTO rol_solicitud (nombre, descripcion, activo, fecha_creacion, fecha_modificacion)
+    VALUES ('REMITENTE', 'Usuario que inicia la solicitud', TRUE, NOW(), NOW()),
+           ('DESTINATARIO', 'Usuario al que está dirigida la solicitud', TRUE, NOW(), NOW()),
+           ('ASESOR_ACTUAL', 'Asesor vigente del usuario', TRUE, NOW(), NOW()),
+           ('ASESOR_ENTRADA', 'Asesor saliente del usuario', TRUE, NOW(), NOW());
+
+INSERT INTO accion_solicitud (nombre, descripcion, activo, fecha_creacion, fecha_modificacion)
+    VALUES ('SIN_ACCION', 'Sin acción tomada aún', TRUE, NOW(), NOW()),
+           ('PENDIENTE_ACCION', 'En espera de una acción', TRUE, NOW(), NOW()),
+           ('APROBADO', 'Solicitud aprobada', TRUE, NOW(), NOW()),
+           ('RECHAZADO', 'Solicitud rechazada', TRUE, NOW(), NOW());
+
+INSERT INTO estado_solicitud (nombre, descripcion, activo, fecha_creacion, fecha_modificacion)
+    VALUES ('PENDIENTE', 'La solicitud está en proceso de evaluación', TRUE, NOW(), NOW()),
+           ('ACEPTADA', 'La solicitud ha sido aceptada', TRUE, NOW(), NOW()),
+           ('RECHAZADA', 'La solicitud ha sido rechazada', TRUE, NOW(), NOW());
 
 
 INSERT INTO
@@ -1501,7 +1170,7 @@ VALUES (
         NOW()
     );
 
--- Entregables
+-- Entregables //AHÍ YA COMIENZA LA DUDA
 
 INSERT INTO
     entregable (
@@ -1847,6 +1516,169 @@ SELECT
     NOW(),
     1
 FROM nuevo_parametro;
+
+-- Limite de tesistas por asesor
+WITH nuevo_parametro AS (
+    INSERT INTO parametro_configuracion (
+        nombre,
+        descripcion,
+        modulo_id,
+        activo,
+        fecha_creacion,
+        fecha_modificacion,
+        tipo
+    ) VALUES (
+        'LimXasesor',
+        'Numero de limites por asesor',
+        2,
+        TRUE,
+        NOW(),
+        NOW(),
+        'integer'
+    )
+    RETURNING parametro_configuracion_id
+)
+INSERT INTO carrera_parametro_configuracion (
+    carrera_id,
+    parametro_configuracion_id,
+    valor,
+    activo,
+    fecha_creacion,
+    fecha_modificacion,
+    etapa_formativa_id
+)
+SELECT
+    1,
+    parametro_configuracion_id,
+    3,
+    TRUE,
+    NOW(),
+    NOW(),
+    1
+FROM nuevo_parametro;
+
+--Switch para activar el limite de asesores
+WITH nuevo_parametro AS (
+    INSERT INTO parametro_configuracion (
+        nombre,
+        descripcion,
+        modulo_id,
+        activo,
+        fecha_creacion,
+        fecha_modificacion,
+        tipo
+    ) VALUES (
+        'ActivarLimiteAsesor',
+        'Configure la opcion de editar el numero de tesistas por asesor',
+        2,
+        TRUE,
+        NOW(),
+        NOW(),
+        'booleano'
+    )
+    RETURNING parametro_configuracion_id
+)
+INSERT INTO carrera_parametro_configuracion (
+    carrera_id,
+    parametro_configuracion_id,
+    valor,
+    activo,
+    fecha_creacion,
+    fecha_modificacion,
+    etapa_formativa_id
+)
+SELECT
+    1,
+    parametro_configuracion_id,
+    true,
+    TRUE,
+    NOW(),
+    NOW(),
+    1
+FROM nuevo_parametro;
+
+-- Tiempo limite para revisar
+WITH nuevo_parametro AS (
+    INSERT INTO parametro_configuracion (
+        nombre,
+        descripcion,
+        modulo_id,
+        activo,
+        fecha_creacion,
+        fecha_modificacion,
+        tipo
+    ) VALUES (
+        'TiempoLimiteRevisar',
+        'Configure la opcion de editar el tiempo limite (dias) para revisar el avance',
+        2,
+        TRUE,
+        NOW(),
+        NOW(),
+        'integer'
+    )
+    RETURNING parametro_configuracion_id
+)
+INSERT INTO carrera_parametro_configuracion (
+    carrera_id,
+    parametro_configuracion_id,
+    valor,
+    activo,
+    fecha_creacion,
+    fecha_modificacion,
+    etapa_formativa_id
+)
+SELECT
+    1,
+    parametro_configuracion_id,
+    5,
+    TRUE,
+    NOW(),
+    NOW(),
+    1
+FROM nuevo_parametro;
+
+-- Cantidad tesis en simultaneo asignadas a un jurado
+WITH nuevo_parametro AS (
+    INSERT INTO parametro_configuracion (
+        nombre,
+        descripcion,
+        modulo_id,
+        activo,
+        fecha_creacion,
+        fecha_modificacion,
+        tipo
+    ) VALUES (
+        'CantidadTesisXJurado',
+        'Configure el numero maximo de tesis que puede tener asignadas un jurado de forma simultanea',
+        3,
+        TRUE,
+        NOW(),
+        NOW(),
+        'integer'
+    )
+    RETURNING parametro_configuracion_id
+)
+INSERT INTO carrera_parametro_configuracion (
+    carrera_id,
+    parametro_configuracion_id,
+    valor,
+    activo,
+    fecha_creacion,
+    fecha_modificacion,
+    etapa_formativa_id
+)
+SELECT
+    1,
+    parametro_configuracion_id,
+    4,
+    TRUE,
+    NOW(),
+    NOW(),
+    1
+FROM nuevo_parametro;
+
+
+-----------------------------------------
 
 /* NUEVOS */
 
@@ -2463,38 +2295,6 @@ WHERE
     );
 
 INSERT INTO
-    tipo_rechazo_tema (nombre, descripcion)
-VALUES (
-        'Inconsistencia en objetivos',
-        'Los objetivos planteados no guardan coherencia con la metodología propuesta.'
-    ),
-    (
-        'Falta de viabilidad técnica',
-        'El proyecto propuesto no puede ser llevado a cabo con los recursos o conocimientos disponibles.'
-    ),
-    (
-        'Duplicación de tema',
-        'El tema ya ha sido aprobado previamente por otro estudiante.'
-    ),
-    (
-        'Contenido insuficiente',
-        'El planteamiento del problema o la justificación no es suficientemente sólido.'
-    ),
-    (
-        'Fuera del alcance académico',
-        'El tema no se ajusta al perfil de la carrera o a los objetivos del curso.'
-    ),
-    (
-        'Propuesta incompleta',
-        'El formulario fue entregado sin todos los campos requeridos.'
-    ),
-    (
-        'Problemas éticos o legales',
-        'La propuesta presenta conflictos éticos o legales que impiden su aprobación.'
-    );
-
-
-INSERT INTO
     usuario (
         tipo_usuario_id,
         codigo_pucp,
@@ -2550,32 +2350,145 @@ SELECT
     END AS tema_id,
     2 AS rol_id           -- rol de Tesista
 FROM usuario u
-WHERE u.nombres = 'Paolo' and primer_apellido='Ore'; 
+WHERE u.nombres = 'Paolo' and primer_apellido='Ore';
 
 --tema_id obtenido es 3
 --select * from usuario_tema
 --DELETE FROM entregable_x_tema;
 
-INSERT INTO entregable_x_tema (entregable_id, tema_id, estado, fecha_envio) 
+INSERT INTO entregable_x_tema (entregable_id, tema_id, estado, fecha_envio)
 VALUES (1, 3, DEFAULT, DATE '2025-03-01'); -- Estado por defecto: 'no_enviado'
 
 -- Registro 2 (entregable_id = 2)
-INSERT INTO entregable_x_tema (entregable_id, tema_id, estado, fecha_envio) 
+INSERT INTO entregable_x_tema (entregable_id, tema_id, estado, fecha_envio)
 VALUES (2, 3, 'enviado_a_tiempo', DATE '2025-02-01');
 
 -- Registro 3 (entregable_id = 3)
-INSERT INTO entregable_x_tema (entregable_id, tema_id, estado, fecha_envio) 
+INSERT INTO entregable_x_tema (entregable_id, tema_id, estado, fecha_envio)
 VALUES (3, 3, 'enviado_tarde',  DATE '2025-01-01');
 
 
-INSERT INTO entregable_x_tema (entregable_id, tema_id, estado, fecha_envio) 
-VALUES (3, 3, 'enviado_a_tiempo',  DATE '2025-05-01');
+--INSERT INTO entregable_x_tema (entregable_id, tema_id, estado, fecha_envio)
+--VALUES (3, 3, 'enviado_a_tiempo',  DATE '2025-05-01');
 
-INSERT INTO entregable_x_tema (entregable_id, tema_id, estado, fecha_envio) 
-VALUES (3, 3, DEFAULT,  DATE '2025-06-01');
+--INSERT INTO entregable_x_tema (entregable_id, tema_id, estado, fecha_envio)
+--VALUES (3, 3, DEFAULT,  DATE '2025-06-01');
 
 --select * from entregable_x_tema
 
 --select * from entregable
 
+INSERT INTO criterio_entregable (
+    entregable_id,
+    nombre,
+    nota_maxima,
+    descripcion
+) VALUES
+    (1, 'Claridad en la redacción', 20.00, 'Se evalúa la claridad, coherencia y cohesión del contenido entregado.'),
+    (2, 'Cumplimiento de requisitos', 20.00, 'Se verifica que el entregable cumpla con todos los requisitos solicitados.'),
+	(3, 'Originalidad del contenido', 20.00, 'Se evalúa la capacidad de presentar ideas propias y enfoques creativos en el entregable.'),
+	(1, 'Presentación visual', 20.00, 'Se evalúa el formato, uso adecuado de gráficos, y presentación ordenada del entregable.'),
+    (2, 'Análisis crítico', 20.00, 'Se mide la capacidad para interpretar y argumentar los resultados con pensamiento crítico.');
+
+
+--select * from criterio_entregable
+
+INSERT INTO revision_criterio_entregable (
+    entregable_x_tema_id,
+    criterio_entregable_id,
+    usuario_id,
+    nota,
+    observacion
+) VALUES
+    (1, 1, 36, 17.00, NULL),
+    (2, 2, 36, 10.00, NULL),
+	(3, 3, 36, 19.00, NULL);
+
+
+INSERT INTO parametro_configuracion (
+    nombre,
+    descripcion,
+    modulo_id,
+    activo,
+    fecha_creacion,
+    fecha_modificacion,
+    tipo
+) VALUES (
+    'Cantidad Jurados',
+    'cantidad maxima de jurados por tesis',
+    1,
+    true,
+    NOW(),       -- Fecha de creación actual
+    NOW(),        -- Fecha de modificación actual
+    'integer'
+);
+
+
+INSERT INTO carrera_parametro_configuracion (
+    carrera_id,
+    parametro_configuracion_id,
+    valor,
+    activo,
+    fecha_creacion,
+    fecha_modificacion,
+    etapa_formativa_id
+) VALUES (
+    1,  -- ID de la carrera
+    (
+        SELECT parametro_configuracion_id
+        FROM parametro_configuracion
+        WHERE nombre = 'Cantidad Jurados'
+        LIMIT 1
+    ),
+    3,      -- Valor de la configuración
+    true,   -- Estado activo
+    NOW(),  -- Fecha de creación
+    NOW(),  -- Fecha de modificación
+    1       -- ID de etapa formativa
+);
+
+
+------------------------------------------------------------------------------------------------------
+
+
+INSERT INTO parametro_configuracion (
+    nombre,
+    descripcion,
+    modulo_id,
+    activo,
+    fecha_creacion,
+    fecha_modificacion,
+    tipo
+) VALUES (
+    'Tiempo Limite Jurado',
+    'Tiempo limite para que jurado revise entregables',
+    1,
+    true,
+    NOW(),       -- Fecha de creación actual
+    NOW(),        -- Fecha de modificación actual
+    'integer'
+);
+
+INSERT INTO carrera_parametro_configuracion (
+    carrera_id,
+    parametro_configuracion_id,
+    valor,
+    activo,
+    fecha_creacion,
+    fecha_modificacion,
+    etapa_formativa_id
+) VALUES (
+    1,                            -- ID de la carrera asociada (ejemplo: 1)
+    (
+        SELECT parametro_configuracion_id
+        FROM parametro_configuracion
+        WHERE nombre = 'Tiempo Limite Jurado'
+        LIMIT 1
+    ),                            -- ID del parametro_configuracion asociado (ejemplo: 1)
+    15,                            -- Valor de la configuración
+    true,                         -- Estado activo
+    NOW(),                        -- Fecha de creación actual
+    NOW(),                         -- Fecha de modificación actual
+    1
+);
 

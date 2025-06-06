@@ -2,8 +2,6 @@ package pucp.edu.pe.sgta.service.inter;
 
 import jakarta.servlet.http.HttpServletRequest;
 
-import java.util.Map;
-
 public interface JwtService {
 
     /**

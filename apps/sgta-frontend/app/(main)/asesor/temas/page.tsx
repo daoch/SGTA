@@ -13,20 +13,33 @@ import {
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+  initialPagination,
+  pageTexts,
+  tableTexts,
+} from "@/features/temas/types/inscripcion/constants";
+import {
+  fetchTemasAPI,
+  fetchUsers,
+  lenTemasPorUsuarioRolEstado,
+  obtenerCarrerasPorUsuario,
+} from "@/features/temas/types/inscripcion/data";
+import {
   AreaDeInvestigacion,
   Carrera,
   Coasesor,
-  Tema,
   Tesista,
 } from "@/features/temas/types/inscripcion/entities";
 import { Tipo } from "@/features/temas/types/inscripcion/enums";
-import {
-  fetchUsuariosFindById,
-  obtenerCarrerasPorUsuario,
-} from "@/features/temas/types/temas/data";
+import { buscarUsuarioPorToken } from "@/features/temas/types/propuestas/data";
+import { fetchUsuariosFindById } from "@/features/temas/types/temas/data";
+import { Tema, Usuario } from "@/features/temas/types/temas/entidades";
+import { EstadoTemaNombre } from "@/features/temas/types/temas/enums";
+import { usePagination } from "@/hooks/temas/use-pagination";
 import axiosInstance from "@/lib/axios/axios-instance";
 import { Plus } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+
+const LIMIT = 2;
 
 /**
  * Rol: Asesor
@@ -50,25 +63,51 @@ const Page = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const usuarioId = 1;
+  const [usuarioLoggeado, setUsuarioLoggeado] = useState<Usuario>();
+  const [estadoTema, setEstadoTema] = useState<EstadoTemaNombre>(
+    EstadoTemaNombre.REGISTRADO,
+  );
+  const {
+    pagination: temas,
+    replaceStateKey,
+    addNewPage,
+    getPage,
+    getTotalPages,
+  } = usePagination(initialPagination, LIMIT);
 
-  const fetchTemasAPI = async (rol: string, estado: string) => {
-    if (asesorData) {
-      const url = `/temas/listarTemasPorUsuarioRolEstado/${asesorData.id}?rolNombre=${rol}&estadoNombre=${estado}`;
-      const response = await axiosInstance.get<Tema[]>(url);
-      return response.data;
-    }
-  };
+  useEffect(() => {
+    const obtenerUsuario = async () => {
+      try {
+        const usuario = await buscarUsuarioPorToken();
+        setUsuarioLoggeado(usuario);
+      } catch (err: unknown) {
+        console.error(err);
+        setError("Error al traer al usuario loggeado.");
+      }
+    };
+    obtenerUsuario();
+  }, []);
 
   // Función para recargar los temas
   const fetchTemas = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
-      const inscritosData = (await fetchTemasAPI("Asesor", "INSCRITO")) || [];
+      const inscritosData =
+        (await fetchTemasAPI("Asesor", EstadoTemaNombre.INSCRITO)) || [];
       const libresData =
-        (await fetchTemasAPI("Asesor", "PROPUESTO_LIBRE")) || [];
-      setTemasData([...inscritosData, ...libresData]);
+        (await fetchTemasAPI("Asesor", EstadoTemaNombre.PROPUESTO_LIBRE)) || [];
+      const interesadosData =
+        (await fetchTemasAPI("Asesor", EstadoTemaNombre.PROPUESTO_GENERAL)) ||
+        [];
+      const preInscritosData =
+        (await fetchTemasAPI("Asesor", EstadoTemaNombre.PREINSCRITO)) || [];
+      setTemasData([
+        ...inscritosData,
+        ...libresData,
+        ...interesadosData,
+        ...preInscritosData,
+      ]);
       console.log("consegui los temas data");
     } catch (err: unknown) {
       console.log(err);
@@ -79,15 +118,18 @@ const Page = () => {
   }, []);
 
   useEffect(() => {
+    if (!usuarioLoggeado) return;
     const fetchData = async () => {
       try {
+        //obtener la carrera
+        const carreras = await obtenerCarrerasPorUsuario();
+        setCarrera(carreras);
+
         const response = await axiosInstance.get("subAreaConocimiento/list");
         setSubareasDisponibles(response.data);
 
-        //setAsesorData(coasesoresData[0]); // TODO El asesor logeado debe traerse globalmente
-
         //llenar datos del asesor mediante su id y no por su carrera
-        const usuario = await fetchUsuariosFindById(usuarioId);
+        const usuario = await fetchUsuariosFindById(Number(usuarioLoggeado.id));
         const coasesor: Coasesor = {
           id: usuario.id,
           tipoUsuario: usuario.tipoUsuario.nombre,
@@ -109,14 +151,10 @@ const Page = () => {
         };
         setAsesorData(coasesor);
 
-        //obtener la carrera
-        const carreras = await obtenerCarrerasPorUsuario(usuarioId);
-        setCarrera(carreras);
         console.log({ carreras });
         if (carreras) {
-          //SE ESTA TOMANDO SOLO LA PRIMERA CARRERA, CAMBIAR
           const tesistasData: Tesista[] = await fetchUsers(
-            carreras[0].id,
+            carreras[0].id, // TODO: SE ESTA TOMANDO SOLO LA PRIMERA CARRERA, CAMBIAR
             "alumno",
           );
           setEstudiantesDisponibles(tesistasData.filter((t) => !t.asignado)); // No deben estar asignados
@@ -125,6 +163,7 @@ const Page = () => {
             carreras[0].id,
             "profesor",
           );
+
           setCoasesoresDisponibles(coasesoresData);
         }
       } catch (error) {
@@ -133,17 +172,66 @@ const Page = () => {
     };
 
     fetchData().then(() => fetchTemas());
-  }, [usuarioId, fetchTemas]);
+  }, [usuarioLoggeado, fetchTemas]);
+
+  async function fetchPage(state: EstadoTemaNombre, page: number) {
+    try {
+      // Fetch page
+      const data = await fetchTemasAPI("Asesor", state, LIMIT, page - 1);
+
+      // Add new page to State
+      addNewPage(state, page, data);
+    } catch (err) {
+      console.error("Error loading data", err);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function fetchTotalCounts(carrerasIds: number[]) {
+    try {
+      // Asignar total Counts
+      const estadosConPages: EstadoTemaNombre[] = Object.keys(
+        temas,
+      ) as EstadoTemaNombre[];
+      // Get all counts
+      const counts = await Promise.all(
+        estadosConPages.map((estado) =>
+          lenTemasPorUsuarioRolEstado("Asesor", estado),
+        ),
+      );
+
+      // Update state
+      estadosConPages.forEach((estado, idx) => {
+        replaceStateKey(estado, "totalCounts", counts[idx]);
+        console.log(estado + ": count = " + counts[idx]);
+      });
+    } catch (err) {
+      console.error("Error loading total counts", err);
+    }
+  }
+
+  function handleTabChange(state: EstadoTemaNombre) {
+    setEstadoTema(state);
+
+    // Fetch de la página en caso no exista
+    if (!temas[state]) return;
+    const currentPage = temas[state].current;
+    const existingPage = temas[state]?.pages?.[currentPage];
+    if (!existingPage?.length) {
+      fetchPage(state, currentPage);
+    }
+  }
 
   return (
     <div className="space-y-8 mt-4">
       <div className="flex items-end justify-between">
-        {/* Intro */}
+        {/* About Page */}
         <div className="w-4/5">
-          <h1 className="text-3xl font-bold text-[#042354]">Mis Temas</h1>
-          <p className="text-muted-foreground">
-            Gestión de temas de tesis propuestos y asignados
-          </p>
+          <h1 className="text-3xl font-bold text-[#042354]">
+            {pageTexts.title}
+          </h1>
+          <p className="text-muted-foreground">{pageTexts.description}</p>
         </div>
 
         {/* Button Nuevo Tema */}
@@ -154,7 +242,8 @@ const Page = () => {
           <DialogTrigger asChild>
             <div className="w-1/5 flex justify-end">
               <Button disabled={!asesorData}>
-                <Plus></Plus>Nuevo Tema
+                <Plus></Plus>
+                {pageTexts.newTemaButton.displayName}
               </Button>
             </div>
           </DialogTrigger>
@@ -173,109 +262,47 @@ const Page = () => {
         </Dialog>
       </div>
 
-      {!asesorData && (
-        <p className="text-red-500 font-semibold mt-2">
-          Error al cargar datos del asesor
-        </p>
-      )}
-
       {/* Tabs */}
-      <Tabs defaultValue={Tipo.TODOS} className="w-full">
+      <Tabs defaultValue={estadoTema} className="w-full">
         <TabsList>
-          <TabsTrigger value={Tipo.TODOS}>Todos</TabsTrigger>
-          <TabsTrigger value={Tipo.INSCRITO}>Inscritos</TabsTrigger>
-          <TabsTrigger value={Tipo.LIBRE}>Libres</TabsTrigger>
-          <TabsTrigger value={Tipo.INTERESADO}>Interesantes</TabsTrigger>
+          {Object.entries(tableTexts)
+            .filter(([, value]) => value.show)
+            .map(([key, value]) => (
+              <TabsTrigger key={key} value={key}>
+                {value.tabLabel}
+              </TabsTrigger>
+            ))}
         </TabsList>
-        <TabsContent value={Tipo.TODOS}>
-          <Card>
-            <CardHeader>
-              <CardTitle>Todos los temas</CardTitle>
-              <CardDescription>
-                Lista de todos los temas de tesis
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <TemasTable
-                temasData={temasData}
-                filter={Tipo.TODOS}
-                isLoading={isLoading}
-                error={error}
-                asesor={asesorData}
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value={Tipo.INSCRITO}>
-          <Card>
-            <CardHeader>
-              <CardTitle>Temas inscritos</CardTitle>
-              <CardDescription>
-                Temas de tesis en los que estás inscrito
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <TemasTable
-                temasData={temasData}
-                filter={Tipo.INSCRITO}
-                isLoading={isLoading}
-                error={error}
-                asesor={asesorData}
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value={Tipo.LIBRE}>
-          <Card>
-            <CardHeader>
-              <CardTitle>Temas libres</CardTitle>
-              <CardDescription>
-                Temas de tesis disponibles para postular
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <TemasTable
-                temasData={temasData}
-                filter={Tipo.LIBRE}
-                isLoading={isLoading}
-                error={error}
-                asesor={asesorData}
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value={Tipo.INTERESADO}>
-          <Card>
-            <CardHeader>
-              <CardTitle>Temas de interés</CardTitle>
-              <CardDescription>
-                Temas de tesis que has marcado como interesantes
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <TemasTable
-                temasData={temasData}
-                filter={Tipo.INTERESADO}
-                isLoading={isLoading}
-                error={error}
-                asesor={asesorData}
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
+
+        {/* Table Content */}
+        {Object.entries(tableTexts)
+          .filter(([, value]) => value.show)
+          .map(([key, value]) => (
+            <TabsContent key={key} value={key}>
+              <Card>
+                <CardHeader>
+                  <CardTitle>{value.title}</CardTitle>
+                  <CardDescription>{value.description}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <TemasTable
+                    temasData={temasData}
+                    filter={
+                      key === Tipo.INTERESADO
+                        ? [Tipo.INTERESADO, Tipo.PREINSCRITO]
+                        : [key]
+                    }
+                    isLoading={isLoading}
+                    error={error}
+                    asesor={asesorData}
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
+          ))}
       </Tabs>
     </div>
   );
 };
 
 export default Page;
-
-const fetchUsers = async (
-  carreraId: number,
-  tipoUsuarioNombre: string,
-  cadenaBusqueda: string = "",
-) => {
-  const url = `/usuario/findByTipoUsuarioAndCarrera?carreraId=${carreraId}&tipoUsuarioNombre=${tipoUsuarioNombre}&cadenaBusqueda=${cadenaBusqueda}`;
-  const response = await axiosInstance.get(url);
-  return response.data;
-};

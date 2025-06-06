@@ -2,7 +2,6 @@ package pucp.edu.pe.sgta.dto;
 
 import lombok.*;
 import java.time.OffsetDateTime;
-import java.util.List;
 
 @Getter
 @Setter
@@ -17,12 +16,12 @@ public class AlumnoTemaDto {
     private String coasesorNombre;
     private String areaNombre;
     private String subAreaNombre;
-    
+
     // Campos para el progreso del alumno
     private Integer totalEntregables;
     private Integer entregablesEnviados;
     private Double porcentajeProgreso;
-    
+
     // Campos para el siguiente entregable no enviado
     private OffsetDateTime siguienteEntregableFechaFin;
     private String siguienteEntregableNombre;

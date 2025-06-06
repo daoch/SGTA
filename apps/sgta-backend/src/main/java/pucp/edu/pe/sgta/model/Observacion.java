@@ -7,6 +7,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Getter
@@ -44,7 +48,9 @@ public class Observacion {
     @NotBlank(message = "El comentario no puede estar vacío")
     @Column(name = "comentario", nullable = false)
     private String comentario;
-
+    @Column(name = "contenido", nullable = false)
+    private String contenido;
+    
     @Column(name = "es_automatico", nullable = false)
     private Boolean esAutomatico = false;
 
@@ -57,6 +63,16 @@ public class Observacion {
     @Column(name = "activo")
     private Boolean activo = true;
 
+    
+    @Embedded
+    private BoundingRect boundingRect;
+
+    @ElementCollection
+    @CollectionTable(
+      name = "observacion_rect",
+      joinColumns = @JoinColumn(name = "observacion_id")
+    )
+    private List<Rect> rects = new ArrayList<>();
     /**
      * Valida si el rango de páginas es válido (página de inicio <= página de fin)
      */

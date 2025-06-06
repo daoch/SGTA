@@ -1,6 +1,8 @@
 import { getAuthToken, useAuthStore } from "@/features/auth";
 import axios from "axios";
 
+console.log("Configurando axios con URL base:", process.env.NEXT_PUBLIC_API_URL);
+
 const axiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
   headers: {
@@ -9,9 +11,23 @@ const axiosInstance = axios.create({
   timeout: 60000,
 });
 
+// Log de configuración
+console.log("Configuración de axios:", {
+  baseURL: axiosInstance.defaults.baseURL,
+  timeout: axiosInstance.defaults.timeout,
+});
+
 // Interceptor para manejo global de peticiones
 axiosInstance.interceptors.request.use(
   (config) => {
+    // Log de la petición
+    console.log("Realizando petición:", {
+      url: config.url || "",
+      method: config.method,
+      baseURL: config.baseURL || "",
+      fullURL: `${config.baseURL || ""}${config.url || ""}`,
+    });
+
     // Get token from Zustand store instead of localStorage directly
     const token = getAuthToken();
 

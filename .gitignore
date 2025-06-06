@@ -45,6 +45,8 @@ yarn-error.log*
 *.ipr
 HELP.md
 
+# Python
+.venv
 #Python
 __pycache__
 .env

@@ -15,8 +15,7 @@ import pucp.edu.pe.sgta.repository.AreaConocimientoRepository;
 import pucp.edu.pe.sgta.repository.CarreraRepository;
 import pucp.edu.pe.sgta.repository.SubAreaConocimientoRepository;
 import pucp.edu.pe.sgta.service.inter.SubAreaConocimientoService;
-
-import java.awt.geom.Area;
+import pucp.edu.pe.sgta.service.inter.UsuarioService;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,31 +29,36 @@ public class SubAreaConocimientoServiceImpl implements SubAreaConocimientoServic
 	private final AreaConocimientoRepository areaConocimientoRepository;
 	private final AreaConocimientoServiceImpl areaConocimientoServiceImpl;
 
+	private final UsuarioService usuarioService;
+
 	public SubAreaConocimientoServiceImpl(SubAreaConocimientoRepository subAreaConocimientoRepository,
-										  AreaConocimientoRepository areaConocimientoRepository,
-										  CarreraRepository carreraRepository,
-										  AreaConocimientoServiceImpl areaConocimientoServiceImpl) {
+			AreaConocimientoRepository areaConocimientoRepository,
+			CarreraRepository carreraRepository,
+			AreaConocimientoServiceImpl areaConocimientoServiceImpl,
+			UsuarioService usuarioService) {
 		this.subAreaConocimientoRepository = subAreaConocimientoRepository;
-        this.areaConocimientoRepository = areaConocimientoRepository;
+		this.areaConocimientoRepository = areaConocimientoRepository;
 		this.carreraRepository = carreraRepository;
 		this.areaConocimientoServiceImpl = areaConocimientoServiceImpl;
+		this.usuarioService = usuarioService;
 	}
 
 	@Override
 	public List<SubAreaConocimientoDto> getAll() {
 		List<SubAreaConocimiento> subAreasConocimiento = subAreaConocimientoRepository.findAllByActivoTrue();
 
-		//retornar la lista de subáreas de conocimiento como DTOs con el área de conocimiento
+		// retornar la lista de subáreas de conocimiento como DTOs con el área de
+		// conocimiento
 		List<SubAreaConocimientoDto> dtos = new ArrayList<>();
 		for (SubAreaConocimiento subArea : subAreasConocimiento) {
 			AreaConocimiento area = areaConocimientoRepository.findById(subArea.getAreaConocimiento().getId())
-					.orElseThrow(() -> new EntityNotFoundException("Área de conocimiento no encontrada con id: " + subArea.getAreaConocimiento().getId()));
+					.orElseThrow(() -> new EntityNotFoundException(
+							"Área de conocimiento no encontrada con id: " + subArea.getAreaConocimiento().getId()));
 
 			AreaConocimientoDto areaDto = AreaConocimientoMapper.toDto(area);
 			SubAreaConocimientoDto dto = SubAreaConocimientoMapper.toDto(subArea, areaDto);
 			dtos.add(dto);
 		}
-
 
 		return dtos;
 	}
@@ -65,7 +69,8 @@ public class SubAreaConocimientoServiceImpl implements SubAreaConocimientoServic
 				.orElseThrow(() -> new EntityNotFoundException("Subárea no encontrada con id: " + id));
 
 		AreaConocimiento area = areaConocimientoRepository.findById(subArea.getAreaConocimiento().getId())
-				.orElseThrow(() -> new EntityNotFoundException("Área de conocimiento no encontrada con id: " + subArea.getAreaConocimiento().getId()));
+				.orElseThrow(() -> new EntityNotFoundException(
+						"Área de conocimiento no encontrada con id: " + subArea.getAreaConocimiento().getId()));
 
 		AreaConocimientoDto areaDto = AreaConocimientoMapper.toDto(area);
 
@@ -90,7 +95,8 @@ public class SubAreaConocimientoServiceImpl implements SubAreaConocimientoServic
 
 		// Obtenemos el área de conocimiento completa para el DTO
 		AreaConocimiento area = areaConocimientoRepository.findById(savedSubArea.getAreaConocimiento().getId())
-				.orElseThrow(() -> new EntityNotFoundException("Área de conocimiento no encontrada con id: " + savedSubArea.getAreaConocimiento().getId()));
+				.orElseThrow(() -> new EntityNotFoundException(
+						"Área de conocimiento no encontrada con id: " + savedSubArea.getAreaConocimiento().getId()));
 		AreaConocimientoDto areaDto = AreaConocimientoMapper.toDto(area);
 
 		return SubAreaConocimientoMapper.toDto(savedSubArea, areaDto);
@@ -98,6 +104,7 @@ public class SubAreaConocimientoServiceImpl implements SubAreaConocimientoServic
 
 	@Override
 	public List<SubAreaConocimientoDto> listarPorUsuario(Integer usuarioId) {
+
 		String sql = "SELECT * FROM obtener_sub_areas_por_usuario(:usuarioId)";
 
 		Query query = entityManager.createNativeQuery(sql);
@@ -110,14 +117,16 @@ public class SubAreaConocimientoServiceImpl implements SubAreaConocimientoServic
 			// Crear entidad simulada de SubAreaConocimiento
 			SubAreaConocimiento sac = new SubAreaConocimiento();
 			sac.setId((Integer) row[0]);
-			//sac.setAreaConocimiento((Integer) row[1]); // si existe deeste campo en la entidad
+			// sac.setAreaConocimiento((Integer) row[1]); // si existe deeste campo en la
+			// entidad
 			sac.setNombre((String) row[2]);
 			sac.setDescripcion((String) row[3]);
 			sac.setActivo((Boolean) row[4]);
 
 			// Crear DTO de área (aunque sea solo con el ID)
 			AreaConocimiento area = areaConocimientoRepository.findById((Integer) row[1])
-					.orElseThrow(() -> new EntityNotFoundException("Área de conocimiento no encontrada con id: " + (Integer) row[1]));
+					.orElseThrow(() -> new EntityNotFoundException(
+							"Área de conocimiento no encontrada con id: " + (Integer) row[1]));
 
 			AreaConocimientoDto areaDto = AreaConocimientoMapper.toDto(area);
 			// Mapear con el método toDto existente
@@ -127,7 +136,6 @@ public class SubAreaConocimientoServiceImpl implements SubAreaConocimientoServic
 
 		return dtos;
 	}
-
 
 	@Override
 	public void update(SubAreaConocimientoDto dto) {
@@ -145,7 +153,8 @@ public class SubAreaConocimientoServiceImpl implements SubAreaConocimientoServic
 
 	@Override
 	public List<SubAreaConocimientoDto> getAllByArea(Integer idArea) {
-		List<SubAreaConocimiento> subAreasConocimiento = subAreaConocimientoRepository.findAllByAreaConocimientoIdAndActivoTrue(idArea);
+		List<SubAreaConocimiento> subAreasConocimiento = subAreaConocimientoRepository
+				.findAllByAreaConocimientoIdAndActivoTrue(idArea);
 
 		// Obtenemos el área de conocimiento una sola vez
 		AreaConocimiento area = areaConocimientoRepository.findById(idArea)
@@ -169,9 +178,8 @@ public class SubAreaConocimientoServiceImpl implements SubAreaConocimientoServic
 
 	@Override
 	public List<SubAreaConocimientoDto> listarPorCarreraDeUsuario(String usuarioId) {
-		String sql =
-				"SELECT sub_area_conocimiento_id, area_conocimiento_id, nombre, descripcion, activo " +
-						"  FROM obtener_sub_areas_por_carrera_usuario(:p_usuario_id)";
+		String sql = "SELECT sub_area_conocimiento_id, area_conocimiento_id, nombre, descripcion, activo " +
+				"  FROM obtener_sub_areas_por_carrera_usuario(:p_usuario_id)";
 		Query query = entityManager.createNativeQuery(sql)
 				.setParameter("p_usuario_id", usuarioId);
 
@@ -185,7 +193,7 @@ public class SubAreaConocimientoServiceImpl implements SubAreaConocimientoServic
 			SubAreaConocimientoDto dto = SubAreaConocimientoDto.builder()
 					.id(((Number) row[0]).intValue())
 					.areaConocimiento(areaConocimiento)
-					.nombre((String)  row[2])
+					.nombre((String) row[2])
 					.descripcion((String) row[3])
 					.activo((Boolean) row[4])
 					.build();
@@ -197,11 +205,11 @@ public class SubAreaConocimientoServiceImpl implements SubAreaConocimientoServic
 
 	@Override
 	public List<InfoSubAreaConocimientoDto> listarPorCarrerasUsuarioParaPerfil(Integer idUsuario) {
-		List<Integer> idAreasUsuario = areaConocimientoServiceImpl.listarPorCarrerasUsuarioParaPerfil(idUsuario).
-				stream()
+		List<Integer> idAreasUsuario = areaConocimientoServiceImpl.listarPorCarrerasUsuarioParaPerfil(idUsuario)
+				.stream()
 				.map(InfoAreaConocimientoDto::getIdArea)
 				.toList();
-		return  subAreaConocimientoRepository.findAllByAreaConocimientoIdInAndActivoTrue(idAreasUsuario)
+		return subAreaConocimientoRepository.findAllByAreaConocimientoIdInAndActivoTrue(idAreasUsuario)
 				.stream()
 				.map(InfoSubAreaConocimientoMapper::toDto)
 				.toList();

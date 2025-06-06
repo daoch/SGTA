@@ -133,3 +133,6 @@
   background-color: #bfbcbce1; /* Color de la barra de desplazamiento */
   border-radius: 10px; /* Esquinas redondeadas para la barra */
 }
+.Highlight__emoji {
+  display: none !important;
+}
