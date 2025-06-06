@@ -9,6 +9,8 @@ import pucp.edu.pe.sgta.util.EstadoRevision;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -53,6 +55,9 @@ public class RevisionDocumento {
 
     @Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaModificacion;
+
+    @OneToMany(mappedBy = "revisionDocumento", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Observacion> observaciones = new ArrayList<>();
     
     @PostLoad
     void fillTransient() {

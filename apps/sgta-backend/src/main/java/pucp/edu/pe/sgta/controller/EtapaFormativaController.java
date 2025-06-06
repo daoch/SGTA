@@ -2,33 +2,23 @@ package pucp.edu.pe.sgta.controller;
 
 import java.util.List;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
 import pucp.edu.pe.sgta.dto.*;
 import pucp.edu.pe.sgta.service.inter.EtapaFormativaService;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestBody;
 
-import pucp.edu.pe.sgta.dto.EtapaFormativaListadoDto;
-import pucp.edu.pe.sgta.dto.EtapaFormativaDetalleDto;
-
-
-import jakarta.validation.Valid;
-import org.springframework.web.bind.annotation.*;
-import pucp.edu.pe.sgta.dto.UpdateEtapaFormativaRequest;
-
-import pucp.edu.pe.sgta.dto.*;
-
+import pucp.edu.pe.sgta.service.inter.JwtService;
+import pucp.edu.pe.sgta.service.inter.UsuarioService;
 
 @RestController
 @RequestMapping("/etapas-formativas")
@@ -36,10 +26,17 @@ public class EtapaFormativaController {
     @Autowired
     EtapaFormativaService etapaFormativaService;
 
-    @GetMapping("/listarPorInicializarByCoordinador/{corodinador_id}")
-    public List<EtapaFormativaNombreDTO> obtenerPorInicializarPorCoordinador(
-            @PathVariable("corodinador_id") Integer usuarioId) {
-        return etapaFormativaService.findToInitializeByCoordinador(usuarioId);
+    @Autowired
+    JwtService jwtService;
+
+    @Autowired
+    UsuarioService usuarioService;
+
+    @GetMapping("/listarPorInicializarByCoordinador")
+    public List<EtapaFormativaNombreDTO> obtenerPorInicializarPorCoordinador(HttpServletRequest request) {
+        String cognitoId = jwtService.extractSubFromRequest(request);
+        UsuarioDto usuario = this.usuarioService.findByCognitoId(cognitoId);
+        return etapaFormativaService.findToInitializeByCoordinador(usuario.getId());
     }
 
     @GetMapping("/listarActivasNombre")
@@ -52,20 +49,21 @@ public class EtapaFormativaController {
         return etapaFormativaService.findAllActivas();
     }
 
-    @GetMapping("/listarActivasPorCoordinador/{coordinador_id}")
-    public List<EtapaFormativaDto> obtenerEtapasFormativasActivasPorCoordinador(
-            @PathVariable("coordinador_id") Integer coordinadorId) {
-        return etapaFormativaService.findAllActivasByCoordinador(coordinadorId);
+    @GetMapping("/listarActivasPorCoordinador")
+    public List<EtapaFormativaDto> obtenerEtapasFormativasActivasPorCoordinador(HttpServletRequest request) {
+        String cognitoId = jwtService.extractSubFromRequest(request);
+        UsuarioDto usuario = this.usuarioService.findByCognitoId(cognitoId);
+        return etapaFormativaService.findAllActivasByCoordinador(usuario.getId());
     }
 
     @GetMapping("/getEtapaFormativaIdByExposicionId/{exposicion_id}")
-    public ResponseEntity<Integer> obtenerEtapaFormativaIdPorExposicionId(
+    public ResponseEntity<ExposicionEtapaFormativaDTO> obtenerEtapaFormativaIdPorExposicionId(
             @PathVariable("exposicion_id") Integer exposicionId) {
-        Integer etapaFormativaId = etapaFormativaService.getEtapaFormativaIdByExposicionId(exposicionId);
-        if (etapaFormativaId == null) {
+        ExposicionEtapaFormativaDTO eefd = etapaFormativaService.getEtapaFormativaIdByExposicionId(exposicionId);
+        if (eefd == null) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(etapaFormativaId);
+        return ResponseEntity.ok(eefd);
     }
 
     @GetMapping
@@ -116,8 +114,9 @@ public class EtapaFormativaController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/alumno/{alumnoId}")
-    public List<EtapaFormativaAlumnoDto> listarEtapasFormativasPorAlumno(@PathVariable Integer alumnoId) {
+    @GetMapping("/alumno")
+    public List<EtapaFormativaAlumnoDto> listarEtapasFormativasPorAlumno(HttpServletRequest request) {
+        String alumnoId = jwtService.extractSubFromRequest(request);
         return etapaFormativaService.listarEtapasFormativasPorAlumno(alumnoId);
     }
 

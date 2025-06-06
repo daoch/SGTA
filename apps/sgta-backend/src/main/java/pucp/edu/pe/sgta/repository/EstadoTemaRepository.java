@@ -12,4 +12,6 @@ public interface EstadoTemaRepository extends JpaRepository<EstadoTema, Integer>
 	Optional<EstadoTema> findByNombre(String nombre);
 
 	Optional<EstadoTema> findById(Integer estadoTemaId);
+
+	Boolean existsByNombre(String nombre);
 }

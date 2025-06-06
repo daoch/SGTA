@@ -2,11 +2,14 @@ package pucp.edu.pe.sgta.service.inter;
 
 import org.springframework.http.ResponseEntity;
 import pucp.edu.pe.sgta.dto.*;
+import pucp.edu.pe.sgta.dto.calificacion.ExposicionCalificacionDto;
+import pucp.edu.pe.sgta.dto.calificacion.ExposicionCalificacionRequest;
+import pucp.edu.pe.sgta.dto.calificacion.ExposicionObservacionRequest;
+import pucp.edu.pe.sgta.dto.calificacion.RevisionCriteriosRequest;
 import pucp.edu.pe.sgta.dto.exposiciones.EstadoControlExposicionRequest;
 import pucp.edu.pe.sgta.dto.exposiciones.EstadoExposicionJuradoRequest;
 import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
 import pucp.edu.pe.sgta.dto.temas.DetalleTemaDto;
-import pucp.edu.pe.sgta.model.UsuarioXTema;
 import pucp.edu.pe.sgta.dto.exposiciones.EstadoExposicionDto;
 
 import java.util.List;
@@ -50,5 +53,11 @@ public interface MiembroJuradoService {
     ResponseEntity<?> actualizarEstadoControlExposicion(EstadoControlExposicionRequest request);
 
     List<EstadoExposicionDto> listarEstados();
+
+    ResponseEntity<ExposicionCalificacionDto> listarExposicionCalificacion(ExposicionCalificacionRequest exposicionCalificacionRequest);
+
+    ResponseEntity<?> actualizarRevisionCriterios(RevisionCriteriosRequest request);
+
+    ResponseEntity<?> actualizarObservacionFinal(ExposicionObservacionRequest request);
 
 }

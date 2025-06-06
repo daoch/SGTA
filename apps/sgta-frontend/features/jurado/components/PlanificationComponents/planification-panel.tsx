@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, FileSpreadsheet } from "lucide-react";
 import React, { useState } from "react";
 
 import { JornadaExposicionDTO } from "@/features/jurado/dtos/JornadExposicionDTO";
@@ -17,7 +17,6 @@ import { TimeSlotCard } from "./time-slot-card";
 import AppLoading from "@/components/loading/app-loading";
 import { usePlanificationStore } from "../../store/use-planificacion-store";
 
-// id 3
 interface Props {
   days: JornadaExposicionDTO[];
   assignedExpos: Record<string, Tema>;
@@ -37,7 +36,7 @@ const PlanificationPanel: React.FC<Props> = ({
   estadoPlan,
   isLoading,
 }) => {
-  const { actualizarBloque } = usePlanificationStore();
+  const { actualizarBloque, temasSinAsignar } = usePlanificationStore();
 
   //BLOQUES
   const [selectedCode, setSelectedCode] = useState<number>(days[0]?.code ?? 0);
@@ -62,7 +61,7 @@ const PlanificationPanel: React.FC<Props> = ({
 
   return (
     <div
-      className="h-full w-full flex flex-col gap-4"
+      className="h-full w-full flex flex-col gap-3"
       onContextMenu={(e) => {
         e.preventDefault();
       }}
@@ -81,7 +80,7 @@ const PlanificationPanel: React.FC<Props> = ({
                     ? "default"
                     : "outline"
                 }
-                disabled={isLoading}
+                disabled={isLoading || temasSinAsignar.length > 0}
               >
                 Siguiente fase
                 <ArrowRight />
@@ -97,6 +96,27 @@ const PlanificationPanel: React.FC<Props> = ({
                 Terminar Planificacion
               </Button>
             )}
+          {estadoPlan.nombre === "Cierre de planificacion" && (
+            <Button
+              onClick={() => {
+                const contenido =
+                  "Este es un archivo de ejemplo de planificación.";
+                const blob = new Blob([contenido], { type: "text/plain" });
+                const url = URL.createObjectURL(blob);
+
+                const link = document.createElement("a");
+                link.href = url;
+                link.download = "planificacion.xlsx";
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+              }}
+            >
+              <FileSpreadsheet />
+              Exportar Planificacion
+            </Button>
+          )}
         </div>
       </div>
 
@@ -113,20 +133,25 @@ const PlanificationPanel: React.FC<Props> = ({
                 bloque.key.startsWith(dateStr + "|"),
               );
 
+              const assignedBlocks = bloquesDelDia.filter(
+                (bloque) => bloque.expo != null && bloque.expo.id != null,
+              ).length;
+
               // Calcula los bloques asignados (bloquedBlocks)
               const bloquedBlocks = bloquesDelDia.filter(
                 (bloque) => bloque.esBloqueBloqueado,
               ).length;
 
               // Los disponibles son el total menos los asignados
-              const availableBlocks = bloquesDelDia.filter(
-                (bloque) => bloque.esBloqueBloqueado || bloque.expo?.id == null,
-              ).length;
+              const availableBlocks =
+                bloquesDelDia.filter((bloque) => !bloque.esBloqueBloqueado)
+                  .length - assignedBlocks;
 
               return (
                 <SelectorFecha
                   key={day.code}
                   day={day}
+                  assignedBlocks={assignedBlocks}
                   availableBlocks={availableBlocks}
                   bloquedBlocks={bloquedBlocks}
                   isSelected={day.code === selectedCode}

@@ -5,37 +5,41 @@ import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
 import pucp.edu.pe.sgta.dto.asesores.UsuarioConRolDto;
 import pucp.edu.pe.sgta.dto.asesores.UsuarioFotoDto;
 import org.springframework.web.multipart.MultipartFile;
-import pucp.edu.pe.sgta.dto.UserInfoDTO;
 import pucp.edu.pe.sgta.dto.AlumnoTemaDto;
+import pucp.edu.pe.sgta.dto.DocentesDTO;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
+import pucp.edu.pe.sgta.util.RolEnum;
+import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
+
 import java.util.List;
 import java.util.NoSuchElementException;
+import pucp.edu.pe.sgta.dto.AlumnoReporteDto;
 
 public interface UsuarioService {
 
-	// Define the methods that you want to implement in the service
-	// For example:
-	void createUsuario(UsuarioDto usuarioDto);
+    // Define the methods that you want to implement in the service
+    // For example:
+    void createUsuario(UsuarioDto usuarioDto);
 
-	UsuarioDto findUsuarioById(Integer id);
+    UsuarioDto findUsuarioById(Integer id);
 
-	List<UsuarioDto> findAllUsuarios();
+    List<UsuarioDto> findAllUsuarios();
 
-	void updateUsuario(UsuarioDto usuarioDto);
+    void updateUsuario(Integer id, UsuarioDto usuarioDto);
 
-	void deleteUsuario(Integer id);
+    void deleteUsuario(Integer id);
 
-	List<UsuarioDto> findUsuariosByRolAndCarrera(String tipoUsuario, Integer idCarrera, String cadenaBusqueda);
+    List<UsuarioDto> findUsuariosByRolAndCarrera(String tipoUsuario, Integer idCarrera, String cadenaBusqueda);
 
     PerfilAsesorDto getPerfilAsesor(Integer id);
 
-	void updatePerfilAsesor(PerfilAsesorDto perfilAsesorDto);
+    void updatePerfilAsesor(PerfilAsesorDto perfilAsesorDto);
 
-	/**
+    /**
      * HU01: Asigna el rol de Asesor a un usuario que debe ser profesor
      *
      * @param userId El ID del usuario al que se asignará el rol
-     * @throws NoSuchElementException Si el usuario o el rol no existen
+     * @throws NoSuchElementException   Si el usuario o el rol no existen
      * @throws IllegalArgumentException Si el usuario no es profesor
      */
     void assignAdvisorRoleToUser(Integer userId);
@@ -44,7 +48,7 @@ public interface UsuarioService {
      * HU02: Quita el rol de Asesor a un usuario
      *
      * @param userId El ID del usuario al que se quitará el rol
-     * @throws NoSuchElementException Si el usuario o el rol no existen
+     * @throws NoSuchElementException   Si el usuario o el rol no existen
      * @throws IllegalArgumentException Si el usuario no tiene el rol asignado
      */
     void removeAdvisorRoleFromUser(Integer userId);
@@ -53,7 +57,7 @@ public interface UsuarioService {
      * HU03: Asigna el rol de Jurado a un usuario que debe ser profesor
      *
      * @param userId El ID del usuario al que se asignará el rol
-     * @throws NoSuchElementException Si el usuario o el rol no existen
+     * @throws NoSuchElementException   Si el usuario o el rol no existen
      * @throws IllegalArgumentException Si el usuario no es profesor
      */
     void assignJuryRoleToUser(Integer userId);
@@ -62,7 +66,7 @@ public interface UsuarioService {
      * HU04: Quita el rol de Jurado a un usuario
      *
      * @param userId El ID del usuario al que se quitará el rol
-     * @throws NoSuchElementException Si el usuario o el rol no existen
+     * @throws NoSuchElementException   Si el usuario o el rol no existen
      * @throws IllegalArgumentException Si el usuario no tiene el rol asignado
      */
     void removeJuryRoleFromUser(Integer userId);
@@ -70,7 +74,7 @@ public interface UsuarioService {
     /**
      * HU05: Obtiene la lista de profesores con sus roles asignados
      *
-     * @param rolNombre Nombre del rol por el que filtrar (puede ser "Todos")
+     * @param rolNombre       Nombre del rol por el que filtrar (puede ser "Todos")
      * @param terminoBusqueda Término para buscar en nombre, correo o código
      * @return Lista de usuarios con información de sus roles
      */
@@ -78,19 +82,25 @@ public interface UsuarioService {
 
     List<UsuarioDto> getAsesoresBySubArea(Integer idSubArea);
 
-	UsuarioDto findUsuarioByCodigo(String codigoPucp);
+    UsuarioDto findUsuarioByCodigo(String codigoPucp);
 
     void uploadFoto(Integer idUsuario, MultipartFile file);
 
-	UsuarioFotoDto getUsuarioFoto(Integer id);
+    UsuarioFotoDto getUsuarioFoto(Integer id);
 
-	Integer getIdByCorreo(String correo);
+    Integer getIdByCorreo(String correo);
 
     List<PerfilAsesorDto> getDirectorioDeAsesoresPorFiltros(FiltrosDirectorioAsesores filtros);
 
-	void procesarArchivoUsuarios(MultipartFile archivo) throws Exception;
-
-    AlumnoTemaDto getAlumnoTema(Integer idAlumno);
+    void procesarArchivoUsuarios(MultipartFile archivo) throws Exception;
 
     UsuarioDto findByCognitoId(String cognitoId) throws NoSuchElementException;
+
+    void validarTipoUsuarioRolUsuario(String cognitoId,List<TipoUsuarioEnum> tipos, RolEnum rol);
+
+    List<DocentesDTO> getProfesores();
+
+    AlumnoTemaDto getAlumnoTema(String idAlumno);
+
+    List<AlumnoReporteDto> findByStudentsForReviewer(Integer carreraId, String cadenaBusqueda);
 }

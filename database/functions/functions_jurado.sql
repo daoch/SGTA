@@ -1,3 +1,4 @@
+-- Active: 1748374313012@@localhost@5432@postgres@public
 CREATE OR REPLACE FUNCTION obtener_etapas_formativas_por_usuario(p_usuario_id INTEGER)
 RETURNS TABLE (
     etapa_formativa_id INTEGER,
@@ -125,7 +126,8 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION listar_temas_ciclo_actual_x_etapa_formativa(
-	etapa_id integer
+	etapa_id integer	,
+	expo_id integer
 )
 RETURNS TABLE(
 	tema_id integer,
@@ -135,10 +137,13 @@ RETURNS TABLE(
      nombres varchar,
   apellidos varchar,
   rol_id integer,
-  rol_nombre varchar
-    
+  rol_nombre varchar    
 ) AS $$
+declare
+	
 BEGIN
+	
+	
     RETURN QUERY
  	SELECT 
 		t.tema_id,
@@ -158,6 +163,7 @@ BEGIN
 	inner join usuario u on  u.usuario_id = ut.usuario_id
 	inner join rol r on r.rol_id = ut.rol_id
 	where c.activo = true and  ef.etapa_formativa_id = etapa_id 
+	and t.tema_id in  (select po.tema_id from exposicion_x_tema po where po.exposicion_id = expo_id)
 	order by t.tema_id;  
 END;
 $$ LANGUAGE plpgsql;
@@ -378,7 +384,6 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION obtener_ciclo_etapa_por_tema(p_tema_id integer)
-CREATE OR REPLACE FUNCTION obtener_ciclo_etapa_por_tema(p_tema_id integer)
     RETURNS TABLE(ciclo_id integer, ciclo_nombre text, etapa_formativa_id integer, etapa_formativa_nombre text)
     LANGUAGE plpgsql
 AS
@@ -401,7 +406,6 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION obtener_area_conocimiento_jurado(usuario_id_param integer)
 CREATE OR REPLACE FUNCTION obtener_area_conocimiento_jurado(usuario_id_param integer)
     RETURNS TABLE(usuario_id integer, area_conocimiento_id integer, area_conocimiento_nombre character varying)
     LANGUAGE plpgsql
@@ -651,13 +655,40 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- CREATE OR REPLACE FUNCTION obtener_usuarios_con_temass()
+--  RETURNS TABLE(usuario_id integer, codigo_pucp character varying, nombres character varying, primer_apellido character varying, segundo_apellido character varying, correo_electronico character varying, nivel_estudios character varying, cantidad_temas_asignados bigint, tema_activo boolean, fecha_asignacion timestamp with time zone)
+--  LANGUAGE plpgsql
+-- AS $function$
+-- BEGIN
+--     RETURN QUERY
+--     SELECT DISTINCT ON (u.usuario_id)
+--         u.usuario_id,
+--         u.codigo_pucp,
+--         u.nombres,
+--         u.primer_apellido,
+--         u.segundo_apellido,
+--         u.correo_electronico,
+--         u.nivel_estudios,
+--         COUNT(ut.tema_id) OVER (PARTITION BY u.usuario_id) AS cantidad_temas_asignados,
+--         ut.activo AS tema_activo,
+--         ut.fecha_creacion AS fecha_asignacion
+--     FROM usuario u
+--     JOIN usuario_tema ut ON u.usuario_id = ut.usuario_id
+--     JOIN tema t ON ut.tema_id = t.tema_id
+--     WHERE ut.rol_id = 2 AND ut.activo = true
+--     ORDER BY u.usuario_id, ut.prioridad;
+-- END;
+-- $function$;
+
 CREATE OR REPLACE FUNCTION obtener_usuarios_con_temass()
  RETURNS TABLE(usuario_id integer, codigo_pucp character varying, nombres character varying, primer_apellido character varying, segundo_apellido character varying, correo_electronico character varying, nivel_estudios character varying, cantidad_temas_asignados bigint, tema_activo boolean, fecha_asignacion timestamp with time zone)
  LANGUAGE plpgsql
 AS $function$
 BEGIN
     RETURN QUERY
-    SELECT DISTINCT ON (u.usuario_id)
+    SELECT *
+    FROM (
+      SELECT DISTINCT ON (u.usuario_id)
         u.usuario_id,
         u.codigo_pucp,
         u.nombres,
@@ -665,14 +696,15 @@ BEGIN
         u.segundo_apellido,
         u.correo_electronico,
         u.nivel_estudios,
-        COUNT(ut.tema_id) OVER (PARTITION BY u.usuario_id) AS cantidad_temas_asignados,
+        COUNT(CASE WHEN ut.activo = true THEN 1 END) OVER (PARTITION BY u.usuario_id) AS cantidad_temas_asignados,
         ut.activo AS tema_activo,
         ut.fecha_creacion AS fecha_asignacion
-    FROM usuario u
-    JOIN usuario_tema ut ON u.usuario_id = ut.usuario_id
-    JOIN tema t ON ut.tema_id = t.tema_id
-    WHERE ut.rol_id = 2 AND ut.activo = true
-    ORDER BY u.usuario_id, ut.prioridad;
+      FROM usuario u
+      LEFT JOIN usuario_tema ut ON u.usuario_id = ut.usuario_id AND ut.rol_id = 2
+      LEFT JOIN tema t ON ut.tema_id = t.tema_id
+      ORDER BY u.usuario_id, ut.prioridad NULLS LAST
+    ) sub
+    WHERE sub.cantidad_temas_asignados > 0;
 END;
 $function$;
 
@@ -735,29 +767,6 @@ BEGIN
       AND se.activo = TRUE;
 END;
 $$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION listar_entregables_x_etapa_formativa_x_ciclo(etapaformativaxcicloid integer)
-    RETURNS TABLE(id integer, etapa_formativa_x_ciclo_id integer, nombre character varying, descripcion text, fecha_inicio timestamp with time zone, fecha_fin timestamp with time zone, estado enum_estado_actividad, es_evaluable boolean)
-    LANGUAGE plpgsql
-AS
-$$
-BEGIN
-    RETURN QUERY
-    SELECT
-        e.entregable_id AS id,
-        e.etapa_formativa_x_ciclo_id,
-        e.nombre,
-        e.descripcion,
-        e.fecha_inicio,
-        e.fecha_fin,
-        e.estado AS estado,
-        e.es_evaluable
-    FROM entregable e
-    INNER JOIN etapa_formativa_x_ciclo efc ON e.etapa_formativa_x_ciclo_id = efc.etapa_formativa_x_ciclo_id
-    WHERE efc.etapa_formativa_x_ciclo_id = etapaFormativaXCicloId
-      AND e.activo = TRUE;
-END;
-$$;
 
 CREATE OR REPLACE FUNCTION listar_etapa_formativa_nombre()
     RETURNS TABLE(etapa_formativa_id integer, nombre text)
@@ -898,23 +907,67 @@ END;
 $$ LANGUAGE plpgsql;
 -- Para volver a estados
 
-update exposicion
-set
-    estado_planificacion_id = 2
-where
-    exposicion_id = 1
-    or exposicion_id = 2;
+CREATE OR REPLACE FUNCTION obtener_exposiciones_por_usuario(
+	p_usuario_id integer
+)
+RETURNS TABLE(
+	exposicion_id integer,
+	tema_id integer,
+	estado text,
+	link_exposicion text,
+	link_grabacion text,
+	datetime_inicio timestamp with time zone,
+	datetime_fin timestamp with time zone,
+	sala text,
+	titulo text,
+	etapa_formativa text,
+	ciclo text
+) AS $$
+BEGIN 
+RETURN QUERY
+SELECT
+	ext.exposicion_x_tema_id AS exposicion_id,
+	ext.tema_id,
+	ext.estado_exposicion::text AS estado,
+	ext.link_exposicion,
+	ext.link_grabacion,
+	bhe.datetime_inicio,
+	bhe.datetime_fin,
+	se.nombre AS sala,
+	tema.titulo::text,
+	ef.nombre AS etapa_formativa,
+	ciclo.nombre::text
+FROM
+	usuario_tema ut
+	JOIN exposicion_x_tema ext ON ext.tema_id = ut.tema_id
+	JOIN bloque_horario_exposicion bhe ON bhe.exposicion_x_tema_id = ext.exposicion_x_tema_id
+	JOIN jornada_exposicion_x_sala_exposicion ON jornada_exposicion_x_sala_exposicion.jornada_exposicion_x_sala_id = bhe.jornada_exposicion_x_sala_id
+	JOIN sala_exposicion se ON se.sala_exposicion_id = jornada_exposicion_x_sala_exposicion.sala_exposicion_id
+	JOIN tema ON tema.tema_id = ut.tema_id
+	JOIN etapa_formativa_x_ciclo_x_tema efxct ON efxct.tema_id = tema.tema_id
+	JOIN etapa_formativa_x_ciclo efxc ON efxc.etapa_formativa_x_ciclo_id = efxct.etapa_formativa_x_ciclo_id
+	JOIN etapa_formativa ef ON ef.etapa_formativa_id = efxc.etapa_formativa_id
+	JOIN ciclo ON ciclo.ciclo_id = efxc.ciclo_id
+WHERE ut.usuario_id = p_usuario_id
+AND ext.estado_exposicion IN ('programada', 'calificada', 'completada');
+END;
+$$ LANGUAGE plpgsql;
 
-update bloque_horario_exposicion
-set
-    exposicion_x_tema_id = null,
-    es_bloque_reservado = false,
-    fecha_modificacion = null
-where
-    bloque_horario_exposicion_id >= 1;
+-- update exposicion
+-- set
+--     estado_planificacion_id = 2
+-- where
+--     exposicion_id = 1
+--     or exposicion_id = 2;
 
-update exposicion_x_tema set estado_exposicion = 'sin_programar';
+--update bloque_horario_exposicion
+--set
+--  exposicion_x_tema_id = null,
+--    es_bloque_reservado = false,
+--where
+--    bloque_horario_exposicion_id >= 1;
 
+-- update exposicion_x_tema set estado_exposicion = 'sin_programar';
 
 CREATE OR REPLACE FUNCTION listar_areas_por_tema(
   _tema_id integer
@@ -950,7 +1003,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE PROCEDURE terminar_planificacion(idExposicion INT, idEtapaFormativa INT)
+CREATE OR REPLACE PROCEDURE intsertar_control_exposcion(idExposicion INT, idEtapaFormativa INT)
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -971,4 +1024,189 @@ BEGIN
    INNER JOIN usuario_tema tu ON tu.tema_id = ext.tema_id
    WHERE ext.exposicion_id = idExposicion;
 END;
+$$;
+--update exposicion_x_tema set estado_exposicion = 'sin_programar';
+
+CREATE OR REPLACE FUNCTION sala_ocupada_en_rango(
+    p_sala_id INTEGER,
+    p_inicio TIMESTAMPTZ,
+    p_fin TIMESTAMPTZ
+) RETURNS BOOLEAN
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    existe_conflicto BOOLEAN;
+BEGIN
+    SELECT EXISTS (
+        SELECT 1
+        FROM jornada_exposicion_x_sala_exposicion jxs
+        JOIN jornada_exposicion je ON jxs.jornada_exposicion_id = je.jornada_exposicion_id
+        WHERE jxs.sala_exposicion_id = p_sala_id
+          AND NOT (je.datetime_fin <= p_inicio OR je.datetime_inicio >= p_fin)
+    ) INTO existe_conflicto;
+
+    RETURN existe_conflicto;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION obtener_profesores()
+RETURNS TABLE(
+    id_usuario INTEGER,
+    nombres TEXT,
+    primer_apellido TEXT,
+    segundo_apellido TEXT,
+    codigo_pucp TEXT,
+    correo_electronico TEXT,
+    tipo_dedicacion TEXT,
+    cantidad_temas_asignados BIGINT
+)
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+    u.usuario_id AS id_usuario,
+	u.nombres::TEXT,
+	u.primer_apellido::TEXT,
+	u.segundo_apellido::TEXT,
+	u.codigo_pucp::TEXT,
+	u.correo_electronico::TEXT,
+	td.iniciales::TEXT AS tipo_dedicacion,
+	ut.cantidad_temas_asignados
+FROM usuario u
+INNER JOIN tipo_usuario tu ON u.tipo_usuario_id = tu.tipo_usuario_id
+INNER JOIN tipo_dedicacion td ON u.tipo_dedicacion_id = td.tipo_dedicacion_id
+INNER JOIN (
+    SELECT usuario_id AS id_usuario, COUNT(*) AS cantidad_temas_asignados
+    FROM usuario_tema
+    WHERE activo = true
+    GROUP BY usuario_id
+) ut ON u.usuario_id = ut.id_usuario
+WHERE
+	tu.nombre = 'profesor'
+	AND u.activo = true
+ORDER BY ut.cantidad_temas_asignados ASC;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION listar_bloques_con_temas_y_usuarios(p_exposicion_id integer)
+ RETURNS TABLE(bloque_horario_exposicion_id integer, jornada_exposicion_x_sala_id integer, exposicion_x_tema_id integer, es_bloque_reservado boolean, es_bloque_bloqueado boolean, datetime_inicio timestamp with time zone, datetime_fin timestamp with time zone, sala_nombre text, tema_id integer, tema_codigo character varying, tema_titulo character varying, usuario_id integer, nombres character varying, apellidos character varying, rol_id integer, rol_nombre character varying, estado_usuario_expo character varying)
+ LANGUAGE plpgsql
+ STABLE
+AS $function$
+DECLARE
+    p_etapa_id INTEGER;
+BEGIN
+	select e.etapa_formativa_id into p_etapa_id 
+	from etapa_formativa e 
+	inner join etapa_formativa_x_ciclo  efc on efc.etapa_formativa_id =  e.etapa_formativa_id
+	inner join exposicion expo on expo.etapa_formativa_x_ciclo_id = efc.etapa_formativa_x_ciclo_id
+	where expo.exposicion_id = p_exposicion_id;
+RETURN QUERY
+ SELECT
+        bhe.bloque_horario_exposicion_id,
+        bhe.jornada_exposicion_x_sala_id,
+        bhe.exposicion_x_tema_id,
+        bhe.es_bloque_reservado,
+        bhe.es_bloque_bloqueado,
+        bhe.datetime_inicio,
+        bhe.datetime_fin,
+        se.nombre AS sala_nombre,
+        t.tema_id,
+        t.codigo::VARCHAR,
+        t.titulo::VARCHAR,
+        u.usuario_id,
+        u.nombres,
+        u.primer_apellido,
+        r.rol_id,
+        r.nombre,
+        ceu.estado_exposicion_usuario
+    FROM bloque_horario_exposicion bhe
+    INNER JOIN jornada_exposicion_x_sala_exposicion jexse
+        ON jexse.jornada_exposicion_x_sala_id = bhe.jornada_exposicion_x_sala_id
+    INNER JOIN jornada_exposicion je
+        ON je.jornada_exposicion_id = jexse.jornada_exposicion_id
+    INNER JOIN exposicion e
+        ON e.exposicion_id = je.exposicion_id
+    INNER JOIN sala_exposicion se
+        ON jexse.sala_exposicion_id = se.sala_exposicion_id
+    LEFT JOIN exposicion_x_tema et
+        ON bhe.exposicion_x_tema_id = et.exposicion_x_tema_id
+    LEFT JOIN tema t
+        ON t.tema_id = et.tema_id
+    LEFT JOIN etapa_formativa_x_ciclo_x_tema efct
+        ON t.tema_id = efct.tema_id
+    LEFT JOIN etapa_formativa_x_ciclo efc
+        ON efct.etapa_formativa_x_ciclo_id = efc.etapa_formativa_x_ciclo_id
+    LEFT JOIN etapa_formativa ef
+        ON ef.etapa_formativa_id = efc.etapa_formativa_id
+    LEFT JOIN ciclo c
+        ON c.ciclo_id = efc.ciclo_id AND c.activo = TRUE
+    LEFT JOIN usuario_tema ut
+        ON ut.tema_id = t.tema_id
+    LEFT JOIN usuario u
+        ON u.usuario_id = ut.usuario_id
+    LEFT JOIN rol r
+        ON r.rol_id = ut.rol_id
+    LEFT JOIN control_exposicion_usuario ceu
+	    ON ceu.usuario_x_tema_id = ut.usuario_tema_id
+	    AND ceu.exposicion_x_tema_id = et.exposicion_x_tema_id
+    WHERE bhe.activo = TRUE
+      AND je.exposicion_id = p_exposicion_id
+      AND (ef.etapa_formativa_id = p_etapa_id OR ef.etapa_formativa_id IS NULL)
+
+    ORDER BY bhe.bloque_horario_exposicion_id;
+END;
+$function$
+;
+
+CREATE OR REPLACE PROCEDURE update_estado_exposicion_usuario(
+    IN p_exposicion_id INTEGER,
+    IN p_tema_id INTEGER
+)
+LANGUAGE plpgsql
+AS $$
+declare
+	 ext_id INTEGER;
+BEGIN
+	select exposicion_x_tema_id into ext_id from exposicion_x_tema where exposicion_id = p_exposicion_id 
+	and tema_id = p_tema_id;
+
+    update control_exposicion_usuario set estado_exposicion_usuario = 'esperando_respuesta'
+	where exposicion_x_tema_id =ext_id;
+END;
+$$;
+
+
+CREATE OR REPLACE FUNCTION obtener_id_carrera_por_id_expo(idexpo integer)
+    RETURNS TABLE(id_carrera integer)
+    LANGUAGE plpgsql
+AS
+$$
+begin
+	return query
+	select c.carrera_id from carrera  c
+	inner join etapa_formativa ef on ef.carrera_id = c.carrera_id
+	inner join etapa_formativa_x_ciclo efc on efc.etapa_formativa_id = ef.etapa_formativa_id
+	inner join exposicion e on  e.etapa_formativa_x_ciclo_id  = efc.etapa_formativa_x_ciclo_id
+	where e.exposicion_id =idExpo ;
+end
+$$;
+
+
+CREATE OR REPLACE PROCEDURE llenar_exposicion_x_tema(idexpo integer)
+    LANGUAGE plpgsql
+AS
+$$
+begin
+    INSERT INTO exposicion_x_tema (exposicion_id, tema_id)
+
+    (SELECT idexpo, efct.tema_id
+        FROM exposicion e
+        INNER JOIN etapa_formativa_x_ciclo efc ON e.etapa_formativa_x_ciclo_id = efc.etapa_formativa_x_ciclo_id
+        INNER JOIN etapa_formativa_x_ciclo_x_tema efct ON efc.etapa_formativa_x_ciclo_id = efct.etapa_formativa_x_ciclo_id
+        INNER JOIN tema t ON efct.tema_id = t.tema_id
+            WHERE e.exposicion_id = idexpo
+            -- AND t.estado_tema_id = 10 --  EN_PROGRESO
+    );
+end
 $$;

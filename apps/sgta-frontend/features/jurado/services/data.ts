@@ -1,13 +1,17 @@
 import axiosInstance from "@/lib/axios/axios-instance";
+import axios from "axios";
+import { ExposicionEtapaFormativaDTO } from "../dtos/ExposicionEtapaFormativaDTO";
+import { Tema, TimeSlot } from "../types/jurado.types";
 
 const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
 export async function listarTemasCicloActualXEtapaFormativa(
-  etapaFormativaId: number,
+  etapaFormativaId: number | undefined,
+  exposicionId : number,
 ) {
   try {
     const response = await fetch(
-      `${baseUrl}/temas/listarTemasCicloActualXEtapaFormativa/${etapaFormativaId}`,
+      `${baseUrl}/temas/listarTemasCicloActualXEtapaFormativa/${etapaFormativaId}/${exposicionId}`,
       {
         method: "GET",
         headers: {
@@ -125,7 +129,7 @@ export async function listarEstadoPlanificacionPorExposicion(
  */
 export async function getEtapaFormativaIdByExposicionId(
   exposicionId: number,
-): Promise<number> {
+): Promise<ExposicionEtapaFormativaDTO | null> {
   try {
     const response = await fetch(
       `${baseUrl}/etapas-formativas/getEtapaFormativaIdByExposicionId/${exposicionId}`,
@@ -148,12 +152,11 @@ export async function getEtapaFormativaIdByExposicionId(
     }
 
     // El back devuelve un número puro en el body: ej. 1
-    const data: number = await response.json();
+    const data: ExposicionEtapaFormativaDTO = await response.json();
     return data;
   } catch (error) {
     console.error("Error : fetching EtapaFormativaId por exposicionId:", error);
-    // En caso de fallo, devolvemos 0 (o podrías devolver `null` si prefieres)
-    return 0;
+    return null;
   }
 }
 
@@ -218,6 +221,37 @@ export async function listarAreasConocimientoPorExposicion(
       "Error al obtener áreas de conocimiento por exposición:",
       error,
     );
+    return [];
+  }
+}
+
+/**
+ * Ejecuta el algoritmo de distribución de bloques de exposición.
+ *
+ * @param temas      - Lista de temas a distribuir (Tema[]).
+ * @param timeSlots  - Lista de time slots disponibles (TimeSlot[]).
+ * @returns          - Array de TimeSlot reasignados tras el algoritmo.
+ */
+export async function distribuirBloquesExposicion(
+  temas: Tema[],
+  timeSlots: TimeSlot[],
+): Promise<TimeSlot[]> {
+  try {
+    const payload = { temas, bloques: timeSlots };
+    const response = await axiosInstance.post<TimeSlot[]>(
+      "/bloqueHorarioExposicion/algoritmoDistribucion",
+      payload,
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error(
+        "Error al distribuir bloques de exposición:",
+        error.response ?? error.message,
+      );
+    } else {
+      console.error("Error inesperado al distribuir bloques:", error);
+    }
     return [];
   }
 }

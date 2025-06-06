@@ -1,5 +1,3 @@
-SET search_path TO sgtadb;
-
 DO
 $$
     BEGIN
@@ -85,8 +83,8 @@ CREATE TABLE IF NOT EXISTS usuario
     foto_perfil         bytea,
     disponibilidad      TEXT,
     tipo_disponibilidad TEXT,
-    tipo_dedicacion_id     INTEGER,
-	id_cognito          VARCHAR(255),
+    tipo_dedicacion_id  INTEGER,
+    id_cognito          VARCHAR(255),
     activo              BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -165,7 +163,7 @@ CREATE TABLE IF NOT EXISTS tema
     activo             BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    requisitos            TEXT,
+    requisitos         TEXT,
 
     CONSTRAINT fk_estado_tema
         FOREIGN KEY (estado_tema_id)
@@ -243,31 +241,34 @@ CREATE TABLE IF NOT EXISTS tipo_solicitud
 -- NUEVAS TABLAS MANEJO DE ESTADOS Y ACCIONES EN SOLICITUD
 
 -- Tabla de roles en la solicitud
-CREATE TABLE IF NOT EXISTS rol_solicitud (
-    rol_solicitud_id SERIAL PRIMARY KEY,
-    nombre           VARCHAR(100) NOT NULL UNIQUE,
-    descripcion      TEXT,
-    activo           BOOLEAN NOT NULL DEFAULT TRUE,
-    fecha_creacion   TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+CREATE TABLE IF NOT EXISTS rol_solicitud
+(
+    rol_solicitud_id   SERIAL PRIMARY KEY,
+    nombre             VARCHAR(100)             NOT NULL UNIQUE,
+    descripcion        TEXT,
+    activo             BOOLEAN                  NOT NULL DEFAULT TRUE,
+    fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Tabla de estados de solicitud
-CREATE TABLE IF NOT EXISTS estado_solicitud (
+CREATE TABLE IF NOT EXISTS estado_solicitud
+(
     estado_solicitud_id SERIAL PRIMARY KEY,
-    nombre              VARCHAR(100) NOT NULL UNIQUE,
+    nombre              VARCHAR(100)             NOT NULL UNIQUE,
     descripcion         TEXT,
-    activo              BOOLEAN NOT NULL DEFAULT TRUE,
+    activo              BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Tabla de acciones sobre la solicitud
-CREATE TABLE IF NOT EXISTS accion_solicitud (
+CREATE TABLE IF NOT EXISTS accion_solicitud
+(
     accion_solicitud_id SERIAL PRIMARY KEY,
-    nombre              VARCHAR(100) NOT NULL UNIQUE,
+    nombre              VARCHAR(100)             NOT NULL UNIQUE,
     descripcion         TEXT,
-    activo              BOOLEAN NOT NULL DEFAULT TRUE,
+    activo              BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -286,7 +287,7 @@ CREATE TABLE IF NOT EXISTS solicitud
     estado             INTEGER                  NOT NULL,
 
     activo             BOOLEAN                  NOT NULL DEFAULT TRUE,
-	respuesta		   TEXT,	
+    respuesta          TEXT,
     fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -305,6 +306,75 @@ CREATE TABLE IF NOT EXISTS solicitud
             ON DELETE RESTRICT
 );
 
+-- Asegúrate de estar en el schema correcto si no lo has hecho globalmente
+SET search_path TO sgtadb;
+
+ALTER TABLE sgtadb.solicitud
+ADD COLUMN IF NOT EXISTS asesor_propuesto_reasignacion_id INTEGER,
+ADD COLUMN IF NOT EXISTS estado_reasignacion VARCHAR(50); -- Ajusta el tamaño de VARCHAR si es necesario
+
+-- Añadir la constraint de Foreign Key para asesor_propuesto_reasignacion_id
+-- Solo si la columna fue añadida o ya existe y no tiene la FK
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = 'sgtadb' AND table_name = 'solicitud' AND column_name = 'asesor_propuesto_reasignacion_id'
+    ) AND NOT EXISTS (
+        SELECT 1 FROM information_schema.table_constraints
+        WHERE table_schema = 'sgtadb' AND table_name = 'solicitud' AND constraint_name = 'fk_solicitud_asesor_propuesto'
+    ) THEN
+        ALTER TABLE sgtadb.solicitud
+        ADD CONSTRAINT fk_solicitud_asesor_propuesto
+        FOREIGN KEY (asesor_propuesto_reasignacion_id)
+        REFERENCES sgtadb.usuario (usuario_id)
+        ON DELETE SET NULL -- O ON DELETE RESTRICT si prefieres que no se pueda borrar un usuario si es asesor propuesto
+        ON UPDATE CASCADE;
+    END IF;
+END $$;
+
+-- Comentario sobre los nuevos campos (opcional, pero bueno para documentación)
+COMMENT ON COLUMN sgtadb.solicitud.asesor_propuesto_reasignacion_id IS 'ID del usuario (asesor) que ha sido propuesto para la reasignación de este tema/solicitud.';
+COMMENT ON COLUMN sgtadb.solicitud.estado_reasignacion IS 'Estado del proceso de reasignación después de que la solicitud de cese fue aprobada (ej. PENDIENTE_ACEPTACION_ASESOR, REASIGNACION_COMPLETADA, REASIGNACION_RECHAZADA_POR_ASESOR).';
+
+SELECT 'Columnas asesor_propuesto_reasignacion_id y estado_reasignacion añadidas/verificadas en la tabla solicitud.' AS resultado;
+
+--- AGREGAR CAMPO USUARIO_CREADOR A SOLICITUD
+-- Asegúrate de estar en el schema correcto
+SET search_path TO sgtadb; -- Esta línea es redundante si ya la pusiste para el bloque anterior de solicitud, pero no hace daño.
+
+ALTER TABLE sgtadb.solicitud
+ADD COLUMN IF NOT EXISTS usuario_creador_id INTEGER;
+
+-- Añadir la constraint de Foreign Key
+-- (Solo si la columna fue añadida o ya existe y no tiene la FK, y si la columna usuario_creador_id será NOT NULL en el futuro)
+-- Por ahora, para no romper datos existentes, no la hacemos NOT NULL inmediatamente.
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = 'sgtadb' AND table_name = 'solicitud' AND column_name = 'usuario_creador_id'
+    ) AND NOT EXISTS (
+        SELECT 1 FROM information_schema.table_constraints
+        WHERE table_schema = 'sgtadb' AND table_name = 'solicitud' AND constraint_name = 'fk_solicitud_usuario_creador'
+    ) THEN
+        ALTER TABLE sgtadb.solicitud
+        ADD CONSTRAINT fk_solicitud_usuario_creador
+        FOREIGN KEY (usuario_creador_id)
+        REFERENCES sgtadb.usuario (usuario_id)
+        ON DELETE RESTRICT -- O SET NULL si prefieres, pero RESTRICT es más seguro para un creador
+        ON UPDATE CASCADE;
+    END IF;
+END $$;
+
+-- Una vez que todas las filas existentes tengan un usuario_creador_id válido, puedes hacerla NOT NULL:
+-- ALTER TABLE sgtadb.solicitud ALTER COLUMN usuario_creador_id SET NOT NULL;
+-- ¡CUIDADO! Esto fallará si hay filas con usuario_creador_id = NULL.
+COMMENT ON COLUMN sgtadb.solicitud.usuario_creador_id IS 'ID del usuario que originó/creó la solicitud.';
+
+-- (Opcional, pero recomendado para consistencia con los otros bloques)
+-- SELECT 'Columna usuario_creador_id añadida/verificada en la tabla solicitud.' AS resultado;
+
 -- 6) USUARIO_SOLICITUD (M:N entre usuario y solicitud)
 CREATE TABLE IF NOT EXISTS usuario_solicitud
 (
@@ -315,7 +385,7 @@ CREATE TABLE IF NOT EXISTS usuario_solicitud
     -- Nuevas columnas en transición
     accion_solicitud     INTEGER,
     rol_solicitud        INTEGER,
-	fecha_accion	     TIMESTAMP WITH TIME ZONE,
+    fecha_accion         TIMESTAMP WITH TIME ZONE,
 
     -- Columnas antiguas mantenidas por compatibilidad
 
@@ -346,7 +416,8 @@ CREATE TABLE IF NOT EXISTS usuario_solicitud
             ON DELETE RESTRICT
 );
 
-CREATE TABLE IF NOT EXISTS tipo_rechazo_tema (
+CREATE TABLE IF NOT EXISTS tipo_rechazo_tema
+(
     tipo_rechazo_tema_id SERIAL PRIMARY KEY,
     nombre               VARCHAR(100)             NOT NULL,
     descripcion          TEXT,
@@ -358,19 +429,19 @@ CREATE TABLE IF NOT EXISTS tipo_rechazo_tema (
 -- 7) USUARIO_TEMA (M:N entre usuario, tema y rol)
 CREATE TABLE IF NOT EXISTS usuario_tema
 (
-    usuario_tema_id    SERIAL PRIMARY KEY,
-    usuario_id         INTEGER                  NOT NULL,
-    tema_id            INTEGER                  NOT NULL,
-    rol_id             INTEGER                  NOT NULL,
+    usuario_tema_id      SERIAL PRIMARY KEY,
+    usuario_id           INTEGER                  NOT NULL,
+    tema_id              INTEGER                  NOT NULL,
+    rol_id               INTEGER                  NOT NULL,
     tipo_rechazo_tema_id INTEGER,
-    asignado           BOOLEAN                  NOT NULL DEFAULT FALSE,
-    rechazado          BOOLEAN                  NOT NULL DEFAULT FALSE,
-    creador            BOOLEAN                  NOT NULL DEFAULT FALSE,
-    prioridad          INTEGER,
-    comentario         TEXT,
-    activo             BOOLEAN                  NOT NULL DEFAULT TRUE,
-    fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    asignado             BOOLEAN                  NOT NULL DEFAULT FALSE,
+    rechazado            BOOLEAN                  NOT NULL DEFAULT FALSE,
+    creador              BOOLEAN                  NOT NULL DEFAULT FALSE,
+    prioridad            INTEGER,
+    comentario           TEXT,
+    activo               BOOLEAN                  NOT NULL DEFAULT TRUE,
+    fecha_creacion       TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion   TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_usuario
         FOREIGN KEY (usuario_id)
@@ -488,21 +559,21 @@ CREATE TABLE IF NOT EXISTS usuario_area_conocimiento
 -- USUARIO_ROL
 CREATE TABLE IF NOT EXISTS usuario_rol
 (
-	usuario_rol_id 		SERIAL 		PRIMARY KEY,
-	usuario_id 			INTEGER		NOT NULL,
-	rol_id				INTEGER		NOT NULL,
-	activo				BOOLEAN 	NOT NULL,
+    usuario_rol_id     SERIAL PRIMARY KEY,
+    usuario_id         INTEGER                  NOT NULL,
+    rol_id             INTEGER                  NOT NULL,
+    activo             BOOLEAN                  NOT NULL,
     fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-	CONSTRAINT fk_ur_usuario
-		FOREIGN KEY (usuario_id)
-		REFERENCES usuario (usuario_id)
-		ON DELETE CASCADE,
-	CONSTRAINT fk_ur_rol
-		FOREIGN KEY (rol_id)
-		REFERENCES rol (rol_id)
-		ON DELETE CASCADE
+    CONSTRAINT fk_ur_usuario
+        FOREIGN KEY (usuario_id)
+            REFERENCES usuario (usuario_id)
+            ON DELETE CASCADE,
+    CONSTRAINT fk_ur_rol
+        FOREIGN KEY (rol_id)
+            REFERENCES rol (rol_id)
+            ON DELETE CASCADE
 );
 
 -- 3) MODULO
@@ -594,6 +665,17 @@ CREATE TABLE IF NOT EXISTS notificacion
             ON DELETE CASCADE
 );
 
+-- Asegúrate de estar en el schema correcto si no lo has hecho globalmente
+SET search_path TO sgtadb;
+
+ALTER TABLE sgtadb.notificacion
+ADD COLUMN IF NOT EXISTS enlace_redireccion VARCHAR(500);
+
+-- Comentario sobre la nueva columna (opcional, pero bueno para documentación)
+COMMENT ON COLUMN sgtadb.notificacion.enlace_redireccion IS 'Enlace URL opcional para redirigir al usuario al hacer clic en la notificación (ej. a una página específica de la aplicación).';
+
+SELECT 'Columna enlace_redireccion añadida/verificada en la tabla notificacion.' AS resultado;
+
 -- 1) Tabla grupo_investigacion
 CREATE TABLE IF NOT EXISTS grupo_investigacion
 (
@@ -672,15 +754,13 @@ CREATE TABLE IF NOT EXISTS etapa_formativa
     etapa_formativa_id  SERIAL PRIMARY KEY,
     nombre              TEXT                     NOT NULL,
     creditaje_por_tema  NUMERIC(6, 2),
-    duracion_exposicion VARCHAR(50),
+    duracion_exposicion INTERVAL,
     activo              BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     carrera_id          INTEGER                  NOT NULL,
-
-    CONSTRAINT fk_area_conocimiento_carrera
-        FOREIGN KEY (carrera_id)
-            REFERENCES carrera (carrera_id)
+    CONSTRAINT fk_area_conocimiento_carrera FOREIGN KEY (carrera_id)
+        REFERENCES carrera (carrera_id)
 );
 
 -- 1) Tabla parametro_configuracion
@@ -804,9 +884,9 @@ CREATE TABLE IF NOT EXISTS sala_exposicion
     sala_exposicion_id   SERIAL PRIMARY KEY,
     nombre               TEXT                      NOT NULL,
     activo               BOOLEAN                   NOT NULL DEFAULT TRUE,
-    tipo_sala_exposicion enum_tipo_sala_exposicion NOT NULL DEFAULT 'presencial',
+    tipo_sala_exposicion enum_tipo_sala_exposicion NOT NULL DEFAULT 'presencial', --enum_tipo_sala_exposicion | VARCHAR(255)
     fecha_creacion       TIMESTAMP WITH TIME ZONE  NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion   TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+    fecha_modificacion   TIMESTAMP WITH TIME ZONE  NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Tablas para el módulo de exposiciones (corregidas)
@@ -934,18 +1014,18 @@ CREATE TABLE IF NOT EXISTS bloque_horario_exposicion
 -- Tabla exposicion_x_tema
 CREATE TABLE IF NOT EXISTS exposicion_x_tema
 (
-    exposicion_x_tema_id              SERIAL PRIMARY KEY,
-    exposicion_id                     INTEGER                  NOT NULL,
-    tema_id                           INTEGER                  NOT NULL,
+    exposicion_x_tema_id SERIAL PRIMARY KEY,
+    exposicion_id        INTEGER                  NOT NULL,
+    tema_id              INTEGER                  NOT NULL,
     --bloque_horario_exposicion_id      INTEGER,
-    revision_criterio_x_exposicion_id INTEGER,
-    link_exposicion                   TEXT,
-    link_grabacion                    TEXT,
-    estado_exposicion                 enum_estado_exposicion   NOT NULL DEFAULT 'sin_programar',
-    nota_final                        NUMERIC(6, 2),
-    activo                            BOOLEAN                  NOT NULL DEFAULT TRUE,
-    fecha_creacion                    TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion                TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    --revision_criterio_x_exposicion_id INTEGER,
+    link_exposicion      TEXT,
+    link_grabacion       TEXT,
+    estado_exposicion    enum_estado_exposicion   NOT NULL DEFAULT 'sin_programar', --enum_estado_exposicion | VARCHAR(255)
+    nota_final           NUMERIC(6, 2),
+    activo               BOOLEAN                  NOT NULL DEFAULT TRUE,
+    fecha_creacion       TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion   TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_ext_exposicion
         FOREIGN KEY (exposicion_id)
@@ -1013,7 +1093,7 @@ CREATE TABLE IF NOT EXISTS control_exposicion_usuario
     control_exposicion_usuario_id    SERIAL PRIMARY KEY,
     exposicion_x_tema_id             INTEGER                  NOT NULL,
     usuario_x_tema_id                INTEGER                  NOT NULL,
-    estado_exposicion_usuario        enum_estado_usuario_exposicion,
+    estado_exposicion_usuario        VARCHAR(255), --enum_estado_usuario_exposicion
     observaciones_finales_exposicion TEXT,
     asistio                          BOOLEAN,
     activo                           BOOLEAN                  NOT NULL DEFAULT TRUE,
@@ -1077,7 +1157,11 @@ $$
         CREATE TYPE enum_estado_revision AS ENUM (
             'pendiente',
             'en_proceso',
-            'completada'
+            'completada',
+	        'revisado',
+	        'aprobado',
+            'rechazado',
+	        'por_aprobar'
             );
     EXCEPTION
         WHEN duplicate_object THEN NULL;
@@ -1120,9 +1204,9 @@ CREATE TABLE IF NOT EXISTS entregable
     fecha_fin                  TIMESTAMP WITH TIME ZONE NOT NULL,
     estado                     enum_estado_actividad    NOT NULL DEFAULT 'no_iniciado',
     es_evaluable               BOOLEAN                  NOT NULL DEFAULT FALSE,
-	maximo_documentos          INTEGER,
-	extensiones_permitidas     TEXT,
-	peso_maximo_documento      INTEGER,
+    maximo_documentos          INTEGER,
+    extensiones_permitidas     TEXT,
+    peso_maximo_documento      INTEGER,
     activo                     BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion             TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion         TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -1154,15 +1238,16 @@ CREATE TABLE IF NOT EXISTS criterio_entregable
 
 CREATE TABLE IF NOT EXISTS entregable_x_tema
 (
-    entregable_x_tema_id            SERIAL PRIMARY KEY,
-    entregable_id                   INTEGER,
-    tema_id                         INTEGER,
-    fecha_envio                     TIMESTAMP WITH TIME ZONE,
-    comentario                      TEXT,
-    estado                          enum_estado_entrega      NOT NULL DEFAULT 'no_enviado',
-    activo                          BOOLEAN                  NOT NULL DEFAULT TRUE,
-    fecha_creacion                  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion              TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    entregable_x_tema_id SERIAL PRIMARY KEY,
+    entregable_id        INTEGER,
+    tema_id              INTEGER,
+    fecha_envio          TIMESTAMP WITH TIME ZONE,
+    nota_entregable      NUMERIC(6, 2),
+    comentario           TEXT,
+    estado               enum_estado_entrega      NOT NULL DEFAULT 'no_enviado',
+    activo               BOOLEAN                  NOT NULL DEFAULT TRUE,
+    fecha_creacion       TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion   TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_entregable_x_tema_entregable
         FOREIGN KEY (entregable_id)
@@ -1216,7 +1301,7 @@ CREATE TABLE IF NOT EXISTS version_documento
 (
     version_documento_id  SERIAL PRIMARY KEY,
     documento_id          INTEGER,
-    entregable_x_tema_id    INTEGER,
+    entregable_x_tema_id  INTEGER,
     revision_documento_id INTEGER,
     fecha_ultima_subida   TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     numero_version        INTEGER,
@@ -1314,6 +1399,32 @@ CREATE TABLE IF NOT EXISTS observacion
             ON DELETE RESTRICT
 );
 
+CREATE TABLE IF NOT EXISTS observacion_rect
+(
+    observacion_id INT NOT NULL,
+    x1             DOUBLE PRECISION,
+    y1             DOUBLE PRECISION,
+    x2             DOUBLE PRECISION,
+    y2             DOUBLE PRECISION,
+    width          DOUBLE PRECISION,
+    height         DOUBLE PRECISION,
+    page_number    INT,
+    CONSTRAINT fk_obsrect_obs
+        FOREIGN KEY (observacion_id)
+            REFERENCES observacion (observacion_id)
+            ON DELETE CASCADE
+);
+
+ALTER TABLE observacion
+    ADD COLUMN IF NOT EXISTS bounding_x1     DOUBLE PRECISION,
+    ADD COLUMN IF NOT EXISTS bounding_y1     DOUBLE PRECISION,
+    ADD COLUMN IF NOT EXISTS bounding_x2     DOUBLE PRECISION,
+    ADD COLUMN IF NOT EXISTS bounding_y2     DOUBLE PRECISION,
+    ADD COLUMN IF NOT EXISTS bounding_width  DOUBLE PRECISION,
+    ADD COLUMN IF NOT EXISTS bounding_height DOUBLE PRECISION,
+    ADD COLUMN IF NOT EXISTS bounding_page   INT,
+    ADD COLUMN IF NOT EXISTS contenido                     TEXT NOT NULL;
+
 CREATE TABLE IF NOT EXISTS reunion
 (
     reunion_id         SERIAL PRIMARY KEY,
@@ -1369,13 +1480,13 @@ ALTER TABLE bloque_horario_exposicion
             REFERENCES exposicion_x_tema (exposicion_x_tema_id)
             ON DELETE SET NULL;
 
-ALTER TABLE exposicion_x_tema
-    DROP CONSTRAINT IF EXISTS fk_ext_revision_criterio_x_exposicion;
-ALTER TABLE exposicion_x_tema
-    ADD CONSTRAINT fk_ext_revision_criterio_x_exposicion
-        FOREIGN KEY (revision_criterio_x_exposicion_id)
-            REFERENCES revision_criterio_x_exposicion (revision_criterio_x_exposicion_id)
-            ON DELETE SET NULL;
+--ALTER TABLE exposicion_x_tema
+--    DROP CONSTRAINT IF EXISTS fk_ext_revision_criterio_x_exposicion;
+--ALTER TABLE exposicion_x_tema
+--    ADD CONSTRAINT fk_ext_revision_criterio_x_exposicion
+--        FOREIGN KEY (revision_criterio_x_exposicion_id)
+--            REFERENCES revision_criterio_x_exposicion (revision_criterio_x_exposicion_id)
+--            ON DELETE SET NULL;
 
 
 ALTER TABLE carrera_parametro_configuracion
@@ -1384,37 +1495,38 @@ ALTER TABLE carrera_parametro_configuracion
     ADD CONSTRAINT fk_cpc_grupo
         FOREIGN KEY (etapa_formativa_id)
             REFERENCES etapa_formativa (etapa_formativa_id)
-            ON DELETE RESTRICT; -->**REVISAR**<--
+            ON DELETE RESTRICT;
+-->**REVISAR**<--
 
 -- TABLAS PARA CRITERIOS DE ENTREGABLES Y EXPOSICIONES PREDEFINIDOS
 
 CREATE TABLE IF NOT EXISTS criterio_entregable_preset
 (
     criterio_entregable_preset_id SERIAL PRIMARY KEY,
-    nombre VARCHAR(100) NOT NULL,
-    nota_maxima DECIMAL(6,2),
-    descripcion TEXT,
-    activo BOOLEAN NOT NULL DEFAULT TRUE,
-    fecha_creacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+    nombre                        VARCHAR(100)             NOT NULL,
+    nota_maxima                   DECIMAL(6, 2),
+    descripcion                   TEXT,
+    activo                        BOOLEAN                  NOT NULL DEFAULT TRUE,
+    fecha_creacion                TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion            TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS criterio_exposicion_preset
 (
     criterio_exposicion_preset_id SERIAL PRIMARY KEY,
-    nombre TEXT NOT NULL,
-    descripcion TEXT,
-	nota_maxima NUMERIC(6, 2) NOT NULL,
-    activo BOOLEAN NOT NULL DEFAULT TRUE,
-    fecha_creacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+    nombre                        TEXT                     NOT NULL,
+    descripcion                   TEXT,
+    nota_maxima                   NUMERIC(6, 2)            NOT NULL,
+    activo                        BOOLEAN                  NOT NULL DEFAULT TRUE,
+    fecha_creacion                TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion            TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- NECESARIO PARA QUE NO EXISTAN PROBLEMAS CON LOS ENUMS
 -- AGREGAR EL CAST PARA LOS DEMAS ENUMS DE SER NECESARIO
 --DROP CAST IF EXISTS (character varying AS enum_estado_actividad);
 
-CREATE CAST (character varying AS enum_estado_actividad)
+CREATE CAST (CHARACTER VARYING AS enum_estado_actividad)
     WITH INOUT AS ASSIGNMENT;
 
 

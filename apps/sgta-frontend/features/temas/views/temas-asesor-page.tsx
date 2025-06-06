@@ -21,7 +21,7 @@ const TemasAsesorPage = () => {
   return (
     <div className="space-y-8 mt-4">
       <div>
-        <h1 className="text-3xl font-bold text-[#042354]">Mis Temas</h1>
+        <h1 className="text-3xl font-bold text-[#042354]">Temas</h1>
         <p className="text-muted-foreground">
           Gestión de temas de tesis propuestos y asignados
         </p>

@@ -20,6 +20,8 @@ export interface Tema {
   tesistas: Tesista[] | null;
   subareas: Subareas[];
   requisitos: string; //agregado
+  area: AreaConocimiento[];
+  cantPostulaciones: number;
 }
 
 export interface Carrera {
@@ -127,13 +129,13 @@ export type TipoUsuario = {
 
 export interface TemaCreateLibre {
   titulo: string;
-  carrera: number;
+  carrera: { id: number };
   resumen: string;
   objetivos: string;
   metodologia: string;
   fechaLimite: string;
-  subareas: number[];
-  coasesores: number[];
+  subareas: { id: number }[];
+  coasesores: { id: number }[];
   requisitos: string;
 }
 
@@ -182,3 +184,4 @@ export interface Observacion {
   autor: string;
   fecha: string;
 }
+

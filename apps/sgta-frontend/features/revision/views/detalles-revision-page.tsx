@@ -1,113 +1,90 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, CheckCircle, Download, FileText, X } from "lucide-react";
 import Link from "next/link";
-import { ObservacionesList } from "../components/observaciones-list";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { IHighlight } from "react-pdf-highlighter";
+import { Observacion, ObservacionesList } from "../components/observaciones-list";
+import { RevisionDocumentoAsesorDto } from "../dtos/RevisionDocumentoAsesorDto";
+import { obtenerObservacionesRevision } from "../servicios/revision-service";
+import { getRevisionById } from "../servicios/revisionService";
 
-// Datos de ejemplo para una revisión específica
-const revisionData = {
-  id: "2",
-  titulo: "Desarrollo de un sistema de monitoreo de calidad del aire utilizando IoT",
-  estudiante: "Ana García",
-  fechaEntrega: "2023-11-02",
-  fechaLimite: "2023-11-05",
-  estado: "por-aprobar",
-  porcentajePlagio: 12,
-  formatoValido: false,
-  entregaATiempo: true,
-  citadoCorrecto: false,
-  observaciones: [
-    {
-      id: "1",
-      pagina: 5,
-      parrafo: 2,
-      texto: "No está transformando la data.",
-      tipo: "contenido",
-      resuelto: false,
-    },
-    {
-      id: "2",
-      pagina: 8,
-      parrafo: 3,
-      texto: "Se detectó un posible plagio en este párrafo. Verificar la fuente original y citar correctamente.",
-      tipo: "plagio",
-      resuelto: false,
-    },
-    {
-      id: "3",
-      pagina: 12,
-      parrafo: 1,
-      texto: "La tabla 3 no tiene la referencia adecuada según normas APA.",
-      tipo: "citado",
-      resuelto: false,
-    },
-    {
-      id: "4",
-      pagina: 15,
-      parrafo: 4,
-      texto: "La figura 2 no está correctamente citada en el texto.",
-      tipo: "citado",
-      resuelto: false,
-    },
-    {
-      id: "5",
-      pagina: 20,
-      parrafo: 2,
-      texto: "No está transformando la data.",
-      tipo: "contenido",
-      resuelto: false,
-    },
-    {
-      id: "6",
-      pagina: 22,
-      parrafo: 3,
-      texto: "Se detectó un posible plagio en la conclusión. Verificar y reescribir.",
-      tipo: "plagio",
-      resuelto: false,
-    },
-    {
-      id: "7",
-      pagina: 25,
-      parrafo: 1,
-      texto: "No está transformando la data.",
-      tipo: "contenido",
-      resuelto: true,
-    },
-  ] as const,
-  historialRevisiones: [
-    {
-      fecha: "2023-11-03",
-      revisor: "Dr. Roberto Sánchez",
-      accion: "Inicio de revisión",
-    },
-    {
-      fecha: "2023-11-04",
-      revisor: "Dr. Roberto Sánchez",
-      accion: "Detección de plagio completada",
-    },
-    {
-      fecha: "2023-11-04",
-      revisor: "Dr. Roberto Sánchez",
-      accion: "Verificación de formato completada",
-    },
-    {
-      fecha: "2023-11-05",
-      revisor: "Dr. Roberto Sánchez",
-      accion: "Agregadas 7 observaciones",
-    },
-  ],
-};
+function mapHighlightToObservacion(highlight: IHighlight): Observacion {
+  return {
+    id: highlight.id,
+    pagina: highlight.position.pageNumber ?? 1,
+    parrafo: 1,
+    texto: highlight.content?.text ?? "(Sin contenido)",
+    tipo: mapTipoObservacion(highlight.comment.text),
+    resuelto: false
+  };
+}
+
+function mapTipoObservacion(nombre: string | undefined): Observacion["tipo"] {
+  const lower = nombre?.toLowerCase() ?? "";
+  if (lower.includes("inteligencia")) return "inteligencia";
+  if (lower.includes("similitud")) return "similitud";
+  if (lower.includes("citado")) return "citado";
+  return "contenido";
+}
+
+function formatFecha(fecha: string) {
+  const date = new Date(fecha);
+  return `${date.getDate().toString().padStart(2, "0")}/${(date.getMonth() + 1)
+    .toString()
+    .padStart(2, "0")}/${date.getFullYear()}`;
+}
 
 export default function RevisionDetailPage({ params }: { params: { id: string } }) {
-  // En una aplicación real, aquí se obtendría la revisión específica según el ID
-  const revision = revisionData;
+  const router = useRouter();
+  const [revision, setRevision] = useState<RevisionDocumentoAsesorDto | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [estado, setEstado] = useState(revision?.estado ?? "por_aprobar");
+  const [showConfirmDialog, setShowConfirmDialog] = useState<"aprobar" | "rechazar" | null>(null);
+  const [showSuccessDialog, setShowSuccessDialog] = useState<"aprobar" | "rechazar" | null>(null);
+  const [selectedTab, setSelectedTab] = useState("asesor");
+  const [observaciones, setObservaciones] = useState<IHighlight[]>([]);
+  const observacionesList: Observacion[] = observaciones.map(mapHighlightToObservacion);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const data = await getRevisionById(params.id);
+        setRevision(data);
+        const obs = await obtenerObservacionesRevision(data.id);
+        setObservaciones(obs);
+      } catch {
+        setError("Error al cargar los datos de la revisión");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchData();
+  }, [params.id]);
+
+  if (loading) {
+    return <div className="text-center mt-10 text-muted-foreground">Cargando revisión...</div>;
+  }
+
+  if (error || !revision) {
+    return <div className="text-center mt-10 text-red-600">{error || "Revisión no encontrada"}</div>;
+  }
+
+  if (!revision) {
+    return <div className="text-center mt-10 text-red-600">Revisión no encontrada</div>;
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2">
-        <Link href="/revision">
+        <Link href={"../"}>
           <Button variant="outline" size="icon">
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -141,18 +118,7 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
                 <div>
                   <h4 className="text-sm font-medium mb-2">Fecha de Carga</h4>
                   <div className="flex items-center gap-2">
-                    {revision.fechaEntrega ? (
-                      <>
-                        <span>{new Date(revision.fechaEntrega).toLocaleDateString()}</span>
-                        {!revision.entregaATiempo && (
-                          <Badge variant="destructive" className="ml-2">
-                            Fuera de plazo
-                          </Badge>
-                        )}
-                      </>
-                    ) : (
-                      <span className="text-muted-foreground">No entregado</span>
-                    )}
+                    <span>{revision.fechaEntrega ? formatFecha(revision.fechaEntrega) : "No entregado"}</span>
                   </div>
                 </div>
                 <div>
@@ -169,7 +135,22 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
               <CardDescription>Lista de observaciones encontradas durante la revisión</CardDescription>
             </CardHeader>
             <CardContent>
-              <ObservacionesList observaciones={[...revision.observaciones]} />
+              {estado === "revisado" ? (
+                <Tabs defaultValue="asesor" value={selectedTab} onValueChange={setSelectedTab} className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="asesor">Del Asesor</TabsTrigger>
+                    <TabsTrigger value="jurado">Del Profesor o Jurado</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="asesor">
+                    <ObservacionesList observaciones={observacionesList} editable={false} />
+                  </TabsContent>
+                  <TabsContent value="jurado">
+                    <ObservacionesList observaciones={observacionesList} editable={false} />
+                  </TabsContent>
+                </Tabs>
+              ) : (
+                <ObservacionesList observaciones={observacionesList} editable={false} />
+              )}
             </CardContent>
           </Card>
         </div>
@@ -186,45 +167,50 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
                 <Badge
                   variant="outline"
                   className={
-                    revision.estado === "revisado"
+                    estado === "revisado"
                       ? "bg-green-100 text-green-800 hover:bg-green-100"
-                      : revision.estado === "aprobado"
+                      : estado === "aprobado"
                         ? "bg-blue-100 text-blue-800 hover:bg-blue-100"
-                        : "bg-yellow-100 text-yellow-800 hover:bg-yellow-100"
+                        : estado === "rechazado"
+                          ? "bg-red-100 text-red-800 hover:bg-red-100"
+                          : "bg-yellow-100 text-yellow-800 hover:bg-yellow-100"
                   }
                 >
-                  {revision.estado === "revisado"
+                  {estado === "revisado"
                     ? "Revisado"
-                    : revision.estado === "por-aprobar"
-                      ? "Por Aprobar"
-                      : "Aprobado"}
+                    : estado === "aprobado"
+                      ? "Aprobado"
+                      : estado === "rechazado"
+                        ? "Rechazado"
+                        : "Por Aprobar"}
                 </Badge>
+
               </div>
 
               <Separator />
 
               <div>
-                <h4 className="text-sm font-medium mb-2">Detección de Plagio</h4>
+                <h4 className="text-sm font-medium mb-2">Detección de similitud</h4>
                 <div>
 
                 </div>
                 <span
                   className={
-                    revision.porcentajePlagio > 20
+                    revision.porcentajeSimilitud !== null && revision.porcentajeSimilitud > 20
                       ? "text-red-600 font-medium"
-                      : revision.porcentajePlagio > 10
+                      : revision.porcentajeSimilitud !== null && revision.porcentajeSimilitud > 10
                         ? "text-yellow-600 font-medium"
                         : "text-green-600 font-medium"
                   }
                 >
-                  {revision.porcentajePlagio}%
+                  {revision.porcentajeSimilitud}%
                 </span>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {revision.porcentajePlagio > 20
-                    ? "Alto nivel de plagio detectado"
-                    : revision.porcentajePlagio > 10
-                      ? "Nivel moderado de plagio detectado"
-                      : "Nivel aceptable de plagio"}
+                  {revision.porcentajeSimilitud !== null && revision.porcentajeSimilitud > 20
+                    ? "Alto nivel de similitud detectado"
+                    : revision.porcentajeSimilitud !== null && revision.porcentajeSimilitud > 10
+                      ? "Nivel moderado de similitud detectado"
+                      : "Nivel aceptable de similitud "}
                 </p>
               </div>
 
@@ -264,16 +250,16 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
               <div>
                 <h4 className="text-sm font-medium mb-2">Observaciones</h4>
                 <div className="flex items-center gap-2">
-                  <span className="text-2xl font-bold">{revision.observaciones.length}</span>
+                  <span className="text-2xl font-bold">{observacionesList.length}</span>
                   <div>
                     <span className="text-sm text-muted-foreground">Total</span>
                     <div className="text-xs">
                       <span className="text-green-600">
-                        {revision.observaciones.filter((o) => o.resuelto).length} resueltas
+                        {observacionesList.filter((o) => o.resuelto).length} resueltas
                       </span>
                       {" / "}
                       <span className="text-red-600">
-                        {revision.observaciones.filter((o) => !o.resuelto).length} pendientes
+                        {observacionesList.filter((o) => !o.resuelto).length} pendientes
                       </span>
                     </div>
                   </div>
@@ -281,31 +267,39 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
               </div>
 
               <div className="pt-4">
-                <Link href={`/revision/revisar/${revision.id}`}>
+                {estado === "por_aprobar" && (
                   <div className="flex flex-col gap-2">
-                    <Button className="w-full bg-[#0743a3] hover:bg-pucp-light">
-                      Continuar Revisión
-                    </Button>
-                    <Button className="w-full bg-[#042354] hover:bg-pucp-light">
+                    <Link href={`../revisar-doc/${revision.id}`}>
+                      <Button className="w-full bg-[#0743a3] hover:bg-pucp-light">
+                        Continuar Revisión
+                      </Button>
+                    </Link>
+                    <Button
+                      className="w-full bg-[#042354] hover:bg-pucp-light"
+                      onClick={() => setShowConfirmDialog("aprobar")}
+                    >
                       Aprobar Entregable
                     </Button>
-                    <Button className="w-full bg-[#EB3156] hover:bg-pucp-light">
+                    <Button
+                      className="w-full bg-[#EB3156] hover:bg-pucp-light"
+                      onClick={() => setShowConfirmDialog("rechazar")}
+                    >
                       Rechazar Entregable
                     </Button>
                   </div>
-                </Link>
+                )}
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          {/*<Card>
             <CardHeader>
               <CardTitle>Historial de Revisión</CardTitle>
               <CardDescription>Registro de actividades</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {revision.historialRevisiones.map((item, index) => (
+                {revision.historialRevisiones?.map((item, index) => (
                   <div key={index} className="border-l-2 border-muted pl-4 pb-4 relative">
                     <div className="absolute w-2 h-2 rounded-full bg-pucp-blue -left-[5px] top-2"></div>
                     <p className="text-sm font-medium">{item.accion}</p>
@@ -318,9 +312,51 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
                 ))}
               </div>
             </CardContent>
-          </Card>
+          </Card>*/}
         </div>
       </div>
+      <Dialog open={!!showConfirmDialog} onOpenChange={() => setShowConfirmDialog(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {showConfirmDialog === "aprobar" ? "Aprobar Entregable" : "Rechazar Entregable"}
+            </DialogTitle>
+            <DialogDescription>
+              La decisión será enviada al estudiante.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowConfirmDialog(null)}>Cancelar</Button>
+            <Button
+              className="bg-[#042354] hover:bg-pucp-light"
+              onClick={() => {
+                setShowConfirmDialog(null);
+                setTimeout(() => {
+                  setShowSuccessDialog(showConfirmDialog);
+                  setEstado(showConfirmDialog === "aprobar" ? "aprobado" : "rechazado");
+                }, 300); // pequeña espera para que cierre bien el primer modal
+              }}
+            >
+              Confirmar y Enviar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={!!showSuccessDialog} onOpenChange={() => setShowSuccessDialog(null)}>
+        <DialogContent className="sm:max-w-md text-center">
+          <DialogHeader>
+            <DialogTitle>
+              ¡{showSuccessDialog === "aprobar" ? "Aprobación" : "Rechazo"} Enviado!
+            </DialogTitle>
+            <DialogDescription>
+              La {showSuccessDialog === "aprobar" ? "aprobación" : "decisión de rechazo"} ha sido enviada correctamente a los destinatarios seleccionados para su revisión.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="justify-center">
+            <Button onClick={() => router.push("../")}>Volver al listado</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

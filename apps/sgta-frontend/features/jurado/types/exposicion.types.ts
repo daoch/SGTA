@@ -7,7 +7,7 @@ type Miembro = {
 const ESTADOS = [
   "sin_programar",
   "esperando_respuesta",
-  "esperando_aprobacion",
+  "esperando_aprobación",
   "programada",
   "completada",
   "calificada",
@@ -38,4 +38,20 @@ export type ExposicionSinInicializar = {
 export type Sala = {
   id: number;
   nombre: string;
+};
+
+export type ExposicionAlumno = {
+  estudianteId: number;
+  exposicionId: number;
+  temaId: number;
+  estado: ExposicionEstado;
+  linkExposicion: string;
+  linkGrabacion: string;
+  datetimeInicio: Date; // o Date si ya viene parseado
+  datetimeFin: Date;    // igual que arriba
+  sala: string;
+  titulo: string;
+  etapaFormativa: string;
+  ciclo: string;
+  miembrosJurado: Miembro[];
 };

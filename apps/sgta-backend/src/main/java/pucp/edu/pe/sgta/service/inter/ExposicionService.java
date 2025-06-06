@@ -1,11 +1,10 @@
 package pucp.edu.pe.sgta.service.inter;
 
 import pucp.edu.pe.sgta.dto.ExposicionDto;
-
+import pucp.edu.pe.sgta.dto.ExposicionEstudianteDTO;
 import pucp.edu.pe.sgta.dto.ExposicionNombreDTO;
 import pucp.edu.pe.sgta.dto.ExposicionSinInicializarDTO;
 import pucp.edu.pe.sgta.dto.ListExposicionXCoordinadorDTO;
-import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
 
 import java.util.List;
 
@@ -22,11 +21,12 @@ public interface ExposicionService {
 
     void delete(Integer id);
 
-    List<ExposicionNombreDTO>listarExposicionXCicloActualEtapaFormativa(Integer etapaFormativaId);
+    List<ExposicionNombreDTO> listarExposicionXCicloActualEtapaFormativa(Integer etapaFormativaId);
 
     List<ListExposicionXCoordinadorDTO> listarExposicionesInicializadasXCoordinador(Integer coordinadorId);
 
-    List<ExposicionSinInicializarDTO>listarExposicionesSinInicializarByEtapaFormativaEnCicloActual(Integer etapaFormativaId);
+    List<ExposicionSinInicializarDTO> listarExposicionesSinInicializarByEtapaFormativaEnCicloActual(
+            Integer etapaFormativaId);
 
-
+    List<ExposicionEstudianteDTO> findExposicionesEstudianteById(Integer usuarioId);
 }

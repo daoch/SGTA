@@ -1,4 +1,5 @@
 "use client";
+
 import React from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { AreaEspecialidad } from "@/features/jurado/types/jurado.types";
@@ -6,7 +7,7 @@ import TemaExposicionCard from "./topic-expo-card";
 import Draggable from "./Draggable";
 import SearchFilterTemas, { FilterForm } from "./search-filter-temas";
 import { usePlanificationStore } from "../../store/use-planificacion-store";
-import { es } from "date-fns/locale";
+import CardSuggestAlgorithm from "./CardSuggestAlgorithm";
 
 interface Props {
   areasEspecialidad: AreaEspecialidad[];
@@ -23,18 +24,20 @@ const TemasList: React.FC<Props> = ({ areasEspecialidad }) => {
 
   const temasFiltrados = React.useMemo(() => {
     const q = query.trim().toLowerCase();
-    return temasSinAsignar.filter((tema) => {
-      const matchCodigo = (tema.codigo ?? "").toLowerCase().includes(q);
-      const matchJurado = (tema.usuarios ?? []).some(
-        (u) =>
-          (u.nombres ?? "").toLowerCase().includes(q) ||
-          (u.apellidos ?? "").toLowerCase().includes(q),
-      );
-      const matchArea =
-        especialidad === "__all__" ||
-        (tema.areasConocimiento ?? []).some((a) => a.nombre === especialidad);
-      return (matchCodigo || matchJurado) && matchArea;
-    });
+    return temasSinAsignar
+      .filter((tema) => {
+        const matchCodigo = (tema.codigo ?? "").toLowerCase().includes(q);
+        const matchJurado = (tema.usuarios ?? []).some(
+          (u) =>
+            (u.nombres ?? "").toLowerCase().includes(q) ||
+            (u.apellidos ?? "").toLowerCase().includes(q),
+        );
+        const matchArea =
+          especialidad === "__all__" ||
+          (tema.areasConocimiento ?? []).some((a) => a.nombre === especialidad);
+        return (matchCodigo || matchJurado) && matchArea;
+      })
+      .sort((a, b) => (a.codigo ?? "").localeCompare(b.codigo ?? ""));
   }, [temasSinAsignar, query, especialidad]);
 
   return (
@@ -45,15 +48,23 @@ const TemasList: React.FC<Props> = ({ areasEspecialidad }) => {
         <SearchFilterTemas areasEspecialidad={areasEspecialidad} />
       </FormProvider>
 
+      <CardSuggestAlgorithm />
+
       <div className="flex flex-col gap-4">
-        {temasFiltrados.map((tema, idx) => {
-          const key = tema.codigo ?? tema.id?.toString() ?? `tema-${idx}`;
-          return (
-            <Draggable key={key} id={key} isDraggeable>
-              <TemaExposicionCard exposicion={tema} />
-            </Draggable>
-          );
-        })}
+        {temasFiltrados.length === 0 ? (
+          <div className="text-center text-gray-500 py-8">
+            No hay temas sin asignar.
+          </div>
+        ) : (
+          temasFiltrados.map((tema, idx) => {
+            const key = tema.codigo ?? tema.id?.toString() ?? `tema-${idx}`;
+            return (
+              <Draggable key={key} id={key} isDraggeable>
+                <TemaExposicionCard exposicion={tema} />
+              </Draggable>
+            );
+          })
+        )}
       </div>
     </section>
   );

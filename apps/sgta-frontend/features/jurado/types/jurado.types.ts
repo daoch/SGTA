@@ -52,6 +52,8 @@ export interface TimeSlot {
   idExposicion?: number;
   esBloqueReservado?: boolean;
   esBloqueBloqueado?: boolean;
+  anteriorExpo?: Tema;
+  cambiado?: boolean;
 }
 
 export interface EstadoPlanificacion {
@@ -98,6 +100,7 @@ export interface Usuario {
   nombres: string;
   apellidos: string;
   rol: Rol;
+  estadoRespuesta: "esperando_respuesta" | "aceptado" | "rechazado";
 }
 
 export interface Rol {
@@ -130,9 +133,15 @@ export interface MiembroJuradoExpo {
 export interface EvaluacionExposicionJurado {
   id_exposicion: number;
   titulo: string;
-  estudiantes: Estudiante[];
+  descripcion: string;
+  estudiantes: EstudianteEvaluacion[];
   criterios: CriterioEvaluacion[];
   observaciones_finales: string;
+}
+
+export interface EstudianteEvaluacion {
+  id: number;
+  nombre: string;
 }
 
 export interface CriterioEvaluacion {
@@ -141,5 +150,5 @@ export interface CriterioEvaluacion {
   descripcion: string;
   calificacion: number;
   nota_maxima: number;
-  observaciones: string;
+  observacion: string;
 }

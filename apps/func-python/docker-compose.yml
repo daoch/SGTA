@@ -1,0 +1,25 @@
+services:
+  sgta-api:
+    build: .
+    container_name: sgta-function-app
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONPATH=/app
+      - PORT=8000
+    volumes:
+      # Mount cache directory to persist FAISS embeddings
+      - ./cache:/app/cache
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/topics/stats"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - sgta-network
+
+networks:
+  sgta-network:
+    driver: bridge

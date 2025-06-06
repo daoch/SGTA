@@ -38,8 +38,7 @@ export function TimeSlotCard({
 
   const bloquearBloque = async (bloque: TimeSlot) => {
     if (
-      bloque.expo != undefined &&
-      bloque.expo.id == null &&
+      (bloque.expo == null || bloque.expo.id == null) &&
       !bloque.esBloqueBloqueado &&
       estadoPlan.nombre !== "Cierre de planificacion"
     ) {
@@ -54,8 +53,7 @@ export function TimeSlotCard({
 
   const desbloquearBloque = async (bloque: TimeSlot) => {
     if (
-      bloque.expo != undefined &&
-      bloque.expo.id == null &&
+      (bloque.expo == null || bloque.expo.id == null) &&
       bloque.esBloqueBloqueado &&
       estadoPlan.nombre !== "Cierre de planificacion"
     ) {

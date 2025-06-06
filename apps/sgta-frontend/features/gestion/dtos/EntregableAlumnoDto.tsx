@@ -17,4 +17,6 @@ export interface EntregableAlumnoDto {
   cicloSemestre: string;
   temaId: number;
   entregableFechaEnvio: string | null;
+  entregableComentario: string | null;
+  entregableXTemaId: number;
 }

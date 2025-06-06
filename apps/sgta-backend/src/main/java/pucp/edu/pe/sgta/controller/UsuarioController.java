@@ -3,21 +3,31 @@ package pucp.edu.pe.sgta.controller;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import org.springframework.web.server.ResponseStatusException;
 import pucp.edu.pe.sgta.dto.asesores.FiltrosDirectorioAsesores;
 import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
 import pucp.edu.pe.sgta.dto.asesores.UsuarioConRolDto;
 import pucp.edu.pe.sgta.dto.asesores.UsuarioFotoDto;
 import pucp.edu.pe.sgta.dto.CarreraDto;
+import pucp.edu.pe.sgta.dto.DocentesDTO;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
 import pucp.edu.pe.sgta.service.inter.CarreraService;
+import pucp.edu.pe.sgta.service.inter.JwtService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
 import pucp.edu.pe.sgta.dto.AlumnoTemaDto;
+import pucp.edu.pe.sgta.dto.AlumnoReporteDto;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
 
 @RestController
 
@@ -25,42 +35,53 @@ import pucp.edu.pe.sgta.dto.AlumnoTemaDto;
 public class UsuarioController {
 
     @Autowired
-	private CarreraService carreraService;
+    private CarreraService carreraService;
 
-	@Autowired
-	private UsuarioService usuarioService;
+    @Autowired
+    JwtService jwtService;
 
-	@PostMapping("/create")
-	public void create(@RequestBody UsuarioDto dto) {
-		this.usuarioService.createUsuario(dto);
-	}
+    @Autowired
+    private UsuarioService usuarioService;
 
-	@GetMapping("/findByTipoUsuarioAndCarrera")
+    @PostMapping("/create")
+    public ResponseEntity<?> create(@RequestBody UsuarioDto user) {
+
+        try {
+            usuarioService.createUsuario(user);
+            return ResponseEntity.ok("Usuario procesado exitosamente");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al procesar el usuario: " + e.getMessage());
+        }
+
+    }
+
+    @GetMapping("/findByTipoUsuarioAndCarrera")
     public List<UsuarioDto> getByTipoYCarrera(
             @RequestParam String tipoUsuarioNombre,
             @RequestParam(required = false) Integer carreraId,
-			@RequestParam(required = false) String cadenaBusqueda
-    ) {
+            @RequestParam(required = false) String cadenaBusqueda) {
         return usuarioService.findUsuariosByRolAndCarrera(
-            tipoUsuarioNombre, carreraId, cadenaBusqueda
-        );
+                tipoUsuarioNombre, carreraId, cadenaBusqueda);
     }
-	@GetMapping("/findById")
-	public UsuarioDto findById(@RequestParam("idUsuario") Integer idUsuario) {
 
-		return this.usuarioService.findUsuarioById(idUsuario);
-	}
+    @GetMapping("/findById")
+    public UsuarioDto findById(@RequestParam("idUsuario") Integer idUsuario) {
 
-	@GetMapping("/getPerfilAsesor")
-	public PerfilAsesorDto getPerfilAsesor(@RequestParam(name = "id") Integer id) {
-		return this.usuarioService.getPerfilAsesor(id);
-	}
-	@PutMapping("/updatePerfilAsesor")
-	public void updatePerfilAsesor(@RequestBody PerfilAsesorDto dto) {
-		usuarioService.updatePerfilAsesor(dto);
-	}
+        return this.usuarioService.findUsuarioById(idUsuario);
+    }
 
-	/**
+    @GetMapping("/getPerfilAsesor")
+    public PerfilAsesorDto getPerfilAsesor(@RequestParam(name = "id") Integer id) {
+        return this.usuarioService.getPerfilAsesor(id);
+    }
+
+    @PutMapping("/updatePerfilAsesor")
+    public void updatePerfilAsesor(@RequestBody PerfilAsesorDto dto) {
+        usuarioService.updatePerfilAsesor(dto);
+    }
+
+    /**
      * HU01: Asignar Rol de Asesor a Profesor
      *
      * @param userId ID del profesor
@@ -77,7 +98,7 @@ public class UsuarioController {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             return new ResponseEntity<>("Error al asignar el rol de Asesor: " + e.getMessage(),
-                                        HttpStatus.INTERNAL_SERVER_ERROR);
+                    HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -98,7 +119,7 @@ public class UsuarioController {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             return new ResponseEntity<>("Error al remover el rol de Asesor: " + e.getMessage(),
-                                        HttpStatus.INTERNAL_SERVER_ERROR);
+                    HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -119,7 +140,7 @@ public class UsuarioController {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             return new ResponseEntity<>("Error al asignar el rol de Jurado: " + e.getMessage(),
-                                        HttpStatus.INTERNAL_SERVER_ERROR);
+                    HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -140,15 +161,16 @@ public class UsuarioController {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             return new ResponseEntity<>("Error al remover el rol de Jurado: " + e.getMessage(),
-                                        HttpStatus.INTERNAL_SERVER_ERROR);
+                    HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     /**
      * HU05: Listar Profesores (Usuarios) con Estado de Roles
      *
-     * @param rolNombre Rol por el que filtrar (opcional, "Todos" por defecto)
-     * @param terminoBusqueda Término para buscar por nombre, correo o código (opcional)
+     * @param rolNombre       Rol por el que filtrar (opcional, "Todos" por defecto)
+     * @param terminoBusqueda Término para buscar por nombre, correo o código
+     *                        (opcional)
      * @return Lista de usuarios con sus roles
      */
     @GetMapping("/professors-with-roles")
@@ -164,26 +186,26 @@ public class UsuarioController {
         }
     }
 
-
     @PutMapping("/uploadFoto")
-	public void uploadFoto(@RequestParam("idUsuario") Integer idUsuario, @RequestParam("file") MultipartFile file) {
-		usuarioService.uploadFoto(idUsuario, file);
-	}
+    public void uploadFoto(@RequestParam("idUsuario") Integer idUsuario, @RequestParam("file") MultipartFile file) {
+        usuarioService.uploadFoto(idUsuario, file);
+    }
 
-	@GetMapping("/getFotoUsuario")
-	public UsuarioFotoDto getFotoUsuario(@RequestParam("idUsuario") Integer idUsuario) {
-		return usuarioService.getUsuarioFoto(idUsuario);
-	}
+    @GetMapping("/getFotoUsuario")
+    public UsuarioFotoDto getFotoUsuario(@RequestParam("idUsuario") Integer idUsuario) {
+        return usuarioService.getUsuarioFoto(idUsuario);
+    }
 
-	@GetMapping("/getIdByCorreo")
-	public Integer getIdByCorreo(@RequestParam("correoUsuario") String correo) {
-		return usuarioService.getIdByCorreo(correo);
-	}
-	
-	@GetMapping("/{id}/carreras")
+    @GetMapping("/getIdByCorreo")
+    public Integer getIdByCorreo(@RequestParam("correoUsuario") String correo) {
+        return usuarioService.getIdByCorreo(correo);
+    }
+
+    @GetMapping("/carreras")
     public ResponseEntity<List<CarreraDto>> listarCarreras(
-            @PathVariable("id") Integer usuarioId) {
+            HttpServletRequest request) {
 
+        String usuarioId = jwtService.extractSubFromRequest(request); 
         List<CarreraDto> carreras = carreraService.listarCarrerasPorUsuario(usuarioId);
 
         if (carreras.isEmpty()) {
@@ -192,39 +214,87 @@ public class UsuarioController {
         return ResponseEntity.ok(carreras);
     }
 
-	@GetMapping("/findByCodigo")
-	public UsuarioDto findByCodigo(@RequestParam("codigo") String codigo) {
-		return this.usuarioService.findUsuarioByCodigo(codigo);
-	}
+    @GetMapping("/findByCodigo")
+    public UsuarioDto findByCodigo(@RequestParam("codigo") String codigo) {
+        return this.usuarioService.findUsuarioByCodigo(codigo);
+    }
+    /**
+     Api usada por un ALUMNO para ver que asesores existen en su carrera
+     */
     @GetMapping("/asesor-directory-by-filters")
     public ResponseEntity<List<PerfilAsesorDto>> getDirectorioDeAsesoresPorFiltros(
-            @ModelAttribute FiltrosDirectorioAsesores filtros) {
-            List<PerfilAsesorDto> asesores = usuarioService.getDirectorioDeAsesoresPorFiltros(filtros);
-            return new ResponseEntity<>(asesores, HttpStatus.OK);
+            @ModelAttribute FiltrosDirectorioAsesores filtros,
+            HttpServletRequest request
+    ) {
+        usuarioService.validarTipoUsuarioRolUsuario(
+                            jwtService.extractSubFromRequest(request),
+                            List.of(TipoUsuarioEnum.alumno, TipoUsuarioEnum.profesor),
+                            null
+        );
+        List<PerfilAsesorDto> asesores = usuarioService.getDirectorioDeAsesoresPorFiltros(filtros);
+        return new ResponseEntity<>(asesores, HttpStatus.OK);
 
-//        try {
-//            List<PerfilAsesorDto> asesores = usuarioService.getDirectorioDeAsesoresPorFiltros(filtros);
-//            return new ResponseEntity<>(asesores, HttpStatus.OK);
-//        } catch (Exception e) {
-//            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-//        }
+        // try {
+        // List<PerfilAsesorDto> asesores =
+        // usuarioService.getDirectorioDeAsesoresPorFiltros(filtros);
+        // return new ResponseEntity<>(asesores, HttpStatus.OK);
+        // } catch (Exception e) {
+        // return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        // }
     }
-    
 
-	@PostMapping("/carga-masiva")
-	public ResponseEntity<String> cargarUsuarios(@RequestParam("archivo") MultipartFile archivo) {
-		try {
-			usuarioService.procesarArchivoUsuarios(archivo);
-			return ResponseEntity.ok("Usuarios procesados exitosamente");
-		} catch (Exception e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body("Error al procesar el archivo: " + e.getMessage());
-		}
-	}
-
-    @GetMapping("/detalle-tema-alumno/{idUsuario}")
-    public ResponseEntity<AlumnoTemaDto> getDetalleTemaAlumno(@PathVariable("idUsuario") Integer idUsuario) {
+    @PostMapping("/carga-masiva")
+    public ResponseEntity<String> cargarUsuarios(@RequestParam("archivo") MultipartFile archivo) {
         try {
+            usuarioService.procesarArchivoUsuarios(archivo);
+            return ResponseEntity.ok("Usuarios procesados exitosamente");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al procesar el archivo: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/find_all")
+    public ResponseEntity<List<UsuarioDto>> findAllUsuarios() {
+        try {
+            List<UsuarioDto> usuarios = usuarioService.findAllUsuarios();
+            return new ResponseEntity<>(usuarios, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<String> deleteUsuario(@PathVariable Integer id) {
+        try {
+            usuarioService.deleteUsuario(id);
+            return new ResponseEntity<>("Usuario eliminado exitosamente", HttpStatus.OK);
+        } catch (NoSuchElementException e) {
+            return new ResponseEntity<>("Usuario no encontrado: " + e.getMessage(), HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Error al eliminar el usuario: " + e.getMessage(),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PutMapping("/update/{id}")
+    public ResponseEntity<String> updateUsuario(@PathVariable Integer id, @RequestBody UsuarioDto usuarioDto) {
+        try {
+            usuarioService.updateUsuario(id, usuarioDto);
+            return new ResponseEntity<>("Usuario actualizado exitosamente", HttpStatus.OK);
+        } catch (NoSuchElementException e) {
+            return new ResponseEntity<>("Usuario no encontrado: " + e.getMessage(), HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Error al actualizar el usuario: " + e.getMessage(),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+    @GetMapping("/detalle-tema-alumno")
+    public ResponseEntity<AlumnoTemaDto> getDetalleTemaAlumno(HttpServletRequest request) {
+        try {
+            String idUsuario = jwtService.extractSubFromRequest(request);
             AlumnoTemaDto tema = usuarioService.getAlumnoTema(idUsuario);
             return ResponseEntity.ok(tema);
         } catch (NoSuchElementException e) {
@@ -234,9 +304,44 @@ public class UsuarioController {
         }
 
     }
-    
+
     @GetMapping("/getAsesoresBySubArea")
     public List<UsuarioDto> getAsesoresBySubArea(@RequestParam(name = "idSubArea") Integer idSubArea) {
         return this.usuarioService.getAsesoresBySubArea(idSubArea);
     }
+
+    @GetMapping("/getInfoUsuarioLogueado")
+    public UsuarioDto getInfoUsuarioLogueado(HttpServletRequest request) {
+        try {
+            String usuarioId = jwtService.extractSubFromRequest(request);
+            return this.usuarioService.findByCognitoId(usuarioId);
+        } catch (RuntimeException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        }
+    }
+
+    @GetMapping("/findByStudentsForReviewer")
+    public ResponseEntity<List<AlumnoReporteDto>> findByStudentsForReviewer(
+            @RequestParam(required = false) Integer carreraId,
+            @RequestParam(required = false) String cadenaBusqueda) {
+        try {
+            List<AlumnoReporteDto> alumnos = usuarioService.findByStudentsForReviewer(carreraId, cadenaBusqueda);
+            return ResponseEntity.ok(alumnos);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(null);
+        }
+    }
+
+    @GetMapping("/getProfesoresActivos")
+    public List<DocentesDTO> getProfesoresActivos() {
+        try {
+            List<DocentesDTO> docentes = usuarioService.getProfesores();
+            return docentes;
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Error al obtener profesores activos: " + e.getMessage());
+        }
+    }
+
 }

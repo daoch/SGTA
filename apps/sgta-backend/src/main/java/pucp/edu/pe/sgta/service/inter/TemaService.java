@@ -1,16 +1,14 @@
 package pucp.edu.pe.sgta.service.inter;
 
+import pucp.edu.pe.sgta.dto.*;
 import pucp.edu.pe.sgta.dto.asesores.InfoTemaPerfilDto;
-import pucp.edu.pe.sgta.dto.SubAreaConocimientoDto;
-import pucp.edu.pe.sgta.dto.TemaDto;
-import pucp.edu.pe.sgta.dto.UsuarioDto;
-
-import pucp.edu.pe.sgta.dto.TemaConAsesorJuradoDTO;
+import pucp.edu.pe.sgta.dto.asesores.TemaConAsesorDto;
 
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.List;
 
-import jakarta.persistence.criteria.CriteriaBuilder.In;
 import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
 
 public interface TemaService {
@@ -33,36 +31,36 @@ public interface TemaService {
 
 	void delete(Integer id);
 
-	void createInscripcionTema(TemaDto dto); // Works for asesor, alumno, coordinador and revisor
+	void createInscripcionTema(TemaDto dto, String idUsuario); // Works for asesor, alumno, coordinador and revisor
 
-	List<TemaDto> listarTemasPropuestosAlAsesor(Integer asesorId, String titulo, Integer limit, Integer offset);
+	List<TemaDto> listarTemasPropuestosAlAsesor(String asesorId, String titulo, Integer limit, Integer offset);
 
 	List<TemaDto> listarTemasPropuestosPorSubAreaConocimiento(
 			List<Integer> subareaIds,
-			Integer asesorId,
+			String asesorId,
 			String titulo,
 			Integer limit,
 			Integer offset);
 
-	void postularAsesorTemaPropuestoGeneral(Integer alumnoId, Integer asesorId, Integer temaId, String comentario);
+	void postularAsesorTemaPropuestoGeneral(Integer alumnoId, String asesorId, Integer temaId, String comentario);
 
-	void enlazarTesistasATemaPropuestDirecta(Integer[] usuariosId, Integer temaId, Integer profesorId,
+	void enlazarTesistasATemaPropuestDirecta(Integer[] usuariosId, Integer temaId, String profesorId,
 			String comentario);
 
 	List<TemaDto> listarTemasPorUsuarioRolEstado(String usuarioId,
 			String rolNombre,
-			String estadoNombre);
+			String estadoNombre, Integer limit, Integer offset);
 
 	List<UsuarioDto> listarUsuariosPorTemaYRol(Integer temaId,
 			String rolNombre);
 
 	List<SubAreaConocimientoDto> listarSubAreasPorTema(Integer temaId);
 
-	List<TemaDto> listarTemasPorUsuarioEstadoYRol(String asesorId, String rolNombre, String estadoNombre);
+	List<TemaDto> listarTemasPorUsuarioEstadoYRol(String asesorId, String rolNombre, String estadoNombre, Integer limit, Integer offset);
 
 	void rechazarTemaPropuestaDirecta(Integer alumnoId, String comentario, Integer temaId);
 
-	List<TemaConAsesorJuradoDTO> listarTemasCicloActualXEtapaFormativa(Integer etapaFormativaId);
+	List<TemaConAsesorJuradoDTO> listarTemasCicloActualXEtapaFormativa(Integer etapaFormativaId,Integer expoId);
 
 	List<TemaDto> listarPropuestasPorTesista(String tesistaId);
 
@@ -78,9 +76,9 @@ public interface TemaService {
 
 	void aprobarPostulacionAPropuestaGeneral(Integer idTema, Integer idAsesor, String idTesista);
 
-	List<TemaDto> listarTemasPorEstadoYCarrera(String estadoNombre, Integer carreraId);
+	List<TemaDto> listarTemasPorEstadoYCarrera(String estadoNombre, Integer carreraId, Integer limit, Integer offset);
 
-	void cambiarEstadoTemaCoordinador(Integer temaId, String nuevoEstadoNombre,Integer usuarioId, String comentario);
+	void cambiarEstadoTemaCoordinador(Integer temaId, String nuevoEstadoNombre, String usuarioId, String comentario);
 
 	List<ExposicionTemaMiembrosDto> listarExposicionXTemaId(Integer temaId);
 
@@ -106,11 +104,61 @@ public interface TemaService {
 	 */
 	void updateResumenTemaSolicitud(Integer solicitudId, String resumen, String respuesta);
 
-	void eliminarTemaCoordinador(Integer temaId, Integer usuarioId);
+	void eliminarTemaCoordinador(Integer temaId, String usuarioId);
 
-	void crearTemaLibre(TemaDto dto);
-
+	void crearTemaLibre(TemaDto dto, String asesorId);
 
 	TemaDto buscarTemaPorId(Integer idTema) throws SQLException;
 
+	TemaConAsesorDto obtenerTemaActivoPorAlumno(Integer idAlumno);
+
+	void crearSolicitudCambioDeTitulo(String idUsuario,
+											String comentario,
+											Integer temaId);
+
+	void crearSolicitudCambioDeResumen(String idUsuario,
+											String comentario,
+											Integer temaId);
+
+	List<TemaDto> listarTemasLibres(String titulo, Integer limit, Integer offset, String usuarioId, Boolean myOwn);
+
+	void postularTemaLibre(Integer temaId, String tesistaId, String comentario);
+
+	void inscribirTemaPreinscrito(Integer temaId, String idUsuario);
+
+	List<TemaDto>  listarPostuladosTemaLibre(String busqueda, String estado, LocalDate fechaLimite,Integer limit,Integer offset,String usuarioId);
+
+	void eliminarPostulacionTemaLibre(Integer temaId, String idUsuario);
+
+	void aceptarPostulacionAlumno(Integer temaId, Integer idTesista, String idAsesor, String comentario);
+
+	void rechazarPostulacionAlumno(Integer temaId, Integer idTesista, String idAsesor, String comentario);
+
+	List<TemaPorAsociarDto> listarTemasPorAsociarPorCarrera(Integer carreraId);
+
+	void asociarTemaACurso(Integer cursoId, Integer temaId);
+
+	List<TemaDto> listarTemasPorUsuarioTituloAreaCarreraEstadoFecha(
+        String usuarioCognitoId,
+        String titulo,
+        Integer areaId,
+        Integer carreraId,
+        String estadoNombre,
+        LocalDate fechaCreacionDesde,
+        LocalDate fechaCreacionHasta,
+        Integer limit,
+        Integer offset
+    );
+
+	List<TemaDto> listarTemasFiltradoCompleto(
+            String titulo,
+            String estadoNombre,
+            Integer carreraId,
+            Integer areaId,
+            String nombreUsuario,
+            String primerApellidoUsuario,
+            String segundoApellidoUsuario,
+            Integer limit,
+            Integer offset
+    ) ;
 }

@@ -326,3 +326,477 @@ BEGIN
       );
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION validar_tema_existe_cambiar_asesor_posible(p_tema_id INTEGER)
+RETURNS BOOLEAN AS
+$$
+DECLARE
+    v_existe BOOLEAN;
+BEGIN
+    SELECT COUNT(*) > 0 INTO v_existe
+    FROM tema t
+    INNER JOIN estado_tema et ON et.estado_tema_id = t.estado_tema_id
+    WHERE t.tema_id = p_tema_id
+      AND et.nombre IN ('PREINSCRITO', 'INSCRITO', 'REGISTRADO', 'EN_PROGRESO', 'PAUSADO')
+	  AND t.activo = TRUE;
+
+    RETURN v_existe;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION es_usuario_alumno(p_usuario_id INTEGER)
+RETURNS BOOLEAN AS
+$$
+DECLARE
+    v_es_alumno BOOLEAN;
+BEGIN
+    SELECT COUNT(*) > 0 INTO v_es_alumno
+    FROM usuario u
+    INNER JOIN tipo_usuario tu ON u.tipo_usuario_id = tu.tipo_usuario_id
+    WHERE u.usuario_id = p_usuario_id
+      AND LOWER(tu.nombre) = 'alumno';
+
+    RETURN v_es_alumno;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION es_profesor_asesor(p_usuario_id INTEGER)
+RETURNS BOOLEAN AS
+$$
+DECLARE
+    v_es_valido BOOLEAN;
+BEGIN
+    SELECT COUNT(*) > 0 INTO v_es_valido
+    FROM usuario u
+    INNER JOIN tipo_usuario tu ON u.tipo_usuario_id = tu.tipo_usuario_id
+    INNER JOIN usuario_rol ur ON u.usuario_id = ur.usuario_id
+    INNER JOIN rol r ON r.rol_id = ur.rol_id
+    WHERE u.usuario_id = p_usuario_id
+      AND LOWER(tu.nombre) = 'profesor'
+      AND LOWER(r.nombre) = 'asesor';
+
+    RETURN v_es_valido;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION obtener_coordinador_por_carrera_usuario(p_usuario_id INTEGER)
+RETURNS INTEGER
+LANGUAGE sql AS
+$$
+    SELECT COALESCE((
+        SELECT u.usuario_id
+        FROM usuario u
+        INNER JOIN usuario_carrera uc ON uc.usuario_id = u.usuario_id
+        INNER JOIN tipo_usuario tu ON tu.tipo_usuario_id = u.tipo_usuario_id
+        WHERE tu.nombre = 'coordinador'
+          AND uc.carrera_id = (
+              SELECT uc2.carrera_id
+              FROM usuario_carrera uc2
+              WHERE uc2.usuario_id = p_usuario_id
+              LIMIT 1
+          )
+        LIMIT 1
+    ), -1);
+$$;
+
+CREATE OR REPLACE FUNCTION listar_resumen_solicitud_cambio_asesor_usuario(
+    p_usuario_id INTEGER,
+    p_rol_control TEXT
+)
+RETURNS TABLE (
+    solicitud_id INTEGER,
+    fecha_creacion TIMESTAMP WITH TIME ZONE,
+    tema_id INTEGER,
+    titulo TEXT,
+    estado_nombre TEXT,
+    nombre_alumno TEXT,
+    apellido_alumno TEXT,
+    correo_alumno TEXT,
+    nombre_asesor_actual TEXT,
+    apellido_asesor_actual TEXT,
+    nombre_asesor_entrada TEXT,
+    apellido_asesor_entrada TEXT,
+	estado_accion TEXT
+)
+LANGUAGE sql
+AS $$
+    SELECT
+        s.solicitud_id,
+        s.fecha_creacion,
+        t.tema_id,
+        t.titulo,
+        es.nombre,
+        us_remitente.nombres AS nombre_alumno,
+        us_remitente.primer_apellido AS apellido_alumno,
+        us_remitente.correo_electronico AS correo_alumno,
+        us_asesor_actual.nombres AS nombre_asesor_actual,
+        us_asesor_actual.primer_apellido AS apellido_asesor_actual,
+        us_asesor_entrada.nombres AS nombre_asesor_entrada,
+        us_asesor_entrada.primer_apellido AS apellido_asesor_entrada,
+		accion.nombre AS estado_accion
+    FROM
+        solicitud s
+        INNER JOIN tema t ON t.tema_id = s.tema_id
+        INNER JOIN estado_solicitud es ON es.estado_solicitud_id = s.estado_solicitud
+
+        LEFT JOIN LATERAL (
+            SELECT u.nombres, u.correo_electronico, u.primer_apellido
+            FROM usuario_solicitud us
+            JOIN usuario u ON u.usuario_id = us.usuario_id
+            JOIN rol_solicitud rs ON rs.rol_solicitud_id = us.rol_solicitud
+            WHERE us.solicitud_id = s.solicitud_id
+              AND rs.nombre = 'REMITENTE'
+            LIMIT 1
+        ) us_remitente ON true
+
+        LEFT JOIN LATERAL (
+            SELECT u.nombres, u.primer_apellido
+            FROM usuario_solicitud us
+            JOIN usuario u ON u.usuario_id = us.usuario_id
+            JOIN rol_solicitud rs ON rs.rol_solicitud_id = us.rol_solicitud
+            WHERE us.solicitud_id = s.solicitud_id
+              AND rs.nombre = 'ASESOR_ACTUAL'
+            LIMIT 1
+        ) us_asesor_actual ON true
+
+        LEFT JOIN LATERAL (
+            SELECT u.nombres, u.primer_apellido
+            FROM usuario_solicitud us
+            JOIN usuario u ON u.usuario_id = us.usuario_id
+            JOIN rol_solicitud rs ON rs.rol_solicitud_id = us.rol_solicitud
+            WHERE us.solicitud_id = s.solicitud_id
+              AND rs.nombre = 'ASESOR_ENTRADA'
+            LIMIT 1
+        ) us_asesor_entrada ON true
+		LEFT JOIN LATERAL (
+	    	SELECT acs.nombre
+	    	FROM usuario_solicitud us
+			JOIN rol_solicitud rs on rs.rol_solicitud_id = us.rol_solicitud
+	    	JOIN accion_solicitud acs on acs.accion_solicitud_id = us.accion_solicitud
+	    	WHERE us.solicitud_id = s.solicitud_id
+	      		AND us.usuario_id = p_usuario_id
+		  		and rs.nombre = p_rol_control
+	    	LIMIT 1
+		) accion ON true
+
+    WHERE s.solicitud_id IN (
+        SELECT us_control.solicitud_id
+        FROM usuario_solicitud us_control
+        INNER JOIN rol_solicitud rs_control ON us_control.rol_solicitud = rs_control.rol_solicitud_id
+        WHERE us_control.usuario_id = p_usuario_id
+          AND rs_control.nombre = p_rol_control
+    );
+$$;
+
+CREATE OR REPLACE FUNCTION obtener_detalle_solicitud_cambio_asesor(p_solicitud_id INTEGER)
+RETURNS TABLE (
+    solicitud_id INTEGER,
+    fecha_creacion TIMESTAMP WITH TIME ZONE,
+    estado_nombre TEXT,
+    descripcion TEXT,
+    tema_id INTEGER,
+    titulo TEXT,
+    remitente_id INTEGER,
+    asesor_actual_id INTEGER,
+    asesor_entrada_id INTEGER,
+    destinatario_id INTEGER,
+    fecha_resolucion TIMESTAMP WITH TIME ZONE
+)
+LANGUAGE sql AS
+$$
+    SELECT
+        s.solicitud_id,
+        s.fecha_creacion,
+        es.nombre,
+        s.descripcion,
+        t.tema_id,
+        t.titulo,
+        us_remitente.usuario_id AS remitente_id,
+        us_asesor_actual.usuario_id AS asesor_actual_id,
+        us_asesor_entrada.usuario_id AS asesor_entrada_id,
+        us_destinatario.usuario_id AS destinatario_id,
+        s.fecha_resolucion
+    FROM
+        solicitud s
+        INNER JOIN tema t ON t.tema_id = s.tema_id
+        INNER JOIN estado_solicitud es ON es.estado_solicitud_id = s.estado_solicitud
+        LEFT JOIN LATERAL (
+            SELECT u.usuario_id
+            FROM usuario_solicitud us
+            JOIN usuario u ON u.usuario_id = us.usuario_id
+            JOIN rol_solicitud rs ON rs.rol_solicitud_id = us.rol_solicitud
+            WHERE us.solicitud_id = s.solicitud_id AND rs.nombre = 'REMITENTE'
+            LIMIT 1
+        ) us_remitente ON true
+        LEFT JOIN LATERAL (
+            SELECT u.usuario_id
+            FROM usuario_solicitud us
+            JOIN usuario u ON u.usuario_id = us.usuario_id
+            JOIN rol_solicitud rs ON rs.rol_solicitud_id = us.rol_solicitud
+            WHERE us.solicitud_id = s.solicitud_id AND rs.nombre = 'ASESOR_ACTUAL'
+            LIMIT 1
+        ) us_asesor_actual ON true
+        LEFT JOIN LATERAL (
+            SELECT u.usuario_id
+            FROM usuario_solicitud us
+            JOIN usuario u ON u.usuario_id = us.usuario_id
+            JOIN rol_solicitud rs ON rs.rol_solicitud_id = us.rol_solicitud
+            WHERE us.solicitud_id = s.solicitud_id AND rs.nombre = 'ASESOR_ENTRADA'
+            LIMIT 1
+        ) us_asesor_entrada ON true
+        LEFT JOIN LATERAL (
+            SELECT u.usuario_id
+            FROM usuario_solicitud us
+            JOIN usuario u ON u.usuario_id = us.usuario_id
+            JOIN rol_solicitud rs ON rs.rol_solicitud_id = us.rol_solicitud
+            WHERE us.solicitud_id = s.solicitud_id AND rs.nombre = 'DESTINATARIO'
+            LIMIT 1
+        ) us_destinatario ON true
+    WHERE
+        s.solicitud_id = p_solicitud_id;
+$$;
+
+CREATE OR REPLACE FUNCTION obtener_detalle_usuario_solicitud_cambio_asesor(
+    p_usuario_id INTEGER,
+    p_solicitud_id INTEGER
+)
+RETURNS TABLE (
+    usuario_id INTEGER,
+    nombres TEXT,
+    primer_apellido TEXT,
+	correo_electronico TEXT,
+    foto_perfil TEXT,
+    nombre_rol TEXT,
+    nombre_accion TEXT,
+    fecha_accion TIMESTAMP WITH TIME ZONE,
+    comentario TEXT
+)
+LANGUAGE sql AS
+$$
+    SELECT
+        u.usuario_id,
+        u.nombres,
+        u.primer_apellido,
+		u.correo_electronico,
+        u.foto_perfil,
+        rs.nombre AS nombre_rol,
+        acs.nombre AS nombre_accion,
+        us.fecha_accion,
+        us.comentario
+    FROM
+        usuario u
+        INNER JOIN usuario_solicitud us ON us.usuario_id = u.usuario_id
+        INNER JOIN rol_solicitud rs ON rs.rol_solicitud_id = us.rol_solicitud
+        INNER JOIN accion_solicitud acs ON acs.accion_solicitud_id = us.accion_solicitud
+    WHERE
+        us.usuario_id = p_usuario_id
+        AND us.solicitud_id = p_solicitud_id;
+$$;
+
+CREATE OR REPLACE FUNCTION puede_usuario_cambiar_solicitud(
+    p_usuario_id INTEGER,
+    p_nombre_rol TEXT,
+    p_solicitud_id INTEGER
+)
+RETURNS BOOLEAN
+LANGUAGE plpgsql AS
+$$
+DECLARE
+    v_existe BOOLEAN;
+BEGIN
+    SELECT EXISTS (
+        SELECT 1
+        FROM usuario_solicitud us
+        INNER JOIN rol_solicitud rs ON us.rol_solicitud = rs.rol_solicitud_id
+		INNER JOIN accion_solicitud acs ON acs.accion_solicitud_id = us.accion_solicitud
+		INNER JOIN solicitud s on s.solicitud_id = us.solicitud_id
+		INNER JOIN estado_solicitud es on es.estado_solicitud_id = s.estado_solicitud
+        WHERE us.usuario_id = p_usuario_id
+          AND us.solicitud_id = p_solicitud_id
+          AND rs.nombre = p_nombre_rol
+          AND acs.nombre = 'PENDIENTE_ACCION'
+		  AND es.nombre = 'PENDIENTE'
+    ) INTO v_existe;
+
+    RETURN v_existe;
+END;
+$$;
+
+CREATE OR REPLACE PROCEDURE procesar_solicitud_cambio(
+    p_usuario_id INTEGER,
+    p_nombre_rol TEXT,
+    p_solicitud_id INTEGER,
+    p_aprobar BOOLEAN
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_accion_id INTEGER;
+    v_rol_id INTEGER;
+    v_estado_id INTEGER;
+    v_tema_id INTEGER;
+    v_asesor_actual_id INTEGER;
+    v_asesor_entrada_id INTEGER;
+
+    -- Campos replicables de usuario_tema
+    v_id_tema INTEGER;
+    v_id_rol INTEGER;
+    v_tipo_rechazo_tema_id INTEGER;
+    v_asignado BOOLEAN;
+    v_rechazado BOOLEAN;
+    v_creador BOOLEAN;
+    v_prioridad INTEGER;
+	V_comentario TEXT;
+	
+BEGIN
+    -- Obtener el ID del rol_solicitud
+    SELECT rol_solicitud_id INTO v_rol_id
+    FROM rol_solicitud
+    WHERE nombre = p_nombre_rol;
+
+    IF v_rol_id IS NULL THEN
+        RAISE EXCEPTION 'Rol % no encontrado', p_nombre_rol;
+    END IF;
+
+    -- Obtener el tema_id desde la solicitud
+    SELECT tema_id INTO v_tema_id
+    FROM solicitud
+    WHERE solicitud_id = p_solicitud_id;
+
+    -- Aprobación
+    IF p_aprobar THEN
+        SELECT accion_solicitud_id INTO v_accion_id
+        FROM accion_solicitud
+        WHERE nombre = 'APROBADO';
+
+        UPDATE usuario_solicitud
+        SET accion_solicitud = v_accion_id,
+            fecha_accion = CURRENT_TIMESTAMP
+        WHERE usuario_id = p_usuario_id
+          AND solicitud_id = p_solicitud_id
+          AND rol_solicitud = v_rol_id;
+
+        IF p_nombre_rol = 'DESTINATARIO' THEN
+            -- Cambiar estado a ACEPTADA
+            SELECT estado_solicitud_id INTO v_estado_id
+            FROM estado_solicitud
+            WHERE nombre = 'ACEPTADA';
+
+            UPDATE solicitud
+            SET estado_solicitud = v_estado_id,
+                fecha_resolucion = CURRENT_TIMESTAMP
+            WHERE solicitud_id = p_solicitud_id;
+
+            -- Obtener ID del ASESOR_ACTUAL
+            SELECT us.usuario_id INTO v_asesor_actual_id
+            FROM usuario_solicitud us
+            INNER JOIN rol_solicitud rs ON rs.rol_solicitud_id = us.rol_solicitud
+            WHERE us.solicitud_id = p_solicitud_id
+              AND rs.nombre = 'ASESOR_ACTUAL'
+            LIMIT 1;
+
+            -- Obtener ID del ASESOR_ENTRADA
+            SELECT us.usuario_id INTO v_asesor_entrada_id
+            FROM usuario_solicitud us
+            INNER JOIN rol_solicitud rs ON rs.rol_solicitud_id = us.rol_solicitud
+            WHERE us.solicitud_id = p_solicitud_id
+              AND rs.nombre = 'ASESOR_ENTRADA'
+            LIMIT 1;
+
+            -- Obtener datos de la fila actual en usuario_tema (del asesor actual)
+            SELECT tema_id, rol_id, tipo_rechazo_tema_id, asignado, rechazado, creador, prioridad, comentario
+            INTO v_id_tema, v_id_rol, v_tipo_rechazo_tema_id, v_asignado, v_rechazado, v_creador, v_prioridad, v_comentario
+            FROM usuario_tema
+            WHERE usuario_id = v_asesor_actual_id
+              AND tema_id = v_tema_id
+              AND activo = true
+            LIMIT 1;
+
+            -- Desactivar al asesor actual
+            UPDATE usuario_tema
+            SET activo = false,
+                fecha_modificacion = CURRENT_TIMESTAMP
+            WHERE usuario_id = v_asesor_actual_id
+              AND tema_id = v_tema_id
+              AND activo = true;
+
+            -- Insertar nueva fila para asesor de entrada
+            INSERT INTO usuario_tema (
+                usuario_id,
+				tema_id, rol_id, tipo_rechazo_tema_id, asignado, rechazado, creador, prioridad, comentario,
+				activo,
+                fecha_creacion,
+                fecha_modificacion
+            ) VALUES (
+                v_asesor_entrada_id,
+				v_id_tema, v_id_rol, v_tipo_rechazo_tema_id, v_asignado, v_rechazado, v_creador, v_prioridad, v_comentario,
+                true,
+                CURRENT_TIMESTAMP,
+                CURRENT_TIMESTAMP
+            );
+        END IF;
+
+    -- Rechazo
+    ELSE
+        SELECT accion_solicitud_id INTO v_accion_id
+        FROM accion_solicitud
+        WHERE nombre = 'RECHAZADO';
+
+        UPDATE usuario_solicitud
+        SET accion_solicitud = v_accion_id,
+            fecha_accion = CURRENT_TIMESTAMP
+        WHERE usuario_id = p_usuario_id
+          AND solicitud_id = p_solicitud_id
+          AND rol_solicitud = v_rol_id;
+
+        SELECT estado_solicitud_id INTO v_estado_id
+        FROM estado_solicitud
+        WHERE nombre = 'RECHAZADA';
+
+        UPDATE solicitud
+        SET estado_solicitud = v_estado_id,
+            fecha_resolucion = CURRENT_TIMESTAMP
+        WHERE solicitud_id = p_solicitud_id;
+    END IF;
+
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION obtener_temas_por_alumno(p_id_alumno INTEGER)
+RETURNS TABLE (
+  idTema INTEGER,
+  titulo TEXT,
+  estado TEXT,
+  areasTematicas TEXT,
+  idAsesor INTEGER
+) AS $$
+BEGIN
+  RETURN QUERY
+SELECT
+    t.tema_id AS "idTema",
+    t.titulo::TEXT,
+    et.nombre::TEXT,
+    STRING_AGG(DISTINCT at.nombre, ', ')::TEXT AS "areasTematicas",
+    u.usuario_id AS "idAsesor"
+  FROM tema t
+  JOIN estado_tema et ON t.estado_tema_id = et.estado_tema_id
+  JOIN usuario_tema uta ON uta.tema_id = t.tema_id
+    LEFT JOIN LATERAL (
+    SELECT u2.usuario_id
+    FROM usuario_tema ut
+    JOIN usuario u2 ON u2.usuario_id = ut.usuario_id
+    WHERE ut.tema_id = t.tema_id AND ut.rol_id = 1 AND ut.activo = TRUE
+    LIMIT 1
+  ) u ON TRUE
+  left JOIN sub_area_conocimiento_tema tsac ON tsac.tema_id = t.tema_id 
+  left JOIN sub_area_conocimiento sac ON sac.sub_area_conocimiento_id = tsac.sub_area_conocimiento_id
+  left JOIN area_conocimiento at ON at.area_conocimiento_id = sac.area_conocimiento_id
+  WHERE et.nombre IN ('INSCRITO', 'REGISTRADO', 'EN_PROGRESO', 'PAUSADO')
+  AND uta.usuario_id = p_id_alumno
+  AND uta.rol_id = 4
+  AND uta.activo = TRUE
+  AND t.activo = TRUE
+  GROUP BY t.tema_id, t.titulo, et.nombre, u.usuario_id;
+END;
+$$ LANGUAGE plpgsql;
+

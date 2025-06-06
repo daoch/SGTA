@@ -4,12 +4,13 @@ export enum Tipo {
   TODOS = "TODOS",
   INSCRITO = "INSCRITO",
   LIBRE = "PROPUESTO_LIBRE",
-  INTERESADO = "REGISTRADO",
+  INTERESADO = "PROPUESTO_GENERAL",
+  PREINSCRITO = "PREINSCRITO",
 }
 
 // Estados
 export enum estadosValues {
-  PROPUESTO_LIBRE = "disponible",
+  PROPUESTO_LIBRE = "Propuesto_libre",
   INSCRITO = "inscrito",
   REGISTRADO = "aprobado",
   RECHAZADO = "rechazado",
