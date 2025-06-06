@@ -14,4 +14,7 @@ public interface DocumentoRepository extends JpaRepository<Documento, Integer> {
 
     @Query(value = "SELECT * FROM  listar_documentos_x_entregable(:entregableId)", nativeQuery = true)
     List<Object[]> listarDocumentosPorEntregable(@Param("entregableId") Integer entregableId);
+
+    @Query(value = "SELECT borrar_documento(:documentoId)", nativeQuery = true)
+    void borrarDocumento(@Param("documentoId") Integer documentoId);
 } 

@@ -11,6 +11,7 @@ import org.springframework.web.server.ResponseStatusException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import pucp.edu.pe.sgta.dto.TemaConAsesorJuradoDTO;
+import pucp.edu.pe.sgta.dto.TemaPorAsociarDto;
 import pucp.edu.pe.sgta.dto.asesores.InfoTemaPerfilDto;
 import pucp.edu.pe.sgta.dto.asesores.TemaConAsesorDto;
 import pucp.edu.pe.sgta.dto.TemaDto;
@@ -183,6 +184,7 @@ public class TemaController {
 		}
 	}
 
+
 	@GetMapping("/listarTemasAsesorInvolucrado/{asesorId}")
 	public List<InfoTemaPerfilDto> listarTemasAsesorInvolucrado(@PathVariable("asesorId") Integer asesorId) {
 		return temaService.listarTemasAsesorInvolucrado(asesorId);
@@ -198,10 +200,10 @@ public class TemaController {
 		}
 	}
 
-	@GetMapping("/listarTemasCicloActualXEtapaFormativa/{etapaFormativaId}")
+	@GetMapping("/listarTemasCicloActualXEtapaFormativa/{etapaFormativaId}/{exposicionId}")
 	public List<TemaConAsesorJuradoDTO> listarTemasCicloActualXEtapaFormativa(
-			@PathVariable("etapaFormativaId") Integer etapaFormativaId) {
-		return temaService.listarTemasCicloActualXEtapaFormativa(etapaFormativaId);
+			@PathVariable("etapaFormativaId") Integer etapaFormativaId, @PathVariable("exposicionId") Integer exposicionId ) {
+		return temaService.listarTemasCicloActualXEtapaFormativa(etapaFormativaId,exposicionId);
 	}
 
 	@PostMapping("/deleteTema") // deletes a topic
@@ -439,6 +441,16 @@ public class TemaController {
 		} catch (RuntimeException e) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
 		}
+	}
+
+	@GetMapping("/listarTemasPorAsociarPorCarrera/{carreraId}")
+	public List<TemaPorAsociarDto> listarTemasPorAsociarPorCarrera(@PathVariable("carreraId") Integer carreraId) {
+		return temaService.listarTemasPorAsociarPorCarrera(carreraId);
+	}
+
+	@PostMapping("/asociar-tema-curso/curso/{cursoId}/tema/{temaId}")
+	public void asociarTemaACurso(@PathVariable Integer cursoId, @PathVariable Integer temaId){
+		temaService.asociarTemaACurso(cursoId, temaId);
 	}
 
 }

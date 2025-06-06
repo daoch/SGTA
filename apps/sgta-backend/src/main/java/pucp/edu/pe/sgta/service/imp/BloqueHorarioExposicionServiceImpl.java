@@ -13,13 +13,16 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import jakarta.persistence.Access;
 import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import pucp.edu.pe.sgta.dto.*;
 import pucp.edu.pe.sgta.mapper.BloqueHorarioExposicionMapper;
 import pucp.edu.pe.sgta.model.BloqueHorarioExposicion;
 import pucp.edu.pe.sgta.repository.BloqueHorarioExposicionRepository;
+import pucp.edu.pe.sgta.repository.ControlExposicionUsuarioTemaRepository;
 import pucp.edu.pe.sgta.service.inter.BloqueHorarioExposicionService;
 
 @Service
@@ -27,8 +30,12 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
 
     private final BloqueHorarioExposicionRepository bloqueHorarioExposicionRepository;
 
-    public BloqueHorarioExposicionServiceImpl(BloqueHorarioExposicionRepository bloqueHorarioExposicionRepository) {
+
+    private final ControlExposicionUsuarioTemaRepository controlExposicionUsuarioTemaRepository;
+
+    public BloqueHorarioExposicionServiceImpl(BloqueHorarioExposicionRepository bloqueHorarioExposicionRepository, ControlExposicionUsuarioTemaRepository controlExposicionUsuarioTemaRepository) {
         this.bloqueHorarioExposicionRepository = bloqueHorarioExposicionRepository;
+        this.controlExposicionUsuarioTemaRepository = controlExposicionUsuarioTemaRepository;
     }
 
     @Override
@@ -145,8 +152,8 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
                 tema.setUsuarios(usuarios);
             } else {
                 // En caso no haya tema, puedes asignar usuarios vacíos o null
-                tema = new TemaConAsesorJuradoDTO();
-                tema.setUsuarios(Collections.emptyList());
+                //tema = new TemaConAsesorJuradoDTO();
+                //tema.setUsuarios(Collections.emptyList());
             }
 
             ListBloqueHorarioExposicionSimpleDTO dto = new ListBloqueHorarioExposicionSimpleDTO();
@@ -203,10 +210,18 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
 
             bloqueHorarioExposicionRepository.updateBloquesExposicionNextPhase(jsonString);
 
+            System.out.println(bloquesList);
+            int i  = 0;
             List<ListBloqueHorarioExposicionSimpleDTO> bloquesCambiado = new ArrayList<>();
             for (ListBloqueHorarioExposicionSimpleDTO dto : bloquesList) {
-                if (dto.getExpo() != dto.getAnteriorExpo()) {
-                    System.out.println("Hola, diferencias");
+                var expo = dto.getExpo();
+                var anteriorExpo = dto.getAnteriorExpo();
+
+                if ((expo != null && anteriorExpo == null) ||
+                        (expo != null && anteriorExpo != null &&
+                                !expo.getCodigo().equals(anteriorExpo.getCodigo()))) {
+                    //controlExposicionUsuarioTemaRepository.updateEstadoRespuestaExposicion(dto.getIdExposicion(),expo.getId());
+
                 }
             }
 

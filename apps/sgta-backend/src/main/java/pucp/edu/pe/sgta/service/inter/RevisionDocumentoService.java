@@ -31,4 +31,7 @@ public interface RevisionDocumentoService {
     List<RevisionDto> findRevisionesByRevisorId(Integer revisorId);
 
     List<RevisionDocumentoAsesorDto> listarRevisionDocumentosPorAsesor(String asesorId);
+
+    void actualizarEstadoRevision(Integer revisionId, String nuevoEstado);
+    RevisionDocumentoAsesorDto obtenerRevisionDocumentoPorId(Integer revisionId);
 }

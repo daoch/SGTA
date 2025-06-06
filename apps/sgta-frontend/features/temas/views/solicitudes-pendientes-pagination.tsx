@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CessationRequestPagination from "@/features/asesores/components/cessation-request/pagination-cessation-request";
+import { usePagination } from "@/hooks/temas/use-pagination";
 import { Search } from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
 import { SolicitudesTable } from "../components/coordinador/table-solicitudes-pagination";
@@ -25,11 +26,8 @@ import {
   lenTemasPorCarrera,
   listarTemasPorCarrera,
 } from "../types/solicitudes/data";
-import { PagesList, TemasPages } from "../types/solicitudes/entities";
 import { getSolicitudFromTema } from "../types/solicitudes/lib";
 import { EstadoTemaNombre } from "../types/temas/enums";
-
-type PagesListKey = keyof TemasPages;
 
 const LIMIT = 2;
 
@@ -40,9 +38,14 @@ export default function SolicitudesPendientes() {
   const [searchQuery, setSearchQuery] = useState("");
   const [cursoFilter, setCursoFilter] = useState("todos");
   const [loading, setLoading] = useState(false);
-
-  const [temas, setTemas] = useState<PagesList>(initialPagesList);
   const [carrerasIds, setCarrerasIds] = useState<number[]>([]);
+  const {
+    pagination: temas,
+    replaceStateKey,
+    addNewPage,
+    getPage,
+    getTotalPages,
+  } = usePagination(initialPagesList, LIMIT);
 
   useEffect(() => {
     async function fetchCarrerasYPrimeraPagina() {
@@ -58,7 +61,7 @@ export default function SolicitudesPendientes() {
           await fetchTotalCounts(ids);
 
           // Cargar primera página
-          await fetchData(estadoTema, 1, ids);
+          await fetchPage(estadoTema, 1, ids);
         }
       } catch (error) {
         console.log("No se pudo cargar las carreras del usuario: " + error);
@@ -73,44 +76,34 @@ export default function SolicitudesPendientes() {
   const handlePageChange = useCallback(
     (newPage: number) => {
       // Actualizar página actual
-      updatePagesListKey(estadoTema, "current", newPage);
+      replaceStateKey(estadoTema, "current", newPage);
       // Fetch de la página en caso no exista
       const existingPage = temas[estadoTema]?.pages?.[newPage];
       if (!existingPage?.length) {
         setLoading(true);
-        fetchData(estadoTema, newPage, carrerasIds);
+        fetchPage(estadoTema, newPage, carrerasIds);
       }
     },
     [estadoTema, temas, carrerasIds],
   );
 
-  async function fetchData(
-    status: EstadoTemaNombre,
+  async function fetchPage(
+    state: EstadoTemaNombre,
     page: number,
     carrerasIds: number[],
   ) {
     try {
       if (carrerasIds && carrerasIds.length > 0) {
+        // Fetch page
         const data = await listarTemasPorCarrera(
           carrerasIds[0], // TODO: Validar
-          status,
+          state,
           LIMIT,
           page - 1,
         );
 
-        // Añadir nueva página
-        setTemas((prev) => {
-          const newPages = { ...prev[status].pages };
-          newPages[page] = data;
-
-          return {
-            ...prev,
-            [status]: {
-              ...prev[status],
-              pages: newPages,
-            },
-          };
-        });
+        // Add new page to State
+        addNewPage(state, page, data);
       }
     } catch (err) {
       console.error("Error loading data", err);
@@ -127,14 +120,14 @@ export default function SolicitudesPendientes() {
       ) as EstadoTemaNombre[];
       // Get all counts
       const counts = await Promise.all(
-        estadosConPages.map(
-          (estado) => lenTemasPorCarrera(carrerasIds[0], estado), // TODO: Debe traer un number
+        estadosConPages.map((estado) =>
+          lenTemasPorCarrera(carrerasIds[0], estado),
         ),
       );
 
       // Update state
       estadosConPages.forEach((estado, idx) => {
-        updatePagesListKey(estado, "totalCounts", counts[idx]);
+        replaceStateKey(estado, "totalCounts", counts[idx]);
         console.log(estado + ": count = " + counts[idx]);
       });
     } catch (err) {
@@ -142,29 +135,15 @@ export default function SolicitudesPendientes() {
     }
   }
 
-  function updatePagesListKey<T extends PagesListKey>(
-    state: EstadoTemaNombre,
-    key: T,
-    value: TemasPages[T],
-  ) {
-    setTemas((prev) => ({
-      ...prev,
-      [state]: { ...prev[state], [key]: value },
-    }));
-  }
-
-  function getPage(state: EstadoTemaNombre) {
-    return temas[state].pages[temas[state].current] || [];
-  }
-
   function handleTabChange(state: EstadoTemaNombre) {
     setEstadoTema(state);
 
     // Fetch de la página en caso no exista
+    if (!temas[state]) return;
     const currentPage = temas[state].current;
     const existingPage = temas[state]?.pages?.[currentPage];
     if (!existingPage?.length) {
-      fetchData(state, currentPage, carrerasIds);
+      fetchPage(state, currentPage, carrerasIds);
     }
   }
 
@@ -205,7 +184,7 @@ export default function SolicitudesPendientes() {
         </Select>
       </div>
 
-      {/* Pestañas */}
+      {/* Tabs */}
       <Tabs
         value={estadoTema}
         onValueChange={(value) => handleTabChange(value as EstadoTemaNombre)}
@@ -244,7 +223,7 @@ export default function SolicitudesPendientes() {
         <CardContent>
           {/* Solicitudes */}
           <SolicitudesTable
-            solicitudes={getPage(estadoTema).map((p) =>
+            solicitudes={getPage(temas, estadoTema).map((p) =>
               getSolicitudFromTema(p, p.id),
             )} // TODO: Pasar todo y enviar filtro estadoTema
             isLoading={loading}
@@ -252,10 +231,10 @@ export default function SolicitudesPendientes() {
           />
 
           {/* Pagination */}
-          {!loading && (
+          {temas[estadoTema] && (
             <CessationRequestPagination
               currentPage={temas[estadoTema].current}
-              totalPages={Math.ceil(temas[estadoTema].totalCounts / LIMIT)}
+              totalPages={getTotalPages(temas, estadoTema)}
               onPageChange={handlePageChange}
             />
           )}

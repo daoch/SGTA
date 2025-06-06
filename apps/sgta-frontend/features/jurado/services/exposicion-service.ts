@@ -4,11 +4,9 @@ import { FormValues } from "../schemas/exposicion-form-schema";
 import { EtapaFormativaXSalaExposicion } from "../dtos/EtapaFormativaXSalaExposicion";
 import axios from "axios";
 
-export const getEtapasFormativasPorInicializarByCoordinador = async (
-  coordinador_id: number,
-) => {
+export const getEtapasFormativasPorInicializarByCoordinador = async () => {
   const response = await axiosInstance.get(
-    `/etapas-formativas/listarPorInicializarByCoordinador/${coordinador_id}`,
+    "/etapas-formativas/listarPorInicializarByCoordinador",
   );
   return response.data;
 };
@@ -114,10 +112,10 @@ export const getCursos = async () => {
   }
 };
 
-export const getCursosByCoordinador = async (coordinadorId: number) => {
+export const getCursosByCoordinador = async () => {
   try {
     const response = await axiosInstance.get(
-      `/etapas-formativas/listarActivasPorCoordinador/${coordinadorId}`,
+      "/etapas-formativas/listarActivasPorCoordinador",
     );
     return response.data;
   } catch (error) {
@@ -136,12 +134,10 @@ export const getEstadosExposicion = async () => {
   }
 };
 
-export const getExposicionesInicializadasByCoordinador = async (
-  coordinadorId: number,
-) => {
+export const getExposicionesInicializadasByCoordinador = async () => {
   try {
     const response = await axiosInstance.get(
-      `/exposicion/listarExposicionesInicializadasXCoordinador/${coordinadorId}`,
+      "/exposicion/listarExposicionesInicializadasXCoordinador",
     );
     return response.data;
   } catch (error) {

@@ -20,4 +20,6 @@ public interface RolRepository extends JpaRepository<Rol, Integer> {
      * mayúsculas/minúsculas)
      */
     Page<Rol> findByNombreContainingIgnoreCase(String nombre, Pageable pageable);
+
+    boolean existsByNombre(String nombre);
 }
