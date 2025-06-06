@@ -1,5 +1,7 @@
 package pucp.edu.pe.sgta.repository;
 
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -100,21 +102,29 @@ public interface TemaRepository extends JpaRepository<Tema, Integer> {
   void asociarTemaACurso(@Param("cursoId") Integer cursoId,@Param("temaId") Integer temaId);
 
   @Query(value = """
-        SELECT *
-          FROM listar_temas_por_usuario_titulo_y_area(
-            :uid,
-            :titulo,
-            :areaId,
-            :limit,
-            :offset
-          )
-        """, nativeQuery = true)
-    List<Object[]> listarTemasPorUsuarioTituloYArea(
-        @Param("uid")     Integer usuarioId,
-        @Param("titulo")  String titulo,
-        @Param("areaId")  Integer areaId,
-        @Param("limit")   Integer limit,
-        @Param("offset")  Integer offset
+      SELECT *
+        FROM listar_temas_por_usuario_titulo_area_carrera_estado_fecha(
+          :uid,
+          :titulo,
+          :areaId,
+          :carreraId,
+          :estado,
+          :fechaDesde,
+          :fechaHasta,
+          :limit,
+          :offset
+        )
+      """, nativeQuery = true)
+    List<Object[]> listarTemasPorUsuarioTituloAreaCarreraEstadoFecha(
+        @Param("uid") Integer usuarioId,
+        @Param("titulo") String titulo,
+        @Param("areaId") Integer areaId,
+        @Param("carreraId") Integer carreraId,
+        @Param("estado") String estadoNombre,
+        @Param("fechaDesde") LocalDate fechaCreacionDesde,
+        @Param("fechaHasta") LocalDate fechaCreacionHasta,
+        @Param("limit") Integer limit,
+        @Param("offset") Integer offset
     );
 
 }

@@ -22,6 +22,7 @@ import pucp.edu.pe.sgta.dto.UsuarioTemaDto;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -453,22 +454,41 @@ public class TemaController {
 		temaService.asociarTemaACurso(cursoId, temaId);
 	}
 
-	@GetMapping("/porUsuarioTituloYArea")
-    public List<TemaDto> listarPorUsuario(
+	@GetMapping("/porUsuarioTituloAreaCarreraEstadoFecha")
+    public List<TemaDto> listarPorUsuarioTituloAreaCarreraEstadoFecha(
             @RequestParam(value = "titulo", required = false) String titulo,
             @RequestParam(value = "areaId", required = false) Integer areaId,
-            @RequestParam(value = "limit", defaultValue = "10")  Integer limit,
+            @RequestParam(value = "carreraId", required = false) Integer carreraId,
+            @RequestParam(value = "estadoNombre", required = false) String estadoNombre,
+            @RequestParam(value = "fechaCreacionDesde", required = false) String fechaCreacionDesdeStr,
+            @RequestParam(value = "fechaCreacionHasta", required = false) String fechaCreacionHastaStr,
+            @RequestParam(value = "limit", defaultValue = "10") Integer limit,
             @RequestParam(value = "offset", defaultValue = "0") Integer offset,
-			HttpServletRequest request) {
-
-        // Si titulo viene null, lo convertimos a ""
+            HttpServletRequest request
+    ) {
+        // Convertimos null a cadenas vacías cuando corresponda
         String filtroTitulo = (titulo == null ? "" : titulo);
+        String filtroEstado = (estadoNombre == null ? "" : estadoNombre);
 
-		String asesorId = jwtService.extractSubFromRequest(request);
-        return temaService.listarTemasPorUsuarioTituloYArea(
-                asesorId,
+        // Parseo de fechas (formato "yyyy-MM-dd")
+        LocalDate fechaDesde = null;
+        LocalDate fechaHasta = null;
+        if (fechaCreacionDesdeStr != null && !fechaCreacionDesdeStr.isBlank()) {
+            fechaDesde = LocalDate.parse(fechaCreacionDesdeStr);
+        }
+        if (fechaCreacionHastaStr != null && !fechaCreacionHastaStr.isBlank()) {
+            fechaHasta = LocalDate.parse(fechaCreacionHastaStr);
+        }
+
+        String usuarioCognitoId = jwtService.extractSubFromRequest(request);
+        return temaService.listarTemasPorUsuarioTituloAreaCarreraEstadoFecha(
+                usuarioCognitoId,
                 filtroTitulo,
                 areaId,
+                carreraId,
+                filtroEstado,
+                fechaDesde,
+                fechaHasta,
                 limit,
                 offset
         );

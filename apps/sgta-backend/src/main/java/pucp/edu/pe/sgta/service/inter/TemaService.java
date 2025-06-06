@@ -6,6 +6,7 @@ import pucp.edu.pe.sgta.dto.asesores.TemaConAsesorDto;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.List;
 import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
 
@@ -136,10 +137,14 @@ public interface TemaService {
 
 	void asociarTemaACurso(Integer cursoId, Integer temaId);
 
-	List<TemaDto> listarTemasPorUsuarioTituloYArea(
+	List<TemaDto> listarTemasPorUsuarioTituloAreaCarreraEstadoFecha(
             String usuarioCognitoId,
             String titulo,
             Integer areaId,
+            Integer carreraId,
+            String estadoNombre,
+            LocalDate fechaCreacionDesde,
+            LocalDate fechaCreacionHasta,
             Integer limit,
             Integer offset);
 }

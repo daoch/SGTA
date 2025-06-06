@@ -2422,32 +2422,37 @@ END;
 $BODY$;
 
 
-CREATE OR REPLACE FUNCTION listar_temas_por_usuario_titulo_y_area(
-    p_usuario_id  INT,          -- ID del usuario que participa en el tema
-    p_titulo      TEXT DEFAULT '',  -- Cadena para filtrar por título (ILIKE '%…%')
-    p_area_id     INT  DEFAULT NULL, -- ID de área para filtrar (tiene que existir al menos una subárea de esa área)
-    p_limit       INT  DEFAULT 10,   -- Cantidad de registros por página
-    p_offset      INT  DEFAULT 0     -- Desplazamiento para paginación
+CREATE OR REPLACE FUNCTION listar_temas_por_usuario_titulo_area_carrera_estado_fecha(
+    p_usuario_id                INT,
+    p_titulo                    TEXT DEFAULT '',     -- Filtra por título (ILIKE '%…%')
+    p_area_id                   INT  DEFAULT NULL,   -- Filtra por ID de área
+    p_carrera_id                INT  DEFAULT NULL,   -- Filtra por ID de carrera
+    p_estado_nombre             TEXT DEFAULT '',     -- Filtra por nombre de estado (ILIKE p_estado_nombre)
+    p_fecha_creacion_desde      DATE DEFAULT NULL,   -- Filtra por fecha_creacion >= este valor
+    p_fecha_creacion_hasta      DATE DEFAULT NULL,   -- Filtra por fecha_creacion <= este valor
+    p_limit                     INT  DEFAULT 10,     -- Paginación: cantidad de filas
+    p_offset                    INT  DEFAULT 0       -- Paginación: desplazamiento
 )
 RETURNS TABLE(
-    tema_id            INTEGER,       -- ID del tema
-    codigo             TEXT,          -- Código generado por trigger
-    titulo             TEXT,          -- Título del tema
-    resumen            TEXT,          -- Resumen
-    metodologia         TEXT,         -- Metodología
-    objetivos          TEXT,          -- Objetivos
-    portafolio_url     TEXT,          -- URL del portafolio
-    requisitos         TEXT,          -- Requisitos
-    activo             BOOLEAN,       -- Flag “activo” del tema
-    fecha_limite       TIMESTAMPTZ,   -- Fecha límite
-    fecha_creacion     TIMESTAMPTZ,   -- Fecha de creación
-    fecha_modificacion TIMESTAMPTZ,   -- Fecha de modificación
-    carrera_id         INTEGER,       -- ID de la carrera
-    carrera_nombre     TEXT,          -- Nombre de la carrera
-    area_ids           INTEGER[],     -- Todos los IDs de áreas (DISTINCT)
-    area_nombres       TEXT[],        -- Todos los nombres de esas áreas
-    subarea_ids        INTEGER[],     -- Todos los IDs de subáreas (DISTINCT)
-    subarea_nombres    TEXT[]         -- Todos los nombres de esas subáreas
+    tema_id              INTEGER,     --  1
+    codigo               TEXT,        --  2
+    titulo               TEXT,        --  3
+    resumen              TEXT,        --  4
+    metodologia           TEXT,       --  5
+    objetivos            TEXT,        --  6
+    portafolio_url       TEXT,        --  7
+    requisitos           TEXT,        --  8
+    activo               BOOLEAN,     --  9
+    fecha_limite         TIMESTAMPTZ, -- 10
+    fecha_creacion       TIMESTAMPTZ, -- 11
+    fecha_modificacion   TIMESTAMPTZ, -- 12
+    carrera_id           INTEGER,     -- 13
+    carrera_nombre       TEXT,        -- 14
+    area_ids             INTEGER[],   -- 15  lista de IDs de áreas (DISTINCT)
+    area_nombres         TEXT[],      -- 16  lista de nombres de esas áreas
+    subarea_ids          INTEGER[],   -- 17  lista de IDs de subáreas (DISTINCT)
+    subarea_nombres      TEXT[],      -- 18  lista de nombres de esas subáreas
+    postulaciones_count  INTEGER      -- 19  cantidad de postulaciones según lógica
 )
 LANGUAGE SQL
 STABLE
@@ -2468,37 +2473,64 @@ AS $func$
       c.carrera_id,
       c.nombre::TEXT AS carrera_nombre,
 
-      -- 1) Arreglo de IDs de áreas vinculadas (DISTINCT)
+      -- Arreglo de IDs de áreas (DISTINCT)
       COALESCE(
         ARRAY_AGG(DISTINCT ac.area_conocimiento_id ORDER BY ac.area_conocimiento_id)
         FILTER (WHERE ac.area_conocimiento_id IS NOT NULL),
         ARRAY[]::INTEGER[]
       ) AS area_ids,
 
-      -- 2) Arreglo de nombres de esas áreas (DISTINCT)
+      -- Arreglo de nombres de esas áreas (DISTINCT)
       COALESCE(
         ARRAY_AGG(DISTINCT ac.nombre::TEXT ORDER BY ac.nombre::TEXT)
         FILTER (WHERE ac.nombre IS NOT NULL),
         ARRAY[]::TEXT[]
       ) AS area_nombres,
 
-      -- 3) Arreglo de IDs de subáreas (DISTINCT)
+      -- Arreglo de IDs de subáreas (DISTINCT)
       COALESCE(
         ARRAY_AGG(DISTINCT sac.sub_area_conocimiento_id ORDER BY sac.sub_area_conocimiento_id)
         FILTER (WHERE sac.sub_area_conocimiento_id IS NOT NULL),
         ARRAY[]::INTEGER[]
       ) AS subarea_ids,
 
-      -- 4) Arreglo de nombres de subáreas (DISTINCT)
+      -- Arreglo de nombres de esas subáreas (DISTINCT)
       COALESCE(
         ARRAY_AGG(DISTINCT sac.nombre::TEXT ORDER BY sac.nombre::TEXT)
         FILTER (WHERE sac.nombre IS NOT NULL),
         ARRAY[]::TEXT[]
-      ) AS subarea_nombres
+      ) AS subarea_nombres,
+
+      -- Conteo dinámico de postulaciones según el estado del tema
+      CASE
+        WHEN et.nombre ILIKE 'PROPUESTO_GENERAL' THEN
+          (
+            SELECT COUNT(*)
+            FROM usuario_tema ut2
+            JOIN rol r2 ON ut2.rol_id = r2.rol_id
+            WHERE ut2.tema_id   = t.tema_id
+              AND r2.nombre ILIKE 'Asesor'
+              AND ut2.activo     = TRUE
+              AND ut2.rechazado  = FALSE
+              AND ut2.asignado   = FALSE
+          )
+        WHEN et.nombre ILIKE 'PROPUESTO_LIBRE' THEN
+          (
+            SELECT COUNT(*)
+            FROM usuario_tema ut2
+            JOIN rol r2 ON ut2.rol_id = r2.rol_id
+            WHERE ut2.tema_id   = t.tema_id
+              AND r2.nombre ILIKE 'Tesista'
+              AND ut2.activo     = TRUE
+              AND ut2.rechazado  = FALSE
+              AND ut2.asignado   = FALSE
+          )
+        ELSE 0
+      END AS postulaciones_count
 
     FROM tema t
 
-    -- 1) JOIN a carrera para traer nombre y asegurar que esté activa
+    -- 1) JOIN a carrera para traer nombre y asegurar que esté activo
     INNER JOIN carrera c
       ON t.carrera_id = c.carrera_id
      AND c.activo = TRUE
@@ -2509,7 +2541,11 @@ AS $func$
      AND ut.usuario_id = p_usuario_id
      AND ut.activo     = TRUE
 
-    -- 3) LEFT JOIN a subáreas y áreas para poder agregarlas en arreglos
+    -- 3) JOIN a estado_tema para poder filtrar por nombre de estado
+    LEFT JOIN estado_tema et
+      ON t.estado_tema_id = et.estado_tema_id
+
+    -- 4) LEFT JOIN a subáreas y áreas para agregarlas en arreglos
     LEFT JOIN sub_area_conocimiento_tema sact
       ON sact.tema_id = t.tema_id
     LEFT JOIN sub_area_conocimiento sac
@@ -2523,13 +2559,13 @@ AS $func$
       -- Sólo temas activos
       t.activo = TRUE
 
-      -- Filtro por título (si p_titulo <> '')
+      -- FILTRO POR TÍTULO (si p_titulo <> '')
       AND (
         p_titulo = ''
         OR t.titulo ILIKE '%' || p_titulo || '%'
       )
 
-      -- Filtro por área (si p_area_id no es NULL)
+      -- FILTRO POR ÁREA (si p_area_id NO ES NULL)
       AND (
         p_area_id IS NULL
         OR EXISTS (
@@ -2541,6 +2577,28 @@ AS $func$
           WHERE s2.tema_id = t.tema_id
             AND sac2.area_conocimiento_id = p_area_id
         )
+      )
+
+      -- FILTRO POR CARRERA (si p_carrera_id NO ES NULL)
+      AND (
+        p_carrera_id IS NULL
+        OR t.carrera_id = p_carrera_id
+      )
+
+      -- FILTRO POR ESTADO (si p_estado_nombre <> '')
+      AND (
+        p_estado_nombre = ''
+        OR et.nombre ILIKE p_estado_nombre
+      )
+
+      -- FILTRO POR RANGO DE FECHA DE CREACIÓN (p_fecha_creacion_desde / p_fecha_creacion_hasta)
+      AND (
+        p_fecha_creacion_desde IS NULL
+        OR t.fecha_creacion::DATE >= p_fecha_creacion_desde
+      )
+      AND (
+        p_fecha_creacion_hasta IS NULL
+        OR t.fecha_creacion::DATE <= p_fecha_creacion_hasta
       )
 
     GROUP BY
@@ -2557,7 +2615,8 @@ AS $func$
       t.fecha_creacion,
       t.fecha_modificacion,
       c.carrera_id,
-      c.nombre
+      c.nombre,
+      et.nombre
 
     ORDER BY t.fecha_creacion DESC
     LIMIT   p_limit
