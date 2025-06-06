@@ -11,7 +11,6 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.math.BigDecimal;
 
-
 @Entity
 @Getter
 @Setter
