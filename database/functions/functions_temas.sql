@@ -2543,3 +2543,661 @@ BEGIN
 	LIMIT p_limit OFFSET p_offset;
 END;
 $BODY$;
+
+
+
+CREATE OR REPLACE FUNCTION listar_temas_por_usuario_titulo_area_carrera_estado_fecha(
+    p_usuario_id                INT,
+    p_titulo                    TEXT    DEFAULT '',  
+    p_area_id                   INT     DEFAULT NULL,
+    p_carrera_id                INT     DEFAULT NULL,
+    p_estado_nombre             TEXT    DEFAULT '',
+    p_fecha_creacion_desde      DATE    DEFAULT NULL,
+    p_fecha_creacion_hasta      DATE    DEFAULT NULL,
+    p_limit                     INT     DEFAULT 10,
+    p_offset                    INT     DEFAULT 0
+)
+RETURNS TABLE(
+    tema_id             INTEGER,       --  1
+    codigo              TEXT,          --  2
+    titulo              TEXT,          --  3
+    resumen             TEXT,          --  4
+    metodologia          TEXT,         --  5
+    objetivos           TEXT,          --  6
+    portafolio_url      TEXT,          --  7
+    requisitos          TEXT,          --  8
+    activo              BOOLEAN,       --  9
+    fecha_limite        TIMESTAMPTZ,   -- 10
+    fecha_creacion      TIMESTAMPTZ,   -- 11
+    fecha_modificacion  TIMESTAMPTZ,   -- 12
+    carrera_id          INTEGER,       -- 13
+    carrera_nombre      TEXT,          -- 14
+    area_ids            INTEGER[],     -- 15
+    area_nombres        TEXT[],        -- 16
+    subarea_ids         INTEGER[],     -- 17
+    subarea_nombres     TEXT[],        -- 18
+    asesor_ids          INTEGER[],     -- 19  (IDs de Asesor + Coasesores)
+    asesor_nombres      TEXT[],        -- 20  (nombres completos)
+    asesor_codigos      TEXT[],        -- 21  (códigos PUCP)
+    asesor_roles        TEXT[],        -- 22  (roles: “Asesor” o “Coasesor”)
+    tesista_ids         INTEGER[],     -- 23
+    tesista_nombres     TEXT[],        -- 24
+    estado_nombre       TEXT,          -- 25
+    postulaciones_count INTEGER        -- 26
+)
+LANGUAGE SQL
+STABLE
+AS $func$
+    SELECT
+      -- 1..14: columnas básicas del tema y la carrera
+      t.tema_id,
+      t.codigo::TEXT,
+      t.titulo::TEXT,
+      t.resumen::TEXT,
+      t.metodologia::TEXT,
+      t.objetivos::TEXT,
+      t.portafolio_url::TEXT,
+      t.requisitos::TEXT,
+      t.activo,
+      t.fecha_limite,
+      t.fecha_creacion,
+      t.fecha_modificacion,
+      c.carrera_id,
+      c.nombre::TEXT AS carrera_nombre,
+
+      -- 15) IDs de áreas (DISTINCT, ordenadas por ID)
+      COALESCE(
+        ARRAY_AGG(DISTINCT ac.area_conocimiento_id ORDER BY ac.area_conocimiento_id)
+        FILTER (WHERE ac.area_conocimiento_id IS NOT NULL),
+        ARRAY[]::INTEGER[]
+      ) AS area_ids,
+
+      -- 16) Nombres de esas áreas (DISTINCT, ordenados alfabéticamente)
+      COALESCE(
+        ARRAY_AGG(DISTINCT ac.nombre::TEXT ORDER BY ac.nombre::TEXT)
+        FILTER (WHERE ac.nombre IS NOT NULL),
+        ARRAY[]::TEXT[]
+      ) AS area_nombres,
+
+      -- 17) IDs de subáreas (DISTINCT, ordenadas por ID)
+      COALESCE(
+        ARRAY_AGG(DISTINCT sac.sub_area_conocimiento_id ORDER BY sac.sub_area_conocimiento_id)
+        FILTER (WHERE sac.sub_area_conocimiento_id IS NOT NULL),
+        ARRAY[]::INTEGER[]
+      ) AS subarea_ids,
+
+      -- 18) Nombres de esas subáreas (DISTINTNT, ordenados alfabéticamente)
+      COALESCE(
+        ARRAY_AGG(DISTINCT sac.nombre::TEXT ORDER BY sac.nombre::TEXT)
+        FILTER (WHERE sac.nombre IS NOT NULL),
+        ARRAY[]::TEXT[]
+      ) AS subarea_nombres,
+
+      -- 19) IDs de Asesor + Coasesores (activo = TRUE, asignado = TRUE), Asesor primero
+      COALESCE(
+        (
+          SELECT ARRAY(
+            SELECT utc.usuario_id
+              FROM usuario_tema AS utc
+              JOIN rol            AS rc ON rc.rol_id = utc.rol_id
+             WHERE utc.tema_id = t.tema_id
+               AND utc.activo   = TRUE
+               AND utc.asignado = TRUE
+               AND rc.nombre IN ('Asesor','Coasesor')
+             ORDER BY 
+               CASE WHEN rc.nombre ILIKE 'Asesor' THEN 0 ELSE 1 END,
+               utc.usuario_id
+          )
+        ),
+        ARRAY[]::INTEGER[]
+      ) AS asesor_ids,
+
+      -- 20) Nombres completos de Asesor + Coasesores (activo = TRUE, asignado = TRUE), Asesor primero
+      COALESCE(
+        (
+          SELECT ARRAY(
+            SELECT (uco.nombres || ' ' || uco.primer_apellido || ' ' || uco.segundo_apellido)::TEXT
+              FROM usuario_tema AS utc2
+              JOIN rol            AS rc2 ON rc2.rol_id = utc2.rol_id
+              JOIN usuario        AS uco ON uco.usuario_id = utc2.usuario_id
+             WHERE utc2.tema_id = t.tema_id
+               AND utc2.activo   = TRUE
+               AND utc2.asignado = TRUE
+               AND rc2.nombre IN ('Asesor','Coasesor')
+             ORDER BY 
+               CASE WHEN rc2.nombre ILIKE 'Asesor' THEN 0 ELSE 1 END,
+               uco.primer_apellido, uco.segundo_apellido
+          )
+        ),
+        ARRAY[]::TEXT[]
+      ) AS asesor_nombres,
+
+      -- 21) Códigos PUCP de Asesor + Coasesores (activo = TRUE, asignado = TRUE), Asesor primero
+      COALESCE(
+        (
+          SELECT ARRAY(
+            SELECT uco.codigo_pucp::TEXT
+              FROM usuario_tema AS utc3
+              JOIN rol            AS rc3 ON rc3.rol_id = utc3.rol_id
+              JOIN usuario        AS uco ON uco.usuario_id = utc3.usuario_id
+             WHERE utc3.tema_id = t.tema_id
+               AND utc3.activo   = TRUE
+               AND utc3.asignado = TRUE
+               AND rc3.nombre IN ('Asesor','Coasesor')
+             ORDER BY 
+               CASE WHEN rc3.nombre ILIKE 'Asesor' THEN 0 ELSE 1 END,
+               uco.codigo_pucp
+          )
+        ),
+        ARRAY[]::TEXT[]
+      ) AS asesor_codigos,
+
+      -- 22) Roles de Asesor + Coasesores (activo = TRUE, asignado = TRUE), Asesor primero
+      COALESCE(
+        (
+          SELECT ARRAY(
+            SELECT rc4.nombre::TEXT
+              FROM usuario_tema AS utc4
+              JOIN rol            AS rc4 ON rc4.rol_id = utc4.rol_id
+             WHERE utc4.tema_id = t.tema_id
+               AND utc4.activo   = TRUE
+               AND utc4.asignado = TRUE
+               AND rc4.nombre IN ('Asesor','Coasesor')
+             ORDER BY 
+               CASE WHEN rc4.nombre ILIKE 'Asesor' THEN 0 ELSE 1 END,
+               utc4.usuario_id
+          )
+        ),
+        ARRAY[]::TEXT[]
+      ) AS asesor_roles,
+
+      -- 23) IDs de Tesistas (activo = TRUE, asignado = TRUE), ordenados por usuario_id
+      COALESCE(
+        (
+          SELECT ARRAY(
+            SELECT utt.usuario_id
+              FROM usuario_tema AS utt
+              JOIN rol            AS rt ON rt.rol_id = utt.rol_id
+             WHERE utt.tema_id = t.tema_id
+               AND utt.activo   = TRUE
+               AND utt.asignado = TRUE
+               AND rt.nombre ILIKE 'Tesista'
+             ORDER BY utt.usuario_id
+          )
+        ),
+        ARRAY[]::INTEGER[]
+      ) AS tesista_ids,
+
+      -- 24) Nombres completos de Tesistas (activo = TRUE, asignado = TRUE), ordenados alfabéticamente
+      COALESCE(
+        (
+          SELECT ARRAY(
+            SELECT (ute.nombres || ' ' || ute.primer_apellido || ' ' || ute.segundo_apellido)::TEXT
+              FROM usuario_tema AS utt2
+              JOIN rol            AS rt2 ON rt2.rol_id = utt2.rol_id
+              JOIN usuario        AS ute ON ute.usuario_id = utt2.usuario_id
+             WHERE utt2.tema_id = t.tema_id
+               AND utt2.activo   = TRUE
+               AND utt2.asignado = TRUE
+               AND rt2.nombre ILIKE 'Tesista'
+             ORDER BY ute.primer_apellido, ute.segundo_apellido
+          )
+        ),
+        ARRAY[]::TEXT[]
+      ) AS tesista_nombres,
+
+      -- 25) Nombre del estado del tema
+      et.nombre AS estado_nombre,
+
+      -- 26) Conteo dinámico de postulaciones (según estado)
+      CASE
+        WHEN et.nombre ILIKE 'PROPUESTO_GENERAL' THEN
+          (
+            SELECT COUNT(*)
+              FROM usuario_tema ut2
+              JOIN rol          r2 ON r2.rol_id = ut2.rol_id
+             WHERE ut2.tema_id   = t.tema_id
+               AND r2.nombre ILIKE 'Asesor'
+               AND ut2.activo     = TRUE
+               AND ut2.rechazado  = FALSE
+               AND ut2.asignado   = FALSE
+          )
+        WHEN et.nombre ILIKE 'PROPUESTO_LIBRE' THEN
+          (
+            SELECT COUNT(*)
+              FROM usuario_tema ut2
+              JOIN rol          r2 ON r2.rol_id = ut2.rol_id
+             WHERE ut2.tema_id   = t.tema_id
+               AND r2.nombre ILIKE 'Tesista'
+               AND ut2.activo     = TRUE
+               AND ut2.rechazado  = FALSE
+               AND ut2.asignado   = FALSE
+          )
+        ELSE 0
+      END AS postulaciones_count
+
+    FROM tema AS t
+
+    -- 1) Filtrar por que el usuario participe en este tema (activo = TRUE)
+    INNER JOIN usuario_tema AS ut_filter
+      ON ut_filter.tema_id    = t.tema_id
+     AND ut_filter.usuario_id = p_usuario_id
+     AND ut_filter.activo     = TRUE
+
+    -- 2) JOIN a carrera activa
+    INNER JOIN carrera AS c
+      ON t.carrera_id = c.carrera_id
+     AND c.activo = TRUE
+
+    -- 3) LEFT JOIN a estado_tema (para devolver y filtrar por et.nombre)
+    LEFT JOIN estado_tema AS et
+      ON t.estado_tema_id = et.estado_tema_id
+
+    -- 4) LEFT JOIN a sub-áreas y áreas (para los arreglos de áreas/subáreas)
+    LEFT JOIN sub_area_conocimiento_tema AS sact
+      ON sact.tema_id = t.tema_id
+    LEFT JOIN sub_area_conocimiento   AS sac
+      ON sac.sub_area_conocimiento_id = sact.sub_area_conocimiento_id
+     AND sac.activo = TRUE
+    LEFT JOIN area_conocimiento       AS ac
+      ON ac.area_conocimiento_id = sac.area_conocimiento_id
+     AND ac.activo = TRUE
+
+    WHERE
+      -- Solo temas activos
+      t.activo = TRUE
+
+      -- Filtro por título (ILIKE)
+      AND (
+        p_titulo = ''
+        OR t.titulo ILIKE '%' || p_titulo || '%'
+      )
+
+      -- Filtro por área (si p_area_id NO es NULL)
+      AND (
+        p_area_id IS NULL
+        OR EXISTS (
+          SELECT 1
+            FROM sub_area_conocimiento_tema AS s2
+            JOIN sub_area_conocimiento       AS sac2
+              ON sac2.sub_area_conocimiento_id = s2.sub_area_conocimiento_id
+             AND sac2.activo = TRUE
+           WHERE s2.tema_id = t.tema_id
+             AND sac2.area_conocimiento_id = p_area_id
+        )
+      )
+
+      -- Filtro por carrera (si p_carrera_id NO es NULL)
+      AND (
+        p_carrera_id IS NULL
+        OR t.carrera_id = p_carrera_id
+      )
+
+      -- Filtro por estado (si p_estado_nombre <> '')
+      AND (
+        p_estado_nombre = ''
+        OR et.nombre ILIKE p_estado_nombre
+      )
+
+      -- Filtro por fecha de creación ≥ p_fecha_creacion_desde
+      AND (
+        p_fecha_creacion_desde IS NULL
+        OR t.fecha_creacion::DATE >= p_fecha_creacion_desde
+      )
+
+      -- Filtro por fecha de creación ≤ p_fecha_creacion_hasta
+      AND (
+        p_fecha_creacion_hasta IS NULL
+        OR t.fecha_creacion::DATE <= p_fecha_creacion_hasta
+      )
+
+    GROUP BY
+      t.tema_id,
+      t.codigo,
+      t.titulo,
+      t.resumen,
+      t.metodologia,
+      t.objetivos,
+      t.portafolio_url,
+      t.requisitos,
+      t.activo,
+      t.fecha_limite,
+      t.fecha_creacion,
+      t.fecha_modificacion,
+      c.carrera_id,
+      c.nombre,
+      et.nombre
+
+    ORDER BY t.fecha_creacion DESC
+    LIMIT   p_limit
+    OFFSET  p_offset;
+$func$;
+
+
+
+CREATE OR REPLACE FUNCTION listar_temas_filtrado_completo(
+    p_titulo                TEXT    DEFAULT '',
+    p_estado_nombre         TEXT    DEFAULT '',
+    p_carrera_id            INT     DEFAULT NULL,
+    p_area_id               INT     DEFAULT NULL,
+    p_nombre_usuario        TEXT    DEFAULT '',
+    p_primer_apellido       TEXT    DEFAULT '',
+    p_segundo_apellido      TEXT    DEFAULT '',
+    p_limit                 INT     DEFAULT 10,
+    p_offset                INT     DEFAULT 0
+)
+RETURNS TABLE(
+    tema_id              INTEGER,       --  1
+    codigo               TEXT,          --  2
+    titulo               TEXT,          --  3
+    resumen              TEXT,          --  4
+    metodologia          TEXT,          --  5
+    objetivos            TEXT,          --  6
+    portafolio_url       TEXT,          --  7
+    requisitos           TEXT,          --  8
+    activo               BOOLEAN,       --  9
+    fecha_limite         TIMESTAMPTZ,   -- 10
+    fecha_creacion       TIMESTAMPTZ,   -- 11
+    fecha_modificacion   TIMESTAMPTZ,   -- 12
+    carrera_id           INTEGER,       -- 13
+    carrera_nombre       TEXT,          -- 14
+    area_ids             INTEGER[],     -- 15
+    area_nombres         TEXT[],        -- 16
+    subarea_ids          INTEGER[],     -- 17
+    subarea_nombres      TEXT[],        -- 18
+    asesor_ids           INTEGER[],     -- 19
+    asesor_nombres       TEXT[],        -- 20
+    asesor_codigos       TEXT[],        -- 21
+    asesor_roles         TEXT[],        -- 22
+    tesista_ids          INTEGER[],     -- 23
+    tesista_nombres      TEXT[],        -- 24
+    cant_postulaciones   INTEGER,       -- 25
+    estado_nombre        TEXT           -- 26
+)
+LANGUAGE SQL
+STABLE
+AS $func$
+    SELECT
+      -- 1..14: columnas básicas del tema y carrera
+      t.tema_id,
+      t.codigo::TEXT,
+      t.titulo::TEXT,
+      t.resumen::TEXT,
+      t.metodologia::TEXT,
+      t.objetivos::TEXT,
+      t.portafolio_url::TEXT,
+      t.requisitos::TEXT,
+      t.activo,
+      t.fecha_limite,
+      t.fecha_creacion,
+      t.fecha_modificacion,
+      c.carrera_id,
+      c.nombre::TEXT AS carrera_nombre,
+
+      -- 15) IDs de áreas (DISTINCT, ordenados por ID)
+      COALESCE(
+        ARRAY_AGG(DISTINCT ac.area_conocimiento_id ORDER BY ac.area_conocimiento_id)
+        FILTER (WHERE ac.area_conocimiento_id IS NOT NULL),
+        ARRAY[]::INTEGER[]
+      ) AS area_ids,
+
+      -- 16) Nombres de esas áreas (DISTINCT, ordenados alfabéticamente)
+      COALESCE(
+        ARRAY_AGG(DISTINCT ac.nombre::TEXT ORDER BY ac.nombre::TEXT)
+        FILTER (WHERE ac.nombre IS NOT NULL),
+        ARRAY[]::TEXT[]
+      ) AS area_nombres,
+
+      -- 17) IDs de subáreas (DISTINCT, ordenados por ID)
+      COALESCE(
+        ARRAY_AGG(DISTINCT sac.sub_area_conocimiento_id ORDER BY sac.sub_area_conocimiento_id)
+        FILTER (WHERE sac.sub_area_conocimiento_id IS NOT NULL),
+        ARRAY[]::INTEGER[]
+      ) AS subarea_ids,
+
+      -- 18) Nombres de esas subáreas (DISTINCT, ordenados alfabéticamente)
+      COALESCE(
+        ARRAY_AGG(DISTINCT sac.nombre::TEXT ORDER BY sac.nombre::TEXT)
+        FILTER (WHERE sac.nombre IS NOT NULL),
+        ARRAY[]::TEXT[]
+      ) AS subarea_nombres,
+
+      -- 19) IDs de Asesor + Coasesores (actor = activo = TRUE y asignado = TRUE), “Asesor” primero
+      COALESCE(
+        (
+          SELECT ARRAY(
+            SELECT utc.usuario_id
+              FROM usuario_tema AS utc
+              JOIN rol            AS rc ON rc.rol_id = utc.rol_id
+             WHERE utc.tema_id = t.tema_id
+               AND utc.activo     = TRUE
+               AND utc.asignado   = TRUE
+               AND rc.nombre IN ('Asesor','Coasesor')
+             ORDER BY 
+               CASE WHEN rc.nombre ILIKE 'Asesor' THEN 0 ELSE 1 END,
+               utc.usuario_id
+          )
+        ),
+        ARRAY[]::INTEGER[]
+      ) AS asesor_ids,
+
+      -- 20) Nombres completos de Asesor + Coasesores (activo = TRUE y asignado = TRUE), “Asesor” primero
+      COALESCE(
+        (
+          SELECT ARRAY(
+            SELECT (uco.nombres || ' ' || uco.primer_apellido || ' ' || uco.segundo_apellido)::TEXT
+              FROM usuario_tema AS utc2
+              JOIN rol       AS rc2 ON rc2.rol_id = utc2.rol_id
+              JOIN usuario   AS uco ON uco.usuario_id = utc2.usuario_id
+             WHERE utc2.tema_id = t.tema_id
+               AND utc2.activo     = TRUE
+               AND utc2.asignado   = TRUE
+               AND rc2.nombre IN ('Asesor','Coasesor')
+             ORDER BY 
+               CASE WHEN rc2.nombre ILIKE 'Asesor' THEN 0 ELSE 1 END,
+               uco.primer_apellido, uco.segundo_apellido
+          )
+        ),
+        ARRAY[]::TEXT[]
+      ) AS asesor_nombres,
+
+      -- 21) Códigos PUCP de Asesor + Coasesores (activo = TRUE y asignado = TRUE), “Asesor” primero
+      COALESCE(
+        (
+          SELECT ARRAY(
+            SELECT uco.codigo_pucp::TEXT
+              FROM usuario_tema AS utc3
+              JOIN rol       AS rc3 ON rc3.rol_id = utc3.rol_id
+              JOIN usuario   AS uco ON uco.usuario_id = utc3.usuario_id
+             WHERE utc3.tema_id = t.tema_id
+               AND utc3.activo     = TRUE
+               AND utc3.asignado   = TRUE
+               AND rc3.nombre IN ('Asesor','Coasesor')
+             ORDER BY 
+               CASE WHEN rc3.nombre ILIKE 'Asesor' THEN 0 ELSE 1 END,
+               uco.codigo_pucp
+          )
+        ),
+        ARRAY[]::TEXT[]
+      ) AS asesor_codigos,
+
+      -- 22) Roles (“Asesor” o “Coasesor”) (activo = TRUE y asignado = TRUE), “Asesor” primero
+      COALESCE(
+        (
+          SELECT ARRAY(
+            SELECT rc4.nombre::TEXT
+              FROM usuario_tema AS utc4
+              JOIN rol       AS rc4 ON rc4.rol_id = utc4.rol_id
+             WHERE utc4.tema_id = t.tema_id
+               AND utc4.activo     = TRUE
+               AND utc4.asignado   = TRUE
+               AND rc4.nombre IN ('Asesor','Coasesor')
+             ORDER BY 
+               CASE WHEN rc4.nombre ILIKE 'Asesor' THEN 0 ELSE 1 END,
+               utc4.usuario_id
+          )
+        ),
+        ARRAY[]::TEXT[]
+      ) AS asesor_roles,
+
+      -- 23) IDs de Tesistas (activo = TRUE, asignado = TRUE), ordenados por usuario_id
+      COALESCE(
+        (
+          SELECT ARRAY(
+            SELECT utt.usuario_id
+              FROM usuario_tema AS utt
+              JOIN rol       AS rt ON rt.rol_id = utt.rol_id
+             WHERE utt.tema_id = t.tema_id
+               AND utt.activo     = TRUE
+               AND utt.asignado   = TRUE
+               AND rt.nombre ILIKE 'Tesista'
+             ORDER BY utt.usuario_id
+          )
+        ),
+        ARRAY[]::INTEGER[]
+      ) AS tesista_ids,
+
+      -- 24) Nombres completos de Tesistas (activo = TRUE, asignado = TRUE), ordenados alfabéticamente
+      COALESCE(
+        (
+          SELECT ARRAY(
+            SELECT (ute.nombres || ' ' || ute.primer_apellido || ' ' || ute.segundo_apellido)::TEXT
+              FROM usuario_tema AS utt2
+              JOIN rol       AS rt2 ON rt2.rol_id = utt2.rol_id
+              JOIN usuario   AS ute ON ute.usuario_id = utt2.usuario_id
+             WHERE utt2.tema_id = t.tema_id
+               AND utt2.activo     = TRUE
+               AND utt2.asignado   = TRUE
+               AND rt2.nombre ILIKE 'Tesista'
+             ORDER BY ute.primer_apellido, ute.segundo_apellido
+          )
+        ),
+        ARRAY[]::TEXT[]
+      ) AS tesista_nombres,
+
+      -- 25) Cantidad de postulaciones (usa la función contar_postulaciones)
+      contar_postulaciones(t.tema_id) AS cant_postulaciones,
+
+      -- 26) Nombre del estado
+      et.nombre AS estado_nombre
+
+    FROM tema AS t
+
+    -- 1) JOIN a carrera activa
+    INNER JOIN carrera     AS c
+      ON t.carrera_id = c.carrera_id
+     AND c.activo = TRUE
+
+    -- 2) LEFT JOIN a estado_tema (para filtrar p_estado_nombre y devolver et.nombre)
+    LEFT JOIN estado_tema  AS et
+      ON t.estado_tema_id = et.estado_tema_id
+
+    -- 3) LEFT JOIN a sub-áreas y áreas (para los arreglos de áreas/subáreas)
+    LEFT JOIN sub_area_conocimiento_tema AS sact
+      ON sact.tema_id = t.tema_id
+    LEFT JOIN sub_area_conocimiento        AS sac
+      ON sac.sub_area_conocimiento_id = sact.sub_area_conocimiento_id
+     AND sac.activo = TRUE
+    LEFT JOIN area_conocimiento            AS ac
+      ON ac.area_conocimiento_id = sac.area_conocimiento_id
+     AND ac.activo = TRUE
+
+    WHERE
+      -- Solo temas activos
+      t.activo = TRUE
+
+      -- Filtro por título (ILIKE %…%)
+      AND (
+        p_titulo = ''
+        OR t.titulo ILIKE '%' || p_titulo || '%'
+      )
+
+      -- Filtro por estado
+      AND (
+        p_estado_nombre = ''
+        OR et.nombre ILIKE p_estado_nombre
+      )
+
+      -- Filtro por carrera
+      AND (
+        p_carrera_id IS NULL
+        OR t.carrera_id = p_carrera_id
+      )
+
+      -- Filtro por área
+      AND (
+        p_area_id IS NULL
+        OR EXISTS (
+          SELECT 1
+            FROM sub_area_conocimiento_tema AS s2
+            JOIN sub_area_conocimiento        AS sac2
+              ON sac2.sub_area_conocimiento_id = s2.sub_area_conocimiento_id
+             AND sac2.activo = TRUE
+           WHERE s2.tema_id = t.tema_id
+             AND sac2.area_conocimiento_id = p_area_id
+        )
+      )
+
+      -- Filtro por nombre de usuario (Asesor, Coasesor o Tesista)
+      AND (
+        p_nombre_usuario = ''
+        OR EXISTS (
+          SELECT 1
+            FROM usuario_tema AS utf
+            JOIN usuario        AS uf
+              ON uf.usuario_id = utf.usuario_id
+             AND uf.activo = TRUE
+           WHERE utf.tema_id = t.tema_id
+             AND uf.nombres ILIKE '%' || p_nombre_usuario || '%'
+        )
+      )
+
+      -- Filtro por primer apellido de usuario
+      AND (
+        p_primer_apellido = ''
+        OR EXISTS (
+          SELECT 1
+            FROM usuario_tema AS utf
+            JOIN usuario        AS uf
+              ON uf.usuario_id = utf.usuario_id
+             AND uf.activo = TRUE
+           WHERE utf.tema_id = t.tema_id
+             AND uf.primer_apellido ILIKE '%' || p_primer_apellido || '%'
+        )
+      )
+
+      -- Filtro por segundo apellido de usuario
+      AND (
+        p_segundo_apellido = ''
+        OR EXISTS (
+          SELECT 1
+            FROM usuario_tema AS utf
+            JOIN usuario        AS uf
+              ON uf.usuario_id = utf.usuario_id
+             AND uf.activo = TRUE
+           WHERE utf.tema_id = t.tema_id
+             AND uf.segundo_apellido ILIKE '%' || p_segundo_apellido || '%'
+        )
+      )
+
+    GROUP BY
+      t.tema_id,
+      t.codigo,
+      t.titulo,
+      t.resumen,
+      t.metodologia,
+      t.objetivos,
+      t.portafolio_url,
+      t.requisitos,
+      t.activo,
+      t.fecha_limite,
+      t.fecha_creacion,
+      t.fecha_modificacion,
+      c.carrera_id,
+      c.nombre,
+      et.nombre
+
+    ORDER BY t.fecha_creacion DESC
+    LIMIT   p_limit
+    OFFSET  p_offset;
+$func$;
