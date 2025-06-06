@@ -138,15 +138,16 @@ public interface TemaService {
 	void asociarTemaACurso(Integer cursoId, Integer temaId);
 
 	List<TemaDto> listarTemasPorUsuarioTituloAreaCarreraEstadoFecha(
-            String usuarioCognitoId,
-            String titulo,
-            Integer areaId,
-            Integer carreraId,
-            String estadoNombre,
-            LocalDate fechaCreacionDesde,
-            LocalDate fechaCreacionHasta,
-            Integer limit,
-            Integer offset);
+        String usuarioCognitoId,
+        String titulo,
+        Integer areaId,
+        Integer carreraId,
+        String estadoNombre,
+        LocalDate fechaCreacionDesde,
+        LocalDate fechaCreacionHasta,
+        Integer limit,
+        Integer offset
+    );
 
 	List<TemaDto> listarTemasFiltradoCompleto(
             String titulo,

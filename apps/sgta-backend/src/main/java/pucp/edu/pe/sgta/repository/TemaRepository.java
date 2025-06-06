@@ -101,33 +101,32 @@ public interface TemaRepository extends JpaRepository<Tema, Integer> {
   @Query(value = "SELECT asociar_tema_a_curso(:cursoId, :temaId)", nativeQuery = true)
   void asociarTemaACurso(@Param("cursoId") Integer cursoId,@Param("temaId") Integer temaId);
 
-  @Query(value = """
-      SELECT *
-        FROM listar_temas_por_usuario_titulo_area_carrera_estado_fecha(
-          :uid,
-          :titulo,
-          :areaId,
-          :carreraId,
-          :estado,
-          :fechaDesde,
-          :fechaHasta,
-          :limit,
-          :offset
-        )
-      """, nativeQuery = true)
+    
+    @Query(value = """
+        SELECT *
+          FROM listar_temas_por_usuario_titulo_area_carrera_estado_fecha(
+            :usuarioId,
+            :titulo,
+            :areaId,
+            :carreraId,
+            :estadoNombre,
+            :fechaDesde,
+            :fechaHasta,
+            :limit,
+            :offset
+          )
+        """, nativeQuery = true)
     List<Object[]> listarTemasPorUsuarioTituloAreaCarreraEstadoFecha(
-        @Param("uid") Integer usuarioId,
-        @Param("titulo") String titulo,
-        @Param("areaId") Integer areaId,
-        @Param("carreraId") Integer carreraId,
-        @Param("estado") String estadoNombre,
-        @Param("fechaDesde") LocalDate fechaCreacionDesde,
-        @Param("fechaHasta") LocalDate fechaCreacionHasta,
-        @Param("limit") Integer limit,
-        @Param("offset") Integer offset
+        @Param("usuarioId")     Integer usuarioId,
+        @Param("titulo")        String titulo,
+        @Param("areaId")        Integer areaId,
+        @Param("carreraId")     Integer carreraId,
+        @Param("estadoNombre")  String estadoNombre,
+        @Param("fechaDesde")    java.sql.Date fechaDesde,
+        @Param("fechaHasta")    java.sql.Date fechaHasta,
+        @Param("limit")         Integer limit,
+        @Param("offset")        Integer offset
     );
-
-
 
     @Query(
     value = """
