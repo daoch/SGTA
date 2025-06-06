@@ -2420,3 +2420,146 @@ BEGIN
 	LIMIT p_limit OFFSET p_offset;
 END;
 $BODY$;
+
+
+CREATE OR REPLACE FUNCTION listar_temas_por_usuario_titulo_y_area(
+    p_usuario_id  INT,          -- ID del usuario que participa en el tema
+    p_titulo      TEXT DEFAULT '',  -- Cadena para filtrar por título (ILIKE '%…%')
+    p_area_id     INT  DEFAULT NULL, -- ID de área para filtrar (tiene que existir al menos una subárea de esa área)
+    p_limit       INT  DEFAULT 10,   -- Cantidad de registros por página
+    p_offset      INT  DEFAULT 0     -- Desplazamiento para paginación
+)
+RETURNS TABLE(
+    tema_id            INTEGER,       -- ID del tema
+    codigo             TEXT,          -- Código generado por trigger
+    titulo             TEXT,          -- Título del tema
+    resumen            TEXT,          -- Resumen
+    metodologia         TEXT,         -- Metodología
+    objetivos          TEXT,          -- Objetivos
+    portafolio_url     TEXT,          -- URL del portafolio
+    requisitos         TEXT,          -- Requisitos
+    activo             BOOLEAN,       -- Flag “activo” del tema
+    fecha_limite       TIMESTAMPTZ,   -- Fecha límite
+    fecha_creacion     TIMESTAMPTZ,   -- Fecha de creación
+    fecha_modificacion TIMESTAMPTZ,   -- Fecha de modificación
+    carrera_id         INTEGER,       -- ID de la carrera
+    carrera_nombre     TEXT,          -- Nombre de la carrera
+    area_ids           INTEGER[],     -- Todos los IDs de áreas (DISTINCT)
+    area_nombres       TEXT[],        -- Todos los nombres de esas áreas
+    subarea_ids        INTEGER[],     -- Todos los IDs de subáreas (DISTINCT)
+    subarea_nombres    TEXT[]         -- Todos los nombres de esas subáreas
+)
+LANGUAGE SQL
+STABLE
+AS $func$
+    SELECT
+      t.tema_id,
+      t.codigo::TEXT,
+      t.titulo::TEXT,
+      t.resumen::TEXT,
+      t.metodologia::TEXT,
+      t.objetivos::TEXT,
+      t.portafolio_url::TEXT,
+      t.requisitos::TEXT,
+      t.activo,
+      t.fecha_limite,
+      t.fecha_creacion,
+      t.fecha_modificacion,
+      c.carrera_id,
+      c.nombre::TEXT AS carrera_nombre,
+
+      -- 1) Arreglo de IDs de áreas vinculadas (DISTINCT)
+      COALESCE(
+        ARRAY_AGG(DISTINCT ac.area_conocimiento_id ORDER BY ac.area_conocimiento_id)
+        FILTER (WHERE ac.area_conocimiento_id IS NOT NULL),
+        ARRAY[]::INTEGER[]
+      ) AS area_ids,
+
+      -- 2) Arreglo de nombres de esas áreas (DISTINCT)
+      COALESCE(
+        ARRAY_AGG(DISTINCT ac.nombre::TEXT ORDER BY ac.nombre::TEXT)
+        FILTER (WHERE ac.nombre IS NOT NULL),
+        ARRAY[]::TEXT[]
+      ) AS area_nombres,
+
+      -- 3) Arreglo de IDs de subáreas (DISTINCT)
+      COALESCE(
+        ARRAY_AGG(DISTINCT sac.sub_area_conocimiento_id ORDER BY sac.sub_area_conocimiento_id)
+        FILTER (WHERE sac.sub_area_conocimiento_id IS NOT NULL),
+        ARRAY[]::INTEGER[]
+      ) AS subarea_ids,
+
+      -- 4) Arreglo de nombres de subáreas (DISTINCT)
+      COALESCE(
+        ARRAY_AGG(DISTINCT sac.nombre::TEXT ORDER BY sac.nombre::TEXT)
+        FILTER (WHERE sac.nombre IS NOT NULL),
+        ARRAY[]::TEXT[]
+      ) AS subarea_nombres
+
+    FROM tema t
+
+    -- 1) JOIN a carrera para traer nombre y asegurar que esté activa
+    INNER JOIN carrera c
+      ON t.carrera_id = c.carrera_id
+     AND c.activo = TRUE
+
+    -- 2) JOIN a usuario_tema para filtrar sólo los temas donde participa p_usuario_id
+    INNER JOIN usuario_tema ut
+      ON ut.tema_id    = t.tema_id
+     AND ut.usuario_id = p_usuario_id
+     AND ut.activo     = TRUE
+
+    -- 3) LEFT JOIN a subáreas y áreas para poder agregarlas en arreglos
+    LEFT JOIN sub_area_conocimiento_tema sact
+      ON sact.tema_id = t.tema_id
+    LEFT JOIN sub_area_conocimiento sac
+      ON sac.sub_area_conocimiento_id = sact.sub_area_conocimiento_id
+     AND sac.activo = TRUE
+    LEFT JOIN area_conocimiento ac
+      ON ac.area_conocimiento_id = sac.area_conocimiento_id
+     AND ac.activo = TRUE
+
+    WHERE
+      -- Sólo temas activos
+      t.activo = TRUE
+
+      -- Filtro por título (si p_titulo <> '')
+      AND (
+        p_titulo = ''
+        OR t.titulo ILIKE '%' || p_titulo || '%'
+      )
+
+      -- Filtro por área (si p_area_id no es NULL)
+      AND (
+        p_area_id IS NULL
+        OR EXISTS (
+          SELECT 1
+          FROM sub_area_conocimiento_tema s2
+          JOIN sub_area_conocimiento sac2
+            ON sac2.sub_area_conocimiento_id = s2.sub_area_conocimiento_id
+           AND sac2.activo = TRUE
+          WHERE s2.tema_id = t.tema_id
+            AND sac2.area_conocimiento_id = p_area_id
+        )
+      )
+
+    GROUP BY
+      t.tema_id,
+      t.codigo,
+      t.titulo,
+      t.resumen,
+      t.metodologia,
+      t.objetivos,
+      t.portafolio_url,
+      t.requisitos,
+      t.activo,
+      t.fecha_limite,
+      t.fecha_creacion,
+      t.fecha_modificacion,
+      c.carrera_id,
+      c.nombre
+
+    ORDER BY t.fecha_creacion DESC
+    LIMIT   p_limit
+    OFFSET  p_offset;
+$func$;

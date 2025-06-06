@@ -453,4 +453,24 @@ public class TemaController {
 		temaService.asociarTemaACurso(cursoId, temaId);
 	}
 
+	@GetMapping("/porUsuarioTituloYArea")
+    public List<TemaDto> listarPorUsuario(
+            @RequestParam(value = "titulo", required = false) String titulo,
+            @RequestParam(value = "areaId", required = false) Integer areaId,
+            @RequestParam(value = "limit", defaultValue = "10")  Integer limit,
+            @RequestParam(value = "offset", defaultValue = "0") Integer offset,
+			HttpServletRequest request) {
+
+        // Si titulo viene null, lo convertimos a ""
+        String filtroTitulo = (titulo == null ? "" : titulo);
+
+		String asesorId = jwtService.extractSubFromRequest(request);
+        return temaService.listarTemasPorUsuarioTituloYArea(
+                asesorId,
+                filtroTitulo,
+                areaId,
+                limit,
+                offset
+        );
+    }
 }

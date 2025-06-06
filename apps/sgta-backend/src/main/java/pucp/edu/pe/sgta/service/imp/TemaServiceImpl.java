@@ -2462,4 +2462,114 @@ public class TemaServiceImpl implements TemaService {
 		temaRepository.asociarTemaACurso(cursoId, temaId);
 	}
 
+	@Override
+    @Transactional
+    public List<TemaDto> listarTemasPorUsuarioTituloYArea(
+            String usuarioCognitoId,
+            String titulo,
+            Integer areaId,
+            Integer limit,
+            Integer offset) {
+
+        // 1) Obtener el UsuarioDto para saber su ID interno
+        UsuarioDto usuDto = usuarioService.findByCognitoId(usuarioCognitoId);
+        if (usuDto == null) {
+            throw new ResponseStatusException(
+                    org.springframework.http.HttpStatus.NOT_FOUND,
+                    "Usuario no encontrado con Cognito ID: " + usuarioCognitoId);
+        }
+        Integer usuarioId = usuDto.getId();
+
+        // 2) Llamar al repositorio nativo
+        // Si 'titulo' viene null, lo convertimos a cadena vacía para que la función no filtre.
+        String filtroTitulo = (titulo == null ? "" : titulo);
+        List<Object[]> filas = temaRepository.listarTemasPorUsuarioTituloYArea(
+                usuarioId,
+                filtroTitulo,
+                areaId,
+                (limit  != null ? limit  : 10),
+                (offset != null ? offset : 0)
+        );
+
+        // 3) Mapear cada Object[] a TemaDto
+        List<TemaDto> resultados = new ArrayList<>(filas.size());
+        for (Object[] row : filas) {
+            TemaDto dto = TemaDto.builder()
+                    .id( ((Number) row[0]).intValue() )        // tema_id
+                    .codigo( (String) row[1] )                  // codigo
+                    .titulo( (String) row[2] )                  // titulo
+                    .resumen( (String) row[3] )                 // resumen
+                    .metodologia( (String) row[4] )             // metodologia
+                    .objetivos( (String) row[5] )               // objetivos
+                    .portafolioUrl( (String) row[6] )           // portafolio_url
+                    .requisitos( (String) row[7] )              // requisitos
+                    .activo( (Boolean) row[8] )                 // activo
+                    .build();
+
+            // Fecha límite
+            if (row[9] != null) {
+                Instant instLim = (row[9] instanceof Instant)
+                        ? (Instant) row[9]
+                        : ((java.sql.Date) row[9]).toInstant();
+                dto.setFechaLimite( instLim.atOffset(ZoneOffset.UTC) );
+            }
+
+            // Fecha creación
+            if (row[10] != null) {
+                Instant instCre = (row[10] instanceof Instant)
+                        ? (Instant) row[10]
+                        : ((java.sql.Date) row[10]).toInstant();
+                dto.setFechaCreacion( instCre.atOffset(ZoneOffset.UTC) );
+            }
+
+            // Fecha modificación
+            if (row[11] != null) {
+                Instant instMod = (row[11] instanceof Instant)
+                        ? (Instant) row[11]
+                        : ((java.sql.Date) row[11]).toInstant();
+                dto.setFechaModificacion( instMod.atOffset(ZoneOffset.UTC) );
+            }
+
+            // Carrera
+            if (row[12] != null && row[13] != null) {
+                CarreraDto carreraDto = new CarreraDto();
+                carreraDto.setId(((Number) row[12]).intValue());
+                carreraDto.setNombre((String) row[13]);
+                dto.setCarrera(carreraDto);
+            }
+
+            // Áreas (IDs y nombres)
+            Integer[] areaIdsArr     = (Integer[]) row[14];
+            String[]  areaNombresArr = (String[])  row[15];
+            List<AreaConocimientoDto> listaAreas = new ArrayList<>();
+            if (areaIdsArr != null && areaNombresArr != null) {
+                for (int i = 0; i < areaIdsArr.length; i++) {
+                    AreaConocimientoDto a = new AreaConocimientoDto();
+                    a.setId(areaIdsArr[i]);
+                    a.setNombre(areaNombresArr[i]);
+                    listaAreas.add(a);
+                }
+            }
+            dto.setArea(listaAreas);
+
+            // Subáreas (IDs y nombres)
+            Integer[] subareaIdsArr     = (Integer[]) row[16];
+            String[]  subareaNombresArr = (String[])   row[17];
+            List<SubAreaConocimientoDto> listaSub = new ArrayList<>();
+            if (subareaIdsArr != null && subareaNombresArr != null) {
+                for (int i = 0; i < subareaIdsArr.length; i++) {
+                    SubAreaConocimientoDto s = new SubAreaConocimientoDto();
+                    s.setId(subareaIdsArr[i]);
+                    s.setNombre(subareaNombresArr[i]);
+                    listaSub.add(s);
+                }
+            }
+            dto.setSubareas(listaSub);
+
+            resultados.add(dto);
+        }
+
+        return resultados;
+    }
+
 }

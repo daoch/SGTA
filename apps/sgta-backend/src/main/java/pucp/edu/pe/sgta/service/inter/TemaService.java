@@ -135,4 +135,11 @@ public interface TemaService {
 	List<TemaPorAsociarDto> listarTemasPorAsociarPorCarrera(Integer carreraId);
 
 	void asociarTemaACurso(Integer cursoId, Integer temaId);
+
+	List<TemaDto> listarTemasPorUsuarioTituloYArea(
+            String usuarioCognitoId,
+            String titulo,
+            Integer areaId,
+            Integer limit,
+            Integer offset);
 }
