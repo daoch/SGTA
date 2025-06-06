@@ -116,7 +116,8 @@ RETURNS TABLE (
     fecha_creacion TIMESTAMPTZ,
     tipo_observacion_id INTEGER,
     revision_id INTEGER
-) AS $$
+) AS
+$$
 BEGIN
     RETURN QUERY
     SELECT

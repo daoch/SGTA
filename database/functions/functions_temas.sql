@@ -2340,7 +2340,7 @@ END;
 $$;
 
 
-CREATE FUNCTION crear_tema_libre(p_titulo text, p_resumen text, p_metodologia text, p_objetivos text, p_carrera_id integer, p_fecha_limite date, p_requisitos text, p_sub_areas_conocimiento_ids integer[], p_coasesores_ids integer[]) RETURNS void
+CREATE OR REPLACE FUNCTION crear_tema_libre(p_titulo text, p_resumen text, p_metodologia text, p_objetivos text, p_carrera_id integer, p_fecha_limite date, p_requisitos text, p_sub_areas_conocimiento_ids integer[], p_coasesores_ids integer[]) RETURNS void
     LANGUAGE plpgsql
 AS
 $$
@@ -2422,7 +2422,7 @@ BEGIN
 END;
 $$;
 
-CREATE FUNCTION obtener_temas_por_alumno(p_id_alumno INTEGER)
+CREATE OR REPLACE FUNCTION obtener_temas_por_alumno(p_id_alumno INTEGER)
     RETURNS TABLE
             (
                 idtema         INTEGER,

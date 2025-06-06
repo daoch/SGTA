@@ -1172,7 +1172,7 @@ END;
 $$;
 
 
-CREATE FUNCTION obtener_id_carrera_por_id_expo(idexpo integer)
+CREATE OR REPLACE FUNCTION obtener_id_carrera_por_id_expo(idexpo integer)
     RETURNS TABLE(id_carrera integer)
     LANGUAGE plpgsql
 AS
