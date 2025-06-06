@@ -47,3 +47,9 @@ HELP.md
 
 # Python
 .venv
+#Python
+__pycache__
+.env
+env
+test_db.db
+apps/func-python/cache/
