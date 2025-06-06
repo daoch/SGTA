@@ -29,6 +29,7 @@ export default function ConfiguracionProcesoPage() {
   
   const fetchEtapas = async () => {
     try {
+      //TODO: Cambiar el ID hardcodeado por el ID de la carrera actual
       const response = await etapaFormativaCicloService.getAllByIdCarrera(1);
       if (response) {
         setEtapas(response);
@@ -132,7 +133,7 @@ export default function ConfiguracionProcesoPage() {
                   </div>
                 </div>
 
-                <Link href={`/coordinador/configuracion/proceso/etapa/${etapa.etapaFormativaId}`}>
+                <Link href={`/coordinador/configuracion/proceso/etapa/${etapa.id}`}>
                   <Button variant="ghost" size="sm" className="flex items-center gap-1">
                     <span>Ver detalles</span>
                     <ChevronRight size={16} />
