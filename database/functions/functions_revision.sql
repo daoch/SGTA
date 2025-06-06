@@ -1,6 +1,6 @@
---DROP FUNCTION sgtadb.obtener_documentos_asesor(int4);
+--DROP FUNCTION obtener_documentos_asesor(int4);
 
-CREATE OR REPLACE FUNCTION sgtadb.obtener_documentos_asesor(asesorid integer)
+CREATE OR REPLACE FUNCTION obtener_documentos_asesor(asesorid integer)
  RETURNS TABLE(
     revision_id INTEGER,
     tema TEXT,
@@ -55,7 +55,7 @@ $function$;
 
 --DROP FUNCTION IF EXISTS sgtadb.obtener_revision_documento_por_id(int4);
 
-CREATE OR REPLACE FUNCTION sgtadb.obtener_revision_documento_por_id(revision_id_input integer)
+CREATE OR REPLACE FUNCTION obtener_revision_documento_por_id(revision_id_input integer)
 RETURNS TABLE(
     revision_id integer,
     tema text,
@@ -103,7 +103,7 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION sgtadb.obtener_observaciones_por_entregable_y_tema(
+CREATE OR REPLACE FUNCTION obtener_observaciones_por_entregable_y_tema(
     p_entregable_id INTEGER,
     p_tema_id INTEGER
 )
@@ -116,7 +116,8 @@ RETURNS TABLE (
     fecha_creacion TIMESTAMPTZ,
     tipo_observacion_id INTEGER,
     revision_id INTEGER
-) AS $$
+) AS
+$$
 BEGIN
     RETURN QUERY
     SELECT

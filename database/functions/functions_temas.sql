@@ -17,7 +17,7 @@ RETURNS TABLE(
 	fecha_limite timestamp with time zone,
 	fecha_creacion timestamp with time zone,
 	fecha_modificacion timestamp with time zone,
-	postulaciones_count integer  
+	postulaciones_count integer
 )
 LANGUAGE 'plpgsql'
 COST 100
@@ -26,15 +26,15 @@ ROWS 1000
 AS $BODY$
 BEGIN
 	RETURN QUERY
-	SELECT 
+	SELECT
 		t.tema_id,
-		t.titulo::text, 
+		t.titulo::text,
 		ARRAY(
 			SELECT DISTINCT sact2.sub_area_conocimiento_id
 			FROM sub_area_conocimiento_tema sact2
 			WHERE sact2.tema_id = t.tema_id
 		) AS subareas_id,
-		ARRAY( 
+		ARRAY(
 			SELECT ut2.usuario_id
 			FROM usuario_tema ut2
 			WHERE ut2.tema_id = t.tema_id AND ut2.rol_id = (
@@ -50,7 +50,7 @@ BEGIN
 		t.fecha_creacion,
 		t.fecha_modificacion,
 		(
-			SELECT COUNT(1)::INTEGER  
+			SELECT COUNT(1)::INTEGER
 			FROM usuario_tema ut3
 			WHERE ut3.tema_id = t.tema_id
 			AND ut3.rol_id = (
@@ -62,11 +62,11 @@ BEGIN
 	LEFT JOIN estado_tema et ON t.estado_tema_id = et.estado_tema_id
 	LEFT JOIN sub_area_conocimiento_tema sact ON sact.tema_id = t.tema_id
 	LEFT JOIN recurso r ON r.tema_id = t.tema_id AND r.activo = true
-	WHERE 
+	WHERE
 		t.activo = true
 		AND et.estado_tema_id = (
-			SELECT estado_tema_id 
-			FROM estado_tema 
+			SELECT estado_tema_id
+			FROM estado_tema
 			WHERE nombre ILIKE 'PROPUESTO_GENERAL'
 			LIMIT 1
 		)
@@ -82,10 +82,10 @@ BEGIN
 			OR t.titulo ILIKE '%' || p_titulo || '%'
 		)
 	GROUP BY
-		t.tema_id, t.titulo, t.resumen, t.metodologia, t.objetivos, 
+		t.tema_id, t.titulo, t.resumen, t.metodologia, t.objetivos,
 		r.documento_url, t.activo, t.fecha_limite, t.fecha_creacion, t.fecha_modificacion
 	ORDER BY t.fecha_creacion DESC
-	LIMIT p_limit OFFSET p_offset;  
+	LIMIT p_limit OFFSET p_offset;
 END;
 $BODY$;
 
@@ -116,7 +116,7 @@ RETURNS TABLE(
 	nombre_creador text,
 	ids_cotesistas integer[],
 	nombres_cotesistas text[]
-) 
+)
 LANGUAGE 'plpgsql'
 COST 100
 VOLATILE PARALLEL UNSAFE
@@ -125,7 +125,7 @@ AS $BODY$
 BEGIN
 	RETURN QUERY
 	WITH temas_filtrados AS (
-		SELECT 
+		SELECT
 			t.tema_id,
 			t.titulo::text,
 			t.resumen::text,
@@ -140,30 +140,30 @@ BEGIN
 			r.documento_url::text,
 			t.tema_id AS id_unico
 		FROM tema t
-		INNER JOIN usuario_tema ut_asesor 
-			ON ut_asesor.tema_id = t.tema_id 
+		INNER JOIN usuario_tema ut_asesor
+			ON ut_asesor.tema_id = t.tema_id
 			AND ut_asesor.rol_id = (
 				SELECT rol_id FROM rol WHERE nombre ILIKE 'Asesor' LIMIT 1
 			)
 			AND ut_asesor.usuario_id = p_asesor_id
 			AND ut_asesor.asignado = false
-		INNER JOIN usuario_tema ut_alumno 
-			ON ut_alumno.tema_id = t.tema_id 
+		INNER JOIN usuario_tema ut_alumno
+			ON ut_alumno.tema_id = t.tema_id
 			AND ut_alumno.rol_id = (
 				SELECT rol_id FROM rol WHERE nombre ILIKE 'Tesista' LIMIT 1
 			)
 			AND ut_alumno.creador = true
-		INNER JOIN usuario u_alumno 
+		INNER JOIN usuario u_alumno
 			ON u_alumno.usuario_id = ut_alumno.usuario_id
-		LEFT JOIN estado_tema et 
+		LEFT JOIN estado_tema et
 			ON t.estado_tema_id = et.estado_tema_id
-		LEFT JOIN recurso r 
+		LEFT JOIN recurso r
 			ON r.tema_id = t.tema_id AND r.activo = true
-		WHERE 
+		WHERE
 			t.activo = true
 			AND et.estado_tema_id = (
-				SELECT estado_tema_id 
-				FROM estado_tema 
+				SELECT estado_tema_id
+				FROM estado_tema
 				WHERE nombre ILIKE 'PROPUESTO_DIRECTO'
 				LIMIT 1
 			)
@@ -171,7 +171,7 @@ BEGIN
 		ORDER BY t.fecha_creacion DESC
 		LIMIT p_limit OFFSET p_offset
 	)
-	SELECT 
+	SELECT
 		tf.tema_id,
 		tf.titulo,
 		string_agg(DISTINCT sac.nombre, ', ') AS subareas,
@@ -228,12 +228,12 @@ BEGIN
 		) AS nombres_cotesistas
 
 	FROM temas_filtrados tf
-	LEFT JOIN sub_area_conocimiento_tema sact 
+	LEFT JOIN sub_area_conocimiento_tema sact
 		ON sact.tema_id = tf.id_unico
-	LEFT JOIN sub_area_conocimiento sac 
+	LEFT JOIN sub_area_conocimiento sac
 		ON sac.sub_area_conocimiento_id = sact.sub_area_conocimiento_id
-	GROUP BY 
-		tf.tema_id, tf.titulo, tf.resumen, tf.metodologia, tf.objetivos, 
+	GROUP BY
+		tf.tema_id, tf.titulo, tf.resumen, tf.metodologia, tf.objetivos,
 		tf.alumno, tf.documento_url, tf.activo, tf.fecha_limite, tf.fecha_creacion, tf.fecha_modificacion;
 END;
 $BODY$;
@@ -245,7 +245,7 @@ CREATE OR REPLACE FUNCTION listar_temas_por_usuario_rol_estado(
   p_rol_nombre    TEXT,
   p_estado_nombre TEXT,
   p_limit INT ,
-  p_offset INT 
+  p_offset INT
 )
 RETURNS TABLE (
   tema_id            INT,
@@ -397,7 +397,7 @@ BEGIN
 
     -- Asignar a cada tesista
     FOR i IN 1 .. array_length(p_usuarios_id, 1) LOOP
-        UPDATE usuario_tema 
+        UPDATE usuario_tema
         SET asignado = true,
             rol_id = tesista_rol_id,
             comentario = p_comentario
@@ -405,12 +405,12 @@ BEGIN
     END LOOP;
 
     -- Asignar al profesor
-    UPDATE usuario_tema 
-    SET asignado = true 
+    UPDATE usuario_tema
+    SET asignado = true
     WHERE usuario_id = p_profesor_id AND tema_id = p_tema_id;
 
     -- Actualizar el estado del tema
-    UPDATE tema 
+    UPDATE tema
     SET estado_tema_id = estado_preinscrito_id
     WHERE tema_id = p_tema_id;
 
@@ -434,7 +434,7 @@ $BODY$;
 
 CREATE OR REPLACE FUNCTION listar_areas_conocimiento_por_usuario(
 	p_usuario_id integer)
-    RETURNS TABLE(area_id integer, area_nombre text, descripcion text) 
+    RETURNS TABLE(area_id integer, area_nombre text, descripcion text)
     LANGUAGE 'sql'
     COST 100
     VOLATILE PARALLEL UNSAFE
@@ -452,7 +452,7 @@ $BODY$;
 
 CREATE OR REPLACE FUNCTION obtener_sub_areas_por_usuario(
 	p_usuario_id integer)
-    RETURNS TABLE(sub_area_conocimiento_id integer, area_conocimiento_id integer, nombre text, descripcion text, activo boolean) 
+    RETURNS TABLE(sub_area_conocimiento_id integer, area_conocimiento_id integer, nombre text, descripcion text, activo boolean)
     LANGUAGE 'plpgsql'
     COST 100
     VOLATILE PARALLEL UNSAFE
@@ -463,9 +463,9 @@ BEGIN
     RETURN QUERY
     SELECT sac.sub_area_conocimiento_id,sac.area_conocimiento_id, sac.nombre::TEXT, sac.descripcion::TEXT,sac.activo
     FROM sub_area_conocimiento sac
-    INNER JOIN usuario_sub_area_conocimiento usac 
+    INNER JOIN usuario_sub_area_conocimiento usac
         ON usac.sub_area_conocimiento_id = sac.sub_area_conocimiento_id
-    INNER JOIN usuario u 
+    INNER JOIN usuario u
         ON u.usuario_id = usac.usuario_id
     WHERE u.usuario_id = p_usuario_id;
 END;
@@ -558,22 +558,22 @@ DECLARE
     resumen_tema TEXT;
 BEGIN
     -- Actualiza el estado del tema a "RECHAZADO"
-    UPDATE tema 
+    UPDATE tema
     SET estado_tema_id = (
-        SELECT estado_tema_id 
-        FROM estado_tema 
+        SELECT estado_tema_id
+        FROM estado_tema
         WHERE nombre ILIKE 'RECHAZADO'
         LIMIT 1
     )
     WHERE tema_id = p_tema_id;
     -- Actualiza el comentario del alumno con rol "Tesista"
-    UPDATE usuario_tema 
+    UPDATE usuario_tema
     SET comentario = p_comentario , rechazado = true
-    WHERE usuario_id = p_alumno_id 
-      AND tema_id = p_tema_id 
+    WHERE usuario_id = p_alumno_id
+      AND tema_id = p_tema_id
       AND rol_id = (
-        SELECT rol_id 
-        FROM rol 
+        SELECT rol_id
+        FROM rol
         WHERE nombre ILIKE 'Tesista'
         LIMIT 1
     );
@@ -643,7 +643,7 @@ BEGIN
        AND t.estado_tema_id IN (v_estado_directo, v_estado_general)
   LOOP
     -- 3) Cuenta cuántos tesistas activos y no asignados hay en ese tema
-    SELECT COUNT(*) 
+    SELECT COUNT(*)
       INTO cnt_tesistas
     FROM usuario_tema
     WHERE tema_id   = rec.tema_id
@@ -943,7 +943,7 @@ $$ LANGUAGE plpgsql;
 
 
 
-CREATE TRIGGER trigger_generar_codigo_tema
+CREATE OR REPLACE TRIGGER trigger_generar_codigo_tema
 AFTER INSERT ON tema
 FOR EACH ROW
 EXECUTE FUNCTION generar_codigo_tema();
@@ -969,7 +969,7 @@ RETURNS TABLE(
 )
 LANGUAGE plpgsql
 AS $$
-DECLARE 
+DECLARE
     v_uid INTEGER;
 BEGIN
     -- Obtener el usuario_id desde el id cognito
@@ -1191,7 +1191,7 @@ $$;
 
 
 CREATE OR REPLACE FUNCTION obtener_sub_areas_por_carrera_usuario(
-    p_usuario_id TEXT 
+    p_usuario_id TEXT
 )
 RETURNS TABLE(
     sub_area_conocimiento_id INTEGER,
@@ -1224,7 +1224,7 @@ ORDER BY nombre;
 $$;
 
 
-ALTER FUNCTION obtener_sub_areas_por_carrera_usuario(INTEGER) OWNER TO postgres;
+--ALTER FUNCTION obtener_sub_areas_por_carrera_usuario(INTEGER) OWNER TO postgres;
 
 CREATE OR REPLACE FUNCTION aprobar_postulacion_propuesta_general_tesista(
     p_tema_id    INT,
@@ -1279,7 +1279,7 @@ END;
 $$;
 
 
-ALTER FUNCTION aprobar_postulacion_propuesta_general_tesista(INTEGER, INTEGER, INTEGER) OWNER TO doadmin;
+--ALTER FUNCTION aprobar_postulacion_propuesta_general_tesista(INTEGER, INTEGER, INTEGER) OWNER TO doadmin;
 
 CREATE OR REPLACE FUNCTION rechazar_postulacion_propuesta_general_tesista(
     p_tema_id    INT,
@@ -1321,7 +1321,7 @@ END;
 $$;
 
 
-ALTER FUNCTION rechazar_postulacion_propuesta_general_tesista(INTEGER, INTEGER, INTEGER) OWNER TO postgres;
+-- ALTER FUNCTION rechazar_postulacion_propuesta_general_tesista(INTEGER, INTEGER, INTEGER) OWNER TO postgres;
 
 CREATE OR REPLACE FUNCTION listar_asesores_por_subarea_conocimiento_v2(
 	p_subarea_id integer)
@@ -1541,7 +1541,7 @@ RETURNS TABLE (
     solicitud_completada BOOLEAN
 ) AS $$
 BEGIN
-    RETURN QUERY    SELECT 
+    RETURN QUERY    SELECT
         s.solicitud_id,
         s.fecha_creacion::DATE,
         s.estado,
@@ -1605,7 +1605,7 @@ BEGIN
         RAISE EXCEPTION 'No existe solicitud %', p_solicitud_id;
     END IF;
     IF v_current_estado <> 1 THEN
-        RAISE EXCEPTION 'Solicitud % no está en estado pendiente (estado=%)', 
+        RAISE EXCEPTION 'Solicitud % no está en estado pendiente (estado=%)',
                          p_solicitud_id, v_current_estado;
     END IF;
 
@@ -1668,7 +1668,7 @@ BEGIN
         RAISE EXCEPTION 'No existe solicitud %', p_solicitud_id;
     END IF;
     IF v_current_estado <> 1 THEN
-        RAISE EXCEPTION 'Solicitud % no está en estado pendiente (estado=%)', 
+        RAISE EXCEPTION 'Solicitud % no está en estado pendiente (estado=%)',
                          p_solicitud_id, v_current_estado;
     END IF;
 
@@ -1795,7 +1795,7 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT 
+    SELECT
         t.codigo::TEXT,
         t.titulo::TEXT,
         t.resumen::TEXT,
@@ -1806,7 +1806,7 @@ BEGIN
         (
             SELECT ut.usuario_id
             FROM usuario_tema ut
-            WHERE ut.tema_id = t.tema_id 
+            WHERE ut.tema_id = t.tema_id
               AND ut.rol_id = (SELECT rol_id FROM rol WHERE nombre = 'Asesor')
             LIMIT 1
         ) AS asesor,
@@ -1818,7 +1818,7 @@ BEGIN
         ARRAY(
             SELECT DISTINCT ut.usuario_id
             FROM usuario_tema ut
-            WHERE ut.tema_id = t.tema_id 
+            WHERE ut.tema_id = t.tema_id
               AND ut.rol_id = (SELECT rol_id FROM rol WHERE nombre = 'Coasesor')
         ) AS asesores_id,
         t.carrera_id,
@@ -1829,7 +1829,7 @@ BEGIN
               AND ut.rol_id = (SELECT rol_id FROM rol WHERE nombre = 'Tesista')
         ) AS tesistas_id,
         et.nombre::TEXT AS estado_nombre
-    FROM tema t 
+    FROM tema t
     LEFT JOIN estado_tema et
       ON t.estado_tema_id = et.estado_tema_id
     WHERE t.tema_id = p_tema_id;
@@ -1872,7 +1872,7 @@ BEGIN
   END IF;
 
   -- 3) Cuento en usuario_tema con los filtros que pediste
-  SELECT COUNT(*) 
+  SELECT COUNT(*)
     INTO v_count
     FROM usuario_tema ut
    WHERE ut.tema_id   = p_tema_id
@@ -1992,11 +1992,11 @@ BEGIN
     LEFT JOIN carrera c     ON t.carrera_id = c.carrera_id
 
     -- Join a subáreas y de allí a área de conocimiento
-    LEFT JOIN sub_area_conocimiento_tema sact 
+    LEFT JOIN sub_area_conocimiento_tema sact
            ON t.tema_id = sact.tema_id
-    LEFT JOIN sub_area_conocimiento sac 
+    LEFT JOIN sub_area_conocimiento sac
            ON sact.sub_area_conocimiento_id = sac.sub_area_conocimiento_id
-    LEFT JOIN area_conocimiento ac 
+    LEFT JOIN area_conocimiento ac
            ON sac.area_conocimiento_id = ac.area_conocimiento_id
 
     WHERE
@@ -2041,7 +2041,7 @@ CREATE OR REPLACE FUNCTION postular_tesista_tema_libre(
     p_tesista_id  TEXT,
     p_comentario TEXT
 )
-RETURNS VOID 
+RETURNS VOID
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -2065,7 +2065,7 @@ BEGIN
     SELECT et.nombre
     INTO   v_tema_estado
     FROM   tema t
-    JOIN   estado_tema et 
+    JOIN   estado_tema et
       ON   t.estado_tema_id = et.estado_tema_id
     WHERE  t.tema_id = p_tema_id
       AND  t.activo = TRUE;
@@ -2091,7 +2091,7 @@ BEGIN
     END IF;
 
     -- 4. Verificar si el tesista ya está postulado a este tema
-    SELECT COUNT(*) 
+    SELECT COUNT(*)
     INTO   v_existing_count
     FROM   usuario_tema ut
     WHERE  ut.tema_id   = p_tema_id
@@ -2107,7 +2107,7 @@ BEGIN
     SELECT COUNT(*)
     INTO   v_existing_count
     FROM   usuario_tema ut
-    JOIN   rol r 
+    JOIN   rol r
       ON   ut.rol_id = r.rol_id
     WHERE  ut.usuario_id = v_usuario_id
       AND  r.nombre = 'Tesista'
@@ -2339,6 +2339,129 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION crear_tema_libre(p_titulo text, p_resumen text, p_metodologia text, p_objetivos text, p_carrera_id integer, p_fecha_limite date, p_requisitos text, p_sub_areas_conocimiento_ids integer[], p_coasesores_ids integer[]) RETURNS void
+    LANGUAGE plpgsql
+AS
+$$
+DECLARE
+    v_tema_id INT;
+    v_now TIMESTAMP := NOW();
+    v_asesor_id INT;
+    v_coasesores INT[];
+    v_rol_asesor_id INT;
+    v_rol_coasesor_id INT;
+    v_estado_tema_id INT;
+BEGIN
+    -- Validar que haya al menos un asesor
+    IF array_length(p_coasesores_ids, 1) < 1 THEN
+        RAISE EXCEPTION 'Debe haber al menos un usuario: el asesor';
+    END IF;
+
+    -- Obtener los rol_id por nombre
+    SELECT rol_id INTO v_rol_asesor_id FROM rol WHERE LOWER(nombre) = 'asesor' LIMIT 1;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'No se encontró el rol con nombre "Asesor"';
+    END IF;
+
+    SELECT rol_id INTO v_rol_coasesor_id FROM rol WHERE LOWER(nombre) = 'coasesor' LIMIT 1;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'No se encontró el rol con nombre "Coasesor"';
+    END IF;
+
+    -- Obtener el estado_tema_id para 'PROPUESTO_LIBRE'
+    SELECT estado_tema_id INTO v_estado_tema_id FROM estado_tema WHERE nombre = 'PROPUESTO_LIBRE' LIMIT 1;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'No se encontró el estado_tema con nombre "PROPUESTO_LIBRE"';
+    END IF;
+
+    -- Separar asesor y coasesores
+    v_asesor_id := p_coasesores_ids[1];
+    v_coasesores := CASE
+        WHEN array_length(p_coasesores_ids, 1) > 1 THEN p_coasesores_ids[2:array_length(p_coasesores_ids, 1)]
+        ELSE NULL
+    END;
+
+    -- Insertar el tema con el estado_tema_id
+    INSERT INTO tema (
+        titulo, resumen, metodologia, objetivos, carrera_id,
+        fecha_limite, requisitos, activo, fecha_creacion, fecha_modificacion,
+        estado_tema_id
+    )
+    VALUES (
+        p_titulo, p_resumen, p_metodologia, p_objetivos, p_carrera_id,
+        p_fecha_limite, p_requisitos, TRUE, v_now, v_now,
+        v_estado_tema_id
+    )
+    RETURNING tema_id INTO v_tema_id;
+
+    -- Insertar subáreas
+    IF p_sub_areas_conocimiento_ids IS NOT NULL THEN
+        INSERT INTO sub_area_conocimiento_tema (
+            sub_area_conocimiento_id, tema_id, activo, fecha_creacion, fecha_modificacion
+        )
+        SELECT unnest(p_sub_areas_conocimiento_ids), v_tema_id, TRUE, v_now, v_now;
+    END IF;
+
+    -- Insertar asesor
+    INSERT INTO usuario_tema (
+        usuario_id, tema_id, rol_id, asignado, rechazado, creador, activo, fecha_creacion, fecha_modificacion
+    )
+    VALUES (
+        v_asesor_id, v_tema_id, v_rol_asesor_id, FALSE, FALSE, TRUE, TRUE, v_now, v_now
+    );
+
+    -- Insertar coasesores
+    IF v_coasesores IS NOT NULL THEN
+        INSERT INTO usuario_tema (
+            usuario_id, tema_id, rol_id, asignado, rechazado, creador, activo, fecha_creacion, fecha_modificacion
+        )
+        SELECT
+            unnest(v_coasesores), v_tema_id, v_rol_coasesor_id, FALSE, FALSE, FALSE, TRUE, v_now, v_now;
+    END IF;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION obtener_temas_por_alumno(p_id_alumno INTEGER)
+    RETURNS TABLE
+            (
+                idtema         INTEGER,
+                titulo         TEXT,
+                estado         TEXT,
+                areastematicas TEXT,
+                idasesor       INTEGER
+            )
+    LANGUAGE plpgsql
+AS
+$$
+BEGIN
+    RETURN QUERY
+        SELECT t.tema_id                                  AS "idTema",
+               t.titulo::TEXT,
+               et.nombre::TEXT,
+               STRING_AGG(DISTINCT at.nombre, ', ')::TEXT AS "areasTematicas",
+               u.usuario_id                               AS "idAsesor"
+            FROM tema t
+                     JOIN estado_tema et ON t.estado_tema_id = et.estado_tema_id
+                     JOIN usuario_tema uta ON uta.tema_id = t.tema_id
+                     LEFT JOIN LATERAL (
+                SELECT u2.usuario_id
+                    FROM usuario_tema ut
+                             JOIN usuario u2 ON u2.usuario_id = ut.usuario_id
+                    WHERE ut.tema_id = t.tema_id
+                      AND ut.rol_id = 1
+                      AND ut.activo = TRUE
+                    LIMIT 1
+                ) u ON TRUE
+                     LEFT JOIN sub_area_conocimiento_tema tsac ON tsac.tema_id = t.tema_id
+                     LEFT JOIN sub_area_conocimiento sac ON sac.sub_area_conocimiento_id = tsac.sub_area_conocimiento_id
+                     LEFT JOIN area_conocimiento at ON at.area_conocimiento_id = sac.area_conocimiento_id
+            WHERE et.nombre IN ('INSCRITO', 'REGISTRADO', 'EN_PROGRESO', 'PAUSADO')
+              AND uta.usuario_id = p_id_alumno
+              AND uta.rol_id = 4
+              AND uta.activo = TRUE
+            GROUP BY t.tema_id, t.titulo, et.nombre, u.usuario_id;
+END;
+$$;
 
 CREATE OR REPLACE FUNCTION listar_postulaciones_alumnos_tema_libre(
 	p_asesor_id integer,

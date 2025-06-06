@@ -29,7 +29,7 @@ public class CriterioEntregableServiceImpl implements CriterioEntregableService 
         // Ahora el repositorio ya devuelve directamente List<CriterioEntregableDto>
         return criterioEntregableRepository.listarCriteriosEntregableXEntregable(entregableId);
     }
-    
+
     @Transactional
     @Override
     public int crearCriterioEntregable(Integer entregableId, CriterioEntregableDto criterioEntregableDto) {
