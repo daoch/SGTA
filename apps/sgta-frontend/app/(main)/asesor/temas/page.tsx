@@ -121,11 +121,15 @@ const Page = () => {
     if (!usuarioLoggeado) return;
     const fetchData = async () => {
       try {
+        //obtener la carrera
+        const carreras = await obtenerCarrerasPorUsuario();
+        setCarrera(carreras);
+
         const response = await axiosInstance.get("subAreaConocimiento/list");
         setSubareasDisponibles(response.data);
 
         //llenar datos del asesor mediante su id y no por su carrera
-        const usuario = await fetchUsuariosFindById(usuarioLoggeado.id);
+        const usuario = await fetchUsuariosFindById(Number(usuarioLoggeado.id));
         const coasesor: Coasesor = {
           id: usuario.id,
           tipoUsuario: usuario.tipoUsuario.nombre,
@@ -147,9 +151,6 @@ const Page = () => {
         };
         setAsesorData(coasesor);
 
-        //obtener la carrera
-        const carreras = await obtenerCarrerasPorUsuario();
-        setCarrera(carreras);
         console.log({ carreras });
         if (carreras) {
           const tesistasData: Tesista[] = await fetchUsers(
@@ -162,6 +163,7 @@ const Page = () => {
             carreras[0].id,
             "profesor",
           );
+
           setCoasesoresDisponibles(coasesoresData);
         }
       } catch (error) {
