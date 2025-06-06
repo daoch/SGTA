@@ -127,4 +127,35 @@ public interface TemaRepository extends JpaRepository<Tema, Integer> {
         @Param("offset") Integer offset
     );
 
+
+
+    @Query(
+    value = """
+      SELECT *
+        FROM listar_temas_filtrado_completo(
+          :titulo,
+          :estadoNombre,
+          :carreraId,
+          :areaId,
+          :nombreUsuario,
+          :primerApellidoUsuario,
+          :segundoApellidoUsuario,
+          :limit,
+          :offset
+        )
+      """,
+    nativeQuery = true
+  )
+  List<Object[]> listarTemasFiltradoCompleto(
+      @Param("titulo")                 String titulo,
+      @Param("estadoNombre")           String estadoNombre,
+      @Param("carreraId")              Integer carreraId,
+      @Param("areaId")                 Integer areaId,
+      @Param("nombreUsuario")          String nombreUsuario,
+      @Param("primerApellidoUsuario")  String primerApellidoUsuario,
+      @Param("segundoApellidoUsuario") String segundoApellidoUsuario,
+      @Param("limit")                  Integer limit,
+      @Param("offset")                 Integer offset
+  );
+
 }

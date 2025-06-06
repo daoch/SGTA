@@ -2579,4 +2579,165 @@ public class TemaServiceImpl implements TemaService {
         return resultados;
     }
 
+
+    @Override
+	@Transactional
+	public List<TemaDto> listarTemasFiltradoCompleto(
+			String titulo,
+			String estadoNombre,
+			Integer carreraId,
+			Integer areaId,
+			String nombreUsuario,
+			String primerApellidoUsuario,
+			String segundoApellidoUsuario,
+			Integer limit,
+			Integer offset
+	) {
+		// 1) Normalizar parámetros para evitar nulls
+		String filtroTitulo          = (titulo                != null ? titulo                : "");
+		String filtroEstado          = (estadoNombre          != null ? estadoNombre          : "");
+		String filtroNombreUsuario   = (nombreUsuario         != null ? nombreUsuario         : "");
+		String filtroPrimerApellido  = (primerApellidoUsuario != null ? primerApellidoUsuario : "");
+		String filtroSegundoApellido = (segundoApellidoUsuario!= null ? segundoApellidoUsuario: "");
+		Integer filtroCarrera        = carreraId;  // puede ser null
+		Integer filtroArea           = areaId;     // puede ser null
+		Integer pagLimit             = (limit               != null ? limit   : 10);
+		Integer pagOffset            = (offset              != null ? offset  : 0);
+
+		// 2) Llamar al repositorio nativo
+		List<Object[]> rows = temaRepository.listarTemasFiltradoCompleto(
+				filtroTitulo,
+				filtroEstado,
+				filtroCarrera,
+				filtroArea,
+				filtroNombreUsuario,
+				filtroPrimerApellido,
+				filtroSegundoApellido,
+				pagLimit,
+				pagOffset
+		);
+
+		// 3) Mapear cada Object[] a TemaDto
+		List<TemaDto> resultados = new ArrayList<>(rows.size());
+		for (Object[] r : rows) {
+			TemaDto dto = new TemaDto();
+
+			// 0: tema_id
+			dto.setId(((Number) r[0]).intValue());
+			// 1: codigo
+			dto.setCodigo((String) r[1]);
+			// 2: titulo
+			dto.setTitulo((String) r[2]);
+			// 3: resumen
+			dto.setResumen((String) r[3]);
+			// 4: metodologia
+			dto.setMetodologia((String) r[4]);
+			// 5: objetivos
+			dto.setObjetivos((String) r[5]);
+			// 6: portafolio_url
+			dto.setPortafolioUrl((String) r[6]);
+			// 7: requisitos
+			dto.setRequisitos((String) r[7]);
+			// 8: activo
+			dto.setActivo((Boolean) r[8]);
+
+			dto.setEstadoTemaNombre((String) r[25]); // 8: estado_tema_nombre
+
+			// 9: fecha_limite
+			if (r[9] != null) {
+				dto.setFechaLimite(toOffsetDateTime(r[9]));
+			}
+
+			// 10: fecha_creacion
+			if (r[10] != null) {
+				dto.setFechaCreacion(toOffsetDateTime(r[10]));
+			}
+
+			// 11: fecha_modificacion
+			if (r[11] != null) {
+				dto.setFechaModificacion(toOffsetDateTime(r[11]));
+			}
+
+			// 12: carrera_id, 13: carrera_nombre
+			if (r[12] != null && r[13] != null) {
+				CarreraDto carreraDto = new CarreraDto();
+				carreraDto.setId(((Number) r[12]).intValue());
+				carreraDto.setNombre((String) r[13]);
+				dto.setCarrera(carreraDto);
+			}
+
+			// 14: area_ids, 15: area_nombres
+			List<AreaConocimientoDto> listaAreas = new ArrayList<>();
+			Integer[] areaIdsArr     = (Integer[]) r[14];
+			String[]  areaNombresArr = (String[])  r[15];
+			if (areaIdsArr != null && areaNombresArr != null) {
+				for (int i = 0; i < areaIdsArr.length; i++) {
+					AreaConocimientoDto a = new AreaConocimientoDto();
+					a.setId(areaIdsArr[i]);
+					a.setNombre(areaNombresArr[i]);
+					listaAreas.add(a);
+				}
+			}
+			dto.setArea(listaAreas);
+
+			// 16: subarea_ids, 17: subarea_nombres
+			List<SubAreaConocimientoDto> listaSub = new ArrayList<>();
+			Integer[] subareaIdsArr     = (Integer[]) r[16];
+			String[]  subareaNombresArr = (String[])   r[17];
+			if (subareaIdsArr != null && subareaNombresArr != null) {
+				for (int i = 0; i < subareaIdsArr.length; i++) {
+					SubAreaConocimientoDto s = new SubAreaConocimientoDto();
+					s.setId(subareaIdsArr[i]);
+					s.setNombre(subareaNombresArr[i]);
+					listaSub.add(s);
+				}
+			}
+			dto.setSubareas(listaSub);
+
+			// 18: asesor_ids, 19: asesor_nombres
+			List<UsuarioDto> listaAsesores = new ArrayList<>();
+			Integer[] asesorIdsArr     = (Integer[]) r[18];
+			String[]  asesorNombresArr = (String[])  r[19];
+			String[]  asesorCodgio = (String[])  r[20];
+			String[]  asesorRol = (String[])  r[21];
+			if (asesorIdsArr != null && asesorNombresArr != null) {
+				for (int i = 0; i < asesorIdsArr.length; i++) {
+					UsuarioDto u = new UsuarioDto();
+					u.setId(asesorIdsArr[i]);
+					u.setNombres(asesorNombresArr[i]); // nombre completo (Nombres + Apellidos)
+					//u.setCodigoPucp(asesorCodgio[i]); // código PUCP
+					//u.setRol(asesorRol[i]);
+					listaAsesores.add(u);
+				}
+			}
+			// si tu DTO distinguía “coasesores” aparte de “asesores”, aquí puedes asignarlos.
+			// Pero como el requisito era "mostrar primero al Asesor y luego a los Coasesores",
+			// el arreglo 18–19 ya sale con Asesor en la posición 0 (porque en la función SQL
+			// agregamos Asesor + Coasesores en ese orden).
+			dto.setCoasesores(listaAsesores);
+
+			// 22: tesista_ids, 23: tesista_nombres
+			List<UsuarioDto> listaTesistas = new ArrayList<>();
+			Integer[] tesistaIdsArr     = (Integer[]) r[22];
+			String[]  tesistaNombresArr = (String[])  r[23];
+			if (tesistaIdsArr != null && tesistaNombresArr != null) {
+				for (int i = 0; i < tesistaIdsArr.length; i++) {
+					UsuarioDto u = new UsuarioDto();
+					u.setId(tesistaIdsArr[i]);
+					u.setNombres(tesistaNombresArr[i]);
+					listaTesistas.add(u);
+				}
+			}
+			dto.setTesistas(listaTesistas);
+
+			// 24: cant_postulaciones
+			dto.setCantPostulaciones(((Number) r[24]).intValue());
+
+			resultados.add(dto);
+		}
+
+		return resultados;
+}
+
+
 }

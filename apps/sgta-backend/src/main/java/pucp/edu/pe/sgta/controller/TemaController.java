@@ -493,4 +493,36 @@ public class TemaController {
                 offset
         );
     }
+
+	@GetMapping("/filtradoCompleto")
+  public List<TemaDto> filtrarCompleto(
+      @RequestParam(value = "titulo",                   required = false) String titulo,
+      @RequestParam(value = "estadoNombre",             required = false) String estadoNombre,
+      @RequestParam(value = "carreraId",                required = false) Integer carreraId,
+      @RequestParam(value = "areaId",                   required = false) Integer areaId,
+      @RequestParam(value = "nombreUsuario",            required = false) String nombreUsuario,
+      @RequestParam(value = "primerApellidoUsuario",    required = false) String primerApellidoUsuario,
+      @RequestParam(value = "segundoApellidoUsuario",   required = false) String segundoApellidoUsuario,
+      @RequestParam(value = "limit",   defaultValue = "10") Integer limit,
+      @RequestParam(value = "offset",  defaultValue = "0")  Integer offset
+  ) {
+    // Convertir posibles nulls a cadenas vacías (para que la función SQL los trate como “no filtro”)
+    String filtroTitulo          = (titulo                  == null ? "" : titulo);
+    String filtroEstado          = (estadoNombre            == null ? "" : estadoNombre);
+    String filtroNombreUsuario   = (nombreUsuario           == null ? "" : nombreUsuario);
+    String filtroPrimerApellido  = (primerApellidoUsuario   == null ? "" : primerApellidoUsuario);
+    String filtroSegundoApellido = (segundoApellidoUsuario  == null ? "" : segundoApellidoUsuario);
+
+    return temaService.listarTemasFiltradoCompleto(
+            filtroTitulo,
+            filtroEstado,
+            carreraId,
+            areaId,
+            filtroNombreUsuario,
+            filtroPrimerApellido,
+            filtroSegundoApellido,
+            limit,
+            offset
+    );
+  }
 }

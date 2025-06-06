@@ -147,4 +147,16 @@ public interface TemaService {
             LocalDate fechaCreacionHasta,
             Integer limit,
             Integer offset);
+
+	List<TemaDto> listarTemasFiltradoCompleto(
+            String titulo,
+            String estadoNombre,
+            Integer carreraId,
+            Integer areaId,
+            String nombreUsuario,
+            String primerApellidoUsuario,
+            String segundoApellidoUsuario,
+            Integer limit,
+            Integer offset
+    ) ;
 }
