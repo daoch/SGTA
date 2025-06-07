@@ -858,22 +858,26 @@ public class SolicitudServiceImpl implements SolicitudService {
         solicitud.setTema(tema);
         solicitud.setEstado(0); // Ajusta según tu convención (p.ej. 0 = PENDIENTE)
         Solicitud savedSolicitud = solicitudRepository.save(solicitud);
-
+		RolSolicitud rolDestinatario = rolSolicitudRepository
+                .findByNombre(RolSolicitudEnum.DESTINATARIO.name()).
+				orElseThrow(() -> new RuntimeException("Rol destinatario no encontrado"));
+		AccionSolicitud accionPendiente = accionSolicitudRepository
+                .findByNombre(AccionSolicitudEnum.PENDIENTE_ACCION.name())
+                .orElseThrow(() -> new RuntimeException("Accion pendiente_aprobacion no encontrado"));
         // 3) Buscar los usuarios-coordinador de la carrera del tema
         List<UsuarioXSolicitud> asignaciones = usuarioCarreraRepository
-                .findByCarreraIdAndActivoTrue(tema.getCarrera().getId()).stream()
-                .map(rel -> rel.getUsuario())
-                .filter(u -> TipoUsuarioEnum.coordinador.name().equalsIgnoreCase(u.getTipoUsuario().getNombre()))
-                .map(coord -> {
-                    UsuarioXSolicitud us = new UsuarioXSolicitud();
-                    us.setUsuario(coord);
-                    us.setSolicitud(savedSolicitud);
-                    us.setDestinatario(true);
-                    us.setAprobado(false);
-                    us.setSolicitudCompletada(false);
-                    return us;
-                })
-                .collect(Collectors.toList());
+				.findByCarreraIdAndActivoTrue(tema.getCarrera().getId()).stream()
+				.filter(rel -> Boolean.TRUE.equals(rel.getEs_coordinador()))
+				.map(rel -> {
+					Usuario coord = rel.getUsuario();
+					UsuarioXSolicitud us = new UsuarioXSolicitud();
+					us.setUsuario(coord);
+					us.setSolicitud(savedSolicitud);
+					us.setRolSolicitud(rolDestinatario);
+					us.setAccionSolicitud(accionPendiente);
+					return us;
+				})
+				.collect(Collectors.toList());
 
         if (asignaciones.isEmpty()) {
             throw new RuntimeException(
