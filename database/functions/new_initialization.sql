@@ -21,12 +21,17 @@ INSERT INTO tipo_dedicacion (iniciales, descripcion)
            ('TPA', 'Tiempo parcial por asignaturas');
 
 
-INSERT INTO tipo_solicitud (nombre,
-                            descripcion,
-                            activo,
-                            fecha_creacion,
-                            fecha_modificacion)
-    VALUES ('Aprobación de tema (por coordinador)', 'Solicitud para que el coordinador apruebe el tema', TRUE, NOW(), NOW());
+INSERT INTO tipo_solicitud (
+  nombre,
+  descripcion,
+  activo,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  ('Aprobación de tema (por coordinador)', 'Solicitud para que el coordinador apruebe el tema', TRUE, NOW(), NOW()),
+  ('Solicitud de cambio de título',                       'Modificar el título del tema',        TRUE, NOW(), NOW()),
+  ('Solicitud de cambio de resumen',                     'Modificar el resumen del tema',       TRUE, NOW(), NOW()),
+  ('Cambio de asesor (por asesor)',                      'Solicitud para que el coordinador apruebe el cambio de asesores', TRUE, NOW(), NOW());
 
 
 INSERT INTO tipo_notificacion (nombre,
@@ -916,6 +921,28 @@ INSERT INTO carrera_parametro_configuracion (carrera_id,
             NOW(), -- Fecha de modificación actual
             1);
 
+--13) Más entidades fijas
 
+INSERT INTO rol_solicitud (nombre, descripcion, activo, fecha_creacion, fecha_modificacion)
+    VALUES ('REMITENTE', 'Usuario que inicia la solicitud', TRUE, NOW(), NOW()),
+           ('DESTINATARIO', 'Usuario al que está dirigida la solicitud', TRUE, NOW(), NOW()),
+           ('ASESOR_ACTUAL', 'Asesor vigente del usuario', TRUE, NOW(), NOW()),
+           ('ASESOR_ENTRADA', 'Asesor saliente del usuario', TRUE, NOW(), NOW());
 
+INSERT INTO accion_solicitud (nombre, descripcion, activo, fecha_creacion, fecha_modificacion)
+    VALUES ('SIN_ACCION', 'Sin acción tomada aún', TRUE, NOW(), NOW()),
+           ('PENDIENTE_ACCION', 'En espera de una acción', TRUE, NOW(), NOW()),
+           ('APROBADO', 'Solicitud aprobada', TRUE, NOW(), NOW()),
+           ('RECHAZADO', 'Solicitud rechazada', TRUE, NOW(), NOW());
+
+INSERT INTO estado_solicitud (nombre, descripcion, activo, fecha_creacion, fecha_modificacion)
+    VALUES ('PENDIENTE', 'La solicitud está en proceso de evaluación', TRUE, NOW(), NOW()),
+           ('ACEPTADA', 'La solicitud ha sido aceptada', TRUE, NOW(), NOW()),
+           ('RECHAZADA', 'La solicitud ha sido rechazada', TRUE, NOW(), NOW());
+
+INSERT INTO tipo_observacion (nombre_tipo)
+    VALUES ('Contenido'),
+           ('Similitud'),
+           ('Citado'),
+           ('Inteligencia Artificial');
 -- LAS JORNADAS DE EXPOSICIÓN ESTÁN EN INSERTS JURADO.
