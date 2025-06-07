@@ -966,7 +966,7 @@ INSERT INTO solicitud (descripcion,
                        tipo_solicitud_id,
                        tema_id,
                        estado) -- estado = 1 ("PENDIENTE"
-    VALUES ('Solicitud de aprobación de tema de tesis', 1, 12, 2),
+    VALUES ('Solicitud de aprobación de tema de tesis', 1, 11, 2),
            ('Solicito acceso a la plataforma DRL', 1, 1, 1);
 
 
@@ -1011,7 +1011,7 @@ INSERT INTO reunion (titulo,
                      activo)
     VALUES ('Reunión de inducción', '2025-06-01 10:00:00', '2025-06-01 11:00:00', 'Reunión de bienvenida para nuevos estudiantes', 1, 'https://meet.example.com/reunion-induccion', NOW(), NOW(), TRUE),
            ('Primera reunion', '2025-06-10 16:00:00', '2025-06-10 17:00:00', 'Primera reunion', 1, 'presencial', NOW(), NOW(), TRUE),
-           ('Segunda reunion', '2025-06-17 16:00:00', '2025-06-17 17:00:00', 'Segunda reunion', 2, 'presencial', NOW(), NOW(), TRUE),
+           ('Segunda reunion', '2025-06-17 16:00:00', '2025-06-17 17:00:00', 'Segunda reunion', 2, 'presencial', NOW(), NOW(), TRUE);
 
 
 INSERT INTO usuario_reunion (reunion_id,
