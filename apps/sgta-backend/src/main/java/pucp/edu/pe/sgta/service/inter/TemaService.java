@@ -162,7 +162,7 @@ public interface TemaService {
             Integer offset
     ) ;
 
-	Integer contarPostuladosTemaLibre(
+	Integer contarPostuladosAlumnosTemaLibreAsesor(
 			String busqueda,
 			String estado,
 			LocalDate fechaLimite,

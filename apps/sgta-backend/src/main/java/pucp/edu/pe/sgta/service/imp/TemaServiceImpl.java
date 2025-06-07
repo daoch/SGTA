@@ -2836,7 +2836,7 @@ public class TemaServiceImpl implements TemaService {
 
 
 	@Override
-	public Integer contarPostuladosTemaLibre(
+	public Integer contarPostuladosAlumnosTemaLibreAsesor(
 			String busqueda,
 			String estado,
 			LocalDate fechaLimite,
