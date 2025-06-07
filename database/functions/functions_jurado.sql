@@ -728,6 +728,7 @@ CREATE OR REPLACE FUNCTION obtener_exposiciones_por_etapa_formativa_por_tema(
 )
 RETURNS TABLE(
     exposicion_id integer,
+    exposicion_x_tema_id integer,
     nombre_exposicion text,
     estado_exposicion character varying,
     datetime_inicio timestamp with time zone,
@@ -738,6 +739,7 @@ BEGIN
     RETURN QUERY
     SELECT 
         e.exposicion_id,
+        ext.exposicion_x_tema_id,
         e.nombre AS nombre_exposicion,
         ext.estado_exposicion::VARCHAR,
         bhe.datetime_inicio,
@@ -921,7 +923,8 @@ RETURNS TABLE(
 	sala text,
 	titulo text,
 	etapa_formativa text,
-	ciclo text
+	ciclo text,
+    tipo_exposicion_nombre text
 ) AS $$
 BEGIN 
 RETURN QUERY
@@ -936,7 +939,8 @@ SELECT
 	se.nombre AS sala,
 	tema.titulo::text,
 	ef.nombre AS etapa_formativa,
-	ciclo.nombre::text
+	ciclo.nombre::text,
+    e.nombre::text AS tipo_exposicion_nombre
 FROM
 	usuario_tema ut
 	JOIN exposicion_x_tema ext ON ext.tema_id = ut.tema_id
@@ -948,6 +952,7 @@ FROM
 	JOIN etapa_formativa_x_ciclo efxc ON efxc.etapa_formativa_x_ciclo_id = efxct.etapa_formativa_x_ciclo_id
 	JOIN etapa_formativa ef ON ef.etapa_formativa_id = efxc.etapa_formativa_id
 	JOIN ciclo ON ciclo.ciclo_id = efxc.ciclo_id
+    JOIN exposicion e ON e.exposicion_id = ext.exposicion_id
 WHERE ut.usuario_id = p_usuario_id
 AND ext.estado_exposicion IN ('programada', 'calificada', 'completada');
 END;
@@ -1176,7 +1181,6 @@ BEGIN
 END;
 $$;
 
-
 CREATE OR REPLACE FUNCTION obtener_id_carrera_por_id_expo(idexpo integer)
     RETURNS TABLE(id_carrera integer)
     LANGUAGE plpgsql
@@ -1191,7 +1195,6 @@ begin
 	where e.exposicion_id =idExpo ;
 end
 $$;
-
 
 CREATE OR REPLACE PROCEDURE llenar_exposicion_x_tema(idexpo integer)
     LANGUAGE plpgsql
@@ -1209,4 +1212,29 @@ begin
             -- AND t.estado_tema_id = 10 --  EN_PROGRESO
     );
 end
+$$;
+
+CREATE OR REPLACE FUNCTION obtener_miembros_jurado_x_exposicion_tema(
+    p_exposicion_x_tema_id integer
+)
+RETURNS TABLE(
+    usuario_id integer,
+    nombres text,
+    primer_apellido text,
+    segundo_apellido text,
+    rol text
+)
+LANGUAGE plpgsql
+AS
+$$
+BEGIN
+    RETURN QUERY
+    SELECT U.usuario_id, U.nombres::text, U.primer_apellido::text, U.segundo_apellido::text, rol.nombre::text AS rol
+    FROM USUARIO U
+    JOIN USUARIO_TEMA UT ON UT.usuario_id = U.usuario_id
+    JOIN EXPOSICION_X_TEMA EXT ON EXT.tema_id = UT.tema_id
+    JOIN ROL ON ROL.rol_id = UT.rol_id
+    JOIN CONTROL_EXPOSICION_USUARIO CEU ON CEU.usuario_x_tema_id = UT.usuario_tema_id
+    WHERE EXT.exposicion_x_tema_id = p_exposicion_x_tema_id AND U.tipo_usuario_id != 2 AND UT.activo = true AND CEU.exposicion_x_tema_id = p_exposicion_x_tema_id;
+END
 $$;
