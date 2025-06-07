@@ -5,6 +5,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -643,6 +644,9 @@ public class SolicitudServiceImpl implements SolicitudService {
     @Override
     public pucp.edu.pe.sgta.dto.asesores.SolicitudCambioAsesorDto registrarSolicitudCambioAsesor(
             pucp.edu.pe.sgta.dto.asesores.SolicitudCambioAsesorDto solicitud) {
+        //validar que no se cambie un asesor por el mismo
+        if(Objects.equals(solicitud.getAsesorActualId(), solicitud.getNuevoAsesorId()))
+            throw new RuntimeException("El asesor a cambiar no puede ser igual al asesor actual");
         if (!validarExistenEstadosAccionesRoles())
             throw new RuntimeException("Faltan registrar estados, roles o acciones");
         boolean validacion;
