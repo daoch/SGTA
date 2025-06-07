@@ -48,30 +48,30 @@ export default function SolicitudesPendientes() {
   } = usePagination(initialPagesList, LIMIT);
 
   useEffect(() => {
-    async function fetchCarrerasYPrimeraPagina() {
-      try {
-        setLoading(true);
-        // Get CarrerasIds
-        const carreras = await fetchCarrerasMiembroComite();
-        const ids = (carreras || []).map((c) => c.id);
-        setCarrerasIds(ids);
-
-        if (ids.length > 0) {
-          // Inicializar totalCounts
-          await fetchTotalCounts(ids);
-
-          // Cargar primera página
-          await fetchPage(estadoTema, 1, ids);
-        }
-      } catch (error) {
-        console.log("No se pudo cargar las carreras del usuario: " + error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchCarrerasYPrimeraPagina();
+    fetchFirstPageAndSetTotalCounts();
   }, []);
+
+  async function fetchFirstPageAndSetTotalCounts() {
+    try {
+      setLoading(true);
+      // Get CarrerasIds
+      const carreras = await fetchCarrerasMiembroComite();
+      const ids = (carreras || []).map((c) => c.id);
+      setCarrerasIds(ids);
+
+      if (ids.length > 0) {
+        // Inicializar totalCounts
+        await fetchTotalCounts(ids);
+
+        // Cargar primera página
+        await fetchPage(estadoTema, 1, ids);
+      }
+    } catch (error) {
+      console.log("No se pudo cargar las carreras del usuario: " + error);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const handlePageChange = useCallback(
     (newPage: number) => {
