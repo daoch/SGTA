@@ -311,5 +311,34 @@ class FAISSEmbeddingService:
         
         logging.info(f"Index rebuilt with {len(active_topics)} active topics")
 
+    def clear_index(self):
+        """
+        Completely clear the FAISS index and all metadata.
+        Use this when you want to start fresh from your Java application.
+        """
+        try:
+            # Clear FAISS index
+            self.index = faiss.IndexFlatIP(self.embedding_dim)
+            
+            # Clear all metadata
+            self.topic_metadata = {}
+            self.topic_id_to_index = {}
+            
+            # Remove cache files
+            if os.path.exists(self.index_path):
+                os.remove(self.index_path)
+                logging.info("Removed FAISS index cache file")
+            
+            if os.path.exists(self.metadata_path):
+                os.remove(self.metadata_path)
+                logging.info("Removed metadata cache file")
+            
+            logging.info("FAISS index completely cleared")
+            return True
+            
+        except Exception as e:
+            logging.error(f"Error clearing FAISS index: {str(e)}")
+            return False
+
 # Global instance
 faiss_service = FAISSEmbeddingService()

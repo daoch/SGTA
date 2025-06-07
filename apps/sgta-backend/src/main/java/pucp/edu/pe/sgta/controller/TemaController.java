@@ -33,6 +33,11 @@ import java.util.Map;
 @RequestMapping("/temas")
 public class TemaController {
 
+	// Constants for response keys
+	private static final String ERROR_KEY = "error";
+	private static final String MESSAGE_KEY = "message";
+	private static final String DETAILS_KEY = "details";
+
 	@Autowired
 	TemaService temaService;
 
@@ -531,7 +536,7 @@ public class TemaController {
 			@RequestParam(value = "limit",   defaultValue = "10") Integer limit,
 			@RequestParam(value = "offset",  defaultValue = "0")  Integer offset
 	) {
-		// Convertir posibles nulls a cadenas vacías (para que la función SQL los trate como “no filtro”)
+		// Convertir posibles nulls a cadenas vacías (para que la función SQL los trate como "no filtro")
 		String filtroTitulo          = (titulo                  == null ? "" : titulo);
 		String filtroEstado          = (estadoNombre            == null ? "" : estadoNombre);
 		String filtroNombreUsuario   = (nombreUsuario           == null ? "" : nombreUsuario);
@@ -549,6 +554,56 @@ public class TemaController {
 				limit,
 				offset
 		);
+	}
+	@PostMapping("/initializeFaiss")
+	public ResponseEntity<Map<String, Object>> initializeFaissIndex(HttpServletRequest request) {
+		try {
+			// Verify user has proper authorization
+			String sub = jwtService.extractSubFromRequest(request);
+			if (sub == null) {
+				return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+					.body(Map.of(ERROR_KEY, "Token de autenticación requerido"));
+			}
+
+			// Delegate to service layer
+			Map<String, Object> result = similarityService.initializeFaissIndexWithResponse();
+			
+			// Return appropriate HTTP status based on service result
+			if (Boolean.TRUE.equals(result.get("success"))) {
+				return ResponseEntity.ok(result);
+			} else {
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+			}
+
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+				.body(Map.of(
+					ERROR_KEY, "Error al inicializar el índice FAISS",
+					DETAILS_KEY, e.getMessage()
+				));
+		}
+	}
+
+	@GetMapping("/faissStatus")
+	public ResponseEntity<Map<String, Object>> getFaissStatus() {
+		try {
+			// Delegate to service layer
+			Map<String, Object> result = similarityService.getFaissStatus();
+			
+			// Return appropriate HTTP status based on service result
+			if (Boolean.TRUE.equals(result.get("success"))) {
+				return ResponseEntity.ok(result);
+			} else {
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+			}
+
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+				.body(Map.of(
+					ERROR_KEY, "Error al obtener el estado de FAISS",
+					DETAILS_KEY, e.getMessage()
+				));
+		}
 	}
 }
 

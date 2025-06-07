@@ -132,3 +132,15 @@ def search_topics_by_title_endpoint(title_query: str, limit: int = 20):
     except Exception as e:
         logging.error(f"Error searching topics by title: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
+
+def clear_index_endpoint():
+    """Clear the entire FAISS index"""
+    try:
+        success = faiss_service.clear_index()
+        if success:
+            return {"message": "FAISS index completely cleared", "success": True}
+        else:
+            raise HTTPException(status_code=500, detail="Failed to clear index")
+    except Exception as e:
+        logging.error(f"Error clearing index: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")

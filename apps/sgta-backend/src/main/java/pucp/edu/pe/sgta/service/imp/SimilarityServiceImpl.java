@@ -17,6 +17,7 @@ import pucp.edu.pe.sgta.service.inter.TemaService;
 import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.Objects;
 
 @Service
 public class SimilarityServiceImpl implements SimilarityService {
@@ -134,11 +135,11 @@ public class SimilarityServiceImpl implements SimilarityService {
             List<TemaSimilarityResult> faissResults = searchSimilarTemas(combinedText, threshold);
 
             // Filter out the same tema if it exists - fix the filtering logic
-            return faissResults.stream()
-                .filter(result -> {
+            return faissResults.stream()                .filter(result -> {
                     if (tema.getId() == null) {
                         return true; // Keep all results if input tema has no ID
-                    }                    if (result.getTema() == null || result.getTema().getId() == null) {
+                    }
+                    if (result.getTema() == null || result.getTema().getId() == null) {
                         return true; // Keep if result has no ID to compare
                     }
                     return !tema.getId().equals(result.getTema().getId());
@@ -435,12 +436,14 @@ public class SimilarityServiceImpl implements SimilarityService {
                     );
                 }
             }
-        }
+        }        return dp[s1.length()][s2.length()];
+    }
 
-        return dp[s1.length()][s2.length()];
-    }    /**
+    /**
      * Adds a tema to the FAISS index for efficient searching
-     */    public void addTemaToFaissIndex(TemaDto tema) {
+     */
+    @Override
+    public void addTemaToFaissIndex(TemaDto tema) {
         if (!Boolean.TRUE.equals(useFaiss) || tema == null) return;
 
         try {
@@ -461,16 +464,20 @@ public class SimilarityServiceImpl implements SimilarityService {
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
 
             String endpoint = sbertServiceUrl + "/topics/add";
-            restTemplate.exchange(endpoint, HttpMethod.POST, request, Map.class);
-
-            logger.info("Added tema " + tema.getId() + " to FAISS index with preprocessed text");
+            restTemplate.exchange(endpoint, HttpMethod.POST, request, Map.class);            if (Boolean.TRUE.equals(useFaiss)) {
+                logger.info("Added tema " + tema.getId() + " to FAISS index with preprocessed text");
+            }
 
         } catch (Exception e) {
             logger.warning("Failed to add tema to FAISS index: " + e.getMessage());
         }
-    }    /**
+    }
+
+    /**
      * Batch add multiple temas to FAISS index
-     */    public void addTemasToFaissIndex(List<TemaDto> temas) {
+     */
+    @Override
+    public void addTemasToFaissIndex(List<TemaDto> temas) {
         if (!Boolean.TRUE.equals(useFaiss) || temas == null || temas.isEmpty()) return;
 
         try {
@@ -489,16 +496,17 @@ public class SimilarityServiceImpl implements SimilarityService {
             Map<String, Object> requestBody = Map.of("topics", topicMaps);
 
             HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);            HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
-
-            String endpoint = sbertServiceUrl + "/topics/add";
+            headers.setContentType(MediaType.APPLICATION_JSON);            HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);            String endpoint = sbertServiceUrl + "/topics/add";
             @SuppressWarnings("rawtypes")
             ResponseEntity<Map> response = restTemplate.exchange(endpoint, HttpMethod.POST, request, Map.class);
 
             @SuppressWarnings("unchecked")
             Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
-            if (responseBody != null && responseBody.containsKey(TOPICS_ADDED_KEY)) {                Integer topicsAdded = (Integer) responseBody.get(TOPICS_ADDED_KEY);
-                logger.info(String.format("Added %d temas to FAISS index with preprocessed text", topicsAdded));
+            if (responseBody != null && responseBody.containsKey(TOPICS_ADDED_KEY)) {
+                Integer topicsAdded = (Integer) responseBody.get(TOPICS_ADDED_KEY);
+                if (Boolean.TRUE.equals(useFaiss)) {
+                    logger.info(String.format("Added %d temas to FAISS index with preprocessed text", topicsAdded));
+                }
             }
 
         } catch (Exception e) {
@@ -510,7 +518,9 @@ public class SimilarityServiceImpl implements SimilarityService {
     private List<TemaSimilarityResult> searchSimilarTemas(String queryText, Double threshold) {
         try {            // Preprocess the query text before sending to FAISS for consistency
             String preprocessedQuery = preprocessText(queryText);
-            logger.info(String.format("Searching FAISS with preprocessed query (length: %d)", preprocessedQuery.length()));
+            if (Boolean.TRUE.equals(useFaiss)) {
+                logger.info(String.format("Searching FAISS with preprocessed query (length: %d)", preprocessedQuery.length()));
+            }
             
             Map<String, Object> requestBody = Map.of(
                 "query", preprocessedQuery,
@@ -519,22 +529,25 @@ public class SimilarityServiceImpl implements SimilarityService {
             );
 
             HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);            HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
 
             String endpoint = sbertServiceUrl + "/topics/search";
             @SuppressWarnings("rawtypes")
             ResponseEntity<Map> response = restTemplate.exchange(endpoint, HttpMethod.POST, request, Map.class);
 
             @SuppressWarnings("unchecked")
-            Map<String, Object> responseBody = (Map<String, Object>) response.getBody();            if (responseBody != null && responseBody.containsKey(RESULTS_KEY)) {
+            Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
+            if (responseBody != null && responseBody.containsKey(RESULTS_KEY)) {
                 @SuppressWarnings("unchecked")
                 List<Map<String, Object>> results = (List<Map<String, Object>>) responseBody.get(RESULTS_KEY);
                 
-                logger.info(String.format("FAISS returned %d similar temas", results.size()));
-                
-                return results.stream()
-                    .map(this::mapFaissResultToTemaSimilarity)                    .filter(Objects::nonNull)
-                    .toList();
+                if (Boolean.TRUE.equals(useFaiss)) {
+                    logger.info(String.format("FAISS returned %d similar temas", results.size()));
+                }                return results.stream()
+                    .<TemaSimilarityResult>map(this::mapFaissResultToTemaSimilarity)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
             }
 
         } catch (Exception e) {
@@ -542,11 +555,10 @@ public class SimilarityServiceImpl implements SimilarityService {
         }
 
         return new ArrayList<>();
-    }
-
-    /**
+    }    /**
      * Maps FAISS search result to TemaSimilarityResult
-     */    private TemaSimilarityResult mapFaissResultToTemaSimilarity(Map<String, Object> faissResult) {
+     */
+    private TemaSimilarityResult mapFaissResultToTemaSimilarity(Map<String, Object> faissResult) {
         try {
             String topicId = (String) faissResult.get(TOPIC_ID_KEY);
             String title = (String) faissResult.get(TITLE_KEY);
@@ -579,11 +591,10 @@ public class SimilarityServiceImpl implements SimilarityService {
             logger.warning("Failed to map FAISS result: " + e.getMessage());
             return null;
         }
-    }
-
-    /**
+    }    /**
      * Combines title and description for search query
-     */    private String combineTextForSearch(TemaDto tema) {
+     */
+    private String combineTextForSearch(TemaDto tema) {
         StringBuilder combined = new StringBuilder();
         
         if (tema.getTitulo() != null && !tema.getTitulo().trim().isEmpty()) {
@@ -600,11 +611,11 @@ public class SimilarityServiceImpl implements SimilarityService {
         // for improved similarity search accuracy when available
         
         return combined.toString();
-    }
-
-    /**
+    }    /**
      * Initialize FAISS index with all existing temas
-     */    public void initializeFaissIndex() {
+     */
+    @Override
+    public void initializeFaissIndex() {
         if (!Boolean.TRUE.equals(useFaiss)) {
             logger.info("FAISS is disabled, skipping index initialization");
             return;
@@ -612,7 +623,8 @@ public class SimilarityServiceImpl implements SimilarityService {
 
         try {
             logger.info("Initializing FAISS index with existing temas...");
-            List<TemaDto> allTemas = temaService.getAll();            if (!allTemas.isEmpty()) {
+            List<TemaDto> allTemas = temaService.getAll();
+            if (!allTemas.isEmpty()) {
                 if (Boolean.TRUE.equals(useFaiss)) {
                     addTemasToFaissIndex(allTemas);
                     logger.info(String.format("FAISS index initialized with %d temas", allTemas.size()));
@@ -627,16 +639,97 @@ public class SimilarityServiceImpl implements SimilarityService {
     }
 
     /**
-     * Extracts tema ID from FAISS topic ID string (format: "tema_123")
+     * Initialize FAISS index and return detailed response information.
+     */
+    @Override
+    public Map<String, Object> initializeFaissIndexWithResponse() {
+        try {
+            if (!Boolean.TRUE.equals(useFaiss)) {
+                return Map.of(
+                    "success", false,
+                    "message", "FAISS está deshabilitado en la configuración",
+                    "temasIndexados", 0
+                );
+            }
+
+            logger.info("Initializing FAISS index with existing temas...");
+            List<TemaDto> allTemas = temaService.getAll();
+            
+            if (!allTemas.isEmpty()) {
+                addTemasToFaissIndex(allTemas);
+                logger.info(String.format("FAISS index initialized with %d temas", allTemas.size()));
+                
+                return Map.of(
+                    "success", true,
+                    "message", "FAISS index inicializado exitosamente",
+                    "temasIndexados", allTemas.size(),
+                    "timestamp", java.time.Instant.now().toString()
+                );
+            } else {
+                logger.info("No existing temas found, FAISS index is empty");
+                return Map.of(
+                    "success", true,
+                    "message", "No hay temas disponibles para indexar",
+                    "temasIndexados", 0,
+                    "timestamp", java.time.Instant.now().toString()
+                );
+            }
+            
+        } catch (Exception e) {
+            logger.severe("Failed to initialize FAISS index: " + e.getMessage());
+            return Map.of(
+                "success", false,
+                "error", "Error al inicializar el índice FAISS",
+                "details", e.getMessage(),
+                "temasIndexados", 0
+            );
+        }
+    }
+
+    /**
+     * Get FAISS status information including total temas count and configuration.
+     */
+    @Override
+    public Map<String, Object> getFaissStatus() {
+        try {
+            List<TemaDto> allTemas = temaService.getAll();
+            int totalTemas = allTemas.size();
+            
+            return Map.of(
+                "success", true,
+                "totalTemas", totalTemas,
+                "faissEnabled", Boolean.TRUE.equals(useFaiss),
+                "sbertEnabled", Boolean.TRUE.equals(useSbert),
+                "defaultThreshold", defaultThreshold,
+                "faissTopK", faissTopK,
+                "message", "Estado del índice FAISS obtenido exitosamente"
+            );
+            
+        } catch (Exception e) {
+            logger.severe("Failed to get FAISS status: " + e.getMessage());
+            return Map.of(
+                "success", false,
+                "error", "Error al obtener el estado de FAISS",                "details", e.getMessage(),
+                "totalTemas", 0,
+                "faissEnabled", false
+            );
+        }
+    }
+
+    /**
+     * Extracts tema ID from FAISS topic_id format (e.g., "tema_123" -> 123)
      */
     private Integer extractTemaIdFromTopicId(String topicId) {
-        if (topicId != null && topicId.startsWith(TOPIC_ID_PREFIX)) {
-            try {
-                return Integer.parseInt(topicId.substring(TOPIC_ID_PREFIX.length()));
-            } catch (NumberFormatException e) {
-                logger.warning(String.format("Could not parse tema ID from topic_id: %s", topicId));
-            }
+        if (topicId == null || !topicId.startsWith(TOPIC_ID_PREFIX)) {
+            return null;
         }
-        return null;
+        
+        try {
+            String idPart = topicId.substring(TOPIC_ID_PREFIX.length());
+            return Integer.parseInt(idPart);
+        } catch (NumberFormatException e) {
+            logger.warning("Failed to extract tema ID from topic_id: " + topicId);
+            return null;
+        }
     }
 }

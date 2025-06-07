@@ -4,7 +4,8 @@ from .controller.similarity_controller import similarity_endpoint
 from .controller.faiss_controller import (
     add_topics_endpoint, search_topics_endpoint, 
     get_faiss_stats_endpoint, rebuild_index_endpoint,
-    list_topics_endpoint, search_topics_by_title_endpoint
+    list_topics_endpoint, search_topics_by_title_endpoint,
+    clear_index_endpoint
 )
 from .models import (
     AddTopicsRequest, AddTopicsResponse,
@@ -48,6 +49,11 @@ def list_all_topics(include_deleted: bool = False):
 def search_topics_by_title(title_query: str, limit: int = 20):
     """Search topics by title (simple text matching, not semantic)"""
     return search_topics_by_title_endpoint(title_query, limit)
+
+@app.post("/topics/clear")
+def clear_faiss_index():
+    """Completely clear FAISS index and cache (for fresh start from Java app)"""
+    return clear_index_endpoint()
 
 @app.get("/topics/{topic_id}")
 def get_topic_by_id(topic_id: str):
