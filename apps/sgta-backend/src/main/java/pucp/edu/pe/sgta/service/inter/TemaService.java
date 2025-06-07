@@ -161,4 +161,12 @@ public interface TemaService {
             Integer limit,
             Integer offset
     ) ;
+
+	Integer contarPostuladosTemaLibre(
+			String busqueda,
+			String estado,
+			LocalDate fechaLimite,
+			String usuarioId
+	);
+
 }

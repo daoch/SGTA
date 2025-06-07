@@ -2835,4 +2835,30 @@ public class TemaServiceImpl implements TemaService {
 }
 
 
+	@Override
+	public Integer contarPostuladosTemaLibre(
+			String busqueda,
+			String estado,
+			LocalDate fechaLimite,
+			String usuarioId
+	){
+		// Obtener el ID del asesor (ejemplo usando un servicio, puedes adaptarlo)
+		UsuarioDto usuDto = usuarioService.findByCognitoId(usuarioId);
+
+		// Consulta SQL
+		String sql = "SELECT contar_postulaciones_alumnos_tema_libre(:asesorId, :busqueda, :estado, :fechaLimite)";
+
+		// Ejecutar función y retornar el valor entero
+		Number result = (Number) entityManager
+				.createNativeQuery(sql)
+				.setParameter("asesorId", usuDto.getId())
+				.setParameter("busqueda", busqueda != null ? busqueda : "")
+				.setParameter("estado", estado != null ? estado : "")
+				.setParameter("fechaLimite", fechaLimite != null ? java.sql.Date.valueOf(fechaLimite) : null)
+				.getSingleResult();
+
+		return result != null ? result.intValue() : 0;
+	}
+
+
 }
