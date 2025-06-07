@@ -28,6 +28,12 @@ export const tableTexts = {
     tabLabel: "Interesante",
     show: true,
   },
+  [EstadoTemaNombre.REGISTRADO]: {
+    title: "Temas registrados",
+    description: "Temas de tesis que han sido aprobados por el comité de tesis",
+    tabLabel: "Registrados",
+    show: true,
+  },
 };
 
 export const initialPagination: PagesList = {
