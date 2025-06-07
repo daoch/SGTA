@@ -251,8 +251,7 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
         }
 
         @Override
-        public ResponseEntity<?> asignarJuradoATema(AsignarJuradoRequest request) {
-                Integer usuarioId = request.getUsuarioId();
+        public ResponseEntity<?> asignarJuradoATema(AsignarJuradoRequest request,Integer usuarioId) {
                 Integer temaId = request.getTemaId();
 
                 Optional<Usuario> usuarioOpt = usuarioRepository.findById(usuarioId);
@@ -505,12 +504,11 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
         }
 
         @Override
-        public ResponseEntity<?> desasignarJuradoDeTema(AsignarJuradoRequest request) {
-                Integer usuarioId = request.getUsuarioId();
+        public ResponseEntity<?> desasignarJuradoDeTema(AsignarJuradoRequest request,Integer juradoId) {
                 Integer temaId = request.getTemaId();
 
                 Optional<UsuarioXTema> asignacionOpt = usuarioXTemaRepository
-                                .findByUsuarioIdAndTemaIdAndRolIdAndActivoTrue(usuarioId, temaId, 2);
+                                .findByUsuarioIdAndTemaIdAndRolIdAndActivoTrue(juradoId, temaId, 2);
 
                 if (asignacionOpt.isEmpty()) {
                         return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -785,7 +783,7 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
         }
 
         @Override
-        public ResponseEntity<?> actualizarEstadoControlExposicion(EstadoControlExposicionRequest request) {
+        public ResponseEntity<?> actualizarEstadoControlExposicion(EstadoControlExposicionRequest request,String juradoId) {
                 Map<String, Object> response = new HashMap<>();
 
                 // Buscar la relación Exposición x Tema
@@ -802,7 +800,7 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                 // Obtener el tema ID desde la relación
                 ExposicionXTema exposicionXTema = optionalExposicionXTema.get();
                 Integer temaId = exposicionXTema.getTema().getId();
-                Integer usuarioId = request.getJuradoId();
+                Integer usuarioId = Integer.parseInt(juradoId);
 
                 // Buscar el usuario x tema
                 Optional<UsuarioXTema> usuarioXTemaOptional = usuarioXTemaRepository
@@ -857,7 +855,7 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
         }
 
         @Override
-        public ResponseEntity<ExposicionCalificacionDto> listarExposicionCalificacion(ExposicionCalificacionRequest exposicionCalificacionRequest) {
+        public ResponseEntity<ExposicionCalificacionDto> listarExposicionCalificacion(ExposicionCalificacionRequest exposicionCalificacionRequest,String juradoId) {
 
                 ExposicionXTema exposicionXTema = exposicionXTemaRepository.findById(exposicionCalificacionRequest.getExposicion_tema_id())
                         .orElseThrow(() -> new RuntimeException("No se encontró exposicion_x_tema con id: " + exposicionCalificacionRequest.getExposicion_tema_id()));
@@ -870,7 +868,7 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                 String descripcion = tema.getResumen();
 
                 UsuarioXTema usuarioXTema = usuarioXTemaRepository
-                        .findByUsuarioIdAndTemaIdAndRolId(exposicionCalificacionRequest.getJurado_id(), tema.getId(), 2)
+                        .findByUsuarioIdAndTemaIdAndRolId(Integer.parseInt(juradoId), tema.getId(), 2)
                         .orElseThrow(() -> new ResponseStatusException(
                                 HttpStatus.NOT_FOUND,
                                 "No se encontró una relación UsuarioXTema con los IDs proporcionados"
@@ -904,7 +902,7 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                                         .findByExposicionXTema_IdAndCriterioExposicion_IdAndUsuario_Id(
                                                 exposicionCalificacionRequest.getExposicion_tema_id(),
                                                 criterio.getId(),
-                                                exposicionCalificacionRequest.getJurado_id());
+                                                Integer.parseInt(juradoId));
 
                                 RevisionCriterioExposicion revision = revisionOpt.orElse(null);
 

@@ -30,7 +30,7 @@ public interface MiembroJuradoService {
 
     public List<JuradoXAreaConocimientoDto> findAreaConocimientoByUser(Integer usuarioId);
 
-    ResponseEntity<?> asignarJuradoATema(AsignarJuradoRequest request);
+    ResponseEntity<?> asignarJuradoATema(AsignarJuradoRequest request,Integer usuarioId);
 
     List<MiembroJuradoXTemaDto> findByUsuarioIdAndActivoTrueAndRolId(Integer usuarioId);
 
@@ -38,7 +38,7 @@ public interface MiembroJuradoService {
 
     List<MiembroJuradoXTemaDto> findTemasDeOtrosJurados(Integer usuarioId);
 
-    ResponseEntity<?> desasignarJuradoDeTema(AsignarJuradoRequest request);
+    ResponseEntity<?> desasignarJuradoDeTema(AsignarJuradoRequest request,Integer juradoId);
 
     // Va para temas pero lo he colocado aquí
     public DetalleTemaDto obtenerDetalleTema(Integer temaId);
@@ -50,11 +50,11 @@ public interface MiembroJuradoService {
 
     ResponseEntity<?> actualizarEstadoExposicionJurado(EstadoExposicionJuradoRequest request);
 
-    ResponseEntity<?> actualizarEstadoControlExposicion(EstadoControlExposicionRequest request);
+    ResponseEntity<?> actualizarEstadoControlExposicion(EstadoControlExposicionRequest request,String juradoId);
 
     List<EstadoExposicionDto> listarEstados();
 
-    ResponseEntity<ExposicionCalificacionDto> listarExposicionCalificacion(ExposicionCalificacionRequest exposicionCalificacionRequest);
+    ResponseEntity<ExposicionCalificacionDto> listarExposicionCalificacion(ExposicionCalificacionRequest exposicionCalificacionRequest,String juradoId);
 
     ResponseEntity<?> actualizarRevisionCriterios(RevisionCriteriosRequest request);
 
