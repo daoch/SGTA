@@ -37,7 +37,7 @@ public class QuartzConfig {
                     .forJob(estadoExposicionJobDetail())
                     .withIdentity("estadoExposicionTrigger")
                     .withSchedule(SimpleScheduleBuilder.simpleSchedule()
-                            .withIntervalInSeconds(15)
+                            .withIntervalInMinutes(30)
                             .repeatForever())
                     .build();
         }
