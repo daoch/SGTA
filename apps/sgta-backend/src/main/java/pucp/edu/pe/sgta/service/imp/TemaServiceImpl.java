@@ -336,25 +336,25 @@ public class TemaServiceImpl implements TemaService {
 	private void validacionesInscripcionTema(TemaDto dto, Integer idUsuarioCreador) {
 
 		validarDtoTemaNoNulo(dto); // validar que el DTO no sea nulo
-		validarExistenciaListaUsuarios(dto.getTesistas());
-		validarExistenciaListaUsuarios(dto.getCoasesores()); // validar que hay al menos un tesista
-		validarUsuarioExiste(idUsuarioCreador);
+		//validarExistenciaListaUsuarios(dto.getTesistas());
+		//validarExistenciaListaUsuarios(dto.getCoasesores()); // validar que hay al menos un tesista
+		//validarUsuarioExiste(idUsuarioCreador);
 		validarTipoUsurio(idUsuarioCreador, TipoUsuarioEnum.profesor.name()); // validar que la inscripción la haga un
 																				// profesor
 		// validarUnicidadUsuarios(dto.getTesistas(), RolEnum.Tesista.name()); //
 		// validar que no se repiten los tesistas
 
-		for (UsuarioDto u : dto.getTesistas()) {
-			validarUsuarioExiste(u.getId());
-			validarTipoUsurio(u.getId(), TipoUsuarioEnum.alumno.name()); // validar que los tesistas sean alumnos
-		}
+		//for (UsuarioDto u : dto.getTesistas()) {
+		//	validarUsuarioExiste(u.getId());
+		//	validarTipoUsurio(u.getId(), TipoUsuarioEnum.alumno.name()); // validar que los tesistas sean alumnos
+		//}
 
 		// validarUnicidadUsuarios(dto.getCoasesores(), RolEnum.Coasesor.name()); //
 		// validar que no se repiten los coasesores
-		for (UsuarioDto u : dto.getCoasesores()) {
-			validarUsuarioExiste(u.getId());
-			validarTipoUsurio(u.getId(), TipoUsuarioEnum.profesor.name()); // validar que los coasesores sean profesores
-		}
+		//for (UsuarioDto u : dto.getCoasesores()) {
+		//	validarUsuarioExiste(u.getId());
+		//	validarTipoUsurio(u.getId(), TipoUsuarioEnum.profesor.name()); // validar que los coasesores sean profesores
+		//}
 		validarTesistasSinTemaAsignado(dto.getTesistas()); // validar que los tesistas no tengan tema asignado
 	}
 
@@ -487,9 +487,6 @@ public class TemaServiceImpl implements TemaService {
 		UsuarioXSolicitud usuarioXSolicitud = new UsuarioXSolicitud();
 		usuarioXSolicitud.setUsuario(usuario);
 		usuarioXSolicitud.setSolicitud(savedSolicitud);
-		//usuarioXSolicitud.setDestinatario(false); // o false según tu lógica
-		//usuarioXSolicitud.setAprobado(false);
-		//usuarioXSolicitud.setSolicitudCompletada(false);
 		usuarioXSolicitud.setComentario(comentario);
 		usuarioXSolicitud.setRolSolicitud(rolRemitente);
 		usuarioXSolicitud.setAccionSolicitud(accionPendiente);
@@ -529,20 +526,23 @@ public class TemaServiceImpl implements TemaService {
                 .findByNombre(AccionSolicitudEnum.PENDIENTE_ACCION.name())
                 .orElseThrow(() -> new RuntimeException("Accion pendiente_aprobacion no encontrado"));
 
-		// 3) Buscar los usuarios-coordinador de la carrera del tema
+		// 3) Buscar los usuarios coordinadores de la carrera del tema
+		//    - Primero obtenemos todas las relaciones usuario-carrera activas para la misma carrera del tema
+		//    - Después filtramos solo aquellas donde el campo 'esCoordinador' es verdadero
+		//    - Para cada relación restante, construimos un objeto UsuarioXSolicitud:
+		//        * Se establece el usuario coordinador
+		//        * Se enlaza con la solicitud recién guardada
+		//        * Se asigna el rol de destinatario y la acción pendiente
 		List<UsuarioXSolicitud> asignaciones = usuarioCarreraRepository
 				.findByCarreraIdAndActivoTrue(tema.getCarrera().getId()).stream()
-				.map(rel -> rel.getUsuario())
-				.filter(u -> TipoUsuarioEnum.coordinador.name().equalsIgnoreCase(u.getTipoUsuario().getNombre()))
-				.map(coord -> {
+				.filter(rel -> Boolean.TRUE.equals(rel.getEs_coordinador()))
+				.map(rel -> {
+					Usuario coord = rel.getUsuario();
 					UsuarioXSolicitud us = new UsuarioXSolicitud();
 					us.setUsuario(coord);
 					us.setSolicitud(savedSolicitud);
-					//us.setDestinatario(true);
 					us.setRolSolicitud(rolDestinatario);
-					//us.setAprobado(false);
 					us.setAccionSolicitud(accionPendiente);
-					//us.setSolicitudCompletada(false);
 					return us;
 				})
 				.collect(Collectors.toList());
@@ -1830,17 +1830,34 @@ public class TemaServiceImpl implements TemaService {
 
 		return resultados;
 	}
+    private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
+        Object result = entityManager.createNativeQuery(
+                "SELECT es_coordinador_activo(:usuarioId, :carreraId) FROM dual")
+                .setParameter("usuarioId", usuarioId)
+                .setParameter("carreraId", carreraId)
+                .getSingleResult();
+        return Boolean.TRUE.equals(result);
+    }
 
 	private void validarCoordinadorYEstado(
 			Integer temaId,
 			String nuevoEstadoNombre,
 			Integer usuarioId) {
-		validarTipoUsurio(usuarioId, TipoUsuarioEnum.coordinador.name());
+		// 3) Obtener el tema para extraer la carrera
+        Tema tema = temaRepository.findById(temaId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Tema con id " + temaId + " no encontrado"));		
+		// 4) Verificar coordinador activo usando la función PL/SQL
+        if (!esCoordinadorActivo(usuarioId, tema.getCarrera().getId())) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Usuario con id " + usuarioId + " no es coordinador de la carrera id " + tema.getCarrera().getId());
+        }
 		estadoTemaRepository.findByNombre(nuevoEstadoNombre)
 				.orElseThrow(() -> new ResponseStatusException(
 						HttpStatus.NOT_FOUND,
 						"EstadoTema '" + nuevoEstadoNombre + "' no existe"));
-		//validarEstadoTema(temaId, EstadoTemaEnum.INSCRITO.name());
 	}
 
 	private Tema actualizarTemaYHistorial(
@@ -2075,7 +2092,7 @@ public class TemaServiceImpl implements TemaService {
 		// Comprueba que usuarioId sea coordinador
 		UsuarioDto usuDto = usuarioService.findByCognitoId(coordinadorId);
 		Integer usuarioId = usuDto.getId();
-		validarTipoUsurio(usuarioId, TipoUsuarioEnum.coordinador.name());
+		//validarTipoUsurio(usuarioId, TipoUsuarioEnum.profesor.name());
 
 		// 2) Obtener la carrera del tema y validar que el usuario esté activo en esa
 		// carrera
