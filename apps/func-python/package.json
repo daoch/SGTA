@@ -1,0 +1,9 @@
+{
+  "name": "func-python",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "node run-python.js --dev",
+    "start": "node run-python.js"
+  }
+}
