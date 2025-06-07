@@ -183,6 +183,7 @@ public class EntregableServiceImpl implements EntregableService {
                 dto.setEntregableFechaEnvio(null);
             }
             dto.setEntregableComentario((String) row[18]);
+            dto.setEntregableXTemaId((Integer) row[19]);
             entregables.add(dto);
         }
 

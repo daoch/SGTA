@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import jakarta.servlet.http.HttpServletRequest;
 import pucp.edu.pe.sgta.dto.*;
 import pucp.edu.pe.sgta.dto.calificacion.ExposicionCalificacionDto;
 import pucp.edu.pe.sgta.dto.calificacion.ExposicionCalificacionRequest;
@@ -21,11 +23,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import pucp.edu.pe.sgta.service.inter.JwtService;
+import pucp.edu.pe.sgta.service.inter.UsuarioService;
+
 @RestController
 @RequestMapping("/jurado")
 public class MiembroJuradoController {
 
     private final MiembroJuradoService juradoService;
+
+    @Autowired
+    private JwtService jwtService;
+
+    @Autowired
+    private UsuarioService usuarioService;
 
     @Autowired
     public MiembroJuradoController(MiembroJuradoService autorService) {
@@ -126,10 +137,11 @@ public class MiembroJuradoController {
         return ResponseEntity.ok(detalle);
     }
 
-    @GetMapping("/{usuarioId}/exposiciones")
-    public ResponseEntity<List<ExposicionTemaMiembrosDto>> listarExposicionesPorJurado(
-            @PathVariable Integer usuarioId) {
-        List<ExposicionTemaMiembrosDto> exposiciones = juradoService.listarExposicionXJuradoId(usuarioId);
+    @GetMapping("/exposiciones")
+    public ResponseEntity<List<ExposicionTemaMiembrosDto>> listarExposicionesPorJurado(HttpServletRequest request) {
+        String cognitoId = jwtService.extractSubFromRequest(request);
+        UsuarioDto jurado = this.usuarioService.findByCognitoId(cognitoId);
+        List<ExposicionTemaMiembrosDto> exposiciones = juradoService.listarExposicionXJuradoId(jurado.getId());
         return ResponseEntity.ok(exposiciones);
     }
 
@@ -147,13 +159,13 @@ public class MiembroJuradoController {
     public ResponseEntity<List<EstadoExposicionDto>> listarEstados() {
         return ResponseEntity.ok(juradoService.listarEstados());
     }
+
     @GetMapping("/criterios")
     public ResponseEntity<ExposicionCalificacionDto> listarExposicionCalificacion(
-    @RequestParam("jurado_id") Integer juradoId,
-    @RequestParam("exposicion_tema_id") Integer exposicionTemaId
-    )  {
+            @RequestParam("jurado_id") Integer juradoId,
+            @RequestParam("exposicion_tema_id") Integer exposicionTemaId) {
         ExposicionCalificacionRequest request = new ExposicionCalificacionRequest(juradoId, exposicionTemaId);
-        return  juradoService.listarExposicionCalificacion(request);
+        return juradoService.listarExposicionCalificacion(request);
     }
 
     @PutMapping("/criterios")

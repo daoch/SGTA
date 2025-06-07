@@ -1,3 +1,5 @@
+import { MiembroJuradoDetalle } from "./juradoDetalle.types";
+
 export interface Jurado {
   code: string;
   name: string;
@@ -53,7 +55,7 @@ export interface TimeSlot {
   esBloqueReservado?: boolean;
   esBloqueBloqueado?: boolean;
   anteriorExpo?: Tema;
-  cambiado? : boolean;
+  cambiado?: boolean;
 }
 
 export interface EstadoPlanificacion {
@@ -87,6 +89,7 @@ export interface Exposicion {
   datetimeInicio: string;
   datetimeFin: string;
   salaExposicion: string;
+  miembrosJurado: MiembroJuradoDetalle[];
 }
 
 export interface EtapaFormativaExposiciones {
@@ -100,6 +103,7 @@ export interface Usuario {
   nombres: string;
   apellidos: string;
   rol: Rol;
+  estadoRespuesta: "esperando_respuesta" | "aceptado" | "rechazado";
 }
 
 export interface Rol {

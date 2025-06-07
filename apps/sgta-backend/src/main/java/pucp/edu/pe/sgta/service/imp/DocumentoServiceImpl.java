@@ -44,4 +44,10 @@ public class DocumentoServiceImpl implements DocumentoService {
         return documento.getId();
     }
 
+    @Transactional
+    @Override
+    public void borrarDocumento(Integer documentoId) {
+        documentoRepository.borrarDocumento(documentoId);
+    }
+
 }

@@ -28,6 +28,8 @@ import { DragMonitor } from "./DragMonitor";
 import PlanificationPanel from "./planification-panel";
 import TemasList from "./temas-list";
 import { getFechaHoraFromKey } from "../../utils/get-fecha-hora-from-key";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 interface Props {
   temas: Tema[];
@@ -64,6 +66,9 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
   } = usePlanificationStore();
 
   const [isLoading, setIsLoading] = useState(false);
+  console.log("EXPOSICION ID:", exposicionId);
+
+  const router = useRouter();
 
   useEffect(() => {
     setEstadoPlanificacion(estadoRecibido);
@@ -247,7 +252,6 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
       console.log("No puede dejar temas sin asignar");
       return;
     }
-
     setIsLoading(true);
     const bloquesListToInsert: TimeSlot[] = bloques.map((bloque) => {
       const temaAsignado = temasAsignados[bloque.key];
@@ -262,10 +266,20 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
 
     try {
       await updateBloquesNextPhase(bloquesListToInsert);
-      if (origen == "terminar") await finishPlanning(exposicionId);
-      const newEstadoPlanificacion =
-        await listarEstadoPlanificacionPorExposicion(exposicionId);
-      setEstadoPlanificacion(newEstadoPlanificacion);
+      if (origen == "terminar") {
+        await finishPlanning(exposicionId);
+        const newEstadoPlanificacion =
+          await listarEstadoPlanificacionPorExposicion(exposicionId);
+        setEstadoPlanificacion(newEstadoPlanificacion);
+        toast.success(
+          "La fase de planificación ha sido finalizada correctamente.",
+        );
+      } else {
+        router.push("/coordinador/exposiciones");
+        toast.success(
+          "La fase de planificación ha sido actualizada correctamente.",
+        );
+      }
     } catch (err) {
       console.error("Error al actualizar los bloques:", err);
     } finally {

@@ -128,6 +128,14 @@ export interface TesisAsignadaDetalle extends Tesis {
   exposiciones: ExposicionJurado[];
 }
 
+export interface MiembroJuradoDetalle {
+  id: number;
+  nombres: string;
+  primerApellido: string;
+  segundoApellido: string;
+  rol: string;
+}
+
 export interface TesisDetalleExposicion {
   estudiantes: {
     id: number;
@@ -154,6 +162,7 @@ export interface TesisDetalleExposicion {
       datetimeInicio: string;
       datetimeFin: string;
       sala: string;
+      miembrosJurado: MiembroJuradoDetalle[];
     }[];
   }[];
 }

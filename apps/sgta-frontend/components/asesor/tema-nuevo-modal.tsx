@@ -24,7 +24,6 @@ import {
   AreaDeInvestigacion,
   Carrera,
   Coasesor,
-  Tema,
   TemaCreateInscription,
   Tesista,
 } from "@/features/temas/types/inscripcion/entities";
@@ -43,6 +42,7 @@ import {
 } from "@/features/temas/types/temas/data";
 import {
   Subareas,
+  Tema,
   TemaCreateLibre,
 } from "@/features/temas/types/temas/entidades";
 //
@@ -248,7 +248,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
     if (!validarCampos()) return;
     try {
       if (carrera) {
-        await crearTemaLibre(mapTemaCreateLibre(temaData, carrera));
+        await crearTemaLibre(mapTemaCreateLibre(temaData, carrera, asesor));
         toast.success("Tema guardado exitosamente");
         console.log("Tema libre guardado exitosamente:");
       } else {
@@ -671,7 +671,7 @@ const mapTemaCreateInscription = (
   } as TemaCreateInscription;
 };
 
-const mapTemaCreateLibre = (tema: Tema, carrera: Carrera) => {
+const mapTemaCreateLibre = (tema: Tema, carrera: Carrera, asesor: Coasesor) => {
   return {
     titulo: tema.titulo,
     carrera: { id: carrera.id },
@@ -680,12 +680,12 @@ const mapTemaCreateLibre = (tema: Tema, carrera: Carrera) => {
     metodologia: tema.metodologia,
     fechaLimite: new Date(tema.fechaLimite + "T10:00:00Z").toISOString(),
     subareas: tema.subareas.map((a) => ({ id: a.id })),
-    coasesores: tema.coasesores
-      ? tema.coasesores.map((c) => ({ id: c.id }))
-      : [],
+    coasesores: [
+      { id: asesor.id },
+      ...(tema.coasesores ? tema.coasesores.map((c) => ({ id: c.id })) : []),
+    ],
     requisitos: tema.requisitos,
   } as TemaCreateLibre;
 };
 
 export default NuevoTemaDialog;
-
