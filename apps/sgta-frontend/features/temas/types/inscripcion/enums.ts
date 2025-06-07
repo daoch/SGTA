@@ -10,7 +10,7 @@ export enum Tipo {
 
 // Estados
 export enum estadosValues {
-  PROPUESTO_LIBRE = "disponible",
+  PROPUESTO_LIBRE = "Propuesto_libre",
   INSCRITO = "inscrito",
   REGISTRADO = "aprobado",
   RECHAZADO = "rechazado",

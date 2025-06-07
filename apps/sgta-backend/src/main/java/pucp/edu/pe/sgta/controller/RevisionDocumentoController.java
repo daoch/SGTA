@@ -11,8 +11,10 @@ import pucp.edu.pe.sgta.model.RevisionDocumento;
 import pucp.edu.pe.sgta.service.inter.JwtService;
 import pucp.edu.pe.sgta.service.inter.RevisionDocumentoService;
 import pucp.edu.pe.sgta.util.EstadoRevision;
-
+import java.util.Map;
 import java.util.List;
+import jakarta.persistence.EntityNotFoundException;
+import org.springframework.http.HttpStatus;
 
 @RestController
 @RequestMapping("/revision")
@@ -58,6 +60,25 @@ public class RevisionDocumentoController {
     @GetMapping("/asesor")
     public List<RevisionDocumentoAsesorDto> listarRevisionDocumentosPorAsesor(HttpServletRequest request) {
         String asesorId = jwtService.extractSubFromRequest(request);
+        System.out.println("AsesorId extraído del token: " + asesorId);
         return revisionDocumentoService.listarRevisionDocumentosPorAsesor(asesorId);
+    }
+
+    @PutMapping("/{id}/estado")
+    public ResponseEntity<?> actualizarEstado(@PathVariable Integer id, @RequestBody Map<String, String> payload) {
+        try {
+            String nuevoEstado = payload.get("estado");
+            revisionDocumentoService.actualizarEstadoRevision(id, nuevoEstado);
+            return ResponseEntity.ok("Estado actualizado");
+        } catch (EntityNotFoundException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error actualizando estado");
+        }
+    }
+
+    @GetMapping("/detalle")
+    public RevisionDocumentoAsesorDto obtenerRevisionDocumentoPorId(@RequestParam("revisionId") Integer revisionId) {
+        return revisionDocumentoService.obtenerRevisionDocumentoPorId(revisionId);
     }
 }

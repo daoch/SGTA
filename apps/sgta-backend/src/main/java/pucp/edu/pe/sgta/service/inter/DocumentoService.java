@@ -8,4 +8,5 @@ import java.util.List;
 public interface DocumentoService {
     List<DocumentoConVersionDto> listarDocumentosPorEntregable(Integer entregableId);
     Integer create(Documento documento);
+    void borrarDocumento(Integer documentoId);
 }

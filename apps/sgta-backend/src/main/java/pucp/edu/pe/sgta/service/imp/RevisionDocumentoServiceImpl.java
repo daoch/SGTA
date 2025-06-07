@@ -2,7 +2,7 @@ package pucp.edu.pe.sgta.service.imp;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
+import org.springframework.transaction.annotation.Transactional;
 import pucp.edu.pe.sgta.dto.RevisionDocumentoAsesorDto;
 import pucp.edu.pe.sgta.dto.RevisionDto;
 import pucp.edu.pe.sgta.model.RevisionDocumento;
@@ -19,6 +19,11 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import jakarta.persistence.EntityNotFoundException;
+
+
+
+
 
 @Service
 public class RevisionDocumentoServiceImpl implements RevisionDocumentoService {
@@ -329,5 +334,56 @@ public class RevisionDocumentoServiceImpl implements RevisionDocumentoService {
             documentos.add(dto);
         }
         return documentos;
+    }
+
+    @Override
+    @Transactional
+    public void actualizarEstadoRevision(Integer revisionId, String nuevoEstado) {
+        System.out.println(">>> Actualizando revisión con ID: " + revisionId + " al estado: " + nuevoEstado);
+
+        // Ya no buscas ni seteas, solo llamas el update con casteo
+        revisionDocumentoRepository.actualizarEstadoRevisionConCast(revisionId, nuevoEstado);
+    }
+
+
+
+    public RevisionDocumentoAsesorDto obtenerRevisionDocumentoPorId(Integer revisionId) {
+        List<Object[]> result = revisionDocumentoRepository.obtenerRevisionDocumentoPorId(revisionId);
+
+        if (result.isEmpty()) {
+            throw new RuntimeException("No se encontró ninguna revisión con ID: " + revisionId);
+        }
+
+        Object[] row = result.get(0);
+        RevisionDocumentoAsesorDto dto = new RevisionDocumentoAsesorDto();
+
+        dto.setId((Integer) row[0]); // revision_id
+        dto.setTitulo((String) row[1]); // tema
+        dto.setEntregable((String) row[2]); // entregable
+        dto.setEstudiante((String) row[3]); // estudiante
+        dto.setCodigo((String) row[4]); // código PUCP
+        dto.setCurso((String) row[5]); // curso
+
+        dto.setFechaEntrega(row[6] != null
+                ? ((Instant) row[6]).atOffset(ZoneOffset.UTC)
+                : null); // fecha_carga
+
+        dto.setEstado((String) row[7]); // estado_revision
+        dto.setEntregaATiempo((Boolean) row[8]); // entrega_a_tiempo
+
+        dto.setFechaLimite(row[9] != null
+                ? ((Instant) row[9]).atOffset(ZoneOffset.UTC)
+                : null); // fecha_limite
+
+        dto.setUrlDescarga((String) row[10]); // link_archivo_subido
+
+        // Valores no retornados aún por el SP
+        dto.setPorcentajeGenIA(null);
+        dto.setPorcentajeSimilitud(null);
+        dto.setFormatoValido(null);
+        dto.setCitadoCorrecto(null);
+        dto.setUltimoCiclo(null);
+
+        return dto;
     }
 }

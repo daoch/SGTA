@@ -13,6 +13,13 @@ export async function descargarArchivoS3(key: string): Promise<Blob> {
     );
     return response.data;
 }
+export async function descargarArchivoS3RevisionID(id: number): Promise<Blob> {
+    const response = await axiosInstance.get(
+        `/s3/archivos/descargar-por-revision/${encodeURIComponent(String(id))}`,
+        { responseType: "blob" }
+    );
+    return response.data;
+}
 export interface PlagiarismFound {
     startIndex: number;
     endIndex: number;
@@ -52,7 +59,7 @@ export async function analizarPlagioArchivoS3(key: string): Promise<PlagioApiRes
     return typeof response.data === "string" ? JSON.parse(response.data) as PlagioApiResponse : response.data;
 }
 export async function guardarObservacionesRevision(
-  revisionId: string,
+  revisionId: number,
   highlights: IHighlight[],
   usuarioId: number
 ) {
@@ -60,4 +67,92 @@ export async function guardarObservacionesRevision(
     `/revision/${revisionId}/observaciones?usuarioId=${usuarioId}`,
     highlights // <-- el array directo, no un objeto
   );
+}
+interface ObservacionToHighlightRect {
+  x1?: number;
+  y1?: number;
+  x2?: number;
+  y2?: number;
+  width?: number;
+  height?: number;
+  pageNumber?: number;
+}
+
+interface ObservacionToHighlight {
+  id: string | number;
+  contenido?: string;
+  comentario?: string;
+  tipoObservacion?: {
+    nombreTipo?: string;
+  };
+  boundingRect?: ObservacionToHighlightRect;
+  rects?: ObservacionToHighlightRect[];
+  numeroPaginaInicio?: number;
+}
+
+export interface HighlightDto {
+  id: number | string;
+  position: {
+    boundingRect: {
+      x1: number;
+      y1: number;
+      x2: number;
+      y2: number;
+      width: number;
+      height: number;
+      pageNumber?: number | null;
+    };
+    rects: Array<{
+      x1: number;
+      y1: number;
+      x2: number;
+      y2: number;
+      width: number;
+      height: number;
+      pageNumber?: number | null;
+    }>;
+    pageNumber: number;
+    usePdfCoordinates?: boolean | null;
+  };
+  content: {
+    text?: string | null;
+    image?: string | null;
+  };
+  comment: {
+    text: string;
+    emoji: string;
+  };
+}
+
+// Mapea el DTO a IHighlight
+function highlightDtoToIHighlight(dto: HighlightDto): IHighlight {
+  return {
+    id: String(dto.id),
+    content: {
+      text: dto.content?.text ?? "",
+      image: dto.content?.image ?? "",
+    },
+    comment: {
+      text: dto.comment?.text ?? "",
+      emoji: dto.comment?.emoji ?? "",
+    },
+    position: {
+      boundingRect: {
+        ...dto.position.boundingRect,
+        pageNumber: dto.position.boundingRect.pageNumber ?? undefined,
+      },
+      rects: (dto.position.rects ?? []).map(rect => ({
+        ...rect,
+        pageNumber: rect.pageNumber === null ? undefined : rect.pageNumber,
+      })),
+      pageNumber: dto.position.pageNumber ?? 1,
+      usePdfCoordinates: dto.position.usePdfCoordinates ?? false,
+    },
+  };
+}
+export async function obtenerObservacionesRevision(revisionId: number): Promise<IHighlight[]> {
+  const response = await axiosInstance.get(`/revision/${revisionId}/observaciones`);
+  // Mapea cada observación del backend a IHighlight
+  console.log("Response data:", response.data);
+  return response.data.map(highlightDtoToIHighlight);
 }

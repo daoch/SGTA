@@ -4,8 +4,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import pucp.edu.pe.sgta.model.CriterioEntregable;
+
 import pucp.edu.pe.sgta.dto.CriterioEntregableDto;
+import pucp.edu.pe.sgta.model.CriterioEntregable;
 
 import java.util.List;
 
@@ -27,4 +28,5 @@ public interface CriterioEntregableRepository extends JpaRepository<CriterioEntr
           AND c.activo = true
        """)
     List<CriterioEntregableDto> listarCriteriosEntregableXEntregable(@Param("entregableId") Integer entregableId);
+
 }

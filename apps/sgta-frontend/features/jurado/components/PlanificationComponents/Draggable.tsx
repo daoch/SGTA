@@ -44,7 +44,7 @@ export default function Draggable(props: DraggableProps) {
       <div style={innerStyle}>
         {isDragging ? (
           <div className="w-full h-32 border-4 border-dashed border-[#868A8F] bg-green-200 text-center rounded-lg flex justify-center items-center">
-            <span className="text-black font-bold text-5xl">{props.id}</span>
+            <span className="text-black font-bold text-3xl">{props.id}</span>
           </div>
         ) : (
           props.children

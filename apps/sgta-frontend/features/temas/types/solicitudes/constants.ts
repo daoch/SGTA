@@ -34,7 +34,7 @@ export const filters = {
     },
   },
   search: {
-    placeholder: "Buscar por título o tesis",
+    placeholder: "Buscar por título, tesis o solicitante ...",
   },
   filterTipos: {
     todos: {
