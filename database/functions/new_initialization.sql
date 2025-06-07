@@ -333,7 +333,7 @@ INSERT INTO criterio_entregable (entregable_id,
            (2, 'Claridad y coherencia en la redacción', 5.00, 'Se evalúa la claridad, coherencia y cohesión del contenido entregado.'),
            (2, 'Cumplimiento de requisitos', 6.00, 'Se verifica que el entregable cumpla con todos los requisitos solicitados.'),
            (2, 'Presentación del contenido', 2.00, 'Se evalúa el formato, uso adecuado de gráficos, y presentación ordenada del entregable.'),
-           (2, 'Análisis crítico', 3.00, 'Se mide la capacidad para interpretar y argumentar los resultados con pensamiento crítico.'),
+           (2, 'Análisis crítico', 3.00, 'Se mide la capacidad para interpretar y argumentar los resultados con pensamiento crítico.');
 
            --(3, 'Amplitud del contenido', 4.00, 'Se evalúa la profundidad y amplitud del contenido presentado en el entregable.'),
            --(3, 'Claridad y coherencia en la redacción', 5.00, 'Se evalúa la claridad, coherencia y cohesión del contenido entregado.'),
