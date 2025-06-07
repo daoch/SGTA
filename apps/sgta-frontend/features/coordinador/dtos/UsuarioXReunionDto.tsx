@@ -13,4 +13,5 @@ export interface UsuarioXReunionDto {
   fechaModificacion: string; 
   asistenciaAsesor?: string;
   asistenciaAlumno?: string;
+  descripcion?: string;
 }

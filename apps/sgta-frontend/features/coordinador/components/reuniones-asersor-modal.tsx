@@ -11,7 +11,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { UsuarioXReunionDto } from "../dtos/UsuarioXReunionDto";
 import { useEffect, useState } from "react";
-import { getReunionesXUsuario } from "../services/reuniones-asesor-service";
+import { getReunionesXUsuario, getReunionPorId } from "../services/reuniones-asesor-service";
 
 
 const formatFecha = (fechaString?: string) => {
@@ -42,23 +42,49 @@ export function ReunionesAsesorModal({
     useEffect(() => {
         const fetchData = async () => {
             try {
-            const reunionesAsesor = await getReunionesXUsuario(asesorId);
-            const reunionesAlumno = await getReunionesXUsuario(alumnoId);
+                const reunionesAsesor = await getReunionesXUsuario(asesorId);
+                const reunionesAlumno = await getReunionesXUsuario(alumnoId);
 
-            const reunionesComunes = reunionesAsesor
-                .filter((r1) =>
-                reunionesAlumno.some((r2) => r2.reunionId === r1.reunionId)
-                )
-                .map((r1) => {
-                const r2 = reunionesAlumno.find((r2) => r2.reunionId === r1.reunionId);
-                return {
-                    ...r1,
-                    asistenciaAsesor: r1.estadoAsistencia,
-                    asistenciaAlumno: r2?.estadoAsistencia ?? "PENDIENTE",
-                };
-                });
+                const reunionesComunes = reunionesAsesor
+                    .filter((r1) =>
+                    reunionesAlumno.some((r2) => r2.reunionId === r1.reunionId)
+                    );
+                    // .map((r1) => {
+                    // const r2 = reunionesAlumno.find((r2) => r2.reunionId === r1.reunionId);
+                    // return {
+                    //     ...r1,
+                    //     asistenciaAsesor: r1.estadoAsistencia,
+                    //     asistenciaAlumno: r2?.estadoAsistencia ?? "PENDIENTE",
+                    // };
+                    // });
 
-            setReuniones(reunionesComunes);
+                // Obtener los detalles adicionales por ID
+                const reunionesCompletas = await Promise.all(
+                    reunionesComunes.map(async (r1) => {
+                    const r2 = reunionesAlumno.find((r2) => r2.reunionId === r1.reunionId);
+                    try {
+                        const reunionDetalle = await getReunionPorId(r1.reunionId);
+                        return {
+                            ...r1,
+                            asistenciaAsesor: r1.estadoAsistencia,
+                            asistenciaAlumno: r2?.estadoAsistencia ?? "PENDIENTE",
+                            descripcion: reunionDetalle.descripcion,
+                        };
+                    } catch (error) {
+                        console.warn(`No se pudo obtener la reunión ${r1.reunionId}`, error);
+                        return {
+                            ...r1,
+                            asistenciaAsesor: r1.estadoAsistencia,
+                            asistenciaAlumno: r2?.estadoAsistencia ?? "PENDIENTE",
+                            titulo: "-",
+                            descripcion: "-",
+                        };
+                    }
+                    })
+                );
+                
+
+                setReuniones(reunionesCompletas);
             } catch (error) {
             console.error("Error cargando reuniones", error);
             }
@@ -215,7 +241,7 @@ export function ReunionesAsesorModal({
                         </Badge>
                     </TableCell>
                     <TableCell className="py-4 whitespace-normal break-words max-w-xs">{r.reunionTitulo}</TableCell>
-                    <TableCell className="py-4 whitespace-normal break-words max-w-xs">{r.estadoDetalle}</TableCell>
+                    <TableCell className="py-4 whitespace-normal break-words max-w-xs">{r.descripcion}</TableCell>
                     </TableRow>
                 ))}
                 </TableBody>
