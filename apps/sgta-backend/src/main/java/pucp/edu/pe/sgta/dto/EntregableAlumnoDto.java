@@ -28,4 +28,5 @@ public class EntregableAlumnoDto {
     private Integer temaId;
     private OffsetDateTime entregableFechaEnvio;
     private String entregableComentario;
+    private Integer entregableXTemaId;
 }

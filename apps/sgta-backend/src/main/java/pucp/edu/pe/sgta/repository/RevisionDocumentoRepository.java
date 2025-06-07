@@ -6,6 +6,9 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import pucp.edu.pe.sgta.model.RevisionDocumento;
 import pucp.edu.pe.sgta.util.EstadoRevision;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.transaction.annotation.Transactional;
+
 
 import java.util.List;
 
@@ -130,4 +133,11 @@ public interface RevisionDocumentoRepository extends JpaRepository<RevisionDocum
 
     @Query(value = "SELECT * FROM obtener_documentos_asesor(:asesorId)", nativeQuery = true)
     List<Object[]> listarRevisionDocumentosPorAsesor(@Param("asesorId") Integer asesorId);
+
+    @Modifying
+    @Transactional
+    @Query(value = "UPDATE revision_documento SET estado_revision = CAST(:nuevoEstado AS enum_estado_revision) WHERE revision_documento_id = :revisionId", nativeQuery = true)
+    void actualizarEstadoRevisionConCast(@Param("revisionId") Integer revisionId, @Param("nuevoEstado") String nuevoEstado);
+    @Query(value = "SELECT * FROM obtener_revision_documento_por_id(:revision_id_input)", nativeQuery = true)
+    List<Object[]> obtenerRevisionDocumentoPorId(@Param("revision_id_input") Integer revision_id_input);
 } 

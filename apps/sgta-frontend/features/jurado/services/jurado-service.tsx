@@ -305,11 +305,14 @@ export const desasignarJuradoTema = async (
 };
 
 export const getExposicionesJurado = async (
-  idJurado: number,
+  idToken: string,
 ): Promise<ExposicionJurado[]> => {
   try {
-    const response = await axiosInstance.get(
-      `/jurado/${idJurado}/exposiciones`,
+    const response = await axiosInstance.get("/jurado/exposiciones", {
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+      }
+    }
     );
     const data = response.data as ExposicionJurado[];
 

@@ -13,7 +13,7 @@ public interface AsesorTesistaRepository extends JpaRepository<UsuarioXTema, Int
 
     @Query(value = """
 
-            SELECT\s
+            SELECT
             a_user.usuario_id as asesor_id,
             a_user.nombres as asesor_nombre,
             a_user.primer_apellido as asesor_primer_apellido,

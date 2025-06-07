@@ -11,7 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Coasesor, Tesista } from "@/features/temas/types/inscripcion/entities";
-import { estadosValues, Tipo } from "@/features/temas/types/inscripcion/enums";
+import { Tipo } from "@/features/temas/types/inscripcion/enums";
 import { titleCase } from "@/lib/utils";
 import { FilePen, Trash2 } from "lucide-react";
 import DeleteTemaPopUp from "./delete-tema-pop-up";
@@ -95,59 +95,71 @@ export function TemasTable({
           {tema.titulo}
         </TableCell>
         {/* Area */}
-        <TableCell>{tema.subareas[0]?.nombre}</TableCell>
+        <TableCell>{tema.area[0].nombre}</TableCell>
         {/* Asesor */}
         <TableCell>{asesor ? asesor.nombres : ""}</TableCell>
         {/* Tesistas */}
         <TableCell>
-          {!tema.tesistas || tema.tesistas.length === 0 ? (
+          {!tema.tesistas ||
+          tema.tesistas.length === 0 ||
+          tema.tesistas.map((tesista) => tesista.asignado === false) ? (
             <p className="text-gray-400">Sin asignar</p>
           ) : (
             tema.tesistas.map((e: Tesista) => e.nombres).join(", ")
           )}
         </TableCell>
-        {/* Postulaciones // TODO: Mostrar postulaciones */}
-        {/* {tema.estadoTemaNombre === Tipo.LIBRE ? (
-          <TableCell>
-            {tema.postulaciones?.length ?? "-"}
-          </TableCell>
-        ) : (
-          <TableCell>-</TableCell>
-        )} */}
+        {/* Postulaciones */}
+        {<TableCell>{tema.cantPostulaciones ?? "-"}</TableCell>}
 
         {/* Tipo */}
         <TableCell>
-          <Badge
-            variant="outline"
-            className={
-              tema.estadoTemaNombre === estadosValues.PROPUESTO_LIBRE
-                ? "bg-purple-100 text-purple-800 hover:bg-purple-100"
-                : "bg-green-100 text-green-800 hover:bg-green-100"
+          {(() => {
+            let badgeClass = "";
+            if (tema.estadoTemaNombre === Tipo.LIBRE) {
+              badgeClass = "bg-purple-100 text-purple-800 hover:bg-purple-100";
+            } else if (tema.estadoTemaNombre === Tipo.PREINSCRITO) {
+              badgeClass = "bg-orange-100 text-orange-800 hover:bg-orange-100";
+            } else if (tema.estadoTemaNombre === Tipo.INTERESADO) {
+              badgeClass = "bg-blue-100 text-blue-800 hover:bg-blue-100";
+            } else {
+              badgeClass = "bg-green-100 text-green-800 hover:bg-green-100";
             }
-          >
-            {titleCase(tema?.estadoTemaNombre ?? "")}
-          </Badge>
+            return (
+              <Badge variant="outline" className={badgeClass}>
+                {titleCase(tema?.estadoTemaNombre ?? "")}
+              </Badge>
+            );
+          })()}
         </TableCell>
         {/* Estado */}
         <TableCell>
           {(() => {
             let estadoLabel = "";
-            if (filter?.includes(Tipo.INTERESADO)) {
+            if (
+              tema?.estadoTemaNombre === Tipo.INTERESADO ||
+              tema?.estadoTemaNombre === Tipo.LIBRE
+            ) {
               estadoLabel = "Pendiente";
             } else if (tema.activo) {
               estadoLabel = "Activo";
             } else {
               estadoLabel = "Inactivo";
             }
+
+            let badgeClass = "";
+            if (
+              tema?.estadoTemaNombre === Tipo.INTERESADO ||
+              tema?.estadoTemaNombre === Tipo.LIBRE
+            ) {
+              badgeClass = "bg-yellow-100 text-black-500 hover:bg-yellow-100";
+            } else if (tema.activo) {
+              badgeClass = "bg-green-100 text-green-800 hover:bg-green-100";
+            } else {
+              badgeClass = "bg-purple-100 text-purple-800 hover:bg-purple-100";
+            }
+
             return (
-              <Badge
-                variant="outline"
-                className={
-                  tema.activo
-                    ? "bg-green-100 text-green-800 hover:bg-green-100"
-                    : "bg-purple-100 text-purple-800 hover:bg-purple-100"
-                }
-              >
+              <Badge variant="outline" className={badgeClass}>
                 {titleCase(estadoLabel)}
               </Badge>
             );
@@ -197,7 +209,7 @@ export function TemasTable({
               <TableHead>Área</TableHead>
               <TableHead>Asesor</TableHead>
               <TableHead>Estudiante(s)</TableHead>
-              {/* <TableHead>Postulaciones</TableHead> // TODO: Mostrar postulaciones */}
+              <TableHead>Postulaciones</TableHead>
               <TableHead>Tipo</TableHead>
               <TableHead>Estado</TableHead>
               <TableHead className="text-right">Acción</TableHead>

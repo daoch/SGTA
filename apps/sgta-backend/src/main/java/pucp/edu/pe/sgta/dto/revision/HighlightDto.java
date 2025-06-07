@@ -11,7 +11,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 public class HighlightDto {
-    private String id;
+    private Number id;
     private PositionDto position;
     private ContentDto content;
     private CommentDto comment;
