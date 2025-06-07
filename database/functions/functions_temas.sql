@@ -89,9 +89,6 @@ BEGIN
 END;
 $BODY$;
 
-
-
-
 CREATE OR REPLACE FUNCTION listar_temas_propuestos_al_asesor(
 	p_asesor_id integer,
 	p_titulo text DEFAULT NULL::text,
@@ -238,7 +235,6 @@ BEGIN
 END;
 $BODY$;
 
-
 -- 1) Función que lista temas de un usuario según rol y estado
 CREATE OR REPLACE FUNCTION listar_temas_por_usuario_rol_estado(
   p_usuario_id    INT,
@@ -298,7 +294,6 @@ BEGIN
   LIMIT p_limit OFFSET p_offset;
 END;
 $$ LANGUAGE plpgsql;
-
 
 -- 2) Función que lista usuarios vinculados a un tema según rol
 CREATE OR REPLACE FUNCTION listar_usuarios_por_tema_y_rol(
@@ -367,8 +362,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-
-
 CREATE OR REPLACE FUNCTION enlazar_tesistas_tema_propuesta_directa(
     p_usuarios_id integer[],
     p_tema_id integer,
@@ -429,9 +422,6 @@ BEGIN
 END;
 $BODY$;
 
-
-
-
 CREATE OR REPLACE FUNCTION listar_areas_conocimiento_por_usuario(
 	p_usuario_id integer)
     RETURNS TABLE(area_id integer, area_nombre text, descripcion text)
@@ -447,8 +437,6 @@ AS $BODY$
     JOIN area_conocimiento ac ON sac.area_conocimiento_id = ac.area_conocimiento_id
     WHERE usac.usuario_id = p_usuario_id;
 $BODY$;
-
-
 
 CREATE OR REPLACE FUNCTION obtener_sub_areas_por_usuario(
 	p_usuario_id integer)
@@ -470,8 +458,6 @@ BEGIN
     WHERE u.usuario_id = p_usuario_id;
 END;
 $BODY$;
-
-
 
 CREATE OR REPLACE FUNCTION postular_asesor_a_tema(
     p_alumno_id integer,
@@ -606,7 +592,6 @@ BEGIN
 END;
 $BODY$;
 
-
 CREATE OR REPLACE FUNCTION eliminar_propuestas_tesista(p_usuario_id INTEGER)
 RETURNS VOID AS
 $$
@@ -678,7 +663,6 @@ BEGIN
   END LOOP;
 END;
 $$ LANGUAGE plpgsql;
-
 
 -- Función que elimina postulaciones de un tesista a temas en PROPUESTO_LIBRE
 
@@ -816,7 +800,6 @@ $$;
 
 ALTER FUNCTION obtener_usuarios_por_area_conocimiento(INTEGER) OWNER TO postgres;
 
-
 CREATE OR REPLACE FUNCTION obtener_usuarios_con_temass()
     RETURNS TABLE
             (
@@ -855,7 +838,6 @@ END;
 $$;
 
 ALTER FUNCTION obtener_usuarios_con_temass() OWNER TO postgres;
-
 
 CREATE OR REPLACE FUNCTION obtener_usuarios_con_temas()
     RETURNS TABLE
@@ -896,7 +878,6 @@ $$;
 
 ALTER FUNCTION obtener_usuarios_con_temas() OWNER TO postgres;
 
-
 CREATE OR REPLACE FUNCTION obtener_area_conocimiento(usuario_id_param INTEGER)
     RETURNS TABLE
             (
@@ -922,7 +903,6 @@ $$;
 
 ALTER FUNCTION obtener_area_conocimiento(INTEGER) OWNER TO postgres;
 
-
 CREATE OR REPLACE FUNCTION generar_codigo_tema()
 RETURNS TRIGGER AS $$
 DECLARE
@@ -940,8 +920,6 @@ BEGIN
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
-
-
 
 CREATE OR REPLACE TRIGGER trigger_generar_codigo_tema
 AFTER INSERT ON tema
@@ -1031,8 +1009,6 @@ BEGIN
       r.documento_url, t.activo, t.fecha_limite, t.fecha_creacion, t.fecha_modificacion, et.nombre;
 END;
 $$;
-
-
 
 CREATE OR REPLACE FUNCTION listar_postulaciones_del_tesista_con_usuarios(
     p_tesista_id TEXT,       -- ahora es el cognito_id
@@ -1154,8 +1130,6 @@ BEGIN
 END;
 $$;
 
-
-
 CREATE OR REPLACE FUNCTION listar_asesores_por_subarea_conocimiento(
     p_subarea_id INTEGER
 )
@@ -1189,7 +1163,6 @@ WHERE usac.sub_area_conocimiento_id = p_subarea_id
   AND tu.nombre ILIKE 'profesor'
 $$;
 
-
 CREATE OR REPLACE FUNCTION obtener_sub_areas_por_carrera_usuario(
     p_usuario_id TEXT
 )
@@ -1222,7 +1195,6 @@ JOIN sub_area_conocimiento sac
 WHERE usac.activo = TRUE
 ORDER BY nombre;
 $$;
-
 
 --ALTER FUNCTION obtener_sub_areas_por_carrera_usuario(INTEGER) OWNER TO postgres;
 
@@ -1278,7 +1250,6 @@ BEGIN
 END;
 $$;
 
-
 --ALTER FUNCTION aprobar_postulacion_propuesta_general_tesista(INTEGER, INTEGER, INTEGER) OWNER TO doadmin;
 
 CREATE OR REPLACE FUNCTION rechazar_postulacion_propuesta_general_tesista(
@@ -1320,7 +1291,6 @@ BEGIN
 END;
 $$;
 
-
 -- ALTER FUNCTION rechazar_postulacion_propuesta_general_tesista(INTEGER, INTEGER, INTEGER) OWNER TO postgres;
 
 CREATE OR REPLACE FUNCTION listar_asesores_por_subarea_conocimiento_v2(
@@ -1348,7 +1318,6 @@ $BODY$;
 
 ALTER FUNCTION listar_asesores_por_subarea_conocimiento_v2(integer)
     OWNER TO postgres;
-
 
 CREATE OR REPLACE FUNCTION obtener_usuarios_por_tipo_carrera_y_busqueda(
     p_tipo_usuario     TEXT,
@@ -1425,8 +1394,6 @@ AS $$
       );
 $$;
 
-
-
 CREATE OR REPLACE FUNCTION obtener_carreras_por_usuario(
     p_usuario_id INT
 )
@@ -1498,7 +1465,6 @@ BEGIN
     LIMIT p_limit OFFSET p_offset;
 END;
 $$;
-
 
 CREATE OR REPLACE PROCEDURE actualizar_estado_tema(
   p_tema_id           INTEGER,
@@ -1776,7 +1742,6 @@ BEGIN
 END;
 $$;
 
-
 CREATE OR REPLACE FUNCTION buscar_tema_por_id(p_tema_id INT)
 RETURNS TABLE (
     codigo TEXT,
@@ -2036,6 +2001,7 @@ BEGIN
     OFFSET p_offset;
 END;
 $$;
+
 CREATE OR REPLACE FUNCTION postular_tesista_tema_libre(
     p_tema_id     INTEGER,
     p_tesista_id  TEXT,
@@ -2139,7 +2105,6 @@ BEGIN
 
 END;
 $$;
-
 
 CREATE OR REPLACE FUNCTION tiene_rol_en_tema(
     p_usuario_id  INTEGER,
@@ -2544,8 +2509,6 @@ BEGIN
 END;
 $BODY$;
 
-
-
 CREATE OR REPLACE FUNCTION listar_temas_por_usuario_titulo_area_carrera_estado_fecha(
     p_usuario_id                INT,
     p_titulo                    TEXT    DEFAULT '',  
@@ -2873,8 +2836,6 @@ AS $func$
     OFFSET  p_offset;
 $func$;
 
-
-
 CREATE OR REPLACE FUNCTION listar_temas_filtrado_completo(
     p_titulo                TEXT    DEFAULT '',
     p_estado_nombre         TEXT    DEFAULT '',
@@ -3201,3 +3162,33 @@ AS $func$
     LIMIT   p_limit
     OFFSET  p_offset;
 $func$;
+
+CREATE OR REPLACE FUNCTION listar_areas_por_tema(
+	_tema_id integer)
+    RETURNS TABLE(area_conocimiento_id integer, carrera_id integer, nombre text, descripcion text, activo boolean, fecha_creacion timestamp with time zone, fecha_modificacion timestamp with time zone) 
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+    ROWS 1000
+
+AS $BODY$
+
+BEGIN
+  RETURN QUERY
+    SELECT DISTINCT
+      ac.area_conocimiento_id,
+	  ac.carrera_id,
+      ac.nombre::text,
+      ac.descripcion::text,
+      ac.activo,
+      ac.fecha_creacion,
+      ac.fecha_modificacion
+    FROM area_conocimiento ac
+    INNER JOIN sub_area_conocimiento sac 
+      ON sac.area_conocimiento_id = ac.area_conocimiento_id 
+    INNER JOIN sub_area_conocimiento_tema sact 
+      ON sact.sub_area_conocimiento_id = sac.sub_area_conocimiento_id 
+    INNER JOIN tema t 
+      ON t.tema_id = sact.tema_id
+    WHERE t.tema_id = _tema_id;
+END;
