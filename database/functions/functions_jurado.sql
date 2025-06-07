@@ -923,7 +923,8 @@ RETURNS TABLE(
 	sala text,
 	titulo text,
 	etapa_formativa text,
-	ciclo text
+	ciclo text,
+    tipo_exposicion_nombre text
 ) AS $$
 BEGIN 
 RETURN QUERY
@@ -938,7 +939,8 @@ SELECT
 	se.nombre AS sala,
 	tema.titulo::text,
 	ef.nombre AS etapa_formativa,
-	ciclo.nombre::text
+	ciclo.nombre::text,
+    e.nombre::text AS tipo_exposicion_nombre
 FROM
 	usuario_tema ut
 	JOIN exposicion_x_tema ext ON ext.tema_id = ut.tema_id
@@ -950,6 +952,7 @@ FROM
 	JOIN etapa_formativa_x_ciclo efxc ON efxc.etapa_formativa_x_ciclo_id = efxct.etapa_formativa_x_ciclo_id
 	JOIN etapa_formativa ef ON ef.etapa_formativa_id = efxc.etapa_formativa_id
 	JOIN ciclo ON ciclo.ciclo_id = efxc.ciclo_id
+    JOIN exposicion e ON e.exposicion_id = ext.exposicion_id
 WHERE ut.usuario_id = p_usuario_id
 AND ext.estado_exposicion IN ('programada', 'calificada', 'completada');
 END;
