@@ -27,4 +27,5 @@ public class ExposicionEstudianteDTO {
     private String etapaFormativa;
     private String ciclo;
     private List<MiembroExposicionDto> miembrosJurado;
+    private String tipoExposicion;
 }
