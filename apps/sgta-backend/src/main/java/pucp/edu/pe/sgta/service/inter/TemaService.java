@@ -6,7 +6,9 @@ import pucp.edu.pe.sgta.dto.asesores.TemaConAsesorDto;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.List;
+
 import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
 
 public interface TemaService {
@@ -58,7 +60,7 @@ public interface TemaService {
 
 	void rechazarTemaPropuestaDirecta(Integer alumnoId, String comentario, Integer temaId);
 
-	List<TemaConAsesorJuradoDTO> listarTemasCicloActualXEtapaFormativa(Integer etapaFormativaId);
+	List<TemaConAsesorJuradoDTO> listarTemasCicloActualXEtapaFormativa(Integer etapaFormativaId,Integer expoId);
 
 	List<TemaDto> listarPropuestasPorTesista(String tesistaId);
 
@@ -117,7 +119,7 @@ public interface TemaService {
 	void crearSolicitudCambioDeResumen(String idUsuario,
 											String comentario,
 											Integer temaId);
-											
+
 	List<TemaDto> listarTemasLibres(String titulo, Integer limit, Integer offset, String usuarioId, Boolean myOwn);
 
 	void postularTemaLibre(Integer temaId, String tesistaId, String comentario);
@@ -135,4 +137,28 @@ public interface TemaService {
 	List<TemaPorAsociarDto> listarTemasPorAsociarPorCarrera(Integer carreraId);
 
 	void asociarTemaACurso(Integer cursoId, Integer temaId);
+
+	List<TemaDto> listarTemasPorUsuarioTituloAreaCarreraEstadoFecha(
+        String usuarioCognitoId,
+        String titulo,
+        Integer areaId,
+        Integer carreraId,
+        String estadoNombre,
+        LocalDate fechaCreacionDesde,
+        LocalDate fechaCreacionHasta,
+        Integer limit,
+        Integer offset
+    );
+
+	List<TemaDto> listarTemasFiltradoCompleto(
+            String titulo,
+            String estadoNombre,
+            Integer carreraId,
+            Integer areaId,
+            String nombreUsuario,
+            String primerApellidoUsuario,
+            String segundoApellidoUsuario,
+            Integer limit,
+            Integer offset
+    ) ;
 }

@@ -49,4 +49,15 @@ public class ControlExposicionUsuarioTemaServiceImpl implements ControlExposicio
 
     }
 
+    @Override
+    public void updateEstadoRespuestaExposicion(Integer exposicionId, Integer temaId) {
+        try{
+            controlExposicionUsuarioTemaRepository.updateEstadoRespuestaExposicion(exposicionId,temaId);
+
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+    }
+
 }

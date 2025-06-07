@@ -12,10 +12,10 @@ import {
   listarTemasCicloActualXEtapaFormativa,
 } from "@/features/jurado/services/data";
 import { isSameDay } from "date-fns";
+import { Toaster } from "sonner";
+import { ExposicionEtapaFormativaDTO } from "../dtos/ExposicionEtapaFormativaDTO";
 import { JornadaExposicionDTO } from "../dtos/JornadExposicionDTO";
 import { transformarJornada } from "../utils/transformar-jornada";
-import { ExposicionEtapaFormativaDTO } from "../dtos/ExposicionEtapaFormativaDTO";
-import { Toaster } from "sonner";
 
 type Props = {
   exposicionId: number;
@@ -28,9 +28,7 @@ export default async function PlanExpo({ exposicionId }: Props) {
   const exposicionEtapaFormativaDTO: ExposicionEtapaFormativaDTO | null =
     await getEtapaFormativaIdByExposicionId(exposicionId);
 
-  const temas = await listarTemasCicloActualXEtapaFormativa(
-    exposicionEtapaFormativaDTO?.etapaFormativaId ?? 0,
-  );
+  const temas = await listarTemasCicloActualXEtapaFormativa(exposicionEtapaFormativaDTO?.etapaFormativaId,exposicionId);
 
   const jornadasSalas =
     await listarJornadasExposicionSalasByExposicion(exposicionId);

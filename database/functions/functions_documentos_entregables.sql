@@ -1,3 +1,5 @@
+--SET search_path = sgtadb
+
 DROP FUNCTION IF EXISTS listar_etapas_formativas_alumno;
 DROP FUNCTION IF EXISTS obtener_entregables_alumno;
 DROP FUNCTION IF EXISTS listar_documentos_x_entregable;
@@ -56,7 +58,8 @@ RETURNS TABLE (
     ciclo_semestre VARCHAR,
     tema_id INTEGER,
     fecha_envio TIMESTAMP WITH TIME ZONE,
-    comentario TEXT
+    comentario TEXT,
+	entregable_x_tema_id INTEGER
 ) AS $$
 BEGIN
     RETURN QUERY
@@ -79,7 +82,8 @@ BEGIN
         c.semestre AS ciclo_semestre,
         et.tema_id,
         et.fecha_envio,
-        et.comentario
+        et.comentario,
+		et.entregable_x_tema_id
     FROM usuario_tema ut
     JOIN entregable_x_tema et ON et.tema_id = ut.tema_id
     JOIN entregable e ON e.entregable_id = et.entregable_id
@@ -112,7 +116,7 @@ BEGIN
         v.entregable_x_tema_id AS entregable_tema_id
     FROM version_documento v
     JOIN documento d ON d.documento_id = v.documento_id
-    WHERE v.entregable_x_tema_id = p_entregable_x_tema_id;
+    WHERE v.entregable_x_tema_id = p_entregable_x_tema_id AND v.activo = TRUE AND d.activo = TRUE;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -250,5 +254,22 @@ BEGIN
         SET estado_tema_id = v_estado_en_progreso_id
         WHERE tema_id = p_tema_id;
     END IF;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION borrar_documento(p_documento_id INTEGER)
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  -- Desactivar el documento
+  UPDATE documento
+  SET activo = FALSE
+  WHERE documento_id = p_documento_id;
+
+  -- Desactivar todas las versiones asociadas a ese documento
+  UPDATE version_documento
+  SET activo = FALSE
+  WHERE documento_id = p_documento_id;
 END;
 $$;

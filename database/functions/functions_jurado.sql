@@ -126,7 +126,8 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION listar_temas_ciclo_actual_x_etapa_formativa(
-	etapa_id integer
+	etapa_id integer	,
+	expo_id integer
 )
 RETURNS TABLE(
 	tema_id integer,
@@ -136,10 +137,13 @@ RETURNS TABLE(
      nombres varchar,
   apellidos varchar,
   rol_id integer,
-  rol_nombre varchar
-    
+  rol_nombre varchar    
 ) AS $$
+declare
+	
 BEGIN
+	
+	
     RETURN QUERY
  	SELECT 
 		t.tema_id,
@@ -159,6 +163,7 @@ BEGIN
 	inner join usuario u on  u.usuario_id = ut.usuario_id
 	inner join rol r on r.rol_id = ut.rol_id
 	where c.activo = true and  ef.etapa_formativa_id = etapa_id 
+	and t.tema_id in  (select po.tema_id from exposicion_x_tema po where po.exposicion_id = expo_id)
 	order by t.tema_id;  
 END;
 $$ LANGUAGE plpgsql;
@@ -998,7 +1003,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE PROCEDURE terminar_planificacion(idExposicion INT, idEtapaFormativa INT)
+CREATE OR REPLACE PROCEDURE intsertar_control_exposcion(idExposicion INT, idEtapaFormativa INT)
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -1153,3 +1158,55 @@ RETURN QUERY
 END;
 $function$
 ;
+
+CREATE OR REPLACE PROCEDURE update_estado_exposicion_usuario(
+    IN p_exposicion_id INTEGER,
+    IN p_tema_id INTEGER
+)
+LANGUAGE plpgsql
+AS $$
+declare
+	 ext_id INTEGER;
+BEGIN
+	select exposicion_x_tema_id into ext_id from exposicion_x_tema where exposicion_id = p_exposicion_id 
+	and tema_id = p_tema_id;
+
+    update control_exposicion_usuario set estado_exposicion_usuario = 'esperando_respuesta'
+	where exposicion_x_tema_id =ext_id;
+END;
+$$;
+
+
+CREATE OR REPLACE FUNCTION obtener_id_carrera_por_id_expo(idexpo integer)
+    RETURNS TABLE(id_carrera integer)
+    LANGUAGE plpgsql
+AS
+$$
+begin
+	return query
+	select c.carrera_id from carrera  c
+	inner join etapa_formativa ef on ef.carrera_id = c.carrera_id
+	inner join etapa_formativa_x_ciclo efc on efc.etapa_formativa_id = ef.etapa_formativa_id
+	inner join exposicion e on  e.etapa_formativa_x_ciclo_id  = efc.etapa_formativa_x_ciclo_id
+	where e.exposicion_id =idExpo ;
+end
+$$;
+
+
+CREATE OR REPLACE PROCEDURE llenar_exposicion_x_tema(idexpo integer)
+    LANGUAGE plpgsql
+AS
+$$
+begin
+    INSERT INTO exposicion_x_tema (exposicion_id, tema_id)
+
+    (SELECT idexpo, efct.tema_id
+        FROM exposicion e
+        INNER JOIN etapa_formativa_x_ciclo efc ON e.etapa_formativa_x_ciclo_id = efc.etapa_formativa_x_ciclo_id
+        INNER JOIN etapa_formativa_x_ciclo_x_tema efct ON efc.etapa_formativa_x_ciclo_id = efct.etapa_formativa_x_ciclo_id
+        INNER JOIN tema t ON efct.tema_id = t.tema_id
+            WHERE e.exposicion_id = idexpo
+            -- AND t.estado_tema_id = 10 --  EN_PROGRESO
+    );
+end
+$$;

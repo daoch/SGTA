@@ -184,3 +184,4 @@ export interface Observacion {
   autor: string;
   fecha: string;
 }
+

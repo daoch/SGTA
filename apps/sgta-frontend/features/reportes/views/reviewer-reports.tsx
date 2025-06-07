@@ -7,13 +7,15 @@ import { SeleccionarEstudianteModal } from "../components/general/modal-seleccio
 import { findStudentsForReviewer } from "../services/report-services";
 import { AlumnoReviewer } from "../types/Alumno.type";
 import { ConsolidatedView } from "../components/consolidated-view";
-
+import { LineaTiempoReporte } from "../components/general/linea-tiempo";
+import { useAuth } from "@/features/auth/hooks/use-auth";
 
 export function ReviewerReports() {
   const [selectedStudent, setSelectedStudent] = useState<number>(0);
   const [students, setStudents] = useState<AlumnoReviewer[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const { user } = useAuth();
 
   useEffect(() => {
     const loadStudents = async () => {
@@ -72,6 +74,7 @@ export function ReviewerReports() {
 
               <TabsContent value="timeline">
                 {/* Timeline content will be implemented later */}
+                {user && <LineaTiempoReporte user={user} />}
               </TabsContent>
 
               <TabsContent value="consolidated">
@@ -81,6 +84,9 @@ export function ReviewerReports() {
           </CardContent>
         </Card>
       )}
+       
     </div>
+
+
   );
 }

@@ -16,6 +16,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/use-toast";
 import HighlighterPdfViewer from "@/features/revision/components/HighlighterPDFViewer";
+import axiosInstance from "@/lib/axios/axios-instance";
 import { AlertTriangle, ArrowLeft, CheckCircle, FileWarning, Quote, Sparkles, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -27,10 +28,10 @@ import { analizarPlagioArchivoS3, descargarArchivoS3RevisionID, guardarObservaci
 
 // Datos de ejemplo para una revisión específica
 const revisionData = {
-  id: 5,
-  titulo: "Desarrollo de un sistema de monitoreo de calidad del aire utilizando IoT",
-  estudiante: "Ana García",
-  codigo: "20190456",
+  id: 2,
+  titulo: "Vision Computacional",
+  estudiante: "Luis Manuel Falcon Baca",
+  codigo: "20183178",
   curso: "1INF46",
   entregable: "E1",
   fechaEntrega: "2023-11-02",
@@ -44,6 +45,7 @@ const revisionData = {
 
   ],
 };
+
 
 export default function RevisarDocumentoPage({ params }: { readonly params: { readonly id_revision: number } }) {
   const router = useRouter();
@@ -246,6 +248,19 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
       setIsLoading(false);
     }
   };*/
+
+  async function actualizarEstadoRevision(revisionId: number, nuevoEstado: string) {
+    try {
+      const response = await axiosInstance.put(`/revision/${revisionId}/estado`, {
+        estado: nuevoEstado
+      });
+      return response.data; // o response.status si solo te importa el status
+    } catch (error) {
+      console.error("Error en la actualización:", error);
+      throw error;
+    }
+  }
+
 
   const handleFormatoValidoChange = () => {
     setRevision({
@@ -746,9 +761,14 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
                     <Button variant="outline">Cancelar</Button>
                     <Button
                       variant="default"
-                      onClick={() => {
-                        setRevision({ ...revision, estado: "aprobado" });
-                        toast({ title: "Entregable aprobado" });
+                      onClick={async () => {
+                        try {
+                          await actualizarEstadoRevision(params.id_revision, "aprobado");
+                          setRevision({ ...revision, estado: "aprobado" });
+                          toast({ title: "Entregable aprobado" });
+                        } catch {
+                          toast({ title: "Error al aprobar el entregable", variant: "destructive" });
+                        }
                       }}
                     >
                       Confirmar
@@ -766,12 +786,16 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
                     <DialogTitle>¿Estás seguro de rechazar este entregable?</DialogTitle>
                   </DialogHeader>
                   <DialogFooter>
-                    <Button variant="outline">Cancelar</Button>
                     <Button
                       variant="destructive"
-                      onClick={() => {
-                        setRevision({ ...revision, estado: "rechazado" });
-                        toast({ title: "Entregable rechazado" });
+                      onClick={async () => {
+                        try {
+                          await actualizarEstadoRevision(params.id_revision, "rechazado");
+                          setRevision({ ...revision, estado: "rechazado" });
+                          toast({ title: "Entregable rechazado" });
+                        } catch {
+                          toast({ title: "Error al rechazar el entregable", variant: "destructive" });
+                        }
                       }}
                     >
                       Confirmar
