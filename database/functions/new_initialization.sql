@@ -21,17 +21,15 @@ INSERT INTO tipo_dedicacion (iniciales, descripcion)
            ('TPA', 'Tiempo parcial por asignaturas');
 
 
-INSERT INTO tipo_solicitud (
-  nombre,
-  descripcion,
-  activo,
-  fecha_creacion,
-  fecha_modificacion
-) VALUES
-  ('Aprobación de tema (por coordinador)', 'Solicitud para que el coordinador apruebe el tema', TRUE, NOW(), NOW()),
-  ('Solicitud de cambio de título',                       'Modificar el título del tema',        TRUE, NOW(), NOW()),
-  ('Solicitud de cambio de resumen',                     'Modificar el resumen del tema',       TRUE, NOW(), NOW()),
-  ('Cambio de asesor (por asesor)',                      'Solicitud para que el coordinador apruebe el cambio de asesores', TRUE, NOW(), NOW());
+INSERT INTO tipo_solicitud (nombre,
+                            descripcion,
+                            activo,
+                            fecha_creacion,
+                            fecha_modificacion)
+    VALUES ('Aprobación de tema (por coordinador)', 'Solicitud para que el coordinador apruebe el tema', TRUE, NOW(), NOW()),
+           ('Solicitud de cambio de título', 'Modificar el título del tema', TRUE, NOW(), NOW()),
+           ('Solicitud de cambio de resumen', 'Modificar el resumen del tema', TRUE, NOW(), NOW()),
+           ('Cambio de asesor (por asesor)', 'Solicitud para que el coordinador apruebe el cambio de asesores', TRUE, NOW(), NOW());
 
 
 INSERT INTO tipo_notificacion (nombre,
@@ -55,6 +53,12 @@ INSERT INTO tipo_rechazo_tema (nombre, descripcion)
            ('Propuesta incompleta', 'El formulario fue entregado sin todos los campos requeridos.'),
            ('Problemas éticos o legales', 'La propuesta presenta conflictos éticos o legales que impiden su aprobación.');
 
+
+INSERT INTO tipo_observacion (nombre_tipo)
+    VALUES ('Contenido'),
+           ('Similitud'),
+           ('Citado'),
+           ('Inteligencia Artificial');
 
 ----------------------------------
 --|      ENTIDADES FIJAS       |--
@@ -105,9 +109,29 @@ INSERT INTO estado_tema (nombre,
            ('FINALIZADO', 'Tema que ha sido registrado y ha finalizado su proceso de evaluación', TRUE, NOW(), NOW());
 
 
-----------------------------------
---|  DATOS DE ESTRUCT. TEMAS   |--
-----------------------------------
+INSERT INTO rol_solicitud (nombre, descripcion, activo, fecha_creacion, fecha_modificacion)
+    VALUES ('REMITENTE', 'Usuario que inicia la solicitud', TRUE, NOW(), NOW()),
+           ('DESTINATARIO', 'Usuario al que está dirigida la solicitud', TRUE, NOW(), NOW()),
+           ('ASESOR_ACTUAL', 'Asesor vigente del usuario', TRUE, NOW(), NOW()),
+           ('ASESOR_ENTRADA', 'Asesor saliente del usuario', TRUE, NOW(), NOW());
+
+
+INSERT INTO accion_solicitud (nombre, descripcion, activo, fecha_creacion, fecha_modificacion)
+    VALUES ('SIN_ACCION', 'Sin acción tomada aún', TRUE, NOW(), NOW()),
+           ('PENDIENTE_ACCION', 'En espera de una acción', TRUE, NOW(), NOW()),
+           ('APROBADO', 'Solicitud aprobada', TRUE, NOW(), NOW()),
+           ('RECHAZADO', 'Solicitud rechazada', TRUE, NOW(), NOW());
+
+
+INSERT INTO estado_solicitud (nombre, descripcion, activo, fecha_creacion, fecha_modificacion)
+    VALUES ('PENDIENTE', 'La solicitud está en proceso de evaluación', TRUE, NOW(), NOW()),
+           ('ACEPTADA', 'La solicitud ha sido aceptada', TRUE, NOW(), NOW()),
+           ('RECHAZADA', 'La solicitud ha sido rechazada', TRUE, NOW(), NOW());
+
+
+---------------------------------------
+--|  DATOS DE INFRAESTRUCT. TEMAS   |--
+---------------------------------------
 
 
 INSERT INTO unidad_academica (nombre,
@@ -137,6 +161,12 @@ INSERT INTO grupo_investigacion (nombre,
     VALUES ('Grupo de Inteligencia Artificial PUCP', 'Investigación en IA y aprendizaje automático', TRUE, NOW(), NOW()),
            ('Grupo de Investigación HCI-DUXAIT-PUCP', 'Investigación que contribuya en las áreas de la Interacción Humano-Computador (HCI) y en el Desarrollo Tecnológico e Innovación', TRUE, NOW(), NOW());
 
+
+INSERT INTO proyecto (titulo, descripcion, estado)
+    VALUES ('Sistema de Monitoreo Ambiental', 'Desarrollo de sensores conectados para medir la calidad del aire.', 'EN_PROCESO'),
+           ('Plataforma de Tutoría Académica', 'Aplicación web para gestionar sesiones de tutoría entre estudiantes y profesores.', 'EN_PROCESO'),
+           ('Simulador de Tráfico Urbano','Simulación de flujo vehicular','EN_PROCESO'),
+           ('Sistema de Gestión de Inventarios','Aplicación para controlar inventarios en tiempo real','EN_PROCESO');
 
 INSERT INTO modulo (nombre,
                     descripcion,
@@ -183,8 +213,6 @@ INSERT INTO sub_area_conocimiento (area_conocimiento_id,
            (3, 'Seguridad en aplicaciones web', 'Protección de aplicaciones web contra vulnerabilidades', TRUE, NOW(), NOW()),
            (3, 'Seguridad en sistemas operativos', 'Protección de sistemas operativos ante amenazas', TRUE, NOW(), NOW()),
            (3, 'Análisis forense digital', 'Investigación de incidentes de seguridad digital', TRUE, NOW(), NOW());
-
-
 
 ----------------------------------
 --|   DATOS PARA OPERACIÓN     |--
@@ -286,39 +314,33 @@ INSERT INTO entregable (etapa_formativa_x_ciclo_id,
                         extensiones_permitidas,
                         peso_maximo_documento,
                         activo)
-    VALUES (1,
-            'Informe de avance 1',
-            'Primer entregable con criterios básicos.',
-            '2025-05-10 08:00:00+00',
-            '2025-05-20 23:59:00+00',
-            'no_iniciado',
-            TRUE,
-            3,
-            'pdf,docx',
-            10,
-            TRUE),
-           (1,
-            'Presentación final',
-            'Entrega de presentación en PowerPoint o PDF.',
-            '2025-06-01 08:00:00+00',
-            '2025-06-15 23:59:00+00',
-            'no_iniciado',
-            FALSE,
-            1,
-            'pdf,pptx',
-            15,
-            TRUE),
-           (1,
-            'Anexos del proyecto',
-            'Material adicional del proyecto: códigos, gráficos, etc.',
-            '2025-05-15 08:00:00+00',
-            '2025-05-30 23:59:00+00',
-            'no_iniciado',
-            TRUE,
-            5,
-            'pdf,zip,rar',
-            25,
-            TRUE);
+    VALUES (1, 'Informe de avance 1', 'Primer entregable con criterios básicos.', '2025-05-10 08:00:00+00', '2025-05-20 23:59:00+00', 'terminado', TRUE, 3, 'pdf,docx', 10, TRUE),
+           (1, 'Presentación final', 'Entrega de presentación en PowerPoint o PDF.', '2025-06-01 08:00:00+00', '2025-06-15 23:59:00+00', 'no_iniciado', FALSE, 1, 'pdf,pptx', 15, TRUE),
+           (1, 'Anexos del proyecto', 'Material adicional del proyecto: códigos, gráficos, etc.', '2025-05-15 08:00:00+00', '2025-05-30 23:59:00+00', 'no_iniciado', TRUE, 5, 'pdf,zip,rar', 25, TRUE);
+
+
+INSERT INTO criterio_entregable (entregable_id,
+                                 nombre,
+                                 nota_maxima,
+                                 descripcion)
+    VALUES (1, 'Originalidad del contenido', 4.00, 'Se evalúa la capacidad de presentar ideas propias y enfoques creativos en el entregable.'),
+           (1, 'Claridad y coherencia en la redacción', 5.00, 'Se evalúa la claridad, coherencia y cohesión del contenido entregado.'),
+           (1, 'Cumplimiento de requisitos', 6.00, 'Se verifica que el entregable cumpla con todos los requisitos solicitados.'),
+           (1, 'Presentación del contenido', 2.00, 'Se evalúa el formato, uso adecuado de gráficos, y presentación ordenada del entregable.'),
+           (1, 'Análisis crítico', 3.00, 'Se mide la capacidad para interpretar y argumentar los resultados con pensamiento crítico.'),
+
+           (2, 'Originalidad del contenido', 4.00, 'Se evalúa la capacidad de presentar ideas propias y enfoques creativos en el entregable.'),
+           (2, 'Claridad y coherencia en la redacción', 5.00, 'Se evalúa la claridad, coherencia y cohesión del contenido entregado.'),
+           (2, 'Cumplimiento de requisitos', 6.00, 'Se verifica que el entregable cumpla con todos los requisitos solicitados.'),
+           (2, 'Presentación del contenido', 2.00, 'Se evalúa el formato, uso adecuado de gráficos, y presentación ordenada del entregable.'),
+           (2, 'Análisis crítico', 3.00, 'Se mide la capacidad para interpretar y argumentar los resultados con pensamiento crítico.'),
+
+           --(3, 'Amplitud del contenido', 4.00, 'Se evalúa la profundidad y amplitud del contenido presentado en el entregable.'),
+           --(3, 'Claridad y coherencia en la redacción', 5.00, 'Se evalúa la claridad, coherencia y cohesión del contenido entregado.'),
+           --(3, 'Cumplimiento de requisitos', 6.00, 'Se verifica que el entregable cumpla con todos los requisitos solicitados.'),
+           --(3, 'Presentación del contenido', 2.00, 'Se evalúa el formato, uso adecuado de gráficos, y presentación ordenada del entregable.'),
+           --(3, 'Análisis crítico', 3.00, 'Se mide la capacidad para interpretar y argumentar los resultados con pensamiento crítico.');
+
 
 --------------------------------------
 --|     USUARIOS PARTICIPANTES     |--
@@ -429,6 +451,24 @@ INSERT INTO usuario_grupo_investigacion (usuario_id,
            (7, 1, TRUE, NOW(), NOW()),
            (8, 1, TRUE, NOW(), NOW());
 
+-- Proyectos:
+-- ('Sistema de Monitoreo Ambiental', 'Desarrollo de sensores conectados para medir la calidad del aire.', 'EN_PROCESO'),
+-- ('Plataforma de Tutoría Académica', 'Aplicación web para gestionar sesiones de tutoría entre estudiantes y profesores.', 'EN_PROCESO'),
+-- ('Simulador de Tráfico Urbano','Simulación de flujo vehicular','EN_PROCESO'),
+-- ('Sistema de Gestión de Inventarios','Aplicación para controlar inventarios en tiempo real','EN_PROCESO');
+
+
+INSERT INTO usuario_proyecto (usuario_id,
+                              proyecto_id,
+                              lider_proyecto)
+    VALUES (4, 1, TRUE),
+           (12, 2, TRUE),
+           (10, 2, FALSE),
+           (5, 3, TRUE),
+           (7, 3, FALSE),
+           (9, 4, TRUE);
+
+
 INSERT INTO usuario_area_conocimiento (usuario_id, area_conocimiento_id)
     VALUES (1, 2),
            (2, 2),
@@ -442,6 +482,7 @@ INSERT INTO usuario_area_conocimiento (usuario_id, area_conocimiento_id)
            (10, 1),
            (11, 2),
            (12, 2);
+
 
 INSERT INTO usuario_sub_area_conocimiento (usuario_id, sub_area_conocimiento_id)
     VALUES (6, 11),
@@ -507,6 +548,21 @@ INSERT INTO tema (codigo,
            ('TEMA-009', 'Internet de las Cosas (IoT)', 'Exploración de dispositivos conectados y su impacto en la vida cotidiana.', 'Análisis de datos y conectividad.', 'Investigar cómo IoT transforma industrias y hogares.', 'https://www.example.com/iot', 6, NULL, 1, '2024-12-30 00:00:00.000000 +00:00', NULL, TRUE, '2025-05-08 21:24:41.930919 +00:00', '2025-05-08 21:24:41.930919 +00:00'),
            ('TEMA-010', 'Tecnologías Emergentes en Medicina', 'Exploración de nuevas tecnologías como la IA y la robótica en el ámbito médico.', 'Investigación sobre aplicaciones tecnológicas en el sector salud.', 'Estudiar cómo las tecnologías emergentes pueden transformar el sector médico.', 'https://www.example.com/tecnologias-medicina', 6, NULL, 1, '2025-01-05 00:00:00.000000 +00:00', NULL, TRUE, '2025-05-08 21:24:41.930919 +00:00', '2025-05-08 21:24:41.930919 +00:00'),
            ('TEMA-011', 'Detección de depresión en estudiantes de Ingeniería Electrónica: Un caso de estudio', 'Este tema propone aplicar técnicas de visión por computadora para detectar informáticos deprimidos.', '', '', 'https://miuniversidad.edu/repos/tema003', 6, NULL, 1, '2025-05-10 10:00:00.000000 +00:00', NULL, TRUE, '2025-05-01 10:00:00.000000 +00:00', '2025-05-01 10:00:00.000000 +00:00');
+
+
+--Historial
+
+INSERT INTO historial_tema (tema_id,
+                            titulo,
+                            resumen,
+                            descripcion_cambio,
+                            estado_tema_id,
+                            activo,
+                            fecha_creacion,
+                            fecha_modificacion)
+    VALUES (6, 'Blockchain y su Aplicación en Logística - v1', 'Estudio del uso de blockchain para mejorar la trazabilidad en cadenas de suministro.', 'Propuesta inicial de tesis', 1, TRUE, NOW(), NOW()),
+           (6, 'Blockchain y su Aplicación en Logística - v2', 'Estudio del uso de blockchain para mejorar la trazabilidad en cadenas de suministro.', 'Actualización del tema para estudiante de pregrado', 8, TRUE, NOW(), NOW()),
+           (11, 'Detección de depresión en estudiantes de Ingeniería Electrónica: Un caso de estudio – v1', 'Propuesta inicial de tesis', 'Creación del tema para estudiante de pregrado', 1, TRUE, NOW(), NOW());
 
 --Subareas
 
@@ -634,14 +690,6 @@ SELECT et.exposicion_x_tema_id,
     FROM exposicion_x_tema et
              JOIN usuario_tema ut ON et.tema_id = ut.tema_id
     WHERE et.exposicion_id = 1;
-
-INSERT INTO control_exposicion_usuario (exposicion_x_tema_id,
-                                        usuario_x_tema_id)
-SELECT et.exposicion_x_tema_id,
-       ut.usuario_tema_id
-    FROM exposicion_x_tema et
-             JOIN usuario_tema ut ON et.tema_id = ut.tema_id
-    WHERE et.exposicion_id = 2;
 
 -----------------------------------
 --| PARÁMETROS DE CONFIGURACIÓN |--
@@ -910,32 +958,78 @@ INSERT INTO carrera_parametro_configuracion (carrera_id,
             NOW(), -- Fecha de modificación actual
             1);
 
---13) Más entidades fijas
 
-INSERT INTO rol_solicitud (nombre, descripcion, activo, fecha_creacion, fecha_modificacion)
-    VALUES ('REMITENTE', 'Usuario que inicia la solicitud', TRUE, NOW(), NOW()),
-           ('DESTINATARIO', 'Usuario al que está dirigida la solicitud', TRUE, NOW(), NOW()),
-           ('ASESOR_ACTUAL', 'Asesor vigente del usuario', TRUE, NOW(), NOW()),
-           ('ASESOR_ENTRADA', 'Asesor saliente del usuario', TRUE, NOW(), NOW());
+--solicitudes
 
-INSERT INTO accion_solicitud (nombre, descripcion, activo, fecha_creacion, fecha_modificacion)
-    VALUES ('SIN_ACCION', 'Sin acción tomada aún', TRUE, NOW(), NOW()),
-           ('PENDIENTE_ACCION', 'En espera de una acción', TRUE, NOW(), NOW()),
-           ('APROBADO', 'Solicitud aprobada', TRUE, NOW(), NOW()),
-           ('RECHAZADO', 'Solicitud rechazada', TRUE, NOW(), NOW());
 
-INSERT INTO estado_solicitud (nombre, descripcion, activo, fecha_creacion, fecha_modificacion)
-    VALUES ('PENDIENTE', 'La solicitud está en proceso de evaluación', TRUE, NOW(), NOW()),
-           ('ACEPTADA', 'La solicitud ha sido aceptada', TRUE, NOW(), NOW()),
-           ('RECHAZADA', 'La solicitud ha sido rechazada', TRUE, NOW(), NOW());
+INSERT INTO solicitud (descripcion,
+                       tipo_solicitud_id,
+                       tema_id,
+                       estado) -- estado = 1 ("PENDIENTE"
+    VALUES ('Solicitud de aprobación de tema de tesis', 1, 12, 2),
+           ('Solicito acceso a la plataforma DRL', 1, 1, 1);
 
-INSERT INTO tipo_observacion (nombre_tipo)
-    VALUES ('Contenido'),
-           ('Similitud'),
-           ('Citado'),
-           ('Inteligencia Artificial');
 
-           
+INSERT INTO usuario_solicitud (usuario_id,
+                               solicitud_id,
+                               solicitud_completada,
+                               aprobado,
+                               comentario,
+                               destinatario,
+                               activo,
+                               fecha_creacion,
+                               fecha_modificacion)
+    VALUES (33, 1, TRUE, TRUE, 'Solicitud aprobada', FALSE, TRUE, NOW(), NOW()),
+           (1, 2, FALSE, FALSE, 'En revisión', FALSE, TRUE, NOW(), NOW());
+
+
+-- notificaciones
+
+INSERT INTO notificacion (mensaje,
+                          canal,
+                          modulo_id,
+                          tipo_notificacion_id,
+                          usuario_id,
+                          activo,
+                          fecha_creacion,
+                          fecha_modificacion)
+    VALUES ('Bienvenido al sistema', 'Email', 1, 1, 1, TRUE, NOW(), NOW()),
+           ('Tu tema de tesis está en revisión', 'Email', 2, 2, 33, TRUE, NOW(), NOW()),
+           ('Tu proyecto fue aprobado', 'SMS', 2, 2, 1, TRUE, NOW(), NOW());
+
+
+--reuniones
+
+INSERT INTO reunion (titulo,
+                     fecha_hora_inicio,
+                     fecha_hora_fin,
+                     descripcion,
+                     disponible,
+                     url,
+                     fecha_creacion,
+                     fecha_modificacion,
+                     activo)
+    VALUES ('Reunión de inducción', '2025-06-01 10:00:00', '2025-06-01 11:00:00', 'Reunión de bienvenida para nuevos estudiantes', 1, 'https://meet.example.com/reunion-induccion', NOW(), NOW(), TRUE),
+           ('Primera reunion', '2025-06-10 16:00:00', '2025-06-10 17:00:00', 'Primera reunion', 1, 'presencial', NOW(), NOW(), TRUE),
+           ('Segunda reunion', '2025-06-17 16:00:00', '2025-06-17 17:00:00', 'Segunda reunion', 2, 'presencial', NOW(), NOW(), TRUE),
+
+
+INSERT INTO usuario_reunion (reunion_id,
+                             usuario_id,
+                             estado_asistencia,
+                             estado_detalle,
+                             fecha_creacion,
+                             fecha_modificacion,
+                             activo)
+    VALUES (1, 5, 'Asistió', 'Asistió', NOW(), NOW(), TRUE),
+           (1, 23, 'No asistió', 'No asistió', NOW(), NOW(), TRUE),
+           (2, 4, 'Pendiente', 'Pendiente', NOW(), NOW(), TRUE),
+           (2, 24, 'Pendiente', 'Pendiente', NOW(), NOW(), TRUE),
+           (3, 7, 'Pendiente', 'Pendiente', NOW(), NOW(), TRUE),
+           (3, 25, 'Pendiente', 'Pendiente', NOW(), NOW(), TRUE);
+
+
+
 -- +++++++++++++++++++++++++++++++++++++++++++++++++++
 -- ++NUEVOS INSERTS BLOQUE JORNADA JORNADAXSALA+++++++
 -- +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1019,19 +1113,21 @@ SET exposicion_x_tema_id = CASE bloque_horario_exposicion_id
     WHERE bloque_horario_exposicion_id IN (1, 4, 7, 10, 13, 16, 19, 22, 24, 25, 27);
 
 -- Actualizar control_exposicion_usuario 23-34 a aceptado
+
 UPDATE control_exposicion_usuario
 SET estado_exposicion_usuario = 'aceptado'
     WHERE control_exposicion_usuario_id IN (23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34);
 
--- Actualizar estado exposicion_x_tema a programada
-
-UPDATE exposicion_x_tema
-SET estado_exposicion = 'programada'
-    WHERE exposicion_x_tema_id IN (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+-- Actualizar estado exposicion_x_tema a completada
 
 UPDATE exposicion_x_tema
 SET estado_exposicion = 'completada'
-    WHERE exposicion_x_tema_id IN (4, 5, 6);
+    WHERE exposicion_x_tema_id IN (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+
+-- Para probar la actualización automática a completada, descomentar la siguiente línea y cambiar arriba el estado a 'programada'
+-- UPDATE exposicion_x_tema
+-- SET estado_exposicion = 'completada'
+--     WHERE exposicion_x_tema_id IN (4, 5, 6);
 
 
 INSERT INTO revision_criterio_x_exposicion(exposicion_x_tema_id,
@@ -1099,9 +1195,45 @@ SET estado_exposicion = 'calificada'
 -- LO MISMO PARA LÓGICA DE ENTREGABLES
 
 INSERT INTO entregable_x_tema (entregable_id, tema_id, estado, fecha_envio)
-    VALUES (1, 3, DEFAULT, DATE '2025-03-01'), -- Estado por defecto: 'no_enviado'
-           (2, 3, 'enviado_a_tiempo', DATE '2025-02-01'),
-           (3, 3, 'enviado_tarde', DATE '2025-01-01');
+    VALUES (1, 1, DEFAULT, NULL), -- Estado por defecto: 'no_enviado'
+           (1, 2, 'enviado_a_tiempo', DATE '2025-05-19'),
+           (1, 3, 'enviado_tarde', DATE '2025-05-21'),
+           (1, 4, 'enviado_a_tiempo', DATE '2025-05-20'),
+           (1, 5, 'enviado_a_tiempo', DATE '2025-05-19'),
+           (1, 6, 'enviado_a_tiempo', DATE '2025-05-20'),
+           (1, 7, DEFAULT, NULL),
+           (1, 8, 'enviado_tarde', DATE '2025-05-21'),
+           (1, 9, 'enviado_a_tiempo', DATE '2025-05-18'),
+           (1, 10, 'enviado_a_tiempo', DATE '2025-05-19'),
+           (1, 11, DEFAULT, NULL);
+
+
+--(1, 'Originalidad del contenido', 4.00, 'Se evalúa la capacidad de presentar ideas propias y enfoques creativos en el entregable.'),
+--(1, 'Claridad y coherencia en la redacción', 5.00, 'Se evalúa la claridad, coherencia y cohesión del contenido entregado.'),
+--(1, 'Cumplimiento de requisitos', 6.00, 'Se verifica que el entregable cumpla con todos los requisitos solicitados.'),
+--(1, 'Presentación del contenido', 2.00, 'Se evalúa el formato, uso adecuado de gráficos, y presentación ordenada del entregable.'),
+--(1, 'Análisis crítico', 3.00, 'Se mide la capacidad para interpretar y argumentar los resultados con pensamiento crítico.'),
+--Revisones hechas para 2, 4, 5 y 6
+
+INSERT INTO revision_criterio_entregable (entregable_x_tema_id,
+                                           criterio_entregable_id,
+                                           usuario_id,
+                                           nota,
+                                           observacion)
+VALUES (2, 1, 5, 4.00, 'Excelente originalidad y enfoque creativo en el contenido.'),
+       (2, 2, 5, 5.00, 'Redacción clara y coherente, con buena estructura.'),
+       (2, 3, 5, 6.00, 'Cumple con todos los requisitos solicitados.'),
+       (2, 4, 5, 2.00, 'Presentación adecuada y uso correcto de gráficos.'),
+       (2, 5, 5, 3.00, 'Análisis crítico bien fundamentado.'),
+
+       (4, 1, 7, 3.00, 'Originalidad aceptable pero puede mejorar en algunos aspectos.'),
+       (4, 2, 7, 4.00, 'Buena redacción pero con algunas incoherencias menores.'),
+       (4, 3, 7, 5.00, 'Cumple con la mayoría de los requisitos pero falta detalle en algunos puntos.'),
+       (4, 4, 7, 1.50, 'Presentación correcta pero podría ser más atractiva visualmente.'),
+       (4, 5, 7, 2.00, 'Análisis crítico adecuado pero con áreas de mejora.');
+
+
+
 -- (3, 3, 'enviado_a_tiempo', DATE '2025-05-01'),
 -- (3, 3, DEFAULT, DATE '2025-06-01');
 
