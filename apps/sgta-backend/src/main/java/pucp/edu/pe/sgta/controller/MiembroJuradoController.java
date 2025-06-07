@@ -1,9 +1,11 @@
 package pucp.edu.pe.sgta.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import pucp.edu.pe.sgta.dto.*;
 import pucp.edu.pe.sgta.dto.calificacion.ExposicionCalificacionDto;
 import pucp.edu.pe.sgta.dto.calificacion.ExposicionCalificacionRequest;
@@ -13,6 +15,7 @@ import pucp.edu.pe.sgta.dto.exposiciones.EstadoControlExposicionRequest;
 import pucp.edu.pe.sgta.dto.exposiciones.EstadoExposicionJuradoRequest;
 import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
 import pucp.edu.pe.sgta.dto.temas.DetalleTemaDto;
+import pucp.edu.pe.sgta.service.inter.JwtService;
 import pucp.edu.pe.sgta.service.inter.MiembroJuradoService;
 import pucp.edu.pe.sgta.dto.exposiciones.EstadoExposicionDto;
 
@@ -26,10 +29,11 @@ import java.util.Optional;
 public class MiembroJuradoController {
 
     private final MiembroJuradoService juradoService;
-
+    private final JwtService jwtService;
     @Autowired
-    public MiembroJuradoController(MiembroJuradoService autorService) {
+    public MiembroJuradoController(MiembroJuradoService autorService, JwtService jwtService) {
         this.juradoService = autorService;
+        this.jwtService = jwtService;
     }
 
     @GetMapping
@@ -126,11 +130,16 @@ public class MiembroJuradoController {
         return ResponseEntity.ok(detalle);
     }
 
-    @GetMapping("/{usuarioId}/exposiciones")
+    @GetMapping("/exposiciones")
     public ResponseEntity<List<ExposicionTemaMiembrosDto>> listarExposicionesPorJurado(
-            @PathVariable Integer usuarioId) {
-        List<ExposicionTemaMiembrosDto> exposiciones = juradoService.listarExposicionXJuradoId(usuarioId);
-        return ResponseEntity.ok(exposiciones);
+            HttpServletRequest request) {
+        try {
+            String tesistaId = jwtService.extractSubFromRequest(request);
+            List<ExposicionTemaMiembrosDto> exposiciones = juradoService.listarExposicionXJuradoId(tesistaId);
+            return ResponseEntity.ok(exposiciones);
+        } catch (RuntimeException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        }
     }
 
     @PutMapping("/conformidad")

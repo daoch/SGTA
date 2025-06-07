@@ -30,4 +30,8 @@ public interface BloqueHorarioExposicionRepository extends JpaRepository<BloqueH
             @Param("salaId") Integer salaId,
             @Param("inicio") OffsetDateTime inicio,
             @Param("fin") OffsetDateTime fin);
+
+    @Query("SELECT b FROM BloqueHorarioExposicion b JOIN FETCH b.exposicionXTema WHERE b.jornadaExposicionXSala.id = :salaId")
+    List<BloqueHorarioExposicion> findByJornadaExposicionXSalaId(@Param("salaId") Long salaId);
+
 }

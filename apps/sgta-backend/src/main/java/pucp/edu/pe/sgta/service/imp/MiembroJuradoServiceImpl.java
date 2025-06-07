@@ -201,7 +201,6 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                 Optional<Usuario> usuarioOpt = usuarioRepository.findById(usuarioId);
                 if (usuarioOpt.isPresent()) {
                         Usuario usuario = usuarioOpt.get();
-
                         List<UsuarioXTema> usuarioTemas = usuarioXTemaRepository.findByUsuarioIdAndRolId(usuarioId, 2);
                         boolean eliminarUsuario = true;
 
@@ -647,10 +646,10 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
         }
 
         @Override
-        public List<ExposicionTemaMiembrosDto> listarExposicionXJuradoId(Integer juradoId) {
+        public List<ExposicionTemaMiembrosDto> listarExposicionXJuradoId(String juradoId) {
                 Set<Integer> temasDelJurado = usuarioXTemaRepository.findAll().stream()
                                 .filter(ut -> ut.getActivo())
-                                .filter(ut -> ut.getUsuario().getId().equals(juradoId))
+                                .filter(ut -> ut.getUsuario().getId().equals(Integer.valueOf(juradoId)))
                                 .map(ut -> ut.getTema().getId())
                                 .collect(Collectors.toSet());
                 List<Tema> temas = temaRepository.findAllById(temasDelJurado);
@@ -713,7 +712,7 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
 
                                         // Buscar el usuario x tema
                                         Optional<UsuarioXTema> usuarioXTemaOptional = usuarioXTemaRepository
-                                                        .findByUsuarioIdAndActivoTrue(juradoId)
+                                                        .findByUsuarioIdAndActivoTrue(Integer.valueOf(juradoId))
                                                         .stream()
                                                         .filter(u -> u.getTema().getId().equals(tema.getId()))
                                                         .findFirst();
@@ -736,6 +735,8 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                                         dto.setCiclo_id(idCiclo);
                                         dto.setCiclo_anio(anioCiclo);
                                         dto.setCiclo_semestre(semestreCiclo);
+                                        dto.setEnlace_grabacion(exposicionXTema.getLinkGrabacion());
+                                        dto.setEnlace_sesion(exposicionXTema.getLinkExposicion());
                                         dto.setEstado_control(
                                                         controlOptional.map(
                                                                         ControlExposicionUsuarioTema::getEstadoExposicion)

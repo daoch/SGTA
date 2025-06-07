@@ -46,7 +46,7 @@ public interface MiembroJuradoService {
     ResponseEntity<?> desasignarJuradoDeTemaTodos(Integer usuarioId);
 
     // Detalle exposición Jurado
-    List<ExposicionTemaMiembrosDto> listarExposicionXJuradoId(Integer juradoId);
+    List<ExposicionTemaMiembrosDto> listarExposicionXJuradoId(String juradoId);
 
     ResponseEntity<?> actualizarEstadoExposicionJurado(EstadoExposicionJuradoRequest request);
 
