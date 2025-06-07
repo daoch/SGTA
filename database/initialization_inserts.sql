@@ -1045,7 +1045,339 @@ VALUES (
         NOW(),
         1
     );
+-- Datos de insert para los integrantes de Asesores
+insert into
+	usuario(
+		tipo_usuario_id,
+		codigo_pucp,
+		nombres,
+		primer_apellido,
+		segundo_apellido,
+		correo_electronico,
+		nivel_estudios,
+		contrasena,
+		id_cognito)
+values
+		(
+			(
+	            SELECT tipo_usuario_id
+	            FROM tipo_usuario
+	            WHERE
+	                LOWER(nombre) = 'alumno'
+	           LIMIT 1
+	        ),
+			'20180530',
+			'Drew',
+			'Ames',
+			'Gomez',
+			'carlo.ames@pucp.edu.pe',
+			'Pregrado',
+			'secretDrew',
+			'415b65c0-a071-70f5-a3d7-7e09e5166a3f'
+		),
+		(
+			(
+	            SELECT tipo_usuario_id
+	            FROM tipo_usuario
+	            WHERE
+	                LOWER(nombre) = 'alumno'
+	            LIMIT 1
+	        ),
+			'20191088',
+			'Brando',
+			'Rojas',
+			'Romero',
+			'brando.rojas@pucp.edu.pe',
+			'Pregrado',
+			'secretBrando',
+			null
+		)
+;
 
+insert into
+	usuario(
+		tipo_usuario_id,
+		codigo_pucp,
+		nombres,
+		primer_apellido,
+		segundo_apellido,
+		correo_electronico,
+		nivel_estudios,
+		contrasena,
+        biografia,
+        disponibilidad,
+        tipo_disponibilidad,
+		id_cognito)
+values
+		(
+			(
+	            SELECT tipo_usuario_id
+	            FROM tipo_usuario
+	            WHERE
+	                LOWER(nombre) = 'profesor'
+	           LIMIT 1
+	        ),
+			'20200485',
+			'Ricardo',
+			'Melendez',
+			'Olivo',
+			'a20200485@pucp.edu.pe',
+			'Bachiller',
+			'secretRicardo',
+			'Profesor de IA y CS',
+			'Martes-Jueves 10:00-14:00',
+			'Presencial',
+			null
+		),
+		(
+			(
+	            SELECT tipo_usuario_id
+	            FROM tipo_usuario
+	            WHERE
+	                LOWER(nombre) = 'profesor'
+	            LIMIT 1
+	        ),
+			'20161395',
+			'Juan',
+			'de la Cruz',
+			'Sairitupa',
+			'juan.delacruz@pucp.edu.pe',
+			'Magister',
+			'secretJuan',
+			'Profesor de ingeniería informática',
+			'Martes-Jueves 10:00-14:00',
+			'Virtual',
+			null
+		),
+		(
+			(
+	            SELECT tipo_usuario_id
+	            FROM tipo_usuario
+	            WHERE
+	                LOWER(nombre) = 'profesor'
+	            LIMIT 1
+	        ),
+			'20195952',
+			'Carlos',
+			'Sanchez',
+			'Espinoza',
+			'mauricio.sanchez@pucp.edu.pe',
+			'Doctor',
+			'secretCarlos',
+			'Profesor de ingeniería informática',
+			'Martes-Jueves 10:00-14:00',
+			'Presencial',
+			null
+		),
+		(
+			(
+	            SELECT tipo_usuario_id
+	            FROM tipo_usuario
+	            WHERE
+	                LOWER(nombre) = 'profesor'
+	            LIMIT 1
+	        ),
+			'20181897',
+			'Angela',
+			'Llontop',
+			'Toro',
+			'angela.llontop@pucp.edu.pe',
+			'Doctora',
+			'secretAngela',
+			'Profesora de ingeniería informática y DBA de BBVA',
+			'Martes-Jueves 10:00-14:00',
+			'Presencial',
+			null
+		)
+;
+insert into
+	usuario_carrera(
+		usuario_id,
+		carrera_id,
+		es_coordinador
+		)
+values 
+		(
+			(
+				select usuario_id
+				from usuario
+				where codigo_pucp = '20180530'
+					and activo = true
+				limit 1
+			),
+			(
+				select carrera_id
+				from carrera
+				where codigo = 'INF'
+					and activo = true
+				limit 1
+			),
+			false
+		),
+		(
+			(
+				select usuario_id
+				from usuario
+				where codigo_pucp = '20191088'
+					and activo = true
+				limit 1
+			),
+			(
+				select carrera_id
+				from carrera
+				where codigo = 'INF'
+					and activo = true
+				limit 1
+			),
+			false
+		),
+		(
+			(
+				select usuario_id
+				from usuario
+				where codigo_pucp = '20200485'
+					and activo = true
+				limit 1
+			),
+			(
+				select carrera_id
+				from carrera
+				where codigo = 'INF'
+					and activo = true
+				limit 1
+			),
+			false
+		),
+		(
+			(
+				select usuario_id
+				from usuario
+				where codigo_pucp = '20161395'
+					and activo = true
+				limit 1
+			),
+			(
+				select carrera_id
+				from carrera
+				where codigo = 'INF'
+					and activo = true
+				limit 1
+			),
+			false
+		),
+		(
+			(
+				select usuario_id
+				from usuario
+				where codigo_pucp = '20195952'
+					and activo = true
+				limit 1
+			),
+			(
+				select carrera_id
+				from carrera
+				where codigo = 'INF'
+					and activo = true
+				limit 1
+			),
+			false
+		),
+		(
+			(
+				select usuario_id
+				from usuario
+				where codigo_pucp = '20181897'
+					and activo = true
+				limit 1
+			),
+			(
+				select carrera_id
+				from carrera
+				where codigo = 'INF'
+					and activo = true
+				limit 1
+			),
+			false
+		)		
+;
+insert into
+	usuario_rol
+	(
+		usuario_id,
+		rol_id,
+		activo
+	)
+values
+	(
+		(
+			select usuario_id
+			from usuario
+			where codigo_pucp = '20200485'
+				and activo = true
+			limit 1
+		),
+		(
+			select rol_id
+			from rol
+			where lower(nombre) = 'asesor'
+				and activo = true
+			limit 1
+		),
+		true
+	),
+	(
+		(
+			select usuario_id
+			from usuario
+			where codigo_pucp = '20161395'
+				and activo = true
+			limit 1
+		),
+		(
+			select rol_id
+			from rol
+			where lower(nombre) = 'asesor'
+				and activo = true
+			limit 1
+		),
+		true
+	),
+	(
+		(
+			select usuario_id
+			from usuario
+			where codigo_pucp = '20195952'
+				and activo = true
+			limit 1
+		),
+		(
+			select rol_id
+			from rol
+			where lower(nombre) = 'asesor'
+				and activo = true
+			limit 1
+		),
+		true
+	),
+	(
+		(
+			select usuario_id
+			from usuario
+			where codigo_pucp = '20181897'
+				and activo = true
+			limit 1
+		),
+		(
+			select rol_id
+			from rol
+			where lower(nombre) = 'asesor'
+				and activo = true
+			limit 1
+		),
+		true
+	)
+;
+--
 INSERT INTO
     sala_exposicion (
         sala_exposicion_id,

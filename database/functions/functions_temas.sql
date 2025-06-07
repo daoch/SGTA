@@ -3192,3 +3192,22 @@ BEGIN
       ON t.tema_id = sact.tema_id
     WHERE t.tema_id = _tema_id;
 END;
+
+CREATE OR REPLACE FUNCTION es_coordinador_activo(
+    p_usuario_id     IN NUMBER,
+    p_carrera_id     IN NUMBER
+) RETURN BOOLEAN IS
+    v_count NUMBER;
+BEGIN
+    SELECT COUNT(*) INTO v_count
+    FROM usuario_carrera
+    WHERE usuario_id = p_usuario_id
+      AND carrera_id = p_carrera_id
+      AND activo = TRUE
+      AND es_coordinador = TRUE;
+
+    RETURN v_count > 0;
+EXCEPTION
+    WHEN OTHERS THEN
+        RETURN FALSE;
+END es_coordinador_activo;
