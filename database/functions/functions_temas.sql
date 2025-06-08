@@ -3443,3 +3443,31 @@ AS $$
       AND ts.activo    = TRUE
       AND t.activo     = TRUE
 $$;
+
+
+
+CREATE OR REPLACE FUNCTION listar_temas_finalizados()
+RETURNS TABLE (
+    tema_id INTEGER,
+    titulo TEXT,
+    resumen TEXT,
+    objetivos TEXT,
+    estado_nombre TEXT,
+    fecha_finalizacion TIMESTAMPTZ
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        t.tema_id::INTEGER,
+        t.titulo::TEXT,
+        t.resumen::TEXT,
+        t.objetivos::TEXT,
+        et.nombre::TEXT AS estado_nombre,
+        t.fecha_finalizacion::TIMESTAMPTZ
+    FROM tema t
+    INNER JOIN estado_tema et ON et.estado_tema_id = t.estado_tema_id
+    WHERE et.nombre ILIKE 'FINALIZADO';
+END;
+$$;
