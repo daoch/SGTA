@@ -1215,23 +1215,31 @@ INSERT INTO revision_criterio_x_exposicion(exposicion_x_tema_id,
 -- Rellenar revisiones para las exposiciones 4, 5, 6, 7, 8, 9, 10 y 11 en blanco y de los criterios 1 a 6
 
 INSERT INTO revision_criterio_x_exposicion (exposicion_x_tema_id,
-                                             criterio_exposicion_id,
-                                             usuario_id,
-                                             nota,
-                                             revisado,
-                                             observacion)
-   SELECT et.exposicion_x_tema_id,
-          ce.criterio_exposicion_id,
-          ut.usuario_id,
-          NULL AS nota,
-          FALSE AS revisado,
-          NULL AS observacion
-    FROM exposicion_x_tema et
-             JOIN criterio_exposicion ce ON ce.exposicion_id = et.exposicion_id
-             JOIN usuario_tema ut ON et.tema_id = ut.tema_id
-    WHERE et.exposicion_x_tema_id IN (4, 5, 6, 7, 8, 9, 10, 11)
-      AND ce.criterio_exposicion_id BETWEEN 1 AND 6
-      AND ut.rol_id = 2; -- 2: Jurados 1: Asesores
+                                            criterio_exposicion_id,
+                                            usuario_id,
+                                            nota,
+                                            revisado,
+                                            observacion)
+    WITH rankedjurados AS (SELECT et.exposicion_x_tema_id,
+                                  ce.criterio_exposicion_id,
+                                  ut.usuario_id,
+                                  ROW_NUMBER() OVER (PARTITION BY et.exposicion_x_tema_id ORDER BY ut.usuario_id) AS rn
+                               FROM exposicion_x_tema et
+                                        JOIN criterio_exposicion ce ON ce.exposicion_id = et.exposicion_id
+                                        JOIN usuario_tema ut ON et.tema_id = ut.tema_id
+                               WHERE et.exposicion_x_tema_id IN (2, 3, 4, 5, 6, 7, 8, 10)
+                                 AND ce.criterio_exposicion_id BETWEEN 1 AND 6
+                                 AND ut.rol_id = 2 -- 2: Jurados 1: Asesores
+    )
+        SELECT exposicion_x_tema_id,
+               criterio_exposicion_id,
+               usuario_id,
+               NULL AS nota,
+               FALSE AS revisado,
+               NULL AS observacion
+            FROM rankedjurados
+            WHERE rn < 7
+            ORDER BY exposicion_x_tema_id, criterio_exposicion_id;
 
 -- Modificar la nota final de la exposicion
 
