@@ -11,10 +11,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface RevisionDocumentoRepository extends JpaRepository<RevisionDocumento, Integer> {
-
+    Optional<RevisionDocumento> findById(Integer revisionDocumentoId);
     List<RevisionDocumento> findByUsuarioId(Integer usuarioId);
     
     List<RevisionDocumento> findByVersionDocumentoId(Integer versionDocumentoId);
