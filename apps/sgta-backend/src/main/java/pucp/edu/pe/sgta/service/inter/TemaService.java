@@ -161,4 +161,10 @@ public interface TemaService {
             Integer limit,
             Integer offset
     ) ;
+
+	void guardarSimilitudes(String cognitoId, List<TemaSimilarDto> similitudes);
+
+	void createInscripcionTemaV2(TemaDto dto, String idUsuario);
+
+	List<TemaDto> listarTemasSimilares(Integer temaId);
 }
