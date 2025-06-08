@@ -11,7 +11,8 @@ from .controller.faiss_controller import (
 from .models import (
     AddTopicsRequest, AddTopicsResponse,
     SearchTopicsRequest, SearchTopicsResponse,
-    FAISSStatsResponse, ListTopicsResponse
+    FAISSStatsResponse, ListTopicsResponse,
+    SearchTempRequest, SearchTempResponse
 )
 import uvicorn
 
@@ -56,10 +57,10 @@ def clear_faiss_index():
     """Completely clear FAISS index and cache (for fresh start from Java app)"""
     return clear_index_endpoint()
 
-@app.get("/topics/search-temp")
-def search_with_temp_embedding(query_text: str, top_k: int = 10, threshold: float = 0.0):
+@app.post("/topics/search-temp", response_model=SearchTempResponse)
+def search_with_temp_embedding(request: SearchTempRequest):
     """Search for similar topics using temporary embedding (no persistence)"""
-    return search_temp_embedding_endpoint(query_text, top_k, threshold)
+    return search_temp_embedding_endpoint(request)
 
 @app.delete("/topics/{topic_id}")
 def remove_topic(topic_id: str):

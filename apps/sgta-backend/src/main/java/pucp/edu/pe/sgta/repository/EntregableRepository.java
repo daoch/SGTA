@@ -59,4 +59,6 @@ public interface EntregableRepository extends JpaRepository<Entregable, Integer>
     """)
     List<Entregable> findVencidos(@Param("ahora") OffsetDateTime ahora);
 
+    Integer countByEtapaFormativaXCicloIdAndActivoTrue(Integer etapaFormativaXCicloId);
+
 }
