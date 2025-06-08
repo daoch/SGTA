@@ -261,21 +261,40 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                 Optional<Usuario> usuarioOpt = usuarioRepository.findById(usuarioId);
                 if (usuarioOpt.isEmpty()) {
                         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                                        .body(Map.of("mensaje", "El jurado no existe"));
+                                .body(Map.of("mensaje", "El jurado no existe"));
                 }
                 Rol rol = rolRepository.findById(2)
-                                .orElseThrow(() -> new RuntimeException("Rol jurado no encontrado"));
+                        .orElseThrow(() -> new RuntimeException("Rol jurado no encontrado"));
 
-                List<UsuarioXTema> juradoExistente = usuarioXTemaRepository.findByUsuarioIdAndRolId(usuarioId, 2);
-                if (juradoExistente.isEmpty()) {
-                        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                                        .body(Map.of("mensaje", "El usuario no tiene el rol de jurado"));
-                }
+                // List<UsuarioXTema> juradoExistente =
+                // usuarioXTemaRepository.findByUsuarioIdAndRolId(usuarioId, 2);
+                // if (juradoExistente.isEmpty()) {
+                // return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                // .body(Map.of("mensaje", "El usuario no tiene el rol de jurado"));
+                // }
 
                 Optional<Tema> temaOpt = temaRepository.findById(temaId);
                 if (temaOpt.isEmpty()) {
                         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                                        .body(Map.of("mensaje", "El tema no existe"));
+                                .body(Map.of("mensaje", "El tema no existe"));
+                }
+
+                // buscar si ya existe una asignacion para este usuario y tema
+                Optional<UsuarioXTema> juradoExistenteOpt = usuarioXTemaRepository.findByUsuario_IdAndTema_Id(usuarioId,
+                        temaId);
+                if (juradoExistenteOpt.isPresent()) {
+                        UsuarioXTema juradoExiste = juradoExistenteOpt.get();
+
+                        // si el registro existe y esta inactivo, actualizamos el campo activo
+                        if (!juradoExiste.getActivo()) {
+                                juradoExiste.setActivo(true);
+                                usuarioXTemaRepository.save(juradoExiste);
+                                return ResponseEntity.ok(Map.of("mensaje", "Jurado reactivado correctamente"));
+                        } else {
+                                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                        .body(Map.of("mensaje",
+                                                "El jurado ya está asignado y activo para este tema"));
+                        }
                 }
 
                 UsuarioXTema asignacion = new UsuarioXTema();
