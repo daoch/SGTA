@@ -34,6 +34,7 @@ import pucp.edu.pe.sgta.util.RolEnum;
 import pucp.edu.pe.sgta.util.RolSolicitudEnum;
 import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.time.*;
 import java.util.*;
@@ -92,6 +93,8 @@ public class TemaServiceImpl implements TemaService {
 
 	private AccionSolicitudRepository accionSolicitudRepository;
 
+	private TemaSimilarRepository temaSimilarRepository;
+
 	@PersistenceContext
 	private EntityManager entityManager;
 
@@ -109,7 +112,8 @@ public class TemaServiceImpl implements TemaService {
 			SolicitudRepository solicitudRepository,
 			UsuarioXSolicitudRepository usuarioXSolicitudRepository, AreaConocimientoService areaConocimientoService,
 			EstadoSolicitudRepository estadoSolicitudRepository, RolSolicitudRepository rolSolicitudRepository,
-			AccionSolicitudRepository accionSolicitudRepository) {
+			AccionSolicitudRepository accionSolicitudRepository,
+			TemaSimilarRepository temaSimilarRepository) {
 		this.temaRepository = temaRepository;
 		this.usuarioXTemaRepository = usuarioXTemaRepository;
 		this.subAreaConocimientoXTemaRepository = subAreaConocimientoXTemaRepository;
@@ -133,6 +137,7 @@ public class TemaServiceImpl implements TemaService {
 		this.estadoSolicitudRepository = estadoSolicitudRepository;
 		this.rolSolicitudRepository = rolSolicitudRepository;
 		this.accionSolicitudRepository = accionSolicitudRepository;
+		this.temaSimilarRepository = temaSimilarRepository;
 	}
 
 	@Override
@@ -335,26 +340,26 @@ public class TemaServiceImpl implements TemaService {
 
 	private void validacionesInscripcionTema(TemaDto dto, Integer idUsuarioCreador) {
 
-		validarDtoTemaNoNulo(dto); // validar que el DTO no sea nulo
-		validarExistenciaListaUsuarios(dto.getTesistas());
-		validarExistenciaListaUsuarios(dto.getCoasesores()); // validar que hay al menos un tesista
-		validarUsuarioExiste(idUsuarioCreador);
-		validarTipoUsurio(idUsuarioCreador, TipoUsuarioEnum.profesor.name()); // validar que la inscripción la haga un
+		//validarDtoTemaNoNulo(dto); // validar que el DTO no sea nulo
+		//validarExistenciaListaUsuarios(dto.getTesistas());
+		//validarExistenciaListaUsuarios(dto.getCoasesores()); // validar que hay al menos un tesista
+		//validarUsuarioExiste(idUsuarioCreador);
+		//validarTipoUsurio(idUsuarioCreador, TipoUsuarioEnum.profesor.name()); // validar que la inscripción la haga un
 																				// profesor
 		// validarUnicidadUsuarios(dto.getTesistas(), RolEnum.Tesista.name()); //
 		// validar que no se repiten los tesistas
 
-		for (UsuarioDto u : dto.getTesistas()) {
-			validarUsuarioExiste(u.getId());
-			validarTipoUsurio(u.getId(), TipoUsuarioEnum.alumno.name()); // validar que los tesistas sean alumnos
-		}
+		//for (UsuarioDto u : dto.getTesistas()) {
+		//	validarUsuarioExiste(u.getId());
+		//	validarTipoUsurio(u.getId(), TipoUsuarioEnum.alumno.name()); // validar que los tesistas sean alumnos
+		//}
 
 		// validarUnicidadUsuarios(dto.getCoasesores(), RolEnum.Coasesor.name()); //
 		// validar que no se repiten los coasesores
-		for (UsuarioDto u : dto.getCoasesores()) {
-			validarUsuarioExiste(u.getId());
-			validarTipoUsurio(u.getId(), TipoUsuarioEnum.profesor.name()); // validar que los coasesores sean profesores
-		}
+		//for (UsuarioDto u : dto.getCoasesores()) {
+		//	validarUsuarioExiste(u.getId());
+		//	validarTipoUsurio(u.getId(), TipoUsuarioEnum.profesor.name()); // validar que los coasesores sean profesores
+		//}
 		validarTesistasSinTemaAsignado(dto.getTesistas()); // validar que los tesistas no tengan tema asignado
 	}
 
@@ -487,9 +492,6 @@ public class TemaServiceImpl implements TemaService {
 		UsuarioXSolicitud usuarioXSolicitud = new UsuarioXSolicitud();
 		usuarioXSolicitud.setUsuario(usuario);
 		usuarioXSolicitud.setSolicitud(savedSolicitud);
-		//usuarioXSolicitud.setDestinatario(false); // o false según tu lógica
-		//usuarioXSolicitud.setAprobado(false);
-		//usuarioXSolicitud.setSolicitudCompletada(false);
 		usuarioXSolicitud.setComentario(comentario);
 		usuarioXSolicitud.setRolSolicitud(rolRemitente);
 		usuarioXSolicitud.setAccionSolicitud(accionPendiente);
@@ -529,20 +531,23 @@ public class TemaServiceImpl implements TemaService {
                 .findByNombre(AccionSolicitudEnum.PENDIENTE_ACCION.name())
                 .orElseThrow(() -> new RuntimeException("Accion pendiente_aprobacion no encontrado"));
 
-		// 3) Buscar los usuarios-coordinador de la carrera del tema
+		// 3) Buscar los usuarios coordinadores de la carrera del tema
+		//    - Primero obtenemos todas las relaciones usuario-carrera activas para la misma carrera del tema
+		//    - Después filtramos solo aquellas donde el campo 'esCoordinador' es verdadero
+		//    - Para cada relación restante, construimos un objeto UsuarioXSolicitud:
+		//        * Se establece el usuario coordinador
+		//        * Se enlaza con la solicitud recién guardada
+		//        * Se asigna el rol de destinatario y la acción pendiente
 		List<UsuarioXSolicitud> asignaciones = usuarioCarreraRepository
 				.findByCarreraIdAndActivoTrue(tema.getCarrera().getId()).stream()
-				.map(rel -> rel.getUsuario())
-				.filter(u -> TipoUsuarioEnum.coordinador.name().equalsIgnoreCase(u.getTipoUsuario().getNombre()))
-				.map(coord -> {
+				.filter(rel -> Boolean.TRUE.equals(rel.getEs_coordinador()))
+				.map(rel -> {
+					Usuario coord = rel.getUsuario();
 					UsuarioXSolicitud us = new UsuarioXSolicitud();
 					us.setUsuario(coord);
 					us.setSolicitud(savedSolicitud);
-					//us.setDestinatario(true);
 					us.setRolSolicitud(rolDestinatario);
-					//us.setAprobado(false);
 					us.setAccionSolicitud(accionPendiente);
-					//us.setSolicitudCompletada(false);
 					return us;
 				})
 				.collect(Collectors.toList());
@@ -555,6 +560,75 @@ public class TemaServiceImpl implements TemaService {
 		// 4) Guardar todas las asignaciones de la solicitud
 		usuarioXSolicitudRepository.saveAll(asignaciones);
 	}
+
+
+	@Transactional
+	private void crearSolicitudAprobacionTemaV2(Tema tema) {
+		try {
+			entityManager
+				.createNativeQuery("SELECT crear_solicitud_aprobacion_tema(:temaId)")
+				.setParameter("temaId", tema.getId())
+				.getSingleResult();
+		} catch (Exception e) {
+			throw new RuntimeException(
+				"Error al crear la solicitud de aprobación para el tema " 
+				+ tema.getId() + ": " + e.getMessage(), e);
+		}
+	}
+
+	@Transactional
+	@Override
+	public void createInscripcionTemaV2(TemaDto dto, String idUsuario) {
+		// 0) Validaciones iniciales y preparación del Tema
+		UsuarioDto usuarioDto = usuarioService.findByCognitoId(idUsuario);
+		Integer idUsuarioCreador = usuarioDto.getId();
+		validacionesInscripcionTema(dto, idUsuarioCreador);
+		dto.setId(null);
+
+		// Prepara y guarda el tema con estado INSCRITO
+		Tema tema = prepareNewTema(dto, EstadoTemaEnum.INSCRITO);
+		var relaciones = usuarioCarreraRepository.findByUsuarioIdAndActivoTrue(idUsuarioCreador);
+		if (relaciones.isEmpty()) {
+			throw new RuntimeException("El usuario no tiene ninguna carrera activa.");
+		}
+		Integer carreraId = relaciones.get(0).getCarrera().getId();
+		Carrera carrera = carreraRepository.findById(carreraId)
+			.orElseThrow(() -> new RuntimeException("Carrera no encontrada con id " + carreraId));
+		tema.setCarrera(carrera);
+		temaRepository.save(tema);
+
+		// Historial del cambio
+		saveHistorialTemaChange(tema, dto.getTitulo(), dto.getResumen(), "Inscripción de tema");
+
+		// 1–5) Delegar a la función PL/pgSQL
+		entityManager.flush();  // asegurar que tema.id ya esté asignado
+		Integer temaId = tema.getId();
+
+		Integer[] subareaIds = dto.getSubareas().stream()
+			.map(SubAreaConocimientoDto::getId)
+			.toArray(Integer[]::new);
+		Integer[] coasesorIds = dto.getCoasesores().stream()
+			.map(UsuarioDto::getId)
+			.toArray(Integer[]::new);
+		Integer[] tesistaIds = dto.getTesistas().stream()
+			.map(UsuarioDto::getId)
+			.toArray(Integer[]::new);
+
+		entityManager.createNativeQuery(
+			"SELECT procesar_inscripcion_items(" +
+			" :temaId, :usuarioId, :subs, :coas, :tes )"
+		)
+		.setParameter("temaId",    temaId)
+		.setParameter("usuarioId", idUsuarioCreador)
+		.setParameter("subs",      subareaIds)
+		.setParameter("coas",      coasesorIds)
+		.setParameter("tes",       tesistaIds)
+		.getSingleResult();  // función retorna VOID
+
+		// 6) Generar y enviar la solicitud de aprobación
+		crearSolicitudAprobacionTemaV2(tema);
+	}
+
 
 	/**
 	 * Crea y persiste un vínculo UsuarioXTema para el tema dado.
@@ -1830,17 +1904,34 @@ public class TemaServiceImpl implements TemaService {
 
 		return resultados;
 	}
+    // private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
+    //     Object result = entityManager.createNativeQuery(
+    //             "SELECT es_coordinador_activo(:usuarioId, :carreraId) FROM dual")
+    //             .setParameter("usuarioId", usuarioId)
+    //             .setParameter("carreraId", carreraId)
+    //             .getSingleResult();
+    //     return Boolean.TRUE.equals(result);
+    // }
 
 	private void validarCoordinadorYEstado(
 			Integer temaId,
 			String nuevoEstadoNombre,
 			Integer usuarioId) {
-		validarTipoUsurio(usuarioId, TipoUsuarioEnum.coordinador.name());
+		// 3) Obtener el tema para extraer la carrera
+        Tema tema = temaRepository.findById(temaId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Tema con id " + temaId + " no encontrado"));		
+		// 4) Verificar coordinador activo usando la función PL/SQL
+        // if (!esCoordinadorActivo(usuarioId, tema.getCarrera().getId())) {
+        //     throw new ResponseStatusException(
+        //             HttpStatus.FORBIDDEN,
+        //             "Usuario con id " + usuarioId + " no es coordinador de la carrera id " + tema.getCarrera().getId());
+        // }
 		estadoTemaRepository.findByNombre(nuevoEstadoNombre)
 				.orElseThrow(() -> new ResponseStatusException(
 						HttpStatus.NOT_FOUND,
 						"EstadoTema '" + nuevoEstadoNombre + "' no existe"));
-		//validarEstadoTema(temaId, EstadoTemaEnum.INSCRITO.name());
 	}
 
 	private Tema actualizarTemaYHistorial(
@@ -2075,7 +2166,7 @@ public class TemaServiceImpl implements TemaService {
 		// Comprueba que usuarioId sea coordinador
 		UsuarioDto usuDto = usuarioService.findByCognitoId(coordinadorId);
 		Integer usuarioId = usuDto.getId();
-		validarTipoUsurio(usuarioId, TipoUsuarioEnum.coordinador.name());
+		//validarTipoUsurio(usuarioId, TipoUsuarioEnum.profesor.name());
 
 		// 2) Obtener la carrera del tema y validar que el usuario esté activo en esa
 		// carrera
@@ -2832,7 +2923,83 @@ public class TemaServiceImpl implements TemaService {
 		}
 
 		return resultados;
-}
+	}
 
+	@Override
+    @Transactional
+    public void guardarSimilitudes(String cognitoId, List<TemaSimilarDto> similitudes) {
+        // Validar existencia del tema
+		Integer temaId = similitudes.get(0).getTema().getId();
+        temaRepository.findById(temaId)
+            .orElseThrow(() -> new RuntimeException("Tema no encontrado con id: " + temaId));
 
+        // Obtener usuario interno desde Cognito ID
+        UsuarioDto usuarioDto = usuarioService.findByCognitoId(cognitoId);
+        if (usuarioDto == null) {
+            throw new RuntimeException("Usuario no encontrado con Cognito ID: " + cognitoId);
+        }
+        Integer usuarioId = usuarioDto.getId();
+
+        // Construir arrays para la función SQL
+        Integer[] relIds = similitudes.stream()
+            .map(dto -> dto.getTemaRelacion().getId())
+            .toArray(Integer[]::new);
+        BigDecimal[] porcs = similitudes.stream()
+            .map(TemaSimilarDto::getPorcentajeSimilitud)
+            .toArray(BigDecimal[]::new);
+
+        // Llamar a la función PL/pgSQL
+        entityManager.createNativeQuery(
+            "SELECT guardar_similitudes_tema(:p_tema_id, :p_usuario_id, :p_rel_ids, :p_porcs)")
+            .setParameter("p_tema_id", temaId)
+            .setParameter("p_usuario_id", usuarioId)
+            .setParameter("p_rel_ids", relIds)
+            .setParameter("p_porcs", porcs)
+            .getSingleResult();
+    }
+
+	@Override
+    @Transactional()
+    public List<TemaDto> listarTemasSimilares(Integer temaId) {
+        // 1) Validar existencia del tema principal
+        temaRepository.findById(temaId)
+            .orElseThrow(() -> new RuntimeException("Tema no encontrado con id: " + temaId));
+
+        // 2) Llamar a la función SQL
+        @SuppressWarnings("unchecked")
+        List<Object[]> rows = entityManager.createNativeQuery(
+                "SELECT * FROM listar_temas_similares(:temaId)")
+            .setParameter("temaId", temaId)
+            .getResultList();
+
+        // 3) Mapear cada fila al DTO
+        List<TemaDto> resultados = new ArrayList<>(rows.size());
+        for (Object[] r : rows) {
+            TemaDto dto = TemaDto.builder()
+                .id(((Number)   r[0]).intValue())
+                .codigo((String)r[1])
+                .titulo((String)r[2])
+                .resumen((String)r[3])
+                .objetivos((String)r[4])
+                .metodologia((String)r[5])
+                .requisitos((String)r[6])
+                .portafolioUrl((String)r[7])
+                .activo((Boolean)r[8])
+                .fechaLimite((toOffsetDateTime(r[9])).toInstant().atOffset(ZoneOffset.UTC))
+                .fechaFinalizacion(
+                    r[10] != null
+                    ? (toOffsetDateTime(r[10])).toInstant().atOffset(ZoneOffset.UTC)
+                    : null
+                )
+                .fechaCreacion((toOffsetDateTime(r[11])).toInstant().atOffset(ZoneOffset.UTC))
+                .fechaModificacion((toOffsetDateTime((r[12]))).toInstant().atOffset(ZoneOffset.UTC))
+                .estadoTemaNombre((String)r[13])
+                .porcentajeSimilitud(
+                    ((BigDecimal)r[14]).doubleValue()
+                )
+                .build();
+            resultados.add(dto);
+        }
+        return resultados;
+    }
 }
