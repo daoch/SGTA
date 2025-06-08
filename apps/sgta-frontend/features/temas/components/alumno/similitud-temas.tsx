@@ -50,7 +50,7 @@ export default function PropuestasSimilaresCard({
                   getColorClass(p.similarityScore)
                 )}
               >
-                Similitud: {p.similarityScore}%
+                Similitud: {p.similarityScore.toFixed(2)}%
               </p>
             </div>
             <span className="text-sm text-muted-foreground">

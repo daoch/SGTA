@@ -64,7 +64,6 @@ export default function FormularioPropuestaPage() {
         console.error("No authentication token available");
         return;
       }
-      // 1. Crear la propuesta
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/temas/createPropuesta?tipoPropuesta=${tipoPropuesta}`,
         {
@@ -78,15 +77,16 @@ export default function FormularioPropuestaPage() {
       );
       if (!res.ok) throw new Error("API error");
       const dataRes = await res.json();
-      const temaId = dataRes.id;
+      const temaId = typeof dataRes === "number" ? dataRes : dataRes.id;
 
-      // 2. Si hay temas similares y forzarGuardar, llama a guardarSimilitudes
       if (forzarGuardar && similares.length > 0) {
         const similitudesPayload = similares.map((sim) => ({
           tema: { id: temaId },
           temaRelacion: { id: sim.tema.id },
           porcentajeSimilitud: sim.similarityScore,
         }));
+
+        console.log("Payload para guardarSimilitudes:", similitudesPayload);
 
         const resSim = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/temas/guardarSimilitudes`,
