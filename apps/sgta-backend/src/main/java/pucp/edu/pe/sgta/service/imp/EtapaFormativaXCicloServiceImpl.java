@@ -51,6 +51,8 @@ public class EtapaFormativaXCicloServiceImpl implements EtapaFormativaXCicloServ
     @Override
     public EtapaFormativaXCicloDto create(EtapaFormativaXCicloDto dto) {
         EtapaFormativaXCiclo etapaFormativaXCiclo = EtapaFormativaXCicloMapper.toEntity(dto);
+        etapaFormativaXCiclo.setActivo(true);
+        etapaFormativaXCiclo.setEstado("En Curso");
         EtapaFormativaXCiclo savedEtapaFormativaXCiclo = etapaFormativaXCicloRepository.save(etapaFormativaXCiclo);
         return EtapaFormativaXCicloMapper.toDto(savedEtapaFormativaXCiclo);
     }
