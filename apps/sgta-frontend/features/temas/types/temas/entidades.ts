@@ -74,6 +74,7 @@ export interface Coasesor {
   activo: boolean;
   fechaCreacion: string;
   fechaModificacion: string | null;
+  rol: string | null;
 }
 
 export interface Subareas {
