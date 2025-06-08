@@ -1227,7 +1227,7 @@ INSERT INTO revision_criterio_x_exposicion (exposicion_x_tema_id,
                                FROM exposicion_x_tema et
                                         JOIN criterio_exposicion ce ON ce.exposicion_id = et.exposicion_id
                                         JOIN usuario_tema ut ON et.tema_id = ut.tema_id
-                               WHERE et.exposicion_x_tema_id IN (2, 3, 4, 5, 6, 7, 8, 10)
+                               WHERE et.exposicion_x_tema_id IN (4, 5, 6, 7, 8, 9, 10, 11)
                                  AND ce.criterio_exposicion_id BETWEEN 1 AND 6
                                  AND ut.rol_id = 2 -- 2: Jurados 1: Asesores
     )
