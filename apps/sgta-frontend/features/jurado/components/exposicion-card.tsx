@@ -107,11 +107,10 @@ export function ExposicionCard({
     setIsLoading(true);
 
     try {
-      const idJurado = 6;
       // Llamar al endpoint para actualizar el estado
       await actualizarEstadoControlExposicion(
         exposicion.id_exposicion,
-        idJurado,
+        id_jurado!,
         "ACEPTADO",
       );
 
@@ -134,49 +133,16 @@ export function ExposicionCard({
   };
 
   // Función para solicitar reprogramación
-  const handleSolicitarReprogramacion = async (e: React.MouseEvent) => {
-    //e.stopPropagation();
-
-    setIsLoading(true);
-
-    try {
-      // Cambiar el estado para mostrar "Reprogramación Solicitada"
-
-      const idJurado = 6;
-
-      await actualizarEstadoControlExposicion(
-        exposicion.id_exposicion,
-        idJurado,
-        "RECHAZADO",
-      );
-      if (onStatusChange) {
-        await onStatusChange();
-      }
-
-      setIsReprogramacionSolicitada(true);
-
-      setEstadoControlActual("RECHAZADO");
-      // Mostrar mensaje de éxito
-      toast.success("Se ha solicitado la reprogramación de la exposición.");
-    } catch (error) {
-      console.error("Error al solicitar reprogramación:", error);
-      toast.error(
-        "No se pudo solicitar la reprogramación. Inténtalo de nuevo.",
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  
 
   const handleConfirmReprogramacion = async () => {
     setIsLoading(true);
 
     try {
-      const idJurado = 6;
 
       await actualizarEstadoControlExposicion(
         exposicion.id_exposicion,
-        idJurado,
+        id_jurado!,
         "RECHAZADO",
       );
 
@@ -209,11 +175,11 @@ export function ExposicionCard({
 
     try {
       // Puedes agregar aquí una llamada API específica para registrar la no disponibilidad
-      const idJurado = 6;
+  
 
       await actualizarEstadoControlExposicion(
         exposicion.id_exposicion,
-        idJurado,
+        id_jurado!,
         "RECHAZADO",
       );
 

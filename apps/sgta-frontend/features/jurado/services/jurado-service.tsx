@@ -319,6 +319,11 @@ export const getExposicionesJurado = async (
   idToken: string,
 ): Promise<ExposicionJurado[]> => {
   try {
+    console.log("========== INICIO SOLICITUD getExposicionesJurado ==========");
+    console.log("Intentando obtener exposiciones con token:", 
+    idToken ? `${idToken.substring(0, 10)}...` : "undefined");
+
+
     const response = await axiosInstance.get("/jurado/exposiciones", {
       headers: {
         Authorization: `Bearer ${idToken}`,
@@ -389,15 +394,21 @@ export const actualizarEstadoExposicion = async (
 
 export const actualizarEstadoControlExposicion = async (
   exposicionId: number,
-  juradoId: number,
+  juradoId: string,
   nuevoEstado: string,
 ): Promise<boolean> => {
   try {
-    const response = await axiosInstance.put("/jurado/control", {
-      exposicionTemaId: exposicionId,
-      juradoId: juradoId,
-      estadoExposicionUsuario: nuevoEstado,
-    });
+    const response = await axiosInstance.put("/jurado/control", 
+      {
+        exposicionTemaId: exposicionId,
+        estadoExposicionUsuario: nuevoEstado
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${juradoId}`
+        }
+      }
+    );
 
     return response.status === 200;
   } catch (error) {
