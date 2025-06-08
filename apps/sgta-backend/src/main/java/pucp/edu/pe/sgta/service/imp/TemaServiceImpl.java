@@ -376,7 +376,7 @@ public class TemaServiceImpl implements TemaService {
 
 	@Transactional
 	@Override
-	public void createInscripcionTema(TemaDto dto, String idUsuario) {
+	public Integer createInscripcionTema(TemaDto dto, String idUsuario) {
 
 		
 		UsuarioDto usuarioDto = usuarioService.findByCognitoId(idUsuario);
@@ -421,6 +421,7 @@ public class TemaServiceImpl implements TemaService {
 		}
 		// 6) Generar y enviar la solicitud de aprobación
 		crearSolicitudAprobacionTema(tema);
+		return tema.getId(); // return tema id
 	}
 
 	@Override
