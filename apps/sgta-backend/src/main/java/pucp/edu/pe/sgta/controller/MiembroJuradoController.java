@@ -188,10 +188,6 @@ public class MiembroJuradoController {
         } catch (RuntimeException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
         }
-<<<<<<< HEAD
-
-=======
->>>>>>> e8331d5d646a0e70b8a414a70aac5431ee6aaaff
     }
 
     @PutMapping("/criterios")

@@ -283,7 +283,7 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
 
                 // buscar si ya existe una asignacion para este usuario y tema
                 Optional<UsuarioXTema> juradoExistenteOpt = usuarioXTemaRepository.findByUsuario_IdAndTema_Id(
-                                userDtoCognito.getId(),
+                                usuarioId,
                                 temaId);
                 if (juradoExistenteOpt.isPresent()) {
                         UsuarioXTema juradoExiste = juradoExistenteOpt.get();
