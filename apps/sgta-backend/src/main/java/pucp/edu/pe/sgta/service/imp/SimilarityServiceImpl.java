@@ -179,20 +179,24 @@ public class SimilarityServiceImpl implements SimilarityService {
            if (threshold == null){
                threshold = faissThreshold;
            }
-           // Create URL with query parameters properly encoded
-           UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(sbertServiceUrl + "/topics/search-temp")
-               .queryParam("query_text", preprocessedQuery)
-               .queryParam("top_k", faissTopK)
-               .queryParam("threshold", threshold/100); // Convert percentage to decimal
+
+           // Create request body with parameters
+           Map<String, Object> requestBody = new HashMap<>();
+           requestBody.put("query_text", preprocessedQuery);
+           requestBody.put("top_k", faissTopK);
+           requestBody.put("threshold", threshold/100);
+
+           // Create URL enpoint
+           String endpoint = sbertServiceUrl + "/topics/search-temp";
 
            HttpHeaders headers = new HttpHeaders();
            // Empty body for GET request
-           HttpEntity<Void> request = new HttpEntity<>(headers);
+           HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
 
            @SuppressWarnings("rawtypes")
            ResponseEntity<Map> response = restTemplate.exchange(
-               builder.toUriString(),
-               HttpMethod.GET,
+               endpoint,
+               HttpMethod.POST,
                request,
                Map.class
            );
