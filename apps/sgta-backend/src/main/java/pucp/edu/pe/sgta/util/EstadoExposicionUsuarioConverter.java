@@ -14,7 +14,7 @@ public class EstadoExposicionUsuarioConverter implements AttributeConverter<Esta
 
     @Override
     public EstadoExposicionUsuario convertToEntityAttribute(String dbData) {
-        System.out.println("Convirtiendo estado desde BD: '" + dbData + "'");
+        //System.out.println("Convirtiendo estado desde BD: '" + dbData + "'");
         if (dbData == null) return null;
         try {
             return EstadoExposicionUsuario.valueOf(dbData.toUpperCase()); // "aceptado" -> ACEPTADO
