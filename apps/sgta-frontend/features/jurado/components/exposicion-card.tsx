@@ -254,7 +254,11 @@ export function ExposicionCard({
     className={`rounded-lg shadow-sm border p-5 flex flex-col md:flex-row gap-10
       ${
         mostrarReprogramacionSolicitada() && 
-        mapEstadoToExposicionEstado(exposicion.estado) !== "programada"
+        !(
+          mapEstadoToExposicionEstado(exposicion.estado) === "programada" ||
+          mapEstadoToExposicionEstado(exposicion.estado) === "completada" ||
+          mapEstadoToExposicionEstado(exposicion.estado) === "calificada"
+        )
           ? "bg-red-50 border-red-200"
           : "bg-gray-50"
       }`}
@@ -361,11 +365,16 @@ export function ExposicionCard({
             )}
 
             {mostrarReprogramacionSolicitada() && 
-            mapEstadoToExposicionEstado(exposicion.estado) !== "programada" && (
+            !(
+                mapEstadoToExposicionEstado(exposicion.estado) === "programada" ||
+                mapEstadoToExposicionEstado(exposicion.estado) === "completada" ||
+                mapEstadoToExposicionEstado(exposicion.estado) === "calificada"
+            ) && (
               <Button variant="outline" disabled>
                 Reprogramación Solicitada
               </Button>
-            )}
+            )
+            }
 
             {mapEstadoToExposicionEstado(exposicion.estado) === "completada" &&
             // isBefore(new Date(exposicion.fechahora), new Date()) && 

@@ -216,7 +216,14 @@ public class MiembroJuradoController {
     }
 
     @GetMapping("/criterios")
-    public ResponseEntity<ExposicionCalificacionDto> listarExposicionCalificacion(HttpServletRequest request,@RequestBody ExposicionCalificacionRequest requestExpo) {
+    public ResponseEntity<ExposicionCalificacionDto> listarExposicionCalificacion(HttpServletRequest request,@RequestParam("exposicion_tema_id") Long exposicionTemaId) {
+
+        System.out.println("exposicion_tema_id recibido: " + exposicionTemaId);
+        System.out.println("Headers de autorización: " + request.getHeader("Authorization"));
+
+        ExposicionCalificacionRequest requestExpo = new ExposicionCalificacionRequest();
+        requestExpo.setExposicion_tema_id(exposicionTemaId.intValue());
+
         try {
             String juradoId = jwtService.extractSubFromRequest(request);
             return juradoService.listarExposicionCalificacion(requestExpo,juradoId);
