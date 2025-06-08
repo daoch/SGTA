@@ -18,21 +18,15 @@ import {
 } from "@/features/temas/types/inscripcion/constants";
 import {
   fetchTemasAPI,
-  fetchUsers,
+  obtenerAreasDelUsuario,
   obtenerCarrerasPorUsuario,
 } from "@/features/temas/types/inscripcion/data";
-import {
-  AreaDeInvestigacion,
-  Carrera,
-  Coasesor,
-  Tesista,
-} from "@/features/temas/types/inscripcion/entities";
-import { Tipo } from "@/features/temas/types/inscripcion/enums";
+import { Carrera, Coasesor } from "@/features/temas/types/inscripcion/entities";
+import { AreaConocimiento } from "@/features/temas/types/postulaciones/entidades";
 import { buscarUsuarioPorToken } from "@/features/temas/types/propuestas/data";
 import { fetchUsuariosFindById } from "@/features/temas/types/temas/data";
 import { Tema, Usuario } from "@/features/temas/types/temas/entidades";
 import { EstadoTemaNombre } from "@/features/temas/types/temas/enums";
-import axiosInstance from "@/lib/axios/axios-instance";
 import { Plus } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
@@ -43,16 +37,10 @@ import { useCallback, useEffect, useState } from "react";
  */
 const Page = () => {
   const [isNuevoTemaDialogOpen, setIsNuevoTemaDialogOpen] = useState(false);
-  const [coasesoresDisponibles, setCoasesoresDisponibles] = useState<
-    Coasesor[]
-  >([]);
   const [asesorData, setAsesorData] = useState<Coasesor>();
-  const [estudiantesDisponibles, setEstudiantesDisponibles] = useState<
-    Tesista[]
-  >([]);
-  const [subareasDisponibles, setSubareasDisponibles] = useState<
-    AreaDeInvestigacion[]
-  >([]);
+  const [areasDisponibles, setAreasDisponibles] = useState<AreaConocimiento[]>(
+    [],
+  );
   const [temasData, setTemasData] = useState<Tema[]>([]);
   const [carrera, setCarrera] = useState<Carrera[]>();
   const [isLoading, setIsLoading] = useState(false);
@@ -60,7 +48,7 @@ const Page = () => {
 
   const [usuarioLoggeado, setUsuarioLoggeado] = useState<Usuario>();
   const [estadoTema, setEstadoTema] = useState<EstadoTemaNombre>(
-    EstadoTemaNombre.REGISTRADO,
+    EstadoTemaNombre.INSCRITO,
   );
 
   useEffect(() => {
@@ -79,23 +67,41 @@ const Page = () => {
   // Función para recargar los temas
   const fetchTemas = useCallback(async () => {
     try {
+      console.log("Entro a recoger los temas.");
       setIsLoading(true);
       setError(null);
-      const inscritosData =
-        (await fetchTemasAPI("Asesor", EstadoTemaNombre.INSCRITO)) || [];
-      const libresData =
-        (await fetchTemasAPI("Asesor", EstadoTemaNombre.PROPUESTO_LIBRE)) || [];
-      const interesadosData =
-        (await fetchTemasAPI("Asesor", EstadoTemaNombre.PROPUESTO_GENERAL)) ||
-        [];
-      const preInscritosData =
-        (await fetchTemasAPI("Asesor", EstadoTemaNombre.PREINSCRITO)) || [];
-      setTemasData([
-        ...inscritosData,
-        ...libresData,
-        ...interesadosData,
-        ...preInscritosData,
-      ]);
+      let data: Tema[] = [];
+      switch (estadoTema) {
+        case EstadoTemaNombre.INSCRITO:
+          const temasInscritos = (await fetchTemasAPI("", estadoTema)) || [];
+          const temasEnProgres =
+            (await fetchTemasAPI("", EstadoTemaNombre.EN_PROGRESO)) || [];
+          const temasObservado =
+            (await fetchTemasAPI("", EstadoTemaNombre.OBSERVADO)) || [];
+          const temasRegistrado =
+            (await fetchTemasAPI("", EstadoTemaNombre.REGISTRADO)) || [];
+          data = [
+            ...temasInscritos,
+            ...temasEnProgres,
+            ...temasObservado,
+            ...temasRegistrado,
+          ];
+          break;
+        case EstadoTemaNombre.PROPUESTO_LIBRE:
+          data = (await fetchTemasAPI("", estadoTema)) || [];
+          break;
+        case EstadoTemaNombre.PROPUESTO_GENERAL:
+          const temasGenerales = (await fetchTemasAPI("", estadoTema)) || [];
+          const temasPreInscrito =
+            (await fetchTemasAPI("", EstadoTemaNombre.PREINSCRITO)) || [];
+          data = [...temasGenerales, ...temasPreInscrito];
+          break;
+        default:
+          console.log("Entro al defaul");
+          break;
+      }
+
+      setTemasData(data);
       console.log("consegui los temas data");
     } catch (err: unknown) {
       console.log(err);
@@ -103,7 +109,11 @@ const Page = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [estadoTema]);
+
+  useEffect(() => {
+    fetchTemas();
+  }, [fetchTemas]);
 
   useEffect(() => {
     if (!usuarioLoggeado) return;
@@ -112,9 +122,7 @@ const Page = () => {
         //obtener la carrera
         const carreras = await obtenerCarrerasPorUsuario();
         setCarrera(carreras);
-
-        const response = await axiosInstance.get("subAreaConocimiento/list");
-        setSubareasDisponibles(response.data);
+        console.log("Sus carreras son: ", { carreras });
 
         //llenar datos del asesor mediante su id y no por su carrera
         const usuario = await fetchUsuariosFindById(Number(usuarioLoggeado.id));
@@ -139,29 +147,17 @@ const Page = () => {
         };
         setAsesorData(coasesor);
 
-        console.log({ carreras });
-        if (carreras) {
-          const tesistasData: Tesista[] = await fetchUsers(
-            carreras[0].id, // TODO: SE ESTA TOMANDO SOLO LA PRIMERA CARRERA, CAMBIAR
-            "alumno",
-          );
-          setEstudiantesDisponibles(tesistasData.filter((t) => !t.asignado)); // No deben estar asignados
-
-          const coasesoresData: Coasesor[] = await fetchUsers(
-            carreras[0].id,
-            "profesor",
-          );
-
-          setCoasesoresDisponibles(coasesoresData);
-        }
+        const areas = await obtenerAreasDelUsuario(Number(usuario.id));
+        setAreasDisponibles(areas);
       } catch (error) {
-        console.error("Error cargando subáreas:", error);
+        console.error("Error los datos de entrada", error);
       }
     };
 
-    fetchData().then(() => fetchTemas());
-  }, [usuarioLoggeado, fetchTemas]);
+    fetchData();
+  }, [usuarioLoggeado]);
 
+  console.log({ estadoTema });
   return (
     <div className="space-y-8 mt-4">
       <div className="flex items-end justify-between">
@@ -188,12 +184,9 @@ const Page = () => {
           </DialogTrigger>
           {asesorData && carrera && (
             <NuevoTemaDialog
-              isOpen={isNuevoTemaDialogOpen}
               setIsNuevoTemaDialogOpen={setIsNuevoTemaDialogOpen}
-              coasesoresDisponibles={coasesoresDisponibles}
-              estudiantesDisponibles={estudiantesDisponibles}
-              subareasDisponibles={subareasDisponibles}
-              carrera={carrera[0]}
+              areasDisponibles={areasDisponibles}
+              carreras={carrera}
               onTemaGuardado={fetchTemas}
               asesor={asesorData}
             />
@@ -202,7 +195,14 @@ const Page = () => {
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue={estadoTema} className="w-full">
+      <Tabs
+        value={estadoTema}
+        onValueChange={(value) => {
+          setEstadoTema(value as EstadoTemaNombre);
+          console.log(value);
+        }}
+        className="w-full"
+      >
         <TabsList>
           {Object.entries(tableTexts)
             .filter(([, value]) => value.show)
@@ -226,11 +226,6 @@ const Page = () => {
                 <CardContent>
                   <TemasTable
                     temasData={temasData}
-                    filter={
-                      key === Tipo.INTERESADO
-                        ? [Tipo.INTERESADO, Tipo.PREINSCRITO]
-                        : [key]
-                    }
                     isLoading={isLoading}
                     error={error}
                     asesor={asesorData}
