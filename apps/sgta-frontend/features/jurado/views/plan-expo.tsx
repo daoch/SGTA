@@ -1,6 +1,10 @@
-import { AreaEspecialidad, Tema, TimeSlot } from "../types/jurado.types";
+import {
+  AreaEspecialidad,
+  EstadoPlanificacion,
+  Tema,
+  TimeSlot,
+} from "../types/jurado.types";
 
-import AppLoading from "@/components/loading/app-loading";
 import BackButton from "@/components/ui/back-button";
 import GeneralPlanificationExpo from "@/features/jurado/components/PlanificationComponents/general-planificacion-expo";
 import {
@@ -12,23 +16,26 @@ import {
   listarTemasCicloActualXEtapaFormativa,
 } from "@/features/jurado/services/data";
 import { isSameDay } from "date-fns";
-import { Toaster } from "sonner";
 import { ExposicionEtapaFormativaDTO } from "../dtos/ExposicionEtapaFormativaDTO";
 import { JornadaExposicionDTO } from "../dtos/JornadExposicionDTO";
 import { transformarJornada } from "../utils/transformar-jornada";
+import { CalendarOff } from "lucide-react";
 
 type Props = {
   exposicionId: number;
 };
 
 export default async function PlanExpo({ exposicionId }: Props) {
-  const estadoPlanificacion =
+  const estadoPlanificacion: EstadoPlanificacion =
     await listarEstadoPlanificacionPorExposicion(exposicionId);
 
   const exposicionEtapaFormativaDTO: ExposicionEtapaFormativaDTO | null =
     await getEtapaFormativaIdByExposicionId(exposicionId);
 
-  const temas = await listarTemasCicloActualXEtapaFormativa(exposicionEtapaFormativaDTO?.etapaFormativaId,exposicionId);
+  const temas = await listarTemasCicloActualXEtapaFormativa(
+    exposicionEtapaFormativaDTO?.etapaFormativaId,
+    exposicionId,
+  );
 
   const jornadasSalas =
     await listarJornadasExposicionSalasByExposicion(exposicionId);
@@ -70,32 +77,41 @@ export default async function PlanExpo({ exposicionId }: Props) {
   );
   return (
     <div className="h-fit w-full flex flex-col gap-4">
-      <div className="text-3xl font-bold flex gap-4 items-center justify-between">
-        <div className="flex gap-4 items-center">
-          <BackButton backUrl="/coordinador/exposiciones" />
-          <h1 className="text-2xl font-bold">
-            {"Planificador de exposiciones"}
-          </h1>
-        </div>
-        <h2 className="text-xl font-bold">
-          {`${exposicionEtapaFormativaDTO?.nombreExposicion} / ${exposicionEtapaFormativaDTO?.nombreEtapaFormativa}`}{" "}
-        </h2>
-      </div>
-      {estadoPlanificacion ? (
-        <GeneralPlanificationExpo
-          temas={temas}
-          temasSinAsignar={temasSinAsignar}
-          temasAsignados={temasAsignados}
-          areasEspecialidad={areasEspecialidad}
-          days={days}
-          bloques={bloquesOrdenados}
-          exposicionId={exposicionId}
-          estado={estadoPlanificacion}
-        />
+      {estadoPlanificacion && estadoPlanificacion.nombre != "Sin planificar" ? (
+        <>
+          <div className="text-3xl font-bold flex gap-4 items-center justify-between">
+            <div className="flex gap-4 items-center">
+              <BackButton backUrl="/coordinador/exposiciones" />
+              <h1 className="text-2xl font-bold">
+                {"Planificador de exposiciones"}
+              </h1>
+            </div>
+            <h2 className="text-xl font-bold">
+              {`${exposicionEtapaFormativaDTO?.nombreExposicion} / ${exposicionEtapaFormativaDTO?.nombreEtapaFormativa}`}{" "}
+            </h2>
+          </div>
+          <GeneralPlanificationExpo
+            temas={temas}
+            temasSinAsignar={temasSinAsignar}
+            temasAsignados={temasAsignados}
+            areasEspecialidad={areasEspecialidad}
+            days={days}
+            bloques={bloquesOrdenados}
+            exposicionId={exposicionId}
+            estado={estadoPlanificacion}
+          />
+        </>
       ) : (
-        <AppLoading />
+        <div className="flex flex-col items-center justify-center text-gray-500">
+          <CalendarOff className="w-16 h-16 mb-4" />
+          <p className="text-base font-medium">Planificacion no disponible</p>
+          <div className="mt-4">
+            <BackButton backUrl="/coordinador/exposiciones">
+              Regresar
+            </BackButton>
+          </div>
+        </div>
       )}
-      <Toaster position="bottom-right" richColors />
     </div>
   );
 }
