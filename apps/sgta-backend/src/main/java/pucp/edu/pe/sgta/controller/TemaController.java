@@ -59,25 +59,25 @@ public class TemaController {
 	}
 
 	@PostMapping("/createPropuesta")
-	public void createTema(@RequestBody TemaDto dto,
+	public Integer createTema(@RequestBody TemaDto dto,
 			@RequestParam(name = "tipoPropuesta", defaultValue = "0") Integer tipoPropuesta,
 			HttpServletRequest request) {
 		try {
 			String idUsuarioCreador = jwtService.extractSubFromRequest(request);
-			temaService.createTemaPropuesta(dto, idUsuarioCreador, tipoPropuesta);
+			return temaService.createTemaPropuesta(dto, idUsuarioCreador, tipoPropuesta);
 		} catch (RuntimeException e) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
 		}
 	}
 
 	@PostMapping("/createInscripcion") // Inscripcion de tema oficial por asesor
-	public void createInscripcion(
+	public Integer createInscripcion(
 			@RequestBody @Valid TemaDto dto,
 			HttpServletRequest request
 	// @RequestParam(name = "idUsuarioCreador") Integer idUsuarioCreador
 	) {
 		String idUsuarioCreador = jwtService.extractSubFromRequest(request);
-		temaService.createInscripcionTema(dto, idUsuarioCreador);
+		return temaService.createInscripcionTema(dto, idUsuarioCreador);
 	}
 
 	@PutMapping("/update") // updates a topic
@@ -670,6 +670,21 @@ public class TemaController {
 					ERROR_KEY, "Error al remover el tema del índice FAISS",
 					DETAILS_KEY, e.getMessage()
 				));
+		}
+	}
+
+	@GetMapping("/contarPostuladosAlumnosTemaLibreAsesor")
+	public Integer contarPostuladosAlumnosTemaLibreAsesor(
+			@RequestParam(required = false) String busqueda,
+			@RequestParam(required = false) String estado,
+			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaLimite,
+			HttpServletRequest request
+	) {
+		try {
+			String usuarioId = jwtService.extractSubFromRequest(request);
+			return temaService.contarPostuladosAlumnosTemaLibreAsesor(busqueda, estado, fechaLimite, usuarioId);
+		} catch (RuntimeException e) {
+			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage(), e);
 		}
 	}
 

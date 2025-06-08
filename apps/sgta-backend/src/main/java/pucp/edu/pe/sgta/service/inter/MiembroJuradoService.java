@@ -26,24 +26,24 @@ public interface MiembroJuradoService {
 
     public List<MiembroJuradoDto> obtenerUsuariosPorAreaConocimiento(Integer areaConocimientoId);
 
-    public Optional<Map<String, Object>> deleteUserJurado(String usuarioId);
+    public Optional<Map<String, Object>> deleteUserJurado(Integer usuarioId);
 
-    public List<JuradoXAreaConocimientoDto> findAreaConocimientoByUser(String usuarioId);
+    public List<JuradoXAreaConocimientoDto> findAreaConocimientoByUser(Integer usuarioId);
 
-    ResponseEntity<?> asignarJuradoATema(AsignarJuradoRequest request,String usuarioId);
+    ResponseEntity<?> asignarJuradoATema(AsignarJuradoRequest request);
 
-    List<MiembroJuradoXTemaDto> findByUsuarioIdAndActivoTrueAndRolId(String usuarioId);
+    List<MiembroJuradoXTemaDto> findByUsuarioIdAndActivoTrueAndRolId(Integer usuarioId);
 
-    List<MiembroJuradoXTemaTesisDto> findTemaTesisByUsuario(String usuarioId);
+    List<MiembroJuradoXTemaTesisDto> findTemaTesisByUsuario(Integer usuarioId);
 
-    List<MiembroJuradoXTemaDto> findTemasDeOtrosJurados(String usuarioId);
+    List<MiembroJuradoXTemaDto> findTemasDeOtrosJurados(Integer usuarioId);
 
-    ResponseEntity<?> desasignarJuradoDeTema(AsignarJuradoRequest request,String juradoId);
+    ResponseEntity<?> desasignarJuradoDeTema(AsignarJuradoRequest request);
 
     // Va para temas pero lo he colocado aquí
     public DetalleTemaDto obtenerDetalleTema(Integer temaId);
 
-    ResponseEntity<?> desasignarJuradoDeTemaTodos(String usuarioId);
+    ResponseEntity<?> desasignarJuradoDeTemaTodos(Integer usuarioId);
 
     // Detalle exposición Jurado
     List<ExposicionTemaMiembrosDto> listarExposicionXJuradoId(String juradoId);

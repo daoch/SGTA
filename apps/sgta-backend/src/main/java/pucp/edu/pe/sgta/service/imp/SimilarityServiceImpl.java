@@ -13,7 +13,7 @@ import pucp.edu.pe.sgta.dto.TemaDto;
 import pucp.edu.pe.sgta.dto.TemaSimilarityResult;
 import pucp.edu.pe.sgta.service.inter.SimilarityService;
 import pucp.edu.pe.sgta.service.inter.TemaService;
-
+import org.springframework.web.util.UriComponentsBuilder;
 import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -56,7 +56,7 @@ public class SimilarityServiceImpl implements SimilarityService {
     @Value("${similarity.use-faiss:true}")
     private Boolean useFaiss;
 
-    @Value("${similarity.faiss-threshold:0.0}")
+    @Value("${similarity.faiss-threshold:70.0}")
     private Double faissThreshold;
 
     @Value("${similarity.faiss-top-k:10}")
@@ -126,27 +126,28 @@ public class SimilarityServiceImpl implements SimilarityService {
      */
     private List<TemaSimilarityResult> findSimilarTemasWithFaiss(TemaDto tema, Double threshold) {
         try {
-            // First, ensure the current tema is indexed in FAISS
-            addTemaToFaissIndex(tema);
-
             // Search for similar temas using FAISS
             String combinedText = combineTextForSearch(tema);
-            List<TemaSimilarityResult> faissResults = searchSimilarTemas(combinedText, threshold);
+
             if (tema.getId() == 999999) {
-                removeTemaFromFaissIndex(999999); // Special case for temporary temas (proposed)
+                return searchUsingTempEmbedding(tema, threshold);
+            } else{
+                addTemaToFaissIndex(tema);
+                List<TemaSimilarityResult> faissResults = searchSimilarTemas(combinedText, threshold);
+                // Filter out the same tema if it exists - fix the filtering logic
+                return faissResults.stream()
+                        .filter(result -> {
+                            if (tema.getId() == null) {
+                                return true; // Keep all results if input tema has no ID
+                            }
+                            if (result.getTema() == null || result.getTema().getId() == null) {
+                                return true; // Keep if result has no ID to compare
+                            }
+                            return !tema.getId().equals(result.getTema().getId());
+                        })
+                        .toList();
             }
-            // Filter out the same tema if it exists - fix the filtering logic
-            return faissResults.stream()
-                    .filter(result -> {
-                    if (tema.getId() == null) {
-                        return true; // Keep all results if input tema has no ID
-                    }
-                    if (result.getTema() == null || result.getTema().getId() == null) {
-                        return true; // Keep if result has no ID to compare
-                    }
-                    return !tema.getId().equals(result.getTema().getId());
-                })
-                .toList();
+
 
         } catch (Exception e) {
             logger.warning("FAISS search failed, falling back to traditional method: " + e.getMessage());
@@ -154,6 +155,74 @@ public class SimilarityServiceImpl implements SimilarityService {
         }
     }
 
+    /**
+     * Search for similar temas using temporary embedding without adding to index
+     */
+   private List<TemaSimilarityResult> searchUsingTempEmbedding(TemaDto tema, Double threshold) {
+       try {
+           // Combine and preprocess text for search
+           String combinedText = combineTextForSearch(tema);
+           String preprocessedQuery = preprocessText(combinedText);
+
+           if (Boolean.TRUE.equals(useFaiss)) {
+               logger.info(String.format("Searching with temporary embedding (length: %d)", preprocessedQuery.length()));
+           }
+
+           if (threshold < 0 || threshold > 100) {
+                throw new IllegalArgumentException("Threshold must be between 0 and 100");
+           }
+
+           if (threshold < faissThreshold) {
+               logger.warning(String.format("Using temporary embedding search with threshold %.1f%%, which is lower than configured FAISS threshold %.1f%%", threshold, faissThreshold));
+           }
+
+           if (threshold == null){
+               threshold = faissThreshold;
+           }
+
+           // Create request body with parameters
+           Map<String, Object> requestBody = new HashMap<>();
+           requestBody.put("query_text", preprocessedQuery);
+           requestBody.put("top_k", faissTopK);
+           requestBody.put("threshold", threshold/100);
+
+           // Create URL enpoint
+           String endpoint = sbertServiceUrl + "/topics/search-temp";
+
+           HttpHeaders headers = new HttpHeaders();
+           // Empty body for GET request
+           HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
+
+           @SuppressWarnings("rawtypes")
+           ResponseEntity<Map> response = restTemplate.exchange(
+               endpoint,
+               HttpMethod.POST,
+               request,
+               Map.class
+           );
+
+           @SuppressWarnings("unchecked")
+           Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
+           if (responseBody != null && responseBody.containsKey(RESULTS_KEY)) {
+               @SuppressWarnings("unchecked")
+               List<Map<String, Object>> results = (List<Map<String, Object>>) responseBody.get(RESULTS_KEY);
+
+               if (Boolean.TRUE.equals(useFaiss)) {
+                   logger.info(String.format("Temporary embedding search returned %d similar temas", results.size()));
+               }
+
+               return results.stream()
+                   .<TemaSimilarityResult>map(this::mapFaissResultToTemaSimilarity)
+                   .filter(Objects::nonNull)
+                   .collect(Collectors.toList());
+           }
+
+       } catch (Exception e) {
+           logger.warning("Temporary embedding search failed: " + e.getMessage());
+       }
+
+       return new ArrayList<>();
+   }
     /**
      * Traditional similarity search (comparing with all temas one by one)
      */
