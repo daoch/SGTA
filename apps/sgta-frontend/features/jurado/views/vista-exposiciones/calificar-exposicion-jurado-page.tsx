@@ -49,7 +49,7 @@ type Props = {
 };
 
 const CalificarExposicionJuradoPage: React.FC<Props> = ({ id_exposicion }) => {
-  const [id_exposicion_tema, id_jurado] = id_exposicion.split("-");
+  const [id_exposicion_tema] = id_exposicion;
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [evaluacion, setEvaluacion] = useState<EvaluacionExposicionJurado>();
@@ -72,7 +72,7 @@ const CalificarExposicionJuradoPage: React.FC<Props> = ({ id_exposicion }) => {
       setIsLoading(true);
       try {
         const { idToken } = useAuthStore.getState();
-        console.log("ID Token:", idToken);
+        console.log("ID Token:", idToken , "ID Exposición Tema:", id_exposicion_tema);
         setToken(idToken);
         
         const datosEvaluacion = await getExposicionCalificarJurado(token!, id_exposicion_tema);

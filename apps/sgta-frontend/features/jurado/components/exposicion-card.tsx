@@ -379,7 +379,7 @@ export function ExposicionCard({
                 >
                   
                   <Link
-                    href={`/jurado/exposiciones/calificar/${exposicion.id_exposicion}-${id_jurado || ""}`}
+                    href={`/jurado/exposiciones/calificar/${exposicion.id_exposicion}`}
                   >
                     Calificar
                   </Link>
