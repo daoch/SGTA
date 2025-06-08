@@ -299,26 +299,7 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                                                 "El jurado ya está asignado y activo para este tema"));
                         }
                 }
-
-                // buscar si ya existe una asignacion para este usuario y tema
-                Optional<UsuarioXTema> juradoExistenteOpt = usuarioXTemaRepository.findByUsuario_IdAndTema_Id(
-                                usuarioId,
-                                temaId);
-                if (juradoExistenteOpt.isPresent()) {
-                        UsuarioXTema juradoExiste = juradoExistenteOpt.get();
-
-                        // si el registro existe y esta inactivo, actualizamos el campo activo
-                        if (!juradoExiste.getActivo()) {
-                                juradoExiste.setActivo(true);
-                                usuarioXTemaRepository.save(juradoExiste);
-                                return ResponseEntity.ok(Map.of("mensaje", "Jurado reactivado correctamente"));
-                        } else {
-                                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                                                .body(Map.of("mensaje",
-                                                                "El jurado ya está asignado y activo para este tema"));
-                        }
-                }
-
+                
                 UsuarioXTema asignacion = new UsuarioXTema();
                 asignacion.setUsuario(usuarioOpt.get());
                 asignacion.setTema(temaOpt.get());
