@@ -67,6 +67,7 @@ const Page = () => {
   // Función para recargar los temas
   const fetchTemas = useCallback(async () => {
     try {
+      console.log("Entro a recoger los temas.");
       setIsLoading(true);
       setError(null);
       let data: Tema[] = [];
@@ -96,6 +97,7 @@ const Page = () => {
           data = [...temasGenerales, ...temasPreInscrito];
           break;
         default:
+          console.log("Entro al defaul");
           break;
       }
 
@@ -108,6 +110,10 @@ const Page = () => {
       setIsLoading(false);
     }
   }, [estadoTema]);
+
+  useEffect(() => {
+    fetchTemas();
+  }, [fetchTemas]);
 
   useEffect(() => {
     if (!usuarioLoggeado) return;
@@ -151,6 +157,7 @@ const Page = () => {
     fetchData();
   }, [usuarioLoggeado]);
 
+  console.log({ estadoTema });
   return (
     <div className="space-y-8 mt-4">
       <div className="flex items-end justify-between">
@@ -190,7 +197,10 @@ const Page = () => {
       {/* Tabs */}
       <Tabs
         value={estadoTema}
-        onValueChange={(value) => setEstadoTema(value as EstadoTemaNombre)}
+        onValueChange={(value) => {
+          setEstadoTema(value as EstadoTemaNombre);
+          console.log(value);
+        }}
         className="w-full"
       >
         <TabsList>
