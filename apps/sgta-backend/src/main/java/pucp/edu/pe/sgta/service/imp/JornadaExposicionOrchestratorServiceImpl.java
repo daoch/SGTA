@@ -24,7 +24,7 @@ import pucp.edu.pe.sgta.repository.ControlExposicionUsuarioTemaRepository;
 import pucp.edu.pe.sgta.service.inter.BloqueHorarioExposicionService;
 import pucp.edu.pe.sgta.service.inter.EtapaFormativaService;
 import pucp.edu.pe.sgta.service.inter.ExposicionService;
-import pucp.edu.pe.sgta.service.inter.ExposicionXTemaService;
+// import pucp.edu.pe.sgta.service.inter.ExposicionXTemaService;
 import pucp.edu.pe.sgta.service.inter.JornadaExposicionOrchestratorService;
 import pucp.edu.pe.sgta.service.inter.JornadaExposicionService;
 import pucp.edu.pe.sgta.service.inter.JornadaExposicionXSalaExposicionService;
@@ -43,8 +43,8 @@ public class JornadaExposicionOrchestratorServiceImpl implements JornadaExposici
     private ExposicionService exposicionService;
     @Autowired
     private ControlExposicionUsuarioTemaRepository controlExposicionUsuarioTemaRepository;
-    @Autowired
-    private ExposicionXTemaService exposicionXTemaService;
+    // @Autowired
+    // private ExposicionXTemaService exposicionXTemaService;
 
     @Override
     @Transactional
@@ -68,7 +68,7 @@ public class JornadaExposicionOrchestratorServiceImpl implements JornadaExposici
             }
         }
 
-        //exposicionXTemaService.createAllRelatedByExposicionId(dto.getExposicionId());
+        // exposicionXTemaService.createAllRelatedByExposicionId(dto.getExposicionId());
 
         dto.getFechas().forEach(fecha -> {
             JornadaExposicionCreateDTO createDTO = new JornadaExposicionCreateDTO();
