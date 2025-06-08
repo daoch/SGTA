@@ -43,7 +43,7 @@ const DetalleTemasCoordinadorPage: React.FC<
           <TabsTrigger value={TabValues.HISTORIAL}>
             Historial de Cambios
           </TabsTrigger>
-          {tema?.estadoTemaNombre === EstadoTemaNombre.REGISTRADO && (
+          {tema?.estadoTemaNombre === EstadoTemaNombre.EN_PROGRESO && (
             <TabsTrigger value={TabValues.DETALLE_EXPO}>
               Detalle de Exposiciones
             </TabsTrigger>
