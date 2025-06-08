@@ -55,8 +55,8 @@ public class MiembroJuradoController {
     @DeleteMapping("/jurado")
     public ResponseEntity<Map<String, Object>> deleteUserJurado(HttpServletRequest request) {
         try {
-            String jwt_juradoId = jwtService.extractSubFromRequest(request);
-            Integer usuarioId = Integer.parseInt(jwt_juradoId);
+            String usuarioId = jwtService.extractSubFromRequest(request);
+
 
             Optional<Map<String, Object>> result = juradoService.deleteUserJurado(usuarioId);
 
@@ -93,8 +93,7 @@ public class MiembroJuradoController {
             HttpServletRequest request) {
 
         try{
-            String jwt_juradoId = jwtService.extractSubFromRequest(request);
-            Integer usuarioId = Integer.parseInt(jwt_juradoId);
+            String usuarioId = jwtService.extractSubFromRequest(request);
             List<JuradoXAreaConocimientoDto> result = juradoService.findAreaConocimientoByUser(usuarioId);
             return ResponseEntity.ok(result.get(0));
         }catch (RuntimeException e) {
@@ -105,8 +104,7 @@ public class MiembroJuradoController {
     @PostMapping("/asignar-tema")
     public ResponseEntity<?> asignarJuradoATema(HttpServletRequest request,@RequestBody AsignarJuradoRequest requestAsignar) {
         try{
-            String jwt_juradoId = jwtService.extractSubFromRequest(request);
-            Integer usuarioId = Integer.parseInt(jwt_juradoId);
+            String usuarioId = jwtService.extractSubFromRequest(request);
             return juradoService.asignarJuradoATema(requestAsignar,usuarioId);
         }catch (RuntimeException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
@@ -116,8 +114,7 @@ public class MiembroJuradoController {
     @GetMapping("/temas")
     public ResponseEntity<List<MiembroJuradoXTemaDto>> obtenerTemasPorMiembroJurado(HttpServletRequest request) {
         try{
-            String jwt_juradoId = jwtService.extractSubFromRequest(request);
-            Integer usuarioId = Integer.parseInt(jwt_juradoId);
+            String usuarioId = jwtService.extractSubFromRequest(request);
             List<MiembroJuradoXTemaDto> temas = juradoService.findByUsuarioIdAndActivoTrueAndRolId(usuarioId);
             return ResponseEntity.ok(temas);
         }catch (RuntimeException e) {
@@ -130,8 +127,7 @@ public class MiembroJuradoController {
     public ResponseEntity<List<MiembroJuradoXTemaTesisDto>> obtenerTemasTesisPorMiembroJurado(
             HttpServletRequest request) {
         try{
-            String jwt_juradoId = jwtService.extractSubFromRequest(request);
-            Integer usuarioId = Integer.parseInt(jwt_juradoId);
+            String usuarioId = jwtService.extractSubFromRequest(request);
             List<MiembroJuradoXTemaTesisDto> temas = juradoService.findTemaTesisByUsuario(usuarioId);
             return ResponseEntity.ok(temas);
         }catch (RuntimeException e) {
@@ -143,8 +139,7 @@ public class MiembroJuradoController {
     @GetMapping("/temas-otros-jurados")
     public ResponseEntity<List<MiembroJuradoXTemaDto>> obtenerTemasDeOtrosJurados(HttpServletRequest request) {
         try{
-            String jwt_juradoId = jwtService.extractSubFromRequest(request);
-            Integer juradoId = Integer.parseInt(jwt_juradoId);
+            String juradoId = jwtService.extractSubFromRequest(request);
             List<MiembroJuradoXTemaDto> temas = juradoService.findTemasDeOtrosJurados(juradoId);
             return ResponseEntity.ok(temas);
         }catch (RuntimeException e) {
@@ -156,8 +151,8 @@ public class MiembroJuradoController {
     @PutMapping("/desasignar-jurado")
     public ResponseEntity<?> desasignarJuradoDeTema(HttpServletRequest request,@RequestBody AsignarJuradoRequest requestAsignar) {
         try{
-            String jwt_juradoId = jwtService.extractSubFromRequest(request);
-            Integer juradoId = Integer.parseInt(jwt_juradoId);
+            String juradoId = jwtService.extractSubFromRequest(request);
+
             return juradoService.desasignarJuradoDeTema(requestAsignar,juradoId);
         }catch (RuntimeException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
@@ -168,8 +163,7 @@ public class MiembroJuradoController {
     @PutMapping("/desasignar-jurado-tema-todos")
     public ResponseEntity<?> desasignarJuradoDeTemaTodos(HttpServletRequest request) {
         try{
-            String jwt_juradoId = jwtService.extractSubFromRequest(request);
-            Integer juradoId = Integer.parseInt(jwt_juradoId);
+            String juradoId = jwtService.extractSubFromRequest(request);
             return juradoService.desasignarJuradoDeTemaTodos(juradoId);
         } catch (RuntimeException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
