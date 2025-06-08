@@ -16,11 +16,7 @@ import { usePagination } from "@/hooks/temas/use-pagination";
 import { Search } from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
 import { SolicitudesTable } from "../components/coordinador/table-solicitudes-pagination";
-import {
-  filters,
-  initialPagesList,
-  pageSolicitudes,
-} from "../types/solicitudes/constants";
+import { pageTemasTexts, pageTexts } from "../types/solicitudes/constants";
 import {
   fetchCarrerasMiembroComite,
   lenTemasPorCarrera,
@@ -45,7 +41,7 @@ export default function SolicitudesPendientes() {
     addNewPage,
     getPage,
     getTotalPages,
-  } = usePagination(initialPagesList, LIMIT);
+  } = usePagination(pageTemasTexts.initialPagesList, LIMIT);
 
   useEffect(() => {
     fetchFirstPageAndSetTotalCounts();
@@ -151,10 +147,8 @@ export default function SolicitudesPendientes() {
     <div className="space-y-8 mt-4">
       {/* Título general */}
       <div>
-        <h1 className="text-3xl font-bold text-[#042354]">
-          {pageSolicitudes.title}
-        </h1>
-        <p className="text-muted-foreground">{pageSolicitudes.description}</p>
+        <h1 className="text-3xl font-bold text-[#042354]">{pageTexts.title}</h1>
+        <p className="text-muted-foreground">{pageTexts.description}</p>
       </div>
 
       <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
@@ -162,7 +156,7 @@ export default function SolicitudesPendientes() {
         <div className="relative w-full md:flex-1">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder={filters.search.placeholder}
+            placeholder={pageTemasTexts.searhbar.placeholder}
             className="pl-8 w-full"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -190,7 +184,7 @@ export default function SolicitudesPendientes() {
         onValueChange={(value) => handleTabChange(value as EstadoTemaNombre)}
       >
         <TabsList>
-          {Object.entries(filters.temaEstados).map(([key, estado]) => (
+          {Object.entries(pageTemasTexts.states).map(([key, estado]) => (
             <TabsTrigger key={key} value={key}>
               {estado.label}
             </TabsTrigger>
@@ -205,15 +199,15 @@ export default function SolicitudesPendientes() {
           <div className="space-y-1">
             <h2 className="text-lg font-semibold">
               {
-                filters.temaEstados[
-                  estadoTema as keyof typeof filters.temaEstados
+                pageTemasTexts.states[
+                  estadoTema as keyof typeof pageTemasTexts.states
                 ].title
               }
             </h2>
             <p className="text-sm text-muted-foreground">
               {
-                filters.temaEstados[
-                  estadoTema as keyof typeof filters.temaEstados
+                pageTemasTexts.states[
+                  estadoTema as keyof typeof pageTemasTexts.states
                 ].description
               }
             </p>
