@@ -8,11 +8,15 @@ import { AlertTriangle } from "lucide-react";
 interface PropuestasSimilaresCardProps {
   propuestas: TemaSimilar[];
   onCancel?: () => void;
+  onContinue?: () => void;
+  checkingSimilitud?: boolean;
 }
 
 export default function PropuestasSimilaresCard({
   propuestas,
   onCancel,
+  onContinue,
+  checkingSimilitud,
 }: PropuestasSimilaresCardProps) {
   function getColorClass(similitud: number) {
     if (similitud >= 80) return "text-red-600";
@@ -46,7 +50,7 @@ export default function PropuestasSimilaresCard({
                   getColorClass(p.similarityScore)
                 )}
               >
-                Similitud: {p.similarityScore}%
+                Similitud: {p.similarityScore.toFixed(2)}%
               </p>
             </div>
             <span className="text-sm text-muted-foreground">
@@ -59,8 +63,17 @@ export default function PropuestasSimilaresCard({
       </div>
 
       <div className="flex justify-end gap-4 mt-6">
-        <Button variant="outline">Continuar de todos modos</Button>
-        <Button className="bg-blue-900 text-white hover:bg-blue-950" onClick={onCancel}>
+        <Button
+          variant="outline"
+          onClick={onContinue}
+          disabled={checkingSimilitud}
+        >
+          Continuar de todos modos
+        </Button>
+        <Button
+          className="bg-blue-900 text-white hover:bg-blue-950"
+          onClick={onCancel}
+        >
           Cancelar
         </Button>
       </div>
