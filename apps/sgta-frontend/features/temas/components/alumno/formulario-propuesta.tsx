@@ -50,6 +50,17 @@ export interface FormData {
   fechaLimite: string;
 }
 
+export interface TemaSimilar {
+  tema: {
+    id: number;
+    titulo: string;
+    resumen: string;
+    fechaCreacion?: string;
+  };
+  similarityScore: number;
+  comparedFields?: string;
+}
+
 interface Props {
   loading: boolean;
   onSubmit: (data: FormData, cotesistas: Estudiante[]) => Promise<void>;
@@ -59,6 +70,8 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
   const router = useRouter();
   const today = new Date().toISOString().split("T")[0];
   const [openSimilarDialog, setOpenSimilarDialog] = useState(false);
+  const [similares, setSimilares] = useState<TemaSimilar[]>([]);
+  const [forzarGuardar, setForzarGuardar] = useState(false);
 
   const [areas, setAreas] = useState<{ id: number; nombre: string }[]>([]);
   const [asesores, setAsesores] = useState<{ id: string; nombre: string }[]>([]);
@@ -134,8 +147,6 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
   } else {
     setAsesores([]);
   }
-
-  // Limpia si cambia área antes de que termine
   return () => controller.abort();
 }, [formData.area]);
 
@@ -232,7 +243,39 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
 
   const handleLocalSubmit = async () => {
     if (!validate()) return;
-    await onSubmit(formData, cotesistas);
+
+    const body = {
+      id: 999999, 
+      titulo: formData.titulo,
+      resumen: formData.descripcion,
+      objetivos: formData.objetivos,
+      palabrasClaves: [],
+      estadoTemaNombre: "Activo",
+    };
+
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/temas/findSimilar?threshold=20.0`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        }
+      );
+      const data = await res.json();
+
+      if (Array.isArray(data) && data.length > 0 && !forzarGuardar) {
+        setSimilares(data);
+        setOpenSimilarDialog(true);
+        return; 
+      }
+
+      await onSubmit(formData, cotesistas);
+      setForzarGuardar(false); // reset
+    } catch (err) {
+      toast.error("Error al verificar similitud o guardar propuesta");
+      setForzarGuardar(false);
+    }
   };
 
   return (
@@ -458,7 +501,7 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
         </CardContent>
         <Dialog open={openSimilarDialog} onOpenChange={setOpenSimilarDialog}>
   <DialogContent className="max-w-xl p-0">
-    <PropuestasSimilaresCard />
+    <PropuestasSimilaresCard propuestas={similares} />
   </DialogContent>
 </Dialog>
 
@@ -469,9 +512,6 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
           >
             Cancelar
           </Button>
-          {/*/<Button variant="outline" onClick={() => setOpenSimilarDialog(true)}>
-            Probar similitud</CardFooter>
-          </Button>/*/}
           <Button
             onClick={handleLocalSubmit}
             className="bg-[#042354] text-white"
