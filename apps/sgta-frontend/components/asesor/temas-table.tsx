@@ -86,7 +86,7 @@ export function TemasTable({
           {tema.titulo}
         </TableCell>
         {/* Area */}
-        <TableCell>{tema.area[0].nombre}</TableCell>
+        <TableCell>{tema.area?.[0]?.nombre ?? "-"}</TableCell>
         {/* Asesor */}
         <TableCell>{asesor ? asesor.nombres : ""}</TableCell>
         {/* Tesistas */}

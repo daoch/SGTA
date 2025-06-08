@@ -331,6 +331,30 @@ export function DetalleTesisJuradoView() {
                               })}
                             </p>
                             <p>Sala de exposición: {exposicion.sala}</p>
+                            <div>
+                              <p className="mt-2">
+                                Miembros del jurado asignados:
+                              </p>
+                              {exposicion.miembrosJurado.map((jurado) => (
+                                <div
+                                  key={jurado.id}
+                                  className="flex items-center mt-2"
+                                >
+                                  <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center mr-2 overflow-hidden">
+                                    <CircleUserRound className="h-5 w-5 text-gray-500" />
+                                  </div>
+                                  <div>
+                                    <span>
+                                      {jurado.nombres} {jurado.primerApellido}{" "}
+                                      {jurado.segundoApellido}
+                                    </span>
+                                    <span className="text-gray-500 ml-2">
+                                      ({jurado.rol})
+                                    </span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         </div>
                       </div>

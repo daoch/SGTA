@@ -5,6 +5,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -643,6 +644,9 @@ public class SolicitudServiceImpl implements SolicitudService {
     @Override
     public pucp.edu.pe.sgta.dto.asesores.SolicitudCambioAsesorDto registrarSolicitudCambioAsesor(
             pucp.edu.pe.sgta.dto.asesores.SolicitudCambioAsesorDto solicitud) {
+        //validar que no se cambie un asesor por el mismo
+        if(Objects.equals(solicitud.getAsesorActualId(), solicitud.getNuevoAsesorId()))
+            throw new RuntimeException("El asesor a cambiar no puede ser igual al asesor actual");
         if (!validarExistenEstadosAccionesRoles())
             throw new RuntimeException("Faltan registrar estados, roles o acciones");
         boolean validacion;
@@ -858,22 +862,26 @@ public class SolicitudServiceImpl implements SolicitudService {
         solicitud.setTema(tema);
         solicitud.setEstado(0); // Ajusta según tu convención (p.ej. 0 = PENDIENTE)
         Solicitud savedSolicitud = solicitudRepository.save(solicitud);
-
+		RolSolicitud rolDestinatario = rolSolicitudRepository
+                .findByNombre(RolSolicitudEnum.DESTINATARIO.name()).
+				orElseThrow(() -> new RuntimeException("Rol destinatario no encontrado"));
+		AccionSolicitud accionPendiente = accionSolicitudRepository
+                .findByNombre(AccionSolicitudEnum.PENDIENTE_ACCION.name())
+                .orElseThrow(() -> new RuntimeException("Accion pendiente_aprobacion no encontrado"));
         // 3) Buscar los usuarios-coordinador de la carrera del tema
         List<UsuarioXSolicitud> asignaciones = usuarioCarreraRepository
-                .findByCarreraIdAndActivoTrue(tema.getCarrera().getId()).stream()
-                .map(rel -> rel.getUsuario())
-                .filter(u -> TipoUsuarioEnum.coordinador.name().equalsIgnoreCase(u.getTipoUsuario().getNombre()))
-                .map(coord -> {
-                    UsuarioXSolicitud us = new UsuarioXSolicitud();
-                    us.setUsuario(coord);
-                    us.setSolicitud(savedSolicitud);
-                    us.setDestinatario(true);
-                    us.setAprobado(false);
-                    us.setSolicitudCompletada(false);
-                    return us;
-                })
-                .collect(Collectors.toList());
+				.findByCarreraIdAndActivoTrue(tema.getCarrera().getId()).stream()
+				.filter(rel -> Boolean.TRUE.equals(rel.getEs_coordinador()))
+				.map(rel -> {
+					Usuario coord = rel.getUsuario();
+					UsuarioXSolicitud us = new UsuarioXSolicitud();
+					us.setUsuario(coord);
+					us.setSolicitud(savedSolicitud);
+					us.setRolSolicitud(rolDestinatario);
+					us.setAccionSolicitud(accionPendiente);
+					return us;
+				})
+				.collect(Collectors.toList());
 
         if (asignaciones.isEmpty()) {
             throw new RuntimeException(
