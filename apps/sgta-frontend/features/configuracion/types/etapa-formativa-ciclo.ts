@@ -18,6 +18,7 @@ export interface EtapaFormativaCiclo {
     objetivos?: string;
     entregables?: number;
     exposiciones?: number;
+    nombreCiclo: string;
 }
 
 export interface EtapaFormativaCicloCreate {

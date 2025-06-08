@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -20,6 +21,10 @@ interface DetalleEtapaPageProps {
 }
 
 const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
+  const searchParams = useSearchParams();
+  const nombreEtapa = searchParams.get('nombreEtapa');
+  const ciclo = searchParams.get('ciclo');
+  
   const [isEntregableModalOpen, setIsEntregableModalOpen] = useState(false);
   const [isExposicionModalOpen, setIsExposicionModalOpen] = useState(false);
   const [entregables, setEntregables] = useState<Entregable[]>([]);
@@ -198,15 +203,15 @@ const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
         >
           <ArrowLeft size={11} />
         </Link>
-        <h1 className="text-xl font-semibold">Detalles de la Etapa</h1>
       </div>
 
       {/* Información del proyecto */}
       <Card className="mb-6">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-xl">
-            Proyecto de Fin de Carrera 1
+          {nombreEtapa}
           </CardTitle>
+          <strong>Ciclo: {ciclo}</strong>
           {/*<Button id="btnEditEtapa" variant="outline" size="sm" className="h-8">
             <PenLine className="h-4 w-4 mr-1" />
             Editar
