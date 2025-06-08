@@ -14,7 +14,7 @@ public class EstadoExposicionConverter implements AttributeConverter<EstadoExpos
 
     @Override
     public EstadoExposicion convertToEntityAttribute(String dbData) {
-        System.out.println("Convirtiendo estado desde BD: '" + dbData + "'");
+        //System.out.println("Convirtiendo estado desde BD: '" + dbData + "'");
         if (dbData == null) return null;
         try {
             return EstadoExposicion.valueOf(dbData.toUpperCase()); // "sin_programar" -> SIN_PROGRAMAR
