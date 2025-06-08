@@ -283,24 +283,6 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                                         .body(Map.of("mensaje", "El tema no existe"));
                 }
 
-                // buscar si ya existe una asignacion para este usuario y tema
-                Optional<UsuarioXTema> juradoExistenteOpt = usuarioXTemaRepository.findByUsuario_IdAndTema_Id(usuarioId,
-                                temaId);
-                if (juradoExistenteOpt.isPresent()) {
-                        UsuarioXTema juradoExiste = juradoExistenteOpt.get();
-
-                        // si el registro existe y esta inactivo, actualizamos el campo activo
-                        if (!juradoExiste.getActivo()) {
-                                juradoExiste.setActivo(true);
-                                usuarioXTemaRepository.save(juradoExiste);
-                                return ResponseEntity.ok(Map.of("mensaje", "Jurado reactivado correctamente"));
-                        } else {
-                                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                                                .body(Map.of("mensaje",
-                                                                "El jurado ya está asignado y activo para este tema"));
-                        }
-                }
-
                 UsuarioXTema asignacion = new UsuarioXTema();
                 asignacion.setUsuario(usuarioOpt.get());
                 asignacion.setTema(temaOpt.get());
@@ -924,11 +906,6 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                 UsuarioDto userDto = usuarioService.findByCognitoId(juradoId);
                 ExposicionXTema exposicionXTema = exposicionXTemaRepository.findById(exposicionCalificacionRequest.getExposicion_tema_id())
                         .orElseThrow(() -> new RuntimeException("No se encontró exposicion_x_tema con id: " + exposicionCalificacionRequest.getExposicion_tema_id()));
-
-                ExposicionXTema exposicionXTema = exposicionXTemaRepository
-                                .findById(exposicionCalificacionRequest.getExposicion_tema_id())
-                                .orElseThrow(() -> new RuntimeException("No se encontró exposicion_x_tema con id: "
-                                                + exposicionCalificacionRequest.getExposicion_tema_id()));
 
                 Integer id = exposicionCalificacionRequest.getExposicion_tema_id();
                 Tema tema = exposicionXTema.getTema();
