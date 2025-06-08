@@ -258,7 +258,7 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
 
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/temas/findSimilar?threshold=20.0`,
+        `${process.env.NEXT_PUBLIC_API_URL}/temas/findSimilar?threshold=75.0`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
