@@ -218,6 +218,22 @@ CREATE TABLE IF NOT EXISTS historial_tema
             ON DELETE RESTRICT
 );
 
+CREATE TABLE IF NOT EXISTS tema_similar (
+    tema_similar_id      SERIAL PRIMARY KEY,
+    tema_id              INTEGER NOT NULL
+        REFERENCES tema(tema_id) ON DELETE CASCADE,
+    tema_relacion_id     INTEGER NOT NULL
+        REFERENCES tema(tema_id) ON DELETE CASCADE,
+    usuario_id           INTEGER NOT NULL
+        REFERENCES usuario(usuario_id) ON DELETE RESTRICT,
+    porcentaje_similitud NUMERIC(5,2) NOT NULL DEFAULT 0
+        CHECK (porcentaje_similitud >= 0 AND porcentaje_similitud <= 100),
+    activo               BOOLEAN NOT NULL DEFAULT TRUE,
+    fecha_creacion       TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion   TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_temas_distintos CHECK (tema_id <> tema_relacion_id)
+);
+
 -- 3) ROL
 CREATE TABLE IF NOT EXISTS rol
 (

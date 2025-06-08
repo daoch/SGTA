@@ -14,6 +14,7 @@ import org.springframework.stereotype.Repository;
 
 import jakarta.transaction.Transactional;
 import pucp.edu.pe.sgta.model.Tema;
+import pucp.edu.pe.sgta.model.TemaSimilar;
 
 @Repository
 public interface TemaRepository extends JpaRepository<Tema, Integer> {
@@ -156,5 +157,7 @@ public interface TemaRepository extends JpaRepository<Tema, Integer> {
       @Param("limit")                  Integer limit,
       @Param("offset")                 Integer offset
   );
+
+  
 
 }

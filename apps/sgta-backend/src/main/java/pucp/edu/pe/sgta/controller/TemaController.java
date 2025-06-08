@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import pucp.edu.pe.sgta.dto.TemaConAsesorJuradoDTO;
 import pucp.edu.pe.sgta.dto.TemaPorAsociarDto;
+import pucp.edu.pe.sgta.dto.TemaSimilarDto;
 import pucp.edu.pe.sgta.dto.asesores.InfoTemaPerfilDto;
 import pucp.edu.pe.sgta.dto.asesores.TemaConAsesorDto;
 import pucp.edu.pe.sgta.dto.TemaDto;
@@ -550,6 +551,28 @@ public class TemaController {
 				offset
 		);
 	}
+
+
+	@PostMapping("/guardarSimilitudes")
+    public ResponseEntity<Void> guardarSimilitudes(
+            @RequestBody List<TemaSimilarDto> similitudes,
+            HttpServletRequest request) {
+        try {
+            String cognitoId = jwtService.extractSubFromRequest(request);
+            temaService.guardarSimilitudes(cognitoId, similitudes);
+            return ResponseEntity.status(HttpStatus.CREATED).build();
+        } catch (RuntimeException e) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, e.getMessage(), e);
+        }
+
+		
+    }
+
+	@GetMapping("/{temaId}/similares")
+    public List<TemaDto> listarSimilares(@PathVariable Integer temaId) {
+        return temaService.listarTemasSimilares(temaId);
+    }
 }
 
 
