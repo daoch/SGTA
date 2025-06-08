@@ -959,6 +959,40 @@ INSERT INTO carrera_parametro_configuracion (carrera_id,
             1);
 
 
+INSERT INTO parametro_configuracion (nombre,
+                                     descripcion,
+                                     modulo_id,
+                                     activo,
+                                     fecha_creacion,
+                                     fecha_modificacion,
+                                     tipo)
+    VALUES ('Peso Asesor',
+            'Peso asignado a la calificación del asesor en situaciones de evaluación que involucran la participación del jurado',
+            1,
+            TRUE,
+            NOW(), -- Fecha de creación actual
+            NOW(), -- Fecha de modificación actual
+            'integer');
+
+INSERT INTO carrera_parametro_configuracion (carrera_id,
+                                             parametro_configuracion_id,
+                                             valor,
+                                             activo,
+                                             fecha_creacion,
+                                             fecha_modificacion,
+                                             etapa_formativa_id)
+    VALUES (1, -- ID de la carrera asociada (ejemplo: 1)
+            (SELECT parametro_configuracion_id
+                 FROM parametro_configuracion
+                 WHERE nombre = 'Peso Asesor'
+                 LIMIT 1), -- ID del parametro_configuracion asociado (ejemplo: 1)
+            20, -- Valor de la configuración
+            TRUE, -- Estado activo
+            NOW(), -- Fecha de creación actual
+            NOW(), -- Fecha de modificación actual
+            1);
+
+
 --solicitudes
 
 
