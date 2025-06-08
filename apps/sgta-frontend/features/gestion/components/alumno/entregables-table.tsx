@@ -167,11 +167,11 @@ export function EntregablesTable({
                       {entregable.entregableEstado != "no_enviado" && (
                         <Dialog>
                           <Link
-                            href={{
-                              pathname: `/alumno/mi-proyecto/entregables/${entregable.entregableId}`,
-                              query: { tema: entregable.temaId }
+                           href={{
+                            pathname: `/alumno/mi-proyecto/entregables/${entregable.entregableId}`,                                
+                            query: { tema: entregable.temaId }
                             }}
-                          >
+                            > 
                             <Button variant="ghost" size="icon">
                               <Eye className="h-4 w-4" />
                               <span className="sr-only">Ver detalles</span>

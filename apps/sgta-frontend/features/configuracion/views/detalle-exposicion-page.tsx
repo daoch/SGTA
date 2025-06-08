@@ -328,7 +328,7 @@ const DetalleExposicionPage: React.FC<DetalleExposicionPageProps> = ({
       <CriterioExposicionModal
         isOpen={isCriterioModalOpen}
         onClose={() => setIsCriterioModalOpen(false)}
-        onSubmit={handleUpdateCriterio}
+        onSubmit={modalMode === "edit" ? handleUpdateCriterio : handleCreateCriterio}
         criterio={criterioSeleccionado}
         mode={modalMode}
         criteriosExistentes={criterios}

@@ -1,5 +1,7 @@
 package pucp.edu.pe.sgta.repository;
 
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Repository;
 
 import jakarta.transaction.Transactional;
 import pucp.edu.pe.sgta.model.Tema;
+import pucp.edu.pe.sgta.model.TemaSimilar;
 
 @Repository
 public interface TemaRepository extends JpaRepository<Tema, Integer> {
@@ -98,5 +101,63 @@ public interface TemaRepository extends JpaRepository<Tema, Integer> {
 
   @Query(value = "SELECT asociar_tema_a_curso(:cursoId, :temaId)", nativeQuery = true)
   void asociarTemaACurso(@Param("cursoId") Integer cursoId,@Param("temaId") Integer temaId);
+
+    
+    @Query(value = """
+        SELECT *
+          FROM listar_temas_por_usuario_titulo_area_carrera_estado_fecha(
+            :usuarioId,
+            :titulo,
+            :areaId,
+            :carreraId,
+            :estadoNombre,
+            :fechaDesde,
+            :fechaHasta,
+            :limit,
+            :offset
+          )
+        """, nativeQuery = true)
+    List<Object[]> listarTemasPorUsuarioTituloAreaCarreraEstadoFecha(
+        @Param("usuarioId")     Integer usuarioId,
+        @Param("titulo")        String titulo,
+        @Param("areaId")        Integer areaId,
+        @Param("carreraId")     Integer carreraId,
+        @Param("estadoNombre")  String estadoNombre,
+        @Param("fechaDesde")    java.sql.Date fechaDesde,
+        @Param("fechaHasta")    java.sql.Date fechaHasta,
+        @Param("limit")         Integer limit,
+        @Param("offset")        Integer offset
+    );
+
+    @Query(
+    value = """
+      SELECT *
+        FROM listar_temas_filtrado_completo(
+          :titulo,
+          :estadoNombre,
+          :carreraId,
+          :areaId,
+          :nombreUsuario,
+          :primerApellidoUsuario,
+          :segundoApellidoUsuario,
+          :limit,
+          :offset
+        )
+      """,
+    nativeQuery = true
+  )
+  List<Object[]> listarTemasFiltradoCompleto(
+      @Param("titulo")                 String titulo,
+      @Param("estadoNombre")           String estadoNombre,
+      @Param("carreraId")              Integer carreraId,
+      @Param("areaId")                 Integer areaId,
+      @Param("nombreUsuario")          String nombreUsuario,
+      @Param("primerApellidoUsuario")  String primerApellidoUsuario,
+      @Param("segundoApellidoUsuario") String segundoApellidoUsuario,
+      @Param("limit")                  Integer limit,
+      @Param("offset")                 Integer offset
+  );
+
+  
 
 }

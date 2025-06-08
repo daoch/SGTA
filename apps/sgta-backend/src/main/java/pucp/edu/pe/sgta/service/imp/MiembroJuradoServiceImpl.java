@@ -549,10 +549,23 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                 boolean exposicionActiva = exposicionXTemaRepository.findByTemaIdAndActivoTrue(temaId).stream()
                                 .anyMatch(ex -> estadosNoPermitidos.contains(ex.getEstadoExposicion()));
 
+                int idExposicionActiva = exposicionXTemaRepository.findByTemaIdAndActivoTrue(temaId).stream()
+                                .filter(ex -> estadosNoPermitidos.contains(ex.getEstadoExposicion()))
+                                .mapToInt(ExposicionXTema::getId)
+                                .findFirst()
+                                .orElse(-1);
+
                 if (exposicionActiva) {
-                        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                                        .body(Map.of("mensaje",
-                                                        "No se puede eliminar porque el jurado tiene temas pendientes o en evaluación"));
+                        List<ControlExposicionUsuarioTema> controlesActivos = controlExposicionUsuarioTemaRepository
+                                        .findByExposicionXTema_IdAndActivoTrue(idExposicionActiva);
+                        // recorremos los controles activos y revisamos el usuario tema id
+                        for (ControlExposicionUsuarioTema control : controlesActivos) {
+                                if (control.getUsuario().getId().equals(asignacionOpt.get().getId())) {
+                                        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                                        .body(Map.of("mensaje",
+                                                                        "No se puede eliminar porque el jurado tiene temas pendientes o en evaluación"));
+                                }
+                        }
                 }
 
                 UsuarioXTema asignacion = asignacionOpt.get();
@@ -598,13 +611,22 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                         List<Object[]> exposicionesRaw = etapaFormativaRepository
                                         .obtenerExposicionesPorEtapaFormativaPorTemaId(etapaId, temaId);
                         List<ExposicionTemaDto> exposiciones = exposicionesRaw.stream()
-                                        .map(exp -> new ExposicionTemaDto(
-                                                        (Integer) exp[0],
-                                                        (String) exp[1],
-                                                        exp[2].toString(),
-                                                        ((Instant) exp[3]).atOffset(ZoneOffset.UTC),
-                                                        ((Instant) exp[4]).atOffset(ZoneOffset.UTC),
-                                                        (String) exp[5]))
+                                        .map(exp -> {
+                                                Integer exposicionTemaId = (Integer) exp[1];
+
+                                                List<MiembroJuradoSimplificadoDTO> miembros = usuarioXTemaRepository
+                                                                .obtenerMiembrosJuradoPorExposicionTema(
+                                                                                exposicionTemaId);
+
+                                                return new ExposicionTemaDto(
+                                                                (Integer) exp[0],
+                                                                (String) exp[2],
+                                                                exp[3].toString(),
+                                                                ((Instant) exp[4]).atOffset(ZoneOffset.UTC),
+                                                                ((Instant) exp[5]).atOffset(ZoneOffset.UTC),
+                                                                (String) exp[6],
+                                                                miembros);
+                                        })
                                         .collect(Collectors.toList());
 
                         etapas.add(new EtapaFormativaTemaDto(etapaId, nombreEtapa, exposiciones));
@@ -690,7 +712,7 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
 
                                         OffsetDateTime fechaActual = OffsetDateTime.now(ZoneOffset.UTC);
                                         if (fechaActual.isAfter(datetimeFin)) {
-                                                exposicionXTema.setEstadoExposicion(EstadoExposicion.CALIFICADA);
+                                                exposicionXTema.setEstadoExposicion(EstadoExposicion.COMPLETADA);
                                                 exposicionXTemaRepository.save(exposicionXTema);
                                         }
 
