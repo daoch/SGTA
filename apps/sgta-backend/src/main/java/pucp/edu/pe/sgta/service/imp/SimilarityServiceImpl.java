@@ -38,7 +38,7 @@ public class SimilarityServiceImpl implements SimilarityService {
     @Autowired
     private RestTemplate restTemplate;
 
-    @Value("${similarity.default-threshold:60.0}")
+    @Value("${similarity.default-threshold:75.0}")
     private Double defaultThreshold;
 
     @Value("${similarity.title-weight:0.7}")

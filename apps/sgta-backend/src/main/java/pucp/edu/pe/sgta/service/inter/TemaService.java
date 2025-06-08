@@ -167,7 +167,6 @@ public interface TemaService {
 	void createInscripcionTemaV2(TemaDto dto, String idUsuario);
 
 	List<TemaDto> listarTemasSimilares(Integer temaId);
-    );
 
     /**
      * Lists all finalized temas by calling the stored procedure listar_temas_finalizados()
