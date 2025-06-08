@@ -177,7 +177,7 @@ public class TemaServiceImpl implements TemaService {
 
 	@Transactional
 	@Override
-	public void createTemaPropuesta(TemaDto dto, String idUsuarioCreador, Integer tipoPropuesta) {
+	public Integer createTemaPropuesta(TemaDto dto, String idUsuarioCreador, Integer tipoPropuesta) {
 
 		dto.setId(null);
 
@@ -237,8 +237,7 @@ public class TemaServiceImpl implements TemaService {
 		}
 		// 4) Save cotesistas
 		saveUsuariosInvolucrados(tema, usuarioDto.getId(), dto.getTesistas(), RolEnum.Tesista.name(), false, false); // Save
-																														// cotesistas
-
+		return tema.getId();// return tema id
 	}
 
 	@Transactional
@@ -377,7 +376,7 @@ public class TemaServiceImpl implements TemaService {
 
 	@Transactional
 	@Override
-	public void createInscripcionTema(TemaDto dto, String idUsuario) {
+	public Integer createInscripcionTema(TemaDto dto, String idUsuario) {
 
 		
 		UsuarioDto usuarioDto = usuarioService.findByCognitoId(idUsuario);
@@ -422,6 +421,7 @@ public class TemaServiceImpl implements TemaService {
 		}
 		// 6) Generar y enviar la solicitud de aprobación
 		crearSolicitudAprobacionTema(tema);
+		return tema.getId(); // return tema id
 	}
 
 	@Override
@@ -3018,4 +3018,33 @@ public class TemaServiceImpl implements TemaService {
 			return tema;
 		}).collect(Collectors.toList());
 	}
+
+
+
+	@Override
+	public Integer contarPostuladosAlumnosTemaLibreAsesor(
+			String busqueda,
+			String estado,
+			LocalDate fechaLimite,
+			String usuarioId
+	){
+		// Obtener el ID del asesor (ejemplo usando un servicio, puedes adaptarlo)
+		UsuarioDto usuDto = usuarioService.findByCognitoId(usuarioId);
+
+		// Consulta SQL
+		String sql = "SELECT contar_postulaciones_alumnos_tema_libre(:asesorId, :busqueda, :estado, :fechaLimite)";
+
+		// Ejecutar función y retornar el valor entero
+		Number result = (Number) entityManager
+				.createNativeQuery(sql)
+				.setParameter("asesorId", usuDto.getId())
+				.setParameter("busqueda", busqueda != null ? busqueda : "")
+				.setParameter("estado", estado != null ? estado : "")
+				.setParameter("fechaLimite", fechaLimite != null ? java.sql.Date.valueOf(fechaLimite) : null)
+				.getSingleResult();
+
+		return result != null ? result.intValue() : 0;
+	}
+
+
 }

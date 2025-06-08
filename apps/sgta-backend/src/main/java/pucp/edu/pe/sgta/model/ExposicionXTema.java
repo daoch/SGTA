@@ -32,10 +32,6 @@ public class ExposicionXTema {
         @JoinColumn(name = "tema_id", nullable = false, foreignKey = @ForeignKey(name = "fk_ext_tema"))
         private Tema tema;
 
-        //@OneToOne(fetch = FetchType.LAZY)
-        //@JoinColumn(name = "bloque_horario_exposicion_id", foreignKey = @ForeignKey(name = "fk_ext_bloque_horario"))
-        //private BloqueHorarioExposicion bloqueHorarioExposicion;
-
         @Column(name = "link_exposicion")
         private String linkExposicion;
 
