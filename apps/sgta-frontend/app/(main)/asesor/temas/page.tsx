@@ -21,11 +21,15 @@ import {
   obtenerAreasDelUsuario,
   obtenerCarrerasPorUsuario,
 } from "@/features/temas/types/inscripcion/data";
-import { Carrera, Coasesor } from "@/features/temas/types/inscripcion/entities";
+import { Carrera } from "@/features/temas/types/inscripcion/entities";
 import { AreaConocimiento } from "@/features/temas/types/postulaciones/entidades";
 import { buscarUsuarioPorToken } from "@/features/temas/types/propuestas/data";
 import { fetchUsuariosFindById } from "@/features/temas/types/temas/data";
-import { Tema, Usuario } from "@/features/temas/types/temas/entidades";
+import {
+  Coasesor,
+  Tema,
+  Usuario,
+} from "@/features/temas/types/temas/entidades";
 import { EstadoTemaNombre } from "@/features/temas/types/temas/enums";
 import { Plus } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
@@ -144,6 +148,7 @@ const Page = () => {
           activo: usuario.activo,
           fechaCreacion: usuario.fechaCreacion,
           fechaModificacion: usuario.fechaModificacion,
+          rol: "Asesor",
         };
         setAsesorData(coasesor);
 
