@@ -99,7 +99,7 @@ export default function SolicitudesPendientes() {
           carrerasIds[0], // TODO: Validar
           state,
           LIMIT,
-          page - 1,
+          (page - 1) * LIMIT, // Offset
         );
 
         // Add new page to State
@@ -170,7 +170,7 @@ export default function SolicitudesPendientes() {
         </div>
 
         {/* Selector tipo de tema */}
-        <Select value={cursoFilter} onValueChange={setCursoFilter}>
+        {/* <Select value={cursoFilter} onValueChange={setCursoFilter}>
           <SelectTrigger className="w-[300px]">
             <SelectValue />
           </SelectTrigger>
@@ -181,7 +181,7 @@ export default function SolicitudesPendientes() {
               </SelectItem>
             ))}
           </SelectContent>
-        </Select>
+        </Select> */}
       </div>
 
       {/* Tabs */}
