@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.*;
+
 import pucp.edu.pe.sgta.dto.AdvisorPerformanceDto;
 import pucp.edu.pe.sgta.dto.AreaFinalDTO;
 import pucp.edu.pe.sgta.dto.DetalleTesistaDTO;
@@ -22,7 +22,6 @@ import pucp.edu.pe.sgta.dto.EntregableEstudianteDto;
 import pucp.edu.pe.sgta.dto.EntregableCriteriosDetalleDto;
 import pucp.edu.pe.sgta.service.inter.IReportService;
 import pucp.edu.pe.sgta.service.inter.JwtService;
-
 
 @RestController
 @RequestMapping("/reports")
@@ -114,7 +113,7 @@ public class ReportsController {
             HttpServletRequest request) {
         String sub = jwtService.extractSubFromRequest(request);
         List<HitoCronogramaDTO> hitos =
-            reportingService.getHitosCronogramaTesista(Integer.valueOf(sub));
+                reportingService.getHitosCronogramaTesista(Integer.valueOf(sub));
         if (hitos.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
@@ -127,7 +126,7 @@ public class ReportsController {
             HttpServletRequest request) {
         String sub = jwtService.extractSubFromRequest(request);
         List<HistorialReunionDTO> historial =
-            reportingService.getHistorialReuniones(Integer.valueOf(sub));
+                reportingService.getHistorialReuniones(Integer.valueOf(sub));
         if (historial.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
@@ -140,16 +139,17 @@ public class ReportsController {
             HttpServletRequest request) {
         String sub = jwtService.extractSubFromRequest(request);
         List<EntregableEstudianteDto> list =
-            reportingService.getEntregablesEstudiante(Integer.valueOf(sub));
+                reportingService.getEntregablesEstudiante(Integer.valueOf(sub));
         return ResponseEntity.ok(list);
     }
 
-    /** RF9: entregables con criterios de un tesista - NO AGREGAR ID COGNITO*/
-    @GetMapping("/entregables-criterios/{idUsuario}")
+    /** RF9: entregables con criterios de un tesista */
+    @GetMapping("/entregables-criterios")
     public ResponseEntity<List<EntregableCriteriosDetalleDto>> getEntregablesConCriterios(
-           @PathVariable Integer  idUsuario) {
+            HttpServletRequest request) {
+        String sub = jwtService.extractSubFromRequest(request);
         List<EntregableCriteriosDetalleDto> list =
-            reportingService.getEntregablesConCriterios(idUsuario);
+                reportingService.getEntregablesConCriterios(sub);
         return ResponseEntity.ok(list);
     }
 }
