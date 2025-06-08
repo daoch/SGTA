@@ -159,7 +159,7 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
   useEffect(() => {
     async function fetchObservaciones() {
       try {
-        const data = await obtenerObservacionesRevision(revision.id);
+        const data = await obtenerObservacionesRevision(params.id_revision);
         console.log("Observaciones obtenidas:", data);
         setHighlights(data);
       } catch (e) {
@@ -168,7 +168,7 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
       }
     }
     fetchObservaciones();
-  }, [revision.id]);
+  }, [params.id_revision]);
   useEffect(() => {
     if (numPages === null) return;
     // Solo crea highlights en páginas válidas
@@ -338,7 +338,7 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
         },
       }));
 
-      await guardarObservacionesRevision(revision.id, highlightsDto, 1); // Asumiendo que el usuario es el asesor con ID 1
+      await guardarObservacionesRevision(params.id_revision, highlightsDto, 10); // Asumiendo que el usuario es el asesor con ID 1
       console.log("Revisión guardada exitosamente");
 
       await new Promise((resolve) => setTimeout(resolve, 1500));
@@ -522,7 +522,7 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
                   setIsLoading(true);
                   try {
                     await handleFinalizarRevision(); // puede ser solo lógica de guardado
-                    router.push(`/asesor/revision/detalles-revision/${revision.id}`);
+                    router.push(`/asesor/revision/detalles-revision/${params.id_revision}`);
                   } catch (error) {
                     console.error("Error al redirigir:", error);
                   } finally {
