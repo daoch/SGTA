@@ -410,11 +410,10 @@ export const getExposicionCalificarJurado = async (
 ): Promise<EvaluacionExposicionJurado> => {
   try {
     // Convertir IDs a números si vienen como strings (por ejemplo, desde URL params)
-    const jId = 6;
     const expId =
       typeof exposicionId === "string" ? parseInt(exposicionId) : exposicionId;
 
-    console.log("ID Jurado:", jId, "ID Exposición:", expId);
+    console.log("ID Exposición:", expId);
 
     interface EstudianteRespuesta {
       id: number;
@@ -443,7 +442,6 @@ export const getExposicionCalificarJurado = async (
     //const response = await axiosInstance.get(`/jurado/${temaId}/detalle`);
     const response = await axiosInstance.get("/jurado/criterios", {
       params: {
-        jurado_id: jId,
         exposicion_tema_id: expId,
       },
     });

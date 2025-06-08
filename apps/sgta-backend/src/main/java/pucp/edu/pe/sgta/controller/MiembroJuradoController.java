@@ -161,11 +161,13 @@ public class MiembroJuradoController {
     }
 
     @GetMapping("/criterios")
-    public ResponseEntity<ExposicionCalificacionDto> listarExposicionCalificacion(
-            @RequestParam("jurado_id") Integer juradoId,
+    public ResponseEntity<ExposicionCalificacionDto> listarExposicionCalificacion(HttpServletRequest request,
             @RequestParam("exposicion_tema_id") Integer exposicionTemaId) {
-        ExposicionCalificacionRequest request = new ExposicionCalificacionRequest(juradoId, exposicionTemaId);
-        return juradoService.listarExposicionCalificacion(request);
+        String cognitoId = jwtService.extractSubFromRequest(request);
+        UsuarioDto jurado = this.usuarioService.findByCognitoId(cognitoId);
+        ExposicionCalificacionRequest expoCalRequest = new ExposicionCalificacionRequest(jurado.getId(), exposicionTemaId);
+
+        return juradoService.listarExposicionCalificacion(expoCalRequest);
     }
 
     @PutMapping("/criterios")
