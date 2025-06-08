@@ -10,6 +10,5 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AsignarJuradoRequest {
-    private Integer usuarioId;
     private Integer temaId;
 }
