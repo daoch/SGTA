@@ -51,126 +51,85 @@ public class MiembroJuradoController {
             @PathVariable Integer areaConocimientoId) {
         return juradoService.obtenerUsuariosPorAreaConocimiento(areaConocimientoId);
     }
+    //Coordinador
+    @DeleteMapping("/{usuarioId}")
+    public ResponseEntity<Map<String, Object>> deleteUserJurado(@PathVariable Integer usuarioId) {
+        Optional<Map<String, Object>> result = juradoService.deleteUserJurado(usuarioId);
 
-    @DeleteMapping("/jurado")
-    public ResponseEntity<Map<String, Object>> deleteUserJurado(HttpServletRequest request) {
-        try {
-            String usuarioId = jwtService.extractSubFromRequest(request);
-
-
-            Optional<Map<String, Object>> result = juradoService.deleteUserJurado(usuarioId);
+        if (result.isPresent()) {
+            Map<String, Object> data = result.get();
+            boolean eliminado = (boolean) data.get("eliminado");
 
             Map<String, Object> response = new HashMap<>();
+            response.put("data", data);
+            response.put("exito", eliminado);
 
-            if (result.isPresent()) {
-                Map<String, Object> data = result.get();
-                boolean eliminado = (boolean) data.get("eliminado");
-
-                response.put("data", data);
-                response.put("exito", eliminado);
-
-                if (eliminado) {
-                    response.put("mensaje", "Se ha eliminado exitosamente el Jurado");
-                    return ResponseEntity.ok(response);
-                } else {
-                    response.put("mensaje", "No se pudo eliminar el Jurado ya que tiene exposiciones pendientes");
-                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-                }
+            if (eliminado) {
+                response.put("mensaje", "Se ha eliminado exitosamente el Jurado");
+                return ResponseEntity.ok(response);
             } else {
-                response.put("exito", false);
-                response.put("mensaje", "El jurado no existe");
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+                response.put("mensaje", "No se pudo eliminar el Jurado ya que tiene exposiciones pendientes");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
             }
-
-        } catch (RuntimeException e) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        } else {
+            Map<String, Object> response = new HashMap<>();
+            response.put("exito", false);
+            response.put("mensaje", "El jurado no existe");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
-
-
-    @GetMapping("/areas-conocimiento")
+    //Coordinador
+    @GetMapping("/{usuarioId}/areas-conocimiento")
     public ResponseEntity<JuradoXAreaConocimientoDto> obtenerAreasConocimientoPorUsuario(
-            HttpServletRequest request) {
+            @PathVariable Integer usuarioId) {
 
-        try{
-            String usuarioId = jwtService.extractSubFromRequest(request);
-            List<JuradoXAreaConocimientoDto> result = juradoService.findAreaConocimientoByUser(usuarioId);
-            return ResponseEntity.ok(result.get(0));
-        }catch (RuntimeException e) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        List<JuradoXAreaConocimientoDto> result = juradoService.findAreaConocimientoByUser(usuarioId);
+        if (result.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
+        return ResponseEntity.ok(result.get(0));
     }
-
+    //Coordinador
     @PostMapping("/asignar-tema")
-    public ResponseEntity<?> asignarJuradoATema(HttpServletRequest request,@RequestBody AsignarJuradoRequest requestAsignar) {
-        try{
-            String usuarioId = jwtService.extractSubFromRequest(request);
-            return juradoService.asignarJuradoATema(requestAsignar,usuarioId);
-        }catch (RuntimeException e) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
-        }
+    public ResponseEntity<?> asignarJuradoATema(@RequestBody AsignarJuradoRequest request) {
+        return juradoService.asignarJuradoATema(request);
     }
 
-    @GetMapping("/temas")
-    public ResponseEntity<List<MiembroJuradoXTemaDto>> obtenerTemasPorMiembroJurado(HttpServletRequest request) {
-        try{
-            String usuarioId = jwtService.extractSubFromRequest(request);
-            List<MiembroJuradoXTemaDto> temas = juradoService.findByUsuarioIdAndActivoTrueAndRolId(usuarioId);
-            return ResponseEntity.ok(temas);
-        }catch (RuntimeException e) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
-        }
-
+    //Coordinador
+    @GetMapping("/temas/{usuarioId}")
+    public ResponseEntity<List<MiembroJuradoXTemaDto>> obtenerTemasPorMiembroJurado(@PathVariable Integer usuarioId) {
+        List<MiembroJuradoXTemaDto> temas = juradoService.findByUsuarioIdAndActivoTrueAndRolId(usuarioId);
+        return ResponseEntity.ok(temas);
     }
 
-    @GetMapping("/temas-tesis")
+    //Coordinador
+    @GetMapping("/temas-tesis/{usuarioId}")
     public ResponseEntity<List<MiembroJuradoXTemaTesisDto>> obtenerTemasTesisPorMiembroJurado(
-            HttpServletRequest request) {
-        try{
-            String usuarioId = jwtService.extractSubFromRequest(request);
-            List<MiembroJuradoXTemaTesisDto> temas = juradoService.findTemaTesisByUsuario(usuarioId);
-            return ResponseEntity.ok(temas);
-        }catch (RuntimeException e) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
-        }
-
+            @PathVariable Integer usuarioId) {
+        List<MiembroJuradoXTemaTesisDto> temas = juradoService.findTemaTesisByUsuario(usuarioId);
+        return ResponseEntity.ok(temas);
     }
 
-    @GetMapping("/temas-otros-jurados")
-    public ResponseEntity<List<MiembroJuradoXTemaDto>> obtenerTemasDeOtrosJurados(HttpServletRequest request) {
-        try{
-            String juradoId = jwtService.extractSubFromRequest(request);
-            List<MiembroJuradoXTemaDto> temas = juradoService.findTemasDeOtrosJurados(juradoId);
-            return ResponseEntity.ok(temas);
-        }catch (RuntimeException e) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
-        }
-
+    //Coordinador
+    @GetMapping("/temas-otros-jurados/{usuarioId}")
+    public ResponseEntity<List<MiembroJuradoXTemaDto>> obtenerTemasDeOtrosJurados(@PathVariable Integer usuarioId) {
+        List<MiembroJuradoXTemaDto> temas = juradoService.findTemasDeOtrosJurados(usuarioId);
+        return ResponseEntity.ok(temas);
     }
+    //Coordinador
 
     @PutMapping("/desasignar-jurado")
-    public ResponseEntity<?> desasignarJuradoDeTema(HttpServletRequest request,@RequestBody AsignarJuradoRequest requestAsignar) {
-        try{
-            String juradoId = jwtService.extractSubFromRequest(request);
-
-            return juradoService.desasignarJuradoDeTema(requestAsignar,juradoId);
-        }catch (RuntimeException e) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
-        }
-
+    public ResponseEntity<?> desasignarJuradoDeTema(@RequestBody AsignarJuradoRequest request) {
+        return juradoService.desasignarJuradoDeTema(request);
     }
 
-    @PutMapping("/desasignar-jurado-tema-todos")
-    public ResponseEntity<?> desasignarJuradoDeTemaTodos(HttpServletRequest request) {
-        try{
-            String juradoId = jwtService.extractSubFromRequest(request);
-            return juradoService.desasignarJuradoDeTemaTodos(juradoId);
-        } catch (RuntimeException e) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
-        }
-
+    //Coordinador
+    @PutMapping("/desasignar-jurado-tema-todos/{usuarioId}")
+    public ResponseEntity<?> desasignarJuradoDeTemaTodos(@PathVariable Integer usuarioId) {
+        return juradoService.desasignarJuradoDeTemaTodos(usuarioId);
     }
 
+    //Coordinador
     @GetMapping("/{idTema}/detalle")
     public ResponseEntity<DetalleTemaDto> obtenerDetalleTema(@PathVariable Integer idTema) {
         DetalleTemaDto detalle = juradoService.obtenerDetalleTema(idTema);
@@ -217,8 +176,6 @@ public class MiembroJuradoController {
         }catch (RuntimeException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
         }
-
-
     }
 
     @PutMapping("/criterios")
