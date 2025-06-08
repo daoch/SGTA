@@ -81,7 +81,7 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
         }
 
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPropuestasPorTesista`,
+          `${process.env.NEXT_PUBLIC_API_URL}temas/listarPropuestasPorTesista`,
           {
             headers: {
               "Authorization": `Bearer ${idToken}`,
@@ -421,7 +421,7 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
                             className="bg-red-600 text-white hover:bg-red-700"
                             onClick={async () => {
                               try {
-                                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/temas/deleteTema`, {
+                                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}temas/deleteTema`, {
                                   method: "POST",
                                   headers: { "Content-Type": "application/json" },
                                   body: JSON.stringify(p.id),

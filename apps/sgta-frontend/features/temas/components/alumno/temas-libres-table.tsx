@@ -76,7 +76,7 @@ export function PropuestasTable({
         }
 
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/temas/listarTemasLibres`,
+          `${process.env.NEXT_PUBLIC_API_URL}temas/listarTemasLibres`,
           {
             headers: {
               Authorization: `Bearer ${idToken}`,
@@ -323,7 +323,7 @@ export function PropuestasTable({
                   }
 
                   const res = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_URL}/temas/postularTemaLibre?temaId=${selected.id}&comentario=${comentario}`,
+                    `${process.env.NEXT_PUBLIC_API_URL}temas/postularTemaLibre?temaId=${selected.id}&comentario=${comentario}`,
                     {
                       method: "POST",
                       headers: {

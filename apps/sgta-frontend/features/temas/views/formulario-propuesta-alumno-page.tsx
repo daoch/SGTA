@@ -59,7 +59,7 @@ export default function FormularioPropuestaPage() {
         console.error("No authentication token available");
         return;
       }      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/temas/createPropuesta` +
+        `${process.env.NEXT_PUBLIC_API_URL}temas/createPropuesta` +
           `?tipoPropuesta=${tipoPropuesta}`,
         {
           method: "POST",

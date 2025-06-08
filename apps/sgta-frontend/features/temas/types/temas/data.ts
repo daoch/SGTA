@@ -18,7 +18,7 @@ export async function fetchAreaConocimientoFindByUsuarioId(
 ): Promise<AreaConocimiento[]> {
   try {
     const response = await fetch(
-      `${baseUrl}/areaConocimiento/listarPorUsuario?usuarioId=${usuarioId}`,
+      `${baseUrl}areaConocimiento/listarPorUsuario?usuarioId=${usuarioId}`,
       {
         method: "GET",
         headers: {
@@ -46,7 +46,7 @@ export async function fetchSubareasPorAreaConocimiento(
 ): Promise<Subareas[]> {
   try {
     const response = await fetch(
-      `${baseUrl}/subAreaConocimiento/list/${areaId}`,
+      `${baseUrl}subAreaConocimiento/list/${areaId}`,
       {
         method: "GET",
         headers: {
@@ -72,7 +72,7 @@ export async function fetchUsuariosFindById(
 ): Promise<Usuario> {
   try {
     const response = await fetch(
-      `${baseUrl}/usuario/findById?idUsuario=${usuarioId}`,
+      `${baseUrl}usuario/findById?idUsuario=${usuarioId}`,
       {
         method: "GET",
         headers: {
@@ -96,7 +96,7 @@ export async function fetchUsuariosFindById(
 
 export async function obtenerCarrerasPorUsuario(): Promise<Carrera[]> {
   try {
-    const response = await fetch(`${baseUrl}/usuario/carreras`, {
+    const response = await fetch(`${baseUrl}usuario/carreras`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${idToken}`,
@@ -124,7 +124,7 @@ export async function fetchTemasAPI(rol: string, estado: string) {
   try {
     console.log({ idToken });
     const response = await fetch(
-      `${baseUrl}/temas/listarTemasPorUsuarioRolEstado?rolNombre=${rol}&estadoNombre=${estado}`,
+      `${baseUrl}temas/listarTemasPorUsuarioRolEstado?rolNombre=${rol}&estadoNombre=${estado}`,
       {
         method: "GET",
         headers: {
@@ -148,8 +148,8 @@ export async function fetchTemasAPI(rol: string, estado: string) {
 
 export async function buscarTema(idTema: number) {
   try {
-    console.log(`${baseUrl}/temas/findById?idTema=${idTema}`);
-    const response = await fetch(`${baseUrl}/temas/findById?idTema=${idTema}`, {
+    console.log(`${baseUrl}temas/findById?idTema=${idTema}`);
+    const response = await fetch(`${baseUrl}temas/findById?idTema=${idTema}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -171,7 +171,7 @@ export async function buscarTema(idTema: number) {
 export async function obtenerObservacionesTema(idTema: number) {
   try {
     const response = await fetch(
-      `${baseUrl}/solicitudes/listSolicitudesByTema/${idTema}`,
+      `${baseUrl}solicitudes/listSolicitudesByTema/${idTema}`,
       {
         method: "GET",
         headers: {
@@ -197,7 +197,7 @@ export async function obtenerObservacionesTema(idTema: number) {
 
 export async function crearTemaLibre(tema: TemaCreateLibre) {
   try {
-    const response = await fetch(`${baseUrl}/temas/crearTemaLibre`, {
+    const response = await fetch(`${baseUrl}temas/crearTemaLibre`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${idToken}`,

@@ -106,7 +106,7 @@ export function ObservacionesCard({ observaciones, solicitudes }: Props) {
         }
 
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/temas/listarTemasPorUsuarioRolEstado?rolNombre=Tesista&estadoNombre=INSCRITO`,
+          `${process.env.NEXT_PUBLIC_API_URL}temas/listarTemasPorUsuarioRolEstado?rolNombre=Tesista&estadoNombre=INSCRITO`,
           {
             headers: {
               "Authorization": `Bearer ${idToken}`,
@@ -161,7 +161,7 @@ export function ObservacionesCard({ observaciones, solicitudes }: Props) {
         }
         
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/solicitudes/atenderSolicitudTemaInscrito`, {
+        `${process.env.NEXT_PUBLIC_API_URL}solicitudes/atenderSolicitudTemaInscrito`, {
         method: "POST",
         headers: { 
           "Authorization": `Bearer ${idToken}`,

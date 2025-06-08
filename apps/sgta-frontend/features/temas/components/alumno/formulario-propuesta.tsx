@@ -85,7 +85,7 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
         }
 
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/subAreaConocimiento/listarPorCarreraDeUsuario`,
+          `${process.env.NEXT_PUBLIC_API_URL}subAreaConocimiento/listarPorCarreraDeUsuario`,
           {
             headers: {
               "Authorization": `Bearer ${idToken}`,
@@ -112,7 +112,7 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
 
   if (formData.area) {
     fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/usuario/getAsesoresBySubArea?idSubArea=${formData.area}`,
+      `${process.env.NEXT_PUBLIC_API_URL}usuario/getAsesoresBySubArea?idSubArea=${formData.area}`,
       { signal }
     )
       .then((res) => res.json())
@@ -181,7 +181,7 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
 
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/usuario/findByCodigo?codigo=${codigoCotesista.trim()}`
+        `${process.env.NEXT_PUBLIC_API_URL}usuario/findByCodigo?codigo=${codigoCotesista.trim()}`
       );
       if (!res.ok) {
         toast.error("Error", { description: "No se encontró al estudiante",

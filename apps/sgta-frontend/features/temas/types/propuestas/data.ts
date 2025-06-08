@@ -22,11 +22,11 @@ export async function fetchTemasPropuestosAlAsesor(
     params.append("limit", limit != null ? limit.toString() : "50");
     params.append("offset", offset != null ? offset.toString() : "0");
     console.log(
-      `${baseUrl}/temas/listarTemasPropuestosAlAsesor?${params.toString()}`,
+      `${baseUrl}temas/listarTemasPropuestosAlAsesor?${params.toString()}`,
     );
     console.log({ idToken });
     const response = await fetch(
-      `${baseUrl}/temas/listarTemasPropuestosAlAsesor?${params.toString()}`,
+      `${baseUrl}temas/listarTemasPropuestosAlAsesor?${params.toString()}`,
       {
         method: "GET",
         headers: {
@@ -95,7 +95,7 @@ export async function fetchTemasPropuestosPorSubAreaConocimiento(
     params.append("offset", offset ? offset.toString() : "0");
 
     const response = await fetch(
-      `${baseUrl}/temas/listarTemasPropuestosPorSubAreaConocimiento?${params.toString()}`,
+      `${baseUrl}temas/listarTemasPropuestosPorSubAreaConocimiento?${params.toString()}`,
       {
         method: "GET",
         headers: {
@@ -152,7 +152,7 @@ export async function fetchUsuariosFindById(
 ): Promise<Usuario> {
   try {
     const response = await fetch(
-      `${baseUrl}/usuario/findById?idUsuario=${usuarioId}`,
+      `${baseUrl}usuario/findById?idUsuario=${usuarioId}`,
       {
         method: "GET",
         headers: {
@@ -179,7 +179,7 @@ export async function fetchAreaConocimientoFindByUsuarioId(
 ): Promise<Area[]> {
   try {
     const response = await fetch(
-      `${baseUrl}/areaConocimiento/listarPorUsuario?usuarioId=${usuarioId}`,
+      `${baseUrl}areaConocimiento/listarPorUsuario?usuarioId=${usuarioId}`,
       {
         method: "GET",
         headers: {
@@ -206,7 +206,7 @@ export async function fetchSubAreaConocimientoFindByUsuarioId(
 ): Promise<SubAreaConocimiento[]> {
   try {
     const response = await fetch(
-      `${baseUrl}/subAreaConocimiento/listarPorUsuario?usuarioId=${usuarioId}`,
+      `${baseUrl}subAreaConocimiento/listarPorUsuario?usuarioId=${usuarioId}`,
       {
         method: "GET",
         headers: {
@@ -233,7 +233,7 @@ export async function fetchSubAreaConocimientoFindById(
 ): Promise<SubAreaConocimiento> {
   try {
     const response = await fetch(
-      `${baseUrl}/subAreaConocimiento/findById?idSubArea=${areaId}`,
+      `${baseUrl}subAreaConocimiento/findById?idSubArea=${areaId}`,
       {
         method: "GET",
         headers: {
@@ -262,7 +262,7 @@ export async function postularTemaPropuestoGeneral(
 ) {
   try {
     const response = await fetch(
-      `${baseUrl}/temas/postularAsesorTemaPropuestoGeneral?idAlumno=${idAlumno}&idTema=${idTema}&comentario=${encodeURIComponent(comentario)}`,
+      `${baseUrl}temas/postularAsesorTemaPropuestoGeneral?idAlumno=${idAlumno}&idTema=${idTema}&comentario=${encodeURIComponent(comentario)}`,
       {
         method: "POST",
         headers: {
@@ -289,7 +289,7 @@ export async function enlazarTesistasATemaPropuestoDirecta(
 ) {
   try {
     const response = await fetch(
-      `${baseUrl}/temas/enlazarTesistasATemaPropuestDirecta`,
+      `${baseUrl}temas/enlazarTesistasATemaPropuestDirecta`,
       {
         method: "POST",
         headers: {
@@ -321,7 +321,7 @@ export async function rechazarTema(
 ) {
   try {
     const response = await fetch(
-      `${baseUrl}/temas/rechazarTemaPropuestaDirecta?alumnoId=${alumnoId}&comentario=${encodeURIComponent(comentario)}&temaId=${temaId}`,
+      `${baseUrl}temas/rechazarTemaPropuestaDirecta?alumnoId=${alumnoId}&comentario=${encodeURIComponent(comentario)}&temaId=${temaId}`,
       {
         method: "POST",
         headers: {
@@ -342,7 +342,7 @@ export async function rechazarTema(
 
 export async function buscarUsuarioPorToken() {
   try {
-    const response = await fetch(`${baseUrl}/usuario/getInfoUsuarioLogueado`, {
+    const response = await fetch(`${baseUrl}usuario/getInfoUsuarioLogueado`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${idToken}`,

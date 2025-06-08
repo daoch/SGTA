@@ -15,7 +15,7 @@ export async function fetchPostulacionesAlAsesor(
 ): Promise<Postulacion[]> {
   try {
     const response = await fetch(
-      `${baseUrl}/temas/listarPostuladosTemaLibre?busqueda=${debouncedSearchTerm}&estado=${debounceEstado}&fechaLimite=${debounceFechaFin}`,
+      `${baseUrl}temas/listarPostuladosTemaLibre?busqueda=${debouncedSearchTerm}&estado=${debounceEstado}&fechaLimite=${debounceFechaFin}`,
       {
         method: "GET",
         headers: {
@@ -40,7 +40,7 @@ export async function fetchPostulacionesAlAsesor(
 
 export async function buscarUsuarioPorToken() {
   try {
-    const response = await fetch(`${baseUrl}/usuario/getInfoUsuarioLogueado`, {
+    const response = await fetch(`${baseUrl}usuario/getInfoUsuarioLogueado`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${idToken}`,
@@ -67,7 +67,7 @@ export async function buscarUsuarioPorToken() {
 export async function rechazarPostulacionDeAlumno(tema: TemaDto) {
   try {
     const response = await fetch(
-      `${baseUrl}/temas/rechazarPostulacionAlumnoTemaLibre`,
+      `${baseUrl}temas/rechazarPostulacionAlumnoTemaLibre`,
       {
         method: "PUT",
         headers: {
@@ -95,7 +95,7 @@ export async function rechazarPostulacionDeAlumno(tema: TemaDto) {
 export async function aceptarPostulacionDeAlumno(tema: TemaDto) {
   try {
     const response = await fetch(
-      `${baseUrl}/temas/aceptarPostulacionAlumnoTemaLibre`,
+      `${baseUrl}temas/aceptarPostulacionAlumnoTemaLibre`,
       {
         method: "PUT",
         headers: {

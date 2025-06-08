@@ -11,7 +11,7 @@ export async function listarTemasCicloActualXEtapaFormativa(
 ) {
   try {
     const response = await fetch(
-      `${baseUrl}/temas/listarTemasCicloActualXEtapaFormativa/${etapaFormativaId}/${exposicionId}`,
+      `${baseUrl}temas/listarTemasCicloActualXEtapaFormativa/${etapaFormativaId}/${exposicionId}`,
       {
         method: "GET",
         headers: {
@@ -40,7 +40,7 @@ export async function listarJornadasExposicionSalasByExposicion(
 ) {
   try {
     const response = await fetch(
-      `${baseUrl}/jornada-exposcion-salas/listar-jornadas-salas/${exposicionId}`,
+      `${baseUrl}jornada-exposcion-salas/listar-jornadas-salas/${exposicionId}`,
       {
         method: "GET",
         headers: {
@@ -68,7 +68,7 @@ export async function listarJornadasExposicionSalasByExposicion(
 export async function listarBloquesHorariosExposicion(exposicionId: number) {
   try {
     const response = await fetch(
-      `${baseUrl}/bloqueHorarioExposicion/listarBloquesHorarioExposicionByExposicion/${exposicionId}`,
+      `${baseUrl}bloqueHorarioExposicion/listarBloquesHorarioExposicionByExposicion/${exposicionId}`,
       {
         method: "GET",
         headers: {
@@ -98,7 +98,7 @@ export async function listarEstadoPlanificacionPorExposicion(
 ) {
   try {
     const response = await fetch(
-      `${baseUrl}/estado-planificacion/getByIdExposicion/${exposicionId}`,
+      `${baseUrl}estado-planificacion/getByIdExposicion/${exposicionId}`,
       {
         method: "GET",
         headers: {
@@ -132,7 +132,7 @@ export async function getEtapaFormativaIdByExposicionId(
 ): Promise<ExposicionEtapaFormativaDTO | null> {
   try {
     const response = await fetch(
-      `${baseUrl}/etapas-formativas/getEtapaFormativaIdByExposicionId/${exposicionId}`,
+      `${baseUrl}etapas-formativas/getEtapaFormativaIdByExposicionId/${exposicionId}`,
       {
         method: "GET",
         headers: {
@@ -199,7 +199,7 @@ export async function listarAreasConocimientoPorExposicion(
 ) {
   try {
     const response = await fetch(
-      `${baseUrl}/areaConocimiento/listarPorIdExpo/${exposicionId}`,
+      `${baseUrl}areaConocimiento/listarPorIdExpo/${exposicionId}`,
       {
         method: "GET",
         headers: {

@@ -79,7 +79,7 @@ export function PostulacionesTable() {
       try {
         const { idToken } = useAuthStore.getState();
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/temas/listarMisPostulacionesTemaLibre`,
+          `${process.env.NEXT_PUBLIC_API_URL}temas/listarMisPostulacionesTemaLibre`,
           {
             headers: {
               Authorization: `Bearer ${idToken}`,
@@ -216,7 +216,7 @@ export function PostulacionesTable() {
                 try {
                   const { idToken } = useAuthStore.getState();
                   const res = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_URL}/temas/eliminarPostulacionTemaLibre?temaId=${temaAEliminar.id}`,
+                    `${process.env.NEXT_PUBLIC_API_URL}temas/eliminarPostulacionTemaLibre?temaId=${temaAEliminar.id}`,
                     {
                       method: "POST",
                       headers: {

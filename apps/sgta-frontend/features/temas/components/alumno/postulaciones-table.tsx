@@ -87,7 +87,7 @@ export function PostulacionesTable({
         decision === "aceptar"
           ? "aprobarPostulacionAPropuesta"
           : "rechazarPostulacionAPropuesta";        const res = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/temas/${endpoint}?asesorId=${asesorId}&temaId=${temaId}`,
+            `${process.env.NEXT_PUBLIC_API_URL}temas/${endpoint}?asesorId=${asesorId}&temaId=${temaId}`,
             {
               method: "POST",
               headers: {
@@ -122,7 +122,7 @@ export function PostulacionesTable({
 
         const [dirRes, genRes] = await Promise.all([
           fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPostulacionesDirectasAMisPropuestas`,
+            `${process.env.NEXT_PUBLIC_API_URL}temas/listarPostulacionesDirectasAMisPropuestas`,
             {
               headers: {
                 "Authorization": `Bearer ${idToken}`,
@@ -131,7 +131,7 @@ export function PostulacionesTable({
             }
           ),
           fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPostulacionesGeneralesAMisPropuestas`,
+            `${process.env.NEXT_PUBLIC_API_URL}temas/listarPostulacionesGeneralesAMisPropuestas`,
             {
               headers: {
                 "Authorization": `Bearer ${idToken}`,

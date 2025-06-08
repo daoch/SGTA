@@ -75,7 +75,7 @@ export function TemaCard() {
 
         // Buscar primero INSCRITO
         let response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/temas/listarTemasPorUsuarioRolEstado?rolNombre=Tesista&estadoNombre=INSCRITO`,
+          `${process.env.NEXT_PUBLIC_API_URL}temas/listarTemasPorUsuarioRolEstado?rolNombre=Tesista&estadoNombre=INSCRITO`,
           {
             headers: {
               Authorization: `Bearer ${idToken}`,
@@ -89,7 +89,7 @@ export function TemaCard() {
         // Si no hay INSCRITO, buscar REGISTRADO
         if (!data || data.length === 0) {
           response = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/temas/listarTemasPorUsuarioRolEstado?rolNombre=Tesista&estadoNombre=REGISTRADO`,
+            `${process.env.NEXT_PUBLIC_API_URL}temas/listarTemasPorUsuarioRolEstado?rolNombre=Tesista&estadoNombre=REGISTRADO`,
             {
               headers: {
                 Authorization: `Bearer ${idToken}`,
@@ -104,7 +104,7 @@ export function TemaCard() {
         // Si no hay REGISTRADO, buscar EN_PROGRESO
         if (!data || data.length === 0) {
           response = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/temas/listarTemasPorUsuarioRolEstado?rolNombre=Tesista&estadoNombre=EN_PROGRESO`,
+            `${process.env.NEXT_PUBLIC_API_URL}temas/listarTemasPorUsuarioRolEstado?rolNombre=Tesista&estadoNombre=EN_PROGRESO`,
             {
               headers: {
                 Authorization: `Bearer ${idToken}`,
