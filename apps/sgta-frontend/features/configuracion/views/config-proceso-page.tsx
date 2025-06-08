@@ -129,10 +129,10 @@ export default function ConfiguracionProcesoPage() {
               <div className="bg-gray-50 p-4 border-t flex items-center justify-between">
                 <div className="flex gap-6">
                   <div className="text-sm">
-                    <span className="text-gray-500">Entregables:</span> {etapa.entregables}
+                    <span className="text-gray-500">Entregables:</span> {etapa.cantidadEntregables}
                   </div>
                   <div className="text-sm">
-                    <span className="text-gray-500">Exposiciones:</span> {etapa.exposiciones}
+                    <span className="text-gray-500">Exposiciones:</span> {etapa.cantidadExposiciones}
                   </div>
                   
                 </div>
