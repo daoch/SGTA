@@ -144,3 +144,15 @@ def clear_index_endpoint():
     except Exception as e:
         logging.error(f"Error clearing index: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
+
+def remove_topic_endpoint(topic_id: str):
+    """Remove a topic from FAISS index (soft delete)"""
+    try:
+        success = faiss_service.remove_topic(topic_id)
+        if success:
+            return {"message": f"Topic {topic_id} successfully deleted", "success": True}
+        else:
+            raise HTTPException(status_code=404, detail="Topic not found")
+    except Exception as e:
+        logging.error(f"Error removing topic: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")

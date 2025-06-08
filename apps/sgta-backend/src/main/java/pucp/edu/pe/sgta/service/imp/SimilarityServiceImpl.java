@@ -17,7 +17,6 @@ import pucp.edu.pe.sgta.service.inter.TemaService;
 import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import java.util.Objects;
 
 @Service
 public class SimilarityServiceImpl implements SimilarityService {
@@ -133,9 +132,12 @@ public class SimilarityServiceImpl implements SimilarityService {
             // Search for similar temas using FAISS
             String combinedText = combineTextForSearch(tema);
             List<TemaSimilarityResult> faissResults = searchSimilarTemas(combinedText, threshold);
-
+            if (tema.getId() == 999999) {
+                removeTemaFromFaissIndex(999999); // Special case for temporary temas (proposed)
+            }
             // Filter out the same tema if it exists - fix the filtering logic
-            return faissResults.stream()                .filter(result -> {
+            return faissResults.stream()
+                    .filter(result -> {
                     if (tema.getId() == null) {
                         return true; // Keep all results if input tema has no ID
                     }
@@ -609,34 +611,18 @@ public class SimilarityServiceImpl implements SimilarityService {
         
         // Note: Keywords field could be added to TemaDto in the future
         // for improved similarity search accuracy when available
-        
+        if (tema.getObjetivos() != null && !tema.getObjetivos().isEmpty()) {
+            if (combined.length() > 0) {
+                combined.append(" ");
+            }
+            combined.append(String.join(" ", tema.getObjetivos()));
+        }
+
+
         return combined.toString();
     }    /**
      * Initialize FAISS index with all existing temas
      */
-    @Override
-    public void initializeFaissIndex() {
-        if (!Boolean.TRUE.equals(useFaiss)) {
-            logger.info("FAISS is disabled, skipping index initialization");
-            return;
-        }
-
-        try {
-            logger.info("Initializing FAISS index with existing temas...");
-            List<TemaDto> allTemas = temaService.getAll();
-            if (!allTemas.isEmpty()) {
-                if (Boolean.TRUE.equals(useFaiss)) {
-                    addTemasToFaissIndex(allTemas);
-                    logger.info(String.format("FAISS index initialized with %d temas", allTemas.size()));
-                }
-            } else {
-                logger.info("No existing temas found, FAISS index is empty");
-            }
-            
-        } catch (Exception e) {
-            logger.severe("Failed to initialize FAISS index: " + e.getMessage());
-        }
-    }
 
     /**
      * Initialize FAISS index and return detailed response information.
@@ -653,7 +639,7 @@ public class SimilarityServiceImpl implements SimilarityService {
             }
 
             logger.info("Initializing FAISS index with existing temas...");
-            List<TemaDto> allTemas = temaService.getAll();
+            List<TemaDto> allTemas = temaService.listarTemasFinalizados();
             
             if (!allTemas.isEmpty()) {
                 addTemasToFaissIndex(allTemas);
@@ -730,6 +716,127 @@ public class SimilarityServiceImpl implements SimilarityService {
         } catch (NumberFormatException e) {
             logger.warning("Failed to extract tema ID from topic_id: " + topicId);
             return null;
+        }
+    }
+
+    @Override
+    public Map<String, Object> clearFaissIndex() {
+        try {
+            if (!Boolean.TRUE.equals(useFaiss)) {
+                return Map.of(
+                    "success", false,
+                    "message", "FAISS está deshabilitado en la configuración"
+                );
+            }
+
+            logger.info("Clearing FAISS index...");
+            
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<Void> request = new HttpEntity<>(headers);
+
+            String endpoint = sbertServiceUrl + "/topics/clear";
+            @SuppressWarnings("rawtypes")
+            ResponseEntity<Map> response = restTemplate.exchange(
+                endpoint, 
+                HttpMethod.POST,  // Changed from DELETE to POST
+                request, 
+                Map.class
+            );
+
+            @SuppressWarnings("unchecked")
+            Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
+            
+            if (responseBody != null && Boolean.TRUE.equals(responseBody.get("success"))) {
+                logger.info("FAISS index cleared successfully");
+                return Map.of(
+                    "success", true,
+                    "message", "Índice FAISS limpiado exitosamente",
+                    "timestamp", java.time.Instant.now().toString()
+                );
+            } else {
+                return Map.of(
+                    "success", false,
+                    "message", "Error al limpiar el índice FAISS",
+                    "details", responseBody != null ? responseBody.get("message") : "Unknown error"
+                );
+            }
+            
+        } catch (Exception e) {
+            logger.severe("Failed to clear FAISS index: " + e.getMessage());
+            return Map.of(
+                "success", false,
+                "error", "Error al limpiar el índice FAISS",
+                "details", e.getMessage()
+            );
+        }
+    }
+
+    @Override
+    public Map<String, Object> removeTemaFromFaissIndex(Integer temaId) {
+        try {
+            if (!Boolean.TRUE.equals(useFaiss)) {
+                return Map.of(
+                    "success", false,
+                    "message", "FAISS está deshabilitado en la configuración"
+                );
+            }
+
+            if (temaId == null) {
+                return Map.of(
+                    "success", false,
+                    "message", "ID del tema es requerido"
+                );
+            }
+
+            logger.info("Removing tema " + temaId + " from FAISS index...");
+
+            // Format topic_id as "tema_<id>"
+            String topicId = TOPIC_ID_PREFIX + temaId;
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<Void> request = new HttpEntity<>(headers);
+
+            String endpoint = sbertServiceUrl + "/topics/" + topicId;
+            @SuppressWarnings("rawtypes")
+            ResponseEntity<Map> response = restTemplate.exchange(
+                endpoint,
+                HttpMethod.DELETE,
+                request,
+                Map.class
+            );
+
+            @SuppressWarnings("unchecked")
+            Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
+
+            if (responseBody != null && Boolean.TRUE.equals(responseBody.get("success"))) {
+                logger.info("Tema " + temaId + " removed from FAISS index successfully");
+                return Map.of(
+                    "success", true,
+                    "message", "Tema removido del índice FAISS exitosamente",
+                    "temaId", temaId,
+                    "topicId", topicId,
+                    "timestamp", java.time.Instant.now().toString()
+                );
+            } else {
+                return Map.of(
+                    "success", false,
+                    "message", "Error al remover el tema del índice FAISS",
+                    "temaId", temaId,
+                    "topicId", topicId,
+                    "details", responseBody != null ? responseBody.get("message") : "Unknown error"
+                );
+            }
+
+        } catch (Exception e) {
+            logger.severe("Failed to remove tema " + temaId + " from FAISS index: " + e.getMessage());
+            return Map.of(
+                "success", false,
+                "error", "Error al remover el tema del índice FAISS",
+                "temaId", temaId,
+                "details", e.getMessage()
+            );
         }
     }
 }

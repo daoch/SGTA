@@ -3,6 +3,7 @@ package pucp.edu.pe.sgta.controller;
 import org.aspectj.lang.annotation.Before;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -32,11 +33,10 @@ import java.util.Map;
 
 @RequestMapping("/temas")
 public class TemaController {
-
 	// Constants for response keys
 	private static final String ERROR_KEY = "error";
-	private static final String MESSAGE_KEY = "message";
 	private static final String DETAILS_KEY = "details";
+	private static final String AUTH_TOKEN_REQUIRED_MESSAGE = "Token de autenticación requerido";
 
 	@Autowired
 	TemaService temaService;
@@ -556,13 +556,12 @@ public class TemaController {
 		);
 	}
 	@PostMapping("/initializeFaiss")
-	public ResponseEntity<Map<String, Object>> initializeFaissIndex(HttpServletRequest request) {
-		try {
+	public ResponseEntity<Map<String, Object>> initializeFaissIndex(HttpServletRequest request) {		try {
 			// Verify user has proper authorization
 			String sub = jwtService.extractSubFromRequest(request);
 			if (sub == null) {
 				return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-					.body(Map.of(ERROR_KEY, "Token de autenticación requerido"));
+					.body(Map.of(ERROR_KEY, AUTH_TOKEN_REQUIRED_MESSAGE));
 			}
 
 			// Delegate to service layer
@@ -605,6 +604,52 @@ public class TemaController {
 				));
 		}
 	}
+
+	@PostMapping("/clearFaiss") 
+	public ResponseEntity<Map<String, Object>> clearFaissIndex(HttpServletRequest request) {		try{
+			String sub = jwtService.extractSubFromRequest(request);
+			if (sub == null) {
+				return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+						.body(Map.of(ERROR_KEY, AUTH_TOKEN_REQUIRED_MESSAGE));
+			}
+			Map<String, Object> result = similarityService.clearFaissIndex();
+			if (Boolean.TRUE.equals(result.get("success"))) {
+				return ResponseEntity.ok(result);
+			} else {
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+			}
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(Map.of(
+							ERROR_KEY, "Error al inicializar el índice FAISS",
+							DETAILS_KEY, e.getMessage()
+					));
+		}
+	}	
+	
+	@DeleteMapping("/faiss/topics/{temaId}")
+	public ResponseEntity<Map<String, Object>> removeTemaFromFaissIndex(@PathVariable Integer temaId, HttpServletRequest request) {
+		try {
+			// Verify user has proper authorization
+			String sub = jwtService.extractSubFromRequest(request);
+			if (sub == null) {
+				return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+					.body(Map.of(ERROR_KEY, AUTH_TOKEN_REQUIRED_MESSAGE));
+			}
+
+			Map<String, Object> result = similarityService.removeTemaFromFaissIndex(temaId);
+			return ResponseEntity.ok(result);
+		} catch (RuntimeException e) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+				.body(Map.of(
+					ERROR_KEY, "Error al remover el tema del índice FAISS",
+					DETAILS_KEY, e.getMessage()
+				));
+		}
+	}
+
 }
 
 

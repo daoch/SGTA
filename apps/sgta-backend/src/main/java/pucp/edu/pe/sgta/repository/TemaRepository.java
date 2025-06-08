@@ -157,4 +157,7 @@ public interface TemaRepository extends JpaRepository<Tema, Integer> {
       @Param("offset")                 Integer offset
   );
 
+  @Query(value = "SELECT * FROM listar_temas_finalizados()", nativeQuery = true)
+  List<Object[]> listarTemasFinalizados();
+
 }

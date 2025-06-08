@@ -160,5 +160,12 @@ public interface TemaService {
             String segundoApellidoUsuario,
             Integer limit,
             Integer offset
-    ) ;
+    );
+
+    /**
+     * Lists all finalized temas by calling the stored procedure listar_temas_finalizados()
+     * 
+     * @return List of TemaDto representing finalized temas
+     */
+    List<TemaDto> listarTemasFinalizados();
 }
