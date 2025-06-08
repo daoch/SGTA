@@ -29,7 +29,7 @@ import {
 import { getSolicitudFromTema } from "../types/solicitudes/lib";
 import { EstadoTemaNombre } from "../types/temas/enums";
 
-const LIMIT = 2;
+const LIMIT = 10;
 
 export default function SolicitudesPendientes() {
   const [estadoTema, setEstadoTema] = React.useState<EstadoTemaNombre>(
