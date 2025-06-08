@@ -571,7 +571,7 @@ public class TemaServiceImpl implements TemaService {
 				.getSingleResult();
 		} catch (Exception e) {
 			throw new RuntimeException(
-				"Error al crear la solicitud de aprobación para el tema " 
+				"Error al crear la solicitud de aprobación para el tema "
 				+ tema.getId() + ": " + e.getMessage(), e);
 		}
 	}
@@ -3002,4 +3002,20 @@ public class TemaServiceImpl implements TemaService {
         }
         return resultados;
     }
+
+	@Override
+	public List<TemaDto> listarTemasFinalizados() {
+		List<Object[]> resultados = temaRepository.listarTemasFinalizados();
+
+		return resultados.stream().map(row -> {
+			TemaDto tema = new TemaDto();
+			tema.setId((Integer) row[0]);
+			tema.setTitulo((String) row[1]);
+			tema.setResumen((String) row[2]);
+			tema.setObjetivos((String) row[3]);
+			tema.setEstadoTemaNombre((String) row[4]);
+			tema.setFechaFinalizacion(row[5] != null ? ((Instant) row[5]).atOffset(ZoneOffset.UTC) : null);
+			return tema;
+		}).collect(Collectors.toList());
+	}
 }
