@@ -4,6 +4,7 @@ import pucp.edu.pe.sgta.dto.TemaDto;
 import pucp.edu.pe.sgta.dto.TemaSimilarityResult;
 
 import java.util.List;
+import java.util.Map;
 
 public interface SimilarityService {
     
@@ -65,5 +66,28 @@ public interface SimilarityService {
     /**
      * Initialize the FAISS index with all existing temas from the database.
      */
-    void initializeFaissIndex();
+
+    /**
+     * Initialize FAISS index and return detailed response information.
+     * 
+     * @return Map containing initialization results including tema count and status
+     */
+    Map<String, Object> initializeFaissIndexWithResponse();
+    
+    /**
+     * Get FAISS status information including total temas count and configuration.
+     * 
+     * @return Map containing FAISS status information
+     */
+    Map<String, Object> getFaissStatus();
+
+    Map<String, Object> clearFaissIndex();
+
+    /**
+     * Remove a specific tema from FAISS index
+     * @param temaId The ID of the tema to remove
+     * @return Map with operation result and status information
+     */
+    Map<String, Object> removeTemaFromFaissIndex(Integer temaId);
+
 }

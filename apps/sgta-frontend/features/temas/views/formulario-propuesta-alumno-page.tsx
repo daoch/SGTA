@@ -23,7 +23,6 @@ export default function FormularioPropuestaPage() {
       ? new Date(data.fechaLimite + "T10:00:00Z").toISOString()
       : null;
 
-    const idUsuarioCreador = 7;
     const tipoPropuesta = data.tipo === "general" ? 0 : 1;
 
     const subareas = [{ id: data.area }];
@@ -31,10 +30,7 @@ export default function FormularioPropuestaPage() {
       data.tipo === "directa" && data.asesor
         ? [{ id: Number(data.asesor) }]
         : [];
-    const tesistas = [
-      { id: idUsuarioCreador },
-      ...cotesistas.map((c) => ({ id: Number(c.id) })),
-    ];
+    const tesistas = cotesistas.map((c) => ({ id: Number(c.id) }));
 
     const payload = {
       id: null,

@@ -64,6 +64,7 @@ export function TemasTableCoordinador({
           const [registrados, inscritos] = await Promise.all([
             listarTemasPorCarrera(ids[0], EstadoTemaNombre.REGISTRADO, 200, 0),
             listarTemasPorCarrera(ids[0], EstadoTemaNombre.INSCRITO, 200, 0),
+            listarTemasPorCarrera(ids[0], EstadoTemaNombre.EN_PROGRESO, 200, 0),
           ]);
           const data = [...(registrados || []), ...(inscritos || [])];
           setTemas(data);
@@ -118,13 +119,15 @@ export function TemasTableCoordinador({
       </TableRow>
     );
   } else {
+    // aca puse un cambio tema.coasesores?.[0]?.nombres prque no necesariamente hay coasesores
+    // salia un error porque buscaba tema.coasesores?.[0].nombres y trataba de acceder nombres vacios
     tableContent = filtrados.map((tema) => (
       <TableRow key={tema.id}>
         <TableCell className="font-medium max-w-xs truncate">
           {tema.titulo}
         </TableCell>
         <TableCell>{tema.subareas?.[0]?.nombre || "-"}</TableCell>
-        <TableCell>{tema.coasesores?.[0].nombres || "-"}</TableCell>
+        <TableCell>{tema.coasesores?.[0]?.nombres || "-"}</TableCell>
         <TableCell>
           {tema.tesistas && tema.tesistas.length > 0
             ? tema.tesistas
