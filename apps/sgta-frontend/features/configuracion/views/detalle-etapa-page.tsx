@@ -22,8 +22,8 @@ interface DetalleEtapaPageProps {
 
 const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
   const searchParams = useSearchParams();
-  const nombreEtapa = searchParams.get('nombreEtapa');
-  const ciclo = searchParams.get('ciclo');
+  const nombreEtapa = searchParams.get("nombreEtapa");
+  const ciclo = searchParams.get("ciclo");
   
   const [isEntregableModalOpen, setIsEntregableModalOpen] = useState(false);
   const [isExposicionModalOpen, setIsExposicionModalOpen] = useState(false);
