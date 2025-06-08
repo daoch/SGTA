@@ -68,7 +68,7 @@ public class JornadaExposicionOrchestratorServiceImpl implements JornadaExposici
             }
         }
 
-        exposicionXTemaService.createAllRelatedByExposicionId(dto.getExposicionId());
+        //exposicionXTemaService.createAllRelatedByExposicionId(dto.getExposicionId());
 
         dto.getFechas().forEach(fecha -> {
             JornadaExposicionCreateDTO createDTO = new JornadaExposicionCreateDTO();
