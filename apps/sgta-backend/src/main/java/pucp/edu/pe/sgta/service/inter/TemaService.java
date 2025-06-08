@@ -162,6 +162,13 @@ public interface TemaService {
             Integer offset
     ) ;
 
+	Integer contarPostuladosAlumnosTemaLibreAsesor(
+			String busqueda,
+			String estado,
+			LocalDate fechaLimite,
+			String usuarioId
+	);
+
 	void guardarSimilitudes(String cognitoId, List<TemaSimilarDto> similitudes);
 
 	void createInscripcionTemaV2(TemaDto dto, String idUsuario);

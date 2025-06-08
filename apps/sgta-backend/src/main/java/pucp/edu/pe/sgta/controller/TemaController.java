@@ -673,6 +673,21 @@ public class TemaController {
 		}
 	}
 
+	@GetMapping("/contarPostuladosAlumnosTemaLibreAsesor")
+	public Integer contarPostuladosAlumnosTemaLibreAsesor(
+			@RequestParam(required = false) String busqueda,
+			@RequestParam(required = false) String estado,
+			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaLimite,
+			HttpServletRequest request
+	) {
+		try {
+			String usuarioId = jwtService.extractSubFromRequest(request);
+			return temaService.contarPostuladosAlumnosTemaLibreAsesor(busqueda, estado, fechaLimite, usuarioId);
+		} catch (RuntimeException e) {
+			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage(), e);
+		}
+	}
+
 }
 
 
