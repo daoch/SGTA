@@ -64,6 +64,7 @@ export function TemasTableCoordinador({
           const [registrados, inscritos] = await Promise.all([
             listarTemasPorCarrera(ids[0], EstadoTemaNombre.REGISTRADO, 200, 0),
             listarTemasPorCarrera(ids[0], EstadoTemaNombre.INSCRITO, 200, 0),
+            listarTemasPorCarrera(ids[0], EstadoTemaNombre.EN_PROGRESO, 200, 0),
           ]);
           const data = [...(registrados || []), ...(inscritos || [])];
           setTemas(data);
