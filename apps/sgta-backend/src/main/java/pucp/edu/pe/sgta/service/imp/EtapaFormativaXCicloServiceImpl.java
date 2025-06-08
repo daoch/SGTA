@@ -73,6 +73,7 @@ public class EtapaFormativaXCicloServiceImpl implements EtapaFormativaXCicloServ
                     .orElseThrow(() -> new RuntimeException("Etapa Formativa no encontrada"));
                 dto.setNombreEtapaFormativa(etapaFormativa.getNombre());
                 dto.setCreditajePorTema(etapaFormativa.getCreditajePorTema());
+                dto.setNombreCiclo(etapaFormativaXCiclo.getCiclo().getAnio() + " - " + etapaFormativaXCiclo.getCiclo().getSemestre());
                 return dto;
             })
             .collect(Collectors.toList());

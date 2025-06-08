@@ -37,4 +37,6 @@ public class EtapaFormativaXCicloDto {
 
     private BigDecimal creditajePorTema;
     //private String descripcionEtapaFormativa;
+
+    private String nombreCiclo;
 }
