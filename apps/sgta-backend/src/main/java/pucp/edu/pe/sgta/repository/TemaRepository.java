@@ -96,6 +96,13 @@ public interface TemaRepository extends JpaRepository<Tema, Integer> {
           @Param("temaId") Integer temaId
   );
 
+  @Query(value = """
+    SELECT * FROM validar_tema_existe_cesar_asesoria_posible(:temaId)
+  """, nativeQuery = true)
+  List<Object[]> validarTemaExisteYSePuedeCesarAsesoria(
+    @Param("temaId") Integer temaId
+  );
+
   @Query(value = "SELECT * FROM listar_temas_por_asociar_por_carrera(:carreraId)", nativeQuery = true)
   List<Object[]> listarTemasPorAsociarPorCarrera(@Param("carreraId") Integer carreraId);
 
