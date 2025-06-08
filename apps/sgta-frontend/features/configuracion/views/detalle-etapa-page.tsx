@@ -203,39 +203,11 @@ const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
         >
           <ArrowLeft size={11} />
         </Link>
+        <div className="ml-4">
+          <h1 className="text-2xl font-bold text-[#042354]">{nombreEtapa}</h1>
+          <p className="text-gray-600">Ciclo: {ciclo}</p>
+        </div>
       </div>
-
-      {/* Información del proyecto */}
-      <Card className="mb-6">
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-xl">
-          {nombreEtapa}
-          </CardTitle>
-          <strong>Ciclo: {ciclo}</strong>
-          {/*<Button id="btnEditEtapa" variant="outline" size="sm" className="h-8">
-            <PenLine className="h-4 w-4 mr-1" />
-            Editar
-          </Button>*/}
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div>
-              <h3 className="font-medium mb-1">Descripción</h3>
-              <p className="text-sm text-muted-foreground">
-                Primera fase del proyecto de fin de carrera enfocada en la
-                definición del problema y la propuesta de solución.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-medium mb-1">Objetivos</h3>
-              <p className="text-sm text-muted-foreground">
-                Definir el problema, realizar el estado del arte, proponer una
-                solución preliminar.
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Tabs de Entregables y Exposiciones */}
       <Tabs defaultValue="entregables" className="mb-6">
