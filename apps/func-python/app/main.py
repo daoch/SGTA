@@ -5,7 +5,8 @@ from .controller.faiss_controller import (
     add_topics_endpoint, search_topics_endpoint, 
     get_faiss_stats_endpoint, rebuild_index_endpoint,
     list_topics_endpoint, search_topics_by_title_endpoint,
-    clear_index_endpoint, remove_topic_endpoint
+    clear_index_endpoint, remove_topic_endpoint,
+    search_temp_embedding_endpoint
 )
 from .models import (
     AddTopicsRequest, AddTopicsResponse,
@@ -54,6 +55,11 @@ def search_topics_by_title(title_query: str, limit: int = 20):
 def clear_faiss_index():
     """Completely clear FAISS index and cache (for fresh start from Java app)"""
     return clear_index_endpoint()
+
+@app.get("/topics/search-temp")
+def search_with_temp_embedding(query_text: str, top_k: int = 10, threshold: float = 0.0):
+    """Search for similar topics using temporary embedding (no persistence)"""
+    return search_temp_embedding_endpoint(query_text, top_k, threshold)
 
 @app.delete("/topics/{topic_id}")
 def remove_topic(topic_id: str):
