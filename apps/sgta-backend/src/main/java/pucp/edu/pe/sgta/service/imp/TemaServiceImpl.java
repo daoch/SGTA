@@ -2749,6 +2749,11 @@ public class TemaServiceImpl implements TemaService {
                     UsuarioDto u = new UsuarioDto();
                     u.setId(tesistaIdsArr[i]);
                     u.setNombres(tesistaNombresArr[i]);
+					Optional<UsuarioXTema> ut = usuarioTemaRepository.findByUsuario_IdAndTema_Id(u.getId(),dto.getId());
+					u.setRechazado(ut.get().getRechazado());
+					u.setAsignado(ut.get().getAsignado());
+					u.setActivo(ut.get().getActivo());
+					u.setCreador(ut.get().getCreador());
                     listaTesistas.add(u);
                 }
             }
