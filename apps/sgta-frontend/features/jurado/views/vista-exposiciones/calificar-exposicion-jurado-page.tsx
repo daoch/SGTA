@@ -117,7 +117,7 @@ const CalificarExposicionJuradoPage: React.FC<Props> = ({ id_exposicion }) => {
     let successMessage = "";
     let hasError = false;
 
-      const exposicionId = evaluacion.id_exposicion || evaluacion.criterios[0].id;
+      const exposicionId =  evaluacion.criterios[0].id;
       
       
       try {

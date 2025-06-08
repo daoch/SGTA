@@ -216,7 +216,8 @@ public class MiembroJuradoController {
     }
 
     @GetMapping("/criterios")
-    public ResponseEntity<ExposicionCalificacionDto> listarExposicionCalificacion(HttpServletRequest request,@RequestParam("exposicion_tema_id") Long exposicionTemaId) {
+    public ResponseEntity<ExposicionCalificacionDto> listarExposicionCalificacion(HttpServletRequest request,
+            @RequestParam("exposicion_tema_id") Long exposicionTemaId) {
 
         System.out.println("exposicion_tema_id recibido: " + exposicionTemaId);
         System.out.println("Headers de autorización: " + request.getHeader("Authorization"));

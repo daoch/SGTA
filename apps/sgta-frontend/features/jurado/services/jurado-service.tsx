@@ -518,6 +518,8 @@ export const actualizarComentarioFinalJurado = async (
   observacion_final: string,
 ): Promise<boolean> => {
   try {
+    console.log("Guardando observaciones finales para la exposición:", exposicionId);
+            console.log("Observaciones finales:", observacion_final);
     const response = await axiosInstance.put("/jurado/observacionfinal", {
       id: exposicionId,
       observacion_final: observacion_final,
