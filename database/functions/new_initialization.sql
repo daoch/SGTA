@@ -946,3 +946,55 @@ INSERT INTO tipo_observacion (nombre_tipo)
            ('Citado'),
            ('Inteligencia Artificial');
 -- LAS JORNADAS DE EXPOSICIÓN ESTÁN EN INSERTS JURADO.
+
+--INGRESO DE ENTREGABLES POR TEMA Y CRITERIOS POR ENTREGABLES:
+INSERT INTO entregable_x_tema (entregable_id, tema_id, estado, fecha_envio) 
+VALUES (1, 11, DEFAULT, DATE '2025-03-01'); -- Estado por defecto: 'no_enviado'
+
+-- Registro 2 (entregable_id = 2)
+INSERT INTO entregable_x_tema (entregable_id, tema_id, estado, fecha_envio) 
+VALUES (2, 11, 'enviado_a_tiempo', DATE '2025-02-01');
+
+-- Registro 3 (entregable_id = 3)
+INSERT INTO entregable_x_tema (entregable_id, tema_id, estado, fecha_envio) 
+VALUES (3, 11, 'enviado_tarde',  DATE '2025-01-01');
+
+--select * from entregable_x_tema
+
+--Criterios:
+--Query para equipo:
+INSERT INTO criterio_entregable (
+    entregable_id,
+    nombre,
+    nota_maxima,
+    descripcion
+) VALUES
+    (1, 'Claridad en la redacción', 20.00, 'Se evalúa la claridad, coherencia y cohesión del contenido entregado.'),
+    (2, 'Cumplimiento de requisitos', 20.00, 'Se verifica que el entregable cumpla con todos los requisitos solicitados.'),
+	(3, 'Originalidad del contenido', 20.00, 'Se evalúa la capacidad de presentar ideas propias y enfoques creativos en el entregable.');
+	
+
+--select * from criterio_entregable
+
+INSERT INTO revision_criterio_entregable (
+    entregable_x_tema_id,
+    criterio_entregable_id,
+    usuario_id,
+    nota,
+    observacion
+) VALUES
+    (1, 1, 36, 17.00, NULL),
+    (2, 2, 36, 10.00, NULL),
+	(3, 3, 36, 19.00, NULL);
+
+UPDATE entregable_x_tema
+SET
+  comentario = 'Actualizado manualmente para pruebas',
+  nota_entregable = 16,
+  fecha_modificacion = CURRENT_TIMESTAMP
+WHERE
+  entregable_x_tema_id = 3;
+
+UPDATE Entregable
+SET estado = 'terminado'
+WHERE entregable_id = 3;
