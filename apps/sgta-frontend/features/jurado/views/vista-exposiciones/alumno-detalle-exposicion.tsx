@@ -37,6 +37,9 @@ const DetalleExposicion: React.FC<DetalleExposicionProps> = ({
       );
       setExposicion(exposicionFiltrada);
       console.log("Exposición cargada:", exposicionFiltrada);
+      // {exposicionFiltrada.miembrosJurado.map((miembro) => (
+      //   await
+      // ))}
     } catch (error) {
       console.error("Error al cargar exposiciones:", error);
     } finally {
