@@ -9,6 +9,8 @@ import pucp.edu.pe.sgta.model.EtapaFormativaXCiclo;
 import pucp.edu.pe.sgta.model.EtapaFormativa;
 import pucp.edu.pe.sgta.repository.EtapaFormativaXCicloRepository;
 import pucp.edu.pe.sgta.repository.EtapaFormativaRepository;
+import pucp.edu.pe.sgta.repository.EntregableRepository;
+import pucp.edu.pe.sgta.repository.ExposicionRepository;
 import pucp.edu.pe.sgta.service.inter.EtapaFormativaXCicloService;
 
 import java.util.ArrayList;
@@ -25,6 +27,12 @@ public class EtapaFormativaXCicloServiceImpl implements EtapaFormativaXCicloServ
     
     @Autowired
     private EtapaFormativaRepository etapaFormativaRepository;
+
+    @Autowired
+    private EntregableRepository entregableRepository;
+
+    @Autowired
+    private ExposicionRepository exposicionRepository;
 
     @Override
     public List<EtapaFormativaXCicloDto> getAll() {
@@ -74,6 +82,9 @@ public class EtapaFormativaXCicloServiceImpl implements EtapaFormativaXCicloServ
                 dto.setNombreEtapaFormativa(etapaFormativa.getNombre());
                 dto.setCreditajePorTema(etapaFormativa.getCreditajePorTema());
                 dto.setNombreCiclo(etapaFormativaXCiclo.getCiclo().getAnio() + " - " + etapaFormativaXCiclo.getCiclo().getSemestre());
+                dto.setCantidadEntregables(entregableRepository.countByEtapaFormativaXCicloIdAndActivoTrue(etapaFormativaXCiclo.getId()));
+                dto.setCantidadExposiciones(exposicionRepository.countByEtapaFormativaXCicloIdAndActivoTrue(etapaFormativaXCiclo.getId()));
+                
                 return dto;
             })
             .collect(Collectors.toList());
