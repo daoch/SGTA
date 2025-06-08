@@ -2,6 +2,7 @@ services:
   sgta-api:
     build: .
     container_name: sgta-function-app
+    user: root
     ports:
       - "8000:8000"
     environment:
