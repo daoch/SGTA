@@ -882,7 +882,7 @@ CREATE TABLE IF NOT EXISTS ciclo
     nombre             VARCHAR(255) GENERATED ALWAYS AS (anio::VARCHAR(255) || '-' || semestre) STORED,
     fecha_inicio       DATE                     NOT NULL,
     fecha_fin          DATE                     NOT NULL,
-    activo             BOOLEAN                  NOT NULL DEFAULT TRUE,
+    activo             BOOLEAN                  NOT NULL DEFAULT FALSE,
     fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -1051,12 +1051,17 @@ CREATE TABLE IF NOT EXISTS exposicion_x_tema
     CONSTRAINT fk_ext_tema
         FOREIGN KEY (tema_id)
             REFERENCES tema (tema_id)
-            ON DELETE RESTRICT
+            ON DELETE RESTRICT,
+    CONSTRAINT unica_exposicion_x_tema
+        UNIQUE (exposicion_id, tema_id)
     --CONSTRAINT fk_ext_bloque_horario
     --    FOREIGN KEY (bloque_horario_exposicion_id)
     --        REFERENCES bloque_horario_exposicion (bloque_horario_exposicion_id)
     --        ON DELETE RESTRICT
 );
+
+--ALTER TABLE exposicion_x_tema
+--    ADD CONSTRAINT unica_exposicion_x_tema UNIQUE (exposicion_id, tema_id);
 
 -- Tabla criterio_exposicion
 CREATE TABLE IF NOT EXISTS criterio_exposicion
