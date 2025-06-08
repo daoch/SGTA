@@ -11,7 +11,8 @@ import {
 } from "@/components/ui/card";
 import {
   Dialog,
-  DialogContent
+  DialogContent,
+  DialogTitle
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -72,6 +73,7 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
   const [openSimilarDialog, setOpenSimilarDialog] = useState(false);
   const [similares, setSimilares] = useState<TemaSimilar[]>([]);
   const [forzarGuardar, setForzarGuardar] = useState(false);
+  const [checkingSimilitud, setCheckingSimilitud] = useState(false);
 
   const [areas, setAreas] = useState<{ id: number; nombre: string }[]>([]);
   const [asesores, setAsesores] = useState<{ id: string; nombre: string }[]>([]);
@@ -243,9 +245,10 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
 
   const handleLocalSubmit = async () => {
     if (!validate()) return;
+    setCheckingSimilitud(true); 
 
     const body = {
-      id: 999999, 
+      id: 999999,
       titulo: formData.titulo,
       resumen: formData.descripcion,
       objetivos: formData.objetivos,
@@ -267,14 +270,17 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
       if (Array.isArray(data) && data.length > 0 && !forzarGuardar) {
         setSimilares(data);
         setOpenSimilarDialog(true);
-        return; 
+        setCheckingSimilitud(false); 
+        return;
       }
 
       await onSubmit(formData, cotesistas);
-      setForzarGuardar(false); // reset
+      setForzarGuardar(false);
     } catch (err) {
       toast.error("Error al verificar similitud o guardar propuesta");
       setForzarGuardar(false);
+    } finally {
+      setCheckingSimilitud(false); 
     }
   };
 
@@ -500,11 +506,16 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
           </div>
         </CardContent>
         <Dialog open={openSimilarDialog} onOpenChange={setOpenSimilarDialog}>
-  <DialogContent className="max-w-xl p-0">
-    <PropuestasSimilaresCard propuestas={similares} />
-  </DialogContent>
-</Dialog>
-
+          <DialogContent className="max-w-xl p-0">
+            <DialogTitle>
+      <span className="sr-only">Temas similares encontrados</span>
+    </DialogTitle>
+    <PropuestasSimilaresCard
+      propuestas={similares}
+      onCancel={() => setOpenSimilarDialog(false)}
+    />
+          </DialogContent>
+        </Dialog>
         <CardFooter className="flex justify-between px-6 py-4">
           <Button
             variant="outline"
@@ -515,10 +526,14 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
           <Button
             onClick={handleLocalSubmit}
             className="bg-[#042354] text-white"
-            disabled={loading}
+            disabled={loading || checkingSimilitud}
           >
-            <Save className="mr-2 h-4 w-4" />{" "}
-            {loading ? "Guardando..." : "Guardar Propuesta"}
+            <Save className="mr-2 h-4 w-4" />
+            {checkingSimilitud
+              ? "Consultando Similitud..."
+              : loading
+              ? "Guardando..."
+              : "Guardar Propuesta"}
           </Button>
         </CardFooter>
       </form>

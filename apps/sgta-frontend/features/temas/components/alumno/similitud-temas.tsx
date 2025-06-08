@@ -7,10 +7,12 @@ import { AlertTriangle } from "lucide-react";
 
 interface PropuestasSimilaresCardProps {
   propuestas: TemaSimilar[];
+  onCancel?: () => void;
 }
 
 export default function PropuestasSimilaresCard({
   propuestas,
+  onCancel,
 }: PropuestasSimilaresCardProps) {
   function getColorClass(similitud: number) {
     if (similitud >= 80) return "text-red-600";
@@ -58,7 +60,7 @@ export default function PropuestasSimilaresCard({
 
       <div className="flex justify-end gap-4 mt-6">
         <Button variant="outline">Continuar de todos modos</Button>
-        <Button className="bg-blue-900 text-white hover:bg-blue-950">
+        <Button className="bg-blue-900 text-white hover:bg-blue-950" onClick={onCancel}>
           Cancelar
         </Button>
       </div>
