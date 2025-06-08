@@ -25,7 +25,7 @@ public interface TemaService {
 	 * @param idUsuarioCreador: tesista id
 	 * @param tipoPropuesta:    0 for general, 1 for direct
 	 */
-	void createTemaPropuesta(TemaDto dto, String idUsuarioCreador, Integer tipoPropuesta);
+	Integer createTemaPropuesta(TemaDto dto, String idUsuarioCreador, Integer tipoPropuesta);
 
 	void update(TemaDto dto);
 
