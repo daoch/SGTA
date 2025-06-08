@@ -136,20 +136,22 @@ class FAISSEmbeddingService:
         
         # Search in FAISS index
         scores, indices = self.index.search(query_embedding, min(top_k, self.index.ntotal))
-        
-        # Format results
+          # Format results
         results = []
         for score, idx in zip(scores[0], indices[0]):
             if idx == -1:  # FAISS returns -1 for invalid indices
                 continue
                 
+            # Skip deleted topics
+            if idx in self.topic_metadata and self.topic_metadata[idx].get('deleted', False):
+                continue
+                
             similarity_score = float(score)  # Already normalized cosine similarity
-            
             if similarity_score >= threshold:
                 topic_info = self.topic_metadata[idx].copy()
                 topic_info['similarity_score'] = round(similarity_score, 4)
                 results.append(topic_info)
-        
+            
         return results
 
     def get_topic_by_id(self, topic_id: str) -> Optional[Dict]:
@@ -158,7 +160,13 @@ class FAISSEmbeddingService:
             return None
             
         index_id = self.topic_id_to_index[topic_id]
-        return self.topic_metadata[index_id].copy()
+        topic_info = self.topic_metadata[index_id].copy()
+        
+        # Return None if topic is deleted
+        if topic_info.get('deleted', False):
+            return None
+            
+        return topic_info
 
     def remove_topic(self, topic_id: str) -> bool:
         """
@@ -169,11 +177,15 @@ class FAISSEmbeddingService:
             return False
             
         index_id = self.topic_id_to_index[topic_id]
-        
-        # Mark as deleted (we'll rebuild index periodically)
+          # Mark as deleted (we'll rebuild index periodically)
         if index_id in self.topic_metadata:
             self.topic_metadata[index_id]['deleted'] = True
             del self.topic_id_to_index[topic_id]
+            
+            # Save cache to persist the deletion
+            self._save_cache()
+            logging.info(f"Topic {topic_id} marked as deleted")
+            
             return True
         
         return False

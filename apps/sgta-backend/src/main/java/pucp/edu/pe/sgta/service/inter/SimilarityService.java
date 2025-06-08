@@ -66,8 +66,7 @@ public interface SimilarityService {
     /**
      * Initialize the FAISS index with all existing temas from the database.
      */
-    void initializeFaissIndex();
-    
+
     /**
      * Initialize FAISS index and return detailed response information.
      * 
@@ -81,4 +80,14 @@ public interface SimilarityService {
      * @return Map containing FAISS status information
      */
     Map<String, Object> getFaissStatus();
+
+    Map<String, Object> clearFaissIndex();
+
+    /**
+     * Remove a specific tema from FAISS index
+     * @param temaId The ID of the tema to remove
+     * @return Map with operation result and status information
+     */
+    Map<String, Object> removeTemaFromFaissIndex(Integer temaId);
+
 }

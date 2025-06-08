@@ -3211,3 +3211,263 @@ EXCEPTION
     WHEN OTHERS THEN
         RETURN FALSE;
 END es_coordinador_activo;
+
+
+CREATE OR REPLACE FUNCTION guardar_similitudes_tema(
+    p_tema_id             INTEGER,
+    p_usuario_id          INTEGER,
+    p_tema_relacion_ids   INTEGER[],
+    p_porcentajes         NUMERIC[]
+) RETURNS VOID AS
+$$
+DECLARE
+    i        INTEGER;
+    v_rel_id INTEGER;
+    v_pct    NUMERIC;
+BEGIN
+    -- 0) Desactivar todas las similitudes previas de este tema
+    UPDATE tema_similar
+       SET activo = FALSE,
+           fecha_modificacion = CURRENT_TIMESTAMP
+     WHERE tema_id = p_tema_id;
+
+    -- 1) Validar que los arrays tengan la misma longitud
+    IF array_length(p_tema_relacion_ids, 1) IS DISTINCT FROM
+       array_length(p_porcentajes, 1) THEN
+        RAISE EXCEPTION
+            'Los arrays de relaciones y porcentajes deben tener la misma longitud';
+    END IF;
+
+    -- 2) Recorremos los arrays e insertamos cada nueva relación
+    FOR i IN 1 .. array_length(p_tema_relacion_ids, 1) LOOP
+        v_rel_id := p_tema_relacion_ids[i];
+        v_pct    := p_porcentajes[i];
+
+        -- Validaciones básicas
+        IF v_rel_id = p_tema_id THEN
+            RAISE EXCEPTION
+                'No se puede relacionar un tema consigo mismo: %', p_tema_id;
+        END IF;
+        IF v_pct < 0 OR v_pct > 100 THEN
+            RAISE EXCEPTION
+                'Porcentaje fuera de rango [0..100]: %', v_pct;
+        END IF;
+
+        INSERT INTO tema_similar (
+            tema_id,
+            tema_relacion_id,
+            usuario_id,
+            porcentaje_similitud,
+            activo,
+            fecha_creacion,
+            fecha_modificacion
+        ) VALUES (
+            p_tema_id,
+            v_rel_id,
+            p_usuario_id,
+            v_pct,
+            TRUE,
+            CURRENT_TIMESTAMP,
+            CURRENT_TIMESTAMP
+        );
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+CREATE OR REPLACE FUNCTION procesar_inscripcion_items(
+    p_tema_id        INTEGER,
+    p_usuario_id     INTEGER,
+    p_subarea_ids    INTEGER[],
+    p_coasesor_ids   INTEGER[],
+    p_tesista_ids    INTEGER[]
+) RETURNS VOID
+LANGUAGE plpgsql AS $$
+DECLARE
+    v_rol_asesor     INTEGER;
+    v_rol_coasesor   INTEGER;
+    v_rol_tesista    INTEGER;
+    v_item_id        INTEGER;
+BEGIN
+    -- 0) Validar que el usuario exista y esté activo
+    PERFORM 1
+      FROM usuario
+     WHERE usuario_id = p_usuario_id
+       AND activo IS TRUE;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Usuario % no existe o está inactivo', p_usuario_id;
+    END IF;
+
+    -- 1) Obtener los IDs de rol
+    SELECT rol_id INTO v_rol_asesor   FROM rol WHERE nombre = 'Asesor'   LIMIT 1;
+    SELECT rol_id INTO v_rol_coasesor FROM rol WHERE nombre = 'Coasesor' LIMIT 1;
+    SELECT rol_id INTO v_rol_tesista  FROM rol WHERE nombre = 'Tesista'  LIMIT 1;
+
+    -- 2) Insertar al asesor (asignado=true, creador=true)
+    INSERT INTO usuario_tema
+      (usuario_id, tema_id, rol_id, asignado, creador, activo, fecha_creacion)
+    VALUES
+      (p_usuario_id, p_tema_id, v_rol_asesor, TRUE, TRUE, TRUE, NOW());
+
+    -- 3) Asociar subáreas de conocimiento
+    FOREACH v_item_id IN ARRAY p_subarea_ids LOOP
+        INSERT INTO sub_area_conocimiento_tema
+          (sub_area_conocimiento_id, tema_id, activo, fecha_creacion)
+        VALUES
+          (v_item_id, p_tema_id, TRUE, NOW());
+    END LOOP;
+
+    -- 4) Insertar coasesores (asignado=true, creador=false)
+    FOREACH v_item_id IN ARRAY p_coasesor_ids LOOP
+        INSERT INTO usuario_tema
+          (usuario_id, tema_id, rol_id, asignado, creador, activo, fecha_creacion)
+        VALUES
+          (v_item_id, p_tema_id, v_rol_coasesor, TRUE, FALSE, TRUE, NOW());
+    END LOOP;
+
+    -- 5) Insertar tesistas (asignado=true, creador=false)
+    FOREACH v_item_id IN ARRAY p_tesista_ids LOOP
+        INSERT INTO usuario_tema
+          (usuario_id, tema_id, rol_id, asignado, creador, activo, fecha_creacion)
+        VALUES
+          (v_item_id, p_tema_id, v_rol_tesista, TRUE, FALSE, TRUE, NOW());
+    END LOOP;
+
+    -- 6) Limpiar postulaciones y propuestas anteriores
+    FOREACH v_item_id IN ARRAY p_tesista_ids LOOP
+        PERFORM eliminar_postulaciones_tesista(v_item_id);
+        PERFORM eliminar_propuestas_tesista(v_item_id);
+    END LOOP;
+END;
+$$;
+
+
+
+CREATE OR REPLACE FUNCTION crear_solicitud_aprobacion_tema(p_tema_id INT) RETURNS VOID AS
+$$
+DECLARE
+    v_tipo_solicitud_id   INT;
+    v_estado_solicitud_id INT;
+    v_solicitud_id        INT;
+BEGIN
+    -- 1) Obtener IDs de tipo y estado
+    SELECT tipo_solicitud_id
+      INTO v_tipo_solicitud_id
+      FROM tipo_solicitud
+     WHERE nombre = 'Aprobación de tema (por coordinador)';
+
+    SELECT estado_solicitud_id
+      INTO v_estado_solicitud_id
+      FROM estado_solicitud
+     WHERE nombre = 'PENDIENTE';
+
+    -- 2) Insertar la solicitud y capturar su ID
+    INSERT INTO solicitud(descripcion, tipo_solicitud_id, tema_id, estado_solicitud)
+    VALUES ('Solicitud de aprobación de tema por coordinador',
+            v_tipo_solicitud_id,
+            p_tema_id,
+            v_estado_solicitud_id)
+    RETURNING solicitud_id INTO v_solicitud_id;
+
+    -- 3) Insertar en usuario_solicitud a todos los coordinadores activos
+    INSERT INTO usuario_solicitud(
+        usuario_id,
+        solicitud_id,
+        rol_solicitud,
+        accion_solicitud
+    )
+    SELECT
+        uc.usuario_id,
+        v_solicitud_id,
+        rs.rol_solicitud_id,
+        asol.accion_solicitud_id
+    FROM usuario_carrera uc
+    JOIN rol_solicitud   rs   ON rs.nombre = 'DESTINATARIO'
+    JOIN accion_solicitud asol ON asol.nombre = 'PENDIENTE_ACCION'
+    WHERE uc.carrera_id      = (SELECT carrera_id FROM tema WHERE tema_id = p_tema_id)
+      AND uc.es_coordinador  = TRUE
+      AND uc.activo          = TRUE;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'No hay coordinador activo para el tema %', p_tema_id;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION listar_temas_similares(
+    p_tema_id INTEGER
+)
+RETURNS TABLE(
+    id                   INTEGER,
+    codigo               VARCHAR,
+    titulo               VARCHAR,
+    resumen              TEXT,
+    objetivos            TEXT,
+    metodologia          TEXT,
+    requisitos           TEXT,
+    portafolioUrl        VARCHAR,
+    activo               BOOLEAN,
+    fechaLimite          TIMESTAMPTZ,
+    fechaFinalizacion    TIMESTAMPTZ,
+    fechaCreacion        TIMESTAMPTZ,
+    fechaModificacion    TIMESTAMPTZ,
+    estadoTemaNombre     VARCHAR,
+    porcentajeSimilitud  NUMERIC(5,2)
+)
+LANGUAGE sql
+AS $$
+    SELECT
+      t.tema_id                  AS id,
+      t.codigo                   AS codigo,
+      t.titulo                   AS titulo,
+      t.resumen                  AS resumen,
+      t.objetivos                AS objetivos,
+      t.metodologia              AS metodologia,
+      t.requisitos               AS requisitos,
+      t.portafolio_url           AS portafolioUrl,
+      t.activo                   AS activo,
+      t.fecha_limite             AS fechaLimite,
+      t.fecha_finalizacion       AS fechaFinalizacion,
+      t.fecha_creacion           AS fechaCreacion,
+      t.fecha_modificacion       AS fechaModificacion,
+      et.nombre                  AS estadoTemaNombre,
+      ts.porcentaje_similitud    AS porcentajeSimilitud
+    FROM tema_similar ts
+    JOIN tema t
+      ON t.tema_id = ts.tema_relacion_id
+    JOIN estado_tema et
+      ON et.estado_tema_id = t.estado_tema_id
+    WHERE ts.tema_id  = p_tema_id
+      AND ts.activo    = TRUE
+      AND t.activo     = TRUE
+$$;
+
+
+
+CREATE OR REPLACE FUNCTION listar_temas_finalizados()
+RETURNS TABLE (
+    tema_id INTEGER,
+    titulo TEXT,
+    resumen TEXT,
+    objetivos TEXT,
+    estado_nombre TEXT,
+    fecha_finalizacion TIMESTAMPTZ
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        t.tema_id::INTEGER,
+        t.titulo::TEXT,
+        t.resumen::TEXT,
+        t.objetivos::TEXT,
+        et.nombre::TEXT AS estado_nombre,
+        t.fecha_finalizacion::TIMESTAMPTZ
+    FROM tema t
+    INNER JOIN estado_tema et ON et.estado_tema_id = t.estado_tema_id
+    WHERE et.nombre ILIKE 'FINALIZADO';
+END;
+$$;

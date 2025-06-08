@@ -161,4 +161,17 @@ public interface TemaService {
             Integer limit,
             Integer offset
     ) ;
+
+	void guardarSimilitudes(String cognitoId, List<TemaSimilarDto> similitudes);
+
+	void createInscripcionTemaV2(TemaDto dto, String idUsuario);
+
+	List<TemaDto> listarTemasSimilares(Integer temaId);
+
+    /**
+     * Lists all finalized temas by calling the stored procedure listar_temas_finalizados()
+     *
+     * @return List of TemaDto representing finalized temas
+     */
+    List<TemaDto> listarTemasFinalizados();
 }
