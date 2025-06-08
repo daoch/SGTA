@@ -58,6 +58,8 @@ public class TemaDto {
 
     private Integer cantPostulaciones; // only for general proposals
 
+    private Double porcentajeSimilitud;
+
     //@NotEmpty(message = "Debe haber al menos una área")
     private List<@NotNull(message = "Area inválida") AreaConocimientoDto> area;
 

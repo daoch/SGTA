@@ -13,6 +13,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import pucp.edu.pe.sgta.dto.TemaConAsesorJuradoDTO;
 import pucp.edu.pe.sgta.dto.TemaPorAsociarDto;
+import pucp.edu.pe.sgta.dto.TemaSimilarDto;
 import pucp.edu.pe.sgta.dto.asesores.InfoTemaPerfilDto;
 import pucp.edu.pe.sgta.dto.asesores.TemaConAsesorDto;
 import pucp.edu.pe.sgta.dto.TemaDto;
@@ -555,6 +556,28 @@ public class TemaController {
 				offset
 		);
 	}
+
+
+	@PostMapping("/guardarSimilitudes")
+    public ResponseEntity<Void> guardarSimilitudes(
+            @RequestBody List<TemaSimilarDto> similitudes,
+            HttpServletRequest request) {
+        try {
+            String cognitoId = jwtService.extractSubFromRequest(request);
+            temaService.guardarSimilitudes(cognitoId, similitudes);
+            return ResponseEntity.status(HttpStatus.CREATED).build();
+        } catch (RuntimeException e) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, e.getMessage(), e);
+        }
+
+
+    }
+
+	@GetMapping("/{temaId}/similares")
+    public List<TemaDto> listarSimilares(@PathVariable Integer temaId) {
+        return temaService.listarTemasSimilares(temaId);
+    }
 	@PostMapping("/initializeFaiss")
 	public ResponseEntity<Map<String, Object>> initializeFaissIndex(HttpServletRequest request) {		try {
 			// Verify user has proper authorization
@@ -566,7 +589,7 @@ public class TemaController {
 
 			// Delegate to service layer
 			Map<String, Object> result = similarityService.initializeFaissIndexWithResponse();
-			
+
 			// Return appropriate HTTP status based on service result
 			if (Boolean.TRUE.equals(result.get("success"))) {
 				return ResponseEntity.ok(result);
@@ -588,7 +611,7 @@ public class TemaController {
 		try {
 			// Delegate to service layer
 			Map<String, Object> result = similarityService.getFaissStatus();
-			
+
 			// Return appropriate HTTP status based on service result
 			if (Boolean.TRUE.equals(result.get("success"))) {
 				return ResponseEntity.ok(result);
@@ -605,7 +628,7 @@ public class TemaController {
 		}
 	}
 
-	@PostMapping("/clearFaiss") 
+	@PostMapping("/clearFaiss")
 	public ResponseEntity<Map<String, Object>> clearFaissIndex(HttpServletRequest request) {		try{
 			String sub = jwtService.extractSubFromRequest(request);
 			if (sub == null) {
@@ -625,8 +648,8 @@ public class TemaController {
 							DETAILS_KEY, e.getMessage()
 					));
 		}
-	}	
-	
+	}
+
 	@DeleteMapping("/faiss/topics/{temaId}")
 	public ResponseEntity<Map<String, Object>> removeTemaFromFaissIndex(@PathVariable Integer temaId, HttpServletRequest request) {
 		try {

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Repository;
 
 import jakarta.transaction.Transactional;
 import pucp.edu.pe.sgta.model.Tema;
+import pucp.edu.pe.sgta.model.TemaSimilar;
 
 @Repository
 public interface TemaRepository extends JpaRepository<Tema, Integer> {
@@ -159,5 +160,7 @@ public interface TemaRepository extends JpaRepository<Tema, Integer> {
 
   @Query(value = "SELECT * FROM listar_temas_finalizados()", nativeQuery = true)
   List<Object[]> listarTemasFinalizados();
+
+
 
 }
