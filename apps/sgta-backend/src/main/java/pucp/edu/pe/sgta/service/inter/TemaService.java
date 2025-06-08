@@ -25,13 +25,13 @@ public interface TemaService {
 	 * @param idUsuarioCreador: tesista id
 	 * @param tipoPropuesta:    0 for general, 1 for direct
 	 */
-	void createTemaPropuesta(TemaDto dto, String idUsuarioCreador, Integer tipoPropuesta);
+	Integer createTemaPropuesta(TemaDto dto, String idUsuarioCreador, Integer tipoPropuesta);
 
 	void update(TemaDto dto);
 
 	void delete(Integer id);
 
-	void createInscripcionTema(TemaDto dto, String idUsuario); // Works for asesor, alumno, coordinador and revisor
+	Integer createInscripcionTema(TemaDto dto, String idUsuario); // Works for asesor, alumno, coordinador and revisor
 
 	List<TemaDto> listarTemasPropuestosAlAsesor(String asesorId, String titulo, Integer limit, Integer offset);
 

@@ -59,25 +59,25 @@ public class TemaController {
 	}
 
 	@PostMapping("/createPropuesta")
-	public void createTema(@RequestBody TemaDto dto,
+	public Integer createTema(@RequestBody TemaDto dto,
 			@RequestParam(name = "tipoPropuesta", defaultValue = "0") Integer tipoPropuesta,
 			HttpServletRequest request) {
 		try {
 			String idUsuarioCreador = jwtService.extractSubFromRequest(request);
-			temaService.createTemaPropuesta(dto, idUsuarioCreador, tipoPropuesta);
+			return temaService.createTemaPropuesta(dto, idUsuarioCreador, tipoPropuesta);
 		} catch (RuntimeException e) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
 		}
 	}
 
 	@PostMapping("/createInscripcion") // Inscripcion de tema oficial por asesor
-	public void createInscripcion(
+	public Integer createInscripcion(
 			@RequestBody @Valid TemaDto dto,
 			HttpServletRequest request
 	// @RequestParam(name = "idUsuarioCreador") Integer idUsuarioCreador
 	) {
 		String idUsuarioCreador = jwtService.extractSubFromRequest(request);
-		temaService.createInscripcionTema(dto, idUsuarioCreador);
+		return temaService.createInscripcionTema(dto, idUsuarioCreador);
 	}
 
 	@PutMapping("/update") // updates a topic
