@@ -29,9 +29,6 @@ public class UsuarioXCarrera {
 	@JoinColumn(name = "carrera_id", nullable = false, foreignKey = @ForeignKey(name = "fk_carrera"))
 	private Carrera carrera;
 
-	@Column(name = "es_coordinador")
-	private Boolean es_coordinador;
-
 	@Column(nullable = false)
 	private Boolean activo = true;
 
