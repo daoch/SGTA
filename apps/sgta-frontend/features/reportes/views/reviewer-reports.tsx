@@ -6,20 +6,42 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/features/auth/hooks/use-auth";
+import { etapaFormativaCicloService } from "@/features/configuracion/services/etapa-formativa-ciclo";
+import { EtapaFormativaCiclo } from "@/features/configuracion/types/etapa-formativa-ciclo";
 import { cn } from "@/lib/utils";
 import { AlertCircle, Check, Clock, Search, Users } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "react-toastify";
 import { findStudentsForReviewer } from "../services/report-services";
 import { AlumnoReviewer } from "../types/Alumno.type";
 
 export function ReviewerReports() {
+  const [etapas, setEtapas] = useState<EtapaFormativaCiclo[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<number>(0);
   const [students, setStudents] = useState<AlumnoReviewer[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [courseFilter, setCourseFilter] = useState<string>("all");
   const { user } = useAuth();
+
+  const fetchEtapas = async () => {
+    try {
+      //Aqui colocar el id de la carrara del revisor (osea, del usuario) --> idCognito
+      const response = await etapaFormativaCicloService.getAllByIdCarrera(1);
+      if (response) {
+        setEtapas(response);
+      }
+    } catch (error) {
+      console.error("Error al cargar las etapas:", error);
+      toast.error("Error al cargar las etapas");
+    }
+  };
+
+  useEffect(() => {
+      fetchEtapas();
+  }, []);
+
 
   useEffect(() => {
     const loadStudents = async () => {
@@ -40,18 +62,6 @@ export function ReviewerReports() {
 
   const selectedStudentData = students.find((student) => student.usuarioId === selectedStudent);
 
-
-  // Info de cursos (ajusta según tus datos reales si es necesario)
-  const courseInfo = {
-    PFC1: {
-      name: "Proyecto de Fin de Carrera 1",
-      deliverables: 4,
-    },
-    PFC2: {
-      name: "Proyecto de Fin de Carrera 2",
-      deliverables: 3,
-    },
-  };
 
   // Filtrar estudiantes por curso y búsqueda
   const filteredStudents = useMemo(() => {
@@ -131,6 +141,20 @@ export function ReviewerReports() {
                   <SelectValue placeholder="Seleccionar curso" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectContent>
+                    <SelectItem value="all">Todos los cursos</SelectItem>
+                    {etapas.map((etapa) => (
+                      <SelectItem key={etapa.id} value={etapa.id.toString()}>
+                        <div className="flex items-center justify-between w-full">
+                          <span>{etapa.nombreEtapaFormativa}</span>
+                          <Badge variant="outline" className="ml-2">
+                            {etapa.cantidadEntregables} entregables
+                          </Badge>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+
                   <SelectItem value="all">Todos los cursos</SelectItem>
                   <SelectItem value="PFC1">
                     <div className="flex items-center justify-between w-full">
@@ -185,7 +209,7 @@ export function ReviewerReports() {
               {filteredStudents.length} estudiante{filteredStudents.length !== 1 ? "s" : ""} encontrado
               {filteredStudents.length !== 1 ? "s" : ""}
               {courseFilter !== "all" &&
-                ` en ${courseInfo[courseFilter as keyof typeof courseInfo].name}`}
+                ` en ${etapas.find((e) => e.id.toString() === courseFilter)?.nombreEtapaFormativa ?? ""}`}
             </span>
           </div>
         </CardContent>
@@ -220,7 +244,10 @@ export function ReviewerReports() {
       ) : (
         <div className="space-y-3">
           {filteredStudents.map((student) => (
-            <Card key={student.usuarioId} className="hover:shadow-sm transition-shadow">
+            <Card
+              key={student.usuarioId}
+              className="hover:shadow-sm transition-shadow py-2 md:py-2 rounded-lg"
+            >
               <CardContent className="p-4">
                 <div className="flex flex-col md:flex-row md:items-center gap-4">
                   {/* Nombre y curso */}
@@ -236,9 +263,8 @@ export function ReviewerReports() {
 
                   {/* Tema de tesis */}
                   <div className="md:w-1/2">
+                    <Badge variant="outline" className="text-xs mb-1"> Titulo de Proyecto </Badge>
                     <p className="text-sm text-gray-600 line-clamp-2">{student.temaTitulo}</p>
-                    {/* Área hardcodeada */}
-                    <Badge variant="secondary" className="text-xs mt-2">Inteligencia Artificial</Badge>
                   </div>
 
                   {/* Estado hardcodeado */}
@@ -275,3 +301,7 @@ export function ReviewerReports() {
     </div>
   );
 }
+function setEtapas(response: EtapaFormativaCiclo[]) {
+  throw new Error("Function not implemented.");
+}
+
