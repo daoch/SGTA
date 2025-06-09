@@ -72,7 +72,7 @@ const MisTemasPage = () => {
         }
 
         let res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/temas/listarTemasPorUsuarioRolEstado?rolNombre=Tesista&estadoNombre=INSCRITO`,
+          `${process.env.NEXT_PUBLIC_API_URL}/temas/porUsuarioTituloAreaCarreraEstadoFecha?titulo=&areaId=&carreraId=&estadoNombre=INSCRITO&fechaCreacionDesde=&fechaCreacionHasta=`,
           {
             headers: {
               Authorization: `Bearer ${idToken}`,
@@ -84,7 +84,7 @@ const MisTemasPage = () => {
 
         if (!data || data.length === 0) {
           res = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/temas/listarTemasPorUsuarioRolEstado?rolNombre=Tesista&estadoNombre=REGISTRADO`,
+            `${process.env.NEXT_PUBLIC_API_URL}/temas/porUsuarioTituloAreaCarreraEstadoFecha?titulo=&areaId=&carreraId=&estadoNombre=REGISTRADO&fechaCreacionDesde=&fechaCreacionHasta=`,
             {
               headers: {
                 Authorization: `Bearer ${idToken}`,
