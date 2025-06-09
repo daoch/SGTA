@@ -1,23 +1,23 @@
+import { Button } from "@/components/ui/button";
 import {
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Calendar, Clock, MoreVertical, Download, Trash2 } from "lucide-react";
-import { Textarea } from "@/components/ui/textarea";
-import { EntregableAlumnoDto } from "../../dtos/EntregableAlumnoDto";
-import { useEffect, useState } from "react";
-import { DropzoneDocumentosAlumno } from "./dropzone-documentos-alumno";
-import { DocumentoConVersionDto } from "../../dtos/DocumentoConVersionDto";
-import axiosInstance from "@/lib/axios/axios-instance";
 import {
   DropdownMenu,
-  DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Textarea } from "@/components/ui/textarea";
+import axiosInstance from "@/lib/axios/axios-instance";
+import { Calendar, Clock, Download, MoreVertical, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { DocumentoConVersionDto } from "../../dtos/DocumentoConVersionDto";
+import { EntregableAlumnoDto } from "../../dtos/EntregableAlumnoDto";
+import { DropzoneDocumentosAlumno } from "./dropzone-documentos-alumno";
 
 interface EntregablesModalProps {
   readonly entregable: EntregableAlumnoDto;
@@ -100,6 +100,7 @@ export function EntregablesModal({
         formData.append("ciclo", entregable.cicloNombre.toString());
         formData.append("curso", entregable.etapaFormativaNombre.toString());
         formData.append("codigoAlumno", "20183178");
+        formData.append("temaId", entregable.temaId.toString());
 
         await axiosInstance.post(
           `/documento/entregable/${entregable.entregableId}`,
@@ -215,7 +216,7 @@ export function EntregablesModal({
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent>
-                            <DropdownMenuItem onClick={() => {}}>
+                            <DropdownMenuItem onClick={() => { }}>
                               <Download className="w-4 h-4 mr-2" /> Descargar
                             </DropdownMenuItem>
                             <DropdownMenuItem

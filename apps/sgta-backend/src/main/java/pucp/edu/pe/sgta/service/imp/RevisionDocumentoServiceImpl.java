@@ -21,10 +21,6 @@ import java.util.List;
 import java.util.Optional;
 import jakarta.persistence.EntityNotFoundException;
 
-
-
-
-
 @Service
 public class RevisionDocumentoServiceImpl implements RevisionDocumentoService {
 
@@ -345,8 +341,6 @@ public class RevisionDocumentoServiceImpl implements RevisionDocumentoService {
         revisionDocumentoRepository.actualizarEstadoRevisionConCast(revisionId, nuevoEstado);
     }
 
-
-
     public RevisionDocumentoAsesorDto obtenerRevisionDocumentoPorId(Integer revisionId) {
         List<Object[]> result = revisionDocumentoRepository.obtenerRevisionDocumentoPorId(revisionId);
 
@@ -385,5 +379,10 @@ public class RevisionDocumentoServiceImpl implements RevisionDocumentoService {
         dto.setUltimoCiclo(null);
 
         return dto;
+    }
+
+    @Override
+    public void crearRevisiones(int entregableId, int temaId) {
+        revisionDocumentoRepository.crearRevisiones(entregableId, temaId);
     }
 }

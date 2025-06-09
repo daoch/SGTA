@@ -138,3 +138,66 @@ BEGIN
       AND o.activo = TRUE;
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION sgtadb.crear_revisiones(entregable_id integer, tema_id integer)
+ RETURNS integer
+ LANGUAGE plpgsql
+AS $function$
+DECLARE
+    entregable_x_tema_id INT;
+    version_id INT;
+    asesor_id INT;
+    total_inserts INT := 0;
+BEGIN
+    -- 1. Obtener el entregable_x_tema_id
+    SELECT ext.entregable_x_tema_id
+    INTO entregable_x_tema_id
+    FROM entregable_x_tema ext
+    WHERE ext.entregable_id = entregable_id
+      AND ext.tema_id = tema_id
+      AND ext.activo = true
+    LIMIT 1;
+
+    IF entregable_x_tema_id IS NULL THEN
+        RAISE NOTICE 'No se encontró entregable_x_tema para entregable_id=%, tema_id=%', entregable_id, tema_id;
+        RETURN 0;
+    END IF;
+
+    -- 2. Iterar sobre las versiones del documento asociadas al entregable_x_tema
+    FOR version_id IN
+        SELECT vd.version_documento_id
+        FROM version_documento vd
+        WHERE vd.entregable_x_tema_id = entregable_x_tema_id
+    LOOP
+        -- 3. Iterar sobre los asesores asignados al tema
+        FOR asesor_id IN
+            SELECT ut.usuario_id
+            FROM usuario_tema ut
+            WHERE ut.tema_id = tema_id
+              AND ut.rol_id = 1  -- Asesor
+              AND ut.asignado = true
+        LOOP
+            -- 4. Insertar revisión
+            INSERT INTO revision_documento (
+                version_documento_id,
+                usuario_id,
+                estado_revision,
+                activo,
+                fecha_creacion,
+                fecha_modificacion
+            ) VALUES (
+                version_id,
+                asesor_id,
+                'pendiente',
+                true,
+                CURRENT_TIMESTAMP,
+                CURRENT_TIMESTAMP
+            );
+            total_inserts := total_inserts + 1;
+        END LOOP;
+    END LOOP;
+
+    RETURN total_inserts;
+END;
+$function$
+;
