@@ -321,11 +321,11 @@ public class UsuarioController {
     }
 
     @GetMapping("/findByStudentsForReviewer")
-    public ResponseEntity<List<AlumnoReporteDto>> findByStudentsForReviewer(
-            @RequestParam(required = false) Integer carreraId,
+    public ResponseEntity<List<AlumnoReporteDto>> findByStudentsForReviewer(HttpServletRequest request, 
             @RequestParam(required = false) String cadenaBusqueda) {
         try {
-            List<AlumnoReporteDto> alumnos = usuarioService.findByStudentsForReviewer(carreraId, cadenaBusqueda);
+            String usuarioId = jwtService.extractSubFromRequest(request);
+            List<AlumnoReporteDto> alumnos = usuarioService.findByStudentsForReviewer(usuarioId, cadenaBusqueda);
             return ResponseEntity.ok(alumnos);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

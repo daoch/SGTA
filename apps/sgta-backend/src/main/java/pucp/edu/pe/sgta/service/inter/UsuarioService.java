@@ -102,5 +102,5 @@ public interface UsuarioService {
 
     AlumnoTemaDto getAlumnoTema(String idAlumno);
 
-    List<AlumnoReporteDto> findByStudentsForReviewer(Integer carreraId, String cadenaBusqueda);
+    List<AlumnoReporteDto> findByStudentsForReviewer(String idUsuario, String cadenaBusqueda);
 }

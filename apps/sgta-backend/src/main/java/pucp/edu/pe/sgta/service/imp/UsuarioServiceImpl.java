@@ -1035,15 +1035,19 @@ public class    UsuarioServiceImpl implements UsuarioService {
     }
 
     @Override
-    public List<AlumnoReporteDto> findByStudentsForReviewer(Integer carreraId, String cadenaBusqueda) {
+    public List<AlumnoReporteDto> findByStudentsForReviewer(String idCognito, String cadenaBusqueda) {
+        // Primero obtenemos el ID del usuario usando el idCognito
+        Usuario usuario = usuarioRepository.findByIdCognito(idCognito)
+                .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado con ID Cognito: " + idCognito));
+
         String sql = """
                 SELECT *
-                FROM obtener_alumnos_por_carrera_y_busqueda(:carrera, :cadena)
+                FROM obtener_alumnos_por_carrera_revisor(:usuarioId, :cadena)
                 """;
 
         @SuppressWarnings("unchecked")
         List<Object[]> rows = em.createNativeQuery(sql)
-                .setParameter("carrera", carreraId)
+                .setParameter("usuarioId", usuario.getId())
                 .setParameter("cadena", cadenaBusqueda)
                 .getResultList();
 
