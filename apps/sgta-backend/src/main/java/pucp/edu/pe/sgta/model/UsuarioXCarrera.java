@@ -29,11 +29,11 @@ public class UsuarioXCarrera {
 	@JoinColumn(name = "carrera_id", nullable = false, foreignKey = @ForeignKey(name = "fk_carrera"))
 	private Carrera carrera;
 
-	@Column(name = "es_coordinador")
-	private Boolean es_coordinador;
-
 	@Column(nullable = false)
 	private Boolean activo = true;
+
+	@Column(name = "es_coordinador")
+	private Boolean esCoordinador;
 
 	@Column(name = "fecha_creacion", nullable = false, insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
 	private OffsetDateTime fechaCreacion;

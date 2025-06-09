@@ -142,13 +142,7 @@ const ExposicionesJuradoPage: React.FC = () => {
           getEtapasFormativasNombres(),
           getCiclos(),
         ]);
-        const { idToken } = useAuthStore.getState();
-        console.log("ID Token:", idToken);
-        setToken(idToken);
-        if (!idToken) {
-            console.error("No authentication token available");
-        return;
-        }
+        
 
         setEtapasFormativas(etapasData);
         setCiclos(ciclosData);
@@ -186,9 +180,11 @@ const ExposicionesJuradoPage: React.FC = () => {
     try {
       //se debe reemplazar el 6 por el id del jurado logueado
       //se deberia pasar el token de autenticación
-
-      const exposicionesData = await getExposicionesJurado(token!);
-      
+      const { idToken } = useAuthStore.getState();
+        
+      console.log("ID Token:", idToken);
+      const exposicionesData = await getExposicionesJurado(idToken!);
+      console.log("Exposiciones Data:", exposicionesData);
       setExposiciones(exposicionesData);
     } catch (error) {
       console.error("Error al cargar exposiciones:", error);

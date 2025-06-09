@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -21,6 +22,10 @@ interface DetalleEtapaPageProps {
 }
 
 const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
+  const searchParams = useSearchParams();
+  const nombreEtapa = searchParams.get("nombreEtapa");
+  const ciclo = searchParams.get("ciclo");
+  
   const [isEntregableModalOpen, setIsEntregableModalOpen] = useState(false);
   const [isExposicionModalOpen, setIsExposicionModalOpen] = useState(false);
   const [etapaFormativaXCiclo, setEtapaFormativaXCiclo] = useState<EtapaFormativaXCiclo>(); // Cambia el tipo según tu DTO
@@ -212,7 +217,10 @@ const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
         >
           <ArrowLeft size={11} />
         </Link>
-        <h1 className="text-xl font-semibold">Detalles de la Etapa</h1>
+        <div className="ml-4">
+          <h1 className="text-2xl font-bold text-[#042354]">{nombreEtapa}</h1>
+          <p className="text-gray-600">Ciclo: {ciclo}</p>
+        </div>
       </div>
 
       {/* Información del proyecto */}

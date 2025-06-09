@@ -85,4 +85,31 @@ public class UsuarioXReunionServiceImpl implements UsuarioXReunionService {
         }
         return reunionesXUsuariosDtos;
     }
+
+    @Override
+    @Transactional
+    public UsuarioXReunion save(UsuarioXReunion usuarioXReunion) {
+        return usuarioXReunionRepository.save(usuarioXReunion);
+    }
+
+    @Override
+    @Transactional
+    public UsuarioXReunion update(Integer id, UsuarioXReunion usuarioXReunionActualizado) throws Exception {
+        UsuarioXReunion existente = usuarioXReunionRepository.findByIdAndActivoTrue(id)
+                .orElseThrow(() -> new Exception("UsuarioXReunion no encontrada con ID: " + id));
+
+        existente.setEstadoAsistencia(usuarioXReunionActualizado.getEstadoAsistencia());
+        existente.setEstadoDetalle(usuarioXReunionActualizado.getEstadoDetalle());
+
+        return usuarioXReunionRepository.save(existente);
+    }
+
+    @Override
+    @Transactional
+    public void delete(Integer id) throws Exception {
+        UsuarioXReunion usuarioXReunion = usuarioXReunionRepository.findByIdAndActivoTrue(id)
+                .orElseThrow(() -> new Exception("UsuarioXReunion no encontrada con ID: " + id));
+        usuarioXReunion.setActivo(false);
+        usuarioXReunionRepository.save(usuarioXReunion);
+    }
 }

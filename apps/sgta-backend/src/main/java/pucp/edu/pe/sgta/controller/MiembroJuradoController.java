@@ -1,11 +1,13 @@
 package pucp.edu.pe.sgta.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.web.server.ResponseStatusException;
 import pucp.edu.pe.sgta.dto.*;
 import pucp.edu.pe.sgta.dto.calificacion.ExposicionCalificacionDto;
 import pucp.edu.pe.sgta.dto.calificacion.ExposicionCalificacionRequest;
@@ -15,6 +17,7 @@ import pucp.edu.pe.sgta.dto.exposiciones.EstadoControlExposicionRequest;
 import pucp.edu.pe.sgta.dto.exposiciones.EstadoExposicionJuradoRequest;
 import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
 import pucp.edu.pe.sgta.dto.temas.DetalleTemaDto;
+import pucp.edu.pe.sgta.service.inter.JwtService;
 import pucp.edu.pe.sgta.service.inter.MiembroJuradoService;
 import pucp.edu.pe.sgta.dto.exposiciones.EstadoExposicionDto;
 
@@ -31,16 +34,12 @@ import pucp.edu.pe.sgta.service.inter.UsuarioService;
 public class MiembroJuradoController {
 
     private final MiembroJuradoService juradoService;
+    private final JwtService jwtService;
 
     @Autowired
-    private JwtService jwtService;
-
-    @Autowired
-    private UsuarioService usuarioService;
-
-    @Autowired
-    public MiembroJuradoController(MiembroJuradoService autorService) {
+    public MiembroJuradoController(MiembroJuradoService autorService, JwtService jwtService) {
         this.juradoService = autorService;
+        this.jwtService = jwtService;
     }
 
     @GetMapping
@@ -59,6 +58,7 @@ public class MiembroJuradoController {
         return juradoService.obtenerUsuariosPorAreaConocimiento(areaConocimientoId);
     }
 
+    // Coordinador
     @DeleteMapping("/{usuarioId}")
     public ResponseEntity<Map<String, Object>> deleteUserJurado(@PathVariable Integer usuarioId) {
         Optional<Map<String, Object>> result = juradoService.deleteUserJurado(usuarioId);
@@ -86,6 +86,7 @@ public class MiembroJuradoController {
         }
     }
 
+    // Coordinador
     @GetMapping("/{usuarioId}/areas-conocimiento")
     public ResponseEntity<JuradoXAreaConocimientoDto> obtenerAreasConocimientoPorUsuario(
             @PathVariable Integer usuarioId) {
@@ -97,17 +98,20 @@ public class MiembroJuradoController {
         return ResponseEntity.ok(result.get(0));
     }
 
+    // Coordinador
     @PostMapping("/asignar-tema")
     public ResponseEntity<?> asignarJuradoATema(@RequestBody AsignarJuradoRequest request) {
         return juradoService.asignarJuradoATema(request);
     }
 
+    // Coordinador
     @GetMapping("/temas/{usuarioId}")
     public ResponseEntity<List<MiembroJuradoXTemaDto>> obtenerTemasPorMiembroJurado(@PathVariable Integer usuarioId) {
         List<MiembroJuradoXTemaDto> temas = juradoService.findByUsuarioIdAndActivoTrueAndRolId(usuarioId);
         return ResponseEntity.ok(temas);
     }
 
+    // Coordinador
     @GetMapping("/temas-tesis/{usuarioId}")
     public ResponseEntity<List<MiembroJuradoXTemaTesisDto>> obtenerTemasTesisPorMiembroJurado(
             @PathVariable Integer usuarioId) {
@@ -115,22 +119,26 @@ public class MiembroJuradoController {
         return ResponseEntity.ok(temas);
     }
 
+    // Coordinador
     @GetMapping("/temas-otros-jurados/{usuarioId}")
     public ResponseEntity<List<MiembroJuradoXTemaDto>> obtenerTemasDeOtrosJurados(@PathVariable Integer usuarioId) {
         List<MiembroJuradoXTemaDto> temas = juradoService.findTemasDeOtrosJurados(usuarioId);
         return ResponseEntity.ok(temas);
     }
+    // Coordinador
 
     @PutMapping("/desasignar-jurado")
     public ResponseEntity<?> desasignarJuradoDeTema(@RequestBody AsignarJuradoRequest request) {
         return juradoService.desasignarJuradoDeTema(request);
     }
 
+    // Coordinador
     @PutMapping("/desasignar-jurado-tema-todos/{usuarioId}")
     public ResponseEntity<?> desasignarJuradoDeTemaTodos(@PathVariable Integer usuarioId) {
         return juradoService.desasignarJuradoDeTemaTodos(usuarioId);
     }
 
+    // Coordinador
     @GetMapping("/{idTema}/detalle")
     public ResponseEntity<DetalleTemaDto> obtenerDetalleTema(@PathVariable Integer idTema) {
         DetalleTemaDto detalle = juradoService.obtenerDetalleTema(idTema);
@@ -138,11 +146,15 @@ public class MiembroJuradoController {
     }
 
     @GetMapping("/exposiciones")
-    public ResponseEntity<List<ExposicionTemaMiembrosDto>> listarExposicionesPorJurado(HttpServletRequest request) {
-        String cognitoId = jwtService.extractSubFromRequest(request);
-        UsuarioDto jurado = this.usuarioService.findByCognitoId(cognitoId);
-        List<ExposicionTemaMiembrosDto> exposiciones = juradoService.listarExposicionXJuradoId(jurado.getId());
-        return ResponseEntity.ok(exposiciones);
+    public ResponseEntity<List<ExposicionTemaMiembrosDto>> listarExposicionesPorJurado(
+            HttpServletRequest request) {
+        try {
+            String juradoId = jwtService.extractSubFromRequest(request);
+            List<ExposicionTemaMiembrosDto> exposiciones = juradoService.listarExposicionXJuradoId(juradoId);
+            return ResponseEntity.ok(exposiciones);
+        } catch (RuntimeException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        }
     }
 
     @PutMapping("/conformidad")
@@ -151,8 +163,15 @@ public class MiembroJuradoController {
     }
 
     @PutMapping("/control")
-    public ResponseEntity<?> actualizarControlEstadoExposicion(@RequestBody EstadoControlExposicionRequest request) {
-        return juradoService.actualizarEstadoControlExposicion(request);
+    public ResponseEntity<?> actualizarControlEstadoExposicion(HttpServletRequest request,
+            @RequestBody EstadoControlExposicionRequest requestControl) {
+        try {
+            String juradoId = jwtService.extractSubFromRequest(request);
+            return juradoService.actualizarEstadoControlExposicion(requestControl, juradoId);
+        } catch (RuntimeException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        }
+
     }
 
     @GetMapping("/estados")
@@ -161,11 +180,21 @@ public class MiembroJuradoController {
     }
 
     @GetMapping("/criterios")
-    public ResponseEntity<ExposicionCalificacionDto> listarExposicionCalificacion(
-            @RequestParam("jurado_id") Integer juradoId,
-            @RequestParam("exposicion_tema_id") Integer exposicionTemaId) {
-        ExposicionCalificacionRequest request = new ExposicionCalificacionRequest(juradoId, exposicionTemaId);
-        return juradoService.listarExposicionCalificacion(request);
+    public ResponseEntity<ExposicionCalificacionDto> listarExposicionCalificacion(HttpServletRequest request,
+            @RequestParam("exposicion_tema_id") Long exposicionTemaId) {
+
+        System.out.println("exposicion_tema_id recibido: " + exposicionTemaId);
+        System.out.println("Headers de autorización: " + request.getHeader("Authorization"));
+
+        ExposicionCalificacionRequest requestExpo = new ExposicionCalificacionRequest();
+        requestExpo.setExposicion_tema_id(exposicionTemaId.intValue());
+
+        try {
+            String juradoId = jwtService.extractSubFromRequest(request);
+            return juradoService.listarExposicionCalificacion(requestExpo, juradoId);
+        } catch (RuntimeException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        }
     }
 
     @PutMapping("/criterios")

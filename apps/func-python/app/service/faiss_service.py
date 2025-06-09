@@ -154,6 +154,46 @@ class FAISSEmbeddingService:
             
         return results
 
+    def search_with_temp_embedding(self, query_text: str, threshold=0.0, top_k=10) -> List[Dict]:
+        """
+        Search for similar topics using a temporary embedding (no persistence)
+        
+        Args:
+            query_text: Text to search for (will be embedded on-the-fly)
+            threshold: Minimum similarity score (0.0 to 1.0)
+            top_k: Number of top results to return
+            
+        Returns:
+            List of similar topics with scores
+        """
+        if self.index.ntotal == 0:
+            return []
+            
+        # Generate temporary embedding for the query
+        query_embedding = self.model.encode([query_text], convert_to_tensor=False, normalize_embeddings=True)
+        query_embedding = np.array(query_embedding, dtype=np.float32)
+        
+        # Search in FAISS index (same as search_similar_topics but with pre-computed embedding)
+        scores, indices = self.index.search(query_embedding, min(top_k, self.index.ntotal))
+        
+        # Format results
+        results = []
+        for score, idx in zip(scores[0], indices[0]):
+            if idx == -1:  # FAISS returns -1 for invalid indices
+                continue
+                
+            # Skip deleted topics
+            if idx in self.topic_metadata and self.topic_metadata[idx].get('deleted', False):
+                continue
+            
+            similarity_score = float(score)  # Already normalized cosine similarity
+            if similarity_score >= threshold:
+                topic_info = self.topic_metadata[idx].copy()
+                topic_info['similarity_score'] = round(similarity_score, 4)
+                results.append(topic_info)
+        
+        return results
+
     def get_topic_by_id(self, topic_id: str) -> Optional[Dict]:
         """Get topic information by ID"""
         if topic_id not in self.topic_id_to_index:

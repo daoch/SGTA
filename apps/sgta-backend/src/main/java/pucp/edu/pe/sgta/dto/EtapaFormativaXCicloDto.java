@@ -41,4 +41,11 @@ public class EtapaFormativaXCicloDto {
 
     private String nombreCiclo;
     //private String descripcionEtapaFormativa;
+
+    private String nombreCiclo;
+
+    // Contadores de entregables y exposiciones
+    private Integer cantidadEntregables;
+    
+    private Integer cantidadExposiciones;
 }

@@ -46,15 +46,15 @@ public interface MiembroJuradoService {
     ResponseEntity<?> desasignarJuradoDeTemaTodos(Integer usuarioId);
 
     // Detalle exposición Jurado
-    List<ExposicionTemaMiembrosDto> listarExposicionXJuradoId(Integer juradoId);
+    List<ExposicionTemaMiembrosDto> listarExposicionXJuradoId(String juradoId);
 
     ResponseEntity<?> actualizarEstadoExposicionJurado(EstadoExposicionJuradoRequest request);
 
-    ResponseEntity<?> actualizarEstadoControlExposicion(EstadoControlExposicionRequest request);
+    ResponseEntity<?> actualizarEstadoControlExposicion(EstadoControlExposicionRequest request,String juradoId);
 
     List<EstadoExposicionDto> listarEstados();
 
-    ResponseEntity<ExposicionCalificacionDto> listarExposicionCalificacion(ExposicionCalificacionRequest exposicionCalificacionRequest);
+    ResponseEntity<ExposicionCalificacionDto> listarExposicionCalificacion(ExposicionCalificacionRequest exposicionCalificacionRequest,String juradoId);
 
     ResponseEntity<?> actualizarRevisionCriterios(RevisionCriteriosRequest request);
 
