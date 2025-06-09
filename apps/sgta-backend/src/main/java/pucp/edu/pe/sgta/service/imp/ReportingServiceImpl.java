@@ -156,7 +156,7 @@ public class ReportingServiceImpl implements IReportService {
 
     @Override
     public List<TesistasPorAsesorDTO> getTesistasPorAsesor(String cognitoSub) {
-        int asesorId = Integer.parseInt(cognitoSub);
+        Integer asesorId = usuarioService.findByCognitoId(cognitoSub).getId();
         List<Object[]> results = tesistasPorAsesorRepository
                 .getTesistasPorAsesor(asesorId);
         return results.stream()
@@ -194,7 +194,8 @@ public class ReportingServiceImpl implements IReportService {
     }
 
     @Override
-    public DetalleTesistaDTO getDetalleTesista(Integer tesistaId) {
+    public DetalleTesistaDTO getDetalleTesista(String cognitoSub) {
+        Integer tesistaId = usuarioService.findByCognitoId(cognitoSub).getId();
         List<Object[]> res = detalleTesistaRepository.getDetalleTesista(tesistaId);
         if (res.isEmpty()) return null;
         Object[] r = res.get(0);
@@ -246,7 +247,8 @@ public class ReportingServiceImpl implements IReportService {
     }
 
     @Override
-    public List<HitoCronogramaDTO> getHitosCronogramaTesista(Integer tesistaId) {
+    public List<HitoCronogramaDTO> getHitosCronogramaTesista(String cognitoSub) {
+        Integer tesistaId = usuarioService.findByCognitoId(cognitoSub).getId();
         List<Object[]> results = hitoCronogramaRepository.getHitosCronogramaTesista(tesistaId);
         return results.stream()
                 .map(r -> HitoCronogramaDTO.builder()
@@ -273,7 +275,8 @@ public class ReportingServiceImpl implements IReportService {
     }
 
     @Override
-    public List<HistorialReunionDTO> getHistorialReuniones(Integer tesistaId) {
+    public List<HistorialReunionDTO> getHistorialReuniones(String cognitoSub) {
+        Integer tesistaId = usuarioService.findByCognitoId(cognitoSub).getId();
         List<Object[]> results = historialReunionRepository.getHistorialReuniones(tesistaId);
         return results.stream()
                 .map(r -> HistorialReunionDTO.builder()
@@ -285,7 +288,8 @@ public class ReportingServiceImpl implements IReportService {
     }
 
     @Override
-    public List<EntregableEstudianteDto> getEntregablesEstudiante(Integer usuarioId) {
+    public List<EntregableEstudianteDto> getEntregablesEstudiante(String cognitoSub) {
+        Integer usuarioId = usuarioService.findByCognitoId(cognitoSub).getId();
         UsuarioXTema ut = usuarioXTemaRepository
                 .findByUsuarioId(usuarioId)
                 .orElseThrow(() -> new RuntimeException("Usuario no tiene tema asignado"));
