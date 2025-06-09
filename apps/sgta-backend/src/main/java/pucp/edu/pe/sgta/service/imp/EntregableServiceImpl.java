@@ -192,8 +192,8 @@ public class EntregableServiceImpl implements EntregableService {
 
     @Transactional
     @Override
-    public void entregarEntregable(Integer entregableId, EntregableSubidoDto entregableDto) {
-        entregableRepository.entregarEntregable(entregableId,
+    public void entregarEntregable(Integer entregableXTemaId, EntregableSubidoDto entregableDto) {
+        entregableRepository.entregarEntregable(entregableXTemaId,
                 entregableDto.getComentario(),
                 entregableDto.getEstado());
     }

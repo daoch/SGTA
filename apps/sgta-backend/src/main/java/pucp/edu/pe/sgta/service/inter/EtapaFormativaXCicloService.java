@@ -25,4 +25,6 @@ public interface EtapaFormativaXCicloService {
     EtapaFormativaXCicloDto actualizarEstadoRelacion(Integer relacionId, UpdateEtapaFormativaRequest request);
 
     List<EtapaFormativaXCicloXCarreraDto> listarEtapasFormativasXCicloXCarrera(Integer carreraId);
+
+    EtapaFormativaXCicloDto getEtapaFormativaXCicloByEtapaId(Integer etapaXCicloId);
 }
