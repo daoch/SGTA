@@ -2227,7 +2227,8 @@ BEGIN
                        'nombre_completo', u2.nombres || ' ' || u2.primer_apellido,
                        'rol',             rl2.nombre,
                        'comentario',      ut2.comentario,
-                       'creador',         ut2.creador
+                       'creador',         ut2.creador,
+                       'rechazado',       ut2.rechazado
                      )
                    )
             FROM   usuario_tema ut2
