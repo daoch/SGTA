@@ -37,7 +37,11 @@ interface TemaAPI {
     rol: string;
     comentario?: string | null;
   }[];
-  tesistas?: { comentario?: string }[];
+  tesistas?: {
+    comentario?: string;
+    asignado?: boolean;
+    rechazado?: boolean;
+  }[];
 }
 
 interface Tema {
@@ -93,10 +97,35 @@ export function PostulacionesTable() {
         const mapped = data.map((tema) => {
           const asesorObj = tema.coasesores[0];
           const coasesoresObj = tema.coasesores.slice(1);
+
+          let comentarioTesista = tema.tesistas?.[0]?.comentario || "Sin comentario";
+          let comentariosAsesores: string | undefined = undefined;
+
+          if (comentarioTesista.includes("|@@|")) {
+            const partes = comentarioTesista.split("|@@|");
+            comentarioTesista = partes[0].trim();
+            if (partes.length > 1) {
+              comentariosAsesores = partes.slice(1).map(s => s.trim()).join(" - ");
+            }
+          }
+
           const comentarios = tema.coasesores
             .map((c) => c.comentario?.trim())
             .filter((c): c is string => Boolean(c))
             .join("\n\n");
+
+          // Lógica de estado personalizada
+          let estado = tema.estadoTemaNombre;
+          const tesista = tema.tesistas?.[0];
+          if (tesista) {
+            if (tesista.rechazado) {
+              estado = "Rechazado";
+            } else if (tesista.asignado) {
+              estado = "Aceptado";
+            } else {
+              estado = "Pendiente";
+            }
+          }
 
           return {
             id: tema.id,
@@ -110,10 +139,12 @@ export function PostulacionesTable() {
             coasesores: coasesoresObj.map(
               (c) => `${c.nombres} ${c.primerApellido || ""}`
             ),
-            fechaLimite: new Date(tema.fechaLimite).toLocaleDateString("es-PE"),
-            estado: tema.estadoTemaNombre,
-            comentarioTesista: tema.tesistas?.[0]?.comentario || "Sin comentario",
-            comentariosAsesores: comentarios || undefined,
+            fechaLimite: tema.fechaLimite
+              ? new Date(tema.fechaLimite).toLocaleDateString("es-PE")
+              : "-",
+            estado,
+            comentarioTesista,
+            comentariosAsesores: comentariosAsesores || comentarios || undefined,
           };
         });
 

@@ -10,6 +10,9 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
 public class CognitoServiceImpl implements CognitoService {
 
@@ -163,6 +166,62 @@ public class CognitoServiceImpl implements CognitoService {
                         System.err.println("Error al actualizar usuario en Cognito con ID: " + idCognito
                                         + ". Detalles: " + e.getMessage());
                         throw new RuntimeException("Error al actualizar usuario en Cognito", e);
+                }
+        }
+
+        @Override
+        public void actualizarAtributosEnCognito(String idCognito, String nuevoCorreo, String nuevoNombre) {
+                try {
+                        List<AttributeType> atributos = new ArrayList<>();
+                        if (nuevoCorreo != null) {
+                                atributos.add(AttributeType.builder().name("email").value(nuevoCorreo).build());
+                        }
+                        if (nuevoNombre != null) {
+                                atributos.add(AttributeType.builder().name("name").value(nuevoNombre).build());
+                        }
+                        if (!atributos.isEmpty()) {
+                                AdminUpdateUserAttributesRequest request = AdminUpdateUserAttributesRequest.builder()
+                                        .userPoolId(userPoolId)
+                                        .username(idCognito)
+                                        .userAttributes(atributos)
+                                        .build();
+                                cognitoClient.adminUpdateUserAttributes(request);
+                        }
+                        System.out.println("Atributos actualizados en Cognito para ID: " + idCognito);
+                } catch (Exception e) {
+                        System.err.println("Error al actualizar atributos en Cognito: " + e.getMessage());
+                        throw new RuntimeException("Error al actualizar atributos en Cognito", e);
+                }
+        }
+
+        @Override
+        public void agregarUsuarioAGrupo(String idCognito, String grupo) {
+                try {
+                        AdminAddUserToGroupRequest groupRequest = AdminAddUserToGroupRequest.builder()
+                                .username(idCognito)
+                                .groupName(grupo)
+                                .userPoolId(userPoolId)
+                                .build();
+
+                        cognitoClient.adminAddUserToGroup(groupRequest);
+                        System.out.printf("Usuario %s agregado al grupo %s en Cognito%n", idCognito, grupo);
+                } catch (Exception e) {
+                        System.err.printf("Error al agregar usuario %s al grupo %s en Cognito: %s%n", idCognito, grupo, e.getMessage());
+                }
+        }
+
+        @Override
+        public void eliminarUsuarioDeGrupo(String idCognito, String grupo) {
+                try {
+                        AdminRemoveUserFromGroupRequest request = AdminRemoveUserFromGroupRequest.builder()
+                                .userPoolId(userPoolId)
+                                .username(idCognito)
+                                .groupName(grupo)
+                                .build();
+                        cognitoClient.adminRemoveUserFromGroup(request);
+                        System.out.printf("Usuario %s eliminado del grupo %s en Cognito%n", idCognito, grupo);
+                } catch (Exception e) {
+                        System.err.printf("Error al eliminar usuario %s del grupo %s en Cognito: %s%n", idCognito, grupo, e.getMessage());
                 }
         }
 }
