@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.server.ResponseStatusException;
 import pucp.edu.pe.sgta.dto.*;
 import pucp.edu.pe.sgta.dto.calificacion.ExposicionCalificacionDto;
+import pucp.edu.pe.sgta.dto.calificacion.ExposicionCalificacionJuradoDTO;
 import pucp.edu.pe.sgta.dto.calificacion.ExposicionCalificacionRequest;
 import pucp.edu.pe.sgta.dto.calificacion.ExposicionObservacionRequest;
 import pucp.edu.pe.sgta.dto.calificacion.RevisionCriteriosRequest;
@@ -207,4 +208,11 @@ public class MiembroJuradoController {
         return juradoService.actualizarObservacionFinal(request);
     }
 
+    @GetMapping("/calificacion-exposicion")
+    public ResponseEntity<List<ExposicionCalificacionJuradoDTO>> obtenerCalificacionExposicion(
+            @RequestParam("exposicion_tema_id") Long exposicionTemaId) {
+        ExposicionCalificacionRequest request = new ExposicionCalificacionRequest();
+        request.setExposicion_tema_id(exposicionTemaId.intValue());
+        return juradoService.obtenerCalificacionExposicionJurado(request);
+    }
 }

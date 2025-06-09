@@ -8,6 +8,8 @@ import { ExposicionAlumno } from "../../types/exposicion.types";
 import { getExposicionesEstudiantesByEstudianteId } from "../../services/exposicion-service";
 import { useAuthStore } from "@/features/auth/store/auth-store";
 import { useRouter } from "next/navigation";
+import { CalificacionesJurado } from "../../types/jurado.types";
+import { getCalificacionesJuradoByExposicionTemaId } from "../../services/jurado-service";
 
 interface DetalleExposicionProps {
   id: string;
@@ -20,6 +22,9 @@ const DetalleExposicion: React.FC<DetalleExposicionProps> = ({
 }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [exposicion, setExposicion] = useState<ExposicionAlumno>();
+  const [calificaciones, setCalificaciones] = useState<CalificacionesJurado[]>(
+    [],
+  );
 
   //JALAMOS LAS EXPOSICIONES DEL ALUMNO
   const fetchExposiciones = async () => {
@@ -37,9 +42,15 @@ const DetalleExposicion: React.FC<DetalleExposicionProps> = ({
       );
       setExposicion(exposicionFiltrada);
       console.log("Exposición cargada:", exposicionFiltrada);
-      // {exposicionFiltrada.miembrosJurado.map((miembro) => (
-      //   await
-      // ))}
+
+      //obtenemos las calificaciones del jurado
+      const calificacionesData =
+        await getCalificacionesJuradoByExposicionTemaId(
+          exposicionFiltrada.temaId,
+        );
+
+      setCalificaciones(calificacionesData);
+      console.log("Calificaciones del jurado:", calificacionesData);
     } catch (error) {
       console.error("Error al cargar exposiciones:", error);
     } finally {
