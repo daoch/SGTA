@@ -21,6 +21,7 @@ import pucp.edu.pe.sgta.dto.asesores.TemaConAsesorDto;
 import pucp.edu.pe.sgta.dto.asesores.TemaResumenDto;
 import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
 import pucp.edu.pe.sgta.dto.exposiciones.MiembroExposicionDto;
+import pucp.edu.pe.sgta.dto.temas.TemasComprometidosDto;
 import pucp.edu.pe.sgta.exception.CustomException;
 import pucp.edu.pe.sgta.mapper.TemaMapper;
 import pucp.edu.pe.sgta.mapper.UsuarioMapper;
@@ -40,6 +41,7 @@ import java.time.*;
 import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 @Service
 public class TemaServiceImpl implements TemaService {
@@ -97,6 +99,9 @@ public class TemaServiceImpl implements TemaService {
 
 	@PersistenceContext
 	private EntityManager entityManager;
+
+	@Autowired
+	private JdbcTemplate jdbcTemplate;
 
 	public TemaServiceImpl(TemaRepository temaRepository, UsuarioXTemaRepository usuarioXTemaRepository,
 			UsuarioService usuarioService, SubAreaConocimientoService subAreaConocimientoService,
@@ -3051,5 +3056,17 @@ public class TemaServiceImpl implements TemaService {
 		return result != null ? result.intValue() : 0;
 	}
 
+
+	@Override
+	public List<TemasComprometidosDto> contarTemasComprometidos(String usuarioSubId) {
+		String sql = "SELECT * FROM contar_temas_comprometidos(?)";
+		
+		return jdbcTemplate.query(sql, new Object[]{usuarioSubId}, (rs, rowNum) -> 
+			TemasComprometidosDto.builder()
+				.comprometido(rs.getInt("comprometido"))
+				.estadoNombre(rs.getString("estado_nombre"))
+				.build()
+		);
+	}
 
 }

@@ -3474,3 +3474,42 @@ BEGIN
     WHERE et.nombre ILIKE 'FINALIZADO';
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION contar_temas_comprometidos(p_usuario_sub_id TEXT)
+RETURNS TABLE (
+    comprometido INT,
+    estado_nombre TEXT
+)
+LANGUAGE plpgsql
+STABLE
+AS $$
+DECLARE
+    v_usuario_id INT;
+BEGIN
+    -- Obtener el usuario_id desde el sub de Cognito
+    SELECT u.usuario_id
+      INTO v_usuario_id
+      FROM usuario u
+     WHERE u.id_cognito = p_usuario_sub_id
+     LIMIT 1;
+
+    -- Si no existe el usuario, devolver 0 y NULL
+    IF v_usuario_id IS NULL THEN
+        RETURN QUERY SELECT 0, NULL::TEXT;
+        RETURN;
+    END IF;
+
+    -- Consultar si tiene temas comprometidos
+    RETURN QUERY
+    SELECT
+        CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END AS comprometido,
+        MAX(et.nombre) AS estado_nombre
+    FROM tema t
+    JOIN usuario_tema ut ON ut.tema_id = t.tema_id
+    JOIN estado_tema et  ON t.estado_tema_id = et.estado_tema_id
+    WHERE ut.usuario_id = v_usuario_id
+      AND ut.activo = TRUE
+      AND t.activo = TRUE
+      AND et.nombre IN ('PRE_INSCRITO', 'INSCRITO', 'PAUSADO', 'EN_PROGRESO', 'REGISTRADO');
+END;
+$$;
