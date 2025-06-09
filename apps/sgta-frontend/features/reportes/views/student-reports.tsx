@@ -13,6 +13,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { AlertTriangle } from "lucide-react";
 import { OverdueSummary } from "../types/OverdueSummary.type";
+import { LineaTiempoReporte } from "../components/general/linea-tiempo";
 
 const getProgressColor = (progreso: number) => {
   if (progreso < 30) return "#ef4444";
@@ -164,7 +165,7 @@ export function StudentReports() {
       </div>
 
       {/* Línea de tiempo */}
-      <ProjectTracking user={user} />
+      {user && <LineaTiempoReporte user={user} />}
     </div>
   );
 }
