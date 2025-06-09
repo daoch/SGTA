@@ -37,6 +37,10 @@ export function ReviewerReports() {
     loadStudents();
   }, [searchQuery]);
 
+
+  const selectedStudentData = students.find((student) => student.usuarioId === selectedStudent);
+
+
   // Info de cursos (ajusta según tus datos reales si es necesario)
   const courseInfo = {
     PFC1: {
@@ -250,20 +254,17 @@ export function ReviewerReports() {
                     </div>
                   </div>
 
-                  {/* Botón de ver detalles */}
+                    {/* Botón de ver detalles */}
                     <div className="md:w-1/8 flex justify-start md:justify-end">
-                    <Link
-                      href={`/revisor/reportes/detalleEstudiante?usuarioId=${student.usuarioId}`}
-                      passHref  
-                    >
                       <Button
-                      asChild
                       variant="outline"
                       size="sm"
+                      asChild
                       >
-                      <span>Ver detalles</span>
+                      <Link href={`/revisor/reportes/detalleEstudiante/${student.usuarioId}`}>
+                        Ver detalles
+                      </Link>
                       </Button>
-                    </Link>
                     </div>
                 </div>
               </CardContent>

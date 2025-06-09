@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { AlertCircle, ArrowLeft, Check, Clock, User } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 
 import { ConsolidatedView } from "@/features/reportes/components/consolidated-view";
 import { LineaTiempoReporte } from "@/features/reportes/components/general/linea-tiempo";
@@ -55,14 +55,19 @@ const courseInfo = {
   PFC2: { name: "Proyecto de Fin de Carrera 2", deliverables: 3 },
 };
 
-export function ReviewerStudentDetails({ studentId }: { studentId: number }) {
+//export function ReviewerStudentDetails({ studentId }: { studentId: number }) {
+//export function ReviewerStudentDetails(){
+export default function ReviewerStudentDetails({ params }: { params: Promise<{ id: string }> }) {
   const [selectedStudent, setSelectedStudent] = useState<number>(0);
   const [students, setStudents] = useState<AlumnoReviewer[]>([]);
+  const [student, setStudent] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const { user } = useAuth();
+  //const params = useParams();
+  //const studentId = Number(params.studentId);
 
-  
+  const { id } = use(params);
 
   useEffect(() => {
     const loadStudents = async () => {
@@ -80,7 +85,13 @@ export function ReviewerStudentDetails({ studentId }: { studentId: number }) {
     loadStudents();
   }, [searchQuery]);
 
-  const selectedStudentData = students.find((student) => student.usuarioId === selectedStudent);
+
+
+  //const selectedStudentData = students.find((student) => student.usuarioId === studentId);
+  const selectedStudentData = students.find((student) => student.usuarioId === parseInt(id));
+  ///const selectedStudentData = students.find((student) => student.usuarioId === studentId);
+
+
 
   if (loading) {
     return <div>Cargando estudiantes...</div>;
