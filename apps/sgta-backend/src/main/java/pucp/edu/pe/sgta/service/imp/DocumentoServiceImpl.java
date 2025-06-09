@@ -1,13 +1,20 @@
 package pucp.edu.pe.sgta.service.imp;
 
 import jakarta.transaction.Transactional;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import pucp.edu.pe.sgta.dto.DocumentoConVersionDto;
 import pucp.edu.pe.sgta.model.Documento;
+import pucp.edu.pe.sgta.model.EntregableXTema;
+import pucp.edu.pe.sgta.model.VersionXDocumento;
 import pucp.edu.pe.sgta.repository.DocumentoRepository;
 import pucp.edu.pe.sgta.service.inter.DocumentoService;
+import pucp.edu.pe.sgta.service.inter.S3DownloadService;
+import pucp.edu.pe.sgta.service.inter.VersionXDocumentoService;
 
 import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,14 +22,20 @@ import java.util.List;
 @Service
 public class DocumentoServiceImpl implements DocumentoService {
     private final DocumentoRepository documentoRepository;
+    private final VersionXDocumentoService versionXDocumentoService;
+    private final S3DownloadService s3DownloadService;
+    private static final String S3_PATH_DELIMITER = "/";
 
-    public DocumentoServiceImpl(DocumentoRepository documentoRepository) {
+    public DocumentoServiceImpl(DocumentoRepository documentoRepository,VersionXDocumentoService versionXDocumentoService,
+                                S3DownloadService s3DownloadService) {
         this.documentoRepository = documentoRepository;
+        this.versionXDocumentoService = versionXDocumentoService;
+        this.s3DownloadService = s3DownloadService;
     }
 
     @Override
-    public List<DocumentoConVersionDto> listarDocumentosPorEntregable(Integer entregableId) {
-        List<Object[]> result = documentoRepository.listarDocumentosPorEntregable(entregableId);
+    public List<DocumentoConVersionDto> listarDocumentosPorEntregable(Integer entregableXTemaId) {
+        List<Object[]> result = documentoRepository.listarDocumentosPorEntregable(entregableXTemaId);
         List<DocumentoConVersionDto> documentos = new ArrayList<>();
 
         for(Object[] row : result){
@@ -42,6 +55,40 @@ public class DocumentoServiceImpl implements DocumentoService {
     public Integer create(Documento documento){
         documentoRepository.save(documento);
         return documento.getId();
+    }
+
+    @Transactional
+    @Override
+    public ResponseEntity<String> subirDocumentos(Integer entregableXTemaId, MultipartFile[] archivos,
+                                                  String ciclo, String curso, String codigoAlumno) {
+        for (MultipartFile archivo : archivos) {
+            try {
+                String filename = ciclo + S3_PATH_DELIMITER + curso + S3_PATH_DELIMITER +
+                        codigoAlumno + S3_PATH_DELIMITER + archivo.getOriginalFilename();
+                s3DownloadService.upload(filename, archivo);
+
+                Documento documento = new Documento();
+                documento.setId(null);
+                documento.setNombreDocumento(archivo.getOriginalFilename());
+                documento.setFechaSubida(OffsetDateTime.now());
+                documento.setUltimaVersion(1);
+                Integer documentoId = create(documento);
+                VersionXDocumento version = new VersionXDocumento();
+                version.setId(null);
+                documento.setId(documentoId);
+                version.setDocumento(documento);
+                version.setFechaUltimaSubida(OffsetDateTime.now());
+                version.setNumeroVersion(1);
+                version.setLinkArchivoSubido(filename);
+                EntregableXTema entregableXTema = new EntregableXTema();
+                entregableXTema.setEntregableXTemaId(entregableXTemaId);
+                version.setEntregableXTema(entregableXTema);
+                versionXDocumentoService.create(version);
+            } catch (Exception e) {
+                return ResponseEntity.status(500).body("Error al crear el documento: " + e.getMessage());
+            }
+        }
+        return ResponseEntity.ok("Archivos subidos exitosamente");
     }
 
     @Transactional

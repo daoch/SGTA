@@ -13,8 +13,10 @@ import pucp.edu.pe.sgta.repository.EntregableRepository;
 import pucp.edu.pe.sgta.repository.ExposicionRepository;
 import pucp.edu.pe.sgta.service.inter.EtapaFormativaXCicloService;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import pucp.edu.pe.sgta.dto.UpdateEtapaFormativaRequest;
@@ -132,6 +134,22 @@ public class EtapaFormativaXCicloServiceImpl implements EtapaFormativaXCicloServ
             etapas.add(etapa);
         }
         return etapas;
+    }
+
+    @Override
+    public EtapaFormativaXCicloDto getEtapaFormativaXCicloByEtapaId(Integer etapaXCicloId) {
+        List<Object[]> result = etapaFormativaXCicloRepository.getEtapaFormativaXCicloByEtapaId(etapaXCicloId);
+        EtapaFormativaXCicloDto etapa = new EtapaFormativaXCicloDto();
+        for(Object[] row: result){
+            etapa.setEtapaFormativaId((Integer) row[0]);
+            etapa.setNombreEtapaFormativa((String) row[1]);
+            etapa.setCreditajePorTema((BigDecimal) row[2]);
+            etapa.setDuracionExposicion((String) row[3]);
+            etapa.setCicloId((Integer) row[4]);
+            etapa.setNombreCiclo((String) row[5]);
+            etapa.setId((Integer) row[6]);
+        }
+        return etapa;
     }
 
 }
