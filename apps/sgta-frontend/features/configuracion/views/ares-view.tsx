@@ -73,8 +73,7 @@ export default function AreasPage() {
           nombre: newArea,
           activo: true,
           descripcion: newAreaDescripcion,
-          subAreas: [],
-          idCarrera: 1, // TODO: Reemplazar con el ID de carrera real
+          subAreas: []
         });
 
         const newAreaWithSubareas = {
