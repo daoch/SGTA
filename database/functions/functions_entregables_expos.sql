@@ -1,3 +1,5 @@
+SET search_path TO sgtadb;
+
 DROP FUNCTION IF EXISTS listar_entregables_x_etapa_formativa_x_ciclo;
 DROP FUNCTION IF EXISTS listar_criterios_entregable_x_entregable;
 DROP FUNCTION IF EXISTS listar_exposiciones_x_etapa_formativa_x_ciclo;
@@ -123,8 +125,8 @@ BEGIN
     RETURN QUERY
     SELECT
         e.entregable_id,
-        e.nombre,
-        e.descripcion,
+        e.nombre::TEXT,
+        e.descripcion::TEXT,
         e.fecha_inicio,
         e.fecha_fin,
         e.estado::TEXT,
@@ -158,8 +160,8 @@ BEGIN
     RETURN QUERY
     SELECT
         e.exposicion_id,
-        e.nombre,
-        e.descripcion,
+        e.nombre::TEXT,
+        e.descripcion::TEXT,
         b.datetime_inicio,
         b.datetime_fin,
         e.activo::TEXT

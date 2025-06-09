@@ -31,9 +31,11 @@ import { es } from "date-fns/locale";
 
 import axios from "axios";
 import { useAuth } from "@/features/auth";
+import { useAuthStore } from "@/features/auth/store/auth-store";
 import { getIdByCorreo } from "@/features/asesores/hooks/perfil/perfil-apis";
+import axiosInstance from "@/lib/axios/axios-instance";
 
-type TipoEvento = "Entregable" | "Reunión" | "Exposición";
+type TipoEvento = "ENTREGABLE" | "REUNION" | "EXPOSICION";
 
 interface CalendarEvent {
   id: string;
@@ -59,11 +61,11 @@ const MiCronogramaPage = () => {
 
   const getColorByTipoEvento = (tipo: TipoEvento) => {
     switch (tipo) {
-      case "Entregable":
+      case "ENTREGABLE":
         return "blue";
-      case "Reunión":
+      case "REUNION":
         return "green";
-      case "Exposición":
+      case "EXPOSICION":
         return "pink";
       default:
         return "default";
@@ -114,37 +116,70 @@ const MiCronogramaPage = () => {
   }, [user]);
   */
 
+  const normalizarTipoEvento = (tipo: string): TipoEvento => {
+    switch (tipo.toUpperCase()) {
+      case "REUNION":
+        return "REUNION";
+      case "ENTREGABLE":
+        return "ENTREGABLE";
+      case "EXPOSICION":
+        return "EXPOSICION";
+      default:
+        return "Sin título" as TipoEvento;
+    }
+  };  
+
   useEffect(() => {
     const fetchEventos = async () => {
       try {
-        const userId = 1; // ID fijo para pruebas
-    
-        const response = await axios.get(`/api/eventos/usuario/${userId}`);
-    
-        const eventosMapeados = response.data.map((evento: any) => ({
-          id: evento.id.toString(),
-          title: evento.titulo || evento.nombre || "Sin título",
-          description: evento.descripcion || "",
-          start: new Date(evento.fechaInicio || evento.fecha),
-          end: new Date(evento.fechaFin || evento.fecha),
-          tipoEvento: evento.tipoEvento,
-        }));
-    
+        const { idToken } = useAuthStore.getState();
+        if (!idToken) {
+          console.error("No authentication token available");
+          return;
+        }
+        //const userId = 1; // ID fijo para pruebas
+        
+        //const response = await axios.get(`http://localhost:5000/api/eventos/usuario/${userId}`);
+        const response = await axiosInstance.get(`/api/eventos/usuario`);
+  
+        // Mapear eventos asignando IDs únicos desde el front
+        const eventosMapeados = response.data.map((evento: any, index: number) => {
+          const tipoEvento = normalizarTipoEvento(evento.tipo);
+          const endDate = new Date(evento.fechaFin || evento.fecha);
+          const startDate =
+            tipoEvento === "ENTREGABLE"
+              ? endDate
+              : new Date(evento.fechaInicio || evento.fecha);
+        
+          return {
+            id: (index + 1).toString(), // ID generado automáticamente desde 1 en adelante
+            title: evento.titulo || evento.nombre || "Sin título",
+            description: evento.descripcion || "",
+            start: startDate,
+            end: endDate,
+            tipoEvento,
+          };
+        });
+        
+  
         setEvents(eventosMapeados);
       } catch (error) {
         console.error("Error al obtener eventos:", error);
       }
     };
-    
   
     fetchEventos();
   }, [userId]);
+  
 
   const eventosParaCalendario = events.map((event) => ({
     ...event,
     color: getColorByTipoEvento(event.tipoEvento),
-    type: event.tipoEvento
+    type: event.tipoEvento,
+    tesista: 'X',
   }));
+
+  console.log(eventosParaCalendario);
 
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const [modoExportacion, setModoExportacion] = useState<"actual" | "rango">("actual");
@@ -371,7 +406,11 @@ const MiCronogramaPage = () => {
       </Dialog>
 
       <div className="h-screen flex flex-col">
-        <Calendar events={eventosParaCalendario}>
+        <Calendar
+          events={eventosParaCalendario}
+          numTesistas={1}
+          tipoUsuario='ALUMNO'
+        >
           <div className="h-full flex flex-col">
             <div className="flex px-6 items-center gap-2 mb-6 py-4 border-b">
               <CalendarViewTrigger
@@ -413,7 +452,7 @@ const MiCronogramaPage = () => {
             <div className="flex-1 overflow-auto px-6 pb-6">
               <CalendarMonthView />
               <CalendarWeekView />
-              <CalendarDayView />
+              <CalendarDayView tipoUsuario="Alumno"/>
             </div>
           </div>
         </Calendar>

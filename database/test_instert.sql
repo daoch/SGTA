@@ -1,4 +1,6 @@
 -- 4) Usuario
+SET search_path TO sgtadb;
+
 INSERT INTO usuario (
   tipo_usuario_id,
   codigo_PUCP,

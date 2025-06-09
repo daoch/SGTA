@@ -1,5 +1,7 @@
 --DROP FUNCTION obtener_documentos_asesor(int4);
 
+SET search_path TO sgtadb;
+
 CREATE OR REPLACE FUNCTION obtener_documentos_asesor(asesorid integer)
  RETURNS TABLE(
     revision_id INTEGER,

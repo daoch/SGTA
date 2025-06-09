@@ -30,8 +30,8 @@ import { Filter } from "lucide-react";
 import { useEffect, useMemo  } from 'react'; // Añade useEffect aquí
 // ... (importaciones sin cambios)
 
-//type TipoEvento = "Entregable" | "Reunión" | "Otros";
-type TipoEvento = "Entregable" | "Reunión";
+//type TipoEvento = "ENTREGABLE" | "REUNION" | "Otros";
+type TipoEvento = "ENTREGABLE" | "REUNION" | "EXPOSICION";
 
 interface CalendarEvent {
   id: string;
@@ -58,9 +58,9 @@ const MiCronogramaPage = () => {
 
   const getColorByTipoEvento = (tipo: TipoEvento) => {
     switch (tipo) {
-      case "Entregable": return "blue";
-      case "Reunión": return "green";
-      //case "Otros": return "black";
+      case "ENTREGABLE": return "blue";
+      case "REUNION": return "green";
+      case "EXPOSICION": return "pink";
       default: return "default";
     }
   };
@@ -70,7 +70,7 @@ const MiCronogramaPage = () => {
       color: {
         blue: "text-blue-600",
         green: "text-green-600",
-        black: "text-black",
+        pink: "text-pink-600",
         default: "text-gray-600"
       }
     }
@@ -81,36 +81,36 @@ const MiCronogramaPage = () => {
     id: "1",
     title: "Reunión con el asesor",
     description: "Primera revisión",
-    start: createDate(26, 5, 2025, 8, 0),
-    end: createDate(26, 5, 2025, 10, 0),
-    tipoEvento: "Reunión",
+    start: createDate(8, 6, 2025, 8, 0),
+    end: createDate(8, 6, 2025, 9, 0),
+    tipoEvento: "REUNION",
     tesista: "Luis Sánchez"
   },
   {
     id: "2",
     title: "Entrega de capítulo 2",
     description: "Fecha límite para entregar",
-    start: createDate(27, 5, 2025, 14, 0),
-    end: createDate(27, 5, 2025, 14, 0),
-    tipoEvento: "Entregable",
+    start: createDate(8, 6, 2025, 14, 0),
+    end: createDate(8, 6, 2025, 14, 0),
+    tipoEvento: "ENTREGABLE",
     tesista: "Luis Sánchez"
   },
   {
     id: "3",
     title: "Reunión de seguimiento",
     description: "Estado del marco teórico",
-    start: createDate(28, 5, 2025, 9, 30),
-    end: createDate(28, 5, 2025, 10, 30),
-    tipoEvento: "Reunión",
+    start: createDate(30, 5, 2025, 9, 30),
+    end: createDate(30, 5, 2025, 10, 30),
+    tipoEvento: "REUNION",
     tesista: "Andrés Quispe"
   },
   {
     id: "4",
     title: "Entrega de cronograma corregido",
     description: "Versión final del cronograma",
-    start: createDate(29, 5, 2025, 11, 0),
-    end: createDate(29, 5, 2025, 11, 0),
-    tipoEvento: "Entregable",
+    start: createDate(8, 6, 2025, 11, 0),
+    end: createDate(8, 6, 2025, 11, 0),
+    tipoEvento: "ENTREGABLE",
     tesista: "Andrés Quispe"
   },
   {
@@ -119,16 +119,16 @@ const MiCronogramaPage = () => {
     description: "Revisión de introducción",
     start: createDate(30, 5, 2025, 13, 0),
     end: createDate(30, 5, 2025, 14, 0),
-    tipoEvento: "Reunión",
+    tipoEvento: "REUNION",
     tesista: "Carlos Díaz"
   },
   {
     id: "6",
     title: "Entrega de bibliografía",
     description: "Lista preliminar",
-    start: createDate(26, 5, 2025, 16, 0),
-    end: createDate(26, 5, 2025, 16, 0),
-    tipoEvento: "Entregable",
+    start: createDate(26, 5, 2025, 10, 30),
+    end: createDate(26, 5, 2025, 10, 30),
+    tipoEvento: "ENTREGABLE",
     tesista: "Carlos Díaz"
   },
   {
@@ -137,7 +137,7 @@ const MiCronogramaPage = () => {
     description: "Defensa preliminar",
     start: createDate(27, 5, 2025, 10, 0),
     end: createDate(27, 5, 2025, 11, 30),
-    tipoEvento: "Reunión",
+    tipoEvento: "REUNION",
     tesista: "Iván Ramírez"
   },
   {
@@ -146,7 +146,7 @@ const MiCronogramaPage = () => {
     description: "Informe parcial",
     start: createDate(28, 5, 2025, 15, 0),
     end: createDate(28, 5, 2025, 15, 0),
-    tipoEvento: "Entregable",
+    tipoEvento: "ENTREGABLE",
     tesista: "Iván Ramírez"
   },
   {
@@ -155,7 +155,7 @@ const MiCronogramaPage = () => {
     description: "Preparación de defensa",
     start: createDate(30, 5, 2025, 9, 0),
     end: createDate(30, 5, 2025, 10, 0),
-    tipoEvento: "Reunión",
+    tipoEvento: "REUNION",
     tesista: "Eduardo Salas"
   },
   {
@@ -164,7 +164,7 @@ const MiCronogramaPage = () => {
     description: "Última versión",
     start: createDate(31, 5, 2025, 10, 0),
     end: createDate(31, 5, 2025, 10, 0),
-    tipoEvento: "Entregable",
+    tipoEvento: "ENTREGABLE",
     tesista: "Eduardo Salas"
   },
   {
@@ -173,8 +173,17 @@ const MiCronogramaPage = () => {
     description: "Última versión",
     start: createDate(20, 6, 2025, 10, 0),
     end: createDate(20, 6, 2025, 10, 0),
-    tipoEvento: "Entregable",
+    tipoEvento: "ENTREGABLE",
     tesista: "Eduardo Salas"
+  },
+  {
+    id: "12",
+    title: "Entrega del capítulo X",
+    description: "Última versión",
+    start: createDate(30, 5, 2025, 11, 0),
+    end: createDate(30, 5, 2025, 11, 0),
+    tipoEvento: "ENTREGABLE",
+    tesista: "César Asurza"
   }
 ]);
 
@@ -315,6 +324,8 @@ const MiCronogramaPage = () => {
     year: "numeric",
   });
 
+  console.log(events);
+
   return (
     <div className="space-y-8 mt-4">
       <div>
@@ -329,12 +340,12 @@ const MiCronogramaPage = () => {
         </div>
         <div className={cn(leyendaItemVariants({ color: "green" }))}>
           <div className="w-3 h-3 rounded-full bg-green-500"></div>
-          <span>Reunión</span>
+          <span>Reunion</span>
         </div>
-        {/*<div className={cn(leyendaItemVariants({ color: "black" }))}>
-          <div className="w-3 h-3 rounded-full bg-black"></div>
-          <span>Otros</span>
-        </div>*/}
+        <div className={cn(leyendaItemVariants({ color: "pink" }))}>
+          <div className="w-3 h-3 rounded-full bg-pink-500"></div>
+          <span>Exposición</span>
+        </div>
 
 
         <Button
@@ -531,6 +542,8 @@ const MiCronogramaPage = () => {
         <Calendar 
             events={eventosParaCalendario} 
             key={JSON.stringify(selectedTesistas)} // Forzar re-render al cambiar filtros
+            numTesistas={tesistasList.length}
+            tipoUsuario='ASESOR'
           >
           <div className="h-full flex flex-col">
             <div className="flex px-6 items-center gap-2 mb-6 py-4 border-b">
@@ -545,7 +558,7 @@ const MiCronogramaPage = () => {
             <div className="flex-1 overflow-auto px-6 pb-6">
               <CalendarMonthView />
               <CalendarWeekView />
-              <CalendarDayView />
+              <CalendarDayView tipoUsuario="Asesor"/>
             </div>
           </div>
         </Calendar>

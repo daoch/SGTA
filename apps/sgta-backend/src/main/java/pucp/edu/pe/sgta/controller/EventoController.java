@@ -12,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 
 import pucp.edu.pe.sgta.service.inter.EventoService;
+import jakarta.servlet.http.HttpServletRequest;
+import pucp.edu.pe.sgta.service.inter.JwtService;
 
 @RestController
 @RequestMapping("/api/eventos")
@@ -20,8 +22,11 @@ public class EventoController {
     @Autowired
     EventoService eventoService;
 
-    @GetMapping("/usuario/{id}")
-    public ResponseEntity<List<EventoDto>> listarEventosXUsuario(@PathVariable Integer id) {
+    @Autowired
+    JwtService jwtService;
+    @GetMapping("/usuario")
+    public ResponseEntity<List<EventoDto>> listarEventosXUsuario(HttpServletRequest request) {
+        String id = jwtService.extractSubFromRequest(request);
         List<EventoDto> eventos = eventoService.listarEventosXUsuario(id);
         return ResponseEntity.ok(eventos);
     }
