@@ -144,7 +144,7 @@ export const usePlanificationStore = create<PlanificacionState>((set, get) => ({
         bloques: bloques,
         temasSinAsignar: temasSinAsignar,
         temasAsignados: {},
-      })
+      });
       if (error instanceof Error) {
         console.error(error.message); // ✅ Muestra el mensaje del backend
       } else {
