@@ -53,7 +53,7 @@ export const getEntregablesAlumno = async (alumnoId: string) => {
 export const getEntregablesConCriterios = async (usuarioId: number): Promise<EntregableCriteriosDetalle[]> => {
   try {
     const response = await axiosInstance.get<EntregableCriteriosDetalle[]>(
-      `/api/v1/reports/entregables-criterios/${usuarioId}`
+      `/reports/entregables-criterios/${usuarioId}`
     );
     return response.data;
   } catch (error) {
