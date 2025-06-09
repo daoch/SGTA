@@ -1,7 +1,7 @@
 import { create } from "zustand";
-import { PlanificacionState } from "../types/planificacion-state.types";
 import { distribuirBloquesExposicion } from "../services/data";
 import { Tema } from "../types/jurado.types";
+import { PlanificacionState } from "../types/planificacion-state.types";
 
 export const usePlanificationStore = create<PlanificacionState>((set, get) => ({
   estadoPlanificacion: undefined,
@@ -140,7 +140,17 @@ export const usePlanificationStore = create<PlanificacionState>((set, get) => ({
       });
       console.log("Nuevos bloques generados:", nuevosBloques);
     } catch (error) {
-      console.error("Error al generar la distribución automática:", error);
+      set({
+        bloques: bloques,
+        temasSinAsignar: temasSinAsignar,
+        temasAsignados: {},
+      });
+      if (error instanceof Error) {
+        console.error(error.message); // ✅ Muestra el mensaje del backend
+      } else {
+        console.error("Ocurrió un error en el microservicio.");
+      }
+      //console.error("Error al generar la distribución automática:", error);
     }
   },
 }));
