@@ -100,7 +100,7 @@ public class ReportsController {
     @GetMapping("/tesistas/detalle")
     public ResponseEntity<DetalleTesistaDTO> getDetalleTesista(HttpServletRequest request) {
         String sub = jwtService.extractSubFromRequest(request);
-        DetalleTesistaDTO dto = reportingService.getDetalleTesista(Integer.valueOf(sub));
+        DetalleTesistaDTO dto = reportingService.getDetalleTesista(sub);
         if (dto == null) {
             return ResponseEntity.notFound().build();
         }
@@ -113,7 +113,7 @@ public class ReportsController {
             HttpServletRequest request) {
         String sub = jwtService.extractSubFromRequest(request);
         List<HitoCronogramaDTO> hitos =
-            reportingService.getHitosCronogramaTesista(Integer.valueOf(sub));
+            reportingService.getHitosCronogramaTesista(sub);
         if (hitos.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
@@ -126,7 +126,7 @@ public class ReportsController {
             HttpServletRequest request) {
         String sub = jwtService.extractSubFromRequest(request);
         List<HistorialReunionDTO> historial =
-            reportingService.getHistorialReuniones(Integer.valueOf(sub));
+            reportingService.getHistorialReuniones(sub);
         if (historial.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
@@ -139,7 +139,7 @@ public class ReportsController {
             HttpServletRequest request) {
         String sub = jwtService.extractSubFromRequest(request);
         List<EntregableEstudianteDto> list =
-            reportingService.getEntregablesEstudiante(Integer.valueOf(sub));
+            reportingService.getEntregablesEstudiante(sub);
         return ResponseEntity.ok(list);
     }
 

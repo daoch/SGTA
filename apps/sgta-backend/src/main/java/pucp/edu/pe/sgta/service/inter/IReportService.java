@@ -57,23 +57,27 @@ public interface IReportService {
 
     /**
      * Detalle completo de un tesista.
+     * @param cognitoSub el sub (ID) del usuario en Cognito
      */
-    DetalleTesistaDTO getDetalleTesista(Integer tesistaId);
+    DetalleTesistaDTO getDetalleTesista(String cognitoSub);
 
     /**
      * Hitos del cronograma de un tesista.
+     * @param cognitoSub el sub (ID) del usuario en Cognito
      */
-    List<HitoCronogramaDTO> getHitosCronogramaTesista(Integer tesistaId);
+    List<HitoCronogramaDTO> getHitosCronogramaTesista(String cognitoSub);
 
     /**
      * Historial de reuniones de un tesista.
+     * @param cognitoSub el sub (ID) del usuario en Cognito
      */
-    List<HistorialReunionDTO> getHistorialReuniones(Integer tesistaId);
+    List<HistorialReunionDTO> getHistorialReuniones(String cognitoSub);
 
     /**
      * Entregables de un estudiante (tesista).
+     * @param cognitoSub el sub (ID) del usuario en Cognito
      */
-    List<EntregableEstudianteDto> getEntregablesEstudiante(Integer usuarioId);
+    List<EntregableEstudianteDto> getEntregablesEstudiante(String cognitoSub);
 
     /**
      * Entregables con criterios de un estudiante.
