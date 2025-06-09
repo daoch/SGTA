@@ -1158,9 +1158,11 @@ FROM usuario_sub_area_conocimiento usac
           WHERE nombre ILIKE 'Asesor'
           LIMIT 1
        )
+  JOIN usuario_rol ur ON ur.usuario_id = usac.usuario_id
 WHERE usac.sub_area_conocimiento_id = p_subarea_id
   AND usac.activo = TRUE
   AND tu.nombre ILIKE 'profesor'
+  AND ur.rol_id = ur.rol_id
 $$;
 
 CREATE OR REPLACE FUNCTION obtener_sub_areas_por_carrera_usuario(
