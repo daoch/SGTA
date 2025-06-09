@@ -54,19 +54,25 @@ public class AreaConocimientoServiceImpl implements AreaConocimientoService {
 
     // create
     @Override
-    public AreaConocimientoDto create(AreaConocimientoDto dto) {
-        if (dto.getIdCarrera() == null) {
-            throw new IllegalArgumentException("El id de la carrera no puede ser nulo");
-        }
-        // fecha Creacion
-        dto.setFechaCreacion(OffsetDateTime.now());
-        Carrera carrera = new Carrera();
-        carrera.setId(dto.getIdCarrera());
-        AreaConocimiento areaConocimiento = AreaConocimientoMapper.toEntity(dto);
-        areaConocimiento.setCarrera(carrera);
-        AreaConocimiento savedArea = areaConocimientoRepository.save(areaConocimiento);
+    public AreaConocimientoDto create(AreaConocimientoDto dto, String idCognito) {
 
-        return AreaConocimientoMapper.toDto(savedArea);
+        UsuarioDto usuario = usuarioService.findByCognitoId(idCognito);
+        List<Object[]> results = carreraRepository.obtenerCarreraCoordinador(usuario.getId());
+        if (results != null && !results.isEmpty()) {
+            Object[] result = results.get(0);
+            Carrera carrera = new Carrera();
+            carrera.setId((Integer) result[0]);
+            // fecha Creacion
+            dto.setFechaCreacion(OffsetDateTime.now());
+            AreaConocimiento areaConocimiento = AreaConocimientoMapper.toEntity(dto);
+            areaConocimiento.setCarrera(carrera);
+            AreaConocimiento savedArea = areaConocimientoRepository.save(areaConocimiento);
+
+            return AreaConocimientoMapper.toDto(savedArea);
+        } else {
+            throw new NoSuchElementException("No se encontró la carrera para el usuario con id: " + usuario.getId());
+        }
+        
     }
 
     @Override

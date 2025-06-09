@@ -23,8 +23,10 @@ public class AreaConocimientoController {
 
 
     @PostMapping("/create")
-    public AreaConocimientoDto createAreaConocimiento(@RequestBody AreaConocimientoDto dto) {
-        return areaConocimientoService.create(dto);
+    public AreaConocimientoDto createAreaConocimiento(@RequestBody AreaConocimientoDto dto, 
+                                                      HttpServletRequest request) {
+        String idCognito = jwtService.extractSubFromRequest(request);
+        return areaConocimientoService.create(dto, idCognito);
     }
 
     @GetMapping("/list")

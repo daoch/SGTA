@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface AreaConocimientoService {
 
-	AreaConocimientoDto create(AreaConocimientoDto dto);
+	AreaConocimientoDto create(AreaConocimientoDto dto, String idCognito);
 
 	void update(AreaConocimientoDto dto);
 
