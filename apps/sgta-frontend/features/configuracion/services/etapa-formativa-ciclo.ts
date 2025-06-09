@@ -17,34 +17,14 @@ export const etapaFormativaCicloService = {
         await axiosInstance.post(`/etapa-formativa-x-ciclo/delete/${id}`);
     },
 
-    update: async (etapaFormativaId: number, cicloId: number, data: { nombre: string; creditajePorTema: number }) => {
-        const response = await fetch(
-        `http://localhost:5000/etapas-formativas/actualizar-relacion/${etapaFormativaId}/${cicloId}`,
-        {
-            method: "PUT",
-            headers: {
-            "Content-Type": "application/json",
-            },
-            body: JSON.stringify(data),
-        }
-        );
-        if (!response.ok) throw new Error("Error al actualizar la etapa");
-        return response.json();
-    },
+    actualizarEstado: async (relacionId: number, estado: string): Promise<EtapaFormativaCiclo> => {
+      const response = await axiosInstance.put(
+        `/etapa-formativa-x-ciclo/actualizar-relacion/${relacionId}`,
+        { estado }
+      );
+      return response.data;
+    }
 
-    actualizarEstado: async (relacionId: number, estado: string) => {
-    const response = await fetch(
-      `http://localhost:5000/etapa-formativa-x-ciclo/actualizar-relacion/${relacionId}`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ estado }),
-      }
-    );
-    return response.json();
-  }
 };
 
 export const ciclosService = {
