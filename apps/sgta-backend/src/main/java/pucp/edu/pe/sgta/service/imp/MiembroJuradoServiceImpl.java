@@ -1116,16 +1116,6 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                         List<CriterioExposicion> criterios = criterioExposicionRepository
                                         .findByExposicion_IdAndActivoTrue(exposicionXTema.getExposicion().getId());
 
-                        // SI NO HAY CRITERIOS DE CALIFICACION, ENTONCES EL JURADO HA CALIFICADO
-                        // Y CONTINUAMOS CON EL SIGUIENTE JURADO
-                        if (criterios.isEmpty()) {
-                                juradoCalificacion.setCalificado(false);
-                                exposicionesCalificacion.add(juradoCalificacion);
-                                continue;
-                        } else {
-                                juradoCalificacion.setCalificado(true);
-                        }
-
                         // OBTENEMOS LOS CRITERIOS DE CALIFICACION PARA EL JURADO
                         List<CriteriosCalificacionDto> criteriosCalificacionDtos = criterios.stream()
                                         .map(criterio -> {
@@ -1137,6 +1127,13 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                                                                                 miembro.getId());
 
                                                 RevisionCriterioExposicion revision = revisionOpt.orElse(null);
+
+                                                // SI NO HAY CRITERIOS DE CALIFICACION, ENTONCES EL JURADO HA CALIFICADO
+                                                if (revision == null) {
+                                                        juradoCalificacion.setCalificado(false);
+                                                } else {
+                                                        juradoCalificacion.setCalificado(true);
+                                                }
 
                                                 CriteriosCalificacionDto dto = new CriteriosCalificacionDto();
                                                 dto.setId(revision != null ? revision.getId() : null);

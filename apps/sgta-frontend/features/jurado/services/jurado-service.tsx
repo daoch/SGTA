@@ -563,10 +563,12 @@ export const getCalificacionesJuradoByExposicionTemaId = async (
   exposicionTemaId: number,
 ) => {
   try {
-    const response = await axiosInstance.put(
+    const response = await axiosInstance.get(
       "/jurado/calificacion-exposicion",
       {
-        exposicion_tema_id: exposicionTemaId,
+        params: {
+          exposicion_tema_id: exposicionTemaId,
+        },
       },
     );
 

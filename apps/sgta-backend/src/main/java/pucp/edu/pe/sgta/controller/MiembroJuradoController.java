@@ -210,9 +210,9 @@ public class MiembroJuradoController {
 
     @GetMapping("/calificacion-exposicion")
     public ResponseEntity<List<ExposicionCalificacionJuradoDTO>> obtenerCalificacionExposicion(
-            @RequestParam("exposicion_tema_id") Long exposicionTemaId) {
+            @RequestParam("exposicion_tema_id") Integer exposicionTemaId) {
         ExposicionCalificacionRequest request = new ExposicionCalificacionRequest();
-        request.setExposicion_tema_id(exposicionTemaId.intValue());
+        request.setExposicion_tema_id(exposicionTemaId);
         return juradoService.obtenerCalificacionExposicionJurado(request);
     }
 }
