@@ -36,13 +36,18 @@ export function SolicitudesTable({
   searchQuery,
 }: SolicitudesTableProps) {
   // Filtrar por búsqueda
-  let solicitudesFiltradas = solicitudes;
+  let filtrados = solicitudes;
   if (searchQuery) {
     const query = searchQuery.toLowerCase();
-    solicitudesFiltradas = solicitudesFiltradas.filter(
+    filtrados = filtrados.filter(
       (solicitud) =>
-        solicitud.tema.titulo.toLowerCase().includes(query) ||
-        solicitud.titulo.toLowerCase().includes(query),
+        solicitud?.tema?.titulo?.toLowerCase().includes(query) ||
+        solicitud?.solicitante?.nombres?.toLowerCase().includes(query) ||
+        solicitud?.solicitante?.primerApellido?.toLowerCase().includes(query) ||
+        solicitud?.solicitante?.segundoApellido
+          ?.toLowerCase()
+          .includes(query) ||
+        solicitud?.titulo?.toLowerCase().includes(query),
     );
   }
 
@@ -58,7 +63,7 @@ export function SolicitudesTable({
         </TableCell>
       </TableRow>
     );
-  } else if (solicitudesFiltradas.length === 0) {
+  } else if (filtrados.length === 0) {
     tableBodyContent = (
       <TableRow>
         <TableCell
@@ -70,7 +75,7 @@ export function SolicitudesTable({
       </TableRow>
     );
   } else {
-    tableBodyContent = solicitudesFiltradas.map((sol) => (
+    tableBodyContent = filtrados.map((sol) => (
       <TableRow key={sol.id}>
         {/* Tipo de solicitud */}
         <TableCell>{sol.tipo}</TableCell>

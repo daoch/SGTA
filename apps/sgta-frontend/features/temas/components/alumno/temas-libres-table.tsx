@@ -21,7 +21,7 @@ import {
 import { useAuthStore } from "@/features/auth/store/auth-store";
 import { Eye, Send } from "lucide-react";
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
+import { Toaster, toast } from "sonner";
 import { EnviarPropuestaCard } from "./postular-card";
 
 interface TemaAPI {
@@ -145,7 +145,16 @@ export function PropuestasTable({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {temasFiltrados.length === 0 ? (
+          {temas.length === 0 ? (
+            <TableRow>
+              <TableCell
+                colSpan={6}
+                className="text-center py-8 text-muted-foreground"
+              >
+                No hay temas libres disponibles
+              </TableCell>
+            </TableRow>
+          ) : temasFiltrados.length === 0 ? (
             <TableRow>
               <TableCell
                 colSpan={6}
@@ -162,7 +171,9 @@ export function PropuestasTable({
                 <TableCell>{tema.asesor}</TableCell>
                 <TableCell>{tema.coasesores?.join(", ") || "-"}</TableCell>
                 <TableCell>
-                  {new Date(tema.fechaLimite).toLocaleDateString("es-PE")}
+                  {tema.fechaLimite
+                    ? new Date(tema.fechaLimite).toLocaleDateString("es-PE")
+                    : "-"}
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
@@ -223,7 +234,9 @@ export function PropuestasTable({
                             <div className="space-y-1">
                               <label className="text-sm font-medium">Fecha Límite</label>
                               <div className="p-3 bg-gray-50 rounded-md border">
-                                {new Date(selected?.fechaLimite || "").toLocaleDateString("es-PE")}
+                                {selected?.fechaLimite
+                                  ? new Date(selected.fechaLimite).toLocaleDateString("es-PE")
+                                  : "-"}
                               </div>
                             </div>
                           </div>
@@ -236,27 +249,34 @@ export function PropuestasTable({
                           </div>
                         </div>
 
-                        <DialogFooter className="mt-4">
+                        <DialogFooter className="mt-4 flex flex-row gap-2 justify-end">
                           <DialogTrigger asChild>
                             <Button variant="outline">
                               Cerrar
                             </Button>
                           </DialogTrigger>
+                          <Button
+                            className="bg-green-600 hover:bg-green-700 text-white"
+                            onClick={() => {
+                              setSelected(tema);
+                              setOpenPostularDialog(true);
+                            }}
+                          >
+                            <Send className="mr-2 h-4 w-4" />
+                            Postular
+                          </Button>
                         </DialogFooter>
                       </DialogContent>
                     </Dialog>
-
-
                     <Button
-                      size="sm"
-                      className="text-sm"
+                      size="icon"
+                      variant="ghost" 
                       onClick={() => {
                         setSelected(tema);
                         setOpenPostularDialog(true);
                       }}
                     >
-                      <Send className="mr-2 h-4 w-4" />
-                      Postular
+                      <Send className="h-4 w-4" />
                     </Button>
                   </div>
                 </TableCell>
@@ -265,15 +285,10 @@ export function PropuestasTable({
           )}
         </TableBody>
       </Table>
-
-      {/* Dialog global para postulación */}
       <Dialog
         open={openPostularDialog}
         onOpenChange={(open) => {
           setOpenPostularDialog(open);
-          if (!open) {
-            setTimeout(() => setSelected(null), 200);
-          }
         }}
       >
         <DialogContent className="w-[90vw] max-w-2xl overflow-y-auto max-h-[80vh]">
@@ -296,14 +311,18 @@ export function PropuestasTable({
               className="bg-green-600 hover:bg-green-700 text-white"
               onClick={async () => {
                 if (!comentario.trim()) {
-                  toast.error("Debes ingresar un comentario antes de postular");
+                  toast.error("Debes ingresar un comentario antes de postular", {
+                    position: "bottom-right",
+                  });
                   return;
                 }
 
                 try {
                   const { idToken } = useAuthStore.getState();
                   if (!idToken || !selected) {
-                    toast.error("Error de autenticación o tema no seleccionado");
+                    toast.error("Error de autenticación o tema no seleccionado", {
+                      position: "bottom-right",
+                    });
                     return;
                   }
 
@@ -320,12 +339,16 @@ export function PropuestasTable({
 
                   if (!res.ok) throw new Error("Error al postular al tema");
 
-                  toast.success("Postulación enviada exitosamente");
+                  toast.success("Postulación enviada exitosamente", {
+                    position: "bottom-right",
+                  });
                   setOpenPostularDialog(false);
                   setComentario("");
                 } catch (error) {
                   console.error("Error en la postulación:", error);
-                  toast.error("Ocurrió un error al enviar tu postulación");
+                  toast.error("Ocurrió un error al enviar tu postulación", {
+                    position: "bottom-right",
+                  });
                 }
               }}
             >
@@ -334,6 +357,7 @@ export function PropuestasTable({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <Toaster position="bottom-right" />
     </div>
   );
 }

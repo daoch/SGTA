@@ -13,7 +13,6 @@ import pucp.edu.pe.sgta.util.EstadoExposicionUsuario;
 public class EstadoControlExposicionRequest {
 
     private Integer exposicionTemaId;
-    private Integer juradoId;
     private EstadoExposicionUsuario estadoExposicionUsuario;
 
 }

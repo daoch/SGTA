@@ -184,6 +184,7 @@ public class ExposicionServiceImpl implements ExposicionService {
             dto.setTitulo((String) obj[8]);
             dto.setEtapaFormativa((String) obj[9]);
             dto.setCiclo((String) obj[10]);
+            dto.setTipoExposicion((String) obj[11]);
             dto.setEstudianteId(usuarioId);
 
             List<UsuarioXTema> usuarioTemas = usuarioXTemaRepository.findByTemaIdAndActivoTrue(dto.getTemaId());

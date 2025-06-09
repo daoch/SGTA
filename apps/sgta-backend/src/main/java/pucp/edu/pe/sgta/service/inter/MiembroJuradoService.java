@@ -2,6 +2,10 @@ package pucp.edu.pe.sgta.service.inter;
 
 import org.springframework.http.ResponseEntity;
 import pucp.edu.pe.sgta.dto.*;
+import pucp.edu.pe.sgta.dto.calificacion.ExposicionCalificacionDto;
+import pucp.edu.pe.sgta.dto.calificacion.ExposicionCalificacionRequest;
+import pucp.edu.pe.sgta.dto.calificacion.ExposicionObservacionRequest;
+import pucp.edu.pe.sgta.dto.calificacion.RevisionCriteriosRequest;
 import pucp.edu.pe.sgta.dto.exposiciones.EstadoControlExposicionRequest;
 import pucp.edu.pe.sgta.dto.exposiciones.EstadoExposicionJuradoRequest;
 import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
@@ -42,12 +46,18 @@ public interface MiembroJuradoService {
     ResponseEntity<?> desasignarJuradoDeTemaTodos(Integer usuarioId);
 
     // Detalle exposición Jurado
-    List<ExposicionTemaMiembrosDto> listarExposicionXJuradoId(Integer juradoId);
+    List<ExposicionTemaMiembrosDto> listarExposicionXJuradoId(String juradoId);
 
     ResponseEntity<?> actualizarEstadoExposicionJurado(EstadoExposicionJuradoRequest request);
 
-    ResponseEntity<?> actualizarEstadoControlExposicion(EstadoControlExposicionRequest request);
+    ResponseEntity<?> actualizarEstadoControlExposicion(EstadoControlExposicionRequest request,String juradoId);
 
     List<EstadoExposicionDto> listarEstados();
+
+    ResponseEntity<ExposicionCalificacionDto> listarExposicionCalificacion(ExposicionCalificacionRequest exposicionCalificacionRequest,String juradoId);
+
+    ResponseEntity<?> actualizarRevisionCriterios(RevisionCriteriosRequest request);
+
+    ResponseEntity<?> actualizarObservacionFinal(ExposicionObservacionRequest request);
 
 }

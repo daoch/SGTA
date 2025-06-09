@@ -36,7 +36,6 @@ import {
   Sala,
 } from "../types/exposicion.types";
 import { ItemFechaExposicion } from "./item-fecha-exposicion";
-import { getIdCoordinador } from "../utils/get-id-coordinador";
 
 interface ModalPlanificadorCoordinadorProps {
   open: boolean;
@@ -47,7 +46,6 @@ export default function ModalPlanificadorCoordinador({
   open,
   onClose,
 }: ModalPlanificadorCoordinadorProps) {
-  const idCoordinador = getIdCoordinador();
   const router = useRouter();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -85,7 +83,7 @@ export default function ModalPlanificadorCoordinador({
         fechas: [],
       });
 
-      getEtapasFormativasPorInicializarByCoordinador(idCoordinador)
+      getEtapasFormativasPorInicializarByCoordinador()
         .then(setEtapasFormativas)
         .catch(console.error);
     }
@@ -115,31 +113,13 @@ export default function ModalPlanificadorCoordinador({
   const canAddMoreFechas = fechas.every(
     (f) =>
       f.fecha !== null &&
+      f.hora_inicio !== null &&
       f.hora_inicio.trim() !== "" &&
+      f.hora_fin !== null &&
       f.hora_fin.trim() !== "" &&
       f.hora_inicio < f.hora_fin &&
       f.salas.length > 0,
   );
-
-  // const onSubmit = (data: FormValues) => {
-  //   console.log("Datos enviados:", data);
-  //   setIsSubmitting(true);
-
-  //   enviarPlanificacion(data)
-  //     .then((res) => {
-  //       console.log("Respuesta del servidor:", res);
-  //       onClose();
-  //       router.push(
-  //         `/coordinador/exposiciones/planificacion/${data.exposicion_id}`,
-  //       );
-  //     })
-  //     .catch((err) => {
-  //       console.error("Error al enviar datos:", err);
-  //     })
-  //     .finally(() => {
-  //       setIsSubmitting(false);
-  //     });
-  // };
 
   const onSubmit = (data: FormValues) => {
     console.log("Datos enviados:", data);
@@ -276,8 +256,8 @@ export default function ModalPlanificadorCoordinador({
               onClick={() =>
                 append({
                   fecha: null,
-                  hora_inicio: "17:00",
-                  hora_fin: "20:30",
+                  hora_inicio: null,
+                  hora_fin: null,
                   salas: [],
                 })
               }
@@ -304,12 +284,12 @@ export default function ModalPlanificadorCoordinador({
                   isSubmitting ||
                   !(
                     etapaFormativaId !== undefined &&
-                    exposicionId !== undefined &&
-                    fechas.length > 0 &&
                     fechas.every(
                       (f) =>
                         f.fecha !== null &&
+                        f.hora_inicio !== null &&
                         f.hora_inicio.trim() !== "" &&
+                        f.hora_fin !== null &&
                         f.hora_fin.trim() !== "" &&
                         f.hora_inicio < f.hora_fin &&
                         f.salas.length > 0,

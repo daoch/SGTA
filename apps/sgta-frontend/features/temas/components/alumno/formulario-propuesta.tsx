@@ -11,7 +11,8 @@ import {
 } from "@/components/ui/card";
 import {
   Dialog,
-  DialogContent
+  DialogContent,
+  DialogTitle
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -50,15 +51,33 @@ export interface FormData {
   fechaLimite: string;
 }
 
+export interface TemaSimilar {
+  tema: {
+    id: number;
+    titulo: string;
+    resumen: string;
+    fechaCreacion?: string;
+  };
+  similarityScore: number;
+  comparedFields?: string;
+}
+
 interface Props {
   loading: boolean;
-  onSubmit: (data: FormData, cotesistas: Estudiante[]) => Promise<void>;
+  onSubmit: (
+    data: FormData,
+    cotesistas: Estudiante[],
+    similares?: TemaSimilar[],
+    forzarGuardar?: boolean
+  ) => Promise<void>;
 }
 
 export default function FormularioPropuesta({ loading, onSubmit }: Props) {
   const router = useRouter();
   const today = new Date().toISOString().split("T")[0];
   const [openSimilarDialog, setOpenSimilarDialog] = useState(false);
+  const [similares, setSimilares] = useState<TemaSimilar[]>([]);
+  const [checkingSimilitud, setCheckingSimilitud] = useState(false);
 
   const [areas, setAreas] = useState<{ id: number; nombre: string }[]>([]);
   const [asesores, setAsesores] = useState<{ id: string; nombre: string }[]>([]);
@@ -134,8 +153,6 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
   } else {
     setAsesores([]);
   }
-
-  // Limpia si cambia área antes de que termine
   return () => controller.abort();
 }, [formData.area]);
 
@@ -232,7 +249,52 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
 
   const handleLocalSubmit = async () => {
     if (!validate()) return;
-    await onSubmit(formData, cotesistas);
+    setCheckingSimilitud(true);
+
+    const body = {
+      id: 999999,
+      titulo: formData.titulo,
+      resumen: formData.descripcion,
+      objetivos: formData.objetivos,
+      palabrasClaves: [],
+      estadoTemaNombre: "Activo",
+    };
+
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/temas/findSimilar?threshold=75.0`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        }
+      );
+      const data = await res.json();
+
+      if (Array.isArray(data) && data.length > 0) {
+        setSimilares(data);
+        setOpenSimilarDialog(true);
+      } else {
+        await onSubmit(formData, cotesistas);
+      }
+    } catch (err) {
+      toast.error("Error al verificar similitud o guardar propuesta");
+    } finally {
+      setCheckingSimilitud(false);
+    }
+  };
+
+  const handleGuardarForzado = async () => {
+    setCheckingSimilitud(true);
+    try {
+      await onSubmit(formData, cotesistas, similares, true);
+      setOpenSimilarDialog(false);
+    } catch (err) {
+      toast.error("Error al guardar propuesta o similitudes");
+      console.error(err);
+    } finally {
+      setCheckingSimilitud(false);
+    }
   };
 
   return (
@@ -457,11 +519,18 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
           </div>
         </CardContent>
         <Dialog open={openSimilarDialog} onOpenChange={setOpenSimilarDialog}>
-  <DialogContent className="max-w-xl p-0">
-    <PropuestasSimilaresCard />
-  </DialogContent>
-</Dialog>
-
+          <DialogContent className="max-w-xl p-0">
+            <DialogTitle>
+      <span className="sr-only">Temas similares encontrados</span>
+    </DialogTitle>
+    <PropuestasSimilaresCard
+      propuestas={similares}
+      onCancel={() => setOpenSimilarDialog(false)}
+      onContinue={handleGuardarForzado}
+      checkingSimilitud={checkingSimilitud}
+/>
+          </DialogContent>
+        </Dialog>
         <CardFooter className="flex justify-between px-6 py-4">
           <Button
             variant="outline"
@@ -469,16 +538,17 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
           >
             Cancelar
           </Button>
-          <Button variant="outline" onClick={() => setOpenSimilarDialog(true)}>
-            Probar similitud
-          </Button>
           <Button
             onClick={handleLocalSubmit}
             className="bg-[#042354] text-white"
-            disabled={loading}
+            disabled={loading || checkingSimilitud}
           >
-            <Save className="mr-2 h-4 w-4" />{" "}
-            {loading ? "Guardando..." : "Guardar Propuesta"}
+            <Save className="mr-2 h-4 w-4" />
+            {checkingSimilitud
+              ? "Consultando Similitud..."
+              : loading
+              ? "Guardando..."
+              : "Guardar Propuesta"}
           </Button>
         </CardFooter>
       </form>

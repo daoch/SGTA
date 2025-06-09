@@ -29,7 +29,7 @@ export function ObservacionesAlumnoView() {
         }
 
         const temaRes = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/temas/listarTemasPorUsuarioRolEstado?rolNombre=Tesista&estadoNombre=INSCRITO`,
+          `${process.env.NEXT_PUBLIC_API_URL}/temas/porUsuarioTituloAreaCarreraEstadoFecha?titulo=&areaId=&carreraId=&estadoNombre=INSCRITO&fechaCreacionDesde=&fechaCreacionHasta=`,
           {
             headers: {
               "Authorization": `Bearer ${idToken}`,

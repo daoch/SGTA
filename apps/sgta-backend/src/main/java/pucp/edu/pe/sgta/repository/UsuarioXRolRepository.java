@@ -29,4 +29,6 @@ public interface UsuarioXRolRepository extends JpaRepository<UsuarioXRol, Intege
     @Modifying
     @Query("DELETE FROM UsuarioXRol ur WHERE ur.usuario.id = :usuarioId")
     void deleteByUsuarioId(@Param("usuarioId") Integer usuarioId);
+
+    boolean existsByUsuario_IdCognitoAndRol_Nombre(String usuarioIdCognito, String rolNombre);
 }

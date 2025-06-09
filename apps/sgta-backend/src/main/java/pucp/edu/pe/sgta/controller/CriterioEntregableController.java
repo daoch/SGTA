@@ -7,6 +7,7 @@ import pucp.edu.pe.sgta.model.CriterioEntregable;
 import pucp.edu.pe.sgta.service.inter.CriterioEntregableService;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/criterio-entregable")
@@ -37,7 +38,7 @@ public class CriterioEntregableController {
     }
 
     @GetMapping("/{id}")
-    public CriterioEntregable findById(@PathVariable int id) {
+    public Optional<CriterioEntregable> findById(@PathVariable int id) {
         return criterioEntregableService.findById(id);
     }
 

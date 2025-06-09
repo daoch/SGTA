@@ -28,6 +28,8 @@ import { DragMonitor } from "./DragMonitor";
 import PlanificationPanel from "./planification-panel";
 import TemasList from "./temas-list";
 import { getFechaHoraFromKey } from "../../utils/get-fecha-hora-from-key";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 interface Props {
   temas: Tema[];
@@ -64,6 +66,9 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
   } = usePlanificationStore();
 
   const [isLoading, setIsLoading] = useState(false);
+  console.log("EXPOSICION ID:", exposicionId);
+
+  const router = useRouter();
 
   useEffect(() => {
     setEstadoPlanificacion(estadoRecibido);
@@ -88,25 +93,34 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
     (event: DragEndEvent) => {
       const { active, over } = event;
       if (!over || active.id === over.id) return;
-      const expoId = active.id;
+      const temaId = active.id;
       const spaceId = over.id;
 
       const bloqueDestino = bloques.find((b) => b.key === spaceId);
 
       // Encuentra el tema que se quiere asignar
       const temaEscogidoDesdeLista = temasSinAsignar.find(
-        (e) => e.codigo === expoId,
+        (e) => e.codigo === temaId,
       );
 
+      const temaEscogidosDesdeBloqueEntry = Object.entries(temasAsignados).find(
+        ([, t]) => t.codigo === temaId,
+      );
+      const keyTemaEscogido = temaEscogidosDesdeBloqueEntry?.[0];
+      const temaEscogidosDesdeBloque = temaEscogidosDesdeBloqueEntry?.[1];
+
       // Usuarios del tema a asignar
-      const usuariosTema = temaEscogidoDesdeLista?.usuarios ?? [];
+      const usuariosTema =
+        temaEscogidoDesdeLista?.usuarios ??
+        temaEscogidosDesdeBloque?.usuarios ??
+        [];
 
       // Validación: ¿algún usuario ya tiene bloque en ese día y hora?
       const conflicto = Object.entries(temasAsignados).some(
         ([bloqueKey, temaAsignado]) => {
-          if (!temaAsignado?.usuarios) return false;
+          if (!temaAsignado?.usuarios || bloqueKey === keyTemaEscogido)
+            return false;
           const bloqueAsignado = bloques.find((b) => b.key === bloqueKey);
-          // Compara fecha y hora exacta
           return (
             bloqueAsignado &&
             bloqueDestino &&
@@ -123,8 +137,12 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
         console.warn(
           "No se puede asignar: uno de los usuarios ya tiene un bloque en ese horario.",
         );
+        toast.warning(
+          "No se puede asignar: uno de los usuarios ya tiene un bloque en ese horario.",
+        );
         return;
       }
+
       if (spaceId in temasAsignados) {
         console.warn("No se puede asignar a un bloque ya asignado.");
         return;
@@ -137,7 +155,7 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
           ...temasAsignados,
           ...temaPorAsignar,
         });
-        setTemasSinAsignar(temasSinAsignar.filter((e) => e.codigo !== expoId));
+        setTemasSinAsignar(temasSinAsignar.filter((e) => e.codigo !== temaId));
         actualizarBloqueByKey(spaceId.toString(), {
           esBloqueReservado: true,
           expo: temaEscogidoDesdeLista,
@@ -145,7 +163,7 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
       } else {
         //si se asigna desde un bloque ya asignado
         const keyTemaEscogido = Object.keys(temasAsignados).find(
-          (key) => temasAsignados[key].codigo === expoId,
+          (key) => temasAsignados[key].codigo === temaId,
         );
         const temaEscogidosDesdeBloque = keyTemaEscogido
           ? temasAsignados[keyTemaEscogido]
@@ -247,7 +265,6 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
       console.log("No puede dejar temas sin asignar");
       return;
     }
-
     setIsLoading(true);
     const bloquesListToInsert: TimeSlot[] = bloques.map((bloque) => {
       const temaAsignado = temasAsignados[bloque.key];
@@ -262,10 +279,20 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
 
     try {
       await updateBloquesNextPhase(bloquesListToInsert);
-      if (origen == "terminar") await finishPlanning(exposicionId);
-      const newEstadoPlanificacion =
-        await listarEstadoPlanificacionPorExposicion(exposicionId);
-      setEstadoPlanificacion(newEstadoPlanificacion);
+      if (origen == "terminar") {
+        await finishPlanning(exposicionId);
+        const newEstadoPlanificacion =
+          await listarEstadoPlanificacionPorExposicion(exposicionId);
+        setEstadoPlanificacion(newEstadoPlanificacion);
+        toast.success(
+          "La fase de planificación ha sido finalizada correctamente.",
+        );
+      } else {
+        toast.success(
+          "La fase de planificación ha sido actualizada correctamente.",
+        );
+        router.push("/coordinador/exposiciones");
+      }
     } catch (err) {
       console.error("Error al actualizar los bloques:", err);
     } finally {

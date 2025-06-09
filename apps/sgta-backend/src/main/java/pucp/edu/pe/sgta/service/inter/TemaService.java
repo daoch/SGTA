@@ -1,13 +1,14 @@
 package pucp.edu.pe.sgta.service.inter;
 
+import pucp.edu.pe.sgta.dto.*;
 import pucp.edu.pe.sgta.dto.asesores.InfoTemaPerfilDto;
 import pucp.edu.pe.sgta.dto.asesores.TemaConAsesorDto;
-import pucp.edu.pe.sgta.dto.SubAreaConocimientoDto;
-import pucp.edu.pe.sgta.dto.TemaDto;
-import pucp.edu.pe.sgta.dto.UsuarioDto;
-import pucp.edu.pe.sgta.dto.TemaConAsesorJuradoDTO;
+
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.List;
+
 import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
 
 public interface TemaService {
@@ -24,13 +25,13 @@ public interface TemaService {
 	 * @param idUsuarioCreador: tesista id
 	 * @param tipoPropuesta:    0 for general, 1 for direct
 	 */
-	void createTemaPropuesta(TemaDto dto, String idUsuarioCreador, Integer tipoPropuesta);
+	Integer createTemaPropuesta(TemaDto dto, String idUsuarioCreador, Integer tipoPropuesta);
 
 	void update(TemaDto dto);
 
 	void delete(Integer id);
 
-	void createInscripcionTema(TemaDto dto, String idUsuario); // Works for asesor, alumno, coordinador and revisor
+	Integer createInscripcionTema(TemaDto dto, String idUsuario); // Works for asesor, alumno, coordinador and revisor
 
 	List<TemaDto> listarTemasPropuestosAlAsesor(String asesorId, String titulo, Integer limit, Integer offset);
 
@@ -59,7 +60,7 @@ public interface TemaService {
 
 	void rechazarTemaPropuestaDirecta(Integer alumnoId, String comentario, Integer temaId);
 
-	List<TemaConAsesorJuradoDTO> listarTemasCicloActualXEtapaFormativa(Integer etapaFormativaId);
+	List<TemaConAsesorJuradoDTO> listarTemasCicloActualXEtapaFormativa(Integer etapaFormativaId,Integer expoId);
 
 	List<TemaDto> listarPropuestasPorTesista(String tesistaId);
 
@@ -118,12 +119,66 @@ public interface TemaService {
 	void crearSolicitudCambioDeResumen(String idUsuario,
 											String comentario,
 											Integer temaId);
-											
+
 	List<TemaDto> listarTemasLibres(String titulo, Integer limit, Integer offset, String usuarioId, Boolean myOwn);
 
 	void postularTemaLibre(Integer temaId, String tesistaId, String comentario);
 
 	void inscribirTemaPreinscrito(Integer temaId, String idUsuario);
 
+	List<TemaDto>  listarPostuladosTemaLibre(String busqueda, String estado, LocalDate fechaLimite,Integer limit,Integer offset,String usuarioId);
+
 	void eliminarPostulacionTemaLibre(Integer temaId, String idUsuario);
+
+	void aceptarPostulacionAlumno(Integer temaId, Integer idTesista, String idAsesor, String comentario);
+
+	void rechazarPostulacionAlumno(Integer temaId, Integer idTesista, String idAsesor, String comentario);
+
+	List<TemaPorAsociarDto> listarTemasPorAsociarPorCarrera(Integer carreraId);
+
+	void asociarTemaACurso(Integer cursoId, Integer temaId);
+
+	List<TemaDto> listarTemasPorUsuarioTituloAreaCarreraEstadoFecha(
+        String usuarioCognitoId,
+        String titulo,
+        Integer areaId,
+        Integer carreraId,
+        String estadoNombre,
+        LocalDate fechaCreacionDesde,
+        LocalDate fechaCreacionHasta,
+        Integer limit,
+        Integer offset
+    );
+
+	List<TemaDto> listarTemasFiltradoCompleto(
+            String titulo,
+            String estadoNombre,
+            Integer carreraId,
+            Integer areaId,
+            String nombreUsuario,
+            String primerApellidoUsuario,
+            String segundoApellidoUsuario,
+            Integer limit,
+            Integer offset
+    ) ;
+
+	Integer contarPostuladosAlumnosTemaLibreAsesor(
+			String busqueda,
+			String estado,
+			LocalDate fechaLimite,
+			String usuarioId
+	);
+
+	void guardarSimilitudes(String cognitoId, List<TemaSimilarDto> similitudes);
+
+	void createInscripcionTemaV2(TemaDto dto, String idUsuario);
+
+	List<TemaDto> listarTemasSimilares(Integer temaId);
+
+    /**
+     * Lists all finalized temas by calling the stored procedure listar_temas_finalizados()
+     *
+     * @return List of TemaDto representing finalized temas
+     */
+    List<TemaDto> listarTemasFinalizados();
 }

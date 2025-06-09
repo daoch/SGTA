@@ -1,13 +1,12 @@
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Trash2 } from "lucide-react";
 
 interface DropzoneDocumentosAlumnoProps {
-  onFilesChange: (files: File[]) => void;
-  accept: string;
-  maxFiles: number;
-  maxSizeMB: number;
+  readonly onFilesChange: (files: File[]) => void;
+  readonly accept: string;
+  readonly maxFiles: number;
+  readonly maxSizeMB: number;
 }
 
 export function DropzoneDocumentosAlumno({
@@ -20,9 +19,24 @@ export function DropzoneDocumentosAlumno({
   const [dragActive, setDragActive] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const getAllowedExtensions = (accept: string) =>
+  accept
+    .split(",")
+    .map((ext) => ext.trim().toLowerCase())
+    .filter((ext) => ext.startsWith("."));
+
   const handleFiles = (fileList: FileList | null) => {
     if (!fileList) return;
+    console.log("Archivos recibidos:", accept);
+    const allowedExtensions = getAllowedExtensions(accept);
     let newFiles = Array.from(fileList);
+
+    // Validar extensiones
+    newFiles = newFiles.filter((file) => {
+      const ext = file.name.substring(file.name.lastIndexOf(".")).toLowerCase();
+      return allowedExtensions.includes(ext);
+    });
+
     // Filtrar por tamaño y cantidad
     newFiles = newFiles.filter(
       (file) =>
@@ -73,7 +87,7 @@ export function DropzoneDocumentosAlumno({
           Arrastra y suelta archivos aquí o haz clic para seleccionar
         </p>
         <p className="text-xs text-muted-foreground">
-          Máximo {maxFiles} archivos, {maxSizeMB}MB cada uno. <br />
+          Por favor, seleccione {maxFiles} archivos, {maxSizeMB}MB cada uno. <br />
           Tipos permitidos: {accept}
         </p>
       </div>

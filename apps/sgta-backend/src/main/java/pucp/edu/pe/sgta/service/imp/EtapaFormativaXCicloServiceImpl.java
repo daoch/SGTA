@@ -3,13 +3,17 @@ package pucp.edu.pe.sgta.service.imp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloDto;
+import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloXCarreraDto;
 import pucp.edu.pe.sgta.mapper.EtapaFormativaXCicloMapper;
 import pucp.edu.pe.sgta.model.EtapaFormativaXCiclo;
 import pucp.edu.pe.sgta.model.EtapaFormativa;
 import pucp.edu.pe.sgta.repository.EtapaFormativaXCicloRepository;
 import pucp.edu.pe.sgta.repository.EtapaFormativaRepository;
+import pucp.edu.pe.sgta.repository.EntregableRepository;
+import pucp.edu.pe.sgta.repository.ExposicionRepository;
 import pucp.edu.pe.sgta.service.inter.EtapaFormativaXCicloService;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,6 +27,12 @@ public class EtapaFormativaXCicloServiceImpl implements EtapaFormativaXCicloServ
     
     @Autowired
     private EtapaFormativaRepository etapaFormativaRepository;
+
+    @Autowired
+    private EntregableRepository entregableRepository;
+
+    @Autowired
+    private ExposicionRepository exposicionRepository;
 
     @Override
     public List<EtapaFormativaXCicloDto> getAll() {
@@ -41,6 +51,8 @@ public class EtapaFormativaXCicloServiceImpl implements EtapaFormativaXCicloServ
     @Override
     public EtapaFormativaXCicloDto create(EtapaFormativaXCicloDto dto) {
         EtapaFormativaXCiclo etapaFormativaXCiclo = EtapaFormativaXCicloMapper.toEntity(dto);
+        etapaFormativaXCiclo.setActivo(true);
+        etapaFormativaXCiclo.setEstado("En Curso");
         EtapaFormativaXCiclo savedEtapaFormativaXCiclo = etapaFormativaXCicloRepository.save(etapaFormativaXCiclo);
         return EtapaFormativaXCicloMapper.toDto(savedEtapaFormativaXCiclo);
     }
@@ -71,6 +83,10 @@ public class EtapaFormativaXCicloServiceImpl implements EtapaFormativaXCicloServ
                     .orElseThrow(() -> new RuntimeException("Etapa Formativa no encontrada"));
                 dto.setNombreEtapaFormativa(etapaFormativa.getNombre());
                 dto.setCreditajePorTema(etapaFormativa.getCreditajePorTema());
+                dto.setNombreCiclo(etapaFormativaXCiclo.getCiclo().getAnio() + " - " + etapaFormativaXCiclo.getCiclo().getSemestre());
+                dto.setCantidadEntregables(entregableRepository.countByEtapaFormativaXCicloIdAndActivoTrue(etapaFormativaXCiclo.getId()));
+                dto.setCantidadExposiciones(exposicionRepository.countByEtapaFormativaXCicloIdAndActivoTrue(etapaFormativaXCiclo.getId()));
+                
                 return dto;
             })
             .collect(Collectors.toList());
@@ -101,6 +117,21 @@ public class EtapaFormativaXCicloServiceImpl implements EtapaFormativaXCicloServ
         return EtapaFormativaXCicloMapper.toDto(relacionActualizada);
     }
 
-    
+    @Override
+    public List<EtapaFormativaXCicloXCarreraDto> listarEtapasFormativasXCicloXCarrera(Integer carreraId) {
+        List<Object[]> result = etapaFormativaXCicloRepository.listarEtapasFormativasXCicloXCarrera(carreraId);
+        List<EtapaFormativaXCicloXCarreraDto> etapas = new ArrayList<>();
+
+        for(Object[] row: result){
+            EtapaFormativaXCicloXCarreraDto etapa = new EtapaFormativaXCicloXCarreraDto();
+            etapa.setId((Integer) row[0]);
+            etapa.setEtapaFormativaId((Integer) row[1]);
+            etapa.setEtapaFormativaNombre((String) row[2]);
+            etapa.setCicloId((Integer) row[3]);
+            etapa.setCicloNombre((String) row[4]);
+            etapas.add(etapa);
+        }
+        return etapas;
+    }
 
 }

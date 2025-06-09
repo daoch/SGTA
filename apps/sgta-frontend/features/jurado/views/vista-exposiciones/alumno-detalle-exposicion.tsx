@@ -37,6 +37,9 @@ const DetalleExposicion: React.FC<DetalleExposicionProps> = ({
       );
       setExposicion(exposicionFiltrada);
       console.log("Exposición cargada:", exposicionFiltrada);
+      // {exposicionFiltrada.miembrosJurado.map((miembro) => (
+      //   await
+      // ))}
     } catch (error) {
       console.error("Error al cargar exposiciones:", error);
     } finally {
@@ -96,6 +99,15 @@ const DetalleExposicion: React.FC<DetalleExposicionProps> = ({
                 <div>
                   <label className="text-base text-gray-500">Ciclo</label>
                   <p className="text-lg font-medium">{exposicion?.ciclo}</p>
+                </div>
+                {/*TIPO DE EXPOSICION*/}
+                <div>
+                  <label className="text-base text-gray-500">
+                    Tipo de Exposición
+                  </label>
+                  <p className="text-lg font-medium">
+                    {exposicion?.tipoExposicion}
+                  </p>
                 </div>
                 {/*CURSO*/}
                 <div>
@@ -226,6 +238,9 @@ const DetalleExposicion: React.FC<DetalleExposicionProps> = ({
                       <User className="h-8 w-8 text-gray-500" />
                     </div>
                     <h3 className="font-medium text-base">{miembro.nombre}</h3>
+                    <h3 className="font-medium text-base text-gray-500">
+                      {miembro.tipo}
+                    </h3>
                     <Button
                       asChild
                       // variant={"secondary"}

@@ -64,6 +64,7 @@ DROP TABLE IF EXISTS etapa_formativa                      CASCADE;
 DROP TABLE IF EXISTS ciclo                                CASCADE;
 
 -- Tablas de revisiones y entregables
+DROP TABLE IF EXISTS observacion_rect                     CASCADE;
 DROP TABLE IF EXISTS observacion                          CASCADE;
 DROP TABLE IF EXISTS tipo_observacion                     CASCADE;
 DROP TABLE IF EXISTS revision_criterio_entregable         CASCADE;

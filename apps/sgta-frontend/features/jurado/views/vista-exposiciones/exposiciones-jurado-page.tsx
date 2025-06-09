@@ -20,6 +20,8 @@ import {
   ExposicionJurado,
   MiembroJuradoExpo,
 } from "@/features/jurado/types/jurado.types";
+
+import { useAuthStore } from "@/features/auth/store/auth-store";
 {/*
 const periodos = [
   { value: "2025-1", label: "2025-1" },
@@ -36,7 +38,7 @@ const cursos = [
 const estados = [
   { value: "todos", label: "Todos" },
   { value: "esperando_respuesta", label: "Esperando Respuesta" },
-  { value: "esperando_aprobacion", label: "Esperando Aprobacion" },
+  { value: "esperando_aprobación", label: "Esperando Aprobación" },
   { value: "programada", label: "Programada" },
   { value: "completada", label: "Completada" },
   { value: "calificada", label: "Calificada" },
@@ -129,7 +131,8 @@ const ExposicionesJuradoPage: React.FC = () => {
   );
   const [ciclos, setCiclos] = useState<Ciclo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-
+  const [token, setToken] = useState<string | null>(null);
+  
   useEffect(() => {
     const fetchInitialData = async () => {
       setIsLoading(true);
@@ -139,6 +142,7 @@ const ExposicionesJuradoPage: React.FC = () => {
           getEtapasFormativasNombres(),
           getCiclos(),
         ]);
+        
 
         setEtapasFormativas(etapasData);
         setCiclos(ciclosData);
@@ -175,7 +179,12 @@ const ExposicionesJuradoPage: React.FC = () => {
     setIsLoading(true);
     try {
       //se debe reemplazar el 6 por el id del jurado logueado
-      const exposicionesData = await getExposicionesJurado(6);
+      //se deberia pasar el token de autenticación
+      const { idToken } = useAuthStore.getState();
+        
+      console.log("ID Token:", idToken);
+      const exposicionesData = await getExposicionesJurado(idToken!);
+      console.log("Exposiciones Data:", exposicionesData);
       setExposiciones(exposicionesData);
     } catch (error) {
       console.error("Error al cargar exposiciones:", error);
@@ -237,7 +246,7 @@ const ExposicionesJuradoPage: React.FC = () => {
       estadoBase === "esperando_respuesta" &&
       (exposicion.estado_control === "ACEPTADO" || exposicion.estado_control === "RECHAZADO")
     ) {
-      return "esperando_aprobacion";
+      return "esperando_aprobación";
     }
 
     // En cualquier otro caso, mostrar el estado base
@@ -313,6 +322,7 @@ const ExposicionesJuradoPage: React.FC = () => {
       <div className="space-y-4">
         {filteredExposiciones.map((exposicion) => (
           <ExposicionCard
+            id_jurado={token} // Reemplazar con el ID del jurado logueado
             key={exposicion.id_exposicion}
             exposicion={exposicion}
             onClick={() => handleOpenModal(exposicion)}

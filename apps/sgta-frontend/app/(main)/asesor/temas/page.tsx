@@ -12,23 +12,21 @@ import {
 } from "@/components/ui/card";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { fetchUsers } from "@/features/temas/types/inscripcion/data";
 import {
-  AreaDeInvestigacion,
-  Carrera,
-  Coasesor,
-  Tema,
-  Tesista,
-} from "@/features/temas/types/inscripcion/entities";
-import { Tipo } from "@/features/temas/types/inscripcion/enums";
-import { buscarUsuarioPorToken } from "@/features/temas/types/propuestas/data";
+  pageTexts,
+  tableTexts,
+} from "@/features/temas/types/inscripcion/constants";
 import {
   fetchTemasAPI,
-  fetchUsuariosFindById,
+  obtenerAreasDelUsuario,
   obtenerCarrerasPorUsuario,
-} from "@/features/temas/types/temas/data";
-import { Usuario } from "@/features/temas/types/temas/entidades";
-import axiosInstance from "@/lib/axios/axios-instance";
+} from "@/features/temas/types/inscripcion/data";
+import { Carrera, Coasesor } from "@/features/temas/types/inscripcion/entities";
+import { AreaConocimiento } from "@/features/temas/types/postulaciones/entidades";
+import { buscarUsuarioPorToken } from "@/features/temas/types/propuestas/data";
+import { fetchUsuariosFindById } from "@/features/temas/types/temas/data";
+import { Tema, Usuario } from "@/features/temas/types/temas/entidades";
+import { EstadoTemaNombre } from "@/features/temas/types/temas/enums";
 import { Plus } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
@@ -39,30 +37,27 @@ import { useCallback, useEffect, useState } from "react";
  */
 const Page = () => {
   const [isNuevoTemaDialogOpen, setIsNuevoTemaDialogOpen] = useState(false);
-  const [coasesoresDisponibles, setCoasesoresDisponibles] = useState<
-    Coasesor[]
-  >([]);
   const [asesorData, setAsesorData] = useState<Coasesor>();
-  const [estudiantesDisponibles, setEstudiantesDisponibles] = useState<
-    Tesista[]
-  >([]);
-  const [subareasDisponibles, setSubareasDisponibles] = useState<
-    AreaDeInvestigacion[]
-  >([]);
+  const [areasDisponibles, setAreasDisponibles] = useState<AreaConocimiento[]>(
+    [],
+  );
   const [temasData, setTemasData] = useState<Tema[]>([]);
   const [carrera, setCarrera] = useState<Carrera[]>();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [usuarioLoggeado, setUsuarioLoggueado] = useState<Usuario>();
+  const [usuarioLoggeado, setUsuarioLoggeado] = useState<Usuario>();
+  const [estadoTema, setEstadoTema] = useState<EstadoTemaNombre>(
+    EstadoTemaNombre.INSCRITO,
+  );
 
   useEffect(() => {
     const obtenerUsuario = async () => {
       try {
         const usuario = await buscarUsuarioPorToken();
-        setUsuarioLoggueado(usuario);
+        setUsuarioLoggeado(usuario);
       } catch (err: unknown) {
-        console.log(err);
+        console.error(err);
         setError("Error al traer al usuario loggeado.");
       }
     };
@@ -72,21 +67,41 @@ const Page = () => {
   // Función para recargar los temas
   const fetchTemas = useCallback(async () => {
     try {
+      console.log("Entro a recoger los temas.");
       setIsLoading(true);
       setError(null);
-      const inscritosData = (await fetchTemasAPI("Asesor", "INSCRITO")) || [];
-      const libresData =
-        (await fetchTemasAPI("Asesor", "PROPUESTO_LIBRE")) || [];
-      const interesadosData =
-        (await fetchTemasAPI("Asesor", "PROPUESTO_GENERAL")) || [];
-      const preInscritosData =
-        (await fetchTemasAPI("Asesor", "PREINSCRITO")) || [];
-      setTemasData([
-        ...inscritosData,
-        ...libresData,
-        ...interesadosData,
-        ...preInscritosData,
-      ]);
+      let data: Tema[] = [];
+      switch (estadoTema) {
+        case EstadoTemaNombre.INSCRITO:
+          const temasInscritos = (await fetchTemasAPI("", estadoTema)) || [];
+          const temasEnProgres =
+            (await fetchTemasAPI("", EstadoTemaNombre.EN_PROGRESO)) || [];
+          const temasObservado =
+            (await fetchTemasAPI("", EstadoTemaNombre.OBSERVADO)) || [];
+          const temasRegistrado =
+            (await fetchTemasAPI("", EstadoTemaNombre.REGISTRADO)) || [];
+          data = [
+            ...temasInscritos,
+            ...temasEnProgres,
+            ...temasObservado,
+            ...temasRegistrado,
+          ];
+          break;
+        case EstadoTemaNombre.PROPUESTO_LIBRE:
+          data = (await fetchTemasAPI("", estadoTema)) || [];
+          break;
+        case EstadoTemaNombre.PROPUESTO_GENERAL:
+          const temasGenerales = (await fetchTemasAPI("", estadoTema)) || [];
+          const temasPreInscrito =
+            (await fetchTemasAPI("", EstadoTemaNombre.PREINSCRITO)) || [];
+          data = [...temasGenerales, ...temasPreInscrito];
+          break;
+        default:
+          console.log("Entro al defaul");
+          break;
+      }
+
+      setTemasData(data);
       console.log("consegui los temas data");
     } catch (err: unknown) {
       console.log(err);
@@ -94,17 +109,23 @@ const Page = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [estadoTema]);
+
+  useEffect(() => {
+    fetchTemas();
+  }, [fetchTemas]);
 
   useEffect(() => {
     if (!usuarioLoggeado) return;
     const fetchData = async () => {
       try {
-        const response = await axiosInstance.get("subAreaConocimiento/list");
-        setSubareasDisponibles(response.data);
+        //obtener la carrera
+        const carreras = await obtenerCarrerasPorUsuario();
+        setCarrera(carreras);
+        console.log("Sus carreras son: ", { carreras });
 
         //llenar datos del asesor mediante su id y no por su carrera
-        const usuario = await fetchUsuariosFindById(usuarioLoggeado.id);
+        const usuario = await fetchUsuariosFindById(Number(usuarioLoggeado.id));
         const coasesor: Coasesor = {
           id: usuario.id,
           tipoUsuario: usuario.tipoUsuario.nombre,
@@ -126,41 +147,26 @@ const Page = () => {
         };
         setAsesorData(coasesor);
 
-        //obtener la carrera
-        const carreras = await obtenerCarrerasPorUsuario();
-        setCarrera(carreras);
-        console.log({ carreras });
-        if (carreras) {
-          //SE ESTA TOMANDO SOLO LA PRIMERA CARRERA, CAMBIAR
-          const tesistasData: Tesista[] = await fetchUsers(
-            carreras[0].id,
-            "alumno",
-          );
-          setEstudiantesDisponibles(tesistasData.filter((t) => !t.asignado)); // No deben estar asignados
-
-          const coasesoresData: Coasesor[] = await fetchUsers(
-            carreras[0].id,
-            "profesor",
-          );
-          setCoasesoresDisponibles(coasesoresData);
-        }
+        const areas = await obtenerAreasDelUsuario(Number(usuario.id));
+        setAreasDisponibles(areas);
       } catch (error) {
-        console.error("Error cargando subáreas:", error);
+        console.error("Error los datos de entrada", error);
       }
     };
 
-    fetchData().then(() => fetchTemas());
-  }, [usuarioLoggeado, fetchTemas]);
+    fetchData();
+  }, [usuarioLoggeado]);
 
+  console.log({ estadoTema });
   return (
     <div className="space-y-8 mt-4">
       <div className="flex items-end justify-between">
-        {/* Intro */}
+        {/* About Page */}
         <div className="w-4/5">
-          <h1 className="text-3xl font-bold text-[#042354]">Temas</h1>
-          <p className="text-muted-foreground">
-            Gestión de temas de tesis propuestos y asignados
-          </p>
+          <h1 className="text-3xl font-bold text-[#042354]">
+            {pageTexts.title}
+          </h1>
+          <p className="text-muted-foreground">{pageTexts.description}</p>
         </div>
 
         {/* Button Nuevo Tema */}
@@ -171,18 +177,16 @@ const Page = () => {
           <DialogTrigger asChild>
             <div className="w-1/5 flex justify-end">
               <Button disabled={!asesorData}>
-                <Plus></Plus>Nuevo Tema
+                <Plus></Plus>
+                {pageTexts.newTemaButton.displayName}
               </Button>
             </div>
           </DialogTrigger>
           {asesorData && carrera && (
             <NuevoTemaDialog
-              isOpen={isNuevoTemaDialogOpen}
               setIsNuevoTemaDialogOpen={setIsNuevoTemaDialogOpen}
-              coasesoresDisponibles={coasesoresDisponibles}
-              estudiantesDisponibles={estudiantesDisponibles}
-              subareasDisponibles={subareasDisponibles}
-              carrera={carrera[0]}
+              areasDisponibles={areasDisponibles}
+              carreras={carrera}
               onTemaGuardado={fetchTemas}
               asesor={asesorData}
             />
@@ -191,89 +195,45 @@ const Page = () => {
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue={Tipo.TODOS} className="w-full">
+      <Tabs
+        value={estadoTema}
+        onValueChange={(value) => {
+          setEstadoTema(value as EstadoTemaNombre);
+          console.log(value);
+        }}
+        className="w-full"
+      >
         <TabsList>
-          <TabsTrigger value={Tipo.TODOS}>Todos</TabsTrigger>
-          <TabsTrigger value={Tipo.INSCRITO}>Inscritos</TabsTrigger>
-          <TabsTrigger value={Tipo.LIBRE}>Libres</TabsTrigger>
-          <TabsTrigger value={Tipo.INTERESADO}>Interesantes</TabsTrigger>
+          {Object.entries(tableTexts)
+            .filter(([, value]) => value.show)
+            .map(([key, value]) => (
+              <TabsTrigger key={key} value={key}>
+                {value.tabLabel}
+              </TabsTrigger>
+            ))}
         </TabsList>
-        <TabsContent value={Tipo.TODOS}>
-          <Card>
-            <CardHeader>
-              <CardTitle>Todos los temas</CardTitle>
-              <CardDescription>
-                Lista de todos los temas de tesis
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <TemasTable
-                temasData={temasData}
-                filter={[Tipo.TODOS]}
-                isLoading={isLoading}
-                error={error}
-                asesor={asesorData}
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value={Tipo.INSCRITO}>
-          <Card>
-            <CardHeader>
-              <CardTitle>Temas inscritos</CardTitle>
-              <CardDescription>
-                Temas de tesis en los que estás inscrito
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <TemasTable
-                temasData={temasData}
-                filter={[Tipo.INSCRITO]}
-                isLoading={isLoading}
-                error={error}
-                asesor={asesorData}
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value={Tipo.LIBRE}>
-          <Card>
-            <CardHeader>
-              <CardTitle>Temas libres</CardTitle>
-              <CardDescription>
-                Temas de tesis disponibles para postular
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <TemasTable
-                temasData={temasData}
-                filter={[Tipo.LIBRE]}
-                isLoading={isLoading}
-                error={error}
-                asesor={asesorData}
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value={Tipo.INTERESADO}>
-          <Card>
-            <CardHeader>
-              <CardTitle>Temas de interés</CardTitle>
-              <CardDescription>
-                Temas de tesis que has marcado como interesantes
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <TemasTable
-                temasData={temasData}
-                filter={[Tipo.INTERESADO, Tipo.PREINSCRITO]}
-                isLoading={isLoading}
-                error={error}
-                asesor={asesorData}
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
+
+        {/* Table Content */}
+        {Object.entries(tableTexts)
+          .filter(([, value]) => value.show)
+          .map(([key, value]) => (
+            <TabsContent key={key} value={key}>
+              <Card>
+                <CardHeader>
+                  <CardTitle>{value.title}</CardTitle>
+                  <CardDescription>{value.description}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <TemasTable
+                    temasData={temasData}
+                    isLoading={isLoading}
+                    error={error}
+                    asesor={asesorData}
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
+          ))}
       </Tabs>
     </div>
   );

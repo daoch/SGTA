@@ -7,7 +7,7 @@ type Miembro = {
 const ESTADOS = [
   "sin_programar",
   "esperando_respuesta",
-  "esperando_aprobacion",
+  "esperando_aprobación",
   "programada",
   "completada",
   "calificada",
@@ -54,4 +54,5 @@ export type ExposicionAlumno = {
   etapaFormativa: string;
   ciclo: string;
   miembrosJurado: Miembro[];
+  tipoExposicion: string;
 };
