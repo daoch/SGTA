@@ -164,7 +164,6 @@ export const temaMock: Tema = {
       activo: true,
       fechaCreacion: "2024-01-01T00:00:00Z",
       fechaModificacion: null,
-      rol: "Asesor",
     },
   ],
   tesistas: [
@@ -580,4 +579,3 @@ export const temaMock: Tema = {
 //     subareas: [],
 //   },
 // ];
-
