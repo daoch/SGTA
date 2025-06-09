@@ -129,10 +129,10 @@ RETURNS VOID AS $$
 BEGIN
     UPDATE entregable_x_tema
     SET
-        fecha_envio = CURRENT_TIMESTAMP AT TIME ZONE 'America/Lima',
+        fecha_envio = CURRENT_TIMESTAMP,
         comentario = p_comentario,
         estado = p_estado::enum_estado_entrega,
-        fecha_modificacion = CURRENT_TIMESTAMP AT TIME ZONE 'America/Lima'
+        fecha_modificacion = CURRENT_TIMESTAMP
     WHERE entregable_x_tema_id = p_entregable_x_tema_id;
 END;
 $$ LANGUAGE plpgsql;
