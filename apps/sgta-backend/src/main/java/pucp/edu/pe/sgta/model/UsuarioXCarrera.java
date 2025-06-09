@@ -35,6 +35,9 @@ public class UsuarioXCarrera {
 	@Column(nullable = false)
 	private Boolean activo = true;
 
+	@Column(name = "es_coordinador")
+	private Boolean esCoordinador;
+
 	@Column(name = "fecha_creacion", nullable = false, insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
 	private OffsetDateTime fechaCreacion;
 
