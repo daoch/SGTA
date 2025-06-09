@@ -2039,7 +2039,7 @@ VALUES (
         'no_iniciado',
         TRUE,
         3,
-        'pdf,docx',
+        '.pdf,.docx',
         10,
         TRUE
     ),
@@ -2052,7 +2052,7 @@ VALUES (
         'no_iniciado',
         FALSE,
         1,
-        'pdf,pptx',
+        '.pdf,.pptx',
         15,
         TRUE
     ),
@@ -2065,7 +2065,7 @@ VALUES (
         'no_iniciado',
         TRUE,
         5,
-        'pdf,zip,rar',
+        '.pdf,.zip,.rar',
         25,
         TRUE
     );

@@ -18,6 +18,7 @@ import pucp.edu.pe.sgta.dto.asesores.InfoTemaPerfilDto;
 import pucp.edu.pe.sgta.dto.asesores.TemaConAsesorDto;
 import pucp.edu.pe.sgta.dto.TemaDto;
 import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
+import pucp.edu.pe.sgta.dto.temas.TemasComprometidosDto;
 import pucp.edu.pe.sgta.dto.TemaSimilarityResult;
 import pucp.edu.pe.sgta.service.inter.JwtService;
 import pucp.edu.pe.sgta.service.inter.SimilarityService;
@@ -688,6 +689,27 @@ public class TemaController {
 		}
 	}
 
+	@GetMapping("/verificarTemasComprometidosTesista")
+	public ResponseEntity<List<TemasComprometidosDto>> verificarTemasComprometidosTesista(
+			HttpServletRequest request) {
+		try {
+			String usuarioSubId = jwtService.extractSubFromRequest(request);
+			if (usuarioSubId == null) {
+				return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+					.body(null);
+			}
+			
+			List<TemasComprometidosDto> temasComprometidos = temaService.contarTemasComprometidos(usuarioSubId);
+			return ResponseEntity.ok(temasComprometidos);
+			
+		} catch (RuntimeException e) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+		} catch (Exception e) {
+			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, 
+				"Error al verificar temas comprometidos: " + e.getMessage());
+		}
+	}
+	
 }
 
 

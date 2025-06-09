@@ -6,6 +6,7 @@ import pucp.edu.pe.sgta.model.UsuarioXReunion;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface UsuarioXReunionRepository extends JpaRepository<UsuarioXReunion, Integer> {
@@ -25,4 +26,5 @@ public interface UsuarioXReunionRepository extends JpaRepository<UsuarioXReunion
     // Listar las reuniones por reunion ID
     List<UsuarioXReunion> findByReunionIdIn(Collection<Integer> reunionIds);
 
+    Optional<UsuarioXReunion> findByIdAndActivoTrue(Integer id);
 }

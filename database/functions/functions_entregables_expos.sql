@@ -219,3 +219,34 @@ BEGIN
       AND e.activo = TRUE;
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION listar_etapa_formativa_x_ciclo_x_id(
+    etapaXCicloId INTEGER
+)
+RETURNS TABLE (
+    etapa_formativa_id INTEGER,
+    nombre_etapa_formativa TEXT,
+    creditaje_por_tema NUMERIC,
+    duracion_exposicion TEXT,
+    ciclo_id INTEGER,
+    nombre_ciclo VARCHAR(255),
+    etapa_formativa_x_ciclo_id INTEGER
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        ef.etapa_formativa_id,
+        ef.nombre AS nombre_etapa_formativa,
+        ef.creditaje_por_tema,
+        ef.duracion_exposicion::TEXT AS duracion_exposicion,
+        c.ciclo_id,
+        c.nombre AS nombre_ciclo,
+        efc.etapa_formativa_x_ciclo_id
+    FROM etapa_formativa_x_ciclo efc
+    JOIN etapa_formativa ef ON efc.etapa_formativa_id = ef.etapa_formativa_id
+    JOIN ciclo c ON efc.ciclo_id = c.ciclo_id
+    WHERE efc.etapa_formativa_x_ciclo_id = etapaXCicloId;
+END;
+$$;

@@ -15,6 +15,7 @@ import { ExposicionModal } from "../components/exposicion/exposicion-modal";
 import axiosInstance from "@/lib/axios/axios-instance";
 import Link from "next/link";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { EtapaFormativaXCiclo } from "../dtos/etapa-formativa-x-ciclo";
 
 interface DetalleEtapaPageProps {
   etapaId: string;
@@ -27,6 +28,7 @@ const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
   
   const [isEntregableModalOpen, setIsEntregableModalOpen] = useState(false);
   const [isExposicionModalOpen, setIsExposicionModalOpen] = useState(false);
+  const [etapaFormativaXCiclo, setEtapaFormativaXCiclo] = useState<EtapaFormativaXCiclo>(); // Cambia el tipo según tu DTO
   const [entregables, setEntregables] = useState<Entregable[]>([]);
   const [exposiciones, setExposiciones] = useState<Exposicion[]>([]);
 
@@ -35,6 +37,18 @@ const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
 
   const [isDeleteExposicionModalOpen, setIsDeleteExposicionModalOpen] = useState(false);
   const [exposicionAEliminar, setExposicionAEliminar] = useState<Exposicion | null>(null);
+
+  useEffect(() => {
+    const fetchEtapaFormativaXCiclo = async () => {
+      try{
+        const response = await axiosInstance.get(`/etapa-formativa-x-ciclo/etapaXCiclo/${etapaId}`);
+        setEtapaFormativaXCiclo(response.data);
+      } catch (error) {
+        console.error("Error al cargar la etapa formativa por ciclo:", error);
+      }
+    };
+    fetchEtapaFormativaXCiclo();
+  }, [etapaId]);
 
   useEffect(() => {
     const fetchEntregables = async () => {
@@ -208,6 +222,35 @@ const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
           <p className="text-gray-600">Ciclo: {ciclo}</p>
         </div>
       </div>
+
+      {/* Información del proyecto */}
+      <Card className="mb-6">
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-xl">
+            {etapaFormativaXCiclo?.nombreEtapaFormativa} - Ciclo: {etapaFormativaXCiclo?.nombreCiclo}
+          </CardTitle>
+          {/*<Button id="btnEditEtapa" variant="outline" size="sm" className="h-8">
+            <PenLine className="h-4 w-4 mr-1" />
+            Editar
+          </Button>*/}
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div>
+              <h3 className="font-medium mb-1">Creditaje por tema</h3>
+              <p className="text-sm text-muted-foreground">
+                {etapaFormativaXCiclo?.creditajePorTema} créditos
+              </p>
+            </div>
+            <div>
+              <h3 className="font-medium mb-1">Duración de las exposiciones</h3>
+              <p className="text-sm text-muted-foreground">
+                {etapaFormativaXCiclo?.duracionExposicion} minutos
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Tabs de Entregables y Exposiciones */}
       <Tabs defaultValue="entregables" className="mb-6">
