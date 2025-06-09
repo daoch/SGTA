@@ -248,14 +248,14 @@ END;
 $$ LANGUAGE plpgsql STABLE;
 
 
-CREATE OR REPLACE FUNCTION sgtadb.listar_exposiciones_por_coordinador_v2(p_coordinador_id integer)
+CREATE OR REPLACE FUNCTION listar_exposiciones_por_coordinador_v2(p_coordinador_id integer)
  RETURNS TABLE(exposicion_id integer, nombre text, descripcion text, etapa_formativa_id integer, etapa_formativa_nombre text, ciclo_id integer, ciclo_nombre text, estado_planificacion_id integer, estado_planificacion_nombre text)
  LANGUAGE plpgsql
  STABLE
 AS $function$
 BEGIN
 return query
-select 
+select
     e.exposicion_id,
     e.nombre::TEXT,
     e.descripcion::TEXT,
@@ -266,25 +266,25 @@ select
     e.estado_planificacion_id,
     ep.nombre::TEXT AS estado_planificacion_nombre
 from exposicion e
-inner join estado_planificacion ep 
-	on ep.estado_planificacion_id = e.estado_planificacion_id 
+inner join estado_planificacion ep
+	on ep.estado_planificacion_id = e.estado_planificacion_id
 	and ep.nombre <> 'Sin planificar'
-inner join etapa_formativa_x_ciclo efxc 
-	on efxc.etapa_formativa_x_ciclo_id = e.etapa_formativa_x_ciclo_id 
-inner join ciclo c2 
-	on c2.ciclo_id = efxc.ciclo_id 
-inner join etapa_formativa ef 
-	on ef.etapa_formativa_id = efxc.ciclo_id 
-inner join carrera c 
-	on c.carrera_id = ef.carrera_id 
-inner join usuario_carrera uc 
+inner join etapa_formativa_x_ciclo efxc
+	on efxc.etapa_formativa_x_ciclo_id = e.etapa_formativa_x_ciclo_id
+inner join ciclo c2
+	on c2.ciclo_id = efxc.ciclo_id
+inner join etapa_formativa ef
+	on ef.etapa_formativa_id = efxc.ciclo_id
+inner join carrera c
+	on c.carrera_id = ef.carrera_id
+inner join usuario_carrera uc
 	on uc.carrera_id = c.carrera_id
 	and uc.es_coordinador = true
 inner join usuario u
-	on u.usuario_id = uc.usuario_id 
+	on u.usuario_id = uc.usuario_id
 where u.usuario_id = p_coordinador_id;
 END;
-$$ LANGUAGE plpgsql STABLE;
+$function$;
 
 
 

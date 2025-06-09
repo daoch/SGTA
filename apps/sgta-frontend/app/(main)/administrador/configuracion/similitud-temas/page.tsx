@@ -22,7 +22,7 @@ export default function SimilitudTemasPage() {
     try {
       const { idToken } = useAuthStore.getState();
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/temas/initializeFaiss`,
+        `${process.env.NEXT_PUBLIC_API_URL}temas/initializeFaiss`,
         {
           method: "POST",
           headers: {
@@ -46,7 +46,7 @@ export default function SimilitudTemasPage() {
     try {
       const { idToken } = useAuthStore.getState();
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/temas/clearFaiss`,
+        `${process.env.NEXT_PUBLIC_API_URL}temas/clearFaiss`,
         {
           method: "POST",
           headers: {
