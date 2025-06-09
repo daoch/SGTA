@@ -91,8 +91,8 @@ export function TemasTable({
         <TableCell>{asesor ? asesor.nombres : ""}</TableCell>
         {/* Tesistas */}
         <TableCell>
-          {!tema.tesistas ||
-          tema.tesistas.length === 0 ||
+          {tema.tesistas === null ||
+          tema.tesistas.length < 1 ||
           tema.tesistas.map((tesista) => tesista.asignado === false) ? (
             <p className="text-gray-400">Sin asignar</p>
           ) : (
