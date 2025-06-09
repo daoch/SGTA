@@ -10,6 +10,7 @@ Esta guía explica el proceso para contribuir al monorepo basado en Turborepo, p
 - pnpm v10.7
 - Java OpenJDK 17.0.12
 - Maven v3.9.9
+- Docker
 
 ### Configuración inicial
 
