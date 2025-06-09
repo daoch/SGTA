@@ -122,13 +122,19 @@ export function ReunionesAsesorModal({
     const formatSoloFecha = (fechaString?: string) => {
         if (!fechaString) return "Sin fecha";
         const fecha = new Date(fechaString);
-        return fecha.toLocaleDateString("es-PE"); // Esto da formato corto: dd/mm/yyyy
+        return fecha.toLocaleDateString("es-PE", {
+            timeZone: "UTC",
+            year: "numeric",
+            month: "numeric",
+            day: "numeric",
+        }); // formato corto: dd/mm/yyyy
     };
 
     const formatSoloHora = (fechaString?: string) => {
         if (!fechaString) return "Sin hora";
         const fecha = new Date(fechaString);
         return fecha.toLocaleTimeString("es-PE", {
+            timeZone: "UTC",
             hour: "2-digit",
             minute: "2-digit",
             hour12: false,
@@ -193,7 +199,9 @@ export function ReunionesAsesorModal({
                 <TableBody>
                 {reuniones.map((r, idx) => (
                     <TableRow key={idx}>
-                    <TableCell className="py-4 whitespace-normal break-words max-w-xs">{formatSoloFecha(r.reunionFechaHoraInicio)}</TableCell>
+                    <TableCell className="py-4 whitespace-normal break-words max-w-xs">
+                        {formatSoloFecha(r.reunionFechaHoraInicio)}
+                    </TableCell>
                     <TableCell className="py-4 whitespace-normal break-words max-w-xs">{formatSoloHora(r.reunionFechaHoraInicio)}</TableCell>
                     <TableCell className="py-4 whitespace-normal break-words max-w-xs">{calcularDuracion(r.reunionFechaHoraInicio,r.reunionFechaHoraFin)}</TableCell>
                     <TableCell className="py-4 whitespace-normal break-words max-w-xs">
