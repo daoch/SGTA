@@ -171,7 +171,9 @@ export function PropuestasTable({
                 <TableCell>{tema.asesor}</TableCell>
                 <TableCell>{tema.coasesores?.join(", ") || "-"}</TableCell>
                 <TableCell>
-                  {new Date(tema.fechaLimite).toLocaleDateString("es-PE")}
+                  {tema.fechaLimite
+                    ? new Date(tema.fechaLimite).toLocaleDateString("es-PE")
+                    : "-"}
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
@@ -232,7 +234,9 @@ export function PropuestasTable({
                             <div className="space-y-1">
                               <label className="text-sm font-medium">Fecha Límite</label>
                               <div className="p-3 bg-gray-50 rounded-md border">
-                                {new Date(selected?.fechaLimite || "").toLocaleDateString("es-PE")}
+                                {selected?.fechaLimite
+                                  ? new Date(selected.fechaLimite).toLocaleDateString("es-PE")
+                                  : "-"}
                               </div>
                             </div>
                           </div>
