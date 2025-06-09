@@ -101,7 +101,7 @@ export function PostulacionesTable() {
     const temaDto: TemaDto = {
       usuarioId: selectedPostulacion.tesistas[0].id,
       temaId: selectedPostulacion?.id,
-      comentario: `${selectedPostulacion.tesistas[0].comentario}@${feedbackText}`,
+      comentario: `${selectedPostulacion.tesistas[0].comentario}|@@|${feedbackText}`,
     };
 
     try {
@@ -132,7 +132,7 @@ export function PostulacionesTable() {
     const temaDto: TemaDto = {
       usuarioId: selectedPostulacion.tesistas[0].id,
       temaId: selectedPostulacion?.id,
-      comentario: `${selectedPostulacion.tesistas[0].comentario}@${feedbackText}`,
+      comentario: `${selectedPostulacion.tesistas[0].comentario}|@@|${feedbackText}`,
     };
 
     try {

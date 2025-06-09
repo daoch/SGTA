@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import pucp.edu.pe.sgta.dto.UsuarioRegistroDto;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.server.ResponseStatusException;
 import pucp.edu.pe.sgta.dto.asesores.InfoAreaConocimientoDto;
@@ -41,19 +42,16 @@ import java.io.IOException;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
+import java.util.*;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.util.List;
-import java.util.Optional;
 import java.util.logging.Logger;
-import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 @Service
-public class    UsuarioServiceImpl implements UsuarioService {
+public class UsuarioServiceImpl implements UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
     private final UsuarioXSubAreaConocimientoRepository usuarioXSubAreaConocimientoRepository;
@@ -73,14 +71,18 @@ public class    UsuarioServiceImpl implements UsuarioService {
     private EntityManager em;
     @Autowired
     private UsuarioXRolRepository usuarioXRolRepository;
+    @Autowired
+    private UsuarioXCarreraRepository usuarioXCarreraRepository;
+    @Autowired
+    private TipoDedicacionRepository tipoDedicacionRepository;
 
     public UsuarioServiceImpl(UsuarioRepository usuarioRepository,
-            UsuarioXSubAreaConocimientoRepository usuarioXSubAreaConocimientoRepository,
-            SubAreaConocimientoRepository subAreaConocimientoRepository,
-            AreaConocimientoRepository areaConocimientoRepository,
-            UsuarioXAreaConocimientoRepository usuarioXAreaConocimientoRepository, CarreraRepository carreraRepository,
-            UsuarioXTemaRepository usuarioXTemaRepository, TipoUsuarioRepository tipoUsuarioRepository,
-            CognitoService cognitoService) {
+                              UsuarioXSubAreaConocimientoRepository usuarioXSubAreaConocimientoRepository,
+                              SubAreaConocimientoRepository subAreaConocimientoRepository,
+                              AreaConocimientoRepository areaConocimientoRepository,
+                              UsuarioXAreaConocimientoRepository usuarioXAreaConocimientoRepository, CarreraRepository carreraRepository,
+                              UsuarioXTemaRepository usuarioXTemaRepository, TipoUsuarioRepository tipoUsuarioRepository,
+                              CognitoService cognitoService) {
         this.usuarioRepository = usuarioRepository;
         this.usuarioXSubAreaConocimientoRepository = usuarioXSubAreaConocimientoRepository;
         this.subAreaConocimientoRepository = subAreaConocimientoRepository;
@@ -93,28 +95,92 @@ public class    UsuarioServiceImpl implements UsuarioService {
     }
 
     @Override
-    public void createUsuario(UsuarioDto usuarioDto) {
-        Usuario usuario = UsuarioMapper.toEntity(usuarioDto);
-
-        Optional<TipoUsuario> tipoUsuario = buscarTipoUsuarioPorNombre(usuario.getTipoUsuario().getNombre());
-        if (tipoUsuario.isEmpty()) {
-            System.out.println("Rol inválido para: " + usuario.getCorreoElectronico());
-            throw new IllegalArgumentException("Tipo de usuario no válido: " + tipoUsuario);
+    @Transactional
+    public void createUsuario(UsuarioRegistroDto dto) {
+        Optional<TipoUsuario> tipoUsuarioOpt = buscarTipoUsuarioPorNombre(dto.getTipoUsuarioNombre());
+        if (tipoUsuarioOpt.isEmpty()) {
+            throw new IllegalArgumentException("Tipo de usuario no válido: " + dto.getTipoUsuarioNombre());
         }
-        usuario.setTipoUsuario(tipoUsuario.get());
-        usuario.setContrasena("Temp");
-        String nombreCompleto = usuario.getNombres() + " " + usuario.getPrimerApellido() + " "
-                + usuario.getSegundoApellido();
-
+        TipoUsuario tipoUsuario = tipoUsuarioOpt.get();
+        //armando al usario:
+        Usuario usuario = new Usuario();
+        usuario.setTipoUsuario(tipoUsuario);
+        usuario.setCodigoPucp(dto.getCodigoPucp());
+        usuario.setNombres(dto.getNombres());
+        usuario.setPrimerApellido(dto.getPrimerApellido());
+        usuario.setSegundoApellido(dto.getSegundoApellido());
+        usuario.setCorreoElectronico(dto.getCorreoElectronico());
+        usuario.setContrasena("Temp"); // no se usa igual xdd
+        usuario.setActivo(true);
+        if ("profesor".equalsIgnoreCase(tipoUsuario.getNombre()) && dto.getTipoDedicacionId() != null) {
+            TipoDedicacion dedicacion = tipoDedicacionRepository.findById(dto.getTipoDedicacionId())
+                    .orElseThrow(() -> new IllegalArgumentException("Tipo de dedicación no válido"));
+            usuario.setTipoDedicacion(dedicacion);
+        }
+        String nombreCompleto = dto.getNombres() + " " + dto.getPrimerApellido() + " " + dto.getSegundoApellido();
         try {
-            // Registrar el usuario en Cognito
-            String idCognito = cognitoService.registrarUsuarioEnCognito(usuario.getCorreoElectronico(), nombreCompleto,
-                    tipoUsuario.get().getNombre());
+            //asgnando grupos de cognito
+            List<String> gruposCognito = new ArrayList<>();
+            if ("profesor".equalsIgnoreCase(tipoUsuario.getNombre())) {
+                if (dto.getCarreras() != null) {
+                    for (UsuarioRegistroDto.CarreraAsignadaDto carreraDto : dto.getCarreras()) {
+                        if (Boolean.TRUE.equals(carreraDto.getEsCoordinador())) {
+                            gruposCognito.add("coordinador");
+                            break; // solo puede ser coordi de una carrera
+                        }
+                    }
+                }
+                if (dto.getRolesIds() != null) {
+                    for (Integer idRol : dto.getRolesIds()) {
+                        Optional<Rol> rolOpt = rolRepository.findById(idRol);
+                        rolOpt.ifPresent(rol -> gruposCognito.add(rol.getNombre().toLowerCase()));
+                    }
+                }
+            } else {
+                gruposCognito.add(tipoUsuario.getNombre().toLowerCase());
+            }
+            // registro en cgnito, primer grupo como base
+            String grupoPrincipal = gruposCognito.isEmpty() ? tipoUsuario.getNombre().toLowerCase() : gruposCognito.get(0);
+            String idCognito = cognitoService.registrarUsuarioEnCognito(dto.getCorreoElectronico(), nombreCompleto, grupoPrincipal);
             usuario.setIdCognito(idCognito);
+            // registrar en bd
             usuarioRepository.save(usuario);
+            // guardar usuario_carreras
+            if ("profesor".equalsIgnoreCase(tipoUsuario.getNombre()) && dto.getCarreras() != null) {
+                for (UsuarioRegistroDto.CarreraAsignadaDto carreraDto : dto.getCarreras()) {
+                    Carrera carrera = carreraRepository.findById(carreraDto.getCarreraId())
+                            .orElseThrow(() -> new IllegalArgumentException("Carrera no válida con ID: " + carreraDto.getCarreraId()));
+                    UsuarioXCarrera relacion = new UsuarioXCarrera();
+                    relacion.setUsuario(usuario);
+                    relacion.setCarrera(carrera);
+                    relacion.setActivo(true);
+                    relacion.setEsCoordinador(Boolean.TRUE.equals(carreraDto.getEsCoordinador()));
+                    usuarioXCarreraRepository.save(relacion);
+                    if (Boolean.TRUE.equals(carreraDto.getEsCoordinador()) && !"coordinador".equals(grupoPrincipal)) {
+                        cognitoService.agregarUsuarioAGrupo(idCognito, "coordinador");
+                    }
+                }
+            }
+            // guardar usuario_rol y grupos adicionales en cognito si es profesor
+            if ("profesor".equalsIgnoreCase(tipoUsuario.getNombre()) && dto.getRolesIds() != null) {
+                for (Integer idRol : dto.getRolesIds()) {
+                    Optional<Rol> rolOpt = rolRepository.findById(idRol);
+                    if (rolOpt.isPresent()) {
+                        Rol rol = rolOpt.get();
+                        UsuarioXRol ur = new UsuarioXRol();
+                        ur.setUsuario(usuario);
+                        ur.setRol(rol);
+                        ur.setActivo(true);
+                        usuarioXRolRepository.save(ur);
+                        // el grupo principal ya se registró, asignar demás gru0os de cognito
+                        if (!rol.getNombre().equalsIgnoreCase(grupoPrincipal)) {
+                            cognitoService.agregarUsuarioAGrupo(idCognito, rol.getNombre().toLowerCase());
+                        }
+                    }
+                }
+            }
         } catch (Exception e) {
-            System.out.println("Error al registrar usuario: " + e.getMessage());
-            throw new RuntimeException("Error al registrar el usuario", e);
+            throw new RuntimeException("Error al registrar el usuario: " + e.getMessage(), e);
         }
     }
 
@@ -147,62 +213,233 @@ public class    UsuarioServiceImpl implements UsuarioService {
     }
 
     @Override
-    public void updateUsuario(Integer id, UsuarioDto usuarioDto) {
+    @Transactional
+    public void updateUsuario(Integer id, UsuarioRegistroDto dto) {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado con ID: " + id));
-
-        // Variables para consolidar los cambios
-        String tipoUsuarioAnterior = usuario.getTipoUsuario().getNombre();
-        String tipoUsuarioNuevo = usuarioDto.getTipoUsuario().getNombre();
+        // info actual
+        String tipoActual = usuario.getTipoUsuario().getNombre().toLowerCase();
         String correoAnterior = usuario.getCorreoElectronico();
-        String correoNuevo = usuarioDto.getCorreoElectronico();
-
-        // Verificar cambios en el tipo de usuario
-        if (!tipoUsuarioAnterior.equalsIgnoreCase(tipoUsuarioNuevo)) {
-            Optional<TipoUsuario> nuevoTipo = buscarTipoUsuarioPorNombre(tipoUsuarioNuevo);
-            if (nuevoTipo.isEmpty()) {
-                throw new IllegalArgumentException("Tipo de usuario no válido: " + tipoUsuarioNuevo);
-            }
-            usuario.setTipoUsuario(nuevoTipo.get());
-        }
-
-        // Verificar cambios en el correo electrónico
-        if (!correoAnterior.equalsIgnoreCase(correoNuevo)) {
-            usuario.setCorreoElectronico(correoNuevo);
-        }
-
-        // Actualizar otros campos
-        usuario.setNombres(usuarioDto.getNombres());
-        usuario.setPrimerApellido(usuarioDto.getPrimerApellido());
-        usuario.setSegundoApellido(usuarioDto.getSegundoApellido());
-        usuario.setBiografia(usuarioDto.getBiografia());
-        usuario.setEnlaceLinkedin(usuarioDto.getEnlaceLinkedin());
-        usuario.setEnlaceRepositorio(usuarioDto.getEnlaceRepositorio());
+        String nombreAnterior = usuario.getNombres() + " " + usuario.getPrimerApellido() + " " + usuario.getSegundoApellido();
+        // dato a actualizars
+        String tipoNuevo = dto.getTipoUsuarioNombre().toLowerCase();
+        String correoNuevo = dto.getCorreoElectronico();
+        String nombreNuevo = dto.getNombres() + " " + dto.getPrimerApellido() + " " + dto.getSegundoApellido();
+        boolean tipoCambio = !tipoActual.equalsIgnoreCase(tipoNuevo);
+        boolean correoCambio = !correoAnterior.equalsIgnoreCase(correoNuevo);
+        boolean nombreCambio = !nombreAnterior.equalsIgnoreCase(nombreNuevo);
+        // armando usuario para actualizar
+        usuario.setCodigoPucp(dto.getCodigoPucp());
+        usuario.setNombres(dto.getNombres());
+        usuario.setPrimerApellido(dto.getPrimerApellido());
+        usuario.setSegundoApellido(dto.getSegundoApellido());
+        usuario.setCorreoElectronico(dto.getCorreoElectronico());
         usuario.setFechaModificacion(OffsetDateTime.now());
+        // actualizar tipo de usuario si cambió/ limpiar de relaciones y grupos
+        if (tipoCambio) {
+            TipoUsuario nuevoTipo = buscarTipoUsuarioPorNombre(dto.getTipoUsuarioNombre())
+                    .orElseThrow(() -> new IllegalArgumentException("Tipo de usuario no válido: " + dto.getTipoUsuarioNombre()));
+            usuario.setTipoUsuario(nuevoTipo);
+            limpiarRelacionesYGruposSegunTipo(usuario, tipoActual);
+            usuarioXCarreraRepository.deleteByUsuarioId(usuario.getId());
+            usuarioXRolRepository.deleteByUsuarioId(usuario.getId());
+        }
+        // congito y BD: roles y coordinador en caso de q sea profe
+        if (tipoNuevo.equals("profesor")) {
+            if (dto.getTipoDedicacionId() != null) {
+                tipoDedicacionRepository.findById(dto.getTipoDedicacionId())
+                        .ifPresent(usuario::setTipoDedicacion);
+            }
+            procesarRolesYCoordinador(usuario, dto);
+        } else {
+            usuario.setTipoDedicacion(null);
+            // cambiar grupo principal en caso de alumno o admin
+            if (usuario.getIdCognito() != null && tipoCambio) {
+                cognitoService.agregarUsuarioAGrupo(usuario.getIdCognito(), tipoNuevo);
+                cognitoService.eliminarUsuarioDeGrupo(usuario.getIdCognito(), tipoActual);
+            }
+            procesarCarrerasParaNoProfesores(usuario, dto);
+        }
+        //datos de conigot
+        if (usuario.getIdCognito() != null && (correoCambio || nombreCambio)) {
+            cognitoService.actualizarAtributosEnCognito(
+                    usuario.getIdCognito(),
+                    correoCambio ? correoNuevo : null,
+                    nombreCambio ? nombreNuevo : null
+            );
+        }
+        usuarioRepository.save(usuario);
+    }
 
-        // Llamar a Cognito para aplicar todos los cambios
-        cognitoService.updateUsuarioEnCognito(usuario.getIdCognito(),
-                tipoUsuarioAnterior.equalsIgnoreCase(tipoUsuarioNuevo) ? null : tipoUsuarioAnterior,
-                tipoUsuarioAnterior.equalsIgnoreCase(tipoUsuarioNuevo) ? null : tipoUsuarioNuevo,
-                correoAnterior.equalsIgnoreCase(correoNuevo) ? null : correoNuevo);
+    private void procesarCarrerasParaNoProfesores(Usuario usuario, UsuarioRegistroDto dto) {
+        Integer userId = usuario.getId();
+        // limpiar relaciones de carreras y grupos
+        usuarioXCarreraRepository.deleteByUsuarioId(userId);
+        if (dto.getCarreras() != null) {
+            for (UsuarioRegistroDto.CarreraAsignadaDto carreraDto : dto.getCarreras()) {
+                Optional<Carrera> carreraOpt = carreraRepository.findById(carreraDto.getCarreraId());
+                if (carreraOpt.isEmpty()) {
+                    System.err.printf("Carrera con ID %d no encontrada, omitida.%n", carreraDto.getCarreraId());
+                    continue;
+                }
+                UsuarioXCarrera nuevaRelacion = new UsuarioXCarrera();
+                nuevaRelacion.setUsuario(usuario);
+                nuevaRelacion.setCarrera(carreraOpt.get());
+                nuevaRelacion.setActivo(true);
+                nuevaRelacion.setEsCoordinador(false); //esto porque no es profe
+                usuarioXCarreraRepository.save(nuevaRelacion);
+            }
+        }
+    }
 
+    private void limpiarRelacionesYGruposSegunTipo(Usuario usuario, String tipoAnterior) {
+        Integer userId = usuario.getId();
+        String idCognito = usuario.getIdCognito();
+        if ("profesor".equalsIgnoreCase(tipoAnterior)) {
+            // desactiar relaciones de carrerar y roles
+            List<UsuarioXCarrera> carreras = usuarioXCarreraRepository.findByUsuarioId(userId);
+            for (UsuarioXCarrera uc : carreras) {
+                uc.setActivo(false);
+                usuarioXCarreraRepository.save(uc);
+                if (Boolean.TRUE.equals(uc.getEsCoordinador()) && idCognito != null) {
+                    cognitoService.eliminarUsuarioDeGrupo(idCognito, "coordinador");
+                }
+            }
+            List<UsuarioXRol> roles = usuarioXRolRepository.findByUsuarioId(userId);
+            for (UsuarioXRol ur : roles) {
+                ur.setActivo(false);
+                usuarioXRolRepository.save(ur);
+                if (idCognito != null) {
+                    String grupoRol = ur.getRol().getNombre().toLowerCase();
+                    cognitoService.eliminarUsuarioDeGrupo(idCognito, grupoRol);
+                }
+            }
+        }
+        if (!"profesor".equalsIgnoreCase(tipoAnterior) && idCognito != null) {
+            //era alumno o admin, quitar de grupo
+            cognitoService.eliminarUsuarioDeGrupo(idCognito, tipoAnterior.toLowerCase());
+        }
+    }
+
+    private void procesarRolesYCoordinador(Usuario usuario, UsuarioRegistroDto dto) {
+        Integer userId = usuario.getId();
+        String idCognito = usuario.getIdCognito();
+        //roles anteriores para quitarlos del grupo
+        List<UsuarioXCarrera> relacionesAnterioresCarrera = usuarioXCarreraRepository.findByUsuarioId(userId);
+        List<UsuarioXRol> relacionesAnterioresRol = usuarioXRolRepository.findByUsuarioId(userId);
+        //eliminar si era coordinador de cognito
+        if (idCognito != null) {
+            for (UsuarioXCarrera uc : relacionesAnterioresCarrera) {
+                if (Boolean.TRUE.equals(uc.getEsCoordinador())) {
+                    cognitoService.eliminarUsuarioDeGrupo(idCognito, "coordinador");
+                }
+            }
+            for (UsuarioXRol ur : relacionesAnterioresRol) {
+                String nombreGrupo = ur.getRol().getNombre().toLowerCase();
+                cognitoService.eliminarUsuarioDeGrupo(idCognito, nombreGrupo);
+            }
+        }
+        //simplemente XDDD
+        usuarioXCarreraRepository.deleteByUsuarioId(userId);
+        usuarioXRolRepository.deleteByUsuarioId(userId);
+        //guardar nuevas carreras
+        if (dto.getCarreras() != null) {
+            for (UsuarioRegistroDto.CarreraAsignadaDto carreraDto : dto.getCarreras()) {
+                Optional<Carrera> carreraOpt = carreraRepository.findById(carreraDto.getCarreraId());
+                if (carreraOpt.isEmpty()) continue;
+                UsuarioXCarrera nuevaRelacion = new UsuarioXCarrera();
+                nuevaRelacion.setUsuario(usuario);
+                nuevaRelacion.setCarrera(carreraOpt.get());
+                nuevaRelacion.setActivo(true);
+                nuevaRelacion.setEsCoordinador(Boolean.TRUE.equals(carreraDto.getEsCoordinador()));
+                usuarioXCarreraRepository.save(nuevaRelacion);
+                if (idCognito != null && Boolean.TRUE.equals(carreraDto.getEsCoordinador())) {
+                    cognitoService.agregarUsuarioAGrupo(idCognito, "coordinador");
+                }
+            }
+        }
+        //gaurdar nuevos roles
+        if (dto.getRolesIds() != null) {
+            for (Integer idRolNuevo : dto.getRolesIds()) {
+                Rol rol = rolRepository.findById(idRolNuevo)
+                        .orElseThrow(() -> new IllegalArgumentException("Rol no válido con ID: " + idRolNuevo));
+                UsuarioXRol nuevaRelacionRol = new UsuarioXRol();
+                nuevaRelacionRol.setUsuario(usuario);
+                nuevaRelacionRol.setRol(rol);
+                nuevaRelacionRol.setActivo(true);
+                usuarioXRolRepository.save(nuevaRelacionRol);
+                if (idCognito != null) {
+                    cognitoService.agregarUsuarioAGrupo(idCognito, rol.getNombre().toLowerCase());
+                }
+            }
+        }
+    }
+
+    @Override
+    @Transactional
+    public void deleteUsuario(Integer id) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado con ID: " + id));
+        usuario.setActivo(false);
+        usuario.setFechaModificacion(OffsetDateTime.now());
+        //desactivar usuario_carrera
+        List<UsuarioXCarrera> carreras = usuarioXCarreraRepository.findByUsuarioIdAndActivoTrue(id);
+        boolean coordinadorEliminado = false;
+        for (UsuarioXCarrera uc : carreras) {
+            uc.setActivo(false);
+            usuarioXCarreraRepository.save(uc);
+            if (Boolean.TRUE.equals(uc.getEsCoordinador()) && !coordinadorEliminado && usuario.getIdCognito() != null) {
+                cognitoService.eliminarUsuarioDeGrupo(usuario.getIdCognito(), "coordinador");
+                coordinadorEliminado = true;
+            }
+        }
+        String tipo = usuario.getTipoUsuario().getNombre().toLowerCase();
+        if (usuario.getIdCognito() != null) {
+            if (tipo.equals("alumno") || tipo.equals("administrador")) {
+                cognitoService.eliminarUsuarioDeGrupo(usuario.getIdCognito(), tipo);
+            } else if (tipo.equals("profesor")) {
+                List<UsuarioXRol> roles = usuarioXRolRepository.findByUsuarioIdAndActivoTrue(id);
+                for (UsuarioXRol ur : roles) {
+                    ur.setActivo(false);
+                    usuarioXRolRepository.save(ur);
+                    String grupoRol = ur.getRol().getNombre().toLowerCase();
+                    cognitoService.eliminarUsuarioDeGrupo(usuario.getIdCognito(), grupoRol);
+                }
+            } else {
+                System.err.printf("Tipo de usuario no válido: %s%n", tipo);
+            }
+        }
         usuarioRepository.save(usuario);
     }
 
     @Override
-    public void deleteUsuario(Integer id) {
+    @Transactional
+    public void reactivarUsuario(Integer id) {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado con ID: " + id));
-        // Llamar al servicio de Cognito para eliminar al usuario
-        if (usuario.getIdCognito() != null) {
-            try {
-                cognitoService.eliminarUsuarioEnCognito(usuario.getIdCognito());
-            } catch (Exception e) {
-                throw new RuntimeException(e);
+        usuario.setActivo(true);
+        usuario.setFechaModificacion(OffsetDateTime.now());
+        List<UsuarioXCarrera> carreras = usuarioXCarreraRepository.findByUsuarioId(id);
+        for (UsuarioXCarrera uc : carreras) {
+            uc.setActivo(true);
+            usuarioXCarreraRepository.save(uc);
+            if (Boolean.TRUE.equals(uc.getEsCoordinador()) && usuario.getIdCognito() != null) {
+                cognitoService.agregarUsuarioAGrupo(usuario.getIdCognito(), "coordinador");
             }
         }
-        usuario.setActivo(false);
-        usuario.setFechaModificacion(OffsetDateTime.now());
+        if (usuario.getIdCognito() != null) {
+            String tipo = usuario.getTipoUsuario().getNombre().toLowerCase();
+            if (tipo.equals("alumno") || tipo.equals("administrador")) {
+                cognitoService.agregarUsuarioAGrupo(usuario.getIdCognito(), tipo);
+            } else if (tipo.equals("profesor")) {
+                List<UsuarioXRol> roles = usuarioXRolRepository.findByUsuarioId(id);
+                for (UsuarioXRol ur : roles) {
+                    ur.setActivo(true);
+                    usuarioXRolRepository.save(ur);
+                    cognitoService.agregarUsuarioAGrupo(usuario.getIdCognito(), ur.getRol().getNombre().toLowerCase());
+                }
+            }
+        }
         usuarioRepository.save(usuario);
     }
 
@@ -660,138 +897,269 @@ public class    UsuarioServiceImpl implements UsuarioService {
     }
 
     @Override
-    public void procesarArchivoUsuarios(MultipartFile archivo) throws Exception {
+    public void procesarArchivoUsuarios(MultipartFile archivo, UsuarioRegistroDto datosExtra) throws Exception {
         String nombre = archivo.getOriginalFilename();
 
         if (nombre == null)
             throw new Exception("Archivo sin nombre");
 
         if (nombre.endsWith(".csv")) {
-            procesarCSV(archivo);
+            procesarCSV(archivo, datosExtra);
             logger.warning("Procesando archivo CSV: " + nombre);
         } else if (nombre.endsWith(".xlsx")) {
-            procesarExcel(archivo);
+            procesarExcel(archivo, datosExtra);
         } else {
             throw new Exception("Formato de archivo no soportado. Solo se acepta .csv o .xlsx");
         }
     }
 
-    private void procesarCSV(MultipartFile archivo) {
+    private void procesarCSV(MultipartFile archivo, UsuarioRegistroDto datosExtra) throws Exception {
+        //obtener TipoUsuario
+        Optional<TipoUsuario> tipoUsuarioOpt = buscarTipoUsuarioPorNombre(datosExtra.getTipoUsuarioNombre());
+        if (tipoUsuarioOpt.isEmpty()) {
+            throw new IllegalArgumentException("Tipo de usuario no válido: " + datosExtra.getTipoUsuarioNombre());
+        }
+        TipoUsuario tipoUsuario = tipoUsuarioOpt.get();
+        //validar que tenga carrera
+        if (datosExtra.getCarreras() == null || datosExtra.getCarreras().isEmpty()) {
+            throw new IllegalArgumentException("Debe proporcionarse al menos una carrera asignada");
+        }
+        //cargar Carrera/s
+        Map<Integer, Carrera> carrerasMap = new HashMap<>();
+        for (UsuarioRegistroDto.CarreraAsignadaDto carreraDto : datosExtra.getCarreras()) {
+            Carrera carrera = carreraRepository.findById(carreraDto.getCarreraId())
+                    .orElseThrow(() -> new IllegalArgumentException("Carrera no válida con ID: " + carreraDto.getCarreraId()));
+            carrerasMap.put(carrera.getId(), carrera);
+        }
+        // roles en caso de profesor
+        Map<Integer, Rol> rolesMap = new HashMap<>();
+        if (datosExtra.getRolesIds() != null) {
+            for (Integer id : datosExtra.getRolesIds()) {
+                rolRepository.findById(id).ifPresent(rol -> rolesMap.put(id, rol));
+            }
+        }
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(archivo.getInputStream()))) {
             String linea;
             boolean primeraLinea = true;
-
+            int fila = 1;
             while ((linea = reader.readLine()) != null) {
+                fila++;
                 if (primeraLinea) {
                     primeraLinea = false;
-                    continue; // saltar encabezado
-                }
-
-                String[] campos = linea.split(",");
-
-                if (campos.length < 6)
                     continue;
-
-                // Mapear campos en el orden correcto del CSV
+                }
+                String[] campos = linea.split(",");
+                if (campos.length < 5) {
+                    System.err.printf("Fila %d con datos insuficientes.\n", fila);
+                    continue;
+                }
                 String nombres = campos[0].trim();
                 String primerApellido = campos[1].trim();
                 String segundoApellido = campos[2].trim();
                 String correo = campos[3].trim();
                 String codigoPUCP = campos[4].trim();
-                String contrasena = "temp";
-                String tipoUsuario = campos[5].trim(); // este es el rol
-
-                Optional<TipoUsuario> tipo = buscarTipoUsuarioPorNombre(tipoUsuario);
-                if (tipo.isEmpty()) {
-                    System.out.println("Rol inválido para: " + correo);
-                    continue;
-                }
-
+                String inicialesDedicacion = campos.length >= 6 ? campos[5].trim() : null; //solo profe
                 String nombreCompleto = nombres + " " + primerApellido + " " + segundoApellido;
-
                 try {
-                    // Registrar en Cognito y obtener el sub (id)
-                    String idCognito = cognitoService.registrarUsuarioEnCognito(correo, nombreCompleto, tipoUsuario);
+                    // grupos de Cognito0
+                    List<String> gruposCognito = new ArrayList<>();
+                    boolean esCoordinador = false;
+                    if ("profesor".equalsIgnoreCase(tipoUsuario.getNombre())) {
+                        for (UsuarioRegistroDto.CarreraAsignadaDto carreraDto : datosExtra.getCarreras()) {
+                            if (Boolean.TRUE.equals(carreraDto.getEsCoordinador())) {
+                                esCoordinador = true;
+                                gruposCognito.add("coordinador");
+                                break;
+                            }
+                        }
+                        for (Rol rol : rolesMap.values()) {
+                            gruposCognito.add(rol.getNombre().toLowerCase());
+                        }
+                    } else {
+                        gruposCognito.add(tipoUsuario.getNombre().toLowerCase());
+                    }
+                    // registrar en Cognito y obtener el sub/id, lo mismo
+                    String grupoPrincipal = gruposCognito.isEmpty() ? tipoUsuario.getNombre().toLowerCase() : gruposCognito.get(0);
+                    String idCognito = cognitoService.registrarUsuarioEnCognito(correo, nombreCompleto, grupoPrincipal);
 
-                    // Crear entidad local
-                    Usuario nuevo = new Usuario();
-                    nuevo.setNombres(nombres);
-                    nuevo.setPrimerApellido(primerApellido);
-                    nuevo.setSegundoApellido(segundoApellido);
-                    nuevo.setCorreoElectronico(correo);
-                    nuevo.setCodigoPucp(codigoPUCP);
-                    nuevo.setContrasena(contrasena);
-                    nuevo.setTipoUsuario(tipo.get());
-                    nuevo.setIdCognito(idCognito); // guardar sub de Cognito
-                    nuevo.setActivo(true);
-                    nuevo.setFechaCreacion(OffsetDateTime.now());
-                    nuevo.setFechaModificacion(OffsetDateTime.now());
+                    // armar Usuario y guardlo en bd
+                    Usuario usuario = new Usuario();
+                    usuario.setTipoUsuario(tipoUsuario);
+                    usuario.setCodigoPucp(codigoPUCP);
+                    usuario.setNombres(nombres);
+                    usuario.setPrimerApellido(primerApellido);
+                    usuario.setSegundoApellido(segundoApellido);
+                    usuario.setCorreoElectronico(correo);
+                    usuario.setContrasena("Temp");
+                    usuario.setIdCognito(idCognito);
+                    usuario.setActivo(true);
+                    usuario.setFechaCreacion(OffsetDateTime.now());
+                    usuario.setFechaModificacion(OffsetDateTime.now());
+                    //tipo de dedicación si es profesor, iniciales
+                    if ("profesor".equalsIgnoreCase(tipoUsuario.getNombre()) && inicialesDedicacion != null && !inicialesDedicacion.isEmpty()) {
+                        Optional<TipoDedicacion> dedicacionOpt = tipoDedicacionRepository.findByInicialesIgnoreCase(inicialesDedicacion);
+                        if (dedicacionOpt.isEmpty()) {
+                            System.err.printf("Fila %d: Tipo de dedicación '%s' no válido\n", fila, inicialesDedicacion);
+                            continue;
+                        }
+                        usuario.setTipoDedicacion(dedicacionOpt.get());
+                    }
+                    usuarioRepository.save(usuario);
 
-                    usuarioRepository.save(nuevo);
-                    System.out.printf("Usuario '%s' creado y registrado correctamente.%n", correo);
+                    // guardar relción con carreras
+                    for (UsuarioRegistroDto.CarreraAsignadaDto carreraDto : datosExtra.getCarreras()) {
+                        Carrera carrera = carrerasMap.get(carreraDto.getCarreraId());
+                        UsuarioXCarrera relacion = new UsuarioXCarrera();
+                        relacion.setUsuario(usuario);
+                        relacion.setCarrera(carrera);
+                        relacion.setActivo(true);
+                        relacion.setEsCoordinador(Boolean.TRUE.equals(carreraDto.getEsCoordinador()));
+                        usuarioXCarreraRepository.save(relacion);
+                    }
+                    // en caso de profesor, guardar roles y grupos extra en Cognito
+                    if ("profesor".equalsIgnoreCase(tipoUsuario.getNombre())) {
+                        for (Rol rol : rolesMap.values()) {
+                            UsuarioXRol ur = new UsuarioXRol();
+                            ur.setUsuario(usuario);
+                            ur.setRol(rol);
+                            ur.setActivo(true);
+                            usuarioXRolRepository.save(ur);
 
+                            if (!rol.getNombre().equalsIgnoreCase(grupoPrincipal)) {
+                                cognitoService.agregarUsuarioAGrupo(idCognito, rol.getNombre().toLowerCase());
+                            }
+                        }
+                        if (esCoordinador && !grupoPrincipal.equals("coordinador")) {
+                            cognitoService.agregarUsuarioAGrupo(idCognito, "coordinador");
+                        }
+                    }
+                    System.out.printf("Fila %d: usuario '%s' creado exitosamente.\n", fila, correo);
                 } catch (Exception e) {
-                    System.err.printf("Error al registrar usuario '%s' en Cognito: %s%n", correo, e.getMessage());
+                    System.err.printf("Fila %d: error al registrar usuario '%s': %s\n", fila, correo, e.getMessage());
                 }
             }
         } catch (IOException e) {
-            System.err.println("Error al leer el CSV: " + e.getMessage());
+            System.err.println("Error general al leer el CSV: " + e.getMessage());
         }
     }
 
-    private void procesarExcel(MultipartFile archivo) throws Exception {
-        try (InputStream is = archivo.getInputStream()) {
-            Workbook workbook = new XSSFWorkbook(is);
+    private void procesarExcel(MultipartFile archivo, UsuarioRegistroDto datosExtra) throws Exception {
+        // obtener TipoUsuario
+        Optional<TipoUsuario> tipoUsuarioOpt = buscarTipoUsuarioPorNombre(datosExtra.getTipoUsuarioNombre());
+        if (tipoUsuarioOpt.isEmpty()) {
+            throw new IllegalArgumentException("Tipo de usuario no válido: " + datosExtra.getTipoUsuarioNombre());
+        }
+        TipoUsuario tipoUsuario = tipoUsuarioOpt.get();
+        //validar que tenga carreras
+        if (datosExtra.getCarreras() == null || datosExtra.getCarreras().isEmpty()) {
+            throw new IllegalArgumentException("Debe proporcionarse al menos una carrera asignada");
+        }
+        //obtener carreras
+        Map<Integer, Carrera> carrerasMap = new HashMap<>();
+        for (UsuarioRegistroDto.CarreraAsignadaDto carreraDto : datosExtra.getCarreras()) {
+            Carrera carrera = carreraRepository.findById(carreraDto.getCarreraId())
+                    .orElseThrow(() -> new IllegalArgumentException("Carrera no válida con ID: " + carreraDto.getCarreraId()));
+            carrerasMap.put(carrera.getId(), carrera);
+        }
+        // cargar roles desde IDs
+        Map<Integer, Rol> rolesMap = new HashMap<>();
+        if (datosExtra.getRolesIds() != null) {
+            for (Integer id : datosExtra.getRolesIds()) {
+                rolRepository.findById(id).ifPresent(rol -> rolesMap.put(id, rol));
+            }
+        }
+        try (InputStream is = archivo.getInputStream(); Workbook workbook = new XSSFWorkbook(is)) {
             Sheet hoja = workbook.getSheetAt(0);
-
-            // la primera fila es cabecera,empezar por filaIndex = 1
             for (int filaIndex = 1; filaIndex <= hoja.getLastRowNum(); filaIndex++) {
                 Row fila = hoja.getRow(filaIndex);
-                if (fila == null)
+                if (fila == null) {
+                    System.err.printf("Fila %d vacía, omitida.\n", filaIndex + 1);
                     continue;
-
+                }
                 String nombres = getCellValue(fila.getCell(0));
                 String primerApellido = getCellValue(fila.getCell(1));
                 String segundoApellido = getCellValue(fila.getCell(2));
                 String correo = getCellValue(fila.getCell(3));
                 String codigoPUCP = getCellValue(fila.getCell(4));
-                String contrasena = "temp";
-                String tipoUsuario = getCellValue(fila.getCell(5));
-
-                Optional<TipoUsuario> tipo = buscarTipoUsuarioPorNombre(tipoUsuario);
-                if (tipo.isEmpty()) {
-                    System.out.printf("Fila %d ignorada: Tipo usuario no encontrado: %s\n", filaIndex + 1, tipoUsuario);
+                String inicialesDedicacion = getCellValue(fila.getCell(5)); // solo para profesor
+                if (nombres.isBlank() || primerApellido.isBlank() || segundoApellido.isBlank() || correo.isBlank() || codigoPUCP.isBlank()) {
+                    System.err.printf("Fila %d no procesada: campos incompletos.\n", filaIndex + 1);
                     continue;
                 }
-
                 String nombreCompleto = nombres + " " + primerApellido + " " + segundoApellido;
-
                 try {
-                    // Registrar en Cognito y obtener el sub
-                    String idCognito = cognitoService.registrarUsuarioEnCognito(correo, nombreCompleto, tipoUsuario);
-
-                    Usuario nuevo = new Usuario();
-                    nuevo.setNombres(nombres);
-                    nuevo.setPrimerApellido(primerApellido);
-                    nuevo.setSegundoApellido(segundoApellido);
-                    nuevo.setCorreoElectronico(correo);
-                    nuevo.setCodigoPucp(codigoPUCP);
-                    nuevo.setContrasena(contrasena);
-                    nuevo.setTipoUsuario(tipo.get());
-                    nuevo.setIdCognito(idCognito); // Guardar sub de Cognito
-                    nuevo.setActivo(true);
-                    nuevo.setFechaCreacion(OffsetDateTime.now());
-                    nuevo.setFechaModificacion(OffsetDateTime.now());
-
-                    usuarioRepository.save(nuevo);
-                    System.out.printf("Fila %d: Usuario '%s' creado exitosamente.\n", filaIndex + 1, correo);
-
+                    // grupos de Cognito
+                    List<String> gruposCognito = new ArrayList<>();
+                    boolean esCoordinador = false;
+                    if ("profesor".equalsIgnoreCase(tipoUsuario.getNombre())) {
+                        for (UsuarioRegistroDto.CarreraAsignadaDto carreraDto : datosExtra.getCarreras()) {
+                            if (Boolean.TRUE.equals(carreraDto.getEsCoordinador())) {
+                                esCoordinador = true;
+                                gruposCognito.add("coordinador");
+                                break; // coordi solo de una carrera
+                            }
+                        }
+                        for (Rol rol : rolesMap.values()) {
+                            gruposCognito.add(rol.getNombre().toLowerCase());
+                        }
+                    } else {
+                        gruposCognito.add(tipoUsuario.getNombre().toLowerCase());
+                    }
+                    // Cognito
+                    String grupoPrincipal = gruposCognito.isEmpty() ? tipoUsuario.getNombre().toLowerCase() : gruposCognito.get(0);
+                    String idCognito = cognitoService.registrarUsuarioEnCognito(correo, nombreCompleto, grupoPrincipal);
+                    // armar usuario y guardarlo en bd
+                    Usuario usuario = new Usuario();
+                    usuario.setTipoUsuario(tipoUsuario);
+                    usuario.setCodigoPucp(codigoPUCP);
+                    usuario.setNombres(nombres);
+                    usuario.setPrimerApellido(primerApellido);
+                    usuario.setSegundoApellido(segundoApellido);
+                    usuario.setCorreoElectronico(correo);
+                    usuario.setContrasena("Temp");
+                    usuario.setIdCognito(idCognito);
+                    usuario.setActivo(true);
+                    usuario.setFechaCreacion(OffsetDateTime.now());
+                    usuario.setFechaModificacion(OffsetDateTime.now());
+                    // tipo de dedicación si es profesor, iniciales
+                    if ("profesor".equalsIgnoreCase(tipoUsuario.getNombre()) && inicialesDedicacion != null && !inicialesDedicacion.isBlank()) {
+                        tipoDedicacionRepository.findByInicialesIgnoreCase(inicialesDedicacion)
+                                .ifPresent(usuario::setTipoDedicacion);
+                    }
+                    usuarioRepository.save(usuario);
+                    // guardar relción con carrera
+                    for (UsuarioRegistroDto.CarreraAsignadaDto carreraDto : datosExtra.getCarreras()) {
+                        Carrera carrera = carrerasMap.get(carreraDto.getCarreraId());
+                        UsuarioXCarrera relacion = new UsuarioXCarrera();
+                        relacion.setUsuario(usuario);
+                        relacion.setCarrera(carrera);
+                        relacion.setActivo(true);
+                        relacion.setEsCoordinador(Boolean.TRUE.equals(carreraDto.getEsCoordinador()));
+                        usuarioXCarreraRepository.save(relacion);
+                        if (Boolean.TRUE.equals(carreraDto.getEsCoordinador()) && !"coordinador".equals(grupoPrincipal)) {
+                            cognitoService.agregarUsuarioAGrupo(idCognito, "coordinador");
+                        }
+                    }
+                    // para profesor, registrar roles y grupos extra en Cognito
+                    if ("profesor".equalsIgnoreCase(tipoUsuario.getNombre())) {
+                        for (Rol rol : rolesMap.values()) {
+                            UsuarioXRol ur = new UsuarioXRol();
+                            ur.setUsuario(usuario);
+                            ur.setRol(rol);
+                            ur.setActivo(true);
+                            usuarioXRolRepository.save(ur);
+                            if (!rol.getNombre().equalsIgnoreCase(grupoPrincipal)) {
+                                cognitoService.agregarUsuarioAGrupo(idCognito, rol.getNombre().toLowerCase());
+                            }
+                        }
+                    }
+                    System.out.printf("Fila %d: usuario '%s' creado exitosamente.\n", filaIndex + 1, correo);
                 } catch (Exception e) {
-                    System.err.printf("Fila %d: Error al registrar usuario '%s' en Cognito: %s\n",
-                            filaIndex + 1, correo, e.getMessage());
+                    System.err.printf("Fila %d: error al registrar usuario '%s': %s\n", filaIndex + 1, correo, e.getMessage());
                 }
             }
-            workbook.close();
+        } catch (IOException e) {
+            System.err.println("Error al leer el Excel: " + e.getMessage());
         }
     }
 
