@@ -63,3 +63,13 @@ class ListTopicsResponse(BaseModel):
     total_count: int
     active_count: int
     deleted_count: int
+
+class SearchTempRequest(BaseModel):
+    query_text: str
+    top_k: int = 10
+    threshold: float = 0.0
+
+class SearchTempResponse(BaseModel):
+    query_text: str
+    results: List[TopicResult]
+    total_found: int

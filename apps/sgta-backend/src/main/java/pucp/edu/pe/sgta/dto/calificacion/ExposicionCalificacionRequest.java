@@ -10,6 +10,5 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ExposicionCalificacionRequest {
-    private Integer jurado_id;
     private Integer exposicion_tema_id;
 }

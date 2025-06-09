@@ -21,4 +21,9 @@ public interface UsuarioXReunionService {
 
     List<ReunionesXUsuariosDto> findReunionesAlumnoAsesor();
 
+    UsuarioXReunion save(UsuarioXReunion usuarioXReunion);
+
+    UsuarioXReunion update(Integer id, UsuarioXReunion usuarioXReunionActualizada) throws Exception;
+
+    void delete(Integer id) throws Exception;
 }

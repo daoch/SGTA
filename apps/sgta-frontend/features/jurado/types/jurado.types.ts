@@ -1,3 +1,5 @@
+import { MiembroJuradoDetalle } from "./juradoDetalle.types";
+
 export interface Jurado {
   code: string;
   name: string;
@@ -87,6 +89,7 @@ export interface Exposicion {
   datetimeInicio: string;
   datetimeFin: string;
   salaExposicion: string;
+  miembrosJurado: MiembroJuradoDetalle[];
 }
 
 export interface EtapaFormativaExposiciones {
@@ -121,6 +124,8 @@ export interface ExposicionJurado {
   titulo: string;
   ciclo_id: number;
   nombre_exposicion: string;
+  enlace_grabacion: string;
+  enlace_sesion: string;
   miembros: MiembroJuradoExpo[];
 }
 

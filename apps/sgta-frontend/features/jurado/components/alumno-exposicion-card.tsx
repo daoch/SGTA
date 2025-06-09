@@ -57,7 +57,7 @@ export function ExposicionCard({
 
           <div className="flex items-center gap-1 mt-1">
             <span className="text-base text-gray-500">
-              {exposicion.etapaFormativa}
+              {exposicion.tipoExposicion} de {exposicion.etapaFormativa}
             </span>
           </div>
 

@@ -1,5 +1,3 @@
-const ELEMENTS_PER_PAGE = 10;
-
 export interface SolicitudCambioAsesorSearchCriteria {
   status: string; // "PENDIENTE" | "APROBADA" | "RECHAZADA" | "answered"
   fullNameEmail: string;
@@ -11,8 +9,8 @@ export async function rejectAssessorChangeRequest(
   requestId: number,
   responseText: string,
 ): Promise<void> {
-  const BASE_URL = process.env.BASE_URL ?? "http://localhost:5000/";
-  const url = `${BASE_URL}solicitudes/advisor-change-requests/${requestId}/reject`;
+  const BASE_URL = process.env.BASE_URL ?? "http://localhost:5000";
+  const url = `${BASE_URL}/solicitudes/advisor-change-requests/${requestId}/reject`;
 
   try {
     const res = await fetch(url, {
@@ -43,8 +41,8 @@ export async function approveAssessorChangeRequest(
   requestId: number,
   responseText: string,
 ): Promise<void> {
-  const BASE_URL = process.env.BASE_URL ?? "http://localhost:5000/";
-  const url = `${BASE_URL}solicitudes/advisor-change-requests/${requestId}/approve`;
+  const BASE_URL = process.env.BASE_URL ?? "http://localhost:5000";
+  const url = `${BASE_URL}/solicitudes/advisor-change-requests/${requestId}/approve`;
 
   try {
     const res = await fetch(url, {

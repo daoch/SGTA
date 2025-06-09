@@ -15,6 +15,7 @@ import { Save, X } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import ModalConfirmarGuardado from "../../components/modal-confirmar-calificacion-jurado";
 
+import { useAuthStore } from "@/features/auth/store/auth-store";
 const criterios = [
   {
     titulo: "Nivel de avance",
@@ -48,7 +49,7 @@ type Props = {
 };
 
 const CalificarExposicionJuradoPage: React.FC<Props> = ({ id_exposicion }) => {
-  const [id_exposicion_tema, id_jurado] = id_exposicion.split("-");
+  const [id_exposicion_tema] = id_exposicion;
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [evaluacion, setEvaluacion] = useState<EvaluacionExposicionJurado>();
@@ -64,12 +65,17 @@ const CalificarExposicionJuradoPage: React.FC<Props> = ({ id_exposicion }) => {
   setIsConfirmModalOpen(true);
   };
 
+  const [token, setToken] = useState<string | null>(null);
+
   useEffect(() => {
     const cargarDatosEvaluacion = async () => {
       setIsLoading(true);
       try {
+        const { idToken } = useAuthStore.getState();
+        console.log("ID Token:", idToken , "ID Exposición Tema:", id_exposicion_tema);
+        setToken(idToken);
         
-        const datosEvaluacion = await getExposicionCalificarJurado(id_jurado, id_exposicion_tema);
+        const datosEvaluacion = await getExposicionCalificarJurado(token!, id_exposicion_tema);
         setEvaluacion(datosEvaluacion);
         setObservacionesFinales(datosEvaluacion.observaciones_finales);
       } catch (error) {
@@ -80,7 +86,7 @@ const CalificarExposicionJuradoPage: React.FC<Props> = ({ id_exposicion }) => {
     };
     
     cargarDatosEvaluacion();
-  }, [id_exposicion_tema, id_jurado]);
+  }, [id_exposicion_tema, token]);
 
   const handleCriterioChange = (id: number, value: number, observacion: string) => {
     if (!evaluacion) return;
@@ -111,7 +117,7 @@ const CalificarExposicionJuradoPage: React.FC<Props> = ({ id_exposicion }) => {
     let successMessage = "";
     let hasError = false;
 
-      const exposicionId = evaluacion.id_exposicion || evaluacion.criterios[0].id;
+      const exposicionId =  evaluacion.criterios[0].id;
       
       
       try {

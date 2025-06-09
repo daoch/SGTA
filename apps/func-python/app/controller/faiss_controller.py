@@ -2,7 +2,8 @@ from fastapi import HTTPException
 from ..models import (
     AddTopicsRequest, AddTopicsResponse,
     SearchTopicsRequest, SearchTopicsResponse, TopicResult,
-    FAISSStatsResponse, ListTopicsResponse
+    FAISSStatsResponse, ListTopicsResponse,
+    SearchTempRequest, SearchTempResponse
 )
 from ..service.faiss_service import faiss_service
 import logging
@@ -131,4 +132,55 @@ def search_topics_by_title_endpoint(title_query: str, limit: int = 20):
         raise
     except Exception as e:
         logging.error(f"Error searching topics by title: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+def clear_index_endpoint():
+    """Clear the entire FAISS index"""
+    try:
+        success = faiss_service.clear_index()
+        if success:
+            return {"message": "FAISS index completely cleared", "success": True}
+        else:
+            raise HTTPException(status_code=500, detail="Failed to clear index")
+    except Exception as e:
+        logging.error(f"Error clearing index: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+def remove_topic_endpoint(topic_id: str):
+    """Remove a topic from FAISS index (soft delete)"""
+    try:
+        success = faiss_service.remove_topic(topic_id)
+        if success:
+            return {"message": f"Topic {topic_id} successfully deleted", "success": True}
+        else:
+            raise HTTPException(status_code=404, detail="Topic not found")
+    except Exception as e:
+        logging.error(f"Error removing topic: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+def search_temp_embedding_endpoint(request: SearchTempRequest):
+    """Search for similar topics using temporary embedding (no persistence)"""
+    try:
+        if not request.query_text.strip():
+            raise HTTPException(status_code=400, detail="Query text cannot be empty")
+        
+        if request.top_k <= 0 or request.top_k > 100:
+            raise HTTPException(status_code=400, detail="top_k must be between 1 and 100")
+            
+        results = faiss_service.search_with_temp_embedding(
+            query_text=request.query_text,
+            threshold=request.threshold,
+            top_k=request.top_k
+        )
+        
+        return SearchTempResponse(
+            query_text=request.query_text,
+            results=results,
+            total_found=len(results)
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Error in temp embedding search: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
