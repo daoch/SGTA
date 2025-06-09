@@ -91,12 +91,21 @@ export function TemasTable({
         <TableCell>{asesor ? asesor.nombres : ""}</TableCell>
         {/* Tesistas */}
         <TableCell>
-          {tema.tesistas === null ||
-          tema.tesistas.length < 1 ||
-          tema.tesistas.map((tesista) => tesista.asignado === false) ? (
+          {!tema.tesistas || tema.tesistas.length === 0 ? (
             <p className="text-gray-400">Sin asignar</p>
           ) : (
-            tema.tesistas.map((e: Tesista) => e.nombres).join(", ")
+            (() => {
+              const tesistasAsignados = tema.tesistas.filter(
+                (e: Tesista) => e.asignado !== false,
+              );
+              return tesistasAsignados.length === 0 ? (
+                <p className="text-gray-400">Sin asignar</p>
+              ) : (
+                <p>
+                  {tesistasAsignados.map((e: Tesista) => e.nombres).join(", ")}
+                </p>
+              );
+            })()
           )}
         </TableCell>
         {/* Postulaciones */}

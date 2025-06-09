@@ -1,5 +1,6 @@
 import axiosInstance from "@/lib/axios/axios-instance";
 import { Carrera, Tema, Usuario } from "../temas/entidades";
+const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
 export async function fetchUsuariosFindById(
   usuarioId: number,
@@ -87,21 +88,25 @@ export async function fetchTemasAPI(
 
 export async function obtenerAreasDelUsuario(usuarioId: number) {
   try {
-    const response = await axiosInstance.get(
-      "/areaConocimiento/listarPorUsuario",
+    const response = await fetch(
+      `${baseUrl}/areaConocimiento/listarPorUsuario?usuarioId=${usuarioId}`,
       {
-        params: {
-          usuarioId: usuarioId,
-        },
+        method: "GET",
         headers: {
           "Content-Type": "application/json",
         },
       },
     );
 
-    return response.data;
+    if (!response.ok) {
+      throw new Error("No se pudieron listar las áreas.");
+    }
+
+    const data = await response.json();
+    console.log("Áreas del usuario:", data);
+    return data;
   } catch (error) {
-    console.error("No se pudieron listar las áreas.", error);
+    console.error("Error al listar las áreas:", error);
     throw error;
   }
 }

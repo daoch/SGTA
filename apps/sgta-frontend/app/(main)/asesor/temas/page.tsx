@@ -54,8 +54,10 @@ const Page = () => {
   useEffect(() => {
     const obtenerUsuario = async () => {
       try {
+        console.log("Obteniendo al usuario");
         const usuario = await buscarUsuarioPorToken();
         setUsuarioLoggeado(usuario);
+        console.log("Usuario:", { usuario });
       } catch (err: unknown) {
         console.error(err);
         setError("Error al traer al usuario loggeado.");
@@ -158,7 +160,7 @@ const Page = () => {
     fetchData();
   }, [usuarioLoggeado]);
 
-  console.log({ areasDisponibles });
+  //console.log({ areasDisponibles });
   return (
     <div className="space-y-8 mt-4">
       <div className="flex items-end justify-between">

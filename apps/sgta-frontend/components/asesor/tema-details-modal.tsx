@@ -2,6 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -35,7 +36,13 @@ export const TemaDetailsDialog: React.FC<TemaDetailsDialogProps> = ({
   const router = useRouter();
   const coasesores = tema.coasesores
     ? tema.coasesores
-        .map((c) => `${c.nombres} ${c.primerApellido} ${c.segundoApellido}`)
+        .filter((c) => c.id !== asesor?.id)
+        .map((c) => {
+          const apellidos = [c.primerApellido, c.segundoApellido]
+            .filter(Boolean)
+            .join(" ");
+          return `${c.nombres} ${apellidos}`.trim();
+        })
         .join(", ")
     : "";
   function handleVerInformacion(tema: Tema) {
@@ -119,12 +126,16 @@ export const TemaDetailsDialog: React.FC<TemaDetailsDialogProps> = ({
             </div>
 
             {/* Coasesores */}
-            {!!coasesores?.length && (
-              <div>
-                <p className="text-sm font-medium">Coasesores</p>
+            <div>
+              <p className="text-sm font-medium">Coasesores</p>
+              {coasesores.length !== 0 ? (
                 <p className="bg-muted p-2 rounded-md">{coasesores}</p>
-              </div>
-            )}
+              ) : (
+                <p className="bg-muted p-2 rounded-md text-gray-400">
+                  Sin coasesor(es)
+                </p>
+              )}
+            </div>
 
             {/* Students */}
             <div>
@@ -191,7 +202,9 @@ export const TemaDetailsDialog: React.FC<TemaDetailsDialogProps> = ({
               Más información
             </Button>
             {/* Close Button */}
-            <Button variant="outline">Cerrar</Button>
+            <DialogClose asChild>
+              <Button variant="outline">Cerrar</Button>
+            </DialogClose>
             {/* Inscribir Button */}
             {tema.estadoTemaNombre === EstadoTemaNombre.PREINSCRITO && (
               <Button

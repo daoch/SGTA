@@ -349,10 +349,10 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
     setErrores(nuevosErrores);
     return Object.keys(nuevosErrores).length === 0;
   };
-  console.log("Areas Data:", areasDisponibles);
+
   return (
     <>
-      <Toaster richColors position="top-right" />
+      <Toaster richColors position="bottom-right" />
       <DialogContent className="w-3xl">
         <DialogHeader>
           <DialogTitle>Nuevo Tema de Tesis</DialogTitle>
