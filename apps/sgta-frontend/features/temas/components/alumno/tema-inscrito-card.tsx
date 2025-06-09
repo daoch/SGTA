@@ -73,9 +73,8 @@ export function TemaCard() {
           return;
         }
 
-        // Buscar primero INSCRITO
         let response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/temas/listarTemasPorUsuarioRolEstado?rolNombre=Tesista&estadoNombre=INSCRITO`,
+          `${process.env.NEXT_PUBLIC_API_URL}/temas/porUsuarioTituloAreaCarreraEstadoFecha?titulo=&areaId=&carreraId=&estadoNombre=INSCRITO&fechaCreacionDesde=&fechaCreacionHasta=`,
           {
             headers: {
               Authorization: `Bearer ${idToken}`,
@@ -86,10 +85,9 @@ export function TemaCard() {
         let data = await response.json();
 
         let estadoActual = "Inscrito";
-        // Si no hay INSCRITO, buscar REGISTRADO
         if (!data || data.length === 0) {
           response = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/temas/listarTemasPorUsuarioRolEstado?rolNombre=Tesista&estadoNombre=REGISTRADO`,
+            `${process.env.NEXT_PUBLIC_API_URL}/temas/porUsuarioTituloAreaCarreraEstadoFecha?titulo=&areaId=&carreraId=&estadoNombre=REGISTRADO&fechaCreacionDesde=&fechaCreacionHasta=`,
             {
               headers: {
                 Authorization: `Bearer ${idToken}`,
@@ -101,10 +99,9 @@ export function TemaCard() {
           estadoActual = "Registrado";
         }
 
-        // Si no hay REGISTRADO, buscar EN_PROGRESO
         if (!data || data.length === 0) {
           response = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/temas/listarTemasPorUsuarioRolEstado?rolNombre=Tesista&estadoNombre=EN_PROGRESO`,
+            `${process.env.NEXT_PUBLIC_API_URL}/temas/porUsuarioTituloAreaCarreraEstadoFecha?titulo=&areaId=&carreraId=&estadoNombre=EN_PROGRESO&fechaCreacionDesde=&fechaCreacionHasta=`,
             {
               headers: {
                 Authorization: `Bearer ${idToken}`,
@@ -130,9 +127,9 @@ export function TemaCard() {
           titulo: tesis.titulo,
           area: tesis.area ?? "",
           descripcion: tesis.resumen,
-          asesor: asesorPrincipal ? `${asesorPrincipal.nombres} ${asesorPrincipal.primerApellido}` : "No asignado",
+          asesor: asesorPrincipal ? `${asesorPrincipal.nombres}` : "No asignado",
           coasesores: coasesoresRestantes.map(
-            (c: Profesor) => `${c.nombres} ${c.primerApellido}`
+            (c: Profesor) => `${c.nombres}`
           ),
         });
       } catch (error) {
@@ -252,7 +249,7 @@ export function TemaCard() {
               {tesisData.tesistas && tesisData.tesistas.length > 0 ? (
                 tesisData.tesistas.map((est) => (
                   <li key={est.id} className="text-sm flex justify-between">
-                    <span>{`${est.nombres} ${est.primerApellido}`}</span>
+                    <span>{`${est.nombres}`}</span>
                     <span className="text-muted-foreground">{est.codigoPucp}</span>
                   </li>
                 ))

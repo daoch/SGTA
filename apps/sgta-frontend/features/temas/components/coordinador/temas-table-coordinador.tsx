@@ -61,12 +61,16 @@ export function TemasTableCoordinador({
 
         if (ids.length > 0) {
           // Fetch temas
-          const [registrados, inscritos] = await Promise.all([
+          const [registrados, inscritos, en_progreso] = await Promise.all([
             listarTemasPorCarrera(ids[0], EstadoTemaNombre.REGISTRADO, 200, 0),
             listarTemasPorCarrera(ids[0], EstadoTemaNombre.INSCRITO, 200, 0),
             listarTemasPorCarrera(ids[0], EstadoTemaNombre.EN_PROGRESO, 200, 0),
           ]);
-          const data = [...(registrados || []), ...(inscritos || [])];
+          const data = [
+            ...(registrados || []),
+            ...(inscritos || []),
+            ...(en_progreso || []),
+          ];
           setTemas(data);
         }
       } catch (error) {

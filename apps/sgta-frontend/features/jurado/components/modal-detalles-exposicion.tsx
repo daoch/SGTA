@@ -146,6 +146,42 @@ const ModalDetallesExposicion: React.FC<{
                 />
               </div>
             </div>
+
+            {/*ENLACES*/}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-500 block mb-2">
+                    Enlace de la Exposición
+                  </label>
+                  <a
+                    href={exposicion.enlace_sesion}
+                    target="_blank"
+                    className={"text-sm " + (
+                      exposicion.enlace_sesion
+                        ? "text-blue-500 hover:underline"
+                        : "text-gray-500"
+                    )}
+                  >
+                    {exposicion.enlace_sesion || "No disponible"}
+                  </a>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500 block mb-2">
+                    Enlace de la Grabación
+                  </label>
+                  <a
+                    href={exposicion.enlace_grabacion}
+                    target="_blank"
+                    className={"text-sm " + (
+                      exposicion.enlace_grabacion
+                        ? "text-blue-500 hover:underline"
+                        : "text-gray-500"
+                    )}
+                  >
+                    {exposicion.enlace_grabacion || "No disponible"}
+                  </a>
+                </div>
+              </div>
           </div>
         </DialogHeader>
         <DialogFooter className="sm:justify-end">

@@ -124,6 +124,8 @@ export interface ExposicionJurado {
   titulo: string;
   ciclo_id: number;
   nombre_exposicion: string;
+  enlace_grabacion: string;
+  enlace_sesion: string;
   miembros: MiembroJuradoExpo[];
 }
 
