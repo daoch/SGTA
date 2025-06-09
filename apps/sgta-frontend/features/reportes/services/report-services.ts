@@ -25,16 +25,16 @@ export const obtenerDetalleTemaAlumno = async (): Promise<AlumnoTemaDetalle> => 
 };
 
 
-export const findStudentsForReviewer = async (carreraId: number, cadenaBusqueda: string): Promise<AlumnoReviewer[]> => {
+export const findStudentsForReviewer = async (cadenaBusqueda: string): Promise<AlumnoReviewer[]> => {
   try {
+    const { idToken } = useAuthStore.getState();
     const response = await axiosInstance.get("/usuario/findByStudentsForReviewer", {
       params: {
-        carreraId,
         cadenaBusqueda
       },
-      /*headers: {
+      headers: {
         Authorization: `Bearer ${idToken}`,
-      },*/
+      },
     });
     return response.data;
   } catch (error) {

@@ -1,7 +1,7 @@
 import axiosInstance from "@/lib/axios/axios-instance";
 import { CarreraXParametroConfiguracionDto } from "../types/CarreraXParametroConfiguracion.type";
 import { AreaConocimientoDto, SubAreaConocimientoDto } from "../types/Area.type";
-
+import { useAuthStore } from "@/features/auth/store/auth-store";
 
 //Services para Parametros generales
 
@@ -12,11 +12,16 @@ export const updateCarreraXParametroConfiguracion = async (
 };
 
 export const getAllByCarreraId = async (
-    carreraId: number
 ): Promise<CarreraXParametroConfiguracionDto[]> => {
+
+    const { idToken } = useAuthStore.getState();
     const response = await axiosInstance.get<CarreraXParametroConfiguracionDto[]>(
-        `/carreraXParametroConfiguracion/${carreraId}/parametros`,
-    );
+        `/carreraXParametroConfiguracion/parametros`,
+    {
+        headers: {
+            Authorization: `Bearer ${idToken}`,
+        },
+    });
     return response.data;
 };
 
@@ -32,11 +37,15 @@ export const createArea = async (area: Omit<AreaConocimientoDto, "id">): Promise
 };
 
 
-export const getAllAreasByCarreraId = async (
-    carreraId: number
-): Promise<AreaConocimientoDto[]> => {
+export const getAllAreasByCarreraId = async (): Promise<AreaConocimientoDto[]> => {
+    const { idToken } = useAuthStore.getState();
     const response = await axiosInstance.get<AreaConocimientoDto[]>(
-        `/areaConocimiento/list/${carreraId}`,
+        `/areaConocimiento/listCarrera`,
+        {
+            headers: {
+                Authorization: `Bearer ${idToken}`,
+            },
+        }
     );
 
     // Para cada área, cargar sus subáreas
