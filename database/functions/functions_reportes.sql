@@ -1277,6 +1277,31 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION obtener_carrera_coordinador(
+    p_usuario_id INTEGER
+)
+RETURNS TABLE (
+    carrera_id INTEGER,
+    nombre VARCHAR,
+    es_coordinador BOOLEAN
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT DISTINCT
+        c.carrera_id,
+        c.nombre,
+        uc.es_coordinador
+    FROM usuario_carrera uc
+    JOIN carrera c ON uc.carrera_id = c.carrera_id
+    WHERE uc.usuario_id = p_usuario_id
+    AND uc.activo = true
+    AND uc.es_coordinador = true
+    LIMIT 1;
+END;
+$$;
+
 CREATE OR REPLACE FUNCTION obtener_alumnos_por_carrera_revisor(
     p_usuario_id INTEGER,
     p_cadena_busqueda VARCHAR
