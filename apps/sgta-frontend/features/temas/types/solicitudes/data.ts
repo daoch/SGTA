@@ -32,7 +32,7 @@ export async function lenTemasPorCarrera(
   carreraId: number,
   estado: EstadoTemaNombre,
 ): Promise<number> {
-  const temas = await listarTemasPorCarrera(carreraId, estado, 200, 0); // TODO: Debe traer un number
+  const temas = await listarTemasPorCarrera(carreraId, estado, 2000, 0); // TODO: Debe traer un number
   return temas.length;
 }
 

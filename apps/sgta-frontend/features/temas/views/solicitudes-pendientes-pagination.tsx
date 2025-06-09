@@ -56,11 +56,7 @@ export default function SolicitudesPendientes() {
       setCarrerasIds(ids);
 
       if (ids.length > 0) {
-        // Inicializar totalCounts
-        await fetchTotalCounts(ids);
-
-        // Cargar primera página
-        await fetchPage(estadoTema, 1, ids);
+        await fetchTotalCountsAndFirstPages(ids);
       }
     } catch (error) {
       console.log("No se pudo cargar las carreras del usuario: " + error);
@@ -110,10 +106,11 @@ export default function SolicitudesPendientes() {
 
   async function fetchTotalCounts(carrerasIds: number[]) {
     try {
-      // Asignar total Counts
+      // Get All States
       const estadosConPages: EstadoTemaNombre[] = Object.keys(
         temas,
       ) as EstadoTemaNombre[];
+
       // Get all counts
       const counts = await Promise.all(
         estadosConPages.map((estado) =>
@@ -128,6 +125,40 @@ export default function SolicitudesPendientes() {
       });
     } catch (err) {
       console.error("Error loading total counts", err);
+    }
+  }
+
+  async function fetchTotalCountsAndFirstPages(carrerasIds: number[]) {
+    try {
+      // Get All States
+      const estadosConPages: EstadoTemaNombre[] = Object.keys(
+        temas,
+      ) as EstadoTemaNombre[];
+
+      // Get all lists
+      const temasLists = await Promise.all(
+        estadosConPages.map((state) =>
+          listarTemasPorCarrera(
+            carrerasIds[0], // TODO: Validar
+            state,
+            2000, // Get all items
+            0,
+          ),
+        ),
+      );
+
+      // Update counts and first pages
+      estadosConPages.forEach((state, idx) => {
+        const countList = temasLists[idx].length;
+        // Set Count
+        replaceStateKey(state, "totalCounts", countList);
+        console.log(state + ": count = " + countList);
+
+        // Set first page
+        addNewPage(state, 1, temasLists[idx]);
+      });
+    } catch (err) {
+      console.error("Error loading total counts and First pages: ", err);
     }
   }
 
