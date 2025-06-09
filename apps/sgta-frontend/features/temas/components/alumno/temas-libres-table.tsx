@@ -271,9 +271,45 @@ export function PropuestasTable({
                     <Button
                       size="icon"
                       variant="ghost" 
-                      onClick={() => {
-                        setSelected(tema);
-                        setOpenPostularDialog(true);
+                      onClick={async () => {
+                        try {
+                          const { idToken } = useAuthStore.getState();
+                          if (!idToken) {
+                            toast.error("No authentication token available", { position: "bottom-right" });
+                            return;
+                          }
+                          const res = await fetch(
+                            `${process.env.NEXT_PUBLIC_API_URL}/temas/verificarTemasComprometidosTesista`,
+                            {
+                              headers: {
+                                Authorization: `Bearer ${idToken}`,
+                                "Content-Type": "application/json",
+                              },
+                            }
+                          );
+                          if (!res.ok) throw new Error("Error verificando temas comprometidos");
+                          const data = await res.json();
+                          if (Array.isArray(data) && data[0]?.comprometido === 1) {
+                            const estadoMap: Record<string, string> = {
+                              EN_PROGRESO: "en curso",
+                              PREINSCRITO: "preinscrito",
+                              INSCRITO: "inscrito",
+                              REGISTRADO: "registrado",
+                              PAUSADO: "pausado",
+                            };
+                            const estadoNombre = data[0]?.estadoNombre;
+                            const estadoDescriptivo = estadoMap[estadoNombre] || estadoNombre?.toLowerCase() || "en curso";
+                            toast.error(
+                              `Ya tienes un tema ${estadoDescriptivo}, no puedes postular a otro.`,
+                              { position: "bottom-right" }
+                            );
+                            return;
+                          }
+                          setSelected(tema);
+                          setOpenPostularDialog(true);
+                        } catch (error) {
+                          toast.error("Error verificando temas comprometidos", { position: "bottom-right" });
+                        }
                       }}
                     >
                       <Send className="h-4 w-4" />
