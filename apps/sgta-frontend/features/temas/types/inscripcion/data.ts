@@ -101,7 +101,7 @@ export async function obtenerAreasDelUsuario(usuarioId: number) {
 
     return response.data;
   } catch (error) {
-    console.error("La página no responde.", error);
+    console.error("No se pudieron listar las áreas.", error);
     throw error;
   }
 }

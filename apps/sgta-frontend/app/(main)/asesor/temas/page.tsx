@@ -148,6 +148,7 @@ const Page = () => {
         setAsesorData(coasesor);
 
         const areas = await obtenerAreasDelUsuario(Number(usuario.id));
+        console.log("Sus areas son: ", { areas });
         setAreasDisponibles(areas);
       } catch (error) {
         console.error("Error los datos de entrada", error);
@@ -157,7 +158,7 @@ const Page = () => {
     fetchData();
   }, [usuarioLoggeado]);
 
-  console.log({ estadoTema });
+  console.log({ areasDisponibles });
   return (
     <div className="space-y-8 mt-4">
       <div className="flex items-end justify-between">
