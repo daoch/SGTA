@@ -14,7 +14,7 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-@RequestMapping("/notifications")
+@RequestMapping("/api/notifications")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class NotificacionController {

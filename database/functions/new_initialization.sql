@@ -247,6 +247,9 @@ INSERT INTO sala_exposicion (sala_exposicion_id,
         (6, 'SALA VIRTUAL 002', TRUE, 'virtual', NOW(), NOW()),
         (7, 'SALA VIRTUAL 003', TRUE, 'virtual', NOW(), NOW());
 
+--####
+--####CHECKPOINT
+--####
 --USO DE CICLOS Y OPERATIVA DE EXPOSICIONES
 
 INSERT INTO ciclo (semestre, anio, fecha_inicio, fecha_fin, activo, fecha_creacion, fecha_modificacion)
