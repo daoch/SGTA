@@ -5,6 +5,7 @@ import java.util.NoSuchElementException;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import org.springframework.web.server.ResponseStatusException;
+import pucp.edu.pe.sgta.dto.UsuarioRegistroDto;
 import pucp.edu.pe.sgta.dto.asesores.FiltrosDirectorioAsesores;
 import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
 import pucp.edu.pe.sgta.dto.asesores.UsuarioConRolDto;
@@ -39,7 +41,7 @@ public class UsuarioController {
 	private UsuarioService usuarioService;
 
     @PostMapping("/create")
-    public ResponseEntity<?> create(@RequestBody UsuarioDto user) {
+    public ResponseEntity<?> create(@RequestBody UsuarioRegistroDto user) {
 
         try {
             usuarioService.createUsuario(user);
@@ -229,10 +231,11 @@ public class UsuarioController {
         // }
     }
 
-    @PostMapping("/carga-masiva")
-    public ResponseEntity<String> cargarUsuarios(@RequestParam("archivo") MultipartFile archivo) {
+    @PostMapping(value = "/carga-masiva", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<String> cargarUsuarios(@RequestPart("archivo") MultipartFile archivo,
+                                                 @RequestPart UsuarioRegistroDto datosExtra) {
         try {
-            usuarioService.procesarArchivoUsuarios(archivo);
+            usuarioService.procesarArchivoUsuarios(archivo, datosExtra);
             return ResponseEntity.ok("Usuarios procesados exitosamente");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -264,7 +267,7 @@ public class UsuarioController {
     }
 
     @PutMapping("/update/{id}")
-    public ResponseEntity<String> updateUsuario(@PathVariable Integer id, @RequestBody UsuarioDto usuarioDto) {
+    public ResponseEntity<String> updateUsuario(@PathVariable Integer id, @RequestBody UsuarioRegistroDto usuarioDto) {
         try {
             usuarioService.updateUsuario(id, usuarioDto);
             return new ResponseEntity<>("Usuario actualizado exitosamente", HttpStatus.OK);
@@ -276,6 +279,18 @@ public class UsuarioController {
         }
     }
 
+    @PutMapping("/reactivar/{id}")
+    public ResponseEntity<String> reactivarUsuario(@PathVariable Integer id) {
+        try {
+            usuarioService.reactivarUsuario(id);
+            return new ResponseEntity<>("Usuario reactivado exitosamente", HttpStatus.OK);
+        } catch (NoSuchElementException e) {
+            return new ResponseEntity<>("Usuario no encontrado: " + e.getMessage(), HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Error al reactivar el usuario: " + e.getMessage(),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
     @GetMapping("/detalle-tema-alumno")
     public ResponseEntity<AlumnoTemaDto> getDetalleTemaAlumno(HttpServletRequest request) {
