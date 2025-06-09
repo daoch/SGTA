@@ -39,7 +39,7 @@ public class EtapaFormativaXCicloController {
         return ResponseEntity.ok(createdEtapaFormativaXCiclo);
     }
 
-    @GetMapping("/carrera/{id}")
+    @GetMapping("/carreraList")
     public ResponseEntity<List<EtapaFormativaXCicloDto>> getAllByCarreraId(HttpServletRequest request) {
         String idCognito = jwtService.extractSubFromRequest(request);
         List<EtapaFormativaXCicloDto> etapaFormativaXCiclos = etapaFormativaXCicloService.getAllByCarreraId(idCognito);
