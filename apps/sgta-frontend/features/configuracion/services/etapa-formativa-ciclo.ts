@@ -5,7 +5,7 @@ import { useAuthStore } from "@/features/auth/store/auth-store";
 export const etapaFormativaCicloService = {
     getAllByIdCarrera: async (): Promise<EtapaFormativaCiclo[]> => {
         const { idToken } = useAuthStore.getState();
-        const response = await axiosInstance.get(`/etapa-formativa-x-ciclo/carreraList`,
+        const response = await axiosInstance.get("/etapa-formativa-x-ciclo/carreraList",
             {
               headers: {
                 Authorization: `Bearer ${idToken}`,

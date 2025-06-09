@@ -16,7 +16,7 @@ export const getAllByCarreraId = async (
 
     const { idToken } = useAuthStore.getState();
     const response = await axiosInstance.get<CarreraXParametroConfiguracionDto[]>(
-        `/carreraXParametroConfiguracion/parametros`,
+        "/carreraXParametroConfiguracion/parametros",
     {
         headers: {
             Authorization: `Bearer ${idToken}`,
@@ -46,7 +46,7 @@ export const createArea = async (area: Omit<AreaConocimientoDto, "id">): Promise
 export const getAllAreasByCarreraId = async (): Promise<AreaConocimientoDto[]> => {
     const { idToken } = useAuthStore.getState();
     const response = await axiosInstance.get<AreaConocimientoDto[]>(
-        `/areaConocimiento/listCarrera`,
+        "/areaConocimiento/listCarrera",
         {
             headers: {
                 Authorization: `Bearer ${idToken}`,
