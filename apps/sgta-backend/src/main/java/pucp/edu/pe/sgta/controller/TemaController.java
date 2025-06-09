@@ -18,6 +18,7 @@ import pucp.edu.pe.sgta.dto.asesores.InfoTemaPerfilDto;
 import pucp.edu.pe.sgta.dto.asesores.TemaConAsesorDto;
 import pucp.edu.pe.sgta.dto.TemaDto;
 import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
+import pucp.edu.pe.sgta.dto.temas.TemasComprometidosDto;
 import pucp.edu.pe.sgta.dto.TemaSimilarityResult;
 import pucp.edu.pe.sgta.service.inter.JwtService;
 import pucp.edu.pe.sgta.service.inter.SimilarityService;
@@ -59,25 +60,25 @@ public class TemaController {
 	}
 
 	@PostMapping("/createPropuesta")
-	public void createTema(@RequestBody TemaDto dto,
+	public Integer createTema(@RequestBody TemaDto dto,
 			@RequestParam(name = "tipoPropuesta", defaultValue = "0") Integer tipoPropuesta,
 			HttpServletRequest request) {
 		try {
 			String idUsuarioCreador = jwtService.extractSubFromRequest(request);
-			temaService.createTemaPropuesta(dto, idUsuarioCreador, tipoPropuesta);
+			return temaService.createTemaPropuesta(dto, idUsuarioCreador, tipoPropuesta);
 		} catch (RuntimeException e) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
 		}
 	}
 
 	@PostMapping("/createInscripcion") // Inscripcion de tema oficial por asesor
-	public void createInscripcion(
+	public Integer createInscripcion(
 			@RequestBody @Valid TemaDto dto,
 			HttpServletRequest request
 	// @RequestParam(name = "idUsuarioCreador") Integer idUsuarioCreador
 	) {
 		String idUsuarioCreador = jwtService.extractSubFromRequest(request);
-		temaService.createInscripcionTema(dto, idUsuarioCreador);
+		return temaService.createInscripcionTema(dto, idUsuarioCreador);
 	}
 
 	@PutMapping("/update") // updates a topic
@@ -673,6 +674,42 @@ public class TemaController {
 		}
 	}
 
+	@GetMapping("/contarPostuladosAlumnosTemaLibreAsesor")
+	public Integer contarPostuladosAlumnosTemaLibreAsesor(
+			@RequestParam(required = false) String busqueda,
+			@RequestParam(required = false) String estado,
+			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaLimite,
+			HttpServletRequest request
+	) {
+		try {
+			String usuarioId = jwtService.extractSubFromRequest(request);
+			return temaService.contarPostuladosAlumnosTemaLibreAsesor(busqueda, estado, fechaLimite, usuarioId);
+		} catch (RuntimeException e) {
+			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage(), e);
+		}
+	}
+
+	@GetMapping("/verificarTemasComprometidosTesista")
+	public ResponseEntity<List<TemasComprometidosDto>> verificarTemasComprometidosTesista(
+			HttpServletRequest request) {
+		try {
+			String usuarioSubId = jwtService.extractSubFromRequest(request);
+			if (usuarioSubId == null) {
+				return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+					.body(null);
+			}
+			
+			List<TemasComprometidosDto> temasComprometidos = temaService.contarTemasComprometidos(usuarioSubId);
+			return ResponseEntity.ok(temasComprometidos);
+			
+		} catch (RuntimeException e) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+		} catch (Exception e) {
+			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, 
+				"Error al verificar temas comprometidos: " + e.getMessage());
+		}
+	}
+	
 }
 
 

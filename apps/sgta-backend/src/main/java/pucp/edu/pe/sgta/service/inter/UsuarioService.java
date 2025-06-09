@@ -1,5 +1,6 @@
 package pucp.edu.pe.sgta.service.inter;
 
+import pucp.edu.pe.sgta.dto.UsuarioRegistroDto;
 import pucp.edu.pe.sgta.dto.asesores.FiltrosDirectorioAsesores;
 import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
 import pucp.edu.pe.sgta.dto.asesores.UsuarioConRolDto;
@@ -19,15 +20,17 @@ public interface UsuarioService {
 
     // Define the methods that you want to implement in the service
     // For example:
-    void createUsuario(UsuarioDto usuarioDto);
+    void createUsuario(UsuarioRegistroDto usuarioDto);
 
     UsuarioDto findUsuarioById(Integer id);
 
     List<UsuarioDto> findAllUsuarios();
 
-    void updateUsuario(Integer id, UsuarioDto usuarioDto);
+    void updateUsuario(Integer id, UsuarioRegistroDto usuarioDto);
 
     void deleteUsuario(Integer id);
+
+    void reactivarUsuario(Integer id);
 
     List<UsuarioDto> findUsuariosByRolAndCarrera(String tipoUsuario, Integer idCarrera, String cadenaBusqueda);
 
@@ -92,7 +95,7 @@ public interface UsuarioService {
 
     List<PerfilAsesorDto> getDirectorioDeAsesoresPorFiltros(FiltrosDirectorioAsesores filtros);
 
-    void procesarArchivoUsuarios(MultipartFile archivo) throws Exception;
+    void procesarArchivoUsuarios(MultipartFile archivo, UsuarioRegistroDto datosExtra) throws Exception;
 
     UsuarioDto findByCognitoId(String cognitoId) throws NoSuchElementException;
 

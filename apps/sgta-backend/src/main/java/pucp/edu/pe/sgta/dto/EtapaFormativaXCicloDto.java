@@ -36,5 +36,14 @@ public class EtapaFormativaXCicloDto {
     private String nombreEtapaFormativa;
 
     private BigDecimal creditajePorTema;
+
+    private String duracionExposicion;
+
+    private String nombreCiclo;
     //private String descripcionEtapaFormativa;
+
+    // Contadores de entregables y exposiciones
+    private Integer cantidadEntregables;
+    
+    private Integer cantidadExposiciones;
 }

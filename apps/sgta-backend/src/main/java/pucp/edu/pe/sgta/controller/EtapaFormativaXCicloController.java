@@ -73,4 +73,9 @@ public class EtapaFormativaXCicloController {
         return etapaFormativaXCicloService.listarEtapasFormativasXCicloXCarrera(carreraId);
     }
 
+    @GetMapping("/etapaXCiclo/{etapaXCicloId}")
+    public EtapaFormativaXCicloDto getEtapaFormativaXCicloByEtapaId(@PathVariable Integer etapaXCicloId) {
+        return etapaFormativaXCicloService.getEtapaFormativaXCicloByEtapaId(etapaXCicloId);
+    }
+
 }
