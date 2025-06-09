@@ -5,6 +5,8 @@ import org.springframework.web.bind.annotation.*;
 import pucp.edu.pe.sgta.dto.AreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.asesores.InfoAreaConocimientoDto;
 import pucp.edu.pe.sgta.service.inter.AreaConocimientoService;
+import pucp.edu.pe.sgta.service.inter.JwtService;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;
 
@@ -15,6 +17,10 @@ public class AreaConocimientoController {
 
     @Autowired
     AreaConocimientoService areaConocimientoService;
+
+    @Autowired
+    private JwtService jwtService;
+
 
     @PostMapping("/create")
     public AreaConocimientoDto createAreaConocimiento(@RequestBody AreaConocimientoDto dto) {
@@ -32,9 +38,10 @@ public class AreaConocimientoController {
     }
 
     // list areas por carrera
-    @GetMapping("/list/{idCarrera}")
-    public List<AreaConocimientoDto> listAreaConocimientoByCarrera(@PathVariable Integer idCarrera) {
-        return areaConocimientoService.getAllByCarrera(idCarrera);
+    @GetMapping("/listCarrera")
+    public List<AreaConocimientoDto> listAreaConocimientoByCarrera(HttpServletRequest request) {
+        String idCognito = jwtService.extractSubFromRequest(request);
+        return areaConocimientoService.getAllByCarrera(idCognito);
     }
 
     @GetMapping("/listarPorNombre")

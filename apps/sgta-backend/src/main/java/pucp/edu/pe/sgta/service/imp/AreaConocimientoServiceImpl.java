@@ -13,24 +13,43 @@ import pucp.edu.pe.sgta.repository.CarreraRepository;
 import pucp.edu.pe.sgta.service.inter.AreaConocimientoService;
 
 import pucp.edu.pe.sgta.model.Carrera;
-
+import pucp.edu.pe.sgta.dto.UsuarioDto;
+import pucp.edu.pe.sgta.service.inter.UsuarioService;
+import pucp.edu.pe.sgta.repository.UsuarioXCarreraRepository;
+import pucp.edu.pe.sgta.repository.UsuarioRepository;
+import pucp.edu.pe.sgta.model.UsuarioXCarrera;
+import org.springframework.beans.factory.annotation.Autowired;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
+
 
 @Service
 public class AreaConocimientoServiceImpl implements AreaConocimientoService {
 
     private final AreaConocimientoRepository areaConocimientoRepository;
     private final CarreraRepository carreraRepository;
+    private final UsuarioXCarreraRepository usuarioCarreraRepository;
+    private final UsuarioRepository usuarioRepository;
 
     @PersistenceContext
     private EntityManager entityManager;
 
+    @Autowired
+    private UsuarioService usuarioService;
+
+    
+
     public AreaConocimientoServiceImpl(AreaConocimientoRepository areaConocimientoRepository,
-            CarreraRepository carreraRepository) {
+            CarreraRepository carreraRepository,
+            UsuarioXCarreraRepository usuarioCarreraRepository,
+            UsuarioRepository usuarioRepository) {
         this.areaConocimientoRepository = areaConocimientoRepository;
         this.carreraRepository = carreraRepository;
+        this.usuarioCarreraRepository = usuarioCarreraRepository;
+        this.usuarioRepository = usuarioRepository;
+        this.usuarioService = usuarioService;
     }
 
     // create
@@ -107,13 +126,27 @@ public class AreaConocimientoServiceImpl implements AreaConocimientoService {
     }
 
     @Override
-    public List<AreaConocimientoDto> getAllByCarrera(Integer idCarrera) {
-        List<AreaConocimiento> areasConocimiento = areaConocimientoRepository
-                .findAllByCarreraIdAndActivoTrue(idCarrera);
-        List<AreaConocimientoDto> dtos = areasConocimiento.stream()
+    public List<AreaConocimientoDto> getAllByCarrera(String idCognito) {
+        UsuarioDto usuario = usuarioService.findByCognitoId(idCognito);
+        List<Object[]> results = carreraRepository.obtenerCarreraCoordinador(usuario.getId());
+        if (results != null && !results.isEmpty()) {
+            Object[] result = results.get(0);
+            Carrera carrera = new Carrera();
+            carrera.setId((Integer) result[0]);
+            carrera.setNombre((String) result[1]);
+        
+            Integer carreraId = carrera.getId();
+            List<AreaConocimiento> areasConocimiento = areaConocimientoRepository
+                .findAllByCarreraIdAndActivoTrue(carreraId);
+            List<AreaConocimientoDto> dtos = areasConocimiento.stream()
                 .map(AreaConocimientoMapper::toDto)
                 .toList();
         return dtos;
+        } else {
+            throw new NoSuchElementException("No se encontró la carrera para el usuario con id: " + usuario.getId());
+        }  
+
+        
     }
 
     @Override
@@ -152,5 +185,6 @@ public class AreaConocimientoServiceImpl implements AreaConocimientoService {
                 .map(AreaConocimientoMapper::toDto)
                 .toList();
     }
+
 
 }
