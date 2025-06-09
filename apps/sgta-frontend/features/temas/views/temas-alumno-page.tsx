@@ -69,10 +69,8 @@ const MisTemasPage = () => {
         if (!idToken) {
           console.error("No authentication token available");
           return;
-        }
-
-        let res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}temas/porUsuarioTituloAreaCarreraEstadoFecha?titulo=&areaId=&carreraId=&estadoNombre=INSCRITO&fechaCreacionDesde=&fechaCreacionHasta=`,
+        }        let res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/temas/porUsuarioTituloAreaCarreraEstadoFecha?titulo=&areaId=&carreraId=&estadoNombre=INSCRITO&fechaCreacionDesde=&fechaCreacionHasta=`,
           {
             headers: {
               Authorization: `Bearer ${idToken}`,
@@ -84,7 +82,20 @@ const MisTemasPage = () => {
 
         if (!data || data.length === 0) {
           res = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}temas/porUsuarioTituloAreaCarreraEstadoFecha?titulo=&areaId=&carreraId=&estadoNombre=REGISTRADO&fechaCreacionDesde=&fechaCreacionHasta=`,
+            `${process.env.NEXT_PUBLIC_API_URL}/temas/porUsuarioTituloAreaCarreraEstadoFecha?titulo=&areaId=&carreraId=&estadoNombre=REGISTRADO&fechaCreacionDesde=&fechaCreacionHasta=`,
+            {
+              headers: {
+                Authorization: `Bearer ${idToken}`,
+                "Content-Type": "application/json",
+              },
+            },
+          );
+          data = await res.json();
+        }
+
+        if (!data || data.length === 0) {
+          res = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/temas/porUsuarioTituloAreaCarreraEstadoFecha?titulo=&areaId=&carreraId=&estadoNombre=EN_PROGRESO&fechaCreacionDesde=&fechaCreacionHasta=`,
             {
               headers: {
                 Authorization: `Bearer ${idToken}`,

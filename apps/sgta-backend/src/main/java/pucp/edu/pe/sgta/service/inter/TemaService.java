@@ -10,6 +10,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 
 import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
+import pucp.edu.pe.sgta.dto.temas.TemasComprometidosDto;
 
 public interface TemaService {
 	List<TemaDto> getAll();
@@ -181,4 +182,12 @@ public interface TemaService {
      * @return List of TemaDto representing finalized temas
      */
     List<TemaDto> listarTemasFinalizados();
+
+	/**
+	 * Cuenta los temas comprometidos por un usuario tesista
+	 * @param usuarioSubId ID del usuario (cognito sub)
+	 * @return Lista de temas comprometidos agrupados por estado
+	 */
+	List<TemasComprometidosDto> contarTemasComprometidos(String usuarioSubId);
+
 }
