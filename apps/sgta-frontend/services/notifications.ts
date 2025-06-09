@@ -1,3 +1,4 @@
+import { useAuthStore } from "@/features/auth";
 import axios from "axios";
 
 export interface Notificacion {
@@ -15,11 +16,16 @@ export interface Notificacion {
 }
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
-
+const { idToken } = useAuthStore.getState();
 export const NotificacionesService = {
   // Obtener notificaciones no leídas
   getUnreadNotifications: async (): Promise<Notificacion[]> => {
-    const response = await axios.get(`${BASE_URL}/api/notifications/unread`);
+    const response = await axios.get(`${BASE_URL}/api/notifications/unread`,{
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+        "Content-Type": "application/json",
+      },
+    });
     return response.data;
   },
 
