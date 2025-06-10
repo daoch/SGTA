@@ -11,6 +11,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import pucp.edu.pe.sgta.dto.HistorialTemaDto;
 import pucp.edu.pe.sgta.dto.TemaConAsesorJuradoDTO;
 import pucp.edu.pe.sgta.dto.TemaPorAsociarDto;
 import pucp.edu.pe.sgta.dto.TemaSimilarDto;
@@ -48,6 +49,9 @@ public class TemaController {
 
 	@Autowired
 	SimilarityService similarityService;
+
+	@Autowired
+	pucp.edu.pe.sgta.service.inter.HistorialTemaService historialTemaService;
 
 	@GetMapping("/findByUser") // finds topics by user
 	public List<TemaDto> findByUser(@RequestParam(name = "idUsuario") Integer idUsuario) {
@@ -710,6 +714,12 @@ public class TemaController {
 		}
 	}
 
+	@GetMapping("/{temaId}/historial")
+    public ResponseEntity<List<HistorialTemaDto>> getHistorialPorTema(@PathVariable Integer temaId) {
+        List<HistorialTemaDto> historial = historialTemaService.listarHistorialActivoPorTema(temaId);
+        return ResponseEntity.ok(historial);
+    }
+
 	@PostMapping("/aceptarPropuestaCotesista")
 	public ResponseEntity<Void> aceptarPropuestaCotesista(
 			@RequestParam("temaId") Integer temaId,
@@ -733,7 +743,7 @@ public class TemaController {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
 		}
 	}
-	
+
 }
 
 

@@ -23,6 +23,7 @@ import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
 import pucp.edu.pe.sgta.dto.exposiciones.MiembroExposicionDto;
 import pucp.edu.pe.sgta.dto.temas.TemasComprometidosDto;
 import pucp.edu.pe.sgta.exception.CustomException;
+import pucp.edu.pe.sgta.mapper.CarreraMapper;
 import pucp.edu.pe.sgta.mapper.TemaMapper;
 import pucp.edu.pe.sgta.mapper.UsuarioMapper;
 import pucp.edu.pe.sgta.model.*;
@@ -169,7 +170,18 @@ public class TemaServiceImpl implements TemaService {
 		historialTemaDto.setTitulo(titulo);
 		historialTemaDto.setResumen(resumen);
 		historialTemaDto.setDescripcionCambio(description);
-		historialTemaDto.setEstadoTemaId(tema.getEstadoTema().getId());
+		historialTemaDto.setEstadoTemaNombre(tema.getEstadoTema().getNombre());
+		historialTemaDto.setCodigo(tema.getCodigo());
+		historialTemaDto.setMetodologia(tema.getMetodologia());
+		historialTemaDto.setObjetivos(tema.getObjetivos());
+		historialTemaDto.setPortafolioUrl(tema.getPortafolioUrl());
+		historialTemaDto.setFechaLimite(tema.getFechaLimite());
+		historialTemaDto.setFechaFinalizacion(tema.getFechaFinalizacion());
+		historialTemaDto.setCarrera(tema.getCarrera() != null ? CarreraMapper.toDto(tema.getCarrera()) : null);
+		historialTemaDto.setProyectoId(tema.getProyecto() != null ? tema.getProyecto().getId() : null);
+		historialTemaDto.setActivo(true);
+		historialTemaDto.setFechaCreacion(tema.getFechaCreacion());
+		historialTemaDto.setFechaModificacion(tema.getFechaModificacion());
 		if (tema.getId() == null) {
 			throw new RuntimeException("El tema no tiene ID asignado para crear cambio en historial.");
 		}
