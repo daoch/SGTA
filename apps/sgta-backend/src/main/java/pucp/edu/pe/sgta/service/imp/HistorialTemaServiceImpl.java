@@ -10,6 +10,7 @@ import pucp.edu.pe.sgta.service.inter.HistorialTemaService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class HistorialTemaServiceImpl implements HistorialTemaService {
@@ -47,5 +48,13 @@ public class HistorialTemaServiceImpl implements HistorialTemaService {
     public void save(HistorialTemaDto historialTemaDto) {
         HistorialTema historialTema = HistorialTemaMapper.toEntity(historialTemaDto);
         historialTemaRepository.save(historialTema);
+    }
+
+    @Override
+    public List<HistorialTemaDto> listarHistorialActivoPorTema(Integer temaId) {
+        List<HistorialTema> lista = historialTemaRepository.findActivoByTemaId(temaId);
+        return lista.stream()
+                    .map(HistorialTemaMapper::toDto)
+                    .collect(Collectors.toList());
     }
 }
