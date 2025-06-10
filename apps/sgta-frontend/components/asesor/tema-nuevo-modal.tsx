@@ -24,6 +24,7 @@ import {
   AreaDeInvestigacion,
   Carrera,
   Coasesor,
+  Tema,
   TemaCreateInscription,
   Tesista,
 } from "@/features/temas/types/inscripcion/entities";
@@ -42,7 +43,6 @@ import {
 } from "@/features/temas/types/temas/data";
 import {
   Subareas,
-  Tema,
   TemaCreateLibre,
 } from "@/features/temas/types/temas/entidades";
 //
@@ -102,7 +102,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
   const [areaConocimientoSeleccionada, setAreaConocimientoSeleccionada] =
     useState<AreaConocimiento | null>(null);
   const [subAreas, setSubAreas] = useState<Subareas[]>([]);
-  //
+  const [loading, setLoading] = useState(false);
 
   //Llenado de datos
   useEffect(() => {
@@ -238,6 +238,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
   const handleGuardar = async () => {
     if (!validarCampos()) return;
     try {
+      setLoading(true);
       if (carreras) {
         const response = await axiosInstance.post(
           "temas/createInscripcion",
@@ -259,6 +260,8 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
         error instanceof Error ? error.message : "Error al guardar el tema",
       );
       console.error("Error al guardar el tema:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -623,13 +626,13 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
         </div>
 
         <DialogFooter className="mt-4">
-          <Button variant="outline" onClick={handleCancelar}>
+          <Button variant="outline" onClick={handleCancelar} disabled={loading}>
             Cancelar
           </Button>
           {tipoRegistro === TipoRegistro.INSCRIPCION && (
             <Button
               onClick={handleGuardar}
-              disabled={Object.keys(errores).length > 0}
+              disabled={Object.keys(errores).length > 0 || loading}
             >
               Guardar
             </Button>
@@ -637,7 +640,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
           {tipoRegistro === TipoRegistro.LIBRE && (
             <Button
               onClick={handleGuardarLibre}
-              disabled={Object.keys(errores).length > 0}
+              disabled={Object.keys(errores).length > 0 || loading}
             >
               Guardar
             </Button>
@@ -687,3 +690,4 @@ const mapTemaCreateLibre = (tema: Tema, carrera: Carrera, asesor: Coasesor) => {
 };
 
 export default NuevoTemaDialog;
+

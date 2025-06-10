@@ -7,10 +7,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import pucp.edu.pe.sgta.dto.CarreraXParametroConfiguracionDto;
 import pucp.edu.pe.sgta.service.inter.CarreraXParametroConfiguracionService;
-
+import pucp.edu.pe.sgta.service.inter.JwtService;
 import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import jakarta.servlet.http.HttpServletRequest;
+
 
 @RestController
 
@@ -20,6 +22,9 @@ public class CarreraXParametroConfiguracionController {
 	@Autowired
 	private CarreraXParametroConfiguracionService carreraXParametroConfiguracionService;
 
+	@Autowired
+	private JwtService jwtService;
+
 	@PostMapping("/update")
 	public void update(@RequestBody CarreraXParametroConfiguracionDto dto) {
 
@@ -28,9 +33,11 @@ public class CarreraXParametroConfiguracionController {
 		this.carreraXParametroConfiguracionService.updateCarreraXParametroConfiguracion(dto);
 	}
 
-    @GetMapping("/{carreraId}/parametros")
-    public List<CarreraXParametroConfiguracionDto> getParametros(@PathVariable Long carreraId) {
-        return this.carreraXParametroConfiguracionService.getParametrosPorCarrera(carreraId);
+    @GetMapping("/parametros")
+    public List<CarreraXParametroConfiguracionDto> getParametros(HttpServletRequest request) {
+        String idCognito = jwtService.extractSubFromRequest(request);
+
+        return this.carreraXParametroConfiguracionService.getParametrosPorCarrera(idCognito);
     }
 
 }

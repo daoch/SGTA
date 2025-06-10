@@ -21,7 +21,7 @@ export function ReviewerReports() {
     const loadStudents = async () => {
       try {
         setLoading(true);
-        const data: AlumnoReviewer[] = await findStudentsForReviewer(1, searchQuery);
+        const data: AlumnoReviewer[] = await findStudentsForReviewer(searchQuery);
         
         setStudents(data);
       } catch (error) {

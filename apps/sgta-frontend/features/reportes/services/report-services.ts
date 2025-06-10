@@ -25,16 +25,16 @@ export const obtenerDetalleTemaAlumno = async (): Promise<AlumnoTemaDetalle> => 
 };
 
 
-export const findStudentsForReviewer = async (carreraId: number, cadenaBusqueda: string): Promise<AlumnoReviewer[]> => {
+export const findStudentsForReviewer = async (cadenaBusqueda: string): Promise<AlumnoReviewer[]> => {
   try {
+    const { idToken } = useAuthStore.getState();
     const response = await axiosInstance.get("/usuario/findByStudentsForReviewer", {
       params: {
-        carreraId,
         cadenaBusqueda
       },
-      /*headers: {
+      headers: {
         Authorization: `Bearer ${idToken}`,
-      },*/
+      },
     });
     return response.data;
   } catch (error) {
@@ -53,7 +53,7 @@ export const getEntregablesAlumno = async (alumnoId: string) => {
 export const getEntregablesConCriterios = async (usuarioId: number): Promise<EntregableCriteriosDetalle[]> => {
   try {
     const response = await axiosInstance.get<EntregableCriteriosDetalle[]>(
-      `/api/v1/reports/entregables-criterios/${usuarioId}`
+      `/reports/entregables-criterios/${usuarioId}`
     );
     return response.data;
   } catch (error) {

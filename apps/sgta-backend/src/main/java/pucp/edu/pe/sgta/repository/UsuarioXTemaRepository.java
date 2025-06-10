@@ -91,4 +91,7 @@ public interface UsuarioXTemaRepository extends JpaRepository<UsuarioXTema, Inte
                         """, nativeQuery = true)
         List<MiembroJuradoSimplificadoDTO> obtenerMiembrosJuradoPorExposicionTema(
                         @Param("exposicion_tema_id") Integer exposicionTemaId);
+
+        Optional<UsuarioXTema> findByUsuarioIdAndTemaIdAndRolIdIn(
+                        Integer usuarioId, Integer temaId, List<Integer> rolIds);
 }
