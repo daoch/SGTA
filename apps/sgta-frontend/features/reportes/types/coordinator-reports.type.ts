@@ -8,13 +8,13 @@ export interface TopicArea {
 export interface AdvisorDistribution {
   teacherName: string;
   count: number;
-  department: string;
+  areaName: string;
 }
 
 export interface JurorDistribution {
   teacherName: string;
   count: number;
-  department: string;
+  areaName: string;
 }
 
 export interface AdvisorPerformance {

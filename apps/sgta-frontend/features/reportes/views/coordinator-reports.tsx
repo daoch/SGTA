@@ -20,7 +20,6 @@ import { BarChartHorizontal, Calendar, Download, FileSpreadsheet, PieChart } fro
 import { useEffect, useState } from "react";
 import {
   Bar,
-  BarChart,
   CartesianGrid,
   Cell,
   Legend,
@@ -32,7 +31,7 @@ import {
   ResponsiveContainer,
   Tooltip,
   XAxis,
-  YAxis,
+  YAxis
 } from "recharts";
 import {
   obtenerDesempenoAsesores,
@@ -65,7 +64,7 @@ type TopicArea = { area: string; count: number };
 export function CoordinatorReports() {
   const { user } = useAuth();
   const [semesterFilter, setSemesterFilter] = useState("2025-1");
-  const [themeAreaChartType, setThemeAreaChartType] = useState("vertical-bar"); // 'horizontal-bar', 'vertical-bar', 'pie'
+  const [themeAreaChartType, setThemeAreaChartType] = useState("horizontal-bar"); // 'horizontal-bar', 'pie'
   const [scheduleFrequency, setScheduleFrequency] = useState("weekly");
 
   // Data for thesis topics by area
@@ -102,6 +101,18 @@ export function CoordinatorReports() {
   const [selectedTopicsChart, setSelectedTopicsChart] = useState("areas");
   const [selectedDistributionChart, setSelectedDistributionChart] = useState("advisors");
 
+  // Descripciones para tooltips
+  const topicsDescriptions = {
+    areas: "Muestra la cantidad de temas de tesis distribuidos por área de conocimiento",
+    trends: "Visualiza la evolución histórica de temas por área a través de los años"
+  };
+
+  const distributionDescriptions = {
+    advisors: "Cantidad de tesistas asignados como asesorados por cada docente",
+    jury: "Número de veces que cada docente ha participado como jurado",
+    comparison: "Cantidad de veces que cada docente ha participado como asesor y como jurado"
+  };
+
   useEffect(() => {
     // Solo ejecutar si el usuario está disponible
     if (!user) return;
@@ -130,7 +141,7 @@ export function CoordinatorReports() {
         setAdvisorDistribution(data.map((item: AdvisorDistribution) => ({
           name: item.teacherName,
           count: item.count,
-          department: item.department,
+          department: item.areaName,
         })));
       } catch (error) {
         console.log("Error al cargar las distribuciones por asesor:", error);
@@ -146,7 +157,7 @@ export function CoordinatorReports() {
         setJuryDistribution(data.map((item: JurorDistribution) => ({
           name: item.teacherName,
           count: item.count,
-          department: item.department,
+          department: item.areaName,
         })));
       } catch (error) {
         console.log("Error al cargar las distribuciones por jurado:", error);
@@ -240,11 +251,11 @@ export function CoordinatorReports() {
 
   const renderTopicsAreaChart = () => {
     if (loadingTopicsByArea) {
-      return <div>Cargando...</div>;
+      return <div className="text-base">Cargando...</div>;
     }
 
     if (thesisTopicsByArea.length === 0) {
-      return <div className="text-center text-gray-500 py-8">No hay datos para este ciclo.</div>;
+      return <div className="text-center text-gray-500 py-8 text-base">No hay datos para este ciclo.</div>;
     }
 
     if (themeAreaChartType === "horizontal-bar") {
@@ -265,41 +276,16 @@ export function CoordinatorReports() {
       );
     }
 
-    if (themeAreaChartType === "vertical-bar") {
-      return (
-        <ResponsiveContainer width="100%" height={400}>
-          <RechartsBarChart
-            data={thesisTopicsByArea}
-            margin={{ top: 20, right: 20, left: 20, bottom: 40 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis
-              dataKey="area"
-              tickFormatter={toTitleCase}
-              angle={0}
-              textAnchor="middle"
-              height={40}
-              interval={0}
-              tick={{ fontSize: 14 }}
-            />
-            <YAxis />
-            <Tooltip />
-            <Bar dataKey="count" fill="#002855" />
-          </RechartsBarChart>
-        </ResponsiveContainer>
-      );
-    }
-
     return (
       <ResponsiveContainer width="100%" height={400}>
-        <RechartsPieChart>
+        <RechartsPieChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
           <Pie
             data={thesisTopicsByArea}
-            cx="50%"
+            cx="45%"
             cy="50%"
             labelLine={false}
             label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
-            outerRadius={120}
+            outerRadius={130}
             fill="#8884d8"
             dataKey="count"
           >
@@ -307,11 +293,20 @@ export function CoordinatorReports() {
               <Cell key={entry.area} fill={COLORS[index % COLORS.length]} />
             ))}
           </Pie>
-          <Tooltip />
+          <Tooltip 
+            formatter={(value, name, props) => [
+              `${value} temas`, 
+              toTitleCase(props.payload.area)
+            ]}
+            labelFormatter={() => ""}
+          />
           <Legend
             layout="vertical"
             verticalAlign="middle"
             align="right"
+            wrapperStyle={{ 
+              paddingRight: "50px"
+            }}
             payload={thesisTopicsByArea.map((item, index) => ({
               id: item.area,
               type: "square",
@@ -326,11 +321,11 @@ export function CoordinatorReports() {
 
   const renderTrendsChart = () => {
     if (loadingLineChart) {
-      return <div>Cargando...</div>;
+      return <div className="text-base">Cargando...</div>;
     }
 
     if (lineChartData.length === 0) {
-      return <div className="text-center text-gray-500 py-8">No hay datos para este ciclo.</div>;
+      return <div className="text-center text-gray-500 py-8 text-base">No hay datos para este ciclo.</div>;
     }
 
     return (
@@ -357,30 +352,28 @@ export function CoordinatorReports() {
 
   const renderAdvisorDistribution = () => {
     if (loadingAdvisorDistribution) {
-      return <div>Cargando...</div>;
+      return <div className="text-base">Cargando...</div>;
     }
 
     if (advisorDistribution.length === 0) {
-      return <div className="text-center text-gray-500 py-8">No hay datos para este ciclo.</div>;
+      return <div className="text-center text-gray-500 py-8 text-base">No hay datos para este ciclo.</div>;
     }
 
     return (
       <ResponsiveContainer width="100%" height={400}>
         <RechartsBarChart
+          layout="vertical"
           data={advisorDistribution}
-          margin={{ top: 20, right: 20, left: 20, bottom: 40 }}
+          margin={{ top: 5, right: 30, left: 30, bottom: 5 }}
         >
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis
-            dataKey="name"
+          <XAxis type="number" allowDecimals={false} />
+          <YAxis 
+            type="category" 
+            dataKey="name" 
             tickFormatter={toTitleCase}
-            angle={0}
-            textAnchor="middle"
-            height={60}
-            interval={0}
-            tick={{ fontSize: 14 }}
+            width={80}
           />
-          <YAxis allowDecimals={false} />
           <Tooltip />
           <Bar dataKey="count" fill="#006699" />
         </RechartsBarChart>
@@ -390,11 +383,11 @@ export function CoordinatorReports() {
 
   const renderJuryDistribution = () => {
     if (loadingJuryDistribution) {
-      return <div>Cargando...</div>;
+      return <div className="text-base">Cargando...</div>;
     }
 
     if (juryDistribution.length === 0) {
-      return <div className="text-center text-gray-500 py-8">No hay datos para este ciclo.</div>;
+      return <div className="text-center text-gray-500 py-8 text-base">No hay datos para este ciclo.</div>;
     }
 
     return (
@@ -402,11 +395,16 @@ export function CoordinatorReports() {
         <RechartsBarChart
           layout="vertical"
           data={juryDistribution}
-          margin={{ top: 5, right: 30, left: 80, bottom: 5 }}
+          margin={{ top: 5, right: 30, left: 30, bottom: 5 }}
         >
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis type="number" tickFormatter={toTitleCase} />
-          <YAxis type="category" dataKey="name" />
+          <XAxis type="number" allowDecimals={false} />
+          <YAxis 
+            type="category" 
+            dataKey="name" 
+            tickFormatter={toTitleCase}
+            width={80}
+          />
           <Tooltip />
           <Bar dataKey="count" fill="#002855" />
         </RechartsBarChart>
@@ -424,7 +422,7 @@ export function CoordinatorReports() {
         return (
           <div className="p-4">
             {advisorDistribution.length === 0 && juryDistribution.length === 0 ? (
-              <div className="text-center text-gray-500 py-8">
+              <div className="text-center text-gray-500 py-8 text-base">
                 No hay información de carga para este ciclo.
               </div>
             ) : (
@@ -432,11 +430,11 @@ export function CoordinatorReports() {
                 <table className="w-full min-w-[600px] border-collapse">
                   <thead>
                     <tr className="border-b">
-                      <th className="py-2 text-left text-sm font-medium text-gray-500">Docente</th>
-                      <th className="py-2 text-left text-sm font-medium text-gray-500">Departamento</th>
-                      <th className="py-2 text-left text-sm font-medium text-gray-500">Asesorías</th>
-                      <th className="py-2 text-left text-sm font-medium text-gray-500">Jurado</th>
-                      <th className="py-2 text-left text-sm font-medium text-gray-500">Total</th>
+                      <th className="py-3 text-left text-base font-medium text-gray-500">Docente</th>
+                      <th className="py-3 text-left text-base font-medium text-gray-500">Departamento</th>
+                      <th className="py-3 text-left text-base font-medium text-gray-500">Asesorías</th>
+                      <th className="py-3 text-left text-base font-medium text-gray-500">Jurado</th>
+                      <th className="py-3 text-left text-base font-medium text-gray-500">Total</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -446,11 +444,11 @@ export function CoordinatorReports() {
 
                       return (
                         <tr key={`${advisor.name}-${advisor.department}`} className="border-b">
-                          <td className="py-1.5 text-sm font-medium">{toTitleCase(advisor.name)}</td>
-                          <td className="py-1.5 text-sm">{toTitleCase(advisor.department)}</td>
-                          <td className="py-1.5 text-sm">{advisor.count}</td>
-                          <td className="py-1.5 text-sm">{juryCount}</td>
-                          <td className="py-1.5 text-sm font-medium">{total}</td>
+                          <td className="py-2 text-base font-medium">{toTitleCase(advisor.name)}</td>
+                          <td className="py-2 text-base">{toTitleCase(advisor.department)}</td>
+                          <td className="py-2 text-base">{advisor.count}</td>
+                          <td className="py-2 text-base">{juryCount}</td>
+                          <td className="py-2 text-base font-medium">{total}</td>
                         </tr>
                       );
                     })}
@@ -465,11 +463,11 @@ export function CoordinatorReports() {
 
   const renderPerformanceContent = () => {
     if (loadingAdvisorPerformance) {
-      return <div>Cargando...</div>;
+      return <div className="text-base">Cargando...</div>;
     }
 
     if (advisorPerformance.length === 0) {
-      return <div className="text-center text-gray-500 py-8">No hay datos para este ciclo.</div>;
+      return <div className="text-center text-gray-500 py-8 text-base">No hay datos para este ciclo.</div>;
     }
 
     return (
@@ -478,17 +476,17 @@ export function CoordinatorReports() {
           <div key={`${advisor.name}-${advisor.department}`} className="space-y-1">
             <div className="flex justify-between items-center">
               <div>
-                <h3 className="text-sm font-medium">{toTitleCase(advisor.name)}</h3>
-                <p className="text-xs text-gray-500">{toTitleCase(advisor.department)}</p>
+                <h3 className="text-base font-medium">{toTitleCase(advisor.name)}</h3>
+                <p className="text-sm text-gray-500">{toTitleCase(advisor.department)}</p>
               </div>
               <div className="text-right">
-                <span className="text-base font-bold">{advisor.progress}%</span>
-                <span className="text-xs text-gray-500 ml-1">({advisor.students} tesistas)</span>
+                <span className="text-lg font-bold">{advisor.progress}%</span>
+                <span className="text-sm text-gray-500 ml-1">({advisor.students} tesistas)</span>
               </div>
             </div>
             <Progress
               value={advisor.progress}
-              className="h-2.5 bg-gray-200"
+              className="h-3 bg-gray-200"
               indicatorClassName="bg-[#002855]"
             />
           </div>
@@ -500,94 +498,94 @@ export function CoordinatorReports() {
   return (
     <div className="space-y-4">
       <Tabs defaultValue="topics">
-        <div className="flex justify-between items-center mb-2">
-          <TabsList>
-            <TabsTrigger value="topics">Temas y Áreas</TabsTrigger>
-            <TabsTrigger value="distribution">Distribución de Jurados y Asesores</TabsTrigger>
-            <TabsTrigger value="performance">Desempeño de Asesores</TabsTrigger>
+        <div className="flex justify-between items-center mb-4">
+          <TabsList className="text-base">
+            <TabsTrigger value="topics" className="text-base">Temas y Áreas</TabsTrigger>
+            <TabsTrigger value="distribution" className="text-base">Distribución de Jurados y Asesores</TabsTrigger>
+            <TabsTrigger value="performance" className="text-base">Desempeño de Asesores</TabsTrigger>
           </TabsList>
-          <div className="flex gap-2 items-center">
+          <div className="flex gap-3 items-center">
             <Select value={semesterFilter} onValueChange={setSemesterFilter}>
-              <SelectTrigger className="w-[150px]">
+              <SelectTrigger className="w-[160px] text-base">
                 <SelectValue placeholder="Seleccionar ciclo" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="2025-1">2025-1</SelectItem>
-                <SelectItem value="2024-2">2024-2</SelectItem>
-                <SelectItem value="2024-1">2024-1</SelectItem>
-                <SelectItem value="2023-2">2023-2</SelectItem>
-                <SelectItem value="2023-1">2023-1</SelectItem>
+                <SelectItem value="2025-1" className="text-base">2025-1</SelectItem>
+                <SelectItem value="2024-2" className="text-base">2024-2</SelectItem>
+                <SelectItem value="2024-1" className="text-base">2024-1</SelectItem>
+                <SelectItem value="2023-2" className="text-base">2023-2</SelectItem>
+                <SelectItem value="2023-1" className="text-base">2023-1</SelectItem>
               </SelectContent>
             </Select>
 
             <Dialog>
               <DialogTrigger asChild>
-                <Button variant="outline" className="gap-2">
+                <Button variant="outline" className="gap-2 text-base">
                   <Calendar className="h-4 w-4" />
                   Programar Reportes
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Programar Envío de Reportes</DialogTitle>
-                  <DialogDescription>
+                  <DialogTitle className="text-lg">Programar Envío de Reportes</DialogTitle>
+                  <DialogDescription className="text-base">
                     Configura la frecuencia con la que deseas recibir reportes automáticos en tu correo.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                   <div className="space-y-2">
-                    <Label htmlFor="schedule-frequency">Frecuencia de envío</Label>
+                    <Label htmlFor="schedule-frequency" className="text-base">Frecuencia de envío</Label>
                     <Select value={scheduleFrequency} onValueChange={setScheduleFrequency}>
-                      <SelectTrigger id="schedule-frequency">
+                      <SelectTrigger id="schedule-frequency" className="text-base">
                         <SelectValue placeholder="Selecciona frecuencia" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="daily">Diario</SelectItem>
-                        <SelectItem value="weekly">Semanal</SelectItem>
-                        <SelectItem value="monthly">Mensual</SelectItem>
+                        <SelectItem value="daily" className="text-base">Diario</SelectItem>
+                        <SelectItem value="weekly" className="text-base">Semanal</SelectItem>
+                        <SelectItem value="monthly" className="text-base">Mensual</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="report-format">Formato de reporte</Label>
+                    <Label htmlFor="report-format" className="text-base">Formato de reporte</Label>
                     <Select defaultValue="pdf">
-                      <SelectTrigger id="report-format">
+                      <SelectTrigger id="report-format" className="text-base">
                         <SelectValue placeholder="Selecciona formato" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="pdf">PDF</SelectItem>
-                        <SelectItem value="excel">Excel</SelectItem>
+                        <SelectItem value="pdf" className="text-base">PDF</SelectItem>
+                        <SelectItem value="excel" className="text-base">Excel</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="email-input">Correo electrónico</Label>
+                    <Label htmlFor="email-input" className="text-base">Correo electrónico</Label>
                     <input
                       id="email-input"
                       type="email"
-                      className="w-full px-3 py-2 border rounded-md"
+                      className="w-full px-3 py-2 border rounded-md text-base"
                       defaultValue="coordinador@pucp.edu.pe"
                       readOnly
                     />
                   </div>
-                  <Button className="w-full mt-4">Guardar configuración</Button>
+                  <Button className="w-full mt-4 text-base">Guardar configuración</Button>
                 </div>
               </DialogContent>
             </Dialog>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="gap-2">
+                <Button variant="outline" className="gap-2 text-base">
                   <Download className="h-4 w-4" />
                   Exportar
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => handleExport("pdf")}>
+                <DropdownMenuItem onClick={() => handleExport("pdf")} className="text-base">
                   <Download className="h-4 w-4 mr-2" />
                   Exportar como PDF
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleExport("excel")}>
+                <DropdownMenuItem onClick={() => handleExport("excel")} className="text-base">
                   <FileSpreadsheet className="h-4 w-4 mr-2" />
                   Exportar como Excel
                 </DropdownMenuItem>
@@ -597,17 +595,20 @@ export function CoordinatorReports() {
         </div>
         <TabsContent value="topics" className="space-y-4">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between py-2">
-              <CardTitle className="text-base">Visualización de Temas</CardTitle>
-              <Select value={selectedTopicsChart} onValueChange={setSelectedTopicsChart}>
-                <SelectTrigger className="w-[250px]">
-                  <SelectValue placeholder="Seleccionar visualización" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="areas">Distribución de Temas por Área</SelectItem>
-                  <SelectItem value="trends">Tendencias de Temas por Año</SelectItem>
-                </SelectContent>
-              </Select>
+            <CardHeader className="pb-2">
+              <div className="flex flex-row items-center justify-between">
+                <CardTitle className="text-lg">Visualización de Temas</CardTitle>
+                <Select value={selectedTopicsChart} onValueChange={setSelectedTopicsChart}>
+                  <SelectTrigger className="w-[280px] text-base">
+                    <SelectValue placeholder="Seleccionar visualización" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="areas" className="text-base">Distribución de Temas por Área</SelectItem>
+                    <SelectItem value="trends" className="text-base">Tendencias de Temas por Año</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <p className="text-sm text-gray-600 pt-2">{topicsDescriptions[selectedTopicsChart as keyof typeof topicsDescriptions]}</p>
             </CardHeader>
             <CardContent className="p-0">
               {selectedTopicsChart === "areas" ? (
@@ -616,29 +617,20 @@ export function CoordinatorReports() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className={`h-7 w-7 ${themeAreaChartType === "horizontal-bar" ? "bg-gray-100" : ""}`}
+                      className={`h-8 w-8 ${themeAreaChartType === "horizontal-bar" ? "bg-gray-100" : ""}`}
                       onClick={() => setThemeAreaChartType("horizontal-bar")}
                       title="Gráfico de barras horizontal"
                     >
-                      <BarChartHorizontal className="h-3.5 w-3.5" />
+                      <BarChartHorizontal className="h-4 w-4" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className={`h-7 w-7 ${themeAreaChartType === "vertical-bar" ? "bg-gray-100" : ""}`}
-                      onClick={() => setThemeAreaChartType("vertical-bar")}
-                      title="Gráfico de barras vertical"
-                    >
-                      <BarChart className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className={`h-7 w-7 ${themeAreaChartType === "pie" ? "bg-gray-100" : ""}`}
+                      className={`h-8 w-8 ${themeAreaChartType === "pie" ? "bg-gray-100" : ""}`}
                       onClick={() => setThemeAreaChartType("pie")}
                       title="Gráfico circular"
                     >
-                      <PieChart className="h-3.5 w-3.5" />
+                      <PieChart className="h-4 w-4" />
                     </Button>
                   </div>
                   {renderTopicsAreaChart()}
@@ -654,18 +646,21 @@ export function CoordinatorReports() {
 
         <TabsContent value="distribution" className="space-y-4">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between py-2">
-              <CardTitle className="text-base">Distribución de Carga</CardTitle>
-              <Select value={selectedDistributionChart} onValueChange={setSelectedDistributionChart}>
-                <SelectTrigger className="w-[250px]">
-                  <SelectValue placeholder="Seleccionar visualización" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="advisors">Distribución de Asesores por Docente</SelectItem>
-                  <SelectItem value="jury">Distribución de Jurados por Docente</SelectItem>
-                  <SelectItem value="comparison">Comparativa de Carga: Asesorías vs Jurado</SelectItem>
-                </SelectContent>
-              </Select>
+            <CardHeader className="pb-2">
+              <div className="flex flex-row items-center justify-between">
+                <CardTitle className="text-lg">Distribución de Carga</CardTitle>
+                <Select value={selectedDistributionChart} onValueChange={setSelectedDistributionChart}>
+                  <SelectTrigger className="w-[280px] text-base">
+                    <SelectValue placeholder="Seleccionar visualización" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="advisors" className="text-base">Asesores por Docente</SelectItem>
+                    <SelectItem value="jury" className="text-base">Jurados por Docente</SelectItem>
+                    <SelectItem value="comparison" className="text-base">Asesorías vs Jurado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <p className="text-sm text-gray-600 pt-2">{distributionDescriptions[selectedDistributionChart as keyof typeof distributionDescriptions]}</p>
             </CardHeader>
             <CardContent className="p-0">
               {renderDistributionContent()}
@@ -675,26 +670,25 @@ export function CoordinatorReports() {
 
         <TabsContent value="performance">
           <Card>
-            <CardHeader className="py-2">
-              <CardTitle className="text-base">Desempeño de Asesores</CardTitle>
-              <p className="text-xs text-gray-600 mt-1">
-                Promedio de avance de tesistas por asesor. Este indicador muestra la efectividad de cada asesor en guiar
-                a sus estudiantes hacia la culminación de sus tesis.
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg">Desempeño de Asesores</CardTitle>
+              <p className="text-sm text-gray-600 pt-2">
+                Promedio de avance de tesistas por asesor
               </p>
             </CardHeader>
             <CardContent className="p-4">
               {renderPerformanceContent()}
               {advisorPerformance.length > 0 && (
                 <div className="mt-8">
-                  <h3 className="text-sm font-medium mb-4">Comparativa de Eficiencia</h3>
+                  <h3 className="text-base font-medium mb-4">Comparativa de Eficiencia</h3>
                   <ResponsiveContainer width="100%" height={300}>
                     <RechartsBarChart data={advisorPerformance} margin={{top: 5, right: 30, left: 20, bottom: 20}}>
                       <CartesianGrid strokeDasharray="3 3"/>
-                      <XAxis dataKey="name" tickFormatter={toTitleCase} height={60} angle={0} textAnchor="end"/>
-                      <YAxis yAxisId="left" orientation="left" stroke="#002855" tick={{fontSize: 12}} label={{ value: "Progreso (%)", angle: -90, position: "insideLeft" }} allowDecimals={false}/>
-                      <YAxis yAxisId="right" orientation="right" stroke="#006699" tick={{fontSize: 12}} label={{ value: "Tesistas", angle: 90, position: "insideRight" }} allowDecimals={false}/>
+                      <XAxis dataKey="name" tickFormatter={toTitleCase} height={60} angle={0} textAnchor="end" tick={{fontSize: 13}}/>
+                      <YAxis yAxisId="left" orientation="left" stroke="#002855" tick={{fontSize: 13}} label={{ value: "Progreso (%)", angle: -90, position: "insideLeft" }} allowDecimals={false}/>
+                      <YAxis yAxisId="right" orientation="right" stroke="#006699" tick={{fontSize: 13}} label={{ value: "Tesistas", angle: 90, position: "insideRight" }} allowDecimals={false}/>
                       <Tooltip/>
-                      <Legend wrapperStyle={{fontSize: "12px", marginTop: "10px"}}/>
+                      <Legend wrapperStyle={{fontSize: "13px", marginTop: "10px"}}/>
                       <Bar yAxisId="left" dataKey="progress" name="Progreso (%)" fill="#002855"/>
                       <Bar yAxisId="right" dataKey="students" name="Tesistas" fill="#006699"/>
                     </RechartsBarChart>
