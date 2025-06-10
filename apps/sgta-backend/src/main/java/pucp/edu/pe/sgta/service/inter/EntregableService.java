@@ -17,4 +17,5 @@ public interface EntregableService {
     EntregableDto findById(Integer id);
     List<EntregableAlumnoDto> listarEntregablesPorAlumno(String alumnoId);
     void entregarEntregable(Integer entregableXTemaId, EntregableSubidoDto entregableDto);
+    EntregableAlumnoDto obtenerDetalleXTema(Integer entregableId, Integer temaId);
 }
