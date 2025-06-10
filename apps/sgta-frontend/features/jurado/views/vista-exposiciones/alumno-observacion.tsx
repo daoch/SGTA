@@ -89,7 +89,7 @@ const ObservacionExposicion: React.FC<DetalleObservacionExposicionProps> = ({
                     criterio.observacion ||
                     "El miembro del jurado no ha dejado observaciones para este criterio."
                   }
-                  calificacion={criterio.calificacion}
+                  calificacion={criterio.calificacion || 0}
                   nota_maxima={criterio.nota_maxima}
                 />
               ))}
