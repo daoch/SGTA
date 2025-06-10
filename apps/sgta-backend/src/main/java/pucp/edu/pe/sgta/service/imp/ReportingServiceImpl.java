@@ -194,95 +194,94 @@ public class ReportingServiceImpl implements IReportService {
     }
 
     @Override
-    public DetalleTesistaDTO getDetalleTesista(String cognitoSub) {
-        Integer tesistaId = usuarioService.findByCognitoId(cognitoSub).getId();
-        List<Object[]> res = detalleTesistaRepository.getDetalleTesista(tesistaId);
-        if (res.isEmpty()) return null;
-        Object[] r = res.get(0);
+    public DetalleTesistaDTO getDetalleTesista(Integer tesistaId) {
+        if (tesistaId == null) {
+            throw new IllegalArgumentException("El ID del tesista es requerido");
+        }
+
+        List<Object[]> results = detalleTesistaRepository.getDetalleTesista(tesistaId);
+        if (results.isEmpty()) {
+            return null;
+        }
+
+        Object[] result = results.get(0);
         return DetalleTesistaDTO.builder()
-                .tesistaId((Integer) r[0])
-                .nombres((String) r[1])
-                .primerApellido((String) r[2])
-                .segundoApellido((String) r[3])
-                .correoElectronico((String) r[4])
-                .nivelEstudios((String) r[5])
-                .codigoPucp((String) r[6])
-                .temaId((Integer) r[7])
-                .tituloTema((String) r[8])
-                .resumenTema((String) r[9])
-                .metodologia((String) r[10])
-                .objetivos((String) r[11])
-                .areaConocimiento((String) r[12])
-                .subAreaConocimiento((String) r[13])
-                .asesorNombre((String) r[14])
-                .asesorCorreo((String) r[15])
-                .coasesorNombre((String) r[16])
-                .coasesorCorreo((String) r[17])
-                .cicloId((Integer) r[18])
-                .cicloNombre((String) r[19])
-                .fechaInicioCiclo(
-                        r[20] != null
-                                ? ((Date) r[20]).toLocalDate()
-                                : null)
-                .fechaFinCiclo(
-                        r[21] != null
-                                ? ((Date) r[21]).toLocalDate()
-                                : null)
-                .etapaFormativaId((Integer) r[22])
-                .etapaFormativaNombre((String) r[23])
-                .faseActual((String) r[24])
-                .entregableId((Integer) r[25])
-                .entregableNombre((String) r[26])
-                .entregableActividadEstado((String) r[27])
-                .entregableEnvioEstado((String) r[28])
+                .tesistaId((Integer) result[0])
+                .nombres((String) result[1])
+                .primerApellido((String) result[2])
+                .segundoApellido((String) result[3])
+                .correoElectronico((String) result[4])
+                .nivelEstudios((String) result[5])
+                .codigoPucp((String) result[6])
+                .temaId((Integer) result[7])
+                .tituloTema((String) result[8])
+                .resumenTema((String) result[9])
+                .metodologia((String) result[10])
+                .objetivos((String) result[11])
+                .areaConocimiento((String) result[12])
+                .subAreaConocimiento((String) result[13])
+                .asesorNombre((String) result[14])
+                .asesorCorreo((String) result[15])
+                .coasesorNombre((String) result[16])
+                .coasesorCorreo((String) result[17])
+                .cicloId((Integer) result[18])
+                .cicloNombre((String) result[19])
+                .fechaInicioCiclo(result[20] != null ? ((java.sql.Date) result[20]).toLocalDate() : null)
+                .fechaFinCiclo(result[21] != null ? ((java.sql.Date) result[21]).toLocalDate() : null)
+                .etapaFormativaId((Integer) result[22])
+                .etapaFormativaNombre((String) result[23])
+                .faseActual((String) result[24])
+                .entregableId((Integer) result[25])
+                .entregableNombre((String) result[26])
+                .entregableActividadEstado((String) result[27])
+                .entregableEnvioEstado((String) result[28])
                 .entregableFechaInicio(
-                        r[29] != null
-                                ? ((Timestamp) r[29]).toLocalDateTime().atZone(ZoneId.systemDefault())
+                        result[29] != null ? ((Timestamp) result[29]).toLocalDateTime().atZone(ZoneId.systemDefault())
                                 : null)
                 .entregableFechaFin(
-                        r[30] != null
-                                ? ((Timestamp) r[30]).toLocalDateTime().atZone(ZoneId.systemDefault())
+                        result[30] != null ? ((Timestamp) result[30]).toLocalDateTime().atZone(ZoneId.systemDefault())
                                 : null)
                 .build();
     }
 
     @Override
-    public List<HitoCronogramaDTO> getHitosCronogramaTesista(String cognitoSub) {
-        Integer tesistaId = usuarioService.findByCognitoId(cognitoSub).getId();
+    public List<HitoCronogramaDTO> getHitosCronogramaTesista(Integer tesistaId) {
+        if (tesistaId == null) {
+            throw new IllegalArgumentException("El ID del tesista es requerido");
+        }
+
         List<Object[]> results = hitoCronogramaRepository.getHitosCronogramaTesista(tesistaId);
         return results.stream()
-                .map(r -> HitoCronogramaDTO.builder()
-                        .hitoId((Integer) r[0])
-                        .nombre((String) r[1])
-                        .descripcion((String) r[2])
-                        .fechaInicio(
-                                r[3] != null
-                                        ? ((Timestamp) r[3]).toLocalDateTime()
-                                        .atZone(ZoneId.systemDefault())
-                                        : null)
-                        .fechaFin(
-                                r[4] != null
-                                        ? ((Timestamp) r[4]).toLocalDateTime()
-                                        .atZone(ZoneId.systemDefault())
-                                        : null)
-                        .entregableEnvioEstado((String) r[5])
-                        .entregableActividadEstado((String) r[6])
-                        .esEvaluable((Boolean) r[7])
-                        .temaId((Integer) r[8])
-                        .temaTitulo((String) r[9])
+                .map(result -> HitoCronogramaDTO.builder()
+                        .hitoId((Integer) result[0])
+                        .nombre((String) result[1])
+                        .descripcion((String) result[2])
+                        .fechaInicio(result[3] != null
+                                ? ((Timestamp) result[3]).toLocalDateTime().atZone(ZoneId.systemDefault())
+                                : null)
+                        .fechaFin(result[4] != null
+                                ? ((Timestamp) result[4]).toLocalDateTime().atZone(ZoneId.systemDefault())
+                                : null)
+                        .entregableEnvioEstado((String) result[5])
+                        .entregableActividadEstado((String) result[6])
+                        .esEvaluable((Boolean) result[7])
+                        .temaId((Integer) result[8])
+                        .temaTitulo((String) result[9])
                         .build())
                 .collect(Collectors.toList());
     }
 
     @Override
-    public List<HistorialReunionDTO> getHistorialReuniones(String cognitoSub) {
-        Integer tesistaId = usuarioService.findByCognitoId(cognitoSub).getId();
+    public List<HistorialReunionDTO> getHistorialReuniones(Integer tesistaId) {
+        if (tesistaId == null) {
+            throw new IllegalArgumentException("El ID del tesista es requerido");
+        }
         List<Object[]> results = historialReunionRepository.getHistorialReuniones(tesistaId);
         return results.stream()
-                .map(r -> HistorialReunionDTO.builder()
-                        .fecha(((Date) r[0]).toLocalDate())
-                        .duracion((String) r[1])
-                        .notas((String) r[2])
+                .map(result -> HistorialReunionDTO.builder()
+                        .fecha(((Date) result[0]).toLocalDate())
+                        .duracion((String) result[1])
+                        .notas((String) result[2])
                         .build())
                 .collect(Collectors.toList());
     }
