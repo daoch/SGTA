@@ -73,7 +73,7 @@ export default function ReviewerStudentDetails({ params }: { params: Promise<{ i
     const loadStudents = async () => {
       try {
         setLoading(true);
-        const data: AlumnoReviewer[] = await findStudentsForReviewer(1, searchQuery);
+        const data: AlumnoReviewer[] = await findStudentsForReviewer(searchQuery);
         setStudents(data);
       } catch (error) {
         console.error("Error loading students:", error);
@@ -91,7 +91,7 @@ export default function ReviewerStudentDetails({ params }: { params: Promise<{ i
   const selectedStudentData = students.find((student) => student.usuarioId === parseInt(id));
   ///const selectedStudentData = students.find((student) => student.usuarioId === studentId);
 
-
+  console.log("Selected Student Data:", selectedStudentData);
 
   if (loading) {
     return <div>Cargando estudiantes...</div>;
@@ -194,7 +194,7 @@ export default function ReviewerStudentDetails({ params }: { params: Promise<{ i
             </TabsContent>
 
             <TabsContent value="consolidated">
-              <ConsolidatedView studentId={selectedStudent} />
+              <ConsolidatedView studentId={selectedStudentData?.usuarioId} />
             </TabsContent>
           </Tabs>
         </CardContent>
