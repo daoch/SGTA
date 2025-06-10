@@ -45,7 +45,7 @@ const formatEstadoEntrega = (estado: string): { text: string; color: string } =>
 };
 
 interface ConsolidatedViewProps {
-  studentId: number;
+  studentId?: number;
 }
 
 export function ConsolidatedView({ studentId }: ConsolidatedViewProps) {

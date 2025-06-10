@@ -305,7 +305,7 @@ export function PropuestasTable({
                             );
                             return;
                           }
-                          setSelected(tema);
+                          setSelected(selected); 
                           setOpenPostularDialog(true);
                         } catch (error) {
                           toast.error("Error verificando temas comprometidos", { position: "bottom-right" });
