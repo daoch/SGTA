@@ -64,7 +64,7 @@ public class DocumentoServiceImpl implements DocumentoService {
     @Transactional
     @Override
     public ResponseEntity<String> subirDocumentos(Integer entregableXTemaId, MultipartFile[] archivos,
-                                                  String ciclo, String curso, String codigoAlumno, Integer temaId) {
+                                                  String ciclo, String curso, String codigoAlumno) {
         for (MultipartFile archivo : archivos) {
             try {
                 String filename = ciclo + S3_PATH_DELIMITER + curso + S3_PATH_DELIMITER +

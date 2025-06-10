@@ -100,7 +100,6 @@ export function EntregablesModal({
         formData.append("ciclo", entregable.cicloNombre.toString());
         formData.append("curso", entregable.etapaFormativaNombre.toString());
         formData.append("codigoAlumno", "20183178");
-        formData.append("temaId", entregable.temaId.toString());
 
         await axiosInstance.post(
           `/documento/entregable/${entregable.entregableXTemaId}`,

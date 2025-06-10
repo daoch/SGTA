@@ -16,7 +16,6 @@ public interface DocumentoService {
         MultipartFile[] archivos,
         String ciclo,
         String curso,
-        String codigoAlumno,
-        Integer temaId
+        String codigoAlumno
     );
 }

@@ -46,9 +46,8 @@ public class DocumentoController {
             @RequestParam("archivos") MultipartFile[] archivos,
             @RequestParam("ciclo") String ciclo,
             @RequestParam("curso") String curso,
-            @RequestParam("codigoAlumno") String codigoAlumno,
-            @RequestParam("temaId") Integer temaId) throws IOException {
-        return documentoService.subirDocumentos(entregableXTemaId, archivos, ciclo, curso, codigoAlumno, temaId);
+            @RequestParam("codigoAlumno") String codigoAlumno) throws IOException {
+        return documentoService.subirDocumentos(entregableXTemaId, archivos, ciclo, curso, codigoAlumno);
     }
 
     @PostMapping("/borrar-documento/{documentoId}")
