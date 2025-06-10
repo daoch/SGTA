@@ -1,10 +1,12 @@
 package pucp.edu.pe.sgta.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import pucp.edu.pe.sgta.dto.temas.SolicitudTemaDto;
+import pucp.edu.pe.sgta.service.inter.JwtService;
 import pucp.edu.pe.sgta.service.inter.SolicitudService;
 
 @RestController
@@ -14,6 +16,8 @@ public class SolicitudController {
 
     @Autowired
     private SolicitudService solicitudService;
+    @Autowired
+    private JwtService jwtService;
 
     @GetMapping("/listSolicitudesByTema/{id}")
     public ResponseEntity<SolicitudTemaDto> getSolicitudesByTema(
@@ -54,6 +58,13 @@ public class SolicitudController {
             @RequestParam(name = "idSolicitud") Integer idSolicitud) {
 
         return ResponseEntity.ok(solicitudService.listarDetalleSolicitudCambioAsesorUsuario(idSolicitud));
+    }
+
+    @GetMapping("/listarResumenSolicitudCambioAsesorCoordinador")
+    public ResponseEntity<Object> listarResumenSolicitudCambioAsesorCoordinador(
+            HttpServletRequest request) {
+        String cognitoId = jwtService.extractSubFromRequest(request);
+        return ResponseEntity.ok(solicitudService.listarResumenSolicitudCambioAsesorCoordinador(cognitoId));
     }
 
     @PatchMapping("/aprobarSolicitudCambioAsesor")

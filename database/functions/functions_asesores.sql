@@ -399,6 +399,29 @@ $$
     ), -1);
 $$;
 
+CREATE OR REPLACE FUNCTION cantidad_coordinador_por_carrera_tema(p_tema_id INT)
+RETURNS INT AS $$
+DECLARE
+	v_cantidad INT;
+BEGIN
+	SELECT COUNT(1)
+	INTO v_cantidad
+	FROM usuario_carrera uc
+	JOIN carrera c ON uc.carrera_id = c.carrera_id
+	WHERE uc.carrera_id = (
+		SELECT c2.carrera_id
+		FROM tema t
+		JOIN carrera c2 ON t.carrera_id = c2.carrera_id
+		WHERE t.tema_id = p_tema_id
+		AND c2.activo = TRUE
+	)
+	AND uc.es_coordinador = TRUE
+	ANd uc.activo = TRUE;
+
+	RETURN v_cantidad;
+END;
+$$ LANGUAGE plpgsql;
+
 CREATE OR REPLACE FUNCTION listar_resumen_solicitud_cambio_asesor_usuario(
     p_usuario_id INTEGER,
     p_rol_control TEXT
@@ -491,6 +514,99 @@ AS $$
 	AND ts.nombre = 'Cambio de asesor (por asesor)'
 	;
 $$;
+
+CREATE OR REPLACE FUNCTION listar_resumen_solicitud_cambio_asesor_coordinador(p_cognito_id TEXT)
+RETURNS TABLE (
+    solicitud_id INTEGER,
+    fecha_creacion TIMESTAMP WITH TIME ZONE,
+    tema_id INTEGER,
+    titulo TEXT,
+    estado_nombre TEXT,
+    nombre_alumno TEXT,
+    apellido_alumno TEXT,
+    correo_alumno TEXT,
+    nombre_asesor_actual TEXT,
+    apellido_asesor_actual TEXT,
+    nombre_asesor_entrada TEXT,
+    apellido_asesor_entrada TEXT,
+	estado_accion TEXT
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        s.solicitud_id,
+        s.fecha_creacion,
+        t.tema_id,
+        t.titulo::TEXT,
+        es.nombre::TEXT,
+        us_remitente.nombres::TEXT AS nombre_alumno,
+        us_remitente.primer_apellido::TEXT AS apellido_alumno,
+        us_remitente.correo_electronico::TEXT AS correo_alumno,
+        us_asesor_actual.nombres::TEXT AS nombre_asesor_actual,
+        us_asesor_actual.primer_apellido::TEXT AS apellido_asesor_actual,
+        us_asesor_entrada.nombres::TEXT AS nombre_asesor_entrada,
+        us_asesor_entrada.primer_apellido::TEXT AS apellido_asesor_entrada,
+		accion.nombre::TEXT AS estado_accion
+    FROM
+        solicitud s
+        INNER JOIN tema t ON t.tema_id = s.tema_id
+        INNER JOIN carrera c ON c.carrera_id = t.carrera_id
+        INNER JOIN estado_solicitud es ON es.estado_solicitud_id = s.estado_solicitud
+        INNER JOIN tipo_solicitud ts ON s.tipo_solicitud_id = ts.tipo_solicitud_id
+
+        -- Remitente
+        LEFT JOIN LATERAL (
+            SELECT u.nombres, u.correo_electronico, u.primer_apellido
+            FROM usuario_solicitud us
+            JOIN usuario u ON u.usuario_id = us.usuario_id
+            JOIN rol_solicitud rs ON rs.rol_solicitud_id = us.rol_solicitud
+            WHERE us.solicitud_id = s.solicitud_id
+              AND rs.nombre = 'REMITENTE'
+            LIMIT 1
+        ) us_remitente ON true
+
+        -- Asesor actual
+        LEFT JOIN LATERAL (
+            SELECT u.nombres, u.primer_apellido
+            FROM usuario_solicitud us
+            JOIN usuario u ON u.usuario_id = us.usuario_id
+            JOIN rol_solicitud rs ON rs.rol_solicitud_id = us.rol_solicitud
+            WHERE us.solicitud_id = s.solicitud_id
+              AND rs.nombre = 'ASESOR_ACTUAL'
+            LIMIT 1
+        ) us_asesor_actual ON true
+
+        -- Asesor de entrada
+        LEFT JOIN LATERAL (
+            SELECT u.nombres, u.primer_apellido
+            FROM usuario_solicitud us
+            JOIN usuario u ON u.usuario_id = us.usuario_id
+            JOIN rol_solicitud rs ON rs.rol_solicitud_id = us.rol_solicitud
+            WHERE us.solicitud_id = s.solicitud_id
+              AND rs.nombre = 'ASESOR_ENTRADA'
+            LIMIT 1
+        ) us_asesor_entrada ON true
+
+        -- Acción en base al estado
+        LEFT JOIN LATERAL (
+            SELECT 
+                CASE 
+                    WHEN es.nombre = 'PENDIENTE' THEN 'PENDIENTE_ACCION'
+                    WHEN es.nombre IN ('APROBADA', 'CANCELADA') THEN 'SIN_ACCION'
+                END AS nombre
+        ) accion ON true
+
+    WHERE
+        ts.nombre = 'Cambio de asesor (por asesor)'
+        AND t.carrera_id IN (
+            SELECT uc.carrera_id
+            FROM usuario u
+            JOIN usuario_carrera uc ON uc.usuario_id = u.usuario_id
+            WHERE u.id_cognito = p_cognito_id
+			AND uc.es_coordinador = TRUE
+        );
+END;
+$$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION obtener_detalle_solicitud_cambio_asesor(p_solicitud_id INTEGER)
 RETURNS TABLE (

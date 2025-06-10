@@ -20,6 +20,7 @@ import pucp.edu.pe.sgta.dto.RechazoSolicitudCambioAsesorResponseDto.CambioAsigna
 import pucp.edu.pe.sgta.dto.AprobarSolicitudResponseDto.AprobarAsignacionDto;
 import pucp.edu.pe.sgta.dto.RechazoSolicitudResponseDto.AsignacionDto;
 import pucp.edu.pe.sgta.dto.asesores.DetalleSolicitudCambioAsesorDto;
+import pucp.edu.pe.sgta.dto.asesores.SolicitudCambioAsesorResumenDto;
 import pucp.edu.pe.sgta.dto.asesores.SolicitudCeseAsesoriaResumenDto;
 import pucp.edu.pe.sgta.dto.asesores.UsuarioSolicitudCambioAsesorDto;
 import pucp.edu.pe.sgta.model.*;
@@ -668,11 +669,11 @@ public class SolicitudServiceImpl implements SolicitudService {
         //Ya no validamos el alumno, cómo es él quien llama al api, es una validación previa
 
         //Ya no se obtiene el usuario del coordinador, cómo pueden haber varios coordinadores le puede llegar a cualquiera
-        //Cambiando validación a obtenerIdCoordinadorPorUsuario -> obtenerCantidadDeCoordinadoresPorUsuario
-        int cantidad = (int) usuarioRepository.obtenerCantidadDeCoordinadoresPorUsuario(solicitud.getAlumnoId()).get(0)[0];
+        //Cambiando validación a obtenerIdCoordinadorPorUsuario -> obtenerCantidadDeCoordinadoresPorTema
+        int cantidad = (int) usuarioRepository.obtenerCantidadDeCoordinadoresPorTema(solicitud.getTemaId()).get(0)[0];
         if (cantidad == 0)
             throw new RuntimeException(
-                    "No se han registrado Coordinadores para la carrera del alumno" + solicitud.getAlumnoId());
+                    "No se han registrado Coordinadores para la carrera a la que pertenece el tema");
         // Tipo Solicitud
         TipoSolicitud tipoSolicitud = tipoSolicitudRepository
                 .findByNombre("Cambio de asesor (por asesor)")
@@ -743,24 +744,22 @@ public class SolicitudServiceImpl implements SolicitudService {
 
 // Metodos de Solicitud Cambio Asesor
     @Override
-    public List<SolicitudCeseAsesoriaResumenDto> listarResumenSolicitudCambioAsesorUsuario(Integer idUsuario,
-            String rolSolicitud) {
+    public List<SolicitudCambioAsesorResumenDto> listarResumenSolicitudCambioAsesorUsuario(Integer idUsuario,
+                                                                                           String rolSolicitud) {
         List<Object[]> queryResult = solicitudRepository.listarResumenSolicitudCambioAsesorUsuario(idUsuario,
                 rolSolicitud);
-        List<SolicitudCeseAsesoriaResumenDto> solicitudes = new ArrayList<>();
+        List<SolicitudCambioAsesorResumenDto> solicitudes = new ArrayList<>();
         for (Object[] row : queryResult) {
-            SolicitudCeseAsesoriaResumenDto solicitud = SolicitudCeseAsesoriaResumenDto.fromResultQuery(row);
+            SolicitudCambioAsesorResumenDto solicitud = SolicitudCambioAsesorResumenDto.fromResultQuery(row);
             solicitudes.add(solicitud);
         }
         return solicitudes;
     }
 
     @Override
-    public List<SolicitudCeseAsesoriaResumenDto> listarResumenSolicitudCambioAsesorCoordinador(Integer idUsuario,
-                                                                                           String rolSolicitud) {
+    public List<SolicitudCeseAsesoriaResumenDto> listarResumenSolicitudCambioAsesorCoordinador(String idCognito) {
         //Esto solo lo puede llamar un usuario que tiene el rol de coordinador, es una validación en controller
-        List<Object[]> queryResult = solicitudRepository.listarResumenSolicitudCambioAsesorUsuario(idUsuario,
-                rolSolicitud);
+        List<Object[]> queryResult = solicitudRepository.listarResumenSolicitudCambioAsesorCoordinador(idCognito);
         List<SolicitudCeseAsesoriaResumenDto> solicitudes = new ArrayList<>();
         for (Object[] row : queryResult) {
             SolicitudCeseAsesoriaResumenDto solicitud = SolicitudCeseAsesoriaResumenDto.fromResultQuery(row);
@@ -782,8 +781,11 @@ public class SolicitudServiceImpl implements SolicitudService {
         UsuarioSolicitudCambioAsesorDto asesorActual = getUsuarioSolicitudFromId(idAsesorActual, idSolicitud);
         int idAsesorEntrada = (int) result[8];
         UsuarioSolicitudCambioAsesorDto asesorEntrada = getUsuarioSolicitudFromId(idAsesorEntrada, idSolicitud);
-        int idDetinatario = (int) result[9];
-        UsuarioSolicitudCambioAsesorDto destinatario = getUsuarioSolicitudFromId(idDetinatario, idSolicitud);
+        Integer idDestinatario = (Integer) result[9];
+        UsuarioSolicitudCambioAsesorDto destinatario = null;
+        if (idDestinatario != null) {
+            destinatario = getUsuarioSolicitudFromId(idDestinatario.intValue(), idSolicitud);
+        }
 
         detalle.setSolicitante(remitente);
         detalle.setAsesorActual(asesorActual);

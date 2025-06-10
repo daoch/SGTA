@@ -32,8 +32,9 @@ public interface SolicitudRepository extends JpaRepository<Solicitud, Integer> {
     List<Object[]> listarResumenSolicitudCambioAsesorUsuario(@Param("idUsuario") Integer idUsuario,
             @Param("nombreRol") String nombreRol);
 
-    @Query(value = "SELECT * FROM listar_resumen_solicitud_cambio_asesor_coordinador(:idUsuario)", nativeQuery = true)
-    List<Object[]> listarResumenSolicitudCambioAsesorCoordinador(@Param("idUsuario") Integer idUsuario);
+    @Query(value = "SELECT * FROM listar_resumen_solicitud_cambio_asesor_coordinador(:idCognito)", nativeQuery = true)
+    List<Object[]> listarResumenSolicitudCambioAsesorCoordinador(@Param("idUsuario") String idCognito);
+
 
     @Query(value = "SELECT * FROM obtener_detalle_solicitud_cambio_asesor(:idSolicitud)", nativeQuery = true)
     List<Object[]> listarDetalleSolicitudCambioAsesor(@Param("idSolicitud") Integer idSolicitud);
