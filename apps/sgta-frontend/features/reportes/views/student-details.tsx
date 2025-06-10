@@ -47,13 +47,13 @@ export function StudentDetails({ studentId }: StudentDetailsProps) {
         setError(null);
         
         // Primero obtenemos los datos del estudiante
-        const studentData = await advisorService.getStudentDetails(studentId);
+        const studentData = await advisorService.getStudentDetails();
         console.log("Datos del estudiante recibidos:", studentData);
         setStudent(studentData);
 
         // Luego intentamos obtener el timeline y las reuniones
         try {
-          const timelineData = await advisorService.getStudentTimeline(studentId);
+          const timelineData = await advisorService.getStudentTimeline();
           console.log("Datos del timeline recibidos:", timelineData);
           setTimeline(Array.isArray(timelineData) ? timelineData : []);
         } catch (timelineError) {
@@ -62,7 +62,7 @@ export function StudentDetails({ studentId }: StudentDetailsProps) {
         }
 
         try {
-          const meetingsData = await advisorService.getStudentMeetings(studentId);
+          const meetingsData = await advisorService.getStudentMeetings();
           console.log("Datos de reuniones recibidos:", meetingsData);
           setMeetings(Array.isArray(meetingsData) ? meetingsData : []);
         } catch (meetingsError) {

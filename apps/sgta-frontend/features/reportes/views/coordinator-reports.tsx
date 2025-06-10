@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import axiosInstance from "@/lib/axios/axios-instance";
+import { useAuth } from "@/features/auth/hooks/use-auth";
 import { BarChartHorizontal, Calendar, Download, FileSpreadsheet, PieChart } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
@@ -34,7 +34,20 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-
+import {
+  obtenerDesempenoAsesores,
+  obtenerDistribucionAsesores,
+  obtenerDistribucionJurados,
+  obtenerTemasPorArea,
+  obtenerTendenciasTemas
+} from "../services/report-services";
+import type {
+  AdvisorDistribution,
+  JurorDistribution,
+  AdvisorPerformance as ServiceAdvisorPerformance,
+  TopicArea as ServiceTopicArea,
+  TopicTrend
+} from "../types/coordinator-reports.type";
 
 type AdvisorPerformance = {
   name: string;
@@ -50,6 +63,7 @@ type LineChartDatum = { name: string; [key: string]: number | string };
 type TopicArea = { area: string; count: number };
 
 export function CoordinatorReports() {
+  const { user } = useAuth();
   const [semesterFilter, setSemesterFilter] = useState("2025-1");
   const [themeAreaChartType, setThemeAreaChartType] = useState("vertical-bar"); // 'horizontal-bar', 'vertical-bar', 'pie'
   const [scheduleFrequency, setScheduleFrequency] = useState("weekly");
@@ -89,12 +103,14 @@ export function CoordinatorReports() {
   const [selectedDistributionChart, setSelectedDistributionChart] = useState("advisors");
 
   useEffect(() => {
+    // Solo ejecutar si el usuario está disponible
+    if (!user) return;
+
     const fetchTopicsAreas = async () => {
       try {
         setLoadingTopicsByArea(true);
-        const response = await axiosInstance.get(`/api/v1/reports/topics-areas?usuarioId=3&ciclo=${semesterFilter}`);
-        const arr = Array.isArray(response.data) ? response.data : [];
-        const normalized = arr.map((item: { areaName: string; topicCount: number }) => ({
+        const data = await obtenerTemasPorArea(semesterFilter);
+        const normalized = data.map((item: ServiceTopicArea) => ({
           area: item.areaName,
           count: item.topicCount,
         }));
@@ -102,7 +118,6 @@ export function CoordinatorReports() {
       } catch (error) {
         console.log("Error al cargar los temas por area:", error);
         setThesisTopicsByArea([]);
-
       } finally {
         setLoadingTopicsByArea(false);
       }
@@ -111,17 +126,12 @@ export function CoordinatorReports() {
     const fetchAdvisorsDistribution = async () => {
       try {
         setLoadingAdvisorDistribution(true);
-        const response = await axiosInstance.get(`/api/v1/reports/advisors-distribution?usuarioId=3&ciclo=${semesterFilter}`);
-        setAdvisorDistribution(response.data.map((item:{
-          teacherName: string;
-          count: number;
-          department: string;
-        }) => ({
+        const data = await obtenerDistribucionAsesores(semesterFilter);
+        setAdvisorDistribution(data.map((item: AdvisorDistribution) => ({
           name: item.teacherName,
           count: item.count,
           department: item.department,
         })));
-
       } catch (error) {
         console.log("Error al cargar las distribuciones por asesor:", error);
       } finally {
@@ -132,17 +142,12 @@ export function CoordinatorReports() {
     const fetchJurorsDistribution = async () => {
       try {
         setLoadingJuryDistribution(true);
-        const response = await axiosInstance.get(`/api/v1/reports/jurors-distribution?usuarioId=3&ciclo=${semesterFilter}`);
-        setJuryDistribution(response.data.map((item:{
-          teacherName: string;
-          count: number;
-          department: string;
-        }) => ({
+        const data = await obtenerDistribucionJurados(semesterFilter);
+        setJuryDistribution(data.map((item: JurorDistribution) => ({
           name: item.teacherName,
           count: item.count,
           department: item.department,
         })));
-
       } catch (error) {
         console.log("Error al cargar las distribuciones por jurado:", error);
       } finally {
@@ -153,18 +158,15 @@ export function CoordinatorReports() {
     const fetchAdvisorPerformance = async () => {
       try {
         setLoadingAdvisorPerformance(true);
-        const response = await axiosInstance.get(`/api/v1/reports/advisors/performance?usuarioId=3&ciclo=${semesterFilter}`);
-
-        const arr = Array.isArray(response.data) ? response.data : [];
+        const data = await obtenerDesempenoAsesores(semesterFilter);
         setAdvisorPerformance(
-            arr.map((item) => ({
-              name: item.advisorName,
-              department: item.areaName,
-              progress: item.performancePercentage,
-              students: item.totalStudents,
-            }))
+          data.map((item: ServiceAdvisorPerformance) => ({
+            name: item.advisorName,
+            department: item.areaName,
+            progress: item.performancePercentage,
+            students: item.totalStudents,
+          }))
         );
-
       } catch (error) {
         console.log("Error al cargar el desempeño:", error);
         setAdvisorPerformance([]);
@@ -177,16 +179,19 @@ export function CoordinatorReports() {
     fetchAdvisorsDistribution();
     fetchJurorsDistribution();
     fetchAdvisorPerformance();
-  }, [semesterFilter]);
+  }, [semesterFilter, user?.id]);
 
-  const findTopicCount = (responseData: Array<{year: number; areaName: string; topicCount: number}>, year: number, area: string) => {
+  const findTopicCount = (responseData: TopicTrend[], year: number, area: string) => {
     const found = responseData.find(item => item.year === year && item.areaName === area);
     return found ? found.topicCount : 0;
   };
 
 
   useEffect(() => {
-    const transformTrendsData = (responseData: Array<{year: number; areaName: string; topicCount: number}>) => {
+    // Solo ejecutar si el usuario está disponible
+    if (!user?.id) return;
+
+    const transformTrendsData = (responseData: TopicTrend[]) => {
       const years = Array.from(new Set(responseData.map(item => item.year))).sort((a, b) => a - b);
       const areas = Array.from(new Set(responseData.map(item => item.areaName)));
 
@@ -201,9 +206,9 @@ export function CoordinatorReports() {
 
     const fetchTopicTrends = async () => {
       try {
-        setLoadingJuryDistribution(true);
-        const response = await axiosInstance.get("/api/v1/reports/topics-trends?usuarioId=3");
-        setLineChartData(transformTrendsData(response.data));
+        setLoadingLineChart(true);
+        const data = await obtenerTendenciasTemas();
+        setLineChartData(transformTrendsData(data));
       } catch (error) {
         console.error("Error al cargar los temas por area:", error);
       } finally {
@@ -211,7 +216,7 @@ export function CoordinatorReports() {
       }
     };
     fetchTopicTrends();
-  }, []);
+  }, [user?.id]);
 
 
   const areaNames = lineChartData.length > 0

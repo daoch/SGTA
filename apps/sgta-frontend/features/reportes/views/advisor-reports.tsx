@@ -91,7 +91,7 @@ export function AdvisorReports() {
     const fetchStudents = async () => {
       try {
         setLoading(true);
-        const data = await advisorService.getAdvisorStudents("5");
+        const data = await advisorService.getAdvisorStudents();
         console.log("Datos recibidos:", data);
         setStudents(data);
       } catch (error) {
