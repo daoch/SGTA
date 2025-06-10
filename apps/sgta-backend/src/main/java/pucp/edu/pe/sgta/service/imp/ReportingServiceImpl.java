@@ -51,8 +51,27 @@ import pucp.edu.pe.sgta.dto.EntregableCriteriosDetalleDto;
 import pucp.edu.pe.sgta.dto.CriterioEntregableDetalleDto;
 import pucp.edu.pe.sgta.repository.EntregablesCriteriosRepository;
 
+import java.util.NoSuchElementException;
+
+
+import pucp.edu.pe.sgta.repository.UsuarioRepository;
+import pucp.edu.pe.sgta.model.Usuario;
+import pucp.edu.pe.sgta.dto.UsuarioDto;
+import pucp.edu.pe.sgta.mapper.UsuarioMapper;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
 @Service
 public class ReportingServiceImpl implements IReportService {
+
+    private static final Logger logger = LoggerFactory.getLogger(ReportingServiceImpl.class);
+
+    @Autowired
+    private UsuarioRepository usuarioRepository;
 
     private final TopicAreaStatsRepository topicAreaStatsRepository;
     private final AdvisorDistributionRepository advisorDistributionRepository;
@@ -392,9 +411,27 @@ public class ReportingServiceImpl implements IReportService {
                 .collect(Collectors.toList());
     }
 
+
+    public UsuarioDto findByCognitoId(String cognitoId) throws NoSuchElementException {
+        Optional<Usuario> usuarioOpt = usuarioRepository.findByIdCognito(cognitoId);
+        if (usuarioOpt.isPresent()) {
+            return UsuarioMapper.toDto(usuarioOpt.get());
+        }
+        throw new NoSuchElementException("Usuario not found with ID Cognito: " + cognitoId);
+    }
+
+
     @Override
-    public List<EntregableEstudianteDto> getEntregablesEstudiante(Integer usuarioId) {
-        Optional<UsuarioXTema> usuarioTema = usuarioXTemaRepository.findByUsuarioId(usuarioId);
+    public List<EntregableEstudianteDto> getEntregablesEstudiante(String usuarioId) {
+
+        // 1) Resolvemos el usuario interno a partir del Cognito ID
+        UsuarioDto usuDto = findByCognitoId(usuarioId);
+        if (usuDto == null) {
+            throw new RuntimeException("Usuario no encontrado con Cognito ID: " + usuarioId);
+        }
+        Integer usuarioId_interno = usuDto.getId();
+
+        Optional<UsuarioXTema> usuarioTema = usuarioXTemaRepository.findByUsuarioId(usuarioId_interno);
         if (usuarioTema.isEmpty()) {
             throw new RuntimeException("Usuario no tiene tema asignado");
         }
@@ -464,6 +501,9 @@ public class ReportingServiceImpl implements IReportService {
 
     @Override
     public List<EntregableCriteriosDetalleDto> getEntregablesConCriterios(Integer usuarioId) {
+
+        logger.debug("▶️ getEntregablesConCriterios iniciado para usuarioId={}", usuarioId);
+        try {
         List<Object[]> results = entregablesCriteriosRepository.getEntregablesConCriterios(usuarioId);
         
         // Usar un Map para agrupar los criterios por entregableId
@@ -504,6 +544,10 @@ public class ReportingServiceImpl implements IReportService {
             .stream()
             .sorted(Comparator.comparing(EntregableCriteriosDetalleDto::getEntregableId))
             .collect(Collectors.toList());
+        } catch (Exception e) {
+            logger.error("❌ Error en getEntregablesConCriterios para usuarioId={}", usuarioId, e);
+            throw e;
+        }
     }
 
     

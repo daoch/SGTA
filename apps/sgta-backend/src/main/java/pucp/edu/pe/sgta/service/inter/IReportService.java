@@ -36,7 +36,8 @@ public interface IReportService {
     /** RF7: Listar historial de reuniones de un tesista */
     List<HistorialReunionDTO> getHistorialReuniones(Integer tesistaId);
     /** RF8: Obtener entregables de un estudiante */
-    List<EntregableEstudianteDto> getEntregablesEstudiante(Integer usuarioId);
+    List<EntregableEstudianteDto> getEntregablesEstudiante(String usuarioId);
     /** Obtener entregables con sus criterios agrupados */
     List<EntregableCriteriosDetalleDto> getEntregablesConCriterios(Integer usuarioId);
 }
+

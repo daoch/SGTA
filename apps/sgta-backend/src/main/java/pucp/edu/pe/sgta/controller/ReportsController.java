@@ -22,15 +22,23 @@ import pucp.edu.pe.sgta.service.inter.IReportService;
 import org.springframework.web.bind.annotation.PathVariable;
 import pucp.edu.pe.sgta.dto.EntregableEstudianteDto;
 import pucp.edu.pe.sgta.dto.EntregableCriteriosDetalleDto;
+import java.util.NoSuchElementException;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.HttpStatus;
+
+import pucp.edu.pe.sgta.service.inter.JwtService;
+
 
 @RestController
 @RequestMapping("/api/v1/reports")
 public class ReportsController {
 
     private final IReportService reportingService;
+    private final JwtService jwtService;
 
-    public ReportsController(IReportService reportingService) {
+    public ReportsController(IReportService reportingService, JwtService jwtService) {
         this.reportingService = reportingService;
+        this.jwtService       = jwtService;
     }
 
     /** RF1: estadísticas y tendencias de temas y áreas */
@@ -104,12 +112,27 @@ public class ReportsController {
         return ResponseEntity.ok(historial);
     }
 
-    /** RF8: Endpoint para entregables de estudiante */
+    /*
     @GetMapping("/entregables/{usuarioId}")
     public ResponseEntity<List<EntregableEstudianteDto>> getEntregablesEstudiante(@PathVariable Integer usuarioId){
         List<EntregableEstudianteDto> entregables = reportingService.getEntregablesEstudiante(usuarioId);
         return ResponseEntity.ok(entregables);
     }
+    */
+
+   @GetMapping("/entregables")
+    public ResponseEntity<List<EntregableEstudianteDto>> getEntregablesEstudiante(HttpServletRequest request) {
+        try {
+            String idUsuario = jwtService.extractSubFromRequest(request);
+            List<EntregableEstudianteDto> entregables = reportingService.getEntregablesEstudiante(idUsuario);
+            return ResponseEntity.ok(entregables);
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
 
     @GetMapping("/entregables-criterios/{usuarioId}")
     public ResponseEntity<List<EntregableCriteriosDetalleDto>> getEntregablesConCriterios(@PathVariable Integer usuarioId){
