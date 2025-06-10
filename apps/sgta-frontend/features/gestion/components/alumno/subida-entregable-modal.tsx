@@ -1,23 +1,24 @@
+import { Button } from "@/components/ui/button";
 import {
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Calendar, Clock, MoreVertical, Download, Trash2 } from "lucide-react";
-import { Textarea } from "@/components/ui/textarea";
-import { EntregableAlumnoDto } from "../../dtos/EntregableAlumnoDto";
-import { useEffect, useState } from "react";
-import { DropzoneDocumentosAlumno } from "./dropzone-documentos-alumno";
-import { DocumentoConVersionDto } from "../../dtos/DocumentoConVersionDto";
-import axiosInstance from "@/lib/axios/axios-instance";
 import {
   DropdownMenu,
-  DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Textarea } from "@/components/ui/textarea";
+import axiosInstance from "@/lib/axios/axios-instance";
+import { Calendar, Clock, Download, MoreVertical, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { DocumentoConVersionDto } from "../../dtos/DocumentoConVersionDto";
+import { EntregableAlumnoDto } from "../../dtos/EntregableAlumnoDto";
+import { DropzoneDocumentosAlumno } from "./dropzone-documentos-alumno";
 
 interface EntregablesModalProps {
   readonly entregable: EntregableAlumnoDto;
@@ -46,6 +47,7 @@ export function EntregablesModal({
   setSelectedEntregable,
   handleUpdateEntregable,
 }: EntregablesModalProps) {
+  const [loadingArchivos, setLoadingArchivos] = useState(true);
   const [comentario, setComentario] = useState<string>(
     entregable.entregableComentario ?? "",
   );
@@ -68,6 +70,9 @@ export function EntregablesModal({
         setArchivosSubidos(response.data);
       } catch (error) {
         console.error("Error al cargar las etapas formativas:", error);
+        toast.error("Error al cargar las etapas formativas");
+      } finally {
+        setLoadingArchivos(false);
       }
     };
     fetchArchivosSubidos();
@@ -76,7 +81,6 @@ export function EntregablesModal({
   const handleGuardar = async () => {
     setIsSubmitting(true);
     try {
-      // TODO: Ver si la fecha funciona bien con la zona horaria
       const fechaActual = new Date();
       const fechaLimite = new Date(entregable.entregableFechaFin);
 
@@ -117,8 +121,11 @@ export function EntregablesModal({
           entregableComentario: comentario,
         });
       }
-
+      toast.success("Tus documentos fueron entregados correctamente.");
       setSelectedEntregable?.(null);
+    } catch (error) {
+      console.error("Error al guardar el entregable:", error);
+      toast.error("Error al guardar el entregable");
     } finally {
       setIsSubmitting(false);
     }
@@ -130,10 +137,91 @@ export function EntregablesModal({
       setArchivosSubidos((prev) =>
         prev.filter((archivo) => archivo.documentoId !== documentoId),
       );
+      toast.success("Documento eliminado correctamente.");
     } catch (error) {
       console.error("Error al eliminar el documento:", error);
+      toast.error("Error al eliminar el documento");
     }
   };
+
+  let dropzoneContent;
+  if (entregable.entregableMaximoDocumentos !== null) {
+    if (entregable.entregableMaximoDocumentos - archivosSubidos.length > 0) {
+      dropzoneContent = (
+        <DropzoneDocumentosAlumno
+          onFilesChange={setArchivosASubir}
+          accept={
+            entregable.entregableExtensionesPermitidas
+              ? entregable.entregableExtensionesPermitidas
+              : ""
+          }
+          maxFiles={
+            entregable.entregableMaximoDocumentos - archivosSubidos.length
+          }
+          maxSizeMB={entregable.entregablePesoMaximoDocumento ?? 1000}
+        />
+      );
+    } else {
+      dropzoneContent = (
+        <div className="text-sm text-red-600 font-medium py-2">
+          Se alcanzó el límite de archivos permitidos para este entregable.
+          <br />
+          Si quieres subir más archivos, elimina alguno de los ya subidos.
+        </div>
+      );
+    }
+  } else {
+    dropzoneContent = (
+      <DropzoneDocumentosAlumno
+        onFilesChange={setArchivosASubir}
+        accept={
+          entregable.entregableExtensionesPermitidas
+            ? entregable.entregableExtensionesPermitidas
+            : ""
+        }
+        maxFiles={1000}
+        maxSizeMB={entregable.entregablePesoMaximoDocumento ?? 1000}
+      />
+    );
+  }
+
+  let archivosEnviadosContent;
+  if (loadingArchivos) {
+    archivosEnviadosContent = (
+      <span className="text-sm text-muted-foreground">
+        Cargando archivos...
+      </span>
+    );
+  } else if (archivosSubidos.length === 0) {
+    archivosEnviadosContent = "No hay archivos enviados";
+  } else {
+    archivosEnviadosContent = (
+      <ul className="list-disc pl-4">
+        {archivosSubidos.map((archivo) => (
+          <li key={archivo.documentoId} className="flex items-center gap-2">
+            <span className="truncate">{archivo.documentoNombre}</span>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" aria-label="Opciones">
+                  <MoreVertical className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => { }}>
+                  <Download className="w-4 h-4 mr-2" /> Descargar
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => handleEliminarDocumento(archivo.documentoId)}
+                >
+                  <Trash2 className="w-4 h-4 mr-2 text-red-600" /> Eliminar
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </li>
+        ))}
+      </ul>
+    );
+  }
 
   return (
     <DialogContent style={{ maxWidth: "680px", width: "100%" }}>
@@ -192,46 +280,7 @@ export function EntregablesModal({
                 Archivos enviados
               </div>
               <div className="px-4 py-3 text-gray-700">
-                {archivosSubidos.length === 0 ? (
-                  "No hay archivos enviados"
-                ) : (
-                  <ul className="list-disc pl-4">
-                    {archivosSubidos.map((archivo) => (
-                      <li
-                        key={archivo.documentoId}
-                        className="flex items-center gap-2"
-                      >
-                        <span className="truncate">
-                          {archivo.documentoNombre}
-                        </span>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              aria-label="Opciones"
-                            >
-                              <MoreVertical className="w-4 h-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent>
-                            <DropdownMenuItem onClick={() => {}}>
-                              <Download className="w-4 h-4 mr-2" /> Descargar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() =>
-                                handleEliminarDocumento(archivo.documentoId)
-                              }
-                            >
-                              <Trash2 className="w-4 h-4 mr-2 text-red-600" />{" "}
-                              Eliminar
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                {archivosEnviadosContent}
               </div>
             </div>
             <div className="grid grid-cols-[220px_1fr] border-b">
@@ -250,22 +299,7 @@ export function EntregablesModal({
             </div>
           </div>
         </div>
-        {entregable.entregableMaximoDocumentos - archivosSubidos.length > 0 ? (
-          <DropzoneDocumentosAlumno
-            onFilesChange={setArchivosASubir}
-            accept={entregable.entregableExtensionesPermitidas}
-            maxFiles={
-              entregable.entregableMaximoDocumentos - archivosSubidos.length
-            }
-            maxSizeMB={entregable.entregablePesoMaximoDocumento}
-          />
-        ) : (
-          <div className="text-sm text-red-600 font-medium py-2">
-            Se alcanzó el límite de archivos permitidos para este entregable.
-            <br></br>
-            Si quieres subir más archivos, elimina alguno de los ya subidos.
-          </div>
-        )}
+        {dropzoneContent}
       </div>
 
       <DialogFooter>

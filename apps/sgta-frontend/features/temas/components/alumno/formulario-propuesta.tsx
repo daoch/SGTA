@@ -219,7 +219,6 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
       setCotesistas((cs) => [...cs, nuevo]);
       setCodigoCotesista("");
     } catch (err) {
-      // capturamos cualquier otro error de red
       toast.error("Error al buscar el estudiante");
       console.error(err);
     }

@@ -16,8 +16,27 @@ import pucp.edu.pe.sgta.service.inter.CriterioEntregableService;    // ← IMPOR
 import pucp.edu.pe.sgta.service.inter.IReportService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
 
+import java.util.NoSuchElementException;
+
+
+import pucp.edu.pe.sgta.repository.UsuarioRepository;
+import pucp.edu.pe.sgta.model.Usuario;
+import pucp.edu.pe.sgta.dto.UsuarioDto;
+import pucp.edu.pe.sgta.mapper.UsuarioMapper;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
 @Service
 public class ReportingServiceImpl implements IReportService {
+
+    private static final Logger logger = LoggerFactory.getLogger(ReportingServiceImpl.class);
+
+    @Autowired
+    private UsuarioRepository usuarioRepository;
 
     private final UsuarioService usuarioService;
     private final TopicAreaStatsRepository topicAreaStatsRepository;
@@ -284,12 +303,32 @@ public class ReportingServiceImpl implements IReportService {
                       .collect(Collectors.toList());
     }
 
+
+    public UsuarioDto findByCognitoId(String cognitoId) throws NoSuchElementException {
+        Optional<Usuario> usuarioOpt = usuarioRepository.findByIdCognito(cognitoId);
+        if (usuarioOpt.isPresent()) {
+            return UsuarioMapper.toDto(usuarioOpt.get());
+        }
+        throw new NoSuchElementException("Usuario not found with ID Cognito: " + cognitoId);
+    }
+
+
     @Override
-    public List<EntregableEstudianteDto> getEntregablesEstudiante(Integer usuarioId) {
-        UsuarioXTema ut = usuarioXTemaRepository
-            .findByUsuarioId(usuarioId)
-            .orElseThrow(() -> new RuntimeException("Usuario no tiene tema asignado"));
-        int temaId = ut.getTema().getId();
+    public List<EntregableEstudianteDto> getEntregablesEstudiante(String usuarioId) {
+
+        // 1) Resolvemos el usuario interno a partir del Cognito ID
+        UsuarioDto usuDto = findByCognitoId(usuarioId);
+        if (usuDto == null) {
+            throw new RuntimeException("Usuario no encontrado con Cognito ID: " + usuarioId);
+        }
+        Integer usuarioId_interno = usuDto.getId();
+
+        Optional<UsuarioXTema> usuarioTema = usuarioXTemaRepository.findByUsuarioId(usuarioId_interno);
+        if (usuarioTema.isEmpty()) {
+            throw new RuntimeException("Usuario no tiene tema asignado");
+        }
+
+        Integer temaId = usuarioTema.get().getTema().getId();
 
         return entregableXTemaRepository.findByTemaIdWithEntregable(temaId).stream()
             .map(et -> {

@@ -126,6 +126,7 @@ export interface ExposicionJurado {
   nombre_exposicion: string;
   enlace_grabacion: string;
   enlace_sesion: string;
+  criterios_calificados: boolean;
   miembros: MiembroJuradoExpo[];
 }
 

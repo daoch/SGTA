@@ -65,6 +65,8 @@ public interface TemaService {
 
 	List<TemaDto> listarPropuestasPorTesista(String tesistaId);
 
+	List<TemaDto> listarPropuestasPorCotesista(String tesistaId);
+
 	List<TemaDto> listarPostulacionesAMisPropuestas(String tesistaId, Integer tipoPropuesta);
 
 	List<InfoTemaPerfilDto> listarTemasAsesorInvolucrado(Integer idAsesor);
@@ -190,4 +192,12 @@ public interface TemaService {
 	 */
 	List<TemasComprometidosDto> contarTemasComprometidos(String usuarioSubId);
 
+	/**
+	 * Acepta o rechaza una propuesta de cotesista para un tema
+	 * @param usuarioId ID del usuario (cognito sub)
+	 * @param temaId ID del tema
+	 * @param action 0 para aceptar, 1 para rechazar
+	 * @return Lista de temas comprometidos agrupados por estado
+	 */
+	void aceptarPropuestaCotesista(Integer temaId, String usuarioId, Integer action);
 }
