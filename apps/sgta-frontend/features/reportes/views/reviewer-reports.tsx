@@ -4,7 +4,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { etapaFormativaCicloService } from "@/features/configuracion/services/etapa-formativa-ciclo";
 import { EtapaFormativaCiclo } from "@/features/configuracion/types/etapa-formativa-ciclo";
@@ -22,6 +21,7 @@ export function ReviewerReports() {
   const [students, setStudents] = useState<AlumnoReviewer[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
   const [courseFilter, setCourseFilter] = useState<string>("all");
   const { user } = useAuth();
 
@@ -47,7 +47,7 @@ export function ReviewerReports() {
     const loadStudents = async () => {
       try {
         setLoading(true);
-        const data: AlumnoReviewer[] = await findStudentsForReviewer(1, searchQuery);
+        const data: AlumnoReviewer[] = await findStudentsForReviewer(1, searchTerm);
         setStudents(data);
       } catch (error) {
         console.error("Error loading students:", error);
@@ -57,7 +57,7 @@ export function ReviewerReports() {
     };
 
     loadStudents();
-  }, [searchQuery]);
+  }, [searchTerm]);
 
 
   const selectedStudentData = students.find((student) => student.usuarioId === selectedStudent);
@@ -125,15 +125,16 @@ export function ReviewerReports() {
     <div className="space-y-6">
       {/* Filtros y búsqueda */}
       <Card>
-        <CardHeader className="pb-4">
+        <CardHeader className="pb-1">
           <CardTitle className="text-lg flex items-center gap-2">
             <Users className="h-5 w-5" />
             Buscar Estudiantes
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-3">
           <div className="flex flex-col md:flex-row md:items-center gap-4">
             {/* Filtro por curso */}
+            {/*
             <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 w-full md:w-auto">
               <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Filtrar por curso:</label>
               <Select value={courseFilter} onValueChange={setCourseFilter}>
@@ -175,6 +176,7 @@ export function ReviewerReports() {
                 </SelectContent>
               </Select>
             </div>
+            */}
 
             {/* Barra de búsqueda */}
             <div className="relative flex-1">
@@ -183,9 +185,21 @@ export function ReviewerReports() {
                 placeholder="Buscar por nombre o tema de tesis..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    setSearchTerm(searchQuery);
+                  }
+                }}
                 className="pl-9"
               />
             </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSearchTerm(searchQuery)}
+            >
+              Buscar
+            </Button>
 
             {/* Botón limpiar */}
             {(searchQuery || courseFilter !== "all") && (
@@ -255,10 +269,6 @@ export function ReviewerReports() {
                     <h3 className="font-semibold text-gray-900">
                       {student.nombres} {student.primerApellido} {student.segundoApellido}
                     </h3>
-                    <Badge variant="outline" className="text-xs mt-1">
-                      {/* Curso hardcodeado */}
-                      Proyecto de Fin de Carrera 1
-                    </Badge>
                   </div>
 
                   {/* Tema de tesis */}

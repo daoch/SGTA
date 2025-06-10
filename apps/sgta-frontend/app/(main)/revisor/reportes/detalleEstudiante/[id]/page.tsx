@@ -127,9 +127,6 @@ export default function ReviewerStudentDetails({ params }: { params: Promise<{ i
                     <h2 className="text-xl font-bold text-gray-900">
                       {selectedStudentData?.nombres} {selectedStudentData?.primerApellido} {selectedStudentData?.segundoApellido}
                     </h2>
-                    <Badge variant="outline" className="text-sm">
-                      Curso hardcodeado
-                    </Badge>
                   </div>
                   <div className="flex items-center gap-2 mb-2">
                     <Badge variant="outline" className="text-xs">
