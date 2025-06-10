@@ -179,7 +179,7 @@ export function usePaginationTemas() {
       setLoading(true);
       try {
         // Get Carrera Id
-        let ids = await getOrFetchCarrerasIds();
+        const ids = await getOrFetchCarrerasIds();
 
         // Fetch all pages per State
         if (ids && ids.length > 0) {

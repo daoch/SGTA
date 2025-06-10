@@ -15,15 +15,47 @@ export async function fetchCarrerasMiembroComite(): Promise<Carrera[]> {
  * 2) Listar temas pendientes de aprobación de tipo "Inscripción de tema"
  *    GET /temas/listarTemasPorCarrera/{carreraId}/{estado}
  */
-export async function listarTemasPorCarrera(
+export async function listarTemasPorCarreraDeprecated(
   carreraId: number,
   estado: EstadoTemaNombre,
   limit: number = 10,
   offset: number = 0,
 ): Promise<Tema[]> {
   const { data } = await axiosInstance.get<Tema[]>(
-    `/temas/listarTemasPorCarrera/${carreraId}/${estado}?limit=${limit}&offset=${offset}`,
+    `/temas/listarTemasPorCarrera/${carreraId}/${estado}`,
+    {
+      params: { limit, offset },
+    },
   );
+  return data;
+}
+
+export async function listarTemasPorCarrera(
+  carreraId: number,
+  estado: EstadoTemaNombre,
+  limit: number = 10,
+  offset: number = 0,
+  titulo?: string,
+  areaId?: number,
+  user?: {
+    nombreUsuario?: string;
+    primerApellidoUsuario?: string;
+    segundoApellidoUsuario?: string;
+  },
+): Promise<Tema[]> {
+  const { data } = await axiosInstance.get<Tema[]>("/temas/filtradoCompleto", {
+    params: {
+      titulo: titulo ?? "",
+      estadoNombre: estado,
+      carreraId,
+      areaId: areaId ?? "",
+      nombreUsuario: user?.nombreUsuario ?? "",
+      primerApellidoUsuario: user?.primerApellidoUsuario ?? "",
+      segundoApellidoUsuario: user?.segundoApellidoUsuario ?? "",
+      limit,
+      offset,
+    },
+  });
   return data;
 }
 
