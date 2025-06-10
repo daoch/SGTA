@@ -776,6 +776,19 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                                                         .findByExposicionXTema_IdAndUsuario_Id(exposicionXTema.getId(),
                                                                         usuarioXTemaOptional.get().getId());
 
+                                        List<CriterioExposicion> criterios = criterioExposicionRepository
+                                                .findByExposicion_IdAndActivoTrue(exposicion.getId());
+
+
+                                        boolean criteriosCalificados = criterios.stream()
+                                                .map(criterio -> revisionCriterioExposicionRepository
+                                                        .findByExposicionXTema_IdAndCriterioExposicion_IdAndUsuario_Id(
+                                                                exposicionXTema.getId(),
+                                                                criterio.getId(),
+                                                                userDtoCognito.getId()
+                                                        ))
+                                                .allMatch(opt -> opt.isPresent() && opt.get().getNota() != null);
+
                                         // Crear DTO
                                         ExposicionTemaMiembrosDto dto = new ExposicionTemaMiembrosDto();
                                         dto.setId_exposicion(exposicionXTema.getId());
@@ -796,7 +809,7 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                                                                         ControlExposicionUsuarioTema::getEstadoExposicion)
                                                                         .orElse(null));
                                         dto.setMiembros(miembros);
-
+                                        dto.setCriterios_calificados(criteriosCalificados);
                                         result.add(dto);
                                 }
 
