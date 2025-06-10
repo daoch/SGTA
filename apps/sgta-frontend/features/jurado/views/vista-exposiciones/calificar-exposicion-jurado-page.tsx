@@ -199,7 +199,7 @@ const CalificarExposicionJuradoPage: React.FC<Props> = ({ id_exposicion }) => {
     return evaluacion.criterios.some(
       criterio =>  criterio.calificacion === null || 
                  criterio.calificacion === undefined ||
-      (typeof criterio.calificacion === 'number' && 
+      (typeof criterio.calificacion === "number" && 
        (criterio.calificacion < 0 || criterio.calificacion > criterio.nota_maxima))
     );
   };
