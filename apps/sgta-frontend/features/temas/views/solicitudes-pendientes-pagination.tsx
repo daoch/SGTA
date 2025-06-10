@@ -16,11 +16,7 @@ import { usePagination } from "@/hooks/temas/use-pagination";
 import { Search } from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
 import { SolicitudesTable } from "../components/coordinador/table-solicitudes-pagination";
-import {
-  filters,
-  initialPagesList,
-  pageSolicitudes,
-} from "../types/solicitudes/constants";
+import { pageTemasTexts, pageTexts } from "../types/solicitudes/constants";
 import {
   fetchCarrerasMiembroComite,
   lenTemasPorCarrera,
@@ -29,7 +25,7 @@ import {
 import { getSolicitudFromTema } from "../types/solicitudes/lib";
 import { EstadoTemaNombre } from "../types/temas/enums";
 
-const LIMIT = 2;
+const LIMIT = 10;
 
 export default function SolicitudesPendientes() {
   const [estadoTema, setEstadoTema] = React.useState<EstadoTemaNombre>(
@@ -45,7 +41,7 @@ export default function SolicitudesPendientes() {
     addNewPage,
     getPage,
     getTotalPages,
-  } = usePagination(initialPagesList, LIMIT);
+  } = usePagination(pageTemasTexts.initialPagesList, LIMIT);
 
   useEffect(() => {
     fetchFirstPageAndSetTotalCounts();
@@ -60,11 +56,7 @@ export default function SolicitudesPendientes() {
       setCarrerasIds(ids);
 
       if (ids.length > 0) {
-        // Inicializar totalCounts
-        await fetchTotalCounts(ids);
-
-        // Cargar primera página
-        await fetchPage(estadoTema, 1, ids);
+        await fetchTotalCountsAndFirstPages(ids);
       }
     } catch (error) {
       console.log("No se pudo cargar las carreras del usuario: " + error);
@@ -99,7 +91,7 @@ export default function SolicitudesPendientes() {
           carrerasIds[0], // TODO: Validar
           state,
           LIMIT,
-          page - 1,
+          (page - 1) * LIMIT, // Offset
         );
 
         // Add new page to State
@@ -114,10 +106,11 @@ export default function SolicitudesPendientes() {
 
   async function fetchTotalCounts(carrerasIds: number[]) {
     try {
-      // Asignar total Counts
+      // Get All States
       const estadosConPages: EstadoTemaNombre[] = Object.keys(
         temas,
       ) as EstadoTemaNombre[];
+
       // Get all counts
       const counts = await Promise.all(
         estadosConPages.map((estado) =>
@@ -132,6 +125,40 @@ export default function SolicitudesPendientes() {
       });
     } catch (err) {
       console.error("Error loading total counts", err);
+    }
+  }
+
+  async function fetchTotalCountsAndFirstPages(carrerasIds: number[]) {
+    try {
+      // Get All States
+      const estadosConPages: EstadoTemaNombre[] = Object.keys(
+        temas,
+      ) as EstadoTemaNombre[];
+
+      // Get all lists
+      const temasLists = await Promise.all(
+        estadosConPages.map((state) =>
+          listarTemasPorCarrera(
+            carrerasIds[0], // TODO: Validar
+            state,
+            2000, // Get all items
+            0,
+          ),
+        ),
+      );
+
+      // Update counts and first pages
+      estadosConPages.forEach((state, idx) => {
+        const countList = temasLists[idx].length;
+        // Set Count
+        replaceStateKey(state, "totalCounts", countList);
+        console.log(state + ": count = " + countList);
+
+        // Set first page
+        addNewPage(state, 1, temasLists[idx]);
+      });
+    } catch (err) {
+      console.error("Error loading total counts and First pages: ", err);
     }
   }
 
@@ -151,10 +178,8 @@ export default function SolicitudesPendientes() {
     <div className="space-y-8 mt-4">
       {/* Título general */}
       <div>
-        <h1 className="text-3xl font-bold text-[#042354]">
-          {pageSolicitudes.title}
-        </h1>
-        <p className="text-muted-foreground">{pageSolicitudes.description}</p>
+        <h1 className="text-3xl font-bold text-[#042354]">{pageTexts.title}</h1>
+        <p className="text-muted-foreground">{pageTexts.description}</p>
       </div>
 
       <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
@@ -162,7 +187,7 @@ export default function SolicitudesPendientes() {
         <div className="relative w-full md:flex-1">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder={filters.search.placeholder}
+            placeholder={pageTemasTexts.searhbar.placeholder}
             className="pl-8 w-full"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -170,7 +195,7 @@ export default function SolicitudesPendientes() {
         </div>
 
         {/* Selector tipo de tema */}
-        <Select value={cursoFilter} onValueChange={setCursoFilter}>
+        {/* <Select value={cursoFilter} onValueChange={setCursoFilter}>
           <SelectTrigger className="w-[300px]">
             <SelectValue />
           </SelectTrigger>
@@ -181,7 +206,7 @@ export default function SolicitudesPendientes() {
               </SelectItem>
             ))}
           </SelectContent>
-        </Select>
+        </Select> */}
       </div>
 
       {/* Tabs */}
@@ -190,7 +215,7 @@ export default function SolicitudesPendientes() {
         onValueChange={(value) => handleTabChange(value as EstadoTemaNombre)}
       >
         <TabsList>
-          {Object.entries(filters.temaEstados).map(([key, estado]) => (
+          {Object.entries(pageTemasTexts.states).map(([key, estado]) => (
             <TabsTrigger key={key} value={key}>
               {estado.label}
             </TabsTrigger>
@@ -205,15 +230,15 @@ export default function SolicitudesPendientes() {
           <div className="space-y-1">
             <h2 className="text-lg font-semibold">
               {
-                filters.temaEstados[
-                  estadoTema as keyof typeof filters.temaEstados
+                pageTemasTexts.states[
+                  estadoTema as keyof typeof pageTemasTexts.states
                 ].title
               }
             </h2>
             <p className="text-sm text-muted-foreground">
               {
-                filters.temaEstados[
-                  estadoTema as keyof typeof filters.temaEstados
+                pageTemasTexts.states[
+                  estadoTema as keyof typeof pageTemasTexts.states
                 ].description
               }
             </p>

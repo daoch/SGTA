@@ -14,13 +14,29 @@ public class HistorialTemaDto {
 
     private TemaDto tema;
 
+    private String codigo;
+
     private String titulo;
 
     private String resumen;
 
+    private String metodologia;
+
+    private String objetivos;
+
     private String descripcionCambio;
 
-    private Integer estadoTemaId;
+    private String portafolioUrl;
+
+    private String estadoTemaNombre;
+
+    private Integer proyectoId;
+
+    private CarreraDto carrera;
+
+    private OffsetDateTime fechaLimite;
+
+    private OffsetDateTime fechaFinalizacion;
 
     private Boolean activo;
 

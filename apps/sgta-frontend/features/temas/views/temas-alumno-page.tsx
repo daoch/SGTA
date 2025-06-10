@@ -47,6 +47,7 @@ const MisTemasPage = () => {
     null,
   );
   const [isLoading, setIsLoading] = useState(true);
+  const [tieneTemaComprometido, setTieneTemaComprometido] = useState(false);
 
   useEffect(() => {
     const fetchTema = async () => {
@@ -70,6 +71,9 @@ const MisTemasPage = () => {
         if (!resVerifica.ok)
           throw new Error("Error verificando tema comprometido");
         const dataVerifica = await resVerifica.json();
+        setTieneTemaComprometido(
+          Array.isArray(dataVerifica) && dataVerifica[0]?.comprometido === 1,
+        );
       } catch (error) {
         console.error("Error al obtener tema inscrito o registrado", error);
         setSelectedPropuesta(null);
@@ -91,7 +95,7 @@ const MisTemasPage = () => {
             propuestas
           </p>
         </div>
-        {!isLoading && !selectedPropuesta && (
+        {!isLoading && !tieneTemaComprometido && (
           <Link href="/alumno/temas/nueva-propuesta">
             <Button className="bg-[#042354] hover:bg-[#0e2f7a] text-white">
               + Nueva Propuesta
