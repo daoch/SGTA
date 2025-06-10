@@ -57,7 +57,7 @@ export const getEntregablesAlumno = async () => {
     console.log(" idToken obtenido:", idToken);
 
     const response = await axiosInstance.get(
-        "/api/v1/reports/entregables",
+        "/reports/entregables",
        {
          headers: {
            Authorization: `Bearer ${idToken}`,

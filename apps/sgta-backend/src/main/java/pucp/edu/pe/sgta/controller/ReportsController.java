@@ -29,7 +29,7 @@ import pucp.edu.pe.sgta.service.inter.JwtService;
 
 
 @RestController
-@RequestMapping("/api/v1/reports")
+@RequestMapping("/reports")
 public class ReportsController {
 
     private final IReportService reportingService;
