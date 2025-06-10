@@ -3,176 +3,48 @@
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CessationRequestPagination from "@/features/asesores/components/cessation-request/pagination-cessation-request";
-import { usePagination } from "@/hooks/temas/use-pagination";
 import { Search } from "lucide-react";
-import React, { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { SolicitudesTable } from "../components/coordinador/table-solicitudes-pagination";
 import { pageTemasTexts, pageTexts } from "../types/solicitudes/constants";
-import {
-  fetchCarrerasMiembroComite,
-  lenTemasPorCarrera,
-  listarTemasPorCarrera,
-} from "../types/solicitudes/data";
+import { PagesList } from "../types/solicitudes/entities";
 import { getSolicitudFromTema } from "../types/solicitudes/lib";
+import { Tema } from "../types/temas/entidades";
 import { EstadoTemaNombre } from "../types/temas/enums";
 
-const LIMIT = 10;
+interface SolicitudesPendientesProps {
+  readonly fetchFirstPageAndSetTotalCounts: () => Promise<void>;
+  readonly estadoTema: EstadoTemaNombre;
+  readonly handleTabChange: (state: EstadoTemaNombre) => void;
+  readonly loading: boolean;
+  readonly getPage: (pagesList: PagesList, state: EstadoTemaNombre) => Tema[];
+  readonly temas: PagesList;
+  readonly getTotalPages: (
+    pagesList: PagesList,
+    state: EstadoTemaNombre,
+  ) => number;
+  readonly handlePageChange: (page: number) => void;
+}
 
-export default function SolicitudesPendientes() {
-  const [estadoTema, setEstadoTema] = React.useState<EstadoTemaNombre>(
-    EstadoTemaNombre.INSCRITO,
-  );
+export default function SolicitudesPendientes({
+  fetchFirstPageAndSetTotalCounts,
+  estadoTema,
+  handleTabChange,
+  loading,
+  getPage,
+  temas,
+  getTotalPages,
+  handlePageChange,
+}: SolicitudesPendientesProps) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [cursoFilter, setCursoFilter] = useState("todos");
-  const [loading, setLoading] = useState(false);
-  const [carrerasIds, setCarrerasIds] = useState<number[]>([]);
-  const {
-    pagination: temas,
-    replaceStateKey,
-    addNewPage,
-    getPage,
-    getTotalPages,
-  } = usePagination(pageTemasTexts.initialPagesList, LIMIT);
 
   useEffect(() => {
-    fetchFirstPageAndSetTotalCounts();
+    if (!temas[estadoTema] || temas[estadoTema].totalCounts === 0) {
+      fetchFirstPageAndSetTotalCounts();
+    }
   }, []);
-
-  async function fetchFirstPageAndSetTotalCounts() {
-    try {
-      setLoading(true);
-      // Get CarrerasIds
-      const carreras = await fetchCarrerasMiembroComite();
-      const ids = (carreras || []).map((c) => c.id);
-      setCarrerasIds(ids);
-
-      if (ids.length > 0) {
-        await fetchTotalCountsAndFirstPages(ids);
-      }
-    } catch (error) {
-      console.log("No se pudo cargar las carreras del usuario: " + error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  const handlePageChange = useCallback(
-    (newPage: number) => {
-      // Actualizar página actual
-      replaceStateKey(estadoTema, "current", newPage);
-      // Fetch de la página en caso no exista
-      const existingPage = temas[estadoTema]?.pages?.[newPage];
-      if (!existingPage?.length) {
-        setLoading(true);
-        fetchPage(estadoTema, newPage, carrerasIds);
-      }
-    },
-    [estadoTema, temas, carrerasIds],
-  );
-
-  async function fetchPage(
-    state: EstadoTemaNombre,
-    page: number,
-    carrerasIds: number[],
-  ) {
-    try {
-      if (carrerasIds && carrerasIds.length > 0) {
-        // Fetch page
-        const data = await listarTemasPorCarrera(
-          carrerasIds[0], // TODO: Validar
-          state,
-          LIMIT,
-          (page - 1) * LIMIT, // Offset
-        );
-
-        // Add new page to State
-        addNewPage(state, page, data);
-      }
-    } catch (err) {
-      console.error("Error loading data", err);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function fetchTotalCounts(carrerasIds: number[]) {
-    try {
-      // Get All States
-      const estadosConPages: EstadoTemaNombre[] = Object.keys(
-        temas,
-      ) as EstadoTemaNombre[];
-
-      // Get all counts
-      const counts = await Promise.all(
-        estadosConPages.map((estado) =>
-          lenTemasPorCarrera(carrerasIds[0], estado),
-        ),
-      );
-
-      // Update state
-      estadosConPages.forEach((estado, idx) => {
-        replaceStateKey(estado, "totalCounts", counts[idx]);
-        console.log(estado + ": count = " + counts[idx]);
-      });
-    } catch (err) {
-      console.error("Error loading total counts", err);
-    }
-  }
-
-  async function fetchTotalCountsAndFirstPages(carrerasIds: number[]) {
-    try {
-      // Get All States
-      const estadosConPages: EstadoTemaNombre[] = Object.keys(
-        temas,
-      ) as EstadoTemaNombre[];
-
-      // Get all lists
-      const temasLists = await Promise.all(
-        estadosConPages.map((state) =>
-          listarTemasPorCarrera(
-            carrerasIds[0], // TODO: Validar
-            state,
-            2000, // Get all items
-            0,
-          ),
-        ),
-      );
-
-      // Update counts and first pages
-      estadosConPages.forEach((state, idx) => {
-        const countList = temasLists[idx].length;
-        // Set Count
-        replaceStateKey(state, "totalCounts", countList);
-        console.log(state + ": count = " + countList);
-
-        // Set first page
-        addNewPage(state, 1, temasLists[idx]);
-      });
-    } catch (err) {
-      console.error("Error loading total counts and First pages: ", err);
-    }
-  }
-
-  function handleTabChange(state: EstadoTemaNombre) {
-    setEstadoTema(state);
-
-    // Fetch de la página en caso no exista
-    if (!temas[state]) return;
-    const currentPage = temas[state].current;
-    const existingPage = temas[state]?.pages?.[currentPage];
-    if (!existingPage?.length) {
-      fetchPage(state, currentPage, carrerasIds);
-    }
-  }
 
   return (
     <div className="space-y-8 mt-4">
@@ -193,20 +65,6 @@ export default function SolicitudesPendientes() {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-
-        {/* Selector tipo de tema */}
-        {/* <Select value={cursoFilter} onValueChange={setCursoFilter}>
-          <SelectTrigger className="w-[300px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {Object.entries(filters.filterTipos).map(([key, filter]) => (
-              <SelectItem key={key} value={key}>
-                {filter.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select> */}
       </div>
 
       {/* Tabs */}
