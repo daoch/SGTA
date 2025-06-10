@@ -1,5 +1,5 @@
+import { useAuthStore } from "@/features/auth";
 import axiosInstance from "@/lib/axios/axios-instance";
-import {useAuthStore} from "@/features/auth";
 
 export interface Student {
   temaId: number;
@@ -87,14 +87,9 @@ export const advisorService = {
   },
 
   // Obtener detalles de un tesista específico
-  getStudentDetails: async (): Promise<StudentDetail> => {
+  getStudentDetails: async (studentId: number): Promise<StudentDetail> => {
     try {
-      const { idToken } = useAuthStore.getState();
-      const response = await axiosInstance.get("/reports/tesistas/detalle", {
-        headers: {
-          Authorization: `Bearer ${idToken}`,
-        }
-      });
+      const response = await axiosInstance.get(`/reports/tesistas/detalle?tesistaId=${studentId}`);
       return response.data;
     } catch (error) {
       console.error("Error detallado al obtener datos del tesista:", error);
@@ -103,24 +98,14 @@ export const advisorService = {
   },
 
   // Obtener cronograma/timeline del tesista
-  getStudentTimeline: async (): Promise<TimelineEvent[]> => {
-    const { idToken } = useAuthStore.getState();
-    const response = await axiosInstance.get("/reports/tesistas/cronograma", {
-      headers: {
-        Authorization: `Bearer ${idToken}`,
-      }
-    });
+  getStudentTimeline: async (studentId: number): Promise<TimelineEvent[]> => {
+    const response = await axiosInstance.get(`/reports/tesistas/cronograma?tesistaId=${studentId}`);
     return response.data;
   },
 
   // Obtener reuniones del tesista
-  getStudentMeetings: async (): Promise<Meeting[]> => {
-    const { idToken } = useAuthStore.getState();
-    const response = await axiosInstance.get("/reports/tesistas/reuniones", {
-      headers: {
-        Authorization: `Bearer ${idToken}`,
-      }
-    });
+  getStudentMeetings: async (studentId: number): Promise<Meeting[]> => {
+    const response = await axiosInstance.get(`/reports/tesistas/reuniones?tesistaId=${studentId}`);
     return response.data;
   }
 }; 

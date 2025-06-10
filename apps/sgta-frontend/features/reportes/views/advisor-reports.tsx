@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { advisorService, Student } from "@/features/asesores/services/advisor-service";
 import { cn } from "@/lib/utils";
-import { Calendar, ExternalLink, LayoutGrid, Table } from "lucide-react";
+import { Calendar, ChevronDown, ChevronsUpDown, ChevronUp, ExternalLink, LayoutGrid, Table } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -33,6 +33,8 @@ type DeliveryFilterType = "all" | "no_enviado" | "enviado_a_tiempo" | "enviado_t
 type CareerFilterType = "all" | string;
 type StageFilterType = "all" | string;
 type ViewMode = "grid" | "table";
+type SortField = "name" | "career" | "stage" | "title" | "deliverable" | "dueDate" | "activityStatus" | "deliveryStatus" | "progress";
+type SortDirection = "asc" | "desc" | null;
 
 // Utility functions
 const getStudentProgress = (estado: string): number => 
@@ -161,6 +163,8 @@ export function AdvisorReports() {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  const [sortField, setSortField] = useState<SortField | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
   const progressFilterRef = useRef<HTMLDivElement>(null);
   const activityFilterRef = useRef<HTMLDivElement>(null);
   const deliveryFilterRef = useRef<HTMLDivElement>(null);
@@ -207,6 +211,34 @@ export function AdvisorReports() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Sorting function
+  const handleSort = (field: SortField) => {
+    let direction: SortDirection = "asc";
+    
+    if (sortField === field && sortDirection === "asc") {
+      direction = "desc";
+    } else if (sortField === field && sortDirection === "desc") {
+      direction = null;
+    }
+    
+    setSortField(direction ? field : null);
+    setSortDirection(direction);
+  };
+
+  // Sort icon component
+  const SortIcon = ({ field }: { field: SortField }) => {
+    if (sortField !== field) {
+      return <ChevronsUpDown className="h-4 w-4 text-gray-400" />;
+    }
+    if (sortDirection === "asc") {
+      return <ChevronUp className="h-4 w-4 text-gray-600" />;
+    }
+    if (sortDirection === "desc") {
+      return <ChevronDown className="h-4 w-4 text-gray-600" />;
+    }
+    return <ChevronsUpDown className="h-4 w-4 text-gray-400" />;
+  };
+
   // Filter logic
   const filteredStudents = students.filter((student) => {
     const fullName = getFullName(student).toLowerCase();
@@ -225,6 +257,59 @@ export function AdvisorReports() {
     const matchesStage = stageFilter === "all" || student.etapaFormativaNombre === stageFilter;
 
     return matchesSearch && matchesProgress && matchesActivity && matchesDelivery && matchesCareer && matchesStage;
+  });
+
+  // Sort filtered students
+  const sortedStudents = [...filteredStudents].sort((a, b) => {
+    if (!sortField || !sortDirection) return 0;
+
+    let aValue: string | number | Date;
+    let bValue: string | number | Date;
+
+    switch (sortField) {
+      case "name":
+        aValue = getFullName(a).toLowerCase();
+        bValue = getFullName(b).toLowerCase();
+        break;
+      case "career":
+        aValue = a.carrera.toLowerCase();
+        bValue = b.carrera.toLowerCase();
+        break;
+      case "stage":
+        aValue = a.etapaFormativaNombre.toLowerCase();
+        bValue = b.etapaFormativaNombre.toLowerCase();
+        break;
+      case "title":
+        aValue = a.tituloTema.toLowerCase();
+        bValue = b.tituloTema.toLowerCase();
+        break;
+      case "deliverable":
+        aValue = a.entregableActualNombre.toLowerCase();
+        bValue = b.entregableActualNombre.toLowerCase();
+        break;
+      case "dueDate":
+        aValue = new Date(a.entregableActualFechaFin);
+        bValue = new Date(b.entregableActualFechaFin);
+        break;
+      case "activityStatus":
+        aValue = a.entregableActualEstado;
+        bValue = b.entregableActualEstado;
+        break;
+      case "deliveryStatus":
+        aValue = a.entregableEnvioEstado;
+        bValue = b.entregableEnvioEstado;
+        break;
+      case "progress":
+        aValue = getStudentProgress(a.entregableActualEstado);
+        bValue = getStudentProgress(b.entregableActualEstado);
+        break;
+      default:
+        return 0;
+    }
+
+    if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
+    if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
+    return 0;
   });
 
   // Statistics
@@ -463,7 +548,7 @@ export function AdvisorReports() {
         
         {viewMode === "grid" ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {filteredStudents.map((student) => {
+            {sortedStudents.map((student) => {
               const progress = getStudentProgress(student.entregableActualEstado);
               return (
                 <Card key={student.tesistaId} className="border overflow-hidden">
@@ -524,45 +609,64 @@ export function AdvisorReports() {
               <thead className="bg-gray-50">
                 <tr>
                   {[
-                    "Tesista", "Carrera", "Etapa", "Título de Tesis", 
-                    "Entregable Actual", "Fecha Límite", "Estado Actividad", "Estado Entrega", "Progreso"
-                  ].map((header, index) => (
-                    <th key={index} className="px-4 py-8 text-left text-sm font-medium text-gray-600">
-                      {header}
+                    { key: "name" as SortField, label: "Tesista" },
+                    { key: "career" as SortField, label: "Carrera" },
+                    { key: "stage" as SortField, label: "Etapa" },
+                    { key: "title" as SortField, label: "Título de Tesis" },
+                    { key: "deliverable" as SortField, label: "Entregable Actual" },
+                    { key: "dueDate" as SortField, label: "Fecha Límite" },
+                    { key: "activityStatus" as SortField, label: "Estado Actividad" },
+                    { key: "deliveryStatus" as SortField, label: "Estado Entrega" },
+                    { key: "progress" as SortField, label: "Progreso" },
+                  ].map(({ key, label }) => (
+                    <th 
+                      key={key} 
+                      className="px-4 py-6 text-left text-sm font-medium text-gray-600 cursor-pointer hover:bg-gray-100 transition-colors select-none border-r border-gray-200 last:border-r-0"
+                      onClick={() => handleSort(key)}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="break-words leading-tight">{label}</span>
+                        <SortIcon field={key} />
+                      </div>
                     </th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {filteredStudents.map((student) => {
+                {sortedStudents.map((student) => {
                   const progress = getStudentProgress(student.entregableActualEstado);
+                  const fullName = getFullName(student);
                   return (
                     <tr 
                       key={student.tesistaId} 
                       className="hover:bg-gray-50 cursor-pointer transition-colors"
                       onClick={() => router.push(`/asesor/reportes/tesista/${student.tesistaId}`)}
                     >
-                      <td className="px-4 py-8">
-                        <div className="font-medium text-sm">{getFullName(student)}</div>
+                      <td className="px-4 py-3 border-r border-gray-200 last:border-r-0">
+                        <div className="font-medium text-sm">{fullName}</div>
                       </td>
-                      <td className="px-4 py-8 text-sm">{student.carrera}</td>
-                      <td className="px-4 py-8 text-sm">{student.etapaFormativaNombre}</td>
-                      <td className="px-4 py-8 text-sm max-w-xs">
-                        <div className="line-clamp-2">{student.tituloTema}</div>
+                      <td className="px-4 py-3 border-r border-gray-200 last:border-r-0">
+                        <div className="text-sm">{student.carrera}</div>
                       </td>
-                      <td className="px-4 py-8 text-sm">
-                        {student.entregableActualNombre}
+                      <td className="px-4 py-3 border-r border-gray-200 last:border-r-0">
+                        <div className="text-sm">{student.etapaFormativaNombre}</div>
                       </td>
-                      <td className="px-4 py-8 text-sm">
+                      <td className="px-4 py-3 border-r border-gray-200 last:border-r-0">
+                        <div className="text-sm">{student.tituloTema}</div>
+                      </td>
+                      <td className="px-4 py-3 border-r border-gray-200 last:border-r-0">
+                        <div className="text-sm">{student.entregableActualNombre}</div>
+                      </td>
+                      <td className="px-4 py-3 border-r border-gray-200 last:border-r-0 text-sm">
                         {new Date(student.entregableActualFechaFin).toLocaleDateString()}
                       </td>
-                      <td className="px-4 py-8">
+                      <td className="px-4 py-3 border-r border-gray-200 last:border-r-0">
                         {renderStatusTag(student.entregableActualEstado, "activity")}
                       </td>
-                      <td className="px-4 py-8">
+                      <td className="px-4 py-3 border-r border-gray-200 last:border-r-0">
                         {renderStatusTag(student.entregableEnvioEstado, "delivery")}
                       </td>
-                      <td className="px-4 py-8">
+                      <td className="px-4 py-3 border-r border-gray-200 last:border-r-0">
                         <div className="text-sm font-medium">{progress}%</div>
                       </td>
                     </tr>
@@ -574,7 +678,7 @@ export function AdvisorReports() {
         )}
       </div>
 
-      {filteredStudents.length === 0 && (
+      {sortedStudents.length === 0 && (
         <div className="text-center py-8 bg-gray-50 rounded-lg border">
           <p className="text-gray-500">No se encontraron tesistas que coincidan con los filtros seleccionados</p>
         </div>
