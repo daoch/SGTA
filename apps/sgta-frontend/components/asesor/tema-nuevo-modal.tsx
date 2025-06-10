@@ -24,6 +24,7 @@ import {
   AreaDeInvestigacion,
   Carrera,
   Coasesor,
+  Tema,
   TemaCreateInscription,
   Tesista,
 } from "@/features/temas/types/inscripcion/entities";
@@ -42,7 +43,6 @@ import {
 } from "@/features/temas/types/temas/data";
 import {
   Subareas,
-  Tema,
   TemaCreateLibre,
 } from "@/features/temas/types/temas/entidades";
 //
