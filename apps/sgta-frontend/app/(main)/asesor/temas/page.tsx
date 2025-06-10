@@ -102,7 +102,6 @@ const Page = () => {
           console.log("Entro al defaul");
           break;
       }
-
       setTemasData(data);
       console.log("consegui los temas data");
     } catch (err: unknown) {
@@ -232,6 +231,7 @@ const Page = () => {
                     isLoading={isLoading}
                     error={error}
                     asesor={asesorData}
+                    onTemaInscrito={fetchTemas}
                   />
                 </CardContent>
               </Card>
