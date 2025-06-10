@@ -10,6 +10,13 @@ import { useAuthStore } from "@/features/auth/store/auth-store";
 import { useRouter } from "next/navigation";
 import { CalificacionesJurado } from "../../types/jurado.types";
 import { getCalificacionesJuradoByExposicionTemaId } from "../../services/jurado-service";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Info } from "lucide-react";
 
 interface DetalleExposicionProps {
   id: string;
@@ -212,7 +219,7 @@ const DetalleExposicion: React.FC<DetalleExposicionProps> = ({
                         : " text-black-500"
                     }
                   >
-                    {exposicion.linkExposicion || "No disponible"}
+                    {exposicion.linkExposicion || "Aún no disponible"}
                   </a>
                 </div>
                 <div>
@@ -228,7 +235,7 @@ const DetalleExposicion: React.FC<DetalleExposicionProps> = ({
                         : " text-black-500"
                     }
                   >
-                    {exposicion.linkGrabacion || "No disponible"}
+                    {exposicion.linkGrabacion || "Aún no disponible"}
                   </a>
                 </div>
               </div>
@@ -280,7 +287,7 @@ const DetalleExposicion: React.FC<DetalleExposicionProps> = ({
                           className={`${!calificado ? "pointer-events-none text-gray-500" : ""}`}
                         >
                           {calificado
-                            ? "Ver Comentarios"
+                            ? "Ver Calificación"
                             : "Pendiente de calificar"}
                         </Link>
                       </Button>
@@ -288,6 +295,33 @@ const DetalleExposicion: React.FC<DetalleExposicionProps> = ({
                   );
                 })}
               </div>
+            </div>
+
+            <TooltipProvider>
+              <div className="mt-4 mb-4 flex items-center gap-1">
+                <h2 className="text-lg font-semibold">
+                  Promedio de Calificación de la Exposición
+                </h2>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="flex items-center justify-center">
+                      <Info className="h-6 w-6 text-muted-foreground ml-1" />
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-md text-sm leading-snug text-justify">
+                    Si en caso uno de los jurados no envía la calificación, se
+                    reemplaza con la nota del otro jurado. Si en caso el asesor
+                    no envía la nota del estudiante, la nota de los jurados
+                    tendrá un peso repartido de manera equitativa.
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            </TooltipProvider>
+
+            <div>
+              <h1 className="text-4xl font-semibold items-center text-[#264753]">
+                {/* {notaFinal} / {notaMaxima} */} 20
+              </h1>
             </div>
           </div>
         )}

@@ -6,7 +6,7 @@ import React from "react";
 
 const Page: React.FC = () => {
   const params = useParams();
-  const idExposicion = params?.id as string;
+  const idExposicion = params?.["exposicionId"] as string;
   const idDocente = params?.["id-docente"] as string;
 
   return (
@@ -15,3 +15,4 @@ const Page: React.FC = () => {
 };
 
 export default Page;
+
