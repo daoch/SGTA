@@ -28,4 +28,10 @@ public interface CarreraRepository extends JpaRepository<Carrera, Integer>{
             nativeQuery = true
     )
     Integer obtenerIdCarreraPorIdExpo(@Param("idExpo")Integer idExpo);
+
+    @Query(
+            value = "select * from obtener_carrera_coordinador(:usuarioId)",
+            nativeQuery = true
+    )
+    List<Object[]> obtenerCarreraCoordinador(@Param("usuarioId") Integer usuarioId);
 }

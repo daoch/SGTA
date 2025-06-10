@@ -73,8 +73,9 @@ export function TemaCard() {
           return;
         }
 
-        let response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/temas/porUsuarioTituloAreaCarreraEstadoFecha?titulo=&areaId=&carreraId=&estadoNombre=INSCRITO&fechaCreacionDesde=&fechaCreacionHasta=`,
+        // 1. Verifica si hay tema comprometido y obtén el estado
+        const resVerifica = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/temas/verificarTemasComprometidosTesista`,
           {
             headers: {
               Authorization: `Bearer ${idToken}`,
@@ -82,12 +83,13 @@ export function TemaCard() {
             },
           }
         );
-        let data = await response.json();
+        if (!resVerifica.ok) throw new Error("Error verificando tema comprometido");
+        const dataVerifica = await resVerifica.json();
 
-        let estadoActual = "Inscrito";
-        if (!data || data.length === 0) {
-          response = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/temas/porUsuarioTituloAreaCarreraEstadoFecha?titulo=&areaId=&carreraId=&estadoNombre=REGISTRADO&fechaCreacionDesde=&fechaCreacionHasta=`,
+        if (Array.isArray(dataVerifica) && dataVerifica[0]?.comprometido === 1) {
+          const estadoNombre = dataVerifica[0]?.estadoNombre;
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/temas/porUsuarioTituloAreaCarreraEstadoFecha?titulo=&areaId=&carreraId=&estadoNombre=${estadoNombre}&fechaCreacionDesde=&fechaCreacionHasta=`,
             {
               headers: {
                 Authorization: `Bearer ${idToken}`,
@@ -95,43 +97,28 @@ export function TemaCard() {
               },
             }
           );
-          data = await response.json();
-          estadoActual = "Registrado";
-        }
+          const data = await response.json();
+          if (!data || data.length === 0) {
+            setTesisData(null);
+            return;
+          }
+          const tesis = data[0];
+          setTesisData({ ...tesis, estadoActual: estadoNombre === "EN_PROGRESO" ? "En progreso" : estadoNombre.charAt(0) + estadoNombre.slice(1).toLowerCase() });
 
-        if (!data || data.length === 0) {
-          response = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/temas/porUsuarioTituloAreaCarreraEstadoFecha?titulo=&areaId=&carreraId=&estadoNombre=EN_PROGRESO&fechaCreacionDesde=&fechaCreacionHasta=`,
-            {
-              headers: {
-                Authorization: `Bearer ${idToken}`,
-                "Content-Type": "application/json",
-              },
-            }
-          );
-          data = await response.json();
-          estadoActual = "En progreso";
-        }
-
-        if (!data || data.length === 0) {
+          const asesorPrincipal = tesis.coasesores?.[0];
+          const coasesoresRestantes = tesis.coasesores?.slice(1) ?? [];
+          setFormData({
+            titulo: tesis.titulo,
+            area: tesis.area ?? "",
+            descripcion: tesis.resumen,
+            asesor: asesorPrincipal ? `${asesorPrincipal.nombres}` : "No asignado",
+            coasesores: coasesoresRestantes.map(
+              (c: Profesor) => `${c.nombres}`
+            ),
+          });
+        } else {
           setTesisData(null);
-          return;
         }
-
-        const tesis = data[0];
-        setTesisData({ ...tesis, estadoActual });
-
-        const asesorPrincipal = tesis.coasesores?.[0];
-        const coasesoresRestantes = tesis.coasesores?.slice(1) ?? [];
-        setFormData({
-          titulo: tesis.titulo,
-          area: tesis.area ?? "",
-          descripcion: tesis.resumen,
-          asesor: asesorPrincipal ? `${asesorPrincipal.nombres}` : "No asignado",
-          coasesores: coasesoresRestantes.map(
-            (c: Profesor) => `${c.nombres}`
-          ),
-        });
       } catch (error) {
         console.error("Error:", error);
         setTesisData(null);

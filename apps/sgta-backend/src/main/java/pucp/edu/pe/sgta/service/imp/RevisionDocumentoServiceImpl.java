@@ -382,7 +382,7 @@ public class RevisionDocumentoServiceImpl implements RevisionDocumentoService {
     }
 
     @Override
-    public void crearRevisiones(int entregableId, int temaId) {
-        revisionDocumentoRepository.crearRevisiones(entregableId, temaId);
+    public void crearRevisiones(int entregableXTemaId) {
+        revisionDocumentoRepository.crearRevisiones(entregableXTemaId);
     }
 }

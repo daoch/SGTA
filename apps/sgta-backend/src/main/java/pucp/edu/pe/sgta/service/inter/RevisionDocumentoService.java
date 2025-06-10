@@ -35,5 +35,5 @@ public interface RevisionDocumentoService {
     void actualizarEstadoRevision(Integer revisionId, String nuevoEstado);
     RevisionDocumentoAsesorDto obtenerRevisionDocumentoPorId(Integer revisionId);
 
-    void crearRevisiones(int entregableId, int temaId);
+    void crearRevisiones(int entregableXTemaId);
 }

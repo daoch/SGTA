@@ -53,3 +53,6 @@ __pycache__
 env
 test_db.db
 apps/func-python/cache/
+
+# Datagrip: pueden borrarlo si les sirve
+database/.run

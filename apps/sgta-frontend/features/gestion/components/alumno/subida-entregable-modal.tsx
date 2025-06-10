@@ -63,7 +63,7 @@ export function EntregablesModal({
     const fetchArchivosSubidos = async () => {
       try {
         const response = await axiosInstance.get(
-          `/documento/entregable/${entregable.entregableId}`,
+          `/documento/entregable/${entregable.entregableXTemaId}`,
         );
         setArchivosSubidos(response.data);
       } catch (error) {
@@ -71,7 +71,7 @@ export function EntregablesModal({
       }
     };
     fetchArchivosSubidos();
-  }, [entregable.entregableId]);
+  }, [entregable.entregableXTemaId]);
 
   const handleGuardar = async () => {
     setIsSubmitting(true);
@@ -103,7 +103,7 @@ export function EntregablesModal({
         formData.append("temaId", entregable.temaId.toString());
 
         await axiosInstance.post(
-          `/documento/entregable/${entregable.entregableId}`,
+          `/documento/entregable/${entregable.entregableXTemaId}`,
           formData,
           {
             headers: { "Content-Type": "multipart/form-data" },

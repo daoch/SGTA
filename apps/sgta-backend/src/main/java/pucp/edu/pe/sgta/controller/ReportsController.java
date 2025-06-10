@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.web.bind.annotation.*;
 import pucp.edu.pe.sgta.dto.AdvisorPerformanceDto;
 import pucp.edu.pe.sgta.dto.AreaFinalDTO;
 import pucp.edu.pe.sgta.dto.DetalleTesistaDTO;
@@ -22,6 +22,7 @@ import pucp.edu.pe.sgta.dto.EntregableEstudianteDto;
 import pucp.edu.pe.sgta.dto.EntregableCriteriosDetalleDto;
 import pucp.edu.pe.sgta.service.inter.IReportService;
 import pucp.edu.pe.sgta.service.inter.JwtService;
+
 
 @RestController
 @RequestMapping("/reports")
@@ -143,13 +144,12 @@ public class ReportsController {
         return ResponseEntity.ok(list);
     }
 
-    /** RF9: entregables con criterios de un tesista */
-    @GetMapping("/entregables-criterios")
+    /** RF9: entregables con criterios de un tesista - NO AGREGAR ID COGNITO*/
+    @GetMapping("/entregables-criterios/{idUsuario}")
     public ResponseEntity<List<EntregableCriteriosDetalleDto>> getEntregablesConCriterios(
-            HttpServletRequest request) {
-        String sub = jwtService.extractSubFromRequest(request);
+           @PathVariable Integer  idUsuario) {
         List<EntregableCriteriosDetalleDto> list =
-            reportingService.getEntregablesConCriterios(sub);
+            reportingService.getEntregablesConCriterios(idUsuario);
         return ResponseEntity.ok(list);
     }
 }
