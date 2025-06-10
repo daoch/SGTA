@@ -2,106 +2,119 @@
 import type React from "react";
 import { CriterioObservacion } from "@/features/jurado/components/alumno-criterio-observacion";
 import { Separator } from "@/components/ui/separator";
+import { CalificacionesJurado } from "../../types/jurado.types";
+import { useEffect, useState } from "react";
+import { getCalificacionesJuradoByExposicionTemaId } from "../../services/jurado-service";
+import { useRouter } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 
 interface DetalleObservacionExposicionProps {
   idExposicion: string;
   idDocente: string;
 }
 
-//ejemplo de criterios de observacion
-const criterios = [
-  {
-    idCriterio: 1,
-    criterio: "Claridad en la presentación",
-    descripcion:
-      "El expositor presentó la información de manera clara y concisa.",
-    observacion: "La presentación fue clara y concisa.",
-    calificacion: 4,
-    nota_maxima: 4,
-  },
-  {
-    idCriterio: 2,
-    criterio: "Dominio del tema",
-    descripcion:
-      "El expositor demostró un buen dominio del tema y respondió a las preguntas.",
-    observacion: "El expositor mostró un buen dominio del tema.",
-    calificacion: 4,
-    nota_maxima: 4,
-  },
-  {
-    idCriterio: 3,
-    criterio: "Uso de recursos visuales",
-    descripcion:
-      "Se utilizaron recursos visuales adecuados para apoyar la presentación.",
-    observacion: "Se utilizaron recursos visuales adecuados.",
-    calificacion: 3,
-    nota_maxima: 4,
-  },
-  {
-    idCriterio: 4,
-    criterio: "Interacción con el público",
-    descripcion:
-      "El expositor fomentó la interacción con el público y respondió a las preguntas.",
-    observacion: "Se fomentó la interacción con el público.",
-    calificacion: 4,
-    nota_maxima: 4,
-  },
-  {
-    idCriterio: 5,
-    criterio: "Cumplimiento del tiempo",
-    descripcion:
-      "El expositor cumplió con el tiempo asignado para la presentación.",
-    observacion: "Se cumplió más o menos con el tiempo asignado.",
-    calificacion: 2,
-    nota_maxima: 4,
-  },
-];
-
-const observacionesFinales = {
-  observacion:
-    "La presentación fue buena, pero se puede mejorar en algunos aspectos.",
-};
-
 const ObservacionExposicion: React.FC<DetalleObservacionExposicionProps> = ({
   idExposicion,
   idDocente,
 }) => {
-  return (
-    <div className="items-center justify-center flex flex-col">
-      <div className="flex flex-col gap-4">
-        {/*MOSTRAMOS LOS CRITERIOS DE OBSERVACION*/}
-        <h1 className="text-2xl font-semibold pt-4">
-          Criterios de Calificación
-        </h1>
-        <div className="space-y-2">
-          {criterios.map((criterio) => (
-            <CriterioObservacion
-              key={criterio.idCriterio}
-              idCriterio={criterio.idCriterio}
-              criterio={criterio.criterio}
-              descripcion={criterio.descripcion}
-              observacion={criterio.observacion}
-              calificacion={criterio.calificacion}
-              nota_maxima={criterio.nota_maxima}
-            />
-          ))}
-        </div>
+  const [isLoading, setIsLoading] = useState(true);
+  const [calificaciones, setCalificaciones] = useState<CalificacionesJurado>();
+  const notaFinal = calificaciones?.criterios.reduce(
+    (total, criterio) => total + (criterio.calificacion || 0),
+    0,
+  );
+  const notaMaxima = calificaciones?.criterios.reduce(
+    (total, criterio) => total + (criterio.nota_maxima || 0),
+    0,
+  );
 
-        {/*NOTA FINAL*/}
-        <Separator></Separator>
-        <h1 className="text-xl font-semibold">Observaciones Finales</h1>
-        <div className="text-lg pb-10">{observacionesFinales.observacion}</div>
+  const fetchCalificacion = async () => {
+    setIsLoading(true);
+    try {
+      console.log("idExposicion:", idExposicion);
+      console.log("idDocente:", idDocente);
+
+      const calificacionesData: CalificacionesJurado[] =
+        await getCalificacionesJuradoByExposicionTemaId(Number(idExposicion));
+
+      setCalificaciones(
+        calificacionesData.find(
+          (calif) => calif.usuario_id === Number(idDocente),
+        ),
+      );
+    } catch (error) {
+      console.error("Error al cargar exposiciones:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCalificacion();
+  }, []);
+
+  const router = useRouter();
+
+  return (
+    <div>
+      <div className="flex h-[60px] pt-[15px] pr-[20px] pb-[10px] items-center gap-[10px] self-stretch">
+        <button
+          onClick={() => router.back()}
+          className="flex items-center text-black hover:underline cursor-pointer"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </button>
+        <h1 className="text-[#042354] font-montserrat text-[24px] font-semibold leading-[32px] tracking-[-0.144px]">
+          Detalles de Calificación
+        </h1>
       </div>
-      <div className="flex flex-col items-center justify-center gap-4">
-        <h1 className="text-4xl font-semibold items-center text-[#264753]">
-          Nota Final
-        </h1>
-        <h1 className="text-4xl font-semibold items-center text-[#264753]">
-          {criterios.map((c) => c.calificacion).reduce((a, b) => a + b, 0)} /{" "}
-          {criterios.map((c) => c.nota_maxima).reduce((a, b) => a + b, 0)}
-        </h1>
+
+      <div className="pt-4">
+        {isLoading ? (
+          <div className="text-center mt-10">
+            <p className="text-gray-500 animate-pulse">
+              Cargando detalles de la calificación del miembro de jurado...
+            </p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-4">
+            <div className="space-y-4">
+              {calificaciones?.criterios.map((criterio) => (
+                <CriterioObservacion
+                  key={criterio.id}
+                  idCriterio={criterio.id}
+                  criterio={criterio.titulo}
+                  descripcion={criterio.descripcion}
+                  observacion={
+                    criterio.observacion ||
+                    "El miembro del jurado no ha dejado observaciones para este criterio."
+                  }
+                  calificacion={criterio.calificacion || 0}
+                  nota_maxima={criterio.nota_maxima}
+                />
+              ))}
+            </div>
+
+            {/*NOTA FINAL*/}
+            <Separator />
+            <h1 className="text-xl font-semibold">Observaciones Finales</h1>
+            <div className="text-lg pb-10">
+              {calificaciones?.observaciones_finales ||
+                "No hay observaciones finales."}
+            </div>
+            <div className="flex flex-col items-center justify-center gap-4">
+              <h1 className="text-3xl font-semibold items-center text-[#264753]">
+                Nota Final del Miembro del Jurado
+              </h1>
+              <h1 className="text-4xl font-semibold items-center text-[#264753]">
+                {notaFinal} / {notaMaxima}
+              </h1>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 };
 export default ObservacionExposicion;
+

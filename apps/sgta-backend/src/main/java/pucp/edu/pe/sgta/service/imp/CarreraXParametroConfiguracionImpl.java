@@ -24,7 +24,7 @@ public class CarreraXParametroConfiguracionImpl implements CarreraXParametroConf
     private UsuarioService usuarioService;
 
     public CarreraXParametroConfiguracionImpl(
-            CarreraXParametroConfiguracionRepository carreraXParametroConfiguracionRepository, 
+            CarreraXParametroConfiguracionRepository carreraXParametroConfiguracionRepository,
             UsuarioService usuarioService,
             CarreraRepository carreraRepository) {
         this.carreraXParametroConfiguracionRepository = carreraXParametroConfiguracionRepository;
@@ -58,9 +58,9 @@ public class CarreraXParametroConfiguracionImpl implements CarreraXParametroConf
         if (usuario == null) {
             throw new RuntimeException("Usuario no encontrado con ID Cognito: " + idCognito);
         }
-        
-       List<Object[]> results = carreraRepository.obtenerCarreraCoordinador(usuario.getId());
-       if (results != null && !results.isEmpty()) {
+
+        List<Object[]> results = carreraRepository.obtenerCarreraCoordinador(usuario.getId());
+        if (results != null && !results.isEmpty()) {
             Object[] result = results.get(0);
             if (result != null) {
                 Carrera carrera = new Carrera();
@@ -68,7 +68,7 @@ public class CarreraXParametroConfiguracionImpl implements CarreraXParametroConf
                 carrera.setNombre((String) result[1]);
                 Integer carreraId = carrera.getId();
                 List<CarreraXParametroConfiguracion> entidades = carreraXParametroConfiguracionRepository
-                    .findByCarreraId(Long.valueOf(carreraId));
+                        .findByCarreraId(Long.valueOf(carreraId));
                 List<CarreraXParametroConfiguracionDto> dtos = entidades.stream()
                         .map(CarreraXParametroConfiguracionMapper::toDto)
                         .toList();
@@ -76,9 +76,37 @@ public class CarreraXParametroConfiguracionImpl implements CarreraXParametroConf
             } else {
                 throw new RuntimeException("No se encontró la carrera para el usuario con id: " + usuario.getId());
             }
-        
-       }
+
+        }
         return List.of(); // Retorna una lista vacía si no se encuentra la carrera
     }
 
+    @Override
+    public List<CarreraXParametroConfiguracionDto> getParametrosPorAlumno(String idCognito) {
+        UsuarioDto usuario = usuarioService.findByCognitoId(idCognito);
+        if (usuario == null) {
+            throw new RuntimeException("Usuario no encontrado con ID Cognito: " + idCognito);
+        }
+
+        List<Object[]> results = carreraRepository.obtenerCarreraAlumno(usuario.getId());
+        if (results != null && !results.isEmpty()) {
+            Object[] result = results.get(0);
+            if (result != null) {
+                Carrera carrera = new Carrera();
+                carrera.setId((Integer) result[0]);
+                carrera.setNombre((String) result[1]);
+                Integer carreraId = carrera.getId();
+                List<CarreraXParametroConfiguracion> entidades = carreraXParametroConfiguracionRepository
+                        .findByCarreraId(Long.valueOf(carreraId));
+                List<CarreraXParametroConfiguracionDto> dtos = entidades.stream()
+                        .map(CarreraXParametroConfiguracionMapper::toDto)
+                        .toList();
+                return dtos;
+            } else {
+                throw new RuntimeException("No se encontró la carrera para el usuario con id: " + usuario.getId());
+            }
+
+        }
+        return List.of(); // Retorna una lista vacía si no se encuentra la carrera
+    }
 }
