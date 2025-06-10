@@ -8,4 +8,6 @@ public interface CarreraXParametroConfiguracionService {
     void updateCarreraXParametroConfiguracion(CarreraXParametroConfiguracionDto carreraXParametroConfiguracionDto);
 
     List<CarreraXParametroConfiguracionDto> getParametrosPorCarrera(String idCognito);
+
+    List<CarreraXParametroConfiguracionDto> getParametrosPorAlumno(String idCognito);
 }
