@@ -157,3 +157,11 @@ export interface CriterioEvaluacion {
   nota_maxima: number;
   observacion: string;
 }
+
+export interface CalificacionesJurado {
+  usuario_id: number;
+  nombres: string;
+  observaciones_finales: string;
+  criterios: CriterioEvaluacion[];
+  calificado: boolean;
+}

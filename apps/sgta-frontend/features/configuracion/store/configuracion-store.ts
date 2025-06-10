@@ -33,7 +33,7 @@ export const useBackStore = create<BackStore>()(
             cargarParametros: async (carreraId) => {
                 set({ cargando: true, error: null });
                 try {
-                    const response = await getAllByCarreraId(carreraId);
+                    const response = await getAllByCarreraId();
                     if (!response) {
                         throw new Error("No se encontraron parámetros para esta carrera");
                     }
