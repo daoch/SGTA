@@ -3,18 +3,18 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { advisorService, Student } from "@/features/asesores/services/advisor-service";
 import { cn } from "@/lib/utils";
-import { Calendar, ChevronDown, ChevronsUpDown, ChevronUp, ExternalLink, LayoutGrid, Table } from "lucide-react";
+import { Activity, BookOpen, Calendar, ChevronDown, ChevronsUpDown, ChevronUp, ExternalLink, Flag, GraduationCap, LayoutGrid, Send, Table } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -111,18 +111,23 @@ interface FilterDropdownProps {
   isOpen: boolean;
   onToggle: () => void;
   containerRef: React.RefObject<HTMLDivElement | null>;
+  icon?: React.ComponentType<{ className?: string }>;
 }
 
-function FilterDropdown({ label, value, options, onSelect, isOpen, onToggle, containerRef }: FilterDropdownProps) {
+function FilterDropdown({ label, value, options, onSelect, isOpen, onToggle, containerRef, icon: Icon }: FilterDropdownProps) {
   return (
     <div className="relative" ref={containerRef}>
-      <Button variant="outline" onClick={onToggle} className={`whitespace-nowrap ${isOpen ? "bg-gray-100" : ""}`}>
+      <Button variant="outline" onClick={onToggle} className={`whitespace-nowrap gap-2 ${isOpen ? "bg-gray-100" : ""}`}>
+        {Icon && <Icon className="h-4 w-4" />}
         {label}: {options.find(opt => opt.value === value)?.label || "Todos"}
       </Button>
       {isOpen && (
         <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg z-10 border">
           <div className="p-3 space-y-2">
-            <h4 className="font-medium text-sm">{label}</h4>
+            <h4 className="font-medium text-sm flex items-center gap-2">
+              {Icon && <Icon className="h-4 w-4" />}
+              {label}
+            </h4>
             <div className="space-y-1">
               {options.map((option) => (
                 <Button
@@ -345,13 +350,13 @@ export function AdvisorReports() {
   // Dynamic options from student data
   const uniqueCareers = Array.from(new Set(students.map(s => s.carrera))).sort();
   const careerOptions = [
-    { value: "all", label: "Todas las carreras" },
+    { value: "all", label: "Todas" },
     ...uniqueCareers.map(career => ({ value: career, label: career }))
   ];
 
   const uniqueStages = Array.from(new Set(students.map(s => s.etapaFormativaNombre))).sort();
   const stageOptions = [
-    { value: "all", label: "Todas las etapas" },
+    { value: "all", label: "Todas" },
     ...uniqueStages.map(stage => ({ value: stage, label: stage }))
   ];
 
@@ -466,6 +471,7 @@ export function AdvisorReports() {
               setShowStageFilter(false);
             }}
             containerRef={progressFilterRef}
+            icon={Activity}
           />
           <FilterDropdown
             label="Actividad"
@@ -481,6 +487,7 @@ export function AdvisorReports() {
               setShowStageFilter(false);
             }}
             containerRef={activityFilterRef}
+            icon={BookOpen}
           />
           <FilterDropdown
             label="Entrega"
@@ -496,6 +503,7 @@ export function AdvisorReports() {
               setShowStageFilter(false);
             }}
             containerRef={deliveryFilterRef}
+            icon={Send}
           />
           <FilterDropdown
             label="Carrera"
@@ -511,6 +519,7 @@ export function AdvisorReports() {
               setShowStageFilter(false);
             }}
             containerRef={careerFilterRef}
+            icon={GraduationCap}
           />
           <FilterDropdown
             label="Etapa"
@@ -526,6 +535,7 @@ export function AdvisorReports() {
               setShowCareerFilter(false);
             }}
             containerRef={stageFilterRef}
+            icon={Flag}
           />
           <div className="border rounded-md flex shrink-0">
             {[
