@@ -17,6 +17,7 @@ import pucp.edu.pe.sgta.dto.temas.EtapaFormativaTemaDto;
 import pucp.edu.pe.sgta.dto.temas.ExposicionTemaDto;
 import pucp.edu.pe.sgta.dto.temas.ParticipanteDto;
 import pucp.edu.pe.sgta.event.EstadoControlExposicionActualizadoEvent;
+import pucp.edu.pe.sgta.event.ExposicionCalificadaEvent;
 import pucp.edu.pe.sgta.model.*;
 import pucp.edu.pe.sgta.repository.*;
 import pucp.edu.pe.sgta.service.inter.MiembroJuradoService;
@@ -1038,6 +1039,27 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                                         revision.setRevisado(true);
                                         revisionCriterioExposicionRepository.save(revision);
                                 }
+
+                                ExposicionXTema exposicionXTema = revision.getExposicionXTema();
+                                Exposicion exposicion = exposicionXTema.getExposicion();
+
+                                List<CriterioExposicion> criterios = criterioExposicionRepository
+                                        .findByExposicion_IdAndActivoTrue(exposicion.getId());
+
+
+                                boolean criteriosCalificados = criterios.stream()
+                                        .allMatch(criterio -> revisionCriterioExposicionRepository
+                                                .findByExposicionXTema_IdAndCriterioExposicion_Id(
+                                                        exposicionXTema.getId(),
+                                                        criterio.getId()
+                                                )
+                                                .stream()
+                                                .anyMatch(revi -> revi.getNota() != null));
+
+                                if (criteriosCalificados) {
+                                        eventPublisher.publishEvent(new ExposicionCalificadaEvent(exposicionXTema));
+                                }
+
                         }
 
                         response.put("mensaje", "Se actualizaron correctamente los criterios.");
