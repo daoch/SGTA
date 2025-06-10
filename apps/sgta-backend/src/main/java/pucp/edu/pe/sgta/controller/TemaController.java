@@ -88,6 +88,15 @@ public class TemaController {
 		return temaService.createInscripcionTema(dto, idUsuarioCreador);
 	}
 
+	@PostMapping("/createInscripcionV2") // Inscripcion de tema oficial por asesor
+	public Integer createInscripcionV2(
+			@RequestBody @Valid TemaDto dto,
+			HttpServletRequest request
+	) {
+		String idUsuarioCreador = jwtService.extractSubFromRequest(request);
+		return temaService.createInscripcionTemaV2(dto, idUsuarioCreador);
+	}
+
 	@PutMapping("/update") // updates a topic
 	public void update(@RequestBody TemaDto dto) {
 		temaService.update(dto);
