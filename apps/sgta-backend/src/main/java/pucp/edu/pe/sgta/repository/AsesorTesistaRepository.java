@@ -39,4 +39,7 @@ public interface AsesorTesistaRepository extends JpaRepository<UsuarioXTema, Int
         AND LOWER(c.nombre) LIKE LOWER('%' || :carrera || '%');
         """, nativeQuery = true)
     List<Object[]> findAsesorTesistaByCarrera(@Param("carrera") String carrera);
+
+    @Query(value = "SELECT * FROM listar_tesistas_por_asesor(:usuarioId)", nativeQuery = true)
+    List<Object[]> listarTesistasXAsesor(@Param("usuarioId") Integer usuarioId);
 }
