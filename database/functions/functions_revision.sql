@@ -31,7 +31,7 @@ BEGIN
                  AND vd.fecha_ultima_subida::DATE <= rd.fecha_limite_revision THEN TRUE
             ELSE FALSE
         END AS entrega_a_tiempo,
-        rd.fecha_limite_revision::TIMESTAMP WITH TIME ZONE  -- ← Aquí el cambio
+        rd.fecha_limite_revision::TIMESTAMP WITH TIME ZONE
     FROM usuario_tema ut_asesor
     JOIN tema t ON ut_asesor.tema_id = t.tema_id
     JOIN usuario_tema ut_estudiante 
@@ -45,7 +45,7 @@ BEGIN
     JOIN version_documento vd ON vd.entregable_x_tema_id = ext.entregable_x_tema_id
     LEFT JOIN revision_documento rd ON rd.version_documento_id = vd.version_documento_id
     WHERE ut_asesor.usuario_id = asesorid 
-      AND ut_asesor.rol_id = 1
+      AND (ut_asesor.rol_id = 1 or ut_asesor.rol_id = 5)
       AND vd.activo = TRUE
       AND ext.activo = TRUE
       AND e.activo = TRUE
@@ -138,3 +138,64 @@ BEGIN
       AND o.activo = TRUE;
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION sgtadb.crear_revisiones(entregableXTemaId integer)
+ RETURNS void
+ LANGUAGE plpgsql
+AS $$
+DECLARE
+    version_id INT;
+    asesor_id INT;
+    v_tema_id INT;
+    v_link_archivo TEXT;
+BEGIN
+    -- 1. Obtener el tema_id relacionado
+    SELECT ext.tema_id
+    INTO v_tema_id
+    FROM entregable_x_tema ext
+    WHERE ext.entregable_x_tema_id = entregableXTemaId
+      AND ext.activo = true;
+
+    IF v_tema_id IS NULL THEN
+        RAISE NOTICE 'No se encontró tema asociado al entregable_x_tema_id=%', entregableXTemaId;
+    END IF;
+
+    -- 2. Iterar sobre las versiones del documento asociadas al entregable_x_tema
+    FOR version_id, v_link_archivo IN
+        SELECT vd.version_documento_id, vd.link_archivo_subido
+        FROM version_documento vd
+        WHERE vd.entregable_x_tema_id = entregableXTemaId
+    LOOP
+        -- 3. Iterar sobre los asesores asignados al tema
+        FOR asesor_id IN
+            SELECT ut.usuario_id
+            FROM usuario_tema ut
+            WHERE ut.tema_id = v_tema_id
+              AND ut.rol_id = 1  -- Asesor
+              AND ut.asignado = true
+        LOOP
+            -- 4. Insertar revisión
+            INSERT INTO revision_documento (
+                version_documento_id,
+                usuario_id,
+                estado_revision,
+                activo,
+                fecha_creacion,
+                fecha_modificacion,
+                fecha_revision,
+                link_archivo_revision
+            ) VALUES (
+                version_id,
+                asesor_id,
+                'por_aprobar',
+                true,
+                NOW(),
+                NOW(),
+                NOW(),
+                v_link_archivo
+            );
+        END LOOP;
+    END LOOP;
+END;
+$$;
+;

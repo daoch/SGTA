@@ -1,3 +1,4 @@
+import AppLoading from "@/components/loading/app-loading";
 import {
   Card,
   CardContent,
@@ -5,9 +6,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { EntregablesTable } from "../components/alumno/entregables-table";
-import { useEffect, useState } from "react";
 import {
   Select,
   SelectContent,
@@ -15,11 +13,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import axiosInstance from "@/lib/axios/axios-instance";
-import { EtapaFormativaAlumnoDto } from "../dtos/EtapaFormativaAlumnoDto";
-import { EntregableAlumnoDto } from "../dtos/EntregableAlumnoDto";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuthStore } from "@/features/auth/store/auth-store";
-import AppLoading from "@/components/loading/app-loading";
+import axiosInstance from "@/lib/axios/axios-instance";
+import { useEffect, useState } from "react";
+import { EntregablesTable } from "../components/alumno/entregables-table";
+import { EntregableAlumnoDto } from "../dtos/EntregableAlumnoDto";
+import { EtapaFormativaAlumnoDto } from "../dtos/EtapaFormativaAlumnoDto";
 
 interface Ciclo {
   cicloId: number;
