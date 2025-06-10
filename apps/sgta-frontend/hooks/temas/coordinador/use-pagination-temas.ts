@@ -8,7 +8,8 @@ import { EstadoTemaNombre } from "@/features/temas/types/temas/enums";
 import { usePagination } from "@/hooks/temas/use-pagination";
 import { useCallback, useState } from "react";
 
-const LIMIT = 10;
+const LIMIT = 8;
+const FETCH_ALL_PAGES = true;
 
 export function usePaginationTemas() {
   const [estadoTema, setEstadoTema] = useState<EstadoTemaNombre>(
@@ -92,7 +93,7 @@ export function usePaginationTemas() {
           replaceStateKey(state, "totalCounts", countList);
 
           // Set First Status Page
-          addNewPage(state, 1, temasLists[idx]);
+          addNewPage(state, 1, temasLists[idx].slice(0, LIMIT));
         });
       } catch (err) {
         console.error("Error loading total counts and First pages: ", err);
@@ -109,7 +110,8 @@ export function usePaginationTemas() {
       replaceStateKey(estadoTema, "current", newPage);
       const existingPage = temas[estadoTema]?.pages?.[newPage];
       if (!existingPage?.length) {
-        fetchPage(estadoTema, newPage);
+        if (FETCH_ALL_PAGES) fetchAllPagesState(estadoTema, newPage);
+        else fetchPage(estadoTema, newPage);
       }
     },
     [estadoTema, temas, fetchPage, replaceStateKey],
@@ -123,7 +125,8 @@ export function usePaginationTemas() {
       const currentPage = temas[state].current;
       const existingPage = temas[state]?.pages?.[currentPage];
       if (!existingPage?.length) {
-        fetchPage(state, currentPage);
+        if (FETCH_ALL_PAGES) fetchAllPagesState(state, currentPage);
+        else fetchPage(state, currentPage);
       }
     },
     [temas, fetchPage],
@@ -153,6 +156,58 @@ export function usePaginationTemas() {
     }
   }, [temas, carrerasIds, replaceStateKey]);
 
+  const getOrFetchCarrerasIds = async () => {
+    try {
+      let ids = carrerasIds;
+      if (!ids?.length) {
+        const carreras = await fetchCarrerasMiembroComite();
+        ids = (carreras || []).map((c) => c.id);
+        setCarrerasIds(ids);
+      }
+      return ids;
+    } catch (err) {
+      console.error("Error loading carreras: ", err);
+    }
+  };
+
+  const fetchAllPagesState = useCallback(
+    async (
+      state: EstadoTemaNombre,
+      current?: number,
+      carrerasIdsParam?: number[],
+    ) => {
+      setLoading(true);
+      try {
+        // Get Carrera Id
+        let ids = await getOrFetchCarrerasIds();
+
+        // Fetch all pages per State
+        if (ids && ids.length > 0) {
+          const data = await listarTemasPorCarrera(ids[0], state, 2000, 0);
+          // Set TotalCounts
+          replaceStateKey(state, "totalCounts", data.length);
+
+          // Set Pages
+          let page = 1;
+          while (true) {
+            const offset = (page - 1) * LIMIT;
+            const newPage = data.slice(offset, offset + LIMIT);
+            if (!newPage || newPage.length === 0) break;
+            addNewPage(state, page, newPage);
+            page++;
+          }
+          // Set current page
+          replaceStateKey(state, "current", current ?? 1);
+        }
+      } catch (err) {
+        console.error("Error loading data", err);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [carrerasIds, replaceStateKey, addNewPage],
+  );
+
   return {
     estadoTema,
     setEstadoTema,
@@ -165,6 +220,8 @@ export function usePaginationTemas() {
     handleTabChange,
     fetchFirstPageAndSetTotalCounts,
     setPagination,
+    fetchAllPagesState,
+    LIMIT,
   };
 }
 
