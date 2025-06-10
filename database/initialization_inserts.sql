@@ -3114,7 +3114,6 @@ VALUES (
 
 INSERT INTO
     carrera_parametro_configuracion (
-        carrera_parametro_configuracion_id,
         activo,
         fecha_creacion,
         fecha_modificacion,
@@ -3124,7 +3123,6 @@ INSERT INTO
         etapa_formativa_id
     )
 VALUES (
-        11,
         true,
         NOW(),
         NOW(),
