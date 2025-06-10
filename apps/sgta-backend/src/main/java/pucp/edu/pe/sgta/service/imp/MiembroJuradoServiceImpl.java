@@ -264,10 +264,10 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                 Optional<Usuario> usuarioOpt = usuarioRepository.findById(usuarioId);
                 if (usuarioOpt.isEmpty()) {
                         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                                .body(Map.of("mensaje", "El jurado no existe"));
+                                        .body(Map.of("mensaje", "El jurado no existe"));
                 }
                 Rol rol = rolRepository.findById(2)
-                        .orElseThrow(() -> new RuntimeException("Rol jurado no encontrado"));
+                                .orElseThrow(() -> new RuntimeException("Rol jurado no encontrado"));
 
                 // List<UsuarioXTema> juradoExistente =
                 // usuarioXTemaRepository.findByUsuarioIdAndRolId(usuarioId, 2);
@@ -279,12 +279,12 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                 Optional<Tema> temaOpt = temaRepository.findById(temaId);
                 if (temaOpt.isEmpty()) {
                         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                                .body(Map.of("mensaje", "El tema no existe"));
+                                        .body(Map.of("mensaje", "El tema no existe"));
                 }
 
                 // buscar si ya existe una asignacion para este usuario y tema
                 Optional<UsuarioXTema> juradoExistenteOpt = usuarioXTemaRepository.findByUsuario_IdAndTema_Id(usuarioId,
-                        temaId);
+                                temaId);
                 if (juradoExistenteOpt.isPresent()) {
                         UsuarioXTema juradoExiste = juradoExistenteOpt.get();
 
@@ -295,11 +295,11 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                                 return ResponseEntity.ok(Map.of("mensaje", "Jurado reactivado correctamente"));
                         } else {
                                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                                        .body(Map.of("mensaje",
-                                                "El jurado ya está asignado y activo para este tema"));
+                                                .body(Map.of("mensaje",
+                                                                "El jurado ya está asignado y activo para este tema"));
                         }
                 }
-                
+
                 UsuarioXTema asignacion = new UsuarioXTema();
                 asignacion.setUsuario(usuarioOpt.get());
                 asignacion.setTema(temaOpt.get());
@@ -933,11 +933,21 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                 String titulo = tema.getTitulo();
                 String descripcion = tema.getResumen();
 
+                // UsuarioXTema usuarioXTema = usuarioXTemaRepository
+                // .findByUsuarioIdAndTemaIdAndRolId(userDto.getId(), tema.getId(), 2)
+                // .orElseThrow(() -> new ResponseStatusException(
+                // HttpStatus.NOT_FOUND,
+                // "No se encontró una relación UsuarioXTema con los IDs proporcionados"));
+
+                // OBTENEMOS LAS OBSERVACIONES FINALES DEL JURADO (rol 2 y rol 1)
+                // DEBE BUSCAR EL USUARIO X TEMA SI ES ROL 1 O 2 (asesor o jurado)
                 UsuarioXTema usuarioXTema = usuarioXTemaRepository
-                                .findByUsuarioIdAndTemaIdAndRolId(userDto.getId(), tema.getId(), 2)
+                                .findByUsuarioIdAndTemaIdAndRolIdIn(
+                                                userDto.getId(), tema.getId(),
+                                                List.of(1, 2))
                                 .orElseThrow(() -> new ResponseStatusException(
                                                 HttpStatus.NOT_FOUND,
-                                                "No se encontró una relación UsuarioXTema con los IDs proporcionados"));
+                                                "No se encontró una relación UsuarioXTema con los IDs proporcionados y rol 1 o 2"));
 
                 ControlExposicionUsuarioTema controlExposicion = controlExposicionUsuarioTemaRepository
                                 .findByExposicionXTema_IdAndUsuario_Id(exposicionXTema.getId(), usuarioXTema.getId())
@@ -1079,4 +1089,93 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                                                 String.valueOf(enumName.charAt(0)).toUpperCase());
         }
 
+        @Override
+        public ResponseEntity<List<ExposicionCalificacionJuradoDTO>> obtenerCalificacionExposicionJurado(
+                        ExposicionCalificacionRequest exposicionCalificacionRequest) {
+
+                List<ExposicionCalificacionJuradoDTO> exposicionesCalificacion = new ArrayList<>();
+
+                // OBTENEMOS LOS MIEMBROS DE JURADOS ASOCIADOS A LA EXPOSICION X TEMA
+                List<MiembroJuradoSimplificadoDTO> miembrosJurado = usuarioXTemaRepository
+                                .obtenerMiembrosJuradoPorExposicionTema(exposicionCalificacionRequest
+                                                .getExposicion_tema_id());
+
+                // NOS SIRVE PARA OBTENER EL ID DE EXPOSICION
+                ExposicionXTema exposicionXTema = exposicionXTemaRepository
+                                .findById(exposicionCalificacionRequest.getExposicion_tema_id())
+                                .orElseThrow(() -> new RuntimeException("No se encontró exposicion_x_tema con id: "
+                                                + exposicionCalificacionRequest.getExposicion_tema_id()));
+
+                // RECORREMOS LOS MIEMBROS DE JURADO
+                for (MiembroJuradoSimplificadoDTO miembro : miembrosJurado) {
+
+                        ExposicionCalificacionJuradoDTO juradoCalificacion = new ExposicionCalificacionJuradoDTO();
+
+                        // REVISA EN LA TABLA CRITERIO EXPOSICION Y SI NO ESTA SU NOMBRE ENTONCES EL
+                        // BOOLEAN CALIFICADO ES FALSE
+                        List<CriterioExposicion> criterios = criterioExposicionRepository
+                                        .findByExposicion_IdAndActivoTrue(exposicionXTema.getExposicion().getId());
+
+                        // OBTENEMOS LOS CRITERIOS DE CALIFICACION PARA EL JURADO
+                        List<CriteriosCalificacionDto> criteriosCalificacionDtos = criterios.stream()
+                                        .map(criterio -> {
+                                                Optional<RevisionCriterioExposicion> revisionOpt = revisionCriterioExposicionRepository
+                                                                .findByExposicionXTema_IdAndCriterioExposicion_IdAndUsuario_Id(
+                                                                                exposicionCalificacionRequest
+                                                                                                .getExposicion_tema_id(),
+                                                                                criterio.getId(),
+                                                                                miembro.getId());
+
+                                                RevisionCriterioExposicion revision = revisionOpt.orElse(null);
+
+                                                // SI NO HAY CRITERIOS DE CALIFICACION, ENTONCES EL JURADO HA CALIFICADO
+                                                if (revision == null) {
+                                                        juradoCalificacion.setCalificado(false);
+                                                } else {
+                                                        juradoCalificacion.setCalificado(true);
+                                                }
+
+                                                CriteriosCalificacionDto dto = new CriteriosCalificacionDto();
+                                                dto.setId(revision != null ? revision.getId() : null);
+                                                dto.setTitulo(criterio.getNombre());
+                                                dto.setDescripcion(criterio.getDescripcion());
+                                                dto.setCalificacion(revision != null ? revision.getNota() : null);
+                                                dto.setNota_maxima(criterio.getNotaMaxima());
+                                                dto.setObservacion(revision != null ? revision.getObservacion() : null);
+
+                                                return dto;
+                                        })
+                                        .collect(Collectors.toList());
+
+                        // OBTENEMOS LAS OBSERVACIONES FINALES DEL JURADO (rol 2 y rol 1)
+                        // DEBE BUSCAR EL USUARIO X TEMA SI ES ROL 1 O 2 (asesor o jurado)
+                        UsuarioXTema usuarioXTema = usuarioXTemaRepository
+                                        .findByUsuarioIdAndTemaIdAndRolIdIn(
+                                                        miembro.getId(),
+                                                        exposicionXTema.getTema().getId(),
+                                                        List.of(1, 2))
+                                        .orElseThrow(() -> new ResponseStatusException(
+                                                        HttpStatus.NOT_FOUND,
+                                                        "No se encontró una relación UsuarioXTema con los IDs proporcionados y rol 1 o 2"));
+
+                        // OBTENEMOS LAS OBSERVACIONES FINALES DEL JURADO
+                        ControlExposicionUsuarioTema controlExposicion = controlExposicionUsuarioTemaRepository
+                                        .findByExposicionXTema_IdAndUsuario_Id(exposicionXTema.getId(),
+                                                        usuarioXTema.getId())
+                                        .orElseThrow(() -> new ResponseStatusException(
+                                                        HttpStatus.NOT_FOUND,
+                                                        "No se encontró controlExposicion con los IDs proporcionados"));
+
+                        String observacionesFinales = controlExposicion.getObservacionesFinalesExposicion();
+
+                        juradoCalificacion.setUsuario_id(miembro.getId());
+                        juradoCalificacion.setNombres(miembro.getNombres() + " " + miembro.getPrimerApellido() + " "
+                                        + miembro.getSegundoApellido());
+                        juradoCalificacion.setCriterios(criteriosCalificacionDtos);
+                        juradoCalificacion.setObservaciones_finales(observacionesFinales);
+                        exposicionesCalificacion.add(juradoCalificacion);
+                }
+
+                return ResponseEntity.ok(exposicionesCalificacion);
+        }
 }

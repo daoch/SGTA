@@ -1,4 +1,4 @@
--- Active: 1748374313012@@localhost@5432@postgres@public
+-- Active: 1748374313012@@localhost@5432@postgres@sgtadb
 CREATE OR REPLACE FUNCTION obtener_etapas_formativas_por_usuario(p_usuario_id INTEGER)
 RETURNS TABLE (
     etapa_formativa_id INTEGER,
@@ -246,7 +246,6 @@ inner join usuario u
 where u.usuario_id = p_coordinador_id;
 END;
 $$ LANGUAGE plpgsql STABLE;
-
 
 CREATE OR REPLACE FUNCTION sgtadb.listar_exposiciones_por_coordinador_v2(p_coordinador_id integer)
  RETURNS TABLE(exposicion_id integer, nombre text, descripcion text, etapa_formativa_id integer, etapa_formativa_nombre text, ciclo_id integer, ciclo_nombre text, estado_planificacion_id integer, estado_planificacion_nombre text)
@@ -745,7 +744,9 @@ BEGIN
       ORDER BY u.usuario_id, ut.prioridad NULLS LAST
     ) sub
     WHERE sub.cantidad_temas_asignados > 0;
+
 END;
+
 $function$;
 
 CREATE OR REPLACE FUNCTION obtener_jurados_por_tema(p_tema_id integer)

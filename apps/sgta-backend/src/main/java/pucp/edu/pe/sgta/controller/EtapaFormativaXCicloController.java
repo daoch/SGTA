@@ -19,20 +19,19 @@ import org.springframework.web.bind.annotation.PutMapping;
 import pucp.edu.pe.sgta.dto.UpdateEtapaFormativaRequest;
 import pucp.edu.pe.sgta.service.inter.JwtService;
 import pucp.edu.pe.sgta.service.inter.UsuarioXCarreraService;
-
+import jakarta.servlet.http.HttpServletRequest;
 @RestController
 @RequestMapping("/etapa-formativa-x-ciclo")
 public class EtapaFormativaXCicloController {
 
     @Autowired
     private EtapaFormativaXCicloService etapaFormativaXCicloService;
-
-    @Autowired
-    private JwtService jwtService;
-
     @Autowired
     private UsuarioXCarreraService usuarioXCarreraService;
 
+    @Autowired
+    private JwtService jwtService;
+    
     @GetMapping("/{id}")
     public ResponseEntity<EtapaFormativaXCicloDto> findById(@PathVariable Integer id) {
         EtapaFormativaXCicloDto etapaFormativaXCiclo = etapaFormativaXCicloService.findById(id);
@@ -46,9 +45,10 @@ public class EtapaFormativaXCicloController {
         return ResponseEntity.ok(createdEtapaFormativaXCiclo);
     }
 
-    @GetMapping("/carrera/{id}")
-    public ResponseEntity<List<EtapaFormativaXCicloDto>> getAllByCarreraId(@PathVariable Integer id) {
-        List<EtapaFormativaXCicloDto> etapaFormativaXCiclos = etapaFormativaXCicloService.getAllByCarreraId(id);
+    @GetMapping("/carreraList")
+    public ResponseEntity<List<EtapaFormativaXCicloDto>> getAllByCarreraId(HttpServletRequest request) {
+        String idCognito = jwtService.extractSubFromRequest(request);
+        List<EtapaFormativaXCicloDto> etapaFormativaXCiclos = etapaFormativaXCicloService.getAllByCarreraId(idCognito);
         return ResponseEntity.ok(etapaFormativaXCiclos);
     }
 

@@ -24,7 +24,7 @@ export function usePagination(initialPagesList: PagesList, limit: number = 10) {
   // Let Add a new Page to a State
   function addNewPage(state: EstadoTemaNombre, page: number, newPage: Tema[]) {
     setPagination((prev) => {
-      // Get Prev State
+      // Get Prev State or Define a new page
       const prevState = prev[state] ?? {
         pages: {},
         current: page,

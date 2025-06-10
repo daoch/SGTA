@@ -4,7 +4,7 @@ public enum RolEnum {
     Asesor,
     Jurado,
     Revisor,
-    Creador,
     Tesista,
-    Coasesor
+    Coasesor,
+    Alumno
 }
