@@ -335,9 +335,9 @@ public class ReportingServiceImpl implements IReportService {
     }
 
     @Override
-    public List<EntregableCriteriosDetalleDto> getEntregablesConCriterios(String cognitoSub) {
-        Integer usuarioId = usuarioService.findByCognitoId(cognitoSub).getId();
-        List<Object[]> results = entregablesCriteriosRepository.getEntregablesConCriterios(usuarioId);
+    public List<EntregableCriteriosDetalleDto> getEntregablesConCriterios(Integer idUsuario) {
+        //Integer usuarioId = usuarioService.findByCognitoId(cognitoSub).getId();
+        List<Object[]> results = entregablesCriteriosRepository.getEntregablesConCriterios(idUsuario);
 
         Map<Integer, EntregableCriteriosDetalleDto> map = new LinkedHashMap<>();
         for (Object[] r : results) {

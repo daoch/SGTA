@@ -6,6 +6,11 @@ import pucp.edu.pe.sgta.mapper.CarreraXParametroConfiguracionMapper;
 import pucp.edu.pe.sgta.model.CarreraXParametroConfiguracion;
 import pucp.edu.pe.sgta.repository.CarreraXParametroConfiguracionRepository;
 import pucp.edu.pe.sgta.service.inter.CarreraXParametroConfiguracionService;
+import pucp.edu.pe.sgta.service.inter.UsuarioService;
+import pucp.edu.pe.sgta.dto.UsuarioDto;
+import pucp.edu.pe.sgta.model.Carrera;
+import pucp.edu.pe.sgta.repository.CarreraRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
@@ -13,10 +18,18 @@ import java.util.List;
 public class CarreraXParametroConfiguracionImpl implements CarreraXParametroConfiguracionService {
 
     private final CarreraXParametroConfiguracionRepository carreraXParametroConfiguracionRepository;
+    private final CarreraRepository carreraRepository;
+
+    @Autowired
+    private UsuarioService usuarioService;
 
     public CarreraXParametroConfiguracionImpl(
-            CarreraXParametroConfiguracionRepository carreraXParametroConfiguracionRepository) {
+            CarreraXParametroConfiguracionRepository carreraXParametroConfiguracionRepository, 
+            UsuarioService usuarioService,
+            CarreraRepository carreraRepository) {
         this.carreraXParametroConfiguracionRepository = carreraXParametroConfiguracionRepository;
+        this.usuarioService = usuarioService;
+        this.carreraRepository = carreraRepository;
     }
 
     @Override
@@ -40,13 +53,32 @@ public class CarreraXParametroConfiguracionImpl implements CarreraXParametroConf
     }
 
     @Override
-    public List<CarreraXParametroConfiguracionDto> getParametrosPorCarrera(Long carreraId) {
-        List<CarreraXParametroConfiguracion> entidades = carreraXParametroConfiguracionRepository
-                .findByCarreraId(carreraId);
-        List<CarreraXParametroConfiguracionDto> dtos = entidades.stream()
-                .map(CarreraXParametroConfiguracionMapper::toDto)
-                .toList();
-        return dtos;
+    public List<CarreraXParametroConfiguracionDto> getParametrosPorCarrera(String idCognito) {
+        UsuarioDto usuario = usuarioService.findByCognitoId(idCognito);
+        if (usuario == null) {
+            throw new RuntimeException("Usuario no encontrado con ID Cognito: " + idCognito);
+        }
+        
+       List<Object[]> results = carreraRepository.obtenerCarreraCoordinador(usuario.getId());
+       if (results != null && !results.isEmpty()) {
+            Object[] result = results.get(0);
+            if (result != null) {
+                Carrera carrera = new Carrera();
+                carrera.setId((Integer) result[0]);
+                carrera.setNombre((String) result[1]);
+                Integer carreraId = carrera.getId();
+                List<CarreraXParametroConfiguracion> entidades = carreraXParametroConfiguracionRepository
+                    .findByCarreraId(Long.valueOf(carreraId));
+                List<CarreraXParametroConfiguracionDto> dtos = entidades.stream()
+                        .map(CarreraXParametroConfiguracionMapper::toDto)
+                        .toList();
+                return dtos;
+            } else {
+                throw new RuntimeException("No se encontró la carrera para el usuario con id: " + usuario.getId());
+            }
+        
+       }
+        return List.of(); // Retorna una lista vacía si no se encuentra la carrera
     }
 
 }
