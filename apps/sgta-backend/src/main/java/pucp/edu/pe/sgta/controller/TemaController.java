@@ -709,6 +709,30 @@ public class TemaController {
 				"Error al verificar temas comprometidos: " + e.getMessage());
 		}
 	}
+
+	@PostMapping("/aceptarPropuestaCotesista")
+	public ResponseEntity<Void> aceptarPropuestaCotesista(
+			@RequestParam("temaId") Integer temaId,
+			@RequestParam("accion") Integer action, // 0 para aceptar, 1 para rechazar
+			HttpServletRequest request) {
+		try {
+			String usuarioId = jwtService.extractSubFromRequest(request);
+			temaService.aceptarPropuestaCotesista(temaId, usuarioId, action);
+			return ResponseEntity.ok().build();
+		} catch (RuntimeException e) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+		}
+	}
+
+	@GetMapping("/listarPropuestasPorCotesista")
+	public List<TemaDto> listarPropuestasPorCotesista(HttpServletRequest request) {
+		try {
+			String tesistaId = jwtService.extractSubFromRequest(request);
+			return temaService.listarPropuestasPorCotesista(tesistaId);
+		} catch (RuntimeException e) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+		}
+	}
 	
 }
 
