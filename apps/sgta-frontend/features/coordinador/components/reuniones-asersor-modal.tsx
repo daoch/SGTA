@@ -2,10 +2,8 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
-    DialogFooter,
+    DialogDescription,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-// import { EntregableDto } from "../../dtos/EntregableDto";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -49,14 +47,6 @@ export function ReunionesAsesorModal({
                     .filter((r1) =>
                     reunionesAlumno.some((r2) => r2.reunionId === r1.reunionId)
                     );
-                    // .map((r1) => {
-                    // const r2 = reunionesAlumno.find((r2) => r2.reunionId === r1.reunionId);
-                    // return {
-                    //     ...r1,
-                    //     asistenciaAsesor: r1.estadoAsistencia,
-                    //     asistenciaAlumno: r2?.estadoAsistencia ?? "PENDIENTE",
-                    // };
-                    // });
 
                 // Obtener los detalles adicionales por ID
                 const reunionesCompletas = await Promise.all(
@@ -100,7 +90,9 @@ export function ReunionesAsesorModal({
         r.reunionFechaHoraInicio &&
         new Date(r.reunionFechaHoraInicio) <= ahora &&
         r.asistenciaAsesor !== "RECHAZADO" &&
-        r.asistenciaAlumno !== "RECHAZADO"
+        r.asistenciaAlumno !== "RECHAZADO" &&
+        r.asistenciaAsesor !== "PENDIENTE" &&
+        r.asistenciaAlumno !== "PENDIENTE"
     );
 
     const totalValidas = reunionesValidas.length;
@@ -164,9 +156,9 @@ export function ReunionesAsesorModal({
         <DialogContent className="w-full sm:max-w-full md:max-w-4xl px-6">
         <DialogHeader>
             <DialogTitle>Historial de Reuniones</DialogTitle>
-            <p className="text-muted-foreground">
+            <DialogDescription>
                 Calendario de reuniones con el asesor actual
-            </p>
+            </DialogDescription>
         </DialogHeader>
 
         <div className="flex items-center justify-between mb-4 mt-2 px-1">
