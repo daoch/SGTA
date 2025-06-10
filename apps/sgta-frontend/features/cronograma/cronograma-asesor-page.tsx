@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { 
   Calendar, 
   CalendarViewTrigger,
@@ -15,26 +15,22 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { cva } from "class-variance-authority";
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PlusCircle, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format } from 'date-fns';
-
-import { Calendar as CalendarIcon } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Calendar as MonthPicker } from "@/components/ui/calendar"; // asegúrate de tenerlo
 import { es } from "date-fns/locale";
 
-import axios from "axios";
-import { useAuth } from "@/features/auth";
-import { useAuthStore } from "@/features/auth/store/auth-store";
-import { getIdByCorreo } from "@/features/asesores/hooks/perfil/perfil-apis";
-import axiosInstance from "@/lib/axios/axios-instance";
 
+import { Filter } from "lucide-react";
+import { useEffect, useMemo  } from 'react'; // Añade useEffect aquí
+// ... (importaciones sin cambios)
+
+//type TipoEvento = "ENTREGABLE" | "REUNION" | "Otros";
 type TipoEvento = "ENTREGABLE" | "REUNION" | "EXPOSICION";
 
 interface CalendarEvent {
@@ -44,31 +40,28 @@ interface CalendarEvent {
   start?: Date;
   end: Date;
   tipoEvento: TipoEvento;
+  tesista: string;
 }
-
-// Importa los tipos si usas TypeScript
-declare global {
-  interface Window {
-    gapi: any;
-  }
-}
-
-const CLIENT_ID = "1003186025477-ri4g0mveaptu3072hh27tuetc2j769rg.apps.googleusercontent.com";
 
 const MiCronogramaPage = () => {
   const createDate = (day: number, month: number, year: number, hours = 0, minutes = 0) =>
     new Date(year, month - 1, day, hours, minutes);
 
+    const CustomCheckbox = ({ checked, onChange }: { checked: boolean; onChange: () => void }) => (
+      <input 
+        type="checkbox" 
+        checked={checked}
+        onChange={onChange}
+        className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+      />
+    );
+
   const getColorByTipoEvento = (tipo: TipoEvento) => {
     switch (tipo) {
-      case "ENTREGABLE":
-        return "blue";
-      case "REUNION":
-        return "green";
-      case "EXPOSICION":
-        return "pink";
-      default:
-        return "default";
+      case "ENTREGABLE": return "blue";
+      case "REUNION": return "green";
+      case "EXPOSICION": return "pink";
+      default: return "default";
     }
   };
 
@@ -78,108 +71,189 @@ const MiCronogramaPage = () => {
         blue: "text-blue-600",
         green: "text-green-600",
         pink: "text-pink-600",
-        black: "text-black",
         default: "text-gray-600"
       }
     }
   });
 
+  const [events, setEvents] = useState<CalendarEvent[]>([
+  {
+    id: "1",
+    title: "Reunión con el asesor",
+    description: "Primera revisión",
+    start: createDate(8, 6, 2025, 8, 0),
+    end: createDate(8, 6, 2025, 9, 0),
+    tipoEvento: "REUNION",
+    tesista: "Luis Sánchez"
+  },
+  {
+    id: "2",
+    title: "Entrega de capítulo 2",
+    description: "Fecha límite para entregar",
+    start: createDate(8, 6, 2025, 14, 0),
+    end: createDate(8, 6, 2025, 14, 0),
+    tipoEvento: "ENTREGABLE",
+    tesista: "Luis Sánchez"
+  },
+  {
+    id: "3",
+    title: "Reunión de seguimiento",
+    description: "Estado del marco teórico",
+    start: createDate(30, 5, 2025, 9, 30),
+    end: createDate(30, 5, 2025, 10, 30),
+    tipoEvento: "REUNION",
+    tesista: "Andrés Quispe"
+  },
+  {
+    id: "4",
+    title: "Entrega de cronograma corregido",
+    description: "Versión final del cronograma",
+    start: createDate(8, 6, 2025, 11, 0),
+    end: createDate(8, 6, 2025, 11, 0),
+    tipoEvento: "ENTREGABLE",
+    tesista: "Andrés Quispe"
+  },
+  {
+    id: "5",
+    title: "Reunión para feedback",
+    description: "Revisión de introducción",
+    start: createDate(30, 5, 2025, 13, 0),
+    end: createDate(30, 5, 2025, 14, 0),
+    tipoEvento: "REUNION",
+    tesista: "Carlos Díaz"
+  },
+  {
+    id: "6",
+    title: "Entrega de bibliografía",
+    description: "Lista preliminar",
+    start: createDate(26, 5, 2025, 10, 30),
+    end: createDate(26, 5, 2025, 10, 30),
+    tipoEvento: "ENTREGABLE",
+    tesista: "Carlos Díaz"
+  },
+  {
+    id: "7",
+    title: "Reunión con jurado interno",
+    description: "Defensa preliminar",
+    start: createDate(27, 5, 2025, 10, 0),
+    end: createDate(27, 5, 2025, 11, 30),
+    tipoEvento: "REUNION",
+    tesista: "Iván Ramírez"
+  },
+  {
+    id: "8",
+    title: "Entrega de análisis de resultados",
+    description: "Informe parcial",
+    start: createDate(28, 5, 2025, 15, 0),
+    end: createDate(28, 5, 2025, 15, 0),
+    tipoEvento: "ENTREGABLE",
+    tesista: "Iván Ramírez"
+  },
+  {
+    id: "9",
+    title: "Reunión de planificación",
+    description: "Preparación de defensa",
+    start: createDate(30, 5, 2025, 9, 0),
+    end: createDate(30, 5, 2025, 10, 0),
+    tipoEvento: "REUNION",
+    tesista: "Eduardo Salas"
+  },
+  {
+    id: "10",
+    title: "Entrega del capítulo metodológico",
+    description: "Última versión",
+    start: createDate(31, 5, 2025, 10, 0),
+    end: createDate(31, 5, 2025, 10, 0),
+    tipoEvento: "ENTREGABLE",
+    tesista: "Eduardo Salas"
+  },
+  {
+    id: "11",
+    title: "Entrega del capítulo 20",
+    description: "Última versión",
+    start: createDate(20, 6, 2025, 10, 0),
+    end: createDate(20, 6, 2025, 10, 0),
+    tipoEvento: "ENTREGABLE",
+    tesista: "Eduardo Salas"
+  },
+  {
+    id: "12",
+    title: "Entrega del capítulo X",
+    description: "Última versión",
+    start: createDate(30, 5, 2025, 11, 0),
+    end: createDate(30, 5, 2025, 11, 0),
+    tipoEvento: "ENTREGABLE",
+    tesista: "César Asurza"
+  }
+]);
 
-  const { user } = useAuth();
-  //const userId = 1;
-  const [userId, setUserId] = useState<number | null>(null);
-  const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const hasFetchedId = useRef(false);
+  // Estados para el filtro de tesistas
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [selectedTesistas, setSelectedTesistas] = useState<Record<string, boolean>>({});
+  const [initialTesistasLoaded, setInitialTesistasLoaded] = useState(false);
 
-  /*
-  const loadUsuarioId = async () => {
-    if (!user) return;
-  
-    try {
-      const id = await getIdByCorreo(user.email);
-      if (id !== null) {
-        setUserId(id);
-        console.log("ID del usuario obtenido:", id);
-      } else {
-        console.warn("No se encontró un usuario con ese correo.");
-      }
-    } catch (error) {
-      console.error("Error al obtener el ID del usuario:", error);
+
+  // Obtener lista única de tesistas
+  const tesistasList = useMemo(() => 
+    Array.from(new Set(events.map(event => event.tesista))).sort(),
+    [events]
+  );
+
+  // Inicializar los tesistas seleccionados (todos seleccionados por defecto)
+  useEffect(() => {
+    if (tesistasList.length > 0 && !initialTesistasLoaded) {
+      const initialSelection = tesistasList.reduce((acc, tesista) => {
+        acc[tesista] = true;
+        return acc;
+      }, {} as Record<string, boolean>);
+      setSelectedTesistas(initialSelection);
+      setInitialTesistasLoaded(true);
     }
+  }, [tesistasList, initialTesistasLoaded]);
+
+  // Función para manejar cambios en los checkboxes
+  const handleTesistaChange = (tesista: string) => {
+    setSelectedTesistas(prev => ({
+      ...prev,
+      [tesista]: !prev[tesista]
+    }));
   };
 
-  useEffect(() => {
-    if (user && !hasFetchedId.current) {
-      hasFetchedId.current = true;
-      loadUsuarioId();
-    }
-  }, [user]);
-  */
+  // Función para aplicar los filtros
+  const applyFilters = () => {
+    setFilterOpen(false);
+  };
 
-  const normalizarTipoEvento = (tipo: string): TipoEvento => {
-    switch (tipo.toUpperCase()) {
-      case "REUNION":
-        return "REUNION";
-      case "ENTREGABLE":
-        return "ENTREGABLE";
-      case "EXPOSICION":
-        return "EXPOSICION";
-      default:
-        return "Sin título" as TipoEvento;
-    }
-  };  
+  // Función para cancelar y restaurar selección anterior
+  const cancelFilters = () => {
+    setFilterOpen(false);
+  };
 
-  useEffect(() => {
-    const fetchEventos = async () => {
-      try {
-        const { idToken } = useAuthStore.getState();
-        if (!idToken) {
-          console.error("No authentication token available");
-          return;
-        }
-        //const userId = 1; // ID fijo para pruebas
-        
-        //const response = await axios.get(`http://localhost:5000/api/eventos/usuario/${userId}`);
-        const response = await axiosInstance.get(`/api/eventos/usuario`);
-  
-        // Mapear eventos asignando IDs únicos desde el front
-        const eventosMapeados = response.data.map((evento: any, index: number) => {
-          const tipoEvento = normalizarTipoEvento(evento.tipo);
-          const endDate = new Date(evento.fechaFin || evento.fecha);
-          const startDate =
-            tipoEvento === "ENTREGABLE"
-              ? endDate
-              : new Date(evento.fechaInicio || evento.fecha);
-        
-          return {
-            id: (index + 1).toString(), // ID generado automáticamente desde 1 en adelante
-            title: evento.titulo || evento.nombre || "Sin título",
-            description: evento.descripcion || "",
-            start: startDate,
-            end: endDate,
-            tipoEvento,
-          };
-        });
-        
-  
-        setEvents(eventosMapeados);
-      } catch (error) {
-        console.error("Error al obtener eventos:", error);
-      }
-    };
-  
-    fetchEventos();
-  }, [userId]);
-  
+  // Función para seleccionar/deseleccionar todos
+  const toggleAllTesistas = (selectAll: boolean) => {
+    const newSelection = tesistasList.reduce((acc, tesista) => {
+      acc[tesista] = selectAll;
+      return acc;
+    }, {} as Record<string, boolean>);
+    setSelectedTesistas(newSelection);
+  };
 
-  const eventosParaCalendario = events.map((event) => ({
-    ...event,
-    color: getColorByTipoEvento(event.tipoEvento),
-    type: event.tipoEvento,
-    tesista: 'X',
-  }));
+  // Filtrar eventos basados en los tesistas seleccionados (usando useMemo para optimización)
+  const filteredEvents = useMemo(() => 
+    events.filter(event => selectedTesistas[event.tesista]),
+    [events, selectedTesistas]
+  );
 
-  console.log(eventosParaCalendario);
+  // Mapear eventos para el calendario (también con useMemo)
+  const eventosParaCalendario = useMemo(() => 
+    filteredEvents.map(event => ({
+      ...event,
+      start: event.start || event.end, // Asegurar que start siempre tenga valor
+      color: getColorByTipoEvento(event.tipoEvento),
+      type: event.tipoEvento
+    })),
+    [filteredEvents]
+  );
 
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const [modoExportacion, setModoExportacion] = useState<"actual" | "rango">("actual");
@@ -250,11 +324,13 @@ const MiCronogramaPage = () => {
     year: "numeric",
   });
 
+  console.log(events);
+
   return (
     <div className="space-y-8 mt-4">
       <div>
         <h1 className="text-3xl font-bold text-[#042354]">Mi Cronograma</h1>
-        <p className="text-muted-foreground">Visualización de eventos planificados</p>
+        <p className="text-muted-foreground">Eventos programados por los tesistas</p>
       </div>
 
       <div className="flex flex-wrap gap-4 p-4 bg-white rounded-lg shadow-sm border">
@@ -264,14 +340,14 @@ const MiCronogramaPage = () => {
         </div>
         <div className={cn(leyendaItemVariants({ color: "green" }))}>
           <div className="w-3 h-3 rounded-full bg-green-500"></div>
-          <span>Reunión</span>
+          <span>Reunion</span>
         </div>
         <div className={cn(leyendaItemVariants({ color: "pink" }))}>
           <div className="w-3 h-3 rounded-full bg-pink-500"></div>
           <span>Exposición</span>
         </div>
 
-        {/* Botón para abrir el popup de exportación */}
+
         <Button
           onClick={() => setIsExportDialogOpen(true)}
           variant="outline"
@@ -280,6 +356,63 @@ const MiCronogramaPage = () => {
           <Download size={16} />
           Exportar calendario para Google Calendar
         </Button>
+
+        <Dialog open={filterOpen} onOpenChange={setFilterOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline" className="flex items-center gap-2">
+              <Filter size={16} />
+              Filtrar por tesista
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Filtrar por tesista</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="flex gap-4">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => toggleAllTesistas(true)}
+                >
+                  Seleccionar todos
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => toggleAllTesistas(false)}
+                >
+                  Deseleccionar todos
+                </Button>
+              </div>
+              
+              <div className="space-y-2">
+                {tesistasList.map(tesista => (
+                  <div key={tesista} className="flex items-center space-x-2">
+                    <CustomCheckbox 
+                      checked={selectedTesistas[tesista] || false}
+                      onChange={() => handleTesistaChange(tesista)}
+                    />
+                    <label
+                      htmlFor={`tesista-${tesista}`}
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      {tesista}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={cancelFilters}>
+                Cancelar
+              </Button>
+              <Button onClick={applyFilters}>
+                Aplicar filtros
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Modal de selección de exportación */}
@@ -406,53 +539,26 @@ const MiCronogramaPage = () => {
       </Dialog>
 
       <div className="h-screen flex flex-col">
-        <Calendar
-          events={eventosParaCalendario}
-          numTesistas={1}
-          tipoUsuario='ALUMNO'
-        >
+        <Calendar 
+            events={eventosParaCalendario} 
+            key={JSON.stringify(selectedTesistas)} // Forzar re-render al cambiar filtros
+            numTesistas={tesistasList.length}
+            tipoUsuario='ASESOR'
+          >
           <div className="h-full flex flex-col">
             <div className="flex px-6 items-center gap-2 mb-6 py-4 border-b">
-              <CalendarViewTrigger
-                view="day"
-                className="aria-[current=true]:bg-accent px-3 py-1 text-sm rounded"
-              >
-                Día
-              </CalendarViewTrigger>
-              <CalendarViewTrigger
-                view="week"
-                className="aria-[current=true]:bg-accent px-3 py-1 text-sm rounded"
-              >
-                Semana
-              </CalendarViewTrigger>
-              <CalendarViewTrigger
-                view="month"
-                className="aria-[current=true]:bg-accent px-3 py-1 text-sm rounded"
-              >
-                Mes
-              </CalendarViewTrigger>
-
+              <CalendarViewTrigger view="day" className="aria-[current=true]:bg-accent px-3 py-1 text-sm rounded">Día</CalendarViewTrigger>
+              <CalendarViewTrigger view="week" className="aria-[current=true]:bg-accent px-3 py-1 text-sm rounded">Semana</CalendarViewTrigger>
+              <CalendarViewTrigger view="month" className="aria-[current=true]:bg-accent px-3 py-1 text-sm rounded">Mes</CalendarViewTrigger>
               <span className="flex-1" />
-
-              <CalendarPrevTrigger className="p-2 rounded hover:bg-accent">
-                <ChevronLeft size={20} />
-                <span className="sr-only">Anterior</span>
-              </CalendarPrevTrigger>
-
-              <CalendarTodayTrigger className="px-3 py-1 text-sm rounded hover:bg-accent">
-                Ver día de hoy
-              </CalendarTodayTrigger>
-
-              <CalendarNextTrigger className="p-2 rounded hover:bg-accent">
-                <ChevronRight size={20} />
-                <span className="sr-only">Siguiente</span>
-              </CalendarNextTrigger>
+              <CalendarPrevTrigger className="p-2 rounded hover:bg-accent"><ChevronLeft size={20} /></CalendarPrevTrigger>
+              <CalendarTodayTrigger className="px-3 py-1 text-sm rounded hover:bg-accent">Hoy</CalendarTodayTrigger>
+              <CalendarNextTrigger className="p-2 rounded hover:bg-accent"><ChevronRight size={20} /></CalendarNextTrigger>
             </div>
-
             <div className="flex-1 overflow-auto px-6 pb-6">
               <CalendarMonthView />
               <CalendarWeekView />
-              <CalendarDayView tipoUsuario="Alumno"/>
+              <CalendarDayView tipoUsuario="Asesor"/>
             </div>
           </div>
         </Calendar>

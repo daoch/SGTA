@@ -18,22 +18,36 @@ import pucp.edu.pe.sgta.repository.UsuarioXTemaRepository;
 import pucp.edu.pe.sgta.service.inter.EventoService;
 import pucp.edu.pe.sgta.util.TipoEventoEnum;
 
+import java.util.Optional;
+import pucp.edu.pe.sgta.repository.UsuarioRepository;
+import pucp.edu.pe.sgta.model.Usuario;
+
 @Service
 public class EventoServiceImpl implements EventoService {
 
     private final UsuarioXReunionRepository usuarioXReunionRepo;
     private final ExposicionRepository exposicionRepo;
     private final EntregableRepository entregableRepo;
+    private final UsuarioRepository usuarioRepository;
 
-    public EventoServiceImpl(UsuarioXReunionRepository usuarioXReunionRepo, UsuarioXTemaRepository usuarioXTemaRepo, EntregableRepository entregableRepo, ExposicionRepository exposicionRepo) {
+    public EventoServiceImpl(UsuarioXReunionRepository usuarioXReunionRepo, UsuarioXTemaRepository usuarioXTemaRepo, EntregableRepository entregableRepo, ExposicionRepository exposicionRepo, UsuarioRepository usuarioRepository) {
         this.usuarioXReunionRepo = usuarioXReunionRepo;
         this.entregableRepo = entregableRepo;
         this.exposicionRepo = exposicionRepo;
+        this.usuarioRepository = usuarioRepository;
     }
 
     @Override
-    public List<EventoDto> listarEventosXUsuario(Integer usuarioId) {
+    public List<EventoDto> listarEventosXUsuario(String id) {
         List<EventoDto> eventos = new ArrayList<>();
+
+        Optional<Usuario> usuario = usuarioRepository.findByIdCognito(id);
+        if (usuario.isEmpty()) {
+            throw new RuntimeException("Usuario no encontrado con ID Cognito: " + id);
+        }
+
+        Usuario user = usuario.get();
+        Integer usuarioId = user.getId();
 
         // 1. Reuniones
         List<UsuarioXReunion> reuniones = usuarioXReunionRepo.findByUsuarioIdAndActivoTrue(usuarioId);

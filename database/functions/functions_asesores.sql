@@ -1,3 +1,5 @@
+SET search_path TO sgtadb;
+
 --OBTENER LISTA DE CARRERAS POR ID DEL ASESOR
 CREATE OR REPLACE FUNCTION obtener_carreras_activas_por_usuario(p_usuario_id INTEGER)
 RETURNS SETOF Carrera AS $$

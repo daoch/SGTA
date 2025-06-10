@@ -1,4 +1,6 @@
 -- Tablas de usuarios y roles (hijas primero)
+SET search_path TO sgtadb;
+
 DROP TABLE IF EXISTS usuario_rol					  CASCADE;
 DROP TABLE IF EXISTS usuario_proyecto                 CASCADE;
 DROP TABLE IF EXISTS grupo_investigacion_proyecto     CASCADE;
