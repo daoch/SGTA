@@ -8,13 +8,13 @@ public class ZoomMeetingRequest {
     private String startTime;
     private Integer duration;
     private String agenda;
-    private String timezone = "UTC";
-    private Boolean hostVideo = false;
-    private Boolean participantVideo = false;
-    private Boolean joinBeforeHost = true;
-    private Boolean muteUponEntry = true;
-    private String audio = "both";
-    private Integer jbhTime = 5;
+    private String timezone;
+    private Boolean hostVideo;
+    private Boolean participantVideo;
+    private Boolean muteUponEntry;
+    private String audio;
+    private Boolean waitingRoom;
     private String accessToken;
-    // private String password;
+    private Boolean defaultPassword;
+    private Boolean joinBeforeHost;
 }

@@ -1,5 +1,8 @@
 package pucp.edu.pe.sgta.service.imp;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -20,19 +23,20 @@ import pucp.edu.pe.sgta.service.inter.ZoomService;
 public class ZoomServiceImpl implements ZoomService {
 
     // estos son todos los valores que necesitamos y se encuetran en el .env
-    @Value("${ZOOM_ACCOUNT_ID}")
+    @Value("${zoom.account.id}")
     private String accountId;
 
-    @Value("${ZOOM_CLIENT_SECRET}")
+    @Value("${zoom.client.secret}")
     private String clientSecret;
 
-    @Value("${ZOOM_POST_ACCESS_TOKEN_URL}")
+    @Value("${zoom.client.id}")
+    private String clientId;
+
+    @Value("${zoom.access.url}")
     private String tokenUrl;
 
-    @Value("${ZOOM_MEETING_CREATION_URL}")
+    @Value("${zoom.meeting.url}")
     private String meetingUrl;
-
-    private String accessToken;
 
     // aca vamos a poner las funciones
     @Override
@@ -45,25 +49,27 @@ public class ZoomServiceImpl implements ZoomService {
         headers.set("Authorization", "Bearer " + request.getAccessToken());
 
         // PREARAMOS EL BODY
-        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-        body.add("topic", request.getTopic());
-        body.add("type", 2); // usamos 2 para reuniones programadas
-        body.add("start_time", request.getStartTime());
-        body.add("duration", request.getDuration());
-        body.add("agenda", request.getAgenda());
-        body.add("timezone", request.getTimezone());
+        Map<String, Object> settings = new HashMap<>();
+        settings.put("host_video", request.getHostVideo());
+        settings.put("participant_video", request.getParticipantVideo());
+        settings.put("mute_upon_entry", request.getMuteUponEntry());
+        settings.put("audio", request.getAudio());
 
-        MultiValueMap<String, Object> settings = new LinkedMultiValueMap<>();
-        settings.add("host_video", request.getHostVideo());
-        settings.add("participant_video", request.getParticipantVideo());
-        settings.add("join_before_host", request.getJoinBeforeHost());
-        settings.add("mute_upon_entry", request.getMuteUponEntry());
-        settings.add("audio", request.getAudio());
-        settings.add("jbh_time", request.getJbhTime());
+        Map<String, Object> body = new HashMap<>();
+        body.put("topic", request.getTopic());
+        body.put("type", 2);
+        body.put("start_time", request.getStartTime());
+        body.put("duration", request.getDuration());
+        body.put("agenda", request.getAgenda());
+        body.put("timezone", request.getTimezone());
+        body.put("default_password", request.getDefaultPassword());
+        body.put("join_before_host", request.getJoinBeforeHost());
+        body.put("waiting_room", request.getWaitingRoom());
 
-        body.add("settings", settings);
+        // agregamos los settings al body
+        body.put("settings", settings);
 
-        HttpEntity<MultiValueMap<String, Object>> entity = new HttpEntity<>(body, headers);
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
 
         // TEMRINAMOS EL POST REQUEST
         ResponseEntity<ZoomMeetingResponse> response = restTemplate.exchange(
@@ -82,7 +88,7 @@ public class ZoomServiceImpl implements ZoomService {
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
         // PREPARAMOS EL HEADER DE AUTHOZIRZATION
-        String auth = accountId + ":" + clientSecret;
+        String auth = clientId + ":" + clientSecret;
         String basicAuth = "Basic " + new String(java.util.Base64.getEncoder().encode(auth.getBytes()));
         headers.set("Authorization", basicAuth);
 

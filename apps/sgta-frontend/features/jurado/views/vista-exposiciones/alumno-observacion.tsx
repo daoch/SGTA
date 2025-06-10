@@ -7,6 +7,11 @@ import { useEffect, useState } from "react";
 import { getCalificacionesJuradoByExposicionTemaId } from "../../services/jurado-service";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  crearReunionZoom,
+  obtenerAccessTokenZoom,
+} from "../../services/planificacion-service";
 
 interface DetalleObservacionExposicionProps {
   idExposicion: string;
@@ -52,6 +57,19 @@ const ObservacionExposicion: React.FC<DetalleObservacionExposicionProps> = ({
   useEffect(() => {
     fetchCalificacion();
   }, []);
+
+  const handleCreacionZoom = async () => {
+    console.log("Probando el tema de creacion de Zoom");
+    try {
+      const accessToken = await obtenerAccessTokenZoom();
+      const zoomMeeting = await crearReunionZoom(
+        accessToken ? accessToken : "",
+      );
+    } catch (error) {
+      console.error("Error al crear la reunión de Zoom:", error);
+    }
+    console.log("Creación de Zoom completada");
+  };
 
   const router = useRouter();
 
@@ -109,6 +127,12 @@ const ObservacionExposicion: React.FC<DetalleObservacionExposicionProps> = ({
               <h1 className="text-4xl font-semibold items-center text-[#264753]">
                 {notaFinal} / {notaMaxima}
               </h1>
+            </div>
+
+            <div>
+              <Button onClick={handleCreacionZoom}>
+                Probando el tema de creacion de Zoom
+              </Button>
             </div>
           </div>
         )}
