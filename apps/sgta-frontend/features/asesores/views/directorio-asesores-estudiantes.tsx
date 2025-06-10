@@ -19,12 +19,12 @@ import OrdenDropdown, {
   SortOption,
 } from "../components/directorio/orden-dropdown-directorio";
 import ResultadosAsesores from "../components/directorio/resultados-busqueda";
-import { getAsesoresPorFiltros } from "../hooks/directorio/page";
+import { getAsesoresPorFiltros } from "../services/directorio-services";
 import {
   getIdByCorreo,
   listarAreasTematicas,
   listarTemasInteres,
-} from "../hooks/perfil/perfil-apis";
+} from "../services/perfil-services";
 import { AreaTematica, Asesor, TemaInteres } from "../types/perfil/entidades";
 
 // Tipos de datos

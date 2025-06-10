@@ -35,8 +35,8 @@ import {
   aceptarSolicitud,
   getDetalleSolicitudCambioAsesor,
   rechazarSolicitud,
-} from "../hooks/cambio-asesor/page";
-import { getIdByCorreo } from "../hooks/perfil/perfil-apis";
+} from "../services/cambio-asesor-services";
+import { getIdByCorreo } from "../services/perfil-services";
 import { formatFecha } from "../utils/date-functions";
 
 interface SolicitudDetalleProps {
@@ -133,9 +133,27 @@ export default function SolicitudDetalle({
       const participantes: UsuarioSolicitud[] = [
         solicitudData.solicitante,
         solicitudData.asesorNuevo,
-        solicitudData.coordinador,
+        solicitudData?.coordinador,
       ];
       setParticipantesWorkflow(participantes);
+    }
+
+    if (
+      solicitudData?.estadoGlobal === "PENDIENTE" &&
+      !solicitudData?.coordinador
+    ) {
+      // Si la solicitud está pendiente y no hay coordinador, agregar el asesor actual
+      const asesorActual: UsuarioSolicitud = {
+        id: null,
+        nombres: "Pendiente de aprobación por coordinador",
+        correoElectronico: solicitudData.asesorActual.correoElectronico,
+        rolSolicitud: "DESTINATARIO",
+        foto: null,
+        accionSolicitud: "PENDIENTE_ACCION",
+        fechaAccion: null,
+        comentario: null,
+      };
+      setParticipantesWorkflow((prev) => [...prev, asesorActual]);
     }
   }, [solicitudData]);
 

@@ -8,8 +8,8 @@ import { Check, Clock, FileText, Loader2, UserX, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import RequestSearchFilters from "../components/assessor-change-request/search-filters-request-list";
 import TablaSolicitudesCambioAsesor from "../components/assessor-change-request/table-solicitudes-cambio";
-import { getResumenesSolicitudCambioAsesor } from "../hooks/cambio-asesor/page";
-import { getIdByCorreo } from "../hooks/perfil/perfil-apis";
+import { getResumenesSolicitudCambioAsesor } from "../services/cambio-asesor-services";
+import { getIdByCorreo } from "../services/perfil-services";
 import { SolicitudCambioAsesorResumen } from "../types/cambio-asesor/entidades";
 import { formatFecha } from "../utils/date-functions";
 
