@@ -36,7 +36,15 @@ public class ObservacionController {
         observacionService.guardarObservaciones(revisionId, highlights, usuarioId);
         return ResponseEntity.ok().build();
     }
+    @PostMapping("/{revisionId}/observacion")
+    public ResponseEntity<?> guardarObservacion(
+            @PathVariable("revisionId") Integer revisionId,
+            @RequestBody HighlightDto highlight,
+            @RequestParam("usuarioId") Integer usuarioId) {
 
+        observacionService.guardarObservaciones(revisionId, List.of(highlight), usuarioId);
+        return ResponseEntity.ok().build();
+    }
     @GetMapping("/{revisionId}/observaciones")
     public ResponseEntity<List<HighlightDto>> getObservacionesByRevision(
             @PathVariable("revisionId") Integer revisionId) {
@@ -50,5 +58,11 @@ public class ObservacionController {
 
     List<ObservacionesRevisionDTO> observaciones = observacionService.obtenerObservacionesPorEntregableYTema(entregableId, temaId);
     return ResponseEntity.ok(observaciones);
-}
+    }
+    @DeleteMapping("/observaciones/{observacionId}")
+    public ResponseEntity<?> borrarLogicamenteObservacion(@PathVariable Integer observacionId) {
+    observacionService.borradoLogicoObservacion(observacionId);
+    return ResponseEntity.ok().build();
+    }
+
 }

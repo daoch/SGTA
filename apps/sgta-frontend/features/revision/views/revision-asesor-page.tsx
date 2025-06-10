@@ -51,6 +51,7 @@ const RevisionAsesorPage = () => {
             Authorization: `Bearer ${idToken}`
           }
         });
+        console.log("Documentos obtenidos:", response.data);
         setDocumentos(response.data);
       } catch (error) {
         console.error("Error al cargar los documentos:", error);

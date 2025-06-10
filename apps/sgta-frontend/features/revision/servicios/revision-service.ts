@@ -68,6 +68,16 @@ export async function guardarObservacionesRevision(
     highlights // <-- el array directo, no un objeto
   );
 }
+export async function guardarObservacion(
+  revisionId: number,
+  observacion: IHighlight, // o HighlightDto si ya lo tienes mapeado
+  usuarioId: number
+) {
+  return axiosInstance.post(
+    `/revision/${revisionId}/observacion?usuarioId=${usuarioId}`,
+    observacion // <-- solo un objeto, no array
+  );
+}
 interface ObservacionToHighlightRect {
   x1?: number;
   y1?: number;
@@ -155,4 +165,7 @@ export async function obtenerObservacionesRevision(revisionId: number): Promise<
   // Mapea cada observación del backend a IHighlight
   console.log("Response data:", response.data);
   return response.data.map(highlightDtoToIHighlight);
+}
+export async function borrarObservacion(observacionId: number): Promise<void> {
+  await axiosInstance.delete(`/revision/observaciones/${observacionId}`);
 }

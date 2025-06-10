@@ -20,7 +20,7 @@ const iconOptions = [
     { value: "Citado", icon: <Quote className="h-5 w-5 text-blue-500" /> },
 ];
 export class CustomTip extends Component<CustomTipProps, CustomTipState> {
-    state: CustomTipState = { compact: true, text: "", emoji: "" };
+    state: CustomTipState = { compact: true, text: "", emoji: "Contenido" };
 
     render() {
         const { onOpen, onConfirm } = this.props;

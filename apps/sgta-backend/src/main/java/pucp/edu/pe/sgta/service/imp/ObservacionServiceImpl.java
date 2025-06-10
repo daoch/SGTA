@@ -64,7 +64,7 @@ public class ObservacionServiceImpl implements ObservacionService{
                 .orElseThrow(() -> new RuntimeException("Tipo de observación no encontrado")); 
             Observacion obs = new Observacion();
             obs.setRevisionDocumento(revision);
-            obs.setUsuarioCreacion(usuario);
+            obs.setUsuarioCreacion(revision.getUsuario());
             obs.setComentario(h.getComment().getText());
             obs.setNumeroPaginaInicio(h.getPosition().getPageNumber());
             obs.setNumeroPaginaFin(h.getPosition().getPageNumber());
@@ -208,5 +208,11 @@ private HighlightDto mapObservacionToHighlightDto(Observacion obs) {
         }
 
         return dtoList;
+    }
+    public void borradoLogicoObservacion(Integer observacionId) {
+        Observacion obs = observacionRepository.findById(observacionId.longValue())
+            .orElseThrow(() -> new RuntimeException("Observación no encontrada"));
+        obs.setActivo(false); // O el campo que uses para el borrado lógico
+        observacionRepository.save(obs);
     }
 }

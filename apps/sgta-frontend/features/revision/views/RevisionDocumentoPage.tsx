@@ -23,7 +23,7 @@ import { useRouter } from "next/navigation";
 import { PDFDocument } from "pdf-lib";
 import { useCallback, useEffect, useState } from "react";
 import { IHighlight } from "react-pdf-highlighter/dist/types";
-import { analizarPlagioArchivoS3, descargarArchivoS3RevisionID, guardarObservacionesRevision, obtenerObservacionesRevision } from "../servicios/revision-service";
+import { analizarPlagioArchivoS3, borrarObservacion, descargarArchivoS3RevisionID, guardarObservacion, guardarObservacionesRevision, obtenerObservacionesRevision } from "../servicios/revision-service";
 // ...otros imports...
 
 // Datos de ejemplo para una revisión específica
@@ -87,6 +87,9 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
   const [tab, setTab] = useState<"revisor" | "plagio" | "ia">("revisor");
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [numPages, setNumPages] = useState<number | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [highlightToDelete, setHighlightToDelete] = useState<string | null>(null);
+
   interface PlagioDetalle {
     pagina: number; // Si tienes la página real, asígnala aquí
     texto: string;
@@ -280,25 +283,46 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
   };
   const handleDeleteHighlight = (highlightId: string) => {
     setHighlights(prev => prev.filter(h => h.id !== highlightId));
+    setHighlightToDelete(highlightId);
+    setShowDeleteDialog(true);
   };
-
+  const confirmDeleteHighlight = async () => {
+    if (!highlightToDelete) return;
+    try {
+      await borrarObservacion(Number(highlightToDelete)); // Convierte el string a number si tu backend espera un número
+      setHighlights(prev => prev.filter(h => h.id !== highlightToDelete));
+      setShowDeleteDialog(false);
+      setHighlightToDelete(null);
+      toast({ title: "Observación eliminada" });
+    } catch {
+      toast({ title: "Error al eliminar la observación", variant: "destructive" });
+    }
+  };
   const handleUpdateHighlight = (updatedHighlight: IHighlight) => {
     setHighlights(prev => prev.map(h =>
       h.id === updatedHighlight.id ? updatedHighlight : h
     ));
   };
 
-  const handleNewHighlight = (highlight: IHighlight) => {
+  const handleNewHighlight = async (highlight: IHighlight) => {
     console.log("New highlight received:", highlight);
-    setHighlights(prev => {
-      // Check if highlight already exists
-      if (prev.some(h => h.id === highlight.id)) {
-        return prev;
-      }
-      const updatedHighlights = [...prev, highlight];
-      console.log("All highlights:", updatedHighlights);
-      return updatedHighlights;
-    });
+
+    // Envía al backend antes de agregar al estado
+    try {
+      await guardarObservacion(params.id_revision, highlight, 10); // Cambia 10 por el usuarioId real si lo tienes
+      setHighlights(prev => {
+        if (prev.some(h => h.id === highlight.id)) {
+          return prev;
+        }
+        const updatedHighlights = [...prev, highlight];
+        console.log("All highlights:", updatedHighlights);
+        return updatedHighlights;
+      });
+      toast({ title: "Observación guardada" });
+    } catch (error) {
+      toast({ title: "Error al guardar la observación", variant: "destructive" });
+      console.error("Error al guardar la observación:", error);
+    }
   };
   //   const handleAddObservacion = (nuevaObservacion: any) => {
   //     const newId = (revision.observaciones.length + 1).toString();
@@ -618,6 +642,7 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
                             onClick={(e) => {
                               e.stopPropagation();
                               handleDeleteHighlight(highlight.id);
+
                             }}
                             className="text-red-500 hover:text-red-700 hover:bg-red-50"
                           >
@@ -803,9 +828,31 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
+
             </div>
           )}
         </div>
+        <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>¿Eliminar observación?</DialogTitle>
+              <DialogDescription>
+                Esta acción no se puede deshacer. ¿Deseas eliminar la observación seleccionada?
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+                Cancelar
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={confirmDeleteHighlight}
+              >
+                Eliminar
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
