@@ -59,13 +59,13 @@ public class HistorialTemaMapper {
             carrera.setNombre(dto.getCarrera().getNombre());
             entity.setCarrera(carrera);
         }
-        if (dto.getEstadoTemaNombre() != null) {
-    // sólo seteamos el nombre; el servicio se encargará de buscar la entidad completa
-            EstadoTema et = new EstadoTema();
-            et.setNombre(dto.getEstadoTemaNombre());
-            entity.setEstadoTema(et);
-        }
-        entity.setCarrera(dto.getCarrera() != null ? CarreraMapper.toEntity(dto.getCarrera()) : null);
+    //     if (dto.getEstadoTemaNombre() != null) {
+    // // sólo seteamos el nombre; el servicio se encargará de buscar la entidad completa
+    //         EstadoTema et = new EstadoTema();
+    //         et.setNombre(dto.getEstadoTemaNombre());
+    //         entity.setEstadoTema(et);
+    //     }
+        //entity.setCarrera(dto.getCarrera() != null ? CarreraMapper.toEntity(dto.getCarrera()) : null);
         entity.setFechaLimite(dto.getFechaLimite());
         entity.setFechaFinalizacion(dto.getFechaFinalizacion());
         entity.setActivo(dto.getActivo());

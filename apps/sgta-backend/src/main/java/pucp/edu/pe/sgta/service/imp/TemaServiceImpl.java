@@ -585,7 +585,7 @@ public class TemaServiceImpl implements TemaService {
 	private void crearSolicitudAprobacionTemaV2(Tema tema) {
 		try {
 			entityManager
-					.createNativeQuery("SELECT crear_solicitud_aprobacion_tema(:temaId)")
+					.createNativeQuery("SELECT crear_solicitud_aprobacion_temaV2(:temaId)")
 					.setParameter("temaId", tema.getId())
 					.getSingleResult();
 		} catch (Exception e) {
@@ -598,7 +598,7 @@ public class TemaServiceImpl implements TemaService {
 
 	@Transactional
 	@Override
-	public void createInscripcionTemaV2(TemaDto dto, String idUsuario) {
+	public Integer createInscripcionTemaV2(TemaDto dto, String idUsuario) {
 		// 0) Validaciones iniciales y preparación del Tema
 		UsuarioDto usuarioDto = usuarioService.findByCognitoId(idUsuario);
 		Integer idUsuarioCreador = usuarioDto.getId();
@@ -646,6 +646,7 @@ public class TemaServiceImpl implements TemaService {
 
 		// 6) Generar y enviar la solicitud de aprobación
 		crearSolicitudAprobacionTemaV2(tema);
+		return temaId; // return tema id
 	}
 
 	/**

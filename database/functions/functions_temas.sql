@@ -3347,33 +3347,42 @@ $$;
 
 
 
-CREATE OR REPLACE FUNCTION crear_solicitud_aprobacion_tema(p_tema_id INT) RETURNS VOID AS
+CREATE OR REPLACE FUNCTION crear_solicitud_aprobacion_temaV2(p_tema_id INT) RETURNS VOID AS
 $$
 DECLARE
     v_tipo_solicitud_id   INT;
     v_estado_solicitud_id INT;
     v_solicitud_id        INT;
 BEGIN
-    -- 1) Obtener IDs de tipo y estado
-    SELECT tipo_solicitud_id
-      INTO v_tipo_solicitud_id
+    -- 1) Obtener IDs
+    SELECT tipo_solicitud_id INTO v_tipo_solicitud_id
       FROM tipo_solicitud
      WHERE nombre = 'Aprobación de tema (por coordinador)';
 
-    SELECT estado_solicitud_id
-      INTO v_estado_solicitud_id
+    SELECT estado_solicitud_id INTO v_estado_solicitud_id
       FROM estado_solicitud
      WHERE nombre = 'PENDIENTE';
 
-    -- 2) Insertar la solicitud y capturar su ID
-    INSERT INTO solicitud(descripcion, tipo_solicitud_id, tema_id, estado_solicitud)
-    VALUES ('Solicitud de aprobación de tema por coordinador',
-            v_tipo_solicitud_id,
-            p_tema_id,
-            v_estado_solicitud_id)
+    -- 2) Insertar en SOLICITUD, incluyendo la columna ESTADO
+    INSERT INTO solicitud(
+        descripcion,
+        tipo_solicitud_id,
+        tema_id,
+        estado_solicitud,
+        estado,        -- ← obligatorio
+        activo         -- ← opcional si no confías en el DEFAULT
+    )
+    VALUES (
+        'Solicitud de aprobación de tema por coordinador',
+        v_tipo_solicitud_id,
+        p_tema_id,
+        v_estado_solicitud_id,
+        1,          -- valor para la columna estado
+        TRUE           -- valor para activo (aunque tiene DEFAULT)
+    )
     RETURNING solicitud_id INTO v_solicitud_id;
 
-    -- 3) Insertar en usuario_solicitud a todos los coordinadores activos
+    -- 3) Insertar en usuario_solicitud…
     INSERT INTO usuario_solicitud(
         usuario_id,
         solicitud_id,
@@ -3388,15 +3397,16 @@ BEGIN
     FROM usuario_carrera uc
     JOIN rol_solicitud   rs   ON rs.nombre = 'DESTINATARIO'
     JOIN accion_solicitud asol ON asol.nombre = 'PENDIENTE_ACCION'
-    WHERE uc.carrera_id      = (SELECT carrera_id FROM tema WHERE tema_id = p_tema_id)
-      AND uc.es_coordinador  = TRUE
-      AND uc.activo          = TRUE;
+    WHERE uc.carrera_id     = (SELECT carrera_id FROM tema WHERE tema_id = p_tema_id)
+      AND uc.es_coordinador = TRUE
+      AND uc.activo         = TRUE;
 
     IF NOT FOUND THEN
         RAISE EXCEPTION 'No hay coordinador activo para el tema %', p_tema_id;
     END IF;
 END;
 $$ LANGUAGE plpgsql;
+
 
 
 CREATE OR REPLACE FUNCTION listar_temas_similares(
