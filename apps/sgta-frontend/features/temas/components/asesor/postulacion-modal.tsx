@@ -97,7 +97,7 @@ export function PostulacionModal({
             <Label>Comentario</Label>
             <div className="p-3 bg-gray-50 rounded-md border">
               {selectedPostulacion.tesistas.map((tesista, index) => (
-                <span key={index}>{tesista.comentario.split("@")[0]}</span>
+                <span key={index}>{tesista.comentario.split("|@@|")[0]}</span>
               ))}
             </div>
           </div>
@@ -112,7 +112,7 @@ export function PostulacionModal({
                   <p>
                     {selectedPostulacion.tesistas.map((tesista, index) => (
                       <span key={index}>
-                        {tesista.comentario.split("@")[1]}
+                        {tesista.comentario.split("|@@|")[1]}
                         <br />
                       </span>
                     ))}

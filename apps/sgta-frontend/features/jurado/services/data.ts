@@ -245,12 +245,13 @@ export async function distribuirBloquesExposicion(
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      console.error(
-        "Error al distribuir bloques de exposición:",
-        error.response ?? error.message,
-      );
+      const mensaje =
+        error.response?.data?.message || error.response?.data || error.message;
+      console.error("Error al distribuir bloques de exposición:", mensaje);
+      throw new Error(mensaje); 
     } else {
       console.error("Error inesperado al distribuir bloques:", error);
+      throw new Error("Error inesperado al distribuir bloques.");
     }
     return [];
   }

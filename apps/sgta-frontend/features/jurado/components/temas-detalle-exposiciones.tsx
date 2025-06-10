@@ -67,8 +67,7 @@ export const TemasDetalleExposiciones: React.FC<
 
     const fetchParametrosConfiguracion = async () => {
       try {
-        const carreraId = 1; //ESTO TENEMOS QUE CAMBIAR EVENTUALMENTE
-        const parametrosConfig = await getAllByCarreraId(carreraId);
+        const parametrosConfig = await getAllByCarreraId();
         if (parametrosConfig.length > 0) {
           const juradoMax = parametrosConfig.find(
             (param) =>

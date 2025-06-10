@@ -10,6 +10,7 @@ import {
   ExposicionJurado,
   MiembroJuradoExpo,
   EvaluacionExposicionJurado,
+  CalificacionesJurado,
 } from "../types/jurado.types";
 import {
   JuradoDTO,
@@ -319,6 +320,12 @@ export const getExposicionesJurado = async (
   idToken: string,
 ): Promise<ExposicionJurado[]> => {
   try {
+    console.log("========== INICIO SOLICITUD getExposicionesJurado ==========");
+    console.log(
+      "Intentando obtener exposiciones con token:",
+      idToken ? `${idToken.substring(0, 10)}...` : "undefined",
+    );
+
     const response = await axiosInstance.get("/jurado/exposiciones", {
       headers: {
         Authorization: `Bearer ${idToken}`,
@@ -357,6 +364,8 @@ export const getExposicionesJurado = async (
         titulo: expo.titulo,
         nombre_exposicion: expo.nombre_exposicion,
         ciclo_id: expo.ciclo_id,
+        enlace_grabacion: expo.enlace_grabacion,
+        enlace_sesion: expo.enlace_sesion,
         miembros,
       };
     });
@@ -387,15 +396,22 @@ export const actualizarEstadoExposicion = async (
 
 export const actualizarEstadoControlExposicion = async (
   exposicionId: number,
-  juradoId: number,
+  juradoId: string,
   nuevoEstado: string,
 ): Promise<boolean> => {
   try {
-    const response = await axiosInstance.put("/jurado/control", {
-      exposicionTemaId: exposicionId,
-      juradoId: juradoId,
-      estadoExposicionUsuario: nuevoEstado,
-    });
+    const response = await axiosInstance.put(
+      "/jurado/control",
+      {
+        exposicionTemaId: exposicionId,
+        estadoExposicionUsuario: nuevoEstado,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${juradoId}`,
+        },
+      },
+    );
 
     return response.status === 200;
   } catch (error) {
@@ -405,16 +421,16 @@ export const actualizarEstadoControlExposicion = async (
 };
 
 export const getExposicionCalificarJurado = async (
-  juradoId: number | string,
+  token: number | string,
   exposicionId: number | string,
 ): Promise<EvaluacionExposicionJurado> => {
   try {
     // Convertir IDs a números si vienen como strings (por ejemplo, desde URL params)
-    const jId = 6;
+    //const jId = 6;
     const expId =
       typeof exposicionId === "string" ? parseInt(exposicionId) : exposicionId;
 
-    console.log("ID Jurado:", jId, "ID Exposición:", expId);
+    console.log("ID Jurado:", token, "ID Exposición:", expId);
 
     interface EstudianteRespuesta {
       id: number;
@@ -440,14 +456,25 @@ export const getExposicionCalificarJurado = async (
     }
 
     // Llamada al endpoint de criterios con los parámetros requeridos
-    //const response = await axiosInstance.get(`/jurado/${temaId}/detalle`);
+    // Llamada al endpoint utilizando el token para autenticación
+    const response = await axiosInstance.get("/jurado/criterios", {
+      params: {
+        exposicion_tema_id: expId,
+      },
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    {
+      /*
     const response = await axiosInstance.get("/jurado/criterios", {
       params: {
         jurado_id: jId,
         exposicion_tema_id: expId,
       },
     });
-
+      */
+    }
     const data = response.data;
 
     // Log para depuración
@@ -469,7 +496,7 @@ export const getExposicionCalificarJurado = async (
             id: criterio.id,
             titulo: criterio.titulo,
             descripcion: criterio.descripcion,
-            calificacion: criterio.calificacion || 0,
+            calificacion: criterio.calificacion,
             nota_maxima: criterio.nota_maxima || 20,
             observacion: criterio.observacion || "",
           }))
@@ -496,6 +523,11 @@ export const actualizarComentarioFinalJurado = async (
   observacion_final: string,
 ): Promise<boolean> => {
   try {
+    console.log(
+      "Guardando observaciones finales para la exposición:",
+      exposicionId,
+    );
+    console.log("Observaciones finales:", observacion_final);
     const response = await axiosInstance.put("/jurado/observacionfinal", {
       id: exposicionId,
       observacion_final: observacion_final,
@@ -524,6 +556,39 @@ export const actualizarCriteriosEvaluacion = async (
   } catch (error) {
     console.error("Error al actualizar los criterios de evaluación:", error);
     throw error;
+  }
+};
+
+export const getCalificacionesJuradoByExposicionTemaId = async (
+  exposicionTemaId: number,
+) => {
+  try {
+    const response = await axiosInstance.get(
+      "/jurado/calificacion-exposicion",
+      {
+        params: {
+          exposicion_tema_id: exposicionTemaId,
+        },
+      },
+    );
+
+    console.log("Datos de calificaciones obtenidos:", response.data);
+
+    return response.data.map((item: CalificacionesJurado) => ({
+      usuario_id: item.usuario_id,
+      nombres: item.nombres,
+      observaciones_finales: item.observaciones_finales,
+      criterios: item.criterios,
+      calificado: item.calificado,
+    }));
+  } catch (error) {
+    console.error(
+      "Error al obtener calificaciones de los miembros de jurado:",
+      error,
+    );
+    throw new Error(
+      "Error al obtener calificaciones de los miembros de jurado",
+    );
   }
 };
 

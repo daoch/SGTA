@@ -14,7 +14,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import java.util.List;
 import org.springframework.web.bind.annotation.PutMapping;
 import pucp.edu.pe.sgta.dto.UpdateEtapaFormativaRequest;
-
+import jakarta.servlet.http.HttpServletRequest;
+import pucp.edu.pe.sgta.service.inter.JwtService;
 @RestController
 @RequestMapping("/etapa-formativa-x-ciclo")
 public class EtapaFormativaXCicloController {
@@ -22,6 +23,9 @@ public class EtapaFormativaXCicloController {
     @Autowired
     private EtapaFormativaXCicloService etapaFormativaXCicloService;
 
+    @Autowired
+    private JwtService jwtService;
+    
     @GetMapping("/{id}")
     public ResponseEntity<EtapaFormativaXCicloDto> findById(@PathVariable Integer id) {
         EtapaFormativaXCicloDto etapaFormativaXCiclo = etapaFormativaXCicloService.findById(id);
@@ -35,9 +39,10 @@ public class EtapaFormativaXCicloController {
         return ResponseEntity.ok(createdEtapaFormativaXCiclo);
     }
 
-    @GetMapping("/carrera/{id}")
-    public ResponseEntity<List<EtapaFormativaXCicloDto>> getAllByCarreraId(@PathVariable Integer id) {
-        List<EtapaFormativaXCicloDto> etapaFormativaXCiclos = etapaFormativaXCicloService.getAllByCarreraId(id);
+    @GetMapping("/carreraList")
+    public ResponseEntity<List<EtapaFormativaXCicloDto>> getAllByCarreraId(HttpServletRequest request) {
+        String idCognito = jwtService.extractSubFromRequest(request);
+        List<EtapaFormativaXCicloDto> etapaFormativaXCiclos = etapaFormativaXCicloService.getAllByCarreraId(idCognito);
         return ResponseEntity.ok(etapaFormativaXCiclos);
     }
 
@@ -66,6 +71,11 @@ public class EtapaFormativaXCicloController {
     @GetMapping("/listarEtapasFormativasXCicloXCarrera/{carreraId}")
     public List<EtapaFormativaXCicloXCarreraDto> listarEtapasFormativasXCicloXCarrera(@PathVariable Integer carreraId) {
         return etapaFormativaXCicloService.listarEtapasFormativasXCicloXCarrera(carreraId);
+    }
+
+    @GetMapping("/etapaXCiclo/{etapaXCicloId}")
+    public EtapaFormativaXCicloDto getEtapaFormativaXCicloByEtapaId(@PathVariable Integer etapaXCicloId) {
+        return etapaFormativaXCicloService.getEtapaFormativaXCicloByEtapaId(etapaXCicloId);
     }
 
 }

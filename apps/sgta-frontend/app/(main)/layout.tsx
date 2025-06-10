@@ -4,6 +4,7 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import AppHeader from "@/components/header/app-header";
 import AppMain from "@/components/main/app-main";
 import { AppSidebar } from "@/components/sidebar/app-sidebar";
+import { Toaster } from "sonner";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -19,6 +20,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </SidebarInset>
         </div>
       </SidebarProvider>
+      <Toaster position="bottom-right" richColors />
     </div>
   );
 }
