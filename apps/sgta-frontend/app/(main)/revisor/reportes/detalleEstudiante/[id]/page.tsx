@@ -91,7 +91,6 @@ export default function ReviewerStudentDetails({ params }: { params: Promise<{ i
   const selectedStudentData = students.find((student) => student.usuarioId === parseInt(id));
   ///const selectedStudentData = students.find((student) => student.usuarioId === studentId);
 
-  console.log("Selected Student Data:", selectedStudentData);
 
   if (loading) {
     return <div>Cargando estudiantes...</div>;
