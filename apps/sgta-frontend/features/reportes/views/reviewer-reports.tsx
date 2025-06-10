@@ -27,8 +27,7 @@ export function ReviewerReports() {
 
   const fetchEtapas = async () => {
     try {
-      //Aqui colocar el id de la carrara del revisor (osea, del usuario) --> idCognito
-      const response = await etapaFormativaCicloService.getAllByIdCarrera(1);
+      const response = await etapaFormativaCicloService.getAllByIdCarrera();
       if (response) {
         setEtapas(response);
       }
