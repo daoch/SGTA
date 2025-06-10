@@ -51,9 +51,7 @@ const Page: React.FC = () => {
       {/* Content */}
       <TabsContent value={TypeView.Tema}>
         <SolicitudesPendientes
-          fetchFirstPageAndSetTotalCounts={
-            paginationTemas.fetchFirstPageAndSetTotalCounts
-          }
+          fetchAllPagesState={paginationTemas.fetchAllPagesState}
           estadoTema={paginationTemas.estadoTema}
           handleTabChange={paginationTemas.handleTabChange}
           loading={paginationTemas.loading}
@@ -61,6 +59,7 @@ const Page: React.FC = () => {
           temas={paginationTemas.temas}
           getTotalPages={paginationTemas.getTotalPages}
           handlePageChange={paginationTemas.handlePageChange}
+          limit={paginationTemas.LIMIT}
         />
       </TabsContent>
       <TabsContent value={TypeView.Solicitud}>
