@@ -10,6 +10,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 
 import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
+import pucp.edu.pe.sgta.dto.temas.TemasComprometidosDto;
 
 public interface TemaService {
 	List<TemaDto> getAll();
@@ -25,13 +26,13 @@ public interface TemaService {
 	 * @param idUsuarioCreador: tesista id
 	 * @param tipoPropuesta:    0 for general, 1 for direct
 	 */
-	void createTemaPropuesta(TemaDto dto, String idUsuarioCreador, Integer tipoPropuesta);
+	Integer createTemaPropuesta(TemaDto dto, String idUsuarioCreador, Integer tipoPropuesta);
 
 	void update(TemaDto dto);
 
 	void delete(Integer id);
 
-	void createInscripcionTema(TemaDto dto, String idUsuario); // Works for asesor, alumno, coordinador and revisor
+	Integer createInscripcionTema(TemaDto dto, String idUsuario); // Works for asesor, alumno, coordinador and revisor
 
 	List<TemaDto> listarTemasPropuestosAlAsesor(String asesorId, String titulo, Integer limit, Integer offset);
 
@@ -63,6 +64,8 @@ public interface TemaService {
 	List<TemaConAsesorJuradoDTO> listarTemasCicloActualXEtapaFormativa(Integer etapaFormativaId,Integer expoId);
 
 	List<TemaDto> listarPropuestasPorTesista(String tesistaId);
+
+	List<TemaDto> listarPropuestasPorCotesista(String tesistaId);
 
 	List<TemaDto> listarPostulacionesAMisPropuestas(String tesistaId, Integer tipoPropuesta);
 
@@ -161,4 +164,40 @@ public interface TemaService {
             Integer limit,
             Integer offset
     ) ;
+
+	Integer contarPostuladosAlumnosTemaLibreAsesor(
+			String busqueda,
+			String estado,
+			LocalDate fechaLimite,
+			String usuarioId
+	);
+
+	void guardarSimilitudes(String cognitoId, List<TemaSimilarDto> similitudes);
+
+	void createInscripcionTemaV2(TemaDto dto, String idUsuario);
+
+	List<TemaDto> listarTemasSimilares(Integer temaId);
+
+    /**
+     * Lists all finalized temas by calling the stored procedure listar_temas_finalizados()
+     *
+     * @return List of TemaDto representing finalized temas
+     */
+    List<TemaDto> listarTemasFinalizados();
+
+	/**
+	 * Cuenta los temas comprometidos por un usuario tesista
+	 * @param usuarioSubId ID del usuario (cognito sub)
+	 * @return Lista de temas comprometidos agrupados por estado
+	 */
+	List<TemasComprometidosDto> contarTemasComprometidos(String usuarioSubId);
+
+	/**
+	 * Acepta o rechaza una propuesta de cotesista para un tema
+	 * @param usuarioId ID del usuario (cognito sub)
+	 * @param temaId ID del tema
+	 * @param action 0 para aceptar, 1 para rechazar
+	 * @return Lista de temas comprometidos agrupados por estado
+	 */
+	void aceptarPropuestaCotesista(Integer temaId, String usuarioId, Integer action);
 }

@@ -29,8 +29,8 @@ public interface EntregableRepository extends JpaRepository<Entregable, Integer>
     @Query(value = "SELECT * FROM obtener_entregables_alumno(:alumnoId)", nativeQuery = true)
     List<Object[]> listarEntregablesPorAlumno(@Param("alumnoId") Integer alumnoId);
 
-    @Query(value = "SELECT entregar_entregable(:entregableId, :comentario, :estado)", nativeQuery = true)
-    void entregarEntregable(@Param("entregableId") Integer entregableId,
+    @Query(value = "SELECT entregar_entregable(:entregableXTemaId, :comentario, :estado)", nativeQuery = true)
+    void entregarEntregable(@Param("entregableXTemaId") Integer entregableXTemaId,
                             @Param("comentario") String comentario,
                             @Param("estado") String estado);
 
@@ -58,5 +58,7 @@ public interface EntregableRepository extends JpaRepository<Entregable, Integer>
           AND e.activo = true
     """)
     List<Entregable> findVencidos(@Param("ahora") OffsetDateTime ahora);
+
+    Integer countByEtapaFormativaXCicloIdAndActivoTrue(Integer etapaFormativaXCicloId);
 
 }

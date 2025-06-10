@@ -1,5 +1,6 @@
 package pucp.edu.pe.sgta.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -8,20 +9,29 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloDto;
 import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloXCarreraDto;
+import pucp.edu.pe.sgta.dto.UsuarioXCarreraDto;
+import pucp.edu.pe.sgta.model.UsuarioXCarrera;
 import pucp.edu.pe.sgta.service.inter.EtapaFormativaXCicloService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import java.util.List;
 import org.springframework.web.bind.annotation.PutMapping;
 import pucp.edu.pe.sgta.dto.UpdateEtapaFormativaRequest;
-
+import pucp.edu.pe.sgta.service.inter.JwtService;
+import pucp.edu.pe.sgta.service.inter.UsuarioXCarreraService;
+import jakarta.servlet.http.HttpServletRequest;
 @RestController
 @RequestMapping("/etapa-formativa-x-ciclo")
 public class EtapaFormativaXCicloController {
 
     @Autowired
     private EtapaFormativaXCicloService etapaFormativaXCicloService;
+    @Autowired
+    private UsuarioXCarreraService usuarioXCarreraService;
 
+    @Autowired
+    private JwtService jwtService;
+    
     @GetMapping("/{id}")
     public ResponseEntity<EtapaFormativaXCicloDto> findById(@PathVariable Integer id) {
         EtapaFormativaXCicloDto etapaFormativaXCiclo = etapaFormativaXCicloService.findById(id);
@@ -35,9 +45,10 @@ public class EtapaFormativaXCicloController {
         return ResponseEntity.ok(createdEtapaFormativaXCiclo);
     }
 
-    @GetMapping("/carrera/{id}")
-    public ResponseEntity<List<EtapaFormativaXCicloDto>> getAllByCarreraId(@PathVariable Integer id) {
-        List<EtapaFormativaXCicloDto> etapaFormativaXCiclos = etapaFormativaXCicloService.getAllByCarreraId(id);
+    @GetMapping("/carreraList")
+    public ResponseEntity<List<EtapaFormativaXCicloDto>> getAllByCarreraId(HttpServletRequest request) {
+        String idCognito = jwtService.extractSubFromRequest(request);
+        List<EtapaFormativaXCicloDto> etapaFormativaXCiclos = etapaFormativaXCicloService.getAllByCarreraId(idCognito);
         return ResponseEntity.ok(etapaFormativaXCiclos);
     }
 
@@ -63,9 +74,16 @@ public class EtapaFormativaXCicloController {
         return ResponseEntity.ok(updatedRelacion);
     }
 
-    @GetMapping("/listarEtapasFormativasXCicloXCarrera/{carreraId}")
-    public List<EtapaFormativaXCicloXCarreraDto> listarEtapasFormativasXCicloXCarrera(@PathVariable Integer carreraId) {
-        return etapaFormativaXCicloService.listarEtapasFormativasXCicloXCarrera(carreraId);
+    @GetMapping("/listarEtapasFormativasXCicloXCarrera")
+    public List<EtapaFormativaXCicloXCarreraDto> listarEtapasFormativasXCicloXCarrera(HttpServletRequest request) {
+        String coordinadorId = jwtService.extractSubFromRequest(request);
+        UsuarioXCarrera usuarioXCarrera = usuarioXCarreraService.getCarreraPrincipalCoordinador(coordinadorId);
+        return etapaFormativaXCicloService.listarEtapasFormativasXCicloXCarrera(usuarioXCarrera.getCarrera().getId());
+    }
+
+    @GetMapping("/etapaXCiclo/{etapaXCicloId}")
+    public EtapaFormativaXCicloDto getEtapaFormativaXCicloByEtapaId(@PathVariable Integer etapaXCicloId) {
+        return etapaFormativaXCicloService.getEtapaFormativaXCicloByEtapaId(etapaXCicloId);
     }
 
 }

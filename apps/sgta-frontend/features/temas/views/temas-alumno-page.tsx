@@ -42,37 +42,25 @@ export interface Propuesta {
   estado: "propuesta" | "cotesista_pendiente";
 }
 
-interface TemaInscrito {
-  id: number;
-  titulo: string;
-  resumen: string;
-  area: { id: number; nombre: string };
-  tesistas: {
-    id: number;
-    nombres: string;
-    primerApellido: string;
-    codigoPucp: string;
-  }[];
-}
-
 const MisTemasPage = () => {
   const [selectedPropuesta, setSelectedPropuesta] = useState<Propuesta | null>(
     null,
   );
-  const [temaInscrito, setTemaInscrito] = useState<TemaInscrito | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [tieneTemaComprometido, setTieneTemaComprometido] = useState(false);
+
   useEffect(() => {
     const fetchTema = async () => {
       try {
         const { idToken } = useAuthStore.getState();
-        console.log("ID Token:", idToken);
         if (!idToken) {
           console.error("No authentication token available");
           return;
         }
 
-        let res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/temas/listarTemasPorUsuarioRolEstado?rolNombre=Tesista&estadoNombre=INSCRITO`,
+        // 1. Verificamos si hay tema comprometido y obtenemos el estado
+        const resVerifica = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/temas/verificarTemasComprometidosTesista`,
           {
             headers: {
               Authorization: `Bearer ${idToken}`,
@@ -80,24 +68,15 @@ const MisTemasPage = () => {
             },
           },
         );
-        let data = await res.json();
-
-        if (!data || data.length === 0) {
-          res = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/temas/listarTemasPorUsuarioRolEstado?rolNombre=Tesista&estadoNombre=REGISTRADO`,
-            {
-              headers: {
-                Authorization: `Bearer ${idToken}`,
-                "Content-Type": "application/json",
-              },
-            },
-          );
-          data = await res.json();
-        }
-
-        setTemaInscrito(data.length > 0 ? data[0] : null);
+        if (!resVerifica.ok)
+          throw new Error("Error verificando tema comprometido");
+        const dataVerifica = await resVerifica.json();
+        setTieneTemaComprometido(
+          Array.isArray(dataVerifica) && dataVerifica[0]?.comprometido === 1,
+        );
       } catch (error) {
         console.error("Error al obtener tema inscrito o registrado", error);
+        setSelectedPropuesta(null);
       } finally {
         setIsLoading(false);
       }
@@ -116,7 +95,7 @@ const MisTemasPage = () => {
             propuestas
           </p>
         </div>
-        {!isLoading && !temaInscrito && (
+        {!isLoading && !tieneTemaComprometido && (
           <Link href="/alumno/temas/nueva-propuesta">
             <Button className="bg-[#042354] hover:bg-[#0e2f7a] text-white">
               + Nueva Propuesta

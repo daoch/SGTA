@@ -8,6 +8,8 @@ import { ExposicionAlumno } from "../../types/exposicion.types";
 import { getExposicionesEstudiantesByEstudianteId } from "../../services/exposicion-service";
 import { useAuthStore } from "@/features/auth/store/auth-store";
 import { useRouter } from "next/navigation";
+import { CalificacionesJurado } from "../../types/jurado.types";
+import { getCalificacionesJuradoByExposicionTemaId } from "../../services/jurado-service";
 
 interface DetalleExposicionProps {
   id: string;
@@ -20,6 +22,9 @@ const DetalleExposicion: React.FC<DetalleExposicionProps> = ({
 }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [exposicion, setExposicion] = useState<ExposicionAlumno>();
+  const [calificaciones, setCalificaciones] = useState<CalificacionesJurado[]>(
+    [],
+  );
 
   //JALAMOS LAS EXPOSICIONES DEL ALUMNO
   const fetchExposiciones = async () => {
@@ -37,6 +42,15 @@ const DetalleExposicion: React.FC<DetalleExposicionProps> = ({
       );
       setExposicion(exposicionFiltrada);
       console.log("Exposición cargada:", exposicionFiltrada);
+
+      //obtenemos las calificaciones del jurado
+      const calificacionesData =
+        await getCalificacionesJuradoByExposicionTemaId(
+          Number(exposicionFiltrada.exposicionId),
+        );
+
+      setCalificaciones(calificacionesData);
+      console.log("Calificaciones del jurado:", calificacionesData);
     } catch (error) {
       console.error("Error al cargar exposiciones:", error);
     } finally {
@@ -96,6 +110,15 @@ const DetalleExposicion: React.FC<DetalleExposicionProps> = ({
                 <div>
                   <label className="text-base text-gray-500">Ciclo</label>
                   <p className="text-lg font-medium">{exposicion?.ciclo}</p>
+                </div>
+                {/*TIPO DE EXPOSICION*/}
+                <div>
+                  <label className="text-base text-gray-500">
+                    Tipo de Exposición
+                  </label>
+                  <p className="text-lg font-medium">
+                    {exposicion?.tipoExposicion}
+                  </p>
                 </div>
                 {/*CURSO*/}
                 <div>
@@ -217,29 +240,53 @@ const DetalleExposicion: React.FC<DetalleExposicionProps> = ({
                 Miembros de Jurados
               </h2>
               <div className="grid grid-cols-3 gap-4">
-                {exposicion.miembrosJurado.map((miembro) => (
-                  <div
-                    key={miembro.id_persona}
-                    className="border rounded-2xl p-4 flex flex-col items-center text-center shadow-sm"
-                  >
-                    <div className="bg-gray-100 p-4 rounded-full mb-3">
-                      <User className="h-8 w-8 text-gray-500" />
-                    </div>
-                    <h3 className="font-medium text-base">{miembro.nombre}</h3>
-                    <Button
-                      asChild
-                      // variant={"secondary"}
-                      size="default"
-                      className="w-full mt-4"
+                {exposicion.miembrosJurado.map((miembro) => {
+                  const calificacion = calificaciones.find(
+                    (calif) => calif.usuario_id === miembro.id_persona,
+                  );
+
+                  const calificado = calificacion
+                    ? calificacion.calificado
+                    : false;
+
+                  return (
+                    <div
+                      key={miembro.id_persona}
+                      className="border rounded-2xl p-4 flex flex-col items-center text-center shadow-sm"
                     >
-                      <Link
-                        href={`/alumno/mi-proyecto/exposiciones/${id}/${exposicion.exposicionId}/observaciones/${miembro.id_persona}`}
+                      <div className="bg-gray-100 p-4 rounded-full mb-3">
+                        <User className="h-8 w-8 text-gray-500" />
+                      </div>
+                      <h3 className="font-medium text-base">
+                        {miembro.nombre}
+                      </h3>
+                      <h3 className="font-medium text-base text-gray-500">
+                        {miembro.tipo}
+                      </h3>
+                      <Button
+                        asChild
+                        // variant={"secondary"}
+                        size="default"
+                        className="w-full mt-4"
+                        disabled={!calificado}
+                        variant={calificado ? "default" : "secondary"}
                       >
-                        Ver Comentarios
-                      </Link>
-                    </Button>
-                  </div>
-                ))}
+                        <Link
+                          href={
+                            calificado
+                              ? `/alumno/mi-proyecto/exposiciones/${id}/${exposicion.exposicionId}/observaciones/${miembro.id_persona}`
+                              : "#"
+                          }
+                          className={`${!calificado ? "pointer-events-none text-gray-500" : ""}`}
+                        >
+                          {calificado
+                            ? "Ver Comentarios"
+                            : "Pendiente de calificar"}
+                        </Link>
+                      </Button>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>

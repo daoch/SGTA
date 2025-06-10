@@ -4,12 +4,15 @@ from .controller.similarity_controller import similarity_endpoint
 from .controller.faiss_controller import (
     add_topics_endpoint, search_topics_endpoint, 
     get_faiss_stats_endpoint, rebuild_index_endpoint,
-    list_topics_endpoint, search_topics_by_title_endpoint
+    list_topics_endpoint, search_topics_by_title_endpoint,
+    clear_index_endpoint, remove_topic_endpoint,
+    search_temp_embedding_endpoint
 )
 from .models import (
     AddTopicsRequest, AddTopicsResponse,
     SearchTopicsRequest, SearchTopicsResponse,
-    FAISSStatsResponse, ListTopicsResponse
+    FAISSStatsResponse, ListTopicsResponse,
+    SearchTempRequest, SearchTempResponse
 )
 import uvicorn
 
@@ -48,6 +51,21 @@ def list_all_topics(include_deleted: bool = False):
 def search_topics_by_title(title_query: str, limit: int = 20):
     """Search topics by title (simple text matching, not semantic)"""
     return search_topics_by_title_endpoint(title_query, limit)
+
+@app.post("/topics/clear")
+def clear_faiss_index():
+    """Completely clear FAISS index and cache (for fresh start from Java app)"""
+    return clear_index_endpoint()
+
+@app.post("/topics/search-temp", response_model=SearchTempResponse)
+def search_with_temp_embedding(request: SearchTempRequest):
+    """Search for similar topics using temporary embedding (no persistence)"""
+    return search_temp_embedding_endpoint(request)
+
+@app.delete("/topics/{topic_id}")
+def remove_topic(topic_id: str):
+    """Remove a topic from FAISS index (soft delete)"""
+    return remove_topic_endpoint(topic_id)
 
 @app.get("/topics/{topic_id}")
 def get_topic_by_id(topic_id: str):

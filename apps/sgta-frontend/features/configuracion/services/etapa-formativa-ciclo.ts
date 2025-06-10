@@ -1,10 +1,17 @@
 import axiosInstance from "@/lib/axios/axios-instance";
 import { EtapaFormativaCiclo, EtapaFormativaCicloCreate } from "../types/etapa-formativa-ciclo";
-
+import { useAuthStore } from "@/features/auth/store/auth-store";
 
 export const etapaFormativaCicloService = {
-    getAllByIdCarrera: async (idCarrera: number): Promise<EtapaFormativaCiclo[]> => {
-        const response = await axiosInstance.get(`/etapa-formativa-x-ciclo/carrera/${idCarrera}`);
+    getAllByIdCarrera: async (): Promise<EtapaFormativaCiclo[]> => {
+        const { idToken } = useAuthStore.getState();
+        const response = await axiosInstance.get("/etapa-formativa-x-ciclo/carreraList",
+            {
+              headers: {
+                Authorization: `Bearer ${idToken}`,
+              },
+            }
+        );
         return response.data;
     },
 

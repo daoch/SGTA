@@ -24,6 +24,7 @@ import {
   AreaDeInvestigacion,
   Carrera,
   Coasesor,
+  Tema,
   TemaCreateInscription,
   Tesista,
 } from "@/features/temas/types/inscripcion/entities";
@@ -35,25 +36,21 @@ import { toast, Toaster } from "sonner";
 import ItemSelector from "./item-selector";
 
 //imports de Tema libre
+import { fetchUsers } from "@/features/temas/types/inscripcion/data";
 import {
   crearTemaLibre,
-  fetchAreaConocimientoFindByUsuarioId,
   fetchSubareasPorAreaConocimiento,
 } from "@/features/temas/types/temas/data";
 import {
   Subareas,
-  Tema,
   TemaCreateLibre,
 } from "@/features/temas/types/temas/entidades";
 //
 
 interface NuevoTemaDialogProps {
-  isOpen: boolean;
   setIsNuevoTemaDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  coasesoresDisponibles: Coasesor[];
-  estudiantesDisponibles: Tesista[];
-  subareasDisponibles: AreaDeInvestigacion[];
-  carrera: Carrera | null;
+  areasDisponibles: AreaConocimiento[];
+  carreras: Carrera[] | null;
   onTemaGuardado: () => void;
   asesor: Coasesor;
 }
@@ -70,12 +67,9 @@ enum TipoRegistro {
  * @returns Dialog
  */
 const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
-  isOpen,
   setIsNuevoTemaDialogOpen,
-  coasesoresDisponibles,
-  estudiantesDisponibles,
-  subareasDisponibles,
-  carrera,
+  areasDisponibles,
+  carreras,
   onTemaGuardado,
   asesor,
 }) => {
@@ -97,13 +91,45 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
     area?: string;
   }>({});
 
+  const [coasesoresDisponibles, setCoasesoresDisponibles] = useState<
+    Coasesor[]
+  >([]);
+  const [estudiantesDisponibles, setEstudiantesDisponibles] = useState<
+    Tesista[]
+  >([]);
+
   // Datos de temas libres
   const [areaConocimientoSeleccionada, setAreaConocimientoSeleccionada] =
     useState<AreaConocimiento | null>(null);
-  const [areasConocimientos, setAreasConocimiento] = useState<
-    AreaConocimiento[]
-  >([]);
   const [subAreas, setSubAreas] = useState<Subareas[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  //Llenado de datos
+  useEffect(() => {
+    const listarEstudiantesYAsesores = async () => {
+      try {
+        if (carreras) {
+          const tesistasData: Tesista[] = await fetchUsers(
+            carreras[0].id,
+            "alumno",
+          );
+          setEstudiantesDisponibles(tesistasData.filter((t) => !t.asignado)); // No deben estar asignados
+
+          const coasesoresData: Coasesor[] = await fetchUsers(
+            carreras[0].id,
+            "profesor",
+          );
+
+          setCoasesoresDisponibles(
+            coasesoresData.filter((c) => c.id != asesor.id),
+          );
+        }
+      } catch {
+        console.log("No se pudo obtener los coasesores ni alumnos.");
+      }
+    };
+    listarEstudiantesYAsesores();
+  }, [carreras, asesor]);
   //
 
   useEffect(() => {
@@ -117,14 +143,6 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
       [field]: value,
     }));
   };
-
-  useEffect(() => {
-    const cargarAreas = async () => {
-      const areas = await fetchAreaConocimientoFindByUsuarioId(asesor.id);
-      setAreasConocimiento(areas);
-    };
-    cargarAreas();
-  }, [asesor]);
 
   useEffect(() => {
     const cargarSubAreas = async () => {
@@ -220,10 +238,11 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
   const handleGuardar = async () => {
     if (!validarCampos()) return;
     try {
-      if (carrera) {
+      setLoading(true);
+      if (carreras) {
         const response = await axiosInstance.post(
           "temas/createInscripcion",
-          mapTemaCreateInscription(temaData, carrera, asesor),
+          mapTemaCreateInscription(temaData, carreras[0], asesor),
         );
 
         toast.success("Tema guardado exitosamente");
@@ -241,14 +260,16 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
         error instanceof Error ? error.message : "Error al guardar el tema",
       );
       console.error("Error al guardar el tema:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleGuardarLibre = async () => {
     if (!validarCampos()) return;
     try {
-      if (carrera) {
-        await crearTemaLibre(mapTemaCreateLibre(temaData, carrera, asesor));
+      if (carreras) {
+        await crearTemaLibre(mapTemaCreateLibre(temaData, carreras[0], asesor));
         toast.success("Tema guardado exitosamente");
         console.log("Tema libre guardado exitosamente:");
       } else {
@@ -280,7 +301,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
   };
 
   const onSelectSubarea = (nombre: string) => {
-    const selectedArea = subareasDisponibles.find((a) => a.nombre === nombre);
+    const selectedArea = subAreas.find((a) => a.nombre === nombre);
     setAreaSeleccionada(selectedArea || null);
   };
 
@@ -388,7 +409,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
                 <Label>Áreas de Conocimiento</Label>
                 <Select
                   onValueChange={(value) => {
-                    const areaSeleccionada = areasConocimientos.find(
+                    const areaSeleccionada = areasDisponibles.find(
                       (area) => String(area.id) === value,
                     );
                     if (areaSeleccionada) {
@@ -400,7 +421,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
                     <SelectValue placeholder="Seleccione un área" />
                   </SelectTrigger>
                   <SelectContent>
-                    {areasConocimientos.map((area) => (
+                    {areasDisponibles.map((area) => (
                       <SelectItem key={area.id} value={String(area.id)}>
                         {area.nombre}
                       </SelectItem>
@@ -414,7 +435,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
 
               {/* Subareas */}
 
-              {tipoRegistro === TipoRegistro.LIBRE && (
+              {
                 <div>
                   <ItemSelector
                     label="Subáreas de Investigación"
@@ -433,28 +454,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
                     </p>
                   )}
                 </div>
-              )}
-
-              {tipoRegistro === TipoRegistro.INSCRIPCION && (
-                <div>
-                  <ItemSelector
-                    label="Subáreas de Investigación"
-                    itemsDisponibles={subareasDisponibles}
-                    itemsSeleccionados={temaData.subareas}
-                    itemKey="id"
-                    itemLabel="nombre"
-                    selectedItem={areaSeleccionada}
-                    onSelectItem={onSelectSubarea}
-                    onAgregarItem={handleAgregarSubarea}
-                    onEliminarItem={handleEliminarSubarea}
-                  />
-                  {errores.subareas && (
-                    <p className="text-red-500 text-xs mt-1">
-                      {errores.subareas}
-                    </p>
-                  )}
-                </div>
-              )}
+              }
 
               {/* Descripción */}
               <div className="space-y-2">
@@ -625,13 +625,13 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
         </div>
 
         <DialogFooter className="mt-4">
-          <Button variant="outline" onClick={handleCancelar}>
+          <Button variant="outline" onClick={handleCancelar} disabled={loading}>
             Cancelar
           </Button>
           {tipoRegistro === TipoRegistro.INSCRIPCION && (
             <Button
               onClick={handleGuardar}
-              disabled={Object.keys(errores).length > 0}
+              disabled={Object.keys(errores).length > 0 || loading}
             >
               Guardar
             </Button>
@@ -639,7 +639,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
           {tipoRegistro === TipoRegistro.LIBRE && (
             <Button
               onClick={handleGuardarLibre}
-              disabled={Object.keys(errores).length > 0}
+              disabled={Object.keys(errores).length > 0 || loading}
             >
               Guardar
             </Button>
@@ -689,3 +689,4 @@ const mapTemaCreateLibre = (tema: Tema, carrera: Carrera, asesor: Coasesor) => {
 };
 
 export default NuevoTemaDialog;
+

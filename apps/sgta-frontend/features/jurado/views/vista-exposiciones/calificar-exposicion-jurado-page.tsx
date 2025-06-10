@@ -11,10 +11,11 @@ import React from "react";
 import { useEffect, useState } from "react";
 import { CalificacionItem } from "../../components/item-calificacion";
 import { Button } from "@/components/ui/button";
-import { Save, X } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { Save, X, ArrowLeft} from "lucide-react";
+import { toast } from "sonner";
 import ModalConfirmarGuardado from "../../components/modal-confirmar-calificacion-jurado";
 
+import { useAuthStore } from "@/features/auth/store/auth-store";
 const criterios = [
   {
     titulo: "Nivel de avance",
@@ -48,8 +49,7 @@ type Props = {
 };
 
 const CalificarExposicionJuradoPage: React.FC<Props> = ({ id_exposicion }) => {
-  const [id_exposicion_tema, id_jurado] = id_exposicion.split("-");
-  const { toast } = useToast();
+  const [id_exposicion_tema] = id_exposicion;
   const [isLoading, setIsLoading] = useState(true);
   const [evaluacion, setEvaluacion] = useState<EvaluacionExposicionJurado>();
   const [observacionesFinales, setObservacionesFinales] = useState("");
@@ -60,18 +60,20 @@ const CalificarExposicionJuradoPage: React.FC<Props> = ({ id_exposicion }) => {
     router.back(); // Regresa a la página anterior
   };
 
-  const handleSaveClick = () => {
-  setIsConfirmModalOpen(true);
-  };
+  const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
     const cargarDatosEvaluacion = async () => {
       setIsLoading(true);
       try {
+        const { idToken } = useAuthStore.getState();
+        console.log("ID Token:", idToken , "ID Exposición Tema:", id_exposicion_tema);
+        setToken(idToken);
         
-        const datosEvaluacion = await getExposicionCalificarJurado(id_jurado, id_exposicion_tema);
+        const datosEvaluacion = await getExposicionCalificarJurado(token!, id_exposicion_tema);
         setEvaluacion(datosEvaluacion);
         setObservacionesFinales(datosEvaluacion.observaciones_finales);
+        console.log("Datos de evaluación cargados:", datosEvaluacion);
       } catch (error) {
         console.error("Error al cargar los datos de evaluación:", error);
       } finally {
@@ -80,9 +82,9 @@ const CalificarExposicionJuradoPage: React.FC<Props> = ({ id_exposicion }) => {
     };
     
     cargarDatosEvaluacion();
-  }, [id_exposicion_tema, id_jurado]);
+  }, [id_exposicion_tema, token]);
 
-  const handleCriterioChange = (id: number, value: number, observacion: string) => {
+  const handleCriterioChange = (id: number, value: number| null, observacion: string) => {
     if (!evaluacion) return;
     
     const nuevosCriterios = evaluacion.criterios.map(criterio => 
@@ -106,12 +108,31 @@ const CalificarExposicionJuradoPage: React.FC<Props> = ({ id_exposicion }) => {
   }
 
   const handleSave = async () => {
+     if (!evaluacion) {
+      toast.error("No hay datos de evaluación disponibles");
+      return;
+    }
+
+    const camposIncompletos = evaluacion.criterios.filter(
+      criterio => criterio.calificacion === 0 || criterio.calificacion === null || criterio.calificacion === undefined
+    );
+    {/*
+    if (hayCamposVacios()) {
+      toast.error(
+        "Debes completar la calificación de todos los criterios antes de guardar",
+        {
+          description: "Revisa los criterios sin calificar y asigna un valor."
+        }
+      );
+      return;
+    }*/}
+
   try {
     setIsLoading(true);
     let successMessage = "";
     let hasError = false;
 
-      const exposicionId = evaluacion.id_exposicion || evaluacion.criterios[0].id;
+      const exposicionId =  evaluacion.criterios[0].id;
       
       
       try {
@@ -131,16 +152,19 @@ const CalificarExposicionJuradoPage: React.FC<Props> = ({ id_exposicion }) => {
     try {
         const criteriosParaActualizar = evaluacion.criterios.map(criterio => ({
           id: criterio.id,
-          calificacion: criterio.calificacion,
+          calificacion: criterio.calificacion as number,
           observacion: criterio.observacion
         }));
-
+        if (criteriosParaActualizar.length > 0) {
         const resultadoCriterios = await actualizarCriteriosEvaluacion(
           criteriosParaActualizar
         );
         
         if (resultadoCriterios) {
           successMessage += "Criterios de evaluación guardados correctamente.";
+        }
+        } else {
+          console.log("No hay criterios con calificación para actualizar");
         }
       } catch (error) {
         console.error("Error al guardar criterios:", error);
@@ -149,25 +173,14 @@ const CalificarExposicionJuradoPage: React.FC<Props> = ({ id_exposicion }) => {
 
       if (successMessage) {
       if (hasError) {
-        toast({
-          title: "Guardado parcial",
-          description: "Algunos elementos se guardaron correctamente, pero otros fallaron.",
-          variant: "default"
-        });
+        toast.success("Algunos elementos se guardaron correctamente, pero otros fallaron.");
       } else {
-        toast({
-          title: "¡Guardado exitoso!",
-          description: "Todos los datos se guardaron correctamente.",
-          variant: "default"
-        });
+        toast.success("Todos los datos se guardaron correctamente."
+        );
         
       }
     } else if (hasError) {
-      toast({
-        title: "Error",
-        description: "No se pudo guardar la información. Intenta nuevamente.",
-        variant: "destructive"
-      });
+      toast.error("No se pudo guardar la información. Intenta nuevamente.");
     }
     
    
@@ -180,13 +193,33 @@ const CalificarExposicionJuradoPage: React.FC<Props> = ({ id_exposicion }) => {
   }
   };
   
+  const hayCamposVacios = (): boolean => {
+    if (!evaluacion) return true;
+    
+    return evaluacion.criterios.some(
+      criterio =>  criterio.calificacion === null || 
+                 criterio.calificacion === undefined ||
+      (typeof criterio.calificacion === "number" && 
+       (criterio.calificacion < 0 || criterio.calificacion > criterio.nota_maxima))
+    );
+  };
+
   
 
   return (
     <div className="p-2 w-full mx-auto space-y-6">
+      <div className="flex items-center gap-3">
+      <button 
+        onClick={handleCancel} 
+        className="hover:bg-gray-100 p-2 rounded-full transition-colors"
+        title="Volver a la página anterior"
+      >
+        <ArrowLeft className="h-6 w-6 text-gray-600" />
+      </button>
       <h1 className="text-2xl font-bold">
         Registro de Observaciones del Tema de Proyecto
       </h1>
+    </div>
 
       <Label>Título del Proyecto</Label>
       <Input
@@ -232,23 +265,27 @@ const CalificarExposicionJuradoPage: React.FC<Props> = ({ id_exposicion }) => {
          />
       </div>
       <div className="flex justify-center gap-4">
-        <Button variant="destructive" onClick={handleCancel}>
+        <Button variant="destructive" 
+        onClick={handleCancel}
+        >
           <X />
           Cancelar
         </Button>
 
-        <Button onClick={handleSaveClick}>
+        <Button onClick={handleSave}
+        disabled={hayCamposVacios() || isLoading} //? "opacity-50 cursor-not-allowed" : ""}>
+        className={hayCamposVacios()? "opacity-50 cursor-not-allowed" : "" }> 
           <Save />
           Guardar
         </Button>
       </div>
 
-      {/* Agregar el modal de confirmación */}
+      {/* modal de confirmación 
       <ModalConfirmarGuardado
         open={isConfirmModalOpen}
         onClose={() => setIsConfirmModalOpen(false)}
         onConfirm={handleSave}
-      />
+      />*/}
 
     </div>
   );

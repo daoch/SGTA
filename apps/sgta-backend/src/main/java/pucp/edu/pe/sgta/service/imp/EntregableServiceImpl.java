@@ -52,13 +52,12 @@ public class EntregableServiceImpl implements EntregableService {
                             ((Instant) resultado[5]).atOffset(ZoneOffset.UTC), // fecha fin
                             EstadoActividad.valueOf((String) resultado[6]), // estado
                             (boolean) resultado[7], // es evaluable
-                            ((Number) resultado[8]).intValue(), // maximo_documentos
-                            (String) resultado[9], // extensiones_permitidas
-                            ((Number) resultado[10]).intValue() // peso_maximo_documento
+                            resultado[8] != null ? ((Number) resultado[8]).intValue() : null, // maximo_documentos
+                            resultado[9] != null ? (String) resultado[9] : null, // extensiones_permitidas
+                            resultado[10] != null ? ((Number) resultado[10]).intValue() : null // peso_maximo_documento
                     ))
                     .collect(Collectors.toList());
         } catch (Exception e) {
-            e.printStackTrace(); // ← Te mostrará en consola exactamente qué falló
             throw new RuntimeException("Error al mapear entregables", e);
         }
     }
@@ -192,8 +191,8 @@ public class EntregableServiceImpl implements EntregableService {
 
     @Transactional
     @Override
-    public void entregarEntregable(Integer entregableId, EntregableSubidoDto entregableDto) {
-        entregableRepository.entregarEntregable(entregableId,
+    public void entregarEntregable(Integer entregableXTemaId, EntregableSubidoDto entregableDto) {
+        entregableRepository.entregarEntregable(entregableXTemaId,
                 entregableDto.getComentario(),
                 entregableDto.getEstado());
     }

@@ -1,5 +1,6 @@
 package pucp.edu.pe.sgta.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -7,10 +8,13 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import pucp.edu.pe.sgta.dto.NotificacionDto;
 import pucp.edu.pe.sgta.dto.OverdueAlertDto;
+import pucp.edu.pe.sgta.dto.UsuarioDto;
 import pucp.edu.pe.sgta.service.inter.NotificacionService;
 
 import java.util.List;
 import java.util.Map;
+import pucp.edu.pe.sgta.service.inter.JwtService;
+import pucp.edu.pe.sgta.service.inter.UsuarioService;
 
 @Slf4j
 @RestController
@@ -20,18 +24,22 @@ import java.util.Map;
 public class NotificacionController {
 
     private final NotificacionService notificacionService;
+    private final JwtService jwtService;
+    private final UsuarioService usuarioService;
 
     /**
      * Obtiene todas las notificaciones no leídas del usuario autenticado
      * GET /api/notifications/unread
      */
     @GetMapping("/unread")
-    public ResponseEntity<List<NotificacionDto>> getUnreadNotifications(Authentication authentication) {
+    public ResponseEntity<List<NotificacionDto>> getUnreadNotifications(Authentication authentication, HttpServletRequest request) {
         try {
-            Integer usuarioId = 12;
+            //Integer usuarioId = 12;
+            String alumnoId = jwtService.extractSubFromRequest(request);
 
-            List<NotificacionDto> notificaciones = notificacionService.getAllUnreadNotifications(usuarioId);
-            log.info("Usuario {} consultó {} notificaciones no leídas", usuarioId, notificaciones.size());
+            UsuarioDto usuDto = usuarioService.findByCognitoId(alumnoId);
+            List<NotificacionDto> notificaciones = notificacionService.getAllUnreadNotifications(usuDto.getId());
+            log.info("Usuario {} consultó {} notificaciones no leídas", alumnoId, notificaciones.size());
             return ResponseEntity.ok(notificaciones);
         } catch (Exception e) {
             log.error("Error al obtener notificaciones no leídas: {}", e.getMessage(), e);

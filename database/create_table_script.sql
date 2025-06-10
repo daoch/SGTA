@@ -218,6 +218,22 @@ CREATE TABLE IF NOT EXISTS historial_tema
             ON DELETE RESTRICT
 );
 
+CREATE TABLE IF NOT EXISTS tema_similar (
+    tema_similar_id      SERIAL PRIMARY KEY,
+    tema_id              INTEGER NOT NULL
+        REFERENCES tema(tema_id) ON DELETE CASCADE,
+    tema_relacion_id     INTEGER NOT NULL
+        REFERENCES tema(tema_id) ON DELETE CASCADE,
+    usuario_id           INTEGER NOT NULL
+        REFERENCES usuario(usuario_id) ON DELETE RESTRICT,
+    porcentaje_similitud NUMERIC(5,2) NOT NULL DEFAULT 0
+        CHECK (porcentaje_similitud >= 0 AND porcentaje_similitud <= 100),
+    activo               BOOLEAN NOT NULL DEFAULT TRUE,
+    fecha_creacion       TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion   TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_temas_distintos CHECK (tema_id <> tema_relacion_id)
+);
+
 -- 3) ROL
 CREATE TABLE IF NOT EXISTS rol
 (
@@ -1526,6 +1542,27 @@ CREATE TABLE IF NOT EXISTS criterio_exposicion_preset
 -- NECESARIO PARA QUE NO EXISTAN PROBLEMAS CON LOS ENUMS
 -- AGREGAR EL CAST PARA LOS DEMAS ENUMS DE SER NECESARIO
 --DROP CAST IF EXISTS (character varying AS enum_estado_actividad);
+
+CREATE CAST (CHARACTER VARYING AS enum_tipo_dato)
+    WITH INOUT AS ASSIGNMENT;
+
+CREATE CAST (CHARACTER VARYING AS enum_estado_exposicion)
+    WITH INOUT AS ASSIGNMENT;
+
+CREATE CAST (CHARACTER VARYING AS enum_estado_usuario_exposicion)
+    WITH INOUT AS ASSIGNMENT;
+
+CREATE CAST (CHARACTER VARYING AS enum_tipo_sala_exposicion)
+    WITH INOUT AS ASSIGNMENT;
+
+CREATE CAST (CHARACTER VARYING AS enum_estado_revision)
+    WITH INOUT AS ASSIGNMENT;
+
+CREATE CAST (CHARACTER VARYING AS enum_estado_entrega)
+    WITH INOUT AS ASSIGNMENT;
+
+CREATE CAST (CHARACTER VARYING AS enum_estado_actividad)
+    WITH INOUT AS ASSIGNMENT;
 
 CREATE CAST (CHARACTER VARYING AS enum_estado_actividad)
     WITH INOUT AS ASSIGNMENT;

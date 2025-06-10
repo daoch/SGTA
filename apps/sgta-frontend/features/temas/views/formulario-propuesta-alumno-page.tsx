@@ -5,6 +5,7 @@ import { useAuthStore } from "@/features/auth/store/auth-store";
 import FormularioPropuesta, {
   Estudiante,
   FormData,
+  TemaSimilar,
 } from "@/features/temas/components/alumno/formulario-propuesta";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -15,7 +16,12 @@ export default function FormularioPropuestaPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (data: FormData, cotesistas: Estudiante[]) => {
+  const handleSubmit = async (
+    data: FormData,
+    cotesistas: Estudiante[],
+    similares: TemaSimilar[] = [],
+    forzarGuardar: boolean = false
+  ) => {
     setLoading(true);
 
     const fechaActual = new Date().toISOString();
@@ -23,7 +29,6 @@ export default function FormularioPropuestaPage() {
       ? new Date(data.fechaLimite + "T10:00:00Z").toISOString()
       : null;
 
-    const idUsuarioCreador = 7;
     const tipoPropuesta = data.tipo === "general" ? 0 : 1;
 
     const subareas = [{ id: data.area }];
@@ -31,10 +36,7 @@ export default function FormularioPropuestaPage() {
       data.tipo === "directa" && data.asesor
         ? [{ id: Number(data.asesor) }]
         : [];
-    const tesistas = [
-      { id: idUsuarioCreador },
-      ...cotesistas.map((c) => ({ id: Number(c.id) })),
-    ];
+    const tesistas = cotesistas.map((c) => ({ id: Number(c.id) }));
 
     const payload = {
       id: null,
@@ -58,23 +60,47 @@ export default function FormularioPropuestaPage() {
 
     try {
       const { idToken } = useAuthStore.getState();
-              
       if (!idToken) {
         console.error("No authentication token available");
         return;
-      }      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/temas/createPropuesta` +
-          `?tipoPropuesta=${tipoPropuesta}`,
+      }
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/temas/createPropuesta?tipoPropuesta=${tipoPropuesta}`,
         {
           method: "POST",
           headers: {
-              "Authorization": `Bearer ${idToken}`,
-              "Content-Type": "application/json"
+            Authorization: `Bearer ${idToken}`,
+            "Content-Type": "application/json",
           },
           body: JSON.stringify(payload),
         }
       );
       if (!res.ok) throw new Error("API error");
+      const dataRes = await res.json();
+      const temaId = typeof dataRes === "number" ? dataRes : dataRes.id;
+
+      if (forzarGuardar && similares.length > 0) {
+        const similitudesPayload = similares.map((sim) => ({
+          tema: { id: temaId },
+          temaRelacion: { id: sim.tema.id },
+          porcentajeSimilitud: sim.similarityScore,
+        }));
+
+        console.log("Payload para guardarSimilitudes:", similitudesPayload);
+
+        const resSim = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/temas/guardarSimilitudes`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${idToken}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(similitudesPayload),
+          }
+        );
+        if (!resSim.ok) throw new Error("Error al guardar similitudes");
+      }
 
       toast.success("Propuesta registrada", {
         description: "Tu propuesta ha sido enviada satisfactoriamente",
@@ -83,14 +109,15 @@ export default function FormularioPropuestaPage() {
 
       setTimeout(() => {
         router.push("/alumno/temas");
-      }, 1000); 
+      }, 1000);
     } catch (err) {
       console.error(err);
-
       toast.error("Error", {
         description: "No se pudo registrar la propuesta",
         duration: 3000,
       });
+    } finally {
+      setLoading(false);
     }
   };
 

@@ -18,11 +18,13 @@ public interface EtapaFormativaXCicloService {
 
     void delete(Integer id);
 
-    List<EtapaFormativaXCicloDto> getAllByCarreraId(Integer id);
+    List<EtapaFormativaXCicloDto> getAllByCarreraId(String idCognito);
 
     List<EtapaFormativaXCicloDto> getAllByCarreraIdAndCicloId(Integer carreraId, Integer cicloId);
 
     EtapaFormativaXCicloDto actualizarEstadoRelacion(Integer relacionId, UpdateEtapaFormativaRequest request);
 
     List<EtapaFormativaXCicloXCarreraDto> listarEtapasFormativasXCicloXCarrera(Integer carreraId);
+
+    EtapaFormativaXCicloDto getEtapaFormativaXCicloByEtapaId(Integer etapaXCicloId);
 }

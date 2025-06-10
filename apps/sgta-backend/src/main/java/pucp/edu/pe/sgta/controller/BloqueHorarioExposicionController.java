@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.server.ResponseStatusException;
 import pucp.edu.pe.sgta.dto.AsignacionBloqueDTO;
 import pucp.edu.pe.sgta.dto.DistribucionRequestDTO;
 import pucp.edu.pe.sgta.dto.ListBloqueHorarioExposicionSimpleDTO;
@@ -77,7 +78,19 @@ public class BloqueHorarioExposicionController {
     public List<ListBloqueHorarioExposicionSimpleDTO> algoritmoDistribucion(
             @RequestBody DistribucionRequestDTO request) {
 
+
+        int cantidadTemas = request.getTemas().size();
+        int cantidadBloques = request.getBloques().size();
+
+        if (cantidadTemas > cantidadBloques) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Hay más temas que bloques disponibles (" + cantidadTemas + " temas vs " + cantidadBloques + " bloques)"
+            );
+        }
+
         String url = "http://localhost:8000/asignar";
+
 
         ResponseEntity<List<AsignacionBloqueDTO>> response = restTemplate.exchange(
                 url,
