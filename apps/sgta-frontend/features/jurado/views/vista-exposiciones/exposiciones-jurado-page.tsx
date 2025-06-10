@@ -240,6 +240,11 @@ const ExposicionesJuradoPage: React.FC = () => {
     // Obtener el estado base normalizado
     const estadoBase = exposicion.estado.toLowerCase().trim().replace(/\s+/g, "_");
 
+    // Si el estado es "completada" y los criterios ya están calificados, mostrar como "calificada"
+    if (estadoBase === "completada" && exposicion.criterios_calificados === true) {
+      return "calificada";
+    }
+
     // Si el estado base es "esperando_respuesta" pero el estado_control es "ACEPTADO" o "RECHAZADO",
     // mostrar como "esperando_aprobacion"
     if (
