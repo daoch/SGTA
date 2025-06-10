@@ -19,6 +19,7 @@ import axiosInstance from "@/lib/axios/axios-instance";
 import { EtapaFormativaAlumnoDto } from "../dtos/EtapaFormativaAlumnoDto";
 import { EntregableAlumnoDto } from "../dtos/EntregableAlumnoDto";
 import { useAuthStore } from "@/features/auth/store/auth-store";
+import AppLoading from "@/components/loading/app-loading";
 
 interface Ciclo {
   cicloId: number;
@@ -26,6 +27,7 @@ interface Ciclo {
 }
 
 const EntregablesAlumnoPage = () => {
+  const [loading, setLoading] = useState(true);
   const [ciclos, setCiclos] = useState<Ciclo[]>([]);
   const [cicloSeleccionado, setCicloSeleccionado] = useState("");
   const [entregables, setEntregables] = useState<EntregableAlumnoDto[]>([]);
@@ -34,52 +36,57 @@ const EntregablesAlumnoPage = () => {
   >([]);
   const [tabValue, setTabValue] = useState<keyof typeof TABS_VALUES>("todos");
 
-  useEffect(() => {
-    const fetchEtapasFormativas = async () => {
-      try {
-        const { idToken } = useAuthStore.getState();
-        if (!idToken) {
-          console.error("No authentication token available");
-          return;
-        }
-        const response = await axiosInstance.get("/etapas-formativas/alumno", {
-          headers: {
-            Authorization: `Bearer ${idToken}`,
-          },
-        });
-        setEtapasFormativas(response.data);
-        setCiclos(
-          response.data.map((etapa: EtapaFormativaAlumnoDto) => ({
-            cicloId: etapa.cicloId,
-            cicloNombre: etapa.cicloNombre,
-          })),
-        );
-      } catch (error) {
-        console.error("Error al cargar las etapas formativas:", error);
+  const fetchEtapasFormativas = async () => {
+    try {
+      const { idToken } = useAuthStore.getState();
+      if (!idToken) {
+        console.error("No authentication token available");
+        return;
       }
-    };
-    fetchEtapasFormativas();
-  }, []);
+      const response = await axiosInstance.get("/etapas-formativas/alumno", {
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+        },
+      });
+      setEtapasFormativas(response.data);
+      setCiclos(
+        response.data.map((etapa: EtapaFormativaAlumnoDto) => ({
+          cicloId: etapa.cicloId,
+          cicloNombre: etapa.cicloNombre,
+        })),
+      );
+    } catch (error) {
+      console.error("Error al cargar las etapas formativas:", error);
+    }
+  };
+
+  const fetchEntregables = async () => {
+    try {
+      const { idToken } = useAuthStore.getState();
+      if (!idToken) {
+        console.error("No authentication token available");
+        return;
+      }
+      const response = await axiosInstance.get("/entregable/alumno", {
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+        },
+      });
+      setEntregables(response.data);
+    } catch (error) {
+      console.error("Error al cargar los entregables:", error);
+    }
+  };
 
   useEffect(() => {
-    const fetchEntregables = async () => {
+    const fetchAll = async () => {
       try {
-        const { idToken } = useAuthStore.getState();
-        if (!idToken) {
-          console.error("No authentication token available");
-          return;
-        }
-        const response = await axiosInstance.get("/entregable/alumno", {
-          headers: {
-            Authorization: `Bearer ${idToken}`,
-          },
-        });
-        setEntregables(response.data);
-      } catch (error) {
-        console.error("Error al cargar los entregables:", error);
+        await Promise.all([fetchEtapasFormativas(), fetchEntregables()]);
+      } finally {
+        setLoading(false);
       }
     };
-    fetchEntregables();
+    fetchAll();
   }, []);
 
   useEffect(() => {
@@ -102,6 +109,22 @@ const EntregablesAlumnoPage = () => {
         cicloSeleccionado === "" ||
         entregable.cicloNombre === cicloSeleccionado,
     );
+
+  if (loading) {
+    return <AppLoading />;
+  }
+
+  if (!etapasFormativas || etapasFormativas.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[40vh]">
+        <div className="text-center text-lg font-semibold text-red-700">
+          Aún no cuentas con un tema definido para tu proyecto de fin de
+          carrera, dirígete a Temas para inscribir un tema o seleccionar un tema
+          libre
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 mt-4">
