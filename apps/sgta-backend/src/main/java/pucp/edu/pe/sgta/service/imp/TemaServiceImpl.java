@@ -243,7 +243,7 @@ public class TemaServiceImpl implements TemaService {
 
 		// 1) Subáreas de conocimiento
 		saveSubAreas(tema, dto.getSubareas());
-		// 2) Save Creador
+		// 2) Save Creador with asignado true
 		saveUsuarioXTema(tema, usuarioDto.getId(), RolEnum.Tesista.name(), false, true);
 		// 3) Save Asesor (Propuesta Directa)
 		if (tipoPropuesta == 1) {
@@ -253,7 +253,7 @@ public class TemaServiceImpl implements TemaService {
 			saveUsuarioXTema(tema, dto.getCoasesores().get(0).getId(), RolEnum.Asesor.name(), false, false);
 		}
 		// 4) Save cotesistas
-		saveUsuariosInvolucrados(tema, usuarioDto.getId(), dto.getTesistas(), RolEnum.Tesista.name(), false, false); // Save
+		saveUsuariosInvolucrados(tema, usuarioDto.getId(), dto.getTesistas(), RolEnum.Alumno.name(), false, false); // Save
 		return tema.getId();// return tema id
 	}
 
@@ -1173,9 +1173,15 @@ public class TemaServiceImpl implements TemaService {
 			List<UsuarioDto> allUsers = parseUsuariosJson(usuariosJson);
 
 			// split into tesistas vs. co-advisors
-			dto.setTesistas(filterByRole(allUsers, RolEnum.Tesista.name()));
-			dto.setCoasesores(filterByRoleExcept(allUsers, RolEnum.Tesista.name()));
-
+			dto.setTesistas(
+					filterByRole(allUsers, RolEnum.Tesista.name())
+							.stream()
+							.sorted((a, b) -> Boolean.compare(!Boolean.TRUE.equals(a.getCreador()), !Boolean.TRUE.equals(b.getCreador())))
+							.collect(Collectors.toList())
+			);
+			filterByRoleAndAppend(allUsers, RolEnum.Alumno.name(), dto.getTesistas());
+			dto.setCoasesores(filterByRole(allUsers, RolEnum.Asesor.name()));
+			filterByRoleAndAppend(allUsers, RolEnum.Coasesor.name(), dto.getCoasesores());
 			// --- calculate postulaciones: count Tesista with asignado=false ---
 			if (EstadoTemaEnum.PROPUESTO_GENERAL.name()
 					.equals(dto.getEstadoTemaNombre())) {
@@ -1290,6 +1296,14 @@ public class TemaServiceImpl implements TemaService {
 			}
 		}
 		return filtered;
+	}
+
+	private void filterByRoleAndAppend(List<UsuarioDto> all, String roleName, List<UsuarioDto> target) {
+		for (UsuarioDto u : all) {
+			if (roleName.equals(u.getRol())) {
+				target.add(u);
+			}
+		}
 	}
 
 	/** Returns users whose role is _not_ the given roleName. */
@@ -3067,6 +3081,99 @@ public class TemaServiceImpl implements TemaService {
 				.estadoNombre(rs.getString("estado_nombre"))
 				.build()
 		);
+	}
+
+	@Override
+	public void aceptarPropuestaCotesista(Integer temaId, String usuarioId, Integer action) {
+		try{
+			if (action == null || (action != 0 && action != 1)) {
+				throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Acción inválida. Debe ser 0 (aprobar) o 1 (rechazar).");
+			}
+			String sql = "";
+			if (action == 1) {
+				sql = "SELECT * FROM rechazar_propuesta_cotesista(:temaId, CAST(:usuarioId AS TEXT))";
+			} else{
+				// Si la acción es 0, se acepta la propuesta
+				sql = "SELECT  * FROM aceptar_propuesta_cotesista(:temaId, CAST(:usuarioId AS TEXT))";
+			}
+			String result = (String)  entityManager.createNativeQuery(sql)
+					.setParameter("temaId", temaId)
+					.setParameter("usuarioId", usuarioId)
+					.getSingleResult();
+			if (result != null && result.startsWith("ERROR:")) {
+				throw new ResponseStatusException(HttpStatus.OK, result);
+			}
+		}
+		catch (ResponseStatusException e) {
+			logger.severe("Error al aceptar propuesta de cotesista: " + e.getMessage());
+			throw e;
+		} catch (Exception e) {
+			logger.severe("Error inesperado al aceptar propuesta de cotesista: " + e.getMessage());
+			throw new RuntimeException("Error al aceptar propuesta de cotesista", e);
+		}
+
+
+	}
+
+	@Override
+	public List<TemaDto> listarPropuestasPorCotesista(String cotesistaId) {
+		String sql = "SELECT * " +
+				"  FROM listar_propuestas_del_cotesista_con_usuarios(:p_tesista_id)";
+		Query query = entityManager.createNativeQuery(sql)
+				.setParameter("p_tesista_id", cotesistaId);
+
+		@SuppressWarnings("unchecked")
+		List<Object[]> rows = query.getResultList();
+		List<TemaDto> proposals = new ArrayList<>(rows.size());
+
+		for (Object[] row : rows) {
+			// --- map basic columns ---
+			TemaDto dto = TemaDto.builder()
+					.id(((Number) row[0]).intValue()) // tema_id
+					.titulo((String) row[1]) // titulo
+					.resumen((String) row[4]) // descripcion
+					.metodologia((String) row[5]) // metodologia
+					.objetivos((String) row[6]) // objetivo
+					.portafolioUrl((String) row[7]) // recurso / portafolioUrl
+					.activo((Boolean) row[8]) // activo
+					.build();
+
+			// --- map timestamps (Instant → OffsetDateTime UTC) ---
+			dto.setFechaLimite(toOffsetDateTime(row[9]));
+			dto.setFechaCreacion(toOffsetDateTime(row[10]));
+			dto.setFechaModificacion(toOffsetDateTime(row[11]));
+
+			// --- parse and set sub-areas ---
+			String subareasCsv = (String) row[2];
+			Integer[] subareaIds = extractSqlIntArray(row[3]);
+			dto.setSubareas(parseSubAreas(subareasCsv, subareaIds));
+
+			dto.setEstadoTemaNombre((String) row[12]); // we set the estado tema
+			// --- parse usuarios JSONB into UsuarioDto list ---
+			String usuariosJson = row[13] != null ? row[13].toString() : "[]";
+			List<UsuarioDto> allUsers = parseUsuariosJson(usuariosJson);
+
+			// split into tesistas vs. co-advisors
+			dto.setTesistas(
+					filterByRole(allUsers, RolEnum.Tesista.name())
+							.stream()
+							.sorted((a, b) -> Boolean.compare(!Boolean.TRUE.equals(a.getCreador()), !Boolean.TRUE.equals(b.getCreador())))
+							.collect(Collectors.toList())
+			);
+			filterByRoleAndAppend(allUsers, RolEnum.Alumno.name(), dto.getTesistas());
+			dto.setCoasesores(filterByRole(allUsers, RolEnum.Asesor.name()));
+			filterByRoleAndAppend(allUsers, RolEnum.Coasesor.name(), dto.getCoasesores());
+
+			// --- calculate postulaciones: count Tesista with asignado=false ---
+			if (EstadoTemaEnum.PROPUESTO_GENERAL.name()
+					.equals(dto.getEstadoTemaNombre())) {
+				dto.setCantPostulaciones(calculatePostulaciones(allUsers));
+			}
+
+			proposals.add(dto);
+		}
+
+		return proposals;
 	}
 
 }
