@@ -337,7 +337,7 @@ BEGIN
     FROM tema t
     INNER JOIN estado_tema et ON et.estado_tema_id = t.estado_tema_id
     WHERE t.tema_id = p_tema_id
-      AND et.nombre IN ('PREINSCRITO', 'INSCRITO', 'REGISTRADO', 'EN_PROGRESO', 'PAUSADO')
+      AND et.nombre IN ('INSCRITO', 'REGISTRADO', 'EN_PROGRESO', 'PAUSADO')
 	  AND t.activo = TRUE;
 
     RETURN v_existe;
