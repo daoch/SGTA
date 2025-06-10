@@ -1152,4 +1152,9 @@ public class    UsuarioServiceImpl implements UsuarioService {
             );
     }
 
+    public Usuario buscarUsuarioPorId(Integer idUsuario, String onErrorMsg){
+        return usuarioRepository
+                .findById(idUsuario)
+                .orElseThrow(() -> new RuntimeException(onErrorMsg));
+    }
 }
