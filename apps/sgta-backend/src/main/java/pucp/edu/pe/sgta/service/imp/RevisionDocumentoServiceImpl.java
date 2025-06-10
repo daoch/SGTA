@@ -19,7 +19,7 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import jakarta.persistence.EntityNotFoundException;
+import java.util.logging.Logger;
 
 @Service
 public class RevisionDocumentoServiceImpl implements RevisionDocumentoService {
@@ -27,6 +27,7 @@ public class RevisionDocumentoServiceImpl implements RevisionDocumentoService {
     @Autowired
     private RevisionDocumentoRepository revisionDocumentoRepository;
     private final UsuarioRepository usuarioRepository;
+    private static final Logger logger = Logger.getLogger(RevisionDocumentoService.class.getName());
 
     public RevisionDocumentoServiceImpl(RevisionDocumentoRepository revisionDocumentoRepository,
             UsuarioRepository usuarioRepository) {
@@ -384,5 +385,6 @@ public class RevisionDocumentoServiceImpl implements RevisionDocumentoService {
     @Override
     public void crearRevisiones(int entregableXTemaId) {
         revisionDocumentoRepository.crearRevisiones(entregableXTemaId);
+        logger.warning("Revisiones creadas para el entregable con ID: " + entregableXTemaId);
     }
 }

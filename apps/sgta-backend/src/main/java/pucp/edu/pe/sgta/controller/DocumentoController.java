@@ -43,10 +43,10 @@ public class DocumentoController {
 
     @PostMapping("/entregable/{entregableXTemaId}")
     public ResponseEntity<String> subirDocumentos(@PathVariable Integer entregableXTemaId,
-            @RequestParam("archivos") MultipartFile[] archivos,
-            @RequestParam("ciclo") String ciclo,
-            @RequestParam("curso") String curso,
-            @RequestParam("codigoAlumno") String codigoAlumno) throws IOException {
+                                                  @RequestParam("archivos") MultipartFile[] archivos,
+                                                  @RequestParam("ciclo") String ciclo,
+                                                  @RequestParam("curso") String curso,
+                                                  @RequestParam("codigoAlumno") String codigoAlumno) throws IOException {
         return documentoService.subirDocumentos(entregableXTemaId, archivos, ciclo, curso, codigoAlumno);
     }
 

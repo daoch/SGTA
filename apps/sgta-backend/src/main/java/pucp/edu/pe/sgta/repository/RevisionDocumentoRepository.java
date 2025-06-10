@@ -146,8 +146,7 @@ public interface RevisionDocumentoRepository extends JpaRepository<RevisionDocum
     @Query(value = "SELECT * FROM obtener_revision_documento_por_id(:revision_id_input)", nativeQuery = true)
     List<Object[]> obtenerRevisionDocumentoPorId(@Param("revision_id_input") Integer revision_id_input);
 
-    @Modifying
     @Transactional
     @Query(value = "SELECT crear_revisiones(:entregableXTemaId)", nativeQuery = true)
-    void crearRevisiones(@Param("entregableXTemaId") int entregableXTemaId);
+    void crearRevisiones(@Param("entregableXTemaId") Integer entregableXTemaId);
 }
