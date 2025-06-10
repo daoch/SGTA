@@ -30,3 +30,10 @@ export interface TemasPages {
 
 export type PagesList = Partial<Record<EstadoTemaNombre, TemasPages>>;
 
+export type SolicitudAction =
+  | "Aprobada"
+  | "Rechazada"
+  | "Observada"
+  | "Eliminada";
+
+export type TypeSolicitud = "titulo" | "resumen" | null;

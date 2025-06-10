@@ -47,3 +47,4 @@ export const initialPagination: PagesList = {
     totalCounts: 0,
   },
 };
+

@@ -25,8 +25,8 @@ export function getSolicitudFromTema(
   if (asesor) {
     solicitante = {
       id: asesor.id,
-      tipoSolicitante: asesor.tipoUsuario || "Usuario",
-      codigoPucp: asesor.codigoPucp || "",
+      tipoSolicitante: asesor.rol ?? "Usuario",
+      codigoPucp: asesor.codigoPucp ?? "",
       nombres: asesor.nombres,
       primerApellido: asesor.primerApellido,
       segundoApellido: asesor.segundoApellido,
