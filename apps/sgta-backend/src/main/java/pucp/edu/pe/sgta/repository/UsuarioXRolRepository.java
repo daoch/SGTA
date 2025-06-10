@@ -1,6 +1,7 @@
 package pucp.edu.pe.sgta.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import pucp.edu.pe.sgta.model.UsuarioXRol;
@@ -23,6 +24,11 @@ public interface UsuarioXRolRepository extends JpaRepository<UsuarioXRol, Intege
     List<Object[]> esUsuarioAlumno(
             @Param("usuarioId") Integer usuarioId
     );
+    List<UsuarioXRol> findByUsuarioIdAndActivoTrue(Integer usuarioId);
+    List<UsuarioXRol> findByUsuarioId(Integer usuarioId);
+    @Modifying
+    @Query("DELETE FROM UsuarioXRol ur WHERE ur.usuario.id = :usuarioId")
+    void deleteByUsuarioId(@Param("usuarioId") Integer usuarioId);
 
     boolean existsByUsuario_IdCognitoAndRol_Nombre(String usuarioIdCognito, String rolNombre);
 }

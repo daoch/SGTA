@@ -8,7 +8,7 @@ import { EvaluacionExposicionJurado,CriterioEvaluacion } from "../types/jurado.t
 
 interface CalificacionItemProps {
   criterio: CriterioEvaluacion
-  onChange?: (id: number, calificacion: number, observacion: string) => void;
+  onChange?: (id: number, calificacion: number| null, observacion: string) => void;
 }
 
 export function CalificacionItem({
@@ -17,21 +17,102 @@ export function CalificacionItem({
 }: CalificacionItemProps) {
   const [calificacion, setCalificacion] = useState(criterio.calificacion);
   const [observacion, setObservacion] = useState(criterio.observacion);
+  
+  const [calificacionStr, setCalificacionStr] = useState<string>(
+    criterio.calificacion !== null && criterio.calificacion !== undefined 
+      ? criterio.calificacion.toString() 
+      : ""
+  );
+
+  const [estaVacio, setEstaVacio] = useState<boolean>(
+    criterio.calificacion === null || criterio.calificacion === undefined
+  );
 
   // Manejador para cuando cambia la calificación
   const handleCalificacionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = parseFloat(e.target.value);
+    const inputValue = e.target.value;
+    
+    if (inputValue !== "" && !/^(\d*\.?\d*)$/.test(inputValue)) {
+      return; // No actualizar si no es un formato de número válido
+    }
+    
+    setCalificacionStr(inputValue);
+
+    if (inputValue === "") {
+      setEstaVacio(true);
+      onChange?.(criterio.id, null, observacion);
+      return;
+    }
+
+    const newValue = parseFloat(inputValue);
     // Asegurar que el valor esté dentro del rango permitido
+    {/*
     if (!isNaN(newValue) && newValue >= 0 && newValue <= criterio.nota_maxima) {
       setCalificacion(newValue);
+      setEstaVacio(false);
       onChange?.(criterio.id, newValue, observacion);
+    }else {
+      setEstaVacio(true);
+    }
+    */}
+    if (!isNaN(newValue)) {
+      // Si excede el máximo, ajustar al máximo permitido
+      if (newValue > criterio.nota_maxima) {
+        const valorAjustado = criterio.nota_maxima;
+        // Actualizar inmediatamente al valor máximo permitido
+        setCalificacionStr(valorAjustado.toString());
+        setCalificacion(valorAjustado);
+        setEstaVacio(false);
+        onChange?.(criterio.id, valorAjustado, observacion);
+      } 
+      // Si es negativo, ajustar a 0
+      else if (newValue < 0) {
+        setCalificacionStr("0");
+        setCalificacion(0);
+        setEstaVacio(false);
+        onChange?.(criterio.id, 0, observacion);
+      }
+      // Si está dentro del rango permitido
+      else {
+        setCalificacion(newValue);
+        setEstaVacio(false);
+        onChange?.(criterio.id, newValue, observacion);
+      }
+    } else {
+      // Si no es un número válido
+      setEstaVacio(true);
+      onChange?.(criterio.id, null, observacion);
     }
   };
+
+  const handleBlur = () => {
+    // Si hay un valor y excede el máximo, ajustar al valor máximo
+    if (calificacionStr !== "") {
+      const currentValue = parseFloat(calificacionStr);
+      if (!isNaN(currentValue)) {
+        if (currentValue > criterio.nota_maxima) {
+          setCalificacionStr(criterio.nota_maxima.toString());
+          setCalificacion(criterio.nota_maxima);
+          onChange?.(criterio.id, criterio.nota_maxima, observacion);
+        } else if (currentValue < 0) {
+          setCalificacionStr("0");
+          setCalificacion(0);
+          onChange?.(criterio.id, 0, observacion);
+        }
+      }
+    }
+  };
+
 
   // Manejador para cuando cambia la observación
   const handleObservacionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setObservacion(e.target.value);
-    onChange?.(criterio.id, calificacion, e.target.value);
+    let numValue = null;
+    if (calificacionStr !== "") {
+      const parsed = parseFloat(calificacionStr);
+      if (!isNaN(parsed)) numValue = parsed;
+    }
+    onChange?.(criterio.id, numValue, e.target.value);
   };
 
 
@@ -48,10 +129,13 @@ export function CalificacionItem({
               min="0"
               max={criterio.nota_maxima}
               step="0.5"
-              value={calificacion}
+              value={calificacionStr}
               placeholder="0.0"
-              className="w-24"
+              className={`w-24 ${
+                estaVacio ? "border-red-500 focus:ring-red-500" : ""
+              }`}
               onChange={handleCalificacionChange}
+              onBlur={handleBlur}
             />
             <span>/ {criterio.nota_maxima}</span>
           </div>

@@ -1,9 +1,13 @@
 package pucp.edu.pe.sgta.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import pucp.edu.pe.sgta.model.UsuarioXCarrera;
 
 public interface UsuarioXCarreraRepository extends JpaRepository<UsuarioXCarrera, Integer>{
@@ -14,4 +18,9 @@ public interface UsuarioXCarreraRepository extends JpaRepository<UsuarioXCarrera
                 Integer carreraId,
                 Boolean activo
     );
+    List<UsuarioXCarrera> findByUsuarioId(Integer usuarioId);
+    Optional<UsuarioXCarrera> findByUsuarioIdAndCarreraId(Integer usuarioId, Integer carreraId);
+    @Modifying
+    @Query("DELETE FROM UsuarioXCarrera uc WHERE uc.usuario.id = :usuarioId")
+    void deleteByUsuarioId(@Param("usuarioId") Integer usuarioId);
 }

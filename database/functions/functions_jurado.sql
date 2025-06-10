@@ -1,4 +1,4 @@
--- Active: 1748374313012@@localhost@5432@postgres@public
+-- Active: 1748374313012@@localhost@5432@postgres@sgtadb
 CREATE OR REPLACE FUNCTION obtener_etapas_formativas_por_usuario(p_usuario_id INTEGER)
 RETURNS TABLE (
     etapa_formativa_id INTEGER,
@@ -239,15 +239,54 @@ inner join etapa_formativa ef
 inner join carrera c 
 	on c.carrera_id = ef.carrera_id 
 inner join usuario_carrera uc 
-	on uc.carrera_id = c.carrera_id 
+	on uc.carrera_id = c.carrera_id
+	and uc.es_coordinador = true
 inner join usuario u
 	on u.usuario_id = uc.usuario_id 
-inner join tipo_usuario tu 
-	on tu.tipo_usuario_id = u.tipo_usuario_id 
-	and tu.nombre = 'coordinador'
 where u.usuario_id = p_coordinador_id;
 END;
 $$ LANGUAGE plpgsql STABLE;
+
+CREATE OR REPLACE FUNCTION sgtadb.listar_exposiciones_por_coordinador_v2(p_coordinador_id integer)
+ RETURNS TABLE(exposicion_id integer, nombre text, descripcion text, etapa_formativa_id integer, etapa_formativa_nombre text, ciclo_id integer, ciclo_nombre text, estado_planificacion_id integer, estado_planificacion_nombre text)
+ LANGUAGE plpgsql
+ STABLE
+AS $function$
+BEGIN
+return query
+select 
+    e.exposicion_id,
+    e.nombre::TEXT,
+    e.descripcion::TEXT,
+    ef.etapa_formativa_id,
+    ef.nombre::TEXT AS etapa_formativa_nombre,
+    efxc.ciclo_id,
+    c2.nombre::TEXT AS ciclo_nombre,
+    e.estado_planificacion_id,
+    ep.nombre::TEXT AS estado_planificacion_nombre
+from exposicion e
+inner join estado_planificacion ep 
+	on ep.estado_planificacion_id = e.estado_planificacion_id 
+	and ep.nombre <> 'Sin planificar'
+inner join etapa_formativa_x_ciclo efxc 
+	on efxc.etapa_formativa_x_ciclo_id = e.etapa_formativa_x_ciclo_id 
+inner join ciclo c2 
+	on c2.ciclo_id = efxc.ciclo_id 
+inner join etapa_formativa ef 
+	on ef.etapa_formativa_id = efxc.ciclo_id 
+inner join carrera c 
+	on c.carrera_id = ef.carrera_id 
+inner join usuario_carrera uc 
+	on uc.carrera_id = c.carrera_id
+	and uc.es_coordinador = true
+inner join usuario u
+	on u.usuario_id = uc.usuario_id 
+where u.usuario_id = p_coordinador_id;
+END;
+$$ LANGUAGE plpgsql STABLE;
+
+
+
 
 CREATE OR REPLACE FUNCTION listar_exposiciones_sin_inicializar_cicloactual_por_etapa_forma( --tiva. No debe pasar los 63 caracteres, por eso se corta.
 	p_etapa_formativa_id integer
@@ -705,7 +744,9 @@ BEGIN
       ORDER BY u.usuario_id, ut.prioridad NULLS LAST
     ) sub
     WHERE sub.cantidad_temas_asignados > 0;
+
 END;
+
 $function$;
 
 CREATE OR REPLACE FUNCTION obtener_jurados_por_tema(p_tema_id integer)
