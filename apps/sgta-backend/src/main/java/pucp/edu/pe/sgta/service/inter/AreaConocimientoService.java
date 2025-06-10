@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface AreaConocimientoService {
 
-	AreaConocimientoDto create(AreaConocimientoDto dto);
+	AreaConocimientoDto create(AreaConocimientoDto dto, String idCognito);
 
 	void update(AreaConocimientoDto dto);
 
@@ -15,7 +15,7 @@ public interface AreaConocimientoService {
 
 	List<AreaConocimientoDto> getAll();
 
-	List<AreaConocimientoDto> getAllByCarrera(Integer idCarrera);
+	List<AreaConocimientoDto> getAllByCarrera(String idCognito);
 
 	List<AreaConocimientoDto> getAllByIdExpo(Integer idExpo);
 

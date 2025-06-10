@@ -12,6 +12,9 @@ import pucp.edu.pe.sgta.repository.EtapaFormativaRepository;
 import pucp.edu.pe.sgta.repository.EntregableRepository;
 import pucp.edu.pe.sgta.repository.ExposicionRepository;
 import pucp.edu.pe.sgta.service.inter.EtapaFormativaXCicloService;
+import pucp.edu.pe.sgta.service.inter.UsuarioService;
+import pucp.edu.pe.sgta.model.Carrera;
+import pucp.edu.pe.sgta.repository.CarreraRepository;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -20,6 +23,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import pucp.edu.pe.sgta.dto.UpdateEtapaFormativaRequest;
+import pucp.edu.pe.sgta.dto.UsuarioDto;
 
 @Service
 public class EtapaFormativaXCicloServiceImpl implements EtapaFormativaXCicloService {
@@ -29,6 +33,12 @@ public class EtapaFormativaXCicloServiceImpl implements EtapaFormativaXCicloServ
     
     @Autowired
     private EtapaFormativaRepository etapaFormativaRepository;
+
+    @Autowired
+    private CarreraRepository carreraRepository;
+
+    @Autowired
+    private UsuarioService usuarioService;
 
     @Autowired
     private EntregableRepository entregableRepository;
@@ -75,23 +85,38 @@ public class EtapaFormativaXCicloServiceImpl implements EtapaFormativaXCicloServ
 
     //get all by carrera id, agregar que sea activo true
     @Override
-    public List<EtapaFormativaXCicloDto> getAllByCarreraId(Integer carreraId) {
-        List<EtapaFormativaXCiclo> etapaFormativaXCiclos = etapaFormativaXCicloRepository.findAllByEtapaFormativa_Carrera_IdAndActivoTrue(carreraId);
-        return etapaFormativaXCiclos.stream()
-            .map(etapaFormativaXCiclo -> {
-                EtapaFormativaXCicloDto dto = mapToDto(etapaFormativaXCiclo);
-                // Obtener la información de la etapa formativa
-                EtapaFormativa etapaFormativa = etapaFormativaRepository.findById(etapaFormativaXCiclo.getEtapaFormativa().getId())
-                    .orElseThrow(() -> new RuntimeException("Etapa Formativa no encontrada"));
-                dto.setNombreEtapaFormativa(etapaFormativa.getNombre());
-                dto.setCreditajePorTema(etapaFormativa.getCreditajePorTema());
-                dto.setNombreCiclo(etapaFormativaXCiclo.getCiclo().getAnio() + " - " + etapaFormativaXCiclo.getCiclo().getSemestre());
-                dto.setCantidadEntregables(entregableRepository.countByEtapaFormativaXCicloIdAndActivoTrue(etapaFormativaXCiclo.getId()));
-                dto.setCantidadExposiciones(exposicionRepository.countByEtapaFormativaXCicloIdAndActivoTrue(etapaFormativaXCiclo.getId()));
-                
-                return dto;
-            })
-            .collect(Collectors.toList());
+    public List<EtapaFormativaXCicloDto> getAllByCarreraId(String idCognito) {
+
+        UsuarioDto usuario = usuarioService.findByCognitoId(idCognito);
+
+        List<Object[]> results = carreraRepository.obtenerCarreraCoordinador(usuario.getId());
+        if (results != null && !results.isEmpty()) {
+            Object[] result = results.get(0);
+            
+            Carrera carrera = new Carrera();
+            carrera.setId((Integer) result[0]);
+            carrera.setNombre((String) result[1]);
+            Integer carreraId = carrera.getId();
+            List<EtapaFormativaXCiclo> etapaFormativaXCiclos = etapaFormativaXCicloRepository.findAllByEtapaFormativa_Carrera_IdAndActivoTrue(carreraId);
+            return etapaFormativaXCiclos.stream()
+                .map(etapaFormativaXCiclo -> {
+                    EtapaFormativaXCicloDto dto = mapToDto(etapaFormativaXCiclo);
+                    // Obtener la información de la etapa formativa
+                    EtapaFormativa etapaFormativa = etapaFormativaRepository.findById(etapaFormativaXCiclo.getEtapaFormativa().getId())
+                        .orElseThrow(() -> new RuntimeException("Etapa Formativa no encontrada"));
+                    dto.setNombreEtapaFormativa(etapaFormativa.getNombre());
+                    dto.setNombreCiclo(etapaFormativaXCiclo.getCiclo().getAnio() + " - " + etapaFormativaXCiclo.getCiclo().getSemestre());
+                    dto.setCreditajePorTema(etapaFormativa.getCreditajePorTema());
+                    dto.setCantidadEntregables(entregableRepository.countByEtapaFormativaXCicloIdAndActivoTrue(etapaFormativaXCiclo.getId()));
+                    dto.setCantidadExposiciones(exposicionRepository.countByEtapaFormativaXCicloIdAndActivoTrue(etapaFormativaXCiclo.getId()));
+                    return dto;
+                })
+                .collect(Collectors.toList());
+        } else {
+            throw new RuntimeException("No se encontró la carrera para el usuario con id: " + usuario.getId());
+        }
+
+        
     }
 
     //get all by carrera id and ciclo id
