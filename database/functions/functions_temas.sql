@@ -3513,3 +3513,19 @@ BEGIN
       AND et.nombre IN ('PRE_INSCRITO', 'INSCRITO', 'PAUSADO', 'EN_PROGRESO', 'REGISTRADO');
 END;
 $$;
+
+
+-- Función para listar el historial completo de un tema
+CREATE OR REPLACE FUNCTION listar_historial_tema(p_tema_id INTEGER)
+  RETURNS SETOF historial_tema
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN QUERY
+    SELECT *
+      FROM historial_tema
+     WHERE tema_id = p_tema_id
+     AND activo = TRUE
+     ORDER BY fecha_creacion;  -- o por fecha_modificacion, según tu preferencia
+END;
+$$;
