@@ -1521,9 +1521,12 @@ BEGIN
         u.correo_electronico,
         uxs.solicitud_completada    FROM solicitud s
     INNER JOIN tipo_solicitud ts ON s.tipo_solicitud_id = ts.tipo_solicitud_id
-    INNER JOIN usuario_solicitud uxs ON s.solicitud_id = uxs.solicitud_id AND uxs.destinatario = true
+    INNER JOIN usuario_solicitud uxs ON s.solicitud_id = uxs.solicitud_id --AND uxs.destinatario = true
+    INNER JOIN rol_solicitud rs ON uxs.rol_solicitud = rs.rol_solicitud_id AND rs.nombre = 'DESTINATARIO'
     INNER JOIN usuario u ON uxs.usuario_id = u.usuario_id
     WHERE s.tema_id = input_tema_id
+    AND uxs.activo = TRUE
+	  AND s.activo= TRUE
     ORDER BY s.fecha_creacion DESC
     OFFSET offset_val
     LIMIT limit_val;
@@ -3721,5 +3724,131 @@ BEGIN
     END IF;
     
     RETURN cantidad < limite;
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION crear_solicitud_tema_coordinador(
+    p_tema_id               INTEGER,
+    p_id_usuario_creador    INTEGER,
+    p_comentario            TEXT,
+    p_tipo_solicitud_nombre TEXT
+) RETURNS VOID AS $$
+DECLARE
+    v_tipo_solicitud_id      INTEGER;
+    v_estado_solicitud_id    INTEGER;
+    v_rol_remitente_id       INTEGER;
+    v_rol_destinatario_id    INTEGER;
+    v_accion_pendiente_id    INTEGER;
+    v_solicitud_id           INTEGER;
+    v_descripcion            TEXT := COALESCE(p_comentario, p_tipo_solicitud_nombre);
+    rec_usuario              RECORD;
+BEGIN
+    -- 1) Obtener IDs de catálogos
+    SELECT ts.tipo_solicitud_id
+      INTO v_tipo_solicitud_id
+      FROM tipo_solicitud ts
+     WHERE ts.nombre = p_tipo_solicitud_nombre;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Tipo de solicitud no configurado: %', p_tipo_solicitud_nombre;
+    END IF;
+
+    SELECT es.estado_solicitud_id
+      INTO v_estado_solicitud_id
+      FROM estado_solicitud es
+     WHERE es.nombre = 'PENDIENTE';
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Estado de solicitud PENDIENTE no encontrado';
+    END IF;
+
+    SELECT rs.rol_solicitud_id
+      INTO v_rol_remitente_id
+      FROM rol_solicitud rs
+     WHERE rs.nombre = 'REMITENTE';
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Rol REMITENTE no encontrado';
+    END IF;
+
+    SELECT rs.rol_solicitud_id
+      INTO v_rol_destinatario_id
+      FROM rol_solicitud rs
+     WHERE rs.nombre = 'DESTINATARIO';
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Rol DESTINATARIO no encontrado';
+    END IF;
+
+    SELECT a.accion_solicitud_id
+      INTO v_accion_pendiente_id
+      FROM accion_solicitud a
+     WHERE a.nombre = 'PENDIENTE_ACCION';
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Acción PENDIENTE_ACCION no encontrada';
+    END IF;
+
+    -- 2) Insertar la solicitud
+    INSERT INTO solicitud (
+        descripcion,
+        tipo_solicitud_id,
+        tema_id,
+        estado_solicitud,
+        activo,
+        fecha_creacion,
+        estado
+    ) VALUES (
+        v_descripcion,
+        v_tipo_solicitud_id,
+        p_tema_id,
+        v_estado_solicitud_id,
+        TRUE,
+        NOW(),
+        1
+    )
+    RETURNING solicitud_id INTO v_solicitud_id;
+
+    -- 3) Enlazar al creador (rol REMITENTE)
+    INSERT INTO usuario_solicitud (
+        usuario_id,
+        solicitud_id,
+        comentario,
+        rol_solicitud,
+        accion_solicitud,
+        activo,
+        fecha_creacion
+    ) VALUES (
+        p_id_usuario_creador,
+        v_solicitud_id,
+        v_descripcion,
+        v_rol_remitente_id,
+        v_accion_pendiente_id,
+        TRUE,
+        NOW()
+    );
+
+    -- 4) Enlazar a todos los usuarios asignados al tema (rol DESTINATARIO)
+    FOR rec_usuario IN
+        SELECT ut.usuario_id
+          FROM usuario_tema ut
+         WHERE ut.tema_id  = p_tema_id
+           AND ut.activo   = TRUE
+           AND ut.asignado = TRUE
+    LOOP
+        INSERT INTO usuario_solicitud (
+            usuario_id,
+            solicitud_id,
+            comentario,
+            rol_solicitud,
+            accion_solicitud,
+            activo,
+            fecha_creacion
+        ) VALUES (
+            rec_usuario.usuario_id,
+            v_solicitud_id,
+            NULL,
+            v_rol_destinatario_id,
+            v_accion_pendiente_id,
+            TRUE,
+            NOW()
+        );
+    END LOOP;
 END;
 $$ LANGUAGE plpgsql;
