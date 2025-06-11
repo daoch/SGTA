@@ -4,6 +4,7 @@ import java.util.List;
 import jakarta.servlet.http.HttpServletRequest;          // ← IMPORT Jakarta
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -165,13 +166,12 @@ public class ReportsController {
 
 
 
-    /** RF9: entregables con criterios de un tesista */
-    @GetMapping("/entregables-criterios")
+    /** RF9: entregables con criterios de un tesista - NO AGREGAR ID COGNITO*/
+    @GetMapping("/entregables-criterios/{idUsuario}")
     public ResponseEntity<List<EntregableCriteriosDetalleDto>> getEntregablesConCriterios(
-            HttpServletRequest request) {
-        String sub = jwtService.extractSubFromRequest(request);
+           @PathVariable Integer  idUsuario) {
         List<EntregableCriteriosDetalleDto> list =
-                reportingService.getEntregablesConCriterios(sub);
+            reportingService.getEntregablesConCriterios(idUsuario);
         return ResponseEntity.ok(list);
     }
 }
