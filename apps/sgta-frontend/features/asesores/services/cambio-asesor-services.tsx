@@ -194,7 +194,7 @@ export async function rechazarSolicitud(
 
 export async function aceptarSolicitudPorAsesor(
   idSolicitud: number,
-  request: string,
+  comentario: string,
 ): Promise<SolicitudCambioAsesorResumen[]> {
   try {
     const response = await axiosInstance.patch(
@@ -203,6 +203,7 @@ export async function aceptarSolicitudPorAsesor(
       {
         params: {
           idSolicitud,
+          comentario,
         },
       },
     );
@@ -220,7 +221,7 @@ export async function aceptarSolicitudPorAsesor(
 
 export async function rechazarSolicitudPorAsesor(
   idSolicitud: number,
-  request: string,
+  comentario: string,
 ): Promise<SolicitudCambioAsesorResumen[]> {
   try {
     const response = await axiosInstance.patch(
@@ -229,6 +230,7 @@ export async function rechazarSolicitudPorAsesor(
       {
         params: {
           idSolicitud,
+          comentario,
         },
       },
     );
@@ -246,7 +248,7 @@ export async function rechazarSolicitudPorAsesor(
 
 export async function rechazarSolicitudPorCoordinador(
   idSolicitud: number,
-  request: string,
+  comentario: string,
 ): Promise<SolicitudCambioAsesorResumen[]> {
   try {
     const response = await axiosInstance.patch(
@@ -255,6 +257,7 @@ export async function rechazarSolicitudPorCoordinador(
       {
         params: {
           idSolicitud,
+          comentario,
         },
       },
     );
@@ -272,7 +275,7 @@ export async function rechazarSolicitudPorCoordinador(
 
 export async function aceptarSolicitudPorCoordinador(
   idSolicitud: number,
-  request: string,
+  comentario: string,
 ): Promise<SolicitudCambioAsesorResumen[]> {
   try {
     const response = await axiosInstance.patch(
@@ -281,6 +284,7 @@ export async function aceptarSolicitudPorCoordinador(
       {
         params: {
           idSolicitud,
+          comentario,
         },
       },
     );
