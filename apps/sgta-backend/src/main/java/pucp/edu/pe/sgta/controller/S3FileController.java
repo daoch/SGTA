@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.*;
 import pucp.edu.pe.sgta.model.RevisionDocumento;
 import pucp.edu.pe.sgta.repository.RevisionDocumentoRepository;
 import pucp.edu.pe.sgta.service.inter.S3DownloadService;
+import java.util.Base64;
+import java.util.logging.Logger;
 
 @RestController
 @RequestMapping("/s3/archivos")
@@ -66,4 +68,17 @@ public class S3FileController {
     }
     // Aquí podrías añadir más endpoints relacionados con S3 (p.ej. listar, borrar,
     // etc.)
+
+    @GetMapping("/getUrlFromCloudFront/{key:.+}")
+    public ResponseEntity<String> getUrlFromCloudFront(@PathVariable String key) {
+        try {
+            byte[] decodedKeyBytes = Base64.getDecoder().decode(key);
+            String decodedKey = new String(decodedKeyBytes);
+            String url = downloadService.getUrlFromCloudFront(decodedKey);
+            return ResponseEntity.ok(url);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("No se pudo generar la url para el archivo: " + e.getMessage());
+        }
+    }
 }

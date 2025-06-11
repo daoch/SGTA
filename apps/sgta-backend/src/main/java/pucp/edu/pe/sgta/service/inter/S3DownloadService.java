@@ -7,4 +7,5 @@ public interface S3DownloadService {
 
     byte[] download(String key);
     void upload(String filename, MultipartFile file) throws java.io.IOException;
+    String getUrlFromCloudFront(String key) throws Exception;
 }

@@ -5,11 +5,14 @@ import pucp.edu.pe.sgta.service.inter.S3DownloadService;
 import java.io.ByteArrayOutputStream;
 
 import org.springframework.beans.factory.annotation.Value;
+import java.io.File;
 import java.io.IOException;
-
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
+import software.amazon.awssdk.services.cloudfront.CloudFrontUtilities;
+import software.amazon.awssdk.services.cloudfront.model.CannedSignerRequest;
+import software.amazon.awssdk.services.cloudfront.url.SignedUrl;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -44,5 +47,27 @@ public class S3DownloadServiceImpl implements S3DownloadService {
                         .contentType(file.getContentType())
                         .build(),
                 RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
+    }
+
+    @Override
+    public String getUrlFromCloudFront(String key) throws Exception {
+        CloudFrontUtilities cloudFrontUtilities = CloudFrontUtilities.create();
+        String baseUrl = System.getProperty("AWS_BASE_CLOUDFRONT_URL");
+        String publicKeyId = System.getProperty("AWS_CLOUDFRONT_PUBLIC_KEY_ID");
+        String resourceUrl = baseUrl + key;
+        resourceUrl = resourceUrl.replaceAll("\\s", "+");
+
+        File privateKeyFile = new File("private_key.pem");
+
+        CannedSignerRequest cannedRequest = CannedSignerRequest.builder()
+                .resourceUrl(resourceUrl)
+                .privateKey(privateKeyFile.toPath())
+                .keyPairId(publicKeyId)
+                .expirationDate(java.time.Instant.now().plusSeconds(3600))
+                .build();
+
+        SignedUrl signedUrl = cloudFrontUtilities.getSignedUrlWithCannedPolicy(cannedRequest);
+
+        return signedUrl.url();
     }
 }
