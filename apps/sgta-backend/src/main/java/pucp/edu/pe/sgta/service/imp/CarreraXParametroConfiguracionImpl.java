@@ -1,5 +1,8 @@
 package pucp.edu.pe.sgta.service.imp;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import pucp.edu.pe.sgta.dto.CarreraXParametroConfiguracionDto;
 import pucp.edu.pe.sgta.mapper.CarreraXParametroConfiguracionMapper;
@@ -22,6 +25,12 @@ public class CarreraXParametroConfiguracionImpl implements CarreraXParametroConf
 
     @Autowired
     private UsuarioService usuarioService;
+
+    @Value("${app.default-max-limit}")
+    private int defaultMaxLimit;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     public CarreraXParametroConfiguracionImpl(
             CarreraXParametroConfiguracionRepository carreraXParametroConfiguracionRepository,
@@ -109,4 +118,20 @@ public class CarreraXParametroConfiguracionImpl implements CarreraXParametroConf
         }
         return List.of(); // Retorna una lista vacía si no se encuentra la carrera
     }
+
+
+    @Override
+    public Boolean assertParametroLimiteNumericoPorNombreCarrera(String nombreParametro, Integer carreraId, Integer usuarioId) {
+        String sql = "SELECT validar_parametro_por_nombre_carrera(" +
+                "CAST(:p_nombre_parametro AS TEXT), " +
+                "CAST(:p_carrera_id AS INTEGER), " +
+                "CAST(:p_usuario_id AS INTEGER))";
+        Object result = entityManager.createNativeQuery(sql)
+                .setParameter("p_nombre_parametro", nombreParametro)
+                .setParameter("p_carrera_id", carreraId)
+                .setParameter("p_usuario_id", usuarioId)
+                .getSingleResult();
+        return result != null && (Boolean) result;
+    }
+
 }
