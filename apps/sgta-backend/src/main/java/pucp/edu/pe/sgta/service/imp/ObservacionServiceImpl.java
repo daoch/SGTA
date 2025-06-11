@@ -208,6 +208,7 @@ private HighlightDto mapObservacionToHighlightDto(Observacion obs) {
             dto.setSegundoApellido((String) row[11]);
             dto.setRolesUsuario((String) row[12]);
             dto.setCorregido((Boolean) row[13]);
+            
             dtoList.add(dto);
         }
 
