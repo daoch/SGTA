@@ -25,6 +25,7 @@ import { useEffect, useState } from "react";
 import { toast, Toaster } from "sonner";
 import { Postulacion } from "../../types/postulaciones/entidades";
 import { AceptarPostulacionModal } from "./aceptar-postulacion-modal";
+import PaginatedList from "./paginacion";
 import { RechazarPostulacionModal } from "./rechazar-postulacion-modal";
 
 export function PostulacionesTable() {
@@ -45,6 +46,7 @@ export function PostulacionesTable() {
   >();
   const [debounceFechaFin, setDebounceFechaFin] = useState<string>("");
   const [debounceEstado, setDebounceEstado] = useState<string>("");
+  const [page, setPage] = useState(1);
 
   const fetchPostulaciones = async (
     debouncedSearchTerm: string,
@@ -184,6 +186,7 @@ export function PostulacionesTable() {
   };
 
   console.log({ postulacionesData });
+  console.log({ page });
   return (
     <div>
       <Toaster position="bottom-right" richColors />
@@ -374,6 +377,15 @@ export function PostulacionesTable() {
           filtrarLosCampos={filtrarLosCampos}
         />
       </Dialog>
+      {/*Paginación*/}
+      <div className="mt-6">
+        <PaginatedList
+          totalItems={2}
+          itemsPerPage={1}
+          page={page}
+          setPage={setPage}
+        />
+      </div>
     </div>
   );
 }

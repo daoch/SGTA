@@ -16,6 +16,8 @@ import { Tema } from "@/features/temas/types/temas/entidades";
 import { titleCase } from "@/lib/utils";
 import { FilePen, Trash2 } from "lucide-react";
 
+import { EliminarTema } from "@/features/temas/types/temas/data";
+import { toast } from "sonner";
 import DeleteTemaPopUp from "./delete-tema-pop-up";
 import { TemaDetailsDialog } from "./tema-details-modal";
 
@@ -40,9 +42,19 @@ export function TemasTable({
   asesor,
   onTemaInscrito,
 }: Readonly<PropuestasTableProps>) {
-  const deleteTema = () => {
+  const deleteTema = async (temaId: number) => {
     console.log("Tema eliminado");
-    // Aquí podrías llamar a tu API o actualizar el estado global
+    try {
+      await EliminarTema(temaId);
+      toast.success("Tema eliminado correctamente");
+    } catch (error) {
+      console.error("Error al eliminar el tema:", error);
+      toast.error("Error al eliminar el tema");
+    } finally {
+      if (onTemaInscrito) {
+        onTemaInscrito();
+      }
+    }
   };
 
   console.log(temasData);
@@ -192,7 +204,7 @@ export function TemasTable({
             ) && (
               <DeleteTemaPopUp
                 temaName={tema.titulo}
-                onConfirmar={deleteTema}
+                onConfirmar={() => deleteTema(tema?.id)}
                 trigger={
                   <Button variant="ghost" size="icon" className="text-red-500">
                     <Trash2 className="h-4 w-4" />

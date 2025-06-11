@@ -366,3 +366,28 @@ export async function buscarUsuarioPorToken() {
     throw error;
   }
 }
+
+export async function buscarTemasSimilaresALaPropuesta(temaId: number) {
+  try {
+    const response = await fetch(`${baseUrl}/temas/${temaId}/similares`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Error al obtener los temas similares.");
+    }
+
+    const data = await response.json();
+
+    return data;
+  } catch (error) {
+    console.error(
+      "La página no responde para listar los temas similares.",
+      error,
+    );
+    throw error;
+  }
+}
