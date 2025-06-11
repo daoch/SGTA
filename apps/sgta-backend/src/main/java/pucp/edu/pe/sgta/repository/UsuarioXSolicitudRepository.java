@@ -48,19 +48,23 @@ public interface UsuarioXSolicitudRepository extends JpaRepository<UsuarioXSolic
             @Param("aprobar") Boolean aprobar);
 
     @Modifying
-    @Query(value = "CALL aprobar_solicitud_cambio_asesor_asesor(:idCognito, :solicitudId)", nativeQuery = true)
+    @Query(value = "CALL aprobar_solicitud_cambio_asesor_asesor(:idCognito, :solicitudId, :comentario)", nativeQuery = true)
     void aprobarSolicitudCambioAsesorAsesor(@Param("idCognito") String idCognito,
-                                 @Param("solicitudId") Integer solicitudId);
+                                 @Param("solicitudId") Integer solicitudId,
+                                            @Param("comentario") String comentario);
     @Modifying
-    @Query(value = "CALL rechazar_solicitud_cambio_asesor_asesor(:idCognito, :solicitudId)", nativeQuery = true)
+    @Query(value = "CALL rechazar_solicitud_cambio_asesor_asesor(:idCognito, :solicitudId, :comentario)", nativeQuery = true)
     void rechazarSolicitudCambioAsesorAsesor(@Param("idCognito") String idCognito,
-                                            @Param("solicitudId") Integer solicitudId);
+                                            @Param("solicitudId") Integer solicitudId,
+                                             @Param("comentario") String comentario);
     @Modifying
-    @Query(value = "CALL rechazar_solicitud_cambio_asesor_coordinador(:idCognito, :solicitudId)", nativeQuery = true)
+    @Query(value = "CALL rechazar_solicitud_cambio_asesor_coordinador(:idCognito, :solicitudId, :comentario)", nativeQuery = true)
     void rechazarSolicitudCambioAsesorCoordinador(@Param("idCognito") String idCognito,
-                                            @Param("solicitudId") Integer solicitudId);
+                                            @Param("solicitudId") Integer solicitudId,
+                                                  @Param("comentario") String comentario);
     @Modifying
-    @Query(value = "CALL aprobar_solicitud_cambio_asesor_coordinador(:idCognito, :solicitudId)", nativeQuery = true)
+    @Query(value = "CALL aprobar_solicitud_cambio_asesor_coordinador(:idCognito, :solicitudId, :comentario)", nativeQuery = true)
     void aprobarSolicitudCambioAsesorCoordinador(@Param("idCognito") String idCognito,
-                                            @Param("solicitudId") Integer solicitudId);
+                                            @Param("solicitudId") Integer solicitudId,
+                                                 @Param("comentario") String comentario);
 }

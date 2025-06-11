@@ -776,15 +776,15 @@ public class SolicitudServiceImpl implements SolicitudService {
         Object[] result = queryResult.get(0);
         DetalleSolicitudCambioAsesorDto detalle = DetalleSolicitudCambioAsesorDto.fromResultQuery(result);
         int idRemitente = (int) result[6];
-        UsuarioSolicitudCambioAsesorDto remitente = getUsuarioSolicitudFromId(idRemitente, idSolicitud);
+        UsuarioSolicitudCambioAsesorDto remitente = getUsuarioSolicitudFromId(idRemitente, idSolicitud, RolSolicitudEnum.REMITENTE);
         int idAsesorActual = (int) result[7];
-        UsuarioSolicitudCambioAsesorDto asesorActual = getUsuarioSolicitudFromId(idAsesorActual, idSolicitud);
+        UsuarioSolicitudCambioAsesorDto asesorActual = getUsuarioSolicitudFromId(idAsesorActual, idSolicitud, RolSolicitudEnum.ASESOR_ACTUAL);
         int idAsesorEntrada = (int) result[8];
-        UsuarioSolicitudCambioAsesorDto asesorEntrada = getUsuarioSolicitudFromId(idAsesorEntrada, idSolicitud);
+        UsuarioSolicitudCambioAsesorDto asesorEntrada = getUsuarioSolicitudFromId(idAsesorEntrada, idSolicitud , RolSolicitudEnum.ASESOR_ENTRADA);
         Integer idDestinatario = (Integer) result[9];
         UsuarioSolicitudCambioAsesorDto destinatario = null;
         if (idDestinatario != null) {
-            destinatario = getUsuarioSolicitudFromId(idDestinatario.intValue(), idSolicitud);
+            destinatario = getUsuarioSolicitudFromId(idDestinatario.intValue(), idSolicitud, RolSolicitudEnum.DESTINATARIO);
         }
 
         detalle.setSolicitante(remitente);
@@ -798,7 +798,7 @@ public class SolicitudServiceImpl implements SolicitudService {
 
     @Transactional
     @Override
-    public void aprobarRechazarSolicitudCambioAsesorAsesor(Integer idSolicitud, String idCognito, boolean aprobar){
+    public void aprobarRechazarSolicitudCambioAsesorAsesor(Integer idSolicitud, String idCognito, String comentario, boolean aprobar){
         // validar Solicitud se puede aprobar o rechazar verifica que haya una solcitud
         // con ese if y estado pendiente
         boolean validar = solicitudRepository.existsSolicitudByIdAndEstadoSolicitud_Nombre(idSolicitud,
@@ -806,14 +806,14 @@ public class SolicitudServiceImpl implements SolicitudService {
         if (!validar)
             throw new RuntimeException("Solicitud no puede ser modificada");
         if(aprobar){
-            usuarioXSolicitudRepository.aprobarSolicitudCambioAsesorAsesor(idCognito, idSolicitud);
+            usuarioXSolicitudRepository.aprobarSolicitudCambioAsesorAsesor(idCognito, idSolicitud, comentario);
         }else{
-            usuarioXSolicitudRepository.rechazarSolicitudCambioAsesorAsesor(idCognito, idSolicitud);
+            usuarioXSolicitudRepository.rechazarSolicitudCambioAsesorAsesor(idCognito, idSolicitud, comentario);
         }
     }
     @Transactional
     @Override
-    public void aprobarRechazarSolicitudCambioAsesorCoordinador(Integer idSolicitud, String idCognito, boolean aprobar) {
+    public void aprobarRechazarSolicitudCambioAsesorCoordinador(Integer idSolicitud, String idCognito, String comentario, boolean aprobar) {
         // validar Solicitud se puede aprobar o rechazar verifica que haya una solcitud
         // con ese if y estado pendiente
         boolean validar = solicitudRepository.existsSolicitudByIdAndEstadoSolicitud_Nombre(idSolicitud,
@@ -821,15 +821,15 @@ public class SolicitudServiceImpl implements SolicitudService {
         if (!validar)
             throw new RuntimeException("Solicitud no puede ser modificada");
         if(aprobar){
-            usuarioXSolicitudRepository.aprobarSolicitudCambioAsesorCoordinador(idCognito, idSolicitud);
+            usuarioXSolicitudRepository.aprobarSolicitudCambioAsesorCoordinador(idCognito, idSolicitud, comentario);
         }else{
-            usuarioXSolicitudRepository.rechazarSolicitudCambioAsesorCoordinador(idCognito, idSolicitud);
+            usuarioXSolicitudRepository.rechazarSolicitudCambioAsesorCoordinador(idCognito, idSolicitud, comentario);
         }
     }
 
-    private UsuarioSolicitudCambioAsesorDto getUsuarioSolicitudFromId(int idUsuario, int idSolicitud) {
+    private UsuarioSolicitudCambioAsesorDto getUsuarioSolicitudFromId(int idUsuario, int idSolicitud, RolSolicitudEnum rol) {
         List<Object[]> queryResult = solicitudRepository.listarDetalleUsuarioSolicitudCambioAsesor(idUsuario,
-                idSolicitud);
+                idSolicitud, rol.name());
         Object[] result = queryResult.get(0);
         return UsuarioSolicitudCambioAsesorDto.fromQueryResult(result);
     }

@@ -512,6 +512,7 @@ AS $$
           AND rs_control.nombre = p_rol_control
     )
 	AND ts.nombre = 'Cambio de asesor (por asesor)'
+	ORDER BY s.fecha_creacion DESC
 	;
 $$;
 
@@ -604,7 +605,8 @@ BEGIN
             JOIN usuario_carrera uc ON uc.usuario_id = u.usuario_id
             WHERE u.id_cognito = p_cognito_id
 			AND uc.es_coordinador = TRUE
-        );
+        )
+	ORDER BY s.fecha_creacion DESC;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -678,7 +680,8 @@ $$;
 
 CREATE OR REPLACE FUNCTION obtener_detalle_usuario_solicitud_cambio_asesor(
     p_usuario_id INTEGER,
-    p_solicitud_id INTEGER
+    p_solicitud_id INTEGER,
+    p_nombre_rol TEXT
 )
 RETURNS TABLE (
     usuario_id INTEGER,
@@ -710,7 +713,9 @@ $$
         INNER JOIN accion_solicitud acs ON acs.accion_solicitud_id = us.accion_solicitud
     WHERE
         us.usuario_id = p_usuario_id
-        AND us.solicitud_id = p_solicitud_id;
+        AND us.solicitud_id = p_solicitud_id
+		AND rs.nombre = p_nombre_rol
+	;
 $$;
 
 CREATE OR REPLACE FUNCTION puede_usuario_cambiar_solicitud(
@@ -903,7 +908,8 @@ $$;
 --
 CREATE OR REPLACE PROCEDURE aprobar_solicitud_cambio_asesor_asesor(
     p_id_cognito TEXT,
-    p_solicitud_id INTEGER
+    p_solicitud_id INTEGER,
+    p_comentario TEXT
 )
 LANGUAGE plpgsql
 AS $$
@@ -938,7 +944,8 @@ BEGIN
     -- Actualizar la acción en usuario_solicitud
     UPDATE usuario_solicitud
     SET accion_solicitud = v_accion_id,
-        fecha_accion = CURRENT_TIMESTAMP
+        fecha_accion = CURRENT_TIMESTAMP,
+        comentario = p_comentario
     WHERE usuario_id = v_usuario_id
       AND solicitud_id = p_solicitud_id
       AND rol_solicitud = v_rol_id;
@@ -952,7 +959,8 @@ $$;
 --
 CREATE OR REPLACE PROCEDURE rechazar_solicitud_cambio_asesor_asesor(
     p_id_cognito TEXT,
-    p_solicitud_id INTEGER
+    p_solicitud_id INTEGER,
+    p_comentario TEXT
 )
 LANGUAGE plpgsql
 AS $$
@@ -988,7 +996,8 @@ BEGIN
     -- Actualizar usuario_solicitud
     UPDATE usuario_solicitud
     SET accion_solicitud = v_accion_id,
-        fecha_accion = CURRENT_TIMESTAMP
+        fecha_accion = CURRENT_TIMESTAMP,
+        comentario = p_comentario
     WHERE usuario_id = v_usuario_id
       AND solicitud_id = p_solicitud_id
       AND rol_solicitud = v_rol_id;
@@ -1016,7 +1025,8 @@ $$;
 --
 CREATE OR REPLACE PROCEDURE rechazar_solicitud_cambio_asesor_coordinador(
     p_id_cognito TEXT,
-    p_solicitud_id INTEGER
+    p_solicitud_id INTEGER,
+    p_comentario TEXT
 )
 LANGUAGE plpgsql
 AS $$
@@ -1101,12 +1111,14 @@ BEGIN
         solicitud_id,
         rol_solicitud,
         accion_solicitud,
+        comentario,
         fecha_accion
     ) VALUES (
         v_usuario_id,
         p_solicitud_id,
         v_rol_id,
         v_accion_id,
+        p_comentario,
         CURRENT_TIMESTAMP
     );
 
@@ -1129,7 +1141,8 @@ $$;
 --
 CREATE OR REPLACE PROCEDURE aprobar_solicitud_cambio_asesor_coordinador(
     p_id_cognito TEXT,
-    p_solicitud_id INTEGER
+    p_solicitud_id INTEGER,
+    p_comentario TEXT
 )
 LANGUAGE plpgsql
 AS $$
@@ -1222,12 +1235,14 @@ BEGIN
         solicitud_id,
         rol_solicitud,
         accion_solicitud,
+        comentario,
         fecha_accion
     ) VALUES (
         v_usuario_id,
         p_solicitud_id,
         v_rol_id_destinatario,
         v_accion_id,
+        p_comentario,
         CURRENT_TIMESTAMP
     );
 

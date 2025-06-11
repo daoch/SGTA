@@ -70,36 +70,40 @@ public class SolicitudController {
     @PatchMapping("/aprobarSolicitudCambioAsesorAsesor")
     public ResponseEntity<Object> aprobarSolicitudCambioAsesorAsesor(
             @RequestParam(name = "idSolicitud") Integer idSolicitud,
+            @RequestParam(name = "comentario") String comentario,
             HttpServletRequest request) {
         String cognitoId = jwtService.extractSubFromRequest(request);
-        solicitudService.aprobarRechazarSolicitudCambioAsesorAsesor(idSolicitud, cognitoId, true);
+        solicitudService.aprobarRechazarSolicitudCambioAsesorAsesor(idSolicitud, cognitoId, comentario, true);
         return ResponseEntity.ok(null);
     }
 
     @PatchMapping("/rechazarSolicitudCambioAsesorAsesor")
     public ResponseEntity<Object> rechazarSolicitudCambioAsesorAsesor(
             @RequestParam(name = "idSolicitud") Integer idSolicitud,
+            @RequestParam(name = "comentario") String comentario,
             HttpServletRequest request) {
         String cognitoId = jwtService.extractSubFromRequest(request);
-        solicitudService.aprobarRechazarSolicitudCambioAsesorAsesor(idSolicitud, cognitoId, false);
+        solicitudService.aprobarRechazarSolicitudCambioAsesorAsesor(idSolicitud, cognitoId, comentario, false);
         return ResponseEntity.ok(null);
     }
 
     @PatchMapping("/aprobarSolicitudCambioAsesorCoordinador")
     public ResponseEntity<Object> aprobarSolicitudCambioAsesorCoordinador(
             @RequestParam(name = "idSolicitud") Integer idSolicitud,
+            @RequestParam(name = "comentario") String comentario,
             HttpServletRequest request) {
         String cognitoId = jwtService.extractSubFromRequest(request);
-        solicitudService.aprobarRechazarSolicitudCambioAsesorCoordinador(idSolicitud, cognitoId, true);
+        solicitudService.aprobarRechazarSolicitudCambioAsesorCoordinador(idSolicitud, cognitoId, comentario, true);
         return ResponseEntity.ok(null);
     }
 
     @PatchMapping("/rechazarSolicitudCambioAsesorCoordinador")
     public ResponseEntity<Object> rechazarSolicitudCambioAsesorCoordinador(
             @RequestParam(name = "idSolicitud") Integer idSolicitud,
+            @RequestParam(name = "comentario") String comentario,
             HttpServletRequest request) {
         String cognitoId = jwtService.extractSubFromRequest(request);
-        solicitudService.aprobarRechazarSolicitudCambioAsesorCoordinador(idSolicitud, cognitoId, false);
+        solicitudService.aprobarRechazarSolicitudCambioAsesorCoordinador(idSolicitud, cognitoId, comentario, false);
         return ResponseEntity.ok(null);
     }
 

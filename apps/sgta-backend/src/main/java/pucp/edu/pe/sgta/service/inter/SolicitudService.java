@@ -29,8 +29,8 @@ public interface SolicitudService {
     pucp.edu.pe.sgta.dto.asesores.SolicitudCambioAsesorDto registrarSolicitudCambioAsesor(pucp.edu.pe.sgta.dto.asesores.SolicitudCambioAsesorDto solicitud);
     List<SolicitudCambioAsesorResumenDto> listarResumenSolicitudCambioAsesorUsuario(Integer idUsuario, String rolSolicitud);
     DetalleSolicitudCambioAsesorDto listarDetalleSolicitudCambioAsesorUsuario(Integer idSolicitud);
-    void aprobarRechazarSolicitudCambioAsesorAsesor(Integer idSolicitud, String idCognito, boolean aprobar);
-    void aprobarRechazarSolicitudCambioAsesorCoordinador(Integer idSolicitud, String idCognito, boolean aprobar);
+    void aprobarRechazarSolicitudCambioAsesorAsesor(Integer idSolicitud, String idCognito, String comentario, boolean aprobar);
+    void aprobarRechazarSolicitudCambioAsesorCoordinador(Integer idSolicitud, String idCognito, String comentario, boolean aprobar);
     // Solicitud Cese Asesoria
     pucp.edu.pe.sgta.dto.asesores.SolicitudCeseAsesoriaDto registrarSolicitudCeseAsesoria(pucp.edu.pe.sgta.dto.asesores.SolicitudCeseAsesoriaDto solicitud);
     List<pucp.edu.pe.sgta.dto.asesores.SolicitudCeseAsesoriaResumenDto> listarResumenSolicitudCeseAsesoriaUsuario(Integer idUsuario, String rolSolicitud);
