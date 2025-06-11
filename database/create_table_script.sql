@@ -1471,6 +1471,9 @@ ALTER TABLE observacion
     ADD COLUMN IF NOT EXISTS bounding_page   INT,
     ADD COLUMN IF NOT EXISTS contenido                     TEXT NOT NULL;
 
+ALTER TABLE observacion
+    ADD COLUMN IF NOT EXISTS corregido BOOLEAN NOT NULL DEFAULT FALSE;
+    
 CREATE TABLE IF NOT EXISTS reunion
 (
     reunion_id         SERIAL PRIMARY KEY,
