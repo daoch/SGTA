@@ -27,6 +27,15 @@ import { TemaCard } from "@/features/temas/components/alumno/tema-inscrito-card"
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+export interface Tesista {
+  id: number;
+  nombres: string;
+  primerApellido: string;
+  creador: boolean;
+  rol: string;
+  rechazado: boolean;
+}
+
 export interface Propuesta {
   id: string;
   titulo: string;
@@ -40,6 +49,7 @@ export interface Propuesta {
   objetivos: string;
   asesor?: string;
   estado: "propuesta" | "cotesista_pendiente";
+  tesistas: Tesista[]; // <-- agrega esto
 }
 
 const MisTemasPage = () => {
@@ -47,6 +57,7 @@ const MisTemasPage = () => {
     null,
   );
   const [isLoading, setIsLoading] = useState(true);
+  const [tieneTemaComprometido, setTieneTemaComprometido] = useState(false);
 
   useEffect(() => {
     const fetchTema = async () => {
@@ -70,6 +81,9 @@ const MisTemasPage = () => {
         if (!resVerifica.ok)
           throw new Error("Error verificando tema comprometido");
         const dataVerifica = await resVerifica.json();
+        setTieneTemaComprometido(
+          Array.isArray(dataVerifica) && dataVerifica[0]?.comprometido === 1,
+        );
       } catch (error) {
         console.error("Error al obtener tema inscrito o registrado", error);
         setSelectedPropuesta(null);
@@ -91,7 +105,7 @@ const MisTemasPage = () => {
             propuestas
           </p>
         </div>
-        {!isLoading && !selectedPropuesta && (
+        {!isLoading && !tieneTemaComprometido && (
           <Link href="/alumno/temas/nueva-propuesta">
             <Button className="bg-[#042354] hover:bg-[#0e2f7a] text-white">
               + Nueva Propuesta
@@ -142,15 +156,6 @@ const MisTemasPage = () => {
               <CardDescription>Temas que has propuesto</CardDescription>
             </CardHeader>
             <CardContent>
-              {/*<PendientesCotesistasCard
-                propuestasPendientes={propuestasPendientes}
-                onView={(id) => {
-                  const found = propuestas.find((p) => p.id === id);
-                  if (found) setSelectedPropuesta(found);
-                }}
-                onDelete={() => {}}
-              />*/}
-              <div className="mt-6" />
               <PropuestasTable />
             </CardContent>
           </Card>
@@ -164,14 +169,10 @@ const MisTemasPage = () => {
         <DialogContent className="w-[90vw] max-w-3xl sm:max-w-3xl">
           <DialogHeader>
             <DialogTitle>
-              {selectedPropuesta?.estado === "cotesista_pendiente"
-                ? "Propuesta con cotesista pendiente"
-                : "Detalles de la Propuesta"}
+              {"Detalles de la Propuesta"}
             </DialogTitle>
             <DialogDescription>
-              {selectedPropuesta?.estado === "cotesista_pendiente"
-                ? "Esta propuesta está pendiente de aceptación por parte del cotesista invitado"
-                : "Información completa sobre la propuesta seleccionada"}
+              {"Información completa sobre la propuesta seleccionada"}
             </DialogDescription>
           </DialogHeader>
 
@@ -228,14 +229,6 @@ const MisTemasPage = () => {
                   <div className="p-3 bg-gray-50 rounded-md border">
                     <div className="flex justify-between items-center">
                       <span>{selectedPropuesta.estudiantes[0]}</span>
-                      {selectedPropuesta.estado === "cotesista_pendiente" && (
-                        <Badge
-                          variant="outline"
-                          className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100"
-                        >
-                          Pendiente
-                        </Badge>
-                      )}
                     </div>
                   </div>
                 </div>

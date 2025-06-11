@@ -22,8 +22,10 @@ import {
 } from "@/components/ui/dialog";
 import { Eye } from "lucide-react";
 
-import { getEntregablesAlumno } from "@/features/reportes/services/report-services";
+import { getEntregablesAlumno, getEntregablesAlumnoSeleccionado  } from "@/features/reportes/services/report-services";
 import type { User } from "@/features/auth/types/auth.types";
+
+import { useAuthStore } from "@/features/auth/store/auth-store";
 
 // Convierte "no_iniciado" → "No Iniciado", etc.
 const humanize = (raw: string) =>
@@ -69,9 +71,12 @@ interface TimelineEvent {
 
 interface Props {
   user: User;
+  selectedStudentId?: number | null;
 }
 
-export function LineaTiempoReporte({ user }: Props) {
+export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
+
+  console.log("Valor de selectedStudentId recibido en línea de tiempo:", selectedStudentId);
   const [activeTab, setActiveTab] = useState<"entregas" | "avances">("entregas");
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -80,11 +85,14 @@ export function LineaTiempoReporte({ user }: Props) {
   const [isCriteriosModalOpen, setIsCriteriosModalOpen] = useState(false);
   const [selectedCriterios, setSelectedCriterios] = useState<Criterio[]>([]);
 
+  
+
   useEffect(() => {
     const fetchEntregables = async () => {
       try {
-        const alumnoId = "40"; // Hardcodeado por ahora
-        const data = await getEntregablesAlumno(alumnoId);
+        const data = selectedStudentId != null
+        ? await getEntregablesAlumnoSeleccionado(selectedStudentId)
+        : await getEntregablesAlumno();
 
         type RawEntregable = {
           nombreEntregable: string;
@@ -98,40 +106,58 @@ export function LineaTiempoReporte({ user }: Props) {
 
         const rawData = data as RawEntregable[];
         const eventosTransformados: TimelineEvent[] = rawData
-          .filter((item) => item.fechaEnvio !== null)
+          //.filter((item) => item.fechaEnvio !== null)
           .map((item) => {
-            const eventDate = parseISO(item.fechaEnvio!);
-            const daysRemaining = Math.ceil(
-              (eventDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24)
-            );
+            if (item.fechaEnvio) {
 
-            let statusInterno: TimelineEvent["status"] = "Pendiente";
-            if (item.estadoEntregable === "terminado") {
-              statusInterno = "Completado";
-            } else if (item.estadoEntregable === "en_proceso") {
-              statusInterno = "En progreso";
+              const eventDate = parseISO(item.fechaEnvio!);
+              const daysRemaining = Math.ceil(
+                (eventDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24)
+              );
+
+              let statusInterno: TimelineEvent["status"] = "Pendiente";
+              if (item.estadoEntregable === "terminado") {
+                statusInterno = "Completado";
+              } else if (item.estadoEntregable === "en_proceso") {
+                statusInterno = "En progreso";
+              }
+
+              const isLateFlag = item.estadoXTema === "enviado_tarde";
+              const isAtRiskFlag =
+                daysRemaining > 0 &&
+                daysRemaining <= 3 &&
+                statusInterno === "Pendiente" &&
+                !isLateFlag;
+
+              return {
+                event: item.nombreEntregable,
+                date: format(eventDate, "yyyy-MM-dd"),
+                rawEstadoEntregable: item.estadoEntregable,
+                rawEstadoXTema: item.estadoXTema,
+                status: statusInterno,
+                isLate: isLateFlag,
+                daysRemaining,
+                isAtRisk: isAtRiskFlag,
+                esEvaluable: item.esEvaluable,
+                nota: item.nota,
+                criterios: item.criterios || [],
+              };
+            
+            } else {
+              return {
+                event: item.nombreEntregable,
+                date: "Fecha no disponible",
+                rawEstadoEntregable: item.estadoEntregable,
+                rawEstadoXTema: item.estadoXTema,
+                status: "Pendiente",
+                isLate: false,
+                daysRemaining: 0,
+                isAtRisk: false,
+                esEvaluable: item.esEvaluable,
+                nota: item.nota,
+                criterios: item.criterios || [],
+              };
             }
-
-            const isLateFlag = item.estadoXTema === "enviado_tarde";
-            const isAtRiskFlag =
-              daysRemaining > 0 &&
-              daysRemaining <= 3 &&
-              statusInterno === "Pendiente" &&
-              !isLateFlag;
-
-            return {
-              event: item.nombreEntregable,
-              date: format(eventDate, "yyyy-MM-dd"),
-              rawEstadoEntregable: item.estadoEntregable,
-              rawEstadoXTema: item.estadoXTema,
-              status: statusInterno,
-              isLate: isLateFlag,
-              daysRemaining,
-              isAtRisk: isAtRiskFlag,
-              esEvaluable: item.esEvaluable,
-              nota: item.nota,
-              criterios: item.criterios || [],
-            };
           });
 
         // Orden descendente:
@@ -147,6 +173,7 @@ export function LineaTiempoReporte({ user }: Props) {
 
     fetchEntregables();
   }, [user]);
+
 
   // Filtrado por tiempo
   const filteredByTime = timelineEvents.filter((event) => {

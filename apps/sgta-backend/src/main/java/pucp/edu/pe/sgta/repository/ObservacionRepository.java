@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 import pucp.edu.pe.sgta.model.Observacion;
 
 @Repository
-public interface ObservacionRepository extends JpaRepository<Observacion, Long> {
+public interface ObservacionRepository extends JpaRepository<Observacion, Integer> {
     // Puedes agregar métodos personalizados si los necesitas
     List<Observacion> findByRevisionDocumento_Id(Integer revisionId);
     boolean existsByObservacionId(Integer highlightId);

@@ -4,11 +4,12 @@ import java.util.List;
 import jakarta.servlet.http.HttpServletRequest;          // ← IMPORT Jakarta
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.*;
+
 import pucp.edu.pe.sgta.dto.AdvisorPerformanceDto;
 import pucp.edu.pe.sgta.dto.AreaFinalDTO;
 import pucp.edu.pe.sgta.dto.DetalleTesistaDTO;
@@ -20,15 +21,19 @@ import pucp.edu.pe.sgta.dto.TopicTrendDTO;
 import pucp.edu.pe.sgta.dto.TesistasPorAsesorDTO;
 import pucp.edu.pe.sgta.dto.EntregableEstudianteDto;
 import pucp.edu.pe.sgta.dto.EntregableCriteriosDetalleDto;
+import java.util.NoSuchElementException;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.HttpStatus;
+
 import pucp.edu.pe.sgta.service.inter.IReportService;
 import pucp.edu.pe.sgta.service.inter.JwtService;
-
 
 @RestController
 @RequestMapping("/reports")
 public class ReportsController {
 
     private final IReportService reportingService;
+
     private final JwtService      jwtService;
 
     @Autowired
@@ -97,52 +102,69 @@ public class ReportsController {
         return ResponseEntity.ok(reportingService.getTesistasPorAsesor(sub));
     }
 
-    /** RF5: detalle completo de un tesista */
+
+    /** RF5: Endpoint para obtener detalle completo de un tesista */
     @GetMapping("/tesistas/detalle")
-    public ResponseEntity<DetalleTesistaDTO> getDetalleTesista(HttpServletRequest request) {
-        String sub = jwtService.extractSubFromRequest(request);
-        DetalleTesistaDTO dto = reportingService.getDetalleTesista(Integer.valueOf(sub));
-        if (dto == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(dto);
+    public ResponseEntity<DetalleTesistaDTO> getDetalleTesista(@RequestParam Integer tesistaId) {
+        DetalleTesistaDTO detalle = reportingService.getDetalleTesista(tesistaId);
+        return ResponseEntity.ok(detalle);
     }
 
-    /** RF6: hitos del cronograma de un tesista */
+    /** RF6: Endpoint para listar hitos del cronograma de un tesista */
     @GetMapping("/tesistas/cronograma")
-    public ResponseEntity<List<HitoCronogramaDTO>> getHitosCronogramaTesista(
-            HttpServletRequest request) {
-        String sub = jwtService.extractSubFromRequest(request);
-        List<HitoCronogramaDTO> hitos =
-            reportingService.getHitosCronogramaTesista(Integer.valueOf(sub));
-        if (hitos.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<List<HitoCronogramaDTO>> getHitosCronogramaTesista(@RequestParam Integer tesistaId) {
+        List<HitoCronogramaDTO> hitos = reportingService.getHitosCronogramaTesista(tesistaId);
         return ResponseEntity.ok(hitos);
     }
 
-    /** RF7: historial de reuniones de un tesista */
+    /** RF7: Endpoint para listar historial de reuniones de un tesista */
     @GetMapping("/tesistas/reuniones")
-    public ResponseEntity<List<HistorialReunionDTO>> getHistorialReuniones(
-            HttpServletRequest request) {
-        String sub = jwtService.extractSubFromRequest(request);
-        List<HistorialReunionDTO> historial =
-            reportingService.getHistorialReuniones(Integer.valueOf(sub));
-        if (historial.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<List<HistorialReunionDTO>> getHistorialReuniones(@RequestParam Integer tesistaId) {
+        List<HistorialReunionDTO> historial = reportingService.getHistorialReuniones(tesistaId);
         return ResponseEntity.ok(historial);
     }
 
-    /** RF8: entregables de un tesista */
+    /*
     @GetMapping("/entregables")
     public ResponseEntity<List<EntregableEstudianteDto>> getEntregablesEstudiante(
             HttpServletRequest request) {
         String sub = jwtService.extractSubFromRequest(request);
         List<EntregableEstudianteDto> list =
-            reportingService.getEntregablesEstudiante(Integer.valueOf(sub));
+                reportingService.getEntregablesEstudiante(sub);
         return ResponseEntity.ok(list);
     }
+    */
+
+   @GetMapping("/entregables")
+    public ResponseEntity<List<EntregableEstudianteDto>> getEntregablesEstudiante(HttpServletRequest request) {
+        System.out.println(" Entró al método con Cognito ID (sin parámetro)");
+
+        try {
+            String idUsuario = jwtService.extractSubFromRequest(request);
+            List<EntregableEstudianteDto> entregables = reportingService.getEntregablesEstudiante(idUsuario);
+            return ResponseEntity.ok(entregables);
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    @GetMapping("/entregables/{idUsuario}")
+    public ResponseEntity<List<EntregableEstudianteDto>> getEntregablesAlumnoSeleccionado(
+            @PathVariable Integer idUsuario) {
+        System.out.println(" Entró al método con ID explícito: " + idUsuario);
+        try {
+            List<EntregableEstudianteDto> entregables = reportingService.getEntregablesEstudianteById(idUsuario);
+            return ResponseEntity.ok(entregables);
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+
 
     /** RF9: entregables con criterios de un tesista - NO AGREGAR ID COGNITO*/
     @GetMapping("/entregables-criterios/{idUsuario}")

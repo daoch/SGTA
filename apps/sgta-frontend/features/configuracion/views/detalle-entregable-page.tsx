@@ -13,7 +13,17 @@ import {
 import axiosInstance from "@/lib/axios/axios-instance";
 import { CriterioEntregable } from "../dtos/criterio-entregable";
 import { NuevoCriterioEntregableModal } from "../components/entregable/nuevo-criterio-entregable-modal";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { EtapaFormativaXCiclo } from "../dtos/etapa-formativa-x-ciclo";
+import { toast } from "sonner";
+import AppLoading from "@/components/loading/app-loading";
 
 interface DetalleEntregablePageProps {
   etapaId: string;
@@ -24,22 +34,28 @@ const DetalleEntregablePage: React.FC<DetalleEntregablePageProps> = ({
   etapaId,
   entregableId,
 }) => {
+  const [loadingEtapa, setLoadingEtapa] = useState(true);
+  const [loadingEntregable, setLoadingEntregable] = useState(true);
   const router = useRouter();
+  const [etapaFormativaXCiclo, setEtapaFormativaXCiclo] =
+    useState<EtapaFormativaXCiclo>();
   const [isCriterioModalOpen, setIsCriterioModalOpen] = useState(false);
-  const [isNuevoCriterioModalOpen, setIsNuevoCriterioModalOpen] = useState(false);
+  const [isNuevoCriterioModalOpen, setIsNuevoCriterioModalOpen] =
+    useState(false);
   const [isEntregableModalOpen, setIsEntregableModalOpen] = useState(false);
   const [criterioSeleccionado, setCriterioSeleccionado] =
     useState<CriterioEntregableFormData | null>(null);
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [criterioAEliminar, setCriterioAEliminar] = useState<CriterioEntregable | null>(null);
+  const [criterioAEliminar, setCriterioAEliminar] =
+    useState<CriterioEntregable | null>(null);
 
   const [entregable, setEntregable] = useState<Entregable>({
     id: "",
     nombre: "",
     fechaInicio: "",
     fechaFin: "",
-    esEvaluable: false,
+    esEvaluable: true,
     descripcion: "",
     maximoDocumentos: 0,
     extensionesPermitidas: "",
@@ -49,12 +65,30 @@ const DetalleEntregablePage: React.FC<DetalleEntregablePageProps> = ({
   const [criterios, setCriterios] = useState<CriterioEntregable[]>([]);
 
   useEffect(() => {
+    const fetchEtapaFormativaXCiclo = async () => {
+      try {
+        const response = await axiosInstance.get(
+          `/etapa-formativa-x-ciclo/etapaXCiclo/${etapaId}`,
+        );
+        setEtapaFormativaXCiclo(response.data);
+      } catch (error) {
+        console.error("Error al cargar la etapa formativa por ciclo:", error);
+      } finally {
+        setLoadingEtapa(false);
+      }
+    };
+    fetchEtapaFormativaXCiclo();
+  }, [etapaId]);
+
+  useEffect(() => {
     const fetchEntregable = async () => {
       try {
         const response = await axiosInstance.get(`/entregable/${entregableId}`);
         setEntregable(response.data);
       } catch (error) {
         console.error("Error al cargar el entregable:", error);
+      } finally {
+        setLoadingEntregable(false);
       }
     };
 
@@ -64,7 +98,9 @@ const DetalleEntregablePage: React.FC<DetalleEntregablePageProps> = ({
   useEffect(() => {
     const fetchCriterios = async () => {
       try {
-        const response = await axiosInstance.get(`/criterio-entregable/entregable/${entregableId}`);
+        const response = await axiosInstance.get(
+          `/criterio-entregable/entregable/${entregableId}`,
+        );
         setCriterios(response.data);
       } catch (error) {
         console.error("Error al cargar los criterios:", error);
@@ -76,7 +112,10 @@ const DetalleEntregablePage: React.FC<DetalleEntregablePageProps> = ({
 
   const createCriterio = async (nuevoCriterio: CriterioEntregable) => {
     try {
-      const response = await axiosInstance.post(`/criterio-entregable/entregable/${entregableId}`, nuevoCriterio);
+      const response = await axiosInstance.post(
+        `/criterio-entregable/entregable/${entregableId}`,
+        nuevoCriterio,
+      );
       console.log("Criterio creado exitosamente:", response.data);
       return response.data; // Devuelve el criterio creado si es necesario
     } catch (error) {
@@ -92,10 +131,10 @@ const DetalleEntregablePage: React.FC<DetalleEntregablePageProps> = ({
         ...nuevoCriterio,
         id: idCriterio, // Asignar el ID devuelto por la API
       };
-  
-        // Actualizar el estado local con el criterio creado
+
+      // Actualizar el estado local con el criterio creado
       setCriterios((prev) => [...prev, nuevoCriterioConId]);
-   
+
       // Cerrar el modal
       setIsCriterioModalOpen(false);
     } catch (error) {
@@ -109,13 +148,15 @@ const DetalleEntregablePage: React.FC<DetalleEntregablePageProps> = ({
     setIsCriterioModalOpen(true);
   };
 
-  const handleCreateCriterios = async (nuevosCriterios: CriterioEntregable[]) => {
+  const handleCreateCriterios = async (
+    nuevosCriterios: CriterioEntregable[],
+  ) => {
     try {
       const criteriosCreados = await Promise.all(
         nuevosCriterios.map(async (criterio) => {
           const idCriterio = await createCriterio(criterio);
           return { ...criterio, id: idCriterio }; // Agregar el ID devuelto por la API
-        })
+        }),
       );
 
       // Actualizar el estado local con los criterios creados
@@ -155,14 +196,13 @@ const DetalleEntregablePage: React.FC<DetalleEntregablePageProps> = ({
             : c,
         ),
       );
-   
+
       // Cerrar el modal
       setIsCriterioModalOpen(false);
     } catch (error) {
       console.error("Error al actualizar el criterio:", error);
     }
   };
-
 
   const handleEditCriterio = (id: string) => {
     const criterio = criterios.find((c) => c.id === id);
@@ -185,13 +225,20 @@ const DetalleEntregablePage: React.FC<DetalleEntregablePageProps> = ({
     if (!criterioAEliminar) return;
 
     try {
-      await axiosInstance.put("/criterio-entregable/delete", criterioAEliminar.id);
+      await axiosInstance.put(
+        "/criterio-entregable/delete",
+        criterioAEliminar.id,
+      );
       setCriterios((prev) => prev.filter((c) => c.id !== criterioAEliminar.id));
       setIsDeleteModalOpen(false);
       setCriterioAEliminar(null);
-      console.log("Criterio eliminado exitosamente");
+      toast.success(
+        `Criterio de calificación ${criterioAEliminar.nombre} eliminado exitosamente`,);
     } catch (error) {
       console.error("Error al eliminar el criterio:", error);
+      toast.error(
+        `Error al eliminar el criterio de calificación ${criterioAEliminar.nombre}.`,
+      );
     }
   };
 
@@ -224,6 +271,11 @@ const DetalleEntregablePage: React.FC<DetalleEntregablePageProps> = ({
       console.error("Error al actualizar el Entregable:", error);
     }
   };
+
+  if (loadingEtapa || loadingEntregable) {
+    return <AppLoading />;
+  }
+
 
   return (
     <div className="w-full px-6 py-6">
@@ -258,79 +310,77 @@ const DetalleEntregablePage: React.FC<DetalleEntregablePageProps> = ({
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            {/* Primera línea */}
             <div>
               <h3 className="text-sm font-medium text-muted-foreground mb-1">
                 Etapa
               </h3>
-              <p>Proyecto de fin de carrera 1</p>
+              <p>{etapaFormativaXCiclo?.nombreEtapaFormativa}</p>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                  Fecha de apertura
-                </h3>
-                <p>
-                  {new Date(entregable.fechaInicio).toLocaleString("es-ES", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </p>
-              </div>
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                  Fecha de cierre
-                </h3>
-                <p>
-                  {new Date(entregable.fechaFin).toLocaleString("es-ES", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </p>
-              </div>
+            <div>
+              <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                Fecha de apertura
+              </h3>
+              <p>
+                {new Date(entregable.fechaInicio).toLocaleString("es-ES", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </p>
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                Fecha de cierre
+              </h3>
+              <p>
+                {new Date(entregable.fechaFin).toLocaleString("es-ES", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                Descripción
-              </h3>
-              <p>{entregable.descripcion}</p>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                  ¿Es evaluable?
-                </h3>
-                <p>{entregable.esEvaluable ? "Sí" : "No"}</p>
-              </div>
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                  Máximo de Documentos
-                </h3>
-                <p>{entregable.maximoDocumentos}</p>
-              </div>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            {/* Segunda línea */}
             <div>
               <h3 className="text-sm font-medium text-muted-foreground mb-1">
                 Extensiones Permitidas
               </h3>
-              <p>{entregable.extensionesPermitidas}</p>
+              <p>{entregable.extensionesPermitidas ?? "Cualquier tipo de archivo"}</p>
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                Máximo de Documentos
+              </h3>
+              <p>{entregable.maximoDocumentos ?? "Sin límite"}</p>
             </div>
             <div>
               <h3 className="text-sm font-medium text-muted-foreground mb-1">
                 Peso Máximo por Documento
               </h3>
-              <p>{entregable.pesoMaximoDocumento} MB</p>
+              <p>
+                {entregable.pesoMaximoDocumento
+                  ? `${entregable.pesoMaximoDocumento} MB`
+                  : "Sin límite"}
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            {/* Tercera línea */}
+            <div className="md:col-span-3">
+              <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                Descripción
+              </h3>
+              <p>{entregable.descripcion}</p>
             </div>
           </div>
         </CardContent>
@@ -341,7 +391,8 @@ const DetalleEntregablePage: React.FC<DetalleEntregablePageProps> = ({
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-2">
           <h2 className="text-lg font-semibold">Criterios de calificación</h2>
-          {criterios.reduce((acc, criterio) => acc + criterio.notaMaxima, 0) < 20 && (
+          {criterios.reduce((acc, criterio) => acc + criterio.notaMaxima, 0) <
+            20 && (
             <p className="text-sm text-orange-500">
               La suma de los criterios debe ser 20
             </p>
@@ -371,7 +422,9 @@ const DetalleEntregablePage: React.FC<DetalleEntregablePageProps> = ({
       </div>
 
       <p className="text-sm text-muted-foreground">
-        Suma total de criterios: {criterios.reduce((acc, criterio) => acc + criterio.notaMaxima, 0)} puntos
+        Suma total de criterios:{" "}
+        {criterios.reduce((acc, criterio) => acc + criterio.notaMaxima, 0)}{" "}
+        puntos
       </p>
 
       <div className="space-y-4">
@@ -392,7 +445,9 @@ const DetalleEntregablePage: React.FC<DetalleEntregablePageProps> = ({
       <CriterioEntregableModal
         isOpen={isCriterioModalOpen}
         onClose={() => setIsCriterioModalOpen(false)}
-        onSubmit={modalMode === "edit" ? handleUpdateCriterio : handleCreateCriterio}
+        onSubmit={
+          modalMode === "edit" ? handleUpdateCriterio : handleCreateCriterio
+        }
         criterio={criterioSeleccionado}
         mode={modalMode}
         criteriosExistentes={criterios}
@@ -422,7 +477,8 @@ const DetalleEntregablePage: React.FC<DetalleEntregablePageProps> = ({
             <DialogTitle>Eliminar Criterio</DialogTitle>
             <DialogDescription>
               ¿Estás seguro de que deseas eliminar el criterio{" "}
-              <strong>{criterioAEliminar?.nombre}</strong>? Esta acción no se puede deshacer.
+              <strong>{criterioAEliminar?.nombre}</strong>? Esta acción no se
+              puede deshacer.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

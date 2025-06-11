@@ -366,6 +366,7 @@ export const getExposicionesJurado = async (
         ciclo_id: expo.ciclo_id,
         enlace_grabacion: expo.enlace_grabacion,
         enlace_sesion: expo.enlace_sesion,
+        criterios_calificados: expo.criterios_calificados,
         miembros,
       };
     });

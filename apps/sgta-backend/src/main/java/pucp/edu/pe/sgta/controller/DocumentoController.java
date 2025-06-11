@@ -8,6 +8,7 @@ import pucp.edu.pe.sgta.model.Documento;
 import pucp.edu.pe.sgta.model.EntregableXTema;
 import pucp.edu.pe.sgta.model.VersionXDocumento;
 import pucp.edu.pe.sgta.service.inter.DocumentoService;
+import pucp.edu.pe.sgta.service.inter.RevisionDocumentoService;
 import pucp.edu.pe.sgta.service.inter.S3DownloadService;
 import pucp.edu.pe.sgta.service.inter.VersionXDocumentoService;
 
@@ -20,10 +21,19 @@ import java.util.logging.Logger;
 @RequestMapping("/documento")
 public class DocumentoController {
 
+    private final Logger logger = Logger.getLogger(DocumentoController.class.getName());
     private final DocumentoService documentoService;
+    private final VersionXDocumentoService versionXDocumentoService;
+    private final RevisionDocumentoService revisionDocumentoService;
+    private final S3DownloadService s3DownloadService;
+    private static final String S3_PATH_DELIMITER = "/";
 
-    public DocumentoController(DocumentoService documentoService) {
+    public DocumentoController(DocumentoService documentoService, S3DownloadService s3DowloadService,
+            VersionXDocumentoService versionXDocumentoService, RevisionDocumentoService revisionDocumentoService) {
         this.documentoService = documentoService;
+        this.s3DownloadService = s3DowloadService;
+        this.versionXDocumentoService = versionXDocumentoService;
+        this.revisionDocumentoService = revisionDocumentoService;
     }
 
     @GetMapping("/entregable/{entregableXTemaId}")

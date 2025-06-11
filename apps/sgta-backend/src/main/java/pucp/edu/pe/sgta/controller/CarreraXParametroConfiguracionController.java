@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import jakarta.servlet.http.HttpServletRequest;
 
-
 @RestController
 
 @RequestMapping("/carreraXParametroConfiguracion")
@@ -28,16 +27,22 @@ public class CarreraXParametroConfiguracionController {
 	@PostMapping("/update")
 	public void update(@RequestBody CarreraXParametroConfiguracionDto dto) {
 
-        //?DUDA: Se tiene que devolver ResponseEntity?
+		// ?DUDA: Se tiene que devolver ResponseEntity?
 
 		this.carreraXParametroConfiguracionService.updateCarreraXParametroConfiguracion(dto);
 	}
 
-    @GetMapping("/parametros")
-    public List<CarreraXParametroConfiguracionDto> getParametros(HttpServletRequest request) {
-        String idCognito = jwtService.extractSubFromRequest(request);
+	@GetMapping("/parametros")
+	public List<CarreraXParametroConfiguracionDto> getParametros(HttpServletRequest request) {
+		String idCognito = jwtService.extractSubFromRequest(request);
 
-        return this.carreraXParametroConfiguracionService.getParametrosPorCarrera(idCognito);
-    }
+		return this.carreraXParametroConfiguracionService.getParametrosPorCarrera(idCognito);
+	}
 
+	@GetMapping("/parametros-alumno")
+	public List<CarreraXParametroConfiguracionDto> getParametrosPorAlumno(HttpServletRequest request) {
+		String idCognito = jwtService.extractSubFromRequest(request);
+
+		return this.carreraXParametroConfiguracionService.getParametrosPorAlumno(idCognito);
+	}
 }
