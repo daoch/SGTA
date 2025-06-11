@@ -3261,9 +3261,13 @@ public class TemaServiceImpl implements TemaService {
 					? dto.getSubareas().stream().map(sa -> sa.getId()).toArray(Integer[]::new)
 					: null;
 
-			// Llamada a la función PL/pgSQL
+			Integer[] coasesorIds = dto.getCoasesores() != null
+					? dto.getCoasesores().stream().map(user -> user.getId()).toArray(Integer[]::new)
+					: null;
+
+			
 			temaId = (Integer) entityManager.createNativeQuery(
-							"SELECT actualizar_tema_libre(:temaId, :titulo, :resumen, :metodologia, :objetivos, :carreraId, :fechaLimite, :requisitos, :subareaIds)")
+							"SELECT actualizar_tema_libre(:temaId, :titulo, :resumen, :metodologia, :objetivos, :carreraId, :fechaLimite, :requisitos, :subareaIds, :coasesorIds)")
 					.setParameter("temaId", dto.getId())
 					.setParameter("titulo", dto.getTitulo())
 					.setParameter("resumen", dto.getResumen())
@@ -3273,7 +3277,9 @@ public class TemaServiceImpl implements TemaService {
 					.setParameter("fechaLimite", dto.getFechaLimite() != null ? dto.getFechaLimite().toLocalDate() : null)
 					.setParameter("requisitos", dto.getRequisitos() != null ? dto.getRequisitos() : "")
 					.setParameter("subareaIds", subareaIds)
+					.setParameter("coasesorIds", coasesorIds)
 					.getSingleResult();
+
 
 			logger.info("Tema actualizado exitosamente: " + dto.getTitulo());
 		} catch (Exception e) {
