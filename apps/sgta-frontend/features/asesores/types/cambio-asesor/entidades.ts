@@ -12,7 +12,7 @@ export interface SolicitudCambioAsesorResumen {
 }
 
 export interface UsuarioSolicitud {
-  id: number;
+  id: number | null;
   nombres: string;
   correoElectronico: string;
   rolSolicitud: string;
