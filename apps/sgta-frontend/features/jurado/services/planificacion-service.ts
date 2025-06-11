@@ -127,8 +127,8 @@ export async function reunionesZoom(bearerTokenId: string, idExposicion: number)
     // return data;
 
   } catch (error) {
-    const err = error as any;
-    console.error("Error al crear la reunión de Zoom:", err.response?.data || err);
+    const err = error as unknown;
+    // console.error("Error al crear la reunión de Zoom:", err.response?.data || err);
     throw err;
   }
 }
