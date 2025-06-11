@@ -3245,4 +3245,47 @@ public class TemaServiceImpl implements TemaService {
 		}
     }
 
+
+	@Override
+	public Integer actualizarTemaLibre(TemaDto dto) {
+		Integer temaId;
+
+		try {
+			// Validar que el temaId esté presente
+			if (dto.getId() == null) {
+				throw new IllegalArgumentException("Debe proporcionar el ID del tema a actualizar.");
+			}
+
+			// Obtener IDs de subáreas (puede ser null)
+			Integer[] subareaIds = dto.getSubareas() != null
+					? dto.getSubareas().stream().map(sa -> sa.getId()).toArray(Integer[]::new)
+					: null;
+
+			// Llamada a la función PL/pgSQL
+			temaId = (Integer) entityManager.createNativeQuery(
+							"SELECT actualizar_tema_libre(:temaId, :titulo, :resumen, :metodologia, :objetivos, :carreraId, :fechaLimite, :requisitos, :subareaIds)")
+					.setParameter("temaId", dto.getId())
+					.setParameter("titulo", dto.getTitulo())
+					.setParameter("resumen", dto.getResumen())
+					.setParameter("metodologia", dto.getMetodologia())
+					.setParameter("objetivos", dto.getObjetivos())
+					.setParameter("carreraId", dto.getCarrera() != null ? dto.getCarrera().getId() : null)
+					.setParameter("fechaLimite", dto.getFechaLimite() != null ? dto.getFechaLimite().toLocalDate() : null)
+					.setParameter("requisitos", dto.getRequisitos() != null ? dto.getRequisitos() : "")
+					.setParameter("subareaIds", subareaIds)
+					.getSingleResult();
+
+			logger.info("Tema actualizado exitosamente: " + dto.getTitulo());
+		} catch (Exception e) {
+			logger.severe("Error al actualizar tema: " + e.getMessage());
+			throw new RuntimeException("No se pudo actualizar el tema", e);
+		}
+
+		return temaId;
+	}
+
+
+
+
+
 }
