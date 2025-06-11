@@ -32,9 +32,11 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import AccionesDisponiblesSolicitud from "../components/assessor-change-request/acciones-disponibles";
 import {
-  aceptarSolicitud,
+  aceptarSolicitudPorAsesor,
+  aceptarSolicitudPorCoordinador,
   getDetalleSolicitudCambioAsesor,
-  rechazarSolicitud,
+  rechazarSolicitudPorAsesor,
+  rechazarSolicitudPorCoordinador,
 } from "../services/cambio-asesor-services";
 import { getIdByCorreo } from "../services/perfil-services";
 import { formatFecha } from "../utils/date-functions";
@@ -129,21 +131,17 @@ export default function SolicitudDetalle({
   };
 
   useEffect(() => {
-    if (solicitudData) {
-      const participantes: UsuarioSolicitud[] = [
-        solicitudData.solicitante,
-        solicitudData.asesorNuevo,
-        solicitudData?.coordinador,
-      ];
-      setParticipantesWorkflow(participantes);
-    }
+    if (!solicitudData) return;
 
-    if (
-      solicitudData?.estadoGlobal === "PENDIENTE" &&
-      !solicitudData?.coordinador
-    ) {
-      // Si la solicitud está pendiente y no hay coordinador, agregar el asesor actual
-      const coordinador: UsuarioSolicitud = {
+    let participantes: UsuarioSolicitud[] = [
+      solicitudData.solicitante,
+      solicitudData.asesorNuevo,
+    ];
+
+    let coordinador = solicitudData.coordinador;
+
+    if (solicitudData.estadoGlobal === "PENDIENTE" && !coordinador) {
+      coordinador = {
         id: null,
         nombres: "Pendiente de aprobación por coordinador",
         correoElectronico: solicitudData.asesorActual.correoElectronico,
@@ -153,9 +151,13 @@ export default function SolicitudDetalle({
         fechaAccion: null,
         comentario: null,
       };
-      solicitudData.coordinador = coordinador;
-      setParticipantesWorkflow((prev) => [...prev, coordinador]);
+
+      // Evitar mutación directa
+      setSolicitudData((prev) => (prev ? { ...prev, coordinador } : prev));
     }
+
+    participantes.push(coordinador);
+    setParticipantesWorkflow(participantes.filter(Boolean));
   }, [solicitudData]);
 
   const getStatusColor = (estado: string, rolSolicitud: string) => {
@@ -311,11 +313,17 @@ export default function SolicitudDetalle({
       }
 
       if (modalType === "aprobar") {
-        await aceptarSolicitud(userId, idSolicitud, rolSolicitud);
+        if (rol === "asesor")
+          await aceptarSolicitudPorAsesor(idSolicitud, user?.id || "");
+        if (rol === "coordinador") {
+          await aceptarSolicitudPorCoordinador(idSolicitud, user?.id || "");
+        }
       } else if (modalType === "rechazar") {
-        await rechazarSolicitud(userId, idSolicitud, rolSolicitud);
+        if (rol === "asesor")
+          await rechazarSolicitudPorAsesor(idSolicitud, user?.id || "");
+        if (rol === "coordinador")
+          await rechazarSolicitudPorCoordinador(idSolicitud, user?.id || "");
       }
-
       console.log(`Solicitud ${modalType}da con comentario:`, comentario);
       setIsSuccess(true);
     } catch (err) {
@@ -560,8 +568,8 @@ export default function SolicitudDetalle({
             solicitudData?.asesorNuevo.accionSolicitud || "SIN_ACCION"
           }
           nombreNuevoAsesor={solicitudData?.asesorNuevo.nombres || ""}
-          onAprobar={handleAprobar}
-          onRechazar={handleRechazar}
+          handleAprobar={handleAprobar}
+          handleRechazar={handleRechazar}
           onEnviarRecordatorio={handleEnviarRecordatorio}
         />
 
