@@ -46,4 +46,21 @@ public interface UsuarioXSolicitudRepository extends JpaRepository<UsuarioXSolic
             @Param("nombreRol") String nombreRol,
             @Param("idSolicitud") Integer idSolicitud,
             @Param("aprobar") Boolean aprobar);
+
+    @Modifying
+    @Query(value = "CALL aprobar_solicitud_cambio_asesor_asesor(:idCognito, :solicitudId)", nativeQuery = true)
+    void aprobarSolicitudCambioAsesorAsesor(@Param("idCognito") String idCognito,
+                                 @Param("solicitudId") Integer solicitudId);
+    @Modifying
+    @Query(value = "CALL rechazar_solicitud_cambio_asesor_asesor(:idCognito, :solicitudId)", nativeQuery = true)
+    void rechazarSolicitudCambioAsesorAsesor(@Param("idCognito") String idCognito,
+                                            @Param("solicitudId") Integer solicitudId);
+    @Modifying
+    @Query(value = "CALL rechazar_solicitud_cambio_asesor_coordinador(:idCognito, :solicitudId)", nativeQuery = true)
+    void rechazarSolicitudCambioAsesorCoordinador(@Param("idCognito") String idCognito,
+                                            @Param("solicitudId") Integer solicitudId);
+    @Modifying
+    @Query(value = "CALL aprobar_solicitud_cambio_asesor_coordinador(:idCognito, :solicitudId)", nativeQuery = true)
+    void aprobarSolicitudCambioAsesorCoordinador(@Param("idCognito") String idCognito,
+                                            @Param("solicitudId") Integer solicitudId);
 }

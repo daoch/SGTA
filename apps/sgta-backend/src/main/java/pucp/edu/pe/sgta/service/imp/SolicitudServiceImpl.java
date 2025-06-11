@@ -798,22 +798,33 @@ public class SolicitudServiceImpl implements SolicitudService {
 
     @Transactional
     @Override
-    public void aprobarRechazarSolicitudCambioAsesor(Integer idSolicitud, Integer idUsuario, String rolSolictud,
-            boolean aprobar) {
+    public void aprobarRechazarSolicitudCambioAsesorAsesor(Integer idSolicitud, String idCognito, boolean aprobar){
         // validar Solicitud se puede aprobar o rechazar verifica que haya una solcitud
         // con ese if y estado pendiente
         boolean validar = solicitudRepository.existsSolicitudByIdAndEstadoSolicitud_Nombre(idSolicitud,
                 EstadoSolicitudEnum.PENDIENTE.name());
         if (!validar)
             throw new RuntimeException("Solicitud no puede ser modificada");
-        // validar que el usuario con ese rol puede aprobar o rechazar esa solicitud
-        List<Object[]> result = usuarioXSolicitudRepository.puedeUsuarioCambiarSolicitud(idUsuario, rolSolictud,
-                idSolicitud);
-        validar = Utils.validarTrueOrFalseDeQuery(result);
+        if(aprobar){
+            usuarioXSolicitudRepository.aprobarSolicitudCambioAsesorAsesor(idCognito, idSolicitud);
+        }else{
+            usuarioXSolicitudRepository.rechazarSolicitudCambioAsesorAsesor(idCognito, idSolicitud);
+        }
+    }
+    @Transactional
+    @Override
+    public void aprobarRechazarSolicitudCambioAsesorCoordinador(Integer idSolicitud, String idCognito, boolean aprobar) {
+        // validar Solicitud se puede aprobar o rechazar verifica que haya una solcitud
+        // con ese if y estado pendiente
+        boolean validar = solicitudRepository.existsSolicitudByIdAndEstadoSolicitud_Nombre(idSolicitud,
+                EstadoSolicitudEnum.PENDIENTE.name());
         if (!validar)
-            throw new RuntimeException("El usuario no puede modificar la solicitud");
-        // El procedure se encarga de all
-        usuarioXSolicitudRepository.procesarSolicitudCambio(idUsuario, rolSolictud, idSolicitud, aprobar);
+            throw new RuntimeException("Solicitud no puede ser modificada");
+        if(aprobar){
+            usuarioXSolicitudRepository.aprobarSolicitudCambioAsesorCoordinador(idCognito, idSolicitud);
+        }else{
+            usuarioXSolicitudRepository.rechazarSolicitudCambioAsesorCoordinador(idCognito, idSolicitud);
+        }
     }
 
     private UsuarioSolicitudCambioAsesorDto getUsuarioSolicitudFromId(int idUsuario, int idSolicitud) {

@@ -741,7 +741,7 @@ BEGIN
     RETURN v_existe;
 END;
 $$;
-
+-- A ELIMINAR
 CREATE OR REPLACE PROCEDURE procesar_solicitud_cambio(
     p_usuario_id INTEGER,
     p_nombre_rol TEXT,
@@ -900,7 +900,412 @@ BEGIN
 
 END;
 $$;
+--
+CREATE OR REPLACE PROCEDURE aprobar_solicitud_cambio_asesor_asesor(
+    p_id_cognito TEXT,
+    p_solicitud_id INTEGER
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_usuario_id INTEGER;
+    v_accion_id INTEGER;
+    v_rol_id INTEGER;
+BEGIN
+    -- Obtener usuario_id desde id_cognito
+    SELECT usuario_id INTO v_usuario_id
+    FROM usuario
+    WHERE id_cognito = p_id_cognito;
 
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Usuario con id_cognito % no encontrado', p_id_cognito;
+    END IF;
+
+    -- Obtener el rol_solicitud_id correspondiente a 'ASESOR_ENTRADA'
+    SELECT rol_solicitud_id INTO v_rol_id
+    FROM rol_solicitud
+    WHERE nombre = 'ASESOR_ENTRADA';
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Rol ASESOR_ENTRADA no encontrado';
+    END IF;
+
+    -- Obtener acción "APROBADO"
+    SELECT accion_solicitud_id INTO v_accion_id
+    FROM accion_solicitud
+    WHERE nombre = 'APROBADO';
+
+    -- Actualizar la acción en usuario_solicitud
+    UPDATE usuario_solicitud
+    SET accion_solicitud = v_accion_id,
+        fecha_accion = CURRENT_TIMESTAMP
+    WHERE usuario_id = v_usuario_id
+      AND solicitud_id = p_solicitud_id
+      AND rol_solicitud = v_rol_id;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'No se encontró registro en usuario_solicitud para el usuario %, solicitud %, y rol ASESOR_ENTRADA', v_usuario_id, p_solicitud_id;
+    END IF;
+
+END;
+$$;
+--
+CREATE OR REPLACE PROCEDURE rechazar_solicitud_cambio_asesor_asesor(
+    p_id_cognito TEXT,
+    p_solicitud_id INTEGER
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_usuario_id INTEGER;
+    v_accion_id INTEGER;
+    v_rol_id INTEGER;
+    v_estado_id INTEGER;
+BEGIN
+    -- Obtener usuario_id desde id_cognito
+    SELECT usuario_id INTO v_usuario_id
+    FROM usuario
+    WHERE id_cognito = p_id_cognito;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Usuario con id_cognito % no encontrado', p_id_cognito;
+    END IF;
+
+    -- Obtener rol_solicitud_id de 'ASESOR_ENTRADA'
+    SELECT rol_solicitud_id INTO v_rol_id
+    FROM rol_solicitud
+    WHERE nombre = 'ASESOR_ENTRADA';
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Rol ASESOR_ENTRADA no encontrado';
+    END IF;
+
+    -- Obtener acción "RECHAZADO"
+    SELECT accion_solicitud_id INTO v_accion_id
+    FROM accion_solicitud
+    WHERE nombre = 'RECHAZADO';
+
+    -- Actualizar usuario_solicitud
+    UPDATE usuario_solicitud
+    SET accion_solicitud = v_accion_id,
+        fecha_accion = CURRENT_TIMESTAMP
+    WHERE usuario_id = v_usuario_id
+      AND solicitud_id = p_solicitud_id
+      AND rol_solicitud = v_rol_id;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'No se encontró registro en usuario_solicitud para el usuario %, solicitud %, y rol ASESOR_ENTRADA', v_usuario_id, p_solicitud_id;
+    END IF;
+
+    -- Cambiar estado de la solicitud a 'RECHAZADA'
+    SELECT estado_solicitud_id INTO v_estado_id
+    FROM estado_solicitud
+    WHERE nombre = 'RECHAZADA';
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Estado RECHAZADA no encontrado';
+    END IF;
+
+    UPDATE solicitud
+    SET estado_solicitud = v_estado_id,
+        fecha_resolucion = CURRENT_TIMESTAMP
+    WHERE solicitud_id = p_solicitud_id;
+
+END;
+$$;
+--
+CREATE OR REPLACE PROCEDURE rechazar_solicitud_cambio_asesor_coordinador(
+    p_id_cognito TEXT,
+    p_solicitud_id INTEGER
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_usuario_id INTEGER;
+    v_rol_id INTEGER;
+    v_accion_id INTEGER;
+    v_estado_id INTEGER;
+    v_tema_id INTEGER;
+    v_carrera_id INTEGER;
+    v_existente INTEGER;
+BEGIN
+    -- 1. Obtener usuario_id desde id_cognito
+    SELECT usuario_id INTO v_usuario_id
+    FROM usuario
+    WHERE id_cognito = p_id_cognito;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Usuario con id_cognito % no encontrado', p_id_cognito;
+    END IF;
+
+    -- 2. Obtener tema_id desde solicitud
+    SELECT tema_id INTO v_tema_id
+    FROM solicitud
+    WHERE solicitud_id = p_solicitud_id;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Solicitud con ID % no encontrada', p_solicitud_id;
+    END IF;
+
+    -- 3. Obtener carrera_id desde tema
+    SELECT carrera_id INTO v_carrera_id
+    FROM tema
+    WHERE tema_id = v_tema_id;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Tema asociado con ID % no encontrado', v_tema_id;
+    END IF;
+
+    -- 4. Verificar que el usuario sea coordinador de esa carrera
+    PERFORM 1
+    FROM usuario_carrera
+    WHERE usuario_id = v_usuario_id
+      AND carrera_id = v_carrera_id
+      AND es_coordinador = TRUE;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'El usuario % no es coordinador de la carrera %', v_usuario_id, v_carrera_id;
+    END IF;
+
+    -- 5. Obtener rol_solicitud_id de 'DESTINATARIO'
+    SELECT rol_solicitud_id INTO v_rol_id
+    FROM rol_solicitud
+    WHERE nombre = 'DESTINATARIO';
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Rol DESTINATARIO no encontrado';
+    END IF;
+
+    -- 6. Verificar que no haya un registro previo con rol DESTINATARIO
+    SELECT COUNT(*) INTO v_existente
+    FROM usuario_solicitud
+    WHERE solicitud_id = p_solicitud_id
+      AND rol_solicitud = v_rol_id;
+
+    IF v_existente > 0 THEN
+        RAISE EXCEPTION 'La solicitud ya ha sido respondida por un asesor';
+    END IF;
+
+    -- 7. Obtener accion_solicitud_id de 'RECHAZADO'
+    SELECT accion_solicitud_id INTO v_accion_id
+    FROM accion_solicitud
+    WHERE nombre = 'RECHAZADO';
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Acción RECHAZADO no encontrada';
+    END IF;
+
+    -- 8. Insertar en usuario_solicitud
+    INSERT INTO usuario_solicitud (
+        usuario_id,
+        solicitud_id,
+        rol_solicitud,
+        accion_solicitud,
+        fecha_accion
+    ) VALUES (
+        v_usuario_id,
+        p_solicitud_id,
+        v_rol_id,
+        v_accion_id,
+        CURRENT_TIMESTAMP
+    );
+
+    -- 9. Cambiar estado de la solicitud a 'RECHAZADA'
+    SELECT estado_solicitud_id INTO v_estado_id
+    FROM estado_solicitud
+    WHERE nombre = 'RECHAZADA';
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Estado RECHAZADA no encontrado';
+    END IF;
+
+    UPDATE solicitud
+    SET estado_solicitud = v_estado_id,
+        fecha_resolucion = CURRENT_TIMESTAMP
+    WHERE solicitud_id = p_solicitud_id;
+
+END;
+$$;
+--
+CREATE OR REPLACE PROCEDURE aprobar_solicitud_cambio_asesor_coordinador(
+    p_id_cognito TEXT,
+    p_solicitud_id INTEGER
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_usuario_id INTEGER;
+    v_rol_id_destinatario INTEGER;
+    v_accion_id INTEGER;
+    v_estado_id INTEGER;
+    v_tema_id INTEGER;
+    v_carrera_id INTEGER;
+    v_existente INTEGER;
+    v_asesor_actual_id INTEGER;
+    v_asesor_entrada_id INTEGER;
+
+    -- Campos replicables de usuario_tema
+    v_id_tema INTEGER;
+    v_id_rol INTEGER;
+    v_tipo_rechazo_tema_id INTEGER;
+    v_asignado BOOLEAN;
+    v_rechazado BOOLEAN;
+    v_creador BOOLEAN;
+    v_prioridad INTEGER;
+    v_comentario TEXT;
+BEGIN
+    -- 1. Obtener usuario_id desde id_cognito
+    SELECT usuario_id INTO v_usuario_id
+    FROM usuario
+    WHERE id_cognito = p_id_cognito;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Usuario con id_cognito % no encontrado', p_id_cognito;
+    END IF;
+
+    -- 2. Obtener tema_id desde solicitud
+    SELECT tema_id INTO v_tema_id
+    FROM solicitud
+    WHERE solicitud_id = p_solicitud_id;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Solicitud con ID % no encontrada', p_solicitud_id;
+    END IF;
+
+    -- 3. Obtener carrera_id desde tema
+    SELECT carrera_id INTO v_carrera_id
+    FROM tema
+    WHERE tema_id = v_tema_id;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Tema con ID % no encontrado', v_tema_id;
+    END IF;
+
+    -- 4. Verificar que el usuario es coordinador de esa carrera
+    PERFORM 1
+    FROM usuario_carrera
+    WHERE usuario_id = v_usuario_id
+      AND carrera_id = v_carrera_id
+      AND es_coordinador = TRUE;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'El usuario % no es coordinador de la carrera %', v_usuario_id, v_carrera_id;
+    END IF;
+
+    -- 5. Obtener rol_solicitud_id de 'DESTINATARIO'
+    SELECT rol_solicitud_id INTO v_rol_id_destinatario
+    FROM rol_solicitud
+    WHERE nombre = 'DESTINATARIO';
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Rol DESTINATARIO no encontrado';
+    END IF;
+
+    -- 6. Verificar que no exista ya una respuesta del destinatario
+    SELECT COUNT(*) INTO v_existente
+    FROM usuario_solicitud
+    WHERE solicitud_id = p_solicitud_id
+      AND rol_solicitud = v_rol_id_destinatario;
+
+    IF v_existente > 0 THEN
+        RAISE EXCEPTION 'La solicitud ya ha sido respondida por un asesor';
+    END IF;
+
+    -- 7. Obtener accion_solicitud_id de 'APROBADO'
+    SELECT accion_solicitud_id INTO v_accion_id
+    FROM accion_solicitud
+    WHERE nombre = 'APROBADO';
+
+    -- 8. Insertar usuario_solicitud como DESTINATARIO
+    INSERT INTO usuario_solicitud (
+        usuario_id,
+        solicitud_id,
+        rol_solicitud,
+        accion_solicitud,
+        fecha_accion
+    ) VALUES (
+        v_usuario_id,
+        p_solicitud_id,
+        v_rol_id_destinatario,
+        v_accion_id,
+        CURRENT_TIMESTAMP
+    );
+
+    -- 9. Cambiar estado de la solicitud a 'ACEPTADA'
+    SELECT estado_solicitud_id INTO v_estado_id
+    FROM estado_solicitud
+    WHERE nombre = 'ACEPTADA';
+
+    UPDATE solicitud
+    SET estado_solicitud = v_estado_id,
+        fecha_resolucion = CURRENT_TIMESTAMP
+    WHERE solicitud_id = p_solicitud_id;
+
+    -- 10. Obtener ASESOR_ACTUAL
+    SELECT us.usuario_id INTO v_asesor_actual_id
+    FROM usuario_solicitud us
+    JOIN rol_solicitud rs ON rs.rol_solicitud_id = us.rol_solicitud
+    WHERE us.solicitud_id = p_solicitud_id
+      AND rs.nombre = 'ASESOR_ACTUAL'
+    LIMIT 1;
+
+    -- 11. Obtener ASESOR_ENTRADA
+    SELECT us.usuario_id INTO v_asesor_entrada_id
+    FROM usuario_solicitud us
+    JOIN rol_solicitud rs ON rs.rol_solicitud_id = us.rol_solicitud
+    WHERE us.solicitud_id = p_solicitud_id
+      AND rs.nombre = 'ASESOR_ENTRADA'
+    LIMIT 1;
+
+    -- 12. Obtener datos del asesor actual en usuario_tema
+    SELECT tema_id, rol_id, tipo_rechazo_tema_id, asignado, rechazado, creador, prioridad, comentario
+    INTO v_id_tema, v_id_rol, v_tipo_rechazo_tema_id, v_asignado, v_rechazado, v_creador, v_prioridad, v_comentario
+    FROM usuario_tema
+    WHERE usuario_id = v_asesor_actual_id
+      AND tema_id = v_tema_id
+      AND activo = true
+    LIMIT 1;
+
+    -- 13. Desactivar fila de usuario_tema del asesor actual
+    UPDATE usuario_tema
+    SET activo = false,
+        fecha_modificacion = CURRENT_TIMESTAMP
+    WHERE usuario_id = v_asesor_actual_id
+      AND tema_id = v_tema_id
+      AND activo = true;
+
+    -- 14. Insertar nueva fila para el asesor de entrada
+    INSERT INTO usuario_tema (
+        usuario_id,
+        tema_id,
+        rol_id,
+        tipo_rechazo_tema_id,
+        asignado,
+        rechazado,
+        creador,
+        prioridad,
+        comentario,
+        activo,
+        fecha_creacion,
+        fecha_modificacion
+    ) VALUES (
+        v_asesor_entrada_id,
+        v_id_tema,
+        v_id_rol,
+        v_tipo_rechazo_tema_id,
+        v_asignado,
+        v_rechazado,
+        v_creador,
+        v_prioridad,
+        v_comentario,
+        true,
+        CURRENT_TIMESTAMP,
+        CURRENT_TIMESTAMP
+    );
+
+END;
+$$;
+--
 CREATE OR REPLACE FUNCTION obtener_temas_por_alumno(p_id_alumno INTEGER)
 RETURNS TABLE (
   idTema INTEGER,
