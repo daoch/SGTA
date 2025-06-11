@@ -211,12 +211,6 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
     activeTab === "entregas" ? event.esEvaluable : !event.esEvaluable
   );
 
-  
-  console.log("Eventos filtrados por tiempo:", filteredByTime);
-  console.log("Eventos mostrados:", displayedEvents);
-  console.log("Estado del filtro de estado:", statusFilter);
-  console.log("filteredEvents:", filteredEvents);
-
   const handleStatusFilterClick = () => {
     setShowStatusFilter(!showStatusFilter);
   };
