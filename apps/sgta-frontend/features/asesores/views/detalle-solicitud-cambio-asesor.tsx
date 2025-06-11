@@ -169,7 +169,24 @@ export default function SolicitudDetalle({
       setSolicitudData((prev) =>
         solicitudData ? { ...solicitudData, coordinador: cordi } : prev,
       );
-    }
+    } else if (solicitudData.estadoGlobal === "RECHAZADA" && !coordinador) {
+      coordinador = {
+        id: null,
+        nombres: "Sin accion",
+        correoElectronico: solicitudData.asesorActual.correoElectronico,
+        rolSolicitud: "DESTINATARIO",
+        foto: null,
+        accionSolicitud: "SIN_ACCION",
+        fechaAccion: null,
+        comentario: null,
+      };
+
+      const cordi = coordinador as UsuarioSolicitud;
+
+      setSolicitudData((prev) =>
+        solicitudData ? { ...solicitudData, coordinador: cordi } : prev,
+      );
+    } else setSolicitudData(solicitudData);
 
     participantes.push(coordinador);
     setParticipantesWorkflow(participantes.filter(Boolean));
