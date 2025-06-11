@@ -160,7 +160,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 
-CREATE OR REPLACE FUNCTION sgtadb.crear_revisiones(entregableXTemaId integer)
+CREATE OR REPLACE FUNCTION crear_revisiones(entregableXTemaId integer)
  RETURNS void
  LANGUAGE plpgsql
 AS $$

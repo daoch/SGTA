@@ -3190,12 +3190,15 @@ BEGIN
       ON t.tema_id = sact.tema_id
     WHERE t.tema_id = _tema_id;
 END;
+$BODY$;
 
 CREATE OR REPLACE FUNCTION es_coordinador_activo(
-    p_usuario_id     IN NUMBER,
-    p_carrera_id     IN NUMBER
-) RETURN BOOLEAN IS
-    v_count NUMBER;
+    p_usuario_id     IN INTEGER,
+    p_carrera_id     IN INTEGER
+) RETURNS BOOLEAN AS
+$$
+DECLARE
+    v_count INTEGER;
 BEGIN
     SELECT COUNT(*) INTO v_count
     FROM usuario_carrera
@@ -3208,8 +3211,8 @@ BEGIN
 EXCEPTION
     WHEN OTHERS THEN
         RETURN FALSE;
-END es_coordinador_activo;
-
+END;
+$$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION guardar_similitudes_tema(
     p_tema_id             INTEGER,
