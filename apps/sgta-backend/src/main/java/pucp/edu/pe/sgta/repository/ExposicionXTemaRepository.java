@@ -15,4 +15,6 @@ public interface ExposicionXTemaRepository extends JpaRepository<ExposicionXTema
     @Modifying
     @Query(value = "CALL llenar_exposicion_x_tema(:idexpo)", nativeQuery = true)
     void createAllRelatedByExposicionId(@Param("idexpo") Integer exposicionId);
+
+    ExposicionXTema findByIdAndActivoTrue(Integer id);
 }

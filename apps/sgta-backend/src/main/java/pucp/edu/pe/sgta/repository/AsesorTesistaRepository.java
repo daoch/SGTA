@@ -16,12 +16,18 @@ public interface AsesorTesistaRepository extends JpaRepository<UsuarioXTema, Int
             SELECT
             a_user.usuario_id as asesor_id,
             a_user.nombres as asesor_nombre,
+            a_user.primer_apellido as asesor_primer_apellido,
+            a_user.segundo_apellido as asesor_segundo_apellido,
             a_user.correo_electronico as asesor_email,
             t_user.usuario_id as tesista_id,
             t_user.nombres as tesista_nombre,
+            t_user.primer_apellido as tesista_primer_apellido,
+            t_user.segundo_apellido as tesista_segundo_apellido,
             t_user.correo_electronico as tesista_email,
             ef.etapa_formativa_id as etapa_formativa_id,
-            ef.nombre as etapa_formativa_nombre
+            ef.nombre as etapa_formativa_nombre,
+            a_user.codigo_pucp as asesor_codigo_pucp,
+            t_user.codigo_pucp as tesista_codigo_pucp
         FROM usuario_tema asesor
         JOIN usuario_tema tesista ON asesor.tema_id = tesista.tema_id
         JOIN usuario_rol asesor_rol ON asesor.usuario_id = asesor_rol.usuario_id
