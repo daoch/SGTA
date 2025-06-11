@@ -28,4 +28,5 @@ public class ObservacionesRevisionDTO {
     private String primerApellido;
     private String segundoApellido;
     private String rolesUsuario;
+    private Boolean corregido;
 }

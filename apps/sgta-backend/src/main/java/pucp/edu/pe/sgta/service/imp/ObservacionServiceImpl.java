@@ -207,6 +207,8 @@ private HighlightDto mapObservacionToHighlightDto(Observacion obs) {
             dto.setPrimerApellido((String) row[10]);
             dto.setSegundoApellido((String) row[11]);
             dto.setRolesUsuario((String) row[12]);
+            dto.setCorregido((Boolean) row[13]);
+            
             dtoList.add(dto);
         }
 
@@ -217,5 +219,10 @@ private HighlightDto mapObservacionToHighlightDto(Observacion obs) {
             .orElseThrow(() -> new RuntimeException("Observación no encontrada"));
         obs.setActivo(false); // O el campo que uses para el borrado lógico
         observacionRepository.save(obs);
+    }
+    @Override
+    @Transactional
+    public void actualizarEstadoCorregido(Integer observacionId, boolean corregido) {
+        observacionRepository.actualizarCorregidoPorId(observacionId, corregido);
     }
 }
