@@ -107,9 +107,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
     useState<AreaConocimiento | null>(null);
   const [subAreas, setSubAreas] = useState<Subareas[]>([]);
   const [loading, setLoading] = useState(false);
-  const [temaSimilitud, setTemaSimilitud] = useState<TemaSimilitud[] | null>(
-    null,
-  );
+  const [temaSimilitud, setTemaSimilitud] = useState<TemaSimilitud[]>([]);
   const [openSimilarDialog, setOpenSimilarDialog] = useState(false);
   const [checkingSimilitud, setCheckingSimilitud] = useState(false);
   //Llenado de datos
@@ -278,7 +276,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
     try {
       setCheckingSimilitud(true);
       const temaCreado = {
-        id: 0,
+        id: 999999,
         titulo: temaData.titulo,
         resumen: temaData.resumen,
         objetivos: temaData.objetivos,
@@ -287,7 +285,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
       };
       const temasSimilares = await verificarSimilitudTema(temaCreado);
       if (temasSimilares.length === 0) {
-        // handleGuardarLibre();
+        handleGuardarLibre();
         console.log("No se encontraron temas similares, guardando tema libre.");
       } else {
         setTemaSimilitud(temasSimilares);
@@ -399,7 +397,11 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
       if (carreras) {
         setLoading(true);
         setCheckingSimilitud(true);
-        await crearTemaLibre(mapTemaCreateLibre(temaData, carreras[0], asesor));
+        await crearTemaLibre(
+          mapTemaCreateLibre(temaData, carreras[0], asesor),
+          temaSimilitud,
+          true,
+        );
         toast.success("Tema guardado exitosamente.");
         console.log("Tema libre forzado guardado exitosamente.");
       } else {
@@ -417,7 +419,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
     } finally {
       setLoading(false);
       setCheckingSimilitud(false);
-      setTemaSimilitud(null);
+      setTemaSimilitud([]);
     }
   };
 

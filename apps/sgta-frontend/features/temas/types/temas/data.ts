@@ -264,6 +264,7 @@ export async function verificarSimilitudTema(body: {
   estadoTemaNombre: string;
 }) {
   try {
+    console.log("Verificando similitud del tema:", body);
     const res = await fetch(`${baseUrl}/temas/findSimilar?threshold=75.0`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
