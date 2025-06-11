@@ -20,6 +20,7 @@ import { ArrowLeft } from "lucide-react";
 import { Curso } from "../dtos/curso";
 import { TemaPorAsociar } from "../dtos/tema-por-asociar";
 import { toast } from "sonner";
+import AppLoading from "@/components/loading/app-loading";
 
 const ESTADOS = [
   { value: "todos", label: "Todos" },
@@ -34,7 +35,13 @@ const estadoColors: Record<string, string> = {
   rechazado: "bg-red-100 text-red-800",
 };
 
+function isTemaSeleccionado(temasSeleccionados: TemaPorAsociar[], id: number) {
+  return temasSeleccionados.some((sel) => sel.id === id);
+}
+
 const AsociacionTemaCursoPage: React.FC = () => {
+  const [loadingEtapas, setLoadingEtapas] = useState(true);
+  const [loadingTemas, setLoadingTemas] = useState(true);
   const router = useRouter();
   const [cursos, setCursos] = useState<Curso[]>([]);
   const [cursoSeleccionado, setCursoSeleccionado] = useState<Curso | null>();
@@ -48,13 +55,15 @@ const AsociacionTemaCursoPage: React.FC = () => {
   useEffect(() => {
     const fetchCursos = async () => {
       try {
-        const carreraId = 1; // TODO: Reemplazar con el ID de la carrera actual
         const response = await axiosInstance.get(
-          `/etapa-formativa-x-ciclo/listarEtapasFormativasXCicloXCarrera/${carreraId}`,
+          "/etapa-formativa-x-ciclo/listarEtapasFormativasXCicloXCarrera",
         );
         setCursos(response.data);
       } catch (error) {
         console.error("Error al cargar los cursos:", error);
+        toast.error("Error al cargar los cursos.");
+      } finally {
+        setLoadingEtapas(false);
       }
     };
     fetchCursos();
@@ -63,13 +72,15 @@ const AsociacionTemaCursoPage: React.FC = () => {
   useEffect(() => {
     const fetchTemas = async () => {
       try {
-        const carreraId = 1; // TODO: Reemplazar con el ID de la carrera actual
         const response = await axiosInstance.get(
-          `/temas/listarTemasPorAsociarPorCarrera/${carreraId}`,
+          "/temas/listarTemasPorAsociarPorCarrera",
         );
         setTemas(response.data);
       } catch (error) {
         console.error("Error al cargar los temas:", error);
+        toast.error("Error al cargar los temas.");
+      } finally {
+        setLoadingTemas(false);
       }
     };
     fetchTemas();
@@ -114,11 +125,9 @@ const AsociacionTemaCursoPage: React.FC = () => {
           ),
         ),
       );
-      toast.success("Temas asociados al curso correctamente.");
-      // Refresca la lista de temas no asociados
       setTemas((prev) =>
         prev.map((t) =>
-          temasSeleccionados.some((sel) => sel.id === t.id)
+          t.id !== undefined && isTemaSeleccionado(temasSeleccionados, t.id)
             ? { ...t, estadoTemaNombre: "EN_PROGRESO" }
             : t,
         ),
@@ -151,6 +160,10 @@ const AsociacionTemaCursoPage: React.FC = () => {
   useEffect(() => {
     setTemasSeleccionados([]);
   }, [tabEstado]);
+
+  if(loadingEtapas || loadingTemas) {
+    return <AppLoading />;
+  }
 
   return (
     <div className="w-full px-6 py-6">

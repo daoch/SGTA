@@ -20,6 +20,10 @@ import pucp.edu.pe.sgta.dto.TopicTrendDTO;
 import pucp.edu.pe.sgta.dto.TesistasPorAsesorDTO;
 import pucp.edu.pe.sgta.dto.EntregableEstudianteDto;
 import pucp.edu.pe.sgta.dto.EntregableCriteriosDetalleDto;
+import java.util.NoSuchElementException;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.HttpStatus;
+
 import pucp.edu.pe.sgta.service.inter.IReportService;
 import pucp.edu.pe.sgta.service.inter.JwtService;
 
@@ -28,6 +32,7 @@ import pucp.edu.pe.sgta.service.inter.JwtService;
 public class ReportsController {
 
     private final IReportService reportingService;
+
     private final JwtService      jwtService;
 
     @Autowired
@@ -118,7 +123,7 @@ public class ReportsController {
         return ResponseEntity.ok(historial);
     }
 
-    /** RF8: entregables de un tesista */
+    /*
     @GetMapping("/entregables")
     public ResponseEntity<List<EntregableEstudianteDto>> getEntregablesEstudiante(
             HttpServletRequest request) {
@@ -127,6 +132,38 @@ public class ReportsController {
                 reportingService.getEntregablesEstudiante(sub);
         return ResponseEntity.ok(list);
     }
+    */
+
+   @GetMapping("/entregables")
+    public ResponseEntity<List<EntregableEstudianteDto>> getEntregablesEstudiante(HttpServletRequest request) {
+        System.out.println(" Entró al método con Cognito ID (sin parámetro)");
+
+        try {
+            String idUsuario = jwtService.extractSubFromRequest(request);
+            List<EntregableEstudianteDto> entregables = reportingService.getEntregablesEstudiante(idUsuario);
+            return ResponseEntity.ok(entregables);
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    @GetMapping("/entregables/{idUsuario}")
+    public ResponseEntity<List<EntregableEstudianteDto>> getEntregablesAlumnoSeleccionado(
+            @PathVariable Integer idUsuario) {
+        System.out.println(" Entró al método con ID explícito: " + idUsuario);
+        try {
+            List<EntregableEstudianteDto> entregables = reportingService.getEntregablesEstudianteById(idUsuario);
+            return ResponseEntity.ok(entregables);
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+
 
     /** RF9: entregables con criterios de un tesista */
     @GetMapping("/entregables-criterios")

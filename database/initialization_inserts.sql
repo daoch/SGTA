@@ -1434,14 +1434,13 @@ VALUES (
         NOW()
     );
 -- 2) Relación usuario_carrera (cada usuario con su carrera)
-INSERT INTO
-    usuario_carrera (
-        usuario_id,
-        carrera_id,
-        activo,
-        fecha_creacion,
-        fecha_modificacion
-    )
+INSERT INTO usuario_carrera (
+    usuario_id,
+    carrera_id,
+    activo,
+    fecha_creacion,
+    fecha_modificacion
+)
 VALUES
     -- Juan Pérez enseña en Ingeniería Mecánica (carrera_id = 3)
     (1, 3, TRUE, NOW(), NOW()),
@@ -1451,70 +1450,38 @@ VALUES
     (3, 1, TRUE, NOW(), NOW()),
     -- Carla Vega administra Ingeniería Industrial (carrera_id = 4)
     (4, 4, TRUE, NOW(), NOW()),
-    -- Ana Martínez enseña en Ingeniería Informática (carrera_id = 1)
+        -- Ana Martínez enseña en Ingeniería Informática (carrera_id = 1)
     (5, 1, TRUE, NOW(), NOW()),
     -- Carlos Sánchez enseña en Ingeniería Informática (carrera_id = 1)
     (6, 1, TRUE, NOW(), NOW()),
     -- Diego Fernández estudia Ingeniería Informática (carrera_id = 1)
     (7, 1, TRUE, NOW(), NOW()),
     -- Sofía Lima estudia Ingeniería Informática (carrera_id = 1)
-    (8, 1, TRUE, NOW(), NOW());
-
-INSERT INTO
-    usuario_carrera (
-        usuario_id,
-        carrera_id,
-        activo,
-        fecha_creacion,
-        fecha_modificacion
-    )
-SELECT u.usuario_id, 1, TRUE, NOW(), NOW()
-FROM usuario u
-WHERE
-    u.codigo_pucp IN (
-        'P092',
-        'P093',
-        'P094',
-        'P095',
-        'P096',
-        'P097'
-    );
-
-UPDATE usuario
-SET
-    tipo_dedicacion_id = 1
-WHERE
-    tipo_usuario_id = 1;
-
-UPDATE usuario
-SET
-    tipo_dedicacion_id = 1
-WHERE
-    tipo_usuario_id = 3;
+    (8, 1, TRUE, NOW(), NOW())
+;
 
 -- 3) Relación usuario_grupo_investigacion (asignar a todos al Grupo IA PUCP, id = 1)
-INSERT INTO
-    usuario_grupo_investigacion (
-        usuario_id,
-        grupo_investigacion_id,
-        activo,
-        fecha_creacion,
-        fecha_modificacion
-    )
-VALUES (1, 1, TRUE, NOW(), NOW()),
-    (2, 1, TRUE, NOW(), NOW()),
-    (3, 1, TRUE, NOW(), NOW()),
-    (4, 1, TRUE, NOW(), NOW());
+INSERT INTO usuario_grupo_investigacion (usuario_id,
+                                         grupo_investigacion_id,
+                                         activo,
+                                         fecha_creacion,
+                                         fecha_modificacion)
+    VALUES (1, 1, TRUE, NOW(), NOW()),
+           (2, 1, TRUE, NOW(), NOW()),
+           (3, 1, TRUE, NOW(), NOW()),
+           (4, 1, TRUE, NOW(), NOW());
 
-SELECT * FROM unidad_academica;
+SELECT *
+    FROM unidad_academica;
+SELECT *
+    FROM rol;
+SELECT *
+    FROM tipo_usuario;
+SELECT *
+    FROM estado_tema;
+SELECT *
+    FROM usuario;
 
-SELECT * FROM rol;
-
-SELECT * FROM tipo_usuario;
-
-SELECT * FROM estado_tema;
-
-SELECT * FROM usuario;
 
 -- Relacion Etapa formativa x ciclo
 
@@ -1959,60 +1926,29 @@ VALUES
         NOW()
     );
 
-INSERT INTO
-    etapa_formativa_x_sala_exposicion (
-        etapa_formativa_id,
-        sala_exposicion_id,
-        activo,
-        fecha_creacion,
-        fecha_modificacion
-    )
-VALUES (1, 1, TRUE, NOW(), NOW()),
-    (1, 2, TRUE, NOW(), NOW()),
-    (1, 3, TRUE, NOW(), NOW()),
-    (1, 5, TRUE, NOW(), NOW()),
-    (2, 1, TRUE, NOW(), NOW()),
-    (2, 2, TRUE, NOW(), NOW()),
-    (2, 6, TRUE, NOW(), NOW()),
-    (2, 7, TRUE, NOW(), NOW());
+INSERT INTO etapa_formativa_x_sala_exposicion (etapa_formativa_id,
+                                               sala_exposicion_id,
+                                               activo,
+                                               fecha_creacion,
+                                               fecha_modificacion)
+    VALUES (1, 1, TRUE, NOW(), NOW()),
+           (1, 2, TRUE, NOW(), NOW()),
+           (1, 3, TRUE, NOW(), NOW()),
+           (1, 5, TRUE, NOW(), NOW()),
+           (2, 1, TRUE, NOW(), NOW()),
+           (2, 2, TRUE, NOW(), NOW()),
+           (2, 6, TRUE, NOW(), NOW()),
+           (2, 7, TRUE, NOW(), NOW());
 
-INSERT INTO
-    ciclo (
-        semestre,
-        anio,
-        fecha_inicio,
-        fecha_fin,
-        activo,
-        fecha_creacion,
-        fecha_modificacion
-    )
-VALUES (
-        '1',
-        2025,
-        '2025-03-21',
-        '2025-07-15',
-        TRUE,
-        NOW(),
-        NOW()
-    );
+INSERT INTO ciclo (semestre, anio, fecha_inicio, fecha_fin, activo, fecha_creacion, fecha_modificacion)
+    VALUES ('1', 2025, '2025-03-21', '2025-07-15', TRUE, NOW(), NOW());
 
-INSERT INTO
-    etapa_formativa_x_ciclo (
-        etapa_formativa_id,
-        ciclo_id,
-        estado,
-        activo,
-        fecha_creacion,
-        fecha_modificacion
-    )
-VALUES (
-        1,
-        1,
-        'En Curso',
-        TRUE,
-        NOW(),
-        NOW()
-    );
+INSERT INTO etapa_formativa_x_ciclo (etapa_formativa_id,
+                                     ciclo_id,
+                                     activo,
+                                     fecha_creacion,
+                                     fecha_modificacion)
+    VALUES (1, 1, TRUE, NOW(), NOW());
 
 -- Entregables //AHÍ YA COMIENZA LA DUDA
 
@@ -2100,90 +2036,44 @@ VALUES (
         NOW()
     );
 
-INSERT INTO
-    exposicion (
-        etapa_formativa_x_ciclo_id,
-        estado_planificacion_id,
-        activo,
-        nombre,
-        descripcion,
-        fecha_creacion
-    )
-VALUES (
-        1,
-        1,
-        TRUE,
-        'Exposicion parcial',
-        'Exposicion parcial del proyecto',
-        NOW()
-    ),
-    (
-        1,
-        1,
-        TRUE,
-        'Exposicion final',
-        'Exposicion final del proyecto',
-        NOW()
-    );
+INSERT INTO exposicion(etapa_formativa_x_ciclo_id,
+                       estado_planificacion_id,
+                       activo,
+                       nombre,
+                       descripcion,
+                       fecha_creacion)
+    VALUES (1, 1, TRUE, 'Exposicion parcial', 'Exposicion parcial del proyecto', NOW()),
+           (1, 1, TRUE, 'Exposicion final', 'Exposicion final del proyecto', NOW());
 
-INSERT INTO
-    criterio_exposicion (
-        exposicion_id,
-        nombre,
-        descripcion,
-        nota_maxima,
-        activo,
-        fecha_creacion
-    )
-VALUES (
-        1,
-        'Entonacion',
-        'El alumno tiene una correcta entonacion durante toda la exposicion',
-        3.5,
-        TRUE,
-        NOW()
-    );
+INSERT INTO criterio_exposicion(exposicion_id,
+                                nombre,
+                                descripcion,
+                                nota_maxima,
+                                activo,
+                                fecha_creacion)
+    VALUES (1, 'Entonacion', 'El alumno tiene una correcta entonacion durante toda la exposicion', 3.5, TRUE, NOW());
 
-INSERT INTO
-    jornada_exposicion (
-        exposicion_id,
-        datetime_inicio,
-        datetime_fin,
-        activo,
-        fecha_creacion,
-        fecha_modificacion
-    )
-VALUES (
-        1,
-        '2025-05-12 17:00:00',
-        '2025-05-12 20:00:00',
-        TRUE,
-        NOW(),
-        NOW()
-    ),
-    (
-        1,
-        '2025-05-14 17:00:00',
-        '2025-05-14 20:00:00',
-        TRUE,
-        NOW(),
-        NOW()
-    );
+INSERT INTO jornada_exposicion (exposicion_id,
+                                datetime_inicio,
+                                datetime_fin,
+                                activo,
+                                fecha_creacion,
+                                fecha_modificacion)
+    VALUES (1, '2025-05-12 17:00:00', '2025-05-12 20:00:00', TRUE, NOW(), NOW()),
+           (1, '2025-05-14 17:00:00', '2025-05-14 20:00:00', TRUE, NOW(), NOW());
 
-INSERT INTO
-    jornada_exposicion_x_sala_exposicion (
-        jornada_exposicion_id,
-        sala_exposicion_id,
-        activo,
-        fecha_creacion,
-        fecha_modificacion
-    )
-VALUES (1, 1, TRUE, NOW(), NOW()),
-    (1, 2, TRUE, NOW(), NOW()),
-    (1, 3, TRUE, NOW(), NOW()),
-    (1, 4, TRUE, NOW(), NOW());
+INSERT INTO jornada_exposicion_x_sala_exposicion (jornada_exposicion_id,
+                                                  sala_exposicion_id,
+                                                  activo,
+                                                  fecha_creacion,
+                                                  fecha_modificacion)
+    VALUES (1, 1, TRUE, NOW(), NOW()),
+           (1, 2, TRUE, NOW(), NOW()),
+           (1, 3, TRUE, NOW(), NOW()),
+           (1, 4, TRUE, NOW(), NOW());
 
--- Parametros de configuración
+
+-- Parametros de configuración 
 
 WITH
     nuevo_parametro AS (
@@ -2545,572 +2435,49 @@ FROM nuevo_parametro;
 
 /* NUEVOS */
 
-INSERT INTO
-    tema (
-        titulo,
-        resumen,
-        metodologia,
-        objetivos,
-        portafolio_url,
-        estado_tema_id,
-        proyecto_id,
-        carrera_id,
-        fecha_limite,
-        fecha_finalizacion,
-        activo,
-        fecha_creacion,
-        fecha_modificacion
-    )
-VALUES (
-        'Inteligencia Artificial Aplicada',
-        'Exploración de aplicaciones de IA en distintos campos como la medicina y la logística.',
-        'Investigación de campo y análisis de caso.',
-        'Estudiar aplicaciones de IA en entornos reales y su impacto.',
-        'https://www.example.com/ai-aplicada',
-        3,
-        NULL,
-        1,
-        '2024-12-01 00:00:00+00',
-        NULL,
-        TRUE,
-        '2025-05-08 21:24:41+00',
-        '2025-05-08 21:24:41+00'
-    ),
-    (
-        'Machine Learning para Datos No Estructurados',
-        'Uso de algoritmos de ML para datos no estructurados como imágenes y texto.',
-        'Clustering y análisis de patrones.',
-        'Aplicar técnicas de aprendizaje automático a datos no estructurados.',
-        'https://www.example.com/ml-no-estructurados',
-        3,
-        NULL,
-        1,
-        '2024-12-15 00:00:00+00',
-        NULL,
-        TRUE,
-        '2025-05-08 21:24:41+00',
-        '2025-05-08 21:24:41+00'
-    ),
-    (
-        'Redes Neuronales Profundas',
-        'Estudio de redes neuronales profundas y su uso en la clasificación de datos complejos.',
-        'Capacitación en redes neuronales y aprendizaje profundo.',
-        'Explorar arquitecturas avanzadas de redes neuronales para clasificación de datos.',
-        'https://www.example.com/redes-neuronales',
-        3,
-        NULL,
-        1,
-        '2024-12-10 00:00:00+00',
-        NULL,
-        TRUE,
-        '2025-05-08 21:24:41+00',
-        '2025-05-08 21:24:41+00'
-    ),
-    (
-        'Big Data y Análisis Predictivo',
-        'Aplicación de técnicas de big data para realizar predicciones de comportamiento en grandes volúmenes de datos.',
-        'Análisis exploratorio y técnicas predictivas.',
-        'Utilizar Big Data para predecir tendencias en diversos sectores.',
-        'https://www.example.com/bigdata-predictivo',
-        3,
-        NULL,
-        1,
-        '2024-12-20 00:00:00+00',
-        NULL,
-        TRUE,
-        '2025-05-08 21:24:41+00',
-        '2025-05-08 21:24:41+00'
-    ),
-    (
-        'Automatización en la Industria 4.0',
-        'Exploración de sistemas automatizados y su integración en la industria moderna.',
-        'Simulación y análisis de sistemas automatizados.',
-        'Implementar soluciones de automatización en procesos industriales.',
-        'https://www.example.com/industria-4-0',
-        3,
-        NULL,
-        1,
-        '2024-12-05 00:00:00+00',
-        NULL,
-        TRUE,
-        '2025-05-08 21:24:41+00',
-        '2025-05-08 21:24:41+00'
-    ),
-    (
-        'Blockchain y su Aplicación en Logística',
-        'Estudio del uso de blockchain para mejorar la trazabilidad en cadenas de suministro.',
-        'Investigación y análisis de caso de blockchain.',
-        'Explorar cómo blockchain puede mejorar la seguridad y transparencia en la logística.',
-        'https://www.example.com/blockchain-logistica',
-        3,
-        NULL,
-        1,
-        '2024-12-12 00:00:00+00',
-        NULL,
-        TRUE,
-        '2025-05-08 21:24:41+00',
-        '2025-05-08 21:24:41+00'
-    ),
-    (
-        'Ciberseguridad en la Era Digital',
-        'Estudio de las amenazas digitales actuales y las mejores prácticas de ciberseguridad.',
-        'Estudio de vulnerabilidades y técnicas de defensa.',
-        'Mejorar las habilidades de ciberseguridad en un entorno digital cambiante.',
-        'https://www.example.com/ciberseguridad-digital',
-        3,
-        NULL,
-        1,
-        '2024-12-18 00:00:00+00',
-        NULL,
-        TRUE,
-        '2025-05-08 21:24:41+00',
-        '2025-05-08 21:24:41+00'
-    ),
-    (
-        'Desarrollo de Software Ágil',
-        'Implementación de metodologías ágiles en el desarrollo de software.',
-        'Técnicas de desarrollo ágil y Scrum.',
-        'Optimizar el ciclo de desarrollo de software mediante metodologías ágiles.',
-        'https://www.example.com/software-agil',
-        3,
-        NULL,
-        1,
-        '2024-12-25 00:00:00+00',
-        NULL,
-        TRUE,
-        '2025-05-08 21:24:41+00',
-        '2025-05-08 21:24:41+00'
-    ),
-    (
-        'Internet de las Cosas (IoT)',
-        'Exploración de dispositivos conectados y su impacto en la vida cotidiana.',
-        'Análisis de datos y conectividad.',
-        'Investigar cómo IoT transforma industrias y hogares.',
-        'https://www.example.com/iot',
-        3,
-        NULL,
-        1,
-        '2024-12-30 00:00:00+00',
-        NULL,
-        TRUE,
-        '2025-05-08 21:24:41+00',
-        '2025-05-08 21:24:41+00'
-    ),
-    (
-        'Tecnologías Emergentes en Medicina',
-        'Exploración de nuevas tecnologías como la IA y la robótica en el ámbito médico.',
-        'Investigación sobre aplicaciones tecnológicas en el sector salud.',
-        'Estudiar cómo las tecnologías emergentes pueden transformar el sector médico.',
-        'https://www.example.com/tecnologias-medicina',
-        3,
-        NULL,
-        1,
-        '2025-01-05 00:00:00+00',
-        NULL,
-        TRUE,
-        '2025-05-08 21:24:41+00',
-        '2025-05-08 21:24:41+00'
-    ),
-    (
-        'Detección de depresión en estudiantes de Ingeniería Electrónica: Un caso de estudio',
-        'Este tema propone aplicar técnicas de visión por computadora para detectar informáticos deprimidos.',
-        NULL,
-        NULL,
-        'https://miuniversidad.edu/repos/tema003',
-        3,
-        NULL,
-        1,
-        '2025-05-10 10:00:00+00',
-        NULL,
-        TRUE,
-        '2025-05-01 10:00:00+00',
-        '2025-05-01 10:00:00+00'
-    ),
-    (
-        'Machine Learning para Datos No Estructurados',
-        'Uso de algoritmos de ML para datos no estructurados como imágenes y texto.',
-        'Clustering y análisis de patrones.',
-        'Aplicar técnicas de aprendizaje automático a datos no estructurados.',
-        'https://www.example.com/ml-no-estructurados',
-        3,
-        NULL,
-        1,
-        '2024-12-15 00:00:00+00',
-        NULL,
-        TRUE,
-        '2025-05-08 21:24:41+00',
-        '2025-05-08 21:24:41+00'
-    ),
-    (
-        'Redes Neuronales Profundas',
-        'Estudio de redes neuronales profundas y su uso en la clasificación de datos complejos.',
-        'Capacitación en redes neuronales y aprendizaje profundo.',
-        'Explorar arquitecturas avanzadas de redes neuronales para clasificación de datos.',
-        'https://www.example.com/redes-neuronales',
-        3,
-        NULL,
-        1,
-        '2024-12-10 00:00:00+00',
-        NULL,
-        TRUE,
-        '2025-05-08 21:24:41+00',
-        '2025-05-08 21:24:41+00'
-    ),
-    (
-        'Big Data y Análisis Predictivo',
-        'Aplicación de técnicas de big data para realizar predicciones de comportamiento en grandes volúmenes de datos.',
-        'Análisis exploratorio y técnicas predictivas.',
-        'Utilizar Big Data para predecir tendencias en diversos sectores.',
-        'https://www.example.com/bigdata-predictivo',
-        3,
-        NULL,
-        1,
-        '2024-12-20 00:00:00+00',
-        NULL,
-        TRUE,
-        '2025-05-08 21:24:41+00',
-        '2025-05-08 21:24:41+00'
-    ),
-    (
-        'Automatización en la Industria 4.0',
-        'Exploración de sistemas automatizados y su integración en la industria moderna.',
-        'Simulación y análisis de sistemas automatizados.',
-        'Implementar soluciones de automatización en procesos industriales.',
-        'https://www.example.com/industria-4-0',
-        3,
-        NULL,
-        1,
-        '2024-12-05 00:00:00+00',
-        NULL,
-        TRUE,
-        '2025-05-08 21:24:41+00',
-        '2025-05-08 21:24:41+00'
-    ),
-    (
-        'Blockchain y su Aplicación en Logística',
-        'Estudio del uso de blockchain para mejorar la trazabilidad en cadenas de suministro.',
-        'Investigación y análisis de caso de blockchain.',
-        'Explorar cómo blockchain puede mejorar la seguridad y transparencia en la logística.',
-        'https://www.example.com/blockchain-logistica',
-        3,
-        NULL,
-        1,
-        '2024-12-12 00:00:00+00',
-        NULL,
-        TRUE,
-        '2025-05-08 21:24:41+00',
-        '2025-05-08 21:24:41+00'
-    ),
-    (
-        'Ciberseguridad en la Era Digital',
-        'Estudio de las amenazas digitales actuales y las mejores prácticas de ciberseguridad.',
-        'Estudio de vulnerabilidades y técnicas de defensa.',
-        'Mejorar las habilidades de ciberseguridad en un entorno digital cambiante.',
-        'https://www.example.com/ciberseguridad-digital',
-        3,
-        NULL,
-        1,
-        '2024-12-18 00:00:00+00',
-        NULL,
-        TRUE,
-        '2025-05-08 21:24:41+00',
-        '2025-05-08 21:24:41+00'
-    ),
-    (
-        'Desarrollo de Software Ágil',
-        'Implementación de metodologías ágiles en el desarrollo de software.',
-        'Técnicas de desarrollo ágil y Scrum.',
-        'Optimizar el ciclo de desarrollo de software mediante metodologías ágiles.',
-        'https://www.example.com/software-agil',
-        3,
-        NULL,
-        1,
-        '2024-12-25 00:00:00+00',
-        NULL,
-        TRUE,
-        '2025-05-08 21:24:41+00',
-        '2025-05-08 21:24:41+00'
-    ),
-    (
-        'Internet de las Cosas (IoT)',
-        'Exploración de dispositivos conectados y su impacto en la vida cotidiana.',
-        'Análisis de datos y conectividad.',
-        'Investigar cómo IoT transforma industrias y hogares.',
-        'https://www.example.com/iot',
-        3,
-        NULL,
-        1,
-        '2024-12-30 00:00:00+00',
-        NULL,
-        TRUE,
-        '2025-05-08 21:24:41+00',
-        '2025-05-08 21:24:41+00'
-    ),
-    (
-        'Tecnologías Emergentes en Medicina',
-        'Exploración de nuevas tecnologías como la IA y la robótica en el ámbito médico.',
-        'Investigación sobre aplicaciones tecnológicas en el sector salud.',
-        'Estudiar cómo las tecnologías emergentes pueden transformar el sector médico.',
-        'https://www.example.com/tecnologias-medicina',
-        3,
-        NULL,
-        1,
-        '2025-01-05 00:00:00+00',
-        NULL,
-        TRUE,
-        '2025-05-08 21:24:41+00',
-        '2025-05-08 21:24:41+00'
-    ),
-    (
-        'Detección de depresión en estudiantes de Ingeniería Electrónica: Un caso de estudio',
-        'Este tema propone aplicar técnicas de visión por computadora para detectar informáticos deprimidos.',
-        NULL,
-        NULL,
-        'https://miuniversidad.edu/repos/tema003',
-        3,
-        NULL,
-        1,
-        '2025-05-10 10:00:00+00',
-        NULL,
-        TRUE,
-        '2025-05-01 10:00:00+00',
-        '2025-05-01 10:00:00+00'
-    );
+INSERT INTO tema (
+    titulo,
+    resumen,
+    metodologia,
+    objetivos,
+    portafolio_url,
+    estado_tema_id,
+    proyecto_id,
+    carrera_id,
+    fecha_limite,
+    fecha_finalizacion,
+    activo,
+    fecha_creacion,
+    fecha_modificacion
+)
+VALUES 
+('Inteligencia Artificial Aplicada', 'Exploración de aplicaciones de IA en distintos campos como la medicina y la logística.', 'Investigación de campo y análisis de caso.', 'Estudiar aplicaciones de IA en entornos reales y su impacto.', 'https://www.example.com/ai-aplicada', 3, NULL, 1, '2024-12-01 00:00:00+00', NULL, TRUE, '2025-05-08 21:24:41+00', '2025-05-08 21:24:41+00'),
 
-INSERT INTO
-    etapa_formativa_x_ciclo_x_tema (
-        etapa_formativa_x_ciclo_id,
-        tema_id,
-        aprobado,
-        fecha_modificacion
-    )
-VALUES (1, 2, TRUE, NOW()),
-    (1, 3, TRUE, NOW()),
-    (1, 4, TRUE, NOW());
+('Machine Learning para Datos No Estructurados', 'Uso de algoritmos de ML para datos no estructurados como imágenes y texto.', 'Clustering y análisis de patrones.', 'Aplicar técnicas de aprendizaje automático a datos no estructurados.', 'https://www.example.com/ml-no-estructurados', 3, NULL, 1, '2024-12-15 00:00:00+00', NULL, TRUE, '2025-05-08 21:24:41+00', '2025-05-08 21:24:41+00'),
 
--- Agregamos areas de conocimiento
-insert into
-    usuario_area_conocimiento (
-        usuario_id,
-        area_conocimiento_id,
-        activo,
-        fecha_creacion,
-        fecha_modificacion
-    ) (
-        select
-            usuario_id,
-            area_conocimiento_id,
-            true,
-            now(),
-            now()
-        from usuario
-            join area_conocimiento on area_conocimiento.nombre = 'ciberseguridad'
-        where
-            codigo_pucp in ('P003', 'PROF001', 'PROF003')
-        union
-        select
-            usuario_id,
-            area_conocimiento_id,
-            true,
-            now(),
-            now()
-        from usuario
-            join area_conocimiento on area_conocimiento.nombre = 'sistemas de información'
-        where
-            codigo_pucp in ('P002', 'PROF001', 'PROF004')
-        union
-        select
-            usuario_id,
-            area_conocimiento_id,
-            true,
-            now(),
-            now()
-        from usuario
-            join area_conocimiento on area_conocimiento.nombre = 'ciencias de la computación'
-        where
-            codigo_pucp in ('PROF002', 'PROF004')
-    );
+('Redes Neuronales Profundas', 'Estudio de redes neuronales profundas y su uso en la clasificación de datos complejos.', 'Capacitación en redes neuronales y aprendizaje profundo.', 'Explorar arquitecturas avanzadas de redes neuronales para clasificación de datos.', 'https://www.example.com/redes-neuronales', 3, NULL, 1, '2024-12-10 00:00:00+00', NULL, TRUE, '2025-05-08 21:24:41+00', '2025-05-08 21:24:41+00'),
 
--- Agregamos sub areas de conocimiento
+('Big Data y Análisis Predictivo', 'Aplicación de técnicas de big data para realizar predicciones de comportamiento en grandes volúmenes de datos.', 'Análisis exploratorio y técnicas predictivas.', 'Utilizar Big Data para predecir tendencias en diversos sectores.', 'https://www.example.com/bigdata-predictivo', 3, NULL, 1, '2024-12-20 00:00:00+00', NULL, TRUE, '2025-05-08 21:24:41+00', '2025-05-08 21:24:41+00'),
 
-INSERT INTO
-    usuario_sub_area_conocimiento (
-        usuario_id,
-        sub_area_conocimiento_id,
-        activo
-    )
-VALUES (6, 11, true);
+('Automatización en la Industria 4.0', 'Exploración de sistemas automatizados y su integración en la industria moderna.', 'Simulación y análisis de sistemas automatizados.', 'Implementar soluciones de automatización en procesos industriales.', 'https://www.example.com/industria-4-0', 3, NULL, 1, '2024-12-05 00:00:00+00', NULL, TRUE, '2025-05-08 21:24:41+00', '2025-05-08 21:24:41+00'),
 
-INSERT INTO
-    usuario_sub_area_conocimiento (
-        usuario_id,
-        sub_area_conocimiento_id,
-        activo
-    )
-VALUES (6, 12, true);
+('Blockchain y su Aplicación en Logística', 'Estudio del uso de blockchain para mejorar la trazabilidad en cadenas de suministro.', 'Investigación y análisis de caso de blockchain.', 'Explorar cómo blockchain puede mejorar la seguridad y transparencia en la logística.', 'https://www.example.com/blockchain-logistica', 3, NULL, 1, '2024-12-12 00:00:00+00', NULL, TRUE, '2025-05-08 21:24:41+00', '2025-05-08 21:24:41+00'),
 
-INSERT INTO
-    usuario_sub_area_conocimiento (
-        usuario_id,
-        sub_area_conocimiento_id,
-        activo
-    )
-VALUES (6, 14, true);
+('Ciberseguridad en la Era Digital', 'Estudio de las amenazas digitales actuales y las mejores prácticas de ciberseguridad.', 'Estudio de vulnerabilidades y técnicas de defensa.', 'Mejorar las habilidades de ciberseguridad en un entorno digital cambiante.', 'https://www.example.com/ciberseguridad-digital', 3, NULL, 1, '2024-12-18 00:00:00+00', NULL, TRUE, '2025-05-08 21:24:41+00', '2025-05-08 21:24:41+00'),
 
-INSERT INTO
-    usuario_sub_area_conocimiento (
-        usuario_id,
-        sub_area_conocimiento_id,
-        activo
-    )
-VALUES (9, 7, true);
+('Desarrollo de Software Ágil', 'Implementación de metodologías ágiles en el desarrollo de software.', 'Técnicas de desarrollo ágil y Scrum.', 'Optimizar el ciclo de desarrollo de software mediante metodologías ágiles.', 'https://www.example.com/software-agil', 3, NULL, 1, '2024-12-25 00:00:00+00', NULL, TRUE, '2025-05-08 21:24:41+00', '2025-05-08 21:24:41+00'),
 
-INSERT INTO
-    usuario_sub_area_conocimiento (
-        usuario_id,
-        sub_area_conocimiento_id,
-        activo
-    )
-VALUES (9, 6, true);
+('Internet de las Cosas (IoT)', 'Exploración de dispositivos conectados y su impacto en la vida cotidiana.', 'Análisis de datos y conectividad.', 'Investigar cómo IoT transforma industrias y hogares.', 'https://www.example.com/iot', 3, NULL, 1, '2024-12-30 00:00:00+00', NULL, TRUE, '2025-05-08 21:24:41+00', '2025-05-08 21:24:41+00'),
 
-INSERT INTO
-    usuario_sub_area_conocimiento (
-        usuario_id,
-        sub_area_conocimiento_id,
-        activo
-    )
-VALUES (9, 14, true);
+('Tecnologías Emergentes en Medicina', 'Exploración de nuevas tecnologías como la IA y la robótica en el ámbito médico.', 'Investigación sobre aplicaciones tecnológicas en el sector salud.', 'Estudiar cómo las tecnologías emergentes pueden transformar el sector médico.', 'https://www.example.com/tecnologias-medicina', 3, NULL, 1, '2025-01-05 00:00:00+00', NULL, TRUE, '2025-05-08 21:24:41+00', '2025-05-08 21:24:41+00'),
 
-INSERT INTO
-    usuario_sub_area_conocimiento (
-        usuario_id,
-        sub_area_conocimiento_id,
-        activo
-    )
-VALUES (9, 15, true);
+('Detección de depresión en estudiantes de Ingeniería Electrónica: Un caso de estudio', 'Este tema propone aplicar técnicas de visión por computadora para detectar informáticos deprimidos.', NULL, NULL, 'https://miuniversidad.edu/repos/tema003', 3, NULL, 1, '2025-05-10 10:00:00+00', NULL, TRUE, '2025-05-01 10:00:00+00', '2025-05-01 10:00:00+00');
 
-INSERT INTO
-    usuario_sub_area_conocimiento (
-        usuario_id,
-        sub_area_conocimiento_id,
-        activo
-    )
-VALUES (9, 11, true);
 
-INSERT INTO
-    usuario_sub_area_conocimiento (
-        usuario_id,
-        sub_area_conocimiento_id,
-        activo
-    )
-VALUES (10, 5, true);
-
-INSERT INTO
-    usuario_sub_area_conocimiento (
-        usuario_id,
-        sub_area_conocimiento_id,
-        activo
-    )
-VALUES (10, 4, true);
-
-INSERT INTO
-    usuario_sub_area_conocimiento (
-        usuario_id,
-        sub_area_conocimiento_id,
-        activo
-    )
-VALUES (11, 11, true);
-
-INSERT INTO
-    usuario_sub_area_conocimiento (
-        usuario_id,
-        sub_area_conocimiento_id,
-        activo
-    )
-VALUES (11, 14, true);
-
-INSERT INTO
-    usuario_sub_area_conocimiento (
-        usuario_id,
-        sub_area_conocimiento_id,
-        activo
-    )
-VALUES (12, 1, true);
-
-INSERT INTO
-    usuario_sub_area_conocimiento (
-        usuario_id,
-        sub_area_conocimiento_id,
-        activo
-    )
-VALUES (12, 3, true);
-
-INSERT INTO
-    usuario_sub_area_conocimiento (
-        usuario_id,
-        sub_area_conocimiento_id,
-        activo
-    )
-VALUES (12, 6, true);
-
-INSERT INTO
-    usuario_sub_area_conocimiento (
-        usuario_id,
-        sub_area_conocimiento_id,
-        activo
-    )
-VALUES (12, 10, true);
-
-INSERT INTO
-    usuario_sub_area_conocimiento (
-        usuario_id,
-        sub_area_conocimiento_id,
-        activo
-    )
-VALUES (12, 7, true);
-
--- Agregamos rol de asesor a los profesores
-insert into
-    usuario_rol (
-        usuario_id,
-        rol_id,
-        activo,
-        fecha_creacion,
-        fecha_modificacion
-    ) (
-        select usuario.usuario_id, rol.rol_id, TRUE, now(), now()
-        from
-            usuario
-            inner join tipo_usuario on tipo_usuario.tipo_usuario_id = usuario.tipo_usuario_id
-            inner join usuario_carrera on usuario_carrera.usuario_id = usuario.usuario_id
-            join rol on rol.nombre = 'Asesor'
-        where
-            tipo_usuario.nombre like 'profesor'
-            and usuario_carrera.carrera_id = 1
-    );
-
--- Parametros para asesores
-INSERT INTO
-    parametro_configuracion (
-        parametro_configuracion_id,
-        activo,
-        descripcion,
-        fecha_creacion,
-        fecha_modificacion,
-        nombre,
-        tipo,
-        modulo_id
-    )
-VALUES (
-        12,
-        true,
-        'Numero de limites por asesor',
-        NOW(),
-        NOW(),
-        'LimXasesor',
-        'integer',
-        1
-    );
+INSERT INTO etapa_formativa_x_ciclo_x_tema (etapa_formativa_x_ciclo_id, tema_id, aprobado, fecha_modificacion)
+    VALUES (1, 2, TRUE, NOW()),
+           (1, 3, TRUE, NOW()),
+           (1, 4, TRUE, NOW());
 
 INSERT INTO
     carrera_parametro_configuracion (
@@ -3463,4 +2830,56 @@ VALUES (
         NOW(), -- Fecha de creación actual
         NOW(), -- Fecha de modificación actual
         1
+    );
+
+INSERT INTO
+    carrera_parametro_configuracion (
+        carrera_id,
+        parametro_configuracion_id,
+        valor,
+        activo,
+        fecha_creacion,
+        fecha_modificacion,
+        etapa_formativa_id
+    )
+VALUES (
+        1, -- ID de la carrera asociada (ejemplo: 1)
+        (
+            SELECT parametro_configuracion_id
+            FROM parametro_configuracion
+            WHERE
+                nombre = 'Limite Propuestas Alumno'
+            LIMIT 1
+        ), -- ID del parametro_configuracion asociado (ejemplo: 1)
+        2, -- Valor de la configuración
+        true, -- Estado activo
+        NOW(), -- Fecha de creación actual
+        NOW(), -- Fecha de modificación actual
+        null
+    );
+
+INSERT INTO
+    carrera_parametro_configuracion (
+        carrera_id,
+        parametro_configuracion_id,
+        valor,
+        activo,
+        fecha_creacion,
+        fecha_modificacion,
+        etapa_formativa_id
+    )
+VALUES (
+        1, -- ID de la carrera asociada (ejemplo: 1)
+        (
+            SELECT parametro_configuracion_id
+            FROM parametro_configuracion
+            WHERE
+                nombre = 'Limite Postulaciones Alumno'
+            LIMIT 1
+        ), -- ID del parametro_configuracion asociado (ejemplo: 1)
+        2, -- Valor de la configuración
+        true, -- Estado activo
+        NOW(), -- Fecha de creación actual
+        NOW(), -- Fecha de modificación actual
+        null
     );

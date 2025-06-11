@@ -366,6 +366,7 @@ export const getExposicionesJurado = async (
         ciclo_id: expo.ciclo_id,
         enlace_grabacion: expo.enlace_grabacion,
         enlace_sesion: expo.enlace_sesion,
+        criterios_calificados: expo.criterios_calificados,
         miembros,
       };
     });
@@ -496,7 +497,7 @@ export const getExposicionCalificarJurado = async (
             id: criterio.id,
             titulo: criterio.titulo,
             descripcion: criterio.descripcion,
-            calificacion: criterio.calificacion || 0,
+            calificacion: criterio.calificacion,
             nota_maxima: criterio.nota_maxima || 20,
             observacion: criterio.observacion || "",
           }))

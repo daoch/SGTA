@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import pucp.edu.pe.sgta.dto.UsuarioXCarreraDto;
 import pucp.edu.pe.sgta.model.UsuarioXCarrera;
 
 public interface UsuarioXCarreraRepository extends JpaRepository<UsuarioXCarrera, Integer>{
@@ -23,4 +24,7 @@ public interface UsuarioXCarreraRepository extends JpaRepository<UsuarioXCarrera
     @Modifying
     @Query("DELETE FROM UsuarioXCarrera uc WHERE uc.usuario.id = :usuarioId")
     void deleteByUsuarioId(@Param("usuarioId") Integer usuarioId);
+
+    @Query("SELECT uc FROM UsuarioXCarrera uc WHERE uc.usuario.id = :usuarioId AND uc.esCoordinador = true")
+    UsuarioXCarrera getCarreraPrincipalCoordinador(@Param("usuarioId") Integer usuarioId);
 }

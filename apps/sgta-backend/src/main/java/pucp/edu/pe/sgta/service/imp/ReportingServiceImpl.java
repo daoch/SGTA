@@ -16,8 +16,27 @@ import pucp.edu.pe.sgta.service.inter.CriterioEntregableService;    // ← IMPOR
 import pucp.edu.pe.sgta.service.inter.IReportService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
 
+import java.util.NoSuchElementException;
+
+
+import pucp.edu.pe.sgta.repository.UsuarioRepository;
+import pucp.edu.pe.sgta.model.Usuario;
+import pucp.edu.pe.sgta.dto.UsuarioDto;
+import pucp.edu.pe.sgta.mapper.UsuarioMapper;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
 @Service
 public class ReportingServiceImpl implements IReportService {
+
+    private static final Logger logger = LoggerFactory.getLogger(ReportingServiceImpl.class);
+
+    @Autowired
+    private UsuarioRepository usuarioRepository;
 
     private final UsuarioService usuarioService;
     private final TopicAreaStatsRepository topicAreaStatsRepository;
@@ -286,13 +305,33 @@ public class ReportingServiceImpl implements IReportService {
                 .collect(Collectors.toList());
     }
 
+
+    public UsuarioDto findByCognitoId(String cognitoId) throws NoSuchElementException {
+        Optional<Usuario> usuarioOpt = usuarioRepository.findByIdCognito(cognitoId);
+        if (usuarioOpt.isPresent()) {
+            return UsuarioMapper.toDto(usuarioOpt.get());
+        }
+        throw new NoSuchElementException("Usuario not found with ID Cognito: " + cognitoId);
+    }
+
+
+
     @Override
-    public List<EntregableEstudianteDto> getEntregablesEstudiante(String cognitoSub) {
-        Integer usuarioId = usuarioService.findByCognitoId(cognitoSub).getId();
-        UsuarioXTema ut = usuarioXTemaRepository
-                .findByUsuarioId(usuarioId)
-                .orElseThrow(() -> new RuntimeException("Usuario no tiene tema asignado"));
-        int temaId = ut.getTema().getId();
+    public List<EntregableEstudianteDto> getEntregablesEstudiante(String usuarioId) {
+
+        // 1) Resolvemos el usuario interno a partir del Cognito ID
+        UsuarioDto usuDto = findByCognitoId(usuarioId);
+        if (usuDto == null) {
+            throw new RuntimeException("Usuario no encontrado con Cognito ID: " + usuarioId);
+        }
+        Integer usuarioId_interno = usuDto.getId();
+
+        Optional<UsuarioXTema> usuarioTema = usuarioXTemaRepository.findByUsuarioId(usuarioId_interno);
+        if (usuarioTema.isEmpty()) {
+            throw new RuntimeException("Usuario no tiene tema asignado");
+        }
+
+        Integer temaId = usuarioTema.get().getTema().getId();
 
         return entregableXTemaRepository.findByTemaIdWithEntregable(temaId).stream()
                 .map(et -> {
@@ -338,9 +377,74 @@ public class ReportingServiceImpl implements IReportService {
     }
 
     @Override
-    public List<EntregableCriteriosDetalleDto> getEntregablesConCriterios(String cognitoSub) {
-        Integer usuarioId = usuarioService.findByCognitoId(cognitoSub).getId();
-        List<Object[]> results = entregablesCriteriosRepository.getEntregablesConCriterios(usuarioId);
+    public List<EntregableEstudianteDto> getEntregablesEstudianteById(int usuarioId) {
+        System.out.println("usuarioId recibido: " + usuarioId);
+
+        Optional<UsuarioXTema> usuarioTema = usuarioXTemaRepository.findByUsuarioId(usuarioId);
+        if (usuarioTema.isEmpty()) {
+            System.out.println("MIRAMEEEEEEEEEEEEEEEEEEEEEEEEEEE\n\n");
+            System.out.println("El usuario con ID " + usuarioId + " no tiene tema asignado en usuario_tema.");
+            System.out.println("El usuario no tiene tema asignado.");
+            return Collections.emptyList();
+        }
+
+        Integer temaId = usuarioTema.get().getTema().getId();
+        System.out.println("Tema ID del estudiante: " + temaId);
+
+        var entregables = entregableXTemaRepository.findByTemaIdWithEntregable(temaId);
+        System.out.println("Cantidad de entregables encontrados: " + entregables.size());
+
+        return entregables.stream()
+            .map(et -> {
+                System.out.println("Procesando entregableXTemaId: " + et.getEntregableXTemaId());
+                int exId = et.getEntregableXTemaId();
+
+                Double notaGlobal = et.getNotaEntregable() != null
+                    ? et.getNotaEntregable().doubleValue()
+                    : null;
+
+                boolean esEvaluable = et.getEntregable().isEsEvaluable();
+                String estadoEntregable = et.getEntregable().getEstadoStr();
+                String estadoXTema = et.getEstado().name();
+
+                List<CriterioEntregableDto> criterios = criterioEntregableService
+                    .listarCriteriosEntregableXEntregable(et.getEntregable().getId())
+                    .stream()
+                    .map(c -> {
+                        Double nota = revisionCriterioEntregableRepository
+                            .findNotaByEntregableXTemaIdAndCriterioEntregableId(exId, c.getId())
+                            .map(BigDecimal::doubleValue)
+                            .orElse(null);
+
+                        CriterioEntregableDto copy = new CriterioEntregableDto();
+                        copy.setId(c.getId());
+                        copy.setNombre(c.getNombre());
+                        copy.setDescripcion(c.getDescripcion());
+                        copy.setNotaMaxima(c.getNotaMaxima());
+                        copy.setNota(nota);
+                        return copy;
+                    })
+                    .collect(Collectors.toList());
+
+                return new EntregableEstudianteDto(
+                    et.getEntregable().getNombre(),
+                    estadoEntregable,
+                    estadoXTema,
+                    et.getFechaEnvio() != null ? et.getFechaEnvio().toLocalDateTime() : null,
+                    notaGlobal,
+                    esEvaluable,
+                    criterios
+                );
+            })
+            .collect(Collectors.toList());
+    }
+
+
+
+    @Override
+    public List<EntregableCriteriosDetalleDto> getEntregablesConCriterios(Integer idUsuario) {
+        //Integer usuarioId = usuarioService.findByCognitoId(cognitoSub).getId();
+        List<Object[]> results = entregablesCriteriosRepository.getEntregablesConCriterios(idUsuario);
 
         Map<Integer, EntregableCriteriosDetalleDto> map = new LinkedHashMap<>();
         for (Object[] r : results) {
