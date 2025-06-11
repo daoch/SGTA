@@ -91,10 +91,14 @@ export default function ReviewerStudentDetails({ params }: { params: Promise<{ i
   const selectedStudentData = students.find((student) => student.usuarioId === parseInt(id));
   ///const selectedStudentData = students.find((student) => student.usuarioId === studentId);
 
+   
+
 
   if (loading) {
     return <div>Cargando estudiantes...</div>;
   }
+
+  
 
   return (
     <div className="space-y-6">
@@ -128,9 +132,9 @@ export default function ReviewerStudentDetails({ params }: { params: Promise<{ i
                     </h2>
                   </div>
                   <div className="flex items-center gap-2 mb-2">
-                    <Badge variant="outline" className="text-xs">
+                    {/* <Badge variant="outline" className="text-xs">
                         <p> Area hardcodeada</p>
-                    </Badge>
+                    </Badge> */}
                     {/* <span className="ml-2 text-xs text-gray-500">{selectedStudentData?.estado}</span> */}
                   </div>
                 </div>
@@ -189,9 +193,13 @@ export default function ReviewerStudentDetails({ params }: { params: Promise<{ i
             </TabsList>
 
             <TabsContent value="timeline">
-              {user && <LineaTiempoReporte user={user} />}
+                {user && (
+                  <LineaTiempoReporte
+                    selectedStudentId={selectedStudentData?.usuarioId ?? null}
+                    user={user}
+                  />
+                )}
             </TabsContent>
-
             <TabsContent value="consolidated">
               <ConsolidatedView studentId={selectedStudentData?.usuarioId} />
             </TabsContent>
@@ -200,4 +208,5 @@ export default function ReviewerStudentDetails({ params }: { params: Promise<{ i
       </Card>
     </div>
   );
+
 }

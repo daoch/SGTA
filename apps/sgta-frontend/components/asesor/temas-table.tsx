@@ -15,6 +15,7 @@ import { Tipo } from "@/features/temas/types/inscripcion/enums";
 import { Tema } from "@/features/temas/types/temas/entidades";
 import { titleCase } from "@/lib/utils";
 import { FilePen, Trash2 } from "lucide-react";
+
 import DeleteTemaPopUp from "./delete-tema-pop-up";
 import { TemaDetailsDialog } from "./tema-details-modal";
 
@@ -24,6 +25,7 @@ interface PropuestasTableProps {
   isLoading?: boolean;
   error?: string | null;
   asesor?: Coasesor;
+  onTemaInscrito?: () => void;
 }
 
 /**
@@ -36,6 +38,7 @@ export function TemasTable({
   isLoading,
   error,
   asesor,
+  onTemaInscrito,
 }: Readonly<PropuestasTableProps>) {
   const deleteTema = () => {
     console.log("Tema eliminado");
@@ -91,12 +94,21 @@ export function TemasTable({
         <TableCell>{asesor ? asesor.nombres : ""}</TableCell>
         {/* Tesistas */}
         <TableCell>
-          {!tema.tesistas ||
-          tema.tesistas.length === 0 ||
-          tema.tesistas.map((tesista) => tesista.asignado === false) ? (
+          {!tema.tesistas || tema.tesistas.length === 0 ? (
             <p className="text-gray-400">Sin asignar</p>
           ) : (
-            tema.tesistas.map((e: Tesista) => e.nombres).join(", ")
+            (() => {
+              const tesistasAsignados = tema.tesistas.filter(
+                (e: Tesista) => e.asignado !== false,
+              );
+              return tesistasAsignados.length === 0 ? (
+                <p className="text-gray-400">Sin asignar</p>
+              ) : (
+                <p>
+                  {tesistasAsignados.map((e: Tesista) => e.nombres).join(", ")}
+                </p>
+              );
+            })()
           )}
         </TableCell>
         {/* Postulaciones */}
@@ -160,7 +172,11 @@ export function TemasTable({
         <TableCell className="text-right">
           <div className="flex justify-end gap-2">
             {/* View Details */}
-            <TemaDetailsDialog tema={tema} asesor={asesor} />
+            <TemaDetailsDialog
+              tema={tema}
+              asesor={asesor}
+              onTemaInscrito={onTemaInscrito}
+            />
             {/* Edit Page */}
             {[Tipo.INSCRITO, Tipo.LIBRE].includes(
               tema.estadoTemaNombre as Tipo,

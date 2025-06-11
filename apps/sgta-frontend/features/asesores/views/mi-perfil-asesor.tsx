@@ -22,7 +22,7 @@ import {
   getPerfilAsesor,
   listarAreasTematicas,
   listarTemasInteres,
-} from "@/features/asesores/hooks/perfil/perfil-apis";
+} from "@/features/asesores/services/perfil-services";
 
 import {
   AreaTematica,

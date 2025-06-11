@@ -3,7 +3,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from "date-fns";
 import { useEffect, useState } from "react";
-import { ProjectTracking } from "../components/general/project-tracking";
 
 import { obtenerDetalleTemaAlumno, obtenerEntregablesConRetraso } from "../services/report-services";
 
@@ -12,8 +11,8 @@ import { AlumnoTemaDetalle } from "../types/Alumno.type";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { AlertTriangle } from "lucide-react";
-import { OverdueSummary } from "../types/OverdueSummary.type";
 import { LineaTiempoReporte } from "../components/general/linea-tiempo";
+import { OverdueSummary } from "../types/OverdueSummary.type";
 
 const getProgressColor = (progreso: number) => {
   if (progreso < 30) return "#ef4444";

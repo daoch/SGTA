@@ -33,10 +33,19 @@ public class ObservacionController {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        observacionService.guardarObservaciones(revisionId, highlights, usuarioId);
+        //observacionService.guardarObservaciones(revisionId, highlights, usuarioId);
         return ResponseEntity.ok().build();
     }
+    @PostMapping("/{revisionId}/observacion")
+    public ResponseEntity<Integer> guardarObservacion(
+            @PathVariable("revisionId") Integer revisionId,
+            @RequestBody HighlightDto highlight,
+            @RequestParam("usuarioId") Integer usuarioId) {
 
+        Integer id = observacionService.guardarObservaciones(revisionId, highlight, usuarioId);
+        System.out.println("ID de la observación guardada: " + id);
+        return ResponseEntity.ok(id);
+    }
     @GetMapping("/{revisionId}/observaciones")
     public ResponseEntity<List<HighlightDto>> getObservacionesByRevision(
             @PathVariable("revisionId") Integer revisionId) {
@@ -50,5 +59,11 @@ public class ObservacionController {
 
     List<ObservacionesRevisionDTO> observaciones = observacionService.obtenerObservacionesPorEntregableYTema(entregableId, temaId);
     return ResponseEntity.ok(observaciones);
-}
+    }
+    @DeleteMapping("/observaciones/{observacionId}")
+    public ResponseEntity<?> borrarLogicamenteObservacion(@PathVariable Integer observacionId) {
+    observacionService.borradoLogicoObservacion(observacionId);
+    return ResponseEntity.ok().build();
+    }
+
 }

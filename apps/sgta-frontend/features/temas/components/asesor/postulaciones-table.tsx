@@ -46,26 +46,30 @@ export function PostulacionesTable() {
   const [debounceFechaFin, setDebounceFechaFin] = useState<string>("");
   const [debounceEstado, setDebounceEstado] = useState<string>("");
 
-  useEffect(() => {
-    const fetchPostulaciones = async () => {
-      try {
-        setLoading(true);
-        console.log({ debounceEstado });
-        console.log({ debounceFechaFin });
-        const data = await fetchPostulacionesAlAsesor(
-          debouncedSearchTerm,
-          debounceEstado,
-          debounceFechaFin,
-        );
-        setPostulacionesData(data);
-      } catch {
-        console.log("No se logró listar las postulaciones");
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchPostulaciones = async (
+    debouncedSearchTerm: string,
+    debounceEstado: string,
+    debounceFechaFin: string,
+  ) => {
+    try {
+      setLoading(true);
+      console.log({ debounceEstado });
+      console.log({ debounceFechaFin });
+      const data = await fetchPostulacionesAlAsesor(
+        debouncedSearchTerm,
+        debounceEstado,
+        debounceFechaFin,
+      );
+      setPostulacionesData(data);
+    } catch {
+      console.log("No se logró listar las postulaciones");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchPostulaciones();
+  useEffect(() => {
+    fetchPostulaciones(debouncedSearchTerm, debounceEstado, debounceFechaFin);
   }, [debouncedSearchTerm, debounceEstado, debounceFechaFin]);
 
   const handleOpenDialog = (postulacion: Postulacion) => {
@@ -115,8 +119,10 @@ export function PostulacionesTable() {
     }
 
     setSelectedPostulacion(null);
+    setAbrirModal(false);
     setFeedbackText("");
     setShowAcceptDialog(false);
+    fetchPostulaciones(debouncedSearchTerm, debounceEstado, debounceFechaFin);
   };
 
   const handleReject = async () => {
@@ -146,8 +152,10 @@ export function PostulacionesTable() {
     }
 
     setSelectedPostulacion(null);
+    setAbrirModal(false);
     setFeedbackText("");
     setShowRejectDialog(false);
+    fetchPostulaciones(debouncedSearchTerm, debounceEstado, debounceFechaFin);
   };
 
   const handleClearFilters = () => {
@@ -240,7 +248,9 @@ export function PostulacionesTable() {
               </TableRow>
             ) : (
               postulacionesData?.map((postulacion) => (
-                <TableRow key={postulacion.id}>
+                <TableRow
+                  key={`${postulacion.id}-${postulacion.tesistas[0].id}`}
+                >
                   <TableCell className="font-medium max-w-xs truncate">
                     {postulacion.titulo}
                   </TableCell>

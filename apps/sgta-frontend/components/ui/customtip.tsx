@@ -20,7 +20,7 @@ const iconOptions = [
     { value: "Citado", icon: <Quote className="h-5 w-5 text-blue-500" /> },
 ];
 export class CustomTip extends Component<CustomTipProps, CustomTipState> {
-    state: CustomTipState = { compact: true, text: "", emoji: "" };
+    state: CustomTipState = { compact: true, text: "", emoji: "Contenido" };
 
     render() {
         const { onOpen, onConfirm } = this.props;
@@ -50,14 +50,14 @@ export class CustomTip extends Component<CustomTipProps, CustomTipState> {
                     e.preventDefault();
                     onConfirm({ text, emoji });
                 }}
-                style={{ width: 340 /* ancho total del card */ }}
+                style={{ width: 360 /* ancho total del card */ }}
             >
                 <textarea
-                    placeholder="Tu comentario"
+                    placeholder=" Tu comentario"
                     autoFocus
                     value={text}
                     onChange={(e) => this.setState({ text: e.target.value })}
-                    style={{ width: 320 /* ancho total del card */ }}
+                    style={{ width: 340 /* ancho total del card */ }}
                 />
                 <div className="flex items-center gap-3 my-2">
                     {iconOptions.map(({ value, icon }) => (
@@ -70,6 +70,7 @@ export class CustomTip extends Component<CustomTipProps, CustomTipState> {
                                 onChange={() => this.setState({ emoji: value })}
                             />
                             <span>{icon}</span>
+                            <span>{value}</span> {/* Aquí agregas el texto */}
                         </label>
                     ))}
                 </div>
