@@ -1,3 +1,6 @@
+-- Asegúrate de estar en el schema correcto si no lo has hecho globalmente
+--SET search_path TO sgtadb;
+
 DO
 $$
     BEGIN
@@ -120,7 +123,10 @@ CREATE TABLE IF NOT EXISTS usuario_carrera
     CONSTRAINT fk_carrera
         FOREIGN KEY (carrera_id)
             REFERENCES carrera (carrera_id)
-            ON DELETE RESTRICT
+            ON DELETE RESTRICT,
+
+    CONSTRAINT unico_usuario_carrera
+        UNIQUE (usuario_id, carrera_id)
 );
 
 CREATE TABLE IF NOT EXISTS estado_tema
@@ -353,9 +359,9 @@ CREATE TABLE IF NOT EXISTS solicitud
 );
 
 -- Asegúrate de estar en el schema correcto si no lo has hecho globalmente
-SET search_path TO sgtadb;
+--SET search_path TO sgtadb;
 
-ALTER TABLE sgtadb.solicitud
+ALTER TABLE solicitud
 ADD COLUMN IF NOT EXISTS asesor_propuesto_reasignacion_id INTEGER,
 ADD COLUMN IF NOT EXISTS estado_reasignacion VARCHAR(50); -- Ajusta el tamaño de VARCHAR si es necesario
 
@@ -370,26 +376,26 @@ BEGIN
         SELECT 1 FROM information_schema.table_constraints
         WHERE table_schema = 'sgtadb' AND table_name = 'solicitud' AND constraint_name = 'fk_solicitud_asesor_propuesto'
     ) THEN
-        ALTER TABLE sgtadb.solicitud
+        ALTER TABLE solicitud
         ADD CONSTRAINT fk_solicitud_asesor_propuesto
         FOREIGN KEY (asesor_propuesto_reasignacion_id)
-        REFERENCES sgtadb.usuario (usuario_id)
+        REFERENCES usuario (usuario_id)
         ON DELETE SET NULL -- O ON DELETE RESTRICT si prefieres que no se pueda borrar un usuario si es asesor propuesto
         ON UPDATE CASCADE;
     END IF;
 END $$;
 
 -- Comentario sobre los nuevos campos (opcional, pero bueno para documentación)
-COMMENT ON COLUMN sgtadb.solicitud.asesor_propuesto_reasignacion_id IS 'ID del usuario (asesor) que ha sido propuesto para la reasignación de este tema/solicitud.';
-COMMENT ON COLUMN sgtadb.solicitud.estado_reasignacion IS 'Estado del proceso de reasignación después de que la solicitud de cese fue aprobada (ej. PENDIENTE_ACEPTACION_ASESOR, REASIGNACION_COMPLETADA, REASIGNACION_RECHAZADA_POR_ASESOR).';
+COMMENT ON COLUMN solicitud.asesor_propuesto_reasignacion_id IS 'ID del usuario (asesor) que ha sido propuesto para la reasignación de este tema/solicitud.';
+COMMENT ON COLUMN solicitud.estado_reasignacion IS 'Estado del proceso de reasignación después de que la solicitud de cese fue aprobada (ej. PENDIENTE_ACEPTACION_ASESOR, REASIGNACION_COMPLETADA, REASIGNACION_RECHAZADA_POR_ASESOR).';
 
 SELECT 'Columnas asesor_propuesto_reasignacion_id y estado_reasignacion añadidas/verificadas en la tabla solicitud.' AS resultado;
 
 --- AGREGAR CAMPO USUARIO_CREADOR A SOLICITUD
 -- Asegúrate de estar en el schema correcto
-SET search_path TO sgtadb; -- Esta línea es redundante si ya la pusiste para el bloque anterior de solicitud, pero no hace daño.
+--SET search_path TO sgtadb; -- Esta línea es redundante si ya la pusiste para el bloque anterior de solicitud, pero no hace daño.
 
-ALTER TABLE sgtadb.solicitud
+ALTER TABLE solicitud
 ADD COLUMN IF NOT EXISTS usuario_creador_id INTEGER;
 
 -- Añadir la constraint de Foreign Key
@@ -404,19 +410,19 @@ BEGIN
         SELECT 1 FROM information_schema.table_constraints
         WHERE table_schema = 'sgtadb' AND table_name = 'solicitud' AND constraint_name = 'fk_solicitud_usuario_creador'
     ) THEN
-        ALTER TABLE sgtadb.solicitud
+        ALTER TABLE solicitud
         ADD CONSTRAINT fk_solicitud_usuario_creador
         FOREIGN KEY (usuario_creador_id)
-        REFERENCES sgtadb.usuario (usuario_id)
+        REFERENCES usuario (usuario_id)
         ON DELETE RESTRICT -- O SET NULL si prefieres, pero RESTRICT es más seguro para un creador
         ON UPDATE CASCADE;
     END IF;
 END $$;
 
 -- Una vez que todas las filas existentes tengan un usuario_creador_id válido, puedes hacerla NOT NULL:
--- ALTER TABLE sgtadb.solicitud ALTER COLUMN usuario_creador_id SET NOT NULL;
+-- ALTER TABLE solicitud ALTER COLUMN usuario_creador_id SET NOT NULL;
 -- ¡CUIDADO! Esto fallará si hay filas con usuario_creador_id = NULL.
-COMMENT ON COLUMN sgtadb.solicitud.usuario_creador_id IS 'ID del usuario que originó/creó la solicitud.';
+COMMENT ON COLUMN solicitud.usuario_creador_id IS 'ID del usuario que originó/creó la solicitud.';
 
 -- (Opcional, pero recomendado para consistencia con los otros bloques)
 -- SELECT 'Columna usuario_creador_id añadida/verificada en la tabla solicitud.' AS resultado;
@@ -712,13 +718,13 @@ CREATE TABLE IF NOT EXISTS notificacion
 );
 
 -- Asegúrate de estar en el schema correcto si no lo has hecho globalmente
-SET search_path TO sgtadb;
+--SET search_path TO sgtadb;
 
-ALTER TABLE sgtadb.notificacion
+ALTER TABLE notificacion
 ADD COLUMN IF NOT EXISTS enlace_redireccion VARCHAR(500);
 
 -- Comentario sobre la nueva columna (opcional, pero bueno para documentación)
-COMMENT ON COLUMN sgtadb.notificacion.enlace_redireccion IS 'Enlace URL opcional para redirigir al usuario al hacer clic en la notificación (ej. a una página específica de la aplicación).';
+COMMENT ON COLUMN notificacion.enlace_redireccion IS 'Enlace URL opcional para redirigir al usuario al hacer clic en la notificación (ej. a una página específica de la aplicación).';
 
 SELECT 'Columna enlace_redireccion añadida/verificada en la tabla notificacion.' AS resultado;
 
@@ -911,7 +917,7 @@ CREATE TABLE IF NOT EXISTS ciclo
     nombre             VARCHAR(255) GENERATED ALWAYS AS (anio::VARCHAR(255) || '-' || semestre) STORED,
     fecha_inicio       DATE                     NOT NULL,
     fecha_fin          DATE                     NOT NULL,
-    activo             BOOLEAN                  NOT NULL DEFAULT TRUE,
+    activo             BOOLEAN                  NOT NULL DEFAULT FALSE,
     fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -1080,12 +1086,17 @@ CREATE TABLE IF NOT EXISTS exposicion_x_tema
     CONSTRAINT fk_ext_tema
         FOREIGN KEY (tema_id)
             REFERENCES tema (tema_id)
-            ON DELETE RESTRICT
+            ON DELETE RESTRICT,
+    CONSTRAINT unica_exposicion_x_tema
+        UNIQUE (exposicion_id, tema_id)
     --CONSTRAINT fk_ext_bloque_horario
     --    FOREIGN KEY (bloque_horario_exposicion_id)
     --        REFERENCES bloque_horario_exposicion (bloque_horario_exposicion_id)
     --        ON DELETE RESTRICT
 );
+
+--ALTER TABLE exposicion_x_tema
+--    ADD CONSTRAINT unica_exposicion_x_tema UNIQUE (exposicion_id, tema_id);
 
 -- Tabla criterio_exposicion
 CREATE TABLE IF NOT EXISTS criterio_exposicion
@@ -1574,7 +1585,7 @@ CREATE TABLE IF NOT EXISTS criterio_exposicion_preset
 
 CREATE CAST (CHARACTER VARYING AS enum_tipo_dato)
     WITH INOUT AS ASSIGNMENT;
-
+    
 CREATE CAST (CHARACTER VARYING AS enum_estado_exposicion)
     WITH INOUT AS ASSIGNMENT;
 
@@ -1592,7 +1603,5 @@ CREATE CAST (CHARACTER VARYING AS enum_estado_entrega)
 
 CREATE CAST (CHARACTER VARYING AS enum_estado_actividad)
     WITH INOUT AS ASSIGNMENT;
-
-
 
 --CREATE CAST (CHARACTER VARYING AS enum_estado_actividad) WITH INOUT AS ASSIGNMENT;
