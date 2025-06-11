@@ -250,7 +250,7 @@ export async function rechazarSolicitudPorCoordinador(
 ): Promise<SolicitudCambioAsesorResumen[]> {
   try {
     const response = await axiosInstance.patch(
-      "/solicitudes/aprobarSolicitudCambioAsesorCoordinador",
+      "/solicitudes/rechazarSolicitudCambioAsesorCoordinador",
       null,
       {
         params: {
@@ -276,7 +276,7 @@ export async function aceptarSolicitudPorCoordinador(
 ): Promise<SolicitudCambioAsesorResumen[]> {
   try {
     const response = await axiosInstance.patch(
-      "/solicitudes/rechazarSolicitudCambioAsesorCoordinador",
+      "/solicitudes/aprobarSolicitudCambioAsesorCoordinador",
       null,
       {
         params: {
