@@ -3709,7 +3709,8 @@ BEGIN
         JOIN tema t on t.tema_id = ut.tema_id
         JOIN estado_tema et ON et.estado_tema_id = t.estado_tema_id
         WHERE et.nombre = 'PROPUESTO_LIBRE'
-        AND ut.usuario_id = p_usuario_id;
+        AND ut.usuario_id = p_usuario_id
+        AND ut.activo = true;
     ELSEIF p_nombre_parametro = 'Limite Propuestas Alumno' THEN
     -- Count the proposals
         SELECT COUNT(*) INTO cantidad
@@ -3717,7 +3718,8 @@ BEGIN
         JOIN tema t on t.tema_id = ut.tema_id
         JOIN estado_tema et ON et.estado_tema_id = t.estado_tema_id
         WHERE (et.nombre = 'PROPUESTO_DIRECTO' or et.nombre = 'PROPUESTO_GENERAL')
-        AND ut.usuario_id = p_usuario_id;
+        AND ut.usuario_id = p_usuario_id
+        AND ut.activo = true;
     ELSE
         RETURN TRUE;
     END IF;
