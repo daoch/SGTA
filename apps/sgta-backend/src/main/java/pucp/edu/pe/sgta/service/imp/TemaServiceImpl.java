@@ -98,6 +98,8 @@ public class TemaServiceImpl implements TemaService {
 
 	private TemaSimilarRepository temaSimilarRepository;
 
+	private CarreraXParametroConfiguracionService carreraXParametroConfiguracionService;
+
 	@PersistenceContext
 	private EntityManager entityManager;
 
@@ -119,7 +121,8 @@ public class TemaServiceImpl implements TemaService {
 			UsuarioXSolicitudRepository usuarioXSolicitudRepository, AreaConocimientoService areaConocimientoService,
 			EstadoSolicitudRepository estadoSolicitudRepository, RolSolicitudRepository rolSolicitudRepository,
 			AccionSolicitudRepository accionSolicitudRepository,
-			TemaSimilarRepository temaSimilarRepository) {
+			TemaSimilarRepository temaSimilarRepository,
+						   CarreraXParametroConfiguracionService carreraXParametroConfiguracionService) {
 		this.temaRepository = temaRepository;
 		this.usuarioXTemaRepository = usuarioXTemaRepository;
 		this.subAreaConocimientoXTemaRepository = subAreaConocimientoXTemaRepository;
@@ -144,6 +147,7 @@ public class TemaServiceImpl implements TemaService {
 		this.rolSolicitudRepository = rolSolicitudRepository;
 		this.accionSolicitudRepository = accionSolicitudRepository;
 		this.temaSimilarRepository = temaSimilarRepository;
+		this.carreraXParametroConfiguracionService = carreraXParametroConfiguracionService;
 	}
 
 	@Override
@@ -163,6 +167,7 @@ public class TemaServiceImpl implements TemaService {
 		}
 		return null;
 	}
+
 
 	private void saveHistorialTemaChange(Tema tema, String titulo, String resumen, String description) {
 		HistorialTemaDto historialTemaDto = new HistorialTemaDto();
@@ -198,21 +203,15 @@ public class TemaServiceImpl implements TemaService {
 
 		dto.setId(null);
 
-		Tema tema = null;
-		if (tipoPropuesta == 1) {
-			tema = prepareNewTema(dto, EstadoTemaEnum.PROPUESTO_DIRECTO);
-		} else { // only works if tipoPropuesta == 0 always (default value)
-			tema = prepareNewTema(dto, EstadoTemaEnum.PROPUESTO_GENERAL);
-		}
-
 		UsuarioDto usuarioDto = usuarioService.findByCognitoId(idUsuarioCreador);
 
 		if (usuarioDto == null) {
 			throw new RuntimeException("Usuario no encontrado con Cognito ID: " + idUsuarioCreador);
 		}
 
-		/////////////////////// se tiene que modificar si se puede elegir carrera,
-		/////////////////////// pararía como parámetro/////
+		//Determine if the user has reached the limit of proposals
+/////////////////////// se tiene que modificar si se puede elegir carrera,
+/////////////////////// pararía como parámetro/////
 		var relaciones = usuarioCarreraRepository.findByUsuarioIdAndActivoTrue(usuarioDto.getId());
 		if (relaciones.isEmpty()) {
 			throw new RuntimeException("El usuario no tiene ninguna carrera activa.");
@@ -222,8 +221,21 @@ public class TemaServiceImpl implements TemaService {
 		// opcionalmente cargamos la entidad completa
 		Carrera carrera = carreraRepository.findById(carreraId)
 				.orElseThrow(() -> new RuntimeException("Carrera no encontrada con id " + carreraId));
-		tema.setCarrera(carrera);
+
+
 		/////////////////////////////////////////////////////////////////////////////////////////////////////
+		if(!carreraXParametroConfiguracionService.assertParametroLimiteNumericoPorNombreCarrera("Limite Propuestas Alumno",carreraId,  usuarioDto.getId())){
+			throw new RuntimeException("El usuario ha alcanzado el límite de propuestas permitidas.");
+		}
+
+		Tema tema = null;
+		if (tipoPropuesta == 1) {
+			tema = prepareNewTema(dto, EstadoTemaEnum.PROPUESTO_DIRECTO);
+		} else { // only works if tipoPropuesta == 0 always (default value)
+			tema = prepareNewTema(dto, EstadoTemaEnum.PROPUESTO_GENERAL);
+		}
+		tema.setCarrera(carrera);
+
 
 		List<UsuarioXTema> temaRelations = usuarioXTemaRepository.findByUsuarioIdAndActivoTrue(usuarioDto.getId());
 		for (UsuarioXTema ux : temaRelations) {
@@ -253,6 +265,11 @@ public class TemaServiceImpl implements TemaService {
 			saveUsuarioXTema(tema, dto.getCoasesores().get(0).getId(), RolEnum.Asesor.name(), false, false);
 		}
 		// 4) Save cotesistas
+		for (UsuarioDto cotesista : dto.getTesistas()) {
+			if(!carreraXParametroConfiguracionService.assertParametroLimiteNumericoPorNombreCarrera("Limite Propuestas Alumno",carreraId,  cotesista.getId())){
+				throw new RuntimeException("El usuario ha alcanzado el límite de propuestas permitidas.");
+			}
+		}
 		saveUsuariosInvolucrados(tema, usuarioDto.getId(), dto.getTesistas(), RolEnum.Alumno.name(), false, false); // Save
 		return tema.getId();// return tema id
 	}
@@ -585,7 +602,7 @@ public class TemaServiceImpl implements TemaService {
 	private void crearSolicitudAprobacionTemaV2(Tema tema) {
 		try {
 			entityManager
-					.createNativeQuery("SELECT crear_solicitud_aprobacion_tema(:temaId)")
+					.createNativeQuery("SELECT crear_solicitud_aprobacion_temaV2(:temaId)")
 					.setParameter("temaId", tema.getId())
 					.getSingleResult();
 		} catch (Exception e) {
@@ -598,7 +615,7 @@ public class TemaServiceImpl implements TemaService {
 
 	@Transactional
 	@Override
-	public void createInscripcionTemaV2(TemaDto dto, String idUsuario) {
+	public Integer createInscripcionTemaV2(TemaDto dto, String idUsuario) {
 		// 0) Validaciones iniciales y preparación del Tema
 		UsuarioDto usuarioDto = usuarioService.findByCognitoId(idUsuario);
 		Integer idUsuarioCreador = usuarioDto.getId();
@@ -646,6 +663,7 @@ public class TemaServiceImpl implements TemaService {
 
 		// 6) Generar y enviar la solicitud de aprobación
 		crearSolicitudAprobacionTemaV2(tema);
+		return temaId; // return tema id
 	}
 
 	/**
@@ -2253,6 +2271,21 @@ public class TemaServiceImpl implements TemaService {
 	@Transactional
 	public void postularTemaLibre(Integer temaId, String tesistaId, String comentario) {
 		try {
+			UsuarioDto usuarioDto = usuarioService.findByCognitoId(tesistaId);
+
+			if (usuarioDto == null) {
+				throw new RuntimeException("Usuario no encontrado con Cognito ID: " + tesistaId);
+			}
+
+			var relaciones = usuarioCarreraRepository.findByUsuarioIdAndActivoTrue(usuarioDto.getId());
+			if (relaciones.isEmpty()) {
+				throw new RuntimeException("El usuario no tiene ninguna carrera activa.");
+			}
+			// tomamos la primera
+			Integer carreraId = relaciones.get(0).getCarrera().getId();
+			if(!carreraXParametroConfiguracionService.assertParametroLimiteNumericoPorNombreCarrera("Limite Postulaciones Alumno",carreraId,  usuarioDto.getId())){
+				throw new RuntimeException("El usuario ha alcanzado el límite de postulaciones permitidas.");
+			}
 			// Call the PostgreSQL function to handle the postulation
 			entityManager.createNativeQuery("SELECT postular_tesista_tema_libre(:temaId, :tesistaId, :comentario)")
 					.setParameter("temaId", temaId)

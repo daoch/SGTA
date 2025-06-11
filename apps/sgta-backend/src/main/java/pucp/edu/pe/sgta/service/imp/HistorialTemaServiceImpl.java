@@ -3,7 +3,9 @@ package pucp.edu.pe.sgta.service.imp;
 import org.springframework.stereotype.Service;
 import pucp.edu.pe.sgta.dto.HistorialTemaDto;
 import pucp.edu.pe.sgta.mapper.HistorialTemaMapper;
+import pucp.edu.pe.sgta.model.EstadoTema;
 import pucp.edu.pe.sgta.model.HistorialTema;
+import pucp.edu.pe.sgta.repository.EstadoTemaRepository;
 import pucp.edu.pe.sgta.repository.HistorialTemaRepository;
 import pucp.edu.pe.sgta.service.inter.HistorialTemaService;
 
@@ -17,8 +19,13 @@ public class HistorialTemaServiceImpl implements HistorialTemaService {
 
     private final HistorialTemaRepository historialTemaRepository;
 
-    public HistorialTemaServiceImpl(HistorialTemaRepository historialTemaRepository) {
+    private final EstadoTemaRepository estadoTemaRepository;
+
+
+    public HistorialTemaServiceImpl(HistorialTemaRepository historialTemaRepository,
+                                    EstadoTemaRepository estadoTemaRepository) {
         this.historialTemaRepository = historialTemaRepository;
+        this.estadoTemaRepository = estadoTemaRepository;
     }
 
     @Override
@@ -45,9 +52,21 @@ public class HistorialTemaServiceImpl implements HistorialTemaService {
     }
 
     @Override
-    public void save(HistorialTemaDto historialTemaDto) {
-        HistorialTema historialTema = HistorialTemaMapper.toEntity(historialTemaDto);
-        historialTemaRepository.save(historialTema);
+    public void save(HistorialTemaDto dto) {
+        // 1) Mapea todos los campos excepto el estadoTema
+        HistorialTema entity = HistorialTemaMapper.toEntity(dto);
+
+        // 2) Recupera la entidad EstadoTema ya persistida
+        EstadoTema estado = estadoTemaRepository
+            .findByNombre(dto.getEstadoTemaNombre())
+            .orElseThrow(() -> new RuntimeException(
+                "EstadoTema no encontrado: " + dto.getEstadoTemaNombre()));
+
+        // 3) Asigna la instancia gestionada
+        entity.setEstadoTema(estado);
+
+        // 4) Persiste el historial
+        historialTemaRepository.save(entity);
     }
 
     @Override

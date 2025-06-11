@@ -29,7 +29,11 @@ public class SgtaApplication {
 		System.setProperty("AWS_CLOUDFRONT_PUBLIC_KEY_ID", dotenv.get("AWS_CLOUDFRONT_PUBLIC_KEY_ID", ""));
 		System.setProperty("AWS_BASE_CLOUDFRONT_URL", dotenv.get("AWS_BASE_CLOUDFRONT_URL", ""));
 
-
+		System.setProperty("ZOOM_ACCOUNT_ID", dotenv.get("ZOOM_ACCOUNT_ID", ""));
+		System.setProperty("ZOOM_CLIENT_SECRET", dotenv.get("ZOOM_CLIENT_SECRET", ""));
+		System.setProperty("ZOOM_CLIENT_ID", dotenv.get("ZOOM_CLIENT_ID", ""));
+		System.setProperty("ZOOM_POST_ACCESS_TOKEN_URL", dotenv.get("ZOOM_POST_ACCESS_TOKEN_URL", ""));
+		System.setProperty("ZOOM_MEETING_CREATION_URL", dotenv.get("ZOOM_MEETING_CREATION_URL", ""));
 	}
 
 	public static void main(String[] args) {

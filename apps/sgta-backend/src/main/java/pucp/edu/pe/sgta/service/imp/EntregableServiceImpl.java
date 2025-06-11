@@ -196,4 +196,30 @@ public class EntregableServiceImpl implements EntregableService {
                 entregableDto.getComentario(),
                 entregableDto.getEstado());
     }
+    @Override
+    public EntregableAlumnoDto obtenerDetalleXTema(Integer entregableId, Integer temaId) {
+        List<Object[]> resultados = entregableRepository.obtenerDetalleXTema(entregableId, temaId);
+        if (resultados.isEmpty()) {
+            return null;
+        }
+
+        Object[] result = resultados.get(0); // la función retorna una sola fila
+
+        EntregableAlumnoDto dto = new EntregableAlumnoDto();
+        dto.setEntregableId(entregableId);
+        dto.setTemaId(temaId);
+        dto.setEntregableNombre((String) result[1]);           // nombre entregable
+        dto.setEntregableDescripcion((String) result[0]);      // nombre del tema
+        dto.setEntregableEstado((String) result[2]);           // estado (String)
+        dto.setEntregableFechaEnvio(
+            result[3] != null ? ((Instant) result[3]).atOffset(ZoneOffset.UTC) : null
+        );
+        dto.setEntregableFechaFin(
+            result[4] != null ? ((Instant) result[4]).atOffset(ZoneOffset.UTC) : null
+        );
+
+        // Los demás campos quedarán null o valores por defecto.
+        dto.setEntregableEsEvaluable(false); // Puedes ajustar según lo que devuelva la función
+        return dto;
+    }
 }

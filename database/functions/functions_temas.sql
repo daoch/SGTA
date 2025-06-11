@@ -3346,33 +3346,42 @@ $$;
 
 
 
-CREATE OR REPLACE FUNCTION crear_solicitud_aprobacion_tema(p_tema_id INT) RETURNS VOID AS
+CREATE OR REPLACE FUNCTION crear_solicitud_aprobacion_temaV2(p_tema_id INT) RETURNS VOID AS
 $$
 DECLARE
     v_tipo_solicitud_id   INT;
     v_estado_solicitud_id INT;
     v_solicitud_id        INT;
 BEGIN
-    -- 1) Obtener IDs de tipo y estado
-    SELECT tipo_solicitud_id
-      INTO v_tipo_solicitud_id
+    -- 1) Obtener IDs
+    SELECT tipo_solicitud_id INTO v_tipo_solicitud_id
       FROM tipo_solicitud
      WHERE nombre = 'Aprobación de tema (por coordinador)';
 
-    SELECT estado_solicitud_id
-      INTO v_estado_solicitud_id
+    SELECT estado_solicitud_id INTO v_estado_solicitud_id
       FROM estado_solicitud
      WHERE nombre = 'PENDIENTE';
 
-    -- 2) Insertar la solicitud y capturar su ID
-    INSERT INTO solicitud(descripcion, tipo_solicitud_id, tema_id, estado_solicitud)
-    VALUES ('Solicitud de aprobación de tema por coordinador',
-            v_tipo_solicitud_id,
-            p_tema_id,
-            v_estado_solicitud_id)
+    -- 2) Insertar en SOLICITUD, incluyendo la columna ESTADO
+    INSERT INTO solicitud(
+        descripcion,
+        tipo_solicitud_id,
+        tema_id,
+        estado_solicitud,
+        estado,        -- ← obligatorio
+        activo         -- ← opcional si no confías en el DEFAULT
+    )
+    VALUES (
+        'Solicitud de aprobación de tema por coordinador',
+        v_tipo_solicitud_id,
+        p_tema_id,
+        v_estado_solicitud_id,
+        1,          -- valor para la columna estado
+        TRUE           -- valor para activo (aunque tiene DEFAULT)
+    )
     RETURNING solicitud_id INTO v_solicitud_id;
 
-    -- 3) Insertar en usuario_solicitud a todos los coordinadores activos
+    -- 3) Insertar en usuario_solicitud…
     INSERT INTO usuario_solicitud(
         usuario_id,
         solicitud_id,
@@ -3387,15 +3396,16 @@ BEGIN
     FROM usuario_carrera uc
     JOIN rol_solicitud   rs   ON rs.nombre = 'DESTINATARIO'
     JOIN accion_solicitud asol ON asol.nombre = 'PENDIENTE_ACCION'
-    WHERE uc.carrera_id      = (SELECT carrera_id FROM tema WHERE tema_id = p_tema_id)
-      AND uc.es_coordinador  = TRUE
-      AND uc.activo          = TRUE;
+    WHERE uc.carrera_id     = (SELECT carrera_id FROM tema WHERE tema_id = p_tema_id)
+      AND uc.es_coordinador = TRUE
+      AND uc.activo         = TRUE;
 
     IF NOT FOUND THEN
         RAISE EXCEPTION 'No hay coordinador activo para el tema %', p_tema_id;
     END IF;
 END;
 $$ LANGUAGE plpgsql;
+
 
 
 CREATE OR REPLACE FUNCTION listar_temas_similares(
@@ -3653,3 +3663,65 @@ BEGIN
       r.documento_url, t.activo, t.fecha_limite, t.fecha_creacion, t.fecha_modificacion, et.nombre;
 END;
 $$;
+
+-- Función para listar el historial completo de un tema
+CREATE OR REPLACE FUNCTION listar_historial_tema(p_tema_id INTEGER)
+  RETURNS SETOF historial_tema
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN QUERY
+    SELECT *
+      FROM historial_tema
+     WHERE tema_id = p_tema_id
+     AND activo = TRUE
+     ORDER BY fecha_creacion;  -- o por fecha_modificacion, según tu preferencia
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION validar_parametro_por_nombre_carrera(
+    p_nombre_parametro TEXT,
+    p_carrera_id INTEGER,
+    p_usuario_id INTEGER
+) RETURNS BOOLEAN AS $$
+DECLARE
+    limite INTEGER;
+    cantidad INTEGER;
+BEGIN
+    -- Get the limit for the parameter and career
+
+    SELECT cp.valor::INTEGER INTO limite
+    FROM carrera_parametro_configuracion cp
+    JOIN parametro_configuracion p ON p.parametro_configuracion_id = cp.parametro_configuracion_id
+    WHERE p.nombre = p_nombre_parametro
+      AND cp.carrera_id = p_carrera_id
+      AND cp.activo = TRUE
+    LIMIT 1;
+
+    IF limite IS NULL THEN
+        RETURN TRUE; -- No limit set, allow by default
+    END IF;
+
+    -- Count the postulaciones
+    IF p_nombre_parametro = 'Limite Postulaciones Alumno' THEN
+        SELECT COUNT(*) INTO cantidad
+        FROM usuario_tema ut
+        JOIN tema t on t.tema_id = ut.tema_id
+        JOIN estado_tema et ON et.estado_tema_id = t.estado_tema_id
+        WHERE et.nombre = 'PROPUESTO_LIBRE'
+        AND ut.usuario_id = p_usuario_id;
+    ELSEIF p_nombre_parametro = 'Limite Propuestas Alumno' THEN
+    -- Count the proposals
+        SELECT COUNT(*) INTO cantidad
+        FROM usuario_tema ut
+        JOIN tema t on t.tema_id = ut.tema_id
+        JOIN estado_tema et ON et.estado_tema_id = t.estado_tema_id
+        WHERE (et.nombre = 'PROPUESTO_DIRECTO' or et.nombre = 'PROPUESTO_GENERAL')
+        AND ut.usuario_id = p_usuario_id;
+    ELSE
+        RETURN TRUE;
+    END IF;
+    
+    RETURN cantidad < limite;
+END;
+$$ LANGUAGE plpgsql;

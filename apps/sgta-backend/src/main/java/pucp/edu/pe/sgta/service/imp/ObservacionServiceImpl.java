@@ -203,7 +203,11 @@ private HighlightDto mapObservacionToHighlightDto(Observacion obs) {
             dto.setFechaCreacion(row[5] != null ? ((Instant) row[5]).atOffset(ZoneOffset.UTC) : null);
             dto.setTipoObservacionId((Integer) row[6]);
             dto.setRevisionId((Integer) row[7]);
-
+            dto.setUsuarioCreacionId((Integer) row[8]);
+            dto.setNombres((String) row[9]);
+            dto.setPrimerApellido((String) row[10]);
+            dto.setSegundoApellido((String) row[11]);
+            dto.setRolesUsuario((String) row[12]);
             dtoList.add(dto);
         }
 

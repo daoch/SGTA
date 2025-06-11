@@ -337,15 +337,15 @@ const DetalleExposicion: React.FC<DetalleExposicionProps> = ({
                     Enlace de la Exposición
                   </label>
                   <a
-                    href={exposicion.linkExposicion}
+                    href={exposicion.link_exposicion}
                     target="_blank"
                     className={
-                      exposicion.linkExposicion
+                      exposicion.link_exposicion
                         ? " text-blue-500"
                         : " text-black-500"
                     }
                   >
-                    {exposicion.linkExposicion || "Aún no disponible"}
+                    {exposicion.link_exposicion || "Aún no disponible"}
                   </a>
                 </div>
                 <div>
@@ -353,15 +353,15 @@ const DetalleExposicion: React.FC<DetalleExposicionProps> = ({
                     Enlace de la Grabación
                   </label>
                   <a
-                    href={exposicion.linkGrabacion}
+                    href={exposicion.link_grabacion}
                     target="_blank"
                     className={
-                      exposicion.linkGrabacion
+                      exposicion.link_grabacion
                         ? " text-blue-500"
                         : " text-black-500"
                     }
                   >
-                    {exposicion.linkGrabacion || "Aún no disponible"}
+                    {exposicion.link_grabacion || "Aún no disponible"}
                   </a>
                 </div>
               </div>
