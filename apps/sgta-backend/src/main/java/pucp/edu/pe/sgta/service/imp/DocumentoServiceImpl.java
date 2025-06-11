@@ -10,6 +10,7 @@ import pucp.edu.pe.sgta.model.EntregableXTema;
 import pucp.edu.pe.sgta.model.VersionXDocumento;
 import pucp.edu.pe.sgta.repository.DocumentoRepository;
 import pucp.edu.pe.sgta.service.inter.DocumentoService;
+import pucp.edu.pe.sgta.service.inter.RevisionDocumentoService;
 import pucp.edu.pe.sgta.service.inter.S3DownloadService;
 import pucp.edu.pe.sgta.service.inter.VersionXDocumentoService;
 
@@ -24,13 +25,16 @@ public class DocumentoServiceImpl implements DocumentoService {
     private final DocumentoRepository documentoRepository;
     private final VersionXDocumentoService versionXDocumentoService;
     private final S3DownloadService s3DownloadService;
+    private final RevisionDocumentoService revisionDocumentoService;
+    
     private static final String S3_PATH_DELIMITER = "/";
 
     public DocumentoServiceImpl(DocumentoRepository documentoRepository,VersionXDocumentoService versionXDocumentoService,
-                                S3DownloadService s3DownloadService) {
+                                S3DownloadService s3DownloadService, RevisionDocumentoService revisionDocumentoService) {
         this.documentoRepository = documentoRepository;
         this.versionXDocumentoService = versionXDocumentoService;
         this.s3DownloadService = s3DownloadService;
+        this.revisionDocumentoService = revisionDocumentoService;
     }
 
     @Override
@@ -84,6 +88,7 @@ public class DocumentoServiceImpl implements DocumentoService {
                 entregableXTema.setEntregableXTemaId(entregableXTemaId);
                 version.setEntregableXTema(entregableXTema);
                 versionXDocumentoService.create(version);
+                revisionDocumentoService.crearRevisiones(entregableXTemaId);
             } catch (Exception e) {
                 return ResponseEntity.status(500).body("Error al crear el documento: " + e.getMessage());
             }

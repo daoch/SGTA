@@ -235,6 +235,10 @@ export function ExposicionCard({
     // Obtener el estado base normalizado
     const estadoBase = mapEstadoToExposicionEstado(exposicion.estado);
 
+    if (estadoBase === "completada" && exposicion.criterios_calificados === true) {
+      return "calificada";
+    }
+
     // Si el estado base es "esperando_respuesta" pero el estado_control es "ACEPTADO" o "RECHAZADO",
     // mostrar como "esperando_aprobacion"
     if (
@@ -376,9 +380,8 @@ export function ExposicionCard({
             )
             }
 
-            {mapEstadoToExposicionEstado(exposicion.estado) === "completada" &&
+            {mapEstadoToExposicionEstado(exposicion.estado) === "calificada" &&
             // isBefore(new Date(exposicion.fechahora), new Date()) && 
-            //se el esta pasando la expo por tema
               (
                 <Button
                   asChild
@@ -386,7 +389,6 @@ export function ExposicionCard({
                     e.stopPropagation();
                   }}
                 >
-                  
                   <Link
                     href={`/jurado/exposiciones/calificar/${exposicion.id_exposicion}`}
                   >
@@ -394,6 +396,21 @@ export function ExposicionCard({
                   </Link>
                 </Button>
               )}
+
+            {mapEstadoToExposicionEstado(exposicion.estado) === "completada" && (
+            <Button
+              asChild
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+            >
+              <Link
+                href={`/jurado/exposiciones/calificar/${exposicion.id_exposicion}`}
+              >
+                Calificar
+              </Link>
+            </Button>
+          )}
           </div>
         </div>
       </div>

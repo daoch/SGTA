@@ -1281,3 +1281,27 @@ BEGIN
     WHERE EXT.exposicion_x_tema_id = p_exposicion_x_tema_id AND U.tipo_usuario_id != 2 AND UT.activo = true AND CEU.exposicion_x_tema_id = p_exposicion_x_tema_id;
 END
 $$;
+
+CREATE OR REPLACE FUNCTION obtener_carrera_alumno(
+    p_usuario_id INTEGER
+)
+RETURNS TABLE (
+    carrera_id INTEGER,
+    nombre VARCHAR,
+    es_coordinador BOOLEAN
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT DISTINCT
+        c.carrera_id,
+        c.nombre,
+        uc.es_coordinador
+    FROM usuario_carrera uc
+    JOIN carrera c ON uc.carrera_id = c.carrera_id
+    WHERE uc.usuario_id = p_usuario_id
+    AND uc.activo = true
+    LIMIT 1;
+END;
+$$;

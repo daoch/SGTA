@@ -43,20 +43,26 @@ public class HistorialTema {
 	@Column(name = "descripcion_cambio", columnDefinition = "TEXT")
 	private String descripcionCambio;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "estado_tema_id", nullable = false, foreignKey = @ForeignKey(name = "fk_estado_tema"))
-    private EstadoTema estadoTema; 
+	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@JoinColumn(name = "estado_tema_id", nullable = false,
+				foreignKey = @ForeignKey(name = "fk_historial_tema_estado_tema"))
+	private EstadoTema estadoTema;
 
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "proyecto_id",
+				foreignKey = @ForeignKey(name = "fk_historial_tema_proyecto"))
+	private Proyecto proyecto;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "carrera_id",
+				foreignKey = @ForeignKey(name = "fk_historial_tema_carrera"))
+	private Carrera carrera;  
+	
 	@Column(name = "portafolio_url", length = 255)
     private String portafolioUrl;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "proyecto_id", foreignKey = @ForeignKey(name = "fk_proyecto"))
-    private Proyecto proyecto;
+	
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "carrera_id", foreignKey = @ForeignKey(name = "fk_carrera"))
-    private Carrera carrera;
 
 	@Column(nullable = false)
 	private Boolean activo = true;

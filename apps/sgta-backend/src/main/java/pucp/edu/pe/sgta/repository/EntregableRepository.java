@@ -61,4 +61,9 @@ public interface EntregableRepository extends JpaRepository<Entregable, Integer>
 
     Integer countByEtapaFormativaXCicloIdAndActivoTrue(Integer etapaFormativaXCicloId);
 
+    @Query(value = "SELECT * FROM obtener_detalles_entregable_y_tema(:entregableId, :temaId)", nativeQuery = true)
+    List<Object[]> obtenerDetalleXTema(
+        @Param("entregableId") Integer entregableId,
+        @Param("temaId") Integer temaId
+    );
 }
