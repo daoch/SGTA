@@ -247,6 +247,13 @@ public class TemaServiceImpl implements TemaService {
 			}
 		}
 
+		//We must check the limit of proposals for each cotesista
+		for (UsuarioDto cotesista : dto.getTesistas()) {
+			if(cotesista.getId() != usuarioDto.getId() && !carreraXParametroConfiguracionService.assertParametroLimiteNumericoPorNombreCarrera("Limite Propuestas Alumno",carreraId,  cotesista.getId())){
+				throw new RuntimeException("El usuario cotesista " + cotesista.getId() + " ha alcanzado el límite de propuestas permitidas.");
+			}
+		}
+
 		// Save the Tema first to generate its ID. We assume the tema has an
 		// areaEspecializacion
 		temaRepository.save(tema);
@@ -266,11 +273,7 @@ public class TemaServiceImpl implements TemaService {
 			saveUsuarioXTema(tema, dto.getCoasesores().get(0).getId(), RolEnum.Asesor.name(), false, false);
 		}
 		// 4) Save cotesistas
-		for (UsuarioDto cotesista : dto.getTesistas()) {
-			if(!carreraXParametroConfiguracionService.assertParametroLimiteNumericoPorNombreCarrera("Limite Propuestas Alumno",carreraId,  cotesista.getId())){
-				throw new RuntimeException("El usuario ha alcanzado el límite de propuestas permitidas.");
-			}
-		}
+
 		saveUsuariosInvolucrados(tema, usuarioDto.getId(), dto.getTesistas(), RolEnum.Alumno.name(), false, false); // Save
 		return tema.getId();// return tema id
 	}
@@ -288,7 +291,16 @@ public class TemaServiceImpl implements TemaService {
 		if (tema != null) {
 			tema.setActivo(false);
 			temaRepository.save(tema); // Set activo to false instead of deleting
+			List<UsuarioXTema> lista = usuarioXTemaRepository
+					.findByTemaIdAndActivoTrue(id);
+
+			for (UsuarioXTema uxt : lista) {
+				uxt.setActivo(false);
+				uxt.setFechaModificacion(OffsetDateTime.now());
+			}
+			usuarioXTemaRepository.saveAll(lista);
 		}
+
 	}
 
 	@Override
