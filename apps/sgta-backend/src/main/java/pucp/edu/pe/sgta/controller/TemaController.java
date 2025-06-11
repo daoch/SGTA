@@ -265,10 +265,10 @@ public class TemaController {
 	}
 
 	@PostMapping("/crearTemaLibre")
-	public void crearTemaLibre(@Valid @RequestBody TemaDto dto, HttpServletRequest request) {
+	public Integer crearTemaLibre(@Valid @RequestBody TemaDto dto, HttpServletRequest request) {
 		try {
 			String asesorId = jwtService.extractSubFromRequest(request);
-			temaService.crearTemaLibre(dto, asesorId);
+			return temaService.crearTemaLibre(dto, asesorId);
 		} catch (RuntimeException e) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
 		}

@@ -110,7 +110,7 @@ public interface TemaService {
 
 	void eliminarTemaCoordinador(Integer temaId, String usuarioId);
 
-	void crearTemaLibre(TemaDto dto, String asesorId);
+	Integer crearTemaLibre(TemaDto dto, String asesorId);
 
 	TemaDto buscarTemaPorId(Integer idTema) throws SQLException;
 
