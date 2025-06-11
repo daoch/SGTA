@@ -93,8 +93,11 @@ export function ProjectTracking({ user }: ProjectTrackingProps) {
     const fetchEntregables = async () => {
       try {
         setIsLoading(true);
-        const alumnoId = "11"; // Hardcodeado por ahora
-        const data = await getEntregablesAlumno(alumnoId);
+        //const alumnoId = "11"; // Hardcodeado por ahora
+        //const data = await getEntregablesAlumno(alumnoId);
+          // Ya no hace falta alumnoId, lo extrae internamente del token
+        // const alumnoId = "11";
+        const data = await getEntregablesAlumno();
 
         const eventosTransformados: TimelineEvent[] = data.map((item: {
           nombreEntregable: string;

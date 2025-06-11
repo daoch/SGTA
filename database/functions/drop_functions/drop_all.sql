@@ -381,3 +381,5 @@ DROP FUNCTION IF EXISTS obtener_id_carrera_por_id_expo CASCADE;
 DROP FUNCTION IF EXISTS obtener_temas_por_alumno CASCADE;
 
 DROP FUNCTION IF EXISTS obtener_miembros_jurado_x_exposicion_tema (INTEGER) CASCADE;
+
+DROP FUNCTION IF EXISTS crear_revisiones(int4);

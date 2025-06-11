@@ -7,5 +7,10 @@ public interface CarreraXParametroConfiguracionService {
 
     void updateCarreraXParametroConfiguracion(CarreraXParametroConfiguracionDto carreraXParametroConfiguracionDto);
 
-    List<CarreraXParametroConfiguracionDto> getParametrosPorCarrera(Long carreraId);
+    List<CarreraXParametroConfiguracionDto> getParametrosPorCarrera(String idCognito);
+
+    List<CarreraXParametroConfiguracionDto> getParametrosPorAlumno(String idCognito);
+
+    Boolean assertParametroLimiteNumericoPorNombreCarrera(String nombreParametro, Integer carreraId, Integer usuarioId);
+
 }

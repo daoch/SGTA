@@ -25,16 +25,16 @@ export const obtenerDetalleTemaAlumno = async (): Promise<AlumnoTemaDetalle> => 
 };
 
 
-export const findStudentsForReviewer = async (carreraId: number, cadenaBusqueda: string): Promise<AlumnoReviewer[]> => {
+export const findStudentsForReviewer = async (cadenaBusqueda: string): Promise<AlumnoReviewer[]> => {
   try {
+    const { idToken } = useAuthStore.getState();
     const response = await axiosInstance.get("/usuario/findByStudentsForReviewer", {
       params: {
-        carreraId,
         cadenaBusqueda
       },
-      /*headers: {
+      headers: {
         Authorization: `Bearer ${idToken}`,
-      },*/
+      },
     });
     return response.data;
   } catch (error) {
@@ -43,17 +43,42 @@ export const findStudentsForReviewer = async (carreraId: number, cadenaBusqueda:
   }
 };
 
-
+/*
 export const getEntregablesAlumno = async (alumnoId: string) => {
   const response = await axiosInstance.get(`/api/v1/reports/entregables/${alumnoId}`);
   return response.data;
+};
+*/
+
+export const getEntregablesAlumno = async () => {
+  try {
+    const { idToken } = useAuthStore.getState();
+
+    console.log(" idToken obtenido:", idToken);
+
+    const response = await axiosInstance.get(
+        "/reports/entregables",
+       {
+         headers: {
+           Authorization: `Bearer ${idToken}`,
+         },
+       }
+     );
+
+    console.log(" Respuesta de entregables:", response.data);
+
+    return response.data;
+  } catch (error) {
+    console.error(" Error al obtener entregables del alumno:", error);
+    throw error;
+  }
 };
 
 
 export const getEntregablesConCriterios = async (usuarioId: number): Promise<EntregableCriteriosDetalle[]> => {
   try {
     const response = await axiosInstance.get<EntregableCriteriosDetalle[]>(
-      `/api/v1/reports/entregables-criterios/${usuarioId}`
+      `/reports/entregables-criterios/${usuarioId}`
     );
     return response.data;
   } catch (error) {

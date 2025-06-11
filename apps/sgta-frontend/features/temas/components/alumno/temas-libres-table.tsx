@@ -271,9 +271,45 @@ export function PropuestasTable({
                     <Button
                       size="icon"
                       variant="ghost" 
-                      onClick={() => {
-                        setSelected(tema);
-                        setOpenPostularDialog(true);
+                      onClick={async () => {
+                        try {
+                          const { idToken } = useAuthStore.getState();
+                          if (!idToken) {
+                            toast.error("No authentication token available", { position: "bottom-right" });
+                            return;
+                          }
+                          const res = await fetch(
+                            `${process.env.NEXT_PUBLIC_API_URL}/temas/verificarTemasComprometidosTesista`,
+                            {
+                              headers: {
+                                Authorization: `Bearer ${idToken}`,
+                                "Content-Type": "application/json",
+                              },
+                            }
+                          );
+                          if (!res.ok) throw new Error("Error verificando temas comprometidos");
+                          const data = await res.json();
+                          if (Array.isArray(data) && data[0]?.comprometido === 1) {
+                            const estadoMap: Record<string, string> = {
+                              EN_PROGRESO: "en curso",
+                              PREINSCRITO: "preinscrito",
+                              INSCRITO: "inscrito",
+                              REGISTRADO: "registrado",
+                              PAUSADO: "pausado",
+                            };
+                            const estadoNombre = data[0]?.estadoNombre;
+                            const estadoDescriptivo = estadoMap[estadoNombre] || estadoNombre?.toLowerCase() || "en curso";
+                            toast.error(
+                              `Ya tienes un tema ${estadoDescriptivo}, no puedes postular a otro.`,
+                              { position: "bottom-right" }
+                            );
+                            return;
+                          }
+                          setSelected(tema); // <-- asegúrate de pasar el tema correcto aquí
+                          setOpenPostularDialog(true);
+                        } catch (error) {
+                          toast.error("Error verificando temas comprometidos", { position: "bottom-right" });
+                        }
                       }}
                     >
                       <Send className="h-4 w-4" />
@@ -289,73 +325,80 @@ export function PropuestasTable({
         open={openPostularDialog}
         onOpenChange={(open) => {
           setOpenPostularDialog(open);
+          if (!open) {
+            setTimeout(() => {
+              setSelected(null);
+              setComentario("");
+            }, 300); // espera a que termine la animación del modal
+          }
         }}
       >
-        <DialogContent className="w-[90vw] max-w-2xl overflow-y-auto max-h-[80vh]">
-          <DialogHeader>
-            <DialogTitle>Postular a tema</DialogTitle>
-            <DialogDescription>
-              Escribe un comentario antes de postular al tema
-            </DialogDescription>
-          </DialogHeader>
+        {selected && (
+          <DialogContent className="w-[90vw] max-w-2xl overflow-y-auto max-h-[80vh]">
+            <DialogHeader>
+              <DialogTitle>Postular a tema</DialogTitle>
+              <DialogDescription>
+                Escribe un comentario antes de postular al tema
+              </DialogDescription>
+            </DialogHeader>
 
-          {selected && (
             <EnviarPropuestaCard data={selected} setComentario={setComentario} />
-          )}
 
-          <DialogFooter className="mt-4">
-            <Button variant="outline" onClick={() => setOpenPostularDialog(false)}>
-              Cancelar
-            </Button>
-            <Button
-              className="bg-green-600 hover:bg-green-700 text-white"
-              onClick={async () => {
-                if (!comentario.trim()) {
-                  toast.error("Debes ingresar un comentario antes de postular", {
-                    position: "bottom-right",
-                  });
-                  return;
-                }
-
-                try {
-                  const { idToken } = useAuthStore.getState();
-                  if (!idToken || !selected) {
-                    toast.error("Error de autenticación o tema no seleccionado", {
+            <DialogFooter className="mt-4">
+              <Button variant="outline" onClick={() => setOpenPostularDialog(false)}>
+                Cancelar
+              </Button>
+              <Button
+                className="bg-green-600 hover:bg-green-700 text-white"
+                onClick={async () => {
+                  if (!comentario.trim()) {
+                    toast.error("Debes ingresar un comentario antes de postular", {
                       position: "bottom-right",
                     });
                     return;
                   }
 
-                  const res = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_URL}/temas/postularTemaLibre?temaId=${selected.id}&comentario=${comentario}`,
-                    {
-                      method: "POST",
-                      headers: {
-                        Authorization: `Bearer ${idToken}`,
-                        "Content-Type": "application/json",
-                      },
+                  try {
+                    const { idToken } = useAuthStore.getState();
+                    if (!idToken || !selected) {
+                      toast.error("Error de autenticación o tema no seleccionado", {
+                        position: "bottom-right",
+                      });
+                      return;
                     }
-                  );
 
-                  if (!res.ok) throw new Error("Error al postular al tema");
+                    const res = await fetch(
+                      `${process.env.NEXT_PUBLIC_API_URL}/temas/postularTemaLibre?temaId=${selected.id}&comentario=${comentario}`,
+                      {
+                        method: "POST",
+                        headers: {
+                          Authorization: `Bearer ${idToken}`,
+                          "Content-Type": "application/json",
+                        },
+                      }
+                    );
 
-                  toast.success("Postulación enviada exitosamente", {
-                    position: "bottom-right",
-                  });
-                  setOpenPostularDialog(false);
-                  setComentario("");
-                } catch (error) {
-                  console.error("Error en la postulación:", error);
-                  toast.error("Ocurrió un error al enviar tu postulación", {
-                    position: "bottom-right",
-                  });
-                }
-              }}
-            >
-              Confirmar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
+                    if (!res.ok) throw new Error("Error al postular al tema");
+
+                    toast.success("Postulación enviada exitosamente", {
+                      position: "bottom-right",
+                    });
+                    setOpenPostularDialog(false);
+                    setSelected(null);
+                    setComentario("");
+                  } catch (error) {
+                    console.error("Error en la postulación:", error);
+                    toast.error("Ya has postulado a este tema.", {
+                      position: "bottom-right",
+                    });
+                  }
+                }}
+              >
+                Confirmar
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        )}
       </Dialog>
       <Toaster position="bottom-right" />
     </div>

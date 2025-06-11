@@ -97,6 +97,24 @@ public class CarreraServiceImpl implements CarreraService {
     }
 
     @Override
+    public CarreraDto getCarreraCoordinador(String idCognito) {
+        UsuarioDto usuDto = usuarioService.findByCognitoId(idCognito);
+        Integer usuarioId = usuDto.getId();
+        
+        List<Object[]> results = carreraRepository.obtenerCarreraCoordinador(usuarioId);
+        System.out.println("results: " + results);
+        if (results != null && !results.isEmpty()) {
+            Object[] result = results.get(0);
+            return CarreraDto.builder()
+                .id(((Number) result[0]).intValue())
+                .nombre((String) result[1])
+                .activo(true)
+                .build();
+        }
+        return null;
+    }
+
+    @Override
     public CarreraDto getCarreraCoordinadaPorUsuario(Integer usuarioId) {
         Optional<Carrera> carreraOpt = carreraRepository.findCarreraCoordinadaPorUsuario(usuarioId);
         if (carreraOpt.isEmpty()) {

@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.web.bind.annotation.*;
 import pucp.edu.pe.sgta.dto.AdvisorPerformanceDto;
 import pucp.edu.pe.sgta.dto.AreaFinalDTO;
 import pucp.edu.pe.sgta.dto.DetalleTesistaDTO;
@@ -20,14 +20,20 @@ import pucp.edu.pe.sgta.dto.TopicTrendDTO;
 import pucp.edu.pe.sgta.dto.TesistasPorAsesorDTO;
 import pucp.edu.pe.sgta.dto.EntregableEstudianteDto;
 import pucp.edu.pe.sgta.dto.EntregableCriteriosDetalleDto;
+import java.util.NoSuchElementException;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.HttpStatus;
+
 import pucp.edu.pe.sgta.service.inter.IReportService;
 import pucp.edu.pe.sgta.service.inter.JwtService;
+
 
 @RestController
 @RequestMapping("/reports")
 public class ReportsController {
 
     private final IReportService reportingService;
+
     private final JwtService      jwtService;
 
     @Autowired
@@ -133,7 +139,7 @@ public class ReportsController {
         return ResponseEntity.ok(historial);
     }
 
-    /** RF8: entregables de un tesista */
+    /*
     @GetMapping("/entregables")
     public ResponseEntity<List<EntregableEstudianteDto>> getEntregablesEstudiante(
             HttpServletRequest request) {
@@ -142,14 +148,28 @@ public class ReportsController {
             reportingService.getEntregablesEstudiante(Integer.valueOf(sub));
         return ResponseEntity.ok(list);
     }
+    */
 
-    /** RF9: entregables con criterios de un tesista */
-    @GetMapping("/entregables-criterios")
+   @GetMapping("/entregables")
+    public ResponseEntity<List<EntregableEstudianteDto>> getEntregablesEstudiante(HttpServletRequest request) {
+        try {
+            String idUsuario = jwtService.extractSubFromRequest(request);
+            List<EntregableEstudianteDto> entregables = reportingService.getEntregablesEstudiante(idUsuario);
+            return ResponseEntity.ok(entregables);
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+
+    /** RF9: entregables con criterios de un tesista - NO AGREGAR ID COGNITO*/
+    @GetMapping("/entregables-criterios/{idUsuario}")
     public ResponseEntity<List<EntregableCriteriosDetalleDto>> getEntregablesConCriterios(
-            HttpServletRequest request) {
-        String sub = jwtService.extractSubFromRequest(request);
+           @PathVariable Integer  idUsuario) {
         List<EntregableCriteriosDetalleDto> list =
-            reportingService.getEntregablesConCriterios(sub);
+            reportingService.getEntregablesConCriterios(idUsuario);
         return ResponseEntity.ok(list);
     }
 }

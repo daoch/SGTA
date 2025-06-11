@@ -4,7 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import pucp.edu.pe.sgta.dto.CarreraDto;
 import pucp.edu.pe.sgta.service.inter.CarreraService;
-
+import pucp.edu.pe.sgta.service.inter.JwtService;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @RestController
@@ -13,6 +14,9 @@ public class CarreraController {
 
     @Autowired
     private CarreraService carreraService;
+
+    @Autowired
+    private JwtService jwtService;
 
     @GetMapping("/listar")
     public List<CarreraDto> listCarreras() {
@@ -32,6 +36,12 @@ public class CarreraController {
     @GetMapping("/get/{id}")
     public CarreraDto getCarreraById(@PathVariable Integer id) {
         return carreraService.findById(id);
+    }
+
+    @GetMapping("/get-coordinador")
+    public CarreraDto getCarreraCoordinador(HttpServletRequest request) {
+        String idCognito = jwtService.extractSubFromRequest(request);
+        return carreraService.getCarreraCoordinador(idCognito);
     }
 
     @GetMapping("/coordinada-por-usuario/{usuarioId}")

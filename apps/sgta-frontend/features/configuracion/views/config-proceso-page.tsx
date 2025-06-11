@@ -29,8 +29,7 @@ export default function ConfiguracionProcesoPage() {
   
   const fetchEtapas = async () => {
     try {
-      //TODO: Cambiar el ID hardcodeado por el ID de la carrera actual
-      const response = await etapaFormativaCicloService.getAllByIdCarrera(1);
+      const response = await etapaFormativaCicloService.getAllByIdCarrera();
       if (response) {
         setEtapas(response);
       }

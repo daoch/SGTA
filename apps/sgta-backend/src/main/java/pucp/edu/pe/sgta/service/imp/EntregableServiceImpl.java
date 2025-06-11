@@ -52,13 +52,12 @@ public class EntregableServiceImpl implements EntregableService {
                             ((Instant) resultado[5]).atOffset(ZoneOffset.UTC), // fecha fin
                             EstadoActividad.valueOf((String) resultado[6]), // estado
                             (boolean) resultado[7], // es evaluable
-                            ((Number) resultado[8]).intValue(), // maximo_documentos
-                            (String) resultado[9], // extensiones_permitidas
-                            ((Number) resultado[10]).intValue() // peso_maximo_documento
+                            resultado[8] != null ? ((Number) resultado[8]).intValue() : null, // maximo_documentos
+                            resultado[9] != null ? (String) resultado[9] : null, // extensiones_permitidas
+                            resultado[10] != null ? ((Number) resultado[10]).intValue() : null // peso_maximo_documento
                     ))
                     .collect(Collectors.toList());
         } catch (Exception e) {
-            e.printStackTrace(); // ← Te mostrará en consola exactamente qué falló
             throw new RuntimeException("Error al mapear entregables", e);
         }
     }
@@ -192,9 +191,35 @@ public class EntregableServiceImpl implements EntregableService {
 
     @Transactional
     @Override
-    public void entregarEntregable(Integer entregableId, EntregableSubidoDto entregableDto) {
-        entregableRepository.entregarEntregable(entregableId,
+    public void entregarEntregable(Integer entregableXTemaId, EntregableSubidoDto entregableDto) {
+        entregableRepository.entregarEntregable(entregableXTemaId,
                 entregableDto.getComentario(),
                 entregableDto.getEstado());
+    }
+    @Override
+    public EntregableAlumnoDto obtenerDetalleXTema(Integer entregableId, Integer temaId) {
+        List<Object[]> resultados = entregableRepository.obtenerDetalleXTema(entregableId, temaId);
+        if (resultados.isEmpty()) {
+            return null;
+        }
+
+        Object[] result = resultados.get(0); // la función retorna una sola fila
+
+        EntregableAlumnoDto dto = new EntregableAlumnoDto();
+        dto.setEntregableId(entregableId);
+        dto.setTemaId(temaId);
+        dto.setEntregableNombre((String) result[1]);           // nombre entregable
+        dto.setEntregableDescripcion((String) result[0]);      // nombre del tema
+        dto.setEntregableEstado((String) result[2]);           // estado (String)
+        dto.setEntregableFechaEnvio(
+            result[3] != null ? ((Instant) result[3]).atOffset(ZoneOffset.UTC) : null
+        );
+        dto.setEntregableFechaFin(
+            result[4] != null ? ((Instant) result[4]).atOffset(ZoneOffset.UTC) : null
+        );
+
+        // Los demás campos quedarán null o valores por defecto.
+        dto.setEntregableEsEvaluable(false); // Puedes ajustar según lo que devuelva la función
+        return dto;
     }
 }

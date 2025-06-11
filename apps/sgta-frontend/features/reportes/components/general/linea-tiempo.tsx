@@ -25,6 +25,8 @@ import { Eye } from "lucide-react";
 import { getEntregablesAlumno } from "@/features/reportes/services/report-services";
 import type { User } from "@/features/auth/types/auth.types";
 
+import { useAuthStore } from "@/features/auth/store/auth-store";
+
 // Convierte "no_iniciado" → "No Iniciado", etc.
 const humanize = (raw: string) =>
   raw
@@ -83,8 +85,9 @@ export function LineaTiempoReporte({ user }: Props) {
   useEffect(() => {
     const fetchEntregables = async () => {
       try {
-        const alumnoId = "40"; // Hardcodeado por ahora
-        const data = await getEntregablesAlumno(alumnoId);
+
+
+        const data = await getEntregablesAlumno();
 
         type RawEntregable = {
           nombreEntregable: string;

@@ -67,8 +67,15 @@ public class EntregableController {
         return entregableService.listarEntregablesPorAlumno(alumnoId);
     }
 
-    @PostMapping("/entregar/{entregableId}")
-    public void entregarEntregable(@PathVariable Integer entregableId, @RequestBody EntregableSubidoDto entregableDto){
-        entregableService.entregarEntregable(entregableId, entregableDto);
+    @PostMapping("/entregar/{entregableXTemaId}")
+    public void entregarEntregable(@PathVariable Integer entregableXTemaId, @RequestBody EntregableSubidoDto entregableDto){
+        entregableService.entregarEntregable(entregableXTemaId, entregableDto);
+    }
+    @GetMapping("/{entregableId}/tema/{temaId}/detalle-simplificado")
+    public EntregableAlumnoDto  obtenerDetalleSimplificado(
+        @PathVariable Integer entregableId,
+        @PathVariable Integer temaId
+    ) {
+        return entregableService.obtenerDetalleXTema(entregableId, temaId);
     }
 }
