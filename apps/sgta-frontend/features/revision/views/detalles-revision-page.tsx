@@ -6,6 +6,8 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, CheckCircle, Download, FileText, X } from "lucide-react";
 import Link from "next/link";
+import axiosInstance from "@/lib/axios/axios-instance";
+import { toast } from "@/components/ui/use-toast";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { IHighlight } from "react-pdf-highlighter";
@@ -57,6 +59,7 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
       try {
         const data = await getRevisionById(params.id);
         setRevision(data);
+        setEstado(data.estado);
         const obs = await obtenerObservacionesRevision(data.id);
         setObservaciones(obs);
       } catch {
@@ -68,6 +71,18 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
 
     fetchData();
   }, [params.id]);
+
+  async function actualizarEstadoRevision(revisionId: number, nuevoEstado: string) {
+    try {
+      const response = await axiosInstance.put(`/revision/${revisionId}/estado`, {
+        estado: nuevoEstado
+      });
+      return response.data; // o response.status si solo te importa el status
+    } catch (error) {
+      console.error("Error en la actualización:", error);
+      throw error;
+    }
+  }
 
   if (loading) {
     return <div className="text-center mt-10 text-muted-foreground">Cargando revisión...</div>;
@@ -329,12 +344,34 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
             <Button variant="outline" onClick={() => setShowConfirmDialog(null)}>Cancelar</Button>
             <Button
               className="bg-[#042354] hover:bg-pucp-light"
-              onClick={() => {
-                setShowConfirmDialog(null);
-                setTimeout(() => {
-                  setShowSuccessDialog(showConfirmDialog);
-                  setEstado(showConfirmDialog === "aprobar" ? "aprobado" : "rechazado");
-                }, 300); // pequeña espera para que cierre bien el primer modal
+              onClick={async () => {
+                try {
+                  // Llamada al backend para actualizar el estado de la revisión
+                  await actualizarEstadoRevision(Number(params.id), showConfirmDialog === "aprobar" ? "aprobado" : "rechazado");
+
+                  // Actualiza el estado local de la revisión (si lo estás usando en la vista)
+                  setRevision({ ...revision, estado: showConfirmDialog === "aprobar" ? "aprobado" : "rechazado" });
+
+                  // Notificación de éxito
+                  toast({
+                    title: showConfirmDialog === "aprobar" ? "Entregable aprobado" : "Entregable rechazado",
+                  });
+
+                  // Cierra el modal de confirmación
+                  setShowConfirmDialog(null);
+
+                  // Espera breve para transición y abre el modal de éxito
+                  setTimeout(() => {
+                    setShowSuccessDialog(showConfirmDialog);
+                    setEstado(showConfirmDialog === "aprobar" ? "aprobado" : "rechazado");
+                  }, 300);
+                } catch {
+                  // Notificación de error
+                  toast({
+                    title: "Error al enviar la decisión",
+                    variant: "destructive",
+                  });
+                }
               }}
             >
               Confirmar y Enviar

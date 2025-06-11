@@ -17,7 +17,6 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/use-toast";
 import HighlighterPdfViewer from "@/features/revision/components/HighlighterPDFViewer";
-import axiosInstance from "@/lib/axios/axios-instance";
 import { AlertTriangle, ArrowLeft, CheckCircle, FileWarning, Quote, Sparkles, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -254,19 +253,6 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
       setIsLoading(false);
     }
   };*/
-
-  async function actualizarEstadoRevision(revisionId: number, nuevoEstado: string) {
-    try {
-      const response = await axiosInstance.put(`/revision/${revisionId}/estado`, {
-        estado: nuevoEstado
-      });
-      return response.data; // o response.status si solo te importa el status
-    } catch (error) {
-      console.error("Error en la actualización:", error);
-      throw error;
-    }
-  }
-
 
   const handleFormatoValidoChange = () => {
     setRevision({
@@ -788,65 +774,6 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
               </div>
             </CardContent>
           </Card>
-          {revision.estado === "por-aprobar" && (
-            <div className="flex justify-end gap-4 mt-6">
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button variant="default">Aceptar Entregable</Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>¿Estás seguro de aceptar este entregable?</DialogTitle>
-                  </DialogHeader>
-                  <DialogFooter>
-                    <Button variant="outline">Cancelar</Button>
-                    <Button
-                      variant="default"
-                      onClick={async () => {
-                        try {
-                          await actualizarEstadoRevision(params.id_revision, "aprobado");
-                          setRevision({ ...revision, estado: "aprobado" });
-                          toast({ title: "Entregable aprobado" });
-                        } catch {
-                          toast({ title: "Error al aprobar el entregable", variant: "destructive" });
-                        }
-                      }}
-                    >
-                      Confirmar
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button variant="destructive">Rechazar Entregable</Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>¿Estás seguro de rechazar este entregable?</DialogTitle>
-                  </DialogHeader>
-                  <DialogFooter>
-                    <Button
-                      variant="destructive"
-                      onClick={async () => {
-                        try {
-                          await actualizarEstadoRevision(params.id_revision, "rechazado");
-                          setRevision({ ...revision, estado: "rechazado" });
-                          toast({ title: "Entregable rechazado" });
-                        } catch {
-                          toast({ title: "Error al rechazar el entregable", variant: "destructive" });
-                        }
-                      }}
-                    >
-                      Confirmar
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-
-            </div>
-          )}
         </div>
         <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
           <DialogContent>
