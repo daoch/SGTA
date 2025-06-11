@@ -249,7 +249,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
       setLoading(true);
       if (carreras) {
         const response = await axiosInstance.post(
-          "temas/createInscripcion",
+          "temas/createInscripcionV2",
           mapTemaCreateInscription(temaData, carreras[0], asesor),
         );
 
