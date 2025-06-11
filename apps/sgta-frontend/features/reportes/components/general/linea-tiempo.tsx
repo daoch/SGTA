@@ -174,7 +174,6 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
     fetchEntregables();
   }, [user]);
 
-  console.log("Eventos originales:", timelineEvents);
 
   // Filtrado por tiempo
   const filteredByTime = timelineEvents.filter((event) => {
