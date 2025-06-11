@@ -3,12 +3,12 @@ import { ExposicionAlumno, Sala } from "../types/exposicion.types";
 import { FormValues } from "../schemas/exposicion-form-schema";
 import { EtapaFormativaXSalaExposicion } from "../dtos/EtapaFormativaXSalaExposicion";
 import axios from "axios";
-import { CarreraXParametroConfiguracionDto } from "@/features/configuracion/types/CarreraXParametroConfiguracion.type";
-import { useAuthStore } from "@/features/auth/store/auth-store";
 
-export const getEtapasFormativasPorInicializarByCoordinador = async () => {
+export const getEtapasFormativasPorInicializarByCoordinador = async (
+  coordinador_id: number,
+) => {
   const response = await axiosInstance.get(
-    "/etapas-formativas/listarPorInicializarByCoordinador",
+    `/etapas-formativas/listarPorInicializarByCoordinador/${coordinador_id}`,
   );
   return response.data;
 };
@@ -114,10 +114,10 @@ export const getCursos = async () => {
   }
 };
 
-export const getCursosByCoordinador = async () => {
+export const getCursosByCoordinador = async (coordinadorId: number) => {
   try {
     const response = await axiosInstance.get(
-      "/etapas-formativas/listarActivasPorCoordinador",
+      `/etapas-formativas/listarActivasPorCoordinador/${coordinadorId}`,
     );
     return response.data;
   } catch (error) {
@@ -136,10 +136,12 @@ export const getEstadosExposicion = async () => {
   }
 };
 
-export const getExposicionesInicializadasByCoordinador = async () => {
+export const getExposicionesInicializadasByCoordinador = async (
+  coordinadorId: number,
+) => {
   try {
     const response = await axiosInstance.get(
-      "/exposicion/listarExposicionesInicializadasXCoordinador",
+      `/exposicion/listarExposicionesInicializadasXCoordinador/${coordinadorId}`,
     );
     return response.data;
   } catch (error) {
@@ -161,14 +163,11 @@ export const getExposicionesEstudiantesByEstudianteId = async (
     //   `/exposicion/listarExposicionesPorUsuario/${bearerTokenId}`,
     // );
 
-    const response = await axiosInstance.get(
-      "/exposicion/listarExposicionesPorUsuario",
-      {
-        headers: {
-          Authorization: `Bearer ${bearerTokenId}`,
-        },
+    const response = await axiosInstance.get("/exposicion/listarExposicionesPorUsuario", {
+      headers: {
+        "Authorization": `Bearer ${bearerTokenId}`,
       },
-    );
+    });
 
     console.log("Datos de exposiciones obtenidos:", response.data);
 
@@ -177,15 +176,14 @@ export const getExposicionesEstudiantesByEstudianteId = async (
       exposicionId: item.exposicionId,
       tema_id: item.temaId,
       estado: item.estado,
-      link_exposicion: item.link_exposicion,
-      link_grabacion: item.link_grabacion,
+      link_exposicion: item.linkExposicion,
+      link_grabacion: item.linkGrabacion,
       datetimeInicio: new Date(item.datetimeInicio),
       datetimeFin: new Date(item.datetimeFin),
       sala: item.sala,
       titulo: item.titulo,
       etapaFormativa: item.etapaFormativa,
       ciclo: item.ciclo,
-      tipoExposicion: item.tipoExposicion,
       miembrosJurado: item.miembrosJurado.map((miembro) => ({
         id_persona: miembro.id_persona,
         nombre: miembro.nombre,
@@ -199,18 +197,4 @@ export const getExposicionesEstudiantesByEstudianteId = async (
     );
     throw new Error("Error al obtener exposiciones de estudiantes por ID");
   }
-};
-
-export const getParametrosByUsuarioId = async (
-): Promise<CarreraXParametroConfiguracionDto[]> => {
-
-    const { idToken } = useAuthStore.getState();
-    const response = await axiosInstance.get<CarreraXParametroConfiguracionDto[]>(
-        "/carreraXParametroConfiguracion/parametros-alumno",
-    {
-        headers: {
-            Authorization: `Bearer ${idToken}`,
-        },
-    });
-    return response.data;
 };

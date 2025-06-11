@@ -7,10 +7,9 @@ import { useRouter } from "next/navigation";
 
 interface BackButtonProps {
   backUrl?: string;
-  children?: React.ReactNode;
 }
 
-const BackButton: React.FC<BackButtonProps> = ({ backUrl, children }) => {
+const BackButton: React.FC<BackButtonProps> = ({ backUrl }) => {
   const router = useRouter();
 
   const handleClick = () => {
@@ -22,13 +21,8 @@ const BackButton: React.FC<BackButtonProps> = ({ backUrl, children }) => {
   };
 
   return (
-    <Button
-      variant="outline"
-      size={children ? "default" : "icon"}
-      onClick={handleClick}
-    >
+    <Button variant="outline" size="icon" onClick={handleClick}>
       <ArrowLeft className="h-5 w-5" />
-      {children && children}
     </Button>
   );
 };

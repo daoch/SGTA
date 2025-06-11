@@ -20,8 +20,6 @@ export interface Tema {
   tesistas: Tesista[] | null;
   subareas: Subareas[];
   requisitos: string; //agregado
-  area: AreaConocimiento[];
-  cantPostulaciones: number;
 }
 
 export interface Carrera {
@@ -74,7 +72,6 @@ export interface Coasesor {
   activo: boolean;
   fechaCreacion: string;
   fechaModificacion: string | null;
-  rol: string | null;
 }
 
 export interface Subareas {
@@ -185,4 +182,3 @@ export interface Observacion {
   autor: string;
   fecha: string;
 }
-

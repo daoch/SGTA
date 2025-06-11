@@ -16,22 +16,21 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/use-toast";
 import HighlighterPdfViewer from "@/features/revision/components/HighlighterPDFViewer";
-import axiosInstance from "@/lib/axios/axios-instance";
 import { AlertTriangle, ArrowLeft, CheckCircle, FileWarning, Quote, Sparkles, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PDFDocument } from "pdf-lib";
 import { useCallback, useEffect, useState } from "react";
 import { IHighlight } from "react-pdf-highlighter/dist/types";
-import { analizarPlagioArchivoS3, descargarArchivoS3RevisionID, guardarObservacionesRevision, obtenerObservacionesRevision } from "../servicios/revision-service";
+import { analizarPlagioArchivoS3, descargarArchivoS3 } from "../servicios/revision-service";
 // ...otros imports...
 
 // Datos de ejemplo para una revisión específica
 const revisionData = {
-  id: 2,
-  titulo: "Vision Computacional",
-  estudiante: "Luis Manuel Falcon Baca",
-  codigo: "20183178",
+  id: "2",
+  titulo: "Desarrollo de un sistema de monitoreo de calidad del aire utilizando IoT",
+  estudiante: "Ana García",
+  codigo: "20190456",
   curso: "1INF46",
   entregable: "E1",
   fechaEntrega: "2023-11-02",
@@ -46,8 +45,7 @@ const revisionData = {
   ],
 };
 
-
-export default function RevisarDocumentoPage({ params }: { readonly params: { readonly id_revision: number } }) {
+export default function RevisarDocumentoPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   interface Observacion {
     id: string;
@@ -58,7 +56,7 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
   }
 
   const [revision, setRevision] = useState<{
-    id: number;
+    id: string;
     titulo: string;
     estudiante: string;
     codigo: string;
@@ -135,8 +133,7 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
     async function fetchPdf() {
       try {
         const key = "E1.pdf";
-        if (!params.id_revision) return;
-        const blob = await descargarArchivoS3RevisionID(params.id_revision);
+        const blob = await descargarArchivoS3(key);
         const url = URL.createObjectURL(blob);
         setPdfUrl(url);
         console.log("PDF URL:", url);
@@ -145,7 +142,6 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
         const pdfDoc = await PDFDocument.load(arrayBuffer);
         setNumPages(pdfDoc.getPageCount());
       } catch (e) {
-        console.error("Error al obtener el PDF:", e);
         setPdfUrl(null);
         setNumPages(null);
       }
@@ -155,20 +151,8 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
     return () => {
       if (pdfUrl) URL.revokeObjectURL(pdfUrl);
     };
-  }, [params.id_revision]);
-  useEffect(() => {
-    async function fetchObservaciones() {
-      try {
-        const data = await obtenerObservacionesRevision(params.id_revision);
-        console.log("Observaciones obtenidas:", data);
-        setHighlights(data);
-      } catch (e) {
-        console.error("Error al obtener observaciones:", e);
-        setHighlights([]);
-      }
-    }
-    fetchObservaciones();
-  }, [params.id_revision]);
+  }, [params.id]);
+
   useEffect(() => {
     if (numPages === null) return;
     // Solo crea highlights en páginas válidas
@@ -249,19 +233,6 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
     }
   };*/
 
-  async function actualizarEstadoRevision(revisionId: number, nuevoEstado: string) {
-    try {
-      const response = await axiosInstance.put(`/revision/${revisionId}/estado`, {
-        estado: nuevoEstado
-      });
-      return response.data; // o response.status si solo te importa el status
-    } catch (error) {
-      console.error("Error en la actualización:", error);
-      throw error;
-    }
-  }
-
-
   const handleFormatoValidoChange = () => {
     setRevision({
       ...revision,
@@ -320,25 +291,8 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
     setIsLoading(true);
 
     try {
-      const highlightsDto = highlights.map(h => ({
-        id: h.id,
-        position: {
-          boundingRect: h.position.boundingRect,
-          rects: h.position.rects,
-          pageNumber: h.position.pageNumber,
-          usePdfCoordinates: h.position.usePdfCoordinates ?? undefined,
-        },
-        content: {
-          text: h.content.text ?? "",
-          image: h.content.image ?? "",
-        },
-        comment: {
-          text: h.comment.text,
-          emoji: h.comment.emoji,
-        },
-      }));
-
-      await guardarObservacionesRevision(params.id_revision, highlightsDto, 10); // Asumiendo que el usuario es el asesor con ID 1
+      // En una aplicación real, aquí se enviaría la revisión al backend
+      // await guardarObservacionesRevision(revision.id, highlights, 1); // Asumiendo que el usuario es el asesor con ID 1
       console.log("Revisión guardada exitosamente");
 
       await new Promise((resolve) => setTimeout(resolve, 1500));
@@ -417,21 +371,17 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
                           : "bg-green-200"
                     }`}
                   /> */}
-                  {(() => {
-                    let plagioClass = "";
-                    if (revision.porcentajePlagio > 20) {
-                      plagioClass = "text-red-600 font-medium";
-                    } else if (revision.porcentajePlagio > 10) {
-                      plagioClass = "text-yellow-600 font-medium";
-                    } else {
-                      plagioClass = "text-green-600 font-medium";
+                  <span
+                    className={
+                      revision.porcentajePlagio > 20
+                        ? "text-red-600 font-medium"
+                        : revision.porcentajePlagio > 10
+                          ? "text-yellow-600 font-medium"
+                          : "text-green-600 font-medium"
                     }
-                    return (
-                      <span className={plagioClass}>
-                        {revision.porcentajePlagio}%
-                      </span>
-                    );
-                  })()}
+                  >
+                    {revision.porcentajePlagio}%
+                  </span>
                 </div>
               </div>
 
@@ -522,7 +472,7 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
                   setIsLoading(true);
                   try {
                     await handleFinalizarRevision(); // puede ser solo lógica de guardado
-                    router.push(`/asesor/revision/detalles-revision/${params.id_revision}`);
+                    router.push(`/asesor/revision/detalles-revision/${revision.id}`);
                   } catch (error) {
                     console.error("Error al redirigir:", error);
                   } finally {
@@ -712,7 +662,7 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
                     <span>Contenido</span>
                   </div>
                   <Badge variant="outline" className="bg-yellow-100 text-yellow-800">
-                    {highlights.filter((h) => h.comment.emoji === "Contenido").length}
+                    {highlights.filter((h) => h.comment.emoji === "contenido").length}
                   </Badge>
                 </div>
 
@@ -722,7 +672,7 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
                     <span>Similitud</span>
                   </div>
                   <Badge variant="outline" className="bg-red-100 text-red-800">
-                    {highlights.filter((h) => h.comment.emoji === "Similitud").length}
+                    {highlights.filter((h) => h.comment.emoji === "similitud").length}
                   </Badge>
                 </div>
 
@@ -732,7 +682,7 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
                     <span>Citado</span>
                   </div>
                   <Badge variant="outline" className="bg-blue-100 text-blue-800">
-                    {highlights.filter((h) => h.comment.emoji === "Citado").length}
+                    {highlights.filter((h) => h.comment.emoji === "citado").length}
                   </Badge>
                 </div>
                 <div className="flex items-center justify-between">
@@ -741,7 +691,7 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
                     <span>Generado con IA</span>
                   </div>
                   <Badge variant="outline" className="bg-green-100 text-green-800">
-                    {revision.observaciones.filter((o) => o.tipo === "Inteligencia Artificial").length}
+                    {revision.observaciones.filter((o) => o.tipo === "citado").length}
                   </Badge>
                 </div>
               </div>
@@ -761,14 +711,9 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
                     <Button variant="outline">Cancelar</Button>
                     <Button
                       variant="default"
-                      onClick={async () => {
-                        try {
-                          await actualizarEstadoRevision(params.id_revision, "aprobado");
-                          setRevision({ ...revision, estado: "aprobado" });
-                          toast({ title: "Entregable aprobado" });
-                        } catch {
-                          toast({ title: "Error al aprobar el entregable", variant: "destructive" });
-                        }
+                      onClick={() => {
+                        setRevision({ ...revision, estado: "aprobado" });
+                        toast({ title: "Entregable aprobado" });
                       }}
                     >
                       Confirmar
@@ -786,16 +731,12 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
                     <DialogTitle>¿Estás seguro de rechazar este entregable?</DialogTitle>
                   </DialogHeader>
                   <DialogFooter>
+                    <Button variant="outline">Cancelar</Button>
                     <Button
                       variant="destructive"
-                      onClick={async () => {
-                        try {
-                          await actualizarEstadoRevision(params.id_revision, "rechazado");
-                          setRevision({ ...revision, estado: "rechazado" });
-                          toast({ title: "Entregable rechazado" });
-                        } catch {
-                          toast({ title: "Error al rechazar el entregable", variant: "destructive" });
-                        }
+                      onClick={() => {
+                        setRevision({ ...revision, estado: "rechazado" });
+                        toast({ title: "Entregable rechazado" });
                       }}
                     >
                       Confirmar

@@ -79,7 +79,9 @@ export const TemaDetailsDialog: React.FC<TemaDetailsDialogProps> = ({
             {/* Area */}
             <div>
               <p className="text-sm font-medium">Área</p>
-              <p className="bg-muted p-2 rounded-md">{tema.area[0].nombre}</p>
+              <p className="bg-muted p-2 rounded-md">
+                {tema.subareas[0].nombre}
+              </p>
             </div>
 
             {/* Subáreas */}
@@ -216,3 +218,4 @@ function formatDate(fechaISO: string): string {
   const anio = fecha.getUTCFullYear();
   return `${dia}/${mes}/${anio}`;
 }
+

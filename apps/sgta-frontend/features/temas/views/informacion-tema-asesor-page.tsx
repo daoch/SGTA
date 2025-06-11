@@ -11,16 +11,14 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Observacion, Solicitud, Tema } from "../types/temas/entidades";
+import { Tema } from "../types/inscripcion/entities";
+import { Observacion, Solicitud } from "../types/temas/entidades";
 
-export default function InformacionTemaAsesor({
-  params,
-}: {
-  readonly params: string;
-}) {
+export default function InformacionTemaAsesor({ params }: { params: string }) {
   const router = useRouter();
   const [tema, setTema] = useState<Tema | null>(null);
   const [observaciones, setObservaciones] = useState<Observacion[]>([]);
+  //const [solicitudes, setSolicitudes] = useState<Solicitud[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -60,6 +58,7 @@ export default function InformacionTemaAsesor({
         );
 
         setObservaciones(observacionesFormateadas);
+        //setSolicitudes(filtradas);
       } catch (err) {
         if (err instanceof Error) {
           setError(err.message);
@@ -93,32 +92,23 @@ export default function InformacionTemaAsesor({
           <TabsTrigger value={"Comentarios"}>Comentario(s)</TabsTrigger>
         </TabsList>
         <TabsContent value={"Comentarios"}>
-          {(() => {
-            if (loading) {
-              return (
-                <p className="p-6 text-muted-foreground">
-                  Cargando observaciones...
-                </p>
-              );
-            } else if (error) {
-              return <p className="p-6 text-red-500">Error: {error}</p>;
-            } else if (observaciones.length === 0) {
-              return (
-                <p className="p-6 text-muted-foreground">
-                  No se encontraron observaciones para este tema
-                </p>
-              );
-            } else {
-              return (
-                <ObservacionesCard
-                  observaciones={observaciones}
-                ></ObservacionesCard>
-              );
-            }
-          })()}
+          {loading ? (
+            <p className="p-6 text-muted-foreground">
+              Cargando observaciones...
+            </p>
+          ) : error ? (
+            <p className="p-6 text-red-500">Error: {error}</p>
+          ) : observaciones.length === 0 ? (
+            <p className="p-6 text-muted-foreground">
+              No se encontraron observaciones para este tema
+            </p>
+          ) : (
+            <ObservacionesCard
+              observaciones={observaciones}
+            ></ObservacionesCard>
+          )}
         </TabsContent>
       </Tabs>
     </div>
   );
 }
-

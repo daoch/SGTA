@@ -24,47 +24,18 @@ import { useEffect, useState } from "react";
 import "../../../features/revision/types/colors.css";
 import { RevisionesCardsAsesor } from "../components/revisiones-cards-asesor";
 import { RevisionesTableAsesor } from "../components/revisiones-table-asesor";
-import { DocumentoAgrupado } from "../dtos/DocumentoAgrupado";
 import { RevisionDocumentoAsesorDto } from "../dtos/RevisionDocumentoAsesorDto";
 
-function agruparPorDocumento(data: RevisionDocumentoAsesorDto[]): DocumentoAgrupado[] {
-  const mapa = new Map<number, DocumentoAgrupado>();
-
-  data.forEach((item) => {
-    if (!mapa.has(item.id)) {
-      mapa.set(item.id, {
-        id: item.id,
-        titulo: item.titulo,
-        entregable: item.entregable,
-        curso: item.curso,
-        porcentajeSimilitud: item.porcentajeSimilitud,
-        porcentajeGenIA: item.porcentajeGenIA,
-        fechaEntrega: item.fechaEntrega,
-        entregaATiempo: item.entregaATiempo,
-        fechaLimite: item.fechaLimite,
-        ultimoCiclo: item.ultimoCiclo,
-        estado: item.estado,
-        formatoValido: item.formatoValido,
-        citadoCorrecto: item.citadoCorrecto,
-        urlDescarga: item.urlDescarga,
-        estudiantes: [],
-      });
-    }
-
-    mapa.get(item.id)!.estudiantes.push({
-      nombre: item.estudiante,
-      codigo: item.codigo,
-    });
-  });
-
-  return Array.from(mapa.values());
+interface Ciclo {
+  cicloId: number;
+  cicloNombre: string;
 }
 
 const RevisionAsesorPage = () => {
   const [viewMode, setViewMode] = useState<"table" | "cards">("table");
   const [searchQuery, setSearchQuery] = useState("");
   const [cursoFilter, setCursoFilter] = useState("todos");
-  const [documentos, setDocumentos] = useState<DocumentoAgrupado[]>([]);
+  const [documentos, setDocumentos] = useState<RevisionDocumentoAsesorDto[]>([]);
 
   useEffect(() => {
     const fetchDocumentos = async () => {
@@ -80,9 +51,7 @@ const RevisionAsesorPage = () => {
             Authorization: `Bearer ${idToken}`
           }
         });
-
-        const agrupados = agruparPorDocumento(response.data);
-        setDocumentos(agrupados);
+        setDocumentos(response.data);
       } catch (error) {
         console.error("Error al cargar los documentos:", error);
       }

@@ -20,10 +20,9 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import React, { useState } from "react";
+import React from "react";
 import { Input } from "@/components/ui/input";
 import { TemasTableCoordinador } from "../components/coordinador/temas-table-coordinador";
-import { Search } from "lucide-react";
 
 enum TabValues {
   TODOS = "todos",
@@ -33,8 +32,7 @@ enum TabValues {
 }
 
 const TemasCoordinadorPage = () => {
-  const [position, setPosition] = useState("bottom");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [position, setPosition] = React.useState("bottom");
 
   return (
     <div className="space-y-8 mt-4">
@@ -48,18 +46,7 @@ const TemasCoordinadorPage = () => {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between gap-4">
-            {/* <Input placeholder="Buscar por título, estudiante o asesor..." /> */}
-
-            {/* Searchbar */}
-            <div className="relative w-full md:flex-1">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder={"Buscar por título, estudiante o asesor..."}
-                className="pl-8 w-full"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
+            <Input placeholder="Buscar por título, estudiante o asesor..." />
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -108,10 +95,9 @@ const TemasCoordinadorPage = () => {
         </CardHeader>
         <CardContent>
           <TemasTableCoordinador
-            filter={TabValues.TODOS}
+            filter={TabValues.INSCRITOS}
             showPostulaciones={false}
             showTipo={false}
-            searchQuery={searchQuery}
           />
         </CardContent>
       </Card>

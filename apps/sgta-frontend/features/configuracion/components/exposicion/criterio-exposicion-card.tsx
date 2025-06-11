@@ -5,17 +5,18 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
+  CardHeader,
   CardFooter,
 } from "@/components/ui/card";
 import { PenLine, Trash2 } from "lucide-react";
 
 interface CriterioExposicionCardProps {
-  readonly id: string;
-  readonly nombre: string;
-  readonly descripcion: string;
-  readonly notaMaxima: number;
-  readonly onEdit?: (id: string) => void;
-  readonly onDelete?: (id: string) => void;
+  id: string;
+  nombre: string;
+  descripcion: string;
+  notaMaxima: number;
+  onEdit?: (id: string) => void;
+  onDelete?: (id: string) => void;
 }
 
 export function CriterioExposicionCard({

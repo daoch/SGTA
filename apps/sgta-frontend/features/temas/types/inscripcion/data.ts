@@ -1,5 +1,5 @@
+import { Carrera, Usuario } from "../temas/entidades";
 import axiosInstance from "@/lib/axios/axios-instance";
-import { Carrera, Tema, Usuario } from "../temas/entidades";
 
 export async function fetchUsuariosFindById(
   usuarioId: number,
@@ -33,16 +33,8 @@ export const fetchUsers = async (
   tipoUsuarioNombre: string,
   cadenaBusqueda: string = "",
 ) => {
-  const response = await axiosInstance.get(
-    "/usuario/findByTipoUsuarioAndCarrera",
-    {
-      params: {
-        carreraId,
-        tipoUsuarioNombre,
-        cadenaBusqueda,
-      },
-    },
-  );
+  const url = `/usuario/findByTipoUsuarioAndCarrera?carreraId=${carreraId}&tipoUsuarioNombre=${tipoUsuarioNombre}&cadenaBusqueda=${cadenaBusqueda}`;
+  const response = await axiosInstance.get(url);
   return response.data;
 };
 
@@ -58,50 +50,3 @@ export async function inscribirTemaPrescrito(temaId: number) {
   }
 }
 
-export async function fetchTemasAPI(
-  titulo: string = "",
-  //areaId: number,
-  estadoNombre: string,
-  limit: number = 10,
-  offset: number = 0,
-): Promise<Tema[]> {
-  try {
-    const response = await axiosInstance.get(
-      "/temas/porUsuarioTituloAreaCarreraEstadoFecha",
-      {
-        params: {
-          titulo: titulo,
-          //areaId: areaId,
-          estadoNombre: estadoNombre,
-          limit,
-          offset,
-        },
-      },
-    );
-    return response.data;
-  } catch (error) {
-    console.error("La página no responde. No se obtuvieron los temas.", error);
-    throw error;
-  }
-}
-
-export async function obtenerAreasDelUsuario(usuarioId: number) {
-  try {
-    const response = await axiosInstance.get(
-      "/areaConocimiento/listarPorUsuario",
-      {
-        params: {
-          usuarioId: usuarioId,
-        },
-        headers: {
-          "Content-Type": "application/json",
-        },
-      },
-    );
-
-    return response.data;
-  } catch (error) {
-    console.error("La página no responde.", error);
-    throw error;
-  }
-}

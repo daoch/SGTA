@@ -26,28 +26,16 @@ export const formSchema = z.object({
             .refine((date) => date === null || date >= startOfTomorrow(), {
               message: "La fecha debe ser a partir de mañana",
             }),
-          hora_inicio: z
-            .string()
-            .nonempty("La hora de inicio es requerida")
-            .nullable(),
-          hora_fin: z
-            .string()
-            .nonempty("La hora de fin es requerida")
-            .nullable(),
+          hora_inicio: z.string().nonempty("La hora de inicio es requerida"),
+          hora_fin: z.string().nonempty("La hora de fin es requerida"),
           salas: z
             .array(z.number())
             .min(1, "Debe seleccionar al menos una sala"),
         })
-        .refine(
-          (data) =>
-            data.hora_inicio !== null &&
-            data.hora_fin !== null &&
-            data.hora_inicio < data.hora_fin,
-          {
-            message: "La hora de fin debe ser posterior a la hora de inicio",
-            path: ["hora_fin"],
-          },
-        ),
+        .refine((data) => data.hora_inicio < data.hora_fin, {
+          message: "La hora de fin debe ser posterior a la hora de inicio",
+          path: ["hora_fin"],
+        }),
     )
     .min(1, "Debe agregar al menos una fecha")
     .refine(
@@ -64,14 +52,10 @@ export const formSchema = z.object({
 
             if (!mismaFecha) continue;
 
-            const inicioA = horaStringToMinutos(
-              a.hora_inicio ? a.hora_inicio : "00:00",
-            );
-            const finA = horaStringToMinutos(a.hora_fin ? a.hora_fin : "00:00");
-            const inicioB = horaStringToMinutos(
-              b.hora_inicio ? b.hora_inicio : "00:00",
-            );
-            const finB = horaStringToMinutos(b.hora_fin ? b.hora_fin : "00:00");
+            const inicioA = horaStringToMinutos(a.hora_inicio);
+            const finA = horaStringToMinutos(a.hora_fin);
+            const inicioB = horaStringToMinutos(b.hora_inicio);
+            const finB = horaStringToMinutos(b.hora_fin);
 
             const seSolapan = inicioA < finB && inicioB < finA;
             if (seSolapan) return false;
@@ -91,8 +75,8 @@ export interface FormValues {
   exposicion_id: number;
   fechas: {
     fecha: Date | null;
-    hora_inicio: string | null;
-    hora_fin: string | null;
+    hora_inicio: string;
+    hora_fin: string;
     salas: number[];
   }[];
 }

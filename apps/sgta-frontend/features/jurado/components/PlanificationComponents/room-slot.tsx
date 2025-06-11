@@ -77,7 +77,7 @@ const RoomSlot: React.FC<Props> = ({
                 />
               </TooltipTrigger>
               <TooltipContent side="bottom">
-                <ToolTipoBloque tema={expoFind} />
+                <ToolTipoBloque expoFind={expoFind} />
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>

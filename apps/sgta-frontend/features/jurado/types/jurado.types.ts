@@ -1,5 +1,3 @@
-import { MiembroJuradoDetalle } from "./juradoDetalle.types";
-
 export interface Jurado {
   code: string;
   name: string;
@@ -55,7 +53,7 @@ export interface TimeSlot {
   esBloqueReservado?: boolean;
   esBloqueBloqueado?: boolean;
   anteriorExpo?: Tema;
-  cambiado?: boolean;
+  cambiado? : boolean;
 }
 
 export interface EstadoPlanificacion {
@@ -89,7 +87,6 @@ export interface Exposicion {
   datetimeInicio: string;
   datetimeFin: string;
   salaExposicion: string;
-  miembrosJurado: MiembroJuradoDetalle[];
 }
 
 export interface EtapaFormativaExposiciones {
@@ -103,7 +100,6 @@ export interface Usuario {
   nombres: string;
   apellidos: string;
   rol: Rol;
-  estadoRespuesta: "esperando_respuesta" | "aceptado" | "rechazado";
 }
 
 export interface Rol {
@@ -124,9 +120,6 @@ export interface ExposicionJurado {
   titulo: string;
   ciclo_id: number;
   nombre_exposicion: string;
-  enlace_grabacion: string;
-  enlace_sesion: string;
-  criterios_calificados: boolean;
   miembros: MiembroJuradoExpo[];
 }
 
@@ -154,15 +147,7 @@ export interface CriterioEvaluacion {
   id: number;
   titulo: string;
   descripcion: string;
-  calificacion: number| null;
+  calificacion: number;
   nota_maxima: number;
   observacion: string;
-}
-
-export interface CalificacionesJurado {
-  usuario_id: number;
-  nombres: string;
-  observaciones_finales: string;
-  criterios: CriterioEvaluacion[];
-  calificado: boolean;
 }

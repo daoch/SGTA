@@ -1,3 +1,15 @@
+export interface TemaForm {
+  tipoRegistro: string;
+  titulo: string;
+  areaInvestigacion: string;
+  descripcion: string;
+  coasesores: string[];
+  asesorPrincipal: string;
+  estudiantes: string[];
+  requisitos?: string;
+  fechaLimite?: string;
+}
+
 export interface Tema {
   id: number;
   codigo: string | null;
@@ -19,21 +31,9 @@ export interface Tema {
   coasesores: Coasesor[] | null;
   tesistas: Tesista[] | null;
   subareas: AreaDeInvestigacion[];
-  requisitos: string; //agregado
+  requisitos: string;
   area: AreaConocimiento[];
   cantPostulaciones: number;
-}
-
-export interface TemaForm {
-  tipoRegistro: string;
-  titulo: string;
-  areaInvestigacion: string;
-  descripcion: string;
-  coasesores: string[];
-  asesorPrincipal: string;
-  estudiantes: string[];
-  requisitos?: string;
-  fechaLimite?: string;
 }
 
 export interface TemaCreateInscription {
@@ -123,4 +123,3 @@ export interface AreaConocimiento {
   fechaModificacion: string;
   idCarrera: number;
 }
-

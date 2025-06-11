@@ -11,10 +11,10 @@ import {
   CardHeader,
   CardTitle,
 } from "../../../components/ui/card";
-import { DocumentoAgrupado } from "../dtos/DocumentoAgrupado";
+import { RevisionDocumentoAsesorDto } from "../dtos/RevisionDocumentoAsesorDto";
 
 interface RevisionesCardsAsesorProps {
-  data: DocumentoAgrupado[];
+  data: RevisionDocumentoAsesorDto[];
   filter?: string;
   searchQuery?: string;
   cursoFilter?: string;
@@ -45,13 +45,11 @@ export function RevisionesCardsAsesor({
 
   if (searchQuery) {
     const query = searchQuery.toLowerCase();
-    revisionesFiltradas = revisionesFiltradas.filter((revision) =>
-      revision.titulo.toLowerCase().includes(query) ||
-      revision.estudiantes.some(
-        (est) =>
-          est.nombre.toLowerCase().includes(query) ||
-          est.codigo.includes(query)
-      )
+    revisionesFiltradas = revisionesFiltradas.filter(
+      (revision) =>
+        revision.estudiante.toLowerCase().includes(query) ||
+        revision.codigo.includes(query) ||
+        revision.titulo.toLowerCase().includes(query)
     );
   }
 
@@ -101,25 +99,10 @@ export function RevisionesCardsAsesor({
               <CardContent className="pb-2 flex-grow">
                 <div className="space-y-4">
                   <div>
-                    {revision.estudiantes.length === 1 ? (
-                      <>
-                        <p className="text-sm font-medium">{revision.estudiantes[0].nombre}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {revision.estudiantes[0].codigo}
-                        </p>
-                      </>
-                    ) : (
-                      <>
-                        <p className="text-sm font-medium">
-                          {revision.estudiantes.length} estudiantes
-                        </p>
-                        <ul className="text-xs text-muted-foreground list-disc ml-4 mt-1">
-                          {revision.estudiantes.map((est) => (
-                            <li key={est.codigo}>{est.nombre} ({est.codigo})</li>
-                          ))}
-                        </ul>
-                      </>
-                    )}
+                    <p className="text-sm font-medium">{revision.estudiante}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {revision.codigo}
+                    </p>
                   </div>
 
                   <div className="flex justify-between items-center">

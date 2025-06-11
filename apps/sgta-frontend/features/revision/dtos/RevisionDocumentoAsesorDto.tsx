@@ -12,7 +12,4 @@ export interface RevisionDocumentoAsesorDto {
 	fechaLimite: string;
 	ultimoCiclo: string;
 	estado: string;
-	formatoValido: boolean,
-	citadoCorrecto: boolean,
-	urlDescarga: string;
 }

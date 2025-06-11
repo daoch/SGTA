@@ -1,85 +1,46 @@
 // src/features/usuario/types/notificacion.types.ts
 
-/**
- * Representa el módulo de la notificación (tal como el componente lo usa).
- */
-export interface INotificacionModulo {
+export interface INotificacionModulo { // Corresponde a Modulo en backend
   id: number;
   nombre: string;
 }
 
-/**
- * Representa el tipo de notificación (tal como el componente lo usa).
- */
-export interface INotificacionTipo {
+export interface INotificacionTipo { // Corresponde a TipoNotificacion en backend
   id: number;
   nombre: string;
   prioridad: number;
 }
 
-/**
- * Notificación tal como viene “plana” desde la API.
- * Obsérvese que NO hay { modulo: … } ni { tipoNotificacion: … }, 
- * sino estos tres campos separados:
- *   • moduloNombre
- *   • tipoNotificacionNombre
- *   • tipoNotificacionPrioridad
- */
+// Notificación tal como viene del API
 export interface INotificacionFetched {
   id: number;
   mensaje: string;
   canal: string;
-  fechaCreacion: string;       // ISO String (p.ej. "2025-06-04T05:40:11.219005Z")
+  fechaCreacion: string; // ISO String
   fechaLectura: string | null; // ISO String o null
   activo: boolean;
-
-  // Campos “planos” que realmente devuelve el backend:
-  moduloNombre: string;
-  tipoNotificacionNombre: string;
-  tipoNotificacionPrioridad: number;
-
-  enlaceRedireccion: string | null;
-}
-
-
-/**
- * Notificación que ya está transformada para el UI:
- *   • Convierte fechaCreacion/fechaLectura a Date
- *   • Construye los objetos anidados “modulo” y “tipoNotificacion”
- */
-export interface INotificacionTransformed {
-  id: number;
-  mensaje: string;
-  canal: string;
-  activo: boolean;
-  fechaCreacion: Date;
-  fechaLectura: Date | null;
-  enlaceRedireccion: string | null;
-
   modulo: INotificacionModulo;
   tipoNotificacion: INotificacionTipo;
+  // usuarioDestinatario no es necesario en el DTO de respuesta si es para el usuario actual
+  enlaceRedireccion: string | null;
 }
 
+// Notificación transformada para la UI
+export interface INotificacionTransformed extends Omit<INotificacionFetched, "fechaCreacion" | "fechaLectura"> {
+  fechaCreacion: Date;
+  fechaLectura: Date | null;
+}
 
-/**
- * Respuesta paginada del backend para la lista de notificaciones.
- * El “content” es un array de INotificacionFetched (plano).
- */
+// Respuesta paginada del API para la lista de notificaciones
 export interface INotificacionesListResponseFetched {
   content: INotificacionFetched[];
   totalPages: number;
   totalElements: number;
   number: number; // Página actual (0-indexed)
   size: number;
-  // (Puedes añadir aquí más campos de Spring Page si los necesitas)
+  // ... otros campos de Spring Page
 }
 
-
-/**
- * Objeto que expone el frontend una vez transformada la respuesta:
- *   • notificaciones: array de INotificacionTransformed
- *   • totalPages, totalElements, currentPage
- */
 export interface INotificacionesListProcessed {
   notificaciones: INotificacionTransformed[];
   totalPages: number;
@@ -87,10 +48,6 @@ export interface INotificacionesListProcessed {
   currentPage: number;
 }
 
-
-/**
- * Respuesta del endpoint “count-no-leidas”
- */
 export interface INotificacionesCount {
-  count: number;
+    count: number;
 }

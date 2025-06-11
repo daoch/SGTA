@@ -58,7 +58,7 @@ export function ItemFechaExposicion({
           name={`fechas.${index}.fecha`}
           control={control}
           render={({ field: dateField }) => (
-            <Popover modal={true}>
+            <Popover>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
@@ -102,12 +102,7 @@ export function ItemFechaExposicion({
           name={`fechas.${index}.hora_inicio`}
           control={control}
           render={({ field }) => (
-            <Input
-              {...field}
-              type="time"
-              disabled={isDisabled}
-              value={field.value ?? ""}
-            />
+            <Input {...field} type="time" disabled={isDisabled} />
           )}
         />
         {fechaErrors?.hora_inicio && (
@@ -124,12 +119,7 @@ export function ItemFechaExposicion({
           name={`fechas.${index}.hora_fin`}
           control={control}
           render={({ field }) => (
-            <Input
-              {...field}
-              type="time"
-              disabled={isDisabled}
-              value={field.value ?? ""}
-            />
+            <Input {...field} type="time" disabled={isDisabled} />
           )}
         />
         {fechaErrors?.hora_fin && (

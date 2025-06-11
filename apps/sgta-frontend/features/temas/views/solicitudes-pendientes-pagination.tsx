@@ -12,20 +12,26 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CessationRequestPagination from "@/features/asesores/components/cessation-request/pagination-cessation-request";
-import { usePagination } from "@/hooks/temas/use-pagination";
 import { Search } from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
 import { SolicitudesTable } from "../components/coordinador/table-solicitudes-pagination";
-import { pageTemasTexts, pageTexts } from "../types/solicitudes/constants";
+import {
+  filters,
+  initialPagesList,
+  pageSolicitudes,
+} from "../types/solicitudes/constants";
 import {
   fetchCarrerasMiembroComite,
   lenTemasPorCarrera,
   listarTemasPorCarrera,
 } from "../types/solicitudes/data";
+import { PagesList, TemasPages } from "../types/solicitudes/entities";
 import { getSolicitudFromTema } from "../types/solicitudes/lib";
 import { EstadoTemaNombre } from "../types/temas/enums";
 
-const LIMIT = 10;
+type PagesListKey = keyof TemasPages;
+
+const LIMIT = 2;
 
 export default function SolicitudesPendientes() {
   const [estadoTema, setEstadoTema] = React.useState<EstadoTemaNombre>(
@@ -34,68 +40,77 @@ export default function SolicitudesPendientes() {
   const [searchQuery, setSearchQuery] = useState("");
   const [cursoFilter, setCursoFilter] = useState("todos");
   const [loading, setLoading] = useState(false);
+
+  const [temas, setTemas] = useState<PagesList>(initialPagesList);
   const [carrerasIds, setCarrerasIds] = useState<number[]>([]);
-  const {
-    pagination: temas,
-    replaceStateKey,
-    addNewPage,
-    getPage,
-    getTotalPages,
-  } = usePagination(pageTemasTexts.initialPagesList, LIMIT);
 
   useEffect(() => {
-    fetchFirstPageAndSetTotalCounts();
-  }, []);
+    async function fetchCarrerasYPrimeraPagina() {
+      try {
+        setLoading(true);
+        // Get CarrerasIds
+        const carreras = await fetchCarrerasMiembroComite();
+        const ids = (carreras || []).map((c) => c.id);
+        setCarrerasIds(ids);
 
-  async function fetchFirstPageAndSetTotalCounts() {
-    try {
-      setLoading(true);
-      // Get CarrerasIds
-      const carreras = await fetchCarrerasMiembroComite();
-      const ids = (carreras || []).map((c) => c.id);
-      setCarrerasIds(ids);
+        if (ids.length > 0) {
+          // Inicializar totalCounts
+          await fetchTotalCounts(ids);
 
-      if (ids.length > 0) {
-        await fetchTotalCountsAndFirstPages(ids);
+          // Cargar primera página
+          await fetchData(estadoTema, 1, ids);
+        }
+      } catch (error) {
+        console.log("No se pudo cargar las carreras del usuario: " + error);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.log("No se pudo cargar las carreras del usuario: " + error);
-    } finally {
-      setLoading(false);
     }
-  }
+
+    fetchCarrerasYPrimeraPagina();
+  }, []);
 
   const handlePageChange = useCallback(
     (newPage: number) => {
       // Actualizar página actual
-      replaceStateKey(estadoTema, "current", newPage);
+      updatePagesListKey(estadoTema, "current", newPage);
       // Fetch de la página en caso no exista
       const existingPage = temas[estadoTema]?.pages?.[newPage];
       if (!existingPage?.length) {
         setLoading(true);
-        fetchPage(estadoTema, newPage, carrerasIds);
+        fetchData(estadoTema, newPage, carrerasIds);
       }
     },
     [estadoTema, temas, carrerasIds],
   );
 
-  async function fetchPage(
-    state: EstadoTemaNombre,
+  async function fetchData(
+    status: EstadoTemaNombre,
     page: number,
     carrerasIds: number[],
   ) {
     try {
       if (carrerasIds && carrerasIds.length > 0) {
-        // Fetch page
         const data = await listarTemasPorCarrera(
           carrerasIds[0], // TODO: Validar
-          state,
+          status,
           LIMIT,
-          (page - 1) * LIMIT, // Offset
+          page - 1,
         );
 
-        // Add new page to State
-        addNewPage(state, page, data);
+        // Añadir nueva página
+        setTemas((prev) => {
+          const newPages = { ...prev[status].pages };
+          newPages[page] = data;
+
+          return {
+            ...prev,
+            [status]: {
+              ...prev[status],
+              pages: newPages,
+            },
+          };
+        });
       }
     } catch (err) {
       console.error("Error loading data", err);
@@ -106,21 +121,20 @@ export default function SolicitudesPendientes() {
 
   async function fetchTotalCounts(carrerasIds: number[]) {
     try {
-      // Get All States
+      // Asignar total Counts
       const estadosConPages: EstadoTemaNombre[] = Object.keys(
         temas,
       ) as EstadoTemaNombre[];
-
       // Get all counts
       const counts = await Promise.all(
-        estadosConPages.map((estado) =>
-          lenTemasPorCarrera(carrerasIds[0], estado),
+        estadosConPages.map(
+          (estado) => lenTemasPorCarrera(carrerasIds[0], estado), // TODO: Debe traer un number
         ),
       );
 
       // Update state
       estadosConPages.forEach((estado, idx) => {
-        replaceStateKey(estado, "totalCounts", counts[idx]);
+        updatePagesListKey(estado, "totalCounts", counts[idx]);
         console.log(estado + ": count = " + counts[idx]);
       });
     } catch (err) {
@@ -128,49 +142,29 @@ export default function SolicitudesPendientes() {
     }
   }
 
-  async function fetchTotalCountsAndFirstPages(carrerasIds: number[]) {
-    try {
-      // Get All States
-      const estadosConPages: EstadoTemaNombre[] = Object.keys(
-        temas,
-      ) as EstadoTemaNombre[];
+  function updatePagesListKey<T extends PagesListKey>(
+    state: EstadoTemaNombre,
+    key: T,
+    value: TemasPages[T],
+  ) {
+    setTemas((prev) => ({
+      ...prev,
+      [state]: { ...prev[state], [key]: value },
+    }));
+  }
 
-      // Get all lists
-      const temasLists = await Promise.all(
-        estadosConPages.map((state) =>
-          listarTemasPorCarrera(
-            carrerasIds[0], // TODO: Validar
-            state,
-            2000, // Get all items
-            0,
-          ),
-        ),
-      );
-
-      // Update counts and first pages
-      estadosConPages.forEach((state, idx) => {
-        const countList = temasLists[idx].length;
-        // Set Count
-        replaceStateKey(state, "totalCounts", countList);
-        console.log(state + ": count = " + countList);
-
-        // Set first page
-        addNewPage(state, 1, temasLists[idx]);
-      });
-    } catch (err) {
-      console.error("Error loading total counts and First pages: ", err);
-    }
+  function getPage(state: EstadoTemaNombre) {
+    return temas[state].pages[temas[state].current] || [];
   }
 
   function handleTabChange(state: EstadoTemaNombre) {
     setEstadoTema(state);
 
     // Fetch de la página en caso no exista
-    if (!temas[state]) return;
     const currentPage = temas[state].current;
     const existingPage = temas[state]?.pages?.[currentPage];
     if (!existingPage?.length) {
-      fetchPage(state, currentPage, carrerasIds);
+      fetchData(state, currentPage, carrerasIds);
     }
   }
 
@@ -178,8 +172,10 @@ export default function SolicitudesPendientes() {
     <div className="space-y-8 mt-4">
       {/* Título general */}
       <div>
-        <h1 className="text-3xl font-bold text-[#042354]">{pageTexts.title}</h1>
-        <p className="text-muted-foreground">{pageTexts.description}</p>
+        <h1 className="text-3xl font-bold text-[#042354]">
+          {pageSolicitudes.title}
+        </h1>
+        <p className="text-muted-foreground">{pageSolicitudes.description}</p>
       </div>
 
       <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
@@ -187,7 +183,7 @@ export default function SolicitudesPendientes() {
         <div className="relative w-full md:flex-1">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder={pageTemasTexts.searhbar.placeholder}
+            placeholder={filters.search.placeholder}
             className="pl-8 w-full"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -195,7 +191,7 @@ export default function SolicitudesPendientes() {
         </div>
 
         {/* Selector tipo de tema */}
-        {/* <Select value={cursoFilter} onValueChange={setCursoFilter}>
+        <Select value={cursoFilter} onValueChange={setCursoFilter}>
           <SelectTrigger className="w-[300px]">
             <SelectValue />
           </SelectTrigger>
@@ -206,16 +202,16 @@ export default function SolicitudesPendientes() {
               </SelectItem>
             ))}
           </SelectContent>
-        </Select> */}
+        </Select>
       </div>
 
-      {/* Tabs */}
+      {/* Pestañas */}
       <Tabs
         value={estadoTema}
         onValueChange={(value) => handleTabChange(value as EstadoTemaNombre)}
       >
         <TabsList>
-          {Object.entries(pageTemasTexts.states).map(([key, estado]) => (
+          {Object.entries(filters.temaEstados).map(([key, estado]) => (
             <TabsTrigger key={key} value={key}>
               {estado.label}
             </TabsTrigger>
@@ -230,15 +226,15 @@ export default function SolicitudesPendientes() {
           <div className="space-y-1">
             <h2 className="text-lg font-semibold">
               {
-                pageTemasTexts.states[
-                  estadoTema as keyof typeof pageTemasTexts.states
+                filters.temaEstados[
+                  estadoTema as keyof typeof filters.temaEstados
                 ].title
               }
             </h2>
             <p className="text-sm text-muted-foreground">
               {
-                pageTemasTexts.states[
-                  estadoTema as keyof typeof pageTemasTexts.states
+                filters.temaEstados[
+                  estadoTema as keyof typeof filters.temaEstados
                 ].description
               }
             </p>
@@ -248,7 +244,7 @@ export default function SolicitudesPendientes() {
         <CardContent>
           {/* Solicitudes */}
           <SolicitudesTable
-            solicitudes={getPage(temas, estadoTema).map((p) =>
+            solicitudes={getPage(estadoTema).map((p) =>
               getSolicitudFromTema(p, p.id),
             )} // TODO: Pasar todo y enviar filtro estadoTema
             isLoading={loading}
@@ -256,10 +252,10 @@ export default function SolicitudesPendientes() {
           />
 
           {/* Pagination */}
-          {temas[estadoTema] && (
+          {!loading && (
             <CessationRequestPagination
               currentPage={temas[estadoTema].current}
-              totalPages={getTotalPages(temas, estadoTema)}
+              totalPages={Math.ceil(temas[estadoTema].totalCounts / LIMIT)}
               onPageChange={handlePageChange}
             />
           )}

@@ -24,11 +24,11 @@ interface Props {
   tesis: Tesis[];
 }
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 5;
 
-export default function TesisDirigidasResumen({ tesis }: Readonly<Props>) {
-  const [pageEnProceso, setPageEnProceso] = useState(1);
-  const [pageTerminadas, setPageTerminadas] = useState(1);
+export default function TesisDirigidasResumen({ tesis }: Props) {
+  const [pageEnProceso, setPageEnProceso] = useState(40);
+  const [pageTerminadas, setPageTerminadas] = useState(40);
 
   const renderTesis = (
     estado: "en_proceso" | "finalizada",
@@ -39,7 +39,7 @@ export default function TesisDirigidasResumen({ tesis }: Readonly<Props>) {
 
     if (filtradas.length === 0) {
       return (
-        <div className="text-center py-12 text-gray-500">
+        <div className="text-center py-6 text-gray-500">
           No hay tesis {estado === "en_proceso" ? "en proceso" : "finalizada"}{" "}
           actualmente
         </div>
@@ -52,32 +52,33 @@ export default function TesisDirigidasResumen({ tesis }: Readonly<Props>) {
 
     return (
       <>
-        <div className="bg-white rounded-lg shadow">
-          {pageItems.map((t, index) => (
-            <div key={index} className="p-4 border-b last:border-b-0">
-              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
-                <h4 className="font-medium text-sm sm:text-base">{t.titulo}</h4>
-                <Badge
-                  variant="outline"
-                  className={`
-                    self-start sm:self-auto text-xs
-                    ${t.nivel === "Finalizada" ? "bg-blue-100 text-blue-800 border-blue-200" : ""}
-                    ${t.nivel === "Tesis 1" ? "bg-purple-100 text-purple-800 border-purple-200" : ""}
-                    ${t.nivel === "Tesis 2" ? "bg-red-100 text-red-800 border-red-200" : ""}
-                  `}
-                >
-                  {t.nivel}
-                </Badge>
-              </div>
-              <p className="text-gray-600 text-sm mt-1">
-                {t.estudiantes} · {t.anio}
-              </p>
+        {pageItems.map((t, index) => (
+          <div
+            key={index}
+            className="border-b pb-3 sm:pb-4 last:border-b-0 last:pb-0"
+          >
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
+              <h4 className="font-medium text-sm sm:text-base">{t.titulo}</h4>
+              <Badge
+                variant="outline"
+                className={`
+                  self-start sm:self-auto text-xs
+                  ${t.nivel === "Finalizada" ? "bg-blue-100 text-blue-800 border-blue-200" : ""}
+                  ${t.nivel === "Tesis 1" ? "bg-purple-100 text-purple-800 border-purple-200" : ""}
+                  ${t.nivel === "Tesis 2" ? "bg-red-100 text-red-800 border-red-200" : ""}
+                `}
+              >
+                {t.nivel}
+              </Badge>
             </div>
-          ))}
-        </div>
+            <p className="text-gray-600 text-sm mt-1">
+              {t.estudiantes} · {t.anio} · {t.anio}
+            </p>
+          </div>
+        ))}
 
         {totalPages > 1 && (
-          <Pagination className="mt-6">
+          <Pagination className="mt-4">
             <PaginationContent>
               <PaginationItem>
                 <PaginationPrevious
@@ -121,10 +122,10 @@ export default function TesisDirigidasResumen({ tesis }: Readonly<Props>) {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="bg-white rounded-lg shadow p-6">
+      <div className="flex justify-between items-center mb-4">
         <div className="flex items-center gap-2">
-          <h2 className="text-xl font-bold">Tesis Asesoradas</h2>
+          <h3 className="text-lg font-semibold">Tesis Asesoradas</h3>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>

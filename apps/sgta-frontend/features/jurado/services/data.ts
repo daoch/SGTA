@@ -1,17 +1,15 @@
 import axiosInstance from "@/lib/axios/axios-instance";
-import axios from "axios";
-import { ExposicionEtapaFormativaDTO } from "../dtos/ExposicionEtapaFormativaDTO";
 import { Tema, TimeSlot } from "../types/jurado.types";
+import axios from "axios";
 
 const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
 export async function listarTemasCicloActualXEtapaFormativa(
-  etapaFormativaId: number | undefined,
-  exposicionId : number,
+  etapaFormativaId: number,
 ) {
   try {
     const response = await fetch(
-      `${baseUrl}/temas/listarTemasCicloActualXEtapaFormativa/${etapaFormativaId}/${exposicionId}`,
+      `${baseUrl}/temas/listarTemasCicloActualXEtapaFormativa/${etapaFormativaId}`,
       {
         method: "GET",
         headers: {
@@ -129,7 +127,7 @@ export async function listarEstadoPlanificacionPorExposicion(
  */
 export async function getEtapaFormativaIdByExposicionId(
   exposicionId: number,
-): Promise<ExposicionEtapaFormativaDTO | null> {
+): Promise<number> {
   try {
     const response = await fetch(
       `${baseUrl}/etapas-formativas/getEtapaFormativaIdByExposicionId/${exposicionId}`,
@@ -152,11 +150,12 @@ export async function getEtapaFormativaIdByExposicionId(
     }
 
     // El back devuelve un número puro en el body: ej. 1
-    const data: ExposicionEtapaFormativaDTO = await response.json();
+    const data: number = await response.json();
     return data;
   } catch (error) {
     console.error("Error : fetching EtapaFormativaId por exposicionId:", error);
-    return null;
+    // En caso de fallo, devolvemos 0 (o podrías devolver `null` si prefieres)
+    return 0;
   }
 }
 
@@ -245,13 +244,12 @@ export async function distribuirBloquesExposicion(
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      const mensaje =
-        error.response?.data?.message || error.response?.data || error.message;
-      console.error("Error al distribuir bloques de exposición:", mensaje);
-      throw new Error(mensaje); 
+      console.error(
+        "Error al distribuir bloques de exposición:",
+        error.response ?? error.message,
+      );
     } else {
       console.error("Error inesperado al distribuir bloques:", error);
-      throw new Error("Error inesperado al distribuir bloques.");
     }
     return [];
   }

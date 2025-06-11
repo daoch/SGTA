@@ -1,5 +1,4 @@
-import { PagesList } from "../solicitudes/entities";
-import { EstadoTemaNombre } from "../temas/enums";
+import { Tipo } from "./enums";
 
 export const pageTexts = {
   title: "Mis Temas",
@@ -10,41 +9,29 @@ export const pageTexts = {
 };
 
 export const tableTexts = {
-  [EstadoTemaNombre.INSCRITO]: {
+  [Tipo.TODOS]: {
+    title: "Todos los temas",
+    description: "Lista de todos los temas de tesis",
+    tabLabel: "Todos",
+    show: false,
+  },
+  [Tipo.INSCRITO]: {
     title: "Temas inscritos",
     description: "Temas de tesis en los que estás inscrito",
-    tabLabel: "Inscrito",
+    tabLabel: "Inscritos",
     show: true,
   },
-  [EstadoTemaNombre.PROPUESTO_LIBRE]: {
+  [Tipo.LIBRE]: {
     title: "Temas libres",
     description: "Temas de tesis disponibles para postular",
-    tabLabel: "Libre",
+    tabLabel: "Libres",
     show: true,
   },
-  [EstadoTemaNombre.PROPUESTO_GENERAL]: {
+  [Tipo.INTERESADO]: {
     title: "Temas de interés",
     description: "Temas de tesis que has marcado como interesantes",
-    tabLabel: "Interesante",
+    tabLabel: "Interesantes",
     show: true,
-  },
-};
-
-export const initialPagination: PagesList = {
-  [EstadoTemaNombre.INSCRITO]: {
-    pages: {},
-    current: 1,
-    totalCounts: 0,
-  },
-  [EstadoTemaNombre.PROPUESTO_LIBRE]: {
-    pages: {},
-    current: 1,
-    totalCounts: 0,
-  },
-  [EstadoTemaNombre.PROPUESTO_GENERAL]: {
-    pages: {},
-    current: 1,
-    totalCounts: 0,
   },
 };
 

@@ -16,7 +16,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { SolicitudAction } from "@/features/temas/types/solicitudes/entities";
 
 type AccionKey = "aprobar" | "rechazar" | "observar" | "eliminar";
 type EstadoAccion = { show?: boolean; disabled?: boolean };
@@ -25,7 +24,9 @@ type AccionesConfig = Record<AccionKey, EstadoAccion>;
 interface AccionesDetalleSoliTemaProps {
   dialogAbierto: AccionKey | "";
   setDialogAbierto: (d: AccionKey | "") => void;
-  handleAccion: (accion: SolicitudAction) => void;
+  handleAccion: (
+    accion: "Aprobada" | "Rechazada" | "Observada" | "Eliminada",
+  ) => void;
   accionesConfig?: AccionesConfig;
 }
 

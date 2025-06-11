@@ -163,7 +163,7 @@ export const NuevoCriterioEntregableModal: React.FC<NuevoCriterioEntregableModal
                           type="number"
                           min="1"
                           max="20"
-                          value={criterioSeleccionado?.notaMaxima ?? criterio.notaMaxima}
+                          value={criterioSeleccionado?.notaMaxima || criterio.notaMaxima}
                           disabled={!isSelected} // Deshabilitar si no está seleccionado
                           onChange={(e) =>
                             handleNotaChange(criterio.id ?? "", parseFloat(e.target.value) || 0)

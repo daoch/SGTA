@@ -31,14 +31,30 @@ export async function listarTemasPorCarrera(
 export async function lenTemasPorCarrera(
   carreraId: number,
   estado: EstadoTemaNombre,
+  limit: number = 200,
+  offset: number = 0,
 ): Promise<number> {
-  const temas = await listarTemasPorCarrera(carreraId, estado, 2000, 0); // TODO: Debe traer un number
-  return temas.length;
+  const { data } = await axiosInstance.get<Tema[]>(
+    `/temas/listarTemasPorCarrera/${carreraId}/${estado}?limit=${limit}&offset=${offset}`,
+  );
+  return data.length;
 }
 
 /**
  * 3) Cambiar el estado de un tema (aprobar, rechazar u observar)
  *    PATCH /temas/CambiarEstadoTemaPorCoordinador
+ *
+ *    Body:
+ *    {
+ *      tema: {
+ *        id: number,
+ *        estadoTemaNombre: "REGISTRADO" | "RECHAZADO" | "OBSERVADO"
+ *      },
+ *      usuarioSolicitud: {
+ *        usuarioId: number,
+ *        comentario: string
+ *      }
+ *    }
  */
 export interface CambioEstadoPayload {
   tema: {
@@ -60,6 +76,17 @@ export async function cambiarEstadoTemaPorCoordinador(
 /**
  * 4) Eliminar un tema como coordinador
  *    DELETE /temas/{temaId}/eliminar?usuarioId=...
+ *
+ *  Recomendación de diseño:
+ *  - Sí, es muy conveniente que esta acción quede registrada en el historial de la tesis
+ *    (por trazabilidad).
+ *  - Deberíamos permitir además un comentario opcional para explicar la razón.
+ *
+ *  Para ello, podemos ampliar el endpoint para aceptar:
+ *    • usuarioId           → como query param (ya lo tenías)
+ *    • comentario?         → como query param opcional, o bien en el body.
+ *
+ *  En este ejemplo lo pasamos por query params:
  */
 export async function eliminarTemaPorCoordinador(
   temaId: number,
@@ -81,35 +108,3 @@ export async function buscarTemaPorId(idTema: number): Promise<Tema> {
   console.log("Tema obtenido:", data);
   return data;
 }
-/**
- * 7) Crear solicitud de cambio de resumen
- *    POST /temas/solicitud/cambio-resumen/{tema_id}
- *    body: { usuarioSolicitud: { comentario: string } }
- */
-export async function crearSolicitudCambioResumen(
-  temaId: number,
-  comentario: string,
-): Promise<void> {
-  await axiosInstance.post(`/temas/solicitud/cambio-resumen/${temaId}`, {
-    usuarioSolicitud: {
-      comentario,
-    },
-  });
-}
-
-/**
- * 6) Crear solicitud de cambio de título
- *    POST /temas/solicitud/cambio-titulo/{tema_id}
- *    body: { usuarioSolicitud: { comentario: string } }
- */
-export async function crearSolicitudCambioTitulo(
-  temaId: number,
-  comentario: string,
-): Promise<void> {
-  await axiosInstance.post(`/temas/solicitud/cambio-titulo/${temaId}`, {
-    usuarioSolicitud: {
-      comentario,
-    },
-  });
-}
-

@@ -10,5 +10,5 @@ export default function Page() {
         throw new Error("Invalid parameter: id must be a string");
     }
 
-    return <RevisarDocumentoPage params={{ id_revision: Number(id) }} />;
+    return <RevisarDocumentoPage params={{ id }} />;
 }

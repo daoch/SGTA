@@ -1,36 +1,13 @@
 import { EstadoTemaNombre } from "../temas/enums";
 import { PagesList } from "./entities";
 
-export const pageTexts = {
+export const pageSolicitudes = {
   title: "Aprobaciones",
   description: "Gestión de solicitudes de cambios en tesis",
 };
 
-const initialPagesListTemas: PagesList = {
-  [EstadoTemaNombre.INSCRITO]: {
-    pages: {},
-    current: 1,
-    totalCounts: 0,
-  },
-  [EstadoTemaNombre.OBSERVADO]: {
-    pages: {},
-    current: 1,
-    totalCounts: 0,
-  },
-  [EstadoTemaNombre.RECHAZADO]: {
-    pages: {},
-    current: 1,
-    totalCounts: 0,
-  },
-  [EstadoTemaNombre.REGISTRADO]: {
-    pages: {},
-    current: 1,
-    totalCounts: 0,
-  },
-};
-
-export const pageTemasTexts = {
-  states: {
+export const filters = {
+  temaEstados: {
     [EstadoTemaNombre.INSCRITO]: {
       label: "Pendientes",
       title: "Solicitudes Pendientes",
@@ -56,17 +33,43 @@ export const pageTemasTexts = {
       show: true,
     },
   },
-  searhbar: {
-    placeholder: "Buscar por título, tesis o solicitante ...",
+  search: {
+    placeholder: "Buscar por título o tesis",
   },
-  initialPagesList: initialPagesListTemas,
+  filterTipos: {
+    todos: {
+      label: "Todos los temas",
+      title: "Todos los temas",
+      description: "Muestra todos los temas sin filtrar por tipo.",
+    },
+    inscripcion: {
+      label: "Incripción de tema",
+      title: "Incripción de tema",
+      description: "Filtra solo las solicitudes de inscripción de tema.",
+    },
+  },
 };
 
-export const pageSolitudesTexts = {
-  states: {},
-  searchbar: {
-    placeholder: "Buscar por nombre de solicitud ...",
+export const initialPagesList: PagesList = {
+  [EstadoTemaNombre.INSCRITO]: {
+    pages: {},
+    current: 1,
+    totalCounts: 0,
   },
-  initialPagesList: null,
+  [EstadoTemaNombre.OBSERVADO]: {
+    pages: {},
+    current: 1,
+    totalCounts: 0,
+  },
+  [EstadoTemaNombre.RECHAZADO]: {
+    pages: {},
+    current: 1,
+    totalCounts: 0,
+  },
+  [EstadoTemaNombre.REGISTRADO]: {
+    pages: {},
+    current: 1,
+    totalCounts: 0,
+  },
 };
 

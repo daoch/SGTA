@@ -23,17 +23,10 @@ export interface Solicitante {
 }
 
 export interface TemasPages {
-  pages: Record<number, Tema[]>; // [Page]: Tema[]
-  current: number; // Current Page
+  pages: Record<number, Tema[]>;
+  current: number;
   totalCounts: number;
 }
 
-export type PagesList = Partial<Record<EstadoTemaNombre, TemasPages>>;
+export type PagesList = Record<string, TemasPages>;
 
-export type SolicitudAction =
-  | "Aprobada"
-  | "Rechazada"
-  | "Observada"
-  | "Eliminada";
-
-export type TypeSolicitud = "titulo" | "resumen" | null;

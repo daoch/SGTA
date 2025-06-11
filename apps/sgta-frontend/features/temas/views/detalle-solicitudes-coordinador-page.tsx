@@ -13,24 +13,11 @@ import { InfoDetalleSolicitudTema } from "../components/coordinador/detalle-soli
 import {
   buscarTemaPorId,
   cambiarEstadoTemaPorCoordinador,
-  crearSolicitudCambioResumen,
-  crearSolicitudCambioTitulo,
   eliminarTemaPorCoordinador,
 } from "../types/solicitudes/data";
-import {
-  SolicitudAction,
-  SolicitudPendiente,
-  TypeSolicitud,
-} from "../types/solicitudes/entities";
+import { SolicitudPendiente } from "../types/solicitudes/entities";
 import { Tema } from "../types/temas/entidades";
 import { EstadoTemaNombre } from "../types/temas/enums";
-
-const actionToStateMap: Record<SolicitudAction, EstadoTemaNombre> = {
-  Aprobada: EstadoTemaNombre.REGISTRADO,
-  Rechazada: EstadoTemaNombre.RECHAZADO,
-  Observada: EstadoTemaNombre.OBSERVADO,
-  Eliminada: EstadoTemaNombre.RECHAZADO,
-};
 
 interface Props {
   solicitud: SolicitudPendiente;
@@ -47,9 +34,6 @@ export default function DetalleSolicitudesCoordinadorPage({
     "aprobar" | "rechazar" | "observar" | "eliminar" | ""
   >("");
   const [errorComentario, setErrorComentario] = useState("");
-  const [tipoSolicitud, setTipoSolicitud] = useState<TypeSolicitud>();
-  const [errorTipoSolicitud, setErrorTipoSolicitud] = useState("");
-  const [loading, setLoading] = useState(false);
 
   // MOCK de similitud
   const similitudMock = {
@@ -89,37 +73,36 @@ export default function DetalleSolicitudesCoordinadorPage({
     },
   ];
 
-  const handleAccion = async (accion: SolicitudAction) => {
+  const handleAccion = async (
+    accion: "Aprobada" | "Rechazada" | "Observada" | "Eliminada",
+  ) => {
     try {
-      setLoading(true);
-      if (!tipoSolicitud) return;
       if (accion === "Eliminada") {
         await eliminarTemaPorCoordinador(solicitud.tema.id);
         router.push("/coordinador/aprobaciones");
       } else {
-        // Actualizar Estado del tema
+        const estadoMap: Record<
+          "Aprobada" | "Rechazada" | "Observada",
+          EstadoTemaNombre
+        > = {
+          Aprobada: EstadoTemaNombre.REGISTRADO,
+          Rechazada: EstadoTemaNombre.RECHAZADO,
+          Observada: EstadoTemaNombre.OBSERVADO,
+        };
+
         const payload = {
           tema: {
             id: solicitud.tema.id,
-            estadoTemaNombre: actionToStateMap[accion],
+            estadoTemaNombre: estadoMap[accion],
           },
           usuarioSolicitud: {
-            usuarioId: 3, // !: Id de coordinador
+            usuarioId: 3, // TODO: Id de coordinador
             comentario,
           },
         };
 
         await cambiarEstadoTemaPorCoordinador(payload);
-
-        // Crear solicitud
-        if (tipoSolicitud === "resumen") {
-          await crearSolicitudCambioResumen(solicitud.tema.id, comentario);
-        } else {
-          await crearSolicitudCambioTitulo(solicitud.tema.id, comentario);
-        }
-
-        // Actualizar solicitud
-        buscarTemaPorId(solicitud.tema.id).then(setTema);
+        buscarTemaPorId(solicitud.tema.id).then(setTema); // Actualizar solicitud
       }
 
       toast.success(`Solicitud ${accion.toLowerCase()} exitosamente.`);
@@ -127,8 +110,6 @@ export default function DetalleSolicitudesCoordinadorPage({
     } catch (error) {
       console.error("Error al procesar la solicitud:", error);
       toast.error("Ocurrió un error. Por favor, intente nuevamente.");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -136,42 +117,13 @@ export default function DetalleSolicitudesCoordinadorPage({
     if (!comentario.trim()) {
       setErrorComentario("El comentario es obligatorio.");
     } else {
-      setErrorComentario("");
-    }
-  };
-
-  const validateTipoSolicitud = () => {
-    if (!tipoSolicitud?.trim()) {
-      setErrorTipoSolicitud("Debe ingresar el tipo de solicitud.");
-    } else {
-      setErrorTipoSolicitud("");
+      setErrorComentario(""); // Limpia si ya es válido
     }
   };
 
   useEffect(() => {
     validateComment();
-    validateTipoSolicitud();
   }, [comentario]);
-
-  // Config Actions
-  const accionesConfig = {
-    aprobar: {
-      show: true,
-      disabled:
-        !comentario.trim().length || !tipoSolicitud?.trim().length || loading,
-    },
-    rechazar: {
-      show: true,
-      disabled:
-        !comentario.trim().length || !tipoSolicitud?.trim().length || loading,
-    },
-    observar: {
-      show: true,
-      disabled:
-        !comentario.trim().length || !tipoSolicitud?.trim().length || loading,
-    },
-    eliminar: { show: true, disabled: loading },
-  };
 
   return (
     <>
@@ -183,24 +135,27 @@ export default function DetalleSolicitudesCoordinadorPage({
 
           {solicitud.estado === EstadoTemaNombre.INSCRITO && (
             <>
-              {/* Comentarios del Comité y selección del tipo de solicitud */}
+              {/* ======= Comentarios del Comité ======= */}
               <ComentariosDetalleSolicitudTema
                 comentario={comentario}
                 setComentario={setComentario}
                 errorComentario={errorComentario}
-                setTipoSolicitud={setTipoSolicitud}
-                errorTipoSolicitud={errorTipoSolicitud}
               />
 
-              {/* Actions */}
+              {/* ======= Acciones Disponibles ======= */}
               <AccionesDetalleSoliTema
-                accionesConfig={accionesConfig}
+                accionesConfig={{
+                  aprobar: { show: true, disabled: !comentario.trim().length },
+                  rechazar: { show: true, disabled: !comentario.trim().length },
+                  observar: { show: true, disabled: !comentario.trim().length },
+                  eliminar: { show: true, disabled: false },
+                }}
                 dialogAbierto={dialogAbierto}
                 handleAccion={handleAccion}
                 setDialogAbierto={setDialogAbierto}
               />
 
-              {/* Análisis de Similitud */}
+              {/* ======= Análisis de Similitud ======= */}
               <AnalisisSimilitudTema similitud={similitudMock} />
             </>
           )}

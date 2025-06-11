@@ -19,7 +19,6 @@ interface Props {
   setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
   soloDisponible: boolean;
   renderPaginationItems: () => React.ReactNode;
-  isLoadingResults: boolean;
 }
 
 export default function ResultadosAsesores({
@@ -30,27 +29,7 @@ export default function ResultadosAsesores({
   setCurrentPage,
   soloDisponible,
   renderPaginationItems,
-  isLoadingResults,
-}: Readonly<Props>) {
-  if (isLoadingResults) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-muted-foreground space-y-2">
-        <div className="w-6 h-6 border-4 border-gray-300 border-t-transparent rounded-full animate-spin" />
-        <p>Obteniendo resultados...</p>
-      </div>
-    );
-  }
-
-  if (asesores.length === 0) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-muted-foreground">
-          No se encontraron asesores con los criterios especificados.
-        </p>
-      </div>
-    );
-  }
-
+}: Props) {
   return (
     <div className="space-y-4">
       <div className="space-y-2">
@@ -64,47 +43,55 @@ export default function ResultadosAsesores({
         </p>
       </div>
 
-      <div className="space-y-4">
-        {paginatedAdvisors.map((advisor) => (
-          <CardAsesorBusqueda key={advisor.id} advisor={advisor} />
-        ))}
+      {asesores.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">
+            No se encontraron asesores con los criterios especificados.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {paginatedAdvisors.map((advisor) => (
+            <CardAsesorBusqueda key={advisor.id} advisor={advisor} />
+          ))}
 
-        {totalPages > 1 && (
-          <Pagination className="mt-6">
-            <PaginationContent>
-              <PaginationItem>
-                {currentPage === 1 ? (
-                  <span className="px-3 py-1 text-gray-400 cursor-not-allowed">
-                    Previous
-                  </span>
-                ) : (
-                  <PaginationPrevious
-                    onClick={() =>
-                      setCurrentPage((prev) => Math.max(prev - 1, 1))
-                    }
-                  />
-                )}
-              </PaginationItem>
+          {totalPages > 1 && (
+            <Pagination className="mt-6">
+              <PaginationContent>
+                <PaginationItem>
+                  {currentPage === 1 ? (
+                    <span className="px-3 py-1 text-gray-400 cursor-not-allowed">
+                      Previous
+                    </span>
+                  ) : (
+                    <PaginationPrevious
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.max(prev - 1, 1))
+                      }
+                    />
+                  )}
+                </PaginationItem>
 
-              {renderPaginationItems()}
+                {renderPaginationItems()}
 
-              <PaginationItem>
-                {currentPage === totalPages ? (
-                  <span className="px-3 py-1 text-gray-400 cursor-not-allowed">
-                    Next
-                  </span>
-                ) : (
-                  <PaginationNext
-                    onClick={() =>
-                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                    }
-                  />
-                )}
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-        )}
-      </div>
+                <PaginationItem>
+                  {currentPage === totalPages ? (
+                    <span className="px-3 py-1 text-gray-400 cursor-not-allowed">
+                      Next
+                    </span>
+                  ) : (
+                    <PaginationNext
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                      }
+                    />
+                  )}
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          )}
+        </div>
+      )}
     </div>
   );
 }

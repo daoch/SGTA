@@ -8,6 +8,7 @@ import Draggable from "./Draggable";
 import SearchFilterTemas, { FilterForm } from "./search-filter-temas";
 import { usePlanificationStore } from "../../store/use-planificacion-store";
 import CardSuggestAlgorithm from "./CardSuggestAlgorithm";
+import { Toaster } from "sonner";
 
 interface Props {
   areasEspecialidad: AreaEspecialidad[];
@@ -51,21 +52,16 @@ const TemasList: React.FC<Props> = ({ areasEspecialidad }) => {
       <CardSuggestAlgorithm />
 
       <div className="flex flex-col gap-4">
-        {temasFiltrados.length === 0 ? (
-          <div className="text-center text-gray-500 py-8">
-            No hay temas sin asignar.
-          </div>
-        ) : (
-          temasFiltrados.map((tema, idx) => {
-            const key = tema.codigo ?? tema.id?.toString() ?? `tema-${idx}`;
-            return (
-              <Draggable key={key} id={key} isDraggeable>
-                <TemaExposicionCard exposicion={tema} />
-              </Draggable>
-            );
-          })
-        )}
+        {temasFiltrados.map((tema, idx) => {
+          const key = tema.codigo ?? tema.id?.toString() ?? `tema-${idx}`;
+          return (
+            <Draggable key={key} id={key} isDraggeable>
+              <TemaExposicionCard exposicion={tema} />
+            </Draggable>
+          );
+        })}
       </div>
+      <Toaster position="bottom-right" richColors />
     </section>
   );
 };

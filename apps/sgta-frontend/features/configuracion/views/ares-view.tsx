@@ -37,7 +37,7 @@ export default function AreasPage() {
   const loadAreas = async () => {
     try {
       setLoadingOperation({ type: "save" });
-      const areasData = await getAllAreasByCarreraId();
+      const areasData = await getAllAreasByCarreraId(1); // TODO: Reemplazar con el ID de carrera real
 
       // Para cada área, cargar sus subáreas
       const areasWithSubareas = await Promise.all(
@@ -73,7 +73,8 @@ export default function AreasPage() {
           nombre: newArea,
           activo: true,
           descripcion: newAreaDescripcion,
-          subAreas: []
+          subAreas: [],
+          idCarrera: 1, // TODO: Reemplazar con el ID de carrera real
         });
 
         const newAreaWithSubareas = {

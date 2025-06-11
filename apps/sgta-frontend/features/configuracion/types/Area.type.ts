@@ -3,7 +3,7 @@ export interface AreaConocimientoDto {
     nombre: string;
     activo?: boolean;
     descripcion: string;
-    idCarrera?: number;
+    idCarrera: number;
     subAreas?: SubAreaConocimientoDto[];
 }
 
@@ -33,5 +33,5 @@ export interface AreaResponse {
   id: number;
   nombre: string;
   descripcion: string;
-  idCarrera?: number;
+  idCarrera: number;
 }

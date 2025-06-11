@@ -107,10 +107,11 @@ export function ExposicionCard({
     setIsLoading(true);
 
     try {
+      const idJurado = 6;
       // Llamar al endpoint para actualizar el estado
       await actualizarEstadoControlExposicion(
         exposicion.id_exposicion,
-        id_jurado!,
+        idJurado,
         "ACEPTADO",
       );
 
@@ -133,16 +134,49 @@ export function ExposicionCard({
   };
 
   // Función para solicitar reprogramación
-  
+  const handleSolicitarReprogramacion = async (e: React.MouseEvent) => {
+    //e.stopPropagation();
+
+    setIsLoading(true);
+
+    try {
+      // Cambiar el estado para mostrar "Reprogramación Solicitada"
+
+      const idJurado = 6;
+
+      await actualizarEstadoControlExposicion(
+        exposicion.id_exposicion,
+        idJurado,
+        "RECHAZADO",
+      );
+      if (onStatusChange) {
+        await onStatusChange();
+      }
+
+      setIsReprogramacionSolicitada(true);
+
+      setEstadoControlActual("RECHAZADO");
+      // Mostrar mensaje de éxito
+      toast.success("Se ha solicitado la reprogramación de la exposición.");
+    } catch (error) {
+      console.error("Error al solicitar reprogramación:", error);
+      toast.error(
+        "No se pudo solicitar la reprogramación. Inténtalo de nuevo.",
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleConfirmReprogramacion = async () => {
     setIsLoading(true);
 
     try {
+      const idJurado = 6;
 
       await actualizarEstadoControlExposicion(
         exposicion.id_exposicion,
-        id_jurado!,
+        idJurado,
         "RECHAZADO",
       );
 
@@ -175,11 +209,11 @@ export function ExposicionCard({
 
     try {
       // Puedes agregar aquí una llamada API específica para registrar la no disponibilidad
-  
+      const idJurado = 6;
 
       await actualizarEstadoControlExposicion(
         exposicion.id_exposicion,
-        id_jurado!,
+        idJurado,
         "RECHAZADO",
       );
 
@@ -235,10 +269,6 @@ export function ExposicionCard({
     // Obtener el estado base normalizado
     const estadoBase = mapEstadoToExposicionEstado(exposicion.estado);
 
-    if (estadoBase === "completada" && exposicion.criterios_calificados === true) {
-      return "calificada";
-    }
-
     // Si el estado base es "esperando_respuesta" pero el estado_control es "ACEPTADO" o "RECHAZADO",
     // mostrar como "esperando_aprobacion"
     if (
@@ -258,11 +288,7 @@ export function ExposicionCard({
     className={`rounded-lg shadow-sm border p-5 flex flex-col md:flex-row gap-10
       ${
         mostrarReprogramacionSolicitada() && 
-        !(
-          mapEstadoToExposicionEstado(exposicion.estado) === "programada" ||
-          mapEstadoToExposicionEstado(exposicion.estado) === "completada" ||
-          mapEstadoToExposicionEstado(exposicion.estado) === "calificada"
-        )
+        mapEstadoToExposicionEstado(exposicion.estado) !== "programada"
           ? "bg-red-50 border-red-200"
           : "bg-gray-50"
       }`}
@@ -369,19 +395,15 @@ export function ExposicionCard({
             )}
 
             {mostrarReprogramacionSolicitada() && 
-            !(
-                mapEstadoToExposicionEstado(exposicion.estado) === "programada" ||
-                mapEstadoToExposicionEstado(exposicion.estado) === "completada" ||
-                mapEstadoToExposicionEstado(exposicion.estado) === "calificada"
-            ) && (
+            mapEstadoToExposicionEstado(exposicion.estado) !== "programada" && (
               <Button variant="outline" disabled>
                 Reprogramación Solicitada
               </Button>
-            )
-            }
+            )}
 
-            {mapEstadoToExposicionEstado(exposicion.estado) === "calificada" &&
+            {mapEstadoToExposicionEstado(exposicion.estado) === "completada" &&
             // isBefore(new Date(exposicion.fechahora), new Date()) && 
+            //se el esta pasando la expo por tema
               (
                 <Button
                   asChild
@@ -389,28 +411,14 @@ export function ExposicionCard({
                     e.stopPropagation();
                   }}
                 >
+                  
                   <Link
-                    href={`/jurado/exposiciones/calificar/${exposicion.id_exposicion}`}
+                    href={`/jurado/exposiciones/calificar/${exposicion.id_exposicion}-${id_jurado || ""}`}
                   >
                     Calificar
                   </Link>
                 </Button>
               )}
-
-            {mapEstadoToExposicionEstado(exposicion.estado) === "completada" && (
-            <Button
-              asChild
-              onClick={(e) => {
-                e.stopPropagation();
-              }}
-            >
-              <Link
-                href={`/jurado/exposiciones/calificar/${exposicion.id_exposicion}`}
-              >
-                Calificar
-              </Link>
-            </Button>
-          )}
           </div>
         </div>
       </div>

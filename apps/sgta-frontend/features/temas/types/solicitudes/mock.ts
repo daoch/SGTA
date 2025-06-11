@@ -1,3 +1,4 @@
+import { Tema } from "../inscripcion/entities";
 import { Usuario } from "../temas/entidades";
 import { Solicitante, SolicitudPendiente } from "./entities";
 import { EstadoSolicitud, TipoSolicitud } from "./enums";

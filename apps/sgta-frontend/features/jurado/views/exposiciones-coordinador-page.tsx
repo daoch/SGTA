@@ -14,20 +14,23 @@ import {
 import { useClientPagination } from "../hooks/use-exposiciones-pagination";
 import { useFetchExposicionFilters } from "../hooks/use-fetch-exposicion-filters";
 import { useFetchExposiciones } from "../hooks/use-fetch-exposiciones";
+import { getIdCoordinador } from "../utils/get-id-coordinador";
 
 export const ExposicionesCoordinadorPage: FC = () => {
+  const coordinadorId = getIdCoordinador();
+
   const [modalOpen, setModalOpen] = useState(false);
 
   const {
     exposiciones,
     loading: loadingExp,
     error: errorExp,
-  } = useFetchExposiciones();
+  } = useFetchExposiciones(coordinadorId);
   const {
     options,
     loading: loadingOpts,
     error: errorOpts,
-  } = useFetchExposicionFilters();
+  } = useFetchExposicionFilters(coordinadorId);
 
   const [activeFilters, setActiveFilters] = useState<Filtros>({});
   const { control } = useExposicionFilterForm(setActiveFilters);
@@ -74,6 +77,7 @@ export const ExposicionesCoordinadorPage: FC = () => {
         open={modalOpen}
         onClose={() => setModalOpen(false)}
       />
+
       <Toaster position="bottom-right" richColors />
     </div>
   );

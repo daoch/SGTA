@@ -17,7 +17,7 @@ export function CriterioObservacion({
   nota_maxima,
 }: CriterioObservacionProps) {
   return (
-    <div className="rounded-lg shadow-sm border p-5 flex-col md:flex-row grid grid-cols-2 gap-4">
+    <div className="bg-gray-50 rounded-lg shadow-sm border p-5 flex-col md:flex-row grid grid-cols-2 gap-4">
       {/*TITULO DE CRITERIO Y DESCRIPCION Y NOTA*/}
       <div className="flex flex-col items-start space-y-2 md:min-w-[150px] justify-center">
         <div className="text-xl font-semibold">{criterio}</div>
@@ -34,4 +34,3 @@ export function CriterioObservacion({
     </div>
   );
 }
-

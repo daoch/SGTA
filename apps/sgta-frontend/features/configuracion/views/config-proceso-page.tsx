@@ -29,7 +29,7 @@ export default function ConfiguracionProcesoPage() {
   
   const fetchEtapas = async () => {
     try {
-      const response = await etapaFormativaCicloService.getAllByIdCarrera();
+      const response = await etapaFormativaCicloService.getAllByIdCarrera(1);
       if (response) {
         setEtapas(response);
       }
@@ -93,11 +93,8 @@ export default function ConfiguracionProcesoPage() {
                     </div>
                     <div>
                       <h3 className="text-lg font-semibold mb-2">{etapa.nombreEtapaFormativa}</h3>
-                      <div className="text-sm mb-2">
-                        <strong>Ciclo:</strong> {etapa.nombreCiclo}
-                      </div>
                       <div className="text-sm">
-                        <strong>Creditaje:</strong> {etapa.creditajePorTema}
+                        <strong>Creditaje por tema:</strong> {etapa.creditajePorTema}
                       </div>
                     </div>
                   </div>
@@ -128,23 +125,14 @@ export default function ConfiguracionProcesoPage() {
               <div className="bg-gray-50 p-4 border-t flex items-center justify-between">
                 <div className="flex gap-6">
                   <div className="text-sm">
-                    <span className="text-gray-500">Entregables:</span> {etapa.cantidadEntregables}
+                    <span className="text-gray-500">Entregables:</span> {etapa.entregables}
                   </div>
                   <div className="text-sm">
-                    <span className="text-gray-500">Exposiciones:</span> {etapa.cantidadExposiciones}
+                    <span className="text-gray-500">Exposiciones:</span> {etapa.exposiciones}
                   </div>
-                  
                 </div>
 
-                <Link 
-                  href={{
-                    pathname: `/coordinador/configuracion/proceso/etapa/${etapa.id}`,
-                    query: {
-                      nombreEtapa: etapa.nombreEtapaFormativa,
-                      ciclo: etapa.nombreCiclo
-                    }
-                  }}
-                >
+                <Link href={`/coordinador/configuracion/proceso/etapa/${etapa.etapaFormativaId}`}>
                   <Button variant="ghost" size="sm" className="flex items-center gap-1">
                     <span>Ver detalles</span>
                     <ChevronRight size={16} />

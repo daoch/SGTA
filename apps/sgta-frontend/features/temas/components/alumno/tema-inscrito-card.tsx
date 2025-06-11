@@ -41,7 +41,6 @@ interface Tesis {
     codigoPucp: string;
   }[];
   coasesores?: Profesor[];
-  estadoActual?: string;
 }
 
 const profesoresData = [
@@ -68,60 +67,41 @@ export function TemaCard() {
     const fetchTesis = async () => {
       try {
         const { idToken } = useAuthStore.getState();
+        
         if (!idToken) {
           console.error("No authentication token available");
           return;
         }
 
-        // 1. Verifica si hay tema comprometido y obtén el estado
-        const resVerifica = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/temas/verificarTemasComprometidosTesista`,
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/temas/listarTemasPorUsuarioRolEstado?rolNombre=Tesista&estadoNombre=INSCRITO`,
           {
             headers: {
-              Authorization: `Bearer ${idToken}`,
-              "Content-Type": "application/json",
-            },
+              "Authorization": `Bearer ${idToken}`,
+              "Content-Type": "application/json"
+            }
           }
         );
-        if (!resVerifica.ok) throw new Error("Error verificando tema comprometido");
-        const dataVerifica = await resVerifica.json();
+        
+        if (!response.ok) throw new Error("Error al obtener datos de tesis");
+        const data = await response.json();
+        const tesis = data[0];
+        setTesisData(tesis);
 
-        if (Array.isArray(dataVerifica) && dataVerifica[0]?.comprometido === 1) {
-          const estadoNombre = dataVerifica[0]?.estadoNombre;
-          const response = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/temas/porUsuarioTituloAreaCarreraEstadoFecha?titulo=&areaId=&carreraId=&estadoNombre=${estadoNombre}&fechaCreacionDesde=&fechaCreacionHasta=`,
-            {
-              headers: {
-                Authorization: `Bearer ${idToken}`,
-                "Content-Type": "application/json",
-              },
-            }
-          );
-          const data = await response.json();
-          if (!data || data.length === 0) {
-            setTesisData(null);
-            return;
-          }
-          const tesis = data[0];
-          setTesisData({ ...tesis, estadoActual: estadoNombre === "EN_PROGRESO" ? "En progreso" : estadoNombre.charAt(0) + estadoNombre.slice(1).toLowerCase() });
+        const asesorPrincipal = tesis.coasesores?.[0];
+        const coasesoresRestantes = tesis.coasesores?.slice(1) ?? [];
 
-          const asesorPrincipal = tesis.coasesores?.[0];
-          const coasesoresRestantes = tesis.coasesores?.slice(1) ?? [];
-          setFormData({
-            titulo: tesis.titulo,
-            area: tesis.area ?? "",
-            descripcion: tesis.resumen,
-            asesor: asesorPrincipal ? `${asesorPrincipal.nombres}` : "No asignado",
-            coasesores: coasesoresRestantes.map(
-              (c: Profesor) => `${c.nombres}`
-            ),
-          });
-        } else {
-          setTesisData(null);
-        }
+        setFormData({
+          titulo: tesis.titulo,
+          area: tesis.area ?? "",
+          descripcion: tesis.resumen,
+          asesor: asesorPrincipal ? `${asesorPrincipal.nombres} ${asesorPrincipal.primerApellido}` : "No asignado",
+          coasesores: coasesoresRestantes.map(
+            (c: Profesor) => `${c.nombres} ${c.primerApellido}`
+          ),
+        });
       } catch (error) {
         console.error("Error:", error);
-        setTesisData(null);
       }
     };
 
@@ -204,7 +184,7 @@ export function TemaCard() {
           </div>
           </div>
           <Badge variant="outline" className="bg-green-100 text-green-800 hover:bg-green-100">
-            {tesisData.estadoActual}
+            En desarrollo
           </Badge>
         </div>
       </CardHeader>
@@ -233,28 +213,22 @@ export function TemaCard() {
               <Users className="h-4 w-4" /> <span>Tesistas</span>
             </h3>
             <ul className="space-y-1">
-              {tesisData.tesistas && tesisData.tesistas.length > 0 ? (
-                tesisData.tesistas.map((est) => (
-                  <li key={est.id} className="text-sm flex justify-between">
-                    <span>{`${est.nombres}`}</span>
-                    <span className="text-muted-foreground">{est.codigoPucp}</span>
-                  </li>
-                ))
-              ) : (
-                <li className="text-sm text-muted-foreground">Sin tesistas</li>
-              )}
+              {tesisData.tesistas.map((est) => (
+                <li key={est.id} className="text-sm flex justify-between">
+                  <span>{`${est.nombres} ${est.primerApellido}`}</span>
+                  <span className="text-muted-foreground">{est.codigoPucp}</span>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
       </CardContent>
       <CardFooter className="flex justify-between">
-        {tesisData.estadoActual === "Inscrito" && (
-          <Link href={`/alumno/temas/${tesisData.id}`}>
-            <Button variant="outline">
-              <Eye className="mr-2 h-4 w-4" /> Ver observaciones
-            </Button>
-          </Link>
-        )}
+        <Link href={`/alumno/temas/${tesisData.id}`}>
+          <Button variant="outline">
+            <Eye className="mr-2 h-4 w-4" /> Ver observaciones
+          </Button>
+        </Link>
       </CardFooter>
     </Card>
   );

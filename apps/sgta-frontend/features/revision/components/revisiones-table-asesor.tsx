@@ -18,10 +18,10 @@ import {
   TableHeader,
   TableRow,
 } from "../../../components/ui/table";
-import { DocumentoAgrupado } from "../dtos/DocumentoAgrupado";
+import { RevisionDocumentoAsesorDto } from "../dtos/RevisionDocumentoAsesorDto";
 
 interface RevisionesTableAsesorProps {
-  data: DocumentoAgrupado[];
+  data: RevisionDocumentoAsesorDto[];
   filter?: string;
   searchQuery?: string;
   cursoFilter?: string;
@@ -52,13 +52,11 @@ export function RevisionesTableAsesor({
 
   if (searchQuery) {
     const query = searchQuery.toLowerCase();
-    revisionesFiltradas = revisionesFiltradas.filter((revision) =>
-      revision.titulo.toLowerCase().includes(query) ||
-      revision.estudiantes.some(
-        (est) =>
-          est.nombre.toLowerCase().includes(query) ||
-          est.codigo.includes(query)
-      )
+    revisionesFiltradas = revisionesFiltradas.filter(
+      (revision) =>
+        revision.estudiante.toLowerCase().includes(query) ||
+        revision.codigo.includes(query) ||
+        revision.titulo.toLowerCase().includes(query)
     );
   }
 
@@ -77,6 +75,7 @@ export function RevisionesTableAsesor({
               <TableHead>Similitud (%)</TableHead>
               <TableHead>Gen. IA (%)</TableHead>
               <TableHead>F. de Carga</TableHead>
+              <TableHead>Ultimo Ciclo</TableHead>
               <TableHead>Acciones</TableHead>
             </TableRow>
           </TableHeader>
@@ -105,15 +104,11 @@ export function RevisionesTableAsesor({
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="space-y-1">
-                      {revision.estudiantes.map((estudiante, index) => (
-                        <div key={index}>
-                          <div>{estudiante.nombre}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {estudiante.codigo}
-                          </div>
-                        </div>
-                      ))}
+                    <div>
+                      <div>{revision.estudiante}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {revision.codigo}
+                      </div>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -151,9 +146,20 @@ export function RevisionesTableAsesor({
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      {new Date(revision.fechaEntrega).toLocaleDateString()}
+                      {revision.fechaLimite && (
+                        <>
+                          {revision.entregaATiempo === false && (
+                            <AlertTriangle className="h-4 w-4 text-red-500" />
+                          )}
+                          {new Date(revision.fechaLimite).toLocaleDateString()}
+                        </>
+                      )}
                     </div>
                   </TableCell>
+                  <TableCell className="text-start">
+                    <div>{revision.ultimoCiclo}</div>
+                  </TableCell>
+
                   <TableCell className="text-center">
                     <div className="flex items-center gap-0.5">
                       {/* Botón "Ver detalles" (el ojito) */}

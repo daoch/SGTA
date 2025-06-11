@@ -9,8 +9,7 @@ import {
   TipoDedicacion,
   ExposicionJurado,
   MiembroJuradoExpo,
-  EvaluacionExposicionJurado,
-  CalificacionesJurado,
+  EvaluacionExposicionJurado
 } from "../types/jurado.types";
 import {
   JuradoDTO,
@@ -20,10 +19,8 @@ import {
   Ciclo,
   AreaConocimientoJurado,
   TesisDetalleExposicion,
-  MiembroJuradoDetalle,
 } from "../types/juradoDetalle.types";
 import axios from "axios";
-import Exposiciones from "../views/vista-exposiciones/alumno-exposiciones";
 
 export const getAllJurados = async (): Promise<JuradoUI[]> => {
   const response = await axiosInstance.get<JuradoDTO[]>("/jurado");
@@ -264,15 +261,6 @@ export const getExposicionesTema = async (
             datetimeInicio: expo.datetimeInicio,
             datetimeFin: expo.datetimeFin,
             sala: expo.salaExposicion,
-            miembrosJurado: expo.miembrosJurado.map(
-              (miembroJurado: MiembroJuradoDetalle) => ({
-                id: miembroJurado.id,
-                nombres: miembroJurado.nombres,
-                primerApellido: miembroJurado.primerApellido,
-                segundoApellido: miembroJurado.segundoApellido,
-                rol: miembroJurado.rol,
-              }),
-            ),
           })),
         }),
       ),
@@ -317,20 +305,12 @@ export const desasignarJuradoTema = async (
 };
 
 export const getExposicionesJurado = async (
-  idToken: string,
+  idJurado: number,
 ): Promise<ExposicionJurado[]> => {
   try {
-    console.log("========== INICIO SOLICITUD getExposicionesJurado ==========");
-    console.log(
-      "Intentando obtener exposiciones con token:",
-      idToken ? `${idToken.substring(0, 10)}...` : "undefined",
+    const response = await axiosInstance.get(
+      `/jurado/${idJurado}/exposiciones`,
     );
-
-    const response = await axiosInstance.get("/jurado/exposiciones", {
-      headers: {
-        Authorization: `Bearer ${idToken}`,
-      },
-    });
     const data = response.data as ExposicionJurado[];
 
     // Verificar si hay datos recibidos
@@ -364,9 +344,6 @@ export const getExposicionesJurado = async (
         titulo: expo.titulo,
         nombre_exposicion: expo.nombre_exposicion,
         ciclo_id: expo.ciclo_id,
-        enlace_grabacion: expo.enlace_grabacion,
-        enlace_sesion: expo.enlace_sesion,
-        criterios_calificados: expo.criterios_calificados,
         miembros,
       };
     });
@@ -397,22 +374,15 @@ export const actualizarEstadoExposicion = async (
 
 export const actualizarEstadoControlExposicion = async (
   exposicionId: number,
-  juradoId: string,
+  juradoId: number,
   nuevoEstado: string,
 ): Promise<boolean> => {
   try {
-    const response = await axiosInstance.put(
-      "/jurado/control",
-      {
-        exposicionTemaId: exposicionId,
-        estadoExposicionUsuario: nuevoEstado,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${juradoId}`,
-        },
-      },
-    );
+    const response = await axiosInstance.put("/jurado/control", {
+      exposicionTemaId: exposicionId,
+      juradoId: juradoId,
+      estadoExposicionUsuario: nuevoEstado,
+    });
 
     return response.status === 200;
   } catch (error) {
@@ -421,23 +391,24 @@ export const actualizarEstadoControlExposicion = async (
   }
 };
 
+
+
 export const getExposicionCalificarJurado = async (
-  token: number | string,
+  juradoId: number | string,
   exposicionId: number | string,
 ): Promise<EvaluacionExposicionJurado> => {
   try {
     // Convertir IDs a números si vienen como strings (por ejemplo, desde URL params)
-    //const jId = 6;
-    const expId =
-      typeof exposicionId === "string" ? parseInt(exposicionId) : exposicionId;
-
-    console.log("ID Jurado:", token, "ID Exposición:", expId);
+    const jId = 6;
+    const expId = typeof exposicionId === "string" ? parseInt(exposicionId) : exposicionId;
+    
+    console.log("ID Jurado:", jId, "ID Exposición:", expId);
 
     interface EstudianteRespuesta {
       id: number;
       nombre: string;
     }
-
+    
     interface CriterioRespuesta {
       id: number;
       titulo: string;
@@ -446,7 +417,7 @@ export const getExposicionCalificarJurado = async (
       nota_maxima?: number;
       observacion?: string;
     }
-
+    
     interface RespuestaAPI {
       id_exposicion?: number;
       titulo?: string;
@@ -457,39 +428,28 @@ export const getExposicionCalificarJurado = async (
     }
 
     // Llamada al endpoint de criterios con los parámetros requeridos
-    // Llamada al endpoint utilizando el token para autenticación
+    //const response = await axiosInstance.get(`/jurado/${temaId}/detalle`);
     const response = await axiosInstance.get("/jurado/criterios", {
       params: {
-        exposicion_tema_id: expId,
-      },
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    {
-      /*
-    const response = await axiosInstance.get("/jurado/criterios", {
-      params: {
-        jurado_id: jId,
-        exposicion_tema_id: expId,
-      },
-    });
-      */
+      jurado_id: jId,
+      exposicion_tema_id: expId
     }
-    const data = response.data;
+    });
 
+    const data = response.data;
+    
     // Log para depuración
     console.log("Datos de evaluación recibidos:", data);
-
+    
     // Mapear la respuesta al formato requerido por el cliente
     return {
       id_exposicion: data.id_exposicion || exposicionId,
       titulo: data.titulo || "",
       descripcion: data.descripcion || "",
-      estudiantes: Array.isArray(data.estudiantes)
+      estudiantes: Array.isArray(data.estudiantes) 
         ? data.estudiantes.map((est: EstudianteRespuesta) => ({
             id: est.id,
-            nombre: est.nombre,
+            nombre: est.nombre
           }))
         : [],
       criterios: Array.isArray(data.criterios)
@@ -497,16 +457,16 @@ export const getExposicionCalificarJurado = async (
             id: criterio.id,
             titulo: criterio.titulo,
             descripcion: criterio.descripcion,
-            calificacion: criterio.calificacion,
+            calificacion: criterio.calificacion || 0,
             nota_maxima: criterio.nota_maxima || 20,
-            observacion: criterio.observacion || "",
+            observacion: criterio.observacion || ""
           }))
         : [],
-      observaciones_finales: data.observaciones_finales || "",
+      observaciones_finales: data.observaciones_finales || ""
     };
   } catch (error) {
     console.error("Error al obtener datos para calificar exposición:", error);
-
+    
     // En caso de error, devolvemos un objeto vacío con la estructura esperada
     return {
       id_exposicion: Number(exposicionId),
@@ -514,7 +474,7 @@ export const getExposicionCalificarJurado = async (
       descripcion: "",
       estudiantes: [],
       criterios: [],
-      observaciones_finales: "",
+      observaciones_finales: ""
     };
   }
 };
@@ -524,14 +484,9 @@ export const actualizarComentarioFinalJurado = async (
   observacion_final: string,
 ): Promise<boolean> => {
   try {
-    console.log(
-      "Guardando observaciones finales para la exposición:",
-      exposicionId,
-    );
-    console.log("Observaciones finales:", observacion_final);
     const response = await axiosInstance.put("/jurado/observacionfinal", {
       id: exposicionId,
-      observacion_final: observacion_final,
+      observacion_final: observacion_final
     });
 
     return response.status === 200;
@@ -546,11 +501,11 @@ export const actualizarCriteriosEvaluacion = async (
     id: number;
     calificacion: number;
     observacion: string;
-  }[],
+  }[]
 ): Promise<boolean> => {
   try {
     const response = await axiosInstance.put("/jurado/criterios", {
-      criterios: criterios,
+      criterios: criterios
     });
 
     return response.status === 200;
@@ -559,37 +514,3 @@ export const actualizarCriteriosEvaluacion = async (
     throw error;
   }
 };
-
-export const getCalificacionesJuradoByExposicionTemaId = async (
-  exposicionTemaId: number,
-) => {
-  try {
-    const response = await axiosInstance.get(
-      "/jurado/calificacion-exposicion",
-      {
-        params: {
-          exposicion_tema_id: exposicionTemaId,
-        },
-      },
-    );
-
-    console.log("Datos de calificaciones obtenidos:", response.data);
-
-    return response.data.map((item: CalificacionesJurado) => ({
-      usuario_id: item.usuario_id,
-      nombres: item.nombres,
-      observaciones_finales: item.observaciones_finales,
-      criterios: item.criterios,
-      calificado: item.calificado,
-    }));
-  } catch (error) {
-    console.error(
-      "Error al obtener calificaciones de los miembros de jurado:",
-      error,
-    );
-    throw new Error(
-      "Error al obtener calificaciones de los miembros de jurado",
-    );
-  }
-};
-

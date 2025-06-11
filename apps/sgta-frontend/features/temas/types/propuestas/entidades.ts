@@ -49,7 +49,6 @@ export type Usuario = {
   activo: boolean;
   fechaCreacion: string;
   fechaModificacion: string;
-  rol?: string;
 };
 
 export type Area = {

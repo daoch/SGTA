@@ -14,7 +14,6 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { toast } from "sonner";
 
 export interface CriterioEntregableFormData {
   id?: string;
@@ -32,9 +31,14 @@ interface CriterioEntregableModalProps {
   criteriosExistentes: CriterioEntregableFormData[]; // Criterios ya agregados
 }
 
-export const CriterioEntregableModal: React.FC<
-  CriterioEntregableModalProps
-> = ({ isOpen, onClose, onSubmit, criterio, mode, criteriosExistentes }) => {
+export const CriterioEntregableModal: React.FC<CriterioEntregableModalProps> = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  criterio,
+  mode,
+  criteriosExistentes,
+}) => {
   const isEditMode = mode === "edit";
 
   const [formData, setFormData] = useState<CriterioEntregableFormData>({
@@ -65,7 +69,7 @@ export const CriterioEntregableModal: React.FC<
   }, [criterio, isEditMode, isOpen]);
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -80,16 +84,10 @@ export const CriterioEntregableModal: React.FC<
 
     try {
       await onSubmit(formData);
-      toast.success(
-        `Criterio de calificación ${isEditMode ? "actualizado" : "creado"} exitosamente`,
-      );
     } catch (error) {
       console.error(
-        `Error al ${isEditMode ? "actualizar" : "crear"} el criterio de calificación:`,
-        error,
-      );
-      toast.error(
-        `Error al ${isEditMode ? "actualizar" : "crear"} el criterio de calificación.`,
+        `Error al ${isEditMode ? "actualizar" : "crear"} el contenido:`,
+        error
       );
     } finally {
       setIsSubmitting(false);
@@ -98,29 +96,15 @@ export const CriterioEntregableModal: React.FC<
 
   // Filtrar el criterio que está siendo editado
   const criteriosFiltrados = criteriosExistentes.filter(
-    (c) => c.id !== criterio?.id,
+    (c) => c.id !== criterio?.id
   );
 
   // Calcular la suma total de los puntajes
   const sumaTotalNotas =
     criteriosFiltrados.reduce(
       (acc, criterioExistente) => acc + criterioExistente.notaMaxima,
-      0,
+      0
     ) + formData.notaMaxima;
-
-  const isFormValid = () => {
-    if (!formData.nombre || !formData.descripcion || !formData.notaMaxima) {
-      return false;
-    }
-    return true;
-  };
-
-  let buttonText = "";
-  if (isSubmitting) {
-    buttonText = isEditMode ? "Guardando..." : "Creando...";
-  } else {
-    buttonText = isEditMode ? "Guardar Cambios" : "Crear Criterio";
-  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -203,9 +187,15 @@ export const CriterioEntregableModal: React.FC<
               id="btnSave"
               type="submit"
               className="bg-black hover:bg-gray-800"
-              disabled={isSubmitting || !isFormValid() || sumaTotalNotas > 20} // Deshabilitar si la suma excede 20
+              disabled={isSubmitting || sumaTotalNotas > 20} // Deshabilitar si la suma excede 20
             >
-              {buttonText}
+              {isSubmitting
+                ? isEditMode
+                  ? "Guardando..."
+                  : "Creando..."
+                : isEditMode
+                ? "Guardar Cambios"
+                : "Crear Criterio"}
             </Button>
           </DialogFooter>
         </form>

@@ -12,20 +12,59 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { FiltrosPostulacionModal } from "@/features/temas/components/asesor/filtros-postulacion-modal";
 import { PostulacionModal } from "@/features/temas/components/asesor/postulacion-modal";
-import {
-  aceptarPostulacionDeAlumno,
-  fetchPostulacionesAlAsesor,
-  rechazarPostulacionDeAlumno,
-} from "@/features/temas/types/postulaciones/data";
-import { TemaDto } from "@/features/temas/types/postulaciones/entidades";
 import { CheckCircle, Eye, Filter, X } from "lucide-react";
-import { useEffect, useState } from "react";
-import { toast, Toaster } from "sonner";
+import { useState } from "react";
 import { Postulacion } from "../../types/postulaciones/entidades";
 import { AceptarPostulacionModal } from "./aceptar-postulacion-modal";
-import { RechazarPostulacionModal } from "./rechazar-postulacion-modal";
+
+const postulacionesData = [
+  {
+    id: "1",
+    titulo:
+      "Desarrollo de un sistema de monitoreo de calidad del aire utilizando IoT",
+    area: "Internet de las Cosas",
+    codigos: ["20190123", "20190456"],
+    estudiantes: ["Ana García", "Pedro López"],
+    estado: "pendiente",
+    fechaPostulacion: "2023-11-15",
+    fechaLimite: "2023-11-30",
+    motivacion:
+      "Nos interesa este tema porque tenemos experiencia previa en proyectos de IoT y queremos profundizar en aplicaciones ambientales. Hemos trabajado con sensores y plataformas como Arduino y Raspberry Pi.",
+    experiencia:
+      "Hemos desarrollado proyectos de domótica y sistemas de monitoreo de temperatura. Tenemos conocimientos en programación de microcontroladores, protocolos de comunicación IoT y desarrollo web.",
+
+    cursosTomados: [
+      "Sistemas Embebidos",
+      "Redes de Computadoras",
+      "Programación Web",
+    ],
+    comentario: "",
+  },
+  {
+    id: "2",
+    titulo:
+      "Optimización de consultas en bases de datos NoSQL para aplicaciones de big data",
+    area: "Bases de Datos",
+    codigos: ["20180789"],
+    estudiantes: ["Carlos Mendoza"],
+    estado: "aprobado",
+    fechaPostulacion: "2023-11-10",
+    fechaLimite: "2023-12-05",
+    motivacion:
+      "Me interesa este tema porque quiero especializarme en bases de datos NoSQL y big data. Considero que es un área con mucho potencial y demanda en el mercado laboral.",
+    experiencia:
+      "He trabajado con MongoDB y Cassandra en proyectos académicos. También tengo experiencia en análisis de datos con Python y herramientas de visualización.",
+
+    cursosTomados: [
+      "Bases de Datos Avanzadas",
+      "Minería de Datos",
+      "Programación Paralela",
+    ],
+    comentario:
+      "Tu perfil es ideal para este tema. Tienes la experiencia necesaria en bases de datos NoSQL y tus conocimientos en análisis de datos serán muy útiles para el proyecto.",
+  },
+];
 
 export function PostulacionesTable() {
   const [selectedPostulacion, setSelectedPostulacion] =
@@ -34,44 +73,15 @@ export function PostulacionesTable() {
   const [showAcceptDialog, setShowAcceptDialog] = useState(false);
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [showFilterDialog, setShowFilterDialog] = useState(false);
-  const [filtroEstado, setFiltroEstado] = useState<string>("");
-  const [fechaFin, setFechaFin] = useState<string>("");
+  const [filtroEstado, setFiltroEstado] = useState<string | null>(null);
+  const [fechaFin, setFechaFin] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
   const [abrirModal, setAbrirModal] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [postulacionesData, setPostulacionesData] = useState<
-    Postulacion[] | null
-  >();
-  const [debounceFechaFin, setDebounceFechaFin] = useState<string>("");
-  const [debounceEstado, setDebounceEstado] = useState<string>("");
-
-  useEffect(() => {
-    const fetchPostulaciones = async () => {
-      try {
-        setLoading(true);
-        console.log({ debounceEstado });
-        console.log({ debounceFechaFin });
-        const data = await fetchPostulacionesAlAsesor(
-          debouncedSearchTerm,
-          debounceEstado,
-          debounceFechaFin,
-        );
-        setPostulacionesData(data);
-      } catch {
-        console.log("No se logró listar las postulaciones");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPostulaciones();
-  }, [debouncedSearchTerm, debounceEstado, debounceFechaFin]);
 
   const handleOpenDialog = (postulacion: Postulacion) => {
     setAbrirModal(true);
     setSelectedPostulacion(postulacion);
-    setFeedbackText("");
+    setFeedbackText(postulacion.comentario || "");
   };
 
   const handleOpenAcceptDialog = (postulacion: Postulacion) => {
@@ -82,13 +92,12 @@ export function PostulacionesTable() {
   };
 
   const handleOpenRejectDialog = (postulacion: Postulacion) => {
-    setAbrirModal(false);
     setSelectedPostulacion(postulacion);
     setFeedbackText("");
     setShowRejectDialog(true);
   };
 
-  const handleApprove = async () => {
+  const handleApprove = () => {
     // Aquí iría la lógica para aprobar la postulación
     console.log(
       "Aprobando postulación:",
@@ -96,30 +105,13 @@ export function PostulacionesTable() {
       "Feedback:",
       feedbackText,
     );
-    if (!selectedPostulacion) return;
-
-    const temaDto: TemaDto = {
-      usuarioId: selectedPostulacion.tesistas[0].id,
-      temaId: selectedPostulacion?.id,
-      comentario: `${selectedPostulacion.tesistas[0].comentario}|@@|${feedbackText}`,
-    };
-
-    try {
-      await aceptarPostulacionDeAlumno(temaDto);
-      toast.success("La postulación del alumno(a) fue aprobada.");
-    } catch (error) {
-      console.error("Error al aprobar la postulación del alumno:", error);
-      toast.error(
-        "Hubo un error al aprobar la postulación del alumno(a). Intentelo de nuevo.",
-      );
-    }
 
     setSelectedPostulacion(null);
     setFeedbackText("");
     setShowAcceptDialog(false);
   };
 
-  const handleReject = async () => {
+  const handleReject = () => {
     // Aquí iría la lógica para rechazar la postulación
     console.log(
       "Rechazando postulación:",
@@ -127,23 +119,6 @@ export function PostulacionesTable() {
       "Feedback:",
       feedbackText,
     );
-    if (!selectedPostulacion) return;
-
-    const temaDto: TemaDto = {
-      usuarioId: selectedPostulacion.tesistas[0].id,
-      temaId: selectedPostulacion?.id,
-      comentario: `${selectedPostulacion.tesistas[0].comentario}|@@|${feedbackText}`,
-    };
-
-    try {
-      await rechazarPostulacionDeAlumno(temaDto);
-      toast.success("La postulación del alumno(a) fue rechazada.");
-    } catch (error) {
-      console.error("Error al rechazar la postulación del alumno:", error);
-      toast.error(
-        "Hubo un error al rechazar la postulación del alumno(a). Intentelo de nuevo.",
-      );
-    }
 
     setSelectedPostulacion(null);
     setFeedbackText("");
@@ -151,41 +126,51 @@ export function PostulacionesTable() {
   };
 
   const handleClearFilters = () => {
-    setFiltroEstado("");
+    setFiltroEstado(null);
     setFechaFin("");
     setShowFilterDialog(false);
-    filtrarLosCampos();
   };
 
-  useEffect(() => {
-    console.log({ searchTerm });
-    const timer = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm);
-    }, 1500);
-    return () => clearTimeout(timer);
-  }, [searchTerm]);
+  const postulacionesFiltradas = postulacionesData.filter((postulacion) => {
+    // Filtrar por término de búsqueda
+    if (searchTerm) {
+      const searchTermLower = searchTerm.toLowerCase();
+      const tituloMatch = postulacion.titulo
+        .toLowerCase()
+        .includes(searchTermLower);
+      const estudiantesMatch = postulacion.estudiantes.some((estudiante) =>
+        estudiante.toLowerCase().includes(searchTermLower),
+      );
+      if (!tituloMatch && !estudiantesMatch) return false;
+    }
 
-  const handleChangeText = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
-  };
+    // Filtrar por estado
+    if (filtroEstado && postulacion.estado !== filtroEstado) {
+      return false;
+    }
 
-  const filtrarLosCampos = () => {
-    setShowFilterDialog(false);
-    setDebounceEstado(filtroEstado);
-    setDebounceFechaFin(fechaFin);
-  };
+    if (fechaFin) {
+      const fechaPostulacion = new Date(postulacion.fechaPostulacion);
+      const fechaFinObj = new Date(fechaFin);
+      // Ajustar la fecha fin para incluir todo el día
+      fechaFinObj.setHours(23, 59, 59, 999);
+      if (fechaPostulacion > fechaFinObj) {
+        return false;
+      }
+    }
 
-  console.log({ postulacionesData });
+    return true;
+  });
+
   return (
     <div>
-      <Toaster position="bottom-right" richColors />
       <div className="mb-6 flex flex-wrap gap-4 items-center">
         <div className="relative flex-1">
           <Input
             type="search"
             placeholder="Buscar por título o estudiante..."
             value={searchTerm}
-            onChange={handleChangeText}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full"
           />
         </div>
@@ -220,16 +205,7 @@ export function PostulacionesTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {loading ? (
-              <TableRow>
-                <TableCell
-                  colSpan={7}
-                  className="text-center py-8 text-muted-foreground"
-                >
-                  Cargando...
-                </TableCell>
-              </TableRow>
-            ) : postulacionesData?.length === 0 ? (
+            {postulacionesFiltradas.length === 0 ? (
               <TableRow>
                 <TableCell
                   colSpan={7}
@@ -239,46 +215,35 @@ export function PostulacionesTable() {
                 </TableCell>
               </TableRow>
             ) : (
-              postulacionesData?.map((postulacion) => (
+              postulacionesFiltradas.map((postulacion) => (
                 <TableRow key={postulacion.id}>
                   <TableCell className="font-medium max-w-xs truncate">
                     {postulacion.titulo}
                   </TableCell>
-                  <TableCell>
-                    {postulacion.subareas[0].areaConocimiento.nombre}
-                  </TableCell>
-                  <TableCell>
-                    {postulacion.tesistas
-                      .map((tesista) => tesista.codigoPucp)
-                      .join(", ")}
-                  </TableCell>
-                  <TableCell>
-                    {postulacion.tesistas
-                      .map(
-                        (tesista) =>
-                          `${tesista.nombres} ${tesista.primerApellido}`,
-                      )
-                      .join(", ")}
-                  </TableCell>
+                  <TableCell>{postulacion.area}</TableCell>
+                  <TableCell>{postulacion.codigos.join(", ")}</TableCell>
+                  <TableCell>{postulacion.estudiantes.join(", ")}</TableCell>
                   <TableCell>
                     <Badge
                       variant="outline"
                       className={
-                        postulacion.estadoUsuarioTema === "Aprobado"
+                        postulacion.estado === "aprobado"
                           ? "bg-green-100 text-green-800 hover:bg-green-100"
-                          : postulacion.estadoUsuarioTema === "Rechazado"
+                          : postulacion.estado === "rechazado"
                             ? "bg-red-100 text-red-800 hover:bg-red-100"
                             : "bg-yellow-100 text-yellow-800 hover:bg-yellow-100"
                       }
                     >
-                      {postulacion.estadoUsuarioTema === "Aprobado"
+                      {postulacion.estado === "aprobado"
                         ? "Aprobado"
-                        : postulacion.estadoUsuarioTema === "Rechazado"
+                        : postulacion.estado === "rechazado"
                           ? "Rechazado"
                           : "Pendiente"}
                     </Badge>
                   </TableCell>
-                  <TableCell>{postulacion.fechaLimite.split("T")[0]}</TableCell>
+                  <TableCell>
+                    {new Date(postulacion.fechaLimite).toLocaleDateString()}
+                  </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Dialog>
@@ -298,12 +263,12 @@ export function PostulacionesTable() {
                             setSelectedPostulacion={setSelectedPostulacion}
                             feedbackText={feedbackText}
                             setFeedbackText={setFeedbackText}
-                            handleOpenRejectDialog={handleOpenRejectDialog}
+                            handleReject={handleReject}
                             handleOpenAcceptDialog={handleOpenAcceptDialog}
                           />
                         )}
                       </Dialog>
-                      {postulacion.estadoUsuarioTema === "Pendiente" && (
+                      {postulacion.estado === "pendiente" && (
                         <>
                           <Button
                             variant="ghost"
@@ -341,27 +306,6 @@ export function PostulacionesTable() {
           setFeedbackText={setFeedbackText}
           setShowAcceptDialog={setShowAcceptDialog}
           handleApprove={handleApprove}
-        />
-      </Dialog>
-      {/* Modal para rechazar postulación */}
-      <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
-        <RechazarPostulacionModal
-          selectedPostulacion={selectedPostulacion}
-          feedbackText={feedbackText}
-          setFeedbackText={setFeedbackText}
-          setShowRejectDialog={setShowRejectDialog}
-          handleReject={handleReject}
-        />
-      </Dialog>
-      {/* Modal para filtros */}
-      <Dialog open={showFilterDialog} onOpenChange={setShowFilterDialog}>
-        <FiltrosPostulacionModal
-          filtroEstado={filtroEstado}
-          setFiltroEstado={setFiltroEstado}
-          fechaFin={fechaFin}
-          setFechaFin={setFechaFin}
-          handleClearFilters={handleClearFilters}
-          filtrarLosCampos={filtrarLosCampos}
         />
       </Dialog>
     </div>

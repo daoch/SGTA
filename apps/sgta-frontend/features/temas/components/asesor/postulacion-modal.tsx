@@ -8,22 +8,23 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Postulacion } from "@/features/temas/types/postulaciones/entidades";
+import { Separator } from "@/components/ui/separator";
 import { CheckCircle, X } from "lucide-react";
+import { Postulacion } from "../../types/postulaciones/entidades";
 
 interface PostulacionModalProps {
   selectedPostulacion: Postulacion | null;
   setSelectedPostulacion: (selectedPostulacion: Postulacion | null) => void;
   feedbackText: string;
   setFeedbackText: (feedbackText: string) => void;
-  handleOpenRejectDialog: (propuesta: Postulacion) => void;
+  handleReject: () => void;
   handleOpenAcceptDialog: (propuesta: Postulacion) => void;
 }
 
 export function PostulacionModal({
   selectedPostulacion,
   setSelectedPostulacion,
-  handleOpenRejectDialog,
+  handleReject,
   handleOpenAcceptDialog,
 }: PostulacionModalProps) {
   return (
@@ -46,7 +47,7 @@ export function PostulacionModal({
           <div className="space-y-2">
             <Label>Área</Label>
             <div className="p-3 bg-gray-50 rounded-md border">
-              <p>{selectedPostulacion.subareas[0].areaConocimiento.nombre}</p>
+              <p>{selectedPostulacion.area}</p>
             </div>
           </div>
 
@@ -55,14 +56,14 @@ export function PostulacionModal({
               <Label>Estudiante(s)</Label>
               <div className="p-3 bg-gray-50 rounded-md border">
                 <ul className="space-y-1">
-                  {selectedPostulacion.tesistas.map((tesista, index) => (
+                  {selectedPostulacion.estudiantes.map((estudiante, index) => (
                     <li
                       key={index}
                       className="flex items-center justify-between"
                     >
-                      <span>{`${tesista.nombres} ${tesista.primerApellido} ${tesista.segundoApellido}`}</span>
+                      <span>{estudiante}</span>
                       <span className="text-sm text-muted-foreground">
-                        {selectedPostulacion.tesistas[index].codigoPucp}
+                        {selectedPostulacion.codigos[index]}
                       </span>
                     </li>
                   ))}
@@ -77,7 +78,7 @@ export function PostulacionModal({
                   <span className="text-sm font-medium">Postulación:</span>
                   <span>
                     {new Date(
-                      selectedPostulacion.fechaCreacion,
+                      selectedPostulacion.fechaPostulacion,
                     ).toLocaleDateString()}
                   </span>
                 </div>
@@ -93,30 +94,29 @@ export function PostulacionModal({
             </div>
           </div>
 
+          <Separator />
+
           <div className="space-y-2">
-            <Label>Comentario</Label>
+            <Label>Motivación</Label>
             <div className="p-3 bg-gray-50 rounded-md border">
-              {selectedPostulacion.tesistas.map((tesista, index) => (
-                <span key={index}>{tesista.comentario.split("|@@|")[0]}</span>
-              ))}
+              <p>{selectedPostulacion.motivacion}</p>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Experiencia</Label>
+            <div className="p-3 bg-gray-50 rounded-md border">
+              <p>{selectedPostulacion.experiencia}</p>
             </div>
           </div>
 
           {/* Mostrar comentario si existe y el estado no es pendiente */}
-          {/*CAMBIAR CUANDO SE TENGA EL LISTADO DE COASESORES*/}
-          {selectedPostulacion.estadoUsuarioTema !== "Pendiente" &&
-            selectedPostulacion.tesistas && (
+          {selectedPostulacion.estado !== "pendiente" &&
+            selectedPostulacion.comentario && (
               <div className="space-y-2">
                 <Label>Comentario para el estudiante</Label>
                 <div className="p-3 bg-gray-50 rounded-md border">
-                  <p>
-                    {selectedPostulacion.tesistas.map((tesista, index) => (
-                      <span key={index}>
-                        {tesista.comentario.split("|@@|")[1]}
-                        <br />
-                      </span>
-                    ))}
-                  </p>
+                  <p>{selectedPostulacion.comentario}</p>
                 </div>
               </div>
             )}
@@ -127,25 +127,21 @@ export function PostulacionModal({
           Cerrar
         </Button>
 
-        {selectedPostulacion &&
-          selectedPostulacion.estadoUsuarioTema === "Pendiente" && (
-            <>
-              <Button
-                onClick={() => handleOpenRejectDialog(selectedPostulacion)}
-                variant="destructive"
-              >
-                <X className="mr-2 h-4 w-4" />
-                Rechazar
-              </Button>
-              <Button
-                onClick={() => handleOpenAcceptDialog(selectedPostulacion)}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                <CheckCircle className="mr-2 h-4 w-4" />
-                Aprobar
-              </Button>
-            </>
-          )}
+        {selectedPostulacion && selectedPostulacion.estado === "pendiente" && (
+          <>
+            <Button onClick={handleReject} variant="destructive">
+              <X className="mr-2 h-4 w-4" />
+              Rechazar
+            </Button>
+            <Button
+              onClick={() => handleOpenAcceptDialog(selectedPostulacion)}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              <CheckCircle className="mr-2 h-4 w-4" />
+              Aprobar
+            </Button>
+          </>
+        )}
       </DialogFooter>
     </DialogContent>
   );

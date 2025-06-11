@@ -12,7 +12,6 @@ import React from "react";
 import { Tema } from "../types/temas/entidades";
 
 import { TemasDetalleExposiciones } from "@/features/jurado/components/temas-detalle-exposiciones";
-import { EstadoTemaNombre } from "../types/temas/enums";
 
 enum TabValues {
   INFO = "informacion",
@@ -43,11 +42,9 @@ const DetalleTemasCoordinadorPage: React.FC<
           <TabsTrigger value={TabValues.HISTORIAL}>
             Historial de Cambios
           </TabsTrigger>
-          {tema?.estadoTemaNombre === EstadoTemaNombre.EN_PROGRESO && (
-            <TabsTrigger value={TabValues.DETALLE_EXPO}>
-              Detalle de Exposiciones
-            </TabsTrigger>
-          )}
+          <TabsTrigger value={TabValues.DETALLE_EXPO}>
+            Detalle de Exposiciones
+          </TabsTrigger>
         </TabsList>
         <TabsContent value={TabValues.INFO}>
           <Card>

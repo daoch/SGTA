@@ -106,7 +106,7 @@ export function ObservacionesCard({ observaciones, solicitudes }: Props) {
         }
 
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/temas/porUsuarioTituloAreaCarreraEstadoFecha?titulo=&areaId=&carreraId=&estadoNombre=INSCRITO&fechaCreacionDesde=&fechaCreacionHasta=`,
+          `${process.env.NEXT_PUBLIC_API_URL}/temas/listarTemasPorUsuarioRolEstado?rolNombre=Tesista&estadoNombre=INSCRITO`,
           {
             headers: {
               "Authorization": `Bearer ${idToken}`,

@@ -62,14 +62,13 @@ export default function DirectorioAsesoresEstudiantes() {
   const [asesores, setAsesores] = useState<Asesor[]>([]);
   const [allAreaTematica, setAllAreasTematicas] = useState<AreaTematica[]>([]);
   const [allTemasInteres, setAllTemasInteres] = useState<TemaInteres[]>([]);
-  const [isLoadingPage, setIsLoadingPage] = useState(false);
-  const [isLoadingResults, setIsLoadingResults] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   //const [error, setError] = useState<string | null>(null);
 
   const loadUsuarioId = async () => {
     if (!user) return;
 
-    setIsLoadingPage(true);
+    setIsLoading(true);
 
     try {
       const id = await getIdByCorreo(user.email);
@@ -84,7 +83,7 @@ export default function DirectorioAsesoresEstudiantes() {
     } catch (error) {
       console.error("Error inesperado al obtener el ID del asesor:", error);
     } finally {
-      setIsLoadingPage(false);
+      setIsLoading(false);
     }
   };
 
@@ -100,7 +99,7 @@ export default function DirectorioAsesoresEstudiantes() {
     if (!userId) return;
 
     const fetchAsesores = async () => {
-      setIsLoadingResults(true);
+      setIsLoading(true);
 
       try {
         const data = await getAsesoresPorFiltros({
@@ -115,7 +114,7 @@ export default function DirectorioAsesoresEstudiantes() {
       } catch (error) {
         console.error("Error al cargar asesores:", error);
       } finally {
-        setIsLoadingResults(false);
+        setIsLoading(false);
       }
     };
 
@@ -290,14 +289,6 @@ export default function DirectorioAsesoresEstudiantes() {
     return items;
   };
 
-  if (isLoadingPage) {
-    return (
-      <div className="container mx-auto py-6 max-w-6xl">
-        <p>Cargando...</p>
-      </div>
-    );
-  }
-
   return (
     <div className="container mx-auto py-6 max-w-6xl">
       <h1 className="text-2xl font-bold mb-6">Directorio de asesores</h1>
@@ -358,7 +349,6 @@ export default function DirectorioAsesoresEstudiantes() {
         setCurrentPage={setCurrentPage}
         soloDisponible={filters.soloDisponible}
         renderPaginationItems={renderPaginationItems}
-        isLoadingResults={isLoadingResults}
       />
     </div>
   );

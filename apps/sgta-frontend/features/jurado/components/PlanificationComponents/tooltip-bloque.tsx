@@ -1,74 +1,51 @@
-import { usePlanificationStore } from "../../store/use-planificacion-store";
 import { Tema } from "../../types/jurado.types";
 
 interface Props {
-  tema: Tema;
+  expoFind: Tema;
 }
 
-export default function ToolTipoBloque({ tema }: Props) {
-  const { estadoPlanificacion } = usePlanificationStore();
+export default function ToolTipoBloque({ expoFind }: Props) {
   return (
     <div className="flex flex-col gap-2 p-2 max-w-60">
-      {/* <div>
-        <strong>Estado tema: </strong>
-        <div className="flex flex-row gap-2 items-center">
+      <section>
+        <strong>Estado planificacion: </strong>
+        <div className="flex flex-row ml-2 gap-2 items-center">
           <div className="w-3 h-3 rounded-full bg-green-300" />
-          <span className="text-gray-300">Programada</span>
+          <span>Programada</span>
         </div>
-      </div> */}
+      </section>
 
       <div className="flex flex-col">
         <strong>Codigo: </strong>
-        <span className="text-gray-300">{tema.codigo}</span>
+        <span className="ml-2">{expoFind.codigo}</span>
       </div>
 
       <div className="flex flex-col">
         <strong>Titulo: </strong>
-        <span className="text-gray-300"> {tema.titulo}</span>
+        <span className="ml-2"> {expoFind.titulo}</span>
       </div>
 
       <div className="flex flex-col">
-        <strong>Miembros de jurado :</strong>
-        {tema?.usuarios
-          ?.filter((u) => u.rol?.nombre !== "Tesista")
+        <strong>Jurados:</strong>
+        <ul>
+          {expoFind?.usuarios
+            ?.filter((u) => u.rol?.nombre === "Jurado")
+            .map((j) => (
+              <li className="ml-2" key={j.idUsario}>
+                {j.nombres} {j.apellidos}
+              </li>
+            ))}
+        </ul>
+      </div>
+
+      <div className="flex flex-col">
+        <strong>Asesor:</strong>
+        {expoFind?.usuarios
+          ?.filter((u) => u.rol?.nombre === "Asesor")
           .map((a) => (
-            <li key={a.idUsario}>
-              <span className="text-gray-300">
-                {a.nombres} {a.apellidos}
-              </span>
-              <div className="ml-5 text-gray-300">
-                {a.estadoRespuesta === "aceptado" &&
-                  estadoPlanificacion?.nombre != "Planificacion inicial" &&
-                  estadoPlanificacion?.nombre != "Cierre de planificacion" && (
-                    <div className="flex flex-row gap-2 items-center">
-                      <div className="w-3 h-3 rounded-full bg-green-500" />
-                      <span className="text-green-500 font-medium">
-                        Aceptado
-                      </span>
-                    </div>
-                  )}
-                {a.estadoRespuesta === "esperando_respuesta" &&
-                  estadoPlanificacion?.nombre != "Planificacion inicial" &&
-                  estadoPlanificacion?.nombre != "Cierre de planificacion" && (
-                    <div className="flex flex-row gap-2 items-center">
-                      <div className="w-3 h-3 rounded-full bg-yellow-500" />
-                      <span className="text-yellow-500 font-medium">
-                        Pendiente
-                      </span>
-                    </div>
-                  )}
-                {a.estadoRespuesta === "rechazado" &&
-                  estadoPlanificacion?.nombre != "Planificacion inicial" &&
-                  estadoPlanificacion?.nombre != "Cierre de planificacion" && (
-                    <div className="flex flex-row gap-2 items-center">
-                      <div className="w-3 h-3 rounded-full bg-red-500" />
-                      <span className="text-red-500 font-medium">
-                        Rechazado
-                      </span>
-                    </div>
-                  )}
-              </div>
-            </li>
+            <span className="ml-2" key={a.idUsario}>
+              {a.nombres} {a.apellidos}
+            </span>
           ))}
       </div>
     </div>

@@ -32,7 +32,7 @@ import {
   Tesis,
 } from "../types/perfil/entidades";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@/features/auth";
 import { useRouter } from "next/navigation";
 import IndicadoresAsesor from "../components/perfil/indicadores-asesor";
 import ProyectosAsesoradosResumen from "../components/perfil/proyectos-asesorados-resumen";
@@ -43,6 +43,7 @@ interface Props {
 }
 
 export default function PerfilAsesor({ userId, editable }: Props) {
+  const { user } = useAuth();
   const router = useRouter();
 
   const [asesor, setAsesor] = useState<Asesor | null>(null);
@@ -77,9 +78,6 @@ export default function PerfilAsesor({ userId, editable }: Props) {
   // Estado para el diálogo de confirmación de guardado
   const [isSaveConfirmationOpen, setIsSaveConfirmationOpen] = useState(false);
 
-  // Estado para la pestaña activa
-  const [activeTab, setActiveTab] = useState("overview");
-
   useEffect(() => {
     getPerfilAsesor(userId).then(setAsesor).catch(console.error);
   }, [userId]);
@@ -105,6 +103,18 @@ export default function PerfilAsesor({ userId, editable }: Props) {
       })
       .catch(console.error);
   }, [userId]);
+
+  //useEffect(() => {
+  //Cargar los datos mockeados una vez al iniciar
+  //const asesorData = getAsesorMock();
+  //setAsesor(asesorData);
+  //setEditedData(asesorData);
+  // Cargar áreas y temas disponibles
+  //setAreasDisponibles(getAreasDisponibles());
+  //setTemasDisponibles(getTemasDisponibles());
+  //setTesis(getTesisMock());
+  //setProyectos(getProyectosMock());
+  //}, []);
 
   useEffect(() => {
     if (!userId) return;
@@ -161,6 +171,11 @@ export default function PerfilAsesor({ userId, editable }: Props) {
   );
 
   const handleSave = () => {
+    // Verificar que haya al menos un área temática
+    //if (editedData.areasTematicas.length === 0) {
+    //  setIsValidationAlertOpen(true);
+    //  return;
+    //}
     setIsSaveConfirmationOpen(true);
   };
 
@@ -340,8 +355,7 @@ export default function PerfilAsesor({ userId, editable }: Props) {
           />
         )}
       </div>
-
-      {/* Diálogos */}
+      {/* Diálogo de confirmación para eliminar área temática */}
       <EliminarAreaDialog
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
@@ -351,111 +365,79 @@ export default function PerfilAsesor({ userId, editable }: Props) {
         onConfirm={confirmAreaDelete}
       />
 
+      {/* Diálogo de confirmación para guardar cambios */}
       <SaveConfirmationDialog
         open={isSaveConfirmationOpen}
         onOpenChange={setIsSaveConfirmationOpen}
         onConfirm={confirmSave}
       />
 
+      {/* Diálogo de alerta para validación */}
       <AlertaValidacionDialog
         open={isValidationAlertOpen}
         onOpenChange={setIsValidationAlertOpen}
       />
 
-      {/* Tabs de navegación */}
-      <Tabs
-        value={activeTab}
-        onValueChange={setActiveTab}
-        className="w-full mb-6"
-      >
-        <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-transparent">
-          <TabsTrigger
-            value="overview"
-            className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent py-3 px-4"
-          >
-            Información General
-          </TabsTrigger>
-          <TabsTrigger
-            value="tesis"
-            className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent py-3 px-4"
-          >
-            Tesis Asesoradas
-          </TabsTrigger>
-          <TabsTrigger
-            value="proyectos"
-            className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent py-3 px-4"
-          >
-            Proyectos
-          </TabsTrigger>
-        </TabsList>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+        {/* Columna izquierda - Información personal */}
+        <div className="space-y-6">
+          <PerfilAsesorCard
+            asesor={asesor}
+            editedData={editedData}
+            isEditing={isEditing}
+            setEditedData={setEditedData}
+            avatar={foto}
+          />
 
-        {/* Contenido de las tabs */}
-        <TabsContent value="overview" className="mt-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Columna izquierda - Información personal */}
-            <div className="space-y-6">
-              <PerfilAsesorCard
-                asesor={asesor}
-                editedData={editedData}
-                isEditing={isEditing}
-                setEditedData={setEditedData}
-                avatar={foto}
-              />
-            </div>
+          {/* Áreas Temáticas */}
+          <AreasTematicasCard
+            isEditing={isEditing}
+            editedAreas={editedData.areasTematicas}
+            areasFiltered={areasFiltered}
+            selectedArea={selectedArea}
+            openAreaCombobox={openAreaCombobox}
+            recentlyAddedArea={recentlyAddedArea}
+            setSelectedArea={setSelectedArea}
+            setOpenAreaCombobox={setOpenAreaCombobox}
+            addAreaTematica={addAreaTematica}
+            initiateAreaDelete={initiateAreaDelete}
+          />
 
-            {/* Columna derecha - Biografía, Áreas y Temas */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Biografía */}
-              <PresentacionCard
-                isEditing={isEditing}
-                biografia={editedData.biografia}
-                setBiografia={(value: string) =>
-                  setEditedData({ ...editedData, biografia: value })
-                }
-              />
+          {/* Temas de Interés */}
+          <TemasInteresCard
+            isEditing={isEditing}
+            temasInteres={editedData.temasIntereses}
+            temasFiltered={temasFiltered}
+            selectedTema={selectedTema}
+            openTemaCombobox={openTemaCombobox}
+            editedAreasTematicas={editedData.areasTematicas}
+            setSelectedTema={setSelectedTema}
+            setOpenTemaCombobox={setOpenTemaCombobox}
+            addTemaInteres={addTemaInteres}
+            removeTemaInteres={removeTemaInteres}
+          />
+        </div>
 
-              {/* Áreas Temáticas */}
-              <AreasTematicasCard
-                isEditing={isEditing}
-                editedAreas={editedData.areasTematicas}
-                areasFiltered={areasFiltered}
-                selectedArea={selectedArea}
-                openAreaCombobox={openAreaCombobox}
-                recentlyAddedArea={recentlyAddedArea}
-                setSelectedArea={setSelectedArea}
-                setOpenAreaCombobox={setOpenAreaCombobox}
-                addAreaTematica={addAreaTematica}
-                initiateAreaDelete={initiateAreaDelete}
-              />
+        {/* Columna derecha - Biografía y Tesis */}
+        <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+          {/* Biografía */}
+          <PresentacionCard
+            isEditing={isEditing}
+            biografia={editedData.biografia}
+            setBiografia={(value: string) =>
+              setEditedData({ ...editedData, biografia: value })
+            }
+          />
+          {/* Indicadores */}
+          <IndicadoresAsesor tesis={tesis} proyectos={proyectos} />
 
-              {/* Temas de Interés */}
-              <TemasInteresCard
-                isEditing={isEditing}
-                temasInteres={editedData.temasIntereses}
-                temasFiltered={temasFiltered}
-                selectedTema={selectedTema}
-                openTemaCombobox={openTemaCombobox}
-                editedAreasTematicas={editedData.areasTematicas}
-                setSelectedTema={setSelectedTema}
-                setOpenTemaCombobox={setOpenTemaCombobox}
-                addTemaInteres={addTemaInteres}
-                removeTemaInteres={removeTemaInteres}
-              />
-
-              {/* Indicadores */}
-              <IndicadoresAsesor tesis={tesis} proyectos={proyectos} />
-            </div>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="tesis" className="mt-6">
+          {/* Tesis Dirigidas */}
           <TesisDirigidasResumen tesis={tesis} />
-        </TabsContent>
 
-        <TabsContent value="proyectos" className="mt-6">
+          {/* Proyectos */}
           <ProyectosAsesoradosResumen proyectos={proyectos} />
-        </TabsContent>
-      </Tabs>
+        </div>
+      </div>
     </div>
   );
 }

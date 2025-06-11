@@ -21,7 +21,7 @@ export interface FilterOptions {
   estados: FilterOption[];
 }
 
-export function useFetchExposicionFilters() {
+export function useFetchExposicionFilters(coordinadorId: number) {
   const [options, setOptions] = useState<FilterOptions>({
     etapasFormativas: [],
     ciclos: [],
@@ -35,7 +35,7 @@ export function useFetchExposicionFilters() {
       try {
         const [cursosResponse, ciclosResponse, estadosResponse] =
           await Promise.all([
-            getCursosByCoordinador(),
+            getCursosByCoordinador(coordinadorId),
             getCiclos(),
             getEstadosExposicion(),
           ]);
@@ -65,7 +65,7 @@ export function useFetchExposicionFilters() {
       }
     }
     fetchOptions();
-  }, []);
+  }, [coordinadorId]);
 
   return { options, loading, error };
 }

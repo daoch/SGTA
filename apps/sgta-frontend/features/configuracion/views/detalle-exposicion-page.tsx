@@ -16,9 +16,6 @@ import { CriterioExposicion } from "../dtos/criterio-exposicion";
 import axiosInstance from "@/lib/axios/axios-instance";
 import { NuevoCriterioExposicionModal } from "../components/exposicion/nuevo-criterio-exposicion-modal";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { EtapaFormativaXCiclo } from "../dtos/etapa-formativa-x-ciclo";
-import { toast } from "sonner";
-import AppLoading from "@/components/loading/app-loading";
 
 interface DetalleExposicionPageProps {
   etapaId: string;
@@ -29,10 +26,8 @@ const DetalleExposicionPage: React.FC<DetalleExposicionPageProps> = ({
   etapaId,
   exposicionId,
 }) => {
-  const [loadingEtapa, setLoadingEtapa] = useState(true);
-  const [loadingExposicion, setLoadingExposicion] = useState(true);
   const router = useRouter();
-  const [etapaFormativaXCiclo, setEtapaFormativaXCiclo] = useState<EtapaFormativaXCiclo>();
+
   const [isCriterioModalOpen, setIsCriterioModalOpen] = useState(false);
   const [isNuevoCriterioModalOpen, setIsNuevoCriterioModalOpen] = useState(false);
   const [isExposicionModalOpen, setIsExposicionModalOpen] = useState(false);
@@ -52,28 +47,12 @@ const DetalleExposicionPage: React.FC<DetalleExposicionPageProps> = ({
   const [criterios, setCriterios] = useState<CriterioExposicion[]>([]);
 
   useEffect(() => {
-    const fetchEtapaFormativaXCiclo = async () => {
-      try{
-        const response = await axiosInstance.get(`/etapa-formativa-x-ciclo/etapaXCiclo/${etapaId}`);
-        setEtapaFormativaXCiclo(response.data);
-      } catch (error) {
-        console.error("Error al cargar la etapa formativa por ciclo:", error);
-      } finally {
-        setLoadingEtapa(false);
-      }
-    };
-    fetchEtapaFormativaXCiclo();
-  }, [etapaId]);
-
-  useEffect(() => {
     const fetchExposicion = async () => {
       try {
         const response = await axiosInstance.get(`/exposicion/${exposicionId}`);
         setExposicion(response.data);
       } catch (error) {
         console.error("Error al cargar la exposicion:", error);
-      } finally {
-        setLoadingExposicion(false);
       }
     };
 
@@ -207,13 +186,9 @@ const DetalleExposicionPage: React.FC<DetalleExposicionPageProps> = ({
         setCriterios((prev) => prev.filter((c) => c.id !== criterioAEliminar.id));
         setIsDeleteModalOpen(false);
         setCriterioAEliminar(null);
-        toast.success(
-        `Criterio de calificación ${criterioAEliminar.nombre} eliminado exitosamente`,);
+        console.log("Criterio eliminado exitosamente");
       } catch (error) {
         console.error("Error al eliminar el criterio:", error);
-        toast.error(
-          `Error al eliminar el criterio de calificación ${criterioAEliminar.nombre}.`,
-        );
       }
     };
 
@@ -247,9 +222,6 @@ const DetalleExposicionPage: React.FC<DetalleExposicionPageProps> = ({
         }
       };
 
-  if (loadingEtapa || loadingExposicion) {
-    return <AppLoading />;
-  }
 
   return (
     <div className="w-full px-6 py-6">
@@ -289,7 +261,7 @@ const DetalleExposicionPage: React.FC<DetalleExposicionPageProps> = ({
               <h3 className="text-sm font-medium text-muted-foreground mb-1">
                 Etapa
               </h3>
-              <p>{etapaFormativaXCiclo?.nombreEtapaFormativa}</p>
+              <p>Proyecto de fin de carrera 1</p>
             </div>
           </div>
 
@@ -356,7 +328,7 @@ const DetalleExposicionPage: React.FC<DetalleExposicionPageProps> = ({
       <CriterioExposicionModal
         isOpen={isCriterioModalOpen}
         onClose={() => setIsCriterioModalOpen(false)}
-        onSubmit={modalMode === "edit" ? handleUpdateCriterio : handleCreateCriterio}
+        onSubmit={handleUpdateCriterio}
         criterio={criterioSeleccionado}
         mode={modalMode}
         criteriosExistentes={criterios}

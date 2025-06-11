@@ -73,7 +73,7 @@ export default function SolicitudDetalle({
       case "coordinador":
         return "DESTINATARIO";
       case "asesor":
-        return "ASESOR_ENTRADA";
+        return "PENDIENTE_ACCION";
       default:
         return "/";
     }
