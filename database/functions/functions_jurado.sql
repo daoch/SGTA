@@ -1303,5 +1303,3 @@ BEGIN
     LIMIT 1;
 END;
 $$;
-
-drop function obtener_exposiciones_por_etapa_formativa_por_tema (integer, integer);
