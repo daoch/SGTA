@@ -593,14 +593,24 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
                 <Button
                   variant="default"
                   className="bg-green-600 hover:bg-green-700 text-white"
-                  onClick={() => handleAccionCotesista(0)}
+                  onClick={() =>
+                    setConfirmAccion({
+                      accion: 0,
+                      id: selectedPendiente ? String(selectedPendiente.id) : "",
+                    })
+                  }
                 >
                   Aceptar
                 </Button>
                 <Button
                   variant="default"
                   className="bg-red-600 hover:bg-red-700 text-white"
-                  onClick={() => handleAccionCotesista(1)}
+                  onClick={() =>
+                    setConfirmAccion({
+                      accion: 1,
+                      id: selectedPendiente ? String(selectedPendiente.id) : "",
+                    })
+                  }
                 >
                   Rechazar
                 </Button>
