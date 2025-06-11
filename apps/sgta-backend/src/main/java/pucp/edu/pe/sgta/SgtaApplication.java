@@ -26,6 +26,10 @@ public class SgtaApplication {
 		System.setProperty("AWS_ACCESS_KEY_ID", dotenv.get("AWS_ACCESS_KEY_ID", ""));
 		System.setProperty("AWS_SECRET_ACCESS_KEY", dotenv.get("AWS_SECRET_ACCESS_KEY", ""));
 		System.setProperty("AWS_REGION", dotenv.get("AWS_REGION", ""));
+		System.setProperty("AWS_CLOUDFRONT_PUBLIC_KEY_ID", dotenv.get("AWS_CLOUDFRONT_PUBLIC_KEY_ID", ""));
+		System.setProperty("AWS_BASE_CLOUDFRONT_URL", dotenv.get("AWS_BASE_CLOUDFRONT_URL", ""));
+
+
 	}
 
 	public static void main(String[] args) {

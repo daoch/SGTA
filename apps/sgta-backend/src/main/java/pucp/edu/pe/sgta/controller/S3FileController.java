@@ -66,4 +66,15 @@ public class S3FileController {
     }
     // Aquí podrías añadir más endpoints relacionados con S3 (p.ej. listar, borrar,
     // etc.)
+
+    @GetMapping("/getUrlFromCloudFront/{key:.+}")
+    public ResponseEntity<String> getUrlFromCloudFront(@PathVariable String key) {
+        try {
+            String url = downloadService.getUrlFromCloudFront(key);
+            return ResponseEntity.ok(url);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("No se pudo generar la url para el archivo: " + e.getMessage());
+        }
+    }
 }
