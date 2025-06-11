@@ -209,9 +209,12 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
     v_entregable RECORD;
-	v_exposicion RECORD;
+    v_exposicion RECORD;
     v_etapa_formativa_x_ciclo_x_tema_id INTEGER;
     v_estado_en_progreso_id INTEGER;
+    v_exposicion_x_tema_id INTEGER;
+    v_criterio RECORD;
+    v_asesor_id INTEGER;
 BEGIN
     -- 0. Obtener el id del estado 'EN_PROGRESO'
     SELECT estado_tema_id INTO v_estado_en_progreso_id
@@ -236,8 +239,8 @@ BEGIN
         VALUES (v_entregable.entregable_id, p_tema_id, TRUE);
     END LOOP;
 
-	-- 4. Buscar exposiciones activas para el curso
-	FOR v_exposicion IN
+    -- 4. Buscar exposiciones activas para el curso
+    FOR v_exposicion IN
         SELECT exposicion_id
         FROM exposicion
         WHERE etapa_formativa_x_ciclo_id = p_curso_id
@@ -245,10 +248,46 @@ BEGIN
     LOOP
         -- 5. Insertar en exposicion_x_tema
         INSERT INTO exposicion_x_tema (exposicion_id, tema_id, activo)
-        VALUES (v_exposicion.exposicion_id, p_tema_id, TRUE);
+        VALUES (v_exposicion.exposicion_id, p_tema_id, TRUE)
+        RETURNING exposicion_x_tema_id INTO v_exposicion_x_tema_id;
+
+        -- 6. Obtener el primer usuario asesor asignado y activo para el tema
+        SELECT ut.usuario_id INTO v_asesor_id
+        FROM usuario_tema ut
+        JOIN rol r ON ut.rol_id = r.rol_id
+        WHERE ut.tema_id = p_tema_id
+          AND r.nombre = 'Asesor'
+          AND ut.asignado = TRUE
+          AND ut.activo = TRUE
+        LIMIT 1;
+
+        -- 7. Por cada criterio de la exposición, insertar en revision_criterio_x_exposicion solo si hay asesor
+        IF v_asesor_id IS NOT NULL THEN
+            FOR v_criterio IN
+                SELECT criterio_exposicion_id
+                FROM criterio_exposicion
+                WHERE exposicion_id = v_exposicion.exposicion_id
+            LOOP
+                INSERT INTO revision_criterio_x_exposicion (
+                    exposicion_x_tema_id,
+                    criterio_exposicion_id,
+                    usuario_id,
+                    activo,
+                    fecha_creacion,
+                    fecha_modificacion
+                ) VALUES (
+                    v_exposicion_x_tema_id,
+                    v_criterio.criterio_exposicion_id,
+                    v_asesor_id,
+                    TRUE,
+                    CURRENT_TIMESTAMP,
+                    CURRENT_TIMESTAMP
+                );
+            END LOOP;
+        END IF;
     END LOOP;
-	
-    -- 6. Cambiar el estado del tema a EN_PROGRESO
+
+    -- 8. Cambiar el estado del tema a EN_PROGRESO
     IF v_estado_en_progreso_id IS NOT NULL THEN
         UPDATE tema
         SET estado_tema_id = v_estado_en_progreso_id

@@ -280,3 +280,24 @@ export async function verificarSimilitudTema(body: {
     throw new Error("Error al verificar similitud del tema.");
   }
 }
+
+export async function EliminarTema(idTema: number) {
+  try {
+    const response = await fetch(`${baseUrl}/temas/deleteTema`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(idTema),
+    });
+
+    if (!response.ok) {
+      throw new Error("Error al eliminar el tema.");
+    }
+
+    return true;
+  } catch (error) {
+    console.error("La página no responde. No se pudo eliminar el tema.", error);
+    throw error;
+  }
+}

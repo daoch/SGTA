@@ -166,7 +166,7 @@ export const TemaDetailsDialog: React.FC<TemaDetailsDialogProps> = ({
                             {tesista.nombres} {tesista.primerApellido}{" "}
                             {tesista.segundoApellido}
                           </p>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-xs text-gray-400">
                             {tesista.codigoPucp}
                           </p>
                         </div>
@@ -177,8 +177,8 @@ export const TemaDetailsDialog: React.FC<TemaDetailsDialogProps> = ({
                     ))}
                   </div>
                 ) : (
-                  <p className="text-muted-foreground italic space-y-2">
-                    El tema no tiene estudiantes asignados.
+                  <p className="bg-muted p-2 rounded-md text-gray-400 space-y-2">
+                    Sin estudiantes asignados
                   </p>
                 )}
               </div>
