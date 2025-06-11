@@ -110,6 +110,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
   const [temaSimilitud, setTemaSimilitud] = useState<TemaSimilitud[]>([]);
   const [openSimilarDialog, setOpenSimilarDialog] = useState(false);
   const [checkingSimilitud, setCheckingSimilitud] = useState(false);
+  const [tipoTema, setTipoTema] = useState<TipoRegistro | null>(null);
   //Llenado de datos
   useEffect(() => {
     const listarEstudiantesYAsesores = async () => {
@@ -271,7 +272,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
     }
   };
 
-  const handlerVerificarTema = async () => {
+  const handlerVerificarTema = async (tipoRegistro: TipoRegistro) => {
     if (!validarCampos()) return;
     try {
       setCheckingSimilitud(true);
@@ -285,9 +286,24 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
       };
       const temasSimilares = await verificarSimilitudTema(temaCreado);
       if (temasSimilares.length === 0) {
-        handleGuardarLibre();
-        console.log("No se encontraron temas similares, guardando tema libre.");
+        if (tipoRegistro === TipoRegistro.LIBRE) {
+          handleGuardarLibre();
+          console.log(
+            "No se encontraron temas similares, guardando tema libre.",
+          );
+        } else {
+          handleGuardar();
+          console.log(
+            "No se encontraron temas similares, guardando tema de inscripción.",
+          );
+        }
       } else {
+        if (tipoRegistro === TipoRegistro.LIBRE) {
+          setTipoTema(TipoRegistro.LIBRE);
+        } else {
+          setTipoTema(TipoRegistro.INSCRIPCION);
+        }
+
         setTemaSimilitud(temasSimilares);
         setOpenSimilarDialog(true);
         console.log("Se encontraron temas similares:", temaSimilitud);
@@ -397,17 +413,38 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
       if (carreras) {
         setLoading(true);
         setCheckingSimilitud(true);
-        await crearTemaLibre(
-          mapTemaCreateLibre(temaData, carreras[0], asesor),
-          temaSimilitud,
-          true,
-        );
-        toast.success("Tema guardado exitosamente.");
-        console.log("Tema libre forzado guardado exitosamente.");
+        if (tipoTema === TipoRegistro.LIBRE) {
+          await crearTemaLibre(
+            mapTemaCreateLibre(temaData, carreras[0], asesor),
+            temaSimilitud,
+            true,
+          );
+        } else {
+          const response = await axiosInstance.post(
+            "temas/createInscripcionV2",
+            mapTemaCreateInscription(temaData, carreras[0], asesor),
+          );
+          const temaCreado = response.data;
+
+          if (temaSimilitud.length > 0) {
+            const similitudesPayload = temaSimilitud.map((sim) => ({
+              tema: { id: temaCreado },
+              temaRelacion: { id: sim.tema.id },
+              porcentajeSimilitud: sim.similarityScore,
+            }));
+            await axiosInstance.post(
+              "temas/guardarSimilitudes",
+              similitudesPayload,
+            );
+          }
+          toast.success("Tema guardado exitosamente.");
+          console.log("Tema libre forzado guardado exitosamente.");
+        }
       } else {
         throw new Error("No se puede insertar el tema.");
       }
       setOpenSimilarDialog(false);
+      setTipoTema(null);
       // Reinicia el formulario y cierra el modal
       setTemaData(temaVacio);
       setAreaConocimientoSeleccionada(null);
@@ -717,7 +754,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
           </Button>
           {tipoRegistro === TipoRegistro.INSCRIPCION && (
             <Button
-              onClick={handleGuardar}
+              onClick={() => handlerVerificarTema(TipoRegistro.INSCRIPCION)}
               disabled={
                 Object.keys(errores).length > 0 || loading || checkingSimilitud
               }
@@ -727,7 +764,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
           )}
           {tipoRegistro === TipoRegistro.LIBRE && (
             <Button
-              onClick={handlerVerificarTema}
+              onClick={() => handlerVerificarTema(TipoRegistro.LIBRE)}
               disabled={
                 Object.keys(errores).length > 0 || loading || checkingSimilitud
               }
