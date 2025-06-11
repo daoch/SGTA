@@ -1,6 +1,7 @@
 "use client";
 import "react-pdf-highlighter/dist/style.css";
 
+import AppLoading from "@/components/loading/app-loading";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,7 +24,7 @@ import { useRouter } from "next/navigation";
 import { PDFDocument } from "pdf-lib";
 import { useCallback, useEffect, useState } from "react";
 import { IHighlight } from "react-pdf-highlighter/dist/types";
-import { analizarPlagioArchivoS3, borrarObservacion, descargarArchivoS3RevisionID, guardarObservacion, guardarObservacionesRevision, obtenerObservacionesRevision } from "../servicios/revision-service";
+import { analizarPlagioArchivoS3, borrarObservacion, descargarArchivoS3RevisionID, guardarObservacion, obtenerObservacionesRevision } from "../servicios/revision-service";
 // ...otros imports...
 
 // Datos de ejemplo para una revisión específica
@@ -89,7 +90,7 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
   const [numPages, setNumPages] = useState<number | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [highlightToDelete, setHighlightToDelete] = useState<string | null>(null);
-
+  const [isHighlightsLoading, setIsHighlightsLoading] = useState(true);
   interface PlagioDetalle {
     pagina: number; // Si tienes la página real, asígnala aquí
     texto: string;
@@ -168,6 +169,8 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
       } catch (e) {
         console.error("Error al obtener observaciones:", e);
         setHighlights([]);
+      } finally {
+        setIsHighlightsLoading(false);
       }
     }
     fetchObservaciones();
@@ -309,12 +312,14 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
 
     // Envía al backend antes de agregar al estado
     try {
-      await guardarObservacion(params.id_revision, highlight, 10); // Cambia 10 por el usuarioId real si lo tienes
+      const idObservacion = await guardarObservacion(params.id_revision, highlight, 10); // Cambia 10 por el usuarioId real si lo tienes
+      console.log("Observación guardada con ID:", idObservacion);
+      const highlightConIdReal = { ...highlight, id: idObservacion.toString() };
+
       setHighlights(prev => {
-        if (prev.some(h => h.id === highlight.id)) {
-          return prev;
-        }
-        const updatedHighlights = [...prev, highlight];
+        // Solo agrega el highlight con el id real
+        const filtered = prev.filter(h => h.id !== highlight.id && h.id !== "");
+        const updatedHighlights = [...filtered, highlightConIdReal];
         console.log("All highlights:", updatedHighlights);
         return updatedHighlights;
       });
@@ -362,8 +367,8 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
         },
       }));
 
-      await guardarObservacionesRevision(params.id_revision, highlightsDto, 10); // Asumiendo que el usuario es el asesor con ID 1
-      console.log("Revisión guardada exitosamente");
+      //await guardarObservacionesRevision(params.id_revision, highlightsDto, 10); // Asumiendo que el usuario es el asesor con ID 1
+      //console.log("Revisión guardada exitosamente");
 
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
@@ -568,7 +573,7 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <Card className="min-h-[600px]">
+          <Card className="min-h-[800px]">
             <CardHeader>
               <CardTitle>{revision.titulo}</CardTitle>
               <CardDescription>
@@ -585,16 +590,19 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
                 </div>
               </CardDescription>
             </CardHeader>
-            <CardContent className="relative h-[600px]" >
-              <HighlighterPdfViewer
-                pdfUrl={pdfUrl ?? ""}
-                onAddHighlight={handleNewHighlight}
-                onDeleteHighlight={handleDeleteHighlight}
-                onUpdateHighlight={handleUpdateHighlight}
-                highlights={highlights}
-                scrollToHighlight={activeHighlight}
-              />
-              {/* <PdfViewer pdfUrl="\silabo.PDF" /> */}
+            <CardContent className="relative h-[800px]" >
+              {isHighlightsLoading ? (
+                <AppLoading />
+              ) : (
+                <HighlighterPdfViewer
+                  pdfUrl={pdfUrl ?? ""}
+                  onAddHighlight={handleNewHighlight}
+                  onDeleteHighlight={handleDeleteHighlight}
+                  onUpdateHighlight={handleUpdateHighlight}
+                  highlights={highlights}
+                  scrollToHighlight={activeHighlight}
+                />
+              )}
             </CardContent>
           </Card>
         </div>
@@ -615,8 +623,16 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
                   <TabsTrigger value="ia" className="flex-1">Generado con IA</TabsTrigger>
                 </TabsList>
                 <TabsContent value="revisor">
-                  <div className="space-y-4">
-                    {highlights.map((highlight) => (
+                  <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                    {highlights.slice().sort((a, b) => {
+                      const pageA = a.position.pageNumber ?? 0;
+                      const pageB = b.position.pageNumber ?? 0;
+                      if (pageA !== pageB) return pageA - pageB;
+                      // Si están en la misma página, ordena por y1 (de arriba a abajo)
+                      const yA = a.position.boundingRect?.y1 ?? 0;
+                      const yB = b.position.boundingRect?.y1 ?? 0;
+                      return yA - yB;
+                    }).map((highlight) => (
                       <div
                         key={highlight.id}
                         className="p-3 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors cursor-pointer"

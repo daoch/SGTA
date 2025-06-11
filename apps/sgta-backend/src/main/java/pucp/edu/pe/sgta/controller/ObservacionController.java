@@ -33,17 +33,18 @@ public class ObservacionController {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        observacionService.guardarObservaciones(revisionId, highlights, usuarioId);
+        //observacionService.guardarObservaciones(revisionId, highlights, usuarioId);
         return ResponseEntity.ok().build();
     }
     @PostMapping("/{revisionId}/observacion")
-    public ResponseEntity<?> guardarObservacion(
+    public ResponseEntity<Integer> guardarObservacion(
             @PathVariable("revisionId") Integer revisionId,
             @RequestBody HighlightDto highlight,
             @RequestParam("usuarioId") Integer usuarioId) {
 
-        observacionService.guardarObservaciones(revisionId, List.of(highlight), usuarioId);
-        return ResponseEntity.ok().build();
+        Integer id = observacionService.guardarObservaciones(revisionId, highlight, usuarioId);
+        System.out.println("ID de la observación guardada: " + id);
+        return ResponseEntity.ok(id);
     }
     @GetMapping("/{revisionId}/observaciones")
     public ResponseEntity<List<HighlightDto>> getObservacionesByRevision(

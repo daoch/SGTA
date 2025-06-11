@@ -72,11 +72,13 @@ export async function guardarObservacion(
   revisionId: number,
   observacion: IHighlight, // o HighlightDto si ya lo tienes mapeado
   usuarioId: number
-) {
-  return axiosInstance.post(
+): Promise<number> {
+  const response = await axiosInstance.post<number>(
     `/revision/${revisionId}/observacion?usuarioId=${usuarioId}`,
-    observacion // <-- solo un objeto, no array
+    observacion
   );
+  console.log("Respuesta del backend al guardar observación:", response);
+  return response.data; // Aquí recibes el id de la observación creada
 }
 interface ObservacionToHighlightRect {
   x1?: number;
