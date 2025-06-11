@@ -122,7 +122,8 @@ export default function SolicitudDetalle({
     }
     try {
       const data = await getDetalleSolicitudCambioAsesor(idSolicitud);
-      setSolicitudData(data);
+      procesarParticipantesWorkflow(data);
+      console.log("Datos de la solicitud obtenidos:", data);
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -130,15 +131,24 @@ export default function SolicitudDetalle({
     }
   };
 
-  useEffect(() => {
-    if (!solicitudData) return;
+  function procesarParticipantesWorkflow(
+    solicitudData: DetalleSolicitudCambioAsesor | null,
+  ) {
+    console.log("Segunda validación");
 
-    let participantes: UsuarioSolicitud[] = [
+    if (!solicitudData) {
+      console.warn("No hay datos de solicitud disponibles");
+      return;
+    }
+
+    const participantes: UsuarioSolicitud[] = [
       solicitudData.solicitante,
       solicitudData.asesorNuevo,
     ];
 
     let coordinador = solicitudData.coordinador;
+
+    console.log("Coordinador:", solicitudData);
 
     if (solicitudData.estadoGlobal === "PENDIENTE" && !coordinador) {
       coordinador = {
@@ -152,13 +162,18 @@ export default function SolicitudDetalle({
         comentario: null,
       };
 
-      // Evitar mutación directa
-      setSolicitudData((prev) => (prev ? { ...prev, coordinador } : prev));
+      const cordi = coordinador as UsuarioSolicitud;
+
+      console.log("Coordinador pendiente:", cordi);
+
+      setSolicitudData((prev) =>
+        solicitudData ? { ...solicitudData, coordinador: cordi } : prev,
+      );
     }
 
     participantes.push(coordinador);
     setParticipantesWorkflow(participantes.filter(Boolean));
-  }, [solicitudData]);
+  }
 
   const getStatusColor = (estado: string, rolSolicitud: string) => {
     if (rolSolicitud === "REMITENTE") {
@@ -562,10 +577,10 @@ export default function SolicitudDetalle({
         <AccionesDisponiblesSolicitud
           rol={rol}
           estadoCoordinador={
-            solicitudData?.coordinador.accionSolicitud || "SIN_ACCION"
+            solicitudData?.coordinador.accionSolicitud ?? "SIN_ACCION"
           }
           estadoNuevoAsesor={
-            solicitudData?.asesorNuevo.accionSolicitud || "SIN_ACCION"
+            solicitudData?.asesorNuevo.accionSolicitud ?? "SIN_ACCION"
           }
           nombreNuevoAsesor={solicitudData?.asesorNuevo.nombres || ""}
           handleAprobar={handleAprobar}

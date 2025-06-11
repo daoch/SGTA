@@ -36,5 +36,5 @@ public interface SolicitudService {
     List<pucp.edu.pe.sgta.dto.asesores.SolicitudCeseAsesoriaResumenDto> listarResumenSolicitudCeseAsesoriaUsuario(Integer idUsuario, String rolSolicitud);
     pucp.edu.pe.sgta.dto.asesores.DetalleSolicitudCeseAsesoriaDto listarDetalleSolicitudCeseAsesoriaUsuario(Integer idSolicitud);
     void aprobarRechazarSolicitudCeseAsesoria(Integer idSolicitud, Integer idUsuario, String rolSolicitud, boolean aprobar);
-    List<SolicitudCeseAsesoriaResumenDto> listarResumenSolicitudCambioAsesorCoordinador(String idCognito);
+    List<SolicitudCambioAsesorResumenDto> listarResumenSolicitudCambioAsesorCoordinador(String idCognito);
 }

@@ -8,7 +8,10 @@ import { Check, Clock, FileText, Loader2, UserX, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import RequestSearchFilters from "../components/assessor-change-request/search-filters-request-list";
 import TablaSolicitudesCambioAsesor from "../components/assessor-change-request/table-solicitudes-cambio";
-import { getResumenesSolicitudCambioAsesor } from "../services/cambio-asesor-services";
+import {
+  getResumenesSolicitudCambioAsesor,
+  getResumenesSolicitudCambioAsesorCoordinador,
+} from "../services/cambio-asesor-services";
 import { getIdByCorreo } from "../services/perfil-services";
 import { SolicitudCambioAsesorResumen } from "../types/cambio-asesor/entidades";
 import { formatFecha } from "../utils/date-functions";
@@ -84,12 +87,17 @@ export default function ListadoSolicitudesCambioAsesor(
       setError(null);
 
       try {
-        const data = await getResumenesSolicitudCambioAsesor(
-          idUsuario,
-          rolSolicitud,
-        );
-        setSolicitudes(data);
-        console.log(idUsuario, rolSolicitud);
+        if (rol === "asesor" || rol === "alumno") {
+          const data = await getResumenesSolicitudCambioAsesor(
+            idUsuario,
+            rolSolicitud,
+          );
+          setSolicitudes(data);
+        }
+        if (rol === "coordinador") {
+          const data = await getResumenesSolicitudCambioAsesorCoordinador();
+          setSolicitudes(data);
+        }
       } catch (err) {
         setError("No se pudieron cargar las solicitudes.");
       } finally {

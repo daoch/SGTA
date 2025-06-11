@@ -64,6 +64,27 @@ export async function getResumenesSolicitudCambioAsesor(
   }
 }
 
+export async function getResumenesSolicitudCambioAsesorCoordinador(): Promise<
+  SolicitudCambioAsesorResumen[]
+> {
+  try {
+    const response = await axiosInstance.get(
+      "/solicitudes/listarResumenSolicitudCambioAsesorCoordinador",
+    );
+    return response.data as SolicitudCambioAsesorResumen[];
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      console.error(
+        "Error al obtener los resúmenes de solicitudes del coordinador:",
+        error.message,
+      );
+    } else {
+      console.error("Error inesperado al obtener los resúmenes:", error);
+    }
+    throw error;
+  }
+}
+
 export async function getInformacionTesisPorAlumno(
   idAlumno: number,
 ): Promise<InformacionTesisResponse> {
@@ -182,7 +203,6 @@ export async function aceptarSolicitudPorAsesor(
       {
         params: {
           idSolicitud,
-          request,
         },
       },
     );
@@ -209,7 +229,6 @@ export async function rechazarSolicitudPorAsesor(
       {
         params: {
           idSolicitud,
-          request,
         },
       },
     );
@@ -236,7 +255,6 @@ export async function rechazarSolicitudPorCoordinador(
       {
         params: {
           idSolicitud,
-          request,
         },
       },
     );
@@ -263,7 +281,6 @@ export async function aceptarSolicitudPorCoordinador(
       {
         params: {
           idSolicitud,
-          request,
         },
       },
     );

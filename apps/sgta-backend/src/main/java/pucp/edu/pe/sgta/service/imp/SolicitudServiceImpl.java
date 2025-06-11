@@ -757,12 +757,12 @@ public class SolicitudServiceImpl implements SolicitudService {
     }
 
     @Override
-    public List<SolicitudCeseAsesoriaResumenDto> listarResumenSolicitudCambioAsesorCoordinador(String idCognito) {
+    public List<SolicitudCambioAsesorResumenDto> listarResumenSolicitudCambioAsesorCoordinador(String idCognito) {
         //Esto solo lo puede llamar un usuario que tiene el rol de coordinador, es una validación en controller
         List<Object[]> queryResult = solicitudRepository.listarResumenSolicitudCambioAsesorCoordinador(idCognito);
-        List<SolicitudCeseAsesoriaResumenDto> solicitudes = new ArrayList<>();
+        List<SolicitudCambioAsesorResumenDto> solicitudes = new ArrayList<>();
         for (Object[] row : queryResult) {
-            SolicitudCeseAsesoriaResumenDto solicitud = SolicitudCeseAsesoriaResumenDto.fromResultQuery(row);
+            SolicitudCambioAsesorResumenDto solicitud = SolicitudCambioAsesorResumenDto.fromResultQuery(row);
             solicitudes.add(solicitud);
         }
         return solicitudes;
