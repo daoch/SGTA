@@ -84,42 +84,47 @@ export async function obtenerAccessTokenZoom() {
   }
 }
 
-export async function crearReunionZoom(accessToken: string) {
+export async function reunionesZoom(bearerTokenId: string, idExposicion: number) {
   try {
     // 25 de junio de 2025 a las 4:00 PM en Lima
-    const limaDateTimeString = "2025-06-10T16:25:00"; // sin zona
+    // const limaDateTimeString = "2025-06-10T16:25:00"; // sin zona
 
-    const body = {
-      topic: "Reunión de prueba SGTA",
-      startTime: limaDateTimeString, // se enviará como "2025-06-25T21:00:00Z"
-      duration: 1440, // duración en minutos
-      agenda: "Discusión de avance de proyecto",
-      timezone: "America/Lima",
-      hostVideo: false,
-      participantVideo: false,
-      muteUponEntry: true,
-      audio: "both",
-      joinBeforeHost: false,
-      accessToken: accessToken,
-      defaultPassword: true, // para que Zoom genere una contraseña automáticamente
-      waitingRoom: true,
-    };
+    // const body = {
+    //   topic: "Reunión de prueba SGTA",
+    //   startTime: limaDateTimeString, // se enviará como "2025-06-25T21:00:00Z"
+    //   duration: 1440, // duración en minutos
+    //   agenda: "Discusión de avance de proyecto",
+    //   timezone: "America/Lima",
+    //   hostVideo: false,
+    //   participantVideo: false,
+    //   muteUponEntry: true,
+    //   audio: "both",
+    //   joinBeforeHost: false,
+    //   accessToken: accessToken,
+    //   defaultPassword: true, // para que Zoom genere una contraseña automáticamente
+    //   waitingRoom: true,
+    // };
 
-    const response = await axiosInstance.post("/zoom/crear-meeting", body);
+    const url = `/zoom/crear-meetings-jornada-exposicion/${idExposicion}`;
+    const response = await axiosInstance.get(url, {
+      headers: {
+        Authorization: `Bearer ${bearerTokenId}`,
+      },
+    });
 
     console.log("Respuesta de creación de reunión:", response.data);
 
-    const data = response.data as {
-      join_url: string;
-      start_url: string;
-      type: number;
-      host_email: string;
-      registration_url: string;
-      duration: number;
-      password: string;
-    };
+    // const data = response.data as {
+    //   join_url: string;
+    //   start_url: string;
+    //   type: number;
+    //   host_email: string;
+    //   registration_url: string;
+    //   duration: number;
+    //   password: string;
+    // };
 
-    return data;
+    // return data;
 
   } catch (error) {
     const err = error as any;

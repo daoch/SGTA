@@ -20,5 +20,9 @@ public interface JornadaExposicionXSalaExposicionRepository
       @Param("exposicion_id") Integer exposicionId);
 
   List<JornadaExposicionXSalaExposicion> findByJornadaExposicionIdAndActivoTrue(Integer jornadaExposicionId);
+
   List<JornadaExposicionXSalaExposicion> findByJornadaExposicionId(Integer jornadaExposicionId);
+
+  JornadaExposicionXSalaExposicion findJornadaExposicionXSalaExposicionByJornadaExposicionIdAndSalaExposicionIdAndActivoTrue(
+      Integer jornadaExposicionId, Integer salaExposicionId);
 }
