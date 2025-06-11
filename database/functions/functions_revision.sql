@@ -103,6 +103,7 @@ BEGIN
 END;
 $$;
 
+DROP FUNCTION IF EXISTS obtener_observaciones_por_entregable_y_tema;
 CREATE OR REPLACE FUNCTION obtener_observaciones_por_entregable_y_tema(
     p_entregable_id INTEGER,
     p_tema_id INTEGER
@@ -115,7 +116,12 @@ RETURNS TABLE (
     numero_pagina_fin INTEGER,
     fecha_creacion TIMESTAMPTZ,
     tipo_observacion_id INTEGER,
-    revision_id INTEGER
+    revision_id INTEGER,
+    usuario_id INTEGER,
+    nombres VARCHAR,
+    primer_apellido VARCHAR,
+    segundo_apellido VARCHAR,
+    roles_usuario TEXT
 ) AS
 $$
 BEGIN
@@ -128,16 +134,31 @@ BEGIN
         o.numero_pagina_fin,
         o.fecha_creacion,
         o.tipo_observacion_id,
-        r.revision_documento_id
+        r.revision_documento_id,
+        u.usuario_id,
+        u.nombres,
+        u.primer_apellido,
+        u.segundo_apellido,
+        (
+            SELECT STRING_AGG(CAST(ut.rol_id AS TEXT), ',')
+            FROM usuario_tema ut
+            WHERE ut.usuario_id = u.usuario_id
+              AND ut.tema_id = p_tema_id
+              AND ut.activo = TRUE
+        )
     FROM entregable_x_tema et
     JOIN version_documento vd ON vd.entregable_x_tema_id = et.entregable_x_tema_id
     JOIN revision_documento r ON r.version_documento_id = vd.version_documento_id
     JOIN observacion o ON o.revision_id = r.revision_documento_id
+    JOIN usuario u ON u.usuario_id = r.usuario_id
     WHERE et.entregable_id = p_entregable_id
       AND et.tema_id = p_tema_id
+      AND vd.activo = TRUE
+      AND r.activo = TRUE
       AND o.activo = TRUE;
 END;
 $$ LANGUAGE plpgsql;
+
 
 CREATE OR REPLACE FUNCTION sgtadb.crear_revisiones(entregableXTemaId integer)
  RETURNS void
@@ -199,3 +220,32 @@ BEGIN
 END;
 $$;
 ;
+
+CREATE OR REPLACE FUNCTION obtener_detalles_entregable_y_tema(
+    p_entregable_id INTEGER,
+    p_tema_id INTEGER
+)
+RETURNS TABLE (
+    nombre_tema VARCHAR,
+    nombre_entregable VARCHAR,
+    estado enum_estado_entrega,
+    fecha_envio TIMESTAMPTZ,
+    fecha_fin TIMESTAMPTZ
+) AS
+$$
+BEGIN
+    RETURN QUERY
+    SELECT
+        t.titulo AS nombre_tema,
+        e.nombre AS nombre_entregable,
+        ext.estado,
+        ext.fecha_envio,
+        e.fecha_fin
+    FROM entregable_x_tema ext
+    JOIN tema t ON t.tema_id = ext.tema_id
+    JOIN entregable e ON e.entregable_id = ext.entregable_id
+    WHERE ext.entregable_id = p_entregable_id
+      AND ext.tema_id = p_tema_id;
+END;
+$$ LANGUAGE plpgsql;
+

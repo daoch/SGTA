@@ -204,10 +204,18 @@ CREATE TABLE IF NOT EXISTS historial_tema
 (
     historial_tema_id  SERIAL PRIMARY KEY,
     tema_id            INTEGER                  NOT NULL,
+    codigo             VARCHAR(255),
     titulo             VARCHAR(255)             NOT NULL,
     resumen            TEXT,
+    metodologia        TEXT,
+    objetivos          TEXT,
     descripcion_cambio TEXT,
+    portafolio_url     VARCHAR(255),
     estado_tema_id     INTEGER                  NOT NULL,
+    proyecto_id        INTEGER,
+    carrera_id         INTEGER,
+    fecha_limite       TIMESTAMP WITH TIME ZONE,
+    fecha_finalizacion TIMESTAMP WITH TIME ZONE,
     activo             BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -217,6 +225,27 @@ CREATE TABLE IF NOT EXISTS historial_tema
             REFERENCES tema (tema_id)
             ON DELETE RESTRICT
 );
+
+-- Agregar clave foránea para estado_tema_id
+ALTER TABLE historial_tema
+  ADD CONSTRAINT fk_historial_tema_estado_tema
+    FOREIGN KEY (estado_tema_id)
+    REFERENCES estado_tema (estado_tema_id)
+    ON DELETE RESTRICT;
+
+-- Agregar clave foránea para proyecto_id
+ALTER TABLE historial_tema
+  ADD CONSTRAINT fk_historial_tema_proyecto
+    FOREIGN KEY (proyecto_id)
+    REFERENCES proyecto (proyecto_id)
+    ON DELETE RESTRICT;
+
+-- Agregar clave foránea para carrera_id
+ALTER TABLE historial_tema
+  ADD CONSTRAINT fk_historial_tema_carrera
+    FOREIGN KEY (carrera_id)
+    REFERENCES carrera (carrera_id)
+    ON DELETE RESTRICT;
 
 CREATE TABLE IF NOT EXISTS tema_similar (
     tema_similar_id      SERIAL PRIMARY KEY,

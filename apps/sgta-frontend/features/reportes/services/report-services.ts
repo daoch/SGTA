@@ -43,10 +43,35 @@ export const findStudentsForReviewer = async (cadenaBusqueda: string): Promise<A
   }
 };
 
-
+/*
 export const getEntregablesAlumno = async (alumnoId: string) => {
   const response = await axiosInstance.get(`/api/v1/reports/entregables/${alumnoId}`);
   return response.data;
+};
+*/
+
+export const getEntregablesAlumno = async () => {
+  try {
+    const { idToken } = useAuthStore.getState();
+
+    console.log(" idToken obtenido:", idToken);
+
+    const response = await axiosInstance.get(
+        "/reports/entregables",
+       {
+         headers: {
+           Authorization: `Bearer ${idToken}`,
+         },
+       }
+     );
+
+    console.log(" Respuesta de entregables:", response.data);
+
+    return response.data;
+  } catch (error) {
+    console.error(" Error al obtener entregables del alumno:", error);
+    throw error;
+  }
 };
 
 
