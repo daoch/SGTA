@@ -171,3 +171,8 @@ export async function obtenerObservacionesRevision(revisionId: number): Promise<
 export async function borrarObservacion(observacionId: number): Promise<void> {
   await axiosInstance.delete(`/revision/observaciones/${observacionId}`);
 }
+
+export async function obtenerUrlCloudFrontPorRevision(revisionId: number): Promise<string> {
+  const response = await axiosInstance.get<string>(`/s3/archivos/getUrlFromCloudFrontByRevision/${revisionId}`);
+  return response.data; // Aquí recibes la URL de CloudFront como string
+}
