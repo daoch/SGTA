@@ -4,6 +4,7 @@ import {
   Carrera,
   Subareas,
   TemaCreateLibre,
+  TemaSimilitud,
   Usuario,
 } from "@/features/temas/types/temas/entidades";
 
@@ -195,7 +196,11 @@ export async function obtenerObservacionesTema(idTema: number) {
   }
 }
 
-export async function crearTemaLibre(tema: TemaCreateLibre) {
+export async function crearTemaLibre(
+  tema: TemaCreateLibre,
+  similares: TemaSimilitud[] = [],
+  forzarGuardar: boolean = false,
+) {
   try {
     const response = await fetch(`${baseUrl}/temas/crearTemaLibre`, {
       method: "POST",
@@ -210,6 +215,36 @@ export async function crearTemaLibre(tema: TemaCreateLibre) {
       throw new Error("Error al insertar el tema.");
     }
 
+    const temaId = await response.json();
+    console.log("Tema creado con ID:", temaId);
+
+    if (forzarGuardar && similares.length > 0) {
+      try {
+        const similitudesPayload = similares.map((sim) => ({
+          tema: { id: temaId },
+          temaRelacion: { id: sim.tema.id },
+          porcentajeSimilitud: sim.similarityScore,
+        }));
+
+        const resSim = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/temas/guardarSimilitudes`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${idToken}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(similitudesPayload),
+          },
+        );
+        if (!resSim.ok) {
+          throw new Error("Error al insertar las similitudes");
+        }
+      } catch (error) {
+        console.error("Error al guardar similitudes:", error);
+        throw new Error("Error al guardar similitudes del tema.");
+      }
+    }
     return;
   } catch (error) {
     console.error(
@@ -217,5 +252,30 @@ export async function crearTemaLibre(tema: TemaCreateLibre) {
       error,
     );
     throw error;
+  }
+}
+
+export async function verificarSimilitudTema(body: {
+  id: number;
+  titulo: string;
+  resumen: string;
+  objetivos: string;
+  palabrasClaves: string[];
+  estadoTemaNombre: string;
+}) {
+  try {
+    const res = await fetch(`${baseUrl}/temas/findSimilar?threshold=75.0`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error("Error al verificar similitud del tema.");
+    }
+    return data;
+  } catch (err) {
+    console.error("Error al verificar similitud:", err);
+    throw new Error("Error al verificar similitud del tema.");
   }
 }

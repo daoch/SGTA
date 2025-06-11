@@ -186,3 +186,13 @@ export interface Observacion {
   fecha: string;
 }
 
+export interface TemaSimilitud {
+  tema: {
+    id: number;
+    titulo: string;
+    resumen: string;
+    fechaCreacion?: string;
+  };
+  similarityScore: number;
+  comparedFields?: string;
+}
