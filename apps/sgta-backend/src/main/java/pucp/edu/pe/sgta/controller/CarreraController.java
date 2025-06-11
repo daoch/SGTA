@@ -43,4 +43,10 @@ public class CarreraController {
         String idCognito = jwtService.extractSubFromRequest(request);
         return carreraService.getCarreraCoordinador(idCognito);
     }
+
+    @GetMapping("/coordinada-por-usuario/{usuarioId}")
+    public CarreraDto getCarreraCoordinadaPorUsuario(@PathVariable Integer usuarioId) {
+        return carreraService.getCarreraCoordinadaPorUsuario(usuarioId);
+    }
+
 } 

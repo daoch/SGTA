@@ -2,6 +2,7 @@ package pucp.edu.pe.sgta.controller;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.NoSuchElementException;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -85,7 +86,7 @@ public class UsuarioController {
 
     /**
      * HU01: Asignar Rol de Asesor a Profesor
-     *
+     * 
      * @param userId ID del profesor
      * @return ResponseEntity con mensaje de éxito o error
      */
@@ -106,7 +107,7 @@ public class UsuarioController {
 
     /**
      * HU02: Quitar Rol de Asesor a Profesor (Usuario)
-     *
+     * 
      * @param userId ID del profesor
      * @return ResponseEntity con mensaje de éxito o error
      */
@@ -127,7 +128,7 @@ public class UsuarioController {
 
     /**
      * HU03: Asignar Rol de Jurado a Profesor (Usuario)
-     *
+     * 
      * @param userId ID del profesor
      * @return ResponseEntity con mensaje de éxito o error
      */
@@ -148,7 +149,7 @@ public class UsuarioController {
 
     /**
      * HU04: Quitar Rol de Jurado a Profesor (Usuario)
-     *
+     * 
      * @param userId ID del profesor
      * @return ResponseEntity con mensaje de éxito o error
      */
@@ -179,7 +180,7 @@ public class UsuarioController {
     public ResponseEntity<List<UsuarioConRolDto>> getProfessorsWithRoles(
             @RequestParam(required = false, defaultValue = "Todos") String rolNombre,
             @RequestParam(required = false) String terminoBusqueda) {
-
+        
         try {
             List<UsuarioConRolDto> usuarios = usuarioService.getProfessorsWithRoles(rolNombre, terminoBusqueda);
             return new ResponseEntity<>(usuarios, HttpStatus.OK);
