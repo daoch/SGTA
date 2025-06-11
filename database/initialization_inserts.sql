@@ -3464,3 +3464,55 @@ VALUES (
         NOW(), -- Fecha de modificación actual
         1
     );
+
+INSERT INTO
+    carrera_parametro_configuracion (
+        carrera_id,
+        parametro_configuracion_id,
+        valor,
+        activo,
+        fecha_creacion,
+        fecha_modificacion,
+        etapa_formativa_id
+    )
+VALUES (
+        1, -- ID de la carrera asociada (ejemplo: 1)
+        (
+            SELECT parametro_configuracion_id
+            FROM parametro_configuracion
+            WHERE
+                nombre = 'Limite Propuestas Alumno'
+            LIMIT 1
+        ), -- ID del parametro_configuracion asociado (ejemplo: 1)
+        2, -- Valor de la configuración
+        true, -- Estado activo
+        NOW(), -- Fecha de creación actual
+        NOW(), -- Fecha de modificación actual
+        null
+    );
+
+INSERT INTO
+    carrera_parametro_configuracion (
+        carrera_id,
+        parametro_configuracion_id,
+        valor,
+        activo,
+        fecha_creacion,
+        fecha_modificacion,
+        etapa_formativa_id
+    )
+VALUES (
+        1, -- ID de la carrera asociada (ejemplo: 1)
+        (
+            SELECT parametro_configuracion_id
+            FROM parametro_configuracion
+            WHERE
+                nombre = 'Limite Postulaciones Alumno'
+            LIMIT 1
+        ), -- ID del parametro_configuracion asociado (ejemplo: 1)
+        2, -- Valor de la configuración
+        true, -- Estado activo
+        NOW(), -- Fecha de creación actual
+        NOW(), -- Fecha de modificación actual
+        null
+    );
