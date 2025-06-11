@@ -106,40 +106,58 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
 
         const rawData = data as RawEntregable[];
         const eventosTransformados: TimelineEvent[] = rawData
-          .filter((item) => item.fechaEnvio !== null)
+          //.filter((item) => item.fechaEnvio !== null)
           .map((item) => {
-            const eventDate = parseISO(item.fechaEnvio!);
-            const daysRemaining = Math.ceil(
-              (eventDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24)
-            );
+            if (item.fechaEnvio) {
 
-            let statusInterno: TimelineEvent["status"] = "Pendiente";
-            if (item.estadoEntregable === "terminado") {
-              statusInterno = "Completado";
-            } else if (item.estadoEntregable === "en_proceso") {
-              statusInterno = "En progreso";
+              const eventDate = parseISO(item.fechaEnvio!);
+              const daysRemaining = Math.ceil(
+                (eventDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24)
+              );
+
+              let statusInterno: TimelineEvent["status"] = "Pendiente";
+              if (item.estadoEntregable === "terminado") {
+                statusInterno = "Completado";
+              } else if (item.estadoEntregable === "en_proceso") {
+                statusInterno = "En progreso";
+              }
+
+              const isLateFlag = item.estadoXTema === "enviado_tarde";
+              const isAtRiskFlag =
+                daysRemaining > 0 &&
+                daysRemaining <= 3 &&
+                statusInterno === "Pendiente" &&
+                !isLateFlag;
+
+              return {
+                event: item.nombreEntregable,
+                date: format(eventDate, "yyyy-MM-dd"),
+                rawEstadoEntregable: item.estadoEntregable,
+                rawEstadoXTema: item.estadoXTema,
+                status: statusInterno,
+                isLate: isLateFlag,
+                daysRemaining,
+                isAtRisk: isAtRiskFlag,
+                esEvaluable: item.esEvaluable,
+                nota: item.nota,
+                criterios: item.criterios || [],
+              };
+            
+            } else {
+              return {
+                event: item.nombreEntregable,
+                date: "Fecha no disponible",
+                rawEstadoEntregable: item.estadoEntregable,
+                rawEstadoXTema: item.estadoXTema,
+                status: "Pendiente",
+                isLate: false,
+                daysRemaining: 0,
+                isAtRisk: false,
+                esEvaluable: item.esEvaluable,
+                nota: item.nota,
+                criterios: item.criterios || [],
+              };
             }
-
-            const isLateFlag = item.estadoXTema === "enviado_tarde";
-            const isAtRiskFlag =
-              daysRemaining > 0 &&
-              daysRemaining <= 3 &&
-              statusInterno === "Pendiente" &&
-              !isLateFlag;
-
-            return {
-              event: item.nombreEntregable,
-              date: format(eventDate, "yyyy-MM-dd"),
-              rawEstadoEntregable: item.estadoEntregable,
-              rawEstadoXTema: item.estadoXTema,
-              status: statusInterno,
-              isLate: isLateFlag,
-              daysRemaining,
-              isAtRisk: isAtRiskFlag,
-              esEvaluable: item.esEvaluable,
-              nota: item.nota,
-              criterios: item.criterios || [],
-            };
           });
 
         // Orden descendente:
@@ -155,6 +173,8 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
 
     fetchEntregables();
   }, [user]);
+
+  console.log("Eventos originales:", timelineEvents);
 
   // Filtrado por tiempo
   const filteredByTime = timelineEvents.filter((event) => {
@@ -190,6 +210,12 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
   const displayedEvents = filteredEvents.filter((event) =>
     activeTab === "entregas" ? event.esEvaluable : !event.esEvaluable
   );
+
+  
+  console.log("Eventos filtrados por tiempo:", filteredByTime);
+  console.log("Eventos mostrados:", displayedEvents);
+  console.log("Estado del filtro de estado:", statusFilter);
+  console.log("filteredEvents:", filteredEvents);
 
   const handleStatusFilterClick = () => {
     setShowStatusFilter(!showStatusFilter);
