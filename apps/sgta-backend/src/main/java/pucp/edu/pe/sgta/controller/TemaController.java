@@ -758,6 +758,28 @@ public class TemaController {
 		}
 	}
 
+	@PostMapping("/registrarSolicitudesModificacionTema")
+	public ResponseEntity<Void> registrarSolicitudesModificacionTema(
+			@RequestParam("temaId") Integer temaId,
+			@RequestBody List<Map<String, Object>> solicitudesJson,
+			HttpServletRequest request) {
+		try {
+			String usuarioIdStr = jwtService.extractSubFromRequest(request);
+
+
+			temaService.registrarSolicitudesModificacionTema(temaId, usuarioIdStr, solicitudesJson);
+
+			return ResponseEntity.ok().build();
+		} catch (RuntimeException e) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+		} catch (Exception e) {
+			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al insertar solicitudes");
+		}
+	}
+
+
+
+
 }
 
 

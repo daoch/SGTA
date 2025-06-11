@@ -1,5 +1,6 @@
 package pucp.edu.pe.sgta.service.imp;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
@@ -3176,5 +3177,25 @@ public class TemaServiceImpl implements TemaService {
 
 		return proposals;
 	}
+
+	@Transactional
+	@Override
+	public void registrarSolicitudesModificacionTema(Integer temaId, String usuarioId, List<Map<String, Object>> solicitudes) {
+		try {
+			UsuarioDto usuDto = usuarioService.findByCognitoId(usuarioId); // JWT te da String, pero BD espera int
+
+			String solicitudesJson = objectMapper.writeValueAsString(solicitudes); // Convierte la lista a JSON
+
+			Query query = entityManager.createNativeQuery(
+					"SELECT insertar_solicitudes_modificacion_tema(:temaId, :usuarioId, CAST(:solicitudes AS jsonb))"
+			);
+			query.setParameter("temaId", temaId);
+			query.setParameter("usuarioId", usuDto.getId());
+			query.setParameter("solicitudes", solicitudesJson);
+			query.getSingleResult();
+		} catch (JsonProcessingException e) {
+			throw new RuntimeException("Error al convertir solicitudes a JSON", e);
+		}
+    }
 
 }
