@@ -6,6 +6,7 @@ import java.util.List;
 
 public interface EventoService {
 
-	List<EventoDto> listarEventosXUsuario(String id);
+	List<EventoDto> listarEventosXTesista(String id);
+	List<EventoDto> listarEventosXAsesor(String id);
 
 }

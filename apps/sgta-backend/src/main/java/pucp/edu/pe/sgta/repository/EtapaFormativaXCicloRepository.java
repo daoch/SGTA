@@ -18,4 +18,8 @@ public interface EtapaFormativaXCicloRepository extends JpaRepository<EtapaForma
 
     @Query(value = "SELECT * FROM listar_etapas_formativas_x_ciclo_x_carrera(:carreraId)", nativeQuery = true)
     List<Object[]> listarEtapasFormativasXCicloXCarrera(Integer carreraId);
+
+    @Query(value = "SELECT * FROM listar_etapa_formativa_x_ciclo_x_id(:etapaXCicloId)", nativeQuery = true)
+    List<Object[]> getEtapaFormativaXCicloByEtapaId(Integer etapaXCicloId);
+
 }

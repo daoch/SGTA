@@ -136,6 +136,45 @@ class FAISSEmbeddingService:
         
         # Search in FAISS index
         scores, indices = self.index.search(query_embedding, min(top_k, self.index.ntotal))
+          # Format results
+        results = []
+        for score, idx in zip(scores[0], indices[0]):
+            if idx == -1:  # FAISS returns -1 for invalid indices
+                continue
+                
+            # Skip deleted topics
+            if idx in self.topic_metadata and self.topic_metadata[idx].get('deleted', False):
+                continue
+                
+            similarity_score = float(score)  # Already normalized cosine similarity
+            if similarity_score >= threshold:
+                topic_info = self.topic_metadata[idx].copy()
+                topic_info['similarity_score'] = round(similarity_score, 4)
+                results.append(topic_info)
+            
+        return results
+
+    def search_with_temp_embedding(self, query_text: str, threshold=0.0, top_k=10) -> List[Dict]:
+        """
+        Search for similar topics using a temporary embedding (no persistence)
+        
+        Args:
+            query_text: Text to search for (will be embedded on-the-fly)
+            threshold: Minimum similarity score (0.0 to 1.0)
+            top_k: Number of top results to return
+            
+        Returns:
+            List of similar topics with scores
+        """
+        if self.index.ntotal == 0:
+            return []
+            
+        # Generate temporary embedding for the query
+        query_embedding = self.model.encode([query_text], convert_to_tensor=False, normalize_embeddings=True)
+        query_embedding = np.array(query_embedding, dtype=np.float32)
+        
+        # Search in FAISS index (same as search_similar_topics but with pre-computed embedding)
+        scores, indices = self.index.search(query_embedding, min(top_k, self.index.ntotal))
         
         # Format results
         results = []
@@ -143,8 +182,11 @@ class FAISSEmbeddingService:
             if idx == -1:  # FAISS returns -1 for invalid indices
                 continue
                 
-            similarity_score = float(score)  # Already normalized cosine similarity
+            # Skip deleted topics
+            if idx in self.topic_metadata and self.topic_metadata[idx].get('deleted', False):
+                continue
             
+            similarity_score = float(score)  # Already normalized cosine similarity
             if similarity_score >= threshold:
                 topic_info = self.topic_metadata[idx].copy()
                 topic_info['similarity_score'] = round(similarity_score, 4)
@@ -158,7 +200,13 @@ class FAISSEmbeddingService:
             return None
             
         index_id = self.topic_id_to_index[topic_id]
-        return self.topic_metadata[index_id].copy()
+        topic_info = self.topic_metadata[index_id].copy()
+        
+        # Return None if topic is deleted
+        if topic_info.get('deleted', False):
+            return None
+            
+        return topic_info
 
     def remove_topic(self, topic_id: str) -> bool:
         """
@@ -169,11 +217,15 @@ class FAISSEmbeddingService:
             return False
             
         index_id = self.topic_id_to_index[topic_id]
-        
-        # Mark as deleted (we'll rebuild index periodically)
+          # Mark as deleted (we'll rebuild index periodically)
         if index_id in self.topic_metadata:
             self.topic_metadata[index_id]['deleted'] = True
             del self.topic_id_to_index[topic_id]
+            
+            # Save cache to persist the deletion
+            self._save_cache()
+            logging.info(f"Topic {topic_id} marked as deleted")
+            
             return True
         
         return False
@@ -310,6 +362,35 @@ class FAISSEmbeddingService:
             self.add_topics(active_topics)
         
         logging.info(f"Index rebuilt with {len(active_topics)} active topics")
+
+    def clear_index(self):
+        """
+        Completely clear the FAISS index and all metadata.
+        Use this when you want to start fresh from your Java application.
+        """
+        try:
+            # Clear FAISS index
+            self.index = faiss.IndexFlatIP(self.embedding_dim)
+            
+            # Clear all metadata
+            self.topic_metadata = {}
+            self.topic_id_to_index = {}
+            
+            # Remove cache files
+            if os.path.exists(self.index_path):
+                os.remove(self.index_path)
+                logging.info("Removed FAISS index cache file")
+            
+            if os.path.exists(self.metadata_path):
+                os.remove(self.metadata_path)
+                logging.info("Removed metadata cache file")
+            
+            logging.info("FAISS index completely cleared")
+            return True
+            
+        except Exception as e:
+            logging.error(f"Error clearing FAISS index: {str(e)}")
+            return False
 
 # Global instance
 faiss_service = FAISSEmbeddingService()

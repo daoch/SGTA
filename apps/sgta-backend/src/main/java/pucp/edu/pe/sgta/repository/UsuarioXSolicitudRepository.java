@@ -34,5 +34,16 @@ public interface UsuarioXSolicitudRepository extends JpaRepository<UsuarioXSolic
             @Param("nombreRol") String nombreRol,
             @Param("idSolicitud") Integer idSolicitud,
             @Param("aprobar") Boolean aprobar);
+            
+    @Query(value = "SELECT * FROM puede_usuario_cesar_asesoria(:idUsuario, :nombreRol, :idSolicitud)", nativeQuery = true)
+    List<Object[]> puedeUsuarioCesarAsesoria(@Param("idUsuario") Integer idUsuario,
+            @Param("nombreRol") String nombreRol,
+            @Param("idSolicitud") Integer idSolicitud);
 
+    @Modifying
+    @Query(value = "CALL procesar_cese_asesoria(:idUsuario, :nombreRol, :idSolicitud, :aprobar)", nativeQuery = true)
+    void procesarCeseAsesoria(@Param("idUsuario") Integer idUsuario,
+            @Param("nombreRol") String nombreRol,
+            @Param("idSolicitud") Integer idSolicitud,
+            @Param("aprobar") Boolean aprobar);
 }

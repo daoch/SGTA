@@ -14,6 +14,7 @@ import org.springframework.stereotype.Repository;
 
 import jakarta.transaction.Transactional;
 import pucp.edu.pe.sgta.model.Tema;
+import pucp.edu.pe.sgta.model.TemaSimilar;
 
 @Repository
 public interface TemaRepository extends JpaRepository<Tema, Integer> {
@@ -95,6 +96,13 @@ public interface TemaRepository extends JpaRepository<Tema, Integer> {
           @Param("temaId") Integer temaId
   );
 
+  @Query(value = """
+    SELECT * FROM validar_tema_existe_cesar_asesoria_posible(:temaId)
+  """, nativeQuery = true)
+  List<Object[]> validarTemaExisteYSePuedeCesarAsesoria(
+    @Param("temaId") Integer temaId
+  );
+
   @Query(value = "SELECT * FROM listar_temas_por_asociar_por_carrera(:carreraId)", nativeQuery = true)
   List<Object[]> listarTemasPorAsociarPorCarrera(@Param("carreraId") Integer carreraId);
 
@@ -156,5 +164,10 @@ public interface TemaRepository extends JpaRepository<Tema, Integer> {
       @Param("limit")                  Integer limit,
       @Param("offset")                 Integer offset
   );
+
+  @Query(value = "SELECT * FROM listar_temas_finalizados()", nativeQuery = true)
+  List<Object[]> listarTemasFinalizados();
+
+
 
 }

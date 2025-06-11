@@ -21,12 +21,17 @@ INSERT INTO tipo_dedicacion (iniciales, descripcion)
            ('TPA', 'Tiempo parcial por asignaturas');
 
 
-INSERT INTO tipo_solicitud (nombre,
-                            descripcion,
-                            activo,
-                            fecha_creacion,
-                            fecha_modificacion)
-    VALUES ('Aprobación de tema (por coordinador)', 'Solicitud para que el coordinador apruebe el tema', TRUE, NOW(), NOW());
+INSERT INTO tipo_solicitud (
+  nombre,
+  descripcion,
+  activo,
+  fecha_creacion,
+  fecha_modificacion
+) VALUES
+  ('Aprobación de tema (por coordinador)', 'Solicitud para que el coordinador apruebe el tema', TRUE, NOW(), NOW()),
+  ('Solicitud de cambio de título',                       'Modificar el título del tema',        TRUE, NOW(), NOW()),
+  ('Solicitud de cambio de resumen',                     'Modificar el resumen del tema',       TRUE, NOW(), NOW()),
+  ('Cambio de asesor (por asesor)',                      'Solicitud para que el coordinador apruebe el cambio de asesores', TRUE, NOW(), NOW());
 
 
 INSERT INTO tipo_notificacion (nombre,
@@ -916,6 +921,80 @@ INSERT INTO carrera_parametro_configuracion (carrera_id,
             NOW(), -- Fecha de modificación actual
             1);
 
+--13) Más entidades fijas
 
+INSERT INTO rol_solicitud (nombre, descripcion, activo, fecha_creacion, fecha_modificacion)
+    VALUES ('REMITENTE', 'Usuario que inicia la solicitud', TRUE, NOW(), NOW()),
+           ('DESTINATARIO', 'Usuario al que está dirigida la solicitud', TRUE, NOW(), NOW()),
+           ('ASESOR_ACTUAL', 'Asesor vigente del usuario', TRUE, NOW(), NOW()),
+           ('ASESOR_ENTRADA', 'Asesor saliente del usuario', TRUE, NOW(), NOW());
 
+INSERT INTO accion_solicitud (nombre, descripcion, activo, fecha_creacion, fecha_modificacion)
+    VALUES ('SIN_ACCION', 'Sin acción tomada aún', TRUE, NOW(), NOW()),
+           ('PENDIENTE_ACCION', 'En espera de una acción', TRUE, NOW(), NOW()),
+           ('APROBADO', 'Solicitud aprobada', TRUE, NOW(), NOW()),
+           ('RECHAZADO', 'Solicitud rechazada', TRUE, NOW(), NOW());
+
+INSERT INTO estado_solicitud (nombre, descripcion, activo, fecha_creacion, fecha_modificacion)
+    VALUES ('PENDIENTE', 'La solicitud está en proceso de evaluación', TRUE, NOW(), NOW()),
+           ('ACEPTADA', 'La solicitud ha sido aceptada', TRUE, NOW(), NOW()),
+           ('RECHAZADA', 'La solicitud ha sido rechazada', TRUE, NOW(), NOW());
+
+INSERT INTO tipo_observacion (nombre_tipo)
+    VALUES ('Contenido'),
+           ('Similitud'),
+           ('Citado'),
+           ('Inteligencia Artificial');
 -- LAS JORNADAS DE EXPOSICIÓN ESTÁN EN INSERTS JURADO.
+
+--INGRESO DE ENTREGABLES POR TEMA Y CRITERIOS POR ENTREGABLES:
+INSERT INTO entregable_x_tema (entregable_id, tema_id, estado, fecha_envio) 
+VALUES (1, 11, DEFAULT, DATE '2025-03-01'); -- Estado por defecto: 'no_enviado'
+
+-- Registro 2 (entregable_id = 2)
+INSERT INTO entregable_x_tema (entregable_id, tema_id, estado, fecha_envio) 
+VALUES (2, 11, 'enviado_a_tiempo', DATE '2025-02-01');
+
+-- Registro 3 (entregable_id = 3)
+INSERT INTO entregable_x_tema (entregable_id, tema_id, estado, fecha_envio) 
+VALUES (3, 11, 'enviado_tarde',  DATE '2025-01-01');
+
+--select * from entregable_x_tema
+
+--Criterios:
+--Query para equipo:
+INSERT INTO criterio_entregable (
+    entregable_id,
+    nombre,
+    nota_maxima,
+    descripcion
+) VALUES
+    (1, 'Claridad en la redacción', 20.00, 'Se evalúa la claridad, coherencia y cohesión del contenido entregado.'),
+    (2, 'Cumplimiento de requisitos', 20.00, 'Se verifica que el entregable cumpla con todos los requisitos solicitados.'),
+	(3, 'Originalidad del contenido', 20.00, 'Se evalúa la capacidad de presentar ideas propias y enfoques creativos en el entregable.');
+	
+
+--select * from criterio_entregable
+
+INSERT INTO revision_criterio_entregable (
+    entregable_x_tema_id,
+    criterio_entregable_id,
+    usuario_id,
+    nota,
+    observacion
+) VALUES
+    (1, 1, 36, 17.00, NULL),
+    (2, 2, 36, 10.00, NULL),
+	(3, 3, 36, 19.00, NULL);
+
+UPDATE entregable_x_tema
+SET
+  comentario = 'Actualizado manualmente para pruebas',
+  nota_entregable = 16,
+  fecha_modificacion = CURRENT_TIMESTAMP
+WHERE
+  entregable_x_tema_id = 3;
+
+UPDATE Entregable
+SET estado = 'terminado'
+WHERE entregable_id = 3;

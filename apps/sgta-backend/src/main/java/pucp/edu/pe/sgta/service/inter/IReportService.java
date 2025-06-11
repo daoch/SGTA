@@ -1,7 +1,6 @@
 package pucp.edu.pe.sgta.service.inter;
 
 import java.util.List;
-
 import pucp.edu.pe.sgta.dto.AdvisorPerformanceDto;
 import pucp.edu.pe.sgta.dto.AreaFinalDTO;
 import pucp.edu.pe.sgta.dto.DetalleTesistaDTO;
@@ -14,29 +13,71 @@ import pucp.edu.pe.sgta.dto.TesistasPorAsesorDTO;
 import pucp.edu.pe.sgta.dto.EntregableEstudianteDto;
 import pucp.edu.pe.sgta.dto.EntregableCriteriosDetalleDto;
 
+/**
+ * Interfaz para servicios de reportes.
+ */
 public interface IReportService {
-    /** RF1: estadísticas de temas por área */
-    List<TopicAreaStatsDTO> getTopicAreaStatistics(Integer usuarioId, String cicloNombre);
-    /** RF2a: distribución de asesores por docente */
-    List<TeacherCountDTO> getAdvisorDistribution(Integer usuarioId, String cicloNombre);
-    /** RF2b: distribución de jurados por docente */
-    List<TeacherCountDTO> getJurorDistribution(Integer usuarioId, String cicloNombre);
-    /** RF2c: rendimiento por área de conocimiento */
-    List<AreaFinalDTO> getAreaFinal(Integer usuarioId, String cicloNombre);
-    /** RF1b: tendencias de temas por año */
-    List<TopicTrendDTO> getTopicTrendsByYear(Integer usuarioId);
-    /** RF3: desempeño de asesores */
-    List<AdvisorPerformanceDto> getAdvisorPerformance(Integer usuarioId, String cicloNombre);
-    /** RF4: Listar tesistas por asesor con sus entregables actuales o próximos */
-    List<TesistasPorAsesorDTO> getTesistasPorAsesor(Integer asesorId);
-    /** RF5: Obtener detalle completo de un tesista */
+
+    /**
+     * Estadísticas de temas por área para un coordinador.
+     * @param cognitoSub el sub (ID) del usuario en Cognito
+     * @param cicloNombre nombre del ciclo
+     */
+    List<TopicAreaStatsDTO> getTopicAreaStatistics(String cognitoSub, String cicloNombre);
+
+    /**
+     * Distribución de asesores para un coordinador.
+     */
+    List<TeacherCountDTO> getAdvisorDistribution(String cognitoSub, String cicloNombre);
+
+    /**
+     * Distribución de jurados para un coordinador.
+     */
+    List<TeacherCountDTO> getJurorDistribution(String cognitoSub, String cicloNombre);
+
+    /**
+     * Estadísticas finales de áreas para un coordinador.
+     */
+    List<AreaFinalDTO> getAreaFinal(String cognitoSub, String cicloNombre);
+
+    /**
+     * Desempeño de asesores para un coordinador.
+     */
+    List<AdvisorPerformanceDto> getAdvisorPerformance(String cognitoSub, String cicloNombre);
+
+    /**
+     * Tendencias de temas por año para un coordinador.
+     */
+    List<TopicTrendDTO> getTopicTrendsByYear(String cognitoSub);
+
+    /**
+     * Tesistas asignados por asesor.
+     */
+    List<TesistasPorAsesorDTO> getTesistasPorAsesor(String cognitoSub);
+
+    /**
+     * Detalle completo de un tesista.
+     */
     DetalleTesistaDTO getDetalleTesista(Integer tesistaId);
-    /** RF6: Listar hitos del cronograma de un tesista */
+
+    /**
+     * Hitos del cronograma de un tesista.
+     */
     List<HitoCronogramaDTO> getHitosCronogramaTesista(Integer tesistaId);
-    /** RF7: Listar historial de reuniones de un tesista */
+
+    /**
+     * Historial de reuniones de un tesista.
+     */
     List<HistorialReunionDTO> getHistorialReuniones(Integer tesistaId);
-    /** RF8: Obtener entregables de un estudiante */
+
+    /**
+     * Entregables de un estudiante (tesista).
+     */
     List<EntregableEstudianteDto> getEntregablesEstudiante(Integer usuarioId);
-    /** Obtener entregables con sus criterios agrupados */
-    List<EntregableCriteriosDetalleDto> getEntregablesConCriterios(Integer usuarioId);
+
+    /**
+     * Entregables con criterios de un estudiante.
+     */
+    List<EntregableCriteriosDetalleDto> getEntregablesConCriterios(Integer idUsuario);
+
 }

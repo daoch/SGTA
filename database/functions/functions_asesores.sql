@@ -440,6 +440,7 @@ AS $$
         solicitud s
         INNER JOIN tema t ON t.tema_id = s.tema_id
         INNER JOIN estado_solicitud es ON es.estado_solicitud_id = s.estado_solicitud
+		INNER JOIN tipo_solicitud ts ON s.tipo_solicitud_id = ts.tipo_solicitud_id
 
         LEFT JOIN LATERAL (
             SELECT u.nombres, u.correo_electronico, u.primer_apellido
@@ -481,13 +482,16 @@ AS $$
 	    	LIMIT 1
 		) accion ON true
 
-    WHERE s.solicitud_id IN (
+    WHERE
+	s.solicitud_id IN (
         SELECT us_control.solicitud_id
         FROM usuario_solicitud us_control
         INNER JOIN rol_solicitud rs_control ON us_control.rol_solicitud = rs_control.rol_solicitud_id
         WHERE us_control.usuario_id = p_usuario_id
           AND rs_control.nombre = p_rol_control
-    );
+    )
+	AND ts.nombre = 'Cambio de asesor (por asesor)'
+	;
 $$;
 
 CREATE OR REPLACE FUNCTION obtener_detalle_solicitud_cambio_asesor(p_solicitud_id INTEGER)
@@ -750,7 +754,26 @@ BEGIN
         WHERE usuario_id = p_usuario_id
           AND solicitud_id = p_solicitud_id
           AND rol_solicitud = v_rol_id;
-
+		  
+    -- Si el rechazo lo hizo el ASESOR_ACTUAL, marcar al DESTINATARIO como SIN_ACCION
+	    IF p_nombre_rol = 'ASESOR_ACTUAL' THEN
+	        -- Obtener ID de acción SIN_ACCION
+	        SELECT accion_solicitud_id INTO v_accion_id
+	        FROM accion_solicitud
+	        WHERE nombre = 'SIN_ACCION';
+	
+	        -- Obtener rol_id de DESTINATARIO
+	        SELECT rol_solicitud_id INTO v_rol_id
+	        FROM rol_solicitud
+	        WHERE nombre = 'DESTINATARIO';
+	
+	        UPDATE usuario_solicitud
+	        SET accion_solicitud = v_accion_id,
+	            fecha_accion = CURRENT_TIMESTAMP
+	        WHERE solicitud_id = p_solicitud_id
+	          AND rol_solicitud = v_rol_id;
+	    END IF;
+		
         SELECT estado_solicitud_id INTO v_estado_id
         FROM estado_solicitud
         WHERE nombre = 'RECHAZADA';

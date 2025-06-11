@@ -183,6 +183,7 @@ export const getExposicionesEstudiantesByEstudianteId = async (
       titulo: item.titulo,
       etapaFormativa: item.etapaFormativa,
       ciclo: item.ciclo,
+      tipoExposicion: item.tipoExposicion,
       miembrosJurado: item.miembrosJurado.map((miembro) => ({
         id_persona: miembro.id_persona,
         nombre: miembro.nombre,

@@ -12,11 +12,11 @@ import {
 } from "@/components/ui/table";
 import { Coasesor, Tesista } from "@/features/temas/types/inscripcion/entities";
 import { Tipo } from "@/features/temas/types/inscripcion/enums";
+import { Tema } from "@/features/temas/types/temas/entidades";
 import { titleCase } from "@/lib/utils";
 import { FilePen, Trash2 } from "lucide-react";
 import DeleteTemaPopUp from "./delete-tema-pop-up";
 import { TemaDetailsDialog } from "./tema-details-modal";
-import { Tema } from "@/features/temas/types/temas/entidades";
 
 interface PropuestasTableProps {
   temasData: Tema[];
@@ -33,19 +33,10 @@ interface PropuestasTableProps {
  */
 export function TemasTable({
   temasData,
-  filter,
   isLoading,
   error,
   asesor,
 }: Readonly<PropuestasTableProps>) {
-  const propuestasFiltradas = temasData.filter((tema) => {
-    if (!filter || filter.includes(Tipo.TODOS)) return true;
-    if (tema.estadoTemaNombre) return filter.includes(tema.estadoTemaNombre);
-    else {
-      return true;
-    }
-  });
-
   const deleteTema = () => {
     console.log("Tema eliminado");
     // Aquí podrías llamar a tu API o actualizar el estado global
@@ -76,7 +67,7 @@ export function TemasTable({
         </TableCell>
       </TableRow>
     );
-  } else if (propuestasFiltradas.length === 0) {
+  } else if (temasData.length === 0) {
     tableBodyContent = (
       <TableRow>
         <TableCell
@@ -88,14 +79,14 @@ export function TemasTable({
       </TableRow>
     );
   } else {
-    tableBodyContent = propuestasFiltradas.map((tema) => (
+    tableBodyContent = temasData.map((tema) => (
       <TableRow key={tema.id}>
         {/* Title */}
         <TableCell className="font-medium max-w-xs truncate">
           {tema.titulo}
         </TableCell>
         {/* Area */}
-        <TableCell>{tema.area[0].nombre}</TableCell>
+        <TableCell>{tema.area?.[0]?.nombre ?? "-"}</TableCell>
         {/* Asesor */}
         <TableCell>{asesor ? asesor.nombres : ""}</TableCell>
         {/* Tesistas */}
@@ -221,4 +212,3 @@ export function TemasTable({
     </div>
   );
 }
-

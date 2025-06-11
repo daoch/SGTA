@@ -3,6 +3,7 @@ package pucp.edu.pe.sgta.controller;
 import org.aspectj.lang.annotation.Before;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,17 +11,20 @@ import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import pucp.edu.pe.sgta.dto.*;
+import pucp.edu.pe.sgta.dto.HistorialTemaDto;
 import pucp.edu.pe.sgta.dto.TemaConAsesorJuradoDTO;
 import pucp.edu.pe.sgta.dto.TemaPorAsociarDto;
+import pucp.edu.pe.sgta.dto.TemaSimilarDto;
 import pucp.edu.pe.sgta.dto.asesores.InfoTemaPerfilDto;
 import pucp.edu.pe.sgta.dto.asesores.TemaConAsesorDto;
-import pucp.edu.pe.sgta.dto.TemaDto;
 import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
-import pucp.edu.pe.sgta.dto.TemaSimilarityResult;
+import pucp.edu.pe.sgta.dto.temas.TemasComprometidosDto;
+import pucp.edu.pe.sgta.model.UsuarioXCarrera;
 import pucp.edu.pe.sgta.service.inter.JwtService;
 import pucp.edu.pe.sgta.service.inter.SimilarityService;
 import pucp.edu.pe.sgta.service.inter.TemaService;
-import pucp.edu.pe.sgta.dto.UsuarioTemaDto;
+import pucp.edu.pe.sgta.service.inter.UsuarioXCarreraService;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -32,6 +36,10 @@ import java.util.Map;
 
 @RequestMapping("/temas")
 public class TemaController {
+	// Constants for response keys
+	private static final String ERROR_KEY = "error";
+	private static final String DETAILS_KEY = "details";
+	private static final String AUTH_TOKEN_REQUIRED_MESSAGE = "Token de autenticación requerido";
 
 	@Autowired
 	TemaService temaService;
@@ -41,6 +49,12 @@ public class TemaController {
 
 	@Autowired
 	SimilarityService similarityService;
+
+	@Autowired
+	pucp.edu.pe.sgta.service.inter.HistorialTemaService historialTemaService;
+
+	@Autowired
+	UsuarioXCarreraService usuarioXCarreraService;
 
 	@GetMapping("/findByUser") // finds topics by user
 	public List<TemaDto> findByUser(@RequestParam(name = "idUsuario") Integer idUsuario) {
@@ -53,25 +67,25 @@ public class TemaController {
 	}
 
 	@PostMapping("/createPropuesta")
-	public void createTema(@RequestBody TemaDto dto,
+	public Integer createTema(@RequestBody TemaDto dto,
 			@RequestParam(name = "tipoPropuesta", defaultValue = "0") Integer tipoPropuesta,
 			HttpServletRequest request) {
 		try {
 			String idUsuarioCreador = jwtService.extractSubFromRequest(request);
-			temaService.createTemaPropuesta(dto, idUsuarioCreador, tipoPropuesta);
+			return temaService.createTemaPropuesta(dto, idUsuarioCreador, tipoPropuesta);
 		} catch (RuntimeException e) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
 		}
 	}
 
 	@PostMapping("/createInscripcion") // Inscripcion de tema oficial por asesor
-	public void createInscripcion(
+	public Integer createInscripcion(
 			@RequestBody @Valid TemaDto dto,
 			HttpServletRequest request
 	// @RequestParam(name = "idUsuarioCreador") Integer idUsuarioCreador
 	) {
 		String idUsuarioCreador = jwtService.extractSubFromRequest(request);
-		temaService.createInscripcionTema(dto, idUsuarioCreador);
+		return temaService.createInscripcionTema(dto, idUsuarioCreador);
 	}
 
 	@PutMapping("/update") // updates a topic
@@ -469,9 +483,11 @@ public class TemaController {
 		}
 	}
 
-	@GetMapping("/listarTemasPorAsociarPorCarrera/{carreraId}")
-	public List<TemaPorAsociarDto> listarTemasPorAsociarPorCarrera(@PathVariable("carreraId") Integer carreraId) {
-		return temaService.listarTemasPorAsociarPorCarrera(carreraId);
+	@GetMapping("/listarTemasPorAsociarPorCarrera")
+	public List<TemaPorAsociarDto> listarTemasPorAsociarPorCarrera(HttpServletRequest request) {
+		String coordinadorId = jwtService.extractSubFromRequest(request);
+		UsuarioXCarrera usuarioXCarrera = usuarioXCarreraService.getCarreraPrincipalCoordinador(coordinadorId);
+		return temaService.listarTemasPorAsociarPorCarrera(usuarioXCarrera.getCarrera().getId());
 	}
 
 	@PostMapping("/asociar-tema-curso/curso/{cursoId}/tema/{temaId}")
@@ -531,7 +547,7 @@ public class TemaController {
 			@RequestParam(value = "limit",   defaultValue = "10") Integer limit,
 			@RequestParam(value = "offset",  defaultValue = "0")  Integer offset
 	) {
-		// Convertir posibles nulls a cadenas vacías (para que la función SQL los trate como “no filtro”)
+		// Convertir posibles nulls a cadenas vacías (para que la función SQL los trate como "no filtro")
 		String filtroTitulo          = (titulo                  == null ? "" : titulo);
 		String filtroEstado          = (estadoNombre            == null ? "" : estadoNombre);
 		String filtroNombreUsuario   = (nombreUsuario           == null ? "" : nombreUsuario);
@@ -550,6 +566,189 @@ public class TemaController {
 				offset
 		);
 	}
+
+
+	@PostMapping("/guardarSimilitudes")
+    public ResponseEntity<Void> guardarSimilitudes(
+            @RequestBody List<TemaSimilarDto> similitudes,
+            HttpServletRequest request) {
+        try {
+            String cognitoId = jwtService.extractSubFromRequest(request);
+            temaService.guardarSimilitudes(cognitoId, similitudes);
+            return ResponseEntity.status(HttpStatus.CREATED).build();
+        } catch (RuntimeException e) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, e.getMessage(), e);
+        }
+
+
+    }
+
+	@GetMapping("/{temaId}/similares")
+    public List<TemaDto> listarSimilares(@PathVariable Integer temaId) {
+        return temaService.listarTemasSimilares(temaId);
+    }
+	@PostMapping("/initializeFaiss")
+	public ResponseEntity<Map<String, Object>> initializeFaissIndex(HttpServletRequest request) {		try {
+			// Verify user has proper authorization
+			String sub = jwtService.extractSubFromRequest(request);
+			if (sub == null) {
+				return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+					.body(Map.of(ERROR_KEY, AUTH_TOKEN_REQUIRED_MESSAGE));
+			}
+
+			// Delegate to service layer
+			Map<String, Object> result = similarityService.initializeFaissIndexWithResponse();
+
+			// Return appropriate HTTP status based on service result
+			if (Boolean.TRUE.equals(result.get("success"))) {
+				return ResponseEntity.ok(result);
+			} else {
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+			}
+
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+				.body(Map.of(
+					ERROR_KEY, "Error al inicializar el índice FAISS",
+					DETAILS_KEY, e.getMessage()
+				));
+		}
+	}
+
+	@GetMapping("/faissStatus")
+	public ResponseEntity<Map<String, Object>> getFaissStatus() {
+		try {
+			// Delegate to service layer
+			Map<String, Object> result = similarityService.getFaissStatus();
+
+			// Return appropriate HTTP status based on service result
+			if (Boolean.TRUE.equals(result.get("success"))) {
+				return ResponseEntity.ok(result);
+			} else {
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+			}
+
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+				.body(Map.of(
+					ERROR_KEY, "Error al obtener el estado de FAISS",
+					DETAILS_KEY, e.getMessage()
+				));
+		}
+	}
+
+	@PostMapping("/clearFaiss")
+	public ResponseEntity<Map<String, Object>> clearFaissIndex(HttpServletRequest request) {		try{
+			String sub = jwtService.extractSubFromRequest(request);
+			if (sub == null) {
+				return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+						.body(Map.of(ERROR_KEY, AUTH_TOKEN_REQUIRED_MESSAGE));
+			}
+			Map<String, Object> result = similarityService.clearFaissIndex();
+			if (Boolean.TRUE.equals(result.get("success"))) {
+				return ResponseEntity.ok(result);
+			} else {
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+			}
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(Map.of(
+							ERROR_KEY, "Error al inicializar el índice FAISS",
+							DETAILS_KEY, e.getMessage()
+					));
+		}
+	}
+
+	@DeleteMapping("/faiss/topics/{temaId}")
+	public ResponseEntity<Map<String, Object>> removeTemaFromFaissIndex(@PathVariable Integer temaId, HttpServletRequest request) {
+		try {
+			// Verify user has proper authorization
+			String sub = jwtService.extractSubFromRequest(request);
+			if (sub == null) {
+				return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+					.body(Map.of(ERROR_KEY, AUTH_TOKEN_REQUIRED_MESSAGE));
+			}
+
+			Map<String, Object> result = similarityService.removeTemaFromFaissIndex(temaId);
+			return ResponseEntity.ok(result);
+		} catch (RuntimeException e) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+				.body(Map.of(
+					ERROR_KEY, "Error al remover el tema del índice FAISS",
+					DETAILS_KEY, e.getMessage()
+				));
+		}
+	}
+
+	@GetMapping("/contarPostuladosAlumnosTemaLibreAsesor")
+	public Integer contarPostuladosAlumnosTemaLibreAsesor(
+			@RequestParam(required = false) String busqueda,
+			@RequestParam(required = false) String estado,
+			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaLimite,
+			HttpServletRequest request
+	) {
+		try {
+			String usuarioId = jwtService.extractSubFromRequest(request);
+			return temaService.contarPostuladosAlumnosTemaLibreAsesor(busqueda, estado, fechaLimite, usuarioId);
+		} catch (RuntimeException e) {
+			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage(), e);
+		}
+	}
+
+	@GetMapping("/verificarTemasComprometidosTesista")
+	public ResponseEntity<List<TemasComprometidosDto>> verificarTemasComprometidosTesista(
+			HttpServletRequest request) {
+		try {
+			String usuarioSubId = jwtService.extractSubFromRequest(request);
+			if (usuarioSubId == null) {
+				return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+					.body(null);
+			}
+			
+			List<TemasComprometidosDto> temasComprometidos = temaService.contarTemasComprometidos(usuarioSubId);
+			return ResponseEntity.ok(temasComprometidos);
+			
+		} catch (RuntimeException e) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+		} catch (Exception e) {
+			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, 
+				"Error al verificar temas comprometidos: " + e.getMessage());
+		}
+	}
+
+	@GetMapping("/{temaId}/historial")
+    public ResponseEntity<List<HistorialTemaDto>> getHistorialPorTema(@PathVariable Integer temaId) {
+        List<HistorialTemaDto> historial = historialTemaService.listarHistorialActivoPorTema(temaId);
+        return ResponseEntity.ok(historial);
+    }
+
+	@PostMapping("/aceptarPropuestaCotesista")
+	public ResponseEntity<Void> aceptarPropuestaCotesista(
+			@RequestParam("temaId") Integer temaId,
+			@RequestParam("accion") Integer action, // 0 para aceptar, 1 para rechazar
+			HttpServletRequest request) {
+		try {
+			String usuarioId = jwtService.extractSubFromRequest(request);
+			temaService.aceptarPropuestaCotesista(temaId, usuarioId, action);
+			return ResponseEntity.ok().build();
+		} catch (RuntimeException e) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+		}
+	}
+
+	@GetMapping("/listarPropuestasPorCotesista")
+	public List<TemaDto> listarPropuestasPorCotesista(HttpServletRequest request) {
+		try {
+			String tesistaId = jwtService.extractSubFromRequest(request);
+			return temaService.listarPropuestasPorCotesista(tesistaId);
+		} catch (RuntimeException e) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+		}
+	}
+
 }
 
 
