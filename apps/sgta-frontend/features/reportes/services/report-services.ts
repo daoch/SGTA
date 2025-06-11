@@ -43,12 +43,12 @@ export const findStudentsForReviewer = async (cadenaBusqueda: string): Promise<A
   }
 };
 
-/*
-export const getEntregablesAlumno = async (alumnoId: string) => {
-  const response = await axiosInstance.get(`/api/v1/reports/entregables/${alumnoId}`);
+
+export const getEntregablesAlumnoSeleccionado = async (alumnoId: number) => {
+  const response = await axiosInstance.get(`/reports/entregables/${alumnoId}`);
   return response.data;
 };
-*/
+
 
 export const getEntregablesAlumno = async () => {
   try {

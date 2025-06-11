@@ -313,6 +313,7 @@ public class ReportingServiceImpl implements IReportService {
     }
 
 
+
     @Override
     public List<EntregableEstudianteDto> getEntregablesEstudiante(String usuarioId) {
 
@@ -372,6 +373,71 @@ public class ReportingServiceImpl implements IReportService {
             })
             .collect(Collectors.toList());
     }
+
+    @Override
+    public List<EntregableEstudianteDto> getEntregablesEstudianteById(int usuarioId) {
+        System.out.println("usuarioId recibido: " + usuarioId);
+
+        Optional<UsuarioXTema> usuarioTema = usuarioXTemaRepository.findByUsuarioId(usuarioId);
+        if (usuarioTema.isEmpty()) {
+            System.out.println("MIRAMEEEEEEEEEEEEEEEEEEEEEEEEEEE\n\n");
+            System.out.println("El usuario con ID " + usuarioId + " no tiene tema asignado en usuario_tema.");
+            System.out.println("El usuario no tiene tema asignado.");
+            return Collections.emptyList();
+        }
+
+        Integer temaId = usuarioTema.get().getTema().getId();
+        System.out.println("Tema ID del estudiante: " + temaId);
+
+        var entregables = entregableXTemaRepository.findByTemaIdWithEntregable(temaId);
+        System.out.println("Cantidad de entregables encontrados: " + entregables.size());
+
+        return entregables.stream()
+            .map(et -> {
+                System.out.println("Procesando entregableXTemaId: " + et.getEntregableXTemaId());
+                int exId = et.getEntregableXTemaId();
+
+                Double notaGlobal = et.getNotaEntregable() != null
+                    ? et.getNotaEntregable().doubleValue()
+                    : null;
+
+                boolean esEvaluable = et.getEntregable().isEsEvaluable();
+                String estadoEntregable = et.getEntregable().getEstadoStr();
+                String estadoXTema = et.getEstado().name();
+
+                List<CriterioEntregableDto> criterios = criterioEntregableService
+                    .listarCriteriosEntregableXEntregable(et.getEntregable().getId())
+                    .stream()
+                    .map(c -> {
+                        Double nota = revisionCriterioEntregableRepository
+                            .findNotaByEntregableXTemaIdAndCriterioEntregableId(exId, c.getId())
+                            .map(BigDecimal::doubleValue)
+                            .orElse(null);
+
+                        CriterioEntregableDto copy = new CriterioEntregableDto();
+                        copy.setId(c.getId());
+                        copy.setNombre(c.getNombre());
+                        copy.setDescripcion(c.getDescripcion());
+                        copy.setNotaMaxima(c.getNotaMaxima());
+                        copy.setNota(nota);
+                        return copy;
+                    })
+                    .collect(Collectors.toList());
+
+                return new EntregableEstudianteDto(
+                    et.getEntregable().getNombre(),
+                    estadoEntregable,
+                    estadoXTema,
+                    et.getFechaEnvio() != null ? et.getFechaEnvio().toLocalDateTime() : null,
+                    notaGlobal,
+                    esEvaluable,
+                    criterios
+                );
+            })
+            .collect(Collectors.toList());
+    }
+
+
 
     @Override
     public List<EntregableCriteriosDetalleDto> getEntregablesConCriterios(Integer idUsuario) {
