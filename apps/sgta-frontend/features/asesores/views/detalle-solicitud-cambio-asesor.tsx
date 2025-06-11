@@ -143,7 +143,7 @@ export default function SolicitudDetalle({
       !solicitudData?.coordinador
     ) {
       // Si la solicitud está pendiente y no hay coordinador, agregar el asesor actual
-      const asesorActual: UsuarioSolicitud = {
+      const coordinador: UsuarioSolicitud = {
         id: null,
         nombres: "Pendiente de aprobación por coordinador",
         correoElectronico: solicitudData.asesorActual.correoElectronico,
@@ -153,7 +153,8 @@ export default function SolicitudDetalle({
         fechaAccion: null,
         comentario: null,
       };
-      setParticipantesWorkflow((prev) => [...prev, asesorActual]);
+      solicitudData.coordinador = coordinador;
+      setParticipantesWorkflow((prev) => [...prev, coordinador]);
     }
   }, [solicitudData]);
 
