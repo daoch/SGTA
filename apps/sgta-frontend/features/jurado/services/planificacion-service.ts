@@ -1,6 +1,5 @@
 import axiosInstance from "@/lib/axios/axios-instance";
 import { TimeSlot } from "../types/jurado.types";
-import axios from "axios";
 
 export type State = {
   message: string | null;
@@ -84,51 +83,42 @@ export async function obtenerAccessTokenZoom() {
   }
 }
 
-export async function reunionesZoom(bearerTokenId: string, idExposicion: number) {
+export async function reunionesZoom(idExposicion: number) {
   try {
-    // 25 de junio de 2025 a las 4:00 PM en Lima
-    // const limaDateTimeString = "2025-06-10T16:25:00"; // sin zona
-
-    // const body = {
-    //   topic: "Reunión de prueba SGTA",
-    //   startTime: limaDateTimeString, // se enviará como "2025-06-25T21:00:00Z"
-    //   duration: 1440, // duración en minutos
-    //   agenda: "Discusión de avance de proyecto",
-    //   timezone: "America/Lima",
-    //   hostVideo: false,
-    //   participantVideo: false,
-    //   muteUponEntry: true,
-    //   audio: "both",
-    //   joinBeforeHost: false,
-    //   accessToken: accessToken,
-    //   defaultPassword: true, // para que Zoom genere una contraseña automáticamente
-    //   waitingRoom: true,
-    // };
-
     const url = `/zoom/crear-meetings-jornada-exposicion/${idExposicion}`;
-    const response = await axiosInstance.get(url, {
-      headers: {
-        Authorization: `Bearer ${bearerTokenId}`,
-      },
-    });
+    const response = await axiosInstance.get(url);
 
     console.log("Respuesta de creación de reunión:", response.data);
-
-    // const data = response.data as {
-    //   join_url: string;
-    //   start_url: string;
-    //   type: number;
-    //   host_email: string;
-    //   registration_url: string;
-    //   duration: number;
-    //   password: string;
-    // };
-
-    // return data;
-
   } catch (error) {
     const err = error as unknown;
-    // console.error("Error al crear la reunión de Zoom:", err.response?.data || err);
     throw err;
+  }
+}
+
+export async function descargarExcelByExposicionId(exposicionId: number) {
+  try {
+    const response = await axiosInstance.get(
+      `/exposicion/export-excel/${exposicionId}`,
+      {
+        responseType: "blob",
+      },
+    );
+
+    // Crear URL desde el blob
+    const url = window.URL.createObjectURL(response.data);
+    const enlace = document.createElement("a");
+    enlace.href = url;
+
+    enlace.setAttribute("download", `exposicion-${exposicionId}.xlsx`);
+    document.body.appendChild(enlace);
+    enlace.click();
+    enlace.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error(
+      `Error al descargar el Excel de exposición ${exposicionId}:`,
+      error,
+    );
+    throw error;
   }
 }

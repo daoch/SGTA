@@ -16,6 +16,8 @@ import PlanificacionEstadoStepper from "./planificacion-estado-stepper";
 import { TimeSlotCard } from "./time-slot-card";
 import AppLoading from "@/components/loading/app-loading";
 import { usePlanificationStore } from "../../store/use-planificacion-store";
+import { descargarExcelByExposicionId } from "../../services/planificacion-service";
+import { toast } from "sonner";
 
 interface Props {
   days: JornadaExposicionDTO[];
@@ -25,6 +27,7 @@ interface Props {
   bloquesList: TimeSlot[];
   estadoPlan: EstadoPlanificacion | undefined;
   isLoading?: boolean;
+  exposicionId: number;
 }
 
 const PlanificationPanel: React.FC<Props> = ({
@@ -35,6 +38,7 @@ const PlanificationPanel: React.FC<Props> = ({
   bloquesList,
   estadoPlan,
   isLoading,
+  exposicionId,
 }) => {
   const { actualizarBloque, temasSinAsignar } = usePlanificationStore();
 
@@ -98,19 +102,14 @@ const PlanificationPanel: React.FC<Props> = ({
             )}
           {estadoPlan.nombre === "Cierre de planificacion" && (
             <Button
-              onClick={() => {
-                const contenido =
-                  "Este es un archivo de ejemplo de planificación.";
-                const blob = new Blob([contenido], { type: "text/plain" });
-                const url = URL.createObjectURL(blob);
-
-                const link = document.createElement("a");
-                link.href = url;
-                link.download = "planificacion.xlsx";
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(url);
+              onClick={async () => {
+                try {
+                  await descargarExcelByExposicionId(exposicionId);
+                  toast.success("Archivo descargado correctamente.");
+                } catch (error) {
+                  toast.error("Error al descargar el archivo.");
+                  console.error("No se pudo descargar el archivo:", error);
+                }
               }}
             >
               <FileSpreadsheet />
