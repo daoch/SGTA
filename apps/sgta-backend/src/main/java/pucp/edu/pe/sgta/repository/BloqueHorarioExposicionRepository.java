@@ -37,4 +37,6 @@ public interface BloqueHorarioExposicionRepository extends JpaRepository<BloqueH
     @Query("SELECT b FROM BloqueHorarioExposicion b JOIN FETCH b.exposicionXTema WHERE b.jornadaExposicionXSala.id = :salaId")
     List<BloqueHorarioExposicion> findByJornadaExposicionXSalaId(@Param("salaId") Long salaId);
 
+    List<BloqueHorarioExposicion> findByJornadaExposicionXSalaIdAndExposicionXTemaIsNotNull(
+            Integer jornadaExposicionXSalaId);
 }

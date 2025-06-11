@@ -26,5 +26,6 @@ public class ExposicionTemaMiembrosDto {
     private String nombre_exposicion;
     private String enlace_grabacion;
     private String enlace_sesion;
+    private Boolean criterios_calificados;
     private List<MiembroExposicionDto> miembros;
 }

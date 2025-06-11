@@ -3,6 +3,8 @@ import { ExposicionAlumno, Sala } from "../types/exposicion.types";
 import { FormValues } from "../schemas/exposicion-form-schema";
 import { EtapaFormativaXSalaExposicion } from "../dtos/EtapaFormativaXSalaExposicion";
 import axios from "axios";
+import { CarreraXParametroConfiguracionDto } from "@/features/configuracion/types/CarreraXParametroConfiguracion.type";
+import { useAuthStore } from "@/features/auth/store/auth-store";
 
 export const getEtapasFormativasPorInicializarByCoordinador = async () => {
   const response = await axiosInstance.get(
@@ -175,8 +177,8 @@ export const getExposicionesEstudiantesByEstudianteId = async (
       exposicionId: item.exposicionId,
       tema_id: item.temaId,
       estado: item.estado,
-      link_exposicion: item.linkExposicion,
-      link_grabacion: item.linkGrabacion,
+      link_exposicion: item.link_exposicion,
+      link_grabacion: item.link_grabacion,
       datetimeInicio: new Date(item.datetimeInicio),
       datetimeFin: new Date(item.datetimeFin),
       sala: item.sala,
@@ -197,4 +199,18 @@ export const getExposicionesEstudiantesByEstudianteId = async (
     );
     throw new Error("Error al obtener exposiciones de estudiantes por ID");
   }
+};
+
+export const getParametrosByUsuarioId = async (
+): Promise<CarreraXParametroConfiguracionDto[]> => {
+
+    const { idToken } = useAuthStore.getState();
+    const response = await axiosInstance.get<CarreraXParametroConfiguracionDto[]>(
+        "/carreraXParametroConfiguracion/parametros-alumno",
+    {
+        headers: {
+            Authorization: `Bearer ${idToken}`,
+        },
+    });
+    return response.data;
 };

@@ -126,6 +126,7 @@ export interface ExposicionJurado {
   nombre_exposicion: string;
   enlace_grabacion: string;
   enlace_sesion: string;
+  criterios_calificados: boolean;
   miembros: MiembroJuradoExpo[];
 }
 
@@ -153,7 +154,7 @@ export interface CriterioEvaluacion {
   id: number;
   titulo: string;
   descripcion: string;
-  calificacion: number;
+  calificacion: number| null;
   nota_maxima: number;
   observacion: string;
 }
