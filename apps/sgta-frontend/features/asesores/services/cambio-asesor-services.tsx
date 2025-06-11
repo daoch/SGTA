@@ -252,7 +252,7 @@ export async function rechazarSolicitudPorCoordinador(
   }
 }
 
-export async function aprobarSolicitudPorCoordinador(
+export async function aceptarSolicitudPorCoordinador(
   idSolicitud: number,
   request: string,
 ): Promise<SolicitudCambioAsesorResumen[]> {
