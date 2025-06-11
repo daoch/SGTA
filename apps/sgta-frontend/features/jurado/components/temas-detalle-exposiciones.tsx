@@ -26,12 +26,13 @@ import { Profesor } from "../types/temas.types";
 
 interface TemasDetalleExposicionesProps {
   temaId: number;
+  carreraId: number | undefined;
   areasConocimientoId: number[];
 }
 
 export const TemasDetalleExposiciones: React.FC<
   TemasDetalleExposicionesProps
-> = ({ temaId, areasConocimientoId }) => {
+> = ({ temaId, carreraId, areasConocimientoId }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [tesis, setTesis] = useState<TesisDetalleExposicion | null>(null);
   const [showAlertDialog, setShowAlertDialog] = useState<boolean>(false);
@@ -265,6 +266,8 @@ export const TemasDetalleExposiciones: React.FC<
                     }
                     onAsignar={handleAsignarTesis}
                     miembrosJurado={tesis.miembrosJurado}
+                    asesores={tesis.asesores}
+                    carreraId={carreraId}
                   />
                 </div>
               )}

@@ -37,6 +37,8 @@ interface ModalAsignarMiembroJuradoProps {
   cantMiembrosJuradoDisp: number;
   onAsignar: (profesores: number[]) => Promise<void>;
   miembrosJurado?: { id: number; nombre: string; tipo: string }[];
+  asesores?: { id: number; nombre: string; tipo: string }[];
+  carreraId?: number;
 }
 
 export default function ModalAsignarMiembroJurado({
@@ -47,6 +49,8 @@ export default function ModalAsignarMiembroJurado({
   cantMiembrosJuradoDisp,
   onAsignar,
   miembrosJurado = [],
+  asesores = [],
+  carreraId,
 }: ModalAsignarMiembroJuradoProps) {
   const [areasEspecialidad, setAreasEspecialidad] = useState<
     AreaEspecialidad[]
@@ -66,7 +70,17 @@ export default function ModalAsignarMiembroJurado({
     const fetchAreas = async () => {
       try {
         const areas = await getAllAreasEspecialidad();
-        setAreasEspecialidad(areas);
+        //filtramos las areas que no son de la carrera del tema
+        console.log("Áreas de especialidad:", areas);
+        console.log("Carrera del tema:", carreraId);
+        const areasFiltradas = areas.filter(
+          (area) => area.idCarrera === carreraId || area.idCarrera === null,
+        );
+        console.log(
+          "Áreas de especialidad filtradas por carrera:",
+          areasFiltradas,
+        );
+        setAreasEspecialidad(areasFiltradas);
       } catch (error) {
         console.error("Error fetching áreas de especialidad:", error);
       }
@@ -79,8 +93,11 @@ export default function ModalAsignarMiembroJurado({
           (profesor) =>
             !miembrosJurado.some((miembro) => miembro.id === profesor.id),
         );
-        setProfesores(profesoresFiltrados);
-        setProfesoresSeleccionados(profesoresFiltrados);
+        const profesoresFiltradosV = profesoresFiltrados.filter(
+          (profesor) => !asesores.some((asesor) => asesor.id === profesor.id),
+        );
+        setProfesores(profesoresFiltradosV);
+        setProfesoresSeleccionados(profesoresFiltradosV);
         // console.log("Profesores:", profesores);
       } catch (error) {
         console.error("Error fetching profesores:", error);
