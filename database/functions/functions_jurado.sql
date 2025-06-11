@@ -1303,3 +1303,56 @@ BEGIN
     LIMIT 1;
 END;
 $$;
+
+CREATE OR REPLACE PROCEDURE insertar_revision_criterio_exposicion_por_jurado_id_por_tema_id(
+    p_tema_id INTEGER,
+    p_miembro_jurado_id INTEGER
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_exposicion RECORD;
+    v_criterio RECORD;
+    v_exposicion_x_tema_id INTEGER;
+BEGIN
+    FOR v_exposicion IN
+        SELECT exposicion_id
+        FROM exposicion
+        WHERE etapa_formativa_x_ciclo_id = 
+            (SELECT etapa_formativa_x_ciclo_id 
+             FROM etapa_formativa_x_ciclo_x_tema 
+             WHERE tema_id = p_tema_id 
+             ORDER BY etapa_formativa_x_ciclo_id DESC 
+             LIMIT 1)
+        AND activo = true
+    LOOP
+        SELECT exposicion_x_tema_id 
+        INTO v_exposicion_x_tema_id
+        FROM exposicion_x_tema
+        WHERE exposicion_id = v_exposicion.exposicion_id
+        AND tema_id = p_tema_id;
+
+        FOR v_criterio IN
+            SELECT criterio_exposicion_id
+            FROM criterio_exposicion
+            WHERE exposicion_id = v_exposicion.exposicion_id
+        LOOP
+            INSERT INTO revision_criterio_x_exposicion (
+                exposicion_x_tema_id,
+                criterio_exposicion_id,
+                usuario_id,
+                activo,
+                fecha_creacion,
+                fecha_modificacion
+            ) VALUES (
+                v_exposicion_x_tema_id,
+                v_criterio.criterio_exposicion_id,
+                p_miembro_jurado_id,
+                TRUE,
+                CURRENT_TIMESTAMP,
+                CURRENT_TIMESTAMP
+            );
+        END LOOP;
+    END LOOP;
+END
+$$;
