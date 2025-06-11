@@ -18,7 +18,7 @@ import pucp.edu.pe.sgta.service.inter.UsuarioService;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/notifications")
+@RequestMapping("/notifications")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class NotificacionController {
