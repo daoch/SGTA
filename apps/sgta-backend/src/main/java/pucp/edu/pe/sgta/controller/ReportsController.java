@@ -152,6 +152,8 @@ public class ReportsController {
 
    @GetMapping("/entregables")
     public ResponseEntity<List<EntregableEstudianteDto>> getEntregablesEstudiante(HttpServletRequest request) {
+        System.out.println(" Entró al método con Cognito ID (sin parámetro)");
+
         try {
             String idUsuario = jwtService.extractSubFromRequest(request);
             List<EntregableEstudianteDto> entregables = reportingService.getEntregablesEstudiante(idUsuario);
@@ -162,6 +164,21 @@ public class ReportsController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
+
+    @GetMapping("/entregables/{idUsuario}")
+    public ResponseEntity<List<EntregableEstudianteDto>> getEntregablesAlumnoSeleccionado(
+            @PathVariable Integer idUsuario) {
+        System.out.println(" Entró al método con ID explícito: " + idUsuario);
+        try {
+            List<EntregableEstudianteDto> entregables = reportingService.getEntregablesEstudianteById(idUsuario);
+            return ResponseEntity.ok(entregables);
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
 
 
     /** RF9: entregables con criterios de un tesista - NO AGREGAR ID COGNITO*/

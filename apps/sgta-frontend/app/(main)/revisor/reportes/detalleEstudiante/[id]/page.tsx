@@ -91,10 +91,14 @@ export default function ReviewerStudentDetails({ params }: { params: Promise<{ i
   const selectedStudentData = students.find((student) => student.usuarioId === parseInt(id));
   ///const selectedStudentData = students.find((student) => student.usuarioId === studentId);
 
+   
+
 
   if (loading) {
     return <div>Cargando estudiantes...</div>;
   }
+
+  
 
   return (
     <div className="space-y-6">
@@ -189,9 +193,13 @@ export default function ReviewerStudentDetails({ params }: { params: Promise<{ i
             </TabsList>
 
             <TabsContent value="timeline">
-              {user && <LineaTiempoReporte user={user} />}
+                {user && (
+                  <LineaTiempoReporte
+                    selectedStudentId={selectedStudentData?.usuarioId ?? null}
+                    user={user}
+                  />
+                )}
             </TabsContent>
-
             <TabsContent value="consolidated">
               <ConsolidatedView studentId={selectedStudentData?.usuarioId} />
             </TabsContent>
@@ -200,4 +208,5 @@ export default function ReviewerStudentDetails({ params }: { params: Promise<{ i
       </Card>
     </div>
   );
+
 }
