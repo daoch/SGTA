@@ -156,15 +156,6 @@ const MisTemasPage = () => {
               <CardDescription>Temas que has propuesto</CardDescription>
             </CardHeader>
             <CardContent>
-              {/*<PendientesCotesistasCard
-                propuestasPendientes={propuestasPendientes}
-                onView={(id) => {
-                  const found = propuestas.find((p) => p.id === id);
-                  if (found) setSelectedPropuesta(found);
-                }}
-                onDelete={() => {}}
-              />*/}
-              <div className="mt-6" />
               <PropuestasTable />
             </CardContent>
           </Card>

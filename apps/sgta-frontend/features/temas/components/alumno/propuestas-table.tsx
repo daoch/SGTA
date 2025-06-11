@@ -22,15 +22,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import {
   Table,
@@ -65,13 +57,27 @@ interface PropuestasTableProps {
   filter?: string;
 }
 
+interface PropuestaPendiente {
+  id: string;
+  titulo: string;
+  area: string;
+  estudiantes: string[];
+  codigos: string[];
+  postulaciones: number;
+  fechaLimite: string;
+  tipo: string;
+  descripcion: string;
+  objetivos: string;
+  tesistas: Usuario[];
+}
+
 export function PropuestasTable({ filter }: PropuestasTableProps) {
   const [propuestas, setPropuestas] = useState<Proyecto[]>([]);
   const [areaFilter, setAreaFilter] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");  const [selectedPropuesta, setSelectedPropuesta] = useState<Proyecto | null>(null);
   const [openDialog, setOpenDialog] = useState(false); 
-  const [pendientesCotesistas, setPendientesCotesistas] = useState<any[]>([]);
-  const [selectedPendiente, setSelectedPendiente] = useState<any | null>(null);
+  const [pendientesCotesistas, setPendientesCotesistas] = useState<Proyecto[]>([]);
+  const [selectedPendiente, setSelectedPendiente] = useState<Proyecto | null>(null);
   const [openPendienteModal, setOpenPendienteModal] = useState(false);
   const [confirmAccion, setConfirmAccion] = useState<{ accion: 0 | 1; id: string } | null>(null);
 
@@ -152,9 +158,18 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
     };
     fetchPendientes();
   }, []);
-  const pendientesAdaptados = pendientesCotesistas.map((p) => ({
-    ...p,
-    tesistas: p.tesistas, 
+  const pendientesAdaptados: PropuestaPendiente[] = pendientesCotesistas.map((p) => ({
+    id: String(p.id),
+    titulo: p.titulo,
+    area: p.subareas[0]?.nombre || "—",
+    estudiantes: p.tesistas.map(t => `${t.nombres} ${t.primerApellido}`),
+    codigos: p.tesistas.map(t => String(t.id)),
+    postulaciones: p.cantPostulaciones ?? 0,
+    fechaLimite: p.fechaLimite,
+    tipo: p.tipo,
+    descripcion: p.resumen ?? "",
+    objetivos: p.objetivos ?? "",
+    tesistas: p.tesistas,
   }));
 
   const propuestasFiltradas = propuestas.filter((p) => {
@@ -208,34 +223,21 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
 
   return (
     <>
-      {/* FILTROS */}
-      <div className="mb-6 flex flex-col md:flex-row gap-4">
-        <Input
-          type="search"
-          placeholder="Buscar por título o estudiante..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full"
-        />
-        <div className="w-full md:w-64">
-          <Select
-            value={areaFilter || "all"}
-            onValueChange={(v) => setAreaFilter(v === "all" ? null : v)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Filtrar por área" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas las áreas</SelectItem>
-              {areasUnicas.map((area) => (
-                <SelectItem key={area} value={area}>
-                  {area}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      {pendientesAdaptados.length > 0 && (
+        <div className=" mb-4">
+          <PendientesCotesistasCard
+            propuestasPendientes={pendientesAdaptados}
+            onView={(id) => {
+              const found = pendientesCotesistas.find((p) => String(p.id) === id);
+              if (found) {
+                setSelectedPendiente(found);
+                setOpenPendienteModal(true);
+              }
+            }}
+            onDelete={(accion, id) => setConfirmAccion({ accion: accion as 0 | 1, id })}
+          />
         </div>
-      </div>
+      )}
 
       {/* TABLA */}
       <div className="rounded-md border">
@@ -520,23 +522,6 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
         </Table>
       </div>
 
-      {/* PROPUESTAS PENDIENTES */}
-      {pendientesAdaptados.length > 0 && (
-        <div className="mb-8">
-          <PendientesCotesistasCard
-            propuestasPendientes={pendientesAdaptados}
-            onView={(id) => {
-              const found = pendientesCotesistas.find((p) => String(p.id) === id);
-              if (found) {
-                setSelectedPendiente(found);
-                setOpenPendienteModal(true);
-              }
-            }}
-            onDelete={(accion, id) => setConfirmAccion({ accion: accion as 0 | 1, id })}
-          />
-        </div>
-      )}
-
       <Dialog open={openPendienteModal} onOpenChange={setOpenPendienteModal}>
         <DialogContent className="w-[90vw] max-w-3xl sm:max-w-3xl">
           <DialogHeader>
@@ -556,7 +541,7 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
                   <h3 className="font-medium">Área</h3>
                   <p>
                     {Array.isArray(selectedPendiente.subareas) && selectedPendiente.subareas.length > 0
-                      ? selectedPendiente.subareas.map((s: any) => s.nombre).join(", ")
+                      ? selectedPendiente.subareas.map((s: SubAreaConocimiento) => s.nombre).join(", ")
                       : "—"}
                   </p>
                 </div>
@@ -577,7 +562,7 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
               </div>
               <div className="space-y-1">
                 <h3 className="font-medium">Cotesistas</h3>
-                {selectedPendiente.tesistas.map((t: any, i: number) => (
+                {selectedPendiente.tesistas.map((t: Usuario, i: number) => (
                   <div
                     key={i}
                     className="p-3 bg-gray-50 rounded-md border flex justify-between items-center"
