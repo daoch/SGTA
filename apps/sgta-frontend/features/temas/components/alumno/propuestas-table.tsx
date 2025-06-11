@@ -41,6 +41,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useAuthStore } from "@/features/auth/store/auth-store";
+import { PendientesCotesistasCard } from "@/features/temas/components/alumno/pendientes-cotesistas-card";
 import { Proyecto, SubAreaConocimiento, Usuario } from "@/features/temas/types/propuestas/entidades";
 import { Eye, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -69,6 +70,10 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
   const [areaFilter, setAreaFilter] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");  const [selectedPropuesta, setSelectedPropuesta] = useState<Proyecto | null>(null);
   const [openDialog, setOpenDialog] = useState(false); 
+  const [pendientesCotesistas, setPendientesCotesistas] = useState<any[]>([]);
+  const [selectedPendiente, setSelectedPendiente] = useState<any | null>(null);
+  const [openPendienteModal, setOpenPendienteModal] = useState(false);
+  const [confirmAccion, setConfirmAccion] = useState<{ accion: 0 | 1; id: string } | null>(null);
 
   useEffect(() => {
     async function fetchPropuestas() {
@@ -125,6 +130,33 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
     fetchPropuestas();
   }, []);
 
+  useEffect(() => {
+    const fetchPendientes = async () => {
+      try {
+        const { idToken } = useAuthStore.getState?.() ?? {};
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/temas/listarPropuestasPorCotesista`,
+          {
+            headers: {
+              Authorization: `Bearer ${idToken}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        setPendientesCotesistas(data);
+      } catch (e) {
+        setPendientesCotesistas([]);
+      }
+    };
+    fetchPendientes();
+  }, []);
+  const pendientesAdaptados = pendientesCotesistas.map((p) => ({
+    ...p,
+    tesistas: p.tesistas, 
+  }));
+
   const propuestasFiltradas = propuestas.filter((p) => {
     if (filter && p.tipo !== filter) return false;
     if (areaFilter && p.subareas[0]?.nombre !== areaFilter) return false;
@@ -140,6 +172,35 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
     }
     return true;
   });
+
+  const handleAccionCotesista = async (accion: 0 | 1, id?: string) => {
+    const temaId = id || selectedPendiente?.id;
+    if (!temaId) return;
+    try {
+      const { idToken } = useAuthStore.getState();
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/temas/aceptarPropuestaCotesista?temaId=${temaId}&accion=${accion}`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      if (!res.ok) throw new Error("Error en la API");
+      toast.success(
+        accion === 0 ? "Propuesta aceptada" : "Propuesta rechazada"
+      );
+      setOpenPendienteModal(false);
+      setPendientesCotesistas((prev) =>
+        prev.filter((p) => String(p.id) !== String(temaId))
+      );
+    } catch (err) {
+      toast.error("No se pudo completar la acción");
+      console.error(err);
+    }
+  };
 
   const areasUnicas = Array.from(
     new Set(propuestas.map((p) => p.subareas[0]?.nombre || "—"))
@@ -284,17 +345,17 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
                           <div className="space-y-6 py-4">
                             {/* Título y área */}
                             <div className="space-y-1">
-                              <h3 className="font-medium">Título</h3>
+                              <Label>Título</Label>
                               <p>{selectedPropuesta.titulo}</p>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                               <div className="space-y-1">
-                                <h3 className="font-medium">Área</h3>
+                                <Label>Área</Label>
                                 <p>{selectedPropuesta.subareas[0]?.nombre || "—"}</p>
                               </div>
                               {selectedPropuesta.fechaLimite && (
                                 <div className="space-y-1">
-                                  <h3 className="font-medium">Fecha Límite</h3>
+                                  <Label>Fecha Límite</Label>
                                   <p>
                                     {new Date(
                                       selectedPropuesta.fechaLimite
@@ -307,7 +368,7 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
                             {/* Tipo y postulaciones */}
                             <div className="grid grid-cols-2 gap-4">
                               <div className="space-y-1">
-                                <h3 className="font-medium">Tipo</h3>
+                                <Label>Tipo</Label>
                                 <Badge
                                   variant="outline"
                                   className={
@@ -322,17 +383,17 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
                                 </Badge>
                               </div>
                               <div className="space-y-1">
-                                <h3 className="font-medium">Postulaciones</h3>
+                                <Label>Postulaciones</Label>
                                 <p>{selectedPropuesta.cantPostulaciones}</p>
                               </div>
                             </div>
 
                             {/* Cotesistas invitados pendientes */}
-                            {selectedPropuesta.tesistas.filter((t) => !t.creador && t.rechazado !== true).length > 0 && (
+                            {selectedPropuesta.tesistas.filter((t) => !t.creador).length > 0 && (
                               <div className="space-y-2">
-                                <h3 className="font-medium">Cotesistas</h3>
+                                <Label>Cotesistas</Label>
                                 {selectedPropuesta.tesistas
-                                  .filter((t) => !t.creador && t.rechazado !== true)
+                                  .filter((t) => !t.creador)
                                   .map((t, i) => (
                                     <div
                                       key={i}
@@ -341,17 +402,19 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
                                       <span>
                                         {t.nombres} {t.primerApellido}
                                       </span>
-                                      {!t.asignado && (
-                                        <Badge className="bg-yellow-100 text-yellow-800">
-                                          Pendiente
-                                        </Badge>
+                                      {t.rol === "Alumno" && t.rechazado === true && (
+                                        <Badge className="bg-red-100 text-red-800">Rechazado</Badge>
+                                      )}
+                                      {t.rol === "Tesista" && t.rechazado === false && t.asignado === false &&(
+                                        <Badge className="bg-green-100 text-green-800">Aceptado</Badge>
+                                      )}
+                                      {t.rol === "Alumno" && t.rechazado === false && t.asignado === false &&(
+                                        <Badge className="bg-yellow-100 text-yellow-800">Pendiente</Badge>
                                       )}
                                     </div>
                                   ))}
                               </div>
                             )}
-
-                            {/* Coasesores (asesores propuestos) */}
                             {(() => {
                               const cp = selectedPropuesta!;
                               const visibles = cp.tipo === "preinscrito"
@@ -371,7 +434,6 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
 
                             <Separator />
 
-                            {/* Resumen y objetivos */}
                             <div className="space-y-2">
                               <Label>Resumen</Label>
                               <div className="p-3 bg-gray-50 rounded-md border">
@@ -457,7 +519,149 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
           </TableBody>
         </Table>
       </div>
+
+      {/* PROPUESTAS PENDIENTES */}
+      {pendientesAdaptados.length > 0 && (
+        <div className="mb-8">
+          <PendientesCotesistasCard
+            propuestasPendientes={pendientesAdaptados}
+            onView={(id) => {
+              const found = pendientesCotesistas.find((p) => String(p.id) === id);
+              if (found) {
+                setSelectedPendiente(found);
+                setOpenPendienteModal(true);
+              }
+            }}
+            onDelete={(accion, id) => setConfirmAccion({ accion: accion as 0 | 1, id })}
+          />
+        </div>
+      )}
+
+      <Dialog open={openPendienteModal} onOpenChange={setOpenPendienteModal}>
+        <DialogContent className="w-[90vw] max-w-3xl sm:max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Detalle de Propuesta Pendiente</DialogTitle>
+            <DialogDescription>
+              Información completa sobre la propuesta pendiente de aceptación
+            </DialogDescription>
+          </DialogHeader>
+          {selectedPendiente && (
+            <div className="space-y-6 py-4">
+              <div className="space-y-1">
+                <h3 className="font-medium">Título</h3>
+                <p>{selectedPendiente.titulo}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <h3 className="font-medium">Área</h3>
+                  <p>
+                    {Array.isArray(selectedPendiente.subareas) && selectedPendiente.subareas.length > 0
+                      ? selectedPendiente.subareas.map((s: any) => s.nombre).join(", ")
+                      : "—"}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <h3 className="font-medium">Fecha Límite</h3>
+                  <p>
+                    {selectedPendiente.fechaLimite
+                      ? new Date(selectedPendiente.fechaLimite).toLocaleDateString()
+                      : "-"}
+                  </p>
+                </div>
+              </div>
+              <div className="space-y-1">
+                <h3 className="font-medium">Resumen</h3>
+                <div className="p-3 bg-gray-50 rounded-md border">
+                  <p>{selectedPendiente.resumen}</p>
+                </div>
+              </div>
+              <div className="space-y-1">
+                <h3 className="font-medium">Cotesistas</h3>
+                {selectedPendiente.tesistas.map((t: any, i: number) => (
+                  <div
+                    key={i}
+                    className="p-3 bg-gray-50 rounded-md border flex justify-between items-center"
+                  >
+                    <span>
+                      {t.nombres} {t.primerApellido}
+                    </span>
+                    {t.rol === "Alumno" && t.rechazado === true && (
+                      <Badge className="bg-red-100 text-red-800">Rechazado</Badge>
+                    )}
+                    {t.rol === "Tesista" && t.rechazado === false && (
+                      <Badge className="bg-green-100 text-green-800">Aceptado</Badge>
+                    )}
+                    {t.rol === "Alumno" && t.rechazado === false && (
+                      <Badge className="bg-yellow-100 text-yellow-800">Pendiente</Badge>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div className="space-y-1">
+                <h3 className="font-medium">Objetivos</h3>
+                <div className="p-3 bg-gray-50 rounded-md border">
+                  <p>{selectedPendiente.objetivos}</p>
+                </div> 
+              </div>
+              <Separator />
+              <DialogFooter className="flex flex-row gap-2 justify-end">
+                <Button
+                  variant="default"
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                  onClick={() => handleAccionCotesista(0)}
+                >
+                  Aceptar
+                </Button>
+                <Button
+                  variant="default"
+                  className="bg-red-600 hover:bg-red-700 text-white"
+                  onClick={() => handleAccionCotesista(1)}
+                >
+                  Rechazar
+                </Button>
+                <Button variant="outline" onClick={() => setOpenPendienteModal(false)}>
+                  Cerrar
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={!!confirmAccion} onOpenChange={(open) => !open && setConfirmAccion(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {confirmAccion?.accion === 0 ? "¿Aceptar propuesta?" : "¿Rechazar propuesta?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmAccion?.accion === 0
+                ? "¿Estás seguro que deseas aceptar esta propuesta? Esta acción no se puede deshacer."
+                : "¿Estás seguro que deseas rechazar esta propuesta? Esta acción no se puede deshacer."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setConfirmAccion(null)}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className={confirmAccion?.accion === 0 ? "bg-green-600 text-white hover:bg-green-700" : "bg-red-600 text-white hover:bg-red-700"}
+              onClick={async () => {
+                if (confirmAccion) {
+                  await handleAccionCotesista(confirmAccion.accion, confirmAccion.id);
+                  setConfirmAccion(null);
+                }
+              }}
+            >
+              {confirmAccion?.accion === 0 ? "Aceptar" : "Rechazar"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <Toaster position="bottom-right" richColors />
     </>
   );
 }
+
+
