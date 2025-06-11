@@ -89,7 +89,6 @@ const MiCronogramaPage = () => {
   //const userId = 1;
   const [userId, setUserId] = useState<number | null>(null);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const hasFetchedId = useRef(false);
 
   /*
   const loadUsuarioId = async () => {
@@ -179,7 +178,7 @@ const MiCronogramaPage = () => {
     tesista: 'X',
   }));
 
-  console.log(eventosParaCalendario);
+  //console.log(eventosParaCalendario);
 
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const [modoExportacion, setModoExportacion] = useState<"actual" | "rango">("actual");
