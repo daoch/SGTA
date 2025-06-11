@@ -346,15 +346,15 @@ export default function SolicitudDetalle({
 
       if (modalType === "aprobar") {
         if (rol === "asesor")
-          await aceptarSolicitudPorAsesor(idSolicitud, user?.id || "");
+          await aceptarSolicitudPorAsesor(idSolicitud, comentario);
         if (rol === "coordinador") {
-          await aceptarSolicitudPorCoordinador(idSolicitud, user?.id || "");
+          await aceptarSolicitudPorCoordinador(idSolicitud, comentario);
         }
       } else if (modalType === "rechazar") {
         if (rol === "asesor")
-          await rechazarSolicitudPorAsesor(idSolicitud, user?.id || "");
+          await rechazarSolicitudPorAsesor(idSolicitud, comentario);
         if (rol === "coordinador")
-          await rechazarSolicitudPorCoordinador(idSolicitud, user?.id || "");
+          await rechazarSolicitudPorCoordinador(idSolicitud, comentario);
       }
       console.log(`Solicitud ${modalType}da con comentario:`, comentario);
       setIsSuccess(true);
