@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/dialog";
 import { Eye } from "lucide-react";
 
-import { getEntregablesAlumno } from "@/features/reportes/services/report-services";
+import { getEntregablesAlumno, getEntregablesAlumnoSeleccionado  } from "@/features/reportes/services/report-services";
 import type { User } from "@/features/auth/types/auth.types";
 
 import { useAuthStore } from "@/features/auth/store/auth-store";
@@ -71,9 +71,12 @@ interface TimelineEvent {
 
 interface Props {
   user: User;
+  selectedStudentId?: number | null;
 }
 
-export function LineaTiempoReporte({ user }: Props) {
+export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
+
+  console.log("Valor de selectedStudentId recibido en línea de tiempo:", selectedStudentId);
   const [activeTab, setActiveTab] = useState<"entregas" | "avances">("entregas");
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -82,12 +85,14 @@ export function LineaTiempoReporte({ user }: Props) {
   const [isCriteriosModalOpen, setIsCriteriosModalOpen] = useState(false);
   const [selectedCriterios, setSelectedCriterios] = useState<Criterio[]>([]);
 
+  
+
   useEffect(() => {
     const fetchEntregables = async () => {
       try {
-
-
-        const data = await getEntregablesAlumno();
+        const data = selectedStudentId != null
+        ? await getEntregablesAlumnoSeleccionado(selectedStudentId)
+        : await getEntregablesAlumno();
 
         type RawEntregable = {
           nombreEntregable: string;

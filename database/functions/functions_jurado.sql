@@ -834,7 +834,7 @@ BEGIN
     RETURN QUERY
 	Select c.* from Carrera as c
 	where c.activo = true
-	and c.carrera_id in(select uc.usuario_carrera_id
+	and c.carrera_id in(select uc.carrera_id
 						from usuario_carrera as uc
 						where uc.usuario_id = p_usuario_id
 						and uc.activo = true);

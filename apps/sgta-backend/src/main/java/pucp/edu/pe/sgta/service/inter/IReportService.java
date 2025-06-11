@@ -74,6 +74,7 @@ public interface IReportService {
      * Entregables de un estudiante (tesista).
      */
     List<EntregableEstudianteDto> getEntregablesEstudiante(String usuarioId);
+    List<EntregableEstudianteDto> getEntregablesEstudianteById(int usuarioId);
 
     /**
      * Entregables con criterios de un estudiante.
