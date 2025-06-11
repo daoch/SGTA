@@ -204,4 +204,6 @@ public interface TemaService {
 
 	void registrarSolicitudesModificacionTema(Integer temaId, String usuarioId, List<Map<String, Object>> solicitudes);
 
+	Integer actualizarTemaLibre(TemaDto dto);
+
 }
