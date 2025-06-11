@@ -104,6 +104,7 @@ END;
 $$;
 
 DROP FUNCTION IF EXISTS obtener_observaciones_por_entregable_y_tema;
+
 CREATE OR REPLACE FUNCTION obtener_observaciones_por_entregable_y_tema(
     p_entregable_id INTEGER,
     p_tema_id INTEGER
@@ -121,7 +122,8 @@ RETURNS TABLE (
     nombres VARCHAR,
     primer_apellido VARCHAR,
     segundo_apellido VARCHAR,
-    roles_usuario TEXT
+    roles_usuario TEXT,
+    corregido BOOLEAN
 ) AS
 $$
 BEGIN
@@ -145,7 +147,8 @@ BEGIN
             WHERE ut.usuario_id = u.usuario_id
               AND ut.tema_id = p_tema_id
               AND ut.activo = TRUE
-        )
+        ),
+        o.corregido
     FROM entregable_x_tema et
     JOIN version_documento vd ON vd.entregable_x_tema_id = et.entregable_x_tema_id
     JOIN revision_documento r ON r.version_documento_id = vd.version_documento_id
