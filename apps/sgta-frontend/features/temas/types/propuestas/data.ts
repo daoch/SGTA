@@ -349,6 +349,7 @@ export async function buscarUsuarioPorToken() {
         "Content-Type": "application/json",
       },
     });
+    console.log({ idToken });
 
     if (!response.ok) {
       throw new Error("Error al obtener el usuario.");
