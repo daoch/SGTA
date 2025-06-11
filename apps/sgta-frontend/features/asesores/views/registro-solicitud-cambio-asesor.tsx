@@ -33,14 +33,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/features/auth";
 import { cn } from "@/lib/utils";
-import {
-  ArrowLeft,
-  BookX,
-  Check,
-  ChevronsUpDown,
-  Loader2,
-  UserX,
-} from "lucide-react";
+import { ArrowLeft, Check, ChevronsUpDown, Loader2, UserX } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -232,10 +225,10 @@ export default function RegistrarSolicitudCambioAsesor() {
       </div>
     );
 
+  /*
   if (!temaActual || !asesorActual) {
     return (
       <div className="relative h-screen w-full flex items-center justify-center flex-col gap-4">
-        {/* Texto de regreso en la esquina superior izquierda */}
         <div
           onClick={() => router.back()}
           className="absolute top-4 left-4 cursor-pointer flex items-center text-sm font-semibold text-black hover:underline"
@@ -262,7 +255,7 @@ export default function RegistrarSolicitudCambioAsesor() {
         </span>
       </div>
     );
-  }
+  }*/
 
   return (
     <div className="container mx-auto py-8 max-w-3xl">
