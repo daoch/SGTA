@@ -3678,3 +3678,50 @@ BEGIN
      ORDER BY fecha_creacion;  -- o por fecha_modificacion, según tu preferencia
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION validar_parametro_por_nombre_carrera(
+    p_nombre_parametro TEXT,
+    p_carrera_id INTEGER,
+    p_usuario_id INTEGER
+) RETURNS BOOLEAN AS $$
+DECLARE
+    limite INTEGER;
+    cantidad INTEGER;
+BEGIN
+    -- Get the limit for the parameter and career
+
+    SELECT cp.valor::INTEGER INTO limite
+    FROM carrera_parametro_configuracion cp
+    JOIN parametro_configuracion p ON p.parametro_configuracion_id = cp.parametro_configuracion_id
+    WHERE p.nombre = p_nombre_parametro
+      AND cp.carrera_id = p_carrera_id
+      AND cp.activo = TRUE
+    LIMIT 1;
+
+    IF limite IS NULL THEN
+        RETURN TRUE; -- No limit set, allow by default
+    END IF;
+
+    -- Count the postulaciones
+    IF p_nombre_parametro = 'Limite Postulaciones Alumno' THEN
+        SELECT COUNT(*) INTO cantidad
+        FROM usuario_tema ut
+        JOIN tema t on t.tema_id = ut.tema_id
+        JOIN estado_tema et ON et.estado_tema_id = t.estado_tema_id
+        WHERE et.nombre = 'PROPUESTO_LIBRE'
+        AND ut.usuario_id = p_usuario_id;
+    ELSEIF p_nombre_parametro = 'Limite Propuestas Alumno' THEN
+    -- Count the proposals
+        SELECT COUNT(*) INTO cantidad
+        FROM usuario_tema ut
+        JOIN tema t on t.tema_id = ut.tema_id
+        JOIN estado_tema et ON et.estado_tema_id = t.estado_tema_id
+        WHERE (et.nombre = 'PROPUESTO_DIRECTO' or et.nombre = 'PROPUESTO_GENERAL')
+        AND ut.usuario_id = p_usuario_id;
+    ELSE
+        RETURN TRUE;
+    END IF;
+    
+    RETURN cantidad < limite;
+END;
+$$ LANGUAGE plpgsql;
