@@ -1,3 +1,4 @@
+import { useAuthStore } from "@/features/auth";
 import axiosInstance from "@/lib/axios/axios-instance";
 
 export interface Student {
@@ -75,17 +76,20 @@ export interface Meeting {
 
 export const advisorService = {
   // Obtener lista de tesistas del asesor
-  getAdvisorStudents: async (advisorId: string): Promise<Student[]> => {
-    if (!advisorId) throw new Error("El ID del asesor es requerido");
-    const response = await axiosInstance.get(`/api/v1/reports/advisors/tesistas?asesorId=${advisorId}`);
+  getAdvisorStudents: async (): Promise<Student[]> => {
+    const { idToken } = useAuthStore.getState();
+    const response = await axiosInstance.get("/reports/advisors/tesistas", {
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+      }
+    });
     return response.data;
   },
 
   // Obtener detalles de un tesista específico
-  getStudentDetails: async (studentId: string): Promise<StudentDetail> => {
-    if (!studentId) throw new Error("El ID del tesista es requerido");
+  getStudentDetails: async (studentId: number): Promise<StudentDetail> => {
     try {
-      const response = await axiosInstance.get(`api/v1/reports/tesistas/detalle?tesistaId=${studentId}`);
+      const response = await axiosInstance.get(`/reports/tesistas/detalle?tesistaId=${studentId}`);
       return response.data;
     } catch (error) {
       console.error("Error detallado al obtener datos del tesista:", error);
@@ -94,16 +98,14 @@ export const advisorService = {
   },
 
   // Obtener cronograma/timeline del tesista
-  getStudentTimeline: async (studentId: string): Promise<TimelineEvent[]> => {
-    if (!studentId) throw new Error("El ID del tesista es requerido");
-    const response = await axiosInstance.get(`api/v1/reports/tesistas/cronograma?tesistaId=${studentId}`);
+  getStudentTimeline: async (studentId: number): Promise<TimelineEvent[]> => {
+    const response = await axiosInstance.get(`/reports/tesistas/cronograma?tesistaId=${studentId}`);
     return response.data;
   },
 
   // Obtener reuniones del tesista
-  getStudentMeetings: async (studentId: string): Promise<Meeting[]> => {
-    if (!studentId) throw new Error("El ID del tesista es requerido");
-    const response = await axiosInstance.get(`api/v1/reports/tesistas/reuniones?tesistaId=${studentId}`);
+  getStudentMeetings: async (studentId: number): Promise<Meeting[]> => {
+    const response = await axiosInstance.get(`/reports/tesistas/reuniones?tesistaId=${studentId}`);
     return response.data;
   }
 }; 

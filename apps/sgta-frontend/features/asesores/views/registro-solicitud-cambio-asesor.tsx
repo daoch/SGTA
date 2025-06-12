@@ -39,18 +39,18 @@ import { useEffect, useRef, useState } from "react";
 import {
   getInformacionTesisPorAlumno,
   registrarSolicitudCambioAsesor,
-} from "../hooks/cambio-asesor/page";
-import { getAsesoresPorFiltros } from "../hooks/directorio/page";
-import { getIdByCorreo } from "../hooks/perfil/perfil-apis";
+} from "../services/cambio-asesor-services";
+import { getAsesoresPorFiltros } from "../services/directorio-services";
+import { getIdByCorreo } from "../services/perfil-services";
 import { TemaActual } from "../types/cambio-asesor/entidades";
 import { Asesor } from "../types/perfil/entidades";
 
 export default function RegistrarSolicitudCambioAsesor() {
+  const router = useRouter();
   const { user } = useAuth();
   const [userId, setUserId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const hasFetchedId = useRef(false);
-  const router = useRouter();
   const [motivo, setMotivo] = useState("");
   const [nuevoAsesor, setNuevoAsesor] = useState<Asesor | null>(null);
   const [asesores, setAsesores] = useState<Asesor[]>([]);
@@ -224,6 +224,38 @@ export default function RegistrarSolicitudCambioAsesor() {
         </div>
       </div>
     );
+
+  /*
+  if (!temaActual || !asesorActual) {
+    return (
+      <div className="relative h-screen w-full flex items-center justify-center flex-col gap-4">
+        <div
+          onClick={() => router.back()}
+          className="absolute top-4 left-4 cursor-pointer flex items-center text-sm font-semibold text-black hover:underline"
+        >
+          <svg
+            className="w-4 h-4 mr-1"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15 19l-7-7 7-7"
+            />
+          </svg>
+          Regresar
+        </div>
+
+        <BookX className="h-16 w-16 text-muted-foreground" />
+        <span className="text-muted-foreground text-lg text-center px-4">
+          Usted no cuenta con una tesis o asesor registrado actual
+        </span>
+      </div>
+    );
+  }*/
 
   return (
     <div className="container mx-auto py-8 max-w-3xl">

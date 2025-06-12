@@ -1,6 +1,7 @@
 "use client";
 import "react-pdf-highlighter/dist/style.css";
 
+import AppLoading from "@/components/loading/app-loading";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,14 +17,13 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/use-toast";
 import HighlighterPdfViewer from "@/features/revision/components/HighlighterPDFViewer";
-import axiosInstance from "@/lib/axios/axios-instance";
 import { AlertTriangle, ArrowLeft, CheckCircle, FileWarning, Quote, Sparkles, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PDFDocument } from "pdf-lib";
 import { useCallback, useEffect, useState } from "react";
 import { IHighlight } from "react-pdf-highlighter/dist/types";
-import { analizarPlagioArchivoS3, descargarArchivoS3RevisionID, guardarObservacionesRevision, obtenerObservacionesRevision } from "../servicios/revision-service";
+import { analizarPlagioArchivoS3, borrarObservacion, descargarArchivoS3RevisionID, guardarObservacion, obtenerObservacionesRevision } from "../servicios/revision-service";
 // ...otros imports...
 
 // Datos de ejemplo para una revisión específica
@@ -87,6 +87,9 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
   const [tab, setTab] = useState<"revisor" | "plagio" | "ia">("revisor");
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [numPages, setNumPages] = useState<number | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [highlightToDelete, setHighlightToDelete] = useState<string | null>(null);
+  const [isHighlightsLoading, setIsHighlightsLoading] = useState(true);
   interface PlagioDetalle {
     pagina: number; // Si tienes la página real, asígnala aquí
     texto: string;
@@ -165,6 +168,8 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
       } catch (e) {
         console.error("Error al obtener observaciones:", e);
         setHighlights([]);
+      } finally {
+        setIsHighlightsLoading(false);
       }
     }
     fetchObservaciones();
@@ -249,19 +254,6 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
     }
   };*/
 
-  async function actualizarEstadoRevision(revisionId: number, nuevoEstado: string) {
-    try {
-      const response = await axiosInstance.put(`/revision/${revisionId}/estado`, {
-        estado: nuevoEstado
-      });
-      return response.data; // o response.status si solo te importa el status
-    } catch (error) {
-      console.error("Error en la actualización:", error);
-      throw error;
-    }
-  }
-
-
   const handleFormatoValidoChange = () => {
     setRevision({
       ...revision,
@@ -280,25 +272,48 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
   };
   const handleDeleteHighlight = (highlightId: string) => {
     setHighlights(prev => prev.filter(h => h.id !== highlightId));
+    setHighlightToDelete(highlightId);
+    setShowDeleteDialog(true);
   };
-
+  const confirmDeleteHighlight = async () => {
+    if (!highlightToDelete) return;
+    try {
+      await borrarObservacion(Number(highlightToDelete)); // Convierte el string a number si tu backend espera un número
+      setHighlights(prev => prev.filter(h => h.id !== highlightToDelete));
+      setShowDeleteDialog(false);
+      setHighlightToDelete(null);
+      toast({ title: "Observación eliminada" });
+    } catch {
+      toast({ title: "Error al eliminar la observación", variant: "destructive" });
+    }
+  };
   const handleUpdateHighlight = (updatedHighlight: IHighlight) => {
     setHighlights(prev => prev.map(h =>
       h.id === updatedHighlight.id ? updatedHighlight : h
     ));
   };
 
-  const handleNewHighlight = (highlight: IHighlight) => {
+  const handleNewHighlight = async (highlight: IHighlight) => {
     console.log("New highlight received:", highlight);
-    setHighlights(prev => {
-      // Check if highlight already exists
-      if (prev.some(h => h.id === highlight.id)) {
-        return prev;
-      }
-      const updatedHighlights = [...prev, highlight];
-      console.log("All highlights:", updatedHighlights);
-      return updatedHighlights;
-    });
+
+    // Envía al backend antes de agregar al estado
+    try {
+      const idObservacion = await guardarObservacion(params.id_revision, highlight, 10); // Cambia 10 por el usuarioId real si lo tienes
+      console.log("Observación guardada con ID:", idObservacion);
+      const highlightConIdReal = { ...highlight, id: idObservacion.toString() };
+
+      setHighlights(prev => {
+        // Solo agrega el highlight con el id real
+        const filtered = prev.filter(h => h.id !== highlight.id && h.id !== "");
+        const updatedHighlights = [...filtered, highlightConIdReal];
+        console.log("All highlights:", updatedHighlights);
+        return updatedHighlights;
+      });
+      toast({ title: "Observación guardada" });
+    } catch (error) {
+      toast({ title: "Error al guardar la observación", variant: "destructive" });
+      console.error("Error al guardar la observación:", error);
+    }
   };
   //   const handleAddObservacion = (nuevaObservacion: any) => {
   //     const newId = (revision.observaciones.length + 1).toString();
@@ -338,8 +353,8 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
         },
       }));
 
-      await guardarObservacionesRevision(params.id_revision, highlightsDto, 10); // Asumiendo que el usuario es el asesor con ID 1
-      console.log("Revisión guardada exitosamente");
+      //await guardarObservacionesRevision(params.id_revision, highlightsDto, 10); // Asumiendo que el usuario es el asesor con ID 1
+      //console.log("Revisión guardada exitosamente");
 
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
@@ -544,7 +559,7 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <Card className="min-h-[600px]">
+          <Card className="min-h-[800px]">
             <CardHeader>
               <CardTitle>{revision.titulo}</CardTitle>
               <CardDescription>
@@ -561,16 +576,19 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
                 </div>
               </CardDescription>
             </CardHeader>
-            <CardContent className="relative h-[600px]" >
-              <HighlighterPdfViewer
-                pdfUrl={pdfUrl ?? ""}
-                onAddHighlight={handleNewHighlight}
-                onDeleteHighlight={handleDeleteHighlight}
-                onUpdateHighlight={handleUpdateHighlight}
-                highlights={highlights}
-                scrollToHighlight={activeHighlight}
-              />
-              {/* <PdfViewer pdfUrl="\silabo.PDF" /> */}
+            <CardContent className="relative h-[800px]" >
+              {isHighlightsLoading ? (
+                <AppLoading />
+              ) : (
+                <HighlighterPdfViewer
+                  pdfUrl={pdfUrl ?? ""}
+                  onAddHighlight={handleNewHighlight}
+                  onDeleteHighlight={handleDeleteHighlight}
+                  onUpdateHighlight={handleUpdateHighlight}
+                  highlights={highlights}
+                  scrollToHighlight={activeHighlight}
+                />
+              )}
             </CardContent>
           </Card>
         </div>
@@ -591,8 +609,16 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
                   <TabsTrigger value="ia" className="flex-1">Generado con IA</TabsTrigger>
                 </TabsList>
                 <TabsContent value="revisor">
-                  <div className="space-y-4">
-                    {highlights.map((highlight) => (
+                  <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                    {highlights.slice().sort((a, b) => {
+                      const pageA = a.position.pageNumber ?? 0;
+                      const pageB = b.position.pageNumber ?? 0;
+                      if (pageA !== pageB) return pageA - pageB;
+                      // Si están en la misma página, ordena por y1 (de arriba a abajo)
+                      const yA = a.position.boundingRect?.y1 ?? 0;
+                      const yB = b.position.boundingRect?.y1 ?? 0;
+                      return yA - yB;
+                    }).map((highlight) => (
                       <div
                         key={highlight.id}
                         className="p-3 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors cursor-pointer"
@@ -618,6 +644,7 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
                             onClick={(e) => {
                               e.stopPropagation();
                               handleDeleteHighlight(highlight.id);
+
                             }}
                             className="text-red-500 hover:text-red-700 hover:bg-red-50"
                           >
@@ -747,65 +774,28 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
               </div>
             </CardContent>
           </Card>
-          {revision.estado === "por-aprobar" && (
-            <div className="flex justify-end gap-4 mt-6">
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button variant="default">Aceptar Entregable</Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>¿Estás seguro de aceptar este entregable?</DialogTitle>
-                  </DialogHeader>
-                  <DialogFooter>
-                    <Button variant="outline">Cancelar</Button>
-                    <Button
-                      variant="default"
-                      onClick={async () => {
-                        try {
-                          await actualizarEstadoRevision(params.id_revision, "aprobado");
-                          setRevision({ ...revision, estado: "aprobado" });
-                          toast({ title: "Entregable aprobado" });
-                        } catch {
-                          toast({ title: "Error al aprobar el entregable", variant: "destructive" });
-                        }
-                      }}
-                    >
-                      Confirmar
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button variant="destructive">Rechazar Entregable</Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>¿Estás seguro de rechazar este entregable?</DialogTitle>
-                  </DialogHeader>
-                  <DialogFooter>
-                    <Button
-                      variant="destructive"
-                      onClick={async () => {
-                        try {
-                          await actualizarEstadoRevision(params.id_revision, "rechazado");
-                          setRevision({ ...revision, estado: "rechazado" });
-                          toast({ title: "Entregable rechazado" });
-                        } catch {
-                          toast({ title: "Error al rechazar el entregable", variant: "destructive" });
-                        }
-                      }}
-                    >
-                      Confirmar
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            </div>
-          )}
         </div>
+        <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>¿Eliminar observación?</DialogTitle>
+              <DialogDescription>
+                Esta acción no se puede deshacer. ¿Deseas eliminar la observación seleccionada?
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+                Cancelar
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={confirmDeleteHighlight}
+              >
+                Eliminar
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

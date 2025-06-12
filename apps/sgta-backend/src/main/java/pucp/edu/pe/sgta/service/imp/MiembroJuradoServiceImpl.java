@@ -313,6 +313,10 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
 
                 usuarioXTemaRepository.save(asignacion);
 
+                // llamar al procedure de insertar revision criterio exposicion repository
+                revisionCriterioExposicionRepository
+                                .insertarRevisionCriterioExposicion(temaId, usuarioId);
+
                 return ResponseEntity.ok(Map.of("mensaje", "Jurado asignado correctamente"));
         }
 
@@ -778,17 +782,16 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                                                                         usuarioXTemaOptional.get().getId());
 
                                         List<CriterioExposicion> criterios = criterioExposicionRepository
-                                                .findByExposicion_IdAndActivoTrue(exposicion.getId());
-
+                                                        .findByExposicion_IdAndActivoTrue(exposicion.getId());
 
                                         boolean criteriosCalificados = criterios.stream()
-                                                .map(criterio -> revisionCriterioExposicionRepository
-                                                        .findByExposicionXTema_IdAndCriterioExposicion_IdAndUsuario_Id(
-                                                                exposicionXTema.getId(),
-                                                                criterio.getId(),
-                                                                userDtoCognito.getId()
-                                                        ))
-                                                .allMatch(opt -> opt.isPresent() && opt.get().getNota() != null);
+                                                        .map(criterio -> revisionCriterioExposicionRepository
+                                                                        .findByExposicionXTema_IdAndCriterioExposicion_IdAndUsuario_Id(
+                                                                                        exposicionXTema.getId(),
+                                                                                        criterio.getId(),
+                                                                                        userDtoCognito.getId()))
+                                                        .allMatch(opt -> opt.isPresent()
+                                                                        && opt.get().getNota() != null);
 
                                         // Crear DTO
                                         ExposicionTemaMiembrosDto dto = new ExposicionTemaMiembrosDto();
@@ -1044,17 +1047,15 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                                 Exposicion exposicion = exposicionXTema.getExposicion();
 
                                 List<CriterioExposicion> criterios = criterioExposicionRepository
-                                        .findByExposicion_IdAndActivoTrue(exposicion.getId());
-
+                                                .findByExposicion_IdAndActivoTrue(exposicion.getId());
 
                                 boolean criteriosCalificados = criterios.stream()
-                                        .allMatch(criterio -> revisionCriterioExposicionRepository
-                                                .findByExposicionXTema_IdAndCriterioExposicion_Id(
-                                                        exposicionXTema.getId(),
-                                                        criterio.getId()
-                                                )
-                                                .stream()
-                                                .anyMatch(revi -> revi.getNota() != null));
+                                                .allMatch(criterio -> revisionCriterioExposicionRepository
+                                                                .findByExposicionXTema_IdAndCriterioExposicion_Id(
+                                                                                exposicionXTema.getId(),
+                                                                                criterio.getId())
+                                                                .stream()
+                                                                .anyMatch(revi -> revi.getNota() != null));
 
                                 if (criteriosCalificados) {
                                         eventPublisher.publishEvent(new ExposicionCalificadaEvent(exposicionXTema));

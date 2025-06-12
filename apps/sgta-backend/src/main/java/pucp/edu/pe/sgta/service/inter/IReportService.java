@@ -72,8 +72,12 @@ public interface IReportService {
 
     /**
      * Entregables de un estudiante (tesista).
+     * @param cognitoSub el sub (ID) del usuario en Cognito
      */
+
     List<EntregableEstudianteDto> getEntregablesEstudiante(String usuarioId);
+    List<EntregableEstudianteDto> getEntregablesEstudianteById(int usuarioId);
+
 
     /**
      * Entregables con criterios de un estudiante.
