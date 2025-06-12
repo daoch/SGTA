@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/components/ui/use-toast";
 import { getUnreadNotifications, markAsRead } from "@/features/notifications/services/notifications";
-import { Bell, Loader2, X } from "lucide-react";
+import { Bell, CheckCheck, Loader2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Notificacion } from "../types/Notification.type";
 
@@ -38,6 +38,32 @@ export function NotificationsDropdown() {
       );
     } catch (error) {
       console.error("Error al marcar notificación como leída:", error);
+    }
+  };
+
+  const limpiarTodasLasNotificaciones = async () => {
+    if (!notificaciones || notificaciones.length === 0) return;
+    
+    try {
+      // Marcar todas como leídas en paralelo
+      const promises = notificaciones.map(notificacion => markAsRead(notificacion.notificacionId));
+      await Promise.all(promises);
+      
+      setNotificaciones([]);
+      toast({
+        title: "Notificaciones limpiadas",
+        description: "Todas las notificaciones han sido marcadas como leídas",
+        variant: "default",
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error("Error al limpiar todas las notificaciones:", error);
+      toast({
+        title: "Error",
+        description: "No se pudieron limpiar todas las notificaciones",
+        variant: "destructive",
+        duration: 3000,
+      });
     }
   };
 
@@ -138,7 +164,17 @@ export function NotificationsDropdown() {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-80">
-          <DropdownMenuLabel>Notificaciones</DropdownMenuLabel>
+          <div className="flex items-center justify-between px-2 py-1.5">
+            <DropdownMenuLabel className="p-0">Notificaciones</DropdownMenuLabel>
+            <button
+              onClick={limpiarTodasLasNotificaciones}
+              className="flex items-center gap-1 px-2 py-1 text-xs rounded hover:bg-gray-100 transition-colors text-gray-700 hover:text-gray-900"
+              title="Marcar todas como leídas"
+            >
+              <CheckCheck className="h-3 w-3" />
+              <span>Limpiar</span>
+            </button>
+          </div>
           <DropdownMenuSeparator />
           {renderNotificacionesContent()}
         </DropdownMenuContent>

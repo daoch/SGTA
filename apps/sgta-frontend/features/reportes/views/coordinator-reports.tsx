@@ -2,21 +2,12 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/features/auth/hooks/use-auth";
-import { BarChartHorizontal, Calendar, ChevronDown, ChevronsUpDown, ChevronUp, Download, FileSpreadsheet, Loader2, PieChart, Search, X } from "lucide-react";
+import { BarChartHorizontal, ChevronDown, ChevronsUpDown, ChevronUp, Download, FileSpreadsheet, Loader2, PieChart, Search, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
   Bar,
@@ -75,7 +66,6 @@ export function CoordinatorReports() {
   const { user } = useAuth();
   const [semesterFilter, setSemesterFilter] = useState("2025-1");
   const [themeAreaChartType, setThemeAreaChartType] = useState("horizontal-bar"); // 'horizontal-bar', 'pie'
-  const [scheduleFrequency, setScheduleFrequency] = useState("weekly");
 
   // Data for thesis topics by area
   const [thesisTopicsByArea, setThesisTopicsByArea] = useState<TopicArea[]>([]);
@@ -799,60 +789,6 @@ export function CoordinatorReports() {
               </SelectContent>
             </Select>
 
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="outline" className="gap-2 text-base">
-                  <Calendar className="h-4 w-4" />
-                  Programar Reportes
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle className="text-lg">Programar Envío de Reportes</DialogTitle>
-                  <DialogDescription className="text-base">
-                    Configura la frecuencia con la que deseas recibir reportes automáticos en tu correo.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="schedule-frequency" className="text-base">Frecuencia de envío</Label>
-                    <Select value={scheduleFrequency} onValueChange={setScheduleFrequency}>
-                      <SelectTrigger id="schedule-frequency" className="text-base">
-                        <SelectValue placeholder="Selecciona frecuencia" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="daily" className="text-base">Diario</SelectItem>
-                        <SelectItem value="weekly" className="text-base">Semanal</SelectItem>
-                        <SelectItem value="monthly" className="text-base">Mensual</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="report-format" className="text-base">Formato de reporte</Label>
-                    <Select defaultValue="pdf">
-                      <SelectTrigger id="report-format" className="text-base">
-                        <SelectValue placeholder="Selecciona formato" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="pdf" className="text-base">PDF</SelectItem>
-                        <SelectItem value="excel" className="text-base">Excel</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email-input" className="text-base">Correo electrónico</Label>
-                    <input
-                      id="email-input"
-                      type="email"
-                      className="w-full px-3 py-2 border rounded-md text-base"
-                      defaultValue="coordinador@pucp.edu.pe"
-                      readOnly
-                    />
-                  </div>
-                  <Button className="w-full mt-4 text-base">Guardar configuración</Button>
-                </div>
-              </DialogContent>
-            </Dialog>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -889,7 +825,7 @@ export function CoordinatorReports() {
                   </SelectContent>
                 </Select>
               </div>
-              <p className="text-sm text-gray-600 pt-2">{topicsDescriptions[selectedTopicsChart as keyof typeof topicsDescriptions]}</p>
+              <p className="text-base text-gray-600 pt-2">{topicsDescriptions[selectedTopicsChart as keyof typeof topicsDescriptions]}</p>
             </CardHeader>
             <CardContent className="p-0">
               {selectedTopicsChart === "areas" ? (
@@ -941,7 +877,7 @@ export function CoordinatorReports() {
                   </SelectContent>
                 </Select>
               </div>
-              <p className="text-sm text-gray-600 pt-2">{distributionDescriptions[selectedDistributionChart as keyof typeof distributionDescriptions]}</p>
+              <p className="text-base text-gray-600 pt-2">{distributionDescriptions[selectedDistributionChart as keyof typeof distributionDescriptions]}</p>
             </CardHeader>
             <CardContent className="p-0">
               {renderDistributionContent()}
@@ -949,29 +885,31 @@ export function CoordinatorReports() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="performance">
+        <TabsContent value="performance" className="space-y-4">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-lg">Desempeño de Asesores</CardTitle>
-              <p className="text-sm text-gray-600 pt-2">
+              <p className="text-base text-gray-600 pt-2">
                 Promedio de avance de tesistas por asesor
               </p>
             </CardHeader>
-            <CardContent className="px-6 py-4">
+            <CardContent className="px-6">
               {renderPerformanceContent()}
               {advisorPerformance.length > 0 && (
-                <div className="mt-8">
-                  <h3 className="text-base font-medium mb-4">Comparativa de Eficiencia</h3>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <RechartsBarChart data={advisorPerformance} margin={{top: 5, right: 30, left: 20, bottom: 20}}>
+                <div className="mt-8 -mx-6">
+                  <div className="px-6">
+                    <h3 className="text-base font-medium mb-6">Comparativa de Eficiencia</h3>
+                  </div>
+                  <ResponsiveContainer width="100%" height={Math.max(450, advisorPerformance.length * 60 + 50)}>
+                    <RechartsBarChart layout="vertical" data={advisorPerformance} margin={{top: 20, right: 30, left: 30, bottom: 60}}>
                       <CartesianGrid strokeDasharray="3 3"/>
-                      <XAxis dataKey="name" tickFormatter={toTitleCase} height={60} angle={0} textAnchor="end" tick={{fontSize: 13}}/>
-                      <YAxis yAxisId="left" orientation="left" stroke="#002855" tick={{fontSize: 13}} label={{ value: "Progreso (%)", angle: -90, position: "insideLeft" }} allowDecimals={false}/>
-                      <YAxis yAxisId="right" orientation="right" stroke="#006699" tick={{fontSize: 13}} label={{ value: "Tesistas", angle: 90, position: "insideRight" }} allowDecimals={false}/>
+                      <XAxis xAxisId="left" type="number" orientation="bottom" stroke="#002855" tick={{fontSize: 15}} allowDecimals={false} label={{ value: "Progreso (%)", position: "insideBottom", offset: -10, style: { textAnchor: "middle", fontSize: "14px", fill: "#002855" } }}/>
+                      <XAxis xAxisId="right" type="number" orientation="top" stroke="#006699" tick={{fontSize: 15}} allowDecimals={false} label={{ value: "Número de Tesistas", position: "insideTop", offset: -15, style: { textAnchor: "middle", fontSize: "14px", fill: "#006699" } }}/>
+                      <YAxis type="category" dataKey="name" tickFormatter={toTitleCase} tick={{fontSize: 15}} width={130}/>
                       <Tooltip/>
-                      <Legend wrapperStyle={{fontSize: "13px", marginTop: "10px"}}/>
-                      <Bar yAxisId="left" dataKey="progress" name="Progreso (%)" fill="#002855"/>
-                      <Bar yAxisId="right" dataKey="students" name="Tesistas" fill="#006699"/>
+                      <Legend wrapperStyle={{fontSize: "15px", marginTop: "25px", paddingTop: "15px"}}/>
+                      <Bar xAxisId="left" dataKey="progress" name="Progreso (%)" fill="#002855"/>
+                      <Bar xAxisId="right" dataKey="students" name="Tesistas" fill="#006699"/>
                     </RechartsBarChart>
                   </ResponsiveContainer>
                 </div>
