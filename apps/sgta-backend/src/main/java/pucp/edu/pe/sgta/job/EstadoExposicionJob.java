@@ -1,6 +1,5 @@
 package pucp.edu.pe.sgta.job;
 
-import org.antlr.v4.runtime.atn.SemanticContext.AND;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
