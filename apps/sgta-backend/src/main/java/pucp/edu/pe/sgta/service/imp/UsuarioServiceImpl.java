@@ -614,6 +614,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     /**
      * HU01: Asigna el rol de Asesor a un usuario que debe ser profesor
+     * REFACTORIZADO: Ahora también agrega al usuario al grupo de Cognito 'asesor'.
      */
     @Override
     @Transactional
@@ -644,23 +645,32 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .getSingleResult();
 
         if (count.intValue() == 0) {
-            // 4. Insertar nuevo rol activo
-            String insertSql = "INSERT INTO usuario_rol (usuario_id, rol_id, activo, fecha_creacion, fecha_modificacion) "
-                    +
+            // 4. Insertar nuevo rol activo en la BD
+            String insertSql = "INSERT INTO usuario_rol (usuario_id, rol_id, activo, fecha_creacion, fecha_modificacion) " +
                     "VALUES (:usuarioId, :rolId, true, NOW(), NOW())";
             em.createNativeQuery(insertSql)
                     .setParameter("usuarioId", userId)
                     .setParameter("rolId", advisorRole.getId())
                     .executeUpdate();
+
+            // 5. Agregar usuario al grupo de Cognito
+            if (user.getIdCognito() != null && !user.getIdCognito().isBlank()) {
+                try {
+                    cognitoService.agregarUsuarioAGrupo(user.getIdCognito(), rolNombre.toLowerCase());
+                    System.out.println("Usuario agregado al grupo de Cognito '" + rolNombre.toLowerCase() + "'.");
+                } catch (Exception e) {
+                    throw new RuntimeException("Error al agregar usuario al grupo de Cognito: " + e.getMessage(), e);
+                }
+            }
             System.out.println("Rol de Asesor asignado exitosamente al usuario ID: " + userId);
         } else {
-            System.out.println(
-                    "El usuario ID: " + userId + " ya tiene el rol de Asesor activo. No se realizó ninguna acción.");
+            System.out.println("El usuario ID: " + userId + " ya tiene el rol de Asesor activo. No se realizó ninguna acción.");
         }
     }
 
     /**
      * HU02: Quita el rol de Asesor a un usuario
+     * REFACTORIZADO: Ahora también elimina al usuario del grupo de Cognito 'asesor'.
      */
     @Override
     @Transactional
@@ -679,14 +689,21 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .getSingleResult();
 
         if (count.intValue() > 0) {
+            // 1. Desactivar rol en la BD
             String updateSql = "UPDATE usuario_rol SET activo = false, fecha_modificacion = NOW() WHERE usuario_id = :usuarioId AND rol_id = :rolId AND activo = true";
-            int updated = em.createNativeQuery(updateSql)
+            em.createNativeQuery(updateSql)
                     .setParameter("usuarioId", userId)
                     .setParameter("rolId", advisorRole.getId())
                     .executeUpdate();
 
-            if (updated == 0) {
-                throw new IllegalStateException("Error al desactivar la relación usuario-rol");
+            // 2. Eliminar usuario del grupo de Cognito
+            if (user.getIdCognito() != null && !user.getIdCognito().isBlank()) {
+                try {
+                    cognitoService.eliminarUsuarioDeGrupo(user.getIdCognito(), rolNombre.toLowerCase());
+                    System.out.println("Usuario eliminado del grupo de Cognito '" + rolNombre.toLowerCase() + "'.");
+                } catch (Exception e) {
+                    throw new RuntimeException("Error al eliminar usuario del grupo de Cognito: " + e.getMessage(), e);
+                }
             }
             System.out.println("Rol de Asesor quitado exitosamente al usuario ID: " + userId);
         } else {
@@ -696,19 +713,17 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     /**
      * HU03: Asigna el rol de Jurado a un usuario que debe ser profesor
+     * REFACTORIZADO: Ahora también agrega al usuario al grupo de Cognito 'jurado'.
      */
     @Override
     @Transactional
     public void assignJuryRoleToUser(Integer userId) {
-        System.out.println("Intentando asignar rol de Jurado al usuario ID: " + userId);
-
-        // 1. Buscar usuario y validar que sea Profesor y activo
+        // 1. Buscar usuario y validar
         Usuario user = usuarioRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado: " + userId));
         if (!user.getActivo()) {
             throw new IllegalArgumentException("El usuario está inactivo");
         }
-
         TipoUsuario tipoUsuario = user.getTipoUsuario();
         if (tipoUsuario == null || !"Profesor".equalsIgnoreCase(tipoUsuario.getNombre())) {
             throw new IllegalArgumentException("Solo los usuarios de tipo Profesor pueden ser asignados como Jurados");
@@ -727,29 +742,36 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .getSingleResult();
 
         if (count.intValue() == 0) {
-            // 4. Insertar el rol
-            String insertSql = "INSERT INTO usuario_rol (usuario_id, rol_id, activo, fecha_creacion, fecha_modificacion) "
-                    +
+            // 4. Insertar el rol en la BD
+            String insertSql = "INSERT INTO usuario_rol (usuario_id, rol_id, activo, fecha_creacion, fecha_modificacion) " +
                     "VALUES (:usuarioId, :rolId, true, NOW(), NOW())";
             em.createNativeQuery(insertSql)
                     .setParameter("usuarioId", userId)
                     .setParameter("rolId", juryRole.getId())
                     .executeUpdate();
+
+            // 5. Agregar usuario al grupo de Cognito
+            if (user.getIdCognito() != null && !user.getIdCognito().isBlank()) {
+                try {
+                    cognitoService.agregarUsuarioAGrupo(user.getIdCognito(), rolNombre.toLowerCase());
+                    System.out.println("Usuario agregado al grupo de Cognito '" + rolNombre.toLowerCase() + "'.");
+                } catch (Exception e) {
+                    throw new RuntimeException("Error al agregar usuario al grupo de Cognito: " + e.getMessage(), e);
+                }
+            }
             System.out.println("Rol de Jurado asignado exitosamente al usuario ID: " + userId);
         } else {
-            System.out.println(
-                    "El usuario ID: " + userId + " ya tiene el rol de Jurado activo. No se realizó ninguna acción.");
+            System.out.println("El usuario ID: " + userId + " ya tiene el rol de Jurado activo. No se realizó ninguna acción.");
         }
     }
 
     /**
      * HU04: Quita el rol de Jurado a un usuario
+     * REFACTORIZADO: Ahora también elimina al usuario del grupo de Cognito 'jurado'.
      */
     @Override
     @Transactional
     public void removeJuryRoleFromUser(Integer userId) {
-        System.out.println("Intentando quitar rol de Jurado al usuario ID: " + userId);
-
         // 1. Buscar usuario
         Usuario user = usuarioRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado: " + userId));
@@ -767,15 +789,21 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .getSingleResult();
 
         if (count.intValue() > 0) {
-            // 4. Desactivar el rol
+            // 4. Desactivar el rol en la BD
             String updateSql = "UPDATE usuario_rol SET activo = false, fecha_modificacion = NOW() WHERE usuario_id = :usuarioId AND rol_id = :rolId AND activo = true";
-            int updated = em.createNativeQuery(updateSql)
+            em.createNativeQuery(updateSql)
                     .setParameter("usuarioId", userId)
                     .setParameter("rolId", juryRole.getId())
                     .executeUpdate();
 
-            if (updated == 0) {
-                throw new IllegalStateException("Error al desactivar la relación usuario-rol");
+            // 5. Eliminar usuario del grupo de Cognito
+            if (user.getIdCognito() != null && !user.getIdCognito().isBlank()) {
+                try {
+                    cognitoService.eliminarUsuarioDeGrupo(user.getIdCognito(), rolNombre.toLowerCase());
+                    System.out.println("Usuario eliminado del grupo de Cognito '" + rolNombre.toLowerCase() + "'.");
+                } catch (Exception e) {
+                    throw new RuntimeException("Error al eliminar usuario del grupo de Cognito: " + e.getMessage(), e);
+                }
             }
             System.out.println("Rol de Jurado quitado exitosamente al usuario ID: " + userId);
         } else {
