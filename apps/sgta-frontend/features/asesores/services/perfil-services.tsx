@@ -108,7 +108,7 @@ export async function getListaTesisPorAsesor(idAsesor: number) {
   }
 }
 
-export async function editarAsesor(asesor: Asesor) {
+export async function editarAsesor(asesor: AsesorPerfil) {
   try {
     console.log("Datos del asesor a editar:", asesor);
     const response = await axiosInstance.put(
