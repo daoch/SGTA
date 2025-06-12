@@ -2430,12 +2430,12 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION listar_postulaciones_alumnos_tema_libre(
-	p_asesor_id integer,
-	p_busqueda text DEFAULT ''::text,
-	p_estado text DEFAULT ''::text,
-	p_fecha_limite date DEFAULT NULL::date,
-	p_limit integer DEFAULT 10,
-	p_offset integer DEFAULT 0)
+    p_asesor_id integer,
+    p_busqueda text DEFAULT ''::text,
+    p_estado text DEFAULT ''::text,
+    p_fecha_limite date DEFAULT NULL::date,
+    p_limit integer DEFAULT 10,
+    p_offset integer DEFAULT 0)
     RETURNS TABLE(tema_id integer, titulo text, area text, codigo text, estudiante text, estudiante_id integer, estado text, fecha_limite date, subareas integer[]) 
     LANGUAGE 'plpgsql'
     COST 100
@@ -2464,49 +2464,50 @@ BEGIN
     ) INTO v_temas_ids;
 
     RETURN QUERY
-	SELECT 
-	    t.tema_id,
-	    t.titulo::TEXT,
-	    string_agg(DISTINCT sa.nombre::TEXT, ', ') AS area,
-	    u.codigo_pucp::TEXT AS codigo,
-	    u.nombres::TEXT AS estudiante,
-	    u.usuario_id AS estudiante_id,
-	    CASE 
-	        WHEN ut.asignado THEN 'Aprobado'
-	        WHEN ut.rechazado THEN 'Rechazado'
-	        ELSE 'Pendiente'
-	    END::TEXT AS estado,
-	    t.fecha_limite::DATE,
-	    ARRAY(
-	        SELECT DISTINCT sact2.sub_area_conocimiento_id
-	        FROM sub_area_conocimiento_tema sact2
-	        WHERE sact2.tema_id = t.tema_id
-	    ) AS subareas
-	FROM usuario_tema ut
-	JOIN tema t ON ut.tema_id = t.tema_id
-	JOIN usuario u ON ut.usuario_id = u.usuario_id
-	LEFT JOIN sub_area_conocimiento_tema sact ON sact.tema_id = t.tema_id
-	LEFT JOIN sub_area_conocimiento sa ON sa.sub_area_conocimiento_id = sact.sub_area_conocimiento_id
-	WHERE t.estado_tema_id = v_estado_tema_id
-	  AND ut.rol_id = v_rol_id
-	  AND t.tema_id = ANY(v_temas_ids)
-	  AND t.activo = true
-	  AND (
-	      p_busqueda IS NULL OR p_busqueda = '' 
-	      OR t.titulo ILIKE '%' || p_busqueda || '%'
-	      OR u.nombres ILIKE '%' || p_busqueda || '%'
-	  )
-	  AND (
-	      p_estado IS NULL OR p_estado = '' 
-	      OR (p_estado = 'Pendiente' AND NOT ut.asignado AND NOT ut.rechazado)
-	      OR (p_estado = 'Aprobado' AND ut.asignado)
-	      OR (p_estado = 'Rechazado' AND ut.rechazado)
-	  )
-	  AND (
-	      p_fecha_limite IS NULL OR t.fecha_limite = p_fecha_limite
-	  )
-	GROUP BY t.tema_id, t.titulo, u.codigo_pucp, u.nombres, u.usuario_id, ut.asignado, ut.rechazado, t.fecha_limite
-	LIMIT p_limit OFFSET p_offset;
+    SELECT 
+        t.tema_id,
+        t.titulo::TEXT,
+        string_agg(DISTINCT sa.nombre::TEXT, ', ') AS area,
+        ut.comentario::TEXT AS codigo,
+        u.nombres::TEXT AS estudiante,
+        u.usuario_id AS estudiante_id,
+        CASE 
+            WHEN ut.asignado THEN 'Aprobado'
+            WHEN ut.rechazado THEN 'Rechazado'
+            ELSE 'Pendiente'
+        END::TEXT AS estado,
+        t.fecha_limite::DATE,
+        ARRAY(
+            SELECT DISTINCT sact2.sub_area_conocimiento_id
+            FROM sub_area_conocimiento_tema sact2
+            WHERE sact2.tema_id = t.tema_id
+        ) AS subareas
+    FROM usuario_tema ut
+    JOIN tema t ON ut.tema_id = t.tema_id
+    JOIN usuario u ON ut.usuario_id = u.usuario_id
+    LEFT JOIN sub_area_conocimiento_tema sact ON sact.tema_id = t.tema_id
+    LEFT JOIN sub_area_conocimiento sa ON sa.sub_area_conocimiento_id = sact.sub_area_conocimiento_id
+    WHERE t.estado_tema_id = v_estado_tema_id
+      AND ut.rol_id = v_rol_id
+      AND t.tema_id = ANY(v_temas_ids)
+      AND t.activo = true
+      AND (
+          p_busqueda IS NULL OR p_busqueda = '' 
+          OR t.titulo ILIKE '%' || p_busqueda || '%'
+          OR u.nombres ILIKE '%' || p_busqueda || '%'
+      )
+      AND (
+          p_estado IS NULL OR p_estado = '' 
+          OR (p_estado = 'Pendiente' AND NOT ut.asignado AND NOT ut.rechazado)
+          OR (p_estado = 'Aprobado' AND ut.asignado)
+          OR (p_estado = 'Rechazado' AND ut.rechazado)
+      )
+      AND (
+          p_fecha_limite IS NULL OR t.fecha_limite = p_fecha_limite
+      )
+      AND ut.activo = true
+    GROUP BY t.tema_id, t.titulo, ut.comentario, u.nombres, u.usuario_id, ut.asignado, ut.rechazado, t.fecha_limite
+    LIMIT p_limit OFFSET p_offset;
 END;
 $BODY$;
 
