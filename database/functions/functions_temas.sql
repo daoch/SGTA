@@ -3422,20 +3422,26 @@ $$;
 CREATE OR REPLACE FUNCTION crear_solicitud_aprobacion_temaV2(p_tema_id INT) RETURNS VOID AS
 $$
 DECLARE
-    v_tipo_solicitud_id   INT;
-    v_estado_solicitud_id INT;
-    v_solicitud_id        INT;
+    v_tipo_solicitud_id      INT;
+    v_estado_solicitud_id    INT;
+    v_rol_destinatario_id    INT;  -- <--- DECLARAR
+    v_rol_remitente_id       INT;  -- <--- DECLARAR
+    v_accion_pendiente_id    INT;  -- <--- DECLARAR
+    v_rol_asesor_id          INT;  -- <--- DECLARAR
+    v_solicitud_id           INT;
 BEGIN
-    -- 1) Obtener IDs
-    SELECT tipo_solicitud_id INTO v_tipo_solicitud_id
+    -- 1) Obtener IDs de catálogos
+    SELECT tipo_solicitud_id
+      INTO v_tipo_solicitud_id
       FROM tipo_solicitud
      WHERE nombre = 'Aprobación de tema (por coordinador)';
 
-    SELECT estado_solicitud_id INTO v_estado_solicitud_id
+    SELECT estado_solicitud_id
+      INTO v_estado_solicitud_id
       FROM estado_solicitud
      WHERE nombre = 'PENDIENTE';
 
-     SELECT rol_solicitud_id
+    SELECT rol_solicitud_id
       INTO v_rol_destinatario_id
       FROM rol_solicitud
      WHERE nombre = 'DESTINATARIO';
@@ -3448,28 +3454,32 @@ BEGIN
     SELECT accion_solicitud_id
       INTO v_accion_pendiente_id
       FROM accion_solicitud
-     WHERE nombre = 'SIN_ACCION';
+     WHERE nombre = 'PENDIENTE_ACCION';
 
-    -- 2) Insertar en SOLICITUD, incluyendo la columna ESTADO
+    SELECT rol_id
+      INTO v_rol_asesor_id
+      FROM rol
+     WHERE nombre = 'Asesor';
+
+    -- 2) Insertar la solicitud
     INSERT INTO solicitud(
         descripcion,
         tipo_solicitud_id,
         tema_id,
         estado_solicitud,
-        estado,        -- ← obligatorio
-        activo         -- ← opcional si no confías en el DEFAULT
-    )
-    VALUES (
+        estado,
+        activo
+    ) VALUES (
         'Solicitud de aprobación de tema por coordinador',
         v_tipo_solicitud_id,
         p_tema_id,
         v_estado_solicitud_id,
-        1,          -- valor para la columna estado
-        TRUE           -- valor para activo (aunque tiene DEFAULT)
+        1,
+        TRUE
     )
     RETURNING solicitud_id INTO v_solicitud_id;
 
-    -- 3) Insertar en usuario_solicitud…
+    -- 3) Destinatarios (coordinadores)
     INSERT INTO usuario_solicitud(
         usuario_id,
         solicitud_id,
@@ -3479,17 +3489,35 @@ BEGIN
     SELECT
         uc.usuario_id,
         v_solicitud_id,
-        rs.rol_solicitud_id,
-        asol.accion_solicitud_id
+        v_rol_destinatario_id,
+        v_accion_pendiente_id
     FROM usuario_carrera uc
-    JOIN rol_solicitud   rs   ON rs.nombre = 'DESTINATARIO'
-    JOIN accion_solicitud asol ON asol.nombre = 'PENDIENTE_ACCION'
     WHERE uc.carrera_id     = (SELECT carrera_id FROM tema WHERE tema_id = p_tema_id)
       AND uc.es_coordinador = TRUE
       AND uc.activo         = TRUE;
 
+    -- 4) Remitente: SOLO el Asesor asignado/activo
+    INSERT INTO usuario_solicitud(
+        usuario_id,
+        solicitud_id,
+        rol_solicitud,
+        accion_solicitud,
+        activo
+    )
+    SELECT
+        ut.usuario_id,
+        v_solicitud_id,
+        v_rol_remitente_id,
+        v_accion_pendiente_id,
+        TRUE
+    FROM usuario_tema ut
+    WHERE ut.tema_id    = p_tema_id
+      AND ut.activo     = TRUE
+      AND ut.asignado   = TRUE
+      AND ut.rol_id     = v_rol_asesor_id;
+
     IF NOT FOUND THEN
-        RAISE EXCEPTION 'No hay coordinador activo para el tema %', p_tema_id;
+        RAISE EXCEPTION 'No hay Asesor activo/asignado para el tema %', p_tema_id;
     END IF;
 END;
 $$ LANGUAGE plpgsql;
