@@ -1413,3 +1413,88 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION listar_sub_areas_conocimiento_perfil_por_usuario(p_usuario_id INTEGER)
+RETURNS TABLE (
+    sub_area_conocimiento_id INTEGER,
+    sub_area_nombre TEXT,
+    area_conocimiento_id INTEGER,
+    area_nombre TEXT
+)
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        sac.sub_area_conocimiento_id,
+        sac.nombre::TEXT AS sub_area_nombre,
+        ac.area_conocimiento_id,
+        ac.nombre::TEXT AS area_nombre
+    FROM
+        sub_area_conocimiento sac 
+        JOIN usuario_sub_area_conocimiento usac 
+            ON sac.sub_area_conocimiento_id = usac.sub_area_conocimiento_id
+        JOIN area_conocimiento ac
+            ON sac.area_conocimiento_id = ac.area_conocimiento_id
+    WHERE
+        usac.usuario_id = p_usuario_id
+        AND usac.activo = true
+        AND sac.activo = true;
+END;
+$$ LANGUAGE plpgsql STABLE;
+
+CREATE OR REPLACE FUNCTION listar_areas_conocimiento_perfil_por_usuario(p_usuario_id INTEGER)
+RETURNS TABLE (
+    area_conocimiento_id INTEGER,
+    nombre TEXT
+)
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        ac.area_conocimiento_id,
+        ac.nombre::TEXT
+    FROM
+        area_conocimiento ac 
+        JOIN usuario_area_conocimiento uac
+            ON ac.area_conocimiento_id = uac.area_conocimiento_id
+    WHERE
+        uac.usuario_id = p_usuario_id
+        AND ac.activo = true
+        AND uac.activo = true;
+END;
+$$ LANGUAGE plpgsql STABLE;
+
+CREATE OR REPLACE FUNCTION listar_enlaces_usuario(p_usuario_id INTEGER)
+RETURNS TABLE (
+    enlace_usuario_id INTEGER,
+    plataforma TEXT,
+    enlace TEXT
+)
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        eu.enlace_usuario_id,
+        eu.plataforma::TEXT,
+        eu.enlace::TEXT
+    FROM
+        enlace_usuario eu
+    WHERE
+        eu.usuario_id = p_usuario_id
+        AND eu.activo = true;
+END;
+$$ LANGUAGE plpgsql STABLE;
+
+CREATE OR REPLACE FUNCTION obtener_id_cognito_por_usuario(p_usuario_id INTEGER)
+RETURNS TEXT
+AS $$
+BEGIN
+    RETURN (
+        SELECT u.id_cognito
+        FROM usuario u
+        WHERE u.usuario_id = p_usuario_id
+    );
+END;
+$$ LANGUAGE plpgsql STABLE;
+
+
+
