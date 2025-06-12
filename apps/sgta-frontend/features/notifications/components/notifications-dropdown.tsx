@@ -104,11 +104,6 @@ export function NotificationsDropdown() {
         setNotificaciones(data);
       } catch (error) {
         console.error("Error al cargar notificaciones:", error);
-        toast({
-          title: "Error",
-          description: "No se pudieron cargar las notificaciones",
-          variant: "destructive",
-        });
       } finally {
         setLoading(false);
       }
