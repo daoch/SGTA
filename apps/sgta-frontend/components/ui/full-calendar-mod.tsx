@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
-import { VariantProps, cva } from 'class-variance-authority';
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { VariantProps, cva } from "class-variance-authority";
 import {
   Locale,
   addDays,
@@ -24,8 +24,8 @@ import {
   subMonths,
   subWeeks,
   subYears,
-} from 'date-fns';
-import { enUS } from 'date-fns/locale/en-US';
+} from "date-fns";
+import { enUS } from "date-fns/locale/en-US";
 import {
   ReactNode,
   createContext,
@@ -39,22 +39,22 @@ import {
 import { useHotkeys } from "react-hotkeys-hook";
 import { es } from "date-fns/locale/es"; // Opcional: para mostrar la fecha en español
 
-const monthEventVariants = cva('size-2 rounded-full', {
+const monthEventVariants = cva("size-2 rounded-full", {
   variants: {
     variant: {
-      default: 'bg-primary',
-      blue: 'bg-blue-500',
-      green: 'bg-green-500',
-      pink: 'bg-pink-500',
-      purple: 'bg-purple-500',
+      default: "bg-primary",
+      blue: "bg-blue-500",
+      green: "bg-green-500",
+      pink: "bg-pink-500",
+      purple: "bg-purple-500",
     },
   },
   defaultVariants: {
-    variant: 'default',
+    variant: "default",
   },
 });
 
-const dayEventVariants = cva('font-bold border-l-4 rounded p-2 text-xs', {
+const dayEventVariants = cva("font-bold border-l-4 rounded p-2 text-xs", {
   variants: {
     variant: {
       default: "bg-muted/30 text-muted-foreground border-muted",
@@ -65,11 +65,11 @@ const dayEventVariants = cva('font-bold border-l-4 rounded p-2 text-xs', {
     },
   },
   defaultVariants: {
-    variant: 'default',
+    variant: "default",
   },
 });
 
-type View = 'day' | 'week' | 'month' | 'year';
+type View = "day" | "week" | "month" | "year";
 
 type ContextType = {
   view: View;
@@ -118,7 +118,7 @@ const Calendar = ({
   defaultDate = new Date(),
   locale = enUS,
   enableHotkeys = true,
-  view: _defaultMode = 'month',
+  view: _defaultMode = "month",
   onEventClick,
   events: defaultEvents = [],
   onChangeView,
@@ -137,19 +137,19 @@ const Calendar = ({
     onChangeView?.(view);
   };
 
-  useHotkeys('m', () => changeView('month'), {
+  useHotkeys("m", () => changeView("month"), {
     enabled: enableHotkeys,
   });
 
-  useHotkeys('w', () => changeView('week'), {
+  useHotkeys("w", () => changeView("week"), {
     enabled: enableHotkeys,
   });
 
-  useHotkeys('y', () => changeView('year'), {
+  useHotkeys("y", () => changeView("year"), {
     enabled: enableHotkeys,
   });
 
-  useHotkeys('d', () => changeView('day'), {
+  useHotkeys("d", () => changeView("day"), {
     enabled: enableHotkeys,
   });
 
@@ -200,7 +200,7 @@ const CalendarViewTrigger = forwardRef<
     </Button>
   );
 });
-CalendarViewTrigger.displayName = 'CalendarViewTrigger';
+CalendarViewTrigger.displayName = "CalendarViewTrigger";
 
 // 2. Luego modifica el componente EventGroup:
 const EventGroup = ({
@@ -326,7 +326,7 @@ const CalendarDayView = ({ tipoUsuario }: { tipoUsuario: string }) => {
 
   const { view, events, date } = useCalendar();
 
-  if (view !== 'day') return null;
+  if (view !== "day") return null;
 
   const hours = [...Array(24)].map((_, i) => setHours(date, i));
 
@@ -377,7 +377,7 @@ const CalendarWeekView = ({ tipoUsuario }: { tipoUsuario: string }) => {
     return daysOfWeek;
   }, [date]);
 
-  if (view !== 'week') return null;
+  if (view !== "week") return null;
 
   return (
     <div className="flex flex-col relative overflow-auto h-full">
@@ -387,19 +387,19 @@ const CalendarWeekView = ({ tipoUsuario }: { tipoUsuario: string }) => {
           <div
             key={date.toString()}
             className={cn(
-              'text-center flex-1 gap-1 pb-2 text-sm text-muted-foreground flex items-center justify-center',
-              [0, 6].includes(i) && 'text-muted-foreground/50'
+              "text-center flex-1 gap-1 pb-2 text-sm text-muted-foreground flex items-center justify-center",
+              [0, 6].includes(i) && "text-muted-foreground/50"
             )}
           >
-            {format(date, 'E', { locale })}
+            {format(date, "E", { locale })}
             <span
               className={cn(
-                'h-6 grid place-content-center',
+                "h-6 grid place-content-center",
                 isToday(date) &&
-                  'bg-primary text-primary-foreground rounded-full size-6'
+                  "bg-primary text-primary-foreground rounded-full size-6"
               )}
             >
-              {format(date, 'd')}
+              {format(date, "d")}
             </span>
           </div>
         ))}
@@ -413,8 +413,8 @@ const CalendarWeekView = ({ tipoUsuario }: { tipoUsuario: string }) => {
             return (
               <div
                 className={cn(
-                  'h-full text-sm text-muted-foreground border-l first:border-l-0',
-                  [0, 6].includes(i) && 'bg-muted/50'
+                  "h-full text-sm text-muted-foreground border-l first:border-l-0",
+                  [0, 6].includes(i) && "bg-muted/50"
                 )}
                 key={format(hours[0], "yyyy-MM-dd")}
               >
@@ -442,10 +442,10 @@ const CalendarMonthView = () => {
   const monthDates = useMemo(() => getDaysInMonth(date), [date]);
   const weekDays = useMemo(() => generateWeekdays(locale), [locale]);
 
-  if (view !== 'month') return null;
+  if (view !== "month") return null;
 
   // Formato modificado para mostrar solo mes y año
-  const mesYAnioActual = format(date, 'MMMM yyyy', { locale: es });
+  const mesYAnioActual = format(date, "MMMM yyyy", { locale: es });
 
   return (
     <div className="h-full flex flex-col">
@@ -459,8 +459,8 @@ const CalendarMonthView = () => {
           <div
             key={day}
             className={cn(
-              'mb-2 text-right text-sm text-muted-foreground pr-2',
-              [0, 6].includes(i) && 'text-muted-foreground/50'
+              "mb-2 text-right text-sm text-muted-foreground pr-2",
+              [0, 6].includes(i) && "text-muted-foreground/50"
             )}
           >
             {day}
@@ -476,18 +476,18 @@ const CalendarMonthView = () => {
           return (
             <div
               className={cn(
-                'ring-1 p-2 text-sm text-muted-foreground ring-border overflow-auto',
-                !isSameMonth(date, _date) && 'text-muted-foreground/50'
+                "ring-1 p-2 text-sm text-muted-foreground ring-border overflow-auto",
+                !isSameMonth(date, _date) && "text-muted-foreground/50"
               )}
               key={_date.toString()}
             >
               <span
                 className={cn(
-                  'size-6 grid place-items-center rounded-full mb-1 sticky top-0',
-                  isToday(_date) && 'bg-primary text-primary-foreground'
+                  "size-6 grid place-items-center rounded-full mb-1 sticky top-0",
+                  isToday(_date) && "bg-primary text-primary-foreground"
                 )}
               >
-                {format(_date, 'd')}
+                {format(_date, "d")}
               </span>
 
               {currentEvents.map((event) => {
@@ -498,7 +498,7 @@ const CalendarMonthView = () => {
                   >
                     <div
                       className={cn(
-                        'shrink-0',
+                        "shrink-0",
                         monthEventVariants({ variant: event.color })
                       )}
                     ></div>
@@ -532,7 +532,7 @@ const CalendarYearView = () => {
 
   const weekDays = useMemo(() => generateWeekdays(locale), [locale]);
 
-  if (view !== 'year') return null;
+  if (view !== "year") return null;
 
   return (
     <div className="grid grid-cols-4 gap-10 overflow-auto h-full">
@@ -557,18 +557,18 @@ const CalendarYearView = () => {
                 <div
                   key={_date.toString()}
                   className={cn(
-                    getMonth(_date) !== i && 'text-muted-foreground'
+                    getMonth(_date) !== i && "text-muted-foreground"
                   )}
                 >
                   <div
                     className={cn(
-                      'aspect-square grid place-content-center size-full tabular-nums',
+                      "aspect-square grid place-content-center size-full tabular-nums",
                       isSameDay(today, _date) &&
                         getMonth(_date) === i &&
-                        'bg-primary text-primary-foreground rounded-full'
+                        "bg-primary text-primary-foreground rounded-full"
                     )}
                   >
-                    {format(_date, 'd')}
+                    {format(_date, "d")}
                   </div>
                 </div>
               );
@@ -587,18 +587,18 @@ const CalendarNextTrigger = forwardRef<
   const { date, setDate, view, enableHotkeys } = useCalendar();
 
   const next = useCallback(() => {
-    if (view === 'day') {
+    if (view === "day") {
       setDate(addDays(date, 1));
-    } else if (view === 'week') {
+    } else if (view === "week") {
       setDate(addWeeks(date, 1));
-    } else if (view === 'month') {
+    } else if (view === "month") {
       setDate(addMonths(date, 1));
-    } else if (view === 'year') {
+    } else if (view === "year") {
       setDate(addYears(date, 1));
     }
   }, [date, view, setDate]);
 
-  useHotkeys('ArrowRight', () => next(), {
+  useHotkeys("ArrowRight", () => next(), {
     enabled: enableHotkeys,
   });
 
@@ -617,7 +617,7 @@ const CalendarNextTrigger = forwardRef<
     </Button>
   );
 });
-CalendarNextTrigger.displayName = 'CalendarNextTrigger';
+CalendarNextTrigger.displayName = "CalendarNextTrigger";
 
 const CalendarPrevTrigger = forwardRef<
   HTMLButtonElement,
@@ -625,18 +625,18 @@ const CalendarPrevTrigger = forwardRef<
 >(({ children, onClick, ...props }, ref) => {
   const { date, setDate, view, enableHotkeys } = useCalendar();
 
-  useHotkeys('ArrowLeft', () => prev(), {
+  useHotkeys("ArrowLeft", () => prev(), {
     enabled: enableHotkeys,
   });
 
   const prev = useCallback(() => {
-    if (view === 'day') {
+    if (view === "day") {
       setDate(subDays(date, 1));
-    } else if (view === 'week') {
+    } else if (view === "week") {
       setDate(subWeeks(date, 1));
-    } else if (view === 'month') {
+    } else if (view === "month") {
       setDate(subMonths(date, 1));
-    } else if (view === 'year') {
+    } else if (view === "year") {
       setDate(subYears(date, 1));
     }
   }, [date, view, setDate]);
@@ -656,7 +656,7 @@ const CalendarPrevTrigger = forwardRef<
     </Button>
   );
 });
-CalendarPrevTrigger.displayName = 'CalendarPrevTrigger';
+CalendarPrevTrigger.displayName = "CalendarPrevTrigger";
 
 const CalendarTodayTrigger = forwardRef<
   HTMLButtonElement,
@@ -664,7 +664,7 @@ const CalendarTodayTrigger = forwardRef<
 >(({ children, onClick, ...props }, ref) => {
   const { setDate, enableHotkeys, today } = useCalendar();
 
-  useHotkeys('t', () => jumpToToday(), {
+  useHotkeys("t", () => jumpToToday(), {
     enabled: enableHotkeys,
   });
 
@@ -686,14 +686,14 @@ const CalendarTodayTrigger = forwardRef<
     </Button>
   );
 });
-CalendarTodayTrigger.displayName = 'CalendarTodayTrigger';
+CalendarTodayTrigger.displayName = "CalendarTodayTrigger";
 
 const CalendarCurrentDate = () => {
   const { date, view } = useCalendar();
 
   return (
     <time dateTime={date.toISOString()} className="tabular-nums">
-      {format(date, view === 'day' ? 'dd MMMM yyyy' : 'MMMM yyyy')}
+      {format(date, view === "day" ? "dd MMMM yyyy" : "MMMM yyyy")}
     </time>
   );
 };
@@ -750,7 +750,7 @@ const generateWeekdays = (locale: Locale) => {
   const daysOfWeek = [];
   for (let i = 0; i < 7; i++) {
     const date = addDays(startOfWeek(new Date(), { weekStartsOn: 0 }), i);
-    daysOfWeek.push(format(date, 'EEEEEE', { locale }));
+    daysOfWeek.push(format(date, "EEEEEE", { locale }));
   }
   return daysOfWeek;
 };

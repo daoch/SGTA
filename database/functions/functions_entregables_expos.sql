@@ -7,6 +7,10 @@ DROP FUNCTION IF EXISTS listar_criterios_exposicion_x_exposicion;
 DROP FUNCTION IF EXISTS listar_entregables_por_usuario;
 DROP FUNCTION IF EXISTS listar_exposiciones_por_usuario;
 DROP FUNCTION IF EXISTS listar_entregables_con_envio_x_etapa_formativa_x_ciclo;
+DROP FUNCTION IF EXISTS listar_tesistas_por_exposicion;
+DROP FUNCTION IF EXISTS listar_tesistas_por_asesor_lite;
+DROP FUNCTION IF EXISTS listar_tesistas_por_reunion;
+DROP FUNCTION IF EXISTS listar_reuniones_por_asesor;
 
 CREATE OR REPLACE FUNCTION listar_entregables_x_etapa_formativa_x_ciclo(etapaFormativaXCicloId INTEGER)
 RETURNS TABLE (
