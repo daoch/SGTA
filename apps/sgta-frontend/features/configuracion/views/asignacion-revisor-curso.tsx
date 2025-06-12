@@ -128,6 +128,7 @@ const AsignacionRevisorCursoPage: React.FC = () => {
         `${exitos} de ${countRevisoresSeleccionados} revisores fueron asignados correctamente.`,
       );
     }
+    setCursoSeleccionado(null);
     setRevisoresSeleccionados([]);
     setLoading(false);
   };
