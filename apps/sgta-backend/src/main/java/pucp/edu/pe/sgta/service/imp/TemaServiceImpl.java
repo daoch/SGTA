@@ -2996,14 +2996,14 @@ public class TemaServiceImpl implements TemaService {
 			String[] asesorNombresArr = (String[]) r[19];
 			String[] asesorCodgio = (String[]) r[20];
 			String[] asesorRol = (String[]) r[21];
-			//Boolean[] asesorAsignadoArr = (Boolean[]) r[26];
+			Boolean[] asesorAsignadoArr = (Boolean[]) r[26];
 			if (asesorIdsArr != null && asesorNombresArr != null) {
 				for (int i = 0; i < asesorIdsArr.length; i++) {
 					UsuarioDto u = new UsuarioDto();
 					u.setId(asesorIdsArr[i]);
 					u.setNombres(asesorNombresArr[i]); // nombre completo (Nombres + Apellidos)
 					//u.setCodigoPucp(asesorCodgio[i]); // código PUCP
-					//u.setAsignado(asesorAsignadoArr[i]); // si está asignado o no
+					u.setAsignado(asesorAsignadoArr[i]); // si está asignado o no
 					// u.setRol(asesorRol[i]);
 					listaAsesores.add(u);
 				}
@@ -3021,13 +3021,13 @@ public class TemaServiceImpl implements TemaService {
 			List<UsuarioDto> listaTesistas = new ArrayList<>();
 			Integer[] tesistaIdsArr = (Integer[]) r[22];
 			String[] tesistaNombresArr = (String[]) r[23];
-			//Boolean[] tesistaAsignadoArr = (Boolean[]) r[27];
+			Boolean[] tesistaAsignadoArr = (Boolean[]) r[27];
 			if (tesistaIdsArr != null && tesistaNombresArr != null) {
 				for (int i = 0; i < tesistaIdsArr.length; i++) {
 					UsuarioDto u = new UsuarioDto();
 					u.setId(tesistaIdsArr[i]);
 					u.setNombres(tesistaNombresArr[i]);
-					//u.setAsignado(tesistaAsignadoArr[i]);
+					u.setAsignado(tesistaAsignadoArr[i]);
 					listaTesistas.add(u);
 				}
 			}
