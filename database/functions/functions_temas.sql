@@ -2305,10 +2305,10 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION crear_tema_libre(p_titulo text, p_resumen text, p_metodologia text, p_objetivos text, p_carrera_id integer, p_fecha_limite date, p_requisitos text, p_sub_areas_conocimiento_ids integer[], p_coasesores_ids integer[]) RETURNS void
-    LANGUAGE plpgsql
-AS
-$$
+CREATE OR REPLACE FUNCTION crear_tema_libre(p_titulo text, p_resumen text, p_metodologia text, p_objetivos text, p_carrera_id integer, p_fecha_limite date, p_requisitos text, p_sub_areas_conocimiento_ids integer[], p_coasesores_ids integer[])
+ RETURNS integer
+ LANGUAGE plpgsql
+AS $function$
 DECLARE
     v_tema_id INT;
     v_now TIMESTAMP := NOW();
@@ -2342,12 +2342,14 @@ BEGIN
 
     -- Separar asesor y coasesores
     v_asesor_id := p_coasesores_ids[1];
-    v_coasesores := CASE
-        WHEN array_length(p_coasesores_ids, 1) > 1 THEN p_coasesores_ids[2:array_length(p_coasesores_ids, 1)]
-        ELSE NULL
-    END;
+   
+    -- Evitar que el asesor esté también como coasesor
+    v_coasesores := ARRAY(
+        SELECT unnest(p_coasesores_ids[2:array_length(p_coasesores_ids, 1)])
+        EXCEPT SELECT p_coasesores_ids[1]
+    );
 
-    -- Insertar el tema con el estado_tema_id
+    -- Insertar el tema
     INSERT INTO tema (
         titulo, resumen, metodologia, objetivos, carrera_id,
         fecha_limite, requisitos, activo, fecha_creacion, fecha_modificacion,
@@ -2384,8 +2386,13 @@ BEGIN
         SELECT
             unnest(v_coasesores), v_tema_id, v_rol_coasesor_id, FALSE, FALSE, FALSE, TRUE, v_now, v_now;
     END IF;
+
+    
+    RETURN v_tema_id;
 END;
-$$;
+$function$
+;
+
 
 CREATE OR REPLACE FUNCTION obtener_temas_por_alumno(p_id_alumno INTEGER)
     RETURNS TABLE
