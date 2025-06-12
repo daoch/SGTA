@@ -338,7 +338,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION listar_tesistas_por_exposicion(exposicionId INTEGER)
+CREATE OR REPLACE FUNCTION listar_tesistas_por_exposicion(exposicionId INTEGER)More actions
 RETURNS TABLE (
     tesista_id INTEGER,
     nombre TEXT,
@@ -362,6 +362,8 @@ BEGIN
         AND ut.rol_id = 4
         AND ut.rechazado = FALSE
         AND ut.activo = TRUE;
+END;
+$$ LANGUAGE plpgsql;
         
 CREATE OR REPLACE FUNCTION obtener_asesor_por_alumno(p_alumno_id INTEGER)
 RETURNS TABLE (
