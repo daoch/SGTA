@@ -25,8 +25,8 @@ export async function getPerfilAsesor(id: number) {
 
 export async function getPerfilAsesorEnlaces(id: number) {
   try {
-    const response = await axiosInstance.get("/usuario/getPerfilAsesor", {
-      params: { id },
+    const response = await axiosInstance.get("/usuario/getPerfilUsuario", {
+      params: { idUsuario: id },
     });
 
     console.log("Respuesta de la API:", response.data);
@@ -112,7 +112,7 @@ export async function editarAsesor(asesor: Asesor) {
   try {
     console.log("Datos del asesor a editar:", asesor);
     const response = await axiosInstance.put(
-      "/usuario/updatePerfilAsesor",
+      "/usuario/updatePerfilUsuario",
       asesor,
     );
     return response.data;
