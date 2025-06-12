@@ -2,19 +2,10 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { advisorService, Student } from "@/features/asesores/services/advisor-service";
 import { cn } from "@/lib/utils";
-import { Activity, BookOpen, Calendar, ChevronDown, ChevronsUpDown, ChevronUp, ExternalLink, Flag, GraduationCap, LayoutGrid, Send, Table } from "lucide-react";
+import { Activity, BookOpen, ChevronDown, ChevronsUpDown, ChevronUp, ExternalLink, Flag, GraduationCap, LayoutGrid, Send, Table } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -159,7 +150,6 @@ export function AdvisorReports() {
   const [deliveryFilter, setDeliveryFilter] = useState<DeliveryFilterType>("all");
   const [careerFilter, setCareerFilter] = useState<CareerFilterType>("all");
   const [stageFilter, setStageFilter] = useState<StageFilterType>("all");
-  const [scheduleFrequency, setScheduleFrequency] = useState("weekly");
   const [showProgressFilter, setShowProgressFilter] = useState(false);
   const [showActivityFilter, setShowActivityFilter] = useState(false);
   const [showDeliveryFilter, setShowDeliveryFilter] = useState(false);
@@ -374,60 +364,6 @@ export function AdvisorReports() {
         <CardHeader>
           <div className="flex justify-between">
             <CardTitle className="text-lg">Resumen de Asesorías</CardTitle>
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="outline" className="gap-2">
-                  <Calendar className="h-4 w-4" />
-                  Programar Reportes
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Programar Envío de Reportes</DialogTitle>
-                  <DialogDescription>
-                    Configura la frecuencia con la que deseas recibir reportes automáticos en tu correo.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <label htmlFor="schedule-frequency" className="text-sm font-medium">Frecuencia de envío</label>
-                    <Select value={scheduleFrequency} onValueChange={setScheduleFrequency}>
-                      <SelectTrigger id="schedule-frequency">
-                        <SelectValue placeholder="Selecciona frecuencia" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="daily">Diario</SelectItem>
-                        <SelectItem value="weekly">Semanal</SelectItem>
-                        <SelectItem value="monthly">Mensual</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <label htmlFor="report-format" className="text-sm font-medium">Formato de reporte</label>
-                    <Select defaultValue="pdf">
-                      <SelectTrigger id="report-format">
-                        <SelectValue placeholder="Selecciona formato" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="pdf">PDF</SelectItem>
-                        <SelectItem value="excel">Excel</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <label htmlFor="email-input" className="text-sm font-medium">Correo electrónico</label>
-                    <input
-                      id="email-input"
-                      type="email"
-                      className="w-full px-3 py-2 border rounded-md"
-                      defaultValue="asesor@pucp.edu.pe"
-                      readOnly
-                    />
-                  </div>
-                  <Button className="w-full mt-4">Guardar configuración</Button>
-                </div>
-              </DialogContent>
-            </Dialog>
           </div>
         </CardHeader>
         <CardContent>
