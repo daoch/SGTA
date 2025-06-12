@@ -1,5 +1,6 @@
 package pucp.edu.pe.sgta.service.imp;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
@@ -479,7 +480,7 @@ public class TemaServiceImpl implements TemaService {
 			Integer temaId) {
 		UsuarioDto usuarioDto = usuarioService.findByCognitoId(idUsuario);
 		Integer idUsuarioCreador = usuarioDto.getId();
-		crearSolicitudTemaCoordinador(
+		crearSolicitudTemaCoordinadorV2(
 				temaRepository.findById(temaId)
 						.orElseThrow(() -> new EntityNotFoundException("Tema no encontrado con ID: " + temaId)),
 				idUsuarioCreador,
@@ -493,12 +494,39 @@ public class TemaServiceImpl implements TemaService {
 			Integer temaId) {
 		UsuarioDto usuarioDto = usuarioService.findByCognitoId(idUsuario);
 		Integer idUsuarioCreador = usuarioDto.getId();
-		crearSolicitudTemaCoordinador(
+		crearSolicitudTemaCoordinadorV2(
 				temaRepository.findById(temaId)
 						.orElseThrow(() -> new EntityNotFoundException("Tema no encontrado con ID: " + temaId)),
 				idUsuarioCreador,
 				comentario,
 				"Solicitud de cambio de resumen");
+	}
+
+	@Transactional
+	private void crearSolicitudTemaCoordinadorV2(
+			Tema tema,
+			Integer idUsuarioCreador,
+			String comentario,
+			String tipoSolicitudNombre) {
+		try {
+			entityManager
+				.createNativeQuery(
+					"SELECT crear_solicitud_tema_coordinador(" +
+					"    :p_tema_id, " +
+					"    :p_usuario_id, " +
+					"    :p_comentario, " +
+					"    :p_tipo_solicitud_nombre" +
+					")")
+				.setParameter("p_tema_id", tema.getId())
+				.setParameter("p_usuario_id", idUsuarioCreador)
+				.setParameter("p_comentario", comentario)
+				.setParameter("p_tipo_solicitud_nombre", tipoSolicitudNombre)
+				.getSingleResult();
+		} catch (Exception ex) {
+			throw new RuntimeException(
+				"Error al crear solicitud de '" + tipoSolicitudNombre +
+				"' para tema " + tema.getId() + ": " + ex.getMessage(), ex);
+		}
 	}
 
 	private void crearSolicitudTemaCoordinador(Tema tema,
@@ -529,6 +557,9 @@ public class TemaServiceImpl implements TemaService {
 		RolSolicitud rolRemitente = rolSolicitudRepository
 				.findByNombre(RolSolicitudEnum.REMITENTE.name())
 				.orElseThrow(() -> new RuntimeException("Rol destinatario no encontrado"));
+		RolSolicitud rolDestinatario = rolSolicitudRepository
+				.findByNombre(RolSolicitudEnum.DESTINATARIO.name())
+				.orElseThrow(() -> new RuntimeException("Rol destinatario no encontrado"));		
 		AccionSolicitud accionPendiente = accionSolicitudRepository
 				.findByNombre(AccionSolicitudEnum.PENDIENTE_ACCION.name())
 				.orElseThrow(() -> new RuntimeException("Accion pendiente_aprobacion no encontrado"));
@@ -1604,51 +1635,54 @@ public class TemaServiceImpl implements TemaService {
 	}
 
 	@Override
-	public void crearTemaLibre(TemaDto dto, String asesorId) {
+	public Integer crearTemaLibre(TemaDto dto, String asesorId) {
 
-		UsuarioDto usuDto = usuarioService.findByCognitoId(asesorId);
+        UsuarioDto usuDto = usuarioService.findByCognitoId(asesorId);
 
-		try {
-			// Obtener IDs de subáreas y coasesores
-			Integer[] subareaIds = dto.getSubareas() != null
-					? dto.getSubareas().stream().map(sa -> sa.getId()).toArray(Integer[]::new)
-					: null;
+        Integer temaId;
+        try {
+            // Obtener IDs de subáreas y coasesores
+            Integer[] subareaIds = dto.getSubareas() != null
+                    ? dto.getSubareas().stream().map(sa -> sa.getId()).toArray(Integer[]::new)
+                    : null;
 
-			Integer[] coasesorIds = dto.getCoasesores() != null
-					? dto.getCoasesores().stream().map(user -> user.getId()).toArray(Integer[]::new)
-					: null;
+            Integer[] coasesorIds = dto.getCoasesores() != null
+                    ? dto.getCoasesores().stream().map(user -> user.getId()).toArray(Integer[]::new)
+                    : null;
 
-			// Insertar el ID del asesor actual (usuDto) en la posición 0
-			Integer[] coasesoresConAsesor = new Integer[coasesorIds.length + 1];
-			coasesoresConAsesor[0] = usuDto.getId();
-			System.arraycopy(coasesorIds, 0, coasesoresConAsesor, 1, coasesorIds.length);
+            // Insertar el ID del asesor actual (usuDto) en la posición 0
+            Integer[] coasesoresConAsesor = new Integer[coasesorIds.length + 1];
+            coasesoresConAsesor[0] = usuDto.getId();
+            System.arraycopy(coasesorIds, 0, coasesoresConAsesor, 1, coasesorIds.length);
 
-			// Validar asesor/coasesores
-			if (coasesoresConAsesor == null || coasesorIds.length < 1) {
-				throw new IllegalArgumentException("Debe haber al menos un asesor (en coasesores).");
-			}
+            // Validar asesor/coasesores
+            if (coasesoresConAsesor == null || coasesorIds.length < 1) {
+                throw new IllegalArgumentException("Debe haber al menos un asesor (en coasesores).");
+            }
 
-			// Llamada a la función de base de datos
-			entityManager.createNativeQuery(
-					"SELECT crear_tema_libre(:titulo, :resumen, :metodologia, :objetivos, :carreraId, :fechaLimite, :requisitos, :subareaIds, :coasesorIds)")
-					.setParameter("titulo", dto.getTitulo())
-					.setParameter("resumen", dto.getResumen())
-					.setParameter("metodologia", dto.getMetodologia())
-					.setParameter("objetivos", dto.getObjetivos())
-					.setParameter("carreraId", dto.getCarrera() != null ? dto.getCarrera().getId() : null)
-					.setParameter("fechaLimite",
-							dto.getFechaLimite() != null ? dto.getFechaLimite().toLocalDate() : null)
-					.setParameter("requisitos", dto.getRequisitos() != null ? dto.getRequisitos() : "")
-					.setParameter("subareaIds", subareaIds)
-					.setParameter("coasesorIds", coasesoresConAsesor)
-					.getSingleResult();
+            // Llamada a la función de base de datos
+            temaId = (Integer) entityManager.createNativeQuery(
+                            "SELECT crear_tema_libre(:titulo, :resumen, :metodologia, :objetivos, :carreraId, :fechaLimite, :requisitos, :subareaIds, :coasesorIds)")
+                    .setParameter("titulo", dto.getTitulo())
+                    .setParameter("resumen", dto.getResumen())
+                    .setParameter("metodologia", dto.getMetodologia())
+                    .setParameter("objetivos", dto.getObjetivos())
+                    .setParameter("carreraId", dto.getCarrera() != null ? dto.getCarrera().getId() : null)
+                    .setParameter("fechaLimite",
+                            dto.getFechaLimite() != null ? dto.getFechaLimite().toLocalDate() : null)
+                    .setParameter("requisitos", dto.getRequisitos() != null ? dto.getRequisitos() : "")
+                    .setParameter("subareaIds", subareaIds)
+                    .setParameter("coasesorIds", coasesoresConAsesor)
+                    .getSingleResult();
 
-			logger.info("Tema creado exitosamente: " + dto.getTitulo());
-		} catch (Exception e) {
-			logger.severe("Error al crear tema: " + e.getMessage());
-			throw new RuntimeException("No se pudo crear el tema", e);
-		}
-	}
+            logger.info("Tema creado exitosamente: " + dto.getTitulo());
+        } catch (Exception e) {
+            logger.severe("Error al crear tema: " + e.getMessage());
+            throw new RuntimeException("No se pudo crear el tema", e);
+        }
+
+        return temaId;
+    }
 
 	@Override
 	public TemaDto buscarTemaPorId(Integer idTema) throws SQLException {
@@ -3220,5 +3254,74 @@ public class TemaServiceImpl implements TemaService {
 
 		return proposals;
 	}
+
+	@Transactional
+	@Override
+	public void registrarSolicitudesModificacionTema(Integer temaId, String usuarioId, List<Map<String, Object>> solicitudes) {
+		try {
+			UsuarioDto usuDto = usuarioService.findByCognitoId(usuarioId); // JWT te da String, pero BD espera int
+
+			String solicitudesJson = objectMapper.writeValueAsString(solicitudes); // Convierte la lista a JSON
+
+			Query query = entityManager.createNativeQuery(
+					"SELECT insertar_solicitudes_modificacion_tema(:temaId, :usuarioId, CAST(:solicitudes AS jsonb))"
+			);
+			query.setParameter("temaId", temaId);
+			query.setParameter("usuarioId", usuDto.getId());
+			query.setParameter("solicitudes", solicitudesJson);
+			query.getSingleResult();
+		} catch (JsonProcessingException e) {
+			throw new RuntimeException("Error al convertir solicitudes a JSON", e);
+		}
+    }
+
+
+	@Override
+	public Integer actualizarTemaLibre(TemaDto dto) {
+		Integer temaId;
+
+		try {
+			// Validar que el temaId esté presente
+			if (dto.getId() == null) {
+				throw new IllegalArgumentException("Debe proporcionar el ID del tema a actualizar.");
+			}
+
+			// Obtener IDs de subáreas (puede ser null)
+			Integer[] subareaIds = dto.getSubareas() != null
+					? dto.getSubareas().stream().map(sa -> sa.getId()).toArray(Integer[]::new)
+					: null;
+
+			Integer[] coasesorIds = dto.getCoasesores() != null
+					? dto.getCoasesores().stream().map(user -> user.getId()).toArray(Integer[]::new)
+					: null;
+
+			
+			temaId = (Integer) entityManager.createNativeQuery(
+							"SELECT actualizar_tema_libre(:temaId, :titulo, :resumen, :metodologia, :objetivos, :carreraId, :fechaLimite, :requisitos, :subareaIds, :coasesorIds)")
+					.setParameter("temaId", dto.getId())
+					.setParameter("titulo", dto.getTitulo())
+					.setParameter("resumen", dto.getResumen())
+					.setParameter("metodologia", dto.getMetodologia())
+					.setParameter("objetivos", dto.getObjetivos())
+					.setParameter("carreraId", dto.getCarrera() != null ? dto.getCarrera().getId() : null)
+					.setParameter("fechaLimite", dto.getFechaLimite() != null ? dto.getFechaLimite().toLocalDate() : null)
+					.setParameter("requisitos", dto.getRequisitos() != null ? dto.getRequisitos() : "")
+					.setParameter("subareaIds", subareaIds)
+					.setParameter("coasesorIds", coasesorIds)
+					.getSingleResult();
+
+
+			logger.info("Tema actualizado exitosamente: " + dto.getTitulo());
+		} catch (Exception e) {
+			logger.severe("Error al actualizar tema: " + e.getMessage());
+			throw new RuntimeException("No se pudo actualizar el tema", e);
+		}
+
+		return temaId;
+	}
+
+
+
+
 
 }

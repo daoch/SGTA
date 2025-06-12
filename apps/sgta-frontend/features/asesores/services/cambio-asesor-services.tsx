@@ -6,8 +6,8 @@ import {
   SolicidudRegistro,
   SolicitudCambioAsesorResumen,
   TemaActual,
-} from "../../types/cambio-asesor/entidades";
-import { Asesor } from "../../types/perfil/entidades";
+} from "../types/cambio-asesor/entidades";
+import { Asesor } from "../types/perfil/entidades";
 
 export interface InformacionTesisResponse {
   temaActual: TemaActual;
@@ -55,6 +55,27 @@ export async function getResumenesSolicitudCambioAsesor(
     if (axios.isAxiosError(error)) {
       console.error(
         "Error al obtener los resúmenes de solicitudes:",
+        error.message,
+      );
+    } else {
+      console.error("Error inesperado al obtener los resúmenes:", error);
+    }
+    throw error;
+  }
+}
+
+export async function getResumenesSolicitudCambioAsesorCoordinador(): Promise<
+  SolicitudCambioAsesorResumen[]
+> {
+  try {
+    const response = await axiosInstance.get(
+      "/solicitudes/listarResumenSolicitudCambioAsesorCoordinador",
+    );
+    return response.data as SolicitudCambioAsesorResumen[];
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      console.error(
+        "Error al obtener los resúmenes de solicitudes del coordinador:",
         error.message,
       );
     } else {
@@ -166,6 +187,114 @@ export async function rechazarSolicitud(
       console.error("Error al rechazar la solicitud:", error.message);
     } else {
       console.error("Error inesperado al rechazar la solicitud:", error);
+    }
+    throw error;
+  }
+}
+
+export async function aceptarSolicitudPorAsesor(
+  idSolicitud: number,
+  comentario: string,
+): Promise<SolicitudCambioAsesorResumen[]> {
+  try {
+    const response = await axiosInstance.patch(
+      "/solicitudes/aprobarSolicitudCambioAsesorAsesor",
+      null,
+      {
+        params: {
+          idSolicitud,
+          comentario,
+        },
+      },
+    );
+
+    return response.data as SolicitudCambioAsesorResumen[];
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      console.error("Error al aceptar la solicitud:", error.message);
+    } else {
+      console.error("Error inesperado al aceptar la solicitud:", error);
+    }
+    throw error;
+  }
+}
+
+export async function rechazarSolicitudPorAsesor(
+  idSolicitud: number,
+  comentario: string,
+): Promise<SolicitudCambioAsesorResumen[]> {
+  try {
+    const response = await axiosInstance.patch(
+      "/solicitudes/rechazarSolicitudCambioAsesorAsesor",
+      null,
+      {
+        params: {
+          idSolicitud,
+          comentario,
+        },
+      },
+    );
+
+    return response.data as SolicitudCambioAsesorResumen[];
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      console.error("Error al aceptar la solicitud:", error.message);
+    } else {
+      console.error("Error inesperado al aceptar la solicitud:", error);
+    }
+    throw error;
+  }
+}
+
+export async function rechazarSolicitudPorCoordinador(
+  idSolicitud: number,
+  comentario: string,
+): Promise<SolicitudCambioAsesorResumen[]> {
+  try {
+    const response = await axiosInstance.patch(
+      "/solicitudes/rechazarSolicitudCambioAsesorCoordinador",
+      null,
+      {
+        params: {
+          idSolicitud,
+          comentario,
+        },
+      },
+    );
+
+    return response.data as SolicitudCambioAsesorResumen[];
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      console.error("Error al aceptar la solicitud:", error.message);
+    } else {
+      console.error("Error inesperado al aceptar la solicitud:", error);
+    }
+    throw error;
+  }
+}
+
+export async function aceptarSolicitudPorCoordinador(
+  idSolicitud: number,
+  comentario: string,
+): Promise<SolicitudCambioAsesorResumen[]> {
+  try {
+    const response = await axiosInstance.patch(
+      "/solicitudes/aprobarSolicitudCambioAsesorCoordinador",
+      null,
+      {
+        params: {
+          idSolicitud,
+          comentario,
+        },
+      },
+    );
+
+    return response.data as SolicitudCambioAsesorResumen[];
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      console.error("Error al aceptar la solicitud:", error.message);
+    } else {
+      console.error("Error inesperado al aceptar la solicitud:", error);
     }
     throw error;
   }

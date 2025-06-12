@@ -32,11 +32,13 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import AccionesDisponiblesSolicitud from "../components/assessor-change-request/acciones-disponibles";
 import {
-  aceptarSolicitud,
+  aceptarSolicitudPorAsesor,
+  aceptarSolicitudPorCoordinador,
   getDetalleSolicitudCambioAsesor,
-  rechazarSolicitud,
-} from "../hooks/cambio-asesor/page";
-import { getIdByCorreo } from "../hooks/perfil/perfil-apis";
+  rechazarSolicitudPorAsesor,
+  rechazarSolicitudPorCoordinador,
+} from "../services/cambio-asesor-services";
+import { getIdByCorreo } from "../services/perfil-services";
 import { formatFecha } from "../utils/date-functions";
 
 interface SolicitudDetalleProps {
@@ -120,7 +122,8 @@ export default function SolicitudDetalle({
     }
     try {
       const data = await getDetalleSolicitudCambioAsesor(idSolicitud);
-      setSolicitudData(data);
+      procesarParticipantesWorkflow(data);
+      console.log("Datos de la solicitud obtenidos:", data);
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -128,16 +131,66 @@ export default function SolicitudDetalle({
     }
   };
 
-  useEffect(() => {
-    if (solicitudData) {
-      const participantes: UsuarioSolicitud[] = [
-        solicitudData.solicitante,
-        solicitudData.asesorNuevo,
-        solicitudData.coordinador,
-      ];
-      setParticipantesWorkflow(participantes);
+  function procesarParticipantesWorkflow(
+    solicitudData: DetalleSolicitudCambioAsesor | null,
+  ) {
+    console.log("Segunda validación");
+
+    if (!solicitudData) {
+      console.warn("No hay datos de solicitud disponibles");
+      return;
     }
-  }, [solicitudData]);
+
+    const participantes: UsuarioSolicitud[] = [
+      solicitudData.solicitante,
+      solicitudData.asesorNuevo,
+    ];
+
+    let coordinador = solicitudData.coordinador;
+
+    console.log("Coordinador:", solicitudData);
+
+    if (solicitudData.estadoGlobal === "PENDIENTE" && !coordinador) {
+      coordinador = {
+        id: null,
+        nombres: "Pendiente de aprobación por coordinador",
+        correoElectronico: solicitudData.asesorActual.correoElectronico,
+        rolSolicitud: "DESTINATARIO",
+        foto: null,
+        accionSolicitud: "PENDIENTE_ACCION",
+        fechaAccion: null,
+        comentario: null,
+      };
+
+      const cordi = coordinador as UsuarioSolicitud;
+
+      console.log("Coordinador pendiente:", cordi);
+
+      setSolicitudData((prev) =>
+        solicitudData ? { ...solicitudData, coordinador: cordi } : prev,
+      );
+    } else if (solicitudData.estadoGlobal === "RECHAZADA" && !coordinador) {
+      coordinador = {
+        id: null,
+        nombres: "Sin accion",
+        correoElectronico: solicitudData.asesorActual.correoElectronico,
+        rolSolicitud: "DESTINATARIO",
+        foto: null,
+        accionSolicitud: "SIN_ACCION",
+        fechaAccion: null,
+        comentario: null,
+      };
+
+      const cordi = coordinador as UsuarioSolicitud;
+
+      setSolicitudData((prev) =>
+        solicitudData ? { ...solicitudData, coordinador: cordi } : prev,
+      );
+    } else setSolicitudData(solicitudData);
+
+    participantes.push(coordinador);
+    setParticipantesWorkflow(participantes.filter(Boolean));
+  }
 
   const getStatusColor = (estado: string, rolSolicitud: string) => {
     if (rolSolicitud === "REMITENTE") {
@@ -292,11 +345,17 @@ export default function SolicitudDetalle({
       }
 
       if (modalType === "aprobar") {
-        await aceptarSolicitud(userId, idSolicitud, rolSolicitud);
+        if (rol === "asesor")
+          await aceptarSolicitudPorAsesor(idSolicitud, comentario);
+        if (rol === "coordinador") {
+          await aceptarSolicitudPorCoordinador(idSolicitud, comentario);
+        }
       } else if (modalType === "rechazar") {
-        await rechazarSolicitud(userId, idSolicitud, rolSolicitud);
+        if (rol === "asesor")
+          await rechazarSolicitudPorAsesor(idSolicitud, comentario);
+        if (rol === "coordinador")
+          await rechazarSolicitudPorCoordinador(idSolicitud, comentario);
       }
-
       console.log(`Solicitud ${modalType}da con comentario:`, comentario);
       setIsSuccess(true);
     } catch (err) {
@@ -535,14 +594,14 @@ export default function SolicitudDetalle({
         <AccionesDisponiblesSolicitud
           rol={rol}
           estadoCoordinador={
-            solicitudData?.coordinador.accionSolicitud || "SIN_ACCION"
+            solicitudData?.coordinador.accionSolicitud ?? "SIN_ACCION"
           }
           estadoNuevoAsesor={
-            solicitudData?.asesorNuevo.accionSolicitud || "SIN_ACCION"
+            solicitudData?.asesorNuevo.accionSolicitud ?? "SIN_ACCION"
           }
           nombreNuevoAsesor={solicitudData?.asesorNuevo.nombres || ""}
-          onAprobar={handleAprobar}
-          onRechazar={handleRechazar}
+          handleAprobar={handleAprobar}
+          handleRechazar={handleRechazar}
           onEnviarRecordatorio={handleEnviarRecordatorio}
         />
 

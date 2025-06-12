@@ -265,10 +265,10 @@ public class TemaController {
 	}
 
 	@PostMapping("/crearTemaLibre")
-	public void crearTemaLibre(@Valid @RequestBody TemaDto dto, HttpServletRequest request) {
+	public Integer crearTemaLibre(@Valid @RequestBody TemaDto dto, HttpServletRequest request) {
 		try {
 			String asesorId = jwtService.extractSubFromRequest(request);
-			temaService.crearTemaLibre(dto, asesorId);
+			return temaService.crearTemaLibre(dto, asesorId);
 		} catch (RuntimeException e) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
 		}
@@ -757,6 +757,36 @@ public class TemaController {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
 		}
 	}
+
+	@PostMapping("/registrarSolicitudesModificacionTema")
+	public ResponseEntity<Void> registrarSolicitudesModificacionTema(
+			@RequestParam("temaId") Integer temaId,
+			@RequestBody List<Map<String, Object>> solicitudesJson,
+			HttpServletRequest request) {
+		try {
+			String usuarioIdStr = jwtService.extractSubFromRequest(request);
+
+
+			temaService.registrarSolicitudesModificacionTema(temaId, usuarioIdStr, solicitudesJson);
+
+			return ResponseEntity.ok().build();
+		} catch (RuntimeException e) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+		} catch (Exception e) {
+			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al insertar solicitudes");
+		}
+	}
+
+	@PostMapping("/actualizarTemaLibre")
+	public Integer actualizarTemaLibre(@Valid @RequestBody TemaDto dto) {
+		try {
+			return temaService.actualizarTemaLibre(dto);
+		} catch (RuntimeException e) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+		}
+
+	}
+
 
 }
 

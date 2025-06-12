@@ -13,6 +13,7 @@ import { JornadaExposicionDTO } from "../../dtos/JornadExposicionDTO";
 import { listarEstadoPlanificacionPorExposicion } from "../../services/data";
 import {
   finishPlanning,
+  reunionesZoom,
   updateBloquesNextPhase,
 } from "../../services/planificacion-service";
 import { usePlanificationStore } from "../../store/use-planificacion-store";
@@ -66,7 +67,6 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
   } = usePlanificationStore();
 
   const [isLoading, setIsLoading] = useState(false);
-  console.log("EXPOSICION ID:", exposicionId);
 
   const router = useRouter();
 
@@ -281,6 +281,7 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
       await updateBloquesNextPhase(bloquesListToInsert);
       if (origen == "terminar") {
         await finishPlanning(exposicionId);
+        await reunionesZoom(exposicionId);
         const newEstadoPlanificacion =
           await listarEstadoPlanificacionPorExposicion(exposicionId);
         setEstadoPlanificacion(newEstadoPlanificacion);
@@ -334,6 +335,7 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
               bloquesList={bloques}
               estadoPlan={estadoPlanificacion}
               isLoading={isLoading}
+              exposicionId={exposicionId}
             />
           </div>
         </div>
