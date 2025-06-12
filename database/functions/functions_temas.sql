@@ -3599,7 +3599,7 @@ BEGIN
     WHERE ut.usuario_id = v_usuario_id
       AND ut.activo = TRUE
       AND t.activo = TRUE
-      AND et.nombre IN ('PRE_INSCRITO', 'INSCRITO', 'PAUSADO', 'EN_PROGRESO', 'REGISTRADO');
+      AND et.nombre IN ('PRE_INSCRITO', 'INSCRITO', 'PAUSADO', 'EN_PROGRESO', 'REGISTRADO', 'OBSERVADO');
 END;
 $$;
 
