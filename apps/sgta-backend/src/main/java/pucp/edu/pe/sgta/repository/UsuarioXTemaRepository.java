@@ -94,4 +94,6 @@ public interface UsuarioXTemaRepository extends JpaRepository<UsuarioXTema, Inte
 
         Optional<UsuarioXTema> findByUsuarioIdAndTemaIdAndRolIdIn(
                         Integer usuarioId, Integer temaId, List<Integer> rolIds);
+
+        List<UsuarioXTema> findByUsuarioIdAndActivoTrueAndAsignadoTrue(Integer usuarioId);
 }
