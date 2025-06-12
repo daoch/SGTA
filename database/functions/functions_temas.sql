@@ -3496,29 +3496,29 @@ BEGIN
       AND uc.es_coordinador = TRUE
       AND uc.activo         = TRUE;
 
-    -- 4) Remitente: SOLO el Asesor asignado/activo
-    INSERT INTO usuario_solicitud(
-        usuario_id,
-        solicitud_id,
-        rol_solicitud,
-        accion_solicitud,
-        activo
-    )
-    SELECT
-        ut.usuario_id,
-        v_solicitud_id,
-        v_rol_remitente_id,
-        v_accion_pendiente_id,
-        TRUE
-    FROM usuario_tema ut
-    WHERE ut.tema_id    = p_tema_id
-      AND ut.activo     = TRUE
-      AND ut.asignado   = TRUE
-      AND ut.rol_id     = v_rol_asesor_id;
+    -- -- 4) Remitente: SOLO el Asesor asignado/activo
+    -- INSERT INTO usuario_solicitud(
+    --     usuario_id,
+    --     solicitud_id,
+    --     rol_solicitud,
+    --     accion_solicitud,
+    --     activo
+    -- )
+    -- SELECT
+    --     ut.usuario_id,
+    --     v_solicitud_id,
+    --     v_rol_remitente_id,
+    --     v_accion_pendiente_id,
+    --     TRUE
+    -- FROM usuario_tema ut
+    -- WHERE ut.tema_id    = p_tema_id
+    --   AND ut.activo     = TRUE
+    --   AND ut.asignado   = TRUE
+    --   AND ut.rol_id     = v_rol_asesor_id;
 
-    IF NOT FOUND THEN
-        RAISE EXCEPTION 'No hay Asesor activo/asignado para el tema %', p_tema_id;
-    END IF;
+    -- IF NOT FOUND THEN
+    --     RAISE EXCEPTION 'No hay Asesor activo/asignado para el tema %', p_tema_id;
+    -- END IF;
 END;
 $$ LANGUAGE plpgsql;
 
