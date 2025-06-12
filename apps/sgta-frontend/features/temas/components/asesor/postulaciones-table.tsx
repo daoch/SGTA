@@ -16,6 +16,7 @@ import { FiltrosPostulacionModal } from "@/features/temas/components/asesor/filt
 import { PostulacionModal } from "@/features/temas/components/asesor/postulacion-modal";
 import {
   aceptarPostulacionDeAlumno,
+  contarPostulacionesAlAsesor,
   fetchPostulacionesAlAsesor,
   rechazarPostulacionDeAlumno,
 } from "@/features/temas/types/postulaciones/data";
@@ -47,20 +48,27 @@ export function PostulacionesTable() {
   const [debounceFechaFin, setDebounceFechaFin] = useState<string>("");
   const [debounceEstado, setDebounceEstado] = useState<string>("");
   const [page, setPage] = useState(1);
+  const [itemsPerPage] = useState(1); // Puedes ajustar el número de items por página
+  const [totalItems, setTotalItems] = useState(0); // Total de items para la paginación
 
   const fetchPostulaciones = async (
     debouncedSearchTerm: string,
     debounceEstado: string,
     debounceFechaFin: string,
+    page: number,
+    itemsPerPage: number,
   ) => {
     try {
       setLoading(true);
+      const offset = (page - 1) * itemsPerPage;
       console.log({ debounceEstado });
       console.log({ debounceFechaFin });
       const data = await fetchPostulacionesAlAsesor(
         debouncedSearchTerm,
         debounceEstado,
         debounceFechaFin,
+        itemsPerPage,
+        offset,
       );
       setPostulacionesData(data);
     } catch {
@@ -70,9 +78,44 @@ export function PostulacionesTable() {
     }
   };
 
+  const fetchTotalItems = async (
+    debouncedSearchTerm: string,
+    debounceEstado: string,
+    debounceFechaFin: string,
+  ) => {
+    try {
+      const total = await contarPostulacionesAlAsesor(
+        debouncedSearchTerm,
+        debounceEstado,
+        debounceFechaFin,
+      );
+      setTotalItems(total);
+      console.log("Total de postulaciones:", total);
+    } catch (error) {
+      console.error("Error al contar las postulaciones:", error);
+      setTotalItems(0);
+    }
+  };
+
   useEffect(() => {
-    fetchPostulaciones(debouncedSearchTerm, debounceEstado, debounceFechaFin);
+    fetchTotalItems(debouncedSearchTerm, debounceEstado, debounceFechaFin);
   }, [debouncedSearchTerm, debounceEstado, debounceFechaFin]);
+
+  useEffect(() => {
+    fetchPostulaciones(
+      debouncedSearchTerm,
+      debounceEstado,
+      debounceFechaFin,
+      page,
+      itemsPerPage,
+    );
+  }, [
+    debouncedSearchTerm,
+    debounceEstado,
+    debounceFechaFin,
+    page,
+    itemsPerPage,
+  ]);
 
   const handleOpenDialog = (postulacion: Postulacion) => {
     setAbrirModal(true);
@@ -124,7 +167,13 @@ export function PostulacionesTable() {
     setAbrirModal(false);
     setFeedbackText("");
     setShowAcceptDialog(false);
-    fetchPostulaciones(debouncedSearchTerm, debounceEstado, debounceFechaFin);
+    fetchPostulaciones(
+      debouncedSearchTerm,
+      debounceEstado,
+      debounceFechaFin,
+      page,
+      itemsPerPage,
+    );
   };
 
   const handleReject = async () => {
@@ -157,7 +206,13 @@ export function PostulacionesTable() {
     setAbrirModal(false);
     setFeedbackText("");
     setShowRejectDialog(false);
-    fetchPostulaciones(debouncedSearchTerm, debounceEstado, debounceFechaFin);
+    fetchPostulaciones(
+      debouncedSearchTerm,
+      debounceEstado,
+      debounceFechaFin,
+      page,
+      itemsPerPage,
+    );
   };
 
   const handleClearFilters = () => {
@@ -186,7 +241,7 @@ export function PostulacionesTable() {
   };
 
   console.log({ postulacionesData });
-  console.log({ page });
+  console.log({ searchTerm });
   return (
     <div>
       <Toaster position="bottom-right" richColors />
@@ -380,8 +435,8 @@ export function PostulacionesTable() {
       {/*Paginación*/}
       <div className="mt-6">
         <PaginatedList
-          totalItems={2}
-          itemsPerPage={1}
+          totalItems={totalItems}
+          itemsPerPage={itemsPerPage}
           page={page}
           setPage={setPage}
         />
