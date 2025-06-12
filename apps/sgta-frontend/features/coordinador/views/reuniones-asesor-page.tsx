@@ -21,33 +21,13 @@ import { Button } from "@/components/ui/button";
 import { useEffect, useRef, useState } from "react";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { ReunionesAsesorModal } from "../components/reuniones-asersor-modal";
-import { ReunionesXUsuariosDto } from "../dtos/ReunionesXUsuariosDto";
-import { getReunionesXAlumno } from "../services/reuniones-asesor-service";
 import { getIdByCorreo } from "@/features/asesores/hooks/perfil/perfil-apis";
 import { CarreraDto } from "../dtos/CarreraDto";
-import { getCarrerasByUsuario } from "../services/carreras-usuario-service";
 import { getAsesoresTesistasPorCarrera } from "../services/asesor-tesista-service";
 import { AsesorTesistaDto } from "../dtos/AsesorTesistaDto";
 import { EtapaFormativaDto } from "../dtos/EtapaFormativa";
 import { getEtapasFormativasDelCoordinador } from "../services/etapas-formativas-coordinador-service";
-
-// Ciclos disponibles
-const ciclos = ["2023-1", "2024-2", "2025-1"];
-
-// Cursos por ciclo
-const cursosPorCiclo: Record<string, { codigo: string; nombre: string }[]> = {
-  "2023-1": [
-    { codigo: "1INF40", nombre: "Taller de Innovación" },
-    { codigo: "1INF41", nombre: "Proyecto Integrador 1" },
-  ],
-  "2024-2": [
-    { codigo: "1INF47", nombre: "Seminario de Tesis" },
-  ],
-  "2025-1": [
-    { codigo: "1INF46", nombre: "Proyecto de Fin de Carrera 2" },
-    { codigo: "1INF48", nombre: "Proyecto de Innovación" },
-  ],
-};
+import { getCarreraCoordinadaPorUsuario } from "../services/carrera-coordinada-service";
 
 export default function ReunionesAsesoresPage() {
     const { user } = useAuth();
@@ -55,7 +35,7 @@ export default function ReunionesAsesoresPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const [cicloSeleccionado, setCicloSeleccionado] = useState<string | undefined>(undefined);
     const [etapaFormativaSeleccionada, setEtapaFormativaSeleccionada] = useState<EtapaFormativaDto | null>(null);
-    const[etapasFormativas, setEtapasFormativas] = useState<EtapaFormativaDto[]>([]);
+    const [etapasFormativas, setEtapasFormativas] = useState<EtapaFormativaDto[]>([]);
     const [alumnosXasesores, setAlumnosXasesores] = useState<AsesorTesistaDto[]>([]);
     const hasFetchedId = useRef(false);
     const [carreraCoordinada, setCarreraCoordinada] = useState<CarreraDto | null>(null);
@@ -89,9 +69,9 @@ export default function ReunionesAsesoresPage() {
         if (userId !== null) {
             const fetchCarreraCoordinada = async () => {
                 try {
-                    const carrera = await getCarrerasByUsuario(userId);
-                    setCarreraCoordinada(carrera[0]); 
-                    console.log("Carrera coordinada obtenida:", carrera[0]);
+                    const carrera = await getCarreraCoordinadaPorUsuario(userId);
+                    setCarreraCoordinada(carrera); 
+                    console.log("Carrera coordinada obtenida:", carrera);
                 } catch (error) {
                     console.error("Error al obtener la carrera coordinada:", error);
                 }
@@ -101,21 +81,21 @@ export default function ReunionesAsesoresPage() {
         }
     }, [userId]);
 
-    useEffect(() => {
-        const fetchEtapas = async () => {
-            if (userId == null) return; // valida null y undefined
+    // useEffect(() => {
+    //     const fetchEtapas = async () => {
+    //         if (userId == null) return; // valida null y undefined
 
-            try {
-            const etapas = await getEtapasFormativasDelCoordinador(userId);
-            setEtapasFormativas(etapas);
-            console.log("Etapas formativas del coordinador:", etapas);
-            } catch (error) {
-            console.error("Error al obtener etapas formativas:", error);
-            }
-        };
+    //         try {
+    //         const etapas = await getEtapasFormativasDelCoordinador(userId);
+    //         setEtapasFormativas(etapas);
+    //         console.log("Etapas formativas del coordinador:", etapas);
+    //         } catch (error) {
+    //         console.error("Error al obtener etapas formativas:", error);
+    //         }
+    //     };
 
-        fetchEtapas();
-    }, [userId]);
+    //     fetchEtapas();
+    // }, [userId]);
 
 
     //Obtener asesores con sus alumnos
