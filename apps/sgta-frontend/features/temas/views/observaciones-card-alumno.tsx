@@ -29,7 +29,7 @@ export function ObservacionesAlumnoView() {
         }
 
         const temaRes = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/temas/porUsuarioTituloAreaCarreraEstadoFecha?titulo=&areaId=&carreraId=&estadoNombre=INSCRITO&fechaCreacionDesde=&fechaCreacionHasta=`,
+          `${process.env.NEXT_PUBLIC_API_URL}/temas/porUsuarioTituloAreaCarreraEstadoFecha?titulo=&areaId=&carreraId=&estadoNombre=OBSERVADO&fechaCreacionDesde=&fechaCreacionHasta=`,
           {
             headers: {
               "Authorization": `Bearer ${idToken}`,
