@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS carrera
 CREATE TABLE IF NOT EXISTS tipo_usuario
 (
     tipo_usuario_id    SERIAL PRIMARY KEY,
-    nombre             VARCHAR(100)             NOT NULL,
+    nombre             VARCHAR(100)             NOT NULL UNIQUE,
     activo             BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -126,7 +126,7 @@ CREATE TABLE IF NOT EXISTS usuario_carrera
 CREATE TABLE IF NOT EXISTS estado_tema
 (
     estado_tema_id     SERIAL PRIMARY KEY,
-    nombre             VARCHAR(100)             NOT NULL,
+    nombre             VARCHAR(100)             NOT NULL UNIQUE,
     descripcion        TEXT,
     activo             BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -281,7 +281,7 @@ CREATE TABLE IF NOT EXISTS tema_similar (
 CREATE TABLE IF NOT EXISTS rol
 (
     rol_id             SERIAL PRIMARY KEY,
-    nombre             VARCHAR(100)             NOT NULL,
+    nombre             VARCHAR(100)             NOT NULL UNIQUE,
     descripcion        TEXT,
     activo             BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -292,7 +292,7 @@ CREATE TABLE IF NOT EXISTS rol
 CREATE TABLE IF NOT EXISTS tipo_solicitud
 (
     tipo_solicitud_id  SERIAL PRIMARY KEY,
-    nombre             VARCHAR(100)             NOT NULL,
+    nombre             VARCHAR(100)             NOT NULL UNIQUE,
     descripcion        TEXT,
     activo             BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -479,7 +479,7 @@ CREATE TABLE IF NOT EXISTS usuario_solicitud
 CREATE TABLE IF NOT EXISTS tipo_rechazo_tema
 (
     tipo_rechazo_tema_id SERIAL PRIMARY KEY,
-    nombre               VARCHAR(100)             NOT NULL,
+    nombre               VARCHAR(100)             NOT NULL UNIQUE,
     descripcion          TEXT,
     fecha_creacion       TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion   TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
