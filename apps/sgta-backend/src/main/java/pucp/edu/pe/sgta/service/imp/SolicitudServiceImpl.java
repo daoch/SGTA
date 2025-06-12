@@ -3,9 +3,11 @@ package pucp.edu.pe.sgta.service.imp;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -1095,14 +1097,14 @@ public class SolicitudServiceImpl implements SolicitudService {
         // --- Mapeo a DTO de Detalle ---
         Usuario asesorSolicitante = null;
 
-        RolSolicitud rolAsesorSolicitanteCese = rolSolicitudRepository.findByNombre("ASESOR_SOLICITANTE_CESE")
+        RolSolicitud rolAsesorSolicitanteCese = rolSolicitudRepository.findByNombre("ASESOR_ENTRADA")
                 .orElseThrow(() -> {
-                    log.error("Configuración: Rol de solicitud 'ASESOR_SOLICITANTE_CESE' no encontrado en la BD.");
-                    return new RuntimeException("Error de configuración interna: Rol ASESOR_SOLICITANTE_CESE no definido.");
+                    log.error("Configuración: Rol de solicitud 'ASESOR_ENTRADA' no encontrado en la BD.");
+                    return new RuntimeException("Error de configuración interna: Rol ASESOR_ENTRADA no definido.");
                 });
 
         // Usar el método que devuelve Optional y luego mapear, o manejar lista.
-        Optional<UsuarioSolicitud> optUsuarioSolicitud = usuarioSolicitudRepository
+        Optional<UsuarioXSolicitud> optUsuarioSolicitud = usuarioXSolicitudRepository
                 .findFirstBySolicitudIdAndRolSolicitud(solicitud.getId(), rolAsesorSolicitanteCese);
         // Asegúrate que este método exista en UsuarioSolicitudRepository y acepte (Integer, RolSolicitud)
 

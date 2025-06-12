@@ -105,4 +105,7 @@ public interface UsuarioXTemaRepository extends JpaRepository<UsuarioXTema, Inte
         // Método para obtener todas las relaciones activas para un tema y rol específicos (ej. todos los tesistas de un tema)
         // Los nombres de los campos en la entidad son 'tema', 'usuario', 'rol'. Usamos '_Id' para acceder a sus IDs.
         List<UsuarioXTema> findByTema_IdAndRol_IdAndActivoTrue(Integer temaId, Integer rolId);
+
+        @Query("SELECT COUNT(ut) FROM UsuarioXTema ut WHERE ut.usuario.id = :usuarioId AND ut.rol.nombre = :rolNombre AND ut.activo = true")
+        long countByUsuarioIdAndRolNombreAndActivoTrue(@Param("usuarioId") Integer usuarioId, @Param("rolNombre") String rolNombre);
 }
