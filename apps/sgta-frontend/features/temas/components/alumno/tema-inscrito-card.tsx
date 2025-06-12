@@ -73,7 +73,7 @@ export function TemaCard() {
           return;
         }
 
-        // 1. Verifica si hay tema comprometido y obtén el estado
+        // 1. Verificar si hay tema comprometido y obtén el estado
         const resVerifica = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/temas/verificarTemasComprometidosTesista`,
           {
