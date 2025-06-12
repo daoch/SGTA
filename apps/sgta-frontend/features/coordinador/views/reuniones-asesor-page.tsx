@@ -15,19 +15,20 @@ import { getIdByCorreo } from "@/features/asesores/services/perfil-services";
 import { useAuth } from "@/features/auth";
 import { useEffect, useRef, useState } from "react";
 import { ReunionesAsesorModal } from "../components/reuniones-asersor-modal";
-import { getIdByCorreo } from "@/features/asesores/hooks/perfil/perfil-apis";
 import { CarreraDto } from "../dtos/CarreraDto";
 import { getAsesoresTesistasPorCarrera } from "../services/asesor-tesista-service";
 import { getCarrerasByUsuario } from "../services/carreras-usuario-service";
 import { getEtapasFormativasDelCoordinador } from "../services/etapas-formativas-coordinador-service";
 import { getCarreraCoordinadaPorUsuario } from "../services/carrera-coordinada-service";
+import { AsesorTesistaDto } from "../dtos/AsesorTesistaDto";
+import { EtapaFormativaDto } from "../dtos/EtapaFormativaDto";
 
 export default function ReunionesAsesoresPage() {
     const { user } = useAuth();
     const [userId, setUserId] = useState<number | null>(null);
     const [searchTerm, setSearchTerm] = useState("");
     const [cicloSeleccionado, setCicloSeleccionado] = useState<string | undefined>(undefined);
-    const [etapaFormativaSeleccionada, setEtapaFormativaSeleccionada] = useState<EtapaFormativaDto | null>(null);
+    const [etapaFormativaSeleccionada, setEtapaFormativaSeleccionada] = useState<EtapaFormativaDtoto | null>(null);
     const [etapasFormativas, setEtapasFormativas] = useState<EtapaFormativaDto[]>([]);
     const [alumnosXasesores, setAlumnosXasesores] = useState<AsesorTesistaDto[]>([]);
     const hasFetchedId = useRef(false);
