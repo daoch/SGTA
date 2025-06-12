@@ -41,11 +41,12 @@ public class PerfilUsuarioDto {
         //Mantenemos los arrays obtenidos
         //Integer[] arrayIdCarrera = (Integer[]) result[8];
         String[] arrayNombreCarrera = (String[]) result[9];
-        Integer[] arrayLimiteCarrera = (Integer[]) result[10];
+        //LOS ARRAY_AGG DEVULEVEN TO.DO COMO STRING
+        String[] arrayLimiteCarrera = (String[]) result[10];
         //Los pasamos a listas
         //List<Integer> listaIdCarrera = Arrays.stream(arrayIdCarrera).toList();
         List<String> listaNombreCarrera = Arrays.stream(arrayNombreCarrera).toList();
-        List<Integer> listaLimiteCarrera = Arrays.stream(arrayLimiteCarrera).toList();
+        List<Integer> listaLimiteCarrera = Arrays.stream(arrayLimiteCarrera).map(Integer::parseInt).toList();
         //Por ahora las listas no se usan por lo que solo nos quedamos con el primero valor
         dto.especialidad = listaNombreCarrera.get(0);
         dto.limiteTesis = listaLimiteCarrera.get(0);
