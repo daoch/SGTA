@@ -28,12 +28,14 @@ export interface SolicitudesTableProps {
   readonly solicitudes: readonly SolicitudPendiente[];
   readonly isLoading: boolean;
   readonly searchQuery: string;
+  readonly limit: number;
 }
 
 export function SolicitudesTable({
   solicitudes,
   isLoading,
   searchQuery,
+  limit,
 }: SolicitudesTableProps) {
   // Filtrar por búsqueda
   let filtrados = solicitudes;

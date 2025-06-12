@@ -383,3 +383,5 @@ DROP FUNCTION IF EXISTS obtener_temas_por_alumno CASCADE;
 DROP FUNCTION IF EXISTS obtener_miembros_jurado_x_exposicion_tema (INTEGER) CASCADE;
 
 DROP FUNCTION IF EXISTS crear_revisiones(int4);
+
+DROP FUNCTION IF EXISTS obtener_alumnos_por_revision(revision_id INTEGER);

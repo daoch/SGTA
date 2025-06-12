@@ -54,8 +54,10 @@ const Page = () => {
   useEffect(() => {
     const obtenerUsuario = async () => {
       try {
+        console.log("Obteniendo al usuario");
         const usuario = await buscarUsuarioPorToken();
         setUsuarioLoggeado(usuario);
+        console.log("Usuario:", { usuario });
       } catch (err: unknown) {
         console.error(err);
         setError("Error al traer al usuario loggeado.");
@@ -100,7 +102,6 @@ const Page = () => {
           console.log("Entro al defaul");
           break;
       }
-
       setTemasData(data);
       console.log("consegui los temas data");
     } catch (err: unknown) {
@@ -148,6 +149,7 @@ const Page = () => {
         setAsesorData(coasesor);
 
         const areas = await obtenerAreasDelUsuario(Number(usuario.id));
+        console.log("Sus areas son: ", { areas });
         setAreasDisponibles(areas);
       } catch (error) {
         console.error("Error los datos de entrada", error);
@@ -157,7 +159,7 @@ const Page = () => {
     fetchData();
   }, [usuarioLoggeado]);
 
-  console.log({ estadoTema });
+  //console.log({ areasDisponibles });
   return (
     <div className="space-y-8 mt-4">
       <div className="flex items-end justify-between">
@@ -229,6 +231,7 @@ const Page = () => {
                     isLoading={isLoading}
                     error={error}
                     asesor={asesorData}
+                    onTemaInscrito={fetchTemas}
                   />
                 </CardContent>
               </Card>

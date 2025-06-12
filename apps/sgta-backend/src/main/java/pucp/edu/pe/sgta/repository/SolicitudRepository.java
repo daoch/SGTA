@@ -32,12 +32,17 @@ public interface SolicitudRepository extends JpaRepository<Solicitud, Integer> {
     List<Object[]> listarResumenSolicitudCambioAsesorUsuario(@Param("idUsuario") Integer idUsuario,
             @Param("nombreRol") String nombreRol);
 
+    @Query(value = "SELECT * FROM listar_resumen_solicitud_cambio_asesor_coordinador(:idCognito)", nativeQuery = true)
+    List<Object[]> listarResumenSolicitudCambioAsesorCoordinador(@Param("idCognito") String idCognito);
+
+
     @Query(value = "SELECT * FROM obtener_detalle_solicitud_cambio_asesor(:idSolicitud)", nativeQuery = true)
     List<Object[]> listarDetalleSolicitudCambioAsesor(@Param("idSolicitud") Integer idSolicitud);
 
-    @Query(value = "SELECT * FROM obtener_detalle_usuario_solicitud_cambio_asesor(:idUsuario,:idSolicitud)", nativeQuery = true)
+    @Query(value = "SELECT * FROM obtener_detalle_usuario_solicitud_cambio_asesor(:idUsuario,:idSolicitud, :nombre_rol)", nativeQuery = true)
     List<Object[]> listarDetalleUsuarioSolicitudCambioAsesor(@Param("idUsuario") Integer idUsuario,
-            @Param("idSolicitud") Integer idSolicitud);
+            @Param("idSolicitud") Integer idSolicitud,
+                                                             @Param("nombre_rol")String nombreRol);
 
     boolean existsSolicitudByIdAndEstadoSolicitud_Nombre(Integer idSolicitud, String nombreSolicitud);
 

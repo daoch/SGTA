@@ -19,8 +19,9 @@ public class RevisionDocumentoAsesorDto {
 	private Integer porcentajeSimilitud;
 	private Integer porcentajeGenIA;
 	private OffsetDateTime fechaEntrega;
-	private Boolean entregaATiempo;
-    private OffsetDateTime fechaLimite;
+	private OffsetDateTime fechaLimiteEntrega;
+	private OffsetDateTime fechaRevision;
+	private OffsetDateTime fechaLimiteRevision;
 	private String ultimoCiclo;
 	private String estado; 
 	private Boolean formatoValido;

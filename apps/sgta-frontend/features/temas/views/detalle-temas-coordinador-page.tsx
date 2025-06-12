@@ -83,6 +83,7 @@ const DetalleTemasCoordinadorPage: React.FC<
               {tema ? (
                 <TemasDetalleExposiciones
                   temaId={tema.id}
+                  carreraId={tema.carrera?.id}
                   areasConocimientoId={tema.subareas.map(
                     (subarea) => subarea.areaConocimiento!.id,
                   )}

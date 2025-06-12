@@ -25,6 +25,7 @@ import { useEffect, useState } from "react";
 import { toast, Toaster } from "sonner";
 import { Postulacion } from "../../types/postulaciones/entidades";
 import { AceptarPostulacionModal } from "./aceptar-postulacion-modal";
+import PaginatedList from "./paginacion";
 import { RechazarPostulacionModal } from "./rechazar-postulacion-modal";
 
 export function PostulacionesTable() {
@@ -45,27 +46,32 @@ export function PostulacionesTable() {
   >();
   const [debounceFechaFin, setDebounceFechaFin] = useState<string>("");
   const [debounceEstado, setDebounceEstado] = useState<string>("");
+  const [page, setPage] = useState(1);
+
+  const fetchPostulaciones = async (
+    debouncedSearchTerm: string,
+    debounceEstado: string,
+    debounceFechaFin: string,
+  ) => {
+    try {
+      setLoading(true);
+      console.log({ debounceEstado });
+      console.log({ debounceFechaFin });
+      const data = await fetchPostulacionesAlAsesor(
+        debouncedSearchTerm,
+        debounceEstado,
+        debounceFechaFin,
+      );
+      setPostulacionesData(data);
+    } catch {
+      console.log("No se logró listar las postulaciones");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchPostulaciones = async () => {
-      try {
-        setLoading(true);
-        console.log({ debounceEstado });
-        console.log({ debounceFechaFin });
-        const data = await fetchPostulacionesAlAsesor(
-          debouncedSearchTerm,
-          debounceEstado,
-          debounceFechaFin,
-        );
-        setPostulacionesData(data);
-      } catch {
-        console.log("No se logró listar las postulaciones");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPostulaciones();
+    fetchPostulaciones(debouncedSearchTerm, debounceEstado, debounceFechaFin);
   }, [debouncedSearchTerm, debounceEstado, debounceFechaFin]);
 
   const handleOpenDialog = (postulacion: Postulacion) => {
@@ -115,8 +121,10 @@ export function PostulacionesTable() {
     }
 
     setSelectedPostulacion(null);
+    setAbrirModal(false);
     setFeedbackText("");
     setShowAcceptDialog(false);
+    fetchPostulaciones(debouncedSearchTerm, debounceEstado, debounceFechaFin);
   };
 
   const handleReject = async () => {
@@ -146,8 +154,10 @@ export function PostulacionesTable() {
     }
 
     setSelectedPostulacion(null);
+    setAbrirModal(false);
     setFeedbackText("");
     setShowRejectDialog(false);
+    fetchPostulaciones(debouncedSearchTerm, debounceEstado, debounceFechaFin);
   };
 
   const handleClearFilters = () => {
@@ -176,6 +186,7 @@ export function PostulacionesTable() {
   };
 
   console.log({ postulacionesData });
+  console.log({ page });
   return (
     <div>
       <Toaster position="bottom-right" richColors />
@@ -240,7 +251,9 @@ export function PostulacionesTable() {
               </TableRow>
             ) : (
               postulacionesData?.map((postulacion) => (
-                <TableRow key={postulacion.id}>
+                <TableRow
+                  key={`${postulacion.id}-${postulacion.tesistas[0].id}`}
+                >
                   <TableCell className="font-medium max-w-xs truncate">
                     {postulacion.titulo}
                   </TableCell>
@@ -364,6 +377,15 @@ export function PostulacionesTable() {
           filtrarLosCampos={filtrarLosCampos}
         />
       </Dialog>
+      {/*Paginación*/}
+      <div className="mt-6">
+        <PaginatedList
+          totalItems={2}
+          itemsPerPage={1}
+          page={page}
+          setPage={setPage}
+        />
+      </div>
     </div>
   );
 }
