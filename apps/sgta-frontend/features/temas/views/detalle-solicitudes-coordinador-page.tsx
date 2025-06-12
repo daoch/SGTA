@@ -78,7 +78,6 @@ export default function DetalleSolicitudesCoordinadorPage({
   const handleAccion = async (accion: SolicitudAction) => {
     try {
       setLoading(true);
-      if (!tipoSolicitud) return;
       if (accion === "Eliminada") {
         await eliminarTemaPorCoordinador(solicitud.tema.id);
         router.push("/coordinador/aprobaciones");
@@ -98,19 +97,22 @@ export default function DetalleSolicitudesCoordinadorPage({
         await cambiarEstadoTemaPorCoordinador(payload);
 
         // Crear solicitud
-        if (tipoSolicitud !== "no-enviar" && accion !== "Rechazada") {
+        if (
+          tipoSolicitud &&
+          tipoSolicitud !== "no-enviar" &&
+          accion !== "Rechazada"
+        ) {
           if (tipoSolicitud === "resumen") {
             await crearSolicitudCambioResumen(solicitud.tema.id, comentario);
           } else {
             await crearSolicitudCambioTitulo(solicitud.tema.id, comentario);
           }
-          // Actualizar solicitud
-          buscarTemaPorId(solicitud.tema.id).then(setTema);
         }
       }
 
       toast.success(`Solicitud ${accion.toLowerCase()} exitosamente.`);
       setDialogAbierto("");
+      await buscarTemaPorId(solicitud.tema.id).then(setTema);
     } catch (error) {
       console.error("Error al procesar la solicitud:", error);
       toast.error("Ocurrió un error. Por favor, intente nuevamente.");
@@ -169,7 +171,7 @@ export default function DetalleSolicitudesCoordinadorPage({
     },
     aprobar: {
       show: true,
-      disabled: loading,
+      disabled: !tipoSolicitud || loading,
     },
     rechazar: {
       show: true,
