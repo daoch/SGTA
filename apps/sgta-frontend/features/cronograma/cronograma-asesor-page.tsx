@@ -21,14 +21,17 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PlusCircle, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { format } from 'date-fns';
+import { format } from "date-fns";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { es } from "date-fns/locale";
 
 
 import { Filter } from "lucide-react";
-import { useEffect, useMemo  } from 'react'; // Añade useEffect aquí
+import { useEffect, useMemo  } from "react"; // Añade useEffect aquí
 // ... (importaciones sin cambios)
+
+import { useAuth } from "@/features/auth";
+import axiosInstance from "@/lib/axios/axios-instance";
 
 //type TipoEvento = "ENTREGABLE" | "REUNION" | "Otros";
 type TipoEvento = "ENTREGABLE" | "REUNION" | "EXPOSICION";
@@ -40,7 +43,24 @@ interface CalendarEvent {
   start?: Date;
   end: Date;
   tipoEvento: TipoEvento;
-  tesista: string;
+  tesistas: string[]; // nombres completos
+}
+
+interface Tesista {
+  id: number;
+  nombreCompleto: string;
+  temaTesis: string;
+}
+
+interface Evento {
+  id: number;
+  nombre: string;
+  descripcion: string;
+  tipo: string;
+  fechaInicio: string;
+  fechaFin: string;
+  activo: boolean;
+  tesistas: Tesista[];
 }
 
 const MiCronogramaPage = () => {
@@ -56,7 +76,7 @@ const MiCronogramaPage = () => {
       />
     );
 
-  const getColorByTipoEvento = (tipo: TipoEvento) => {
+  const getColorByTipoEvento = (tipo: TipoEvento): "blue" | "green" | "pink" | "default" | "purple" | null | undefined => {
     switch (tipo) {
       case "ENTREGABLE": return "blue";
       case "REUNION": return "green";
@@ -75,117 +95,55 @@ const MiCronogramaPage = () => {
       }
     }
   });
+  
+  const { user } = useAuth();
+  //const userId = 1;
+  const [userId, setUserId] = useState<number | null>(null);
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
 
-  const [events, setEvents] = useState<CalendarEvent[]>([
-  {
-    id: "1",
-    title: "Reunión con el asesor",
-    description: "Primera revisión",
-    start: createDate(8, 6, 2025, 8, 0),
-    end: createDate(8, 6, 2025, 9, 0),
-    tipoEvento: "REUNION",
-    tesista: "Luis Sánchez"
-  },
-  {
-    id: "2",
-    title: "Entrega de capítulo 2",
-    description: "Fecha límite para entregar",
-    start: createDate(8, 6, 2025, 14, 0),
-    end: createDate(8, 6, 2025, 14, 0),
-    tipoEvento: "ENTREGABLE",
-    tesista: "Luis Sánchez"
-  },
-  {
-    id: "3",
-    title: "Reunión de seguimiento",
-    description: "Estado del marco teórico",
-    start: createDate(30, 5, 2025, 9, 30),
-    end: createDate(30, 5, 2025, 10, 30),
-    tipoEvento: "REUNION",
-    tesista: "Andrés Quispe"
-  },
-  {
-    id: "4",
-    title: "Entrega de cronograma corregido",
-    description: "Versión final del cronograma",
-    start: createDate(8, 6, 2025, 11, 0),
-    end: createDate(8, 6, 2025, 11, 0),
-    tipoEvento: "ENTREGABLE",
-    tesista: "Andrés Quispe"
-  },
-  {
-    id: "5",
-    title: "Reunión para feedback",
-    description: "Revisión de introducción",
-    start: createDate(30, 5, 2025, 13, 0),
-    end: createDate(30, 5, 2025, 14, 0),
-    tipoEvento: "REUNION",
-    tesista: "Carlos Díaz"
-  },
-  {
-    id: "6",
-    title: "Entrega de bibliografía",
-    description: "Lista preliminar",
-    start: createDate(26, 5, 2025, 10, 30),
-    end: createDate(26, 5, 2025, 10, 30),
-    tipoEvento: "ENTREGABLE",
-    tesista: "Carlos Díaz"
-  },
-  {
-    id: "7",
-    title: "Reunión con jurado interno",
-    description: "Defensa preliminar",
-    start: createDate(27, 5, 2025, 10, 0),
-    end: createDate(27, 5, 2025, 11, 30),
-    tipoEvento: "REUNION",
-    tesista: "Iván Ramírez"
-  },
-  {
-    id: "8",
-    title: "Entrega de análisis de resultados",
-    description: "Informe parcial",
-    start: createDate(28, 5, 2025, 15, 0),
-    end: createDate(28, 5, 2025, 15, 0),
-    tipoEvento: "ENTREGABLE",
-    tesista: "Iván Ramírez"
-  },
-  {
-    id: "9",
-    title: "Reunión de planificación",
-    description: "Preparación de defensa",
-    start: createDate(30, 5, 2025, 9, 0),
-    end: createDate(30, 5, 2025, 10, 0),
-    tipoEvento: "REUNION",
-    tesista: "Eduardo Salas"
-  },
-  {
-    id: "10",
-    title: "Entrega del capítulo metodológico",
-    description: "Última versión",
-    start: createDate(31, 5, 2025, 10, 0),
-    end: createDate(31, 5, 2025, 10, 0),
-    tipoEvento: "ENTREGABLE",
-    tesista: "Eduardo Salas"
-  },
-  {
-    id: "11",
-    title: "Entrega del capítulo 20",
-    description: "Última versión",
-    start: createDate(20, 6, 2025, 10, 0),
-    end: createDate(20, 6, 2025, 10, 0),
-    tipoEvento: "ENTREGABLE",
-    tesista: "Eduardo Salas"
-  },
-  {
-    id: "12",
-    title: "Entrega del capítulo X",
-    description: "Última versión",
-    start: createDate(30, 5, 2025, 11, 0),
-    end: createDate(30, 5, 2025, 11, 0),
-    tipoEvento: "ENTREGABLE",
-    tesista: "César Asurza"
-  }
-]);
+  useEffect(() => {
+    const fetchEventosAsesor = async () => {
+      try {
+        const response = await axiosInstance.get("/api/eventos/asesor");
+        const data = response.data;
+  
+        const eventosMapeados: CalendarEvent[] = [];
+  
+        data.forEach((evento: Evento, index: number) => {
+          const {
+            id,
+            nombre,
+            descripcion,
+            tipo,
+            fechaInicio,
+            fechaFin,
+            tesistas,
+          } = evento;
+  
+          tesistas.forEach((tesista: Tesista) => {
+            const eventoMapeado: CalendarEvent = {
+              id: `${id}-${tesista.id}`, // ID único por evento-tesista
+              title: nombre,
+              description: descripcion,
+              start: fechaInicio ? new Date(fechaInicio) : new Date(fechaFin),
+              end: new Date(fechaFin),
+              tipoEvento: tipo as TipoEvento,
+              tesistas: [tesista.nombreCompleto],
+            };
+  
+            eventosMapeados.push(eventoMapeado);
+          });
+        });
+  
+        setEvents(eventosMapeados);
+      } catch (error) {
+        console.error("Error al obtener eventos del asesor:", error);
+      }
+    };
+  
+    fetchEventosAsesor();
+  }, []);
+  
 
   // Estados para el filtro de tesistas
   const [filterOpen, setFilterOpen] = useState(false);
@@ -194,10 +152,11 @@ const MiCronogramaPage = () => {
 
 
   // Obtener lista única de tesistas
-  const tesistasList = useMemo(() => 
-    Array.from(new Set(events.map(event => event.tesista))).sort(),
-    [events]
-  );
+  const tesistasList = useMemo(() => {
+    const nombres = events.flatMap(e => e.tesistas);
+    return Array.from(new Set(nombres)).sort();
+  }, [events]);
+  
 
   // Inicializar los tesistas seleccionados (todos seleccionados por defecto)
   useEffect(() => {
@@ -239,8 +198,10 @@ const MiCronogramaPage = () => {
   };
 
   // Filtrar eventos basados en los tesistas seleccionados (usando useMemo para optimización)
-  const filteredEvents = useMemo(() => 
-    events.filter(event => selectedTesistas[event.tesista]),
+  const filteredEvents = useMemo(() =>
+    events.filter(event => 
+      event.tesistas.some(nombre => selectedTesistas[nombre])
+    ),
     [events, selectedTesistas]
   );
 
@@ -530,7 +491,7 @@ const MiCronogramaPage = () => {
 
 
         <DialogFooter>
-          <Button onClick={handleExport} disabled={isRangoInvalido}>
+          <Button onClick={handleExport} disabled={!!isRangoInvalido}>
             Exportar
           </Button>
         </DialogFooter>
@@ -557,7 +518,7 @@ const MiCronogramaPage = () => {
             </div>
             <div className="flex-1 overflow-auto px-6 pb-6">
               <CalendarMonthView />
-              <CalendarWeekView />
+              <CalendarWeekView tipoUsuario="Asesor" />
               <CalendarDayView tipoUsuario="Asesor"/>
             </div>
           </div>

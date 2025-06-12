@@ -35,10 +35,9 @@ import {
   useMemo,
   useState,
   useEffect
-} from 'react';
-import { useHotkeys } from 'react-hotkeys-hook';
-import { es } from 'date-fns/locale/es'; // Opcional: para mostrar la fecha en español
-
+} from "react";
+import { useHotkeys } from "react-hotkeys-hook";
+import { es } from "date-fns/locale/es"; // Opcional: para mostrar la fecha en español
 
 const monthEventVariants = cva('size-2 rounded-full', {
   variants: {
@@ -58,11 +57,11 @@ const monthEventVariants = cva('size-2 rounded-full', {
 const dayEventVariants = cva('font-bold border-l-4 rounded p-2 text-xs', {
   variants: {
     variant: {
-      default: 'bg-muted/30 text-muted-foreground border-muted',
-      blue: 'bg-blue-500/30 text-black border-blue-500 border-l-0', // Quitamos border-t-2 de aquí
-      green: 'bg-green-500/30 text-black border-green-500',
-      pink: 'bg-pink-500/30 text-black border-pink-500',
-      purple: 'bg-purple-500/30 text-purple-600 border-purple-500',
+      default: "bg-muted/30 text-muted-foreground border-muted",
+      blue: "bg-blue-500/30 text-black border-blue-500 border-l-0", // Quitamos border-t-2 de aquí
+      green: "bg-green-500/30 text-black border-green-500",
+      pink: "bg-pink-500/30 text-black border-pink-500",
+      purple: "bg-purple-500/30 text-purple-600 border-purple-500",
     },
   },
   defaultVariants: {
@@ -98,7 +97,7 @@ type CalendarEvent = {
     type?: string;
     description?: string;  // <-- Añade esto
     tesista?: string;
-    color?: VariantProps<typeof monthEventVariants>['variant'];
+    color?: VariantProps<typeof monthEventVariants>["variant"];
   };
 
   type CalendarProps = {
@@ -219,14 +218,14 @@ const EventGroup = ({
 
   const getTipoColor = (tipo: string) => {
     switch (tipo) {
-      case 'REUNION':
-        return 'bg-green-300 text-green-800';
-      case 'ENTREGABLE':
-        return 'bg-blue-300 text-blue-800';
-      case 'EXPOSICION':
-        return 'bg-pink-300 text-pink-800';
+      case "REUNION":
+        return "bg-green-300 text-green-800";
+      case "ENTREGABLE":
+        return "bg-blue-300 text-blue-800";
+      case "EXPOSICION":
+        return "bg-pink-300 text-pink-800";
       default:
-        return 'bg-gray-300 text-gray-800';
+        return "bg-gray-300 text-gray-800";
     }
   };
 
@@ -249,12 +248,12 @@ const EventGroup = ({
 
       {tesistasOrdenados.map((tesista, index) => {
         const eventos = events
-          .filter((event) => isSameHour(event.start, hour) && event.tesista === tesista);
+          .filter((event) => isSameHour(event.start ?? event.end, hour) && event.tesista === tesista);
   
         return (
           <div key={tesista} className={`h-full relative col-start-${index + 1}`}>
             {eventos.map((event) => {
-              const isDeadline = event.type === 'ENTREGABLE';
+              const isDeadline = event.type === "ENTREGABLE";
               const hoursDifference = isDeadline
                 ? 1
                 : differenceInMinutes(event.end, event.start ?? event.end) / 60;
@@ -264,9 +263,9 @@ const EventGroup = ({
                 <div
                   key={event.id}
                   className={cn(
-                    'h-2 relative flex flex-col p-1 overflow-hidden',
+                    "h-2 relative flex flex-col p-1 overflow-hidden",
                     dayEventVariants({ variant: event.color }),
-                    isDeadline && 'border-t-4 border-t-dashed'
+                    isDeadline && "border-t-4 border-t-dashed"
                   )}
                   style={{
                     top: `${startPosition * 100}%`,
@@ -276,11 +275,11 @@ const EventGroup = ({
                   {event.type && (
                     <span
                       className={cn(
-                        'mx-2 text-[10px] font-semibold px-1 py-0.5 rounded w-fit',
+                        "mx-2 text-[10px] font-semibold px-1 py-0.5 rounded w-fit",
                         getTipoColor(event.type)
                       )}
                     >
-                      {isDeadline && '⏰ '}{event.type}
+                      {isDeadline && "⏰ "}{event.type}
                     </span>
                   )}
   
@@ -294,7 +293,7 @@ const EventGroup = ({
                     </p>
                   )}
 
-                  {event.tesista != 'X' && (
+                  {event.tesista != "X" && (
                     <p className="text-xs opacity-80 truncate">
                       Tsta.: {event.tesista}
                     </p>
@@ -302,11 +301,11 @@ const EventGroup = ({
   
                   {!isDeadline ? (
                     <p className="text-xs opacity-80 truncate">
-                      {`${format(event.start!, 'HH:mm')} - ${format(event.end, 'HH:mm')}`}
+                      {`${format(event.start!, "HH:mm")} - ${format(event.end, "HH:mm")}`}
                     </p>
                   ) : (
                     <p className="text-xs opacity-80 truncate">
-                      {`Fin: ${format(event.end, 'HH:mm')}`}
+                      {`Fin: ${format(event.end, "HH:mm")}`}
                     </p>
                   )}
                 </div>
@@ -332,7 +331,7 @@ const CalendarDayView = ({ tipoUsuario }: { tipoUsuario: string }) => {
   const hours = [...Array(24)].map((_, i) => setHours(date, i));
 
   // Usamos la fecha del calendario (date) en lugar de new Date()
-  const fechaActual = format(date, 'EEEE, d \'de\' MMMM \'de\' yyyy', { locale: es });
+  const fechaActual = format(date, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es });
 
   return (
     <div className="flex flex-col h-full">
@@ -353,7 +352,7 @@ const CalendarDayView = ({ tipoUsuario }: { tipoUsuario: string }) => {
   );
 };
 
-const CalendarWeekView = () => {
+const CalendarWeekView = ({ tipoUsuario }: { tipoUsuario: string }) => {
   const { view, date, locale, events } = useCalendar();
 
   const weekDates = useMemo(() => {
@@ -417,7 +416,7 @@ const CalendarWeekView = () => {
                   'h-full text-sm text-muted-foreground border-l first:border-l-0',
                   [0, 6].includes(i) && 'bg-muted/50'
                 )}
-                key={format(hours[0], 'yyyy-MM-dd')}
+                key={format(hours[0], "yyyy-MM-dd")}
               >
                 {hours.map((hour) => (
                   <EventGroup
@@ -425,6 +424,7 @@ const CalendarWeekView = () => {
                     hour={hour}
                     events={events}
                     tipoVista="Semana"
+                    tipoUsuario={tipoUsuario}
                   />
                 ))}
               </div>
@@ -470,7 +470,7 @@ const CalendarMonthView = () => {
       <div className="grid overflow-hidden -mt-px flex-1 auto-rows-fr p-px grid-cols-7 gap-px">
         {monthDates.map((_date) => {
           const currentEvents = events.filter((event) =>
-            isSameDay(event.start, _date)
+            isSameDay(event.start ?? event.end, _date)
           );
 
           return (
@@ -504,7 +504,7 @@ const CalendarMonthView = () => {
                     ></div>
                     <span className="flex-1 truncate">{event.title}</span>
                     <time className="tabular-nums text-muted-foreground/50 text-xs">
-                      {format(event.type === "ENTREGABLE" ? event.end : event.start, 'HH:mm')}
+                      {format((event.type === "ENTREGABLE" ? event.end : event.start) ?? event.end, "HH:mm")}
                     </time>
                   </div>
                 );

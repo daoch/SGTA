@@ -362,5 +362,41 @@ BEGIN
         AND ut.rol_id = 4
         AND ut.rechazado = FALSE
         AND ut.activo = TRUE;
+        
+CREATE OR REPLACE FUNCTION obtener_asesor_por_alumno(p_alumno_id INTEGER)
+RETURNS TABLE (
+    usuario_id INTEGER,
+    nombres VARCHAR,
+    primer_apellido VARCHAR,
+    segundo_apellido VARCHAR
+) AS $$
+DECLARE
+    v_tema_id INTEGER;
+BEGIN
+    -- 1. Buscar el tema_id del alumno con rol Tesista, asignado y activo
+    SELECT ut.tema_id INTO v_tema_id
+    FROM usuario_tema ut
+    JOIN rol r ON ut.rol_id = r.rol_id
+    WHERE ut.usuario_id = p_alumno_id
+      AND r.nombre = 'Tesista'
+      AND ut.asignado = TRUE
+      AND ut.activo = TRUE
+    LIMIT 1;
+
+    -- 2. Buscar los datos del Asesor para ese tema_id, asignado y activo
+    RETURN QUERY
+    SELECT
+        u.usuario_id,
+        u.nombres,
+        u.primer_apellido,
+        u.segundo_apellido
+    FROM usuario_tema ut
+    JOIN rol r ON ut.rol_id = r.rol_id
+    JOIN usuario u ON ut.usuario_id = u.usuario_id
+    WHERE ut.tema_id = v_tema_id
+      AND r.nombre = 'Asesor'
+      AND ut.asignado = TRUE
+      AND ut.activo = TRUE
+    LIMIT 1;
 END;
 $$ LANGUAGE plpgsql;
