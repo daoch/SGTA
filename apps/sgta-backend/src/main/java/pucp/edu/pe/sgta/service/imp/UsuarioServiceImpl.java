@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import pucp.edu.pe.sgta.dto.UsuarioRegistroDto;
+import pucp.edu.pe.sgta.dto.*;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.server.ResponseStatusException;
 import pucp.edu.pe.sgta.dto.asesores.InfoAreaConocimientoDto;
@@ -19,12 +19,8 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.web.multipart.MultipartFile;
 import pucp.edu.pe.sgta.dto.asesores.FiltrosDirectorioAsesores;
 import pucp.edu.pe.sgta.dto.asesores.UsuarioFotoDto;
-import pucp.edu.pe.sgta.dto.AlumnoTemaDto;
-import pucp.edu.pe.sgta.dto.DocentesDTO;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import pucp.edu.pe.sgta.dto.TipoUsuarioDto;
-import pucp.edu.pe.sgta.dto.UsuarioDto;
 import pucp.edu.pe.sgta.mapper.InfoAreaConocimientoMapper;
 import pucp.edu.pe.sgta.mapper.InfoSubAreaConocimientoMapper;
 import pucp.edu.pe.sgta.mapper.PerfilAsesorMapper;
@@ -36,7 +32,6 @@ import pucp.edu.pe.sgta.service.inter.UsuarioService;
 import pucp.edu.pe.sgta.util.RolEnum;
 import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
 import pucp.edu.pe.sgta.util.Utils;
-import pucp.edu.pe.sgta.dto.AlumnoReporteDto;
 
 import java.io.IOException;
 import java.io.BufferedReader;
@@ -1528,5 +1523,28 @@ public class UsuarioServiceImpl implements UsuarioService {
         return usuarioRepository
                 .findById(idUsuario)
                 .orElseThrow(() -> new RuntimeException(onErrorMsg));
+    }
+
+    @Override
+    public List<UsuarioRolRevisorDto> listarRevisoresPorCarrera(Integer carreraId) {
+        List<Object[]> result = usuarioRepository.listarRevisoresPorCarrera(carreraId);
+        List<UsuarioRolRevisorDto> revisores = new ArrayList<>();
+
+        for (Object[] row : result) {
+            UsuarioRolRevisorDto dto = new UsuarioRolRevisorDto();
+            dto.setId((Integer) row[0]); // tema_id
+            dto.setUsuarioId((Integer) row[1]); // usuario_id
+            dto.setCodigoPucp((String) row[2]); // codigo_pucp
+            dto.setNombres((String) row[3]); // nombres
+            dto.setPrimerApellido((String) row[4]); // primer_apellido
+            dto.setSegundoApellido((String) row[5]); // segundo_apellido
+            dto.setCorreoElectronico((String) row[6]); // correo_electronico
+            dto.setRolId((Integer) row[7]); // rol_id
+            dto.setRolNombre((String) row[8]); // rol_nombre
+            dto.setCarreraId((Integer) row[9]); // carrera_id
+            dto.setCarreraNombre((String) row[10]); // carrera_nombre
+            revisores.add(dto);
+        }
+        return revisores;
     }
 }

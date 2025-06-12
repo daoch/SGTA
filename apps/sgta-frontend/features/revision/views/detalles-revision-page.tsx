@@ -138,10 +138,8 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
           </div>
         ))}
       </div>
-    )
-  }
-
-  console.log
+    );
+  };
 
   return (
     <div className="space-y-6">

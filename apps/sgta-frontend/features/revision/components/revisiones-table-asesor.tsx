@@ -70,7 +70,7 @@ export function RevisionesTableAsesor({
           <div className="font-medium">{estudiantes[0].nombre}</div>
           <div className="text-xs text-muted-foreground">{estudiantes[0].codigo}</div>
         </div>
-      )
+      );
     }
 
     return (
@@ -82,8 +82,8 @@ export function RevisionesTableAsesor({
           {estudiantes.map((e) => `${e.nombre} (${e.codigo})`).join(", ")}
         </div>
       </div>
-    )
-  }
+    );
+  };
 
   return (
     <div>

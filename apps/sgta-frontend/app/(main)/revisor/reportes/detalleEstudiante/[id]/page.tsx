@@ -132,9 +132,9 @@ export default function ReviewerStudentDetails({ params }: { params: Promise<{ i
                     </h2>
                   </div>
                   <div className="flex items-center gap-2 mb-2">
-                    <Badge variant="outline" className="text-xs">
+                    {/* <Badge variant="outline" className="text-xs">
                         <p> Area hardcodeada</p>
-                    </Badge>
+                    </Badge> */}
                     {/* <span className="ml-2 text-xs text-gray-500">{selectedStudentData?.estado}</span> */}
                   </div>
                 </div>

@@ -187,3 +187,8 @@ export async function getStudentsByRevisor(id: string): Promise<UsuarioDto[]> {
   });
   return res.data;
 }
+
+export async function obtenerUrlCloudFrontPorRevision(revisionId: number): Promise<string> {
+  const response = await axiosInstance.get<string>(`/s3/archivos/getUrlFromCloudFrontByRevision/${revisionId}`);
+  return response.data; // Aquí recibes la URL de CloudFront como string
+}
