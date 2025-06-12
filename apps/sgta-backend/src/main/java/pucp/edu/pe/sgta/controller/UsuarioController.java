@@ -16,10 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import org.springframework.web.server.ResponseStatusException;
 import pucp.edu.pe.sgta.dto.UsuarioRegistroDto;
-import pucp.edu.pe.sgta.dto.asesores.FiltrosDirectorioAsesores;
-import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
-import pucp.edu.pe.sgta.dto.asesores.UsuarioConRolDto;
-import pucp.edu.pe.sgta.dto.asesores.UsuarioFotoDto;
+import pucp.edu.pe.sgta.dto.asesores.*;
 import pucp.edu.pe.sgta.dto.CarreraDto;
 import pucp.edu.pe.sgta.dto.DocentesDTO;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
@@ -73,7 +70,7 @@ public class UsuarioController {
 
         return this.usuarioService.findUsuarioById(idUsuario);
     }
-
+    //Otros lo usan
     @GetMapping("/getPerfilAsesor")
     public PerfilAsesorDto getPerfilAsesor(@RequestParam(name = "id") Integer id) {
         return this.usuarioService.getPerfilAsesor(id);
@@ -83,7 +80,25 @@ public class UsuarioController {
     public void updatePerfilAsesor(@RequestBody PerfilAsesorDto dto) {
         usuarioService.updatePerfilAsesor(dto);
     }
+    //Nuevo
 
+    @GetMapping("/getPerfilUsuario")
+    public PerfilUsuarioDto getPerfilUsuario(HttpServletRequest request, @RequestParam(name = "idUsuario",required = false) Integer idUsuario) {
+        String cognitoId;
+
+        if (idUsuario != null) {
+            // Si se proporciona idUsuario, obtén el cognitoId desde el servicio o ignóralo si no es necesario
+            cognitoId = usuarioService.obtenerCognitoPorId(idUsuario);
+        } else {
+            cognitoId = jwtService.extractSubFromRequest(request);
+        }
+
+        return usuarioService.getPerfilUsuario(cognitoId);
+    }
+    @PutMapping("/updatePerfilUsuario")
+    public void updatePerfilAsesor(@RequestBody PerfilUsuarioDto dto) {
+        usuarioService.updatePerfilUsuario(dto);
+    }
     /**
      * HU01: Asignar Rol de Asesor a Profesor
      * 

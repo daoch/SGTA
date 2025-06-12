@@ -27,3 +27,4 @@ DROP FUNCTION IF EXISTS asignar_usuario_areas(INTEGER, INTEGER[]);
 DROP FUNCTION IF EXISTS desactivar_usuario_sub_areas(INTEGER, INTEGER[]);
 DROP FUNCTION IF EXISTS asignar_usuario_sub_areas(INTEGER, INTEGER[]);
 DROP FUNCTION IF EXISTS obtener_carreras_activas_por_usuario(INTEGER);
+DROP FUNCTION obtener_perfil_usuario(TEXT);

@@ -1358,4 +1358,58 @@ SELECT
   GROUP BY t.tema_id, t.titulo, et.nombre, u.usuario_id;
 END;
 $$ LANGUAGE plpgsql;
+--
+CREATE OR REPLACE FUNCTION obtener_perfil_usuario(p_id_cognito TEXT)
+RETURNS TABLE (
+	usuario_id INTEGER,
+	nombres TEXT,
+	primer_apellido TEXT,
+	correo_electronico TEXT,
+	enlace_linkedin TEXT,
+	enlace_repositorio TEXT,
+	biografia TEXT,
+	foto_perfil BYTEA,
+	lista_carreras_id INTEGER[],
+	lista_carreras TEXT[],
+	limite_tesistas_carrera TEXT[]
+) AS $$
+BEGIN
+	RETURN QUERY
+	SELECT
+		u.usuario_id,
+		u.nombres::TEXT,
+		u.primer_apellido::TEXT,
+		u.correo_electronico::TEXT,
+		u.enlace_linkedin::TEXT,
+		u.enlace_repositorio::TEXT,
+		u.biografia,
+		u.foto_perfil,
+		ARRAY_AGG(c.carrera_id ORDER BY c.carrera_id) AS lista_carreras_id,
+		ARRAY_AGG(c.nombre::TEXT ORDER BY c.carrera_id) AS lista_carreras,
+		ARRAY_AGG(cpc.valor ORDER BY c.carrera_id) AS limite_tesistas_carrera
+	FROM
+		usuario u
+		JOIN usuario_carrera uc ON u.usuario_id = uc.usuario_id
+		JOIN carrera c ON uc.carrera_id = c.carrera_id
+		JOIN carrera_parametro_configuracion cpc ON cpc.carrera_id = c.carrera_id
+		JOIN parametro_configuracion pc ON pc.parametro_configuracion_id = cpc.parametro_configuracion_id
+	WHERE
+		u.id_cognito = p_id_cognito
+		AND pc.nombre = 'LimXasesor'
+		AND u.activo = true
+		AND uc.activo = true
+		AND c.activo = true
+		AND cpc.activo = true
+		AND pc.activo = true
+	GROUP BY
+		u.usuario_id,
+		u.nombres,
+		u.primer_apellido,
+		u.correo_electronico,
+		u.enlace_linkedin,
+		u.enlace_repositorio,
+		u.biografia,
+		u.foto_perfil;
+END;
+$$ LANGUAGE plpgsql;
 
