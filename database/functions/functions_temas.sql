@@ -2548,7 +2548,9 @@ RETURNS TABLE(
     tesista_ids         INTEGER[],     -- 23
     tesista_nombres     TEXT[],        -- 24
     estado_nombre       TEXT,          -- 25
-    postulaciones_count INTEGER        -- 26
+    postulaciones_count INTEGER,       -- 26
+    asesor_asignado BOOLEAN[],  -- 27
+    tesista_asignado BOOLEAN[]  -- 28
 )
 LANGUAGE SQL
 STABLE
@@ -2607,7 +2609,7 @@ AS $func$
               JOIN rol            AS rc ON rc.rol_id = utc.rol_id
              WHERE utc.tema_id = t.tema_id
                AND utc.activo   = TRUE
-               AND utc.asignado = TRUE
+               --AND utc.asignado = TRUE
                AND rc.nombre IN ('Asesor','Coasesor')
              ORDER BY 
                CASE WHEN rc.nombre ILIKE 'Asesor' THEN 0 ELSE 1 END,
@@ -2627,7 +2629,7 @@ AS $func$
               JOIN usuario        AS uco ON uco.usuario_id = utc2.usuario_id
              WHERE utc2.tema_id = t.tema_id
                AND utc2.activo   = TRUE
-               AND utc2.asignado = TRUE
+               --AND utc2.asignado = TRUE
                AND rc2.nombre IN ('Asesor','Coasesor')
              ORDER BY 
                CASE WHEN rc2.nombre ILIKE 'Asesor' THEN 0 ELSE 1 END,
@@ -2647,7 +2649,7 @@ AS $func$
               JOIN usuario        AS uco ON uco.usuario_id = utc3.usuario_id
              WHERE utc3.tema_id = t.tema_id
                AND utc3.activo   = TRUE
-               AND utc3.asignado = TRUE
+               --AND utc3.asignado = TRUE
                AND rc3.nombre IN ('Asesor','Coasesor')
              ORDER BY 
                CASE WHEN rc3.nombre ILIKE 'Asesor' THEN 0 ELSE 1 END,
@@ -2666,7 +2668,7 @@ AS $func$
               JOIN rol            AS rc4 ON rc4.rol_id = utc4.rol_id
              WHERE utc4.tema_id = t.tema_id
                AND utc4.activo   = TRUE
-               AND utc4.asignado = TRUE
+               --AND utc4.asignado = TRUE
                AND rc4.nombre IN ('Asesor','Coasesor')
              ORDER BY 
                CASE WHEN rc4.nombre ILIKE 'Asesor' THEN 0 ELSE 1 END,
@@ -2685,7 +2687,7 @@ AS $func$
               JOIN rol            AS rt ON rt.rol_id = utt.rol_id
              WHERE utt.tema_id = t.tema_id
                AND utt.activo   = TRUE
-               AND utt.asignado = TRUE
+               --AND utt.asignado = TRUE
                AND rt.nombre ILIKE 'Tesista'
              ORDER BY utt.usuario_id
           )
@@ -2703,7 +2705,7 @@ AS $func$
               JOIN usuario        AS ute ON ute.usuario_id = utt2.usuario_id
              WHERE utt2.tema_id = t.tema_id
                AND utt2.activo   = TRUE
-               AND utt2.asignado = TRUE
+               --AND utt2.asignado = TRUE
                AND rt2.nombre ILIKE 'Tesista'
              ORDER BY ute.primer_apellido, ute.segundo_apellido
           )
@@ -2739,7 +2741,32 @@ AS $func$
                AND ut2.asignado   = FALSE
           )
         ELSE 0
-      END AS postulaciones_count
+      END AS postulaciones_count,
+
+      COALESCE((
+      SELECT ARRAY(
+        SELECT utc.asignado
+          FROM usuario_tema utc
+          JOIN rol rc ON rc.rol_id = utc.rol_id
+        WHERE utc.tema_id = t.tema_id
+          AND utc.activo   = TRUE
+          AND rc.nombre IN ('Asesor','Coasesor')
+        ORDER BY CASE WHEN rc.nombre ILIKE 'Asesor' THEN 0 ELSE 1 END, utc.usuario_id
+      )
+    ), ARRAY[]::BOOLEAN[]) AS asesor_asignado,
+
+    COALESCE((
+      SELECT ARRAY(
+        SELECT utt.asignado
+          FROM usuario_tema utt
+          JOIN rol rt ON rt.rol_id = utt.rol_id
+        WHERE utt.tema_id = t.tema_id
+          AND utt.activo   = TRUE
+          AND rt.nombre ILIKE 'Tesista'
+        ORDER BY utt.usuario_id
+      )
+    ), ARRAY[]::BOOLEAN[]) AS tesista_asignado
+
 
     FROM tema AS t
 
@@ -2838,6 +2865,11 @@ AS $func$
     OFFSET  p_offset;
 $func$;
 
+
+
+
+
+
 CREATE OR REPLACE FUNCTION listar_temas_filtrado_completo(
     p_titulo                TEXT    DEFAULT '',
     p_estado_nombre         TEXT    DEFAULT '',
@@ -2875,7 +2907,9 @@ RETURNS TABLE(
     tesista_ids          INTEGER[],     -- 23
     tesista_nombres      TEXT[],        -- 24
     cant_postulaciones   INTEGER,       -- 25
-    estado_nombre        TEXT           -- 26
+    estado_nombre        TEXT,           -- 26
+    asesor_asignado      BOOLEAN[],     -- 27
+    tesista_asignado     BOOLEAN[]      -- 28
 )
 LANGUAGE SQL
 STABLE
@@ -2934,7 +2968,7 @@ AS $func$
               JOIN rol            AS rc ON rc.rol_id = utc.rol_id
              WHERE utc.tema_id = t.tema_id
                AND utc.activo     = TRUE
-               AND utc.asignado   = TRUE
+              -- AND utc.asignado   = TRUE
                AND rc.nombre IN ('Asesor','Coasesor')
              ORDER BY 
                CASE WHEN rc.nombre ILIKE 'Asesor' THEN 0 ELSE 1 END,
@@ -2954,7 +2988,7 @@ AS $func$
               JOIN usuario   AS uco ON uco.usuario_id = utc2.usuario_id
              WHERE utc2.tema_id = t.tema_id
                AND utc2.activo     = TRUE
-               AND utc2.asignado   = TRUE
+               --AND utc2.asignado   = TRUE
                AND rc2.nombre IN ('Asesor','Coasesor')
              ORDER BY 
                CASE WHEN rc2.nombre ILIKE 'Asesor' THEN 0 ELSE 1 END,
@@ -2974,7 +3008,7 @@ AS $func$
               JOIN usuario   AS uco ON uco.usuario_id = utc3.usuario_id
              WHERE utc3.tema_id = t.tema_id
                AND utc3.activo     = TRUE
-               AND utc3.asignado   = TRUE
+               --AND utc3.asignado   = TRUE
                AND rc3.nombre IN ('Asesor','Coasesor')
              ORDER BY 
                CASE WHEN rc3.nombre ILIKE 'Asesor' THEN 0 ELSE 1 END,
@@ -2993,7 +3027,7 @@ AS $func$
               JOIN rol       AS rc4 ON rc4.rol_id = utc4.rol_id
              WHERE utc4.tema_id = t.tema_id
                AND utc4.activo     = TRUE
-               AND utc4.asignado   = TRUE
+               --AND utc4.asignado   = TRUE
                AND rc4.nombre IN ('Asesor','Coasesor')
              ORDER BY 
                CASE WHEN rc4.nombre ILIKE 'Asesor' THEN 0 ELSE 1 END,
@@ -3012,7 +3046,7 @@ AS $func$
               JOIN rol       AS rt ON rt.rol_id = utt.rol_id
              WHERE utt.tema_id = t.tema_id
                AND utt.activo     = TRUE
-               AND utt.asignado   = TRUE
+              -- AND utt.asignado   = TRUE
                AND rt.nombre ILIKE 'Tesista'
              ORDER BY utt.usuario_id
           )
@@ -3030,7 +3064,7 @@ AS $func$
               JOIN usuario   AS ute ON ute.usuario_id = utt2.usuario_id
              WHERE utt2.tema_id = t.tema_id
                AND utt2.activo     = TRUE
-               AND utt2.asignado   = TRUE
+              -- AND utt2.asignado   = TRUE
                AND rt2.nombre ILIKE 'Tesista'
              ORDER BY ute.primer_apellido, ute.segundo_apellido
           )
@@ -3042,7 +3076,31 @@ AS $func$
       contar_postulaciones(t.tema_id) AS cant_postulaciones,
 
       -- 26) Nombre del estado
-      et.nombre AS estado_nombre
+      et.nombre AS estado_nombre,
+
+      COALESCE((
+      SELECT ARRAY(
+        SELECT utc.asignado
+          FROM usuario_tema utc
+          JOIN rol rc ON rc.rol_id = utc.rol_id
+        WHERE utc.tema_id = t.tema_id
+          AND utc.activo   = TRUE
+          AND rc.nombre IN ('Asesor','Coasesor')
+        ORDER BY CASE WHEN rc.nombre ILIKE 'Asesor' THEN 0 ELSE 1 END, utc.usuario_id
+      )
+    ), ARRAY[]::BOOLEAN[]) AS asesor_asignado,
+
+    COALESCE((
+      SELECT ARRAY(
+        SELECT utt.asignado
+          FROM usuario_tema utt
+          JOIN rol rt ON rt.rol_id = utt.rol_id
+        WHERE utt.tema_id = t.tema_id
+          AND utt.activo   = TRUE
+          AND rt.nombre ILIKE 'Tesista'
+        ORDER BY utt.usuario_id
+      )
+    ), ARRAY[]::BOOLEAN[]) AS tesista_asignado
 
     FROM tema AS t
 
@@ -3164,6 +3222,8 @@ AS $func$
     LIMIT   p_limit
     OFFSET  p_offset;
 $func$;
+
+
 
 CREATE OR REPLACE FUNCTION listar_areas_por_tema(
 	_tema_id integer)
