@@ -142,7 +142,6 @@ CREATE TABLE IF NOT EXISTS enlace_usuario(
 	activo				BOOLEAN			NOT NULL DEFAULT TRUE,
     fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    
     CONSTRAINT fk_enlace_usuario_u
     	FOREIGN KEY (usuario_id)
     		REFERENCES usuario(usuario_id)

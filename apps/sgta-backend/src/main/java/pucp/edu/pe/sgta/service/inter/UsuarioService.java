@@ -1,10 +1,7 @@
 package pucp.edu.pe.sgta.service.inter;
 
 import pucp.edu.pe.sgta.dto.UsuarioRegistroDto;
-import pucp.edu.pe.sgta.dto.asesores.FiltrosDirectorioAsesores;
-import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
-import pucp.edu.pe.sgta.dto.asesores.UsuarioConRolDto;
-import pucp.edu.pe.sgta.dto.asesores.UsuarioFotoDto;
+import pucp.edu.pe.sgta.dto.asesores.*;
 import org.springframework.web.multipart.MultipartFile;
 import pucp.edu.pe.sgta.dto.AlumnoTemaDto;
 import pucp.edu.pe.sgta.dto.DocentesDTO;
@@ -106,4 +103,10 @@ public interface UsuarioService {
     AlumnoTemaDto getAlumnoTema(String idAlumno);
 
     List<AlumnoReporteDto> findByStudentsForReviewer(String idUsuario, String cadenaBusqueda);
+
+    PerfilUsuarioDto getPerfilUsuario(String cognitoId);
+
+    void updatePerfilUsuario(PerfilUsuarioDto dto);
+
+    String obtenerCognitoPorId(Integer idUsuario);
 }
