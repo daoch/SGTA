@@ -1,5 +1,3 @@
-SET search_path TO sgtadb;
-
 CREATE OR REPLACE FUNCTION listar_temas_propuestos_por_subarea_conocimiento(
 	p_subareas_ids integer[],
 	p_asesor_id integer,
@@ -1150,20 +1148,16 @@ FROM usuario_sub_area_conocimiento usac
     ON u.usuario_id = usac.usuario_id
   JOIN tipo_usuario tu
     ON tu.tipo_usuario_id = u.tipo_usuario_id
-  -- Ensure the user has the "Asesor" role on at least one tema
-  JOIN usuario_tema ut
-    ON ut.usuario_id = u.usuario_id
-   AND ut.rol_id = (
+  JOIN usuario_rol ur ON ur.usuario_id = usac.usuario_id
+WHERE usac.sub_area_conocimiento_id = p_subarea_id
+  AND usac.activo = TRUE
+  AND tu.nombre ILIKE 'profesor'
+  AND ur.rol_id = (
          SELECT rol_id
            FROM rol
           WHERE nombre ILIKE 'Asesor'
           LIMIT 1
        )
-  JOIN usuario_rol ur ON ur.usuario_id = usac.usuario_id
-WHERE usac.sub_area_conocimiento_id = p_subarea_id
-  AND usac.activo = TRUE
-  AND tu.nombre ILIKE 'profesor'
-  AND ur.rol_id = ur.rol_id
 $$;
 
 CREATE OR REPLACE FUNCTION obtener_sub_areas_por_carrera_usuario(
@@ -3711,7 +3705,8 @@ BEGIN
         JOIN tema t on t.tema_id = ut.tema_id
         JOIN estado_tema et ON et.estado_tema_id = t.estado_tema_id
         WHERE et.nombre = 'PROPUESTO_LIBRE'
-        AND ut.usuario_id = p_usuario_id;
+        AND ut.usuario_id = p_usuario_id
+        AND ut.activo = true;
     ELSEIF p_nombre_parametro = 'Limite Propuestas Alumno' THEN
     -- Count the proposals
         SELECT COUNT(*) INTO cantidad
@@ -3719,7 +3714,8 @@ BEGIN
         JOIN tema t on t.tema_id = ut.tema_id
         JOIN estado_tema et ON et.estado_tema_id = t.estado_tema_id
         WHERE (et.nombre = 'PROPUESTO_DIRECTO' or et.nombre = 'PROPUESTO_GENERAL')
-        AND ut.usuario_id = p_usuario_id;
+        AND ut.usuario_id = p_usuario_id
+        AND ut.activo = true;
     ELSE
         RETURN TRUE;
     END IF;

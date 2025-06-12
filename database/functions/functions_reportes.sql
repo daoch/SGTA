@@ -1,5 +1,3 @@
-SET search_path TO sgtadb;
-
 CREATE OR REPLACE FUNCTION get_advisor_distribution_by_coordinator_and_ciclo(
     p_usuario_id    INTEGER,
     p_ciclo_nombre  VARCHAR
@@ -1369,6 +1367,7 @@ BEGIN
     AND tu.nombre ILIKE 'alumno'
     AND ut.rol_id = 4  -- Rol de tesista
     AND ut.activo = true
+    AND ut.asignado = true
     AND (
         COALESCE(p_cadena_busqueda, '') = '' OR
         u.nombres ILIKE '%' || p_cadena_busqueda || '%'

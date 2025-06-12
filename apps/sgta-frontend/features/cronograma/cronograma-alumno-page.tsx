@@ -138,8 +138,8 @@ const MiCronogramaPage = () => {
         }
         //const userId = 1; // ID fijo para pruebas
         
-        //const response = await axios.get(`http://localhost:5000/api/eventos/usuario/${userId}`);
-        const response = await axiosInstance.get(`/api/eventos/usuario`);
+        //const response = await axios.get(`http://localhost:5000/api/eventos/tesista/${userId}`);
+        const response = await axiosInstance.get(`/api/eventos/tesista`);
   
         // Mapear eventos asignando IDs únicos desde el front
         const eventosMapeados = response.data.map((evento: any, index: number) => {

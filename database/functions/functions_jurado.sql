@@ -1,5 +1,3 @@
-SET search_path TO sgtadb;
-
 -- Active: 1748374313012@@localhost@5432@postgres@sgtadb
 CREATE OR REPLACE FUNCTION obtener_etapas_formativas_por_usuario(p_usuario_id INTEGER)
 RETURNS TABLE (
@@ -836,7 +834,7 @@ BEGIN
     RETURN QUERY
 	Select c.* from Carrera as c
 	where c.activo = true
-	and c.carrera_id in(select uc.usuario_carrera_id
+	and c.carrera_id in(select uc.carrera_id
 						from usuario_carrera as uc
 						where uc.usuario_id = p_usuario_id
 						and uc.activo = true);

@@ -1,5 +1,5 @@
 --COMENTAR SI NO LES HACE FALTA
-SET search_path TO sgtadb;
+--SET search_path TO sgtadb;
 
 ----------------------------------
 --|           TIPOS            |--

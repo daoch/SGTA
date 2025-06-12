@@ -1,4 +1,4 @@
-SET search_path = sgtadb
+--SET search_path = sgtadb
 
 DROP FUNCTION IF EXISTS listar_etapas_formativas_alumno;
 DROP FUNCTION IF EXISTS obtener_entregables_alumno;

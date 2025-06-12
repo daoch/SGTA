@@ -1,5 +1,5 @@
 -- SCRIPTS PARA QUE FUNCIONES get_advisor_distribution_by_coordinator_and_ciclo
-SET search_path TO sgtadb;
+
 -- Asegurar que existe el coordinador con usuario_id = 3
 INSERT INTO usuario (
     usuario_id, tipo_usuario_id, codigo_pucp, nombres, primer_apellido, segundo_apellido,

@@ -1,5 +1,3 @@
-SET search_path TO sgtadb;
-
 DO
 $$
     BEGIN
@@ -1594,6 +1592,7 @@ CREATE CAST (CHARACTER VARYING AS enum_estado_entrega)
 
 CREATE CAST (CHARACTER VARYING AS enum_estado_actividad)
     WITH INOUT AS ASSIGNMENT;
+
 
 
 --CREATE CAST (CHARACTER VARYING AS enum_estado_actividad) WITH INOUT AS ASSIGNMENT;

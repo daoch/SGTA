@@ -1,5 +1,3 @@
-SET search_path TO sgtadb;
-
 INSERT INTO sub_area_conocimiento (area_conocimiento_id,
                                    nombre,
                                    descripcion)
