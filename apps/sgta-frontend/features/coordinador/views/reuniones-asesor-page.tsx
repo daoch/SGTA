@@ -28,7 +28,7 @@ export default function ReunionesAsesoresPage() {
     const [userId, setUserId] = useState<number | null>(null);
     const [searchTerm, setSearchTerm] = useState("");
     const [cicloSeleccionado, setCicloSeleccionado] = useState<string | undefined>(undefined);
-    const [etapaFormativaSeleccionada, setEtapaFormativaSeleccionada] = useState<EtapaFormativaDtoto | null>(null);
+    const [etapaFormativaSeleccionada, setEtapaFormativaSeleccionada] = useState<EtapaFormativaDto | null>(null);
     const [etapasFormativas, setEtapasFormativas] = useState<EtapaFormativaDto[]>([]);
     const [alumnosXasesores, setAlumnosXasesores] = useState<AsesorTesistaDto[]>([]);
     const hasFetchedId = useRef(false);
