@@ -13,4 +13,9 @@ public interface EnlaceUsuarioRepository extends JpaRepository<EnlaceUsuario, In
 
     @Query(value = "select * from listar_enlaces_usuario(:usuarioId)", nativeQuery = true)
     List<Object[]> listarEnlacesParaPerfilPorUsuario(@Param("usuarioId") Integer usuarioId);
+
+
+    List<EnlaceUsuario> findByUsuarioId(Integer usuarioId);
+
+    void deleteByIdIn(List<Integer> ids);
 }

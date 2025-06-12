@@ -1459,7 +1459,11 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @Override
     public void updatePerfilUsuario(PerfilUsuarioDto dto) {
-
+        Usuario u = usuarioRepository.findById(dto.getId()).orElseThrow(() -> new RuntimeException("No se encontró al usuario"));
+        PerfilAsesorDto asesorDto = PerfilAsesorDto.fromPerfilUsuario(dto);
+        updatePerfilAsesor(asesorDto);
+        List<EnlaceUsuarioDto> enlaces = dto.getEnlaces();
+        enlaceUsuarioServiceImpl.sincronizarEnlacesUsuario(enlaces,u);
     }
 
     @Override
