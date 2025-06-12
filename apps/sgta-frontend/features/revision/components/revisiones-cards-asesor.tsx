@@ -67,26 +67,34 @@ export function RevisionesCardsAsesor({
             <Card key={revision.id} className="flex flex-col h-full">
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between">
-                  <Badge
-                    variant="outline"
-                    className={
-                      revision.estado === "revisado"
-                        ? "bg-green-100 text-green-800 hover:bg-green-100"
+                  <div className="flex gap-2">
+                    <Badge
+                      variant="outline"
+                      className={"bg-purple-100"}
+                    >
+                      {revision.entregable}
+                    </Badge>
+                    <Badge
+                      variant="outline"
+                      className={
+                        revision.estado === "revisado"
+                          ? "bg-green-100 text-green-800 hover:bg-green-100"
+                          : revision.estado === "aprobado"
+                            ? "bg-blue-100 text-blue-800 hover:bg-blue-100"
+                            : revision.estado === "rechazado"
+                              ? "bg-red-100 text-red-800 hover:bg-red-100"
+                              : "bg-yellow-100 text-yellow-800 hover:bg-yellow-100"
+                      }
+                    >
+                      {revision.estado === "revisado"
+                        ? "Revisado"
                         : revision.estado === "aprobado"
-                          ? "bg-blue-100 text-blue-800 hover:bg-blue-100"
+                          ? "Aprobado"
                           : revision.estado === "rechazado"
-                            ? "bg-red-100 text-red-800 hover:bg-red-100"
-                            : "bg-yellow-100 text-yellow-800 hover:bg-yellow-100"
-                    }
-                  >
-                    {revision.estado === "revisado"
-                      ? "Revisado"
-                      : revision.estado === "aprobado"
-                        ? "Aprobado"
-                        : revision.estado === "rechazado"
-                          ? "Rechazado"
-                          : "Por Aprobar"}
-                  </Badge>
+                            ? "Rechazado"
+                            : "Por Aprobar"}
+                    </Badge>
+                  </div>
                   <Badge variant="outline" className="bg-gray-100">
                     {revision.curso}
                   </Badge>
@@ -123,10 +131,10 @@ export function RevisionesCardsAsesor({
                   </div>
 
                   <div className="flex justify-between items-center">
-                    <span className="text-sm">Fecha Límite:</span>
+                    <span className="text-sm">Fecha de Subida:</span>
                     <span className="text-sm font-medium">
-                      {revision.fechaLimite &&
-                        new Date(revision.fechaLimite).toLocaleDateString()}
+                      {revision.fechaEntrega &&
+                        new Date(revision.fechaEntrega).toLocaleDateString()}
                     </span>
                   </div>
 
