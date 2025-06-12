@@ -16,10 +16,12 @@ import {
   crearSolicitudCambioResumen,
   crearSolicitudCambioTitulo,
   eliminarTemaPorCoordinador,
+  fetchTemasSimilares,
 } from "../types/solicitudes/data";
 import {
   SolicitudAction,
   SolicitudPendiente,
+  TemaSimilar,
   TypeSolicitud,
 } from "../types/solicitudes/entities";
 import { Tema } from "../types/temas/entidades";
@@ -37,6 +39,22 @@ interface Props {
   setTema: Dispatch<Tema>;
 }
 
+// MOCK de historial
+const historialMock = [
+  {
+    fecha: "2024-01-15",
+    accion: "Solicitud creada",
+    responsable: "Sistema",
+    comentario: "Solicitud enviada por el estudiante",
+  },
+  {
+    fecha: "2024-01-16",
+    accion: "Asignada para evaluación",
+    responsable: "Dr. Ana Pérez",
+    comentario: "Asignada al comité de evaluación",
+  },
+];
+
 export default function DetalleSolicitudesCoordinadorPage({
   solicitud,
   setTema,
@@ -50,44 +68,7 @@ export default function DetalleSolicitudesCoordinadorPage({
   const [tipoSolicitud, setTipoSolicitud] = useState<TypeSolicitud>();
   const [errorTipoSolicitud, setErrorTipoSolicitud] = useState("");
   const [loading, setLoading] = useState(false);
-
-  // MOCK de similitud
-  const similitudMock = {
-    porcentaje: 35,
-    temasRelacionados: [
-      {
-        id: "TEMA-2023-089",
-        titulo: "Sistema de Inventario para Retail",
-        similitud: 45,
-      },
-      {
-        id: "TEMA-2023-156",
-        titulo: "Aplicación de IA en Gestión Empresarial",
-        similitud: 30,
-      },
-      {
-        id: "TEMA-2024-003",
-        titulo: "Dashboard Analítico para PYMES",
-        similitud: 25,
-      },
-    ],
-  };
-
-  // MOCK de historial
-  const historialMock = [
-    {
-      fecha: "2024-01-15",
-      accion: "Solicitud creada",
-      responsable: "Sistema",
-      comentario: "Solicitud enviada por el estudiante",
-    },
-    {
-      fecha: "2024-01-16",
-      accion: "Asignada para evaluación",
-      responsable: "Dr. Ana Pérez",
-      comentario: "Asignada al comité de evaluación",
-    },
-  ];
+  const [similares, setSimilares] = useState<TemaSimilar[] | []>([]);
 
   const errorTexts = {
     tipoSolicitud: "Ingresar el tipo de solicitud.",
@@ -159,6 +140,23 @@ export default function DetalleSolicitudesCoordinadorPage({
     validateTipoSolicitud();
   }, [tipoSolicitud, comentario]);
 
+  async function obtenerTemasSimilares(
+    temaId: number,
+    setSimilares: (s: TemaSimilar[]) => void,
+  ) {
+    try {
+      const similares = await fetchTemasSimilares(temaId);
+      setSimilares(similares);
+    } catch (error) {
+      console.error("Error al obtener temas similares:", error);
+      setSimilares([]);
+    }
+  }
+
+  useEffect(() => {
+    obtenerTemasSimilares(solicitud.tema.id, setSimilares);
+  }, [solicitud.tema.id]);
+
   // Config Actions
   const accionesConfig = {
     observar: {
@@ -180,6 +178,10 @@ export default function DetalleSolicitudesCoordinadorPage({
     eliminar: { show: true, disabled: loading },
   };
 
+  const moduloAnalisisSimilitud = (
+    <AnalisisSimilitudTema similares={similares} />
+  );
+
   return (
     <>
       <Toaster position="top-right" richColors />
@@ -188,9 +190,8 @@ export default function DetalleSolicitudesCoordinadorPage({
           <div className="flex flex-col gap-4 md:w-3/5">
             <EncabezadoDetalleSolicitudTema solicitud={solicitud} />
             <InfoDetalleSolicitudTema solicitud={solicitud} />
-            {solicitud.estado === EstadoTemaNombre.INSCRITO && (
-              <AnalisisSimilitudTema similitud={similitudMock} />
-            )}
+            {solicitud.estado === EstadoTemaNombre.INSCRITO &&
+              moduloAnalisisSimilitud}
             <HistorialDetalleSolicitudTema historial={historialMock} />
           </div>
 
@@ -216,7 +217,7 @@ export default function DetalleSolicitudesCoordinadorPage({
                 />
               </>
             ) : (
-              <AnalisisSimilitudTema similitud={similitudMock} />
+              moduloAnalisisSimilitud
             )}
           </div>
         </div>

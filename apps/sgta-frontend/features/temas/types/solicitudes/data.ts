@@ -1,6 +1,7 @@
 import { Carrera, Tema } from "@/features/temas/types/temas/entidades";
 import axiosInstance from "@/lib/axios/axios-instance";
 import { EstadoTemaNombre } from "../temas/enums";
+import { TemaSimilar } from "./entities";
 
 /**
  * 1) Obtener las carreras (y el ID implícito del usuario) de un miembro del comité
@@ -66,6 +67,19 @@ export async function lenTemasPorCarrera(
 ): Promise<number> {
   const temas = await listarTemasPorCarrera(carreraId, estado, 2000, 0); // TODO: Debe traer un number
   return temas.length;
+}
+
+/**
+ * Obtener temas similares a un tema dado
+ * GET /temas/{temaId}/similares
+ */
+export async function fetchTemasSimilares(
+  temaId: number,
+): Promise<TemaSimilar[]> {
+  const { data } = await axiosInstance.get<TemaSimilar[]>(
+    `/temas/${temaId}/similares`,
+  );
+  return data;
 }
 
 /**
