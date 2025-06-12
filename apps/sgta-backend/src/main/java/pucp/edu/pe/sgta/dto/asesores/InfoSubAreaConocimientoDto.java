@@ -15,7 +15,7 @@ public class InfoSubAreaConocimientoDto {
         InfoSubAreaConocimientoDto dto = new InfoSubAreaConocimientoDto();
         dto.idTema = (Integer) result[0];
         dto.nombre = (String) result[1];
-        Object[] subResult = Arrays.copyOfRange(result, 2, 3);
+        Object[] subResult = Arrays.copyOfRange(result, 2, 4);
         InfoAreaConocimientoDto area = InfoAreaConocimientoDto.fromQuery(subResult);
         dto.AreaTematica = area;
         return dto;
