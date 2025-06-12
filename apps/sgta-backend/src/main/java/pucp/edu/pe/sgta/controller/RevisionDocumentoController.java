@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpServletRequest;
 import pucp.edu.pe.sgta.dto.RevisionDocumentoAsesorDto;
 import pucp.edu.pe.sgta.dto.RevisionDto;
+import pucp.edu.pe.sgta.dto.UsuarioDto;
 import pucp.edu.pe.sgta.model.RevisionDocumento;
 import pucp.edu.pe.sgta.service.inter.JwtService;
 import pucp.edu.pe.sgta.service.inter.RevisionDocumentoService;
@@ -80,5 +81,10 @@ public class RevisionDocumentoController {
     @GetMapping("/detalle")
     public RevisionDocumentoAsesorDto obtenerRevisionDocumentoPorId(@RequestParam("revisionId") Integer revisionId) {
         return revisionDocumentoService.obtenerRevisionDocumentoPorId(revisionId);
+    }
+
+    @GetMapping("/getStudents")
+    public List<UsuarioDto> getStudentsByRevisor(@RequestParam("revisionId") Integer revisionId) {
+        return revisionDocumentoService.getStudentsByRevisor(revisionId);
     }
 }
