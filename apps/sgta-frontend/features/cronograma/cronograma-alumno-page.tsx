@@ -1,9 +1,8 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { 
   Calendar, 
   CalendarViewTrigger,
-  CalendarCurrentDate, 
   CalendarPrevTrigger,
   CalendarTodayTrigger,
   CalendarNextTrigger,
@@ -11,28 +10,16 @@ import {
   CalendarWeekView,
   CalendarMonthView
 } from "@/components/ui/full-calendar-mod";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { cva } from "class-variance-authority";
-
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PlusCircle, Download } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { format } from 'date-fns';
-
-import { Calendar as CalendarIcon } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Calendar as MonthPicker } from "@/components/ui/calendar"; // asegúrate de tenerlo
 import { es } from "date-fns/locale";
-
-import axios from "axios";
 import { useAuth } from "@/features/auth";
 import { useAuthStore } from "@/features/auth/store/auth-store";
-import { getIdByCorreo } from "@/features/asesores/hooks/perfil/perfil-apis";
 import axiosInstance from "@/lib/axios/axios-instance";
 
 type TipoEvento = "ENTREGABLE" | "REUNION" | "EXPOSICION";
@@ -46,20 +33,27 @@ interface CalendarEvent {
   tipoEvento: TipoEvento;
 }
 
+interface Evento {
+  id: number;
+  nombre: string;
+  descripcion: string;
+  tipo: string;
+  fechaInicio: string;
+  fechaFin: string;
+  activo: boolean;
+  tesistas: null;
+}
+
 // Importa los tipos si usas TypeScript
 declare global {
   interface Window {
-    gapi: any;
+    gapi: unknown;
   }
 }
 
-const CLIENT_ID = "1003186025477-ri4g0mveaptu3072hh27tuetc2j769rg.apps.googleusercontent.com";
-
 const MiCronogramaPage = () => {
-  const createDate = (day: number, month: number, year: number, hours = 0, minutes = 0) =>
-    new Date(year, month - 1, day, hours, minutes);
 
-  const getColorByTipoEvento = (tipo: TipoEvento) => {
+  const getColorByTipoEvento = (tipo: TipoEvento): "blue" | "green" | "pink" | "default" | "purple" | null => {
     switch (tipo) {
       case "ENTREGABLE":
         return "blue";
@@ -84,36 +78,7 @@ const MiCronogramaPage = () => {
     }
   });
 
-
-  const { user } = useAuth();
-  //const userId = 1;
-  const [userId, setUserId] = useState<number | null>(null);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
-
-  /*
-  const loadUsuarioId = async () => {
-    if (!user) return;
-  
-    try {
-      const id = await getIdByCorreo(user.email);
-      if (id !== null) {
-        setUserId(id);
-        console.log("ID del usuario obtenido:", id);
-      } else {
-        console.warn("No se encontró un usuario con ese correo.");
-      }
-    } catch (error) {
-      console.error("Error al obtener el ID del usuario:", error);
-    }
-  };
-
-  useEffect(() => {
-    if (user && !hasFetchedId.current) {
-      hasFetchedId.current = true;
-      loadUsuarioId();
-    }
-  }, [user]);
-  */
 
   const normalizarTipoEvento = (tipo: string): TipoEvento => {
     switch (tipo.toUpperCase()) {
@@ -136,23 +101,20 @@ const MiCronogramaPage = () => {
           console.error("No authentication token available");
           return;
         }
-        //const userId = 1; // ID fijo para pruebas
-        
-        //const response = await axios.get(`http://localhost:5000/api/eventos/tesista/${userId}`);
-        const response = await axiosInstance.get(`/api/eventos/tesista`);
+        const response = await axiosInstance.get("/api/eventos/tesista");
   
         // Mapear eventos asignando IDs únicos desde el front
-        const eventosMapeados = response.data.map((evento: any, index: number) => {
+        const eventosMapeados = response.data.map((evento: Evento, index: number) => {
           const tipoEvento = normalizarTipoEvento(evento.tipo);
-          const endDate = new Date(evento.fechaFin || evento.fecha);
+          const endDate = new Date(evento.fechaFin || evento.fechaInicio);
           const startDate =
             tipoEvento === "ENTREGABLE"
               ? endDate
-              : new Date(evento.fechaInicio || evento.fecha);
+              : new Date(evento.fechaInicio);
         
           return {
             id: (index + 1).toString(), // ID generado automáticamente desde 1 en adelante
-            title: evento.titulo || evento.nombre || "Sin título",
+            title: evento.nombre || "Sin título",
             description: evento.descripcion || "",
             start: startDate,
             end: endDate,
@@ -168,14 +130,14 @@ const MiCronogramaPage = () => {
     };
   
     fetchEventos();
-  }, [userId]);
+  });
   
 
   const eventosParaCalendario = events.map((event) => ({
     ...event,
     color: getColorByTipoEvento(event.tipoEvento),
     type: event.tipoEvento,
-    tesista: 'X',
+    tesista: "X",
   }));
 
   //console.log(eventosParaCalendario);
@@ -396,7 +358,7 @@ const MiCronogramaPage = () => {
 
 
         <DialogFooter>
-          <Button onClick={handleExport} disabled={isRangoInvalido}>
+          <Button onClick={handleExport} disabled={!!isRangoInvalido}>
             Exportar
           </Button>
         </DialogFooter>
@@ -450,7 +412,7 @@ const MiCronogramaPage = () => {
 
             <div className="flex-1 overflow-auto px-6 pb-6">
               <CalendarMonthView />
-              <CalendarWeekView />
+              <CalendarWeekView tipoUsuario="Alumno"/>
               <CalendarDayView tipoUsuario="Alumno"/>
             </div>
           </div>

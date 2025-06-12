@@ -21,19 +21,16 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PlusCircle, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { format } from 'date-fns';
+import { format } from "date-fns";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { es } from "date-fns/locale";
 
 
 import { Filter } from "lucide-react";
-import { useEffect, useMemo  } from 'react'; // Añade useEffect aquí
+import { useEffect, useMemo  } from "react"; // Añade useEffect aquí
 // ... (importaciones sin cambios)
 
-import axios from "axios";
 import { useAuth } from "@/features/auth";
-import { useAuthStore } from "@/features/auth/store/auth-store";
-import { getIdByCorreo } from "@/features/asesores/hooks/perfil/perfil-apis";
 import axiosInstance from "@/lib/axios/axios-instance";
 
 //type TipoEvento = "ENTREGABLE" | "REUNION" | "Otros";
@@ -49,6 +46,23 @@ interface CalendarEvent {
   tesistas: string[]; // nombres completos
 }
 
+interface Tesista {
+  id: number;
+  nombreCompleto: string;
+  temaTesis: string;
+}
+
+interface Evento {
+  id: number;
+  nombre: string;
+  descripcion: string;
+  tipo: string;
+  fechaInicio: string;
+  fechaFin: string;
+  activo: boolean;
+  tesistas: Tesista[];
+}
+
 const MiCronogramaPage = () => {
   const createDate = (day: number, month: number, year: number, hours = 0, minutes = 0) =>
     new Date(year, month - 1, day, hours, minutes);
@@ -62,7 +76,7 @@ const MiCronogramaPage = () => {
       />
     );
 
-  const getColorByTipoEvento = (tipo: TipoEvento) => {
+  const getColorByTipoEvento = (tipo: TipoEvento): "blue" | "green" | "pink" | "default" | "purple" | null | undefined => {
     switch (tipo) {
       case "ENTREGABLE": return "blue";
       case "REUNION": return "green";
@@ -95,7 +109,7 @@ const MiCronogramaPage = () => {
   
         const eventosMapeados: CalendarEvent[] = [];
   
-        data.forEach((evento: any, index: number) => {
+        data.forEach((evento: Evento, index: number) => {
           const {
             id,
             nombre,
@@ -106,15 +120,15 @@ const MiCronogramaPage = () => {
             tesistas,
           } = evento;
   
-          tesistas.forEach((tesista: any) => {
+          tesistas.forEach((tesista: Tesista) => {
             const eventoMapeado: CalendarEvent = {
               id: `${id}-${tesista.id}`, // ID único por evento-tesista
               title: nombre,
               description: descripcion,
               start: fechaInicio ? new Date(fechaInicio) : new Date(fechaFin),
               end: new Date(fechaFin),
-              tipoEvento: tipo,
-              tesistas: tesista.nombreCompleto,
+              tipoEvento: tipo as TipoEvento,
+              tesistas: [tesista.nombreCompleto],
             };
   
             eventosMapeados.push(eventoMapeado);
@@ -478,7 +492,7 @@ const MiCronogramaPage = () => {
 
 
         <DialogFooter>
-          <Button onClick={handleExport} disabled={isRangoInvalido}>
+          <Button onClick={handleExport} disabled={!!isRangoInvalido}>
             Exportar
           </Button>
         </DialogFooter>
@@ -505,7 +519,7 @@ const MiCronogramaPage = () => {
             </div>
             <div className="flex-1 overflow-auto px-6 pb-6">
               <CalendarMonthView />
-              <CalendarWeekView />
+              <CalendarWeekView tipoUsuario="Asesor" />
               <CalendarDayView tipoUsuario="Asesor"/>
             </div>
           </div>
