@@ -1,5 +1,7 @@
+import { UsuarioDto } from "@/features/coordinador/dtos/UsuarioDto";
 import axiosInstance from "@/lib/axios/axios-instance";
 import { IHighlight } from "react-pdf-highlighter";
+import { RevisionDocumentoAsesorDto } from "../dtos/RevisionDocumentoAsesorDto";
 /**
  * Descarga un archivo desde el backend S3.
  * @param key Nombre o clave del archivo a descargar (ej: "silabo.pdf").
@@ -7,56 +9,56 @@ import { IHighlight } from "react-pdf-highlighter";
  */
 
 export async function descargarArchivoS3(key: string): Promise<Blob> {
-    const response = await axiosInstance.get(
-        `/s3/archivos/descargar/${encodeURIComponent(key)}`,
-        { responseType: "blob" }
-    );
-    return response.data;
+  const response = await axiosInstance.get(
+    `/s3/archivos/descargar/${encodeURIComponent(key)}`,
+    { responseType: "blob" }
+  );
+  return response.data;
 }
 export async function descargarArchivoS3RevisionID(id: number): Promise<Blob> {
-    const response = await axiosInstance.get(
-        `/s3/archivos/descargar-por-revision/${encodeURIComponent(String(id))}`,
-        { responseType: "blob" }
-    );
-    return response.data;
+  const response = await axiosInstance.get(
+    `/s3/archivos/descargar-por-revision/${encodeURIComponent(String(id))}`,
+    { responseType: "blob" }
+  );
+  return response.data;
 }
 export interface PlagiarismFound {
-    startIndex: number;
-    endIndex: number;
-    sequence: string;
+  startIndex: number;
+  endIndex: number;
+  sequence: string;
 }
 
 export interface PlagiarismSource {
-    author: string;
-    score: number;
-    url: string;
-    title: string;
-    plagiarismFound: PlagiarismFound[];
-    // Puedes agregar más campos si los necesitas, pero no uses any
+  author: string;
+  score: number;
+  url: string;
+  title: string;
+  plagiarismFound: PlagiarismFound[];
+  // Puedes agregar más campos si los necesitas, pero no uses any
 }
 
 export interface PlagioApiResult {
-    score: number;
-    sourceCounts: number;
-    textWordCounts: number;
-    totalPlagiarismWords: number;
-    identicalWordCounts: number;
-    similarWordCounts: number;
+  score: number;
+  sourceCounts: number;
+  textWordCounts: number;
+  totalPlagiarismWords: number;
+  identicalWordCounts: number;
+  similarWordCounts: number;
 }
 
 export interface PlagioApiResponse {
-    status: number;
-    result: PlagioApiResult;
-    sources: PlagiarismSource[];
-    // Agrega aquí otros campos relevantes si los necesitas
+  status: number;
+  result: PlagioApiResult;
+  sources: PlagiarismSource[];
+  // Agrega aquí otros campos relevantes si los necesitas
 }
 
 export async function analizarPlagioArchivoS3(key: string): Promise<PlagioApiResponse> {
-    const response = await axiosInstance.get(
-        `/plagiarism/check/${encodeURIComponent(key)}`
-    );
-    // El backend devuelve un string JSON, así que lo parseamos
-    return typeof response.data === "string" ? JSON.parse(response.data) as PlagioApiResponse : response.data;
+  const response = await axiosInstance.get(
+    `/plagiarism/check/${encodeURIComponent(key)}`
+  );
+  // El backend devuelve un string JSON, así que lo parseamos
+  return typeof response.data === "string" ? JSON.parse(response.data) as PlagioApiResponse : response.data;
 }
 export async function guardarObservacionesRevision(
   revisionId: number,
@@ -67,6 +69,18 @@ export async function guardarObservacionesRevision(
     `/revision/${revisionId}/observaciones?usuarioId=${usuarioId}`,
     highlights // <-- el array directo, no un objeto
   );
+}
+export async function guardarObservacion(
+  revisionId: number,
+  observacion: IHighlight, // o HighlightDto si ya lo tienes mapeado
+  usuarioId: number
+): Promise<number> {
+  const response = await axiosInstance.post<number>(
+    `/revision/${revisionId}/observacion?usuarioId=${usuarioId}`,
+    observacion
+  );
+  console.log("Respuesta del backend al guardar observación:", response);
+  return response.data; // Aquí recibes el id de la observación creada
 }
 interface ObservacionToHighlightRect {
   x1?: number;
@@ -155,4 +169,26 @@ export async function obtenerObservacionesRevision(revisionId: number): Promise<
   // Mapea cada observación del backend a IHighlight
   console.log("Response data:", response.data);
   return response.data.map(highlightDtoToIHighlight);
+}
+export async function borrarObservacion(observacionId: number): Promise<void> {
+  await axiosInstance.delete(`/revision/observaciones/${observacionId}`);
+}
+
+export async function getRevisionById(id: string): Promise<RevisionDocumentoAsesorDto> {
+  const res = await axiosInstance.get("/revision/detalle", {
+    params: { revisionId: id }
+  });
+  return res.data;
+}
+
+export async function getStudentsByRevisor(id: string): Promise<UsuarioDto[]> {
+  const res = await axiosInstance.get("/revision/getStudents", {
+    params: { revisionId: id }
+  });
+  return res.data;
+}
+
+export async function obtenerUrlCloudFrontPorRevision(revisionId: number): Promise<string> {
+  const response = await axiosInstance.get<string>(`/s3/archivos/getUrlFromCloudFrontByRevision/${revisionId}`);
+  return response.data; // Aquí recibes la URL de CloudFront como string
 }

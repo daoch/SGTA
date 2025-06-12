@@ -10,6 +10,8 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.math3.analysis.function.Add;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
@@ -84,4 +86,6 @@ public class Observacion {
         }
         return numeroPaginaInicio <= numeroPaginaFin;
     }
+    @Column(name = "corregido", nullable = false)
+    private Boolean corregido = false;
 }

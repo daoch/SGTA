@@ -1,8 +1,10 @@
 package pucp.edu.pe.sgta.service.imp;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import pucp.edu.pe.sgta.dto.ObservacionesRevisionDTO;
 import pucp.edu.pe.sgta.dto.revision.CommentDto;
@@ -44,27 +46,23 @@ public class ObservacionServiceImpl implements ObservacionService{
     private TipoObservacionRepository tipoObservacionRepository;
 
     @Transactional
-    public void guardarObservaciones(Integer revisionId, List<HighlightDto> highlights, Integer usuarioId) {
+    public Integer guardarObservaciones(Integer revisionId, HighlightDto h, Integer usuarioId) {
         RevisionDocumento revision = revisionDocumentoRepository.findById(revisionId)
                 .orElseThrow(() -> new RuntimeException("Revisión no encontrada"));
 
         Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-      
-        for (HighlightDto h : highlights) {
-            Integer highlightId = h.getId() != null ? h.getId().intValue() : null;
-            if (highlightId != null && observacionRepository.existsByObservacionId(highlightId)) {
-                continue; // Ya existe, no guardar duplicado
-            }
+
+
             String nombreTipo = h.getComment().getEmoji(); // Cambia esto si el campo es otro
             Integer tipoId = getTipoObservacionIdByNombre(nombreTipo);
 
             TipoObservacion tipoObservacion = tipoObservacionRepository.findById(tipoId)
                 .orElseThrow(() -> new RuntimeException("Tipo de observación no encontrado")); 
-            Observacion obs = new Observacion();
+            Observacion obs =  new Observacion();
             obs.setRevisionDocumento(revision);
-            obs.setUsuarioCreacion(usuario);
+            obs.setUsuarioCreacion(revision.getUsuario());
             obs.setComentario(h.getComment().getText());
             obs.setNumeroPaginaInicio(h.getPosition().getPageNumber());
             obs.setNumeroPaginaFin(h.getPosition().getPageNumber());
@@ -105,8 +103,9 @@ public class ObservacionServiceImpl implements ObservacionService{
             obs.setRects(rects);
 
             obs.setFechaModificacion(ZonedDateTime.now());         
-            observacionRepository.save(obs);
-        }
+            observacionRepository.saveAndFlush(obs);
+            System.out.println("Observación guardada: " + obs.getObservacionId());
+        return obs.getObservacionId(); // Retorna el ID de la observación guardada
     }
     public List<Observacion> obtenerObservacionesPorRevision(Integer revisionId) {
         return observacionRepository.findByRevisionDocumento_Id(revisionId);
@@ -203,10 +202,27 @@ private HighlightDto mapObservacionToHighlightDto(Observacion obs) {
             dto.setFechaCreacion(row[5] != null ? ((Instant) row[5]).atOffset(ZoneOffset.UTC) : null);
             dto.setTipoObservacionId((Integer) row[6]);
             dto.setRevisionId((Integer) row[7]);
-
+            dto.setUsuarioCreacionId((Integer) row[8]);
+            dto.setNombres((String) row[9]);
+            dto.setPrimerApellido((String) row[10]);
+            dto.setSegundoApellido((String) row[11]);
+            dto.setRolesUsuario((String) row[12]);
+            dto.setCorregido((Boolean) row[13]);
+            
             dtoList.add(dto);
         }
 
         return dtoList;
+    }
+    public void borradoLogicoObservacion(Integer observacionId) {
+        Observacion obs = observacionRepository.findById(observacionId)
+            .orElseThrow(() -> new RuntimeException("Observación no encontrada"));
+        obs.setActivo(false); // O el campo que uses para el borrado lógico
+        observacionRepository.save(obs);
+    }
+    @Override
+    @Transactional
+    public void actualizarEstadoCorregido(Integer observacionId, boolean corregido) {
+        observacionRepository.actualizarCorregidoPorId(observacionId, corregido);
     }
 }

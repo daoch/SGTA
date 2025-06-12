@@ -135,7 +135,21 @@ CREATE TABLE IF NOT EXISTS estado_tema
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-
+-- Tabla enlaces
+CREATE TABLE IF NOT EXISTS enlace_usuario(
+	enlace_usuario_id	SERIAL PRIMARY KEY,
+	plataforma			VARCHAR(100)	NOT NULL,
+	enlace				VARCHAR(250)	NOT NULL,
+	usuario_id			INTEGER			NOT NULL,
+	activo				BOOLEAN			NOT NULL DEFAULT TRUE,
+    fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT fk_enlace_usuario_u
+    	FOREIGN KEY (usuario_id)
+    		REFERENCES usuario(usuario_id)
+    		ON DELETE cascade
+);
 -- 1) Tabla proyecto
 CREATE TABLE IF NOT EXISTS proyecto
 (
@@ -206,10 +220,18 @@ CREATE TABLE IF NOT EXISTS historial_tema
 (
     historial_tema_id  SERIAL PRIMARY KEY,
     tema_id            INTEGER                  NOT NULL,
+    codigo             VARCHAR(255),
     titulo             VARCHAR(255)             NOT NULL,
     resumen            TEXT,
+    metodologia        TEXT,
+    objetivos          TEXT,
     descripcion_cambio TEXT,
+    portafolio_url     VARCHAR(255),
     estado_tema_id     INTEGER                  NOT NULL,
+    proyecto_id        INTEGER,
+    carrera_id         INTEGER,
+    fecha_limite       TIMESTAMP WITH TIME ZONE,
+    fecha_finalizacion TIMESTAMP WITH TIME ZONE,
     activo             BOOLEAN                  NOT NULL DEFAULT TRUE,
     fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -219,6 +241,27 @@ CREATE TABLE IF NOT EXISTS historial_tema
             REFERENCES tema (tema_id)
             ON DELETE RESTRICT
 );
+
+-- Agregar clave foránea para estado_tema_id
+ALTER TABLE historial_tema
+  ADD CONSTRAINT fk_historial_tema_estado_tema
+    FOREIGN KEY (estado_tema_id)
+    REFERENCES estado_tema (estado_tema_id)
+    ON DELETE RESTRICT;
+
+-- Agregar clave foránea para proyecto_id
+ALTER TABLE historial_tema
+  ADD CONSTRAINT fk_historial_tema_proyecto
+    FOREIGN KEY (proyecto_id)
+    REFERENCES proyecto (proyecto_id)
+    ON DELETE RESTRICT;
+
+-- Agregar clave foránea para carrera_id
+ALTER TABLE historial_tema
+  ADD CONSTRAINT fk_historial_tema_carrera
+    FOREIGN KEY (carrera_id)
+    REFERENCES carrera (carrera_id)
+    ON DELETE RESTRICT;
 
 CREATE TABLE IF NOT EXISTS tema_similar (
     tema_similar_id      SERIAL PRIMARY KEY,
@@ -1382,6 +1425,24 @@ CREATE TABLE IF NOT EXISTS revision_documento
             ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS etapa_formativa_x_ciclo_x_usuario_rol (
+    etapa_formativa_x_ciclo_x_usuario_rol_id SERIAL PRIMARY KEY,
+    etapa_formativa_x_ciclo_id INTEGER NOT NULL,
+    usuario_rol_id INTEGER NOT NULL,
+    activo BOOLEAN NOT NULL DEFAULT TRUE,
+    fecha_creacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_efc_ur_efc
+        FOREIGN KEY (etapa_formativa_x_ciclo_id)
+            REFERENCES etapa_formativa_x_ciclo (etapa_formativa_x_ciclo_id)
+            ON DELETE RESTRICT,
+    CONSTRAINT fk_efc_ur_ur
+        FOREIGN KEY (usuario_rol_id)
+            REFERENCES usuario_rol (usuario_rol_id)
+            ON DELETE RESTRICT
+);
+
 CREATE TABLE IF NOT EXISTS tipo_observacion
 (
     tipo_observacion_id SERIAL PRIMARY KEY,
@@ -1444,6 +1505,9 @@ ALTER TABLE observacion
     ADD COLUMN IF NOT EXISTS bounding_page   INT,
     ADD COLUMN IF NOT EXISTS contenido                     TEXT NOT NULL;
 
+ALTER TABLE observacion
+    ADD COLUMN IF NOT EXISTS corregido BOOLEAN NOT NULL DEFAULT FALSE;
+    
 CREATE TABLE IF NOT EXISTS reunion
 (
     reunion_id         SERIAL PRIMARY KEY,
@@ -1565,6 +1629,7 @@ CREATE CAST (CHARACTER VARYING AS enum_estado_entrega)
 
 CREATE CAST (CHARACTER VARYING AS enum_estado_actividad)
     WITH INOUT AS ASSIGNMENT;
+
 
 
 --CREATE CAST (CHARACTER VARYING AS enum_estado_actividad) WITH INOUT AS ASSIGNMENT;

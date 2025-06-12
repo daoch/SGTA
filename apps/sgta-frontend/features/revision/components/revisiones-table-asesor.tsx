@@ -18,10 +18,10 @@ import {
   TableHeader,
   TableRow,
 } from "../../../components/ui/table";
-import { RevisionDocumentoAsesorDto } from "../dtos/RevisionDocumentoAsesorDto";
+import { DocumentoAgrupado } from "../dtos/DocumentoAgrupado";
 
 interface RevisionesTableAsesorProps {
-  data: RevisionDocumentoAsesorDto[];
+  data: DocumentoAgrupado[];
   filter?: string;
   searchQuery?: string;
   cursoFilter?: string;
@@ -33,6 +33,7 @@ export function RevisionesTableAsesor({
   searchQuery = "",
   cursoFilter = "todos",
 }: RevisionesTableAsesorProps) {
+
   // Filtrar las revisiones según los criterios
   let revisionesFiltradas = data;
 
@@ -52,13 +53,37 @@ export function RevisionesTableAsesor({
 
   if (searchQuery) {
     const query = searchQuery.toLowerCase();
-    revisionesFiltradas = revisionesFiltradas.filter(
-      (revision) =>
-        revision.estudiante.toLowerCase().includes(query) ||
-        revision.codigo.includes(query) ||
-        revision.titulo.toLowerCase().includes(query)
+    revisionesFiltradas = revisionesFiltradas.filter((revision) =>
+      revision.titulo.toLowerCase().includes(query) ||
+      revision.estudiantes.some(
+        (est) =>
+          est.nombre.toLowerCase().includes(query) ||
+          est.codigo.includes(query)
+      )
     );
   }
+
+  const renderEstudiantes = (estudiantes: { nombre: string; codigo: string }[]) => {
+    if (estudiantes.length === 1) {
+      return (
+        <div>
+          <div className="font-medium">{estudiantes[0].nombre}</div>
+          <div className="text-xs text-muted-foreground">{estudiantes[0].codigo}</div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-1">
+        <div className="font-medium">
+          {estudiantes.length} estudiante{estudiantes.length > 1 ? "s" : ""}
+        </div>
+        <div className="text-xs text-muted-foreground break-words whitespace-pre-wrap">
+          {estudiantes.map((e) => `${e.nombre} (${e.codigo})`).join(", ")}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div>
@@ -74,8 +99,7 @@ export function RevisionesTableAsesor({
               <TableHead>Curso</TableHead>
               <TableHead>Similitud (%)</TableHead>
               <TableHead>Gen. IA (%)</TableHead>
-              <TableHead>F. de Carga</TableHead>
-              <TableHead>Ultimo Ciclo</TableHead>
+              <TableHead>F. de Subida</TableHead>
               <TableHead>Acciones</TableHead>
             </TableRow>
           </TableHeader>
@@ -103,14 +127,7 @@ export function RevisionesTableAsesor({
                       <span>{revision.entregable}</span>
                     </div>
                   </TableCell>
-                  <TableCell>
-                    <div>
-                      <div>{revision.estudiante}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {revision.codigo}
-                      </div>
-                    </div>
-                  </TableCell>
+                  <TableCell className="max-w-xs">{renderEstudiantes(revision.estudiantes)}</TableCell>
                   <TableCell>
                     <Badge variant="outline" className="bg-gray-100">
                       {revision.curso}
@@ -146,20 +163,9 @@ export function RevisionesTableAsesor({
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      {revision.fechaLimite && (
-                        <>
-                          {revision.entregaATiempo === false && (
-                            <AlertTriangle className="h-4 w-4 text-red-500" />
-                          )}
-                          {new Date(revision.fechaLimite).toLocaleDateString()}
-                        </>
-                      )}
+                      {new Date(revision.fechaEntrega).toLocaleDateString()}
                     </div>
                   </TableCell>
-                  <TableCell className="text-start">
-                    <div>{revision.ultimoCiclo}</div>
-                  </TableCell>
-
                   <TableCell className="text-center">
                     <div className="flex items-center gap-0.5">
                       {/* Botón "Ver detalles" (el ojito) */}

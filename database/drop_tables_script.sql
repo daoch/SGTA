@@ -40,9 +40,9 @@ DROP TABLE IF EXISTS area_conocimiento                  CASCADE;
 DROP TABLE IF EXISTS sub_area_conocimiento               CASCADE;
 DROP TABLE IF EXISTS recurso                            CASCADE;
 DROP TABLE IF EXISTS tema                               CASCADE;
-DROP TABLE IF EXISTS historial_tema                     CASCADE;
 DROP TABLE IF EXISTS estado_tema                        CASCADE;
 DROP TABLE IF EXISTS tipo_rechazo_tema CASCADE;
+DROP TABLE IF EXISTS historial_tema                     CASCADE;
 
 
 -- Tablas de exposiciones

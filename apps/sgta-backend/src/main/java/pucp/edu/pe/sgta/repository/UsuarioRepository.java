@@ -62,6 +62,12 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
     List<Object[]> obtenerIdCoordinadorPorUsuario(
             @Param("usuarioId") Integer usuarioId);
 
+    @Query(value = """
+            SELECT * FROM cantidad_coordinador_por_carrera_tema(:temaId)
+            """, nativeQuery = true)
+    List<Object[]> obtenerCantidadDeCoordinadoresPorTema(
+            @Param("temaId") Integer temaId);
+
 
     // NUEVO MÉTODO para encontrar usuarios (coordinadores) activos de una carrera específica por tipo de usuario
     @Query("SELECT uc.usuario FROM UsuarioXCarrera uc " +
@@ -84,4 +90,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
             SELECT * FROM obtener_profesores()
             """, nativeQuery = true)
     List<Object[]> obtenerProfesores();
+
+    @Query(value = "SELECT * FROM listar_revisores_por_carrera(:carreraId)", nativeQuery = true)
+    List<Object[]> listarRevisoresPorCarrera(@Param("carreraId") Integer carreraId);
 }

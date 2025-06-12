@@ -24,4 +24,9 @@ public class ObservacionesRevisionDTO {
     private Integer boundingPage;
     private String contenido;
     private OffsetDateTime fechaCreacion;
+    private String nombres;
+    private String primerApellido;
+    private String segundoApellido;
+    private String rolesUsuario;
+    private Boolean corregido;
 }

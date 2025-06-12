@@ -3,7 +3,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from "date-fns";
 import { useEffect, useState } from "react";
-import { ProjectTracking } from "../components/general/project-tracking";
 
 import { obtenerDetalleTemaAlumno, obtenerEntregablesConRetraso } from "../services/report-services";
 
@@ -12,8 +11,8 @@ import { AlumnoTemaDetalle } from "../types/Alumno.type";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { AlertTriangle } from "lucide-react";
-import { OverdueSummary } from "../types/OverdueSummary.type";
 import { LineaTiempoReporte } from "../components/general/linea-tiempo";
+import { OverdueSummary } from "../types/OverdueSummary.type";
 
 const getProgressColor = (progreso: number) => {
   if (progreso < 30) return "#ef4444";
@@ -25,6 +24,7 @@ export function StudentReports() {
   const [studentData, setStudentData] = useState<AlumnoTemaDetalle | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [overdueSummary, setOverdueSummary] = useState<OverdueSummary | null>(null);
+  const [hasError, setHasError] = useState(false); // Nuevo estado para error
   const { user } = useAuth();
 
   useEffect(() => {
@@ -33,7 +33,10 @@ export function StudentReports() {
       try {
         const data = await obtenerDetalleTemaAlumno();
         setStudentData(data);
+        setHasError(false);
       } catch (error) {
+        setHasError(true); 
+        setStudentData(null);
         console.error("Error al obtener datos del alumno:", error);
       } finally {
         setIsLoading(false);
@@ -49,8 +52,12 @@ export function StudentReports() {
     fetchOverdueSummary();
   }, [user]);
 
-  if (!user || isLoading || !studentData) {
+  if (!user || isLoading) {
     return <div>Cargando...</div>;
+  }
+
+  if (hasError || !studentData) {
+    return <div>El alumno aun no tiene un tema de tesis asociado</div>;
   }
 
   return (

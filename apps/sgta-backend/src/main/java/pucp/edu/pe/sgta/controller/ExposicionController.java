@@ -1,6 +1,9 @@
 package pucp.edu.pe.sgta.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,6 +17,7 @@ import pucp.edu.pe.sgta.service.inter.ExposicionService;
 import pucp.edu.pe.sgta.service.inter.JwtService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
 
+import org.springframework.http.HttpHeaders;
 import java.util.List;
 
 @RestController
@@ -83,4 +87,22 @@ public class ExposicionController {
         UsuarioDto usuario = this.usuarioService.findByCognitoId(cognitoId);
         return exposicionService.findExposicionesEstudianteById(usuario.getId());
     }
+
+    @GetMapping("/exportar-excel/{idExposicion}")
+    public ResponseEntity<byte[]> exportarExcel(@PathVariable Integer idExposicion) {
+        byte[] archivo = exposicionService.exportarExcel(idExposicion); // Llama a tu servicio
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        headers.setContentDisposition(ContentDisposition
+                .attachment()
+                .filename("reporte.xlsx")
+                .build());
+
+        return ResponseEntity
+                .ok()
+                .headers(headers)
+                .body(archivo); // ✅ Ya no hay error aquí
+    }
+
 }

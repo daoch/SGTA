@@ -10,8 +10,8 @@ interface AccionesDisponiblesSolicitudProps {
   estadoCoordinador: string;
   estadoNuevoAsesor: string;
   nombreNuevoAsesor: string;
-  onAprobar: () => void;
-  onRechazar: () => void;
+  handleAprobar: () => void;
+  handleRechazar: () => void;
   onEnviarRecordatorio: () => void;
 }
 
@@ -20,8 +20,8 @@ export default function AccionesDisponiblesSolicitud({
   estadoCoordinador,
   estadoNuevoAsesor,
   nombreNuevoAsesor,
-  onAprobar,
-  onRechazar,
+  handleAprobar,
+  handleRechazar,
   onEnviarRecordatorio,
 }: Readonly<AccionesDisponiblesSolicitudProps>) {
   const puedeVerAcciones = useMemo(() => {
@@ -85,7 +85,7 @@ export default function AccionesDisponiblesSolicitud({
             <Separator />
             <div className="flex flex-col sm:flex-row gap-3">
               <Button
-                onClick={onAprobar}
+                onClick={handleAprobar}
                 className="flex-1 bg-green-600 hover:bg-green-700"
               >
                 <CheckCircle className="w-4 h-4 mr-2" />
@@ -93,7 +93,7 @@ export default function AccionesDisponiblesSolicitud({
               </Button>
               <Button
                 variant="destructive"
-                onClick={onRechazar}
+                onClick={handleRechazar}
                 className="flex-1"
               >
                 <AlertCircle className="w-4 h-4 mr-2" />

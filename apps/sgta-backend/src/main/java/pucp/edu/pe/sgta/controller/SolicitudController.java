@@ -1,10 +1,12 @@
 package pucp.edu.pe.sgta.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import pucp.edu.pe.sgta.dto.temas.SolicitudTemaDto;
+import pucp.edu.pe.sgta.service.inter.JwtService;
 import pucp.edu.pe.sgta.service.inter.SolicitudService;
 
 @RestController
@@ -14,6 +16,8 @@ public class SolicitudController {
 
     @Autowired
     private SolicitudService solicitudService;
+    @Autowired
+    private JwtService jwtService;
 
     @GetMapping("/listSolicitudesByTema/{id}")
     public ResponseEntity<SolicitudTemaDto> getSolicitudesByTema(
@@ -56,21 +60,50 @@ public class SolicitudController {
         return ResponseEntity.ok(solicitudService.listarDetalleSolicitudCambioAsesorUsuario(idSolicitud));
     }
 
-    @PatchMapping("/aprobarSolicitudCambioAsesor")
-    public ResponseEntity<Object> aprobarSolicitudCambioAsesor(
+    @GetMapping("/listarResumenSolicitudCambioAsesorCoordinador")
+    public ResponseEntity<Object> listarResumenSolicitudCambioAsesorCoordinador(
+            HttpServletRequest request) {
+        String cognitoId = jwtService.extractSubFromRequest(request);
+        return ResponseEntity.ok(solicitudService.listarResumenSolicitudCambioAsesorCoordinador(cognitoId));
+    }
+
+    @PatchMapping("/aprobarSolicitudCambioAsesorAsesor")
+    public ResponseEntity<Object> aprobarSolicitudCambioAsesorAsesor(
             @RequestParam(name = "idSolicitud") Integer idSolicitud,
-            @RequestParam(name = "idUsuario") Integer idUsuario,
-            @RequestParam(name = "rolSolicitud") String rolSolictud) {
-        solicitudService.aprobarRechazarSolicitudCambioAsesor(idSolicitud, idUsuario, rolSolictud, true);
+            @RequestParam(name = "comentario") String comentario,
+            HttpServletRequest request) {
+        String cognitoId = jwtService.extractSubFromRequest(request);
+        solicitudService.aprobarRechazarSolicitudCambioAsesorAsesor(idSolicitud, cognitoId, comentario, true);
         return ResponseEntity.ok(null);
     }
 
-    @PatchMapping("/rechazarSolicitudCambioAsesor")
-    public ResponseEntity<Object> rechazarSolicitudCambioAsesor(
+    @PatchMapping("/rechazarSolicitudCambioAsesorAsesor")
+    public ResponseEntity<Object> rechazarSolicitudCambioAsesorAsesor(
             @RequestParam(name = "idSolicitud") Integer idSolicitud,
-            @RequestParam(name = "idUsuario") Integer idUsuario,
-            @RequestParam(name = "rolSolicitud") String rolSolictud) {
-        solicitudService.aprobarRechazarSolicitudCambioAsesor(idSolicitud, idUsuario, rolSolictud, false);
+            @RequestParam(name = "comentario") String comentario,
+            HttpServletRequest request) {
+        String cognitoId = jwtService.extractSubFromRequest(request);
+        solicitudService.aprobarRechazarSolicitudCambioAsesorAsesor(idSolicitud, cognitoId, comentario, false);
+        return ResponseEntity.ok(null);
+    }
+
+    @PatchMapping("/aprobarSolicitudCambioAsesorCoordinador")
+    public ResponseEntity<Object> aprobarSolicitudCambioAsesorCoordinador(
+            @RequestParam(name = "idSolicitud") Integer idSolicitud,
+            @RequestParam(name = "comentario") String comentario,
+            HttpServletRequest request) {
+        String cognitoId = jwtService.extractSubFromRequest(request);
+        solicitudService.aprobarRechazarSolicitudCambioAsesorCoordinador(idSolicitud, cognitoId, comentario, true);
+        return ResponseEntity.ok(null);
+    }
+
+    @PatchMapping("/rechazarSolicitudCambioAsesorCoordinador")
+    public ResponseEntity<Object> rechazarSolicitudCambioAsesorCoordinador(
+            @RequestParam(name = "idSolicitud") Integer idSolicitud,
+            @RequestParam(name = "comentario") String comentario,
+            HttpServletRequest request) {
+        String cognitoId = jwtService.extractSubFromRequest(request);
+        solicitudService.aprobarRechazarSolicitudCambioAsesorCoordinador(idSolicitud, cognitoId, comentario, false);
         return ResponseEntity.ok(null);
     }
 

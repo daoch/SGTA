@@ -60,3 +60,65 @@ export async function finishPlanning(idExposicon: number) {
     return { success: false, message: "Error al terminar la planificación" };
   }
 }
+
+//TESTING WATERS
+export async function obtenerAccessTokenZoom() {
+  try {
+    const response = await axiosInstance.post("/zoom/generar-token-acceso");
+    const data = response.data as { access_token: string };
+
+    if (data.access_token) {
+      return data.access_token;
+    } else {
+      console.warn("No se obtuvo el token de acceso de Zoom");
+      return null;
+    }
+  } catch (error) {
+    const err = error as { response?: { data?: unknown } };
+    console.error(
+      "Error al obtener el token de acceso de Zoom:",
+      err.response?.data || err,
+    );
+    return null;
+  }
+}
+
+export async function reunionesZoom(idExposicion: number) {
+  try {
+    const url = `/zoom/crear-meetings-jornada-exposicion/${idExposicion}`;
+    const response = await axiosInstance.get(url);
+
+    console.log("Respuesta de creación de reunión:", response.data);
+  } catch (error) {
+    const err = error as unknown;
+    throw err;
+  }
+}
+
+export async function descargarExcelByExposicionId(exposicionId: number) {
+  try {
+    const response = await axiosInstance.get(
+      `/exposicion/export-excel/${exposicionId}`,
+      {
+        responseType: "blob",
+      },
+    );
+
+    // Crear URL desde el blob
+    const url = window.URL.createObjectURL(response.data);
+    const enlace = document.createElement("a");
+    enlace.href = url;
+
+    enlace.setAttribute("download", `exposicion-${exposicionId}.xlsx`);
+    document.body.appendChild(enlace);
+    enlace.click();
+    enlace.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error(
+      `Error al descargar el Excel de exposición ${exposicionId}:`,
+      error,
+    );
+    throw error;
+  }
+}

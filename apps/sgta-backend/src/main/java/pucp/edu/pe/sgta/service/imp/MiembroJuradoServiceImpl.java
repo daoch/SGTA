@@ -17,6 +17,7 @@ import pucp.edu.pe.sgta.dto.temas.EtapaFormativaTemaDto;
 import pucp.edu.pe.sgta.dto.temas.ExposicionTemaDto;
 import pucp.edu.pe.sgta.dto.temas.ParticipanteDto;
 import pucp.edu.pe.sgta.event.EstadoControlExposicionActualizadoEvent;
+import pucp.edu.pe.sgta.event.ExposicionCalificadaEvent;
 import pucp.edu.pe.sgta.model.*;
 import pucp.edu.pe.sgta.repository.*;
 import pucp.edu.pe.sgta.service.inter.MiembroJuradoService;
@@ -311,6 +312,10 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                 asignacion.setFechaModificacion(OffsetDateTime.now());
 
                 usuarioXTemaRepository.save(asignacion);
+
+                // llamar al procedure de insertar revision criterio exposicion repository
+                revisionCriterioExposicionRepository
+                                .insertarRevisionCriterioExposicion(temaId, usuarioId);
 
                 return ResponseEntity.ok(Map.of("mensaje", "Jurado asignado correctamente"));
         }
@@ -776,6 +781,18 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                                                         .findByExposicionXTema_IdAndUsuario_Id(exposicionXTema.getId(),
                                                                         usuarioXTemaOptional.get().getId());
 
+                                        List<CriterioExposicion> criterios = criterioExposicionRepository
+                                                        .findByExposicion_IdAndActivoTrue(exposicion.getId());
+
+                                        boolean criteriosCalificados = criterios.stream()
+                                                        .map(criterio -> revisionCriterioExposicionRepository
+                                                                        .findByExposicionXTema_IdAndCriterioExposicion_IdAndUsuario_Id(
+                                                                                        exposicionXTema.getId(),
+                                                                                        criterio.getId(),
+                                                                                        userDtoCognito.getId()))
+                                                        .allMatch(opt -> opt.isPresent()
+                                                                        && opt.get().getNota() != null);
+
                                         // Crear DTO
                                         ExposicionTemaMiembrosDto dto = new ExposicionTemaMiembrosDto();
                                         dto.setId_exposicion(exposicionXTema.getId());
@@ -796,7 +813,7 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                                                                         ControlExposicionUsuarioTema::getEstadoExposicion)
                                                                         .orElse(null));
                                         dto.setMiembros(miembros);
-
+                                        dto.setCriterios_calificados(criteriosCalificados);
                                         result.add(dto);
                                 }
 
@@ -1025,6 +1042,25 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                                         revision.setRevisado(true);
                                         revisionCriterioExposicionRepository.save(revision);
                                 }
+
+                                ExposicionXTema exposicionXTema = revision.getExposicionXTema();
+                                Exposicion exposicion = exposicionXTema.getExposicion();
+
+                                List<CriterioExposicion> criterios = criterioExposicionRepository
+                                                .findByExposicion_IdAndActivoTrue(exposicion.getId());
+
+                                boolean criteriosCalificados = criterios.stream()
+                                                .allMatch(criterio -> revisionCriterioExposicionRepository
+                                                                .findByExposicionXTema_IdAndCriterioExposicion_Id(
+                                                                                exposicionXTema.getId(),
+                                                                                criterio.getId())
+                                                                .stream()
+                                                                .anyMatch(revi -> revi.getNota() != null));
+
+                                if (criteriosCalificados) {
+                                        eventPublisher.publishEvent(new ExposicionCalificadaEvent(exposicionXTema));
+                                }
+
                         }
 
                         response.put("mensaje", "Se actualizaron correctamente los criterios.");

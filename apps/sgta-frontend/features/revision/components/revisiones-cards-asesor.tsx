@@ -11,10 +11,10 @@ import {
   CardHeader,
   CardTitle,
 } from "../../../components/ui/card";
-import { RevisionDocumentoAsesorDto } from "../dtos/RevisionDocumentoAsesorDto";
+import { DocumentoAgrupado } from "../dtos/DocumentoAgrupado";
 
 interface RevisionesCardsAsesorProps {
-  data: RevisionDocumentoAsesorDto[];
+  data: DocumentoAgrupado[];
   filter?: string;
   searchQuery?: string;
   cursoFilter?: string;
@@ -45,11 +45,13 @@ export function RevisionesCardsAsesor({
 
   if (searchQuery) {
     const query = searchQuery.toLowerCase();
-    revisionesFiltradas = revisionesFiltradas.filter(
-      (revision) =>
-        revision.estudiante.toLowerCase().includes(query) ||
-        revision.codigo.includes(query) ||
-        revision.titulo.toLowerCase().includes(query)
+    revisionesFiltradas = revisionesFiltradas.filter((revision) =>
+      revision.titulo.toLowerCase().includes(query) ||
+      revision.estudiantes.some(
+        (est) =>
+          est.nombre.toLowerCase().includes(query) ||
+          est.codigo.includes(query)
+      )
     );
   }
 
@@ -65,26 +67,34 @@ export function RevisionesCardsAsesor({
             <Card key={revision.id} className="flex flex-col h-full">
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between">
-                  <Badge
-                    variant="outline"
-                    className={
-                      revision.estado === "revisado"
-                        ? "bg-green-100 text-green-800 hover:bg-green-100"
+                  <div className="flex gap-2">
+                    <Badge
+                      variant="outline"
+                      className={"bg-purple-100"}
+                    >
+                      {revision.entregable}
+                    </Badge>
+                    <Badge
+                      variant="outline"
+                      className={
+                        revision.estado === "revisado"
+                          ? "bg-green-100 text-green-800 hover:bg-green-100"
+                          : revision.estado === "aprobado"
+                            ? "bg-blue-100 text-blue-800 hover:bg-blue-100"
+                            : revision.estado === "rechazado"
+                              ? "bg-red-100 text-red-800 hover:bg-red-100"
+                              : "bg-yellow-100 text-yellow-800 hover:bg-yellow-100"
+                      }
+                    >
+                      {revision.estado === "revisado"
+                        ? "Revisado"
                         : revision.estado === "aprobado"
-                          ? "bg-blue-100 text-blue-800 hover:bg-blue-100"
+                          ? "Aprobado"
                           : revision.estado === "rechazado"
-                            ? "bg-red-100 text-red-800 hover:bg-red-100"
-                            : "bg-yellow-100 text-yellow-800 hover:bg-yellow-100"
-                    }
-                  >
-                    {revision.estado === "revisado"
-                      ? "Revisado"
-                      : revision.estado === "aprobado"
-                        ? "Aprobado"
-                        : revision.estado === "rechazado"
-                          ? "Rechazado"
-                          : "Por Aprobar"}
-                  </Badge>
+                            ? "Rechazado"
+                            : "Por Aprobar"}
+                    </Badge>
+                  </div>
                   <Badge variant="outline" className="bg-gray-100">
                     {revision.curso}
                   </Badge>
@@ -99,17 +109,32 @@ export function RevisionesCardsAsesor({
               <CardContent className="pb-2 flex-grow">
                 <div className="space-y-4">
                   <div>
-                    <p className="text-sm font-medium">{revision.estudiante}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {revision.codigo}
-                    </p>
+                    {revision.estudiantes.length === 1 ? (
+                      <>
+                        <p className="text-sm font-medium">{revision.estudiantes[0].nombre}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {revision.estudiantes[0].codigo}
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-sm font-medium">
+                          {revision.estudiantes.length} estudiantes
+                        </p>
+                        <ul className="text-xs text-muted-foreground list-disc ml-4 mt-1">
+                          {revision.estudiantes.map((est) => (
+                            <li key={est.codigo}>{est.nombre} ({est.codigo})</li>
+                          ))}
+                        </ul>
+                      </>
+                    )}
                   </div>
 
                   <div className="flex justify-between items-center">
-                    <span className="text-sm">Fecha Límite:</span>
+                    <span className="text-sm">Fecha de Subida:</span>
                     <span className="text-sm font-medium">
-                      {revision.fechaLimite &&
-                        new Date(revision.fechaLimite).toLocaleDateString()}
+                      {revision.fechaEntrega &&
+                        new Date(revision.fechaEntrega).toLocaleDateString()}
                     </span>
                   </div>
 

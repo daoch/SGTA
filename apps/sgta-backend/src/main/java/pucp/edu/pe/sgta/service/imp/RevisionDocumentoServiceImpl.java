@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pucp.edu.pe.sgta.dto.RevisionDocumentoAsesorDto;
 import pucp.edu.pe.sgta.dto.RevisionDto;
+import pucp.edu.pe.sgta.dto.UsuarioDto;
 import pucp.edu.pe.sgta.model.RevisionDocumento;
 import pucp.edu.pe.sgta.model.Usuario;
 import pucp.edu.pe.sgta.repository.RevisionDocumentoRepository;
@@ -19,11 +20,7 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import jakarta.persistence.EntityNotFoundException;
-
-
-
-
+import java.util.logging.Logger;
 
 @Service
 public class RevisionDocumentoServiceImpl implements RevisionDocumentoService {
@@ -31,6 +28,7 @@ public class RevisionDocumentoServiceImpl implements RevisionDocumentoService {
     @Autowired
     private RevisionDocumentoRepository revisionDocumentoRepository;
     private final UsuarioRepository usuarioRepository;
+    private static final Logger logger = Logger.getLogger(RevisionDocumentoService.class.getName());
 
     public RevisionDocumentoServiceImpl(RevisionDocumentoRepository revisionDocumentoRepository,
             UsuarioRepository usuarioRepository) {
@@ -325,9 +323,7 @@ public class RevisionDocumentoServiceImpl implements RevisionDocumentoService {
 
             dto.setEstado((String) row[7]); // estado_revision
 
-            dto.setEntregaATiempo((Boolean) row[8]); // entrega_a_tiempo
-
-            dto.setFechaLimite(row[9] != null
+            dto.setFechaLimiteRevision(row[9] != null
                     ? ((Instant) row[9]).atOffset(ZoneOffset.UTC)
                     : null); // fecha_limite
 
@@ -344,8 +340,6 @@ public class RevisionDocumentoServiceImpl implements RevisionDocumentoService {
         // Ya no buscas ni seteas, solo llamas el update con casteo
         revisionDocumentoRepository.actualizarEstadoRevisionConCast(revisionId, nuevoEstado);
     }
-
-
 
     public RevisionDocumentoAsesorDto obtenerRevisionDocumentoPorId(Integer revisionId) {
         List<Object[]> result = revisionDocumentoRepository.obtenerRevisionDocumentoPorId(revisionId);
@@ -366,24 +360,49 @@ public class RevisionDocumentoServiceImpl implements RevisionDocumentoService {
 
         dto.setFechaEntrega(row[6] != null
                 ? ((Instant) row[6]).atOffset(ZoneOffset.UTC)
-                : null); // fecha_carga
-
-        dto.setEstado((String) row[7]); // estado_revision
-        dto.setEntregaATiempo((Boolean) row[8]); // entrega_a_tiempo
-
-        dto.setFechaLimite(row[9] != null
+                : null);
+        dto.setFechaLimiteEntrega(row[7] != null
+                ? ((Instant) row[7]).atOffset(ZoneOffset.UTC)
+                : null);
+        dto.setFechaRevision(row[8] != null
+                ? ((Instant) row[8]).atOffset(ZoneOffset.UTC)
+                : null);
+        dto.setFechaLimiteRevision(row[9] != null
                 ? ((Instant) row[9]).atOffset(ZoneOffset.UTC)
-                : null); // fecha_limite
-
-        dto.setUrlDescarga((String) row[10]); // link_archivo_subido
-
+                : null);
+        dto.setEstado((String) row[10]);
+        dto.setUrlDescarga((String) row[12]);
         // Valores no retornados aún por el SP
         dto.setPorcentajeGenIA(null);
         dto.setPorcentajeSimilitud(null);
         dto.setFormatoValido(null);
         dto.setCitadoCorrecto(null);
         dto.setUltimoCiclo(null);
-
         return dto;
+    }
+
+    @Override
+    public void crearRevisiones(int entregableXTemaId) {
+        revisionDocumentoRepository.crearRevisiones(entregableXTemaId);
+        logger.warning("Revisiones creadas para el entregable con ID: " + entregableXTemaId);
+    }
+
+    @Override
+    public List<UsuarioDto> getStudentsByRevisor(Integer revisionId) {
+
+        List<Object[]> result = revisionDocumentoRepository.getStudentsByRevisor(revisionId);
+        List<UsuarioDto> usuarios = new ArrayList<>();
+
+        for (Object[] row : result) {
+            UsuarioDto dto = new UsuarioDto();
+            dto.setId((Integer) row[0]);
+            dto.setNombres((String) row[1]);
+            dto.setPrimerApellido((String) row[2]);
+            dto.setSegundoApellido((String) row[3]);
+            dto.setCodigoPucp((String) row[4]);
+            dto.setCorreoElectronico((String) row[5]);
+            usuarios.add(dto);
+        }
+        return usuarios;
     }
 }

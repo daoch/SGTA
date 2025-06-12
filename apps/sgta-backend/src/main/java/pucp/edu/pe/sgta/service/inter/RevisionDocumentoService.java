@@ -1,6 +1,7 @@
 package pucp.edu.pe.sgta.service.inter;
 
 import pucp.edu.pe.sgta.dto.RevisionDto;
+import pucp.edu.pe.sgta.dto.UsuarioDto;
 import pucp.edu.pe.sgta.model.RevisionDocumento;
 import pucp.edu.pe.sgta.dto.RevisionDocumentoAsesorDto;
 import pucp.edu.pe.sgta.util.EstadoRevision;
@@ -34,4 +35,8 @@ public interface RevisionDocumentoService {
 
     void actualizarEstadoRevision(Integer revisionId, String nuevoEstado);
     RevisionDocumentoAsesorDto obtenerRevisionDocumentoPorId(Integer revisionId);
+
+    void crearRevisiones(int entregableXTemaId);
+
+    List<UsuarioDto> getStudentsByRevisor(Integer revisionId);
 }

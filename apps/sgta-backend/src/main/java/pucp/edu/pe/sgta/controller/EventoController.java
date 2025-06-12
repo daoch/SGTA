@@ -37,4 +37,6 @@ public class EventoController {
         List<EventoDto> eventos = eventoService.listarEventosXAsesor(id);
         return ResponseEntity.ok(eventos);
     }
+
+    
 }

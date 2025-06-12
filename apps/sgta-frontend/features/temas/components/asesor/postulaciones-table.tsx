@@ -16,6 +16,7 @@ import { FiltrosPostulacionModal } from "@/features/temas/components/asesor/filt
 import { PostulacionModal } from "@/features/temas/components/asesor/postulacion-modal";
 import {
   aceptarPostulacionDeAlumno,
+  contarPostulacionesAlAsesor,
   fetchPostulacionesAlAsesor,
   rechazarPostulacionDeAlumno,
 } from "@/features/temas/types/postulaciones/data";
@@ -25,6 +26,7 @@ import { useEffect, useState } from "react";
 import { toast, Toaster } from "sonner";
 import { Postulacion } from "../../types/postulaciones/entidades";
 import { AceptarPostulacionModal } from "./aceptar-postulacion-modal";
+import PaginatedList from "./paginacion";
 import { RechazarPostulacionModal } from "./rechazar-postulacion-modal";
 
 export function PostulacionesTable() {
@@ -45,28 +47,75 @@ export function PostulacionesTable() {
   >();
   const [debounceFechaFin, setDebounceFechaFin] = useState<string>("");
   const [debounceEstado, setDebounceEstado] = useState<string>("");
+  const [page, setPage] = useState(1);
+  const [itemsPerPage] = useState(10); // Puedes ajustar el número de items por página
+  const [totalItems, setTotalItems] = useState(0); // Total de items para la paginación
+
+  const fetchPostulaciones = async (
+    debouncedSearchTerm: string,
+    debounceEstado: string,
+    debounceFechaFin: string,
+    page: number,
+    itemsPerPage: number,
+  ) => {
+    try {
+      setLoading(true);
+      const offset = (page - 1) * itemsPerPage;
+      console.log({ debounceEstado });
+      console.log({ debounceFechaFin });
+      const data = await fetchPostulacionesAlAsesor(
+        debouncedSearchTerm,
+        debounceEstado,
+        debounceFechaFin,
+        itemsPerPage,
+        offset,
+      );
+      setPostulacionesData(data);
+    } catch {
+      console.log("No se logró listar las postulaciones");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchTotalItems = async (
+    debouncedSearchTerm: string,
+    debounceEstado: string,
+    debounceFechaFin: string,
+  ) => {
+    try {
+      const total = await contarPostulacionesAlAsesor(
+        debouncedSearchTerm,
+        debounceEstado,
+        debounceFechaFin,
+      );
+      setTotalItems(total);
+      console.log("Total de postulaciones:", total);
+    } catch (error) {
+      console.error("Error al contar las postulaciones:", error);
+      setTotalItems(0);
+    }
+  };
 
   useEffect(() => {
-    const fetchPostulaciones = async () => {
-      try {
-        setLoading(true);
-        console.log({ debounceEstado });
-        console.log({ debounceFechaFin });
-        const data = await fetchPostulacionesAlAsesor(
-          debouncedSearchTerm,
-          debounceEstado,
-          debounceFechaFin,
-        );
-        setPostulacionesData(data);
-      } catch {
-        console.log("No se logró listar las postulaciones");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPostulaciones();
+    fetchTotalItems(debouncedSearchTerm, debounceEstado, debounceFechaFin);
   }, [debouncedSearchTerm, debounceEstado, debounceFechaFin]);
+
+  useEffect(() => {
+    fetchPostulaciones(
+      debouncedSearchTerm,
+      debounceEstado,
+      debounceFechaFin,
+      page,
+      itemsPerPage,
+    );
+  }, [
+    debouncedSearchTerm,
+    debounceEstado,
+    debounceFechaFin,
+    page,
+    itemsPerPage,
+  ]);
 
   const handleOpenDialog = (postulacion: Postulacion) => {
     setAbrirModal(true);
@@ -115,8 +164,16 @@ export function PostulacionesTable() {
     }
 
     setSelectedPostulacion(null);
+    setAbrirModal(false);
     setFeedbackText("");
     setShowAcceptDialog(false);
+    fetchPostulaciones(
+      debouncedSearchTerm,
+      debounceEstado,
+      debounceFechaFin,
+      page,
+      itemsPerPage,
+    );
   };
 
   const handleReject = async () => {
@@ -146,8 +203,16 @@ export function PostulacionesTable() {
     }
 
     setSelectedPostulacion(null);
+    setAbrirModal(false);
     setFeedbackText("");
     setShowRejectDialog(false);
+    fetchPostulaciones(
+      debouncedSearchTerm,
+      debounceEstado,
+      debounceFechaFin,
+      page,
+      itemsPerPage,
+    );
   };
 
   const handleClearFilters = () => {
@@ -176,6 +241,7 @@ export function PostulacionesTable() {
   };
 
   console.log({ postulacionesData });
+  console.log({ searchTerm });
   return (
     <div>
       <Toaster position="bottom-right" richColors />
@@ -240,7 +306,9 @@ export function PostulacionesTable() {
               </TableRow>
             ) : (
               postulacionesData?.map((postulacion) => (
-                <TableRow key={postulacion.id}>
+                <TableRow
+                  key={`${postulacion.id}-${postulacion.tesistas[0].id}`}
+                >
                   <TableCell className="font-medium max-w-xs truncate">
                     {postulacion.titulo}
                   </TableCell>
@@ -364,6 +432,15 @@ export function PostulacionesTable() {
           filtrarLosCampos={filtrarLosCampos}
         />
       </Dialog>
+      {/*Paginación*/}
+      <div className="mt-6">
+        <PaginatedList
+          totalItems={totalItems}
+          itemsPerPage={itemsPerPage}
+          page={page}
+          setPage={setPage}
+        />
+      </div>
     </div>
   );
 }

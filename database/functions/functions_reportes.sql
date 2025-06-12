@@ -1369,6 +1369,7 @@ BEGIN
     AND tu.nombre ILIKE 'alumno'
     AND ut.rol_id = 4  -- Rol de tesista
     AND ut.activo = true
+    AND ut.asignado = true
     AND (
         COALESCE(p_cadena_busqueda, '') = '' OR
         u.nombres ILIKE '%' || p_cadena_busqueda || '%'
