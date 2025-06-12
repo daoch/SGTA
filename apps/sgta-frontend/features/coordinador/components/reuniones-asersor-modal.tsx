@@ -57,7 +57,7 @@ export function ReunionesAsesorModal({
                         return {
                             ...r1,
                             asistenciaAsesor: r1.estadoAsistencia,
-                            asistenciaAlumno: r2?.estadoAsistencia ?? "PENDIENTE",
+                            asistenciaAlumno: r2?.estadoAsistencia ?? "Pendiente",
                             descripcion: reunionDetalle.descripcion,
                         };
                     } catch (error) {
@@ -65,7 +65,7 @@ export function ReunionesAsesorModal({
                         return {
                             ...r1,
                             asistenciaAsesor: r1.estadoAsistencia,
-                            asistenciaAlumno: r2?.estadoAsistencia ?? "PENDIENTE",
+                            asistenciaAlumno: r2?.estadoAsistencia ?? "Pendiente",
                             titulo: "-",
                             descripcion: "-",
                         };
@@ -89,20 +89,20 @@ export function ReunionesAsesorModal({
     (r) =>
         r.reunionFechaHoraInicio &&
         new Date(r.reunionFechaHoraInicio) <= ahora &&
-        r.asistenciaAsesor !== "RECHAZADO" &&
-        r.asistenciaAlumno !== "RECHAZADO" &&
-        r.asistenciaAsesor !== "PENDIENTE" &&
-        r.asistenciaAlumno !== "PENDIENTE"
+        r.asistenciaAsesor !== "Rechazado" &&
+        r.asistenciaAlumno !== "Rechazado" &&
+        r.asistenciaAsesor !== "Pendiente" &&
+        r.asistenciaAlumno !== "Pendiente"
     );
 
     const totalValidas = reunionesValidas.length;
 
     const asistidasAsesor = reuniones.filter(
-    (r) => r.asistenciaAsesor === "CONFIRMADO"
+    (r) => r.asistenciaAsesor === "Asistirá"
     ).length;
 
     const asistidasTesista = reuniones.filter(
-    (r) => r.asistenciaAlumno === "CONFIRMADO"
+    (r) => r.asistenciaAlumno === "Asistirá"
     ).length;
 
     const porcentajeAsesor =
@@ -115,7 +115,6 @@ export function ReunionesAsesorModal({
         if (!fechaString) return "Sin fecha";
         const fecha = new Date(fechaString);
         return fecha.toLocaleDateString("es-PE", {
-            timeZone: "UTC",
             year: "numeric",
             month: "numeric",
             day: "numeric",
@@ -126,7 +125,6 @@ export function ReunionesAsesorModal({
         if (!fechaString) return "Sin hora";
         const fecha = new Date(fechaString);
         return fecha.toLocaleTimeString("es-PE", {
-            timeZone: "UTC",
             hour: "2-digit",
             minute: "2-digit",
             hour12: false,
@@ -199,20 +197,20 @@ export function ReunionesAsesorModal({
                     <TableCell className="py-4 whitespace-normal break-words max-w-xs">
                         <Badge
                             className={
-                                r.asistenciaAsesor === "CONFIRMADO"
+                                r.asistenciaAsesor === "Asistirá"
                                     ? "bg-green-100 text-green-700"
-                                    : r.asistenciaAsesor === "PENDIENTE"
+                                    : r.asistenciaAsesor === "Pendiente"
                                         ? "bg-gray-200 text-gray-700"
-                                        : r.asistenciaAsesor === "RECHAZADO"
+                                        : r.asistenciaAsesor === "Rechazado"
                                             ? "bg-red-100 text-red-700"
                                             : "bg-gray-200 text-gray-700"
                             }
                         >
-                            {r.asistenciaAsesor === "CONFIRMADO"
+                            {r.asistenciaAsesor === "Asistirá"
                                 ? "Asistió"
-                                : r.asistenciaAsesor === "PENDIENTE"
+                                : r.asistenciaAsesor === "Pendiente"
                                     ? "Pendiente"
-                                    : r.asistenciaAsesor === "RECHAZADO"
+                                    : r.asistenciaAsesor === "Rechazado"
                                         ? "Falta"
                                         : "Falta"
                             }
@@ -221,20 +219,20 @@ export function ReunionesAsesorModal({
                     <TableCell className="py-4 whitespace-normal break-words max-w-xs">
                         <Badge
                             className={
-                                r.asistenciaAlumno === "CONFIRMADO"
+                                r.asistenciaAlumno === "Asistirá"
                                     ? "bg-green-100 text-green-700"
-                                    : r.asistenciaAlumno === "PENDIENTE"
+                                    : r.asistenciaAlumno === "Pendiente"
                                         ? "bg-gray-200 text-gray-700"
-                                        : r.asistenciaAlumno === "RECHAZADO"
+                                        : r.asistenciaAlumno === "Rechazado"
                                             ? "bg-red-100 text-red-700"
                                             : "bg-gray-200 text-gray-700"
                             }
                         >
-                            {r.asistenciaAlumno === "CONFIRMADO"
+                            {r.asistenciaAlumno === "Asistirá"
                                 ? "Asistió"
-                                : r.asistenciaAlumno === "PENDIENTE"
+                                : r.asistenciaAlumno === "Pendiente"
                                     ? "Pendiente"
-                                    : r.asistenciaAlumno === "RECHAZADO"
+                                    : r.asistenciaAlumno === "Rechazado"
                                         ? "Falta"
                                         : "Falta"
                             }
