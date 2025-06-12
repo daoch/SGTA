@@ -112,7 +112,7 @@ export default function DetalleSolicitudesCoordinadorPage({
 
       toast.success(`Solicitud ${accion.toLowerCase()} exitosamente.`);
       setDialogAbierto("");
-      await buscarTemaPorId(solicitud.tema.id).then(setTema);
+      setTema(await buscarTemaPorId(solicitud.tema.id));
     } catch (error) {
       console.error("Error al procesar la solicitud:", error);
       toast.error("Ocurrió un error. Por favor, intente nuevamente.");
@@ -216,6 +216,7 @@ export default function DetalleSolicitudesCoordinadorPage({
                   dialogAbierto={dialogAbierto}
                   handleAccion={handleAccion}
                   setDialogAbierto={setDialogAbierto}
+                  loading={loading}
                 />
               </>
             ) : (
