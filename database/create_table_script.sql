@@ -1409,6 +1409,24 @@ CREATE TABLE IF NOT EXISTS revision_documento
             ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS etapa_formativa_x_ciclo_x_usuario_rol (
+    etapa_formativa_x_ciclo_x_usuario_rol_id SERIAL PRIMARY KEY,
+    etapa_formativa_x_ciclo_id INTEGER NOT NULL,
+    usuario_rol_id INTEGER NOT NULL,
+    activo BOOLEAN NOT NULL DEFAULT TRUE,
+    fecha_creacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_efc_ur_efc
+        FOREIGN KEY (etapa_formativa_x_ciclo_id)
+            REFERENCES etapa_formativa_x_ciclo (etapa_formativa_x_ciclo_id)
+            ON DELETE RESTRICT,
+    CONSTRAINT fk_efc_ur_ur
+        FOREIGN KEY (usuario_rol_id)
+            REFERENCES usuario_rol (usuario_rol_id)
+            ON DELETE RESTRICT
+);
+
 CREATE TABLE IF NOT EXISTS tipo_observacion
 (
     tipo_observacion_id SERIAL PRIMARY KEY,

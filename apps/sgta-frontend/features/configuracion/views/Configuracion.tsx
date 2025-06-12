@@ -71,6 +71,24 @@ export default function Configuracion() {
         </Link>
 
         <Link
+          href="configuracion/asignar-revisor-curso"
+          className="bg-white rounded-lg shadow p-6 flex items-start gap-4 hover:shadow-md transition-shadow"
+        >
+          <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-[#0F1A3A]">
+            <LinkIcon size={24} />
+          </div>
+          <div>
+            <h2 className="font-semibold text-lg mb-1">
+              Asignación de Revisores a Cursos
+            </h2>
+            <p className="text-gray-500 text-sm">
+              Configure la asignación de revisores a los cursos para facilitar la
+              gestión de proyectos de fin de carrera.
+            </p>
+          </div>
+        </Link>
+
+        <Link
           href="configuracion/asociar-tema-curso"
           className="bg-white rounded-lg shadow p-6 flex items-start gap-4 hover:shadow-md transition-shadow"
         >

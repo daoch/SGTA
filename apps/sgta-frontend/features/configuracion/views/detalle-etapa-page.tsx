@@ -68,7 +68,7 @@ const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
       }
     };
     fetchEtapaFormativaXCiclo();
-  });
+  }, [etapaId]);
 
   useEffect(() => {
     const fetchEntregables = async () => {
