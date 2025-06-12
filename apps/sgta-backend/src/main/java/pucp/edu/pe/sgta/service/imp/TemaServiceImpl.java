@@ -2544,6 +2544,7 @@ public class TemaServiceImpl implements TemaService {
 		// 7) Desactivar todas las demás postulaciones (asignado = false) de este mismo
 		// tema
 		eliminarPostulacionesTema(temaId);
+		crearSolicitudAprobacionTemaV2(tema);
 	}
 
 	private void eliminarPostulacionesTema(Integer idTema) {
