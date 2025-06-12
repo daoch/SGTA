@@ -89,6 +89,11 @@ export default function DetalleSolicitudesCoordinadorPage({
     },
   ];
 
+  const errorTexts = {
+    tipoSolicitud: "Ingresar el tipo de solicitud.",
+    comentario: "Debe ingresar un comentario para la solicitud.",
+  };
+
   const handleAccion = async (accion: SolicitudAction) => {
     try {
       setLoading(true);
@@ -112,14 +117,15 @@ export default function DetalleSolicitudesCoordinadorPage({
         await cambiarEstadoTemaPorCoordinador(payload);
 
         // Crear solicitud
-        if (tipoSolicitud === "resumen") {
-          await crearSolicitudCambioResumen(solicitud.tema.id, comentario);
-        } else {
-          await crearSolicitudCambioTitulo(solicitud.tema.id, comentario);
+        if (tipoSolicitud !== "no-enviar" && accion !== "Rechazada") {
+          if (tipoSolicitud === "resumen") {
+            await crearSolicitudCambioResumen(solicitud.tema.id, comentario);
+          } else {
+            await crearSolicitudCambioTitulo(solicitud.tema.id, comentario);
+          }
+          // Actualizar solicitud
+          buscarTemaPorId(solicitud.tema.id).then(setTema);
         }
-
-        // Actualizar solicitud
-        buscarTemaPorId(solicitud.tema.id).then(setTema);
       }
 
       toast.success(`Solicitud ${accion.toLowerCase()} exitosamente.`);
@@ -133,8 +139,8 @@ export default function DetalleSolicitudesCoordinadorPage({
   };
 
   const validateComment = () => {
-    if (!comentario.trim()) {
-      setErrorComentario("El comentario es obligatorio.");
+    if (!comentario.trim() && tipoSolicitud !== "no-enviar") {
+      setErrorComentario(errorTexts.comentario);
     } else {
       setErrorComentario("");
     }
@@ -142,7 +148,7 @@ export default function DetalleSolicitudesCoordinadorPage({
 
   const validateTipoSolicitud = () => {
     if (!tipoSolicitud?.trim()) {
-      setErrorTipoSolicitud("Debe ingresar el tipo de solicitud.");
+      setErrorTipoSolicitud(errorTexts.tipoSolicitud);
     } else {
       setErrorTipoSolicitud("");
     }
@@ -151,24 +157,25 @@ export default function DetalleSolicitudesCoordinadorPage({
   useEffect(() => {
     validateComment();
     validateTipoSolicitud();
-  }, [comentario]);
+  }, [tipoSolicitud, comentario]);
 
   // Config Actions
   const accionesConfig = {
-    aprobar: {
-      show: true,
-      disabled:
-        !comentario.trim().length || !tipoSolicitud?.trim().length || loading,
-    },
-    rechazar: {
-      show: true,
-      disabled:
-        !comentario.trim().length || !tipoSolicitud?.trim().length || loading,
-    },
     observar: {
       show: true,
       disabled:
-        !comentario.trim().length || !tipoSolicitud?.trim().length || loading,
+        tipoSolicitud === "no-enviar" ||
+        !comentario.trim().length ||
+        !tipoSolicitud?.trim().length ||
+        loading,
+    },
+    aprobar: {
+      show: true,
+      disabled: loading,
+    },
+    rechazar: {
+      show: true,
+      disabled: loading,
     },
     eliminar: { show: true, disabled: loading },
   };
@@ -177,35 +184,41 @@ export default function DetalleSolicitudesCoordinadorPage({
     <>
       <Toaster position="top-right" richColors />
       <form className="min-h-screen bg-gray-50 p-4 md:p-6">
-        <div className="max-w-6xl mx-auto space-y-6">
-          <EncabezadoDetalleSolicitudTema solicitud={solicitud} />
-          <InfoDetalleSolicitudTema solicitud={solicitud} />
-
-          {solicitud.estado === EstadoTemaNombre.INSCRITO && (
-            <>
-              {/* Comentarios del Comité y selección del tipo de solicitud */}
-              <ComentariosDetalleSolicitudTema
-                comentario={comentario}
-                setComentario={setComentario}
-                errorComentario={errorComentario}
-                setTipoSolicitud={setTipoSolicitud}
-                errorTipoSolicitud={errorTipoSolicitud}
-              />
-
-              {/* Actions */}
-              <AccionesDetalleSoliTema
-                accionesConfig={accionesConfig}
-                dialogAbierto={dialogAbierto}
-                handleAccion={handleAccion}
-                setDialogAbierto={setDialogAbierto}
-              />
-
-              {/* Análisis de Similitud */}
+        <div className="max-w-6xl mx-auto space-y-6 flex flex-col md:flex-row gap-6">
+          <div className="flex flex-col gap-4 md:w-3/5">
+            <EncabezadoDetalleSolicitudTema solicitud={solicitud} />
+            <InfoDetalleSolicitudTema solicitud={solicitud} />
+            {solicitud.estado === EstadoTemaNombre.INSCRITO && (
               <AnalisisSimilitudTema similitud={similitudMock} />
-            </>
-          )}
+            )}
+            <HistorialDetalleSolicitudTema historial={historialMock} />
+          </div>
 
-          <HistorialDetalleSolicitudTema historial={historialMock} />
+          <div className="flex flex-col gap-4 md:w-2/5">
+            {/* Comentarios del Comité y selección del tipo de solicitud */}
+            {solicitud.estado === EstadoTemaNombre.INSCRITO ? (
+              <>
+                <ComentariosDetalleSolicitudTema
+                  comentario={comentario}
+                  setComentario={setComentario}
+                  errorComentario={errorComentario}
+                  setTipoSolicitud={setTipoSolicitud}
+                  errorTipoSolicitud={errorTipoSolicitud}
+                  comentarioOpcional={tipoSolicitud === "no-enviar"}
+                />
+
+                {/* Actions */}
+                <AccionesDetalleSoliTema
+                  accionesConfig={accionesConfig}
+                  dialogAbierto={dialogAbierto}
+                  handleAccion={handleAccion}
+                  setDialogAbierto={setDialogAbierto}
+                />
+              </>
+            ) : (
+              <AnalisisSimilitudTema similitud={similitudMock} />
+            )}
+          </div>
         </div>
       </form>
     </>
