@@ -3,6 +3,7 @@ package pucp.edu.pe.sgta.service.imp;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
@@ -18,6 +19,7 @@ import org.springframework.security.access.AccessDeniedException; // De local
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -30,6 +32,7 @@ import pucp.edu.pe.sgta.dto.RechazoSolicitudCambioAsesorResponseDto.CambioAsigna
 import pucp.edu.pe.sgta.dto.AprobarSolicitudResponseDto.AprobarAsignacionDto;
 import pucp.edu.pe.sgta.dto.RechazoSolicitudResponseDto.AsignacionDto;
 import pucp.edu.pe.sgta.dto.asesores.DetalleSolicitudCambioAsesorDto;
+import pucp.edu.pe.sgta.dto.asesores.ReasignacionPendienteDto;
 import pucp.edu.pe.sgta.dto.asesores.SolicitudCeseAsesoriaResumenDto;
 import pucp.edu.pe.sgta.dto.asesores.SolicitudCeseDetalleDto;
 import pucp.edu.pe.sgta.dto.asesores.UsuarioSolicitudCambioAsesorDto;
@@ -39,6 +42,8 @@ import pucp.edu.pe.sgta.repository.*;
 import pucp.edu.pe.sgta.service.inter.SolicitudService;
 import pucp.edu.pe.sgta.service.inter.TemaService;
 import pucp.edu.pe.sgta.util.*;
+import org.springframework.data.jpa.domain.Specification; // Para queries dinámicas
+import jakarta.persistence.criteria.Predicate; // Para Criteria API
 
 @Service
 public class SolicitudServiceImpl implements SolicitudService {
@@ -1185,5 +1190,137 @@ public class SolicitudServiceImpl implements SolicitudService {
                 studentsDto
         );
     }
+
+    // @Override
+    // @org.springframework.transaction.annotation.Transactional (readOnly = true)
+    // public Page<ReasignacionPendienteDto> findReasignacionesPendientes(
+    //         String coordinadorCognitoSub,
+    //         String searchTerm,
+    //         Pageable pageable
+    // ) {
+    //     log.info("Buscando reasignaciones pendientes para coordinador CognitoSub: {}, searchTerm: '{}', page: {}",
+    //             coordinadorCognitoSub, searchTerm, pageable.getPageNumber());
+
+    //     Usuario coordinador = usuarioRepository.findByIdCognito(coordinadorCognitoSub)
+    //             .orElseThrow(() -> new ResourceNotFoundException("Coordinador no encontrado con CognitoSub: " + coordinadorCognitoSub));
+
+    //     List<UsuarioXCarrera> asignacionesCarreraCoordinador = usuarioXCarreraRepository.findByUsuarioIdAndActivoTrue(coordinador.getId());
+    //     if (asignacionesCarreraCoordinador.isEmpty()) {
+    //         log.warn("Coordinador ID {} no tiene carreras activas asignadas.", coordinador.getId());
+    //         return Page.empty(pageable);
+    //     }
+    //     List<Integer> idsCarrerasDelCoordinador = asignacionesCarreraCoordinador.stream()
+    //             .map(uc -> uc.getCarrera().getId())
+    //             .distinct()
+    //             .collect(Collectors.toList());
+
+    //     // Obtener las entidades TipoSolicitud y EstadoSolicitud necesarias
+    //     TipoSolicitud tipoCese = tipoSolicitudRepository.findByNombre("Cese de asesoria (por alumno)")
+    //             .orElseThrow(() -> new ResourceNotFoundException("Tipo de solicitud '" + "Cese de asesoria (por alumno)" + "' no encontrado."));
+
+    //     EstadoSolicitud estadoAprobada = estadoSolicitudRepository.findByNombre("APROBADA")
+    //             .orElseThrow(() -> new ResourceNotFoundException("Estado de solicitud '" + "APROBADA" + "' no encontrado."));
+
+    //     // Lista de estados de reasignación que indican acción pendiente por el coordinador
+    //     List<String> estadosReasignacionPendienteCoord = Arrays.asList(
+    //             "PENDIENTE PROPUESTA",
+    //             "RECHAZADA POR ASESOR",
+    //             "PENDIENTE_ASESOR"
+    //             // SgtaConstants.ESTADO_REASIGNACION_CANCELADA_POR_COORDINADOR // Si este requiere acción también
+    //     );
+    //     // También podríamos incluir PENDIENTE_ACEPTACION_ASESOR si queremos que el coordinador vea a quién propuso
+    //     // y potencialmente pueda cancelar esa propuesta para proponer a otro.
+    //     // Por ahora, nos enfocaremos en los que requieren que *él* proponga.
+
+    //     // Usar Specification para construir la query dinámicamente
+    //     Specification<Solicitud> spec = (root, query, cb) -> {
+    //         List<Predicate> predicates = new ArrayList<>();
+
+    //         predicates.add(cb.equal(root.get("tipoSolicitud"), tipoCese));
+    //         predicates.add(root.get("tema").get("carrera").get("id").in(idsCarrerasDelCoordinador));
+    //         predicates.add(cb.isTrue(root.get("activo")));
+    //         predicates.add(root.get("estadoSolicitud").in(estadosReasignacionPendienteCoord));
+
+    //         if (searchTerm != null && !searchTerm.trim().isEmpty()) {
+    //             String likePattern = "%" + searchTerm.toLowerCase() + "%";
+    //             predicates.add(cb.or(
+    //                     cb.like(cb.lower(root.get("tema").get("titulo")), likePattern)
+    //                     // cb.like(cb.lower(root.get("usuarioCreador").get("nombres")), likePattern), // Asesor original
+    //                     // cb.like(cb.lower(root.get("usuarioCreador").get("primerApellido")), likePattern)
+    //             ));
+    //         }
+    //         // Evitar N+1 problems para las relaciones que usaremos al mapear
+    //         // Esto es opcional aquí si las relaciones son EAGER o si el número de resultados por página es pequeño
+    //         // query.distinct(true); // Si hay joins que puedan causar duplicados de Solicitud
+    //         // root.fetch("tema", JoinType.LEFT);
+    //         // root.fetch("usuarioCreador", JoinType.LEFT);
+    //         // root.fetch("asesorPropuestoReasignacion", JoinType.LEFT);
+
+    //         return cb.and(predicates.toArray(new Predicate[0]));
+    //     };
+
+    //     Page<Solicitud> paginaSolicitudes = solicitudRepository.findAll(spec, pageable);
+
+    //     if (paginaSolicitudes.isEmpty()) {
+    //         return Page.empty(pageable);
+    //     }
+
+    //     Rol rolTesista = rolRepository.findByNombre(SgtaConstants.ROL_NOMBRE_TESISTA).orElse(null); // Cargar una vez
+
+    //     List<ReasignacionPendienteDto> dtos = paginaSolicitudes.getContent().stream()
+    //             .map(solicitud -> {
+    //                 ReasignacionPendienteDto dto = new ReasignacionPendienteDto();
+    //                 dto.setSolicitudOriginalId(solicitud.getId());
+    //                 dto.setFechaAprobacionCese(solicitud.getFechaResolucion()); // Fecha en que se aprobó el cese
+    //                 dto.setMotivoCeseOriginal(solicitud.getDescripcion());
+
+    //                 Tema tema = solicitud.getTema();
+    //                 if (tema != null) {
+    //                     dto.setTemaId(tema.getId());
+    //                     dto.setTemaTitulo(tema.getTitulo());
+
+    //                     // Obtener estudiantes
+    //                     if (rolTesista != null) {
+    //                         List<UsuarioXTema> tesistasDelTema = usuarioXTemaRepository.findByTema_IdAndRol_IdAndActivoTrue(tema.getId(), rolTesista.getId());
+    //                         dto.setEstudiantes(tesistasDelTema.stream()
+    //                                 .map(ut -> ut.getUsuario())
+    //                                 .filter(u -> u != null)
+    //                                 .map(u -> new EstudianteSimpleDto(u.getId(), u.getNombres(), u.getPrimerApellido(), u.getSegundoApellido()))
+    //                                 .collect(Collectors.toList()));
+    //                     } else {
+    //                         dto.setEstudiantes(Collections.emptyList());
+    //                     }
+    //                 }
+
+    //                 Usuario asesorOriginal = solicitud.getUsuarioCreador(); // Asume que este campo existe y está poblado
+    //                 if (asesorOriginal != null) {
+    //                     dto.setAsesorOriginalId(asesorOriginal.getId());
+    //                     dto.setAsesorOriginalNombres(asesorOriginal.getNombres());
+    //                     dto.setAsesorOriginalPrimerApellido(asesorOriginal.getPrimerApellido());
+    //                     dto.setAsesorOriginalCorreo(asesorOriginal.getCorreoElectronico());
+    //                 }
+
+    //                 dto.setEstadoReasignacion(solicitud.getEstadoReasignacion());
+
+    //                 Usuario asesorPropuesto = solicitud.getAsesorPropuestoReasignacion();
+    //                 if (asesorPropuesto != null) {
+    //                     dto.setAsesorPropuestoId(asesorPropuesto.getId());
+    //                     dto.setAsesorPropuestoNombres(asesorPropuesto.getNombres());
+    //                     dto.setAsesorPropuestoPrimerApellido(asesorPropuesto.getPrimerApellido());
+    //                     // La 'fechaPropuestaNuevoAsesor' podría ser la fecha_modificacion de la solicitud
+    //                     // cuando estadoReasignacion cambió a PENDIENTE_ACEPTACION_ASESOR
+    //                     // o cuando se seteó el asesorPropuestoReasignacion.
+    //                     // Por simplicidad, si se necesita, se podría añadir un campo específico o usar fechaModificacion.
+    //                     // Aquí, si el asesor está propuesto, asumimos que la fecha de mod de la solicitud es relevante.
+    //                     if (SgtaConstants.ESTADO_REASIGNACION_PENDIENTE_ACEPTACION_ASESOR.equals(solicitud.getEstadoReasignacion())) {
+    //                         dto.setFechaPropuestaNuevoAsesor(solicitud.getFechaModificacion());
+    //                     }
+    //                 }
+    //                 return dto;
+    //             })
+    //             .collect(Collectors.toList());
+
+    //     return new PageImpl<>(dtos, pageable, paginaSolicitudes.getTotalElements());
+    // }
 
 }

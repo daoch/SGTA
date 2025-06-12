@@ -5,6 +5,7 @@ import pucp.edu.pe.sgta.model.Solicitud;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor; // <<--- IMPORTAR ESTO
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -77,5 +78,6 @@ public interface SolicitudRepository extends JpaRepository<Solicitud, Integer> {
            "WHERE us.solicitud.id = :solicitudId AND rs.nombre = 'REMITENTE'")
     List<Integer> findRemitenteIdBySolicitudId(@Param("solicitudId") Integer solicitudId);
     
+
 }
 
