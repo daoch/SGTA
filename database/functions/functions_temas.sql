@@ -1522,7 +1522,7 @@ BEGIN
         uxs.solicitud_completada    FROM solicitud s
     INNER JOIN tipo_solicitud ts ON s.tipo_solicitud_id = ts.tipo_solicitud_id
     INNER JOIN usuario_solicitud uxs ON s.solicitud_id = uxs.solicitud_id --AND uxs.destinatario = true
-    INNER JOIN rol_solicitud rs ON uxs.rol_solicitud = rs.rol_solicitud_id AND rs.nombre = 'DESTINATARIO'
+    INNER JOIN rol_solicitud rs ON uxs.rol_solicitud = rs.rol_solicitud_id AND rs.nombre = 'REMITENTE'
     INNER JOIN usuario u ON uxs.usuario_id = u.usuario_id
     WHERE s.tema_id = input_tema_id
     AND uxs.activo = TRUE
