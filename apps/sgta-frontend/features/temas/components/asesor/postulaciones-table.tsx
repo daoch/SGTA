@@ -48,7 +48,7 @@ export function PostulacionesTable() {
   const [debounceFechaFin, setDebounceFechaFin] = useState<string>("");
   const [debounceEstado, setDebounceEstado] = useState<string>("");
   const [page, setPage] = useState(1);
-  const [itemsPerPage] = useState(1); // Puedes ajustar el número de items por página
+  const [itemsPerPage] = useState(10); // Puedes ajustar el número de items por página
   const [totalItems, setTotalItems] = useState(0); // Total de items para la paginación
 
   const fetchPostulaciones = async (
