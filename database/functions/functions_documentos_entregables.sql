@@ -215,6 +215,8 @@ DECLARE
     v_exposicion_x_tema_id INTEGER;
     v_criterio RECORD;
     v_asesor_id INTEGER;
+    v_jurado RECORD;
+    v_revisor RECORD;
 BEGIN
     -- 0. Obtener el id del estado 'EN_PROGRESO'
     SELECT estado_tema_id INTO v_estado_en_progreso_id
@@ -271,23 +273,61 @@ BEGIN
                 INSERT INTO revision_criterio_x_exposicion (
                     exposicion_x_tema_id,
                     criterio_exposicion_id,
-                    usuario_id,
-                    activo,
-                    fecha_creacion,
-                    fecha_modificacion
+                    usuario_id
                 ) VALUES (
                     v_exposicion_x_tema_id,
                     v_criterio.criterio_exposicion_id,
-                    v_asesor_id,
-                    TRUE,
-                    CURRENT_TIMESTAMP,
-                    CURRENT_TIMESTAMP
+                    v_asesor_id
                 );
             END LOOP;
         END IF;
+
+        -- 8. Insertar en revision_criterio_x_exposicion para cada jurado
+        FOR v_jurado IN
+            SELECT ut.usuario_id
+            FROM usuario_tema ut
+            JOIN rol r ON ut.rol_id = r.rol_id
+            WHERE ut.tema_id = p_tema_id
+              AND r.nombre = 'Jurado'
+              AND ut.activo = TRUE
+        LOOP
+            FOR v_criterio IN
+                SELECT criterio_exposicion_id
+                FROM criterio_exposicion
+                WHERE exposicion_id = v_exposicion.exposicion_id
+            LOOP
+                INSERT INTO revision_criterio_x_exposicion (
+                    exposicion_x_tema_id,
+                    criterio_exposicion_id,
+                    usuario_id
+                ) VALUES (
+                    v_exposicion_x_tema_id,
+                    v_criterio.criterio_exposicion_id,
+                    v_jurado.usuario_id
+                );
+            END LOOP;
+        END LOOP;
     END LOOP;
 
-    -- 8. Cambiar el estado del tema a EN_PROGRESO
+    -- 9. Insertar revisores en usuario_tema
+    FOR v_revisor IN
+        SELECT ur.usuario_id, ur.rol_id
+        FROM etapa_formativa_x_ciclo_x_usuario_rol efc_ur
+        JOIN usuario_rol ur ON efc_ur.usuario_rol_id = ur.usuario_rol_id
+        WHERE efc_ur.etapa_formativa_x_ciclo_id = p_curso_id
+    LOOP
+        INSERT INTO usuario_tema (
+            usuario_id,
+            tema_id,
+            rol_id
+        ) VALUES (
+            v_revisor.usuario_id,
+            p_tema_id,
+            v_revisor.rol_id
+        );
+    END LOOP;
+
+    -- 10. Cambiar el estado del tema a EN_PROGRESO
     IF v_estado_en_progreso_id IS NOT NULL THEN
         UPDATE tema
         SET estado_tema_id = v_estado_en_progreso_id
@@ -312,3 +352,74 @@ BEGIN
   WHERE documento_id = p_documento_id;
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION asignar_revisor(
+    p_curso_id INTEGER,
+    p_usuario_rol_id INTEGER
+)
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    existe INTEGER;
+BEGIN
+    SELECT 1 INTO existe
+    FROM etapa_formativa_x_ciclo_x_usuario_rol
+    WHERE etapa_formativa_x_ciclo_id = p_curso_id
+      AND usuario_rol_id = p_usuario_rol_id;
+
+    IF existe IS NOT NULL THEN
+        RAISE EXCEPTION 'Ya existe un revisor con usuario_rol_id=% para el curso etapa_formativa_x_ciclo_id=%', p_usuario_rol_id, p_curso_id;
+    END IF;
+
+    INSERT INTO etapa_formativa_x_ciclo_x_usuario_rol (
+        etapa_formativa_x_ciclo_id,
+        usuario_rol_id
+    ) VALUES (
+        p_curso_id,
+        p_usuario_rol_id
+    );
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION listar_revisores_por_carrera(p_carrera_id INTEGER)
+RETURNS TABLE (
+    usuario_rol_id INTEGER,
+    usuarioId INTEGER,
+    codigoPucp VARCHAR,
+    nombres VARCHAR,
+    primerApellido VARCHAR,
+    segundoApellido VARCHAR,
+    correoElectronico VARCHAR,
+    rolId INTEGER,
+    rolNombre VARCHAR,
+    carreraId INTEGER,
+    carreraNombre VARCHAR
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        ur.usuario_rol_id,
+        u.usuario_id AS usuarioId,
+        u.codigo_pucp AS codigoPucp,
+        u.nombres,
+        u.primer_apellido AS primerApellido,
+        u.segundo_apellido AS segundoApellido,
+        u.correo_electronico AS correoElectronico,
+        r.rol_id AS rolId,
+        r.nombre AS rolNombre,
+        c.carrera_id AS carreraId,
+        c.nombre AS carreraNombre
+    FROM usuario u
+    JOIN usuario_rol ur ON ur.usuario_id = u.usuario_id
+    JOIN rol r ON r.rol_id = ur.rol_id
+    JOIN usuario_carrera uc ON uc.usuario_id = u.usuario_id
+    JOIN carrera c ON c.carrera_id = uc.carrera_id
+    WHERE r.nombre = 'Revisor'
+      AND uc.carrera_id = p_carrera_id
+      AND u.activo = TRUE
+      AND ur.activo = TRUE
+      AND uc.activo = TRUE
+      AND c.activo = TRUE;
+END;
+$$ LANGUAGE plpgsql;

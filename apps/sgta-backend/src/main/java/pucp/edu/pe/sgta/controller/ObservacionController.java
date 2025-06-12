@@ -1,5 +1,6 @@
 package pucp.edu.pe.sgta.controller;
 
+import org.apache.commons.math3.analysis.function.Add;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -65,5 +66,12 @@ public class ObservacionController {
     observacionService.borradoLogicoObservacion(observacionId);
     return ResponseEntity.ok().build();
     }
-
+    @PutMapping("/observaciones/{observacionId}/corregido")
+    public ResponseEntity<?> actualizarEstadoCorregido(
+            @PathVariable Integer observacionId,
+            @RequestParam boolean corregido
+    ) {
+        observacionService.actualizarEstadoCorregido(observacionId, corregido);
+        return ResponseEntity.ok().build();
+    }
 }

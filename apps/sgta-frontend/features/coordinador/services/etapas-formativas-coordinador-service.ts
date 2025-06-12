@@ -1,5 +1,5 @@
 import axios from "@/lib/axios/axios-instance";
-import { EtapaFormativaDto } from "../dtos/EtapaFormativa";
+import { EtapaFormativaDto } from "../dtos/EtapaFormativaDto";
 
 
 export const getEtapasFormativasDelCoordinador = async (
