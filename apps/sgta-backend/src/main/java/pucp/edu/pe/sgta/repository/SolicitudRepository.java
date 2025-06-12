@@ -5,6 +5,8 @@ import pucp.edu.pe.sgta.model.Solicitud;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -51,5 +53,29 @@ public interface SolicitudRepository extends JpaRepository<Solicitud, Integer> {
     @Query(value = "SELECT * FROM obtener_detalle_usuario_solicitud_cese_asesoria(:idUsuario,:idSolicitud)", nativeQuery = true)
     List<Object[]> listarDetalleUsuarioSolicitudCeseAsesoria(@Param("idUsuario") Integer idUsuario,
             @Param("idSolicitud") Integer idSolicitud);
+
+    // Para el listado del coordinador (cuando SÍ filtras por estado)
+    @Query("SELECT s FROM Solicitud s JOIN s.tema t JOIN t.carrera c JOIN s.tipoSolicitud ts JOIN s.estadoSolicitud es " +
+            "WHERE c.id IN :carreraIds AND ts.nombre = :tipoSolicitudNombre AND s.activo = true AND es.nombre IN :targetStatusNames")
+    Page<Solicitud> findConFiltroEstado(
+            @Param("carreraIds") List<Integer> carreraIds,
+            @Param("tipoSolicitudNombre") String tipoSolicitudNombre,
+            @Param("targetStatusNames") List<String> targetStatusNames,
+            Pageable pageable
+    );
+
+    // Para el listado del coordinador (cuando NO filtras por estado)
+    @Query("SELECT s FROM Solicitud s JOIN s.tema t JOIN t.carrera c JOIN s.tipoSolicitud ts " +
+            "WHERE c.id IN :carreraIds AND ts.nombre = :tipoSolicitudNombre AND s.activo = true")
+    Page<Solicitud> findSinFiltroEstado(
+            @Param("carreraIds") List<Integer> carreraIds,
+            @Param("tipoSolicitudNombre") String tipoSolicitudNombre,
+            Pageable pageable
+    );
+
+    @Query("SELECT us.usuario.id FROM UsuarioXSolicitud us JOIN us.rolSolicitud rs " +
+           "WHERE us.solicitud.id = :solicitudId AND rs.nombre = 'REMITENTE'")
+    List<Integer> findRemitenteIdBySolicitudId(@Param("solicitudId") Integer solicitudId);
+    
 }
 

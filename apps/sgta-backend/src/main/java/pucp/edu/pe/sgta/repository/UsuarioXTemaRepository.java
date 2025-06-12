@@ -8,6 +8,8 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import pucp.edu.pe.sgta.dto.MiembroJuradoSimplificadoDTO;
+import pucp.edu.pe.sgta.model.Rol;
+import pucp.edu.pe.sgta.model.Usuario;
 import pucp.edu.pe.sgta.model.UsuarioXTema;
 
 import java.util.List;
@@ -94,4 +96,13 @@ public interface UsuarioXTemaRepository extends JpaRepository<UsuarioXTema, Inte
 
         Optional<UsuarioXTema> findByUsuarioIdAndTemaIdAndRolIdIn(
                         Integer usuarioId, Integer temaId, List<Integer> rolIds);
+        
+        List<UsuarioXTema> findByUsuarioAndRolAndActivoTrue(Usuario usuario, Rol rol);
+
+        // Para contar temas activos de un asesor por objeto Usuario y nombre de Rol
+        Integer countByUsuarioAndRol_NombreAndActivoTrue(Usuario usuario, String rolNombre);
+
+        // Método para obtener todas las relaciones activas para un tema y rol específicos (ej. todos los tesistas de un tema)
+        // Los nombres de los campos en la entidad son 'tema', 'usuario', 'rol'. Usamos '_Id' para acceder a sus IDs.
+        List<UsuarioXTema> findByTema_IdAndRol_IdAndActivoTrue(Integer temaId, Integer rolId);
 }
