@@ -1,6 +1,6 @@
 "use client";
 
-import { getIdByCorreo } from "@/features/asesores/hooks/perfil/perfil-apis";
+import { getIdByCorreo } from "@/features/asesores/services/perfil-services";
 import PerfilAsesor from "@/features/asesores/views/mi-perfil-asesor";
 import { useAuth } from "@/features/auth";
 import { Loader2, UserX } from "lucide-react";

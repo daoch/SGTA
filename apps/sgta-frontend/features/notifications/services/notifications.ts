@@ -8,7 +8,7 @@ const { idToken } = useAuthStore.getState();
 export const getUnreadNotifications = async (): Promise<Notificacion[]> => {
   try {
     const response = await axiosInstance.get<Notificacion[]>(
-      "api/notifications/unread",
+      "/notifications/unread",
       {
         headers: {
           Authorization: `Bearer ${idToken}`,
@@ -25,7 +25,7 @@ export const getUnreadNotifications = async (): Promise<Notificacion[]> => {
 export const getAllNotifications = async (): Promise<Notificacion[]> => {
   try {
     const response = await axiosInstance.get<Notificacion[]>(
-      "api/notifications/all",
+      "/notifications/all",
       {
         headers: {
           Authorization: `Bearer ${idToken}`,
@@ -42,7 +42,7 @@ export const getAllNotifications = async (): Promise<Notificacion[]> => {
 export const getUnreadNotificationsByModule = async (moduloId: string): Promise<Notificacion[]> => {
   try {
     const response = await axiosInstance.get<Notificacion[]>(
-      `api/notifications/unread/${moduloId}`,
+      `/notifications/unread/${moduloId}`,
       {
         headers: {
           Authorization: `Bearer ${idToken}`,
@@ -59,7 +59,7 @@ export const getUnreadNotificationsByModule = async (moduloId: string): Promise<
 export const getUnreadCount = async (): Promise<Notificacion[]> => {
   try {
     const response = await axiosInstance.get<Notificacion[]>(
-      "api/notifications/count-unread",
+      "/notifications/count-unread",
       {
         headers: {
           Authorization: `Bearer ${idToken}`,
@@ -76,7 +76,7 @@ export const getUnreadCount = async (): Promise<Notificacion[]> => {
 export const markAsRead = async (notificacionId: number): Promise<Notificacion[]> => {
   try {
     const response = await axiosInstance.post<Notificacion[]>(
-      `api/notifications/mark-read/${notificacionId}`,
+      `/notifications/mark-read/${notificacionId}`,
       {
         headers: {
           Authorization: `Bearer ${idToken}`,

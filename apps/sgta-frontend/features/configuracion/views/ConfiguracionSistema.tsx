@@ -9,6 +9,7 @@ import AsesoresCards from "../components/conf-general/Asesores";
 import GeneralConfCards from "../components/conf-general/General";
 import JuradosCards from "../components/conf-general/Jurados";
 import ModalidadRevisionCard from "../components/conf-general/ModalidadRevision";
+import TemasCard from "../components/conf-general/Temas";
 import { useBackStore } from "../store/configuracion-store";
 
 export default function ConfiguracionSistema() {
@@ -75,6 +76,7 @@ export default function ConfiguracionSistema() {
               <TabsTrigger value="asesores">Asesores</TabsTrigger>
               <TabsTrigger value="jurados">Jurados</TabsTrigger>
               <TabsTrigger value="revision">Revisión</TabsTrigger>
+              <TabsTrigger value="temas">Temas</TabsTrigger>
             </TabsList>
             <Button
               className={"px-4 py-2 rounded text-white font-semibold transition disabled:bg-gray-300"}
@@ -99,6 +101,10 @@ export default function ConfiguracionSistema() {
 
           <TabsContent value="revision" className="space-y-4">
             <ModalidadRevisionCard />
+          </TabsContent>
+
+          <TabsContent value="temas" className="space-y-4">
+            <TemasCard />
           </TabsContent>
         </Tabs>
       </div>

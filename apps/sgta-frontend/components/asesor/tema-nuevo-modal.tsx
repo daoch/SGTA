@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import {
+  Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -36,14 +37,17 @@ import { toast, Toaster } from "sonner";
 import ItemSelector from "./item-selector";
 
 //imports de Tema libre
+import VerificaSimilitudTemas from "@/features/temas/components/asesor/verifica-similitud-temas";
 import { fetchUsers } from "@/features/temas/types/inscripcion/data";
 import {
   crearTemaLibre,
   fetchSubareasPorAreaConocimiento,
+  verificarSimilitudTema,
 } from "@/features/temas/types/temas/data";
 import {
   Subareas,
   TemaCreateLibre,
+  TemaSimilitud,
 } from "@/features/temas/types/temas/entidades";
 //
 
@@ -103,7 +107,10 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
     useState<AreaConocimiento | null>(null);
   const [subAreas, setSubAreas] = useState<Subareas[]>([]);
   const [loading, setLoading] = useState(false);
-
+  const [temaSimilitud, setTemaSimilitud] = useState<TemaSimilitud[]>([]);
+  const [openSimilarDialog, setOpenSimilarDialog] = useState(false);
+  const [checkingSimilitud, setCheckingSimilitud] = useState(false);
+  const [tipoTema, setTipoTema] = useState<TipoRegistro | null>(null);
   //Llenado de datos
   useEffect(() => {
     const listarEstudiantesYAsesores = async () => {
@@ -241,7 +248,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
       setLoading(true);
       if (carreras) {
         const response = await axiosInstance.post(
-          "temas/createInscripcion",
+          "temas/createInscripcionV2",
           mapTemaCreateInscription(temaData, carreras[0], asesor),
         );
 
@@ -265,10 +272,55 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
     }
   };
 
+  const handlerVerificarTema = async (tipoRegistro: TipoRegistro) => {
+    if (!validarCampos()) return;
+    try {
+      setCheckingSimilitud(true);
+      const temaCreado = {
+        id: 999999,
+        titulo: temaData.titulo,
+        resumen: temaData.resumen,
+        objetivos: temaData.objetivos,
+        palabrasClaves: [],
+        estadoTemaNombre: "Activo",
+      };
+      const temasSimilares = await verificarSimilitudTema(temaCreado);
+      if (temasSimilares.length === 0) {
+        if (tipoRegistro === TipoRegistro.LIBRE) {
+          handleGuardarLibre();
+          console.log(
+            "No se encontraron temas similares, guardando tema libre.",
+          );
+        } else {
+          handleGuardar();
+          console.log(
+            "No se encontraron temas similares, guardando tema de inscripción.",
+          );
+        }
+      } else {
+        if (tipoRegistro === TipoRegistro.LIBRE) {
+          setTipoTema(TipoRegistro.LIBRE);
+        } else {
+          setTipoTema(TipoRegistro.INSCRIPCION);
+        }
+
+        setTemaSimilitud(temasSimilares);
+        setOpenSimilarDialog(true);
+        console.log("Se encontraron temas similares:", temaSimilitud);
+      }
+    } catch (error) {
+      toast.error("Error al verificar similitud del tema.");
+      console.error("Error al verificar similitud del tema:", error);
+    } finally {
+      setCheckingSimilitud(false);
+    }
+  };
+
   const handleGuardarLibre = async () => {
     if (!validarCampos()) return;
     try {
       if (carreras) {
+        setLoading(true);
         await crearTemaLibre(mapTemaCreateLibre(temaData, carreras[0], asesor));
         toast.success("Tema guardado exitosamente");
         console.log("Tema libre guardado exitosamente:");
@@ -284,6 +336,8 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
     } catch (error) {
       toast.error("Error al guardar el tema.");
       console.error("Error al guardar el tema:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -352,9 +406,63 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
     setErrores(nuevosErrores);
     return Object.keys(nuevosErrores).length === 0;
   };
+
+  const handleGuardarForzado = async () => {
+    if (!validarCampos()) return;
+    try {
+      if (carreras) {
+        setLoading(true);
+        setCheckingSimilitud(true);
+        if (tipoTema === TipoRegistro.LIBRE) {
+          await crearTemaLibre(
+            mapTemaCreateLibre(temaData, carreras[0], asesor),
+            temaSimilitud,
+            true,
+          );
+        } else {
+          const response = await axiosInstance.post(
+            "temas/createInscripcionV2",
+            mapTemaCreateInscription(temaData, carreras[0], asesor),
+          );
+          const temaCreado = response.data;
+
+          if (temaSimilitud.length > 0) {
+            const similitudesPayload = temaSimilitud.map((sim) => ({
+              tema: { id: temaCreado },
+              temaRelacion: { id: sim.tema.id },
+              porcentajeSimilitud: sim.similarityScore,
+            }));
+            await axiosInstance.post(
+              "temas/guardarSimilitudes",
+              similitudesPayload,
+            );
+          }
+          toast.success("Tema guardado exitosamente.");
+          console.log("Tema libre forzado guardado exitosamente.");
+        }
+      } else {
+        throw new Error("No se puede insertar el tema.");
+      }
+      setOpenSimilarDialog(false);
+      setTipoTema(null);
+      // Reinicia el formulario y cierra el modal
+      setTemaData(temaVacio);
+      setAreaConocimientoSeleccionada(null);
+      setIsNuevoTemaDialogOpen(false);
+      onTemaGuardado();
+    } catch (error) {
+      toast.error("Error al guardar el tema.");
+      console.error("Error al guardar el tema:", error);
+    } finally {
+      setLoading(false);
+      setCheckingSimilitud(false);
+      setTemaSimilitud([]);
+    }
+  };
+
   return (
     <>
-      <Toaster richColors position="top-right" />
+      <Toaster richColors position="bottom-right" />
       <DialogContent className="w-3xl">
         <DialogHeader>
           <DialogTitle>Nuevo Tema de Tesis</DialogTitle>
@@ -624,22 +732,42 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
           )}
         </div>
 
+        {
+          <Dialog open={openSimilarDialog} onOpenChange={setOpenSimilarDialog}>
+            <DialogContent className="max-w-xl p-0">
+              <DialogTitle>
+                <span className="sr-only">Temas similares encontrados</span>
+              </DialogTitle>
+              <VerificaSimilitudTemas
+                propuestas={temaSimilitud || []}
+                onCancel={() => setOpenSimilarDialog(false)}
+                onContinue={handleGuardarForzado}
+                checkingSimilitud={checkingSimilitud}
+              />
+            </DialogContent>
+          </Dialog>
+        }
+
         <DialogFooter className="mt-4">
           <Button variant="outline" onClick={handleCancelar} disabled={loading}>
             Cancelar
           </Button>
           {tipoRegistro === TipoRegistro.INSCRIPCION && (
             <Button
-              onClick={handleGuardar}
-              disabled={Object.keys(errores).length > 0 || loading}
+              onClick={() => handlerVerificarTema(TipoRegistro.INSCRIPCION)}
+              disabled={
+                Object.keys(errores).length > 0 || loading || checkingSimilitud
+              }
             >
               Guardar
             </Button>
           )}
           {tipoRegistro === TipoRegistro.LIBRE && (
             <Button
-              onClick={handleGuardarLibre}
-              disabled={Object.keys(errores).length > 0 || loading}
+              onClick={() => handlerVerificarTema(TipoRegistro.LIBRE)}
+              disabled={
+                Object.keys(errores).length > 0 || loading || checkingSimilitud
+              }
             >
               Guardar
             </Button>
@@ -689,4 +817,3 @@ const mapTemaCreateLibre = (tema: Tema, carrera: Carrera, asesor: Coasesor) => {
 };
 
 export default NuevoTemaDialog;
-

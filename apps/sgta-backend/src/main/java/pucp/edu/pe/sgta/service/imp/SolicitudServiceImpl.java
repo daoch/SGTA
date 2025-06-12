@@ -20,6 +20,7 @@ import pucp.edu.pe.sgta.dto.RechazoSolicitudCambioAsesorResponseDto.CambioAsigna
 import pucp.edu.pe.sgta.dto.AprobarSolicitudResponseDto.AprobarAsignacionDto;
 import pucp.edu.pe.sgta.dto.RechazoSolicitudResponseDto.AsignacionDto;
 import pucp.edu.pe.sgta.dto.asesores.DetalleSolicitudCambioAsesorDto;
+import pucp.edu.pe.sgta.dto.asesores.SolicitudCambioAsesorResumenDto;
 import pucp.edu.pe.sgta.dto.asesores.SolicitudCeseAsesoriaResumenDto;
 import pucp.edu.pe.sgta.dto.asesores.UsuarioSolicitudCambioAsesorDto;
 import pucp.edu.pe.sgta.model.*;
@@ -67,6 +68,8 @@ public class SolicitudServiceImpl implements SolicitudService {
     private UsuarioXRolRepository usuarioXRolRepository;
     @Autowired
     private UsuarioRepository usuarioRepository;
+    @Autowired
+    private UsuarioServiceImpl usuarioServiceImpl;
 
     public SolicitudCeseDto findAllSolicitudesCese(int coordinatorId, int page, int size) {
         List<UsuarioXCarrera> coordinadorCarreras = usuarioXCarreraRepository
@@ -644,18 +647,18 @@ public class SolicitudServiceImpl implements SolicitudService {
     @Override
     public pucp.edu.pe.sgta.dto.asesores.SolicitudCambioAsesorDto registrarSolicitudCambioAsesor(
             pucp.edu.pe.sgta.dto.asesores.SolicitudCambioAsesorDto solicitud) {
-        // validar que no se cambie un asesor por el mismo
-        if (Objects.equals(solicitud.getAsesorActualId(), solicitud.getNuevoAsesorId()))
+        //validar que no se cambie un asesor por el mismo
+        if(Objects.equals(solicitud.getAsesorActualId(), solicitud.getNuevoAsesorId()))
             throw new RuntimeException("El asesor a cambiar no puede ser igual al asesor actual");
         if (!validarExistenEstadosAccionesRoles())
             throw new RuntimeException("Faltan registrar estados, roles o acciones");
         boolean validacion;
-        // Validar que el tema exista
+        // Validar que el tema exista y se pueda cambiar de asesor 'INSCRITO', 'REGISTRADO', 'EN_PROGRESO', 'PAUSADO'
         validacion = Utils.validarTrueOrFalseDeQuery(
                 temaRepository.validarTemaExisteYSePuedeCambiarAsesor(solicitud.getTemaId()));
         if (!validacion)
             throw new RuntimeException("Tema no valido para cambio de asesor");
-        // Validar los roles
+        // Validar los roles de los otros asesores
         validacion = (Utils
                 .validarTrueOrFalseDeQuery(usuarioXRolRepository.esProfesorAsesor(solicitud.getNuevoAsesorId()))
                 && Utils.validarTrueOrFalseDeQuery(
@@ -663,14 +666,14 @@ public class SolicitudServiceImpl implements SolicitudService {
         if (!validacion)
             throw new RuntimeException("Asesor elegido no valido para cambio de asesor");
 
-        validacion = Utils.validarTrueOrFalseDeQuery(usuarioXRolRepository.esUsuarioAlumno(solicitud.getAlumnoId()));
-        if (!validacion)
-            throw new RuntimeException("Alumno no valido para cambio de asesor");
+        //Ya no validamos el alumno, cómo es él quien llama al api, es una validación previa
 
-        int idCoordinador = (int) usuarioRepository.obtenerIdCoordinadorPorUsuario(solicitud.getAlumnoId()).get(0)[0];
-        if (idCoordinador == -1)
+        //Ya no se obtiene el usuario del coordinador, cómo pueden haber varios coordinadores le puede llegar a cualquiera
+        //Cambiando validación a obtenerIdCoordinadorPorUsuario -> obtenerCantidadDeCoordinadoresPorTema
+        int cantidad = (int) usuarioRepository.obtenerCantidadDeCoordinadoresPorTema(solicitud.getTemaId()).get(0)[0];
+        if (cantidad == 0)
             throw new RuntimeException(
-                    "Coordinador de la carrera inexistente para el alumno " + solicitud.getAlumnoId());
+                    "No se han registrado Coordinadores para la carrera a la que pertenece el tema");
         // Tipo Solicitud
         TipoSolicitud tipoSolicitud = tipoSolicitudRepository
                 .findByNombre("Cambio de asesor (por asesor)")
@@ -699,50 +702,24 @@ public class SolicitudServiceImpl implements SolicitudService {
         solicitud.setSolicitudId(nuevaSolicitud.getId());
 
         // Tabla UsuarioSolicitud
-        Usuario alumno = usuarioRepository
-                .findById(solicitud.getAlumnoId())
-                .orElseThrow(() -> new RuntimeException("Alumno no encontrado"));
-        Usuario asesorActual = usuarioRepository
-                .findById(solicitud.getAsesorActualId())
-                .orElseThrow(() -> new RuntimeException("Asesor actual no encontrado"));
-        Usuario asesorNuevo = usuarioRepository
-                .findById(solicitud.getNuevoAsesorId())
-                .orElseThrow(() -> new RuntimeException("Asesor entrante no encontrado"));
-        Usuario coordinador = usuarioRepository
-                .findById(idCoordinador)
-                .orElseThrow(() -> new RuntimeException("Coordinador de la carrera inexistente"));
-        AccionSolicitud accionPendiente = accionSolicitudRepository
-                .findByNombre(AccionSolicitudEnum.PENDIENTE_ACCION.name())
-                .orElseThrow(() -> new RuntimeException("Accion pendiente_aprobacion no encontrado"));
-        AccionSolicitud sinAccion = accionSolicitudRepository
-                .findByNombre(AccionSolicitudEnum.SIN_ACCION.name())
-                .orElseThrow(() -> new RuntimeException("Accion sin_accion no encontrado"));
-        RolSolicitud rolRemitente = rolSolicitudRepository
-                .findByNombre(RolSolicitudEnum.REMITENTE.name())
-                .orElseThrow(() -> new RuntimeException("Rol remitente no encontrado"));
-        RolSolicitud rolDestinatario = rolSolicitudRepository
-                .findByNombre(RolSolicitudEnum.DESTINATARIO.name())
-                .orElseThrow(() -> new RuntimeException("Rol destinatario no encontrado"));
-        RolSolicitud rolAsesorEntrada = rolSolicitudRepository
-                .findByNombre(RolSolicitudEnum.ASESOR_ENTRADA.name())
-                .orElseThrow(() -> new RuntimeException("Rol destinatario no encontrado"));
-        RolSolicitud rolAsesorActual = rolSolicitudRepository
-                .findByNombre(RolSolicitudEnum.ASESOR_ACTUAL.name())
-                .orElseThrow(() -> new RuntimeException("Rol destinatario no encontrado"));
-
+            //Primero los usuarios
+        Usuario alumno = usuarioServiceImpl.buscarUsuarioPorId(solicitud.getAlumnoId(), "Alumno no encontrado");
+        Usuario asesorActual = usuarioServiceImpl.buscarUsuarioPorId(solicitud.getAsesorActualId(), "Asesor actual no encontrado");
+        Usuario asesorNuevo = usuarioServiceImpl.buscarUsuarioPorId(solicitud.getNuevoAsesorId(), "Asesor entrante no encontrado");
+            //Luego las acciones
+        AccionSolicitud accionPendiente = buscarPorNombreAccion(AccionSolicitudEnum.PENDIENTE_ACCION, "Accion pendiente_aprobacion no encontrado");
+        AccionSolicitud sinAccion = buscarPorNombreAccion(AccionSolicitudEnum.SIN_ACCION, "Accion sin_accion no encontrado");
+            //Luego los roles
+        RolSolicitud rolRemitente = buscarPorNombreRol(RolSolicitudEnum.REMITENTE, "Rol remitente no encontrado");
+        RolSolicitud rolAsesorEntrada = buscarPorNombreRol(RolSolicitudEnum.ASESOR_ENTRADA, "Rol asesor_entrada no encontrado");
+        RolSolicitud rolAsesorActual = buscarPorNombreRol(RolSolicitudEnum.ASESOR_ACTUAL, "Rol asesor_actual no encontrado");
+        //Vamos a registrar a las personas involucradas
         UsuarioXSolicitud nuevoRemitente = new UsuarioXSolicitud();
         nuevoRemitente.setUsuario(alumno);
         nuevoRemitente.setSolicitud(nuevaSolicitud);
         nuevoRemitente.setAccionSolicitud(sinAccion);
         nuevoRemitente.setRolSolicitud(rolRemitente);
         nuevoRemitente.setDestinatario(false);
-
-        UsuarioXSolicitud nuevoDestinatario = new UsuarioXSolicitud();
-        nuevoDestinatario.setUsuario(coordinador);
-        nuevoDestinatario.setSolicitud(nuevaSolicitud);
-        nuevoDestinatario.setAccionSolicitud(accionPendiente);
-        nuevoDestinatario.setRolSolicitud(rolDestinatario);
-        nuevoDestinatario.setDestinatario(true);
 
         UsuarioXSolicitud nuevoAsesor = new UsuarioXSolicitud();
         nuevoAsesor.setUsuario(asesorNuevo);
@@ -759,22 +736,33 @@ public class SolicitudServiceImpl implements SolicitudService {
         actualAsesor.setDestinatario(false);
 
         usuarioXSolicitudRepository.save(nuevoRemitente);
-        usuarioXSolicitudRepository.save(nuevoDestinatario);
         usuarioXSolicitudRepository.save(nuevoAsesor);
         usuarioXSolicitudRepository.save(actualAsesor);
 
         return solicitud;
     }
 
-    // Metodos de Solicitud Cambio Asesor
+// Metodos de Solicitud Cambio Asesor
     @Override
-    public List<SolicitudCeseAsesoriaResumenDto> listarResumenSolicitudCambioAsesorUsuario(Integer idUsuario,
-            String rolSolicitud) {
+    public List<SolicitudCambioAsesorResumenDto> listarResumenSolicitudCambioAsesorUsuario(Integer idUsuario,
+                                                                                           String rolSolicitud) {
         List<Object[]> queryResult = solicitudRepository.listarResumenSolicitudCambioAsesorUsuario(idUsuario,
                 rolSolicitud);
-        List<SolicitudCeseAsesoriaResumenDto> solicitudes = new ArrayList<>();
+        List<SolicitudCambioAsesorResumenDto> solicitudes = new ArrayList<>();
         for (Object[] row : queryResult) {
-            SolicitudCeseAsesoriaResumenDto solicitud = SolicitudCeseAsesoriaResumenDto.fromResultQuery(row);
+            SolicitudCambioAsesorResumenDto solicitud = SolicitudCambioAsesorResumenDto.fromResultQuery(row);
+            solicitudes.add(solicitud);
+        }
+        return solicitudes;
+    }
+
+    @Override
+    public List<SolicitudCambioAsesorResumenDto> listarResumenSolicitudCambioAsesorCoordinador(String idCognito) {
+        //Esto solo lo puede llamar un usuario que tiene el rol de coordinador, es una validación en controller
+        List<Object[]> queryResult = solicitudRepository.listarResumenSolicitudCambioAsesorCoordinador(idCognito);
+        List<SolicitudCambioAsesorResumenDto> solicitudes = new ArrayList<>();
+        for (Object[] row : queryResult) {
+            SolicitudCambioAsesorResumenDto solicitud = SolicitudCambioAsesorResumenDto.fromResultQuery(row);
             solicitudes.add(solicitud);
         }
         return solicitudes;
@@ -788,13 +776,16 @@ public class SolicitudServiceImpl implements SolicitudService {
         Object[] result = queryResult.get(0);
         DetalleSolicitudCambioAsesorDto detalle = DetalleSolicitudCambioAsesorDto.fromResultQuery(result);
         int idRemitente = (int) result[6];
-        UsuarioSolicitudCambioAsesorDto remitente = getUsuarioSolicitudFromId(idRemitente, idSolicitud);
+        UsuarioSolicitudCambioAsesorDto remitente = getUsuarioSolicitudFromId(idRemitente, idSolicitud, RolSolicitudEnum.REMITENTE);
         int idAsesorActual = (int) result[7];
-        UsuarioSolicitudCambioAsesorDto asesorActual = getUsuarioSolicitudFromId(idAsesorActual, idSolicitud);
+        UsuarioSolicitudCambioAsesorDto asesorActual = getUsuarioSolicitudFromId(idAsesorActual, idSolicitud, RolSolicitudEnum.ASESOR_ACTUAL);
         int idAsesorEntrada = (int) result[8];
-        UsuarioSolicitudCambioAsesorDto asesorEntrada = getUsuarioSolicitudFromId(idAsesorEntrada, idSolicitud);
-        int idDetinatario = (int) result[9];
-        UsuarioSolicitudCambioAsesorDto destinatario = getUsuarioSolicitudFromId(idDetinatario, idSolicitud);
+        UsuarioSolicitudCambioAsesorDto asesorEntrada = getUsuarioSolicitudFromId(idAsesorEntrada, idSolicitud , RolSolicitudEnum.ASESOR_ENTRADA);
+        Integer idDestinatario = (Integer) result[9];
+        UsuarioSolicitudCambioAsesorDto destinatario = null;
+        if (idDestinatario != null) {
+            destinatario = getUsuarioSolicitudFromId(idDestinatario.intValue(), idSolicitud, RolSolicitudEnum.DESTINATARIO);
+        }
 
         detalle.setSolicitante(remitente);
         detalle.setAsesorActual(asesorActual);
@@ -807,27 +798,38 @@ public class SolicitudServiceImpl implements SolicitudService {
 
     @Transactional
     @Override
-    public void aprobarRechazarSolicitudCambioAsesor(Integer idSolicitud, Integer idUsuario, String rolSolictud,
-            boolean aprobar) {
+    public void aprobarRechazarSolicitudCambioAsesorAsesor(Integer idSolicitud, String idCognito, String comentario, boolean aprobar){
         // validar Solicitud se puede aprobar o rechazar verifica que haya una solcitud
         // con ese if y estado pendiente
         boolean validar = solicitudRepository.existsSolicitudByIdAndEstadoSolicitud_Nombre(idSolicitud,
                 EstadoSolicitudEnum.PENDIENTE.name());
         if (!validar)
             throw new RuntimeException("Solicitud no puede ser modificada");
-        // validar que el usuario con ese rol puede aprobar o rechazar esa solicitud
-        List<Object[]> result = usuarioXSolicitudRepository.puedeUsuarioCambiarSolicitud(idUsuario, rolSolictud,
-                idSolicitud);
-        validar = Utils.validarTrueOrFalseDeQuery(result);
+        if(aprobar){
+            usuarioXSolicitudRepository.aprobarSolicitudCambioAsesorAsesor(idCognito, idSolicitud, comentario);
+        }else{
+            usuarioXSolicitudRepository.rechazarSolicitudCambioAsesorAsesor(idCognito, idSolicitud, comentario);
+        }
+    }
+    @Transactional
+    @Override
+    public void aprobarRechazarSolicitudCambioAsesorCoordinador(Integer idSolicitud, String idCognito, String comentario, boolean aprobar) {
+        // validar Solicitud se puede aprobar o rechazar verifica que haya una solcitud
+        // con ese if y estado pendiente
+        boolean validar = solicitudRepository.existsSolicitudByIdAndEstadoSolicitud_Nombre(idSolicitud,
+                EstadoSolicitudEnum.PENDIENTE.name());
         if (!validar)
-            throw new RuntimeException("El usuario no puede modificar la solicitud");
-        // El procedure se encarga de all
-        usuarioXSolicitudRepository.procesarSolicitudCambio(idUsuario, rolSolictud, idSolicitud, aprobar);
+            throw new RuntimeException("Solicitud no puede ser modificada");
+        if(aprobar){
+            usuarioXSolicitudRepository.aprobarSolicitudCambioAsesorCoordinador(idCognito, idSolicitud, comentario);
+        }else{
+            usuarioXSolicitudRepository.rechazarSolicitudCambioAsesorCoordinador(idCognito, idSolicitud, comentario);
+        }
     }
 
-    private UsuarioSolicitudCambioAsesorDto getUsuarioSolicitudFromId(int idUsuario, int idSolicitud) {
+    private UsuarioSolicitudCambioAsesorDto getUsuarioSolicitudFromId(int idUsuario, int idSolicitud, RolSolicitudEnum rol) {
         List<Object[]> queryResult = solicitudRepository.listarDetalleUsuarioSolicitudCambioAsesor(idUsuario,
-                idSolicitud);
+                idSolicitud, rol.name());
         Object[] result = queryResult.get(0);
         return UsuarioSolicitudCambioAsesorDto.fromQueryResult(result);
     }
@@ -1097,4 +1099,14 @@ public class SolicitudServiceImpl implements SolicitudService {
         return pucp.edu.pe.sgta.dto.asesores.UsuarioSolicitudCeseAsesoriaDto.fromQueryResult(result);
     }
 
+    public AccionSolicitud buscarPorNombreAccion(AccionSolicitudEnum accion, String onErrorMsg){
+        return accionSolicitudRepository
+                .findByNombre(accion.name())
+                .orElseThrow(() -> new RuntimeException(onErrorMsg));
+    }
+    public RolSolicitud buscarPorNombreRol(RolSolicitudEnum rol, String onErrorMsg){
+        return rolSolicitudRepository
+                .findByNombre(rol.name())
+                .orElseThrow(() -> new RuntimeException(onErrorMsg));
+    }
 }

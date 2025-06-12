@@ -235,7 +235,7 @@ inner join etapa_formativa_x_ciclo efxc
 inner join ciclo c2 
 	on c2.ciclo_id = efxc.ciclo_id 
 inner join etapa_formativa ef 
-	on ef.etapa_formativa_id = efxc.ciclo_id 
+	on ef.etapa_formativa_id = efxc.etapa_formativa_id
 inner join carrera c 
 	on c.carrera_id = ef.carrera_id 
 inner join usuario_carrera uc 
@@ -247,14 +247,15 @@ where u.usuario_id = p_coordinador_id;
 END;
 $$ LANGUAGE plpgsql STABLE;
 
-CREATE OR REPLACE FUNCTION sgtadb.listar_exposiciones_por_coordinador_v2(p_coordinador_id integer)
+
+CREATE OR REPLACE FUNCTION listar_exposiciones_por_coordinador_v2(p_coordinador_id integer)
  RETURNS TABLE(exposicion_id integer, nombre text, descripcion text, etapa_formativa_id integer, etapa_formativa_nombre text, ciclo_id integer, ciclo_nombre text, estado_planificacion_id integer, estado_planificacion_nombre text)
  LANGUAGE plpgsql
  STABLE
 AS $function$
 BEGIN
 return query
-select 
+select
     e.exposicion_id,
     e.nombre::TEXT,
     e.descripcion::TEXT,
@@ -265,25 +266,25 @@ select
     e.estado_planificacion_id,
     ep.nombre::TEXT AS estado_planificacion_nombre
 from exposicion e
-inner join estado_planificacion ep 
-	on ep.estado_planificacion_id = e.estado_planificacion_id 
+inner join estado_planificacion ep
+	on ep.estado_planificacion_id = e.estado_planificacion_id
 	and ep.nombre <> 'Sin planificar'
-inner join etapa_formativa_x_ciclo efxc 
-	on efxc.etapa_formativa_x_ciclo_id = e.etapa_formativa_x_ciclo_id 
-inner join ciclo c2 
-	on c2.ciclo_id = efxc.ciclo_id 
-inner join etapa_formativa ef 
-	on ef.etapa_formativa_id = efxc.ciclo_id 
-inner join carrera c 
-	on c.carrera_id = ef.carrera_id 
-inner join usuario_carrera uc 
+inner join etapa_formativa_x_ciclo efxc
+	on efxc.etapa_formativa_x_ciclo_id = e.etapa_formativa_x_ciclo_id
+inner join ciclo c2
+	on c2.ciclo_id = efxc.ciclo_id
+inner join etapa_formativa ef
+	on ef.etapa_formativa_id = efxc.etapa_formativa_id
+inner join carrera c
+	on c.carrera_id = ef.carrera_id
+inner join usuario_carrera uc
 	on uc.carrera_id = c.carrera_id
 	and uc.es_coordinador = true
 inner join usuario u
-	on u.usuario_id = uc.usuario_id 
+	on u.usuario_id = uc.usuario_id
 where u.usuario_id = p_coordinador_id;
 END;
-$$ LANGUAGE plpgsql STABLE;
+$function$;
 
 
 
@@ -492,11 +493,9 @@ BEGIN
         on c.carrera_id = ef.carrera_id 
     inner join usuario_carrera uc 
         on uc.carrera_id = c.carrera_id
+        and uc.es_coordinador = true
     inner join usuario u 
-        on u.usuario_id = uc.usuario_id 
-    inner join tipo_usuario tu 
-        on tu.tipo_usuario_id = u.tipo_usuario_id 
-        and tu.nombre = 'coordinador'
+        on u.usuario_id = uc.usuario_id
     WHERE ef.activo = true
         and u.usuario_id = p_coordinador_id;
 END;
@@ -834,7 +833,7 @@ BEGIN
     RETURN QUERY
 	Select c.* from Carrera as c
 	where c.activo = true
-	and c.carrera_id in(select uc.usuario_carrera_id
+	and c.carrera_id in(select uc.carrera_id
 						from usuario_carrera as uc
 						where uc.usuario_id = p_usuario_id
 						and uc.activo = true);
@@ -1302,4 +1301,57 @@ BEGIN
     AND uc.activo = true
     LIMIT 1;
 END;
+$$;
+
+CREATE OR REPLACE PROCEDURE insertar_revision_criterio_exposicion_por_jurado_id_por_tema_id(
+    p_tema_id INTEGER,
+    p_miembro_jurado_id INTEGER
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_exposicion RECORD;
+    v_criterio RECORD;
+    v_exposicion_x_tema_id INTEGER;
+BEGIN
+    FOR v_exposicion IN
+        SELECT exposicion_id
+        FROM exposicion
+        WHERE etapa_formativa_x_ciclo_id = 
+            (SELECT etapa_formativa_x_ciclo_id 
+             FROM etapa_formativa_x_ciclo_x_tema 
+             WHERE tema_id = p_tema_id 
+             ORDER BY etapa_formativa_x_ciclo_id DESC 
+             LIMIT 1)
+        AND activo = true
+    LOOP
+        SELECT exposicion_x_tema_id 
+        INTO v_exposicion_x_tema_id
+        FROM exposicion_x_tema
+        WHERE exposicion_id = v_exposicion.exposicion_id
+        AND tema_id = p_tema_id;
+
+        FOR v_criterio IN
+            SELECT criterio_exposicion_id
+            FROM criterio_exposicion
+            WHERE exposicion_id = v_exposicion.exposicion_id
+        LOOP
+            INSERT INTO revision_criterio_x_exposicion (
+                exposicion_x_tema_id,
+                criterio_exposicion_id,
+                usuario_id,
+                activo,
+                fecha_creacion,
+                fecha_modificacion
+            ) VALUES (
+                v_exposicion_x_tema_id,
+                v_criterio.criterio_exposicion_id,
+                p_miembro_jurado_id,
+                TRUE,
+                CURRENT_TIMESTAMP,
+                CURRENT_TIMESTAMP
+            );
+        END LOOP;
+    END LOOP;
+END
 $$;

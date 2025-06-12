@@ -349,6 +349,7 @@ export async function buscarUsuarioPorToken() {
         "Content-Type": "application/json",
       },
     });
+    console.log({ idToken });
 
     if (!response.ok) {
       throw new Error("Error al obtener el usuario.");
@@ -360,6 +361,31 @@ export async function buscarUsuarioPorToken() {
   } catch (error) {
     console.error(
       "La página no responde. No se pudo encontrar al usuario.",
+      error,
+    );
+    throw error;
+  }
+}
+
+export async function buscarTemasSimilaresALaPropuesta(temaId: number) {
+  try {
+    const response = await fetch(`${baseUrl}/temas/${temaId}/similares`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Error al obtener los temas similares.");
+    }
+
+    const data = await response.json();
+
+    return data;
+  } catch (error) {
+    console.error(
+      "La página no responde para listar los temas similares.",
       error,
     );
     throw error;

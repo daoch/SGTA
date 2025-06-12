@@ -17,8 +17,8 @@ export type Proyecto = {
   coasesores: Usuario[];
   tesistas: Usuario[];
   subareas: SubAreaConocimiento[];
-  tipo: string; 
-  estudiantes?: Usuario[]; 
+  tipo: string;
+  estudiantes?: Usuario[];
 };
 
 export type TipoUsuario = {
@@ -49,6 +49,7 @@ export type Usuario = {
   activo: boolean;
   fechaCreacion: string;
   fechaModificacion: string;
+  rol?: string;
 };
 
 export type Area = {
@@ -108,4 +109,30 @@ export type Proyecto_M = {
   tipo: string; //agregado
   subAreas: SubAreaConocimiento[]; //agregado
   estudiantes: Usuario[]; //agregado
+};
+
+export type TemaSimilar = {
+  id: number;
+  codigo: string;
+  titulo: string;
+  resumen: string;
+  objetivos: string;
+  metodologia: string;
+  requisitos: string;
+  portafolioUrl: string | null;
+  activo: boolean;
+  rechazado: boolean | null;
+  fechaLimite: string;
+  fechaFinalizacion: string;
+  fechaCreacion: string;
+  fechaModificacion: string;
+  estadoTemaNombre: string;
+  carrera: string | null;
+  cantPostulaciones: number | null;
+  porcentajeSimilitud: number;
+  area: string | null;
+  subareas: SubAreaConocimiento[];
+  tesistas: Usuario[] | null;
+  coasesores: Usuario[] | null;
+  estadoUsuarioTema: string | null;
 };

@@ -19,7 +19,6 @@ import { toast } from "sonner";
 import { DocumentoConVersionDto } from "../../dtos/DocumentoConVersionDto";
 import { EntregableAlumnoDto } from "../../dtos/EntregableAlumnoDto";
 import { DropzoneDocumentosAlumno } from "./dropzone-documentos-alumno";
-
 interface EntregablesModalProps {
   readonly entregable: EntregableAlumnoDto;
   readonly setSelectedEntregable?: (
@@ -42,6 +41,15 @@ const formatFecha = (fechaString?: string) => {
   });
 };
 
+const handleDescargarDocumento = async (documentoNombre: string) => {
+  const documentoNombreBase64 = window.btoa(documentoNombre);
+  const response = await axiosInstance.get(
+    `s3/archivos/getUrlFromCloudFront/${documentoNombreBase64}`,
+  );
+  const fileUrl = response.data;
+  window.open(fileUrl, "_blank");
+};
+
 export function EntregablesModal({
   entregable,
   setSelectedEntregable,
@@ -62,6 +70,8 @@ export function EntregablesModal({
   }, [entregable]);
 
   useEffect(() => {
+    setLoadingArchivos(true);
+    setArchivosSubidos([]);
     const fetchArchivosSubidos = async () => {
       try {
         const response = await axiosInstance.get(
@@ -207,7 +217,11 @@ export function EntregablesModal({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => { }}>
+                <DropdownMenuItem
+                  onClick={() =>
+                    handleDescargarDocumento(archivo.documentoLinkArchivo)
+                  }
+                >
                   <Download className="w-4 h-4 mr-2" /> Descargar
                 </DropdownMenuItem>
                 <DropdownMenuItem

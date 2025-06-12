@@ -36,6 +36,17 @@ const defaultConfig: AccionesConfig = {
   eliminar: { show: true, disabled: false },
 };
 
+const tooltips: Record<AccionKey, string> = {
+  observar:
+    "Observar el tema y se debe crear una solicitud de cambio de título o resumen.",
+  aprobar:
+    "Aprueba la solicitud y el tema será registrado. Opcionalmente se podrá crear una solicitud de cambio de título o resumen.",
+  rechazar:
+    "Rechaza la solicitud y el tema no será registrado. No se envían solicitudes de cambios.",
+  eliminar:
+    "Desactiva el tema, se libera al asesor y a los tesistas. No se envían solicitudes de cambios.",
+};
+
 export const AccionesDetalleSoliTema: React.FC<
   AccionesDetalleSoliTemaProps
 > = ({
@@ -45,15 +56,6 @@ export const AccionesDetalleSoliTema: React.FC<
   accionesConfig = defaultConfig,
 }) => {
   const config = { ...defaultConfig, ...accionesConfig };
-
-  // Mensajes de ayuda para cada acción
-  const tooltips: Record<AccionKey, string> = {
-    observar:
-      "Permite observar la solicitud y dejar comentarios para corrección.",
-    aprobar: "Aprueba la solicitud y el tema será registrado.",
-    rechazar: "Rechaza la solicitud y el tema no será registrado.",
-    eliminar: "Desactiva el tema, se libera al asesor y a los tesistas.",
-  };
 
   return (
     <Card>
