@@ -309,7 +309,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION listar_tesistas_por_asesor(usuarioId INTEGER)
+CREATE OR REPLACE FUNCTION listar_tesistas_por_asesor_lite(usuarioId INTEGER)
 RETURNS TABLE (
     tesista_id INTEGER,
     nombre TEXT,
