@@ -43,3 +43,39 @@ export interface Asesor {
   estado: boolean | null;
   foto?: string | null;
 }
+
+export interface Enlace {
+  id: number;
+  plataforma: PlataformaType;
+  enlace: string;
+}
+
+export type PlataformaType =
+  | "LinkedIn"
+  | "GitHub"
+  | "Twitter"
+  | "Google Scholar"
+  | "ResearchGate"
+  | "ORCID"
+  | "Academia.edu"
+  | "Scopus"
+  | "Web of Science"
+  | "Otras";
+
+export interface AsesorPerfil {
+  id: number;
+  nombre: string;
+  especialidad: string;
+  email: string;
+  fotoPerfil?: string | null;
+  linkedin: string | null;
+  repositorio: string | null;
+  biografia: string | null;
+  limiteTesis: number | null;
+  tesistasActuales: number | null;
+  enlaces: Enlace[];
+  areasTematicas: AreaTematica[];
+  temasIntereses: TemaInteres[];
+  estado: boolean | null;
+  foto?: string | null;
+}

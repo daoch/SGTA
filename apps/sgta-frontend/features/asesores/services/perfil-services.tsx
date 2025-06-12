@@ -1,6 +1,7 @@
 import type {
   AreaTematica,
   Asesor,
+  AsesorPerfil,
   Proyecto,
   TemaInteres,
   Tesis,
@@ -16,6 +17,20 @@ export async function getPerfilAsesor(id: number) {
 
     console.log("Respuesta de la API:", response.data);
     return response.data as Asesor;
+  } catch (error) {
+    console.error("Error al obtener perfil del asesor:", error);
+    throw error;
+  }
+}
+
+export async function getPerfilAsesorEnlaces(id: number) {
+  try {
+    const response = await axiosInstance.get("/usuario/getPerfilAsesor", {
+      params: { id },
+    });
+
+    console.log("Respuesta de la API:", response.data);
+    return response.data as AsesorPerfil;
   } catch (error) {
     console.error("Error al obtener perfil del asesor:", error);
     throw error;
