@@ -4,34 +4,25 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "@/components/ui/use-toast";
+import { UsuarioDto } from "@/features/coordinador/dtos/UsuarioDto";
+import axiosInstance from "@/lib/axios/axios-instance";
 import { ArrowLeft, CheckCircle, Download, FileText, X } from "lucide-react";
 import Link from "next/link";
-import axiosInstance from "@/lib/axios/axios-instance";
-import { toast } from "@/components/ui/use-toast";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { IHighlight } from "react-pdf-highlighter";
 import { Observacion, ObservacionesList } from "../components/observaciones-list";
 import { RevisionDocumentoAsesorDto } from "../dtos/RevisionDocumentoAsesorDto";
-import { obtenerObservacionesRevision } from "../servicios/revision-service";
-import { getRevisionById } from "../servicios/revisionService";
+import { getRevisionById, getStudentsByRevisor, obtenerObservacionesRevision } from "../servicios/revision-service";
 
-function mapHighlightToObservacion(highlight: IHighlight): Observacion {
-  return {
-    id: highlight.id,
-    pagina: highlight.position.pageNumber ?? 1,
-    parrafo: 1,
-    texto: highlight.content?.text ?? "(Sin contenido)",
-    tipo: mapTipoObservacion(highlight.comment.text),
-    resuelto: false
-  };
-}
+function mapTipoObservacion(nombre?: string): Observacion["tipo"] {
+  const lower = nombre?.toLowerCase().trim() ?? "";
 
-function mapTipoObservacion(nombre: string | undefined): Observacion["tipo"] {
-  const lower = nombre?.toLowerCase() ?? "";
   if (lower.includes("inteligencia")) return "inteligencia";
   if (lower.includes("similitud")) return "similitud";
   if (lower.includes("citado")) return "citado";
+
   return "contenido";
 }
 
@@ -45,6 +36,7 @@ function formatFecha(fecha: string) {
 export default function RevisionDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const [revision, setRevision] = useState<RevisionDocumentoAsesorDto | null>(null);
+  const [alumnos, setAlumnos] = useState<UsuarioDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [estado, setEstado] = useState(revision?.estado ?? "por_aprobar");
@@ -52,7 +44,7 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
   const [showSuccessDialog, setShowSuccessDialog] = useState<"aprobar" | "rechazar" | null>(null);
   const [selectedTab, setSelectedTab] = useState("asesor");
   const [observaciones, setObservaciones] = useState<IHighlight[]>([]);
-  const observacionesList: Observacion[] = observaciones.map(mapHighlightToObservacion);
+  const [observacionesList, setObservacionesList] = useState<Observacion[]>([]);
 
   useEffect(() => {
     async function fetchData() {
@@ -64,6 +56,21 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
         setObservaciones(obs);
       } catch {
         setError("Error al cargar los datos de la revisión");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchData();
+  }, [params.id]);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const data = await getStudentsByRevisor(params.id);
+        setAlumnos(data);
+      } catch {
+        setError("Error al cargar los alumnos de la revisión");
       } finally {
         setLoading(false);
       }
@@ -84,6 +91,29 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
     }
   }
 
+  useEffect(() => {
+    const fetchObservaciones = async () => {
+      try {
+        const highlights = await obtenerObservacionesRevision(Number(params.id));
+        const observaciones: Observacion[] = highlights.map((h) => ({
+          id: String(h.id),
+          pagina: h.position.pageNumber,
+          parrafo: 0,
+          texto: h.content.text ?? "",
+          tipo: mapTipoObservacion(h.comment.text),
+          resuelto: false,
+        }));
+        setObservacionesList(observaciones);
+      } catch (error) {
+        console.error("Error cargando observaciones:", error);
+      }
+    };
+
+    if (params.id) {
+      fetchObservaciones();
+    }
+  }, [params.id]);
+
   if (loading) {
     return <div className="text-center mt-10 text-muted-foreground">Cargando revisión...</div>;
   }
@@ -95,6 +125,23 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
   if (!revision) {
     return <div className="text-center mt-10 text-red-600">Revisión no encontrada</div>;
   }
+
+  const renderEstudiantes = () => {
+    return (
+      <div className="space-y-2">
+        {alumnos.map((estudiante, index) => (
+          <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+            <div>
+              <div className="font-medium">{estudiante.nombres} {estudiante.primerApellido} {estudiante.segundoApellido}</div>
+              <div className="text-sm text-muted-foreground">{estudiante.codigoPucp}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  console.log
 
   return (
     <div className="space-y-6">
@@ -123,22 +170,42 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
               </CardTitle>
               <CardDescription>Información del documento bajo revisión</CardDescription>
             </CardHeader>
+
             <CardContent className="space-y-4">
+              {/* Información del tema y alumnos */}
               <div>
                 <h3 className="font-semibold text-lg">{revision.titulo}</h3>
-                <p className="text-muted-foreground">Estudiante: {revision.estudiante}</p>
               </div>
 
+              <div>
+                <h4 className="text-sm font-medium mb-2">Estudiantes:</h4>
+                {renderEstudiantes()}
+              </div>
+              {/* Información adicional */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
                 <div>
-                  <h4 className="text-sm font-medium mb-2">Fecha de Carga</h4>
+                  <h4 className="text-sm font-medium mb-2">Fecha de Entrega de Documento</h4>
                   <div className="flex items-center gap-2">
-                    <span>{revision.fechaEntrega ? formatFecha(revision.fechaEntrega) : "No entregado"}</span>
+                    {revision.fechaEntrega ? (
+                      <>
+                        <span>{new Date(revision.fechaEntrega).toLocaleDateString()}</span>
+                        {revision.fechaEntrega && revision.fechaLimiteEntrega && (
+                          <Badge
+                            variant={revision.fechaEntrega > revision.fechaLimiteEntrega ? "destructive" : "success"}
+                            className="ml-2"
+                          >
+                            {revision.fechaEntrega > revision.fechaLimiteEntrega ? "Fuera de plazo" : "Dentro de plazo"}
+                          </Badge>
+                        )}
+                      </>
+                    ) : (
+                      <span className="text-muted-foreground">No entregado</span>
+                    )}
                   </div>
                 </div>
                 <div>
-                  <h4 className="text-sm font-medium mb-2">Fecha de Revisión Enviada</h4>
-                  <span>{new Date(revision.fechaLimite).toLocaleDateString()}</span>
+                  <h4 className="text-sm font-medium mb-2">Fecha Límite de Revisión</h4>
+                  <span>{new Date(revision.fechaLimiteRevision).toLocaleDateString()}</span>
                 </div>
               </div>
             </CardContent>
@@ -157,14 +224,14 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
                     <TabsTrigger value="jurado">Del Profesor o Jurado</TabsTrigger>
                   </TabsList>
                   <TabsContent value="asesor">
-                    <ObservacionesList observaciones={observacionesList} editable={false} />
+                    <ObservacionesList key={observacionesList.length} observaciones={observacionesList} editable={false} />
                   </TabsContent>
                   <TabsContent value="jurado">
-                    <ObservacionesList observaciones={observacionesList} editable={false} />
+                    <ObservacionesList key={observacionesList.length} observaciones={observacionesList} editable={false} />
                   </TabsContent>
                 </Tabs>
               ) : (
-                <ObservacionesList observaciones={observacionesList} editable={false} />
+                <ObservacionesList key={observacionesList.length} observaciones={observacionesList} editable={false} />
               )}
             </CardContent>
           </Card>
@@ -204,46 +271,73 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
 
               <Separator />
 
-              <div>
-                <h4 className="text-sm font-medium mb-2">Detección de similitud</h4>
-                <div>
+              {revision.porcentajeSimilitud !== null && (
+                <>
+                  <div>
+                    <h4 className="text-sm font-medium mb-2">Detección de similitud</h4>
 
-                </div>
-                <span
-                  className={
-                    revision.porcentajeSimilitud !== null && revision.porcentajeSimilitud > 20
-                      ? "text-red-600 font-medium"
-                      : revision.porcentajeSimilitud !== null && revision.porcentajeSimilitud > 10
-                        ? "text-yellow-600 font-medium"
-                        : "text-green-600 font-medium"
-                  }
-                >
-                  {revision.porcentajeSimilitud}%
-                </span>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {revision.porcentajeSimilitud !== null && revision.porcentajeSimilitud > 20
-                    ? "Alto nivel de similitud detectado"
-                    : revision.porcentajeSimilitud !== null && revision.porcentajeSimilitud > 10
-                      ? "Nivel moderado de similitud detectado"
-                      : "Nivel aceptable de similitud "}
-                </p>
-              </div>
+                    <span
+                      className={
+                        revision.porcentajeSimilitud > 20
+                          ? "text-red-600 font-medium"
+                          : revision.porcentajeSimilitud > 10
+                            ? "text-yellow-600 font-medium"
+                            : "text-green-600 font-medium"
+                      }
+                    >
+                      {revision.porcentajeSimilitud}%
+                    </span>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {revision.porcentajeSimilitud > 20
+                        ? "Alto nivel de similitud detectado"
+                        : revision.porcentajeSimilitud > 10
+                          ? "Nivel moderado de similitud detectado"
+                          : "Nivel aceptable de similitud"}
+                    </p>
+                  </div>
 
-              <Separator />
+                  <Separator />
+                </>
+              )}
+
+              {revision.porcentajeGenIA !== null && (
+                <>
+                  <div>
+                    <h4 className="text-sm font-medium mb-2">Detección de contenido generado por Inteligencia Artificial</h4>
+
+                    <span
+                      className={
+                        revision.porcentajeGenIA > 20
+                          ? "text-red-600 font-medium"
+                          : revision.porcentajeGenIA > 10
+                            ? "text-yellow-600 font-medium"
+                            : "text-green-600 font-medium"
+                      }
+                    >
+                      {revision.porcentajeGenIA}%
+                    </span>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {revision.porcentajeGenIA > 20
+                        ? "Alto nivel de contenido generado por IA detectado"
+                        : revision.porcentajeGenIA > 10
+                          ? "Nivel moderado de contenido generado por IA detectado"
+                          : "Nivel aceptable de contenido generado por IA"}
+                    </p>
+                  </div>
+
+                  <Separator />
+                </>
+              )}
 
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-sm">Formato válido:</span>
-                  {revision.formatoValido ? (
-                    <CheckCircle className="h-5 w-5 text-green-500" />
-                  ) : (
-                    <X className="h-5 w-5 text-red-500" />
-                  )}
+                  <CheckCircle className="h-5 w-5 text-green-500" />
                 </div>
 
                 <div className="flex justify-between items-center">
                   <span className="text-sm">Entrega a tiempo:</span>
-                  {revision.entregaATiempo ? (
+                  {revision.fechaEntrega < revision.fechaLimiteEntrega ? (
                     <CheckCircle className="h-5 w-5 text-green-500" />
                   ) : (
                     <X className="h-5 w-5 text-red-500" />
@@ -252,34 +346,38 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
 
                 <div className="flex justify-between items-center">
                   <span className="text-sm">Citado correcto:</span>
-                  {revision.citadoCorrecto ? (
-                    <CheckCircle className="h-5 w-5 text-green-500" />
-                  ) : (
-                    <X className="h-5 w-5 text-red-500" />
-                  )}
+                  {
+                    observacionesList.some((obs) => obs.tipo === "citado") ? (
+                      <X className="h-5 w-5 text-red-500" />
+                    ) : (
+                      <CheckCircle className="h-5 w-5 text-green-500" />
+                    )
+                  }
                 </div>
               </div>
 
               <Separator />
 
-              <div>
-                <h4 className="text-sm font-medium mb-2">Observaciones</h4>
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl font-bold">{observacionesList.length}</span>
-                  <div>
-                    <span className="text-sm text-muted-foreground">Total</span>
-                    <div className="text-xs">
-                      <span className="text-green-600">
-                        {observacionesList.filter((o) => o.resuelto).length} resueltas
-                      </span>
-                      {" / "}
-                      <span className="text-red-600">
-                        {observacionesList.filter((o) => !o.resuelto).length} pendientes
-                      </span>
+              {observacionesList.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-medium mb-2">Observaciones</h4>
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl font-bold">{observacionesList.length}</span>
+                    <div>
+                      <span className="text-sm text-muted-foreground">Total</span>
+                      <div className="text-xs">
+                        <span className="text-green-600">
+                          {observacionesList.filter((o) => o.resuelto).length} resueltas
+                        </span>
+                        {" / "}
+                        <span className="text-red-600">
+                          {observacionesList.filter((o) => !o.resuelto).length} pendientes
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               <div className="pt-4">
                 {estado === "por_aprobar" && (

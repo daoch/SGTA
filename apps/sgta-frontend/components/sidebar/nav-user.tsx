@@ -47,9 +47,9 @@ export function NavUser({ user }: { user: User }) {
                 <span className="truncate font-semibold">{user.name}</span>
                 <div className="flex flex-wrap gap-1 w-full">
                   {user?.roles?.map((role, index) => (
-                    <Badge 
-                      key={index} 
-                      variant="default" 
+                    <Badge
+                      key={index}
+                      variant="default"
                       className="text-xs inline-flex"
                     >
                       {role}
@@ -93,7 +93,7 @@ export function NavUser({ user }: { user: User }) {
               onClick={() => {
                 // First logout to clear all tokens and state
                 logout();
-                
+
                 // Then redirect to login page
                 setTimeout(() => {
                   // Small timeout to ensure logout completes before redirect
