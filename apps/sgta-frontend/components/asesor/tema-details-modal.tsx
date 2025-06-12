@@ -183,10 +183,10 @@ export const TemaDetailsDialog: React.FC<TemaDetailsDialogProps> = ({
                 )}
               </div>
 
-              {/* Requisitos */}
+              {/* Objetivos */}
               {tema.objetivos && tema.objetivos.trim() !== "" && (
                 <div>
-                  <p className="text-sm font-medium">Requisitos</p>
+                  <p className="text-sm font-medium">Objetivos</p>
                   <p className="bg-muted p-2 rounded-md whitespace-pre-line">
                     {tema.objetivos}
                   </p>
