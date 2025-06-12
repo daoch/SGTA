@@ -25,4 +25,6 @@ public class EventoController {
         List<EventoDto> eventos = eventoService.listarEventosXUsuario(id);
         return ResponseEntity.ok(eventos);
     }
+
+    
 }
