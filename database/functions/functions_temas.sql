@@ -2609,7 +2609,7 @@ AS $func$
               JOIN rol            AS rc ON rc.rol_id = utc.rol_id
              WHERE utc.tema_id = t.tema_id
                AND utc.activo   = TRUE
-               --AND utc.asignado = TRUE
+               AND utc.rechazado = FALSE
                AND rc.nombre IN ('Asesor','Coasesor')
              ORDER BY 
                CASE WHEN rc.nombre ILIKE 'Asesor' THEN 0 ELSE 1 END,
@@ -2629,7 +2629,7 @@ AS $func$
               JOIN usuario        AS uco ON uco.usuario_id = utc2.usuario_id
              WHERE utc2.tema_id = t.tema_id
                AND utc2.activo   = TRUE
-               --AND utc2.asignado = TRUE
+               AND utc2.rechazado = FALSE
                AND rc2.nombre IN ('Asesor','Coasesor')
              ORDER BY 
                CASE WHEN rc2.nombre ILIKE 'Asesor' THEN 0 ELSE 1 END,
@@ -2649,7 +2649,7 @@ AS $func$
               JOIN usuario        AS uco ON uco.usuario_id = utc3.usuario_id
              WHERE utc3.tema_id = t.tema_id
                AND utc3.activo   = TRUE
-               --AND utc3.asignado = TRUE
+               AND utc3.rechazado = FALSE
                AND rc3.nombre IN ('Asesor','Coasesor')
              ORDER BY 
                CASE WHEN rc3.nombre ILIKE 'Asesor' THEN 0 ELSE 1 END,
@@ -2668,7 +2668,7 @@ AS $func$
               JOIN rol            AS rc4 ON rc4.rol_id = utc4.rol_id
              WHERE utc4.tema_id = t.tema_id
                AND utc4.activo   = TRUE
-               --AND utc4.asignado = TRUE
+               AND utc4.rechazado = FALSE
                AND rc4.nombre IN ('Asesor','Coasesor')
              ORDER BY 
                CASE WHEN rc4.nombre ILIKE 'Asesor' THEN 0 ELSE 1 END,
@@ -2687,7 +2687,7 @@ AS $func$
               JOIN rol            AS rt ON rt.rol_id = utt.rol_id
              WHERE utt.tema_id = t.tema_id
                AND utt.activo   = TRUE
-               --AND utt.asignado = TRUE
+               AND utt.rechazado = FALSE
                AND rt.nombre ILIKE 'Tesista'
              ORDER BY utt.usuario_id
           )
@@ -2705,7 +2705,7 @@ AS $func$
               JOIN usuario        AS ute ON ute.usuario_id = utt2.usuario_id
              WHERE utt2.tema_id = t.tema_id
                AND utt2.activo   = TRUE
-               --AND utt2.asignado = TRUE
+               AND utt2.rechazado = FALSE
                AND rt2.nombre ILIKE 'Tesista'
              ORDER BY ute.primer_apellido, ute.segundo_apellido
           )
@@ -2750,6 +2750,7 @@ AS $func$
           JOIN rol rc ON rc.rol_id = utc.rol_id
         WHERE utc.tema_id = t.tema_id
           AND utc.activo   = TRUE
+          AND utc.rechazado = FALSE
           AND rc.nombre IN ('Asesor','Coasesor')
         ORDER BY CASE WHEN rc.nombre ILIKE 'Asesor' THEN 0 ELSE 1 END, utc.usuario_id
       )
@@ -2762,6 +2763,7 @@ AS $func$
           JOIN rol rt ON rt.rol_id = utt.rol_id
         WHERE utt.tema_id = t.tema_id
           AND utt.activo   = TRUE
+          AND utt.rechazado = FALSE
           AND rt.nombre ILIKE 'Tesista'
         ORDER BY utt.usuario_id
       )
@@ -2775,6 +2777,7 @@ AS $func$
       ON ut_filter.tema_id    = t.tema_id
      AND ut_filter.usuario_id = p_usuario_id
      AND ut_filter.activo     = TRUE
+     AND ut_filter.rechazado  = FALSE
 
     -- 2) JOIN a carrera activa
     INNER JOIN carrera AS c
@@ -2794,6 +2797,7 @@ AS $func$
     LEFT JOIN area_conocimiento       AS ac
       ON ac.area_conocimiento_id = sac.area_conocimiento_id
      AND ac.activo = TRUE
+     AND sact.activo = TRUE
 
     WHERE
       -- Solo temas activos
@@ -2816,6 +2820,7 @@ AS $func$
              AND sac2.activo = TRUE
            WHERE s2.tema_id = t.tema_id
              AND sac2.area_conocimiento_id = p_area_id
+             AND s2.activo = TRUE
         )
       )
 
@@ -2968,7 +2973,7 @@ AS $func$
               JOIN rol            AS rc ON rc.rol_id = utc.rol_id
              WHERE utc.tema_id = t.tema_id
                AND utc.activo     = TRUE
-              -- AND utc.asignado   = TRUE
+               AND utc.rechazado   = FALSE
                AND rc.nombre IN ('Asesor','Coasesor')
              ORDER BY 
                CASE WHEN rc.nombre ILIKE 'Asesor' THEN 0 ELSE 1 END,
@@ -2988,7 +2993,7 @@ AS $func$
               JOIN usuario   AS uco ON uco.usuario_id = utc2.usuario_id
              WHERE utc2.tema_id = t.tema_id
                AND utc2.activo     = TRUE
-               --AND utc2.asignado   = TRUE
+               AND utc2.rechazado   = FALSE
                AND rc2.nombre IN ('Asesor','Coasesor')
              ORDER BY 
                CASE WHEN rc2.nombre ILIKE 'Asesor' THEN 0 ELSE 1 END,
@@ -3008,7 +3013,7 @@ AS $func$
               JOIN usuario   AS uco ON uco.usuario_id = utc3.usuario_id
              WHERE utc3.tema_id = t.tema_id
                AND utc3.activo     = TRUE
-               --AND utc3.asignado   = TRUE
+               AND utc3.rechazado   = FALSE
                AND rc3.nombre IN ('Asesor','Coasesor')
              ORDER BY 
                CASE WHEN rc3.nombre ILIKE 'Asesor' THEN 0 ELSE 1 END,
@@ -3027,7 +3032,7 @@ AS $func$
               JOIN rol       AS rc4 ON rc4.rol_id = utc4.rol_id
              WHERE utc4.tema_id = t.tema_id
                AND utc4.activo     = TRUE
-               --AND utc4.asignado   = TRUE
+               AND utc4.rechazado   = FALSE
                AND rc4.nombre IN ('Asesor','Coasesor')
              ORDER BY 
                CASE WHEN rc4.nombre ILIKE 'Asesor' THEN 0 ELSE 1 END,
@@ -3046,7 +3051,7 @@ AS $func$
               JOIN rol       AS rt ON rt.rol_id = utt.rol_id
              WHERE utt.tema_id = t.tema_id
                AND utt.activo     = TRUE
-              -- AND utt.asignado   = TRUE
+               AND utt.rechazado   = FALSE
                AND rt.nombre ILIKE 'Tesista'
              ORDER BY utt.usuario_id
           )
@@ -3064,7 +3069,7 @@ AS $func$
               JOIN usuario   AS ute ON ute.usuario_id = utt2.usuario_id
              WHERE utt2.tema_id = t.tema_id
                AND utt2.activo     = TRUE
-              -- AND utt2.asignado   = TRUE
+               AND utt2.RECHAZADO   = FALSE
                AND rt2.nombre ILIKE 'Tesista'
              ORDER BY ute.primer_apellido, ute.segundo_apellido
           )
@@ -3085,6 +3090,7 @@ AS $func$
           JOIN rol rc ON rc.rol_id = utc.rol_id
         WHERE utc.tema_id = t.tema_id
           AND utc.activo   = TRUE
+          AND utc.rechazado = FALSE
           AND rc.nombre IN ('Asesor','Coasesor')
         ORDER BY CASE WHEN rc.nombre ILIKE 'Asesor' THEN 0 ELSE 1 END, utc.usuario_id
       )
@@ -3097,6 +3103,7 @@ AS $func$
           JOIN rol rt ON rt.rol_id = utt.rol_id
         WHERE utt.tema_id = t.tema_id
           AND utt.activo   = TRUE
+          AND utt.rechazado = FALSE
           AND rt.nombre ILIKE 'Tesista'
         ORDER BY utt.usuario_id
       )
@@ -3168,8 +3175,10 @@ AS $func$
             JOIN usuario        AS uf
               ON uf.usuario_id = utf.usuario_id
              AND uf.activo = TRUE
+             AND utf.rechazado = FALSE
            WHERE utf.tema_id = t.tema_id
              AND uf.nombres ILIKE '%' || p_nombre_usuario || '%'
+             AND utf.activo = TRUE
         )
       )
 
@@ -3182,8 +3191,10 @@ AS $func$
             JOIN usuario        AS uf
               ON uf.usuario_id = utf.usuario_id
              AND uf.activo = TRUE
+             AND utf.rechazado = FALSE
            WHERE utf.tema_id = t.tema_id
              AND uf.primer_apellido ILIKE '%' || p_primer_apellido || '%'
+             AND utf.activo = TRUE
         )
       )
 
@@ -3196,8 +3207,10 @@ AS $func$
             JOIN usuario        AS uf
               ON uf.usuario_id = utf.usuario_id
              AND uf.activo = TRUE
+             AND utf.rechazado = FALSE
            WHERE utf.tema_id = t.tema_id
              AND uf.segundo_apellido ILIKE '%' || p_segundo_apellido || '%'
+             AND utf.activo = TRUE
         )
       )
 
