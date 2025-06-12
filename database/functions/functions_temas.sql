@@ -3435,6 +3435,21 @@ BEGIN
       FROM estado_solicitud
      WHERE nombre = 'PENDIENTE';
 
+     SELECT rol_solicitud_id
+      INTO v_rol_destinatario_id
+      FROM rol_solicitud
+     WHERE nombre = 'DESTINATARIO';
+
+    SELECT rol_solicitud_id
+      INTO v_rol_remitente_id
+      FROM rol_solicitud
+     WHERE nombre = 'REMITENTE';
+
+    SELECT accion_solicitud_id
+      INTO v_accion_pendiente_id
+      FROM accion_solicitud
+     WHERE nombre = 'SIN_ACCION';
+
     -- 2) Insertar en SOLICITUD, incluyendo la columna ESTADO
     INSERT INTO solicitud(
         descripcion,
@@ -3800,6 +3815,13 @@ BEGIN
     RETURN cantidad < limite;
 END;
 $$ LANGUAGE plpgsql;
+
+
+
+
+
+
+
 
 
 CREATE OR REPLACE FUNCTION crear_solicitud_tema_coordinador(
