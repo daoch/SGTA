@@ -162,7 +162,7 @@ export default function DetalleSolicitudesCoordinadorPage({
   // Config Actions
   const accionesConfig = {
     observar: {
-      show: true,
+      show: solicitud.estado === EstadoTemaNombre.INSCRITO,
       disabled:
         tipoSolicitud === "no-enviar" ||
         !comentario.trim().length ||
@@ -170,11 +170,11 @@ export default function DetalleSolicitudesCoordinadorPage({
         loading,
     },
     aprobar: {
-      show: true,
+      show: solicitud.estado === EstadoTemaNombre.INSCRITO,
       disabled: !tipoSolicitud || loading,
     },
     rechazar: {
-      show: true,
+      show: solicitud.estado === EstadoTemaNombre.INSCRITO,
       disabled: loading,
     },
     eliminar: { show: true, disabled: loading },
@@ -200,28 +200,26 @@ export default function DetalleSolicitudesCoordinadorPage({
           <div className="flex flex-col gap-4 md:w-2/5">
             {/* Comentarios del Comité y selección del tipo de solicitud */}
             {solicitud.estado === EstadoTemaNombre.INSCRITO ? (
-              <>
-                <ComentariosDetalleSolicitudTema
-                  comentario={comentario}
-                  setComentario={setComentario}
-                  errorComentario={errorComentario}
-                  setTipoSolicitud={setTipoSolicitud}
-                  errorTipoSolicitud={errorTipoSolicitud}
-                  comentarioOpcional={tipoSolicitud === "no-enviar"}
-                />
-
-                {/* Actions */}
-                <AccionesDetalleSoliTema
-                  accionesConfig={accionesConfig}
-                  dialogAbierto={dialogAbierto}
-                  handleAccion={handleAccion}
-                  setDialogAbierto={setDialogAbierto}
-                  loading={loading}
-                />
-              </>
+              <ComentariosDetalleSolicitudTema
+                comentario={comentario}
+                setComentario={setComentario}
+                errorComentario={errorComentario}
+                setTipoSolicitud={setTipoSolicitud}
+                errorTipoSolicitud={errorTipoSolicitud}
+                comentarioOpcional={tipoSolicitud === "no-enviar"}
+              />
             ) : (
               moduloAnalisisSimilitud
             )}
+
+            {/* Actions */}
+            <AccionesDetalleSoliTema
+              accionesConfig={accionesConfig}
+              dialogAbierto={dialogAbierto}
+              handleAccion={handleAccion}
+              setDialogAbierto={setDialogAbierto}
+              loading={loading}
+            />
           </div>
         </div>
       </form>
