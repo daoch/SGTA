@@ -172,13 +172,13 @@ END;
 $ $ LANGUAGE plpgsql;
 
 CREATE
-OR REPLACE FUNCTION sgtadb.crear_revisiones(entregableXTemaId integer) RETURNS void LANGUAGE plpgsql AS $ $ DECLARE version_id INT;
-
-asesor_id INT;
+OR REPLACE FUNCTION sgtadb.crear_revisiones(entregablextemaid integer) RETURNS void LANGUAGE plpgsql AS $ function $ DECLARE version_id INT;
 
 v_tema_id INT;
 
 v_link_archivo TEXT;
+
+user_id INT;
 
 BEGIN -- 1. Obtener el tema_id relacionado
 SELECT
@@ -186,11 +186,13 @@ SELECT
 FROM
     entregable_x_tema ext
 WHERE
-    ext.entregable_x_tema_id = entregableXTemaId
+    ext.entregable_x_tema_id = entregablextemaid
     AND ext.activo = true;
 
 IF v_tema_id IS NULL THEN RAISE NOTICE 'No se encontró tema asociado al entregable_x_tema_id=%',
-entregableXTemaId;
+entregablextemaid;
+
+RETURN;
 
 END IF;
 
@@ -203,16 +205,25 @@ SELECT
 FROM
     version_documento vd
 WHERE
-    vd.entregable_x_tema_id = entregableXTemaId LOOP -- 3. Iterar sobre los asesores asignados al tema
-    FOR asesor_id IN
+    vd.entregable_x_tema_id = entregablextemaid LOOP -- 3. Iterar sobre los usuarios únicos (asesores y coasesores) asignados al tema
+    FOR user_id IN
 SELECT
-    ut.usuario_id
+    DISTINCT ut.usuario_id
 FROM
     usuario_tema ut
 WHERE
     ut.tema_id = v_tema_id
-    AND ut.rol_id = 1 -- Asesor
-    AND ut.asignado = true LOOP -- 4. Insertar revisión
+    AND ut.rol_id IN (1, 2) -- Asesor y Coasesor
+    AND ut.asignado = true LOOP -- 4. Verificar si ya existe una revisión para ese usuario y versión
+    IF NOT EXISTS (
+        SELECT
+            1
+        FROM
+            revision_documento
+        WHERE
+            version_documento_id = version_id
+            AND usuario_id = user_id
+    ) THEN -- 5. Insertar revisión
 INSERT INTO
     revision_documento (
         version_documento_id,
@@ -227,7 +238,7 @@ INSERT INTO
 VALUES
     (
         version_id,
-        asesor_id,
+        user_id,
         'por_aprobar',
         true,
         NOW(),
@@ -236,15 +247,15 @@ VALUES
         v_link_archivo
     );
 
+END IF;
+
 END LOOP;
 
 END LOOP;
 
 END;
 
-$ $;
-
-;
+$ function $;
 
 CREATE
 OR REPLACE FUNCTION obtener_detalles_entregable_y_tema(
@@ -308,11 +319,11 @@ END;
 
 $ $;
 
-CREATE OR REPLACE FUNCTION obtener_observaciones_por_entregable_y_tema(
+CREATE
+OR REPLACE FUNCTION obtener_observaciones_por_entregable_y_tema(
     p_entregable_id INTEGER,
     p_tema_id INTEGER
-)
-RETURNS TABLE (
+) RETURNS TABLE (
     observacion_id INTEGER,
     comentario TEXT,
     contenido TEXT,
@@ -327,40 +338,44 @@ RETURNS TABLE (
     segundo_apellido VARCHAR,
     roles_usuario TEXT,
     corregido BOOLEAN
-) AS
-$$
-BEGIN
-    RETURN QUERY
-    SELECT
-        o.observacion_id,
-        o.comentario,
-        o.contenido,
-        o.numero_pagina_inicio,
-        o.numero_pagina_fin,
-        o.fecha_creacion,
-        o.tipo_observacion_id,
-        r.revision_documento_id,
-        u.usuario_id,
-        u.nombres,
-        u.primer_apellido,
-        u.segundo_apellido,
-        (
-            SELECT STRING_AGG(CAST(ut.rol_id AS TEXT), ',')
-            FROM usuario_tema ut
-            WHERE ut.usuario_id = u.usuario_id
-              AND ut.tema_id = p_tema_id
-              AND ut.activo = TRUE
-        ),
-        o.corregido
-    FROM entregable_x_tema et
+) AS $ $ BEGIN RETURN QUERY
+SELECT
+    o.observacion_id,
+    o.comentario,
+    o.contenido,
+    o.numero_pagina_inicio,
+    o.numero_pagina_fin,
+    o.fecha_creacion,
+    o.tipo_observacion_id,
+    r.revision_documento_id,
+    u.usuario_id,
+    u.nombres,
+    u.primer_apellido,
+    u.segundo_apellido,
+    (
+        SELECT
+            STRING_AGG(CAST(ut.rol_id AS TEXT), ',')
+        FROM
+            usuario_tema ut
+        WHERE
+            ut.usuario_id = u.usuario_id
+            AND ut.tema_id = p_tema_id
+            AND ut.activo = TRUE
+    ),
+    o.corregido
+FROM
+    entregable_x_tema et
     JOIN version_documento vd ON vd.entregable_x_tema_id = et.entregable_x_tema_id
     JOIN revision_documento r ON r.version_documento_id = vd.version_documento_id
     JOIN observacion o ON o.revision_id = r.revision_documento_id
     JOIN usuario u ON u.usuario_id = r.usuario_id
-    WHERE et.entregable_id = p_entregable_id
-      AND et.tema_id = p_tema_id
-      AND vd.activo = TRUE
-      AND r.activo = TRUE
-      AND o.activo = TRUE;
+WHERE
+    et.entregable_id = p_entregable_id
+    AND et.tema_id = p_tema_id
+    AND vd.activo = TRUE
+    AND r.activo = TRUE
+    AND o.activo = TRUE;
+
 END;
-$$ LANGUAGE plpgsql;
+
+$ $ LANGUAGE plpgsql;
