@@ -27,6 +27,7 @@ interface AccionesDetalleSoliTemaProps {
   setDialogAbierto: (d: AccionKey | "") => void;
   handleAccion: (accion: SolicitudAction) => void;
   accionesConfig?: AccionesConfig;
+  loading?: boolean;
 }
 
 const defaultConfig: AccionesConfig = {
@@ -54,6 +55,7 @@ export const AccionesDetalleSoliTema: React.FC<
   setDialogAbierto,
   handleAccion,
   accionesConfig = defaultConfig,
+  loading,
 }) => {
   const config = { ...defaultConfig, ...accionesConfig };
 
@@ -103,10 +105,14 @@ export const AccionesDetalleSoliTema: React.FC<
                   <Button
                     variant="outline"
                     onClick={() => setDialogAbierto("")}
+                    disabled={loading}
                   >
                     Cancelar
                   </Button>
-                  <Button onClick={() => handleAccion("Observada")}>
+                  <Button
+                    onClick={() => handleAccion("Observada")}
+                    disabled={loading}
+                  >
                     Confirmar
                   </Button>
                 </DialogFooter>
@@ -153,12 +159,14 @@ export const AccionesDetalleSoliTema: React.FC<
                   <Button
                     variant="outline"
                     onClick={() => setDialogAbierto("")}
+                    disabled={loading}
                   >
                     Cancelar
                   </Button>
                   <Button
                     className="bg-green-600 hover:bg-green-700"
                     onClick={() => handleAccion("Aprobada")}
+                    disabled={loading}
                   >
                     Confirmar
                   </Button>
@@ -207,12 +215,14 @@ export const AccionesDetalleSoliTema: React.FC<
                   <Button
                     variant="outline"
                     onClick={() => setDialogAbierto("")}
+                    disabled={loading}
                   >
                     Cancelar
                   </Button>
                   <Button
                     variant="destructive"
                     onClick={() => handleAccion("Rechazada")}
+                    disabled={loading}
                   >
                     Confirmar
                   </Button>
@@ -261,12 +271,14 @@ export const AccionesDetalleSoliTema: React.FC<
                   <Button
                     variant="outline"
                     onClick={() => setDialogAbierto("")}
+                    disabled={loading}
                   >
                     Cancelar
                   </Button>
                   <Button
                     variant="destructive"
                     onClick={() => handleAccion("Eliminada")}
+                    disabled={loading}
                   >
                     Confirmar
                   </Button>
