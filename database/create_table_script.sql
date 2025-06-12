@@ -133,7 +133,21 @@ CREATE TABLE IF NOT EXISTS estado_tema
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-
+-- Tabla enlaces
+CREATE TABLE IF NOT EXISTS enlace_usuario(
+	enlace_usuario_id	SERIAL PRIMARY KEY,
+	plataforma			VARCHAR(100)	NOT NULL,
+	enlace				VARCHAR(250)	NOT NULL,
+	usuario_id			INTEGER			NOT NULL,
+	activo				BOOLEAN			NOT NULL DEFAULT TRUE,
+    fecha_creacion     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT fk_enlace_usuario_u
+    	FOREIGN KEY (usuario_id)
+    		REFERENCES usuario(usuario_id)
+    		ON DELETE cascade
+);
 -- 1) Tabla proyecto
 CREATE TABLE IF NOT EXISTS proyecto
 (
@@ -1489,6 +1503,9 @@ ALTER TABLE observacion
     ADD COLUMN IF NOT EXISTS bounding_page   INT,
     ADD COLUMN IF NOT EXISTS contenido                     TEXT NOT NULL;
 
+ALTER TABLE observacion
+    ADD COLUMN IF NOT EXISTS corregido BOOLEAN NOT NULL DEFAULT FALSE;
+    
 CREATE TABLE IF NOT EXISTS reunion
 (
     reunion_id         SERIAL PRIMARY KEY,

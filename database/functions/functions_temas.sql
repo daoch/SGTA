@@ -1521,9 +1521,12 @@ BEGIN
         u.correo_electronico,
         uxs.solicitud_completada    FROM solicitud s
     INNER JOIN tipo_solicitud ts ON s.tipo_solicitud_id = ts.tipo_solicitud_id
-    INNER JOIN usuario_solicitud uxs ON s.solicitud_id = uxs.solicitud_id AND uxs.destinatario = true
+    INNER JOIN usuario_solicitud uxs ON s.solicitud_id = uxs.solicitud_id --AND uxs.destinatario = true
+    INNER JOIN rol_solicitud rs ON uxs.rol_solicitud = rs.rol_solicitud_id AND rs.nombre = 'DESTINATARIO'
     INNER JOIN usuario u ON uxs.usuario_id = u.usuario_id
     WHERE s.tema_id = input_tema_id
+    AND uxs.activo = TRUE
+	  AND s.activo= TRUE
     ORDER BY s.fecha_creacion DESC
     OFFSET offset_val
     LIMIT limit_val;
@@ -2427,12 +2430,12 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION listar_postulaciones_alumnos_tema_libre(
-	p_asesor_id integer,
-	p_busqueda text DEFAULT ''::text,
-	p_estado text DEFAULT ''::text,
-	p_fecha_limite date DEFAULT NULL::date,
-	p_limit integer DEFAULT 10,
-	p_offset integer DEFAULT 0)
+    p_asesor_id integer,
+    p_busqueda text DEFAULT ''::text,
+    p_estado text DEFAULT ''::text,
+    p_fecha_limite date DEFAULT NULL::date,
+    p_limit integer DEFAULT 10,
+    p_offset integer DEFAULT 0)
     RETURNS TABLE(tema_id integer, titulo text, area text, codigo text, estudiante text, estudiante_id integer, estado text, fecha_limite date, subareas integer[]) 
     LANGUAGE 'plpgsql'
     COST 100
@@ -2461,49 +2464,50 @@ BEGIN
     ) INTO v_temas_ids;
 
     RETURN QUERY
-	SELECT 
-	    t.tema_id,
-	    t.titulo::TEXT,
-	    string_agg(DISTINCT sa.nombre::TEXT, ', ') AS area,
-	    u.codigo_pucp::TEXT AS codigo,
-	    u.nombres::TEXT AS estudiante,
-	    u.usuario_id AS estudiante_id,
-	    CASE 
-	        WHEN ut.asignado THEN 'Aprobado'
-	        WHEN ut.rechazado THEN 'Rechazado'
-	        ELSE 'Pendiente'
-	    END::TEXT AS estado,
-	    t.fecha_limite::DATE,
-	    ARRAY(
-	        SELECT DISTINCT sact2.sub_area_conocimiento_id
-	        FROM sub_area_conocimiento_tema sact2
-	        WHERE sact2.tema_id = t.tema_id
-	    ) AS subareas
-	FROM usuario_tema ut
-	JOIN tema t ON ut.tema_id = t.tema_id
-	JOIN usuario u ON ut.usuario_id = u.usuario_id
-	LEFT JOIN sub_area_conocimiento_tema sact ON sact.tema_id = t.tema_id
-	LEFT JOIN sub_area_conocimiento sa ON sa.sub_area_conocimiento_id = sact.sub_area_conocimiento_id
-	WHERE t.estado_tema_id = v_estado_tema_id
-	  AND ut.rol_id = v_rol_id
-	  AND t.tema_id = ANY(v_temas_ids)
-	  AND t.activo = true
-	  AND (
-	      p_busqueda IS NULL OR p_busqueda = '' 
-	      OR t.titulo ILIKE '%' || p_busqueda || '%'
-	      OR u.nombres ILIKE '%' || p_busqueda || '%'
-	  )
-	  AND (
-	      p_estado IS NULL OR p_estado = '' 
-	      OR (p_estado = 'Pendiente' AND NOT ut.asignado AND NOT ut.rechazado)
-	      OR (p_estado = 'Aprobado' AND ut.asignado)
-	      OR (p_estado = 'Rechazado' AND ut.rechazado)
-	  )
-	  AND (
-	      p_fecha_limite IS NULL OR t.fecha_limite = p_fecha_limite
-	  )
-	GROUP BY t.tema_id, t.titulo, u.codigo_pucp, u.nombres, u.usuario_id, ut.asignado, ut.rechazado, t.fecha_limite
-	LIMIT p_limit OFFSET p_offset;
+    SELECT 
+        t.tema_id,
+        t.titulo::TEXT,
+        string_agg(DISTINCT sa.nombre::TEXT, ', ') AS area,
+        ut.comentario::TEXT AS codigo,
+        u.nombres::TEXT AS estudiante,
+        u.usuario_id AS estudiante_id,
+        CASE 
+            WHEN ut.asignado THEN 'Aprobado'
+            WHEN ut.rechazado THEN 'Rechazado'
+            ELSE 'Pendiente'
+        END::TEXT AS estado,
+        t.fecha_limite::DATE,
+        ARRAY(
+            SELECT DISTINCT sact2.sub_area_conocimiento_id
+            FROM sub_area_conocimiento_tema sact2
+            WHERE sact2.tema_id = t.tema_id
+        ) AS subareas
+    FROM usuario_tema ut
+    JOIN tema t ON ut.tema_id = t.tema_id
+    JOIN usuario u ON ut.usuario_id = u.usuario_id
+    LEFT JOIN sub_area_conocimiento_tema sact ON sact.tema_id = t.tema_id
+    LEFT JOIN sub_area_conocimiento sa ON sa.sub_area_conocimiento_id = sact.sub_area_conocimiento_id
+    WHERE t.estado_tema_id = v_estado_tema_id
+      AND ut.rol_id = v_rol_id
+      AND t.tema_id = ANY(v_temas_ids)
+      AND t.activo = true
+      AND (
+          p_busqueda IS NULL OR p_busqueda = '' 
+          OR t.titulo ILIKE '%' || p_busqueda || '%'
+          OR u.nombres ILIKE '%' || p_busqueda || '%'
+      )
+      AND (
+          p_estado IS NULL OR p_estado = '' 
+          OR (p_estado = 'Pendiente' AND NOT ut.asignado AND NOT ut.rechazado)
+          OR (p_estado = 'Aprobado' AND ut.asignado)
+          OR (p_estado = 'Rechazado' AND ut.rechazado)
+      )
+      AND (
+          p_fecha_limite IS NULL OR t.fecha_limite = p_fecha_limite
+      )
+      AND ut.activo = true
+    GROUP BY t.tema_id, t.titulo, ut.comentario, u.nombres, u.usuario_id, ut.asignado, ut.rechazado, t.fecha_limite
+    LIMIT p_limit OFFSET p_offset;
 END;
 $BODY$;
 
@@ -3721,5 +3725,131 @@ BEGIN
     END IF;
     
     RETURN cantidad < limite;
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION crear_solicitud_tema_coordinador(
+    p_tema_id               INTEGER,
+    p_id_usuario_creador    INTEGER,
+    p_comentario            TEXT,
+    p_tipo_solicitud_nombre TEXT
+) RETURNS VOID AS $$
+DECLARE
+    v_tipo_solicitud_id      INTEGER;
+    v_estado_solicitud_id    INTEGER;
+    v_rol_remitente_id       INTEGER;
+    v_rol_destinatario_id    INTEGER;
+    v_accion_pendiente_id    INTEGER;
+    v_solicitud_id           INTEGER;
+    v_descripcion            TEXT := COALESCE(p_comentario, p_tipo_solicitud_nombre);
+    rec_usuario              RECORD;
+BEGIN
+    -- 1) Obtener IDs de catálogos
+    SELECT ts.tipo_solicitud_id
+      INTO v_tipo_solicitud_id
+      FROM tipo_solicitud ts
+     WHERE ts.nombre = p_tipo_solicitud_nombre;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Tipo de solicitud no configurado: %', p_tipo_solicitud_nombre;
+    END IF;
+
+    SELECT es.estado_solicitud_id
+      INTO v_estado_solicitud_id
+      FROM estado_solicitud es
+     WHERE es.nombre = 'PENDIENTE';
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Estado de solicitud PENDIENTE no encontrado';
+    END IF;
+
+    SELECT rs.rol_solicitud_id
+      INTO v_rol_remitente_id
+      FROM rol_solicitud rs
+     WHERE rs.nombre = 'REMITENTE';
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Rol REMITENTE no encontrado';
+    END IF;
+
+    SELECT rs.rol_solicitud_id
+      INTO v_rol_destinatario_id
+      FROM rol_solicitud rs
+     WHERE rs.nombre = 'DESTINATARIO';
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Rol DESTINATARIO no encontrado';
+    END IF;
+
+    SELECT a.accion_solicitud_id
+      INTO v_accion_pendiente_id
+      FROM accion_solicitud a
+     WHERE a.nombre = 'PENDIENTE_ACCION';
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Acción PENDIENTE_ACCION no encontrada';
+    END IF;
+
+    -- 2) Insertar la solicitud
+    INSERT INTO solicitud (
+        descripcion,
+        tipo_solicitud_id,
+        tema_id,
+        estado_solicitud,
+        activo,
+        fecha_creacion,
+        estado
+    ) VALUES (
+        v_descripcion,
+        v_tipo_solicitud_id,
+        p_tema_id,
+        v_estado_solicitud_id,
+        TRUE,
+        NOW(),
+        1
+    )
+    RETURNING solicitud_id INTO v_solicitud_id;
+
+    -- 3) Enlazar al creador (rol REMITENTE)
+    INSERT INTO usuario_solicitud (
+        usuario_id,
+        solicitud_id,
+        comentario,
+        rol_solicitud,
+        accion_solicitud,
+        activo,
+        fecha_creacion
+    ) VALUES (
+        p_id_usuario_creador,
+        v_solicitud_id,
+        v_descripcion,
+        v_rol_remitente_id,
+        v_accion_pendiente_id,
+        TRUE,
+        NOW()
+    );
+
+    -- 4) Enlazar a todos los usuarios asignados al tema (rol DESTINATARIO)
+    FOR rec_usuario IN
+        SELECT ut.usuario_id
+          FROM usuario_tema ut
+         WHERE ut.tema_id  = p_tema_id
+           AND ut.activo   = TRUE
+           AND ut.asignado = TRUE
+    LOOP
+        INSERT INTO usuario_solicitud (
+            usuario_id,
+            solicitud_id,
+            comentario,
+            rol_solicitud,
+            accion_solicitud,
+            activo,
+            fecha_creacion
+        ) VALUES (
+            rec_usuario.usuario_id,
+            v_solicitud_id,
+            NULL,
+            v_rol_destinatario_id,
+            v_accion_pendiente_id,
+            TRUE,
+            NOW()
+        );
+    END LOOP;
 END;
 $$ LANGUAGE plpgsql;

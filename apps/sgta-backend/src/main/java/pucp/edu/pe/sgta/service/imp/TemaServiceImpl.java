@@ -480,7 +480,7 @@ public class TemaServiceImpl implements TemaService {
 			Integer temaId) {
 		UsuarioDto usuarioDto = usuarioService.findByCognitoId(idUsuario);
 		Integer idUsuarioCreador = usuarioDto.getId();
-		crearSolicitudTemaCoordinador(
+		crearSolicitudTemaCoordinadorV2(
 				temaRepository.findById(temaId)
 						.orElseThrow(() -> new EntityNotFoundException("Tema no encontrado con ID: " + temaId)),
 				idUsuarioCreador,
@@ -494,12 +494,39 @@ public class TemaServiceImpl implements TemaService {
 			Integer temaId) {
 		UsuarioDto usuarioDto = usuarioService.findByCognitoId(idUsuario);
 		Integer idUsuarioCreador = usuarioDto.getId();
-		crearSolicitudTemaCoordinador(
+		crearSolicitudTemaCoordinadorV2(
 				temaRepository.findById(temaId)
 						.orElseThrow(() -> new EntityNotFoundException("Tema no encontrado con ID: " + temaId)),
 				idUsuarioCreador,
 				comentario,
 				"Solicitud de cambio de resumen");
+	}
+
+	@Transactional
+	private void crearSolicitudTemaCoordinadorV2(
+			Tema tema,
+			Integer idUsuarioCreador,
+			String comentario,
+			String tipoSolicitudNombre) {
+		try {
+			entityManager
+				.createNativeQuery(
+					"SELECT crear_solicitud_tema_coordinador(" +
+					"    :p_tema_id, " +
+					"    :p_usuario_id, " +
+					"    :p_comentario, " +
+					"    :p_tipo_solicitud_nombre" +
+					")")
+				.setParameter("p_tema_id", tema.getId())
+				.setParameter("p_usuario_id", idUsuarioCreador)
+				.setParameter("p_comentario", comentario)
+				.setParameter("p_tipo_solicitud_nombre", tipoSolicitudNombre)
+				.getSingleResult();
+		} catch (Exception ex) {
+			throw new RuntimeException(
+				"Error al crear solicitud de '" + tipoSolicitudNombre +
+				"' para tema " + tema.getId() + ": " + ex.getMessage(), ex);
+		}
 	}
 
 	private void crearSolicitudTemaCoordinador(Tema tema,
@@ -530,6 +557,9 @@ public class TemaServiceImpl implements TemaService {
 		RolSolicitud rolRemitente = rolSolicitudRepository
 				.findByNombre(RolSolicitudEnum.REMITENTE.name())
 				.orElseThrow(() -> new RuntimeException("Rol destinatario no encontrado"));
+		RolSolicitud rolDestinatario = rolSolicitudRepository
+				.findByNombre(RolSolicitudEnum.DESTINATARIO.name())
+				.orElseThrow(() -> new RuntimeException("Rol destinatario no encontrado"));		
 		AccionSolicitud accionPendiente = accionSolicitudRepository
 				.findByNombre(AccionSolicitudEnum.PENDIENTE_ACCION.name())
 				.orElseThrow(() -> new RuntimeException("Accion pendiente_aprobacion no encontrado"));
@@ -3244,5 +3274,54 @@ public class TemaServiceImpl implements TemaService {
 			throw new RuntimeException("Error al convertir solicitudes a JSON", e);
 		}
     }
+
+
+	@Override
+	public Integer actualizarTemaLibre(TemaDto dto) {
+		Integer temaId;
+
+		try {
+			// Validar que el temaId esté presente
+			if (dto.getId() == null) {
+				throw new IllegalArgumentException("Debe proporcionar el ID del tema a actualizar.");
+			}
+
+			// Obtener IDs de subáreas (puede ser null)
+			Integer[] subareaIds = dto.getSubareas() != null
+					? dto.getSubareas().stream().map(sa -> sa.getId()).toArray(Integer[]::new)
+					: null;
+
+			Integer[] coasesorIds = dto.getCoasesores() != null
+					? dto.getCoasesores().stream().map(user -> user.getId()).toArray(Integer[]::new)
+					: null;
+
+			
+			temaId = (Integer) entityManager.createNativeQuery(
+							"SELECT actualizar_tema_libre(:temaId, :titulo, :resumen, :metodologia, :objetivos, :carreraId, :fechaLimite, :requisitos, :subareaIds, :coasesorIds)")
+					.setParameter("temaId", dto.getId())
+					.setParameter("titulo", dto.getTitulo())
+					.setParameter("resumen", dto.getResumen())
+					.setParameter("metodologia", dto.getMetodologia())
+					.setParameter("objetivos", dto.getObjetivos())
+					.setParameter("carreraId", dto.getCarrera() != null ? dto.getCarrera().getId() : null)
+					.setParameter("fechaLimite", dto.getFechaLimite() != null ? dto.getFechaLimite().toLocalDate() : null)
+					.setParameter("requisitos", dto.getRequisitos() != null ? dto.getRequisitos() : "")
+					.setParameter("subareaIds", subareaIds)
+					.setParameter("coasesorIds", coasesorIds)
+					.getSingleResult();
+
+
+			logger.info("Tema actualizado exitosamente: " + dto.getTitulo());
+		} catch (Exception e) {
+			logger.severe("Error al actualizar tema: " + e.getMessage());
+			throw new RuntimeException("No se pudo actualizar el tema", e);
+		}
+
+		return temaId;
+	}
+
+
+
+
 
 }
