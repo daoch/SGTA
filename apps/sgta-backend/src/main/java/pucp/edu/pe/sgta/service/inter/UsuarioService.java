@@ -73,11 +73,12 @@ public interface UsuarioService {
     /**
      * HU05: Obtiene la lista de profesores con sus roles asignados
      *
-     * @param rolNombre       Nombre del rol por el que filtrar (puede ser "Todos")
+     * @param rolNombre       Nombre del rol por el que filtra (puede ser "Todos")
      * @param terminoBusqueda Término para buscar en nombre, correo o código
+     * @param idCognito      ID del cognito del usuario que realiza la búsqueda
      * @return Lista de usuarios con información de sus roles
      */
-    List<UsuarioConRolDto> getProfessorsWithRoles(String rolNombre, String terminoBusqueda);
+    List<UsuarioConRolDto> getProfessorsWithRoles(String rolNombre, String terminoBusqueda, String idCognito);
 
     List<UsuarioDto> getAsesoresBySubArea(Integer idSubArea);
 

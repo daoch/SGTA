@@ -812,41 +812,67 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     /**
-     * HU05: Obtiene la lista de profesores con sus roles asignados
+     * HU05: Obtiene la lista de profesores con sus roles asignados.
+     * REFACTORIZADO: Ahora filtra los profesores para mostrar solo aquellos
+     * que pertenecen a la misma Unidad Académica que el usuario que realiza la consulta.
+     * 
+     * @param rolNombre       Nombre del rol para filtrar (e.g., "Asesor", "Todos").
+     * @param terminoBusqueda Término para buscar en nombre, correo o código.
+     * @param idCognito       ID de Cognito del usuario que realiza la petición para determinar su unidad académica.
+     * @return Lista de profesores filtrados.
      */
     @Override
     @Transactional(readOnly = true)
-    public List<UsuarioConRolDto> getProfessorsWithRoles(String rolNombre, String terminoBusqueda) {
+    public List<UsuarioConRolDto> getProfessorsWithRoles(String rolNombre, String terminoBusqueda, String idCognito) {
+        // 1. Validar que idCognito no sea nulo o vacío
+        if (idCognito == null || idCognito.trim().isEmpty()) {
+            throw new IllegalArgumentException("El idCognito del solicitante es requerido para filtrar por unidad académica.");
+        }
+
         StringBuilder sql = new StringBuilder();
         sql.append("""
-                    SELECT
-                        u.usuario_id,
-                        u.nombres,
-                        u.primer_apellido,
-                        u.segundo_apellido,
-                        u.correo_electronico,
-                        u.codigo_pucp,
-                        string_agg(DISTINCT r.nombre, ',') AS roles_names,
-                        -- contar temas donde usuario sea asesor o coasesor (rol_id 1 o 5)
-                        COUNT(DISTINCT CASE WHEN ut.rol_id IN (1, 5) THEN ut.tema_id END) AS tesis_count,
-                        tu.tipo_usuario_id,
-                        tu.nombre AS tipo_usuario_nombre
-                    FROM
-                        usuario u
-                    JOIN
-                        tipo_usuario tu ON u.tipo_usuario_id = tu.tipo_usuario_id
-                    LEFT JOIN
-                        usuario_rol ur ON u.usuario_id = ur.usuario_id AND ur.activo = true
-                    LEFT JOIN
-                        rol r ON ur.rol_id = r.rol_id AND r.activo = true
-                    LEFT JOIN
-                        usuario_tema ut ON u.usuario_id = ut.usuario_id AND ut.activo = true
-                    WHERE
-                        u.activo = true
-                        AND LOWER(tu.nombre) = 'profesor'
-                """);
+            SELECT
+                u.usuario_id,
+                u.nombres,
+                u.primer_apellido,
+                u.segundo_apellido,
+                u.correo_electronico,
+                u.codigo_pucp,
+                string_agg(DISTINCT r.nombre, ',') AS roles_names,
+                COUNT(DISTINCT CASE WHEN ut.rol_id IN (1, 5) THEN ut.tema_id END) AS tesis_count,
+                tu.tipo_usuario_id,
+                tu.nombre AS tipo_usuario_nombre
+            FROM
+                usuario u
+            JOIN
+                tipo_usuario tu ON u.tipo_usuario_id = tu.tipo_usuario_id
+            -- >>> CAMBIO: JOIN para acceder a la carrera y unidad académica del profesor
+            JOIN
+                usuario_carrera uc ON u.usuario_id = uc.usuario_id AND uc.activo = true
+            JOIN
+                carrera c ON uc.carrera_id = c.carrera_id
+            LEFT JOIN
+                usuario_rol ur ON u.usuario_id = ur.usuario_id AND ur.activo = true
+            LEFT JOIN
+                rol r ON ur.rol_id = r.rol_id AND r.activo = true
+            LEFT JOIN
+                usuario_tema ut ON u.usuario_id = ut.usuario_id AND ut.activo = true
+            WHERE
+                u.activo = true
+                AND LOWER(tu.nombre) = 'profesor'
+                -- >>> CAMBIO: Filtro por unidad académica del solicitante
+                AND c.unidad_academica_id = (
+                    SELECT c_solicitante.unidad_academica_id
+                    FROM usuario u_solicitante
+                    JOIN usuario_carrera uc_solicitante ON u_solicitante.usuario_id = uc_solicitante.usuario_id
+                    JOIN carrera c_solicitante ON uc_solicitante.carrera_id = c_solicitante.carrera_id
+                    WHERE u_solicitante.id_cognito = :idCognito
+                    LIMIT 1
+                )
+        """);
 
-        List<String> params = new ArrayList<>();
+        List<Object> params = new ArrayList<>();
+        
         if (rolNombre != null && !rolNombre.equalsIgnoreCase("Todos")) {
             sql.append(" AND r.nombre = ?").append(params.size() + 1);
             params.add(rolNombre);
@@ -854,19 +880,19 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         if (terminoBusqueda != null && !terminoBusqueda.trim().isEmpty()) {
             sql.append("""
-                    AND (
-                        u.nombres ILIKE ?%s
-                        OR u.primer_apellido ILIKE ?%s
-                        OR u.segundo_apellido ILIKE ?%s
-                        OR u.correo_electronico ILIKE ?%s
-                        OR u.codigo_pucp ILIKE ?%s
-                    )
-                    """.formatted(
-                    params.size() + 1,
-                    params.size() + 2,
-                    params.size() + 3,
-                    params.size() + 4,
-                    params.size() + 5));
+                AND (
+                    u.nombres ILIKE ?%d
+                    OR u.primer_apellido ILIKE ?%d
+                    OR u.segundo_apellido ILIKE ?%d
+                    OR u.correo_electronico ILIKE ?%d
+                    OR u.codigo_pucp ILIKE ?%d
+                )
+                """.formatted(
+                params.size() + 1,
+                params.size() + 2,
+                params.size() + 3,
+                params.size() + 4,
+                params.size() + 5));
 
             String searchTerm = "%" + terminoBusqueda.trim() + "%";
             for (int i = 0; i < 5; i++) {
@@ -875,15 +901,20 @@ public class UsuarioServiceImpl implements UsuarioService {
         }
 
         sql.append("""
-                    GROUP BY
-                        u.usuario_id, u.nombres, u.primer_apellido, u.segundo_apellido,
-                        u.correo_electronico, u.codigo_pucp, tu.tipo_usuario_id, tu.nombre
-                    ORDER BY
-                        u.primer_apellido, u.segundo_apellido, u.nombres
-                """);
+            GROUP BY
+                u.usuario_id, c.unidad_academica_id, u.nombres, u.primer_apellido, u.segundo_apellido,
+                u.correo_electronico, u.codigo_pucp, tu.tipo_usuario_id, tu.nombre
+            ORDER BY
+                u.primer_apellido, u.segundo_apellido, u.nombres
+        """);
 
+        // 2. Crear la consulta y establecer parámetros
         Query query = em.createNativeQuery(sql.toString());
+        
+        // Establecer el parámetro :idCognito
+        query.setParameter("idCognito", idCognito);
 
+        // Establecer los parámetros dinámicos (?1, ?2, ...)
         for (int i = 0; i < params.size(); i++) {
             query.setParameter(i + 1, params.get(i));
         }
@@ -891,6 +922,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         @SuppressWarnings("unchecked")
         List<Object[]> results = query.getResultList();
 
+        // 3. Mapear los resultados (el mapeo no cambia)
         return results.stream()
                 .map(row -> {
                     TipoUsuarioDto tipoUsuarioDto = TipoUsuarioDto.builder()
