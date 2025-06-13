@@ -340,8 +340,8 @@ public class ReportingServiceImpl implements IReportService {
                             ? et.getNotaEntregable().doubleValue()
                             : null;
                     boolean esEvaluable      = et.getEntregable().isEsEvaluable();
-                    String estadoEntregable  = et.getEntregable().getEstadoStr();
-                    String estadoXTema       = et.getEstado().name();
+                    String estadoEntregable  = et.getEntregable().getEstado().name();
+                    String estadoXTema       = et.getEstado();
 
                     List<CriterioEntregableDto> criterios = criterioEntregableService
                             .listarCriteriosEntregableXEntregable(et.getEntregable().getId())
@@ -404,8 +404,8 @@ public class ReportingServiceImpl implements IReportService {
                     : null;
 
                 boolean esEvaluable = et.getEntregable().isEsEvaluable();
-                String estadoEntregable = et.getEntregable().getEstadoStr();
-                String estadoXTema = et.getEstado().name();
+                String estadoEntregable = et.getEntregable().getEstado().name();
+                String estadoXTema = et.getEstado();
 
                 List<CriterioEntregableDto> criterios = criterioEntregableService
                     .listarCriteriosEntregableXEntregable(et.getEntregable().getId())
