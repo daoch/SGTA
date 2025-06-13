@@ -196,7 +196,6 @@ const MiCronogramaPage = () => {
 
   const handleExport = () => {
     const now = new Date();
-
     let eventosFiltrados = events;
 
     if (modoExportacion === "actual") {
@@ -275,9 +274,7 @@ const MiCronogramaPage = () => {
     <div className="space-y-8 mt-4">
       <div>
         <h1 className="text-3xl font-bold text-[#042354]">Mi Cronograma</h1>
-        <p className="text-muted-foreground">
-          Visualización de eventos planificados
-        </p>
+        <p className="text-muted-foreground">Visualización de eventos planificados</p>
       </div>
 
       <div className="flex flex-wrap gap-4 p-4 bg-white rounded-lg shadow-sm border">
@@ -440,6 +437,11 @@ const MiCronogramaPage = () => {
                   </p>
                 )}
               </div>
+              {isRangoInvalido && (
+                <p className="text-sm text-red-600 mt-2">
+                  El mes inicio no puede ser posterior al mes fin.
+                </p>
+              )}
             </div>
           )}
 

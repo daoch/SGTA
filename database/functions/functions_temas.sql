@@ -1,3 +1,5 @@
+SET search_path TO sgtadb;
+
 CREATE OR REPLACE FUNCTION listar_temas_propuestos_por_subarea_conocimiento(
 	p_subareas_ids integer[],
 	p_asesor_id integer,

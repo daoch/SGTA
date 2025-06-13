@@ -95,7 +95,7 @@ const MiCronogramaPage = () => {
       }
     }
   });
-
+  
   const { user } = useAuth();
   //const userId = 1;
   const [userId, setUserId] = useState<number | null>(null);
@@ -204,7 +204,6 @@ const MiCronogramaPage = () => {
     ),
     [events, selectedTesistas]
   );
-
 
   // Mapear eventos para el calendario (también con useMemo)
   const eventosParaCalendario = useMemo(() => 

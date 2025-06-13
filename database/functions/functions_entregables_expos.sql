@@ -1,3 +1,5 @@
+SET search_path TO sgtadb;
+
 DROP FUNCTION IF EXISTS listar_entregables_x_etapa_formativa_x_ciclo;
 DROP FUNCTION IF EXISTS listar_criterios_entregable_x_entregable;
 DROP FUNCTION IF EXISTS listar_exposiciones_x_etapa_formativa_x_ciclo;
@@ -5,6 +7,10 @@ DROP FUNCTION IF EXISTS listar_criterios_exposicion_x_exposicion;
 DROP FUNCTION IF EXISTS listar_entregables_por_usuario;
 DROP FUNCTION IF EXISTS listar_exposiciones_por_usuario;
 DROP FUNCTION IF EXISTS listar_entregables_con_envio_x_etapa_formativa_x_ciclo;
+DROP FUNCTION IF EXISTS listar_tesistas_por_exposicion;
+DROP FUNCTION IF EXISTS listar_tesistas_por_asesor_lite;
+DROP FUNCTION IF EXISTS listar_tesistas_por_reunion;
+DROP FUNCTION IF EXISTS listar_reuniones_por_asesor;
 
 CREATE OR REPLACE FUNCTION listar_entregables_x_etapa_formativa_x_ciclo(etapaFormativaXCicloId INTEGER)
 RETURNS TABLE (
@@ -123,8 +129,8 @@ BEGIN
     RETURN QUERY
     SELECT
         e.entregable_id,
-        e.nombre,
-        e.descripcion,
+        e.nombre::TEXT,
+        e.descripcion::TEXT,
         e.fecha_inicio,
         e.fecha_fin,
         e.estado::TEXT,
@@ -150,19 +156,19 @@ RETURNS TABLE (
     descripcion TEXT,
     fecha_inicio TIMESTAMPTZ,
     fecha_fin TIMESTAMPTZ,
-    estado TEXT
+    bloque_horario_exposicion_id INTEGER
 )
 AS
 $$
 BEGIN
     RETURN QUERY
-    SELECT
+    SELECT DISTINCT
         e.exposicion_id,
-        e.nombre,
-        e.descripcion,
+        e.nombre::TEXT,
+        e.descripcion::TEXT,
         b.datetime_inicio,
         b.datetime_fin,
-        e.activo::TEXT
+        b.bloque_horario_exposicion_id
     FROM
         exposicion e
 		JOIN exposicion_x_tema et ON et.exposicion_id = e.exposicion_id
@@ -251,6 +257,118 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION listar_reuniones_por_asesor(asesorId INTEGER)
+RETURNS TABLE (
+    reunion_id INTEGER,
+    nombre TEXT,
+    descripcion TEXT,
+    fecha_inicio TIMESTAMPTZ,
+    fecha_fin TIMESTAMPTZ,
+    estado TEXT
+)
+AS
+$$
+BEGIN
+    RETURN QUERY
+    SELECT DISTINCT
+        r.reunion_id,
+		r.titulo::TEXT,
+		r.descripcion::TEXT,
+		r.fecha_hora_inicio,
+		r.fecha_hora_fin,
+		r.activo::TEXT
+    FROM
+        reunion r
+		JOIN usuario_reunion ur ON r.reunion_id = ur.reunion_id
+    WHERE
+        ur.usuario_id = asesorId
+		AND r.activo = true;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION listar_tesistas_por_reunion(reunionId INTEGER)
+RETURNS TABLE (
+    tesista_id INTEGER,
+    nombre TEXT,
+    tema TEXT
+)
+AS
+$$
+BEGIN
+    RETURN QUERY
+    SELECT DISTINCT
+        u.usuario_id,
+		CONCAT(u.nombres, ' ', u.primer_apellido, ' ', u.segundo_apellido),
+		t.titulo::TEXT
+    FROM
+        usuario_reunion ur
+		JOIN usuario u ON u.usuario_id = ur.usuario_id
+		JOIN usuario_tema ut ON u.usuario_id = ut.usuario_id
+		JOIN tema t ON ut.tema_id = t.tema_id
+    WHERE
+        ur.reunion_id = reunionId
+		AND ut.rol_id = 4
+		AND ut.activo = true
+		AND t.activo = true;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION listar_tesistas_por_asesor_lite(usuarioId INTEGER)
+RETURNS TABLE (
+    tesista_id INTEGER,
+    nombre TEXT,
+    tema TEXT
+)
+AS
+$$
+BEGIN
+    RETURN QUERY
+    SELECT DISTINCT
+        ut_tesista.usuario_id,
+        CONCAT(u.nombres, ' ', u.primer_apellido, ' ', u.segundo_apellido),
+        t.titulo::TEXT
+    FROM usuario_tema ut_asesor
+    JOIN usuario_tema ut_tesista ON ut_asesor.tema_id = ut_tesista.tema_id
+    JOIN usuario u ON u.usuario_id = ut_tesista.usuario_id
+    JOIN tema t ON t.tema_id = ut_tesista.tema_id
+    WHERE
+        ut_asesor.usuario_id = usuarioId
+        AND ut_asesor.rol_id = 1                      -- Asesor
+        AND ut_asesor.rechazado = FALSE
+        AND ut_asesor.activo = TRUE
+        AND ut_tesista.rol_id = 4                    -- Tesista
+        AND ut_tesista.rechazado = FALSE
+        AND ut_tesista.activo = TRUE;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION listar_tesistas_por_exposicion(exposicionId INTEGER)More actions
+RETURNS TABLE (
+    tesista_id INTEGER,
+    nombre TEXT,
+    tema TEXT
+)
+AS
+$$
+BEGIN
+    RETURN QUERY
+    SELECT DISTINCT
+        u.usuario_id,
+        CONCAT(u.nombres, ' ', u.primer_apellido, ' ', u.segundo_apellido),
+        t.titulo::TEXT
+    FROM usuario u
+    JOIN usuario_tema ut ON ut.usuario_id = u.usuario_id
+    JOIN tema t ON t.tema_id = ut.tema_id
+	JOIN exposicion_x_tema et ON et.tema_id = t.tema_id
+	JOIN bloque_horario_exposicion bhe ON bhe.exposicion_x_tema_id = et.exposicion_x_tema_id
+    WHERE
+        bhe.bloque_horario_exposicion_id = exposicionId
+        AND ut.rol_id = 4
+        AND ut.rechazado = FALSE
+        AND ut.activo = TRUE;
+END;
+$$ LANGUAGE plpgsql;
+        
 CREATE OR REPLACE FUNCTION obtener_asesor_por_alumno(p_alumno_id INTEGER)
 RETURNS TABLE (
     usuario_id INTEGER,

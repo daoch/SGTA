@@ -39,7 +39,6 @@ import {
 import { useHotkeys } from "react-hotkeys-hook";
 import { es } from "date-fns/locale/es"; // Opcional: para mostrar la fecha en español
 
-
 const monthEventVariants = cva("size-2 rounded-full", {
   variants: {
     variant: {
