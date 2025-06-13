@@ -169,6 +169,8 @@ export default function PerfilAsesor({ userId, editable }: Props) {
     try {
       setIsLoading(true);
 
+      console.log("Saving edited data:", editedData);
+
       await editarAsesor(editedData);
 
       toast.success("Cambios guardados con éxito", {
@@ -264,6 +266,8 @@ export default function PerfilAsesor({ userId, editable }: Props) {
     setTemasToDelete([]);
     setIsDeleteDialogOpen(false);
   };
+
+  console.log("Edited Data:", editedData);
 
   const addTemaInteres = () => {
     if (
