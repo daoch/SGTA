@@ -2,21 +2,12 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/features/auth/hooks/use-auth";
-import { BarChartHorizontal, Calendar, Download, FileSpreadsheet, PieChart } from "lucide-react";
+import { BarChartHorizontal, ChevronDown, ChevronsUpDown, ChevronUp, Download, FileSpreadsheet, Loader2, PieChart, Search, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
   Bar,
@@ -48,6 +39,16 @@ import type {
   TopicTrend
 } from "../types/coordinator-reports.type";
 
+// Componente de loading centrado
+const CenteredLoading = ({ height = "400px" }: { height?: string }) => (
+  <div className="flex items-center justify-center" style={{ height }}>
+    <div className="flex flex-col items-center gap-2">
+      <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
+      <span className="text-sm text-gray-500">Cargando...</span>
+    </div>
+  </div>
+);
+
 type AdvisorPerformance = {
   name: string;
   department: string;
@@ -65,7 +66,6 @@ export function CoordinatorReports() {
   const { user } = useAuth();
   const [semesterFilter, setSemesterFilter] = useState("2025-1");
   const [themeAreaChartType, setThemeAreaChartType] = useState("horizontal-bar"); // 'horizontal-bar', 'pie'
-  const [scheduleFrequency, setScheduleFrequency] = useState("weekly");
 
   // Data for thesis topics by area
   const [thesisTopicsByArea, setThesisTopicsByArea] = useState<TopicArea[]>([]);
@@ -88,6 +88,20 @@ export function CoordinatorReports() {
   const [advisorPerformance, setAdvisorPerformance] = useState<AdvisorPerformance[]>([]);
   const [loadingAdvisorPerformance, setLoadingAdvisorPerformance] = useState(false);
 
+  // Ordenamiento para la tabla comparativa
+  const [sortConfig, setSortConfig] = useState<{
+    key: string | null;
+    direction: "asc" | "desc";
+  }>({
+    key: null,
+    direction: "asc"
+  });
+
+  // Filtros para la tabla comparativa
+  const [searchFilter, setSearchFilter] = useState("");
+  const [areaFilter, setAreaFilter] = useState<string[]>([]);
+  const [isAreaDropdownOpen, setIsAreaDropdownOpen] = useState(false);
+
   // Colores para el gráfico de pastel
   const COLORS = ["#002855", "#006699", "#0088cc", "#00aaff", "#33bbff", "#66ccff", "#99ddff"];
 
@@ -97,6 +111,68 @@ export function CoordinatorReports() {
     alert(`Exportando reporte en formato ${format}...`);
   };
 
+  // Función para manejar ordenamiento
+  const handleSort = (key: string) => {
+    let direction: "asc" | "desc" = "asc";
+    if (sortConfig.key === key && sortConfig.direction === "asc") {
+      direction = "desc";
+    }
+    setSortConfig({ key, direction });
+  };
+
+  // Función para obtener el ícono de ordenamiento
+  const getSortIcon = (columnKey: string) => {
+    if (sortConfig.key !== columnKey) {
+      return <ChevronsUpDown className="h-4 w-4" />;
+    }
+    return sortConfig.direction === "asc" ? 
+      <ChevronUp className="h-4 w-4" /> : 
+      <ChevronDown className="h-4 w-4" />;
+  };
+
+  // Función para obtener áreas únicas de los datos
+  const getUniqueAreas = () => {
+    const areas = new Set<string>();
+    advisorDistribution.forEach(advisor => areas.add(advisor.department));
+    juryDistribution.forEach(jury => areas.add(jury.department));
+    return Array.from(areas).sort();
+  };
+
+  // Función para normalizar texto sin tildes
+  const normalizeText = (text: string) => {
+    return text
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase();
+  };
+
+  // Función para manejar cambios en filtro de área (checkbox)
+  const handleAreaFilterChange = (area: string, checked: boolean) => {
+    if (checked) {
+      setAreaFilter(prev => [...prev, area]);
+    } else {
+      setAreaFilter(prev => prev.filter(a => a !== area));
+    }
+  };
+
+  // Función para limpiar filtros
+  const clearFilters = () => {
+    setSearchFilter("");
+    setAreaFilter([]);
+  };
+
+  // Efecto para cerrar dropdown al hacer clic fuera
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (isAreaDropdownOpen && !target.closest("[data-area-dropdown]")) {
+        setIsAreaDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isAreaDropdownOpen]);
 
   const [selectedTopicsChart, setSelectedTopicsChart] = useState("areas");
   const [selectedDistributionChart, setSelectedDistributionChart] = useState("advisors");
@@ -251,7 +327,7 @@ export function CoordinatorReports() {
 
   const renderTopicsAreaChart = () => {
     if (loadingTopicsByArea) {
-      return <div className="text-base">Cargando...</div>;
+      return <CenteredLoading />;
     }
 
     if (thesisTopicsByArea.length === 0) {
@@ -321,7 +397,7 @@ export function CoordinatorReports() {
 
   const renderTrendsChart = () => {
     if (loadingLineChart) {
-      return <div className="text-base">Cargando...</div>;
+      return <CenteredLoading />;
     }
 
     if (lineChartData.length === 0) {
@@ -352,7 +428,7 @@ export function CoordinatorReports() {
 
   const renderAdvisorDistribution = () => {
     if (loadingAdvisorDistribution) {
-      return <div className="text-base">Cargando...</div>;
+      return <CenteredLoading />;
     }
 
     if (advisorDistribution.length === 0) {
@@ -383,7 +459,7 @@ export function CoordinatorReports() {
 
   const renderJuryDistribution = () => {
     if (loadingJuryDistribution) {
-      return <div className="text-base">Cargando...</div>;
+      return <CenteredLoading />;
     }
 
     if (juryDistribution.length === 0) {
@@ -420,41 +496,236 @@ export function CoordinatorReports() {
         return renderJuryDistribution();
       default:
         return (
-          <div className="p-4">
+          <div>
             {advisorDistribution.length === 0 && juryDistribution.length === 0 ? (
               <div className="text-center text-gray-500 py-8 text-base">
                 No hay información de carga para este ciclo.
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[600px] border-collapse">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="py-3 text-left text-base font-medium text-gray-500">Docente</th>
-                      <th className="py-3 text-left text-base font-medium text-gray-500">Departamento</th>
-                      <th className="py-3 text-left text-base font-medium text-gray-500">Asesorías</th>
-                      <th className="py-3 text-left text-base font-medium text-gray-500">Jurado</th>
-                      <th className="py-3 text-left text-base font-medium text-gray-500">Total</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {advisorDistribution.map((advisor) => {
-                      const juryCount = juryDistribution.find((j) => j.name === advisor.name)?.count ?? 0;
-                      const total = advisor.count + juryCount;
+              <>
+                {/* Barra de búsqueda y filtros */}
+                <div className="mb-2 flex flex-col sm:flex-row gap-4 px-6">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Buscar por nombre de docente..."
+                      value={searchFilter}
+                      onChange={(e) => setSearchFilter(e.target.value)}
+                      className="w-full pl-10 px-2 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+                    />
+                  </div>
+                  <div className="relative" style={{ width: "280px", minWidth: "280px", maxWidth: "280px" }} data-area-dropdown>
+                    <button
+                      type="button"
+                      onClick={() => setIsAreaDropdownOpen(!isAreaDropdownOpen)}
+                      className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md bg-white text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <span className="text-gray-700">
+                        {areaFilter.length === 0 
+                          ? "Filtrar por áreas" 
+                          : `${areaFilter.length} área${areaFilter.length > 1 ? "s" : ""} seleccionada${areaFilter.length > 1 ? "s" : ""}`
+                        }
+                      </span>
+                      <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${isAreaDropdownOpen ? "rotate-180" : ""}`} />
+                    </button>
+                    {isAreaDropdownOpen && (
+                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg">
+                        <div className="p-3">
+                          <div className="text-sm font-medium text-gray-700 mb-2">Seleccionar áreas:</div>
+                          <div className="space-y-2 max-h-40 overflow-y-auto">
+                            {getUniqueAreas().map((area) => (
+                              <label key={area} className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
+                                <input
+                                  type="checkbox"
+                                  checked={areaFilter.includes(area)}
+                                  onChange={(e) => handleAreaFilterChange(area, e.target.checked)}
+                                  className="rounded border-gray-300 focus:ring-2 focus:ring-blue-500"
+                                />
+                                <span className="text-sm text-gray-700">{toTitleCase(area)}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
 
-                      return (
-                        <tr key={`${advisor.name}-${advisor.department}`} className="border-b">
-                          <td className="py-2 text-base font-medium">{toTitleCase(advisor.name)}</td>
-                          <td className="py-2 text-base">{toTitleCase(advisor.department)}</td>
-                          <td className="py-2 text-base">{advisor.count}</td>
-                          <td className="py-2 text-base">{juryCount}</td>
-                          <td className="py-2 text-base font-medium">{total}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+                {/* Botón limpiar filtros - espacio pequeño reservado */}
+                <div className="flex justify-end mb-4 px-6" style={{ height: "20px" }}>
+                  {(searchFilter || areaFilter.length > 0) && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={clearFilters}
+                      className="text-sm text-red-600 hover:text-red-700 hover:bg-red-50 h-5 flex items-center gap-1"
+                    >
+                      <X className="h-3 w-3" />
+                      Limpiar filtros
+                    </Button>
+                  )}
+                </div>
+
+                <div className="overflow-x-auto px-6 pb-4">
+                  <table className="w-full min-w-[600px] border-collapse bg-white rounded-lg shadow-sm">
+                    <thead className="bg-gray-50">
+                      <tr className="border-b border-gray-200">
+                        <th 
+                          className="px-6 py-4 text-left text-base font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none transition-colors"
+                          onClick={() => handleSort("name")}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span>Docente</span>
+                            <span className="text-sm">{getSortIcon("name")}</span>
+                          </div>
+                        </th>
+                        <th 
+                          className="px-6 py-4 text-left text-base font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none transition-colors"
+                          onClick={() => handleSort("department")}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span>Área</span>
+                            <span className="text-sm">{getSortIcon("department")}</span>
+                          </div>
+                        </th>
+                        <th 
+                          className="px-6 py-4 text-center text-base font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none transition-colors"
+                          onClick={() => handleSort("advisorCount")}
+                        >
+                          <div className="flex items-center justify-center gap-2">
+                            <span>Asesor</span>
+                            <span className="text-sm">{getSortIcon("advisorCount")}</span>
+                          </div>
+                        </th>
+                        <th 
+                          className="px-6 py-4 text-center text-base font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none transition-colors"
+                          onClick={() => handleSort("juryCount")}
+                        >
+                          <div className="flex items-center justify-center gap-2">
+                            <span>Jurado</span>
+                            <span className="text-sm">{getSortIcon("juryCount")}</span>
+                          </div>
+                        </th>
+                        <th 
+                          className="px-6 py-4 text-center text-base font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none transition-colors"
+                          onClick={() => handleSort("total")}
+                        >
+                          <div className="flex items-center justify-center gap-2">
+                            <span>Total</span>
+                            <span className="text-sm">{getSortIcon("total")}</span>
+                          </div>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {(() => {
+                        // Crear una lista combinada de todos los docentes únicos
+                        const allTeachers = new Map<string, { name: string; department: string; advisorCount: number; juryCount: number }>();
+                        
+                        // Agregar asesores
+                        advisorDistribution.forEach((advisor) => {
+                          allTeachers.set(advisor.name, {
+                            name: advisor.name,
+                            department: advisor.department,
+                            advisorCount: advisor.count,
+                            juryCount: 0
+                          });
+                        });
+                        
+                        // Agregar o actualizar con información de jurados
+                        juryDistribution.forEach((jury) => {
+                          if (allTeachers.has(jury.name)) {
+                            // Si ya existe como asesor, actualizar el conteo de jurado
+                            const existing = allTeachers.get(jury.name)!;
+                            existing.juryCount = jury.count;
+                          } else {
+                            // Si solo es jurado, agregarlo con 0 asesorías
+                            allTeachers.set(jury.name, {
+                              name: jury.name,
+                              department: jury.department,
+                              advisorCount: 0,
+                              juryCount: jury.count
+                            });
+                          }
+                        });
+
+                        // Convertir a array
+                        let teachersList = Array.from(allTeachers.values());
+
+                        // Aplicar filtros de búsqueda y área
+                        teachersList = teachersList.filter((teacher) => {
+                          const matchesSearch = !searchFilter || 
+                            normalizeText(teacher.name).includes(normalizeText(searchFilter));
+                          
+                          const matchesArea = areaFilter.length === 0 || 
+                            areaFilter.includes(teacher.department);
+
+                          return matchesSearch && matchesArea;
+                        });
+
+                        // Aplicar ordenamiento
+                        if (sortConfig.key) {
+                          teachersList.sort((a, b) => {
+                            let aValue: string | number;
+                            let bValue: string | number;
+
+                            switch (sortConfig.key) {
+                              case "name":
+                                aValue = a.name.toLowerCase();
+                                bValue = b.name.toLowerCase();
+                                break;
+                              case "department":
+                                aValue = a.department.toLowerCase();
+                                bValue = b.department.toLowerCase();
+                                break;
+                              case "advisorCount":
+                                aValue = a.advisorCount;
+                                bValue = b.advisorCount;
+                                break;
+                              case "juryCount":
+                                aValue = a.juryCount;
+                                bValue = b.juryCount;
+                                break;
+                              case "total":
+                                aValue = a.advisorCount + a.juryCount;
+                                bValue = b.advisorCount + b.juryCount;
+                                break;
+                              default:
+                                return 0;
+                            }
+
+                            if (aValue < bValue) {
+                              return sortConfig.direction === "asc" ? -1 : 1;
+                            }
+                            if (aValue > bValue) {
+                              return sortConfig.direction === "asc" ? 1 : -1;
+                            }
+                            return 0;
+                          });
+                        } else {
+                          // Ordenamiento por defecto: por nombre
+                          teachersList.sort((a, b) => a.name.localeCompare(b.name));
+                        }
+
+                        return teachersList.map((teacher) => {
+                          const total = teacher.advisorCount + teacher.juryCount;
+
+                          return (
+                            <tr key={`${teacher.name}-${teacher.department}`} className="hover:bg-gray-50 transition-colors">
+                              <td className="px-6 py-4 text-base font-medium text-gray-900">{toTitleCase(teacher.name)}</td>
+                              <td className="px-6 py-4 text-base text-gray-600">{toTitleCase(teacher.department)}</td>
+                              <td className="px-6 py-4 text-base text-center text-gray-900">{teacher.advisorCount}</td>
+                              <td className="px-6 py-4 text-base text-center text-gray-900">{teacher.juryCount}</td>
+                              <td className="px-6 py-4 text-base text-center font-semibold text-gray-900">{total}</td>
+                            </tr>
+                          );
+                        });
+                      })()}
+                    </tbody>
+                  </table>
+                </div>
+              </>
             )}
           </div>
         );
@@ -463,7 +734,7 @@ export function CoordinatorReports() {
 
   const renderPerformanceContent = () => {
     if (loadingAdvisorPerformance) {
-      return <div className="text-base">Cargando...</div>;
+      return <CenteredLoading />;
     }
 
     if (advisorPerformance.length === 0) {
@@ -518,60 +789,6 @@ export function CoordinatorReports() {
               </SelectContent>
             </Select>
 
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="outline" className="gap-2 text-base">
-                  <Calendar className="h-4 w-4" />
-                  Programar Reportes
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle className="text-lg">Programar Envío de Reportes</DialogTitle>
-                  <DialogDescription className="text-base">
-                    Configura la frecuencia con la que deseas recibir reportes automáticos en tu correo.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="schedule-frequency" className="text-base">Frecuencia de envío</Label>
-                    <Select value={scheduleFrequency} onValueChange={setScheduleFrequency}>
-                      <SelectTrigger id="schedule-frequency" className="text-base">
-                        <SelectValue placeholder="Selecciona frecuencia" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="daily" className="text-base">Diario</SelectItem>
-                        <SelectItem value="weekly" className="text-base">Semanal</SelectItem>
-                        <SelectItem value="monthly" className="text-base">Mensual</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="report-format" className="text-base">Formato de reporte</Label>
-                    <Select defaultValue="pdf">
-                      <SelectTrigger id="report-format" className="text-base">
-                        <SelectValue placeholder="Selecciona formato" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="pdf" className="text-base">PDF</SelectItem>
-                        <SelectItem value="excel" className="text-base">Excel</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email-input" className="text-base">Correo electrónico</Label>
-                    <input
-                      id="email-input"
-                      type="email"
-                      className="w-full px-3 py-2 border rounded-md text-base"
-                      defaultValue="coordinador@pucp.edu.pe"
-                      readOnly
-                    />
-                  </div>
-                  <Button className="w-full mt-4 text-base">Guardar configuración</Button>
-                </div>
-              </DialogContent>
-            </Dialog>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -608,7 +825,7 @@ export function CoordinatorReports() {
                   </SelectContent>
                 </Select>
               </div>
-              <p className="text-sm text-gray-600 pt-2">{topicsDescriptions[selectedTopicsChart as keyof typeof topicsDescriptions]}</p>
+              <p className="text-base text-gray-600 pt-2">{topicsDescriptions[selectedTopicsChart as keyof typeof topicsDescriptions]}</p>
             </CardHeader>
             <CardContent className="p-0">
               {selectedTopicsChart === "areas" ? (
@@ -660,7 +877,7 @@ export function CoordinatorReports() {
                   </SelectContent>
                 </Select>
               </div>
-              <p className="text-sm text-gray-600 pt-2">{distributionDescriptions[selectedDistributionChart as keyof typeof distributionDescriptions]}</p>
+              <p className="text-base text-gray-600 pt-2">{distributionDescriptions[selectedDistributionChart as keyof typeof distributionDescriptions]}</p>
             </CardHeader>
             <CardContent className="p-0">
               {renderDistributionContent()}
@@ -668,29 +885,31 @@ export function CoordinatorReports() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="performance">
+        <TabsContent value="performance" className="space-y-4">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-lg">Desempeño de Asesores</CardTitle>
-              <p className="text-sm text-gray-600 pt-2">
+              <p className="text-base text-gray-600 pt-2">
                 Promedio de avance de tesistas por asesor
               </p>
             </CardHeader>
-            <CardContent className="p-4">
+            <CardContent className="px-6">
               {renderPerformanceContent()}
               {advisorPerformance.length > 0 && (
-                <div className="mt-8">
-                  <h3 className="text-base font-medium mb-4">Comparativa de Eficiencia</h3>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <RechartsBarChart data={advisorPerformance} margin={{top: 5, right: 30, left: 20, bottom: 20}}>
+                <div className="mt-8 -mx-6">
+                  <div className="px-6">
+                    <h3 className="text-base font-medium mb-6">Comparativa de Eficiencia</h3>
+                  </div>
+                  <ResponsiveContainer width="100%" height={Math.max(450, advisorPerformance.length * 60 + 50)}>
+                    <RechartsBarChart layout="vertical" data={advisorPerformance} margin={{top: 20, right: 30, left: 30, bottom: 60}}>
                       <CartesianGrid strokeDasharray="3 3"/>
-                      <XAxis dataKey="name" tickFormatter={toTitleCase} height={60} angle={0} textAnchor="end" tick={{fontSize: 13}}/>
-                      <YAxis yAxisId="left" orientation="left" stroke="#002855" tick={{fontSize: 13}} label={{ value: "Progreso (%)", angle: -90, position: "insideLeft" }} allowDecimals={false}/>
-                      <YAxis yAxisId="right" orientation="right" stroke="#006699" tick={{fontSize: 13}} label={{ value: "Tesistas", angle: 90, position: "insideRight" }} allowDecimals={false}/>
+                      <XAxis xAxisId="left" type="number" orientation="bottom" stroke="#002855" tick={{fontSize: 15}} allowDecimals={false} label={{ value: "Progreso (%)", position: "insideBottom", offset: -10, style: { textAnchor: "middle", fontSize: "14px", fill: "#002855" } }}/>
+                      <XAxis xAxisId="right" type="number" orientation="top" stroke="#006699" tick={{fontSize: 15}} allowDecimals={false} label={{ value: "Número de Tesistas", position: "insideTop", offset: -15, style: { textAnchor: "middle", fontSize: "14px", fill: "#006699" } }}/>
+                      <YAxis type="category" dataKey="name" tickFormatter={toTitleCase} tick={{fontSize: 15}} width={130}/>
                       <Tooltip/>
-                      <Legend wrapperStyle={{fontSize: "13px", marginTop: "10px"}}/>
-                      <Bar yAxisId="left" dataKey="progress" name="Progreso (%)" fill="#002855"/>
-                      <Bar yAxisId="right" dataKey="students" name="Tesistas" fill="#006699"/>
+                      <Legend wrapperStyle={{fontSize: "15px", marginTop: "25px", paddingTop: "15px"}}/>
+                      <Bar xAxisId="left" dataKey="progress" name="Progreso (%)" fill="#002855"/>
+                      <Bar xAxisId="right" dataKey="students" name="Tesistas" fill="#006699"/>
                     </RechartsBarChart>
                   </ResponsiveContainer>
                 </div>

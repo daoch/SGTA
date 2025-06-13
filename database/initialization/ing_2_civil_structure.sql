@@ -4,7 +4,7 @@ INSERT INTO etapa_formativa (carrera_id,
                              duracion_exposicion)
     VALUES -- civil
            (2, 'Plan de tesis', 4.5, INTERVAL '30 minutes'),
-           (2, 'Trabajo de tesis', 4.0, INTERVAL '30 minutes'),
+           (2, 'Trabajo de tesis', 4.0, INTERVAL '30 minutes');
 
 
 INSERT INTO area_conocimiento (carrera_id,

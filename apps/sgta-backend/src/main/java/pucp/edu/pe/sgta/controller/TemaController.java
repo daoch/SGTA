@@ -777,7 +777,15 @@ public class TemaController {
 		}
 	}
 
+	@PostMapping("/actualizarTemaLibre")
+	public Integer actualizarTemaLibre(@Valid @RequestBody TemaDto dto) {
+		try {
+			return temaService.actualizarTemaLibre(dto);
+		} catch (RuntimeException e) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+		}
 
+	}
 
 
 }

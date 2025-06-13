@@ -318,21 +318,25 @@ public class ReportingServiceImpl implements IReportService {
 
     @Override
     public List<EntregableEstudianteDto> getEntregablesEstudiante(String usuarioId) {
-
         // 1) Resolvemos el usuario interno a partir del Cognito ID
         UsuarioDto usuDto = findByCognitoId(usuarioId);
         if (usuDto == null) {
             throw new RuntimeException("Usuario no encontrado con Cognito ID: " + usuarioId);
         }
-        Integer usuarioId_interno = usuDto.getId();
+        Integer usuarioIdInterno = usuDto.getId();
 
-        Optional<UsuarioXTema> usuarioTema = usuarioXTemaRepository.findByUsuarioId(usuarioId_interno);
-        if (usuarioTema.isEmpty()) {
-            throw new RuntimeException("Usuario no tiene tema asignado");
+        // 2) Buscamos sólo los usuario_tema donde activo = true y asignado = true
+        List<UsuarioXTema> temas =
+            usuarioXTemaRepository.findByUsuarioIdAndActivoTrueAndAsignadoTrue(usuarioIdInterno);
+
+        if (temas.isEmpty()) {
+            throw new RuntimeException("Usuario no tiene ningún tema activo y asignado");
         }
+        // Nos quedamos con el primero (puedes ordenar antes si quieres prioridad por fecha, etc.)
+        UsuarioXTema usuarioTema = temas.get(0);
+        Integer temaId = usuarioTema.getTema().getId();
 
-        Integer temaId = usuarioTema.get().getTema().getId();
-
+        // 3) Recuperamos y mapeamos los entregables de ese tema
         return entregableXTemaRepository.findByTemaIdWithEntregable(temaId).stream()
                 .map(et -> {
                     int exId = et.getEntregableXTemaId();
@@ -361,35 +365,44 @@ public class ReportingServiceImpl implements IReportService {
                             })
                             .collect(Collectors.toList());
 
-                    return new EntregableEstudianteDto(
-                            et.getEntregable().getNombre(),
-                            estadoEntregable,
-                            estadoXTema,
-                            et.getFechaEnvio() != null
-                                    ? et.getFechaEnvio().toLocalDateTime()
-                                    : null,
-                            notaGlobal,
-                            esEvaluable,
-                            criterios
-                    );
-                })
-                .collect(Collectors.toList());
+                return new EntregableEstudianteDto(
+                    et.getEntregable().getNombre(),
+                    estadoEntregable,
+                    estadoXTema,
+                    et.getFechaEnvio() != null
+                        ? et.getFechaEnvio().toLocalDateTime()
+                        : null,
+                    notaGlobal,
+                    esEvaluable,
+                    criterios
+                );
+            })
+            .collect(Collectors.toList());
     }
+
 
     @Override
     public List<EntregableEstudianteDto> getEntregablesEstudianteById(int usuarioId) {
         System.out.println("usuarioId recibido: " + usuarioId);
 
-        Optional<UsuarioXTema> usuarioTema = usuarioXTemaRepository.findByUsuarioId(usuarioId);
-        if (usuarioTema.isEmpty()) {
-            System.out.println("MIRAMEEEEEEEEEEEEEEEEEEEEEEEEEEE\n\n");
-            System.out.println("El usuario con ID " + usuarioId + " no tiene tema asignado en usuario_tema.");
-            System.out.println("El usuario no tiene tema asignado.");
-            return Collections.emptyList();
+        // 1) devolvemos sólo la asignación activa+asignada
+        List<UsuarioXTema> asignaciones = usuarioXTemaRepository
+            .findByUsuarioIdAndActivoTrueAndAsignadoTrue(usuarioId);
+
+        if (asignaciones.isEmpty()) {
+            System.out.println("El usuario " + usuarioId + " NO tiene tema activo+asignado.");
+            throw new NoSuchElementException(
+                "No existe tema activo/asignado para el usuario " + usuarioId
+            );
         }
 
-        Integer temaId = usuarioTema.get().getTema().getId();
+        // ya es un UsuarioXTema, no Optional
+        UsuarioXTema asignacion = asignaciones.get(0);
+
+        // accedes directo:
+        Integer temaId = asignacion.getTema().getId();
         System.out.println("Tema ID del estudiante: " + temaId);
+
 
         var entregables = entregableXTemaRepository.findByTemaIdWithEntregable(temaId);
         System.out.println("Cantidad de entregables encontrados: " + entregables.size());

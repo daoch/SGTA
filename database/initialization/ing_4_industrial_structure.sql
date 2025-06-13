@@ -3,7 +3,7 @@ INSERT INTO etapa_formativa (carrera_id,
                              creditaje_por_tema,
                              duracion_exposicion)
     VALUES -- industrial
-           (4, 'Trabajo de Investigación para Bachillerato', 4.5, INTERVAL '30 minutes'),
+           (4, 'Trabajo de Investigación para Bachillerato', 4.5, INTERVAL '30 minutes');
 
 
 INSERT INTO area_conocimiento (carrera_id,

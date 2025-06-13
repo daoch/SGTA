@@ -8,7 +8,7 @@ INSERT INTO etapa_formativa (carrera_id,
                              duracion_exposicion)
     VALUES -- informática
            (1, 'Proyecto de fin de carrera 1', 4.5, INTERVAL '20 minutes'),
-           (1, 'Proyecto de fin de carrera 2', 4.0, INTERVAL '20 minutes'),
+           (1, 'Proyecto de fin de carrera 2', 4.0, INTERVAL '20 minutes');
 
 -- ver y evaluar https://dl.acm.org/ccs
 
@@ -54,6 +54,9 @@ SELECT 1, sala_exposicion_id
     WHERE nombre IN ('V201', 'V202', 'V205', 'V206', 'V207', 'V208',
                      'SALA VIRTUAL 001', 'SALA VIRTUAL 002', 'SALA VIRTUAL 003');
 
+
+WITH salas AS (SELECT sala_exposicion_id, nombre, tipo_sala_exposicion
+                   FROM sala_exposicion)
 INSERT
     INTO etapa_formativa_x_sala_exposicion (etapa_formativa_id,
                                             sala_exposicion_id)
@@ -73,24 +76,24 @@ INSERT INTO carrera_parametro_configuracion (carrera_id,
                                              parametro_configuracion_id,
                                              valor,
                                              etapa_formativa_id)
-SELECT 1,
+SELECT 1 as carrera_id,
        p.parametro_configuracion_id,
        v.valor,
-       1
+       1 as etapa_formativa_id
     FROM parametro_configuracion p
              JOIN (VALUES ('antiplagio', 'false'),
                           ('turnitin', 'false'),
                           ('modalidad_delimitacion_tema', 'propuesta'),
                           ('fecha_limite_asesor', '2025-06-30T00:00:00Z'),
-                          ('LimXasesor', 3), --8
-                          ('ActivarLimiteAsesor', TRUE),
-                          ('TiempoLimiteRevisar', 5),
-                          ('CantidadTesisXJurado', 4),
-                          ('Cantidad Jurados', 3),
-                          ('Tiempo Limite Jurado', 15),
-                          ('Peso Asesor', 20),
-                          ('Limite Propuestas Alumno', 2),
-                          ('Limite Postulaciones Alumno', 2))
+                          ('LimXasesor', '3'), --8
+                          ('ActivarLimiteAsesor', 'true'),
+                          ('TiempoLimiteRevisar', '3'),
+                          ('CantidadTesisXJurado', '4'),
+                          ('Cantidad Jurados', '3'),
+                          ('Tiempo Limite Jurado', '15'),
+                          ('Peso Asesor', '20'),
+                          ('Limite Propuestas Alumno', '2'),
+                          ('Limite Postulaciones Alumno', '2'))
                         AS v(nombre, valor) ON p.nombre = v.nombre;
 
 

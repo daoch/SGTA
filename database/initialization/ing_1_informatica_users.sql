@@ -42,11 +42,11 @@ INSERT INTO usuario (tipo_usuario_id,
            (1, 'PROF019', 'Juan', 'Pérez', 'Lopez', 'juan.perez@pucp.edu.pe', 'Doctorado', 'secret1', 'Profesor de IA', NULL, 'Lun-Vie 9-12', 'Presencial', 1, TRUE, NOW(), NOW()),
 
            --Coordinador
-           (3, 'COOR001', 'Claudia María del Pilar', 'Zapata', 'del Río', 'claudia.zapata00@pucp.edu.pe', 'Maestría', 'claudiazpass', 'Coordinadora de tesis', NULL, NULL, NULL, 1, TRUE, NOW(), NOW()),
-           (3, 'COOR002', 'Luis', 'Ramírez', 'Díaz', 'luis.ramirez@pucp.edu.pe', 'Maestría', 'secret3', 'Coord. de tesis', NULL, NULL, NULL, 1, TRUE, NOW(), NOW()),
+           (1, 'COOR001', 'Claudia María del Pilar', 'Zapata', 'del Río', 'claudia.zapata00@pucp.edu.pe', 'Maestría', 'claudiazpass', 'Coordinadora de tesis', NULL, NULL, NULL, 1, TRUE, NOW(), NOW()),
+           (1, 'COOR002', 'Luis', 'Ramírez', 'Díaz', 'luis.ramirez@pucp.edu.pe', 'Maestría', 'secret3', 'Coord. de tesis', NULL, NULL, NULL, 1, TRUE, NOW(), NOW()),
 
            --Administrador
-           (4, 'AD01', 'Carla', 'Vega', 'Reyna', 'carla.vega@pucp.edu.pe', 'Administración', 'secret4', 'Admin. del sistema', NULL, NULL, NULL, NULL, TRUE, NOW(), NOW());
+           (3, 'AD01', 'Carla', 'Vega', 'Reyna', 'carla.vega@pucp.edu.pe', 'Administración', 'secret4', 'Admin. del sistema', NULL, NULL, NULL, NULL, TRUE, NOW(), NOW());
 
 
 --------------------------
@@ -135,6 +135,15 @@ INSERT INTO usuario_carrera (usuario_id,
                              fecha_modificacion)
 SELECT u.usuario_id, 1, TRUE, NOW(), NOW()
     FROM usuario u;
+
+-- Para los profesores código COOR001 y COOR002, alterar usuario_carrera con es_coordinador = TRUE
+
+UPDATE usuario_carrera
+    SET es_coordinador = TRUE,
+        fecha_modificacion = NOW()
+    WHERE usuario_id IN (SELECT usuario_id
+                         FROM usuario
+                         WHERE codigo_pucp IN ('COOR001', 'COOR002'));
 
 -- Agregar rol de asesor a los profesores de la carrera de Ingeniería Informática
 

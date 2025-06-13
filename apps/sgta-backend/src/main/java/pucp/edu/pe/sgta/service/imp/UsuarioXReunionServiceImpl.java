@@ -4,15 +4,19 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pucp.edu.pe.sgta.dto.ReunionesXUsuariosDto;
+import pucp.edu.pe.sgta.dto.UsuarioNombresDTO;
 import pucp.edu.pe.sgta.mapper.UsuarioMapper;
 import pucp.edu.pe.sgta.model.UsuarioXReunion;
 import pucp.edu.pe.sgta.model.UsuarioXRol;
+import pucp.edu.pe.sgta.model.Usuario;
+import pucp.edu.pe.sgta.repository.UsuarioRepository;
 import pucp.edu.pe.sgta.repository.UsuarioXReunionRepository;
 import pucp.edu.pe.sgta.repository.UsuarioXRolRepository;
 import pucp.edu.pe.sgta.service.inter.UsuarioXReunionService;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,7 +26,7 @@ public class UsuarioXReunionServiceImpl implements UsuarioXReunionService {
 
     private final UsuarioXReunionRepository usuarioXReunionRepository;
     private final UsuarioXRolRepository usuarioXRolRepository;
-
+    private final UsuarioRepository usuarioRepository;
     @Override
     public List<UsuarioXReunion> findAll() {
         return usuarioXReunionRepository.findByActivoTrue();
@@ -41,6 +45,26 @@ public class UsuarioXReunionServiceImpl implements UsuarioXReunionService {
     @Override
     public List<UsuarioXReunion> findByUsuarioIdOrderedByDate(Integer usuarioId) {
         return usuarioXReunionRepository.findByUsuarioIdAndActivoTrueOrderByReunionFechaHoraInicioDesc(usuarioId);
+    }
+
+    @Override
+    public List<UsuarioNombresDTO> getAsesoresxAlumno(String idAlumno) {
+        Optional<Usuario> usuario = usuarioRepository.findByIdCognito(idAlumno);
+        if (usuario.isEmpty()) {
+            throw new RuntimeException("Usuario no encontrado con ID Cognito: " + idAlumno);
+        }
+        Usuario user = usuario.get();
+        List<Object[]> result = usuarioXReunionRepository.getAsesoresXAlumno(user.getId());
+        List<UsuarioNombresDTO> asesores= new ArrayList<>();
+        for (Object[] row : result) {
+            UsuarioNombresDTO dto = new UsuarioNombresDTO ();
+            dto.setId((Integer) row[0]);
+            dto.setNombres((String) row[1]);
+            dto.setPrimerApellido((String) row[2]);
+            dto.setSegundoApellido((String) row[3]);
+            asesores.add(dto);
+        }
+        return asesores;
     }
 
     @Override
