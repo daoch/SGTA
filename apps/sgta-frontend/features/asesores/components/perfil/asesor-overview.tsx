@@ -30,7 +30,6 @@ import {
   Check,
   ChevronsUpDown,
   Clock,
-  ExternalLink,
   Mail,
   Plus,
   User,
@@ -38,20 +37,18 @@ import {
   X,
 } from "lucide-react";
 import { useState } from "react";
+
 import {
   AreaTematica,
   AsesorPerfil,
+  Enlace,
   PlataformaType,
   Proyecto,
   TemaInteres,
   Tesis,
 } from "../../types/perfil/entidades";
 import { ItemCopiable } from "./item-copia";
-import {
-  getPlatformDisplayName,
-  PLATAFORMAS_DISPONIBLES,
-  PlatformIcon,
-} from "./plataforma-icons";
+import { PLATAFORMAS_DISPONIBLES, PlatformIcon } from "./plataforma-icons";
 
 interface Props {
   asesor: AsesorPerfil;
@@ -101,11 +98,13 @@ export default function OverviewSection({
   addTemaInteres,
   initiateAreaDelete,
   removeTemaInteres,
-}: Readonly<Props>) {
+}: Props) {
   const [newEnlace, setNewEnlace] = useState<{
-    plataforma: PlataformaType | "";
+    nombrePlataforma?: PlataformaType;
+    plataforma: string;
     enlace: string;
   }>({
+    nombrePlataforma: undefined,
     plataforma: "",
     enlace: "",
   });
@@ -117,66 +116,90 @@ export default function OverviewSection({
     editedData.areasTematicas.length + editedData.temasIntereses.length;
 
   // Obtener ORCID ID de los enlaces
-  const orcidEnlace = (editedData.enlaces ?? []).find(
-    (enlace) => enlace.plataforma === "ORCID",
+  const orcidEnlace = editedData.enlaces.find(
+    (enlace) => enlace.nombrePlataforma === "ORCID",
   );
-
-  const enlacesSinOrcid = (editedData.enlaces ?? []).filter(
-    (enlace) => enlace.plataforma !== "ORCID",
+  const enlacesSinOrcid = editedData.enlaces.filter(
+    (enlace) => enlace.nombrePlataforma !== "ORCID",
   );
 
   const addEnlace = () => {
-    if (newEnlace.plataforma && newEnlace.enlace.trim()) {
-      const enlacesActuales = editedData.enlaces ?? [];
-      const newId = Math.max(...enlacesActuales.map((e) => e.id), 0) + 1;
+    if (newEnlace.plataforma.trim() && newEnlace.enlace.trim()) {
+      // No asignamos ID para nuevos enlaces
+      const nuevoEnlace: Enlace = {
+        plataforma: newEnlace.plataforma.trim(),
+        enlace: newEnlace.enlace,
+      };
+
+      // Si se seleccionó una plataforma predefinida, la guardamos
+      if (
+        newEnlace.nombrePlataforma &&
+        newEnlace.nombrePlataforma !== "Otras"
+      ) {
+        nuevoEnlace.nombrePlataforma = newEnlace.nombrePlataforma;
+      }
 
       setEditedData({
         ...editedData,
-        enlaces: [
-          ...enlacesActuales,
-          {
-            id: newId,
-            plataforma: newEnlace.plataforma,
-            enlace: newEnlace.enlace,
-          },
-        ],
+        enlaces: [...editedData.enlaces, nuevoEnlace],
       });
 
-      setNewEnlace({ plataforma: "", enlace: "" });
+      setNewEnlace({ nombrePlataforma: undefined, plataforma: "", enlace: "" });
     }
   };
 
-  const removeEnlace = (id: number) => {
+  const removeEnlace = (index: number) => {
+    const newEnlaces = [...editedData.enlaces];
+    newEnlaces.splice(index, 1);
     setEditedData({
       ...editedData,
-      enlaces: editedData.enlaces.filter((e) => e.id !== id),
+      enlaces: newEnlaces,
     });
   };
 
   const updateEnlace = (
-    id: number,
-    field: "plataforma" | "enlace",
-    value: string,
+    index: number,
+    field: keyof Enlace,
+    value: string | PlataformaType | undefined,
   ) => {
-    const enlacesActuales = editedData.enlaces ?? [];
+    const newEnlaces = [...editedData.enlaces];
+
+    if (field === "nombrePlataforma") {
+      // Si cambia a una plataforma predefinida, actualizamos el nombre de la plataforma
+      if (value === "Otras") {
+        newEnlaces[index].nombrePlataforma = undefined;
+      } else {
+        newEnlaces[index].nombrePlataforma = value as PlataformaType;
+        // Si selecciona una plataforma predefinida, usamos ese nombre como plataforma
+        newEnlaces[index].plataforma = value as string;
+      }
+    } else if (field === "plataforma") {
+      newEnlaces[index].plataforma = value as string;
+    } else if (field === "enlace") {
+      newEnlaces[index].enlace = value as string;
+    }
 
     setEditedData({
       ...editedData,
-      enlaces: enlacesActuales.map((e) =>
-        e.id === id ? { ...e, [field]: value } : e,
-      ),
+      enlaces: newEnlaces,
     });
   };
 
+  const handlePlatformTypeChange = (value: PlataformaType) => {
+    if (value === "Otras") {
+      setNewEnlace({ ...newEnlace, nombrePlataforma: value, plataforma: "" });
+    } else {
+      setNewEnlace({
+        ...newEnlace,
+        nombrePlataforma: value,
+        plataforma: value,
+      });
+    }
+  };
+
   const displayedTopics = showAllTopics
-    ? [
-        ...editedData.areasTematicas.map((a) => ({ ...a, tipo: "area" })),
-        ...editedData.temasIntereses.map((t) => ({ ...t, tipo: "interes" })),
-      ]
-    : [
-        ...editedData.areasTematicas.map((a) => ({ ...a, tipo: "area" })),
-        ...editedData.temasIntereses.map((t) => ({ ...t, tipo: "interes" })),
-      ].slice(0, 6);
+    ? [...editedData.areasTematicas, ...editedData.temasIntereses]
+    : [...editedData.areasTematicas, ...editedData.temasIntereses].slice(0, 6);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -218,11 +241,7 @@ export default function OverviewSection({
                   <Badge
                     key={`${item.nombre}-${index}`}
                     variant="secondary"
-                    className={`text-xs ${
-                      item.tipo === "area"
-                        ? "bg-green-100 text-green-700 hover:bg-green-200"
-                        : "ml-2 text-purple-800 hover:text-purple-950"
-                    }`}
+                    className="text-xs bg-gray-100 text-gray-700 hover:bg-gray-200"
                   >
                     {item.nombre}
                   </Badge>
@@ -236,7 +255,7 @@ export default function OverviewSection({
                 >
                   {showAllTopics
                     ? "Mostrar menos"
-                    : `Mostrar ${totalTemas - 6} más`}
+                    : `Mostrar todos los ${totalTemas} temas`}
                 </button>
               )}
             </div>
@@ -275,14 +294,17 @@ export default function OverviewSection({
             <div className="bg-white rounded-lg shadow p-6">
               {isEditing ? (
                 <div className="space-y-4">
-                  {editedData.enlaces?.map((enlace) => (
-                    <div key={enlace.id} className="flex gap-2 items-center">
+                  {editedData.enlaces.map((enlace, index) => (
+                    <div key={index} className="flex gap-2 items-center">
                       <div className="flex items-center gap-2 min-w-0 flex-1">
-                        <PlatformIcon platform={enlace.plataforma} />
+                        <PlatformIcon
+                          nombrePlataforma={enlace.nombrePlataforma}
+                          plataforma={enlace.plataforma}
+                        />
                         <Select
-                          value={enlace.plataforma}
+                          value={enlace.nombrePlataforma || "Otras"}
                           onValueChange={(value: PlataformaType) =>
-                            updateEnlace(enlace.id, "plataforma", value)
+                            updateEnlace(index, "nombrePlataforma", value)
                           }
                         >
                           <SelectTrigger className="w-40">
@@ -292,26 +314,44 @@ export default function OverviewSection({
                             {PLATAFORMAS_DISPONIBLES.map((plataforma) => (
                               <SelectItem key={plataforma} value={plataforma}>
                                 <div className="flex items-center gap-2">
-                                  <PlatformIcon platform={plataforma} />
-                                  {getPlatformDisplayName(plataforma)}
+                                  <PlatformIcon
+                                    nombrePlataforma={plataforma}
+                                    plataforma={plataforma}
+                                  />
+                                  {plataforma}
                                 </div>
                               </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
                       </div>
+
+                      {/* Campo para nombre de plataforma */}
+                      <Input
+                        placeholder="Nombre de la plataforma"
+                        value={enlace.plataforma}
+                        onChange={(e) =>
+                          updateEnlace(index, "plataforma", e.target.value)
+                        }
+                        className="flex-1"
+                        disabled={
+                          enlace.nombrePlataforma !== undefined &&
+                          enlace.nombrePlataforma !== "Otras"
+                        }
+                      />
+
                       <Input
                         placeholder="Enlace"
                         value={enlace.enlace}
                         onChange={(e) =>
-                          updateEnlace(enlace.id, "enlace", e.target.value)
+                          updateEnlace(index, "enlace", e.target.value)
                         }
                         className="flex-2"
                       />
                       <Button
                         variant="outline"
                         size="icon"
-                        onClick={() => removeEnlace(enlace.id)}
+                        onClick={() => removeEnlace(index)}
                       >
                         <X className="h-4 w-4" />
                       </Button>
@@ -320,14 +360,15 @@ export default function OverviewSection({
 
                   <div className="flex gap-2 items-center pt-2 border-t">
                     <div className="flex items-center gap-2 min-w-0 flex-1">
-                      {newEnlace.plataforma && (
-                        <PlatformIcon platform={newEnlace.plataforma} />
+                      {newEnlace.nombrePlataforma && (
+                        <PlatformIcon
+                          nombrePlataforma={newEnlace.nombrePlataforma}
+                          plataforma={newEnlace.plataforma}
+                        />
                       )}
                       <Select
-                        value={newEnlace.plataforma}
-                        onValueChange={(value: PlataformaType) =>
-                          setNewEnlace({ ...newEnlace, plataforma: value })
-                        }
+                        value={newEnlace.nombrePlataforma}
+                        onValueChange={handlePlatformTypeChange}
                       >
                         <SelectTrigger className="w-40">
                           <SelectValue placeholder="Plataforma" />
@@ -336,14 +377,35 @@ export default function OverviewSection({
                           {PLATAFORMAS_DISPONIBLES.map((plataforma) => (
                             <SelectItem key={plataforma} value={plataforma}>
                               <div className="flex items-center gap-2">
-                                <PlatformIcon platform={plataforma} />
-                                {getPlatformDisplayName(plataforma)}
+                                <PlatformIcon
+                                  nombrePlataforma={plataforma}
+                                  plataforma={plataforma}
+                                />
+                                {plataforma}
                               </div>
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                     </div>
+
+                    {/* Campo para nombre de plataforma */}
+                    <Input
+                      placeholder="Nombre de la plataforma"
+                      value={newEnlace.plataforma}
+                      onChange={(e) =>
+                        setNewEnlace({
+                          ...newEnlace,
+                          plataforma: e.target.value,
+                        })
+                      }
+                      className="flex-1"
+                      disabled={
+                        newEnlace.nombrePlataforma !== undefined &&
+                        newEnlace.nombrePlataforma !== "Otras"
+                      }
+                    />
+
                     <Input
                       placeholder="Nuevo enlace"
                       value={newEnlace.enlace}
@@ -357,7 +419,7 @@ export default function OverviewSection({
                       size="icon"
                       onClick={addEnlace}
                       disabled={
-                        !newEnlace.plataforma || !newEnlace.enlace.trim()
+                        !newEnlace.plataforma.trim() || !newEnlace.enlace.trim()
                       }
                     >
                       <Plus className="h-4 w-4" />
@@ -367,20 +429,19 @@ export default function OverviewSection({
               ) : (
                 <div className="space-y-3">
                   {enlacesSinOrcid.length > 0 ? (
-                    enlacesSinOrcid.map((enlace) => (
-                      <div key={enlace.id} className="flex items-center gap-3">
-                        <PlatformIcon platform={enlace.plataforma} />
-                        <span className="font-medium text-gray-700 min-w-0 flex-shrink-0">
-                          {getPlatformDisplayName(enlace.plataforma)}
-                        </span>
+                    enlacesSinOrcid.map((enlace, index) => (
+                      <div key={index} className="flex items-center gap-3">
+                        <PlatformIcon
+                          nombrePlataforma={enlace.nombrePlataforma}
+                          plataforma={enlace.plataforma}
+                        />
                         <a
                           href={enlace.enlace}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-800 hover:underline truncate flex items-center gap-1"
+                          className="font-medium text-blue-600 hover:text-blue-800 hover:underline"
                         >
-                          Ver perfil
-                          <ExternalLink className="h-3 w-3 flex-shrink-0" />
+                          {enlace.plataforma}
                         </a>
                       </div>
                     ))
@@ -613,11 +674,15 @@ export default function OverviewSection({
         <div className="space-y-6">
           {/* Global ID (ORCID) */}
           <div className="bg-white rounded-lg shadow p-6">
-            <h4 className="font-semibold text-gray-900 mb-3">Global ID</h4>
+            <h4 className="font-semibold text-gray-900 mb-3">ORCID</h4>
             <div className="space-y-2">
               {orcidEnlace ? (
                 <div className="flex items-center gap-2">
-                  <PlatformIcon platform="ORCID" className="h-5 w-5" />
+                  <PlatformIcon
+                    nombrePlataforma="ORCID"
+                    plataforma="ORCID"
+                    className="h-5 w-5"
+                  />
                   <a
                     href={orcidEnlace.enlace}
                     target="_blank"
@@ -629,7 +694,11 @@ export default function OverviewSection({
                 </div>
               ) : (
                 <div className="flex items-center gap-2 text-gray-500">
-                  <PlatformIcon platform="ORCID" className="h-5 w-5" />
+                  <PlatformIcon
+                    nombrePlataforma="ORCID"
+                    plataforma="ORCID"
+                    className="h-5 w-5"
+                  />
                   <span className="text-sm">No registrado</span>
                 </div>
               )}
@@ -702,22 +771,24 @@ export default function OverviewSection({
               {/* Barra de capacidad */}
               <div className="mt-3">
                 <div className="w-full bg-gray-200 h-2 rounded-full">
-                  <div
-                    className={`h-2 rounded-full transition-all duration-300 ${
-                      (asesor.tesistasActuales ?? 0) /
-                        (asesor.limiteTesis ?? 1) >=
-                      1
+                  {(() => {
+                    const tesistas = asesor.tesistasActuales ?? 0;
+                    const limite = asesor.limiteTesis ?? 0;
+                    const proporcion = limite > 0 ? tesistas / limite : 0;
+                    const color =
+                      proporcion >= 1
                         ? "bg-red-500"
-                        : (asesor.tesistasActuales ?? 0) /
-                              (asesor.limiteTesis ?? 1) >=
-                            0.5
+                        : proporcion >= 0.5
                           ? "bg-yellow-400"
-                          : "bg-green-500"
-                    }`}
-                    style={{
-                      width: `${((asesor.tesistasActuales ?? 0) / (asesor.limiteTesis ?? 1)) * 100}%`,
-                    }}
-                  ></div>
+                          : "bg-green-500";
+
+                    return (
+                      <div
+                        className={`h-2 rounded-full transition-all duration-300 ${color}`}
+                        style={{ width: `${proporcion * 100}%` }}
+                      ></div>
+                    );
+                  })()}
                 </div>
               </div>
             </div>

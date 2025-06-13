@@ -46,7 +46,8 @@ export interface Asesor {
 
 export interface Enlace {
   id?: number;
-  plataforma: PlataformaType;
+  plataforma: string;
+  nombrePlataforma?: PlataformaType;
   enlace: string;
 }
 
