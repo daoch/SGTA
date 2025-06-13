@@ -88,7 +88,7 @@ public class ExposicionController {
         return exposicionService.findExposicionesEstudianteById(usuario.getId());
     }
 
-    @GetMapping("/exportar-excel/{idExposicion}")
+    @GetMapping("/export-excel/{idExposicion}")
     public ResponseEntity<byte[]> exportarExcel(@PathVariable Integer idExposicion) {
         byte[] archivo = exposicionService.exportarExcel(idExposicion); // Llama a tu servicio
 
