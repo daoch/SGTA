@@ -3271,23 +3271,27 @@ BEGIN
 END;
 
 CREATE OR REPLACE FUNCTION es_coordinador_activo(
-    p_usuario_id     IN NUMBER,
-    p_carrera_id     IN NUMBER
-) RETURN BOOLEAN IS
-    v_count NUMBER;
+    p_usuario_id  integer,
+    p_carrera_id  integer
+) RETURNS boolean
+AS $$
+DECLARE
+    v_count integer;
 BEGIN
-    SELECT COUNT(*) INTO v_count
+    SELECT COUNT(*) 
+      INTO v_count
     FROM usuario_carrera
-    WHERE usuario_id = p_usuario_id
-      AND carrera_id = p_carrera_id
-      AND activo = TRUE
+    WHERE usuario_id     = p_usuario_id
+      AND carrera_id     = p_carrera_id
+      AND activo         = TRUE
       AND es_coordinador = TRUE;
 
     RETURN v_count > 0;
 EXCEPTION
     WHEN OTHERS THEN
         RETURN FALSE;
-END es_coordinador_activo;
+END;
+$$ LANGUAGE plpgsql;
 
 
 CREATE OR REPLACE FUNCTION guardar_similitudes_tema(
@@ -3421,15 +3425,19 @@ $$;
 
 
 
-CREATE OR REPLACE FUNCTION crear_solicitud_aprobacion_temaV2(p_tema_id INT) RETURNS VOID AS
+CREATE OR REPLACE FUNCTION crear_solicitud_aprobacion_temaV2(p_tema_id INT) 
+  RETURNS VOID 
+AS
 $$
 DECLARE
     v_tipo_solicitud_id      INT;
     v_estado_solicitud_id    INT;
-    v_rol_destinatario_id    INT;  -- <--- DECLARAR
-    v_rol_remitente_id       INT;  -- <--- DECLARAR
-    v_accion_pendiente_id    INT;  -- <--- DECLARAR
-    v_rol_asesor_id          INT;  -- <--- DECLARAR
+    v_rol_destinatario_id    INT;
+    v_rol_remitente_id       INT;
+    v_accion_pendiente_id    INT;
+    v_accion_sin_id          INT;
+    v_rol_asesor_id          INT;
+    v_rol_tesista_id         INT;
     v_solicitud_id           INT;
 BEGIN
     -- 1) Obtener IDs de catálogos
@@ -3453,17 +3461,41 @@ BEGIN
       FROM rol_solicitud
      WHERE nombre = 'REMITENTE';
 
+    -- Acción “pendiente” para coordinadores
     SELECT accion_solicitud_id
       INTO v_accion_pendiente_id
       FROM accion_solicitud
      WHERE nombre = 'PENDIENTE_ACCION';
 
+    -- Acción “sin acción” para remitentes
+    SELECT accion_solicitud_id
+      INTO v_accion_sin_id
+      FROM accion_solicitud
+     WHERE nombre = 'SIN_ACCION';
+
+    -- Rol Asesor
     SELECT rol_id
       INTO v_rol_asesor_id
       FROM rol
      WHERE nombre = 'Asesor';
 
-    -- 2) Insertar la solicitud
+    -- Rol Tesista
+    SELECT rol_id
+      INTO v_rol_tesista_id
+      FROM rol
+     WHERE nombre = 'Tesista';
+
+     IF EXISTS (
+        SELECT 1 FROM solicitud
+         WHERE tipo_solicitud_id = v_tipo_solicitud_id
+           AND tema_id           = p_tema_id
+           AND estado_solicitud  = v_estado_solicitud_id
+           AND activo            = TRUE
+    ) THEN
+        RAISE EXCEPTION 'Ya existe una solicitud de aprobación PENDIENTE activa para el tema %', p_tema_id;
+    END IF;
+
+    -- 2) Insertar la solicitud principal
     INSERT INTO solicitud(
         descripcion,
         tipo_solicitud_id,
@@ -3481,7 +3513,7 @@ BEGIN
     )
     RETURNING solicitud_id INTO v_solicitud_id;
 
-    -- 3) Destinatarios (coordinadores)
+    -- 3) Destinatarios: coordinadores con acción pendiente
     INSERT INTO usuario_solicitud(
         usuario_id,
         solicitud_id,
@@ -3498,31 +3530,54 @@ BEGIN
       AND uc.es_coordinador = TRUE
       AND uc.activo         = TRUE;
 
-    -- -- 4) Remitente: SOLO el Asesor asignado/activo
-    -- INSERT INTO usuario_solicitud(
-    --     usuario_id,
-    --     solicitud_id,
-    --     rol_solicitud,
-    --     accion_solicitud,
-    --     activo
-    -- )
-    -- SELECT
-    --     ut.usuario_id,
-    --     v_solicitud_id,
-    --     v_rol_remitente_id,
-    --     v_accion_pendiente_id,
-    --     TRUE
-    -- FROM usuario_tema ut
-    -- WHERE ut.tema_id    = p_tema_id
-    --   AND ut.activo     = TRUE
-    --   AND ut.asignado   = TRUE
-    --   AND ut.rol_id     = v_rol_asesor_id;
+    -- 4a) Remitente: Asesor, sin acción
+    INSERT INTO usuario_solicitud(
+        usuario_id,
+        solicitud_id,
+        rol_solicitud,
+        accion_solicitud,
+        activo
+    )
+    SELECT
+        ut.usuario_id,
+        v_solicitud_id,
+        v_rol_remitente_id,
+        v_accion_sin_id,
+        TRUE
+    FROM usuario_tema ut
+    WHERE ut.tema_id  = p_tema_id
+      AND ut.activo   = TRUE
+      AND ut.asignado = TRUE
+      AND ut.rol_id   = v_rol_asesor_id;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'No hay Asesor activo/asignado para el tema %', p_tema_id;
+    END IF;
 
-    -- IF NOT FOUND THEN
-    --     RAISE EXCEPTION 'No hay Asesor activo/asignado para el tema %', p_tema_id;
-    -- END IF;
+    -- 4b) Remitente: Tesista, sin acción
+    INSERT INTO usuario_solicitud(
+        usuario_id,
+        solicitud_id,
+        rol_solicitud,
+        accion_solicitud,
+        activo
+    )
+    SELECT
+        ut.usuario_id,
+        v_solicitud_id,
+        v_rol_remitente_id,
+        v_accion_sin_id,
+        TRUE
+    FROM usuario_tema ut
+    WHERE ut.tema_id = p_tema_id
+      AND ut.activo  = TRUE
+      AND ut.rol_id  = v_rol_tesista_id;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'No hay Tesista activo para el tema %', p_tema_id;
+    END IF;
 END;
-$$ LANGUAGE plpgsql;
+$$ 
+LANGUAGE plpgsql;
+
 
 
 
@@ -3861,14 +3916,17 @@ CREATE OR REPLACE FUNCTION crear_solicitud_tema_coordinador(
     p_tipo_solicitud_nombre TEXT
 ) RETURNS VOID AS $$
 DECLARE
-    v_tipo_solicitud_id      INTEGER;
-    v_estado_solicitud_id    INTEGER;
-    v_rol_remitente_id       INTEGER;
-    v_rol_destinatario_id    INTEGER;
-    v_accion_pendiente_id    INTEGER;
-    v_solicitud_id           INTEGER;
-    v_descripcion            TEXT := COALESCE(p_comentario, p_tipo_solicitud_nombre);
-    rec_usuario              RECORD;
+    v_tipo_solicitud_id        INTEGER;
+    v_estado_solicitud_id      INTEGER;
+    v_rol_remitente_id         INTEGER;
+    v_rol_destinatario_id      INTEGER;
+    v_accion_pendiente_id      INTEGER;
+    v_sin_accion_pendiente_id  INTEGER;
+    v_rol_asesor_id            INTEGER;
+    v_rol_tesista_id           INTEGER;
+    v_solicitud_id             INTEGER;
+    v_descripcion              TEXT := COALESCE(p_comentario, p_tipo_solicitud_nombre);
+    rec_usuario                RECORD;
 BEGIN
     -- 1) Obtener IDs de catálogos
     SELECT ts.tipo_solicitud_id
@@ -3911,6 +3969,31 @@ BEGIN
         RAISE EXCEPTION 'Acción PENDIENTE_ACCION no encontrada';
     END IF;
 
+    SELECT a.accion_solicitud_id
+      INTO v_sin_accion_pendiente_id
+      FROM accion_solicitud a
+     WHERE a.nombre = 'SIN_ACCION';
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Acción SIN_ACCION no encontrada';
+    END IF;
+
+    -- Nuevos: roles Asesor y Tesista
+    SELECT r.rol_id
+      INTO v_rol_asesor_id
+      FROM rol r
+     WHERE r.nombre = 'Asesor';
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Rol Asesor no encontrado';
+    END IF;
+
+    SELECT r.rol_id
+      INTO v_rol_tesista_id
+      FROM rol r
+     WHERE r.nombre = 'Tesista';
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Rol Tesista no encontrado';
+    END IF;
+
     -- 2) Insertar la solicitud
     INSERT INTO solicitud (
         descripcion,
@@ -3945,18 +4028,19 @@ BEGIN
         v_solicitud_id,
         v_descripcion,
         v_rol_remitente_id,
-        v_accion_pendiente_id,
+        v_sin_accion_pendiente_id,
         TRUE,
         NOW()
     );
 
-    -- 4) Enlazar a todos los usuarios asignados al tema (rol DESTINATARIO)
+    -- 4) Enlazar solo a los usuarios asignados con rol Tesista o Asesor
     FOR rec_usuario IN
         SELECT ut.usuario_id
           FROM usuario_tema ut
-         WHERE ut.tema_id  = p_tema_id
-           AND ut.activo   = TRUE
-           AND ut.asignado = TRUE
+         WHERE ut.tema_id   = p_tema_id
+           AND ut.activo    = TRUE
+           AND ut.asignado  = TRUE
+           AND ut.rol_id   IN (v_rol_asesor_id, v_rol_tesista_id)
     LOOP
         INSERT INTO usuario_solicitud (
             usuario_id,
@@ -3978,3 +4062,242 @@ BEGIN
     END LOOP;
 END;
 $$ LANGUAGE plpgsql;
+
+
+
+
+CREATE OR REPLACE FUNCTION procesar_reenvio_solicitud_aprobacion_tema(p_tema_id INTEGER)
+RETURNS VOID AS
+$$
+DECLARE
+    v_estado_pendiente_id    INTEGER;
+    v_rol_remitente_id       INTEGER;
+    v_rol_destinatario_id    INTEGER;
+    v_accion_pendiente_id    INTEGER;
+    v_accion_aprobado_id     INTEGER;
+BEGIN
+    -- 1) IDs de catálogo
+    SELECT estado_solicitud_id INTO v_estado_pendiente_id
+      FROM estado_solicitud
+     WHERE nombre = 'PENDIENTE';
+
+    SELECT rol_solicitud_id INTO v_rol_remitente_id
+      FROM rol_solicitud
+     WHERE nombre = 'REMITENTE';
+
+    SELECT rol_solicitud_id INTO v_rol_destinatario_id
+      FROM rol_solicitud
+     WHERE nombre = 'DESTINATARIO';
+
+    SELECT accion_solicitud_id INTO v_accion_pendiente_id
+      FROM accion_solicitud
+     WHERE nombre = 'PENDIENTE_ACCION';
+
+    SELECT accion_solicitud_id INTO v_accion_aprobado_id
+      FROM accion_solicitud
+     WHERE nombre = 'APROBADO';
+
+    -- 2) Remitentes → PENDIENTE_ACCION, sólo tipos que comienzan con 'Solicitud de cambio'
+    UPDATE usuario_solicitud us
+       SET accion_solicitud = v_accion_pendiente_id
+      FROM solicitud s
+      JOIN tipo_solicitud ts
+        ON s.tipo_solicitud_id = ts.tipo_solicitud_id
+     WHERE us.solicitud_id      = s.solicitud_id
+       AND s.tema_id            = p_tema_id
+       AND s.estado_solicitud   = v_estado_pendiente_id
+       AND s.activo             = TRUE
+       AND us.activo            = TRUE
+       AND us.rol_solicitud     = v_rol_remitente_id
+       AND ts.nombre LIKE 'Solicitud de cambio%';
+
+    -- 3) Destinatarios → APROBADO, mismo filtro de tipo
+    UPDATE usuario_solicitud us
+       SET accion_solicitud = v_accion_aprobado_id
+      FROM solicitud s
+      JOIN tipo_solicitud ts
+        ON s.tipo_solicitud_id = ts.tipo_solicitud_id
+     WHERE us.solicitud_id      = s.solicitud_id
+       AND s.tema_id            = p_tema_id
+       AND s.estado_solicitud   = v_estado_pendiente_id
+       AND s.activo             = TRUE
+       AND us.activo            = TRUE
+       AND us.rol_solicitud     = v_rol_destinatario_id
+       AND ts.nombre LIKE 'Solicitud de cambio%';
+
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+
+CREATE OR REPLACE FUNCTION obtener_solicitud_por_tipo_y_tema(
+    p_tipo_solicitud_nombre TEXT,
+    p_tema_id                INTEGER
+)
+RETURNS TABLE (
+    solicitud_id            INTEGER,
+    tipo_solicitud_nombre   TEXT,
+    tema_id                 INTEGER
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+      s.solicitud_id,
+      ts.nombre::text      AS tipo_solicitud_nombre,
+      s.tema_id
+    FROM solicitud s
+    JOIN tipo_solicitud ts
+      ON s.tipo_solicitud_id = ts.tipo_solicitud_id
+    JOIN estado_solicitud es
+      ON s.estado_solicitud  = es.estado_solicitud_id
+    WHERE ts.nombre    = p_tipo_solicitud_nombre
+      AND s.tema_id    = p_tema_id
+      AND es.nombre    = 'PENDIENTE'
+      AND s.activo     = TRUE;
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION listar_solicitudes_con_usuarios(
+    p_tema_id   INTEGER,
+    p_offset    INTEGER,
+    p_limit     INTEGER
+)
+RETURNS JSON
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    resultado JSON;
+BEGIN
+    SELECT COALESCE(JSON_AGG(item), '[]'::JSON)
+    INTO   resultado
+    FROM (
+        SELECT
+            s.solicitud_id,
+            s.descripcion,
+            ts.nombre    AS tipo_solicitud,
+            es.nombre    AS estado_solicitud,
+            (
+                -- Todos los registros de usuario_solicitud activos para esta solicitud,
+                -- incluyendo datos del usuario
+                SELECT COALESCE(JSON_AGG(
+                    JSON_BUILD_OBJECT(
+                        'usuario_solicitud_id', us2.usuario_solicitud_id,
+                        'usuario_id',           us2.usuario_id,
+                        'nombres',              u2.nombres,
+                        'primer_apellido',      u2.primer_apellido,
+                        'segundo_apellido',     u2.segundo_apellido,
+                        'codigo',               u2.codigo_pucp,
+                        'accion_solicitud',     a.nombre,
+                        'rol_solicitud',        rs.nombre,
+                        'comentario',           us2.comentario
+                    )
+                ), '[]'::JSON)
+                FROM usuario_solicitud us2
+                JOIN usuario          u2  ON us2.usuario_id      = u2.usuario_id
+                JOIN accion_solicitud a   ON us2.accion_solicitud = a.accion_solicitud_id
+                JOIN rol_solicitud   rs   ON us2.rol_solicitud    = rs.rol_solicitud_id
+                WHERE us2.solicitud_id = s.solicitud_id
+                  AND us2.activo       = TRUE
+            ) AS usuarios
+        FROM solicitud s
+        JOIN tipo_solicitud   ts ON s.tipo_solicitud_id = ts.tipo_solicitud_id
+        JOIN estado_solicitud es ON s.estado_solicitud  = es.estado_solicitud_id
+        WHERE s.tema_id = p_tema_id
+          AND s.activo   = TRUE
+        ORDER BY s.fecha_creacion DESC
+        OFFSET p_offset
+        LIMIT  p_limit
+    ) AS item;
+
+    RETURN resultado;
+END;
+$$;
+
+
+
+
+CREATE OR REPLACE FUNCTION listar_solicitudes_pendientes_por_usuario(
+    p_usuario_id INTEGER,
+    p_offset     INTEGER,
+    p_limit      INTEGER
+)
+RETURNS JSON
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_estado_pendiente INTEGER;
+    v_accion_pendiente INTEGER;
+    resultado          JSON;
+BEGIN
+    -- 1) Obtener los IDs de catálogo
+    SELECT estado_solicitud_id
+      INTO v_estado_pendiente
+      FROM estado_solicitud
+     WHERE nombre = 'PENDIENTE';
+
+    SELECT accion_solicitud_id
+      INTO v_accion_pendiente
+      FROM accion_solicitud
+     WHERE nombre = 'PENDIENTE_ACCION';
+
+    -- 2) Construir el JSON
+    SELECT COALESCE(JSON_AGG(item), '[]'::JSON)
+    INTO   resultado
+    FROM (
+        SELECT
+            s.solicitud_id,
+            s.descripcion,
+            ts.nombre      AS tipo_solicitud,
+            es.nombre      AS estado_solicitud,
+            s.tema_id,
+            s.fecha_creacion,
+            (
+                -- Todos los registros de usuario_solicitud activos para esta solicitud,
+                -- incluyendo datos del usuario
+                SELECT COALESCE(JSON_AGG(
+                    JSON_BUILD_OBJECT(
+                        'usuario_solicitud_id', us2.usuario_solicitud_id,
+                        'usuario_id',           us2.usuario_id,
+                        'nombres',              u2.nombres,
+                        'primer_apellido',      u2.primer_apellido,
+                        'segundo_apellido',     u2.segundo_apellido,
+                        'codigo',               u2.codigo_pucp,
+                        'accion_solicitud',     a.nombre,
+                        'rol_solicitud',        rs.nombre,
+                        'comentario',           us2.comentario
+                    )
+                ), '[]'::JSON)
+                FROM usuario_solicitud us2
+                JOIN usuario          u2 ON us2.usuario_id      = u2.usuario_id
+                JOIN accion_solicitud a  ON us2.accion_solicitud = a.accion_solicitud_id
+                JOIN rol_solicitud   rs  ON us2.rol_solicitud    = rs.rol_solicitud_id
+                WHERE us2.solicitud_id = s.solicitud_id
+                  AND us2.activo       = TRUE
+            ) AS usuarios
+        FROM solicitud s
+        JOIN tipo_solicitud   ts ON s.tipo_solicitud_id = ts.tipo_solicitud_id
+        JOIN estado_solicitud es ON s.estado_solicitud  = es.estado_solicitud_id
+        JOIN usuario_solicitud us ON us.solicitud_id     = s.solicitud_id
+        WHERE s.activo             = TRUE
+          AND s.estado_solicitud   = v_estado_pendiente
+          AND us.usuario_id        = p_usuario_id
+          AND us.activo            = TRUE
+          AND us.accion_solicitud  = v_accion_pendiente
+        GROUP BY
+            s.solicitud_id,
+            s.descripcion,
+            ts.nombre,
+            es.nombre,
+            s.tema_id,
+            s.fecha_creacion
+        ORDER BY s.fecha_creacion DESC
+        OFFSET p_offset
+        LIMIT  p_limit
+    ) AS item;
+
+    RETURN resultado;
+END;
+$$;
+

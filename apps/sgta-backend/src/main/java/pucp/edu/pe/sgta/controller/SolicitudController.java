@@ -4,10 +4,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import pucp.edu.pe.sgta.dto.temas.SolicitudTemaDto;
 import pucp.edu.pe.sgta.service.inter.JwtService;
 import pucp.edu.pe.sgta.service.inter.SolicitudService;
+import org.springframework.http.HttpStatus;
 
 @RestController
 
