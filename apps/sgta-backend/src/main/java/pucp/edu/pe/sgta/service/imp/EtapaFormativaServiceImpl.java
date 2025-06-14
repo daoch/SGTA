@@ -7,22 +7,19 @@ import pucp.edu.pe.sgta.dto.*;
 import pucp.edu.pe.sgta.model.EtapaFormativa;
 import pucp.edu.pe.sgta.model.EtapaFormativaXCiclo;
 import pucp.edu.pe.sgta.model.Exposicion;
-import pucp.edu.pe.sgta.repository.CarreraRepository;
-import pucp.edu.pe.sgta.repository.EtapaFormativaRepository;
-import pucp.edu.pe.sgta.repository.ExposicionRepository;
+import pucp.edu.pe.sgta.model.Usuario;
+import pucp.edu.pe.sgta.repository.*;
 import pucp.edu.pe.sgta.service.inter.EtapaFormativaService;
 
-import java.util.NoSuchElementException;
+import java.util.*;
 
 import java.math.BigDecimal;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
+
 import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.EntityNotFoundException;
 
-import pucp.edu.pe.sgta.repository.EtapaFormativaXCicloRepository;
 import java.util.NoSuchElementException;
 
 @Service
@@ -35,6 +32,8 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
     private EtapaFormativaRepository etapaFormativaRepository;
     @Autowired
     private EtapaFormativaXCicloRepository etapaFormativaXCicloRepository;
+    @Autowired
+    private UsuarioRepository usuarioRepository;
 
     public EtapaFormativaServiceImpl(EtapaFormativaRepository etapaFormativaRepository) {
         this.etapaFormativaRepository = etapaFormativaRepository;
@@ -321,18 +320,30 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public Integer getEtapaFormativaIdByExposicionId(Integer exposicionId) {
+    public ExposicionEtapaFormativaDTO getEtapaFormativaIdByExposicionId(Integer exposicionId) {
         Exposicion expo = exposicionRepository.findById(exposicionId)
                 .orElseThrow(() -> new EntityNotFoundException(
                         "No existe Exposicion con id " + exposicionId));
         EtapaFormativaXCiclo efc = expo.getEtapaFormativaXCiclo();
-        return efc.getId();
+        EtapaFormativa etapaFormativa = efc.getEtapaFormativa();
+        ExposicionEtapaFormativaDTO eefd = new ExposicionEtapaFormativaDTO();
+        eefd.setExposicionId(expo.getId());
+        eefd.setNombreExposicion(expo.getNombre());
+        eefd.setEtapaFormativaId(etapaFormativa.getId());
+        eefd.setNombreEtapaFormativa(etapaFormativa.getNombre());
+        return eefd;
     }
 
     @Override
-    public List<EtapaFormativaAlumnoDto> listarEtapasFormativasPorAlumno(Integer alumnoId) {
-        List<Object[]> result = etapaFormativaRepository.listarEtapasFormativasPorAlumno(alumnoId);
+    public List<EtapaFormativaAlumnoDto> listarEtapasFormativasPorAlumno(String alumnoId) {
+        Optional<Usuario> usuario = usuarioRepository.findByIdCognito(alumnoId);
+        if (usuario.isEmpty()) {
+            throw new RuntimeException("Usuario no encontrado con ID Cognito: " + alumnoId);
+        }
+
+        Usuario user = usuario.get();
+
+        List<Object[]> result = etapaFormativaRepository.listarEtapasFormativasPorAlumno(user.getId());
         List<EtapaFormativaAlumnoDto> etapasFormativas = new ArrayList<>();
 
         for (Object[] row : result) {

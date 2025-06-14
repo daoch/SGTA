@@ -6,14 +6,22 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import pucp.edu.pe.sgta.model.ControlExposicionUsuarioTema;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface ControlExposicionUsuarioTemaRepository extends JpaRepository<ControlExposicionUsuarioTema, Integer> {
-    Optional<ControlExposicionUsuarioTema> findByExposicionXTema_IdAndUsuario_Id(Integer exposicionXTemaId, Integer usuarioXTemaId);
+    Optional<ControlExposicionUsuarioTema> findByExposicionXTema_IdAndUsuario_Id(Integer exposicionXTemaId,
+            Integer usuarioXTemaId);
+
+    List<ControlExposicionUsuarioTema> findByExposicionXTema_IdAndActivoTrue(Integer exposicionXTemaId);
 
     @Modifying
-    @Query(value = "CALL terminar_planificacion(:idExposicion, :idEtapaFormativa)", nativeQuery = true)
+    @Query(value = "CALL intsertar_control_exposcion(:idExposicion, :idEtapaFormativa)", nativeQuery = true)
     void insertarControlesDeExposicion(@Param("idExposicion") Integer exposicionId,
-                                       @Param("idEtapaFormativa") Integer etapaFormativa);
+            @Param("idEtapaFormativa") Integer etapaFormativa);
 
+    @Modifying
+    @Query(value = "CALL update_estado_exposicion_usuario(:p_exposicion_id, :p_tema_id)", nativeQuery = true)
+    void updateEstadoRespuestaExposicion(@Param("p_exposicion_id") Integer exposicionId,
+            @Param("p_exposicion_id") Integer etapaFormativa);
 }

@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import {
+  Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -36,23 +37,24 @@ import { toast, Toaster } from "sonner";
 import ItemSelector from "./item-selector";
 
 //imports de Tema libre
+import VerificaSimilitudTemas from "@/features/temas/components/asesor/verifica-similitud-temas";
+import { fetchUsers } from "@/features/temas/types/inscripcion/data";
 import {
-  fetchAreaConocimientoFindByUsuarioId,
+  crearTemaLibre,
   fetchSubareasPorAreaConocimiento,
+  verificarSimilitudTema,
 } from "@/features/temas/types/temas/data";
 import {
   Subareas,
   TemaCreateLibre,
+  TemaSimilitud,
 } from "@/features/temas/types/temas/entidades";
 //
 
 interface NuevoTemaDialogProps {
-  isOpen: boolean;
   setIsNuevoTemaDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  coasesoresDisponibles: Coasesor[];
-  estudiantesDisponibles: Tesista[];
-  subareasDisponibles: AreaDeInvestigacion[];
-  carrera: Carrera | null;
+  areasDisponibles: AreaConocimiento[];
+  carreras: Carrera[] | null;
   onTemaGuardado: () => void;
   asesor: Coasesor;
 }
@@ -69,12 +71,9 @@ enum TipoRegistro {
  * @returns Dialog
  */
 const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
-  isOpen,
   setIsNuevoTemaDialogOpen,
-  coasesoresDisponibles,
-  estudiantesDisponibles,
-  subareasDisponibles,
-  carrera,
+  areasDisponibles,
+  carreras,
   onTemaGuardado,
   asesor,
 }) => {
@@ -96,13 +95,48 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
     area?: string;
   }>({});
 
+  const [coasesoresDisponibles, setCoasesoresDisponibles] = useState<
+    Coasesor[]
+  >([]);
+  const [estudiantesDisponibles, setEstudiantesDisponibles] = useState<
+    Tesista[]
+  >([]);
+
   // Datos de temas libres
   const [areaConocimientoSeleccionada, setAreaConocimientoSeleccionada] =
     useState<AreaConocimiento | null>(null);
-  const [areasConocimientos, setAreasConocimiento] = useState<
-    AreaConocimiento[]
-  >([]);
   const [subAreas, setSubAreas] = useState<Subareas[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [temaSimilitud, setTemaSimilitud] = useState<TemaSimilitud[]>([]);
+  const [openSimilarDialog, setOpenSimilarDialog] = useState(false);
+  const [checkingSimilitud, setCheckingSimilitud] = useState(false);
+  const [tipoTema, setTipoTema] = useState<TipoRegistro | null>(null);
+  //Llenado de datos
+  useEffect(() => {
+    const listarEstudiantesYAsesores = async () => {
+      try {
+        if (carreras) {
+          const tesistasData: Tesista[] = await fetchUsers(
+            carreras[0].id,
+            "alumno",
+          );
+          setEstudiantesDisponibles(tesistasData.filter((t) => !t.asignado)); // No deben estar asignados
+
+          const coasesoresData: Coasesor[] = await fetchUsers(
+            carreras[0].id,
+            "profesor",
+          );
+
+          setCoasesoresDisponibles(
+            coasesoresData.filter((c) => c.id != asesor.id),
+          );
+        }
+      } catch {
+        console.log("No se pudo obtener los coasesores ni alumnos.");
+      }
+    };
+    listarEstudiantesYAsesores();
+  }, [carreras, asesor]);
   //
 
   useEffect(() => {
@@ -116,14 +150,6 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
       [field]: value,
     }));
   };
-
-  useEffect(() => {
-    const cargarAreas = async () => {
-      const areas = await fetchAreaConocimientoFindByUsuarioId(asesor.id);
-      setAreasConocimiento(areas);
-    };
-    cargarAreas();
-  }, [asesor]);
 
   useEffect(() => {
     const cargarSubAreas = async () => {
@@ -219,10 +245,11 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
   const handleGuardar = async () => {
     if (!validarCampos()) return;
     try {
-      if (carrera) {
+      setLoading(true);
+      if (carreras) {
         const response = await axiosInstance.post(
-          "temas/createInscripcion",
-          mapTemaCreateInscription(temaData, carrera, asesor),
+          "temas/createInscripcionV2",
+          mapTemaCreateInscription(temaData, carreras[0], asesor),
         );
 
         toast.success("Tema guardado exitosamente");
@@ -240,19 +267,65 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
         error instanceof Error ? error.message : "Error al guardar el tema",
       );
       console.error("Error al guardar el tema:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlerVerificarTema = async (tipoRegistro: TipoRegistro) => {
+    if (!validarCampos()) return;
+    try {
+      setCheckingSimilitud(true);
+      const temaCreado = {
+        id: 999999,
+        titulo: temaData.titulo,
+        resumen: temaData.resumen,
+        objetivos: temaData.objetivos,
+        palabrasClaves: [],
+        estadoTemaNombre: "Activo",
+      };
+      const temasSimilares = await verificarSimilitudTema(temaCreado);
+      if (temasSimilares.length === 0) {
+        if (tipoRegistro === TipoRegistro.LIBRE) {
+          handleGuardarLibre();
+          console.log(
+            "No se encontraron temas similares, guardando tema libre.",
+          );
+        } else {
+          handleGuardar();
+          console.log(
+            "No se encontraron temas similares, guardando tema de inscripción.",
+          );
+        }
+      } else {
+        if (tipoRegistro === TipoRegistro.LIBRE) {
+          setTipoTema(TipoRegistro.LIBRE);
+        } else {
+          setTipoTema(TipoRegistro.INSCRIPCION);
+        }
+
+        setTemaSimilitud(temasSimilares);
+        setOpenSimilarDialog(true);
+        console.log("Se encontraron temas similares:", temaSimilitud);
+      }
+    } catch (error) {
+      toast.error("Error al verificar similitud del tema.");
+      console.error("Error al verificar similitud del tema:", error);
+    } finally {
+      setCheckingSimilitud(false);
     }
   };
 
   const handleGuardarLibre = async () => {
     if (!validarCampos()) return;
     try {
-      if (carrera) {
-        //guardar el tema libre
-        console.log(mapTemaCreateLibre(temaData, carrera, asesor));
+      if (carreras) {
+        setLoading(true);
+        await crearTemaLibre(mapTemaCreateLibre(temaData, carreras[0], asesor));
         toast.success("Tema guardado exitosamente");
         console.log("Tema libre guardado exitosamente:");
       } else {
-        throw new Error("Falta carrera");
+        throw new Error("No se puede insertar el tema.");
       }
 
       // Reinicia el formulario y cierra el modal
@@ -261,10 +334,10 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
       setIsNuevoTemaDialogOpen(false);
       onTemaGuardado();
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Error al guardar el tema.",
-      );
+      toast.error("Error al guardar el tema.");
       console.error("Error al guardar el tema:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -282,7 +355,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
   };
 
   const onSelectSubarea = (nombre: string) => {
-    const selectedArea = subareasDisponibles.find((a) => a.nombre === nombre);
+    const selectedArea = subAreas.find((a) => a.nombre === nombre);
     setAreaSeleccionada(selectedArea || null);
   };
 
@@ -333,9 +406,63 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
     setErrores(nuevosErrores);
     return Object.keys(nuevosErrores).length === 0;
   };
+
+  const handleGuardarForzado = async () => {
+    if (!validarCampos()) return;
+    try {
+      if (carreras) {
+        setLoading(true);
+        setCheckingSimilitud(true);
+        if (tipoTema === TipoRegistro.LIBRE) {
+          await crearTemaLibre(
+            mapTemaCreateLibre(temaData, carreras[0], asesor),
+            temaSimilitud,
+            true,
+          );
+        } else {
+          const response = await axiosInstance.post(
+            "temas/createInscripcionV2",
+            mapTemaCreateInscription(temaData, carreras[0], asesor),
+          );
+          const temaCreado = response.data;
+
+          if (temaSimilitud.length > 0) {
+            const similitudesPayload = temaSimilitud.map((sim) => ({
+              tema: { id: temaCreado },
+              temaRelacion: { id: sim.tema.id },
+              porcentajeSimilitud: sim.similarityScore,
+            }));
+            await axiosInstance.post(
+              "temas/guardarSimilitudes",
+              similitudesPayload,
+            );
+          }
+          toast.success("Tema guardado exitosamente.");
+          console.log("Tema libre forzado guardado exitosamente.");
+        }
+      } else {
+        throw new Error("No se puede insertar el tema.");
+      }
+      setOpenSimilarDialog(false);
+      setTipoTema(null);
+      // Reinicia el formulario y cierra el modal
+      setTemaData(temaVacio);
+      setAreaConocimientoSeleccionada(null);
+      setIsNuevoTemaDialogOpen(false);
+      onTemaGuardado();
+    } catch (error) {
+      toast.error("Error al guardar el tema.");
+      console.error("Error al guardar el tema:", error);
+    } finally {
+      setLoading(false);
+      setCheckingSimilitud(false);
+      setTemaSimilitud([]);
+    }
+  };
+
   return (
     <>
-      <Toaster richColors position="top-right" />
+      <Toaster richColors position="bottom-right" />
       <DialogContent className="w-3xl">
         <DialogHeader>
           <DialogTitle>Nuevo Tema de Tesis</DialogTitle>
@@ -386,39 +513,37 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
               </div>
 
               {/* Área de Investigación */}
-              {tipoRegistro === TipoRegistro.LIBRE && (
-                <div className="space-y-2">
-                  <Label>Áreas de Conocimiento</Label>
-                  <Select
-                    onValueChange={(value) => {
-                      const areaSeleccionada = areasConocimientos.find(
-                        (area) => String(area.id) === value,
-                      );
-                      if (areaSeleccionada) {
-                        setAreaConocimientoSeleccionada(areaSeleccionada);
-                      }
-                    }}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Seleccione un área" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {areasConocimientos.map((area) => (
-                        <SelectItem key={area.id} value={String(area.id)}>
-                          {area.nombre}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {errores.area && (
-                    <p className="text-red-500 text-xs mt-1">{errores.area}</p>
-                  )}
-                </div>
-              )}
+              <div className="space-y-2">
+                <Label>Áreas de Conocimiento</Label>
+                <Select
+                  onValueChange={(value) => {
+                    const areaSeleccionada = areasDisponibles.find(
+                      (area) => String(area.id) === value,
+                    );
+                    if (areaSeleccionada) {
+                      setAreaConocimientoSeleccionada(areaSeleccionada);
+                    }
+                  }}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Seleccione un área" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {areasDisponibles.map((area) => (
+                      <SelectItem key={area.id} value={String(area.id)}>
+                        {area.nombre}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errores.area && (
+                  <p className="text-red-500 text-xs mt-1">{errores.area}</p>
+                )}
+              </div>
 
               {/* Subareas */}
 
-              {tipoRegistro === TipoRegistro.LIBRE && (
+              {
                 <div>
                   <ItemSelector
                     label="Subáreas de Investigación"
@@ -437,28 +562,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
                     </p>
                   )}
                 </div>
-              )}
-
-              {tipoRegistro === TipoRegistro.INSCRIPCION && (
-                <div>
-                  <ItemSelector
-                    label="Subáreas de Investigación"
-                    itemsDisponibles={subareasDisponibles}
-                    itemsSeleccionados={temaData.subareas}
-                    itemKey="id"
-                    itemLabel="nombre"
-                    selectedItem={areaSeleccionada}
-                    onSelectItem={onSelectSubarea}
-                    onAgregarItem={handleAgregarSubarea}
-                    onEliminarItem={handleEliminarSubarea}
-                  />
-                  {errores.subareas && (
-                    <p className="text-red-500 text-xs mt-1">
-                      {errores.subareas}
-                    </p>
-                  )}
-                </div>
-              )}
+              }
 
               {/* Descripción */}
               <div className="space-y-2">
@@ -606,7 +710,6 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
               )}
 
               {/* Fecha Límite */}
-              {/* {tipoRegistro === TipoRegistro.LIBRE && ( */}
               {
                 <div className="space-y-2">
                   <Label>Fecha Límite</Label>
@@ -629,22 +732,42 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
           )}
         </div>
 
+        {
+          <Dialog open={openSimilarDialog} onOpenChange={setOpenSimilarDialog}>
+            <DialogContent className="max-w-xl p-0">
+              <DialogTitle>
+                <span className="sr-only">Temas similares encontrados</span>
+              </DialogTitle>
+              <VerificaSimilitudTemas
+                propuestas={temaSimilitud || []}
+                onCancel={() => setOpenSimilarDialog(false)}
+                onContinue={handleGuardarForzado}
+                checkingSimilitud={checkingSimilitud}
+              />
+            </DialogContent>
+          </Dialog>
+        }
+
         <DialogFooter className="mt-4">
-          <Button variant="outline" onClick={handleCancelar}>
+          <Button variant="outline" onClick={handleCancelar} disabled={loading}>
             Cancelar
           </Button>
           {tipoRegistro === TipoRegistro.INSCRIPCION && (
             <Button
-              onClick={handleGuardar}
-              disabled={Object.keys(errores).length > 0}
+              onClick={() => handlerVerificarTema(TipoRegistro.INSCRIPCION)}
+              disabled={
+                Object.keys(errores).length > 0 || loading || checkingSimilitud
+              }
             >
               Guardar
             </Button>
           )}
           {tipoRegistro === TipoRegistro.LIBRE && (
             <Button
-              onClick={handleGuardarLibre}
-              disabled={Object.keys(errores).length > 0}
+              onClick={() => handlerVerificarTema(TipoRegistro.LIBRE)}
+              disabled={
+                Object.keys(errores).length > 0 || loading || checkingSimilitud
+              }
             >
               Guardar
             </Button>
@@ -679,15 +802,15 @@ const mapTemaCreateInscription = (
 const mapTemaCreateLibre = (tema: Tema, carrera: Carrera, asesor: Coasesor) => {
   return {
     titulo: tema.titulo,
-    carrera: carrera.id,
+    carrera: { id: carrera.id },
     resumen: tema.resumen,
     objetivos: tema.objetivos,
     metodologia: tema.metodologia,
     fechaLimite: new Date(tema.fechaLimite + "T10:00:00Z").toISOString(),
-    subareas: tema.subareas.map((a) => a.id),
+    subareas: tema.subareas.map((a) => ({ id: a.id })),
     coasesores: [
-      asesor.id,
-      ...(tema.coasesores ? tema.coasesores.map((c) => c.id) : []),
+      { id: asesor.id },
+      ...(tema.coasesores ? tema.coasesores.map((c) => ({ id: c.id })) : []),
     ],
     requisitos: tema.requisitos,
   } as TemaCreateLibre;

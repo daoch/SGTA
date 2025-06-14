@@ -7,22 +7,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-} from "@radix-ui/react-dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TemasTable } from "../components/asesor/temas-table";
-import {
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
 import React from "react";
-import { Input } from "@/components/ui/input";
+import { Tema } from "../types/temas/entidades";
+
+import { TemasDetalleExposiciones } from "@/features/jurado/components/temas-detalle-exposiciones";
+import { EstadoTemaNombre } from "../types/temas/enums";
 
 enum TabValues {
   INFO = "informacion",
@@ -30,7 +20,15 @@ enum TabValues {
   DETALLE_EXPO = "interesado",
 }
 
-const DetalleTemasCoordinadorPage = () => {
+interface DetalleTemasCoordinadorPageProps {
+  tema: Tema | null;
+  setTema: React.Dispatch<React.SetStateAction<Tema | null>>;
+  loading: boolean;
+}
+
+const DetalleTemasCoordinadorPage: React.FC<
+  DetalleTemasCoordinadorPageProps
+> = ({ tema, setTema, loading }) => {
   const [position, setPosition] = React.useState("bottom");
 
   return (
@@ -45,9 +43,11 @@ const DetalleTemasCoordinadorPage = () => {
           <TabsTrigger value={TabValues.HISTORIAL}>
             Historial de Cambios
           </TabsTrigger>
-          <TabsTrigger value={TabValues.DETALLE_EXPO}>
-            Detalle de Exposiciones
-          </TabsTrigger>
+          {tema?.estadoTemaNombre === EstadoTemaNombre.EN_PROGRESO && (
+            <TabsTrigger value={TabValues.DETALLE_EXPO}>
+              Detalle de Exposiciones
+            </TabsTrigger>
+          )}
         </TabsList>
         <TabsContent value={TabValues.INFO}>
           <Card>
@@ -57,7 +57,7 @@ const DetalleTemasCoordinadorPage = () => {
                 Lista de todos los temas de tesis
               </CardDescription>
             </CardHeader>
-            <CardContent></CardContent>
+            <CardContent>{tema?.titulo}</CardContent>
           </Card>
         </TabsContent>
         <TabsContent value={TabValues.HISTORIAL}>
@@ -73,13 +73,27 @@ const DetalleTemasCoordinadorPage = () => {
         </TabsContent>
         <TabsContent value={TabValues.DETALLE_EXPO}>
           <Card>
-            <CardHeader>
+            {/* <CardHeader>
               <CardTitle>Temas libres</CardTitle>
               <CardDescription>
                 Temas de tesis disponibles para postular
               </CardDescription>
-            </CardHeader>
-            <CardContent></CardContent>
+            </CardHeader> */}
+            <CardContent>
+              {tema ? (
+                <TemasDetalleExposiciones
+                  temaId={tema.id}
+                  carreraId={tema.carrera?.id}
+                  areasConocimientoId={tema.subareas.map(
+                    (subarea) => subarea.areaConocimiento!.id,
+                  )}
+                />
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  No hay tema seleccionado.
+                </p>
+              )}
+            </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
@@ -88,3 +102,4 @@ const DetalleTemasCoordinadorPage = () => {
 };
 
 export default DetalleTemasCoordinadorPage;
+

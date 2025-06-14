@@ -1,8 +1,10 @@
 package pucp.edu.pe.sgta.controller;
 
 import java.util.List;
-
+import jakarta.servlet.http.HttpServletRequest;          // ← IMPORT Jakarta
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -17,69 +19,100 @@ import pucp.edu.pe.sgta.dto.TeacherCountDTO;
 import pucp.edu.pe.sgta.dto.TopicAreaStatsDTO;
 import pucp.edu.pe.sgta.dto.TopicTrendDTO;
 import pucp.edu.pe.sgta.dto.TesistasPorAsesorDTO;
-import pucp.edu.pe.sgta.service.inter.IReportService;
-
-import org.springframework.web.bind.annotation.PathVariable;
 import pucp.edu.pe.sgta.dto.EntregableEstudianteDto;
+import pucp.edu.pe.sgta.dto.EntregableCriteriosDetalleDto;
+import java.util.NoSuchElementException;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.HttpStatus;
+
+import pucp.edu.pe.sgta.service.inter.IReportService;
+import pucp.edu.pe.sgta.service.inter.JwtService;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import java.util.Map;
+
 
 @RestController
-@RequestMapping("/api/v1/reports")
+@RequestMapping("/reports")
 public class ReportsController {
 
     private final IReportService reportingService;
 
-    public ReportsController(IReportService reportingService) {
+    private final JwtService      jwtService;
+    private static final Logger logger = LoggerFactory.getLogger(ReportsController.class);
+
+    @Autowired
+    public ReportsController(IReportService reportingService, JwtService jwtService) {
         this.reportingService = reportingService;
+        this.jwtService       = jwtService;
     }
 
-    /** RF1: estadísticas y tendencias de temas y áreas */
+    /** RF1: estadísticas de temas por área para un coordinador */
     @GetMapping("/topics-areas")
-    public List<TopicAreaStatsDTO> fetchTopicAreaStats(@RequestParam Integer usuarioId,@RequestParam String ciclo) {
-        return reportingService.getTopicAreaStatistics(usuarioId,ciclo);
+    public List<TopicAreaStatsDTO> fetchTopicAreaStats(
+            @RequestParam String ciclo,
+            HttpServletRequest request) {
+        String sub = jwtService.extractSubFromRequest(request);
+        return reportingService.getTopicAreaStatistics(sub, ciclo);
     }
 
-    /** RF1b: tendencias de temas por año */
+    /** RF1b: tendencias de temas por año para un coordinador */
     @GetMapping("/topics-trends")
-    public List<TopicTrendDTO> fetchTopicTrendsByYear(@RequestParam Integer usuarioId) {
-        return reportingService.getTopicTrendsByYear(usuarioId);
+    public List<TopicTrendDTO> fetchTopicTrendsByYear(HttpServletRequest request) {
+        String sub = jwtService.extractSubFromRequest(request);
+        return reportingService.getTopicTrendsByYear(sub);
     }
 
-    /** RF2a: distribución de asesores por docente */
+    /** RF2a: distribución de asesores por coordinador */
     @GetMapping("/advisors-distribution")
-    public List<TeacherCountDTO> fetchAdvisorDistribution(@RequestParam Integer usuarioId,@RequestParam String ciclo) {
-        return reportingService.getAdvisorDistribution(usuarioId,ciclo);
+    public List<TeacherCountDTO> fetchAdvisorDistribution(
+            @RequestParam String ciclo,
+            HttpServletRequest request) {
+        String sub = jwtService.extractSubFromRequest(request);
+        return reportingService.getAdvisorDistribution(sub, ciclo);
     }
 
-    /** RF2b: distribución de jurados por docente */
+    /** RF2b: distribución de jurados por coordinador */
     @GetMapping("/jurors-distribution")
-    public List<TeacherCountDTO> fetchJurorDistribution(@RequestParam Integer usuarioId,@RequestParam String ciclo) {
-        return reportingService.getJurorDistribution(usuarioId,ciclo);
+    public List<TeacherCountDTO> fetchJurorDistribution(
+            @RequestParam String ciclo,
+            HttpServletRequest request) {
+        String sub = jwtService.extractSubFromRequest(request);
+        return reportingService.getJurorDistribution(sub, ciclo);
     }
-    
+
+    /** RF2c: estadísticas finales de áreas */
     @GetMapping("/area-final")
-    public ResponseEntity<List<AreaFinalDTO>> getAreaFinal(@RequestParam Integer usuarioId, @RequestParam String ciclo) {
-        return ResponseEntity.ok(reportingService.getAreaFinal(usuarioId, ciclo));
+    public ResponseEntity<List<AreaFinalDTO>> getAreaFinal(
+            @RequestParam String ciclo,
+            HttpServletRequest request) {
+        String sub = jwtService.extractSubFromRequest(request);
+        return ResponseEntity.ok(reportingService.getAreaFinal(sub, ciclo));
     }
 
-    /** RF3: Endpoint para desempeño de asesores */
+    /** RF3: desempeño de asesores */
     @GetMapping("/advisors/performance")
-    public List<AdvisorPerformanceDto> getAdvisorPerformance(@RequestParam Integer usuarioId, @RequestParam String ciclo) {
-        return reportingService.getAdvisorPerformance(usuarioId, ciclo);
+    public List<AdvisorPerformanceDto> getAdvisorPerformance(
+            @RequestParam String ciclo,
+            HttpServletRequest request) {
+        String sub = jwtService.extractSubFromRequest(request);
+        return reportingService.getAdvisorPerformance(sub, ciclo);
     }
 
-    /** RF4: Endpoint para listar tesistas por asesor */
+    /** RF4: lista de tesistas por asesor */
     @GetMapping("/advisors/tesistas")
-    public ResponseEntity<List<TesistasPorAsesorDTO>> getTesistasPorAsesor(@RequestParam Integer asesorId) {
-        return ResponseEntity.ok(reportingService.getTesistasPorAsesor(asesorId));
+    public ResponseEntity<List<TesistasPorAsesorDTO>> getTesistasPorAsesor(
+            HttpServletRequest request) {
+        String sub = jwtService.extractSubFromRequest(request);
+        return ResponseEntity.ok(reportingService.getTesistasPorAsesor(sub));
     }
+
 
     /** RF5: Endpoint para obtener detalle completo de un tesista */
     @GetMapping("/tesistas/detalle")
     public ResponseEntity<DetalleTesistaDTO> getDetalleTesista(@RequestParam Integer tesistaId) {
         DetalleTesistaDTO detalle = reportingService.getDetalleTesista(tesistaId);
-        if (detalle == null) {
-            return ResponseEntity.notFound().build();
-        }
         return ResponseEntity.ok(detalle);
     }
 
@@ -87,9 +120,6 @@ public class ReportsController {
     @GetMapping("/tesistas/cronograma")
     public ResponseEntity<List<HitoCronogramaDTO>> getHitosCronogramaTesista(@RequestParam Integer tesistaId) {
         List<HitoCronogramaDTO> hitos = reportingService.getHitosCronogramaTesista(tesistaId);
-        if (hitos.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
         return ResponseEntity.ok(hitos);
     }
 
@@ -97,16 +127,65 @@ public class ReportsController {
     @GetMapping("/tesistas/reuniones")
     public ResponseEntity<List<HistorialReunionDTO>> getHistorialReuniones(@RequestParam Integer tesistaId) {
         List<HistorialReunionDTO> historial = reportingService.getHistorialReuniones(tesistaId);
-        if (historial.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
         return ResponseEntity.ok(historial);
     }
 
-    /** RF8: Endpoint para entregables de estudiante */
-    @GetMapping("/entregables/{usuarioId}")
-    public ResponseEntity<List<EntregableEstudianteDto>> getEntregablesEstudiante(@PathVariable Integer usuarioId){
-        List<EntregableEstudianteDto> entregables = reportingService.getEntregablesEstudiante(usuarioId);
+    /*
+    @GetMapping("/entregables")
+    public ResponseEntity<List<EntregableEstudianteDto>> getEntregablesEstudiante(
+            HttpServletRequest request) {
+        String sub = jwtService.extractSubFromRequest(request);
+        List<EntregableEstudianteDto> list =
+                reportingService.getEntregablesEstudiante(sub);
+        return ResponseEntity.ok(list);
+    }
+    */
+
+   @GetMapping("/entregables")
+    public ResponseEntity<List<EntregableEstudianteDto>> getEntregablesEstudiante(HttpServletRequest request) {
+        System.out.println(" Entró al método con Cognito ID (sin parámetro)");
+
+        try {
+            String idUsuario = jwtService.extractSubFromRequest(request);
+            List<EntregableEstudianteDto> entregables = reportingService.getEntregablesEstudiante(idUsuario);
+            return ResponseEntity.ok(entregables);
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    @GetMapping("/entregables/{idUsuario}")
+    public ResponseEntity<?> getEntregablesAlumnoSeleccionado(@PathVariable Integer idUsuario) {
+        logger.info("▶ Entró al método getEntregablesAlumnoSeleccionado con ID explícito: {}", idUsuario);
+        try {
+        List<EntregableEstudianteDto> entregables =
+            reportingService.getEntregablesEstudianteById(idUsuario);
+        logger.info("   ✔ Entregables encontrados: {}", entregables.size());
         return ResponseEntity.ok(entregables);
+
+        } catch (NoSuchElementException e) {
+        logger.warn("   ⚠ Usuario {} sin tema asignado: {}", idUsuario, e.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body(Map.of("error", "Usuario sin tema asignado"));
+
+        } catch (Exception e) {
+        // **Este log imprimirá la traza completa en tu consola**
+        logger.error("   💥 Error inesperado obteniendo entregables para usuario {}: ", idUsuario, e);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                            .body(Map.of("error", e.getMessage()));
+        }
+    }
+
+
+
+    /** RF9: entregables con criterios de un tesista - NO AGREGAR ID COGNITO*/
+    @GetMapping("/entregables-criterios/{idUsuario}")
+    public ResponseEntity<List<EntregableCriteriosDetalleDto>> getEntregablesConCriterios(
+           @PathVariable Integer  idUsuario) {
+        List<EntregableCriteriosDetalleDto> list =
+            reportingService.getEntregablesConCriterios(idUsuario);
+        return ResponseEntity.ok(list);
     }
 }

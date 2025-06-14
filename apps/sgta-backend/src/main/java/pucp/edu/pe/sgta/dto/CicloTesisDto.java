@@ -1,6 +1,5 @@
 package pucp.edu.pe.sgta.dto;
 
-import jakarta.persistence.criteria.CriteriaBuilder;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

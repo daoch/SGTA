@@ -38,9 +38,9 @@ DROP TABLE IF EXISTS area_conocimiento                  CASCADE;
 DROP TABLE IF EXISTS sub_area_conocimiento               CASCADE;
 DROP TABLE IF EXISTS recurso                            CASCADE;
 DROP TABLE IF EXISTS tema                               CASCADE;
-DROP TABLE IF EXISTS historial_tema                     CASCADE;
 DROP TABLE IF EXISTS estado_tema                        CASCADE;
 DROP TABLE IF EXISTS tipo_rechazo_tema CASCADE;
+DROP TABLE IF EXISTS historial_tema                     CASCADE;
 
 
 -- Tablas de exposiciones
@@ -64,6 +64,7 @@ DROP TABLE IF EXISTS etapa_formativa                      CASCADE;
 DROP TABLE IF EXISTS ciclo                                CASCADE;
 
 -- Tablas de revisiones y entregables
+DROP TABLE IF EXISTS observacion_rect                     CASCADE;
 DROP TABLE IF EXISTS observacion                          CASCADE;
 DROP TABLE IF EXISTS tipo_observacion                     CASCADE;
 DROP TABLE IF EXISTS revision_criterio_entregable         CASCADE;

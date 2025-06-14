@@ -1,5 +1,7 @@
 package pucp.edu.pe.sgta.repository;
 
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Repository;
 
 import jakarta.transaction.Transactional;
 import pucp.edu.pe.sgta.model.Tema;
+import pucp.edu.pe.sgta.model.TemaSimilar;
 
 @Repository
 public interface TemaRepository extends JpaRepository<Tema, Integer> {
@@ -20,13 +23,17 @@ public interface TemaRepository extends JpaRepository<Tema, Integer> {
         FROM listar_temas_por_usuario_rol_estado(
           :uid,
           :rol,
-          :est
+          :est,
+          :limit,
+          :offset
         )
       """, nativeQuery = true)
   List<Object[]> listarTemasPorUsuarioRolEstado(
       @Param("uid") Integer usuarioId,
       @Param("rol") String rolNombre,
-      @Param("est") String estadoNombre);
+      @Param("est") String estadoNombre,
+      @Param("limit") Integer limit,
+      @Param("offset") Integer offset);
 
   @Query(value = """
       SELECT *
@@ -54,10 +61,11 @@ public interface TemaRepository extends JpaRepository<Tema, Integer> {
       @Param("id") Integer asesorId);
 
   @Query(value = """
-        SELECT * FROM  listar_temas_ciclo_actual_x_etapa_formativa(:efid)
+        SELECT * FROM  listar_temas_ciclo_actual_x_etapa_formativa(:etapa_id,:expo_id)
       """, nativeQuery = true)
   List<Object[]> listarTemasCicloActualXEtapaFormativa(
-      @Param("efid") Integer etapaFormativaId
+      @Param("etapa_id") Integer etapaFormativaId,
+      @Param("expo_id") Integer expoId
     );
     
     Optional<Tema> findByTitulo(String titulo);
@@ -80,4 +88,86 @@ public interface TemaRepository extends JpaRepository<Tema, Integer> {
   void desactivarTemaYDesasignarUsuarios(
     @Param("p_tema_id") Integer temaId
   );
+
+  @Query(value = """
+        SELECT * FROM validar_tema_existe_cambiar_asesor_posible(:temaId)
+""", nativeQuery = true)
+  List<Object[]> validarTemaExisteYSePuedeCambiarAsesor(
+          @Param("temaId") Integer temaId
+  );
+
+  @Query(value = """
+    SELECT * FROM validar_tema_existe_cesar_asesoria_posible(:temaId)
+  """, nativeQuery = true)
+  List<Object[]> validarTemaExisteYSePuedeCesarAsesoria(
+    @Param("temaId") Integer temaId
+  );
+
+  @Query(value = "SELECT * FROM listar_temas_por_asociar_por_carrera(:carreraId)", nativeQuery = true)
+  List<Object[]> listarTemasPorAsociarPorCarrera(@Param("carreraId") Integer carreraId);
+
+  @Query(value = "SELECT asociar_tema_a_curso(:cursoId, :temaId)", nativeQuery = true)
+  void asociarTemaACurso(@Param("cursoId") Integer cursoId,@Param("temaId") Integer temaId);
+
+    
+    @Query(value = """
+        SELECT *
+          FROM listar_temas_por_usuario_titulo_area_carrera_estado_fecha(
+            :usuarioId,
+            :titulo,
+            :areaId,
+            :carreraId,
+            :estadoNombre,
+            :fechaDesde,
+            :fechaHasta,
+            :limit,
+            :offset
+          )
+        """, nativeQuery = true)
+    List<Object[]> listarTemasPorUsuarioTituloAreaCarreraEstadoFecha(
+        @Param("usuarioId")     Integer usuarioId,
+        @Param("titulo")        String titulo,
+        @Param("areaId")        Integer areaId,
+        @Param("carreraId")     Integer carreraId,
+        @Param("estadoNombre")  String estadoNombre,
+        @Param("fechaDesde")    java.sql.Date fechaDesde,
+        @Param("fechaHasta")    java.sql.Date fechaHasta,
+        @Param("limit")         Integer limit,
+        @Param("offset")        Integer offset
+    );
+
+    @Query(
+    value = """
+      SELECT *
+        FROM listar_temas_filtrado_completo(
+          :titulo,
+          :estadoNombre,
+          :carreraId,
+          :areaId,
+          :nombreUsuario,
+          :primerApellidoUsuario,
+          :segundoApellidoUsuario,
+          :limit,
+          :offset
+        )
+      """,
+    nativeQuery = true
+  )
+  List<Object[]> listarTemasFiltradoCompleto(
+      @Param("titulo")                 String titulo,
+      @Param("estadoNombre")           String estadoNombre,
+      @Param("carreraId")              Integer carreraId,
+      @Param("areaId")                 Integer areaId,
+      @Param("nombreUsuario")          String nombreUsuario,
+      @Param("primerApellidoUsuario")  String primerApellidoUsuario,
+      @Param("segundoApellidoUsuario") String segundoApellidoUsuario,
+      @Param("limit")                  Integer limit,
+      @Param("offset")                 Integer offset
+  );
+
+  @Query(value = "SELECT * FROM listar_temas_finalizados()", nativeQuery = true)
+  List<Object[]> listarTemasFinalizados();
+
+
+
 }

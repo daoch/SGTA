@@ -1,7 +1,9 @@
 import { create } from "zustand";
+import { distribuirBloquesExposicion } from "../services/data";
+import { Tema } from "../types/jurado.types";
 import { PlanificacionState } from "../types/planificacion-state.types";
 
-export const usePlanificationStore = create<PlanificacionState>((set) => ({
+export const usePlanificationStore = create<PlanificacionState>((set, get) => ({
   estadoPlanificacion: undefined,
   temas: [],
   temasSinAsignar: [],
@@ -78,5 +80,77 @@ export const usePlanificationStore = create<PlanificacionState>((set) => ({
 
       return { temasSinAsignar, temasAsignados };
     });
+  },
+
+  desasignarTodosLosTemas: () => {
+    set((state) => {
+      if (Object.keys(state.temasAsignados).length === 0) {
+        return {};
+      }
+
+      // Mueve todos los temas a temasSinAsignar (evita duplicados)
+      const nuevosTemasSinAsignar = [...state.temas];
+
+      // Limpia los temas asignados
+      const temasAsignados = {};
+
+      // Actualiza todos los bloques para remover el tema asignado
+      const bloques = state.bloques.map((bloque) => ({
+        ...bloque,
+        //expo: undefined,
+        expo: {
+          id: null,
+          codigo: null,
+          titulo: null,
+          usuarios: null,
+          areasConocimiento: undefined,
+        },
+      }));
+
+      return {
+        temasSinAsignar: nuevosTemasSinAsignar,
+        temasAsignados,
+        bloques,
+      };
+    });
+  },
+
+  generarDistribucionAutomatica: async () => {
+    const { temasSinAsignar, bloques } = get();
+    try {
+      const nuevosBloques = await distribuirBloquesExposicion(
+        temasSinAsignar,
+        bloques,
+      );
+
+      const nuevosTemasAsignados: Record<string, Tema> = {};
+      const asignadosSet = new Set<number>();
+
+      nuevosBloques.forEach((bloque) => {
+        if (bloque.expo && bloque.expo.id != null) {
+          nuevosTemasAsignados[bloque.key] = bloque.expo;
+          asignadosSet.add(bloque.expo.id);
+        }
+      });
+
+      set({
+        bloques: nuevosBloques,
+        temasSinAsignar: [],
+        temasAsignados: nuevosTemasAsignados,
+      });
+      console.log("Nuevos bloques generados:", nuevosBloques);
+    } catch (error) {
+      set({
+        bloques: bloques,
+        temasSinAsignar: temasSinAsignar,
+        temasAsignados: {},
+      });
+      if (error instanceof Error) {
+        console.error(error.message); // ✅ Muestra el mensaje del backend
+      } else {
+        console.error("Ocurrió un error en el microservicio.");
+      }
+      //console.error("Error al generar la distribución automática:", error);
+    }
   },
 }));

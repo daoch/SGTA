@@ -58,6 +58,8 @@ public class TemaDto {
 
     private Integer cantPostulaciones; // only for general proposals
 
+    private Double porcentajeSimilitud;
+
     //@NotEmpty(message = "Debe haber al menos una área")
     private List<@NotNull(message = "Area inválida") AreaConocimientoDto> area;
 
@@ -68,5 +70,8 @@ public class TemaDto {
     private List<UsuarioDto> tesistas ;
 
     private List< UsuarioDto> coasesores ;
+
+    //Para controlar las postulaciones al tema libre
+    private String estadoUsuarioTema;
 
 }

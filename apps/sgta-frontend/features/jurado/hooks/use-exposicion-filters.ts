@@ -16,7 +16,10 @@ export function useExposicionFilters(
           return false;
         if (filters.ciclo && String(item.cicloId) !== filters.ciclo)
           return false;
-        if (filters.estado && item.estadoPlanificacionNombre !== filters.estado)
+        if (
+          filters.estado &&
+          String(item.estadoPlanificacionId) !== filters.estado
+        )
           return false;
         return true;
       }),

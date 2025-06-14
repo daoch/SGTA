@@ -202,18 +202,20 @@ export function DetalleTesisJuradoView() {
                     "Sin asesor"}
                 </div>
               </div>
-              <div className="col-span-3">
-                <p className="flex h-[16.89px] justify-center flex-col flex-shrink-0 text-black font-montserrat text-base font-medium leading-[14px]">
-                  Coasesor
-                </p>
-                <div className="flex items-center mt-2">
-                  <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center mr-2 overflow-hidden">
-                    <CircleUserRound className="h-5 w-5 text-gray-500" />
+              {tesis.asesores.length > 1 && (
+                <div className="col-span-3">
+                  <p className="flex h-[16.89px] justify-center flex-col flex-shrink-0 text-black font-montserrat text-base font-medium leading-[14px]">
+                    Coasesor
+                  </p>
+                  <div className="flex items-center mt-2">
+                    <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center mr-2 overflow-hidden">
+                      <CircleUserRound className="h-5 w-5 text-gray-500" />
+                    </div>
+                    {tesis.asesores.find((a) => a.tipo === "Coasesor")
+                      ?.nombre || "Sin coasesor"}
                   </div>
-                  {tesis.asesores.find((a) => a.tipo === "Coasesor")?.nombre ||
-                    "Sin coasesor"}
                 </div>
-              </div>
+              )}
 
               <div className="col-span-12">
                 <p className="flex h-[16.89px] justify-center flex-col flex-shrink-0 text-black font-montserrat text-base font-medium leading-[14px]">
@@ -237,7 +239,7 @@ export function DetalleTesisJuradoView() {
                 )}
               </div>
 
-              <div className="col-span-3">
+              <div className="col-span-5">
                 <p className="flex h-[16.89px] justify-center flex-col flex-shrink-0 text-black font-montserrat text-base font-medium leading-[14px]">
                   Miembros de Jurado
                 </p>
@@ -329,6 +331,30 @@ export function DetalleTesisJuradoView() {
                               })}
                             </p>
                             <p>Sala de exposición: {exposicion.sala}</p>
+                            <div>
+                              <p className="mt-2">
+                                Miembros del jurado asignados:
+                              </p>
+                              {exposicion.miembrosJurado.map((jurado) => (
+                                <div
+                                  key={jurado.id}
+                                  className="flex items-center mt-2"
+                                >
+                                  <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center mr-2 overflow-hidden">
+                                    <CircleUserRound className="h-5 w-5 text-gray-500" />
+                                  </div>
+                                  <div>
+                                    <span>
+                                      {jurado.nombres} {jurado.primerApellido}{" "}
+                                      {jurado.segundoApellido}
+                                    </span>
+                                    <span className="text-gray-500 ml-2">
+                                      ({jurado.rol})
+                                    </span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         </div>
                       </div>

@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, PenLine, Plus } from "lucide-react";
+import { ArrowLeft, Plus } from "lucide-react";
 import { EntregableCard } from "../components/entregable/entregable-card";
 import { ExposicionCard } from "../components/exposicion/exposicion-card";
 import { Entregable } from "../dtos/entregable";
@@ -13,23 +14,61 @@ import { EntregableModal } from "../components/entregable/entregable-modal";
 import { ExposicionModal } from "../components/exposicion/exposicion-modal";
 import axiosInstance from "@/lib/axios/axios-instance";
 import Link from "next/link";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { EtapaFormativaXCiclo } from "../dtos/etapa-formativa-x-ciclo";
+import { toast } from "sonner";
+import AppLoading from "@/components/loading/app-loading";
 
 interface DetalleEtapaPageProps {
   etapaId: string;
 }
 
 const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
+  const [loading, setLoading] = useState(true);
+  const searchParams = useSearchParams();
+  const nombreEtapa = searchParams.get("nombreEtapa");
+  const ciclo = searchParams.get("ciclo");
+
   const [isEntregableModalOpen, setIsEntregableModalOpen] = useState(false);
   const [isExposicionModalOpen, setIsExposicionModalOpen] = useState(false);
+  const [etapaFormativaXCiclo, setEtapaFormativaXCiclo] =
+    useState<EtapaFormativaXCiclo>();
   const [entregables, setEntregables] = useState<Entregable[]>([]);
   const [exposiciones, setExposiciones] = useState<Exposicion[]>([]);
 
-  const [isDeleteEntregableModalOpen, setIsDeleteEntregableModalOpen] = useState(false);
-  const [entregableAEliminar, setEntregableAEliminar] = useState<Entregable | null>(null);
+  const [isDeleteEntregableModalOpen, setIsDeleteEntregableModalOpen] =
+    useState(false);
+  const [entregableAEliminar, setEntregableAEliminar] =
+    useState<Entregable | null>(null);
 
-  const [isDeleteExposicionModalOpen, setIsDeleteExposicionModalOpen] = useState(false);
-  const [exposicionAEliminar, setExposicionAEliminar] = useState<Exposicion | null>(null);
+  const [isDeleteExposicionModalOpen, setIsDeleteExposicionModalOpen] =
+    useState(false);
+  const [exposicionAEliminar, setExposicionAEliminar] =
+    useState<Exposicion | null>(null);
+
+  useEffect(() => {
+    const fetchEtapaFormativaXCiclo = async () => {
+      try {
+        const response = await axiosInstance.get(
+          `/etapa-formativa-x-ciclo/etapaXCiclo/${etapaId}`,
+        );
+        setEtapaFormativaXCiclo(response.data);
+      } catch (error) {
+        console.error("Error al cargar la etapa formativa por ciclo:", error);
+        toast.error("Error al cargar la etapa formativa por ciclo");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchEtapaFormativaXCiclo();
+  }, [etapaId]);
 
   useEffect(() => {
     const fetchEntregables = async () => {
@@ -40,9 +79,9 @@ const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
         setEntregables(response.data);
       } catch (error) {
         console.error("Error al cargar los entregables:", error);
+        toast.error("Error al cargar los entregables");
       }
     };
-
     fetchEntregables();
   }, [etapaId]);
 
@@ -55,9 +94,9 @@ const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
         setExposiciones(response.data);
       } catch (error) {
         console.error("Error al cargar las exposiciones:", error);
+        toast.error("Error al cargar las exposiciones");
       }
     };
-
     fetchExposiciones();
   }, [etapaId]);
 
@@ -67,7 +106,6 @@ const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
         `/entregable/etapa-formativa-x-ciclo/${etapaId}`,
         nuevoEntregable,
       );
-      console.log("Entregable creado exitosamente:", response.data);
       return response.data; // Devuelve el entregable creado si es necesario
     } catch (error) {
       console.error("Error al crear el entregable:", error);
@@ -81,7 +119,6 @@ const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
         `/exposicion/etapa-formativa-x-ciclo/${etapaId}`,
         nuevaExposicion,
       );
-      console.log("Exposición creada exitosamente:", response.data);
       return response.data; // Devuelve la exposición creada si es necesario
     } catch (error) {
       console.error("Error al crear la exposición:", error);
@@ -99,19 +136,13 @@ const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
         fechaFin:
           new Date(nuevoEntregable.fechaFin).toISOString().split(".")[0] + "Z",
       };
-
-      console.log("Datos enviados al backend:", nuevoEntregableFormatoISO);
-
       const idEntregable = await createEntregable(nuevoEntregableFormatoISO);
-
       const nuevoEntregableConId: Entregable = {
         ...nuevoEntregable,
         id: idEntregable, // Asignar el ID devuelto por la API
       };
-
       // Actualizar el estado local con el entregable creado
       setEntregables((prev) => [...prev, nuevoEntregableConId]);
-
       // Cerrar el modal
       setIsEntregableModalOpen(false);
     } catch (error) {
@@ -152,11 +183,14 @@ const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
     if (!entregableAEliminar) return;
 
     try {
-      await axiosInstance.put("/entregable/delete",entregableAEliminar.id);
-      setEntregables((prev) => prev.filter((e) => e.id !== entregableAEliminar.id));
-      console.log("Entregable eliminado exitosamente");
+      await axiosInstance.put("/entregable/delete", entregableAEliminar.id);
+      setEntregables((prev) =>
+        prev.filter((e) => e.id !== entregableAEliminar.id),
+      );
+      toast.success("Entregable eliminado exitosamente");
     } catch (error) {
       console.error("Error al eliminar el entregable:", error);
+      toast.error("Error al eliminar el entregable");
     } finally {
       setIsDeleteEntregableModalOpen(false);
       setEntregableAEliminar(null);
@@ -167,11 +201,14 @@ const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
     if (!exposicionAEliminar) return;
 
     try {
-      await axiosInstance.put("/exposicion/delete",exposicionAEliminar.id);
-      setExposiciones((prev) => prev.filter((e) => e.id !== exposicionAEliminar.id));
-      console.log("Exposición eliminada exitosamente");
+      await axiosInstance.put("/exposicion/delete", exposicionAEliminar.id);
+      setExposiciones((prev) =>
+        prev.filter((e) => e.id !== exposicionAEliminar.id),
+      );
+      toast.success("Exposición eliminada exitosamente");
     } catch (error) {
       console.error("Error al eliminar la exposición:", error);
+      toast.error("Error al eliminar la exposición");
     } finally {
       setIsDeleteExposicionModalOpen(false);
       setExposicionAEliminar(null);
@@ -188,6 +225,10 @@ const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
     setExposicionAEliminar(null);
   };
 
+  if (loading) {
+    return <AppLoading />;
+  }
+
   return (
     <div className="w-full px-6 py-6">
       {/* Header con botón de regreso */}
@@ -198,14 +239,18 @@ const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
         >
           <ArrowLeft size={11} />
         </Link>
-        <h1 className="text-xl font-semibold">Detalles de la Etapa</h1>
+        <div className="ml-4">
+          <h1 className="text-2xl font-bold text-[#042354]">{nombreEtapa}</h1>
+          <p className="text-gray-600">Ciclo: {ciclo}</p>
+        </div>
       </div>
 
       {/* Información del proyecto */}
       <Card className="mb-6">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-xl">
-            Proyecto de Fin de Carrera 1
+            {etapaFormativaXCiclo?.nombreEtapaFormativa} - Ciclo:{" "}
+            {etapaFormativaXCiclo?.nombreCiclo}
           </CardTitle>
           {/*<Button id="btnEditEtapa" variant="outline" size="sm" className="h-8">
             <PenLine className="h-4 w-4 mr-1" />
@@ -215,17 +260,15 @@ const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
         <CardContent>
           <div className="space-y-4">
             <div>
-              <h3 className="font-medium mb-1">Descripción</h3>
+              <h3 className="font-medium mb-1">Creditaje por tema</h3>
               <p className="text-sm text-muted-foreground">
-                Primera fase del proyecto de fin de carrera enfocada en la
-                definición del problema y la propuesta de solución.
+                {etapaFormativaXCiclo?.creditajePorTema} créditos
               </p>
             </div>
             <div>
-              <h3 className="font-medium mb-1">Objetivos</h3>
+              <h3 className="font-medium mb-1">Duración de las exposiciones</h3>
               <p className="text-sm text-muted-foreground">
-                Definir el problema, realizar el estado del arte, proponer una
-                solución preliminar.
+                {etapaFormativaXCiclo?.duracionExposicion} minutos
               </p>
             </div>
           </div>
@@ -307,13 +350,17 @@ const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
         mode={"create"}
       />
 
-      <Dialog open={isDeleteEntregableModalOpen} onOpenChange={setIsDeleteEntregableModalOpen}>
+      <Dialog
+        open={isDeleteEntregableModalOpen}
+        onOpenChange={setIsDeleteEntregableModalOpen}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Eliminar Entregable</DialogTitle>
             <DialogDescription>
               ¿Estás seguro de que deseas eliminar el entregable{" "}
-              <strong>{entregableAEliminar?.nombre}</strong>? Esta acción no se puede deshacer.
+              <strong>{entregableAEliminar?.nombre}</strong>? Esta acción no se
+              puede deshacer.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -327,13 +374,17 @@ const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={isDeleteExposicionModalOpen} onOpenChange={setIsDeleteExposicionModalOpen}>
+      <Dialog
+        open={isDeleteExposicionModalOpen}
+        onOpenChange={setIsDeleteExposicionModalOpen}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Eliminar Exposición</DialogTitle>
             <DialogDescription>
               ¿Estás seguro de que deseas eliminar la exposición{" "}
-              <strong>{exposicionAEliminar?.nombre}</strong>? Esta acción no se puede deshacer.
+              <strong>{exposicionAEliminar?.nombre}</strong>? Esta acción no se
+              puede deshacer.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

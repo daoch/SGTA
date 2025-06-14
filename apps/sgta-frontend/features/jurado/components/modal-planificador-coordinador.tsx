@@ -1,14 +1,15 @@
 "use client";
 
-import { useForm, useFieldArray, FormProvider } from "react-hook-form";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-  DialogDescription,
 } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -16,12 +17,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Loader2, PlusIcon } from "lucide-react";
-import { Label } from "@/components/ui/label";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2, PlusIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { FormProvider, useFieldArray, useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { formSchema, FormValues } from "../schemas/exposicion-form-schema";
-import { ItemFechaExposicion } from "./item-fecha-exposicion";
 import {
   enviarPlanificacion,
   getEtapasFormativasPorInicializarByCoordinador,
@@ -33,9 +35,7 @@ import {
   ExposicionSinInicializar,
   Sala,
 } from "../types/exposicion.types";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { ItemFechaExposicion } from "./item-fecha-exposicion";
 
 interface ModalPlanificadorCoordinadorProps {
   open: boolean;
@@ -61,7 +61,9 @@ export default function ModalPlanificadorCoordinador({
 
   const { control, handleSubmit, watch, reset, setValue } = methods;
 
-  const [cursos, setCursos] = useState<EtapaFormativa[]>([]);
+  const [etapasFormativas, setEtapasFormativas] = useState<EtapaFormativa[]>(
+    [],
+  );
   const [tiposExposicion, setTiposExposicion] = useState<
     ExposicionSinInicializar[]
   >([]);
@@ -81,8 +83,8 @@ export default function ModalPlanificadorCoordinador({
         fechas: [],
       });
 
-      getEtapasFormativasPorInicializarByCoordinador(3)
-        .then(setCursos)
+      getEtapasFormativasPorInicializarByCoordinador()
+        .then(setEtapasFormativas)
         .catch(console.error);
     }
   }, [open, reset]);
@@ -111,31 +113,13 @@ export default function ModalPlanificadorCoordinador({
   const canAddMoreFechas = fechas.every(
     (f) =>
       f.fecha !== null &&
+      f.hora_inicio !== null &&
       f.hora_inicio.trim() !== "" &&
+      f.hora_fin !== null &&
       f.hora_fin.trim() !== "" &&
       f.hora_inicio < f.hora_fin &&
       f.salas.length > 0,
   );
-
-  // const onSubmit = (data: FormValues) => {
-  //   console.log("Datos enviados:", data);
-  //   setIsSubmitting(true);
-
-  //   enviarPlanificacion(data)
-  //     .then((res) => {
-  //       console.log("Respuesta del servidor:", res);
-  //       onClose();
-  //       router.push(
-  //         `/coordinador/exposiciones/planificacion/${data.exposicion_id}`,
-  //       );
-  //     })
-  //     .catch((err) => {
-  //       console.error("Error al enviar datos:", err);
-  //     })
-  //     .finally(() => {
-  //       setIsSubmitting(false);
-  //     });
-  // };
 
   const onSubmit = (data: FormValues) => {
     console.log("Datos enviados:", data);
@@ -193,9 +177,9 @@ export default function ModalPlanificadorCoordinador({
           </DialogHeader>
 
           <div className="space-y-4">
-            {/* Selección de Curso */}
+            {/* Selección de EtapaFormativa */}
             <div className="space-y-2">
-              <Label>Curso</Label>
+              <Label>Etapa Formativa</Label>
               <Select
                 onValueChange={(val) =>
                   setValue("etapa_formativa_id", Number(val))
@@ -211,7 +195,7 @@ export default function ModalPlanificadorCoordinador({
                   <SelectValue placeholder="Seleccionar curso" />
                 </SelectTrigger>
                 <SelectContent>
-                  {cursos.map((curso) => (
+                  {etapasFormativas.map((curso) => (
                     <SelectItem
                       key={curso.etapaFormativaId}
                       value={curso.etapaFormativaId.toString()}
@@ -272,8 +256,8 @@ export default function ModalPlanificadorCoordinador({
               onClick={() =>
                 append({
                   fecha: null,
-                  hora_inicio: "17:00",
-                  hora_fin: "20:30",
+                  hora_inicio: null,
+                  hora_fin: null,
                   salas: [],
                 })
               }
@@ -300,12 +284,12 @@ export default function ModalPlanificadorCoordinador({
                   isSubmitting ||
                   !(
                     etapaFormativaId !== undefined &&
-                    exposicionId !== undefined &&
-                    fechas.length > 0 &&
                     fechas.every(
                       (f) =>
                         f.fecha !== null &&
+                        f.hora_inicio !== null &&
                         f.hora_inicio.trim() !== "" &&
+                        f.hora_fin !== null &&
                         f.hora_fin.trim() !== "" &&
                         f.hora_inicio < f.hora_fin &&
                         f.salas.length > 0,

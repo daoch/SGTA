@@ -1,4 +1,5 @@
-import { Coasesor, Tema, TemaForm } from "./entities";
+import { Tema } from "../temas/entidades";
+import { Coasesor, TemaForm } from "./entities";
 
 export const emptyTemaForm: TemaForm = {
   tipoRegistro: "",
@@ -34,6 +35,8 @@ export const temaVacio: Tema = {
   tesistas: [],
   subareas: [],
   requisitos: "",
+  area: [],
+  cantPostulaciones: 0,
 };
 
 export const coasesoresData: Coasesor[] = [
@@ -114,6 +117,101 @@ export const coasesoresData: Coasesor[] = [
     fechaModificacion: null,
   },
 ];
+
+export const temaMock: Tema = {
+  id: 1,
+  codigo: "TEMA-001",
+  carrera: {
+    id: 1,
+    unidadAcademicaId: 10,
+    codigo: "INF",
+    nombre: "Ingeniería Informática",
+    descripcion: "Carrera de Ingeniería Informática",
+    activo: true,
+    fechaCreacion: "2024-01-01T00:00:00Z",
+    fechaModificacion: "2024-05-01T00:00:00Z",
+  },
+  titulo: "Sistema de Gestión Académica",
+  resumen: "Desarrollo de un sistema para gestionar procesos académicos.",
+  objetivos: "Optimizar la gestión de cursos y matrículas.",
+  metodologia: "Metodología ágil Scrum.",
+  portafolioUrl: "https://github.com/usuario/sistema-gestion",
+  activo: true,
+  fechaLimite: "2024-12-31T23:59:59Z",
+  fechaCreacion: "2024-06-01T12:00:00Z",
+  fechaModificacion: null,
+  estadoTemaNombre: "PREINSCRITO",
+  idUsuarioInvolucradosList: [1, 2],
+  idCoasesorInvolucradosList: [3],
+  idEstudianteInvolucradosList: [4, 5],
+  idSubAreasConocimientoList: [1, 2],
+  coasesores: [
+    {
+      id: 3,
+      tipoUsuario: "coasesor",
+      codigoPucp: "20230003",
+      nombres: "Laura",
+      primerApellido: "Mendoza",
+      segundoApellido: "",
+      correoElectronico: "laura.mendoza@pucp.edu.pe",
+      nivelEstudios: "Doctorado",
+      contrasena: null,
+      biografia: null,
+      enlaceRepositorio: null,
+      enlaceLinkedin: null,
+      disponibilidad: "Disponible",
+      tipoDisponibilidad: "Tiempo parcial",
+      activo: true,
+      fechaCreacion: "2024-01-01T00:00:00Z",
+      fechaModificacion: null,
+      rol: "Asesor",
+    },
+  ],
+  tesistas: [
+    {
+      id: 4,
+      tipoUsuario: "tesista",
+      codigoPucp: "20190123",
+      nombres: "Ana",
+      primerApellido: "García",
+      segundoApellido: "",
+      correoElectronico: "ana.garcia@pucp.edu.pe",
+      nivelEstudios: "Pregrado",
+      contrasena: null,
+      biografia: null,
+      enlaceRepositorio: null,
+      enlaceLinkedin: null,
+      disponibilidad: "Disponible",
+      tipoDisponibilidad: "Tiempo completo",
+      activo: true,
+      fechaCreacion: "2024-01-01T00:00:00Z",
+      fechaModificacion: null,
+      asignado: true,
+    },
+  ],
+  subareas: [
+    {
+      id: 1,
+      nombre: "Inteligencia Artificial",
+      descripcion: "Estudio de algoritmos inteligentes.",
+      activo: true,
+      fechaCreacion: "2024-01-01T00:00:00Z",
+      fechaModificacion: null,
+      areaConocimiento: {
+        id: 1,
+        nombre: "Ciencias de la Computación",
+        descripcion: "Área de conocimiento general.",
+        activo: true,
+        fechaCreacion: "2024-01-01T00:00:00Z",
+        fechaModificacion: "2024-05-01T00:00:00Z",
+        idCarrera: 1,
+      },
+    },
+  ],
+  requisitos: "Conocimientos básicos de programación.",
+  area: [], //agregado
+  cantPostulaciones: 0, // agregado
+};
 
 // export const estudiantesData: Tesista[] = [
 //   {
@@ -482,3 +580,4 @@ export const coasesoresData: Coasesor[] = [
 //     subareas: [],
 //   },
 // ];
+

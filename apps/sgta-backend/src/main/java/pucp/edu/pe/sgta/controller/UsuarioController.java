@@ -2,22 +2,32 @@ package pucp.edu.pe.sgta.controller;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.NoSuchElementException;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import org.springframework.web.server.ResponseStatusException;
+import pucp.edu.pe.sgta.dto.*;
 import pucp.edu.pe.sgta.dto.asesores.FiltrosDirectorioAsesores;
 import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
 import pucp.edu.pe.sgta.dto.asesores.UsuarioConRolDto;
 import pucp.edu.pe.sgta.dto.asesores.UsuarioFotoDto;
-import pucp.edu.pe.sgta.dto.CarreraDto;
-import pucp.edu.pe.sgta.dto.UsuarioDto;
+import pucp.edu.pe.sgta.model.UsuarioXCarrera;
 import pucp.edu.pe.sgta.service.inter.CarreraService;
+import pucp.edu.pe.sgta.service.inter.JwtService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
-import pucp.edu.pe.sgta.dto.AlumnoTemaDto;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import pucp.edu.pe.sgta.service.inter.UsuarioXCarreraService;
+import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
 
 @RestController
 
@@ -28,11 +38,25 @@ public class UsuarioController {
     private CarreraService carreraService;
 
     @Autowired
+    JwtService jwtService;
+
+    @Autowired
     private UsuarioService usuarioService;
 
+    @Autowired
+    private UsuarioXCarreraService usuarioXCarreraService;
+
     @PostMapping("/create")
-    public void create(@RequestBody UsuarioDto dto) {
-        this.usuarioService.createUsuario(dto);
+    public ResponseEntity<?> create(@RequestBody UsuarioRegistroDto user) {
+
+        try {
+            usuarioService.createUsuario(user);
+            return ResponseEntity.ok("Usuario procesado exitosamente");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al procesar el usuario: " + e.getMessage());
+        }
+
     }
 
     @GetMapping("/findByTipoUsuarioAndCarrera")
@@ -62,7 +86,7 @@ public class UsuarioController {
 
     /**
      * HU01: Asignar Rol de Asesor a Profesor
-     *
+     * 
      * @param userId ID del profesor
      * @return ResponseEntity con mensaje de éxito o error
      */
@@ -83,7 +107,7 @@ public class UsuarioController {
 
     /**
      * HU02: Quitar Rol de Asesor a Profesor (Usuario)
-     *
+     * 
      * @param userId ID del profesor
      * @return ResponseEntity con mensaje de éxito o error
      */
@@ -104,7 +128,7 @@ public class UsuarioController {
 
     /**
      * HU03: Asignar Rol de Jurado a Profesor (Usuario)
-     *
+     * 
      * @param userId ID del profesor
      * @return ResponseEntity con mensaje de éxito o error
      */
@@ -125,7 +149,7 @@ public class UsuarioController {
 
     /**
      * HU04: Quitar Rol de Jurado a Profesor (Usuario)
-     *
+     * 
      * @param userId ID del profesor
      * @return ResponseEntity con mensaje de éxito o error
      */
@@ -156,7 +180,7 @@ public class UsuarioController {
     public ResponseEntity<List<UsuarioConRolDto>> getProfessorsWithRoles(
             @RequestParam(required = false, defaultValue = "Todos") String rolNombre,
             @RequestParam(required = false) String terminoBusqueda) {
-
+        
         try {
             List<UsuarioConRolDto> usuarios = usuarioService.getProfessorsWithRoles(rolNombre, terminoBusqueda);
             return new ResponseEntity<>(usuarios, HttpStatus.OK);
@@ -180,10 +204,11 @@ public class UsuarioController {
         return usuarioService.getIdByCorreo(correo);
     }
 
-    @GetMapping("/{id}/carreras")
+    @GetMapping("/carreras")
     public ResponseEntity<List<CarreraDto>> listarCarreras(
-            @PathVariable("id") Integer usuarioId) {
+            HttpServletRequest request) {
 
+        String usuarioId = jwtService.extractSubFromRequest(request); 
         List<CarreraDto> carreras = carreraService.listarCarrerasPorUsuario(usuarioId);
 
         if (carreras.isEmpty()) {
@@ -196,10 +221,19 @@ public class UsuarioController {
     public UsuarioDto findByCodigo(@RequestParam("codigo") String codigo) {
         return this.usuarioService.findUsuarioByCodigo(codigo);
     }
-
+    /**
+     Api usada por un ALUMNO para ver que asesores existen en su carrera
+     */
     @GetMapping("/asesor-directory-by-filters")
     public ResponseEntity<List<PerfilAsesorDto>> getDirectorioDeAsesoresPorFiltros(
-            @ModelAttribute FiltrosDirectorioAsesores filtros) {
+            @ModelAttribute FiltrosDirectorioAsesores filtros,
+            HttpServletRequest request
+    ) {
+        usuarioService.validarTipoUsuarioRolUsuario(
+                            jwtService.extractSubFromRequest(request),
+                            List.of(TipoUsuarioEnum.alumno, TipoUsuarioEnum.profesor),
+                            null
+        );
         List<PerfilAsesorDto> asesores = usuarioService.getDirectorioDeAsesoresPorFiltros(filtros);
         return new ResponseEntity<>(asesores, HttpStatus.OK);
 
@@ -212,10 +246,11 @@ public class UsuarioController {
         // }
     }
 
-    @PostMapping("/carga-masiva")
-    public ResponseEntity<String> cargarUsuarios(@RequestParam("archivo") MultipartFile archivo) {
+    @PostMapping(value = "/carga-masiva", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<String> cargarUsuarios(@RequestPart("archivo") MultipartFile archivo,
+                                                 @RequestPart UsuarioRegistroDto datosExtra) {
         try {
-            usuarioService.procesarArchivoUsuarios(archivo);
+            usuarioService.procesarArchivoUsuarios(archivo, datosExtra);
             return ResponseEntity.ok("Usuarios procesados exitosamente");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -223,9 +258,59 @@ public class UsuarioController {
         }
     }
 
-    @GetMapping("/detalle-tema-alumno/{idUsuario}")
-    public ResponseEntity<AlumnoTemaDto> getDetalleTemaAlumno(@PathVariable("idUsuario") Integer idUsuario) {
+    @GetMapping("/find_all")
+    public ResponseEntity<List<UsuarioDto>> findAllUsuarios() {
         try {
+            List<UsuarioDto> usuarios = usuarioService.findAllUsuarios();
+            return new ResponseEntity<>(usuarios, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<String> deleteUsuario(@PathVariable Integer id) {
+        try {
+            usuarioService.deleteUsuario(id);
+            return new ResponseEntity<>("Usuario eliminado exitosamente", HttpStatus.OK);
+        } catch (NoSuchElementException e) {
+            return new ResponseEntity<>("Usuario no encontrado: " + e.getMessage(), HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Error al eliminar el usuario: " + e.getMessage(),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PutMapping("/update/{id}")
+    public ResponseEntity<String> updateUsuario(@PathVariable Integer id, @RequestBody UsuarioRegistroDto usuarioDto) {
+        try {
+            usuarioService.updateUsuario(id, usuarioDto);
+            return new ResponseEntity<>("Usuario actualizado exitosamente", HttpStatus.OK);
+        } catch (NoSuchElementException e) {
+            return new ResponseEntity<>("Usuario no encontrado: " + e.getMessage(), HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Error al actualizar el usuario: " + e.getMessage(),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PutMapping("/reactivar/{id}")
+    public ResponseEntity<String> reactivarUsuario(@PathVariable Integer id) {
+        try {
+            usuarioService.reactivarUsuario(id);
+            return new ResponseEntity<>("Usuario reactivado exitosamente", HttpStatus.OK);
+        } catch (NoSuchElementException e) {
+            return new ResponseEntity<>("Usuario no encontrado: " + e.getMessage(), HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Error al reactivar el usuario: " + e.getMessage(),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/detalle-tema-alumno")
+    public ResponseEntity<AlumnoTemaDto> getDetalleTemaAlumno(HttpServletRequest request) {
+        try {
+            String idUsuario = jwtService.extractSubFromRequest(request);
             AlumnoTemaDto tema = usuarioService.getAlumnoTema(idUsuario);
             return ResponseEntity.ok(tema);
         } catch (NoSuchElementException e) {
@@ -235,9 +320,51 @@ public class UsuarioController {
         }
 
     }
-    
+
     @GetMapping("/getAsesoresBySubArea")
     public List<UsuarioDto> getAsesoresBySubArea(@RequestParam(name = "idSubArea") Integer idSubArea) {
         return this.usuarioService.getAsesoresBySubArea(idSubArea);
     }
+
+    @GetMapping("/getInfoUsuarioLogueado")
+    public UsuarioDto getInfoUsuarioLogueado(HttpServletRequest request) {
+        try {
+            String usuarioId = jwtService.extractSubFromRequest(request);
+            return this.usuarioService.findByCognitoId(usuarioId);
+        } catch (RuntimeException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        }
+    }
+
+    @GetMapping("/findByStudentsForReviewer")
+    public ResponseEntity<List<AlumnoReporteDto>> findByStudentsForReviewer(HttpServletRequest request, 
+            @RequestParam(required = false) String cadenaBusqueda) {
+        try {
+            String usuarioId = jwtService.extractSubFromRequest(request);
+            List<AlumnoReporteDto> alumnos = usuarioService.findByStudentsForReviewer(usuarioId, cadenaBusqueda);
+            return ResponseEntity.ok(alumnos);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(null);
+        }
+    }
+
+    @GetMapping("/getProfesoresActivos")
+    public List<DocentesDTO> getProfesoresActivos() {
+        try {
+            List<DocentesDTO> docentes = usuarioService.getProfesores();
+            return docentes;
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Error al obtener profesores activos: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/listarRevisoresPorCarrera")
+    public List<UsuarioRolRevisorDto> lsitarRevisoresPorCarrera(HttpServletRequest request){
+        String coordinadorId = jwtService.extractSubFromRequest(request);
+        UsuarioXCarrera usuarioXCarrera = usuarioXCarreraService.getCarreraPrincipalCoordinador(coordinadorId);
+        return usuarioService.listarRevisoresPorCarrera(usuarioXCarrera.getCarrera().getId());
+    }
+
 }

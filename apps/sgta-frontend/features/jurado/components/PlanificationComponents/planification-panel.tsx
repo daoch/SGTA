@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, FileSpreadsheet } from "lucide-react";
 import React, { useState } from "react";
 
 import { JornadaExposicionDTO } from "@/features/jurado/dtos/JornadExposicionDTO";
@@ -16,8 +16,9 @@ import PlanificacionEstadoStepper from "./planificacion-estado-stepper";
 import { TimeSlotCard } from "./time-slot-card";
 import AppLoading from "@/components/loading/app-loading";
 import { usePlanificationStore } from "../../store/use-planificacion-store";
+import { descargarExcelByExposicionId } from "../../services/planificacion-service";
+import { toast } from "sonner";
 
-// id 3
 interface Props {
   days: JornadaExposicionDTO[];
   assignedExpos: Record<string, Tema>;
@@ -26,6 +27,7 @@ interface Props {
   bloquesList: TimeSlot[];
   estadoPlan: EstadoPlanificacion | undefined;
   isLoading?: boolean;
+  exposicionId: number;
 }
 
 const PlanificationPanel: React.FC<Props> = ({
@@ -36,8 +38,9 @@ const PlanificationPanel: React.FC<Props> = ({
   bloquesList,
   estadoPlan,
   isLoading,
+  exposicionId,
 }) => {
-  const { actualizarBloque } = usePlanificationStore();
+  const { actualizarBloque, temasSinAsignar } = usePlanificationStore();
 
   //BLOQUES
   const [selectedCode, setSelectedCode] = useState<number>(days[0]?.code ?? 0);
@@ -62,7 +65,7 @@ const PlanificationPanel: React.FC<Props> = ({
 
   return (
     <div
-      className="h-full w-full flex flex-col gap-4"
+      className="h-full w-full flex flex-col gap-3"
       onContextMenu={(e) => {
         e.preventDefault();
       }}
@@ -81,7 +84,7 @@ const PlanificationPanel: React.FC<Props> = ({
                     ? "default"
                     : "outline"
                 }
-                disabled={isLoading}
+                disabled={isLoading || temasSinAsignar.length > 0}
               >
                 Siguiente fase
                 <ArrowRight />
@@ -97,6 +100,22 @@ const PlanificationPanel: React.FC<Props> = ({
                 Terminar Planificacion
               </Button>
             )}
+          {estadoPlan.nombre === "Cierre de planificacion" && (
+            <Button
+              onClick={async () => {
+                try {
+                  await descargarExcelByExposicionId(exposicionId);
+                  toast.success("Archivo descargado correctamente.");
+                } catch (error) {
+                  toast.error("Error al descargar el archivo.");
+                  console.error("No se pudo descargar el archivo:", error);
+                }
+              }}
+            >
+              <FileSpreadsheet />
+              Exportar Planificacion
+            </Button>
+          )}
         </div>
       </div>
 
@@ -113,20 +132,25 @@ const PlanificationPanel: React.FC<Props> = ({
                 bloque.key.startsWith(dateStr + "|"),
               );
 
+              const assignedBlocks = bloquesDelDia.filter(
+                (bloque) => bloque.expo != null && bloque.expo.id != null,
+              ).length;
+
               // Calcula los bloques asignados (bloquedBlocks)
               const bloquedBlocks = bloquesDelDia.filter(
                 (bloque) => bloque.esBloqueBloqueado,
               ).length;
 
               // Los disponibles son el total menos los asignados
-              const availableBlocks = bloquesDelDia.filter(
-                (bloque) => bloque.esBloqueBloqueado || bloque.expo?.id == null,
-              ).length;
+              const availableBlocks =
+                bloquesDelDia.filter((bloque) => !bloque.esBloqueBloqueado)
+                  .length - assignedBlocks;
 
               return (
                 <SelectorFecha
                   key={day.code}
                   day={day}
+                  assignedBlocks={assignedBlocks}
                   availableBlocks={availableBlocks}
                   bloquedBlocks={bloquedBlocks}
                   isSelected={day.code === selectedCode}

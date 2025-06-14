@@ -6,10 +6,13 @@ import org.springframework.stereotype.Service;
 
 import pucp.edu.pe.sgta.dto.EntregableAlumnoDto;
 import pucp.edu.pe.sgta.dto.EntregableDto;
+import pucp.edu.pe.sgta.dto.EntregableSubidoDto;
 import pucp.edu.pe.sgta.mapper.EntregableMapper;
 import pucp.edu.pe.sgta.model.Entregable;
 import pucp.edu.pe.sgta.model.EtapaFormativaXCiclo;
+import pucp.edu.pe.sgta.model.Usuario;
 import pucp.edu.pe.sgta.repository.EntregableRepository;
+import pucp.edu.pe.sgta.repository.UsuarioRepository;
 import pucp.edu.pe.sgta.service.inter.EntregableService;
 import pucp.edu.pe.sgta.util.EstadoActividad;
 
@@ -18,7 +21,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import pucp.edu.pe.sgta.dto.EntregableXTemaDto;
@@ -27,11 +30,11 @@ import pucp.edu.pe.sgta.dto.EntregableXTemaDto;
 public class EntregableServiceImpl implements EntregableService {
 
     private final EntregableRepository entregableRepository;
+    private final UsuarioRepository usuarioRepository;
 
-    private final Logger logger = Logger.getLogger(EntregableServiceImpl.class.getName());
-
-    public EntregableServiceImpl(EntregableRepository entregableRepository) {
+    public EntregableServiceImpl(EntregableRepository entregableRepository, UsuarioRepository usuarioRepository) {
         this.entregableRepository = entregableRepository;
+        this.usuarioRepository = usuarioRepository;
     }
 
     @Override
@@ -39,30 +42,30 @@ public class EntregableServiceImpl implements EntregableService {
         System.out.println("listarEntregablesXEtapaFormativaXCiclo");
         List<Object[]> resultados = entregableRepository.listarEntregablesXEtapaFormativaXCiclo(etapaFormativaXCicloId);
         try {
-        return resultados.stream()
-                .map(resultado -> new EntregableDto(
-                        ((Number) resultado[0]).intValue(), //id
-                        ((Number) resultado[1]).intValue(), // id etapa formativa x ciclo
-                        (String) resultado[2], // nombre
-                        (String) resultado[3], // descripcion
-                        ((Instant) resultado[4]).atOffset(ZoneOffset.UTC), // fecha inicio
-                        ((Instant) resultado[5]).atOffset(ZoneOffset.UTC), // fecha fin
-                        EstadoActividad.valueOf((String) resultado[6]), // estado
-                        (boolean) resultado[7], // es evaluable
-                        ((Number) resultado[8]).intValue(), // maximo_documentos
-                        (String) resultado[9], // extensiones_permitidas
-                        ((Number) resultado[10]).intValue() // peso_maximo_documento
-                ))
-                .collect(Collectors.toList());
+            return resultados.stream()
+                    .map(resultado -> new EntregableDto(
+                            ((Number) resultado[0]).intValue(), // id
+                            ((Number) resultado[1]).intValue(), // id etapa formativa x ciclo
+                            (String) resultado[2], // nombre
+                            (String) resultado[3], // descripcion
+                            ((Instant) resultado[4]).atOffset(ZoneOffset.UTC), // fecha inicio
+                            ((Instant) resultado[5]).atOffset(ZoneOffset.UTC), // fecha fin
+                            EstadoActividad.valueOf((String) resultado[6]), // estado
+                            (boolean) resultado[7], // es evaluable
+                            resultado[8] != null ? ((Number) resultado[8]).intValue() : null, // maximo_documentos
+                            resultado[9] != null ? (String) resultado[9] : null, // extensiones_permitidas
+                            resultado[10] != null ? ((Number) resultado[10]).intValue() : null // peso_maximo_documento
+                    ))
+                    .collect(Collectors.toList());
         } catch (Exception e) {
-            e.printStackTrace(); // ← Te mostrará en consola exactamente qué falló
             throw new RuntimeException("Error al mapear entregables", e);
         }
     }
 
     public List<EntregableXTemaDto> listarEntregablesConEnvioXEtapaFormativaXCiclo(Integer etapaId, Integer temaId) {
 
-        List<Object[]> resultados = entregableRepository.listarEntregablesConEnvioXEtapaFormativaXCiclo(etapaId, temaId);
+        List<Object[]> resultados = entregableRepository.listarEntregablesConEnvioXEtapaFormativaXCiclo(etapaId,
+                temaId);
         return resultados.stream()
                 .map(resultado -> new EntregableXTemaDto(
                         ((Number) resultado[0]).intValue(), // id
@@ -80,7 +83,6 @@ public class EntregableServiceImpl implements EntregableService {
                 ))
                 .collect(Collectors.toList());
     }
-
 
     @Transactional
     @Override
@@ -101,7 +103,7 @@ public class EntregableServiceImpl implements EntregableService {
     @Transactional
     @Override
     public void update(EntregableDto entregableDto) {
-        //Aqui se necesitan todos los atributos del DTO para actualizar el objeto
+        // Aqui se necesitan todos los atributos del DTO para actualizar el objeto
         Entregable entregableToUpdate = entregableRepository.findById(entregableDto.getId())
                 .orElseThrow(() -> new RuntimeException("Entregable no encontrado con ID: " + entregableDto.getId()));
 
@@ -120,7 +122,8 @@ public class EntregableServiceImpl implements EntregableService {
     @Transactional
     @Override
     public void delete(Integer id) {
-        //Aqui solo se necesita el id del entregable para eliminar (lógicamente) el objeto
+        // Aqui solo se necesita el id del entregable para eliminar (lógicamente) el
+        // objeto
         Entregable entregableToDelete = entregableRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Entregable no encontrado con ID: " + id));
 
@@ -143,11 +146,18 @@ public class EntregableServiceImpl implements EntregableService {
     }
 
     @Override
-    public List<EntregableAlumnoDto> listarEntregablesPorAlumno(Integer alumnoId) {
-        List<Object[]> result = entregableRepository.listarEntregablesPorAlumno(alumnoId);
+    public List<EntregableAlumnoDto> listarEntregablesPorAlumno(String alumnoId) {
+        Optional<Usuario> usuario = usuarioRepository.findByIdCognito(alumnoId);
+        if (usuario.isEmpty()) {
+            throw new RuntimeException("Usuario no encontrado con ID Cognito: " + alumnoId);
+        }
+
+        Usuario user = usuario.get();
+
+        List<Object[]> result = entregableRepository.listarEntregablesPorAlumno(user.getId());
         List<EntregableAlumnoDto> entregables = new ArrayList<>();
 
-        for(Object[] row : result) {
+        for (Object[] row : result) {
             EntregableAlumnoDto dto = new EntregableAlumnoDto();
             dto.setEntregableId((Integer) row[0]);
             dto.setEntregableNombre((String) row[1]);
@@ -166,14 +176,50 @@ public class EntregableServiceImpl implements EntregableService {
             dto.setCicloAnio((Integer) row[14]);
             dto.setCicloSemestre((String) row[15]);
             dto.setTemaId((Integer) row[16]);
-            if( row[17] != null){
+            if (row[17] != null) {
                 dto.setEntregableFechaEnvio(((Instant) row[17]).atOffset(ZoneOffset.UTC));
             } else {
                 dto.setEntregableFechaEnvio(null);
             }
+            dto.setEntregableComentario((String) row[18]);
+            dto.setEntregableXTemaId((Integer) row[19]);
             entregables.add(dto);
         }
 
         return entregables;
+    }
+
+    @Transactional
+    @Override
+    public void entregarEntregable(Integer entregableXTemaId, EntregableSubidoDto entregableDto) {
+        entregableRepository.entregarEntregable(entregableXTemaId,
+                entregableDto.getComentario(),
+                entregableDto.getEstado());
+    }
+    @Override
+    public EntregableAlumnoDto obtenerDetalleXTema(Integer entregableId, Integer temaId) {
+        List<Object[]> resultados = entregableRepository.obtenerDetalleXTema(entregableId, temaId);
+        if (resultados.isEmpty()) {
+            return null;
+        }
+
+        Object[] result = resultados.get(0); // la función retorna una sola fila
+
+        EntregableAlumnoDto dto = new EntregableAlumnoDto();
+        dto.setEntregableId(entregableId);
+        dto.setTemaId(temaId);
+        dto.setEntregableNombre((String) result[1]);           // nombre entregable
+        dto.setEntregableDescripcion((String) result[0]);      // nombre del tema
+        dto.setEntregableEstado((String) result[2]);           // estado (String)
+        dto.setEntregableFechaEnvio(
+            result[3] != null ? ((Instant) result[3]).atOffset(ZoneOffset.UTC) : null
+        );
+        dto.setEntregableFechaFin(
+            result[4] != null ? ((Instant) result[4]).atOffset(ZoneOffset.UTC) : null
+        );
+
+        // Los demás campos quedarán null o valores por defecto.
+        dto.setEntregableEsEvaluable(false); // Puedes ajustar según lo que devuelva la función
+        return dto;
     }
 }

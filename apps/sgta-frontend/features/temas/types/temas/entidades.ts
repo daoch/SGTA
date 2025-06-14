@@ -20,6 +20,8 @@ export interface Tema {
   tesistas: Tesista[] | null;
   subareas: Subareas[];
   requisitos: string; //agregado
+  area: AreaConocimiento[];
+  cantPostulaciones: number;
 }
 
 export interface Carrera {
@@ -72,6 +74,7 @@ export interface Coasesor {
   activo: boolean;
   fechaCreacion: string;
   fechaModificacion: string | null;
+  rol: string | null;
 }
 
 export interface Subareas {
@@ -127,13 +130,13 @@ export type TipoUsuario = {
 
 export interface TemaCreateLibre {
   titulo: string;
-  carrera: number;
+  carrera: { id: number };
   resumen: string;
   objetivos: string;
   metodologia: string;
   fechaLimite: string;
-  subareas: number[];
-  coasesores: number[];
+  subareas: { id: number }[];
+  coasesores: { id: number }[];
   requisitos: string;
 }
 
@@ -181,4 +184,15 @@ export interface Observacion {
   detalle: string;
   autor: string;
   fecha: string;
+}
+
+export interface TemaSimilitud {
+  tema: {
+    id: number;
+    titulo: string;
+    resumen: string;
+    fechaCreacion?: string;
+  };
+  similarityScore: number;
+  comparedFields?: string;
 }

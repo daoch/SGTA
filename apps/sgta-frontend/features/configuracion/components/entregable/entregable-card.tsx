@@ -41,25 +41,6 @@ export function EntregableCard({
                 })}
               </p>
               <p className="text-sm mt-1">{entregable.descripcion}</p>
-
-              {/* Nuevos atributos 
-              <p className="text-sm text-muted-foreground mt-1">
-                <strong>Máximo de Documentos:</strong> {entregable.maximoDocumentos}
-              </p>
-              <p className="text-sm text-muted-foreground mt-1">
-                <strong>Extensiones Permitidas:</strong> {entregable.extensionesPermitidas}
-              </p>
-              <p className="text-sm text-muted-foreground mt-1">
-                <strong>Peso Máximo por Documento:</strong> {entregable.pesoMaximoDocumento} MB
-              </p>
-              */}
-              
-              <div className="flex gap-2 mt-2">
-                {/* Evaluable */}
-                <span className="inline-flex items-center px-2 py-1 rounded-md text-xs bg-secondary text-secondary-foreground">
-                  {entregable.esEvaluable ? "Evaluable" : "No evaluable"}
-                </span>
-              </div>
             </div>
           </div>
           {/* Contenedor para alinear los botones */}
@@ -78,7 +59,7 @@ export function EntregableCard({
               variant="ghost"
               size="sm"
               className="text-red-500 hover:bg-red-50"
-              onClick={() => onDelete(entregable.id || "")}
+              onClick={() => onDelete(entregable.id ?? "")}
             >
               <Trash2 className="h-4 w-4 mr-1" />
               Eliminar

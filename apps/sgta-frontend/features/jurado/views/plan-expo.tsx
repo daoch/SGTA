@@ -1,5 +1,11 @@
-import { AreaEspecialidad, Tema, TimeSlot } from "../types/jurado.types";
+import {
+  AreaEspecialidad,
+  EstadoPlanificacion,
+  Tema,
+  TimeSlot,
+} from "../types/jurado.types";
 
+import BackButton from "@/components/ui/back-button";
 import GeneralPlanificationExpo from "@/features/jurado/components/PlanificationComponents/general-planificacion-expo";
 import {
   getEtapaFormativaIdByExposicionId,
@@ -9,21 +15,27 @@ import {
   listarJornadasExposicionSalasByExposicion,
   listarTemasCicloActualXEtapaFormativa,
 } from "@/features/jurado/services/data";
+import { isSameDay } from "date-fns";
+import { ExposicionEtapaFormativaDTO } from "../dtos/ExposicionEtapaFormativaDTO";
 import { JornadaExposicionDTO } from "../dtos/JornadExposicionDTO";
 import { transformarJornada } from "../utils/transformar-jornada";
-import BackButton from "@/components/ui/back-button";
-import { isSameDay } from "date-fns";
-import AppLoading from "@/components/loading/app-loading";
+import { CalendarOff } from "lucide-react";
 
 type Props = {
   exposicionId: number;
 };
 
 export default async function PlanExpo({ exposicionId }: Props) {
-  const etapaFormativaId =
+  const estadoPlanificacion: EstadoPlanificacion =
+    await listarEstadoPlanificacionPorExposicion(exposicionId);
+
+  const exposicionEtapaFormativaDTO: ExposicionEtapaFormativaDTO | null =
     await getEtapaFormativaIdByExposicionId(exposicionId);
 
-  const temas = await listarTemasCicloActualXEtapaFormativa(etapaFormativaId);
+  const temas = await listarTemasCicloActualXEtapaFormativa(
+    exposicionEtapaFormativaDTO?.etapaFormativaId,
+    exposicionId,
+  );
 
   const jornadasSalas =
     await listarJornadasExposicionSalasByExposicion(exposicionId);
@@ -31,32 +43,21 @@ export default async function PlanExpo({ exposicionId }: Props) {
   const areasEspecialidad: AreaEspecialidad[] =
     await listarAreasConocimientoPorExposicion(exposicionId);
 
-  console.log("Areas de especialidad:", areasEspecialidad);
-
   const daysSinfiltrar: JornadaExposicionDTO[] =
     jornadasSalas.map(transformarJornada);
 
-  const days: JornadaExposicionDTO[] = daysSinfiltrar.reduce<
-    JornadaExposicionDTO[]
-  >((acc, curr) => {
-    const yaExiste = acc.some((item) => isSameDay(item.fecha, curr.fecha));
-    return yaExiste ? acc : [...acc, curr];
-  }, []);
+  const days: JornadaExposicionDTO[] = daysSinfiltrar
+    .reduce<JornadaExposicionDTO[]>((acc, curr) => {
+      const yaExiste = acc.some((item) => isSameDay(item.fecha, curr.fecha));
+      return yaExiste ? acc : [...acc, curr];
+    }, [])
+    .sort((a, b) => a.fecha.getTime() - b.fecha.getTime());
 
   const bloquesList = await listarBloquesHorariosExposicion(exposicionId);
 
   const bloquesOrdenados = bloquesList.sort((a: TimeSlot, b: TimeSlot) => {
-    const parse = (key: string) => {
-      const [d, m, y] = key.split("|")[0].split("-").map(Number);
-      const [h, min] = key.split("|")[1].split(":").map(Number);
-      return new Date(y, m - 1, d, h, min);
-    };
-
-    return parse(a.key).getTime() - parse(b.key).getTime();
+    return a.key.localeCompare(b.key);
   });
-
-  const estadoPlanificacion =
-    await listarEstadoPlanificacionPorExposicion(exposicionId);
 
   const temasAsignados: Record<string, Tema> = bloquesList.reduce(
     (acc: Record<string, Tema>, bloque: TimeSlot) => {
@@ -76,23 +77,40 @@ export default async function PlanExpo({ exposicionId }: Props) {
   );
   return (
     <div className="h-fit w-full flex flex-col gap-4">
-      <h1 className="text-3xl font-bold text-primary">
-        <BackButton backUrl="/coordinador/exposiciones" />
-        <span className="ml-3">Planificador de exposiciones</span>
-      </h1>
-      {estadoPlanificacion ? (
-        <GeneralPlanificationExpo
-          temas={temas}
-          temasSinAsignar={temasSinAsignar}
-          temasAsignados={temasAsignados}
-          areasEspecialidad={areasEspecialidad}
-          days={days}
-          bloques={bloquesOrdenados}
-          exposicionId={exposicionId}
-          estado={estadoPlanificacion}
-        />
+      {estadoPlanificacion && estadoPlanificacion.nombre != "Sin planificar" ? (
+        <>
+          <div className="text-3xl font-bold flex gap-4 items-center justify-between">
+            <div className="flex gap-4 items-center">
+              <BackButton backUrl="/coordinador/exposiciones" />
+              <h1 className="text-2xl font-bold">
+                {"Planificador de exposiciones"}
+              </h1>
+            </div>
+            <h2 className="text-xl font-bold">
+              {`${exposicionEtapaFormativaDTO?.nombreExposicion} / ${exposicionEtapaFormativaDTO?.nombreEtapaFormativa}`}{" "}
+            </h2>
+          </div>
+          <GeneralPlanificationExpo
+            temas={temas}
+            temasSinAsignar={temasSinAsignar}
+            temasAsignados={temasAsignados}
+            areasEspecialidad={areasEspecialidad}
+            days={days}
+            bloques={bloquesOrdenados}
+            exposicionId={exposicionId}
+            estado={estadoPlanificacion}
+          />
+        </>
       ) : (
-        <AppLoading />
+        <div className="flex flex-col items-center justify-center text-gray-500">
+          <CalendarOff className="w-16 h-16 mb-4" />
+          <p className="text-base font-medium">Planificacion no disponible</p>
+          <div className="mt-4">
+            <BackButton backUrl="/coordinador/exposiciones">
+              Regresar
+            </BackButton>
+          </div>
+        </div>
       )}
     </div>
   );

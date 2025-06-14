@@ -23,12 +23,14 @@ import { ExposicionEstado } from "../types/exposicion.types";
 import { actualizarEstadoControlExposicion } from "../services/jurado-service";
 
 interface ExposicionCardProps {
+  id_jurado: string | null;
   exposicion: ExposicionJurado;
   onClick?: (exposicion: ExposicionJurado) => void;
   onStatusChange?: () => Promise<void>;
 }
 
 export function ExposicionCard({
+  id_jurado,
   exposicion,
   onClick,
   onStatusChange,
@@ -73,7 +75,7 @@ export function ExposicionCard({
     if (
       estadoNormalizado === "sin_programar" ||
       estadoNormalizado === "esperando_respuesta" ||
-      estadoNormalizado === "esperando_aprobacion" ||
+      estadoNormalizado === "esperando_aprobación" ||
       estadoNormalizado === "programada" ||
       estadoNormalizado === "completada" ||
       estadoNormalizado === "calificada"
@@ -90,9 +92,9 @@ export function ExposicionCard({
       return "esperando_respuesta";
     if (
       estadoNormalizado.includes("esperando") &&
-      estadoNormalizado.includes("aprobacion")
+      estadoNormalizado.includes("aprobación")
     )
-      return "esperando_aprobacion";
+      return "esperando_aprobación";
     if (estadoNormalizado.includes("completa")) return "completada";
     if (estadoNormalizado.includes("califica")) return "calificada";
 
@@ -105,11 +107,10 @@ export function ExposicionCard({
     setIsLoading(true);
 
     try {
-      const idJurado = 6;
       // Llamar al endpoint para actualizar el estado
       await actualizarEstadoControlExposicion(
         exposicion.id_exposicion,
-        idJurado,
+        id_jurado!,
         "ACEPTADO",
       );
 
@@ -132,49 +133,16 @@ export function ExposicionCard({
   };
 
   // Función para solicitar reprogramación
-  const handleSolicitarReprogramacion = async (e: React.MouseEvent) => {
-    //e.stopPropagation();
-
-    setIsLoading(true);
-
-    try {
-      // Cambiar el estado para mostrar "Reprogramación Solicitada"
-
-      const idJurado = 6;
-
-      await actualizarEstadoControlExposicion(
-        exposicion.id_exposicion,
-        idJurado,
-        "RECHAZADO",
-      );
-      if (onStatusChange) {
-        await onStatusChange();
-      }
-
-      setIsReprogramacionSolicitada(true);
-
-      setEstadoControlActual("RECHAZADO");
-      // Mostrar mensaje de éxito
-      toast.success("Se ha solicitado la reprogramación de la exposición.");
-    } catch (error) {
-      console.error("Error al solicitar reprogramación:", error);
-      toast.error(
-        "No se pudo solicitar la reprogramación. Inténtalo de nuevo.",
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  
 
   const handleConfirmReprogramacion = async () => {
     setIsLoading(true);
 
     try {
-      const idJurado = 6;
 
       await actualizarEstadoControlExposicion(
         exposicion.id_exposicion,
-        idJurado,
+        id_jurado!,
         "RECHAZADO",
       );
 
@@ -207,11 +175,11 @@ export function ExposicionCard({
 
     try {
       // Puedes agregar aquí una llamada API específica para registrar la no disponibilidad
-      const idJurado = 6;
+  
 
       await actualizarEstadoControlExposicion(
         exposicion.id_exposicion,
-        idJurado,
+        id_jurado!,
         "RECHAZADO",
       );
 
@@ -250,7 +218,7 @@ export function ExposicionCard({
   const mostrarEsperandoAprobacion = () => {
     const estado = mapEstadoToExposicionEstado(estadoActual);
     return (
-      ((estado === "esperando_aprobacion" &&
+      ((estado === "esperando_aprobación" &&
         estadoControlActual !== "RECHAZADO") ||
         (estado === "esperando_respuesta" &&
           estadoControlActual === "ACEPTADO")) &&
@@ -259,12 +227,17 @@ export function ExposicionCard({
   };
 
   const mostrarReprogramacionSolicitada = () => {
-    return isReprogramacionSolicitada || estadoControlActual === "RECHAZADO";
+    return (isReprogramacionSolicitada || estadoControlActual === "RECHAZADO") && 
+         mapEstadoToExposicionEstado(exposicion.estado) !== "programada";
   };
 
   const determinarEstadoMostrado = (): ExposicionEstado => {
     // Obtener el estado base normalizado
     const estadoBase = mapEstadoToExposicionEstado(exposicion.estado);
+
+    if (estadoBase === "completada" && exposicion.criterios_calificados === true) {
+      return "calificada";
+    }
 
     // Si el estado base es "esperando_respuesta" pero el estado_control es "ACEPTADO" o "RECHAZADO",
     // mostrar como "esperando_aprobacion"
@@ -273,7 +246,7 @@ export function ExposicionCard({
       (estadoControlActual === "ACEPTADO" ||
         estadoControlActual === "RECHAZADO")
     ) {
-      return "esperando_aprobacion";
+      return "esperando_aprobación";
     }
 
     // En cualquier otro caso, mostrar el estado base
@@ -282,24 +255,27 @@ export function ExposicionCard({
 
   return (
     <div
-      className={`bg-gray-50 rounded-lg shadow-sm border p-5 flex flex-col md:flex-row gap-10
-        ${
-          mostrarReprogramacionSolicitada()
-            ? "bg-red-50 border-red-200"
-            : "bg-gray-50"
-        }`}
-      onClick={handleClick}
+    className={`rounded-lg shadow-sm border p-5 flex flex-col md:flex-row gap-10
+      ${
+        mostrarReprogramacionSolicitada() && 
+        !(
+          mapEstadoToExposicionEstado(exposicion.estado) === "programada" ||
+          mapEstadoToExposicionEstado(exposicion.estado) === "completada" ||
+          mapEstadoToExposicionEstado(exposicion.estado) === "calificada"
+        )
+          ? "bg-red-50 border-red-200"
+          : "bg-gray-50"
+      }`}
+    onClick={handleClick}
     >
       {/* HORA, FECHA Y SALA */}
       <div className="flex flex-col items-center space-y-2 md:min-w-[180px] justify-center">
         <div className="text-4xl font-semibold">
-          {format(exposicion.fechahora, "HH:mm 'hrs'")}
+          {format(exposicion.fechahora, "HH:mm")} hrs
         </div>
         <div className="flex items-center gap-1 mt-1">
           <span>
-            {format(exposicion.fechahora, "d 'de' MMMM 'del' yyyy", {
-              locale: es,
-            })}
+            {format(exposicion.fechahora, "d")} de {format(exposicion.fechahora, "MMMM", { locale: es })} del {format(exposicion.fechahora, "yyyy")}
           </span>
         </div>
         <div className="flex items-center gap-1">
@@ -369,7 +345,7 @@ export function ExposicionCard({
                   disabled={isLoading}
                 >
                   {/*<Link href="">Confirmar Asistencia</Link>*/}
-                  {isLoading ? "Procesando..." : "Confirmar Asistencia"}
+                  {isLoading ? "Procesando..." : "Confirmo Asistencia"}
                 </Button>
               </>
             )}
@@ -380,26 +356,33 @@ export function ExposicionCard({
                   onClick={handleClickSolicitarReprogramacion}
                   disabled={isLoading}
                 >
-                  Solicitar Reprogramación
+                  Solicito Reprogramación
                 </Button>
 
                 <Button
                   // variant="outline"
                   disabled
                 >
-                  Esperando confirmacion Oficial
+                  Esperando confirmación Oficial
                 </Button>
               </>
             )}
 
-            {mostrarReprogramacionSolicitada() && (
+            {mostrarReprogramacionSolicitada() && 
+            !(
+                mapEstadoToExposicionEstado(exposicion.estado) === "programada" ||
+                mapEstadoToExposicionEstado(exposicion.estado) === "completada" ||
+                mapEstadoToExposicionEstado(exposicion.estado) === "calificada"
+            ) && (
               <Button variant="outline" disabled>
                 Reprogramación Solicitada
               </Button>
-            )}
+            )
+            }
 
-            {mapEstadoToExposicionEstado(exposicion.estado) === "programada" &&
-              isBefore(new Date(exposicion.fechahora), new Date()) && (
+            {mapEstadoToExposicionEstado(exposicion.estado) === "calificada" &&
+            // isBefore(new Date(exposicion.fechahora), new Date()) && 
+              (
                 <Button
                   asChild
                   onClick={(e) => {
@@ -413,6 +396,21 @@ export function ExposicionCard({
                   </Link>
                 </Button>
               )}
+
+            {mapEstadoToExposicionEstado(exposicion.estado) === "completada" && (
+            <Button
+              asChild
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+            >
+              <Link
+                href={`/jurado/exposiciones/calificar/${exposicion.id_exposicion}`}
+              >
+                Calificar
+              </Link>
+            </Button>
+          )}
           </div>
         </div>
       </div>

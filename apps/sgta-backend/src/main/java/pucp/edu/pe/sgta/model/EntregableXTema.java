@@ -7,9 +7,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import pucp.edu.pe.sgta.util.EstadoEntrega;
 
-import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.math.BigDecimal;
 
 @Entity
 @Getter
@@ -40,9 +40,12 @@ public class EntregableXTema {
 
     @Column(name = "estado", nullable = false)
     private String estadoStr = "no_enviado";
-    
+
     @Transient
     private EstadoEntrega estado;
+
+    @Column(name = "nota_entregable")
+    private BigDecimal notaEntregable;
 
     @Column(name = "activo", nullable = false)
     private Boolean activo = true;
@@ -52,22 +55,23 @@ public class EntregableXTema {
 
     @Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaModificacion;
-    
+
     @OneToMany(mappedBy = "entregableXTema", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RevisionCriterioEntregable> revisionesCriterio;
-    
+
     @PostLoad
     void fillTransient() {
         if (estadoStr != null) {
             try {
                 this.estado = EstadoEntrega.valueOf(estadoStr);
             } catch (IllegalArgumentException e) {
-                // Manejar el caso donde el valor en la base de datos no coincide con la enumeración
+                // Manejar el caso donde el valor en la base de datos no coincide con la
+                // enumeración
                 this.estado = EstadoEntrega.no_enviado;
             }
         }
     }
-    
+
     @PrePersist
     @PreUpdate
     void fillPersistent() {
@@ -75,15 +79,15 @@ public class EntregableXTema {
             this.estadoStr = estado.name();
         }
     }
-    
+
     public EstadoEntrega getEstado() {
         return this.estado;
     }
-    
+
     public void setEstado(EstadoEntrega estado) {
         this.estado = estado;
         if (estado != null) {
             this.estadoStr = estado.name();
         }
     }
-} 
+}

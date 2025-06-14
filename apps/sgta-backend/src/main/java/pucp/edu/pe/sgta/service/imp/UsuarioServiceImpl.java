@@ -1,8 +1,14 @@
 package pucp.edu.pe.sgta.service.imp;
 
+import org.apache.coyote.BadRequestException;
+import org.apache.http.HttpException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import pucp.edu.pe.sgta.dto.*;
+import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.server.ResponseStatusException;
 import pucp.edu.pe.sgta.dto.asesores.InfoAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.asesores.InfoSubAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
@@ -13,11 +19,8 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.web.multipart.MultipartFile;
 import pucp.edu.pe.sgta.dto.asesores.FiltrosDirectorioAsesores;
 import pucp.edu.pe.sgta.dto.asesores.UsuarioFotoDto;
-import pucp.edu.pe.sgta.dto.AlumnoTemaDto;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import pucp.edu.pe.sgta.dto.TipoUsuarioDto;
-import pucp.edu.pe.sgta.dto.UsuarioDto;
 import pucp.edu.pe.sgta.mapper.InfoAreaConocimientoMapper;
 import pucp.edu.pe.sgta.mapper.InfoSubAreaConocimientoMapper;
 import pucp.edu.pe.sgta.mapper.PerfilAsesorMapper;
@@ -27,81 +30,163 @@ import pucp.edu.pe.sgta.repository.*;
 import pucp.edu.pe.sgta.service.inter.CognitoService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
 import pucp.edu.pe.sgta.util.RolEnum;
+import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
 import pucp.edu.pe.sgta.util.Utils;
 
 import java.io.IOException;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.util.List;
-import java.util.Optional;
 import java.util.logging.Logger;
-import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
-import java.util.Collections;
 
 @Service
 public class UsuarioServiceImpl implements UsuarioService {
 
-	private final UsuarioRepository usuarioRepository;
-	private final UsuarioXSubAreaConocimientoRepository usuarioXSubAreaConocimientoRepository;
-	private final SubAreaConocimientoRepository subAreaConocimientoRepository;
-	private final AreaConocimientoRepository areaConocimientoRepository;
-	private final UsuarioXAreaConocimientoRepository usuarioXAreaConocimientoRepository;
-	private final CarreraRepository carreraRepository;
-	private final UsuarioXTemaRepository usuarioXTemaRepository;
-	private final TipoUsuarioRepository tipoUsuarioRepository;
-	private final CognitoService cognitoService;
-	private final Logger logger = Logger.getLogger(TemaServiceImpl.class.getName());
+    private final UsuarioRepository usuarioRepository;
+    private final UsuarioXSubAreaConocimientoRepository usuarioXSubAreaConocimientoRepository;
+    private final SubAreaConocimientoRepository subAreaConocimientoRepository;
+    private final AreaConocimientoRepository areaConocimientoRepository;
+    private final UsuarioXAreaConocimientoRepository usuarioXAreaConocimientoRepository;
+    private final CarreraRepository carreraRepository;
+    private final UsuarioXTemaRepository usuarioXTemaRepository;
+    private final TipoUsuarioRepository tipoUsuarioRepository;
+    private final CognitoService cognitoService;
+    private final Logger logger = Logger.getLogger(TemaServiceImpl.class.getName());
 
-	@Autowired
+    @Autowired
     private RolRepository rolRepository;
 
-	@PersistenceContext
+    @PersistenceContext
     private EntityManager em;
+    @Autowired
+    private UsuarioXRolRepository usuarioXRolRepository;
+    @Autowired
+    private UsuarioXCarreraRepository usuarioXCarreraRepository;
+    @Autowired
+    private TipoDedicacionRepository tipoDedicacionRepository;
 
-	public UsuarioServiceImpl(UsuarioRepository usuarioRepository
-							, UsuarioXSubAreaConocimientoRepository usuarioXSubAreaConocimientoRepository
-							, SubAreaConocimientoRepository subAreaConocimientoRepository
-							, AreaConocimientoRepository areaConocimientoRepository
-							, UsuarioXAreaConocimientoRepository usuarioXAreaConocimientoRepository, CarreraRepository carreraRepository
-							,UsuarioXTemaRepository usuarioXTemaRepository
-							, TipoUsuarioRepository tipoUsuarioRepository
-							, CognitoService cognitoService) {
-		this.usuarioRepository = usuarioRepository;
-		this.usuarioXSubAreaConocimientoRepository = usuarioXSubAreaConocimientoRepository;
-		this.subAreaConocimientoRepository = subAreaConocimientoRepository;
-		this.areaConocimientoRepository = areaConocimientoRepository;
-		this.usuarioXAreaConocimientoRepository = usuarioXAreaConocimientoRepository;
-		this.carreraRepository = carreraRepository;
-		this.usuarioXTemaRepository = usuarioXTemaRepository;
-		this.tipoUsuarioRepository = tipoUsuarioRepository;
-		this.cognitoService = cognitoService;
-	}
+    public UsuarioServiceImpl(UsuarioRepository usuarioRepository,
+                              UsuarioXSubAreaConocimientoRepository usuarioXSubAreaConocimientoRepository,
+                              SubAreaConocimientoRepository subAreaConocimientoRepository,
+                              AreaConocimientoRepository areaConocimientoRepository,
+                              UsuarioXAreaConocimientoRepository usuarioXAreaConocimientoRepository, CarreraRepository carreraRepository,
+                              UsuarioXTemaRepository usuarioXTemaRepository, TipoUsuarioRepository tipoUsuarioRepository,
+                              CognitoService cognitoService) {
+        this.usuarioRepository = usuarioRepository;
+        this.usuarioXSubAreaConocimientoRepository = usuarioXSubAreaConocimientoRepository;
+        this.subAreaConocimientoRepository = subAreaConocimientoRepository;
+        this.areaConocimientoRepository = areaConocimientoRepository;
+        this.usuarioXAreaConocimientoRepository = usuarioXAreaConocimientoRepository;
+        this.carreraRepository = carreraRepository;
+        this.usuarioXTemaRepository = usuarioXTemaRepository;
+        this.tipoUsuarioRepository = tipoUsuarioRepository;
+        this.cognitoService = cognitoService;
+    }
 
-	@Override
-	public void createUsuario(UsuarioDto usuarioDto) {
-		usuarioDto.setId(null);
+    @Override
+    @Transactional
+    public void createUsuario(UsuarioRegistroDto dto) {
+        Optional<TipoUsuario> tipoUsuarioOpt = buscarTipoUsuarioPorNombre(dto.getTipoUsuarioNombre());
+        if (tipoUsuarioOpt.isEmpty()) {
+            throw new IllegalArgumentException("Tipo de usuario no válido: " + dto.getTipoUsuarioNombre());
+        }
+        TipoUsuario tipoUsuario = tipoUsuarioOpt.get();
+        //armando al usario:
+        Usuario usuario = new Usuario();
+        usuario.setTipoUsuario(tipoUsuario);
+        usuario.setCodigoPucp(dto.getCodigoPucp());
+        usuario.setNombres(dto.getNombres());
+        usuario.setPrimerApellido(dto.getPrimerApellido());
+        usuario.setSegundoApellido(dto.getSegundoApellido());
+        usuario.setCorreoElectronico(dto.getCorreoElectronico());
+        usuario.setContrasena("Temp"); // no se usa igual xdd
+        usuario.setActivo(true);
+        if ("profesor".equalsIgnoreCase(tipoUsuario.getNombre()) && dto.getTipoDedicacionId() != null) {
+            TipoDedicacion dedicacion = tipoDedicacionRepository.findById(dto.getTipoDedicacionId())
+                    .orElseThrow(() -> new IllegalArgumentException("Tipo de dedicación no válido"));
+            usuario.setTipoDedicacion(dedicacion);
+        }
+        String nombreCompleto = dto.getNombres() + " " + dto.getPrimerApellido() + " " + dto.getSegundoApellido();
+        try {
+            //asgnando grupos de cognito
+            List<String> gruposCognito = new ArrayList<>();
+            if ("profesor".equalsIgnoreCase(tipoUsuario.getNombre())) {
+                if (dto.getCarreras() != null) {
+                    for (UsuarioRegistroDto.CarreraAsignadaDto carreraDto : dto.getCarreras()) {
+                        if (Boolean.TRUE.equals(carreraDto.getEsCoordinador())) {
+                            gruposCognito.add("coordinador");
+                            break; // solo puede ser coordi de una carrera
+                        }
+                    }
+                }
+                if (dto.getRolesIds() != null) {
+                    for (Integer idRol : dto.getRolesIds()) {
+                        Optional<Rol> rolOpt = rolRepository.findById(idRol);
+                        rolOpt.ifPresent(rol -> gruposCognito.add(rol.getNombre().toLowerCase()));
+                    }
+                }
+            } else {
+                gruposCognito.add(tipoUsuario.getNombre().toLowerCase());
+            }
+            // registro en cgnito, primer grupo como base
+            String grupoPrincipal = gruposCognito.isEmpty() ? tipoUsuario.getNombre().toLowerCase() : gruposCognito.get(0);
+            String idCognito = cognitoService.registrarUsuarioEnCognito(dto.getCorreoElectronico(), nombreCompleto, grupoPrincipal);
+            usuario.setIdCognito(idCognito);
+            // registrar en bd
+            usuarioRepository.save(usuario);
+            // guardar usuario_carreras
+            if ("profesor".equalsIgnoreCase(tipoUsuario.getNombre()) && dto.getCarreras() != null) {
+                for (UsuarioRegistroDto.CarreraAsignadaDto carreraDto : dto.getCarreras()) {
+                    Carrera carrera = carreraRepository.findById(carreraDto.getCarreraId())
+                            .orElseThrow(() -> new IllegalArgumentException("Carrera no válida con ID: " + carreraDto.getCarreraId()));
+                    UsuarioXCarrera relacion = new UsuarioXCarrera();
+                    relacion.setUsuario(usuario);
+                    relacion.setCarrera(carrera);
+                    relacion.setActivo(true);
+                    relacion.setEsCoordinador(Boolean.TRUE.equals(carreraDto.getEsCoordinador()));
+                    usuarioXCarreraRepository.save(relacion);
+                    if (Boolean.TRUE.equals(carreraDto.getEsCoordinador()) && !"coordinador".equals(grupoPrincipal)) {
+                        cognitoService.agregarUsuarioAGrupo(idCognito, "coordinador");
+                    }
+                }
+            }
+            // guardar usuario_rol y grupos adicionales en cognito si es profesor
+            if ("profesor".equalsIgnoreCase(tipoUsuario.getNombre()) && dto.getRolesIds() != null) {
+                for (Integer idRol : dto.getRolesIds()) {
+                    Optional<Rol> rolOpt = rolRepository.findById(idRol);
+                    if (rolOpt.isPresent()) {
+                        Rol rol = rolOpt.get();
+                        UsuarioXRol ur = new UsuarioXRol();
+                        ur.setUsuario(usuario);
+                        ur.setRol(rol);
+                        ur.setActivo(true);
+                        usuarioXRolRepository.save(ur);
+                        // el grupo principal ya se registró, asignar demás gru0os de cognito
+                        if (!rol.getNombre().equalsIgnoreCase(grupoPrincipal)) {
+                            cognitoService.agregarUsuarioAGrupo(idCognito, rol.getNombre().toLowerCase());
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Error al registrar el usuario: " + e.getMessage(), e);
+        }
+    }
 
-		Usuario usuario = UsuarioMapper.toEntity(usuarioDto);
-
-		usuarioRepository.save(usuario);
-	}
-
-	@Override
-	public UsuarioDto findUsuarioById(Integer id) {
-		Usuario usuario = usuarioRepository.findById(id).orElse(null);
-		if (usuario != null) {
-			return UsuarioMapper.toDto(usuario);
-		}
-		return null;
-	}
+    @Override
+    public UsuarioDto findUsuarioById(Integer id) {
+        Usuario usuario = usuarioRepository.findById(id).orElse(null);
+        if (usuario != null) {
+            return UsuarioMapper.toDto(usuario);
+        }
+        return null;
+    }
 
     @Override
     public Integer getIdByCorreo(String correoUsuario) {
@@ -112,189 +197,420 @@ public class UsuarioServiceImpl implements UsuarioService {
         throw new NoSuchElementException("Usuario no encontrado con correo: " + correoUsuario);
     }
 
-	@Override
-	public List<UsuarioDto> findAllUsuarios() {
-		return List.of();
-	}
+    @Override
+    public List<UsuarioDto> findAllUsuarios() {
 
-	@Override
-	public void updateUsuario(UsuarioDto usuarioDto) {
+        return usuarioRepository.findAll()
+                .stream()
+                .map(UsuarioMapper::toDto)
+                .collect(Collectors.toList());
 
-	}
+    }
 
-	@Override
-	public void deleteUsuario(Integer id) {
+    @Override
+    @Transactional
+    public void updateUsuario(Integer id, UsuarioRegistroDto dto) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado con ID: " + id));
+        // info actual
+        String tipoActual = usuario.getTipoUsuario().getNombre().toLowerCase();
+        String correoAnterior = usuario.getCorreoElectronico();
+        String nombreAnterior = usuario.getNombres() + " " + usuario.getPrimerApellido() + " " + usuario.getSegundoApellido();
+        // dato a actualizars
+        String tipoNuevo = dto.getTipoUsuarioNombre().toLowerCase();
+        String correoNuevo = dto.getCorreoElectronico();
+        String nombreNuevo = dto.getNombres() + " " + dto.getPrimerApellido() + " " + dto.getSegundoApellido();
+        boolean tipoCambio = !tipoActual.equalsIgnoreCase(tipoNuevo);
+        boolean correoCambio = !correoAnterior.equalsIgnoreCase(correoNuevo);
+        boolean nombreCambio = !nombreAnterior.equalsIgnoreCase(nombreNuevo);
+        // armando usuario para actualizar
+        usuario.setCodigoPucp(dto.getCodigoPucp());
+        usuario.setNombres(dto.getNombres());
+        usuario.setPrimerApellido(dto.getPrimerApellido());
+        usuario.setSegundoApellido(dto.getSegundoApellido());
+        usuario.setCorreoElectronico(dto.getCorreoElectronico());
+        usuario.setFechaModificacion(OffsetDateTime.now());
+        // actualizar tipo de usuario si cambió/ limpiar de relaciones y grupos
+        if (tipoCambio) {
+            TipoUsuario nuevoTipo = buscarTipoUsuarioPorNombre(dto.getTipoUsuarioNombre())
+                    .orElseThrow(() -> new IllegalArgumentException("Tipo de usuario no válido: " + dto.getTipoUsuarioNombre()));
+            usuario.setTipoUsuario(nuevoTipo);
+            limpiarRelacionesYGruposSegunTipo(usuario, tipoActual);
+            usuarioXCarreraRepository.deleteByUsuarioId(usuario.getId());
+            usuarioXRolRepository.deleteByUsuarioId(usuario.getId());
+        }
+        // congito y BD: roles y coordinador en caso de q sea profe
+        if (tipoNuevo.equals("profesor")) {
+            if (dto.getTipoDedicacionId() != null) {
+                tipoDedicacionRepository.findById(dto.getTipoDedicacionId())
+                        .ifPresent(usuario::setTipoDedicacion);
+            }
+            procesarRolesYCoordinador(usuario, dto);
+        } else {
+            usuario.setTipoDedicacion(null);
+            // cambiar grupo principal en caso de alumno o admin
+            if (usuario.getIdCognito() != null && tipoCambio) {
+                cognitoService.agregarUsuarioAGrupo(usuario.getIdCognito(), tipoNuevo);
+                cognitoService.eliminarUsuarioDeGrupo(usuario.getIdCognito(), tipoActual);
+            }
+            procesarCarrerasParaNoProfesores(usuario, dto);
+        }
+        //datos de conigot
+        if (usuario.getIdCognito() != null && (correoCambio || nombreCambio)) {
+            cognitoService.actualizarAtributosEnCognito(
+                    usuario.getIdCognito(),
+                    correoCambio ? correoNuevo : null,
+                    nombreCambio ? nombreNuevo : null
+            );
+        }
+        usuarioRepository.save(usuario);
+    }
 
-	}
+    private void procesarCarrerasParaNoProfesores(Usuario usuario, UsuarioRegistroDto dto) {
+        Integer userId = usuario.getId();
+        // limpiar relaciones de carreras y grupos
+        usuarioXCarreraRepository.deleteByUsuarioId(userId);
+        if (dto.getCarreras() != null) {
+            for (UsuarioRegistroDto.CarreraAsignadaDto carreraDto : dto.getCarreras()) {
+                Optional<Carrera> carreraOpt = carreraRepository.findById(carreraDto.getCarreraId());
+                if (carreraOpt.isEmpty()) {
+                    System.err.printf("Carrera con ID %d no encontrada, omitida.%n", carreraDto.getCarreraId());
+                    continue;
+                }
+                UsuarioXCarrera nuevaRelacion = new UsuarioXCarrera();
+                nuevaRelacion.setUsuario(usuario);
+                nuevaRelacion.setCarrera(carreraOpt.get());
+                nuevaRelacion.setActivo(true);
+                nuevaRelacion.setEsCoordinador(false); //esto porque no es profe
+                usuarioXCarreraRepository.save(nuevaRelacion);
+            }
+        }
+    }
 
-	@Override
-	public PerfilAsesorDto getPerfilAsesor(Integer id){
-		//Primero los datos básicos de la entidad
-		PerfilAsesorDto tmp;
-		Usuario usuario = usuarioRepository.findById(id).orElse(null);
-		if (usuario == null) {
-			throw new RuntimeException("Usuario no encontrado con ID: " + id);
-		}
-		tmp = PerfilAsesorMapper.toDto(usuario);
-		//Encontramos el nombre de la carrera del Asesor
-		List<String> carreras = new ArrayList<>();
-		List<Object[]> resultadoQuery = carreraRepository.listarCarrerasPorIdUsusario(id);
-		for (Object[] o : resultadoQuery) {
-			carreras.add((String) o[3]);
-		}
+    private void limpiarRelacionesYGruposSegunTipo(Usuario usuario, String tipoAnterior) {
+        Integer userId = usuario.getId();
+        String idCognito = usuario.getIdCognito();
+        if ("profesor".equalsIgnoreCase(tipoAnterior)) {
+            // desactiar relaciones de carrerar y roles
+            List<UsuarioXCarrera> carreras = usuarioXCarreraRepository.findByUsuarioId(userId);
+            for (UsuarioXCarrera uc : carreras) {
+                uc.setActivo(false);
+                usuarioXCarreraRepository.save(uc);
+                if (Boolean.TRUE.equals(uc.getEsCoordinador()) && idCognito != null) {
+                    cognitoService.eliminarUsuarioDeGrupo(idCognito, "coordinador");
+                }
+            }
+            List<UsuarioXRol> roles = usuarioXRolRepository.findByUsuarioId(userId);
+            for (UsuarioXRol ur : roles) {
+                ur.setActivo(false);
+                usuarioXRolRepository.save(ur);
+                if (idCognito != null) {
+                    String grupoRol = ur.getRol().getNombre().toLowerCase();
+                    cognitoService.eliminarUsuarioDeGrupo(idCognito, grupoRol);
+                }
+            }
+        }
+        if (!"profesor".equalsIgnoreCase(tipoAnterior) && idCognito != null) {
+            //era alumno o admin, quitar de grupo
+            cognitoService.eliminarUsuarioDeGrupo(idCognito, tipoAnterior.toLowerCase());
+        }
+    }
 
-		tmp.setEspecialidad(String.join(" - ",carreras));
-		//Luego la consulta de las áreas de conocimiento
-		List<InfoAreaConocimientoDto> areas;
-		List<Integer> idAreas = usuarioXAreaConocimientoRepository.findAllByUsuario_IdAndActivoIsTrue(id).
-				stream()
-				.map(UsuarioXAreaConocimiento::getAreaConocimiento)
-				.map(AreaConocimiento::getId)
-				.toList();
-		areas = areaConocimientoRepository.findAllByIdIn(idAreas)
-				.stream()
-				.map(InfoAreaConocimientoMapper::toDto)
-				.toList();
-		//Luego la consulta de las subareas de conocimiento
-		List<InfoSubAreaConocimientoDto> subareas;
-		List<Integer> idSubareas = usuarioXSubAreaConocimientoRepository.findAllByUsuario_IdAndActivoIsTrue(id).
-									stream()
-									.map(UsuarioXSubAreaConocimiento::getSubAreaConocimiento)
-									.map(SubAreaConocimiento::getId)
-									.toList();
-		subareas = subAreaConocimientoRepository.findAllByIdIn(idSubareas)
-				.stream()
-				.map(InfoSubAreaConocimientoMapper::toDto)
-				.toList();
+    private void procesarRolesYCoordinador(Usuario usuario, UsuarioRegistroDto dto) {
+        Integer userId = usuario.getId();
+        String idCognito = usuario.getIdCognito();
+        //roles anteriores para quitarlos del grupo
+        List<UsuarioXCarrera> relacionesAnterioresCarrera = usuarioXCarreraRepository.findByUsuarioId(userId);
+        List<UsuarioXRol> relacionesAnterioresRol = usuarioXRolRepository.findByUsuarioId(userId);
+        //eliminar si era coordinador de cognito
+        if (idCognito != null) {
+            for (UsuarioXCarrera uc : relacionesAnterioresCarrera) {
+                if (Boolean.TRUE.equals(uc.getEsCoordinador())) {
+                    cognitoService.eliminarUsuarioDeGrupo(idCognito, "coordinador");
+                }
+            }
+            for (UsuarioXRol ur : relacionesAnterioresRol) {
+                String nombreGrupo = ur.getRol().getNombre().toLowerCase();
+                cognitoService.eliminarUsuarioDeGrupo(idCognito, nombreGrupo);
+            }
+        }
+        //simplemente XDDD
+        usuarioXCarreraRepository.deleteByUsuarioId(userId);
+        usuarioXRolRepository.deleteByUsuarioId(userId);
+        //guardar nuevas carreras
+        if (dto.getCarreras() != null) {
+            for (UsuarioRegistroDto.CarreraAsignadaDto carreraDto : dto.getCarreras()) {
+                Optional<Carrera> carreraOpt = carreraRepository.findById(carreraDto.getCarreraId());
+                if (carreraOpt.isEmpty()) continue;
+                UsuarioXCarrera nuevaRelacion = new UsuarioXCarrera();
+                nuevaRelacion.setUsuario(usuario);
+                nuevaRelacion.setCarrera(carreraOpt.get());
+                nuevaRelacion.setActivo(true);
+                nuevaRelacion.setEsCoordinador(Boolean.TRUE.equals(carreraDto.getEsCoordinador()));
+                usuarioXCarreraRepository.save(nuevaRelacion);
+                if (idCognito != null && Boolean.TRUE.equals(carreraDto.getEsCoordinador())) {
+                    cognitoService.agregarUsuarioAGrupo(idCognito, "coordinador");
+                }
+            }
+        }
+        //gaurdar nuevos roles
+        if (dto.getRolesIds() != null) {
+            for (Integer idRolNuevo : dto.getRolesIds()) {
+                Rol rol = rolRepository.findById(idRolNuevo)
+                        .orElseThrow(() -> new IllegalArgumentException("Rol no válido con ID: " + idRolNuevo));
+                UsuarioXRol nuevaRelacionRol = new UsuarioXRol();
+                nuevaRelacionRol.setUsuario(usuario);
+                nuevaRelacionRol.setRol(rol);
+                nuevaRelacionRol.setActivo(true);
+                usuarioXRolRepository.save(nuevaRelacionRol);
+                if (idCognito != null) {
+                    cognitoService.agregarUsuarioAGrupo(idCognito, rol.getNombre().toLowerCase());
+                }
+            }
+        }
+    }
 
-		tmp.setAreasTematicas(areas);
-		tmp.setTemasIntereses(subareas);
-		//TODO: El numero máximo de estudiantes
-		//TODO: La cantidad de alumnos por asesor
-		Integer cantTesistas ;
-		List<Object[]> tesistas =usuarioXTemaRepository.listarNumeroTesistasAsesor(id);//ASEGURADO sale 1 sola fila
-		cantTesistas = (Integer) tesistas.get(0)[0];
-		tmp.setTesistasActuales(cantTesistas);
+    @Override
+    @Transactional
+    public void deleteUsuario(Integer id) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado con ID: " + id));
+        usuario.setActivo(false);
+        usuario.setFechaModificacion(OffsetDateTime.now());
+        //desactivar usuario_carrera
+        List<UsuarioXCarrera> carreras = usuarioXCarreraRepository.findByUsuarioIdAndActivoTrue(id);
+        boolean coordinadorEliminado = false;
+        for (UsuarioXCarrera uc : carreras) {
+            uc.setActivo(false);
+            usuarioXCarreraRepository.save(uc);
+            if (Boolean.TRUE.equals(uc.getEsCoordinador()) && !coordinadorEliminado && usuario.getIdCognito() != null) {
+                cognitoService.eliminarUsuarioDeGrupo(usuario.getIdCognito(), "coordinador");
+                coordinadorEliminado = true;
+            }
+        }
+        String tipo = usuario.getTipoUsuario().getNombre().toLowerCase();
+        if (usuario.getIdCognito() != null) {
+            if (tipo.equals("alumno") || tipo.equals("administrador")) {
+                cognitoService.eliminarUsuarioDeGrupo(usuario.getIdCognito(), tipo);
+            } else if (tipo.equals("profesor")) {
+                List<UsuarioXRol> roles = usuarioXRolRepository.findByUsuarioIdAndActivoTrue(id);
+                for (UsuarioXRol ur : roles) {
+                    ur.setActivo(false);
+                    usuarioXRolRepository.save(ur);
+                    String grupoRol = ur.getRol().getNombre().toLowerCase();
+                    cognitoService.eliminarUsuarioDeGrupo(usuario.getIdCognito(), grupoRol);
+                }
+            } else {
+                System.err.printf("Tipo de usuario no válido: %s%n", tipo);
+            }
+        }
+        usuarioRepository.save(usuario);
+    }
 
-		return tmp;
-	}
-	@Override
-	public void updatePerfilAsesor(PerfilAsesorDto perfilAsesorDto){
-		Usuario user = usuarioRepository.findById(perfilAsesorDto.getId()).orElse(null);
-		if (user == null) {
-			throw new RuntimeException("Usuario no encontrado con ID: " + perfilAsesorDto.getId());
-		}
-		user.setEnlaceLinkedin(perfilAsesorDto.getLinkedin());
-		user.setEnlaceRepositorio(perfilAsesorDto.getRepositorio());
-		user.setCorreoElectronico(perfilAsesorDto.getEmail());
-		user.setBiografia(perfilAsesorDto.getBiografia());
+    @Override
+    @Transactional
+    public void reactivarUsuario(Integer id) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado con ID: " + id));
+        usuario.setActivo(true);
+        usuario.setFechaModificacion(OffsetDateTime.now());
+        List<UsuarioXCarrera> carreras = usuarioXCarreraRepository.findByUsuarioId(id);
+        for (UsuarioXCarrera uc : carreras) {
+            uc.setActivo(true);
+            usuarioXCarreraRepository.save(uc);
+            if (Boolean.TRUE.equals(uc.getEsCoordinador()) && usuario.getIdCognito() != null) {
+                cognitoService.agregarUsuarioAGrupo(usuario.getIdCognito(), "coordinador");
+            }
+        }
+        if (usuario.getIdCognito() != null) {
+            String tipo = usuario.getTipoUsuario().getNombre().toLowerCase();
+            if (tipo.equals("alumno") || tipo.equals("administrador")) {
+                cognitoService.agregarUsuarioAGrupo(usuario.getIdCognito(), tipo);
+            } else if (tipo.equals("profesor")) {
+                List<UsuarioXRol> roles = usuarioXRolRepository.findByUsuarioId(id);
+                for (UsuarioXRol ur : roles) {
+                    ur.setActivo(true);
+                    usuarioXRolRepository.save(ur);
+                    cognitoService.agregarUsuarioAGrupo(usuario.getIdCognito(), ur.getRol().getNombre().toLowerCase());
+                }
+            }
+        }
+        usuarioRepository.save(usuario);
+    }
 
-		usuarioRepository.save(user);
-		//Revision areas temáticas
-		List<Integer> areasRegistradas = usuarioXAreaConocimientoRepository.findAllByUsuario_IdAndActivoIsTrue(user.getId())
-				.stream()
-				.map(UsuarioXAreaConocimiento::getAreaConocimiento)
-				.map(AreaConocimiento::getId)
-				.toList();
-		List<Integer> areasActualizadas = perfilAsesorDto.getAreasTematicas()
-				.stream()
-				.map(InfoAreaConocimientoDto::getIdArea)
-				.toList();
-			//Id's que no estan registrados (Todos los que entraron - los que ya estaban=
-		List<Integer> idNuevos = new ArrayList<>(areasActualizadas);
-		idNuevos.removeAll(areasRegistradas);
-		usuarioXAreaConocimientoRepository.asignarUsuarioAreas(user.getId(), Utils.convertIntegerListToString(idNuevos));
-			//Id's que ya no estan en registrados (Todos los que habian - los que entraron)
-		List<Integer> idEliminados = new ArrayList<>(areasRegistradas);
-		idEliminados.removeAll(areasActualizadas);
-		usuarioXAreaConocimientoRepository.desactivarUsuarioAreas(user.getId(), Utils.convertIntegerListToString(idEliminados));
+    @Override
+    public PerfilAsesorDto getPerfilAsesor(Integer id) {
+        // Primero los datos básicos de la entidad
+        PerfilAsesorDto tmp;
+        Usuario usuario = usuarioRepository.findById(id).orElse(null);
+        if (usuario == null) {
+            throw new RuntimeException("Usuario no encontrado con ID: " + id);
+        }
+        tmp = PerfilAsesorMapper.toDto(usuario);
+        // Encontramos el nombre de la carrera del Asesor
+        List<String> carreras = new ArrayList<>();
+        List<Object[]> resultadoQuery = carreraRepository.listarCarrerasPorIdUsusario(id);
+        for (Object[] o : resultadoQuery) {
+            carreras.add((String) o[3]);
+        }
 
-		//Revision sub areas tematicas
-		List<Integer> subAreasRegistradas = usuarioXSubAreaConocimientoRepository.findAllByUsuario_IdAndActivoIsTrue(user.getId())
-				.stream()
-				.map(UsuarioXSubAreaConocimiento::getSubAreaConocimiento)
-				.map(SubAreaConocimiento::getId)
-				.toList();
-		List<Integer> subAreasActualizadas = perfilAsesorDto.getTemasIntereses()
-				.stream()
-				.map(InfoSubAreaConocimientoDto::getIdTema)
-				.toList();
-		//Id's que no estan registrados (Todos los que entraron - los que ya estaban=
-		idNuevos = new ArrayList<>(subAreasActualizadas);
-		idNuevos.removeAll(subAreasRegistradas);
-		usuarioXSubAreaConocimientoRepository.asignarUsuarioSubAreas(user.getId(), Utils.convertIntegerListToString(idNuevos));
-		//Id's que ya no estan en registrados (Todos los que habian - los que entraron)
-		idEliminados = new ArrayList<>(subAreasRegistradas);
-		idEliminados.removeAll(subAreasActualizadas);
-		usuarioXSubAreaConocimientoRepository.desactivarUsuarioSubAreas(user.getId(), Utils.convertIntegerListToString(idEliminados));
-	}
+        tmp.setEspecialidad(String.join(" - ", carreras));
+        // Luego la consulta de las áreas de conocimiento
+        List<InfoAreaConocimientoDto> areas;
+        List<Integer> idAreas = usuarioXAreaConocimientoRepository.findAllByUsuario_IdAndActivoIsTrue(id).stream()
+                .map(UsuarioXAreaConocimiento::getAreaConocimiento)
+                .map(AreaConocimiento::getId)
+                .toList();
+        areas = areaConocimientoRepository.findAllByIdIn(idAreas)
+                .stream()
+                .map(InfoAreaConocimientoMapper::toDto)
+                .toList();
+        // Luego la consulta de las subareas de conocimiento
+        List<InfoSubAreaConocimientoDto> subareas;
+        List<Integer> idSubareas = usuarioXSubAreaConocimientoRepository.findAllByUsuario_IdAndActivoIsTrue(id).stream()
+                .map(UsuarioXSubAreaConocimiento::getSubAreaConocimiento)
+                .map(SubAreaConocimiento::getId)
+                .toList();
+        subareas = subAreaConocimientoRepository.findAllByIdIn(idSubareas)
+                .stream()
+                .map(InfoSubAreaConocimientoMapper::toDto)
+                .toList();
 
-	@Override
-	public List<UsuarioDto> findUsuariosByRolAndCarrera(String tipoUsuario, Integer carreraId, String cadenaBusqueda) {
-		String sql = """
-			SELECT *
-			FROM obtener_usuarios_por_tipo_carrera_y_busqueda(:tipo, :carrera, :cadena)
-			""";
+        tmp.setAreasTematicas(areas);
+        tmp.setTemasIntereses(subareas);
+        // TODO: El numero máximo de estudiantes
+        // TODO: La cantidad de alumnos por asesor
+        Integer cantTesistas;
+        List<Object[]> tesistas = usuarioXTemaRepository.listarNumeroTesistasAsesor(id);// ASEGURADO sale 1 sola fila
+        cantTesistas = (Integer) tesistas.get(0)[0];
+        tmp.setTesistasActuales(cantTesistas);
 
-		@SuppressWarnings("unchecked")
-		List<Object[]> rows = em.createNativeQuery(sql)
-			.setParameter("tipo", tipoUsuario)
-			.setParameter("carrera", carreraId)
-			.setParameter("cadena", cadenaBusqueda)
-			.getResultList();
+        return tmp;
+    }
 
-		List<UsuarioDto> lista = new ArrayList<>();
-		for (Object[] r : rows) {
-			// 0..20 según la firma de la función
-			// 16 = u_fecha_creacion, 17 = u_fecha_modificacion
-			// convierte de Instant o Timestamp a OffsetDateTime
-			Instant rawCreacion = (r[16] instanceof Instant
-				? (Instant) r[16]
-				: ((Timestamp) r[16]).toInstant());
-			OffsetDateTime fechaCreacion = rawCreacion.atOffset(ZoneOffset.UTC);
+    @Override
+    public void updatePerfilAsesor(PerfilAsesorDto perfilAsesorDto) {
+        Usuario user = usuarioRepository.findById(perfilAsesorDto.getId()).orElse(null);
+        if (user == null) {
+            throw new RuntimeException("Usuario no encontrado con ID: " + perfilAsesorDto.getId());
+        }
+        user.setEnlaceLinkedin(perfilAsesorDto.getLinkedin());
+        user.setEnlaceRepositorio(perfilAsesorDto.getRepositorio());
+        user.setCorreoElectronico(perfilAsesorDto.getEmail());
+        user.setBiografia(perfilAsesorDto.getBiografia());
 
-			OffsetDateTime fechaModificacion = null;
-			if (r[17] != null) {
-				Instant rawMod = (r[17] instanceof Instant
-					? (Instant) r[17]
-					: ((Timestamp) r[17]).toInstant());
-				fechaModificacion = rawMod.atOffset(ZoneOffset.UTC);
-			}
+        usuarioRepository.save(user);
+        // Revision areas temáticas
+        List<Integer> areasRegistradas = usuarioXAreaConocimientoRepository
+                .findAllByUsuario_IdAndActivoIsTrue(user.getId())
+                .stream()
+                .map(UsuarioXAreaConocimiento::getAreaConocimiento)
+                .map(AreaConocimiento::getId)
+                .toList();
+        List<Integer> areasActualizadas = perfilAsesorDto.getAreasTematicas()
+                .stream()
+                .map(InfoAreaConocimientoDto::getIdArea)
+                .toList();
+        // Id's que no estan registrados (Todos los que entraron - los que ya estaban=
+        List<Integer> idNuevos = new ArrayList<>(areasActualizadas);
+        idNuevos.removeAll(areasRegistradas);
+        usuarioXAreaConocimientoRepository.asignarUsuarioAreas(user.getId(),
+                Utils.convertIntegerListToString(idNuevos));
+        // Id's que ya no estan en registrados (Todos los que habian - los que entraron)
+        List<Integer> idEliminados = new ArrayList<>(areasRegistradas);
+        idEliminados.removeAll(areasActualizadas);
+        usuarioXAreaConocimientoRepository.desactivarUsuarioAreas(user.getId(),
+                Utils.convertIntegerListToString(idEliminados));
 
-			UsuarioDto u = UsuarioDto.builder()
-				.id((Integer) r[0])
-				.tipoUsuario(
-					TipoUsuarioDto.builder()
-						.id((Integer) r[1])
-						.nombre((String) r[18])
-						.activo(true)
-						.build()
-				)
-				.codigoPucp((String) r[2])
-				.nombres((String) r[3])
-				.primerApellido((String) r[4])
-				.segundoApellido((String) r[5])
-				.correoElectronico((String) r[6])
-				.nivelEstudios((String) r[7])
-				.contrasena((String) r[8])
-				.biografia((String) r[9])
-				.enlaceLinkedin((String) r[10])
-				.enlaceRepositorio((String) r[11])
-				.disponibilidad((String) r[13])
-				.tipoDisponibilidad((String) r[14])
-				.activo((Boolean) r[15])
-				.fechaCreacion(fechaCreacion)
-				.fechaModificacion(fechaModificacion)
-                .asignado((Boolean) r[19])
-				.build();
+        // Revision sub areas tematicas
+        List<Integer> subAreasRegistradas = usuarioXSubAreaConocimientoRepository
+                .findAllByUsuario_IdAndActivoIsTrue(user.getId())
+                .stream()
+                .map(UsuarioXSubAreaConocimiento::getSubAreaConocimiento)
+                .map(SubAreaConocimiento::getId)
+                .toList();
+        List<Integer> subAreasActualizadas = perfilAsesorDto.getTemasIntereses()
+                .stream()
+                .map(InfoSubAreaConocimientoDto::getIdTema)
+                .toList();
+        // Id's que no estan registrados (Todos los que entraron - los que ya estaban=
+        idNuevos = new ArrayList<>(subAreasActualizadas);
+        idNuevos.removeAll(subAreasRegistradas);
+        usuarioXSubAreaConocimientoRepository.asignarUsuarioSubAreas(user.getId(),
+                Utils.convertIntegerListToString(idNuevos));
+        // Id's que ya no estan en registrados (Todos los que habian - los que entraron)
+        idEliminados = new ArrayList<>(subAreasRegistradas);
+        idEliminados.removeAll(subAreasActualizadas);
+        usuarioXSubAreaConocimientoRepository.desactivarUsuarioSubAreas(user.getId(),
+                Utils.convertIntegerListToString(idEliminados));
+    }
 
-			lista.add(u);
-		}
+    @Override
+    public List<UsuarioDto> findUsuariosByRolAndCarrera(String tipoUsuario, Integer carreraId, String cadenaBusqueda) {
+        String sql = """
+                SELECT *
+                FROM obtener_usuarios_por_tipo_carrera_y_busqueda(:tipo, :carrera, :cadena)
+                """;
 
-		return lista;
-	}
+        @SuppressWarnings("unchecked")
+        List<Object[]> rows = em.createNativeQuery(sql)
+                .setParameter("tipo", tipoUsuario)
+                .setParameter("carrera", carreraId)
+                .setParameter("cadena", cadenaBusqueda)
+                .getResultList();
 
-	// Implementaciones para las historias de usuario HU01-HU05
+        List<UsuarioDto> lista = new ArrayList<>();
+        for (Object[] r : rows) {
+            // 0..20 según la firma de la función
+            // 16 = u_fecha_creacion, 17 = u_fecha_modificacion
+            // convierte de Instant o Timestamp a OffsetDateTime
+            Instant rawCreacion = (r[16] instanceof Instant
+                    ? (Instant) r[16]
+                    : ((Timestamp) r[16]).toInstant());
+            OffsetDateTime fechaCreacion = rawCreacion.atOffset(ZoneOffset.UTC);
+
+            OffsetDateTime fechaModificacion = null;
+            if (r[17] != null) {
+                Instant rawMod = (r[17] instanceof Instant
+                        ? (Instant) r[17]
+                        : ((Timestamp) r[17]).toInstant());
+                fechaModificacion = rawMod.atOffset(ZoneOffset.UTC);
+            }
+
+            UsuarioDto u = UsuarioDto.builder()
+                    .id((Integer) r[0])
+                    .tipoUsuario(
+                            TipoUsuarioDto.builder()
+                                    .id((Integer) r[1])
+                                    .nombre((String) r[18])
+                                    .activo(true)
+                                    .build())
+                    .codigoPucp((String) r[2])
+                    .nombres((String) r[3])
+                    .primerApellido((String) r[4])
+                    .segundoApellido((String) r[5])
+                    .correoElectronico((String) r[6])
+                    .nivelEstudios((String) r[7])
+                    .contrasena((String) r[8])
+                    .biografia((String) r[9])
+                    .enlaceLinkedin((String) r[10])
+                    .enlaceRepositorio((String) r[11])
+                    .disponibilidad((String) r[12])
+                    .tipoDisponibilidad((String) r[13])
+                    //.tipoDedicacion((Integer) r[14])
+                    .activo((Boolean) r[15])
+                    .fechaCreacion(fechaCreacion)
+                    .fechaModificacion(fechaModificacion)
+                    .asignado((Boolean) r[19])
+                    .build();
+
+            lista.add(u);
+        }
+
+        return lista;
+    }
+
+    // Implementaciones para las historias de usuario HU01-HU05
 
     /**
      * HU01: Asigna el rol de Asesor a un usuario que debe ser profesor
@@ -305,7 +621,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         // 1. Buscar usuario activo y validar que sea Profesor
         Usuario user = usuarioRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado: " + userId));
-        
+
         if (!user.getActivo()) {
             throw new IllegalArgumentException("El usuario está inactivo");
         }
@@ -329,7 +645,8 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         if (count.intValue() == 0) {
             // 4. Insertar nuevo rol activo
-            String insertSql = "INSERT INTO usuario_rol (usuario_id, rol_id, activo, fecha_creacion, fecha_modificacion) " +
+            String insertSql = "INSERT INTO usuario_rol (usuario_id, rol_id, activo, fecha_creacion, fecha_modificacion) "
+                    +
                     "VALUES (:usuarioId, :rolId, true, NOW(), NOW())";
             em.createNativeQuery(insertSql)
                     .setParameter("usuarioId", userId)
@@ -337,10 +654,11 @@ public class UsuarioServiceImpl implements UsuarioService {
                     .executeUpdate();
             System.out.println("Rol de Asesor asignado exitosamente al usuario ID: " + userId);
         } else {
-            System.out.println("El usuario ID: " + userId + " ya tiene el rol de Asesor activo. No se realizó ninguna acción.");
+            System.out.println(
+                    "El usuario ID: " + userId + " ya tiene el rol de Asesor activo. No se realizó ninguna acción.");
         }
     }
-        
+
     /**
      * HU02: Quita el rol de Asesor a un usuario
      */
@@ -349,7 +667,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     public void removeAdvisorRoleFromUser(Integer userId) {
         Usuario user = usuarioRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado: " + userId));
-        
+
         String rolNombre = RolEnum.Asesor.name();
         Rol advisorRole = rolRepository.findByNombre(rolNombre)
                 .orElseThrow(() -> new NoSuchElementException("Rol '" + rolNombre + "' no configurado en el sistema"));
@@ -376,7 +694,6 @@ public class UsuarioServiceImpl implements UsuarioService {
         }
     }
 
-    
     /**
      * HU03: Asigna el rol de Jurado a un usuario que debe ser profesor
      */
@@ -411,7 +728,8 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         if (count.intValue() == 0) {
             // 4. Insertar el rol
-            String insertSql = "INSERT INTO usuario_rol (usuario_id, rol_id, activo, fecha_creacion, fecha_modificacion) " +
+            String insertSql = "INSERT INTO usuario_rol (usuario_id, rol_id, activo, fecha_creacion, fecha_modificacion) "
+                    +
                     "VALUES (:usuarioId, :rolId, true, NOW(), NOW())";
             em.createNativeQuery(insertSql)
                     .setParameter("usuarioId", userId)
@@ -419,7 +737,8 @@ public class UsuarioServiceImpl implements UsuarioService {
                     .executeUpdate();
             System.out.println("Rol de Jurado asignado exitosamente al usuario ID: " + userId);
         } else {
-            System.out.println("El usuario ID: " + userId + " ya tiene el rol de Jurado activo. No se realizó ninguna acción.");
+            System.out.println(
+                    "El usuario ID: " + userId + " ya tiene el rol de Jurado activo. No se realizó ninguna acción.");
         }
     }
 
@@ -472,32 +791,32 @@ public class UsuarioServiceImpl implements UsuarioService {
     public List<UsuarioConRolDto> getProfessorsWithRoles(String rolNombre, String terminoBusqueda) {
         StringBuilder sql = new StringBuilder();
         sql.append("""
-            SELECT 
-                u.usuario_id, 
-                u.nombres, 
-                u.primer_apellido, 
-                u.segundo_apellido, 
-                u.correo_electronico, 
-                u.codigo_pucp, 
-                string_agg(DISTINCT r.nombre, ',') AS roles_names,
-                -- contar temas donde usuario sea asesor o coasesor (rol_id 1 o 5)
-                COUNT(DISTINCT CASE WHEN ut.rol_id IN (1, 5) THEN ut.tema_id END) AS tesis_count,
-                tu.tipo_usuario_id,
-                tu.nombre AS tipo_usuario_nombre
-            FROM 
-                usuario u
-            JOIN 
-                tipo_usuario tu ON u.tipo_usuario_id = tu.tipo_usuario_id
-            LEFT JOIN 
-                usuario_rol ur ON u.usuario_id = ur.usuario_id AND ur.activo = true
-            LEFT JOIN 
-                rol r ON ur.rol_id = r.rol_id AND r.activo = true
-            LEFT JOIN
-                usuario_tema ut ON u.usuario_id = ut.usuario_id AND ut.activo = true
-            WHERE 
-                u.activo = true
-                AND LOWER(tu.nombre) = 'profesor'
-        """);
+                    SELECT
+                        u.usuario_id,
+                        u.nombres,
+                        u.primer_apellido,
+                        u.segundo_apellido,
+                        u.correo_electronico,
+                        u.codigo_pucp,
+                        string_agg(DISTINCT r.nombre, ',') AS roles_names,
+                        -- contar temas donde usuario sea asesor o coasesor (rol_id 1 o 5)
+                        COUNT(DISTINCT CASE WHEN ut.rol_id IN (1, 5) THEN ut.tema_id END) AS tesis_count,
+                        tu.tipo_usuario_id,
+                        tu.nombre AS tipo_usuario_nombre
+                    FROM
+                        usuario u
+                    JOIN
+                        tipo_usuario tu ON u.tipo_usuario_id = tu.tipo_usuario_id
+                    LEFT JOIN
+                        usuario_rol ur ON u.usuario_id = ur.usuario_id AND ur.activo = true
+                    LEFT JOIN
+                        rol r ON ur.rol_id = r.rol_id AND r.activo = true
+                    LEFT JOIN
+                        usuario_tema ut ON u.usuario_id = ut.usuario_id AND ut.activo = true
+                    WHERE
+                        u.activo = true
+                        AND LOWER(tu.nombre) = 'profesor'
+                """);
 
         List<String> params = new ArrayList<>();
         if (rolNombre != null && !rolNombre.equalsIgnoreCase("Todos")) {
@@ -507,20 +826,19 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         if (terminoBusqueda != null && !terminoBusqueda.trim().isEmpty()) {
             sql.append("""
-                AND (
-                    u.nombres ILIKE ?%s
-                    OR u.primer_apellido ILIKE ?%s
-                    OR u.segundo_apellido ILIKE ?%s
-                    OR u.correo_electronico ILIKE ?%s
-                    OR u.codigo_pucp ILIKE ?%s
-                )
-                """.formatted(
-                params.size() + 1,
-                params.size() + 2,
-                params.size() + 3,
-                params.size() + 4,
-                params.size() + 5
-            ));
+                    AND (
+                        u.nombres ILIKE ?%s
+                        OR u.primer_apellido ILIKE ?%s
+                        OR u.segundo_apellido ILIKE ?%s
+                        OR u.correo_electronico ILIKE ?%s
+                        OR u.codigo_pucp ILIKE ?%s
+                    )
+                    """.formatted(
+                    params.size() + 1,
+                    params.size() + 2,
+                    params.size() + 3,
+                    params.size() + 4,
+                    params.size() + 5));
 
             String searchTerm = "%" + terminoBusqueda.trim() + "%";
             for (int i = 0; i < 5; i++) {
@@ -529,12 +847,12 @@ public class UsuarioServiceImpl implements UsuarioService {
         }
 
         sql.append("""
-            GROUP BY 
-                u.usuario_id, u.nombres, u.primer_apellido, u.segundo_apellido, 
-                u.correo_electronico, u.codigo_pucp, tu.tipo_usuario_id, tu.nombre
-            ORDER BY 
-                u.primer_apellido, u.segundo_apellido, u.nombres
-        """);
+                    GROUP BY
+                        u.usuario_id, u.nombres, u.primer_apellido, u.segundo_apellido,
+                        u.correo_electronico, u.codigo_pucp, tu.tipo_usuario_id, tu.nombre
+                    ORDER BY
+                        u.primer_apellido, u.segundo_apellido, u.nombres
+                """);
 
         Query query = em.createNativeQuery(sql.toString());
 
@@ -546,395 +864,687 @@ public class UsuarioServiceImpl implements UsuarioService {
         List<Object[]> results = query.getResultList();
 
         return results.stream()
-            .map(row -> {
-                TipoUsuarioDto tipoUsuarioDto = TipoUsuarioDto.builder()
-                    .id((Integer) row[8])
-                    .nombre((String) row[9])
-                    .activo(true)
-                    .build();
+                .map(row -> {
+                    TipoUsuarioDto tipoUsuarioDto = TipoUsuarioDto.builder()
+                            .id((Integer) row[8])
+                            .nombre((String) row[9])
+                            .activo(true)
+                            .build();
 
-                UsuarioDto usuarioBase = UsuarioDto.builder()
-                    .id((Integer) row[0])
-                    .nombres((String) row[1])
-                    .primerApellido((String) row[2])
-                    .segundoApellido((String) row[3])
-                    .correoElectronico((String) row[4])
-                    .codigoPucp((String) row[5])
-                    .tipoUsuario(tipoUsuarioDto)
-                    .activo(true)
-                    .build();
+                    UsuarioDto usuarioBase = UsuarioDto.builder()
+                            .id((Integer) row[0])
+                            .nombres((String) row[1])
+                            .primerApellido((String) row[2])
+                            .segundoApellido((String) row[3])
+                            .correoElectronico((String) row[4])
+                            .codigoPucp((String) row[5])
+                            .tipoUsuario(tipoUsuarioDto)
+                            .activo(true)
+                            .build();
 
-                return UsuarioConRolDto.builder()
-                    .usuario(usuarioBase)
-                    .rolesConcat((String) row[6])
-                    .tesisCount(((Number) row[7]).intValue())
-                    .build();
-            })
-            .collect(Collectors.toList());
+                    return UsuarioConRolDto.builder()
+                            .usuario(usuarioBase)
+                            .rolesConcat((String) row[6])
+                            .tesisCount(((Number) row[7]).intValue())
+                            .build();
+                })
+                .collect(Collectors.toList());
     }
 
-	@Override
-	public void procesarArchivoUsuarios(MultipartFile archivo) throws Exception {
-		String nombre = archivo.getOriginalFilename();
+    @Override
+    public void procesarArchivoUsuarios(MultipartFile archivo, UsuarioRegistroDto datosExtra) throws Exception {
+        String nombre = archivo.getOriginalFilename();
 
-		if (nombre == null) throw new Exception("Archivo sin nombre");
+        if (nombre == null)
+            throw new Exception("Archivo sin nombre");
 
-		if (nombre.endsWith(".csv")) {
-			procesarCSV(archivo);
-			logger.warning("Procesando archivo CSV: " + nombre);
-		} else if (nombre.endsWith(".xlsx")) {
-			procesarExcel(archivo);
-		} else {
-			throw new Exception("Formato de archivo no soportado. Solo se acepta .csv o .xlsx");
-		}
-	}
+        if (nombre.endsWith(".csv")) {
+            procesarCSV(archivo, datosExtra);
+            logger.warning("Procesando archivo CSV: " + nombre);
+        } else if (nombre.endsWith(".xlsx")) {
+            procesarExcel(archivo, datosExtra);
+        } else {
+            throw new Exception("Formato de archivo no soportado. Solo se acepta .csv o .xlsx");
+        }
+    }
 
-	private void procesarCSV(MultipartFile archivo) {
-		try (BufferedReader reader = new BufferedReader(new InputStreamReader(archivo.getInputStream()))) {
-			String linea;
-			boolean primeraLinea = true;
+    private void procesarCSV(MultipartFile archivo, UsuarioRegistroDto datosExtra) throws Exception {
+        //obtener TipoUsuario
+        Optional<TipoUsuario> tipoUsuarioOpt = buscarTipoUsuarioPorNombre(datosExtra.getTipoUsuarioNombre());
+        if (tipoUsuarioOpt.isEmpty()) {
+            throw new IllegalArgumentException("Tipo de usuario no válido: " + datosExtra.getTipoUsuarioNombre());
+        }
+        TipoUsuario tipoUsuario = tipoUsuarioOpt.get();
+        //validar que tenga carrera
+        if (datosExtra.getCarreras() == null || datosExtra.getCarreras().isEmpty()) {
+            throw new IllegalArgumentException("Debe proporcionarse al menos una carrera asignada");
+        }
+        //cargar Carrera/s
+        Map<Integer, Carrera> carrerasMap = new HashMap<>();
+        for (UsuarioRegistroDto.CarreraAsignadaDto carreraDto : datosExtra.getCarreras()) {
+            Carrera carrera = carreraRepository.findById(carreraDto.getCarreraId())
+                    .orElseThrow(() -> new IllegalArgumentException("Carrera no válida con ID: " + carreraDto.getCarreraId()));
+            carrerasMap.put(carrera.getId(), carrera);
+        }
+        // roles en caso de profesor
+        Map<Integer, Rol> rolesMap = new HashMap<>();
+        if (datosExtra.getRolesIds() != null) {
+            for (Integer id : datosExtra.getRolesIds()) {
+                rolRepository.findById(id).ifPresent(rol -> rolesMap.put(id, rol));
+            }
+        }
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(archivo.getInputStream()))) {
+            String linea;
+            boolean primeraLinea = true;
+            int fila = 1;
+            while ((linea = reader.readLine()) != null) {
+                fila++;
+                if (primeraLinea) {
+                    primeraLinea = false;
+                    continue;
+                }
+                String[] campos = linea.split(",");
+                if (campos.length < 5) {
+                    System.err.printf("Fila %d con datos insuficientes.\n", fila);
+                    continue;
+                }
+                String nombres = campos[0].trim();
+                String primerApellido = campos[1].trim();
+                String segundoApellido = campos[2].trim();
+                String correo = campos[3].trim();
+                String codigoPUCP = campos[4].trim();
+                String inicialesDedicacion = campos.length >= 6 ? campos[5].trim() : null; //solo profe
+                String nombreCompleto = nombres + " " + primerApellido + " " + segundoApellido;
+                try {
+                    // grupos de Cognito0
+                    List<String> gruposCognito = new ArrayList<>();
+                    boolean esCoordinador = false;
+                    if ("profesor".equalsIgnoreCase(tipoUsuario.getNombre())) {
+                        for (UsuarioRegistroDto.CarreraAsignadaDto carreraDto : datosExtra.getCarreras()) {
+                            if (Boolean.TRUE.equals(carreraDto.getEsCoordinador())) {
+                                esCoordinador = true;
+                                gruposCognito.add("coordinador");
+                                break;
+                            }
+                        }
+                        for (Rol rol : rolesMap.values()) {
+                            gruposCognito.add(rol.getNombre().toLowerCase());
+                        }
+                    } else {
+                        gruposCognito.add(tipoUsuario.getNombre().toLowerCase());
+                    }
+                    // registrar en Cognito y obtener el sub/id, lo mismo
+                    String grupoPrincipal = gruposCognito.isEmpty() ? tipoUsuario.getNombre().toLowerCase() : gruposCognito.get(0);
+                    String idCognito = cognitoService.registrarUsuarioEnCognito(correo, nombreCompleto, grupoPrincipal);
 
-			while ((linea = reader.readLine()) != null) {
-				if (primeraLinea) {
-					primeraLinea = false;
-					continue; // saltar encabezado
-				}
+                    // armar Usuario y guardlo en bd
+                    Usuario usuario = new Usuario();
+                    usuario.setTipoUsuario(tipoUsuario);
+                    usuario.setCodigoPucp(codigoPUCP);
+                    usuario.setNombres(nombres);
+                    usuario.setPrimerApellido(primerApellido);
+                    usuario.setSegundoApellido(segundoApellido);
+                    usuario.setCorreoElectronico(correo);
+                    usuario.setContrasena("Temp");
+                    usuario.setIdCognito(idCognito);
+                    usuario.setActivo(true);
+                    usuario.setFechaCreacion(OffsetDateTime.now());
+                    usuario.setFechaModificacion(OffsetDateTime.now());
+                    //tipo de dedicación si es profesor, iniciales
+                    if ("profesor".equalsIgnoreCase(tipoUsuario.getNombre()) && inicialesDedicacion != null && !inicialesDedicacion.isEmpty()) {
+                        Optional<TipoDedicacion> dedicacionOpt = tipoDedicacionRepository.findByInicialesIgnoreCase(inicialesDedicacion);
+                        if (dedicacionOpt.isEmpty()) {
+                            System.err.printf("Fila %d: Tipo de dedicación '%s' no válido\n", fila, inicialesDedicacion);
+                            continue;
+                        }
+                        usuario.setTipoDedicacion(dedicacionOpt.get());
+                    }
+                    usuarioRepository.save(usuario);
 
-				String[] campos = linea.split(",");
+                    // guardar relción con carreras
+                    for (UsuarioRegistroDto.CarreraAsignadaDto carreraDto : datosExtra.getCarreras()) {
+                        Carrera carrera = carrerasMap.get(carreraDto.getCarreraId());
+                        UsuarioXCarrera relacion = new UsuarioXCarrera();
+                        relacion.setUsuario(usuario);
+                        relacion.setCarrera(carrera);
+                        relacion.setActivo(true);
+                        relacion.setEsCoordinador(Boolean.TRUE.equals(carreraDto.getEsCoordinador()));
+                        usuarioXCarreraRepository.save(relacion);
+                    }
+                    // en caso de profesor, guardar roles y grupos extra en Cognito
+                    if ("profesor".equalsIgnoreCase(tipoUsuario.getNombre())) {
+                        for (Rol rol : rolesMap.values()) {
+                            UsuarioXRol ur = new UsuarioXRol();
+                            ur.setUsuario(usuario);
+                            ur.setRol(rol);
+                            ur.setActivo(true);
+                            usuarioXRolRepository.save(ur);
 
-				if (campos.length < 6) continue;
+                            if (!rol.getNombre().equalsIgnoreCase(grupoPrincipal)) {
+                                cognitoService.agregarUsuarioAGrupo(idCognito, rol.getNombre().toLowerCase());
+                            }
+                        }
+                        if (esCoordinador && !grupoPrincipal.equals("coordinador")) {
+                            cognitoService.agregarUsuarioAGrupo(idCognito, "coordinador");
+                        }
+                    }
+                    System.out.printf("Fila %d: usuario '%s' creado exitosamente.\n", fila, correo);
+                } catch (Exception e) {
+                    System.err.printf("Fila %d: error al registrar usuario '%s': %s\n", fila, correo, e.getMessage());
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Error general al leer el CSV: " + e.getMessage());
+        }
+    }
 
-				// Mapear campos en el orden correcto del CSV
-				String nombres = campos[0].trim();
-				String primerApellido = campos[1].trim();
-				String segundoApellido = campos[2].trim();
-				String correo = campos[3].trim();
-				String codigoPUCP = campos[4].trim();
-				String contrasena = "temp";
-				String tipoUsuario = campos[5].trim(); // este es el rol
+    private void procesarExcel(MultipartFile archivo, UsuarioRegistroDto datosExtra) throws Exception {
+        // obtener TipoUsuario
+        Optional<TipoUsuario> tipoUsuarioOpt = buscarTipoUsuarioPorNombre(datosExtra.getTipoUsuarioNombre());
+        if (tipoUsuarioOpt.isEmpty()) {
+            throw new IllegalArgumentException("Tipo de usuario no válido: " + datosExtra.getTipoUsuarioNombre());
+        }
+        TipoUsuario tipoUsuario = tipoUsuarioOpt.get();
+        //validar que tenga carreras
+        if (datosExtra.getCarreras() == null || datosExtra.getCarreras().isEmpty()) {
+            throw new IllegalArgumentException("Debe proporcionarse al menos una carrera asignada");
+        }
+        //obtener carreras
+        Map<Integer, Carrera> carrerasMap = new HashMap<>();
+        for (UsuarioRegistroDto.CarreraAsignadaDto carreraDto : datosExtra.getCarreras()) {
+            Carrera carrera = carreraRepository.findById(carreraDto.getCarreraId())
+                    .orElseThrow(() -> new IllegalArgumentException("Carrera no válida con ID: " + carreraDto.getCarreraId()));
+            carrerasMap.put(carrera.getId(), carrera);
+        }
+        // cargar roles desde IDs
+        Map<Integer, Rol> rolesMap = new HashMap<>();
+        if (datosExtra.getRolesIds() != null) {
+            for (Integer id : datosExtra.getRolesIds()) {
+                rolRepository.findById(id).ifPresent(rol -> rolesMap.put(id, rol));
+            }
+        }
+        try (InputStream is = archivo.getInputStream(); Workbook workbook = new XSSFWorkbook(is)) {
+            Sheet hoja = workbook.getSheetAt(0);
+            for (int filaIndex = 1; filaIndex <= hoja.getLastRowNum(); filaIndex++) {
+                Row fila = hoja.getRow(filaIndex);
+                if (fila == null) {
+                    System.err.printf("Fila %d vacía, omitida.\n", filaIndex + 1);
+                    continue;
+                }
+                String nombres = getCellValue(fila.getCell(0));
+                String primerApellido = getCellValue(fila.getCell(1));
+                String segundoApellido = getCellValue(fila.getCell(2));
+                String correo = getCellValue(fila.getCell(3));
+                String codigoPUCP = getCellValue(fila.getCell(4));
+                String inicialesDedicacion = getCellValue(fila.getCell(5)); // solo para profesor
+                if (nombres.isBlank() || primerApellido.isBlank() || segundoApellido.isBlank() || correo.isBlank() || codigoPUCP.isBlank()) {
+                    System.err.printf("Fila %d no procesada: campos incompletos.\n", filaIndex + 1);
+                    continue;
+                }
+                String nombreCompleto = nombres + " " + primerApellido + " " + segundoApellido;
+                try {
+                    // grupos de Cognito
+                    List<String> gruposCognito = new ArrayList<>();
+                    boolean esCoordinador = false;
+                    if ("profesor".equalsIgnoreCase(tipoUsuario.getNombre())) {
+                        for (UsuarioRegistroDto.CarreraAsignadaDto carreraDto : datosExtra.getCarreras()) {
+                            if (Boolean.TRUE.equals(carreraDto.getEsCoordinador())) {
+                                esCoordinador = true;
+                                gruposCognito.add("coordinador");
+                                break; // coordi solo de una carrera
+                            }
+                        }
+                        for (Rol rol : rolesMap.values()) {
+                            gruposCognito.add(rol.getNombre().toLowerCase());
+                        }
+                    } else {
+                        gruposCognito.add(tipoUsuario.getNombre().toLowerCase());
+                    }
+                    // Cognito
+                    String grupoPrincipal = gruposCognito.isEmpty() ? tipoUsuario.getNombre().toLowerCase() : gruposCognito.get(0);
+                    String idCognito = cognitoService.registrarUsuarioEnCognito(correo, nombreCompleto, grupoPrincipal);
+                    // armar usuario y guardarlo en bd
+                    Usuario usuario = new Usuario();
+                    usuario.setTipoUsuario(tipoUsuario);
+                    usuario.setCodigoPucp(codigoPUCP);
+                    usuario.setNombres(nombres);
+                    usuario.setPrimerApellido(primerApellido);
+                    usuario.setSegundoApellido(segundoApellido);
+                    usuario.setCorreoElectronico(correo);
+                    usuario.setContrasena("Temp");
+                    usuario.setIdCognito(idCognito);
+                    usuario.setActivo(true);
+                    usuario.setFechaCreacion(OffsetDateTime.now());
+                    usuario.setFechaModificacion(OffsetDateTime.now());
+                    // tipo de dedicación si es profesor, iniciales
+                    if ("profesor".equalsIgnoreCase(tipoUsuario.getNombre()) && inicialesDedicacion != null && !inicialesDedicacion.isBlank()) {
+                        tipoDedicacionRepository.findByInicialesIgnoreCase(inicialesDedicacion)
+                                .ifPresent(usuario::setTipoDedicacion);
+                    }
+                    usuarioRepository.save(usuario);
+                    // guardar relción con carrera
+                    for (UsuarioRegistroDto.CarreraAsignadaDto carreraDto : datosExtra.getCarreras()) {
+                        Carrera carrera = carrerasMap.get(carreraDto.getCarreraId());
+                        UsuarioXCarrera relacion = new UsuarioXCarrera();
+                        relacion.setUsuario(usuario);
+                        relacion.setCarrera(carrera);
+                        relacion.setActivo(true);
+                        relacion.setEsCoordinador(Boolean.TRUE.equals(carreraDto.getEsCoordinador()));
+                        usuarioXCarreraRepository.save(relacion);
+                        if (Boolean.TRUE.equals(carreraDto.getEsCoordinador()) && !"coordinador".equals(grupoPrincipal)) {
+                            cognitoService.agregarUsuarioAGrupo(idCognito, "coordinador");
+                        }
+                    }
+                    // para profesor, registrar roles y grupos extra en Cognito
+                    if ("profesor".equalsIgnoreCase(tipoUsuario.getNombre())) {
+                        for (Rol rol : rolesMap.values()) {
+                            UsuarioXRol ur = new UsuarioXRol();
+                            ur.setUsuario(usuario);
+                            ur.setRol(rol);
+                            ur.setActivo(true);
+                            usuarioXRolRepository.save(ur);
+                            if (!rol.getNombre().equalsIgnoreCase(grupoPrincipal)) {
+                                cognitoService.agregarUsuarioAGrupo(idCognito, rol.getNombre().toLowerCase());
+                            }
+                        }
+                    }
+                    System.out.printf("Fila %d: usuario '%s' creado exitosamente.\n", filaIndex + 1, correo);
+                } catch (Exception e) {
+                    System.err.printf("Fila %d: error al registrar usuario '%s': %s\n", filaIndex + 1, correo, e.getMessage());
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Error al leer el Excel: " + e.getMessage());
+        }
+    }
 
-				Optional<TipoUsuario> tipo = buscarTipoUsuarioPorNombre(tipoUsuario);
-				if (tipo.isEmpty()) {
-					System.out.println("Rol inválido para: " + correo);
-					continue;
-				}
+    private String getCellValue(Cell celda) {
+        if (celda == null)
+            return "";
 
-				String nombreCompleto = nombres + " " + primerApellido + " " + segundoApellido;
+        switch (celda.getCellType()) {
+            case STRING:
+                return celda.getStringCellValue().trim();
+            case NUMERIC:
+                if (DateUtil.isCellDateFormatted(celda)) {
+                    return celda.getDateCellValue().toString();
+                }
+                return String.valueOf((long) celda.getNumericCellValue()); // Si esperas solo enteros
+            case BOOLEAN:
+                return String.valueOf(celda.getBooleanCellValue());
+            case FORMULA:
+                return celda.getCellFormula();
+            case BLANK:
+            case _NONE:
+            case ERROR:
+            default:
+                return "";
+        }
+    }
 
-				try {
-					// Registrar en Cognito y obtener el sub (id)
-					String idCognito = cognitoService.registrarUsuarioEnCognito(correo, nombreCompleto, tipoUsuario);
-
-					// Crear entidad local
-					Usuario nuevo = new Usuario();
-					nuevo.setNombres(nombres);
-					nuevo.setPrimerApellido(primerApellido);
-					nuevo.setSegundoApellido(segundoApellido);
-					nuevo.setCorreoElectronico(correo);
-					nuevo.setCodigoPucp(codigoPUCP);
-					nuevo.setContrasena(contrasena);
-					nuevo.setTipoUsuario(tipo.get());
-					nuevo.setIdCognito(idCognito); // guardar sub de Cognito
-					nuevo.setActivo(true);
-					nuevo.setFechaCreacion(OffsetDateTime.now());
-					nuevo.setFechaModificacion(OffsetDateTime.now());
-
-					usuarioRepository.save(nuevo);
-					System.out.printf("Usuario '%s' creado y registrado correctamente.%n", correo);
-
-				} catch (Exception e) {
-					System.err.printf("Error al registrar usuario '%s' en Cognito: %s%n", correo, e.getMessage());
-				}
-			}
-		} catch (IOException e) {
-			System.err.println("Error al leer el CSV: " + e.getMessage());
-		}
-	}
-
-	private void procesarExcel(MultipartFile archivo) throws Exception {
-		try (InputStream is = archivo.getInputStream()) {
-			Workbook workbook = new XSSFWorkbook(is);
-			Sheet hoja = workbook.getSheetAt(0);
-
-			//la primera fila es cabecera,empezar por filaIndex = 1
-			for (int filaIndex = 1; filaIndex <= hoja.getLastRowNum(); filaIndex++) {
-				Row fila = hoja.getRow(filaIndex);
-				if (fila == null) continue;
-
-				String nombres = getCellValue(fila.getCell(0));
-				String primerApellido = getCellValue(fila.getCell(1));
-				String segundoApellido = getCellValue(fila.getCell(2));
-				String correo = getCellValue(fila.getCell(3));
-				String codigoPUCP = getCellValue(fila.getCell(4));
-				String contrasena = "temp";
-				String tipoUsuario = getCellValue(fila.getCell(5));
-
-				Optional<TipoUsuario> tipo = buscarTipoUsuarioPorNombre(tipoUsuario);
-				if (tipo.isEmpty()) {
-					System.out.printf("Fila %d ignorada: Tipo usuario no encontrado: %s\n", filaIndex + 1, tipoUsuario);
-					continue;
-				}
-
-				String nombreCompleto = nombres + " " + primerApellido + " " + segundoApellido;
-
-				try {
-					// Registrar en Cognito y obtener el sub
-					String idCognito = cognitoService.registrarUsuarioEnCognito(correo, nombreCompleto, tipoUsuario);
-
-					Usuario nuevo = new Usuario();
-					nuevo.setNombres(nombres);
-					nuevo.setPrimerApellido(primerApellido);
-					nuevo.setSegundoApellido(segundoApellido);
-					nuevo.setCorreoElectronico(correo);
-					nuevo.setCodigoPucp(codigoPUCP);
-					nuevo.setContrasena(contrasena);
-					nuevo.setTipoUsuario(tipo.get());
-					nuevo.setIdCognito(idCognito); // Guardar sub de Cognito
-					nuevo.setActivo(true);
-					nuevo.setFechaCreacion(OffsetDateTime.now());
-					nuevo.setFechaModificacion(OffsetDateTime.now());
-
-					usuarioRepository.save(nuevo);
-					System.out.printf("Fila %d: Usuario '%s' creado exitosamente.\n", filaIndex + 1, correo);
-
-				} catch (Exception e) {
-					System.err.printf("Fila %d: Error al registrar usuario '%s' en Cognito: %s\n",
-							filaIndex + 1, correo, e.getMessage());
-				}
-			}
-			workbook.close();
-		}
-	}
-
-	private String getCellValue(Cell celda) {
-		if (celda == null) return "";
-
-		switch (celda.getCellType()) {
-			case STRING:
-				return celda.getStringCellValue().trim();
-			case NUMERIC:
-				if (DateUtil.isCellDateFormatted(celda)) {
-					return celda.getDateCellValue().toString();
-				}
-				return String.valueOf((long) celda.getNumericCellValue()); // Si esperas solo enteros
-			case BOOLEAN:
-				return String.valueOf(celda.getBooleanCellValue());
-			case FORMULA:
-				return celda.getCellFormula();
-			case BLANK:
-			case _NONE:
-			case ERROR:
-			default:
-				return "";
-		}
-	}
-
-	private Optional<TipoUsuario> buscarTipoUsuarioPorNombre(String nombre) {
-		String nombreLimpio = nombre.trim().toLowerCase();
-		return tipoUsuarioRepository.findAll().stream()
-				.filter(tu -> tu.getNombre().equalsIgnoreCase(nombreLimpio))
-				.findFirst();
-	}
-
-	@Override
-	public List<UsuarioDto> getAsesoresBySubArea(Integer idSubArea) {
-		String sql =
-				"SELECT usuario_id, nombre_completo, correo_electronico " +
-						"  FROM sgtadb.listar_asesores_por_subarea_conocimiento(:p_subarea_id)";
-		Query query = em.createNativeQuery(sql)
-				.setParameter("p_subarea_id", idSubArea);
-
-		@SuppressWarnings("unchecked")
-		List<Object[]> rows = query.getResultList();
-		List<UsuarioDto> advisors = new ArrayList<>(rows.size());
-
-		for (Object[] row : rows) {
-			Integer userId       = ((Number) row[0]).intValue();
-			String fullName      = (String) row[1];
-			String email         = (String) row[2];
-
-			advisors.add(UsuarioDto.builder()
-					.id(userId)
-					.nombres(fullName.split(" ")[0])
-					.primerApellido(fullName.split(" ")[1])
-					.correoElectronico(email)
-					.build());
-		}
-
-		return advisors;
-	}
-
+    private Optional<TipoUsuario> buscarTipoUsuarioPorNombre(String nombre) {
+        String nombreLimpio = nombre.trim().toLowerCase();
+        return tipoUsuarioRepository.findAll().stream()
+                .filter(tu -> tu.getNombre().equalsIgnoreCase(nombreLimpio))
+                .findFirst();
+    }
 
     @Override
-	public void uploadFoto(Integer idUsuario, MultipartFile file) {
-		Usuario user = usuarioRepository.findById(idUsuario).orElse(null);
-		if (user == null) {
-			throw new RuntimeException("Usuario no encontrado con ID: " + idUsuario);
-		}
+    public List<UsuarioDto> getAsesoresBySubArea(Integer idSubArea) {
+        String sql = "SELECT usuario_id, nombre_completo, correo_electronico " +
+                "  FROM sgtadb.listar_asesores_por_subarea_conocimiento(:p_subarea_id)";
+        Query query = em.createNativeQuery(sql)
+                .setParameter("p_subarea_id", idSubArea);
+
+        @SuppressWarnings("unchecked")
+        List<Object[]> rows = query.getResultList();
+        List<UsuarioDto> advisors = new ArrayList<>(rows.size());
+
+        for (Object[] row : rows) {
+            Integer userId = ((Number) row[0]).intValue();
+            String fullName = (String) row[1];
+            String email = (String) row[2];
+
+            advisors.add(UsuarioDto.builder()
+                    .id(userId)
+                    .nombres(fullName.split(" ")[0])
+                    .primerApellido(fullName.split(" ")[1])
+                    .correoElectronico(email)
+                    .build());
+        }
+
+        return advisors;
+    }
+
+    @Override
+    public void uploadFoto(Integer idUsuario, MultipartFile file) {
+        Usuario user = usuarioRepository.findById(idUsuario).orElse(null);
+        if (user == null) {
+            throw new RuntimeException("Usuario no encontrado con ID: " + idUsuario);
+        }
         try {
             user.setFotoPerfil(file.getBytes());
-			usuarioRepository.save(user);
+            usuarioRepository.save(user);
         } catch (IOException e) {
             throw new RuntimeException("No se pudo subir foto del usuario: " + idUsuario);
         }
     }
 
-	@Override
-	public UsuarioFotoDto getUsuarioFoto(Integer id) {
-		Usuario user = usuarioRepository.findById(id).orElse(null);
-		if (user == null) {
-			throw new RuntimeException("Usuario no encontrado con ID: " + id);
-		}
-		UsuarioFotoDto usuarioFotoDto = new UsuarioFotoDto();
-		usuarioFotoDto.setIdUsuario(id);
+    @Override
+    public UsuarioFotoDto getUsuarioFoto(Integer id) {
+        Usuario user = usuarioRepository.findById(id).orElse(null);
+        if (user == null) {
+            throw new RuntimeException("Usuario no encontrado con ID: " + id);
+        }
+        UsuarioFotoDto usuarioFotoDto = new UsuarioFotoDto();
+        usuarioFotoDto.setIdUsuario(id);
 
-		usuarioFotoDto.setFoto(Utils.convertByteArrayToStringBase64(user.getFotoPerfil()));
-		return usuarioFotoDto;
-	}
+        usuarioFotoDto.setFoto(Utils.convertByteArrayToStringBase64(user.getFotoPerfil()));
+        return usuarioFotoDto;
+    }
 
-	@Override
-	public List<PerfilAsesorDto> getDirectorioDeAsesoresPorFiltros(FiltrosDirectorioAsesores filtros) {
-		List<Object[]> queryResults = usuarioRepository
-				.obtenerListaDirectorioAsesoresAlumno(	filtros.getAlumnoId(),
-														filtros.getCadenaBusqueda(),
-														filtros.getActivo(),
-														Utils.convertIntegerListToString(filtros.getIdAreas()),
-														Utils.convertIntegerListToString(filtros.getIdTemas()));
-		List<PerfilAsesorDto> perfilAsesorDtos = new ArrayList<>();
+    @Override
+    public List<PerfilAsesorDto> getDirectorioDeAsesoresPorFiltros(FiltrosDirectorioAsesores filtros) {
+        List<Object[]> queryResults = usuarioRepository
+                .obtenerListaDirectorioAsesoresAlumno(filtros.getAlumnoId(),
+                        filtros.getCadenaBusqueda(),
+                        filtros.getActivo(),
+                        Utils.convertIntegerListToString(filtros.getIdAreas()),
+                        Utils.convertIntegerListToString(filtros.getIdTemas()));
+        List<PerfilAsesorDto> perfilAsesorDtos = new ArrayList<>();
 
-		for(Object[] result : queryResults){
-			PerfilAsesorDto perfil = PerfilAsesorDto.fromQueryDirectorioAsesores(result);
-			//el numero de tesistas actuales
-			Integer cantTesistas ;
-			List<Object[]> tesistas =usuarioXTemaRepository.listarNumeroTesistasAsesor(perfil.getId());//ASEGURADO sale 1 sola fila
-			cantTesistas = (Integer) tesistas.get(0)[0];
-			perfil.setTesistasActuales(cantTesistas);
-			//Luego la consulta de las áreas de conocimiento
-			List<InfoAreaConocimientoDto> areas;
-			List<Integer> idAreas = usuarioXAreaConocimientoRepository.findAllByUsuario_IdAndActivoIsTrue(perfil.getId()).
-					stream()
-					.map(UsuarioXAreaConocimiento::getAreaConocimiento)
-					.map(AreaConocimiento::getId)
-					.toList();
-			areas = areaConocimientoRepository.findAllByIdIn(idAreas)
-					.stream()
-					.map(InfoAreaConocimientoMapper::toDto)
-					.toList();
-			//Luego la consulta de las subareas de conocimiento
-			List<InfoSubAreaConocimientoDto> subareas;
-			List<Integer> idSubareas = usuarioXSubAreaConocimientoRepository.findAllByUsuario_IdAndActivoIsTrue(perfil.getId()).
-					stream()
-					.map(UsuarioXSubAreaConocimiento::getSubAreaConocimiento)
-					.map(SubAreaConocimiento::getId)
-					.toList();
-			subareas = subAreaConocimientoRepository.findAllByIdIn(idSubareas)
-					.stream()
-					.map(InfoSubAreaConocimientoMapper::toDto)
-					.toList();
+        for (Object[] result : queryResults) {
+            PerfilAsesorDto perfil = PerfilAsesorDto.fromQueryDirectorioAsesores(result);
+            // el numero de tesistas actuales
+            Integer cantTesistas;
+            List<Object[]> tesistas = usuarioXTemaRepository.listarNumeroTesistasAsesor(perfil.getId());// ASEGURADO
+                                                                                                        // sale 1 sola
+                                                                                                        // fila
+            cantTesistas = (Integer) tesistas.get(0)[0];
+            perfil.setTesistasActuales(cantTesistas);
+            // Luego la consulta de las áreas de conocimiento
+            List<InfoAreaConocimientoDto> areas;
+            List<Integer> idAreas = usuarioXAreaConocimientoRepository
+                    .findAllByUsuario_IdAndActivoIsTrue(perfil.getId()).stream()
+                    .map(UsuarioXAreaConocimiento::getAreaConocimiento)
+                    .map(AreaConocimiento::getId)
+                    .toList();
+            areas = areaConocimientoRepository.findAllByIdIn(idAreas)
+                    .stream()
+                    .map(InfoAreaConocimientoMapper::toDto)
+                    .toList();
+            // Luego la consulta de las subareas de conocimiento
+            List<InfoSubAreaConocimientoDto> subareas;
+            List<Integer> idSubareas = usuarioXSubAreaConocimientoRepository
+                    .findAllByUsuario_IdAndActivoIsTrue(perfil.getId()).stream()
+                    .map(UsuarioXSubAreaConocimiento::getSubAreaConocimiento)
+                    .map(SubAreaConocimiento::getId)
+                    .toList();
+            subareas = subAreaConocimientoRepository.findAllByIdIn(idSubareas)
+                    .stream()
+                    .map(InfoSubAreaConocimientoMapper::toDto)
+                    .toList();
 
-			perfil.setAreasTematicas(areas);
-			perfil.setTemasIntereses(subareas);
-			//Toques finales
-			perfil.actualizarEstado();
-			perfilAsesorDtos.add(perfil);
-		}
+            perfil.setAreasTematicas(areas);
+            perfil.setTemasIntereses(subareas);
+            // Toques finales
+            perfil.actualizarEstado();
+            perfilAsesorDtos.add(perfil);
+        }
 
-		return perfilAsesorDtos;
-	}
+        return perfilAsesorDtos;
+    }
+
+    @Override
+    public UsuarioDto findUsuarioByCodigo(String codigoPucp) {
+        Optional<Usuario> usuario = usuarioRepository.findByCodigoPucp(codigoPucp);
+        if (usuario.isPresent()) {
+            UsuarioDto usuarioDto = UsuarioMapper.toDto(usuario.get());
+            return usuarioDto;
+        }
+        return null;
+    }
+
+    @Override
+    public UsuarioDto findByCognitoId(String cognitoId) throws NoSuchElementException {
+        Optional<Usuario> usuario = usuarioRepository.findByIdCognito(cognitoId);
+        if (usuario.isPresent()) {
+            return UsuarioMapper.toDto(usuario.get());
+        } else {
+            throw new NoSuchElementException("Usuario not found with ID Cognito: " + cognitoId);
+        }
+    }
+
+    @Override
+    public AlumnoTemaDto getAlumnoTema(String idUsuario) {
+        try {
+
+            UsuarioDto usuDto = findByCognitoId(idUsuario);
+
+            if (usuDto == null) {
+                throw new RuntimeException("Usuario no encontrado con Cognito ID: " + idUsuario);
+            }
+            Integer idAlumno = usuDto.getId();
+            String sqlDetalle = """
+                    	SELECT * FROM obtener_detalle_tesista(:p_tesista_id)
+                    """;
+
+            Query queryDetalle = em.createNativeQuery(sqlDetalle)
+                    .setParameter("p_tesista_id", idAlumno);
+
+            @SuppressWarnings("unchecked")
+            List<Object[]> resultsDetalle = queryDetalle.getResultList();
+
+            if (resultsDetalle.isEmpty()) {
+                throw new NoSuchElementException("No se encontraron datos para el alumno con ID: " + idAlumno);
+            }
+
+            Object[] rowDetalle = resultsDetalle.get(0);
+
+            //Luego obtenemos el progreso del alumno y el siguiente entregable
+            String sqlProgreso = """
+                    	SELECT * FROM calcular_progreso_alumno(:p_alumno_id)
+                    """;
+
+            Query queryProgreso = em.createNativeQuery(sqlProgreso)
+                    .setParameter("p_alumno_id", idAlumno);
+
+            @SuppressWarnings("unchecked")
+            List<Object[]> resultsProgreso = queryProgreso.getResultList();
 
 
-	@Override
-	public UsuarioDto findUsuarioByCodigo(String codigoPucp) {
-		Optional<Usuario> usuario = usuarioRepository.findByCodigoPucp(codigoPucp);
-		if(usuario.isPresent()){
-			UsuarioDto usuarioDto = UsuarioMapper.toDto(usuario.get());
-			return usuarioDto;
-		}
-		return null;
-	}
+            AlumnoTemaDto alumnoTemaDto = new AlumnoTemaDto();
+            alumnoTemaDto.setId((Integer) rowDetalle[0]); // tesista_id
+            alumnoTemaDto.setTemaNombre((String) rowDetalle[9]); // tema_nombre
+            alumnoTemaDto.setAsesorNombre((String) rowDetalle[15]); // asesor_nombre
+            alumnoTemaDto.setCoasesorNombre((String) rowDetalle[17]); // coasesor_nombre
+            alumnoTemaDto.setAreaNombre((String) rowDetalle[13]); // area_conocimiento
+            alumnoTemaDto.setSubAreaNombre((String) rowDetalle[14]); // sub_area_conocimiento
 
-	@Override
-	public AlumnoTemaDto getAlumnoTema(Integer idAlumno) {
-		try {
-			// Primero obtenemos los datos básicos del alumno y su tema
-			String sqlDetalle = """
-				SELECT * FROM obtener_detalle_tesista(:p_tesista_id)
-			""";
-			
-			Query queryDetalle = em.createNativeQuery(sqlDetalle)
-				.setParameter("p_tesista_id", idAlumno);
-			
-			@SuppressWarnings("unchecked")
-			List<Object[]> resultsDetalle = queryDetalle.getResultList();
-			
-			if (resultsDetalle.isEmpty()) {
-				throw new NoSuchElementException("No se encontraron datos para el alumno con ID: " + idAlumno);
-			}
-			
-			Object[] rowDetalle = resultsDetalle.get(0);
-			
-			// Luego obtenemos el progreso del alumno y el siguiente entregable
-			String sqlProgreso = """
-				SELECT * FROM calcular_progreso_alumno(:p_alumno_id)
-			""";
-			
-			Query queryProgreso = em.createNativeQuery(sqlProgreso)
-				.setParameter("p_alumno_id", idAlumno);
-			
-			@SuppressWarnings("unchecked")
-			List<Object[]> resultsProgreso = queryProgreso.getResultList();
-			
-			AlumnoTemaDto alumnoTemaDto = new AlumnoTemaDto();
-			alumnoTemaDto.setId((Integer) rowDetalle[0]); // tesista_id
-			alumnoTemaDto.setTemaNombre((String) rowDetalle[8]); // tema_nombre
-			alumnoTemaDto.setAsesorNombre((String) rowDetalle[14]); // asesor_nombre
-			alumnoTemaDto.setCoasesorNombre((String) rowDetalle[16]); // coasesor_nombre
-			alumnoTemaDto.setAreaNombre((String) rowDetalle[12]); // area_conocimiento
-			alumnoTemaDto.setSubAreaNombre((String) rowDetalle[13]); // sub_area_conocimiento
-			
-			// Agregamos la información de progreso y siguiente entregable
-			if (!resultsProgreso.isEmpty()) {
-				Object[] rowProgreso = resultsProgreso.get(0);
-				alumnoTemaDto.setTotalEntregables((Integer) rowProgreso[0]);
-				alumnoTemaDto.setEntregablesEnviados((Integer) rowProgreso[1]);
-				alumnoTemaDto.setPorcentajeProgreso(((Number) rowProgreso[2]).doubleValue());
-				
-				// Información del siguiente entregable no enviado
-				if (rowProgreso[3] != null) { // siguiente_entregable_nombre
-					alumnoTemaDto.setSiguienteEntregableNombre((String) rowProgreso[3]);
-					if (rowProgreso[4] != null) { // siguiente_entregable_fecha_fin
-						// Manejo seguro de la conversión de fechas
-						if (rowProgreso[4] instanceof java.sql.Timestamp) {
-							alumnoTemaDto.setSiguienteEntregableFechaFin(((java.sql.Timestamp) rowProgreso[4]).toInstant().atOffset(java.time.ZoneOffset.UTC));
-						} else if (rowProgreso[4] instanceof java.time.Instant) {
-							alumnoTemaDto.setSiguienteEntregableFechaFin(((java.time.Instant) rowProgreso[4]).atOffset(java.time.ZoneOffset.UTC));
-						}
-					}
-				}
-			} else {
-				alumnoTemaDto.setTotalEntregables(0);
-				alumnoTemaDto.setEntregablesEnviados(0);
-				alumnoTemaDto.setPorcentajeProgreso(0.0);
-			}
-			
-			return alumnoTemaDto;
-		} catch (NoSuchElementException e) {
-			throw e; // Re-throw NoSuchElementException as is
-		} catch (Exception e) {
-			// Log the actual error for debugging
-			logger.severe("Error al obtener datos del alumno " + idAlumno + ": " + e.getMessage());
-			throw new RuntimeException("Error al obtener datos del alumno: " + e.getMessage());
-		}
-	}
+            // Agregamos la información de progreso y siguiente entregable
+            if (!resultsProgreso.isEmpty()) {
+                Object[] rowProgreso = resultsProgreso.get(0);
+                alumnoTemaDto.setTotalEntregables((Integer) rowProgreso[0]);
+                alumnoTemaDto.setEntregablesEnviados((Integer) rowProgreso[1]);
+                alumnoTemaDto.setPorcentajeProgreso(((Number) rowProgreso[2]).doubleValue());
 
-	@Override
-	public UsuarioDto findByCognitoId(String cognitoId) throws NoSuchElementException {
-		Optional<Usuario> usuario = usuarioRepository.findByIdCognito(cognitoId);
-		if (usuario.isPresent()) {
-			return UsuarioMapper.toDto(usuario.get());
-		} else {
-			throw new NoSuchElementException("Usuario not found with ID Cognito: " + cognitoId);
-		}
-	}
+                // Información del siguiente entregable no enviado
+                if (rowProgreso[3] != null) { // siguiente_entregable_nombre
+                    alumnoTemaDto.setSiguienteEntregableNombre((String) rowProgreso[3]);
+                    if (rowProgreso[4] != null) { // siguiente_entregable_fecha_fin
+                        // Manejo seguro de la conversión de fechas
+                        if (rowProgreso[4] instanceof java.sql.Timestamp) {
+                            alumnoTemaDto.setSiguienteEntregableFechaFin(((java.sql.Timestamp) rowProgreso[4])
+                                    .toInstant().atOffset(java.time.ZoneOffset.UTC));
+                        } else if (rowProgreso[4] instanceof java.time.Instant) {
+                            alumnoTemaDto.setSiguienteEntregableFechaFin(
+                                    ((java.time.Instant) rowProgreso[4]).atOffset(java.time.ZoneOffset.UTC));
+                        }
+                    }
+                }
+            } else {
+                alumnoTemaDto.setTotalEntregables(0);
+                alumnoTemaDto.setEntregablesEnviados(0);
+                alumnoTemaDto.setPorcentajeProgreso(0.0);
+            }
 
+            return alumnoTemaDto;
+        } catch (NoSuchElementException e) {
+            throw e; 
+        } catch (Exception e) {
+            logger.severe("Error al obtener datos del alumno " + idUsuario + ": " + e.getMessage());
+            throw new RuntimeException("Error al obtener datos del alumno: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public List<AlumnoReporteDto> findByStudentsForReviewer(String idCognito, String cadenaBusqueda) {
+        // Primero obtenemos el ID del usuario usando el idCognito
+        Usuario usuario = usuarioRepository.findByIdCognito(idCognito)
+                .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado con ID Cognito: " + idCognito));
+
+        String sql = """
+                SELECT *
+                FROM obtener_alumnos_por_carrera_revisor(:usuarioId, :cadena)
+                """;
+
+        @SuppressWarnings("unchecked")
+        List<Object[]> rows = em.createNativeQuery(sql)
+                .setParameter("usuarioId", usuario.getId())
+                .setParameter("cadena", cadenaBusqueda)
+                .getResultList();
+
+        List<AlumnoReporteDto> lista = new ArrayList<>();
+        for (Object[] r : rows) {
+            AlumnoReporteDto alumno = AlumnoReporteDto.builder()
+                    .usuarioId((Integer) r[0])
+                    .codigoPucp((String) r[1])
+                    .nombres((String) r[2])
+                    .primerApellido((String) r[3])
+                    .segundoApellido((String) r[4])
+                    .temaTitulo((String) r[5])
+                    .temaId((Integer) r[6])
+                    .asesor((String) r[7])
+                    .coasesor((String) r[8])
+                    .activo((Boolean) r[9])
+                    .build();
+
+            lista.add(alumno);
+        }
+
+        return lista;
+    }
+
+    @Override
+    public List<DocentesDTO> getProfesores() {
+        List<Object[]> rows = usuarioRepository.obtenerProfesores();
+        List<DocentesDTO> docentes = new ArrayList<>();
+        for (Object[] r : rows) {
+
+            List<Integer> idAreas = usuarioXAreaConocimientoRepository
+                    .findAllByUsuario_IdAndActivoIsTrue((Integer) r[0]).stream()
+                    .map(UsuarioXAreaConocimiento::getAreaConocimiento)
+                    .map(AreaConocimiento::getId)
+                    .toList();
+
+            DocentesDTO docente = DocentesDTO.builder()
+                    .id((Integer) r[0])
+                    .nombres((String) r[1])
+                    .primerApellido((String) r[2])
+                    .segundoApellido((String) r[3])
+                    .codigoPucp((String) r[4])
+                    .correoElectronico((String) r[5])
+                    .tipoDedicacion((String) r[6])
+                    .cantTemasAsignados((Long) r[7])
+                    .areasConocimientoIds(idAreas)
+                    .build();
+
+            docentes.add(docente);
+        }
+        return docentes;
+    }
+
+    @Override
+    public void validarTipoUsuarioRolUsuario(String cognitoId, List<TipoUsuarioEnum> tipos, RolEnum rol) {
+        //Almenos debe hacerse la validación de tipoUsuario
+        if (tipos  == null || tipos.isEmpty())
+            throw new ResponseStatusException(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        "La validación necesita al menos un tipo de usuario"
+            );
+
+        //Validar que exista un usuario con ese cognitoID
+        if(!usuarioRepository.existsByIdCognito(cognitoId))
+            throw new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "No se encontró un usuario asociado a su token"
+            );
+
+        //Validar el tipo Usuario
+        boolean encontro;
+        for(TipoUsuarioEnum tipoUsuario : tipos) {
+            encontro = tipoUsuarioRepository.existsByNombre(tipoUsuario.name());
+            if (!encontro)
+                throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Error en validación interna"
+                );
+        }
+
+        //Validar que tenga ese tipo
+        encontro = false;
+        for(TipoUsuarioEnum tipoUsuario : tipos) {
+            encontro = usuarioRepository.existsByIdCognitoAndTipoUsuarioNombre(cognitoId, tipoUsuario.name());
+            if (encontro) break;
+        }
+        if(!encontro)
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "No se pudo validar sus credenciales"
+            );
+
+        if(rol == null) return;
+
+        //Validar el rol
+        if(!rolRepository.existsByNombre(rol.name()))
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Error en validación interna"
+            );
+
+        if(usuarioXRolRepository.existsByUsuario_IdCognitoAndRol_Nombre(cognitoId, rol.name()))
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "No se pudo validar sus credenciales"
+            );
+    }
+
+    public Usuario buscarUsuarioPorId(Integer idUsuario, String onErrorMsg){
+        return usuarioRepository
+                .findById(idUsuario)
+                .orElseThrow(() -> new RuntimeException(onErrorMsg));
+    }
+
+    @Override
+    public List<UsuarioRolRevisorDto> listarRevisoresPorCarrera(Integer carreraId) {
+        List<Object[]> result = usuarioRepository.listarRevisoresPorCarrera(carreraId);
+        List<UsuarioRolRevisorDto> revisores = new ArrayList<>();
+
+        for (Object[] row : result) {
+            UsuarioRolRevisorDto dto = new UsuarioRolRevisorDto();
+            dto.setId((Integer) row[0]); // tema_id
+            dto.setUsuarioId((Integer) row[1]); // usuario_id
+            dto.setCodigoPucp((String) row[2]); // codigo_pucp
+            dto.setNombres((String) row[3]); // nombres
+            dto.setPrimerApellido((String) row[4]); // primer_apellido
+            dto.setSegundoApellido((String) row[5]); // segundo_apellido
+            dto.setCorreoElectronico((String) row[6]); // correo_electronico
+            dto.setRolId((Integer) row[7]); // rol_id
+            dto.setRolNombre((String) row[8]); // rol_nombre
+            dto.setCarreraId((Integer) row[9]); // carrera_id
+            dto.setCarreraNombre((String) row[10]); // carrera_nombre
+            revisores.add(dto);
+        }
+        return revisores;
+    }
 }

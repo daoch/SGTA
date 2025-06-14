@@ -1,15 +1,15 @@
 // Enum para manejar Tipos en la interfaz de usuario
 // Tipos Generales vs Tema.estadoTemaNombre.
 export enum Tipo {
-  TODOS = "TODOS",
   INSCRITO = "INSCRITO",
   LIBRE = "PROPUESTO_LIBRE",
-  INTERESADO = "REGISTRADO",
+  INTERESADO = "PROPUESTO_GENERAL",
+  PREINSCRITO = "PREINSCRITO",
 }
 
 // Estados
 export enum estadosValues {
-  PROPUESTO_LIBRE = "disponible",
+  PROPUESTO_LIBRE = "Propuesto_libre",
   INSCRITO = "inscrito",
   REGISTRADO = "aprobado",
   RECHAZADO = "rechazado",

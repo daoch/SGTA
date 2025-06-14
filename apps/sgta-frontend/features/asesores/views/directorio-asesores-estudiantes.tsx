@@ -19,12 +19,12 @@ import OrdenDropdown, {
   SortOption,
 } from "../components/directorio/orden-dropdown-directorio";
 import ResultadosAsesores from "../components/directorio/resultados-busqueda";
-import { getAsesoresPorFiltros } from "../hooks/directorio/page";
+import { getAsesoresPorFiltros } from "../services/directorio-services";
 import {
   getIdByCorreo,
   listarAreasTematicas,
   listarTemasInteres,
-} from "../hooks/perfil/perfil-apis";
+} from "../services/perfil-services";
 import { AreaTematica, Asesor, TemaInteres } from "../types/perfil/entidades";
 
 // Tipos de datos
@@ -62,13 +62,14 @@ export default function DirectorioAsesoresEstudiantes() {
   const [asesores, setAsesores] = useState<Asesor[]>([]);
   const [allAreaTematica, setAllAreasTematicas] = useState<AreaTematica[]>([]);
   const [allTemasInteres, setAllTemasInteres] = useState<TemaInteres[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingPage, setIsLoadingPage] = useState(false);
+  const [isLoadingResults, setIsLoadingResults] = useState(false);
   //const [error, setError] = useState<string | null>(null);
 
   const loadUsuarioId = async () => {
     if (!user) return;
 
-    setIsLoading(true);
+    setIsLoadingPage(true);
 
     try {
       const id = await getIdByCorreo(user.email);
@@ -83,7 +84,7 @@ export default function DirectorioAsesoresEstudiantes() {
     } catch (error) {
       console.error("Error inesperado al obtener el ID del asesor:", error);
     } finally {
-      setIsLoading(false);
+      setIsLoadingPage(false);
     }
   };
 
@@ -99,7 +100,7 @@ export default function DirectorioAsesoresEstudiantes() {
     if (!userId) return;
 
     const fetchAsesores = async () => {
-      setIsLoading(true);
+      setIsLoadingResults(true);
 
       try {
         const data = await getAsesoresPorFiltros({
@@ -114,7 +115,7 @@ export default function DirectorioAsesoresEstudiantes() {
       } catch (error) {
         console.error("Error al cargar asesores:", error);
       } finally {
-        setIsLoading(false);
+        setIsLoadingResults(false);
       }
     };
 
@@ -289,6 +290,14 @@ export default function DirectorioAsesoresEstudiantes() {
     return items;
   };
 
+  if (isLoadingPage) {
+    return (
+      <div className="container mx-auto py-6 max-w-6xl">
+        <p>Cargando...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto py-6 max-w-6xl">
       <h1 className="text-2xl font-bold mb-6">Directorio de asesores</h1>
@@ -349,6 +358,7 @@ export default function DirectorioAsesoresEstudiantes() {
         setCurrentPage={setCurrentPage}
         soloDisponible={filters.soloDisponible}
         renderPaginationItems={renderPaginationItems}
+        isLoadingResults={isLoadingResults}
       />
     </div>
   );

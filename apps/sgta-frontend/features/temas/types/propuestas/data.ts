@@ -1,15 +1,16 @@
-"use server";
-
 import {
   Area,
   Proyecto_M,
   SubAreaConocimiento,
   Usuario,
 } from "@/features/temas/types/propuestas/entidades";
+
 const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
+import { useAuthStore } from "@/features/auth/store/auth-store";
+const { idToken } = useAuthStore.getState();
+
 export async function fetchTemasPropuestosAlAsesor(
-  asesorId: number,
   titulo?: string,
   limit?: number,
   offset?: number,
@@ -17,14 +18,19 @@ export async function fetchTemasPropuestosAlAsesor(
   try {
     const params = new URLSearchParams();
 
-    if (titulo) params.append("titulo", titulo);
+    params.append("titulo", titulo != null ? titulo?.toString() : "");
     params.append("limit", limit != null ? limit.toString() : "50");
     params.append("offset", offset != null ? offset.toString() : "0");
+    console.log(
+      `${baseUrl}/temas/listarTemasPropuestosAlAsesor?${params.toString()}`,
+    );
+    console.log({ idToken });
     const response = await fetch(
-      `${baseUrl}/temas/listarTemasPropuestosAlAsesor/${asesorId}?${params.toString()}`,
+      `${baseUrl}/temas/listarTemasPropuestosAlAsesor?${params.toString()}`,
       {
         method: "GET",
         headers: {
+          Authorization: `Bearer ${idToken}`,
           "Content-Type": "application/json",
         },
       },
@@ -74,7 +80,6 @@ export async function fetchTemasPropuestosAlAsesor(
 
 export async function fetchTemasPropuestosPorSubAreaConocimiento(
   subAreas: SubAreaConocimiento[],
-  asesorId: number,
   titulo?: string,
   limit?: number,
   offset?: number,
@@ -85,7 +90,6 @@ export async function fetchTemasPropuestosPorSubAreaConocimiento(
     // Agregar múltiples valores para el mismo parámetro
     idsSubAreas.forEach((id) => params.append("subareaIds", id.toString()));
 
-    params.append("asesorId", asesorId.toString());
     if (titulo) params.append("titulo", titulo);
     params.append("limit", limit ? limit.toString() : "10");
     params.append("offset", offset ? offset.toString() : "0");
@@ -95,6 +99,7 @@ export async function fetchTemasPropuestosPorSubAreaConocimiento(
       {
         method: "GET",
         headers: {
+          Authorization: `Bearer ${idToken}`,
           "Content-Type": "application/json",
         },
       },
@@ -173,9 +178,6 @@ export async function fetchAreaConocimientoFindByUsuarioId(
   usuarioId: number,
 ): Promise<Area[]> {
   try {
-    console.log(
-      `${baseUrl}/areaConocimiento/listarPorUsuario?usuarioId=${usuarioId}`,
-    );
     const response = await fetch(
       `${baseUrl}/areaConocimiento/listarPorUsuario?usuarioId=${usuarioId}`,
       {
@@ -255,16 +257,16 @@ export async function fetchSubAreaConocimientoFindById(
 
 export async function postularTemaPropuestoGeneral(
   idAlumno: number,
-  idAsesor: number,
   idTema: number,
   comentario: string,
 ) {
   try {
     const response = await fetch(
-      `${baseUrl}/temas/postularAsesorTemaPropuestoGeneral?idAlumno=${idAlumno}&idAsesor=${idAsesor}&idTema=${idTema}&comentario=${encodeURIComponent(comentario)}`,
+      `${baseUrl}/temas/postularAsesorTemaPropuestoGeneral?idAlumno=${idAlumno}&idTema=${idTema}&comentario=${encodeURIComponent(comentario)}`,
       {
         method: "POST",
         headers: {
+          Authorization: `Bearer ${idToken}`,
           "Content-Type": "application/json",
         },
       },
@@ -283,7 +285,6 @@ export async function postularTemaPropuestoGeneral(
 export async function enlazarTesistasATemaPropuestoDirecta(
   usuariosId: number[],
   temaId: number,
-  profesorId: number,
   comentario: string,
 ) {
   try {
@@ -292,12 +293,12 @@ export async function enlazarTesistasATemaPropuestoDirecta(
       {
         method: "POST",
         headers: {
+          Authorization: `Bearer ${idToken}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           usuariosId,
           temaId,
-          profesorId,
           comentario,
         }),
       },
@@ -336,5 +337,57 @@ export async function rechazarTema(
     console.log("Rechazo realizado con éxito.");
   } catch (error) {
     console.error("Error en la solicitud:", error);
+  }
+}
+
+export async function buscarUsuarioPorToken() {
+  try {
+    const response = await fetch(`${baseUrl}/usuario/getInfoUsuarioLogueado`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+    console.log({ idToken });
+
+    if (!response.ok) {
+      throw new Error("Error al obtener el usuario.");
+    }
+
+    const data = await response.json();
+
+    return data;
+  } catch (error) {
+    console.error(
+      "La página no responde. No se pudo encontrar al usuario.",
+      error,
+    );
+    throw error;
+  }
+}
+
+export async function buscarTemasSimilaresALaPropuesta(temaId: number) {
+  try {
+    const response = await fetch(`${baseUrl}/temas/${temaId}/similares`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Error al obtener los temas similares.");
+    }
+
+    const data = await response.json();
+
+    return data;
+  } catch (error) {
+    console.error(
+      "La página no responde para listar los temas similares.",
+      error,
+    );
+    throw error;
   }
 }

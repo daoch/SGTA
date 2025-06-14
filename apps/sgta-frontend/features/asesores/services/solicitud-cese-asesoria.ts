@@ -13,8 +13,8 @@ export async function getTerminationConsultancyList(
   searchCriteria: IRequestTerminationConsultancySearchFields,
 ): Promise<ITerminationConsultancyRequest> {
   const ELEMENTS_PER_PAGE = 10;
-  const BASE_URL = process.env.BASE_URL ?? "http://localhost:5000/";
-  const urlFetch = `${BASE_URL}solicitudes/2/cessation-requests?page=${searchCriteria.page}&size=${ELEMENTS_PER_PAGE}`;
+  const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
+  const urlFetch = `${BASE_URL}/solicitudes/2/cessation-requests?page=${searchCriteria.page}&size=${ELEMENTS_PER_PAGE}`;
 
   try {
     const response = await fetch(urlFetch, {
@@ -60,8 +60,8 @@ export async function rejectTerminationConsultancyRequest(
   requestId: number,
   responseText: string,
 ): Promise<void> {
-  const BASE_URL = process.env.BASE_URL ?? "http://localhost:5000/";
-  const url = `${BASE_URL}solicitudes/cessation-requests/${requestId}/reject`;
+  const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
+  const url = `${BASE_URL}/solicitudes/cessation-requests/${requestId}/reject`;
 
   try {
     const res = await fetch(url, {
@@ -91,8 +91,8 @@ export async function approveTerminationConsultancyRequest(
   requestId: number,
   responseText: string,
 ): Promise<void> {
-  const BASE_URL = process.env.BASE_URL ?? "http://localhost:5000/";
-  const url = `${BASE_URL}solicitudes/cessation-requests/${requestId}/approve`;
+  const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
+  const url = `${BASE_URL}/solicitudes/cessation-requests/${requestId}/approve`;
   try {
     const res = await fetch(url, {
       method: "POST",
@@ -120,8 +120,8 @@ export async function approveTerminationConsultancyRequest(
 export async function getTerminationConsultancyRequest(
   idRequest: number | null,
 ): Promise<IRequestTerminationConsultancyRequestDataViewDetail | null> {
-  const BASE_URL = process.env.BASE_URL ?? "http://localhost:5000/";
-  const url = `${BASE_URL}solicitudes/cessation-requests/viewDetail`;
+  const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
+  const url = `${BASE_URL}/solicitudes/cessation-requests/viewDetail`;
 
   try {
     const res = await fetch(url, {
@@ -166,8 +166,8 @@ export async function getTerminationRequestAssessorList(
 ): Promise<IListAvailableAdvisorList | null> {
   const ELEMENTS_PER_PAGE = 10;
 
-  const BASE_URL = process.env.BASE_URL ?? "http://localhost:5000/";
-  const url = `${BASE_URL}solicitudes/cessation-requests/assessors/list`;
+  const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
+  const url = `${BASE_URL}/solicitudes/cessation-requests/assessors/list`;
   try {
     const res = await fetch(url, {
       method: "POST",

@@ -106,7 +106,7 @@ export function ObservacionesCard({ observaciones, solicitudes }: Props) {
         }
 
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/temas/listarTemasPorUsuarioRolEstado?rolNombre=Tesista&estadoNombre=INSCRITO`,
+          `${process.env.NEXT_PUBLIC_API_URL}/temas/porUsuarioTituloAreaCarreraEstadoFecha?titulo=&areaId=&carreraId=&estadoNombre=OBSERVADO&fechaCreacionDesde=&fechaCreacionHasta=`,
           {
             headers: {
               "Authorization": `Bearer ${idToken}`,
@@ -153,10 +153,19 @@ export function ObservacionesCard({ observaciones, solicitudes }: Props) {
     };
 
     try {
+      const { idToken } = useAuthStore.getState();
+        
+        if (!idToken) {
+          console.error("No authentication token available");
+          return;
+        }
+        
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/solicitudes/atenderSolicitudTemaInscrito`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Authorization": `Bearer ${idToken}`,
+          "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 

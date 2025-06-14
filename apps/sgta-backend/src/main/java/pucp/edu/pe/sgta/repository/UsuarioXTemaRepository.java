@@ -1,9 +1,13 @@
 package pucp.edu.pe.sgta.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
+import pucp.edu.pe.sgta.dto.MiembroJuradoSimplificadoDTO;
 import pucp.edu.pe.sgta.model.UsuarioXTema;
 
 import java.util.List;
@@ -52,9 +56,44 @@ public interface UsuarioXTemaRepository extends JpaRepository<UsuarioXTema, Inte
 
         List<UsuarioXTema> findByTemaIdAndRolNombreAndActivoTrue(Integer temaId, String nombreRol);
 
-        UsuarioXTema findFirstByUsuario_IdAndRol_IdAndActivoTrueOrderByFechaCreacionDesc(Integer usuarioId, Integer rolId);
+        UsuarioXTema findFirstByUsuario_IdAndRol_IdAndActivoTrueOrderByFechaCreacionDesc(Integer usuarioId,
+                        Integer rolId);
+
         UsuarioXTema findFirstByTemaIdAndRolNombreAndActivoTrue(Integer temaId, String nombreRol);
 
         Optional<UsuarioXTema> findByUsuarioId(Integer usuarioId);
 
+        @Query(value = "SELECT tiene_rol_en_tema(:usuarioId, :temaId, :rolNombre)", nativeQuery = true)
+        boolean verificarUsuarioRolEnTema(
+                        @Param("usuarioId") Integer usuarioId,
+                        @Param("temaId") Integer temaId,
+                        @Param("rolNombre") String rolNombre);
+
+        @Modifying
+        @Transactional
+        @Query("UPDATE UsuarioXTema u SET u.activo = false WHERE u.id = :id")
+        void softDeleteById(@Param("id") Integer id);
+
+        // Devuelve Optional<UsuarioXTema> por tema y usuario, solo si está activo
+        Optional<UsuarioXTema> findByTemaIdAndUsuarioIdAndActivoTrue(Integer temaId, Integer usuarioId);
+
+        Optional<UsuarioXTema> findByUsuarioIdAndTemaIdAndRolId(Integer usuarioId, Integer temaId, Integer rolId);
+
+        Optional<UsuarioXTema> findByUsuario_IdAndTema_Id(Integer usuarioId, Integer temaId);
+
+        // Devuelve lista de UsuarioXTema por tema, donde asignado = false y activo =
+        // true
+        List<UsuarioXTema> findByTemaIdAndAsignadoFalseAndActivoTrue(Integer temaId);
+
+        @Query(value = """
+                            SELECT *
+                                FROM obtener_miembros_jurado_x_exposicion_tema(:exposicion_tema_id)
+                        """, nativeQuery = true)
+        List<MiembroJuradoSimplificadoDTO> obtenerMiembrosJuradoPorExposicionTema(
+                        @Param("exposicion_tema_id") Integer exposicionTemaId);
+
+        Optional<UsuarioXTema> findByUsuarioIdAndTemaIdAndRolIdIn(
+                        Integer usuarioId, Integer temaId, List<Integer> rolIds);
+
+        List<UsuarioXTema> findByUsuarioIdAndActivoTrueAndAsignadoTrue(Integer usuarioId);
 }

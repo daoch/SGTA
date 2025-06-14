@@ -29,10 +29,11 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(Customizer.withDefaults())
-                .csrf(csrf -> csrf.disable())
-                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+            .cors(Customizer.withDefaults())
+            .csrf(csrf -> csrf.disable())
+            .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
+        // ── Autorización ────────────────────────────────────────────────
         if ("dev".equals(activeProfile)) {
             http.authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
         } else {
@@ -42,9 +43,12 @@ public class SecurityConfig {
                             "/swagger-ui/**",
                             "/swagger-ui.html")
                     .permitAll()
-                    .anyRequest().authenticated()).oauth2ResourceServer(oauth2 -> oauth2
-                            .jwt(jwt -> jwt.decoder(jwtDecoder())));
+                    .anyRequest().authenticated());
         }
+
+        // ── ¡Siempre! registrar el resource server ─────────────────────
+        http.oauth2ResourceServer(oauth2 -> oauth2
+                .jwt(jwt -> jwt.decoder(jwtDecoder())));
 
         return http.build();
     }

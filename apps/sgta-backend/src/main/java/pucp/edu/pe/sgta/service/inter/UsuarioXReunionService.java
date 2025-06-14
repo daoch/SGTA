@@ -1,6 +1,7 @@
 package pucp.edu.pe.sgta.service.inter;
 
 import pucp.edu.pe.sgta.dto.ReunionesXUsuariosDto;
+import pucp.edu.pe.sgta.dto.UsuarioNombresDTO;
 import pucp.edu.pe.sgta.model.UsuarioXReunion;
 
 import java.util.List;
@@ -19,6 +20,13 @@ public interface UsuarioXReunionService {
     // Listar reuniones de un usuario ordenadas por fecha
     List<UsuarioXReunion> findByUsuarioIdOrderedByDate(Integer usuarioId);
 
+    List<UsuarioNombresDTO> getAsesoresxAlumno(String idAlumno);
+
     List<ReunionesXUsuariosDto> findReunionesAlumnoAsesor();
 
+    UsuarioXReunion save(UsuarioXReunion usuarioXReunion);
+
+    UsuarioXReunion update(Integer id, UsuarioXReunion usuarioXReunionActualizada) throws Exception;
+
+    void delete(Integer id) throws Exception;
 }
