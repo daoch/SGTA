@@ -11,12 +11,16 @@ enum TypeView {
   Solicitud = "solicitud",
 }
 
-const tabsTexts = {
+const texts = {
   [TypeView.Tema]: {
     label: "Aprobación de temas",
+    title: "Aprobaciones",
+    description: "Gestión de solicitudes de cambios en tesis",
   },
   [TypeView.Solicitud]: {
     label: "Solicitudes de cambios",
+    title: "Solicitudes de cambios de tesis",
+    description: "Gestión de solicitudes de cambios en tesis",
   },
 };
 
@@ -36,7 +40,7 @@ const Page: React.FC = () => {
     >
       {/* Tabs List */}
       <TabsList>
-        {Object.entries(tabsTexts).map(([tab, { label }]) => (
+        {Object.entries(texts).map(([tab, { label }]) => (
           <TabsTrigger key={tab} value={tab}>
             <span className="flex items-center gap-2">
               <span>{label}</span>
@@ -47,6 +51,16 @@ const Page: React.FC = () => {
           </TabsTrigger>
         ))}
       </TabsList>
+
+      {/* Título general */}
+      <div>
+        <h1 className="text-3xl font-bold text-[#042354]">
+          {texts[selectedTab].title}
+        </h1>
+        <p className="text-muted-foreground">
+          {texts[selectedTab].description}
+        </p>
+      </div>
 
       {/* Content */}
       <TabsContent value={TypeView.Tema}>
