@@ -3326,12 +3326,49 @@ public class TemaServiceImpl implements TemaService {
 			logger.severe("Error al actualizar tema: " + e.getMessage());
 			throw new RuntimeException("No se pudo actualizar el tema", e);
 		}
-
 		return temaId;
 	}
 
-
-
-
+	@Override
+	@Transactional
+	public Integer createTemaFromOAI(TemaDto temaDto, Integer carreraId) {
+		logger.info("Creating tema from OAI record: " + temaDto.getTitulo());
+		
+		try {
+			// Validate carrera exists
+			Carrera carrera = carreraRepository.findById(carreraId)
+				.orElseThrow(() -> new RuntimeException("Carrera not found with id: " + carreraId));
+			
+			// Get FINALIZADO state
+			EstadoTema estadoFinalizado = estadoTemaRepository.findByNombre("FINALIZADO")
+				.orElseThrow(() -> new RuntimeException("Estado FINALIZADO not found"));
+			
+			// Create new tema
+			Tema tema = new Tema();
+			tema.setTitulo(temaDto.getTitulo());
+			tema.setResumen(temaDto.getResumen());
+			tema.setMetodologia(temaDto.getMetodologia());
+			tema.setObjetivos(temaDto.getObjetivos());
+			tema.setCarrera(carrera);
+			tema.setEstadoTema(estadoFinalizado);
+			tema.setFechaCreacion(OffsetDateTime.now());
+			tema.setFechaModificacion(OffsetDateTime.now());
+			tema.setActivo(true);
+			
+			// Save tema
+			Tema savedTema = temaRepository.save(tema);
+			
+			// Save history entry
+			saveHistorialTemaChange(savedTema, savedTema.getTitulo(), savedTema.getResumen(), 
+				"Tema creado desde importación OAI-PMH");
+			
+			logger.info("Tema created successfully from OAI with ID: " + savedTema.getId());
+			return savedTema.getId();
+			
+		} catch (Exception e) {
+			logger.severe("Error creating tema from OAI: " + e.getMessage());
+			throw new RuntimeException("Failed to create tema from OAI record", e);
+		}
+	}
 
 }
