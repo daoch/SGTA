@@ -3077,43 +3077,51 @@ public class TemaServiceImpl implements TemaService {
 	}
 
 	@Override
-	@Transactional()
+	@Transactional
 	public List<TemaDto> listarTemasSimilares(Integer temaId) {
 		// 1) Validar existencia del tema principal
 		temaRepository.findById(temaId)
-				.orElseThrow(() -> new RuntimeException("Tema no encontrado con id: " + temaId));
+			.orElseThrow(() -> new RuntimeException("Tema no encontrado con id: " + temaId));
 
 		// 2) Llamar a la función SQL
 		@SuppressWarnings("unchecked")
 		List<Object[]> rows = entityManager.createNativeQuery(
 				"SELECT * FROM listar_temas_similares(:temaId)")
-				.setParameter("temaId", temaId)
-				.getResultList();
+			.setParameter("temaId", temaId)
+			.getResultList();
 
 		// 3) Mapear cada fila al DTO
 		List<TemaDto> resultados = new ArrayList<>(rows.size());
 		for (Object[] r : rows) {
 			TemaDto dto = TemaDto.builder()
-					.id(((Number) r[0]).intValue())
-					.codigo((String) r[1])
-					.titulo((String) r[2])
-					.resumen((String) r[3])
-					.objetivos((String) r[4])
-					.metodologia((String) r[5])
-					.requisitos((String) r[6])
-					.portafolioUrl((String) r[7])
-					.activo((Boolean) r[8])
-					.fechaLimite((toOffsetDateTime(r[9])).toInstant().atOffset(ZoneOffset.UTC))
-					.fechaFinalizacion(
-							r[10] != null
-									? (toOffsetDateTime(r[10])).toInstant().atOffset(ZoneOffset.UTC)
-									: null)
-					.fechaCreacion((toOffsetDateTime(r[11])).toInstant().atOffset(ZoneOffset.UTC))
-					.fechaModificacion((toOffsetDateTime((r[12]))).toInstant().atOffset(ZoneOffset.UTC))
-					.estadoTemaNombre((String) r[13])
-					.porcentajeSimilitud(
-							((BigDecimal) r[14]).doubleValue())
-					.build();
+				.id(((Number) r[0]).intValue())
+				.codigo((String) r[1])
+				.titulo((String) r[2])
+				.resumen((String) r[3])
+				.objetivos((String) r[4])
+				.metodologia((String) r[5])
+				.requisitos((String) r[6])
+				.portafolioUrl((String) r[7])
+				.activo((Boolean) r[8])
+				// Fecha límite
+				.fechaLimite(r[9] != null
+					? toOffsetDateTime(r[9]).toInstant().atOffset(ZoneOffset.UTC)
+					: null)
+				// Fecha de finalización
+				.fechaFinalizacion(r[10] != null
+					? toOffsetDateTime(r[10]).toInstant().atOffset(ZoneOffset.UTC)
+					: null)
+				// Fecha de creación
+				.fechaCreacion(r[11] != null
+					? toOffsetDateTime(r[11]).toInstant().atOffset(ZoneOffset.UTC)
+					: null)
+				// Fecha de modificación
+				.fechaModificacion(r[12] != null
+					? toOffsetDateTime(r[12]).toInstant().atOffset(ZoneOffset.UTC)
+					: null)
+				.estadoTemaNombre((String) r[13])
+				.porcentajeSimilitud(((BigDecimal) r[14]).doubleValue())
+				.build();
 			resultados.add(dto);
 		}
 		return resultados;
