@@ -29,11 +29,12 @@ const texts = {
 };
 
 interface ComentariosDetalleSolicitudTemaProps {
+  tipoSolicitud: TypeSolicitud;
+  setTipoSolicitud?: (tipo: TypeSolicitud) => void;
   comentario: string;
   setComentario: (comentario: string) => void;
   errorComentario?: string;
   setErrorComentario?: (error: string) => void;
-  setTipoSolicitud?: (tipo: TypeSolicitud) => void;
   errorTipoSolicitud?: string;
   comentarioOpcional?: boolean;
 }
@@ -41,11 +42,12 @@ interface ComentariosDetalleSolicitudTemaProps {
 export const ComentariosDetalleSolicitudTema: React.FC<
   ComentariosDetalleSolicitudTemaProps
 > = ({
+  tipoSolicitud,
+  setTipoSolicitud,
   comentario,
   setComentario,
   errorComentario,
   setErrorComentario,
-  setTipoSolicitud,
   errorTipoSolicitud,
   comentarioOpcional,
 }) => (
@@ -65,6 +67,8 @@ export const ComentariosDetalleSolicitudTema: React.FC<
         Tipo de Solicitud
       </Label>
       <Select
+        defaultValue={"no-enviar"}
+        value={tipoSolicitud}
         onValueChange={(value) => {
           if (setTipoSolicitud) setTipoSolicitud(value as TypeSolicitud);
         }}

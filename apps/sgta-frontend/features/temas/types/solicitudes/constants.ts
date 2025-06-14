@@ -1,11 +1,6 @@
 import { EstadoTemaNombre } from "../temas/enums";
 import { PagesList } from "./entities";
 
-export const pageTexts = {
-  title: "Aprobaciones",
-  description: "Gestión de solicitudes de cambios en tesis",
-};
-
 const initialPagesListTemas: PagesList = {
   [EstadoTemaNombre.INSCRITO]: {
     pages: {},
