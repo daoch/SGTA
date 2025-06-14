@@ -38,7 +38,7 @@ interface Props {
   editable: boolean;
 }
 
-export default function PerfilAsesor({ userId, editable }: Props) {
+export default function PerfilAsesor({ userId, editable }: Readonly<Props>) {
   const router = useRouter();
 
   const [asesor, setAsesor] = useState<AsesorPerfil | null>(null);

@@ -98,7 +98,7 @@ export default function OverviewSection({
   addTemaInteres,
   initiateAreaDelete,
   removeTemaInteres,
-}: Props) {
+}: Readonly<Props>) {
   const [newEnlace, setNewEnlace] = useState<{
     nombrePlataforma?: PlataformaType;
     plataforma: string;
