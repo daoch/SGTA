@@ -210,4 +210,6 @@ public interface TemaService {
 
 	String listarSolicitudesConUsuarios(Integer temaId, int offset, int limit);
 
+	String listarSolicitudesPendientesPorUsuario(String usuarioId, int offset, int limit);
+
 }
