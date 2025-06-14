@@ -1999,31 +1999,38 @@ public class TemaServiceImpl implements TemaService {
 
 		return resultados;
 	}
-	// private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
-	// Object result = entityManager.createNativeQuery(
-	// "SELECT es_coordinador_activo(:usuarioId, :carreraId) FROM dual")
-	// .setParameter("usuarioId", usuarioId)
-	// .setParameter("carreraId", carreraId)
-	// .getSingleResult();
-	// return Boolean.TRUE.equals(result);
-	// }
+
+private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
+    // 1) Llamada nativa sin FROM dual
+    Object raw = entityManager.createNativeQuery(
+            "SELECT es_coordinador_activo(:usuarioId, :carreraId)")
+        .setParameter("usuarioId", usuarioId)
+        .setParameter("carreraId", carreraId)
+        .getSingleResult();
+
+    // 2) Convertir al tipo Boolean de Java
+    //    PostgreSQL devolverá un java.lang.Boolean aquí
+    return Boolean.TRUE.equals(raw);
+}
 
 	private void validarCoordinadorYEstado(
 			Integer temaId,
 			String nuevoEstadoNombre,
 			Integer usuarioId) {
+		// falta validar que el usuario es coordinador activo de la carrera del tema
 		// 3) Obtener el tema para extraer la carrera
 		Tema tema = temaRepository.findById(temaId)
 				.orElseThrow(() -> new ResponseStatusException(
 						HttpStatus.NOT_FOUND,
 						"Tema con id " + temaId + " no encontrado"));
 		// 4) Verificar coordinador activo usando la función PL/SQL
-		// if (!esCoordinadorActivo(usuarioId, tema.getCarrera().getId())) {
-		// throw new ResponseStatusException(
-		// HttpStatus.FORBIDDEN,
-		// "Usuario con id " + usuarioId + " no es coordinador de la carrera id " +
-		// tema.getCarrera().getId());
-		// }
+		boolean esCoordinadorActivo = esCoordinadorActivo(usuarioId, tema.getCarrera().getId());
+		if (!esCoordinadorActivo) {
+			throw new ResponseStatusException(
+					HttpStatus.FORBIDDEN,
+					"Usuario con id " + usuarioId + " no es coordinador activo de la carrera " +
+					tema.getCarrera().getId());
+		}
 		estadoTemaRepository.findByNombre(nuevoEstadoNombre)
 				.orElseThrow(() -> new ResponseStatusException(
 						HttpStatus.NOT_FOUND,
@@ -2067,9 +2074,9 @@ public class TemaServiceImpl implements TemaService {
 						"No hay registro en usuario_solicitud para la solicitud "
 								+ solicitudId + " y usuario " + usuarioId));
 
-		RolSolicitud rolDestinatario = rolSolicitudRepository
-				.findByNombre(RolSolicitudEnum.DESTINATARIO.name())
-				.orElseThrow(() -> new RuntimeException("Rol destinatario no encontrado"));
+		//RolSolicitud rolDestinatario = rolSolicitudRepository
+		//		.findByNombre(RolSolicitudEnum.DESTINATARIO.name())
+		//		.orElseThrow(() -> new RuntimeException("Rol destinatario no encontrado"));
 		// AccionSolicitud accionPendiente = accionSolicitudRepository
 		// .findByNombre(AccionSolicitudEnum.PENDIENTE_ACCION.name())
 		// .orElseThrow(() -> new RuntimeException("Accion pendiente_aprobacion no
@@ -2084,15 +2091,15 @@ public class TemaServiceImpl implements TemaService {
 		uxs.setComentario(comentario);
 		switch (nuevoEstadoNombre.toUpperCase()) {
 			case "REGISTRADO":
-				uxs.setRolSolicitud(rolDestinatario);
+				//uxs.setRolSolicitud(rolDestinatario);
 				uxs.setAccionSolicitud(accionAprobado);
 				break;
 			case "RECHAZADO":
-				uxs.setRolSolicitud(rolDestinatario);
+				//uxs.setRolSolicitud(rolDestinatario);
 				uxs.setAccionSolicitud(accionRechazado);
 				break;
 			case "OBSERVADO":
-				uxs.setRolSolicitud(rolDestinatario);
+				//uxs.setRolSolicitud(rolDestinatario);
 				uxs.setAccionSolicitud(accionRechazado);
 				break;
 			default:
@@ -2121,7 +2128,7 @@ public class TemaServiceImpl implements TemaService {
 				break;
 			case "OBSERVADO":
 				EstadoSolicitud estadoSolicitudO = estadoSolicitudRepository
-						.findByNombre(EstadoSolicitudEnum.PENDIENTE.name())
+						.findByNombre(EstadoSolicitudEnum.RECHAZADA.name())
 						.orElseThrow(() -> new RuntimeException("Estado de solicitud no encontrado"));
 				solicitud.setEstadoSolicitud(estadoSolicitudO);
 				break;

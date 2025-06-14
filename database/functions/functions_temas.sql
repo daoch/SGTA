@@ -3271,23 +3271,27 @@ BEGIN
 END;
 
 CREATE OR REPLACE FUNCTION es_coordinador_activo(
-    p_usuario_id     IN NUMBER,
-    p_carrera_id     IN NUMBER
-) RETURN BOOLEAN IS
-    v_count NUMBER;
+    p_usuario_id  integer,
+    p_carrera_id  integer
+) RETURNS boolean
+AS $$
+DECLARE
+    v_count integer;
 BEGIN
-    SELECT COUNT(*) INTO v_count
+    SELECT COUNT(*) 
+      INTO v_count
     FROM usuario_carrera
-    WHERE usuario_id = p_usuario_id
-      AND carrera_id = p_carrera_id
-      AND activo = TRUE
+    WHERE usuario_id     = p_usuario_id
+      AND carrera_id     = p_carrera_id
+      AND activo         = TRUE
       AND es_coordinador = TRUE;
 
     RETURN v_count > 0;
 EXCEPTION
     WHEN OTHERS THEN
         RETURN FALSE;
-END es_coordinador_activo;
+END;
+$$ LANGUAGE plpgsql;
 
 
 CREATE OR REPLACE FUNCTION guardar_similitudes_tema(
@@ -3421,15 +3425,19 @@ $$;
 
 
 
-CREATE OR REPLACE FUNCTION crear_solicitud_aprobacion_temaV2(p_tema_id INT) RETURNS VOID AS
+CREATE OR REPLACE FUNCTION crear_solicitud_aprobacion_temaV2(p_tema_id INT) 
+  RETURNS VOID 
+AS
 $$
 DECLARE
     v_tipo_solicitud_id      INT;
     v_estado_solicitud_id    INT;
-    v_rol_destinatario_id    INT;  -- <--- DECLARAR
-    v_rol_remitente_id       INT;  -- <--- DECLARAR
-    v_accion_pendiente_id    INT;  -- <--- DECLARAR
-    v_rol_asesor_id          INT;  -- <--- DECLARAR
+    v_rol_destinatario_id    INT;
+    v_rol_remitente_id       INT;
+    v_accion_pendiente_id    INT;
+    v_accion_sin_id          INT;
+    v_rol_asesor_id          INT;
+    v_rol_tesista_id         INT;
     v_solicitud_id           INT;
 BEGIN
     -- 1) Obtener IDs de catálogos
@@ -3453,17 +3461,31 @@ BEGIN
       FROM rol_solicitud
      WHERE nombre = 'REMITENTE';
 
+    -- Acción “pendiente” para coordinadores
     SELECT accion_solicitud_id
       INTO v_accion_pendiente_id
       FROM accion_solicitud
      WHERE nombre = 'PENDIENTE_ACCION';
 
+    -- Acción “sin acción” para remitentes
+    SELECT accion_solicitud_id
+      INTO v_accion_sin_id
+      FROM accion_solicitud
+     WHERE nombre = 'SIN_ACCION';
+
+    -- Rol Asesor
     SELECT rol_id
       INTO v_rol_asesor_id
       FROM rol
      WHERE nombre = 'Asesor';
 
-    -- 2) Insertar la solicitud
+    -- Rol Tesista
+    SELECT rol_id
+      INTO v_rol_tesista_id
+      FROM rol
+     WHERE nombre = 'Tesista';
+
+    -- 2) Insertar la solicitud principal
     INSERT INTO solicitud(
         descripcion,
         tipo_solicitud_id,
@@ -3481,7 +3503,7 @@ BEGIN
     )
     RETURNING solicitud_id INTO v_solicitud_id;
 
-    -- 3) Destinatarios (coordinadores)
+    -- 3) Destinatarios: coordinadores con acción pendiente
     INSERT INTO usuario_solicitud(
         usuario_id,
         solicitud_id,
@@ -3498,31 +3520,54 @@ BEGIN
       AND uc.es_coordinador = TRUE
       AND uc.activo         = TRUE;
 
-    -- -- 4) Remitente: SOLO el Asesor asignado/activo
-    -- INSERT INTO usuario_solicitud(
-    --     usuario_id,
-    --     solicitud_id,
-    --     rol_solicitud,
-    --     accion_solicitud,
-    --     activo
-    -- )
-    -- SELECT
-    --     ut.usuario_id,
-    --     v_solicitud_id,
-    --     v_rol_remitente_id,
-    --     v_accion_pendiente_id,
-    --     TRUE
-    -- FROM usuario_tema ut
-    -- WHERE ut.tema_id    = p_tema_id
-    --   AND ut.activo     = TRUE
-    --   AND ut.asignado   = TRUE
-    --   AND ut.rol_id     = v_rol_asesor_id;
+    -- 4a) Remitente: Asesor, sin acción
+    INSERT INTO usuario_solicitud(
+        usuario_id,
+        solicitud_id,
+        rol_solicitud,
+        accion_solicitud,
+        activo
+    )
+    SELECT
+        ut.usuario_id,
+        v_solicitud_id,
+        v_rol_remitente_id,
+        v_accion_sin_id,
+        TRUE
+    FROM usuario_tema ut
+    WHERE ut.tema_id  = p_tema_id
+      AND ut.activo   = TRUE
+      AND ut.asignado = TRUE
+      AND ut.rol_id   = v_rol_asesor_id;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'No hay Asesor activo/asignado para el tema %', p_tema_id;
+    END IF;
 
-    -- IF NOT FOUND THEN
-    --     RAISE EXCEPTION 'No hay Asesor activo/asignado para el tema %', p_tema_id;
-    -- END IF;
+    -- 4b) Remitente: Tesista, sin acción
+    INSERT INTO usuario_solicitud(
+        usuario_id,
+        solicitud_id,
+        rol_solicitud,
+        accion_solicitud,
+        activo
+    )
+    SELECT
+        ut.usuario_id,
+        v_solicitud_id,
+        v_rol_remitente_id,
+        v_accion_sin_id,
+        TRUE
+    FROM usuario_tema ut
+    WHERE ut.tema_id = p_tema_id
+      AND ut.activo  = TRUE
+      AND ut.rol_id  = v_rol_tesista_id;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'No hay Tesista activo para el tema %', p_tema_id;
+    END IF;
 END;
-$$ LANGUAGE plpgsql;
+$$ 
+LANGUAGE plpgsql;
+
 
 
 
