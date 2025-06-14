@@ -4157,3 +4157,54 @@ BEGIN
       AND s.activo     = TRUE;
 END;
 $$ LANGUAGE plpgsql;
+
+
+
+CREATE OR REPLACE FUNCTION listar_solicitudes_con_usuarios(
+    p_tema_id   INTEGER,
+    p_offset    INTEGER,
+    p_limit     INTEGER
+)
+RETURNS JSON
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    resultado JSON;
+BEGIN
+    SELECT COALESCE(JSON_AGG(item), '[]'::JSON)
+    INTO   resultado
+    FROM (
+        SELECT
+            s.solicitud_id,
+            s.descripcion,
+            ts.nombre    AS tipo_solicitud,
+            es.nombre    AS estado_solicitud,
+            (
+                SELECT COALESCE(JSON_AGG(
+                    JSON_BUILD_OBJECT(
+                        'usuario_solicitud_id', us.usuario_solicitud_id,
+                        'usuario_id',           us.usuario_id,
+                        'accion_solicitud',     a.nombre,
+                        'rol_solicitud',        rs.nombre,
+                        'comentario',           us.comentario      -- <— agregado
+                    )
+                ), '[]'::JSON)
+                FROM usuario_solicitud us
+                JOIN accion_solicitud a ON us.accion_solicitud = a.accion_solicitud_id
+                JOIN rol_solicitud rs   ON us.rol_solicitud    = rs.rol_solicitud_id
+                WHERE us.solicitud_id = s.solicitud_id
+                  AND us.activo       = TRUE
+            ) AS usuarios
+        FROM solicitud s
+        JOIN tipo_solicitud ts       ON s.tipo_solicitud_id  = ts.tipo_solicitud_id
+        JOIN estado_solicitud es     ON s.estado_solicitud   = es.estado_solicitud_id
+        WHERE s.tema_id = p_tema_id
+          AND s.activo   = TRUE
+        ORDER BY s.fecha_creacion DESC
+        OFFSET p_offset
+        LIMIT  p_limit
+    ) AS item;
+
+    RETURN resultado;
+END;
+$$;

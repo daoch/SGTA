@@ -3364,7 +3364,7 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 
 	@Transactional
 	@Override
-	public void ReenvioSolicitudAprobacionTema(TemaDto dto, String usuarioId) {
+	public void reenvioSolicitudAprobacionTema(TemaDto dto, String usuarioId) {
 		// Validar que el tema tenga ID
 		if (dto.getId() == null) {
 			throw new IllegalArgumentException("El tema debe tener un ID para reenviar la solicitud.");
@@ -3393,5 +3393,21 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 		}
 
 	}
+
+
+	@Override
+    @Transactional
+    public String listarSolicitudesConUsuarios(Integer temaId, int offset, int limit) {
+        Object result = entityManager
+            .createNativeQuery(
+                "SELECT listar_solicitudes_con_usuarios(:temaId, :offset, :limit)")
+            .setParameter("temaId", temaId)
+            .setParameter("offset", offset)
+            .setParameter("limit", limit)
+            .getSingleResult();
+
+        // El resultado viene como un objeto PGObject o String; toString() devuelve el JSON
+        return result != null ? result.toString() : "[]";
+    }
 
 }

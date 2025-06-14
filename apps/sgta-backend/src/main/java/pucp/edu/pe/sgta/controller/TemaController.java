@@ -792,12 +792,30 @@ public class TemaController {
             String usuarioId = jwtService.extractSubFromRequest(request);
             TemaDto dto = new TemaDto();
             dto.setId(temaId);
-            temaService.ReenvioSolicitudAprobacionTema(dto, usuarioId);
+            temaService.reenvioSolicitudAprobacionTema(dto, usuarioId);
             return ResponseEntity.ok().build();
         } catch (RuntimeException e) {
             throw new ResponseStatusException(
                     HttpStatus.UNAUTHORIZED,
                     "No autorizado para reenviar la solicitud: " + e.getMessage());
+        }
+    }
+
+
+	@GetMapping("/listarSolicitudesDeTema")
+    public ResponseEntity<String> listarSolicitudes(
+            @RequestParam("temaId") Integer temaId,
+            @RequestParam(value = "offset", defaultValue = "0") int offset,
+            @RequestParam(value = "limit",  defaultValue = "10") int limit,
+            HttpServletRequest request) {
+        try {
+            String usuarioId = jwtService.extractSubFromRequest(request);
+            String json = temaService.listarSolicitudesConUsuarios(temaId, offset, limit);
+            return ResponseEntity.ok(json);
+        } catch (RuntimeException e) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "No autorizado para listar solicitudes: " + e.getMessage());
         }
     }
 
