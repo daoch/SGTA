@@ -4159,7 +4159,6 @@ END;
 $$ LANGUAGE plpgsql;
 
 
-
 CREATE OR REPLACE FUNCTION listar_solicitudes_con_usuarios(
     p_tema_id   INTEGER,
     p_offset    INTEGER,
@@ -4180,24 +4179,31 @@ BEGIN
             ts.nombre    AS tipo_solicitud,
             es.nombre    AS estado_solicitud,
             (
+                -- Todos los registros de usuario_solicitud activos para esta solicitud,
+                -- incluyendo datos del usuario
                 SELECT COALESCE(JSON_AGG(
                     JSON_BUILD_OBJECT(
-                        'usuario_solicitud_id', us.usuario_solicitud_id,
-                        'usuario_id',           us.usuario_id,
+                        'usuario_solicitud_id', us2.usuario_solicitud_id,
+                        'usuario_id',           us2.usuario_id,
+                        'nombres',              u2.nombres,
+                        'primer_apellido',      u2.primer_apellido,
+                        'segundo_apellido',     u2.segundo_apellido,
+                        'codigo',               u2.codigo_pucp,
                         'accion_solicitud',     a.nombre,
                         'rol_solicitud',        rs.nombre,
-                        'comentario',           us.comentario      -- <— agregado
+                        'comentario',           us2.comentario
                     )
                 ), '[]'::JSON)
-                FROM usuario_solicitud us
-                JOIN accion_solicitud a ON us.accion_solicitud = a.accion_solicitud_id
-                JOIN rol_solicitud rs   ON us.rol_solicitud    = rs.rol_solicitud_id
-                WHERE us.solicitud_id = s.solicitud_id
-                  AND us.activo       = TRUE
+                FROM usuario_solicitud us2
+                JOIN usuario          u2  ON us2.usuario_id      = u2.usuario_id
+                JOIN accion_solicitud a   ON us2.accion_solicitud = a.accion_solicitud_id
+                JOIN rol_solicitud   rs   ON us2.rol_solicitud    = rs.rol_solicitud_id
+                WHERE us2.solicitud_id = s.solicitud_id
+                  AND us2.activo       = TRUE
             ) AS usuarios
         FROM solicitud s
-        JOIN tipo_solicitud ts       ON s.tipo_solicitud_id  = ts.tipo_solicitud_id
-        JOIN estado_solicitud es     ON s.estado_solicitud   = es.estado_solicitud_id
+        JOIN tipo_solicitud   ts ON s.tipo_solicitud_id = ts.tipo_solicitud_id
+        JOIN estado_solicitud es ON s.estado_solicitud  = es.estado_solicitud_id
         WHERE s.tema_id = p_tema_id
           AND s.activo   = TRUE
         ORDER BY s.fecha_creacion DESC
@@ -4208,6 +4214,7 @@ BEGIN
     RETURN resultado;
 END;
 $$;
+
 
 
 
