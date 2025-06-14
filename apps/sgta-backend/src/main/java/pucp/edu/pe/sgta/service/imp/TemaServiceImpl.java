@@ -2055,12 +2055,26 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 	}
 
 	private Solicitud cargarSolicitud(Integer temaId) {
-		return solicitudRepository
-				.findByTipoSolicitudNombreAndTemaIdAndActivoTrue(
-						"Aprobación de tema (por coordinador)",
-						temaId)
-				.orElseThrow(() -> new RuntimeException(
-						"No existe solicitud de aprobación para el tema " + temaId));
+		final String tipoNombre = "Aprobación de tema (por coordinador)";
+
+        // Construimos la consulta: hacemos JOIN entre la tabla solicitud 
+        // y el SET-RETURNING FUNCTION para filtrar por tipo y tema
+        String sql = ""
+            + "SELECT s.* "
+            + "  FROM solicitud s "
+            + "  JOIN obtener_solicitud_por_tipo_y_tema(:tipoNombre, :temaId) f "
+            + "    ON s.solicitud_id = f.solicitud_id";
+
+        try {
+            return (Solicitud) entityManager
+                .createNativeQuery(sql, Solicitud.class)
+                .setParameter("tipoNombre", tipoNombre)
+                .setParameter("temaId", temaId)
+                .getSingleResult();
+        } catch (NoResultException ex) {
+            throw new RuntimeException(
+                "No existe solicitud de aprobación para el tema " + temaId, ex);
+        }
 	}
 
 	private UsuarioXSolicitud actualizarUsuarioXSolicitud(
@@ -2491,6 +2505,7 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 
 		// 2) Validar que el tema esté en el estado correcto para aceptar postulaciones
 		Tema tema = validarEstadoTema(temaId, EstadoTemaEnum.PROPUESTO_LIBRE.name());
+
 
 		boolean yaAsignado = usuarioXTemaRepository
 				.existsByUsuarioIdAndRolNombreAndActivoTrueAndAsignadoTrue(
@@ -3347,6 +3362,36 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 
 
 
+	@Transactional
+	@Override
+	public void ReenvioSolicitudAprobacionTema(TemaDto dto, String usuarioId) {
+		// Validar que el tema tenga ID
+		if (dto.getId() == null) {
+			throw new IllegalArgumentException("El tema debe tener un ID para reenviar la solicitud.");
+		}
 
+		// Obtener el usuario interno desde Cognito ID
+		UsuarioDto usuDto = usuarioService.findByCognitoId(usuarioId);
+		if (usuDto == null) {
+			throw new ResponseStatusException(
+					HttpStatus.NOT_FOUND,
+					"Usuario no encontrado con Cognito ID: " + usuarioId);
+		}
+
+		try {
+			// Buscar la entidad Tema por ID
+			Tema tema = temaRepository.findById(dto.getId())
+					.orElseThrow(() -> new RuntimeException("Tema no encontrado con ID: " + dto.getId()));
+			entityManager.createNativeQuery(
+                "SELECT procesar_reenvio_solicitud_aprobacion_tema(:temaId)")
+            .setParameter("temaId", tema.getId())
+            .getSingleResult();
+			crearSolicitudAprobacionTemaV2(tema);
+		} catch (Exception e) {
+			logger.severe("Error al reenviar solicitud de aprobación: " + e.getMessage());
+			throw new RuntimeException("No se pudo reenviar la solicitud de aprobación del tema", e);
+		}
+
+	}
 
 }
