@@ -11,7 +11,7 @@ import { Asesor } from "../types/perfil/entidades";
 
 export interface InformacionTesisResponse {
   temaActual: TemaActual;
-  asesoresActuales: Asesor[];
+  asesores: Asesor[];
 }
 
 export async function getDetalleSolicitudCambioAsesor(

@@ -140,10 +140,10 @@ export default function RegistrarSolicitudCambioAsesor() {
       if (!userId) return;
       try {
         setIsLoading(true);
-        const { temaActual, asesoresActuales } =
+        const { temaActual, asesores } =
           await getInformacionTesisPorAlumno(userId);
         setTemaActual(temaActual);
-        setAsesoresActuales(asesoresActuales);
+        setAsesoresActuales(asesores);
       } catch (error) {
         console.error("Error al cargar información de tesis:", error);
       } finally {
