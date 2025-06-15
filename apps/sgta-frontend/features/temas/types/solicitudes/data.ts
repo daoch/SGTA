@@ -92,7 +92,6 @@ export interface CambioEstadoPayload {
     estadoTemaNombre: EstadoTemaNombre;
   };
   usuarioSolicitud: {
-    usuarioId: number;
     comentario: string;
   };
 }
@@ -157,5 +156,17 @@ export async function crearSolicitudCambioTitulo(
       comentario,
     },
   });
+}
+
+export async function fetchSolicitudesByTema(idTema: number) {
+  try {
+    const { data } = await axiosInstance.get(
+      `/solicitudes/listSolicitudesByTema/${idTema}`,
+    );
+    return data;
+  } catch (error) {
+    console.error("Error al obtener las observaciones del tema:", error);
+    throw error;
+  }
 }
 

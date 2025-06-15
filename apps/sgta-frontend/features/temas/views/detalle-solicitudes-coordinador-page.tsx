@@ -88,14 +88,17 @@ export default function DetalleSolicitudesCoordinadorPage({
         router.push("/coordinador/aprobaciones");
       } else {
         // Actualizar Estado del tema
-        if (solicitud.estado === EstadoTemaNombre.INSCRITO) {
+        if (
+          [EstadoTemaNombre.INSCRITO, EstadoTemaNombre.OBSERVADO].includes(
+            solicitud.estado,
+          )
+        ) {
           const payload = {
             tema: {
               id: solicitud.tema.id,
               estadoTemaNombre: actionToStateMap[accion],
             },
             usuarioSolicitud: {
-              usuarioId: 3, // !: Id de coordinador
               comentario,
             },
           };
@@ -187,11 +190,15 @@ export default function DetalleSolicitudesCoordinadorPage({
         loading,
     },
     aprobar: {
-      show: solicitud.estado === EstadoTemaNombre.INSCRITO,
+      show: [EstadoTemaNombre.INSCRITO, EstadoTemaNombre.OBSERVADO].includes(
+        solicitud.estado,
+      ),
       disabled: tipoSolicitud !== "no-enviar" || loading,
     },
     rechazar: {
-      show: solicitud.estado === EstadoTemaNombre.INSCRITO,
+      show: [EstadoTemaNombre.INSCRITO, EstadoTemaNombre.OBSERVADO].includes(
+        solicitud.estado,
+      ),
       disabled: tipoSolicitud !== "no-enviar" || loading,
     },
     eliminar: { show: true, disabled: loading },
@@ -206,6 +213,7 @@ export default function DetalleSolicitudesCoordinadorPage({
       <Toaster position="top-right" richColors />
       <form className="min-h-screen bg-gray-50 p-4 md:p-6">
         <div className="max-w-6xl mx-auto space-y-6 flex flex-col md:flex-row gap-6">
+          {/* #1 - Column */}
           <div className="flex flex-col gap-4 md:w-3/5">
             <EncabezadoDetalleSolicitudTema solicitud={solicitud} />
             <InfoDetalleSolicitudTema solicitud={solicitud} />
@@ -215,6 +223,7 @@ export default function DetalleSolicitudesCoordinadorPage({
             <HistorialDetalleSolicitudTema historial={historialMock} />
           </div>
 
+          {/* #2 - Column */}
           <div className="flex flex-col gap-4 md:w-2/5">
             {/* Similitud */}
             {[EstadoTemaNombre.REGISTRADO, EstadoTemaNombre.RECHAZADO].includes(
