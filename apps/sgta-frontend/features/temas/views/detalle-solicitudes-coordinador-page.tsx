@@ -29,6 +29,7 @@ import {
 } from "../types/solicitudes/entities";
 import { Tema } from "../types/temas/entidades";
 import { EstadoTemaNombre } from "../types/temas/enums";
+import { DialogSolicitudes } from "../components/coordinador/detalle-solicitud-tema/dialog-solicitudes";
 
 const actionToStateMap: Record<SolicitudAction, EstadoTemaNombre> = {
   Aprobada: EstadoTemaNombre.REGISTRADO,
@@ -226,16 +227,8 @@ export default function DetalleSolicitudesCoordinadorPage({
     <AnalisisSimilitudTema similares={similares} />
   );
 
-  const moduloSolicitudes = solicitudes.length && (
-    <>
-      <div>Solicitudes ({solicitudes.length}):</div>
-      {solicitudes.map((sol) => (
-        <div key={sol.solicitud_id}>
-          {sol.tipo_solicitud + " - " + sol.estado_solicitud}
-        </div>
-      ))}
-    </>
-  );
+  const moduloSolicitudes = <DialogSolicitudes solicitudes={solicitudes} />;
+  7;
 
   return (
     <>
@@ -285,9 +278,6 @@ export default function DetalleSolicitudesCoordinadorPage({
               setDialogAbierto={setDialogAbierto}
               loading={loading}
             />
-
-            {EstadoTemaNombre.INSCRITO === solicitud.estado &&
-              moduloSolicitudes}
           </div>
         </div>
       </form>
