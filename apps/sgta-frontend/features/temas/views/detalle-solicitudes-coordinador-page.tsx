@@ -16,11 +16,14 @@ import {
   crearSolicitudCambioResumen,
   crearSolicitudCambioTitulo,
   eliminarTemaPorCoordinador,
+  fetchSolicitudesDeTema,
   fetchTemasSimilares,
+  fetchTodasSolicitudesPendientes,
 } from "../types/solicitudes/data";
 import {
   SolicitudAction,
   SolicitudPendiente,
+  SolicitudTema,
   TemaSimilar,
   TypeSolicitud,
 } from "../types/solicitudes/entities";
@@ -70,6 +73,7 @@ export default function DetalleSolicitudesCoordinadorPage({
   const [errorTipoSolicitud, setErrorTipoSolicitud] = useState("");
   const [loading, setLoading] = useState(false);
   const [similares, setSimilares] = useState<TemaSimilar[] | []>([]);
+  const [solicitudes, setSolicitudes] = useState<SolicitudTema[] | []>([]);
 
   const errorTexts = {
     tipoSolicitud: "Ingresar el tipo de solicitud.",
@@ -89,9 +93,9 @@ export default function DetalleSolicitudesCoordinadorPage({
       } else {
         // Actualizar Estado del tema
         if (
-          [EstadoTemaNombre.INSCRITO, EstadoTemaNombre.OBSERVADO].includes(
-            solicitud.estado,
-          )
+          [EstadoTemaNombre.INSCRITO].includes(solicitud.estado) ||
+          (solicitud.estado === EstadoTemaNombre.OBSERVADO &&
+            accion !== "Observada")
         ) {
           const payload = {
             tema: {
@@ -104,6 +108,8 @@ export default function DetalleSolicitudesCoordinadorPage({
           };
 
           await cambiarEstadoTemaPorCoordinador(payload);
+
+          setTema(await buscarTemaPorId(solicitud.tema.id)); // Visualizar cambios
         }
 
         // Crear solicitud
@@ -117,20 +123,18 @@ export default function DetalleSolicitudesCoordinadorPage({
           } else {
             await crearSolicitudCambioTitulo(solicitud.tema.id, comentario);
           }
+
+          getSolicitudes(); // Visualizar cambios
         }
       }
 
+      // Show Succes Message
       toast.success(`Solicitud ${accion.toLowerCase()} exitosamente.`);
 
       // Reestablecer campos
       setDialogAbierto("");
       setComentario("");
       setTipoSolicitud("no-enviar");
-
-      // Visualizar cambios
-      if (solicitud.estado === EstadoTemaNombre.INSCRITO) {
-        setTema(await buscarTemaPorId(solicitud.tema.id));
-      }
     } catch (error) {
       console.error("Error al procesar la solicitud:", error);
       toast.error("Ocurrió un error. Por favor, intente nuevamente.");
@@ -177,6 +181,20 @@ export default function DetalleSolicitudesCoordinadorPage({
     obtenerTemasSimilares(solicitud.tema.id, setSimilares);
   }, [solicitud.tema.id]);
 
+  async function getSolicitudes() {
+    try {
+      const data = await fetchSolicitudesDeTema(solicitud.tema.id);
+      setSolicitudes(data);
+    } catch (error) {
+      console.error("Error al obtener las solicitudes del tema:", error);
+      setSolicitudes([]);
+    }
+  }
+
+  useEffect(() => {
+    getSolicitudes();
+  }, []);
+
   // Config Actions
   const accionesConfig = {
     observar: {
@@ -208,6 +226,17 @@ export default function DetalleSolicitudesCoordinadorPage({
     <AnalisisSimilitudTema similares={similares} />
   );
 
+  const moduloSolicitudes = solicitudes.length && (
+    <>
+      <div>Solicitudes ({solicitudes.length}):</div>
+      {solicitudes.map((sol) => (
+        <div key={sol.solicitud_id}>
+          {sol.tipo_solicitud + " - " + sol.estado_solicitud}
+        </div>
+      ))}
+    </>
+  );
+
   return (
     <>
       <Toaster position="top-right" richColors />
@@ -229,6 +258,9 @@ export default function DetalleSolicitudesCoordinadorPage({
             {[EstadoTemaNombre.REGISTRADO, EstadoTemaNombre.RECHAZADO].includes(
               solicitud.estado,
             ) && moduloAnalisisSimilitud}
+
+            {EstadoTemaNombre.INSCRITO !== solicitud.estado &&
+              moduloSolicitudes}
 
             {/* Comentarios del Comité y selección del tipo de solicitud */}
             {[EstadoTemaNombre.INSCRITO, EstadoTemaNombre.OBSERVADO].includes(
@@ -253,6 +285,9 @@ export default function DetalleSolicitudesCoordinadorPage({
               setDialogAbierto={setDialogAbierto}
               loading={loading}
             />
+
+            {EstadoTemaNombre.INSCRITO === solicitud.estado &&
+              moduloSolicitudes}
           </div>
         </div>
       </form>

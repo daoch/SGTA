@@ -158,14 +158,36 @@ export async function crearSolicitudCambioTitulo(
   });
 }
 
-export async function fetchSolicitudesByTema(idTema: number) {
+export async function fetchSolicitudesDeTema(
+  temaId: number,
+  offset: number = 0,
+  limit: number = 100,
+) {
+  try {
+    const { data } = await axiosInstance.get("/temas/listarSolicitudesDeTema", {
+      params: { temaId, offset, limit },
+    });
+    return data;
+  } catch (error) {
+    console.error("Error al obtener las solicitudes del tema:", error);
+    throw error;
+  }
+}
+
+export async function fetchTodasSolicitudesPendientes(
+  offset: number = 0,
+  limit: number = 100,
+) {
   try {
     const { data } = await axiosInstance.get(
-      `/solicitudes/listSolicitudesByTema/${idTema}`,
+      "/temas/TodasSolicitudesPendientes",
+      {
+        params: { offset, limit },
+      },
     );
     return data;
   } catch (error) {
-    console.error("Error al obtener las observaciones del tema:", error);
+    console.error("Error al obtener todas las solicitudes pendientes:", error);
     throw error;
   }
 }
