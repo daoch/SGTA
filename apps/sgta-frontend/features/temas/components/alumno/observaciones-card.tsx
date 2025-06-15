@@ -20,131 +20,99 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuthStore } from "@/features/auth/store/auth-store";
 import { AlertCircle, CheckCircle, Pencil } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
-interface Props {
-  observaciones: {
-    campo: "título" | "descripción" | "asesor";
-    detalle: string;
-    autor: string;
-    fecha: string;
-  }[];
-  solicitudes: Solicitud[];
+interface Remitente {
+  usuario_solicitud_id: number;
+  usuario_id: number;
+  nombres: string;
+  primer_apellido: string;
+  segundo_apellido: string;
+  codigo: string;
 }
 
-interface Solicitud {
-  id: number;
-  usuario: { id: number };
-  students: {
-    id: number;
-    name: string;
-    lastName: string;
-    topic: {
-      titulo: string;
-      resumen: string;
-    };
-  }[];
+interface Observacion {
+  solicitud_id: number;
+  descripcion: string;
+  tipo_solicitud: string;
+  estado_solicitud: string;
+  tema_id: number;
+  fecha_creacion: string;
+  remitente: Remitente;
 }
 
-const profesores = [
-  "Dr. Roberto Sánchez",
-  "Dra. Carmen Vega",
-  "Dr. Miguel Torres",
-  "Dra. Laura Mendoza",
-  "Dr. Javier Pérez",
-];
-
-export function ObservacionesCard({ observaciones, solicitudes }: Props) {
+export function ObservacionesCard({ observaciones }: { observaciones: Observacion[] }) {
   const router = useRouter();
   const { toast } = useToast();
+  const { idToken } = useAuthStore();
 
   const [modoEdicion, setModoEdicion] = useState(false);
   const [confirmar, setConfirmar] = useState(false);
 
   const [titulo, setTitulo] = useState("");
   const [descripcion, setDescripcion] = useState("");
-  const [asesor, setAsesor] = useState("");
 
   const [tituloOriginal, setTituloOriginal] = useState("");
   const [descripcionOriginal, setDescripcionOriginal] = useState("");
-  const [asesorOriginal, setAsesorOriginal] = useState("");
 
   const [editadoTitulo, setEditadoTitulo] = useState(false);
   const [editadoDescripcion, setEditadoDescripcion] = useState(false);
-  const [editadoAsesor, setEditadoAsesor] = useState(false);
 
-  const camposObservados = observaciones.map((obs) => obs.campo);
+  const [loadingTema, setLoadingTema] = useState(false);
 
-  const sePuedeGuardar = camposObservados.every((campo) => {
-    if (campo === "título") return editadoTitulo && titulo.trim() !== "";
-    if (campo === "descripción") return editadoDescripcion && descripcion.trim() !== "";
-    if (campo === "asesor") return editadoAsesor && asesor.trim() !== "";
+  const camposObservados = observaciones.map((obs) => obs.tipo_solicitud);
+
+  const sePuedeGuardar = camposObservados.every((tipo) => {
+    if (tipo === "Solicitud de cambio de título") return editadoTitulo && titulo.trim() !== "";
+    if (tipo === "Solicitud de cambio de resumen") return editadoDescripcion && descripcion.trim() !== "";
     return true;
   });
-    useEffect(() => {
-    const fetchTema = async () => {
-      try {
-        const { idToken } = useAuthStore.getState();
-        
-        if (!idToken) {
-          console.error("No authentication token available");
-          return;
-        }
 
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/temas/porUsuarioTituloAreaCarreraEstadoFecha?titulo=&areaId=&carreraId=&estadoNombre=OBSERVADO&fechaCreacionDesde=&fechaCreacionHasta=`,
-          {
-            headers: {
-              "Authorization": `Bearer ${idToken}`,
-              "Content-Type": "application/json"
-            }
-          }
-        );
-        
-        if (!res.ok) throw new Error("Error al obtener tema");
-        
-        const data = await res.json();
-        const tema = data[0];
-        if (tema) {
-          setTitulo(tema.titulo);
-          setDescripcion(tema.resumen);
-          setTituloOriginal(tema.titulo);
-          setDescripcionOriginal(tema.resumen);
+  const fetchTema = async () => {
+    setLoadingTema(true);
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/temas/porUsuarioTituloAreaCarreraEstadoFecha?titulo=&areaId=&carreraId=&estadoNombre=OBSERVADO&fechaCreacionDesde=&fechaCreacionHasta=`,
+        {
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+            "Content-Type": "application/json",
+          },
         }
-      } catch (error) {
-        console.error("Error al cargar el tema:", error);
+      );
+      const data = await res.json();
+      if (data && data[0]) {
+        setTitulo(data[0].titulo);
+        setDescripcion(data[0].resumen);
+        setTituloOriginal(data[0].titulo);
+        setDescripcionOriginal(data[0].resumen);
       }
-    };
-    fetchTema();
-  }, []);
+    } catch (error) {
+      console.error("Error al obtener el tema:", error);
+    } finally {
+      setLoadingTema(false);
+    }
+  };
 
   const handleGuardar = async () => {
-    const changeRequests = solicitudes.map((solicitud) => ({
-      id: solicitud.id,
-      usuario: { id: solicitud.usuario?.id ?? null },
-      students: solicitud.students.map((student) => ({
-        id: student?.id ?? null,
-        name: student?.name ?? "",
-        lastName: student?.lastName ?? "",
-        topic: {
-          titulo: titulo.trim(),
-          resumen: descripcion.trim(),
+    const changeRequests = observaciones.map((obs) => ({
+      id: obs.solicitud_id,
+      usuario: { id: null },
+      students: [
+        {
+          id: null,
+          name: "",
+          lastName: "",
+          topic: {
+            titulo: titulo.trim(),
+            resumen: descripcion.trim(),
+          },
         },
-      })),
+      ],
     }));
 
     const payload = {
@@ -153,21 +121,17 @@ export function ObservacionesCard({ observaciones, solicitudes }: Props) {
     };
 
     try {
-      const { idToken } = useAuthStore.getState();
-        
-        if (!idToken) {
-          console.error("No authentication token available");
-          return;
-        }
-        
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/solicitudes/atenderSolicitudTemaInscrito`, {
-        method: "POST",
-        headers: { 
-          "Authorization": `Bearer ${idToken}`,
-          "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+        `${process.env.NEXT_PUBLIC_API_URL}/solicitudes/atenderSolicitudTemaInscrito`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        }
+      );
 
       if (!response.ok) throw new Error("Error al enviar subsanaciones");
 
@@ -196,76 +160,26 @@ export function ObservacionesCard({ observaciones, solicitudes }: Props) {
         <div>
           <CardTitle className="text-red-700 text-lg">Observaciones del Coordinador</CardTitle>
           <CardDescription className="text-muted-foreground">
-            Tu tesis tiene observaciones que deben ser subsanadas para continuar con el proceso
+            Tu tema tiene observaciones que deben ser subsanadas para continuar con el proceso
           </CardDescription>
         </div>
       </CardHeader>
 
       <CardContent className="space-y-4">
         {observaciones.map((obs) => (
-          <Card key={obs.campo} className="border border-gray-300 bg-white rounded-md">
-            <CardContent className="space-y-2 pt-0">
-              <p className="text-sm font-semibold text-red-700">Observación sobre el {obs.campo}</p>
-              <p className="text-sm">{obs.detalle}</p>
-              <p className="text-xs text-muted-foreground italic">
-                {obs.autor} - {obs.fecha}
-              </p>
-
-              {modoEdicion && obs.campo === "título" && (
-                <div className="space-y-1">
-                  <Label>Título del Tema</Label>
-                  <Input
-                    value={titulo}
-                    onChange={(e) => {
-                      setTitulo(e.target.value);
-                      setEditadoTitulo(true);
-                    }}
-                    required
-                  />
-                </div>
-              )}
-
-              {modoEdicion && obs.campo === "descripción" && (
-                <div className="space-y-1">
-                  <Label>Descripción</Label>
-                  <Textarea
-                    rows={4}
-                    value={descripcion}
-                    onChange={(e) => {
-                      setDescripcion(e.target.value);
-                      setEditadoDescripcion(true);
-                    }}
-                    required
-                  />
-                </div>
-              )}
-
-              {modoEdicion && obs.campo === "asesor" && (
-                <div className="space-y-1">
-                  <Label>Asesor Principal</Label>
-                  <Select
-                    value={asesor}
-                    onValueChange={(value) => {
-                      setAsesor(value);
-                      setEditadoAsesor(true);
-                    }}
-                    required
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccione un asesor" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {profesores.map((p) => (
-                        <SelectItem key={p} value={p}>
-                          {p}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <div
+            key={obs.solicitud_id}
+            className="bg-white border border-gray-200 rounded-lg p-4 mb-4 shadow-sm"
+          >
+            <div className="font-semibold text-sm text-red-700 mb-1">
+              {obs.tipo_solicitud}
+            </div>
+            <div className="text-sm mb-2">{obs.descripcion}</div>
+            <div className="italic text-xs text-gray-500">
+              {obs.remitente.nombres} {obs.remitente.primer_apellido} -{" "}
+              {new Date(obs.fecha_creacion).toLocaleDateString()}
+            </div>
+          </div>
         ))}
       </CardContent>
 
@@ -277,10 +191,8 @@ export function ObservacionesCard({ observaciones, solicitudes }: Props) {
               onClick={() => {
                 setTitulo(tituloOriginal);
                 setDescripcion(descripcionOriginal);
-                setAsesor(asesorOriginal);
                 setEditadoTitulo(false);
                 setEditadoDescripcion(false);
-                setEditadoAsesor(false);
                 setModoEdicion(false);
               }}
             >
@@ -317,10 +229,8 @@ export function ObservacionesCard({ observaciones, solicitudes }: Props) {
           <Button
             className="bg-red-600 hover:bg-red-700 text-white"
             onClick={() => {
-              setTituloOriginal(titulo);
-              setDescripcionOriginal(descripcion);
-              setAsesorOriginal(asesor);
               setModoEdicion(true);
+              fetchTema(); // se obtiene título y resumen original en el momento exacto
             }}
           >
             <Pencil className="h-4 w-4 mr-2" />
