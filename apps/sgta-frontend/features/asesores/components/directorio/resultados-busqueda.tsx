@@ -8,14 +8,14 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { CardAsesorBusqueda } from "@/features/asesores/components/directorio/card-asesor-busqueda";
-import { Asesor } from "@/features/asesores/types/perfil/entidades";
-import React from "react";
+import type { Asesor } from "@/features/asesores/types/perfil/entidades";
+import type React from "react";
 
 interface Props {
   asesores: Asesor[];
-  paginatedAdvisors: Asesor[];
   currentPage: number;
   totalPages: number;
+  totalResults: number;
   setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
   soloDisponible: boolean;
   renderPaginationItems: () => React.ReactNode;
@@ -24,9 +24,9 @@ interface Props {
 
 export default function ResultadosAsesores({
   asesores,
-  paginatedAdvisors,
   currentPage,
   totalPages,
+  totalResults,
   setCurrentPage,
   soloDisponible,
   renderPaginationItems,
@@ -41,7 +41,7 @@ export default function ResultadosAsesores({
     );
   }
 
-  if (asesores.length === 0) {
+  if (totalResults === 0) {
     return (
       <div className="text-center py-12">
         <p className="text-muted-foreground">
@@ -54,9 +54,7 @@ export default function ResultadosAsesores({
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <h2 className="text-lg font-semibold">
-          Resultados ({asesores.length})
-        </h2>
+        <h2 className="text-lg font-semibold">Resultados ({totalResults})</h2>
         <p className="text-sm text-muted-foreground">
           {soloDisponible
             ? "Mostrando los asesores disponibles encontrados"
@@ -65,7 +63,7 @@ export default function ResultadosAsesores({
       </div>
 
       <div className="space-y-4">
-        {paginatedAdvisors.map((advisor) => (
+        {asesores.map((advisor) => (
           <CardAsesorBusqueda key={advisor.id} advisor={advisor} />
         ))}
 
