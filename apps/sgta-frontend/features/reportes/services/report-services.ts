@@ -90,7 +90,7 @@ export const getEntregablesConCriterios = async (usuarioId: number): Promise<Ent
 export const obtenerEntregablesConRetraso = async (): Promise<OverdueSummary> => {
   try {
     const { idToken } = useAuthStore.getState();
-    const response = await axiosInstance.get<OverdueSummary>("/api/notifications/overdue-summary", {
+    const response = await axiosInstance.get<OverdueSummary>("/notifications/overdue-summary", {
       headers: {
         Authorization: `Bearer ${idToken}`,
       },

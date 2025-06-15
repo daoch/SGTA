@@ -73,7 +73,7 @@ export function TemaCard() {
           return;
         }
 
-        // 1. Verifica si hay tema comprometido y obtén el estado
+        // 1. Verificar si hay tema comprometido y obtén el estado
         const resVerifica = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/temas/verificarTemasComprometidosTesista`,
           {
@@ -248,7 +248,7 @@ export function TemaCard() {
         </div>
       </CardContent>
       <CardFooter className="flex justify-between">
-        {tesisData.estadoActual === "Inscrito" && (
+        {(tesisData.estadoActual === "Observado") && (
           <Link href={`/alumno/temas/${tesisData.id}`}>
             <Button variant="outline">
               <Eye className="mr-2 h-4 w-4" /> Ver observaciones

@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from typing import Optional # Add Optional for type hinting
 from .controller.asignacion_controller import asignar_temas_bloques
 from .controller.similarity_controller import similarity_endpoint
 from .controller.faiss_controller import (
@@ -8,11 +9,20 @@ from .controller.faiss_controller import (
     clear_index_endpoint, remove_topic_endpoint,
     search_temp_embedding_endpoint
 )
+
+# Import OAI controller functions
+from .controller.oai_controller import (
+    get_current_oai_endpoint, update_oai_endpoint,
+    get_oai_repository_sets, refresh_oai_repository_sets_cache,
+    get_all_oai_records, get_oai_records_by_set, get_oai_single_record
+)
+
 from .models import (
     AddTopicsRequest, AddTopicsResponse,
     SearchTopicsRequest, SearchTopicsResponse,
     FAISSStatsResponse, ListTopicsResponse,
-    SearchTempRequest, SearchTempResponse
+    SearchTempRequest, SearchTempResponse,
+    OAIEndpointUpdateRequest, OAIEndpointResponse, OAIRecord, OAIResponse # Add OAI models
 )
 import uvicorn
 
@@ -83,6 +93,44 @@ def get_topic_by_id(topic_id: str):
         logging.error(f"Error getting topic by ID: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
-    #Para desarrollo
-    #uvicorn.run(app, host="0.0.0.0", port=8000)
+# OAI-PMH Repository API endpoints
+@app.get("/oai/config/endpoint", response_model=OAIEndpointResponse, summary="Get current OAI-PMH endpoint URL", tags=["OAI-PMH Configuration"])
+def handle_get_current_oai_endpoint():
+    return get_current_oai_endpoint()
+
+@app.put("/oai/config/endpoint", response_model=OAIEndpointResponse, summary="Update OAI-PMH endpoint URL", tags=["OAI-PMH Configuration"])
+def handle_update_oai_endpoint(request: OAIEndpointUpdateRequest):
+    return update_oai_endpoint(request)
+
+@app.get("/oai/sets", summary="List all OAI sets (collections)", tags=["OAI-PMH Harvesting"])
+def handle_get_oai_sets(force_refresh: bool = False):
+    return get_oai_repository_sets(force_refresh)
+
+@app.post("/oai/sets/refresh", summary="Refresh OAI sets cache", tags=["OAI-PMH Harvesting"])
+def handle_refresh_oai_sets_cache():
+    return refresh_oai_repository_sets_cache()
+
+@app.get("/oai/records", response_model=OAIResponse, summary="Harvest all records from the OAI repository", tags=["OAI-PMH Harvesting"])
+def handle_get_all_oai_records(
+    max_records_per_set: Optional[int] = None,
+    metadata_prefix: str = 'oai_dc'
+):
+    return get_all_oai_records(max_records_per_set=max_records_per_set, metadata_prefix=metadata_prefix)
+
+@app.get("/oai/records/set/{set_spec}", response_model=OAIResponse, summary="Harvest records for a specific OAI set", tags=["OAI-PMH Harvesting"])
+def handle_get_oai_records_by_set(
+    set_spec: str,
+    max_records: Optional[int] = None,
+    metadata_prefix: str = 'oai_dc'
+):
+    return get_oai_records_by_set(set_spec=set_spec, max_records=max_records, metadata_prefix=metadata_prefix)
+
+@app.get("/oai/records/identifier/{identifier:path}", response_model=OAIResponse, summary="Get a single OAI record by its identifier", tags=["OAI-PMH Harvesting"])
+def handle_get_oai_single_record(
+    identifier: str, # Path parameter, FastAPI will decode it
+    metadata_prefix: str = 'oai_dc'
+):
+    # The identifier might contain slashes, so it's captured as a path.
+    # No need to manually URL decode, FastAPI handles it.
+    return get_oai_single_record(identifier=identifier, metadata_prefix=metadata_prefix)
 

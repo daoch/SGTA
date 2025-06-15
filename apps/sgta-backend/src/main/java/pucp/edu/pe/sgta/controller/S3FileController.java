@@ -53,7 +53,7 @@ public class S3FileController {
 
         String key = revision.getLinkArchivoRevision();
         try {
-            byte[] data = downloadService.downloadFromCloudFront(key);
+            byte[] data = downloadService.download(key);
             ByteArrayResource resource = new ByteArrayResource(data);
 
             return ResponseEntity.ok()

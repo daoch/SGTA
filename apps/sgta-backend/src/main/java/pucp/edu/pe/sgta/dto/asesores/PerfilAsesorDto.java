@@ -45,4 +45,22 @@ public class PerfilAsesorDto {
         dto.limiteTesis = Integer.parseInt(result[7].toString());
         return dto;
     }
+
+    public static PerfilAsesorDto fromPerfilUsuario(PerfilUsuarioDto dto) {
+        PerfilAsesorDto dto2 = new PerfilAsesorDto();
+        dto2.id = dto.getId();
+        dto2.nombre = dto.getNombre();
+        dto2.especialidad = dto.getEspecialidad();
+        dto2.email = dto.getEmail();
+        dto2.linkedin = dto.getLinkedin();
+        dto2.repositorio = dto.getRepositorio();
+        dto2.biografia = dto.getBiografia();
+        dto2.foto = dto.getFoto();
+        dto2.estado = dto.getEstado();
+        dto2.limiteTesis = dto.getLimiteTesis();
+        dto2.tesistasActuales = dto.getTesistasActuales();
+        dto2.areasTematicas = dto.getAreasTematicas();
+        dto2.temasIntereses = dto.getTemasIntereses();
+        return dto2;
+    }
 }

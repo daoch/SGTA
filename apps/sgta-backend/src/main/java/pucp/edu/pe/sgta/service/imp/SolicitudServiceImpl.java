@@ -13,7 +13,10 @@ import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
 import pucp.edu.pe.sgta.dto.*;
 import pucp.edu.pe.sgta.dto.AprobarSolicitudCambioAsesorResponseDto.AprobarCambioAsesorAsignacionDto;
 import pucp.edu.pe.sgta.dto.RechazoSolicitudCambioAsesorResponseDto.CambioAsignacionDto;
@@ -585,12 +588,6 @@ public class SolicitudServiceImpl implements SolicitudService {
             // Retrieve the full solicitud to determine its type
             Solicitud solicitud = solicitudRepository.findById(solicitudId)
                     .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
-
-            // Check if it's in pending status
-            if (solicitud.getEstado() != 1) {
-                log.error("Request is not in pending status");
-                continue;
-            }
 
             // Get the tipo de solicitud to determine if it's a title or summary change
             // request

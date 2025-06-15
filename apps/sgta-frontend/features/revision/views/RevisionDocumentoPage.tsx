@@ -160,6 +160,15 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
     };
   }, [params.id_revision]);
   useEffect(() => {
+    if (numPages && highlights.length > 0) {
+      setHighlights(prev =>
+        prev.filter(h =>
+          h.position.pageNumber > 0 && h.position.pageNumber <= numPages
+        )
+      );
+    }
+  }, [numPages]);
+  useEffect(() => {
     async function fetchObservaciones() {
       try {
         const data = await obtenerObservacionesRevision(params.id_revision);
@@ -174,31 +183,7 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
     }
     fetchObservaciones();
   }, [params.id_revision]);
-  useEffect(() => {
-    if (numPages === null) return;
-    // Solo crea highlights en páginas válidas
-    const initialHighlights = revision.observaciones
-      .filter(obs => obs.pagina > 0 && obs.pagina <= numPages)
-      .map(obs => ({
-        id: obs.id,
-        content: { text: obs.texto },
-        position: {
-          pageNumber: obs.pagina,
-          boundingRect: {
-            x1: 50,
-            y1: 50,
-            x2: 150,
-            y2: 70,
-            width: 100,
-            height: 20
-          },
-          rects: [],
-          usePdfCoordinates: false,
-        },
-        comment: { text: obs.texto, emoji: "" },
-      }));
-    setHighlights(initialHighlights);
-  }, [revision, numPages]);
+
   const handleHighlightClick = useCallback((highlight: IHighlight) => {
     console.log("Click en highlight:", highlight.id);
     setActiveHighlight(undefined);
