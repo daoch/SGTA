@@ -1,4 +1,4 @@
--- Active: 1748374313012@@localhost@5432@postgres@public
+-- Active: 1746915573232@@dbsgtajurado.cvxpelnrmqov.us-east-1.rds.amazonaws.com@5432@postgres@sgtadb
 -- SET search_path TO sgtadb;
 
 -- Active: 1748374313012@@localhost@5432@postgres@sgtadb

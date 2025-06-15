@@ -1178,11 +1178,13 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
 
                                                 RevisionCriterioExposicion revision = revisionOpt.orElse(null);
 
-                                                // SI NO HAY CRITERIOS DE CALIFICACION, ENTONCES EL JURADO HA CALIFICADO
-                                                if (revision == null) {
+                                                // SI HAY CRITERIOS DE CALIFICACION, ENTONCES EL JURADO HA CALIFICADO
+                                                if (revision != null && revision.getNota() == null) {
                                                         juradoCalificacion.setCalificado(false);
-                                                } else {
+                                                } else if (revision != null && revision.getNota() != null) {
                                                         juradoCalificacion.setCalificado(true);
+                                                } else {
+                                                        juradoCalificacion.setCalificado(false);
                                                 }
 
                                                 CriteriosCalificacionDto dto = new CriteriosCalificacionDto();
