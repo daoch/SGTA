@@ -10,6 +10,8 @@ import lombok.Setter;
 public class TemaConAsesorDto {
     private TemaResumenDto temaActual;
     private List<PerfilAsesorDto> asesores;
+    private List<String> roles;
+
 
     public TemaConAsesorDto() {}
 

@@ -1003,6 +1003,7 @@ DECLARE
     v_tema_id INTEGER;
     v_carrera_id INTEGER;
     v_existente INTEGER;
+	v_accion_pendiente_id INTEGER;
 BEGIN
     -- 1. Obtener usuario_id desde id_cognito
     SELECT usuario_id INTO v_usuario_id
@@ -1061,6 +1062,11 @@ BEGIN
         RAISE EXCEPTION 'La solicitud ya ha sido respondida por un asesor';
     END IF;
 
+	-- 6.1. Obtener la accion pendiente accion
+	SELECT accion_solicitud_id INTO v_accion_pendiente_id
+	FROM accion_solicitud
+	WHERE nombre = 'PENDIENTE_ACCION';
+
     -- 7. Obtener accion_solicitud_id de 'RECHAZADO'
     SELECT accion_solicitud_id INTO v_accion_id
     FROM accion_solicitud
@@ -1069,6 +1075,20 @@ BEGIN
     IF NOT FOUND THEN
         RAISE EXCEPTION 'Acción RECHAZADO no encontrada';
     END IF;
+
+	-- 7.1. Actualizar (hacer bypass de alguna accion que aún no se realiza
+		-- Si algun asesor aún no aprueba y el coordinador lo aprobó
+	UPDATE usuario_solicitud
+	SET accion_solicitud = v_accion_id,
+	    comentario = 'Rechazado por el coordinador',
+	    fecha_accion = CURRENT_TIMESTAMP
+	WHERE solicitud_id = p_solicitud_id
+	  AND accion_solicitud = v_accion_pendiente_id
+	  AND rol_solicitud IN (
+	        SELECT rol_solicitud_id
+	        FROM rol_solicitud
+	        WHERE nombre IN ('ASESOR_ACTUAL', 'ASESOR_ENTRADA')
+	  );
 
     -- 8. Insertar en usuario_solicitud
     INSERT INTO usuario_solicitud (
@@ -1121,14 +1141,13 @@ DECLARE
     v_existente INTEGER;
     v_asesor_actual_id INTEGER;
     v_asesor_entrada_id INTEGER;
-
+	v_accion_pendiente_id INTEGER;
     -- Campos replicables de usuario_tema
     v_id_tema INTEGER;
     v_id_rol INTEGER;
     v_tipo_rechazo_tema_id INTEGER;
     v_asignado BOOLEAN;
     v_rechazado BOOLEAN;
-    v_creador BOOLEAN;
     v_prioridad INTEGER;
     v_comentario TEXT;
 BEGIN
@@ -1189,10 +1208,29 @@ BEGIN
         RAISE EXCEPTION 'La solicitud ya ha sido respondida por un asesor';
     END IF;
 
+	-- 6.1. Obtener la accion pendiente accion
+	SELECT accion_solicitud_id INTO v_accion_pendiente_id
+	FROM accion_solicitud
+	WHERE nombre = 'PENDIENTE_ACCION';
+
     -- 7. Obtener accion_solicitud_id de 'APROBADO'
     SELECT accion_solicitud_id INTO v_accion_id
     FROM accion_solicitud
     WHERE nombre = 'APROBADO';
+
+	-- 7.1. Actualizar (hacer bypass de alguna accion que aún no se realiza
+		-- Si algun asesor aún no aprueba y el coordinador lo aprobó
+	UPDATE usuario_solicitud
+	SET accion_solicitud = v_accion_id,
+	    comentario = 'Aprobado por el coordinador',
+	    fecha_accion = CURRENT_TIMESTAMP
+	WHERE solicitud_id = p_solicitud_id
+	  AND accion_solicitud = v_accion_pendiente_id
+	  AND rol_solicitud IN (
+	        SELECT rol_solicitud_id
+	        FROM rol_solicitud
+	        WHERE nombre IN ('ASESOR_ACTUAL', 'ASESOR_ENTRADA')
+	  );
 
     -- 8. Insertar usuario_solicitud como DESTINATARIO
     INSERT INTO usuario_solicitud (
@@ -1238,8 +1276,8 @@ BEGIN
     LIMIT 1;
 
     -- 12. Obtener datos del asesor actual en usuario_tema
-    SELECT tema_id, rol_id, tipo_rechazo_tema_id, asignado, rechazado, creador, prioridad, comentario
-    INTO v_id_tema, v_id_rol, v_tipo_rechazo_tema_id, v_asignado, v_rechazado, v_creador, v_prioridad, v_comentario
+    SELECT tema_id, rol_id, tipo_rechazo_tema_id, asignado, rechazado, prioridad, comentario
+    INTO v_id_tema, v_id_rol, v_tipo_rechazo_tema_id, v_asignado, v_rechazado, v_prioridad, v_comentario
     FROM usuario_tema
     WHERE usuario_id = v_asesor_actual_id
       AND tema_id = v_tema_id
@@ -1262,7 +1300,6 @@ BEGIN
         tipo_rechazo_tema_id,
         asignado,
         rechazado,
-        creador,
         prioridad,
         comentario,
         activo,
@@ -1275,7 +1312,6 @@ BEGIN
         v_tipo_rechazo_tema_id,
         v_asignado,
         v_rechazado,
-        v_creador,
         v_prioridad,
         v_comentario,
         true,
@@ -1292,7 +1328,8 @@ RETURNS TABLE (
   titulo TEXT,
   estado TEXT,
   areasTematicas TEXT,
-  idAsesor INTEGER
+  idAsesor INTEGER[],
+  lista_rol TEXT[]
 ) AS $$
 BEGIN
   RETURN QUERY
@@ -1300,27 +1337,23 @@ SELECT
     t.tema_id AS "idTema",
     t.titulo::TEXT,
     et.nombre::TEXT,
-    STRING_AGG(DISTINCT at.nombre, ', ')::TEXT AS "areasTematicas",
-    u.usuario_id AS "idAsesor"
+    STRING_AGG(DISTINCT ac.nombre, ', ')::TEXT AS "areasTematicas",
+    ARRAY_AGG(DISTINCT ut_asesor.usuario_id order by ut_asesor.usuario_id) AS "idAsesor",
+	ARRAY_AGG(r.nombre::TEXT order by ut_asesor.usuario_id)
   FROM tema t
   JOIN estado_tema et ON t.estado_tema_id = et.estado_tema_id
   JOIN usuario_tema uta ON uta.tema_id = t.tema_id
-    LEFT JOIN LATERAL (
-    SELECT u2.usuario_id
-    FROM usuario_tema ut
-    JOIN usuario u2 ON u2.usuario_id = ut.usuario_id
-    WHERE ut.tema_id = t.tema_id AND ut.rol_id = 1 AND ut.activo = TRUE
-    LIMIT 1
-  ) u ON TRUE
+  left JOIN usuario_tema ut_asesor ON ut_asesor.tema_id = t.tema_id AND (ut_asesor.rol_id = 1 OR ut_asesor.rol_id = 5) AND ut_asesor.activo = TRUE
+  left join rol r on r.rol_id = ut_asesor.rol_id
   left JOIN sub_area_conocimiento_tema tsac ON tsac.tema_id = t.tema_id 
   left JOIN sub_area_conocimiento sac ON sac.sub_area_conocimiento_id = tsac.sub_area_conocimiento_id
-  left JOIN area_conocimiento at ON at.area_conocimiento_id = sac.area_conocimiento_id
+  left JOIN area_conocimiento ac ON ac.area_conocimiento_id = sac.area_conocimiento_id
   WHERE et.nombre IN ('INSCRITO', 'REGISTRADO', 'EN_PROGRESO', 'PAUSADO')
   AND uta.usuario_id = p_id_alumno
   AND uta.rol_id = 4
   AND uta.activo = TRUE
   AND t.activo = TRUE
-  GROUP BY t.tema_id, t.titulo, et.nombre, u.usuario_id;
+  GROUP BY t.tema_id, t.titulo, et.nombre;
 END;
 $$ LANGUAGE plpgsql;
 --

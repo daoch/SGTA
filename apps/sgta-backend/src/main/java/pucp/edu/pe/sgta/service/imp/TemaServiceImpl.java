@@ -2287,10 +2287,10 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 	public TemaConAsesorDto obtenerTemaActivoPorAlumno(Integer idAlumno) {
 		try {
 			// Ejecutar la función que devuelve el tema actual y el ID del asesor
-			Object[] result = (Object[]) entityManager
-					.createNativeQuery("SELECT * FROM obtener_temas_por_alumno(:idAlumno)")
-					.setParameter("idAlumno", idAlumno)
-					.getSingleResult();
+			List<Object[]> queryRes =  temaRepository.obtenerTemasPorAlumno(idAlumno);
+			if(queryRes.isEmpty())
+				throw new RuntimeException("No se encontró un tema para el alumno");
+			Object[] result = queryRes.get(0);
 
 			// Mapear a TemaActual
 			TemaResumenDto tema = new TemaResumenDto();
@@ -2309,11 +2309,14 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 				asesoresDto.add(perfil);
 				}
 			}
-
-			// Retornar combinado en TemaConAsesorDto
+			//Agregar la lista de roles
+			String[] rolesArray = (String[]) result[5];
+			List<String> rolesList = Arrays.stream(rolesArray).toList();
+ 			// Retornar combinado en TemaConAsesorDto
 			TemaConAsesorDto respuesta = new TemaConAsesorDto();
 			respuesta.setTemaActual(tema);
 			respuesta.setAsesores(asesoresDto);
+			respuesta.setRoles(rolesList);
 
 			return respuesta;
 
