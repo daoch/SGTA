@@ -1561,6 +1561,7 @@ DECLARE
     v_accion_pendiente_id    INTEGER;
     v_rol_destinatario_id    INTEGER;
     v_rol_remitente_id       INTEGER;
+    v_estado_pendiente_id    INTEGER;
 BEGIN
     IF p_solicitud_id IS NULL THEN
         RAISE EXCEPTION 'Solicitud ID cannot be null';
@@ -1579,6 +1580,9 @@ BEGIN
     SELECT rol_solicitud_id INTO v_rol_remitente_id
       FROM rol_solicitud WHERE nombre = 'REMITENTE';
 
+    SELECT estado_solicitud_id INTO v_estado_pendiente_id
+    FROM estado_solicitud WHERE nombre = 'PENDIENTE';
+
     -- Bloquear solicitud
     SELECT tema_id, estado
       INTO v_tema_id, v_current_estado
@@ -1590,8 +1594,8 @@ BEGIN
         RAISE EXCEPTION 'No existe solicitud %', p_solicitud_id;
     END IF;
 
-    IF v_current_estado <> 1 THEN
-        RAISE EXCEPTION 'Solicitud % no está en estado pendiente (estado=%)', p_solicitud_id, v_current_estado;
+    IF v_current_estado <> v_estado_pendiente_id THEN
+        RAISE EXCEPTION 'SOLICITUD %d no esta en estado PENDIENTE', p_solicitud_id;
     END IF;
 
     -- Actualizar título y solicitud
@@ -1645,6 +1649,7 @@ DECLARE
     v_accion_pendiente_id    INTEGER;
     v_rol_destinatario_id    INTEGER;
     v_rol_remitente_id       INTEGER;
+    v_estado_pendiente_id    INTEGER;
 BEGIN
     IF p_solicitud_id IS NULL THEN
         RAISE EXCEPTION 'Solicitud ID cannot be null';
@@ -1663,6 +1668,9 @@ BEGIN
     SELECT rol_solicitud_id INTO v_rol_remitente_id
       FROM rol_solicitud WHERE nombre = 'REMITENTE';
 
+    SELECT estado_solicitud_id INTO v_estado_pendiente_id
+    FROM estado_solicitud WHERE nombre = 'PENDIENTE';
+
     -- Bloquear solicitud
     SELECT tema_id, estado
       INTO v_tema_id, v_current_estado
@@ -1674,8 +1682,8 @@ BEGIN
         RAISE EXCEPTION 'No existe solicitud %', p_solicitud_id;
     END IF;
 
-    IF v_current_estado <> 1 THEN
-        RAISE EXCEPTION 'Solicitud % no está en estado pendiente (estado=%)', p_solicitud_id, v_current_estado;
+    IF v_current_estado <> v_estado_pendiente_id THEN
+        RAISE EXCEPTION 'SOLICITUD %d no esta en estado PENDIENTE', p_solicitud_id;
     END IF;
 
     -- Actualizar resumen y solicitud
