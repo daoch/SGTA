@@ -4,7 +4,7 @@ INSERT INTO etapa_formativa (carrera_id,
                              duracion_exposicion)
     VALUES -- mecánica
            (3, 'Proyecto de tesis 1', 4.5, INTERVAL '20 minutes'),
-           (3, 'Proyecto de tesis 2', 4.0, INTERVAL '20 minutes'),
+           (3, 'Proyecto de tesis 2', 4.0, INTERVAL '20 minutes');
 
 
 INSERT INTO area_conocimiento (carrera_id,

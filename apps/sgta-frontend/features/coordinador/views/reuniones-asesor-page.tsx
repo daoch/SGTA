@@ -15,48 +15,24 @@ import { getIdByCorreo } from "@/features/asesores/services/perfil-services";
 import { useAuth } from "@/features/auth";
 import { useEffect, useRef, useState } from "react";
 import { ReunionesAsesorModal } from "../components/reuniones-asersor-modal";
-import { AsesorTesistaDto } from "../dtos/AsesorTesistaDto";
 import { CarreraDto } from "../dtos/CarreraDto";
-import { EtapaFormativaDto } from "../dtos/EtapaFormativa";
 import { getAsesoresTesistasPorCarrera } from "../services/asesor-tesista-service";
 import { getCarrerasByUsuario } from "../services/carreras-usuario-service";
 import { getEtapasFormativasDelCoordinador } from "../services/etapas-formativas-coordinador-service";
-
-// Ciclos disponibles
-const ciclos = ["2023-1", "2024-2", "2025-1"];
-
-// Cursos por ciclo
-const cursosPorCiclo: Record<string, { codigo: string; nombre: string }[]> = {
-  "2023-1": [
-    { codigo: "1INF40", nombre: "Taller de Innovación" },
-    { codigo: "1INF41", nombre: "Proyecto Integrador 1" },
-  ],
-  "2024-2": [{ codigo: "1INF47", nombre: "Seminario de Tesis" }],
-  "2025-1": [
-    { codigo: "1INF46", nombre: "Proyecto de Fin de Carrera 2" },
-    { codigo: "1INF48", nombre: "Proyecto de Innovación" },
-  ],
-};
+import { getCarreraCoordinadaPorUsuario } from "../services/carrera-coordinada-service";
+import { AsesorTesistaDto } from "../dtos/AsesorTesistaDto";
+import { EtapaFormativaDto } from "../dtos/EtapaFormativaDto";
 
 export default function ReunionesAsesoresPage() {
-  const { user } = useAuth();
-  const [userId, setUserId] = useState<number | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [cicloSeleccionado, setCicloSeleccionado] = useState<
-    string | undefined
-  >(undefined);
-  const [etapaFormativaSeleccionada, setEtapaFormativaSeleccionada] =
-    useState<EtapaFormativaDto | null>(null);
-  const [etapasFormativas, setEtapasFormativas] = useState<EtapaFormativaDto[]>(
-    [],
-  );
-  const [alumnosXasesores, setAlumnosXasesores] = useState<AsesorTesistaDto[]>(
-    [],
-  );
-  const hasFetchedId = useRef(false);
-  const [carreraCoordinada, setCarreraCoordinada] = useState<CarreraDto | null>(
-    null,
-  );
+    const { user } = useAuth();
+    const [userId, setUserId] = useState<number | null>(null);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [cicloSeleccionado, setCicloSeleccionado] = useState<string | undefined>(undefined);
+    const [etapaFormativaSeleccionada, setEtapaFormativaSeleccionada] = useState<EtapaFormativaDto | null>(null);
+    const [etapasFormativas, setEtapasFormativas] = useState<EtapaFormativaDto[]>([]);
+    const [alumnosXasesores, setAlumnosXasesores] = useState<AsesorTesistaDto[]>([]);
+    const hasFetchedId = useRef(false);
+    const [carreraCoordinada, setCarreraCoordinada] = useState<CarreraDto | null>(null);
 
   //Obtener el ID del usuario una sola vez
   const loadUsuarioId = async () => {
@@ -82,38 +58,39 @@ export default function ReunionesAsesoresPage() {
     }
   }, [user]);
 
-  // Obtener la carrera coordinada por el usuario una vez que se tenga el ID
-  useEffect(() => {
-    if (userId !== null) {
-      const fetchCarreraCoordinada = async () => {
-        try {
-          const carrera = await getCarrerasByUsuario(userId);
-          setCarreraCoordinada(carrera[0]);
-          console.log("Carrera coordinada obtenida:", carrera[0]);
-        } catch (error) {
-          console.error("Error al obtener la carrera coordinada:", error);
-        }
-      };
+    // Obtener la carrera coordinada por el usuario una vez que se tenga el ID
+    useEffect(() => {
+        if (userId !== null) {
+            const fetchCarreraCoordinada = async () => {
+                try {
+                    const carrera = await getCarreraCoordinadaPorUsuario(userId);
+                    setCarreraCoordinada(carrera); 
+                    console.log("Carrera coordinada obtenida:", carrera);
+                } catch (error) {
+                    console.error("Error al obtener la carrera coordinada:", error);
+                }
+            };
 
       fetchCarreraCoordinada();
     }
   }, [userId]);
 
-  useEffect(() => {
-    const fetchEtapas = async () => {
-      if (userId == null) return; // valida null y undefined
+    // useEffect(() => {
+    //     const fetchEtapas = async () => {
+    //         if (userId == null) return; // valida null y undefined
 
-      try {
-        const etapas = await getEtapasFormativasDelCoordinador(userId);
-        setEtapasFormativas(etapas);
-        console.log("Etapas formativas del coordinador:", etapas);
-      } catch (error) {
-        console.error("Error al obtener etapas formativas:", error);
-      }
-    };
+    //         try {
+    //         const etapas = await getEtapasFormativasDelCoordinador(userId);
+    //         setEtapasFormativas(etapas);
+    //         console.log("Etapas formativas del coordinador:", etapas);
+    //         } catch (error) {
+    //         console.error("Error al obtener etapas formativas:", error);
+    //         }
+    //     };
 
-    fetchEtapas();
-  }, [userId]);
+    //     fetchEtapas();
+    // }, [userId]);
+
 
   //Obtener asesores con sus alumnos
   useEffect(() => {

@@ -36,4 +36,31 @@ export type SolicitudAction =
   | "Observada"
   | "Eliminada";
 
-export type TypeSolicitud = "titulo" | "resumen" | null;
+export type TypeSolicitud = "titulo" | "resumen" | "no-enviar";
+
+export interface TemaSimilar {
+  id: number;
+  codigo: string;
+  titulo: string;
+  resumen: string;
+  objetivos: string;
+  metodologia: string;
+  requisitos: string | null;
+  portafolioUrl: string | null;
+  activo: boolean;
+  rechazado: boolean | null;
+  fechaLimite: string | null; // formato ISO
+  fechaFinalizacion: string | null; // formato ISO
+  fechaCreacion: string; // formato ISO
+  fechaModificacion: string; // formato ISO
+  estadoTemaNombre: string;
+  cantPostulaciones: number | null;
+  porcentajeSimilitud: number | null;
+  // carrera: any | null;
+  // area: any | null;
+  // subareas: any | null;
+  // tesistas: any | null;
+  // coasesores: any | null;
+  // estadoUsuarioTema: any | null;
+}
+

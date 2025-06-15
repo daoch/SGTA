@@ -23,9 +23,7 @@ import { toast } from "sonner";
 import AppLoading from "@/components/loading/app-loading";
 
 const ESTADOS = [
-  { value: "todos", label: "Todos" },
   { value: "REGISTRADO", label: "Registrado" },
-  { value: "EN_PROGRESO", label: "En Progreso" },
   { value: "PAUSADO", label: "Pausado" },
 ];
 
@@ -35,10 +33,6 @@ const estadoColors: Record<string, string> = {
   rechazado: "bg-red-100 text-red-800",
 };
 
-function isTemaSeleccionado(temasSeleccionados: TemaPorAsociar[], id: number) {
-  return temasSeleccionados.some((sel) => sel.id === id);
-}
-
 const AsociacionTemaCursoPage: React.FC = () => {
   const [loadingEtapas, setLoadingEtapas] = useState(true);
   const [loadingTemas, setLoadingTemas] = useState(true);
@@ -46,7 +40,7 @@ const AsociacionTemaCursoPage: React.FC = () => {
   const [cursos, setCursos] = useState<Curso[]>([]);
   const [cursoSeleccionado, setCursoSeleccionado] = useState<Curso | null>();
   const [temas, setTemas] = useState<TemaPorAsociar[]>([]);
-  const [tabEstado, setTabEstado] = useState<string>("todos");
+  const [tabEstado, setTabEstado] = useState<string>("REGISTRADO");
   const [temasSeleccionados, setTemasSeleccionados] = useState<
     TemaPorAsociar[]
   >([]);
@@ -117,31 +111,43 @@ const AsociacionTemaCursoPage: React.FC = () => {
     )
       return;
     setLoading(true);
-    try {
-      await Promise.all(
-        temasSeleccionados.map((tema) =>
-          axiosInstance.post(
-            `/temas/asociar-tema-curso/curso/${cursoSeleccionado.id}/tema/${tema.id}`,
+    let exitos = 0;
+    const countTemasSeleccionados = temasSeleccionados.length;
+    for (const tema of temasSeleccionados) {
+      try {
+        await axiosInstance.post(
+          `/temas/asociar-tema-curso/curso/${cursoSeleccionado.id}/tema/${tema.id}`,
+        );
+        exitos++;
+        setTemas((prev) =>
+          prev.map((t) =>
+            t.id !== undefined && t.id === tema.id
+              ? { ...t, estadoTemaNombre: "EN_PROGRESO" }
+              : t,
           ),
-        ),
-      );
-      setTemas((prev) =>
-        prev.map((t) =>
-          t.id !== undefined && isTemaSeleccionado(temasSeleccionados, t.id)
-            ? { ...t, estadoTemaNombre: "EN_PROGRESO" }
-            : t,
-        ),
-      );
-      setTemasSeleccionados([]);
-    } catch (error) {
-      console.error("Error al asociar temas al curso:", error);
-    } finally {
-      setLoading(false);
+        );
+      } catch (error) {
+        console.error("Error al asociar temas al curso:", error);
+        toast.error(
+          `Error al asociar el tema "${tema.titulo}" al curso ${cursoSeleccionado.etapaFormativaNombre}`,
+        );
+      }
     }
+
+    if (exitos > 0 && exitos == countTemasSeleccionados) {
+      toast.success("Todos los temas fueron asociados correctamente.");
+    } else {
+      toast.warning(
+        `${exitos} de ${countTemasSeleccionados} temas fueron asociados correctamente.`,
+      );
+    }
+    setCursoSeleccionado(null);
+    setTemasSeleccionados([]);
+    setLoading(false);
   };
 
   const temasFiltrados = temas.filter((tema) =>
-    tabEstado === "todos" ? true : tema.estadoTemaNombre === tabEstado,
+    tabEstado === "" ? true : tema.estadoTemaNombre === tabEstado,
   );
 
   useEffect(() => {
@@ -161,7 +167,7 @@ const AsociacionTemaCursoPage: React.FC = () => {
     setTemasSeleccionados([]);
   }, [tabEstado]);
 
-  if(loadingEtapas || loadingTemas) {
+  if (loadingEtapas || loadingTemas) {
     return <AppLoading />;
   }
 
@@ -185,9 +191,7 @@ const AsociacionTemaCursoPage: React.FC = () => {
         <Button
           className="bg-[#042354] text-white"
           disabled={
-            !cursoSeleccionado ||
-            temasSeleccionados.length === 0 ||
-            loading
+            !cursoSeleccionado || temasSeleccionados.length === 0 || loading
           }
           onClick={handleAsociar}
         >

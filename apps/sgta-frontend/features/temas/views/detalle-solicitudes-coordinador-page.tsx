@@ -16,10 +16,12 @@ import {
   crearSolicitudCambioResumen,
   crearSolicitudCambioTitulo,
   eliminarTemaPorCoordinador,
+  fetchTemasSimilares,
 } from "../types/solicitudes/data";
 import {
   SolicitudAction,
   SolicitudPendiente,
+  TemaSimilar,
   TypeSolicitud,
 } from "../types/solicitudes/entities";
 import { Tema } from "../types/temas/entidades";
@@ -37,6 +39,22 @@ interface Props {
   setTema: Dispatch<Tema>;
 }
 
+// MOCK de historial
+const historialMock = [
+  {
+    fecha: "2024-01-15",
+    accion: "Solicitud creada",
+    responsable: "Sistema",
+    comentario: "Solicitud enviada por el estudiante",
+  },
+  {
+    fecha: "2024-01-16",
+    accion: "Asignada para evaluación",
+    responsable: "Dr. Ana Pérez",
+    comentario: "Asignada al comité de evaluación",
+  },
+];
+
 export default function DetalleSolicitudesCoordinadorPage({
   solicitud,
   setTema,
@@ -47,83 +65,69 @@ export default function DetalleSolicitudesCoordinadorPage({
     "aprobar" | "rechazar" | "observar" | "eliminar" | ""
   >("");
   const [errorComentario, setErrorComentario] = useState("");
-  const [tipoSolicitud, setTipoSolicitud] = useState<TypeSolicitud>();
+  const [tipoSolicitud, setTipoSolicitud] =
+    useState<TypeSolicitud>("no-enviar");
   const [errorTipoSolicitud, setErrorTipoSolicitud] = useState("");
   const [loading, setLoading] = useState(false);
+  const [similares, setSimilares] = useState<TemaSimilar[] | []>([]);
 
-  // MOCK de similitud
-  const similitudMock = {
-    porcentaje: 35,
-    temasRelacionados: [
-      {
-        id: "TEMA-2023-089",
-        titulo: "Sistema de Inventario para Retail",
-        similitud: 45,
-      },
-      {
-        id: "TEMA-2023-156",
-        titulo: "Aplicación de IA en Gestión Empresarial",
-        similitud: 30,
-      },
-      {
-        id: "TEMA-2024-003",
-        titulo: "Dashboard Analítico para PYMES",
-        similitud: 25,
-      },
-    ],
+  const errorTexts = {
+    tipoSolicitud: "Ingresar el tipo de solicitud.",
+    comentario: "Debe ingresar un comentario para la solicitud.",
   };
 
-  // MOCK de historial
-  const historialMock = [
-    {
-      fecha: "2024-01-15",
-      accion: "Solicitud creada",
-      responsable: "Sistema",
-      comentario: "Solicitud enviada por el estudiante",
-    },
-    {
-      fecha: "2024-01-16",
-      accion: "Asignada para evaluación",
-      responsable: "Dr. Ana Pérez",
-      comentario: "Asignada al comité de evaluación",
-    },
-  ];
-
+  /*
+    Ejecuta lógica de crear solicitudes.
+    Cambia el estado en caso el tema está en estado INSCRITO
+  */
   const handleAccion = async (accion: SolicitudAction) => {
     try {
       setLoading(true);
-      if (!tipoSolicitud) return;
       if (accion === "Eliminada") {
         await eliminarTemaPorCoordinador(solicitud.tema.id);
         router.push("/coordinador/aprobaciones");
       } else {
         // Actualizar Estado del tema
-        const payload = {
-          tema: {
-            id: solicitud.tema.id,
-            estadoTemaNombre: actionToStateMap[accion],
-          },
-          usuarioSolicitud: {
-            usuarioId: 3, // !: Id de coordinador
-            comentario,
-          },
-        };
+        if (solicitud.estado === EstadoTemaNombre.INSCRITO) {
+          const payload = {
+            tema: {
+              id: solicitud.tema.id,
+              estadoTemaNombre: actionToStateMap[accion],
+            },
+            usuarioSolicitud: {
+              usuarioId: 3, // !: Id de coordinador
+              comentario,
+            },
+          };
 
-        await cambiarEstadoTemaPorCoordinador(payload);
-
-        // Crear solicitud
-        if (tipoSolicitud === "resumen") {
-          await crearSolicitudCambioResumen(solicitud.tema.id, comentario);
-        } else {
-          await crearSolicitudCambioTitulo(solicitud.tema.id, comentario);
+          await cambiarEstadoTemaPorCoordinador(payload);
         }
 
-        // Actualizar solicitud
-        buscarTemaPorId(solicitud.tema.id).then(setTema);
+        // Crear solicitud
+        if (
+          tipoSolicitud &&
+          tipoSolicitud !== "no-enviar" &&
+          accion === "Observada"
+        ) {
+          if (tipoSolicitud === "resumen") {
+            await crearSolicitudCambioResumen(solicitud.tema.id, comentario);
+          } else {
+            await crearSolicitudCambioTitulo(solicitud.tema.id, comentario);
+          }
+        }
       }
 
       toast.success(`Solicitud ${accion.toLowerCase()} exitosamente.`);
+
+      // Reestablecer campos
       setDialogAbierto("");
+      setComentario("");
+      setTipoSolicitud("no-enviar");
+
+      // Visualizar cambios
+      if (solicitud.estado === EstadoTemaNombre.INSCRITO) {
+        setTema(await buscarTemaPorId(solicitud.tema.id));
+      }
     } catch (error) {
       console.error("Error al procesar la solicitud:", error);
       toast.error("Ocurrió un error. Por favor, intente nuevamente.");
@@ -133,8 +137,8 @@ export default function DetalleSolicitudesCoordinadorPage({
   };
 
   const validateComment = () => {
-    if (!comentario.trim()) {
-      setErrorComentario("El comentario es obligatorio.");
+    if (!comentario.trim() && tipoSolicitud !== "no-enviar") {
+      setErrorComentario(errorTexts.comentario);
     } else {
       setErrorComentario("");
     }
@@ -142,7 +146,7 @@ export default function DetalleSolicitudesCoordinadorPage({
 
   const validateTipoSolicitud = () => {
     if (!tipoSolicitud?.trim()) {
-      setErrorTipoSolicitud("Debe ingresar el tipo de solicitud.");
+      setErrorTipoSolicitud(errorTexts.tipoSolicitud);
     } else {
       setErrorTipoSolicitud("");
     }
@@ -151,61 +155,96 @@ export default function DetalleSolicitudesCoordinadorPage({
   useEffect(() => {
     validateComment();
     validateTipoSolicitud();
-  }, [comentario]);
+  }, [tipoSolicitud, comentario]);
+
+  async function obtenerTemasSimilares(
+    temaId: number,
+    setSimilares: (s: TemaSimilar[]) => void,
+  ) {
+    try {
+      const similares = await fetchTemasSimilares(temaId);
+      setSimilares(similares);
+    } catch (error) {
+      console.error("Error al obtener temas similares:", error);
+      setSimilares([]);
+    }
+  }
+
+  useEffect(() => {
+    obtenerTemasSimilares(solicitud.tema.id, setSimilares);
+  }, [solicitud.tema.id]);
 
   // Config Actions
   const accionesConfig = {
-    aprobar: {
-      show: true,
+    observar: {
+      show: [EstadoTemaNombre.INSCRITO, EstadoTemaNombre.OBSERVADO].includes(
+        solicitud.estado,
+      ),
       disabled:
-        !comentario.trim().length || !tipoSolicitud?.trim().length || loading,
+        tipoSolicitud === "no-enviar" ||
+        !comentario.trim().length ||
+        !tipoSolicitud?.trim().length ||
+        loading,
+    },
+    aprobar: {
+      show: solicitud.estado === EstadoTemaNombre.INSCRITO,
+      disabled: tipoSolicitud !== "no-enviar" || loading,
     },
     rechazar: {
-      show: true,
-      disabled:
-        !comentario.trim().length || !tipoSolicitud?.trim().length || loading,
-    },
-    observar: {
-      show: true,
-      disabled:
-        !comentario.trim().length || !tipoSolicitud?.trim().length || loading,
+      show: solicitud.estado === EstadoTemaNombre.INSCRITO,
+      disabled: tipoSolicitud !== "no-enviar" || loading,
     },
     eliminar: { show: true, disabled: loading },
   };
+
+  const moduloAnalisisSimilitud = (
+    <AnalisisSimilitudTema similares={similares} />
+  );
 
   return (
     <>
       <Toaster position="top-right" richColors />
       <form className="min-h-screen bg-gray-50 p-4 md:p-6">
-        <div className="max-w-6xl mx-auto space-y-6">
-          <EncabezadoDetalleSolicitudTema solicitud={solicitud} />
-          <InfoDetalleSolicitudTema solicitud={solicitud} />
+        <div className="max-w-6xl mx-auto space-y-6 flex flex-col md:flex-row gap-6">
+          <div className="flex flex-col gap-4 md:w-3/5">
+            <EncabezadoDetalleSolicitudTema solicitud={solicitud} />
+            <InfoDetalleSolicitudTema solicitud={solicitud} />
+            {[EstadoTemaNombre.INSCRITO, EstadoTemaNombre.OBSERVADO].includes(
+              solicitud.estado,
+            ) && moduloAnalisisSimilitud}
+            <HistorialDetalleSolicitudTema historial={historialMock} />
+          </div>
 
-          {solicitud.estado === EstadoTemaNombre.INSCRITO && (
-            <>
-              {/* Comentarios del Comité y selección del tipo de solicitud */}
+          <div className="flex flex-col gap-4 md:w-2/5">
+            {/* Similitud */}
+            {[EstadoTemaNombre.REGISTRADO, EstadoTemaNombre.RECHAZADO].includes(
+              solicitud.estado,
+            ) && moduloAnalisisSimilitud}
+
+            {/* Comentarios del Comité y selección del tipo de solicitud */}
+            {[EstadoTemaNombre.INSCRITO, EstadoTemaNombre.OBSERVADO].includes(
+              solicitud.estado,
+            ) && (
               <ComentariosDetalleSolicitudTema
+                tipoSolicitud={tipoSolicitud}
+                setTipoSolicitud={setTipoSolicitud}
                 comentario={comentario}
                 setComentario={setComentario}
                 errorComentario={errorComentario}
-                setTipoSolicitud={setTipoSolicitud}
                 errorTipoSolicitud={errorTipoSolicitud}
+                comentarioOpcional={tipoSolicitud === "no-enviar"}
               />
+            )}
 
-              {/* Actions */}
-              <AccionesDetalleSoliTema
-                accionesConfig={accionesConfig}
-                dialogAbierto={dialogAbierto}
-                handleAccion={handleAccion}
-                setDialogAbierto={setDialogAbierto}
-              />
-
-              {/* Análisis de Similitud */}
-              <AnalisisSimilitudTema similitud={similitudMock} />
-            </>
-          )}
-
-          <HistorialDetalleSolicitudTema historial={historialMock} />
+            {/* Actions */}
+            <AccionesDetalleSoliTema
+              accionesConfig={accionesConfig}
+              dialogAbierto={dialogAbierto}
+              handleAccion={handleAccion}
+              setDialogAbierto={setDialogAbierto}
+              loading={loading}
+            />
+          </div>
         </div>
       </form>
     </>

@@ -15,18 +15,15 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import org.springframework.web.server.ResponseStatusException;
-import pucp.edu.pe.sgta.dto.UsuarioRegistroDto;
+import pucp.edu.pe.sgta.dto.*;
 import pucp.edu.pe.sgta.dto.asesores.*;
-import pucp.edu.pe.sgta.dto.CarreraDto;
-import pucp.edu.pe.sgta.dto.DocentesDTO;
-import pucp.edu.pe.sgta.dto.UsuarioDto;
+import pucp.edu.pe.sgta.model.UsuarioXCarrera;
 import pucp.edu.pe.sgta.service.inter.CarreraService;
 import pucp.edu.pe.sgta.service.inter.JwtService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
-import pucp.edu.pe.sgta.dto.AlumnoTemaDto;
-import pucp.edu.pe.sgta.dto.AlumnoReporteDto;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import pucp.edu.pe.sgta.service.inter.UsuarioXCarreraService;
 import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
 
 @RestController
@@ -42,6 +39,9 @@ public class UsuarioController {
 
     @Autowired
     private UsuarioService usuarioService;
+
+    @Autowired
+    private UsuarioXCarreraService usuarioXCarreraService;
 
     @PostMapping("/create")
     public ResponseEntity<?> create(@RequestBody UsuarioRegistroDto user) {
@@ -373,6 +373,13 @@ public class UsuarioController {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                     "Error al obtener profesores activos: " + e.getMessage());
         }
+    }
+
+    @GetMapping("/listarRevisoresPorCarrera")
+    public List<UsuarioRolRevisorDto> lsitarRevisoresPorCarrera(HttpServletRequest request){
+        String coordinadorId = jwtService.extractSubFromRequest(request);
+        UsuarioXCarrera usuarioXCarrera = usuarioXCarreraService.getCarreraPrincipalCoordinador(coordinadorId);
+        return usuarioService.listarRevisoresPorCarrera(usuarioXCarrera.getCarrera().getId());
     }
 
 }

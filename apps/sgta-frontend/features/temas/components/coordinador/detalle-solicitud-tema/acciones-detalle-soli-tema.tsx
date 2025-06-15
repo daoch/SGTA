@@ -27,6 +27,7 @@ interface AccionesDetalleSoliTemaProps {
   setDialogAbierto: (d: AccionKey | "") => void;
   handleAccion: (accion: SolicitudAction) => void;
   accionesConfig?: AccionesConfig;
+  loading?: boolean;
 }
 
 const defaultConfig: AccionesConfig = {
@@ -36,6 +37,17 @@ const defaultConfig: AccionesConfig = {
   eliminar: { show: true, disabled: false },
 };
 
+const tooltips: Record<AccionKey, string> = {
+  observar:
+    "Observar el tema y se debe crear una solicitud de cambio de título o resumen.",
+  aprobar:
+    "Aprueba la solicitud y el tema será registrado. No se envían solicitudes de cambios.",
+  rechazar:
+    "Rechaza la solicitud y el tema no será registrado. No se envían solicitudes de cambios.",
+  eliminar:
+    "Desactiva el tema, se libera al asesor y a los tesistas. No se envían solicitudes de cambios.",
+};
+
 export const AccionesDetalleSoliTema: React.FC<
   AccionesDetalleSoliTemaProps
 > = ({
@@ -43,17 +55,9 @@ export const AccionesDetalleSoliTema: React.FC<
   setDialogAbierto,
   handleAccion,
   accionesConfig = defaultConfig,
+  loading,
 }) => {
   const config = { ...defaultConfig, ...accionesConfig };
-
-  // Mensajes de ayuda para cada acción
-  const tooltips: Record<AccionKey, string> = {
-    observar:
-      "Permite observar la solicitud y dejar comentarios para corrección.",
-    aprobar: "Aprueba la solicitud y el tema será registrado.",
-    rechazar: "Rechaza la solicitud y el tema no será registrado.",
-    eliminar: "Desactiva el tema, se libera al asesor y a los tesistas.",
-  };
 
   return (
     <Card>
@@ -101,10 +105,14 @@ export const AccionesDetalleSoliTema: React.FC<
                   <Button
                     variant="outline"
                     onClick={() => setDialogAbierto("")}
+                    disabled={loading}
                   >
                     Cancelar
                   </Button>
-                  <Button onClick={() => handleAccion("Observada")}>
+                  <Button
+                    onClick={() => handleAccion("Observada")}
+                    disabled={loading}
+                  >
                     Confirmar
                   </Button>
                 </DialogFooter>
@@ -151,12 +159,14 @@ export const AccionesDetalleSoliTema: React.FC<
                   <Button
                     variant="outline"
                     onClick={() => setDialogAbierto("")}
+                    disabled={loading}
                   >
                     Cancelar
                   </Button>
                   <Button
                     className="bg-green-600 hover:bg-green-700"
                     onClick={() => handleAccion("Aprobada")}
+                    disabled={loading}
                   >
                     Confirmar
                   </Button>
@@ -205,12 +215,14 @@ export const AccionesDetalleSoliTema: React.FC<
                   <Button
                     variant="outline"
                     onClick={() => setDialogAbierto("")}
+                    disabled={loading}
                   >
                     Cancelar
                   </Button>
                   <Button
                     variant="destructive"
                     onClick={() => handleAccion("Rechazada")}
+                    disabled={loading}
                   >
                     Confirmar
                   </Button>
@@ -259,12 +271,14 @@ export const AccionesDetalleSoliTema: React.FC<
                   <Button
                     variant="outline"
                     onClick={() => setDialogAbierto("")}
+                    disabled={loading}
                   >
                     Cancelar
                   </Button>
                   <Button
                     variant="destructive"
                     onClick={() => handleAccion("Eliminada")}
+                    disabled={loading}
                   >
                     Confirmar
                   </Button>

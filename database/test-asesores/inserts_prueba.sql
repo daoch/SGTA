@@ -1,6 +1,8 @@
 -- =============================================
 -- INSERT: Nuevos alumnos y profesores (usuarios)
 -- =============================================
+SET search_path TO sgtadb;
+
 INSERT INTO usuario (tipo_usuario_id,
                      codigo_pucp,
                      nombres,

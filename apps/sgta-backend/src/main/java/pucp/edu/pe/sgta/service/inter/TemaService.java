@@ -206,4 +206,10 @@ public interface TemaService {
 
 	Integer actualizarTemaLibre(TemaDto dto);
 
+	void reenvioSolicitudAprobacionTema(TemaDto dto, String usuarioId);
+
+	String listarSolicitudesConUsuarios(Integer temaId, int offset, int limit);
+
+	String listarSolicitudesPendientesPorUsuario(String usuarioId, int offset, int limit);
+
 }

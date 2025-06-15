@@ -8,8 +8,9 @@ export interface RevisionDocumentoAsesorDto {
 	porcentajeSimilitud: number | null;
 	porcentajeGenIA: number | null;
 	fechaEntrega: string;
-	entregaATiempo: boolean;
-	fechaLimite: string;
+	fechaLimiteEntrega: string;
+	fechaRevision: string;
+	fechaLimiteRevision: string;
 	ultimoCiclo: string;
 	estado: string;
 	formatoValido: boolean,

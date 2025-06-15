@@ -17,35 +17,48 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+const texts = {
+  title: "Comentarios del Comité",
+  description:
+    "Ingrese el tipo de solicitud y un comentario para observar un tema te tesis.",
+  comentario: {
+    title: "Comentario",
+    placeholder: "Escriba el comentario de la solicitud aquí ...",
+    placeholderSinSolicitud: "Registre un comentario opcional ...",
+  },
+};
+
 interface ComentariosDetalleSolicitudTemaProps {
+  tipoSolicitud: TypeSolicitud;
+  setTipoSolicitud?: (tipo: TypeSolicitud) => void;
   comentario: string;
   setComentario: (comentario: string) => void;
   errorComentario?: string;
   setErrorComentario?: (error: string) => void;
-  setTipoSolicitud?: (tipo: TypeSolicitud) => void;
   errorTipoSolicitud?: string;
+  comentarioOpcional?: boolean;
 }
 
 export const ComentariosDetalleSolicitudTema: React.FC<
   ComentariosDetalleSolicitudTemaProps
 > = ({
+  tipoSolicitud,
+  setTipoSolicitud,
   comentario,
   setComentario,
   errorComentario,
   setErrorComentario,
-  setTipoSolicitud,
   errorTipoSolicitud,
+  comentarioOpcional,
 }) => (
   <Card>
     {/* Header */}
     <CardHeader>
       <CardTitle className="flex items-center gap-2">
         <MessageSquare className="w-5 h-5" />
-        Comentarios del Comité
+        {texts.title}
       </CardTitle>
-      <CardDescription>
-        Obligatorio para aprobar, rechazar u observar un tema.
-      </CardDescription>
+      <CardDescription>{texts.description}</CardDescription>
     </CardHeader>
 
     <CardContent>
@@ -54,14 +67,17 @@ export const ComentariosDetalleSolicitudTema: React.FC<
         Tipo de Solicitud
       </Label>
       <Select
+        defaultValue={"no-enviar"}
+        value={tipoSolicitud}
         onValueChange={(value) => {
-          if (setTipoSolicitud) setTipoSolicitud(value as "titulo" | "resumen");
+          if (setTipoSolicitud) setTipoSolicitud(value as TypeSolicitud);
         }}
       >
         <SelectTrigger id="tipo-comentario" className="w-full mb-4">
           <SelectValue placeholder="Elegir tipo" />
         </SelectTrigger>
         <SelectContent>
+          <SelectItem value="no-enviar">Sin solicitud</SelectItem>
           <SelectItem value="titulo">Cambio de título</SelectItem>
           <SelectItem value="resumen">Cambio de resumen</SelectItem>
         </SelectContent>
@@ -72,7 +88,7 @@ export const ComentariosDetalleSolicitudTema: React.FC<
 
       {/* Comment */}
       <Label htmlFor="comentario" className="mt-4 mb-2 block">
-        Comentario
+        {texts.comentario.title}
       </Label>
       <Textarea
         id="comentario"
@@ -84,7 +100,11 @@ export const ComentariosDetalleSolicitudTema: React.FC<
           }
         }}
         className="min-h-[120px] mb-4"
-        placeholder="Escriba su comentario aquí..."
+        placeholder={
+          comentarioOpcional
+            ? texts.comentario.placeholderSinSolicitud
+            : texts.comentario.placeholder
+        }
       />
       {errorComentario && (
         <p className="mt-1 text-sm text-red-600">{errorComentario}</p>
