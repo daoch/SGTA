@@ -12,7 +12,7 @@ const solicitudes = solicitudesItems;
 
 export default function SolicitudesAcademicas() {
   return (
-    <div className="container mx-auto py-8 max-w-4xl">
+    <div className="container mx-auto py-8 max-w-6xl">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Solicitudes Académicas</h1>
         <p className="text-muted-foreground">
@@ -21,13 +21,17 @@ export default function SolicitudesAcademicas() {
         </p>
       </div>
 
-      <div className="space-y-4">
-        <Accordion type="single" collapsible className="w-full">
-          {solicitudes.map((solicitud) => {
-            const Icon = solicitud.icono;
-            return (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {solicitudes.map((solicitud) => {
+          const Icon = solicitud.icono;
+          return (
+            <Accordion
+              key={solicitud.id}
+              type="single"
+              collapsible
+              className="w-full"
+            >
               <AccordionItem
-                key={solicitud.id}
                 value={solicitud.id}
                 className="border border-gray-200 rounded-lg px-6"
               >
@@ -67,9 +71,9 @@ export default function SolicitudesAcademicas() {
                   </div>
                 </AccordionContent>
               </AccordionItem>
-            );
-          })}
-        </Accordion>
+            </Accordion>
+          );
+        })}
       </div>
     </div>
   );
