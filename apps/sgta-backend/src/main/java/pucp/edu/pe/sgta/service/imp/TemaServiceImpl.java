@@ -2038,7 +2038,7 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 	private Solicitud cargarSolicitud(Integer temaId) {
 		final String tipoNombre = "Aprobación de tema (por coordinador)";
 
-        // Construimos la consulta: hacemos JOIN entre la tabla solicitud 
+        // Construimos la consulta: hacemos JOIN entre la tabla solicitud
         // y el SET-RETURNING FUNCTION para filtrar por tipo y tema
         String sql = ""
             + "SELECT s.* "
@@ -2405,7 +2405,7 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 				tema.getTitulo(),
 				tema.getResumen(),
 				"Inscripción de tema por Asesor");
-		crearSolicitudAprobacionTema(tema);
+		crearSolicitudAprobacionTemaV2(tema);
 	}
 
 	@Override
@@ -3348,78 +3348,110 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 			logger.severe("Error al actualizar tema: " + e.getMessage());
 			throw new RuntimeException("No se pudo actualizar el tema", e);
 		}
-
 		return temaId;
 	}
 
 
+    @Transactional
+    @Override
+    public void reenvioSolicitudAprobacionTema(TemaDto dto, String usuarioId) {
+        // Validar que el tema tenga ID
+        if (dto.getId() == null) {
+            throw new IllegalArgumentException("El tema debe tener un ID para reenviar la solicitud.");
+        }
 
-	@Transactional
-	@Override
-	public void reenvioSolicitudAprobacionTema(TemaDto dto, String usuarioId) {
-		// Validar que el tema tenga ID
-		if (dto.getId() == null) {
-			throw new IllegalArgumentException("El tema debe tener un ID para reenviar la solicitud.");
-		}
+        // Obtener el usuario interno desde Cognito ID
+        UsuarioDto usuDto = usuarioService.findByCognitoId(usuarioId);
+        if (usuDto == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Usuario no encontrado con Cognito ID: " + usuarioId);
+        }
 
-		// Obtener el usuario interno desde Cognito ID
-		UsuarioDto usuDto = usuarioService.findByCognitoId(usuarioId);
-		if (usuDto == null) {
-			throw new ResponseStatusException(
-					HttpStatus.NOT_FOUND,
-					"Usuario no encontrado con Cognito ID: " + usuarioId);
-		}
+        try {
+            // Buscar la entidad Tema por ID
+            Tema tema = temaRepository.findById(dto.getId())
+                    .orElseThrow(() -> new RuntimeException("Tema no encontrado con ID: " + dto.getId()));
+            entityManager.createNativeQuery(
+                            "SELECT procesar_reenvio_solicitud_aprobacion_tema(:temaId)")
+                    .setParameter("temaId", tema.getId())
+                    .getSingleResult();
+            crearSolicitudAprobacionTemaV2(tema);
+        } catch (Exception e) {
+            logger.severe("Error al reenviar solicitud de aprobación: " + e.getMessage());
+            throw new RuntimeException("No se pudo reenviar la solicitud de aprobación del tema", e);
+        }
 
-		try {
-			// Buscar la entidad Tema por ID
-			Tema tema = temaRepository.findById(dto.getId())
-					.orElseThrow(() -> new RuntimeException("Tema no encontrado con ID: " + dto.getId()));
-			entityManager.createNativeQuery(
-                "SELECT procesar_reenvio_solicitud_aprobacion_tema(:temaId)")
-            .setParameter("temaId", tema.getId())
-            .getSingleResult();
-			crearSolicitudAprobacionTemaV2(tema);
-		} catch (Exception e) {
-			logger.severe("Error al reenviar solicitud de aprobación: " + e.getMessage());
-			throw new RuntimeException("No se pudo reenviar la solicitud de aprobación del tema", e);
-		}
-
-	}
+    }
 
 
-	@Override
+    @Override
     @Transactional
     public String listarSolicitudesConUsuarios(Integer temaId, int offset, int limit) {
         Object result = entityManager
-            .createNativeQuery(
-                "SELECT listar_solicitudes_con_usuarios(:temaId, :offset, :limit)")
-            .setParameter("temaId", temaId)
-            .setParameter("offset", offset)
-            .setParameter("limit", limit)
-            .getSingleResult();
+                .createNativeQuery(
+                        "SELECT listar_solicitudes_con_usuarios(:temaId, :offset, :limit)")
+                .setParameter("temaId", temaId)
+                .setParameter("offset", offset)
+                .setParameter("limit", limit)
+                .getSingleResult();
 
         // El resultado viene como un objeto PGObject o String; toString() devuelve el JSON
         return result != null ? result.toString() : "[]";
     }
 
-	@Override
+    @Override
     @Transactional()
     public String listarSolicitudesPendientesPorUsuario(String usuarioId, int offset, int limit) {
         // Si tu función espera un INTEGER para p_usuario_id, convierte o parsea según tu modelo:
 
         UsuarioDto usuDto = usuarioService.findByCognitoId(usuarioId);
-		if (usuDto == null) {
-			throw new ResponseStatusException(
-					HttpStatus.NOT_FOUND,
-					"Usuario no encontrado con Cognito ID: " + usuarioId);
-		}
+        if (usuDto == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Usuario no encontrado con Cognito ID: " + usuarioId);
+        }
         Integer uid = usuDto.getId();
         Object result = entityManager.createNativeQuery(
-                "SELECT listar_solicitudes_pendientes_por_usuario(:uid, :off, :lim)")
-            .setParameter("uid", uid)
-            .setParameter("off", offset)
-            .setParameter("lim", limit)
-            .getSingleResult();
+                        "SELECT listar_solicitudes_pendientes_por_usuario(:uid, :off, :lim)")
+                .setParameter("uid", uid)
+                .setParameter("off", offset)
+                .setParameter("lim", limit)
+                .getSingleResult();
         return result != null ? result.toString() : "[]";
     }
+
+	@Override
+	@Transactional
+	public Integer createTemaFromOAI(TemaDto temaDto, Integer carreraId) {
+		logger.info("Creating tema from OAI record: " + temaDto.getTitulo());
+
+		try {
+			// Validate carrera exists
+			Carrera carrera = carreraRepository.findById(carreraId)
+				.orElseThrow(() -> new RuntimeException("Carrera not found with id: " + carreraId));
+
+			// Get FINALIZADO state
+			EstadoTema estadoFinalizado = estadoTemaRepository.findByNombre("FINALIZADO")
+				.orElseThrow(() -> new RuntimeException("Estado FINALIZADO not found"));
+
+			// Create new tema
+			Tema tema = TemaMapper.toEntity(temaDto);
+			tema.setEstadoTema(estadoFinalizado); //all finalized temas will have this state
+			// Save tema
+			Tema savedTema = temaRepository.save(tema);
+
+			// Save history entry
+			saveHistorialTemaChange(savedTema, savedTema.getTitulo(), savedTema.getResumen(),
+				"Tema creado desde importación OAI-PMH");
+
+			logger.info("Tema created successfully from OAI with ID: " + savedTema.getId());
+			return savedTema.getId();
+
+		} catch (Exception e) {
+			logger.severe("Error creating tema from OAI: " + e.getMessage());
+			throw new RuntimeException("Failed to create tema from OAI record", e);
+		}
+	}
+
 }

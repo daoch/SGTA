@@ -33,3 +33,34 @@ VALUES
 (48, 1),
 (49, 1),
 (50, 1);
+
+--
+WITH matched_temas AS (
+  SELECT
+    t.tema_id AS tema_id,
+    CASE
+      WHEN LOWER(t.titulo) ILIKE '%lenguaje natural%' OR LOWER(t.resumen) ILIKE '%lenguaje natural%' THEN 1
+      WHEN LOWER(t.titulo) ILIKE '%reforzamiento%' OR LOWER(t.resumen) ILIKE '%reforzamiento%' THEN 2
+      WHEN LOWER(t.titulo) ILIKE '%imagen%' OR LOWER(t.resumen) ILIKE '%imagen%' THEN 3
+      WHEN LOWER(t.titulo) ILIKE '%visión%' OR LOWER(t.resumen) ILIKE '%visión%' THEN 4
+      WHEN LOWER(t.titulo) ILIKE '%machine learning%' OR LOWER(t.resumen) ILIKE '%machine learning%' OR
+           LOWER(t.titulo) ILIKE '%deep learning%' OR LOWER(t.resumen) ILIKE '%deep learning%' THEN 5
+      WHEN LOWER(t.titulo) ILIKE '%base de datos%' OR LOWER(t.resumen) ILIKE '%base de datos%' THEN 6
+      WHEN LOWER(t.titulo) ILIKE '%sistema distribuido%' OR LOWER(t.resumen) ILIKE '%sistema distribuido%' THEN 7
+      WHEN LOWER(t.titulo) ILIKE '%red%' OR LOWER(t.resumen) ILIKE '%red%' THEN 8
+      WHEN LOWER(t.titulo) ILIKE '%software%' OR LOWER(t.resumen) ILIKE '%software%' THEN 9
+      WHEN LOWER(t.titulo) ILIKE '%requisito%' OR LOWER(t.resumen) ILIKE '%requisito%' THEN 10
+      WHEN (LOWER(t.titulo) ILIKE '%seguridad%' OR LOWER(t.resumen) ILIKE '%seguridad%')
+           AND (LOWER(t.titulo) ILIKE '%red%' OR LOWER(t.resumen) ILIKE '%red%') THEN 11
+      WHEN LOWER(t.titulo) ILIKE '%criptografía%' OR LOWER(t.resumen) ILIKE '%criptografía%' THEN 12
+      ELSE NULL
+    END AS sub_area_conocimiento_id
+  FROM tema t
+  WHERE t.carrera_id = 1
+  and t.estado_tema_id = 12
+)
+INSERT INTO sub_area_conocimiento_tema (tema_id, sub_area_conocimiento_id)
+SELECT tema_id, sub_area_conocimiento_id
+FROM matched_temas
+WHERE sub_area_conocimiento_id IS NOT null
+ON CONFLICT DO NOTHING;
