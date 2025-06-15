@@ -1,4 +1,5 @@
-SET search_path TO sgtadb;
+-- Active: 1748374313012@@localhost@5432@postgres@public
+-- SET search_path TO sgtadb;
 
 -- Active: 1748374313012@@localhost@5432@postgres@sgtadb
 CREATE OR REPLACE FUNCTION obtener_etapas_formativas_por_usuario(p_usuario_id INTEGER)
