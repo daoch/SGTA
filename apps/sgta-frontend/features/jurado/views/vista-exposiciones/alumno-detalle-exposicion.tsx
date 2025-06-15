@@ -532,7 +532,23 @@ const DetalleExposicion: React.FC<DetalleExposicionProps> = ({
                 </TooltipProvider>
 
                 <div>
-                  <h1 className="text-4xl font-semibold items-center text-[#264753]">
+                  <h1
+                    className={`text-4xl font-semibold items-center ${
+                      calcularNotaFinal({
+                        exposicion,
+                        calificaciones,
+                        pesoAsesor,
+                      }) > 15
+                        ? "text-green-600"
+                        : calcularNotaFinal({
+                              exposicion,
+                              calificaciones,
+                              pesoAsesor,
+                            }) >= 11
+                          ? "text-yellow-500"
+                          : "text-red-600"
+                    }`}
+                  >
                     {calcularNotaFinal({
                       exposicion,
                       calificaciones,
