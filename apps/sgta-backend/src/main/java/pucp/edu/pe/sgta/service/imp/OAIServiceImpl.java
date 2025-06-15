@@ -217,7 +217,9 @@ public class OAIServiceImpl implements OAIService {
             logger.severe("Error retrieving records for set " + setSpec + ": " + e.getMessage());
             return Collections.emptyList();
         }
-    }    @Override
+    }
+
+    @Override
     public Map<String, Object> importRecordsAsTemas(String setSpec, Integer carreraId) {
         try {
             if (logger.isLoggable(java.util.logging.Level.INFO)) {
@@ -374,23 +376,50 @@ public class OAIServiceImpl implements OAIService {
         Map<String, Object> metadataMap = (Map<String, Object>) recordData.get("metadata");
         if (metadataMap != null) {
             OAIRecordDto.OAIMetadataDto metadata = new OAIRecordDto.OAIMetadataDto();
-            metadata.setTitle((String) metadataMap.get("title"));
-            metadata.setSubject((String) metadataMap.get("subject"));
-            metadata.setDescription((String) metadataMap.get("description"));
-            metadata.setPublisher((String) metadataMap.get("publisher"));
-            metadata.setDate((String) metadataMap.get("date"));
-            metadata.setType((String) metadataMap.get("type"));
-            metadata.setFormat((String) metadataMap.get("format"));
-            metadata.setIdentifier((String) metadataMap.get(IDENTIFIER_KEY));
-            metadata.setSource((String) metadataMap.get("source"));
-            metadata.setLanguage((String) metadataMap.get("language"));
-            metadata.setRelation((String) metadataMap.get("relation"));
-            metadata.setCoverage((String) metadataMap.get("coverage"));
-            metadata.setRights((String) metadataMap.get("rights"));
+            List<String> titles = (List<String>) metadataMap.get("title");
+            if (titles != null && !titles.isEmpty()) {
+                metadata.setTitle(titles.get(0)); //we retrieve the first title if multiple exist
+            }
+            List<String> descriptions = (List<String>) metadataMap.get("description");
+            metadata.setDescription(descriptions != null && !descriptions.isEmpty() ? descriptions.get(0) : null);
+
+            List<String> publishers = (List<String>) metadataMap.get("publisher");
+            metadata.setPublisher(publishers != null && !publishers.isEmpty() ? publishers.get(0) : null);
+
+            List<String> dates = (List<String>) metadataMap.get("date");
+            metadata.setDate(dates != null && !dates.isEmpty() ? dates.get(0) : null);
+
+            List<String> types = (List<String>) metadataMap.get("type");
+            metadata.setType(types != null && !types.isEmpty() ? types.get(0) : null);
+
+            List<String> formats = (List<String>) metadataMap.get("format");
+            metadata.setFormat(formats != null && !formats.isEmpty() ? formats.get(0) : null);
+
+            List<String> identifiers = (List<String>) metadataMap.get(IDENTIFIER_KEY);
+            metadata.setIdentifier(identifiers != null && !identifiers.isEmpty() ? identifiers.get(0) : null);
+
+            List<String> sources = (List<String>) metadataMap.get("source");
+            metadata.setSource(sources != null && !sources.isEmpty() ? sources.get(0) : null);
+
+            List<String> languages = (List<String>) metadataMap.get("language");
+            metadata.setLanguage(languages != null && !languages.isEmpty() ? languages.get(0) : null);
+
+            List<String> relations = (List<String>) metadataMap.get("relation");
+            metadata.setRelation(relations != null && !relations.isEmpty() ? relations.get(0) : null);
+
+            List<String> coverages = (List<String>) metadataMap.get("coverage");
+            metadata.setCoverage(coverages != null && !coverages.isEmpty() ? coverages.get(0) : null);
+
+            List<String> rights = (List<String>) metadataMap.get("rights");
+            metadata.setRights(rights != null && !rights.isEmpty() ? rights.get(0) : null);
 
             @SuppressWarnings("unchecked")
             List<String> creators = (List<String>) metadataMap.get(CREATOR_KEY);
             metadata.setCreator(creators != null ? creators : Collections.emptyList());
+
+            @SuppressWarnings("unchecked")
+            List<String> subjects = (List<String>) metadataMap.get("subject");
+            metadata.setSubject(subjects != null ? subjects : Collections.emptyList());
 
             @SuppressWarnings("unchecked")
             List<String> contributors = (List<String>) metadataMap.get(CONTRIBUTOR_KEY);
@@ -411,13 +440,15 @@ public class OAIServiceImpl implements OAIService {
             
             tema.setTitulo(metadata.getTitle() != null ? metadata.getTitle() : "Imported Topic");
             tema.setResumen(metadata.getDescription() != null ? metadata.getDescription() : "");
-            tema.setObjetivos(metadata.getSubject() != null ? metadata.getSubject() : "");
-            tema.setMetodologia("Imported from OAI-PMH repository");
-            
-            // Set portfolio URL if available
+
+            // Set identifier if available
             if (metadata.getIdentifier() != null) {
                 tema.setPortafolioUrl(metadata.getIdentifier());
             }
+
+
+            OffsetDateTime odt = OffsetDateTime.parse(metadata.getDate());
+            tema.setFechaFinalizacion(odt);
         }
 
         // Set carrera using CarreraDto
@@ -429,7 +460,8 @@ public class OAIServiceImpl implements OAIService {
         tema.setActivo(true);
         
         // Set creation time
-        tema.setFechaCreacion(OffsetDateTime.now());        return tema;
+        tema.setFechaCreacion(OffsetDateTime.now());
+        return tema;
     }
 
     // Inner class for import results

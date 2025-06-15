@@ -3344,17 +3344,8 @@ public class TemaServiceImpl implements TemaService {
 				.orElseThrow(() -> new RuntimeException("Estado FINALIZADO not found"));
 			
 			// Create new tema
-			Tema tema = new Tema();
-			tema.setTitulo(temaDto.getTitulo());
-			tema.setResumen(temaDto.getResumen());
-			tema.setMetodologia(temaDto.getMetodologia());
-			tema.setObjetivos(temaDto.getObjetivos());
-			tema.setCarrera(carrera);
-			tema.setEstadoTema(estadoFinalizado);
-			tema.setFechaCreacion(OffsetDateTime.now());
-			tema.setFechaModificacion(OffsetDateTime.now());
-			tema.setActivo(true);
-			
+			Tema tema = TemaMapper.toEntity(temaDto);
+			tema.setEstadoTema(estadoFinalizado); //all finalized temas will have this state
 			// Save tema
 			Tema savedTema = temaRepository.save(tema);
 			

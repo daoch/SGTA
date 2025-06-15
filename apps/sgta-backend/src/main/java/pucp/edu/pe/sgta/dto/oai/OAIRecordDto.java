@@ -22,7 +22,7 @@ public class OAIRecordDto {
     public static class OAIMetadataDto {
         private String title;
         private List<String> creator;
-        private String subject;
+        private List<String> subject;
         private String description;
         private String publisher;
         private List<String> contributor;
