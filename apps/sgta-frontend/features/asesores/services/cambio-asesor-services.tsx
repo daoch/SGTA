@@ -92,6 +92,7 @@ export async function getInformacionTesisPorAlumno(
     const response = await axiosInstance.get(
       `/temas/listarTemaActivoConAsesor/${idAlumno}`,
     );
+    console.log("Respuesta de información de tesis:", response.data);
     return response.data as InformacionTesisResponse;
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {

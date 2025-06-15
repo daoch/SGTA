@@ -73,6 +73,7 @@ interface Props {
   addTemaInteres: () => void;
   initiateAreaDelete: (area: AreaTematica) => void;
   removeTemaInteres: (idTema: number) => void;
+  alumno?: boolean;
 }
 
 export default function OverviewSection({
@@ -98,6 +99,7 @@ export default function OverviewSection({
   addTemaInteres,
   initiateAreaDelete,
   removeTemaInteres,
+  alumno,
 }: Readonly<Props>) {
   const [newEnlace, setNewEnlace] = useState<{
     nombrePlataforma?: PlataformaType;
