@@ -353,8 +353,8 @@ export default function OverviewSection({
                     </div>
                   ))}
 
-                  <div className="flex gap-2 items-center pt-2 border-t">
-                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <div className="flex gap-2 items-center pt-2 border-t min-w-0">
+                    <div className="flex items-center gap-2 min-w-0 w-[170px] shrink-0">
                       {newEnlace.nombrePlataforma && (
                         <PlatformIcon
                           nombrePlataforma={newEnlace.nombrePlataforma}
