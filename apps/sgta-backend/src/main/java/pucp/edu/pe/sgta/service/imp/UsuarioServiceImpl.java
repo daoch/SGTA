@@ -1439,7 +1439,6 @@ public class UsuarioServiceImpl implements UsuarioService {
             throw new RuntimeException("No se encontró un perfil de usuario correspondiente");
         }
         PerfilUsuarioDto dto = PerfilUsuarioDto.fromMainQuery(queryResult.get(0));//Debe de haber uno solo
-        //Obtener tesistasActuales TODO: Esto se puede mejorar para traer una lista de tesistas x carrera
         Integer cantTesistas;
         List<Object[]> tesistas = usuarioXTemaRepository.listarNumeroTesistasAsesor(dto.getId());// ASEGURADO sale 1 sola fila
         cantTesistas = (Integer) tesistas.get(0)[0];

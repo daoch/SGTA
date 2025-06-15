@@ -1336,7 +1336,8 @@ RETURNS TABLE (
 	foto_perfil BYTEA,
 	lista_carreras_id INTEGER[],
 	lista_carreras TEXT[],
-	limite_tesistas_carrera TEXT[]
+	limite_tesistas_carrera TEXT[],
+	es_asesor BOOLEAN
 ) AS $$
 BEGIN
 	RETURN QUERY
@@ -1351,9 +1352,11 @@ BEGIN
 		u.foto_perfil,
 		ARRAY_AGG(c.carrera_id ORDER BY c.carrera_id) AS lista_carreras_id,
 		ARRAY_AGG(c.nombre::TEXT ORDER BY c.carrera_id) AS lista_carreras,
-		ARRAY_AGG(cpc.valor ORDER BY c.carrera_id) AS limite_tesistas_carrera
+		ARRAY_AGG(cpc.valor ORDER BY c.carrera_id) AS limite_tesistas_carrera,
+		(tu.nombre = 'profesor' or tu.nombre = 'administrador') as es_profesor
 	FROM
 		usuario u
+		join tipo_usuario tu on tu.tipo_usuario_id = u.tipo_usuario_id
 		JOIN usuario_carrera uc ON u.usuario_id = uc.usuario_id
 		JOIN carrera c ON uc.carrera_id = c.carrera_id
 		JOIN carrera_parametro_configuracion cpc ON cpc.carrera_id = c.carrera_id
@@ -1374,7 +1377,9 @@ BEGIN
 		u.enlace_linkedin,
 		u.enlace_repositorio,
 		u.biografia,
-		u.foto_perfil;
+		u.foto_perfil,
+		tu.nombre
+;
 END;
 $$ LANGUAGE plpgsql;
 
