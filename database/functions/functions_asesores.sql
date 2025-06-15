@@ -1329,7 +1329,8 @@ RETURNS TABLE (
   estado TEXT,
   areasTematicas TEXT,
   idAsesor INTEGER[],
-  lista_rol TEXT[]
+  lista_rol TEXT[],
+  idCreador INTEGER
 ) AS $$
 BEGIN
   RETURN QUERY
@@ -1339,7 +1340,8 @@ SELECT
     et.nombre::TEXT,
     STRING_AGG(DISTINCT ac.nombre, ', ')::TEXT AS "areasTematicas",
     ARRAY_AGG(DISTINCT ut_asesor.usuario_id order by ut_asesor.usuario_id) AS "idAsesor",
-	ARRAY_AGG(r.nombre::TEXT order by ut_asesor.usuario_id)
+	ARRAY_AGG(r.nombre::TEXT order by ut_asesor.usuario_id),
+	tabla_creador.usuario_id
   FROM tema t
   JOIN estado_tema et ON t.estado_tema_id = et.estado_tema_id
   JOIN usuario_tema uta ON uta.tema_id = t.tema_id
@@ -1348,12 +1350,22 @@ SELECT
   left JOIN sub_area_conocimiento_tema tsac ON tsac.tema_id = t.tema_id 
   left JOIN sub_area_conocimiento sac ON sac.sub_area_conocimiento_id = tsac.sub_area_conocimiento_id
   left JOIN area_conocimiento ac ON ac.area_conocimiento_id = sac.area_conocimiento_id
+  left join lateral(
+  	select 
+		ut1.usuario_id
+	from
+		usuario_tema ut1
+	where
+		ut1.tema_id = t.tema_id
+		and creador = true
+		and ut1.activo = true
+  ) tabla_creador on true
   WHERE et.nombre IN ('INSCRITO', 'REGISTRADO', 'EN_PROGRESO', 'PAUSADO')
   AND uta.usuario_id = p_id_alumno
   AND uta.rol_id = 4
   AND uta.activo = TRUE
   AND t.activo = TRUE
-  GROUP BY t.tema_id, t.titulo, et.nombre;
+  GROUP BY t.tema_id, t.titulo, et.nombre, tabla_creador.usuario_id;
 END;
 $$ LANGUAGE plpgsql;
 --

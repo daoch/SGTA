@@ -11,6 +11,7 @@ public class TemaConAsesorDto {
     private TemaResumenDto temaActual;
     private List<PerfilAsesorDto> asesores;
     private List<String> roles;
+    private Integer idCreador;//Quien es el que propuso el tema
 
 
     public TemaConAsesorDto() {}

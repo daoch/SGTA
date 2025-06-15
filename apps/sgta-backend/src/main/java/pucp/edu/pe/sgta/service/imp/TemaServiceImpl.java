@@ -2312,12 +2312,13 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 			//Agregar la lista de roles
 			String[] rolesArray = (String[]) result[5];
 			List<String> rolesList = Arrays.stream(rolesArray).toList();
+			Integer idCreador = (Integer) result[6];
  			// Retornar combinado en TemaConAsesorDto
 			TemaConAsesorDto respuesta = new TemaConAsesorDto();
 			respuesta.setTemaActual(tema);
 			respuesta.setAsesores(asesoresDto);
 			respuesta.setRoles(rolesList);
-
+			respuesta.setIdCreador(idCreador);
 			return respuesta;
 
 		} catch (NoResultException e) {
