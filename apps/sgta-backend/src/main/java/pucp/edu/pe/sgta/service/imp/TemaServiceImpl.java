@@ -2413,7 +2413,7 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 				tema.getTitulo(),
 				tema.getResumen(),
 				"Inscripción de tema por Asesor");
-		crearSolicitudAprobacionTema(tema);
+		crearSolicitudAprobacionTemaV2(tema);
 	}
 
 	@Override
