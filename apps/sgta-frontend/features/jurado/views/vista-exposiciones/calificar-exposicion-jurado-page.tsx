@@ -279,13 +279,43 @@ const CalificarExposicionJuradoPage: React.FC<Props> = ({ id_exposicion }) => {
           />
         ))}
       </div>
-      <div className="border rounded-2xl p-4 space-y-2 shadow-sm">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="border rounded-2xl p-4 space-y-2 shadow-sm md:col-span-2">
         <Label className="text-lg font-semibold">Observaciones Finales</Label>
         <Textarea
           placeholder="Escribe tus observaciones aquí"
           value={observacionesFinales}
           onChange={(e) => setObservacionesFinales(e.target.value)}
+          className="min-h-32"
         />
+      </div>
+
+      <div className="border rounded-2xl p-4 space-y-2 shadow-sm flex flex-col justify-center items-center">
+        <Label className="text-lg font-semibold">Nota Final</Label>
+        <div className="flex flex-col items-center justify-center h-full">
+          <div className="text-5xl font-bold">
+            <span className="text-gray-600">
+              {evaluacion.criterios.reduce((sum, criterio) => sum + (criterio.calificacion || 0), 0).toFixed(2)}
+            </span>
+            <span className="text-gray-500">/</span>
+            <span className="text-gray-600">
+              {evaluacion.criterios.reduce((sum, criterio) => sum + criterio.nota_maxima, 0)}
+            </span>
+          </div>
+          <div className="mt-4 text-sm text-gray-500">
+            {hayCamposVacios() ? (
+              <span className="text-red-500">
+                * Completa todas las calificaciones para confirmar la nota final
+              </span>
+            ) : (
+              <span className="text-blue-500">
+                Todas las calificaciones completadas
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
       </div>
       <div className="flex justify-center gap-4">
         <Button variant="destructive" onClick={handleCancel}>
