@@ -38,16 +38,9 @@ export default function AccionesDisponiblesSolicitud({
     return false;
   }, [rol, estadoCoordinador, estadoNuevoAsesor]);
 
-  const mostrarRecordatorio =
-    rol === "coordinador" &&
-    estadoCoordinador === "PENDIENTE_ACCION" &&
-    estadoNuevoAsesor === "PENDIENTE_ACCION";
+  const mostrarRecordatorio = false;
 
-  const mostrarBotones =
-    rol === "asesor" ||
-    (rol === "coordinador" &&
-      estadoCoordinador === "PENDIENTE_ACCION" &&
-      estadoNuevoAsesor !== "PENDIENTE_ACCION");
+  const mostrarBotones = true;
 
   if (!puedeVerAcciones) return null;
 

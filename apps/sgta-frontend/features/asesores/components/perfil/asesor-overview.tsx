@@ -26,16 +26,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import {
-  Check,
-  ChevronsUpDown,
-  Clock,
-  Mail,
-  Plus,
-  User,
-  Users,
-  X,
-} from "lucide-react";
+import { Check, ChevronsUpDown, Mail, Plus, X } from "lucide-react";
 import { useState } from "react";
 
 import {
@@ -47,6 +38,7 @@ import {
   TemaInteres,
   Tesis,
 } from "../../types/perfil/entidades";
+import { EstadisticasAsesorCard } from "./indicadores-asesor";
 import { ItemCopiable } from "./item-copia";
 import { PLATAFORMAS_DISPONIBLES, PlatformIcon } from "./plataforma-icons";
 
@@ -73,7 +65,7 @@ interface Props {
   addTemaInteres: () => void;
   initiateAreaDelete: (area: AreaTematica) => void;
   removeTemaInteres: (idTema: number) => void;
-  alumno?: boolean;
+  isAsesor: boolean;
 }
 
 export default function OverviewSection({
@@ -99,7 +91,7 @@ export default function OverviewSection({
   addTemaInteres,
   initiateAreaDelete,
   removeTemaInteres,
-  alumno,
+  isAsesor,
 }: Readonly<Props>) {
   const [newEnlace, setNewEnlace] = useState<{
     nombrePlataforma?: PlataformaType;
@@ -164,15 +156,14 @@ export default function OverviewSection({
     field: keyof Enlace,
     value: string | PlataformaType | undefined,
   ) => {
-    const newEnlaces = [...editedData.enlaces];
+    // Clonar los enlaces profundamente
+    const newEnlaces = editedData.enlaces.map((enlace) => ({ ...enlace }));
 
     if (field === "nombrePlataforma") {
-      // Si cambia a una plataforma predefinida, actualizamos el nombre de la plataforma
       if (value === "Otras") {
         newEnlaces[index].nombrePlataforma = undefined;
       } else {
         newEnlaces[index].nombrePlataforma = value as PlataformaType;
-        // Si selecciona una plataforma predefinida, usamos ese nombre como plataforma
         newEnlaces[index].plataforma = value as string;
       }
     } else if (field === "plataforma") {
@@ -237,30 +228,32 @@ export default function OverviewSection({
             </div>
 
             {/* Topics/Tags */}
-            <div className="w-full">
-              <div className="flex flex-wrap gap-2 justify-center mb-3">
-                {displayedTopics.map((item, index) => (
-                  <Badge
-                    key={`${item.nombre}-${index}`}
-                    variant="secondary"
-                    className="text-xs bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  >
-                    {item.nombre}
-                  </Badge>
-                ))}
-              </div>
+            {isAsesor && (
+              <div className="w-full">
+                <div className="flex flex-wrap gap-2 justify-center mb-3">
+                  {displayedTopics.map((item, index) => (
+                    <Badge
+                      key={`${item.nombre}-${index}`}
+                      variant="secondary"
+                      className="text-xs bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    >
+                      {item.nombre}
+                    </Badge>
+                  ))}
+                </div>
 
-              {totalTemas > 6 && (
-                <button
-                  onClick={() => setShowAllTopics(!showAllTopics)}
-                  className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                >
-                  {showAllTopics
-                    ? "Mostrar menos"
-                    : `Mostrar todos los ${totalTemas} temas`}
-                </button>
-              )}
-            </div>
+                {totalTemas > 6 && (
+                  <button
+                    onClick={() => setShowAllTopics(!showAllTopics)}
+                    className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                  >
+                    {showAllTopics
+                      ? "Mostrar menos"
+                      : `Mostrar todos los ${totalTemas} temas`}
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -304,7 +297,7 @@ export default function OverviewSection({
                           plataforma={enlace.plataforma}
                         />
                         <Select
-                          value={enlace.nombrePlataforma || "Otras"}
+                          value={enlace.nombrePlataforma ?? "Otras"}
                           onValueChange={(value: PlataformaType) =>
                             updateEnlace(index, "nombrePlataforma", value)
                           }
@@ -456,7 +449,7 @@ export default function OverviewSection({
           </div>
 
           {/* Areas y Temas de Interés - Solo en modo edición */}
-          {isEditing && (
+          {isEditing && isAsesor && (
             <>
               {/* Áreas Temáticas */}
               <div>
@@ -733,68 +726,14 @@ export default function OverviewSection({
           </div>
 
           {/* Estadísticas */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h4 className="font-semibold text-gray-900 mb-4">Estadísticas</h4>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-blue-500" />
-                  <span className="text-sm text-gray-600">
-                    Tesis en Proceso
-                  </span>
-                </div>
-                <span className="font-semibold text-blue-600">
-                  {tesisEnProceso}
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4 text-purple-500" />
-                  <span className="text-sm text-gray-600">
-                    Proyectos Realizados
-                  </span>
-                </div>
-                <span className="font-semibold text-purple-600">
-                  {totalProyectos}
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <User className="h-4 w-4 text-green-500" />
-                  <span className="text-sm text-gray-600">Capacidad</span>
-                </div>
-                <span className="font-semibold text-green-600">
-                  {asesor.tesistasActuales}/{asesor.limiteTesis}
-                </span>
-              </div>
-
-              {/* Barra de capacidad */}
-              <div className="mt-3">
-                <div className="w-full bg-gray-200 h-2 rounded-full">
-                  {(() => {
-                    const tesistas = asesor.tesistasActuales ?? 0;
-                    const limite = asesor.limiteTesis ?? 0;
-                    const proporcion = limite > 0 ? tesistas / limite : 0;
-                    const color =
-                      proporcion >= 1
-                        ? "bg-red-500"
-                        : proporcion >= 0.5
-                          ? "bg-yellow-400"
-                          : "bg-green-500";
-
-                    return (
-                      <div
-                        className={`h-2 rounded-full transition-all duration-300 ${color}`}
-                        style={{ width: `${proporcion * 100}%` }}
-                      ></div>
-                    );
-                  })()}
-                </div>
-              </div>
-            </div>
-          </div>
+          {isAsesor && (
+            <EstadisticasAsesorCard
+              tesisEnProceso={tesisEnProceso}
+              totalProyectos={totalProyectos}
+              tesistasActuales={asesor.tesistasActuales}
+              limiteTesis={asesor.limiteTesis}
+            />
+          )}
         </div>
       </div>
     </div>

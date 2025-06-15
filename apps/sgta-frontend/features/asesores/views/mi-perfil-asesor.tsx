@@ -363,7 +363,7 @@ export default function PerfilAsesor({ userId, editable }: Readonly<Props>) {
       />
 
       {/* Tabs de navegación */}
-      {!asesor.alumno ? (
+      {asesor.alumno ? (
         <Tabs
           value={activeTab}
           onValueChange={setActiveTab}
@@ -415,6 +415,7 @@ export default function PerfilAsesor({ userId, editable }: Readonly<Props>) {
               addTemaInteres={addTemaInteres}
               initiateAreaDelete={initiateAreaDelete}
               removeTemaInteres={removeTemaInteres}
+              isAsesor={true}
             />
           </TabsContent>
 
@@ -450,7 +451,7 @@ export default function PerfilAsesor({ userId, editable }: Readonly<Props>) {
           addTemaInteres={addTemaInteres}
           initiateAreaDelete={initiateAreaDelete}
           removeTemaInteres={removeTemaInteres}
-          alumno={asesor.alumno}
+          isAsesor={false}
         />
       )}
 
