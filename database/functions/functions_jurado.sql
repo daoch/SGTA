@@ -1093,7 +1093,7 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION sgtadb.obtener_profesores()
+CREATE OR REPLACE FUNCTION obtener_profesores()
  RETURNS TABLE(id_usuario integer, nombres text, primer_apellido text, segundo_apellido text, codigo_pucp text, correo_electronico text, tipo_dedicacion text, cantidad_temas_asignados bigint)
  LANGUAGE plpgsql
 AS $function$
