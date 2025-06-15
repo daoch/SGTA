@@ -1,3 +1,5 @@
+SET search_path TO sgtadb;
+
 CREATE OR REPLACE FUNCTION get_advisor_distribution_by_coordinator_and_ciclo(
     p_usuario_id    INTEGER,
     p_ciclo_nombre  VARCHAR

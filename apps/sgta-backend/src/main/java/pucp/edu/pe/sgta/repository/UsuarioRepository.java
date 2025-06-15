@@ -91,6 +91,12 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
             """, nativeQuery = true)
     List<Object[]> obtenerProfesores();
 
+    @Query(value = "SELECT * FROM obtener_perfil_usuario(:cognito_id)", nativeQuery = true)
+    List<Object[]> obtenerPerfilUsuario(@Param("cognito_id") String cognitoId);
+
+    @Query(value = "SELECT obtener_id_cognito_por_usuario(:usuarioId)", nativeQuery = true)
+    String findIdCognitoByUsuarioId(@Param("usuarioId") Integer usuarioId);
+
     @Query(value = "SELECT * FROM listar_revisores_por_carrera(:carreraId)", nativeQuery = true)
     List<Object[]> listarRevisoresPorCarrera(@Param("carreraId") Integer carreraId);
 }

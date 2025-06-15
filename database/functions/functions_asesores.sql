@@ -1,3 +1,5 @@
+SET search_path TO sgtadb;
+
 --OBTENER LISTA DE CARRERAS POR ID DEL ASESOR
 CREATE OR REPLACE FUNCTION obtener_carreras_activas_por_usuario(p_usuario_id INTEGER)
 RETURNS SETOF Carrera AS $$
@@ -1358,4 +1360,143 @@ SELECT
   GROUP BY t.tema_id, t.titulo, et.nombre, u.usuario_id;
 END;
 $$ LANGUAGE plpgsql;
+--
+CREATE OR REPLACE FUNCTION obtener_perfil_usuario(p_id_cognito TEXT)
+RETURNS TABLE (
+	usuario_id INTEGER,
+	nombres TEXT,
+	primer_apellido TEXT,
+	correo_electronico TEXT,
+	enlace_linkedin TEXT,
+	enlace_repositorio TEXT,
+	biografia TEXT,
+	foto_perfil BYTEA,
+	lista_carreras_id INTEGER[],
+	lista_carreras TEXT[],
+	limite_tesistas_carrera TEXT[]
+) AS $$
+BEGIN
+	RETURN QUERY
+	SELECT
+		u.usuario_id,
+		u.nombres::TEXT,
+		u.primer_apellido::TEXT,
+		u.correo_electronico::TEXT,
+		u.enlace_linkedin::TEXT,
+		u.enlace_repositorio::TEXT,
+		u.biografia,
+		u.foto_perfil,
+		ARRAY_AGG(c.carrera_id ORDER BY c.carrera_id) AS lista_carreras_id,
+		ARRAY_AGG(c.nombre::TEXT ORDER BY c.carrera_id) AS lista_carreras,
+		ARRAY_AGG(cpc.valor ORDER BY c.carrera_id) AS limite_tesistas_carrera
+	FROM
+		usuario u
+		JOIN usuario_carrera uc ON u.usuario_id = uc.usuario_id
+		JOIN carrera c ON uc.carrera_id = c.carrera_id
+		JOIN carrera_parametro_configuracion cpc ON cpc.carrera_id = c.carrera_id
+		JOIN parametro_configuracion pc ON pc.parametro_configuracion_id = cpc.parametro_configuracion_id
+	WHERE
+		u.id_cognito = p_id_cognito
+		AND pc.nombre = 'LimXasesor'
+		AND u.activo = true
+		AND uc.activo = true
+		AND c.activo = true
+		AND cpc.activo = true
+		AND pc.activo = true
+	GROUP BY
+		u.usuario_id,
+		u.nombres,
+		u.primer_apellido,
+		u.correo_electronico,
+		u.enlace_linkedin,
+		u.enlace_repositorio,
+		u.biografia,
+		u.foto_perfil;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION listar_sub_areas_conocimiento_perfil_por_usuario(p_usuario_id INTEGER)
+RETURNS TABLE (
+    sub_area_conocimiento_id INTEGER,
+    sub_area_nombre TEXT,
+    area_conocimiento_id INTEGER,
+    area_nombre TEXT
+)
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        sac.sub_area_conocimiento_id,
+        sac.nombre::TEXT AS sub_area_nombre,
+        ac.area_conocimiento_id,
+        ac.nombre::TEXT AS area_nombre
+    FROM
+        sub_area_conocimiento sac 
+        JOIN usuario_sub_area_conocimiento usac 
+            ON sac.sub_area_conocimiento_id = usac.sub_area_conocimiento_id
+        JOIN area_conocimiento ac
+            ON sac.area_conocimiento_id = ac.area_conocimiento_id
+    WHERE
+        usac.usuario_id = p_usuario_id
+        AND usac.activo = true
+        AND sac.activo = true;
+END;
+$$ LANGUAGE plpgsql STABLE;
+
+CREATE OR REPLACE FUNCTION listar_areas_conocimiento_perfil_por_usuario(p_usuario_id INTEGER)
+RETURNS TABLE (
+    area_conocimiento_id INTEGER,
+    nombre TEXT
+)
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        ac.area_conocimiento_id,
+        ac.nombre::TEXT
+    FROM
+        area_conocimiento ac 
+        JOIN usuario_area_conocimiento uac
+            ON ac.area_conocimiento_id = uac.area_conocimiento_id
+    WHERE
+        uac.usuario_id = p_usuario_id
+        AND ac.activo = true
+        AND uac.activo = true;
+END;
+$$ LANGUAGE plpgsql STABLE;
+
+CREATE OR REPLACE FUNCTION listar_enlaces_usuario(p_usuario_id INTEGER)
+RETURNS TABLE (
+    enlace_usuario_id INTEGER,
+    plataforma TEXT,
+    enlace TEXT
+)
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        eu.enlace_usuario_id,
+        eu.plataforma::TEXT,
+        eu.enlace::TEXT
+    FROM
+        enlace_usuario eu
+    WHERE
+        eu.usuario_id = p_usuario_id
+        AND eu.activo = true;
+END;
+$$ LANGUAGE plpgsql STABLE;
+
+CREATE OR REPLACE FUNCTION obtener_id_cognito_por_usuario(p_usuario_id INTEGER)
+RETURNS TEXT
+AS $$
+BEGIN
+    RETURN (
+        SELECT u.id_cognito
+        FROM usuario u
+        WHERE u.usuario_id = p_usuario_id
+    );
+END;
+$$ LANGUAGE plpgsql STABLE;
+
+
 

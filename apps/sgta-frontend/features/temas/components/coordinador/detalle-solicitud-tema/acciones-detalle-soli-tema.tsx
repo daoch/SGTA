@@ -41,7 +41,7 @@ const tooltips: Record<AccionKey, string> = {
   observar:
     "Observar el tema y se debe crear una solicitud de cambio de título o resumen.",
   aprobar:
-    "Aprueba la solicitud y el tema será registrado. Opcionalmente se podrá crear una solicitud de cambio de título o resumen.",
+    "Aprueba la solicitud y el tema será registrado. No se envían solicitudes de cambios.",
   rechazar:
     "Rechaza la solicitud y el tema no será registrado. No se envían solicitudes de cambios.",
   eliminar:

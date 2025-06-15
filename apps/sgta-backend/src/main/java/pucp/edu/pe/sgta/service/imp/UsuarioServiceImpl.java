@@ -9,16 +9,11 @@ import org.springframework.transaction.annotation.Transactional;
 import pucp.edu.pe.sgta.dto.*;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.server.ResponseStatusException;
-import pucp.edu.pe.sgta.dto.asesores.InfoAreaConocimientoDto;
-import pucp.edu.pe.sgta.dto.asesores.InfoSubAreaConocimientoDto;
-import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
-import pucp.edu.pe.sgta.dto.asesores.UsuarioConRolDto;
+import pucp.edu.pe.sgta.dto.asesores.*;
 import jakarta.persistence.Query;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.web.multipart.MultipartFile;
-import pucp.edu.pe.sgta.dto.asesores.FiltrosDirectorioAsesores;
-import pucp.edu.pe.sgta.dto.asesores.UsuarioFotoDto;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import pucp.edu.pe.sgta.mapper.InfoAreaConocimientoMapper;
@@ -70,6 +65,8 @@ public class UsuarioServiceImpl implements UsuarioService {
     private UsuarioXCarreraRepository usuarioXCarreraRepository;
     @Autowired
     private TipoDedicacionRepository tipoDedicacionRepository;
+    @Autowired
+    private EnlaceUsuarioServiceImpl enlaceUsuarioServiceImpl;
 
     public UsuarioServiceImpl(UsuarioRepository usuarioRepository,
                               UsuarioXSubAreaConocimientoRepository usuarioXSubAreaConocimientoRepository,
@@ -1436,6 +1433,44 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     @Override
+    public PerfilUsuarioDto getPerfilUsuario(String cognitoId) {
+        List<Object[]> queryResult = usuarioRepository.obtenerPerfilUsuario(cognitoId);
+        if(queryResult.isEmpty()) {
+            throw new RuntimeException("No se encontró un perfil de usuario correspondiente");
+        }
+        PerfilUsuarioDto dto = PerfilUsuarioDto.fromMainQuery(queryResult.get(0));//Debe de haber uno solo
+        //Obtener tesistasActuales TODO: Esto se puede mejorar para traer una lista de tesistas x carrera
+        Integer cantTesistas;
+        List<Object[]> tesistas = usuarioXTemaRepository.listarNumeroTesistasAsesor(dto.getId());// ASEGURADO sale 1 sola fila
+        cantTesistas = (Integer) tesistas.get(0)[0];
+        dto.setTesistasActuales(cantTesistas);
+        //Obtenemos Areas y SubAreas de interes
+        dto.setAreasTematicas(listarInfoAreaConocimientoParaPerfilPorUsuario(dto.getId()));
+        dto.setTemasIntereses(listarInfoSubAreaConocimientoParaPerfilPorUsuario(dto.getId()));
+        //Obtenemos los enlaces
+        dto.setEnlaces(enlaceUsuarioServiceImpl.listarParaPerfilPorUsuario(dto.getId()));
+        return dto;
+    }
+
+    @Override
+    public void updatePerfilUsuario(PerfilUsuarioDto dto) {
+        Usuario u = usuarioRepository.findById(dto.getId()).orElseThrow(() -> new RuntimeException("No se encontró al usuario"));
+        PerfilAsesorDto asesorDto = PerfilAsesorDto.fromPerfilUsuario(dto);
+        updatePerfilAsesor(asesorDto);
+        List<EnlaceUsuarioDto> enlaces = dto.getEnlaces();
+        enlaceUsuarioServiceImpl.sincronizarEnlacesUsuario(enlaces,u);
+    }
+
+    @Override
+    public String obtenerCognitoPorId(Integer idUsuario) {
+        String idCognito =usuarioRepository.findIdCognitoByUsuarioId(idUsuario);
+        if(idCognito == null) {
+            throw new RuntimeException("Usuario no encontrado con ID Cognito: " + idUsuario);
+        }
+        return idCognito;
+    }
+
+    @Override
     public List<DocentesDTO> getProfesores() {
         List<Object[]> rows = usuarioRepository.obtenerProfesores();
         List<DocentesDTO> docentes = new ArrayList<>();
@@ -1523,6 +1558,27 @@ public class UsuarioServiceImpl implements UsuarioService {
         return usuarioRepository
                 .findById(idUsuario)
                 .orElseThrow(() -> new RuntimeException(onErrorMsg));
+    }
+
+    public List<InfoAreaConocimientoDto> listarInfoAreaConocimientoParaPerfilPorUsuario(Integer usuarioId){
+        List<Object[]> queryResult = areaConocimientoRepository.listarParaPerfilPorUsuarioId(usuarioId);
+        List<InfoAreaConocimientoDto> dtos = new ArrayList<>();
+        for (Object[] row : queryResult) {
+            InfoAreaConocimientoDto dto = InfoAreaConocimientoDto.fromQuery(row);
+            dtos.add(dto);
+        }
+        return dtos;
+    }
+
+
+    public List<InfoSubAreaConocimientoDto> listarInfoSubAreaConocimientoParaPerfilPorUsuario(Integer idUsuario) {
+        List<Object[]> queryResult = subAreaConocimientoRepository.listarParaPerfilPorUsuarioId(idUsuario);
+        List<InfoSubAreaConocimientoDto> dtos = new ArrayList<>();
+        for (Object[] row : queryResult) {
+            InfoSubAreaConocimientoDto dto = InfoSubAreaConocimientoDto.fromQuery(row);
+            dtos.add(dto);
+        }
+        return dtos;
     }
 
     @Override
