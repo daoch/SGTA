@@ -30,6 +30,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/features/auth";
 import { cn } from "@/lib/utils";
@@ -64,7 +71,10 @@ export default function RegistrarSolicitudCambioAsesor() {
   const [busqueda, setBusqueda] = useState("");
   const [openCombobox, setOpenCombobox] = useState(false);
   const [temaActual, setTemaActual] = useState<TemaActual | null>(null);
-  const [asesorActual, setAsesorActual] = useState<Asesor | null>(null);
+  const [asesoresActuales, setAsesoresActuales] = useState<Asesor[] | null>(
+    null,
+  );
+  const [asesorPorCambiar, setAsesorPorCambiar] = useState<Asesor | null>(null);
 
   // Estados para el modal
   const [modalOpen, setModalOpen] = useState(false);
@@ -130,10 +140,10 @@ export default function RegistrarSolicitudCambioAsesor() {
       if (!userId) return;
       try {
         setIsLoading(true);
-        const { temaActual, asesorActual } =
+        const { temaActual, asesoresActuales } =
           await getInformacionTesisPorAlumno(userId);
         setTemaActual(temaActual);
-        setAsesorActual(asesorActual);
+        setAsesoresActuales(asesoresActuales);
       } catch (error) {
         console.error("Error al cargar información de tesis:", error);
       } finally {
@@ -157,7 +167,7 @@ export default function RegistrarSolicitudCambioAsesor() {
   const confirmarRegistro = async () => {
     setRegistroEstado("loading");
 
-    if (!nuevoAsesor || !temaActual || !asesorActual || !userId) {
+    if (!nuevoAsesor || !temaActual || !asesorPorCambiar || !userId) {
       setRegistroEstado("error");
       setMensajeRegistro(
         "Debes seleccionar un nuevo asesor antes de continuar.",
@@ -169,7 +179,7 @@ export default function RegistrarSolicitudCambioAsesor() {
       const resultado = await registrarSolicitudCambioAsesor({
         alumnoId: userId,
         temaId: temaActual.id,
-        asesorActualId: asesorActual.id,
+        asesorActualId: asesorPorCambiar.id,
         nuevoAsesorId: nuevoAsesor.id,
         motivo,
       });
@@ -194,6 +204,16 @@ export default function RegistrarSolicitudCambioAsesor() {
   // Función para volver a la pantalla anterior
   const handleVolver = () => {
     router.push("/alumno/solicitudes-academicas");
+  };
+
+  const handleAsesorPorCambiarChange = (asesorId: string) => {
+    if (!asesoresActuales) {
+      setAsesorPorCambiar(null);
+      return;
+    }
+
+    const asesor = asesoresActuales.find((a) => a.id.toString() === asesorId);
+    setAsesorPorCambiar(asesor || null);
   };
 
   // Función para ver detalle de la solicitud
@@ -232,7 +252,7 @@ export default function RegistrarSolicitudCambioAsesor() {
       </div>
     );
 
-  if (!temaActual || !asesorActual) {
+  if (!temaActual) {
     return (
       <div className="relative h-screen w-full flex items-center justify-center flex-col gap-4">
         <div
@@ -294,35 +314,71 @@ export default function RegistrarSolicitudCambioAsesor() {
         </CardContent>
       </Card>
 
-      {/* Información del asesor actual */}
+      {/* Selección del asesor por cambiar */}
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle className="text-lg">Asesor Actual</CardTitle>
-          <CardDescription>Información de tu asesor actual</CardDescription>
+          <CardTitle className="text-lg">
+            Seleccionar Asesor Por Cambiar
+          </CardTitle>
+          <CardDescription>
+            Selecciona el asesor actual que deseas cambiar
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center gap-4">
-            <Avatar className="h-16 w-16">
-              <AvatarImage
-                src={asesorActual?.foto ?? undefined}
-                alt={`${asesorActual?.nombre}`}
-              />
-              <AvatarFallback>{asesorActual?.nombre.charAt(0)}</AvatarFallback>
-            </Avatar>
-            <div>
-              <h3 className="font-medium text-lg">{asesorActual?.nombre}</h3>
-              <p className="text-muted-foreground">{asesorActual?.email}</p>
-              {asesorActual?.areasTematicas &&
-                asesorActual?.areasTematicas.length > 0 && (
-                  <p className="text-xs text-muted-foreground">
-                    Área:{" "}
-                    {asesorActual.areasTematicas
-                      .map((a) => a.nombre)
-                      .join(", ")}
+          <Select onValueChange={handleAsesorPorCambiarChange}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Seleccionar asesor por cambiar..." />
+            </SelectTrigger>
+            <SelectContent>
+              {asesoresActuales?.map((asesor) => (
+                <SelectItem key={asesor.id} value={asesor.id.toString()}>
+                  <div className="flex items-center gap-2">
+                    <Avatar className="h-6 w-6">
+                      <AvatarImage
+                        src={asesor.foto ?? undefined}
+                        alt={`${asesor.nombre}`}
+                      />
+                      <AvatarFallback className="text-xs">
+                        {asesor.nombre.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span>{asesor.nombre}</span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {asesorPorCambiar && (
+            <div className="mt-4 p-4 border rounded-md">
+              <div className="flex items-center gap-4">
+                <Avatar className="h-12 w-12">
+                  <AvatarImage
+                    src={asesorPorCambiar.foto ?? undefined}
+                    alt={`${asesorPorCambiar.nombre}`}
+                  />
+                  <AvatarFallback>
+                    {asesorPorCambiar.nombre.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <h3 className="font-medium">{asesorPorCambiar.nombre}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {asesorPorCambiar?.email}
                   </p>
-                )}
+                  {asesorPorCambiar?.areasTematicas &&
+                    asesorPorCambiar?.areasTematicas.length > 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        Área:{" "}
+                        {asesorPorCambiar.areasTematicas
+                          .map((a) => a.nombre)
+                          .join(", ")}
+                      </p>
+                    )}
+                </div>
+              </div>
             </div>
-          </div>
+          )}
         </CardContent>
       </Card>
 
@@ -507,8 +563,10 @@ export default function RegistrarSolicitudCambioAsesor() {
               {registroEstado === "idle" && (
                 <>
                   ¿Estás seguro que deseas solicitar el cambio de asesor de{" "}
-                  <span className="font-medium">{asesorActual?.nombre}</span> a{" "}
-                  <span className="font-medium">{nuevoAsesor?.nombre}</span>?
+                  <span className="font-medium">
+                    {asesorPorCambiar?.nombre}
+                  </span>{" "}
+                  a <span className="font-medium">{nuevoAsesor?.nombre}</span>?
                 </>
               )}
               {registroEstado === "loading" &&
