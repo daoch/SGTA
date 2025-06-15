@@ -4,3 +4,5 @@ uvicorn==0.34.2
 sentence-transformers
 torch
 faiss-cpu
+pandas
+sickle

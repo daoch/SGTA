@@ -568,7 +568,7 @@ export default function SolicitudDetalle({
                     </div>
 
                     {/* Status and Date */}
-                    <div className="flex items-center gap-2 mb-2">
+                    <div className="flex items-center gap-2 mb-1">
                       <Badge
                         className={`text-xs ${getStatusColor(participante.accionSolicitud, participante.rolSolicitud)}`}
                       >
@@ -578,11 +578,18 @@ export default function SolicitudDetalle({
                         )}
                       </Badge>
                       {participante.fechaAccion && (
-                        <span className="text-xs text-gray-500">
+                        <div className="text-xs text-gray-500">
                           {formatFecha(participante.fechaAccion)}
-                        </span>
+                        </div>
                       )}
                     </div>
+
+                    {/* Comentario en línea aparte */}
+                    {participante.comentario && (
+                      <div className="text-xs text-gray-500 italic mb-2">
+                        Comentario: {participante.comentario}
+                      </div>
+                    )}
                   </div>
                 </div>
               );
