@@ -65,7 +65,8 @@ export default function DetalleSolicitudesCoordinadorPage({
     "aprobar" | "rechazar" | "observar" | "eliminar" | ""
   >("");
   const [errorComentario, setErrorComentario] = useState("");
-  const [tipoSolicitud, setTipoSolicitud] = useState<TypeSolicitud>();
+  const [tipoSolicitud, setTipoSolicitud] =
+    useState<TypeSolicitud>("no-enviar");
   const [errorTipoSolicitud, setErrorTipoSolicitud] = useState("");
   const [loading, setLoading] = useState(false);
   const [similares, setSimilares] = useState<TemaSimilar[] | []>([]);
@@ -75,6 +76,10 @@ export default function DetalleSolicitudesCoordinadorPage({
     comentario: "Debe ingresar un comentario para la solicitud.",
   };
 
+  /*
+    Ejecuta lógica de crear solicitudes.
+    Cambia el estado en caso el tema está en estado INSCRITO
+  */
   const handleAccion = async (accion: SolicitudAction) => {
     try {
       setLoading(true);
@@ -83,24 +88,26 @@ export default function DetalleSolicitudesCoordinadorPage({
         router.push("/coordinador/aprobaciones");
       } else {
         // Actualizar Estado del tema
-        const payload = {
-          tema: {
-            id: solicitud.tema.id,
-            estadoTemaNombre: actionToStateMap[accion],
-          },
-          usuarioSolicitud: {
-            usuarioId: 3, // !: Id de coordinador
-            comentario,
-          },
-        };
+        if (solicitud.estado === EstadoTemaNombre.INSCRITO) {
+          const payload = {
+            tema: {
+              id: solicitud.tema.id,
+              estadoTemaNombre: actionToStateMap[accion],
+            },
+            usuarioSolicitud: {
+              usuarioId: 3, // !: Id de coordinador
+              comentario,
+            },
+          };
 
-        await cambiarEstadoTemaPorCoordinador(payload);
+          await cambiarEstadoTemaPorCoordinador(payload);
+        }
 
         // Crear solicitud
         if (
           tipoSolicitud &&
           tipoSolicitud !== "no-enviar" &&
-          accion !== "Rechazada"
+          accion === "Observada"
         ) {
           if (tipoSolicitud === "resumen") {
             await crearSolicitudCambioResumen(solicitud.tema.id, comentario);
@@ -111,8 +118,16 @@ export default function DetalleSolicitudesCoordinadorPage({
       }
 
       toast.success(`Solicitud ${accion.toLowerCase()} exitosamente.`);
+
+      // Reestablecer campos
       setDialogAbierto("");
-      setTema(await buscarTemaPorId(solicitud.tema.id));
+      setComentario("");
+      setTipoSolicitud("no-enviar");
+
+      // Visualizar cambios
+      if (solicitud.estado === EstadoTemaNombre.INSCRITO) {
+        setTema(await buscarTemaPorId(solicitud.tema.id));
+      }
     } catch (error) {
       console.error("Error al procesar la solicitud:", error);
       toast.error("Ocurrió un error. Por favor, intente nuevamente.");
@@ -162,7 +177,9 @@ export default function DetalleSolicitudesCoordinadorPage({
   // Config Actions
   const accionesConfig = {
     observar: {
-      show: true,
+      show: [EstadoTemaNombre.INSCRITO, EstadoTemaNombre.OBSERVADO].includes(
+        solicitud.estado,
+      ),
       disabled:
         tipoSolicitud === "no-enviar" ||
         !comentario.trim().length ||
@@ -170,12 +187,12 @@ export default function DetalleSolicitudesCoordinadorPage({
         loading,
     },
     aprobar: {
-      show: true,
-      disabled: !tipoSolicitud || loading,
+      show: solicitud.estado === EstadoTemaNombre.INSCRITO,
+      disabled: tipoSolicitud !== "no-enviar" || loading,
     },
     rechazar: {
-      show: true,
-      disabled: loading,
+      show: solicitud.estado === EstadoTemaNombre.INSCRITO,
+      disabled: tipoSolicitud !== "no-enviar" || loading,
     },
     eliminar: { show: true, disabled: loading },
   };
@@ -192,36 +209,41 @@ export default function DetalleSolicitudesCoordinadorPage({
           <div className="flex flex-col gap-4 md:w-3/5">
             <EncabezadoDetalleSolicitudTema solicitud={solicitud} />
             <InfoDetalleSolicitudTema solicitud={solicitud} />
-            {solicitud.estado === EstadoTemaNombre.INSCRITO &&
-              moduloAnalisisSimilitud}
+            {[EstadoTemaNombre.INSCRITO, EstadoTemaNombre.OBSERVADO].includes(
+              solicitud.estado,
+            ) && moduloAnalisisSimilitud}
             <HistorialDetalleSolicitudTema historial={historialMock} />
           </div>
 
           <div className="flex flex-col gap-4 md:w-2/5">
-            {/* Comentarios del Comité y selección del tipo de solicitud */}
-            {solicitud.estado === EstadoTemaNombre.INSCRITO ? (
-              <>
-                <ComentariosDetalleSolicitudTema
-                  comentario={comentario}
-                  setComentario={setComentario}
-                  errorComentario={errorComentario}
-                  setTipoSolicitud={setTipoSolicitud}
-                  errorTipoSolicitud={errorTipoSolicitud}
-                  comentarioOpcional={tipoSolicitud === "no-enviar"}
-                />
+            {/* Similitud */}
+            {[EstadoTemaNombre.REGISTRADO, EstadoTemaNombre.RECHAZADO].includes(
+              solicitud.estado,
+            ) && moduloAnalisisSimilitud}
 
-                {/* Actions */}
-                <AccionesDetalleSoliTema
-                  accionesConfig={accionesConfig}
-                  dialogAbierto={dialogAbierto}
-                  handleAccion={handleAccion}
-                  setDialogAbierto={setDialogAbierto}
-                  loading={loading}
-                />
-              </>
-            ) : (
-              moduloAnalisisSimilitud
+            {/* Comentarios del Comité y selección del tipo de solicitud */}
+            {[EstadoTemaNombre.INSCRITO, EstadoTemaNombre.OBSERVADO].includes(
+              solicitud.estado,
+            ) && (
+              <ComentariosDetalleSolicitudTema
+                tipoSolicitud={tipoSolicitud}
+                setTipoSolicitud={setTipoSolicitud}
+                comentario={comentario}
+                setComentario={setComentario}
+                errorComentario={errorComentario}
+                errorTipoSolicitud={errorTipoSolicitud}
+                comentarioOpcional={tipoSolicitud === "no-enviar"}
+              />
             )}
+
+            {/* Actions */}
+            <AccionesDetalleSoliTema
+              accionesConfig={accionesConfig}
+              dialogAbierto={dialogAbierto}
+              handleAccion={handleAccion}
+              setDialogAbierto={setDialogAbierto}
+              loading={loading}
+            />
           </div>
         </div>
       </form>

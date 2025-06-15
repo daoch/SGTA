@@ -18,6 +18,7 @@ export const InfoDetalleSolicitudTema: React.FC<
       </CardTitle>
     </CardHeader>
     <CardContent>
+      {/* Project Summary */}
       <div>
         <h4 className="font-semibold mb-2 flex items-center gap-2">
           <FileText className="w-4 h-4" />
@@ -25,7 +26,8 @@ export const InfoDetalleSolicitudTema: React.FC<
         </h4>
         <p>{solicitud.tema.resumen}</p>
       </div>
-      <Separator />
+      <Separator className="mb-3 mt-3" />
+      {/* Project Goals */}
       <div>
         <h4 className="font-semibold mb-2 flex items-center gap-2">
           <Target className="w-4 h-4" />
@@ -36,3 +38,4 @@ export const InfoDetalleSolicitudTema: React.FC<
     </CardContent>
   </Card>
 );
+

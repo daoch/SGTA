@@ -36,7 +36,7 @@ export type SolicitudAction =
   | "Observada"
   | "Eliminada";
 
-export type TypeSolicitud = "titulo" | "resumen" | "no-enviar" | null;
+export type TypeSolicitud = "titulo" | "resumen" | "no-enviar";
 
 export interface TemaSimilar {
   id: number;

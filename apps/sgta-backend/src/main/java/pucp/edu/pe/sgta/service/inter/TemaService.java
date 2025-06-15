@@ -206,4 +206,18 @@ public interface TemaService {
 
 	Integer actualizarTemaLibre(TemaDto dto);
 
+	void reenvioSolicitudAprobacionTema(TemaDto dto, String usuarioId);
+
+	String listarSolicitudesConUsuarios(Integer temaId, int offset, int limit);
+
+	String listarSolicitudesPendientesPorUsuario(String usuarioId, int offset, int limit);
+
+	/**
+	 * Creates a new tema from OAI record data with FINALIZADO state
+	 * @param temaDto The tema data created from OAI record
+	 * @param carreraId The career ID to associate with the tema
+	 * @return The ID of the created tema
+	 */
+	Integer createTemaFromOAI(TemaDto temaDto, Integer carreraId);
+
 }
