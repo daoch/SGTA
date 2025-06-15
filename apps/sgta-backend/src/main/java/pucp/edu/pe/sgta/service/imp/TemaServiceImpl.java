@@ -1451,24 +1451,7 @@ public class TemaServiceImpl implements TemaService {
 		List<Object[]> resultQuery = temaRepository.listarTemasAsesorInvolucrado(asesorId);
 
 		for (Object[] t : resultQuery) {
-			InfoTemaPerfilDto dto = new InfoTemaPerfilDto();
-			dto.setIdTesis((Integer) t[0]);
-			dto.setTitulo((String) t[1]);
-			String estado = (String) t[2];
-			switch (estado) {
-				case "EN_PROGRESO":
-					estado = "en_proceso";
-					break;
-				case "FINALIZADO":
-					estado = "finalizada";
-					break;
-				default:
-					estado = null;
-					break;
-			}
-			dto.setEstado(estado);
-			dto.setAnio((String) t[3]);
-
+			InfoTemaPerfilDto dto = InfoTemaPerfilDto.fromQuery(t);
 			// Agregar a los tesistas
 			List<Object[]> resultTesistasQuery = usuarioXTemaRepository.listarTesistasTema(dto.getIdTesis());
 			List<String> tesistas = new ArrayList<>();
@@ -1477,8 +1460,6 @@ public class TemaServiceImpl implements TemaService {
 				tesistas.add(nombreTesista);
 			}
 			dto.setEstudiantes(String.join(" - ", tesistas));
-
-			// Añadir el nivel
 
 			temas.add(dto);
 		}
