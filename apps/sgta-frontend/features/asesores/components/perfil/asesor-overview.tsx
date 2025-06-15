@@ -302,8 +302,8 @@ export default function OverviewSection({
                             updateEnlace(index, "nombrePlataforma", value)
                           }
                         >
-                          <SelectTrigger className="w-40">
-                            <SelectValue />
+                          <SelectTrigger className="w-40 truncate overflow-hidden min-w-0">
+                            <SelectValue className="truncate" />
                           </SelectTrigger>
                           <SelectContent>
                             {PLATAFORMAS_DISPONIBLES.map((plataforma) => (
@@ -313,7 +313,7 @@ export default function OverviewSection({
                                     nombrePlataforma={plataforma}
                                     plataforma={plataforma}
                                   />
-                                  {plataforma}
+                                  <span className="truncate">{plataforma}</span>
                                 </div>
                               </SelectItem>
                             ))}
