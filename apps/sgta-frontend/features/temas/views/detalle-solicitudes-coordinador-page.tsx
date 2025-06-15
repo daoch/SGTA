@@ -228,7 +228,6 @@ export default function DetalleSolicitudesCoordinadorPage({
   );
 
   const moduloSolicitudes = <DialogSolicitudes solicitudes={solicitudes} />;
-  7;
 
   return (
     <>
