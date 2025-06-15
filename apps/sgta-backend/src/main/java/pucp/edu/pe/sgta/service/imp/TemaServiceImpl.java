@@ -2299,13 +2299,21 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 			tema.setAreas((String) result[3]);
 
 			// Obtener el perfil del asesor
-			Integer idAsesor = (Integer) result[4];
-			PerfilAsesorDto asesorDto = usuarioService.getPerfilAsesor(idAsesor);
+			Integer[] idAsesoresArray = (Integer[]) result[4];
+			List<Integer> idAsesores = Arrays.asList(idAsesoresArray);
+			
+			List<PerfilAsesorDto> asesoresDto = new ArrayList<>();
+			for (Integer idAsesor : idAsesores) {
+			PerfilAsesorDto perfil = usuarioService.getPerfilAsesor(idAsesor);
+			if (perfil != null) {
+				asesoresDto.add(perfil);
+				}
+			}
 
 			// Retornar combinado en TemaConAsesorDto
 			TemaConAsesorDto respuesta = new TemaConAsesorDto();
 			respuesta.setTemaActual(tema);
-			respuesta.setAsesorActual(asesorDto);
+			respuesta.setAsesores(asesoresDto);
 
 			return respuesta;
 

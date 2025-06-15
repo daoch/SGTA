@@ -110,7 +110,6 @@ export default function DirectorioAsesoresEstudiantes() {
           idAreas: filters.areasTematicas.map((a) => a.idArea),
           idTemas: filters.temasInteres.map((t) => t.idTema),
         });
-
         setAsesores(data);
       } catch (error) {
         console.error("Error al cargar asesores:", error);

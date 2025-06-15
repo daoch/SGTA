@@ -79,4 +79,5 @@ export interface AsesorPerfil {
   temasIntereses: TemaInteres[];
   estado: boolean | null;
   foto?: string | null;
+  alumno?: boolean;
 }
