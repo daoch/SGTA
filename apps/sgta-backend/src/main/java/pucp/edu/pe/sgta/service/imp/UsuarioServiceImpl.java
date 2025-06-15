@@ -3,6 +3,7 @@ package pucp.edu.pe.sgta.service.imp;
 import org.apache.coyote.BadRequestException;
 import org.apache.http.HttpException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -1241,16 +1242,25 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     @Override
-    public List<PerfilAsesorDto> getDirectorioDeAsesoresPorFiltros(FiltrosDirectorioAsesores filtros) {
-        List<Object[]> queryResults = usuarioRepository
+    public Page<PerfilAsesorDto> getDirectorioDeAsesoresPorFiltros(FiltrosDirectorioAsesores filtros, Integer pageNumber, Boolean ascending) {
+        Integer pageSize = 5;
+        Pageable pageable;
+        if(ascending) {
+            pageable = PageRequest.of(pageNumber, pageSize, Sort.by("nombres","primer_apellido").ascending());
+        }else{
+            pageable = PageRequest.of(pageNumber, pageSize, Sort.by("nombres","primer_apellido").descending());
+        }
+        Page<Object[]> queryResults = usuarioRepository
                 .obtenerListaDirectorioAsesoresAlumno(filtros.getAlumnoId(),
                         filtros.getCadenaBusqueda(),
                         filtros.getActivo(),
                         Utils.convertIntegerListToString(filtros.getIdAreas()),
-                        Utils.convertIntegerListToString(filtros.getIdTemas()));
+                        Utils.convertIntegerListToString(filtros.getIdTemas()),
+                        pageable);
+        List<Object[]> pageResults = queryResults.getContent();
         List<PerfilAsesorDto> perfilAsesorDtos = new ArrayList<>();
 
-        for (Object[] result : queryResults) {
+        for (Object[] result : pageResults) {
             PerfilAsesorDto perfil = PerfilAsesorDto.fromQueryDirectorioAsesores(result);
             // el numero de tesistas actuales
             Integer cantTesistas;
@@ -1289,7 +1299,12 @@ public class UsuarioServiceImpl implements UsuarioService {
             perfilAsesorDtos.add(perfil);
         }
 
-        return perfilAsesorDtos;
+        return new PageImpl<>(
+                perfilAsesorDtos,                   // contenido paginado ya transformado
+                pageable,                           // mismo Pageable usado originalmente
+                queryResults.getTotalElements()    // total de elementos desde la BD
+        );
+
     }
 
     @Override
