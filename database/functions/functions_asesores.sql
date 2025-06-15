@@ -1,3 +1,5 @@
+SET search_path TO sgtadb;
+
 --OBTENER LISTA DE CARRERAS POR ID DEL ASESOR
 CREATE OR REPLACE FUNCTION obtener_carreras_activas_por_usuario(p_usuario_id INTEGER)
 RETURNS SETOF Carrera AS $$
@@ -1392,8 +1394,8 @@ BEGIN
         ac.area_conocimiento_id,
         ac.nombre::TEXT AS area_nombre
     FROM
-        sub_area_conocimiento sac 
-        JOIN usuario_sub_area_conocimiento usac 
+        sub_area_conocimiento sac
+        JOIN usuario_sub_area_conocimiento usac
             ON sac.sub_area_conocimiento_id = usac.sub_area_conocimiento_id
         JOIN area_conocimiento ac
             ON sac.area_conocimiento_id = ac.area_conocimiento_id
@@ -1416,7 +1418,7 @@ BEGIN
         ac.area_conocimiento_id,
         ac.nombre::TEXT
     FROM
-        area_conocimiento ac 
+        area_conocimiento ac
         JOIN usuario_area_conocimiento uac
             ON ac.area_conocimiento_id = uac.area_conocimiento_id
     WHERE

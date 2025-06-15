@@ -33,7 +33,14 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/features/auth";
 import { cn } from "@/lib/utils";
-import { ArrowLeft, Check, ChevronsUpDown, Loader2, UserX } from "lucide-react";
+import {
+  ArrowLeft,
+  BookX,
+  Check,
+  ChevronsUpDown,
+  Loader2,
+  UserX,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -225,7 +232,6 @@ export default function RegistrarSolicitudCambioAsesor() {
       </div>
     );
 
-  /*
   if (!temaActual || !asesorActual) {
     return (
       <div className="relative h-screen w-full flex items-center justify-center flex-col gap-4">
@@ -255,7 +261,7 @@ export default function RegistrarSolicitudCambioAsesor() {
         </span>
       </div>
     );
-  }*/
+  }
 
   return (
     <div className="container mx-auto py-8 max-w-3xl">
