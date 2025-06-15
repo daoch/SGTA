@@ -247,7 +247,6 @@ where u.usuario_id = p_coordinador_id;
 END;
 $$ LANGUAGE plpgsql STABLE;
 
-
 CREATE OR REPLACE FUNCTION listar_exposiciones_por_coordinador_v2(p_coordinador_id integer)
  RETURNS TABLE(exposicion_id integer, nombre text, descripcion text, etapa_formativa_id integer, etapa_formativa_nombre text, ciclo_id integer, ciclo_nombre text, estado_planificacion_id integer, estado_planificacion_nombre text)
  LANGUAGE plpgsql
@@ -285,9 +284,6 @@ inner join usuario u
 where u.usuario_id = p_coordinador_id;
 END;
 $function$;
-
-
-
 
 CREATE OR REPLACE FUNCTION listar_exposiciones_sin_inicializar_cicloactual_por_etapa_forma( --tiva. No debe pasar los 63 caracteres, por eso se corta.
 	p_etapa_formativa_id integer
@@ -1120,7 +1116,7 @@ BEGIN
 FROM usuario u
 INNER JOIN tipo_usuario tu ON u.tipo_usuario_id = tu.tipo_usuario_id
 INNER JOIN tipo_dedicacion td ON u.tipo_dedicacion_id = td.tipo_dedicacion_id
-INNER JOIN (
+LEFT JOIN (
     SELECT usuario_id AS id_usuario, COUNT(*) AS cantidad_temas_asignados
     FROM usuario_tema
     WHERE activo = true

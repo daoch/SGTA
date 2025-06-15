@@ -998,6 +998,20 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                                                                         criterio.getId(),
                                                                         userDto.getId());
 
+                                        System.out.println(
+                                                        "Buscando revisionCriterioExposicion para criterio: "
+                                                                        + criterio.getId());
+                                        System.out.println(
+                                                        "ExposicionXTema ID: "
+                                                                        + exposicionCalificacionRequest
+                                                                                        .getExposicion_tema_id());
+                                        System.out.println("Usuario ID: " + userDto.getId());
+
+                                        if (revisionOpt.isEmpty()) {
+                                                System.out.println(
+                                                                "Revision not found for criterio: " + criterio.getId());
+                                        }
+
                                         RevisionCriterioExposicion revision = revisionOpt.orElse(null);
 
                                         CriteriosCalificacionDto dto = new CriteriosCalificacionDto();
