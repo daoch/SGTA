@@ -191,8 +191,26 @@ export default function OverviewSection({
   };
 
   const displayedTopics = showAllTopics
-    ? [...editedData.areasTematicas, ...editedData.temasIntereses]
-    : [...editedData.areasTematicas, ...editedData.temasIntereses].slice(0, 6);
+    ? [
+        ...editedData.areasTematicas.map((item) => ({
+          ...item,
+          tipo: "Área Temática" as const,
+        })),
+        ...editedData.temasIntereses.map((item) => ({
+          ...item,
+          tipo: "Tema de Interés" as const,
+        })),
+      ]
+    : [
+        ...editedData.areasTematicas.map((item) => ({
+          ...item,
+          tipo: "Área Temática" as const,
+        })),
+        ...editedData.temasIntereses.map((item) => ({
+          ...item,
+          tipo: "Tema de Interés" as const,
+        })),
+      ].slice(0, 6);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -235,7 +253,11 @@ export default function OverviewSection({
                     <Badge
                       key={`${item.nombre}-${index}`}
                       variant="secondary"
-                      className="text-xs bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      className={`text-xs ${
+                        item.tipo === "Área Temática"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-purple-100 text-purple-800"
+                      }`}
                     >
                       {item.nombre}
                     </Badge>
@@ -286,162 +308,234 @@ export default function OverviewSection({
           {/* Links Section */}
           <div>
             <h3 className="text-2xl font-bold mb-4">Enlaces</h3>
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-white rounded-lg shadow p-4 md:p-6">
               {isEditing ? (
                 <div className="space-y-4">
+                  {/* Enlaces existentes */}
                   {editedData.enlaces.map((enlace, index) => (
-                    <div key={index} className="flex gap-2 items-center">
-                      <div className="flex items-center gap-2 min-w-0 flex-1">
-                        <PlatformIcon
-                          nombrePlataforma={enlace.nombrePlataforma}
-                          plataforma={enlace.plataforma}
-                        />
-                        <Select
-                          value={enlace.nombrePlataforma ?? "Otras"}
-                          onValueChange={(value: PlataformaType) =>
-                            updateEnlace(index, "nombrePlataforma", value)
-                          }
-                        >
-                          <SelectTrigger className="w-40 truncate overflow-hidden min-w-0">
-                            <SelectValue className="truncate" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {PLATAFORMAS_DISPONIBLES.map((plataforma) => (
-                              <SelectItem key={plataforma} value={plataforma}>
-                                <div className="flex items-center gap-2">
-                                  <PlatformIcon
-                                    nombrePlataforma={plataforma}
-                                    plataforma={plataforma}
-                                  />
-                                  <span className="truncate">{plataforma}</span>
-                                </div>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                    <div key={index} className="space-y-3 md:space-y-0">
+                      {/* Layout responsive: stack en móvil, grid en desktop */}
+                      <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-start md:items-center">
+                        {/* Tipo de plataforma - 3 columnas en desktop */}
+                        <div className="md:col-span-3">
+                          <label className="block text-sm font-medium text-gray-700 mb-1 md:hidden">
+                            Tipo de plataforma
+                          </label>
+                          <div className="flex items-center gap-2">
+                            <Select
+                              value={enlace.nombrePlataforma ?? "Otras"}
+                              onValueChange={(value: PlataformaType) =>
+                                updateEnlace(index, "nombrePlataforma", value)
+                              }
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {PLATAFORMAS_DISPONIBLES.map((plataforma) => (
+                                  <SelectItem
+                                    key={plataforma}
+                                    value={plataforma}
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <PlatformIcon
+                                        nombrePlataforma={plataforma}
+                                        plataforma={plataforma}
+                                      />
+                                      <span>{plataforma}</span>
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+
+                        {/* Nombre de plataforma - 4 columnas en desktop */}
+                        <div className="md:col-span-4">
+                          <label className="block text-sm font-medium text-gray-700 mb-1 md:hidden">
+                            Nombre de la plataforma
+                          </label>
+                          <Input
+                            placeholder="Nombre de la plataforma"
+                            value={enlace.plataforma}
+                            onChange={(e) =>
+                              updateEnlace(index, "plataforma", e.target.value)
+                            }
+                            className="w-full"
+                            disabled={
+                              enlace.nombrePlataforma !== undefined &&
+                              enlace.nombrePlataforma !== "Otras"
+                            }
+                          />
+                        </div>
+
+                        {/* Enlace - 4 columnas en desktop */}
+                        <div className="md:col-span-4">
+                          <label className="block text-sm font-medium text-gray-700 mb-1 md:hidden">
+                            Enlace
+                          </label>
+                          <Input
+                            placeholder="https://..."
+                            value={enlace.enlace}
+                            onChange={(e) =>
+                              updateEnlace(index, "enlace", e.target.value)
+                            }
+                            className="w-full"
+                          />
+                        </div>
+
+                        {/* Botón eliminar - 1 columna en desktop */}
+                        <div className="md:col-span-1 flex justify-end">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => removeEnlace(index)}
+                            className="shrink-0"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
-
-                      {/* Campo para nombre de plataforma */}
-                      <Input
-                        placeholder="Nombre de la plataforma"
-                        value={enlace.plataforma}
-                        onChange={(e) =>
-                          updateEnlace(index, "plataforma", e.target.value)
-                        }
-                        className="flex-1"
-                        disabled={
-                          enlace.nombrePlataforma !== undefined &&
-                          enlace.nombrePlataforma !== "Otras"
-                        }
-                      />
-
-                      <Input
-                        placeholder="Enlace"
-                        value={enlace.enlace}
-                        onChange={(e) =>
-                          updateEnlace(index, "enlace", e.target.value)
-                        }
-                        className="flex-2"
-                      />
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => removeEnlace(index)}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
                     </div>
                   ))}
 
-                  <div className="flex gap-2 items-center pt-2 border-t min-w-0">
-                    <div className="flex items-center gap-2 min-w-0 w-[170px] shrink-0">
-                      {newEnlace.nombrePlataforma && (
-                        <PlatformIcon
-                          nombrePlataforma={newEnlace.nombrePlataforma}
-                          plataforma={newEnlace.plataforma}
-                        />
-                      )}
-                      <Select
-                        value={newEnlace.nombrePlataforma}
-                        onValueChange={handlePlatformTypeChange}
-                      >
-                        <SelectTrigger className="w-40">
-                          <SelectValue placeholder="Plataforma" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {PLATAFORMAS_DISPONIBLES.map((plataforma) => (
-                            <SelectItem key={plataforma} value={plataforma}>
-                              <div className="flex items-center gap-2">
-                                <PlatformIcon
-                                  nombrePlataforma={plataforma}
-                                  plataforma={plataforma}
-                                />
-                                {plataforma}
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                  {/* Formulario para nuevo enlace */}
+                  <div className="pt-4 border-t border-gray-200">
+                    <h4 className="text-sm font-medium text-gray-700 mb-3">
+                      Agregar nuevo enlace
+                    </h4>
+                    <div className="space-y-3 md:space-y-0">
+                      <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-start md:items-center">
+                        {/* Tipo de plataforma */}
+                        <div className="md:col-span-3">
+                          <label className="block text-sm font-medium text-gray-700 mb-1 md:hidden">
+                            Tipo de plataforma
+                          </label>
+                          <div className="flex items-center gap-2">
+                            {newEnlace.nombrePlataforma && (
+                              <PlatformIcon
+                                nombrePlataforma={newEnlace.nombrePlataforma}
+                                plataforma={newEnlace.plataforma}
+                              />
+                            )}
+                            <Select
+                              value={newEnlace.nombrePlataforma}
+                              onValueChange={handlePlatformTypeChange}
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Seleccionar..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {PLATAFORMAS_DISPONIBLES.map((plataforma) => (
+                                  <SelectItem
+                                    key={plataforma}
+                                    value={plataforma}
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <PlatformIcon
+                                        nombrePlataforma={plataforma}
+                                        plataforma={plataforma}
+                                      />
+                                      {plataforma}
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+
+                        {/* Nombre de plataforma */}
+                        <div className="md:col-span-4">
+                          <label className="block text-sm font-medium text-gray-700 mb-1 md:hidden">
+                            Nombre de la plataforma
+                          </label>
+                          <Input
+                            placeholder="Nombre de la plataforma"
+                            value={newEnlace.plataforma}
+                            onChange={(e) =>
+                              setNewEnlace({
+                                ...newEnlace,
+                                plataforma: e.target.value,
+                              })
+                            }
+                            className="w-full"
+                            disabled={
+                              newEnlace.nombrePlataforma !== undefined &&
+                              newEnlace.nombrePlataforma !== "Otras"
+                            }
+                          />
+                        </div>
+
+                        {/* Enlace */}
+                        <div className="md:col-span-4">
+                          <label className="block text-sm font-medium text-gray-700 mb-1 md:hidden">
+                            Enlace
+                          </label>
+                          <Input
+                            placeholder="https://..."
+                            value={newEnlace.enlace}
+                            onChange={(e) =>
+                              setNewEnlace({
+                                ...newEnlace,
+                                enlace: e.target.value,
+                              })
+                            }
+                            className="w-full"
+                          />
+                        </div>
+
+                        {/* Botón agregar */}
+                        <div className="md:col-span-1 flex justify-end">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={addEnlace}
+                            disabled={
+                              !newEnlace.plataforma.trim() ||
+                              !newEnlace.enlace.trim()
+                            }
+                            className="shrink-0"
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
                     </div>
-
-                    {/* Campo para nombre de plataforma */}
-                    <Input
-                      placeholder="Nombre de la plataforma"
-                      value={newEnlace.plataforma}
-                      onChange={(e) =>
-                        setNewEnlace({
-                          ...newEnlace,
-                          plataforma: e.target.value,
-                        })
-                      }
-                      className="flex-1"
-                      disabled={
-                        newEnlace.nombrePlataforma !== undefined &&
-                        newEnlace.nombrePlataforma !== "Otras"
-                      }
-                    />
-
-                    <Input
-                      placeholder="Nuevo enlace"
-                      value={newEnlace.enlace}
-                      onChange={(e) =>
-                        setNewEnlace({ ...newEnlace, enlace: e.target.value })
-                      }
-                      className="flex-2"
-                    />
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={addEnlace}
-                      disabled={
-                        !newEnlace.plataforma.trim() || !newEnlace.enlace.trim()
-                      }
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
                   </div>
                 </div>
               ) : (
                 <div className="space-y-3">
                   {enlacesSinOrcid.length > 0 ? (
                     enlacesSinOrcid.map((enlace, index) => (
-                      <div key={index} className="flex items-center gap-3">
+                      <div
+                        key={index}
+                        className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
+                      >
                         <PlatformIcon
                           nombrePlataforma={enlace.nombrePlataforma}
                           plataforma={enlace.plataforma}
                         />
-                        <a
-                          href={enlace.enlace}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="font-medium text-blue-600 hover:text-blue-800 hover:underline"
-                        >
-                          {enlace.plataforma}
-                        </a>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-gray-900 truncate">
+                            {enlace.plataforma}
+                          </div>
+                          <a
+                            href={enlace.enlace}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-blue-600 hover:text-blue-800 hover:underline truncate block"
+                          >
+                            {enlace.enlace}
+                          </a>
+                        </div>
                       </div>
                     ))
                   ) : (
-                    <p className="text-gray-500">No hay enlaces registrados</p>
+                    <p className="text-gray-500 text-center py-8">
+                      No hay enlaces registrados
+                    </p>
                   )}
                 </div>
               )}

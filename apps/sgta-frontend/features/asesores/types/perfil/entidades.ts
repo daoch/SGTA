@@ -5,6 +5,9 @@ export interface Tesis {
   anio: string;
   nivel: string;
   estado: "en_proceso" | "finalizada" | null;
+  ciclo: string;
+  idProyecto: number | null;
+  tituloProyecto: string | null;
 }
 
 export interface Proyecto {
