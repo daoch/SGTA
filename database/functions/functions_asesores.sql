@@ -933,9 +933,11 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
     v_usuario_id INTEGER;
-    v_accion_id INTEGER;
+    v_accion_rechazado_id INTEGER;
+    v_accion_sin_accion_id INTEGER;
     v_rol_id INTEGER;
-    v_estado_id INTEGER;
+    v_estado_rechazada_id INTEGER;
+	v_accion_pendiente_id INTEGER;
 BEGIN
     -- Obtener usuario_id desde id_cognito
     SELECT usuario_id INTO v_usuario_id
@@ -946,7 +948,14 @@ BEGIN
         RAISE EXCEPTION 'Usuario con id_cognito % no encontrado', p_id_cognito;
     END IF;
 
-    -- Obtener rol_solicitud_id de 'ASESOR_ENTRADA' or 'ASESOR_ACTUAL
+	SELECT accion_solicitud_id INTO v_accion_pendiente_id
+	FROM accion_solicitud
+	WHERE nombre = 'PENDIENTE_ACCION';
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Accion PENDIENTE_ACCION no encontrada';
+    END IF;
+
+    -- Obtener ID del rol del usuario que actúa
     SELECT rol_solicitud_id INTO v_rol_id
     FROM rol_solicitud
     WHERE nombre = p_rol;
@@ -955,26 +964,44 @@ BEGIN
         RAISE EXCEPTION 'Rol % no encontrado', p_rol;
     END IF;
 
-    -- Obtener acción "RECHAZADO"
-    SELECT accion_solicitud_id INTO v_accion_id
+    -- Obtener ID de acción RECHAZADO
+    SELECT accion_solicitud_id INTO v_accion_rechazado_id
     FROM accion_solicitud
     WHERE nombre = 'RECHAZADO';
 
-    -- Actualizar usuario_solicitud
-    UPDATE usuario_solicitud
-    SET accion_solicitud = v_accion_id,
-        fecha_accion = CURRENT_TIMESTAMP,
-        comentario = p_comentario
-    WHERE usuario_id = v_usuario_id
-      AND solicitud_id = p_solicitud_id
-      AND rol_solicitud = v_rol_id;
+    -- Obtener ID de acción SIN_ACCIÓN
+    SELECT accion_solicitud_id INTO v_accion_sin_accion_id
+    FROM accion_solicitud
+    WHERE nombre = 'SIN_ACCION';
 
-    IF NOT FOUND THEN
-        RAISE EXCEPTION 'No se encontró registro en usuario_solicitud para el usuario %, solicitud %, y rol %', v_usuario_id, p_solicitud_id, p_rol;
-    END IF;
+-- 1. Actualizar al usuario que rechaza
+	UPDATE usuario_solicitud
+	SET accion_solicitud = v_accion_rechazado_id,
+	    fecha_accion = CURRENT_TIMESTAMP,
+	    comentario = p_comentario
+	WHERE usuario_id = v_usuario_id
+	  AND solicitud_id = p_solicitud_id
+	  AND rol_solicitud = v_rol_id
+	  AND accion_solicitud = v_accion_pendiente_id;
+	
+	IF NOT FOUND THEN
+	    RAISE EXCEPTION 'No se encontró registro en usuario_solicitud para el usuario %, solicitud %, y rol %', v_usuario_id, p_solicitud_id, p_rol;
+	END IF;
+	
+	-- 2. Si el que rechaza es ASESOR_ACTUAL, actualizar al ASESOR_ENTRADA a SIN_ACCIÓN (si aún no actuó)
+	IF p_rol = 'ASESOR_ACTUAL' THEN
+	    UPDATE usuario_solicitud us
+	    SET accion_solicitud = v_accion_sin_accion_id,
+	        fecha_accion = CURRENT_TIMESTAMP
+	    WHERE us.solicitud_id = p_solicitud_id
+	      AND us.accion_solicitud = v_accion_pendiente_id
+	      AND us.rol_solicitud = (
+	            SELECT rol_solicitud_id FROM rol_solicitud WHERE nombre = 'ASESOR_ENTRADA'
+	        );
+	END IF;
 
-    -- Cambiar estado de la solicitud a 'RECHAZADA'
-    SELECT estado_solicitud_id INTO v_estado_id
+    -- Cambiar estado de la solicitud a RECHAZADA
+    SELECT estado_solicitud_id INTO v_estado_rechazada_id
     FROM estado_solicitud
     WHERE nombre = 'RECHAZADA';
 
@@ -983,12 +1010,13 @@ BEGIN
     END IF;
 
     UPDATE solicitud
-    SET estado_solicitud = v_estado_id,
+    SET estado_solicitud = v_estado_rechazada_id,
         fecha_resolucion = CURRENT_TIMESTAMP
     WHERE solicitud_id = p_solicitud_id;
 
 END;
 $$;
+
 --
 CREATE OR REPLACE PROCEDURE rechazar_solicitud_cambio_asesor_coordinador(
     p_id_cognito TEXT,
