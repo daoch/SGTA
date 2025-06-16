@@ -45,8 +45,18 @@ export interface SolicidudRegistro {
   motivo: string;
 }
 
+export interface SolicitudCeseTemaRegistro {
+  solicitudId?: number;
+  alumnoId: number;
+  temaId: number;
+  estadoTema: string;
+  motivo: string;
+}
+
 export interface TemaActual {
   id: number;
   titulo: string;
   areas?: string;
+  estado?: string;
+  propuestoXAlumno?: boolean;
 }

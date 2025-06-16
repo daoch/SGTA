@@ -18,14 +18,6 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -50,6 +42,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import ModalCambioAsesor from "../components/assessor-change-request/modal-registro-cambio-asesor";
 import {
   getInformacionTesisPorAlumno,
   registrarSolicitudCambioAsesor,
@@ -140,10 +133,14 @@ export default function RegistrarSolicitudCambioAsesor() {
       if (!userId) return;
       try {
         setIsLoading(true);
-        const { temaActual, asesores } =
+        const { temaActual, asesores, roles } =
           await getInformacionTesisPorAlumno(userId);
+        const asesoresConRol = asesores.map((asesor, index) => ({
+          ...asesor,
+          rol: roles[index] || null,
+        }));
         setTemaActual(temaActual);
-        setAsesoresActuales(asesores);
+        setAsesoresActuales(asesoresConRol);
       } catch (error) {
         console.error("Error al cargar información de tesis:", error);
       } finally {
@@ -343,6 +340,7 @@ export default function RegistrarSolicitudCambioAsesor() {
                       </AvatarFallback>
                     </Avatar>
                     <span>{asesor.nombre}</span>
+                    <span>{asesor?.rol}</span>
                   </div>
                 </SelectItem>
               ))}
@@ -527,93 +525,18 @@ export default function RegistrarSolicitudCambioAsesor() {
       </div>
 
       {/* Modal de confirmación */}
-      <Dialog
+      <ModalCambioAsesor
         open={modalOpen}
-        onOpenChange={(open) => {
-          // Solo permitir cerrar el modal si está en estado "idle" o "loading"
-          if (registroEstado === "idle" || registroEstado === "loading") {
-            setModalOpen(open);
-          }
-        }}
-      >
-        <DialogContent
-          className="sm:max-w-md"
-          onPointerDownOutside={(e) => {
-            // Prevenir cerrar el modal haciendo clic fuera cuando está en estado success o error
-            if (registroEstado === "success" || registroEstado === "error") {
-              e.preventDefault();
-            }
-          }}
-          onEscapeKeyDown={(e) => {
-            // Prevenir cerrar el modal con ESC cuando está en estado success o error
-            if (registroEstado === "success" || registroEstado === "error") {
-              e.preventDefault();
-            }
-          }}
-        >
-          <DialogHeader>
-            <DialogTitle>
-              {registroEstado === "idle" &&
-                "Confirmar solicitud de cambio de asesor"}
-              {registroEstado === "loading" && "Procesando solicitud"}
-              {registroEstado === "success" && "Solicitud registrada con éxito"}
-              {registroEstado === "error" && "Error al registrar solicitud"}
-            </DialogTitle>
-            <DialogDescription>
-              {registroEstado === "idle" && (
-                <>
-                  ¿Estás seguro que deseas solicitar el cambio de asesor de{" "}
-                  <span className="font-medium">
-                    {asesorPorCambiar?.nombre}
-                  </span>{" "}
-                  a <span className="font-medium">{nuevoAsesor?.nombre}</span>?
-                </>
-              )}
-              {registroEstado === "loading" &&
-                "Por favor espera mientras procesamos tu solicitud..."}
-              {registroEstado === "success" && mensajeRegistro}
-              {registroEstado === "error" && mensajeRegistro}
-            </DialogDescription>
-          </DialogHeader>
-
-          {registroEstado === "loading" && (
-            <div className="flex justify-center py-6">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-          )}
-
-          <DialogFooter className="sm:justify-center">
-            {registroEstado === "idle" && (
-              <>
-                <Button variant="outline" onClick={() => setModalOpen(false)}>
-                  Cancelar
-                </Button>
-                <Button onClick={confirmarRegistro}>Confirmar</Button>
-              </>
-            )}
-
-            {registroEstado === "success" && (
-              <>
-                <Button variant="outline" onClick={handleVolver}>
-                  Volver a Solicitudes
-                </Button>
-                <Button onClick={verDetalleSolicitud}>Ver Detalle</Button>
-              </>
-            )}
-
-            {registroEstado === "error" && (
-              <Button
-                onClick={() => {
-                  setModalOpen(false);
-                  setRegistroEstado("idle");
-                }}
-              >
-                Cerrar
-              </Button>
-            )}
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        onOpenChange={setModalOpen}
+        registroEstado={registroEstado}
+        setRegistroEstado={setRegistroEstado}
+        confirmarRegistro={confirmarRegistro}
+        handleVolver={handleVolver}
+        verDetalleSolicitud={verDetalleSolicitud}
+        mensajeRegistro={mensajeRegistro}
+        asesorPorCambiar={asesorPorCambiar}
+        nuevoAsesor={nuevoAsesor}
+      />
     </div>
   );
 }

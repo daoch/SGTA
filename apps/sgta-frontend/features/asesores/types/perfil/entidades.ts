@@ -45,6 +45,7 @@ export interface Asesor {
   temasIntereses: TemaInteres[];
   estado: boolean | null;
   foto?: string | null;
+  rol?: string | null;
 }
 
 export interface Enlace {

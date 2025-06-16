@@ -5,6 +5,7 @@ import {
   DetalleSolicitudCambioAsesor,
   SolicidudRegistro,
   SolicitudCambioAsesorResumen,
+  SolicitudCeseTemaRegistro,
   TemaActual,
 } from "../types/cambio-asesor/entidades";
 import { Asesor } from "../types/perfil/entidades";
@@ -12,6 +13,7 @@ import { Asesor } from "../types/perfil/entidades";
 export interface InformacionTesisResponse {
   temaActual: TemaActual;
   asesores: Asesor[];
+  roles: string[];
 }
 
 export async function getDetalleSolicitudCambioAsesor(
@@ -298,5 +300,35 @@ export async function aceptarSolicitudPorCoordinador(
       console.error("Error inesperado al aceptar la solicitud:", error);
     }
     throw error;
+  }
+}
+
+export async function registrarSolicitudCeseTema(
+  data: SolicitudCeseTemaRegistro,
+): Promise<{ success: boolean; message: string; solicitudId?: number }> {
+  try {
+    const response = await axiosInstance.post(
+      "/solicitudes/registrarSolicitudCeseTema",
+      data,
+    );
+
+    return {
+      success: true,
+      message: "Solicitud registrada exitosamente",
+      solicitudId: response.data?.solicitudId,
+    };
+  } catch (error: unknown) {
+    let message = "Ocurrió un error al registrar la solicitud.";
+
+    if (axios.isAxiosError(error)) {
+      message = error.response?.data?.message ?? message;
+    }
+
+    console.error("Error al registrar solicitud:", error);
+
+    return {
+      success: false,
+      message,
+    };
   }
 }

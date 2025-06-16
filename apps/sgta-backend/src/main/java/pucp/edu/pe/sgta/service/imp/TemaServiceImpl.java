@@ -2296,6 +2296,7 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 			TemaResumenDto tema = new TemaResumenDto();
 			tema.setId((Integer) result[0]);
 			tema.setTitulo((String) result[1]);
+			tema.setEstadoTema((String) result[2]);
 			tema.setAreas((String) result[3]);
 
 			// Obtener el perfil del asesor
