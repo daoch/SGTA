@@ -7,7 +7,7 @@ import pucp.edu.pe.sgta.dto.asesores.SolicitudCeseCreadaDto;
 import pucp.edu.pe.sgta.exception.BusinessRuleException;
 import pucp.edu.pe.sgta.exception.ResourceNotFoundException;
 import pucp.edu.pe.sgta.model.Solicitud; // Asume que tienes un DTO de respuesta o devuelves la entidad
-import pucp.edu.pe.sgta.service.inter.SolicitudAsesorService; // Un nuevo servicio específico
+import pucp.edu.pe.sgta.service.inter.SolicitudCoordinadorService; // Un nuevo servicio específico
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -24,7 +24,7 @@ public class SolicitudCeseController {
     private static final Logger log = LoggerFactory.getLogger(SolicitudCeseController.class);
 
     @Autowired
-    private SolicitudAsesorService solicitudAsesorService;
+    private SolicitudCoordinadorService solicitudAsesorService;
 
     @PostMapping
     public ResponseEntity<?> crearSolicitudDeCese(

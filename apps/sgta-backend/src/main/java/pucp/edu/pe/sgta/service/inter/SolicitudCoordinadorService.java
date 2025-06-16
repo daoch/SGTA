@@ -4,6 +4,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import pucp.edu.pe.sgta.model.Solicitud;
 
-public interface SolicitudAsesorService {
+public interface SolicitudCoordinadorService {
     Solicitud crearSolicitudCese(String asesorCognitoSub, Integer temaId, String motivo);
 }
