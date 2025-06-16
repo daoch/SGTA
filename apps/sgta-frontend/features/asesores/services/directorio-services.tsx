@@ -15,6 +15,23 @@ export interface SearchPage {
   totalElements: number;
 }
 
+export async function buscarAsesoresPorNombre(
+  nombre: string,
+): Promise<Asesor[]> {
+  try {
+    const response = await axiosInstance.get(
+      "/usuario/buscar-asesores-por-nombre",
+      {
+        params: { nombre },
+      },
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error al buscar asesores:", error);
+    return [];
+  }
+}
+
 export async function getAsesoresPorFiltros(
   filtros: FiltrosDirectorioAsesores,
   page: number = 0,

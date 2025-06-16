@@ -22,7 +22,7 @@ import { getIdByCorreo } from "../services/perfil-services";
 import { TemaActual } from "../types/cambio-asesor/entidades";
 import { Asesor } from "../types/perfil/entidades";
 
-export default function RegistrarSolicitudCambioAsesor() {
+export default function registrarSolicitudCeseTemaAlumno() {
   const router = useRouter();
   const { user } = useAuth();
   const [userId, setUserId] = useState<number | null>(null);

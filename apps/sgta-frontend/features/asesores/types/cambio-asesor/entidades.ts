@@ -59,5 +59,5 @@ export interface TemaActual {
   titulo: string;
   areas?: string;
   estado?: string;
-  propuestoXAsesor?: boolean;
+  idCreador: number;
 }

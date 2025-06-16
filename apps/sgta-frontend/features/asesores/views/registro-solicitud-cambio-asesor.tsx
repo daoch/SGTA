@@ -47,7 +47,7 @@ import {
   getInformacionTesisPorAlumno,
   registrarSolicitudCambioAsesor,
 } from "../services/cambio-asesor-services";
-import { getAsesoresPorFiltros } from "../services/directorio-services";
+import { buscarAsesoresPorNombre } from "../services/directorio-services";
 import { getIdByCorreo } from "../services/perfil-services";
 import { TemaActual } from "../types/cambio-asesor/entidades";
 import { Asesor } from "../types/perfil/entidades";
@@ -68,6 +68,7 @@ export default function RegistrarSolicitudCambioAsesor() {
     null,
   );
   const [asesorPorCambiar, setAsesorPorCambiar] = useState<Asesor | null>(null);
+  const [propuestoXAsesor, setPropuestoXAsesor] = useState<boolean>(false);
 
   // Estados para el modal
   const [modalOpen, setModalOpen] = useState(false);
@@ -111,13 +112,7 @@ export default function RegistrarSolicitudCambioAsesor() {
     const buscarAsesores = async () => {
       if (busqueda.length >= 2 && userId) {
         try {
-          const resultado = await getAsesoresPorFiltros({
-            alumnoId: userId,
-            cadenaBusqueda: busqueda,
-            activo: true,
-            idAreas: [],
-            idTemas: [],
-          });
+          const resultado = await buscarAsesoresPorNombre(busqueda);
           setAsesores(resultado);
         } catch (error) {
           console.error("Error al buscar asesores:", error);
@@ -141,6 +136,11 @@ export default function RegistrarSolicitudCambioAsesor() {
         }));
         setTemaActual(temaActual);
         setAsesoresActuales(asesoresConRol);
+
+        const existe = asesoresConRol.some(
+          (asesor) => asesor.id === temaActual.idCreador,
+        );
+        setPropuestoXAsesor(existe);
       } catch (error) {
         console.error("Error al cargar información de tesis:", error);
       } finally {
@@ -176,6 +176,7 @@ export default function RegistrarSolicitudCambioAsesor() {
       const resultado = await registrarSolicitudCambioAsesor({
         alumnoId: userId,
         temaId: temaActual.id,
+        estadoTema: temaActual.estado ?? "Vencido",
         asesorActualId: asesorPorCambiar.id,
         nuevoAsesorId: nuevoAsesor.id,
         motivo,
