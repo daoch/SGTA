@@ -39,15 +39,15 @@ public interface SolicitudService {
     public SolicitudCeseDto findAllSolicitudesCeseByCoordinatorCognitoSub(String coordinatorCognitoSub, int page, int size, String status);
     void rejectSolicitudCese(Integer solicitudId, String responseText, String coordinatorCognitoSub);
     SolicitudCeseDetalleDto findSolicitudCeseDetailsById(Integer solicitudId, String coordinatorCognitoSub);
-    // Page<AsesorDisponibleDto> buscarAsesoresDisponibles(
-    //         String coordinadorCognitoSub, // Para determinar las carreras del coordinador
-    //         String searchTerm,
-    //         List<Integer> areaConocimientoIds,
-    //         Pageable pageable
-    // );
-    // Page<ReasignacionPendienteDto> findReasignacionesPendientes(
-    //         String coordinadorCognitoSub,
-    //         String searchTerm, // Puede ser null o vacío
-    //         Pageable pageable
-    // );
+//     Page<AsesorDisponibleDto> buscarAsesoresDisponibles(
+//             String coordinadorCognitoSub, // Para determinar las carreras del coordinador
+//             String searchTerm,
+//             List<Integer> areaConocimientoIds,
+//             Pageable pageable
+//     );
+//     Page<ReasignacionPendienteDto> findReasignacionesPendientes(
+//             String coordinadorCognitoSub,
+//             String searchTerm, // Puede ser null o vacío
+//             Pageable pageable
+//     );
 }

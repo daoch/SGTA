@@ -1,6 +1,9 @@
 package pucp.edu.pe.sgta.repository;
 
+import pucp.edu.pe.sgta.model.EstadoSolicitud;
 import pucp.edu.pe.sgta.model.Solicitud;
+import pucp.edu.pe.sgta.model.Tema;
+import pucp.edu.pe.sgta.model.TipoSolicitud;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,7 +17,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface SolicitudRepository extends JpaRepository<Solicitud, Integer> {
+public interface SolicitudRepository extends JpaRepository<Solicitud, Integer>, JpaSpecificationExecutor {
     List<Solicitud> findByTipoSolicitudId(Integer tipoSolicitudId);
 
     List<Solicitud> findByTipoSolicitudNombre(String tipoSolicitudNombre);
@@ -78,6 +81,11 @@ public interface SolicitudRepository extends JpaRepository<Solicitud, Integer> {
            "WHERE us.solicitud.id = :solicitudId AND rs.nombre = 'REMITENTE'")
     List<Integer> findRemitenteIdBySolicitudId(@Param("solicitudId") Integer solicitudId);
     
-
+    // Para verificar si ya existe una solicitud PENDIENTE para un tema y tipo (usado al crear solicitud de cese)
+    List<Solicitud> findByTemaAndTipoSolicitudAndEstadoSolicitudAndActivoTrue(
+            Tema tema,
+            TipoSolicitud tipoSolicitud,
+            EstadoSolicitud estadoSolicitud
+    );
 }
 

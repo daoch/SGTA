@@ -108,4 +108,7 @@ public interface UsuarioXTemaRepository extends JpaRepository<UsuarioXTema, Inte
 
         @Query("SELECT COUNT(ut) FROM UsuarioXTema ut WHERE ut.usuario.id = :usuarioId AND ut.rol.nombre = :rolNombre AND ut.activo = true")
         long countByUsuarioIdAndRolNombreAndActivoTrue(@Param("usuarioId") Integer usuarioId, @Param("rolNombre") String rolNombre);
+
+        boolean existsByTema_IdAndUsuario_IdAndRol_IdAndActivoTrue(Integer temaId, Integer usuarioId, Integer rolId);
+
 }

@@ -49,4 +49,10 @@ public interface UsuarioXSolicitudRepository extends JpaRepository<UsuarioXSolic
             @Param("aprobar") Boolean aprobar);
 
     Optional<UsuarioXSolicitud> findFirstBySolicitudIdAndRolSolicitud(Integer solicitudId, RolSolicitud rolSolicitud);
+    
+    boolean existsBySolicitud_IdAndUsuario_IdAndRolSolicitud_Nombre(
+            Integer solicitudId,
+            Integer usuarioId,
+            String rolSolicitudNombre
+    );
 }
