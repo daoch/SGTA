@@ -1,4 +1,5 @@
-SET search_path TO sgtadb;
+-- Active: 1746915573232@@dbsgtajurado.cvxpelnrmqov.us-east-1.rds.amazonaws.com@5432@postgres@sgtadb
+-- SET search_path TO sgtadb;
 
 -- Active: 1748374313012@@localhost@5432@postgres@sgtadb
 CREATE OR REPLACE FUNCTION obtener_etapas_formativas_por_usuario(p_usuario_id INTEGER)
@@ -249,7 +250,6 @@ where u.usuario_id = p_coordinador_id;
 END;
 $$ LANGUAGE plpgsql STABLE;
 
-
 CREATE OR REPLACE FUNCTION listar_exposiciones_por_coordinador_v2(p_coordinador_id integer)
  RETURNS TABLE(exposicion_id integer, nombre text, descripcion text, etapa_formativa_id integer, etapa_formativa_nombre text, ciclo_id integer, ciclo_nombre text, estado_planificacion_id integer, estado_planificacion_nombre text)
  LANGUAGE plpgsql
@@ -287,9 +287,6 @@ inner join usuario u
 where u.usuario_id = p_coordinador_id;
 END;
 $function$;
-
-
-
 
 CREATE OR REPLACE FUNCTION listar_exposiciones_sin_inicializar_cicloactual_por_etapa_forma( --tiva. No debe pasar los 63 caracteres, por eso se corta.
 	p_etapa_formativa_id integer
@@ -1097,43 +1094,35 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION obtener_profesores()
-RETURNS TABLE(
-    id_usuario INTEGER,
-    nombres TEXT,
-    primer_apellido TEXT,
-    segundo_apellido TEXT,
-    codigo_pucp TEXT,
-    correo_electronico TEXT,
-    tipo_dedicacion TEXT,
-    cantidad_temas_asignados BIGINT
-)
-AS $$
+ RETURNS TABLE(id_usuario integer, nombres text, primer_apellido text, segundo_apellido text, codigo_pucp text, correo_electronico text, tipo_dedicacion text, cantidad_temas_asignados bigint)
+ LANGUAGE plpgsql
+AS $function$
 BEGIN
     RETURN QUERY
     SELECT
-    u.usuario_id AS id_usuario,
-	u.nombres::TEXT,
-	u.primer_apellido::TEXT,
-	u.segundo_apellido::TEXT,
-	u.codigo_pucp::TEXT,
-	u.correo_electronico::TEXT,
-	td.iniciales::TEXT AS tipo_dedicacion,
-	ut.cantidad_temas_asignados
-FROM usuario u
-INNER JOIN tipo_usuario tu ON u.tipo_usuario_id = tu.tipo_usuario_id
-INNER JOIN tipo_dedicacion td ON u.tipo_dedicacion_id = td.tipo_dedicacion_id
-INNER JOIN (
-    SELECT usuario_id AS id_usuario, COUNT(*) AS cantidad_temas_asignados
-    FROM usuario_tema
-    WHERE activo = true
-    GROUP BY usuario_id
-) ut ON u.usuario_id = ut.id_usuario
-WHERE
-	tu.nombre = 'profesor'
-	AND u.activo = true
-ORDER BY ut.cantidad_temas_asignados ASC;
+        u.usuario_id AS id_usuario,
+        u.nombres::TEXT,
+        u.primer_apellido::TEXT,
+        u.segundo_apellido::TEXT,
+        u.codigo_pucp::TEXT,
+        u.correo_electronico::TEXT,
+        td.iniciales::TEXT AS tipo_dedicacion,
+        COALESCE(ut.cantidad_temas_asignados, 0) AS cantidad_temas_asignados
+    FROM usuario u
+    INNER JOIN tipo_usuario tu ON u.tipo_usuario_id = tu.tipo_usuario_id
+    INNER JOIN tipo_dedicacion td ON u.tipo_dedicacion_id = td.tipo_dedicacion_id
+    LEFT JOIN (
+        SELECT usuario_id AS id_usuario, COUNT(*) AS cantidad_temas_asignados
+        FROM usuario_tema
+        WHERE activo = true
+        GROUP BY usuario_id
+    ) ut ON u.usuario_id = ut.id_usuario
+    WHERE
+        tu.nombre = 'profesor'
+        AND u.activo = true
+    ORDER BY cantidad_temas_asignados ASC;
 END;
-$$ LANGUAGE plpgsql;
+$function$
 
 CREATE OR REPLACE FUNCTION listar_bloques_con_temas_y_usuarios(p_exposicion_id integer)
  RETURNS TABLE(bloque_horario_exposicion_id integer, jornada_exposicion_x_sala_id integer, exposicion_x_tema_id integer, es_bloque_reservado boolean, es_bloque_bloqueado boolean, datetime_inicio timestamp with time zone, datetime_fin timestamp with time zone, sala_nombre text, tema_id integer, tema_codigo character varying, tema_titulo character varying, usuario_id integer, nombres character varying, apellidos character varying, rol_id integer, rol_nombre character varying, estado_usuario_expo character varying)
@@ -1277,7 +1266,7 @@ BEGIN
     JOIN EXPOSICION_X_TEMA EXT ON EXT.tema_id = UT.tema_id
     JOIN ROL ON ROL.rol_id = UT.rol_id
     JOIN CONTROL_EXPOSICION_USUARIO CEU ON CEU.usuario_x_tema_id = UT.usuario_tema_id
-    WHERE EXT.exposicion_x_tema_id = p_exposicion_x_tema_id AND U.tipo_usuario_id != 2 AND UT.activo = true AND CEU.exposicion_x_tema_id = p_exposicion_x_tema_id;
+    WHERE EXT.exposicion_x_tema_id = p_exposicion_x_tema_id AND U.tipo_usuario_id != 2 AND UT.activo = true AND CEU.exposicion_x_tema_id = p_exposicion_x_tema_id AND rol.nombre IN ('Asesor', 'Jurado');
 END
 $$;
 

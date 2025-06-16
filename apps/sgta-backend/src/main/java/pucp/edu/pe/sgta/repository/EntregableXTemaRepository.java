@@ -24,7 +24,7 @@ public interface EntregableXTemaRepository extends CrudRepository<EntregableXTem
         JOIN FETCH ext.entregable e
         WHERE ext.entregable.id = :entregableId
           AND ext.activo = true
-          AND (ext.estadoStr = 'no_enviado' OR ext.fechaEnvio IS NULL)
+          AND (ext.estado = 'no_enviado' OR ext.fechaEnvio IS NULL)
     """)
     List<EntregableXTema> findNoEnviadosByEntregableId(@Param("entregableId") Integer entregableId);
 
@@ -38,7 +38,7 @@ public interface EntregableXTemaRepository extends CrudRepository<EntregableXTem
         JOIN FETCH ext.entregable e
         WHERE ext.tema.id = :temaId
           AND ext.activo = true
-          AND (ext.estadoStr = 'no_enviado' OR ext.fechaEnvio IS NULL)
+          AND (ext.estado = 'no_enviado' OR ext.fechaEnvio IS NULL)
           AND ext.entregable.fechaFin BETWEEN :inicio AND :fin
     """)
     List<EntregableXTema> findNoEnviadosByTemaAndFechaFin(
@@ -55,7 +55,7 @@ public interface EntregableXTemaRepository extends CrudRepository<EntregableXTem
         JOIN FETCH ext.tema t
         JOIN FETCH ext.entregable e
         WHERE ext.activo = true
-          AND (ext.estadoStr = 'no_enviado' OR ext.fechaEnvio IS NULL)
+          AND (ext.estado = 'no_enviado' OR ext.fechaEnvio IS NULL)
           AND ext.entregable.fechaFin < :ahora
     """)
     List<EntregableXTema> findNoEnviadosVencidos(@Param("ahora") OffsetDateTime ahora);

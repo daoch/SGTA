@@ -4232,11 +4232,11 @@ BEGIN
         SELECT
             s.solicitud_id,
             s.descripcion,
-            ts.nombre    AS tipo_solicitud,
-            es.nombre    AS estado_solicitud,
+            ts.nombre            AS tipo_solicitud,
+            es.nombre            AS estado_solicitud,
+            s.fecha_creacion,                       -- agregado
+            s.fecha_modificacion,                   -- agregado
             (
-                -- Todos los registros de usuario_solicitud activos para esta solicitud,
-                -- incluyendo datos del usuario
                 SELECT COALESCE(JSON_AGG(
                     JSON_BUILD_OBJECT(
                         'usuario_solicitud_id', us2.usuario_solicitud_id,
@@ -4247,7 +4247,9 @@ BEGIN
                         'codigo',               u2.codigo_pucp,
                         'accion_solicitud',     a.nombre,
                         'rol_solicitud',        rs.nombre,
-                        'comentario',           us2.comentario
+                        'comentario',           us2.comentario,
+                        'fecha_creacion',       us2.fecha_creacion,     -- agregado
+                        'fecha_modificacion',   us2.fecha_modificacion  -- agregado
                     )
                 ), '[]'::JSON)
                 FROM usuario_solicitud us2
@@ -4309,6 +4311,7 @@ BEGIN
             es.nombre      AS estado_solicitud,
             s.tema_id,
             s.fecha_creacion,
+            s.fecha_modificacion,          -- agregado
             (
                 -- Todos los registros de usuario_solicitud activos para esta solicitud,
                 -- incluyendo datos del usuario
@@ -4322,13 +4325,15 @@ BEGIN
                         'codigo',               u2.codigo_pucp,
                         'accion_solicitud',     a.nombre,
                         'rol_solicitud',        rs.nombre,
-                        'comentario',           us2.comentario
+                        'comentario',           us2.comentario,
+                        'fecha_creacion',       us2.fecha_creacion,
+                        'fecha_modificacion',   us2.fecha_modificacion
                     )
                 ), '[]'::JSON)
                 FROM usuario_solicitud us2
-                JOIN usuario          u2 ON us2.usuario_id      = u2.usuario_id
-                JOIN accion_solicitud a  ON us2.accion_solicitud = a.accion_solicitud_id
-                JOIN rol_solicitud   rs  ON us2.rol_solicitud    = rs.rol_solicitud_id
+                JOIN usuario          u2  ON us2.usuario_id      = u2.usuario_id
+                JOIN accion_solicitud a   ON us2.accion_solicitud = a.accion_solicitud_id
+                JOIN rol_solicitud   rs   ON us2.rol_solicitud    = rs.rol_solicitud_id
                 WHERE us2.solicitud_id = s.solicitud_id
                   AND us2.activo       = TRUE
             ) AS usuarios
@@ -4347,7 +4352,8 @@ BEGIN
             ts.nombre,
             es.nombre,
             s.tema_id,
-            s.fecha_creacion
+            s.fecha_creacion,
+            s.fecha_modificacion   -- agregado al GROUP BY
         ORDER BY s.fecha_creacion DESC
         OFFSET p_offset
         LIMIT  p_limit
@@ -4357,3 +4363,115 @@ BEGIN
 END;
 $$;
 
+
+CREATE OR REPLACE PROCEDURE rechazar_solicitudes_cambio_por_tema(
+    p_tema_id INTEGER
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_estado_pendiente   INTEGER;
+    v_estado_rechazado   INTEGER;
+    v_accion_rechazado   INTEGER;
+BEGIN
+    -- 1) Cargar IDs de catálogo
+    SELECT estado_solicitud_id
+      INTO v_estado_pendiente
+      FROM estado_solicitud
+     WHERE nombre = 'PENDIENTE';
+
+    SELECT estado_solicitud_id
+      INTO v_estado_rechazado
+      FROM estado_solicitud
+     WHERE nombre = 'RECHAZADA';
+
+    SELECT accion_solicitud_id
+      INTO v_accion_rechazado
+      FROM accion_solicitud
+     WHERE nombre = 'RECHAZADO';
+
+    -- 2) Rechazar las solicitudes de tipo "Solicitud de cambio%" pendientes
+    UPDATE solicitud s
+       SET estado_solicitud   = v_estado_rechazado,
+           fecha_modificacion = NOW()
+      FROM tipo_solicitud ts
+     WHERE s.tipo_solicitud_id = ts.tipo_solicitud_id
+       AND ts.nombre LIKE 'Solicitud de cambio%'
+       AND s.tema_id            = p_tema_id
+       AND s.estado_solicitud   = v_estado_pendiente
+       AND s.activo             = TRUE;
+
+    -- 3) Marcar como RECHAZADO las acciones de usuario_solicitud de esas solicitudes
+    UPDATE usuario_solicitud us
+       SET accion_solicitud   = v_accion_rechazado,
+           fecha_modificacion = NOW()
+      FROM solicitud s
+     WHERE us.solicitud_id    = s.solicitud_id
+       AND s.tipo_solicitud_id IN (
+           SELECT tipo_solicitud_id
+             FROM tipo_solicitud
+            WHERE nombre LIKE 'Solicitud de cambio%'
+       )
+       AND s.tema_id            = p_tema_id
+       AND s.estado_solicitud   = v_estado_rechazado
+       AND s.activo             = TRUE
+       AND us.activo            = TRUE;
+END;
+$$;
+
+
+-- PROCEDURE para aprobar todas las solicitudes de cambio de un tema
+CREATE OR REPLACE PROCEDURE aprobar_solicitudes_cambio_por_tema(
+    p_tema_id INTEGER
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_estado_pendiente   INTEGER;
+    v_estado_aprobado    INTEGER;
+    v_accion_aprobado    INTEGER;
+BEGIN
+    -- 1) Cargar IDs de catálogo
+    SELECT estado_solicitud_id
+      INTO v_estado_pendiente
+      FROM estado_solicitud
+     WHERE nombre = 'PENDIENTE';
+
+    SELECT estado_solicitud_id
+      INTO v_estado_aprobado
+      FROM estado_solicitud
+     WHERE nombre = 'ACEPTADA';
+
+    SELECT accion_solicitud_id
+      INTO v_accion_aprobado
+      FROM accion_solicitud
+     WHERE nombre = 'APROBADO';
+
+    -- 2) Aprobar las solicitudes de tipo "Solicitud de cambio%" pendientes
+    UPDATE solicitud s
+       SET estado_solicitud   = v_estado_aprobado,
+           fecha_modificacion = NOW()
+      FROM tipo_solicitud ts
+     WHERE s.tipo_solicitud_id = ts.tipo_solicitud_id
+       AND ts.nombre LIKE 'Solicitud de cambio%'
+       AND s.tema_id            = p_tema_id
+       AND s.estado_solicitud   = v_estado_pendiente
+       AND s.activo             = TRUE;
+
+    -- 3) Marcar como APROBADO las acciones de usuario_solicitud de esas solicitudes
+    UPDATE usuario_solicitud us
+       SET accion_solicitud   = v_accion_aprobado,
+           fecha_modificacion = NOW()
+      FROM solicitud s
+     WHERE us.solicitud_id    = s.solicitud_id
+       AND s.tipo_solicitud_id IN (
+           SELECT tipo_solicitud_id
+             FROM tipo_solicitud
+            WHERE nombre LIKE 'Solicitud de cambio%'
+       )
+       AND s.tema_id            = p_tema_id
+       AND s.estado_solicitud   = v_estado_aprobado
+       AND s.activo             = TRUE
+       AND us.activo            = TRUE;
+END;
+$$;
