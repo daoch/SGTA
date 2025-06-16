@@ -40,6 +40,7 @@ export interface SolicidudRegistro {
   solicitudId?: number;
   alumnoId: number;
   temaId: number;
+  estadoTema: string;
   asesorActualId: number;
   nuevoAsesorId: number;
   motivo: string;
@@ -58,5 +59,5 @@ export interface TemaActual {
   titulo: string;
   areas?: string;
   estado?: string;
-  propuestoXAlumno?: boolean;
+  propuestoXAsesor?: boolean;
 }

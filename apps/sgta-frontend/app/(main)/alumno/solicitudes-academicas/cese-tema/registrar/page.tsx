@@ -1,9 +1,10 @@
 "use client";
 
+import RegistrarSolicitudCeseTemaAlumno from "@/features/asesores/views/registro-solicitud-cese-tema";
 import React from "react";
 
 const Page: React.FC = () => {
-  return <div> Page </div>;
+  return <RegistrarSolicitudCeseTemaAlumno />;
 };
 
 export default Page;
