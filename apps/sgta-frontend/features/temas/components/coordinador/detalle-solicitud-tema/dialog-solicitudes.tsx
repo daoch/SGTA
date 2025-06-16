@@ -209,6 +209,8 @@ export const VariantCard = React.forwardRef<HTMLDivElement, VariantCardProps>(
   },
 );
 
+VariantCard.displayName = "VariantCard";
+
 const iconBgStyles = cva("rounded-full p-3 flex items-center justify-center", {
   variants: {
     color: {
