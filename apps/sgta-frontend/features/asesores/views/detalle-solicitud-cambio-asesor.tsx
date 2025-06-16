@@ -67,6 +67,7 @@ export default function SolicitudDetalle({
   const [comentario, setComentario] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [rolSolicitud, setRolSolicitud] = useState<string | null>(null);
 
   const getRolSolicitud = (rol: string): string => {
     switch (rol) {
@@ -80,7 +81,6 @@ export default function SolicitudDetalle({
         return "/";
     }
   };
-  const rolSolicitud = getRolSolicitud(rol);
 
   const loadUsuarioId = async () => {
     if (!user) return;
@@ -111,6 +111,20 @@ export default function SolicitudDetalle({
       fetchDataDetalle();
     }
   }, [user]);
+
+  useEffect(() => {
+    if (userId && solicitudData) {
+      if (userId === solicitudData.coordinador.id) {
+        setRolSolicitud(solicitudData.coordinador.rolSolicitud);
+      } else if (userId === solicitudData.asesorNuevo.id) {
+        setRolSolicitud(solicitudData.asesorNuevo.rolSolicitud);
+      } else if (userId === solicitudData.asesorActual.id) {
+        setRolSolicitud(solicitudData.asesorActual.rolSolicitud);
+      } else {
+        setRolSolicitud(null); // o "DESCONOCIDO" si prefieres
+      }
+    }
+  }, [userId, solicitudData]);
 
   const fetchDataDetalle = async () => {
     setLoading(true);
@@ -144,6 +158,7 @@ export default function SolicitudDetalle({
     const participantes: UsuarioSolicitud[] = [
       solicitudData.solicitante,
       solicitudData.asesorNuevo,
+      solicitudData.asesorActual,
     ];
 
     let coordinador = solicitudData.coordinador;
@@ -599,14 +614,10 @@ export default function SolicitudDetalle({
 
         {/* Acciones Disponibles */}
         <AccionesDisponiblesSolicitud
-          rol={rol}
-          estadoCoordinador={
-            solicitudData?.coordinador.accionSolicitud ?? "SIN_ACCION"
-          }
-          estadoNuevoAsesor={
-            solicitudData?.asesorNuevo.accionSolicitud ?? "SIN_ACCION"
-          }
-          nombreNuevoAsesor={solicitudData?.asesorNuevo.nombres || ""}
+          rol={rolSolicitud}
+          coordinador={solicitudData?.coordinador}
+          nuevoAsesor={solicitudData?.asesorNuevo}
+          anteriorAsesor={solicitudData?.asesorActual}
           handleAprobar={handleAprobar}
           handleRechazar={handleRechazar}
           onEnviarRecordatorio={handleEnviarRecordatorio}
