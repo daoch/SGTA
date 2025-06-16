@@ -119,12 +119,12 @@ export default function registrarSolicitudCeseTemaAlumno() {
       const resultado = await registrarSolicitudCeseTema({
         alumnoId: userId,
         temaId: temaActual.id,
-        estadoTema: temaActual.estado ?? "VENCIDO",
+        estadoTema: temaActual.estadoTema ?? "VENCIDO",
         motivo,
       });
 
       if (resultado.success) {
-        const estadoTema = temaActual.estado?.toLowerCase();
+        const estadoTema = temaActual.estadoTema?.toLowerCase();
 
         if (estadoTema === "inscrito" || estadoTema === "preinscrito") {
           setRegistroEstado("already_processed");
@@ -186,9 +186,9 @@ export default function registrarSolicitudCeseTemaAlumno() {
   const getModalDescription = () => {
     switch (registroEstado) {
       case "idle":
-        const estadoTema = temaActual?.estado?.toLowerCase();
+        const estadoTema = temaActual?.estadoTema?.toLowerCase();
         if (estadoTema === "inscrito" || estadoTema === "preinscrito") {
-          return `¿Estás seguro que deseas dejar el tema "${temaActual?.titulo}"? Nota: El tema ya tiene estado ${temaActual?.estado}, por lo que el cese será procesado inmediatamente.`;
+          return `¿Estás seguro que deseas dejar el tema "${temaActual?.titulo}"? Nota: El tema está en estado ${temaActual?.estadoTema}, por lo que el cese será procesado inmediatamente.`;
         } else {
           return `¿Estás seguro que deseas dejar el tema "${temaActual?.titulo}"? La solicitud deberá ser aceptada por la coordinadora.`;
         }

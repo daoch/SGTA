@@ -38,7 +38,7 @@ export interface DetalleSolicitudCambioAsesor {
 
 export interface SolicidudRegistro {
   solicitudId?: number;
-  alumnoId: number;
+  creadorId: number;
   temaId: number;
   estadoTema: string;
   asesorActualId: number;
@@ -58,6 +58,6 @@ export interface TemaActual {
   id: number;
   titulo: string;
   areas?: string;
-  estado?: string;
+  estadoTema?: string;
   idCreador: number;
 }
