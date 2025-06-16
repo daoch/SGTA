@@ -48,15 +48,17 @@ public interface UsuarioXSolicitudRepository extends JpaRepository<UsuarioXSolic
             @Param("aprobar") Boolean aprobar);
 
     @Modifying
-    @Query(value = "CALL aprobar_solicitud_cambio_asesor_asesor(:idCognito, :solicitudId, :comentario)", nativeQuery = true)
+    @Query(value = "CALL aprobar_solicitud_cambio_asesor_asesor(:idCognito, :solicitudId, :comentario, :rol_nombre)", nativeQuery = true)
     void aprobarSolicitudCambioAsesorAsesor(@Param("idCognito") String idCognito,
-                                 @Param("solicitudId") Integer solicitudId,
-                                            @Param("comentario") String comentario);
+                                            @Param("solicitudId") Integer solicitudId,
+                                            @Param("comentario") String comentario,
+                                            @Param("rol_nombre") String rol);
     @Modifying
-    @Query(value = "CALL rechazar_solicitud_cambio_asesor_asesor(:idCognito, :solicitudId, :comentario)", nativeQuery = true)
+    @Query(value = "CALL rechazar_solicitud_cambio_asesor_asesor(:idCognito, :solicitudId, :comentario, rol_nombre)", nativeQuery = true)
     void rechazarSolicitudCambioAsesorAsesor(@Param("idCognito") String idCognito,
                                             @Param("solicitudId") Integer solicitudId,
-                                             @Param("comentario") String comentario);
+                                             @Param("comentario") String comentario,
+                                             @Param("rol_nombre") String rol);
     @Modifying
     @Query(value = "CALL rechazar_solicitud_cambio_asesor_coordinador(:idCognito, :solicitudId, :comentario)", nativeQuery = true)
     void rechazarSolicitudCambioAsesorCoordinador(@Param("idCognito") String idCognito,

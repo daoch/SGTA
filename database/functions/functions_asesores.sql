@@ -874,7 +874,8 @@ $$;
 CREATE OR REPLACE PROCEDURE aprobar_solicitud_cambio_asesor_asesor(
     p_id_cognito TEXT,
     p_solicitud_id INTEGER,
-    p_comentario TEXT
+    p_comentario TEXT,
+    p_rol TEXT
 )
 LANGUAGE plpgsql
 AS $$
@@ -892,13 +893,13 @@ BEGIN
         RAISE EXCEPTION 'Usuario con id_cognito % no encontrado', p_id_cognito;
     END IF;
 
-    -- Obtener el rol_solicitud_id correspondiente a 'ASESOR_ENTRADA'
+    -- Obtener el rol_solicitud_id correspondiente a 'ASESOR_ENTRADA' o 'ASESOR_ACTUAL'
     SELECT rol_solicitud_id INTO v_rol_id
     FROM rol_solicitud
-    WHERE nombre = 'ASESOR_ENTRADA';
+    WHERE nombre = p_rol;
 
     IF NOT FOUND THEN
-        RAISE EXCEPTION 'Rol ASESOR_ENTRADA no encontrado';
+        RAISE EXCEPTION 'Rol % no encontrado', P_ROL;
     END IF;
 
     -- Obtener acción "APROBADO"
@@ -916,7 +917,7 @@ BEGIN
       AND rol_solicitud = v_rol_id;
 
     IF NOT FOUND THEN
-        RAISE EXCEPTION 'No se encontró registro en usuario_solicitud para el usuario %, solicitud %, y rol ASESOR_ENTRADA', v_usuario_id, p_solicitud_id;
+        RAISE EXCEPTION 'No se encontró registro en usuario_solicitud para el usuario %, solicitud %, y rol %', v_usuario_id, p_solicitud_id, p_rol;
     END IF;
 
 END;
@@ -925,7 +926,8 @@ $$;
 CREATE OR REPLACE PROCEDURE rechazar_solicitud_cambio_asesor_asesor(
     p_id_cognito TEXT,
     p_solicitud_id INTEGER,
-    p_comentario TEXT
+    p_comentario TEXT,
+    p_rol TEXT
 )
 LANGUAGE plpgsql
 AS $$
@@ -944,13 +946,13 @@ BEGIN
         RAISE EXCEPTION 'Usuario con id_cognito % no encontrado', p_id_cognito;
     END IF;
 
-    -- Obtener rol_solicitud_id de 'ASESOR_ENTRADA'
+    -- Obtener rol_solicitud_id de 'ASESOR_ENTRADA' or 'ASESOR_ACTUAL
     SELECT rol_solicitud_id INTO v_rol_id
     FROM rol_solicitud
-    WHERE nombre = 'ASESOR_ENTRADA';
+    WHERE nombre = p_rol;
 
     IF NOT FOUND THEN
-        RAISE EXCEPTION 'Rol ASESOR_ENTRADA no encontrado';
+        RAISE EXCEPTION 'Rol % no encontrado', p_rol;
     END IF;
 
     -- Obtener acción "RECHAZADO"
@@ -968,7 +970,7 @@ BEGIN
       AND rol_solicitud = v_rol_id;
 
     IF NOT FOUND THEN
-        RAISE EXCEPTION 'No se encontró registro en usuario_solicitud para el usuario %, solicitud %, y rol ASESOR_ENTRADA', v_usuario_id, p_solicitud_id;
+        RAISE EXCEPTION 'No se encontró registro en usuario_solicitud para el usuario %, solicitud %, y rol %', v_usuario_id, p_solicitud_id, p_rol;
     END IF;
 
     -- Cambiar estado de la solicitud a 'RECHAZADA'

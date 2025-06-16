@@ -74,9 +74,10 @@ public class SolicitudController {
     public ResponseEntity<Object> aprobarSolicitudCambioAsesorAsesor(
             @RequestParam(name = "idSolicitud") Integer idSolicitud,
             @RequestParam(name = "comentario") String comentario,
+            @RequestParam(name = "rol") String rol,
             HttpServletRequest request) {
         String cognitoId = jwtService.extractSubFromRequest(request);
-        solicitudService.aprobarRechazarSolicitudCambioAsesorAsesor(idSolicitud, cognitoId, comentario, true);
+        solicitudService.aprobarRechazarSolicitudCambioAsesorAsesor(idSolicitud, cognitoId, comentario, rol,true);
         return ResponseEntity.ok(null);
     }
 
@@ -84,9 +85,10 @@ public class SolicitudController {
     public ResponseEntity<Object> rechazarSolicitudCambioAsesorAsesor(
             @RequestParam(name = "idSolicitud") Integer idSolicitud,
             @RequestParam(name = "comentario") String comentario,
+            @RequestParam(name = "rol") String rol,
             HttpServletRequest request) {
         String cognitoId = jwtService.extractSubFromRequest(request);
-        solicitudService.aprobarRechazarSolicitudCambioAsesorAsesor(idSolicitud, cognitoId, comentario, false);
+        solicitudService.aprobarRechazarSolicitudCambioAsesorAsesor(idSolicitud, cognitoId, comentario,rol, false);
         return ResponseEntity.ok(null);
     }
 
