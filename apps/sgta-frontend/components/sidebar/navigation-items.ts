@@ -133,6 +133,11 @@ export const navigationItems: Record<string, NavigationItem[]> = {
           icon: CalendarIcon,
         },
         {
+          name: "Cese de tema",
+          href: "/asesor/asesores/cese-tema",
+          icon: UserX2,
+        },
+        {
           name: "Cambios de asesor",
           href: "/asesor/asesores/cambio-asesor",
           icon: RefreshCcw,
@@ -165,6 +170,11 @@ export const navigationItems: Record<string, NavigationItem[]> = {
           name: "Directorio de asesores",
           href: "/coordinador/asesores/directorio-de-asesores",
           icon: CalendarIcon,
+        },
+        {
+          name: "Cese de tema",
+          href: "/coordinador/asesores/cese-tema",
+          icon: UserX2,
         },
         {
           name: "Cese de asesoria",

@@ -56,6 +56,7 @@ export default function SolicitudDetalle({
   const [solicitudData, setSolicitudData] =
     useState<DetalleSolicitudCambioAsesor | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadingActions, setLoadingActions] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [participantesWorkflow, setParticipantesWorkflow] = useState<
     UsuarioSolicitud[]
@@ -101,14 +102,21 @@ export default function SolicitudDetalle({
 
   useEffect(() => {
     if (userId && solicitudData) {
-      if (userId === solicitudData.coordinador.id) {
-        setRolSolicitud(solicitudData.coordinador.rolSolicitud);
-      } else if (userId === solicitudData.asesorNuevo.id) {
-        setRolSolicitud(solicitudData.asesorNuevo.rolSolicitud);
-      } else if (userId === solicitudData.asesorActual.id) {
-        setRolSolicitud(solicitudData.asesorActual.rolSolicitud);
-      } else {
-        setRolSolicitud(null); // o "DESCONOCIDO" si prefieres
+      try {
+        if (userId === solicitudData.coordinador.id) {
+          setRolSolicitud(solicitudData.coordinador.rolSolicitud);
+        } else if (userId === solicitudData.asesorNuevo.id) {
+          setRolSolicitud(solicitudData.asesorNuevo.rolSolicitud);
+        } else if (userId === solicitudData.asesorActual.id) {
+          setRolSolicitud(solicitudData.asesorActual.rolSolicitud);
+        } else {
+          setRolSolicitud(null); // o "DESCONOCIDO" si prefieres
+        }
+      } catch (error) {
+        console.error("Error al determinar el rol de la solicitud:", error);
+        setRolSolicitud(null);
+      } finally {
+        setLoadingActions(false);
       }
     }
   }, [userId, solicitudData]);
@@ -117,6 +125,7 @@ export default function SolicitudDetalle({
 
   const fetchDataDetalle = async () => {
     setLoading(true);
+    setLoadingActions(true);
     setError(null);
     if (!idSolicitud) {
       setError("ID de solicitud no proporcionado");

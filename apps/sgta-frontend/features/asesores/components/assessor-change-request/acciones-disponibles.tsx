@@ -26,7 +26,7 @@ export default function AccionesDisponiblesSolicitud({
   handleRechazar,
   onEnviarRecordatorio,
 }: Readonly<AccionesDisponiblesSolicitudProps>) {
-  if (estadoGlobal !== "PENDIENTE") {
+  if (estadoGlobal !== "PENDIENTE" || rol === "REMITENTE") {
     return null;
   }
 

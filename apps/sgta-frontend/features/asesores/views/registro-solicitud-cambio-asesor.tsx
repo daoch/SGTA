@@ -138,15 +138,13 @@ export default function RegistrarSolicitudCambioAsesor() {
           rol: roles[index] || null,
         }));
         const tema = temaActual as TemaActual;
-        const existe = asesoresConRol.some(
-          (asesor) => asesor.id === idCreador,
-        );
+        const existe = asesoresConRol.some((asesor) => asesor.id === idCreador);
         console.log("asesores: ", asesoresConRol);
         console.log("idCreador: ", idCreador);
         setTemaActual(tema);
         setAsesoresActuales(asesoresConRol);
         setPropuestoXAsesor(existe);
-        setIdCreador(idCreador)
+        setIdCreador(idCreador);
       } catch (error) {
         console.error("Error al cargar información de tesis:", error);
       } finally {
@@ -172,7 +170,13 @@ export default function RegistrarSolicitudCambioAsesor() {
   const confirmarRegistro = async () => {
     setRegistroEstado("loading");
 
-    if (!nuevoAsesor || !temaActual || !asesorPorCambiar || !userId || !idCreador) {
+    if (
+      !nuevoAsesor ||
+      !temaActual ||
+      !asesorPorCambiar ||
+      !userId ||
+      !idCreador
+    ) {
       setRegistroEstado("error");
       setMensajeRegistro(
         "Debes seleccionar un nuevo asesor antes de continuar.",
