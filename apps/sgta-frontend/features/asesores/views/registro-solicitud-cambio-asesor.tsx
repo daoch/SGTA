@@ -68,7 +68,9 @@ export default function RegistrarSolicitudCambioAsesor() {
     null,
   );
   const [asesorPorCambiar, setAsesorPorCambiar] = useState<Asesor | null>(null);
-  const [propuestoXAsesor, setPropuestoXAsesor] = useState<boolean>(false);
+  const [propuestoXAsesor, setPropuestoXAsesor] = useState<boolean | null>(
+    null,
+  );
 
   // Estados para el modal
   const [modalOpen, setModalOpen] = useState(false);
@@ -151,6 +153,8 @@ export default function RegistrarSolicitudCambioAsesor() {
     fetchData();
   }, [userId]);
 
+  console.log("Propuesto por asesor:", propuestoXAsesor);
+
   // Función para manejar el registro de la solicitud
   const handleRegistrarSolicitud = async () => {
     if (!nuevoAsesor || !motivo.trim()) {
@@ -176,7 +180,7 @@ export default function RegistrarSolicitudCambioAsesor() {
       const resultado = await registrarSolicitudCambioAsesor({
         creadorId: temaActual.idCreador,
         temaId: temaActual.id,
-        estadoTema: temaActual.estado ?? "Vencido",
+        estadoTema: temaActual.estadoTema ?? "Vencido",
         asesorActualId: asesorPorCambiar.id,
         nuevoAsesorId: nuevoAsesor.id,
         motivo,
@@ -250,7 +254,7 @@ export default function RegistrarSolicitudCambioAsesor() {
       </div>
     );
 
-  if (!temaActual) {
+  if (!temaActual || propuestoXAsesor === null) {
     return (
       <div className="relative h-screen w-full flex items-center justify-center flex-col gap-4">
         <div
