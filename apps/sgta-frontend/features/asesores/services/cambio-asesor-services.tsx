@@ -11,7 +11,7 @@ import {
 import { Asesor } from "../types/perfil/entidades";
 
 export interface InformacionTesisResponse {
-  temaActual: TemaActual;
+  tema: TemaActual;
   asesores: Asesor[];
   roles: string[];
 }

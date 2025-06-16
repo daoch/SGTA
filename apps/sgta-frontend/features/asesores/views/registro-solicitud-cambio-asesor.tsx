@@ -130,17 +130,17 @@ export default function RegistrarSolicitudCambioAsesor() {
       if (!userId) return;
       try {
         setIsLoading(true);
-        const { temaActual, asesores, roles } =
+        const { tema, asesores, roles } =
           await getInformacionTesisPorAlumno(userId);
         const asesoresConRol = asesores.map((asesor, index) => ({
           ...asesor,
           rol: roles[index] || null,
         }));
-        setTemaActual(temaActual);
+        setTemaActual(tema);
         setAsesoresActuales(asesoresConRol);
 
         const existe = asesoresConRol.some(
-          (asesor) => asesor.id === temaActual.idCreador,
+          (asesor) => asesor.id === tema.idCreador,
         );
         setPropuestoXAsesor(existe);
       } catch (error) {
