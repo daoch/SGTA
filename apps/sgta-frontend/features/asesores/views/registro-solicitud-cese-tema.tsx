@@ -76,13 +76,13 @@ export default function registrarSolicitudCeseTemaAlumno() {
       if (!userId) return;
       try {
         setIsLoading(true);
-        const { tema, asesores, roles } =
+        const { temaActual, asesores, roles } =
           await getInformacionTesisPorAlumno(userId);
         const asesoresConRol = asesores.map((asesor, index) => ({
           ...asesor,
           rol: roles[index] || null,
         }));
-        setTemaActual(tema);
+        setTemaActual(temaActual);
         setAsesoresActuales(asesoresConRol);
       } catch (error) {
         console.error("Error al cargar información de tesis:", error);

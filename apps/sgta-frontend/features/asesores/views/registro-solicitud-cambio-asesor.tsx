@@ -130,18 +130,18 @@ export default function RegistrarSolicitudCambioAsesor() {
       if (!userId) return;
       try {
         setIsLoading(true);
-        const { tema, asesores, roles } =
+        const { temaActual, asesores, roles } =
           await getInformacionTesisPorAlumno(userId);
         const asesoresConRol = asesores.map((asesor, index) => ({
           ...asesor,
           rol: roles[index] || null,
         }));
-        setTemaActual(tema);
-        setAsesoresActuales(asesoresConRol);
-
+        const tema = temaActual as TemaActual;
         const existe = asesoresConRol.some(
           (asesor) => asesor.id === tema.idCreador,
         );
+        setTemaActual(tema);
+        setAsesoresActuales(asesoresConRol);
         setPropuestoXAsesor(existe);
       } catch (error) {
         console.error("Error al cargar información de tesis:", error);
