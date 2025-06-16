@@ -7,6 +7,7 @@ import { UsuarioSolicitud } from "../../types/cambio-asesor/entidades";
 
 interface AccionesDisponiblesSolicitudProps {
   rol?: string | null;
+  accionActual?: string | null;
   coordinador: UsuarioSolicitud | undefined;
   nuevoAsesor: UsuarioSolicitud | undefined;
   anteriorAsesor: UsuarioSolicitud | undefined;
@@ -18,6 +19,7 @@ interface AccionesDisponiblesSolicitudProps {
 
 export default function AccionesDisponiblesSolicitud({
   rol,
+  accionActual,
   coordinador,
   nuevoAsesor,
   anteriorAsesor,
@@ -26,7 +28,12 @@ export default function AccionesDisponiblesSolicitud({
   handleRechazar,
   onEnviarRecordatorio,
 }: Readonly<AccionesDisponiblesSolicitudProps>) {
-  if (estadoGlobal !== "PENDIENTE" || rol === "REMITENTE" || !rol) {
+  if (
+    estadoGlobal !== "PENDIENTE" ||
+    rol === "REMITENTE" ||
+    !rol ||
+    accionActual !== "PENDIENTE_ACCION"
+  ) {
     return null;
   }
 
@@ -39,7 +46,7 @@ export default function AccionesDisponiblesSolicitud({
     );
   }
 
-  console.log(estadoGlobal);
+  console.log("accion: ", accionActual);
 
   function debeMostrarBotones(
     rolSolicitud: string,
