@@ -20,7 +20,10 @@ INSERT INTO tipo_solicitud (nombre,
     VALUES ('Aprobación de tema (por coordinador)', 'Solicitud para que el coordinador apruebe el tema'),
            ('Solicitud de cambio de título', 'Modificar el título del tema'),
            ('Solicitud de cambio de resumen', 'Modificar el resumen del tema'),
-           ('Cambio de asesor (por asesor)', 'Solicitud para que el coordinador apruebe el cambio de asesores');
+           ('Cambio de asesor (por asesor)', 'Solicitud para que el coordinador apruebe el cambio de asesores'),
+           ('Solicitud de cambio de objetivos', 'Modificar los objetivos del tema'),
+           ('Solicitud de cambio de área', 'Modificar el área del tema'),
+           ('Solicitud de cambio de subárea', 'Modificar el subárea del tema');
 
 
 INSERT INTO tipo_notificacion (nombre,
@@ -29,7 +32,9 @@ INSERT INTO tipo_notificacion (nombre,
     VALUES ('informativa', 'Mensaje informativo para el usuario', 0),
            ('advertencia', 'Señal de posible problema o riesgo', 1),
            ('recordatorio', 'Recordatorio de acción pendiente', 2),
-           ('error', 'Notificación de error crítico', 3);
+           ('error', 'Notificación de error crítico', 3),
+           ('informacion', 'Notificaciones informativas generales', 3),
+           ('exito', 'Confirmaciones de operaciones exitosas', 4);
 
 
 INSERT INTO tipo_rechazo_tema (nombre, descripcion)
