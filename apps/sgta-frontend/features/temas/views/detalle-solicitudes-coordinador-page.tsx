@@ -75,6 +75,7 @@ export default function DetalleSolicitudesCoordinadorPage({
   const [loading, setLoading] = useState(false);
   const [similares, setSimilares] = useState<TemaSimilar[] | []>([]);
   const [solicitudes, setSolicitudes] = useState<SolicitudTema[] | []>([]);
+  const [okCount, setOkCount] = useState(0);
 
   const errorTexts = {
     tipoSolicitud: "Ingresar el tipo de solicitud.",
@@ -227,7 +228,14 @@ export default function DetalleSolicitudesCoordinadorPage({
     <AnalisisSimilitudTema similares={similares} />
   );
 
-  const moduloSolicitudes = <DialogSolicitudes solicitudes={solicitudes} />;
+  const moduloSolicitudes = (
+    <DialogSolicitudes
+      solicitudes={solicitudes}
+      estadoTema={solicitud.estado}
+      okCount={okCount}
+      setOkCount={setOkCount}
+    />
+  );
 
   return (
     <>
@@ -246,11 +254,6 @@ export default function DetalleSolicitudesCoordinadorPage({
 
           {/* #2 - Column */}
           <div className="flex flex-col gap-4 md:w-2/5">
-            {/* Similitud */}
-            {[EstadoTemaNombre.REGISTRADO, EstadoTemaNombre.RECHAZADO].includes(
-              solicitud.estado,
-            ) && moduloAnalisisSimilitud}
-
             {EstadoTemaNombre.INSCRITO !== solicitud.estado &&
               moduloSolicitudes}
 
@@ -268,6 +271,11 @@ export default function DetalleSolicitudesCoordinadorPage({
                 comentarioOpcional={tipoSolicitud === "no-enviar"}
               />
             )}
+
+            {/* Similitud */}
+            {[EstadoTemaNombre.REGISTRADO, EstadoTemaNombre.RECHAZADO].includes(
+              solicitud.estado,
+            ) && moduloAnalisisSimilitud}
 
             {/* Actions */}
             <AccionesDetalleSoliTema
