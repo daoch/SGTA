@@ -75,7 +75,9 @@ export default function DetalleSolicitudesCoordinadorPage({
   const [loading, setLoading] = useState(false);
   const [similares, setSimilares] = useState<TemaSimilar[] | []>([]);
   const [solicitudes, setSolicitudes] = useState<SolicitudTema[] | []>([]);
-  const [okCount, setOkCount] = useState(0);
+  const [listoSolicitudes, setListoSolicitudes] = useState(
+    solicitud.estado !== EstadoTemaNombre.OBSERVADO,
+  );
 
   const errorTexts = {
     tipoSolicitud: "Ingresar el tipo de solicitud.",
@@ -185,8 +187,16 @@ export default function DetalleSolicitudesCoordinadorPage({
 
   async function getSolicitudes() {
     try {
-      const data = await fetchSolicitudesDeTema(solicitud.tema.id);
+      const data: SolicitudTema[] | [] = await fetchSolicitudesDeTema(
+        solicitud.tema.id,
+      );
       setSolicitudes(data);
+      setListoSolicitudes(
+        data.reduce(
+          (acc, curr) => acc && curr.estado_solicitud !== "PENDIENTE",
+          true,
+        ),
+      );
     } catch (error) {
       console.error("Error al obtener las solicitudes del tema:", error);
       setSolicitudes([]);
@@ -213,7 +223,11 @@ export default function DetalleSolicitudesCoordinadorPage({
       show: [EstadoTemaNombre.INSCRITO, EstadoTemaNombre.OBSERVADO].includes(
         solicitud.estado,
       ),
-      disabled: tipoSolicitud !== "no-enviar" || loading,
+      disabled:
+        (!listoSolicitudes &&
+          solicitud.estado === EstadoTemaNombre.OBSERVADO) ||
+        tipoSolicitud !== "no-enviar" ||
+        loading,
     },
     rechazar: {
       show: [EstadoTemaNombre.INSCRITO, EstadoTemaNombre.OBSERVADO].includes(
@@ -232,8 +246,8 @@ export default function DetalleSolicitudesCoordinadorPage({
     <DialogSolicitudes
       solicitudes={solicitudes}
       estadoTema={solicitud.estado}
-      okCount={okCount}
-      setOkCount={setOkCount}
+      listoSolicitudes={listoSolicitudes}
+      setListoSolicitudes={setListoSolicitudes}
     />
   );
 

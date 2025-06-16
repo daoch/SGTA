@@ -17,11 +17,13 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { EstadoTemaNombre } from "@/features/temas/types/temas/enums";
 
+type VariantColor = "red" | "green" | "neutro";
+
 interface DialogSolicitudesProps {
   solicitudes: SolicitudTema[] | [];
   estadoTema: EstadoTemaNombre;
-  okCount: number;
-  setOkCount: React.Dispatch<React.SetStateAction<number>>;
+  listoSolicitudes: boolean;
+  setListoSolicitudes: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const labelTexts = {
@@ -39,8 +41,8 @@ const texts = {
 export const DialogSolicitudes: React.FC<DialogSolicitudesProps> = ({
   solicitudes,
   estadoTema,
-  okCount,
-  setOkCount,
+  listoSolicitudes,
+  setListoSolicitudes,
 }) => {
   const [open, setOpen] = useState(false);
   const [atendidas, setAtendidas] = useState<Record<number, boolean>>({});
@@ -48,9 +50,8 @@ export const DialogSolicitudes: React.FC<DialogSolicitudesProps> = ({
   const handleToggleAtendida = (id: number) => {
     setAtendidas((prev) => {
       const nueva = { ...prev, [id]: !prev[id] };
-      // Actualiza okCount según el nuevo estado
-      if (nueva[id]) setOkCount((c) => c + 1);
-      else setOkCount((c) => c - 1);
+      const okCount = Object.values(nueva).filter(Boolean).length;
+      setListoSolicitudes(okCount >= counts.PENDIENTE);
       return nueva;
     });
   };
@@ -70,9 +71,9 @@ export const DialogSolicitudes: React.FC<DialogSolicitudesProps> = ({
   const requiereAtencion =
     estadoTema !== EstadoTemaNombre.REGISTRADO && counts.PENDIENTE > 0;
 
-  let variant: "red" | "green" | "neutro";
+  let variant: VariantColor;
   if (requiereAtencion) {
-    variant = okCount < counts.PENDIENTE ? "red" : "green";
+    variant = !listoSolicitudes ? "red" : "green";
   } else {
     variant = "neutro";
   }
@@ -133,14 +134,41 @@ export const DialogSolicitudes: React.FC<DialogSolicitudesProps> = ({
           <DialogTitle>Solicitudes ({solicitudes.length})</DialogTitle>
         </DialogHeader>
         <div className="space-y-2">
-          {solicitudes.map((sol) => (
-            <div key={sol.solicitud_id} className="border-b pb-2">
-              <div className="font-semibold">{sol.tipo_solicitud}</div>
-              <div className="text-xs text-gray-500">
-                {sol.estado_solicitud}
+          {solicitudes.map((sol) => {
+            const isAtendida = atendidas[sol.solicitud_id] ?? false;
+            return (
+              <div
+                key={sol.solicitud_id}
+                className="border-b pb-2 flex items-center justify-between"
+              >
+                <div>
+                  <div className="font-semibold">{sol.tipo_solicitud}</div>
+                  <div className="text-xs text-gray-500">
+                    {sol.estado_solicitud}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleToggleAtendida(sol.solicitud_id)}
+                  className={
+                    isAtendida
+                      ? "flex items-center gap-1 px-3 py-1 rounded bg-green-600 text-white font-medium transition-colors"
+                      : "flex items-center gap-1 px-3 py-1 rounded border border-gray-200 text-[#23293B] font-medium bg-white hover:bg-gray-50 transition-colors"
+                  }
+                >
+                  <CheckCircle
+                    className={
+                      isAtendida
+                        ? "w-4 h-4 text-white"
+                        : "w-4 h-4 text-gray-400"
+                    }
+                    fill={isAtendida ? "currentColor" : "none"}
+                  />
+                  {isAtendida ? "Atendida" : "Marcar como atendida"}
+                </button>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </DialogContent>
     </Dialog>
@@ -166,7 +194,7 @@ const cardStyles = cva(
 
 export interface VariantCardProps
   extends React.ComponentPropsWithoutRef<typeof Card> {
-  color?: "red" | "green" | "neutro";
+  color?: VariantColor;
 }
 
 export const VariantCard = React.forwardRef<HTMLDivElement, VariantCardProps>(
