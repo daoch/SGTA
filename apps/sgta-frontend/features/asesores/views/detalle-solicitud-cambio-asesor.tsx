@@ -294,7 +294,7 @@ export default function SolicitudDetalle({
         return "Alumno";
       case "DESTINATARIO":
         return "Coordinador";
-      case "ASESOR_SALIDA":
+      case "ASESOR_ACTUAL":
         return "Asesor actual";
       case "ASESOR_ENTRADA":
         return "Nuevo asesor";
