@@ -10,6 +10,7 @@ interface AccionesDisponiblesSolicitudProps {
   coordinador: UsuarioSolicitud | undefined;
   nuevoAsesor: UsuarioSolicitud | undefined;
   anteriorAsesor: UsuarioSolicitud | undefined;
+  estadoGlobal: string;
   handleAprobar: () => void;
   handleRechazar: () => void;
   onEnviarRecordatorio: () => void;
@@ -20,10 +21,15 @@ export default function AccionesDisponiblesSolicitud({
   coordinador,
   nuevoAsesor,
   anteriorAsesor,
+  estadoGlobal,
   handleAprobar,
   handleRechazar,
   onEnviarRecordatorio,
 }: Readonly<AccionesDisponiblesSolicitudProps>) {
+  if (estadoGlobal !== "PENDIENTE") {
+    return null;
+  }
+
   function debeMostrarRecordatorio(
     rolSolicitud: string,
     accionAnterior: string,
@@ -33,6 +39,8 @@ export default function AccionesDisponiblesSolicitud({
     );
   }
 
+  console.log(estadoGlobal);
+
   function debeMostrarBotones(
     rolSolicitud: string,
     accionAnterior: string,
@@ -40,15 +48,18 @@ export default function AccionesDisponiblesSolicitud({
     return !debeMostrarRecordatorio(rolSolicitud, accionAnterior);
   }
 
-  const mostrarRecordatorio = debeMostrarRecordatorio(
-    rol ?? "",
-    anteriorAsesor?.accionSolicitud ?? "",
-  );
+  const mostrarRecordatorio =
+    estadoGlobal === "PENDIENTE"
+      ? debeMostrarRecordatorio(
+          rol ?? "",
+          anteriorAsesor?.accionSolicitud ?? "",
+        )
+      : false;
 
-  const mostrarBotones = debeMostrarBotones(
-    rol ?? "",
-    anteriorAsesor?.accionSolicitud ?? "",
-  );
+  const mostrarBotones =
+    estadoGlobal === "PENDIENTE"
+      ? debeMostrarBotones(rol ?? "", anteriorAsesor?.accionSolicitud ?? "")
+      : false;
 
   return (
     <Card>

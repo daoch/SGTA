@@ -69,19 +69,6 @@ export default function SolicitudDetalle({
   const [isSuccess, setIsSuccess] = useState(false);
   const [rolSolicitud, setRolSolicitud] = useState<string | null>(null);
 
-  const getRolSolicitud = (rol: string): string => {
-    switch (rol) {
-      case "alumno":
-        return "REMITENTE";
-      case "coordinador":
-        return "DESTINATARIO";
-      case "asesor":
-        return "ASESOR_ENTRADA";
-      default:
-        return "/";
-    }
-  };
-
   const loadUsuarioId = async () => {
     if (!user) return;
 
@@ -126,6 +113,8 @@ export default function SolicitudDetalle({
     }
   }, [userId, solicitudData]);
 
+  console.log("Rol de solicitud:", rolSolicitud);
+
   const fetchDataDetalle = async () => {
     setLoading(true);
     setError(null);
@@ -136,6 +125,7 @@ export default function SolicitudDetalle({
     }
     try {
       const data = await getDetalleSolicitudCambioAsesor(idSolicitud);
+      console.log("Datos de la solicitud:", data);
       procesarParticipantesWorkflow(data);
       console.log("Datos de la solicitud obtenidos:", data);
     } catch (err) {
@@ -155,11 +145,13 @@ export default function SolicitudDetalle({
       return;
     }
 
-    const participantes: UsuarioSolicitud[] = [
-      solicitudData.solicitante,
-      solicitudData.asesorNuevo,
-      solicitudData.asesorActual,
-    ];
+    const participantes: UsuarioSolicitud[] = [solicitudData.solicitante];
+
+    if (solicitudData.asesorActual.accionSolicitud !== "SIN_ACCION") {
+      participantes.push(solicitudData.asesorActual);
+    }
+
+    participantes.push(solicitudData.asesorNuevo);
 
     let coordinador = solicitudData.coordinador;
 
@@ -361,13 +353,21 @@ export default function SolicitudDetalle({
 
       if (modalType === "aprobar") {
         if (rol === "asesor")
-          await aceptarSolicitudPorAsesor(idSolicitud, comentario);
+          await aceptarSolicitudPorAsesor(
+            idSolicitud,
+            rolSolicitud,
+            comentario,
+          );
         if (rol === "coordinador") {
           await aceptarSolicitudPorCoordinador(idSolicitud, comentario);
         }
       } else if (modalType === "rechazar") {
         if (rol === "asesor")
-          await rechazarSolicitudPorAsesor(idSolicitud, comentario);
+          await rechazarSolicitudPorAsesor(
+            idSolicitud,
+            rolSolicitud,
+            comentario,
+          );
         if (rol === "coordinador")
           await rechazarSolicitudPorCoordinador(idSolicitud, comentario);
       }
@@ -618,6 +618,7 @@ export default function SolicitudDetalle({
           coordinador={solicitudData?.coordinador}
           nuevoAsesor={solicitudData?.asesorNuevo}
           anteriorAsesor={solicitudData?.asesorActual}
+          estadoGlobal={solicitudData?.estadoGlobal ?? "PENDIENTE"}
           handleAprobar={handleAprobar}
           handleRechazar={handleRechazar}
           onEnviarRecordatorio={handleEnviarRecordatorio}

@@ -198,6 +198,7 @@ export async function rechazarSolicitud(
 
 export async function aceptarSolicitudPorAsesor(
   idSolicitud: number,
+  rol: string,
   comentario: string,
 ): Promise<SolicitudCambioAsesorResumen[]> {
   try {
@@ -207,6 +208,7 @@ export async function aceptarSolicitudPorAsesor(
       {
         params: {
           idSolicitud,
+          rol,
           comentario,
         },
       },
@@ -225,6 +227,7 @@ export async function aceptarSolicitudPorAsesor(
 
 export async function rechazarSolicitudPorAsesor(
   idSolicitud: number,
+  rol: string,
   comentario: string,
 ): Promise<SolicitudCambioAsesorResumen[]> {
   try {
@@ -234,6 +237,7 @@ export async function rechazarSolicitudPorAsesor(
       {
         params: {
           idSolicitud,
+          rol,
           comentario,
         },
       },
