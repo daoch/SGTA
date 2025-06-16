@@ -12,7 +12,7 @@ export function EstadisticasAsesorCard({
   totalProyectos,
   tesistasActuales = 0,
   limiteTesis = 0,
-}: EstadisticasAsesorCardProps) {
+}: Readonly<EstadisticasAsesorCardProps>) {
   const tesistas = tesistasActuales ?? 0;
   const limite = limiteTesis ?? 0;
   const proporcion = limite > 0 ? tesistas / limite : 0;
