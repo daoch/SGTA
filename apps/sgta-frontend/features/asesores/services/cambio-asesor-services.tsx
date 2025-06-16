@@ -202,6 +202,7 @@ export async function aceptarSolicitudPorAsesor(
   comentario: string,
 ): Promise<SolicitudCambioAsesorResumen[]> {
   try {
+    console.log("estado enviado:", rol);
     const response = await axiosInstance.patch(
       "/solicitudes/aprobarSolicitudCambioAsesorAsesor",
       null,

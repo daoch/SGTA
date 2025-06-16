@@ -69,6 +69,7 @@ export default function SolicitudDetalle({
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [rolSolicitud, setRolSolicitud] = useState<string | null>(null);
+  const [accionActual, setAccionActual] = useState<string | null>(null);
 
   const loadUsuarioId = async () => {
     if (!user) return;
@@ -103,14 +104,23 @@ export default function SolicitudDetalle({
   useEffect(() => {
     if (userId && solicitudData) {
       try {
-        if (userId === solicitudData.coordinador.id) {
-          setRolSolicitud(solicitudData.coordinador.rolSolicitud);
-        } else if (userId === solicitudData.asesorNuevo.id) {
-          setRolSolicitud(solicitudData.asesorNuevo.rolSolicitud);
-        } else if (userId === solicitudData.asesorActual.id) {
-          setRolSolicitud(solicitudData.asesorActual.rolSolicitud);
-        } else {
-          setRolSolicitud(null); // o "DESCONOCIDO" si prefieres
+        if (rol !== "coordinador")
+          if (userId === solicitudData.coordinador.id) {
+            setRolSolicitud(solicitudData.coordinador.rolSolicitud);
+            setAccionActual(solicitudData.coordinador.accionSolicitud);
+          } else if (userId === solicitudData.asesorNuevo.id) {
+            setRolSolicitud(solicitudData.asesorNuevo.rolSolicitud);
+            setAccionActual(solicitudData.asesorNuevo.accionSolicitud);
+          } else if (userId === solicitudData.asesorActual.id) {
+            setRolSolicitud(solicitudData.asesorActual.rolSolicitud);
+            setAccionActual(solicitudData.asesorActual.accionSolicitud);
+          } else {
+            setRolSolicitud(null); // o "DESCONOCIDO" si prefieres
+            setAccionActual("SIN_ACCION");
+          }
+        else {
+          setRolSolicitud("DESTINATARIO");
+          setAccionActual("PENDIENTE_ACCION");
         }
       } catch (error) {
         console.error("Error al determinar el rol de la solicitud:", error);
@@ -143,6 +153,8 @@ export default function SolicitudDetalle({
       setLoading(false);
     }
   };
+
+  console.log("desde la vista: ", rol);
 
   function procesarParticipantesWorkflow(
     solicitudData: DetalleSolicitudCambioAsesor | null,
@@ -227,6 +239,8 @@ export default function SolicitudDetalle({
         return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
+
+  console.log("accion: ", accionActual);
 
   const getStatusIcon = (estado: string, rolSolicitud: string) => {
     const baseClasses =
@@ -359,6 +373,8 @@ export default function SolicitudDetalle({
         setError("No se ha podido identificar al usuario.");
         return;
       }
+
+      console.log(rolSolicitud);
 
       if (modalType === "aprobar") {
         if (rol === "asesor")
@@ -624,6 +640,7 @@ export default function SolicitudDetalle({
         {/* Acciones Disponibles */}
         <AccionesDisponiblesSolicitud
           rol={rolSolicitud}
+          accionActual={accionActual}
           coordinador={solicitudData?.coordinador}
           nuevoAsesor={solicitudData?.asesorNuevo}
           anteriorAsesor={solicitudData?.asesorActual}
