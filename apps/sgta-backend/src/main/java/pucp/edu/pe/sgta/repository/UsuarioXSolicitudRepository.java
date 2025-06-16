@@ -54,7 +54,7 @@ public interface UsuarioXSolicitudRepository extends JpaRepository<UsuarioXSolic
                                             @Param("comentario") String comentario,
                                             @Param("rol_nombre") String rol);
     @Modifying
-    @Query(value = "CALL rechazar_solicitud_cambio_asesor_asesor(:idCognito, :solicitudId, :comentario, rol_nombre)", nativeQuery = true)
+    @Query(value = "CALL rechazar_solicitud_cambio_asesor_asesor(:idCognito, :solicitudId, :comentario, :rol_nombre)", nativeQuery = true)
     void rechazarSolicitudCambioAsesorAsesor(@Param("idCognito") String idCognito,
                                             @Param("solicitudId") Integer solicitudId,
                                              @Param("comentario") String comentario,

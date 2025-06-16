@@ -1360,7 +1360,6 @@ SELECT
 	where
 		ut1.tema_id = t.tema_id
 		and creador = true
-		and ut1.activo = true
   ) tabla_creador on true
   WHERE et.nombre IN ('INSCRITO', 'REGISTRADO', 'EN_PROGRESO', 'PAUSADO')
   AND uta.usuario_id = p_id_alumno
