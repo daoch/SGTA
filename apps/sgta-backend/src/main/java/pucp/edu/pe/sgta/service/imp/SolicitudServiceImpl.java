@@ -589,12 +589,6 @@ public class SolicitudServiceImpl implements SolicitudService {
             Solicitud solicitud = solicitudRepository.findById(solicitudId)
                     .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
 
-            // Check if it's in pending status
-            if (solicitud.getEstado() != 1) {
-                log.error("Request is not in pending status");
-                continue;
-            }
-
             // Get the tipo de solicitud to determine if it's a title or summary change
             // request
             String tipoSolicitudNombre = solicitud.getTipoSolicitud().getNombre();
