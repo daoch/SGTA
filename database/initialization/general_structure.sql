@@ -227,5 +227,6 @@ INSERT INTO parametro_configuracion (nombre,
            ('Tiempo Limite Jurado','Tiempo limite para que jurado revise entregables',1, 'integer'),
            ('Peso Asesor','Peso asignado a la calificación del asesor en situaciones de evaluación que involucran la participación del jurado',1, 'integer'),
            ('Limite Propuestas Alumno', 'Define el límite en cantidad de propuestas de tema de un estudiante', 1, 'integer'),
-           ('Limite Postulaciones Alumno', 'Define el límite de postulaciones a temas libres que puede realizar un estudiante', 1, 'integer');
+           ('Limite Postulaciones Alumno', 'Define el límite de postulaciones a temas libres que puede realizar un estudiante', 1, 'integer'),
+           ('Tiempo Limite Jurado Expo', 'Tiempo limite para que jurado revise las exposiciones',1, 'integer');
 
