@@ -389,7 +389,7 @@ $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION listar_resumen_solicitud_cambio_asesor_usuario(
     p_usuario_id INTEGER,
-    p_rol_control TEXT
+    p_roles_control TEXT[]
 )
 RETURNS TABLE (
     solicitud_id INTEGER,
@@ -464,7 +464,7 @@ AS $$
 	    	JOIN accion_solicitud acs on acs.accion_solicitud_id = us.accion_solicitud
 	    	WHERE us.solicitud_id = s.solicitud_id
 	      		AND us.usuario_id = p_usuario_id
-		  		and rs.nombre = p_rol_control
+		  		and rs.nombre = ANY(p_roles_control)
 	    	LIMIT 1
 		) accion ON true
 
@@ -474,7 +474,7 @@ AS $$
         FROM usuario_solicitud us_control
         INNER JOIN rol_solicitud rs_control ON us_control.rol_solicitud = rs_control.rol_solicitud_id
         WHERE us_control.usuario_id = p_usuario_id
-          AND rs_control.nombre = p_rol_control
+          AND rs_control.nombre = ANY(p_roles_control)
     )
 	AND ts.nombre = 'Cambio de asesor (por asesor)'
 	ORDER BY s.fecha_creacion DESC
