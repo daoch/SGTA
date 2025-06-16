@@ -41,9 +41,10 @@ public class SolicitudController {
 
     @PostMapping("/registrarSolicitudCambioAsesor")
     public ResponseEntity<Object> registrarSolicitudCambioAsesor(
-            @RequestBody pucp.edu.pe.sgta.dto.asesores.SolicitudCambioAsesorDto solicitud) {
-
-        solicitud = solicitudService.registrarSolicitudCambioAsesor(solicitud);
+            @RequestBody pucp.edu.pe.sgta.dto.asesores.SolicitudCambioAsesorDto solicitud,
+            HttpServletRequest request) {
+        String cognitoId = jwtService.extractSubFromRequest(request);
+        solicitud = solicitudService.registrarSolicitudCambioAsesor(solicitud, cognitoId);
         return ResponseEntity.ok(solicitud);
     }
 

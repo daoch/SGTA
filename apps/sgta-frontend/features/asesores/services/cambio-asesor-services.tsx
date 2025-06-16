@@ -14,6 +14,7 @@ export interface InformacionTesisResponse {
   temaActual: TemaActual;
   asesores: Asesor[];
   roles: string[];
+  idCreador: number;
 }
 
 export async function getDetalleSolicitudCambioAsesor(

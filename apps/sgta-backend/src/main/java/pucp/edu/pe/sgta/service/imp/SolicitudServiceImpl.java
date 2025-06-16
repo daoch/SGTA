@@ -643,7 +643,11 @@ public class SolicitudServiceImpl implements SolicitudService {
     @Transactional
     @Override
     public pucp.edu.pe.sgta.dto.asesores.SolicitudCambioAsesorDto registrarSolicitudCambioAsesor(
-            pucp.edu.pe.sgta.dto.asesores.SolicitudCambioAsesorDto solicitud) {
+            pucp.edu.pe.sgta.dto.asesores.SolicitudCambioAsesorDto solicitud,
+            String cognitoId) {
+        //Obtener el Id del alumno //Si no existe ya tiene una validación interna
+        Integer idAlumno = usuarioServiceImpl.obtenerIdUsuarioPorCognito(cognitoId);
+
         //validar que no se cambie un asesor por el mismo
         if(Objects.equals(solicitud.getAsesorActualId(), solicitud.getNuevoAsesorId()))
             throw new RuntimeException("El asesor a cambiar no puede ser igual al asesor actual");
@@ -662,8 +666,6 @@ public class SolicitudServiceImpl implements SolicitudService {
                         usuarioXRolRepository.esProfesorAsesor(solicitud.getAsesorActualId())));
         if (!validacion)
             throw new RuntimeException("Asesor elegido no valido para cambio de asesor");
-
-        //Ya no validamos el alumno, cómo es él quien llama al api, es una validación previa
 
         //Ya no se obtiene el usuario del coordinador, cómo pueden haber varios coordinadores le puede llegar a cualquiera
         //Cambiando validación a obtenerIdCoordinadorPorUsuario -> obtenerCantidadDeCoordinadoresPorTema
@@ -700,7 +702,7 @@ public class SolicitudServiceImpl implements SolicitudService {
 
         // Tabla UsuarioSolicitud
             //Primero los usuarios
-        Usuario alumno = usuarioServiceImpl.buscarUsuarioPorId(solicitud.getAlumnoId(), "Alumno no encontrado");
+        Usuario alumno = usuarioServiceImpl.buscarUsuarioPorId(idAlumno, "Alumno no encontrado");
         Usuario asesorActual = usuarioServiceImpl.buscarUsuarioPorId(solicitud.getAsesorActualId(), "Asesor actual no encontrado");
         Usuario asesorNuevo = usuarioServiceImpl.buscarUsuarioPorId(solicitud.getNuevoAsesorId(), "Asesor entrante no encontrado");
             //Luego las acciones
@@ -728,7 +730,13 @@ public class SolicitudServiceImpl implements SolicitudService {
         UsuarioXSolicitud actualAsesor = new UsuarioXSolicitud();
         actualAsesor.setUsuario(asesorActual);
         actualAsesor.setSolicitud(nuevaSolicitud);
-        actualAsesor.setAccionSolicitud(sinAccion);
+        //Si el asesor que quiero cambiar es el creador de la tesis entonces necesitamos su validación
+        if(solicitud.getCreadorId().equals(solicitud.getAsesorActualId())){
+            actualAsesor.setAccionSolicitud(accionPendiente);
+        }else{
+            actualAsesor.setAccionSolicitud(sinAccion);
+
+        }
         actualAsesor.setRolSolicitud(rolAsesorActual);
         actualAsesor.setDestinatario(false);
 

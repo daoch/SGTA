@@ -71,6 +71,7 @@ export default function RegistrarSolicitudCambioAsesor() {
   const [propuestoXAsesor, setPropuestoXAsesor] = useState<boolean | null>(
     null,
   );
+  const [idCreador, setIdCreador] = useState<number | null>(null);
 
   // Estados para el modal
   const [modalOpen, setModalOpen] = useState(false);
@@ -130,7 +131,7 @@ export default function RegistrarSolicitudCambioAsesor() {
       if (!userId) return;
       try {
         setIsLoading(true);
-        const { temaActual, asesores, roles } =
+        const { temaActual, asesores, roles, idCreador } =
           await getInformacionTesisPorAlumno(userId);
         const asesoresConRol = asesores.map((asesor, index) => ({
           ...asesor,
@@ -138,11 +139,14 @@ export default function RegistrarSolicitudCambioAsesor() {
         }));
         const tema = temaActual as TemaActual;
         const existe = asesoresConRol.some(
-          (asesor) => asesor.id === tema.idCreador,
+          (asesor) => asesor.id === idCreador,
         );
+        console.log("asesores: ", asesoresConRol);
+        console.log("idCreador: ", idCreador);
         setTemaActual(tema);
         setAsesoresActuales(asesoresConRol);
         setPropuestoXAsesor(existe);
+        setIdCreador(idCreador)
       } catch (error) {
         console.error("Error al cargar información de tesis:", error);
       } finally {
@@ -168,7 +172,7 @@ export default function RegistrarSolicitudCambioAsesor() {
   const confirmarRegistro = async () => {
     setRegistroEstado("loading");
 
-    if (!nuevoAsesor || !temaActual || !asesorPorCambiar || !userId) {
+    if (!nuevoAsesor || !temaActual || !asesorPorCambiar || !userId || !idCreador) {
       setRegistroEstado("error");
       setMensajeRegistro(
         "Debes seleccionar un nuevo asesor antes de continuar.",
@@ -178,7 +182,7 @@ export default function RegistrarSolicitudCambioAsesor() {
 
     try {
       const resultado = await registrarSolicitudCambioAsesor({
-        creadorId: temaActual.idCreador,
+        creadorId: idCreador,
         temaId: temaActual.id,
         estadoTema: temaActual.estadoTema ?? "Vencido",
         asesorActualId: asesorPorCambiar.id,
