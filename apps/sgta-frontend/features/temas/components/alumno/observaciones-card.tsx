@@ -179,6 +179,28 @@ export function ObservacionesCard({ observaciones }: { observaciones: Observacio
               {obs.remitente.nombres} {obs.remitente.primer_apellido} -{" "}
               {new Date(obs.fecha_creacion).toLocaleDateString()}
             </div>
+            {modoEdicion && obs.tipo_solicitud === "Solicitud de cambio de título" && (
+              <div>
+                <label className="block text-sm font-medium mb-1 mt-2">Nuevo título</label>
+                <input
+                  className="border rounded px-2 py-1 w-full"
+                  placeholder={titulo}
+                  value={titulo}
+                  onChange={(e) => setTitulo(e.target.value)}
+                />
+              </div>
+            )}
+            {modoEdicion && obs.tipo_solicitud === "Solicitud de cambio de resumen" && (
+              <div>
+                <label className="block text-sm font-medium mb-1 mt-2">Nuevo resumen</label>
+                <textarea
+                  className="border rounded px-2 py-1 w-full"
+                  placeholder={descripcion}
+                  value={descripcion}
+                  onChange={(e) => setDescripcion(e.target.value)}
+                />
+              </div>
+            )}
           </div>
         ))}
       </CardContent>
