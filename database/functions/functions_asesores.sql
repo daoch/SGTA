@@ -1566,5 +1566,16 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION obtener_usuario_id_por_cognito_id(p_cognito_id TEXT)
+RETURNS INTEGER
+AS $$
+BEGIN
+    RETURN (
+        SELECT u.usuario_id
+        FROM usuario u
+        WHERE u.id_cognito = p_cognito_id
+    );
+END;
+$$ LANGUAGE plpgsql STABLE;
 
 
