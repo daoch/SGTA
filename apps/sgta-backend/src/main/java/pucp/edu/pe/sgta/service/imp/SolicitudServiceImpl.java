@@ -751,8 +751,16 @@ public class SolicitudServiceImpl implements SolicitudService {
     @Override
     public List<SolicitudCambioAsesorResumenDto> listarResumenSolicitudCambioAsesorUsuario(Integer idUsuario,
                                                                                            String rolSolicitud) {
+        //si el rolSolicitud es AsesorEntrada, entonces los roles a buscar es asesorEntrada y asesor actual, si array único
+        List<String> roles = new ArrayList<>();
+        if(Objects.equals(rolSolicitud, RolSolicitudEnum.ASESOR_ENTRADA.name())){
+            roles.add(RolSolicitudEnum.ASESOR_ENTRADA.name());
+            roles.add(RolSolicitudEnum.ASESOR_ACTUAL.name());
+        }else{
+            roles.add(RolSolicitudEnum.REMITENTE.name());
+        }
         List<Object[]> queryResult = solicitudRepository.listarResumenSolicitudCambioAsesorUsuario(idUsuario,
-                rolSolicitud);
+                Utils.convertListToPostgresArray(roles));
         List<SolicitudCambioAsesorResumenDto> solicitudes = new ArrayList<>();
         for (Object[] row : queryResult) {
             SolicitudCambioAsesorResumenDto solicitud = SolicitudCambioAsesorResumenDto.fromResultQuery(row);
