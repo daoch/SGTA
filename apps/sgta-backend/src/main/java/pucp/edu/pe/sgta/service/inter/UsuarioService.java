@@ -112,5 +112,10 @@ public interface UsuarioService {
 
     String obtenerCognitoPorId(Integer idUsuario);
 
+    Integer obtenerIdUsuarioPorCognito(String cognito);
+
     List<UsuarioRolRevisorDto> listarRevisoresPorCarrera(Integer carreraId);
+
+    List<PerfilAsesorDto> buscarAsesoresPorCadenaDeBusqueda(String cadena, Integer idUsuario);
+
 }

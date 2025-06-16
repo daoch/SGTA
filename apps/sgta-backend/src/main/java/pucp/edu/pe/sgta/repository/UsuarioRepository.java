@@ -59,6 +59,15 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
                                                         @Param("temaIds") String temaIds,
                                                         Pageable pageable);
 
+    @Query(value = "SELECT * FROM obtener_lista_directorio_asesores_alumno(:alumnoId,:cadenaBusqueda, :activo, " +
+            "cast(:areaIds as INTEGER[]), cast(:temaIds as INTEGER[]))", nativeQuery = true)
+    List<Object[]> buscarAsesoresPorCadenaDeBusqueda(@Param("alumnoId") Integer alumnoId,
+                                                        @Param("cadenaBusqueda") String cadenaBusqueda,
+                                                        @Param("activo") Boolean activo,
+                                                        @Param("areaIds") String areaIds,
+                                                        @Param("temaIds") String temaIds);
+
+
     @Query(value = """
             SELECT * FROM obtener_coordinador_por_carrera_usuario(:usuarioId)
             """, nativeQuery = true)
@@ -102,4 +111,6 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
 
     @Query(value = "SELECT * FROM listar_revisores_por_carrera(:carreraId)", nativeQuery = true)
     List<Object[]> listarRevisoresPorCarrera(@Param("carreraId") Integer carreraId);
+
+    Integer findUsuarioIdByIdCognito(String idCognito);
 }

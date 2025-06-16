@@ -251,6 +251,14 @@ public class UsuarioController {
         return new ResponseEntity<>(asesores, HttpStatus.OK);
     }
 
+    @GetMapping("/buscar-asesores-por-nombre")
+    public ResponseEntity<List<PerfilAsesorDto>> buscarAsesoresPorCadenaDeBusqueda(@RequestParam("nombre") String nombre, HttpServletRequest request) {
+        String cognitoId = jwtService.extractSubFromRequest(request);
+        Integer usuarioId = usuarioService.obtenerIdUsuarioPorCognito(cognitoId);
+        List<PerfilAsesorDto> asesores = usuarioService.buscarAsesoresPorCadenaDeBusqueda(nombre, usuarioId);
+        return new ResponseEntity<>(asesores, HttpStatus.OK);
+    }
+
     @PostMapping(value = "/carga-masiva", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> cargarUsuarios(@RequestPart("archivo") MultipartFile archivo,
                                                  @RequestPart UsuarioRegistroDto datosExtra) {

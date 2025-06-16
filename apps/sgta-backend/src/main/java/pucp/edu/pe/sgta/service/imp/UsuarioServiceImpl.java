@@ -1241,32 +1241,31 @@ public class UsuarioServiceImpl implements UsuarioService {
         return usuarioFotoDto;
     }
 
-    @Override
-    public Page<PerfilAsesorDto> getDirectorioDeAsesoresPorFiltros(FiltrosDirectorioAsesores filtros, Integer pageNumber, Boolean ascending) {
-        Integer pageSize = 5;
-        Pageable pageable;
-        if(ascending) {
-            pageable = PageRequest.of(pageNumber, pageSize, Sort.by("nombres","primer_apellido").ascending());
-        }else{
-            pageable = PageRequest.of(pageNumber, pageSize, Sort.by("nombres","primer_apellido").descending());
-        }
-        Page<Object[]> queryResults = usuarioRepository
-                .obtenerListaDirectorioAsesoresAlumno(filtros.getAlumnoId(),
-                        filtros.getCadenaBusqueda(),
-                        filtros.getActivo(),
-                        Utils.convertIntegerListToString(filtros.getIdAreas()),
-                        Utils.convertIntegerListToString(filtros.getIdTemas()),
-                        pageable);
-        List<Object[]> pageResults = queryResults.getContent();
+    public List<PerfilAsesorDto> buscarAsesoresPorCadenaDeBusqueda(String cadena, Integer idUsuario) {
+
+        List<Object[]> queryResults = usuarioRepository
+                .buscarAsesoresPorCadenaDeBusqueda(idUsuario,
+                        cadena,
+                        true,
+                        Utils.convertIntegerListToString(new ArrayList<>()),
+                        Utils.convertIntegerListToString(new ArrayList<>()));
+
+        castDirectoryQueryToDto(queryResults);
+        List<PerfilAsesorDto> perfilAsesorDtos = castDirectoryQueryToDto(queryResults);
+        return perfilAsesorDtos;
+
+    }
+
+    private List<PerfilAsesorDto> castDirectoryQueryToDto(List<Object[]> queryResults) {
         List<PerfilAsesorDto> perfilAsesorDtos = new ArrayList<>();
 
-        for (Object[] result : pageResults) {
+        for (Object[] result : queryResults) {
             PerfilAsesorDto perfil = PerfilAsesorDto.fromQueryDirectorioAsesores(result);
             // el numero de tesistas actuales
             Integer cantTesistas;
             List<Object[]> tesistas = usuarioXTemaRepository.listarNumeroTesistasAsesor(perfil.getId());// ASEGURADO
-                                                                                                        // sale 1 sola
-                                                                                                        // fila
+            // sale 1 sola
+            // fila
             cantTesistas = (Integer) tesistas.get(0)[0];
             perfil.setTesistasActuales(cantTesistas);
             // Luego la consulta de las áreas de conocimiento
@@ -1298,6 +1297,28 @@ public class UsuarioServiceImpl implements UsuarioService {
             perfil.actualizarEstado();
             perfilAsesorDtos.add(perfil);
         }
+        return perfilAsesorDtos;
+    }
+
+    @Override
+    public Page<PerfilAsesorDto> getDirectorioDeAsesoresPorFiltros(FiltrosDirectorioAsesores filtros, Integer pageNumber, Boolean ascending) {
+        int pageSize = 5;
+        Pageable pageable;
+        if(ascending) {
+            pageable = PageRequest.of(pageNumber, pageSize, Sort.by("nombres","primer_apellido").ascending());
+        }else{
+            pageable = PageRequest.of(pageNumber, pageSize, Sort.by("nombres","primer_apellido").descending());
+        }
+        Page<Object[]> queryResults = usuarioRepository
+                .obtenerListaDirectorioAsesoresAlumno(filtros.getAlumnoId(),
+                        filtros.getCadenaBusqueda(),
+                        filtros.getActivo(),
+                        Utils.convertIntegerListToString(filtros.getIdAreas()),
+                        Utils.convertIntegerListToString(filtros.getIdTemas()),
+                        pageable);
+
+        List<Object[]> pageResults = queryResults.getContent();
+        List<PerfilAsesorDto> perfilAsesorDtos = castDirectoryQueryToDto(pageResults);
 
         return new PageImpl<>(
                 perfilAsesorDtos,                   // contenido paginado ya transformado
@@ -1482,6 +1503,15 @@ public class UsuarioServiceImpl implements UsuarioService {
             throw new RuntimeException("Usuario no encontrado con ID Cognito: " + idUsuario);
         }
         return idCognito;
+    }
+
+    @Override
+    public Integer obtenerIdUsuarioPorCognito(String cognito) {
+        Integer id = usuarioRepository.findUsuarioIdByIdCognito(cognito);
+        if(id == null) {
+            throw new RuntimeException("No se econtró usuario asociado con el servicio Cognito");
+        }
+        return id;
     }
 
     @Override
