@@ -19,7 +19,7 @@ export async function fetchCarrerasMiembroComite(): Promise<Carrera[]> {
 export async function listarTemasPorCarreraDeprecated(
   carreraId: number,
   estado: EstadoTemaNombre,
-  limit: number = 10,
+  limit: number = 100,
   offset: number = 0,
 ): Promise<Tema[]> {
   const { data } = await axiosInstance.get<Tema[]>(
@@ -34,7 +34,7 @@ export async function listarTemasPorCarreraDeprecated(
 export async function listarTemasPorCarrera(
   carreraId: number,
   estado: EstadoTemaNombre,
-  limit: number = 10,
+  limit: number = 100,
   offset: number = 0,
   titulo?: string,
   areaId?: number,
