@@ -29,6 +29,7 @@ import {
 } from "../types/solicitudes/entities";
 import { Tema } from "../types/temas/entidades";
 import { EstadoTemaNombre } from "../types/temas/enums";
+import { DialogSolicitudes } from "../components/coordinador/detalle-solicitud-tema/dialog-solicitudes";
 
 const actionToStateMap: Record<SolicitudAction, EstadoTemaNombre> = {
   Aprobada: EstadoTemaNombre.REGISTRADO,
@@ -74,6 +75,9 @@ export default function DetalleSolicitudesCoordinadorPage({
   const [loading, setLoading] = useState(false);
   const [similares, setSimilares] = useState<TemaSimilar[] | []>([]);
   const [solicitudes, setSolicitudes] = useState<SolicitudTema[] | []>([]);
+  const [listoSolicitudes, setListoSolicitudes] = useState(
+    solicitud.estado !== EstadoTemaNombre.OBSERVADO,
+  );
 
   const errorTexts = {
     tipoSolicitud: "Ingresar el tipo de solicitud.",
@@ -183,8 +187,16 @@ export default function DetalleSolicitudesCoordinadorPage({
 
   async function getSolicitudes() {
     try {
-      const data = await fetchSolicitudesDeTema(solicitud.tema.id);
+      const data: SolicitudTema[] | [] = await fetchSolicitudesDeTema(
+        solicitud.tema.id,
+      );
       setSolicitudes(data);
+      setListoSolicitudes(
+        data.reduce(
+          (acc, curr) => acc && curr.estado_solicitud !== "PENDIENTE",
+          true,
+        ),
+      );
     } catch (error) {
       console.error("Error al obtener las solicitudes del tema:", error);
       setSolicitudes([]);
@@ -211,7 +223,11 @@ export default function DetalleSolicitudesCoordinadorPage({
       show: [EstadoTemaNombre.INSCRITO, EstadoTemaNombre.OBSERVADO].includes(
         solicitud.estado,
       ),
-      disabled: tipoSolicitud !== "no-enviar" || loading,
+      disabled:
+        (!listoSolicitudes &&
+          solicitud.estado === EstadoTemaNombre.OBSERVADO) ||
+        tipoSolicitud !== "no-enviar" ||
+        loading,
     },
     rechazar: {
       show: [EstadoTemaNombre.INSCRITO, EstadoTemaNombre.OBSERVADO].includes(
@@ -226,15 +242,13 @@ export default function DetalleSolicitudesCoordinadorPage({
     <AnalisisSimilitudTema similares={similares} />
   );
 
-  const moduloSolicitudes = solicitudes.length && (
-    <>
-      <div>Solicitudes ({solicitudes.length}):</div>
-      {solicitudes.map((sol) => (
-        <div key={sol.solicitud_id}>
-          {sol.tipo_solicitud + " - " + sol.estado_solicitud}
-        </div>
-      ))}
-    </>
+  const moduloSolicitudes = (
+    <DialogSolicitudes
+      solicitudes={solicitudes}
+      estadoTema={solicitud.estado}
+      listoSolicitudes={listoSolicitudes}
+      setListoSolicitudes={setListoSolicitudes}
+    />
   );
 
   return (
@@ -254,11 +268,6 @@ export default function DetalleSolicitudesCoordinadorPage({
 
           {/* #2 - Column */}
           <div className="flex flex-col gap-4 md:w-2/5">
-            {/* Similitud */}
-            {[EstadoTemaNombre.REGISTRADO, EstadoTemaNombre.RECHAZADO].includes(
-              solicitud.estado,
-            ) && moduloAnalisisSimilitud}
-
             {EstadoTemaNombre.INSCRITO !== solicitud.estado &&
               moduloSolicitudes}
 
@@ -277,6 +286,11 @@ export default function DetalleSolicitudesCoordinadorPage({
               />
             )}
 
+            {/* Similitud */}
+            {[EstadoTemaNombre.REGISTRADO, EstadoTemaNombre.RECHAZADO].includes(
+              solicitud.estado,
+            ) && moduloAnalisisSimilitud}
+
             {/* Actions */}
             <AccionesDetalleSoliTema
               accionesConfig={accionesConfig}
@@ -285,9 +299,6 @@ export default function DetalleSolicitudesCoordinadorPage({
               setDialogAbierto={setDialogAbierto}
               loading={loading}
             />
-
-            {EstadoTemaNombre.INSCRITO === solicitud.estado &&
-              moduloSolicitudes}
           </div>
         </div>
       </form>
