@@ -55,4 +55,15 @@ public class Solicitud {
 
 	@Column(name = "respuesta", columnDefinition = "TEXT", nullable = true)
 	private String respuesta;
+
+	@PrePersist
+	protected void onCreate() {
+		fechaCreacion = OffsetDateTime.now();
+		fechaModificacion = OffsetDateTime.now(); // Asegúrate que se setee en la creación
+	}
+
+	@PreUpdate
+	protected void onUpdate() {
+		fechaModificacion = OffsetDateTime.now(); // Asegúrate que se actualice en cada update
+	}
 }
