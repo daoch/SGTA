@@ -32,11 +32,11 @@ public class SolicitudCeseController {
             @Valid @RequestBody CrearSolicitudCeseRequest request
     ) {
         if (jwt == null) {
-            // log.warn("Intento de crear solicitud de cese sin autenticación (JWT nulo).");
-            // return new ResponseEntity<>("Acceso no autorizado. Se requiere autenticación.", HttpStatus.UNAUTHORIZED);
+            log.warn("Intento de crear solicitud de cese sin autenticación (JWT nulo).");
+            return new ResponseEntity<>("Acceso no autorizado. Se requiere autenticación.", HttpStatus.UNAUTHORIZED);
         }
 
-        String asesorCognitoSub = "01fb0510-80e1-7076-5ef5-c1b5a02fb4f2"; // El 'sub' claim del JWT usualmente es el ID de usuario de Cognito
+        String asesorCognitoSub = jwt.getSubject();; // El 'sub' claim del JWT usualmente es el ID de usuario de Cognito
         if (asesorCognitoSub == null || asesorCognitoSub.trim().isEmpty()) {
             log.error("El token JWT no contiene el claim 'sub' (Cognito Subject ID).");
             return new ResponseEntity<>("Error de autenticación: identificador de usuario no encontrado en el token.", HttpStatus.UNAUTHORIZED);
