@@ -112,6 +112,8 @@ public class SolicitudCoordinadorServiceImpl implements SolicitudCoordinadorServ
         nuevaSolicitud.setEstadoSolicitud(estadoPendiente);
         nuevaSolicitud.setEstado(1); // Campo antiguo: 1 para PENDIENTE
         nuevaSolicitud.setActivo(true);
+        nuevaSolicitud.setFechaCreacion(OffsetDateTime.now());
+        nuevaSolicitud.setFechaModificacion(OffsetDateTime.now());
         // fechaCreacion y fechaModificacion se establecen por @PrePersist en la entidad Solicitud
 
         Solicitud solicitudGuardada = solicitudRepository.save(nuevaSolicitud);
@@ -131,6 +133,8 @@ public class SolicitudCoordinadorServiceImpl implements SolicitudCoordinadorServ
         usAsesor.setSolicitudCompletada(false);
         usAsesor.setAprobado(false);
         usAsesor.setDestinatario(false);
+        usAsesor.setFechaCreacion(OffsetDateTime.now());
+        usAsesor.setFechaModificacion(OffsetDateTime.now());
         usuarioSolicitudRepository.save(usAsesor);
         log.info("UsuarioSolicitud para asesor ID {} (CognitoSub: {}) y solicitud ID {} creada.",
                 asesor.getId(), asesorCognitoSub, solicitudGuardada.getId());
@@ -140,15 +144,17 @@ public class SolicitudCoordinadorServiceImpl implements SolicitudCoordinadorServ
                 .orElseThrow(() -> new ResourceNotFoundException("RolSolicitud '" + "REMITENTE" + "' no encontrado."));
 
         UsuarioXSolicitud usRemitente = new UsuarioXSolicitud();
-        usAsesor.setSolicitud(solicitudGuardada);
-        usAsesor.setUsuario(asesor);
-        usAsesor.setRolSolicitud(rolSolRemitente);
-        usAsesor.setComentario(motivo);
-        usAsesor.setActivo(true);
-        usAsesor.setFechaAccion(OffsetDateTime.now());
-        usAsesor.setSolicitudCompletada(false);
-        usAsesor.setAprobado(false);
-        usAsesor.setDestinatario(false);
+        usRemitente.setSolicitud(solicitudGuardada);
+        usRemitente.setUsuario(asesor);
+        usRemitente.setRolSolicitud(rolSolRemitente);
+        usRemitente.setComentario(motivo);
+        usRemitente.setActivo(true);
+        usRemitente.setFechaAccion(OffsetDateTime.now());
+        usRemitente.setSolicitudCompletada(false);
+        usRemitente.setAprobado(false);
+        usRemitente.setDestinatario(false);
+        usRemitente.setFechaCreacion(OffsetDateTime.now());
+        usRemitente.setFechaModificacion(OffsetDateTime.now());
         usuarioSolicitudRepository.save(usRemitente);
         log.info("UsuarioSolicitud para asesor ID {} (CognitoSub: {}) y solicitud ID {} creada.",
         asesor.getId(), asesorCognitoSub, solicitudGuardada.getId());
@@ -224,6 +230,8 @@ public class SolicitudCoordinadorServiceImpl implements SolicitudCoordinadorServ
             usEstudiante.setActivo(true);
             usEstudiante.setDestinatario(true);
             usEstudiante.setFechaAccion(OffsetDateTime.now());
+            usEstudiante.setFechaCreacion(OffsetDateTime.now());
+            usEstudiante.setFechaModificacion(OffsetDateTime.now());
             usuarioSolicitudRepository.save(usEstudiante);
             log.info("UsuarioSolicitud para estudiante ID {} y solicitud ID {} creada.", tesista.getId(), solicitudGuardada.getId());
 

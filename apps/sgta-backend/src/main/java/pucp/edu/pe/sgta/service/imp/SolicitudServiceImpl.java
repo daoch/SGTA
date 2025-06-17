@@ -738,7 +738,7 @@ public class SolicitudServiceImpl implements SolicitudService {
 
     //     // Tipo Solicitud
     //     TipoSolicitud tipoSolicitud = tipoSolicitudRepository
-    //             .findByNombre("Cese de asesoria (por alumno)")
+    //             .findByNombre("Cese de Asesoria (por alumno)")
     //             .orElseThrow(
     //                     () -> new RuntimeException("Tipo de solicitud no configurado: Cese de asesoría (por alumno)"));
 
@@ -920,17 +920,17 @@ public class SolicitudServiceImpl implements SolicitudService {
         }
 
         log.info("Buscando solicitudes de tipo: '{}' para las carreras: {} y estados: {}",
-                "Cese de asesoria (por alumno)", idsCarrerasDelCoordinador, targetStatusNames);
+                "Cese de Asesoria (por alumno)", idsCarrerasDelCoordinador, targetStatusNames);
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("fechaCreacion").descending());
 
         Page<Solicitud> pageOfSolicitudes;
         if (!targetStatusNames.isEmpty()) {
             pageOfSolicitudes = solicitudRepository.findConFiltroEstado(
-                    idsCarrerasDelCoordinador, "Cese de asesoria (por alumno)", targetStatusNames, pageable);
+                    idsCarrerasDelCoordinador, "Cese de Asesoria (por alumno)", targetStatusNames, pageable);
         } else {
             pageOfSolicitudes = solicitudRepository.findSinFiltroEstado(
-                    idsCarrerasDelCoordinador, "Cese de asesoria (por alumno)", pageable);
+                    idsCarrerasDelCoordinador, "Cese de Asesoria (por alumno)", pageable);
         }
 
         log.info("Solicitudes encontradas en BD: {} (Total elementos: {})", pageOfSolicitudes.getNumberOfElements(), pageOfSolicitudes.getTotalElements());
@@ -1215,8 +1215,8 @@ public class SolicitudServiceImpl implements SolicitudService {
     //             .collect(Collectors.toList());
 
     //     // Obtener las entidades TipoSolicitud y EstadoSolicitud necesarias
-    //     TipoSolicitud tipoCese = tipoSolicitudRepository.findByNombre("Cese de asesoria (por alumno)")
-    //             .orElseThrow(() -> new ResourceNotFoundException("Tipo de solicitud '" + "Cese de asesoria (por alumno)" + "' no encontrado."));
+    //     TipoSolicitud tipoCese = tipoSolicitudRepository.findByNombre("Cese de Asesoria (por alumno)")
+    //             .orElseThrow(() -> new ResourceNotFoundException("Tipo de solicitud '" + "Cese de Asesoria (por alumno)" + "' no encontrado."));
 
     //     EstadoSolicitud estadoAprobada = estadoSolicitudRepository.findByNombre("APROBADA")
     //             .orElseThrow(() -> new ResourceNotFoundException("Estado de solicitud '" + "APROBADA" + "' no encontrado."));
