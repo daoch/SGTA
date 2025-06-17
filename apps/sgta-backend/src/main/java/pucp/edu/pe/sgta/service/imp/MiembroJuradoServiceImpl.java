@@ -1397,4 +1397,47 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                 }
                 return resultado;
         }
+
+        @Override
+        @Transactional
+        public ResponseEntity<?> actualizarNotaRevisionFinal(ExposicionNotaRevisionRequest request) {
+                Map<String, Object> response = new HashMap<>();
+
+                try {
+                        RevisionCriterioExposicion revisionCriterioExposicion = revisionCriterioExposicionRepository
+                                .findById(request.getId())
+                                .orElseThrow(() -> new ResponseStatusException(
+                                        HttpStatus.NOT_FOUND,
+                                        "No se encontró una revisionXcriterio con ese id"));
+
+                        ExposicionXTema exposicionXTema = revisionCriterioExposicion.getExposicionXTema();
+                        Integer usuarioId = revisionCriterioExposicion.getUsuario().getId();
+                        Integer temaId = exposicionXTema.getTema().getId();
+
+                        UsuarioXTema usuarioXTema = usuarioXTemaRepository.findByUsuario_IdAndTema_Id(usuarioId, temaId)
+                                .orElseThrow(() -> new ResponseStatusException(
+                                        HttpStatus.NOT_FOUND,
+                                        "No se encontró usuarioXTema con ese id"));
+
+                        ControlExposicionUsuarioTema controlExposicionUsuarioTema = controlExposicionUsuarioTemaRepository
+                                .findByExposicionXTema_IdAndUsuario_Id(exposicionXTema.getId(),
+                                        usuarioXTema.getId())
+                                .orElseThrow(() -> new ResponseStatusException(
+                                        HttpStatus.NOT_FOUND,
+                                        "No se encontró controlExposicionUsuarioTema"));
+
+                        controlExposicionUsuarioTema.setNotaRevision(request.getNota_revision());
+                        controlExposicionUsuarioTemaRepository.save(controlExposicionUsuarioTema);
+                        response.put("mensaje", "Se actualizo correctamente la nota revisión");
+                        response.put("exito", true);
+                } catch (ResponseStatusException e) {
+                        response.put("mensaje", e.getReason());
+                        response.put("exito", false);
+                } catch (Exception e) {
+                        response.put("mensaje", "Ocurrió un error inesperado al actualizar la observacion final.");
+                        response.put("exito", false);
+                }
+
+                return ResponseEntity.ok(response);
+        }
 }

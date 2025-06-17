@@ -1,5 +1,6 @@
 package pucp.edu.pe.sgta.model;
 
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 
 import jakarta.persistence.*;
@@ -49,4 +50,9 @@ public class ControlExposicionUsuarioTema {
     @Column(name = "estado_exposicion_usuario", nullable = false)
     @Convert(converter = EstadoExposicionUsuarioConverter.class)
     private EstadoExposicionUsuario estadoExposicion = EstadoExposicionUsuario.ESPERANDO_RESPUESTA;
+
+    @Column(name = "nota_revision", precision = 6, scale = 2, nullable = true)
+    private BigDecimal notaRevision;
+
+
 }
