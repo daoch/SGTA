@@ -51,6 +51,7 @@ public class SolicitudAsesorServiceImpl implements SolicitudAsesorService {
     private NotificacionService notificacionService; // Para enviar notificaciones
 
     private static final String ROL_NOMBRE_ASESOR = "Asesor";
+    private static final String TIPO_USUARIO_PROFESOR = "Profesor";
 
     @Override
     @Transactional(readOnly = true) // Este método es de solo lectura
@@ -93,175 +94,176 @@ public class SolicitudAsesorServiceImpl implements SolicitudAsesorService {
                 .collect(Collectors.toList());
     }
 
-//     @Override
-//     @Transactional(readOnly = true)
-//     public Page<AsesorDisponibleDto> buscarAsesoresDisponibles(
-//             String coordinadorCognitoSub,
-//             String searchTerm,
-//             List<Integer> areaConocimientoIds,
-//             Pageable pageable
-//     ) {
-//         log.info("Buscando asesores disponibles para coordinador CognitoSub: {}, searchTerm: '{}', areas: {}",
-//                 coordinadorCognitoSub, searchTerm, areaConocimientoIds);
+    @Override
+    @Transactional(readOnly = true)
+    public Page<AsesorDisponibleDto> buscarAsesoresDisponibles(
+            String coordinadorCognitoSub,
+            String searchTerm,
+            List<Integer> areaConocimientoIds,
+            Pageable pageable
+    ) {
+        log.info("Buscando asesores disponibles para coordinador CognitoSub: {}, searchTerm: '{}', areas: {}",
+                coordinadorCognitoSub, searchTerm, areaConocimientoIds);
 
-//         Usuario coordinador = usuarioRepository.findByIdCognito(coordinadorCognitoSub)
-//                 .orElseThrow(() -> new ResourceNotFoundException("Coordinador no encontrado con CognitoSub: " + coordinadorCognitoSub));
+        Usuario coordinador = usuarioRepository.findByIdCognito(coordinadorCognitoSub)
+                .orElseThrow(() -> new ResourceNotFoundException("Coordinador no encontrado con CognitoSub: " + coordinadorCognitoSub));
 
-//         List<UsuarioXCarrera> asignacionesCarreraCoordinador = usuarioXCarreraRepository.findByUsuarioIdAndActivoTrue(coordinador.getId());
-//         if (asignacionesCarreraCoordinador.isEmpty()) {
-//             log.warn("Coordinador ID {} no tiene carreras activas asignadas. No se pueden listar asesores.", coordinador.getId());
-//             return Page.empty(pageable);
-//         }
-//         List<Integer> idsCarrerasDelCoordinador = asignacionesCarreraCoordinador.stream()
-//                 .map(uc -> uc.getCarrera().getId())
-//                 .distinct()
-//                 .collect(Collectors.toList());
+        List<UsuarioXCarrera> asignacionesCarreraCoordinador = usuarioXCarreraRepository.findByUsuarioIdAndActivoTrue(coordinador.getId());
+        if (asignacionesCarreraCoordinador.isEmpty()) {
+            log.warn("Coordinador ID {} no tiene carreras activas asignadas. No se pueden listar asesores.", coordinador.getId());
+            return Page.empty(pageable);
+        }
+        List<Integer> idsCarrerasDelCoordinador = asignacionesCarreraCoordinador.stream()
+                .map(uc -> uc.getCarrera().getId())
+                .distinct()
+                .collect(Collectors.toList());
 
-//         // Construir la query JPQL dinámicamente
-//         StringBuilder jpqlBuilder = new StringBuilder(
-//                 "SELECT DISTINCT u FROM Usuario u " +
-//                         "JOIN u.tipoUsuario tu " +
-//                         "JOIN UsuarioXCarrera uc ON u.id = uc.usuario.id " + // JOIN explícito a UsuarioXCarrera
-//                         "WHERE tu.nombre = :tipoProfesor " +
-//                         "AND u.activo = true " +
-//                         "AND uc.activo = true " +
-//                         "AND uc.carrera.id IN :carrerasDelCoordinador "
-//         );
+        // Construir la query JPQL dinámicamente
+        StringBuilder jpqlBuilder = new StringBuilder(
+                "SELECT DISTINCT u FROM Usuario u " +
+                        "JOIN u.tipoUsuario tu " +
+                        "JOIN UsuarioXCarrera uc ON u.id = uc.usuario.id " + // JOIN explícito a UsuarioXCarrera
+                        "WHERE tu.nombre = :tipoProfesor " +
+                        "AND u.activo = true " +
+                        "AND uc.activo = true " +
+                        "AND uc.carrera.id IN :carrerasDelCoordinador "
+        );
 
-//         Map<String, Object> parameters = new HashMap<>();
-//         parameters.put("tipoProfesor", SgtaConstants.TIPO_USUARIO_PROFESOR); // Usa tu constante
-//         parameters.put("carrerasDelCoordinador", idsCarrerasDelCoordinador);
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("tipoProfesor", TIPO_USUARIO_PROFESOR); // Usa tu constante
+        parameters.put("carrerasDelCoordinador", idsCarrerasDelCoordinador);
 
-//         if (searchTerm != null && !searchTerm.trim().isEmpty()) {
-//             jpqlBuilder.append("AND (LOWER(u.nombres) LIKE LOWER(:searchTerm) OR " +
-//                     "LOWER(u.primerApellido) LIKE LOWER(:searchTerm) OR " +
-//                     "LOWER(u.segundoApellido) LIKE LOWER(:searchTerm) OR " +
-//                     "LOWER(u.correoElectronico) LIKE LOWER(:searchTerm) OR " +
-//                     "LOWER(u.codigoPucp) LIKE LOWER(:searchTerm)) ");
-//             parameters.put("searchTerm", "%" + searchTerm.trim() + "%");
-//         }
+        if (searchTerm != null && !searchTerm.trim().isEmpty()) {
+            jpqlBuilder.append("AND (LOWER(u.nombres) LIKE LOWER(:searchTerm) OR " +
+                    "LOWER(u.primerApellido) LIKE LOWER(:searchTerm) OR " +
+                    "LOWER(u.segundoApellido) LIKE LOWER(:searchTerm) OR " +
+                    "LOWER(u.correoElectronico) LIKE LOWER(:searchTerm) OR " +
+                    "LOWER(u.codigoPucp) LIKE LOWER(:searchTerm)) ");
+            parameters.put("searchTerm", "%" + searchTerm.trim() + "%");
+        }
 
-//         if (areaConocimientoIds != null && !areaConocimientoIds.isEmpty()) {
-//             // Este JOIN asume que tienes una entidad UsuarioAreaConocimiento (uac)
-//             // y que Usuario tiene una colección List<UsuarioAreaConocimiento> areasConocimiento;
-//             // O un JOIN explícito si no tienes la colección en Usuario
-//             jpqlBuilder.append("AND EXISTS (SELECT uac FROM UsuarioAreaConocimiento uac WHERE uac.usuario = u AND uac.areaConocimiento.id IN :areaConocimientoIds AND uac.activo = true) ");
-//             parameters.put("areaConocimientoIds", areaConocimientoIds);
-//         }
+        if (areaConocimientoIds != null && !areaConocimientoIds.isEmpty()) {
+            // Este JOIN asume que tienes una entidad UsuarioAreaConocimiento (uac)
+            // y que Usuario tiene una colección List<UsuarioAreaConocimiento> areasConocimiento;
+            // O un JOIN explícito si no tienes la colección en Usuario
+            jpqlBuilder.append("AND EXISTS (SELECT uac FROM UsuarioXAreaConocimiento uac WHERE uac.usuario = u AND uac.areaConocimiento.id IN :areaConocimientoIds AND uac.activo = true) ");
+            parameters.put("areaConocimientoIds", areaConocimientoIds);
+        }
 
-//         // Query para contar el total de elementos (necesaria para paginación correcta con query dinámica)
-//         String countJpql = jpqlBuilder.toString().replace("SELECT DISTINCT u", "SELECT COUNT(DISTINCT u.id)");
-//         TypedQuery<Long> countQuery = entityManager.createQuery(countJpql, Long.class);
-//         parameters.forEach(countQuery::setParameter);
-//         long totalAsesores = countQuery.getSingleResult();
+        // Query para contar el total de elementos (necesaria para paginación correcta con query dinámica)
+        String countJpql = jpqlBuilder.toString().replace("SELECT DISTINCT u", "SELECT COUNT(DISTINCT u.id)");
+        TypedQuery<Long> countQuery = entityManager.createQuery(countJpql, Long.class);
+        parameters.forEach(countQuery::setParameter);
+        long totalAsesores = countQuery.getSingleResult();
 
-//         if (totalAsesores == 0) {
-//             return Page.empty(pageable);
-//         }
+        if (totalAsesores == 0) {
+            return Page.empty(pageable);
+        }
 
-//         // Añadir ordenación de Pageable a la query principal
-//         if (pageable.getSort().isSorted()) {
-//             jpqlBuilder.append(" ORDER BY ");
-//             List<String> sortOrders = new ArrayList<>();
-//             pageable.getSort().forEach(order -> {
-//                 // Asegurarse que los campos de ordenación sean válidos y pertenezcan a 'u'
-//                 // Ej. u.primerApellido, u.nombres. Evitar SQL injection si los campos vienen del cliente.
-//                 // Aquí asumimos que son seguros.
-//                 sortOrders.add("u." + order.getProperty() + " " + order.getDirection().name());
-//             });
-//             jpqlBuilder.append(String.join(", ", sortOrders));
-//         }
-
-
-//         TypedQuery<Usuario> query = entityManager.createQuery(jpqlBuilder.toString(), Usuario.class);
-//         parameters.forEach(query::setParameter);
-
-//         // Aplicar paginación
-//         query.setFirstResult((int) pageable.getOffset());
-//         query.setMaxResults(pageable.getPageSize());
-
-//         List<Usuario> asesoresEntidades = query.getResultList();
-
-//         // Mapear entidades Usuario a AsesorDisponibleDto
-//         List<AsesorDisponibleDto> asesoresDtos = asesoresEntidades.stream()
-//                 .map(asesor -> {
-//                     Integer cantidadTemas = usuarioXTemaRepository.countByUsuarioAndRol_NombreAndActivoTrue(asesor, SgtaConstants.ROL_NOMBRE_ASESOR);
-//                     return new AsesorDisponibleDto(
-//                             asesor.getId(),
-//                             asesor.getNombres(),
-//                             asesor.getPrimerApellido(),
-//                             asesor.getSegundoApellido(),
-//                             asesor.getCorreoElectronico(),
-//                             asesor.getCodigoPucp(),
-//                             cantidadTemas,
-//                             // asesor.getCapacidadMaxima(), // Si tienes este campo
-//                             null // asesor.getUrlFoto() // Si tienes este campo o conviertes byte[]
-//                     );
-//                 })
-//                 .collect(Collectors.toList());
-
-//         return new PageImpl<>(asesoresDtos, pageable, totalAsesores);
-//     }
-
-//     @Override
-//     @Transactional(readOnly = true)
-//     public Page<InvitacionAsesoriaDto> findInvitacionesAsesoriaPendientesByAsesor(String asesorCognitoSub, Pageable pageable) {
-//         log.info("Buscando invitaciones de asesoría pendientes para asesor CognitoSub: {}", asesorCognitoSub);
-
-//         Usuario asesorPropuesto = usuarioRepository.findByIdCognito(asesorCognitoSub)
-//                 .orElseThrow(() -> new ResourceNotFoundException("Usuario asesor (propuesto) no encontrado con CognitoSub: " + asesorCognitoSub));
-
-//         // Buscar las solicitudes donde este asesor es el propuesto y el estado de reasignación es PENDIENTE_ACEPTACION_ASESOR
-//         // Necesitamos un método en SolicitudRepository
-//         Page<Solicitud> solicitudesPropuestas = solicitudRepository.findByAsesorPropuestoReasignacionAndEstadoReasignacionAndActivoTrue(
-//                 asesorPropuesto,
-//                 SgtaConstants.ESTADO_REASIGNACION_PENDIENTE_ASESOR, // "PENDIENTE_ACEPTACION_ASESOR"
-//                 pageable
-//         );
-
-//         if (solicitudesPropuestas.isEmpty()) {
-//             log.info("No hay invitaciones de asesoría pendientes para asesor ID {}", asesorPropuesto.getId());
-//             return Page.empty(pageable);
-//         }
-
-//         Rol rolTesista = rolRepository.findByNombre(SgtaConstants.ROL_NOMBRE_TESISTA)
-//                 .orElseThrow(() -> new ResourceNotFoundException("Rol 'Tesista' no encontrado."));
-
-//         List<InvitacionAsesoriaDto> dtos = solicitudesPropuestas.getContent().stream()
-//                 .map(solicitud -> {
-//                     Tema tema = solicitud.getTema();
-//                     Usuario asesorOriginal = solicitud.getUsuarioCreador(); // El que solicitó el cese
-
-//                     List<EstudianteSimpleDto> estudiantesDto = Collections.emptyList();
-//                     if (tema != null) {
-//                         List<UsuarioXTema> tesistasDelTema = usuarioXTemaRepository.findByTema_IdAndRol_IdAndActivoTrue(tema.getId(), rolTesista.getId());
-//                         estudiantesDto = tesistasDelTema.stream()
-//                                 .map(ut -> ut.getUsuario())
-//                                 .filter(u -> u != null)
-//                                 .map(u -> new EstudianteSimpleDto(u.getId(), u.getNombres(), u.getPrimerApellido(), u.getSegundoApellido()))
-//                                 .collect(Collectors.toList());
-//                     }
-
-//                     String asesorOriginalNombres = (asesorOriginal != null) ? asesorOriginal.getNombres() : "N/A";
-//                     String asesorOriginalApellidos = (asesorOriginal != null) ? asesorOriginal.getPrimerApellido() + (asesorOriginal.getSegundoApellido() != null ? " " + asesorOriginal.getSegundoApellido() : "") : "";
+        // Añadir ordenación de Pageable a la query principal
+        if (pageable.getSort().isSorted()) {
+            jpqlBuilder.append(" ORDER BY ");
+            List<String> sortOrders = new ArrayList<>();
+            pageable.getSort().forEach(order -> {
+                // Asegurarse que los campos de ordenación sean válidos y pertenezcan a 'u'
+                // Ej. u.primerApellido, u.nombres. Evitar SQL injection si los campos vienen del cliente.
+                // Aquí asumimos que son seguros.
+                sortOrders.add("u." + order.getProperty() + " " + order.getDirection().name());
+            });
+            jpqlBuilder.append(String.join(", ", sortOrders));
+        }
 
 
-//                     return new InvitacionAsesoriaDto(
-//                             solicitud.getId(), // ID de la solicitud de cese original
-//                             (tema != null) ? tema.getId() : null,
-//                             (tema != null) ? tema.getTitulo() : "Tema no disponible",
-//                             (tema != null) ? tema.getResumen() : null,
-//                             estudiantesDto,
-//                             asesorOriginalNombres,
-//                             asesorOriginalApellidos,
-//                             solicitud.getFechaModificacion(), // Fecha en que se hizo la propuesta (cuando se actualizó asesor_propuesto)
-//                             solicitud.getDescripcion() // Motivo del cese original
-//                     );
-//                 })
-//                 .collect(Collectors.toList());
+        TypedQuery<Usuario> query = entityManager.createQuery(jpqlBuilder.toString(), Usuario.class);
+        parameters.forEach(query::setParameter);
 
-//         return new PageImpl<>(dtos, pageable, solicitudesPropuestas.getTotalElements());
-//     }
+        // Aplicar paginación
+        query.setFirstResult((int) pageable.getOffset());
+        query.setMaxResults(pageable.getPageSize());
+
+        List<Usuario> asesoresEntidades = query.getResultList();
+
+        // Mapear entidades Usuario a AsesorDisponibleDto
+        List<AsesorDisponibleDto> asesoresDtos = asesoresEntidades.stream()
+                .map(asesor -> {
+                    Integer cantidadTemas = usuarioXTemaRepository.countByUsuarioAndRol_NombreAndActivoTrue(asesor, ROL_NOMBRE_ASESOR);
+                    return new AsesorDisponibleDto(
+                            asesor.getId(),
+                            asesor.getNombres(),
+                            asesor.getPrimerApellido(),
+                            asesor.getSegundoApellido(),
+                            asesor.getCorreoElectronico(),
+                            asesor.getCodigoPucp(),
+                            cantidadTemas,
+                            // asesor.getCapacidadMaxima(), // Si tienes este campo
+                            null // asesor.getUrlFoto() // Si tienes este campo o conviertes byte[]
+                    );
+                })
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(asesoresDtos, pageable, totalAsesores);
+    }
+
+    // @Override
+    // @Transactional(readOnly = true)
+    // public Page<InvitacionAsesoriaDto> findInvitacionesAsesoriaPendientesByAsesor(String asesorCognitoSub, Pageable pageable) {
+    //     log.info("Buscando invitaciones de asesoría pendientes para asesor CognitoSub: {}", asesorCognitoSub);
+
+    //     Usuario asesorPropuesto = usuarioRepository.findByIdCognito(asesorCognitoSub)
+    //             .orElseThrow(() -> new ResourceNotFoundException("Usuario asesor (propuesto) no encontrado con CognitoSub: " + asesorCognitoSub));
+
+    //     // Buscar las solicitudes donde este asesor es el propuesto y el estado de reasignación es PENDIENTE_ACEPTACION_ASESOR
+    //     // Necesitamos un método en SolicitudRepository
+    //     //--------------------------- Me quede aqui, se necesita cambiar a usuarioXSolicitud para obtener la solicitud asociada al asesor propuesto.
+    //     Page<Solicitud> solicitudesPropuestas = solicitudRepository.findByAsesorPropuestoReasignacionAndEstadoReasignacionAndActivoTrue(
+    //             asesorPropuesto,
+    //             SgtaConstants.ESTADO_REASIGNACION_PENDIENTE_ASESOR, // "PENDIENTE_ACEPTACION_ASESOR"
+    //             pageable
+    //     );
+
+    //     if (solicitudesPropuestas.isEmpty()) {
+    //         log.info("No hay invitaciones de asesoría pendientes para asesor ID {}", asesorPropuesto.getId());
+    //         return Page.empty(pageable);
+    //     }
+
+    //     Rol rolTesista = rolRepository.findByNombre(SgtaConstants.ROL_NOMBRE_TESISTA)
+    //             .orElseThrow(() -> new ResourceNotFoundException("Rol 'Tesista' no encontrado."));
+
+    //     List<InvitacionAsesoriaDto> dtos = solicitudesPropuestas.getContent().stream()
+    //             .map(solicitud -> {
+    //                 Tema tema = solicitud.getTema();
+    //                 Usuario asesorOriginal = solicitud.getUsuarioCreador(); // El que solicitó el cese
+
+    //                 List<EstudianteSimpleDto> estudiantesDto = Collections.emptyList();
+    //                 if (tema != null) {
+    //                     List<UsuarioXTema> tesistasDelTema = usuarioXTemaRepository.findByTema_IdAndRol_IdAndActivoTrue(tema.getId(), rolTesista.getId());
+    //                     estudiantesDto = tesistasDelTema.stream()
+    //                             .map(ut -> ut.getUsuario())
+    //                             .filter(u -> u != null)
+    //                             .map(u -> new EstudianteSimpleDto(u.getId(), u.getNombres(), u.getPrimerApellido(), u.getSegundoApellido()))
+    //                             .collect(Collectors.toList());
+    //                 }
+
+    //                 String asesorOriginalNombres = (asesorOriginal != null) ? asesorOriginal.getNombres() : "N/A";
+    //                 String asesorOriginalApellidos = (asesorOriginal != null) ? asesorOriginal.getPrimerApellido() + (asesorOriginal.getSegundoApellido() != null ? " " + asesorOriginal.getSegundoApellido() : "") : "";
+
+
+    //                 return new InvitacionAsesoriaDto(
+    //                         solicitud.getId(), // ID de la solicitud de cese original
+    //                         (tema != null) ? tema.getId() : null,
+    //                         (tema != null) ? tema.getTitulo() : "Tema no disponible",
+    //                         (tema != null) ? tema.getResumen() : null,
+    //                         estudiantesDto,
+    //                         asesorOriginalNombres,
+    //                         asesorOriginalApellidos,
+    //                         solicitud.getFechaModificacion(), // Fecha en que se hizo la propuesta (cuando se actualizó asesor_propuesto)
+    //                         solicitud.getDescripcion() // Motivo del cese original
+    //                 );
+    //             })
+    //             .collect(Collectors.toList());
+
+    //     return new PageImpl<>(dtos, pageable, solicitudesPropuestas.getTotalElements());
+    // }
 
 //     @Override
 //     @Transactional

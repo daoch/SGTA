@@ -11,12 +11,12 @@ import java.util.List;
 public interface SolicitudAsesorService {
     List<AsesorTemaActivoDto> findTemasActivosByAsesorCognitoSub(String asesorCognitoSub);
 
-    // Page<AsesorDisponibleDto> buscarAsesoresDisponibles(
-    //         String coordinadorCognitoSub, // Para determinar las carreras del coordinador
-    //         String searchTerm,
-    //         List<Integer> areaConocimientoIds,
-    //         Pageable pageable
-    // );
+    Page<AsesorDisponibleDto> buscarAsesoresDisponibles(
+            String coordinadorCognitoSub, // Para determinar las carreras del coordinador
+            String searchTerm,
+            List<Integer> areaConocimientoIds,
+            Pageable pageable
+    );
 
     // Page<InvitacionAsesoriaDto> findInvitacionesAsesoriaPendientesByAsesor(String asesorCognitoSub, Pageable pageable);
 
