@@ -17,18 +17,17 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useAuthStore } from "@/features/auth/store/auth-store";
+import { joinUsers } from "@/lib/temas/lib";
 import { titleCase } from "@/lib/utils";
-import { CheckCircle, Eye, Send, X } from "lucide-react";
+import { Eye } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { fetchTemasAPI } from "../../types/inscripcion/data";
-import { EstadoTemaNombre } from "../../types/temas/enums";
 import {
   fetchCarrerasMiembroComite,
   listarTemasPorCarrera,
 } from "../../types/solicitudes/data";
-import { Tema, Tesista } from "../../types/temas/entidades";
+import { Tema } from "../../types/temas/entidades";
+import { EstadoTemaNombre } from "../../types/temas/enums";
 
 interface PropuestasTableProps {
   readonly filter?: string;
@@ -61,16 +60,16 @@ export function TemasTableCoordinador({
 
         if (ids.length > 0) {
           // Fetch temas
-          const [registrados, inscritos, en_progreso] = await Promise.all([
+          const temasPorEstado = await Promise.all([
             listarTemasPorCarrera(ids[0], EstadoTemaNombre.REGISTRADO, 200, 0),
             listarTemasPorCarrera(ids[0], EstadoTemaNombre.INSCRITO, 200, 0),
             listarTemasPorCarrera(ids[0], EstadoTemaNombre.EN_PROGRESO, 200, 0),
+            listarTemasPorCarrera(ids[0], EstadoTemaNombre.OBSERVADO, 200, 0),
           ]);
-          const data = [
-            ...(registrados || []),
-            ...(inscritos || []),
-            ...(en_progreso || []),
-          ];
+          // Save temas
+          const data = temasPorEstado
+            .filter(Boolean) // Remove null or undefined
+            .flat();
           setTemas(data);
         }
       } catch (error) {
@@ -134,9 +133,7 @@ export function TemasTableCoordinador({
         <TableCell>{tema.coasesores?.[0]?.nombres || "-"}</TableCell>
         <TableCell>
           {tema.tesistas && tema.tesistas.length > 0
-            ? tema.tesistas
-                .map((e: Tesista) => `${e.nombres} ${e.primerApellido}`)
-                .join(", ")
+            ? joinUsers(tema.tesistas)
             : "Sin asignar"}
         </TableCell>
         {/* {showPostulaciones && (

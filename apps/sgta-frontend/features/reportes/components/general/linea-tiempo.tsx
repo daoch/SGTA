@@ -84,11 +84,14 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
   const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[]>([]);
   const [isCriteriosModalOpen, setIsCriteriosModalOpen] = useState(false);
   const [selectedCriterios, setSelectedCriterios] = useState<Criterio[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
 
   
 
   useEffect(() => {
     const fetchEntregables = async () => {
+      setIsLoading(true);
       try {
         const data = selectedStudentId != null
         ? await getEntregablesAlumnoSeleccionado(selectedStudentId)
@@ -168,11 +171,13 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
         setTimelineEvents(eventosTransformados);
       } catch (error) {
         console.error("Error al obtener entregables:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchEntregables();
-  }, [user]);
+  }, [user, selectedStudentId]);
 
 
   // Filtrado por tiempo
@@ -251,7 +256,7 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
                   <SelectValue placeholder="Filtrar por Fechas" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Filtrar por Fechas</SelectItem>
+                  <SelectItem value="all">Filtrar por Periodos</SelectItem>
                   <SelectItem value="past">Eventos pasados</SelectItem>
                   <SelectItem value="upcoming30">Próximos 30 días</SelectItem>
                   <SelectItem value="upcoming90">Próximos 90 días</SelectItem>
@@ -321,8 +326,13 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
 
           <CardContent>
             <div className="relative border-l border-gray-200 ml-3 pl-8 space-y-6">
-              {displayedEvents.length > 0 ? (
-                displayedEvents.map((event, index) => {
+              {
+                isLoading ? (
+                <div className="text-center py-8 text-gray-500">
+                  Cargando…
+                </div>
+                ) : displayedEvents.length > 0 ? (
+                  displayedEvents.map((event, index) => {
                   
                   const textoXTema       = humanize(event.rawEstadoXTema);
                   const textoEntregable  = humanize(event.rawEstadoEntregable);
