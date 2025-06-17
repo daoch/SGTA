@@ -7,6 +7,8 @@ import pucp.edu.pe.sgta.dto.calificacion.ExposicionCalificacionJuradoDTO;
 import pucp.edu.pe.sgta.dto.calificacion.ExposicionCalificacionRequest;
 import pucp.edu.pe.sgta.dto.calificacion.ExposicionObservacionRequest;
 import pucp.edu.pe.sgta.dto.calificacion.RevisionCriteriosRequest;
+import pucp.edu.pe.sgta.dto.coordinador.ExposicionCoordinadorDto;
+import pucp.edu.pe.sgta.dto.etapas.EtapasFormativasDto;
 import pucp.edu.pe.sgta.dto.exposiciones.EstadoControlExposicionRequest;
 import pucp.edu.pe.sgta.dto.exposiciones.EstadoExposicionJuradoRequest;
 import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
@@ -64,4 +66,9 @@ public interface MiembroJuradoService {
 
     public ResponseEntity<List<ExposicionCalificacionJuradoDTO>> obtenerCalificacionExposicionJurado(
             ExposicionCalificacionRequest exposicionCalificacionRequest);
+
+    List<EtapasFormativasDto> obtenerEtapasFormativasPorUsuario(String usuarioId);
+
+    List<ExposicionCoordinadorDto> listarExposicionesPorCoordinador(String coordinadorId);
+
 }
