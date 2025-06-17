@@ -2,16 +2,18 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+//import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { AlertCircle, ArrowLeft, Check, Clock, User } from "lucide-react";
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
 
-import { ConsolidatedView } from "@/features/reportes/components/consolidated-view";
+//import { ConsolidatedView } from "@/features/reportes/components/consolidated-view";
 import { LineaTiempoReporte } from "@/features/reportes/components/general/linea-tiempo";
 import { findStudentsForReviewer } from "@/features/reportes/services/report-services";
 import { AlumnoReviewer } from "@/features/reportes/types/Alumno.type";
+import { getEntregablesAlumnoSeleccionado } from "@/features/reportes/services/report-services";
+
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -62,6 +64,9 @@ export default function ReviewerStudentDetails({ params }: { params: Promise<{ i
   const [students, setStudents] = useState<AlumnoReviewer[]>([]);
   const [student, setStudent] = useState<number>(0);
   const [loading, setLoading] = useState(true);
+  const [entregablesEvaluables, setEntregablesEvaluables] = useState<number>(0);
+  const [loadingEntregablesEvaluables, setLoadingEntregablesEvaluables] = useState<boolean>(true);
+  const [conteoEstados, setConteoEstados] = useState<Record<string, number>>({});
   const [searchQuery, setSearchQuery] = useState("");
   const { user } = useAuth();
   //const params = useParams();
@@ -86,10 +91,45 @@ export default function ReviewerStudentDetails({ params }: { params: Promise<{ i
   }, [searchQuery]);
 
 
-
   //const selectedStudentData = students.find((student) => student.usuarioId === studentId);
   const selectedStudentData = students.find((student) => student.usuarioId === parseInt(id));
+  console.log("ID del estudiante:", selectedStudentData?.usuarioId);
   ///const selectedStudentData = students.find((student) => student.usuarioId === studentId);
+
+  useEffect(() => {
+    if (!selectedStudentData?.usuarioId) return;
+
+    const fetchEntregables = async () => {
+      setLoadingEntregablesEvaluables(true);
+
+      try {
+        const entregables = await getEntregablesAlumnoSeleccionado(
+          selectedStudentData.usuarioId
+        );
+
+        // 1. Nos quedamos solo con los evaluables
+        const evaluables = entregables.filter((e: any) => e.esEvaluable === true);
+        setEntregablesEvaluables(evaluables.length);
+
+        // 2. Conteo por estadoEntregable y estadoXTema
+        const counts: Record<string, number> = {};
+        evaluables.forEach((e: any) => {
+          counts[e.estadoEntregable] = (counts[e.estadoEntregable] || 0) + 1;
+          counts[e.estadoXTema]     = (counts[e.estadoXTema]     || 0) + 1;
+        });
+        setConteoEstados(counts);
+
+        console.log("Conteo por estado:", counts);
+      } catch (error) {
+        console.error("Error al obtener entregables del estudiante:", error);
+      } finally {
+        setLoadingEntregablesEvaluables(false);
+      }
+    };
+
+    fetchEntregables();
+  }, [selectedStudentData?.usuarioId]);
+
 
    
 
@@ -161,9 +201,27 @@ export default function ReviewerStudentDetails({ params }: { params: Promise<{ i
                 </div> */}
                 <div className="text-center p-4 bg-gray-50 rounded-lg">
                   <div className="text-2xl font-bold text-[#006699]">
+                    {/* Badge Total */}
                     <Badge variant="outline" className="text-sm">
-                      Entregables: 0
+                      {loadingEntregablesEvaluables
+                        ? "Cargando..."
+                        : `Entregables Total: ${entregablesEvaluables}`}
                     </Badge>
+
+                    {/* Badges por estado (solo si hay conteo > 0) */}
+                    {!loadingEntregablesEvaluables &&
+                      Object.entries(conteoEstados)
+                        .filter(([_, n]) => n > 0)
+                        .map(([estado, n]) => (
+                          <Badge
+                            key={estado}
+                            variant="outline"
+                            className="text-xs"
+                          >
+                            {`${estado.replace(/_/g, " ")}: ${n}`}
+                          </Badge>
+                    ))}
+
                     {/* {student.entregablesCompletados ?? 0}/{student.entregablesTotales ?? 0} */}
                   </div>
                   <div className="text-sm text-gray-600">Entregables</div>
@@ -185,25 +243,13 @@ export default function ReviewerStudentDetails({ params }: { params: Promise<{ i
 
       {/* Tabs de contenido */}
       <Card>
-        <CardContent>
-          <Tabs defaultValue="timeline">
-            <TabsList className="mb-4">
-              <TabsTrigger value="timeline">Historial Cronológico</TabsTrigger>
-              <TabsTrigger value="consolidated">Reporte Consolidado</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="timeline">
-                {user && (
-                  <LineaTiempoReporte
-                    selectedStudentId={selectedStudentData?.usuarioId ?? null}
-                    user={user}
-                  />
-                )}
-            </TabsContent>
-            <TabsContent value="consolidated">
-              <ConsolidatedView studentId={selectedStudentData?.usuarioId} />
-            </TabsContent>
-          </Tabs>
+        <CardContent className="py-6">
+          {user && (
+            <LineaTiempoReporte
+              selectedStudentId={selectedStudentData?.usuarioId ?? null}
+              user={user}
+            />
+          )}
         </CardContent>
       </Card>
     </div>

@@ -34,18 +34,27 @@ const humanize = (raw: string) =>
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(" ");
 
+const ESTADOS_ENTREGABLE = ["no_iniciado", "en_proceso", "terminado"] as const;
+const ESTADOS_X_TEMA    = ["no_enviado", "enviado_a_tiempo", "enviado_tarde"] as const;
+
+// Etiquetas para el menú
+const STATUS_LABELS: Record<string, string> = {
+  no_iniciado:       "No Iniciado",
+  en_proceso:        "En Proceso",
+  terminado:         "Terminado",
+  no_enviado:        "No Enviado",
+  enviado_a_tiempo:  "Enviado a Tiempo",
+  enviado_tarde:     "Enviado Tarde",
+  all:               "Todos",
+};
+
 
 const currentDate = new Date();
 
 type TimeFilter = "all" | "past" | "upcoming30" | "upcoming90";
-type StatusFilter =
-  | "all"
-  | "no_enviado"
-  | "enviado_a_tiempo"
-  | "enviado_tarde"
-  | "no_iniciado"
-  | "en_proceso"
-  | "terminado";
+type StatusFilter = "all"
+  | typeof ESTADOS_ENTREGABLE[number]
+  | typeof ESTADOS_X_TEMA[number];
 
 interface Criterio {
   id: number;
@@ -272,51 +281,63 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
                     <div className="p-3 space-y-2">
                       <h4 className="font-medium text-sm">Estado</h4>
                       <div className="space-y-1">
-                        {(
-                          [
-                            "all",
-                            "no_enviado",
-                            "enviado_a_tiempo",
-                            "enviado_tarde",
-                            "no_iniciado",
-                            "en_proceso",
-                            "terminado",
-                          ] as StatusFilter[]
-                        ).map((filter) => (
+                        {/* Opción “Todos” */}
+                        <Button
+                          key="all"
+                          variant={statusFilter === "all" ? "default" : "outline"}
+                          size="sm"
+                          className="w-full justify-start"
+                          onClick={() => {
+                            setStatusFilter("all");
+                            setShowStatusFilter(false);
+                          }}
+                        >
+                          Todos
+                        </Button>
+
+                        {/* Estado del Entregable */}
+                        <p className="text-xs font-semibold text-gray-600 mt-2 mb-1 px-1">
+                          Estado del Entregable
+                        </p>
+                        {["no_iniciado", "en_proceso", "terminado"].map((filter) => (
                           <Button
                             key={filter}
-                            variant={
-                              statusFilter === filter ? "default" : "outline"
-                            }
+                            variant={statusFilter === filter ? "default" : "outline"}
                             size="sm"
                             className="w-full justify-start"
                             onClick={() => {
-                              setStatusFilter(filter);
+                              setStatusFilter(filter as any);
                               setShowStatusFilter(false);
                             }}
                           >
-                            {filter === "all" && "Todos"}
-                            {filter === "no_enviado" && (
-                              <span className="text-red-600">No Enviado</span>
-                            )}
-                            {filter === "enviado_a_tiempo" && (
-                              <span className="text-green-600">Actual</span>
-                            )}
-                            {filter === "enviado_tarde" && (
-                              <span className="text-red-600">Enviado Tarde</span>
-                            )}
-                            {filter === "no_iniciado" && (
-                              <span className="text-gray-500">Pendiente</span>
-                            )}
-                            {filter === "en_proceso" && (
-                              <span className="text-blue-600">En progreso</span>
-                            )}
-                            {filter === "terminado" && (
-                              <span className="text-green-600">Completado</span>
-                            )}
+                            {filter === "no_iniciado" && <span className="text-gray-500">No Iniciado</span>}
+                            {filter === "en_proceso" && <span className="text-blue-600">En Proceso</span>}
+                            {filter === "terminado" && <span className="text-green-600">Terminado</span>}
+                          </Button>
+                        ))}
+
+                        {/* Estado × Tema */}
+                        <p className="text-xs font-semibold text-gray-600 mt-2 mb-1 px-1">
+                          Estado × Tema
+                        </p>
+                        {["no_enviado", "enviado_a_tiempo", "enviado_tarde"].map((filter) => (
+                          <Button
+                            key={filter}
+                            variant={statusFilter === filter ? "default" : "outline"}
+                            size="sm"
+                            className="w-full justify-start"
+                            onClick={() => {
+                              setStatusFilter(filter as any);
+                              setShowStatusFilter(false);
+                            }}
+                          >
+                            {filter === "no_enviado" && <span className="text-red-600">No Enviado</span>}
+                            {filter === "enviado_a_tiempo" && <span className="text-green-600">Enviado a Tiempo</span>}
+                            {filter === "enviado_tarde" && <span className="text-red-600">Enviado Tarde</span>}
                           </Button>
                         ))}
                       </div>
+
                     </div>
                   </div>
                 )}
