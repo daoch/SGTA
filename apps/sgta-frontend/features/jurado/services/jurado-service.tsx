@@ -593,3 +593,25 @@ export const getCalificacionesJuradoByExposicionTemaId = async (
   }
 };
 
+export const actualizarCalificacionFinalJurado = async (
+  exposicionId: number,
+  calificacion: number,
+): Promise<boolean> => {
+  try {
+    console.log(
+      "Guardando calificaciones finales para la exposición:",
+      exposicionId,
+    );
+    console.log("Calificaciones finales:", calificacion);
+    const response = await axiosInstance.put("/jurado/nota-revision", {
+      id: exposicionId,
+      nota_revision: calificacion,
+    });
+
+    return response.status === 200;
+  } catch (error) {
+    console.error("Error al actualizar el estado de la exposición:", error);
+    throw error;
+  }
+};
+

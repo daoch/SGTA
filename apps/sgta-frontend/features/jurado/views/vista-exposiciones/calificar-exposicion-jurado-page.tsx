@@ -13,6 +13,7 @@ import {
   getExposicionCalificarJurado,
   actualizarComentarioFinalJurado,
   actualizarCriteriosEvaluacion,
+  actualizarCalificacionFinalJurado
 } from "../../services/jurado-service";
 import React from "react";
 import { useEffect, useState } from "react";
@@ -158,6 +159,7 @@ const CalificarExposicionJuradoPage: React.FC<Props> = ({ id_exposicion }) => {
       const exposicionId = evaluacion.criterios[0].id;
 
       try {
+        // 1. Guardar observaciones finales
         const resultadoObservaciones = await actualizarComentarioFinalJurado(
           exposicionId,
           observacionesFinales,
@@ -166,6 +168,22 @@ const CalificarExposicionJuradoPage: React.FC<Props> = ({ id_exposicion }) => {
         if (resultadoObservaciones) {
           successMessage += "Observaciones finales guardadas correctamente. ";
         }
+
+        // 2. Guardar la calificación final (nuevo)
+        const notaFinal = evaluacion.criterios.reduce(
+          (sum, criterio) => sum + (criterio.calificacion || 0), 
+          0
+        );
+        
+        const resultadoCalificacionFinal = await actualizarCalificacionFinalJurado(
+          exposicionId,
+          parseFloat(notaFinal.toFixed(2))
+        );
+
+        if (resultadoCalificacionFinal) {
+          successMessage += "Nota final guardada correctamente. ";
+        }
+
       } catch (error) {
         console.error("Error al guardar observaciones finales:", error);
         hasError = true;
