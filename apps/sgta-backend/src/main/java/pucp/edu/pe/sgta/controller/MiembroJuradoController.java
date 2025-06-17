@@ -9,11 +9,9 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.server.ResponseStatusException;
 import pucp.edu.pe.sgta.dto.*;
-import pucp.edu.pe.sgta.dto.calificacion.ExposicionCalificacionDto;
-import pucp.edu.pe.sgta.dto.calificacion.ExposicionCalificacionJuradoDTO;
-import pucp.edu.pe.sgta.dto.calificacion.ExposicionCalificacionRequest;
-import pucp.edu.pe.sgta.dto.calificacion.ExposicionObservacionRequest;
-import pucp.edu.pe.sgta.dto.calificacion.RevisionCriteriosRequest;
+import pucp.edu.pe.sgta.dto.calificacion.*;
+import pucp.edu.pe.sgta.dto.coordinador.ExposicionCoordinadorDto;
+import pucp.edu.pe.sgta.dto.etapas.EtapasFormativasDto;
 import pucp.edu.pe.sgta.dto.exposiciones.EstadoControlExposicionRequest;
 import pucp.edu.pe.sgta.dto.exposiciones.EstadoExposicionJuradoRequest;
 import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
@@ -145,7 +143,7 @@ public class MiembroJuradoController {
         DetalleTemaDto detalle = juradoService.obtenerDetalleTema(idTema);
         return ResponseEntity.ok(detalle);
     }
-
+    // Jurado-Asesor
     @GetMapping("/exposiciones")
     public ResponseEntity<List<ExposicionTemaMiembrosDto>> listarExposicionesPorJurado(
             HttpServletRequest request) {
@@ -157,12 +155,13 @@ public class MiembroJuradoController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
         }
     }
-
+    // Jurado-Asesor
     @PutMapping("/conformidad")
     public ResponseEntity<?> actualizarEstadoExposicion(@RequestBody EstadoExposicionJuradoRequest request) {
         return juradoService.actualizarEstadoExposicionJurado(request);
     }
 
+    // Jurado-Asesor
     @PutMapping("/control")
     public ResponseEntity<?> actualizarControlEstadoExposicion(HttpServletRequest request,
             @RequestBody EstadoControlExposicionRequest requestControl) {
@@ -180,6 +179,7 @@ public class MiembroJuradoController {
         return ResponseEntity.ok(juradoService.listarEstados());
     }
 
+    // Jurado-Asesor
     @GetMapping("/criterios")
     public ResponseEntity<ExposicionCalificacionDto> listarExposicionCalificacion(HttpServletRequest request,
             @RequestParam("exposicion_tema_id") Long exposicionTemaId) {
@@ -207,12 +207,40 @@ public class MiembroJuradoController {
     public ResponseEntity<?> actualizarObservacionFinal(@RequestBody ExposicionObservacionRequest request) {
         return juradoService.actualizarObservacionFinal(request);
     }
-
+    // Jurado-Asesor
     @GetMapping("/calificacion-exposicion")
     public ResponseEntity<List<ExposicionCalificacionJuradoDTO>> obtenerCalificacionExposicion(
             @RequestParam("exposicion_tema_id") Integer exposicionTemaId) {
         ExposicionCalificacionRequest request = new ExposicionCalificacionRequest();
         request.setExposicion_tema_id(exposicionTemaId);
         return juradoService.obtenerCalificacionExposicionJurado(request);
+    }
+
+    @GetMapping("/etapas-formativas")
+    public ResponseEntity<?> obtenerEtapasFormativas(HttpServletRequest request){
+        try {
+            String usuarioId = jwtService.extractSubFromRequest(request);
+            List<EtapasFormativasDto> etapas = juradoService.obtenerEtapasFormativasPorUsuario(usuarioId);
+            Map<String, Object> response = Map.of("etapas_formativas", etapas);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        }
+    }
+
+    @GetMapping("/exposiciones-coordinador")
+    public ResponseEntity<?> listarExposicionesPorCoordinador(HttpServletRequest request){
+        try{
+            String usuarioId = jwtService.extractSubFromRequest(request);
+            List<ExposicionCoordinadorDto> exposiciones = juradoService.listarExposicionesPorCoordinador(usuarioId);
+            return ResponseEntity.ok(exposiciones);
+        }catch (RuntimeException e){
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        }
+    }
+
+    @PutMapping("/nota-revision")
+    public ResponseEntity<?> actualizarNotaRevisionFinal(@RequestBody ExposicionNotaRevisionRequest request) {
+        return juradoService.actualizarNotaRevisionFinal(request);
     }
 }
