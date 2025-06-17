@@ -1591,12 +1591,14 @@ public class TemaServiceImpl implements TemaService {
 		try {
 			// Call the stored procedure that handles the solicitud and updates
 			// usuario_solicitud
-			entityManager
+			Number result = (Number) entityManager
 					.createNativeQuery("SELECT atender_solicitud_titulo(:solicitudId, :titulo, :respuesta)")
 					.setParameter("solicitudId", solicitudId)
 					.setParameter("titulo", titulo)
 					.setParameter("respuesta", respuesta)
 					.getSingleResult();
+
+			int estadoAnterior = result != null ? result.intValue() : -1;
 
 			// Log successful processing
 			Logger.getLogger(TemaServiceImpl.class.getName()).info("Processed title change request " + solicitudId);
@@ -2037,7 +2039,8 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 						"EstadoTema '" + nuevoEstadoNombre + "' no existe"));
 	}
 
-	private Tema actualizarTemaYHistorial(
+	@Override
+	public Tema actualizarTemaYHistorial(
 			Integer temaId,
 			String nuevoEstadoNombre,
 			String comentario) {

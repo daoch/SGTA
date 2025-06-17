@@ -12,6 +12,7 @@ import java.util.Map;
 
 import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
 import pucp.edu.pe.sgta.dto.temas.TemasComprometidosDto;
+import pucp.edu.pe.sgta.model.Tema;
 
 public interface TemaService {
 	List<TemaDto> getAll();
@@ -220,4 +221,7 @@ public interface TemaService {
 	 */
 	Integer createTemaFromOAI(TemaDto temaDto, Integer carreraId);
 
+	Tema actualizarTemaYHistorial(Integer temaId,
+								  String nuevoEstadoNombre,
+								  String comentario);
 }

@@ -573,85 +573,58 @@ public class SolicitudServiceImpl implements SolicitudService {
                 || solicitudAtendida.getChangeRequests().isEmpty()) {
             throw new RuntimeException("Request doesn't contain valid information");
         }
+        boolean allAttended = true;
+        Integer temaId = null;
 
         for (SolicitudTemaDto.RequestChange requestChange : solicitudAtendida.getChangeRequests()) {
             if (requestChange == null || requestChange.getId() == null) {
-                throw new RuntimeException("Invalid request change data");
+                allAttended = false;
+                break;
             }
 
-            // Get the request ID
             Integer solicitudId = requestChange.getId();
-
-            // Get the response message if available
             String response = requestChange.getResponse();
 
-            // Retrieve the full solicitud to determine its type
             Solicitud solicitud = solicitudRepository.findById(solicitudId)
                     .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
 
-            // Get the tipo de solicitud to determine if it's a title or summary change
-            // request
             String tipoSolicitudNombre = solicitud.getTipoSolicitud().getNombre();
 
-            // Handle the solicitud based on its type
-            if ("Solicitud de cambio de título".equals(tipoSolicitudNombre)) {
-                // Get title from DTO
-                String title = null;
-                if (requestChange.getStudents() != null && !requestChange.getStudents().isEmpty() &&
-                        requestChange.getStudents().get(0).getTopic() != null) {
-                    title = requestChange.getStudents().get(0).getTopic().getTitulo();
-
-                    // Handle empty string
-                    if (title != null && title.isEmpty()) {
-                        title = null;
+            try {
+                if ("Solicitud de cambio de título".equals(tipoSolicitudNombre)) {
+                    String title = null;
+                    if (requestChange.getStudents() != null && !requestChange.getStudents().isEmpty() &&
+                            requestChange.getStudents().get(0).getTopic() != null) {
+                        title = requestChange.getStudents().get(0).getTopic().getTitulo();
+                        if (title != null && title.isEmpty()) title = null;
                     }
-                }
-
-                // Call TemaService to update the title and handle the solicitud
-                temaService.updateTituloTemaSolicitud(solicitudId, title, response);
-
-            }
-
-            else if ("Solicitud de cambio de resumen".equals(tipoSolicitudNombre)) {
-                // Get summary from DTO
-                String summary = null;
-                if (requestChange.getStudents() != null && !requestChange.getStudents().isEmpty() &&
-                        requestChange.getStudents().get(0).getTopic() != null) {
-                    summary = requestChange.getStudents().get(0).getTopic().getResumen();
-
-                    // Handle empty string
-                    if (summary != null && summary.isEmpty()) {
-                        summary = null;
+                    temaService.updateTituloTemaSolicitud(solicitudId, title, response);
+                } else if ("Solicitud de cambio de resumen".equals(tipoSolicitudNombre)) {
+                    String summary = null;
+                    if (requestChange.getStudents() != null && !requestChange.getStudents().isEmpty() &&
+                            requestChange.getStudents().get(0).getTopic() != null) {
+                        summary = requestChange.getStudents().get(0).getTopic().getResumen();
+                        if (summary != null && summary.isEmpty()) summary = null;
                     }
+                    temaService.updateResumenTemaSolicitud(solicitudId, summary, response);
+                } else {
+                    log.warn("Unhandled solicitud type: {}", tipoSolicitudNombre);
+                    allAttended = false;
+                    break;
                 }
-
-                // Call TemaService to update the summary and handle the solicitud
-                temaService.updateResumenTemaSolicitud(solicitudId, summary, response);
-
-            }
-            else if ("Solicitud de cambio de resumen".equals(tipoSolicitudNombre)) {
-                // Get summary from DTO
-                String summary = null;
-                if (requestChange.getStudents() != null && !requestChange.getStudents().isEmpty() &&
-                        requestChange.getStudents().get(0).getTopic() != null) {
-                    summary = requestChange.getStudents().get(0).getTopic().getResumen();
-
-                    // Handle empty string
-                    if (summary != null && summary.isEmpty()) {
-                        summary = null;
-                    }
+                if (temaId == null) {
+                    temaId = solicitud.getTema().getId();
                 }
-
-                // Call TemaService to update the summary and handle the solicitud
-                temaService.updateResumenTemaSolicitud(solicitudId, summary, response);
-
+                log.info("Processed request {}", solicitudId);
+            } catch (Exception e) {
+                allAttended = false;
+                log.error("Failed to process request {}: {}", solicitudId, e.getMessage());
+                break;
             }
-            else {
-                log.warn("Unhandled solicitud type: {}", tipoSolicitudNombre);
-                throw new RuntimeException("Unsupported request type: " + tipoSolicitudNombre);
-            }
+        }
 
-            log.info("Processed request {}", solicitudId);
+        if (allAttended && temaId != null) { //Only update to INSCRITO if all observations were attended
+            temaService.actualizarTemaYHistorial(temaId, "INSCRITO", "Todas las observaciones fueron atendidas");
         }
 
     }
