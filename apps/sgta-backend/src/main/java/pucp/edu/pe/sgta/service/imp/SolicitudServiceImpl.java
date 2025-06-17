@@ -528,7 +528,7 @@ public class SolicitudServiceImpl implements SolicitudService {
             boolean aprobado = determinarAprobadoFromData(estado); // For students, we could fetch from a separate query
                                                                    // or include in the procedure
             // For now, using a simple representation with the current user as the student
-            SolicitudTemaDto.Tema tema = new SolicitudTemaDto.Tema("Tema de Tesis", "Resumen del tema"); // This should
+            SolicitudTemaDto.Tema tema = new SolicitudTemaDto.Tema("Tema de Tesis", "Resumen del tema", "Objetivos del tema"); // This should
                                                                                                          // be replaced
                                                                                                          // with actual
                                                                                                          // topic title
@@ -628,9 +628,25 @@ public class SolicitudServiceImpl implements SolicitudService {
                 // Call TemaService to update the summary and handle the solicitud
                 temaService.updateResumenTemaSolicitud(solicitudId, summary, response);
 
-            } else {
-                // For other types of solicitudes, use the general method
-                // You can decide what to do here
+            }
+            else if ("Solicitud de cambio de resumen".equals(tipoSolicitudNombre)) {
+                // Get summary from DTO
+                String summary = null;
+                if (requestChange.getStudents() != null && !requestChange.getStudents().isEmpty() &&
+                        requestChange.getStudents().get(0).getTopic() != null) {
+                    summary = requestChange.getStudents().get(0).getTopic().getResumen();
+
+                    // Handle empty string
+                    if (summary != null && summary.isEmpty()) {
+                        summary = null;
+                    }
+                }
+
+                // Call TemaService to update the summary and handle the solicitud
+                temaService.updateResumenTemaSolicitud(solicitudId, summary, response);
+
+            }
+            else {
                 log.warn("Unhandled solicitud type: {}", tipoSolicitudNombre);
                 throw new RuntimeException("Unsupported request type: " + tipoSolicitudNombre);
             }
