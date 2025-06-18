@@ -18,29 +18,36 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/features/auth";
 import { cn } from "@/lib/utils";
-import { ArrowLeft, Check, ChevronsUpDown, Loader2, UserX } from "lucide-react";
+import {
+  ArrowLeft,
+  BookX,
+  Check,
+  ChevronsUpDown,
+  Loader2,
+  UserX,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import ModalCambioAsesor from "../components/assessor-change-request/modal-registro-cambio-asesor";
 import {
   getInformacionTesisPorAlumno,
   registrarSolicitudCambioAsesor,
 } from "../services/cambio-asesor-services";
-import { getAsesoresPorFiltros } from "../services/directorio-services";
+import { buscarAsesoresPorNombre } from "../services/directorio-services";
 import { getIdByCorreo } from "../services/perfil-services";
 import { TemaActual } from "../types/cambio-asesor/entidades";
 import { Asesor } from "../types/perfil/entidades";
@@ -57,7 +64,14 @@ export default function RegistrarSolicitudCambioAsesor() {
   const [busqueda, setBusqueda] = useState("");
   const [openCombobox, setOpenCombobox] = useState(false);
   const [temaActual, setTemaActual] = useState<TemaActual | null>(null);
-  const [asesorActual, setAsesorActual] = useState<Asesor | null>(null);
+  const [asesoresActuales, setAsesoresActuales] = useState<Asesor[] | null>(
+    null,
+  );
+  const [asesorPorCambiar, setAsesorPorCambiar] = useState<Asesor | null>(null);
+  const [propuestoXAsesor, setPropuestoXAsesor] = useState<boolean | null>(
+    null,
+  );
+  const [idCreador, setIdCreador] = useState<number | null>(null);
 
   // Estados para el modal
   const [modalOpen, setModalOpen] = useState(false);
@@ -101,13 +115,7 @@ export default function RegistrarSolicitudCambioAsesor() {
     const buscarAsesores = async () => {
       if (busqueda.length >= 2 && userId) {
         try {
-          const resultado = await getAsesoresPorFiltros({
-            alumnoId: userId,
-            cadenaBusqueda: busqueda,
-            activo: true,
-            idAreas: [],
-            idTemas: [],
-          });
+          const resultado = await buscarAsesoresPorNombre(busqueda);
           setAsesores(resultado);
         } catch (error) {
           console.error("Error al buscar asesores:", error);
@@ -123,10 +131,20 @@ export default function RegistrarSolicitudCambioAsesor() {
       if (!userId) return;
       try {
         setIsLoading(true);
-        const { temaActual, asesorActual } =
+        const { temaActual, asesores, roles, idCreador } =
           await getInformacionTesisPorAlumno(userId);
-        setTemaActual(temaActual);
-        setAsesorActual(asesorActual);
+        const asesoresConRol = asesores.map((asesor, index) => ({
+          ...asesor,
+          rol: roles[index] || null,
+        }));
+        const tema = temaActual as TemaActual;
+        const existe = asesoresConRol.some((asesor) => asesor.id === idCreador);
+        console.log("asesores: ", asesoresConRol);
+        console.log("idCreador: ", idCreador);
+        setTemaActual(tema);
+        setAsesoresActuales(asesoresConRol);
+        setPropuestoXAsesor(existe);
+        setIdCreador(idCreador);
       } catch (error) {
         console.error("Error al cargar información de tesis:", error);
       } finally {
@@ -136,6 +154,8 @@ export default function RegistrarSolicitudCambioAsesor() {
 
     fetchData();
   }, [userId]);
+
+  console.log("Propuesto por asesor:", propuestoXAsesor);
 
   // Función para manejar el registro de la solicitud
   const handleRegistrarSolicitud = async () => {
@@ -150,7 +170,13 @@ export default function RegistrarSolicitudCambioAsesor() {
   const confirmarRegistro = async () => {
     setRegistroEstado("loading");
 
-    if (!nuevoAsesor || !temaActual || !asesorActual || !userId) {
+    if (
+      !nuevoAsesor ||
+      !temaActual ||
+      !asesorPorCambiar ||
+      !userId ||
+      !idCreador
+    ) {
       setRegistroEstado("error");
       setMensajeRegistro(
         "Debes seleccionar un nuevo asesor antes de continuar.",
@@ -160,9 +186,10 @@ export default function RegistrarSolicitudCambioAsesor() {
 
     try {
       const resultado = await registrarSolicitudCambioAsesor({
-        alumnoId: userId,
+        creadorId: idCreador,
         temaId: temaActual.id,
-        asesorActualId: asesorActual.id,
+        estadoTema: temaActual.estadoTema ?? "Vencido",
+        asesorActualId: asesorPorCambiar.id,
         nuevoAsesorId: nuevoAsesor.id,
         motivo,
       });
@@ -187,6 +214,16 @@ export default function RegistrarSolicitudCambioAsesor() {
   // Función para volver a la pantalla anterior
   const handleVolver = () => {
     router.push("/alumno/solicitudes-academicas");
+  };
+
+  const handleAsesorPorCambiarChange = (asesorId: string) => {
+    if (!asesoresActuales) {
+      setAsesorPorCambiar(null);
+      return;
+    }
+
+    const asesor = asesoresActuales.find((a) => a.id.toString() === asesorId);
+    setAsesorPorCambiar(asesor || null);
   };
 
   // Función para ver detalle de la solicitud
@@ -225,8 +262,7 @@ export default function RegistrarSolicitudCambioAsesor() {
       </div>
     );
 
-  /*
-  if (!temaActual || !asesorActual) {
+  if (!temaActual || propuestoXAsesor === null) {
     return (
       <div className="relative h-screen w-full flex items-center justify-center flex-col gap-4">
         <div
@@ -255,7 +291,7 @@ export default function RegistrarSolicitudCambioAsesor() {
         </span>
       </div>
     );
-  }*/
+  }
 
   return (
     <div className="container mx-auto py-8 max-w-3xl">
@@ -285,38 +321,102 @@ export default function RegistrarSolicitudCambioAsesor() {
           {temaActual?.areas && (
             <p className="text-muted-foreground mt-2">{temaActual.areas}</p>
           )}
+          {propuestoXAsesor && (
+            <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-md">
+              <div className="flex items-start gap-2">
+                <svg
+                  className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <div className="flex-1">
+                  <h4 className="text-sm font-medium text-amber-800">
+                    Tema propuesto por asesor
+                  </h4>
+                  <p className="text-sm text-amber-700 mt-1">
+                    Este tema ha sido propuesto por tu asesor actual. Cualquier
+                    cambio de asesor también requerirá la aprobación del asesor
+                    que propuso el tema.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      {/* Información del asesor actual */}
+      {/* Selección del asesor por cambiar */}
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle className="text-lg">Asesor Actual</CardTitle>
-          <CardDescription>Información de tu asesor actual</CardDescription>
+          <CardTitle className="text-lg">
+            Seleccionar Asesor Por Cambiar
+          </CardTitle>
+          <CardDescription>
+            Selecciona el asesor actual que deseas cambiar
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center gap-4">
-            <Avatar className="h-16 w-16">
-              <AvatarImage
-                src={asesorActual?.foto ?? undefined}
-                alt={`${asesorActual?.nombre}`}
-              />
-              <AvatarFallback>{asesorActual?.nombre.charAt(0)}</AvatarFallback>
-            </Avatar>
-            <div>
-              <h3 className="font-medium text-lg">{asesorActual?.nombre}</h3>
-              <p className="text-muted-foreground">{asesorActual?.email}</p>
-              {asesorActual?.areasTematicas &&
-                asesorActual?.areasTematicas.length > 0 && (
-                  <p className="text-xs text-muted-foreground">
-                    Área:{" "}
-                    {asesorActual.areasTematicas
-                      .map((a) => a.nombre)
-                      .join(", ")}
+          <Select onValueChange={handleAsesorPorCambiarChange}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Seleccionar asesor por cambiar..." />
+            </SelectTrigger>
+            <SelectContent>
+              {asesoresActuales?.map((asesor) => (
+                <SelectItem key={asesor.id} value={asesor.id.toString()}>
+                  <div className="flex items-center gap-2">
+                    <Avatar className="h-6 w-6">
+                      <AvatarImage
+                        src={asesor.foto ?? undefined}
+                        alt={`${asesor.nombre}`}
+                      />
+                      <AvatarFallback className="text-xs">
+                        {asesor.nombre.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span>{asesor.nombre}</span>
+                    <span>{asesor?.rol}</span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {asesorPorCambiar && (
+            <div className="mt-4 p-4 border rounded-md">
+              <div className="flex items-center gap-4">
+                <Avatar className="h-12 w-12">
+                  <AvatarImage
+                    src={asesorPorCambiar.foto ?? undefined}
+                    alt={`${asesorPorCambiar.nombre}`}
+                  />
+                  <AvatarFallback>
+                    {asesorPorCambiar.nombre.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <h3 className="font-medium">{asesorPorCambiar.nombre}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {asesorPorCambiar?.email}
                   </p>
-                )}
+                  {asesorPorCambiar?.areasTematicas &&
+                    asesorPorCambiar?.areasTematicas.length > 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        Área:{" "}
+                        {asesorPorCambiar.areasTematicas
+                          .map((a) => a.nombre)
+                          .join(", ")}
+                      </p>
+                    )}
+                </div>
+              </div>
             </div>
-          </div>
+          )}
         </CardContent>
       </Card>
 
@@ -465,91 +565,18 @@ export default function RegistrarSolicitudCambioAsesor() {
       </div>
 
       {/* Modal de confirmación */}
-      <Dialog
+      <ModalCambioAsesor
         open={modalOpen}
-        onOpenChange={(open) => {
-          // Solo permitir cerrar el modal si está en estado "idle" o "loading"
-          if (registroEstado === "idle" || registroEstado === "loading") {
-            setModalOpen(open);
-          }
-        }}
-      >
-        <DialogContent
-          className="sm:max-w-md"
-          onPointerDownOutside={(e) => {
-            // Prevenir cerrar el modal haciendo clic fuera cuando está en estado success o error
-            if (registroEstado === "success" || registroEstado === "error") {
-              e.preventDefault();
-            }
-          }}
-          onEscapeKeyDown={(e) => {
-            // Prevenir cerrar el modal con ESC cuando está en estado success o error
-            if (registroEstado === "success" || registroEstado === "error") {
-              e.preventDefault();
-            }
-          }}
-        >
-          <DialogHeader>
-            <DialogTitle>
-              {registroEstado === "idle" &&
-                "Confirmar solicitud de cambio de asesor"}
-              {registroEstado === "loading" && "Procesando solicitud"}
-              {registroEstado === "success" && "Solicitud registrada con éxito"}
-              {registroEstado === "error" && "Error al registrar solicitud"}
-            </DialogTitle>
-            <DialogDescription>
-              {registroEstado === "idle" && (
-                <>
-                  ¿Estás seguro que deseas solicitar el cambio de asesor de{" "}
-                  <span className="font-medium">{asesorActual?.nombre}</span> a{" "}
-                  <span className="font-medium">{nuevoAsesor?.nombre}</span>?
-                </>
-              )}
-              {registroEstado === "loading" &&
-                "Por favor espera mientras procesamos tu solicitud..."}
-              {registroEstado === "success" && mensajeRegistro}
-              {registroEstado === "error" && mensajeRegistro}
-            </DialogDescription>
-          </DialogHeader>
-
-          {registroEstado === "loading" && (
-            <div className="flex justify-center py-6">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-          )}
-
-          <DialogFooter className="sm:justify-center">
-            {registroEstado === "idle" && (
-              <>
-                <Button variant="outline" onClick={() => setModalOpen(false)}>
-                  Cancelar
-                </Button>
-                <Button onClick={confirmarRegistro}>Confirmar</Button>
-              </>
-            )}
-
-            {registroEstado === "success" && (
-              <>
-                <Button variant="outline" onClick={handleVolver}>
-                  Volver a Solicitudes
-                </Button>
-                <Button onClick={verDetalleSolicitud}>Ver Detalle</Button>
-              </>
-            )}
-
-            {registroEstado === "error" && (
-              <Button
-                onClick={() => {
-                  setModalOpen(false);
-                  setRegistroEstado("idle");
-                }}
-              >
-                Cerrar
-              </Button>
-            )}
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        onOpenChange={setModalOpen}
+        registroEstado={registroEstado}
+        setRegistroEstado={setRegistroEstado}
+        confirmarRegistro={confirmarRegistro}
+        handleVolver={handleVolver}
+        verDetalleSolicitud={verDetalleSolicitud}
+        mensajeRegistro={mensajeRegistro}
+        asesorPorCambiar={asesorPorCambiar}
+        nuevoAsesor={nuevoAsesor}
+      />
     </div>
   );
 }

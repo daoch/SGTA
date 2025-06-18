@@ -32,16 +32,16 @@ export const pageTemasTexts = {
       description: "Solicitudes de cambios que requieren aprobación",
       show: true,
     },
-    [EstadoTemaNombre.REGISTRADO]: {
-      label: "Aprobadas",
-      title: "Solicitudes Aprobadas",
-      description: "Solicitudes de cambios que han sido aprobadas",
-      show: true,
-    },
     [EstadoTemaNombre.OBSERVADO]: {
       label: "Observadas",
       title: "Solicitudes Observadas",
       description: "Solicitudes de cambios que quedaron observadas",
+      show: true,
+    },
+    [EstadoTemaNombre.REGISTRADO]: {
+      label: "Aprobadas",
+      title: "Solicitudes Aprobadas",
+      description: "Solicitudes de cambios que han sido aprobadas",
       show: true,
     },
     [EstadoTemaNombre.RECHAZADO]: {

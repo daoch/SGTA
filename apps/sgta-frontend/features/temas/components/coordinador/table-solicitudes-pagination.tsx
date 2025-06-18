@@ -119,7 +119,9 @@ export function SolicitudesTable({
           <div className="flex justify-end gap-2">
             {/* Ver detalles */}
             <TooltipProvider>
-              {sol.estado === EstadoTemaNombre.INSCRITO ? (
+              {[EstadoTemaNombre.INSCRITO, EstadoTemaNombre.OBSERVADO].includes(
+                sol.estado,
+              ) ? (
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Link

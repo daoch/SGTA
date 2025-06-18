@@ -1,9 +1,7 @@
 import type {
   AreaTematica,
   Asesor,
-  Proyecto,
   TemaInteres,
-  Tesis,
 } from "@/features/asesores/types/perfil/entidades"; // ajusta según tu estructura
 
 export const getAreasDisponibles = (): AreaTematica[] => [
@@ -84,80 +82,4 @@ export const getAsesorMock = (): Asesor => {
     ],
     estado: true,
   };
-};
-
-export const getTesisMock = (): Tesis[] => {
-  return [
-    {
-      idTesis: 1,
-      titulo:
-        "Sistema de detección de objetos en tiempo real para vehículos autónomos",
-      estudiantes: "Carlos Mendoza",
-      anio: "2023",
-      nivel: "Finalizada",
-      estado: "finalizada",
-    },
-    {
-      idTesis: 2,
-      titulo: "Reconocimiento facial en entornos no controlados",
-      estudiantes: "Ana García",
-      anio: "2022",
-      nivel: "Finalizada",
-      estado: "finalizada",
-    },
-    {
-      idTesis: 3,
-      titulo:
-        "Clasificación de imágenes médicas mediante redes neuronales convolucionales",
-      estudiantes: "Pedro López",
-      anio: "2021",
-      nivel: "Finalizada",
-      estado: "finalizada",
-    },
-    {
-      idTesis: 4,
-      titulo: "Análisis de sentimientos en redes sociales usando transformers",
-      estudiantes: "María Rodríguez",
-      anio: "2024",
-      nivel: "Tesis 1",
-      estado: "en_proceso",
-    },
-    {
-      idTesis: 5,
-      titulo: "Desarrollo de un asistente virtual para atención médica",
-      estudiantes: "Juan Pérez, Lucía Fernández",
-      anio: "2024",
-      nivel: "Tesis 2",
-      estado: "en_proceso",
-    },
-  ];
-};
-
-export const getProyectosMock = (): Proyecto[] => {
-  return [
-    {
-      idProyecto: 1,
-      nombre: "Sistema de gestión de tesis",
-      participantes: 5,
-      anioInicio: "2022",
-      anioFin: "2023",
-      estado: "finalizado",
-    },
-    {
-      idProyecto: 2,
-      nombre: "Desarrollo de una plataforma de aprendizaje en línea",
-      participantes: 8,
-      anioInicio: "2023",
-      anioFin: null,
-      estado: "en_proceso",
-    },
-    {
-      idProyecto: 3,
-      nombre: "Implementación de un sistema de recomendación para libros",
-      participantes: 4,
-      anioInicio: "2023",
-      anioFin: null,
-      estado: "en_proceso",
-    },
-  ];
 };
