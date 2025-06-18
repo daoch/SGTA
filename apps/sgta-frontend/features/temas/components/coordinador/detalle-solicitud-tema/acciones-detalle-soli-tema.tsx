@@ -39,11 +39,11 @@ const defaultConfig: AccionesConfig = {
 
 const tooltips: Record<AccionKey, string> = {
   observar:
-    "Observar el tema y se debe crear una solicitud de cambio de título o resumen.",
+    "Para observar el tema debe crear una solicitud de cambio de título o resumen.",
   aprobar:
-    "Aprueba la solicitud y el tema será registrado. No se envían solicitudes de cambios.",
+    "Aprueba la solicitud y el tema será registrado. No debe haber solicitudes de cambios pendientes.",
   rechazar:
-    "Rechaza la solicitud y el tema no será registrado. No se envían solicitudes de cambios.",
+    "Rechaza la solicitud y el tema no será registrado. No debe haber solicitudes de cambios pendientes.",
   eliminar:
     "Desactiva el tema, se libera al asesor y a los tesistas. No se envían solicitudes de cambios.",
 };

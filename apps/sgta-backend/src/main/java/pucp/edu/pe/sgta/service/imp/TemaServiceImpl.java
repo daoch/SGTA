@@ -2059,25 +2059,22 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 
 	private Solicitud cargarSolicitud(Integer temaId) {
 		final String tipoNombre = "Aprobación de tema (por coordinador)";
+		String sql =
+			"SELECT s.* " +
+			"  FROM solicitud s " +
+			"  JOIN obtener_solicitud_por_tipo_y_tema(:tipoNombre, :temaId) f " +
+			"    ON s.solicitud_id = f.solicitud_id";
 
-        // Construimos la consulta: hacemos JOIN entre la tabla solicitud
-        // y el SET-RETURNING FUNCTION para filtrar por tipo y tema
-        String sql = ""
-            + "SELECT s.* "
-            + "  FROM solicitud s "
-            + "  JOIN obtener_solicitud_por_tipo_y_tema(:tipoNombre, :temaId) f "
-            + "    ON s.solicitud_id = f.solicitud_id";
-
-        try {
-            return (Solicitud) entityManager
-                .createNativeQuery(sql, Solicitud.class)
-                .setParameter("tipoNombre", tipoNombre)
-                .setParameter("temaId", temaId)
-                .getSingleResult();
-        } catch (NoResultException ex) {
-            throw new RuntimeException(
-                "No existe solicitud de aprobación para el tema " + temaId, ex);
-        }
+		try {
+			return (Solicitud) entityManager
+				.createNativeQuery(sql, Solicitud.class)
+				.setParameter("tipoNombre", tipoNombre)
+				.setParameter("temaId", temaId)
+				.getSingleResult();
+		} catch (NoResultException ex) {
+			// En lugar de lanzar, devolvemos null
+			return null;
+		}
 	}
 
 	private UsuarioXSolicitud actualizarUsuarioXSolicitud(
@@ -2197,15 +2194,47 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 
 		actualizarTemaYHistorial(temaId, nuevoEstadoNombre, comentario);
 
+		// 1) Intentamos cargar SIEMPRE la solicitud
 		Solicitud solicitud = cargarSolicitud(temaId);
 
-		actualizarUsuarioXSolicitud(
+		// 2) Si no existe solicitud, sólo permitimos continuar
+		//    cuando el nuevo estado es REGISTRADO o RECHAZADO
+		if (solicitud == null) {
+			boolean estadoPermitidoSinSolicitud =
+				EstadoTemaEnum.REGISTRADO.name().equalsIgnoreCase(nuevoEstadoNombre)
+			|| EstadoTemaEnum.RECHAZADO.name().equalsIgnoreCase(nuevoEstadoNombre);
+			if (!estadoPermitidoSinSolicitud) {
+				throw new RuntimeException(
+					"No existe solicitud de aprobación para el tema " + temaId);
+			}
+		}
+
+		// 3) Si la solicitud existe, actualizamos sus datos
+		if (solicitud != null) {
+			actualizarUsuarioXSolicitud(
 				solicitud.getId(),
 				usuarioId,
 				nuevoEstadoNombre,
 				comentario);
+			actualizarSolicitud(solicitud, nuevoEstadoNombre, comentario);
+		}
 
-		actualizarSolicitud(solicitud, nuevoEstadoNombre, comentario);
+		if (EstadoTemaEnum.RECHAZADO.name().equalsIgnoreCase(nuevoEstadoNombre)
+		|| EstadoTemaEnum.OBSERVADO.name().equalsIgnoreCase(nuevoEstadoNombre)) {
+			entityManager.createNativeQuery(
+					"CALL rechazar_solicitudes_cambio_por_tema(:temaId)")
+				.setParameter("temaId", temaId)
+				.executeUpdate();
+		}
+
+		if (EstadoTemaEnum.REGISTRADO.name().equalsIgnoreCase(nuevoEstadoNombre)) {
+			entityManager.createNativeQuery(
+					"CALL aprobar_solicitudes_cambio_por_tema(:temaId)")
+				.setParameter("temaId", temaId)
+				.executeUpdate();
+		}
+
+
 		if (EstadoTemaEnum.RECHAZADO.name().equalsIgnoreCase(nuevoEstadoNombre)) {
 			desasignarUsuariosDeTema(temaId);
 		}
