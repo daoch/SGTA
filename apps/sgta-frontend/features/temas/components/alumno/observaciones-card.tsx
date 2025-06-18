@@ -1,16 +1,5 @@
 "use client";
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -24,7 +13,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useAuthStore } from "@/features/auth/store/auth-store";
 import { AlertCircle, CheckCircle, Pencil } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface Remitente {
   usuario_solicitud_id: number;
@@ -51,53 +40,53 @@ export function ObservacionesCard({ observaciones }: { observaciones: Observacio
   const { idToken } = useAuthStore();
 
   const [modoEdicion, setModoEdicion] = useState(false);
-  const [confirmar, setConfirmar] = useState(false);
+  const [tema, setTema] = useState<{ titulo: string; resumen: string } | null>(null);
+  const [nuevoTitulo, setNuevoTitulo] = useState("");
+  const [nuevoResumen, setNuevoResumen] = useState("");
 
-  const [titulo, setTitulo] = useState("");
-  const [descripcion, setDescripcion] = useState("");
-
-  const [tituloOriginal, setTituloOriginal] = useState("");
-  const [descripcionOriginal, setDescripcionOriginal] = useState("");
-
-  const [editadoTitulo, setEditadoTitulo] = useState(false);
-  const [editadoDescripcion, setEditadoDescripcion] = useState(false);
-
-  const [loadingTema, setLoadingTema] = useState(false);
-
-  const camposObservados = observaciones.map((obs) => obs.tipo_solicitud);
-
-  const sePuedeGuardar = camposObservados.every((tipo) => {
-    if (tipo === "Solicitud de cambio de título") return editadoTitulo && titulo.trim() !== "";
-    if (tipo === "Solicitud de cambio de resumen") return editadoDescripcion && descripcion.trim() !== "";
-    return true;
-  });
-
-  const fetchTema = async () => {
-    setLoadingTema(true);
-    try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/temas/porUsuarioTituloAreaCarreraEstadoFecha?titulo=&areaId=&carreraId=&estadoNombre=OBSERVADO&fechaCreacionDesde=&fechaCreacionHasta=`,
-        {
-          headers: {
-            Authorization: `Bearer ${idToken}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      const data = await res.json();
-      if (data && data[0]) {
-        setTitulo(data[0].titulo);
-        setDescripcion(data[0].resumen);
-        setTituloOriginal(data[0].titulo);
-        setDescripcionOriginal(data[0].resumen);
+  // Cargar el tema al montar el componente (no al editar)
+  useEffect(() => {
+    fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/temas/porUsuarioTituloAreaCarreraEstadoFecha?titulo=&areaId=&carreraId=&estadoNombre=OBSERVADO&fechaCreacionDesde=&fechaCreacionHasta=`,
+      {
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+          "Content-Type": "application/json",
+        },
       }
-    } catch (error) {
-      console.error("Error al obtener el tema:", error);
-    } finally {
-      setLoadingTema(false);
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && data[0]) {
+          setTema({ titulo: data[0].titulo, resumen: data[0].resumen });
+          setNuevoTitulo(data[0].titulo);
+          setNuevoResumen(data[0].resumen);
+        }
+      });
+  }, []);
+
+  // Al entrar en modo edición, inicializa los campos con el tema ya cargado
+  const handleSubsanar = () => {
+    if (tema) {
+      setNuevoTitulo(tema.titulo);
+      setNuevoResumen(tema.resumen);
     }
+    setModoEdicion(true);
   };
 
+  // Determinar si se han hecho cambios en todos los campos mostrados
+  const camposMostrados = observaciones.map((obs) =>
+    obs.tipo_solicitud === "Solicitud de cambio de título" ? "titulo" : "resumen"
+  );
+
+  const cambiosHechos =
+    camposMostrados.every((campo) =>
+      campo === "titulo"
+        ? nuevoTitulo.trim() !== (tema?.titulo.trim() ?? "")
+        : nuevoResumen.trim() !== (tema?.resumen.trim() ?? "")
+    );
+
+  // Guardar cambios
   const handleGuardar = async () => {
     const changeRequests = observaciones.map((obs) => ({
       id: obs.solicitud_id,
@@ -108,8 +97,14 @@ export function ObservacionesCard({ observaciones }: { observaciones: Observacio
           name: "",
           lastName: "",
           topic: {
-            titulo: titulo.trim(),
-            resumen: descripcion.trim(),
+            titulo:
+              obs.tipo_solicitud === "Solicitud de cambio de título"
+                ? nuevoTitulo.trim()
+                : tema?.titulo.trim() ?? "",
+            resumen:
+              obs.tipo_solicitud === "Solicitud de cambio de resumen"
+                ? nuevoResumen.trim()
+                : tema?.resumen.trim() ?? "",
           },
         },
       ],
@@ -179,25 +174,23 @@ export function ObservacionesCard({ observaciones }: { observaciones: Observacio
               {obs.remitente.nombres} {obs.remitente.primer_apellido} -{" "}
               {new Date(obs.fecha_creacion).toLocaleDateString()}
             </div>
-            {modoEdicion && obs.tipo_solicitud === "Solicitud de cambio de título" && (
+            {modoEdicion && tema && obs.tipo_solicitud === "Solicitud de cambio de título" && (
               <div>
-                <label className="block text-sm font-medium mb-1 mt-2">Nuevo título</label>
+                <label className="block text-sm font-medium mb-1 mt-2">Título del Tema</label>
                 <input
-                  className="border rounded px-2 py-1 w-full"
-                  placeholder={titulo}
-                  value={titulo}
-                  onChange={(e) => setTitulo(e.target.value)}
+                  className="border rounded-md px-2 py-1 w-full text-sm"
+                  value={nuevoTitulo}
+                  onChange={(e) => setNuevoTitulo(e.target.value)}
                 />
               </div>
             )}
-            {modoEdicion && obs.tipo_solicitud === "Solicitud de cambio de resumen" && (
+            {modoEdicion && tema && obs.tipo_solicitud === "Solicitud de cambio de resumen" && (
               <div>
-                <label className="block text-sm font-medium mb-1 mt-2">Nuevo resumen</label>
+                <label className="block text-sm font-medium mb-1 mt-2">Resumen del Tema</label>
                 <textarea
-                  className="border rounded px-2 py-1 w-full"
-                  placeholder={descripcion}
-                  value={descripcion}
-                  onChange={(e) => setDescripcion(e.target.value)}
+                  className="border rounded-md px-2 py-1 w-full text-sm"
+                  value={nuevoResumen}
+                  onChange={(e) => setNuevoResumen(e.target.value)}
                 />
               </div>
             )}
@@ -207,53 +200,26 @@ export function ObservacionesCard({ observaciones }: { observaciones: Observacio
 
       <CardFooter className="flex justify-end gap-4">
         {modoEdicion ? (
-          <>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setTitulo(tituloOriginal);
-                setDescripcion(descripcionOriginal);
-                setEditadoTitulo(false);
-                setEditadoDescripcion(false);
-                setModoEdicion(false);
-              }}
+          <div className="flex justify-end gap-2 mt-4">
+            <button
+              className="border border-gray-300 bg-white text-black font-semibold px-6 py-2 rounded-xl hover:bg-gray-100 transition"
+              onClick={() => setModoEdicion(false)}
             >
               Cancelar
-            </Button>
-
-            <AlertDialog open={confirmar} onOpenChange={setConfirmar}>
-              <AlertDialogTrigger asChild>
-                <Button
-                  className="bg-green-600 hover:bg-green-700 text-white"
-                  disabled={!sePuedeGuardar}
-                >
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  Enviar todas las subsanaciones
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>¿Deseas guardar los cambios?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Esta acción enviará tus subsanaciones y no podrás editarlas nuevamente por ahora.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleGuardar}>
-                    Confirmar
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </>
+            </button>
+            <button
+              className={`flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-2 rounded-xl transition ${!cambiosHechos ? "opacity-50 cursor-not-allowed" : ""}`}
+              onClick={handleGuardar}
+              disabled={!cambiosHechos}
+            >
+              <CheckCircle className="w-5 h-5" />
+              Enviar todas las subsanaciones
+            </button>
+          </div>
         ) : (
           <Button
             className="bg-red-600 hover:bg-red-700 text-white"
-            onClick={() => {
-              setModoEdicion(true);
-              fetchTema(); // se obtiene título y resumen original en el momento exacto
-            }}
+            onClick={handleSubsanar}
           >
             <Pencil className="h-4 w-4 mr-2" />
             Subsanar observaciones
