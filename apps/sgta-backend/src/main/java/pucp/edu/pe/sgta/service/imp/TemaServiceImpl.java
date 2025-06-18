@@ -658,52 +658,61 @@ public class TemaServiceImpl implements TemaService {
 
 	@Transactional
 	@Override
-	public Integer createInscripcionTemaV2(TemaDto dto, String idUsuario) {
+	public Integer createInscripcionTemaV2(TemaDto dto, String idUsuario, Boolean reinscribir) {
 		// 0) Validaciones iniciales y preparación del Tema
 		UsuarioDto usuarioDto = usuarioService.findByCognitoId(idUsuario);
 		Integer idUsuarioCreador = usuarioDto.getId();
-		validacionesInscripcionTema(dto, idUsuarioCreador);
-		dto.setId(null);
-
-		// Prepara y guarda el tema con estado INSCRITO
-		Tema tema = prepareNewTema(dto, EstadoTemaEnum.INSCRITO);
-		var relaciones = usuarioCarreraRepository.findByUsuarioIdAndActivoTrue(idUsuarioCreador);
-		if (relaciones.isEmpty()) {
-			throw new RuntimeException("El usuario no tiene ninguna carrera activa.");
+		if (!reinscribir) {
+			validacionesInscripcionTema(dto, idUsuarioCreador);
+			dto.setId(null);
 		}
-		Integer carreraId = relaciones.get(0).getCarrera().getId();
-		Carrera carrera = carreraRepository.findById(carreraId)
-				.orElseThrow(() -> new RuntimeException("Carrera no encontrada con id " + carreraId));
-		tema.setCarrera(carrera);
-		temaRepository.save(tema);
 
-		// Historial del cambio
-		saveHistorialTemaChange(tema, dto.getTitulo(), dto.getResumen(), "Inscripción de tema");
+		Integer temaId = dto.getId();
+		Tema tema = null;
+		// Prepara y guarda el tema con estado INSCRITO
+		if (!reinscribir) {
+			tema = prepareNewTema(dto, EstadoTemaEnum.INSCRITO);
+			var relaciones = usuarioCarreraRepository.findByUsuarioIdAndActivoTrue(idUsuarioCreador);
+			if (relaciones.isEmpty()) {
+				throw new RuntimeException("El usuario no tiene ninguna carrera activa.");
+			}
+			Integer carreraId = relaciones.get(0).getCarrera().getId();
+			Carrera carrera = carreraRepository.findById(carreraId)
+					.orElseThrow(() -> new RuntimeException("Carrera no encontrada con id " + carreraId));
+			tema.setCarrera(carrera);
 
+			temaRepository.save(tema);
+
+			// Historial del cambio
+			saveHistorialTemaChange(tema, dto.getTitulo(), dto.getResumen(), "Inscripción de tema");
+			temaId = tema.getId();
+			Integer[] subareaIds = dto.getSubareas().stream()
+					.map(SubAreaConocimientoDto::getId)
+					.toArray(Integer[]::new);
+			Integer[] coasesorIds = dto.getCoasesores().stream()
+					.map(UsuarioDto::getId)
+					.toArray(Integer[]::new);
+			Integer[] tesistaIds = dto.getTesistas().stream()
+					.map(UsuarioDto::getId)
+					.toArray(Integer[]::new);
+
+			entityManager.createNativeQuery(
+							"SELECT procesar_inscripcion_items(" +
+									" :temaId, :usuarioId, :subs, :coas, :tes )")
+					.setParameter("temaId", temaId)
+					.setParameter("usuarioId", idUsuarioCreador)
+					.setParameter("subs", subareaIds)
+					.setParameter("coas", coasesorIds)
+					.setParameter("tes", tesistaIds)
+					.getSingleResult(); // función retorna VOID
+
+		}
+		else{
+			tema = temaRepository.findById(temaId)
+					.orElseThrow(() -> new EntityNotFoundException("Tema no encontrado con ID: " + dto.getId()));
+		}
 		// 1–5) Delegar a la función PL/pgSQL
 		entityManager.flush(); // asegurar que tema.id ya esté asignado
-		Integer temaId = tema.getId();
-
-		Integer[] subareaIds = dto.getSubareas().stream()
-				.map(SubAreaConocimientoDto::getId)
-				.toArray(Integer[]::new);
-		Integer[] coasesorIds = dto.getCoasesores().stream()
-				.map(UsuarioDto::getId)
-				.toArray(Integer[]::new);
-		Integer[] tesistaIds = dto.getTesistas().stream()
-				.map(UsuarioDto::getId)
-				.toArray(Integer[]::new);
-
-		entityManager.createNativeQuery(
-				"SELECT procesar_inscripcion_items(" +
-						" :temaId, :usuarioId, :subs, :coas, :tes )")
-				.setParameter("temaId", temaId)
-				.setParameter("usuarioId", idUsuarioCreador)
-				.setParameter("subs", subareaIds)
-				.setParameter("coas", coasesorIds)
-				.setParameter("tes", tesistaIds)
-				.getSingleResult(); // función retorna VOID
-
 		// 6) Generar y enviar la solicitud de aprobación
 		crearSolicitudAprobacionTemaV2(tema);
 		return temaId; // return tema id
