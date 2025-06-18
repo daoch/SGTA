@@ -55,6 +55,7 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
         private final EtapaFormativaXCicloXTemaRepository etapaFormativaXCicloXTemaRepository;
         private final UsuarioXAreaConocimientoRepository usuarioXAreaConocimientoRepository;
         private final SubAreaConocimientoRepository subAreaConocimientoRepository;
+        private final UsuarioXCarreraRepository usuarioXCarreraRepository;
 
         public MiembroJuradoServiceImpl(UsuarioRepository usuarioRepository,
                                         UsuarioXTemaRepository usuarioXTemaRepository,
@@ -70,7 +71,7 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                                         RevisionCriterioExposicionRepository revisionCriterioExposicionRepository,
                                         ParametroConfiguracionRepository parametroConfiguracionRepository,
                                         CarreraXParametroConfiguracionRepository carreraXParametroConfiguracionRepository,
-                                        UsuarioService usuarioService, UsuarioXRolRepository usuarioRolRepository, EtapaFormativaXCicloXTemaRepository etapaFormativaXCicloXTemaRepository, UsuarioXAreaConocimientoRepository usuarioXAreaConocimientoRepository, SubAreaConocimientoRepository subAreaConocimientoRepository) {
+                                        UsuarioService usuarioService, UsuarioXRolRepository usuarioRolRepository, EtapaFormativaXCicloXTemaRepository etapaFormativaXCicloXTemaRepository, UsuarioXAreaConocimientoRepository usuarioXAreaConocimientoRepository, SubAreaConocimientoRepository subAreaConocimientoRepository, UsuarioXCarreraRepository usuarioXCarreraRepository) {
                 this.usuarioRepository = usuarioRepository;
                 this.usuarioXTemaRepository = usuarioXTemaRepository;
                 this.rolRepository = rolRepository;
@@ -90,6 +91,7 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
             this.etapaFormativaXCicloXTemaRepository = etapaFormativaXCicloXTemaRepository;
             this.usuarioXAreaConocimientoRepository = usuarioXAreaConocimientoRepository;
             this.subAreaConocimientoRepository = subAreaConocimientoRepository;
+            this.usuarioXCarreraRepository = usuarioXCarreraRepository;
         }
 
         @Override
@@ -1298,6 +1300,12 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
 
                 Usuario usuario = usuarioRepository.findById(userDto.getId())
                         .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
+
+                boolean esCoordinador = usuarioXCarreraRepository.existsByUsuario_IdAndEsCoordinadorTrueAndActivoTrue(usuario.getId());
+
+                if (!esCoordinador) {
+                        throw new RuntimeException("Este usuario no tiene permisos de coordinador.");
+                }
 
                 // 1. Obtener las áreas de conocimiento del coordinador
                 List<UsuarioXAreaConocimiento> areasCoordinador = usuarioXAreaConocimientoRepository
