@@ -21,6 +21,7 @@ public class PerfilUsuarioDto {
     private Integer limiteTesis;//Viene en lista
     private List<EnlaceUsuarioDto> enlaces;//Se obtiene aparte
     private Boolean estado; // la clase lo calcula
+    private Boolean alumno;
     private Integer tesistasActuales;// Este si o si es query diferente
     private List<InfoAreaConocimientoDto> areasTematicas;// Hallar de las tablas correspondientes
     private List<InfoSubAreaConocimientoDto> temasIntereses;// Hallar de las tablas correspondientes
@@ -50,6 +51,8 @@ public class PerfilUsuarioDto {
         //Por ahora las listas no se usan por lo que solo nos quedamos con el primero valor
         dto.especialidad = listaNombreCarrera.get(0);
         dto.limiteTesis = listaLimiteCarrera.get(0);
+
+        dto.alumno = (Boolean) result[11];
         return dto;
     }
     public Boolean getEstado(){

@@ -38,6 +38,12 @@ const texts = {
   description_sinSolicitudes: "Sin solicitudes",
 };
 
+const solStateVariant: Record<SolicitudState, VariantColor> = {
+  ACEPTADA: "green",
+  PENDIENTE: "red",
+  RECHAZADA: "neutro",
+};
+
 export const DialogSolicitudes: React.FC<DialogSolicitudesProps> = ({
   solicitudes,
   estadoTema,
@@ -113,10 +119,10 @@ export const DialogSolicitudes: React.FC<DialogSolicitudesProps> = ({
               <div className="flex items-center gap-1 text-green-600 text-sm">
                 <CheckCircle className="w-4 h-4" /> {counts.ACEPTADA}
               </div>
-              <div className="flex items-center gap-1 text-yellow-500 text-sm">
+              <div className="flex items-center gap-1 text-red-500 text-sm">
                 <AlertCircle className="w-4 h-4" /> {counts.PENDIENTE}
               </div>
-              <div className="flex items-center gap-1 text-red-500 text-sm">
+              <div className="flex items-center gap-1 text-gray-500 text-sm">
                 <XCircle className="w-4 h-4" /> {counts.RECHAZADA}
               </div>
             </div>
@@ -141,31 +147,44 @@ export const DialogSolicitudes: React.FC<DialogSolicitudesProps> = ({
                 key={sol.solicitud_id}
                 className="border-b pb-2 flex items-center justify-between"
               >
+                {/* Solicitud Info */}
                 <div>
                   <div className="font-semibold">{sol.tipo_solicitud}</div>
-                  <div className="text-xs text-gray-500">
+                  <div className="text-xs text-gray-500">{sol.descripcion}</div>
+                  <Badge
+                    className={badgeEstadoStyles({
+                      color: solStateVariant[sol.estado_solicitud],
+                    })}
+                  >
                     {sol.estado_solicitud}
-                  </div>
+                  </Badge>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => handleToggleAtendida(sol.solicitud_id)}
-                  className={
-                    isAtendida
-                      ? "flex items-center gap-1 px-3 py-1 rounded bg-green-600 text-white font-medium transition-colors"
-                      : "flex items-center gap-1 px-3 py-1 rounded border border-gray-200 text-[#23293B] font-medium bg-white hover:bg-gray-50 transition-colors"
-                  }
-                >
-                  <CheckCircle
-                    className={
-                      isAtendida
-                        ? "w-4 h-4 text-white"
-                        : "w-4 h-4 text-gray-400"
-                    }
-                    fill={isAtendida ? "currentColor" : "none"}
-                  />
-                  {isAtendida ? "Atendida" : "Marcar como atendida"}
-                </button>
+                {/* Button Atender Solicitud */}
+                {[
+                  EstadoTemaNombre.OBSERVADO,
+                  EstadoTemaNombre.INSCRITO,
+                ].includes(estadoTema) &&
+                  sol.estado_solicitud === "PENDIENTE" && (
+                    <button
+                      type="button"
+                      onClick={() => handleToggleAtendida(sol.solicitud_id)}
+                      className={
+                        isAtendida
+                          ? "flex items-center gap-1 px-3 py-1 rounded bg-green-600 text-white font-medium transition-colors"
+                          : "flex items-center gap-1 px-3 py-1 rounded border border-gray-200 text-[#23293B] font-medium bg-white hover:bg-gray-50 transition-colors"
+                      }
+                    >
+                      <CheckCircle
+                        className={
+                          isAtendida
+                            ? "w-4 h-4 text-white"
+                            : "w-4 h-4 text-gray-400"
+                        }
+                        fill={isAtendida ? "currentColor" : "none"}
+                      />
+                      {isAtendida ? "Atendida" : "Marcar como atendida"}
+                    </button>
+                  )}
               </div>
             );
           })}

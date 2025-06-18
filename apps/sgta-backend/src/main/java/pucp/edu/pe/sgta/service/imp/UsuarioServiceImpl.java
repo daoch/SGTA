@@ -3,6 +3,7 @@ package pucp.edu.pe.sgta.service.imp;
 import org.apache.coyote.BadRequestException;
 import org.apache.http.HttpException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -1300,14 +1301,22 @@ public class UsuarioServiceImpl implements UsuarioService {
         return usuarioFotoDto;
     }
 
-    @Override
-    public List<PerfilAsesorDto> getDirectorioDeAsesoresPorFiltros(FiltrosDirectorioAsesores filtros) {
+    public List<PerfilAsesorDto> buscarAsesoresPorCadenaDeBusqueda(String cadena, Integer idUsuario) {
+
         List<Object[]> queryResults = usuarioRepository
-                .obtenerListaDirectorioAsesoresAlumno(filtros.getAlumnoId(),
-                        filtros.getCadenaBusqueda(),
-                        filtros.getActivo(),
-                        Utils.convertIntegerListToString(filtros.getIdAreas()),
-                        Utils.convertIntegerListToString(filtros.getIdTemas()));
+                .buscarAsesoresPorCadenaDeBusqueda(idUsuario,
+                        cadena,
+                        true,
+                        Utils.convertIntegerListToString(new ArrayList<>()),
+                        Utils.convertIntegerListToString(new ArrayList<>()));
+
+        castDirectoryQueryToDto(queryResults);
+        List<PerfilAsesorDto> perfilAsesorDtos = castDirectoryQueryToDto(queryResults);
+        return perfilAsesorDtos;
+
+    }
+
+    private List<PerfilAsesorDto> castDirectoryQueryToDto(List<Object[]> queryResults) {
         List<PerfilAsesorDto> perfilAsesorDtos = new ArrayList<>();
 
         for (Object[] result : queryResults) {
@@ -1315,8 +1324,8 @@ public class UsuarioServiceImpl implements UsuarioService {
             // el numero de tesistas actuales
             Integer cantTesistas;
             List<Object[]> tesistas = usuarioXTemaRepository.listarNumeroTesistasAsesor(perfil.getId());// ASEGURADO
-                                                                                                        // sale 1 sola
-                                                                                                        // fila
+            // sale 1 sola
+            // fila
             cantTesistas = (Integer) tesistas.get(0)[0];
             perfil.setTesistasActuales(cantTesistas);
             // Luego la consulta de las áreas de conocimiento
@@ -1348,8 +1357,35 @@ public class UsuarioServiceImpl implements UsuarioService {
             perfil.actualizarEstado();
             perfilAsesorDtos.add(perfil);
         }
-
         return perfilAsesorDtos;
+    }
+
+    @Override
+    public Page<PerfilAsesorDto> getDirectorioDeAsesoresPorFiltros(FiltrosDirectorioAsesores filtros, Integer pageNumber, Boolean ascending) {
+        int pageSize = 5;
+        Pageable pageable;
+        if(ascending) {
+            pageable = PageRequest.of(pageNumber, pageSize, Sort.by("nombres","primer_apellido").ascending());
+        }else{
+            pageable = PageRequest.of(pageNumber, pageSize, Sort.by("nombres","primer_apellido").descending());
+        }
+        Page<Object[]> queryResults = usuarioRepository
+                .obtenerListaDirectorioAsesoresAlumno(filtros.getAlumnoId(),
+                        filtros.getCadenaBusqueda(),
+                        filtros.getActivo(),
+                        Utils.convertIntegerListToString(filtros.getIdAreas()),
+                        Utils.convertIntegerListToString(filtros.getIdTemas()),
+                        pageable);
+
+        List<Object[]> pageResults = queryResults.getContent();
+        List<PerfilAsesorDto> perfilAsesorDtos = castDirectoryQueryToDto(pageResults);
+
+        return new PageImpl<>(
+                perfilAsesorDtos,                   // contenido paginado ya transformado
+                pageable,                           // mismo Pageable usado originalmente
+                queryResults.getTotalElements()    // total de elementos desde la BD
+        );
+
     }
 
     @Override
@@ -1499,7 +1535,6 @@ public class UsuarioServiceImpl implements UsuarioService {
             throw new RuntimeException("No se encontró un perfil de usuario correspondiente");
         }
         PerfilUsuarioDto dto = PerfilUsuarioDto.fromMainQuery(queryResult.get(0));//Debe de haber uno solo
-        //Obtener tesistasActuales TODO: Esto se puede mejorar para traer una lista de tesistas x carrera
         Integer cantTesistas;
         List<Object[]> tesistas = usuarioXTemaRepository.listarNumeroTesistasAsesor(dto.getId());// ASEGURADO sale 1 sola fila
         cantTesistas = (Integer) tesistas.get(0)[0];
@@ -1528,6 +1563,15 @@ public class UsuarioServiceImpl implements UsuarioService {
             throw new RuntimeException("Usuario no encontrado con ID Cognito: " + idUsuario);
         }
         return idCognito;
+    }
+
+    @Override
+    public Integer obtenerIdUsuarioPorCognito(String cognito) {
+        Integer id = usuarioRepository.findUsuarioIdByIdCognito(cognito);
+        if(id == null) {
+            throw new RuntimeException("No se econtró usuario asociado con el servicio Cognito");
+        }
+        return id;
     }
 
     @Override

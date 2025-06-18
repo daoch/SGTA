@@ -363,68 +363,99 @@ export default function PerfilAsesor({ userId, editable }: Readonly<Props>) {
       />
 
       {/* Tabs de navegación */}
-      <Tabs
-        value={activeTab}
-        onValueChange={setActiveTab}
-        className="w-full mb-6"
-      >
-        <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-transparent">
-          <TabsTrigger
-            value="overview"
-            className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent py-3 px-4"
-          >
-            Información General
-          </TabsTrigger>
-          <TabsTrigger
-            value="tesis"
-            className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent py-3 px-4"
-          >
-            Tesis Asesoradas
-          </TabsTrigger>
-          <TabsTrigger
-            value="proyectos"
-            className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent py-3 px-4"
-          >
-            Proyectos
-          </TabsTrigger>
-        </TabsList>
+      {asesor.alumno ? (
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="w-full mb-6"
+        >
+          <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-transparent">
+            <TabsTrigger
+              value="overview"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent py-3 px-4"
+            >
+              Información General
+            </TabsTrigger>
+            <TabsTrigger
+              value="tesis"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent py-3 px-4"
+            >
+              Tesis Asesoradas
+            </TabsTrigger>
+            <TabsTrigger
+              value="proyectos"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent py-3 px-4"
+            >
+              Proyectos
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Contenido de las tabs */}
-        <TabsContent value="overview" className="mt-6">
-          <OverviewSection
-            asesor={asesor}
-            editedData={editedData}
-            isEditing={isEditing}
-            setEditedData={setEditedData}
-            avatar={foto}
-            tesis={tesis}
-            proyectos={proyectos}
-            areasFiltered={areasFiltered}
-            temasFiltered={temasFiltered}
-            selectedArea={selectedArea}
-            selectedTema={selectedTema}
-            openAreaCombobox={openAreaCombobox}
-            openTemaCombobox={openTemaCombobox}
-            recentlyAddedArea={recentlyAddedArea}
-            setSelectedArea={setSelectedArea}
-            setSelectedTema={setSelectedTema}
-            setOpenAreaCombobox={setOpenAreaCombobox}
-            setOpenTemaCombobox={setOpenTemaCombobox}
-            addAreaTematica={addAreaTematica}
-            addTemaInteres={addTemaInteres}
-            initiateAreaDelete={initiateAreaDelete}
-            removeTemaInteres={removeTemaInteres}
-          />
-        </TabsContent>
+          {/* Contenido de las tabs */}
+          <TabsContent value="overview" className="mt-6">
+            <OverviewSection
+              asesor={asesor}
+              editedData={editedData}
+              isEditing={isEditing}
+              setEditedData={setEditedData}
+              avatar={foto}
+              tesis={tesis}
+              proyectos={proyectos}
+              areasFiltered={areasFiltered}
+              temasFiltered={temasFiltered}
+              selectedArea={selectedArea}
+              selectedTema={selectedTema}
+              openAreaCombobox={openAreaCombobox}
+              openTemaCombobox={openTemaCombobox}
+              recentlyAddedArea={recentlyAddedArea}
+              setSelectedArea={setSelectedArea}
+              setSelectedTema={setSelectedTema}
+              setOpenAreaCombobox={setOpenAreaCombobox}
+              setOpenTemaCombobox={setOpenTemaCombobox}
+              addAreaTematica={addAreaTematica}
+              addTemaInteres={addTemaInteres}
+              initiateAreaDelete={initiateAreaDelete}
+              removeTemaInteres={removeTemaInteres}
+              isAsesor={true}
+            />
+          </TabsContent>
 
-        <TabsContent value="tesis" className="mt-6">
-          <TesisDirigidasResumen tesis={tesis} />
-        </TabsContent>
+          <TabsContent value="tesis" className="mt-6">
+            <TesisDirigidasResumen tesis={tesis} />
+          </TabsContent>
 
-        <TabsContent value="proyectos" className="mt-6">
-          <ProyectosAsesoradosResumen proyectos={proyectos} />
-        </TabsContent>
-      </Tabs>
+          <TabsContent value="proyectos" className="mt-6">
+            <ProyectosAsesoradosResumen proyectos={proyectos} />
+          </TabsContent>
+        </Tabs>
+      ) : (
+        <OverviewSection
+          asesor={asesor}
+          editedData={editedData}
+          isEditing={isEditing}
+          setEditedData={setEditedData}
+          avatar={foto}
+          tesis={tesis}
+          proyectos={proyectos}
+          areasFiltered={areasFiltered}
+          temasFiltered={temasFiltered}
+          selectedArea={selectedArea}
+          selectedTema={selectedTema}
+          openAreaCombobox={openAreaCombobox}
+          openTemaCombobox={openTemaCombobox}
+          recentlyAddedArea={recentlyAddedArea}
+          setSelectedArea={setSelectedArea}
+          setSelectedTema={setSelectedTema}
+          setOpenAreaCombobox={setOpenAreaCombobox}
+          setOpenTemaCombobox={setOpenTemaCombobox}
+          addAreaTematica={addAreaTematica}
+          addTemaInteres={addTemaInteres}
+          initiateAreaDelete={initiateAreaDelete}
+          removeTemaInteres={removeTemaInteres}
+          isAsesor={false}
+        />
+      )}
+
+      {/* Información del asesor */}
     </div>
   );
 }
