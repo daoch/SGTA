@@ -615,3 +615,32 @@ export const actualizarCalificacionFinalJurado = async (
   }
 };
 
+
+export const getEtapaFormativaId = async (
+  token: string,
+): Promise<EtapaFormativa[]> => {
+  try {
+    const response = await axiosInstance.get("/jurado/etapas-formativas",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+    //return response.data;
+    const data = response.data;
+
+    if (!data.etapas_formativas || !Array.isArray(data.etapas_formativas)) {
+      console.warn("La respuesta no contiene un array de etapas formativas:", data);
+      return [];
+    }
+
+    return data.etapas_formativas.map((etapa: EtapaFormativa) => ({
+    etapaFormativaId: etapa.etapaFormativaId,
+    nombre: etapa.nombre,
+  }));
+  } catch (error) {
+    console.error("Error al obtener etapas formativas:", error);
+    throw new Error("Error al obtener etapas formativas");
+  }
+};
