@@ -28,7 +28,7 @@ export default function EliminarAreaDialog({
   onOpenChange,
   onCancel,
   onConfirm,
-}: Props) {
+}: Readonly<Props>) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>

@@ -12,6 +12,7 @@ import java.util.Map;
 
 import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
 import pucp.edu.pe.sgta.dto.temas.TemasComprometidosDto;
+import pucp.edu.pe.sgta.model.Tema;
 
 public interface TemaService {
 	List<TemaDto> getAll();
@@ -175,7 +176,7 @@ public interface TemaService {
 
 	void guardarSimilitudes(String cognitoId, List<TemaSimilarDto> similitudes);
 
-	Integer createInscripcionTemaV2(TemaDto dto, String idUsuario);
+	Integer createInscripcionTemaV2(TemaDto dto, String idUsuario, Boolean reinscribir);
 
 	List<TemaDto> listarTemasSimilares(Integer temaId);
 
@@ -206,4 +207,21 @@ public interface TemaService {
 
 	Integer actualizarTemaLibre(TemaDto dto);
 
+	void reenvioSolicitudAprobacionTema(TemaDto dto, String usuarioId);
+
+	String listarSolicitudesConUsuarios(Integer temaId, int offset, int limit);
+
+	String listarSolicitudesPendientesPorUsuario(String usuarioId, int offset, int limit);
+
+	/**
+	 * Creates a new tema from OAI record data with FINALIZADO state
+	 * @param temaDto The tema data created from OAI record
+	 * @param carreraId The career ID to associate with the tema
+	 * @return The ID of the created tema
+	 */
+	Integer createTemaFromOAI(TemaDto temaDto, Integer carreraId);
+
+	Tema actualizarTemaYHistorial(Integer temaId,
+								  String nuevoEstadoNombre,
+								  String comentario);
 }

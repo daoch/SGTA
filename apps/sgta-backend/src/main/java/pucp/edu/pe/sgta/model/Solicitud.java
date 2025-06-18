@@ -47,12 +47,23 @@ public class Solicitud {
 	@Column(name = "fecha_resolucion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
 	private OffsetDateTime fechaResolucion;
 
-	@Column(name = "fecha_creacion", nullable = false, insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+	@Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
 	private OffsetDateTime fechaCreacion;
 
-	@Column(name = "fecha_modificacion", insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+	@Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
 	private OffsetDateTime fechaModificacion;
 
 	@Column(name = "respuesta", columnDefinition = "TEXT", nullable = true)
 	private String respuesta;
+
+	@PrePersist
+	protected void onCreate() {
+		fechaCreacion = OffsetDateTime.now();
+		fechaModificacion = OffsetDateTime.now(); // Asegúrate que se setee en la creación
+	}
+
+	@PreUpdate
+	protected void onUpdate() {
+		fechaModificacion = OffsetDateTime.now(); // Asegúrate que se actualice en cada update
+	}
 }
