@@ -568,7 +568,7 @@ public class SolicitudServiceImpl implements SolicitudService {
      */
     @Override
     @Transactional
-    public void atenderSolicitudTemaInscrito(SolicitudTemaDto solicitudAtendida) {
+    public void atenderSolicitudTemaInscrito(SolicitudTemaDto solicitudAtendida, String usuarioId) {
         if (solicitudAtendida == null || solicitudAtendida.getChangeRequests() == null
                 || solicitudAtendida.getChangeRequests().isEmpty()) {
             throw new RuntimeException("Request doesn't contain valid information");
@@ -624,6 +624,9 @@ public class SolicitudServiceImpl implements SolicitudService {
         }
 
         if (allAttended && temaId != null) { //Only update to INSCRITO if all observations were attended
+            TemaDto dto = new TemaDto();
+            dto.setId(temaId);
+            temaService.createInscripcionTemaV2(dto, usuarioId);
             temaService.actualizarTemaYHistorial(temaId, "INSCRITO", "Todas las observaciones fueron atendidas");
         }
 

@@ -30,9 +30,11 @@ public class SolicitudController {
     }
 
     @PostMapping("/atenderSolicitudTemaInscrito")
-    public ResponseEntity<Void> atenderSolicitudTemaInscrito(@RequestBody SolicitudTemaDto solicitudAtendida) {
+    public ResponseEntity<Void> atenderSolicitudTemaInscrito(@RequestBody SolicitudTemaDto solicitudAtendida,
+                                                             HttpServletRequest request) {
         try {
-            solicitudService.atenderSolicitudTemaInscrito(solicitudAtendida);
+            String usuarioId = jwtService.extractSubFromRequest(request);
+            solicitudService.atenderSolicitudTemaInscrito(solicitudAtendida, usuarioId);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
