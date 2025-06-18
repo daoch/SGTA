@@ -6,25 +6,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import pucp.edu.pe.sgta.dto.UsuarioRegistroDto;
+import pucp.edu.pe.sgta.dto.*;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.server.ResponseStatusException;
-import pucp.edu.pe.sgta.dto.asesores.InfoAreaConocimientoDto;
-import pucp.edu.pe.sgta.dto.asesores.InfoSubAreaConocimientoDto;
-import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
-import pucp.edu.pe.sgta.dto.asesores.UsuarioConRolDto;
+import pucp.edu.pe.sgta.dto.asesores.*;
 import jakarta.persistence.Query;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.web.multipart.MultipartFile;
-import pucp.edu.pe.sgta.dto.asesores.FiltrosDirectorioAsesores;
-import pucp.edu.pe.sgta.dto.asesores.UsuarioFotoDto;
-import pucp.edu.pe.sgta.dto.AlumnoTemaDto;
-import pucp.edu.pe.sgta.dto.DocentesDTO;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import pucp.edu.pe.sgta.dto.TipoUsuarioDto;
-import pucp.edu.pe.sgta.dto.UsuarioDto;
 import pucp.edu.pe.sgta.mapper.InfoAreaConocimientoMapper;
 import pucp.edu.pe.sgta.mapper.InfoSubAreaConocimientoMapper;
 import pucp.edu.pe.sgta.mapper.PerfilAsesorMapper;
@@ -36,7 +27,6 @@ import pucp.edu.pe.sgta.service.inter.UsuarioService;
 import pucp.edu.pe.sgta.util.RolEnum;
 import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
 import pucp.edu.pe.sgta.util.Utils;
-import pucp.edu.pe.sgta.dto.AlumnoReporteDto;
 
 import java.io.IOException;
 import java.io.BufferedReader;
@@ -75,6 +65,8 @@ public class UsuarioServiceImpl implements UsuarioService {
     private UsuarioXCarreraRepository usuarioXCarreraRepository;
     @Autowired
     private TipoDedicacionRepository tipoDedicacionRepository;
+    @Autowired
+    private EnlaceUsuarioServiceImpl enlaceUsuarioServiceImpl;
 
     public UsuarioServiceImpl(UsuarioRepository usuarioRepository,
                               UsuarioXSubAreaConocimientoRepository usuarioXSubAreaConocimientoRepository,
@@ -619,6 +611,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     /**
      * HU01: Asigna el rol de Asesor a un usuario que debe ser profesor
+     * REFACTORIZADO: Ahora también agrega al usuario al grupo de Cognito 'asesor'.
      */
     @Override
     @Transactional
@@ -649,23 +642,32 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .getSingleResult();
 
         if (count.intValue() == 0) {
-            // 4. Insertar nuevo rol activo
-            String insertSql = "INSERT INTO usuario_rol (usuario_id, rol_id, activo, fecha_creacion, fecha_modificacion) "
-                    +
+            // 4. Insertar nuevo rol activo en la BD
+            String insertSql = "INSERT INTO usuario_rol (usuario_id, rol_id, activo, fecha_creacion, fecha_modificacion) " +
                     "VALUES (:usuarioId, :rolId, true, NOW(), NOW())";
             em.createNativeQuery(insertSql)
                     .setParameter("usuarioId", userId)
                     .setParameter("rolId", advisorRole.getId())
                     .executeUpdate();
+
+            // 5. Agregar usuario al grupo de Cognito
+            if (user.getIdCognito() != null && !user.getIdCognito().isBlank()) {
+                try {
+                    cognitoService.agregarUsuarioAGrupo(user.getIdCognito(), rolNombre.toLowerCase());
+                    System.out.println("Usuario agregado al grupo de Cognito '" + rolNombre.toLowerCase() + "'.");
+                } catch (Exception e) {
+                    throw new RuntimeException("Error al agregar usuario al grupo de Cognito: " + e.getMessage(), e);
+                }
+            }
             System.out.println("Rol de Asesor asignado exitosamente al usuario ID: " + userId);
         } else {
-            System.out.println(
-                    "El usuario ID: " + userId + " ya tiene el rol de Asesor activo. No se realizó ninguna acción.");
+            System.out.println("El usuario ID: " + userId + " ya tiene el rol de Asesor activo. No se realizó ninguna acción.");
         }
     }
 
     /**
      * HU02: Quita el rol de Asesor a un usuario
+     * REFACTORIZADO: Ahora también elimina al usuario del grupo de Cognito 'asesor'.
      */
     @Override
     @Transactional
@@ -684,14 +686,21 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .getSingleResult();
 
         if (count.intValue() > 0) {
+            // 1. Desactivar rol en la BD
             String updateSql = "UPDATE usuario_rol SET activo = false, fecha_modificacion = NOW() WHERE usuario_id = :usuarioId AND rol_id = :rolId AND activo = true";
-            int updated = em.createNativeQuery(updateSql)
+            em.createNativeQuery(updateSql)
                     .setParameter("usuarioId", userId)
                     .setParameter("rolId", advisorRole.getId())
                     .executeUpdate();
 
-            if (updated == 0) {
-                throw new IllegalStateException("Error al desactivar la relación usuario-rol");
+            // 2. Eliminar usuario del grupo de Cognito
+            if (user.getIdCognito() != null && !user.getIdCognito().isBlank()) {
+                try {
+                    cognitoService.eliminarUsuarioDeGrupo(user.getIdCognito(), rolNombre.toLowerCase());
+                    System.out.println("Usuario eliminado del grupo de Cognito '" + rolNombre.toLowerCase() + "'.");
+                } catch (Exception e) {
+                    throw new RuntimeException("Error al eliminar usuario del grupo de Cognito: " + e.getMessage(), e);
+                }
             }
             System.out.println("Rol de Asesor quitado exitosamente al usuario ID: " + userId);
         } else {
@@ -701,19 +710,17 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     /**
      * HU03: Asigna el rol de Jurado a un usuario que debe ser profesor
+     * REFACTORIZADO: Ahora también agrega al usuario al grupo de Cognito 'jurado'.
      */
     @Override
     @Transactional
     public void assignJuryRoleToUser(Integer userId) {
-        System.out.println("Intentando asignar rol de Jurado al usuario ID: " + userId);
-
-        // 1. Buscar usuario y validar que sea Profesor y activo
+        // 1. Buscar usuario y validar
         Usuario user = usuarioRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado: " + userId));
         if (!user.getActivo()) {
             throw new IllegalArgumentException("El usuario está inactivo");
         }
-
         TipoUsuario tipoUsuario = user.getTipoUsuario();
         if (tipoUsuario == null || !"Profesor".equalsIgnoreCase(tipoUsuario.getNombre())) {
             throw new IllegalArgumentException("Solo los usuarios de tipo Profesor pueden ser asignados como Jurados");
@@ -732,29 +739,36 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .getSingleResult();
 
         if (count.intValue() == 0) {
-            // 4. Insertar el rol
-            String insertSql = "INSERT INTO usuario_rol (usuario_id, rol_id, activo, fecha_creacion, fecha_modificacion) "
-                    +
+            // 4. Insertar el rol en la BD
+            String insertSql = "INSERT INTO usuario_rol (usuario_id, rol_id, activo, fecha_creacion, fecha_modificacion) " +
                     "VALUES (:usuarioId, :rolId, true, NOW(), NOW())";
             em.createNativeQuery(insertSql)
                     .setParameter("usuarioId", userId)
                     .setParameter("rolId", juryRole.getId())
                     .executeUpdate();
+
+            // 5. Agregar usuario al grupo de Cognito
+            if (user.getIdCognito() != null && !user.getIdCognito().isBlank()) {
+                try {
+                    cognitoService.agregarUsuarioAGrupo(user.getIdCognito(), rolNombre.toLowerCase());
+                    System.out.println("Usuario agregado al grupo de Cognito '" + rolNombre.toLowerCase() + "'.");
+                } catch (Exception e) {
+                    throw new RuntimeException("Error al agregar usuario al grupo de Cognito: " + e.getMessage(), e);
+                }
+            }
             System.out.println("Rol de Jurado asignado exitosamente al usuario ID: " + userId);
         } else {
-            System.out.println(
-                    "El usuario ID: " + userId + " ya tiene el rol de Jurado activo. No se realizó ninguna acción.");
+            System.out.println("El usuario ID: " + userId + " ya tiene el rol de Jurado activo. No se realizó ninguna acción.");
         }
     }
 
     /**
      * HU04: Quita el rol de Jurado a un usuario
+     * REFACTORIZADO: Ahora también elimina al usuario del grupo de Cognito 'jurado'.
      */
     @Override
     @Transactional
     public void removeJuryRoleFromUser(Integer userId) {
-        System.out.println("Intentando quitar rol de Jurado al usuario ID: " + userId);
-
         // 1. Buscar usuario
         Usuario user = usuarioRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado: " + userId));
@@ -772,15 +786,21 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .getSingleResult();
 
         if (count.intValue() > 0) {
-            // 4. Desactivar el rol
+            // 4. Desactivar el rol en la BD
             String updateSql = "UPDATE usuario_rol SET activo = false, fecha_modificacion = NOW() WHERE usuario_id = :usuarioId AND rol_id = :rolId AND activo = true";
-            int updated = em.createNativeQuery(updateSql)
+            em.createNativeQuery(updateSql)
                     .setParameter("usuarioId", userId)
                     .setParameter("rolId", juryRole.getId())
                     .executeUpdate();
 
-            if (updated == 0) {
-                throw new IllegalStateException("Error al desactivar la relación usuario-rol");
+            // 5. Eliminar usuario del grupo de Cognito
+            if (user.getIdCognito() != null && !user.getIdCognito().isBlank()) {
+                try {
+                    cognitoService.eliminarUsuarioDeGrupo(user.getIdCognito(), rolNombre.toLowerCase());
+                    System.out.println("Usuario eliminado del grupo de Cognito '" + rolNombre.toLowerCase() + "'.");
+                } catch (Exception e) {
+                    throw new RuntimeException("Error al eliminar usuario del grupo de Cognito: " + e.getMessage(), e);
+                }
             }
             System.out.println("Rol de Jurado quitado exitosamente al usuario ID: " + userId);
         } else {
@@ -789,41 +809,67 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     /**
-     * HU05: Obtiene la lista de profesores con sus roles asignados
+     * HU05: Obtiene la lista de profesores con sus roles asignados.
+     * REFACTORIZADO: Ahora filtra los profesores para mostrar solo aquellos
+     * que pertenecen a la misma Unidad Académica que el usuario que realiza la consulta.
+     * 
+     * @param rolNombre       Nombre del rol para filtrar (e.g., "Asesor", "Todos").
+     * @param terminoBusqueda Término para buscar en nombre, correo o código.
+     * @param idCognito       ID de Cognito del usuario que realiza la petición para determinar su unidad académica.
+     * @return Lista de profesores filtrados.
      */
     @Override
     @Transactional(readOnly = true)
-    public List<UsuarioConRolDto> getProfessorsWithRoles(String rolNombre, String terminoBusqueda) {
+    public List<UsuarioConRolDto> getProfessorsWithRoles(String rolNombre, String terminoBusqueda, String idCognito) {
+        // 1. Validar que idCognito no sea nulo o vacío
+        if (idCognito == null || idCognito.trim().isEmpty()) {
+            throw new IllegalArgumentException("El idCognito del solicitante es requerido para filtrar por unidad académica.");
+        }
+
         StringBuilder sql = new StringBuilder();
         sql.append("""
-                    SELECT
-                        u.usuario_id,
-                        u.nombres,
-                        u.primer_apellido,
-                        u.segundo_apellido,
-                        u.correo_electronico,
-                        u.codigo_pucp,
-                        string_agg(DISTINCT r.nombre, ',') AS roles_names,
-                        -- contar temas donde usuario sea asesor o coasesor (rol_id 1 o 5)
-                        COUNT(DISTINCT CASE WHEN ut.rol_id IN (1, 5) THEN ut.tema_id END) AS tesis_count,
-                        tu.tipo_usuario_id,
-                        tu.nombre AS tipo_usuario_nombre
-                    FROM
-                        usuario u
-                    JOIN
-                        tipo_usuario tu ON u.tipo_usuario_id = tu.tipo_usuario_id
-                    LEFT JOIN
-                        usuario_rol ur ON u.usuario_id = ur.usuario_id AND ur.activo = true
-                    LEFT JOIN
-                        rol r ON ur.rol_id = r.rol_id AND r.activo = true
-                    LEFT JOIN
-                        usuario_tema ut ON u.usuario_id = ut.usuario_id AND ut.activo = true
-                    WHERE
-                        u.activo = true
-                        AND LOWER(tu.nombre) = 'profesor'
-                """);
+            SELECT
+                u.usuario_id,
+                u.nombres,
+                u.primer_apellido,
+                u.segundo_apellido,
+                u.correo_electronico,
+                u.codigo_pucp,
+                string_agg(DISTINCT r.nombre, ',') AS roles_names,
+                COUNT(DISTINCT CASE WHEN ut.rol_id IN (1, 5) THEN ut.tema_id END) AS tesis_count,
+                tu.tipo_usuario_id,
+                tu.nombre AS tipo_usuario_nombre
+            FROM
+                usuario u
+            JOIN
+                tipo_usuario tu ON u.tipo_usuario_id = tu.tipo_usuario_id
+            -- >>> CAMBIO: JOIN para acceder a la carrera y unidad académica del profesor
+            JOIN
+                usuario_carrera uc ON u.usuario_id = uc.usuario_id AND uc.activo = true
+            JOIN
+                carrera c ON uc.carrera_id = c.carrera_id
+            LEFT JOIN
+                usuario_rol ur ON u.usuario_id = ur.usuario_id AND ur.activo = true
+            LEFT JOIN
+                rol r ON ur.rol_id = r.rol_id AND r.activo = true
+            LEFT JOIN
+                usuario_tema ut ON u.usuario_id = ut.usuario_id AND ut.activo = true
+            WHERE
+                u.activo = true
+                AND LOWER(tu.nombre) = 'profesor'
+                -- >>> CAMBIO: Filtro por unidad académica del solicitante
+                AND c.unidad_academica_id = (
+                    SELECT c_solicitante.unidad_academica_id
+                    FROM usuario u_solicitante
+                    JOIN usuario_carrera uc_solicitante ON u_solicitante.usuario_id = uc_solicitante.usuario_id
+                    JOIN carrera c_solicitante ON uc_solicitante.carrera_id = c_solicitante.carrera_id
+                    WHERE u_solicitante.id_cognito = :idCognito
+                    LIMIT 1
+                )
+        """);
 
-        List<String> params = new ArrayList<>();
+        List<Object> params = new ArrayList<>();
+        
         if (rolNombre != null && !rolNombre.equalsIgnoreCase("Todos")) {
             sql.append(" AND r.nombre = ?").append(params.size() + 1);
             params.add(rolNombre);
@@ -831,19 +877,19 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         if (terminoBusqueda != null && !terminoBusqueda.trim().isEmpty()) {
             sql.append("""
-                    AND (
-                        u.nombres ILIKE ?%s
-                        OR u.primer_apellido ILIKE ?%s
-                        OR u.segundo_apellido ILIKE ?%s
-                        OR u.correo_electronico ILIKE ?%s
-                        OR u.codigo_pucp ILIKE ?%s
-                    )
-                    """.formatted(
-                    params.size() + 1,
-                    params.size() + 2,
-                    params.size() + 3,
-                    params.size() + 4,
-                    params.size() + 5));
+                AND (
+                    u.nombres ILIKE ?%d
+                    OR u.primer_apellido ILIKE ?%d
+                    OR u.segundo_apellido ILIKE ?%d
+                    OR u.correo_electronico ILIKE ?%d
+                    OR u.codigo_pucp ILIKE ?%d
+                )
+                """.formatted(
+                params.size() + 1,
+                params.size() + 2,
+                params.size() + 3,
+                params.size() + 4,
+                params.size() + 5));
 
             String searchTerm = "%" + terminoBusqueda.trim() + "%";
             for (int i = 0; i < 5; i++) {
@@ -852,15 +898,20 @@ public class UsuarioServiceImpl implements UsuarioService {
         }
 
         sql.append("""
-                    GROUP BY
-                        u.usuario_id, u.nombres, u.primer_apellido, u.segundo_apellido,
-                        u.correo_electronico, u.codigo_pucp, tu.tipo_usuario_id, tu.nombre
-                    ORDER BY
-                        u.primer_apellido, u.segundo_apellido, u.nombres
-                """);
+            GROUP BY
+                u.usuario_id, c.unidad_academica_id, u.nombres, u.primer_apellido, u.segundo_apellido,
+                u.correo_electronico, u.codigo_pucp, tu.tipo_usuario_id, tu.nombre
+            ORDER BY
+                u.primer_apellido, u.segundo_apellido, u.nombres
+        """);
 
+        // 2. Crear la consulta y establecer parámetros
         Query query = em.createNativeQuery(sql.toString());
+        
+        // Establecer el parámetro :idCognito
+        query.setParameter("idCognito", idCognito);
 
+        // Establecer los parámetros dinámicos (?1, ?2, ...)
         for (int i = 0; i < params.size(); i++) {
             query.setParameter(i + 1, params.get(i));
         }
@@ -868,6 +919,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         @SuppressWarnings("unchecked")
         List<Object[]> results = query.getResultList();
 
+        // 3. Mapear los resultados (el mapeo no cambia)
         return results.stream()
                 .map(row -> {
                     TipoUsuarioDto tipoUsuarioDto = TipoUsuarioDto.builder()
@@ -1441,6 +1493,44 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     @Override
+    public PerfilUsuarioDto getPerfilUsuario(String cognitoId) {
+        List<Object[]> queryResult = usuarioRepository.obtenerPerfilUsuario(cognitoId);
+        if(queryResult.isEmpty()) {
+            throw new RuntimeException("No se encontró un perfil de usuario correspondiente");
+        }
+        PerfilUsuarioDto dto = PerfilUsuarioDto.fromMainQuery(queryResult.get(0));//Debe de haber uno solo
+        //Obtener tesistasActuales TODO: Esto se puede mejorar para traer una lista de tesistas x carrera
+        Integer cantTesistas;
+        List<Object[]> tesistas = usuarioXTemaRepository.listarNumeroTesistasAsesor(dto.getId());// ASEGURADO sale 1 sola fila
+        cantTesistas = (Integer) tesistas.get(0)[0];
+        dto.setTesistasActuales(cantTesistas);
+        //Obtenemos Areas y SubAreas de interes
+        dto.setAreasTematicas(listarInfoAreaConocimientoParaPerfilPorUsuario(dto.getId()));
+        dto.setTemasIntereses(listarInfoSubAreaConocimientoParaPerfilPorUsuario(dto.getId()));
+        //Obtenemos los enlaces
+        dto.setEnlaces(enlaceUsuarioServiceImpl.listarParaPerfilPorUsuario(dto.getId()));
+        return dto;
+    }
+
+    @Override
+    public void updatePerfilUsuario(PerfilUsuarioDto dto) {
+        Usuario u = usuarioRepository.findById(dto.getId()).orElseThrow(() -> new RuntimeException("No se encontró al usuario"));
+        PerfilAsesorDto asesorDto = PerfilAsesorDto.fromPerfilUsuario(dto);
+        updatePerfilAsesor(asesorDto);
+        List<EnlaceUsuarioDto> enlaces = dto.getEnlaces();
+        enlaceUsuarioServiceImpl.sincronizarEnlacesUsuario(enlaces,u);
+    }
+
+    @Override
+    public String obtenerCognitoPorId(Integer idUsuario) {
+        String idCognito =usuarioRepository.findIdCognitoByUsuarioId(idUsuario);
+        if(idCognito == null) {
+            throw new RuntimeException("Usuario no encontrado con ID Cognito: " + idUsuario);
+        }
+        return idCognito;
+    }
+
+    @Override
     public List<DocentesDTO> getProfesores() {
         List<Object[]> rows = usuarioRepository.obtenerProfesores();
         List<DocentesDTO> docentes = new ArrayList<>();
@@ -1524,4 +1614,53 @@ public class UsuarioServiceImpl implements UsuarioService {
             );
     }
 
+    public Usuario buscarUsuarioPorId(Integer idUsuario, String onErrorMsg){
+        return usuarioRepository
+                .findById(idUsuario)
+                .orElseThrow(() -> new RuntimeException(onErrorMsg));
+    }
+
+    public List<InfoAreaConocimientoDto> listarInfoAreaConocimientoParaPerfilPorUsuario(Integer usuarioId){
+        List<Object[]> queryResult = areaConocimientoRepository.listarParaPerfilPorUsuarioId(usuarioId);
+        List<InfoAreaConocimientoDto> dtos = new ArrayList<>();
+        for (Object[] row : queryResult) {
+            InfoAreaConocimientoDto dto = InfoAreaConocimientoDto.fromQuery(row);
+            dtos.add(dto);
+        }
+        return dtos;
+    }
+
+
+    public List<InfoSubAreaConocimientoDto> listarInfoSubAreaConocimientoParaPerfilPorUsuario(Integer idUsuario) {
+        List<Object[]> queryResult = subAreaConocimientoRepository.listarParaPerfilPorUsuarioId(idUsuario);
+        List<InfoSubAreaConocimientoDto> dtos = new ArrayList<>();
+        for (Object[] row : queryResult) {
+            InfoSubAreaConocimientoDto dto = InfoSubAreaConocimientoDto.fromQuery(row);
+            dtos.add(dto);
+        }
+        return dtos;
+    }
+
+    @Override
+    public List<UsuarioRolRevisorDto> listarRevisoresPorCarrera(Integer carreraId) {
+        List<Object[]> result = usuarioRepository.listarRevisoresPorCarrera(carreraId);
+        List<UsuarioRolRevisorDto> revisores = new ArrayList<>();
+
+        for (Object[] row : result) {
+            UsuarioRolRevisorDto dto = new UsuarioRolRevisorDto();
+            dto.setId((Integer) row[0]); // tema_id
+            dto.setUsuarioId((Integer) row[1]); // usuario_id
+            dto.setCodigoPucp((String) row[2]); // codigo_pucp
+            dto.setNombres((String) row[3]); // nombres
+            dto.setPrimerApellido((String) row[4]); // primer_apellido
+            dto.setSegundoApellido((String) row[5]); // segundo_apellido
+            dto.setCorreoElectronico((String) row[6]); // correo_electronico
+            dto.setRolId((Integer) row[7]); // rol_id
+            dto.setRolNombre((String) row[8]); // rol_nombre
+            dto.setCarreraId((Integer) row[9]); // carrera_id
+            dto.setCarreraNombre((String) row[10]); // carrera_nombre
+            revisores.add(dto);
+        }
+        return revisores;
+    }
 }

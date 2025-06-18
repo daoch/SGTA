@@ -133,14 +133,12 @@ public class SolicitudCoordinadorController {
             @PathVariable Integer solicitudId,
             @Valid @RequestBody AprobarSolicitudRequestDto requestDto
     ) { ... }
-
     @PostMapping("/solicitudes-cese/{solicitudId}/rechazar")
     public ResponseEntity<?> rechazarSolicitudCese(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable Integer solicitudId,
             @Valid @RequestBody RechazarSolicitudRequestDto requestDto
     ) { ... }
-
     @PostMapping("/solicitudes-cese/{solicitudDeCeseId}/proponer-reasignacion")
     public ResponseEntity<?> proponerReasignacionAsesor(
             @AuthenticationPrincipal Jwt jwt,

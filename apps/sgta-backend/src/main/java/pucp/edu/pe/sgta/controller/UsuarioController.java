@@ -15,21 +15,13 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import org.springframework.web.server.ResponseStatusException;
-import pucp.edu.pe.sgta.dto.UsuarioRegistroDto;
-import pucp.edu.pe.sgta.dto.asesores.FiltrosDirectorioAsesores;
-import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
-import pucp.edu.pe.sgta.dto.asesores.UsuarioConRolDto;
-import pucp.edu.pe.sgta.dto.asesores.UsuarioFotoDto;
-import pucp.edu.pe.sgta.dto.CarreraDto;
-import pucp.edu.pe.sgta.dto.DocentesDTO;
-import pucp.edu.pe.sgta.dto.UsuarioDto;
+import pucp.edu.pe.sgta.dto.*;
+import pucp.edu.pe.sgta.dto.asesores.*;
+import pucp.edu.pe.sgta.model.UsuarioXCarrera;
 import pucp.edu.pe.sgta.service.inter.CarreraService;
 import pucp.edu.pe.sgta.service.inter.JwtService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
-import pucp.edu.pe.sgta.dto.AlumnoTemaDto;
-import pucp.edu.pe.sgta.dto.AlumnoReporteDto;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import pucp.edu.pe.sgta.service.inter.UsuarioXCarreraService;
 import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
 
 @RestController
@@ -45,6 +37,9 @@ public class UsuarioController {
 
     @Autowired
     private UsuarioService usuarioService;
+
+    @Autowired
+    private UsuarioXCarreraService usuarioXCarreraService;
 
     @PostMapping("/create")
     public ResponseEntity<?> create(@RequestBody UsuarioRegistroDto user) {
@@ -73,7 +68,7 @@ public class UsuarioController {
 
         return this.usuarioService.findUsuarioById(idUsuario);
     }
-
+    //Otros lo usan
     @GetMapping("/getPerfilAsesor")
     public PerfilAsesorDto getPerfilAsesor(@RequestParam(name = "id") Integer id) {
         return this.usuarioService.getPerfilAsesor(id);
@@ -83,7 +78,25 @@ public class UsuarioController {
     public void updatePerfilAsesor(@RequestBody PerfilAsesorDto dto) {
         usuarioService.updatePerfilAsesor(dto);
     }
+    //Nuevo
 
+    @GetMapping("/getPerfilUsuario")
+    public PerfilUsuarioDto getPerfilUsuario(HttpServletRequest request, @RequestParam(name = "idUsuario",required = false) Integer idUsuario) {
+        String cognitoId;
+
+        if (idUsuario != null) {
+            // Si se proporciona idUsuario, obtén el cognitoId desde el servicio o ignóralo si no es necesario
+            cognitoId = usuarioService.obtenerCognitoPorId(idUsuario);
+        } else {
+            cognitoId = jwtService.extractSubFromRequest(request);
+        }
+
+        return usuarioService.getPerfilUsuario(cognitoId);
+    }
+    @PutMapping("/updatePerfilUsuario")
+    public void updatePerfilAsesor(@RequestBody PerfilUsuarioDto dto) {
+        usuarioService.updatePerfilUsuario(dto);
+    }
     /**
      * HU01: Asignar Rol de Asesor a Profesor
      * 
@@ -174,15 +187,16 @@ public class UsuarioController {
      * @param rolNombre       Rol por el que filtrar (opcional, "Todos" por defecto)
      * @param terminoBusqueda Término para buscar por nombre, correo o código
      *                        (opcional)
+     * @param request         HttpServletRequest para obtener el ID del usuario
      * @return Lista de usuarios con sus roles
      */
     @GetMapping("/professors-with-roles")
     public ResponseEntity<List<UsuarioConRolDto>> getProfessorsWithRoles(
             @RequestParam(required = false, defaultValue = "Todos") String rolNombre,
-            @RequestParam(required = false) String terminoBusqueda) {
-        
+            @RequestParam(required = false) String terminoBusqueda, HttpServletRequest request) {
+        String cognitoId = jwtService.extractSubFromRequest(request);
         try {
-            List<UsuarioConRolDto> usuarios = usuarioService.getProfessorsWithRoles(rolNombre, terminoBusqueda);
+            List<UsuarioConRolDto> usuarios = usuarioService.getProfessorsWithRoles(rolNombre, terminoBusqueda, cognitoId);
             return new ResponseEntity<>(usuarios, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -358,6 +372,13 @@ public class UsuarioController {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                     "Error al obtener profesores activos: " + e.getMessage());
         }
+    }
+
+    @GetMapping("/listarRevisoresPorCarrera")
+    public List<UsuarioRolRevisorDto> lsitarRevisoresPorCarrera(HttpServletRequest request){
+        String coordinadorId = jwtService.extractSubFromRequest(request);
+        UsuarioXCarrera usuarioXCarrera = usuarioXCarreraService.getCarreraPrincipalCoordinador(coordinadorId);
+        return usuarioService.listarRevisoresPorCarrera(usuarioXCarrera.getCarrera().getId());
     }
 
 }

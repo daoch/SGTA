@@ -48,8 +48,29 @@ public interface UsuarioXSolicitudRepository extends JpaRepository<UsuarioXSolic
             @Param("idSolicitud") Integer idSolicitud,
             @Param("aprobar") Boolean aprobar);
 
+    @Modifying
+    @Query(value = "CALL aprobar_solicitud_cambio_asesor_asesor(:idCognito, :solicitudId, :comentario)", nativeQuery = true)
+    void aprobarSolicitudCambioAsesorAsesor(@Param("idCognito") String idCognito,
+                                 @Param("solicitudId") Integer solicitudId,
+                                            @Param("comentario") String comentario);
+    @Modifying
+    @Query(value = "CALL rechazar_solicitud_cambio_asesor_asesor(:idCognito, :solicitudId, :comentario)", nativeQuery = true)
+    void rechazarSolicitudCambioAsesorAsesor(@Param("idCognito") String idCognito,
+                                            @Param("solicitudId") Integer solicitudId,
+                                             @Param("comentario") String comentario);
+    @Modifying
+    @Query(value = "CALL rechazar_solicitud_cambio_asesor_coordinador(:idCognito, :solicitudId, :comentario)", nativeQuery = true)
+    void rechazarSolicitudCambioAsesorCoordinador(@Param("idCognito") String idCognito,
+                                            @Param("solicitudId") Integer solicitudId,
+                                                  @Param("comentario") String comentario);
+    @Modifying
+    @Query(value = "CALL aprobar_solicitud_cambio_asesor_coordinador(:idCognito, :solicitudId, :comentario)", nativeQuery = true)
+    void aprobarSolicitudCambioAsesorCoordinador(@Param("idCognito") String idCognito,
+                                            @Param("solicitudId") Integer solicitudId,
+                                                 @Param("comentario") String comentario);
+
     Optional<UsuarioXSolicitud> findFirstBySolicitudIdAndRolSolicitud(Integer solicitudId, RolSolicitud rolSolicitud);
-    
+
     boolean existsBySolicitud_IdAndUsuario_IdAndRolSolicitud_Nombre(
             Integer solicitudId,
             Integer usuarioId,

@@ -5,6 +5,7 @@ import java.util.List;
 import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloDto;
 import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloXCarreraDto;
 import pucp.edu.pe.sgta.dto.UpdateEtapaFormativaRequest;
+import pucp.edu.pe.sgta.service.imp.EtapaFormativaXCicloXUsuarioRolServiceImpl;
 
 
 public interface EtapaFormativaXCicloService {

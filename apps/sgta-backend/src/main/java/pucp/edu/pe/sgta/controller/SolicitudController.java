@@ -1,16 +1,21 @@
 package pucp.edu.pe.sgta.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties.Jwt;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.server.ResponseStatusException;
 
 import pucp.edu.pe.sgta.dto.SolicitudCeseDto;
 import pucp.edu.pe.sgta.dto.asesores.RejectSolicitudRequestDto;
 import pucp.edu.pe.sgta.dto.asesores.SolicitudCeseDetalleDto;
 import pucp.edu.pe.sgta.dto.temas.SolicitudTemaDto;
+import pucp.edu.pe.sgta.service.inter.JwtService;
 import pucp.edu.pe.sgta.service.inter.SolicitudService;
+import org.springframework.http.HttpStatus;
 
 @RestController
 
@@ -19,6 +24,8 @@ public class SolicitudController {
 
     @Autowired
     private SolicitudService solicitudService;
+    @Autowired
+    private JwtService jwtService;
 
     @GetMapping("/listSolicitudesByTema/{id}")
     public ResponseEntity<SolicitudTemaDto> getSolicitudesByTema(
@@ -61,66 +68,55 @@ public class SolicitudController {
         return ResponseEntity.ok(solicitudService.listarDetalleSolicitudCambioAsesorUsuario(idSolicitud));
     }
 
-    @PatchMapping("/aprobarSolicitudCambioAsesor")
-    public ResponseEntity<Object> aprobarSolicitudCambioAsesor(
+    @GetMapping("/listarResumenSolicitudCambioAsesorCoordinador")
+    public ResponseEntity<Object> listarResumenSolicitudCambioAsesorCoordinador(
+            HttpServletRequest request) {
+        String cognitoId = jwtService.extractSubFromRequest(request);
+        return ResponseEntity.ok(solicitudService.listarResumenSolicitudCambioAsesorCoordinador(cognitoId));
+    }
+
+    @PatchMapping("/aprobarSolicitudCambioAsesorAsesor")
+    public ResponseEntity<Object> aprobarSolicitudCambioAsesorAsesor(
             @RequestParam(name = "idSolicitud") Integer idSolicitud,
-            @RequestParam(name = "idUsuario") Integer idUsuario,
-            @RequestParam(name = "rolSolicitud") String rolSolictud) {
-        solicitudService.aprobarRechazarSolicitudCambioAsesor(idSolicitud, idUsuario, rolSolictud, true);
+            @RequestParam(name = "comentario") String comentario,
+            HttpServletRequest request) {
+        String cognitoId = jwtService.extractSubFromRequest(request);
+        solicitudService.aprobarRechazarSolicitudCambioAsesorAsesor(idSolicitud, cognitoId, comentario, true);
         return ResponseEntity.ok(null);
     }
 
-    @PatchMapping("/rechazarSolicitudCambioAsesor")
-    public ResponseEntity<Object> rechazarSolicitudCambioAsesor(
+    @PatchMapping("/rechazarSolicitudCambioAsesorAsesor")
+    public ResponseEntity<Object> rechazarSolicitudCambioAsesorAsesor(
             @RequestParam(name = "idSolicitud") Integer idSolicitud,
-            @RequestParam(name = "idUsuario") Integer idUsuario,
-            @RequestParam(name = "rolSolicitud") String rolSolictud) {
-        solicitudService.aprobarRechazarSolicitudCambioAsesor(idSolicitud, idUsuario, rolSolictud, false);
+            @RequestParam(name = "comentario") String comentario,
+            HttpServletRequest request) {
+        String cognitoId = jwtService.extractSubFromRequest(request);
+        solicitudService.aprobarRechazarSolicitudCambioAsesorAsesor(idSolicitud, cognitoId, comentario, false);
+        return ResponseEntity.ok(null);
+    }
+
+    @PatchMapping("/aprobarSolicitudCambioAsesorCoordinador")
+    public ResponseEntity<Object> aprobarSolicitudCambioAsesorCoordinador(
+            @RequestParam(name = "idSolicitud") Integer idSolicitud,
+            @RequestParam(name = "comentario") String comentario,
+            HttpServletRequest request) {
+        String cognitoId = jwtService.extractSubFromRequest(request);
+        solicitudService.aprobarRechazarSolicitudCambioAsesorCoordinador(idSolicitud, cognitoId, comentario, true);
+        return ResponseEntity.ok(null);
+    }
+
+    @PatchMapping("/rechazarSolicitudCambioAsesorCoordinador")
+    public ResponseEntity<Object> rechazarSolicitudCambioAsesorCoordinador(
+            @RequestParam(name = "idSolicitud") Integer idSolicitud,
+            @RequestParam(name = "comentario") String comentario,
+            HttpServletRequest request) {
+        String cognitoId = jwtService.extractSubFromRequest(request);
+        solicitudService.aprobarRechazarSolicitudCambioAsesorCoordinador(idSolicitud, cognitoId, comentario, false);
         return ResponseEntity.ok(null);
     }
 
     // Solicitudes de Cese de Asesoría
 
-    // @PostMapping("/registrarSolicitudCeseAsesoria")
-    // public ResponseEntity<Object> registrarSolicitudCeseAsesoria(
-    //         @RequestBody pucp.edu.pe.sgta.dto.asesores.SolicitudCeseAsesoriaDto solicitud) {
-
-    //     solicitud = solicitudService.registrarSolicitudCeseAsesoria(solicitud);
-    //     return ResponseEntity.ok(solicitud);
-    // }
-
-    // @GetMapping("/listarResumenSolicitudCeseAsesoriaUsuario")
-    // public ResponseEntity<Object> listarResumenSolicitudCeseAsesoriaUsuario(
-    //         @RequestParam(name = "idUsuario") Integer idUsuario,
-    //         @RequestParam(name = "rolSolicitud") String rolSolicitud) {
-
-    //     return ResponseEntity.ok(solicitudService.listarResumenSolicitudCeseAsesoriaUsuario(idUsuario, rolSolicitud));
-    // }
-
-    // @GetMapping("/listarDetalleSolicitudCeseAsesoriaUsuario")
-    // public ResponseEntity<Object> listarDetalleSolicitudCeseAsesoriaUsuario(
-    //         @RequestParam(name = "idSolicitud") Integer idSolicitud) {
-
-    //     return ResponseEntity.ok(solicitudService.listarDetalleSolicitudCeseAsesoriaUsuario(idSolicitud));
-    // }
-
-    // @PatchMapping("/aprobarSolicitudCeseAsesoria")
-    // public ResponseEntity<Object> aprobarSolicitudCeseAsesoria(
-    //         @RequestParam(name = "idSolicitud") Integer idSolicitud,
-    //         @RequestParam(name = "idUsuario") Integer idUsuario,
-    //         @RequestParam(name = "rolSolicitud") String rolSolicitud) {
-    //     solicitudService.aprobarRechazarSolicitudCeseAsesoria(idSolicitud, idUsuario, rolSolicitud, true);
-    //     return ResponseEntity.ok(null);
-    // }
-
-    // @PatchMapping("/rechazarSolicitudCeseAsesoria")
-    // public ResponseEntity<Object> rechazarSolicitudCeseAsesoria(
-    //         @RequestParam(name = "idSolicitud") Integer idSolicitud,
-    //         @RequestParam(name = "idUsuario") Integer idUsuario,
-    //         @RequestParam(name = "rolSolicitud") String rolSolicitud) {
-    //     solicitudService.aprobarRechazarSolicitudCeseAsesoria(idSolicitud, idUsuario, rolSolicitud, false);
-    //     return ResponseEntity.ok(null);
-    // }
     @GetMapping("/coordinador/my-cessation-requests") // Nueva ruta más semántica
     public ResponseEntity<SolicitudCeseDto> getMyCessationRequestsAsCoordinator(
             @AuthenticationPrincipal org.springframework.security.oauth2.jwt.Jwt jwt, // Spring Security inyecta el JWT del usuario autenticado

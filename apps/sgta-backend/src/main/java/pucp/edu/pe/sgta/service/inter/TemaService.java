@@ -8,9 +8,11 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
 
 import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
 import pucp.edu.pe.sgta.dto.temas.TemasComprometidosDto;
+import pucp.edu.pe.sgta.model.Tema;
 
 public interface TemaService {
 	List<TemaDto> getAll();
@@ -109,7 +111,7 @@ public interface TemaService {
 
 	void eliminarTemaCoordinador(Integer temaId, String usuarioId);
 
-	void crearTemaLibre(TemaDto dto, String asesorId);
+	Integer crearTemaLibre(TemaDto dto, String asesorId);
 
 	TemaDto buscarTemaPorId(Integer idTema) throws SQLException;
 
@@ -200,4 +202,26 @@ public interface TemaService {
 	 * @return Lista de temas comprometidos agrupados por estado
 	 */
 	void aceptarPropuestaCotesista(Integer temaId, String usuarioId, Integer action);
+
+	void registrarSolicitudesModificacionTema(Integer temaId, String usuarioId, List<Map<String, Object>> solicitudes);
+
+	Integer actualizarTemaLibre(TemaDto dto);
+
+	void reenvioSolicitudAprobacionTema(TemaDto dto, String usuarioId);
+
+	String listarSolicitudesConUsuarios(Integer temaId, int offset, int limit);
+
+	String listarSolicitudesPendientesPorUsuario(String usuarioId, int offset, int limit);
+
+	/**
+	 * Creates a new tema from OAI record data with FINALIZADO state
+	 * @param temaDto The tema data created from OAI record
+	 * @param carreraId The career ID to associate with the tema
+	 * @return The ID of the created tema
+	 */
+	Integer createTemaFromOAI(TemaDto temaDto, Integer carreraId);
+
+	Tema actualizarTemaYHistorial(Integer temaId,
+								  String nuevoEstadoNombre,
+								  String comentario);
 }

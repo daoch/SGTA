@@ -21,7 +21,6 @@ import java.util.List;
 @Component
 public class EstadoExposicionJob implements Job {
 
-
     private final JornadaExposicionRepository jornadaExposicionRepository;
 
     private final JornadaExposicionXSalaExposicionRepository jornadaXSalaRepository;
@@ -30,13 +29,15 @@ public class EstadoExposicionJob implements Job {
 
     private final ExposicionXTemaRepository exposicionXTemaRepository;
 
-    public EstadoExposicionJob(JornadaExposicionRepository jornadaExposicionRepository, JornadaExposicionXSalaExposicionRepository jornadaXSalaRepository, BloqueHorarioExposicionRepository bloqueHorarioRepository, ExposicionXTemaRepository exposicionXTemaRepository) {
+    public EstadoExposicionJob(JornadaExposicionRepository jornadaExposicionRepository,
+            JornadaExposicionXSalaExposicionRepository jornadaXSalaRepository,
+            BloqueHorarioExposicionRepository bloqueHorarioRepository,
+            ExposicionXTemaRepository exposicionXTemaRepository) {
         this.jornadaExposicionRepository = jornadaExposicionRepository;
         this.jornadaXSalaRepository = jornadaXSalaRepository;
         this.bloqueHorarioRepository = bloqueHorarioRepository;
         this.exposicionXTemaRepository = exposicionXTemaRepository;
     }
-
 
     @Override
     public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
@@ -48,20 +49,20 @@ public class EstadoExposicionJob implements Job {
             OffsetDateTime fin = jornada.getDatetimeFin();
 
             if (fin.isBefore(ahora)) {
-                List<JornadaExposicionXSalaExposicion> salas =
-                        jornadaXSalaRepository.findByJornadaExposicionId(jornada.getId());
+                List<JornadaExposicionXSalaExposicion> salas = jornadaXSalaRepository
+                        .findByJornadaExposicionId(jornada.getId());
 
                 for (JornadaExposicionXSalaExposicion sala : salas) {
-                    List<BloqueHorarioExposicion> bloques =
-                            bloqueHorarioRepository.findByJornadaExposicionXSalaId(Long.valueOf(sala.getId()));
+                    List<BloqueHorarioExposicion> bloques = bloqueHorarioRepository
+                            .findByJornadaExposicionXSalaId(Long.valueOf(sala.getId()));
                     for (BloqueHorarioExposicion bloque : bloques) {
                         ExposicionXTema exposicion = bloque.getExposicionXTema();
 
                         if (exposicion == null) {
                             continue;
                         }
-                        if (exposicion.getEstadoExposicion() != EstadoExposicion.PROGRAMADA) {
-                            exposicion.setEstadoExposicion(EstadoExposicion.PROGRAMADA);
+                        if (exposicion.getEstadoExposicion() == EstadoExposicion.PROGRAMADA) {
+                            exposicion.setEstadoExposicion(EstadoExposicion.COMPLETADA);
                             exposicionXTemaRepository.save(exposicion);
                         }
                     }

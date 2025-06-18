@@ -313,6 +313,10 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
 
                 usuarioXTemaRepository.save(asignacion);
 
+                // llamar al procedure de insertar revision criterio exposicion repository
+                revisionCriterioExposicionRepository
+                                .insertarRevisionCriterioExposicion(temaId, usuarioId);
+
                 return ResponseEntity.ok(Map.of("mensaje", "Jurado asignado correctamente"));
         }
 
@@ -778,17 +782,16 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                                                                         usuarioXTemaOptional.get().getId());
 
                                         List<CriterioExposicion> criterios = criterioExposicionRepository
-                                                .findByExposicion_IdAndActivoTrue(exposicion.getId());
-
+                                                        .findByExposicion_IdAndActivoTrue(exposicion.getId());
 
                                         boolean criteriosCalificados = criterios.stream()
-                                                .map(criterio -> revisionCriterioExposicionRepository
-                                                        .findByExposicionXTema_IdAndCriterioExposicion_IdAndUsuario_Id(
-                                                                exposicionXTema.getId(),
-                                                                criterio.getId(),
-                                                                userDtoCognito.getId()
-                                                        ))
-                                                .allMatch(opt -> opt.isPresent() && opt.get().getNota() != null);
+                                                        .map(criterio -> revisionCriterioExposicionRepository
+                                                                        .findByExposicionXTema_IdAndCriterioExposicion_IdAndUsuario_Id(
+                                                                                        exposicionXTema.getId(),
+                                                                                        criterio.getId(),
+                                                                                        userDtoCognito.getId()))
+                                                        .allMatch(opt -> opt.isPresent()
+                                                                        && opt.get().getNota() != null);
 
                                         // Crear DTO
                                         ExposicionTemaMiembrosDto dto = new ExposicionTemaMiembrosDto();
@@ -995,6 +998,20 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                                                                         criterio.getId(),
                                                                         userDto.getId());
 
+                                        System.out.println(
+                                                        "Buscando revisionCriterioExposicion para criterio: "
+                                                                        + criterio.getId());
+                                        System.out.println(
+                                                        "ExposicionXTema ID: "
+                                                                        + exposicionCalificacionRequest
+                                                                                        .getExposicion_tema_id());
+                                        System.out.println("Usuario ID: " + userDto.getId());
+
+                                        if (revisionOpt.isEmpty()) {
+                                                System.out.println(
+                                                                "Revision not found for criterio: " + criterio.getId());
+                                        }
+
                                         RevisionCriterioExposicion revision = revisionOpt.orElse(null);
 
                                         CriteriosCalificacionDto dto = new CriteriosCalificacionDto();
@@ -1044,17 +1061,15 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                                 Exposicion exposicion = exposicionXTema.getExposicion();
 
                                 List<CriterioExposicion> criterios = criterioExposicionRepository
-                                        .findByExposicion_IdAndActivoTrue(exposicion.getId());
-
+                                                .findByExposicion_IdAndActivoTrue(exposicion.getId());
 
                                 boolean criteriosCalificados = criterios.stream()
-                                        .allMatch(criterio -> revisionCriterioExposicionRepository
-                                                .findByExposicionXTema_IdAndCriterioExposicion_Id(
-                                                        exposicionXTema.getId(),
-                                                        criterio.getId()
-                                                )
-                                                .stream()
-                                                .anyMatch(revi -> revi.getNota() != null));
+                                                .allMatch(criterio -> revisionCriterioExposicionRepository
+                                                                .findByExposicionXTema_IdAndCriterioExposicion_Id(
+                                                                                exposicionXTema.getId(),
+                                                                                criterio.getId())
+                                                                .stream()
+                                                                .anyMatch(revi -> revi.getNota() != null));
 
                                 if (criteriosCalificados) {
                                         eventPublisher.publishEvent(new ExposicionCalificadaEvent(exposicionXTema));
@@ -1163,11 +1178,13 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
 
                                                 RevisionCriterioExposicion revision = revisionOpt.orElse(null);
 
-                                                // SI NO HAY CRITERIOS DE CALIFICACION, ENTONCES EL JURADO HA CALIFICADO
-                                                if (revision == null) {
+                                                // SI HAY CRITERIOS DE CALIFICACION, ENTONCES EL JURADO HA CALIFICADO
+                                                if (revision != null && revision.getNota() == null) {
                                                         juradoCalificacion.setCalificado(false);
-                                                } else {
+                                                } else if (revision != null && revision.getNota() != null) {
                                                         juradoCalificacion.setCalificado(true);
+                                                } else {
+                                                        juradoCalificacion.setCalificado(false);
                                                 }
 
                                                 CriteriosCalificacionDto dto = new CriteriosCalificacionDto();

@@ -36,7 +36,7 @@ public class SolicitudCeseController {
             return new ResponseEntity<>("Acceso no autorizado. Se requiere autenticación.", HttpStatus.UNAUTHORIZED);
         }
 
-        String asesorCognitoSub = jwt.getSubject();; // El 'sub' claim del JWT usualmente es el ID de usuario de Cognito
+        String asesorCognitoSub = jwt.getSubject(); // El 'sub' claim del JWT usualmente es el ID de usuario de Cognito
         if (asesorCognitoSub == null || asesorCognitoSub.trim().isEmpty()) {
             log.error("El token JWT no contiene el claim 'sub' (Cognito Subject ID).");
             return new ResponseEntity<>("Error de autenticación: identificador de usuario no encontrado en el token.", HttpStatus.UNAUTHORIZED);

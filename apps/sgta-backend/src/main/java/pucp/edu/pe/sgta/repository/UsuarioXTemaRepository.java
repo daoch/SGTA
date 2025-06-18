@@ -96,7 +96,9 @@ public interface UsuarioXTemaRepository extends JpaRepository<UsuarioXTema, Inte
 
         Optional<UsuarioXTema> findByUsuarioIdAndTemaIdAndRolIdIn(
                         Integer usuarioId, Integer temaId, List<Integer> rolIds);
-        
+
+        List<UsuarioXTema> findByUsuarioIdAndActivoTrueAndAsignadoTrue(Integer usuarioId);
+
         List<UsuarioXTema> findByUsuarioAndRolAndActivoTrue(Usuario usuario, Rol rol);
 
         // Para contar temas activos de un asesor por objeto Usuario y nombre de Rol
@@ -110,5 +112,4 @@ public interface UsuarioXTemaRepository extends JpaRepository<UsuarioXTema, Inte
         long countByUsuarioIdAndRolNombreAndActivoTrue(@Param("usuarioId") Integer usuarioId, @Param("rolNombre") String rolNombre);
 
         boolean existsByTema_IdAndUsuario_IdAndRol_IdAndActivoTrue(Integer temaId, Integer usuarioId, Integer rolId);
-
 }

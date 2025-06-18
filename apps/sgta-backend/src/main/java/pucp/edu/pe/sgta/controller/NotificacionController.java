@@ -4,12 +4,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import pucp.edu.pe.sgta.dto.NotificacionDto;
 import pucp.edu.pe.sgta.dto.OverdueAlertDto;
-import pucp.edu.pe.sgta.dto.UsuarioDto;
+import pucp.edu.pe.sgta.service.inter.JwtService;
 import pucp.edu.pe.sgta.service.inter.NotificacionService;
+import pucp.edu.pe.sgta.service.inter.UsuarioService;
 
 import java.util.List;
 import java.util.Map;
@@ -18,28 +18,26 @@ import pucp.edu.pe.sgta.service.inter.UsuarioService;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/notifications")
+@RequestMapping("/notifications")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class NotificacionController {
 
     private final NotificacionService notificacionService;
-    private final JwtService jwtService;
-    private final UsuarioService usuarioService;
+    private final JwtService          jwtService;
+    private final UsuarioService      usuarioService;
 
     /**
      * Obtiene todas las notificaciones no leídas del usuario autenticado
-     * GET /api/notifications/unread
+     * GET /notifications/unread
      */
     @GetMapping("/unread")
-    public ResponseEntity<List<NotificacionDto>> getUnreadNotifications(Authentication authentication, HttpServletRequest request) {
+    public ResponseEntity<List<NotificacionDto>> getUnreadNotifications(HttpServletRequest request) {
         try {
-            //Integer usuarioId = 12;
-            String alumnoId = jwtService.extractSubFromRequest(request);
-
-            UsuarioDto usuDto = usuarioService.findByCognitoId(alumnoId);
-            List<NotificacionDto> notificaciones = notificacionService.getAllUnreadNotifications(usuDto.getId());
-            log.info("Usuario {} consultó {} notificaciones no leídas", alumnoId, notificaciones.size());
+            String cognitoSub = jwtService.extractSubFromRequest(request);
+            Integer usuarioId = usuarioService.findByCognitoId(cognitoSub).getId();
+            List<NotificacionDto> notificaciones = notificacionService.getAllUnreadNotifications(usuarioId);
+            log.info("Usuario {} consultó {} notificaciones no leídas", usuarioId, notificaciones.size());
             return ResponseEntity.ok(notificaciones);
         } catch (Exception e) {
             log.error("Error al obtener notificaciones no leídas: {}", e.getMessage(), e);
@@ -49,13 +47,13 @@ public class NotificacionController {
 
     /**
      * Obtiene todas las notificaciones (leídas y no leídas) del usuario autenticado
-     * GET /api/notifications/all
+     * GET /notifications/all
      */
     @GetMapping("/all")
-    public ResponseEntity<List<NotificacionDto>> getAllNotifications(Authentication authentication) {
+    public ResponseEntity<List<NotificacionDto>> getAllNotifications(HttpServletRequest request) {
         try {
-            Integer usuarioId = 12;
-
+            String cognitoSub = jwtService.extractSubFromRequest(request);
+            Integer usuarioId = usuarioService.findByCognitoId(cognitoSub).getId();
             List<NotificacionDto> notificaciones = notificacionService.getAllNotifications(usuarioId);
             log.info("Usuario {} consultó {} notificaciones totales", usuarioId, notificaciones.size());
             return ResponseEntity.ok(notificaciones);
@@ -67,18 +65,17 @@ public class NotificacionController {
 
     /**
      * Obtiene las notificaciones no leídas del usuario para un módulo específico
-     * GET /api/notifications/unread/{moduloId}
+     * GET /notifications/unread/{moduloId}
      */
     @GetMapping("/unread/{moduloId}")
     public ResponseEntity<List<NotificacionDto>> getUnreadNotificationsByModule(
             @PathVariable Integer moduloId,
-            Authentication authentication) {
+            HttpServletRequest request) {
         try {
-
-            Integer usuarioId = 12;
+            String cognitoSub = jwtService.extractSubFromRequest(request);
+            Integer usuarioId = usuarioService.findByCognitoId(cognitoSub).getId();
             List<NotificacionDto> notificaciones = notificacionService.getUnreadNotifications(usuarioId, moduloId);
-            log.info("Usuario {} consultó {} notificaciones no leídas del módulo {}", 
-                    usuarioId, notificaciones.size(), moduloId);
+            log.info("Usuario {} consultó {} notificaciones no leídas del módulo {}", usuarioId, notificaciones.size(), moduloId);
             return ResponseEntity.ok(notificaciones);
         } catch (Exception e) {
             log.error("Error al obtener notificaciones no leídas por módulo: {}", e.getMessage(), e);
@@ -88,18 +85,17 @@ public class NotificacionController {
 
     /**
      * Obtiene todas las notificaciones (leídas y no leídas) del usuario para un módulo específico
-     * GET /api/notifications/all/{moduloId}
+     * GET /notifications/all/{moduloId}
      */
     @GetMapping("/all/{moduloId}")
     public ResponseEntity<List<NotificacionDto>> getAllNotificationsByModule(
             @PathVariable Integer moduloId,
-            Authentication authentication) {
+            HttpServletRequest request) {
         try {
-            Integer usuarioId = 12;
-
+            String cognitoSub = jwtService.extractSubFromRequest(request);
+            Integer usuarioId = usuarioService.findByCognitoId(cognitoSub).getId();
             List<NotificacionDto> notificaciones = notificacionService.getAllNotifications(usuarioId, moduloId);
-            log.info("Usuario {} consultó {} notificaciones totales del módulo {}", 
-                    usuarioId, notificaciones.size(), moduloId);
+            log.info("Usuario {} consultó {} notificaciones totales del módulo {}", usuarioId, notificaciones.size(), moduloId);
             return ResponseEntity.ok(notificaciones);
         } catch (Exception e) {
             log.error("Error al obtener todas las notificaciones por módulo: {}", e.getMessage(), e);
@@ -109,14 +105,13 @@ public class NotificacionController {
 
     /**
      * Cuenta todas las notificaciones no leídas del usuario
-     * GET /api/notifications/count-unread
+     * GET /notifications/count-unread
      */
     @GetMapping("/count-unread")
-    public ResponseEntity<Map<String, Integer>> countUnreadNotifications(Authentication authentication) {
+    public ResponseEntity<Map<String, Integer>> countUnreadNotifications(HttpServletRequest request) {
         try {
-
-            Integer usuarioId = 12;
-
+            String cognitoSub = jwtService.extractSubFromRequest(request);
+            Integer usuarioId = usuarioService.findByCognitoId(cognitoSub).getId();
             int count = notificacionService.countAllUnreadNotifications(usuarioId);
             log.debug("Usuario {} tiene {} notificaciones no leídas", usuarioId, count);
             return ResponseEntity.ok(Map.of("unreadCount", count));
@@ -128,14 +123,15 @@ public class NotificacionController {
 
     /**
      * Cuenta las notificaciones no leídas del usuario para un módulo específico
-     * GET /api/notifications/count-unread/{moduloId}
+     * GET /notifications/count-unread/{moduloId}
      */
     @GetMapping("/count-unread/{moduloId}")
     public ResponseEntity<Map<String, Integer>> countUnreadNotificationsByModule(
             @PathVariable Integer moduloId,
-            Authentication authentication) {
+            HttpServletRequest request) {
         try {
-            Integer usuarioId = 12;
+            String cognitoSub = jwtService.extractSubFromRequest(request);
+            Integer usuarioId = usuarioService.findByCognitoId(cognitoSub).getId();
             int count = notificacionService.countUnreadNotifications(usuarioId, moduloId);
             log.debug("Usuario {} tiene {} notificaciones no leídas del módulo {}", usuarioId, count, moduloId);
             return ResponseEntity.ok(Map.of("unreadCount", count));
@@ -147,36 +143,34 @@ public class NotificacionController {
 
     /**
      * Marca una notificación como leída
-     * POST /api/notifications/mark-read/{notificacionId}
+     * POST /notifications/mark-read/{notificacionId}
      */
     @PostMapping("/mark-read/{notificacionId}")
     public ResponseEntity<Map<String, String>> markAsRead(
             @PathVariable Integer notificacionId,
-            Authentication authentication) {
+            HttpServletRequest request) {
         try {
-
-            Integer usuarioId = 12;
-
+            String cognitoSub = jwtService.extractSubFromRequest(request);
+            Integer usuarioId = usuarioService.findByCognitoId(cognitoSub).getId();
             notificacionService.markAsRead(notificacionId, usuarioId);
             log.info("Usuario {} marcó como leída la notificación {}", usuarioId, notificacionId);
             return ResponseEntity.ok(Map.of("message", "Notificación marcada como leída"));
         } catch (Exception e) {
             log.error("Error al marcar notificación como leída: {}", e.getMessage(), e);
             return ResponseEntity.internalServerError()
-                    .body(Map.of("error", "Error al marcar la notificación como leída"));
+                                  .body(Map.of("error", "Error al marcar la notificación como leída"));
         }
     }
 
     /**
-     * Obtiene un resumen de entregables vencidos para mostrar en el módulo de reportes
-     * GET /api/notifications/overdue-summary
+     * Obtiene un resumen de entregables vencidos para mostrar en el módulo de notificaciones
+     * GET /notifications/overdue-summary
      */
     @GetMapping("/overdue-summary")
-    public ResponseEntity<OverdueAlertDto> getOverdueSummary(Authentication authentication) {
+    public ResponseEntity<OverdueAlertDto> getOverdueSummary(HttpServletRequest request) {
         try {
-
-            Integer usuarioId = 12;
-
+            String cognitoSub = jwtService.extractSubFromRequest(request);
+            Integer usuarioId = usuarioService.findByCognitoId(cognitoSub).getId();
             OverdueAlertDto summary = notificacionService.getOverdueSummary(usuarioId);
             log.info("Usuario {} consultó resumen de vencidos: {} entregables", usuarioId, summary.getTotal());
             return ResponseEntity.ok(summary);
@@ -188,7 +182,7 @@ public class NotificacionController {
 
     /**
      * Endpoint para testing - fuerza la generación de recordatorios (solo para desarrollo)
-     * POST /api/notifications/test/generate-reminders
+     * POST /notifications/test/generate-reminders
      */
     @PostMapping("/test/generate-reminders")
     public ResponseEntity<Map<String, String>> testGenerateReminders() {
@@ -200,21 +194,7 @@ public class NotificacionController {
         } catch (Exception e) {
             log.error("Error al generar recordatorios de prueba: {}", e.getMessage(), e);
             return ResponseEntity.internalServerError()
-                    .body(Map.of("error", "Error al generar recordatorios"));
+                                  .body(Map.of("error", "Error al generar recordatorios"));
         }
     }
-
-    /**
-     * Extrae el ID del usuario desde el token de autenticación
-     */
-    private Integer obtenerUsuarioId(Authentication authentication) {
-        // Asumiendo que el nombre del usuario en el token es el ID
-        // Esto puede variar según la implementación de seguridad del proyecto
-        try {
-            return Integer.parseInt(authentication.getName());
-        } catch (NumberFormatException e) {
-            log.error("No se pudo obtener el ID del usuario desde el token: {}", authentication.getName());
-            throw new RuntimeException("Token de usuario inválido");
-        }
-    }
-} 
+}

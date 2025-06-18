@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface ObservacionService {
     List<ObservacionesRevisionDTO> obtenerObservacionesPorEntregableYTema(Integer entregableId, Integer temaId);
+    void actualizarEstadoCorregido(Integer observacionId, boolean corregido);
 }
