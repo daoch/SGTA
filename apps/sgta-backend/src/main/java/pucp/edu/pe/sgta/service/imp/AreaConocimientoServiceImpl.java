@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import pucp.edu.pe.sgta.dto.AreaConocimientoDto;
 import pucp.edu.pe.sgta.mapper.AreaConocimientoMapper;
 import pucp.edu.pe.sgta.model.AreaConocimiento;
+import pucp.edu.pe.sgta.model.Usuario;
 import pucp.edu.pe.sgta.repository.AreaConocimientoRepository;
 import pucp.edu.pe.sgta.dto.asesores.InfoAreaConocimientoDto;
 import pucp.edu.pe.sgta.mapper.InfoAreaConocimientoMapper;
@@ -23,6 +24,7 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 
 @Service
@@ -105,6 +107,26 @@ public class AreaConocimientoServiceImpl implements AreaConocimientoService {
 
         return lista;
 
+    }
+
+    @Override
+    public List<AreaConocimientoDto> listarPorUsuarioSub(String usuarioId) {
+        Optional<Usuario> usuario = usuarioRepository.findByIdCognito(usuarioId);
+        if (usuario.isPresent()) {
+           List<UsuarioXCarrera> relaciones = usuarioCarreraRepository
+                    .findByUsuarioIdAndActivoTrue(usuario.get().getId());
+            List<AreaConocimientoDto> dtos = new ArrayList<>();
+            for (UsuarioXCarrera uxc : relaciones) {
+                List<AreaConocimiento> areasConocimiento = areaConocimientoRepository
+                        .findAllByCarreraIdAndActivoTrue(uxc.getCarrera().getId());
+                 dtos.addAll(areasConocimiento.stream()
+                         .map(AreaConocimientoMapper::toDto)
+                         .toList());
+            }
+            return dtos;
+        } else {
+            throw new NoSuchElementException("No se encontró el usuario con idCognito: " + usuarioId);
+        }
     }
 
     @Override

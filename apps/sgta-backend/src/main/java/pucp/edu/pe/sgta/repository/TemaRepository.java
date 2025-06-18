@@ -168,6 +168,9 @@ public interface TemaRepository extends JpaRepository<Tema, Integer> {
   @Query(value = "SELECT * FROM listar_temas_finalizados()", nativeQuery = true)
   List<Object[]> listarTemasFinalizados();
 
+  @Query(value = "SELECT * FROM obtener_temas_por_alumno(:idAlumno)", nativeQuery = true)
+  List<Object[]> obtenerTemasPorAlumno(@Param("idAlumno") Integer idAlumno);
+
 
 
 }

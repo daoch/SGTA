@@ -1,5 +1,6 @@
 package pucp.edu.pe.sgta.service.inter;
 
+import org.springframework.data.domain.Page;
 import pucp.edu.pe.sgta.dto.*;
 import pucp.edu.pe.sgta.dto.asesores.FiltrosDirectorioAsesores;
 import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
@@ -92,7 +93,7 @@ public interface UsuarioService {
 
     Integer getIdByCorreo(String correo);
 
-    List<PerfilAsesorDto> getDirectorioDeAsesoresPorFiltros(FiltrosDirectorioAsesores filtros);
+    Page<PerfilAsesorDto> getDirectorioDeAsesoresPorFiltros(FiltrosDirectorioAsesores filtros, Integer pageNumber, Boolean ascending);
 
     void procesarArchivoUsuarios(MultipartFile archivo, UsuarioRegistroDto datosExtra) throws Exception;
 
@@ -112,5 +113,10 @@ public interface UsuarioService {
 
     String obtenerCognitoPorId(Integer idUsuario);
 
+    Integer obtenerIdUsuarioPorCognito(String cognito);
+
     List<UsuarioRolRevisorDto> listarRevisoresPorCarrera(Integer carreraId);
+
+    List<PerfilAsesorDto> buscarAsesoresPorCadenaDeBusqueda(String cadena, Integer idUsuario);
+
 }
