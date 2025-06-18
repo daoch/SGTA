@@ -54,6 +54,7 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
         private final UsuarioXRolRepository usuarioRolRepository;
         private final EtapaFormativaXCicloXTemaRepository etapaFormativaXCicloXTemaRepository;
         private final UsuarioXAreaConocimientoRepository usuarioXAreaConocimientoRepository;
+        private final SubAreaConocimientoRepository subAreaConocimientoRepository;
 
         public MiembroJuradoServiceImpl(UsuarioRepository usuarioRepository,
                                         UsuarioXTemaRepository usuarioXTemaRepository,
@@ -69,7 +70,7 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                                         RevisionCriterioExposicionRepository revisionCriterioExposicionRepository,
                                         ParametroConfiguracionRepository parametroConfiguracionRepository,
                                         CarreraXParametroConfiguracionRepository carreraXParametroConfiguracionRepository,
-                                        UsuarioService usuarioService, UsuarioXRolRepository usuarioRolRepository, EtapaFormativaXCicloXTemaRepository etapaFormativaXCicloXTemaRepository, UsuarioXAreaConocimientoRepository usuarioXAreaConocimientoRepository) {
+                                        UsuarioService usuarioService, UsuarioXRolRepository usuarioRolRepository, EtapaFormativaXCicloXTemaRepository etapaFormativaXCicloXTemaRepository, UsuarioXAreaConocimientoRepository usuarioXAreaConocimientoRepository, SubAreaConocimientoRepository subAreaConocimientoRepository) {
                 this.usuarioRepository = usuarioRepository;
                 this.usuarioXTemaRepository = usuarioXTemaRepository;
                 this.rolRepository = rolRepository;
@@ -88,6 +89,7 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
             this.usuarioRolRepository = usuarioRolRepository;
             this.etapaFormativaXCicloXTemaRepository = etapaFormativaXCicloXTemaRepository;
             this.usuarioXAreaConocimientoRepository = usuarioXAreaConocimientoRepository;
+            this.subAreaConocimientoRepository = subAreaConocimientoRepository;
         }
 
         @Override
@@ -1242,42 +1244,52 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
 
         @Override
         public List<EtapasFormativasDto> obtenerEtapasFormativasPorUsuario(String usuarioId) {
-                UsuarioDto userDto = usuarioService.findByCognitoId(usuarioId);
+                try{
+                        UsuarioDto userDto = usuarioService.findByCognitoId(usuarioId);
 
-                Usuario usuario = usuarioRepository.findById(userDto.getId())
-                        .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
+                        Usuario usuario = usuarioRepository.findById(userDto.getId())
+                                .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
 
-                boolean tieneRolValido = usuarioRolRepository
-                        .findByUsuarioIdAndActivoTrue(userDto.getId())
-                        .stream()
-                        .anyMatch(ur -> ur.getRol().getId() == 1 || ur.getRol().getId() == 2);
+                        // 1. Obtener las áreas de conocimiento del coordinador
+                        List<UsuarioXAreaConocimiento> areasCoordinador = usuarioXAreaConocimientoRepository
+                                .findByUsuario_IdAndActivoTrue(userDto.getId());
 
-                if (!tieneRolValido) {
-                        throw new IllegalArgumentException("El usuario no tiene rol válido (1 o 2)");
+                        Set<Integer> areaIds = areasCoordinador.stream()
+                                .map(uac -> uac.getAreaConocimiento().getId())
+                                .collect(Collectors.toSet());
+
+                        // 1. Subáreas
+                        List<SubAreaConocimiento> subAreas = subAreaConocimientoRepository.findByAreaConocimiento_IdIn(areaIds);
+                        if (subAreas.isEmpty()) return Collections.emptyList();
+                        Set<Integer> subAreaIds = subAreas.stream().map(SubAreaConocimiento::getId).collect(Collectors.toSet());
+
+                        // 2. Subárea-Tema
+                        List<SubAreaConocimientoXTema> subAreaTemas = subAreaConocimientoXTemaRepository.findBySubAreaConocimiento_IdIn(subAreaIds);
+                        if (subAreaTemas.isEmpty()) return Collections.emptyList();
+                        Set<Integer> temaIds = subAreaTemas.stream()
+                                .map(sub -> sub.getTema().getId())
+                                .collect(Collectors.toSet());
+
+                        // 3. EtapaFormativaXCicloXTema
+                        List<EtapaFormativaXCicloXTema> etapaTemaList = etapaFormativaXCicloXTemaRepository.findByTema_IdIn(temaIds);
+                        if (etapaTemaList.isEmpty()) return Collections.emptyList();
+
+                        // 4. EtapaFormativa (vía EtapaFormativaXCiclo)
+                        Set<EtapaFormativa> etapas = etapaTemaList.stream()
+                                .map(et -> et.getEtapaFormativaXCiclo().getEtapaFormativa())
+                                .filter(Objects::nonNull)
+                                .collect(Collectors.toSet());
+
+                        // 5. Map a DTO
+                        return etapas.stream()
+                                .distinct()
+                                .map(e -> new EtapasFormativasDto(e.getId(), e.getNombre()))
+                                .collect(Collectors.toList());
+
+                }catch(Exception e){
+                        e.printStackTrace();
+                        return Collections.emptyList();
                 }
-
-                List<UsuarioXTema> usuarioXTemaList = usuarioXTemaRepository
-                        .findByUsuarioIdAndActivoTrue(userDto.getId());
-
-                Set<Tema> temas = usuarioXTemaList.stream()
-                        .map(UsuarioXTema::getTema)
-                        .collect(Collectors.toSet());
-                Set<EtapaFormativa> etapas = new HashSet<>();
-
-                for (Tema tema : temas) {
-                        List<EtapaFormativaXCicloXTema> efCicloXTemaList = etapaFormativaXCicloXTemaRepository
-                                .findByTemaIdAndActivoTrue(tema.getId());
-
-                        for (EtapaFormativaXCicloXTema efxt : efCicloXTemaList) {
-                                EtapaFormativa etapa = efxt.getEtapaFormativaXCiclo().getEtapaFormativa();
-                                if (etapa.getActivo()) {
-                                        etapas.add(etapa);
-                                }
-                        }
-                }
-                return etapas.stream()
-                        .map(etapa -> new EtapasFormativasDto(etapa.getId(), etapa.getNombre()))
-                        .collect(Collectors.toList());
         }
 
         @Override
