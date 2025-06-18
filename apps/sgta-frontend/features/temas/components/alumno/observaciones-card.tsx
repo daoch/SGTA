@@ -11,30 +11,12 @@ import {
 } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuthStore } from "@/features/auth/store/auth-store";
+import { ObservacionV2 } from "@/features/temas/types/temas/entidades";
 import { AlertCircle, CheckCircle, Pencil } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-interface Remitente {
-  usuario_solicitud_id: number;
-  usuario_id: number;
-  nombres: string;
-  primer_apellido: string;
-  segundo_apellido: string;
-  codigo: string;
-}
-
-interface Observacion {
-  solicitud_id: number;
-  descripcion: string;
-  tipo_solicitud: string;
-  estado_solicitud: string;
-  tema_id: number;
-  fecha_creacion: string;
-  remitente: Remitente;
-}
-
-export function ObservacionesCard({ observaciones }: { observaciones: Observacion[] }) {
+export function ObservacionesCard({ observaciones }: { observaciones: ObservacionV2[] }) {
   const router = useRouter();
   const { toast } = useToast();
   const { idToken } = useAuthStore();

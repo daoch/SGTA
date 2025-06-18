@@ -4,36 +4,39 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/features/auth/store/auth-store";
 import { ObservacionesCard } from "@/features/temas/components/alumno/observaciones-card";
+import { ObservacionV2 } from "@/features/temas/types/temas/entidades";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-interface Remitente {
+
+interface UsuarioSolicitud {
   usuario_solicitud_id: number;
   usuario_id: number;
   nombres: string;
   primer_apellido: string;
   segundo_apellido: string;
   codigo: string;
+  rol_solicitud: string;
 }
 
-interface Observacion {
+interface SolicitudApiResponse {
   solicitud_id: number;
   descripcion: string;
   tipo_solicitud: string;
   estado_solicitud: string;
   tema_id: number;
   fecha_creacion: string;
-  remitente: Remitente;
+  usuarios: UsuarioSolicitud[];
 }
 
 export function ObservacionesAlumnoView() {
   const router = useRouter();
   const { idToken } = useAuthStore();
-  const [observaciones, setObservaciones] = useState<Observacion[]>([]);
+  const [observaciones, setObservaciones] = useState<ObservacionV2[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const temaId = 1; // Asigna el temaId que necesites
+  const temaId = 1; 
 
   useEffect(() => {
     const fetchObservaciones = async () => {
@@ -47,16 +50,22 @@ export function ObservacionesAlumnoView() {
             },
           }
         );
-        const data = await res.json();
-        const observaciones = data.map((s: any) => ({
-          solicitud_id: s.solicitud_id,
-          descripcion: s.descripcion,
-          tipo_solicitud: s.tipo_solicitud,
-          estado_solicitud: s.estado_solicitud,
-          tema_id: s.tema_id,
-          fecha_creacion: s.fecha_creacion,
-          remitente: s.usuarios.find((u: any) => u.rol_solicitud === "REMITENTE"),
-        }));
+        const data: SolicitudApiResponse[] = await res.json();
+        const observaciones = data
+          .map((s) => {
+            const remitente = s.usuarios.find((u) => u.rol_solicitud === "REMITENTE");
+            if (!remitente) return null; 
+            return {
+              solicitud_id: s.solicitud_id,
+              descripcion: s.descripcion,
+              tipo_solicitud: s.tipo_solicitud,
+              estado_solicitud: s.estado_solicitud,
+              tema_id: s.tema_id,
+              fecha_creacion: s.fecha_creacion,
+              remitente: remitente,
+            };
+          })
+          .filter((o): o is NonNullable<typeof o> => o !== null);
         setObservaciones(observaciones);
       } catch (err) {
         if (err instanceof Error) {
