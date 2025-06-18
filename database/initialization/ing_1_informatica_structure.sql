@@ -93,7 +93,8 @@ SELECT 1 as carrera_id,
                           ('Tiempo Limite Jurado', '15'),
                           ('Peso Asesor', '20'),
                           ('Limite Propuestas Alumno', '2'),
-                          ('Limite Postulaciones Alumno', '2'))
+                          ('Limite Postulaciones Alumno', '2'),
+                          ('Tiempo Limite Jurado Expo', '15'))
                         AS v(nombre, valor) ON p.nombre = v.nombre;
 
 

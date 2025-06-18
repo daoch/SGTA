@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import pucp.edu.pe.sgta.model.RolSolicitud;
 import pucp.edu.pe.sgta.model.Solicitud;
 import pucp.edu.pe.sgta.model.UsuarioXSolicitud;
 
@@ -69,4 +70,12 @@ public interface UsuarioXSolicitudRepository extends JpaRepository<UsuarioXSolic
     void aprobarSolicitudCambioAsesorCoordinador(@Param("idCognito") String idCognito,
                                             @Param("solicitudId") Integer solicitudId,
                                                  @Param("comentario") String comentario);
+
+    Optional<UsuarioXSolicitud> findFirstBySolicitudIdAndRolSolicitud(Integer solicitudId, RolSolicitud rolSolicitud);
+
+    boolean existsBySolicitud_IdAndUsuario_IdAndRolSolicitud_Nombre(
+            Integer solicitudId,
+            Integer usuarioId,
+            String rolSolicitudNombre
+    );
 }

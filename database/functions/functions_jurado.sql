@@ -1266,7 +1266,7 @@ BEGIN
     JOIN EXPOSICION_X_TEMA EXT ON EXT.tema_id = UT.tema_id
     JOIN ROL ON ROL.rol_id = UT.rol_id
     JOIN CONTROL_EXPOSICION_USUARIO CEU ON CEU.usuario_x_tema_id = UT.usuario_tema_id
-    WHERE EXT.exposicion_x_tema_id = p_exposicion_x_tema_id AND U.tipo_usuario_id != 2 AND UT.activo = true AND CEU.exposicion_x_tema_id = p_exposicion_x_tema_id;
+    WHERE EXT.exposicion_x_tema_id = p_exposicion_x_tema_id AND U.tipo_usuario_id != 2 AND UT.activo = true AND CEU.exposicion_x_tema_id = p_exposicion_x_tema_id AND rol.nombre IN ('Asesor', 'Jurado');
 END
 $$;
 
