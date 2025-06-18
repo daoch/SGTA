@@ -1118,7 +1118,8 @@ BEGIN
    INNER JOIN rol r ON tu.rol_id = r.rol_id
    WHERE ext.exposicion_id = idExposicion
      AND tu.activo = TRUE
-     AND r.nombre IN ('Asesor', 'Tesista', 'Jurado');
+     AND r.nombre IN ('Asesor', 'Jurado')
+	and tu.asignado = true;
 END;
 $procedure$;
 
@@ -1409,3 +1410,73 @@ BEGIN
 END
 $$;
 
+CREATE OR REPLACE FUNCTION actualizar_bloque_cambiados(bloques_json jsonb)
+RETURNS text
+LANGUAGE plpgsql
+AS $function$
+DECLARE
+    bloque jsonb;
+    usuario jsonb;
+    id_exposicion integer;
+    var_tema_id integer;
+    id_usuario integer;
+    usuario_tema_id integer;
+    var_exposicion_x_tema_id integer;
+BEGIN
+    -- Validar y obtener id_exposicion
+    SELECT (bloques_json->0->>'idExposicion')::integer INTO id_exposicion;
+    IF id_exposicion IS NULL THEN
+        RAISE EXCEPTION 'No se pudo obtener el idExposicion del JSON';
+    END IF;
+
+    FOR bloque IN SELECT * FROM jsonb_array_elements(bloques_json)
+    LOOP
+	 	IF bloque->'expo' IS NULL OR bloque->'expo'->>'id' IS NULL THEN
+		    CONTINUE;
+		END IF;
+        var_tema_id := (bloque->'expo'->>'id')::integer;
+        IF var_tema_id IS NULL THEN
+            RAISE EXCEPTION 'El bloque no contiene un tema válido (expo.id)';
+        END IF;
+
+        -- Obtener exposicion_x_tema_id
+        SELECT ext.exposicion_x_tema_id INTO var_exposicion_x_tema_id
+        FROM exposicion_x_tema ext
+        WHERE ext.exposicion_id = id_exposicion AND ext.tema_id = var_tema_id;
+
+        IF var_exposicion_x_tema_id IS NULL THEN
+            RAISE EXCEPTION 'No se encontró exposicion_x_tema_id para exposicion_id % y tema_id %', id_exposicion, var_tema_id;
+        END IF;
+
+        FOR usuario IN SELECT * FROM jsonb_array_elements(bloque->'expo'->'usuarios')
+        LOOP
+            id_usuario := (usuario->>'idUsario')::integer;
+            IF id_usuario IS NULL THEN
+                RAISE EXCEPTION 'Usuario sin idUsario válido en el JSON';
+            END IF;
+
+            SELECT tu.usuario_tema_id INTO usuario_tema_id
+            FROM usuario_tema tu
+            WHERE tu.tema_id = var_tema_id AND tu.usuario_id = id_usuario;
+
+            IF usuario_tema_id IS NULL THEN
+                -- Lo ignoramos porque el usuario no pertenece, como dijiste
+                CONTINUE;
+            END IF;
+
+            -- Actualizar
+            UPDATE control_exposicion_usuario
+            SET estado_exposicion_usuario = 'esperando_respuesta',
+                fecha_modificacion = NOW()
+            WHERE exposicion_x_tema_id = var_exposicion_x_tema_id
+              AND usuario_x_tema_id = usuario_tema_id;
+        END LOOP;
+    END LOOP;
+
+    RETURN 'Actualización completada correctamente';
+
+EXCEPTION
+    WHEN OTHERS THEN
+        RETURN 'Error: ' || SQLERRM;
+END;
+$function$;
