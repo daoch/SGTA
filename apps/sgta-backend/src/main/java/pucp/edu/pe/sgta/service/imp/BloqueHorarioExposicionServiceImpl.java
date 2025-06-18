@@ -131,12 +131,13 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
 
             // Armar lista de usuarios vinculados a ese bloque
             List<UsarioRolDto> usuarios = filasBloque.stream()
-                    .filter(row -> row[11] != null) // aseguramos que usuario_id exista para crear el DTO
+                    .filter(row -> row[11] != null) // aseguramos que usuario_id exista
+                    .filter(row -> !"Revisor".equalsIgnoreCase((String) row[15])) // ignorar usuarios con rol Revisor
                     .map(row -> new UsarioRolDto(
                             ((Number) row[11]).intValue(),               // idPersona
                             (String) row[12],                             // nombres
                             (String) row[13],                             // apellidos
-                            row[14] != null ? ((Number) row[14]).intValue() : null, // rolId (puede ser null)
+                            row[14] != null ? ((Number) row[14]).intValue() : null, // rolId
                             (String) row[15],                             // rolNombre
                             (String) row[16]                              // estadoRespuesta
                     ))
@@ -213,17 +214,38 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
             System.out.println(bloquesList);
             int i  = 0;
             List<ListBloqueHorarioExposicionSimpleDTO> bloquesCambiado = new ArrayList<>();
+            System.out.println("==================================================================");
             for (ListBloqueHorarioExposicionSimpleDTO dto : bloquesList) {
                 var expo = dto.getExpo();
                 var anteriorExpo = dto.getAnteriorExpo();
 
-                if ((expo != null && anteriorExpo == null) ||
-                        (expo != null && anteriorExpo != null &&
-                                !expo.getCodigo().equals(anteriorExpo.getCodigo()))) {
-                    //controlExposicionUsuarioTemaRepository.updateEstadoRespuestaExposicion(dto.getIdExposicion(),expo.getId());
+                if (
+                        expo != null && anteriorExpo == null || expo != null && !expo.getCodigo().equals(anteriorExpo.getCodigo()) || expo == null && anteriorExpo != null
+                ){
+                    bloquesCambiado.add(dto);
+                    System.out.println("BLOQUE : " + dto.getKey());
+                    if(expo!=null){
+                        System.out.println("TEMA : " + expo.getCodigo());
+                    }
+                    else{
+                        System.out.println("ACTUAL : NULL" );
+                    }
 
+                    if(anteriorExpo!=null)
+                        System.out.println("ANTERIOR : " + anteriorExpo.getCodigo());
+                    else
+                        System.out.println("ANTERIOR : NULL" );
                 }
             }
+
+
+            System.out.println("==================================================================");
+            String jsonString2 = mapper.writeValueAsString(bloquesCambiado);
+            String resultado = bloqueHorarioExposicionRepository.updateBloquesCambidos(jsonString2);
+
+            System.out.println("==================================================================");
+            System.out.println("Resultado de la función: " + resultado);
+
 
             return true;
         } catch (JsonProcessingException e) {
