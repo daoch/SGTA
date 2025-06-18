@@ -35,6 +35,7 @@ import pucp.edu.pe.sgta.dto.RechazoSolicitudCambioAsesorResponseDto.CambioAsigna
 import pucp.edu.pe.sgta.dto.AprobarSolicitudResponseDto.AprobarAsignacionDto;
 import pucp.edu.pe.sgta.dto.RechazoSolicitudResponseDto.AsignacionDto;
 import pucp.edu.pe.sgta.dto.asesores.DetalleSolicitudCambioAsesorDto;
+import pucp.edu.pe.sgta.dto.asesores.EstudianteSimpleDto;
 import pucp.edu.pe.sgta.dto.asesores.ReasignacionPendienteDto;
 import pucp.edu.pe.sgta.dto.asesores.SolicitudCambioAsesorResumenDto;
 import pucp.edu.pe.sgta.dto.asesores.SolicitudCeseAsesoriaResumenDto;
@@ -47,7 +48,11 @@ import pucp.edu.pe.sgta.service.inter.SolicitudService;
 import pucp.edu.pe.sgta.service.inter.TemaService;
 import pucp.edu.pe.sgta.util.*;
 import org.springframework.data.jpa.domain.Specification; // Para queries dinámicas
+
+import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate; // Para Criteria API
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 
 @Service
 public class SolicitudServiceImpl implements SolicitudService {
@@ -91,6 +96,8 @@ public class SolicitudServiceImpl implements SolicitudService {
     private UsuarioServiceImpl usuarioServiceImpl;
     @Autowired
     private RolRepository rolRepository;
+
+    private static final String ROL_NOMBRE_TESISTA = "Tesista";
 
     public SolicitudCambioAsesorDto findAllSolicitudesCambioAsesor(int page, int size) {
         List<Solicitud> allSolicitudes = solicitudRepository.findByTipoSolicitudNombre("Cambio Asesor");
@@ -1128,10 +1135,10 @@ public class SolicitudServiceImpl implements SolicitudService {
         // --- Mapeo a DTO de Detalle ---
         Usuario asesorSolicitante = null;
 
-        RolSolicitud rolAsesorSolicitanteCese = rolSolicitudRepository.findByNombre("ASESOR_ENTRADA")
+        RolSolicitud rolAsesorSolicitanteCese = rolSolicitudRepository.findByNombre("ASESOR_ACTUAL")
                 .orElseThrow(() -> {
-                    log.error("Configuración: Rol de solicitud 'ASESOR_ENTRADA' no encontrado en la BD.");
-                    return new RuntimeException("Error de configuración interna: Rol ASESOR_ENTRADA no definido.");
+                    log.error("Configuración: Rol de solicitud 'ASESOR_ACTUAL' no encontrado en la BD.");
+                    return new RuntimeException("Error de configuración interna: Rol ASESOR_ACTUAL no definido.");
                 });
 
         // Usar el método que devuelve Optional y luego mapear, o manejar lista.
@@ -1217,136 +1224,167 @@ public class SolicitudServiceImpl implements SolicitudService {
         );
     }
 
-    // @Override
-    // @org.springframework.transaction.annotation.Transactional (readOnly = true)
-    // public Page<ReasignacionPendienteDto> findReasignacionesPendientes(
-    //         String coordinadorCognitoSub,
-    //         String searchTerm,
-    //         Pageable pageable
-    // ) {
-    //     log.info("Buscando reasignaciones pendientes para coordinador CognitoSub: {}, searchTerm: '{}', page: {}",
-    //             coordinadorCognitoSub, searchTerm, pageable.getPageNumber());
+    @Override
+    @org.springframework.transaction.annotation.Transactional (readOnly = true)
+    public Page<ReasignacionPendienteDto> findReasignacionesPendientes(
+            String coordinadorCognitoSub,
+            String searchTerm,
+            Pageable pageable
+    ) {
+        log.info("Buscando reasignaciones pendientes para coordinador CognitoSub: {}, searchTerm: '{}', page: {}",
+                coordinadorCognitoSub, searchTerm, pageable.getPageNumber());
 
-    //     Usuario coordinador = usuarioRepository.findByIdCognito(coordinadorCognitoSub)
-    //             .orElseThrow(() -> new ResourceNotFoundException("Coordinador no encontrado con CognitoSub: " + coordinadorCognitoSub));
+        Usuario coordinador = usuarioRepository.findByIdCognito(coordinadorCognitoSub)
+                .orElseThrow(() -> new ResourceNotFoundException("Coordinador no encontrado con CognitoSub: " + coordinadorCognitoSub));
 
-    //     List<UsuarioXCarrera> asignacionesCarreraCoordinador = usuarioXCarreraRepository.findByUsuarioIdAndActivoTrue(coordinador.getId());
-    //     if (asignacionesCarreraCoordinador.isEmpty()) {
-    //         log.warn("Coordinador ID {} no tiene carreras activas asignadas.", coordinador.getId());
-    //         return Page.empty(pageable);
-    //     }
-    //     List<Integer> idsCarrerasDelCoordinador = asignacionesCarreraCoordinador.stream()
-    //             .map(uc -> uc.getCarrera().getId())
-    //             .distinct()
-    //             .collect(Collectors.toList());
+        List<UsuarioXCarrera> asignacionesCarreraCoordinador = usuarioXCarreraRepository.findByUsuarioIdAndActivoTrue(coordinador.getId());
+        if (asignacionesCarreraCoordinador.isEmpty()) {
+            log.warn("Coordinador ID {} no tiene carreras activas asignadas.", coordinador.getId());
+            return Page.empty(pageable);
+        }
+        List<Integer> idsCarrerasDelCoordinador = asignacionesCarreraCoordinador.stream()
+                .map(uc -> uc.getCarrera().getId())
+                .distinct()
+                .collect(Collectors.toList());
 
-    //     // Obtener las entidades TipoSolicitud y EstadoSolicitud necesarias
-    //     TipoSolicitud tipoCese = tipoSolicitudRepository.findByNombre("Cese de Asesoria (por alumno)")
-    //             .orElseThrow(() -> new ResourceNotFoundException("Tipo de solicitud '" + "Cese de Asesoria (por alumno)" + "' no encontrado."));
+        // Obtener las entidades TipoSolicitud y EstadoSolicitud necesarias
+        TipoSolicitud tipoCese = tipoSolicitudRepository.findByNombre("Cese de Asesoria (por alumno)")
+                .orElseThrow(() -> new ResourceNotFoundException("Tipo de solicitud '" + "Cese de Asesoria (por alumno)" + "' no encontrado."));
 
-    //     EstadoSolicitud estadoAprobada = estadoSolicitudRepository.findByNombre("APROBADA")
-    //             .orElseThrow(() -> new ResourceNotFoundException("Estado de solicitud '" + "APROBADA" + "' no encontrado."));
+        EstadoSolicitud estadoAprobada = estadoSolicitudRepository.findByNombre("APROBADA")
+                .orElseThrow(() -> new ResourceNotFoundException("Estado de solicitud '" + "APROBADA" + "' no encontrado."));
 
-    //     // Lista de estados de reasignación que indican acción pendiente por el coordinador
-    //     List<String> estadosReasignacionPendienteCoord = Arrays.asList(
-    //             "PENDIENTE PROPUESTA",
-    //             "RECHAZADA POR ASESOR",
-    //             "PENDIENTE_ASESOR"
-    //             // SgtaConstants.ESTADO_REASIGNACION_CANCELADA_POR_COORDINADOR // Si este requiere acción también
-    //     );
-    //     // También podríamos incluir PENDIENTE_ACEPTACION_ASESOR si queremos que el coordinador vea a quién propuso
-    //     // y potencialmente pueda cancelar esa propuesta para proponer a otro.
-    //     // Por ahora, nos enfocaremos en los que requieren que *él* proponga.
+        // Lista de estados de reasignación que indican acción pendiente por el coordinador
+        List<String> estadosReasignacionPendienteCoord = Arrays.asList(
+                "PREACEPTADA",
+                "PENDIENTE_ACEPTACION_ASESOR"
+                // SgtaConstants.ESTADO_REASIGNACION_CANCELADA_POR_COORDINADOR // Si este requiere acción también
+        );
+        // También podríamos incluir PENDIENTE_ACEPTACION_ASESOR si queremos que el coordinador vea a quién propuso
+        // y potencialmente pueda cancelar esa propuesta para proponer a otro.
+        // Por ahora, nos enfocaremos en los que requieren que *él* proponga.
 
-    //     // Usar Specification para construir la query dinámicamente
-    //     Specification<Solicitud> spec = (root, query, cb) -> {
-    //         List<Predicate> predicates = new ArrayList<>();
+        // Usar Specification para construir la query dinámicamente
+        Specification<Solicitud> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
 
-    //         predicates.add(cb.equal(root.get("tipoSolicitud"), tipoCese));
-    //         predicates.add(root.get("tema").get("carrera").get("id").in(idsCarrerasDelCoordinador));
-    //         predicates.add(cb.isTrue(root.get("activo")));
-    //         predicates.add(root.get("estadoSolicitud").in(estadosReasignacionPendienteCoord));
+            predicates.add(cb.equal(root.get("tipoSolicitud"), tipoCese));
+            predicates.add(root.get("tema").get("carrera").get("id").in(idsCarrerasDelCoordinador));
+            predicates.add(cb.isTrue(root.get("activo")));
+            predicates.add(root.get("estadoSolicitud").get("nombre").in(estadosReasignacionPendienteCoord));
 
-    //         if (searchTerm != null && !searchTerm.trim().isEmpty()) {
-    //             String likePattern = "%" + searchTerm.toLowerCase() + "%";
-    //             predicates.add(cb.or(
-    //                     cb.like(cb.lower(root.get("tema").get("titulo")), likePattern)
-    //                     // cb.like(cb.lower(root.get("usuarioCreador").get("nombres")), likePattern), // Asesor original
-    //                     // cb.like(cb.lower(root.get("usuarioCreador").get("primerApellido")), likePattern)
-    //             ));
-    //         }
-    //         // Evitar N+1 problems para las relaciones que usaremos al mapear
-    //         // Esto es opcional aquí si las relaciones son EAGER o si el número de resultados por página es pequeño
-    //         // query.distinct(true); // Si hay joins que puedan causar duplicados de Solicitud
-    //         // root.fetch("tema", JoinType.LEFT);
-    //         // root.fetch("usuarioCreador", JoinType.LEFT);
-    //         // root.fetch("asesorPropuestoReasignacion", JoinType.LEFT);
+            if (searchTerm != null && !searchTerm.trim().isEmpty()) {
+                String likePattern = "%" + searchTerm.toLowerCase() + "%";
 
-    //         return cb.and(predicates.toArray(new Predicate[0]));
-    //     };
+                // Subquery para encontrar UsuarioXSolicitud con rol REMITENTE
+                Subquery<UsuarioXSolicitud> subquery = query.subquery(UsuarioXSolicitud.class);
+                Root<UsuarioXSolicitud> uxsRoot = subquery.from(UsuarioXSolicitud.class);
+                Join<Object, Object> usuarioJoin = uxsRoot.join("usuario");
+                Join<Object, Object> rolJoin = uxsRoot.join("rolSolicitud");
 
-    //     Page<Solicitud> paginaSolicitudes = solicitudRepository.findAll(spec, pageable);
+                Predicate solicitudMatch = cb.equal(uxsRoot.get("solicitud"), root);
+                Predicate rolRemitente = cb.equal(cb.lower(rolJoin.get("nombre")), "remitente");
 
-    //     if (paginaSolicitudes.isEmpty()) {
-    //         return Page.empty(pageable);
-    //     }
+                Predicate nombreLike = cb.like(cb.lower(usuarioJoin.get("nombres")), likePattern);
+                Predicate apellidoLike = cb.like(cb.lower(usuarioJoin.get("primerApellido")), likePattern);
 
-    //     Rol rolTesista = rolRepository.findByNombre(SgtaConstants.ROL_NOMBRE_TESISTA).orElse(null); // Cargar una vez
+                subquery.select(uxsRoot)
+                    .where(
+                        solicitudMatch,
+                        rolRemitente,
+                        cb.or(nombreLike, apellidoLike)
+                    );
 
-    //     List<ReasignacionPendienteDto> dtos = paginaSolicitudes.getContent().stream()
-    //             .map(solicitud -> {
-    //                 ReasignacionPendienteDto dto = new ReasignacionPendienteDto();
-    //                 dto.setSolicitudOriginalId(solicitud.getId());
-    //                 dto.setFechaAprobacionCese(solicitud.getFechaResolucion()); // Fecha en que se aprobó el cese
-    //                 dto.setMotivoCeseOriginal(solicitud.getDescripcion());
+                predicates.add(cb.or(
+                    cb.like(cb.lower(root.get("tema").get("titulo")), likePattern),
+                    cb.exists(subquery)
+                ));
+            }
 
-    //                 Tema tema = solicitud.getTema();
-    //                 if (tema != null) {
-    //                     dto.setTemaId(tema.getId());
-    //                     dto.setTemaTitulo(tema.getTitulo());
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
 
-    //                     // Obtener estudiantes
-    //                     if (rolTesista != null) {
-    //                         List<UsuarioXTema> tesistasDelTema = usuarioXTemaRepository.findByTema_IdAndRol_IdAndActivoTrue(tema.getId(), rolTesista.getId());
-    //                         dto.setEstudiantes(tesistasDelTema.stream()
-    //                                 .map(ut -> ut.getUsuario())
-    //                                 .filter(u -> u != null)
-    //                                 .map(u -> new EstudianteSimpleDto(u.getId(), u.getNombres(), u.getPrimerApellido(), u.getSegundoApellido()))
-    //                                 .collect(Collectors.toList()));
-    //                     } else {
-    //                         dto.setEstudiantes(Collections.emptyList());
-    //                     }
-    //                 }
+        Page<Solicitud> paginaSolicitudes = solicitudRepository.findAll(spec, pageable);
 
-    //                 Usuario asesorOriginal = solicitud.getUsuarioCreador(); // Asume que este campo existe y está poblado
-    //                 if (asesorOriginal != null) {
-    //                     dto.setAsesorOriginalId(asesorOriginal.getId());
-    //                     dto.setAsesorOriginalNombres(asesorOriginal.getNombres());
-    //                     dto.setAsesorOriginalPrimerApellido(asesorOriginal.getPrimerApellido());
-    //                     dto.setAsesorOriginalCorreo(asesorOriginal.getCorreoElectronico());
-    //                 }
+        if (paginaSolicitudes.isEmpty()) {
+            return Page.empty(pageable);
+        }
 
-    //                 dto.setEstadoReasignacion(solicitud.getEstadoReasignacion());
+        Rol rolTesista = rolRepository.findByNombre(ROL_NOMBRE_TESISTA).orElse(null); // Cargar una vez
 
-    //                 Usuario asesorPropuesto = solicitud.getAsesorPropuestoReasignacion();
-    //                 if (asesorPropuesto != null) {
-    //                     dto.setAsesorPropuestoId(asesorPropuesto.getId());
-    //                     dto.setAsesorPropuestoNombres(asesorPropuesto.getNombres());
-    //                     dto.setAsesorPropuestoPrimerApellido(asesorPropuesto.getPrimerApellido());
-    //                     // La 'fechaPropuestaNuevoAsesor' podría ser la fecha_modificacion de la solicitud
-    //                     // cuando estadoReasignacion cambió a PENDIENTE_ACEPTACION_ASESOR
-    //                     // o cuando se seteó el asesorPropuestoReasignacion.
-    //                     // Por simplicidad, si se necesita, se podría añadir un campo específico o usar fechaModificacion.
-    //                     // Aquí, si el asesor está propuesto, asumimos que la fecha de mod de la solicitud es relevante.
-    //                     if (SgtaConstants.ESTADO_REASIGNACION_PENDIENTE_ACEPTACION_ASESOR.equals(solicitud.getEstadoReasignacion())) {
-    //                         dto.setFechaPropuestaNuevoAsesor(solicitud.getFechaModificacion());
-    //                     }
-    //                 }
-    //                 return dto;
-    //             })
-    //             .collect(Collectors.toList());
+        List<ReasignacionPendienteDto> dtos = paginaSolicitudes.getContent().stream()
+                .map(solicitud -> {
+                    ReasignacionPendienteDto dto = new ReasignacionPendienteDto();
+                    dto.setSolicitudOriginalId(solicitud.getId());
+                    dto.setFechaAprobacionCese(solicitud.getFechaResolucion()); // Fecha en que se aprobó el cese
+                    dto.setMotivoCeseOriginal(solicitud.getDescripcion());
 
-    //     return new PageImpl<>(dtos, pageable, paginaSolicitudes.getTotalElements());
-    // }
+                    Tema tema = solicitud.getTema();
+                    if (tema != null) {
+                        dto.setTemaId(tema.getId());
+                        dto.setTemaTitulo(tema.getTitulo());
+
+                        // Obtener estudiantes
+                        if (rolTesista != null) {
+                            List<UsuarioXTema> tesistasDelTema = usuarioXTemaRepository.findByTema_IdAndRol_IdAndActivoTrue(tema.getId(), rolTesista.getId());
+                            dto.setEstudiantes(tesistasDelTema.stream()
+                                    .map(ut -> ut.getUsuario())
+                                    .filter(u -> u != null)
+                                    .map(u -> new EstudianteSimpleDto(u.getId(), u.getNombres(), u.getPrimerApellido(), u.getSegundoApellido()))
+                                    .collect(Collectors.toList()));
+                        } else {
+                            dto.setEstudiantes(Collections.emptyList());
+                        }
+                    }
+
+                    RolSolicitud rolAsesorSolicitanteCese = rolSolicitudRepository.findByNombre("ASESOR_ACTUAL")
+                    .orElseThrow(() -> {
+                        log.error("Configuración: Rol de solicitud 'ASESOR_ACTUAL' no encontrado en la BD.");
+                        return new RuntimeException("Error de configuración interna: Rol ASESOR_ACTUAL no definido.");
+                    });
+
+                    UsuarioXSolicitud asesorActual = usuarioXSolicitudRepository
+                            .findFirstBySolicitudIdAndRolSolicitud(solicitud.getId(), rolAsesorSolicitanteCese)
+                            .orElse(null);
+                    Usuario asesorOriginal = asesorActual.getUsuario(); // Asume que este campo existe y está poblado
+                    if (asesorOriginal != null) {
+                        dto.setAsesorOriginalId(asesorOriginal.getId());
+                        dto.setAsesorOriginalNombres(asesorOriginal.getNombres());
+                        dto.setAsesorOriginalPrimerApellido(asesorOriginal.getPrimerApellido());
+                        dto.setAsesorOriginalCorreo(asesorOriginal.getCorreoElectronico());
+                    }
+
+                    dto.setEstadoReasignacion(solicitud.getEstadoSolicitud().getNombre());
+
+                    RolSolicitud rolAsesorNuevoCese = rolSolicitudRepository.findByNombre("ASESOR_ENTRADA")
+                    .orElseThrow(() -> {
+                        log.error("Configuración: Rol de solicitud 'ASESOR_ENTRADA' no encontrado en la BD.");
+                        return new RuntimeException("Error de configuración interna: Rol ASESOR_ENTRADA no definido.");
+                    });
+
+                    UsuarioXSolicitud asesorNuevo = usuarioXSolicitudRepository
+                            .findFirstBySolicitudIdAndRolSolicitud(solicitud.getId(), rolAsesorNuevoCese)
+                            .orElse(null);
+
+                    Usuario asesorPropuesto = asesorNuevo.getUsuario();
+                    if (asesorPropuesto != null) {
+                        dto.setAsesorPropuestoId(asesorPropuesto.getId());
+                        dto.setAsesorPropuestoNombres(asesorPropuesto.getNombres());
+                        dto.setAsesorPropuestoPrimerApellido(asesorPropuesto.getPrimerApellido());
+                        // La 'fechaPropuestaNuevoAsesor' podría ser la fecha_modificacion de la solicitud
+                        // cuando estadoReasignacion cambió a PENDIENTE_ACEPTACION_ASESOR
+                        // o cuando se seteó el asesorPropuestoReasignacion.
+                        // Por simplicidad, si se necesita, se podría añadir un campo específico o usar fechaModificacion.
+                        // Aquí, si el asesor está propuesto, asumimos que la fecha de mod de la solicitud es relevante.
+                        if ("PENDIENTE_ACEPTACION_ASESOR".equals(solicitud.getEstadoSolicitud().getNombre())) {
+                            dto.setFechaPropuestaNuevoAsesor(solicitud.getFechaModificacion());
+                        }
+                    }
+                    return dto;
+                })
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(dtos, pageable, paginaSolicitudes.getTotalElements());
+    }
 
 }
