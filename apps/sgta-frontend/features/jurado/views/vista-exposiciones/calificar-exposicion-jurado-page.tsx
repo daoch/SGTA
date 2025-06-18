@@ -13,7 +13,8 @@ import {
   getExposicionCalificarJurado,
   actualizarComentarioFinalJurado,
   actualizarCriteriosEvaluacion,
-  actualizarCalificacionFinalJurado
+  actualizarCalificacionFinalJurado,
+  actualizarCalificacionFinalExposicionTema
 } from "../../services/jurado-service";
 import React from "react";
 import { useEffect, useState } from "react";
@@ -183,6 +184,25 @@ const CalificarExposicionJuradoPage: React.FC<Props> = ({ id_exposicion }) => {
         if (resultadoCalificacionFinal) {
           successMessage += "Nota final guardada correctamente. ";
         }
+
+        // 3. Actualizar la calificación final de la exposición (consolidada de todos los jurados)
+        try {
+          // Convertir id_exposicion a número si viene como string
+          const exposicionTemaId = typeof id_exposicion === 'string' ? 
+            parseInt(id_exposicion) : id_exposicion;
+            
+          const resultadoCalificacionFinalExposicion = await actualizarCalificacionFinalExposicionTema(
+            exposicionTemaId
+          );
+          
+          if (resultadoCalificacionFinalExposicion) {
+            successMessage += "Nota final de la exposición actualizada correctamente. ";
+          }
+        } catch (error) {
+          console.error("Error al actualizar la nota final de la exposición:", error);
+          hasError = true;
+        }
+        
 
       } catch (error) {
         console.error("Error al guardar observaciones finales:", error);

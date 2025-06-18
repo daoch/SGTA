@@ -644,3 +644,23 @@ export const getEtapaFormativaId = async (
     throw new Error("Error al obtener etapas formativas");
   }
 };
+
+export const actualizarCalificacionFinalExposicionTema = async (
+  exposicionId: number
+): Promise<boolean> => {
+  try {
+    console.log(
+      "Guardando calificaciones finales para la exposición tema:",
+      exposicionId,
+    );
+    console.log("Calificaciones finales:", exposicionId);
+    const response = await axiosInstance.put("/jurado/actualizar-nota-final-exposicion", {
+      id: exposicionId,
+    });
+
+    return response.status === 200;
+  } catch (error) {
+    console.error("Error al actualizar la nota final de la exposicion tema:", error);
+    throw error;
+  }
+};
