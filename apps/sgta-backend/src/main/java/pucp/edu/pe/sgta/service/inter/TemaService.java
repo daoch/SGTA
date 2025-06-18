@@ -176,7 +176,7 @@ public interface TemaService {
 
 	void guardarSimilitudes(String cognitoId, List<TemaSimilarDto> similitudes);
 
-	Integer createInscripcionTemaV2(TemaDto dto, String idUsuario);
+	Integer createInscripcionTemaV2(TemaDto dto, String idUsuario, Boolean reinscribir);
 
 	List<TemaDto> listarTemasSimilares(Integer temaId);
 

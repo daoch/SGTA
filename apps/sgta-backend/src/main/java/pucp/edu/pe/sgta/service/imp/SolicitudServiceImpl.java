@@ -411,7 +411,7 @@ public class SolicitudServiceImpl implements SolicitudService {
         if (allAttended && temaId != null) { //Only update to INSCRITO if all observations were attended
             TemaDto dto = new TemaDto();
             dto.setId(temaId);
-            temaService.createInscripcionTemaV2(dto, usuarioId);
+            temaService.createInscripcionTemaV2(dto, usuarioId, true);
             temaService.actualizarTemaYHistorial(temaId, "INSCRITO", "Todas las observaciones fueron atendidas");
         }
 

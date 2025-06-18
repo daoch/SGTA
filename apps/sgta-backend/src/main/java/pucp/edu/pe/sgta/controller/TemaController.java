@@ -90,7 +90,7 @@ public class TemaController {
 			HttpServletRequest request
 	) {
 		String idUsuarioCreador = jwtService.extractSubFromRequest(request);
-		return temaService.createInscripcionTemaV2(dto, idUsuarioCreador);
+		return temaService.createInscripcionTemaV2(dto, idUsuarioCreador, false);
 	}
 
 	@PutMapping("/update") // updates a topic
