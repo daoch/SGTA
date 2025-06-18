@@ -235,9 +235,11 @@ public class UsuarioServiceImpl implements UsuarioService {
             TipoUsuario nuevoTipo = buscarTipoUsuarioPorNombre(dto.getTipoUsuarioNombre())
                     .orElseThrow(() -> new IllegalArgumentException("Tipo de usuario no válido: " + dto.getTipoUsuarioNombre()));
             usuario.setTipoUsuario(nuevoTipo);
-            limpiarRelacionesYGruposSegunTipo(usuario, tipoActual);
-            usuarioXCarreraRepository.deleteByUsuarioId(usuario.getId());
-            usuarioXRolRepository.deleteByUsuarioId(usuario.getId());
+            if ("profesor".equalsIgnoreCase(tipoActual)) {
+                limpiarRelacionesYGruposSegunTipo(usuario, tipoActual);
+            } else if (usuario.getIdCognito() != null) {
+                cognitoService.eliminarUsuarioDeGrupo(usuario.getIdCognito(), tipoActual);
+            }
         }
         // congito y BD: roles y coordinador en caso de q sea profe
         if (tipoNuevo.equals("profesor")) {
@@ -268,50 +270,76 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     private void procesarCarrerasParaNoProfesores(Usuario usuario, UsuarioRegistroDto dto) {
         Integer userId = usuario.getId();
-        // limpiar relaciones de carreras y grupos
-        usuarioXCarreraRepository.deleteByUsuarioId(userId);
+        List<UsuarioXCarrera> relacionesAnteriores = usuarioXCarreraRepository.findByUsuarioId(userId);
+        Map<Integer, UsuarioXCarrera> mapaRelaciones = relacionesAnteriores.stream()
+                .collect(Collectors.toMap(rel -> rel.getCarrera().getId(), rel -> rel));
+        Set<Integer> nuevasCarrerasIds = dto.getCarreras() != null
+                ? dto.getCarreras().stream()
+                .map(UsuarioRegistroDto.CarreraAsignadaDto::getCarreraId)
+                .collect(Collectors.toSet())
+                : Collections.emptySet();
+        //desactivar solo las que ya no están
+        for (Map.Entry<Integer, UsuarioXCarrera> entry : mapaRelaciones.entrySet()) {
+            Integer carreraId = entry.getKey();
+            UsuarioXCarrera relacion = entry.getValue();
+            if (relacion.getActivo() && !nuevasCarrerasIds.contains(carreraId)) {
+                relacion.setActivo(false);
+                usuarioXCarreraRepository.save(relacion);
+            }
+        }
+        //insertar nuevas o reactivar inactivas
         if (dto.getCarreras() != null) {
             for (UsuarioRegistroDto.CarreraAsignadaDto carreraDto : dto.getCarreras()) {
-                Optional<Carrera> carreraOpt = carreraRepository.findById(carreraDto.getCarreraId());
-                if (carreraOpt.isEmpty()) {
-                    System.err.printf("Carrera con ID %d no encontrada, omitida.%n", carreraDto.getCarreraId());
-                    continue;
+                Integer carreraId = carreraDto.getCarreraId();
+                UsuarioXCarrera existente = mapaRelaciones.get(carreraId);
+                if (existente != null) {
+                    if (!existente.getActivo()) {
+                        existente.setActivo(true);
+                        usuarioXCarreraRepository.save(existente);
+                    }
+                } else {
+                    Carrera carrera = carreraRepository.findById(carreraId)
+                            .orElseThrow(() -> new IllegalArgumentException("Carrera no válida con ID: " + carreraId));
+                    UsuarioXCarrera nuevaRelacion = new UsuarioXCarrera();
+                    nuevaRelacion.setUsuario(usuario);
+                    nuevaRelacion.setCarrera(carrera);
+                    nuevaRelacion.setActivo(true);
+                    nuevaRelacion.setEsCoordinador(false); // esto porque solo es para profesores, no alumnos ni admin
+                    usuarioXCarreraRepository.save(nuevaRelacion);
                 }
-                UsuarioXCarrera nuevaRelacion = new UsuarioXCarrera();
-                nuevaRelacion.setUsuario(usuario);
-                nuevaRelacion.setCarrera(carreraOpt.get());
-                nuevaRelacion.setActivo(true);
-                nuevaRelacion.setEsCoordinador(false); //esto porque no es profe
-                usuarioXCarreraRepository.save(nuevaRelacion);
             }
         }
     }
 
     private void limpiarRelacionesYGruposSegunTipo(Usuario usuario, String tipoAnterior) {
-        Integer userId = usuario.getId();
         String idCognito = usuario.getIdCognito();
-        if ("profesor".equalsIgnoreCase(tipoAnterior)) {
-            // desactiar relaciones de carrerar y roles
-            List<UsuarioXCarrera> carreras = usuarioXCarreraRepository.findByUsuarioId(userId);
-            for (UsuarioXCarrera uc : carreras) {
-                uc.setActivo(false);
-                usuarioXCarreraRepository.save(uc);
-                if (Boolean.TRUE.equals(uc.getEsCoordinador()) && idCognito != null) {
-                    cognitoService.eliminarUsuarioDeGrupo(idCognito, "coordinador");
-                }
-            }
-            List<UsuarioXRol> roles = usuarioXRolRepository.findByUsuarioId(userId);
-            for (UsuarioXRol ur : roles) {
+        Integer userId = usuario.getId();
+        //los roles son mutualmente excluyentes, por eso se limpian
+        List<UsuarioXRol> roles = usuarioXRolRepository.findByUsuarioId(userId);
+        for (UsuarioXRol ur : roles) {
+            if (ur.getActivo()) {
                 ur.setActivo(false);
                 usuarioXRolRepository.save(ur);
-                if (idCognito != null) {
-                    String grupoRol = ur.getRol().getNombre().toLowerCase();
-                    cognitoService.eliminarUsuarioDeGrupo(idCognito, grupoRol);
+            }
+            if (idCognito != null) {
+                cognitoService.eliminarUsuarioDeGrupo(idCognito, ur.getRol().getNombre().toLowerCase());
+            }
+        }
+        //no puede ser coordinador
+        if ("profesor".equalsIgnoreCase(tipoAnterior)) {
+            List<UsuarioXCarrera> carreras = usuarioXCarreraRepository.findByUsuarioId(userId);
+            for (UsuarioXCarrera uc : carreras) {
+                if (Boolean.TRUE.equals(uc.getEsCoordinador())) {
+                    uc.setEsCoordinador(false);
+                    usuarioXCarreraRepository.save(uc);
+                    if (idCognito != null) {
+                        cognitoService.eliminarUsuarioDeGrupo(idCognito, "coordinador");
+                    }
                 }
             }
         }
+        //remover del grupo
         if (!"profesor".equalsIgnoreCase(tipoAnterior) && idCognito != null) {
-            //era alumno o admin, quitar de grupo
             cognitoService.eliminarUsuarioDeGrupo(idCognito, tipoAnterior.toLowerCase());
         }
     }
@@ -319,43 +347,85 @@ public class UsuarioServiceImpl implements UsuarioService {
     private void procesarRolesYCoordinador(Usuario usuario, UsuarioRegistroDto dto) {
         Integer userId = usuario.getId();
         String idCognito = usuario.getIdCognito();
-        //roles anteriores para quitarlos del grupo
-        List<UsuarioXCarrera> relacionesAnterioresCarrera = usuarioXCarreraRepository.findByUsuarioId(userId);
-        List<UsuarioXRol> relacionesAnterioresRol = usuarioXRolRepository.findByUsuarioId(userId);
-        //eliminar si era coordinador de cognito
-        if (idCognito != null) {
-            for (UsuarioXCarrera uc : relacionesAnterioresCarrera) {
-                if (Boolean.TRUE.equals(uc.getEsCoordinador())) {
-                    cognitoService.eliminarUsuarioDeGrupo(idCognito, "coordinador");
+        List<UsuarioXCarrera> relacionesCarrera = usuarioXCarreraRepository.findByUsuarioId(userId);
+        List<UsuarioXRol> relacionesRol = usuarioXRolRepository.findByUsuarioId(userId);
+        List<UsuarioRegistroDto.CarreraAsignadaDto> carrerasDto = dto.getCarreras() != null
+                ? dto.getCarreras() : Collections.emptyList();
+        Map<Integer, Boolean> mapaCarrerasEsCoord = carrerasDto.stream()
+                .collect(Collectors.toMap(
+                        UsuarioRegistroDto.CarreraAsignadaDto::getCarreraId,
+                        c -> Boolean.TRUE.equals(c.getEsCoordinador()))
+                );
+        Set<Integer> nuevasCarrerasIds = mapaCarrerasEsCoord.keySet();
+        Set<Integer> nuevosRolesIds = dto.getRolesIds() != null
+                ? new HashSet<>(dto.getRolesIds()) : Collections.emptySet();
+        boolean debeEstarEnCoordinador = false;
+        //actualizar relaciones carrera
+        for (UsuarioXCarrera uc : relacionesCarrera) {
+            Integer carreraId = uc.getCarrera().getId();
+            boolean sigue = nuevasCarrerasIds.contains(carreraId);
+            if (sigue) {
+                boolean actualizado = false;
+                Boolean nuevoEsCoord = mapaCarrerasEsCoord.getOrDefault(carreraId, false);
+                if (!uc.getActivo()) {
+                    uc.setActivo(true);
+                    actualizado = true;
                 }
-            }
-            for (UsuarioXRol ur : relacionesAnterioresRol) {
-                String nombreGrupo = ur.getRol().getNombre().toLowerCase();
-                cognitoService.eliminarUsuarioDeGrupo(idCognito, nombreGrupo);
+                if (!Objects.equals(uc.getEsCoordinador(), nuevoEsCoord)) {
+                    uc.setEsCoordinador(nuevoEsCoord);
+                    actualizado = true;
+                }
+                if (nuevoEsCoord) {
+                    debeEstarEnCoordinador = true;
+                }
+                if (actualizado) {
+                    usuarioXCarreraRepository.save(uc);
+                }
+            } else if (uc.getActivo()) {
+                uc.setActivo(false);
+                if (Boolean.TRUE.equals(uc.getEsCoordinador())) {
+                    uc.setEsCoordinador(false);
+                }
+                usuarioXCarreraRepository.save(uc);
             }
         }
-        //simplemente XDDD
-        usuarioXCarreraRepository.deleteByUsuarioId(userId);
-        usuarioXRolRepository.deleteByUsuarioId(userId);
-        //guardar nuevas carreras
-        if (dto.getCarreras() != null) {
-            for (UsuarioRegistroDto.CarreraAsignadaDto carreraDto : dto.getCarreras()) {
-                Optional<Carrera> carreraOpt = carreraRepository.findById(carreraDto.getCarreraId());
-                if (carreraOpt.isEmpty()) continue;
+        //agregar relaciones carrera
+        for (Map.Entry<Integer, Boolean> entry : mapaCarrerasEsCoord.entrySet()) {
+            Integer carreraId = entry.getKey();
+            boolean esCoord = entry.getValue();
+            boolean yaExiste = relacionesCarrera.stream()
+                    .anyMatch(uc -> uc.getCarrera().getId().equals(carreraId));
+            if (!yaExiste) {
+                Carrera carrera = carreraRepository.findById(carreraId)
+                        .orElseThrow(() -> new IllegalArgumentException("Carrera no válida con ID: " + carreraId));
                 UsuarioXCarrera nuevaRelacion = new UsuarioXCarrera();
                 nuevaRelacion.setUsuario(usuario);
-                nuevaRelacion.setCarrera(carreraOpt.get());
+                nuevaRelacion.setCarrera(carrera);
                 nuevaRelacion.setActivo(true);
-                nuevaRelacion.setEsCoordinador(Boolean.TRUE.equals(carreraDto.getEsCoordinador()));
+                nuevaRelacion.setEsCoordinador(esCoord);
                 usuarioXCarreraRepository.save(nuevaRelacion);
-                if (idCognito != null && Boolean.TRUE.equals(carreraDto.getEsCoordinador())) {
-                    cognitoService.agregarUsuarioAGrupo(idCognito, "coordinador");
+                if (esCoord) {
+                    debeEstarEnCoordinador = true;
                 }
             }
         }
-        //gaurdar nuevos roles
-        if (dto.getRolesIds() != null) {
-            for (Integer idRolNuevo : dto.getRolesIds()) {
+        //actualizar roles: activar/desactivar
+        for (UsuarioXRol ur : relacionesRol) {
+            Integer rolId = ur.getRol().getId();
+            boolean sigue = nuevosRolesIds.contains(rolId);
+            if (sigue && !ur.getActivo()) {
+                ur.setActivo(true);
+                usuarioXRolRepository.save(ur);
+            } else if (!sigue && ur.getActivo()) {
+                ur.setActivo(false);
+                usuarioXRolRepository.save(ur);
+            }
+        }
+        //nuevos roles a agregar
+        for (Integer idRolNuevo : nuevosRolesIds) {
+            boolean yaExiste = relacionesRol.stream()
+                    .anyMatch(ur -> ur.getRol().getId().equals(idRolNuevo));
+            if (!yaExiste) {
                 Rol rol = rolRepository.findById(idRolNuevo)
                         .orElseThrow(() -> new IllegalArgumentException("Rol no válido con ID: " + idRolNuevo));
                 UsuarioXRol nuevaRelacionRol = new UsuarioXRol();
@@ -363,9 +433,29 @@ public class UsuarioServiceImpl implements UsuarioService {
                 nuevaRelacionRol.setRol(rol);
                 nuevaRelacionRol.setActivo(true);
                 usuarioXRolRepository.save(nuevaRelacionRol);
-                if (idCognito != null) {
-                    cognitoService.agregarUsuarioAGrupo(idCognito, rol.getNombre().toLowerCase());
+            }
+        }
+        relacionesRol = usuarioXRolRepository.findByUsuarioId(userId);
+        //sync con cognito
+        if (idCognito != null) {
+            Set<String> nombresRolesActivos = relacionesRol.stream()
+                    .filter(UsuarioXRol::getActivo)
+                    .map(ur -> ur.getRol().getNombre().toLowerCase())
+                    .collect(Collectors.toSet());
+            Set<String> nombresRolesTotales = relacionesRol.stream()
+                    .map(ur -> ur.getRol().getNombre().toLowerCase())
+                    .collect(Collectors.toSet());
+            for (String nombreGrupo : nombresRolesTotales) {
+                if (nombresRolesActivos.contains(nombreGrupo)) {
+                    cognitoService.agregarUsuarioAGrupo(idCognito, nombreGrupo);
+                } else {
+                    cognitoService.eliminarUsuarioDeGrupo(idCognito, nombreGrupo);
                 }
+            }
+            if (debeEstarEnCoordinador) {
+                cognitoService.agregarUsuarioAGrupo(idCognito, "coordinador");
+            } else {
+                cognitoService.eliminarUsuarioDeGrupo(idCognito, "coordinador");
             }
         }
     }
@@ -377,34 +467,42 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado con ID: " + id));
         usuario.setActivo(false);
         usuario.setFechaModificacion(OffsetDateTime.now());
-        //desactivar usuario_carrera
+        usuarioRepository.save(usuario);
+        String idCognito = usuario.getIdCognito();
+        String tipoUsuario = usuario.getTipoUsuario().getNombre().toLowerCase();
+        //desactivar carreras
         List<UsuarioXCarrera> carreras = usuarioXCarreraRepository.findByUsuarioIdAndActivoTrue(id);
-        boolean coordinadorEliminado = false;
+        boolean tuvoCoordinacion = false;
         for (UsuarioXCarrera uc : carreras) {
+            if (Boolean.TRUE.equals(uc.getEsCoordinador())) {
+                tuvoCoordinacion = true;
+                uc.setEsCoordinador(false);
+            }
             uc.setActivo(false);
             usuarioXCarreraRepository.save(uc);
-            if (Boolean.TRUE.equals(uc.getEsCoordinador()) && !coordinadorEliminado && usuario.getIdCognito() != null) {
-                cognitoService.eliminarUsuarioDeGrupo(usuario.getIdCognito(), "coordinador");
-                coordinadorEliminado = true;
+        }
+        //desactivar roles
+        List<UsuarioXRol> roles = usuarioXRolRepository.findByUsuarioIdAndActivoTrue(id);
+        for (UsuarioXRol ur : roles) {
+            ur.setActivo(false);
+            usuarioXRolRepository.save(ur);
+        }
+        //sync con cognito
+        if (idCognito != null) {
+            //quitar grupo por tipo
+            if (tipoUsuario.equals("alumno") || tipoUsuario.equals("administrador")) {
+                cognitoService.eliminarUsuarioDeGrupo(idCognito, tipoUsuario);
+            }
+            //quitar grupos por roles
+            for (UsuarioXRol ur : roles) {
+                String grupoRol = ur.getRol().getNombre().toLowerCase();
+                cognitoService.eliminarUsuarioDeGrupo(idCognito, grupoRol);
+            }
+            // eliminar del grupo coordinador
+            if (tuvoCoordinacion) {
+                cognitoService.eliminarUsuarioDeGrupo(idCognito, "coordinador");
             }
         }
-        String tipo = usuario.getTipoUsuario().getNombre().toLowerCase();
-        if (usuario.getIdCognito() != null) {
-            if (tipo.equals("alumno") || tipo.equals("administrador")) {
-                cognitoService.eliminarUsuarioDeGrupo(usuario.getIdCognito(), tipo);
-            } else if (tipo.equals("profesor")) {
-                List<UsuarioXRol> roles = usuarioXRolRepository.findByUsuarioIdAndActivoTrue(id);
-                for (UsuarioXRol ur : roles) {
-                    ur.setActivo(false);
-                    usuarioXRolRepository.save(ur);
-                    String grupoRol = ur.getRol().getNombre().toLowerCase();
-                    cognitoService.eliminarUsuarioDeGrupo(usuario.getIdCognito(), grupoRol);
-                }
-            } else {
-                System.err.printf("Tipo de usuario no válido: %s%n", tipo);
-            }
-        }
-        usuarioRepository.save(usuario);
     }
 
     @Override
@@ -414,25 +512,11 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado con ID: " + id));
         usuario.setActivo(true);
         usuario.setFechaModificacion(OffsetDateTime.now());
-        List<UsuarioXCarrera> carreras = usuarioXCarreraRepository.findByUsuarioId(id);
-        for (UsuarioXCarrera uc : carreras) {
-            uc.setActivo(true);
-            usuarioXCarreraRepository.save(uc);
-            if (Boolean.TRUE.equals(uc.getEsCoordinador()) && usuario.getIdCognito() != null) {
-                cognitoService.agregarUsuarioAGrupo(usuario.getIdCognito(), "coordinador");
-            }
-        }
+        // reactivar grupo cognito si no es profe
         if (usuario.getIdCognito() != null) {
             String tipo = usuario.getTipoUsuario().getNombre().toLowerCase();
-            if (tipo.equals("alumno") || tipo.equals("administrador")) {
+            if (!tipo.equals("profesor")) {
                 cognitoService.agregarUsuarioAGrupo(usuario.getIdCognito(), tipo);
-            } else if (tipo.equals("profesor")) {
-                List<UsuarioXRol> roles = usuarioXRolRepository.findByUsuarioId(id);
-                for (UsuarioXRol ur : roles) {
-                    ur.setActivo(true);
-                    usuarioXRolRepository.save(ur);
-                    cognitoService.agregarUsuarioAGrupo(usuario.getIdCognito(), ur.getRol().getNombre().toLowerCase());
-                }
             }
         }
         usuarioRepository.save(usuario);
