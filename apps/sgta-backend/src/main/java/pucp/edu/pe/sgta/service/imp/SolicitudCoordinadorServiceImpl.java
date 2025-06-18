@@ -3,6 +3,9 @@ package pucp.edu.pe.sgta.service.imp;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
+
+import pucp.edu.pe.sgta.dto.asesores.SolicitudActualizadaDto;
 import pucp.edu.pe.sgta.exception.BusinessRuleException; // Excepción personalizada para reglas de negocio
 import pucp.edu.pe.sgta.exception.ResourceNotFoundException;
 import pucp.edu.pe.sgta.model.*; // Todas tus entidades
@@ -35,6 +38,7 @@ public class SolicitudCoordinadorServiceImpl implements SolicitudCoordinadorServ
     @Autowired private RolRepository rolRepository;
     @Autowired private RolSolicitudRepository rolSolicitudRepository;
     @Autowired private AccionSolicitudRepository accionSolicitudRepository;
+    @Autowired private UsuarioXCarreraRepository usuarioXCarreraRepository;
 
     // Otros Servicios
     @Autowired private NotificacionService notificacionService;
@@ -61,6 +65,11 @@ public class SolicitudCoordinadorServiceImpl implements SolicitudCoordinadorServ
         private static final String TIPO_NOTIF_ADVERTENCIA = "advertencia";
     // private static final String TIPO_NOTIF_RECORDATORIO = "recordatorio"; // Si lo necesitas para otros casos
     // private static final String TIPO_NOTIF_ERROR = "error";             // Si lo necesitas para otros casos
+    // Constantes de nombres de estados, roles, acciones, módulos, tipos de notificación
+    private static final String ESTADO_SOLICITUD_PENDIENTE = "PENDIENTE";
+    private static final String ESTADO_SOLICITUD_PREACEPTADA = "PREACEPTADA";
+    private static final String ACCION_SOLICITUD_ACEPTADO = "ACEPTADO"; // Para la acción del coordinador
+    private static final String TIPO_NOTIF_SOLICITUD_APROBADA = "informativa"; // Debe existir en BD
 
 
     @Override
@@ -254,6 +263,107 @@ public class SolicitudCoordinadorServiceImpl implements SolicitudCoordinadorServ
         }
 
         return solicitudGuardada;
+    }
+
+    @Override
+    @Transactional
+    public SolicitudActualizadaDto aprobarSolicitudCese(Integer solicitudId, String comentarioAprobacion, String coordinadorCognitoSub) {
+        log.info("Coordinador {} aprobando solicitud ID {}", coordinadorCognitoSub, solicitudId);
+
+        Usuario coordinador = usuarioRepository.findByIdCognito(coordinadorCognitoSub)
+                .orElseThrow(() -> new ResourceNotFoundException("Coordinador no encontrado con CognitoSub: " + coordinadorCognitoSub));
+
+        Solicitud solicitud = solicitudRepository.findById(solicitudId)
+                .orElseThrow(() -> new ResourceNotFoundException("Solicitud no encontrada con ID: " + solicitudId));
+
+        // Validación de permiso: El coordinador debe pertenecer a la carrera del tema de la solicitud
+        validarPermisoCoordinadorSobreSolicitud(coordinador, solicitud);
+
+        // Validar que la solicitud esté PENDIENTE
+        if (solicitud.getEstadoSolicitud() == null || !ESTADO_SOLICITUD_PENDIENTE.equalsIgnoreCase(solicitud.getEstadoSolicitud().getNombre())) {
+            throw new BusinessRuleException("La solicitud ID " + solicitudId + " no está en estado PENDIENTE y no puede ser aprobada.");
+        }
+
+        EstadoSolicitud estadoAprobada = estadoSolicitudRepository.findByNombre(ESTADO_SOLICITUD_PREACEPTADA)
+                .orElseThrow(() -> new ResourceNotFoundException("Estado de solicitud '" + ESTADO_SOLICITUD_PREACEPTADA + "' no encontrado."));
+
+        solicitud.setEstadoSolicitud(estadoAprobada);
+        solicitud.setEstado(0); // Fallback campo antiguo: 0 para aprobada
+        solicitud.setRespuesta(comentarioAprobacion);
+        solicitud.setFechaResolucion(OffsetDateTime.now());
+        solicitud.setFechaModificacion(OffsetDateTime.now()); // JPA @PreUpdate también lo haría
+        // asesor_propuesto_reasignacion_id y estado_reasignacion se manejan en el siguiente flujo
+
+        Solicitud solicitudActualizada = solicitudRepository.save(solicitud);
+
+        // Actualizar UsuarioSolicitud para el coordinador
+        AccionSolicitud accionAceptado = accionSolicitudRepository.findByNombre("APROBADO")
+                .orElseThrow(() -> new ResourceNotFoundException("AccionSolicitud '" + "APROBADO" + "' no encontrado."));
+
+        // Encontrar la entrada UsuarioSolicitud del coordinador para esta solicitud
+        // Asumiendo que el coordinador ya está vinculado con rol COORDINADOR_GESTOR y acción PENDIENTE_ACCION
+        UsuarioXSolicitud usCoordinador = new UsuarioXSolicitud();
+        usCoordinador.setSolicitud(solicitudActualizada);
+        usCoordinador.setUsuario(coordinador);
+        usCoordinador.setRolSolicitud(rolSolicitudRepository.findByNombre("DESTINATARIO").orElse(null));
+        usCoordinador.setAccionSolicitud(accionAceptado);
+        usCoordinador.setComentario(comentarioAprobacion);
+        usCoordinador.setFechaAccion(OffsetDateTime.now());
+        usCoordinador.setAprobado(true); // Campo antiguo
+        usCoordinador.setSolicitudCompletada(true); // Campo antiguo
+        usuarioSolicitudRepository.save(usCoordinador);
+
+        // // Notificar al asesor solicitante y a los estudiantes
+        // // 1. Encontrar al asesor solicitante original
+        // Usuario asesorSolicitante = encontrarAsesorSolicitante(solicitudActualizada);
+        // if (asesorSolicitante != null) {
+        //     notificacionService.crearNotificacionParaUsuario(
+        //             asesorSolicitante.getId(),
+        //             MODULO_NOMBRE_SOLICITUDES_CESE,
+        //             TIPO_NOTIF_SOLICITUD_APROBADA, // Necesitas este tipo de notificación
+        //             "Su solicitud de cese de asesoría para el tema '" + solicitudActualizada.getTema().getTitulo() + "' ha sido APROBADA.",
+        //             "SISTEMA",
+        //             null // Enlace opcional
+        //     );
+        // }
+
+        // // 2. Notificar a los estudiantes del tema
+        // Rol rolTesista = rolRepository.findByNombre("Tesista").orElse(null);
+        // if (rolTesista != null) {
+        //     List<UsuarioXTema> tesistasDelTema = usuarioTemaRepository.findByTema_IdAndRol_IdAndActivoTrue(
+        //             solicitudActualizada.getTema().getId(), rolTesista.getId());
+        //     for (UsuarioXTema ut : tesistasDelTema) {
+        //         notificacionService.crearNotificacionParaUsuario(
+        //                 ut.getUsuario().getId(),
+        //                 MODULO_NOMBRE_SOLICITUDES_CESE,
+        //                 TIPO_NOTIF_SOLICITUD_APROBADA,
+        //                 "La solicitud de cese de su asesor para el tema '" + solicitudActualizada.getTema().getTitulo() + "' ha sido APROBADA. Se procederá con la reasignación.",
+        //                 "SISTEMA",
+        //                 null // Enlace opcional
+        //         );
+        //     }
+        // }
+
+        return new SolicitudActualizadaDto(
+                solicitudActualizada.getId(),
+                solicitudActualizada.getEstadoSolicitud().getNombre(),
+                solicitudActualizada.getRespuesta(),
+                solicitudActualizada.getFechaResolucion()
+        );
+    }
+
+    // Método auxiliar para validar permiso del coordinador
+    private void validarPermisoCoordinadorSobreSolicitud(Usuario coordinador, Solicitud solicitud) {
+        if (solicitud.getTema() == null || solicitud.getTema().getCarrera() == null) {
+            throw new BusinessRuleException("La solicitud no tiene un tema o carrera asociada para validar permisos.");
+        }
+        Integer carreraDeLaSolicitudId = solicitud.getTema().getCarrera().getId();
+        boolean perteneceACarreraDelCoordinador = usuarioXCarreraRepository.findByUsuarioIdAndActivoTrue(coordinador.getId())
+                .stream()
+                .anyMatch(uc -> uc.getCarrera() != null && uc.getCarrera().getId().equals(carreraDeLaSolicitudId));
+        if (!perteneceACarreraDelCoordinador) {
+            throw new AccessDeniedException("No tiene permisos para gestionar esta solicitud ya que no pertenece a su carrera.");
+        }
     }
 
 }
