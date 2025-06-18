@@ -14,12 +14,21 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.validation.Valid;
+import pucp.edu.pe.sgta.dto.asesores.AprobarSolicitudRequestDto;
 import pucp.edu.pe.sgta.dto.asesores.AsesorDisponibleDto; // Asegúrate que la ruta al DTO sea correcta
 import pucp.edu.pe.sgta.dto.asesores.ReasignacionPendienteDto;
+import pucp.edu.pe.sgta.dto.asesores.SolicitudActualizadaDto;
+import pucp.edu.pe.sgta.exception.BusinessRuleException;
+import pucp.edu.pe.sgta.exception.ResourceNotFoundException;
+import pucp.edu.pe.sgta.service.inter.SolicitudCoordinadorService;
 import pucp.edu.pe.sgta.service.inter.SolicitudService;
 
 import java.util.List;
@@ -45,6 +54,8 @@ public class SolicitudCoordinadorController {
 
     @Autowired
     private SolicitudService solicitudService;
+    @Autowired
+    private SolicitudCoordinadorService solicitudCoordinadorService; // Asegúrate de que este servicio esté implementado correctamente
     // @Autowired
     // private TemaService temaService;
 
@@ -123,6 +134,35 @@ public class SolicitudCoordinadorController {
 //             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Page.empty(pageable));
 //         }
 //     }
+        @PostMapping("/asesores-disponibles/{solicitudId}/aprobar")
+    public ResponseEntity<?> aprobarSolicitudCese(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable Integer solicitudId,
+            @Valid @RequestBody AprobarSolicitudRequestDto requestDto
+    ) {
+        if (jwt == null) { /* ... unauthorized ... */ return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No autenticado.");}
+        String coordinadorCognitoSub = jwt.getSubject();
+        if (coordinadorCognitoSub == null || coordinadorCognitoSub.trim().isEmpty()) { /* ... unauthorized ... */ return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token inválido.");}
+
+        log.info("Coordinador CognitoSub {} aprobando solicitud de cese ID: {}", coordinadorCognitoSub, solicitudId);
+        try {
+            SolicitudActualizadaDto solicitudActualizada = solicitudCoordinadorService.aprobarSolicitudCese(
+                    solicitudId,
+                    requestDto.getComentarioAprobacion(),
+                    coordinadorCognitoSub
+            );
+            return ResponseEntity.ok(solicitudActualizada);
+        } catch (ResourceNotFoundException e) {
+            log.warn("No se pudo aprobar solicitud ID {}: {}", solicitudId, e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (BusinessRuleException | IllegalStateException e) { // IllegalStateException si la solicitud no está PENDIENTE
+            log.warn("No se pudo aprobar solicitud ID {}: {}", solicitudId, e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            log.error("Error inesperado al aprobar solicitud ID {}: {}", solicitudId, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error interno al procesar la aprobación.");
+        }
+    }
 
     // --- Aquí irían los otros endpoints que ya tenías para aprobar, rechazar, proponer ---
     // Ejemplo (si decides moverlos aquí):
