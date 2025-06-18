@@ -17,6 +17,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { joinUsers } from "@/lib/temas/lib";
 import { titleCase } from "@/lib/utils";
 import { Eye, SquarePen } from "lucide-react";
 import Link from "next/link";
@@ -79,26 +80,22 @@ export function SolicitudesTable({
   } else {
     tableBodyContent = filtrados.map((sol) => (
       <TableRow key={sol.id}>
-        {/* Tipo de solicitud */}
-        <TableCell>{sol.tipo}</TableCell>
-
-        {/* Título */}
-        <TableCell className="font-medium max-w-xs truncate">
-          {sol.titulo}
+        {/* Tesis */}
+        <TableCell className="max-w-xs whitespace-normal">
+          {sol.tema.titulo}
         </TableCell>
 
-        {/* Tesis */}
-        <TableCell className="max-w-xs truncate">{sol.tema.titulo}</TableCell>
-
-        {/* Solicitante + tipo de usuario */}
+        {/* Asesores */}
         <TableCell>
-          <div className="flex flex-col">
-            <span>
-              {sol.solicitante.nombres} {sol.solicitante.primerApellido}
-            </span>
-            <Badge variant="outline" className="mt-1 text-sm">
-              {sol.solicitante.tipoSolicitante}
-            </Badge>
+          <div className="flex flex-col max-w-xs whitespace-normal">
+            <span>{joinUsers(sol.tema.coasesores ?? [])}</span>
+          </div>
+        </TableCell>
+
+        {/* Tesistas */}
+        <TableCell>
+          <div className="flex flex-col max-w-xs whitespace-normal">
+            <span>{joinUsers(sol.tema.tesistas ?? [])}</span>
           </div>
         </TableCell>
 
@@ -122,7 +119,9 @@ export function SolicitudesTable({
           <div className="flex justify-end gap-2">
             {/* Ver detalles */}
             <TooltipProvider>
-              {sol.estado === EstadoTemaNombre.INSCRITO ? (
+              {[EstadoTemaNombre.INSCRITO, EstadoTemaNombre.OBSERVADO].includes(
+                sol.estado,
+              ) ? (
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Link
@@ -169,10 +168,9 @@ export function SolicitudesTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Tipo</TableHead>
-            <TableHead>Título</TableHead>
             <TableHead>Tesis</TableHead>
-            <TableHead>Solicitante</TableHead>
+            <TableHead>Asesores</TableHead>
+            <TableHead>Tesistas</TableHead>
             <TableHead>Fecha</TableHead>
             <TableHead>Estado</TableHead>
             <TableHead className="text-right">Acción</TableHead>

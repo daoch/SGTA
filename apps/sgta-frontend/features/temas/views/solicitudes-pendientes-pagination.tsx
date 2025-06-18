@@ -1,23 +1,8 @@
 // components/SolicitudesPendientes.tsx
 "use client";
 
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import CessationRequestPagination from "@/features/asesores/components/cessation-request/pagination-cessation-request";
-import { Search } from "lucide-react";
-import { useEffect, useState } from "react";
-import { SolicitudesTable } from "../components/coordinador/table-solicitudes-pagination";
-import { pageTemasTexts, pageTexts } from "../types/solicitudes/constants";
-import { PagesList } from "../types/solicitudes/entities";
-import { getSolicitudFromTema } from "../types/solicitudes/lib";
-import { Tema } from "../types/temas/entidades";
-import { EstadoTemaNombre } from "../types/temas/enums";
 import {
   Select,
   SelectContent,
@@ -25,6 +10,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import CessationRequestPagination from "@/features/asesores/components/cessation-request/pagination-cessation-request";
+import { Search } from "lucide-react";
+import { useEffect, useState } from "react";
+import { SolicitudesTable } from "../components/coordinador/table-solicitudes-pagination";
+import { pageTemasTexts } from "../types/solicitudes/constants";
+import { PagesList } from "../types/solicitudes/entities";
+import { getSolicitudFromTema } from "../types/solicitudes/lib";
+import { Tema } from "../types/temas/entidades";
+import { EstadoTemaNombre } from "../types/temas/enums";
 
 interface SolicitudesPendientesProps {
   readonly fetchAllPagesState: (
@@ -69,12 +63,6 @@ export default function SolicitudesPendientes({
     pageTemasTexts.states[estadoTema as keyof typeof pageTemasTexts.states];
   return (
     <div className="space-y-8 mt-4 flex flex-col overflow-auto">
-      {/* Título general */}
-      <div>
-        <h1 className="text-3xl font-bold text-[#042354]">{pageTexts.title}</h1>
-        <p className="text-muted-foreground">{pageTexts.description}</p>
-      </div>
-
       <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
         {/* Selector de estado */}
         <Select

@@ -16,16 +16,20 @@ import {
   crearSolicitudCambioResumen,
   crearSolicitudCambioTitulo,
   eliminarTemaPorCoordinador,
+  fetchSolicitudesDeTema,
   fetchTemasSimilares,
+  fetchTodasSolicitudesPendientes,
 } from "../types/solicitudes/data";
 import {
   SolicitudAction,
   SolicitudPendiente,
+  SolicitudTema,
   TemaSimilar,
   TypeSolicitud,
 } from "../types/solicitudes/entities";
 import { Tema } from "../types/temas/entidades";
 import { EstadoTemaNombre } from "../types/temas/enums";
+import { DialogSolicitudes } from "../components/coordinador/detalle-solicitud-tema/dialog-solicitudes";
 
 const actionToStateMap: Record<SolicitudAction, EstadoTemaNombre> = {
   Aprobada: EstadoTemaNombre.REGISTRADO,
@@ -65,16 +69,25 @@ export default function DetalleSolicitudesCoordinadorPage({
     "aprobar" | "rechazar" | "observar" | "eliminar" | ""
   >("");
   const [errorComentario, setErrorComentario] = useState("");
-  const [tipoSolicitud, setTipoSolicitud] = useState<TypeSolicitud>();
+  const [tipoSolicitud, setTipoSolicitud] =
+    useState<TypeSolicitud>("no-enviar");
   const [errorTipoSolicitud, setErrorTipoSolicitud] = useState("");
   const [loading, setLoading] = useState(false);
   const [similares, setSimilares] = useState<TemaSimilar[] | []>([]);
+  const [solicitudes, setSolicitudes] = useState<SolicitudTema[] | []>([]);
+  const [listoSolicitudes, setListoSolicitudes] = useState(
+    solicitud.estado !== EstadoTemaNombre.OBSERVADO,
+  );
 
   const errorTexts = {
     tipoSolicitud: "Ingresar el tipo de solicitud.",
     comentario: "Debe ingresar un comentario para la solicitud.",
   };
 
+  /*
+    Ejecuta lógica de crear solicitudes.
+    Cambia el estado en caso el tema está en estado INSCRITO
+  */
   const handleAccion = async (accion: SolicitudAction) => {
     try {
       setLoading(true);
@@ -83,36 +96,49 @@ export default function DetalleSolicitudesCoordinadorPage({
         router.push("/coordinador/aprobaciones");
       } else {
         // Actualizar Estado del tema
-        const payload = {
-          tema: {
-            id: solicitud.tema.id,
-            estadoTemaNombre: actionToStateMap[accion],
-          },
-          usuarioSolicitud: {
-            usuarioId: 3, // !: Id de coordinador
-            comentario,
-          },
-        };
+        if (
+          [EstadoTemaNombre.INSCRITO].includes(solicitud.estado) ||
+          (solicitud.estado === EstadoTemaNombre.OBSERVADO &&
+            accion !== "Observada")
+        ) {
+          const payload = {
+            tema: {
+              id: solicitud.tema.id,
+              estadoTemaNombre: actionToStateMap[accion],
+            },
+            usuarioSolicitud: {
+              comentario,
+            },
+          };
 
-        await cambiarEstadoTemaPorCoordinador(payload);
+          await cambiarEstadoTemaPorCoordinador(payload);
+
+          setTema(await buscarTemaPorId(solicitud.tema.id)); // Visualizar cambios
+        }
 
         // Crear solicitud
         if (
           tipoSolicitud &&
           tipoSolicitud !== "no-enviar" &&
-          accion !== "Rechazada"
+          accion === "Observada"
         ) {
           if (tipoSolicitud === "resumen") {
             await crearSolicitudCambioResumen(solicitud.tema.id, comentario);
           } else {
             await crearSolicitudCambioTitulo(solicitud.tema.id, comentario);
           }
+
+          getSolicitudes(); // Visualizar cambios
         }
       }
 
+      // Show Succes Message
       toast.success(`Solicitud ${accion.toLowerCase()} exitosamente.`);
+
+      // Reestablecer campos
       setDialogAbierto("");
-      setTema(await buscarTemaPorId(solicitud.tema.id));
+      setComentario("");
+      setTipoSolicitud("no-enviar");
     } catch (error) {
       console.error("Error al procesar la solicitud:", error);
       toast.error("Ocurrió un error. Por favor, intente nuevamente.");
@@ -159,10 +185,34 @@ export default function DetalleSolicitudesCoordinadorPage({
     obtenerTemasSimilares(solicitud.tema.id, setSimilares);
   }, [solicitud.tema.id]);
 
+  async function getSolicitudes() {
+    try {
+      const data: SolicitudTema[] | [] = await fetchSolicitudesDeTema(
+        solicitud.tema.id,
+      );
+      setSolicitudes(data);
+      setListoSolicitudes(
+        data.reduce(
+          (acc, curr) => acc && curr.estado_solicitud !== "PENDIENTE",
+          true,
+        ),
+      );
+    } catch (error) {
+      console.error("Error al obtener las solicitudes del tema:", error);
+      setSolicitudes([]);
+    }
+  }
+
+  useEffect(() => {
+    getSolicitudes();
+  }, []);
+
   // Config Actions
   const accionesConfig = {
     observar: {
-      show: solicitud.estado === EstadoTemaNombre.INSCRITO,
+      show: [EstadoTemaNombre.INSCRITO, EstadoTemaNombre.OBSERVADO].includes(
+        solicitud.estado,
+      ),
       disabled:
         tipoSolicitud === "no-enviar" ||
         !comentario.trim().length ||
@@ -170,12 +220,20 @@ export default function DetalleSolicitudesCoordinadorPage({
         loading,
     },
     aprobar: {
-      show: solicitud.estado === EstadoTemaNombre.INSCRITO,
-      disabled: !tipoSolicitud || loading,
+      show: [EstadoTemaNombre.INSCRITO, EstadoTemaNombre.OBSERVADO].includes(
+        solicitud.estado,
+      ),
+      disabled:
+        (!listoSolicitudes &&
+          solicitud.estado === EstadoTemaNombre.OBSERVADO) ||
+        tipoSolicitud !== "no-enviar" ||
+        loading,
     },
     rechazar: {
-      show: solicitud.estado === EstadoTemaNombre.INSCRITO,
-      disabled: loading,
+      show: [EstadoTemaNombre.INSCRITO, EstadoTemaNombre.OBSERVADO].includes(
+        solicitud.estado,
+      ),
+      disabled: tipoSolicitud !== "no-enviar" || loading,
     },
     eliminar: { show: true, disabled: loading },
   };
@@ -184,33 +242,54 @@ export default function DetalleSolicitudesCoordinadorPage({
     <AnalisisSimilitudTema similares={similares} />
   );
 
+  const moduloSolicitudes = (
+    <DialogSolicitudes
+      solicitudes={solicitudes}
+      estadoTema={solicitud.estado}
+      listoSolicitudes={listoSolicitudes}
+      setListoSolicitudes={setListoSolicitudes}
+    />
+  );
+
   return (
     <>
       <Toaster position="top-right" richColors />
       <form className="min-h-screen bg-gray-50 p-4 md:p-6">
         <div className="max-w-6xl mx-auto space-y-6 flex flex-col md:flex-row gap-6">
+          {/* #1 - Column */}
           <div className="flex flex-col gap-4 md:w-3/5">
             <EncabezadoDetalleSolicitudTema solicitud={solicitud} />
             <InfoDetalleSolicitudTema solicitud={solicitud} />
-            {solicitud.estado === EstadoTemaNombre.INSCRITO &&
-              moduloAnalisisSimilitud}
+            {[EstadoTemaNombre.INSCRITO, EstadoTemaNombre.OBSERVADO].includes(
+              solicitud.estado,
+            ) && moduloAnalisisSimilitud}
             <HistorialDetalleSolicitudTema historial={historialMock} />
           </div>
 
+          {/* #2 - Column */}
           <div className="flex flex-col gap-4 md:w-2/5">
+            {EstadoTemaNombre.INSCRITO !== solicitud.estado &&
+              moduloSolicitudes}
+
             {/* Comentarios del Comité y selección del tipo de solicitud */}
-            {solicitud.estado === EstadoTemaNombre.INSCRITO ? (
+            {[EstadoTemaNombre.INSCRITO, EstadoTemaNombre.OBSERVADO].includes(
+              solicitud.estado,
+            ) && (
               <ComentariosDetalleSolicitudTema
+                tipoSolicitud={tipoSolicitud}
+                setTipoSolicitud={setTipoSolicitud}
                 comentario={comentario}
                 setComentario={setComentario}
                 errorComentario={errorComentario}
-                setTipoSolicitud={setTipoSolicitud}
                 errorTipoSolicitud={errorTipoSolicitud}
                 comentarioOpcional={tipoSolicitud === "no-enviar"}
               />
-            ) : (
-              moduloAnalisisSimilitud
             )}
+
+            {/* Similitud */}
+            {[EstadoTemaNombre.REGISTRADO, EstadoTemaNombre.RECHAZADO].includes(
+              solicitud.estado,
+            ) && moduloAnalisisSimilitud}
 
             {/* Actions */}
             <AccionesDetalleSoliTema

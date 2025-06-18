@@ -195,6 +195,19 @@ const DetalleExposicion: React.FC<DetalleExposicionProps> = ({
     return promedioFinal; // redondeado
   };
 
+  const calcularSumaNotasJurado = (usuarioId: number): number => {
+    const calificacion = calificaciones.find(
+      (calif) => calif.usuario_id === usuarioId,
+    );
+
+    if (!calificacion || !calificacion.calificado) return 0;
+
+    return calificacion.criterios.reduce(
+      (acc, crit) => acc + (crit.calificacion ?? 0),
+      0,
+    );
+  };
+
   const router = useRouter();
 
   return (
@@ -337,15 +350,15 @@ const DetalleExposicion: React.FC<DetalleExposicionProps> = ({
                     Enlace de la Exposición
                   </label>
                   <a
-                    href={exposicion.link_exposicion}
+                    href={exposicion.linkExposicion}
                     target="_blank"
                     className={
-                      exposicion.link_exposicion
+                      exposicion.linkExposicion
                         ? " text-blue-500"
                         : " text-black-500"
                     }
                   >
-                    {exposicion.link_exposicion || "Aún no disponible"}
+                    {exposicion.linkExposicion || "Aún no disponible"}
                   </a>
                 </div>
                 <div>
@@ -353,22 +366,22 @@ const DetalleExposicion: React.FC<DetalleExposicionProps> = ({
                     Enlace de la Grabación
                   </label>
                   <a
-                    href={exposicion.link_grabacion}
+                    href={exposicion.linkGrabacion}
                     target="_blank"
                     className={
-                      exposicion.link_grabacion
+                      exposicion.linkGrabacion
                         ? " text-blue-500"
                         : " text-black-500"
                     }
                   >
-                    {exposicion.link_grabacion || "Aún no disponible"}
+                    {exposicion.linkGrabacion || "Aún no disponible"}
                   </a>
                 </div>
               </div>
             </div>
 
             {/*JURADO*/}
-            <div>
+            {/* <div>
               <h2 className="text-lg font-semibold mb-4">
                 Miembros de Jurados
               </h2>
@@ -421,35 +434,131 @@ const DetalleExposicion: React.FC<DetalleExposicionProps> = ({
                   );
                 })}
               </div>
-            </div>
-
-            <TooltipProvider>
-              <div className="mt-4 mb-4 flex items-center gap-1">
-                <h2 className="text-lg font-semibold">
-                  Promedio de Calificación de la Exposición
-                </h2>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span className="flex items-center justify-center">
-                      <Info className="h-6 w-6 text-muted-foreground ml-1" />
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-md text-sm leading-snug text-justify">
-                    Si en caso uno de los jurados no envía la calificación, se
-                    reemplaza con la nota del otro jurado. Si en caso el asesor
-                    no envía la nota del estudiante, la nota de los jurados
-                    tendrá un peso repartido de manera equitativa.
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-            </TooltipProvider>
+            </div> */}
 
             <div>
-              <h1 className="text-4xl font-semibold items-center text-[#264753]">
-                {calcularNotaFinal({ exposicion, calificaciones, pesoAsesor })}{" "}
-                / 20
-              </h1>
+              <h2 className="text-lg font-semibold mb-4">
+                Miembros de Jurados
+              </h2>
+              <div className="grid grid-cols-3 gap-4">
+                {exposicion.miembrosJurado.map((miembro, index) => {
+                  const calificacion = calificaciones.find(
+                    (calif) => calif.usuario_id === miembro.id_persona,
+                  );
+
+                  const calificado = calificacion
+                    ? calificacion.calificado
+                    : false;
+
+                  return (
+                    <div
+                      key={miembro.id_persona}
+                      className="border rounded-2xl p-4 flex flex-col items-center text-center shadow-sm"
+                    >
+                      <div className="bg-gray-100 p-4 rounded-full mb-3">
+                        <User className="h-8 w-8 text-gray-500" />
+                      </div>
+                      <h3 className="font-medium text-base text-black-500">{`Jurado ${index + 1}`}</h3>
+                      {/* <h3 className="font-medium text-base text-gray-500">
+                        {miembro.tipo}
+                      </h3> */}
+                      {calificado ? (
+                        <div className="mt-2 text-xl text-gray-600">
+                          <span className="font-medium">
+                            Calificación:{" "}
+                            {calcularSumaNotasJurado(miembro.id_persona)}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="mt-2 text-xl text-gray-600">
+                          <span className="font-medium">
+                            Calificación: Pendiente
+                          </span>
+                        </div>
+                      )}
+                      <Button
+                        asChild
+                        // variant={"secondary"}
+                        size="default"
+                        className="w-full mt-4"
+                        disabled={!calificado}
+                        variant={calificado ? "default" : "secondary"}
+                      >
+                        <Link
+                          href={
+                            calificado
+                              ? `/alumno/mi-proyecto/exposiciones/${id}/${exposicion.exposicionId}/observaciones/${miembro.id_persona}`
+                              : "#"
+                          }
+                          className={`${!calificado ? "pointer-events-none text-gray-500" : ""}`}
+                        >
+                          {calificado
+                            ? "Ver Detalles de Calificación"
+                            : "En Espera de Calificación"}
+                        </Link>
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
+
+            {exposicion.miembrosJurado.some((miembro) => {
+              const calificacion = calificaciones.find(
+                (calif) => calif.usuario_id === miembro.id_persona,
+              );
+              return calificacion?.calificado;
+            }) && (
+              <div>
+                <TooltipProvider>
+                  <div className="mt-4 mb-4 flex items-center gap-1">
+                    <h2 className="text-lg font-semibold">
+                      Promedio de Calificación de la Exposición
+                    </h2>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="flex items-center justify-center">
+                          <Info className="h-6 w-6 text-muted-foreground ml-1" />
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-md text-sm leading-snug text-justify">
+                        Si en caso uno de los jurados no envía la calificación,
+                        se reemplaza con la nota del otro jurado. Si en caso el
+                        asesor no envía la nota del estudiante, la nota de los
+                        jurados tendrá un peso repartido de manera equitativa.
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                </TooltipProvider>
+
+                <div>
+                  <h1
+                    className={`text-4xl font-semibold items-center ${
+                      calcularNotaFinal({
+                        exposicion,
+                        calificaciones,
+                        pesoAsesor,
+                      }) > 15
+                        ? "text-green-600"
+                        : calcularNotaFinal({
+                              exposicion,
+                              calificaciones,
+                              pesoAsesor,
+                            }) >= 11
+                          ? "text-yellow-500"
+                          : "text-red-600"
+                    }`}
+                  >
+                    {calcularNotaFinal({
+                      exposicion,
+                      calificaciones,
+                      pesoAsesor,
+                    })}{" "}
+                    / 20
+                  </h1>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

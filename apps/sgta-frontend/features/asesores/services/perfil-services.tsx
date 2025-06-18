@@ -1,12 +1,14 @@
 import type {
   AreaTematica,
   Asesor,
+  AsesorPerfil,
   Proyecto,
   TemaInteres,
   Tesis,
 } from "@/features/asesores/types/perfil/entidades";
 import axiosInstance from "@/lib/axios/axios-instance";
 import axios from "axios";
+import { asignarPlataformas } from "../components/perfil/plataforma-icons";
 
 export async function getPerfilAsesor(id: number) {
   try {
@@ -16,6 +18,21 @@ export async function getPerfilAsesor(id: number) {
 
     console.log("Respuesta de la API:", response.data);
     return response.data as Asesor;
+  } catch (error) {
+    console.error("Error al obtener perfil del asesor:", error);
+    throw error;
+  }
+}
+
+export async function getPerfilAsesorEnlaces(id: number) {
+  try {
+    const response = await axiosInstance.get("/usuario/getPerfilUsuario", {
+      params: { idUsuario: id },
+    });
+
+    console.log("Respuesta de la API:", response.data);
+    asignarPlataformas(response.data.enlaces);
+    return response.data as AsesorPerfil;
   } catch (error) {
     console.error("Error al obtener perfil del asesor:", error);
     throw error;
@@ -93,11 +110,11 @@ export async function getListaTesisPorAsesor(idAsesor: number) {
   }
 }
 
-export async function editarAsesor(asesor: Asesor) {
+export async function editarAsesor(asesor: AsesorPerfil) {
   try {
     console.log("Datos del asesor a editar:", asesor);
     const response = await axiosInstance.put(
-      "/usuario/updatePerfilAsesor",
+      "/usuario/updatePerfilUsuario",
       asesor,
     );
     return response.data;

@@ -10,13 +10,13 @@ import {
   PaginationLink,
 } from "@/components/ui/pagination";
 import { Search } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useAuth } from "@/features/auth";
 import FiltrosAsesoresSheet from "../components/directorio/filtros-asesores";
 import FiltrosAplicados from "../components/directorio/filtros-seleccionados";
 import OrdenDropdown, {
-  SortOption,
+  type SortOption,
 } from "../components/directorio/orden-dropdown-directorio";
 import ResultadosAsesores from "../components/directorio/resultados-busqueda";
 import { getAsesoresPorFiltros } from "../services/directorio-services";
@@ -25,7 +25,11 @@ import {
   listarAreasTematicas,
   listarTemasInteres,
 } from "../services/perfil-services";
-import { AreaTematica, Asesor, TemaInteres } from "../types/perfil/entidades";
+import type {
+  AreaTematica,
+  Asesor,
+  TemaInteres,
+} from "../types/perfil/entidades";
 
 // Tipos de datos
 
@@ -43,6 +47,7 @@ export default function DirectorioAsesoresEstudiantes() {
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOption, setSortOption] = useState<SortOption>("default");
+  const [sortAscending, setSortAscending] = useState(true);
   const [filters, setFilters] = useState<SearchFilters>({
     areasTematicas: [],
     temasInteres: [],
@@ -55,6 +60,8 @@ export default function DirectorioAsesoresEstudiantes() {
   });
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalResults, setTotalResults] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
   const itemsPerPage = 5;
 
   // Estados para las búsquedas en los filtros
@@ -95,31 +102,40 @@ export default function DirectorioAsesoresEstudiantes() {
     }
   }, [user]);
 
-  //Inicializar asesores, areas y temas de interés mediante mock
-  useEffect(() => {
+  const fetchAsesores = async () => {
+    setIsLoadingResults(true);
     if (!userId) return;
-
-    const fetchAsesores = async () => {
-      setIsLoadingResults(true);
-
-      try {
-        const data = await getAsesoresPorFiltros({
+    try {
+      const data = await getAsesoresPorFiltros(
+        {
           alumnoId: userId,
           cadenaBusqueda: searchQuery,
           activo: filters.soloDisponible,
           idAreas: filters.areasTematicas.map((a) => a.idArea),
           idTemas: filters.temasInteres.map((t) => t.idTema),
-        });
+        },
+        currentPage - 1,
+        sortAscending,
+      );
+      setAsesores(data.content);
+      setTotalResults(data.totalElements);
+      setTotalPages(Math.ceil(data.totalElements / itemsPerPage));
+    } catch (error) {
+      console.error("Error al cargar asesores:", error);
+    } finally {
+      setIsLoadingResults(false);
+    }
+  };
 
-        setAsesores(data);
-      } catch (error) {
-        console.error("Error al cargar asesores:", error);
-      } finally {
-        setIsLoadingResults(false);
-      }
-    };
-
+  // Inicializar asesores cuando cambie userId, filtros, searchQuery o currentPage
+  useEffect(() => {
+    if (!userId) return;
     fetchAsesores();
+  }, [userId, filters, searchQuery, currentPage, sortAscending]);
+
+  // Resetear a página 1 cuando cambien filtros o búsqueda (pero no cuando cambie currentPage)
+  useEffect(() => {
+    if (!userId) return;
     setCurrentPage(1);
   }, [userId, filters, searchQuery]);
 
@@ -139,6 +155,19 @@ export default function DirectorioAsesoresEstudiantes() {
     })();
   }, [userId]);
 
+  useEffect(() => {
+    // Si se cambia el sortOption, reiniciar a la primera página
+    setCurrentPage(1);
+    // Si se cambia el sortOption, invertir el orden
+    if (sortOption === "default") {
+      setSortAscending(true);
+    } else if (sortOption === "name-asc") {
+      setSortAscending(true);
+    } else if (sortOption === "name-desc") {
+      setSortAscending(false);
+    }
+  }, [sortOption]);
+
   // Inicializar filtros temporales cuando se abre el panel
   useEffect(() => {
     if (isFilterOpen) {
@@ -157,34 +186,6 @@ export default function DirectorioAsesoresEstudiantes() {
       handleSearch();
     }
   };
-
-  // Ordenar asesores
-  useEffect(() => {
-    const sorted = [...asesores];
-
-    switch (sortOption) {
-      case "name-asc":
-        sorted.sort((a, b) => a.nombre.localeCompare(b.nombre));
-        break;
-      case "name-desc":
-        sorted.sort((a, b) => b.nombre.localeCompare(a.nombre));
-        break;
-      case "default":
-      default:
-        // No hacer nada
-        return; // evitamos setear si no hay orden
-    }
-
-    setAsesores(sorted);
-    setCurrentPage(1);
-  }, [sortOption]);
-
-  // Calcular paginación
-  const totalPages = Math.ceil(asesores.length / itemsPerPage);
-  const paginatedAdvisors = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    return asesores.slice(startIndex, startIndex + itemsPerPage);
-  }, [asesores, currentPage]);
 
   // Función para aplicar filtros
   const applyFilters = () => {
@@ -352,9 +353,9 @@ export default function DirectorioAsesoresEstudiantes() {
       {/* Resultados */}
       <ResultadosAsesores
         asesores={asesores}
-        paginatedAdvisors={paginatedAdvisors}
         currentPage={currentPage}
         totalPages={totalPages}
+        totalResults={totalResults}
         setCurrentPage={setCurrentPage}
         soloDisponible={filters.soloDisponible}
         renderPaginationItems={renderPaginationItems}

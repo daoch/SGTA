@@ -139,6 +139,7 @@ export function getMockTemaYAsesor(): {
     titulo:
       "Implementación de algoritmos de aprendizaje profundo para detección de patrones en imágenes médicas",
     areas: "Ciencia de la computación",
+    idCreador: 11001,
   };
 
   const asesorActual: Asesor = {
