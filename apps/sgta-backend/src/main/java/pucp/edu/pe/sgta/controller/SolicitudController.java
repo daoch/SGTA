@@ -49,9 +49,10 @@ public class SolicitudController {
 
     @PostMapping("/registrarSolicitudCambioAsesor")
     public ResponseEntity<Object> registrarSolicitudCambioAsesor(
-            @RequestBody pucp.edu.pe.sgta.dto.asesores.SolicitudCambioAsesorDto solicitud) {
-
-        solicitud = solicitudService.registrarSolicitudCambioAsesor(solicitud);
+            @RequestBody pucp.edu.pe.sgta.dto.asesores.SolicitudCambioAsesorDto solicitud,
+            HttpServletRequest request) {
+        String cognitoId = jwtService.extractSubFromRequest(request);
+        solicitud = solicitudService.registrarSolicitudCambioAsesor(solicitud, cognitoId);
         return ResponseEntity.ok(solicitud);
     }
 
@@ -81,9 +82,10 @@ public class SolicitudController {
     public ResponseEntity<Object> aprobarSolicitudCambioAsesorAsesor(
             @RequestParam(name = "idSolicitud") Integer idSolicitud,
             @RequestParam(name = "comentario") String comentario,
+            @RequestParam(name = "rol") String rol,
             HttpServletRequest request) {
         String cognitoId = jwtService.extractSubFromRequest(request);
-        solicitudService.aprobarRechazarSolicitudCambioAsesorAsesor(idSolicitud, cognitoId, comentario, true);
+        solicitudService.aprobarRechazarSolicitudCambioAsesorAsesor(idSolicitud, cognitoId, comentario, rol,true);
         return ResponseEntity.ok(null);
     }
 
@@ -91,9 +93,10 @@ public class SolicitudController {
     public ResponseEntity<Object> rechazarSolicitudCambioAsesorAsesor(
             @RequestParam(name = "idSolicitud") Integer idSolicitud,
             @RequestParam(name = "comentario") String comentario,
+            @RequestParam(name = "rol") String rol,
             HttpServletRequest request) {
         String cognitoId = jwtService.extractSubFromRequest(request);
-        solicitudService.aprobarRechazarSolicitudCambioAsesorAsesor(idSolicitud, cognitoId, comentario, false);
+        solicitudService.aprobarRechazarSolicitudCambioAsesorAsesor(idSolicitud, cognitoId, comentario,rol, false);
         return ResponseEntity.ok(null);
     }
 

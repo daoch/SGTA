@@ -1,4 +1,6 @@
-export interface SolicitudCambioAsesorResumen {
+import { UsuarioSolicitud } from "../cambio-asesor/entidades";
+
+export interface SolicitudCeseTemaResumen {
   solicitudId: number;
   fechaEnvio: string | Date;
   estadoGlobal: string;
@@ -8,21 +10,9 @@ export interface SolicitudCambioAsesorResumen {
   nombreSolicitante: string;
   correoSolicitante: string;
   nombreAsesorActual: string;
-  nombreAsesorNuevo: string;
 }
 
-export interface UsuarioSolicitud {
-  id: number | null;
-  nombres: string;
-  correoElectronico: string;
-  rolSolicitud: string;
-  foto: string | null;
-  accionSolicitud: string;
-  fechaAccion: string | Date | null;
-  comentario: string | null;
-}
-
-export interface DetalleSolicitudCambioAsesor {
+export interface DetalleSolicitudCeseTema {
   solicitudId: number;
   fechaEnvio: string | Date;
   estadoGlobal: string;
@@ -31,25 +21,14 @@ export interface DetalleSolicitudCambioAsesor {
   temaTitulo: string;
   solicitante: UsuarioSolicitud;
   asesorActual: UsuarioSolicitud;
-  asesorNuevo: UsuarioSolicitud;
   coordinador: UsuarioSolicitud;
   fechaResolucion: string | Date | null;
 }
 
-export interface SolicidudRegistro {
+export interface SolicitudCeseTemaRegistro {
   solicitudId?: number;
   creadorId: number;
   temaId: number;
   estadoTema: string;
-  asesorActualId: number;
-  nuevoAsesorId: number;
   motivo: string;
-}
-
-export interface TemaActual {
-  id: number;
-  titulo: string;
-  areas?: string;
-  estadoTema?: string;
-  idCreador: number;
 }

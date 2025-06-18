@@ -1460,24 +1460,7 @@ public class TemaServiceImpl implements TemaService {
 		List<Object[]> resultQuery = temaRepository.listarTemasAsesorInvolucrado(asesorId);
 
 		for (Object[] t : resultQuery) {
-			InfoTemaPerfilDto dto = new InfoTemaPerfilDto();
-			dto.setIdTesis((Integer) t[0]);
-			dto.setTitulo((String) t[1]);
-			String estado = (String) t[2];
-			switch (estado) {
-				case "EN_PROGRESO":
-					estado = "en_proceso";
-					break;
-				case "FINALIZADO":
-					estado = "finalizada";
-					break;
-				default:
-					estado = null;
-					break;
-			}
-			dto.setEstado(estado);
-			dto.setAnio((String) t[3]);
-
+			InfoTemaPerfilDto dto = InfoTemaPerfilDto.fromQuery(t);
 			// Agregar a los tesistas
 			List<Object[]> resultTesistasQuery = usuarioXTemaRepository.listarTesistasTema(dto.getIdTesis());
 			List<String> tesistas = new ArrayList<>();
@@ -1486,8 +1469,6 @@ public class TemaServiceImpl implements TemaService {
 				tesistas.add(nombreTesista);
 			}
 			dto.setEstudiantes(String.join(" - ", tesistas));
-
-			// Añadir el nivel
 
 			temas.add(dto);
 		}
@@ -2347,26 +2328,39 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 	public TemaConAsesorDto obtenerTemaActivoPorAlumno(Integer idAlumno) {
 		try {
 			// Ejecutar la función que devuelve el tema actual y el ID del asesor
-			Object[] result = (Object[]) entityManager
-					.createNativeQuery("SELECT * FROM obtener_temas_por_alumno(:idAlumno)")
-					.setParameter("idAlumno", idAlumno)
-					.getSingleResult();
+			List<Object[]> queryRes =  temaRepository.obtenerTemasPorAlumno(idAlumno);
+			if(queryRes.isEmpty())
+				throw new RuntimeException("No se encontró un tema para el alumno");
+			Object[] result = queryRes.get(0);
 
 			// Mapear a TemaActual
 			TemaResumenDto tema = new TemaResumenDto();
 			tema.setId((Integer) result[0]);
 			tema.setTitulo((String) result[1]);
+			tema.setEstadoTema((String) result[2]);
 			tema.setAreas((String) result[3]);
 
 			// Obtener el perfil del asesor
-			Integer idAsesor = (Integer) result[4];
-			PerfilAsesorDto asesorDto = usuarioService.getPerfilAsesor(idAsesor);
-
-			// Retornar combinado en TemaConAsesorDto
+			Integer[] idAsesoresArray = (Integer[]) result[4];
+			List<Integer> idAsesores = Arrays.asList(idAsesoresArray);
+			
+			List<PerfilAsesorDto> asesoresDto = new ArrayList<>();
+			for (Integer idAsesor : idAsesores) {
+			PerfilAsesorDto perfil = usuarioService.getPerfilAsesor(idAsesor);
+			if (perfil != null) {
+				asesoresDto.add(perfil);
+				}
+			}
+			//Agregar la lista de roles
+			String[] rolesArray = (String[]) result[5];
+			List<String> rolesList = Arrays.stream(rolesArray).toList();
+			Integer idCreador = (Integer) result[6];
+ 			// Retornar combinado en TemaConAsesorDto
 			TemaConAsesorDto respuesta = new TemaConAsesorDto();
 			respuesta.setTemaActual(tema);
-			respuesta.setAsesorActual(asesorDto);
-
+			respuesta.setAsesores(asesoresDto);
+			respuesta.setRoles(rolesList);
+			respuesta.setIdCreador(idCreador);
 			return respuesta;
 
 		} catch (NoResultException e) {

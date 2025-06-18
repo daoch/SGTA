@@ -34,9 +34,9 @@ public interface SolicitudRepository extends JpaRepository<Solicitud, Integer>, 
 
     Optional<Solicitud> findByTipoSolicitudNombreAndTemaIdAndActivoTrue(String string, Integer temaId);
 
-    @Query(value = "SELECT * FROM listar_resumen_solicitud_cambio_asesor_usuario(:idUsuario,:nombreRol)", nativeQuery = true)
+    @Query(value = "SELECT * FROM listar_resumen_solicitud_cambio_asesor_usuario(:idUsuario,cast(:roles as TEXT[]))", nativeQuery = true)
     List<Object[]> listarResumenSolicitudCambioAsesorUsuario(@Param("idUsuario") Integer idUsuario,
-            @Param("nombreRol") String nombreRol);
+            @Param("roles") String roles);
 
     @Query(value = "SELECT * FROM listar_resumen_solicitud_cambio_asesor_coordinador(:idCognito)", nativeQuery = true)
     List<Object[]> listarResumenSolicitudCambioAsesorCoordinador(@Param("idCognito") String idCognito);

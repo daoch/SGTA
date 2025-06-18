@@ -3,13 +3,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { AlertCircle, CheckCircle, Mail } from "lucide-react";
-import { useMemo } from "react";
+import { UsuarioSolicitud } from "../../types/cambio-asesor/entidades";
 
 interface AccionesDisponiblesSolicitudProps {
-  rol: "alumno" | "asesor" | "coordinador";
-  estadoCoordinador: string;
-  estadoNuevoAsesor: string;
-  nombreNuevoAsesor: string;
+  rol?: string | null;
+  accionActual?: string | null;
+  coordinador: UsuarioSolicitud | undefined;
+  nuevoAsesor: UsuarioSolicitud | undefined;
+  anteriorAsesor: UsuarioSolicitud | undefined;
+  estadoGlobal: string;
   handleAprobar: () => void;
   handleRechazar: () => void;
   onEnviarRecordatorio: () => void;
@@ -17,39 +19,52 @@ interface AccionesDisponiblesSolicitudProps {
 
 export default function AccionesDisponiblesSolicitud({
   rol,
-  estadoCoordinador,
-  estadoNuevoAsesor,
-  nombreNuevoAsesor,
+  accionActual,
+  coordinador,
+  nuevoAsesor,
+  anteriorAsesor,
+  estadoGlobal,
   handleAprobar,
   handleRechazar,
   onEnviarRecordatorio,
 }: Readonly<AccionesDisponiblesSolicitudProps>) {
-  const puedeVerAcciones = useMemo(() => {
-    if (rol === "alumno") return false;
+  if (
+    estadoGlobal !== "PENDIENTE" ||
+    rol === "REMITENTE" ||
+    !rol ||
+    accionActual !== "PENDIENTE_ACCION"
+  ) {
+    return null;
+  }
 
-    if (rol === "asesor") {
-      return estadoNuevoAsesor === "PENDIENTE_ACCION";
-    }
+  function debeMostrarRecordatorio(
+    rolSolicitud: string,
+    accionAnterior: string,
+  ): boolean {
+    return (
+      rolSolicitud === "ASESOR_ENTRADA" && accionAnterior === "PENDIENTE_ACCION"
+    );
+  }
 
-    if (rol === "coordinador") {
-      return estadoCoordinador === "PENDIENTE_ACCION";
-    }
-
-    return false;
-  }, [rol, estadoCoordinador, estadoNuevoAsesor]);
+  function debeMostrarBotones(
+    rolSolicitud: string,
+    accionAnterior: string,
+  ): boolean {
+    return !debeMostrarRecordatorio(rolSolicitud, accionAnterior);
+  }
 
   const mostrarRecordatorio =
-    rol === "coordinador" &&
-    estadoCoordinador === "PENDIENTE_ACCION" &&
-    estadoNuevoAsesor === "PENDIENTE_ACCION";
+    estadoGlobal === "PENDIENTE"
+      ? debeMostrarRecordatorio(
+          rol ?? "",
+          anteriorAsesor?.accionSolicitud ?? "",
+        )
+      : false;
 
   const mostrarBotones =
-    rol === "asesor" ||
-    (rol === "coordinador" &&
-      estadoCoordinador === "PENDIENTE_ACCION" &&
-      estadoNuevoAsesor !== "PENDIENTE_ACCION");
-
-  if (!puedeVerAcciones) return null;
+    estadoGlobal === "PENDIENTE"
+      ? debeMostrarBotones(rol ?? "", anteriorAsesor?.accionSolicitud ?? "")
+      : false;
 
   return (
     <Card>
@@ -63,9 +78,9 @@ export default function AccionesDisponiblesSolicitud({
             <AlertDescription className="text-yellow-800">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
-                  <strong>Esperando respuesta del asesor sugerido</strong>
+                  <strong>Esperando respuesta del anterior asesor</strong>
                   <br />
-                  {nombreNuevoAsesor} aún no ha respondido a la solicitud.
+                  {anteriorAsesor?.nombres} aún no ha respondido a la solicitud.
                 </div>
                 <Button
                   variant="outline"
