@@ -46,8 +46,6 @@ export default function AccionesDisponiblesSolicitud({
     );
   }
 
-  console.log("accion: ", accionActual);
-
   function debeMostrarBotones(
     rolSolicitud: string,
     accionAnterior: string,

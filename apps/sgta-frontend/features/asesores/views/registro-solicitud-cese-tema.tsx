@@ -14,10 +14,8 @@ import { ArrowLeft, BookX, Loader2, UserX } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import ModalConfirmacionRegistro from "../components/cese-tema/modal-registro-cese-tema";
-import {
-  getInformacionTesisPorAlumno,
-  registrarSolicitudCeseTema,
-} from "../services/cambio-asesor-services";
+import { getInformacionTesisPorAlumno } from "../services/cambio-asesor-services";
+import { registrarSolicitudCeseTema } from "../services/cese-tema-services";
 import { getIdByCorreo } from "../services/perfil-services";
 import { TemaActual } from "../types/cambio-asesor/entidades";
 import { Asesor } from "../types/perfil/entidades";
@@ -41,6 +39,7 @@ export default function registrarSolicitudCeseTemaAlumno() {
   >("idle");
   const [mensajeRegistro, setMensajeRegistro] = useState("");
   const [solicitudId, setSolicitudId] = useState<number | null>(null);
+  const [creadorId, setCreadorId] = useState<number | null>(null);
 
   const loadUsuarioId = async () => {
     if (!user) return;
@@ -76,12 +75,13 @@ export default function registrarSolicitudCeseTemaAlumno() {
       if (!userId) return;
       try {
         setIsLoading(true);
-        const { temaActual, asesores, roles } =
+        const { temaActual, asesores, roles, idCreador } =
           await getInformacionTesisPorAlumno(userId);
         const asesoresConRol = asesores.map((asesor, index) => ({
           ...asesor,
           rol: roles[index] || null,
         }));
+        setCreadorId(idCreador);
         setTemaActual(temaActual);
         setAsesoresActuales(asesoresConRol);
       } catch (error) {
@@ -107,7 +107,7 @@ export default function registrarSolicitudCeseTemaAlumno() {
   const confirmarRegistro = async () => {
     setRegistroEstado("loading");
 
-    if (!temaActual || !userId) {
+    if (!temaActual || !userId || !creadorId) {
       setRegistroEstado("error");
       setMensajeRegistro(
         "No cuenta con un tema de tesis activo o no se ha encontrado el usuario.",
@@ -117,7 +117,7 @@ export default function registrarSolicitudCeseTemaAlumno() {
 
     try {
       const resultado = await registrarSolicitudCeseTema({
-        alumnoId: userId,
+        creadorId: creadorId,
         temaId: temaActual.id,
         estadoTema: temaActual.estadoTema ?? "VENCIDO",
         motivo,
