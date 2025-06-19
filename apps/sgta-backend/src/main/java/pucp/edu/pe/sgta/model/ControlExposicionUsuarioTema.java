@@ -54,8 +54,4 @@ public class ControlExposicionUsuarioTema {
     @Convert(converter = EstadoExposicionUsuarioConverter.class)
     private EstadoExposicionUsuario estadoExposicion = EstadoExposicionUsuario.ESPERANDO_RESPUESTA;
 
-    @Column(name = "nota_revision", precision = 6, scale = 2, nullable = true)
-    private BigDecimal notaRevision;
-
-
 }
