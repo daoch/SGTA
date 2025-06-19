@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { getDetalleSolicitudCeseTema } from "../services/cese-tema-services";
 
 // Interfaces
 export interface UsuarioSolicitud {
@@ -48,49 +49,6 @@ export interface DetalleSolicitudCeseTema {
   asesorActual: UsuarioSolicitud;
   coordinador: UsuarioSolicitud | null;
   fechaResolucion: string | Date | null;
-}
-
-// Mock API function
-async function getDetalleSolicitudCeseTemaMock(
-  idSolicitud: number,
-): Promise<DetalleSolicitudCeseTema> {
-  // Simulate API delay
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-
-  const mockData: DetalleSolicitudCeseTema = {
-    solicitudId: idSolicitud,
-    fechaEnvio: "2024-01-15T10:30:00Z",
-    estadoGlobal: "APROBACION_DIRECTA", // Can be: APROBACION_DIRECTA, PENDIENTE, RECHAZADA
-    motivoEstudiante:
-      "Debido a cambios en mi situación académica y personal, he decidido cesar el desarrollo de mi tema de tesis. He evaluado cuidadosamente esta decisión y considero que es lo más apropiado en este momento para enfocarme en otras prioridades académicas.",
-    temaId: 123,
-    temaTitulo:
-      "Implementación de un Sistema de Gestión de Inventarios usando Tecnologías Web Modernas",
-    solicitante: {
-      id: 1,
-      nombres: "María Elena Rodríguez García",
-      correoElectronico: "maria.rodriguez@universidad.edu",
-      rolSolicitud: "REMITENTE",
-      foto: null,
-      accionSolicitud: "ENVIADO",
-      fechaAccion: "2024-01-15T10:30:00Z",
-      comentario: null,
-    },
-    asesorActual: {
-      id: 2,
-      nombres: "Dr. Carlos Alberto Mendoza",
-      correoElectronico: "carlos.mendoza@universidad.edu",
-      rolSolicitud: "ASESOR_ACTUAL",
-      foto: null,
-      accionSolicitud: "SIN_ACCION",
-      fechaAccion: null,
-      comentario: null,
-    },
-    coordinador: null, // Will be processed based on estado
-    fechaResolucion: null,
-  };
-
-  return mockData;
 }
 
 interface SolicitudCeseDetalleProps {
@@ -126,7 +84,7 @@ export default function SolicitudCeseDetalle({
     setError(null);
 
     try {
-      const data = await getDetalleSolicitudCeseTemaMock(idSolicitud);
+      const data = await getDetalleSolicitudCeseTema(idSolicitud);
       procesarParticipantesWorkflow(data);
     } catch (err) {
       setError((err as Error).message);
