@@ -23,6 +23,7 @@ import {
   SolicitudGeneral,
   SolicitudState,
 } from "../../types/solicitudes/entities";
+import Link from "next/link";
 
 export function mapEstadoSolToClassName(estado: SolicitudState): string {
   switch (estado) {
@@ -38,6 +39,13 @@ export function mapEstadoSolToClassName(estado: SolicitudState): string {
       return "bg-purple-100 text-purple-800 hover:bg-purple-100";
   }
 }
+
+const texts = {
+  tooltips: {
+    goDetails: "Ver y editar tema",
+    doAction: "Editar Tema",
+  },
+};
 
 export interface SolicitudesTableProps {
   readonly solicitudes: readonly SolicitudGeneral[];
@@ -121,31 +129,24 @@ export function SolicitudesTableGeneral({
           <div className="flex justify-end gap-2">
             {/* Ver detalles */}
             <TooltipProvider>
-              {["PENDIENTE"].includes(sol.estado_solicitud) ? (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <SquarePen className="h-4 w-4" />
-                      <span className="sr-only">Editar solicitud</span>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Editar solicitud</p>
-                  </TooltipContent>
-                </Tooltip>
-              ) : (
-                <Tooltip>
-                  <TooltipTrigger asChild>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link
+                    href={`/coordinador/aprobaciones/${sol.tema_id}`}
+                    passHref
+                  >
                     <Button variant="ghost" size="icon">
                       <Eye className="h-4 w-4" />
-                      <span className="sr-only">Ver detalles</span>
+                      <span className="sr-only">
+                        {texts.tooltips.goDetails}
+                      </span>
                     </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Ver detalles</p>
-                  </TooltipContent>
-                </Tooltip>
-              )}
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{texts.tooltips.goDetails}</p>
+                </TooltipContent>
+              </Tooltip>
             </TooltipProvider>
           </div>
         </TableCell>
