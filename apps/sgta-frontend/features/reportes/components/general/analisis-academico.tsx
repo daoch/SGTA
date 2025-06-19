@@ -33,8 +33,8 @@ export function AnalisisAcademico({ studentData, gradesData }: AcademicAnalysisP
         setEtapasFormativas(etapas);
         
         // Obtener el nombre real de la etapa actual
-        if (studentData.currentStage && studentData.currentStage.startsWith('Etapa ')) {
-          const etapaId = parseInt(studentData.currentStage.replace('Etapa ', ''));
+        if (studentData.currentStage && studentData.currentStage.startsWith("Etapa ")) {
+          const etapaId = parseInt(studentData.currentStage.replace("Etapa ", ""));
           const etapaActual = etapas.find(etapa => etapa.id === etapaId);
           if (etapaActual) {
             setCurrentStageName(etapaActual.etapaFormativaNombre);
@@ -179,10 +179,10 @@ export function AnalisisAcademico({ studentData, gradesData }: AcademicAnalysisP
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <h3 className="text-base font-medium">Evolución de Notas por Entregable</h3>
         <Select value={selectedStage} onValueChange={setSelectedStage}>
-          <SelectTrigger className="w-full lg:w-[200px]">
+          <SelectTrigger className="w-full lg:w-[400px]">
             <SelectValue placeholder="Seleccionar etapa" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="w-[400px]">
             <SelectItem value="current">Etapa Actual</SelectItem>
             <SelectItem value="all">Todas las Etapas</SelectItem>
             {etapasFormativas.map((etapa) => (
