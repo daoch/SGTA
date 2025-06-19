@@ -1,4 +1,5 @@
 import axiosInstance from "@/lib/axios/axios-instance";
+import { Asesor } from "../types/perfil/entidades";
 
 export interface FiltrosDirectorioAsesores {
   alumnoId: number;
@@ -8,14 +9,41 @@ export interface FiltrosDirectorioAsesores {
   idTemas?: number[];
 }
 
+export interface SearchPage {
+  content: Asesor[];
+  totalPages: number;
+  totalElements: number;
+}
+
+export async function buscarAsesoresPorNombre(
+  nombre: string,
+): Promise<Asesor[]> {
+  try {
+    const response = await axiosInstance.get(
+      "/usuario/buscar-asesores-por-nombre",
+      {
+        params: { nombre },
+      },
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error al buscar asesores:", error);
+    return [];
+  }
+}
+
 export async function getAsesoresPorFiltros(
   filtros: FiltrosDirectorioAsesores,
+  page: number = 0,
+  order: boolean = true,
 ) {
   try {
     const params = {
       alumnoId: filtros.alumnoId,
       cadenaBusqueda: filtros.cadenaBusqueda,
       activo: filtros.activo,
+      page,
+      order,
       ...(filtros.idAreas && filtros.idAreas.length > 0
         ? { idAreas: filtros.idAreas }
         : {}),
@@ -33,6 +61,8 @@ export async function getAsesoresPorFiltros(
           query.append("alumnoId", params.alumnoId);
           query.append("cadenaBusqueda", params.cadenaBusqueda);
           query.append("activo", String(params.activo));
+          query.append("page", params.page);
+          query.append("order", String(params.order));
 
           if (params.idAreas) {
             params.idAreas.forEach((id: number) =>

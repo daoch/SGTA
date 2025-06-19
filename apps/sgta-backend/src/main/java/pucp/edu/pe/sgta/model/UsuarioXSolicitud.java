@@ -60,10 +60,21 @@ public class UsuarioXSolicitud {
 	@Column(nullable = false)
 	private Boolean activo = true;
 
-	@Column(name = "fecha_creacion", nullable = false, insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+	@Column(name = "fecha_creacion", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
 	private OffsetDateTime fechaCreacion;
 
-	@Column(name = "fecha_modificacion", insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+	@Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
 	private OffsetDateTime fechaModificacion;
+
+	@PrePersist
+	protected void onCreate() {
+		fechaCreacion = OffsetDateTime.now();
+		fechaModificacion = OffsetDateTime.now(); // Asegúrate que se setee en la creación
+	}
+
+	@PreUpdate
+	protected void onUpdate() {
+		fechaModificacion = OffsetDateTime.now(); // Asegúrate que se actualice en cada update
+	}
 
 }

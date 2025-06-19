@@ -188,6 +188,26 @@ export interface Observacion {
   fecha: string;
 }
 
+export interface ObservacionV2 {
+  solicitud_id: number;
+  descripcion: string;
+  tipo_solicitud: string;
+  estado_solicitud: string;
+  tema_id: number;
+  fecha_creacion: string;
+  remitente: RemitenteV2;
+}
+
+export interface RemitenteV2 {
+  usuario_solicitud_id: number;
+  usuario_id: number;
+  nombres: string;
+  primer_apellido: string;
+  segundo_apellido: string;
+  codigo: string;
+}
+
+
 export interface TemaSimilitud {
   tema: {
     id: number;

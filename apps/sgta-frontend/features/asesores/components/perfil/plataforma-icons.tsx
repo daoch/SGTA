@@ -9,7 +9,7 @@ import {
   Search,
   Twitter,
 } from "lucide-react";
-import { PlataformaType } from "../../types/perfil/entidades";
+import { Enlace, PlataformaType } from "../../types/perfil/entidades";
 
 interface PlatformIconProps {
   nombrePlataforma?: PlataformaType;
@@ -93,4 +93,14 @@ export const PLATAFORMAS_DISPONIBLES: PlataformaType[] = [
 
 export function getPlatformDisplayName(plataforma: string): string {
   return plataforma;
+}
+
+export function asignarPlataformas(enlaces: Enlace[]): void {
+  enlaces.forEach((enlace) => {
+    const plataformaNormalizada = enlace.plataforma?.trim();
+    const nombre = PLATAFORMAS_DISPONIBLES.find(
+      (p) => p.toLowerCase() === plataformaNormalizada?.toLowerCase(),
+    );
+    enlace.nombrePlataforma = nombre ?? "Otras";
+  });
 }

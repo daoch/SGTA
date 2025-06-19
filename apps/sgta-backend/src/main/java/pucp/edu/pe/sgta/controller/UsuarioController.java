@@ -6,6 +6,7 @@ import java.util.NoSuchElementException;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -239,25 +240,22 @@ public class UsuarioController {
      Api usada por un ALUMNO para ver que asesores existen en su carrera
      */
     @GetMapping("/asesor-directory-by-filters")
-    public ResponseEntity<List<PerfilAsesorDto>> getDirectorioDeAsesoresPorFiltros(
+    public ResponseEntity<Page<PerfilAsesorDto>> getDirectorioDeAsesoresPorFiltros(
             @ModelAttribute FiltrosDirectorioAsesores filtros,
-            HttpServletRequest request
+            @RequestParam(name = "page", required = false, defaultValue = "0") Integer page,
+            @RequestParam(name = "order", defaultValue = "true") Boolean order
+            //HttpServletRequest request
     ) {
-        usuarioService.validarTipoUsuarioRolUsuario(
-                            jwtService.extractSubFromRequest(request),
-                            List.of(TipoUsuarioEnum.alumno, TipoUsuarioEnum.profesor),
-                            null
-        );
-        List<PerfilAsesorDto> asesores = usuarioService.getDirectorioDeAsesoresPorFiltros(filtros);
+        Page<PerfilAsesorDto> asesores = usuarioService.getDirectorioDeAsesoresPorFiltros(filtros,page,order);
         return new ResponseEntity<>(asesores, HttpStatus.OK);
+    }
 
-        // try {
-        // List<PerfilAsesorDto> asesores =
-        // usuarioService.getDirectorioDeAsesoresPorFiltros(filtros);
-        // return new ResponseEntity<>(asesores, HttpStatus.OK);
-        // } catch (Exception e) {
-        // return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-        // }
+    @GetMapping("/buscar-asesores-por-nombre")
+    public ResponseEntity<List<PerfilAsesorDto>> buscarAsesoresPorCadenaDeBusqueda(@RequestParam("nombre") String nombre, HttpServletRequest request) {
+        String cognitoId = jwtService.extractSubFromRequest(request);
+        Integer usuarioId = usuarioService.obtenerIdUsuarioPorCognito(cognitoId);
+        List<PerfilAsesorDto> asesores = usuarioService.buscarAsesoresPorCadenaDeBusqueda(nombre, usuarioId);
+        return new ResponseEntity<>(asesores, HttpStatus.OK);
     }
 
     @PostMapping(value = "/carga-masiva", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

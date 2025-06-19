@@ -12,7 +12,7 @@ public class SolicitudCambioAsesorDto {
     @NotNull
     Integer temaId;
     @NotNull
-    Integer alumnoId;
+    Integer creadorId;
     @NotNull
     Integer nuevoAsesorId;
     @NotNull

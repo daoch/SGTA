@@ -21,7 +21,7 @@ export default function PerfilAsesorCard({
   isEditing,
   setEditedData,
   avatar,
-}: Props) {
+}: Readonly<Props>) {
   const tesisEnProceso = asesor.tesistasActuales ?? 3;
 
   const limite = asesor.limiteTesis ?? 8;

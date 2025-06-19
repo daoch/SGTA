@@ -39,4 +39,8 @@ public interface BloqueHorarioExposicionRepository extends JpaRepository<BloqueH
 
     List<BloqueHorarioExposicion> findByJornadaExposicionXSalaIdAndExposicionXTemaIsNotNull(
             Integer jornadaExposicionXSalaId);
+
+    @Query(value = "SELECT actualizar_bloque_cambiados(CAST(:bloques_json AS jsonb))", nativeQuery = true)
+    String updateBloquesCambidos(@Param("bloques_json") String bloquesJson);
+
 }
