@@ -17,7 +17,7 @@ const MisSolicitudesDeCeseTable: React.FC<MisSolicitudesDeCeseTableProps> = ({ r
   const getStatusBadge = (status: string) => {
     const lowerStatus = status.toLowerCase();
     switch (lowerStatus) {
-      case "aprobada": return <Badge variant="outline" className="border-green-500 text-green-600 bg-green-50 px-2 py-0.5">Aprobada</Badge>;
+      case "aceptada": return <Badge variant="outline" className="border-green-500 text-green-600 bg-green-50 px-2 py-0.5">Aprobada</Badge>;
       case "rechazada": return <Badge variant="outline" className="border-red-500 text-red-600 bg-red-50 px-2 py-0.5">Rechazada</Badge>;
       case "pendiente": return <Badge variant="outline" className="border-yellow-500 text-yellow-600 bg-yellow-50 px-2 py-0.5">Pendiente</Badge>;
       default: return <Badge variant="secondary" className="px-2 py-0.5">{status || "Desconocido"}</Badge>;

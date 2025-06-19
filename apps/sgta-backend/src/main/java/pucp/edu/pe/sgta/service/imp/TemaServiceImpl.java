@@ -775,7 +775,7 @@ public class TemaServiceImpl implements TemaService {
 		// 1–5) Delegar a la función PL/pgSQL
 		entityManager.flush(); // asegurar que tema.id ya esté asignado
 		// 6) Generar y enviar la solicitud de aprobación
-		saveHistorialTemaChange(tema, dto.getTitulo(), dto.getResumen(), "Inscripción de tema");
+		saveHistorialTemaChange(tema, tema.getTitulo(), tema.getResumen(), "Inscripción de tema");
 		crearSolicitudAprobacionTemaV2(tema);
 		return temaId; // return tema id
 	}
@@ -3393,6 +3393,9 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 		try {
 			UsuarioDto usuDto = usuarioService.findByCognitoId(usuarioId); // JWT te da String, pero BD espera int
 
+			Optional<Tema> temaAux = temaRepository.findById(temaId);
+
+
 			String solicitudesJson = objectMapper.writeValueAsString(solicitudes); // Convierte la lista a JSON
 
 			Query query = entityManager.createNativeQuery(
@@ -3402,6 +3405,14 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 			query.setParameter("usuarioId", usuDto.getId());
 			query.setParameter("solicitudes", solicitudesJson);
 			query.getSingleResult();
+
+			for (Map<String, Object> solicitud : solicitudes) {
+				Integer tipoSolicitudId = Integer.parseInt(solicitud.get("tipo_solicitud_id").toString());
+				Optional<TipoSolicitud> tipoAux = tipoSolicitudRepository.findById(tipoSolicitudId);
+				
+				saveHistorialTemaChange(temaAux.get(),temaAux.get().getTitulo(),temaAux.get().getResumen(),tipoAux.get().getNombre());
+			}
+
 		} catch (JsonProcessingException e) {
 			throw new RuntimeException("Error al convertir solicitudes a JSON", e);
 		}
@@ -3557,6 +3568,24 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 		}
 	}
 
+	public EstadoTemaEnum obtenerEstadoFromString(String valor) {
+		EstadoTemaEnum estado;
+		try {
+			estado = EstadoTemaEnum.valueOf(valor);
+		} catch (IllegalArgumentException | NullPointerException e) {
+			throw new RuntimeException("No se encontró un estadoTema de nombre " + valor);
+		}
+		if(! estadoTemaRepository.existsByNombre(estado.name())){
+			throw new RuntimeException("No se registró un estadoTema de nombre" + estado.name());
+		}
+		return estado;
+	}
+
+	public Tema validarTemaConEstado(Integer temaId, EstadoTemaEnum estado){
+		return temaRepository
+				.findTemaByIdAndEstadoTema_Nombre(temaId,estado.name())
+				.orElseThrow( () -> new RuntimeException("No se encontró el tema"));
+	}
 	@Override
 	@Transactional()
 	public String listarSolicitudesPendientesTemaAlumnos(String usuarioId, int offset, int limit) {
@@ -3607,7 +3636,7 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 				.orElseThrow(() -> new ResourceNotFoundException("Nuevo asesor propuesto no encontrado con ID: " + nuevoAsesorPropuestoId));
 
 		if (nuevoAsesorPropuesto.getTipoUsuario() == null ||
-				!"Profesor".equalsIgnoreCase(nuevoAsesorPropuesto.getTipoUsuario().getNombre())) {
+				!"profesor".equalsIgnoreCase(nuevoAsesorPropuesto.getTipoUsuario().getNombre())) {
 			throw new IllegalArgumentException("El usuario ID " + nuevoAsesorPropuestoId + " no es un profesor/asesor válido.");
 		}
 
@@ -3628,11 +3657,11 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 		solicitudRepository.save(solicitudDeCese);
 
 		log.info("Solicitud de cese ID {} actualizada. Asesor propuesto: ID {}, Estado reasignación: {}",
-				solicitudDeCeseOriginalId, nuevoAsesorPropuestoId, "PENDIENTE_ACEPTACION_ASESOR");
+				solicitudDeCeseOriginalId, nuevoAsesorPropuestoId, solicitudDeCese.getEstadoSolicitud().getNombre());
 		
 		RolSolicitud rolAsesorNuevo = rolSolicitudRepository
-			.findByNombre("ASESOR_NUEVO")
-			.orElseThrow(() -> new ResourceNotFoundException("Rol de solicitud 'ASESOR_NUEVO' no encontrado."));
+			.findByNombre("ASESOR_ENTRADA")
+			.orElseThrow(() -> new ResourceNotFoundException("Rol de solicitud 'ASESOR_ENTRADA' no encontrado."));
 
 		UsuarioXSolicitud usAsesorNuevo = new UsuarioXSolicitud();
             usAsesorNuevo.setSolicitud(solicitudDeCese);

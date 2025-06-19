@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import pucp.edu.pe.sgta.dto.*;
 import pucp.edu.pe.sgta.model.UsuarioXTema;
 import pucp.edu.pe.sgta.repository.*;
-import pucp.edu.pe.sgta.service.inter.CriterioEntregableService;    // ← IMPORT añadido
+import pucp.edu.pe.sgta.service.inter.CriterioEntregableService;    
 import pucp.edu.pe.sgta.service.inter.IReportService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
 
@@ -29,6 +29,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import pucp.edu.pe.sgta.dto.RevisionDocumentoDto;
+import pucp.edu.pe.sgta.model.RevisionDocumento;
+import pucp.edu.pe.sgta.model.VersionXDocumento;
+import pucp.edu.pe.sgta.repository.VersionXDocumentoRepository;
+import pucp.edu.pe.sgta.repository.RevisionDocumentoRepository;
+
 
 @Service
 public class ReportingServiceImpl implements IReportService {
@@ -37,6 +43,13 @@ public class ReportingServiceImpl implements IReportService {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private VersionXDocumentoRepository versionXDocumentoRepository;
+
+    @Autowired
+    private RevisionDocumentoRepository revisionDocumentoRepository;
+
 
     private final UsuarioService usuarioService;
     private final TopicAreaStatsRepository topicAreaStatsRepository;
@@ -67,7 +80,8 @@ public class ReportingServiceImpl implements IReportService {
             EntregableXTemaRepository entregableXTemaRepository,
             RevisionCriterioEntregableRepository revisionCriterioEntregableRepository,
             CriterioEntregableService criterioEntregableService,
-            EntregablesCriteriosRepository entregablesCriteriosRepository) {
+            EntregablesCriteriosRepository entregablesCriteriosRepository,
+            VersionXDocumentoRepository versionXDocumentoRepository) {
         this.usuarioService                    = usuarioService;
         this.topicAreaStatsRepository          = topicAreaStatsRepository;
         this.advisorDistributionRepository     = advisorDistributionRepository;
@@ -82,6 +96,7 @@ public class ReportingServiceImpl implements IReportService {
         this.revisionCriterioEntregableRepository = revisionCriterioEntregableRepository;
         this.criterioEntregableService         = criterioEntregableService;
         this.entregablesCriteriosRepository    = entregablesCriteriosRepository;
+        this.versionXDocumentoRepository = versionXDocumentoRepository;
     }
 
     @Override
@@ -347,25 +362,33 @@ public class ReportingServiceImpl implements IReportService {
                     String estadoEntregable  = et.getEntregable().getEstado().name();
                     String estadoXTema       = et.getEstado();
 
-                    List<CriterioEntregableDto> criterios = criterioEntregableService
-                            .listarCriteriosEntregableXEntregable(et.getEntregable().getId())
-                            .stream()
-                            .map(c -> {
-                                Double nota = revisionCriterioEntregableRepository
-                                        .findNotaByEntregableXTemaIdAndCriterioEntregableId(exId, c.getId())
-                                        .map(BigDecimal::doubleValue)
-                                        .orElse(null);
-                                CriterioEntregableDto copy = new CriterioEntregableDto();
-                                copy.setId(c.getId());
-                                copy.setNombre(c.getNombre());
-                                copy.setDescripcion(c.getDescripcion());
-                                copy.setNotaMaxima(c.getNotaMaxima());
-                                copy.setNota(nota);
-                                return copy;
-                            })
-                            .collect(Collectors.toList());
+                List<CriterioEntregableDto> criterios = criterioEntregableService
+                        .listarCriteriosEntregableXEntregable(et.getEntregable().getId())
+                        .stream()
+                        .map(c -> {
+                            Double nota = revisionCriterioEntregableRepository
+                                    .findNotaByEntregableXTemaIdAndCriterioEntregableId(exId, c.getId())
+                                    .map(BigDecimal::doubleValue)
+                                    .orElse(null);
+                            CriterioEntregableDto copy = new CriterioEntregableDto();
+                            copy.setId(c.getId());
+                            copy.setNombre(c.getNombre());
+                            copy.setDescripcion(c.getDescripcion());
+                            copy.setNotaMaxima(c.getNotaMaxima());
+                            copy.setNota(nota);
+                            return copy;
+                        })
+                        .collect(Collectors.toList());
+                
+                RevisionDocumentoDto revisionDto = getEstadoRevisionPorEntregable(et.getEntregableXTemaId());
+                Integer revisionId = (revisionDto != null) ? revisionDto.getId() : null;
+                String estadoRevision = (revisionDto != null) ? revisionDto.getEstadoRevision() : null;
+
 
                 return new EntregableEstudianteDto(
+                    et.getEntregableXTemaId(), 
+                    et.getEntregable().getId(),           
+                    et.getTema().getId(), 
                     et.getEntregable().getNombre(),
                     estadoEntregable,
                     estadoXTema,
@@ -374,7 +397,9 @@ public class ReportingServiceImpl implements IReportService {
                         : null,
                     notaGlobal,
                     esEvaluable,
-                    criterios
+                    criterios,
+                    revisionId,                        
+                    estadoRevision   
                 );
             })
             .collect(Collectors.toList());
@@ -438,15 +463,22 @@ public class ReportingServiceImpl implements IReportService {
                         return copy;
                     })
                     .collect(Collectors.toList());
-
+                RevisionDocumentoDto revisionDto = getEstadoRevisionPorEntregable(et.getEntregableXTemaId());
+                Integer revisionId = (revisionDto != null) ? revisionDto.getId() : null;
+                String estadoRevision = (revisionDto != null) ? revisionDto.getEstadoRevision() : null;
                 return new EntregableEstudianteDto(
+                    et.getEntregableXTemaId(), 
+                    et.getEntregable().getId(),
+                    et.getTema().getId(),
                     et.getEntregable().getNombre(),
                     estadoEntregable,
                     estadoXTema,
                     et.getFechaEnvio() != null ? et.getFechaEnvio().toLocalDateTime() : null,
                     notaGlobal,
                     esEvaluable,
-                    criterios
+                    criterios,
+                    revisionId,
+                    estadoRevision
                 );
             })
             .collect(Collectors.toList());
@@ -493,4 +525,42 @@ public class ReportingServiceImpl implements IReportService {
         }
         return new ArrayList<>(map.values());
     }
+
+    @Override
+    public RevisionDocumentoDto getEstadoRevisionPorEntregable(Integer entregableXTemaId) {
+
+        // 1) Última versión que pertenece a este entregable-tema
+        VersionXDocumento version = versionXDocumentoRepository
+                .findTopByEntregableXTema_EntregableXTemaIdOrderByFechaCreacionDesc(entregableXTemaId)
+                .orElse(null);
+
+        if (version == null) {
+            return null;           // No hay versión o no tiene revisión ligada
+        }
+
+        // 2) Revisión asociada a esa versión
+        RevisionDocumento revision = revisionDocumentoRepository
+                .findTopByVersionDocumento_IdOrderByFechaCreacionDesc(version.getId())
+                .orElse(null);
+
+        if (revision == null) {
+            return null;
+        }
+
+        // 3) Construir y devolver el DTO
+        return new RevisionDocumentoDto(
+                revision.getId(),
+                revision.getUsuario().getId(),
+                revision.getVersionDocumento().getId(),
+                revision.getFechaLimiteRevision(),
+                revision.getFechaRevision(),
+                revision.getEstadoRevision().name().toLowerCase(),
+                revision.getLinkArchivoRevision(),
+                revision.getActivo(),
+                revision.getFechaCreacion(),
+                revision.getFechaModificacion()
+        );
+    }
+
+
 }

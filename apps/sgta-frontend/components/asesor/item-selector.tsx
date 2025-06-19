@@ -1,17 +1,17 @@
-import React from "react";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   AreaDeInvestigacion,
   Coasesor,
 } from "@/features/temas/types/inscripcion/entities";
+import React from "react";
 
 type Item = Coasesor | AreaDeInvestigacion;
 
@@ -76,7 +76,7 @@ const ItemSelector: React.FC<ItemSelectorProps> = ({
                 value={String(item[itemLabel as keyof Item])}
               >
                 {item.hasOwnProperty("codigoPucp")
-                  ? `${item[itemKey as keyof Item]}: ${item[itemLabel as keyof Item]}`
+                  ? `${item[itemLabel as keyof Item]}`
                   : item[itemLabel as keyof Item]}
               </SelectItem>
             ))}
@@ -109,4 +109,3 @@ const ItemSelector: React.FC<ItemSelectorProps> = ({
 };
 
 export default ItemSelector;
-

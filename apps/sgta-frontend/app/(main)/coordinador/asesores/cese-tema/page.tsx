@@ -1,7 +1,10 @@
+"use client";
+
+import ListadoSolicitudesCeseTema from "@/features/asesores/views/listado-solicitudes-cese-tema";
 import React from "react";
 
 const Page: React.FC = () => {
-  return <div>page</div>;
+  return <ListadoSolicitudesCeseTema rol="coordinador" />;
 };
 
 export default Page;

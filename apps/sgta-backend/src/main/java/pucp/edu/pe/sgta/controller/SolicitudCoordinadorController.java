@@ -141,7 +141,7 @@ public class SolicitudCoordinadorController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Page.empty(pageable));
         }
     }
-        @PostMapping("/asesores-disponibles/{solicitudId}/aprobar")
+        @PostMapping("/solicitudes-cese/{solicitudId}/aprobar")
     public ResponseEntity<?> aprobarSolicitudCese(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable Integer solicitudId,

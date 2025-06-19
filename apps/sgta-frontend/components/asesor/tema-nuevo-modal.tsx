@@ -128,7 +128,12 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
           );
 
           setCoasesoresDisponibles(
-            coasesoresData.filter((c) => c.id != asesor.id),
+            coasesoresData
+              .filter((c) => c.id != asesor.id)
+              .map((c) => ({
+                ...c, // Hacer una copia del objeto coasesor
+                nombreCompleto: `${c.nombres} ${c.primerApellido} ${c.segundoApellido}`, // Modificar el atributo activo (por ejemplo, ponerlo en true)
+              })),
           );
         }
       } catch {
@@ -249,7 +254,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
       if (carreras) {
         const response = await axiosInstance.post(
           "temas/createInscripcionV2",
-          mapTemaCreateInscription(temaData, carreras[0], asesor),
+          mapTemaCreateInscription(temaData, carreras[0]),
         );
 
         toast.success("Tema guardado exitosamente");
@@ -349,7 +354,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
 
   const onSelectCoasesor = (nombres: string) => {
     const selectedCoasesor = coasesoresDisponibles.find(
-      (c) => c.nombres === nombres,
+      (c) => c.nombreCompleto === nombres,
     );
     setCoasesorSeleccionado(selectedCoasesor || null);
   };
@@ -422,7 +427,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
         } else {
           const response = await axiosInstance.post(
             "temas/createInscripcionV2",
-            mapTemaCreateInscription(temaData, carreras[0], asesor),
+            mapTemaCreateInscription(temaData, carreras[0]),
           );
           const temaCreado = response.data;
 
@@ -459,7 +464,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
       setTemaSimilitud([]);
     }
   };
-
+  console.log(coasesoresDisponibles);
   return (
     <>
       <Toaster richColors position="bottom-right" />
@@ -595,10 +600,13 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
               {/* Coasesores */}
               <ItemSelector
                 label="Coasesores (Opcional)"
-                itemsDisponibles={coasesoresDisponibles}
+                itemsDisponibles={coasesoresDisponibles.map((item) => ({
+                  ...item,
+                  nombreCompleto: `${item.nombres} ${item.primerApellido} ${item.segundoApellido}`,
+                }))}
                 itemsSeleccionados={temaData.coasesores}
                 itemKey="codigoPucp"
-                itemLabel="nombres"
+                itemLabel="nombreCompleto"
                 selectedItem={coasesorSeleccionado}
                 onSelectItem={onSelectCoasesor}
                 onAgregarItem={handleAgregarCoasesor}
@@ -613,7 +621,10 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
                   {/* Asesor Principal */}
                   <div className="space-y-2">
                     <Label>Asesor Principal</Label>
-                    <Input value={asesor.nombres} disabled />
+                    <Input
+                      value={`${asesor.nombres} ${asesor.primerApellido} ${asesor.segundoApellido}`}
+                      disabled
+                    />
                   </div>
 
                   {/* Estudiantes */}
@@ -638,10 +649,11 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
                             )
                             .map((estudiante) => (
                               <SelectItem
-                                key={estudiante.codigoPucp}
+                                key={estudiante.id}
                                 value={estudiante.nombres}
                               >
-                                {estudiante.codigoPucp}: {estudiante.nombres}
+                                {estudiante.nombres} {estudiante.primerApellido}{" "}
+                                {estudiante.segundoApellido}{" "}
                               </SelectItem>
                             ))}
                         </SelectContent>
@@ -778,11 +790,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
   );
 };
 
-const mapTemaCreateInscription = (
-  tema: Tema,
-  carrera: Carrera,
-  asesor: Coasesor,
-) => {
+const mapTemaCreateInscription = (tema: Tema, carrera: Carrera) => {
   return {
     titulo: tema.titulo,
     carrera: { id: carrera.id },
@@ -792,7 +800,6 @@ const mapTemaCreateInscription = (
     fechaLimite: new Date(tema.fechaLimite + "T10:00:00Z").toISOString(),
     subareas: tema.subareas.map((a) => ({ id: a.id })),
     coasesores: [
-      { id: asesor.id },
       ...(tema.coasesores ? tema.coasesores.map((c) => ({ id: c.id })) : []),
     ],
     tesistas: tema.tesistas ? tema.tesistas.map((t) => ({ id: t.id })) : [],
