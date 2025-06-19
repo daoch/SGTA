@@ -22,6 +22,7 @@ export interface Tema {
   requisitos: string; //agregado
   area: AreaConocimiento[];
   cantPostulaciones: number;
+  areaConocimiento: AreaConocimiento[];
 }
 
 export interface Carrera {
@@ -129,6 +130,7 @@ export type TipoUsuario = {
 };
 
 export interface TemaCreateLibre {
+  id?: number;
   titulo: string;
   carrera: { id: number };
   resumen: string;
@@ -180,12 +182,25 @@ export interface Solicitud {
 }
 
 export interface Observacion {
-  campo: "título" | "descripción";
-  detalle: string;
-  autor: string;
-  fecha: string;
+  solicitud_id: number;
+  descripcion: string;
+  tipo_solicitud: string;
+  estado_solicitud: string;
+  tema_id: number;
+  fecha_creacion: string;
+  usuarios: Remitente[];
 }
 
+export interface Remitente {
+  usuario_solicitud_id: number;
+  usuario_id: number;
+  nombres: string;
+  primer_apellido: string;
+  segundo_apellido: string;
+  codigo: string;
+  accion_solicitud: string; // "REMITENTE" o "DESTINATARIO"
+  rol_solicitud: string;
+}
 export interface ObservacionV2 {
   solicitud_id: number;
   descripcion: string;
@@ -205,7 +220,6 @@ export interface RemitenteV2 {
   codigo: string;
 }
 
-
 export interface TemaSimilitud {
   tema: {
     id: number;
@@ -216,3 +230,52 @@ export interface TemaSimilitud {
   similarityScore: number;
   comparedFields?: string;
 }
+
+export type Tema_Historial = {
+  id: number;
+  codigo: string;
+  titulo: string;
+  resumen: string;
+  objetivos: string;
+  metodologia: string;
+  requisitos: string | null;
+  portafolioUrl: string | null;
+  activo: boolean | null;
+  rechazado: boolean | null;
+  fechaLimite: string;
+  fechaFinalizacion: string | null;
+  fechaCreacion: string;
+  fechaModificacion: string;
+  estadoTemaNombre: string;
+  carrera: Carrera;
+  cantPostulaciones: number | null;
+  porcentajeSimilitud: number | null;
+  area: string | null;
+  subareas: string | null;
+  tesistas: string | null;
+  coasesores: string | null;
+  estadoUsuarioTema: string | null;
+};
+
+export type Historial = {
+  id: number;
+  tema: Tema_Historial;
+  codigo: string | null;
+  titulo: string;
+  resumen: string;
+  metodologia: string;
+  objetivos: string;
+  descripcionCambio: string;
+  portafolioUrl: string | null;
+  estadoTemaNombre: string;
+  proyectoId: number | null;
+  carrera: Carrera;
+  fechaLimite: string;
+  fechaFinalizacion: string | null;
+  activo: boolean;
+  fechaCreacion: string;
+  fechaModificacion: string;
+  subareasSnapshot: string;
+  asesoresSnapshot: string;
+  tesistasSnapshot: string;
+};

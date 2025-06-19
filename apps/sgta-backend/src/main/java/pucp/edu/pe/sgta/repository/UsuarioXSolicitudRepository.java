@@ -11,7 +11,11 @@ import org.springframework.stereotype.Repository;
 
 import pucp.edu.pe.sgta.model.RolSolicitud;
 import pucp.edu.pe.sgta.model.Solicitud;
+import pucp.edu.pe.sgta.model.Usuario;
 import pucp.edu.pe.sgta.model.UsuarioXSolicitud;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Repository
 public interface UsuarioXSolicitudRepository extends JpaRepository<UsuarioXSolicitud, Integer> {
@@ -78,4 +82,12 @@ public interface UsuarioXSolicitudRepository extends JpaRepository<UsuarioXSolic
             Integer usuarioId,
             String rolSolicitudNombre
     );
+
+    List<UsuarioXSolicitud> findByUsuarioAndRolSolicitud_NombreAndActivoTrue(Usuario usuario, String rolNombre);
+
+    UsuarioXSolicitud findFirstBySolicitudAndRolSolicitudAndActivoTrue(Solicitud solicitud, RolSolicitud rolSolicitud);
+
+    Page<UsuarioXSolicitud> findByUsuarioAndRolSolicitudAndActivoTrue(Usuario usuario,
+                                                                  RolSolicitud rol,
+                                                                  Pageable pageable);
 }

@@ -105,109 +105,6 @@ const DetalleExposicion: React.FC<DetalleExposicionProps> = ({
     fetchParametrosConfiguracion();
   }, []);
 
-  const calcularNotaFinal = ({
-    exposicion,
-    calificaciones,
-    pesoAsesor,
-  }: {
-    exposicion: ExposicionAlumno | undefined;
-    calificaciones: CalificacionesJurado[];
-    pesoAsesor: number;
-  }): number => {
-    if (!exposicion) return 0;
-
-    //OBTENEMOS A LOS JURADOS
-    const jurados = exposicion.miembrosJurado.filter(
-      (m) => m.tipo.toLowerCase() === "jurado",
-    );
-    console.log("Jurados:", jurados);
-    //OBTENEMOS AL ASESOR
-    const asesor = exposicion.miembrosJurado.find(
-      (m) => m.tipo.toLowerCase() === "asesor",
-    );
-    console.log("Asesor:", asesor);
-
-    const calcularNota = (criterios: CriterioEvaluacion[]) => {
-      const sumaNotas = criterios.reduce(
-        (acc, crit) => acc + (crit.calificacion ?? 0),
-        0,
-      );
-      const sumaMaxima = criterios.reduce(
-        (acc, crit) => acc + crit.nota_maxima,
-        0,
-      );
-      if (sumaMaxima === 0) return 0;
-      return (sumaNotas / sumaMaxima) * 20;
-    };
-
-    // Recorre todos los miembros del jurado (jurados).
-    // Busca en calificaciones la evaluación que corresponda a ese jurado (comparando usuario_id con id_persona).
-    // Si la evaluación existe y está calificada (calificado === true), calcula su nota con calcularNota(...).
-    // Si no existe o no está calificada, devuelve null.
-    // Luego, filtra los null (es decir, ignora a los jurados que no calificaron).
-    // Finalmente, convierte el resultado en un arreglo de números (number[]).
-    const notasJurados = jurados
-      .map((j) => {
-        const evalJurado = calificaciones.find(
-          (c) => c.usuario_id === j.id_persona,
-        );
-        return evalJurado && evalJurado.calificado
-          ? calcularNota(evalJurado.criterios)
-          : null;
-      })
-      .filter((n) => n !== null) as number[];
-
-    const notaAsesor = (() => {
-      if (!asesor) return null;
-      const evalAsesor = calificaciones.find(
-        (c) => c.usuario_id === asesor.id_persona,
-      );
-      return evalAsesor && evalAsesor.calificado
-        ? calcularNota(evalAsesor.criterios)
-        : null;
-    })();
-
-    //ESTE ES EL PESO DE LOS JURADOS EN TOTAL
-    const pesoTotalJurados = 1 - pesoAsesor;
-    let promedioFinal = 0;
-
-    //SI NO HAY CALIFICACION DEL ASESOR, REPARTIMOS EL PESO ENTRE LOS JURADOS
-    if (notaAsesor !== null) {
-      const pesoPorJurado =
-        notasJurados.length > 0 ? pesoTotalJurados / notasJurados.length : 0;
-      notasJurados.forEach((nota) => {
-        promedioFinal += nota * pesoPorJurado;
-      });
-      promedioFinal += notaAsesor * pesoAsesor;
-
-      console.log("Nota final con asesor:", promedioFinal);
-    } else {
-      //si no hay calificacion asesor, repartir el 100% entre los jurados
-      const pesoPorJurado =
-        notasJurados.length > 0 ? 1 / notasJurados.length : 0;
-      notasJurados.forEach((nota) => {
-        promedioFinal += nota * pesoPorJurado;
-      });
-
-      console.log("Nota final sin asesor:", promedioFinal);
-    }
-
-    return promedioFinal; // redondeado
-  };
-
-  const calcularSumaNotasJurado = (usuarioId: number): number => {
-    const calificacion = calificaciones.find(
-      (calif) => calif.usuario_id === usuarioId,
-    );
-
-    if (!calificacion || !calificacion.calificado) return 0;
-
-    return calificacion.criterios.reduce(
-      (acc, crit) => acc + (crit.calificacion ?? 0),
-      0,
-    );
-  };
-
   const router = useRouter();
 
   return (
@@ -381,61 +278,6 @@ const DetalleExposicion: React.FC<DetalleExposicionProps> = ({
             </div>
 
             {/*JURADO*/}
-            {/* <div>
-              <h2 className="text-lg font-semibold mb-4">
-                Miembros de Jurados
-              </h2>
-              <div className="grid grid-cols-3 gap-4">
-                {exposicion.miembrosJurado.map((miembro) => {
-                  const calificacion = calificaciones.find(
-                    (calif) => calif.usuario_id === miembro.id_persona,
-                  );
-
-                  const calificado = calificacion
-                    ? calificacion.calificado
-                    : false;
-
-                  return (
-                    <div
-                      key={miembro.id_persona}
-                      className="border rounded-2xl p-4 flex flex-col items-center text-center shadow-sm"
-                    >
-                      <div className="bg-gray-100 p-4 rounded-full mb-3">
-                        <User className="h-8 w-8 text-gray-500" />
-                      </div>
-                      <h3 className="font-medium text-base">
-                        {miembro.nombre}
-                      </h3>
-                      <h3 className="font-medium text-base text-gray-500">
-                        {miembro.tipo}
-                      </h3>
-                      <Button
-                        asChild
-                        // variant={"secondary"}
-                        size="default"
-                        className="w-full mt-4"
-                        disabled={!calificado}
-                        variant={calificado ? "default" : "secondary"}
-                      >
-                        <Link
-                          href={
-                            calificado
-                              ? `/alumno/mi-proyecto/exposiciones/${id}/${exposicion.exposicionId}/observaciones/${miembro.id_persona}`
-                              : "#"
-                          }
-                          className={`${!calificado ? "pointer-events-none text-gray-500" : ""}`}
-                        >
-                          {calificado
-                            ? "Ver Calificación"
-                            : "Pendiente de calificar"}
-                        </Link>
-                      </Button>
-                    </div>
-                  );
-                })}
-              </div>
-            </div> */}
-
             <div>
               <h2 className="text-lg font-semibold mb-4">
                 Miembros de Jurados
@@ -466,7 +308,10 @@ const DetalleExposicion: React.FC<DetalleExposicionProps> = ({
                         <div className="mt-2 text-xl text-gray-600">
                           <span className="font-medium">
                             Calificación:{" "}
-                            {calcularSumaNotasJurado(miembro.id_persona)}
+                            {calificaciones.find(
+                              (calif) =>
+                                calif.usuario_id === miembro.id_persona,
+                            )?.calificacion_final || "0.00"}
                           </span>
                         </div>
                       ) : (
@@ -534,27 +379,14 @@ const DetalleExposicion: React.FC<DetalleExposicionProps> = ({
                 <div>
                   <h1
                     className={`text-4xl font-semibold items-center ${
-                      calcularNotaFinal({
-                        exposicion,
-                        calificaciones,
-                        pesoAsesor,
-                      }) > 15
+                      exposicion.notaFinal > 15
                         ? "text-green-600"
-                        : calcularNotaFinal({
-                              exposicion,
-                              calificaciones,
-                              pesoAsesor,
-                            }) >= 11
+                        : exposicion.notaFinal >= 11
                           ? "text-yellow-500"
                           : "text-red-600"
                     }`}
                   >
-                    {calcularNotaFinal({
-                      exposicion,
-                      calificaciones,
-                      pesoAsesor,
-                    })}{" "}
-                    / 20
+                    {exposicion.notaFinal}/ 20
                   </h1>
                 </div>
               </div>

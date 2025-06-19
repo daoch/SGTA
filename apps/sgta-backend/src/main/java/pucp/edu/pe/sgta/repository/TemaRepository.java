@@ -171,6 +171,6 @@ public interface TemaRepository extends JpaRepository<Tema, Integer> {
   @Query(value = "SELECT * FROM obtener_temas_por_alumno(:idAlumno)", nativeQuery = true)
   List<Object[]> obtenerTemasPorAlumno(@Param("idAlumno") Integer idAlumno);
 
-
+  Optional<Tema>  findTemaByIdAndEstadoTema_Nombre(Integer temaId, String nombre);
 
 }

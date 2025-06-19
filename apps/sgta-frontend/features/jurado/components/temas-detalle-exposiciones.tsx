@@ -23,6 +23,8 @@ import {
 import ModalAsignarMiembroJurado from "./modal-asignar-miembro-jurado";
 import { getAllByCarreraId } from "@/features/configuracion/services/configuracion-service";
 import { Profesor } from "../types/temas.types";
+// import { Button } from "@/components/ui/button";
+// import ModalAgregarHostsMeeting from "./modal-agregar-hosts-meeting";
 
 interface TemasDetalleExposicionesProps {
   temaId: number;
@@ -37,6 +39,7 @@ export const TemasDetalleExposiciones: React.FC<
   const [tesis, setTesis] = useState<TesisDetalleExposicion | null>(null);
   const [showAlertDialog, setShowAlertDialog] = useState<boolean>(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  // const [isModalAgregarHosts, setIsModalAgregarHosts] = useState(false);
   const [selectedJurado, setSelectedJurado] = useState<{
     id: number;
     nombre: string;
@@ -420,6 +423,17 @@ export const TemasDetalleExposiciones: React.FC<
             </div>
           ))}
       </div>
+      {/* 
+      <div>
+        <Button onClick={() => setIsModalAgregarHosts(true)}>
+          Testing Agregar Hosts
+        </Button>
+        <ModalAgregarHostsMeeting
+          isOpen={isModalAgregarHosts}
+          onClose={() => setIsModalAgregarHosts(false)}
+          idExposicion={2} // tienes que cambiar este id a uno real
+        />
+      </div> */}
 
       <Toaster position="bottom-right" richColors />
     </div>
