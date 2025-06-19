@@ -257,12 +257,21 @@ export default function SolicitudCeseDetalle({
     }
   };
 
-  const formatFecha = (fecha: string | Date | null): string => {
-    if (!fecha) return "No disponible";
-    const date = new Date(fecha);
+  const formatFecha = (fecha: string | Date): string => {
+    console.log("Fecha recibida:", fecha);
+
+    let date: Date;
+
+    if (typeof fecha === "string") {
+      const [day, month, year] = fecha.split("/").map(Number);
+      date = new Date(year, month - 1, day); // month es base 0
+    } else {
+      date = fecha;
+    }
+
     return date.toLocaleDateString("es-ES", {
       year: "numeric",
-      month: "long",
+      month: "short",
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
