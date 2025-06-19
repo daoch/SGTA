@@ -93,7 +93,7 @@ public interface SolicitudRepository extends JpaRepository<Solicitud, Integer>, 
             EstadoSolicitud estadoSolicitud
     );
 
-    @Query(value = "SELECT * FROM obtener_solicitudes_cese_tema_resumen(:idUsuario, :cast(:roles as TEXT[]))",
+    @Query(value = "SELECT * FROM obtener_solicitudes_cese_tema_resumen(:idUsuario, cast(:roles as TEXT[]))",
     nativeQuery = true)
     List<Object[]> listarResumenSolicitudCeseTemaUsuario(@Param("idUsuario") Integer idUsuario,
                                                         @Param("roles") String roles);
