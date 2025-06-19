@@ -486,13 +486,23 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                                 .map(ut -> ut.getTema().getId())
                                 .collect(Collectors.toSet());
 
+                ParametroConfiguracion parametroConfiguracion = parametroConfiguracionRepository
+                                .findByNombre("Cantidad Jurados")
+                                .orElseThrow(() -> new RuntimeException("Parámetro no encontrado"));
+
+                CarreraXParametroConfiguracion carreraXParametroConfiguracion = carreraXParametroConfiguracionRepository
+                                .findFirstByParametroConfiguracionId(parametroConfiguracion.getId())
+                                .orElseThrow(() -> new RuntimeException(
+                                                "No se encontro carrera x parametro configuración"));
+
                 Map<Integer, UsuarioXTema> relacionesJurado = usuarioXTemaRepository.findAll().stream()
                                 .filter(ut -> ut.getActivo())
                                 .filter(ut -> ut.getRol().getId().equals(4))
                                 // .filter(ut -> !ut.getUsuario().getId().equals(usuarioId))
                                 .filter(ut -> !temasDelUsuario.contains(ut.getTema().getId()))
                                 .filter(ut -> esEstadoTemaValido(ut.getTema().getEstadoTema()))
-                                .filter(ut -> usuarioXTemaRepository.obtenerJuradosPorTema(ut.getTema().getId()) < 3)
+                                .filter(ut -> usuarioXTemaRepository.obtenerJuradosPorTema(ut.getTema()
+                                                .getId()) < Integer.parseInt(carreraXParametroConfiguracion.getValor()))
                                 .collect(Collectors.toMap(
                                                 ut -> ut.getTema().getId(), // clave: ID del tema
                                                 ut -> ut,
