@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { addDays, format, isBefore, parseISO } from "date-fns";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import {
   Select,
   SelectContent,
@@ -76,6 +77,9 @@ interface TimelineEvent {
   esEvaluable: boolean;
   nota: number | null;
   criterios: Criterio[];
+  entregableId: number;
+  temaId: number;
+  estadoRevision?: string;
 }
 
 interface Props {
@@ -105,6 +109,8 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
         const data = selectedStudentId != null
         ? await getEntregablesAlumnoSeleccionado(selectedStudentId)
         : await getEntregablesAlumno();
+        
+        console.log("📦 Datos obtenidos de la API:", data);
 
         type RawEntregable = {
           nombreEntregable: string;
@@ -114,6 +120,9 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
           esEvaluable: boolean;
           nota: number | null;
           criterios: Criterio[];
+          entregableId: number;   
+          temaId: number;  
+          estadoRevision?: string;
         };
 
         const rawData = data as RawEntregable[];
@@ -146,6 +155,7 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
                 date: format(eventDate, "yyyy-MM-dd"),
                 rawEstadoEntregable: item.estadoEntregable,
                 rawEstadoXTema: item.estadoXTema,
+                estadoRevision: item.estadoRevision,
                 status: statusInterno,
                 isLate: isLateFlag,
                 daysRemaining,
@@ -153,6 +163,8 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
                 esEvaluable: item.esEvaluable,
                 nota: item.nota,
                 criterios: item.criterios || [],
+                entregableId: item.entregableId,
+                temaId: item.temaId,
               };
             
             } else {
@@ -168,6 +180,8 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
                 esEvaluable: item.esEvaluable,
                 nota: item.nota,
                 criterios: item.criterios || [],
+                entregableId: item.entregableId, 
+                temaId: item.temaId,
               };
             }
           });
@@ -405,6 +419,12 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
                               <span className={`ml-2 text-xs ${colorEntregable}`}>
                                 {textoEntregable}
                               </span>
+                              {event.estadoRevision && (
+                                <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-800">
+                                  {humanize(event.estadoRevision)}
+                                </span>
+                              )}
+
                               {event.isAtRisk && (
                                 <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800">
                                   En riesgo ({event.daysRemaining} días)
@@ -413,10 +433,13 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
                             </h3>
                           </div>
                           <div className="flex items-center justify-end space-x-4 min-w-[200px]">
-                            <Button variant="default" size="sm" className="flex items-center">
+                            <Link
+                              href={`/alumno/mi-proyecto/entregables/${event.entregableId}?tema=${event.temaId}`}
+                              className="flex items-center px-3 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+                            >
                               <Eye className="h-4 w-4" />
                               <span className="ml-1">Ver detalle</span>
-                            </Button>
+                            </Link>
                             <Button
                               variant="default"
                               size="sm"
