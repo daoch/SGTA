@@ -41,9 +41,18 @@ interface SolicitudCeseTemaResumen {
   nombreAsesorActual: string;
 }
 
-// Función para formatear fecha
 const formatFecha = (fecha: string | Date): string => {
-  const date = new Date(fecha);
+  console.log("Fecha recibida:", fecha);
+
+  let date: Date;
+
+  if (typeof fecha === "string") {
+    const [day, month, year] = fecha.split("/").map(Number);
+    date = new Date(year, month - 1, day); // month es base 0
+  } else {
+    date = fecha;
+  }
+
   return date.toLocaleDateString("es-ES", {
     year: "numeric",
     month: "short",
@@ -113,12 +122,12 @@ function TablaSolicitudesCeseTema({
   formatFecha,
   getEstadoBadge,
   rutaDetalle,
-}: {
+}: Readonly<{
   solicitudes: SolicitudCeseTemaResumen[];
   formatFecha: (fecha: string | Date) => string;
   getEstadoBadge: (estado: string) => React.ReactNode;
   rutaDetalle: string;
-}) {
+}>) {
   if (!solicitudes || !Array.isArray(solicitudes)) {
     return null;
   }
