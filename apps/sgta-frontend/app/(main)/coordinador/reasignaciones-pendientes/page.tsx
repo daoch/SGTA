@@ -98,7 +98,7 @@ const CoordinadorReasignacionesPendientesPage = () => {
         topic: temaParaModal, // Reutilizar el objeto temaParaModal que ya tiene ID y nombre
       })),
       registerTime: dataDeReasignacionPendiente.fechaAprobacionCese, // Usar fechaAprobacionCese
-      status: "aprobada", // El estado de la solicitud de cese original siempre será "aprobada" en este flujo
+      status: "aceptada", // El estado de la solicitud de cese original siempre será "aprobada" en este flujo
       reason: dataDeReasignacionPendiente.motivoCeseOriginal,
       response: null, // La respuesta a la solicitud de cese original (podría ser el comentario de aprobación del coord.)
       responseTime: dataDeReasignacionPendiente.fechaAprobacionCese, // O la fecha de resolución del cese
