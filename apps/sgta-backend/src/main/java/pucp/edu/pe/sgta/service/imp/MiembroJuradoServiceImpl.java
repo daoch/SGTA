@@ -24,6 +24,9 @@ import pucp.edu.pe.sgta.service.inter.MiembroJuradoService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
 import pucp.edu.pe.sgta.util.EstadoExposicion;
 import pucp.edu.pe.sgta.dto.exposiciones.EstadoExposicionDto;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -483,13 +486,23 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                                 .map(ut -> ut.getTema().getId())
                                 .collect(Collectors.toSet());
 
+                ParametroConfiguracion parametroConfiguracion = parametroConfiguracionRepository
+                                .findByNombre("Cantidad Jurados")
+                                .orElseThrow(() -> new RuntimeException("Parámetro no encontrado"));
+
+                CarreraXParametroConfiguracion carreraXParametroConfiguracion = carreraXParametroConfiguracionRepository
+                                .findFirstByParametroConfiguracionId(parametroConfiguracion.getId())
+                                .orElseThrow(() -> new RuntimeException(
+                                                "No se encontro carrera x parametro configuración"));
+
                 Map<Integer, UsuarioXTema> relacionesJurado = usuarioXTemaRepository.findAll().stream()
                                 .filter(ut -> ut.getActivo())
                                 .filter(ut -> ut.getRol().getId().equals(4))
                                 // .filter(ut -> !ut.getUsuario().getId().equals(usuarioId))
                                 .filter(ut -> !temasDelUsuario.contains(ut.getTema().getId()))
                                 .filter(ut -> esEstadoTemaValido(ut.getTema().getEstadoTema()))
-                                .filter(ut -> usuarioXTemaRepository.obtenerJuradosPorTema(ut.getTema().getId()) < 3)
+                                .filter(ut -> usuarioXTemaRepository.obtenerJuradosPorTema(ut.getTema()
+                                                .getId()) < Integer.parseInt(carreraXParametroConfiguracion.getValor()))
                                 .collect(Collectors.toMap(
                                                 ut -> ut.getTema().getId(), // clave: ID del tema
                                                 ut -> ut,
@@ -998,6 +1011,20 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                                                                         criterio.getId(),
                                                                         userDto.getId());
 
+                                        System.out.println(
+                                                        "Buscando revisionCriterioExposicion para criterio: "
+                                                                        + criterio.getId());
+                                        System.out.println(
+                                                        "ExposicionXTema ID: "
+                                                                        + exposicionCalificacionRequest
+                                                                                        .getExposicion_tema_id());
+                                        System.out.println("Usuario ID: " + userDto.getId());
+
+                                        if (revisionOpt.isEmpty()) {
+                                                System.out.println(
+                                                                "Revision not found for criterio: " + criterio.getId());
+                                        }
+
                                         RevisionCriterioExposicion revision = revisionOpt.orElse(null);
 
                                         CriteriosCalificacionDto dto = new CriteriosCalificacionDto();
@@ -1164,11 +1191,13 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
 
                                                 RevisionCriterioExposicion revision = revisionOpt.orElse(null);
 
-                                                // SI NO HAY CRITERIOS DE CALIFICACION, ENTONCES EL JURADO HA CALIFICADO
-                                                if (revision == null) {
+                                                // SI HAY CRITERIOS DE CALIFICACION, ENTONCES EL JURADO HA CALIFICADO
+                                                if (revision != null && revision.getNota() == null) {
                                                         juradoCalificacion.setCalificado(false);
-                                                } else {
+                                                } else if (revision != null && revision.getNota() != null) {
                                                         juradoCalificacion.setCalificado(true);
+                                                } else {
+                                                        juradoCalificacion.setCalificado(false);
                                                 }
 
                                                 CriteriosCalificacionDto dto = new CriteriosCalificacionDto();
@@ -1209,9 +1238,131 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                                         + miembro.getSegundoApellido());
                         juradoCalificacion.setCriterios(criteriosCalificacionDtos);
                         juradoCalificacion.setObservaciones_finales(observacionesFinales);
+                        juradoCalificacion.setCalificacion_final(controlExposicion.getNotaRevision());
                         exposicionesCalificacion.add(juradoCalificacion);
                 }
 
                 return ResponseEntity.ok(exposicionesCalificacion);
+        }
+
+        @Override
+        public ResponseEntity<?> actualizarNotaFinalExposicion(Integer exposicionId) {
+
+                ExposicionCalificacionRequest request = new ExposicionCalificacionRequest();
+                request.setExposicion_tema_id(exposicionId);
+                List<ExposicionCalificacionJuradoDTO> calificaciones = obtenerCalificacionExposicionJurado(request)
+                                .getBody();
+
+                if (calificaciones == null || calificaciones.isEmpty()) {
+                        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                        .body("No se encontraron calificaciones para la exposición con ID: "
+                                                        + exposicionId);
+                }
+
+                ParametroConfiguracion parametroConfiguracion = parametroConfiguracionRepository
+                                .findByNombre("Peso Asesor")
+                                .orElseThrow(() -> new RuntimeException("Parámetro no encontrado"));
+
+                CarreraXParametroConfiguracion carreraXParametroConfiguracion = carreraXParametroConfiguracionRepository
+                                .findFirstByParametroConfiguracionId(parametroConfiguracion.getId())
+                                .orElseThrow(() -> new RuntimeException(
+                                                "No se encontro carrera x parametro configuración"));
+
+                ExposicionXTema exposicionXTema = exposicionXTemaRepository
+                                .findById(exposicionId)
+                                .orElseThrow(() -> new RuntimeException("No se encontró exposicion_x_tema con id: "
+                                                + exposicionId));
+
+                int pesoAsesor = Integer.parseInt(carreraXParametroConfiguracion.getValor()) - 1;
+
+                BigDecimal notaFinal = BigDecimal.ZERO;
+                BigDecimal notaAsesor = null;
+                List<BigDecimal> notasJurados = new ArrayList<>();
+
+                for (ExposicionCalificacionJuradoDTO calificacion : calificaciones) {
+
+                        UsuarioXTema usuarioXTema = usuarioXTemaRepository
+                                        .findByUsuarioIdAndTemaIdAndRolIdIn(calificacion.getUsuario_id(),
+                                                        exposicionXTema.getTema().getId(), List.of(1, 2))
+                                        .orElseThrow(() -> new ResponseStatusException(
+                                                        HttpStatus.NOT_FOUND,
+                                                        "No se encontró una relación UsuarioXTema con los IDs proporcionados y rol 1 o 2"));
+
+                        BigDecimal nota = calificacion.getCalificacion_final();
+
+                        if (usuarioXTema.getRol().getId() == 1) { // nota del asesor
+                                if (nota != null) {
+                                        notaAsesor = nota;
+                                }
+                        } else if (usuarioXTema.getRol().getId() == 2) { // vamos agregando las notas del jurado
+                                notasJurados.add(nota);
+                        }
+                }
+
+                // filtramos solo las notas validas por el jurado
+                List<BigDecimal> notasJuradosValidas = notasJurados.stream()
+                                .filter(Objects::nonNull)
+                                .collect(Collectors.toList());
+
+                // obtenemos la cantidad de jurados que han calificado
+                int juradosCalificados = notasJuradosValidas.size();
+
+                // CASUISTICAS
+                if (notaAsesor != null && juradosCalificados == 0) {
+                        // si solo el asesor ha calificado entonces se toma la nota del asesor
+                        notaFinal = notaAsesor;
+                        exposicionXTema.setNotaFinal(notaFinal);
+                        exposicionXTemaRepository.save(exposicionXTema);
+                        return ResponseEntity.ok(notaFinal.setScale(2, RoundingMode.HALF_UP));
+                }
+
+                if (notaAsesor == null && juradosCalificados == 1) {
+                        // si solo un jurado ha calificado y no hay nota del asesor, se toma la nota del
+                        // jurado
+                        notaFinal = notasJuradosValidas.get(0);
+                        exposicionXTema.setNotaFinal(notaFinal);
+                        exposicionXTemaRepository.save(exposicionXTema);
+                        return ResponseEntity.ok(notaFinal.setScale(2, RoundingMode.HALF_UP));
+                }
+
+                // reemplazamos notas faltantes del jurado con el promedio
+                BigDecimal promedioJurados = BigDecimal.ZERO;
+                if (juradosCalificados > 0) {
+                        promedioJurados = notasJuradosValidas.stream()
+                                        .reduce(BigDecimal.ZERO, BigDecimal::add)
+                                        .divide(BigDecimal.valueOf(juradosCalificados), 4, RoundingMode.HALF_UP);
+                }
+
+                List<BigDecimal> notasJuradosCompletas = new ArrayList<>();
+                for (BigDecimal nota : notasJurados) {
+                        notasJuradosCompletas.add(nota != null ? nota : promedioJurados);
+                }
+
+                int totalJurados = notasJuradosCompletas.size();
+
+                // calculamos los pesos finales
+                BigDecimal pesoAsesorFinal = notaAsesor != null
+                                ? new BigDecimal(pesoAsesor).divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP)
+                                : BigDecimal.ZERO;
+
+                BigDecimal pesoJuradosFinal = BigDecimal.ONE.subtract(pesoAsesorFinal); // 1 - pesoAsesorFinal
+                BigDecimal pesoPorJurado = totalJurados > 0
+                                ? pesoJuradosFinal.divide(BigDecimal.valueOf(totalJurados), 4, RoundingMode.HALF_UP)
+                                : BigDecimal.ZERO;
+
+                // calculamos la nota final
+                if (notaAsesor != null) {
+                        notaFinal = notaFinal.add(notaAsesor.multiply(pesoAsesorFinal));
+                }
+
+                for (BigDecimal notaJurado : notasJuradosCompletas) {
+                        notaFinal = notaFinal.add(notaJurado.multiply(pesoPorJurado));
+                }
+
+                // actualizamos la nota final en la BD
+                exposicionXTema.setNotaFinal(notaFinal);
+                exposicionXTemaRepository.save(exposicionXTema);
+
+                return ResponseEntity.ok(notaFinal.setScale(2, RoundingMode.HALF_UP));
         }
 }

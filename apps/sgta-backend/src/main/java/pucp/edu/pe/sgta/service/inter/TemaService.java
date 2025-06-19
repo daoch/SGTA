@@ -12,6 +12,7 @@ import java.util.Map;
 
 import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
 import pucp.edu.pe.sgta.dto.temas.TemasComprometidosDto;
+import pucp.edu.pe.sgta.model.Tema;
 
 public interface TemaService {
 	List<TemaDto> getAll();
@@ -175,7 +176,7 @@ public interface TemaService {
 
 	void guardarSimilitudes(String cognitoId, List<TemaSimilarDto> similitudes);
 
-	Integer createInscripcionTemaV2(TemaDto dto, String idUsuario);
+	Integer createInscripcionTemaV2(TemaDto dto, String idUsuario, Boolean reinscribir);
 
 	List<TemaDto> listarTemasSimilares(Integer temaId);
 
@@ -219,5 +220,26 @@ public interface TemaService {
 	 * @return The ID of the created tema
 	 */
 	Integer createTemaFromOAI(TemaDto temaDto, Integer carreraId);
+
+	/**
+	 * Registra una propuesta de reasignación para una solicitud de cese ya aprobada.
+	 * Actualiza la solicitud original con el asesor propuesto y un estado de reasignación.
+	 * Notifica al asesor propuesto.
+	 *
+	 * @param solicitudDeCeseOriginalId El ID de la Solicitud de cese que fue aprobada.
+	 * @param nuevoAsesorPropuestoId El ID del Usuario (profesor) que se propone como nuevo asesor.
+	 * @param coordinadorCognitoSub El Cognito Sub del coordinador que realiza la propuesta (para auditoría/validación).
+	 */
+	void proponerReasignacionParaSolicitudCese(
+			Integer solicitudDeCeseOriginalId,
+			Integer nuevoAsesorPropuestoId,
+			String coordinadorCognitoSub
+	);
+
+	Tema actualizarTemaYHistorial(Integer temaId,
+								  String nuevoEstadoNombre,
+								  String comentario);
+
+	String listarSolicitudesPendientesTemaAlumnos(String usuarioId, int offset, int limit);
 
 }

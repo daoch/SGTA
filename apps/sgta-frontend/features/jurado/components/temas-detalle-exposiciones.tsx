@@ -23,6 +23,8 @@ import {
 import ModalAsignarMiembroJurado from "./modal-asignar-miembro-jurado";
 import { getAllByCarreraId } from "@/features/configuracion/services/configuracion-service";
 import { Profesor } from "../types/temas.types";
+// import { Button } from "@/components/ui/button";
+// import ModalAgregarHostsMeeting from "./modal-agregar-hosts-meeting";
 
 interface TemasDetalleExposicionesProps {
   temaId: number;
@@ -37,6 +39,7 @@ export const TemasDetalleExposiciones: React.FC<
   const [tesis, setTesis] = useState<TesisDetalleExposicion | null>(null);
   const [showAlertDialog, setShowAlertDialog] = useState<boolean>(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  // const [isModalAgregarHosts, setIsModalAgregarHosts] = useState(false);
   const [selectedJurado, setSelectedJurado] = useState<{
     id: number;
     nombre: string;
@@ -194,7 +197,7 @@ export const TemasDetalleExposiciones: React.FC<
       </AlertDialog>
 
       <div>
-        <div className="grid grid-cols-12 gap-6 mb-6">
+        <div className="grid grid-cols-1 gap-6 mb-6">
           <div className="col-span-3">
             <p className="flex h-[16.89px] justify-center flex-col flex-shrink-0 text-black font-montserrat text-base font-medium leading-[14px]">
               Asesor
@@ -209,7 +212,7 @@ export const TemasDetalleExposiciones: React.FC<
           </div>
 
           {tesis.asesores.length > 1 && (
-            <div className="col-span-3">
+            <div className="col-span-12">
               <p className="flex h-[16.89px] justify-center flex-col flex-shrink-0 text-black font-montserrat text-base font-medium leading-[14px]">
                 Coasesor
               </p>
@@ -272,7 +275,8 @@ export const TemasDetalleExposiciones: React.FC<
                 </div>
               )}
             </div>
-            {tesis.miembrosJurado.length > 0 ? (
+
+            {/* {tesis.miembrosJurado.length > 0 ? (
               <div className="flex flex-wrap gap-4 mt-2">
                 {tesis.miembrosJurado.map((jurado) => (
                   <div key={jurado.id} className="flex items-center">
@@ -294,7 +298,32 @@ export const TemasDetalleExposiciones: React.FC<
               <p className="text-gray-500 mt-2">
                 No hay miembros de jurado asignados al tema
               </p>
-            )}
+            )} */}
+
+            <div className="flex flex-wrap gap-4 mt-2">
+              <div className="flex items-center mt-2">
+                <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center mr-2 overflow-hidden">
+                  <CircleUserRound className="h-5 w-5 text-gray-500" />
+                </div>
+                {tesis.asesores.find((a) => a.tipo === "Asesor")?.nombre ||
+                  "Sin asesor"}
+              </div>
+              {tesis.miembrosJurado.map((jurado) => (
+                <div key={jurado.id} className="flex items-center">
+                  <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center mr-2 overflow-hidden">
+                    <CircleUserRound className="h-5 w-5 text-gray-500" />
+                  </div>
+                  <span>{jurado.nombre}</span>
+                  <button
+                    onClick={() => openConfirmDialog(jurado)}
+                    className="ml-2"
+                    aria-label="Desasignar jurado"
+                  >
+                    <X className="h-4 w-4 text-red-500 cursor-pointer" />
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -394,6 +423,17 @@ export const TemasDetalleExposiciones: React.FC<
             </div>
           ))}
       </div>
+      {/* 
+      <div>
+        <Button onClick={() => setIsModalAgregarHosts(true)}>
+          Testing Agregar Hosts
+        </Button>
+        <ModalAgregarHostsMeeting
+          isOpen={isModalAgregarHosts}
+          onClose={() => setIsModalAgregarHosts(false)}
+          idExposicion={2} // tienes que cambiar este id a uno real
+        />
+      </div> */}
 
       <Toaster position="bottom-right" richColors />
     </div>

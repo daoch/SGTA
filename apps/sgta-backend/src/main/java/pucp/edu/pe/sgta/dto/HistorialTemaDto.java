@@ -38,6 +38,12 @@ public class HistorialTemaDto {
 
     private OffsetDateTime fechaFinalizacion;
 
+    private String subareasSnapshot;
+
+    private String asesoresSnapshot;
+    
+    private String tesistasSnapshot;
+
     private Boolean activo;
 
     private OffsetDateTime fechaCreacion;

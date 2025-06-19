@@ -315,8 +315,11 @@ export default function ModalAsignarMiembroJurado({
             {selectedProfesores.length === cantMiembrosJuradoDisp && (
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
                 <p className="text-sm text-blue-800">
-                  <strong>Límite alcanzado:</strong> Has llegado al máximo de{" "}
-                  {cantMiembrosJuradoDisp} miembros de jurado seleccionables.
+                  <strong>Selección completa:</strong> Has seleccionado la
+                  cantidad máxima de miembros del jurado permitidos,
+                  considerando también al asesor. Si deseas cambiar tu
+                  selección, puedes deseleccionar a alguno de los docentes
+                  elegidos.
                 </p>
               </div>
             )}
@@ -356,7 +359,7 @@ export default function ModalAsignarMiembroJurado({
           </div>
 
           {profesoresSeleccionados.length > 0 ? (
-            <div className="flex flex-col gap-4 mt-2 flex-grow">
+            <div className="flex flex-col gap-4 mt-2 flex-grow overflow-y-auto">
               {currentItems.map((profesor) => {
                 const isSelected = selectedProfesores.includes(profesor);
                 const isDisabled =

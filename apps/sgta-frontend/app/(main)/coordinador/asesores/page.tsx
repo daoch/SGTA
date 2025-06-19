@@ -1,13 +1,13 @@
 "use client";
 
-import { Users, Check, BookOpen } from "lucide-react";
-import Link from "next/link";
 import {
   Card,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "@/components/ui/card";
+import { BookOpen, Check, Users } from "lucide-react";
+import Link from "next/link";
 
 const cards = [
   {
@@ -28,6 +28,19 @@ const cards = [
     href: "/coordinador/asesores/areas-tematicas",
     icon: BookOpen,
   },
+
+  {
+    title: "Cese de Tema",
+    description: "Gestiona solicitudes de cese de tema de tesis.",
+    href: "/coordinador/asesores/cese-tema",
+    icon: BookOpen,
+  },
+  {
+    title: "Cambio de Asesor",
+    description: "Administra solicitudes de cambio de asesor académico.",
+    href: "/coordinador/asesores/cambio-asesor",
+    icon: BookOpen,
+  },
 ];
 
 export default function PersonalAcademicoDashboard() {
@@ -35,7 +48,9 @@ export default function PersonalAcademicoDashboard() {
     <div className="bg-background min-h-screen">
       <div className="container mx-auto py-8 px-4 max-w-6xl">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight mb-2">Gestión del Personal Académico</h1>
+          <h1 className="text-3xl font-bold tracking-tight mb-2">
+            Gestión del Personal Académico
+          </h1>
           <p className="text-muted-foreground max-w-2xl">
             Administre las funciones relacionadas con asesores académicos.
           </p>
@@ -43,11 +58,7 @@ export default function PersonalAcademicoDashboard() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {cards.map(({ title, description, href, icon: Icon }) => (
-            <Link
-              key={href}
-              href={href}
-              className="group"
-            >
+            <Link key={href} href={href} className="group">
               <Card className="transition-shadow hover:shadow-md">
                 <CardHeader className="flex flex-row items-start gap-4">
                   <div className="bg-muted p-2 rounded-md">

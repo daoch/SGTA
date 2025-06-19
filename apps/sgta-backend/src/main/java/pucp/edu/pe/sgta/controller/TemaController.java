@@ -90,7 +90,7 @@ public class TemaController {
 			HttpServletRequest request
 	) {
 		String idUsuarioCreador = jwtService.extractSubFromRequest(request);
-		return temaService.createInscripcionTemaV2(dto, idUsuarioCreador);
+		return temaService.createInscripcionTemaV2(dto, idUsuarioCreador, false);
 	}
 
 	@PutMapping("/update") // updates a topic
@@ -323,7 +323,7 @@ public class TemaController {
 	}
 
 	@GetMapping("/listarTemaActivoConAsesor/{idAlumno}")
-	public ResponseEntity<TemaConAsesorDto> listarTemas(@PathVariable Integer idAlumno) {
+	public ResponseEntity<TemaConAsesorDto> listarTemas(@PathVariable Integer idAlumno, HttpServletRequest request) {
 		TemaConAsesorDto temas = temaService.obtenerTemaActivoPorAlumno(idAlumno);
 		return ResponseEntity.ok(temas);
 	}
@@ -834,6 +834,22 @@ public class TemaController {
                 "No autorizado para listar pendientes: " + e.getMessage());
         }
     }
+
+	@GetMapping("/listarSolicitudesPendientesTemaAlumnos")
+	public ResponseEntity<String> listarSolicitudesPendientesTemaAlumnos(
+			@RequestParam(value = "offset", defaultValue = "0") int offset,
+			@RequestParam(value = "limit",  defaultValue = "10") int limit,
+			HttpServletRequest request) {
+		try {
+			String usuarioId = jwtService.extractSubFromRequest(request);
+			String json = temaService.listarSolicitudesPendientesTemaAlumnos(usuarioId, offset, limit);
+			return ResponseEntity.ok(json);
+		} catch (RuntimeException e) {
+			throw new ResponseStatusException(
+					HttpStatus.UNAUTHORIZED,
+					"No autorizado para listar pendientes: " + e.getMessage());
+		}
+	}
 
 }
 

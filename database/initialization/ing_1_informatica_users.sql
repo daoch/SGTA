@@ -156,7 +156,7 @@ INSERT INTO usuario_rol (usuario_id,
          FROM usuario
                   INNER JOIN tipo_usuario ON tipo_usuario.tipo_usuario_id = usuario.tipo_usuario_id
                   INNER JOIN usuario_carrera ON usuario_carrera.usuario_id = usuario.usuario_id
-                  JOIN rol ON rol.nombre = 'Asesor'
+                  JOIN rol ON lower(rol.nombre) = 'asesor'
          WHERE tipo_usuario.nombre LIKE 'profesor'
            AND usuario_carrera.carrera_id = 1);
 
@@ -221,28 +221,6 @@ INSERT INTO usuario_sub_area_conocimiento (usuario_id, sub_area_conocimiento_id)
 --------------------------
 --|  ACCESO DEL GRUPO  |--
 --------------------------
-
-
-INSERT INTO usuario_carrera (usuario_id,
-                             carrera_id,
-                             es_coordinador)
-SELECT u.usuario_id,
-       c.carrera_id,
-       FALSE AS es_coordinador
-    FROM usuario u
-             CROSS JOIN
-         carrera c
-             JOIN (VALUES ('20180530'),
-                          ('20191088'),
-                          ('20200485'),
-                          ('20161395'),
-                          ('20195952'),
-                          ('20181897')) AS codigos(codigo_pucp)
-                  ON u.codigo_pucp = codigos.codigo_pucp
-    WHERE u.activo = TRUE
-      AND c.codigo = 'INF'
-      AND c.activo = TRUE;
-
 
 
 INSERT INTO usuario_rol (usuario_id,

@@ -2581,34 +2581,34 @@ CREATE OR REPLACE FUNCTION listar_temas_por_usuario_titulo_area_carrera_estado_f
     p_offset                    INT     DEFAULT 0
 )
 RETURNS TABLE(
-    tema_id             INTEGER,       --  1
-    codigo              TEXT,          --  2
-    titulo              TEXT,          --  3
-    resumen             TEXT,          --  4
-    metodologia          TEXT,         --  5
-    objetivos           TEXT,          --  6
-    portafolio_url      TEXT,          --  7
-    requisitos          TEXT,          --  8
-    activo              BOOLEAN,       --  9
-    fecha_limite        TIMESTAMPTZ,   -- 10
-    fecha_creacion      TIMESTAMPTZ,   -- 11
-    fecha_modificacion  TIMESTAMPTZ,   -- 12
-    carrera_id          INTEGER,       -- 13
-    carrera_nombre      TEXT,          -- 14
-    area_ids            INTEGER[],     -- 15
-    area_nombres        TEXT[],        -- 16
-    subarea_ids         INTEGER[],     -- 17
-    subarea_nombres     TEXT[],        -- 18
-    asesor_ids          INTEGER[],     -- 19  (IDs de Asesor + Coasesores)
-    asesor_nombres      TEXT[],        -- 20  (nombres completos)
-    asesor_codigos      TEXT[],        -- 21  (códigos PUCP)
-    asesor_roles        TEXT[],        -- 22  (roles: “Asesor” o “Coasesor”)
-    tesista_ids         INTEGER[],     -- 23
-    tesista_nombres     TEXT[],        -- 24
-    estado_nombre       TEXT,          -- 25
-    postulaciones_count INTEGER,       -- 26
-    asesor_asignado BOOLEAN[],  -- 27
-    tesista_asignado BOOLEAN[]  -- 28
+    tema_id             INTEGER,       --  0
+    codigo              TEXT,          --  1
+    titulo              TEXT,          --  2
+    resumen             TEXT,          --  3
+    metodologia          TEXT,         --  4
+    objetivos           TEXT,          --  5
+    portafolio_url      TEXT,          --  6
+    requisitos          TEXT,          --  7
+    activo              BOOLEAN,       --  8
+    fecha_limite        TIMESTAMPTZ,   --  9
+    fecha_creacion      TIMESTAMPTZ,   -- 10
+    fecha_modificacion  TIMESTAMPTZ,   -- 11
+    carrera_id          INTEGER,       -- 12
+    carrera_nombre      TEXT,          -- 13
+    area_ids            INTEGER[],     -- 14
+    area_nombres        TEXT[],        -- 15
+    subarea_ids         INTEGER[],     -- 16
+    subarea_nombres     TEXT[],        -- 17
+    asesor_ids          INTEGER[],     -- 18  (IDs de Asesor + Coasesores)
+    asesor_nombres      TEXT[],        -- 19  (nombres completos)
+    asesor_codigos      TEXT[],        -- 20  (códigos PUCP)
+    asesor_roles        TEXT[],        -- 21  (roles: “Asesor” o “Coasesor”)
+    tesista_ids         INTEGER[],     -- 22
+    tesista_nombres     TEXT[],        -- 23
+    estado_nombre       TEXT,          -- 24
+    postulaciones_count INTEGER,       -- 25
+    asesor_asignado BOOLEAN[],  -- 26
+    tesista_asignado BOOLEAN[]  -- 27
 )
 LANGUAGE SQL
 STABLE
@@ -2691,7 +2691,7 @@ AS $func$
                AND rc2.nombre IN ('Asesor','Coasesor')
              ORDER BY 
                CASE WHEN rc2.nombre ILIKE 'Asesor' THEN 0 ELSE 1 END,
-               uco.primer_apellido, uco.segundo_apellido
+               utc2.usuario_id
           )
         ),
         ARRAY[]::TEXT[]
@@ -2711,7 +2711,7 @@ AS $func$
                AND rc3.nombre IN ('Asesor','Coasesor')
              ORDER BY 
                CASE WHEN rc3.nombre ILIKE 'Asesor' THEN 0 ELSE 1 END,
-               uco.codigo_pucp
+               utc3.usuario_id
           )
         ),
         ARRAY[]::TEXT[]
@@ -2765,7 +2765,7 @@ AS $func$
                AND utt2.activo   = TRUE
                AND utt2.rechazado = FALSE
                AND rt2.nombre ILIKE 'Tesista'
-             ORDER BY ute.primer_apellido, ute.segundo_apellido
+             ORDER BY utt2.usuario_id
           )
         ),
         ARRAY[]::TEXT[]
@@ -2849,13 +2849,13 @@ AS $func$
     -- 4) LEFT JOIN a sub-áreas y áreas (para los arreglos de áreas/subáreas)
     LEFT JOIN sub_area_conocimiento_tema AS sact
       ON sact.tema_id = t.tema_id
+      AND sact.activo = TRUE
     LEFT JOIN sub_area_conocimiento   AS sac
       ON sac.sub_area_conocimiento_id = sact.sub_area_conocimiento_id
      AND sac.activo = TRUE
     LEFT JOIN area_conocimiento       AS ac
       ON ac.area_conocimiento_id = sac.area_conocimiento_id
      AND ac.activo = TRUE
-     AND sact.activo = TRUE
 
     WHERE
       -- Solo temas activos
@@ -2875,10 +2875,10 @@ AS $func$
             FROM sub_area_conocimiento_tema AS s2
             JOIN sub_area_conocimiento       AS sac2
               ON sac2.sub_area_conocimiento_id = s2.sub_area_conocimiento_id
-             AND sac2.activo = TRUE
            WHERE s2.tema_id = t.tema_id
              AND sac2.area_conocimiento_id = p_area_id
              AND s2.activo = TRUE
+             AND sac2.activo = TRUE
         )
       )
 
@@ -2945,34 +2945,34 @@ CREATE OR REPLACE FUNCTION listar_temas_filtrado_completo(
     p_offset                INT     DEFAULT 0
 )
 RETURNS TABLE(
-    tema_id              INTEGER,       --  1
-    codigo               TEXT,          --  2
-    titulo               TEXT,          --  3
-    resumen              TEXT,          --  4
-    metodologia          TEXT,          --  5
-    objetivos            TEXT,          --  6
-    portafolio_url       TEXT,          --  7
-    requisitos           TEXT,          --  8
-    activo               BOOLEAN,       --  9
-    fecha_limite         TIMESTAMPTZ,   -- 10
-    fecha_creacion       TIMESTAMPTZ,   -- 11
-    fecha_modificacion   TIMESTAMPTZ,   -- 12
-    carrera_id           INTEGER,       -- 13
-    carrera_nombre       TEXT,          -- 14
-    area_ids             INTEGER[],     -- 15
-    area_nombres         TEXT[],        -- 16
-    subarea_ids          INTEGER[],     -- 17
-    subarea_nombres      TEXT[],        -- 18
-    asesor_ids           INTEGER[],     -- 19
-    asesor_nombres       TEXT[],        -- 20
-    asesor_codigos       TEXT[],        -- 21
-    asesor_roles         TEXT[],        -- 22
-    tesista_ids          INTEGER[],     -- 23
-    tesista_nombres      TEXT[],        -- 24
-    cant_postulaciones   INTEGER,       -- 25
-    estado_nombre        TEXT,           -- 26
-    asesor_asignado      BOOLEAN[],     -- 27
-    tesista_asignado     BOOLEAN[]      -- 28
+    tema_id              INTEGER,       --  0
+    codigo               TEXT,          --  1
+    titulo               TEXT,          --  2
+    resumen              TEXT,          --  3
+    metodologia          TEXT,          --  4
+    objetivos            TEXT,          --  5
+    portafolio_url       TEXT,          --  6
+    requisitos           TEXT,          --  7
+    activo               BOOLEAN,       --  8
+    fecha_limite         TIMESTAMPTZ,   --  9
+    fecha_creacion       TIMESTAMPTZ,   -- 10
+    fecha_modificacion   TIMESTAMPTZ,   -- 11
+    carrera_id           INTEGER,       -- 12
+    carrera_nombre       TEXT,          -- 13
+    area_ids             INTEGER[],     -- 14
+    area_nombres         TEXT[],        -- 15
+    subarea_ids          INTEGER[],     -- 16
+    subarea_nombres      TEXT[],        -- 17
+    asesor_ids           INTEGER[],     -- 18
+    asesor_nombres       TEXT[],        -- 19
+    asesor_codigos       TEXT[],        -- 20
+    asesor_roles         TEXT[],        -- 21
+    tesista_ids          INTEGER[],     -- 22
+    tesista_nombres      TEXT[],        -- 23
+    cant_postulaciones   INTEGER,       -- 24
+    estado_nombre        TEXT,           -- 25
+    asesor_asignado      BOOLEAN[],     -- 26
+    tesista_asignado     BOOLEAN[]      -- 27
 )
 LANGUAGE SQL
 STABLE
@@ -3055,7 +3055,7 @@ AS $func$
                AND rc2.nombre IN ('Asesor','Coasesor')
              ORDER BY 
                CASE WHEN rc2.nombre ILIKE 'Asesor' THEN 0 ELSE 1 END,
-               uco.primer_apellido, uco.segundo_apellido
+               utc2.usuario_id
           )
         ),
         ARRAY[]::TEXT[]
@@ -3075,7 +3075,7 @@ AS $func$
                AND rc3.nombre IN ('Asesor','Coasesor')
              ORDER BY 
                CASE WHEN rc3.nombre ILIKE 'Asesor' THEN 0 ELSE 1 END,
-               uco.codigo_pucp
+               utc3.usuario_id
           )
         ),
         ARRAY[]::TEXT[]
@@ -3129,7 +3129,7 @@ AS $func$
                AND utt2.activo     = TRUE
                AND utt2.RECHAZADO   = FALSE
                AND rt2.nombre ILIKE 'Tesista'
-             ORDER BY ute.primer_apellido, ute.segundo_apellido
+             ORDER BY utt2.usuario_id
           )
         ),
         ARRAY[]::TEXT[]
@@ -3221,6 +3221,7 @@ AS $func$
              AND sac2.activo = TRUE
            WHERE s2.tema_id = t.tema_id
              AND sac2.area_conocimiento_id = p_area_id
+             --AND s2.activo = TRUE
         )
       )
 
@@ -3893,20 +3894,62 @@ BEGIN
 END;
 $$;
 
--- Función para listar el historial completo de un tema
-CREATE OR REPLACE FUNCTION listar_historial_tema(p_tema_id INTEGER)
-  RETURNS SETOF historial_tema
-LANGUAGE plpgsql
-AS $$
-BEGIN
-  RETURN QUERY
-    SELECT *
-      FROM historial_tema
-     WHERE tema_id = p_tema_id
-     AND activo = TRUE
-     ORDER BY fecha_creacion;  -- o por fecha_modificacion, según tu preferencia
-END;
-$$;
+
+
+CREATE OR REPLACE FUNCTION listar_historial_tema_completo(p_tema_id INTEGER)
+  RETURNS TABLE(
+    historial_tema_id    INTEGER,
+    tema_id              INTEGER,
+    codigo               TEXT,
+    titulo               TEXT,
+    resumen              TEXT,
+    metodologia           TEXT,
+    objetivos            TEXT,
+    descripcion_cambio   TEXT,
+    portafolio_url       TEXT,
+    estado_tema_nombre   TEXT,
+    proyecto_id          INTEGER,
+    carrera_id           INTEGER,
+    subareas_snapshot    TEXT,
+    asesores_snapshot    TEXT,
+    tesistas_snapshot    TEXT,
+    activo               BOOLEAN,
+    fecha_limite         TIMESTAMPTZ,
+    fecha_finalizacion   TIMESTAMPTZ,
+    fecha_creacion       TIMESTAMPTZ,
+    fecha_modificacion   TIMESTAMPTZ
+  )
+LANGUAGE SQL
+AS $func$
+  SELECT
+    ht.historial_tema_id,
+    ht.tema_id,
+    ht.codigo,
+    ht.titulo,
+    ht.resumen,
+    ht.metodologia,
+    ht.objetivos,
+    ht.descripcion_cambio,
+    ht.portafolio_url,
+    et.nombre        AS estado_tema_nombre,
+    ht.proyecto_id,
+    ht.carrera_id,
+    ht.subareas_snapshot,
+    ht.asesores_snapshot,
+    ht.tesistas_snapshot,
+    ht.activo,
+    ht.fecha_limite,
+    ht.fecha_finalizacion,
+    ht.fecha_creacion,
+    ht.fecha_modificacion
+  FROM historial_tema ht
+  LEFT JOIN estado_tema et
+    ON et.estado_tema_id = ht.estado_tema_id
+  WHERE ht.tema_id = p_tema_id
+    AND ht.activo = TRUE
+  ORDER BY ht.fecha_creacion DESC;
+$func$;
+
 
 CREATE OR REPLACE FUNCTION validar_parametro_por_nombre_carrera(
     p_nombre_parametro TEXT,
@@ -4232,11 +4275,11 @@ BEGIN
         SELECT
             s.solicitud_id,
             s.descripcion,
-            ts.nombre    AS tipo_solicitud,
-            es.nombre    AS estado_solicitud,
+            ts.nombre            AS tipo_solicitud,
+            es.nombre            AS estado_solicitud,
+            s.fecha_creacion,                       -- agregado
+            s.fecha_modificacion,                   -- agregado
             (
-                -- Todos los registros de usuario_solicitud activos para esta solicitud,
-                -- incluyendo datos del usuario
                 SELECT COALESCE(JSON_AGG(
                     JSON_BUILD_OBJECT(
                         'usuario_solicitud_id', us2.usuario_solicitud_id,
@@ -4247,7 +4290,9 @@ BEGIN
                         'codigo',               u2.codigo_pucp,
                         'accion_solicitud',     a.nombre,
                         'rol_solicitud',        rs.nombre,
-                        'comentario',           us2.comentario
+                        'comentario',           us2.comentario,
+                        'fecha_creacion',       us2.fecha_creacion,     -- agregado
+                        'fecha_modificacion',   us2.fecha_modificacion  -- agregado
                     )
                 ), '[]'::JSON)
                 FROM usuario_solicitud us2
@@ -4309,6 +4354,7 @@ BEGIN
             es.nombre      AS estado_solicitud,
             s.tema_id,
             s.fecha_creacion,
+            s.fecha_modificacion,          -- agregado
             (
                 -- Todos los registros de usuario_solicitud activos para esta solicitud,
                 -- incluyendo datos del usuario
@@ -4322,13 +4368,15 @@ BEGIN
                         'codigo',               u2.codigo_pucp,
                         'accion_solicitud',     a.nombre,
                         'rol_solicitud',        rs.nombre,
-                        'comentario',           us2.comentario
+                        'comentario',           us2.comentario,
+                        'fecha_creacion',       us2.fecha_creacion,
+                        'fecha_modificacion',   us2.fecha_modificacion
                     )
                 ), '[]'::JSON)
                 FROM usuario_solicitud us2
-                JOIN usuario          u2 ON us2.usuario_id      = u2.usuario_id
-                JOIN accion_solicitud a  ON us2.accion_solicitud = a.accion_solicitud_id
-                JOIN rol_solicitud   rs  ON us2.rol_solicitud    = rs.rol_solicitud_id
+                JOIN usuario          u2  ON us2.usuario_id      = u2.usuario_id
+                JOIN accion_solicitud a   ON us2.accion_solicitud = a.accion_solicitud_id
+                JOIN rol_solicitud   rs   ON us2.rol_solicitud    = rs.rol_solicitud_id
                 WHERE us2.solicitud_id = s.solicitud_id
                   AND us2.activo       = TRUE
             ) AS usuarios
@@ -4347,7 +4395,8 @@ BEGIN
             ts.nombre,
             es.nombre,
             s.tema_id,
-            s.fecha_creacion
+            s.fecha_creacion,
+            s.fecha_modificacion   -- agregado al GROUP BY
         ORDER BY s.fecha_creacion DESC
         OFFSET p_offset
         LIMIT  p_limit
@@ -4357,3 +4406,179 @@ BEGIN
 END;
 $$;
 
+
+CREATE OR REPLACE PROCEDURE rechazar_solicitudes_cambio_por_tema(
+    p_tema_id INTEGER
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_estado_pendiente   INTEGER;
+    v_estado_rechazado   INTEGER;
+    v_accion_rechazado   INTEGER;
+BEGIN
+    -- 1) Cargar IDs de catálogo
+    SELECT estado_solicitud_id
+      INTO v_estado_pendiente
+      FROM estado_solicitud
+     WHERE nombre = 'PENDIENTE';
+
+    SELECT estado_solicitud_id
+      INTO v_estado_rechazado
+      FROM estado_solicitud
+     WHERE nombre = 'RECHAZADA';
+
+    SELECT accion_solicitud_id
+      INTO v_accion_rechazado
+      FROM accion_solicitud
+     WHERE nombre = 'RECHAZADO';
+
+    -- 2) Rechazar las solicitudes de tipo "Solicitud de cambio%" pendientes
+    UPDATE solicitud s
+       SET estado_solicitud   = v_estado_rechazado,
+           fecha_modificacion = NOW()
+      FROM tipo_solicitud ts
+     WHERE s.tipo_solicitud_id = ts.tipo_solicitud_id
+       AND ts.nombre LIKE 'Solicitud de cambio%'
+       AND s.tema_id            = p_tema_id
+       AND s.estado_solicitud   = v_estado_pendiente
+       AND s.activo             = TRUE;
+
+    -- 3) Marcar como RECHAZADO las acciones de usuario_solicitud de esas solicitudes
+    UPDATE usuario_solicitud us
+       SET accion_solicitud   = v_accion_rechazado,
+           fecha_modificacion = NOW()
+      FROM solicitud s
+     WHERE us.solicitud_id    = s.solicitud_id
+       AND s.tipo_solicitud_id IN (
+           SELECT tipo_solicitud_id
+             FROM tipo_solicitud
+            WHERE nombre LIKE 'Solicitud de cambio%'
+       )
+       AND s.tema_id            = p_tema_id
+       AND s.estado_solicitud   = v_estado_rechazado
+       AND s.activo             = TRUE
+       AND us.activo            = TRUE;
+END;
+$$;
+
+
+-- PROCEDURE para aprobar todas las solicitudes de cambio de un tema
+CREATE OR REPLACE PROCEDURE aprobar_solicitudes_cambio_por_tema(
+    p_tema_id INTEGER
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_estado_pendiente   INTEGER;
+    v_estado_aprobado    INTEGER;
+    v_accion_aprobado    INTEGER;
+BEGIN
+    -- 1) Cargar IDs de catálogo
+    SELECT estado_solicitud_id
+      INTO v_estado_pendiente
+      FROM estado_solicitud
+     WHERE nombre = 'PENDIENTE';
+
+    SELECT estado_solicitud_id
+      INTO v_estado_aprobado
+      FROM estado_solicitud
+     WHERE nombre = 'ACEPTADA';
+
+    SELECT accion_solicitud_id
+      INTO v_accion_aprobado
+      FROM accion_solicitud
+     WHERE nombre = 'APROBADO';
+
+    -- 2) Aprobar las solicitudes de tipo "Solicitud de cambio%" pendientes
+    UPDATE solicitud s
+       SET estado_solicitud   = v_estado_aprobado,
+           fecha_modificacion = NOW()
+      FROM tipo_solicitud ts
+     WHERE s.tipo_solicitud_id = ts.tipo_solicitud_id
+       AND ts.nombre LIKE 'Solicitud de cambio%'
+       AND s.tema_id            = p_tema_id
+       AND s.estado_solicitud   = v_estado_pendiente
+       AND s.activo             = TRUE;
+
+    -- 3) Marcar como APROBADO las acciones de usuario_solicitud de esas solicitudes
+    UPDATE usuario_solicitud us
+       SET accion_solicitud   = v_accion_aprobado,
+           fecha_modificacion = NOW()
+      FROM solicitud s
+     WHERE us.solicitud_id    = s.solicitud_id
+       AND s.tipo_solicitud_id IN (
+           SELECT tipo_solicitud_id
+             FROM tipo_solicitud
+            WHERE nombre LIKE 'Solicitud de cambio%'
+       )
+       AND s.tema_id            = p_tema_id
+       AND s.estado_solicitud   = v_estado_aprobado
+       AND s.activo             = TRUE
+       AND us.activo            = TRUE;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION eliminar_tema_completo(
+    p_tema_id INTEGER
+) RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- 1) Borrar registros en control_exposicion_usuario que dependan
+    --    de exposiciones o usuario_tema de este tema
+    DELETE FROM control_exposicion_usuario
+     WHERE exposicion_x_tema_id IN (
+               SELECT exposicion_x_tema_id
+                 FROM exposicion_x_tema
+                WHERE tema_id = p_tema_id
+           )
+        OR usuario_x_tema_id IN (
+               SELECT usuario_tema_id
+                 FROM usuario_tema
+                WHERE tema_id = p_tema_id
+           );
+
+    -- 2) Borrar filas de exposicion_x_tema vinculadas al tema
+    DELETE FROM exposicion_x_tema
+     WHERE tema_id = p_tema_id;
+
+    -- 3) Borrar detalles en usuario_solicitud asociados a solicitudes de este tema
+    DELETE FROM usuario_solicitud
+     WHERE solicitud_id IN (
+               SELECT solicitud_id
+                 FROM solicitud
+                WHERE tema_id = p_tema_id
+           );
+
+    -- 4) Borrar las propias solicitudes que apunten a este tema
+    DELETE FROM solicitud
+     WHERE tema_id = p_tema_id;
+
+    -- 5) Borrar recursos directamente asociados al tema
+    DELETE FROM recurso
+     WHERE tema_id = p_tema_id;
+
+    -- 6) Borrar historial de cambios de este tema
+    DELETE FROM historial_tema
+     WHERE tema_id = p_tema_id;
+
+    -- 7) Borrar relaciones entre subáreas y el tema
+    DELETE FROM sub_area_conocimiento_tema
+     WHERE tema_id = p_tema_id;
+
+    -- 8) Borrar asignaciones en usuario_tema para este tema
+    DELETE FROM usuario_tema
+     WHERE tema_id = p_tema_id;
+
+    -- 9) Borrar entregables asociados al tema
+    DELETE FROM entregable_x_tema
+     WHERE tema_id = p_tema_id;
+
+    -- 10) Finalmente, borrar el registro del tema en sí
+    DELETE FROM tema
+     WHERE tema_id = p_tema_id;
+
+    RAISE NOTICE 'Se ha eliminado el tema % y todas sus dependencias.', p_tema_id;
+END;
+$$;

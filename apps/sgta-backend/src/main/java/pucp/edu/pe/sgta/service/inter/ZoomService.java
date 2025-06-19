@@ -10,10 +10,10 @@ import pucp.edu.pe.sgta.model.ZoomAccessTokenResponse;
 import pucp.edu.pe.sgta.model.ZoomMeetingResponse;
 
 public interface ZoomService {
-    ZoomMeetingResponse createMeeting(String correoUsuario, String nombreSala, String startTime, String endTime,
-            Integer jornadaId);
+        ZoomMeetingResponse createMeeting(String correoUsuario, String nombreSala, String startTime, String endTime,
+                        Integer jornadaId);
 
-    ZoomAccessTokenResponse generateAccessToken();
+        ZoomAccessTokenResponse generateAccessToken();
 
-    List<RelacionZoomMeetingSalasDTO> crearMeetingsPorJornadaExposicion(Integer jornadaId, UsuarioDto coordinador);
+        List<RelacionZoomMeetingSalasDTO> crearMeetingsPorJornadaExposicion(Integer jornadaId, UsuarioDto coordinador);
 }
