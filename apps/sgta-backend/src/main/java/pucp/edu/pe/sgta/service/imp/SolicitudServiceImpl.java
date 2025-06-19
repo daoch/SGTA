@@ -932,10 +932,10 @@ public class SolicitudServiceImpl implements SolicitudService {
             if ("pending".equalsIgnoreCase(status)) {
                 targetStatusNames.add("PENDIENTE");
             } else if ("history".equalsIgnoreCase(status)) {
-                targetStatusNames.add("APROBADA");
+                targetStatusNames.add("ACEPTADA");
                 targetStatusNames.add("RECHAZADA");
             } else if ("approved".equalsIgnoreCase(status)) {
-                targetStatusNames.add("APROBADA");
+                targetStatusNames.add("ACEPTADA");
             } else if ("rejected".equalsIgnoreCase(status)) {
                 targetStatusNames.add("RECHAZADA");
             }
@@ -1243,8 +1243,8 @@ public class SolicitudServiceImpl implements SolicitudService {
         TipoSolicitud tipoCese = tipoSolicitudRepository.findByNombre("Cese de Asesoria (por alumno)")
                 .orElseThrow(() -> new ResourceNotFoundException("Tipo de solicitud '" + "Cese de Asesoria (por alumno)" + "' no encontrado."));
 
-        EstadoSolicitud estadoAprobada = estadoSolicitudRepository.findByNombre("APROBADA")
-                .orElseThrow(() -> new ResourceNotFoundException("Estado de solicitud '" + "APROBADA" + "' no encontrado."));
+        EstadoSolicitud estadoAprobada = estadoSolicitudRepository.findByNombre("ACEPTADA")
+                .orElseThrow(() -> new ResourceNotFoundException("Estado de solicitud '" + "ACEPTADA" + "' no encontrado."));
 
         // Lista de estados de reasignación que indican acción pendiente por el coordinador
         List<String> estadosReasignacionPendienteCoord = Arrays.asList(
@@ -1358,8 +1358,8 @@ public class SolicitudServiceImpl implements SolicitudService {
                             .findFirstBySolicitudIdAndRolSolicitud(solicitud.getId(), rolAsesorNuevoCese)
                             .orElse(null);
 
+                    if (asesorNuevo != null) {
                     Usuario asesorPropuesto = asesorNuevo.getUsuario();
-                    if (asesorPropuesto != null) {
                         dto.setAsesorPropuestoId(asesorPropuesto.getId());
                         dto.setAsesorPropuestoNombres(asesorPropuesto.getNombres());
                         dto.setAsesorPropuestoPrimerApellido(asesorPropuesto.getPrimerApellido());

@@ -102,13 +102,15 @@ public class SolicitudAsesorServiceImpl implements SolicitudAsesorService {
             List<Integer> areaConocimientoIds,
             Pageable pageable
     ) {
-        log.info("Buscando asesores disponibles para coordinador CognitoSub: {}, searchTerm: '{}', areas: {}",
+        log.info("Buscando asesores disponibles para coordinador CognitoSub: {}, searchTerm: '{}', areas: {}", 
                 coordinadorCognitoSub, searchTerm, areaConocimientoIds);
 
         Usuario coordinador = usuarioRepository.findByIdCognito(coordinadorCognitoSub)
-                .orElseThrow(() -> new ResourceNotFoundException("Coordinador no encontrado con CognitoSub: " + coordinadorCognitoSub));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Coordinador no encontrado con CognitoSub: " + coordinadorCognitoSub));
 
-        List<UsuarioXCarrera> asignacionesCarreraCoordinador = usuarioXCarreraRepository.findByUsuarioIdAndActivoTrue(coordinador.getId());
+        List<UsuarioXCarrera> asignacionesCarreraCoordinador = 
+                usuarioXCarreraRepository.findByUsuarioIdAndActivoTrue(coordinador.getId());
         if (asignacionesCarreraCoordinador.isEmpty()) {
             log.warn("Coordinador ID {} no tiene carreras activas asignadas. No se pueden listar asesores.", coordinador.getId());
             return Page.empty(pageable);
@@ -118,88 +120,102 @@ public class SolicitudAsesorServiceImpl implements SolicitudAsesorService {
                 .distinct()
                 .collect(Collectors.toList());
 
+        log.warn("idsCarrerasDelCoordinador: {}", idsCarrerasDelCoordinador);
+
         // Construir la query JPQL dinámicamente
         StringBuilder jpqlBuilder = new StringBuilder(
                 "SELECT DISTINCT u FROM Usuario u " +
-                        "JOIN u.tipoUsuario tu " +
-                        "JOIN UsuarioXCarrera uc ON u.id = uc.usuario.id " + // JOIN explícito a UsuarioXCarrera
-                        "WHERE tu.nombre = :tipoProfesor " +
-                        "AND u.activo = true " +
-                        "AND uc.activo = true " +
-                        "AND uc.carrera.id IN :carrerasDelCoordinador "
+                "JOIN u.tipoUsuario tu " +
+                "JOIN UsuarioXCarrera uc ON u.id = uc.usuario.id " +
+                "WHERE tu.nombre = :tipoProfesor " +
+                "AND u.activo = true " +
+                "AND uc.activo = true " +
+                "AND uc.carrera.id IN :carrerasDelCoordinador "
         );
 
         Map<String, Object> parameters = new HashMap<>();
-        parameters.put("tipoProfesor", TIPO_USUARIO_PROFESOR); // Usa tu constante
+        parameters.put("tipoProfesor", "profesor");
         parameters.put("carrerasDelCoordinador", idsCarrerasDelCoordinador);
 
         if (searchTerm != null && !searchTerm.trim().isEmpty()) {
-            jpqlBuilder.append("AND (LOWER(u.nombres) LIKE LOWER(:searchTerm) OR " +
-                    "LOWER(u.primerApellido) LIKE LOWER(:searchTerm) OR " +
-                    "LOWER(u.segundoApellido) LIKE LOWER(:searchTerm) OR " +
-                    "LOWER(u.correoElectronico) LIKE LOWER(:searchTerm) OR " +
-                    "LOWER(u.codigoPucp) LIKE LOWER(:searchTerm)) ");
+            jpqlBuilder.append(
+                "AND (LOWER(u.nombres) LIKE LOWER(:searchTerm) OR " +
+                "LOWER(u.primerApellido) LIKE LOWER(:searchTerm) OR " +
+                "LOWER(u.segundoApellido) LIKE LOWER(:searchTerm) OR " +
+                "LOWER(u.correoElectronico) LIKE LOWER(:searchTerm) OR " +
+                "LOWER(u.codigoPucp) LIKE LOWER(:searchTerm)) "
+            );
             parameters.put("searchTerm", "%" + searchTerm.trim() + "%");
         }
 
         if (areaConocimientoIds != null && !areaConocimientoIds.isEmpty()) {
-            // Este JOIN asume que tienes una entidad UsuarioAreaConocimiento (uac)
-            // y que Usuario tiene una colección List<UsuarioAreaConocimiento> areasConocimiento;
-            // O un JOIN explícito si no tienes la colección en Usuario
-            jpqlBuilder.append("AND EXISTS (SELECT uac FROM UsuarioXAreaConocimiento uac WHERE uac.usuario = u AND uac.areaConocimiento.id IN :areaConocimientoIds AND uac.activo = true) ");
+            jpqlBuilder.append(
+                "AND EXISTS (SELECT uac FROM UsuarioXAreaConocimiento uac " +
+                "WHERE uac.usuario = u AND uac.areaConocimiento.id IN :areaConocimientoIds " +
+                "AND uac.activo = true) "
+            );
             parameters.put("areaConocimientoIds", areaConocimientoIds);
         }
 
-        // Query para contar el total de elementos (necesaria para paginación correcta con query dinámica)
+        // Query para contar el total de elementos
         String countJpql = jpqlBuilder.toString().replace("SELECT DISTINCT u", "SELECT COUNT(DISTINCT u.id)");
         TypedQuery<Long> countQuery = entityManager.createQuery(countJpql, Long.class);
         parameters.forEach(countQuery::setParameter);
         long totalAsesores = countQuery.getSingleResult();
 
         if (totalAsesores == 0) {
+            log.info("No se encontraron asesores disponibles para coordinador={}, searchTerm='{}', areas={}", 
+                    coordinadorCognitoSub, searchTerm, areaConocimientoIds);
             return Page.empty(pageable);
         }
 
-        // Añadir ordenación de Pageable a la query principal
+        // Aplicar ordenación si existe
         if (pageable.getSort().isSorted()) {
             jpqlBuilder.append(" ORDER BY ");
             List<String> sortOrders = new ArrayList<>();
             pageable.getSort().forEach(order -> {
-                // Asegurarse que los campos de ordenación sean válidos y pertenezcan a 'u'
-                // Ej. u.primerApellido, u.nombres. Evitar SQL injection si los campos vienen del cliente.
-                // Aquí asumimos que son seguros.
                 sortOrders.add("u." + order.getProperty() + " " + order.getDirection().name());
             });
             jpqlBuilder.append(String.join(", ", sortOrders));
         }
 
-
+        // Ejecutar consulta principal
         TypedQuery<Usuario> query = entityManager.createQuery(jpqlBuilder.toString(), Usuario.class);
         parameters.forEach(query::setParameter);
-
-        // Aplicar paginación
         query.setFirstResult((int) pageable.getOffset());
         query.setMaxResults(pageable.getPageSize());
 
         List<Usuario> asesoresEntidades = query.getResultList();
 
-        // Mapear entidades Usuario a AsesorDisponibleDto
+        if (asesoresEntidades.isEmpty()) {
+            log.info("La consulta JPQL no retornó asesores (Query: {})", jpqlBuilder.toString());
+        } else {
+            log.info(
+                "Asesores recuperados ({}): {}",
+                asesoresEntidades.size(),
+                asesoresEntidades.stream()
+                    .map(a -> a.getId() + ":" + a.getNombres() + " " + a.getPrimerApellido())
+                    .collect(Collectors.joining(", "))
+            );
+        }
+
+        // Mapear a DTOs y regresar paginado
         List<AsesorDisponibleDto> asesoresDtos = asesoresEntidades.stream()
-                .map(asesor -> {
-                    Integer cantidadTemas = usuarioXTemaRepository.countByUsuarioAndRol_NombreAndActivoTrue(asesor, ROL_NOMBRE_ASESOR);
-                    return new AsesorDisponibleDto(
-                            asesor.getId(),
-                            asesor.getNombres(),
-                            asesor.getPrimerApellido(),
-                            asesor.getSegundoApellido(),
-                            asesor.getCorreoElectronico(),
-                            asesor.getCodigoPucp(),
-                            cantidadTemas,
-                            // asesor.getCapacidadMaxima(), // Si tienes este campo
-                            null // asesor.getUrlFoto() // Si tienes este campo o conviertes byte[]
-                    );
-                })
-                .collect(Collectors.toList());
+            .map(asesor -> {
+                Integer cantidadTemas = usuarioXTemaRepository
+                    .countByUsuarioAndRol_NombreAndActivoTrue(asesor, ROL_NOMBRE_ASESOR);
+                return new AsesorDisponibleDto(
+                    asesor.getId(),
+                    asesor.getNombres(),
+                    asesor.getPrimerApellido(),
+                    asesor.getSegundoApellido(),
+                    asesor.getCorreoElectronico(),
+                    asesor.getCodigoPucp(),
+                    cantidadTemas,
+                    null
+                );
+            })
+            .collect(Collectors.toList());
 
         return new PageImpl<>(asesoresDtos, pageable, totalAsesores);
     }
