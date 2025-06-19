@@ -69,12 +69,4 @@ public interface MiembroJuradoService {
         public ResponseEntity<List<ExposicionCalificacionJuradoDTO>> obtenerCalificacionExposicionJurado(
                         ExposicionCalificacionRequest exposicionCalificacionRequest);
         public ResponseEntity<?> actualizarNotaFinalExposicion(Integer exposicionId);
-        
-
-    List<EtapasFormativasDto> obtenerEtapasFormativasPorUsuario(String usuarioId);
-
-    List<ExposicionCoordinadorDto> listarExposicionesPorCoordinador(String coordinadorId);
-
-
-    ResponseEntity<?> actualizarNotaRevisionFinal(ExposicionNotaRevisionRequest request);
 }
