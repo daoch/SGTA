@@ -10,6 +10,7 @@ import {
   getEtapasFormativasNombres,
   getCiclos,
   getExposicionesJurado,
+  getEtapaFormativaId,
 } from "../../services/jurado-service";
 import {
   EtapaFormativa,
@@ -138,8 +139,11 @@ const ExposicionesJuradoPage: React.FC = () => {
       setIsLoading(true);
       try {
         // Cargar etapas formativas y ciclos
+        const { idToken } = useAuthStore.getState();
+        setToken(idToken);
+
         const [etapasData, ciclosData] = await Promise.all([
-          getEtapasFormativasNombres(),
+          getEtapaFormativaId(idToken!),
           getCiclos(),
         ]);
         

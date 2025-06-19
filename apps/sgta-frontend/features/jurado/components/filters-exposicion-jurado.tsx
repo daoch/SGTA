@@ -20,10 +20,11 @@ import {
   EtapaFormativa,
   Ciclo,
 } from "@/features/jurado/types/juradoDetalle.types";
-
+import { useAuthStore } from "@/features/auth/store/auth-store";
 import {
   getCiclos,
   getEtapasFormativasNombres,
+  getEtapaFormativaId
 } from "../services/jurado-service";
 
 const estados = [
@@ -59,7 +60,9 @@ export const FilterExposicionJurado: React.FC<Props> = ({
   useEffect(() => {
     const fetchEtapasFormativas = async () => {
       try {
-        const etapasFormativas = await getEtapasFormativasNombres();
+        const { idToken } = useAuthStore.getState();
+        console.log("ID Token del filtro:", idToken);
+        const etapasFormativas = await getEtapaFormativaId(idToken!);
         setEtapasFormativas(etapasFormativas);
       } catch (error) {
         console.error("Error fetching etapas formativas:", error);

@@ -666,3 +666,72 @@ export const getCalificacionesJuradoByExposicionTemaId = async (
   }
 };
 
+export const actualizarCalificacionFinalJurado = async (
+  exposicionId: number,
+  calificacion: number,
+): Promise<boolean> => {
+  try {
+    console.log(
+      "Guardando calificaciones finales para la exposición:",
+      exposicionId,
+    );
+    console.log("Calificaciones finales:", calificacion);
+    const response = await axiosInstance.put("/jurado/nota-revision", {
+      id: exposicionId,
+      nota_revision: calificacion,
+    });
+
+    return response.status === 200;
+  } catch (error) {
+    console.error("Error al actualizar el estado de la exposición:", error);
+    throw error;
+  }
+};
+
+
+export const getEtapaFormativaId = async (
+  token: string,
+): Promise<EtapaFormativa[]> => {
+  try {
+    const response = await axiosInstance.get("/jurado/etapas-formativas",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+    //return response.data;
+    const data = response.data;
+
+    if (!data.etapas_formativas || !Array.isArray(data.etapas_formativas)) {
+      console.warn("La respuesta no contiene un array de etapas formativas:", data);
+      return [];
+    }
+
+    return data.etapas_formativas.map((etapa: EtapaFormativa) => ({
+    etapaFormativaId: etapa.etapaFormativaId,
+    nombre: etapa.nombre,
+  }));
+  } catch (error) {
+    console.error("Error al obtener etapas formativas:", error);
+    throw new Error("Error al obtener etapas formativas");
+  }
+};
+
+export const actualizarCalificacionFinalExposicionTema = async (
+  exposicionId: number
+): Promise<boolean> => {
+  try {
+    console.log(
+      "Guardando calificaciones finales para la exposición tema:",
+      exposicionId,
+    );
+    console.log("Calificaciones finales:", exposicionId);
+    const response = await axiosInstance.put("/jurado/actualizar-nota-final-exposicion/" + exposicionId);
+
+    return response.status === 200;
+  } catch (error) {
+    console.error("Error al actualizar la nota final de la exposicion tema:", error);
+    throw error;
+  }
+};
