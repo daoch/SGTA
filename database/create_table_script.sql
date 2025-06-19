@@ -184,6 +184,9 @@ CREATE TABLE IF NOT EXISTS historial_tema (
     activo BOOLEAN NOT NULL DEFAULT TRUE,
     fecha_creacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    subareas_snapshot      TEXT   DEFAULT '',
+    asesores_snapshot      TEXT   DEFAULT '',
+    tesistas_snapshot      TEXT   DEFAULT '',
     CONSTRAINT fk_tema FOREIGN KEY (tema_id) REFERENCES tema (tema_id) ON DELETE RESTRICT
 );
 

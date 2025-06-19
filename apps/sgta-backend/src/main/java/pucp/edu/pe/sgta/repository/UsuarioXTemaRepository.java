@@ -112,4 +112,33 @@ public interface UsuarioXTemaRepository extends JpaRepository<UsuarioXTema, Inte
         long countByUsuarioIdAndRolNombreAndActivoTrue(@Param("usuarioId") Integer usuarioId, @Param("rolNombre") String rolNombre);
 
         boolean existsByTema_IdAndUsuario_IdAndRol_IdAndActivoTrue(Integer temaId, Integer usuarioId, Integer rolId);
+
+        @Query(value = """
+                SELECT ut.usuario_id
+                FROM usuario_tema ut
+                JOIN rol r ON r.rol_id = ut.rol_id
+                WHERE ut.tema_id   = :temaId
+                AND ut.activo    = true
+                AND ut.rechazado = false
+                AND r.nombre IN ('Asesor','Coasesor')
+                ORDER BY
+                CASE WHEN r.nombre = 'Asesor' THEN 0 ELSE 1 END,
+                ut.usuario_id
+                """, nativeQuery = true)
+        List<Integer> findAsesorIdsByTemaId(@Param("temaId") Integer temaId);
+
+        /**
+         * Devuelve los IDs de usuario que son Tesista en el tema, ordenados por ID.
+         */
+        @Query(value = """
+                SELECT ut.usuario_id
+                FROM usuario_tema ut
+                JOIN rol r ON r.rol_id = ut.rol_id
+                WHERE ut.tema_id   = :temaId
+                AND ut.activo    = true
+                AND ut.rechazado = false
+                AND r.nombre     = 'Tesista'
+                ORDER BY ut.usuario_id
+                """, nativeQuery = true)
+        List<Integer> findTesistaIdsByTemaId(@Param("temaId") Integer temaId);
 }
