@@ -16,9 +16,20 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Info } from "lucide-react";
+import { FolderOpen, Info } from "lucide-react";
 import { useState } from "react";
-import { Tesis } from "../../types/perfil/entidades";
+
+export interface Tesis {
+  idTesis: number;
+  titulo: string;
+  estudiantes: string;
+  anio: string;
+  nivel: string;
+  estado: "en_proceso" | "finalizada" | null;
+  ciclo: string;
+  idProyecto: number | null;
+  tituloProyecto: string | null;
+}
 
 interface Props {
   tesis: Tesis[];
@@ -40,7 +51,7 @@ export default function TesisDirigidasResumen({ tesis }: Readonly<Props>) {
     if (filtradas.length === 0) {
       return (
         <div className="text-center py-12 text-gray-500">
-          No hay tesis {estado === "en_proceso" ? "en proceso" : "finalizada"}{" "}
+          No hay tesis {estado === "en_proceso" ? "en proceso" : "finalizadas"}{" "}
           actualmente
         </div>
       );
@@ -55,23 +66,44 @@ export default function TesisDirigidasResumen({ tesis }: Readonly<Props>) {
         <div className="bg-white rounded-lg shadow">
           {pageItems.map((t, index) => (
             <div key={index} className="p-4 border-b last:border-b-0">
-              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
-                <h4 className="font-medium text-sm sm:text-base">{t.titulo}</h4>
-                <Badge
-                  variant="outline"
-                  className={`
-                    self-start sm:self-auto text-xs
-                    ${t.nivel === "Finalizada" ? "bg-blue-100 text-blue-800 border-blue-200" : ""}
-                    ${t.nivel === "Tesis 1" ? "bg-purple-100 text-purple-800 border-purple-200" : ""}
-                    ${t.nivel === "Tesis 2" ? "bg-red-100 text-red-800 border-red-200" : ""}
-                  `}
-                >
-                  {t.nivel}
-                </Badge>
+              {/* Título y Badge de Nivel */}
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-2">
+                <h4 className="font-medium text-sm sm:text-base leading-tight">
+                  {t.titulo}
+                </h4>
+                <div className="flex flex-col sm:flex-row gap-2 self-start sm:self-auto">
+                  {/* Badge de Nivel con Ciclo */}
+                  <Badge
+                    variant="outline"
+                    className={`
+                      text-xs whitespace-nowrap
+                      ${t.nivel === "Finalizada" ? "bg-blue-100 text-blue-800 border-blue-200" : ""}
+                      ${t.nivel === "Tesis 1" ? "bg-purple-100 text-purple-800 border-purple-200" : ""}
+                      ${t.nivel === "Tesis 2" ? "bg-red-100 text-red-800 border-red-200" : ""}
+                    `}
+                  >
+                    {t.nivel}
+                    {t.ciclo && (
+                      <span className="ml-1 opacity-75">• {t.ciclo}</span>
+                    )}
+                  </Badge>
+                </div>
               </div>
-              <p className="text-gray-600 text-sm mt-1">
+
+              {/* Información de estudiantes y año */}
+              <p className="text-gray-600 text-sm">
                 {t.estudiantes} · {t.anio}
               </p>
+
+              {/* Título del proyecto (si existe) */}
+              {t.tituloProyecto && (
+                <div className="flex items-center gap-2 mt-2 p-2 bg-gray-50 rounded-md">
+                  <FolderOpen className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                  <span className="text-sm text-gray-700 font-medium">
+                    Proyecto: {t.tituloProyecto}
+                  </span>
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -150,7 +182,7 @@ export default function TesisDirigidasResumen({ tesis }: Readonly<Props>) {
       <Tabs defaultValue="en_proceso" className="w-full">
         <TabsList className="grid grid-cols-2 mb-4">
           <TabsTrigger value="en_proceso">En proceso</TabsTrigger>
-          <TabsTrigger value="finalizada">Finalizada</TabsTrigger>
+          <TabsTrigger value="finalizada">Finalizadas</TabsTrigger>
         </TabsList>
 
         <TabsContent value="en_proceso" className="space-y-4">

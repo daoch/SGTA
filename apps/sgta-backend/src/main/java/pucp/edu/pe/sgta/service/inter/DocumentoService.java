@@ -11,11 +11,13 @@ public interface DocumentoService {
     List<DocumentoConVersionDto> listarDocumentosPorEntregable(Integer entregableXTemaId);
     Integer create(Documento documento);
     void borrarDocumento(Integer documentoId);
-    public ResponseEntity<String> subirDocumentos(
-        Integer entregableXTemaId,
-        MultipartFile[] archivos,
-        String ciclo,
-        String curso,
-        String codigoAlumno
+    ResponseEntity<String> subirDocumentos(
+            Integer entregableXTemaId,
+            MultipartFile[] archivos,
+            String ciclo,
+            String curso,
+            String comentario,
+            String estado,
+            String cognitoId
     );
 }

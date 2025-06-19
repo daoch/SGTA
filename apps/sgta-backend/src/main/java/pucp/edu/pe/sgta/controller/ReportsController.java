@@ -180,12 +180,30 @@ public class ReportsController {
 
 
 
-    /** RF9: entregables con criterios de un tesista - NO AGREGAR ID COGNITO*/
-    @GetMapping("/entregables-criterios/{idUsuario}")
+    /** RF9: entregables con criterios de un tesista*/
+    @GetMapping("/entregables-criterios")
     public ResponseEntity<List<EntregableCriteriosDetalleDto>> getEntregablesConCriterios(
-           @PathVariable Integer  idUsuario) {
+           HttpServletRequest request) {
+        String idUsuario = jwtService.extractSubFromRequest(request);
         List<EntregableCriteriosDetalleDto> list =
             reportingService.getEntregablesConCriterios(idUsuario);
         return ResponseEntity.ok(list);
+
     }
+
+    /** RF10: Obtener estado de revisión de entregable */
+    @GetMapping("/entregables/estado-revision")
+    public ResponseEntity<?> getEstadoRevisionPorEntregableXTema(@RequestParam Integer entregableXTemaId) {
+        try {
+            return ResponseEntity.ok(reportingService.getEstadoRevisionPorEntregable(entregableXTemaId));
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                .body(Map.of("error", "No se encontró revisión para este entregable"));
+        } catch (Exception e) {
+            logger.error("Error al obtener estado de revisión:", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .body(Map.of("error", "Error interno del servidor"));
+        }
+    }
+
 }

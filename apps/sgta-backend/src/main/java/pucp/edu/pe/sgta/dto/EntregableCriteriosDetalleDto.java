@@ -18,4 +18,6 @@ public class EntregableCriteriosDetalleDto {
     private Double notaGlobal;
     private String estadoEntrega;
     private List<CriterioEntregableDetalleDto> criterios;
+    private Integer etapaFormativaXCicloId;
+    private Boolean esEvaluable;
 } 

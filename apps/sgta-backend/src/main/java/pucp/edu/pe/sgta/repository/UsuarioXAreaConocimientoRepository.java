@@ -15,4 +15,6 @@ public interface UsuarioXAreaConocimientoRepository extends JpaRepository<Usuari
 
     @Query(value = "SELECT desactivar_usuario_areas(:usuarioId, cast(:listaIds as INTEGER[]))", nativeQuery = true)
     void desactivarUsuarioAreas(@Param("usuarioId") Integer idUsuario, @Param("listaIds") String idsAreas);
+
+    List<UsuarioXAreaConocimiento> findByUsuario_IdAndActivoTrue(Integer usuarioId);
 }

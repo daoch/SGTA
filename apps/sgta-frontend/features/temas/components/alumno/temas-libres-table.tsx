@@ -18,6 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAuthStore } from "@/features/auth/store/auth-store";
 import { Eye, Send } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -268,52 +269,61 @@ export function PropuestasTable({
                         </DialogFooter>
                       </DialogContent>
                     </Dialog>
-                    <Button
-                      size="icon"
-                      variant="ghost" 
-                      onClick={async () => {
-                        try {
-                          const { idToken } = useAuthStore.getState();
-                          if (!idToken) {
-                            toast.error("No authentication token available", { position: "bottom-right" });
-                            return;
-                          }
-                          const res = await fetch(
-                            `${process.env.NEXT_PUBLIC_API_URL}/temas/verificarTemasComprometidosTesista`,
-                            {
-                              headers: {
-                                Authorization: `Bearer ${idToken}`,
-                                "Content-Type": "application/json",
-                              },
-                            }
-                          );
-                          if (!res.ok) throw new Error("Error verificando temas comprometidos");
-                          const data = await res.json();
-                          if (Array.isArray(data) && data[0]?.comprometido === 1) {
-                            const estadoMap: Record<string, string> = {
-                              EN_PROGRESO: "en curso",
-                              PREINSCRITO: "preinscrito",
-                              INSCRITO: "inscrito",
-                              REGISTRADO: "registrado",
-                              PAUSADO: "pausado",
-                            };
-                            const estadoNombre = data[0]?.estadoNombre;
-                            const estadoDescriptivo = estadoMap[estadoNombre] || estadoNombre?.toLowerCase() || "en curso";
-                            toast.error(
-                              `Ya tienes un tema ${estadoDescriptivo}, no puedes postular a otro.`,
-                              { position: "bottom-right" }
-                            );
-                            return;
-                          }
-                          setSelected(tema); // <-- asegúrate de pasar el tema correcto aquí
-                          setOpenPostularDialog(true);
-                        } catch (error) {
-                          toast.error("Error verificando temas comprometidos", { position: "bottom-right" });
-                        }
-                      }}
-                    >
-                      <Send className="h-4 w-4" />
-                    </Button>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            type="button"
+                            className="p-2 rounded hover:bg-gray-100"
+                            onClick={async () => {
+                              try {
+                                const { idToken } = useAuthStore.getState();
+                                if (!idToken) {
+                                  toast.error("No authentication token available", { position: "bottom-right" });
+                                  return;
+                                }
+                                const res = await fetch(
+                                  `${process.env.NEXT_PUBLIC_API_URL}/temas/verificarTemasComprometidosTesista`,
+                                  {
+                                    headers: {
+                                      Authorization: `Bearer ${idToken}`,
+                                      "Content-Type": "application/json",
+                                    },
+                                  }
+                                );
+                                if (!res.ok) throw new Error("Error verificando temas comprometidos");
+                                const data = await res.json();
+                                if (Array.isArray(data) && data[0]?.comprometido === 1) {
+                                  const estadoMap: Record<string, string> = {
+                                    EN_PROGRESO: "en curso",
+                                    PREINSCRITO: "preinscrito",
+                                    INSCRITO: "inscrito",
+                                    REGISTRADO: "registrado",
+                                    PAUSADO: "pausado",
+                                  };
+                                  const estadoNombre = data[0]?.estadoNombre;
+                                  const estadoDescriptivo = estadoMap[estadoNombre] || estadoNombre?.toLowerCase() || "en curso";
+                                  toast.error(
+                                    `Ya tienes un tema ${estadoDescriptivo}, no puedes postular a otro.`,
+                                    { position: "bottom-right" }
+                                  );
+                                  return;
+                                }
+                                setSelected(tema); 
+                                setOpenPostularDialog(true);
+                              } catch (error) {
+                                toast.error("Error verificando temas comprometidos", { position: "bottom-right" });
+                              }
+                            }}
+                          >
+                            <Send className="w-4 h-4" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Postular
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </div>
                 </TableCell>
               </TableRow>

@@ -1380,3 +1380,61 @@ BEGIN
     );
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION obtener_entregables_con_criterios(p_usuario_id integer)
+ RETURNS TABLE(entregable_id integer, entregable_nombre character varying, fecha_envio timestamp with time zone, nota_global numeric, estado_entrega character varying, criterio_id integer, criterio_nombre character varying, nota_maxima numeric, nota_criterio numeric, etapa_formativa_x_ciclo_id integer, es_evaluable boolean)
+ LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    WITH tema_alumno AS (
+        -- Obtener el tema del alumno
+        SELECT ut.tema_id
+        FROM usuario_tema ut
+        JOIN rol r ON r.rol_id = ut.rol_id AND r.nombre = 'Tesista'
+        WHERE ut.usuario_id = p_usuario_id
+        AND ut.activo = true
+        AND ut.asignado = true
+        LIMIT 1
+    ),
+    entregables_tema AS (
+        -- Obtener los entregables del tema
+        SELECT
+            e.entregable_id,
+            e.nombre as entregable_nombre,
+            et.fecha_envio,
+            et.nota_entregable as nota_global,
+            et.estado::VARCHAR as estado_entrega,
+            et.entregable_x_tema_id,
+            e.etapa_formativa_x_ciclo_id,
+            e.es_evaluable
+        FROM tema_alumno ta
+        JOIN entregable_x_tema et ON et.tema_id = ta.tema_id
+        JOIN entregable e ON e.entregable_id = et.entregable_id
+        WHERE et.activo = true
+        AND e.activo = true
+    )
+    SELECT
+        et.entregable_id,
+        et.entregable_nombre,
+        et.fecha_envio,
+        et.nota_global,
+        et.estado_entrega,
+        ce.criterio_entregable_id as criterio_id,
+        ce.nombre as criterio_nombre,
+        ce.nota_maxima,
+        rce.nota as nota_criterio,
+        et.etapa_formativa_x_ciclo_id,
+        et.es_evaluable
+    FROM entregables_tema et
+    -- Unir con criterios de entregable
+    LEFT JOIN criterio_entregable ce ON ce.entregable_id = et.entregable_id
+        AND ce.activo = true
+    -- Unir con las notas de los criterios (si existen)
+    LEFT JOIN revision_criterio_entregable rce
+        ON rce.criterio_entregable_id = ce.criterio_entregable_id
+        AND rce.entregable_x_tema_id = et.entregable_x_tema_id
+        AND rce.activo = true
+    ORDER BY et.fecha_envio DESC, ce.criterio_entregable_id;
+END;
+$$;

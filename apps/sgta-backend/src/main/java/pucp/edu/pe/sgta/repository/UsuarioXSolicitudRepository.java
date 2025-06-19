@@ -11,7 +11,11 @@ import org.springframework.stereotype.Repository;
 
 import pucp.edu.pe.sgta.model.RolSolicitud;
 import pucp.edu.pe.sgta.model.Solicitud;
+import pucp.edu.pe.sgta.model.Usuario;
 import pucp.edu.pe.sgta.model.UsuarioXSolicitud;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Repository
 public interface UsuarioXSolicitudRepository extends JpaRepository<UsuarioXSolicitud, Integer> {
@@ -49,15 +53,17 @@ public interface UsuarioXSolicitudRepository extends JpaRepository<UsuarioXSolic
             @Param("aprobar") Boolean aprobar);
 
     @Modifying
-    @Query(value = "CALL aprobar_solicitud_cambio_asesor_asesor(:idCognito, :solicitudId, :comentario)", nativeQuery = true)
+    @Query(value = "CALL aprobar_solicitud_cambio_asesor_asesor(:idCognito, :solicitudId, :comentario, :rol_nombre)", nativeQuery = true)
     void aprobarSolicitudCambioAsesorAsesor(@Param("idCognito") String idCognito,
-                                 @Param("solicitudId") Integer solicitudId,
-                                            @Param("comentario") String comentario);
+                                            @Param("solicitudId") Integer solicitudId,
+                                            @Param("comentario") String comentario,
+                                            @Param("rol_nombre") String rol);
     @Modifying
-    @Query(value = "CALL rechazar_solicitud_cambio_asesor_asesor(:idCognito, :solicitudId, :comentario)", nativeQuery = true)
+    @Query(value = "CALL rechazar_solicitud_cambio_asesor_asesor(:idCognito, :solicitudId, :comentario, :rol_nombre)", nativeQuery = true)
     void rechazarSolicitudCambioAsesorAsesor(@Param("idCognito") String idCognito,
                                             @Param("solicitudId") Integer solicitudId,
-                                             @Param("comentario") String comentario);
+                                             @Param("comentario") String comentario,
+                                             @Param("rol_nombre") String rol);
     @Modifying
     @Query(value = "CALL rechazar_solicitud_cambio_asesor_coordinador(:idCognito, :solicitudId, :comentario)", nativeQuery = true)
     void rechazarSolicitudCambioAsesorCoordinador(@Param("idCognito") String idCognito,
@@ -76,4 +82,12 @@ public interface UsuarioXSolicitudRepository extends JpaRepository<UsuarioXSolic
             Integer usuarioId,
             String rolSolicitudNombre
     );
+
+    List<UsuarioXSolicitud> findByUsuarioAndRolSolicitud_NombreAndActivoTrue(Usuario usuario, String rolNombre);
+
+    UsuarioXSolicitud findFirstBySolicitudAndRolSolicitudAndActivoTrue(Solicitud solicitud, RolSolicitud rolSolicitud);
+
+    Page<UsuarioXSolicitud> findByUsuarioAndRolSolicitudAndActivoTrue(Usuario usuario,
+                                                                  RolSolicitud rol,
+                                                                  Pageable pageable);
 }
