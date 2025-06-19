@@ -234,6 +234,7 @@ export default function ListadoSolicitudesCeseTema({
       switch (rol) {
         case "alumno":
           rolesUsuario.push("Tesista");
+          break;
         case "asesor":
           rolesUsuario.push("Asesor");
           rolesUsuario.push("Coasesor");

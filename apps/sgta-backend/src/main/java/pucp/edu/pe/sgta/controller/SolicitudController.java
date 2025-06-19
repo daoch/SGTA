@@ -176,7 +176,7 @@ public class SolicitudController {
 
     @GetMapping("/listarResumenSolicitudCeseTemaUsuario")
     public ResponseEntity<Object> listarResumenSolicitudCeseTemaUsuario(
-            List<String> roles,
+            @RequestParam List<String> roles,
             HttpServletRequest request
     ){
         String cognitoId = jwtService.extractSubFromRequest(request);
