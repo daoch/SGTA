@@ -170,7 +170,7 @@ const ModalDetallesExposicion: React.FC<{
                    // variant="outline"
                     size="sm"
                     className="w-full"
-                    onClick={() => window.open(exposicion.enlace_sesion, '_blank')}
+                    onClick={() => window.open(exposicion.enlace_sesion, "_blank")}
                   >
                     Abrir enlace
                   </Button>
@@ -187,7 +187,7 @@ const ModalDetallesExposicion: React.FC<{
                      // variant="outline"
                       size="sm"
                       className="w-full"
-                      onClick={() => window.open(exposicion.enlace_grabacion, '_blank')}
+                      onClick={() => window.open(exposicion.enlace_grabacion, "_blank")}
                     >
                       Abrir grabación
                     </Button>
