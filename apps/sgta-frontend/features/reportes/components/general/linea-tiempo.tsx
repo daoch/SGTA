@@ -1,8 +1,16 @@
 // src/components/LineaTiempoReporte.tsx
 
-import { useEffect, useState } from "react";
-import { addDays, format, isBefore, parseISO } from "date-fns";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -10,22 +18,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-  DialogClose,
-} from "@/components/ui/dialog";
-import { Eye } from "lucide-react";
-
-import { getEntregablesAlumno, getEntregablesAlumnoSeleccionado  } from "@/features/reportes/services/report-services";
 import type { User } from "@/features/auth/types/auth.types";
+import { getEntregablesAlumno, getEntregablesAlumnoSeleccionado } from "@/features/reportes/services/report-services";
+import { addDays, format, isBefore, parseISO } from "date-fns";
+import { Eye } from "lucide-react";
+import { useEffect, useState } from "react";
+import { AnalisisAcademico, GradesData, StudentData } from "./analisis-academico";
 
-import { useAuthStore } from "@/features/auth/store/auth-store";
 
 // Convierte "no_iniciado" → "No Iniciado", etc.
 const humanize = (raw: string) =>
@@ -77,7 +76,7 @@ interface Props {
 export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
 
   console.log("Valor de selectedStudentId recibido en línea de tiempo:", selectedStudentId);
-  const [activeTab, setActiveTab] = useState<"entregas" | "avances">("entregas");
+  const [activeTab, setActiveTab] = useState<"entregas" | "avances" | "analisis">("entregas");
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [showStatusFilter, setShowStatusFilter] = useState(false);
@@ -223,21 +222,69 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
     setIsCriteriosModalOpen(true);
   };
 
+
+//Constantes de prueba -- luego borrrarlas
+  // Ejemplo hardcodeado de studentData
+  const studentData: StudentData = {
+    name: "Ana Martínez",
+    currentStage: "Proyecto de Fin de Carrera 2",
+    totalStages: 2,
+  };
+
+  const gradesData: GradesData = {
+    stages: [
+      {
+        id: "PFC2",
+        name: "Proyecto de Fin de Carrera 2",
+        period: "2024-1",
+        deliverables: [
+          {
+            id: "1",
+            name: "Implementación del sistema",
+            date: "2024-03-15",
+            criteria: [
+              { name: "Calidad del código", grade: 18 },
+              { name: "Documentación", grade: 17 },
+            ],
+            expositionGrade: 17,
+            finalGrade: 18,
+          },
+          {
+            id: "2",
+            name: "Resultados preliminares",
+            date: "2024-04-10",
+            criteria: [
+              { name: "Análisis de resultados", grade: 16 },
+              { name: "Presentación", grade: 15 },
+            ],
+            expositionGrade: 16,
+            finalGrade: 16,
+          },
+        ],
+      },
+    ],
+  };
+
+
   return (
     <>
       {/* Pestañas */}
       <div className="flex gap-4 mb-4 border-b border-gray-200">
-        {["entregas", "avances"].map((tab) => (
+        {[
+          { key: "entregas", label: "Entregas" },
+          { key: "avances", label: "Avances" },
+          { key: "analisis", label: "Análisis Académico" },
+        ].map((tab) => (
           <button
-            key={tab}
-            onClick={() => setActiveTab(tab as "entregas" | "avances")}
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key as typeof activeTab)}
             className={`px-4 py-2 text-sm font-medium border-b-2 ${
-              activeTab === tab
+              activeTab === tab.key
                 ? "border-black text-black"
                 : "border-transparent text-gray-500 hover:text-black"
             }`}
           >
-            {tab === "entregas" ? "Entregas" : "Avances"}
+            {tab.label}
           </button>
         ))}
       </div>
@@ -436,6 +483,19 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
           </CardContent>
         </Card>
       )}
+
+      {activeTab === "analisis" && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Análisis Académico</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <AnalisisAcademico studentData={studentData} gradesData={gradesData}/>
+          </CardContent>
+        </Card>
+      )}
+
+
 
       {/* Modal de Criterios */}
       <Dialog open={isCriteriosModalOpen} onOpenChange={setIsCriteriosModalOpen}>
