@@ -1691,4 +1691,88 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION obtener_detalle_solicitud_cese(
+    p_solicitud_id INTEGER
+)
+RETURNS TABLE (
+    solicitud_id INTEGER,
+    fecha_creacion TIMESTAMP WITH TIME ZONE,
+    estado_nombre TEXT,
+    descripcion TEXT,
+    tema_id INTEGER,
+    titulo TEXT,
+    fecha_resolucion TIMESTAMP WITH TIME ZONE,
+    remitente_id INTEGER,
+    coordinador_id INTEGER,
+    asesor_actual_id INTEGER
+)
+LANGUAGE sql
+AS $$
+    SELECT
+        s.solicitud_id,
+        s.fecha_creacion,
+        es.nombre::TEXT,
+        s.descripcion::TEXT,
+        t.tema_id,
+        t.titulo::TEXT,
+        s.fecha_resolucion,
+        remitente.usuario_id,
+        coordinador.usuario_id,
+        asesor_actual.usuario_id
+    FROM solicitud s
+    JOIN estado_solicitud es 
+        ON s.estado_solicitud = es.estado_solicitud_id
+    JOIN tema t 
+        ON t.tema_id = s.tema_id
+    LEFT JOIN LATERAL (
+        SELECT u.usuario_id
+        FROM usuario_solicitud us
+        JOIN usuario u ON u.usuario_id = us.usuario_id
+        JOIN rol_solicitud rs ON rs.rol_solicitud_id = us.rol_solicitud
+        WHERE us.solicitud_id = s.solicitud_id AND rs.nombre = 'REMITENTE'
+        LIMIT 1
+    ) remitente ON true
+    LEFT JOIN LATERAL (
+        SELECT u.usuario_id
+        FROM usuario_solicitud us
+        JOIN usuario u ON u.usuario_id = us.usuario_id
+        JOIN rol_solicitud rs ON rs.rol_solicitud_id = us.rol_solicitud
+        WHERE us.solicitud_id = s.solicitud_id AND rs.nombre = 'DESTINATARIO'
+        LIMIT 1
+    ) coordinador ON true
+    LEFT JOIN LATERAL (
+        SELECT u.usuario_id
+        FROM usuario_tema ut
+        JOIN usuario u ON u.usuario_id = ut.usuario_id
+        JOIN rol r ON r.rol_id = ut.rol_id
+        WHERE ut.activo = true
+          AND ut.asignado = true
+          AND r.nombre = 'Asesor'
+          AND ut.tema_id = t.tema_id
+        LIMIT 1
+    ) asesor_actual ON true
+    WHERE s.solicitud_id = p_solicitud_id;
+$$;
+
+CREATE OR REPLACE FUNCTION obtener_perfil_asesor_cese(
+    p_usuario_id INTEGER
+)
+RETURNS TABLE (
+    usuario_id INTEGER,
+    nombres TEXT,
+    primer_apellido TEXT,
+    correo_electronico TEXT,
+    foto_perfil BYTEA
+)
+LANGUAGE sql
+AS $$
+    SELECT
+        u.usuario_id,
+        u.nombres::TEXT,
+        u.primer_apellido::TEXT,
+        u.correo_electronico::TEXT,
+        u.foto_perfil
+    FROM usuario u
+    WHERE u.usuario_id = p_usuario_id;
+$$;
 

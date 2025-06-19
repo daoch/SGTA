@@ -611,6 +611,29 @@ public class SolicitudServiceImpl implements SolicitudService {
         return solicitudes;
     }
 
+    @Override
+    public DetalleSolicitudCeseTema listarDetalleSolicitudCeseTema(Integer idSolicitud) {
+        List<Object[]> queryRes = solicitudRepository.listarDetalleSolicitudCeseTema(idSolicitud);
+        Object[] result = queryRes.get(0);
+        if(result == null) return null;
+        DetalleSolicitudCeseTema detalle = DetalleSolicitudCeseTema.fromQuery(result);
+        Integer idRemitente = (Integer) result[7];
+        UsuarioSolicitudCambioAsesorDto remitente = getUsuarioSolicitudFromId(idRemitente, idSolicitud, RolSolicitudEnum.REMITENTE);
+        Integer idDestinatario = (Integer) result[8];
+        UsuarioSolicitudCambioAsesorDto destinatario = null;
+        if (idDestinatario != null) {
+            destinatario = getUsuarioSolicitudFromId(idDestinatario, idSolicitud, RolSolicitudEnum.DESTINATARIO);
+        }
+        Integer idAsesor = (Integer) result[9];
+        AsesorSolicitudCeseDto asesor = getAsesorCeseFromId(idAsesor);
+
+        detalle.setSolicitante(remitente);
+        detalle.setAsesorActual(asesor);
+        detalle.setCoordinador(destinatario);
+
+        return detalle;
+    }
+
 
     @Override
     public DetalleSolicitudCambioAsesorDto listarDetalleSolicitudCambioAsesorUsuario(Integer idSolicitud) {
@@ -676,6 +699,12 @@ public class SolicitudServiceImpl implements SolicitudService {
                 idSolicitud, rol.name());
         Object[] result = queryResult.get(0);
         return UsuarioSolicitudCambioAsesorDto.fromQueryResult(result);
+    }
+
+    private AsesorSolicitudCeseDto getAsesorCeseFromId(int idUsuario){
+        List<Object[]> queryResult = solicitudRepository.obtenerPerfilAsesorCese(idUsuario);
+        Object[] result = queryResult.get(0);
+        return AsesorSolicitudCeseDto.fromQueryResult(result);
     }
 
     private boolean determinarSolicitudCompletadaFromData(Integer estado) {

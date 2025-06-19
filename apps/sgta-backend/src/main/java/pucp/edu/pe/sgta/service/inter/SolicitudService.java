@@ -51,4 +51,6 @@ public interface SolicitudService {
     RegistroCeseTemaDto registrarSolicitudCeseTema(RegistroCeseTemaDto registroDto, String cognitoId);
 
     List<SolicitudCeseTemaResumenDto> listarResumenSolicitudCeseTemaUsuario(String cognitoId, List<String> roles);
+
+    DetalleSolicitudCeseTema listarDetalleSolicitudCeseTema(Integer idSolicitud);
 }

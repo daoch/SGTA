@@ -11,10 +11,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 
 import pucp.edu.pe.sgta.dto.SolicitudCeseDto;
-import pucp.edu.pe.sgta.dto.asesores.RegistroCeseTemaDto;
-import pucp.edu.pe.sgta.dto.asesores.RejectSolicitudRequestDto;
-import pucp.edu.pe.sgta.dto.asesores.SolicitudCeseDetalleDto;
-import pucp.edu.pe.sgta.dto.asesores.SolicitudCeseTemaResumenDto;
+import pucp.edu.pe.sgta.dto.asesores.*;
 import pucp.edu.pe.sgta.dto.temas.SolicitudTemaDto;
 import pucp.edu.pe.sgta.service.inter.JwtService;
 import pucp.edu.pe.sgta.service.inter.SolicitudService;
@@ -182,5 +179,14 @@ public class SolicitudController {
         String cognitoId = jwtService.extractSubFromRequest(request);
         List<SolicitudCeseTemaResumenDto> solicitudes = solicitudService.listarResumenSolicitudCeseTemaUsuario(cognitoId, roles);
         return ResponseEntity.ok(solicitudes);
+    }
+
+    @GetMapping("/listarDetalleSolicitudCeseTema")
+    public ResponseEntity<Object> listarDetalleSolicitudCeseTema(
+            @RequestParam Integer idSolicitud,
+            HttpServletRequest request
+    ){
+        DetalleSolicitudCeseTema solicitud = solicitudService.listarDetalleSolicitudCeseTema(idSolicitud);
+        return ResponseEntity.ok(solicitud);
     }
 }
