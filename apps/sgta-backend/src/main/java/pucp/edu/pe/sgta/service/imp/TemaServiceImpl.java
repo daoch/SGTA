@@ -1576,11 +1576,11 @@ public class TemaServiceImpl implements TemaService {
 				.getSingleResult();
 		entityManager.flush();
 		logger.info("Eliminando postulaciones a propuesta de usuario: " + idTesista + " START");
-		String queryRechazo = "SELECT rechazar_postulaciones_propuesta_general_tesista(:uid)";
+		//String queryRechazo = "SELECT rechazar_postulaciones_propuesta_general_tesista(:uid)";
 
-		entityManager.createNativeQuery(queryRechazo)
-				.setParameter("uid", idTesista)
-				.getSingleResult();
+		//entityManager.createNativeQuery(queryRechazo)
+		//		.setParameter("uid", idTesista)
+		//		.getSingleResult();
 		logger.info("Eliminando postulaciones a propuesta de usuario: " + idTesista + " FINISH");
 		logger.info("Eliminando postulaciones de usuario: " + idTesista);
 
