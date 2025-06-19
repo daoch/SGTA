@@ -127,9 +127,10 @@ export default function DetalleSolicitudesCoordinadorPage({
           } else {
             await crearSolicitudCambioTitulo(solicitud.tema.id, comentario);
           }
-
-          getSolicitudes(); // Visualizar cambios
         }
+
+        // Lists Updated Solicitudes
+        getSolicitudes();
       }
 
       // Show Succes Message

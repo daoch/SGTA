@@ -212,22 +212,22 @@ const TABS_VALUES = {
   no_iniciado: {
     title: "Pendientes",
     description: "Lista de entregables pendientes de revisión",
-    filter: "no_iniciado",
+    filter: "pendiente",
   },
   entregados: {
     title: "Entregados",
     description: "Lista de entregables presentados",
-    filter: "Entregado",
+    filter: "enviado_a_tiempo",
   },
   revision: {
     title: "En Revisión",
     description: "Lista de entregables en revisión",
-    filter: "En Revisión",
+    filter: "en_revision",
   },
   revisados: {
     title: "Revisados",
     description: "Lista de entregables revisados",
-    filter: "Revisado",
+    filter: "revisado",
   },
   todos: {
     title: "Todos",
