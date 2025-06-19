@@ -19,7 +19,7 @@ public class ConfiguracionRecordatorioMapper {
 
     public void updateEntityFromDto(ConfiguracionRecordatorioDto dto, ConfiguracionRecordatorio entity) {
         entity.setActivo(dto.getActivo());
-        entity.setDiasAnticipacion(dto.getDiasAnticipacion().toArray(new Integer[0]));
+        entity.setDiasAnticipacion(dto.getDiasAnticipacion());
         entity.setCanalCorreo(dto.getCanalCorreo());
         entity.setCanalSistema(dto.getCanalSistema());
         entity.setFechaModificacion(java.time.OffsetDateTime.now());
