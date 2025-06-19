@@ -274,21 +274,6 @@ export function AnalisisAcademico({ studentData, gradesData }: AcademicAnalysisP
                 }}
                 name="Nota Final"
               />
-              <Line
-                type="monotone"
-                activeDot={{
-                    r: 6,
-                    stroke: "#16a34a",
-                    strokeWidth: 2,
-                    onClick: (event: React.MouseEvent<SVGElement, MouseEvent>) => {
-                        const target = event.target as SVGElement & { index?: number };
-                        if (typeof target.index === "number") {
-                            setSelectedDeliverableIndex(target.index);
-                        }
-                    },
-                }}
-                name="Nota Exposición"
-              />
             </LineChart>
           </ResponsiveContainer>
         </div>
