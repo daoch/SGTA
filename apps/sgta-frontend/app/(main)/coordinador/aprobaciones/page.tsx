@@ -29,42 +29,6 @@ const texts = {
   },
 };
 
-// Ejemplo de SolicitudGeneral mock
-export const solicitudesMock: SolicitudGeneral[] = [
-  {
-    solicitud_id: 1,
-    descripcion: "Solicitud de aprobación de tema por coordinador",
-    tipo_solicitud: "Aprobación de tema (por coordinador)",
-    estado_solicitud: "PENDIENTE",
-    tema_id: 101,
-    fecha_creacion: "2025-06-16T10:00:00.000Z",
-    usuarios: [
-      {
-        usuario_solicitud_id: 380,
-        usuario_id: 95,
-        nombres: "Rodrigo",
-        primer_apellido: "Luna",
-        segundo_apellido: "Valencia",
-        codigo: "20192929",
-        accion_solicitud: "PENDIENTE_ACCION",
-        rol_solicitud: "DESTINATARIO",
-        comentario: null,
-      },
-      {
-        usuario_solicitud_id: 381,
-        usuario_id: 96,
-        nombres: "Ana",
-        primer_apellido: "Pérez",
-        segundo_apellido: "García",
-        codigo: "20181234",
-        accion_solicitud: "APROBADO",
-        rol_solicitud: "REMITENTE",
-        comentario: "Todo conforme.",
-      },
-    ],
-  },
-];
-
 const Page: React.FC = () => {
   // General
   const [selectedTab, setSelectedTab] = useState<TypeView>(TypeView.Tema);
