@@ -164,7 +164,8 @@ public class TemaServiceImpl implements TemaService {
 	public TemaDto findById(Integer id) {
 		Tema tema = temaRepository.findById(id).orElse(null);
 		if (tema != null) {
-			return TemaMapper.toDto(tema);
+			TemaDto dto = TemaMapper.toDto(tema);
+
 		}
 		return null;
 	}
