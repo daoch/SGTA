@@ -40,28 +40,30 @@ export function useDirectorioAsesores() {
             codigoPucp: string;
           };
           rolesConcat: string;
-          tesisCount?: number;
+          tesisAsesorCount?: number; // <-- NUEVO
+          tesisJuradoCount?: number; // <-- NUEVO
         }>;
-    console.log("Profesores desde API:", data); 
-    const mapped: Profesor[] = data.map((dto) => {
-      const roles = (dto.rolesConcat || "")
-        .toLowerCase()
-        .split(",")
-        .map((r: string) => r.trim())
-        .filter((r): r is "asesor" | "jurado" => r === "asesor" || r === "jurado");
+        console.log("Profesores desde API:", data);
+        const mapped: Profesor[] = data.map((dto) => {
+          const roles = (dto.rolesConcat || "")
+            .toLowerCase()
+            .split(",")
+            .map((r: string) => r.trim())
+            .filter((r): r is "asesor" | "jurado" => r === "asesor" || r === "jurado");
 
-      return {
-        id: dto.usuario.id,
-        nombres: dto.usuario.nombres,
-        primerApellido: dto.usuario.primerApellido,
-        segundoApellido: dto.usuario.segundoApellido,
-        correo: dto.usuario.correoElectronico,
-        codigo: dto.usuario.codigoPucp,
-        rolesAsignados: roles,
-        tesisActivas: Number(dto.tesisCount ?? 0),
-        estado: "activo",
-      };
-});
+          return {
+            id: dto.usuario.id,
+            nombres: dto.usuario.nombres,
+            primerApellido: dto.usuario.primerApellido,
+            segundoApellido: dto.usuario.segundoApellido,
+            correo: dto.usuario.correoElectronico,
+            codigo: dto.usuario.codigoPucp,
+            rolesAsignados: roles,
+            tesisAsesor: Number(dto.tesisAsesorCount ?? 0), // <-- NUEVO
+            tesisJurado: Number(dto.tesisJuradoCount ?? 0), // <-- NUEVO
+            estado: "activo",
+          };
+        });
         setProfesores(mapped);
       } catch (error: unknown) {
         console.error("Error al obtener profesores:", error);
