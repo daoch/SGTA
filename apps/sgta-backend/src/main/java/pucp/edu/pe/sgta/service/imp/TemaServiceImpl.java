@@ -775,7 +775,7 @@ public class TemaServiceImpl implements TemaService {
 		// 1–5) Delegar a la función PL/pgSQL
 		entityManager.flush(); // asegurar que tema.id ya esté asignado
 		// 6) Generar y enviar la solicitud de aprobación
-		saveHistorialTemaChange(tema, dto.getTitulo(), dto.getResumen(), "Inscripción de tema");
+		saveHistorialTemaChange(tema, tema.getTitulo(), tema.getResumen(), "Inscripción de tema");
 		crearSolicitudAprobacionTemaV2(tema);
 		return temaId; // return tema id
 	}
