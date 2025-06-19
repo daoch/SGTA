@@ -1,9 +1,13 @@
 package pucp.edu.pe.sgta.dto.asesores;
 
+import lombok.Getter;
+import lombok.Setter;
 import pucp.edu.pe.sgta.util.AccionSolicitudEnum;
 import pucp.edu.pe.sgta.util.RolSolicitudEnum;
 import pucp.edu.pe.sgta.util.Utils;
 
+@Setter
+@Getter
 public class AsesorSolicitudCeseDto {
     private int id;
     private String nombres;
