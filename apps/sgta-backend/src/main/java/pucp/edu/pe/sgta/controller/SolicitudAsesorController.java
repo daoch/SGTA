@@ -68,42 +68,41 @@ public class SolicitudAsesorController {
     }
 
     /**
-     * Endpoint para que el asesor obtenga la lista paginada de las solicitudes de cese
-     * que él mismo ha iniciado.
+     * Endpoint para que el asesor (Asesor A) vea el historial de sus solicitudes de cese.
      */
-    // @GetMapping("/mis-solicitudes-cese")
-    // public ResponseEntity<Page<MiSolicitudCeseItemDto>> getMisSolicitudesDeCese(
-    //         @AuthenticationPrincipal Jwt jwt,
-    //         @PageableDefault(size = 5, sort = "fechaCreacion", direction = Sort.Direction.DESC) Pageable pageable,
-    //         @RequestParam(required = false) String searchTerm
-    // ) {
-    //     if (jwt == null) {
-    //         log.warn("Intento de GET /mis-solicitudes-cese sin autenticación (JWT nulo).");
-    //         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-    //     }
-    //     String asesorCognitoSub = jwt.getSubject();
-    //     if (asesorCognitoSub == null || asesorCognitoSub.trim().isEmpty()) {
-    //         log.error("El token JWT para GET /mis-solicitudes-cese no contiene el claim 'sub'.");
-    //         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-    //     }
+    @GetMapping("/mis-solicitudes-cese")
+    public ResponseEntity<Page<MiSolicitudCeseItemDto>> getMisSolicitudesDeCese(
+            @AuthenticationPrincipal Jwt jwt,
+            @PageableDefault(size = 5, sort = "fechaCreacion", direction = Sort.Direction.DESC) Pageable pageable,
+            @RequestParam(required = false) String searchTerm
+    ) {
+        if (jwt == null) {
+            log.warn("Intento de GET /mis-solicitudes-cese sin autenticación.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        String asesorCognitoSub = jwt.getSubject();
+        if (asesorCognitoSub == null || asesorCognitoSub.isBlank()) {
+            log.error("Token JWT para GET /mis-solicitudes-cese sin claim 'sub'.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
 
-    //     log.info("Asesor {} pidiendo historial de solicitudes. Page: {}, Size: {}, SearchTerm: {}",
-    //             asesorCognitoSub, pageable.getPageNumber(), pageable.getPageSize(), searchTerm);
-
-    //     try {
-    //         Page<MiSolicitudCeseItemDto> misSolicitudes =
-    //                 solicitudAsesorService.findSolicitudesCeseByAsesor(
-    //                         asesorCognitoSub,
-    //                         searchTerm == null ? "" : searchTerm.trim(),
-    //                         pageable
-    //                 );
-    //         return ResponseEntity.ok(misSolicitudes);
-    //     } catch (Exception e) {
-    //         log.error("Error al obtener solicitudes de cese para asesor {}: {}", asesorCognitoSub, e.getMessage(), e);
-    //         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-    //     }
-    // }
-
+        log.info("Asesor {} pidiendo historial de solicitudes de cese. page={}, size={}, search='{}'",
+                asesorCognitoSub, pageable.getPageNumber(), pageable.getPageSize(), searchTerm);
+        try {
+            Page<MiSolicitudCeseItemDto> misSolicitudes =
+                    solicitudAsesorService.findSolicitudesCeseByAsesor(
+                            asesorCognitoSub,
+                            searchTerm == null ? "" : searchTerm.trim(),
+                            pageable
+                    );
+            return ResponseEntity.ok(misSolicitudes);
+        } catch (Exception e) {
+            log.error("Error al cargar solicitudes de cese para asesor {}: {}", asesorCognitoSub, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                 .body(Page.empty(pageable));
+        }
+    }
+    
     // /**
     //  * NUEVO ENDPOINT: Endpoint para que el asesor (Asesor B) obtenga la lista paginada
     //  * de propuestas de asesoría que le ha enviado un coordinador y están pendientes de su decisión.
@@ -199,6 +198,44 @@ public class SolicitudAsesorController {
         } catch (Exception e) {
             log.error("Error inesperado al aceptar invitación para Solicitud ID {}: {}", solicitudOriginalId, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error interno al procesar la aceptación.");
+        }
+    }
+
+    @PostMapping("/invitaciones-asesoria/{solicitudOriginalId}/rechazar")
+    public ResponseEntity<?> rechazarInvitacionAsesoria(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable Integer solicitudOriginalId,
+            @Valid @RequestBody RechazarInvitacionAsesoriaRequestDto requestDto
+    ) {
+        if (jwt == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No autenticado.");
+        }
+        String asesorCognitoSub = jwt.getSubject();
+        if (asesorCognitoSub == null || asesorCognitoSub.trim().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token inválido.");
+        }
+
+        log.info("Asesor CognitoSub {} rechazando invitación de asesoría para Solicitud ID: {} con motivo: '{}'",
+                asesorCognitoSub, solicitudOriginalId, requestDto.getMotivoRechazo());
+        try {
+            asesorService.rechazarInvitacionDeAsesoria(
+                    solicitudOriginalId,
+                    asesorCognitoSub,
+                    requestDto.getMotivoRechazo()
+            );
+            return ResponseEntity.ok(Map.of("mensaje", "Invitación de asesoría rechazada correctamente."));
+        } catch (ResourceNotFoundException e) {
+            log.warn("No se pudo rechazar invitación para Solicitud ID {}: {}", solicitudOriginalId, e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (BusinessRuleException | IllegalStateException e) {
+            log.warn("Error de negocio al rechazar invitación para Solicitud ID {}: {}", solicitudOriginalId, e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (AccessDeniedException e) {
+            log.warn("Acceso denegado para asesor {} al rechazar invitación {}: {}", asesorCognitoSub, solicitudOriginalId, e.getMessage());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+        } catch (Exception e) {
+            log.error("Error inesperado al rechazar invitación para Solicitud ID {}: {}", solicitudOriginalId, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error interno al procesar el rechazo.");
         }
     }
 
