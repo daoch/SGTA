@@ -2,16 +2,12 @@ package pucp.edu.pe.sgta.service.inter;
 
 import org.springframework.data.domain.Page;
 import pucp.edu.pe.sgta.dto.*;
-import pucp.edu.pe.sgta.dto.asesores.FiltrosDirectorioAsesores;
-import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
-import pucp.edu.pe.sgta.dto.asesores.UsuarioConRolDto;
-import pucp.edu.pe.sgta.dto.asesores.UsuarioFotoDto;
-import pucp.edu.pe.sgta.dto.UsuarioRegistroDto;
 import pucp.edu.pe.sgta.dto.asesores.*;
 import org.springframework.web.multipart.MultipartFile;
 import pucp.edu.pe.sgta.util.RolEnum;
 import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -118,5 +114,7 @@ public interface UsuarioService {
     List<UsuarioRolRevisorDto> listarRevisoresPorCarrera(Integer carreraId);
 
     List<PerfilAsesorDto> buscarAsesoresPorCadenaDeBusqueda(String cadena, Integer idUsuario);
+
+    List<UsuarioDto> findAllByIds(Collection<Integer> ids);
 
 }

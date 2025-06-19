@@ -61,7 +61,14 @@ public class HistorialTema {
 	@Column(name = "portafolio_url", length = 255)
     private String portafolioUrl;
 
-	
+	@Column(columnDefinition = "TEXT DEFAULT ''")
+    private String subareasSnapshot;
+
+    @Column(columnDefinition = "TEXT DEFAULT ''")
+    private String asesoresSnapshot;
+
+    @Column(columnDefinition = "TEXT DEFAULT ''")
+    private String tesistasSnapshot;
 
 
 	@Column(nullable = false)
