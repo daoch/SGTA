@@ -125,7 +125,7 @@ export const TemaDetailsDialog: React.FC<TemaDetailsDialogProps> = ({
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm font-medium">Asesor</p>
-                  <p className="bg-muted p-2 rounded-md">{asesor?.nombres}</p>
+                  <p className="bg-muted p-2 rounded-md">{`${asesor?.nombres} ${asesor?.primerApellido}`}</p>
                 </div>
 
                 {/* Estado */}

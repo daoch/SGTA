@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ObservacionesCard } from "@/features/temas/components/asesor/observaciones-tema-card";
 import {
   buscarTema,
   obtenerObservacionesTema,
@@ -11,6 +10,7 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import HistorialTemaCard from "../components/asesor/historial-tema-card";
 import { Observacion, Solicitud, Tema } from "../types/temas/entidades";
 
 export default function InformacionTemaAsesor({
@@ -74,7 +74,7 @@ export default function InformacionTemaAsesor({
     fetchObservaciones(Number(params));
   }, [params]);
 
-  console.log({ tema });
+  console.log({ observaciones });
   return (
     <div className="space-y-8 mt-4">
       <div className="flex items-center gap-4">
@@ -91,9 +91,10 @@ export default function InformacionTemaAsesor({
       <Tabs defaultValue={"Comentarios"} className="w-full">
         <TabsList>
           <TabsTrigger value={"Comentarios"}>Comentario(s)</TabsTrigger>
+          <TabsTrigger value={"Historial"}>Historial de cambio</TabsTrigger>
         </TabsList>
         <TabsContent value={"Comentarios"}>
-          {(() => {
+          {/*(() => {
             if (loading) {
               return (
                 <p className="p-6 text-muted-foreground">
@@ -104,9 +105,19 @@ export default function InformacionTemaAsesor({
               return <p className="p-6 text-red-500">Error: {error}</p>;
             } else if (observaciones.length === 0) {
               return (
-                <p className="p-6 text-muted-foreground">
-                  No se encontraron observaciones para este tema
-                </p>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Observaciones pendientes</CardTitle>
+                    <CardDescription>
+                      Observaciones pendientes por parte del alumno
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-6 text-gray-500">
+                      No se encontraron observaciones pendientes
+                    </div>
+                  </CardContent>
+                </Card>
               );
             } else {
               return (
@@ -115,10 +126,12 @@ export default function InformacionTemaAsesor({
                 ></ObservacionesCard>
               );
             }
-          })()}
+          })()*/}
+        </TabsContent>
+        <TabsContent value={"Historial"}>
+          <HistorialTemaCard idTema={tema?.id} />
         </TabsContent>
       </Tabs>
     </div>
   );
 }
-

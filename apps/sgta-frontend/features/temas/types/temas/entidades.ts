@@ -22,6 +22,7 @@ export interface Tema {
   requisitos: string; //agregado
   area: AreaConocimiento[];
   cantPostulaciones: number;
+  areaConocimiento: AreaConocimiento[];
 }
 
 export interface Carrera {
@@ -129,6 +130,7 @@ export type TipoUsuario = {
 };
 
 export interface TemaCreateLibre {
+  id?: number;
   titulo: string;
   carrera: { id: number };
   resumen: string;
@@ -196,3 +198,49 @@ export interface TemaSimilitud {
   similarityScore: number;
   comparedFields?: string;
 }
+
+export type Tema_Historial = {
+  id: number;
+  codigo: string;
+  titulo: string;
+  resumen: string;
+  objetivos: string;
+  metodologia: string;
+  requisitos: string | null;
+  portafolioUrl: string | null;
+  activo: boolean | null;
+  rechazado: boolean | null;
+  fechaLimite: string;
+  fechaFinalizacion: string | null;
+  fechaCreacion: string;
+  fechaModificacion: string;
+  estadoTemaNombre: string;
+  carrera: Carrera;
+  cantPostulaciones: number | null;
+  porcentajeSimilitud: number | null;
+  area: string | null;
+  subareas: string | null;
+  tesistas: string | null;
+  coasesores: string | null;
+  estadoUsuarioTema: string | null;
+};
+
+export type Historial = {
+  id: number;
+  tema: Tema_Historial;
+  codigo: string | null;
+  titulo: string;
+  resumen: string;
+  metodologia: string;
+  objetivos: string;
+  descripcionCambio: string;
+  portafolioUrl: string | null;
+  estadoTemaNombre: string;
+  proyectoId: number | null;
+  carrera: Carrera;
+  fechaLimite: string;
+  fechaFinalizacion: string | null;
+  activo: boolean;
+  fechaCreacion: string;
+  fechaModificacion: string;
+};
