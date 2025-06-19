@@ -39,6 +39,47 @@ import {
 import { useHotkeys } from "react-hotkeys-hook";
 import { es } from "date-fns/locale/es"; // Opcional: para mostrar la fecha en español
 
+import {
+  EditarReunionModal,
+  type ReunionFormData,
+} from "@/features/cronograma/editar-reunion-modal";
+import { addHours } from "date-fns";
+
+type TipoEvento = "ENTREGABLE" | "REUNION" | "EXPOSICION";
+
+/*
+const handleRegistrarReunion = async (reunionData: ReunionFormData) => {
+  try {
+    // Here you would typically make an API call to save the meeting
+    console.log("Registrando reunión:", reunionData);
+
+    // For now, we'll just add it to the local events state
+    const newEvent: CalendarEvent = {
+      id: (events.length + 1).toString(),
+      title: reunionData.titulo,
+      description: reunionData.descripcion,
+      start: new Date(reunionData.fechaHoraInicio),
+      end: new Date(reunionData.fechaHoraFin),
+      tipoEvento: "REUNION",
+    };
+
+    setEvents((prev) => [...prev, newEvent]);
+
+    // You could also make an API call here:
+    // await axiosInstance.post("/api/reuniones", reunionData);
+
+    // Close the modal
+    setIsReunionModalOpen(false);
+
+    // You could show a success message here
+    console.log("Reunión registrada exitosamente");
+  } catch (error) {
+    console.error("Error al registrar la reunión:", error);
+    throw error; // Re-throw to let the modal handle the error
+  }
+};
+*/
+
 const monthEventVariants = cva("size-2 rounded-full", {
   variants: {
     variant: {
@@ -90,28 +131,28 @@ const Context = createContext<ContextType>({} as ContextType);
 
 // 1. Primero, actualiza el tipo CalendarEvent (si no está ya extendido)
 type CalendarEvent = {
-    id: string;
-    start?: Date;
-    end: Date;
-    title: string;
-    type?: string;
-    description?: string;  // <-- Añade esto
-    tesista?: string;
-    color?: VariantProps<typeof monthEventVariants>["variant"];
-  };
+  id: string;
+  start?: Date;
+  end: Date;
+  title: string;
+  type?: string;
+  description?: string;  // <-- Añade esto
+  tesista?: string;
+  color?: VariantProps<typeof monthEventVariants>["variant"];
+};
 
-  type CalendarProps = {
-    children: ReactNode;
-    defaultDate?: Date;
-    events?: CalendarEvent[];
-    view?: View;
-    locale?: Locale;
-    enableHotkeys?: boolean;
-    onChangeView?: (view: View) => void;
-    onEventClick?: (event: CalendarEvent) => void;
-    numTesistas?: number; // <-- Nuevo
-    tipoUsuario: string;
-  };  
+type CalendarProps = {
+  children: ReactNode;
+  defaultDate?: Date;
+  events?: CalendarEvent[];
+  view?: View;
+  locale?: Locale;
+  enableHotkeys?: boolean;
+  onChangeView?: (view: View) => void;
+  onEventClick?: (event: CalendarEvent) => void;
+  numTesistas?: number; // <-- Nuevo
+  tipoUsuario: string;
+};  
 
 const Calendar = ({
   children,
@@ -216,6 +257,9 @@ const EventGroup = ({
 }) => {
   const { numTesistas } = useContext(Context);
 
+  const [isReunionModalOpen, setIsReunionModalOpen] = useState(false);
+  const [eventoSeleccionado, setEventoSeleccionado] = useState<CalendarEvent | null>(null);
+
   const getTipoColor = (tipo: string) => {
     switch (tipo) {
       case "REUNION":
@@ -229,7 +273,6 @@ const EventGroup = ({
     }
   };
 
-  // Obtener lista única de tesistas ordenados
   const tesistasOrdenados = useMemo(() => {
     const setTesistas = new Set<string>();
     events.forEach((e) => {
@@ -245,31 +288,46 @@ const EventGroup = ({
         gridTemplateColumns: `repeat(${numTesistas}, minmax(0, 1fr))`,
       }}
     >
-
       {tesistasOrdenados.map((tesista, index) => {
-        const eventos = events
-          .filter((event) => isSameHour(event.start ?? event.end, hour) && event.tesista === tesista);
-  
+        const eventos = events.filter((event) => {
+          const start = event.start ?? event.end;
+          const end = event.end;
+          return (
+            start <= addHours(hour, 1) &&
+            end >= hour &&
+            event.tesista === tesista
+          );
+        });
+        
+
         return (
           <div key={tesista} className={`h-full relative col-start-${index + 1}`}>
             {eventos.map((event) => {
               const isDeadline = event.type === "ENTREGABLE";
+              const isClickable = tipoUsuario === "Alumno" && event.type === "REUNION";
               const hoursDifference = isDeadline
                 ? 1
                 : differenceInMinutes(event.end, event.start ?? event.end) / 60;
               const startPosition = (event.start?.getMinutes() ?? 0) / 60;
-  
+
               return (
                 <div
                   key={event.id}
                   className={cn(
                     "h-2 relative flex flex-col p-1 overflow-hidden",
                     dayEventVariants({ variant: event.color }),
+                    isClickable && "cursor-pointer",
                     isDeadline && "border-t-4 border-t-dashed"
                   )}
                   style={{
                     top: `${startPosition * 100}%`,
                     height: `${hoursDifference * 100}%`,
+                  }}
+                  onClick={() => {
+                    if (isClickable) {
+                      setEventoSeleccionado(event);
+                      setIsReunionModalOpen(true);
+                    }
                   }}
                 >
                   {event.type && (
@@ -279,26 +337,29 @@ const EventGroup = ({
                         getTipoColor(event.type)
                       )}
                     >
-                      {isDeadline && "⏰ "}{event.type}
+                      {isDeadline && "⏰ "}
+                      {event.type}
                     </span>
                   )}
-  
+
                   <strong className="font-medium text-xs truncate">
                     {event.title}
                   </strong>
 
-                  {event.description && tipoVista != "Semana" && tipoUsuario == "Alumno" && (
-                    <p className="text-xs opacity-80 truncate">
-                      {event.description}
-                    </p>
-                  )}
+                  {event.description &&
+                    tipoVista !== "Semana" &&
+                    tipoUsuario === "Alumno" && (
+                      <p className="text-xs opacity-80 truncate">
+                        {event.description}
+                      </p>
+                    )}
 
-                  {event.tesista != "X" && (
+                  {event.tesista !== "X" && (
                     <p className="text-xs opacity-80 truncate">
                       Tsta.: {event.tesista}
                     </p>
                   )}
-  
+
                   {!isDeadline ? (
                     <p className="text-xs opacity-80 truncate">
                       {`${format(event.start!, "HH:mm")} - ${format(event.end, "HH:mm")}`}
@@ -314,10 +375,25 @@ const EventGroup = ({
           </div>
         );
       })}
+
+      {eventoSeleccionado && (
+        <EditarReunionModal
+          isOpen={isReunionModalOpen}
+          onClose={() => {
+            setIsReunionModalOpen(false);
+            setEventoSeleccionado(null);
+          }}
+          onSubmit={async (_reunion) => {
+            setIsReunionModalOpen(false);
+            setEventoSeleccionado(null);
+          }}
+          evento={eventoSeleccionado}
+        />
+      )}
     </div>
   );
-  
 };
+
 
 
 
