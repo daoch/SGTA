@@ -14,67 +14,8 @@ import {
     XAxis,
     YAxis,
 } from "recharts"
+import { EtapaFormativaSimple, AcademicAnalysisProps, ChartDeliverable, Deliverable, DeliverableCriteria } from "../../types/Entregable.type"
 
-export interface StudentData {
-  name: string;
-  currentStage: string;
-  totalStages: number;
-}
-
-export interface DeliverableCriteria {
-  name: string;
-  grade: number;
-}
-
-export interface Deliverable {
-  id: string;
-  name: string;
-  date: string;
-  criteria: DeliverableCriteria[];
-  expositionGrade: number;
-  finalGrade: number;
-}
-
-export interface Stage {
-  id: string;
-  name: string;
-  period: string;
-  deliverables: Deliverable[];
-}
-
-export interface GradesData {
-  stages: Stage[];
-}
-
-export interface AcademicAnalysisProps {
-  studentData: StudentData;
-  gradesData: GradesData;
-}
-
-interface ChartDeliverable {
-  name: string
-  entregableNumber: number
-  date: string
-  notaFinal: number
-  notaExposicion: number
-  stage: string
-  criterios: DeliverableCriteria[]
-  globalIndex: number
-}
-
-interface Stats {
-  average: number
-  trend: "stable" | "improving" | "declining"
-  lastGrade: number
-  lastDeliverable: string
-}
-
-// Interface simple para etapas formativas
-interface EtapaFormativaSimple {
-  id: number;
-  etapaFormativaNombre: string;
-  cicloNombre: string;
-}
 
 // Datos hardcodeados de etapas formativas
 const etapasFormativasHardcodeadas: EtapaFormativaSimple[] = [

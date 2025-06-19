@@ -24,8 +24,8 @@ import { getEntregablesAlumno, getEntregablesAlumnoSeleccionado, getEntregablesC
 import { addDays, format, isBefore, parseISO } from "date-fns";
 import { Eye } from "lucide-react";
 import { useEffect, useState } from "react";
-import { AnalisisAcademico, GradesData, StudentData } from "./analisis-academico";
-import type { EntregableCriteriosDetalle } from "@/features/reportes/types/Entregable.type";
+import { AnalisisAcademico } from "./analisis-academico";
+import type { EntregableCriteriosDetalle, GradesData, StudentData } from "@/features/reportes/types/Entregable.type";
 
 // Convierte "no_iniciado" → "No Iniciado", etc.
 const humanize = (raw: string) =>

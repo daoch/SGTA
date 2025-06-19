@@ -2,9 +2,8 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-//import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/features/auth/hooks/use-auth";
-import { AlertCircle, ArrowLeft, Check, Clock, User } from "lucide-react";
+import {  ArrowLeft, Check, Clock, User } from "lucide-react";
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
 

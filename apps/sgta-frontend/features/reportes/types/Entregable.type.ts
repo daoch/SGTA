@@ -15,3 +15,57 @@ export interface EntregableCriteriosDetalle {
     etapaFormativaXCicloId: number | null;
     esEvaluable: boolean | null;
 } 
+
+export interface StudentData {
+  name: string;
+  currentStage: string;
+  totalStages: number;
+}
+
+export interface DeliverableCriteria {
+  name: string;
+  grade: number;
+}
+
+export interface Deliverable {
+  id: string;
+  name: string;
+  date: string;
+  criteria: DeliverableCriteria[];
+  expositionGrade: number;
+  finalGrade: number;
+}
+
+export interface Stage {
+  id: string;
+  name: string;
+  period: string;
+  deliverables: Deliverable[];
+}
+
+export interface GradesData {
+  stages: Stage[];
+}
+
+export interface AcademicAnalysisProps {
+  studentData: StudentData;
+  gradesData: GradesData;
+}
+
+export interface ChartDeliverable {
+  name: string
+  entregableNumber: number
+  date: string
+  notaFinal: number
+  notaExposicion: number
+  stage: string
+  criterios: DeliverableCriteria[]
+  globalIndex: number
+}
+
+// Interface simple para etapas formativas
+export interface EtapaFormativaSimple {
+  id: number;
+  etapaFormativaNombre: string;
+  cicloNombre: string;
+}
