@@ -467,6 +467,20 @@ public class SolicitudAsesorServiceImpl implements SolicitudAsesorService {
         log.info("Relación UsuarioXTema para nuevo asesor ID {} y tema ID {} creada/actualizada a activa.",
                 asesorQueAcepta.getId(), temaAReasignar.getId());
 
+        // Actualizar relaciones de usuarioXsolicitud, desactivar al asesor Actual y colocar al asesor Entrada como Actual
+        usAsesorActual.setActivo(false);
+        usAsesorActual.setFechaModificacion(OffsetDateTime.now());
+        usuarioXSolicitudRepository.save(usAsesorActual);
+        log.info("Relación UsuarioXSolicitud ID {} (Asesor Actual ID {}, Solicitud ID {}) marcada como inactiva.",
+                usAsesorActual.getId(), asesorOriginalQueCeso.getId(), solicitudOriginalId);
+
+        usAsesorEntrada.setRolSolicitud(rolAsesorActual);
+        usAsesorEntrada.setActivo(true);
+        usAsesorEntrada.setFechaModificacion(OffsetDateTime.now());
+        usuarioXSolicitudRepository.save(usAsesorEntrada);
+        log.info("Relación UsuarioXSolicitud ID {} actualizada a Asesor Actual (ID: {}).",
+                usAsesorEntrada.getId(), asesorQueAcepta.getId());
+
         // 5. Actualizar la solicitud original
         EstadoSolicitud estadoAceptada = estadoSolicitudRepository.findByNombre("ACEPTADA")
                 .orElseThrow(() -> new ResourceNotFoundException("Estado 'ACEPTADA' no encontrado."));
