@@ -11,7 +11,9 @@ import { Asesor } from "../types/perfil/entidades";
 
 export interface InformacionTesisResponse {
   temaActual: TemaActual;
-  asesorActual: Asesor;
+  asesores: Asesor[];
+  roles: string[];
+  idCreador: number;
 }
 
 export async function getDetalleSolicitudCambioAsesor(
@@ -92,6 +94,7 @@ export async function getInformacionTesisPorAlumno(
     const response = await axiosInstance.get(
       `/temas/listarTemaActivoConAsesor/${idAlumno}`,
     );
+    console.log("Respuesta de información de tesis:", response.data);
     return response.data as InformacionTesisResponse;
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
@@ -194,15 +197,18 @@ export async function rechazarSolicitud(
 
 export async function aceptarSolicitudPorAsesor(
   idSolicitud: number,
+  rol: string,
   comentario: string,
 ): Promise<SolicitudCambioAsesorResumen[]> {
   try {
+    console.log("estado enviado:", rol);
     const response = await axiosInstance.patch(
       "/solicitudes/aprobarSolicitudCambioAsesorAsesor",
       null,
       {
         params: {
           idSolicitud,
+          rol,
           comentario,
         },
       },
@@ -221,6 +227,7 @@ export async function aceptarSolicitudPorAsesor(
 
 export async function rechazarSolicitudPorAsesor(
   idSolicitud: number,
+  rol: string,
   comentario: string,
 ): Promise<SolicitudCambioAsesorResumen[]> {
   try {
@@ -230,6 +237,7 @@ export async function rechazarSolicitudPorAsesor(
       {
         params: {
           idSolicitud,
+          rol,
           comentario,
         },
       },

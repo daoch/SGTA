@@ -21,21 +21,24 @@ export function ItemCopiable({ valor, nombre }: Props) {
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 flex-wrap min-w-0">
       <a
         href={
           nombre.toLowerCase().includes("correo")
             ? `mailto:${valor}`
             : undefined
         }
-        className="text-blue-600 hover:underline truncate"
+        className="text-blue-600 hover:underline break-all truncate text-sm flex-1 min-w-0"
+        title={valor}
       >
         {valor}
       </a>
-      <Button size="icon" variant="ghost" onClick={copiar}>
+      <Button size="icon" variant="ghost" onClick={copiar} className="shrink-0">
         <Copy className="h-4 w-4" />
       </Button>
-      {copiado && <span className="text-sm text-green-500">¡Copiado!</span>}
+      {copiado && (
+        <span className="text-sm text-green-500 shrink-0">¡Copiado!</span>
+      )}
     </div>
   );
 }
