@@ -4,6 +4,7 @@ import pucp.edu.pe.sgta.model.EstadoSolicitud;
 import pucp.edu.pe.sgta.model.Solicitud;
 import pucp.edu.pe.sgta.model.Tema;
 import pucp.edu.pe.sgta.model.TipoSolicitud;
+import pucp.edu.pe.sgta.model.Usuario;
 
 import java.util.List;
 import java.util.Optional;
@@ -113,5 +114,12 @@ public interface SolicitudRepository extends JpaRepository<Solicitud, Integer>, 
                                                   @Param("idTema") Integer idTema,
                                                   @Param("idCreador") Integer idCreador);
 
+
+    // Para buscar las invitaciones pendientes para un asesor (usado para la lista del Asesor B)
+    Page<Solicitud> findByEstadoSolicitudAndIdInAndActivoTrue(
+            EstadoSolicitud estadoSolicitud,
+            List<Integer> solicitudIds,
+            Pageable activo
+    );
 }
 

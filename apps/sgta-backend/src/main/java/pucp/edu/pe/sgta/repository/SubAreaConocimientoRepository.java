@@ -15,4 +15,6 @@ public interface SubAreaConocimientoRepository extends JpaRepository<SubAreaCono
     List<SubAreaConocimiento> findByNombreContainingIgnoreCaseAndActivoIsTrue(String nombre);
     @Query(value = "select * from listar_sub_areas_conocimiento_perfil_por_usuario(:usuarioId)", nativeQuery = true)
     List<Object[]> listarParaPerfilPorUsuarioId(@Param("usuarioId") Integer usuarioId);
+    List<SubAreaConocimiento> findAllById(Iterable<Integer> ids);
+
 }

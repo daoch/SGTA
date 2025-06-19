@@ -160,4 +160,8 @@ public interface RevisionDocumentoRepository extends JpaRepository<RevisionDocum
 
     @Query(value = "SELECT * FROM obtener_alumnos_por_revision(:revision_id)", nativeQuery = true)
     List<Object[]> getStudentsByRevisor(@Param("revision_id") Integer revision_id);
+
+    Optional<RevisionDocumento>
+    findTopByVersionDocumento_IdOrderByFechaCreacionDesc(Integer versionDocumentoId);
+
 }

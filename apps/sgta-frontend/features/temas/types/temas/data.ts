@@ -169,13 +169,14 @@ export async function buscarTema(idTema: number) {
   }
 }
 
-export async function obtenerObservacionesTema(idTema: number) {
+export async function obtenerObservacionesTema() {
   try {
     const response = await fetch(
-      `${baseUrl}/solicitudes/listSolicitudesByTema/${idTema}`,
+      `${baseUrl}/temas/listarSolicitudesPendientesTemaAlumnos`,
       {
         method: "GET",
         headers: {
+          Authorization: `Bearer ${idToken}`,
           "Content-Type": "application/json",
         },
       },
@@ -298,6 +299,55 @@ export async function EliminarTema(idTema: number) {
     return true;
   } catch (error) {
     console.error("La página no responde. No se pudo eliminar el tema.", error);
+    throw error;
+  }
+}
+
+export async function editarTema(body: TemaCreateLibre) {
+  try {
+    const res = await fetch(`${baseUrl}/temas/actualizarTemaLibre`, {
+      method: "POST", // Usamos PUT para editar un recurso existente
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    // Verificar si la respuesta fue exitosa antes de intentar parsearla
+    if (!res.ok) {
+      const errorData = await res.json(); // Parsear el mensaje de error si no fue exitoso
+      throw new Error(errorData.message || "Error al editar el tema.");
+    }
+
+    // Parsear la respuesta solo si es exitosa
+    const data = await res.json();
+    return data;
+  } catch (err) {
+    console.error("Error al editar tema:", err);
+    throw new Error("Error al editar el tema.");
+  }
+}
+
+export async function obtenerHistorialTema(idTema: number) {
+  try {
+    const response = await fetch(`${baseUrl}/temas/${idTema}/historial`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Error al obtener el historial del tema.");
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error(
+      "La página no responde. No se pudo obtener el historial.",
+      error,
+    );
     throw error;
   }
 }
