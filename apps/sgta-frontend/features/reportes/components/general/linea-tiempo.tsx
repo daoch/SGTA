@@ -93,6 +93,13 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
   } | null>(null);
   const [isLoadingAcademic, setIsLoadingAcademic] = useState(false);
 
+  // Cambiar automáticamente a "entregas" si se selecciona un estudiante y está en "analisis"
+  useEffect(() => {
+    if (selectedStudentId != null && activeTab === "analisis") {
+      setActiveTab("entregas");
+    }
+  }, [selectedStudentId, activeTab]);
+
   useEffect(() => {
     const fetchEntregables = async () => {
       setIsLoading(true);
@@ -315,7 +322,8 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
         {[
           { key: "entregas", label: "Entregas" },
           { key: "avances", label: "Avances" },
-          { key: "analisis", label: "Análisis Académico" },
+          // Solo mostrar análisis académico si no hay estudiante seleccionado
+          ...(selectedStudentId == null ? [{ key: "analisis", label: "Análisis Académico" }] : []),
         ].map((tab) => (
           <button
             key={tab.key}
