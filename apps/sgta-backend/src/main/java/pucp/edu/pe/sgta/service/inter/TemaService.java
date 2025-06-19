@@ -221,6 +221,21 @@ public interface TemaService {
 	 */
 	Integer createTemaFromOAI(TemaDto temaDto, Integer carreraId);
 
+	/**
+	 * Registra una propuesta de reasignación para una solicitud de cese ya aprobada.
+	 * Actualiza la solicitud original con el asesor propuesto y un estado de reasignación.
+	 * Notifica al asesor propuesto.
+	 *
+	 * @param solicitudDeCeseOriginalId El ID de la Solicitud de cese que fue aprobada.
+	 * @param nuevoAsesorPropuestoId El ID del Usuario (profesor) que se propone como nuevo asesor.
+	 * @param coordinadorCognitoSub El Cognito Sub del coordinador que realiza la propuesta (para auditoría/validación).
+	 */
+	void proponerReasignacionParaSolicitudCese(
+			Integer solicitudDeCeseOriginalId,
+			Integer nuevoAsesorPropuestoId,
+			String coordinadorCognitoSub
+	);
+
 	Tema actualizarTemaYHistorial(Integer temaId,
 								  String nuevoEstadoNombre,
 								  String comentario);
