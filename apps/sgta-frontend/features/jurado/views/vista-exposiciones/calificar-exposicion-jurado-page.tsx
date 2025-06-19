@@ -188,7 +188,7 @@ const CalificarExposicionJuradoPage: React.FC<Props> = ({ id_exposicion }) => {
         // 3. Actualizar la calificación final de la exposición (consolidada de todos los jurados)
         try {
           // Convertir id_exposicion a número si viene como string
-          const exposicionTemaId = typeof id_exposicion === 'string' ? 
+          const exposicionTemaId = typeof id_exposicion === "string" ? 
             parseInt(id_exposicion) : id_exposicion;
             
           const resultadoCalificacionFinalExposicion = await actualizarCalificacionFinalExposicionTema(
