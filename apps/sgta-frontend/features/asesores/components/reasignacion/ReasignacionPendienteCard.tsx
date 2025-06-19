@@ -35,7 +35,7 @@ const ReasignacionPendienteCard: React.FC<ReasignacionPendienteCardProps> = ({
 
   const getEstadoReasignacionVisual = () => {
     switch (reasignacion.estadoReasignacion) {
-      case "PENDIENTE_PROPUESTA_COORDINADOR":
+      case "PREACEPTADA":
         return <Badge variant="destructive" className="text-xs"><AlertCircle className="h-3 w-3 mr-1" />Necesita Proponer Asesor</Badge>;
       case "PENDIENTE_ACEPTACION_ASESOR":
         return <Badge variant="default" className="bg-blue-500 hover:bg-blue-600 text-xs text-white"><Clock className="h-3 w-3 mr-1" />Propuesta Enviada a: {reasignacion.asesorPropuestoNombres} {reasignacion.asesorPropuestoPrimerApellido}</Badge>;
@@ -121,7 +121,7 @@ const ReasignacionPendienteCard: React.FC<ReasignacionPendienteCardProps> = ({
           </Button>
         )} */}
 
-        {(reasignacion.estadoReasignacion === "PENDIENTE_PROPUESTA_COORDINADOR" ||
+        {(reasignacion.estadoReasignacion === "PREACEPTADA" ||
           reasignacion.estadoReasignacion === "REASIGNACION_RECHAZADA_POR_ASESOR") && (
           <Button
             size="sm"

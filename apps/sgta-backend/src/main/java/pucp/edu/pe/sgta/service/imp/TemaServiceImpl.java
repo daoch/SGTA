@@ -3607,7 +3607,7 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 				.orElseThrow(() -> new ResourceNotFoundException("Nuevo asesor propuesto no encontrado con ID: " + nuevoAsesorPropuestoId));
 
 		if (nuevoAsesorPropuesto.getTipoUsuario() == null ||
-				!"Profesor".equalsIgnoreCase(nuevoAsesorPropuesto.getTipoUsuario().getNombre())) {
+				!"profesor".equalsIgnoreCase(nuevoAsesorPropuesto.getTipoUsuario().getNombre())) {
 			throw new IllegalArgumentException("El usuario ID " + nuevoAsesorPropuestoId + " no es un profesor/asesor válido.");
 		}
 
@@ -3628,11 +3628,11 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 		solicitudRepository.save(solicitudDeCese);
 
 		log.info("Solicitud de cese ID {} actualizada. Asesor propuesto: ID {}, Estado reasignación: {}",
-				solicitudDeCeseOriginalId, nuevoAsesorPropuestoId, "PENDIENTE_ACEPTACION_ASESOR");
+				solicitudDeCeseOriginalId, nuevoAsesorPropuestoId, solicitudDeCese.getEstadoSolicitud().getNombre());
 		
 		RolSolicitud rolAsesorNuevo = rolSolicitudRepository
-			.findByNombre("ASESOR_NUEVO")
-			.orElseThrow(() -> new ResourceNotFoundException("Rol de solicitud 'ASESOR_NUEVO' no encontrado."));
+			.findByNombre("ASESOR_ENTRADA")
+			.orElseThrow(() -> new ResourceNotFoundException("Rol de solicitud 'ASESOR_ENTRADA' no encontrado."));
 
 		UsuarioXSolicitud usAsesorNuevo = new UsuarioXSolicitud();
             usAsesorNuevo.setSolicitud(solicitudDeCese);
