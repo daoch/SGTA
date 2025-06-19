@@ -2,46 +2,106 @@
 -- SET search_path TO sgtadb;
 
 -- Active: 1748374313012@@localhost@5432@postgres@sgtadb
-DROP FUNCTION IF EXISTS obtener_etapas_formativas_por_usuario(p_usuario_id INTEGER);
-DROP FUNCTION IF EXISTS listar_exposicion_x_ciclo_actual_etapa_formativa(etapa_id integer);
-DROP FUNCTION IF EXISTS listar_etapa_formativa_x_sala_exposicion(p_etapa_formativa_id integer);
-DROP FUNCTION IF EXISTS listarCiclosOrdenadosPorFecha();
-DROP FUNCTION IF EXISTS listarEtapasFormativasActivas();
-DROP FUNCTION IF EXISTS listar_temas_ciclo_actual_x_etapa_formativa(etapa_id integer, expo_id integer);
-DROP FUNCTION IF EXISTS listar_jornadas_exposicion_salas(expo_id integer);
-DROP FUNCTION IF EXISTS listar_exposiciones_por_coordinador(p_coordinador_id INTEGER);
-DROP FUNCTION IF EXISTS listar_exposiciones_por_coordinador_v2(p_coordinador_id integer);
-DROP FUNCTION IF EXISTS listar_exposiciones_sin_inicializar_cicloactual_por_etapa_formativa(p_etapa_formativa_id integer);
-DROP FUNCTION IF EXISTS listar_bloques_horario_por_exposicion(p_exposicion_id INTEGER);
-DROP FUNCTION IF EXISTS actualizar_exposicon_tema_bloque_exposicion(bloques_json jsonb);
-DROP FUNCTION IF EXISTS obtener_ciclo_etapa_por_tema(p_tema_id integer);
-DROP FUNCTION IF EXISTS obtener_area_conocimiento_jurado(usuario_id_param integer);
-DROP FUNCTION IF EXISTS listar_etapas_formativas_activas_by_coordinador(p_coordinador_id INTEGER);
-DROP FUNCTION IF EXISTS get_etapa_formativa_by_id(p_id_etapa_formativa integer);
-DROP FUNCTION IF EXISTS get_estado_exposicion_by_id_exposicion(id_exposicion integer);
-DROP FUNCTION IF EXISTS actualizar_bloque_exposicion_siguientes_fases(bloques_json jsonb);
-DROP FUNCTION IF EXISTS listar_etapa_formativa_nombre();
-DROP FUNCTION IF EXISTS obtener_usuarios_con_temass();
-DROP FUNCTION IF EXISTS obtener_jurados_por_tema(p_tema_id integer);
-DROP FUNCTION IF EXISTS obtener_exposiciones_por_etapa_formativa_por_tema(p_etapa_formativa_id integer, p_tema_id integer);
-DROP FUNCTION IF EXISTS listar_etapa_formativa_nombre();
-DROP FUNCTION IF EXISTS obtener_carreras_activas_por_usuario(p_usuario_id integer);
-DROP FUNCTION IF EXISTS obtener_etapas_formativas_por_tema_simple(p_tema_id integer);
-DROP FUNCTION IF EXISTS obtener_exposiciones_por_etapa_formativa(p_etapa_formativa_id INTEGER);
-DROP FUNCTION IF EXISTS terminar_planificacion(idexposicion INTEGER);
-DROP FUNCTION IF EXISTS listar_bloque_con_sala(_exposicion_id INTEGER);
-DROP FUNCTION IF EXISTS obtener_exposiciones_por_usuario(p_usuario_id INTEGER);
-DROP FUNCTION IF EXISTS listar_areas_por_tema(_tema_id integer);
-DROP PROCEDURE IF EXISTS intsertar_control_exposcion(idExposicion INT, idEtapaFormativa INT);
-DROP FUNCTION IF EXISTS sala_ocupada_en_rango(p_sala_id INTEGER, p_inicio TIMESTAMPTZ, p_fin TIMESTAMPTZ);
-DROP FUNCTION IF EXISTS obtener_profesores();
-DROP FUNCTION IF EXISTS listar_bloques_con_temas_y_usuarios(p_exposicion_id integer);
-DROP PROCEDURE IF EXISTS update_estado_exposicion_usuario(p_exposicion_id INTEGER, p_tema_id INTEGER);
-DROP FUNCTION IF EXISTS obtener_id_carrera_por_id_expo(idexpo INTEGER);
-DROP PROCEDURE IF EXISTS llenar_exposicion_x_tema(idexpo INTEGER);
-DROP FUNCTION IF EXISTS obtener_miembros_jurado_x_exposicion_tema(p_exposicion_x_tema_id INTEGER);
-DROP FUNCTION IF EXISTS obtener_carrera_alumno(p_usuario_id INTEGER);
-DROP PROCEDURE IF EXISTS insertar_revision_criterio_exposicion_por_jurado_id_por_tema_id(p_tema_id INTEGER, p_miembro_jurado_id INTEGER);
+DROP FUNCTION IF EXISTS obtener_etapas_formativas_por_usuario (p_usuario_id INTEGER);
+
+DROP FUNCTION IF EXISTS listar_exposicion_x_ciclo_actual_etapa_formativa (etapa_id integer);
+
+DROP FUNCTION IF EXISTS listar_etapa_formativa_x_sala_exposicion (p_etapa_formativa_id integer);
+
+DROP FUNCTION IF EXISTS listarCiclosOrdenadosPorFecha ();
+
+DROP FUNCTION IF EXISTS listarEtapasFormativasActivas ();
+
+DROP FUNCTION IF EXISTS listar_temas_ciclo_actual_x_etapa_formativa (
+    etapa_id integer,
+    expo_id integer
+);
+
+DROP FUNCTION IF EXISTS listar_jornadas_exposicion_salas (expo_id integer);
+
+DROP FUNCTION IF EXISTS listar_exposiciones_por_coordinador (p_coordinador_id INTEGER);
+
+DROP FUNCTION IF EXISTS listar_exposiciones_por_coordinador_v2 (p_coordinador_id integer);
+
+DROP FUNCTION IF EXISTS listar_exposiciones_sin_inicializar_cicloactual_por_etapa_formativa (p_etapa_formativa_id integer);
+
+DROP FUNCTION IF EXISTS listar_bloques_horario_por_exposicion (p_exposicion_id INTEGER);
+
+DROP FUNCTION IF EXISTS actualizar_exposicon_tema_bloque_exposicion (bloques_json jsonb);
+
+DROP FUNCTION IF EXISTS obtener_ciclo_etapa_por_tema (p_tema_id integer);
+
+DROP FUNCTION IF EXISTS obtener_area_conocimiento_jurado (usuario_id_param integer);
+
+DROP FUNCTION IF EXISTS listar_etapas_formativas_activas_by_coordinador (p_coordinador_id INTEGER);
+
+DROP FUNCTION IF EXISTS get_etapa_formativa_by_id (p_id_etapa_formativa integer);
+
+DROP FUNCTION IF EXISTS get_estado_exposicion_by_id_exposicion (id_exposicion integer);
+
+DROP FUNCTION IF EXISTS actualizar_bloque_exposicion_siguientes_fases (bloques_json jsonb);
+
+DROP FUNCTION IF EXISTS listar_etapa_formativa_nombre ();
+
+DROP FUNCTION IF EXISTS obtener_usuarios_con_temass ();
+
+DROP FUNCTION IF EXISTS obtener_jurados_por_tema (p_tema_id integer);
+
+DROP FUNCTION IF EXISTS obtener_exposiciones_por_etapa_formativa_por_tema (
+    p_etapa_formativa_id integer,
+    p_tema_id integer
+);
+
+DROP FUNCTION IF EXISTS listar_etapa_formativa_nombre ();
+
+DROP FUNCTION IF EXISTS obtener_carreras_activas_por_usuario (p_usuario_id integer);
+
+DROP FUNCTION IF EXISTS obtener_etapas_formativas_por_tema_simple (p_tema_id integer);
+
+DROP FUNCTION IF EXISTS obtener_exposiciones_por_etapa_formativa (p_etapa_formativa_id INTEGER);
+
+DROP FUNCTION IF EXISTS terminar_planificacion (idexposicion INTEGER);
+
+DROP FUNCTION IF EXISTS listar_bloque_con_sala (_exposicion_id INTEGER);
+
+DROP FUNCTION IF EXISTS obtener_exposiciones_por_usuario (p_usuario_id INTEGER);
+
+DROP FUNCTION IF EXISTS listar_areas_por_tema (_tema_id integer);
+
+DROP PROCEDURE IF EXISTS intsertar_control_exposcion (
+    idExposicion INT,
+    idEtapaFormativa INT
+);
+
+DROP FUNCTION IF EXISTS sala_ocupada_en_rango (
+    p_sala_id INTEGER,
+    p_inicio TIMESTAMPTZ,
+    p_fin TIMESTAMPTZ
+);
+
+DROP FUNCTION IF EXISTS obtener_profesores ();
+
+DROP FUNCTION IF EXISTS listar_bloques_con_temas_y_usuarios (p_exposicion_id integer);
+
+DROP PROCEDURE IF EXISTS update_estado_exposicion_usuario (
+    p_exposicion_id INTEGER,
+    p_tema_id INTEGER
+);
+
+DROP FUNCTION IF EXISTS obtener_id_carrera_por_id_expo (idexpo INTEGER);
+
+DROP PROCEDURE IF EXISTS llenar_exposicion_x_tema (idexpo INTEGER);
+
+DROP FUNCTION IF EXISTS obtener_miembros_jurado_x_exposicion_tema (
+    p_exposicion_x_tema_id INTEGER
+);
+
+DROP FUNCTION IF EXISTS obtener_carrera_alumno (p_usuario_id INTEGER);
+
+DROP PROCEDURE IF EXISTS insertar_revision_criterio_exposicion_por_jurado_id_por_tema_id (
+    p_tema_id INTEGER,
+    p_miembro_jurado_id INTEGER
+);
 
 CREATE OR REPLACE FUNCTION obtener_etapas_formativas_por_usuario(p_usuario_id INTEGER)
 RETURNS TABLE (
@@ -1009,7 +1069,8 @@ RETURNS TABLE(
 	titulo text,
 	etapa_formativa text,
 	ciclo text,
-    tipo_exposicion_nombre text
+    tipo_exposicion_nombre text,
+    nota_final numeric(6,2)
 ) AS $$
 BEGIN 
 RETURN QUERY
@@ -1025,7 +1086,8 @@ SELECT
 	tema.titulo::text,
 	ef.nombre AS etapa_formativa,
 	ciclo.nombre::text,
-    e.nombre::text AS tipo_exposicion_nombre
+    e.nombre::text AS tipo_exposicion_nombre,
+    ext.nota_final
 FROM
 	usuario_tema ut
 	JOIN exposicion_x_tema ext ON ext.tema_id = ut.tema_id
@@ -1408,4 +1470,3 @@ BEGIN
     END LOOP;
 END
 $$;
-

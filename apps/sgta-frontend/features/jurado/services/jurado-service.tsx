@@ -581,6 +581,7 @@ export const getCalificacionesJuradoByExposicionTemaId = async (
       observaciones_finales: item.observaciones_finales,
       criterios: item.criterios,
       calificado: item.calificado,
+      calificacion_final: item.calificacion_final,
     }));
   } catch (error) {
     console.error(
