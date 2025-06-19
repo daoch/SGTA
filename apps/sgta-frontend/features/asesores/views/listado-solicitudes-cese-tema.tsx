@@ -291,25 +291,9 @@ export default function ListadoSolicitudesCeseTema({
     let filtradas = solicitudes;
 
     if (status !== "all") {
-      if (status === "pending") {
-        filtradas = filtradas.filter(
-          (solicitud) => solicitud.estadoGlobal === "PENDIENTE",
-        );
-      } else if (status === "answered") {
-        filtradas = filtradas.filter(
-          (solicitud) =>
-            solicitud.estadoGlobal === "ACEPTADA" ||
-            solicitud.estadoGlobal === "RECHAZADA",
-        );
-      } else if (status === "approved") {
-        filtradas = filtradas.filter(
-          (solicitud) => solicitud.estadoGlobal === "ACEPTADA",
-        );
-      } else if (status === "rejected") {
-        filtradas = filtradas.filter(
-          (solicitud) => solicitud.estadoGlobal === "RECHAZADA",
-        );
-      }
+      filtradas = filtradas.filter(
+        (solicitud) => getEstado(solicitud.estadoGlobal) === status,
+      );
     }
 
     if (busqueda) {
@@ -339,13 +323,14 @@ export default function ListadoSolicitudesCeseTema({
           </Badge>
         );
       case "ACEPTADA":
+      case "ACEPTACION_AUTOMATICA":
         return (
           <Badge
             variant="secondary"
             className="bg-green-100 text-green-800 border-green-200"
           >
             <Check className="w-3 h-3 mr-1" />
-            Aceptada
+            Aprobada
           </Badge>
         );
       case "RECHAZADA":
