@@ -12,6 +12,8 @@ import pucp.edu.pe.sgta.dto.TopicTrendDTO;
 import pucp.edu.pe.sgta.dto.TesistasPorAsesorDTO;
 import pucp.edu.pe.sgta.dto.EntregableEstudianteDto;
 import pucp.edu.pe.sgta.dto.EntregableCriteriosDetalleDto;
+import pucp.edu.pe.sgta.dto.RevisionDocumentoDto;
+
 
 /**
  * Interfaz para servicios de reportes.
@@ -83,6 +85,9 @@ public interface IReportService {
      * Entregables con criterios de un estudiante.
      */
     List<EntregableCriteriosDetalleDto> getEntregablesConCriterios(Integer idUsuario);
+
+    RevisionDocumentoDto getEstadoRevisionPorEntregable(Integer entregableXTemaId);
+
 
 }
 

@@ -1748,6 +1748,11 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .orElseThrow(() -> new RuntimeException(onErrorMsg));
     }
 
+    public Usuario buscarUsuarioPorCognito(String idCognito, String onErrorMsg){
+        Integer idUsuario = obtenerIdUsuarioPorCognito(idCognito);
+        return buscarUsuarioPorId(idUsuario, onErrorMsg);
+    }
+
     public List<InfoAreaConocimientoDto> listarInfoAreaConocimientoParaPerfilPorUsuario(Integer usuarioId){
         List<Object[]> queryResult = areaConocimientoRepository.listarParaPerfilPorUsuarioId(usuarioId);
         List<InfoAreaConocimientoDto> dtos = new ArrayList<>();

@@ -16,6 +16,7 @@ public class VersionDocumentoDto {
     private Integer id;
     private Documento documento;
     private Integer revisionDocumentoId;
+    private String estadoRevision;
     private OffsetDateTime fechaUltimaSubida;
     private Integer numeroVersion;
     private String linkArchivoSubido;

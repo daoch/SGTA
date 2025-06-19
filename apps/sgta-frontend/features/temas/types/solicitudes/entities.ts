@@ -74,6 +74,13 @@ export type RolSolicitud = "DESTINATARIO" | "REMITENTE";
 
 export type SolicitudState = "PENDIENTE" | "RECHAZADA" | "ACEPTADA";
 
+export enum SolicitudType {
+  APROBACION_TEMA = "Aprobación de tema (por coordinador)",
+  CAMBIO_TITULO = "Solicitud de cambio de título",
+  CAMBIO_RESUMEN = "Solicitud de cambio de resumen",
+  CESE_ASESORIA = "Cese de asesoria (por alumno)",
+}
+
 export interface User {
   usuario_solicitud_id: number;
   usuario_id: number;

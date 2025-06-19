@@ -55,4 +55,5 @@ export type ExposicionAlumno = {
   ciclo: string;
   miembrosJurado: Miembro[];
   tipoExposicion: string;
+  notaFinal: number;
 };
